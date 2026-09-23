@@ -3970,17 +3970,17 @@ export const it = {
     encryption_banner_recipient: "Destinatario",
     storage_format_title: "Formato di archiviazione",
     storage_format_description:
-      "Abilita l'archiviazione decentralizzata per memorizzare i tuoi file e contenuti statici nell'Interplanetary Filesystem (IPFS).",
+      "Scegli dove archiviare i tuoi file cifrati e i contenuti statici.",
     storage_format_aster_server: "Server Aster",
-    storage_format_decentralized_ipfs: "Decentralizzato (IPFS)",
+    storage_format_decentralized_ipfs: "IPFS privato",
     storage_format_ipfs_confirm_title: "Passa all'archiviazione IPFS",
     storage_format_ipfs_confirm_description:
       "Sei sicuro di voler passare all'IPFS crittografato end-to-end?",
     ipfs_attachment_storage: "Archiviazione allegati IPFS",
     ipfs_enabled_description:
-      "Gli allegati sono archiviati su archiviazione IPFS decentralizzata",
+      "Gli allegati sono archiviati nello spazio IPFS privato di Aster",
     ipfs_disabled_description:
-      "Archivia gli allegati su IPFS per un'archiviazione decentralizzata e resiliente",
+      "Archivia gli allegati nello spazio IPFS privato di Aster",
     forward_secrecy: "Segretezza in avanti",
     forward_secrecy_disable_title: "Disattivare la forward secrecy?",
     forward_secrecy_disable_message:
@@ -5727,7 +5727,7 @@ export const it = {
       "Invia solo e-mail che possono essere cifrate end-to-end. Se un destinatario non ha una chiave PGP, il messaggio non verrà inviato.",
     info_storage_format_title: "Formato di archiviazione",
     info_storage_format_description:
-      "Aster Server conserva le tue e-mail cifrate sui server di Aster. IPFS distribuisce i tuoi dati su una rete peer-to-peer. In entrambi i casi, solo le tue chiavi possono decifrarli.",
+      "Aster Server conserva le tue e-mail cifrate nell'archiviazione standard di Aster. IPFS privato le conserva in un archivio indirizzato per contenuto che funziona anch'esso sui server di Aster. In entrambi i casi, solo le tue chiavi possono decifrarle.",
     info_block_fonts_title: "Perché bloccare i font remoti?",
     info_block_fonts_description:
       "Le e-mail possono caricare font da server esterni. Il server del mittente vede il tuo IP e quando hai aperto il messaggio, come un pixel di tracciamento.",
@@ -6812,7 +6812,7 @@ export const it = {
     confirm_remove_key:
       "Sei sicuro di voler rimuovere questa chiave di sicurezza?",
     storage_format_ipfs_hint:
-      "IPFS è una rete peer-to-peer che archivia i tuoi file cifrati su molti nodi indipendenti invece di un singolo server: resiliente, resistente alla censura e ancora a zero-access.",
+      "IPFS privato archivia i tuoi file cifrati in base all'hash del contenuto sui server di Aster. Non è collegato alla rete IPFS pubblica e solo le tue chiavi possono decifrare i tuoi file.",
     vault_recovery_title: "Recupera dati cifrati",
     vault_recovery_description:
       "Se hai cambiato di recente la password e non riesci più a vedere i tuoi alias o altri dati cifrati, inserisci qui la tua password precedente per ripristinare l'accesso.",
@@ -9547,7 +9547,7 @@ export const it = {
       "Scegli il piano più adatto a te. Puoi cambiare o annullare in qualsiasi momento.",
     plan_selection_title: "Scegli il tuo piano",
     plan_star_description:
-      "Più spazio, più alias e il tuo primo dominio personalizzato.",
+      "Più spazio, più alias e fino a 5 domini personalizzati.",
     plan_supernova_description:
       "Spazio massimo, tutto illimitato e supporto dedicato.",
     plan_view_full_features: "Visualizza elenco completo funzionalità",

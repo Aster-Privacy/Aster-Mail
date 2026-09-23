@@ -2693,19 +2693,19 @@ export const en: Translations = {
     external_link_warning_disabled: "Links open directly without confirmation",
     ipfs_attachment_storage: "IPFS Attachment Storage",
     ipfs_enabled_description:
-      "Attachments are stored on decentralized IPFS storage",
+      "Attachments are stored in Aster's private IPFS store",
     ipfs_disabled_description:
-      "Store attachments on IPFS for decentralized, resilient storage",
+      "Store attachments in Aster's private IPFS store",
     storage_format_title: "Storage format",
     storage_format_description:
-      "Enable decentralized storage to store your files and static content in the Interplanetary Filesystem (IPFS).",
+      "Choose where your encrypted files and static content are stored.",
     storage_format_aster_server: "Aster Server",
-    storage_format_decentralized_ipfs: "Decentralized (IPFS)",
+    storage_format_decentralized_ipfs: "Private IPFS",
     storage_format_ipfs_confirm_title: "Switch to IPFS storage",
     storage_format_ipfs_confirm_description:
       "Are you sure you want to switch to end-to-end encrypted IPFS?",
     storage_format_ipfs_hint:
-      "IPFS is a peer-to-peer network that stores your encrypted files across many independent nodes instead of a single server: resilient, censorship-resistant, and still zero-access.",
+      "Private IPFS stores your encrypted files by content hash on Aster's own servers. It isn't connected to the public IPFS network, and only your keys can decrypt your files.",
     forward_secrecy: "Forward Secrecy",
     forward_secrecy_disable_title: "Turn off forward secrecy?",
     forward_secrecy_disable_message:
@@ -5485,7 +5485,7 @@ export const en: Translations = {
       "Email subjects normally travel unencrypted, so anyone handling the message can read them. When this is on, an encrypted message leaves with three dots in place of the subject, and the real subject is protected inside the encrypted part. Recipients whose mail app supports protected headers see the real subject. Everyone else sees three dots in their inbox list and finds the subject at the top of the message, so turn this on only if you accept that trade-off.",
     info_storage_format_title: "About Storage Format",
     info_storage_format_description:
-      "Aster Server keeps your encrypted emails on Aster's servers, fast and reliable. IPFS spreads your data across a peer-to-peer network so it's not tied to one place. Either way, only your keys can decrypt it.",
+      "Aster Server keeps your encrypted emails in Aster's standard storage. Private IPFS keeps them in a content-addressed store that also runs on Aster's servers. Either way, only your keys can decrypt them.",
     info_block_fonts_title: "Why Block Remote Fonts?",
     info_block_fonts_description:
       "Emails can load fonts from outside servers. When they load, the sender's server sees your IP and knows you opened the message. Same trick as a tracking pixel, just via fonts.",
@@ -9265,7 +9265,7 @@ export const en: Translations = {
     offer_welcome_subline_journalist:
       "Create your free account, then verify your press credentials to unlock 30% off any paid plan for 12 months.",
     plan_star_description:
-      "More storage, more aliases, and your first custom domain.",
+      "More storage, more aliases, and up to 5 custom domains.",
     plan_nova_description:
       "More storage, custom domains, and unlimited aliases.",
     plan_supernova_description:

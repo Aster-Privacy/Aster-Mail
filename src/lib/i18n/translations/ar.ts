@@ -4033,9 +4033,9 @@ export const ar = {
       "إظهار تحذير قبل فتح الروابط الخارجية في الرسائل",
     external_link_warning_disabled: "تُفتح الروابط مباشرة بدون تأكيد",
     ipfs_attachment_storage: "تخزين المرفقات على IPFS",
-    ipfs_enabled_description: "يتم تخزين المرفقات على تخزين IPFS اللامركزي",
+    ipfs_enabled_description: "تُخزَّن المرفقات في مخزن IPFS الخاص بـ Aster",
     ipfs_disabled_description:
-      "تخزين المرفقات على IPFS للتخزين اللامركزي والمرن",
+      "تخزين المرفقات في مخزن IPFS الخاص بـ Aster",
     forward_secrecy: "السرية الأمامية",
     forward_secrecy_disable_title: "إيقاف السرية التامة للتوجيه؟",
     forward_secrecy_disable_message:
@@ -4711,7 +4711,7 @@ export const ar = {
       "يرسل فقط رسائل يمكن تشفيرها من طرف لطرف. إذا لم يكن للمستلم مفتاح PGP، لن يتم إرسال الرسالة.",
     info_storage_format_title: "تنسيق التخزين",
     info_storage_format_description:
-      "يخزن Aster Server رسائلك المشفرة على خوادم Aster. يوزع IPFS بياناتك على شبكة نظير إلى نظير. في كلتا الحالتين، مفاتيحك فقط يمكنها فك التشفير.",
+      "يحتفظ Aster Server برسائلك المشفرة في التخزين القياسي لدى Aster. ويحتفظ بها IPFS الخاص في مخزن معنون حسب المحتوى يعمل أيضًا على خوادم Aster. وفي الحالتين، لا يمكن فك تشفيرها إلا بمفاتيحك.",
     info_block_fonts_title: "لماذا حجب الخطوط البعيدة؟",
     info_block_fonts_description:
       "يمكن للرسائل تحميل خطوط من خوادم خارجية. عند التحميل يرى خادم المرسل عنوان IP الخاص بك ووقت الفتح، مثل بكسل التتبع.",
@@ -5606,9 +5606,9 @@ export const ar = {
     encryption_banner_recipient: "المستلم",
     storage_format_title: "صيغة التخزين",
     storage_format_description:
-      "فعّل التخزين اللامركزي لتخزين ملفاتك والمحتوى الثابت في نظام الملفات بين الكواكب (IPFS).",
+      "اختر مكان تخزين ملفاتك المشفرة ومحتواك الثابت.",
     storage_format_aster_server: "خادم Aster",
-    storage_format_decentralized_ipfs: "لامركزي (IPFS)",
+    storage_format_decentralized_ipfs: "IPFS خاص",
     storage_format_ipfs_confirm_title: "التبديل إلى تخزين IPFS",
     storage_format_ipfs_confirm_description:
       "هل أنت متأكد أنك تريد التبديل إلى IPFS المشفر من طرف إلى طرف؟",
@@ -6662,7 +6662,7 @@ export const ar = {
     remove_key: "إزالة المفتاح",
     confirm_remove_key: "هل أنت متأكد أنك تريد إزالة مفتاح الأمان هذا؟",
     storage_format_ipfs_hint:
-      "IPFS شبكة نظير-إلى-نظير تحفظ ملفاتك المشفرة عبر عقد مستقلة متعددة بدلًا من خادم واحد: مرنة، مقاومة للرقابة، ولا تزال بنظام الوصول الصفري.",
+      "يخزّن IPFS الخاص ملفاتك المشفرة حسب بصمة محتواها على خوادم Aster نفسها. وهو غير متصل بشبكة IPFS العامة، ولا يمكن فك تشفير ملفاتك إلا بمفاتيحك.",
     vault_recovery_title: "استرداد البيانات المشفرة",
     vault_recovery_description:
       "إن غيّرت كلمة مرورك مؤخرًا ولم تعد ترى أسماءك المستعارة أو بياناتك المشفرة، أدخل كلمة المرور السابقة هنا لاستعادة الوصول.",
@@ -9362,7 +9362,7 @@ export const ar = {
       "راسل hello@astermail.org مع بطاقة صحفية أو صفحة الفريق أو روابط مقالاتك",
     academic_offer_j_step3: "سيظهر رمز خصم 30٪ في الإعدادات ضمن الفوترة",
     plan_star_description:
-      "مساحة تخزين أكبر وأسماء مستعارة أكثر ونطاقك المخصص الأول.",
+      "مساحة تخزين أكبر، وأسماء مستعارة أكثر، وما يصل إلى 5 نطاقات مخصصة.",
     plan_nova_description:
       "مساحة تخزين أكبر ونطاقات مخصصة وأسماء مستعارة غير محدودة.",
     plan_supernova_description: "أقصى مساحة تخزين وكل شيء بلا حدود ودعم مخصص.",

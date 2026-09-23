@@ -3580,8 +3580,8 @@ export const zh_CN = {
     external_link_warning_enabled: "打开邮件中的外部链接前显示警告",
     external_link_warning_disabled: "直接打开链接，无需确认",
     ipfs_attachment_storage: "IPFS 附件存储",
-    ipfs_enabled_description: "附件存储在去中心化的 IPFS 存储上",
-    ipfs_disabled_description: "将附件存储在 IPFS 上以实现去中心化、弹性存储",
+    ipfs_enabled_description: "附件存储在Aster的私有IPFS存储中",
+    ipfs_disabled_description: "将附件存储在Aster的私有IPFS存储中",
     forward_secrecy: "前向保密",
     forward_secrecy_disable_title: "关闭前向保密？",
     forward_secrecy_disable_message:
@@ -4217,7 +4217,7 @@ export const zh_CN = {
       "只发送可以端到端加密的邮件。如果收件人没有PGP密钥，消息将不会发送。",
     info_storage_format_title: "存储格式",
     info_storage_format_description:
-      "Aster服务器将您的加密邮件存储在Aster的服务器上。IPFS将您的数据分散到点对点网络中。无论哪种方式，只有您的密钥才能解密内容。",
+      "Aster服务器将您的加密邮件保存在Aster的标准存储中。私有IPFS将其保存在同样运行于Aster服务器上的内容寻址存储中。无论哪种方式，只有您的密钥才能解密。",
     info_block_fonts_title: "为什么要屏蔽远程字体？",
     info_block_fonts_description:
       "邮件可以从外部服务器加载字体。加载时，发件人的服务器会看到您的IP地址和打开邮件的时间，就像追踪像素一样。",
@@ -5057,9 +5057,9 @@ export const zh_CN = {
     encryption_banner_recipient: "收件人",
     storage_format_title: "存储格式",
     storage_format_description:
-      "启用去中心化存储，将文件和静态内容存储在星际文件系统（IPFS）中。",
+      "选择您的加密文件和静态内容的存储位置。",
     storage_format_aster_server: "Aster 服务器",
-    storage_format_decentralized_ipfs: "去中心化（IPFS）",
+    storage_format_decentralized_ipfs: "私有IPFS",
     storage_format_ipfs_confirm_title: "切换到 IPFS 存储",
     storage_format_ipfs_confirm_description:
       "确定要切换到端到端加密的 IPFS 吗？",
@@ -6794,7 +6794,7 @@ export const zh_CN = {
     key_source_cached: "已缓存",
     key_source_dane: "DANE",
     key_source_unknown: "未知",
-    storage_format_ipfs_hint: "在去中心化的 IPFS 网络上存储文件",
+    storage_format_ipfs_hint: "私有IPFS按内容哈希将您的加密文件存储在Aster自己的服务器上。它不连接公共IPFS网络，只有您的密钥才能解密您的文件。",
     need_help_link: "需要帮助？",
     username_placeholder: "用户名",
     email_label: "邮箱",
@@ -8503,7 +8503,7 @@ export const zh_CN = {
     academic_offer_j_step2:
       "将记者证、编辑部页面或署名文章链接发送至 hello@astermail.org",
     academic_offer_j_step3: "7折优惠码将显示在设置的账单页面中",
-    plan_star_description: "更多存储空间、更多别名，以及您的第一个自定义域名。",
+    plan_star_description: "更多存储空间、更多别名，以及最多5个自定义域名。",
     plan_nova_description: "更多存储空间、自定义域名，以及无限别名。",
     plan_supernova_description: "最大存储空间、无限一切，以及专属支持。",
     plan_duo_description: "两人共享的加密存储空间，只需一份账单。",

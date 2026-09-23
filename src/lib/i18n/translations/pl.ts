@@ -4086,9 +4086,9 @@ export const pl = {
       "Linki otwierają się bezpośrednio bez potwierdzenia",
     ipfs_attachment_storage: "Przechowywanie załączników IPFS",
     ipfs_enabled_description:
-      "Załączniki są przechowywane w zdecentralizowanym magazynie IPFS",
+      "Załączniki są przechowywane w prywatnym magazynie IPFS Aster",
     ipfs_disabled_description:
-      "Przechowuj załączniki w IPFS dla zdecentralizowanego, odpornego magazynu",
+      "Przechowuj załączniki w prywatnym magazynie IPFS Aster",
     forward_secrecy: "Tajemnica przekazywania",
     forward_secrecy_disable_title: "Wyłączyć utajnianie z wyprzedzeniem?",
     forward_secrecy_disable_message:
@@ -4801,7 +4801,7 @@ export const pl = {
       "Wysyła tylko e-maile, które można zaszyfrować end-to-end. Jeśli odbiorca nie ma klucza PGP, wiadomość nie zostanie wysłana.",
     info_storage_format_title: "Format przechowywania",
     info_storage_format_description:
-      "Aster Server przechowuje Twoje zaszyfrowane e-maile na serwerach Aster. IPFS rozprowadza dane w sieci peer-to-peer. W obu przypadkach tylko Twoje klucze mogą odszyfrować treść.",
+      "Aster Server przechowuje Twoje zaszyfrowane e-maile w standardowym magazynie Aster. Prywatny IPFS przechowuje je w magazynie adresowanym treścią, który również działa na serwerach Aster. W obu przypadkach tylko Twoje klucze mogą je odszyfrować.",
     info_block_fonts_title: "Dlaczego blokować zdalne czcionki?",
     info_block_fonts_description:
       "E-maile mogą ładować czcionki z zewnętrznych serwerów. Serwer nadawcy widzi wtedy Twoje IP i kiedy otworzyłeś wiadomość, podobnie jak piksel śledzący.",
@@ -5746,9 +5746,9 @@ export const pl = {
     encryption_banner_recipient: "Odbiorca",
     storage_format_title: "Format przechowywania",
     storage_format_description:
-      "Włącz zdecentralizowane przechowywanie, aby zapisywać pliki i treści statyczne w Interplanetarnym Systemie Plików (IPFS).",
+      "Wybierz, gdzie są przechowywane Twoje zaszyfrowane pliki i treści statyczne.",
     storage_format_aster_server: "Serwer Aster",
-    storage_format_decentralized_ipfs: "Zdecentralizowany (IPFS)",
+    storage_format_decentralized_ipfs: "Prywatny IPFS",
     storage_format_ipfs_confirm_title: "Przełącz na magazyn IPFS",
     storage_format_ipfs_confirm_description:
       "Czy na pewno chcesz przełączyć na szyfrowany end-to-end magazyn IPFS?",
@@ -6919,7 +6919,7 @@ export const pl = {
     remove_key: "Usuń klucz",
     confirm_remove_key: "Czy na pewno chcesz usunąć ten klucz bezpieczeństwa?",
     storage_format_ipfs_hint:
-      "IPFS to sieć peer-to-peer, która przechowuje zaszyfrowane pliki na wielu niezależnych węzłach zamiast na jednym serwerze: odporna, odporna na cenzurę i nadal z zerowym dostępem.",
+      "Prywatny IPFS przechowuje Twoje zaszyfrowane pliki według skrótu ich zawartości na własnych serwerach Aster. Nie jest połączony z publiczną siecią IPFS, a tylko Twoje klucze mogą odszyfrować Twoje pliki.",
     vault_recovery_title: "Odzyskaj zaszyfrowane dane",
     vault_recovery_description:
       "Jeśli niedawno zmieniłeś(-aś) hasło i nie widzisz aliasów ani innych zaszyfrowanych danych, wprowadź poprzednie hasło, aby przywrócić dostęp.",
@@ -9684,7 +9684,7 @@ export const pl = {
     academic_offer_j_step3:
       "Twój kod 30% pojawi się w Ustawieniach, w sekcji Rozliczenia",
     plan_star_description:
-      "Więcej miejsca, więcej aliasów i pierwsza własna domena.",
+      "Więcej miejsca, więcej aliasów i do 5 własnych domen.",
     plan_nova_description:
       "Więcej miejsca, własne domeny i nieograniczone aliasy.",
     plan_supernova_description:

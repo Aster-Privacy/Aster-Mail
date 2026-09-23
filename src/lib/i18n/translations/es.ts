@@ -3923,9 +3923,9 @@ export const es = {
       "Los enlaces se abren directamente sin confirmación",
     ipfs_attachment_storage: "Almacenamiento de adjuntos en IPFS",
     ipfs_enabled_description:
-      "Los adjuntos se almacenan en almacenamiento descentralizado IPFS",
+      "Los adjuntos se guardan en el almacenamiento IPFS privado de Aster",
     ipfs_disabled_description:
-      "Almacenar adjuntos en IPFS para almacenamiento descentralizado y resiliente",
+      "Guardar los adjuntos en el almacenamiento IPFS privado de Aster",
     forward_secrecy: "Secreto perfecto hacia adelante",
     forward_secrecy_disable_title: "¿Desactivar el secreto hacia adelante?",
     forward_secrecy_disable_message:
@@ -4649,7 +4649,7 @@ export const es = {
       "Solo envía correos que puedan cifrarse de extremo a extremo. Si un destinatario no tiene clave PGP, el mensaje no se enviará.",
     info_storage_format_title: "Formato de almacenamiento",
     info_storage_format_description:
-      "Aster Server guarda tus correos cifrados en los servidores de Aster. IPFS distribuye tus datos en una red entre pares. En ambos casos, solo tus claves pueden descifrar el contenido.",
+      "Aster Server guarda tus correos cifrados en el almacenamiento estándar de Aster. IPFS privado los guarda en un almacenamiento direccionado por contenido que también funciona en los servidores de Aster. En ambos casos, solo tus claves pueden descifrarlos.",
     info_block_fonts_title: "¿Por qué bloquear fuentes remotas?",
     info_block_fonts_description:
       "Los correos pueden cargar fuentes desde servidores externos. El servidor del remitente ve tu IP y cuándo abriste el mensaje, igual que un píxel de seguimiento.",
@@ -5600,7 +5600,7 @@ export const es = {
     encryption_banner_recipient: "Destinatario",
     storage_format_title: "Formato de almacenamiento",
     storage_format_aster_server: "Servidor Aster",
-    storage_format_decentralized_ipfs: "Descentralizado (IPFS)",
+    storage_format_decentralized_ipfs: "IPFS privado",
     storage_format_ipfs_confirm_title: "Cambiar a almacenamiento IPFS",
     choose_notification_events: "Elige qué eventos activan las notificaciones",
     quiet_hours_schedule: "Horario",
@@ -6350,7 +6350,7 @@ export const es = {
     encryption_banner_subtitle:
       "Los correos se cifran antes de salir de tu dispositivo. Aster solo almacena texto cifrado ilegible, nunca podemos ver tu correo.",
     storage_format_description:
-      "Habilita el almacenamiento descentralizado para guardar tus archivos y contenido estático en el Sistema de Archivos Interplanetario (IPFS).",
+      "Elige dónde se guardan tus archivos cifrados y tu contenido estático.",
     storage_format_ipfs_confirm_description:
       "¿Estás seguro de que deseas cambiar a IPFS cifrado de extremo a extremo?",
     quiet_hours_schedule_description:
@@ -7456,7 +7456,7 @@ export const es = {
     stop_sync_description: "Detener la sincronización de esta cuenta externa.",
     stop_sync_title: "Detener sincronización",
     storage_format_ipfs_hint:
-      "Almacenado en IPFS para resistencia a la censura.",
+      "IPFS privado guarda tus archivos cifrados según el hash de su contenido en los servidores propios de Aster. No está conectado a la red IPFS pública, y solo tus claves pueden descifrar tus archivos.",
     subscription_activated: "Suscripción activada",
     switch_billing_loss:
       "Cambiar a facturación mensual te costará {{amount}} extra al año.",
@@ -9424,7 +9424,7 @@ export const es = {
     plan_selected: "Seleccionado",
     plan_selection_subtitle: "Comienza gratis o elige un plan premium.",
     plan_selection_title: "Elige tu plan",
-    plan_star_description: "Para usuarios avanzados.",
+    plan_star_description: "Más almacenamiento, más alias y hasta 5 dominios personalizados.",
     plan_supernova_description: "Para equipos y profesionales.",
     plan_view_full_features: "Ver todas las funciones",
     privacy_policy_heading: "Política de privacidad",

@@ -3913,9 +3913,9 @@ export const nl = {
       "Toon waarschuwing voordat externe links in e-mails worden geopend",
     ipfs_attachment_storage: "IPFS-bijlageopslag",
     ipfs_enabled_description:
-      "Bijlagen worden opgeslagen op gedecentraliseerde IPFS-opslag",
+      "Bijlagen worden opgeslagen in de privé-IPFS-opslag van Aster",
     ipfs_disabled_description:
-      "Sla bijlagen op IPFS op voor gedecentraliseerde, veerkrachtige opslag",
+      "Sla bijlagen op in de privé-IPFS-opslag van Aster",
     forward_secrecy: "Forward secrecy",
     forward_secrecy_disable_title: "Forward secrecy uitschakelen?",
     forward_secrecy_disable_message:
@@ -4589,7 +4589,7 @@ export const nl = {
       "Verstuurt alleen e-mails die end-to-end versleuteld kunnen worden. Als een ontvanger geen PGP-sleutel heeft, wordt het bericht niet verzonden.",
     info_storage_format_title: "Over opslagformaat",
     info_storage_format_description:
-      "Aster Server bewaart uw versleutelde e-mails op Asters servers. IPFS verspreidt uw gegevens over een peer-to-peer netwerk. In beide gevallen kunnen alleen uw sleutels de inhoud ontsleutelen.",
+      "Aster Server bewaart uw versleutelde e-mails in de standaardopslag van Aster. Privé-IPFS bewaart ze in inhoudsgeadresseerde opslag die ook op de servers van Aster draait. In beide gevallen kunnen alleen uw sleutels ze ontsleutelen.",
     info_block_fonts_title: "Waarom externe lettertypen blokkeren?",
     info_block_fonts_description:
       "E-mails kunnen lettertypen van externe servers laden. Daarbij ziet de server van de afzender uw IP-adres en wanneer u de e-mail opende, net als een trackingpixel.",
@@ -5506,9 +5506,9 @@ export const nl = {
       "Links worden direct geopend zonder bevestiging",
     storage_format_title: "Opslagformaat",
     storage_format_description:
-      "Schakel gedecentraliseerde opslag in om je bestanden en statische inhoud op te slaan in het Interplanetary Filesystem (IPFS).",
+      "Kies waar uw versleutelde bestanden en statische inhoud worden opgeslagen.",
     storage_format_aster_server: "Aster Server",
-    storage_format_decentralized_ipfs: "Gedecentraliseerd (IPFS)",
+    storage_format_decentralized_ipfs: "Privé-IPFS",
     storage_format_ipfs_confirm_title: "Overschakelen naar IPFS-opslag",
     storage_format_ipfs_confirm_description:
       "Weet je zeker dat je wilt overschakelen naar end-to-end versleuteld IPFS?",
@@ -7462,7 +7462,7 @@ export const nl = {
       "Weet u zeker dat u de synchronisatie wilt stoppen? Nieuwe e-mails worden niet meer gesynchroniseerd.",
     stop_sync_title: "Synchronisatie stoppen",
     storage_format_ipfs_hint:
-      "E-mails worden gedecentraliseerd opgeslagen via IPFS",
+      "Privé-IPFS slaat uw versleutelde bestanden op basis van hun inhoudshash op de eigen servers van Aster op. Het is niet verbonden met het openbare IPFS-netwerk en alleen uw sleutels kunnen uw bestanden ontsleutelen.",
     subscription_activated: "Abonnement geactiveerd",
     switch_billing_loss:
       "Overstappen naar maandelijkse facturering kost je {{amount}} extra per jaar.",
@@ -9439,7 +9439,7 @@ export const nl = {
     academic_offer_j_step3:
       "Je 30%-code verschijnt in Instellingen onder Facturering",
     plan_star_description:
-      "Meer opslag, meer aliassen en je eerste aangepaste domein.",
+      "Meer opslag, meer aliassen en tot 5 aangepaste domeinen.",
     plan_nova_description:
       "Meer opslag, aangepaste domeinen en onbeperkte aliassen.",
     plan_supernova_description:

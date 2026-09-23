@@ -3947,9 +3947,9 @@ export const ja = {
     external_link_warning_disabled: "リンクは確認なしで直接開きます",
     ipfs_attachment_storage: "IPFS添付ファイルストレージ",
     ipfs_enabled_description:
-      "添付ファイルは分散型IPFSストレージに保存されます",
+      "添付ファイルはAsterのプライベートIPFSストアに保存されます",
     ipfs_disabled_description:
-      "分散型で回復力のあるIPFSストレージに添付ファイルを保存します",
+      "添付ファイルをAsterのプライベートIPFSストアに保存",
     forward_secrecy: "前方秘匿性",
     forward_secrecy_disable_title: "前方秘匿性をオフにしますか？",
     forward_secrecy_disable_message:
@@ -4659,7 +4659,7 @@ export const ja = {
       "エンドツーエンドで暗号化できるメールのみ送信します。受信者にPGP鍵がない場合、メッセージは送信されません。",
     info_storage_format_title: "ストレージ形式",
     info_storage_format_description:
-      "Aster Serverは暗号化されたメールをAsterのサーバーに保存します。IPFSはデータをP2Pネットワークに分散します。どちらの場合も、鍵のみが内容を復号できます。",
+      "Aster Serverは、暗号化されたメールをAsterの標準ストレージに保存します。プライベートIPFSは、同じくAsterのサーバー上で動作するコンテンツアドレス型のストアに保存します。どちらの場合も、復号できるのはあなたの鍵だけです。",
     info_block_fonts_title: "リモートフォントをブロックする理由",
     info_block_fonts_description:
       "メールは外部サーバーからフォントを読み込む場合があります。その際、送信者のサーバーはあなたのIPアドレスと開封時刻を取得します。",
@@ -5600,10 +5600,10 @@ export const ja = {
     encryption_banner_you: "あなた",
     encryption_banner_recipient: "受信者",
     storage_format_description:
-      "分散型ストレージを有効にして、ファイルと静的コンテンツをInterPlanetary File System（IPFS）に保存します。",
+      "暗号化されたファイルと静的コンテンツの保存先を選択します。",
     storage_format_title: "ストレージ形式",
     storage_format_aster_server: "Aster サーバー",
-    storage_format_decentralized_ipfs: "分散型 (IPFS)",
+    storage_format_decentralized_ipfs: "プライベートIPFS",
     storage_format_ipfs_confirm_description:
       "エンドツーエンド暗号化のIPFSに切り替えてもよろしいですか？",
     storage_format_ipfs_confirm_title: "IPFSストレージに切り替え",
@@ -7375,7 +7375,7 @@ export const ja = {
       "同期を停止してもよろしいですか？インポート済みのメールは残ります。",
     stop_sync_title: "同期を停止しますか？",
     storage_format_ipfs_hint:
-      "IPFSはピアツーピアネットワークで、暗号化されたファイルを単一のサーバーではなく多くの独立したノードに保存します：耐障害性があり、検閲に強く、ゼロアクセスのままです。",
+      "プライベートIPFSは、暗号化されたファイルをコンテンツのハッシュに基づいてAster自身のサーバーに保存します。公開IPFSネットワークには接続されておらず、ファイルを復号できるのはあなたの鍵だけです。",
     subscription_activated: "サブスクリプションが有効になりました。",
     switch_billing_loss: "月払いに切り替えると年間{{amount}}余分にかかります。",
     sync_15_min: "15分",
@@ -9412,7 +9412,7 @@ export const ja = {
       "記者証・スタッフページ・署名記事のリンクを添えて hello@astermail.org へメール",
     academic_offer_j_step3: "30%オフのコードが設定の「請求」に表示されます",
     plan_star_description:
-      "より多くのストレージ、より多くのエイリアス、最初のカスタムドメイン。",
+      "より多くのストレージ、より多くのエイリアス、最大5つのカスタムドメイン。",
     plan_nova_description:
       "より多くのストレージ、カスタムドメイン、無制限のエイリアス。",
     plan_supernova_description: "最大ストレージ、すべて無制限、専用サポート。",
