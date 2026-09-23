@@ -71,7 +71,6 @@ import {
   remove_thread_entries,
   reindex_ids,
   request_full_rebuild,
-  is_recently_read,
   is_representative_unread,
   index_arrival,
   sync_recent,
@@ -168,10 +167,6 @@ function correct_received_rows(rows: InboxEmail[]): InboxEmail[] {
       return email.is_read === intended
         ? email
         : { ...email, is_read: intended };
-    }
-
-    if (is_recently_read(email.id)) {
-      return email.is_read ? email : { ...email, is_read: true };
     }
 
     return email.is_read && is_representative_unread(email.id)

@@ -25,6 +25,7 @@ import { with_folder_unlock } from "./folder_unlock_retry";
 
 import { get_unlock_token } from "@/services/folder_unlock_store";
 import {
+  ack_flag_intents,
   clear_flag_intents,
   note_flag_intents,
   pick_flag_intents,
@@ -704,6 +705,7 @@ export async function patch_mail_item_metadata(
   }>(`/mail/v1/messages/${item_id}/metadata`, data);
 
   if (result.error) clear_flag_intents([item_id], intent);
+  else ack_flag_intents([item_id], intent);
 
   return result;
 }
@@ -714,15 +716,16 @@ function note_bulk_read_intents(items: BulkPatchMetadataItem[]): void {
   }
 }
 
-function clear_bulk_read_intents(
+function settle_bulk_read_intents(
   items: BulkPatchMetadataItem[],
   failed_ids: Iterable<string>,
 ): void {
   const failed = new Set(failed_ids);
 
   for (const item of items) {
-    if (!failed.has(item.id)) continue;
-    clear_flag_intents([item.id], pick_flag_intents(item));
+    const settle = failed.has(item.id) ? clear_flag_intents : ack_flag_intents;
+
+    settle([item.id], pick_flag_intents(item));
   }
 }
 
@@ -736,12 +739,10 @@ export async function bulk_patch_metadata(
     updated_count: number;
   }>("/mail/v1/messages/bulk/metadata", data);
 
-  if (result.error) {
-    clear_bulk_read_intents(
-      data.items,
-      data.items.map((item) => item.id),
-    );
-  }
+  settle_bulk_read_intents(
+    data.items,
+    result.error ? data.items.map((item) => item.id) : [],
+  );
 
   return result;
 }
@@ -757,9 +758,8 @@ export async function batched_bulk_patch_metadata(
   options?: BatchedBulkOptions,
 ): Promise<BatchedMetadataResult> {
   const { BATCH_LIMITS } = await import("@/constants/batch_config");
-  const { process_batches, batch_retry_after_ms } = await import(
-    "@/services/batch_processor"
-  );
+  const { process_batches, batch_retry_after_ms } =
+    await import("@/services/batch_processor");
   const items_by_id = new Map(items.map((item) => [item.id, item]));
 
   note_bulk_read_intents(items);
@@ -788,7 +788,7 @@ export async function batched_bulk_patch_metadata(
 
   const failed = new Set(result.failed_ids);
 
-  clear_bulk_read_intents(items, failed);
+  settle_bulk_read_intents(items, failed);
 
   return {
     succeeded_ids: [...items_by_id.keys()].filter((id) => !failed.has(id)),
@@ -815,9 +815,8 @@ async function run_batched_operation(
   api_call: (batch: string[]) => Promise<ApiResponse<unknown>>,
   options?: BatchedBulkOptions,
 ): Promise<BatchedBulkResult> {
-  const { process_batches, batch_retry_after_ms } = await import(
-    "@/services/batch_processor"
-  );
+  const { process_batches, batch_retry_after_ms } =
+    await import("@/services/batch_processor");
 
   const result = await process_batches({
     ids,

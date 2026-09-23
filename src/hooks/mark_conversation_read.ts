@@ -29,7 +29,11 @@ import {
   mark_thread_read_entries,
   thread_has_unread_entries,
 } from "@/services/category_index";
-import { clear_read_intent, note_read_intent } from "@/services/read_intent";
+import {
+  ack_flag_intents,
+  clear_read_intent,
+  note_read_intent,
+} from "@/services/read_intent";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -149,6 +153,7 @@ export async function mark_conversation_threads_read(
 
             return;
           }
+          ack_flag_intents(thread_ids, { is_read: true });
           mark_thread_read_entries(token);
         } catch {
           clear_read_intent(thread_ids, true);
@@ -178,6 +183,7 @@ export function mark_conversation_read(
   void mark_thread_read(thread_token)
     .then((result) => {
       if (!result.error) {
+        ack_flag_intents(thread_ids, { is_read: true });
         mark_thread_read_entries(thread_token);
         emit_mail_soft_refresh();
         invalidate_mail_stats();

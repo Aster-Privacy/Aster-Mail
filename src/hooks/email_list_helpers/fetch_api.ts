@@ -94,6 +94,7 @@ export async function fetch_mail_from_api(
       : {}),
   };
 
+  const fetched_at = Date.now();
   const response = await list_mail_items(params);
 
   if (
@@ -206,6 +207,7 @@ export async function fetch_mail_from_api(
 
     let emails = apply_flag_intents(
       mapped.filter((email): email is InboxEmail => email !== null),
+      fetched_at,
     );
 
     if (view === "inbox" && category_index_module) {
@@ -246,7 +248,7 @@ export async function fetch_mail_from_api(
         category_index_module.upsert_entries(
           index_entries,
           index_generation,
-          true,
+          fetched_at,
         );
       }
     }
