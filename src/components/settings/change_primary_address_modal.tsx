@@ -245,6 +245,10 @@ function validate_primary_local_part(local_part: string): {
   return { valid: true };
 }
 
+function is_indeterminate_failure(code?: string): boolean {
+  return code === "TIMEOUT_ERROR" || code === "NETWORK_ERROR";
+}
+
 function routing_form(address: string): string {
   const at = address.lastIndexOf("@");
 
@@ -555,6 +559,18 @@ export function ChangePrimaryAddressModal({
     }
   };
 
+  const settled_new_address = async (): Promise<string | null> => {
+    const settled = await load_primary_address_eligibility();
+    const settled_address = settled.data?.current_address;
+
+    if (!settled_address) return null;
+    if (routing_form(settled_address) !== routing_form(new_address)) return null;
+
+    set_next_change_after(settled.data?.next_change_available_at ?? null);
+
+    return settled_address;
+  };
+
   const handle_confirm = async () => {
     if (code.length !== CODE_LENGTH || busy || code_locked) return;
 
@@ -572,40 +588,43 @@ export function ChangePrimaryAddressModal({
       });
 
       if (response.error || !response.data) {
-        const locked =
-          response.server_code === "RATE_LIMIT_EXCEEDED" ||
-          response.code === "RATE_LIMIT_EXCEEDED";
+        const settled = is_indeterminate_failure(response.code)
+          ? await settled_new_address()
+          : null;
 
-        set_code_locked(locked);
-        set_error(t(confirm_error_key(response.server_code, response.code)));
-        set_busy(false);
+        if (!settled) {
+          const locked =
+            response.server_code === "RATE_LIMIT_EXCEEDED" ||
+            response.code === "RATE_LIMIT_EXCEEDED";
 
-        return;
+          set_code_locked(locked);
+          set_error(t(confirm_error_key(response.server_code, response.code)));
+          set_busy(false);
+
+          return;
+        }
+
+        confirmed_address = settled;
+      } else {
+        confirmed_address = response.data.new_address;
+        set_next_change_after(response.data.next_change_available_at ?? null);
       }
-
-      confirmed_address = response.data.new_address;
-      set_next_change_after(response.data.next_change_available_at ?? null);
     } catch (caught) {
       ignore_error(
         "components/settings/change_primary_address_modal:confirm",
         caught,
       );
 
-      const settled = await load_primary_address_eligibility();
-      const settled_address = settled.data?.current_address;
+      const settled = await settled_new_address();
 
-      if (
-        settled_address &&
-        settled_address.toLowerCase() === new_address.toLowerCase()
-      ) {
-        confirmed_address = settled.data?.current_address ?? new_address;
-        set_next_change_after(settled.data?.next_change_available_at ?? null);
-      } else {
+      if (!settled) {
         set_error(t("settings.address_change_failed"));
         set_busy(false);
 
         return;
       }
+
+      confirmed_address = settled;
     }
 
     set_status(t("settings.address_change_updating_key"));

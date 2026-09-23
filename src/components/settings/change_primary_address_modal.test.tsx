@@ -37,6 +37,7 @@ import {
   resend_primary_address_code,
   check_primary_address_availability,
   confirm_primary_address_change,
+  load_primary_address_eligibility,
   type PrimaryAddressEligibility,
 } from "@/services/api/primary_address";
 import { republish_identity_with_new_address } from "@/services/pgp_uid_service";
@@ -52,6 +53,7 @@ vi.mock("@/services/api/primary_address", () => ({
   resend_primary_address_code: vi.fn(),
   confirm_primary_address_change: vi.fn(),
   check_primary_address_availability: vi.fn(),
+  load_primary_address_eligibility: vi.fn(),
 }));
 
 vi.mock("@/services/pgp_uid_service", () => ({
@@ -165,6 +167,7 @@ const mocked_start = vi.mocked(start_primary_address_change);
 const mocked_resend = vi.mocked(resend_primary_address_code);
 const mocked_confirm = vi.mocked(confirm_primary_address_change);
 const mocked_republish = vi.mocked(republish_identity_with_new_address);
+const mocked_eligibility = vi.mocked(load_primary_address_eligibility);
 const mocked_ensure_aliases = vi.mocked(ensure_aliases_and_domains_loaded);
 const mocked_cached_aliases = vi.mocked(get_cached_aliases);
 const mocked_availability = vi.mocked(check_primary_address_availability);
@@ -746,6 +749,50 @@ describe("ChangePrimaryAddressModal", () => {
     expect(container.textContent).toContain(
       'settings.address_change_done_body:{"email":"old@astermail.org"}',
     );
+  });
+
+  it("treats a lost confirm response as success once the server agrees", async () => {
+    mocked_confirm.mockResolvedValue({
+      error: "timed out",
+      code: "TIMEOUT_ERROR",
+    } as never);
+    mocked_eligibility.mockResolvedValue({
+      data: {
+        ...eligibility_fixture,
+        eligible: false,
+        current_address: "new.name@astermail.org",
+        next_change_available_at: "2028-02-02T00:00:00Z",
+      },
+    } as never);
+
+    await go_to_code();
+    set_input(code_input(), "123456");
+    await click(find_button("settings.address_change_title"));
+    await wait_until(() => on_changed.mock.calls.length === 1);
+
+    expect(mocked_republish).toHaveBeenCalledWith(
+      "new.name@astermail.org",
+      "Old Name",
+    );
+    expect(on_changed).toHaveBeenCalledWith("new.name@astermail.org");
+  });
+
+  it("keeps reporting a failure when the server never applied the change", async () => {
+    mocked_confirm.mockResolvedValue({
+      error: "offline",
+      code: "NETWORK_ERROR",
+    } as never);
+    mocked_eligibility.mockResolvedValue({
+      data: eligibility_fixture,
+    } as never);
+
+    await go_to_code();
+    set_input(code_input(), "123456");
+    await click(find_button("settings.address_change_title"));
+    await wait_until(() => mocked_eligibility.mock.calls.length === 1);
+
+    expect(on_changed).not.toHaveBeenCalled();
+    expect(mocked_republish).not.toHaveBeenCalled();
   });
 
   it("keeps naming the retained address after eligibility refreshes", async () => {
