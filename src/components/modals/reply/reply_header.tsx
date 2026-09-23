@@ -31,6 +31,7 @@ import { RecipientField } from "@/components/compose/compose_shared";
 import { SenderSelector } from "@/components/compose/sender_selector";
 import { use_i18n } from "@/lib/i18n/context";
 import { build_reply_subject } from "@/lib/reply_subject";
+import { resolve_reply_prefix } from "@/lib/reply_defaults";
 
 interface ReplyHeaderProps {
   handle_drag_start: (e: React.MouseEvent) => void;
@@ -257,7 +258,7 @@ export function ReplyHeader({
             <span className="text-sm truncate text-txt-primary" dir="auto">
               {build_reply_subject(
                 original_subject,
-                t("mail.reply_subject_prefix"),
+                resolve_reply_prefix(t("mail.reply_subject_prefix")),
               ) || t("mail.no_subject")}
             </span>
           </div>

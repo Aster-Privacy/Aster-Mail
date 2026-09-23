@@ -37,6 +37,10 @@ import { use_editor } from "@/hooks/use_editor";
 import { MODAL_SIZES } from "@/constants/modal";
 import { build_reply_recipients } from "@/services/mail_actions";
 import { build_reply_subject } from "@/lib/reply_subject";
+import {
+  reply_includes_quoted_by_default,
+  resolve_reply_prefix,
+} from "@/lib/reply_defaults";
 import { SEND_LOCK_STALL_MS } from "@/components/compose/send_lock";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -204,7 +208,9 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     null,
   );
   const [show_quoted, set_show_quoted] = useState(false);
-  const [include_quoted, set_include_quoted] = useState(true);
+  const [include_quoted, set_include_quoted] = useState(
+    reply_includes_quoted_by_default,
+  );
   const [draft_id, set_draft_id_state] = useState<string | null>(null);
   const draft_id_ref = useRef<string | null>(null);
   const draft_version_ref = useRef(1);
@@ -611,7 +617,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     );
     set_attachment_error(null);
     set_show_quoted(false);
-    set_include_quoted(true);
+    set_include_quoted(reply_includes_quoted_by_default());
     set_draft_id(matching_draft?.id ?? null);
     set_draft_version(matching_draft?.version ?? 1);
     set_scheduled_time(null);
@@ -751,7 +757,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
 
       const subject = build_reply_subject(
         original_subject,
-        t("mail.reply_subject_prefix"),
+        resolve_reply_prefix(t("mail.reply_subject_prefix")),
       );
 
       const content: DraftContent = {

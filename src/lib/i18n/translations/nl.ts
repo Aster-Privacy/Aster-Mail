@@ -5570,6 +5570,12 @@ export const nl = {
     compose_default_font_color_picker_label: "Kies een standaardtekstkleur",
     compose_default_font_color_theme: "Standaard van thema",
     compose_default_font_color_reset: "Standaard van thema gebruiken",
+    reply_defaults_title: "Antwoorden",
+    reply_defaults_description: "Kies waarmee een nieuw antwoord begint.",
+    reply_include_quoted: "Geciteerde tekst toevoegen",
+    reply_include_quoted_description: "Elk antwoord begint met het originele bericht geciteerd onder je tekst.",
+    reply_prefix_subject: "Re: aan het onderwerp toevoegen",
+    reply_prefix_subject_description: "Zet Re: voor het originele onderwerp wanneer je antwoordt.",
     change_plan: "Abonnement wijzigen",
     change_plan_description:
       "Upgrade of downgrade je abonnement via het factureringsportaal",

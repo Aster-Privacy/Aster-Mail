@@ -18,14 +18,21 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { PaintBrushIcon, AtSymbolIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowUturnLeftIcon,
+  AtSymbolIcon,
+  PaintBrushIcon,
+} from "@heroicons/react/24/outline";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_register_search_items } from "@/components/settings/search_context";
 import { ColorSwatchPicker } from "@/components/settings/appearance/color_swatch_picker";
 import { DefaultSenderSetting } from "@/components/settings/default_sender_setting";
-import { SelectSetting } from "@/components/settings/behavior_section/shared";
+import {
+  SelectSetting,
+  ToggleSetting,
+} from "@/components/settings/behavior_section/shared";
 import { FONT_SIZE_OPTIONS } from "@/components/compose/compose_toolbar/shared";
 import {
   DEFAULT_COMPOSE_FONT_COLOR,
@@ -40,6 +47,7 @@ export function ComposeSection() {
   const { preferences, update_preference } = use_preferences();
 
   const breadcrumb = `${t("settings.compose")} > ${t("settings.compose_defaults_title")}`;
+  const reply_breadcrumb = `${t("settings.compose")} > ${t("settings.reply_defaults_title")}`;
 
   use_register_search_items("compose", [
     {
@@ -62,6 +70,16 @@ export function ComposeSection() {
       label: t("settings.compose_default_font_color"),
       breadcrumb,
       keywords: ["font color", "text color", "compose", "default color"],
+    },
+    {
+      label: t("settings.reply_include_quoted"),
+      breadcrumb: reply_breadcrumb,
+      keywords: ["reply", "quote", "quoted text", "original message"],
+    },
+    {
+      label: t("settings.reply_prefix_subject"),
+      breadcrumb: reply_breadcrumb,
+      keywords: ["reply", "subject", "prefix", "re"],
     },
   ]);
 
@@ -172,6 +190,44 @@ export function ComposeSection() {
             </button>
           </div>
         </div>
+      </div>
+
+      <div>
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <ArrowUturnLeftIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.reply_defaults_title")}
+          </h3>
+        </div>
+        <p className="text-sm mb-1 text-txt-muted">
+          {t("settings.reply_defaults_description")}
+        </p>
+
+        <ToggleSetting
+          description={t("settings.reply_include_quoted_description")}
+          enabled={preferences.reply_include_quoted}
+          on_toggle={() =>
+            update_preference(
+              "reply_include_quoted",
+              !preferences.reply_include_quoted,
+              true,
+            )
+          }
+          title={t("settings.reply_include_quoted")}
+        />
+
+        <ToggleSetting
+          description={t("settings.reply_prefix_subject_description")}
+          enabled={preferences.reply_prefix_subject}
+          on_toggle={() =>
+            update_preference(
+              "reply_prefix_subject",
+              !preferences.reply_prefix_subject,
+              true,
+            )
+          }
+          title={t("settings.reply_prefix_subject")}
+        />
       </div>
     </div>
   );

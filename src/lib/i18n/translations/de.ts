@@ -5616,6 +5616,12 @@ export const de = {
       "Wählen Sie eine Standardtextfarbe",
     compose_default_font_color_theme: "Designstandard",
     compose_default_font_color_reset: "Designstandard verwenden",
+    reply_defaults_title: "Antworten",
+    reply_defaults_description: "Legen Sie fest, womit eine neue Antwort beginnt.",
+    reply_include_quoted: "Zitierten Text einfügen",
+    reply_include_quoted_description: "Jede Antwort beginnt mit der zitierten Originalnachricht unter Ihrem Text.",
+    reply_prefix_subject: "Aw: zum Betreff hinzufügen",
+    reply_prefix_subject_description: "Stellen Sie Aw: vor den ursprünglichen Betreff, wenn Sie antworten.",
     change_plan: "Tarif wechseln",
     change_plan_description:
       "Upgrade oder Downgrade Ihres Abonnements über das Abrechnungsportal",

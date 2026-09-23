@@ -3346,6 +3346,12 @@ export interface SettingsTranslations {
   compose_default_font_color_picker_label: string;
   compose_default_font_color_theme: string;
   compose_default_font_color_reset: string;
+  reply_defaults_title: string;
+  reply_defaults_description: string;
+  reply_include_quoted: string;
+  reply_include_quoted_description: string;
+  reply_prefix_subject: string;
+  reply_prefix_subject_description: string;
   build_info: string;
   release: string;
   build: string;
