@@ -3969,9 +3969,9 @@ export const de = {
       "Warnung anzeigen, bevor externe Links in E-Mails geöffnet werden",
     ipfs_attachment_storage: "IPFS-Anhangspeicher",
     ipfs_enabled_description:
-      "Anhänge werden auf dezentralem IPFS-Speicher gespeichert",
+      "Anhänge werden im privaten IPFS-Speicher von Aster gespeichert",
     ipfs_disabled_description:
-      "Anhänge auf IPFS für dezentrale, widerstandsfähige Speicherung speichern",
+      "Anhänge im privaten IPFS-Speicher von Aster speichern",
     forward_secrecy: "Vorwärtsgeheimnis",
     forward_secrecy_disable_title: "Forward Secrecy deaktivieren?",
     forward_secrecy_disable_message:
@@ -4621,7 +4621,7 @@ export const de = {
       "Sendet nur E-Mails, die Ende-zu-Ende verschlüsselt werden können. Wenn ein Empfänger keinen PGP-Schlüssel hat, wird die Nachricht nicht gesendet.",
     info_storage_format_title: "Speicherformat",
     info_storage_format_description:
-      "Aster Server speichert Ihre Mails auf Asters Servern, schnell und zuverlässig. IPFS verteilt Ihre Daten auf ein Peer-to-Peer-Netzwerk. In beiden Fällen können nur Ihre Schlüssel die Inhalte entschlüsseln.",
+      "Aster Server speichert Ihre verschlüsselten E-Mails im Standardspeicher von Aster. Privates IPFS speichert sie in einem inhaltsadressierten Speicher, der ebenfalls auf den Servern von Aster läuft. In beiden Fällen können nur Ihre Schlüssel sie entschlüsseln.",
     info_block_fonts_title: "Warum externe Schriften blockieren?",
     info_block_fonts_description:
       "E-Mails können Schriften von externen Servern laden. Dabei sieht der Server des Absenders Ihre IP-Adresse und wann Sie die E-Mail geöffnet haben, ähnlich wie ein Tracking-Pixel.",
@@ -5531,9 +5531,9 @@ export const de = {
       "Links werden ohne Bestätigung direkt geöffnet",
     storage_format_title: "Speicherformat",
     storage_format_description:
-      "Aktivieren Sie dezentralen Speicher, um Ihre Dateien und statischen Inhalte im Interplanetaren Dateisystem (IPFS) zu speichern.",
+      "Wählen Sie, wo Ihre verschlüsselten Dateien und statischen Inhalte gespeichert werden.",
     storage_format_aster_server: "Aster-Server",
-    storage_format_decentralized_ipfs: "Dezentral (IPFS)",
+    storage_format_decentralized_ipfs: "Privates IPFS",
     storage_format_ipfs_confirm_title: "Zu IPFS-Speicher wechseln",
     storage_format_ipfs_confirm_description:
       "Sind Sie sicher, dass Sie zu Ende-zu-Ende-verschlüsseltem IPFS wechseln möchten?",
@@ -7493,7 +7493,7 @@ export const de = {
       "Möchten Sie die Synchronisierung wirklich stoppen? Bereits importierte E-Mails bleiben erhalten.",
     stop_sync_title: "Synchronisierung stoppen?",
     storage_format_ipfs_hint:
-      "IPFS ist ein Peer-to-Peer-Netzwerk, das Ihre verschlüsselten Dateien über viele unabhängige Knoten statt auf einem einzigen Server speichert: widerstandsfähig, zensurresistent und weiterhin Zero-Access.",
+      "Privates IPFS speichert Ihre verschlüsselten Dateien anhand ihres Inhalts-Hashes auf den eigenen Servern von Aster. Es ist nicht mit dem öffentlichen IPFS-Netzwerk verbunden, und nur Ihre Schlüssel können Ihre Dateien entschlüsseln.",
     subscription_activated: "Abonnement aktiviert.",
     switch_billing_loss:
       "Der Wechsel zur monatlichen Abrechnung kostet Sie zusätzlich {{amount}} pro Jahr.",
@@ -9648,7 +9648,7 @@ export const de = {
       "Wählen Sie den Tarif, der zu Ihnen passt. Jederzeit änderbar oder kündbar.",
     plan_selection_title: "Tarif wählen",
     plan_star_description:
-      "Mehr Speicher, mehr Aliase und Ihre erste benutzerdefinierte Domain.",
+      "Mehr Speicher, mehr Aliase und bis zu 5 benutzerdefinierte Domains.",
     plan_supernova_description:
       "Maximaler Speicher, unbegrenzte Möglichkeiten und persönlicher Support.",
     plan_view_full_features: "Vollständige Funktionsliste ansehen",

@@ -3938,9 +3938,9 @@ export const ko = {
       "이메일의 외부 링크를 열기 전에 경고를 표시합니다",
     external_link_warning_disabled: "확인 없이 링크가 바로 열립니다",
     ipfs_attachment_storage: "IPFS 첨부 파일 저장소",
-    ipfs_enabled_description: "첨부 파일이 분산형 IPFS 저장소에 저장됩니다",
+    ipfs_enabled_description: "첨부 파일이 Aster의 비공개 IPFS 저장소에 저장됩니다",
     ipfs_disabled_description:
-      "분산형 복원력 있는 저장소를 위해 IPFS에 첨부 파일을 저장합니다",
+      "첨부 파일을 Aster의 비공개 IPFS 저장소에 저장합니다",
     forward_secrecy: "전방 비밀성",
     forward_secrecy_disable_title: "순방향 비밀성을 끌까요?",
     forward_secrecy_disable_message:
@@ -4620,7 +4620,7 @@ export const ko = {
       "엔드투엔드로 암호화할 수 있는 이메일만 보냅니다. 수신자에게 PGP 키가 없으면 메시지가 전송되지 않습니다.",
     info_storage_format_title: "저장 형식",
     info_storage_format_description:
-      "Aster 서버는 암호화된 이메일을 Aster 서버에 저장합니다. IPFS는 데이터를 P2P 네트워크에 분산합니다. 어느 경우든 키만이 콘텐츠를 복호화할 수 있습니다.",
+      "Aster 서버는 암호화된 이메일을 Aster의 표준 저장소에 보관합니다. 비공개 IPFS는 역시 Aster 서버에서 실행되는 콘텐츠 주소 기반 저장소에 보관합니다. 어느 경우든 사용자의 키로만 복호화할 수 있습니다.",
     info_block_fonts_title: "원격 폰트를 차단하는 이유",
     info_block_fonts_description:
       "이메일은 외부 서버에서 폰트를 로드할 수 있습니다. 로드 시 발신자 서버가 IP 주소와 이메일 열람 시간을 확인합니다.",
@@ -5536,9 +5536,9 @@ export const ko = {
     encryption_banner_recipient: "수신자",
     storage_format_title: "저장 형식",
     storage_format_description:
-      "분산 저장소를 활성화하여 파일과 정적 콘텐츠를 행성간 파일 시스템(IPFS)에 저장합니다.",
+      "암호화된 파일과 정적 콘텐츠를 저장할 위치를 선택하세요.",
     storage_format_aster_server: "Aster 서버",
-    storage_format_decentralized_ipfs: "분산형 (IPFS)",
+    storage_format_decentralized_ipfs: "비공개 IPFS",
     storage_format_ipfs_confirm_title: "IPFS 저장소로 전환",
     storage_format_ipfs_confirm_description:
       "종단간 암호화된 IPFS로 전환하시겠습니까?",
@@ -6610,7 +6610,7 @@ export const ko = {
     remove_key: "키 제거",
     confirm_remove_key: "이 보안 키를 제거하시겠습니까?",
     storage_format_ipfs_hint:
-      "IPFS는 단일 서버 대신 여러 독립 노드에 암호화된 파일을 분산 저장하는 P2P 네트워크입니다. 복원력이 높고 검열에 강하며 여전히 무접근 방식입니다.",
+      "비공개 IPFS는 암호화된 파일을 콘텐츠 해시 기준으로 Aster 자체 서버에 저장합니다. 공개 IPFS 네트워크에 연결되어 있지 않으며, 파일은 사용자의 키로만 복호화할 수 있습니다.",
     vault_recovery_title: "암호화된 데이터 복구",
     vault_recovery_description:
       "최근 비밀번호를 변경한 후 별칭이나 기타 암호화된 데이터를 볼 수 없다면, 이전 비밀번호를 입력하여 접근을 복구하세요.",
@@ -9160,7 +9160,7 @@ export const ko = {
       "기자증, 소속 페이지 또는 기사 링크와 함께 hello@astermail.org 로 메일을 보내세요",
     academic_offer_j_step3: "30% 코드가 설정의 결제 항목에 표시됩니다",
     plan_star_description:
-      "더 많은 저장 공간, 별칭, 사용자 도메인이 필요한 분께.",
+      "더 많은 저장 공간, 더 많은 별칭, 최대 5개의 사용자 지정 도메인.",
     plan_nova_description: "고급 기능과 우선 지원이 필요한 파워 유저를 위해.",
     plan_supernova_description: "팀이나 사업을 위한 무제한 모든 것.",
     plan_duo_description:

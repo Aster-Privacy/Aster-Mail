@@ -3888,9 +3888,9 @@ export const tr = {
       "E-postalardaki harici bağlantıları açmadan önce uyarı göster",
     external_link_warning_disabled: "Bağlantılar onay olmadan doğrudan açılır",
     ipfs_attachment_storage: "IPFS Ek Depolama",
-    ipfs_enabled_description: "Ekler merkeziyetsiz IPFS depolamasında saklanır",
+    ipfs_enabled_description: "Ekler, Aster'in özel IPFS deposunda saklanır",
     ipfs_disabled_description:
-      "Merkeziyetsiz, dayanıklı depolama için ekleri IPFS üzerinde saklayın",
+      "Ekleri Aster'in özel IPFS deposunda saklayın",
     forward_secrecy: "İleri Gizlilik",
     forward_secrecy_disable_title: "İleri gizliliği kapatmak istiyor musunuz?",
     forward_secrecy_disable_message:
@@ -4602,7 +4602,7 @@ export const tr = {
       "Yalnızca uçtan uca şifrelenebilen e-postaları gönderir. Alıcının PGP anahtarı yoksa mesaj gönderilmez.",
     info_storage_format_title: "Depolama Formatı",
     info_storage_format_description:
-      "Aster Server, şifreli e-postalarınızı Aster sunucularında tutar. IPFS, verilerinizi eşten eşe bir ağa dağıtır. Her iki durumda da yalnızca anahtarlarınız içeriği çözebilir.",
+      "Aster Server, şifreli e-postalarınızı Aster'in standart depolamasında tutar. Özel IPFS ise bunları yine Aster sunucularında çalışan, içerik adresli bir depoda tutar. Her iki durumda da şifrelerini yalnızca anahtarlarınız çözebilir.",
     info_block_fonts_title: "Uzak Yazı Tipleri Neden Engellenmeli?",
     info_block_fonts_description:
       "E-postalar dış sunuculardan yazı tipi yükleyebilir. Gönderenin sunucusu IP adresinizi ve mesajı ne zaman açtığınızı görür; izleme pikseli gibi çalışır.",
@@ -5544,7 +5544,7 @@ export const tr = {
     encryption_banner_recipient: "Alıcı",
     storage_format_title: "Depolama formatı",
     storage_format_aster_server: "Aster Sunucusu",
-    storage_format_decentralized_ipfs: "Merkeziyetsiz (IPFS)",
+    storage_format_decentralized_ipfs: "Özel IPFS",
     storage_format_ipfs_confirm_title: "IPFS depolamaya geç",
     choose_notification_events:
       "Hangi etkinliklerin bildirim tetikleyeceğini seçin",
@@ -6537,7 +6537,7 @@ export const tr = {
     storage_addons_description:
       "Daha fazla alana mı ihtiyacınız var? Hesabınız için ek şifreli depolama satın alın.",
     storage_format_description:
-      "Dosya ve statik içeriklerinizi Gezegenlerarası Dosya Sistemi'nde (IPFS) depolamak için merkeziyetsiz depolamayı etkinleştirin.",
+      "Şifreli dosyalarınızın ve statik içeriğinizin nerede saklanacağını seçin.",
     storage_format_ipfs_confirm_description:
       "Uçtan uca şifreli IPFS'ye geçmek istediğinizden emin misiniz?",
     storage_purchase_coming_soon:
@@ -6734,7 +6734,7 @@ export const tr = {
     confirm_remove_key:
       "Bu güvenlik anahtarını kaldırmak istediğinizden emin misiniz?",
     storage_format_ipfs_hint:
-      "IPFS, şifrelenmiş dosyalarınızı tek bir sunucu yerine birçok bağımsız düğümde depolayan eşler arası bir ağdır: dayanıklı, sansüre karşı dirençli ve yine de sıfır erişimli.",
+      "Özel IPFS, şifreli dosyalarınızı içerik özetine göre Aster'in kendi sunucularında saklar. Herkese açık IPFS ağına bağlı değildir ve dosyalarınızın şifresini yalnızca anahtarlarınız çözebilir.",
     vault_recovery_title: "Şifrelenmiş Verileri Kurtar",
     vault_recovery_description:
       "Yakın zamanda şifrenizi değiştirdiyseniz ve artık takma adlarınızı veya diğer şifrelenmiş verilerinizi göremiyorsanız, erişimi geri yüklemek için önceki şifrenizi buraya girin.",
@@ -9412,7 +9412,7 @@ export const tr = {
     academic_offer_j_step3:
       "%30 kodun Ayarlar'da Faturalama bölümünde görünecek",
     plan_star_description:
-      "Daha fazla depolama, daha fazla takma ad ve ilk özel alan adınız.",
+      "Daha fazla depolama, daha fazla takma ad ve en fazla 5 özel alan adı.",
     plan_nova_description:
       "Daha fazla depolama, özel alan adları ve sınırsız takma adlar.",
     plan_supernova_description:
