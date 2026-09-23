@@ -50,7 +50,6 @@ import { BasicsSection } from "@/components/settings/security/basics_section";
 import { VanguardSection } from "@/components/settings/security/vanguard_section";
 import { SessionSection } from "@/components/settings/security/session_section";
 import { TrustedDevicesSection } from "@/components/settings/security/trusted_devices_section";
-import { RecoverOlderDataSection } from "@/components/settings/security/recover_older_data_section";
 import { AccountRecoverySection } from "@/components/settings/security/account_recovery_section";
 import { AccountProtectionScore } from "@/components/settings/security/account_protection_score";
 import { use_security } from "@/components/settings/hooks/use_security";
@@ -209,7 +208,6 @@ export function SecuritySection({
             password_loading: security.password_loading,
             password_success: security.password_success,
             password_unreadable_notice: security.password_unreadable_notice,
-            restore_sent_mail: security.restore_sent_mail,
             set_confirm_password: security.set_confirm_password,
             set_current_password: security.set_current_password,
             set_new_password: security.set_new_password,
@@ -301,8 +299,6 @@ export function SecuritySection({
       />
 
       <AccountRecoverySection />
-
-      <RecoverOlderDataSection />
 
       <div id={SETTINGS_ANCHORS.tracking}>
         <div className="mb-4">

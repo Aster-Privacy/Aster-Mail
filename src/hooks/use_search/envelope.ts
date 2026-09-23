@@ -21,6 +21,7 @@
 
 import type { DecryptedEnvelope } from "@/types/email";
 
+import { vault_identity_key_materials } from "@/services/crypto/identity_key_materials";
 import { reencrypt_mail_item_envelope } from "@/services/api/mail";
 import {
   decrypt_envelope_with_bytes,
@@ -263,9 +264,8 @@ async function open_search_envelope(
       nonce_bytes.length === 12 &&
       (first_byte === 2 || first_byte === 3 || first_byte === 4)
     ) {
-      const { decrypt_mail_envelope } = await import(
-        "@/components/email/shared/decrypt_envelope"
-      );
+      const { decrypt_mail_envelope } =
+        await import("@/components/email/shared/decrypt_envelope");
       const ecies_result = await decrypt_mail_envelope<DecryptedEnvelope>(
         encrypted,
         nonce,
@@ -299,7 +299,7 @@ async function open_search_envelope(
     };
 
     const identity_keys = vault?.identity_key
-      ? [vault.identity_key, ...(vault.previous_keys ?? [])]
+      ? vault_identity_key_materials(vault)
       : [];
     const result = await try_identity_keys(identity_keys);
 
@@ -309,10 +309,9 @@ async function open_search_envelope(
 
     if (refreshed) {
       const tried = new Set(identity_keys);
-      const refreshed_keys = [
-        ...(refreshed.vault.identity_key ? [refreshed.vault.identity_key] : []),
-        ...(refreshed.vault.previous_keys ?? []),
-      ].filter((key) => !tried.has(key));
+      const refreshed_keys = vault_identity_key_materials(
+        refreshed.vault,
+      ).filter((key) => !tried.has(key));
 
       if (refreshed_keys.length > 0) {
         const healed = await try_identity_keys(refreshed_keys);

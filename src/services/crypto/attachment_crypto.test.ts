@@ -21,6 +21,7 @@
 import { describe, it, expect, vi } from "vitest";
 
 vi.mock("./memory_key_store", () => ({
+  get_passphrase_from_memory: vi.fn(() => null),
   get_passphrase_bytes: vi.fn(() => new Uint8Array(32).fill(7)),
   get_vault_from_memory: vi.fn(() => null),
 }));

@@ -1417,6 +1417,15 @@ export const hi = {
       "नए ईमेल की जानकारी पाते रहने के लिए डेस्कटॉप सूचनाएं चालू करें",
     notification_banner_allow: "अनुमति दें",
     notification_banner_no_thanks: "जी नहीं",
+    locked_data_banner_message: "आपका कुछ पुराना एन्क्रिप्टेड डेटा लॉक है।",
+    locked_data_banner_action: "डेटा वापस पाएं",
+    locked_data_banner_dismiss: "खारिज करें",
+    recover_data_title: "डेटा वापस पाएं",
+    recover_data_description: "पासवर्ड बदलने या रीसेट करने से पहले का डेटा अनलॉक करने के लिए, वह पासवर्ड डालें जो आप उस समय इस्तेमाल करते थे।",
+    recover_data_button: "वापस पाएं",
+    recover_data_success: "आपका पुराना डेटा अनलॉक हो गया है।",
+    recover_data_no_match: "इस पासवर्ड से कोई डेटा अनलॉक नहीं हुआ। कोई दूसरा पुराना पासवर्ड आज़माएं।",
+    recover_data_failed: "कुछ डेटा अनलॉक नहीं हो सका। अपना कनेक्शन जांचें और फिर से कोशिश करें।",
     payment_past_due_message:
       "आपका पिछला भुगतान नहीं हो सका। अपना प्लान बनाए रखने के लिए भुगतान का तरीका अपडेट करें।",
     payment_past_due_message_days:
@@ -2320,24 +2329,6 @@ export const hi = {
       "आपका मौजूदा रिकवरी वाक्यांश मान्य रहेगा। आगे से रिकवरी कोड इसकी जगह लेंगे।",
     recovery_email_row_moved_hint:
       "रिकवरी ईमेल सेटिंग अब सुरक्षा > खाता रिकवरी में है",
-    recover_older_data_title: "पुराना डेटा वापस पाएं",
-    recover_older_data_desc:
-      "यह खाता रीसेट किया गया था। अगर आपको रीसेट से पहले इस्तेमाल किया पासवर्ड याद है, तो आपका पुराना एन्क्रिप्टेड डेटा खोलकर वापस लाया जा सकता है।",
-    recover_older_data_button: "पुराना डेटा खोलें",
-    resurrection_old_password: "पुराना पासवर्ड",
-    resurrection_old_password_prompt:
-      "रीसेट से पहले इस्तेमाल किया पासवर्ड डालें",
-    resurrection_success:
-      "आपका पुराना डेटा खुल गया। पहले की मेल और एलियास फिर से सामान्य रूप से खुलते हैं।",
-    resurrection_failed:
-      "इससे पुराना डेटा नहीं खुला। पासवर्ड या वाक्यांश जांचें और फिर कोशिश करें।",
-    discard_older_data_button: "पुराना डेटा हटाएँ",
-    discard_older_data_title: "पुराना डेटा हटाएँ?",
-    discard_older_data_desc:
-      "इससे रीसेट से पहले के मेल और उपनाम खोलने का विकल्प स्थायी रूप से हट जाएगा। इसे पूर्ववत नहीं किया जा सकता।",
-    discard_older_data_success: "पुराना डेटा हटा दिया गया।",
-    discard_older_data_failed:
-      "पुराना डेटा नहीं हटाया जा सका। फिर से कोशिश करें।",
     phrase_wrap_save_failed:
       "आपका रिकवरी वाक्यांश सर्वर पर सहेजा नहीं जा सका। फिर से कोशिश करें।",
     general: "सामान्य",
@@ -2845,23 +2836,6 @@ export const hi = {
     password_changed_signing_out:
       "पासवर्ड बदल गया। आपको साइन आउट किया जा रहा है...",
     password_changed_success: "पासवर्ड बदल गया",
-    vault_recovery_title: "एन्क्रिप्टेड डेटा वापस पाएं",
-    vault_recovery_description:
-      "अगर आपने हाल में पासवर्ड बदला है और आपको अपने एलियास या दूसरा एन्क्रिप्टेड डेटा नहीं दिख रहा, तो पहुंच वापस पाने के लिए यहां अपना पिछला पासवर्ड डालें।",
-    vault_recovery_button: "डेटा वापस पाएं",
-    vault_recovery_modal_description:
-      "वह पासवर्ड डालें जो आपने पिछली बार पासवर्ड बदलने से पहले इस्तेमाल किया था। इससे पुराने पासवर्ड से एन्क्रिप्ट किए डेटा तक पहुंच वापस मिल जाएगी।",
-    vault_recovery_old_password_label: "पिछला पासवर्ड",
-    vault_recovery_old_password_placeholder: "अपना पिछला पासवर्ड डालें",
-    vault_recovery_enter_password: "अपना पिछला पासवर्ड डालें",
-    vault_recovery_success:
-      "डेटा वापस मिल गया। अब आपके एलियास और एन्क्रिप्टेड डेटा दिखने चाहिए।",
-    vault_recovery_failed: "डेटा वापस नहीं मिल सका। फिर से कोशिश करें।",
-    vault_recovery_recovering: "वापस लाया जा रहा है...",
-    vault_recovery_recover_button: "वापस पाएं",
-    vault_recovery_known_aliases_label: "ज्ञात एलियास पते (वैकल्पिक)",
-    vault_recovery_known_aliases_hint:
-      "अगर आपको अपने एलियास पते याद हैं, तो उन्हें वापस पाने में मदद के लिए यहां कॉमा से अलग करके डालें।",
     session_security: "सत्र सुरक्षा",
     browsers_and_devices: "ब्राउज़र और डिवाइस",
     session_privacy_description:
@@ -7832,16 +7806,8 @@ export const hi = {
     stripe_secure_short: "Stripe द्वारा सुरक्षित",
     upgrade_external_accounts_note:
       "अधिक बाहरी खाते कनेक्ट करने के लिए अपग्रेड करें।",
-    restore_sent_mail: "भेजे गए मेल पुनर्स्थापित करें",
-    restore_sent_mail_description: "यदि पासवर्ड बदलने से पहले भेजे गए मेल नहीं खुलते, तो उस समय इस्तेमाल किया गया पासवर्ड दर्ज करें। Aster Mail उन प्रतियों को आपके वर्तमान पासवर्ड से फिर से एन्क्रिप्ट करता है।",
     previous_password: "पिछला पासवर्ड",
-    enter_previous_password: "पिछला पासवर्ड दर्ज करें",
-    restore_sent_mail_running: "भेजे गए मेल की जाँच हो रही है... {{count}} जाँचे गए",
-    restore_sent_mail_result: "{{rewritten}} भेजे गए ईमेल अब आपके वर्तमान पासवर्ड से खुलते हैं। {{unreadable}} को अब भी किसी अन्य पुराने पासवर्ड की ज़रूरत है।",
-    restore_sent_mail_nothing: "हर भेजा गया ईमेल पहले से ही आपके वर्तमान पासवर्ड से खुलता है।",
-    restore_sent_mail_failed: "कुछ भेजे गए मेल अपडेट नहीं हो सके। अपना कनेक्शन जाँचें और फिर से कोशिश करें।",
-    restore_sent_mail_session_expired: "आपके सत्र की कुंजियाँ उपलब्ध नहीं हैं। साइन आउट करें, फिर से साइन इन करें और दोबारा कोशिश करें।",
-    password_change_sent_mail_locked: "आपका पासवर्ड बदल गया। {{count}} भेजे गए ईमेल पुराने पासवर्ड से एन्क्रिप्ट थे और अपडेट नहीं हुए। उन्हें पुनर्स्थापित करने के लिए सेटिंग > सुरक्षा > भेजे गए मेल पुनर्स्थापित करें खोलें।",
+    password_change_sent_mail_locked: "आपका पासवर्ड बदल गया। {{count}} भेजे गए ईमेल पुराने पासवर्ड से एन्क्रिप्ट थे और अपडेट नहीं हुए। उन्हें अनलॉक करने के लिए, अपने इनबॉक्स के ऊपर बैनर में डेटा वापस पाएं चुनें।",
     referral_commission_headline: "अपने दोस्तों के हर भुगतान का {{ percent }}% कमाएं",
     referral_commission_subhead: "अपना लिंक साझा करें। जब कोई दोस्त सदस्यता लेता है, तो जब तक वह सदस्य रहता है, आपको उसके हर भुगतान का हिस्सा मिलता है।",
     referral_step_earn_commission: "जब वे सदस्यता लेते हैं, तो आपको उनके हर भुगतान का {{ percent }}% मिलता है।",

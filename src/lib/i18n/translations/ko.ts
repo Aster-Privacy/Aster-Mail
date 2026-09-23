@@ -1415,6 +1415,15 @@ export const ko = {
     subject_too_long:
       "제목이 998자 제한을 넘습니다. 더 짧은 형태면 발송됩니다.",
     notification_banner_no_thanks: "괜찮습니다",
+    locked_data_banner_message: "이전에 암호화된 데이터 일부가 잠겨 있습니다.",
+    locked_data_banner_action: "데이터 복구",
+    locked_data_banner_dismiss: "닫기",
+    recover_data_title: "데이터 복구",
+    recover_data_description: "비밀번호 변경 또는 재설정 이전의 데이터를 잠금 해제하려면 당시 사용하던 비밀번호를 입력하세요.",
+    recover_data_button: "복구",
+    recover_data_success: "이전 데이터의 잠금이 해제되었습니다.",
+    recover_data_no_match: "이 비밀번호로 잠금 해제된 데이터가 없습니다. 다른 이전 비밀번호를 사용해 보세요.",
+    recover_data_failed: "일부 데이터를 잠금 해제하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
     payment_past_due_message:
       "지난 결제가 처리되지 않았습니다. 요금제를 유지하려면 결제 수단을 업데이트하세요.",
     payment_past_due_message_days:
@@ -3687,22 +3696,6 @@ export const ko = {
       "기존 복구 문구는 계속 유효합니다. 이제는 복구 코드를 사용합니다.",
     recovery_email_row_moved_hint:
       "복구 이메일 설정은 보안 > 계정 복구로 이동했습니다",
-    recover_older_data_title: "이전 데이터 복구",
-    recover_older_data_desc:
-      "이 계정은 재설정되었습니다. 재설정 전에 사용했던 비밀번호를 기억한다면, 이전에 암호화된 데이터를 잠금 해제하여 복원할 수 있습니다.",
-    recover_older_data_button: "이전 데이터 잠금 해제",
-    resurrection_old_password: "이전 비밀번호",
-    resurrection_old_password_prompt:
-      "재설정 전에 사용했던 비밀번호를 입력하세요",
-    resurrection_success:
-      "이전 데이터의 잠금이 해제되었습니다. 예전 메일과 별칭을 다시 정상적으로 열 수 있습니다.",
-    resurrection_failed:
-      "이전 데이터를 잠금 해제하지 못했습니다. 비밀번호나 문구를 확인하고 다시 시도하세요.",
-    discard_older_data_button: "이전 데이터 삭제",
-    discard_older_data_title: "이전 데이터를 삭제할까요?",
-    discard_older_data_desc: "재설정 이전의 메일과 별칭을 잠금 해제할 수 있는 옵션이 영구적으로 제거됩니다. 이 작업은 취소할 수 없습니다.",
-    discard_older_data_success: "이전 데이터를 삭제했습니다.",
-    discard_older_data_failed: "이전 데이터를 삭제하지 못했습니다. 다시 시도하세요.",
     phrase_wrap_save_failed:
       "복구 문구를 서버에 저장하지 못했습니다. 다시 시도하세요.",
     general: "일반",
@@ -4008,16 +4001,8 @@ export const ko = {
       "비밀번호를 변경했습니다. 키를 사용할 수 없어 암호화된 항목 {{count}}개가 이전 암호화를 유지합니다. 메일 수신에는 영향이 없습니다. 복원하려면 지원팀에 문의하세요.",
     password_change_background_reencrypt_failed:
       "비밀번호가 변경되었지만 보낸 메일과 설정 일부가 다시 암호화되지 않았습니다. 메일이나 설정이 읽힐 수 없는 상태라면 고객 지원에 문의하세요.",
-    restore_sent_mail: "보낸 메일 복원",
-    restore_sent_mail_description: "비밀번호 변경 전에 보낸 메일이 열리지 않으면 그때 사용하던 비밀번호를 입력하세요. Aster Mail이 해당 사본을 현재 비밀번호로 다시 암호화합니다.",
     previous_password: "이전 비밀번호",
-    enter_previous_password: "이전 비밀번호 입력",
-    restore_sent_mail_running: "보낸 메일 확인 중... {{count}}개 확인됨",
-    restore_sent_mail_result: "보낸 이메일 {{rewritten}}개가 이제 현재 비밀번호로 열립니다. {{unreadable}}개는 여전히 다른 이전 비밀번호가 필요합니다.",
-    restore_sent_mail_nothing: "모든 보낸 이메일이 이미 현재 비밀번호로 열립니다.",
-    restore_sent_mail_failed: "일부 보낸 메일을 업데이트하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
-    restore_sent_mail_session_expired: "세션 키를 사용할 수 없습니다. 로그아웃한 뒤 다시 로그인하고 다시 시도하세요.",
-    password_change_sent_mail_locked: "비밀번호가 변경되었습니다. 보낸 이메일 {{count}}개가 이전 비밀번호로 암호화되어 있어 업데이트되지 않았습니다. 복원하려면 설정 > 보안 > 보낸 메일 복원을 여세요.",
+    password_change_sent_mail_locked: "비밀번호가 변경되었습니다. 보낸 이메일 {{count}}개가 이전 비밀번호로 암호화되어 있어 업데이트되지 않았습니다. 잠금 해제하려면 받은편지함 상단 배너에서 데이터 복구를 선택하세요.",
     password_changed_signing_out:
       "비밀번호가 성공적으로 변경되었습니다. 로그아웃 중...",
     password_changed_success: "비밀번호를 변경했습니다",
@@ -6611,23 +6596,6 @@ export const ko = {
     confirm_remove_key: "이 보안 키를 제거하시겠습니까?",
     storage_format_ipfs_hint:
       "비공개 IPFS는 암호화된 파일을 콘텐츠 해시 기준으로 Aster 자체 서버에 저장합니다. 공개 IPFS 네트워크에 연결되어 있지 않으며, 파일은 사용자의 키로만 복호화할 수 있습니다.",
-    vault_recovery_title: "암호화된 데이터 복구",
-    vault_recovery_description:
-      "최근 비밀번호를 변경한 후 별칭이나 기타 암호화된 데이터를 볼 수 없다면, 이전 비밀번호를 입력하여 접근을 복구하세요.",
-    vault_recovery_button: "데이터 복구",
-    vault_recovery_modal_description:
-      "가장 최근 비밀번호 변경 이전에 사용하던 비밀번호를 입력하세요. 이전 비밀번호로 암호화된 데이터에 대한 접근이 복구됩니다.",
-    vault_recovery_old_password_label: "이전 비밀번호",
-    vault_recovery_old_password_placeholder: "이전 비밀번호 입력",
-    vault_recovery_enter_password: "이전 비밀번호를 입력하세요",
-    vault_recovery_success:
-      "데이터 복구 성공. 별칭과 암호화된 데이터가 이제 표시됩니다.",
-    vault_recovery_failed: "데이터 복구에 실패했습니다. 다시 시도해 주세요.",
-    vault_recovery_recovering: "복구 중...",
-    vault_recovery_recover_button: "복구",
-    vault_recovery_known_aliases_label: "알려진 별칭 주소 (선택사항)",
-    vault_recovery_known_aliases_hint:
-      "별칭 주소를 기억하신다면 쉼표로 구분하여 입력하면 복구에 도움이 됩니다.",
     trusted_2fa_title: "신뢰할 수 있는 2FA 기기",
     trusted_2fa_description:
       "신뢰할 수 있는 것으로 표시한 기기는 30일간 2FA 입력을 건너뜁니다. 비밀번호를 변경하면 모든 신뢰 기기가 즉시 무효화됩니다.",

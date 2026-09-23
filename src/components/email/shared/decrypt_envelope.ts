@@ -22,6 +22,7 @@ import type { DecryptedEnvelope } from "@/types/email";
 
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
+import { vault_identity_key_materials } from "@/services/crypto/identity_key_materials";
 import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { derive_pq_identity_from_seed } from "@/services/crypto/ratchet_manager";
 import {
@@ -304,14 +305,7 @@ async function decrypt_inbound_with_key_sets(
 }
 
 function collect_envelope_identity_keys(vault: EncryptedVault): string[] {
-  const keys: string[] = [];
-
-  if (vault.identity_key) keys.push(vault.identity_key);
-  for (const previous_key of vault.previous_keys ?? []) {
-    if (previous_key) keys.push(previous_key);
-  }
-
-  return keys;
+  return vault_identity_key_materials(vault);
 }
 
 export async function decrypt_mail_envelope<T = DecryptedEnvelope>(

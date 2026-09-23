@@ -28,6 +28,7 @@ let recipient_public_key = "";
 let recipient_secret_key = "";
 
 vi.mock("./memory_key_store", () => ({
+  get_passphrase_from_memory: vi.fn(() => null),
   get_passphrase_bytes: vi.fn(() => new TextEncoder().encode(PASSPHRASE)),
   get_vault_from_memory: vi.fn(() => ({ identity_key: recipient_secret_key })),
 }));

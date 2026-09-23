@@ -1379,6 +1379,15 @@ export const nl = {
     n_conversations_marked_as_spam:
       "{{ count }} gesprekken als spam gemarkeerd",
     notification_banner_no_thanks: "Nee, bedankt",
+    locked_data_banner_message: "Een deel van je oudere versleutelde gegevens is vergrendeld.",
+    locked_data_banner_action: "Gegevens herstellen",
+    locked_data_banner_dismiss: "Sluiten",
+    recover_data_title: "Gegevens herstellen",
+    recover_data_description: "Voer het wachtwoord in dat je toen gebruikte om gegevens van vóór een wachtwoordwijziging of -reset te ontgrendelen.",
+    recover_data_button: "Herstellen",
+    recover_data_success: "Je oudere gegevens zijn ontgrendeld.",
+    recover_data_no_match: "Met dat wachtwoord zijn geen gegevens ontgrendeld. Probeer een ander eerder wachtwoord.",
+    recover_data_failed: "Sommige gegevens konden niet worden ontgrendeld. Controleer je verbinding en probeer het opnieuw.",
     payment_past_due_message:
       "Je laatste betaling is niet gelukt. Werk je betaalmethode bij om je abonnement te behouden.",
     payment_past_due_message_days:
@@ -3726,22 +3735,6 @@ export const nl = {
       "Uw bestaande herstelzin blijft geldig. Voortaan worden herstelcodes gebruikt.",
     recovery_email_row_moved_hint:
       "De instellingen voor het herstel-e-mailadres zijn verplaatst naar Beveiliging > Accountherstel",
-    recover_older_data_title: "Oudere gegevens herstellen",
-    recover_older_data_desc:
-      "Dit account is gereset. Als u het wachtwoord van vóór de reset nog weet, kunnen uw oudere versleutelde gegevens worden ontgrendeld en hersteld.",
-    recover_older_data_button: "Oudere gegevens ontgrendelen",
-    resurrection_old_password: "Oud wachtwoord",
-    resurrection_old_password_prompt:
-      "Voer het wachtwoord in dat u vóór de reset gebruikte",
-    resurrection_success:
-      "Uw oudere gegevens zijn ontgrendeld. Oudere e-mails en aliassen openen weer normaal.",
-    resurrection_failed:
-      "Hiermee zijn de oudere gegevens niet ontgrendeld. Controleer het wachtwoord of de zin en probeer het opnieuw.",
-    discard_older_data_button: "Oudere gegevens verwijderen",
-    discard_older_data_title: "Oudere gegevens verwijderen?",
-    discard_older_data_desc: "Hiermee verwijder je definitief de optie om e-mail en aliassen van vóór de reset te ontgrendelen. Dit kun je niet ongedaan maken.",
-    discard_older_data_success: "Oudere gegevens verwijderd.",
-    discard_older_data_failed: "De oudere gegevens konden niet worden verwijderd. Probeer het opnieuw.",
     phrase_wrap_save_failed:
       "Uw herstelzin kon niet op de server worden opgeslagen. Probeer het opnieuw.",
     general: "Algemeen",
@@ -3984,16 +3977,8 @@ export const nl = {
       "Je wachtwoord is gewijzigd. {{count}} versleutelde items behouden hun eerdere versleuteling omdat hun sleutel niet beschikbaar was. De bezorging van e-mail wordt niet beïnvloed. Neem contact op met de ondersteuning om ze te herstellen.",
     password_change_background_reencrypt_failed:
       "Je wachtwoord is gewijzigd, maar een deel van je verzonden berichten en instellingen is niet opnieuw versleuteld. Neem contact op met de klantenservice als berichten of instellingen onleesbaar lijken.",
-    restore_sent_mail: "Verzonden e-mails herstellen",
-    restore_sent_mail_description: "Als verzonden e-mails van voor een wachtwoordwijziging niet openen, voer dan het wachtwoord in dat je toen gebruikte. Aster Mail versleutelt die kopieën opnieuw met je huidige wachtwoord.",
     previous_password: "Vorig wachtwoord",
-    enter_previous_password: "Voer het vorige wachtwoord in",
-    restore_sent_mail_running: "Verzonden e-mails controleren... {{count}} gecontroleerd",
-    restore_sent_mail_result: "{{rewritten}} verzonden e-mails openen nu met je huidige wachtwoord. {{unreadable}} hebben nog een ander eerder wachtwoord nodig.",
-    restore_sent_mail_nothing: "Alle verzonden e-mails openen al met je huidige wachtwoord.",
-    restore_sent_mail_failed: "Sommige verzonden e-mails konden niet worden bijgewerkt. Controleer je verbinding en probeer het opnieuw.",
-    restore_sent_mail_session_expired: "Je sessiesleutels zijn niet beschikbaar. Meld je af, meld je opnieuw aan en probeer het opnieuw.",
-    password_change_sent_mail_locked: "Je wachtwoord is gewijzigd. {{count}} verzonden e-mails waren versleuteld met een eerder wachtwoord en zijn niet bijgewerkt. Open Instellingen > Beveiliging > Verzonden e-mails herstellen om ze te herstellen.",
+    password_change_sent_mail_locked: "Je wachtwoord is gewijzigd. {{count}} verzonden e-mails waren versleuteld met een eerder wachtwoord en zijn niet bijgewerkt. Selecteer Gegevens herstellen in de banner boven je inbox om ze te ontgrendelen.",
     password_changed_signing_out:
       "Wachtwoord succesvol gewijzigd. Je wordt uitgelogd...",
     password_changed_success: "Wachtwoord gewijzigd",
@@ -7538,22 +7523,6 @@ export const nl = {
     vacation_reply_count_other: "{{count}} antwoorden verzonden",
     vacation_reply_last: "Laatste antwoord: {{date}}",
     vacation_reply_tab_label: "Vakantieantwoord",
-    vault_recovery_button: "Kluis herstellen",
-    vault_recovery_description:
-      "Herstel uw versleutelde kluis met uw oude wachtwoord",
-    vault_recovery_enter_password: "Voer uw oude wachtwoord in",
-    vault_recovery_failed: "Kluisherstel mislukt",
-    vault_recovery_known_aliases_hint:
-      "Dit helpt ons uw gegevens te ontsleutelen",
-    vault_recovery_known_aliases_label: "Bekende aliassen",
-    vault_recovery_modal_description:
-      "Voer uw oude wachtwoord in om uw kluis te herstellen. Dit kan enige tijd duren.",
-    vault_recovery_old_password_label: "Oud wachtwoord",
-    vault_recovery_old_password_placeholder: "Voer uw oude wachtwoord in",
-    vault_recovery_recover_button: "Herstellen",
-    vault_recovery_recovering: "Herstellen...",
-    vault_recovery_success: "Kluis succesvol hersteld",
-    vault_recovery_title: "Kluisherstel",
     verify_all_records: "Alle records verifiëren",
     view_dns_records: "DNS-records bekijken",
     search_placeholder: "Zoeken in instellingen...",

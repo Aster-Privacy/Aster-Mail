@@ -1393,6 +1393,15 @@ export const es = {
     subject_too_long:
       "Tu asunto supera el límite de 998 caracteres. Una versión más corta podrá enviarse.",
     notification_banner_no_thanks: "No, gracias",
+    locked_data_banner_message: "Algunos de tus datos cifrados más antiguos están bloqueados.",
+    locked_data_banner_action: "Recuperar datos",
+    locked_data_banner_dismiss: "Descartar",
+    recover_data_title: "Recuperar datos",
+    recover_data_description: "Para desbloquear datos de antes de un cambio o restablecimiento de contraseña, introduce la contraseña que usabas entonces.",
+    recover_data_button: "Recuperar",
+    recover_data_success: "Tus datos más antiguos están desbloqueados.",
+    recover_data_no_match: "Esa contraseña no desbloqueó ningún dato. Prueba con otra contraseña anterior.",
+    recover_data_failed: "No se pudieron desbloquear algunos datos. Comprueba tu conexión e inténtalo de nuevo.",
     payment_past_due_message:
       "Tu último pago no se procesó. Actualiza tu método de pago para mantener tu plan.",
     payment_past_due_message_days:
@@ -2297,22 +2306,6 @@ export const es = {
       "Tu frase de recuperación existente sigue siendo válida. En adelante se usan códigos de recuperación.",
     recovery_email_row_moved_hint:
       "La configuración del correo de recuperación se movió a Seguridad > Recuperación de cuenta",
-    recover_older_data_title: "Recuperar datos anteriores",
-    recover_older_data_desc:
-      "Esta cuenta fue restablecida. Si recuerdas la contraseña que usabas antes del restablecimiento, tus datos cifrados anteriores pueden desbloquearse y restaurarse.",
-    recover_older_data_button: "Desbloquear datos anteriores",
-    resurrection_old_password: "Contraseña anterior",
-    resurrection_old_password_prompt:
-      "Ingresa la contraseña que usabas antes del restablecimiento",
-    resurrection_success:
-      "Tus datos anteriores están desbloqueados. Los mensajes y alias antiguos vuelven a abrirse con normalidad.",
-    resurrection_failed:
-      "Eso no desbloqueó los datos anteriores. Verifica la contraseña o la frase e inténtalo de nuevo.",
-    discard_older_data_button: "Descartar datos anteriores",
-    discard_older_data_title: "¿Descartar los datos anteriores?",
-    discard_older_data_desc: "Esto elimina de forma permanente la opción de desbloquear el correo y los alias anteriores al restablecimiento. No se puede deshacer.",
-    discard_older_data_success: "Datos anteriores descartados.",
-    discard_older_data_failed: "No se pudieron descartar los datos anteriores. Inténtalo de nuevo.",
     phrase_wrap_save_failed:
       "Tu frase de recuperación no se pudo guardar en el servidor. Inténtalo de nuevo.",
     smtp_tokens: "Tokens SMTP",
@@ -3994,16 +3987,8 @@ export const es = {
       "Tu contraseña cambió. {{count}} elementos cifrados conservaron su cifrado anterior porque su clave no estaba disponible. La entrega de correo no se ve afectada. Para restaurarlos, contacta con el soporte.",
     password_change_background_reencrypt_failed:
       "Tu contraseña cambió, pero parte de tu correo enviado y de tus ajustes no terminó de cifrarse de nuevo. Ponte en contacto con el equipo de soporte si algo aparece ilegible.",
-    restore_sent_mail: "Restaurar correos enviados",
-    restore_sent_mail_description: "Si los correos enviados antes de un cambio de contraseña no se abren, introduce la contraseña que usabas entonces. Aster Mail vuelve a cifrar esas copias con tu contraseña actual.",
     previous_password: "Contraseña anterior",
-    enter_previous_password: "Introduce la contraseña anterior",
-    restore_sent_mail_running: "Comprobando correos enviados... {{count}} comprobados",
-    restore_sent_mail_result: "{{rewritten}} correos enviados ya se abren con tu contraseña actual. {{unreadable}} siguen necesitando otra contraseña anterior.",
-    restore_sent_mail_nothing: "Todos los correos enviados ya se abren con tu contraseña actual.",
-    restore_sent_mail_failed: "No se pudieron actualizar algunos correos enviados. Comprueba tu conexión e inténtalo de nuevo.",
-    restore_sent_mail_session_expired: "Las claves de tu sesión no están disponibles. Cierra sesión, vuelve a iniciarla e inténtalo de nuevo.",
-    password_change_sent_mail_locked: "Tu contraseña cambió. {{count}} correos enviados estaban cifrados con una contraseña anterior y no se actualizaron. Para restaurarlos, abre Ajustes > Seguridad > Restaurar correos enviados.",
+    password_change_sent_mail_locked: "Tu contraseña cambió. {{count}} correos enviados estaban cifrados con una contraseña anterior y no se actualizaron. Para desbloquearlos, selecciona Recuperar datos en el aviso de la parte superior de tu bandeja de entrada.",
     password_changed_signing_out:
       "Contraseña cambiada exitosamente. Cerrando sesión...",
     password_changed_success: "Contraseña cambiada",
@@ -7535,22 +7520,6 @@ export const es = {
     vacation_reply_count_other: "{{count}} respuestas enviadas",
     vacation_reply_last: "Última respuesta: {{date}}",
     vacation_reply_tab_label: "Respuesta automática",
-    vault_recovery_button: "Recuperar vault",
-    vault_recovery_description:
-      "Recupera el acceso a tus datos cifrados con tu contraseña anterior.",
-    vault_recovery_enter_password: "Ingresa tu contraseña",
-    vault_recovery_failed: "Error al recuperar el vault",
-    vault_recovery_known_aliases_hint:
-      "Ingresa tus alias para facilitar la recuperación.",
-    vault_recovery_known_aliases_label: "Alias conocidos",
-    vault_recovery_modal_description:
-      "Ingresa tu contraseña anterior para recuperar tus datos.",
-    vault_recovery_old_password_label: "Contraseña anterior",
-    vault_recovery_old_password_placeholder: "Tu contraseña anterior",
-    vault_recovery_recover_button: "Recuperar",
-    vault_recovery_recovering: "Recuperando...",
-    vault_recovery_success: "Vault recuperado exitosamente",
-    vault_recovery_title: "Recuperación del vault",
     verify_all_records: "Verificar todos los registros",
     view_dns_records: "Ver registros DNS",
     search_placeholder: "Buscar en la configuración...",

@@ -1433,6 +1433,15 @@ export const ja = {
     subject_too_long:
       "件名が 998 文字の上限を超えています。短くすると送信できます。",
     notification_banner_no_thanks: "いいえ、結構です",
+    locked_data_banner_message: "以前の暗号化データの一部がロックされています。",
+    locked_data_banner_action: "データを復元",
+    locked_data_banner_dismiss: "閉じる",
+    recover_data_title: "データを復元",
+    recover_data_description: "パスワードの変更またはリセット前のデータのロックを解除するには、その時に使用していたパスワードを入力してください。",
+    recover_data_button: "復元",
+    recover_data_success: "以前のデータのロックが解除されました。",
+    recover_data_no_match: "そのパスワードではデータのロックを解除できませんでした。別の以前のパスワードをお試しください。",
+    recover_data_failed: "一部のデータのロックを解除できませんでした。接続を確認して、もう一度お試しください。",
     payment_past_due_message:
       "前回のお支払いを処理できませんでした。プランを継続するには、お支払い方法を更新してください。",
     payment_past_due_message_days:
@@ -2339,22 +2348,6 @@ export const ja = {
       "既存のリカバリーフレーズは引き続き有効です。今後はリカバリーコードを使用します。",
     recovery_email_row_moved_hint:
       "リカバリーメールの設定は「セキュリティ > アカウントの復旧」に移動しました",
-    recover_older_data_title: "以前のデータを復旧",
-    recover_older_data_desc:
-      "このアカウントはリセットされています。リセット前に使用していたパスワードを覚えていれば、以前の暗号化されたデータのロックを解除して復元できます。",
-    recover_older_data_button: "以前のデータのロックを解除",
-    resurrection_old_password: "以前のパスワード",
-    resurrection_old_password_prompt:
-      "リセット前に使用していたパスワードを入力してください",
-    resurrection_success:
-      "以前のデータのロックを解除しました。過去のメールとエイリアスを再び通常どおり開けます。",
-    resurrection_failed:
-      "以前のデータのロックを解除できませんでした。パスワードまたはフレーズを確認して、もう一度お試しください。",
-    discard_older_data_button: "以前のデータを破棄",
-    discard_older_data_title: "以前のデータを破棄しますか？",
-    discard_older_data_desc: "リセット前のメールとエイリアスのロックを解除するオプションが完全に削除されます。この操作は取り消せません。",
-    discard_older_data_success: "以前のデータを破棄しました。",
-    discard_older_data_failed: "以前のデータを破棄できませんでした。もう一度お試しください。",
     phrase_wrap_save_failed:
       "リカバリーフレーズをサーバーに保存できませんでした。もう一度お試しください。",
     smtp_tokens: "SMTP トークン",
@@ -4019,16 +4012,8 @@ export const ja = {
       "パスワードを変更しました。鍵が利用できなかったため、{{count}} 件の暗号化された項目は以前の暗号化のままです。メールの配信には影響しません。復元するには、サポートにお問い合わせください。",
     password_change_background_reencrypt_failed:
       "パスワードは変更されましたが、送信済みメールと設定の一部の再暗号化が完了していません。メールや設定が読めない場合はサポートにご連絡ください。",
-    restore_sent_mail: "送信済みメールを復元",
-    restore_sent_mail_description: "パスワード変更前に送信したメールが開けない場合は、当時使用していたパスワードを入力してください。Aster Mail はそれらのコピーを現在のパスワードで再暗号化します。",
     previous_password: "以前のパスワード",
-    enter_previous_password: "以前のパスワードを入力",
-    restore_sent_mail_running: "送信済みメールを確認しています... {{count}} 件確認済み",
-    restore_sent_mail_result: "{{rewritten}} 件の送信済みメールが現在のパスワードで開けるようになりました。{{unreadable}} 件は別の以前のパスワードが必要です。",
-    restore_sent_mail_nothing: "すべての送信済みメールはすでに現在のパスワードで開けます。",
-    restore_sent_mail_failed: "一部の送信済みメールを更新できませんでした。接続を確認して、もう一度お試しください。",
-    restore_sent_mail_session_expired: "セッションキーを利用できません。サインアウトしてからサインインし直し、もう一度お試しください。",
-    password_change_sent_mail_locked: "パスワードが変更されました。{{count}} 件の送信済みメールは以前のパスワードで暗号化されており、更新されませんでした。復元するには、設定 > セキュリティ > 送信済みメールを復元 を開いてください。",
+    password_change_sent_mail_locked: "パスワードが変更されました。{{count}} 件の送信済みメールは以前のパスワードで暗号化されており、更新されませんでした。ロックを解除するには、受信トレイ上部のバナーで「データを復元」を選択してください。",
     password_changed_signing_out:
       "パスワードが正常に変更されました。サインアウトしています...",
     password_changed_success: "パスワードを変更しました",
@@ -7454,24 +7439,6 @@ export const ja = {
     vacation_reply_count_other: "{{count}} 件の返信を送信しました",
     vacation_reply_last: "最終：{{date}}",
     vacation_reply_tab_label: "不在時返信",
-    vault_recovery_button: "データを復旧",
-    vault_recovery_description:
-      "最近パスワードを変更してエイリアスや他の暗号化データが見えなくなった場合は、以前のパスワードをここに入力してアクセスを復旧してください。",
-    vault_recovery_enter_password: "以前のパスワードを入力してください",
-    vault_recovery_failed:
-      "データの復旧に失敗しました。もう一度お試しください。",
-    vault_recovery_known_aliases_hint:
-      "エイリアスのアドレスを覚えている場合は、カンマ区切りでここに入力すると復旧に役立ちます。",
-    vault_recovery_known_aliases_label: "既知のエイリアスアドレス（任意）",
-    vault_recovery_modal_description:
-      "最後のパスワード変更前に使用していたパスワードを入力してください。古いパスワードで暗号化されたデータへのアクセスが復旧されます。",
-    vault_recovery_old_password_label: "以前のパスワード",
-    vault_recovery_old_password_placeholder: "以前のパスワードを入力",
-    vault_recovery_recover_button: "復旧",
-    vault_recovery_recovering: "復旧中...",
-    vault_recovery_success:
-      "データの復旧に成功しました。エイリアスと暗号化データが表示されるようになります。",
-    vault_recovery_title: "暗号化データを復旧",
     verify_all_records: "すべてのレコードを確認",
     view_dns_records: "DNSレコードを表示",
     export: "エクスポート",

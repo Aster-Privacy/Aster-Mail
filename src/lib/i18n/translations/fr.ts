@@ -1403,6 +1403,15 @@ export const fr = {
     subject_too_long:
       "Votre objet dépasse la limite de 998 caractères. Une version plus courte s'enverra.",
     notification_banner_no_thanks: "Non merci",
+    locked_data_banner_message: "Certaines de vos anciennes données chiffrées sont verrouillées.",
+    locked_data_banner_action: "Récupérer les données",
+    locked_data_banner_dismiss: "Ignorer",
+    recover_data_title: "Récupérer les données",
+    recover_data_description: "Pour déverrouiller les données antérieures à un changement ou à une réinitialisation du mot de passe, saisissez le mot de passe que vous utilisiez à ce moment-là.",
+    recover_data_button: "Récupérer",
+    recover_data_success: "Vos anciennes données sont déverrouillées.",
+    recover_data_no_match: "Ce mot de passe n'a déverrouillé aucune donnée. Essayez un autre ancien mot de passe.",
+    recover_data_failed: "Certaines données n'ont pas pu être déverrouillées. Vérifiez votre connexion et réessayez.",
     payment_past_due_message:
       "Votre dernier paiement n'a pas abouti. Mettez à jour votre moyen de paiement pour conserver votre offre.",
     payment_past_due_message_days:
@@ -2306,22 +2315,6 @@ export const fr = {
       "Votre phrase de récupération existante reste valide. Les codes de récupération la remplacent désormais.",
     recovery_email_row_moved_hint:
       "Les paramètres de l'e-mail de récupération ont été déplacés vers Sécurité > Récupération du compte",
-    recover_older_data_title: "Récupérer les données antérieures",
-    recover_older_data_desc:
-      "Ce compte a été réinitialisé. Si vous vous souvenez du mot de passe utilisé avant la réinitialisation, vos données chiffrées antérieures peuvent être déverrouillées et restaurées.",
-    recover_older_data_button: "Déverrouiller les données antérieures",
-    resurrection_old_password: "Ancien mot de passe",
-    resurrection_old_password_prompt:
-      "Saisissez le mot de passe que vous utilisiez avant la réinitialisation",
-    resurrection_success:
-      "Vos données antérieures sont déverrouillées. Les anciens messages et alias s'ouvrent de nouveau normalement.",
-    resurrection_failed:
-      "Cela n'a pas déverrouillé les données antérieures. Vérifiez le mot de passe ou la phrase et réessayez.",
-    discard_older_data_button: "Abandonner les données antérieures",
-    discard_older_data_title: "Abandonner les données antérieures ?",
-    discard_older_data_desc: "Cette action supprime définitivement la possibilité de déverrouiller les e-mails et les alias antérieurs à la réinitialisation. Elle est irréversible.",
-    discard_older_data_success: "Données antérieures abandonnées.",
-    discard_older_data_failed: "Impossible d'abandonner les données antérieures. Réessayez.",
     phrase_wrap_save_failed:
       "Votre phrase de récupération n'a pas pu être enregistrée sur le serveur. Réessayez.",
     smtp_tokens: "Jetons SMTP",
@@ -4026,16 +4019,8 @@ export const fr = {
       "Votre mot de passe a changé. {{count}} éléments chiffrés ont conservé leur chiffrement précédent, car leur clé n'était pas disponible. La distribution du courrier n'est pas affectée. Pour les restaurer, contactez l'assistance.",
     password_change_background_reencrypt_failed:
       "Votre mot de passe a été modifié, mais une partie de vos messages envoyés et de vos réglages n’a pas fini d’être rechiffrée. Contactez l’assistance si des messages ou des réglages semblent illisibles.",
-    restore_sent_mail: "Restaurer les e-mails envoyés",
-    restore_sent_mail_description: "Si des e-mails envoyés avant un changement de mot de passe ne s'ouvrent pas, saisissez le mot de passe que vous utilisiez à ce moment-là. Aster Mail rechiffre ces copies avec votre mot de passe actuel.",
     previous_password: "Ancien mot de passe",
-    enter_previous_password: "Saisissez l'ancien mot de passe",
-    restore_sent_mail_running: "Vérification des e-mails envoyés... {{count}} vérifiés",
-    restore_sent_mail_result: "{{rewritten}} e-mails envoyés s'ouvrent désormais avec votre mot de passe actuel. {{unreadable}} nécessitent encore un autre ancien mot de passe.",
-    restore_sent_mail_nothing: "Tous les e-mails envoyés s'ouvrent déjà avec votre mot de passe actuel.",
-    restore_sent_mail_failed: "Certains e-mails envoyés n'ont pas pu être mis à jour. Vérifiez votre connexion et réessayez.",
-    restore_sent_mail_session_expired: "Les clés de votre session ne sont pas disponibles. Déconnectez-vous, reconnectez-vous et réessayez.",
-    password_change_sent_mail_locked: "Votre mot de passe a changé. {{count}} e-mails envoyés étaient chiffrés avec un ancien mot de passe et n'ont pas été mis à jour. Pour les restaurer, ouvrez Réglages > Sécurité > Restaurer les e-mails envoyés.",
+    password_change_sent_mail_locked: "Votre mot de passe a changé. {{count}} e-mails envoyés étaient chiffrés avec un ancien mot de passe et n'ont pas été mis à jour. Pour les déverrouiller, sélectionnez Récupérer les données dans la bannière en haut de votre boîte de réception.",
     password_changed_signing_out:
       "Mot de passe changé avec succès. Déconnexion en cours...",
     password_changed_success: "Mot de passe modifié",
@@ -7619,22 +7604,6 @@ export const fr = {
     vacation_reply_count_other: "{{count}} réponses envoyées",
     vacation_reply_last: "Dernière réponse : {{date}}",
     vacation_reply_tab_label: "Réponse automatique",
-    vault_recovery_button: "Récupérer le coffre-fort",
-    vault_recovery_description:
-      "Récupérez l'accès à vos données chiffrées avec votre ancien mot de passe.",
-    vault_recovery_enter_password: "Entrez votre mot de passe",
-    vault_recovery_failed: "Échec de la récupération du coffre-fort",
-    vault_recovery_known_aliases_hint:
-      "Entrez vos alias pour faciliter la récupération.",
-    vault_recovery_known_aliases_label: "Alias connus",
-    vault_recovery_modal_description:
-      "Entrez votre ancien mot de passe pour récupérer vos données.",
-    vault_recovery_old_password_label: "Ancien mot de passe",
-    vault_recovery_old_password_placeholder: "Votre ancien mot de passe",
-    vault_recovery_recover_button: "Récupérer",
-    vault_recovery_recovering: "Récupération en cours...",
-    vault_recovery_success: "Coffre-fort récupéré avec succès",
-    vault_recovery_title: "Récupération du coffre-fort",
     verify_all_records: "Vérifier tous les enregistrements",
     view_dns_records: "Voir les enregistrements DNS",
     search_placeholder: "Rechercher dans les réglages...",

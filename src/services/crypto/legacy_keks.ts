@@ -22,6 +22,12 @@ import type { LegacyDerivedKek } from "./key_manager_core";
 
 import { array_to_base64, base64_to_array } from "./base64";
 import { zero_uint8_array } from "./secure_memory";
+import {
+  ACCOUNT_DATA_CONTEXTS,
+  ACCOUNT_KEY_LENGTH,
+  derive_account_data_key_raw,
+  type AccountDataContext,
+} from "./account_data_key";
 
 import { HASH_ALG } from "@/services/crypto/constants";
 import { ignore_error } from "@/lib/ignore_error";
@@ -30,7 +36,7 @@ const DERIVED_KEY_LENGTH = 32;
 const DERIVED_KEY_INFO = "aster-storage-encryption-key-v1";
 const SALT_DERIVATION_PREFIX = "aster-hkdf-salt-v1:";
 
-export const MAX_LEGACY_KEKS = 16;
+export const MAX_LEGACY_KEKS = 64;
 
 const PREVIOUS_KEY_CONTEXTS = [
   "astermail-tags-v1",
@@ -47,6 +53,13 @@ const PREVIOUS_KEY_CONTEXTS = [
 
 let legacy_crypto_keys: CryptoKey[] = [];
 let legacy_hkdf_keys: CryptoKey[] = [];
+let account_crypto_keys: CryptoKey[] = [];
+let account_hkdf_keys: CryptoKey[] = [];
+let loaded_account_key_ids = new Set<string>();
+let account_write_keys = new Map<AccountDataContext, CryptoKey>();
+let account_write_key_id: string | null = null;
+let account_write_epoch = 0;
+let account_key_generation = 0;
 
 async function derive_salt_from_passphrase(
   passphrase_bytes: Uint8Array,
@@ -123,19 +136,24 @@ export function prepend_kek_to_list(
 export function append_keks_to_list(
   existing: LegacyDerivedKek[] | undefined,
   new_entries: LegacyDerivedKek[],
-): LegacyDerivedKek[] {
+): { list: LegacyDerivedKek[]; dropped: number } {
   const list = existing ? [...existing] : [];
   const held = new Set(list.map((entry) => entry.k));
+  let dropped = 0;
 
   for (const entry of new_entries) {
-    if (list.length >= MAX_LEGACY_KEKS) break;
     if (held.has(entry.k)) continue;
+
+    if (list.length >= MAX_LEGACY_KEKS) {
+      dropped += 1;
+      continue;
+    }
 
     held.add(entry.k);
     list.push(entry);
   }
 
-  return list;
+  return { list, dropped };
 }
 
 async function import_raw_as_aes_key(raw: Uint8Array): Promise<CryptoKey> {
@@ -145,6 +163,18 @@ async function import_raw_as_aes_key(raw: Uint8Array): Promise<CryptoKey> {
     { name: "AES-GCM", length: 256 },
     false,
     ["decrypt"],
+  );
+}
+
+async function import_raw_as_aes_write_key(
+  raw: Uint8Array,
+): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
+    "raw",
+    raw,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["encrypt", "decrypt"],
   );
 }
 
@@ -207,13 +237,95 @@ export async function load_previous_key_derived_keks_into_memory(
   }
 }
 
+export function get_account_key_generation(): number {
+  return account_key_generation;
+}
+
+export async function load_account_key_derived_keks_into_memory(
+  account_key: Uint8Array,
+  generation: number,
+  write_epoch: number | null = null,
+): Promise<boolean> {
+  if (account_key.length !== ACCOUNT_KEY_LENGTH) return false;
+
+  const key_id = array_to_base64(
+    new Uint8Array(await crypto.subtle.digest(HASH_ALG, account_key)),
+  );
+  const needs_pool = !loaded_account_key_ids.has(key_id);
+  const needs_write_keys =
+    write_epoch !== null &&
+    write_epoch === account_write_epoch &&
+    account_write_key_id !== key_id;
+
+  if (!needs_pool && !needs_write_keys) return true;
+
+  const aes_keys: CryptoKey[] = [];
+  const hkdf_keys: CryptoKey[] = [];
+  const write_keys = new Map<AccountDataContext, CryptoKey>();
+
+  for (const context of ACCOUNT_DATA_CONTEXTS) {
+    const raw = await derive_account_data_key_raw(account_key, context);
+
+    try {
+      if (needs_pool) {
+        aes_keys.push(await import_raw_as_aes_key(raw));
+        hkdf_keys.push(await import_raw_as_hkdf_key(raw));
+      }
+      if (needs_write_keys) {
+        write_keys.set(context, await import_raw_as_aes_write_key(raw));
+      }
+    } finally {
+      zero_uint8_array(raw);
+    }
+  }
+
+  if (generation !== account_key_generation) return false;
+
+  if (needs_write_keys && write_epoch === account_write_epoch) {
+    account_write_keys = write_keys;
+    account_write_key_id = key_id;
+  }
+
+  if (loaded_account_key_ids.has(key_id)) return true;
+
+  loaded_account_key_ids.add(key_id);
+  account_crypto_keys = [...account_crypto_keys, ...aes_keys];
+  account_hkdf_keys = [...account_hkdf_keys, ...hkdf_keys];
+
+  return true;
+}
+
+export function get_account_write_epoch(): number {
+  return account_write_epoch;
+}
+
+export function clear_account_data_write_keys(): void {
+  account_write_keys = new Map();
+  account_write_key_id = null;
+  account_write_epoch += 1;
+}
+
+export function get_account_data_write_key(
+  context: AccountDataContext,
+): CryptoKey | null {
+  return account_write_keys.get(context) ?? null;
+}
+
+export function clear_account_key_derived_keks(): void {
+  account_crypto_keys = [];
+  account_hkdf_keys = [];
+  loaded_account_key_ids = new Set();
+  clear_account_data_write_keys();
+  account_key_generation += 1;
+}
+
 export function clear_legacy_keks_from_memory(): void {
   legacy_crypto_keys = [];
   legacy_hkdf_keys = [];
 }
 
 export function get_legacy_crypto_keys(): CryptoKey[] {
-  return legacy_crypto_keys;
+  return [...legacy_crypto_keys, ...account_crypto_keys];
 }
 
 export async function decrypt_with_legacy_derived_keys(
@@ -221,7 +333,7 @@ export async function decrypt_with_legacy_derived_keys(
   ciphertext: BufferSource,
   iv: BufferSource,
 ): Promise<ArrayBuffer | null> {
-  for (const base of legacy_hkdf_keys) {
+  for (const base of [...legacy_hkdf_keys, ...account_hkdf_keys]) {
     try {
       const key = await derive(base);
 
@@ -263,11 +375,13 @@ export async function decrypt_aes_gcm_with_fallback(
       ciphertext,
     );
   } catch (primary_error) {
-    if (legacy_crypto_keys.length === 0) {
+    const fallback_keys = [...legacy_crypto_keys, ...account_crypto_keys];
+
+    if (fallback_keys.length === 0) {
       throw primary_error;
     }
 
-    const attempts = legacy_crypto_keys.map((fallback_key) =>
+    const attempts = fallback_keys.map((fallback_key) =>
       crypto.subtle.decrypt({ name: "AES-GCM", iv }, fallback_key, ciphertext),
     );
 

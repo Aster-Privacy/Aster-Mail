@@ -26,7 +26,9 @@ export {
   normalize_vault_fields,
 } from "./key_manager_pgp_vault";
 export {
+  armored_private_key_matches,
   derive_password_hash,
+  find_unlockable_private_key,
   generate_identity_keypair,
   generate_recovery_codes,
   generate_signed_prekey,

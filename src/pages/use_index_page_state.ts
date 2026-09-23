@@ -41,6 +41,8 @@ import { use_auto_advance } from "@/components/email/hooks/use_auto_advance";
 import { use_metadata_migration } from "@/hooks/use_metadata_migration";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { use_background_subscription_scan } from "@/hooks/use_background_subscription_scan";
+import { use_account_data_conversion } from "@/hooks/use_account_data_conversion";
+import { use_device_recovery } from "@/hooks/use_device_recovery";
 import { use_subscriptions } from "@/hooks/use_subscriptions";
 import { use_document_title } from "@/hooks/use_document_title";
 import { use_keyboard_shortcuts } from "@/hooks/use_keyboard_shortcuts";
@@ -151,6 +153,8 @@ export function use_index_page_state() {
 
   use_metadata_migration();
   use_background_subscription_scan();
+  use_account_data_conversion();
+  use_device_recovery();
 
   const { unsubscribe: unsubscribe_sender } = use_subscriptions();
 

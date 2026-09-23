@@ -1371,6 +1371,15 @@ export const it = {
       "Attiva le notifiche desktop per restare aggiornato sulle nuove email",
     notification_banner_allow: "Consenti",
     notification_banner_no_thanks: "No grazie",
+    locked_data_banner_message: "Alcuni dei tuoi dati cifrati meno recenti sono bloccati.",
+    locked_data_banner_action: "Recupera dati",
+    locked_data_banner_dismiss: "Ignora",
+    recover_data_title: "Recupera dati",
+    recover_data_description: "Per sbloccare i dati precedenti a una modifica o reimpostazione della password, inserisci la password che usavi in quel momento.",
+    recover_data_button: "Recupera",
+    recover_data_success: "I tuoi dati meno recenti sono sbloccati.",
+    recover_data_no_match: "Questa password non ha sbloccato alcun dato. Prova un'altra password precedente.",
+    recover_data_failed: "Non è stato possibile sbloccare alcuni dati. Controlla la connessione e riprova.",
     payment_past_due_message:
       "Il tuo ultimo pagamento non è andato a buon fine. Aggiorna il metodo di pagamento per mantenere il tuo piano.",
     payment_past_due_message_days:
@@ -2328,22 +2337,6 @@ export const it = {
       "La sua frase di recupero esistente resta valida. D'ora in poi si usano i codici di recupero.",
     recovery_email_row_moved_hint:
       "Le impostazioni dell'email di recupero sono state spostate in Sicurezza > Recupero account",
-    recover_older_data_title: "Recupera i dati precedenti",
-    recover_older_data_desc:
-      "Questo account è stato reimpostato. Se ricorda la password che usava prima del ripristino, i suoi dati crittografati precedenti possono essere sbloccati e ripristinati.",
-    recover_older_data_button: "Sblocca i dati precedenti",
-    resurrection_old_password: "Vecchia password",
-    resurrection_old_password_prompt:
-      "Inserisca la password che usava prima del ripristino",
-    resurrection_success:
-      "I suoi dati precedenti sono sbloccati. I messaggi e gli alias meno recenti si aprono di nuovo normalmente.",
-    resurrection_failed:
-      "Non è stato possibile sbloccare i dati precedenti. Verifichi la password o la frase e riprovi.",
-    discard_older_data_button: "Elimina i dati precedenti",
-    discard_older_data_title: "Eliminare i dati precedenti?",
-    discard_older_data_desc: "Questa operazione rimuove in modo permanente la possibilità di sbloccare la posta e gli alias precedenti al ripristino. Non può essere annullata.",
-    discard_older_data_success: "Dati precedenti eliminati.",
-    discard_older_data_failed: "Impossibile eliminare i dati precedenti. Riprova.",
     phrase_wrap_save_failed:
       "Non è stato possibile salvare la sua frase di recupero sul server. Riprovi.",
     smtp_tokens: "Token SMTP",
@@ -4048,16 +4041,8 @@ export const it = {
       "La tua password è cambiata. {{count}} elementi cifrati hanno mantenuto la cifratura precedente perché la loro chiave non era disponibile. La consegna della posta non è interessata. Per ripristinarli, contatta l'assistenza.",
     password_change_background_reencrypt_failed:
       "La tua password è stata cambiata, ma una parte della posta inviata e delle impostazioni non ha completato la ricifratura. Contatta l’assistenza se qualcosa risulta illeggibile.",
-    restore_sent_mail: "Ripristina la posta inviata",
-    restore_sent_mail_description: "Se le email inviate prima di un cambio di password non si aprono, inserisci la password che usavi allora. Aster Mail cifra di nuovo quelle copie con la password attuale.",
     previous_password: "Password precedente",
-    enter_previous_password: "Inserisci la password precedente",
-    restore_sent_mail_running: "Controllo della posta inviata... {{count}} controllate",
-    restore_sent_mail_result: "{{rewritten}} email inviate ora si aprono con la password attuale. {{unreadable}} richiedono ancora un'altra password precedente.",
-    restore_sent_mail_nothing: "Tutte le email inviate si aprono già con la password attuale.",
-    restore_sent_mail_failed: "Alcune email inviate non sono state aggiornate. Controlla la connessione e riprova.",
-    restore_sent_mail_session_expired: "Le chiavi della sessione non sono disponibili. Esci, accedi di nuovo e riprova.",
-    password_change_sent_mail_locked: "La password è cambiata. {{count}} email inviate erano cifrate con una password precedente e non sono state aggiornate. Per ripristinarle, apri Impostazioni > Sicurezza > Ripristina la posta inviata.",
+    password_change_sent_mail_locked: "La password è cambiata. {{count}} email inviate erano cifrate con una password precedente e non sono state aggiornate. Per sbloccarle, seleziona Recupera dati nel banner in cima alla posta in arrivo.",
     password_changed_signing_out:
       "Password cambiata con successo. Disconnessione in corso...",
     password_changed_success: "Password modificata",
@@ -6813,24 +6798,6 @@ export const it = {
       "Sei sicuro di voler rimuovere questa chiave di sicurezza?",
     storage_format_ipfs_hint:
       "IPFS privato archivia i tuoi file cifrati in base all'hash del contenuto sui server di Aster. Non è collegato alla rete IPFS pubblica e solo le tue chiavi possono decifrare i tuoi file.",
-    vault_recovery_title: "Recupera dati cifrati",
-    vault_recovery_description:
-      "Se hai cambiato di recente la password e non riesci più a vedere i tuoi alias o altri dati cifrati, inserisci qui la tua password precedente per ripristinare l'accesso.",
-    vault_recovery_button: "Recupera dati",
-    vault_recovery_modal_description:
-      "Inserisci la password che usavi prima del tuo più recente cambio di password. Questo ripristinerà l'accesso ai dati cifrati con la tua vecchia password.",
-    vault_recovery_old_password_label: "Password precedente",
-    vault_recovery_old_password_placeholder:
-      "Inserisci la tua password precedente",
-    vault_recovery_enter_password: "Inserisci la tua password precedente",
-    vault_recovery_success:
-      "Recupero dati riuscito. I tuoi alias e i dati cifrati dovrebbero ora essere visibili.",
-    vault_recovery_failed: "Recupero dati non riuscito. Riprova.",
-    vault_recovery_recovering: "Recupero in corso...",
-    vault_recovery_recover_button: "Recupera",
-    vault_recovery_known_aliases_label: "Indirizzi alias noti (opzionale)",
-    vault_recovery_known_aliases_hint:
-      "Se ricordi i tuoi indirizzi alias, inseriscili qui separati da virgole per aiutare a ripristinarli.",
     trusted_2fa_title: "Dispositivi 2FA attendibili",
     trusted_2fa_description:
       "I dispositivi che hai contrassegnato come attendibili saltano la verifica 2FA per 30 giorni. Un cambio di password invalida immediatamente ogni dispositivo attendibile.",

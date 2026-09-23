@@ -1378,6 +1378,15 @@ export const tr = {
     subject_too_long:
       "Konunuz 998 karakter sınırının üzerinde. Daha kısa bir sürüm gönderilebilir.",
     notification_banner_no_thanks: "Hayır, teşekkürler",
+    locked_data_banner_message: "Eski şifreli verilerinizin bir kısmı kilitli.",
+    locked_data_banner_action: "Verileri kurtar",
+    locked_data_banner_dismiss: "Kapat",
+    recover_data_title: "Verileri kurtar",
+    recover_data_description: "Parola değişikliğinden veya sıfırlamadan önceki verilerin kilidini açmak için o sırada kullandığınız parolayı girin.",
+    recover_data_button: "Kurtar",
+    recover_data_success: "Eski verilerinizin kilidi açıldı.",
+    recover_data_no_match: "Bu parola hiçbir verinin kilidini açmadı. Başka bir eski parola deneyin.",
+    recover_data_failed: "Bazı verilerin kilidi açılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
     payment_past_due_message:
       "Son ödemeniz alınamadı. Planınızı sürdürmek için ödeme yönteminizi güncelleyin.",
     payment_past_due_message_days:
@@ -2302,22 +2311,6 @@ export const tr = {
       "Mevcut kurtarma ifadeniz geçerli olmaya devam eder. Bundan sonra kurtarma kodları kullanılır.",
     recovery_email_row_moved_hint:
       "Kurtarma e-postası ayarları Güvenlik > Hesap kurtarma bölümüne taşındı",
-    recover_older_data_title: "Eski verileri kurtar",
-    recover_older_data_desc:
-      "Bu hesap sıfırlandı. Sıfırlamadan önce kullandığınız parolayı hatırlıyorsanız, eski şifreli verilerinizin kilidi açılabilir ve geri yüklenebilir.",
-    recover_older_data_button: "Eski verilerin kilidini aç",
-    resurrection_old_password: "Eski parola",
-    resurrection_old_password_prompt:
-      "Sıfırlamadan önce kullandığınız parolayı girin",
-    resurrection_success:
-      "Eski verilerinizin kilidi açıldı. Önceki postalarınız ve takma adlarınız yeniden normal şekilde açılıyor.",
-    resurrection_failed:
-      "Bu, eski verilerin kilidini açmadı. Parolayı veya ifadeyi kontrol edip tekrar deneyin.",
-    discard_older_data_button: "Eski verileri sil",
-    discard_older_data_title: "Eski veriler silinsin mi?",
-    discard_older_data_desc: "Bu işlem, sıfırlamadan önceki postaların ve takma adların kilidini açma seçeneğini kalıcı olarak kaldırır. Geri alınamaz.",
-    discard_older_data_success: "Eski veriler silindi.",
-    discard_older_data_failed: "Eski veriler silinemedi. Yeniden deneyin.",
     phrase_wrap_save_failed:
       "Kurtarma ifadeniz sunucuya kaydedilemedi. Tekrar deneyin.",
     smtp_tokens: "SMTP jetonları",
@@ -3959,16 +3952,8 @@ export const tr = {
       "Parolan değiştirildi. Anahtarları kullanılamadığı için {{count}} şifreli öğe önceki şifrelemesini korudu. Posta teslimi bundan etkilenmez. Bunları geri yüklemek için destek ekibine başvur.",
     password_change_background_reencrypt_failed:
       "Parolan değişti ancak gönderilen postalarının ve ayarlarının bir bölümü yeniden şifrelenmedi. Postaların veya ayarların okunamaz görünüyorsa destek ekibine ulaş.",
-    restore_sent_mail: "Gönderilen postaları geri yükle",
-    restore_sent_mail_description: "Parola değişikliğinden önce gönderilen postalar açılmıyorsa o sırada kullandığınız parolayı girin. Aster Mail bu kopyaları geçerli parolanızla yeniden şifreler.",
     previous_password: "Önceki parola",
-    enter_previous_password: "Önceki parolayı girin",
-    restore_sent_mail_running: "Gönderilen postalar denetleniyor... {{count}} denetlendi",
-    restore_sent_mail_result: "{{rewritten}} gönderilen e-posta artık geçerli parolanızla açılıyor. {{unreadable}} tanesi hâlâ farklı bir önceki parola gerektiriyor.",
-    restore_sent_mail_nothing: "Gönderilen tüm e-postalar zaten geçerli parolanızla açılıyor.",
-    restore_sent_mail_failed: "Bazı gönderilen postalar güncellenemedi. Bağlantınızı denetleyip yeniden deneyin.",
-    restore_sent_mail_session_expired: "Oturum anahtarlarınız kullanılamıyor. Oturumu kapatıp yeniden açın ve tekrar deneyin.",
-    password_change_sent_mail_locked: "Parolanız değişti. {{count}} gönderilen e-posta önceki bir parolayla şifrelenmişti ve güncellenmedi. Geri yüklemek için Ayarlar > Güvenlik > Gönderilen postaları geri yükle bölümünü açın.",
+    password_change_sent_mail_locked: "Parolanız değişti. {{count}} gönderilmiş e-posta önceki bir parolayla şifrelenmişti ve güncellenmedi. Kilidini açmak için gelen kutunuzun üst kısmındaki bantta Verileri kurtar seçeneğini seçin.",
     password_changed_signing_out:
       "Parola başarıyla değiştirildi. Çıkış yapılıyor...",
     password_changed_success: "Parola değiştirildi",
@@ -6735,24 +6720,6 @@ export const tr = {
       "Bu güvenlik anahtarını kaldırmak istediğinizden emin misiniz?",
     storage_format_ipfs_hint:
       "Özel IPFS, şifreli dosyalarınızı içerik özetine göre Aster'in kendi sunucularında saklar. Herkese açık IPFS ağına bağlı değildir ve dosyalarınızın şifresini yalnızca anahtarlarınız çözebilir.",
-    vault_recovery_title: "Şifrelenmiş Verileri Kurtar",
-    vault_recovery_description:
-      "Yakın zamanda şifrenizi değiştirdiyseniz ve artık takma adlarınızı veya diğer şifrelenmiş verilerinizi göremiyorsanız, erişimi geri yüklemek için önceki şifrenizi buraya girin.",
-    vault_recovery_button: "Verileri Kurtar",
-    vault_recovery_modal_description:
-      "En son şifre değişikliğinizden önce kullandığınız şifreyi girin. Bu, eski şifreniz altında şifrelenmiş verilere erişimi geri yükler.",
-    vault_recovery_old_password_label: "Önceki Şifre",
-    vault_recovery_old_password_placeholder: "Önceki şifrenizi girin",
-    vault_recovery_enter_password: "Lütfen önceki şifrenizi girin",
-    vault_recovery_success:
-      "Veri kurtarma başarılı. Takma adlarınız ve şifrelenmiş verileriniz artık görünür olmalı.",
-    vault_recovery_failed: "Veriler kurtarılamadı. Lütfen tekrar deneyin.",
-    vault_recovery_recovering: "Kurtarılıyor...",
-    vault_recovery_recover_button: "Kurtar",
-    vault_recovery_known_aliases_label:
-      "Bilinen Takma Ad Adresleri (isteğe bağlı)",
-    vault_recovery_known_aliases_hint:
-      "Takma ad adreslerinizi hatırlıyorsanız, geri yüklenmelerine yardımcı olmak için bunları virgülle ayırarak buraya girin.",
     trusted_2fa_title: "Güvenilen 2FA cihazları",
     trusted_2fa_description:
       "Güvenilen olarak işaretlediğiniz cihazlar 30 gün boyunca 2FA istemini atlar. Şifre değişikliği tüm güvenilen cihazları anında geçersiz kılar.",

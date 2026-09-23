@@ -27,8 +27,10 @@ import {
 import { encrypt_mail_metadata } from "./crypto/mail_metadata";
 import {
   get_passphrase_bytes,
+  get_passphrase_from_memory,
   get_vault_from_memory,
 } from "./crypto/memory_key_store";
+import { seal_sent_envelope_when_enabled } from "./crypto/sent_copy_seal";
 import { zero_uint8_array } from "./crypto/secure_memory";
 import { plain_text_to_html } from "./send_queue_recipients";
 import {
@@ -131,10 +133,17 @@ export async function create_sent_envelope(
   };
 
   try {
-    const { encrypted, nonce } = await encrypt_envelope_with_bytes(
+    const sealed = await seal_sent_envelope_when_enabled(
       envelope,
-      passphrase_bytes,
+      vault.identity_key,
+      get_passphrase_from_memory(),
     );
+    const { encrypted, nonce } = sealed
+      ? {
+          encrypted: sealed.encrypted_envelope,
+          nonce: sealed.envelope_nonce,
+        }
+      : await encrypt_envelope_with_bytes(envelope, passphrase_bytes);
 
     zero_uint8_array(passphrase_bytes);
 

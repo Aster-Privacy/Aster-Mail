@@ -1324,6 +1324,15 @@ export const de = {
     failed_to_copy_to_clipboard:
       "Versuchen Sie es erneut.",
     notification_banner_no_thanks: "Nein danke",
+    locked_data_banner_message: "Einige deiner älteren verschlüsselten Daten sind gesperrt.",
+    locked_data_banner_action: "Daten wiederherstellen",
+    locked_data_banner_dismiss: "Schließen",
+    recover_data_title: "Daten wiederherstellen",
+    recover_data_description: "Um Daten von vor einer Passwortänderung oder -zurücksetzung zu entsperren, gib das Passwort ein, das du damals verwendet hast.",
+    recover_data_button: "Wiederherstellen",
+    recover_data_success: "Deine älteren Daten sind entsperrt.",
+    recover_data_no_match: "Mit diesem Passwort wurden keine Daten entsperrt. Versuche ein anderes früheres Passwort.",
+    recover_data_failed: "Einige Daten konnten nicht entsperrt werden. Prüfe deine Verbindung und versuche es erneut.",
     payment_past_due_message:
       "Deine letzte Zahlung war nicht erfolgreich. Aktualisiere deine Zahlungsmethode, um deinen Tarif zu behalten.",
     payment_past_due_message_days:
@@ -2321,22 +2330,6 @@ export const de = {
       "Ihre bestehende Wiederherstellungsphrase bleibt gültig. Künftig werden stattdessen Wiederherstellungscodes verwendet.",
     recovery_email_row_moved_hint:
       "Die Einstellungen zur Wiederherstellungs-E-Mail befinden sich jetzt unter Sicherheit > Kontowiederherstellung",
-    recover_older_data_title: "Ältere Daten wiederherstellen",
-    recover_older_data_desc:
-      "Dieses Konto wurde zurückgesetzt. Wenn Sie sich an das Passwort erinnern, das Sie vor dem Zurücksetzen verwendet haben, können Ihre älteren verschlüsselten Daten entsperrt und wiederhergestellt werden.",
-    recover_older_data_button: "Ältere Daten entsperren",
-    resurrection_old_password: "Altes Passwort",
-    resurrection_old_password_prompt:
-      "Geben Sie das Passwort ein, das Sie vor dem Zurücksetzen verwendet haben",
-    resurrection_success:
-      "Ihre älteren Daten sind entsperrt. Frühere E-Mails und Aliasse lassen sich wieder normal öffnen.",
-    resurrection_failed:
-      "Damit ließen sich die älteren Daten nicht entsperren. Prüfen Sie das Passwort oder die Phrase und versuchen Sie es erneut.",
-    discard_older_data_button: "Ältere Daten verwerfen",
-    discard_older_data_title: "Ältere Daten verwerfen?",
-    discard_older_data_desc: "Damit wird die Option, E-Mails und Aliasse aus der Zeit vor dem Zurücksetzen zu entsperren, dauerhaft entfernt. Das lässt sich nicht rückgängig machen.",
-    discard_older_data_success: "Ältere Daten verworfen.",
-    discard_older_data_failed: "Die älteren Daten konnten nicht verworfen werden. Versuchen Sie es erneut.",
     phrase_wrap_save_failed:
       "Ihre Wiederherstellungsphrase konnte nicht auf dem Server gespeichert werden. Versuchen Sie es erneut.",
     smtp_tokens: "SMTP-Token",
@@ -4038,16 +4031,8 @@ export const de = {
       "Dein Passwort wurde geändert. {{count}} verschlüsselte Elemente behalten ihre frühere Verschlüsselung, weil ihr Schlüssel nicht verfügbar war. Die Zustellung von E-Mails ist nicht betroffen. Wende dich an den Support, um sie wiederherzustellen.",
     password_change_background_reencrypt_failed:
       "Dein Passwort wurde geändert, aber ein Teil deiner gesendeten Nachrichten und Einstellungen wurde nicht neu verschlüsselt. Wende dich an den Support, wenn Nachrichten oder Einstellungen unlesbar wirken.",
-    restore_sent_mail: "Gesendete E-Mails wiederherstellen",
-    restore_sent_mail_description: "Wenn sich gesendete E-Mails aus der Zeit vor einer Passwortänderung nicht öffnen lassen, gib das damals verwendete Passwort ein. Aster Mail verschlüsselt diese Kopien mit deinem aktuellen Passwort neu.",
     previous_password: "Vorheriges Passwort",
-    enter_previous_password: "Vorheriges Passwort eingeben",
-    restore_sent_mail_running: "Gesendete E-Mails werden geprüft... {{count}} geprüft",
-    restore_sent_mail_result: "{{rewritten}} gesendete E-Mails lassen sich jetzt mit deinem aktuellen Passwort öffnen. {{unreadable}} benötigen weiterhin ein anderes früheres Passwort.",
-    restore_sent_mail_nothing: "Alle gesendeten E-Mails lassen sich bereits mit deinem aktuellen Passwort öffnen.",
-    restore_sent_mail_failed: "Einige gesendete E-Mails konnten nicht aktualisiert werden. Prüfe deine Verbindung und versuche es erneut.",
-    restore_sent_mail_session_expired: "Deine Sitzungsschlüssel sind nicht verfügbar. Melde dich ab, wieder an und versuche es erneut.",
-    password_change_sent_mail_locked: "Dein Passwort wurde geändert. {{count}} gesendete E-Mails waren mit einem früheren Passwort verschlüsselt und wurden nicht aktualisiert. Öffne zum Wiederherstellen Einstellungen > Sicherheit > Gesendete E-Mails wiederherstellen.",
+    password_change_sent_mail_locked: "Dein Passwort wurde geändert. {{count}} gesendete E-Mails waren mit einem früheren Passwort verschlüsselt und wurden nicht aktualisiert. Wähle zum Entsperren Daten wiederherstellen im Banner oben in deinem Posteingang.",
     password_changed_signing_out:
       "Passwort erfolgreich geändert. Sie werden abgemeldet...",
     password_changed_success: "Passwort geändert",
@@ -7572,25 +7557,6 @@ export const de = {
     vacation_reply_count_other: "{{count}} Antworten gesendet",
     vacation_reply_last: "Zuletzt: {{date}}",
     vacation_reply_tab_label: "Urlaubsantwort",
-    vault_recovery_button: "Daten wiederherstellen",
-    vault_recovery_description:
-      "Falls Sie kürzlich Ihr Passwort geändert haben und Ihre Aliase oder andere verschlüsselte Daten nicht mehr sehen können, geben Sie hier Ihr vorheriges Passwort ein, um den Zugang wiederherzustellen.",
-    vault_recovery_enter_password:
-      "Geben Sie bitte Ihr vorheriges Passwort ein",
-    vault_recovery_failed:
-      "Datenwiederherstellung fehlgeschlagen. Bitte versuchen Sie es erneut.",
-    vault_recovery_known_aliases_hint:
-      "Falls Sie Ihre Alias-Adressen kennen, geben Sie sie hier durch Kommas getrennt ein, um deren Wiederherstellung zu unterstützen.",
-    vault_recovery_known_aliases_label: "Bekannte Alias-Adressen (optional)",
-    vault_recovery_modal_description:
-      "Geben Sie das Passwort ein, das Sie vor Ihrer letzten Passwortänderung verwendet haben. Dadurch wird der Zugang zu Daten wiederhergestellt, die unter Ihrem alten Passwort verschlüsselt wurden.",
-    vault_recovery_old_password_label: "Vorheriges Passwort",
-    vault_recovery_old_password_placeholder: "Vorheriges Passwort eingeben",
-    vault_recovery_recover_button: "Wiederherstellen",
-    vault_recovery_recovering: "Wird wiederhergestellt...",
-    vault_recovery_success:
-      "Datenwiederherstellung erfolgreich. Ihre Aliase und verschlüsselten Daten sollten jetzt sichtbar sein.",
-    vault_recovery_title: "Verschlüsselte Daten wiederherstellen",
     verify_all_records: "Alle Einträge verifizieren",
     view_dns_records: "DNS-Einträge anzeigen",
     search_placeholder: "Einstellungen durchsuchen...",
