@@ -36,6 +36,7 @@ import { alias_address_of } from "@/hooks/email_list_helpers/alias_view";
 
 import {
   is_fully_built as is_category_index_built,
+  is_index_reconciled,
   is_index_settled,
 } from "@/services/category_index";
 import { use_category_drop } from "@/components/email/inbox/use_category_drop";
@@ -372,10 +373,12 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     ? is_category_index_built()
     : email_state.has_initial_load && !email_state.is_loading;
 
-  const raw_header_count =
+  const live_header_count =
     current_view === "inbox" || current_view === ""
       ? categories.enabled
-        ? categories.counts[categories.active_category]?.unread
+        ? is_index_reconciled()
+          ? categories.counts[categories.active_category]?.unread
+          : undefined
         : mail_stats.unread
       : current_view === "drafts"
         ? mail_stats.drafts
@@ -383,11 +386,11 @@ export function use_email_inbox_state(props: EmailInboxProps) {
           ? mail_stats.scheduled
           : current_view === "snoozed"
             ? mail_stats.snoozed
-            : current_view === "spam" || current_view === "trash"
-              ? effective_total_for_pages
-              : is_alias_view
-                ? filtered_emails.filter((e) => !e.is_read).length
-                : effective_total_for_pages;
+            : null;
+
+  const list_header_count = is_alias_view
+    ? filtered_emails.filter((e) => !e.is_read).length
+    : effective_total_for_pages;
 
   const header_count_key = `${current_view}|${
     categories.enabled ? categories.active_category : ""
@@ -407,13 +410,16 @@ export function use_email_inbox_state(props: EmailInboxProps) {
   if (totals_authoritative) {
     settled_header_count_ref.current = {
       key: header_count_key,
-      count: raw_header_count,
+      count: list_header_count,
     };
   }
 
-  const header_display_count = totals_authoritative
-    ? raw_header_count
-    : settled_header_count_ref.current.count;
+  const header_display_count =
+    live_header_count !== null
+      ? live_header_count
+      : totals_authoritative
+        ? list_header_count
+        : settled_header_count_ref.current.count;
 
   useEffect(() => {
     if (!totals_authoritative) return;

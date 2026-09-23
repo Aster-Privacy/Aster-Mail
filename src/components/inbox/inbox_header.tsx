@@ -434,11 +434,9 @@ export function InboxHeader({
                   <span className="text-base leading-tight font-semibold text-[var(--text-primary)] truncate max-w-[140px] sm:max-w-[280px] lg:max-w-[420px]">
                     {view_title}
                   </span>
-                  {(display_count ?? filtered_count) > 0 && (
+                  {!!display_count && display_count > 0 && (
                     <span className="text-base leading-tight font-extrabold text-[var(--accent-color)] tabular-nums flex-shrink-0">
-                      {(display_count ?? filtered_count).toLocaleString(
-                        app_locale(),
-                      )}
+                      {display_count.toLocaleString(app_locale())}
                     </span>
                   )}
                   <ChevronDownIcon className="w-4 h-4 text-[var(--icon-muted)] flex-shrink-0" />
@@ -477,7 +475,6 @@ export function InboxHeader({
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-
         </div>
 
         {has_selection && (
