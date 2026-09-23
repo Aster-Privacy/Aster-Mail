@@ -324,6 +324,11 @@ export function RecipientField({
     new Set(),
   );
   const [discovery_tick, set_discovery_tick] = useState(0);
+  const field_ref = useRef<HTMLDivElement>(null);
+
+  const focus_input = () => {
+    field_ref.current?.querySelector("input")?.focus();
+  };
 
   useEffect(() => {
     const timers = retry_timers_ref.current;
@@ -652,10 +657,14 @@ export function RecipientField({
   };
 
   return (
-    <div className="flex items-start gap-2">
-      <span className="text-sm flex-shrink-0 py-1.5 text-txt-tertiary">
+    <div ref={field_ref} className="flex items-start gap-2">
+      <button
+        className="text-sm flex-shrink-0 py-1.5 text-txt-tertiary cursor-text"
+        type="button"
+        onClick={focus_input}
+      >
         {label}
-      </span>
+      </button>
       <div className="flex-1 relative min-w-0">
         {recipients.length > 1 && (
           <div
@@ -797,6 +806,7 @@ export function ComposeFormFields({
   auto_focus_to = false,
 }: ComposeFormFieldsProps) {
   const { t } = use_i18n();
+  const subject_ref = useRef<HTMLInputElement>(null);
 
   const compose_all_recipients = [
     ...compose.recipients.to,
@@ -879,10 +889,15 @@ export function ComposeFormFields({
       />
 
       <div className="flex items-start gap-2 py-2 border-b border-edge-secondary">
-        <span className="text-sm flex-shrink-0 py-1.5 text-txt-tertiary">
+        <button
+          className="text-sm flex-shrink-0 py-1.5 text-txt-tertiary cursor-text"
+          type="button"
+          onClick={() => subject_ref.current?.focus()}
+        >
           {t("mail.subject")}
-        </span>
+        </button>
         <input
+          ref={subject_ref}
           className="flex-1 w-full bg-transparent border-none outline-none py-1.5 text-sm text-txt-primary placeholder:text-txt-muted"
           maxLength={998}
           placeholder=""

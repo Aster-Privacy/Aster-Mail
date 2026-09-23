@@ -172,9 +172,17 @@ export function ReplyHeader({
       {!is_minimized && (
         <div className="px-4 pt-3 pb-1 flex-shrink-0">
           <div className="flex items-center gap-2 py-2 border-b border-edge-secondary">
-            <span className="text-sm flex-shrink-0 text-txt-tertiary">
+            <button
+              className="text-sm flex-shrink-0 text-txt-tertiary"
+              type="button"
+              onClick={(e) =>
+                e.currentTarget.parentElement
+                  ?.querySelector<HTMLButtonElement>("button[aria-haspopup]")
+                  ?.click()
+              }
+            >
               {t("mail.from")}
-            </span>
+            </button>
             <SenderSelector
               ghost_error={ghost_error}
               ghost_expiry_days={ghost_expiry_days}

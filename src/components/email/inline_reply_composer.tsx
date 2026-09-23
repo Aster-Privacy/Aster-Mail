@@ -349,9 +349,17 @@ export const InlineReplyComposer = forwardRef<
   const reply_sender_field = is_reply_mode ? (
     <div className="px-4 pt-1 pb-1 flex-shrink-0 relative z-20">
       <div className="flex items-center gap-2 py-1.5">
-        <span className="text-sm flex-shrink-0 text-txt-tertiary">
+        <button
+          className="text-sm flex-shrink-0 text-txt-tertiary"
+          type="button"
+          onClick={(e) =>
+            e.currentTarget.parentElement
+              ?.querySelector<HTMLButtonElement>("button[aria-haspopup]")
+              ?.click()
+          }
+        >
           {t("common.from_label")}
-        </span>
+        </button>
         <SenderSelector
           on_select={reply_modal.set_selected_sender}
           on_set_preferred={reply_modal.handle_set_preferred}
@@ -446,9 +454,17 @@ export const InlineReplyComposer = forwardRef<
     inline_mode === "forward" ? (
       <div className="px-4 pt-1 pb-1 min-h-0 overflow-y-auto relative z-20">
         <div className="flex items-center gap-2 py-1.5">
-          <span className="text-sm flex-shrink-0 text-txt-tertiary">
+          <button
+            className="text-sm flex-shrink-0 text-txt-tertiary"
+            type="button"
+            onClick={(e) =>
+              e.currentTarget.parentElement
+                ?.querySelector<HTMLButtonElement>("button[aria-haspopup]")
+                ?.click()
+            }
+          >
             {t("common.from_label")}
-          </span>
+          </button>
           <SenderSelector
             on_select={forward_modal.set_selected_sender}
             on_set_preferred={forward_modal.handle_set_preferred}
