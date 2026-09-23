@@ -1259,6 +1259,7 @@ export const pl = {
     emoji_activities: "Aktywności",
     emoji_flags: "Flagi",
     no_emojis_found: "Nie znaleziono emoji",
+    emoji_recent: "Ostatnio używane",
     item_copied: "{{ label }} skopiowano",
     copied_item: "Skopiowano {{ label }}",
     blocked_email: "Zablokowano {{ email }}",
@@ -8284,6 +8285,7 @@ export const pl = {
     already_reacted: "Już zareagowałeś w ten sposób",
     remove_your_reaction: "Usuń swoją reakcję {emoji}",
     you_reacted_with: "Zareagowałeś {{emoji}}",
+    you_reacted_with_remove: "Zareagowano: {{emoji}}. Kliknij, aby usunąć.",
     reacted_with: "{{name}} zareagował(a) {{emoji}}",
     forward: "Przekaż dalej",
     to: "Do",
@@ -9813,6 +9815,8 @@ export const pl = {
     cannot_react_bcc: "Nie możesz zareagować na wiadomość otrzymaną w UDW.",
     cannot_react_too_many_emojis:
       "Ta wiadomość ma już maksymalną liczbę reakcji.",
+    cannot_react_limit:
+      "Do wiadomości możesz dodać maksymalnie dwie reakcje. Aby dodać kolejną, usuń jedną ze swoich.",
     cannot_react_no_recipient:
       "Ta wiadomość nie ma nadawcy, do którego można wysłać reakcję.",
     failed_send_reaction: "Spróbuj ponownie.",

@@ -1322,6 +1322,7 @@ export const en: Translations = {
     emoji_activities: "Activities",
     emoji_flags: "Flags",
     no_emojis_found: "No emojis found",
+    emoji_recent: "Recently used",
     item_copied: "{{ label }} copied",
     copied_item: "Copied {{ label }}",
     blocked_email: "Blocked {{ email }}",
@@ -7853,6 +7854,7 @@ export const en: Translations = {
     already_reacted: "You already reacted with this",
     remove_your_reaction: "Remove your {emoji} reaction",
     you_reacted_with: "You reacted with {{emoji}}",
+    you_reacted_with_remove: "You reacted with {{emoji}}. Click to remove.",
     reacted_with: "{{name}} reacted with {{emoji}}",
     reply_subject_prefix: "Re:",
     reply_from_mismatch_title: "Reply from a different address?",
@@ -9408,6 +9410,8 @@ export const en: Translations = {
     cannot_react_bcc: "You cannot react to a message you were BCC'd on.",
     cannot_react_too_many_emojis:
       "This message already has the maximum number of reactions.",
+    cannot_react_limit:
+      "You can add up to two reactions to a message. To add another, remove one of yours.",
     cannot_react_no_recipient:
       "This message has no sender to send the reaction to.",
     failed_send_reaction:

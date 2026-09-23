@@ -1291,6 +1291,7 @@ export const ko = {
     emoji_activities: "활동",
     emoji_flags: "깃발",
     no_emojis_found: "이모지를 찾을 수 없습니다",
+    emoji_recent: "최근 사용",
     item_copied: "{{ label }} 복사됨",
     copied_item: "{{ label }} 복사됨",
     blocked_email: "{{ email }} 차단됨",
@@ -7803,6 +7804,7 @@ export const ko = {
     already_reacted: "이미 이 반응을 남겼습니다",
     remove_your_reaction: "{emoji} 반응 삭제",
     you_reacted_with: "{{emoji}} 반응을 남겼습니다",
+    you_reacted_with_remove: "{{emoji}}(으)로 반응했습니다. 삭제하려면 클릭하세요.",
     reacted_with: "{{name}}님이 {{emoji}} 반응을 남겼습니다",
     forward: "전달",
     to: "받는 사람",
@@ -9281,6 +9283,8 @@ export const ko = {
     cannot_react_bcc: "숨은 참조로 받은 메시지에는 반응할 수 없습니다.",
     cannot_react_too_many_emojis:
       "이 메시지에는 이미 최대 개수의 반응이 있습니다.",
+    cannot_react_limit:
+      "메시지 하나에 반응을 최대 2개까지 추가할 수 있습니다. 다른 반응을 추가하려면 내 반응 중 하나를 삭제하세요.",
     cannot_react_no_recipient: "이 메시지에는 반응을 보낼 발신자가 없습니다.",
     failed_send_reaction: "다시 시도하세요.",
     reactions_disabled: "설정에서 반응이 꺼져 있습니다.",

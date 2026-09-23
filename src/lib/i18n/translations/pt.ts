@@ -1147,6 +1147,7 @@ export const pt = {
     emoji_activities: "Atividades",
     emoji_flags: "Bandeiras",
     no_emojis_found: "Nenhum emoji encontrado",
+    emoji_recent: "Usados recentemente",
     item_copied: "{{ label }} copiado",
     copied_item: "{{ label }} copiado",
     blocked_email: "{{ email }} bloqueado",
@@ -8088,6 +8089,7 @@ export const pt = {
     already_reacted: "Você já reagiu com isto",
     remove_your_reaction: "Remover a sua reação {emoji}",
     you_reacted_with: "Você reagiu com {{emoji}}",
+    you_reacted_with_remove: "Você reagiu com {{emoji}}. Clique para remover.",
     reacted_with: "{{name}} reagiu com {{emoji}}",
     forward: "Encaminhar",
     to: "Para",
@@ -9625,6 +9627,8 @@ export const pt = {
       "Não é possível reagir a uma mensagem em que você estava em Cco.",
     cannot_react_too_many_emojis:
       "Esta mensagem já tem o número máximo de reações.",
+    cannot_react_limit:
+      "Você pode adicionar até duas reações a uma mensagem. Para adicionar outra, remova uma das suas.",
     cannot_react_no_recipient:
       "Esta mensagem não tem remetente para enviar a reação.",
     failed_send_reaction: "Tente novamente.",

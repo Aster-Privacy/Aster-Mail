@@ -733,7 +733,9 @@ export const InlineReplySection = forwardRef<
                     😊
                   </button>
                   {show_emoji_picker && !is_disabled && (
-                    <EmojiPicker on_select={handle_emoji_select} />
+                    <div className="absolute bottom-full start-0 z-50 mb-2">
+                      <EmojiPicker on_select={handle_emoji_select} />
+                    </div>
                   )}
                 </div>
                 <span className="text-xs ms-auto text-txt-tertiary">

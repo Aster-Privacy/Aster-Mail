@@ -1324,6 +1324,7 @@ export const hi = {
     emoji_activities: "गतिविधियां",
     emoji_flags: "झंडे",
     no_emojis_found: "कोई इमोजी नहीं मिली",
+    emoji_recent: "हाल ही में उपयोग किए गए",
     item_copied: "{{ label }} कॉपी हो गया",
     copied_item: "{{ label }} कॉपी हो गया",
     blocked_email: "{{ email }} ब्लॉक कर दिया गया",
@@ -7887,6 +7888,8 @@ export const hi = {
     already_reacted: "आप इससे पहले ही प्रतिक्रिया दे चुके हैं",
     remove_your_reaction: "अपनी {emoji} प्रतिक्रिया हटाएं",
     you_reacted_with: "आपने {{emoji}} से प्रतिक्रिया दी",
+    you_reacted_with_remove:
+      "आपने {{emoji}} से प्रतिक्रिया दी। हटाने के लिए क्लिक करें।",
     reacted_with: "{{name}} ने {{emoji}} से प्रतिक्रिया दी",
     reply_subject_prefix: "Re:",
     reply_from_mismatch_title: "किसी दूसरे पते से जवाब दें?",
@@ -9436,6 +9439,8 @@ export const hi = {
       "जिस संदेश में आप BCC में थे, उस पर आप प्रतिक्रिया नहीं दे सकते।",
     cannot_react_too_many_emojis:
       "इस संदेश पर पहले से अधिकतम संख्या में प्रतिक्रियाएं हैं।",
+    cannot_react_limit:
+      "आप किसी संदेश पर अधिकतम दो प्रतिक्रियाएं जोड़ सकते हैं। दूसरी जोड़ने के लिए, अपनी एक प्रतिक्रिया हटाएं।",
     cannot_react_no_recipient:
       "इस संदेश का कोई प्रेषक नहीं है जिसे प्रतिक्रिया भेजी जा सके।",
     failed_send_reaction:
