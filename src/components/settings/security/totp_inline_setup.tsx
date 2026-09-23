@@ -27,6 +27,7 @@ import {
 import { Button } from "@aster/ui";
 
 import { RoundedQrCode } from "@/components/ui/rounded_qr_code";
+import { spoken_secret } from "@/utils/spoken_secret";
 import { show_toast } from "@/components/toast/simple_toast";
 import { OtpInput } from "@/components/ui/otp_input";
 import { TotpBackupCodesModal } from "@/components/settings/security/totp_backup_codes_modal";
@@ -185,7 +186,10 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
           </div>
         ) : setup_data ? (
           <div className="flex flex-col lg:flex-row gap-3 lg:items-start min-w-0">
-            <div className="flex-shrink-0 flex justify-center">
+            <div
+              aria-hidden="true"
+              className="flex-shrink-0 flex justify-center"
+            >
               <RoundedQrCode
                 logo_src={mail_logo_url}
                 size={210}
@@ -197,6 +201,7 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
                 {t("settings.scan_qr_code_description")}
               </p>
               <button
+                aria-label={`${t("settings.cant_scan_enter_manually")} ${spoken_secret(setup_data.secret)}. ${t("common.copy")}`}
                 className="flex items-center gap-2 mt-1.5 group"
                 type="button"
                 onClick={copy_secret}

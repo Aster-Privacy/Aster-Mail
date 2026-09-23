@@ -27,10 +27,11 @@ import {
   ArrowDownTrayIcon,
   QuestionMarkCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import { trigger_download } from "@/utils/download_blob";
 import { RoundedQrCode } from "@/components/ui/rounded_qr_code";
+import { spoken_secret } from "@/utils/spoken_secret";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   Modal,
@@ -222,7 +223,7 @@ export function TotpSetupModal({
           </div>
         ) : setup_data ? (
           <div className="space-y-5">
-            <div className="flex justify-center">
+            <div aria-hidden="true" className="flex justify-center">
               <RoundedQrCode
                 logo_src={mail_logo_url}
                 size={240}
@@ -234,10 +235,14 @@ export function TotpSetupModal({
                 {t("settings.cant_scan_enter_manually")}
               </p>
               <div className="flex items-center justify-center gap-2">
-                <code className="px-3 py-2 rounded-lg text-sm font-mono break-all bg-surf-secondary text-txt-primary">
+                <code
+                  aria-label={spoken_secret(setup_data.secret)}
+                  className="px-3 py-2 rounded-lg text-sm font-mono break-all bg-surf-secondary text-txt-primary"
+                >
                   {setup_data.secret}
                 </code>
                 <button
+                  aria-label={t("common.copy")}
                   className="p-2 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10"
                   type="button"
                   onClick={copy_secret}

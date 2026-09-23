@@ -25,8 +25,8 @@ import {
   LockClosedIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import { generate_ghost_local_part } from "@/services/api/ghost_aliases";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -573,19 +573,28 @@ export function CreateAliasModal({
                     !is_custom_domain && (
                       <>
                         {checking && (
-                          <span className="inline-flex items-center gap-1 text-txt-muted">
+                          <span
+                            className="inline-flex items-center gap-1 text-txt-muted"
+                            role="status"
+                          >
                             <ArrowPathIcon className="w-3.5 h-3.5 shrink-0 animate-spin" />
                             {t("settings.checking_availability")}
                           </span>
                         )}
                         {!checking && is_available === true && (
-                          <span className="inline-flex items-center gap-1 text-green-500">
+                          <span
+                            className="inline-flex items-center gap-1 text-green-500"
+                            role="status"
+                          >
                             <CheckCircleIcon className="w-3.5 h-3.5 shrink-0" />
                             {t("settings.alias_is_available")}
                           </span>
                         )}
                         {!checking && is_available === false && (
-                          <span className="inline-flex items-center gap-1 text-red-500">
+                          <span
+                            className="inline-flex items-center gap-1 text-red-500"
+                            role="status"
+                          >
                             <XCircleIcon className="w-3.5 h-3.5 shrink-0" />
                             {t("settings.alias_not_available")}
                           </span>
@@ -681,7 +690,10 @@ export function CreateAliasModal({
           )}
 
           {error && (
-            <div className="mt-4 px-3 py-2.5 rounded-lg text-sm bg-red-600 text-red-50">
+            <div
+              className="mt-4 px-3 py-2.5 rounded-lg text-sm bg-red-600 text-red-50"
+              role="alert"
+            >
               {error}
             </div>
           )}
