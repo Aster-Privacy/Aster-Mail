@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TurnstileWidgetRef } from "@/components/auth/turnstile_widget";
 import type { RegistrationStep } from "@/components/register/register_types";
 import type { RegisterRequest } from "@/services/api/auth";
 import type { UserPreferences } from "@/services/api/preferences";
@@ -354,6 +355,11 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const [is_pdf_downloaded, set_is_pdf_downloaded] = useState(false);
   const [is_text_downloaded, set_is_text_downloaded] = useState(false);
   const [captcha_token, set_captcha_token] = useState("");
+  const turnstile_ref = useRef<TurnstileWidgetRef>(null);
+  const rearm_captcha = useCallback(() => {
+    set_captcha_token("");
+    turnstile_ref.current?.reset();
+  }, []);
   const [show_skip_confirmation, set_show_skip_confirmation] = useState(false);
   const [is_saving_recovery_email, set_is_saving_recovery_email] =
     useState(false);
@@ -824,6 +830,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
       if (response.error) {
         await timing_safe_delay();
+        rearm_captcha();
         if (
           response.code === "ABUSE_ACCOUNT_LIMIT" ||
           response.code === "REGISTRATION_SUSPENDED"
@@ -881,6 +888,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
       );
     } catch (err) {
       await timing_safe_delay();
+      rearm_captcha();
       const message = user_facing_error(err, t("auth.registration_failed"));
 
       set_error(
@@ -1428,6 +1436,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     set_is_saving_recovery_email(true);
     const response = await register_user({
       ...saved_params,
+      captcha_token: captcha_token || undefined,
       recovery_email: recovery_email.trim(),
     });
 
@@ -1435,6 +1444,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
 
     if (response.error) {
       await timing_safe_delay();
+      rearm_captcha();
       if (
         response.code === "ABUSE_ACCOUNT_LIMIT" ||
         response.code === "REGISTRATION_SUSPENDED"
@@ -1551,6 +1561,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
     generated_email,
     captcha_token,
     set_captcha_token,
+    turnstile_ref,
     is_pdf_downloaded,
     is_text_downloaded,
     is_downloading_key,

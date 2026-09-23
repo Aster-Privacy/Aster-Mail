@@ -600,6 +600,7 @@ export function use_sign_in_page() {
           set_error(t("common.account_suspended"));
           set_is_loading(false);
           set_captcha_token("");
+          turnstile_ref.current?.reset();
           set_totp_required(false);
           set_pending_login_token("");
           set_available_2fa_methods([]);
@@ -670,6 +671,7 @@ export function use_sign_in_page() {
             set_error(t("passkeys.vault_needs_password"));
             set_is_loading(false);
             set_captcha_token("");
+            turnstile_ref.current?.reset();
             set_totp_required(false);
             set_pending_login_token("");
             set_available_2fa_methods([]);
@@ -736,6 +738,7 @@ export function use_sign_in_page() {
             set_error(add_result.error || t("errors.login_failed"));
             set_is_loading(false);
             set_captcha_token("");
+            turnstile_ref.current?.reset();
             set_totp_required(false);
             set_pending_login_token("");
             set_available_2fa_methods([]);
@@ -802,6 +805,7 @@ export function use_sign_in_page() {
         }
         set_is_loading(false);
         set_captcha_token("");
+        turnstile_ref.current?.reset();
         set_totp_required(false);
         set_pending_login_token("");
         set_available_2fa_methods([]);
