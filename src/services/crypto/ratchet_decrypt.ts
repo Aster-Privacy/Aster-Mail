@@ -60,6 +60,7 @@ import {
   type RatchetRecipientData,
 } from "./ratchet_types";
 import { adopt_refreshed_vault, fetch_refreshed_vault } from "./vault_refresh";
+import { recover_ratchet_keys_from_history } from "./vault_key_recovery";
 import { is_authenticated_ratchet_enforced } from "./crypto_enforcement_policy";
 import {
   authenticate_sender_identity,
@@ -720,6 +721,42 @@ async function decrypt_ratchet_for_recipient(
               caught,
             );
           }
+        }
+      }
+    }
+
+    if ((plaintext === null || !ratchet) && is_first_chain_bootstrap) {
+      const recovered_vault = await recover_ratchet_keys_from_history();
+
+      for (const keys of recovered_vault
+        ? receiver_key_sets(recovered_vault)
+        : []) {
+        let candidate: DoubleRatchet | null = null;
+
+        try {
+          candidate = await init_receiver_from_bootstrap(
+            data,
+            sender_identity_key,
+            keys,
+            conversation_id,
+            sender_email,
+          );
+        } catch {
+          continue;
+        }
+
+        if (!candidate) continue;
+
+        try {
+          plaintext = await candidate.decrypt(message);
+          ratchet = candidate;
+          ratchet_origin = "replacement";
+          break;
+        } catch (caught) {
+          ignore_error(
+            "services/crypto/ratchet_decrypt:recovered_key_bootstrap",
+            caught,
+          );
         }
       }
     }

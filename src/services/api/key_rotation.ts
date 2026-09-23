@@ -68,14 +68,18 @@ export async function get_identity_key_status(): Promise<{
 
 export async function rotate_identity_key(
   request: RotateIdentityKeyRequest,
-): Promise<{ data?: RotateIdentityKeyResponse; error?: string }> {
+): Promise<{
+  data?: RotateIdentityKeyResponse;
+  error?: string;
+  error_code?: string;
+}> {
   const response = await api_client.post<RotateIdentityKeyResponse>(
     "/crypto/v1/keys/identity/rotate",
     request,
   );
 
   if (response.error) {
-    return { error: response.error };
+    return { error: response.error, error_code: response.server_code };
   }
 
   return { data: response.data ?? undefined };

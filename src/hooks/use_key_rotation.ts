@@ -36,8 +36,14 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { store_encrypted_vault } from "@/contexts/auth/session_passphrase";
 import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
+import { sync_vault_with_server } from "@/services/crypto/ensure_ratchet_keys";
 import { show_toast } from "@/components/toast/simple_toast";
 import { user_facing_error } from "@/utils/user_facing_error";
+
+const STALE_VAULT_ROTATION_CODES = new Set([
+  "STALE_KEY_VAULT",
+  "IDENTITY_CONTINUITY_REQUIRED",
+]);
 
 export interface KeyRotationState {
   show_modal: boolean;
@@ -156,23 +162,42 @@ export function use_key_rotation(options?: { auto_check?: boolean }) {
           return t("common.failed_to_retrieve_key");
         }
 
-        const result = await with_vault_write_lock(async () => {
-          const locked_vault = get_vault_from_memory() ?? current_vault;
-          const rotation = await perform_key_rotation(
-            locked_vault,
-            password,
-            user.email,
-            user.display_name ?? user.username ?? "User",
-            preferences.key_history_limit,
-            server_public_key,
-          );
+        let rotation_public_key = server_public_key;
 
-          if (rotation.success && rotation.new_vault) {
-            await store_vault_in_memory(rotation.new_vault, password);
-          }
+        const rotate_from_server_vault = () =>
+          with_vault_write_lock(async () => {
+            await sync_vault_with_server();
 
-          return rotation;
-        });
+            const locked_vault = get_vault_from_memory() ?? current_vault;
+            const rotation = await perform_key_rotation(
+              locked_vault,
+              password,
+              user.email,
+              user.display_name ?? user.username ?? "User",
+              preferences.key_history_limit,
+              rotation_public_key,
+            );
+
+            if (rotation.success && rotation.new_vault) {
+              await store_vault_in_memory(rotation.new_vault, password);
+            }
+
+            return rotation;
+          });
+
+        let result = await rotate_from_server_vault();
+
+        if (
+          !result.success &&
+          result.error_code &&
+          STALE_VAULT_ROTATION_CODES.has(result.error_code)
+        ) {
+          const retry_status = await get_identity_key_status();
+
+          rotation_public_key =
+            retry_status.data?.current_public_key ?? rotation_public_key;
+          result = await rotate_from_server_vault();
+        }
 
         if (result.success && result.new_vault) {
           if (result.encrypted_vault && result.vault_nonce) {
