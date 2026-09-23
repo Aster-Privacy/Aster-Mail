@@ -109,9 +109,7 @@ export function should_keep_email_in_view(
 
   if (flags.is_trashed || flags.is_spam) return false;
 
-  if (flags.is_archived && !view_includes_archived(view)) return false;
-
-  return true;
+  return !flags.is_archived || view_includes_archived(view);
 }
 
 export function format_timestamp(date: Date, options: FormatOptions): string {
