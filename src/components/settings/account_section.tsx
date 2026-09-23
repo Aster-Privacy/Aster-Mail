@@ -63,7 +63,6 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
-import { use_primary_identity } from "@/lib/primary_identity";
 import {
   update_display_name,
   update_profile_color,
@@ -235,7 +234,6 @@ export function AccountSection() {
   const { t } = use_i18n();
   const { user, update_user, vault } = use_auth();
   const account_email = user?.email ?? "";
-  const primary_identity = use_primary_identity(account_email);
   const { preferences, update_preference, reset_to_defaults } =
     use_preferences();
   const {
@@ -751,20 +749,13 @@ export function AccountSection() {
           <p className="text-sm font-medium text-txt-primary">
             {t("settings.primary_address_label")}
           </p>
-          {primary_identity.is_custom && account_email && (
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.also_receives_at", { email: account_email })}
-            </p>
-          )}
         </div>
         <div
           className="cursor-pointer rounded-md px-2 -me-2 py-1 hover:bg-surf-hover transition-colors"
-          onClick={() =>
-            copy_primary_address(primary_identity.email || account_email)
-          }
+          onClick={() => copy_primary_address(account_email)}
         >
           <span className="text-sm font-medium text-txt-secondary truncate max-w-[16rem]">
-            {primary_identity.email || account_email}
+            {account_email}
           </span>
         </div>
       </div>
