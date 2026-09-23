@@ -70,6 +70,7 @@ import {
   resend_primary_address_code,
   check_primary_address_availability,
   confirm_primary_address_change,
+  load_primary_address_eligibility,
   type PrimaryAddressEligibility,
 } from "@/services/api/primary_address";
 import { normalize_local_part } from "@/services/api/aliases/crypto";
@@ -366,8 +367,6 @@ export function ChangePrimaryAddressModal({
   }, [is_open]);
 
   useEffect(() => {
-    if (is_open) return;
-
     set_step("intro");
     set_local_part("");
     set_domain(PRIMARY_DOMAINS[0]);
@@ -591,10 +590,22 @@ export function ChangePrimaryAddressModal({
         "components/settings/change_primary_address_modal:confirm",
         caught,
       );
-      set_error(t("settings.address_change_failed"));
-      set_busy(false);
 
-      return;
+      const settled = await load_primary_address_eligibility();
+      const settled_address = settled.data?.current_address;
+
+      if (
+        settled_address &&
+        settled_address.toLowerCase() === new_address.toLowerCase()
+      ) {
+        confirmed_address = settled.data?.current_address ?? new_address;
+        set_next_change_after(settled.data?.next_change_available_at ?? null);
+      } else {
+        set_error(t("settings.address_change_failed"));
+        set_busy(false);
+
+        return;
+      }
     }
 
     set_status(t("settings.address_change_updating_key"));
@@ -627,6 +638,12 @@ export function ChangePrimaryAddressModal({
     void Promise.resolve(on_changed(confirmed_address)).catch(() => {});
   };
 
+  const request_close = useCallback(() => {
+    if (busy) return;
+
+    on_close();
+  }, [busy, on_close]);
+
   const error_line = error && (
     <p className="mt-3 inline-flex items-start gap-1.5 text-xs text-red-500">
       <XCircleIcon className="w-3.5 h-3.5 mt-0.5 shrink-0" />
@@ -635,7 +652,14 @@ export function ChangePrimaryAddressModal({
   );
 
   return (
-    <Modal is_open={is_open} on_close={on_close} size="lg">
+    <Modal
+      is_open={is_open}
+      on_close={request_close}
+      size="lg"
+      show_close_button={!busy}
+      close_on_overlay={!busy}
+      close_on_escape={!busy}
+    >
       <ModalHeader>
         <ModalTitle>
           {step === "done"
