@@ -332,10 +332,13 @@ export function use_aliases() {
         aliases_cache.aliases = decrypted;
         aliases_cache.loaded = true;
 
+        const counted = decrypted.filter(
+          (alias) => !alias.is_retained_primary,
+        ).length;
         const derived_counts: AliasCountsResponse = {
-          count: decrypted.length,
+          count: counted,
           max: max_aliases,
-          can_create: max_aliases === -1 || decrypted.length < max_aliases,
+          can_create: max_aliases === -1 || counted < max_aliases,
         };
 
         set_alias_counts(derived_counts);

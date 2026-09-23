@@ -38,7 +38,8 @@ import { StepUpModal } from "./step_up_modal";
 
 import { ChangePrimaryAddressModal } from "@/components/settings/change_primary_address_modal";
 import {
-  get_primary_address_eligibility,
+  load_primary_address_eligibility,
+  primary_address_eligibility_failed,
   type PrimaryAddressEligibility,
 } from "@/services/api/primary_address";
 
@@ -335,7 +336,7 @@ export function AccountSection() {
           }))
         : Promise.resolve({ data: EMPTY_RECOVERY_EMAIL }),
       get_inactivity_settings(),
-      get_primary_address_eligibility().catch(() => ({ data: undefined })),
+      load_primary_address_eligibility(),
     ]);
 
     if (badges_response.data) set_badges(badges_response.data);
@@ -347,7 +348,7 @@ export function AccountSection() {
     if (inactivity_response.data)
       set_inactivity_window(inactivity_response.data.inactivity_window_months);
     set_address_eligibility((prev) => eligibility_response.data ?? prev);
-    set_address_eligibility_failed(!eligibility_response.data);
+    set_address_eligibility_failed(primary_address_eligibility_failed(eligibility_response));
 
     if (
       !badges_response.data ||
@@ -404,12 +405,10 @@ export function AccountSection() {
   const retry_address_eligibility = useCallback(async () => {
     set_address_eligibility_failed(false);
 
-    const response = await get_primary_address_eligibility().catch(() => ({
-      data: undefined,
-    }));
+    const response = await load_primary_address_eligibility();
 
     set_address_eligibility(response.data ?? null);
-    set_address_eligibility_failed(!response.data);
+    set_address_eligibility_failed(primary_address_eligibility_failed(response));
   }, []);
 
   const can_change_address = !!address_eligibility;

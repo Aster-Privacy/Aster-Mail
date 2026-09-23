@@ -409,6 +409,26 @@ describe("ChangePrimaryAddressModal", () => {
     expect(text).not.toContain("retired@astermail.org");
   });
 
+  it("rejects a local part longer than sixty-four typed characters", async () => {
+    await go_to_pick();
+
+    const at_cap = "a.".repeat(24) + "a".repeat(16);
+    const over_cap = "a.".repeat(25) + "a".repeat(15);
+
+    set_input(local_part_input(), over_cap);
+    expect(continue_button().disabled).toBe(true);
+    await wait_until(() =>
+      (container.textContent ?? "").includes(
+        "settings.address_change_name_rule",
+      ),
+    );
+    expect(mocked_availability).not.toHaveBeenCalled();
+
+    set_input(local_part_input(), at_cap);
+    await wait_until(() => mocked_availability.mock.calls.length > 0);
+    expect(mocked_availability).toHaveBeenCalledWith(at_cap, "astermail.org");
+  });
+
   it("blocks continuing from the pick step until the address is available", async () => {
     mocked_availability.mockResolvedValue({
       data: { available: false },

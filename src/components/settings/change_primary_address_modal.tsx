@@ -108,7 +108,7 @@ interface ChangePrimaryAddressModalProps {
   is_open: boolean;
   on_close: () => void;
   eligibility: PrimaryAddressEligibility;
-  on_changed: (new_address: string) => void;
+  on_changed: (new_address: string) => void | Promise<void>;
 }
 
 function IntroPoint({
@@ -218,6 +218,7 @@ function request_error_key(
 
 const PRIMARY_LOCAL_PART_MIN = 3;
 const PRIMARY_LOCAL_PART_MAX = 40;
+const PRIMARY_LOCAL_PART_TYPED_MAX = 64;
 
 function validate_primary_local_part(local_part: string): {
   valid: boolean;
@@ -229,6 +230,7 @@ function validate_primary_local_part(local_part: string): {
 
   if (
     typed.length === 0 ||
+    typed.length > PRIMARY_LOCAL_PART_TYPED_MAX ||
     typed.includes("..") ||
     typed.startsWith(".") ||
     typed.endsWith(".") ||
@@ -300,7 +302,8 @@ export function ChangePrimaryAddressModal({
         return (
           at > 0 &&
           PRIMARY_DOMAINS.includes(address.slice(at + 1).toLowerCase()) &&
-          address.toLowerCase() !== current_address.toLowerCase()
+          address.toLowerCase() !== current_address.toLowerCase() &&
+          validate_primary_local_part(address.slice(0, at).toLowerCase()).valid
         );
       }),
     [alias_addresses, current_address],
@@ -437,7 +440,7 @@ export function ChangePrimaryAddressModal({
   const pick_alias = (address: string) => {
     const at = address.lastIndexOf("@");
 
-    set_local_part(address.slice(0, at));
+    set_local_part(address.slice(0, at).toLowerCase());
     set_domain(address.slice(at + 1).toLowerCase());
   };
 
@@ -621,7 +624,7 @@ export function ChangePrimaryAddressModal({
     set_final_address(confirmed_address);
     set_retained_address(current_address);
     set_step("done");
-    on_changed(confirmed_address);
+    void Promise.resolve(on_changed(confirmed_address)).catch(() => {});
   };
 
   const error_line = error && (

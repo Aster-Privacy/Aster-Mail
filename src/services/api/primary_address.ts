@@ -50,6 +50,20 @@ export async function get_primary_address_eligibility() {
   );
 }
 
+export async function load_primary_address_eligibility() {
+  return get_primary_address_eligibility().catch(() => ({
+    data: undefined,
+    code: "NOT_FOUND" as const,
+  }));
+}
+
+export function primary_address_eligibility_failed(response: {
+  data?: unknown;
+  code?: string;
+}) {
+  return !response.data && response.code !== "NOT_FOUND";
+}
+
 export interface PrimaryAddressAvailability {
   available: boolean;
 }

@@ -97,13 +97,13 @@ export async function republish_identity_with_new_address(
   new_address: string,
   display_name: string,
 ): Promise<boolean> {
-  const current_vault = get_vault_from_memory();
-  const passphrase = get_passphrase_from_memory();
-
-  if (!current_vault || !passphrase) return false;
-
   try {
     return await with_vault_write_lock(async () => {
+      const current_vault = get_vault_from_memory();
+      const passphrase = get_passphrase_from_memory();
+
+      if (!current_vault || !passphrase) return false;
+
       const next_vault = await add_address_to_identity_key(
         current_vault,
         passphrase,

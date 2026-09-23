@@ -82,7 +82,8 @@ import { use_primary_identity } from "@/lib/primary_identity";
 import { format_date } from "@/utils/date_format";
 import { ChangePrimaryAddressModal } from "@/components/settings/change_primary_address_modal";
 import {
-  get_primary_address_eligibility,
+  load_primary_address_eligibility,
+  primary_address_eligibility_failed,
   type PrimaryAddressEligibility,
 } from "@/services/api/primary_address";
 
@@ -226,12 +227,10 @@ export function AccountSection({
   const retry_address_eligibility = useCallback(async () => {
     set_address_eligibility_failed(false);
 
-    const response = await get_primary_address_eligibility().catch(() => ({
-      data: undefined,
-    }));
+    const response = await load_primary_address_eligibility();
 
     set_address_eligibility(response.data ?? null);
-    set_address_eligibility_failed(!response.data);
+    set_address_eligibility_failed(primary_address_eligibility_failed(response));
   }, []);
 
   const can_change_address = !!address_eligibility;
@@ -271,12 +270,10 @@ export function AccountSection({
         });
       }
 
-      const refreshed = await get_primary_address_eligibility().catch(() => ({
-        data: undefined,
-      }));
+      const refreshed = await load_primary_address_eligibility();
 
       set_address_eligibility((prev) => refreshed.data ?? prev);
-      set_address_eligibility_failed(!refreshed.data);
+      set_address_eligibility_failed(primary_address_eligibility_failed(refreshed));
       show_toast(t("settings.primary_address_set"), "success");
     },
     [user, update_user, t],
@@ -312,9 +309,7 @@ export function AccountSection({
                 data: null,
               }))
             : Promise.resolve({ data: EMPTY_RECOVERY_EMAIL }),
-          get_primary_address_eligibility().catch(() => ({
-            data: undefined,
-          })),
+          load_primary_address_eligibility(),
         ]);
 
         if (badges_response.data) set_badges(badges_response.data);
@@ -329,7 +324,7 @@ export function AccountSection({
           set_recovery_load_failed(true);
         }
         set_address_eligibility(eligibility_response.data ?? null);
-        set_address_eligibility_failed(!eligibility_response.data);
+        set_address_eligibility_failed(primary_address_eligibility_failed(eligibility_response));
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
       }

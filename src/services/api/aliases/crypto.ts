@@ -299,21 +299,25 @@ export async function decrypt_alias(
       updated_at: alias.updated_at,
     };
   } catch {
+    const retained_local_part =
+      alias.is_retained_primary === true ? (alias.retained_local_part ?? "") : "";
+
     return {
       id: alias.id,
-      local_part: "",
+      local_part: retained_local_part,
       alias_address_hash: alias.alias_address_hash,
       routing_address_hash: alias.routing_address_hash,
       domain: alias.domain,
-      full_address: `@${alias.domain}`,
+      full_address: `${retained_local_part}@${alias.domain}`,
       is_enabled: alias.is_enabled,
       is_random: alias.is_random,
       is_pinned: alias.is_pinned,
       never_inbox: alias.never_inbox ?? false,
       delivery_folder_token: alias.delivery_folder_token ?? null,
       delivery_label_token: alias.delivery_label_token ?? null,
-      decryption_failed: true,
-      orphaned_by_key_rotation: alias.orphaned_by_key_rotation ?? false,
+      decryption_failed: retained_local_part === "",
+      orphaned_by_key_rotation:
+        retained_local_part === "" && (alias.orphaned_by_key_rotation ?? false),
       is_retained_primary: alias.is_retained_primary ?? false,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,

@@ -37,6 +37,7 @@ export interface EmailAlias {
   delivery_label_token?: string | null;
   orphaned_by_key_rotation?: boolean;
   is_retained_primary?: boolean;
+  retained_local_part?: string | null;
   profile_picture?: string;
   encrypted_note?: string;
   note_nonce?: string;
