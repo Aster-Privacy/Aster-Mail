@@ -33,6 +33,7 @@ const VIEWS_INCLUDING_ARCHIVED = new Set<string>([
   "all",
   "starred",
   "snoozed",
+  "sent",
 ]);
 
 export function view_includes_archived(view: string): boolean {

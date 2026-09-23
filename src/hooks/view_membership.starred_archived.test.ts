@@ -57,11 +57,24 @@ describe("archived mail in the starred view", () => {
     ).toBe(false);
   });
 
-  it("still drops archived messages from the inbox and sent lists", () => {
+  it("still drops archived messages from the inbox", () => {
     const flags = { is_archived: true, is_trashed: false, is_spam: false };
 
     expect(should_keep_email_in_view(flags, "inbox")).toBe(false);
-    expect(should_keep_email_in_view(flags, "sent")).toBe(false);
+  });
+
+  it("keeps archived sent messages in the sent list", () => {
+    const flags = {
+      is_archived: true,
+      is_trashed: false,
+      is_spam: false,
+      item_type: "sent",
+    };
+
+    expect(should_keep_email_in_view(flags, "sent")).toBe(true);
+    expect(
+      compute_should_remove_from_view({ id: "a", is_archived: true }, "sent"),
+    ).toBe(false);
   });
 
   it("keeps archived messages in archive, all mail and folder views", () => {
