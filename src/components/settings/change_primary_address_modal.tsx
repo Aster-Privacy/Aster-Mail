@@ -245,8 +245,24 @@ function validate_primary_local_part(local_part: string): {
   return { valid: true };
 }
 
-function is_indeterminate_failure(code?: string): boolean {
-  return code === "TIMEOUT_ERROR" || code === "NETWORK_ERROR";
+const DETERMINATE_CONFIRM_CODES = new Set([
+  "UNAUTHORIZED",
+  "FORBIDDEN",
+  "NOT_FOUND",
+  "CONFLICT",
+  "VALIDATION_ERROR",
+  "RATE_LIMIT_EXCEEDED",
+  "INVALID_CREDENTIALS",
+  "ADDRESS_IN_USE",
+  "USERNAME_IN_USE",
+  "PLAN_LIMIT_EXCEEDED",
+]);
+
+function is_indeterminate_failure(code?: string, server_code?: string): boolean {
+  if (code && DETERMINATE_CONFIRM_CODES.has(code)) return false;
+  if (server_code && DETERMINATE_CONFIRM_CODES.has(server_code)) return false;
+
+  return true;
 }
 
 function routing_form(address: string): string {
@@ -277,6 +293,7 @@ export function ChangePrimaryAddressModal({
   const [is_available, set_is_available] = useState<boolean | null>(null);
   const [check_failed, set_check_failed] = useState(false);
   const [partial, set_partial] = useState(false);
+  const [retrying, set_retrying] = useState(false);
   const [confirm_text, set_confirm_text] = useState("");
   const [password, set_password] = useState("");
   const [show_password, set_show_password] = useState(false);
@@ -378,6 +395,7 @@ export function ChangePrimaryAddressModal({
     set_is_available(null);
     set_check_failed(false);
     set_partial(false);
+    set_retrying(false);
     set_confirm_text("");
     set_password("");
     set_show_password(false);
@@ -560,13 +578,13 @@ export function ChangePrimaryAddressModal({
   };
 
   const settled_new_address = async (): Promise<string | null> => {
-    const settled = await load_primary_address_eligibility();
-    const settled_address = settled.data?.current_address;
+    const settled = await load_primary_address_eligibility().catch(() => null);
+    const settled_address = settled?.data?.current_address;
 
     if (!settled_address) return null;
     if (routing_form(settled_address) !== routing_form(new_address)) return null;
 
-    set_next_change_after(settled.data?.next_change_available_at ?? null);
+    set_next_change_after(settled?.data?.next_change_available_at ?? null);
 
     return settled_address;
   };
@@ -588,7 +606,10 @@ export function ChangePrimaryAddressModal({
       });
 
       if (response.error || !response.data) {
-        const settled = is_indeterminate_failure(response.code)
+        const settled = is_indeterminate_failure(
+          response.code,
+          response.server_code,
+        )
           ? await settled_new_address()
           : null;
 
@@ -657,11 +678,36 @@ export function ChangePrimaryAddressModal({
     void Promise.resolve(on_changed(confirmed_address)).catch(() => {});
   };
 
+  const retry_republish = async () => {
+    if (!final_address || retrying) return;
+
+    set_retrying(true);
+
+    try {
+      const republished = await with_timeout(
+        republish_identity_with_new_address(
+          final_address,
+          user?.display_name || "",
+        ),
+        REPUBLISH_TIMEOUT_MS,
+      );
+
+      set_partial(!republished);
+    } catch (caught) {
+      ignore_error(
+        "components/settings/change_primary_address_modal:retry_republish",
+        caught,
+      );
+    }
+
+    set_retrying(false);
+  };
+
   const request_close = useCallback(() => {
-    if (busy) return;
+    if (busy || retrying) return;
 
     on_close();
-  }, [busy, on_close]);
+  }, [busy, retrying, on_close]);
 
   const error_line = error && (
     <p className="mt-3 inline-flex items-start gap-1.5 text-xs text-red-500">
@@ -675,9 +721,9 @@ export function ChangePrimaryAddressModal({
       is_open={is_open}
       on_close={request_close}
       size="lg"
-      show_close_button={!busy}
-      close_on_overlay={!busy}
-      close_on_escape={!busy}
+      show_close_button={!busy && !retrying}
+      close_on_overlay={!busy && !retrying}
+      close_on_escape={!busy && !retrying}
     >
       <ModalHeader>
         <ModalTitle>
@@ -1167,7 +1213,16 @@ export function ChangePrimaryAddressModal({
             )}
           </ModalBody>
           <ModalFooter>
-            <Button variant="depth" onClick={on_close}>
+            {partial && (
+              <Button
+                variant="outline"
+                onClick={retry_republish}
+                disabled={retrying}
+              >
+                {t("common.retry")}
+              </Button>
+            )}
+            <Button variant="depth" onClick={on_close} disabled={retrying}>
               {t("common.done")}
             </Button>
           </ModalFooter>

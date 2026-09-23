@@ -777,6 +777,28 @@ describe("ChangePrimaryAddressModal", () => {
     expect(on_changed).toHaveBeenCalledWith("new.name@astermail.org");
   });
 
+  it("reconciles a commit that answered with a server error", async () => {
+    mocked_confirm.mockResolvedValue({
+      error: "server error",
+      code: "SERVER_ERROR",
+    } as never);
+    mocked_eligibility.mockResolvedValue({
+      data: {
+        ...eligibility_fixture,
+        eligible: false,
+        current_address: "new.name@astermail.org",
+        next_change_available_at: "2028-02-02T00:00:00Z",
+      },
+    } as never);
+
+    await go_to_code();
+    set_input(code_input(), "123456");
+    await click(find_button("settings.address_change_title"));
+    await wait_until(() => on_changed.mock.calls.length === 1);
+
+    expect(on_changed).toHaveBeenCalledWith("new.name@astermail.org");
+  });
+
   it("keeps reporting a failure when the server never applied the change", async () => {
     mocked_confirm.mockResolvedValue({
       error: "offline",

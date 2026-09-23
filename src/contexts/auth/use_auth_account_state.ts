@@ -634,6 +634,19 @@ export function use_auth_account_state() {
         void rekey_pgp_if_needed(info.email, info.display_name);
       }
 
+      if (
+        (info as { pgp_uid_update_required?: boolean })
+          .pgp_uid_update_required &&
+        info.email
+      ) {
+        void import("@/services/pgp_uid_service").then((module) =>
+          module.republish_identity_with_new_address(
+            info.email as string,
+            info.display_name || "",
+          ),
+        );
+      }
+
       const merged: User = {
         ...logged_in_user,
         display_name:
