@@ -5661,6 +5661,10 @@ export const de = {
       "Sie haben diesen Plan bereits. Aktionscodes gelten, wenn Sie zu einem anderen Plan wechseln.",
     promo_error_not_upgrade:
       "Aktionscodes gelten, wenn Sie auf einen höheren Plan upgraden.",
+    promo_error_card_only: "Dieser Aktionscode gilt nur für Kartenzahlungen.",
+    promo_error_with_credits:
+      "Sie können einen Aktionscode und Kontoguthaben nicht für dieselbe Zahlung verwenden.",
+    promo_error_not_for_addon: "Aktionscodes gelten nicht für Add-ons.",
     promo_error_generic:
       "Ihr Aktionscode konnte nicht überprüft werden. Versuchen Sie es gleich noch einmal.",
     plan_change_discount_amount: "{{amount}} Rabatt",

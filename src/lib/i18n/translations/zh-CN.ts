@@ -5121,6 +5121,10 @@ export const zh_CN = {
     promo_error_same_plan:
       "你已在使用此套餐。促销代码仅在更换为其他套餐时适用。",
     promo_error_not_upgrade: "促销代码仅在升级到更高级套餐时适用。",
+    promo_error_card_only: "此促销代码仅适用于银行卡付款。",
+    promo_error_with_credits:
+      "你不能在同一笔付款中同时使用促销代码和账户余额。",
+    promo_error_not_for_addon: "促销代码不能用于附加项目。",
     promo_error_generic: "无法验证你的促销代码。请稍后重试。",
     plan_change_discount_amount: "减{{amount}}",
     plan_change_discount_once: "本次付款享{{discount}}",

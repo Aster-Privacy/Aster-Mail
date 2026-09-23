@@ -4424,6 +4424,10 @@ export const it = {
       "Hai già questo piano. I codici promozionali si applicano quando passi a un piano diverso.",
     promo_error_not_upgrade:
       "I codici promozionali si applicano quando passi a un piano superiore.",
+    promo_error_card_only: "Questo codice promozionale funziona solo con i pagamenti con carta.",
+    promo_error_with_credits:
+      "Non puoi usare un codice promozionale e il credito dell'account nello stesso pagamento.",
+    promo_error_not_for_addon: "I codici promozionali non si possono usare per i componenti aggiuntivi.",
     promo_error_generic:
       "Impossibile verificare il codice promozionale. Riprova tra un momento.",
     plan_change_discount_amount: "{{amount}} di sconto",

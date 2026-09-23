@@ -5617,6 +5617,10 @@ export const nl = {
       "Je hebt dit plan al. Promotiecodes gelden als je naar een ander plan overstapt.",
     promo_error_not_upgrade:
       "Promotiecodes gelden als je upgradet naar een hoger plan.",
+    promo_error_card_only: "Deze promotiecode werkt alleen bij betalingen met een kaart.",
+    promo_error_with_credits:
+      "Je kunt een promotiecode en accounttegoed niet voor dezelfde betaling gebruiken.",
+    promo_error_not_for_addon: "Promotiecodes gelden niet voor add-ons.",
     promo_error_generic:
       "Je promotiecode kon niet worden gecontroleerd. Probeer het zo opnieuw.",
     plan_change_discount_amount: "{{amount}} korting",

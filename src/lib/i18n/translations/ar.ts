@@ -5676,6 +5676,10 @@ export const ar = {
     promo_error_same_plan:
       "أنت مشترك في هذه الخطة بالفعل. تنطبق الرموز الترويجية عند الانتقال إلى خطة أخرى.",
     promo_error_not_upgrade: "تنطبق الرموز الترويجية عند الترقية إلى خطة أعلى.",
+    promo_error_card_only: "لا يعمل رمز الخصم هذا إلا مع الدفع بالبطاقة.",
+    promo_error_with_credits:
+      "لا يمكنك استخدام رمز خصم ورصيد الحساب في الدفعة نفسها.",
+    promo_error_not_for_addon: "لا يمكن استخدام رموز الخصم مع الإضافات.",
     promo_error_generic:
       "تعذر التحقق من الرمز الترويجي. أعد المحاولة بعد قليل.",
     plan_change_discount_amount: "خصم {{amount}}",

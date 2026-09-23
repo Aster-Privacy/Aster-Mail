@@ -6570,6 +6570,10 @@ export const tr = {
       "Zaten bu plandasınız. Promosyon kodları farklı bir plana geçtiğinizde geçerlidir.",
     promo_error_not_upgrade:
       "Promosyon kodları daha yüksek bir plana yükselttiğinizde geçerlidir.",
+    promo_error_card_only: "Bu promosyon kodu yalnızca kartla ödemelerde geçerlidir.",
+    promo_error_with_credits:
+      "Aynı ödemede promosyon kodu ve hesap kredisini birlikte kullanamazsınız.",
+    promo_error_not_for_addon: "Promosyon kodları eklentilerde kullanılamaz.",
     promo_error_generic:
       "Promosyon kodunuz kontrol edilemedi. Birazdan tekrar deneyin.",
     plan_change_discount_amount: "{{amount}} indirim",

@@ -5609,6 +5609,10 @@ export const ko = {
       "이미 이 플랜을 사용 중입니다. 프로모션 코드는 다른 플랜으로 변경할 때 적용됩니다.",
     promo_error_not_upgrade:
       "프로모션 코드는 상위 플랜으로 업그레이드할 때 적용됩니다.",
+    promo_error_card_only: "이 프로모션 코드는 카드 결제에서만 사용할 수 있습니다.",
+    promo_error_with_credits:
+      "같은 결제에 프로모션 코드와 계정 크레딧을 함께 사용할 수 없습니다.",
+    promo_error_not_for_addon: "프로모션 코드는 부가 기능에 사용할 수 없습니다.",
     promo_error_generic:
       "프로모션 코드를 확인할 수 없습니다. 잠시 후 다시 시도하세요.",
     plan_change_discount_amount: "{{amount}} 할인",

@@ -23,6 +23,7 @@ import type { AvailablePlan } from "@/services/api/billing";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
+import { Button } from "@aster/ui";
 import {
   AcademicCapIcon,
   ArrowTopRightOnSquareIcon,
@@ -74,6 +75,7 @@ import {
 import { read_offer_prefill } from "@/components/register/academic_offer_prefill";
 import { clear_first_run_plan, restore_first_run_plan } from "@/lib/first_run";
 import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
+import { promo_code_error_text } from "@/components/settings/billing/plan_change_discount_text";
 
 interface RegisterStepPlanSelectionProps {
   reg: UseRegistrationReturn;
@@ -307,6 +309,18 @@ export const RegisterStepPlanSelection = ({
   const [referral_discount_percent, set_referral_discount_percent] = useState<
     number | null
   >(null);
+  const [is_promo_open, set_is_promo_open] = useState(false);
+  const [promo_input, set_promo_input] = useState("");
+  const [promo_error, set_promo_error] = useState("");
+  const [is_promo_checking, set_is_promo_checking] = useState(false);
+  const [applied_promo, set_applied_promo] = useState<{
+    code: string;
+    percent_off: number | null;
+  } | null>(null);
+  const applied_promo_code = applied_promo?.code;
+  const display_discount_percent = applied_promo
+    ? applied_promo.percent_off
+    : referral_discount_percent;
 
   use_currency_rates();
 
@@ -344,15 +358,54 @@ export const RegisterStepPlanSelection = ({
 
   const apply_referral_discount = useCallback(
     (cents: number) => {
-      if (!referral_discount_percent) return cents;
+      if (!display_discount_percent) return cents;
 
       return Math.max(
         0,
-        Math.round(cents * (1 - referral_discount_percent / 100)),
+        Math.round(cents * (1 - display_discount_percent / 100)),
       );
     },
-    [referral_discount_percent],
+    [display_discount_percent],
   );
+
+  const handle_apply_promo = useCallback(async () => {
+    const code = promo_input.trim();
+
+    if (!code || is_promo_checking) return;
+    set_is_promo_checking(true);
+    set_promo_error("");
+
+    const res = await validate_promo_code(code);
+
+    set_is_promo_checking(false);
+
+    if (!res.data) {
+      set_promo_error(promo_code_error_text(t, res.server_code));
+
+      return;
+    }
+
+    if (!res.data.valid) {
+      set_promo_error(t("settings.promo_error_invalid"));
+
+      return;
+    }
+
+    set_applied_promo({
+      code,
+      percent_off:
+        res.data.discount_type === "percent_off" &&
+        typeof res.data.discount_value === "number"
+          ? res.data.discount_value
+          : null,
+    });
+  }, [promo_input, is_promo_checking, t]);
+
+  const handle_remove_promo = useCallback(() => {
+    set_applied_promo(null);
+    set_promo_input("");
+    set_promo_error("");
+  }, []);
 
   useEffect(() => {
     const handle_page_show = (e: PageTransitionEvent) => {
@@ -426,6 +479,8 @@ export const RegisterStepPlanSelection = ({
       pending_tier.plan.code,
       billing_interval,
       currency,
+      undefined,
+      applied_promo_code,
     );
 
     if (!result.ok) {
@@ -444,7 +499,7 @@ export const RegisterStepPlanSelection = ({
       pending_desktop_checkout_ref.current = true;
       set_is_finalizing(false);
     }
-  }, [pending_tier, billing_interval, currency, t]);
+  }, [pending_tier, billing_interval, currency, applied_promo_code, t]);
 
   const handle_pay_with_crypto = useCallback(() => {
     if (!pending_tier) return;
@@ -460,7 +515,13 @@ export const RegisterStepPlanSelection = ({
     set_is_finalizing(true);
     safe_local_set("show_onboarding", "true");
     clear_first_run_plan();
-    const res = await create_family_group(tier.id, billing_interval);
+    const res = await create_family_group(
+      tier.id,
+      billing_interval,
+      undefined,
+      undefined,
+      applied_promo_code,
+    );
 
     if (res.data?.checkout_url) {
       try {
@@ -490,7 +551,7 @@ export const RegisterStepPlanSelection = ({
         TOAST_DURATION_BILLING_MS,
       );
     }
-  }, [pending_family_tier, billing_interval, t]);
+  }, [pending_family_tier, billing_interval, applied_promo_code, t]);
 
   const handle_family_crypto = useCallback(() => {
     if (!pending_family_tier) return;
@@ -605,7 +666,7 @@ export const RegisterStepPlanSelection = ({
         {t("auth.plan_selection_subtitle")}
       </p>
 
-      {offer.has_offer && (
+      {offer.has_offer && !applied_promo && (
         <div
           className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg text-sm font-medium"
           style={{
@@ -618,7 +679,7 @@ export const RegisterStepPlanSelection = ({
         </div>
       )}
 
-      {!offer.has_offer && reg.is_invited && (
+      {!offer.has_offer && reg.is_invited && !applied_promo && (
         <div
           className="inline-flex items-center gap-2 mt-4 px-4 py-2 rounded-lg text-sm font-medium"
           style={{
@@ -998,9 +1059,101 @@ export const RegisterStepPlanSelection = ({
           plan_code={crypto_family_tier.id}
           plan_name={crypto_family_tier.name}
           preferred_currency={currency}
+          promo_code={applied_promo_code ?? null}
           yearly_price_cents={crypto_family_tier.yearly_cents}
         />
       )}
+
+      <div className="w-full max-w-sm flex flex-col items-center mt-6 gap-2">
+        {applied_promo ? (
+          <div className="w-full flex items-center justify-between gap-3">
+            <p className="text-xs text-txt-secondary" role="status">
+              {t("settings.plan_change_discount_label", {
+                code: applied_promo.code,
+              })}
+              {applied_promo.percent_off !== null &&
+                ` \u00b7 ${t("settings.promo_discount_percent", {
+                  value: applied_promo.percent_off,
+                })}`}
+            </p>
+            <Button
+              disabled={is_finalizing}
+              size="sm"
+              variant="ghost"
+              onClick={handle_remove_promo}
+            >
+              {t("settings.plan_change_promo_remove")}
+            </Button>
+          </div>
+        ) : is_promo_open ? (
+          <div className="w-full flex flex-col gap-2">
+            <label
+              className="text-xs font-medium text-txt-secondary"
+              htmlFor="register_promo_code"
+            >
+              {t("settings.promo_code")}
+            </label>
+            <div className="flex items-center gap-2">
+              <input
+                aria-describedby={
+                  promo_error ? "register_promo_error" : undefined
+                }
+                aria-invalid={promo_error ? true : undefined}
+                autoComplete="off"
+                className="flex-1 min-w-0 px-3 py-2 text-sm rounded-lg bg-surface-secondary border border-edge-secondary text-txt-primary placeholder:text-txt-muted"
+                disabled={is_finalizing || is_promo_checking}
+                id="register_promo_code"
+                maxLength={64}
+                placeholder={t("settings.promo_code_placeholder")}
+                value={promo_input}
+                onChange={(event) => {
+                  set_promo_input(event.target.value);
+                  if (promo_error) set_promo_error("");
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    handle_apply_promo();
+                  }
+                }}
+              />
+              <Button
+                disabled={
+                  is_finalizing ||
+                  is_promo_checking ||
+                  promo_input.trim().length === 0
+                }
+                size="sm"
+                variant="outline"
+                onClick={handle_apply_promo}
+              >
+                {is_promo_checking
+                  ? t("settings.promo_validating")
+                  : t("settings.promo_apply")}
+              </Button>
+            </div>
+            {promo_error && (
+              <p
+                className="text-xs text-red-500"
+                id="register_promo_error"
+                role="alert"
+              >
+                {promo_error}
+              </p>
+            )}
+          </div>
+        ) : (
+          <button
+            className="text-sm font-medium hover:underline disabled:opacity-60"
+            disabled={is_finalizing}
+            style={{ color: "var(--accent-blue)" }}
+            type="button"
+            onClick={() => set_is_promo_open(true)}
+          >
+            {t("settings.checkout_add_promo")}
+          </button>
+        )}
+      </div>
 
       <div className="w-full flex flex-col items-center mt-5 mb-4 gap-3">
         <p className="text-xs text-txt-muted text-center max-w-md">
@@ -1131,6 +1284,7 @@ export const RegisterStepPlanSelection = ({
           plan_code={crypto_tier.plan.code}
           plan_name={crypto_tier.tier.name}
           preferred_currency={currency}
+          promo_code={applied_promo_code ?? null}
           yearly_price_cents={crypto_tier.tier.yearly_cents}
         />
       )}

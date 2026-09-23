@@ -6383,6 +6383,10 @@ export const pt = {
       "Você já está neste plano. Os códigos promocionais se aplicam quando você muda para outro plano.",
     promo_error_not_upgrade:
       "Os códigos promocionais se aplicam quando você faz upgrade para um plano superior.",
+    promo_error_card_only: "Esse código promocional só funciona com pagamentos com cartão.",
+    promo_error_with_credits:
+      "Você não pode usar um código promocional e crédito da conta no mesmo pagamento.",
+    promo_error_not_for_addon: "Códigos promocionais não podem ser usados em complementos.",
     promo_error_generic:
       "Não foi possível verificar seu código promocional. Tente novamente em instantes.",
     plan_change_discount_amount: "{{amount}} de desconto",

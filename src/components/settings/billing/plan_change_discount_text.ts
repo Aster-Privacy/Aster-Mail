@@ -36,6 +36,9 @@ const PROMO_SERVER_CODE_KEYS: Record<string, TranslationKey> = {
   PROMO_CODE_DISCOUNT_ACTIVE: "settings.promo_error_discount_active",
   PROMO_CODE_SAME_PLAN: "settings.promo_error_same_plan",
   PROMO_CODE_NOT_UPGRADE: "settings.promo_error_not_upgrade",
+  PROMO_CODE_CARD_ONLY: "settings.promo_error_card_only",
+  PROMO_CODE_WITH_CREDITS: "settings.promo_error_with_credits",
+  PROMO_CODE_NOT_FOR_ADDON: "settings.promo_error_not_for_addon",
   RATE_LIMIT_EXCEEDED: "settings.checkout_rate_limited",
 };
 

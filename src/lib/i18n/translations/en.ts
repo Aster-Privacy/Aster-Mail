@@ -3625,6 +3625,10 @@ export const en: Translations = {
       "You're already on this plan. Promo codes apply when you move to a different plan.",
     promo_error_not_upgrade:
       "Promo codes apply when you upgrade to a higher plan.",
+    promo_error_card_only: "That promo code works only with card payments.",
+    promo_error_with_credits:
+      "You can't use a promo code and account credit on the same payment.",
+    promo_error_not_for_addon: "Promo codes can't be used on add-ons.",
     promo_error_generic:
       "Your promo code couldn't be checked. Try again in a moment.",
     plan_change_discount_amount: "{{amount}} off",

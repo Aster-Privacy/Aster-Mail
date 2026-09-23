@@ -5673,6 +5673,10 @@ export const ja = {
       "すでにこのプランをご利用中です。プロモーションコードは別のプランに変更するときに適用されます。",
     promo_error_not_upgrade:
       "プロモーションコードは上位プランにアップグレードするときに適用されます。",
+    promo_error_card_only: "このプロモーションコードはカード払いでのみ使用できます。",
+    promo_error_with_credits:
+      "同じ支払いでプロモーションコードとアカウントクレジットを併用することはできません。",
+    promo_error_not_for_addon: "プロモーションコードはアドオンには使用できません。",
     promo_error_generic:
       "プロモーションコードを確認できませんでした。しばらくしてからもう一度お試しください。",
     plan_change_discount_amount: "{{amount}}オフ",

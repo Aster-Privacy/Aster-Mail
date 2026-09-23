@@ -3626,6 +3626,9 @@ export interface SettingsTranslations {
   promo_error_discount_active: string;
   promo_error_same_plan: string;
   promo_error_not_upgrade: string;
+  promo_error_card_only: string;
+  promo_error_with_credits: string;
+  promo_error_not_for_addon: string;
   promo_error_generic: string;
   plan_change_discount_amount: string;
   plan_change_discount_once: string;

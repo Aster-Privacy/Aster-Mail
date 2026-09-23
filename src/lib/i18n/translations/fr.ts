@@ -6463,6 +6463,10 @@ export const fr = {
       "Vous avez déjà ce plan. Les codes promo s'appliquent lorsque vous passez à un autre plan.",
     promo_error_not_upgrade:
       "Les codes promo s'appliquent lorsque vous passez à un plan supérieur.",
+    promo_error_card_only: "Ce code promo fonctionne uniquement avec un paiement par carte.",
+    promo_error_with_credits:
+      "Vous ne pouvez pas utiliser un code promo et du crédit de compte pour le même paiement.",
+    promo_error_not_for_addon: "Les codes promo ne peuvent pas être utilisés pour les modules complémentaires.",
     promo_error_generic:
       "Impossible de vérifier votre code promo. Réessayez dans un instant.",
     plan_change_discount_amount: "{{amount}} de réduction",

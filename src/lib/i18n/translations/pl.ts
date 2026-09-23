@@ -5822,6 +5822,10 @@ export const pl = {
       "Masz już ten plan. Kody promocyjne działają, gdy przechodzisz na inny plan.",
     promo_error_not_upgrade:
       "Kody promocyjne działają, gdy przechodzisz na wyższy plan.",
+    promo_error_card_only: "Ten kod promocyjny działa tylko przy płatności kartą.",
+    promo_error_with_credits:
+      "Nie możesz użyć kodu promocyjnego i środków na koncie w tej samej płatności.",
+    promo_error_not_for_addon: "Kodów promocyjnych nie można używać do dodatków.",
     promo_error_generic:
       "Nie udało się sprawdzić kodu promocyjnego. Spróbuj ponownie za chwilę.",
     plan_change_discount_amount: "{{amount}} zniżki",
