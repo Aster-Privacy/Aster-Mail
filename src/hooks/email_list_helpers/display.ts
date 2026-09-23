@@ -21,6 +21,7 @@
 
 import { is_outgoing_view, should_exclude_trashed_spam } from "./views";
 
+import { view_includes_archived } from "@/hooks/view_membership";
 import {
   format_email_list_timestamp,
   type FormatOptions,
@@ -108,21 +109,7 @@ export function should_keep_email_in_view(
 
   if (flags.is_trashed || flags.is_spam) return false;
 
-  const is_folder_like_view =
-    view.startsWith("folder-") ||
-    view.startsWith("tag-") ||
-    view.startsWith("alias-");
-
-  if (
-    !(
-      view === "archive" ||
-      view === "all" ||
-      is_folder_like_view ||
-      !flags.is_archived
-    )
-  ) {
-    return false;
-  }
+  if (flags.is_archived && !view_includes_archived(view)) return false;
 
   return true;
 }

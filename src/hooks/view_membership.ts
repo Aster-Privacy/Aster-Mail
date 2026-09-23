@@ -28,6 +28,22 @@ function is_future_snooze(value: string | null | undefined): boolean {
   return Number.isFinite(wake_ms) && wake_ms > Date.now();
 }
 
+const VIEWS_INCLUDING_ARCHIVED = new Set<string>([
+  "archive",
+  "all",
+  "starred",
+  "snoozed",
+]);
+
+export function view_includes_archived(view: string): boolean {
+  return (
+    VIEWS_INCLUDING_ARCHIVED.has(view) ||
+    view.startsWith("folder-") ||
+    view.startsWith("tag-") ||
+    view.startsWith("alias-")
+  );
+}
+
 export function compute_should_remove_from_view(
   detail: MailItemUpdatedEventDetail,
   current_view: string,
@@ -41,17 +57,7 @@ export function compute_should_remove_from_view(
     }
   }
 
-  const is_folder_like_view =
-    current_view.startsWith("folder-") ||
-    current_view.startsWith("tag-") ||
-    current_view.startsWith("alias-");
-
-  if (
-    current_view !== "archive" &&
-    current_view !== "all" &&
-    !is_folder_like_view &&
-    detail.is_archived === true
-  ) {
+  if (!view_includes_archived(current_view) && detail.is_archived === true) {
     return true;
   }
 
