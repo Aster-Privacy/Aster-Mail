@@ -5591,6 +5591,11 @@ export const de = {
     compose_mode_default: "Standard - schwebendes Popup",
     compose_mode_fullscreen: "Immer Vollbild",
     compose_mode_minimized: "Minimiert starten",
+    default_sender_group: "Senden",
+    default_sender_group_description: "Wählen Sie, von welcher Ihrer Adressen neue Nachrichten ausgehen.",
+    default_sender_title: "Standardabsender",
+    default_sender_description: "Neue Nachrichten starten mit dieser Adresse. Antworten verwenden die Adresse, an die die Nachricht gesendet wurde.",
+    default_sender_no_addresses: "Keine weiteren Adressen",
     compose_defaults_title: "Standardformatierung",
     compose_defaults_description:
       "Legen Sie fest, wie neue Nachrichten aussehen, wenn Sie mit dem Schreiben beginnen. Antworten und weitergeleitete Nachrichten behalten ihre ursprüngliche Formatierung.",
@@ -6569,6 +6574,7 @@ export const de = {
     scanning: "Wird gescannt...",
     unsubscribing: "Wird abgemeldet...",
     could_not_unsubscribe: "{{ count }} konnten nicht abgemeldet werden",
+    some_messages_not_archived: "Einige Nachrichten wurden nicht archiviert",
     opened_in_browser:
       "{{ count }} archiviert - manuelle Bestätigung kann erforderlich sein",
     senders_unsubscribed: "{{ count }} Absender abgemeldet",

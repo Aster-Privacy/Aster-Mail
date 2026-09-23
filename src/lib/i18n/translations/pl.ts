@@ -4375,6 +4375,11 @@ export const pl = {
     compose_mode_default: "Domyślnie - pływające okno",
     compose_mode_fullscreen: "Zawsze pełny ekran",
     compose_mode_minimized: "Zacznij zminimalizowany",
+    default_sender_group: "Wysyłanie",
+    default_sender_group_description: "Wybierz, z którego adresu wychodzą nowe wiadomości.",
+    default_sender_title: "Domyślny nadawca",
+    default_sender_description: "Nowe wiadomości wychodzą z tego adresu. Odpowiedzi używają adresu, na który wiadomość przyszła.",
+    default_sender_no_addresses: "Brak innych adresów",
     compose_defaults_title: "Domyślne formatowanie",
     compose_defaults_description:
       "Wybierz, jak wyglądają nowe wiadomości, gdy zaczynasz pisać. Odpowiedzi i przekazane wiadomości zachowują oryginalne formatowanie.",
@@ -6754,6 +6759,7 @@ export const pl = {
     opened_in_browser:
       "{{ count }} zarchiwizowane - może być wymagane ręczne potwierdzenie",
     could_not_unsubscribe: "{{ count }} nie udało się zrezygnować",
+    some_messages_not_archived: "Niektóre wiadomości nie zostały zarchiwizowane",
     unsubscribing: "Rezygnowanie...",
     scanning: "Skanowanie...",
     all_clear: "Wszystko czyste",

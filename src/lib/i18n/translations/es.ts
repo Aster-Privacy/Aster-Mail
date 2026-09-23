@@ -4216,6 +4216,11 @@ export const es = {
     compose_mode_default: "Predeterminado - ventana emergente flotante",
     compose_mode_fullscreen: "Siempre a pantalla completa",
     compose_mode_minimized: "Iniciar minimizado",
+    default_sender_group: "Envío",
+    default_sender_group_description: "Elige desde cuál de tus direcciones salen los mensajes nuevos.",
+    default_sender_title: "Remitente predeterminado",
+    default_sender_description: "Los mensajes nuevos parten de esta dirección. Las respuestas usan la dirección a la que se envió el mensaje.",
+    default_sender_no_addresses: "No hay otras direcciones",
     compose_defaults_title: "Formato predeterminado",
     compose_defaults_description:
       "Elige el aspecto de los mensajes nuevos cuando empiezas a escribir. Las respuestas y los mensajes reenviados conservan su formato original.",
@@ -6326,6 +6331,7 @@ export const es = {
     opened_in_browser:
       "{{ count }} archivados - puede que se requiera confirmación manual",
     could_not_unsubscribe: "{{ count }} no se pudieron cancelar",
+    some_messages_not_archived: "Algunos mensajes no se archivaron",
     unsubscribing: "Cancelando suscripción...",
     scanning: "Escaneando...",
     all_clear: "Todo en orden",

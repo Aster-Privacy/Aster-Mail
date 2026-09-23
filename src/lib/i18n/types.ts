@@ -3324,6 +3324,11 @@ export interface SettingsTranslations {
   compose_mode_default: string;
   compose_mode_fullscreen: string;
   compose_mode_minimized: string;
+  default_sender_group: string;
+  default_sender_group_description: string;
+  default_sender_title: string;
+  default_sender_description: string;
+  default_sender_no_addresses: string;
   compose_defaults_title: string;
   compose_defaults_description: string;
   compose_default_font_size: string;
@@ -6362,6 +6367,7 @@ export interface SettingsTranslations {
   senders_unsubscribed: string;
   opened_in_browser: string;
   could_not_unsubscribe: string;
+  some_messages_not_archived: string;
   unsubscribing: string;
   scanning: string;
   all_clear: string;

@@ -27,6 +27,15 @@ import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 
 import { build_reply_recipient } from "@/components/email/build_reply_recipient";
+import {
+  build_reply_from_address,
+  resolve_received_on_alias,
+} from "@/components/email/build_reply_from_address";
+import { get_cached_aliases } from "@/components/settings/hooks/use_aliases";
+import {
+  get_cached_alias_for_routing_token,
+  get_cached_ghost_for_routing_token,
+} from "@/hooks/use_sender_aliases";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_auth } from "@/contexts/auth_context";
@@ -594,6 +603,20 @@ export function use_inbox_view_state(props: EmailInboxProps) {
           is_own_message,
         );
 
+        const reply_from_address = build_reply_from_address(
+          {
+            sender_email: email.sender_email,
+            received_on_alias:
+              resolve_received_on_alias(
+                email.routing_token,
+                get_cached_aliases(),
+              ) ??
+              get_cached_alias_for_routing_token(email.routing_token) ??
+              get_cached_ghost_for_routing_token(email.routing_token),
+          },
+          is_own_message,
+        );
+
         on_reply({
           recipient_name,
           recipient_email,
@@ -603,10 +626,11 @@ export function use_inbox_view_state(props: EmailInboxProps) {
           original_timestamp: email.timestamp,
           thread_token: email.thread_token,
           original_email_id: email.id,
+          original_to: email.recipient_addresses ?? [],
+          reply_from_address,
           ...(mode === "reply_all"
             ? {
                 reply_all: true,
-                original_to: email.recipient_addresses ?? [],
                 original_cc: cc_emails ?? [],
               }
             : {}),

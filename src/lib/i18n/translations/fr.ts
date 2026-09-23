@@ -4254,6 +4254,11 @@ export const fr = {
     compose_mode_default: "Par défaut - popup flottante",
     compose_mode_fullscreen: "Toujours en plein écran",
     compose_mode_minimized: "Démarrer réduit",
+    default_sender_group: "Envoi",
+    default_sender_group_description: "Choisissez l'adresse depuis laquelle partent vos nouveaux messages.",
+    default_sender_title: "Expéditeur par défaut",
+    default_sender_description: "Les nouveaux messages partent de cette adresse. Les réponses utilisent l'adresse à laquelle le message a été envoyé.",
+    default_sender_no_addresses: "Aucune autre adresse",
     compose_defaults_title: "Mise en forme par défaut",
     compose_defaults_description:
       "Choisissez l'apparence des nouveaux messages au moment où vous commencez à écrire. Les réponses et les messages transférés conservent leur mise en forme d'origine.",
@@ -6377,6 +6382,7 @@ export const fr = {
     scanning: "Analyse en cours...",
     unsubscribing: "Désabonnement en cours...",
     could_not_unsubscribe: "{{ count }} n'ont pas pu être désabonnés",
+    some_messages_not_archived: "Certains messages n'ont pas été archivés",
     opened_in_browser:
       "{{ count }} archivé(s) - confirmation manuelle peut être nécessaire",
     senders_unsubscribed: "{{ count }} expéditeurs désabonnés",

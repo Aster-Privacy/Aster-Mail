@@ -312,6 +312,7 @@ function MobileApp() {
           rfc_message_id?: string;
           forward_from_id?: string;
           thread_token?: string;
+          from_email?: string;
         }>
       ).detail;
 
@@ -328,6 +329,7 @@ function MobileApp() {
         bcc_recipients: data.bcc_recipients,
         subject: data.subject,
         message: data.message,
+        from_email: data.from_email,
         updated_at: new Date().toISOString(),
       };
       set_is_compose_open(true);

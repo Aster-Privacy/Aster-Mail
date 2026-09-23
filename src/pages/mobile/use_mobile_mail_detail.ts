@@ -31,6 +31,8 @@ import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { use_email_detail } from "@/components/email/hooks/use_email_detail";
 import { use_sender_aliases } from "@/hooks/use_sender_aliases";
 import { build_reply_recipient_for_message } from "@/components/email/build_reply_recipient";
+import { resolve_own_recipient_address } from "@/components/email/build_reply_from_address";
+import { resolve_received_on_address } from "@/utils/delivered_to";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { remove_email_from_view_cache } from "@/hooks/use_email_list";
 import { use_date_format } from "@/hooks/use_date_format";
@@ -545,6 +547,17 @@ export function use_mobile_mail_detail() {
       const message_with_footer =
         get_aster_footer(t, preferences.show_aster_branding) + quoted;
       const thread_token = detail.mail_item?.thread_token;
+      const from_email =
+        msg.item_type === "sent"
+          ? msg.sender_email
+          : (resolve_received_on_address(msg) ??
+            resolve_own_recipient_address(
+              [
+                ...(msg.to_recipients ?? []).map((r) => r.email),
+                ...(msg.cc_recipients ?? []).map((r) => r.email),
+              ],
+              own_addresses,
+            ));
 
       if (mode === "forward") {
         window.dispatchEvent(
@@ -560,6 +573,7 @@ export function use_mobile_mail_detail() {
               draft_type: "forward",
               forward_from_id: msg.id,
               thread_token,
+              from_email,
             },
           }),
         );
@@ -612,6 +626,7 @@ export function use_mobile_mail_detail() {
               reply_to_id: msg.id,
               rfc_message_id,
               thread_token,
+              from_email,
             },
           }),
         );

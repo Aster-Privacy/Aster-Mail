@@ -18,12 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { PaintBrushIcon } from "@heroicons/react/24/outline";
+import { PaintBrushIcon, AtSymbolIcon } from "@heroicons/react/24/outline";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_register_search_items } from "@/components/settings/search_context";
 import { ColorSwatchPicker } from "@/components/settings/appearance/color_swatch_picker";
+import { DefaultSenderSetting } from "@/components/settings/default_sender_setting";
 import { SelectSetting } from "@/components/settings/behavior_section/shared";
 import { FONT_SIZE_OPTIONS } from "@/components/compose/compose_toolbar/shared";
 import {
@@ -41,6 +42,17 @@ export function ComposeSection() {
   const breadcrumb = `${t("settings.compose")} > ${t("settings.compose_defaults_title")}`;
 
   use_register_search_items("compose", [
+    {
+      label: t("settings.default_sender_title"),
+      breadcrumb: `${t("settings.compose")} > ${t("settings.default_sender_group")}`,
+      keywords: [
+        "default sender",
+        "from address",
+        "send as",
+        "alias",
+        "identity",
+      ],
+    },
     {
       label: t("settings.compose_default_font_size"),
       breadcrumb,
@@ -87,6 +99,20 @@ export function ComposeSection() {
 
   return (
     <div className="space-y-4">
+      <div>
+        <div className="mb-4">
+          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+            <AtSymbolIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+            {t("settings.default_sender_group")}
+          </h3>
+        </div>
+        <p className="text-sm mb-1 text-txt-muted">
+          {t("settings.default_sender_group_description")}
+        </p>
+
+        <DefaultSenderSetting />
+      </div>
+
       <div>
         <div className="mb-4">
           <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
