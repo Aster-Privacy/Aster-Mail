@@ -48,6 +48,7 @@ import { get_aster_footer } from "@/components/compose/compose_shared";
 import { Spinner } from "@/components/ui/spinner";
 import { record_review_prompt_action } from "@/lib/review_prompt";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
+import { with_caret_block } from "@/lib/signature_html";
 
 type SendState = "idle" | "queued" | "sending" | "sent" | "error";
 
@@ -118,7 +119,7 @@ export function EmailReplySection({
     }
 
     if (preferences.signature_mode === "auto" && default_signature) {
-      return get_formatted_signature(default_signature);
+      return with_caret_block(get_formatted_signature(default_signature));
     }
 
     return "";

@@ -104,6 +104,7 @@ import {
 } from "@/utils/date_format";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { is_contact_trashed } from "@/lib/contact_trash";
+import { with_caret_block } from "@/lib/signature_html";
 
 function attachments_key(ids: string[]): string {
   return ids.join(",");
@@ -679,9 +680,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
           badge_html + get_aster_footer(t, preferences.show_aster_branding);
       }
 
-      if (content) {
-        content = `<div><br></div>${content}`;
-      }
+      content = with_caret_block(content);
 
       const sanitized_result = sanitize_html(
         content,
