@@ -27,6 +27,7 @@ import { Button, Switch } from "@aster/ui";
 import { use_i18n } from "@/lib/i18n/context";
 import { next_radio_index } from "@/lib/radiogroup_navigation";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
+import { use_panel_transition } from "@/components/layout/use_panel_transition";
 import { resolve_list_density } from "@/lib/list_density";
 import { useTheme } from "@/contexts/theme_context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -340,12 +341,18 @@ export function QuickSettingsPanel({
   const is_default_color =
     get_effective_theme_fields(preferences).color_theme === "default";
 
+  const { is_visible, is_closing } = use_panel_transition(is_open);
+
   use_escape_layer(is_open, on_close, "quick_settings_panel", false);
 
-  if (!is_open) return null;
+  if (!is_visible) return null;
 
   return (
-    <aside className="quick_settings_panel ms-1 hidden h-full w-[clamp(272px,26vw,352px)] flex-shrink-0 flex-col overflow-hidden rounded-lg bg-surf-primary md:ms-2 md:rounded-xl lg:flex">
+    <aside
+      className={`quick_settings_panel ms-1 hidden h-full w-[clamp(272px,26vw,352px)] flex-shrink-0 flex-col overflow-hidden rounded-lg bg-surf-primary md:ms-2 md:rounded-xl lg:flex ${
+        is_closing ? "quick_panel_closing" : ""
+      }`}
+    >
       <div className="flex min-h-[56px] flex-shrink-0 items-center gap-3 px-4">
         <h2 className="flex-1 truncate text-[16px] font-medium text-txt-primary">
           {t("settings.quick_settings")}

@@ -119,7 +119,7 @@ describe("quick security panel", () => {
       root.render(
         <QuickSecurityPanel
           is_open={is_open}
-          is_top_inset={false}
+          is_swapping={false}
           on_close={() => {}}
         />,
       );
