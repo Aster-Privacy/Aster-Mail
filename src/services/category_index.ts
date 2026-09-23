@@ -69,8 +69,12 @@ import {
   get_read_intent,
   settle_flag_intents,
 } from "@/services/read_intent";
-
-import { is_recently_removed } from "@/services/removed_items";
+import {
+  clear_removed_items,
+  forget_removed_ids,
+  is_recently_removed,
+  note_removed_ids,
+} from "@/services/removed_items";
 
 const DB_NAME = "astermail_category_index";
 const STORE_NAME = "indexes";
@@ -1082,6 +1086,8 @@ export function remove_ids_absent_from_server(ids: string[]): void {
 export function remove_ids(ids: string[]): void {
   let changed = false;
 
+  if (ids.length > 0) note_removed_ids(ids);
+
   for (const id of ids) {
     if (entries_map.delete(id)) {
       mark_dirty(id);
@@ -2016,7 +2022,11 @@ export async function sync_recent(notify_new = false): Promise<void> {
     if (token !== build_token) return;
 
     const newly_received_ids = notify_new
-      ? upserts.filter((e) => e.id && !entries_map.has(e.id)).map((e) => e.id)
+      ? upserts
+          .filter(
+            (e) => e.id && !entries_map.has(e.id) && !is_recently_removed(e.id),
+          )
+          .map((e) => e.id)
       : [];
 
     let changed = apply_upsert(upserts, fetched_at);
@@ -2219,6 +2229,8 @@ function schedule_resync(): void {
 }
 
 export function index_arrival(id: string): Promise<void> {
+  if (is_recently_removed(id)) return Promise.resolve();
+
   const pending = reclassify_promises.get(id);
 
   if (pending) return pending;
@@ -2355,6 +2367,8 @@ async function reclassify_many(ids: string[]): Promise<void> {
 export function reindex_ids(ids: string[]): void {
   if (ids.length === 0) return;
 
+  forget_removed_ids(ids);
+
   if (ids.length > REINDEX_FULL_REBUILD_CAP) {
     request_full_rebuild();
 
@@ -2410,6 +2424,8 @@ export function clear_category_index_memory(): void {
   resync_failures = 0;
   entries_map = new Map();
   clear_all_read_intents();
+  clear_removed_items();
+  absent_strikes.clear();
   recent_pins.clear();
   sibling_verify_at.clear();
   dirty_chunks.clear();
@@ -2532,6 +2548,7 @@ export function start_event_listeners(): void {
         !detail.is_spam &&
         (!!detail.encrypted_metadata || explicit_restore)
       ) {
+        if (explicit_restore) forget_removed_ids([detail.id]);
         void reclassify_id(detail.id);
       }
 
@@ -2675,6 +2692,8 @@ export async function clear_category_index(): Promise<void> {
   clear_entry_previews();
   entries_map = new Map();
   clear_all_read_intents();
+  clear_removed_items();
+  absent_strikes.clear();
   recent_pins.clear();
   sibling_verify_at.clear();
   dirty_chunks.clear();
