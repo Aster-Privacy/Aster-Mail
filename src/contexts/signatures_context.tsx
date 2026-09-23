@@ -30,6 +30,7 @@ import {
 } from "react";
 
 import { use_auth } from "@/contexts/auth_context";
+import { format_signature_html } from "@/lib/signature_html";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
   list_signatures,
@@ -133,21 +134,10 @@ export function SignaturesProvider({ children }: SignaturesProviderProps) {
 
   const get_formatted_signature = useCallback(
     (signature: DecryptedSignature | null): string => {
-      if (!signature) return "";
-
-      const content = signature.is_html
-        ? signature.content
-        : signature.content
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/\n/g, "<br>");
-
-      const separator =
-        preferences.show_signature_separator !== false ? "--<br>" : "";
-
-      return `<div data-aster-signature="1" data-aster-signature-id="${signature.id}"><br><br>${separator}${content}</div>`;
+      return format_signature_html(
+        signature,
+        preferences.show_signature_separator !== false,
+      );
     },
     [preferences.show_signature_separator],
   );

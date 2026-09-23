@@ -133,6 +133,7 @@ import { user_facing_error } from "@/utils/user_facing_error";
 import { record_review_prompt_action } from "@/lib/review_prompt";
 import { is_contact_trashed } from "@/lib/contact_trash";
 import { ignore_error } from "@/lib/ignore_error";
+import { with_caret_block } from "@/lib/signature_html";
 
 export function use_forward_modal({
   is_open,
@@ -434,9 +435,9 @@ export function use_forward_modal({
       if (preferences.signature_mode === "auto" && default_signature) {
         const signature_html = get_formatted_signature(default_signature);
 
-        content = "<br><br>" + signature_html + badge_html;
+        content = with_caret_block(signature_html + badge_html);
       } else if (badge_html) {
-        content = "<br><br>" + badge_html;
+        content = with_caret_block(badge_html);
       }
 
       const sanitized = sanitize_html(content, get_compose_sanitize_options());
