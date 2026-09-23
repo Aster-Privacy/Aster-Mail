@@ -58,6 +58,21 @@ function has_email(ids: UserId[], email: string): boolean {
   return ids.some((id) => (id.email ?? "").toLowerCase() === target);
 }
 
+function stamp_local_vault(
+  user_id: string | undefined,
+  encrypted_vault: string,
+  vault_nonce: string,
+): void {
+  if (!user_id) return;
+
+  try {
+    localStorage.setItem(`astermail_encrypted_vault_${user_id}`, encrypted_vault);
+    localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
+  } catch (caught) {
+    ignore_error("services/pgp_uid_service:stamp_local_vault", caught);
+  }
+}
+
 export async function add_address_to_identity_key(
   vault: EncryptedVault,
   passphrase: string,
@@ -99,7 +114,17 @@ export async function republish_identity_with_new_address(
 ): Promise<boolean> {
   try {
     return await with_vault_write_lock(async () => {
-      const current_vault = get_vault_from_memory();
+      const { sync_vault_with_server } = await import(
+        "@/services/crypto/ensure_ratchet_keys"
+      );
+      const freshness = await sync_vault_with_server();
+
+      if (freshness.status === "unverified") return false;
+
+      const current_vault =
+        freshness.status === "adopted"
+          ? freshness.vault
+          : get_vault_from_memory();
       const passphrase = get_passphrase_from_memory();
 
       if (!current_vault || !passphrase) return false;
@@ -131,6 +156,7 @@ export async function republish_identity_with_new_address(
       if (!vault_saved.success) return false;
 
       await store_vault_in_memory(next_vault, passphrase);
+      stamp_local_vault(current_account?.user?.id, encrypted_vault, vault_nonce);
 
       const private_key = await openpgp.readPrivateKey({
         armoredKey: next_vault.identity_key,
