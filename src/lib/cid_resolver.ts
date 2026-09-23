@@ -29,7 +29,9 @@ import {
   fetch_attachment_records,
   attachment_records_fetch_failed,
   get_cached_preview_url,
+  set_cached_preview_url,
 } from "@/services/attachment_preview_cache";
+import { get_cached_attachment_meta } from "@/services/attachment_meta_cache";
 
 const ALLOWED_IMAGE_TYPES = new Set([
   "image/png",
@@ -354,6 +356,22 @@ export function extract_cid_inline_filenames(html: string): Set<string> {
   return filenames;
 }
 
+const in_flight_resolutions = new Map<string, Promise<CidResolutionResult>>();
+
+function resolution_key(
+  mail_item_id: string,
+  url_mode: CidUrlMode,
+  html: string,
+): string {
+  let hash = 5381;
+
+  for (let i = 0; i < html.length; i++) {
+    hash = ((hash << 5) + hash + html.charCodeAt(i)) | 0;
+  }
+
+  return `${mail_item_id}:${url_mode}:${html.length}:${hash}`;
+}
+
 export async function resolve_cid_references(
   html: string,
   mail_item_id: string,
@@ -365,6 +383,31 @@ export async function resolve_cid_references(
     return { html, blob_urls: [], unresolved: 0 };
   }
 
+  const key = resolution_key(mail_item_id, url_mode, html);
+  const in_flight = in_flight_resolutions.get(key);
+
+  if (in_flight) return in_flight;
+
+  const task = run_cid_resolution(
+    html,
+    mail_item_id,
+    url_mode,
+    cid_refs,
+  ).finally(() => {
+    in_flight_resolutions.delete(key);
+  });
+
+  in_flight_resolutions.set(key, task);
+
+  return task;
+}
+
+async function run_cid_resolution(
+  html: string,
+  mail_item_id: string,
+  url_mode: CidUrlMode,
+  cid_refs: string[],
+): Promise<CidResolutionResult> {
   const records = await fetch_attachment_records(mail_item_id);
 
   if (records.length === 0) {
@@ -403,28 +446,75 @@ export async function resolve_cid_references(
   const blob_urls: string[] = [];
   let resolved_html = html;
 
-  const meta_results = await Promise.allSettled(
-    records.map((att) =>
-      decrypt_attachment_meta(
-        att.encrypted_meta,
-        att.meta_nonce,
-        att.mail_item_id,
-        att.seq_num,
-      ).then((meta) => ({ att, meta })),
-    ),
+  const cached_meta = get_cached_attachment_meta(mail_item_id);
+  const cached_by_id = new Map(
+    (cached_meta ?? []).map((item) => [item.id, item]),
   );
+  const meta_cache_covers_records =
+    cached_meta !== null && records.every((att) => cached_by_id.has(att.id));
 
-  const decrypted_attachments = meta_results
-    .flatMap((r) => (r.status === "fulfilled" ? [r.value] : []))
-    .filter(({ meta }) => resolved_image_content_type(meta) !== null);
+  type MatchTarget = {
+    att: (typeof records)[number];
+    meta?: AttachmentMeta;
+    content_id?: string;
+    filename?: string;
+    content_type?: string;
+    is_inline?: boolean;
+  };
 
-  const match_strategies: ((meta: AttachmentMeta) => string | undefined)[] = [
-    (meta) => (meta.content_id ? normalize(meta.content_id) : undefined),
-    (meta) => (meta.filename ? normalize(meta.filename) : undefined),
-    (meta) => (meta.filename ? normalize(strip_ext(meta.filename)) : undefined),
+  let meta_results: PromiseSettledResult<unknown>[] = [];
+  let decrypted_attachments: MatchTarget[];
+
+  if (meta_cache_covers_records) {
+    decrypted_attachments = records.flatMap((att) => {
+      const item = cached_by_id.get(att.id);
+
+      if (!item) return [];
+
+      const target: MatchTarget = {
+        att,
+        content_id: item.content_id,
+        filename: item.filename ?? undefined,
+        content_type: item.content_type ?? undefined,
+        is_inline: item.is_inline,
+      };
+
+      return resolved_image_content_type(target) !== null ? [target] : [];
+    });
+  } else {
+    const settled = await Promise.allSettled(
+      records.map((att) =>
+        decrypt_attachment_meta(
+          att.encrypted_meta,
+          att.meta_nonce,
+          att.mail_item_id,
+          att.seq_num,
+        ).then((meta) => ({ att, meta })),
+      ),
+    );
+
+    meta_results = settled;
+    decrypted_attachments = settled
+      .flatMap((r) => (r.status === "fulfilled" ? [r.value] : []))
+      .filter(({ meta }) => resolved_image_content_type(meta) !== null)
+      .map(({ att, meta }) => ({
+        att,
+        meta,
+        content_id: meta.content_id,
+        filename: meta.filename,
+        content_type: meta.content_type,
+        is_inline: meta.is_inline,
+      }));
+  }
+
+  const match_strategies: ((target: MatchTarget) => string | undefined)[] = [
+    (target) => (target.content_id ? normalize(target.content_id) : undefined),
+    (target) => (target.filename ? normalize(target.filename) : undefined),
+    (target) =>
+      target.filename ? normalize(strip_ext(target.filename)) : undefined,
   ];
 
-  type DecryptedEntry = (typeof decrypted_attachments)[number];
+  type DecryptedEntry = MatchTarget;
   const to_fetch: (DecryptedEntry & { original_cid: string })[] = [];
   const consumed = new Set<DecryptedEntry>();
 
@@ -434,7 +524,7 @@ export async function resolve_cid_references(
     for (const entry of decrypted_attachments) {
       if (consumed.has(entry)) continue;
 
-      const key = strategy(entry.meta);
+      const key = strategy(entry);
 
       if (!key) continue;
 
@@ -450,7 +540,7 @@ export async function resolve_cid_references(
 
   if (unresolved_cids.size > 0) {
     const remaining_attachments = decrypted_attachments.filter(
-      (e) => !consumed.has(e) && e.meta.is_inline !== false,
+      (e) => !consumed.has(e) && e.is_inline !== false,
     );
     const remaining_refs = Array.from(unresolved_cids.values());
 
@@ -465,13 +555,23 @@ export async function resolve_cid_references(
   }
 
   const data_results = await Promise.allSettled(
-    to_fetch.map(async ({ att, meta, original_cid }) => {
+    to_fetch.map(async (entry) => {
+      const { att, original_cid } = entry;
       const cached_url =
         url_mode === "blob" ? get_cached_preview_url(att.id) : undefined;
 
       if (cached_url) {
         return { original_cid, url: cached_url, is_blob: false };
       }
+
+      const meta =
+        entry.meta ??
+        (await decrypt_attachment_meta(
+          att.encrypted_meta,
+          att.meta_nonce,
+          att.mail_item_id,
+          att.seq_num,
+        ));
 
       const data = await decrypt_attachment_data(
         att.encrypted_data,
@@ -493,7 +593,11 @@ export async function resolve_cid_references(
 
       const blob = new Blob([data], { type: content_type });
 
-      return { original_cid, url: URL.createObjectURL(blob), is_blob: true };
+      return {
+        original_cid,
+        url: set_cached_preview_url(att.id, URL.createObjectURL(blob)),
+        is_blob: false,
+      };
     }),
   );
 
