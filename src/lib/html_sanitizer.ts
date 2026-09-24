@@ -688,6 +688,38 @@ function sanitize_html_impl(
     return fragment;
   };
 
+  const visible_text_of = (root: Node): string => {
+    const parts: string[] = [];
+    const stack: Node[] = [root];
+
+    while (stack.length > 0) {
+      const current = stack.pop() as Node;
+
+      if (current.nodeType === Node.TEXT_NODE) {
+        parts.push(current.nodeValue || "");
+        continue;
+      }
+
+      if (current.nodeType !== Node.ELEMENT_NODE) {
+        continue;
+      }
+
+      const current_tag = (current as Element).tagName.toLowerCase();
+
+      if (current_tag === "style" || current_tag === "script") {
+        continue;
+      }
+
+      const children = current.childNodes;
+
+      for (let i = children.length - 1; i >= 0; i--) {
+        stack.push(children[i]);
+      }
+    }
+
+    return parts.join("");
+  };
+
   const MAX_SANITIZE_DEPTH = 1000;
   const sanitize_node = (node: Node, depth = 0): Node | null => {
     if (depth > MAX_SANITIZE_DEPTH) {
@@ -700,7 +732,7 @@ function sanitize_html_impl(
         return null;
       }
 
-      const text = node.textContent || "";
+      const text = visible_text_of(node);
 
       return text ? document.createTextNode(text) : null;
     }
