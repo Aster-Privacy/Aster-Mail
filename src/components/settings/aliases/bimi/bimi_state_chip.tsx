@@ -19,23 +19,44 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { BimiState } from "@/services/api/bimi";
+import type { ComponentType, SVGProps } from "react";
 
-import { BIMI_CHIP_CLASSES, BIMI_STATE_LABELS } from "./bimi_copy";
+import {
+  CheckCircleIcon,
+  ClockIcon,
+  ExclamationTriangleIcon,
+  GlobeAltIcon,
+  PencilSquareIcon,
+} from "@heroicons/react/16/solid";
+import { Badge } from "@aster/ui";
+
+import { BIMI_STATE_LABELS } from "./bimi_copy";
 
 import { use_i18n } from "@/lib/i18n/context";
+
+const STATE_ICONS: Record<
+  Exclude<BimiState, "off">,
+  ComponentType<SVGProps<SVGSVGElement>>
+> = {
+  draft: PencilSquareIcon,
+  pending: ClockIcon,
+  live: CheckCircleIcon,
+  attention: ExclamationTriangleIcon,
+  external: GlobeAltIcon,
+};
 
 export function BimiStateChip({ state }: { state: BimiState }) {
   const { t } = use_i18n();
 
   if (state === "off") return null;
 
-  const { label, tone } = BIMI_STATE_LABELS[state];
+  const { label, color } = BIMI_STATE_LABELS[state];
+  const Icon = STATE_ICONS[state];
 
   return (
-    <span
-      className={`inline-flex items-center px-2 py-0.5 rounded-full border text-xs font-medium ${BIMI_CHIP_CLASSES[tone]}`}
-    >
+    <Badge className="whitespace-nowrap" color={color}>
+      <Icon aria-hidden="true" className="w-3.5 h-3.5 flex-shrink-0" />
       {t(label)}
-    </span>
+    </Badge>
   );
 }

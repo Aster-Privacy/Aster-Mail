@@ -21,7 +21,8 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useRef, useState, type DragEvent } from "react";
-import { ArrowUpTrayIcon } from "@heroicons/react/24/outline";
+import { ArrowUpTrayIcon, PhotoIcon } from "@heroicons/react/24/outline";
+import { CheckCircleIcon } from "@heroicons/react/20/solid";
 import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
@@ -51,10 +52,15 @@ export async function read_bimi_file(file: File): Promise<BimiFileResult> {
 
 interface BimiLogoPickerProps {
   uploading: boolean;
+  preview_png: string | null;
   on_file: (file: File) => void;
 }
 
-export function BimiLogoPicker({ uploading, on_file }: BimiLogoPickerProps) {
+export function BimiLogoPicker({
+  uploading,
+  preview_png,
+  on_file,
+}: BimiLogoPickerProps) {
   const { t } = use_i18n();
   const input_ref = useRef<HTMLInputElement>(null);
   const [dragging, set_dragging] = useState(false);
@@ -69,54 +75,90 @@ export function BimiLogoPicker({ uploading, on_file }: BimiLogoPickerProps) {
     if (file) on_file(file);
   };
 
+  const drag_handlers = {
+    onDragLeave: () => set_dragging(false),
+    onDragOver: (event: DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      if (!uploading) set_dragging(true);
+    },
+    onDrop: handle_drop,
+  };
+
+  const choose_button = (label: string) => (
+    <Button
+      className="disabled:opacity-50"
+      disabled={uploading}
+      size="md"
+      variant="outline"
+      onClick={() => input_ref.current?.click()}
+    >
+      {uploading ? (
+        <ButtonSpinner />
+      ) : (
+        <ArrowUpTrayIcon className="w-3.5 h-3.5" />
+      )}
+      {uploading ? t("settings.bimi_uploading") : label}
+    </Button>
+  );
+
+  const file_input = (
+    <input
+      ref={input_ref}
+      accept=".svg,image/svg+xml"
+      aria-label={t("settings.bimi_choose_file")}
+      className="hidden"
+      type="file"
+      onChange={(event) => {
+        const file = event.target.files?.[0];
+
+        event.target.value = "";
+        if (file) on_file(file);
+      }}
+    />
+  );
+
+  if (preview_png) {
+    return (
+      <div
+        className={`flex items-center gap-3 rounded-lg border px-3 py-3 transition-colors ${
+          dragging ? "border-brand" : "border-edge-secondary"
+        }`}
+        {...drag_handlers}
+      >
+        <img
+          alt={t("settings.bimi_preview_alt")}
+          className="h-11 w-11 flex-shrink-0 rounded-full border border-edge-secondary object-cover"
+          draggable={false}
+          src={`data:image/png;base64,${preview_png}`}
+        />
+        <div className="flex min-w-0 flex-1 items-center gap-1.5">
+          <CheckCircleIcon
+            aria-hidden="true"
+            className="w-4 h-4 flex-shrink-0 text-green-500"
+          />
+          <p className="text-sm text-txt-primary">
+            {t("settings.bimi_logo_ready")}
+          </p>
+        </div>
+        {choose_button(t("settings.bimi_replace_logo"))}
+        {file_input}
+      </div>
+    );
+  }
+
   return (
     <div
-      className={`flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed px-4 py-6 text-center transition-colors ${
-        dragging
-          ? "border-brand bg-brand/5"
-          : "border-edge-secondary bg-surf-secondary"
+      className={`flex flex-col items-center justify-center gap-3 rounded-lg border border-dashed px-4 py-8 text-center transition-colors ${
+        dragging ? "border-brand" : "border-edge-secondary"
       }`}
-      onDragLeave={() => set_dragging(false)}
-      onDragOver={(event) => {
-        event.preventDefault();
-        if (!uploading) set_dragging(true);
-      }}
-      onDrop={handle_drop}
+      {...drag_handlers}
     >
+      <PhotoIcon aria-hidden="true" className="w-8 h-8 text-txt-muted" />
       <p className="text-sm text-txt-secondary">
         {t("settings.bimi_drop_here")}
       </p>
-      <Button
-        disabled={uploading}
-        size="md"
-        variant="outline"
-        onClick={() => input_ref.current?.click()}
-      >
-        {uploading ? (
-          <ButtonSpinner />
-        ) : (
-          <ArrowUpTrayIcon className="w-3.5 h-3.5" />
-        )}
-        {uploading
-          ? t("settings.bimi_uploading")
-          : t("settings.bimi_choose_file")}
-      </Button>
-      <p className="text-xs text-txt-muted">
-        {t("settings.bimi_logo_requirements")}
-      </p>
-      <input
-        ref={input_ref}
-        accept=".svg,image/svg+xml"
-        aria-label={t("settings.bimi_choose_file")}
-        className="hidden"
-        type="file"
-        onChange={(event) => {
-          const file = event.target.files?.[0];
-
-          event.target.value = "";
-          if (file) on_file(file);
-        }}
-      />
+      {choose_button(t("settings.bimi_choose_file"))}
+      {file_input}
     </div>
   );
 }

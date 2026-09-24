@@ -21,6 +21,7 @@
 import type { CustomDomain } from "@/services/api/domains";
 
 import { useState } from "react";
+import { PhotoIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { BimiModal } from "./bimi_modal";
@@ -44,7 +45,11 @@ export function BimiRow({ domain, on_changed }: BimiRowProps) {
     : "settings.bimi_row_inactive";
 
   return (
-    <div className="flex items-center justify-between gap-4 py-4 mb-3 border-y border-edge-secondary">
+    <div className="flex items-center gap-3 py-4 mb-3 border-y border-edge-secondary">
+      <PhotoIcon
+        aria-hidden="true"
+        className="w-5 h-5 flex-shrink-0 self-start mt-0.5 text-txt-muted"
+      />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-sm font-medium text-txt-primary">
@@ -55,6 +60,7 @@ export function BimiRow({ domain, on_changed }: BimiRowProps) {
         <p className="text-sm mt-0.5 text-txt-muted">{t(message)}</p>
       </div>
       <Button
+        className="disabled:opacity-50"
         disabled={!active}
         variant="outline"
         onClick={() => set_open(true)}

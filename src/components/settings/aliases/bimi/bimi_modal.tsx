@@ -26,16 +26,24 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowPathIcon,
   CheckCircleIcon,
-  ExclamationTriangleIcon,
+  ClockIcon,
+  EyeIcon,
+  InformationCircleIcon,
   MinusCircleIcon,
-} from "@heroicons/react/24/outline";
+  ServerStackIcon,
+  ShieldCheckIcon,
+  XCircleIcon,
+} from "@heroicons/react/20/solid";
 import { Button } from "@aster/ui";
 
-import { DnsRecordCard } from "../dns_record_card";
-
+import { BimiAlert } from "./bimi_alert";
 import { BimiLogoPicker, read_bimi_file } from "./bimi_logo_picker";
 import { BimiLogoPreview } from "./bimi_logo_preview";
+import { BimiNote } from "./bimi_note";
+import { BimiRecordRows } from "./bimi_record_rows";
+import { BimiRulesList } from "./bimi_rules_list";
 import { BimiStateChip } from "./bimi_state_chip";
+import { BimiStepper } from "./bimi_stepper";
 import {
   BIMI_ADJUSTMENT_MESSAGES,
   BIMI_DMARC_MESSAGES,
@@ -67,10 +75,13 @@ import {
   upload_bimi_logo,
   type BimiAdjustment,
   type BimiLogoError,
+  type BimiState,
   type BimiView,
 } from "@/services/api/bimi";
 
 const AUTO_CHECK_INTERVAL_MS = 20_000;
+const SPINNER_DELAY_MS = 250;
+const AUTO_CHECK_STATES: BimiState[] = ["pending", "attention"];
 
 type BimiStep = "logo" | "publish" | "manage";
 type BimiBusy = "upload" | "publish" | "check" | "delete" | null;
@@ -82,8 +93,17 @@ interface BimiModalProps {
   on_close: (changed: boolean) => void;
 }
 
+const OUTCOME_ICONS = {
+  pass: { Icon: CheckCircleIcon, tone: "text-green-500" },
+  fail: { Icon: XCircleIcon, tone: "text-red-500" },
+  unknown: { Icon: MinusCircleIcon, tone: "text-txt-muted" },
+};
+
 function initial_step(view: BimiView): BimiStep {
-  return view.state === "off" || view.state === "draft" ? "logo" : "manage";
+  if (view.state === "off") return "logo";
+  if (view.state === "draft") return "publish";
+
+  return "manage";
 }
 
 function format_checked_at(value: string | null): string | null {
@@ -105,53 +125,24 @@ function RequirementRow({
   message: string;
   outcome: RequirementOutcome;
 }) {
-  const icon =
-    outcome === "pass" ? (
-      <CheckCircleIcon className="w-5 h-5 flex-shrink-0 text-green-500" />
-    ) : outcome === "fail" ? (
-      <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-amber-500" />
-    ) : (
-      <MinusCircleIcon className="w-5 h-5 flex-shrink-0 text-txt-muted" />
-    );
+  const { Icon, tone } = OUTCOME_ICONS[outcome];
 
   return (
     <li className="flex items-start gap-3 py-3">
-      {icon}
+      <Icon
+        aria-hidden="true"
+        className={`mt-0.5 w-4 h-4 flex-shrink-0 ${tone}`}
+      />
       <div className="min-w-0">
         <p className="text-sm font-medium text-txt-primary">{title}</p>
-        <p className="text-xs mt-0.5 text-txt-muted">{message}</p>
+        <p className="text-sm mt-0.5 text-txt-muted">{message}</p>
       </div>
     </li>
   );
 }
 
-function MessageList({
-  title,
-  items,
-  tone,
-}: {
-  title: string;
-  items: string[];
-  tone: "info" | "error";
-}) {
-  const classes =
-    tone === "error"
-      ? "border-red-500/20 bg-red-500/10 text-red-600 dark:text-red-400"
-      : "border-edge-secondary bg-surf-secondary text-txt-secondary";
-
-  return (
-    <div
-      className={`rounded-lg border p-3 ${classes}`}
-      role={tone === "error" ? "alert" : "status"}
-    >
-      <p className="text-sm font-medium">{title}</p>
-      <ul className="mt-1.5 list-disc space-y-1 ps-5 text-xs">
-        {items.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
-      </ul>
-    </div>
-  );
+function SectionTitle({ children }: { children: string }) {
+  return <h3 className="text-sm font-medium text-txt-primary">{children}</h3>;
 }
 
 export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
@@ -162,28 +153,38 @@ export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
   const [busy, set_busy] = useState<BimiBusy>(null);
   const [logo_errors, set_logo_errors] = useState<BimiLogoError[]>([]);
   const [adjustments, set_adjustments] = useState<BimiAdjustment[]>([]);
+  const [show_adjustments, set_show_adjustments] = useState(false);
   const [action_error, set_action_error] = useState<TranslationKey | null>(
     null,
   );
   const [confirm_off, set_confirm_off] = useState(false);
   const [removed_record, set_removed_record] = useState(false);
+  const [show_spinner, set_show_spinner] = useState(false);
   const changed_ref = useRef(false);
   const open_ref = useRef(is_open);
+  const epoch_ref = useRef(0);
+  const busy_ref = useRef<BimiBusy>(null);
 
   open_ref.current = is_open;
+  busy_ref.current = busy;
 
   const apply_view = useCallback((next: BimiView) => {
     set_view(next);
     changed_ref.current = true;
   }, []);
 
+  const is_current = (epoch: number) =>
+    open_ref.current && epoch === epoch_ref.current;
+
   const load = useCallback(async () => {
+    const epoch = ++epoch_ref.current;
+
     set_load_failed(false);
     set_view(null);
     try {
       const response = await get_bimi(domain.id);
 
-      if (!open_ref.current) return;
+      if (!open_ref.current || epoch !== epoch_ref.current) return;
       if (response.data) {
         set_view(response.data);
         set_step(initial_step(response.data));
@@ -192,33 +193,72 @@ export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
       }
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
-      if (open_ref.current) set_load_failed(true);
+      if (open_ref.current && epoch === epoch_ref.current) {
+        set_load_failed(true);
+      }
     }
   }, [domain.id]);
 
   useEffect(() => {
-    if (!is_open) return;
+    if (!is_open) {
+      epoch_ref.current += 1;
+
+      return;
+    }
     changed_ref.current = false;
     set_busy(null);
     set_logo_errors([]);
     set_adjustments([]);
+    set_show_adjustments(false);
     set_action_error(null);
     set_confirm_off(false);
     set_removed_record(false);
     load();
   }, [is_open, load]);
 
+  const waiting = is_open && view === null && !load_failed;
+
+  useEffect(() => {
+    if (!waiting) {
+      set_show_spinner(false);
+
+      return;
+    }
+
+    const timer = window.setTimeout(
+      () => set_show_spinner(true),
+      SPINNER_DELAY_MS,
+    );
+
+    return () => window.clearTimeout(timer);
+  }, [waiting]);
+
   const auto_check_active =
-    is_open && step === "manage" && view?.state === "pending";
+    is_open &&
+    step === "manage" &&
+    !confirm_off &&
+    view !== null &&
+    AUTO_CHECK_STATES.includes(view.state);
 
   useEffect(() => {
     if (!auto_check_active) return;
 
     const timer = window.setInterval(async () => {
+      if (busy_ref.current) return;
+
+      const epoch = ++epoch_ref.current;
+
       try {
         const response = await check_bimi(domain.id);
 
-        if (open_ref.current && response.data) apply_view(response.data);
+        if (
+          open_ref.current &&
+          epoch === epoch_ref.current &&
+          !busy_ref.current &&
+          response.data
+        ) {
+          apply_view(response.data);
+        }
       } catch (err) {
         if (import.meta.env.DEV) console.error(err);
       }
@@ -232,9 +272,19 @@ export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
     on_close(changed_ref.current);
   };
 
-  const handle_file = async (file: File) => {
+  const reset_logo_feedback = () => {
     set_logo_errors([]);
     set_adjustments([]);
+    set_show_adjustments(false);
+  };
+
+  const go_to = (next: BimiStep) => {
+    set_action_error(null);
+    set_step(next);
+  };
+
+  const handle_file = async (file: File) => {
+    reset_logo_feedback();
     set_action_error(null);
     set_removed_record(false);
 
@@ -246,11 +296,13 @@ export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
       return;
     }
 
+    const epoch = ++epoch_ref.current;
+
     set_busy("upload");
     try {
       const response = await upload_bimi_logo(domain.id, result.svg);
 
-      if (!open_ref.current) return;
+      if (!is_current(epoch)) return;
       if (response.data) {
         apply_view(response.data.bimi);
         set_adjustments(response.data.adjustments);
@@ -261,7 +313,9 @@ export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
       }
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
-      set_action_error("common.something_went_wrong_try_again");
+      if (is_current(epoch)) {
+        set_action_error("common.something_went_wrong_try_again");
+      }
     } finally {
       set_busy(null);
     }
@@ -271,12 +325,14 @@ export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
     kind: Exclude<BimiBusy, "upload" | null>,
     action: () => Promise<ApiResponse<BimiView>>,
   ): Promise<BimiView | null> => {
+    const epoch = ++epoch_ref.current;
+
     set_action_error(null);
     set_busy(kind);
     try {
       const response = await action();
 
-      if (!open_ref.current) return null;
+      if (!is_current(epoch)) return null;
       if (response.data) {
         apply_view(response.data);
 
@@ -285,7 +341,9 @@ export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
       set_action_error(bimi_action_error(response));
     } catch (err) {
       if (import.meta.env.DEV) console.error(err);
-      set_action_error("common.something_went_wrong_try_again");
+      if (is_current(epoch)) {
+        set_action_error("common.something_went_wrong_try_again");
+      }
     } finally {
       set_busy(null);
     }
@@ -307,8 +365,7 @@ export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
 
     set_confirm_off(false);
     if (!next) return;
-    set_logo_errors([]);
-    set_adjustments([]);
+    reset_logo_feedback();
     set_removed_record(user_manages_dns);
     set_step("logo");
   };
@@ -318,58 +375,95 @@ export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
   const is_setup =
     view !== null && (view.state === "off" || view.state === "draft");
   const checked_at = format_checked_at(view?.last_checked_at ?? null);
-  const error_banner = action_error ? (
-    <p className="text-xs text-red-600 dark:text-red-400" role="alert">
-      {t(action_error)}
-    </p>
+  const error_alert = action_error ? (
+    <BimiAlert tone="error">{t(action_error)}</BimiAlert>
   ) : null;
+  const inactive_alert =
+    view && !view.domain_active ? (
+      <BimiAlert tone="warning">
+        {t("settings.bimi_error_domain_not_active")}
+      </BimiAlert>
+    ) : null;
 
-  const render_logo_step = (current: BimiView) => (
-    <div className="space-y-4">
-      {removed_record && (
-        <div
-          className="rounded-lg border border-amber-500/20 bg-amber-500/10 p-3"
-          role="status"
+  const render_adjustments = () =>
+    adjustments.length > 0 && (
+      <div>
+        <button
+          aria-expanded={show_adjustments}
+          className="flex items-start gap-2 text-start text-sm text-txt-secondary transition-colors hover:text-txt-primary"
+          type="button"
+          onClick={() => set_show_adjustments((value) => !value)}
         >
-          <p className="text-xs text-amber-600 dark:text-amber-400">
+          <InformationCircleIcon
+            aria-hidden="true"
+            className="mt-0.5 w-4 h-4 flex-shrink-0 text-txt-muted"
+          />
+          <span>
+            {t("settings.bimi_adjustments_title")}{" "}
+            <span className="text-brand">
+              {show_adjustments
+                ? t("common.hide_details")
+                : t("common.show_details")}
+            </span>
+          </span>
+        </button>
+        {show_adjustments && (
+          <ul className="mt-2 space-y-1 ps-6">
+            {adjustments.map((code) => (
+              <li key={code} className="text-sm text-txt-muted">
+                {t(BIMI_ADJUSTMENT_MESSAGES[code])}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    );
+
+  const render_logo_step = (current: BimiView) => {
+    const has_logo = current.preview_png !== null && logo_errors.length === 0;
+
+    return (
+      <div className="space-y-5">
+        {is_setup && <BimiStepper current={1} />}
+        {removed_record && (
+          <BimiAlert tone="warning">
             {t("settings.bimi_turn_off_remove_record")}
-          </p>
-        </div>
-      )}
-      <BimiLogoPicker on_file={handle_file} uploading={busy === "upload"} />
-      {logo_errors.length > 0 && (
-        <MessageList
-          items={logo_errors.map((code) => t(BIMI_LOGO_ERROR_MESSAGES[code]))}
-          title={t("settings.bimi_errors_title")}
-          tone="error"
+          </BimiAlert>
+        )}
+        <BimiLogoPicker
+          on_file={handle_file}
+          preview_png={has_logo ? current.preview_png : null}
+          uploading={busy === "upload"}
         />
-      )}
-      {error_banner}
-      {current.preview_png && logo_errors.length === 0 && (
-        <BimiLogoPreview
-          domain_name={domain.domain_name}
-          preview_png={current.preview_png}
-        />
-      )}
-      {adjustments.length > 0 && (
-        <MessageList
-          items={adjustments.map((code) => t(BIMI_ADJUSTMENT_MESSAGES[code]))}
-          title={t("settings.bimi_adjustments_title")}
-          tone="info"
-        />
-      )}
-      <p className="text-xs text-txt-muted">
-        {t("settings.bimi_logo_public_note")}
-      </p>
-    </div>
-  );
+        {logo_errors.length > 0 && (
+          <BimiAlert
+            items={logo_errors.map((code) => t(BIMI_LOGO_ERROR_MESSAGES[code]))}
+            title={t("settings.bimi_errors_title")}
+            tone="error"
+          />
+        )}
+        {error_alert}
+        <BimiRulesList errors={logo_errors} has_logo={has_logo} />
+        {has_logo && current.preview_png && (
+          <BimiLogoPreview
+            domain_name={domain.domain_name}
+            preview_png={current.preview_png}
+          />
+        )}
+        {render_adjustments()}
+        <BimiNote icon={EyeIcon}>
+          {t("settings.bimi_logo_public_note")}
+        </BimiNote>
+      </div>
+    );
+  };
 
   const render_publish_step = (current: BimiView) => (
-    <div className="space-y-4">
-      <div>
-        <p className="text-xs font-medium text-txt-muted">
-          {t("settings.bimi_requirements_title")}
-        </p>
+    <div className="space-y-5">
+      <BimiStepper current={2} />
+      {inactive_alert}
+      <section>
+        <SectionTitle>{t("settings.bimi_requirements_title")}</SectionTitle>
         <ul className="divide-y divide-edge-secondary">
           <RequirementRow
             message={
@@ -396,87 +490,134 @@ export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
             title={t("settings.bimi_req_dmarc_title")}
           />
         </ul>
+      </section>
+      <div className="space-y-2">
+        {current.managed_dns && (
+          <BimiNote icon={ServerStackIcon}>
+            {t("settings.bimi_managed_note")}
+          </BimiNote>
+        )}
+        <BimiNote icon={ShieldCheckIcon}>
+          {t("settings.bimi_verified_mark_note")}
+        </BimiNote>
       </div>
-      {current.managed_dns && (
-        <p className="text-xs text-txt-muted">
-          {t("settings.bimi_managed_note")}
-        </p>
-      )}
-      <p className="text-xs text-txt-muted">
-        {t("settings.bimi_verified_mark_note")}
-      </p>
-      {!current.domain_active && (
-        <p className="text-xs text-amber-600 dark:text-amber-400">
-          {t("settings.bimi_error_domain_not_active")}
-        </p>
-      )}
-      {error_banner}
+      {error_alert}
     </div>
   );
 
+  const render_record_status = (current: BimiView) => {
+    const status = current.record_status;
+
+    if (status === "published") {
+      return (
+        <BimiNote icon={CheckCircleIcon} tone="success">
+          {t(BIMI_RECORD_MESSAGES.published)}
+        </BimiNote>
+      );
+    }
+    if (status === "conflict" || status === "external") {
+      return (
+        <BimiAlert tone="warning">{t(BIMI_RECORD_MESSAGES[status])}</BimiAlert>
+      );
+    }
+
+    return (
+      <div className="space-y-2">
+        {current.state === "attention" ? (
+          <BimiAlert tone="warning">
+            {t("settings.bimi_record_removed")}
+          </BimiAlert>
+        ) : (
+          <BimiNote icon={ClockIcon}>
+            {t(BIMI_RECORD_MESSAGES.missing)}
+          </BimiNote>
+        )}
+        {auto_check_active && (
+          <BimiNote icon={ArrowPathIcon}>
+            {t("settings.bimi_auto_checking")}
+          </BimiNote>
+        )}
+      </div>
+    );
+  };
+
   const render_manage = (current: BimiView) => (
-    <div className="space-y-4">
-      <div className="flex items-start gap-3">
+    <div className="space-y-5">
+      <div className="flex items-center gap-3 rounded-lg border border-edge-secondary px-4 py-3">
+        {current.preview_png && (
+          <img
+            alt={t("settings.bimi_preview_alt")}
+            className="h-11 w-11 flex-shrink-0 rounded-full border border-edge-secondary object-cover"
+            draggable={false}
+            src={`data:image/png;base64,${current.preview_png}`}
+          />
+        )}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
+            <p className="min-w-0 truncate text-sm font-semibold text-txt-primary">
+              {domain.domain_name}
+            </p>
             <BimiStateChip state={current.state} />
-            {checked_at && (
-              <span className="text-xs text-txt-muted">
-                {t("settings.bimi_last_checked", { time: checked_at })}
-              </span>
-            )}
           </div>
-          <p className="text-sm mt-2 text-txt-secondary">
-            {t(bimi_row_message(current.state, current.managed_dns))}
-          </p>
+          {checked_at && (
+            <p className="mt-1 flex items-center gap-1 text-xs text-txt-muted">
+              <ClockIcon aria-hidden="true" className="w-3.5 h-3.5" />
+              {t("settings.bimi_last_checked", { time: checked_at })}
+            </p>
+          )}
         </div>
       </div>
+      <p className="text-sm text-txt-secondary">
+        {t(bimi_row_message(current.state, current.managed_dns))}
+      </p>
+      {inactive_alert}
+      {dmarc_status && dmarc_status !== "ready" && (
+        <BimiAlert tone="warning">
+          {t(BIMI_DMARC_MESSAGES[dmarc_status])}
+        </BimiAlert>
+      )}
+      {error_alert}
+      {current.managed_dns ? (
+        <BimiNote icon={ServerStackIcon}>
+          {t("settings.bimi_managed_note")}
+        </BimiNote>
+      ) : (
+        current.record && (
+          <section className="space-y-3">
+            <SectionTitle>{t("settings.bimi_record_title")}</SectionTitle>
+            <BimiRecordRows record={current.record} />
+            {render_record_status(current)}
+          </section>
+        )
+      )}
       {current.preview_png && (
         <BimiLogoPreview
           domain_name={domain.domain_name}
           preview_png={current.preview_png}
         />
       )}
-      {adjustments.length > 0 && (
-        <MessageList
-          items={adjustments.map((code) => t(BIMI_ADJUSTMENT_MESSAGES[code]))}
-          title={t("settings.bimi_adjustments_title")}
-          tone="info"
-        />
-      )}
-      {dmarc_status && dmarc_status !== "ready" && (
-        <p className="text-xs text-amber-600 dark:text-amber-400">
-          {t(BIMI_DMARC_MESSAGES[dmarc_status])}
-        </p>
-      )}
-      {current.managed_dns ? (
-        <p className="text-xs text-txt-muted">
-          {t("settings.bimi_managed_note")}
-        </p>
-      ) : (
-        current.record && (
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-txt-muted">
-              {t("settings.bimi_record_title")}
-            </p>
-            {current.record_status && (
-              <p className="text-xs text-txt-secondary">
-                {t(BIMI_RECORD_MESSAGES[current.record_status])}
-              </p>
-            )}
-            <DnsRecordCard
-              domain={domain.domain_name}
-              record={{
-                ...current.record,
-                purpose: "bimi",
-                is_verified: current.record_status === "published",
-                required: true,
-              }}
-            />
-          </div>
-        )
-      )}
-      {error_banner}
+      {render_adjustments()}
+      <BimiNote icon={ShieldCheckIcon}>
+        {t("settings.bimi_verified_mark_note")}
+      </BimiNote>
+      <div className="flex items-center gap-4 border-t border-edge-secondary pt-4">
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-medium text-txt-primary">
+            {t("settings.bimi_turn_off")}
+          </p>
+          <p className="text-sm mt-0.5 text-txt-muted">
+            {t("settings.bimi_turn_off_description")}
+          </p>
+        </div>
+        <Button
+          className="disabled:opacity-50"
+          disabled={busy !== null}
+          variant="depth_destructive"
+          onClick={() => set_confirm_off(true)}
+        >
+          {t("settings.bimi_turn_off")}
+        </Button>
+      </div>
     </div>
   );
 
@@ -484,8 +625,11 @@ export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
     if (load_failed) return <LoadFailedNotice on_retry={load} />;
     if (!view) {
       return (
-        <div className="flex justify-center py-10">
-          <Spinner size="md" />
+        <div
+          aria-busy="true"
+          className="flex min-h-[240px] items-center justify-center"
+        >
+          {show_spinner && <Spinner size="md" />}
         </div>
       );
     }
@@ -498,47 +642,47 @@ export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
   const render_footer = () => {
     if (!view) {
       return (
-        <Button variant="outline" onClick={close}>
+        <Button
+          className="disabled:opacity-50"
+          variant="outline"
+          onClick={close}
+        >
           {t("common.close")}
         </Button>
       );
     }
 
     if (step === "logo") {
-      if (is_setup) {
-        return (
-          <>
-            <Button disabled={busy !== null} variant="outline" onClick={close}>
-              {t("common.cancel")}
-            </Button>
-            <Button
-              disabled={
-                busy !== null || !view.preview_png || logo_errors.length > 0
-              }
-              variant="depth"
-              onClick={() => {
-                set_action_error(null);
-                set_step("publish");
-              }}
-            >
-              {t("common.continue")}
-            </Button>
-          </>
-        );
-      }
+      const can_continue =
+        busy === null && view.preview_png !== null && logo_errors.length === 0;
 
       return (
-        <Button
-          disabled={busy !== null}
-          variant="depth"
-          onClick={() => {
-            set_action_error(null);
-            set_logo_errors([]);
-            set_step("manage");
-          }}
-        >
-          {t("common.done")}
-        </Button>
+        <>
+          <Button
+            className="disabled:opacity-50"
+            disabled={busy !== null}
+            variant="outline"
+            onClick={() => {
+              if (is_setup) {
+                close();
+
+                return;
+              }
+              reset_logo_feedback();
+              go_to("manage");
+            }}
+          >
+            {is_setup ? t("common.cancel") : t("common.back")}
+          </Button>
+          <Button
+            className="disabled:opacity-50"
+            disabled={!can_continue}
+            variant="depth"
+            onClick={() => go_to(is_setup ? "publish" : "manage")}
+          >
+            {is_setup ? t("common.continue") : t("common.done")}
+          </Button>
+        </>
       );
     }
 
@@ -546,17 +690,16 @@ export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
       return (
         <>
           <Button
+            className="disabled:opacity-50"
             disabled={busy !== null}
             variant="outline"
-            onClick={() => {
-              set_action_error(null);
-              set_step("logo");
-            }}
+            onClick={() => go_to("logo")}
           >
             {t("common.back")}
           </Button>
           <Button
-            disabled={busy !== null || !view.domain_active}
+            className="disabled:opacity-50"
+            disabled={busy !== null || !view.domain_active || !view.preview_png}
             variant="depth"
             onClick={handle_publish}
           >
@@ -570,68 +713,51 @@ export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
     }
 
     return (
-      <div className="flex w-full flex-wrap items-center gap-2">
+      <div className="flex w-full flex-wrap items-center justify-end gap-2">
         <Button
-          className="text-red-500 hover:text-red-500 hover:bg-red-500/10"
+          className="disabled:opacity-50"
           disabled={busy !== null}
-          variant="ghost"
-          onClick={() => set_confirm_off(true)}
+          variant="outline"
+          onClick={() => {
+            reset_logo_feedback();
+            go_to("logo");
+          }}
         >
-          {t("settings.bimi_turn_off")}
+          {t("settings.bimi_replace_logo")}
         </Button>
-        <div className="ms-auto flex flex-wrap items-center gap-2">
-          <Button
-            disabled={busy !== null}
-            variant="outline"
-            onClick={() => {
-              set_action_error(null);
-              set_adjustments([]);
-              set_step("logo");
-            }}
-          >
-            {t("settings.bimi_replace_logo")}
-          </Button>
-          <Button
-            disabled={busy !== null}
-            variant="outline"
-            onClick={handle_check}
-          >
-            {busy === "check" ? (
-              <ButtonSpinner />
-            ) : (
-              <ArrowPathIcon className="w-3.5 h-3.5" />
-            )}
-            {busy === "check"
-              ? t("settings.bimi_checking")
-              : t("settings.bimi_check_again")}
-          </Button>
-          <Button disabled={busy !== null} variant="depth" onClick={close}>
-            {t("common.done")}
-          </Button>
-        </div>
+        <Button
+          className="disabled:opacity-50"
+          disabled={busy !== null}
+          variant="outline"
+          onClick={handle_check}
+        >
+          {busy === "check" ? (
+            <ButtonSpinner />
+          ) : (
+            <ArrowPathIcon className="w-3.5 h-3.5" />
+          )}
+          {busy === "check"
+            ? t("settings.bimi_checking")
+            : t("settings.bimi_check_again")}
+        </Button>
+        <Button
+          className="disabled:opacity-50"
+          disabled={busy !== null}
+          variant="depth"
+          onClick={close}
+        >
+          {t("common.done")}
+        </Button>
       </div>
     );
   };
-
-  const step_number = step === "publish" ? 2 : 1;
 
   return (
     <>
       <Modal is_open={is_open} on_close={close} size="lg">
         <ModalHeader>
           <ModalTitle>{t("settings.bimi_title")}</ModalTitle>
-          <ModalDescription>
-            {is_setup && step !== "manage"
-              ? `${t("settings.bimi_step_of", {
-                  current: step_number,
-                  total: 2,
-                })} · ${
-                  step === "publish"
-                    ? t("settings.bimi_step_publish")
-                    : t("settings.bimi_step_logo")
-                }`
-              : domain.domain_name}
-          </ModalDescription>
+          <ModalDescription>{domain.domain_name}</ModalDescription>
         </ModalHeader>
         <ModalBody>{render_body()}</ModalBody>
         <ModalFooter>{render_footer()}</ModalFooter>

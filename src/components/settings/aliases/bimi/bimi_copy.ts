@@ -30,26 +30,47 @@ import type {
 
 import { BIMI_STATES } from "@/services/api/bimi";
 
-export type BimiChipTone = "neutral" | "info" | "success" | "warning";
+export type BimiBadgeColor = "gray" | "blue" | "green" | "amber";
 
 export const BIMI_STATE_LABELS: Record<
   Exclude<BimiState, "off">,
-  { label: TranslationKey; tone: BimiChipTone }
+  { label: TranslationKey; color: BimiBadgeColor }
 > = {
-  draft: { label: "settings.bimi_state_draft", tone: "neutral" },
-  pending: { label: "settings.bimi_state_pending", tone: "info" },
-  live: { label: "settings.bimi_state_live", tone: "success" },
-  attention: { label: "settings.bimi_state_attention", tone: "warning" },
-  external: { label: "settings.bimi_state_external", tone: "neutral" },
+  draft: { label: "settings.bimi_state_draft", color: "gray" },
+  pending: { label: "settings.bimi_state_pending", color: "blue" },
+  live: { label: "settings.bimi_state_live", color: "green" },
+  attention: { label: "settings.bimi_state_attention", color: "amber" },
+  external: { label: "settings.bimi_state_external", color: "gray" },
 };
 
-export const BIMI_CHIP_CLASSES: Record<BimiChipTone, string> = {
-  neutral: "bg-surf-secondary text-txt-secondary border-edge-secondary",
-  info: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-  success:
-    "bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/20",
-  warning:
-    "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
+export type BimiRule = "svg" | "square" | "size" | "vector" | "safe";
+
+export const BIMI_RULES: { rule: BimiRule; label: TranslationKey }[] = [
+  { rule: "svg", label: "settings.bimi_rule_svg" },
+  { rule: "square", label: "settings.bimi_rule_square" },
+  { rule: "size", label: "settings.bimi_rule_size" },
+  { rule: "vector", label: "settings.bimi_rule_vector" },
+  { rule: "safe", label: "settings.bimi_rule_safe" },
+];
+
+export const BIMI_ERROR_RULES: Record<BimiLogoError, BimiRule> = {
+  too_large: "size",
+  too_complex: "size",
+  not_utf8: "svg",
+  malformed: "svg",
+  doctype_entities: "svg",
+  not_svg: "svg",
+  empty: "svg",
+  missing_view_box: "square",
+  not_square: "square",
+  script_content: "safe",
+  external_reference: "safe",
+  invalid_reference: "safe",
+  raster_image: "vector",
+  text_not_outlined: "vector",
+  unsupported_style: "vector",
+  unsupported_element: "vector",
+  invalid_value: "vector",
 };
 
 export const BIMI_DMARC_MESSAGES: Record<BimiDmarcStatus, TranslationKey> = {
@@ -141,13 +162,16 @@ export function bimi_action_error(
 ): TranslationKey {
   switch (response.server_code) {
     case "BIMI_UPLOAD_THROTTLED":
-    case "BIMI_CHECK_THROTTLED":
     case "BIMI_ACTION_THROTTLED":
       return "settings.bimi_error_throttled";
+    case "BIMI_LOGO_REQUIRED":
+      return "settings.bimi_error_logo_required";
     case "BIMI_DOMAIN_NOT_ACTIVE":
       return "settings.bimi_error_domain_not_active";
     case "PAYLOAD_TOO_LARGE":
       return "settings.bimi_error_file_too_large";
+    case "BIMI_RECORD_CONFLICT":
+      return "settings.bimi_record_external";
   }
   if (response.code === "RATE_LIMIT_EXCEEDED") {
     return "settings.bimi_error_throttled";
