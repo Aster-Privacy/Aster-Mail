@@ -43,7 +43,7 @@ import {
 } from "@/components/compose/send_lock";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_signatures } from "@/contexts/signatures_context";
-import { show_action_toast } from "@/components/toast/action_toast";
+import { show_email_sent_toast } from "@/components/toast/email_sent_toast";
 import { emit_thread_reply_sent } from "@/hooks/mail_events";
 import { use_should_reduce_motion } from "@/provider";
 import {
@@ -478,21 +478,11 @@ export const InlineReplySection = forwardRef<
         original_email_id: email_id,
       },
       {
-        on_complete: () => {
+        on_complete: (sent_id?: string) => {
           is_sending_ref.current = false;
           set_send_state("sent");
           on_sending_end?.();
-          show_action_toast({
-            message: t("common.email_sent"),
-            action_type: "read",
-            email_ids: [],
-            duration_ms: 5000,
-            on_view_message: () => {
-              window.dispatchEvent(
-                new CustomEvent("astermail:navigate-to-sent"),
-              );
-            },
-          });
+          show_email_sent_toast(t("common.email_sent"), sent_id);
 
           if (thread_token) {
             emit_thread_reply_sent({

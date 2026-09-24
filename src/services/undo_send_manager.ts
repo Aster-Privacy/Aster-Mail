@@ -36,13 +36,13 @@ export interface PendingSend {
   can_cancel_until: Date;
   timeout_id: number;
   status: "pending" | "sending" | "sent" | "cancelled" | "failed";
-  on_sent?: () => void;
+  on_sent?: (sent_id?: string) => void;
   on_cancelled?: () => void;
   on_error?: (error: string) => void;
 }
 
 export interface QueueEmailOptions {
-  on_sent?: () => void;
+  on_sent?: (sent_id?: string) => void;
   on_cancelled?: () => void;
   on_error?: (error: string) => void;
 }
@@ -271,12 +271,13 @@ class UndoSendManager {
     pending: PendingSend,
     status: TerminalSendStatus,
     error_message?: string,
+    sent_id?: string,
   ): void {
     window.clearTimeout(pending.timeout_id);
     pending.status = status;
 
     if (status === "sent" && pending.on_sent) {
-      pending.on_sent();
+      pending.on_sent(sent_id);
     } else if (status === "cancelled" && pending.on_cancelled) {
       pending.on_cancelled();
     } else if (status === "failed" && pending.on_error) {
@@ -320,6 +321,7 @@ class UndoSendManager {
             pending,
             response.data.status,
             response.data.error_message,
+            response.data.mail_item_id,
           );
 
           return;
@@ -469,7 +471,12 @@ class UndoSendManager {
     }
 
     if (is_terminal_status(status.status)) {
-      this.apply_terminal_status(pending, status.status, status.error_message);
+      this.apply_terminal_status(
+        pending,
+        status.status,
+        status.error_message,
+        status.mail_item_id,
+      );
 
       return;
     }

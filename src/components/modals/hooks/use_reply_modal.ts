@@ -56,7 +56,7 @@ import {
 } from "@/components/compose/send_lock";
 import { auto_save_recipients_to_contacts } from "@/services/contacts_auto_save";
 import { show_toast } from "@/components/toast/simple_toast";
-import { show_action_toast } from "@/components/toast/action_toast";
+import { show_email_sent_toast } from "@/components/toast/email_sent_toast";
 import { format_bytes } from "@/lib/utils";
 import {
   emit_email_sent,
@@ -489,22 +489,12 @@ export function use_reply_modal(props: UseReplyModalProps) {
         attachments: attachments.length > 0 ? attachments : undefined,
       },
       {
-        on_complete: () => {
+        on_complete: (sent_id?: string) => {
           is_sending_ref.current = false;
           send_lock_started_at_ref.current = 0;
           set_is_sending(false);
           emit_email_sent();
-          show_action_toast({
-            message: t("common.email_sent"),
-            action_type: "read",
-            email_ids: [],
-            duration_ms: 5000,
-            on_view_message: () => {
-              window.dispatchEvent(
-                new CustomEvent("astermail:navigate-to-sent"),
-              );
-            },
-          });
+          show_email_sent_toast(t("common.email_sent"), sent_id);
 
           if (pending_thread_token_ref.current) {
             emit_thread_reply_sent({

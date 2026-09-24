@@ -80,6 +80,7 @@ export interface QueuedEmailStatus {
   subject_preview?: string;
   created_at: string;
   error_message?: string;
+  mail_item_id?: string;
 }
 
 export interface PendingEmailsResponse {

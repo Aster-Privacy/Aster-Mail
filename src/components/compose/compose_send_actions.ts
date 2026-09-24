@@ -37,7 +37,7 @@ import {
 import { send_via_external_account } from "@/services/api/external_accounts";
 import { prepare_external_attachments } from "@/services/crypto/attachment_crypto";
 import { show_toast } from "@/components/toast/simple_toast";
-import { show_action_toast } from "@/components/toast/action_toast";
+import { show_email_sent_toast } from "@/components/toast/email_sent_toast";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { emit_email_sent } from "@/hooks/mail_events";
 import { record_review_prompt_action } from "@/lib/review_prompt";
@@ -174,7 +174,7 @@ export async function execute_internal_send(
       },
       delay_seconds,
       {
-        on_sent: () => {
+        on_sent: (sent_id?: string) => {
           ctx.set_queued_email_id(null);
           clear_stash(ctx);
           invalidate_mail_stats();
@@ -182,17 +182,7 @@ export async function execute_internal_send(
           log_activities_for_sent(ctx, email_data);
           ctx.on_close();
           record_review_prompt_action();
-          show_action_toast({
-            message: ctx.t("common.email_sent"),
-            action_type: "read",
-            email_ids: [],
-            duration_ms: 5000,
-            on_view_message: () => {
-              window.dispatchEvent(
-                new CustomEvent("astermail:navigate-to-sent"),
-              );
-            },
-          });
+          show_email_sent_toast(ctx.t("common.email_sent"), sent_id);
         },
         on_cancelled: () => {
           ctx.set_queued_email_id(null);
@@ -230,23 +220,13 @@ export async function execute_internal_send(
     const email_id = queue_email(
       {
         ...email_data,
-        on_complete: () => {
+        on_complete: (sent_id?: string) => {
           ctx.set_queued_email_id(null);
           clear_stash(ctx);
           dispatch_email_sent();
           log_activities_for_sent(ctx, email_data);
           record_review_prompt_action();
-          show_action_toast({
-            message: ctx.t("common.email_sent"),
-            action_type: "read",
-            email_ids: [],
-            duration_ms: 5000,
-            on_view_message: () => {
-              window.dispatchEvent(
-                new CustomEvent("astermail:navigate-to-sent"),
-              );
-            },
-          });
+          show_email_sent_toast(ctx.t("common.email_sent"), sent_id);
         },
         on_cancel: () => {
           ctx.set_queued_email_id(null);
@@ -360,7 +340,8 @@ export async function execute_external_email_send(
 
     const timeout_id = window.setTimeout(async () => {
       try {
-        await execute_external_send(external_email_data, true);
+        const sent_id = await execute_external_send(external_email_data, true);
+
         await ctx.confirm_draft_deleted?.();
         undo_send_manager.remove(email_id);
         ctx.set_queued_email_id(null);
@@ -369,15 +350,7 @@ export async function execute_external_email_send(
         log_activities_for_sent(ctx, email_data);
         ctx.on_close();
         record_review_prompt_action();
-        show_action_toast({
-          message: ctx.t("common.email_sent"),
-          action_type: "read",
-          email_ids: [],
-          duration_ms: 5000,
-          on_view_message: () => {
-            window.dispatchEvent(new CustomEvent("astermail:navigate-to-sent"));
-          },
-        });
+        show_email_sent_toast(ctx.t("common.email_sent"), sent_id);
       } catch (err) {
         undo_send_manager.remove(email_id);
         ctx.set_queued_email_id(null);
@@ -428,7 +401,8 @@ export async function execute_external_email_send(
     return false;
   } else {
     try {
-      await execute_external_send(external_email_data, true);
+      const sent_id = await execute_external_send(external_email_data, true);
+
       dispatch_email_sent();
       log_activities_for_sent(ctx, email_data);
       ctx.reset_form();
@@ -437,15 +411,7 @@ export async function execute_external_email_send(
         ctx.on_draft_cleared();
       }
       record_review_prompt_action();
-      show_action_toast({
-        message: ctx.t("common.email_sent"),
-        action_type: "read",
-        email_ids: [],
-        duration_ms: 5000,
-        on_view_message: () => {
-          window.dispatchEvent(new CustomEvent("astermail:navigate-to-sent"));
-        },
-      });
+      show_email_sent_toast(ctx.t("common.email_sent"), sent_id);
     } catch (err) {
       const msg = (err as Error).message;
 

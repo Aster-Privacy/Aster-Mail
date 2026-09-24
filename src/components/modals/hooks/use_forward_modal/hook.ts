@@ -50,7 +50,7 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { auto_save_recipients_to_contacts } from "@/services/contacts_auto_save";
 import { use_auth } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
-import { show_action_toast } from "@/components/toast/action_toast";
+import { show_email_sent_toast } from "@/components/toast/email_sent_toast";
 import { format_bytes } from "@/lib/utils";
 import {
   MAX_RECIPIENTS_PER_FIELD,
@@ -805,7 +805,7 @@ export function use_forward_modal({
         forward_original_mail_id: fwd_server_source_id,
       },
       {
-        on_complete: () => {
+        on_complete: (sent_id?: string) => {
           is_sending_ref.current = false;
           send_lock_started_at_ref.current = 0;
           set_is_sending(false);
@@ -813,17 +813,7 @@ export function use_forward_modal({
             emit_email_sent();
           }, 100);
           record_review_prompt_action();
-          show_action_toast({
-            message: t("common.email_sent"),
-            action_type: "read",
-            email_ids: [],
-            duration_ms: 5000,
-            on_view_message: () => {
-              window.dispatchEvent(
-                new CustomEvent("astermail:navigate-to-sent"),
-              );
-            },
-          });
+          show_email_sent_toast(t("common.email_sent"), sent_id);
         },
         on_cancel: () => {
           is_sending_ref.current = false;
