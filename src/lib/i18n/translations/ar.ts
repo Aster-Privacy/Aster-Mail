@@ -4755,13 +4755,13 @@ export const ar = {
       "يظل يستقبل البريد ويظل يتيح لك تسجيل الدخول على كل جهاز.",
     address_change_no_limit_title: "يبقى عنوانك القديم مجانيًا",
     address_change_no_limit_body:
-      "لا يُحتسب عنوانك القديم ضمن حد الأسماء المستعارة، ولا يمكن لأي شخص آخر أخذه.",
+      "لا يُحتسب عنوانك القديم ضمن حد الأسماء المستعارة، ولا يمكن لأي شخص آخر أخذه، ولا يمكنك حذفه.",
     address_change_once_title: "مرة واحدة في السنة",
     address_change_once_body:
       "بعد هذا التغيير، يصبح التغيير التالي متاحاً في {{date}}.",
     address_change_effect_alias_title: "{{email}} لم يعد اسمًا مستعارًا",
     address_change_effect_alias_body:
-      "تُزال القواعد وإعادة التوجيه التي أعددتها لهذا الاسم المستعار. وتظل الرسائل المرسلة إلى العنوان تصل إليك، الآن بوصفه عنوانك الأساسي.",
+      "تُحذف أي قواعد وإعادة توجيه وتوقيعات وأسماء مستعارة عكسية أعددتها لهذا الاسم المستعار. تستمر الرسائل المرسلة إلى هذا العنوان في الوصول، بصفته عنوانك الأساسي الآن.",
     address_change_permanent_title: "لا يمكنك التراجع عن هذا",
     address_change_permanent_body:
       "لا يمكنك جعل {{email}} عنوانك الأساسي مرة أخرى.",
@@ -4794,7 +4794,7 @@ export const ar = {
     address_change_done_body:
       "يواصل {{email}} استقبال البريد ويظل يتيح لك تسجيل الدخول.",
     address_change_done_partial:
-      "تغيّر عنوانك. لم يكتمل تحديث بعض التفاصيل، لذا أعد تحميل Aster Mail.",
+      "تغيّر عنوانك، لكن مفتاح التشفير لم يكمل التحديث. وإلى أن يكتمل، لن يظهر عنوانك الجديد في مفتاحك.",
     address_change_updating_key: "جارٍ تحديث مفتاح التشفير",
     address_change_failed: "لم يكتمل تغيير العنوان. حاول مرة أخرى.",
     address_change_code_too_many:
@@ -4812,7 +4812,7 @@ export const ar = {
     address_change_password_wrong: "كلمة المرور هذه غير صحيحة.",
     address_change_not_eligible: "لا يمكنك تغيير عنوانك الآن.",
     address_change_too_many_requests:
-      "محاولات كثيرة. انتظر بضع دقائق ثم أعد المحاولة.",
+      "بدأت عمليات تغيير عنوان كثيرة. حاول مرة أخرى بعد ساعة.",
     address_change_resend_too_soon: "انتظر لحظة قبل طلب رمز آخر.",
     address_change_send_failed:
       "تعذّر على Aster Mail إرسال الرمز. أعد المحاولة بعد بضع دقائق.",
@@ -4824,6 +4824,7 @@ export const ar = {
     address_change_locked_unavailable: "تغيير العنوان غير متاح الآن.",
     address_change_eligibility_failed:
       "تعذّر على Aster Mail التحقق مما إذا كان بإمكانك تغيير عنوانك.",
+    address_change_domain_label: "النطاق",
     primary_address_set: "تم تحديث العنوان الأساسي",
     primary_address_reset: "إعادة التعيين إلى عنوانك الافتراضي",
     also_receives_at: "يستقبل أيضًا على {{email}}",

@@ -4679,13 +4679,13 @@ export const pt = {
       "Ele continua a receber e-mails e continua a permitir que você entre, em todos os dispositivos.",
     address_change_no_limit_title: "O seu endereço antigo continua gratuito",
     address_change_no_limit_body:
-      "O seu endereço antigo não conta para o limite de aliases e mais ninguém pode ficar com ele.",
+      "O seu endereço antigo não conta para o limite de aliases, mais ninguém pode ficar com ele e não o pode eliminar.",
     address_change_once_title: "Uma vez por ano",
     address_change_once_body:
       "Depois desta alteração, a próxima fica disponível em {{date}}.",
     address_change_effect_alias_title: "{{email}} deixa de ser um alias",
     address_change_effect_alias_body:
-      "As regras e os encaminhamentos que você definiu para esse alias são removidos. As mensagens enviadas para o endereço continuam chegando, agora como seu endereço principal.",
+      "As regras, os encaminhamentos, as assinaturas e os aliases reversos que você configurou para esse alias são removidos. As mensagens enviadas para esse endereço continuam chegando, agora como seu endereço principal.",
     address_change_permanent_title: "Você não pode desfazer isto",
     address_change_permanent_body:
       "Você não pode tornar {{email}} o seu endereço principal novamente.",
@@ -4720,7 +4720,7 @@ export const pt = {
     address_change_done_body:
       "{{email}} continua recebendo e-mails e continua permitindo que você entre.",
     address_change_done_partial:
-      "O seu endereço foi alterado. Alguns detalhes não terminaram de ser atualizados, por isso recarregue o Aster Mail.",
+      "Seu endereço foi alterado, mas sua chave de criptografia não terminou de atualizar. Até lá, seu novo endereço não está na sua chave.",
     address_change_updating_key: "Atualizando a sua chave de criptografia",
     address_change_failed:
       "A alteração de endereço não foi concluída. Tente novamente.",
@@ -4742,7 +4742,7 @@ export const pt = {
     address_change_password_wrong: "Essa palavra-passe não está correta.",
     address_change_not_eligible: "Não é possível alterar o seu endereço agora.",
     address_change_too_many_requests:
-      "Demasiadas tentativas. Aguarde alguns minutos e tente novamente.",
+      "Iniciaste demasiadas alterações de endereço. Tenta de novo dentro de uma hora.",
     address_change_resend_too_soon:
       "Aguarde um momento antes de pedir outro código.",
     address_change_send_failed:
@@ -4757,6 +4757,7 @@ export const pt = {
       "A alteração de endereço não está disponível agora.",
     address_change_eligibility_failed:
       "O Aster Mail não conseguiu verificar se pode alterar o seu endereço.",
+    address_change_domain_label: "Domínio",
     primary_address_set: "Endereço principal atualizado",
     primary_address_reset: "Repor o endereço predefinido",
     also_receives_at: "Também recebe em {{email}}",

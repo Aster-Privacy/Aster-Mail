@@ -5545,13 +5545,13 @@ export const hi = {
       "यह अब भी मेल पाता है और हर डिवाइस पर आपको साइन इन करने देता है।",
     address_change_no_limit_title: "आपका पुराना पता मुफ़्त रहता है",
     address_change_no_limit_body:
-      "आपका पुराना पता आपकी उपनाम सीमा में नहीं गिना जाता, और कोई और इसे नहीं ले सकता।",
+      "आपका पुराना पता आपकी उपनाम सीमा में नहीं गिना जाता, कोई और इसे नहीं ले सकता, और आप इसे हटा नहीं सकते।",
     address_change_once_title: "साल में एक बार",
     address_change_once_body:
       "इस बदलाव के बाद, अगला बदलाव {{date}} को उपलब्ध होगा।",
     address_change_effect_alias_title: "{{email}} अब उपनाम नहीं रहेगा",
     address_change_effect_alias_body:
-      "इस उपनाम के लिए बनाए गए नियम और फ़ॉरवर्डिंग हट जाएंगे. इस पते पर भेजे गए संदेश आते रहेंगे, अब आपके मुख्य पते के रूप में.",
+      "इस उपनाम के लिए बनाए गए सभी नियम, अग्रेषण, हस्ताक्षर और रिवर्स एलियास हटा दिए जाते हैं। इस पते पर भेजे गए संदेश आते रहते हैं, अब आपके मुख्य पते के रूप में।",
     address_change_permanent_title: "आप इसे पहले जैसा नहीं कर सकते",
     address_change_permanent_body:
       "आप {{email}} को दोबारा अपना मुख्य पता नहीं बना सकते।",
@@ -5585,7 +5585,7 @@ export const hi = {
     address_change_done_body:
       "{{email}} मेल पाता रहता है और आपको साइन इन करने देता रहता है।",
     address_change_done_partial:
-      "आपका पता बदल गया। कुछ जानकारी पूरी तरह अपडेट नहीं हुई, इसलिए Aster Mail को दोबारा लोड करें।",
+      "आपका पता बदल गया, लेकिन आपकी एन्क्रिप्शन कुंजी का अपडेट पूरा नहीं हुआ। तब तक आपका नया पता आपकी कुंजी में नहीं होगा।",
     address_change_updating_key: "आपकी एन्क्रिप्शन कुंजी अपडेट हो रही है",
     address_change_failed: "पता बदलना पूरा नहीं हुआ। दोबारा कोशिश करें।",
     address_change_code_too_many:
@@ -5604,7 +5604,7 @@ export const hi = {
     address_change_password_wrong: "यह पासवर्ड सही नहीं है.",
     address_change_not_eligible: "आप अभी अपना पता नहीं बदल सकते.",
     address_change_too_many_requests:
-      "बहुत अधिक प्रयास. कुछ मिनट रुकें और फिर से कोशिश करें.",
+      "आपने बहुत सारे पता बदलाव शुरू किए। एक घंटे बाद फिर कोशिश करें।",
     address_change_resend_too_soon: "दूसरा कोड मांगने से पहले थोड़ा रुकें.",
     address_change_send_failed:
       "Aster Mail कोड नहीं भेज सका. कुछ मिनट बाद फिर से कोशिश करें.",
@@ -5616,6 +5616,7 @@ export const hi = {
     address_change_locked_unavailable: "पता बदलना अभी उपलब्ध नहीं है.",
     address_change_eligibility_failed:
       "Aster Mail यह जांच नहीं सका कि आप अपना पता बदल सकते हैं या नहीं.",
+    address_change_domain_label: "डोमेन",
     primary_address_set: "मुख्य पता अपडेट हो गया",
     primary_address_reset: "अपने डिफ़ॉल्ट पते पर लौटें",
     also_receives_at: "{{email}} पर भी मेल पाता है",

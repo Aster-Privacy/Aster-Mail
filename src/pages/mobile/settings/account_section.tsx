@@ -229,7 +229,7 @@ export function AccountSection({
 
     const response = await load_primary_address_eligibility();
 
-    set_address_eligibility(response.data ?? null);
+    set_address_eligibility((prev) => response.data ?? prev);
     set_address_eligibility_failed(primary_address_eligibility_failed(response));
   }, []);
 
@@ -705,11 +705,9 @@ export function AccountSection({
                   : undefined
             }
             on_press={
-              address_eligibility_failed
-                ? () => void retry_address_eligibility()
-                : can_change_address && address_eligibility?.eligible
-                  ? () => set_show_address_change(true)
-                  : undefined
+              address_eligibility?.eligible
+                ? () => set_show_address_change(true)
+                : () => void retry_address_eligibility()
             }
             value={
               address_eligibility_failed

@@ -49,6 +49,7 @@ import {
 import { api_client } from "@/services/api/client";
 import { verify_auth_status, get_user_info } from "@/services/api/auth";
 import { rekey_pgp_if_needed } from "@/services/pgp_rekey_service";
+import { republish_identity_with_new_address } from "@/services/pgp_uid_service";
 import { set_lockdown_enabled } from "@/services/lockdown_store";
 import {
   store_vault_in_memory,
@@ -632,18 +633,16 @@ export function use_auth_account_state() {
 
       if ((info as { pgp_rekey_required?: boolean }).pgp_rekey_required) {
         void rekey_pgp_if_needed(info.email, info.display_name);
-      }
-
-      if (
+      } else if (
         (info as { pgp_uid_update_required?: boolean })
           .pgp_uid_update_required &&
         info.email
       ) {
-        void import("@/services/pgp_uid_service").then((module) =>
-          module.republish_identity_with_new_address(
-            info.email as string,
-            info.display_name || "",
-          ),
+        void republish_identity_with_new_address(
+          info.email,
+          info.display_name || "",
+        ).catch((caught) =>
+          ignore_error("contexts/auth:republish_identity_uid", caught),
         );
       }
 

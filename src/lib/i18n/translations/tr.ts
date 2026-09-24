@@ -4620,13 +4620,13 @@ export const tr = {
       "Posta almaya devam eder ve her cihazda oturum açmanı sağlamayı sürdürür.",
     address_change_no_limit_title: "Eski adresin ücretsiz kalır",
     address_change_no_limit_body:
-      "Eski adresin takma ad sınırına dahil edilmez ve başka kimse onu alamaz.",
+      "Eski adresin takma ad sınırına dahil edilmez, başka kimse onu alamaz ve onu silemezsin.",
     address_change_once_title: "Yılda bir kez",
     address_change_once_body:
       "Bu değişiklikten sonra bir sonraki {{date}} tarihinde kullanılabilir.",
     address_change_effect_alias_title: "{{email}} artık bir takma ad olmayacak",
     address_change_effect_alias_body:
-      "Bu takma ad için oluşturduğunuz kurallar ve yönlendirmeler kaldırılır. Bu adrese gelen iletiler gelmeye devam eder, artık birincil adresiniz olarak.",
+      "Bu takma ad için ayarladığın kurallar, yönlendirmeler, imzalar ve ters rumuzlar kaldırılır. Bu adrese gönderilen iletiler, artık birincil adresin olarak gelmeye devam eder.",
     address_change_permanent_title: "Bunu geri alamazsın",
     address_change_permanent_body:
       "{{email}} adresini yeniden birincil adresin yapamazsın.",
@@ -4661,7 +4661,7 @@ export const tr = {
     address_change_done_body:
       "{{email}} posta almayı ve oturum açmanı sağlamayı sürdürür.",
     address_change_done_partial:
-      "Adresin değişti. Bazı ayrıntıların güncellenmesi tamamlanmadı, bu yüzden Aster Mail'i yeniden yükle.",
+      "Adresin değişti ama şifreleme anahtarın güncellenmeyi tamamlamadı. O zamana kadar yeni adresin anahtarında yer almaz.",
     address_change_updating_key: "Şifreleme anahtarın güncelleniyor",
     address_change_failed: "Adres değişikliği tamamlanmadı. Yeniden dene.",
     address_change_code_too_many:
@@ -4680,7 +4680,7 @@ export const tr = {
     address_change_password_wrong: "Bu parola doğru değil.",
     address_change_not_eligible: "Şu anda adresini değiştiremezsin.",
     address_change_too_many_requests:
-      "Çok fazla deneme yapıldı. Birkaç dakika bekleyip yeniden dene.",
+      "Çok fazla adres değişikliği başlattın. Bir saat sonra yeniden dene.",
     address_change_resend_too_soon: "Yeni bir kod istemeden önce biraz bekle.",
     address_change_send_failed:
       "Aster Mail kodu gönderemedi. Birkaç dakika sonra yeniden dene.",
@@ -4694,6 +4694,7 @@ export const tr = {
       "Adres değiştirme şu anda kullanılamıyor.",
     address_change_eligibility_failed:
       "Aster Mail adresini değiştirip değiştiremeyeceğini denetleyemedi.",
+    address_change_domain_label: "Alan adı",
     primary_address_set: "Birincil adres güncellendi",
     primary_address_reset: "Varsayılan adresine sıfırla",
     also_receives_at: "Ayrıca {{email}} adresinde alır",

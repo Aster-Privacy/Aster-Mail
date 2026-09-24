@@ -247,15 +247,13 @@ function validate_primary_local_part(local_part: string): {
 
 const DETERMINATE_CONFIRM_CODES = new Set([
   "UNAUTHORIZED",
-  "FORBIDDEN",
-  "NOT_FOUND",
-  "CONFLICT",
   "VALIDATION_ERROR",
   "RATE_LIMIT_EXCEEDED",
   "INVALID_CREDENTIALS",
   "ADDRESS_IN_USE",
   "USERNAME_IN_USE",
   "PLAN_LIMIT_EXCEEDED",
+  "CSRF_INVALID",
 ]);
 
 function is_indeterminate_failure(code?: string, server_code?: string): boolean {
@@ -474,7 +472,7 @@ export function ChangePrimaryAddressModal({
     validation.valid &&
     !checking &&
     !is_same_as_current &&
-    is_available === true;
+    (is_available === true || check_failed);
 
   const can_continue_from_review =
     confirm_text.trim().toLowerCase() === new_address.toLowerCase();
@@ -681,6 +679,7 @@ export function ChangePrimaryAddressModal({
   const retry_republish = async () => {
     if (!final_address || retrying) return;
 
+    set_error(null);
     set_retrying(true);
 
     try {
@@ -710,7 +709,10 @@ export function ChangePrimaryAddressModal({
   }, [busy, retrying, on_close]);
 
   const error_line = error && (
-    <p className="mt-3 inline-flex items-start gap-1.5 text-xs text-red-500">
+    <p
+      role="alert"
+      className="mt-3 inline-flex items-start gap-1.5 text-xs text-red-500"
+    >
       <XCircleIcon className="w-3.5 h-3.5 mt-0.5 shrink-0" />
       <span className="break-words">{error}</span>
     </p>
@@ -771,7 +773,7 @@ export function ChangePrimaryAddressModal({
             />
           </ModalBody>
           <ModalFooter>
-            <Button variant="outline" onClick={on_close}>
+            <Button variant="outline" onClick={request_close}>
               {t("common.cancel")}
             </Button>
             <Button variant="depth" onClick={() => set_step("pick")}>
@@ -849,7 +851,10 @@ export function ChangePrimaryAddressModal({
                   }}
                 />
                 <Select value={domain} onValueChange={set_domain}>
-                  <SelectTrigger className="h-10 w-auto shrink-0 rounded-lg border border-edge-secondary bg-transparent text-sm px-3 focus:ring-0 focus:ring-offset-0">
+                  <SelectTrigger
+                    aria-label={t("settings.address_change_domain_label")}
+                    className="h-10 w-auto shrink-0 rounded-lg border border-edge-secondary bg-transparent text-sm px-3 focus:ring-0 focus:ring-offset-0"
+                  >
                     <span className="text-txt-muted me-0.5">@</span>
                     <span className="truncate">{domain}</span>
                   </SelectTrigger>
@@ -1171,7 +1176,7 @@ export function ChangePrimaryAddressModal({
             {error_line}
           </ModalBody>
           <ModalFooter>
-            <Button disabled={busy} variant="outline" onClick={on_close}>
+            <Button disabled={busy} variant="outline" onClick={request_close}>
               {t("common.cancel")}
             </Button>
             <Button
@@ -1222,7 +1227,7 @@ export function ChangePrimaryAddressModal({
                 {t("common.retry")}
               </Button>
             )}
-            <Button variant="depth" onClick={on_close} disabled={retrying}>
+            <Button variant="depth" onClick={request_close} disabled={retrying}>
               {t("common.done")}
             </Button>
           </ModalFooter>

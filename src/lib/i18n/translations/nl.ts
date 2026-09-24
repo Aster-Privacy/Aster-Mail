@@ -4614,13 +4614,13 @@ export const nl = {
       "Het ontvangt nog steeds e-mail en laat je nog steeds inloggen, op elk apparaat.",
     address_change_no_limit_title: "Je oude adres blijft gratis",
     address_change_no_limit_body:
-      "Je oude adres telt niet mee voor je aliaslimiet en niemand anders kan het overnemen.",
+      "Je oude adres telt niet mee voor je aliaslimiet, niemand anders kan het overnemen en je kunt het niet verwijderen.",
     address_change_once_title: "Eén keer per jaar",
     address_change_once_body:
       "Na deze wijziging is de volgende beschikbaar op {{date}}.",
     address_change_effect_alias_title: "{{email}} is dan geen alias meer",
     address_change_effect_alias_body:
-      "Regels en doorsturen die je voor dit alias hebt ingesteld, worden verwijderd. Berichten aan dit adres blijven binnenkomen, nu als je hoofdadres.",
+      "Regels, doorsturen, handtekeningen en omgekeerde aliassen die je voor dit alias hebt ingesteld, worden verwijderd. Berichten aan dit adres blijven binnenkomen, nu als je primaire adres.",
     address_change_permanent_title: "Je kunt dit niet ongedaan maken",
     address_change_permanent_body:
       "Je kunt {{email}} niet opnieuw je primaire adres maken.",
@@ -4655,7 +4655,7 @@ export const nl = {
     address_change_done_body:
       "{{email}} blijft e-mail ontvangen en laat je nog steeds inloggen.",
     address_change_done_partial:
-      "Je adres is gewijzigd. Sommige gegevens zijn niet volledig bijgewerkt, laad Aster Mail daarom opnieuw.",
+      "Je adres is gewijzigd, maar je versleutelingssleutel is niet volledig bijgewerkt. Tot die tijd staat je nieuwe adres niet op je sleutel.",
     address_change_updating_key: "Je encryptiesleutel wordt bijgewerkt",
     address_change_failed:
       "De adreswijziging is niet voltooid. Probeer het opnieuw.",
@@ -4676,7 +4676,7 @@ export const nl = {
     address_change_password_wrong: "Dat wachtwoord is niet juist.",
     address_change_not_eligible: "Je kunt je adres nu niet wijzigen.",
     address_change_too_many_requests:
-      "Te veel pogingen. Wacht een paar minuten en probeer het opnieuw.",
+      "Je hebt te veel adreswijzigingen gestart. Probeer het over een uur opnieuw.",
     address_change_resend_too_soon:
       "Wacht even voordat je een nieuwe code aanvraagt.",
     address_change_send_failed:
@@ -4691,6 +4691,7 @@ export const nl = {
       "Je adres wijzigen is nu niet beschikbaar.",
     address_change_eligibility_failed:
       "Aster Mail kon niet controleren of je je adres kunt wijzigen.",
+    address_change_domain_label: "Domein",
     primary_address_set: "Primair adres bijgewerkt",
     primary_address_reset: "Terugzetten naar je standaardadres",
     also_receives_at: "Ontvangt ook op {{email}}",

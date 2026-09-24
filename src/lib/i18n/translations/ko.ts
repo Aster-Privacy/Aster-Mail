@@ -4647,14 +4647,14 @@ export const ko = {
       "메일을 계속 받고, 모든 기기에서 로그인에도 계속 사용할 수 있습니다.",
     address_change_no_limit_title: "이전 주소는 무료로 유지됩니다",
     address_change_no_limit_body:
-      "이전 주소는 별칭 한도에 포함되지 않으며, 다른 사람이 가져갈 수 없습니다.",
+      "이전 주소는 별칭 한도에 포함되지 않고, 다른 사람이 가져갈 수 없으며, 삭제할 수도 없습니다.",
     address_change_once_title: "1년에 한 번",
     address_change_once_body:
       "이번 변경 후 다음 변경은 {{date}}부터 가능합니다.",
     address_change_effect_alias_title:
       "{{email}}은(는) 더 이상 별칭이 아닙니다",
     address_change_effect_alias_body:
-      "이 별칭에 설정한 규칙과 전달이 삭제됩니다. 이 주소로 보낸 메일은 계속 도착하며, 이제 기본 주소로 처리됩니다.",
+      "이 별칭에 설정한 규칙, 전달, 서명, 역방향 별칭이 모두 삭제됩니다. 이 주소로 보낸 메일은 이제 기본 주소로 계속 도착합니다.",
     address_change_permanent_title: "이 작업은 되돌릴 수 없습니다",
     address_change_permanent_body:
       "{{email}}을 다시 기본 주소로 설정할 수 없습니다.",
@@ -4688,7 +4688,7 @@ export const ko = {
     address_change_done_body:
       "{{email}}은 계속 메일을 받고 로그인에도 계속 사용할 수 있습니다.",
     address_change_done_partial:
-      "주소가 변경되었습니다. 일부 정보가 끝까지 업데이트되지 않았으니 Aster Mail을 다시 불러오세요.",
+      "주소는 변경되었지만 암호화 키 업데이트가 끝나지 않았습니다. 그때까지 새 주소는 키에 포함되지 않습니다.",
     address_change_updating_key: "암호화 키를 업데이트하는 중",
     address_change_failed: "주소 변경이 완료되지 않았습니다. 다시 시도하세요.",
     address_change_code_too_many:
@@ -4707,8 +4707,7 @@ export const ko = {
       "이번 변경 후에는 1년 뒤에 다시 변경할 수 있습니다.",
     address_change_password_wrong: "비밀번호가 올바르지 않습니다.",
     address_change_not_eligible: "지금은 주소를 변경할 수 없습니다.",
-    address_change_too_many_requests:
-      "시도가 너무 많습니다. 몇 분 후에 다시 시도하세요.",
+    address_change_too_many_requests: "주소 변경을 너무 많이 시작했습니다. 1시간 후에 다시 시도하세요.",
     address_change_resend_too_soon:
       "다른 코드를 요청하기 전에 잠시 기다리세요.",
     address_change_send_failed:
@@ -4722,6 +4721,7 @@ export const ko = {
     address_change_locked_unavailable: "지금은 주소 변경을 사용할 수 없습니다.",
     address_change_eligibility_failed:
       "Aster Mail에서 주소를 변경할 수 있는지 확인하지 못했습니다.",
+    address_change_domain_label: "도메인",
     primary_address_set: "기본 주소가 업데이트되었습니다",
     primary_address_reset: "기본 주소로 재설정",
     also_receives_at: "{{email}}에서도 수신합니다",

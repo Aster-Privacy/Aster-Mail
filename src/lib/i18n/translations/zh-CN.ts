@@ -4293,12 +4293,12 @@ export const zh_CN = {
     address_change_keep_old_body:
       "它仍然接收邮件，也仍然可以在所有设备上用于登录。",
     address_change_no_limit_title: "旧地址仍然免费",
-    address_change_no_limit_body: "旧地址不计入别名上限，其他人也无法占用它。",
+    address_change_no_limit_body: "旧地址不计入别名上限，其他人无法占用，你也无法删除它。",
     address_change_once_title: "每年一次",
     address_change_once_body: "本次更改后，下一次将在 {{date}} 开放。",
     address_change_effect_alias_title: "{{email}} 将不再是别名",
     address_change_effect_alias_body:
-      "你为该别名设置的规则和转发会被删除。发往该地址的邮件仍会送达，但现在作为你的主地址。",
+      "你为该别名设置的规则、转发、签名和反向别名都会被移除。发送到该地址的邮件仍会送达，现在作为你的主要地址。",
     address_change_permanent_title: "此操作无法撤销",
     address_change_permanent_body: "你无法再次将 {{email}} 设为主地址。",
     address_change_pick_title: "选择你的新地址",
@@ -4328,8 +4328,7 @@ export const zh_CN = {
     address_change_code_label: "确认码",
     address_change_done_title: "你的地址现在是 {{email}}",
     address_change_done_body: "{{email}} 仍会接收邮件，也仍可用于登录。",
-    address_change_done_partial:
-      "地址已更改。部分信息未更新完成，请重新加载 Aster Mail。",
+    address_change_done_partial: "地址已更改，但加密密钥尚未更新完成。在此之前，新地址不会出现在你的密钥中。",
     address_change_updating_key: "正在更新你的加密密钥",
     address_change_failed: "地址更改未完成。请重试。",
     address_change_code_too_many:
@@ -4345,7 +4344,7 @@ export const zh_CN = {
     address_change_once_unknown: "本次更改后，下一次将在一年后可用。",
     address_change_password_wrong: "密码不正确。",
     address_change_not_eligible: "你现在无法更改地址。",
-    address_change_too_many_requests: "尝试次数过多。请等待几分钟后重试。",
+    address_change_too_many_requests: "你发起的地址更改次数过多。请在一小时后重试。",
     address_change_resend_too_soon: "请稍候再申请新的验证码。",
     address_change_send_failed: "Aster Mail 无法发送验证码。请几分钟后重试。",
     address_change_invalid_address: "该地址无效。请选择其他地址。",
@@ -4354,6 +4353,7 @@ export const zh_CN = {
     address_change_locked_unavailable: "目前无法更改地址。",
     address_change_eligibility_failed:
       "Aster Mail 无法确认你是否可以更改地址。",
+    address_change_domain_label: "域名",
     primary_address_set: "主地址已更新",
     primary_address_reset: "重置为默认地址",
     also_receives_at: "同时在 {{email}} 接收",

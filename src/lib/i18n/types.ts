@@ -5016,6 +5016,7 @@ export interface SettingsTranslations {
   address_change_locked_custom_domain: string;
   address_change_locked_unavailable: string;
   address_change_eligibility_failed: string;
+  address_change_domain_label: string;
   primary_address_set: string;
   primary_address_reset: string;
   also_receives_at: string;

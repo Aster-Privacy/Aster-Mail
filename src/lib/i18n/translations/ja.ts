@@ -4674,13 +4674,13 @@ export const ja = {
       "引き続きメールを受信でき、すべてのデバイスでサインインにも使えます。",
     address_change_no_limit_title: "以前のアドレスは無料のままです",
     address_change_no_limit_body:
-      "以前のアドレスはエイリアスの上限に含まれず、ほかの人が取得することもできません。",
+      "以前のアドレスはエイリアスの上限に含まれず、ほかの人が取得することも、削除することもできません。",
     address_change_once_title: "年に 1 回",
     address_change_once_body:
       "今回の変更後、次の変更は {{date}} から可能になります。",
     address_change_effect_alias_title: "{{email}} はエイリアスではなくなります",
     address_change_effect_alias_body:
-      "このエイリアスに設定したルールと転送は削除されます。このアドレス宛のメールは引き続き届き、今後はメインアドレスとして扱われます。",
+      "このエイリアスに設定したルール、転送、署名、リバースエイリアスはすべて削除されます。このアドレス宛のメールは、メインアドレスとして引き続き届きます。",
     address_change_permanent_title: "この操作は元に戻せません",
     address_change_permanent_body:
       "{{email}} を再びメインのアドレスにすることはできません。",
@@ -4715,7 +4715,7 @@ export const ja = {
     address_change_done_body:
       "{{email}} は引き続きメールを受信し、サインインにも使えます。",
     address_change_done_partial:
-      "アドレスを変更しました。一部の情報の更新が完了していないため、Aster Mail を再読み込みしてください。",
+      "アドレスは変更されましたが、暗号化キーの更新が完了していません。完了するまで、新しいアドレスはキーに含まれません。",
     address_change_updating_key: "暗号鍵を更新しています",
     address_change_failed:
       "アドレスの変更が完了しませんでした。もう一度お試しください。",
@@ -4733,8 +4733,7 @@ export const ja = {
     address_change_once_unknown: "この変更のあと、次の変更は1年後に行えます。",
     address_change_password_wrong: "このパスワードは正しくありません。",
     address_change_not_eligible: "今はアドレスを変更できません。",
-    address_change_too_many_requests:
-      "試行回数が多すぎます。数分待ってからもう一度お試しください。",
+    address_change_too_many_requests: "アドレス変更の開始が多すぎます。1 時間後にもう一度お試しください。",
     address_change_resend_too_soon:
       "次のコードをリクエストする前に少しお待ちください。",
     address_change_send_failed:
@@ -4748,6 +4747,7 @@ export const ja = {
     address_change_locked_unavailable: "アドレスの変更は現在利用できません。",
     address_change_eligibility_failed:
       "Aster Mail はアドレスを変更できるかどうかを確認できませんでした。",
+    address_change_domain_label: "ドメイン",
     primary_address_set: "プライマリアドレスを更新しました",
     primary_address_reset: "既定のアドレスに戻す",
     also_receives_at: "{{email}} でも受信します",

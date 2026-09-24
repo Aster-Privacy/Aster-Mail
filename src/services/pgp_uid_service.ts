@@ -52,6 +52,17 @@ function existing_user_ids(key: openpgp.Key): UserId[] {
   });
 }
 
+function safe_uid_name(name: string, fallback: string): string {
+  const cleaned = name
+    .replace(/[<>@]/g, " ")
+    // eslint-disable-next-line no-control-regex
+    .replace(/[\u0000-\u001f\u007f]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return cleaned || fallback;
+}
+
 function has_email(ids: UserId[], email: string): boolean {
   const target = email.toLowerCase();
 
@@ -91,12 +102,20 @@ export async function add_address_to_identity_key(
     ? private_key
     : await openpgp.decryptKey({ privateKey: private_key, passphrase });
 
+  const expires_at = await unlocked.getExpirationTime();
+  const created_at = unlocked.getCreationTime().getTime();
+  const key_expiration_time =
+    expires_at instanceof Date
+      ? Math.max(0, Math.round((expires_at.getTime() - created_at) / 1000))
+      : 0;
+
   const reformatted = await openpgp.reformatKey({
     privateKey: unlocked,
     userIDs: [
-      { name: display_name || new_address, email: new_address },
+      { name: safe_uid_name(display_name, new_address), email: new_address },
       ...user_ids,
     ],
+    keyExpirationTime: key_expiration_time,
     format: "object",
   });
 
@@ -108,7 +127,29 @@ export async function add_address_to_identity_key(
   return { ...vault, identity_key: protectedKey.armor() };
 }
 
+let uid_update_in_flight: { key: string; run: Promise<boolean> } | null = null;
+
 export async function republish_identity_with_new_address(
+  new_address: string,
+  display_name: string,
+): Promise<boolean> {
+  const account = await get_current_account();
+  const key = `${account?.user?.id ?? ""}|${new_address.trim().toLowerCase()}`;
+
+  if (uid_update_in_flight?.key === key) return uid_update_in_flight.run;
+
+  const run = run_identity_republish(new_address, display_name);
+
+  uid_update_in_flight = { key, run };
+
+  try {
+    return await run;
+  } finally {
+    if (uid_update_in_flight?.run === run) uid_update_in_flight = null;
+  }
+}
+
+async function run_identity_republish(
   new_address: string,
   display_name: string,
 ): Promise<boolean> {
@@ -136,36 +177,44 @@ export async function republish_identity_with_new_address(
         display_name,
       );
 
-      if (!next_vault) return true;
+      const published_vault = next_vault ?? current_vault;
 
-      const { encrypted_vault, vault_nonce } = await encrypt_vault(
-        next_vault,
-        passphrase,
-      );
+      if (next_vault) {
+        const { encrypted_vault, vault_nonce } = await encrypt_vault(
+          next_vault,
+          passphrase,
+        );
 
-      const current_account = await get_current_account();
-      const vault_saved = await update_vault(
-        encrypted_vault,
-        vault_nonce,
-        next_vault.data_kek ? MASTER_KEY_VAULT_FORMAT : next_vault.vault_format,
-        current_account?.user?.id,
-        true,
-        next_vault,
-      );
+        const current_account = await get_current_account();
+        const vault_saved = await update_vault(
+          encrypted_vault,
+          vault_nonce,
+          next_vault.data_kek
+            ? MASTER_KEY_VAULT_FORMAT
+            : next_vault.vault_format,
+          current_account?.user?.id,
+          true,
+          next_vault,
+        );
 
-      if (!vault_saved.success) return false;
+        if (!vault_saved.success) return false;
 
-      await store_vault_in_memory(next_vault, passphrase);
-      stamp_local_vault(current_account?.user?.id, encrypted_vault, vault_nonce);
+        await store_vault_in_memory(next_vault, passphrase);
+        stamp_local_vault(
+          current_account?.user?.id,
+          encrypted_vault,
+          vault_nonce,
+        );
+      }
 
       const private_key = await openpgp.readPrivateKey({
-        armoredKey: next_vault.identity_key,
+        armoredKey: published_vault.identity_key,
       });
 
       const pgp_key_data = await prepare_pgp_key_data(
         {
           public_key: private_key.toPublic().armor(),
-          secret_key: next_vault.identity_key,
+          secret_key: published_vault.identity_key,
           fingerprint: private_key.getFingerprint().toUpperCase(),
         },
         passphrase,

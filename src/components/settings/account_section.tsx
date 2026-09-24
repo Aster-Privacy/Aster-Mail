@@ -407,7 +407,7 @@ export function AccountSection() {
 
     const response = await load_primary_address_eligibility();
 
-    set_address_eligibility(response.data ?? null);
+    set_address_eligibility((prev) => response.data ?? prev);
     set_address_eligibility_failed(primary_address_eligibility_failed(response));
   }, []);
 

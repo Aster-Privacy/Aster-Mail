@@ -53,7 +53,7 @@ export async function get_primary_address_eligibility() {
 export async function load_primary_address_eligibility() {
   return get_primary_address_eligibility().catch(() => ({
     data: undefined,
-    code: "NOT_FOUND" as const,
+    code: "NETWORK_ERROR" as const,
   }));
 }
 
@@ -103,6 +103,11 @@ export async function confirm_primary_address_change(params: {
 }) {
   const retained = params.retained_address.trim().toLowerCase();
   const at = retained.lastIndexOf("@");
+
+  if (at <= 0 || at === retained.length - 1) {
+    throw new Error("retained address is not a valid email address");
+  }
+
   const retained_local_part = retained.slice(0, at);
   const retained_domain = retained.slice(at + 1);
 
