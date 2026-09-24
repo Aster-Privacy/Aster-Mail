@@ -92,6 +92,11 @@ import { escape_html as escape_plain_text } from "@/hooks/editor_utils";
 import { ignore_error } from "@/lib/ignore_error";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { user_facing_error } from "@/utils/user_facing_error";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  find_locked_expiry_feature,
+  prompt_expiry_upgrade,
+} from "@/components/compose/expiry_plan_gate";
 
 export function use_reply_modal(props: UseReplyModalProps) {
   const {
@@ -111,6 +116,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     reply_from_address,
     original_rfc_message_id,
   } = props;
+  const { limits: plan_limits, is_feature_locked } = use_plan_limits();
   const {
     t,
     reduce_motion,
@@ -351,6 +357,21 @@ export function use_reply_modal(props: UseReplyModalProps) {
           : t("common.too_many_recipients_in_message", {
               max: MAX_RECIPIENTS_PER_SEND,
             }),
+      );
+
+      return;
+    }
+
+    const locked_expiry_feature = find_locked_expiry_feature({
+      expires_at,
+      limits_loaded: plan_limits !== null,
+      is_feature_locked,
+    });
+
+    if (locked_expiry_feature) {
+      prompt_expiry_upgrade(
+        locked_expiry_feature,
+        t("settings.feature_requires_upgrade"),
       );
 
       return;
@@ -660,6 +681,8 @@ export function use_reply_modal(props: UseReplyModalProps) {
     on_close,
     discard_sent_draft,
     expires_at,
+    plan_limits,
+    is_feature_locked,
     build_quoted_content,
     include_quoted,
     user,

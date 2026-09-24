@@ -201,6 +201,12 @@ vi.mock("@/services/lockdown_store", () => ({
   is_any_lockdown_active: () => false,
 }));
 
+vi.mock("@/hooks/use_plan_limits", () => {
+  const plan = { limits: null, is_feature_locked: () => false };
+
+  return { use_plan_limits: () => plan };
+});
+
 vi.mock("@/services/api/user", () => ({
   fetch_my_badges: () => Promise.resolve({ data: [] }),
 }));

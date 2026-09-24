@@ -71,6 +71,11 @@ import {
 } from "@/components/compose/compose_send_actions";
 import { ensure_external_key_trust } from "@/services/key_trust_consent";
 import { ensure_post_quantum_consent } from "@/services/post_quantum_consent";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  find_locked_expiry_feature,
+  prompt_expiry_upgrade,
+} from "@/components/compose/expiry_plan_gate";
 
 export interface UseComposeSendOptions {
   recipients: RecipientsState;
@@ -134,6 +139,7 @@ export function use_compose_send({
   const { t } = use_i18n();
   const { vault, user } = use_auth();
   const { preferences } = use_preferences();
+  const { limits, is_feature_locked } = use_plan_limits();
 
   const [queued_email_id, set_queued_email_id] = useState<string | null>(null);
   const [is_sending, set_is_sending] = useState(false);
@@ -266,6 +272,22 @@ export function use_compose_send({
               max: MAX_RECIPIENTS_PER_SEND,
             }),
         "error",
+      );
+
+      return;
+    }
+
+    const locked_expiry_feature = find_locked_expiry_feature({
+      expires_at,
+      expiry_password,
+      limits_loaded: limits !== null,
+      is_feature_locked,
+    });
+
+    if (locked_expiry_feature) {
+      prompt_expiry_upgrade(
+        locked_expiry_feature,
+        t("settings.feature_requires_upgrade"),
       );
 
       return;
@@ -572,6 +594,8 @@ export function use_compose_send({
     preferences.obscure_subject_when_encrypted,
     pgp_enabled,
     pgp_override,
+    limits,
+    is_feature_locked,
     t,
   ]);
 
