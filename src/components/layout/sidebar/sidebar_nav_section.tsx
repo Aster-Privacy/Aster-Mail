@@ -233,7 +233,14 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           }}
         />
         {!is_collapsed && (
-          <span className="flex-1 text-start">{t("mail.scheduled")}</span>
+          <>
+            <span className="flex-1 text-start">{t("mail.scheduled")}</span>
+            <CountBadge
+              count={stats.scheduled}
+              is_active={effective_selected === "scheduled"}
+              is_loading={stats_loading}
+            />
+          </>
         )}
       </button>
 
@@ -270,7 +277,14 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           }}
         />
         {!is_collapsed && (
-          <span className="flex-1 text-start">{t("mail.snoozed")}</span>
+          <>
+            <span className="flex-1 text-start">{t("mail.snoozed")}</span>
+            <CountBadge
+              count={stats.snoozed}
+              is_active={effective_selected === "snoozed"}
+              is_loading={stats_loading}
+            />
+          </>
         )}
       </button>
 
@@ -307,7 +321,14 @@ export const SidebarNavSection = memo(function SidebarNavSection({
           }}
         />
         {!is_collapsed && (
-          <span className="flex-1 text-start">{t("mail.drafts")}</span>
+          <>
+            <span className="flex-1 text-start">{t("mail.drafts")}</span>
+            <CountBadge
+              count={stats.drafts}
+              is_active={effective_selected === "drafts"}
+              is_loading={stats_loading}
+            />
+          </>
         )}
       </button>
 
@@ -515,7 +536,14 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-start">{t("mail.spam")}</span>
+              <>
+                <span className="flex-1 text-start">{t("mail.spam")}</span>
+                <CountBadge
+                  count={stats.spam}
+                  is_active={effective_selected === "spam"}
+                  is_loading={stats_loading}
+                />
+              </>
             )}
           </button>
 
@@ -552,7 +580,14 @@ export const SidebarNavSection = memo(function SidebarNavSection({
               }}
             />
             {!is_collapsed && (
-              <span className="flex-1 text-start">{t("mail.trash")}</span>
+              <>
+                <span className="flex-1 text-start">{t("mail.trash")}</span>
+                <CountBadge
+                  count={stats.trash}
+                  is_active={effective_selected === "trash"}
+                  is_loading={stats_loading}
+                />
+              </>
             )}
           </button>
 
