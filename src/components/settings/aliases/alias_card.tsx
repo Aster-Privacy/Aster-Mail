@@ -472,20 +472,22 @@ export function AliasItem({
             onCheckedChange={(checked) => on_toggle(alias.id, checked)}
           />
 
-          <Button
-            aria-label={t("common.delete")}
-            className="h-8 w-8 hover:text-red-500 hover:bg-red-500/10"
-            disabled={deleting}
-            size="icon"
-            variant="ghost"
-            onClick={() => on_delete(alias.id)}
-          >
-            {deleting ? (
-              <Spinner size="xs" />
-            ) : (
-              <TrashIcon className="w-[18px] h-[18px]" />
-            )}
-          </Button>
+          {!alias.is_retained_primary && (
+            <Button
+              aria-label={t("common.delete")}
+              className="h-8 w-8 hover:text-red-500 hover:bg-red-500/10"
+              disabled={deleting}
+              size="icon"
+              variant="ghost"
+              onClick={() => on_delete(alias.id)}
+            >
+              {deleting ? (
+                <Spinner size="xs" />
+              ) : (
+                <TrashIcon className="w-[18px] h-[18px]" />
+              )}
+            </Button>
+          )}
         </div>
       </div>
     </div>

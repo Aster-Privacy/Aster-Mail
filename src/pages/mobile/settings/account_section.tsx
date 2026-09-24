@@ -230,14 +230,21 @@ export function AccountSection({
     const response = await load_primary_address_eligibility();
 
     set_address_eligibility((prev) => response.data ?? prev);
-    set_address_eligibility_failed(primary_address_eligibility_failed(response));
+    set_address_eligibility_failed(
+      primary_address_eligibility_failed(response),
+    );
   }, []);
 
   const can_change_address = !!address_eligibility;
 
-  const address_cooldown_date = address_eligibility?.next_change_available_at
-    ? format_date(new Date(address_eligibility.next_change_available_at))
-    : null;
+  const address_cooldown_date = (() => {
+    const raw = address_eligibility?.next_change_available_at;
+    const parsed = raw ? new Date(raw) : null;
+
+    if (!parsed || Number.isNaN(parsed.getTime())) return null;
+
+    return format_date(parsed);
+  })();
 
   const address_lock_message = (() => {
     if (!address_eligibility || address_eligibility.eligible) return null;
@@ -273,7 +280,9 @@ export function AccountSection({
       const refreshed = await load_primary_address_eligibility();
 
       set_address_eligibility((prev) => refreshed.data ?? prev);
-      set_address_eligibility_failed(primary_address_eligibility_failed(refreshed));
+      set_address_eligibility_failed(
+        primary_address_eligibility_failed(refreshed),
+      );
       show_toast(t("settings.primary_address_set"), "success");
     },
     [user, update_user, t],
@@ -324,7 +333,9 @@ export function AccountSection({
           set_recovery_load_failed(true);
         }
         set_address_eligibility(eligibility_response.data ?? null);
-        set_address_eligibility_failed(primary_address_eligibility_failed(eligibility_response));
+        set_address_eligibility_failed(
+          primary_address_eligibility_failed(eligibility_response),
+        );
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
       }

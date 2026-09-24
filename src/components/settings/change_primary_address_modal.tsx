@@ -151,6 +151,7 @@ function confirm_error_key(
   if (
     server_code === "ADDRESS_IN_USE" ||
     server_code === "USERNAME_IN_USE" ||
+    code === "USERNAME_IN_USE" ||
     code === "CONFLICT"
   ) {
     return "settings.address_change_taken_now";
@@ -197,6 +198,7 @@ function request_error_key(
   if (
     server_code === "ADDRESS_IN_USE" ||
     server_code === "USERNAME_IN_USE" ||
+    code === "USERNAME_IN_USE" ||
     code === "CONFLICT"
   ) {
     return "settings.address_change_taken_now";
@@ -256,7 +258,10 @@ const DETERMINATE_CONFIRM_CODES = new Set([
   "CSRF_INVALID",
 ]);
 
-function is_indeterminate_failure(code?: string, server_code?: string): boolean {
+function is_indeterminate_failure(
+  code?: string,
+  server_code?: string,
+): boolean {
   if (code && DETERMINATE_CONFIRM_CODES.has(code)) return false;
   if (server_code && DETERMINATE_CONFIRM_CODES.has(server_code)) return false;
 
@@ -580,7 +585,8 @@ export function ChangePrimaryAddressModal({
     const settled_address = settled?.data?.current_address;
 
     if (!settled_address) return null;
-    if (routing_form(settled_address) !== routing_form(new_address)) return null;
+    if (routing_form(settled_address) !== routing_form(new_address))
+      return null;
 
     set_next_change_after(settled?.data?.next_change_available_at ?? null);
 

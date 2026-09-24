@@ -300,7 +300,9 @@ export async function decrypt_alias(
     };
   } catch {
     const retained_local_part =
-      alias.is_retained_primary === true ? (alias.retained_local_part ?? "") : "";
+      alias.is_retained_primary === true
+        ? (alias.retained_local_part ?? "")
+        : "";
 
     return {
       id: alias.id,

@@ -42,14 +42,29 @@ interface UserId {
   email?: string;
 }
 
-function existing_user_ids(key: openpgp.Key): UserId[] {
-  return key.getUserIDs().map((raw) => {
-    const match = raw.match(/^(.*?)\s*<([^>]+)>$/);
+const UID_EMAIL_PATTERN =
+  /^[^\p{C}\p{Z}@<>\u005C]+@[^\p{C}\p{Z}@<>\u005C]+[^\p{C}\p{Z}\p{P}]$/u;
 
-    return match
-      ? { name: match[1].trim(), email: match[2].trim() }
-      : { name: raw.trim() };
-  });
+function existing_user_ids(key: openpgp.Key): UserId[] {
+  const ids: UserId[] = [];
+
+  for (const user of key.users) {
+    if (user.revocationSignatures.length > 0) continue;
+
+    const packet = user.userID;
+
+    if (!packet) continue;
+
+    const name = packet.name.trim();
+    const email = packet.email.trim();
+
+    if (email && !UID_EMAIL_PATTERN.test(email)) continue;
+    if (!name && !email) continue;
+
+    ids.push(email ? { name, email } : { name });
+  }
+
+  return ids;
 }
 
 function safe_uid_name(name: string, fallback: string): string {
@@ -77,7 +92,10 @@ function stamp_local_vault(
   if (!user_id) return;
 
   try {
-    localStorage.setItem(`astermail_encrypted_vault_${user_id}`, encrypted_vault);
+    localStorage.setItem(
+      `astermail_encrypted_vault_${user_id}`,
+      encrypted_vault,
+    );
     localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
   } catch (caught) {
     ignore_error("services/pgp_uid_service:stamp_local_vault", caught);
@@ -119,12 +137,12 @@ export async function add_address_to_identity_key(
     format: "object",
   });
 
-  const protectedKey = await openpgp.encryptKey({
+  const protected_key = await openpgp.encryptKey({
     privateKey: reformatted.privateKey,
     passphrase,
   });
 
-  return { ...vault, identity_key: protectedKey.armor() };
+  return { ...vault, identity_key: protected_key.armor() };
 }
 
 let uid_update_in_flight: { key: string; run: Promise<boolean> } | null = null;
@@ -155,9 +173,8 @@ async function run_identity_republish(
 ): Promise<boolean> {
   try {
     return await with_vault_write_lock(async () => {
-      const { sync_vault_with_server } = await import(
-        "@/services/crypto/ensure_ratchet_keys"
-      );
+      const { sync_vault_with_server } =
+        await import("@/services/crypto/ensure_ratchet_keys");
       const freshness = await sync_vault_with_server();
 
       if (freshness.status === "unverified") return false;

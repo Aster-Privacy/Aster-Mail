@@ -348,7 +348,9 @@ export function AccountSection() {
     if (inactivity_response.data)
       set_inactivity_window(inactivity_response.data.inactivity_window_months);
     set_address_eligibility((prev) => eligibility_response.data ?? prev);
-    set_address_eligibility_failed(primary_address_eligibility_failed(eligibility_response));
+    set_address_eligibility_failed(
+      primary_address_eligibility_failed(eligibility_response),
+    );
 
     if (
       !badges_response.data ||
@@ -408,14 +410,21 @@ export function AccountSection() {
     const response = await load_primary_address_eligibility();
 
     set_address_eligibility((prev) => response.data ?? prev);
-    set_address_eligibility_failed(primary_address_eligibility_failed(response));
+    set_address_eligibility_failed(
+      primary_address_eligibility_failed(response),
+    );
   }, []);
 
   const can_change_address = !!address_eligibility;
 
-  const address_cooldown_date = address_eligibility?.next_change_available_at
-    ? format_date(new Date(address_eligibility.next_change_available_at))
-    : "";
+  const address_cooldown_date = (() => {
+    const raw = address_eligibility?.next_change_available_at;
+    const parsed = raw ? new Date(raw) : null;
+
+    if (!parsed || Number.isNaN(parsed.getTime())) return "";
+
+    return format_date(parsed);
+  })();
 
   const address_lock_message = (() => {
     if (!address_eligibility || address_eligibility.eligible) return null;
