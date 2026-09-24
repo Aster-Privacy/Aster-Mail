@@ -679,7 +679,12 @@ export function ChangePrimaryAddressModal({
     set_final_address(confirmed_address);
     set_retained_address(current_address);
     set_step("done");
-    void Promise.resolve(on_changed(confirmed_address)).catch(() => {});
+    void Promise.resolve(on_changed(confirmed_address)).catch((caught) => {
+      ignore_error(
+        "components/settings/change_primary_address_modal:on_changed",
+        caught,
+      );
+    });
   };
 
   const retry_republish = async () => {
