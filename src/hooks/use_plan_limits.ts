@@ -101,6 +101,19 @@ export function clear_plan_limits_cache(): void {
   forget_plan_hint();
 }
 
+export function resolve_feature_locked(
+  limits: PlanLimitsResponse | null,
+  feature_key: string,
+): boolean {
+  if (!limits) return true;
+
+  const info = limits.limits[feature_key];
+
+  if (!info) return true;
+
+  return info.limit === 0;
+}
+
 export function use_plan_limits() {
   const [limits, set_limits] = useState<PlanLimitsResponse | null>(
     cached_limits,
@@ -184,14 +197,8 @@ export function use_plan_limits() {
   }, [fetch_limits]);
 
   const is_feature_locked = useCallback(
-    (feature_key: string): boolean => {
-      if (!limits) return true;
-      const info = limits.limits[feature_key];
-
-      if (!info) return false;
-
-      return info.limit === 0;
-    },
+    (feature_key: string): boolean =>
+      resolve_feature_locked(limits, feature_key),
     [limits],
   );
 
