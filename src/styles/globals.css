@@ -1781,9 +1781,30 @@ label:has(.aster_btn_spinner) {
   position: relative;
 }
 
+.aster_btn,
+.aster_btn_loading_host,
+button,
+a,
+label {
+  --aster-btn-spinner-end: 12px;
+}
+
+.aster_btn_xl {
+  --aster-btn-spinner-end: 18px;
+}
+
+.aster_btn_lg,
+.aster_btn_md {
+  --aster-btn-spinner-end: 14px;
+}
+
+.aster_btn_sm {
+  --aster-btn-spinner-end: 10px;
+}
+
 .aster_btn_spinner {
   position: absolute;
-  inset-inline-end: 12px;
+  inset-inline-end: var(--aster-btn-spinner-end);
   top: 0;
   bottom: 0;
   display: inline-flex;
@@ -1792,17 +1813,11 @@ label:has(.aster_btn_spinner) {
   pointer-events: none;
 }
 
-.aster_btn_xl .aster_btn_spinner {
-  inset-inline-end: 18px;
-}
-
-.aster_btn_lg .aster_btn_spinner,
-.aster_btn_md .aster_btn_spinner {
-  inset-inline-end: 14px;
-}
-
-.aster_btn_sm .aster_btn_spinner {
-  inset-inline-end: 10px;
+.aster_btn_loading_host:has(.aster_btn_spinner:not(.aster_btn_spinner_centered)),
+button:has(.aster_btn_spinner:not(.aster_btn_spinner_centered)),
+a:has(.aster_btn_spinner:not(.aster_btn_spinner_centered)),
+label:has(.aster_btn_spinner:not(.aster_btn_spinner_centered)) {
+  padding-inline-end: calc(var(--aster-btn-spinner-end) + 1.5rem);
 }
 
 .aster_btn_icon .aster_btn_spinner,
