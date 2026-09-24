@@ -6204,6 +6204,7 @@ export const en: Translations = {
     domain_purchase_progress_note:
       "Please wait while we register your domain and set up your mailboxes. This usually takes about a minute.",
     domain_purchase_complete_cta: "Complete purchase",
+    domain_purchase_open_checkout: "Open checkout again",
     domain_purchase_cancel_payment_title: "Cancel this payment?",
     domain_purchase_cancel_payment_message:
       "Are you sure you want to cancel this payment for the custom domain?",

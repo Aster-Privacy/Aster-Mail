@@ -6660,6 +6660,7 @@ export const fr = {
     domain_purchase_progress_note:
       "Veuillez patienter pendant que nous enregistrons votre domaine et configurons vos boîtes mail. Cela prend généralement environ une minute.",
     domain_purchase_complete_cta: "Finaliser l'achat",
+    domain_purchase_open_checkout: "Rouvrir le paiement",
     domain_purchase_cancel_payment_title: "Annuler ce paiement ?",
     domain_purchase_cancel_payment_message:
       "Voulez-vous vraiment annuler ce paiement pour le domaine personnalisé ?",

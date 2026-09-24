@@ -6473,6 +6473,7 @@ export const tr = {
     domain_purchase_progress_note:
       "Alan adınızı kaydedip posta kutularınızı kurarken lütfen bekleyin. Bu genellikle yaklaşık bir dakika sürer.",
     domain_purchase_complete_cta: "Satın almayı tamamla",
+    domain_purchase_open_checkout: "Ödemeyi yeniden aç",
     domain_purchase_cancel_payment_title: "Bu ödeme iptal edilsin mi?",
     domain_purchase_cancel_payment_message:
       "Özel alan adı için bu ödemeyi iptal etmek istediğinden emin misin?",

@@ -4955,6 +4955,7 @@ export interface SettingsTranslations {
   domain_purchase_create_first_address: string;
   domain_purchase_progress_note: string;
   domain_purchase_complete_cta: string;
+  domain_purchase_open_checkout: string;
   domain_purchase_cancel_payment_title: string;
   domain_purchase_cancel_payment_message: string;
   domain_purchase_cancel_payment_confirm: string;

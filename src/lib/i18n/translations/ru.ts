@@ -6699,6 +6699,7 @@ export const ru = {
     domain_purchase_progress_note:
       "Подождите, пока мы регистрируем ваш домен и настраиваем почтовые ящики. Обычно это занимает около минуты.",
     domain_purchase_complete_cta: "Завершить покупку",
+    domain_purchase_open_checkout: "Открыть оплату снова",
     domain_purchase_cancel_payment_title: "Отменить этот платёж?",
     domain_purchase_cancel_payment_message:
       "Вы действительно хотите отменить этот платёж за пользовательский домен?",

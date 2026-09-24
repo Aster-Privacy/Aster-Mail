@@ -6639,6 +6639,7 @@ export const pl = {
     domain_purchase_progress_note:
       "Poczekaj, aż zarejestrujemy Twoją domenę i skonfigurujemy skrzynki. Zwykle trwa to około minuty.",
     domain_purchase_complete_cta: "Dokończ zakup",
+    domain_purchase_open_checkout: "Otwórz płatność ponownie",
     domain_purchase_cancel_payment_title: "Anulować tę płatność?",
     domain_purchase_cancel_payment_message:
       "Czy na pewno chcesz anulować tę płatność za domenę własną?",

@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { Suspense, useEffect, useRef, useState } from "react";
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import {
   activate_subscription,
@@ -31,6 +31,8 @@ import {
 import { FamilyWelcomeModal } from "@/components/settings/billing/family_welcome_modal";
 import { CheckoutReturnHandler } from "@/components/common/checkout_return_handler";
 import { request_cache } from "@/services/api/request_cache";
+import { is_tauri_env } from "@/services/api/client/helpers";
+import { open_external } from "@/utils/open_link";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import {
   show_toast,
@@ -95,7 +97,18 @@ const CryptoInvoicePage = lazy_with_retry(
   () => import("@/pages/crypto_invoice"),
 );
 const ExternalRedirect = ({ url }: { url: string }) => {
-  window.location.href = url;
+  const desktop = is_tauri_env();
+
+  useEffect(() => {
+    if (desktop) {
+      open_external(url);
+
+      return;
+    }
+    window.location.href = url;
+  }, [desktop, url]);
+
+  if (desktop) return <Navigate replace to="/" />;
 
   return null;
 };

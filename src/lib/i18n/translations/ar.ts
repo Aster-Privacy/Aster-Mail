@@ -6494,6 +6494,7 @@ export const ar = {
     domain_purchase_progress_note:
       "يرجى الانتظار بينما نسجّل نطاقك ونجهّز صناديق البريد. يستغرق ذلك عادةً نحو دقيقة.",
     domain_purchase_complete_cta: "إكمال الشراء",
+    domain_purchase_open_checkout: "فتح صفحة الدفع مجددًا",
     domain_purchase_cancel_payment_title: "إلغاء هذه الدفعة؟",
     domain_purchase_cancel_payment_message:
       "هل تريد بالتأكيد إلغاء هذه الدفعة للنطاق المخصص؟",

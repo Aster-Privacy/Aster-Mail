@@ -6490,6 +6490,7 @@ export const ja = {
     domain_purchase_progress_note:
       "ドメインの登録とメールボックスの設定を行っています。通常は1分ほどで完了します。",
     domain_purchase_complete_cta: "購入を完了",
+    domain_purchase_open_checkout: "決済ページを再度開く",
     domain_purchase_cancel_payment_title: "この支払いをキャンセルしますか？",
     domain_purchase_cancel_payment_message:
       "カスタムドメインのこの支払いを本当にキャンセルしますか？",

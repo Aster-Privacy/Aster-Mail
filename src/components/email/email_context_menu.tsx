@@ -71,6 +71,7 @@ import {
 } from "@/components/ui/context_menu";
 import { compute_snooze_target } from "@/utils/snooze_targets";
 import { app_locale } from "@/utils/date_format";
+import { is_tauri_env } from "@/services/api/client/helpers";
 
 interface FolderOption {
   id: string;
@@ -204,7 +205,11 @@ function EmailContextMenuContentInner({
     !is_sent &&
     email.item_type !== "sent";
   const show_open_in_new_window =
-    !is_selection && !!on_open_in_new_window && !is_drafts && !is_scheduled;
+    !is_selection &&
+    !!on_open_in_new_window &&
+    !is_drafts &&
+    !is_scheduled &&
+    !is_tauri_env();
 
   const email_folders = email.folders || [];
   const current_folder_id =

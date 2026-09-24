@@ -18,7 +18,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   PlusIcon,
   GlobeAltIcon,
@@ -48,6 +48,8 @@ import { DomainDeleteModal } from "@/components/settings/aliases/domain_delete_m
 import { PurchasedDomainManageModal } from "@/components/settings/aliases/purchased_domain_manage_modal";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { is_https_payment_url } from "@/lib/payment_url";
+import { open_payment_url } from "@/services/api/billing";
+import { is_tauri_env } from "@/services/api/client/helpers";
 import { ignore_error } from "@/lib/ignore_error";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
@@ -109,6 +111,7 @@ export function DomainsSection() {
   const [purchased_loading, set_purchased_loading] = useState(false);
   const [purchased_load_failed, set_purchased_load_failed] = useState(false);
   const [purchased_reload, set_purchased_reload] = useState(0);
+  const pending_desktop_renew_ref = useRef(false);
   const [renewing_order_id, set_renewing_order_id] = useState<string | null>(
     null,
   );
@@ -154,6 +157,28 @@ export function DomainsSection() {
       })
       .finally(() => set_purchased_loading(false));
   }, [purchase_open, purchased_reload]);
+
+  useEffect(() => {
+    if (!is_tauri_env()) return;
+    let cancelled = false;
+    const handle_focus = async () => {
+      if (!pending_desktop_renew_ref.current) return;
+      pending_desktop_renew_ref.current = false;
+      for (let attempt = 0; attempt < 6 && !cancelled; attempt += 1) {
+        set_purchased_reload((value) => value + 1);
+        await new Promise((resolve) =>
+          setTimeout(resolve, attempt === 0 ? 1500 : 3000),
+        );
+      }
+    };
+
+    window.addEventListener("focus", handle_focus);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", handle_focus);
+    };
+  }, []);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -292,6 +317,12 @@ export function DomainsSection() {
         response.data?.checkout_url &&
         is_https_payment_url(response.data.checkout_url)
       ) {
+        if (is_tauri_env()) {
+          await open_payment_url(response.data.checkout_url);
+          pending_desktop_renew_ref.current = true;
+
+          return;
+        }
         window.location.href = response.data.checkout_url;
 
         return;

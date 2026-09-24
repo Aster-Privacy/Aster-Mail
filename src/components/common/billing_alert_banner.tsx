@@ -27,6 +27,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_subscription } from "@/services/api/billing";
 import { ignore_error } from "@/lib/ignore_error";
+import { open_external } from "@/utils/open_link";
 
 const RECHECK_INTERVAL_MS = 5 * 60 * 1000;
 
@@ -121,7 +122,7 @@ export function BillingAlertBanner() {
 
   const handle_pay = () => {
     if (pay_url) {
-      window.open(pay_url, "_blank", "noopener,noreferrer");
+      open_external(pay_url);
 
       return;
     }

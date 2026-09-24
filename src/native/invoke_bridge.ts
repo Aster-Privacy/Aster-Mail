@@ -28,7 +28,13 @@ declare global {
 }
 
 export function is_desktop(): boolean {
-  return typeof window !== "undefined" && window.aster?.is_desktop === true;
+  if (typeof window === "undefined") return false;
+
+  return (
+    window.aster?.is_desktop === true ||
+    "__TAURI_INTERNALS__" in window ||
+    "__TAURI__" in window
+  );
 }
 
 export async function invoke<T>(
@@ -36,6 +42,9 @@ export async function invoke<T>(
   args?: Record<string, unknown>,
 ): Promise<T> {
   if (!is_desktop()) throw new Error("invoke called outside desktop shell");
+  if (window.aster?.invoke) return window.aster.invoke<T>(cmd, args);
 
-  return window.aster!.invoke<T>(cmd, args);
+  const core = await import("@tauri-apps/api/core");
+
+  return core.invoke<T>(cmd, args);
 }

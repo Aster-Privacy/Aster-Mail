@@ -6464,6 +6464,7 @@ export const nl = {
     domain_purchase_progress_note:
       "Even geduld terwijl we je domein registreren en je mailboxen instellen. Dit duurt meestal ongeveer een minuut.",
     domain_purchase_complete_cta: "Aankoop voltooien",
+    domain_purchase_open_checkout: "Betaalpagina opnieuw openen",
     domain_purchase_cancel_payment_title: "Deze betaling annuleren?",
     domain_purchase_cancel_payment_message:
       "Weet je zeker dat je deze betaling voor het eigen domein wilt annuleren?",
