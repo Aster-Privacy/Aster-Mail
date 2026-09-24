@@ -7814,7 +7814,7 @@ export const fr = {
     domain_provider_detected: "Votre DNS est géré par {{provider}}",
     domain_provider_open: "Ouvrir {{provider}}",
     crypto_rate_notice:
-      "Lorsque vous choisissez une cryptomonnaie, nous bloquons un taux de change et vous indiquons le montant exact à envoyer. Le taux tient 60 minutes sur Bitcoin et 30 minutes sur les réseaux Ethereum. Rien ne vous est prélevé tant que vous n’envoyez pas le paiement vous-même.",
+      "Lorsque vous choisissez une cryptomonnaie, nous bloquons un taux de change et vous indiquons le montant exact à envoyer. Le taux tient 60 minutes sur tous les réseaux. Rien ne vous est prélevé tant que vous n’envoyez pas le paiement vous-même.",
     crypto_exchange_warning:
       "Payez depuis un portefeuille que vous contrôlez. Si vous envoyez des fonds depuis une plateforme d'échange ou un service de conversion, le paiement provient d'une adresse qui n'est pas la vôtre et le prestataire ne peut pas le rattacher à votre commande. Effectuez le paiement dans le délai indiqué sur la page de paiement.",
     crypto_energy_toggle: "Consommation d’énergie de ces réseaux",

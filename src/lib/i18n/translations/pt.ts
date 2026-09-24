@@ -7793,7 +7793,7 @@ export const pt = {
     domain_provider_detected: "Seu DNS é gerenciado por {{provider}}",
     domain_provider_open: "Abrir {{provider}}",
     crypto_rate_notice:
-      "Quando você escolhe uma moeda, travamos uma taxa de câmbio e mostramos o valor exato a enviar. A taxa vale 60 minutos no Bitcoin e 30 minutos nas redes Ethereum. Nada é cobrado até você mesmo enviar o pagamento.",
+      "Quando você escolhe uma moeda, travamos uma taxa de câmbio e mostramos o valor exato a enviar. A taxa vale 60 minutos em todas as redes. Nada é cobrado até você mesmo enviar o pagamento.",
     crypto_exchange_warning:
       "Pague a partir de uma carteira que você controla. Se enviar fundos de uma corretora ou de um serviço de troca, o pagamento chega de um endereço que não é seu e o processador não consegue associá-lo ao seu pedido. Conclua o pagamento dentro do tempo indicado na página de pagamento.",
     crypto_energy_toggle: "Consumo de energia dessas redes",

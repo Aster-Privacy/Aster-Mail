@@ -7728,7 +7728,7 @@ export const tr = {
     domain_provider_detected: "DNS kayıtlarınızı {{provider}} yönetiyor",
     domain_provider_open: "{{provider}} aç",
     crypto_rate_notice:
-      "Bir coin seçtiğinizde bir kur sabitler ve göndermeniz gereken tam tutarı gösteririz. Kur, Bitcoin’de 60 dakika, Ethereum ağlarında 30 dakika geçerlidir. Ödemeyi kendiniz göndermeden sizden hiçbir tutar alınmaz.",
+      "Bir coin seçtiğinizde bir kur sabitler ve göndermeniz gereken tam tutarı gösteririz. Kur, tüm ağlarda 60 dakika geçerlidir. Ödemeyi kendiniz göndermeden sizden hiçbir tutar alınmaz.",
     crypto_exchange_warning:
       "Kendi kontrolündeki bir cüzdandan öde. Parayı bir borsadan veya takas hizmetinden gönderirsen ödeme sana ait olmayan bir adresten gelir ve ödeme sağlayıcı bunu siparişinle eşleştiremez. Ödemeyi, ödeme sayfasında gösterilen süre içinde tamamla.",
     crypto_energy_toggle: "Bu ağların enerji kullanımı",

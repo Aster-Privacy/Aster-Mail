@@ -7771,7 +7771,7 @@ export const de = {
     domain_provider_detected: "Ihr DNS wird von {{provider}} verwaltet",
     domain_provider_open: "{{provider}} öffnen",
     crypto_rate_notice:
-      "Wenn Sie eine Währung wählen, sichern wir einen Wechselkurs und zeigen Ihnen den genauen Betrag, den Sie senden müssen. Der Kurs gilt 60 Minuten bei Bitcoin und 30 Minuten in den Ethereum-Netzwerken. Es wird nichts abgebucht, bevor Sie die Zahlung selbst senden.",
+      "Wenn Sie eine Währung wählen, sichern wir einen Wechselkurs und zeigen Ihnen den genauen Betrag, den Sie senden müssen. Der Kurs gilt in allen Netzwerken 60 Minuten. Es wird nichts abgebucht, bevor Sie die Zahlung selbst senden.",
     crypto_exchange_warning:
       "Zahle aus einer Wallet, die dir gehört. Wenn du Geld von einer Börse oder einem Tauschdienst sendest, kommt die Zahlung von einer Adresse, die nicht deine ist, und der Zahlungsdienstleister kann sie deiner Bestellung nicht zuordnen. Schließe die Zahlung innerhalb der auf der Checkout-Seite angezeigten Zeit ab.",
     crypto_energy_toggle: "Energieverbrauch dieser Netzwerke",

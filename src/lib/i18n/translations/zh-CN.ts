@@ -6985,7 +6985,7 @@ export const zh_CN = {
     domain_provider_detected: "你的 DNS 由 {{provider}} 管理",
     domain_provider_open: "打开 {{provider}}",
     crypto_rate_notice:
-      "当你选择币种时，我们会锁定汇率并显示需要发送的确切金额。该汇率在比特币上保持 60 分钟，在以太坊网络上保持 30 分钟。在你亲自发送付款之前，不会扣取任何费用。",
+      "当你选择币种时，我们会锁定汇率并显示需要发送的确切金额。该汇率在所有网络上均保持 60 分钟。在你亲自发送付款之前，不会扣取任何费用。",
     crypto_exchange_warning:
       "请使用你自己掌控的钱包付款。如果从交易所或兑换服务转账，付款将来自并非你本人的地址，支付处理方无法将其与你的订单匹配。请在结账页面显示的时间内完成付款。",
     crypto_energy_toggle: "这些网络的能源消耗",

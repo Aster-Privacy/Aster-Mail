@@ -7827,7 +7827,7 @@ export const it = {
     domain_provider_detected: "Il tuo DNS è gestito da {{provider}}",
     domain_provider_open: "Apri {{provider}}",
     crypto_rate_notice:
-      "Quando scegli una moneta, blocchiamo un tasso di cambio e ti mostriamo l’importo esatto da inviare. Il tasso resta valido 60 minuti su Bitcoin e 30 minuti sulle reti Ethereum. Non ti viene addebitato nulla finché non invii tu il pagamento.",
+      "Quando scegli una moneta, blocchiamo un tasso di cambio e ti mostriamo l’importo esatto da inviare. Il tasso resta valido 60 minuti su tutte le reti. Non ti viene addebitato nulla finché non invii tu il pagamento.",
     crypto_exchange_warning:
       "Paga da un wallet che controlli. Se invii fondi da un exchange o da un servizio di scambio, il pagamento arriva da un indirizzo che non è tuo e il processore non può associarlo al tuo ordine. Completa il pagamento entro il tempo indicato nella pagina di pagamento.",
     crypto_energy_toggle: "Consumo energetico di queste reti",

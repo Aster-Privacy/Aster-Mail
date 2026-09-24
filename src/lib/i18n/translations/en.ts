@@ -3446,7 +3446,7 @@ export const en: Translations = {
       "Crypto pricing is not available for this plan. Please contact support.",
     crypto_charged_in_usd: "Charged in USD.",
     crypto_rate_notice:
-      "When you pick a coin we lock an exchange rate and show you the exact amount to send. The rate holds for 60 minutes on Bitcoin and 30 minutes on Ethereum networks. Nothing is taken from you until you send the payment yourself.",
+      "When you pick a coin we lock an exchange rate and show you the exact amount to send. The rate holds for 60 minutes on every network. Nothing is taken from you until you send the payment yourself.",
     crypto_exchange_warning:
       "Pay from a wallet you control. If you send funds from an exchange or a swap service, the payment arrives from an address that is not yours and the processor cannot match it to your order. Complete the payment within the time the checkout page shows.",
     crypto_energy_toggle: "Energy use of these networks",

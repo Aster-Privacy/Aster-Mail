@@ -7730,7 +7730,7 @@ export const es = {
     domain_provider_detected: "Tu DNS lo gestiona {{provider}}",
     domain_provider_open: "Abrir {{provider}}",
     crypto_rate_notice:
-      "Cuando eliges una moneda, fijamos un tipo de cambio y te mostramos el importe exacto que debes enviar. El tipo se mantiene 60 minutos en Bitcoin y 30 minutos en las redes de Ethereum. No se te cobra nada hasta que envías el pago tú mismo.",
+      "Cuando eliges una moneda, fijamos un tipo de cambio y te mostramos el importe exacto que debes enviar. El tipo se mantiene 60 minutos en todas las redes. No se te cobra nada hasta que envías el pago tú mismo.",
     crypto_exchange_warning:
       "Paga desde una cartera que controles. Si envías fondos desde un exchange o un servicio de intercambio, el pago llega desde una dirección que no es tuya y el procesador no puede asociarlo a tu pedido. Completa el pago dentro del tiempo que indica la página de pago.",
     crypto_energy_toggle: "Consumo energético de estas redes",
