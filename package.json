@@ -131,7 +131,7 @@
     "@typescript-eslint/eslint-plugin": "8.68.0",
     "@typescript-eslint/parser": "8.68.0",
     "@vitejs/plugin-react": "4.7.0",
-    "@vitest/coverage-v8": "^4.1.11",
+    "@vitest/coverage-v8": "^5.0.0",
     "axe-core": "^4.13.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "9.1.0",
