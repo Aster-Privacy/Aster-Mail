@@ -173,6 +173,26 @@ export function build_reply_recipients(
   return { to, cc };
 }
 
+function track_queue_errors(callbacks: MailActionCallbacks) {
+  const reported: { error?: string } = {};
+
+  return {
+    on_error: (error: string) => {
+      reported.error = error;
+      callbacks.on_error?.(error);
+    },
+    fail: (fallback: string): MailActionResult => {
+      if (reported.error !== undefined) {
+        return { success: false, error: reported.error || fallback };
+      }
+
+      callbacks.on_error?.(fallback);
+
+      return { success: false, error: fallback };
+    },
+  };
+}
+
 export async function send_reply(
   params: ReplyParams,
   callbacks: MailActionCallbacks,
@@ -247,6 +267,7 @@ export async function send_reply(
   }
 
   if (delay_seconds > 0) {
+    const queue_errors = track_queue_errors(callbacks);
     const result = await queue_email_to_server(
       {
         to: recipients,
@@ -267,16 +288,14 @@ export async function send_reply(
       {
         on_sent: callbacks.on_complete,
         on_cancelled: callbacks.on_cancel,
-        on_error: callbacks.on_error,
+        on_error: queue_errors.on_error,
       },
     );
 
     if (!result) {
-      const error = get_active_translations().errors.failed_queue_reply;
-
-      callbacks.on_error?.(error);
-
-      return { success: false, error };
+      return queue_errors.fail(
+        get_active_translations().errors.failed_queue_reply,
+      );
     }
 
     return {
@@ -396,6 +415,7 @@ export async function send_forward(
   }
 
   if (delay_seconds > 0) {
+    const queue_errors = track_queue_errors(callbacks);
     const result = await queue_email_to_server(
       {
         to: params.recipients,
@@ -416,16 +436,14 @@ export async function send_forward(
       {
         on_sent: callbacks.on_complete,
         on_cancelled: callbacks.on_cancel,
-        on_error: callbacks.on_error,
+        on_error: queue_errors.on_error,
       },
     );
 
     if (!result) {
-      const error = get_active_translations().errors.failed_queue_forward;
-
-      callbacks.on_error?.(error);
-
-      return { success: false, error };
+      return queue_errors.fail(
+        get_active_translations().errors.failed_queue_forward,
+      );
     }
 
     return {
