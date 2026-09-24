@@ -24,7 +24,8 @@ const hoisted = vi.hoisted(() => ({
   account_id: { value: "acct_a" as string | null },
   storage_unreadable: { value: false },
   update_item_metadata: vi.fn(async () => ({ success: true })),
-  get_mail_item: vi.fn(async () => ({
+  execute_send: vi.fn(async (_email: unknown): Promise<void> => {}),
+  get_mail_item: vi.fn(async (_id: string): Promise<unknown> => ({
     data: {
       encrypted_metadata: "meta",
       metadata_nonce: "nonce",
@@ -60,10 +61,15 @@ vi.mock("@/services/crypto/mail_metadata", () => ({
   update_item_metadata: hoisted.update_item_metadata,
 }));
 
+vi.mock("@/services/send_queue_encryption", () => ({
+  execute_send: hoisted.execute_send,
+}));
+
 import {
   get_failed_actions,
   get_queue,
   initialize_offline_queue,
+  is_permanent_failure,
   process_offline_queue,
   retry_failed_actions,
 } from "./offline_queue";
@@ -228,5 +234,121 @@ describe("offline queue web replay triggers", () => {
     await vi.waitFor(async () => {
       expect(await get_queue()).toHaveLength(0);
     });
+  });
+});
+
+function send_action(id: string, retry_count = 0) {
+  return {
+    id,
+    type: "send_email",
+    payload: {
+      to: ["friend@example.com"],
+      subject: "Hello",
+      body: "<p>Hello</p>",
+      expires_at: "2030-01-01T00:00:00Z",
+    },
+    created_at: Date.now(),
+    retry_count,
+  };
+}
+
+function http_error(status: number): Error & { status: number } {
+  return Object.assign(new Error(`status ${status}`), { status });
+}
+
+describe("offline queue permanent failures", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    hoisted.account_id.value = "acct_a";
+    hoisted.execute_send.mockReset();
+    hoisted.execute_send.mockResolvedValue(undefined);
+    hoisted.update_item_metadata.mockClear();
+    hoisted.update_item_metadata.mockResolvedValue({ success: true });
+  });
+
+  it("classifies client errors as permanent except 401, 408 and 429", () => {
+    expect(is_permanent_failure(http_error(400))).toBe(true);
+    expect(is_permanent_failure(http_error(403))).toBe(true);
+    expect(is_permanent_failure(http_error(404))).toBe(true);
+    expect(is_permanent_failure(http_error(413))).toBe(true);
+    expect(is_permanent_failure(http_error(422))).toBe(true);
+    expect(is_permanent_failure(http_error(401))).toBe(false);
+    expect(is_permanent_failure(http_error(408))).toBe(false);
+    expect(is_permanent_failure(http_error(429))).toBe(false);
+    expect(is_permanent_failure(http_error(500))).toBe(false);
+    expect(is_permanent_failure(new Error("offline"))).toBe(false);
+    expect(is_permanent_failure(null)).toBe(false);
+  });
+
+  it("moves a send rejected with 403 to failed on the first attempt", async () => {
+    hoisted.execute_send.mockRejectedValue(http_error(403));
+    localStorage.setItem(SCOPED_KEY_A, JSON.stringify([send_action("s1")]));
+
+    await process_offline_queue();
+
+    expect(hoisted.execute_send).toHaveBeenCalledTimes(1);
+    expect(await get_queue()).toHaveLength(0);
+    const failed = await get_failed_actions();
+
+    expect(failed).toHaveLength(1);
+    expect(failed[0].retry_count).toBe(1);
+  });
+
+  it("moves a send rejected with 400 to failed on the first attempt", async () => {
+    hoisted.execute_send.mockRejectedValue(http_error(400));
+    localStorage.setItem(SCOPED_KEY_A, JSON.stringify([send_action("s2")]));
+
+    await process_offline_queue();
+
+    expect(await get_queue()).toHaveLength(0);
+    expect(await get_failed_actions()).toHaveLength(1);
+  });
+
+  it("keeps a send rejected with 429 in the queue for another attempt", async () => {
+    hoisted.execute_send.mockRejectedValue(http_error(429));
+    localStorage.setItem(SCOPED_KEY_A, JSON.stringify([send_action("s3")]));
+
+    await process_offline_queue();
+
+    const queue = await get_queue();
+
+    expect(queue).toHaveLength(1);
+    expect(queue[0].retry_count).toBe(1);
+    expect(await get_failed_actions()).toHaveLength(0);
+  });
+
+  it("keeps a send rejected with 408 in the queue for another attempt", async () => {
+    hoisted.execute_send.mockRejectedValue(http_error(408));
+    localStorage.setItem(SCOPED_KEY_A, JSON.stringify([send_action("s4")]));
+
+    await process_offline_queue();
+
+    expect(await get_queue()).toHaveLength(1);
+    expect(await get_failed_actions()).toHaveLength(0);
+  });
+
+  it("keeps a send that failed with a server error in the queue", async () => {
+    hoisted.execute_send.mockRejectedValue(http_error(503));
+    localStorage.setItem(SCOPED_KEY_A, JSON.stringify([send_action("s5")]));
+
+    await process_offline_queue();
+
+    expect(await get_queue()).toHaveLength(1);
+    expect(await get_failed_actions()).toHaveLength(0);
+  });
+
+  it("moves a star action to failed when the message no longer exists", async () => {
+    hoisted.get_mail_item.mockResolvedValueOnce({
+      error: "Not found",
+      code: "NOT_FOUND",
+      status: 404,
+    });
+    localStorage.setItem(SCOPED_KEY_A, JSON.stringify([star_action("m1")]));
+
+    await process_offline_queue();
+
+    expect(hoisted.update_item_metadata).not.toHaveBeenCalled();
+    expect(await get_queue()).toHaveLength(0);
+    expect(await get_failed_actions()).toHaveLength(1);
   });
 });
