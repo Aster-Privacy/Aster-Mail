@@ -5250,6 +5250,7 @@ export const ja = {
     bimi_record_published: "レコードは公開されています。",
     bimi_record_title: "DNS プロバイダでこのレコードを追加してください",
     bimi_record_type: "タイプ",
+    bimi_copy_field: "{field}をコピー",
     bimi_record_value: "値",
     bimi_replace_logo: "ロゴを置き換える",
     bimi_req_auth_fail: "まず、このドメインの SPF レコードと DKIM レコードを確認してください。",

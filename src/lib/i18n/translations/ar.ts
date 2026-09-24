@@ -5312,6 +5312,7 @@ export const ar = {
     bimi_record_published: "تم نشر السجل.",
     bimi_record_title: "أضف هذا السجل لدى مزوّد DNS الخاص بك",
     bimi_record_type: "النوع",
+    bimi_copy_field: "نسخ {field}",
     bimi_record_value: "القيمة",
     bimi_replace_logo: "استبدال الشعار",
     bimi_req_auth_fail: "تحقق أولاً من سجلي SPF وDKIM لهذا النطاق.",

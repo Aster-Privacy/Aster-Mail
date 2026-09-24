@@ -5160,6 +5160,7 @@ export const nl = {
     bimi_record_published: "Het record is gepubliceerd.",
     bimi_record_title: "Voeg dit record toe bij uw DNS-provider",
     bimi_record_type: "Type",
+    bimi_copy_field: "{field} kopiëren",
     bimi_record_value: "Waarde",
     bimi_replace_logo: "Logo vervangen",
     bimi_req_auth_fail: "Verifieer eerst de SPF- en DKIM-records voor dit domein.",

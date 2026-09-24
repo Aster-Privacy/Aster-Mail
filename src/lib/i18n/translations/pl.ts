@@ -5397,6 +5397,7 @@ export const pl = {
     bimi_record_published: "Rekord został opublikowany.",
     bimi_record_title: "Dodaj ten rekord u swojego dostawcy DNS",
     bimi_record_type: "Typ",
+    bimi_copy_field: "Kopiuj {field}",
     bimi_record_value: "Wartość",
     bimi_replace_logo: "Zastąp logo",
     bimi_req_auth_fail: "Najpierw zweryfikuj rekordy SPF i DKIM dla tej domeny.",

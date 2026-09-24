@@ -6364,6 +6364,7 @@ export const en: Translations = {
     bimi_record_published: "The record is published.",
     bimi_record_title: "Add this record at your DNS provider",
     bimi_record_type: "Type",
+    bimi_copy_field: "Copy {field}",
     bimi_record_value: "Value",
     bimi_replace_logo: "Replace logo",
     bimi_req_auth_fail: "Verify the SPF and DKIM records for this domain first.",

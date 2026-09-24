@@ -5175,6 +5175,7 @@ export const de = {
     bimi_record_published: "Der Eintrag ist veröffentlicht.",
     bimi_record_title: "Fügen Sie diesen Eintrag bei Ihrem DNS-Anbieter hinzu",
     bimi_record_type: "Typ",
+    bimi_copy_field: "{field} kopieren",
     bimi_record_value: "Wert",
     bimi_replace_logo: "Logo ersetzen",
     bimi_req_auth_fail: "Verifizieren Sie zuerst die SPF- und DKIM-Einträge für diese Domain.",

@@ -5441,6 +5441,7 @@ export interface SettingsTranslations {
   bimi_record_published: string;
   bimi_record_title: string;
   bimi_record_type: string;
+  bimi_copy_field: string;
   bimi_record_value: string;
   bimi_replace_logo: string;
   bimi_req_auth_fail: string;

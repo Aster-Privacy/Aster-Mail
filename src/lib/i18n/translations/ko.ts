@@ -5225,6 +5225,7 @@ export const ko = {
     bimi_record_published: "레코드가 게시되었습니다.",
     bimi_record_title: "DNS 제공업체에서 이 레코드를 추가하세요",
     bimi_record_type: "유형",
+    bimi_copy_field: "{field} 복사",
     bimi_record_value: "값",
     bimi_replace_logo: "로고 교체",
     bimi_req_auth_fail: "먼저 이 도메인의 SPF 및 DKIM 레코드를 확인하세요.",

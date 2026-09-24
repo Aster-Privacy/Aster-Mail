@@ -5367,6 +5367,7 @@ export const ru = {
     bimi_record_published: "Запись опубликована.",
     bimi_record_title: "Добавьте эту запись у своего DNS-провайдера",
     bimi_record_type: "Тип",
+    bimi_copy_field: "Копировать {field}",
     bimi_record_value: "Значение",
     bimi_replace_logo: "Заменить логотип",
     bimi_req_auth_fail: "Сначала подтвердите записи SPF и DKIM для этого домена.",

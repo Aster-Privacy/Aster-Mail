@@ -6338,6 +6338,7 @@ export const it = {
     bimi_record_published: "Il record è pubblicato.",
     bimi_record_title: "Aggiungi questo record presso il tuo provider DNS",
     bimi_record_type: "Tipo",
+    bimi_copy_field: "Copia {field}",
     bimi_record_value: "Valore",
     bimi_replace_logo: "Sostituisci logo",
     bimi_req_auth_fail: "Verifica prima i record SPF e DKIM di questo dominio.",

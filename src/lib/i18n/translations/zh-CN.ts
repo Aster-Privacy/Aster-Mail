@@ -4756,6 +4756,7 @@ export const zh_CN = {
     bimi_record_published: "该记录已发布。",
     bimi_record_title: "请在您的 DNS 服务商处添加此记录",
     bimi_record_type: "类型",
+    bimi_copy_field: "复制{field}",
     bimi_record_value: "值",
     bimi_replace_logo: "替换徽标",
     bimi_req_auth_fail: "请先验证此域名的 SPF 和 DKIM 记录。",

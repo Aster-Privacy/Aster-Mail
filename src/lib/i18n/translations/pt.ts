@@ -5260,6 +5260,7 @@ export const pt = {
     bimi_record_published: "O registro está publicado.",
     bimi_record_title: "Adicione este registro no seu provedor de DNS",
     bimi_record_type: "Tipo",
+    bimi_copy_field: "Copiar {field}",
     bimi_record_value: "Valor",
     bimi_replace_logo: "Substituir logotipo",
     bimi_req_auth_fail: "Primeiro, verifique os registros SPF e DKIM deste domínio.",

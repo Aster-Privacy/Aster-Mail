@@ -5199,6 +5199,7 @@ export const tr = {
     bimi_record_published: "Kayıt yayımlandı.",
     bimi_record_title: "Bu kaydı DNS sağlayıcınıza ekleyin",
     bimi_record_type: "Tür",
+    bimi_copy_field: "{field} kopyala",
     bimi_record_value: "Değer",
     bimi_replace_logo: "Logoyu değiştir",
     bimi_req_auth_fail: "Önce bu alan adının SPF ve DKIM kayıtlarını doğrulayın.",

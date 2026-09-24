@@ -288,18 +288,18 @@ export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
     set_action_error(null);
     set_removed_record(false);
 
-    const result = await read_bimi_file(file);
-
-    if (!result.ok) {
-      set_action_error(result.error);
-
-      return;
-    }
-
     const epoch = ++epoch_ref.current;
 
     set_busy("upload");
     try {
+      const result = await read_bimi_file(file);
+
+      if (!is_current(epoch)) return;
+      if (!result.ok) {
+        set_action_error(result.error);
+
+        return;
+      }
       const response = await upload_bimi_logo(domain.id, result.svg);
 
       if (!is_current(epoch)) return;
@@ -317,7 +317,7 @@ export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
         set_action_error("common.something_went_wrong_try_again");
       }
     } finally {
-      set_busy(null);
+      if (is_current(epoch)) set_busy(null);
     }
   };
 

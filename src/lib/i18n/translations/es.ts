@@ -5253,6 +5253,7 @@ export const es = {
     bimi_record_published: "El registro está publicado.",
     bimi_record_title: "Añade este registro en tu proveedor de DNS",
     bimi_record_type: "Tipo",
+    bimi_copy_field: "Copiar {field}",
     bimi_record_value: "Valor",
     bimi_replace_logo: "Reemplazar logotipo",
     bimi_req_auth_fail: "Primero verifica los registros SPF y DKIM de este dominio.",

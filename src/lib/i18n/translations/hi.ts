@@ -6414,6 +6414,7 @@ export const hi = {
     bimi_record_published: "रिकॉर्ड पब्लिश हो गया है।",
     bimi_record_title: "अपने DNS प्रोवाइडर पर यह रिकॉर्ड जोड़ें",
     bimi_record_type: "प्रकार",
+    bimi_copy_field: "{field} कॉपी करें",
     bimi_record_value: "मान",
     bimi_replace_logo: "लोगो बदलें",
     bimi_req_auth_fail: "पहले इस डोमेन के SPF और DKIM रिकॉर्ड वेरिफ़ाई करें।",
