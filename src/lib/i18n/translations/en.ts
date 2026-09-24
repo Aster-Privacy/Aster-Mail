@@ -8903,6 +8903,7 @@ export const en: Translations = {
     remove_photo: "Remove photo",
     active_account: "Active",
     add_another_account: "Add another account",
+    resubscribe_to_aster: "Resubscribe to Aster",
     switch_to_account: "Switch to this account",
     copy_email: "Click to copy email",
     email_copied: "Email copied",

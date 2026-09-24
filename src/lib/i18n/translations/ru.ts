@@ -9275,6 +9275,7 @@ export const ru = {
     change_photo: "Изменить фото",
     active_account: "Активный",
     add_another_account: "Добавить другой аккаунт",
+    resubscribe_to_aster: "Возобновить подписку на Aster",
     switch_to_account: "Переключиться на этот аккаунт",
     remove_account: "Удалить с этого устройства",
     remove_account_title: "Удалить аккаунт?",

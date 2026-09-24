@@ -9135,6 +9135,7 @@ export const fr = {
     change_photo: "Changer la photo",
     active_account: "Actif",
     add_another_account: "Ajouter un autre compte",
+    resubscribe_to_aster: "Se réabonner à Aster",
     switch_to_account: "Basculer vers ce compte",
     remove_account: "Retirer de cet appareil",
     remove_account_title: "Retirer le compte ?",

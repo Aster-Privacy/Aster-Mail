@@ -9018,6 +9018,7 @@ export const ja = {
     change_photo: "写真を変更",
     active_account: "アクティブ",
     add_another_account: "別のアカウントを追加",
+    resubscribe_to_aster: "Asterに再登録",
     switch_to_account: "このアカウントに切り替える",
     remove_account: "このデバイスから削除",
     remove_account_title: "アカウントを削除しますか？",

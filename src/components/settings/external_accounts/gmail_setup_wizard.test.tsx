@@ -56,6 +56,7 @@ vi.mock("@/components/ui/input", () => ({
 
 vi.mock("@/components/ui/spinner", () => ({
   Spinner: () => <span>spinner</span>,
+  ButtonSpinner: () => <span>spinner</span>,
 }));
 
 vi.mock("@/components/settings/external_accounts/test_result_banner", () => ({

@@ -8023,6 +8023,7 @@ export interface AuthTranslations {
   remove_photo: string;
   active_account: string;
   add_another_account: string;
+  resubscribe_to_aster: string;
   switch_to_account: string;
   copy_email: string;
   email_copied: string;

@@ -9048,6 +9048,7 @@ export const nl = {
     change_photo: "Foto wijzigen",
     active_account: "Actief",
     add_another_account: "Nog een account toevoegen",
+    resubscribe_to_aster: "Opnieuw abonneren op Aster",
     switch_to_account: "Schakel naar dit account",
     remove_account: "Verwijderen van dit apparaat",
     remove_account_title: "Account verwijderen?",
