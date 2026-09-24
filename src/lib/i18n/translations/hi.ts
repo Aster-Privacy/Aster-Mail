@@ -6090,8 +6090,7 @@ export const hi = {
     special_offer_original_price: "मूल कीमत: {{price}}",
     special_offer_cta: "{{percent}}% की छूट पाएँ",
     special_offer_feature_aliases: "असीमित उपनाम और कस्टम डोमेन",
-    special_offer_feature_vanguard:
-      "Aster Vanguard ऐप लॉक, लॉकडाउन मोड और सुरक्षा निगरानी",
+    special_offer_feature_vanguard: "Vanguard के साथ उन्नत सुरक्षा",
     special_offer_feature_storage: "500 GB एन्क्रिप्टेड स्टोरेज",
     special_offer_fine_print:
       "पहले {{months}} महीनों के लिए आप {{offer_price}} प्रति माह चुकाते हैं। इसके बाद आपकी योजना {{price}} प्रति माह पर नवीनीकृत होती रहेगी, जब तक आप इसे सेटिंग में रद्द नहीं करते।",

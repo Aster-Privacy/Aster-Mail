@@ -5200,8 +5200,7 @@ export const fr = {
     special_offer_original_price: "Prix initial : {{price}}",
     special_offer_cta: "Obtenir {{percent}} % de réduction",
     special_offer_feature_aliases: "Alias illimités et domaines personnalisés",
-    special_offer_feature_vanguard:
-      "Verrouillage de l'app Aster Vanguard, mode confinement et surveillance de sécurité",
+    special_offer_feature_vanguard: "Sécurité renforcée avec Vanguard",
     special_offer_feature_storage: "500 Go de stockage chiffré",
     special_offer_fine_print:
       "Vous payez {{offer_price}} par mois pendant les {{months}} premiers mois. Votre offre est ensuite renouvelée à {{price}} par mois jusqu'à ce que vous l'annuliez dans Réglages.",

@@ -5149,8 +5149,7 @@ export const ja = {
     special_offer_original_price: "通常価格：{{price}}",
     special_offer_cta: "{{percent}}%オフで購入",
     special_offer_feature_aliases: "エイリアスとカスタムドメインが無制限",
-    special_offer_feature_vanguard:
-      "Aster Vanguardのアプリロック、ロックダウンモード、セキュリティ監視",
+    special_offer_feature_vanguard: "Vanguardで強化されたセキュリティ",
     special_offer_feature_storage: "暗号化ストレージ500 GB",
     special_offer_fine_print:
       "最初の{{months}}か月は月額{{offer_price}}です。その後は、設定で解約するまで月額{{price}}で更新されます。",

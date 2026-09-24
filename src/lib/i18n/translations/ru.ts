@@ -5265,8 +5265,7 @@ export const ru = {
     special_offer_cta: "Получить скидку {{percent}}%",
     special_offer_feature_aliases:
       "Неограниченные псевдонимы и собственные домены",
-    special_offer_feature_vanguard:
-      "Блокировка приложения Aster Vanguard, режим блокировки и мониторинг безопасности",
+    special_offer_feature_vanguard: "Усиленная защита с Vanguard",
     special_offer_feature_storage: "500 ГБ зашифрованного хранилища",
     special_offer_fine_print:
       "Первые {{months}} месяцев вы платите {{offer_price}} в месяц. Затем план продлевается за {{price}} в месяц, пока вы не отмените его в Настройках.",

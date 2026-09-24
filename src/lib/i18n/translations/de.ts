@@ -5074,8 +5074,7 @@ export const de = {
     special_offer_original_price: "Ursprünglicher Preis: {{price}}",
     special_offer_cta: "{{percent}} % Rabatt sichern",
     special_offer_feature_aliases: "Unbegrenzte Aliase und eigene Domains",
-    special_offer_feature_vanguard:
-      "Aster Vanguard App-Sperre, Lockdown-Modus und Sicherheitsüberwachung",
+    special_offer_feature_vanguard: "Mehr Sicherheit mit Vanguard",
     special_offer_feature_storage: "500 GB verschlüsselter Speicher",
     special_offer_fine_print:
       "Sie zahlen {{offer_price}} pro Monat für die ersten {{months}} Monate. Danach verlängert sich Ihr Tarif für {{price}} pro Monat, bis Sie ihn in den Einstellungen kündigen.",

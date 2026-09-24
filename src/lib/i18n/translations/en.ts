@@ -6037,8 +6037,7 @@ export const en: Translations = {
     special_offer_original_price: "Original price: {{price}}",
     special_offer_cta: "Get {{percent}}% off",
     special_offer_feature_aliases: "Unlimited aliases and custom domains",
-    special_offer_feature_vanguard:
-      "Aster Vanguard app lock, lockdown mode, and security monitoring",
+    special_offer_feature_vanguard: "Advanced security with Vanguard",
     special_offer_feature_storage: "500 GB of encrypted storage",
     special_offer_fine_print:
       "You pay {{offer_price}} per month for the first {{months}} months. Your plan then renews at {{price}} per month until you cancel it in Settings.",

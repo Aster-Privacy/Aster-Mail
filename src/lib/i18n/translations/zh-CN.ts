@@ -4658,7 +4658,7 @@ export const zh_CN = {
     special_offer_original_price: "原价：{{price}}",
     special_offer_cta: "享 {{percent}}% 折扣",
     special_offer_feature_aliases: "无限别名和自定义域名",
-    special_offer_feature_vanguard: "Aster Vanguard 应用锁、锁定模式和安全监控",
+    special_offer_feature_vanguard: "Vanguard 高级安全防护",
     special_offer_feature_storage: "500 GB 加密存储",
     special_offer_fine_print:
       "前 {{months}} 个月每月支付 {{offer_price}}。之后套餐将按每月 {{price}} 续订，直到你在设置中取消。",

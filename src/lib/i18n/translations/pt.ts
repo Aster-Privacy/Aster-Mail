@@ -5158,8 +5158,7 @@ export const pt = {
     special_offer_cta: "Obter {{percent}}% de desconto",
     special_offer_feature_aliases:
       "Aliases ilimitados e domínios personalizados",
-    special_offer_feature_vanguard:
-      "Bloqueio do app Aster Vanguard, modo de bloqueio e monitoramento de segurança",
+    special_offer_feature_vanguard: "Segurança avançada com o Vanguard",
     special_offer_feature_storage: "500 GB de armazenamento criptografado",
     special_offer_fine_print:
       "Você paga {{offer_price}} por mês nos primeiros {{months}} meses. Depois, seu plano é renovado por {{price}} por mês até você cancelar em Configurações.",

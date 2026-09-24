@@ -5058,8 +5058,7 @@ export const nl = {
     special_offer_original_price: "Oorspronkelijke prijs: {{price}}",
     special_offer_cta: "Krijg {{percent}}% korting",
     special_offer_feature_aliases: "Onbeperkt aliassen en eigen domeinen",
-    special_offer_feature_vanguard:
-      "Aster Vanguard-appvergrendeling, lockdownmodus en beveiligingsmonitoring",
+    special_offer_feature_vanguard: "Extra beveiliging met Vanguard",
     special_offer_feature_storage: "500 GB versleutelde opslag",
     special_offer_fine_print:
       "Je betaalt {{offer_price}} per maand voor de eerste {{months}} maanden. Daarna wordt je abonnement verlengd voor {{price}} per maand totdat je het opzegt in Instellingen.",

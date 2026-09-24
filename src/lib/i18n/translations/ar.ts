@@ -5211,8 +5211,7 @@ export const ar = {
     special_offer_original_price: "السعر الأصلي: {{price}}",
     special_offer_cta: "احصل على خصم {{percent}}%",
     special_offer_feature_aliases: "أسماء مستعارة غير محدودة ونطاقات مخصصة",
-    special_offer_feature_vanguard:
-      "قفل تطبيق Aster Vanguard ووضع الإغلاق ومراقبة الأمان",
+    special_offer_feature_vanguard: "أمان متقدم مع Vanguard",
     special_offer_feature_storage: "500 غيغابايت من التخزين المشفّر",
     special_offer_fine_print:
       "تدفع {{offer_price}} شهريًا لأول {{months}} شهرًا. بعد ذلك تُجدَّد خطتك بسعر {{price}} شهريًا حتى تلغيها من الإعدادات.",

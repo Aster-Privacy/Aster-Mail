@@ -5124,8 +5124,7 @@ export const ko = {
     special_offer_original_price: "정가: {{price}}",
     special_offer_cta: "{{percent}}% 할인 받기",
     special_offer_feature_aliases: "무제한 별칭과 맞춤 도메인",
-    special_offer_feature_vanguard:
-      "Aster Vanguard 앱 잠금, 잠금 모드, 보안 모니터링",
+    special_offer_feature_vanguard: "Vanguard로 강화된 보안",
     special_offer_feature_storage: "암호화 저장 공간 500GB",
     special_offer_fine_print:
       "처음 {{months}}개월 동안 월 {{offer_price}}을 결제합니다. 이후에는 설정에서 취소할 때까지 월 {{price}}으로 갱신됩니다.",

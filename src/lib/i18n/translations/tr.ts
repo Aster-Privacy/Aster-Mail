@@ -5098,8 +5098,7 @@ export const tr = {
     special_offer_original_price: "Normal fiyat: {{price}}",
     special_offer_cta: "%{{percent}} indirim alın",
     special_offer_feature_aliases: "Sınırsız takma ad ve özel alan adları",
-    special_offer_feature_vanguard:
-      "Aster Vanguard uygulama kilidi, kilitlenme modu ve güvenlik izleme",
+    special_offer_feature_vanguard: "Vanguard ile gelişmiş güvenlik",
     special_offer_feature_storage: "500 GB şifrelenmiş depolama",
     special_offer_fine_print:
       "İlk {{months}} ay boyunca aylık {{offer_price}} ödersiniz. Ardından planınız, Ayarlar bölümünden iptal edene kadar aylık {{price}} olarak yenilenir.",

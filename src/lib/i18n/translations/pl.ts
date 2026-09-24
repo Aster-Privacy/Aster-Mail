@@ -5294,8 +5294,7 @@ export const pl = {
     special_offer_original_price: "Cena regularna: {{price}}",
     special_offer_cta: "Odbierz {{percent}}% zniżki",
     special_offer_feature_aliases: "Nieograniczone aliasy i własne domeny",
-    special_offer_feature_vanguard:
-      "Blokada aplikacji Aster Vanguard, tryb lockdown i monitorowanie bezpieczeństwa",
+    special_offer_feature_vanguard: "Lepsza ochrona z Vanguard",
     special_offer_feature_storage: "500 GB zaszyfrowanej przestrzeni",
     special_offer_fine_print:
       "Przez pierwsze {{months}} miesięcy płacisz {{offer_price}} miesięcznie. Potem plan odnawia się za {{price}} miesięcznie, dopóki nie anulujesz go w Ustawieniach.",

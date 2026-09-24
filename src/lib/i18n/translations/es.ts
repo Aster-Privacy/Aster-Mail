@@ -5150,8 +5150,7 @@ export const es = {
     special_offer_original_price: "Precio original: {{price}}",
     special_offer_cta: "Consigue un {{percent}} % de descuento",
     special_offer_feature_aliases: "Alias ilimitados y dominios propios",
-    special_offer_feature_vanguard:
-      "Bloqueo de app Aster Vanguard, modo de bloqueo y supervisión de seguridad",
+    special_offer_feature_vanguard: "Seguridad avanzada con Vanguard",
     special_offer_feature_storage: "500 GB de almacenamiento cifrado",
     special_offer_fine_print:
       "Pagas {{offer_price}} al mes durante los primeros {{months}} meses. Después, tu plan se renueva por {{price}} al mes hasta que lo canceles en Ajustes.",
