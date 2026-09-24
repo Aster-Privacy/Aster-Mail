@@ -29,7 +29,6 @@ import {
   QrCodeIcon,
   WalletIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
 
 import { measure_clock_skew, write_to_clipboard } from "./clipboard";
 import {
@@ -43,8 +42,6 @@ import {
   MAX_POLL_INTERVAL_MS,
   POLL_INTERVAL_MS,
   TERMINAL_STATUSES,
-  WARNING_BG,
-  WARNING_FG,
   WARNING_TEXT,
 } from "./constants";
 import {
@@ -65,13 +62,17 @@ import {
   InvoiceSkeleton,
   LiveStatus,
   Meter,
+  Notice,
   PageShell,
   ResultCard,
   StatusStep,
   StepList,
+  TICKET_CARD,
+  TicketDivider,
 } from "./ui";
 import { safe_wallet_uri } from "./wallet";
 
+import { Button } from "@/components/ui/button";
 import { CoinIcon } from "@/components/ui/coin_icon";
 import { RoundedQrCode } from "@/components/ui/rounded_qr_code";
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
@@ -652,15 +653,10 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
           title={t("settings.crypto_native_invoice_cancelled")}
           tone="muted"
         >
-          <div
-            className="mt-5 flex items-start gap-3 rounded-2xl p-4 text-start"
-            role="alert"
-            style={{ backgroundColor: WARNING_BG, color: WARNING_FG }}
-          >
-            <ExclamationTriangleIcon className="mt-0.5 w-5 h-5 shrink-0" />
-            <p className="text-xs font-medium leading-relaxed">
+          <div className="mt-5">
+            <Notice role="alert">
               {t("settings.crypto_native_expired_do_not_send")}
-            </p>
+            </Notice>
           </div>
           <div className="mt-5 flex flex-col gap-2">
             <Button
@@ -692,15 +688,10 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
           title={t("settings.crypto_native_expired_title")}
           tone="muted"
         >
-          <div
-            className="mt-5 flex items-start gap-3 rounded-2xl p-4 text-start"
-            role="alert"
-            style={{ backgroundColor: WARNING_BG, color: WARNING_FG }}
-          >
-            <ExclamationTriangleIcon className="mt-0.5 w-5 h-5 shrink-0" />
-            <p className="text-xs font-medium leading-relaxed">
+          <div className="mt-5">
+            <Notice role="alert">
               {t("settings.crypto_native_expired_do_not_send")}
-            </p>
+            </Notice>
           </div>
           <div className="mt-5 flex flex-col gap-2">
             <Button
@@ -757,53 +748,60 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
           className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[1.05fr_1fr]"
           initial={{ opacity: 0 }}
         >
-          <section className="rounded-3xl border border-edge-secondary bg-surf-secondary p-6 sm:p-7">
-            <div className="flex items-center gap-3">
-              <CoinIcon
-                chain={invoice.chain}
-                class_name="shrink-0"
-                currency={invoice.currency}
-                size={40}
-              />
-              <div className="min-w-0">
-                <h1 className="truncate text-lg font-semibold text-txt-primary">
-                  {has_outstanding_balance
-                    ? t("settings.crypto_native_invoice_title", {
-                        coin: coin_label,
-                      })
-                    : t("settings.crypto_native_received_title")}
-                </h1>
-                <p className="truncate text-xs text-txt-muted">
-                  {t("settings.crypto_native_on_chain", { chain: chain_label })}
-                </p>
+          <section className={TICKET_CARD}>
+            <div className="p-5 sm:p-6">
+              <div className="flex items-center gap-3">
+                <CoinIcon
+                  chain={invoice.chain}
+                  class_name="shrink-0"
+                  currency={invoice.currency}
+                  size={40}
+                />
+                <div className="min-w-0">
+                  <h1 className="truncate text-lg font-semibold text-txt-primary">
+                    {has_outstanding_balance
+                      ? t("settings.crypto_native_invoice_title", {
+                          coin: coin_label,
+                        })
+                      : t("settings.crypto_native_received_title")}
+                  </h1>
+                  <p className="truncate text-xs text-txt-muted">
+                    {t("settings.crypto_native_on_chain", {
+                      chain: chain_label,
+                    })}
+                  </p>
+                </div>
+              </div>
+
+              <p className="mt-4 text-[13px] leading-relaxed text-txt-secondary">
+                {has_outstanding_balance
+                  ? t("settings.crypto_native_awaiting_body")
+                  : t("settings.crypto_native_received_body")}
+              </p>
+
+              <div className="flex flex-col items-center">
+                {has_outstanding_balance && qr_value && (
+                  <div className="mt-5 flex flex-col items-center gap-2">
+                    <div className="rounded-[16px] border border-edge-secondary bg-white p-2.5">
+                      <RoundedQrCode size={208} value={qr_value} />
+                    </div>
+                    <span className="inline-flex items-center gap-1.5 text-center text-xs text-txt-muted">
+                      <QrCodeIcon className="w-3.5 h-3.5 shrink-0" />
+                      {qr_is_address_only
+                        ? t("settings.crypto_native_scan_hint_address_only", {
+                            amount: `${amount_due_decimal} ${invoice.currency}`,
+                          })
+                        : t("settings.crypto_native_scan_hint")}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
-            <p className="mt-4 text-sm leading-relaxed text-txt-secondary">
-              {has_outstanding_balance
-                ? t("settings.crypto_native_awaiting_body")
-                : t("settings.crypto_native_received_body")}
-            </p>
-
-            <div className="mt-5 flex flex-col items-center gap-4">
-              {has_outstanding_balance && qr_value && (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="rounded-[20px] border border-edge-secondary bg-surf-tertiary p-2.5">
-                    <RoundedQrCode size={208} value={qr_value} />
-                  </div>
-                  <span className="inline-flex items-center gap-1.5 text-center text-[11px] text-txt-muted">
-                    <QrCodeIcon className="w-3.5 h-3.5 shrink-0" />
-                    {qr_is_address_only
-                      ? t("settings.crypto_native_scan_hint_address_only", {
-                          amount: `${amount_due_decimal} ${invoice.currency}`,
-                        })
-                      : t("settings.crypto_native_scan_hint")}
-                  </span>
-                </div>
-              )}
-
-              <div className="w-full space-y-2.5">
-                {has_outstanding_balance && (
+            {has_outstanding_balance && (
+              <>
+                <TicketDivider />
+                <div className="px-5 pt-2 sm:px-6">
                   <CopyField
                     copy_hint={t("settings.crypto_native_copy_amount")}
                     copy_value={amount_due_decimal}
@@ -816,9 +814,7 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
                     value={`${amount_due_decimal} ${invoice.currency}`}
                     value_class="text-base"
                   />
-                )}
-
-                {has_outstanding_balance && (
+                  <div className="border-t border-edge-secondary" />
                   <CopyField
                     copy_hint={t("settings.crypto_native_copy_address")}
                     label={t("settings.crypto_native_to_address")}
@@ -826,32 +822,28 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
                     value={invoice.address}
                     value_class="text-[13px] sm:text-sm"
                   />
-                )}
 
-                {has_outstanding_balance && wallet_uri && (
-                  <a
-                    className="aster_btn aster_btn_primary aster_btn_md flex w-full items-center justify-center gap-2"
-                    href={wallet_uri}
-                    onClick={handle_open_wallet}
-                  >
-                    <WalletIcon className="w-4 h-4" />
-                    {t("settings.crypto_native_open_wallet")}
-                  </a>
-                )}
+                  {wallet_uri && (
+                    <a
+                      className="aster_btn aster_btn_secondary aster_btn_md mt-2 flex w-full items-center justify-center gap-2"
+                      href={wallet_uri}
+                      onClick={handle_open_wallet}
+                    >
+                      <WalletIcon className="w-4 h-4" />
+                      {t("settings.crypto_native_open_wallet")}
+                    </a>
+                  )}
 
-                {has_outstanding_balance &&
-                  wallet_uri &&
-                  wallet_handler_missing && (
+                  {wallet_uri && wallet_handler_missing && (
                     <p
-                      className="text-xs leading-relaxed text-txt-secondary"
+                      className="mt-2 text-xs leading-relaxed text-txt-secondary"
                       role="status"
                     >
                       {t("settings.crypto_native_no_wallet_handler")}
                     </p>
                   )}
 
-                {has_outstanding_balance && (
-                  <div className="space-y-1.5 pt-0.5">
+                  <div className="space-y-1.5 pt-4">
                     <p className="text-xs leading-relaxed text-txt-secondary">
                       {t("settings.crypto_native_verify_address")}
                     </p>
@@ -859,33 +851,28 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
                       {t("settings.crypto_native_fee_headroom")}
                     </p>
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
+              </>
+            )}
 
             {(has_outstanding_balance || quote_lapsed) && (
-              <div
-                className="mt-5 flex items-start gap-3 rounded-2xl p-4"
-                role="alert"
-                style={{ backgroundColor: WARNING_BG, color: WARNING_FG }}
-              >
-                <ExclamationTriangleIcon className="mt-0.5 w-5 h-5 shrink-0" />
-                <p className="text-xs font-medium leading-relaxed">
+              <div className="px-5 pb-5 pt-4 sm:px-6 sm:pb-6">
+                <Notice role="alert">
                   {quote_lapsed
                     ? t("settings.crypto_native_expired_do_not_send")
                     : t("settings.crypto_native_network_warning", {
                         coin: invoice.currency,
                         chain: chain_label,
                       })}
-                </p>
+                </Notice>
               </div>
             )}
           </section>
 
-          <section className="flex flex-col overflow-hidden rounded-3xl border border-edge-secondary bg-surf-secondary">
-            <div className="shrink-0 p-6 sm:p-7">
+          <section className={`${TICKET_CARD} flex flex-col`}>
+            <div className="shrink-0 p-5 sm:p-6">
               <div className="flex items-baseline justify-between gap-3">
-                <span className="text-sm font-medium text-txt-secondary">
+                <span className="text-xs text-txt-muted">
                   {has_received_funds
                     ? t("settings.crypto_native_usd_total_label")
                     : t("settings.crypto_native_usd_value_label")}
@@ -894,7 +881,7 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
                   {format_price(invoice.usd_cents, "usd")}
                 </span>
               </div>
-              <p className="mt-2 text-xs leading-relaxed text-txt-muted">
+              <p className="mt-2 text-[11px] leading-relaxed text-txt-muted">
                 {t("settings.crypto_native_rate_locked")}
               </p>
               {locked_rate_label && (
@@ -917,16 +904,14 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
               )}
             </div>
 
-            <div
-              aria-live="polite"
-              className="flex flex-col border-t border-edge-secondary p-6 sm:p-7"
-            >
+            <TicketDivider />
+
+            <div aria-live="polite" className="flex flex-col p-5 sm:p-6">
               {connection_lost && (
-                <div className="mb-4 flex items-center gap-2 rounded-2xl border border-edge-secondary bg-surf-tertiary px-4 py-2.5">
-                  <ExclamationTriangleIcon className="w-4 h-4 shrink-0 text-txt-muted" />
-                  <p className="text-xs leading-relaxed text-txt-secondary">
+                <div className="mb-4">
+                  <Notice tone="neutral">
                     {t("settings.crypto_native_connection_lost")}
-                  </p>
+                  </Notice>
                 </div>
               )}
 
@@ -965,7 +950,7 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
 
               {invoice.status === "confirming" &&
                 invoice.min_confirmations > 0 && (
-                  <div className="mt-4 rounded-2xl border border-edge-secondary bg-surf-tertiary p-4">
+                  <div className="mt-4 rounded-[12px] border border-edge-secondary p-3.5">
                     <div className="flex items-center justify-between gap-3">
                       <span className="text-xs font-medium text-txt-muted">
                         {t("settings.crypto_native_confirmations_label")}
@@ -990,24 +975,21 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
                 )}
 
               {is_underpaid && (
-                <div
-                  className="mt-4 rounded-2xl p-4"
-                  style={{ backgroundColor: WARNING_BG, color: WARNING_FG }}
-                >
-                  <p className="text-xs font-medium leading-relaxed">
+                <div className="mt-4">
+                  <Notice>
                     {t("settings.crypto_native_underpaid_body", {
                       received: invoice.amount_received_decimal,
                       expected: invoice.amount_decimal,
                       remaining: amount_due_decimal,
                       coin: invoice.currency,
                     })}
-                  </p>
+                  </Notice>
                 </div>
               )}
 
               {is_unknown_status && (
                 <div
-                  className="mt-4 rounded-2xl border border-edge-secondary bg-surf-tertiary p-4"
+                  className="mt-4 rounded-[12px] border border-edge-secondary p-3.5"
                   role="status"
                 >
                   <p className="text-sm font-medium text-txt-primary">
@@ -1020,7 +1002,7 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
               )}
 
               {is_manual_review && (
-                <div className="mt-4 rounded-2xl border border-edge-secondary bg-surf-tertiary p-4">
+                <div className="mt-4 rounded-[12px] border border-edge-secondary p-3.5">
                   <p className="text-sm font-medium text-txt-primary">
                     {t("settings.crypto_native_manual_review")}
                   </p>
@@ -1031,7 +1013,9 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
               )}
             </div>
 
-            <div className="shrink-0 border-t border-edge-secondary px-6 py-3 sm:px-7">
+            <TicketDivider />
+
+            <div className="shrink-0 px-5 py-2 sm:px-6">
               <div className="divide-y divide-edge-secondary">
                 <DetailRow
                   label={t("settings.crypto_native_paying_with_label")}
@@ -1074,12 +1058,12 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
 
               {invoice.txids.length > 0 && (
                 <div className="pb-4 pt-1">
-                  <span className="text-[11px] font-medium uppercase tracking-wide text-txt-muted">
+                  <span className="text-xs text-txt-muted">
                     {t("settings.crypto_native_transaction")}
                   </span>
                   <button
                     aria-label={t("settings.crypto_native_copy_tx_hash")}
-                    className="group mt-1.5 flex w-full items-center justify-between gap-3 rounded-2xl border border-edge-secondary bg-surf-tertiary px-4 py-2.5 text-start transition-colors hover:border-edge-primary hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+                    className="group mt-1.5 flex w-full items-center justify-between gap-3 rounded-[12px] border border-edge-secondary px-3.5 py-2.5 text-start transition-colors hover:border-edge-primary hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
                     type="button"
                     onClick={() => handle_copy(invoice.txids[0])}
                   >
@@ -1092,11 +1076,11 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
               )}
             </div>
 
-            <div className="flex shrink-0 flex-col gap-4 border-t border-edge-secondary p-6 sm:p-7">
+            <div className="flex shrink-0 flex-col gap-4 border-t border-edge-secondary p-5 sm:p-6">
               {is_active_payment && Number.isFinite(expires_ms) && (
                 <div>
                   <div className="flex items-center justify-between gap-3">
-                    <span className="inline-flex items-center gap-1.5 text-xs font-medium text-txt-muted">
+                    <span className="inline-flex items-center gap-1.5 text-xs text-txt-muted">
                       <ClockIcon className="w-3.5 h-3.5" />
                       {t("settings.crypto_native_time_remaining")}
                     </span>
@@ -1136,7 +1120,7 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
                   className="w-full"
                   disabled={is_cancelling}
                   is_loading={is_cancelling}
-                  variant="outline"
+                  variant="ghost"
                   onClick={() => set_confirm_cancel_open(true)}
                 >
                   {t("settings.crypto_native_cancel_invoice")}

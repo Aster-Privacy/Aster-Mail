@@ -58,6 +58,7 @@ import {
 import { is_resumable_checkout_plan } from "@/components/settings/billing/billing_constants";
 import { AliasCapUpsellModal } from "@/components/upgrade/alias_cap_upsell_modal";
 import { SpecialOfferModal } from "@/components/upgrade/special_offer_modal";
+import { SpecialOfferSuccessModal } from "@/components/upgrade/special_offer_success_modal";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { EmailNotificationManager } from "@/components/email/email_notification_manager";
@@ -150,6 +151,7 @@ function BillingSuccessHandler() {
     plan: string;
     billing: string;
   } | null>(null);
+  const [offer_welcome, set_offer_welcome] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -239,7 +241,8 @@ function BillingSuccessHandler() {
       } catch {
         // best-effort; webhook is source of truth
       }
-      const target = read_checkout_target()?.plan_code ?? null;
+      const checkout_target = read_checkout_target();
+      const target = checkout_target?.plan_code ?? null;
 
       clear_checkout_target();
 
@@ -272,6 +275,8 @@ function BillingSuccessHandler() {
               max_members,
               storage_pool_bytes: storage_gb * 1073741824,
             });
+          } else if (checkout_target?.special_offer) {
+            set_offer_welcome(true);
           } else {
             const billing = (res.data.plan.billing_period || "").startsWith(
               "year",
@@ -296,10 +301,16 @@ function BillingSuccessHandler() {
     })();
   }, [is_authenticated, current_account_id, t]);
 
-  if (!family_welcome && !individual_welcome) return null;
+  if (!family_welcome && !individual_welcome && !offer_welcome) return null;
 
   return (
     <>
+      {offer_welcome && (
+        <SpecialOfferSuccessModal
+          is_open={true}
+          on_close={() => set_offer_welcome(false)}
+        />
+      )}
       {family_welcome && (
         <FamilyWelcomeModal
           is_open={true}

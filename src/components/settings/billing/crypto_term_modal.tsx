@@ -51,6 +51,7 @@ import {
 } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { prefetch_crypto_invoice_page } from "@/pages/crypto_invoice/prefetch";
+import { Notice, TicketDivider } from "@/pages/crypto_invoice/ui";
 import {
   FAMILY_PLAN_TIERS,
   PLAN_TIERS,
@@ -67,6 +68,7 @@ interface CryptoTermModalProps {
   is_open: boolean;
   on_close: () => void;
   on_checkout_opened?: () => void;
+  on_finished?: () => void;
   plan_code: string;
   plan_name: string;
   monthly_price_cents: number;
@@ -110,10 +112,15 @@ function coin_title(display_name: string, chain: string): string {
     : display_name;
 }
 
+const ACCENT_TINT = "color-mix(in srgb, var(--accent-color) 12%, transparent)";
+const ACCENT_TINT_SOFT =
+  "color-mix(in srgb, var(--accent-color) 6%, transparent)";
+
 export function crypto_term_modal({
   is_open,
   on_close,
   on_checkout_opened,
+  on_finished,
   plan_code,
   plan_name,
   monthly_price_cents,
@@ -241,7 +248,12 @@ export function crypto_term_modal({
   const is_discounted = (term: TermMonths): boolean =>
     compute_price_cents(term) < list_price_cents(term);
 
-  const original_price = (term: TermMonths, is_selected: boolean) => {
+  const checkout_promo_code = (): string | undefined =>
+    special_offer && !is_discounted(selected_term)
+      ? undefined
+      : (promo_code ?? undefined);
+
+  const original_price = (term: TermMonths) => {
     if (!is_discounted(term)) return null;
 
     const label = format_price(list_price_cents(term), CHARGE_CURRENCY);
@@ -253,12 +265,7 @@ export function crypto_term_modal({
         </span>
         <span
           aria-hidden="true"
-          className={`text-xs font-medium line-through ${
-            is_selected ? "opacity-70" : "text-txt-muted"
-          }`}
-          style={
-            is_selected ? { color: "var(--accent-fg, #ffffff)" } : undefined
-          }
+          className="text-xs font-medium text-txt-muted line-through"
         >
           {label}
         </span>
@@ -266,19 +273,15 @@ export function crypto_term_modal({
     );
   };
 
-  const save_badge = (term: TermMonths, is_selected: boolean) => {
+  const save_badge = (term: TermMonths) => {
     if (!discount_percent_off || !is_discounted(term)) return null;
 
     return (
       <span
-        className="inline-flex flex-shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+        className="inline-flex flex-shrink-0 items-center rounded-[6px] px-1.5 py-0.5 text-[11px] font-semibold"
         style={{
-          backgroundColor: is_selected
-            ? "var(--accent-fg, #ffffff)"
-            : "var(--accent-color)",
-          color: is_selected
-            ? "var(--accent-color)"
-            : "var(--accent-fg, #ffffff)",
+          backgroundColor: ACCENT_TINT,
+          color: "var(--accent-color)",
         }}
       >
         {t("settings.special_offer_save_badge", {
@@ -338,6 +341,11 @@ export function crypto_term_modal({
     }
   };
 
+  const finish_checkout = () => {
+    on_checkout_opened?.();
+    (on_finished ?? on_close)();
+  };
+
   const handle_stripe = async () => {
     set_is_loading(true);
     try {
@@ -351,8 +359,8 @@ export function crypto_term_modal({
         selected_term,
         `${origin}/?crypto=success`,
         `${origin}/?crypto=cancelled`,
-        promo_code ?? undefined,
-        special_offer,
+        checkout_promo_code(),
+        special_offer && is_discounted(selected_term),
       );
 
       if (response.data?.url) {
@@ -361,8 +369,7 @@ export function crypto_term_modal({
           const core = await import("@tauri-apps/api/core");
 
           await core.invoke("open_external_url", { url: safe_url });
-          on_checkout_opened?.();
-          on_close();
+          finish_checkout();
         } else {
           mark_payment_navigation();
           window.location.href = payment_url_or_throw(response.data.url);
@@ -391,7 +398,7 @@ export function crypto_term_modal({
     const key = `${coin.currency}:${coin.chain}`;
 
     if (initial_invoice_id && initial_coin_key === key) {
-      on_close();
+      finish_checkout();
       navigate(`/crypto-invoice/${initial_invoice_id}`);
 
       return;
@@ -404,8 +411,8 @@ export function crypto_term_modal({
         selected_term,
         coin.currency,
         coin.chain,
-        promo_code ?? undefined,
-        special_offer,
+        checkout_promo_code(),
+        special_offer && is_discounted(selected_term),
       );
 
       if (response.data?.id) {
@@ -417,7 +424,7 @@ export function crypto_term_modal({
           chain: coin.chain,
         });
         notify_crypto_invoice_changed();
-        on_close();
+        finish_checkout();
         navigate(`/crypto-invoice/${response.data.id}`);
 
         return;
@@ -503,41 +510,46 @@ export function crypto_term_modal({
                         term_button_refs.current[index] = element;
                       }}
                       aria-checked={is_selected}
-                      className={`w-full flex items-center justify-between gap-3 rounded-[14px] border p-3.5 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 disabled:cursor-not-allowed ${
+                      className={`w-full flex items-center justify-between gap-3 rounded-[12px] border px-3.5 py-3 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 disabled:cursor-not-allowed ${
                         is_selected
-                          ? "bg-brand border-brand"
-                          : "bg-surf-tertiary border-edge-secondary hover:bg-surf-hover hover:border-edge-primary"
+                          ? ""
+                          : "border-edge-secondary hover:bg-surf-hover"
                       }`}
                       disabled={is_loading}
                       role="radio"
+                      style={
+                        is_selected
+                          ? {
+                              backgroundColor: ACCENT_TINT_SOFT,
+                              borderColor: "var(--accent-color)",
+                            }
+                          : undefined
+                      }
                       tabIndex={is_selected ? 0 : -1}
                       type="button"
                       onClick={() => set_selected_term(term)}
                       onKeyDown={(event) => handle_term_keydown(event, index)}
                     >
-                      <span className="flex min-w-0 flex-wrap items-center gap-2">
+                      <span className="flex min-w-0 items-center gap-3">
                         <span
-                          className="text-sm font-medium"
+                          aria-hidden="true"
+                          className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full"
                           style={{
-                            color: is_selected
-                              ? "var(--accent-fg, #ffffff)"
-                              : "var(--text-primary)",
+                            border: is_selected
+                              ? "5px solid var(--accent-color)"
+                              : "1.5px solid var(--border-secondary)",
                           }}
-                        >
-                          {term_label(term)}
+                        />
+                        <span className="flex min-w-0 flex-wrap items-center gap-2">
+                          <span className="text-sm font-medium text-txt-primary">
+                            {term_label(term)}
+                          </span>
+                          {save_badge(term)}
                         </span>
-                        {save_badge(term, is_selected)}
                       </span>
                       <span className="flex flex-shrink-0 items-baseline gap-2">
-                        {original_price(term, is_selected)}
-                        <span
-                          className="text-sm font-semibold"
-                          style={{
-                            color: is_selected
-                              ? "var(--accent-fg, #ffffff)"
-                              : "var(--text-primary)",
-                          }}
-                        >
+                        {original_price(term)}
+                        <span className="text-sm font-semibold text-txt-primary">
                           {t("settings.crypto_modal_price", {
                             amount: format_price(price, CHARGE_CURRENCY),
                           })}
@@ -554,11 +566,10 @@ export function crypto_term_modal({
               <p className="mt-2 text-xs leading-relaxed text-txt-muted">
                 {t("settings.crypto_rate_notice")}
               </p>
-              <div
-                className="mt-3 rounded-[14px] border border-edge-secondary bg-surf-tertiary p-3.5 text-xs leading-relaxed text-txt-secondary"
-                role="note"
-              >
-                {t("settings.crypto_exchange_warning")}
+              <div className="mt-3">
+                <Notice role="note">
+                  {t("settings.crypto_exchange_warning")}
+                </Notice>
               </div>
             </ModalBody>
             <ModalFooter>
@@ -588,33 +599,36 @@ export function crypto_term_modal({
               </ModalTitle>
             </ModalHeader>
             <ModalBody>
-              <dl className="mb-4 space-y-2 rounded-[14px] border border-edge-secondary bg-surf-tertiary p-3.5">
-                <div className="flex items-baseline justify-between gap-3">
-                  <dt className="text-xs text-txt-muted">
-                    {t("settings.crypto_summary_plan")}
-                  </dt>
-                  <dd className="text-sm font-medium text-txt-primary">
-                    {plan_name}
-                  </dd>
-                </div>
-                <div className="flex items-baseline justify-between gap-3">
-                  <dt className="text-xs text-txt-muted">
-                    {t("settings.crypto_summary_length")}
-                  </dt>
-                  <dd className="text-sm font-medium text-txt-primary">
-                    {term_label(selected_term)}
-                  </dd>
-                </div>
-                <div className="flex items-baseline justify-between gap-3 border-t border-edge-secondary pt-2">
+              <div className="relative mb-4 rounded-[12px] border border-edge-secondary">
+                <dl className="space-y-2 p-3.5">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <dt className="text-xs text-txt-muted">
+                      {t("settings.crypto_summary_plan")}
+                    </dt>
+                    <dd className="text-sm font-medium text-txt-primary">
+                      {plan_name}
+                    </dd>
+                  </div>
+                  <div className="flex items-baseline justify-between gap-3">
+                    <dt className="text-xs text-txt-muted">
+                      {t("settings.crypto_summary_length")}
+                    </dt>
+                    <dd className="text-sm font-medium text-txt-primary">
+                      {term_label(selected_term)}
+                    </dd>
+                  </div>
+                </dl>
+                <TicketDivider notch_color="var(--modal-bg)" />
+                <dl className="flex items-baseline justify-between gap-3 p-3.5">
                   <dt className="text-xs text-txt-muted">
                     {t("common.total")}
                   </dt>
                   <dd className="flex items-baseline gap-2 text-base font-semibold text-txt-primary">
-                    {original_price(selected_term, false)}
+                    {original_price(selected_term)}
                     <span>{selected_price_label}</span>
                   </dd>
-                </div>
-              </dl>
+                </dl>
+              </div>
               {coins_status === "loading" ? (
                 <div className="flex items-center justify-center gap-3 py-8 text-txt-secondary">
                   <Spinner size="md" />
@@ -626,7 +640,7 @@ export function crypto_term_modal({
                 <div className="space-y-2">
                   {coins_status === "failed" && (
                     <div
-                      className="flex flex-col gap-3 rounded-[14px] border border-edge-secondary bg-surf-tertiary p-3.5"
+                      className="flex flex-col gap-3 rounded-[12px] border border-edge-secondary p-3.5"
                       role="alert"
                     >
                       <span className="text-sm text-txt-secondary">
@@ -661,12 +675,13 @@ export function crypto_term_modal({
                       <button
                         key={key}
                         aria-busy={is_creating}
-                        className={`w-full flex items-center justify-between gap-3 rounded-[14px] border p-3.5 text-start transition-colors bg-surf-tertiary hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed ${
-                          is_highlighted
-                            ? "border-brand"
-                            : "border-edge-secondary hover:border-edge-primary"
-                        }`}
+                        className="w-full flex items-center justify-between gap-3 rounded-[12px] border px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
                         disabled={busy}
+                        style={{
+                          borderColor: is_highlighted
+                            ? "var(--accent-color)"
+                            : "var(--border-secondary)",
+                        }}
                         type="button"
                         onClick={() => handle_native(coin)}
                       >
@@ -693,10 +708,10 @@ export function crypto_term_modal({
                             <Spinner size="sm" />
                           ) : is_highlighted ? (
                             <span
-                              className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                              className="rounded-[6px] px-1.5 py-0.5 text-[11px] font-semibold"
                               style={{
-                                backgroundColor: "var(--accent-color)",
-                                color: "var(--accent-fg, #ffffff)",
+                                backgroundColor: ACCENT_TINT,
+                                color: "var(--accent-color)",
                               }}
                             >
                               {is_restored
@@ -712,7 +727,7 @@ export function crypto_term_modal({
                   {card_checkout_available && (
                     <button
                       aria-busy={is_loading}
-                      className="w-full flex items-center justify-between gap-3 rounded-[14px] border border-edge-secondary p-3.5 text-start transition-colors bg-surf-tertiary hover:bg-surf-hover hover:border-edge-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
+                      className="w-full flex items-center justify-between gap-3 rounded-[12px] border border-edge-secondary px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
                       disabled={busy}
                       type="button"
                       onClick={handle_stripe}

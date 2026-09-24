@@ -52,6 +52,7 @@ import {
 } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { prefetch_crypto_invoice_page } from "@/pages/crypto_invoice/prefetch";
+import { Notice, TicketDivider } from "@/pages/crypto_invoice/ui";
 import { notify_crypto_invoice_changed } from "@/components/settings/billing/billing_constants";
 
 type TermMonths = 1 | 3 | 6 | 12 | 24;
@@ -62,6 +63,7 @@ interface CryptoAddonTermModalProps {
   is_open: boolean;
   on_close: () => void;
   on_checkout_opened?: () => void;
+  on_finished?: () => void;
   addon_id: string;
   addon_name: string;
   price_cents: number;
@@ -94,10 +96,15 @@ function coin_title(display_name: string, chain: string): string {
     : display_name;
 }
 
+const ACCENT_TINT = "color-mix(in srgb, var(--accent-color) 12%, transparent)";
+const ACCENT_TINT_SOFT =
+  "color-mix(in srgb, var(--accent-color) 6%, transparent)";
+
 export function crypto_addon_term_modal({
   is_open,
   on_close,
   on_checkout_opened,
+  on_finished,
   addon_id,
   addon_name,
   price_cents,
@@ -233,6 +240,11 @@ export function crypto_addon_term_modal({
     }
   };
 
+  const finish_checkout = () => {
+    on_checkout_opened?.();
+    (on_finished ?? on_close)();
+  };
+
   const handle_stripe = async () => {
     set_is_loading(true);
     try {
@@ -254,8 +266,7 @@ export function crypto_addon_term_modal({
           const core = await import("@tauri-apps/api/core");
 
           await core.invoke("open_external_url", { url: safe_url });
-          on_checkout_opened?.();
-          on_close();
+          finish_checkout();
         } else {
           mark_payment_navigation();
           window.location.href = payment_url_or_throw(response.data.url);
@@ -294,7 +305,7 @@ export function crypto_addon_term_modal({
 
       if (response.data?.id) {
         notify_crypto_invoice_changed();
-        on_close();
+        finish_checkout();
         navigate(`/crypto-invoice/${response.data.id}`);
 
         return;
@@ -377,36 +388,41 @@ export function crypto_addon_term_modal({
                         term_button_refs.current[index] = element;
                       }}
                       aria-checked={is_selected}
-                      className={`w-full flex items-center justify-between gap-3 rounded-[14px] border p-3.5 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 disabled:cursor-not-allowed ${
+                      className={`w-full flex items-center justify-between gap-3 rounded-[12px] border px-3.5 py-3 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 disabled:cursor-not-allowed ${
                         is_selected
-                          ? "bg-brand border-brand"
-                          : "bg-surf-tertiary border-edge-secondary hover:bg-surf-hover hover:border-edge-primary"
+                          ? ""
+                          : "border-edge-secondary hover:bg-surf-hover"
                       }`}
                       disabled={is_loading}
                       role="radio"
+                      style={
+                        is_selected
+                          ? {
+                              backgroundColor: ACCENT_TINT_SOFT,
+                              borderColor: "var(--accent-color)",
+                            }
+                          : undefined
+                      }
                       tabIndex={is_selected ? 0 : -1}
                       type="button"
                       onClick={() => set_selected_term(term)}
                       onKeyDown={(event) => handle_term_keydown(event, index)}
                     >
-                      <span
-                        className="text-sm font-medium"
-                        style={{
-                          color: is_selected
-                            ? "var(--accent-fg, #ffffff)"
-                            : "var(--text-primary)",
-                        }}
-                      >
-                        {term_label(term)}
+                      <span className="flex min-w-0 items-center gap-3">
+                        <span
+                          aria-hidden="true"
+                          className="h-[18px] w-[18px] shrink-0 rounded-full"
+                          style={{
+                            border: is_selected
+                              ? "5px solid var(--accent-color)"
+                              : "1.5px solid var(--border-secondary)",
+                          }}
+                        />
+                        <span className="text-sm font-medium text-txt-primary">
+                          {term_label(term)}
+                        </span>
                       </span>
-                      <span
-                        className="text-sm font-semibold"
-                        style={{
-                          color: is_selected
-                            ? "var(--accent-fg, #ffffff)"
-                            : "var(--text-primary)",
-                        }}
-                      >
+                      <span className="text-sm font-semibold text-txt-primary">
                         {t("settings.crypto_modal_price", {
                           amount: format_price(price, CHARGE_CURRENCY),
                         })}
@@ -422,11 +438,10 @@ export function crypto_addon_term_modal({
               <p className="mt-2 text-xs leading-relaxed text-txt-muted">
                 {t("settings.crypto_rate_notice")}
               </p>
-              <div
-                className="mt-3 rounded-[14px] border border-edge-secondary bg-surf-tertiary p-3.5 text-xs leading-relaxed text-txt-secondary"
-                role="note"
-              >
-                {t("settings.crypto_exchange_warning")}
+              <div className="mt-3">
+                <Notice role="note">
+                  {t("settings.crypto_exchange_warning")}
+                </Notice>
               </div>
             </ModalBody>
             <ModalFooter>
@@ -456,32 +471,35 @@ export function crypto_addon_term_modal({
               </ModalTitle>
             </ModalHeader>
             <ModalBody>
-              <dl className="mb-4 space-y-2 rounded-[14px] border border-edge-secondary bg-surf-tertiary p-3.5">
-                <div className="flex items-baseline justify-between gap-3">
-                  <dt className="text-xs text-txt-muted">
-                    {t("settings.crypto_summary_addon")}
-                  </dt>
-                  <dd className="text-sm font-medium text-txt-primary">
-                    {addon_name}
-                  </dd>
-                </div>
-                <div className="flex items-baseline justify-between gap-3">
-                  <dt className="text-xs text-txt-muted">
-                    {t("settings.crypto_summary_length")}
-                  </dt>
-                  <dd className="text-sm font-medium text-txt-primary">
-                    {term_label(selected_term)}
-                  </dd>
-                </div>
-                <div className="flex items-baseline justify-between gap-3 border-t border-edge-secondary pt-2">
+              <div className="relative mb-4 rounded-[12px] border border-edge-secondary">
+                <dl className="space-y-2 p-3.5">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <dt className="text-xs text-txt-muted">
+                      {t("settings.crypto_summary_addon")}
+                    </dt>
+                    <dd className="text-sm font-medium text-txt-primary">
+                      {addon_name}
+                    </dd>
+                  </div>
+                  <div className="flex items-baseline justify-between gap-3">
+                    <dt className="text-xs text-txt-muted">
+                      {t("settings.crypto_summary_length")}
+                    </dt>
+                    <dd className="text-sm font-medium text-txt-primary">
+                      {term_label(selected_term)}
+                    </dd>
+                  </div>
+                </dl>
+                <TicketDivider notch_color="var(--modal-bg)" />
+                <dl className="flex items-baseline justify-between gap-3 p-3.5">
                   <dt className="text-xs text-txt-muted">
                     {t("common.total")}
                   </dt>
                   <dd className="text-base font-semibold text-txt-primary">
                     {selected_price_label}
                   </dd>
-                </div>
-              </dl>
+                </dl>
+              </div>
               {coins_status === "loading" ? (
                 <div className="flex items-center justify-center gap-3 py-8 text-txt-secondary">
                   <Spinner size="md" />
@@ -493,7 +511,7 @@ export function crypto_addon_term_modal({
                 <div className="space-y-2">
                   {coins_status === "failed" && (
                     <div
-                      className="flex flex-col gap-3 rounded-[14px] border border-edge-secondary bg-surf-tertiary p-3.5"
+                      className="flex flex-col gap-3 rounded-[12px] border border-edge-secondary p-3.5"
                       role="alert"
                     >
                       <span className="text-sm text-txt-secondary">
@@ -524,12 +542,13 @@ export function crypto_addon_term_modal({
                       <button
                         key={key}
                         aria-busy={is_creating}
-                        className={`w-full flex items-center justify-between gap-3 rounded-[14px] border p-3.5 text-start transition-colors bg-surf-tertiary hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed ${
-                          coin.recommended
-                            ? "border-brand"
-                            : "border-edge-secondary hover:border-edge-primary"
-                        }`}
+                        className="w-full flex items-center justify-between gap-3 rounded-[12px] border px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
                         disabled={busy}
+                        style={{
+                          borderColor: coin.recommended
+                            ? "var(--accent-color)"
+                            : "var(--border-secondary)",
+                        }}
                         type="button"
                         onClick={() => handle_native(coin)}
                       >
@@ -556,10 +575,10 @@ export function crypto_addon_term_modal({
                             <Spinner size="sm" />
                           ) : coin.recommended ? (
                             <span
-                              className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                              className="rounded-[6px] px-1.5 py-0.5 text-[11px] font-semibold"
                               style={{
-                                backgroundColor: "var(--accent-color)",
-                                color: "var(--accent-fg, #ffffff)",
+                                backgroundColor: ACCENT_TINT,
+                                color: "var(--accent-color)",
                               }}
                             >
                               {t("settings.crypto_native_recommended")}
@@ -572,7 +591,7 @@ export function crypto_addon_term_modal({
 
                   <button
                     aria-busy={is_loading}
-                    className="w-full flex items-center justify-between gap-3 rounded-[14px] border border-edge-secondary p-3.5 text-start transition-colors bg-surf-tertiary hover:bg-surf-hover hover:border-edge-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
+                    className="w-full flex items-center justify-between gap-3 rounded-[12px] border border-edge-secondary px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
                     disabled={busy}
                     type="button"
                     onClick={handle_stripe}

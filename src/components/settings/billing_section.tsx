@@ -20,6 +20,7 @@
 //
 import { useEffect, useRef, useState, useCallback } from "react";
 import { loadStripe } from "@stripe/stripe-js/pure";
+import { CreditCardIcon } from "@heroicons/react/24/outline";
 
 import { checkout_error_text } from "./billing/checkout_error_text";
 
@@ -65,6 +66,8 @@ import {
 } from "@/services/api/billing";
 import { request_cache } from "@/services/api/request_cache";
 import { use_mail_stats, invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
+import { special_offer_promo_code } from "@/lib/special_offer";
 import {
   show_toast,
   TOAST_DURATION_BILLING_MS,
@@ -83,7 +86,12 @@ import {
 } from "@/components/settings/billing/billing_constants";
 import { DEFAULT_RECOMMENDED_PLAN } from "@/components/settings/billing/plan_recommendation";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
-import { CurrentPlanCard } from "@/components/settings/billing/current_plan_card";
+import {
+  CurrentPlanCard,
+  CurrentPlanNotices,
+} from "@/components/settings/billing/current_plan_card";
+import { BillingIconBox } from "@/components/settings/billing/billing_layout";
+import { scroll_to_storage_addons } from "@/components/layout/storage_meter";
 import { CardDeclineNotice } from "@/components/settings/billing/card_decline_notice";
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
 import { ResumeCheckoutCard } from "@/components/settings/billing/resume_checkout_card";
@@ -166,6 +174,7 @@ export function BillingSection() {
   const [show_payment_methods, set_show_payment_methods] = useState(false);
   const [auto_add_card, set_auto_add_card] = useState(false);
   const [show_manage_plan, set_show_manage_plan] = useState(false);
+  const [show_plans, set_show_plans] = useState(false);
   const [credit_balance, set_credit_balance] =
     useState<CreditBalanceResponse | null>(null);
   const [academic_status, set_academic_status] =
@@ -173,6 +182,7 @@ export function BillingSection() {
   const [is_initial_load, set_is_initial_load] = useState(true);
   const [plans_load_failed, set_plans_load_failed] = useState(false);
   const [stripe_load_failed, set_stripe_load_failed] = useState(false);
+  const offer_checkout = use_special_offer_checkout(subscription?.plan.code);
   const [subscription_load_failed, set_subscription_load_failed] =
     useState(false);
   const [show_crypto_modal, set_show_crypto_modal] = useState(false);
@@ -653,11 +663,16 @@ export function BillingSection() {
 
     set_is_action_loading(true);
     try {
+      const offer_applies =
+        checkout_interval === "month" &&
+        !!offer_checkout.plan_pricing(plan.code);
       const result = await start_hosted_checkout(
         plan.code,
         checkout_interval,
         preferred_currency,
         credit_balance?.balance_cents,
+        offer_applies ? (special_offer_promo_code() ?? undefined) : undefined,
+        offer_applies || undefined,
       );
 
       if (!result.ok) {
@@ -1021,13 +1036,13 @@ export function BillingSection() {
   };
 
   const scroll_to_plans = () => {
-    const target = document.getElementById("available-plans");
-
-    if (!target) return;
+    set_show_plans(true);
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        document
+          .getElementById("available-plans")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     });
   };
@@ -1059,28 +1074,12 @@ export function BillingSection() {
   }
 
   return (
-    <div className="space-y-6">
-      <CryptoResumeBanner />
-
-      <CardDeclineNotice decline={subscription?.last_card_decline} />
-
-      <ResumeCheckoutCard current_plan_code={subscription?.plan.code ?? null} />
-
-      <WinBackOfferCard
-        offer={subscription?.pending_offer}
-        on_choose_plan={scroll_to_plans}
-      />
-
-      <YearlySwitchCard
-        currency={preferred_currency}
-        offer={subscription?.yearly_switch_offer}
-        on_switch={handle_switch_to_yearly}
-      />
-
+    <div className="space-y-8">
       <CurrentPlanCard
         current_billing_interval={current_billing_interval}
         grace_days_remaining={grace_days_remaining}
         has_payment_failed={has_payment_failed}
+        include_notices={false}
         is_action_loading={is_action_loading}
         is_over_limit={is_storage_over_limit}
         on_manage_billing={() => set_show_payment_methods(true)}
@@ -1088,13 +1087,45 @@ export function BillingSection() {
         on_reactivate={handle_reactivate}
         on_renew_with_crypto={handle_crypto_renew}
         on_scroll_to_plans={scroll_to_plans}
+        on_toggle_plans={() => set_show_plans((open) => !open)}
+        plans_open={show_plans}
         preferred_currency={preferred_currency}
+        show_storage={false}
         storage_limit_bytes={storage_limit_bytes}
         storage_percentage={storage_percentage}
         storage_used_bytes={storage_used_bytes}
         subscription={subscription}
         upgrade_features={plan_features[DEFAULT_RECOMMENDED_PLAN]}
       />
+
+      {show_plans && (
+        <div className="space-y-6">
+          <AvailablePlansSection
+            billing_period={billing_period}
+            current_billing_interval={current_billing_interval}
+            handle_currency_change={handle_currency_change}
+            is_action_loading={is_action_loading}
+            on_family_plan_change={handle_family_plan_change}
+            on_reload_plans={() => {
+              void load_data();
+            }}
+            on_tauri_checkout_opened={() => {
+              plan_before_checkout_ref.current =
+                subscription?.plan.code ?? null;
+              pending_tauri_checkout_ref.current = true;
+            }}
+            on_upgrade={handle_select_plan}
+            plan_features={plan_features}
+            plans={plans}
+            plans_load_failed={plans_load_failed}
+            preferred_currency={preferred_currency}
+            set_billing_period={set_billing_period}
+            subscription={subscription}
+          />
+
+          <PlanComparisonSection current_plan_code={subscription?.plan.code} />
+        </div>
+      )}
 
       {stripe_load_failed && (
         <p
@@ -1106,34 +1137,41 @@ export function BillingSection() {
         </p>
       )}
 
-      <AvailablePlansSection
-        billing_period={billing_period}
-        current_billing_interval={current_billing_interval}
-        handle_currency_change={handle_currency_change}
-        is_action_loading={is_action_loading}
-        on_family_plan_change={handle_family_plan_change}
-        on_reload_plans={() => {
-          void load_data();
-        }}
-        on_tauri_checkout_opened={() => {
-          plan_before_checkout_ref.current = subscription?.plan.code ?? null;
-          pending_tauri_checkout_ref.current = true;
-        }}
-        on_upgrade={handle_select_plan}
-        plan_features={plan_features}
-        plans={plans}
-        plans_load_failed={plans_load_failed}
+      <CreditsSection
+        credit_balance={credit_balance}
+        payment_cell={
+          <div className="flex items-center gap-3 px-4 py-4 sm:px-5">
+            <BillingIconBox icon={CreditCardIcon} />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-txt-primary">
+                {t("settings.payment")}
+              </p>
+              <p className="truncate text-xs text-txt-muted">
+                {is_crypto_provider(subscription?.payment_provider)
+                  ? t("settings.checkout_method_crypto")
+                  : subscription && subscription.plan.code !== "free"
+                    ? t("settings.checkout_method_card")
+                    : t("settings.payment_methods_description")}
+              </p>
+            </div>
+            <button
+              className="aster_btn aster_btn_secondary aster_btn_sm flex-shrink-0"
+              type="button"
+              onClick={() => set_show_payment_methods(true)}
+            >
+              {t("common.update")}
+            </button>
+          </div>
+        }
         preferred_currency={preferred_currency}
-        set_billing_period={set_billing_period}
-        subscription={subscription}
+        set_credit_balance={set_credit_balance}
       />
-
-      <PlanComparisonSection current_plan_code={subscription?.plan.code} />
 
       <StorageAddonsSection
         active_addons={active_addons}
         available_addons={available_addons}
         is_action_loading={is_action_loading}
+        is_over_limit={is_storage_over_limit}
         on_cancel_addon={(addon) => {
           set_addon_to_cancel(addon);
           set_show_cancel_addon_dialog(true);
@@ -1145,18 +1183,50 @@ export function BillingSection() {
         preferred_currency={preferred_currency}
         selected_storage={selected_storage}
         set_selected_storage={set_selected_storage}
+        storage_limit_bytes={storage_limit_bytes}
+        storage_percentage={storage_percentage}
+        storage_used_bytes={storage_used_bytes}
       />
+
+      <div className="space-y-3 empty:hidden">
+        <CurrentPlanNotices
+          grace_days_remaining={grace_days_remaining}
+          has_payment_failed={has_payment_failed}
+          is_action_loading={is_action_loading}
+          is_over_limit={is_storage_over_limit}
+          on_add_storage={scroll_to_storage_addons}
+          on_manage_billing={() => set_show_payment_methods(true)}
+          on_reactivate={handle_reactivate}
+          on_renew_with_crypto={handle_crypto_renew}
+          subscription={subscription}
+        />
+
+        {!has_payment_failed && (
+          <CardDeclineNotice decline={subscription?.last_card_decline} />
+        )}
+
+        <CryptoResumeBanner />
+
+        <ResumeCheckoutCard
+          current_plan_code={subscription?.plan.code ?? null}
+        />
+
+        <WinBackOfferCard
+          offer={subscription?.pending_offer}
+          on_choose_plan={scroll_to_plans}
+        />
+
+        <YearlySwitchCard
+          currency={preferred_currency}
+          offer={subscription?.yearly_switch_offer}
+          on_switch={handle_switch_to_yearly}
+        />
+      </div>
 
       <BillingHistorySection
         history={history}
         load_failed={history_load_failed}
         on_retry={() => void load_data()}
-      />
-
-      <CreditsSection
-        credit_balance={credit_balance}
-        preferred_currency={preferred_currency}
-        set_credit_balance={set_credit_balance}
       />
 
       <AcademicDiscountSection
@@ -1172,6 +1242,10 @@ export function BillingSection() {
 
           return (
             <CryptoTermModal
+              discount_percent_off={offer_checkout.percent_off}
+              discounted_price_cents={offer_checkout.crypto_price(
+                crypto_plan.code,
+              )}
               initial_coin_key={
                 crypto_resume
                   ? `${crypto_resume.currency}:${crypto_resume.chain}`
@@ -1198,9 +1272,21 @@ export function BillingSection() {
                   set_crypto_back_plan(null);
                 }
               }}
+              on_finished={() => {
+                set_show_crypto_modal(false);
+                set_crypto_plan(null);
+                set_crypto_resume(null);
+                set_crypto_back_plan(null);
+              }}
               plan_code={crypto_plan.code}
               plan_name={crypto_plan.name}
               preferred_currency={preferred_currency}
+              promo_code={
+                offer_checkout.crypto_price(crypto_plan.code)
+                  ? special_offer_promo_code()
+                  : undefined
+              }
+              special_offer={!!offer_checkout.crypto_price(crypto_plan.code)}
               yearly_price_cents={tier.yearly_cents}
             />
           );
@@ -1254,6 +1340,7 @@ export function BillingSection() {
           plan_name={plan_method_target.name}
           selected_plan_id={plan_method_target.code}
           selected_term={billing_period}
+          special_offer={offer_checkout.plan_pricing(plan_method_target.code)}
           term_options={plan_term_options_for(plan_method_target.code)}
         />
       )}
@@ -1313,6 +1400,11 @@ export function BillingSection() {
               set_show_addon_method_modal(true);
               set_crypto_back_addon(null);
             }
+          }}
+          on_finished={() => {
+            set_show_crypto_addon_modal(false);
+            set_crypto_addon(null);
+            set_crypto_back_addon(null);
           }}
           preferred_currency={preferred_currency}
           price_cents={crypto_addon.price_cents}

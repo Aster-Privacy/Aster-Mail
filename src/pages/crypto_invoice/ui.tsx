@@ -23,7 +23,15 @@ import {
   ArrowLeftIcon,
   CheckIcon,
   ClipboardDocumentIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
+
+import {
+  WARNING_BG,
+  WARNING_BORDER,
+  WARNING_FG,
+  WARNING_TEXT,
+} from "./constants";
 
 import { Spinner } from "@/components/ui/spinner";
 
@@ -32,6 +40,9 @@ export interface StatusStep {
   label: string;
   hint: string;
 }
+
+export const TICKET_CARD =
+  "relative rounded-[16px] border border-edge-secondary bg-surf-secondary";
 
 export interface PageShellProps {
   children: ReactNode;
@@ -55,7 +66,7 @@ export function page_shell({ children, on_back, back_label }: PageShellProps) {
             src="/text_logo.png"
           />
           <button
-            className="inline-flex w-fit items-center gap-2 rounded-full bg-surf-secondary px-3.5 py-2 text-sm font-medium text-txt-secondary transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+            className="inline-flex w-fit items-center gap-2 rounded-[10px] border border-edge-secondary px-3 py-1.5 text-sm font-medium text-txt-secondary transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
             type="button"
             onClick={on_back}
           >
@@ -71,6 +82,73 @@ export function page_shell({ children, on_back, back_label }: PageShellProps) {
 }
 
 export const PageShell = page_shell;
+
+export interface TicketDividerProps {
+  notch_color?: string;
+}
+
+export function ticket_divider({
+  notch_color = "var(--bg-primary)",
+}: TicketDividerProps) {
+  const notch_style = { backgroundColor: notch_color };
+
+  return (
+    <div aria-hidden="true" className="relative h-0">
+      <div className="mx-5 border-t border-dashed border-edge-secondary" />
+      <span className="absolute -start-px top-0 h-4 w-2 -translate-y-1/2 overflow-hidden">
+        <span
+          className="absolute -start-2 top-0 h-4 w-4 rounded-full border border-edge-secondary"
+          style={notch_style}
+        />
+      </span>
+      <span className="absolute -end-px top-0 h-4 w-2 -translate-y-1/2 overflow-hidden">
+        <span
+          className="absolute -end-2 top-0 h-4 w-4 rounded-full border border-edge-secondary"
+          style={notch_style}
+        />
+      </span>
+    </div>
+  );
+}
+
+export const TicketDivider = ticket_divider;
+
+export interface NoticeProps {
+  children: ReactNode;
+  role?: "alert" | "note" | "status";
+  tone?: "warning" | "neutral";
+}
+
+export function notice({ children, role, tone = "warning" }: NoticeProps) {
+  const is_warning = tone === "warning";
+
+  return (
+    <div
+      className={`flex items-start gap-2.5 rounded-[12px] border px-3.5 py-3 text-start ${
+        is_warning ? "" : "border-edge-secondary bg-surf-tertiary"
+      }`}
+      role={role}
+      style={
+        is_warning
+          ? { backgroundColor: WARNING_BG, borderColor: WARNING_BORDER }
+          : undefined
+      }
+    >
+      <ExclamationTriangleIcon
+        className={`mt-px h-4 w-4 shrink-0 ${is_warning ? "" : "text-txt-muted"}`}
+        style={is_warning ? { color: WARNING_TEXT } : undefined}
+      />
+      <div
+        className="min-w-0 flex-1 text-xs leading-relaxed"
+        style={{ color: WARNING_FG }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export const Notice = notice;
 
 export interface ResultCardProps {
   children?: ReactNode;
@@ -96,20 +174,21 @@ export function result_card({
   const tone_style =
     tone === "accent"
       ? {
-          backgroundColor: "var(--accent-color)",
-          color: "var(--accent-fg, #ffffff)",
+          backgroundColor:
+            "color-mix(in srgb, var(--accent-color) 12%, transparent)",
+          color: "var(--accent-color)",
         }
       : undefined;
 
   return (
     <div
       aria-live="polite"
-      className="mx-auto w-full max-w-md rounded-3xl border border-edge-secondary bg-surf-secondary p-8 text-center"
+      className={`${TICKET_CARD} mx-auto w-full max-w-md p-6 text-center sm:p-7`}
       role="status"
     >
       <div
-        className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${
-          tone_style ? "" : "bg-surf-tertiary text-txt-muted"
+        className={`mx-auto flex h-12 w-12 items-center justify-center rounded-[12px] ${
+          tone_style ? "" : "border border-edge-secondary text-txt-muted"
         }`}
         style={tone_style}
       >
@@ -117,12 +196,14 @@ export function result_card({
       </div>
       <h1
         ref={heading_ref}
-        className="mt-5 text-xl font-semibold text-txt-primary outline-none"
+        className="mt-4 text-lg font-semibold text-txt-primary outline-none"
         tabIndex={-1}
       >
         {title}
       </h1>
-      <p className="mt-2 text-sm leading-relaxed text-txt-secondary">{body}</p>
+      <p className="mt-1.5 text-[13px] leading-relaxed text-txt-secondary">
+        {body}
+      </p>
       {children}
     </div>
   );
@@ -148,24 +229,24 @@ export function copy_field({
   on_copy,
 }: CopyFieldProps) {
   return (
-    <button
-      className="group w-full rounded-2xl border border-edge-secondary bg-surf-tertiary px-4 py-3 text-start transition-colors hover:border-edge-primary hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
-      type="button"
-      onClick={() => on_copy(copy_value ?? value)}
-    >
-      <span className="flex items-center justify-between gap-3">
-        <span className="text-[11px] font-medium uppercase tracking-wide text-txt-muted">
-          {label}
+    <div className="flex items-center gap-3 py-3">
+      <div className="min-w-0 flex-1">
+        <span className="block text-xs text-txt-muted">{label}</span>
+        <span
+          className={`mt-1 block select-all break-all font-mono font-medium leading-snug text-txt-primary ${value_class}`}
+        >
+          {value}
         </span>
-        <span className="sr-only">{copy_hint}</span>
-        <ClipboardDocumentIcon className="w-4 h-4 shrink-0 text-txt-muted transition-colors group-hover:text-txt-primary" />
-      </span>
-      <span
-        className={`mt-1.5 block break-all font-mono font-semibold leading-snug text-txt-primary ${value_class}`}
+      </div>
+      <button
+        aria-label={copy_hint}
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] border border-edge-secondary text-txt-muted transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+        type="button"
+        onClick={() => on_copy(copy_value ?? value)}
       >
-        {value}
-      </span>
-    </button>
+        <ClipboardDocumentIcon className="h-4 w-4" />
+      </button>
+    </div>
   );
 }
 
@@ -179,9 +260,7 @@ export interface DetailRowProps {
 export function detail_row({ children, label }: DetailRowProps) {
   return (
     <div className="flex items-center justify-between gap-3 py-2.5">
-      <span className="shrink-0 text-xs font-medium text-txt-muted">
-        {label}
-      </span>
+      <span className="shrink-0 text-xs text-txt-muted">{label}</span>
       <span className="min-w-0 break-all text-end text-sm font-medium text-txt-primary">
         {children}
       </span>
@@ -199,15 +278,19 @@ export interface LiveStatusProps {
 
 export function live_status({ hint, is_live, label }: LiveStatusProps) {
   return (
-    <div className="flex flex-col items-center gap-3 text-center">
-      <Spinner
-        className={`h-10 w-10 text-[var(--accent-color)] ${is_live ? "" : "opacity-40"}`}
-        size="lg"
-      />
-      <span className="text-sm font-semibold text-txt-primary">{label}</span>
-      <p className="max-w-xs text-xs leading-relaxed text-txt-secondary">
-        {hint}
-      </p>
+    <div className="flex items-start gap-3">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-edge-secondary">
+        <Spinner
+          className={`h-4 w-4 text-[var(--accent-color)] ${is_live ? "" : "opacity-40"}`}
+          size="sm"
+        />
+      </span>
+      <span className="flex min-w-0 flex-col">
+        <span className="text-sm font-semibold text-txt-primary">{label}</span>
+        <span className="mt-0.5 text-xs leading-relaxed text-txt-secondary">
+          {hint}
+        </span>
+      </span>
     </div>
   );
 }
@@ -220,12 +303,27 @@ export interface StepListProps {
   title: string;
 }
 
+function step_marker_style(done: boolean, current: boolean) {
+  if (done) {
+    return { backgroundColor: "var(--color-success)", color: "#ffffff" };
+  }
+  if (current) {
+    return {
+      backgroundColor: "var(--accent-color)",
+      color: "var(--accent-fg, #ffffff)",
+    };
+  }
+
+  return {
+    border: "1.5px solid var(--border-secondary)",
+    color: "var(--text-muted)",
+  };
+}
+
 export function step_list({ active_index, steps, title }: StepListProps) {
   return (
-    <div className="rounded-2xl bg-surf-tertiary p-4">
-      <span className="text-[11px] font-medium uppercase tracking-wide text-txt-muted">
-        {title}
-      </span>
+    <div>
+      <span className="text-xs text-txt-muted">{title}</span>
       <ol className="mt-3 flex flex-col">
         {steps.map((step, index) => {
           const done = index < active_index;
@@ -236,55 +334,37 @@ export function step_list({ active_index, steps, title }: StepListProps) {
           return (
             <li
               key={step.key}
-              className={`relative flex items-start gap-3 ${is_last ? "" : "pb-5"}`}
+              className={`relative flex items-start gap-3 ${is_last ? "" : "pb-4"}`}
             >
               {!is_last && (
                 <span
                   aria-hidden="true"
-                  className="absolute start-0 flex w-[18px] justify-center"
-                  style={{ top: 9, bottom: -9 }}
+                  className="absolute start-0 flex w-[26px] justify-center"
+                  style={{ top: 30, bottom: 4 }}
                 >
                   <span
-                    className="h-full w-[2px]"
+                    className="h-full w-[2px] rounded-full"
                     style={{
                       backgroundColor: done
-                        ? "var(--accent-color)"
+                        ? "var(--color-success)"
                         : "var(--border-secondary)",
                     }}
                   />
                 </span>
               )}
-              <span className="relative z-10 flex h-[18px] w-[18px] shrink-0 items-center justify-center">
-                {reached ? (
-                  <span
-                    className="flex h-[18px] w-[18px] items-center justify-center rounded-full"
-                    style={{
-                      backgroundColor: "var(--accent-color)",
-                      color: "var(--accent-fg, #ffffff)",
-                      boxShadow: current
-                        ? "0 0 0 4px color-mix(in srgb, var(--accent-color) 20%, transparent)"
-                        : undefined,
-                    }}
-                  >
-                    {done ? (
-                      <CheckIcon className="h-3 w-3" strokeWidth={3} />
-                    ) : (
-                      <span
-                        className="h-[6px] w-[6px] rounded-full"
-                        style={{ backgroundColor: "var(--accent-fg, #ffffff)" }}
-                      />
-                    )}
-                  </span>
+              <span
+                className="relative z-10 flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full text-[11px] font-semibold tabular-nums"
+                style={step_marker_style(done, current)}
+              >
+                {done ? (
+                  <CheckIcon className="h-3.5 w-3.5" strokeWidth={2.5} />
                 ) : (
-                  <span
-                    className="h-[10px] w-[10px] rounded-full border-2 bg-surf-tertiary"
-                    style={{ borderColor: "var(--border-secondary)" }}
-                  />
+                  index + 1
                 )}
               </span>
-              <span className="flex min-w-0 flex-col pb-0.5">
+              <span className="flex min-w-0 flex-col pt-[3px]">
                 <span
-                  className="text-xs leading-tight"
+                  className="text-[13px] leading-tight"
                   style={{
                     color: reached
                       ? "var(--text-primary)"
@@ -294,7 +374,7 @@ export function step_list({ active_index, steps, title }: StepListProps) {
                 >
                   {step.label}
                 </span>
-                <span className="mt-0.5 text-[11px] leading-relaxed text-txt-muted">
+                <span className="mt-0.5 text-xs leading-relaxed text-txt-muted">
                   {step.hint}
                 </span>
               </span>
@@ -324,7 +404,7 @@ export function meter({ fraction, label, value_max, value_now }: MeterProps) {
       aria-valuemax={value_max}
       aria-valuemin={0}
       aria-valuenow={value_now}
-      className="mt-2 flex h-2 w-full overflow-hidden rounded-full bg-surf-tertiary"
+      className="mt-2 flex h-1.5 w-full overflow-hidden rounded-full bg-surf-tertiary"
       role="progressbar"
     >
       <div
@@ -343,7 +423,7 @@ export const Meter = meter;
 const SKELETON_TONE = "animate-pulse bg-black/[0.04] dark:bg-white/[0.06]";
 
 function skeleton_bar({ className }: { className: string }) {
-  return <div className={`${SKELETON_TONE} rounded-lg ${className}`} />;
+  return <div className={`${SKELETON_TONE} rounded-md ${className}`} />;
 }
 
 const SkeletonBar = skeleton_bar;
@@ -354,7 +434,7 @@ export function invoice_skeleton() {
       aria-busy="true"
       className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[1.05fr_1fr]"
     >
-      <section className="rounded-3xl border border-edge-secondary bg-surf-secondary p-6 sm:p-7">
+      <section className={`${TICKET_CARD} p-5 sm:p-6`}>
         <div className="flex items-center gap-3">
           <div className={`${SKELETON_TONE} h-10 w-10 shrink-0 rounded-full`} />
           <div className="min-w-0 flex-1 space-y-2">
@@ -369,46 +449,32 @@ export function invoice_skeleton() {
         </div>
 
         <div className="mt-5 flex flex-col items-center gap-4">
-          <div className="flex flex-col items-center gap-2">
-            <div className="rounded-[20px] border border-edge-secondary bg-surf-tertiary p-2.5">
-              <div className={`${SKELETON_TONE} h-52 w-52 rounded-[12px]`} />
-            </div>
-            <SkeletonBar className="h-3 w-44 max-w-full" />
-          </div>
-
-          <div className="w-full space-y-2.5">
-            <SkeletonBar className="h-[68px] w-full rounded-2xl" />
-            <SkeletonBar className="h-[68px] w-full rounded-2xl" />
+          <div
+            className={`${SKELETON_TONE} h-[228px] w-[228px] rounded-[16px]`}
+          />
+          <div className="w-full space-y-3">
+            <SkeletonBar className="h-12 w-full" />
+            <SkeletonBar className="h-12 w-full" />
           </div>
         </div>
       </section>
 
-      <section className="flex flex-col gap-5">
-        <div className="rounded-3xl border border-edge-secondary bg-surf-secondary p-6 sm:p-7">
-          <SkeletonBar className="h-3 w-20" />
-          <SkeletonBar className="mt-3 h-7 w-32 max-w-full" />
-          <SkeletonBar className="mt-3 h-3 w-48 max-w-full" />
-          <div className="mt-5 space-y-3">
-            <SkeletonBar className="h-3.5 w-full" />
-            <SkeletonBar className="h-3.5 w-3/5" />
-          </div>
-        </div>
-
-        <div className="rounded-3xl border border-edge-secondary bg-surf-secondary p-6 sm:p-7">
-          <SkeletonBar className="h-4 w-28" />
-          <div className="mt-5 space-y-4">
-            {Array.from({ length: 4 }).map((_, index) => (
-              <div key={index} className="flex items-start gap-3">
-                <div
-                  className={`${SKELETON_TONE} h-6 w-6 shrink-0 rounded-full`}
-                />
-                <div className="flex-1 space-y-2">
-                  <SkeletonBar className="h-3.5 w-1/3" />
-                  <SkeletonBar className="h-3 w-4/5" />
-                </div>
+      <section className={`${TICKET_CARD} p-5 sm:p-6`}>
+        <SkeletonBar className="h-3 w-20" />
+        <SkeletonBar className="mt-3 h-7 w-32 max-w-full" />
+        <SkeletonBar className="mt-3 h-3 w-48 max-w-full" />
+        <div className="mt-6 space-y-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="flex items-start gap-3">
+              <div
+                className={`${SKELETON_TONE} h-[26px] w-[26px] shrink-0 rounded-full`}
+              />
+              <div className="flex-1 space-y-2">
+                <SkeletonBar className="h-3.5 w-1/3" />
+                <SkeletonBar className="h-3 w-4/5" />
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </section>
     </div>

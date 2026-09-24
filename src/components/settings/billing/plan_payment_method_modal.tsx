@@ -21,6 +21,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { CheckIcon } from "@heroicons/react/20/solid";
 import {
+  ArrowPathIcon,
   CreditCardIcon,
   CurrencyDollarIcon,
   ShieldCheckIcon,
@@ -40,7 +41,6 @@ import {
   ModalHeader,
   ModalTitle,
   ModalBody,
-  ModalFooter,
 } from "@/components/ui/modal";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
@@ -170,26 +170,19 @@ export function PlanPaymentMethodModal({
   const [method, set_method] = useState<pay_method>("card");
   const [features_open, set_features_open] = useState(false);
   const has_plan_features = !!features && features.length > 0;
-  const [confirm_abandon, set_confirm_abandon] = useState(false);
-  const opened_plan_ref = useRef<string | undefined>(undefined);
-  const opened_term_ref = useRef<string | undefined>(undefined);
   const was_open_ref = useRef(false);
 
   useEffect(() => {
     if (open && !was_open_ref.current) {
       was_open_ref.current = true;
-      opened_plan_ref.current = selected_plan_id;
-      opened_term_ref.current = selected_term;
       set_active_term(selected_term);
       set_method("card");
       set_features_open(false);
-      set_confirm_abandon(false);
     }
 
     if (!open) {
       was_open_ref.current = false;
       set_features_open(false);
-      set_confirm_abandon(false);
     }
   }, [open, selected_term, selected_plan_id]);
 
@@ -280,13 +273,7 @@ export function PlanPaymentMethodModal({
     ? format_for(effective_method, summary_total_cents)
     : null;
   const save_badge = special_offer ? (
-    <span
-      className="inline-flex flex-shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
-      style={{
-        backgroundColor: "var(--accent-color)",
-        color: "var(--accent-fg, #ffffff)",
-      }}
-    >
+    <span className="plan_galaxy_badge inline-flex flex-shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
       {t("settings.special_offer_save_badge", {
         percent: String(special_offer.percent_off),
       })}
@@ -336,19 +323,9 @@ export function PlanPaymentMethodModal({
     },
   ];
 
-  const has_changes =
-    term_id !== opened_term_ref.current ||
-    selected_plan_id !== opened_plan_ref.current ||
-    method !== "card";
-
   const request_close = () => {
     if (busy) return;
 
-    if (has_changes) {
-      set_confirm_abandon(true);
-
-      return;
-    }
     on_close();
   };
 
@@ -465,10 +442,7 @@ export function PlanPaymentMethodModal({
                           )}
                         </span>
                         {option.save_cents > 0 && (
-                          <span
-                            className="mt-0.5 block text-[11px] leading-snug"
-                            style={{ color: "var(--accent-color)" }}
-                          >
+                          <span className="text-txt-secondary mt-0.5 block text-[11px] leading-snug">
                             {t("settings.checkout_term_save", {
                               amount: format_price(option.save_cents),
                             })}
@@ -527,7 +501,7 @@ export function PlanPaymentMethodModal({
 
           <div>
             {section_heading(t("settings.payment_details"))}
-            <div className="grid gap-2 sm:grid-cols-2" role="radiogroup">
+            <div className="space-y-2" role="radiogroup">
               {methods.map((entry) => {
                 const active = entry.id === effective_method;
                 const MethodIcon = entry.icon;
@@ -537,7 +511,7 @@ export function PlanPaymentMethodModal({
                   <button
                     key={entry.id}
                     aria-checked={active}
-                    className={`${tile_base} flex flex-col px-3 pb-3 pt-3 ${
+                    className={`${tile_base} flex w-full items-start gap-3 py-3.5 pe-9 ps-4 ${
                       active
                         ? ""
                         : "border-edge-secondary hover:bg-surf-tertiary"
@@ -549,30 +523,52 @@ export function PlanPaymentMethodModal({
                     onClick={() => set_method(entry.id)}
                   >
                     {tile_check(active)}
-                    <span className="flex items-center gap-2">
-                      <MethodIcon className="h-5 w-5 flex-shrink-0 text-txt-primary" />
-                      <span className="text-[13px] font-semibold text-txt-primary">
+                    <MethodIcon className="mt-px h-5 w-5 flex-shrink-0 text-txt-primary" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[13px] font-semibold text-txt-primary">
                         {entry.label}
                       </span>
+                      <span className="mt-0.5 block text-[11px] leading-snug text-txt-muted">
+                        {entry.note}
+                      </span>
+                      {entry.id === "card" && (
+                        <CardBrandMarks class_name="mt-2.5" />
+                      )}
+                      {entry.id === "crypto" && (
+                        <CoinStack class_name="mt-2.5" />
+                      )}
+                      {entry.id === "card" && discount_note && (
+                        <span className="text-txt-secondary mt-2 flex items-start gap-1.5 text-[11px] leading-snug">
+                          <TagIcon className="mt-px h-3.5 w-3.5 flex-shrink-0" />
+                          <span>{discount_note}</span>
+                        </span>
+                      )}
+                      {entry.id === "card" &&
+                        credit_amount &&
+                        !offer_quote("card") && (
+                          <span className="text-txt-secondary mt-2 flex items-start gap-1.5 text-[11px] leading-snug">
+                            <SparklesIcon className="mt-px h-3.5 w-3.5 flex-shrink-0" />
+                            <span>
+                              {t("settings.credits_will_be_applied", {
+                                amount: credit_amount,
+                              })}
+                            </span>
+                          </span>
+                        )}
                     </span>
-                    <span className="mt-1 block text-[11px] leading-snug text-txt-muted">
-                      {entry.note}
-                    </span>
-                    {entry.id === "card" && (
-                      <CardBrandMarks class_name="mt-2.5" />
-                    )}
-                    {entry.id === "crypto" && <CoinStack class_name="mt-2.5" />}
                     {quote && (
                       <span
-                        className="mt-2.5 flex flex-wrap items-center gap-x-1.5 gap-y-1"
+                        className="flex flex-shrink-0 flex-col items-end gap-1 text-end"
                         data-special-offer-price={entry.id}
                       >
-                        {original_per_month(
-                          entry.id,
-                          quote.list_per_month_cents,
-                          "text-[12px] text-txt-muted",
-                        )}
-                        <span className="text-[13px] font-semibold text-txt-primary">
+                        <span className="text-[11px] leading-none">
+                          {original_per_month(
+                            entry.id,
+                            quote.list_per_month_cents,
+                            "text-txt-muted",
+                          )}
+                        </span>
+                        <span className="text-[15px] font-bold leading-tight text-txt-primary">
                           {t("settings.checkout_term_per_month", {
                             amount: format_for(
                               entry.id,
@@ -583,38 +579,10 @@ export function PlanPaymentMethodModal({
                         {save_badge}
                       </span>
                     )}
-                    {entry.id === "card" && discount_note && (
-                      <span
-                        className="mt-1 flex items-start gap-1.5 text-[11px] leading-snug"
-                        style={{ color: "var(--accent-color)" }}
-                      >
-                        <TagIcon className="mt-px h-3.5 w-3.5 flex-shrink-0" />
-                        <span>{discount_note}</span>
-                      </span>
-                    )}
-                    {entry.id === "card" &&
-                      credit_amount &&
-                      !offer_quote("card") && (
-                        <span
-                          className="mt-1 flex items-start gap-1.5 text-[11px] leading-snug"
-                          style={{ color: "var(--accent-color)" }}
-                        >
-                          <SparklesIcon className="mt-px h-3.5 w-3.5 flex-shrink-0" />
-                          <span>
-                            {t("settings.credits_will_be_applied", {
-                              amount: credit_amount,
-                            })}
-                          </span>
-                        </span>
-                      )}
                   </button>
                 );
               })}
             </div>
-            <SecurityMarks
-              class_name="mt-2.5 px-1"
-              label={t("settings.stripe_secure_short")}
-            />
             {card_unavailable && (
               <p className="mt-2 px-1 text-[11px] leading-relaxed text-txt-muted">
                 {on_onion
@@ -622,6 +590,29 @@ export function PlanPaymentMethodModal({
                   : t("settings.checkout_card_term_unavailable")}
               </p>
             )}
+            <ul className="mt-4 space-y-2.5 px-1">
+              {effective_method === "card" && (
+                <li>
+                  <SecurityMarks label={t("settings.stripe_secure_short")} />
+                </li>
+              )}
+              <li className="flex items-center gap-1.5 text-[11px] leading-snug text-txt-muted">
+                <ShieldCheckIcon
+                  aria-hidden="true"
+                  className="text-txt-tertiary h-[13px] w-[13px] flex-shrink-0"
+                />
+                <span>{t("settings.money_back_guarantee")}</span>
+              </li>
+              {effective_method === "card" && (
+                <li className="flex items-start gap-1.5 text-[11px] leading-snug text-txt-muted">
+                  <ArrowPathIcon
+                    aria-hidden="true"
+                    className="text-txt-tertiary mt-px h-[13px] w-[13px] flex-shrink-0"
+                  />
+                  <span>{t("settings.autorenew_notice_short")}</span>
+                </li>
+              )}
+            </ul>
           </div>
         </div>
 
@@ -694,7 +685,7 @@ export function PlanPaymentMethodModal({
                     </span>
                   </div>
                   {active_option.save_cents > 0 && (
-                    <div style={{ color: "var(--accent-color)" }}>
+                    <div className="plan_galaxy_text_body">
                       {t("settings.checkout_term_save", {
                         amount: format_price(active_option.save_cents),
                       })}
@@ -725,15 +716,6 @@ export function PlanPaymentMethodModal({
               {busy && <ButtonSpinner size="xs" />}
             </Button>
 
-            <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] plan_galaxy_text_muted">
-              <ShieldCheckIcon className="h-3.5 w-3.5 flex-shrink-0" />
-              <span>{t("settings.money_back_guarantee")}</span>
-            </div>
-
-            <p className="mt-2 text-[11px] leading-relaxed plan_galaxy_text_muted">
-              {t("settings.autorenew_notice_short")}
-            </p>
-
             {features && features.length > 0 && (
               <div className="plan_galaxy_divider mt-3 border-t pt-3">
                 <p className="text-[12px] font-semibold plan_galaxy_text_primary">
@@ -745,10 +727,7 @@ export function PlanPaymentMethodModal({
                       key={index}
                       className="flex items-start gap-2 text-[12px] leading-snug plan_galaxy_text_body"
                     >
-                      <CheckIcon
-                        className="mt-0.5 h-3.5 w-3.5 flex-shrink-0"
-                        style={{ color: "var(--accent-blue)" }}
-                      />
+                      <CheckIcon className="plan_galaxy_text_muted mt-0.5 h-3.5 w-3.5 flex-shrink-0" />
                       <span>{feature.label}</span>
                     </li>
                   ))}
@@ -777,44 +756,6 @@ export function PlanPaymentMethodModal({
           z_index={80}
         />
       )}
-
-      <Modal
-        close_on_escape
-        close_on_overlay={false}
-        is_open={confirm_abandon}
-        on_close={() => set_confirm_abandon(false)}
-        show_close_button={false}
-        size="sm"
-        z_index={90}
-      >
-        <ModalHeader className="pb-2">
-          <ModalTitle className="text-base">
-            {t("settings.checkout_abandon_title")}
-          </ModalTitle>
-        </ModalHeader>
-        <ModalBody>
-          <p className="text-[13px] leading-relaxed text-txt-secondary">
-            {t("settings.checkout_abandon_message")}
-          </p>
-        </ModalBody>
-        <ModalFooter>
-          <Button
-            variant="secondary"
-            onClick={() => set_confirm_abandon(false)}
-          >
-            {t("settings.checkout_abandon_keep")}
-          </Button>
-          <Button
-            variant="destructive"
-            onClick={() => {
-              set_confirm_abandon(false);
-              on_close();
-            }}
-          >
-            {t("settings.checkout_abandon_confirm")}
-          </Button>
-        </ModalFooter>
-      </Modal>
     </Modal>
   );
 }

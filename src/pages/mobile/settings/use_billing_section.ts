@@ -23,6 +23,7 @@ import type {
   BillingHistoryItem,
   AvailablePlan,
 } from "@/services/api/billing";
+import type { plan_term_option } from "@/components/settings/billing/plan_payment_method_modal";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
@@ -41,6 +42,8 @@ import {
 import { create_family_group } from "@/services/api/family";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
+import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
+import { special_offer_promo_code } from "@/lib/special_offer";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { type CancelReason } from "@/components/settings/billing/cancel_reason_step";
 import { type CancelStep } from "@/components/settings/billing/cancel_impact_step";
@@ -103,6 +106,7 @@ export function use_billing_section() {
   const { stats } = use_mail_stats();
   const [subscription, set_subscription] =
     useState<SubscriptionResponse | null>(null);
+  const offer_checkout = use_special_offer_checkout(subscription?.plan.code);
   const [plans, set_plans] = useState<AvailablePlan[]>([]);
   const [history, set_history] = useState<BillingHistoryItem[]>([]);
   const [is_loading, set_is_loading] = useState(true);
@@ -866,11 +870,16 @@ export function use_billing_section() {
         return;
       }
 
+      const offer_applies =
+        checkout_interval === "month" &&
+        !!offer_checkout.plan_pricing(plan.code);
       const result = await start_hosted_checkout(
         plan.code,
         checkout_interval,
         preferred_currency,
         credit_cents,
+        offer_applies ? (special_offer_promo_code() ?? undefined) : undefined,
+        offer_applies || undefined,
       );
 
       if (!result.ok) {
@@ -978,6 +987,45 @@ export function use_billing_section() {
   const crypto_term_prices_for = (plan_code: string) =>
     PLAN_TIERS.find((p) => p.id === plan_code) ??
     FAMILY_PLAN_TIERS.find((p) => p.id === plan_code);
+
+  const plan_term_options_for = (plan_code: string): plan_term_option[] => {
+    const tier = crypto_term_prices_for(plan_code);
+
+    if (!tier) return [];
+
+    const biennial_cents =
+      "biennial_cents" in tier ? tier.biennial_cents : undefined;
+
+    const options: plan_term_option[] = [
+      {
+        id: "monthly",
+        label: t("settings.billing_monthly"),
+        per_month_cents: tier.monthly_cents,
+        total_cents: tier.monthly_cents,
+        save_cents: 0,
+      },
+      {
+        id: "yearly",
+        label: t("settings.billing_yearly"),
+        per_month_cents: Math.round(tier.yearly_cents / 12),
+        total_cents: tier.yearly_cents,
+        save_cents: tier.monthly_cents * 12 - tier.yearly_cents,
+      },
+    ];
+
+    if (biennial_cents) {
+      options.push({
+        id: "biennial",
+        label: t("settings.biennial"),
+        per_month_cents: Math.round(biennial_cents / 24),
+        total_cents: biennial_cents,
+        save_cents: tier.monthly_cents * 24 - biennial_cents,
+        crypto_only: true,
+      });
+    }
+
+    return options;
+  };
 
   const handle_pay_with_crypto = (plan: AvailablePlan) => {
     if (!crypto_term_prices_for(plan.code)) {
@@ -1307,6 +1355,8 @@ export function use_billing_section() {
     handle_family_plan,
     handle_confirm_plan_change,
     crypto_term_prices_for,
+    plan_term_options_for,
+    offer_checkout,
     handle_pay_with_crypto,
     handle_crypto_renew,
     handle_addon_pay_card,

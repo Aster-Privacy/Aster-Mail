@@ -26,6 +26,9 @@ const clear_target_mock = vi.fn();
 const read_target_mock = vi.fn();
 const toast_mock = vi.fn();
 const show_resume_mock = vi.fn();
+const offer_checkout_mock = vi.fn();
+const offer_available_mock = vi.fn();
+let offer_status: { available: boolean; dismissed: boolean } | null = null;
 
 vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key, language: "en" }),
@@ -43,6 +46,18 @@ vi.mock("@/services/api/billing", () => ({
 
 vi.mock("@/stores/upgrade_store", () => ({
   show_checkout_cancelled_upgrade: show_resume_mock,
+}));
+
+vi.mock("@/lib/special_offer", () => ({
+  is_special_offer_available: offer_available_mock,
+}));
+
+vi.mock("@/stores/special_offer_store", () => ({
+  request_special_offer_checkout: offer_checkout_mock,
+}));
+
+vi.mock("@/stores/special_offer_status", () => ({
+  use_special_offer_status: () => ({ status: offer_status, is_loaded: true }),
 }));
 
 const { ResumeCheckoutCard } = await import("./resume_checkout_card");
@@ -83,6 +98,11 @@ describe("ResumeCheckoutCard", () => {
     toast_mock.mockReset();
     show_resume_mock.mockReset();
     show_resume_mock.mockReturnValue(true);
+    offer_checkout_mock.mockReset();
+    offer_checkout_mock.mockReturnValue(true);
+    offer_available_mock.mockReset();
+    offer_available_mock.mockReturnValue(true);
+    offer_status = null;
 
     if (root) await act(async () => root!.unmount());
 
@@ -214,5 +234,45 @@ describe("ResumeCheckoutCard", () => {
     expect(clear_target_mock).toHaveBeenCalled();
     expect(show_resume_mock).not.toHaveBeenCalled();
     expect(node.textContent).toBe("");
+  });
+
+  it("reopens the discounted checkout for an abandoned special offer", async () => {
+    read_target_mock.mockReturnValue({
+      plan_code: "nova",
+      billing_interval: "month",
+      special_offer: true,
+    });
+    offer_status = { available: true, dismissed: false };
+
+    await render_card("free");
+
+    await act(async () => {
+      button_by_text("settings.finish_plan_setup_action").click();
+    });
+
+    expect(offer_checkout_mock).toHaveBeenCalled();
+    expect(show_resume_mock).not.toHaveBeenCalled();
+    expect(toast_mock).not.toHaveBeenCalled();
+  });
+
+  it("falls back to the plan picker when the special offer ended", async () => {
+    read_target_mock.mockReturnValue({
+      plan_code: "nova",
+      billing_interval: "month",
+      special_offer: true,
+    });
+    offer_status = { available: false, dismissed: false };
+
+    await render_card("free");
+
+    await act(async () => {
+      button_by_text("settings.finish_plan_setup_action").click();
+    });
+
+    expect(offer_checkout_mock).not.toHaveBeenCalled();
+    expect(show_resume_mock).toHaveBeenCalledWith({
+      plan_code: "nova",
+      interval: "month",
+    });
   });
 });

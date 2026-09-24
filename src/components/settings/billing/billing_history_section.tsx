@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { ReceiptPercentIcon } from "@heroicons/react/24/outline";
-
 import {
   format_price,
   format_date,
@@ -27,12 +25,23 @@ import {
 } from "@/services/api/billing";
 import { use_i18n } from "@/lib/i18n/context";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
+import { BillingSectionLabel } from "@/components/settings/billing/billing_layout";
 import { describe_billing_entry } from "@/utils/billing_description";
 
 interface BillingHistorySectionProps {
   history: BillingHistoryItem[];
   load_failed?: boolean;
   on_retry?: () => void;
+}
+
+const history_grid =
+  "grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-4 sm:grid-cols-[7.5rem_minmax(0,1fr)_6.5rem_5.5rem_2.5rem]";
+
+function status_color(status: string): string {
+  if (status === "paid") return "var(--color-success)";
+  if (status === "failed") return "var(--color-danger)";
+
+  return "var(--color-warning)";
 }
 
 export function BillingHistorySection({
@@ -45,64 +54,61 @@ export function BillingHistorySection({
   if (history.length === 0 && !(load_failed && on_retry)) return null;
 
   return (
-    <div className="border-t border-edge-secondary pt-8">
-      <div className="mb-2">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-          <ReceiptPercentIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
-          {t("settings.billing_history")}
-        </h3>
-      </div>
+    <section>
+      <BillingSectionLabel>{t("settings.billing_history")}</BillingSectionLabel>
       {history.length === 0 && load_failed && on_retry ? (
         <LoadFailedNotice on_retry={on_retry} />
       ) : (
-        <div className="rounded-lg border overflow-hidden border-edge-secondary">
-          <div>
+        <div className="overflow-hidden rounded-xl border border-edge-secondary">
+          <div
+            className={`${history_grid} hidden border-b border-edge-secondary px-4 py-2.5 text-xs font-medium text-txt-muted sm:grid sm:px-5`}
+          >
+            <span>{t("mail.date")}</span>
+            <span>{t("common.description")}</span>
+            <span>{t("settings.billing_amount")}</span>
+            <span>{t("settings.status")}</span>
+            <span className="sr-only">{t("settings.pdf")}</span>
+          </div>
+          <ul className="divide-y divide-edge-secondary">
             {history.map((item) => (
-              <div
+              <li
                 key={item.id}
-                className="flex items-center justify-between px-4 py-3 hover:bg-surf-hover transition-colors"
+                className={`${history_grid} items-center gap-y-0.5 px-4 py-3 text-sm sm:px-5`}
               >
-                <div>
-                  <p className="text-sm text-txt-primary">
-                    {describe_billing_entry(item.description, t) ||
-                      item.plan_name ||
-                      t("settings.payment")}
-                  </p>
-                  <p className="text-xs mt-0.5 text-txt-muted">
-                    {format_date(item.created_at)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span
-                    className={
-                      item.status === "paid"
-                        ? "aster_badge aster_badge_green"
-                        : item.status === "failed"
-                          ? "aster_badge aster_badge_red"
-                          : "aster_badge aster_badge_amber"
-                    }
-                  >
-                    {t(`settings.invoice_status_${item.status}` as any)}
-                  </span>
-                  <p className="text-sm font-medium text-txt-primary">
-                    {format_price(item.amount_cents, item.currency)}
-                  </p>
+                <span className="col-start-1 row-start-2 text-xs text-txt-muted sm:col-start-auto sm:row-start-auto sm:text-sm sm:text-txt-secondary">
+                  {format_date(item.created_at)}
+                </span>
+                <span className="col-start-1 row-start-1 truncate text-txt-primary sm:col-start-auto sm:row-start-auto">
+                  {describe_billing_entry(item.description, t) ||
+                    item.plan_name ||
+                    t("settings.payment")}
+                </span>
+                <span className="col-start-2 row-start-1 text-end font-medium text-txt-primary sm:col-start-auto sm:row-start-auto sm:text-start">
+                  {format_price(item.amount_cents, item.currency)}
+                </span>
+                <span
+                  className="col-start-2 row-start-2 text-end text-xs font-medium sm:col-start-auto sm:row-start-auto sm:text-start sm:text-sm"
+                  style={{ color: status_color(item.status) }}
+                >
+                  {t(`settings.invoice_status_${item.status}` as any)}
+                </span>
+                <span className="col-start-3 row-span-2 row-start-1 text-end sm:col-start-auto sm:row-span-1 sm:row-start-auto">
                   {item.invoice_pdf_url && (
                     <a
-                      className="text-xs text-blue-500 hover:underline"
+                      className="text-xs text-txt-secondary underline-offset-2 hover:text-txt-primary hover:underline"
                       href={item.invoice_pdf_url}
                       rel="noopener noreferrer"
                       target="_blank"
                     >
-                      PDF
+                      {t("settings.pdf")}
                     </a>
                   )}
-                </div>
-              </div>
+                </span>
+              </li>
             ))}
-          </div>
+          </ul>
         </div>
       )}
-    </div>
+    </section>
   );
 }

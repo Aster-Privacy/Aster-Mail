@@ -995,6 +995,7 @@ export const RegisterStepPlanSelection = ({
             set_crypto_family_tier(null);
             set_pending_family_tier(tier);
           }}
+          on_finished={() => set_crypto_family_tier(null)}
           plan_code={crypto_family_tier.id}
           plan_name={crypto_family_tier.name}
           preferred_currency={currency}
@@ -1128,6 +1129,7 @@ export const RegisterStepPlanSelection = ({
             set_crypto_tier(null);
             set_pending_tier(tier);
           }}
+          on_finished={() => set_crypto_tier(null)}
           plan_code={crypto_tier.plan.code}
           plan_name={crypto_tier.tier.name}
           preferred_currency={currency}

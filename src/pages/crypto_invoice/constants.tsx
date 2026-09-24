@@ -72,7 +72,10 @@ export const UNSAFE_WALLET_SCHEMES = new Set([
 export const WALLET_SCHEME_SHAPE = /^[a-z][a-z0-9+.-]{1,20}:$/;
 export const CANCEL_HAS_PAYMENT_MARKER = "payment has already been received";
 export const BILLING_ROUTE = "/settings/billing";
-export const WARNING_BG = "var(--color-warning)";
-export const WARNING_FG = "#1c1400";
+export const WARNING_BG =
+  "color-mix(in srgb, var(--color-warning) 6%, transparent)";
+export const WARNING_BORDER =
+  "color-mix(in srgb, var(--color-warning) 30%, transparent)";
+export const WARNING_FG = "var(--text-secondary)";
 export const WARNING_TEXT = "var(--color-warning)";
 export const EXPIRING_SOON_MS = 5 * 60 * 1000;

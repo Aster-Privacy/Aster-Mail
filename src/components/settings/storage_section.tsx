@@ -895,6 +895,10 @@ export function StorageSection() {
             set_addon_method_target(addon);
             set_show_addon_method_modal(true);
           }}
+          on_finished={() => {
+            set_show_crypto_addon_modal(false);
+            set_crypto_addon(null);
+          }}
           preferred_currency={preferred_currency}
           price_cents={crypto_addon.price_cents}
         />

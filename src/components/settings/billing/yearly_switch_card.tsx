@@ -20,9 +20,10 @@
 //
 import type { YearlySwitchOffer } from "@/services/api/billing";
 
-import { ArrowPathIcon } from "@heroicons/react/24/solid";
+import { CalendarIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { BillingNotice } from "@/components/settings/billing/billing_layout";
 import { format_price } from "@/services/api/billing";
 
 interface YearlySwitchCardProps {
@@ -47,42 +48,28 @@ export function YearlySwitchCard({
   if (!offer || offer.saving_cents <= 0) return null;
 
   return (
-    <div className={`offer_banner px-5 py-5 ${class_name}`}>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-start gap-3.5">
-          <span
-            aria-hidden="true"
-            className="offer_banner_orb flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl"
-          >
-            <ArrowPathIcon className="h-5 w-5" />
-          </span>
-
-          <div className="min-w-0">
-            <p className="offer_banner_title text-[15px] font-semibold leading-tight">
-              {t("settings.yearly_switch_title", {
-                amount: format_price(offer.saving_cents, currency),
-              })}
-            </p>
-            <p className="offer_banner_body mt-1.5 text-xs leading-relaxed">
-              {t("settings.yearly_switch_body", {
-                monthly: format_price(offer.monthly_price_cents, currency),
-                yearly_monthly: format_price(
-                  monthly_equivalent_cents(offer.yearly_price_cents),
-                  currency,
-                ),
-              })}
-            </p>
-          </div>
-        </div>
-
-        <button
-          className="aster_btn aster_btn_primary aster_btn_sm w-full flex-shrink-0 sm:w-auto"
-          type="button"
-          onClick={() => on_switch(offer.plan_code)}
-        >
-          {t("settings.yearly_switch_action")}
-        </button>
-      </div>
-    </div>
+    <BillingNotice
+      body={t("settings.yearly_switch_body", {
+        monthly: format_price(offer.monthly_price_cents, currency),
+        yearly_monthly: format_price(
+          monthly_equivalent_cents(offer.yearly_price_cents),
+          currency,
+        ),
+      })}
+      class_name={class_name}
+      icon={CalendarIcon}
+      title={t("settings.yearly_switch_title", {
+        amount: format_price(offer.saving_cents, currency),
+      })}
+      tone="neutral"
+    >
+      <button
+        className="aster_btn aster_btn_primary aster_btn_sm"
+        type="button"
+        onClick={() => on_switch(offer.plan_code)}
+      >
+        {t("settings.yearly_switch_action")}
+      </button>
+    </BillingNotice>
   );
 }

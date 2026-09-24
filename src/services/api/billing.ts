@@ -343,7 +343,7 @@ export async function start_hosted_checkout(
     };
   }
 
-  remember_checkout_target(plan_code, billing_interval);
+  remember_checkout_target(plan_code, billing_interval, special_offer);
   await open_payment_url(url);
 
   return { ok: true };
@@ -420,16 +420,24 @@ export const BILLING_TARGET_PLAN_KEY = "aster_billing_target_plan";
 export interface CheckoutTarget {
   plan_code: string;
   billing_interval: string;
+  special_offer: boolean;
 }
+
+const SPECIAL_OFFER_TARGET_FLAG = "offer";
 
 export function remember_checkout_target(
   plan_code: string,
   billing_interval: string = "month",
+  special_offer: boolean = false,
 ): void {
   try {
     sessionStorage.setItem(
       BILLING_TARGET_PLAN_KEY,
-      plan_code + "|" + billing_interval,
+      [
+        plan_code,
+        billing_interval,
+        ...(special_offer ? [SPECIAL_OFFER_TARGET_FLAG] : []),
+      ].join("|"),
     );
   } catch {
     return;
@@ -447,11 +455,15 @@ export function read_checkout_target(): CheckoutTarget | null {
 
   if (!raw) return null;
 
-  const [plan_code, billing_interval] = raw.split("|");
+  const [plan_code, billing_interval, flag] = raw.split("|");
 
   if (!plan_code) return null;
 
-  return { plan_code, billing_interval: billing_interval || "month" };
+  return {
+    plan_code,
+    billing_interval: billing_interval || "month",
+    special_offer: flag === SPECIAL_OFFER_TARGET_FLAG,
+  };
 }
 
 export function clear_checkout_target(): void {

@@ -1140,6 +1140,7 @@ export function UpgradeModal() {
             set_crypto_tier(null);
             set_pending_tier(tier);
           }}
+          on_finished={() => set_crypto_tier(null)}
           plan_code={crypto_tier.id}
           plan_name={crypto_tier.name}
           preferred_currency={currency}

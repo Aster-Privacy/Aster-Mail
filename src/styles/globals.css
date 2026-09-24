@@ -3570,6 +3570,11 @@ input:-webkit-autofill:active {
   color: var(--text-primary);
 }
 
+.account_menu_tile_accent .account_menu_tile_icon,
+.account_menu_tile_accent .account_menu_tile_label {
+  color: var(--accent-color);
+}
+
 .account_menu_tile_meta {
   flex-shrink: 0;
   font-size: 11px;
@@ -4190,6 +4195,7 @@ input:-webkit-autofill:active {
   background-color: #060a13;
   -webkit-user-select: none;
   user-select: none;
+  -webkit-user-drag: none;
 }
 
 .special_offer_hero_image {
@@ -4251,28 +4257,91 @@ input:-webkit-autofill:active {
   filter: brightness(1.08);
 }
 
+.special_offer_hero_image {
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
 .special_offer_features {
-  margin-top: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  position: relative;
+  padding-top: 1.125rem;
+}
+
+.special_offer_features::before {
+  content: "";
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  border-radius: 9999px;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    var(--border-secondary) 20%,
+    var(--border-secondary) 80%,
+    transparent 100%
+  );
 }
 
 .special_offer_feature {
   display: flex;
   align-items: flex-start;
   gap: 0.7rem;
-  padding: 0.75rem 0;
-  font-size: 13.5px;
-  line-height: 1.45;
+}
+
+.special_offer_feature_title {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.35;
   color: var(--text-primary);
 }
 
-.special_offer_feature + .special_offer_feature {
-  border-top: 1px solid var(--border-secondary);
+.special_offer_feature_body {
+  margin-top: 1px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--text-secondary);
 }
 
 .special_offer_check {
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 1px;
   color: var(--accent-color, #3b6aef);
+}
+
+.special_offer_why_toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: color 150ms ease;
+}
+
+.special_offer_why_toggle:hover {
+  color: var(--text-primary);
+}
+
+.special_offer_why_chevron {
+  margin-inline-start: auto;
+  transition: transform 200ms ease;
+}
+
+.special_offer_why_toggle[aria-expanded="true"] .special_offer_why_chevron {
+  transform: rotate(180deg);
+}
+
+.special_offer_why_body {
+  padding-top: 0.5rem;
+  padding-inline-start: 23px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
 }
 
 .link_device_code_input {
