@@ -2141,6 +2141,29 @@ export class ApiClient {
     return result;
   }
 
+  async put_raw<T>(
+    endpoint: string,
+    body: string,
+    content_type: string,
+    config?: RequestConfig,
+  ): Promise<ApiResponse<T>> {
+    const result = await this.request<T>(endpoint, {
+      ...config,
+      method: "PUT",
+      body,
+      headers: {
+        ...((config?.headers as Record<string, string>) || {}),
+        "Content-Type": content_type,
+      },
+    });
+
+    if (!result.error) {
+      request_cache.invalidate_for_mutation(endpoint);
+    }
+
+    return result;
+  }
+
   async patch<T>(
     endpoint: string,
     body: unknown,
