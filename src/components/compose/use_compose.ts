@@ -105,6 +105,12 @@ import { use_compose_send } from "@/components/compose/use_compose_send";
 import { use_compose_drafts } from "@/components/compose/use_compose_drafts";
 import { use_compose_editor } from "@/components/compose/use_compose_editor";
 import { ignore_error } from "@/lib/ignore_error";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  EXPIRATION_FEATURE,
+  PASSWORD_FEATURE,
+  restorable_expiry,
+} from "@/components/compose/expiry_plan_gate";
 
 export interface UseComposeOptions {
   on_close: () => void;
@@ -287,6 +293,11 @@ export function use_compose({
   const [is_scheduling, set_is_scheduling] = useState(false);
   const [expires_at, set_expires_at] = useState<Date | null>(null);
   const [expiry_password, set_expiry_password] = useState<string | null>(null);
+  const { limits: plan_limits, is_feature_locked } = use_plan_limits();
+  const expiry_restore_pending_ref = useRef(false);
+  const plan_gate_ref = useRef({ plan_limits, is_feature_locked });
+
+  plan_gate_ref.current = { plan_limits, is_feature_locked };
   const [contacts, set_contacts] = useState<DecryptedContact[]>([]);
   const [recent_recipients_list, set_recent_recipients_list] = useState<
     DecryptedRecentRecipient[]
@@ -712,14 +723,26 @@ export function use_compose({
       });
       set_subject(edit_draft.subject);
       set_message(edit_draft.message);
-      if (edit_draft.expires_at) {
-        const parsed = new Date(edit_draft.expires_at);
+      const parsed_expiry = edit_draft.expires_at
+        ? new Date(edit_draft.expires_at)
+        : null;
+      const restored = restorable_expiry({
+        expires_at:
+          parsed_expiry && !Number.isNaN(parsed_expiry.getTime())
+            ? parsed_expiry
+            : null,
+        expiry_password: edit_draft.expiry_password || null,
+        limits_loaded: plan_gate_ref.current.plan_limits !== null,
+        is_feature_locked: plan_gate_ref.current.is_feature_locked,
+      });
 
-        if (!Number.isNaN(parsed.getTime())) set_expires_at(parsed);
+      if (restored.expires_at) set_expires_at(restored.expires_at);
+      if (restored.expiry_password) {
+        set_expiry_password(restored.expiry_password);
       }
-      if (edit_draft.expiry_password) {
-        set_expiry_password(edit_draft.expiry_password);
-      }
+      expiry_restore_pending_ref.current =
+        plan_gate_ref.current.plan_limits === null &&
+        (!!restored.expires_at || !!restored.expiry_password);
       if (edit_draft.attachments && edit_draft.attachments.length > 0) {
         attachment_hook.set_attachments(
           draft_data_to_attachments(edit_draft.attachments),
@@ -846,6 +869,14 @@ export function use_compose({
       }
     };
   }, [init_trigger]);
+
+  useEffect(() => {
+    if (!expiry_restore_pending_ref.current || plan_limits === null) return;
+    expiry_restore_pending_ref.current = false;
+
+    if (is_feature_locked(EXPIRATION_FEATURE)) set_expires_at(null);
+    if (is_feature_locked(PASSWORD_FEATURE)) set_expiry_password(null);
+  }, [plan_limits, is_feature_locked]);
 
   useEffect(() => {
     if (content_initialized_ref.current) return;

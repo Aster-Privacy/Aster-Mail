@@ -30,6 +30,7 @@ vi.mock("@/stores/upgrade_store", () => ({
 const {
   find_locked_expiry_feature,
   prompt_expiry_upgrade,
+  restorable_expiry,
   EXPIRATION_FEATURE,
   PASSWORD_FEATURE,
 } = await import("@/components/compose/expiry_plan_gate");
@@ -93,6 +94,41 @@ describe("find_locked_expiry_feature", () => {
         is_feature_locked: locked_set(EXPIRATION_FEATURE, PASSWORD_FEATURE),
       }),
     ).toBeNull();
+  });
+});
+
+describe("restorable_expiry", () => {
+  it("drops locked fields from a restored draft", () => {
+    expect(
+      restorable_expiry({
+        expires_at: expiry,
+        expiry_password: "hunter22",
+        limits_loaded: true,
+        is_feature_locked: locked_set(EXPIRATION_FEATURE, PASSWORD_FEATURE),
+      }),
+    ).toEqual({ expires_at: null, expiry_password: null });
+  });
+
+  it("keeps fields the plan includes", () => {
+    expect(
+      restorable_expiry({
+        expires_at: expiry,
+        expiry_password: "hunter22",
+        limits_loaded: true,
+        is_feature_locked: locked_set(PASSWORD_FEATURE),
+      }),
+    ).toEqual({ expires_at: expiry, expiry_password: null });
+  });
+
+  it("keeps everything until the plan limits load", () => {
+    expect(
+      restorable_expiry({
+        expires_at: expiry,
+        expiry_password: "hunter22",
+        limits_loaded: false,
+        is_feature_locked: locked_set(EXPIRATION_FEATURE, PASSWORD_FEATURE),
+      }),
+    ).toEqual({ expires_at: expiry, expiry_password: "hunter22" });
   });
 });
 

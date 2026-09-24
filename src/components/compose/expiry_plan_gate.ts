@@ -49,6 +49,27 @@ export function find_locked_expiry_feature({
   return null;
 }
 
+export function restorable_expiry<T extends Date | string>({
+  expires_at,
+  expiry_password,
+  limits_loaded,
+  is_feature_locked,
+}: {
+  expires_at: T | null;
+  expiry_password: string | null;
+  limits_loaded: boolean;
+  is_feature_locked: (feature_key: string) => boolean;
+}): { expires_at: T | null; expiry_password: string | null } {
+  if (!limits_loaded) return { expires_at, expiry_password };
+
+  return {
+    expires_at: is_feature_locked(EXPIRATION_FEATURE) ? null : expires_at,
+    expiry_password: is_feature_locked(PASSWORD_FEATURE)
+      ? null
+      : expiry_password,
+  };
+}
+
 export function prompt_expiry_upgrade(
   feature: ExpiryFeature,
   message: string,
