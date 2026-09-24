@@ -62,6 +62,7 @@ import {
 
 const CHANNEL = "aster_account_link";
 const DEV_LINK_ORIGINS = ["http://localhost:5175", "http://localhost:5176"];
+const PROD_LINK_ORIGINS = ["https://support.astermail.org"];
 const MAX_LINK_ATTEMPTS_PER_LOAD = 3;
 const MAX_ACCOUNTS = 20;
 const MAX_PROFILE_PICTURE_LENGTH = 512_000;
@@ -118,7 +119,9 @@ function allowed_origins(): string[] {
     .map((origin) => origin.trim())
     .filter((origin) => origin.length > 0 && origin !== window.location.origin);
 
-  return list.length > 0 || !import.meta.env.DEV ? list : DEV_LINK_ORIGINS;
+  if (list.length > 0) return list;
+
+  return import.meta.env.DEV ? DEV_LINK_ORIGINS : PROD_LINK_ORIGINS;
 }
 
 function error_from_api_code(code: ApiErrorCode | undefined): bridge_error {
