@@ -76,6 +76,7 @@ export interface RotationResult {
   new_fingerprint?: string;
   bundle_published?: boolean;
   error?: string;
+  error_code?: string;
 }
 
 /*
@@ -378,7 +379,11 @@ export async function perform_key_rotation(
     const response = await rotate_identity_key(request);
 
     if (response.error || !response.data?.success) {
-      return { success: false, error: response.error ?? "Rotation failed" };
+      return {
+        success: false,
+        error: response.error ?? "Rotation failed",
+        error_code: response.error_code,
+      };
     }
 
     /*

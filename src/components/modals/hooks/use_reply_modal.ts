@@ -30,6 +30,7 @@ import { use_reply_modal_state } from "./use_reply_modal_state";
 import { undo_send_manager } from "@/hooks/use_undo_send";
 import { send_reply, type OriginalEmail } from "@/services/mail_actions";
 import { build_reply_subject } from "@/lib/reply_subject";
+import { resolve_reply_prefix } from "@/lib/reply_defaults";
 import {
   MAX_RECIPIENTS_PER_FIELD,
   MAX_RECIPIENTS_PER_SEND,
@@ -406,7 +407,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     if (selected_sender?.type === "external" && selected_sender.address_hash) {
       const subject = build_reply_subject(
         original_subject,
-        t("mail.reply_subject_prefix"),
+        resolve_reply_prefix(t("mail.reply_subject_prefix")),
       );
       const external_attachments =
         attachments.length > 0
@@ -588,7 +589,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
           sender_email: sender_email_addr,
           subject: build_reply_subject(
             original_subject,
-            t("mail.reply_subject_prefix"),
+            resolve_reply_prefix(t("mail.reply_subject_prefix")),
           ),
           body: message_with_signature,
           display_body: reply_body,
@@ -611,7 +612,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
           to: send_recipients.to,
           subject: build_reply_subject(
             original_subject,
-            t("mail.reply_subject_prefix"),
+            resolve_reply_prefix(t("mail.reply_subject_prefix")),
           ),
           body: message_with_signature,
           sender_email: sender_email_value,
@@ -739,7 +740,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
       bcc_recipients: [],
       subject: build_reply_subject(
         original_subject,
-        t("mail.reply_subject_prefix"),
+        resolve_reply_prefix(t("mail.reply_subject_prefix")),
       ),
       body: message_with_signature,
       scheduled_at: scheduled_time.toISOString(),

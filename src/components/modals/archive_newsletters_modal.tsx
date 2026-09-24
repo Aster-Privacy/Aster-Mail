@@ -35,14 +35,14 @@ import { FaviconOrInitial } from "@/components/ui/favicon_or_initial";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
 import { Modal, ModalBody } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
-import { bulk_patch_metadata } from "@/services/api/mail";
+import { batched_bulk_patch_metadata } from "@/services/api/mail";
 import {
   scan_received_items,
   DECRYPT_YIELD_CHUNK,
   decrypt_items_metadata_for_action,
 } from "@/services/bulk_mail_scan";
 import { yield_to_browser } from "@/lib/scheduling";
-import { batch_archive, batch_unarchive } from "@/services/api/archive";
+import { batched_archive, batched_unarchive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import { normalize_envelope_from } from "@/services/crypto/envelope";
@@ -315,41 +315,45 @@ export function ArchiveNewslettersModal({
       });
 
       const valid_updates = metadata_updates.filter(
-        (u) => u !== null,
-      ) as Array<{
-        id: string;
-        encrypted_metadata: string;
-        metadata_nonce: string;
-      }>;
+        (u): u is NonNullable<typeof u> => u !== null,
+      );
+
+      let cleanup_failed = false;
 
       if (valid_updates.length > 0) {
-        const patch_result = await bulk_patch_metadata({
-          items: valid_updates,
-        });
+        const patch_result = await batched_bulk_patch_metadata(valid_updates);
 
-        if (patch_result.error) {
-          show_toast(t("common.something_went_wrong_try_again"), "error");
-
-          return;
-        }
+        cleanup_failed = patch_result.failed_ids.length > 0;
       }
 
       stale_all_view_caches();
-      const archive_result = await batch_archive({
-        ids: all_mail_ids,
-        tier: "hot",
-      });
+      const archive_result = await batched_archive(all_mail_ids, "hot");
+      const archived_ids = archive_result.succeeded_ids;
 
-      if (archive_result.error) {
+      if (archive_result.failed_ids.length > 0) {
+        cleanup_failed = true;
+      }
+
+      if (archived_ids.length === 0) {
         show_toast(t("common.something_went_wrong_try_again"), "error");
 
         return;
       }
-      emit_mail_items_removed({ ids: all_mail_ids });
+
+      if (cleanup_failed) {
+        show_toast(t("settings.some_messages_not_archived"), "error");
+      }
+
+      emit_mail_items_removed({ ids: archived_ids });
       invalidate_mail_stats();
 
-      set_completed_count(all_mail_ids.length);
-      set_last_archived({ ids: all_mail_ids, items: all_items });
+      const archived = new Set(archived_ids);
+
+      set_completed_count(archived_ids.length);
+      set_last_archived({
+        ids: archived_ids,
+        items: all_items.filter((item) => archived.has(item.id)),
+      });
       set_newsletters((prev) => prev.filter((n) => !selected_ids.has(n.id)));
       set_selected_ids(new Set());
       set_show_success(true);
@@ -379,31 +383,26 @@ export function ArchiveNewslettersModal({
       }),
     );
 
-    const valid_undo = undo_updates.filter((u) => u !== null) as Array<{
-      id: string;
-      encrypted_metadata: string;
-      metadata_nonce: string;
-    }>;
+    const valid_undo = undo_updates.filter(
+      (u): u is NonNullable<typeof u> => u !== null,
+    );
 
     if (valid_undo.length > 0) {
-      const undo_patch_result = await bulk_patch_metadata({
-        items: valid_undo,
-      });
-
-      if (undo_patch_result.error) {
-        show_toast(t("common.something_went_wrong_try_again"), "error");
-
-        return;
-      }
+      await batched_bulk_patch_metadata(valid_undo);
     }
 
-    const unarchive_result = await batch_unarchive({ ids: last_archived.ids });
+    const unarchive_result = await batched_unarchive(last_archived.ids);
 
-    if (unarchive_result.error) {
+    if (unarchive_result.succeeded_ids.length === 0) {
       show_toast(t("common.something_went_wrong_try_again"), "error");
 
       return;
     }
+
+    if (unarchive_result.failed_ids.length > 0) {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    }
+
     emit_mail_soft_refresh();
     invalidate_mail_stats();
   }, [last_archived, t]);

@@ -51,6 +51,7 @@ import { sync_haptic_state } from "@/native/haptic_feedback";
 import { set_toast_min_duration } from "@/components/toast/simple_toast";
 import {
   set_display_date_format,
+  set_display_relative_dates,
   set_display_time_format,
   set_display_time_zone,
 } from "@/utils/date_format";
@@ -59,6 +60,10 @@ import {
   request_notification_permission,
 } from "@/services/notification_service";
 import { set_low_network_mode } from "@/services/low_network_state";
+import {
+  set_reply_include_quoted,
+  set_reply_prefix_subject,
+} from "@/lib/reply_defaults";
 import { take_onboarding_preferences } from "@/lib/onboarding_preferences";
 import { stop_version_check } from "@/lib/version_check";
 import { get_font_stack } from "@/lib/font_options";
@@ -415,6 +420,14 @@ export function use_preferences_provider() {
   }, [preferences.badge_count]);
 
   useEffect(() => {
+    set_reply_include_quoted(preferences.reply_include_quoted);
+  }, [preferences.reply_include_quoted]);
+
+  useEffect(() => {
+    set_reply_prefix_subject(preferences.reply_prefix_subject);
+  }, [preferences.reply_prefix_subject]);
+
+  useEffect(() => {
     set_display_time_format(preferences.time_format);
     try {
       if (preferences.time_format)
@@ -433,6 +446,17 @@ export function use_preferences_provider() {
       return;
     }
   }, [preferences.date_format]);
+
+  useEffect(() => {
+    const enabled = preferences.relative_dates !== false;
+
+    set_display_relative_dates(enabled);
+    try {
+      localStorage.setItem("astermail_relative_dates", String(enabled));
+    } catch {
+      return;
+    }
+  }, [preferences.relative_dates]);
 
   useEffect(() => {
     document.documentElement.classList.toggle(

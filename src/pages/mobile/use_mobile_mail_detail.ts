@@ -31,6 +31,8 @@ import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { use_email_detail } from "@/components/email/hooks/use_email_detail";
 import { use_sender_aliases } from "@/hooks/use_sender_aliases";
 import { build_reply_recipient_for_message } from "@/components/email/build_reply_recipient";
+import { resolve_own_recipient_address } from "@/components/email/build_reply_from_address";
+import { resolve_received_on_address } from "@/utils/delivered_to";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { remove_email_from_view_cache } from "@/hooks/use_email_list";
 import { use_date_format } from "@/hooks/use_date_format";
@@ -47,6 +49,10 @@ import { block_sender } from "@/services/api/blocked_senders";
 import { use_snooze } from "@/hooks/use_snooze";
 import { use_i18n } from "@/lib/i18n/context";
 import { build_reply_subject } from "@/lib/reply_subject";
+import {
+  reply_includes_quoted_by_default,
+  resolve_reply_prefix,
+} from "@/lib/reply_defaults";
 import {
   is_lockdown_enabled,
   LOCKDOWN_CHANGED_EVENT,
@@ -534,10 +540,14 @@ export function use_mobile_mail_detail() {
               date: new Date(msg.timestamp).toLocaleString(app_locale()),
               name: msg.display_sender_name || msg.sender_name,
             });
-      const quoted = `\n\n${quote_header}\n${body
-        .split("\n")
-        .map((l) => "> " + l)
-        .join("\n")}`;
+      const include_quoted =
+        mode === "forward" || reply_includes_quoted_by_default();
+      const quoted = include_quoted
+        ? `\n\n${quote_header}\n${body
+            .split("\n")
+            .map((l) => "> " + l)
+            .join("\n")}`
+        : "";
       const rfc_message_id = resolve_reply_references(
         msg,
         detail.thread_messages,
@@ -545,6 +555,17 @@ export function use_mobile_mail_detail() {
       const message_with_footer =
         get_aster_footer(t, preferences.show_aster_branding) + quoted;
       const thread_token = detail.mail_item?.thread_token;
+      const from_email =
+        msg.item_type === "sent"
+          ? msg.sender_email
+          : (resolve_received_on_address(msg) ??
+            resolve_own_recipient_address(
+              [
+                ...(msg.to_recipients ?? []).map((r) => r.email),
+                ...(msg.cc_recipients ?? []).map((r) => r.email),
+              ],
+              own_addresses,
+            ));
 
       if (mode === "forward") {
         window.dispatchEvent(
@@ -560,6 +581,7 @@ export function use_mobile_mail_detail() {
               draft_type: "forward",
               forward_from_id: msg.id,
               thread_token,
+              from_email,
             },
           }),
         );
@@ -605,13 +627,14 @@ export function use_mobile_mail_detail() {
               bcc_recipients: [],
               subject: build_reply_subject(
                 subject,
-                t("mail.reply_subject_prefix"),
+                resolve_reply_prefix(t("mail.reply_subject_prefix")),
               ),
               message: message_with_footer,
               draft_type: "reply",
               reply_to_id: msg.id,
               rfc_message_id,
               thread_token,
+              from_email,
             },
           }),
         );

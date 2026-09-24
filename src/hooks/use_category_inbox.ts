@@ -81,7 +81,6 @@ import {
   set_thread_grouping,
   set_ids_read,
 } from "@/services/category_index";
-
 import { drop_removed_after } from "@/services/removed_items";
 import { resolve_read_intent } from "@/services/read_intent";
 import { get_thread_messages, trash_thread } from "@/services/api/mail";
@@ -196,6 +195,49 @@ function build_load_failed_state(prev: EmailListState): EmailListState {
   };
 }
 
+function same_row_value(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return a.length === b.length && a.every((value, i) => value === b[i]);
+  }
+
+  return false;
+}
+
+function same_row(a: InboxEmail, b: InboxEmail): boolean {
+  const left = a as unknown as Record<string, unknown>;
+  const right = b as unknown as Record<string, unknown>;
+  const a_keys = Object.keys(left);
+
+  if (a_keys.length !== Object.keys(right).length) return false;
+
+  return a_keys.every((key) => same_row_value(left[key], right[key]));
+}
+
+function reuse_stable_rows(
+  prev: InboxEmail[],
+  next: InboxEmail[],
+): InboxEmail[] {
+  if (prev.length === 0) return next;
+
+  const previous = new Map(prev.map((email) => [email.id, email]));
+  let reused = false;
+
+  const merged = next.map((email) => {
+    const existing = previous.get(email.id);
+
+    if (existing && existing !== email && same_row(existing, email)) {
+      reused = true;
+
+      return existing;
+    }
+
+    return email;
+  });
+
+  return reused ? merged : next;
+}
+
 function build_list_state(
   prev: EmailListState,
   emails: InboxEmail[],
@@ -213,7 +255,7 @@ function build_list_state(
       : emails;
 
   return {
-    emails: next,
+    emails: reuse_stable_rows(prev.emails, next),
     is_loading: false,
     is_loading_more: false,
     total_messages: total,
@@ -256,8 +298,13 @@ export function use_category_inbox(
     () => ({
       date_format: preferences.date_format as FormatOptions["date_format"],
       time_format: preferences.time_format,
+      relative_dates: preferences.relative_dates !== false,
     }),
-    [preferences.date_format, preferences.time_format],
+    [
+      preferences.date_format,
+      preferences.time_format,
+      preferences.relative_dates,
+    ],
   );
 
   const [state, set_state] = useState<EmailListState>(EMPTY_STATE);
@@ -374,6 +421,7 @@ export function use_category_inbox(
     null,
   );
   const fetch_in_flight_ref = useRef(false);
+  const rendered_rows_ref = useRef(0);
   const fetch_page_ref = useRef<
     | ((
         page: number,
@@ -754,6 +802,12 @@ export function use_category_inbox(
   ]);
 
   useEffect(() => {
+    rendered_rows_ref.current = state.has_initial_load
+      ? state.emails.length
+      : 0;
+  }, [state.emails, state.has_initial_load]);
+
+  useEffect(() => {
     if (!enabled) return;
 
     const ids = get_page_ids(active_category, page, page_size);
@@ -761,7 +815,8 @@ export function use_category_inbox(
     const unread_bits = ids
       .map((id) => (is_representative_unread(id) ? "u" : "r"))
       .join("");
-    const signature = `${active_category}|${page}|${page_variant}|${built}|${unread_bits}|${ids.join(",")}`;
+    const scope = `${active_category}|${page}|${page_variant}|`;
+    const signature = `${scope}${built}|${unread_bits}|${ids.join(",")}`;
 
     if (signature === last_signature_ref.current) return;
 
@@ -774,8 +829,12 @@ export function use_category_inbox(
       return;
     }
 
+    const same_scope =
+      last_signature_ref.current.startsWith(scope) &&
+      rendered_rows_ref.current > 0;
+
     last_signature_ref.current = signature;
-    void fetch_page(page, page_size);
+    void fetch_page(page, page_size, same_scope ? { silent: true } : undefined);
   }, [
     enabled,
     active_category,

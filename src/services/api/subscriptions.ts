@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { api_client } from "./client";
+import { api_client, type ApiResponse } from "./client";
 
 export type SubscriptionCategory =
   | "newsletter"
@@ -195,7 +195,7 @@ export async function track_subscription(
   );
 }
 
-interface ProxyUnsubscribeParams {
+export interface ProxyUnsubscribeParams {
   method: "one-click" | "link" | "mailto";
   url?: string;
   mailto_address?: string;
@@ -210,7 +210,7 @@ interface ProxyUnsubscribeResponse {
 
 export async function proxy_unsubscribe(
   params: ProxyUnsubscribeParams,
-): Promise<{ data?: ProxyUnsubscribeResponse; error?: string }> {
+): Promise<ApiResponse<ProxyUnsubscribeResponse>> {
   return api_client.post<ProxyUnsubscribeResponse>(
     "/mail/v1/subscriptions/proxy-unsubscribe",
     params,

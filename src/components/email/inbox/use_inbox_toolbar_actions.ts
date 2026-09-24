@@ -876,7 +876,6 @@ export function use_inbox_toolbar_actions({
       const selected = email_state.emails.filter((e) => e.is_selected);
 
       if (selected.length === 0) return;
-      const ids = selected.map((e) => e.id);
       const is_spam_restore = force_spam_restore || current_view === "spam";
       const total = selected.length;
 
@@ -900,19 +899,19 @@ export function use_inbox_toolbar_actions({
             ),
           )
         : [];
-      const singleton_ids = selected
-        .filter(
-          (e) =>
-            is_spam_restore ||
-            !e.thread_token ||
-            (e.thread_message_count ?? 0) <= 1,
-        )
-        .map((e) => e.id);
+      const singleton_emails = selected.filter(
+        (e) =>
+          is_spam_restore ||
+          !e.thread_token ||
+          (e.thread_message_count ?? 0) <= 1,
+      );
+      const singleton_ids = singleton_emails.flatMap((e) =>
+        expand_email_ids(e),
+      );
 
       const thread_results = await Promise.all(
         thread_tokens.map((tok) => trash_thread(tok, false)),
       );
-      const thread_ok = thread_results.every((r) => !!r.data);
       const bulk_result =
         singleton_ids.length > 0
           ? await bulk_update_metadata_by_ids(
@@ -923,7 +922,27 @@ export function use_inbox_toolbar_actions({
 
       if (total > 5) update_progress_toast(total, total, t);
 
-      if (!thread_ok || !bulk_result?.success) {
+      const failed_threads = new Set(
+        thread_tokens.filter((_, index) => !thread_results[index]?.data),
+      );
+      const failed_ids = new Set(
+        bulk_result ? bulk_result.failed_ids : singleton_ids,
+      );
+      const singleton_set = new Set(singleton_emails.map((e) => e.id));
+      const restored = selected.filter((e) =>
+        singleton_set.has(e.id)
+          ? !expand_email_ids(e).some((id) => failed_ids.has(id))
+          : !failed_threads.has(e.thread_token as string),
+      );
+
+      const undo_threads = thread_tokens.filter(
+        (tok) => !failed_threads.has(tok),
+      );
+      const undo_ids = restored
+        .filter((e) => singleton_set.has(e.id))
+        .flatMap((e) => expand_email_ids(e));
+
+      if (restored.length === 0) {
         if (total > 5) hide_action_toast();
         show_toast(t("common.failed_to_restore_conversations"), "error");
         emit_mail_changed();
@@ -932,7 +951,7 @@ export function use_inbox_toolbar_actions({
       }
       if (is_spam_restore) {
         const unique_senders = new Set(
-          selected.map((e) => e.sender_email).filter(Boolean),
+          restored.map((e) => e.sender_email).filter(Boolean),
         );
 
         for (const sender of unique_senders) {
@@ -944,7 +963,7 @@ export function use_inbox_toolbar_actions({
           );
         }
       }
-      for (const email of selected) {
+      for (const email of restored) {
         if (is_spam_restore) {
           const deltas = compute_restore_deltas(email);
 
@@ -957,16 +976,17 @@ export function use_inbox_toolbar_actions({
           apply_stat_deltas(deltas);
         }
       }
+      if (restored.length < total) emit_mail_changed();
       show_action_toast({
         message: t("common.conversations_restored_bulk", {
-          count: selected.length,
+          count: restored.length,
         }),
         action_type: "restore",
-        email_ids: ids,
+        email_ids: restored.map((e) => e.id),
         on_undo: async () => {
           if (is_spam_restore) {
             const unique_senders = new Set(
-              selected.map((e) => e.sender_email).filter(Boolean),
+              restored.map((e) => e.sender_email).filter(Boolean),
             );
 
             for (const sender of unique_senders) {
@@ -983,9 +1003,9 @@ export function use_inbox_toolbar_actions({
             : { is_trashed: true };
 
           await Promise.all([
-            ...thread_tokens.map((tok) => trash_thread(tok, true)),
-            singleton_ids.length > 0
-              ? bulk_update_metadata_by_ids(singleton_ids, undo_update)
+            ...undo_threads.map((tok) => trash_thread(tok, true)),
+            undo_ids.length > 0
+              ? bulk_update_metadata_by_ids(undo_ids, undo_update)
               : Promise.resolve(),
           ]);
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));

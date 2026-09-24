@@ -42,6 +42,7 @@ import { merge_previous_ratchet_keys } from "./key_manager_core";
 import { clear_all_ratchet_states } from "./ratchet_state_store";
 import { report_envelope_capability_if_due } from "./envelope_capability";
 import { with_vault_write_lock } from "./vault_write_lock";
+import { recover_ratchet_keys_from_history_locked } from "./vault_key_recovery";
 import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
 
 import { ignore_error } from "@/lib/ignore_error";
@@ -336,9 +337,8 @@ async function published_signature_is_current(
 
   if (!signature_field) return false;
 
-  const { read_ratchet_prekey_signature_format } = await import(
-    "./key_manager_pgp"
-  );
+  const { read_ratchet_prekey_signature_format } =
+    await import("./key_manager_pgp");
 
   return (await read_ratchet_prekey_signature_format(signature_field)) === "v2";
 }
@@ -525,7 +525,19 @@ async function upload_prekey_bundle_with_retry(
     if (first.error_message?.includes(IDENTITY_CONTINUITY_MARKER)) {
       if (!(await refresh_vault_write_stamp())) return false;
 
-      return (await upload_prekey_bundle_result(vault)).ok;
+      const second = await upload_prekey_bundle_result(vault);
+
+      if (second.ok) return true;
+
+      if (!second.error_message?.includes(IDENTITY_CONTINUITY_MARKER)) {
+        return false;
+      }
+
+      const recovered = await recover_ratchet_keys_from_history_locked();
+
+      if (!recovered) return false;
+
+      return (await upload_prekey_bundle_result(recovered)).ok;
     }
 
     return (await upload_prekey_bundle_result(vault)).ok;

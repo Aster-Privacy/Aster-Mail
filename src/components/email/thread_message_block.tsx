@@ -1053,7 +1053,7 @@ export function ThreadMessageBlock(
 
           const inline_reply_from = is_own_msg
             ? message.sender_email
-            : undefined;
+            : delivered_to_address;
 
           return (
             <div onClick={(e) => e.stopPropagation()}>

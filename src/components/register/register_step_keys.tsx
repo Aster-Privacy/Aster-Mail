@@ -65,6 +65,19 @@ const sweep_style = `
     );
     animation: key_setup_sweep 1.2s ease-in-out infinite;
   }
+  @keyframes key_setup_spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .key_setup_spinner {
+    animation: key_setup_spin 1s linear infinite;
+    will-change: transform;
+    backface-visibility: hidden;
+  }
 `;
 
 export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
@@ -137,7 +150,9 @@ export const RegisterStepKeys = ({ reg }: RegisterStepKeysProps) => {
       </h2>
 
       <div className="mt-1.5 flex items-center gap-2 text-sm text-txt-tertiary">
-        <Spinner size="sm" />
+        <span className="key_setup_spinner flex h-4 w-4 flex-shrink-0">
+          <Spinner size="sm" style={{ animation: "none" }} />
+        </span>
         <p>{reg.generation_status}</p>
       </div>
 

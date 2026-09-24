@@ -1324,6 +1324,7 @@ export const hi = {
     emoji_activities: "गतिविधियां",
     emoji_flags: "झंडे",
     no_emojis_found: "कोई इमोजी नहीं मिली",
+    emoji_recent: "हाल ही में उपयोग किए गए",
     item_copied: "{{ label }} कॉपी हो गया",
     copied_item: "{{ label }} कॉपी हो गया",
     blocked_email: "{{ email }} ब्लॉक कर दिया गया",
@@ -2366,6 +2367,37 @@ export const hi = {
     bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
     bridge_linux_deb_arm64_link: ".deb (ARM64)",
     bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
+    bridge_other_formats: "अन्य प्रारूप",
+    bridge_arch_x64: "x86-64",
+    bridge_arch_arm64: "ARM64",
+    bridge_format_msi_desc: "ग्रुप पॉलिसी से मैनेज किए जाने वाले इंस्टॉल के लिए",
+    bridge_format_appimage_desc: "ज़्यादातर डिस्ट्रिब्यूशन पर चलता है",
+    bridge_format_deb_desc: "Debian, Ubuntu और उन पर आधारित डिस्ट्रिब्यूशन",
+    bridge_format_rpm_desc: "Fedora, RHEL और openSUSE",
+    bridge_format_pacman_desc: "Arch Linux और उस पर आधारित डिस्ट्रिब्यूशन",
+    bridge_download_started: "डाउनलोड शुरू हुआ",
+    bridge_download_failed: "डाउनलोड शुरू नहीं हुआ. फिर से कोशिश करें.",
+    bridge_support_help_desc: "सेटअप गाइड और आम सवालों के जवाब",
+    bridge_support_discord_desc: "टीम और Aster इस्तेमाल करने वाले दूसरे लोगों से पूछें",
+    bridge_support_reddit_desc: "घोषणाएं देखें और चर्चा में शामिल हों",
+    bridge_support_github_desc: "सोर्स कोड पढ़ें और समस्या की जानकारी दें",
+    bridge_all_platforms: "सभी प्लेटफ़ॉर्म",
+    bridge_upgrade_benefit_clients: "Apple Mail, Thunderbird और Outlook के साथ काम करता है",
+    bridge_upgrade_benefit_local: "यह स्थानीय रूप से चलता है, इसलिए आपका मेल एन्क्रिप्टेड रहता है",
+    bridge_upgrade_benefit_platforms: "Windows, macOS और Linux पर उपलब्ध",
+    bridge_upgrade_benefit_cli: "सर्वर के लिए कमांड-लाइन संस्करण शामिल है",
+    bridge_cli_download: "डाउनलोड करें",
+    bridge_cli_install_hint: "अपने प्लेटफ़ॉर्म के लिए संग्रह डाउनलोड करें, उसे निकालें और बाइनरी को अपने PATH में ले जाएँ।",
+    bridge_cli_install_hint_windows: "संग्रह डाउनलोड करें, उसे निकालें और फ़ोल्डर को अपने PATH में जोड़ें।",
+    bridge_cli_copy_command: "इंस्टॉल कमांड कॉपी करें",
+    bridge_cli_docs_link: "कमांड-लाइन गाइड पढ़ें",
+    bridge_cli_name: "कमांड लाइन",
+    bridge_cli_desc:
+      "किसी सर्वर पर या SSH के ज़रिए, बिना विंडो के वही सर्वर चलाता है।",
+    bridge_cli_windows_link: "Windows",
+    bridge_cli_macos_link: "macOS",
+    bridge_cli_linux_link: "Linux (x86-64)",
+    bridge_cli_linux_arm64_link: "Linux (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Apple Silicon और Intel Mac के लिए यूनिवर्सल DMG डाउनलोड करें।",
@@ -2926,6 +2958,11 @@ export const hi = {
       "उत्पाद अपडेट बंद हैं। आप इन्हें यहां दोबारा चालू कर सकते हैं।",
     product_updates_save_failed:
       "आपकी उत्पाद अपडेट सेटिंग सहेजी नहीं गई। फिर से कोशिश करें।",
+    special_offers: "विशेष ऑफ़र",
+    special_offers_description:
+      "ऐप में समय-समय पर छूट वाले प्लान ऑफ़र दिखाएं। इसे बंद करने पर आपको ऑफ़र नहीं दिखते और आपको ऑफ़र के नतीजों में नहीं गिना जाता।",
+    special_offers_save_failed:
+      "आपकी विशेष ऑफ़र सेटिंग सहेजी नहीं गई। फिर से कोशिश करें।",
     toast_position: "सूचना की जगह",
     toast_position_description: "सूचना पॉपअप स्क्रीन पर कहां दिखें",
     toast_position_top: "ऊपर",
@@ -3069,6 +3106,12 @@ export const hi = {
     conversation_grouping_confirm_description:
       "बातचीत का समूहन बंद करने पर जवाब एक साथ दिखने के बजाय हर ईमेल आपके इनबॉक्स में अलग चीज़ के तौर पर दिखेगा। इससे ईमेल की कड़ी समझना मुश्किल हो सकता है।",
     show_message_size: "संदेश का आकार दिखाएं",
+    relative_dates: "सापेक्ष तिथियाँ",
+    relative_dates_description:
+      "हाल के संदेशों पर तिथि के बजाय आज और कल दिखाएँ",
+    info_relative_dates_title: "सापेक्ष तिथियाँ",
+    info_relative_dates_description:
+      "यह चालू होने पर आज और कल के संदेश आज और कल के रूप में दिखते हैं। इसे बंद करने पर संदेश सूची, संदेश और प्रिंट में हमेशा वह तिथि और समय दिखेगा जब संदेश भेजा या प्राप्त हुआ।",
     show_alias_indicators: "एलियास संकेत दिखाएं",
     show_alias_indicators_description:
       "आपके किसी एलियास से आए संदेशों को चिह्नित करें",
@@ -3264,6 +3307,11 @@ export const hi = {
     compose_mode_default: "डिफ़ॉल्ट, तैरता हुआ पॉपअप",
     compose_mode_fullscreen: "हमेशा पूरी स्क्रीन",
     compose_mode_minimized: "छोटा करके शुरू करें",
+    default_sender_group: "भेजना",
+    default_sender_group_description: "चुनें कि नए संदेश आपके किस पते से जाएँ।",
+    default_sender_title: "डिफ़ॉल्ट प्रेषक",
+    default_sender_description: "नए संदेश इसी पते से शुरू होते हैं। उत्तर उसी पते का उपयोग करते हैं जिस पर संदेश आया था।",
+    default_sender_no_addresses: "कोई अन्य पता नहीं",
     compose_defaults_title: "डिफ़ॉल्ट फ़ॉर्मैटिंग",
     compose_defaults_description:
       "चुनें कि लिखना शुरू करने पर नए संदेश कैसे दिखें। जवाब और फ़ॉरवर्ड किए गए संदेश अपनी मूल फ़ॉर्मैटिंग बनाए रखते हैं।",
@@ -3276,6 +3324,12 @@ export const hi = {
     compose_default_font_color_picker_label: "डिफ़ॉल्ट पाठ रंग चुनें",
     compose_default_font_color_theme: "थीम डिफ़ॉल्ट",
     compose_default_font_color_reset: "थीम डिफ़ॉल्ट इस्तेमाल करें",
+    reply_defaults_title: "उत्तर",
+    reply_defaults_description: "चुनें कि नया उत्तर किससे शुरू हो।",
+    reply_include_quoted: "उद्धृत टेक्स्ट शामिल करें",
+    reply_include_quoted_description: "हर उत्तर आपके टेक्स्ट के नीचे उद्धृत मूल संदेश से शुरू होता है।",
+    reply_prefix_subject: "विषय में Re: जोड़ें",
+    reply_prefix_subject_description: "उत्तर देने पर मूल विषय से पहले Re: लगाता है।",
     build_info: "बिल्ड की जानकारी",
     release: "छोड़ें",
     build: "बिल्ड",
@@ -6892,6 +6946,7 @@ export const hi = {
     opened_in_browser:
       "{{ count }} आर्काइव हुए, हो सकता है खुद पुष्टि करनी पड़े",
     could_not_unsubscribe: "{{ count }} की सदस्यता नहीं छोड़ी जा सकी",
+    some_messages_not_archived: "कुछ संदेश संग्रहीत नहीं किए गए",
     unsubscribing: "सदस्यता छोड़ी जा रही है...",
     scanning: "स्कैन हो रहा है...",
     all_clear: "सब ठीक है",
@@ -7881,6 +7936,8 @@ export const hi = {
     already_reacted: "आप इससे पहले ही प्रतिक्रिया दे चुके हैं",
     remove_your_reaction: "अपनी {emoji} प्रतिक्रिया हटाएं",
     you_reacted_with: "आपने {{emoji}} से प्रतिक्रिया दी",
+    you_reacted_with_remove:
+      "आपने {{emoji}} से प्रतिक्रिया दी। हटाने के लिए क्लिक करें।",
     reacted_with: "{{name}} ने {{emoji}} से प्रतिक्रिया दी",
     reply_subject_prefix: "Re:",
     reply_from_mismatch_title: "किसी दूसरे पते से जवाब दें?",
@@ -9430,6 +9487,8 @@ export const hi = {
       "जिस संदेश में आप BCC में थे, उस पर आप प्रतिक्रिया नहीं दे सकते।",
     cannot_react_too_many_emojis:
       "इस संदेश पर पहले से अधिकतम संख्या में प्रतिक्रियाएं हैं।",
+    cannot_react_limit:
+      "आप किसी संदेश पर अधिकतम दो प्रतिक्रियाएं जोड़ सकते हैं। दूसरी जोड़ने के लिए, अपनी एक प्रतिक्रिया हटाएं।",
     cannot_react_no_recipient:
       "इस संदेश का कोई प्रेषक नहीं है जिसे प्रतिक्रिया भेजी जा सके।",
     failed_send_reaction:

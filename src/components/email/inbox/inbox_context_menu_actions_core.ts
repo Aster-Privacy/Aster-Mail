@@ -70,6 +70,7 @@ import {
   bulk_update_metadata_by_ids,
 } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
+import { clear_flag_intents, note_flag_intents } from "@/services/read_intent";
 import { ignore_error } from "@/lib/ignore_error";
 
 export function build_core_context_menu_actions(
@@ -183,6 +184,8 @@ export function build_core_context_menu_actions(
     remove_index_ids(grouped_ids);
 
     if (email.thread_token) {
+      note_flag_intents(grouped_ids, { is_trashed: true });
+
       const result = await trash_thread(email.thread_token, true);
 
       if (result.data) {
@@ -198,6 +201,7 @@ export function build_core_context_menu_actions(
 
             if (!undo_result.data) throw new Error("undo trash failed");
 
+            note_flag_intents(grouped_ids, { is_trashed: false });
             revert_stat_deltas(deltas);
             reindex_ids(trashed_index_ids);
             for (const id of grouped_ids) {
@@ -210,6 +214,7 @@ export function build_core_context_menu_actions(
         });
         window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
       } else {
+        clear_flag_intents(grouped_ids, { is_trashed: true });
         revert_stat_deltas(deltas);
         reindex_ids(trashed_index_ids);
         window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
@@ -272,6 +277,7 @@ export function build_core_context_menu_actions(
     );
 
     remove_index_ids(all_ids);
+
     const result = await batch_archive({ ids: all_ids, tier: "hot" });
 
     if (result.data?.success) {

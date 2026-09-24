@@ -1224,6 +1224,7 @@ export const nl = {
     emoji_activities: "Activiteiten",
     emoji_flags: "Vlaggen",
     no_emojis_found: "Geen emoji's gevonden",
+    emoji_recent: "Recent gebruikt",
     item_copied: "{{ label }} gekopieerd",
     copied_item: "{{ label }} gekopieerd",
     blocked_email: "{{ email }} geblokkeerd",
@@ -5511,6 +5512,12 @@ export const nl = {
     conversation_grouping_confirm_description:
       "Het uitschakelen van gespreksgroepering toont elke e-mail als apart item in je inbox in plaats van antwoorden te groeperen. Dit kan het lastiger maken om e-mailthreads te volgen.",
     show_message_size: "Berichtgrootte tonen",
+    relative_dates: "Relatieve datums",
+    relative_dates_description:
+      "Toon Vandaag en Gisteren bij recente berichten in plaats van de datum",
+    info_relative_dates_title: "Relatieve datums",
+    info_relative_dates_description:
+      "Als dit aanstaat, worden berichten van vandaag en gisteren weergegeven als Vandaag en Gisteren. Zet het uit om altijd de datum en tijd te tonen waarop een bericht is verzonden of ontvangen: in de berichtenlijst, in het bericht en bij het afdrukken.",
     show_alias_indicators: "Aliasindicatoren tonen",
     show_alias_indicators_description:
       "Berichten markeren die via een van je aliassen zijn binnengekomen",
@@ -5546,6 +5553,11 @@ export const nl = {
     compose_mode_default: "Standaard - zwevend pop-up",
     compose_mode_fullscreen: "Altijd volledig scherm",
     compose_mode_minimized: "Geminimaliseerd starten",
+    default_sender_group: "Verzenden",
+    default_sender_group_description: "Kies vanaf welk van je adressen nieuwe berichten vertrekken.",
+    default_sender_title: "Standaardafzender",
+    default_sender_description: "Nieuwe berichten vertrekken vanaf dit adres. Antwoorden gebruiken het adres waarnaar het bericht is verstuurd.",
+    default_sender_no_addresses: "Geen andere adressen",
     compose_defaults_title: "Standaardopmaak",
     compose_defaults_description:
       "Kies hoe nieuwe berichten eruitzien wanneer je begint te schrijven. Antwoorden en doorgestuurde berichten behouden hun oorspronkelijke opmaak.",
@@ -5558,6 +5570,12 @@ export const nl = {
     compose_default_font_color_picker_label: "Kies een standaardtekstkleur",
     compose_default_font_color_theme: "Standaard van thema",
     compose_default_font_color_reset: "Standaard van thema gebruiken",
+    reply_defaults_title: "Antwoorden",
+    reply_defaults_description: "Kies waarmee een nieuw antwoord begint.",
+    reply_include_quoted: "Geciteerde tekst toevoegen",
+    reply_include_quoted_description: "Elk antwoord begint met het originele bericht geciteerd onder je tekst.",
+    reply_prefix_subject: "Re: aan het onderwerp toevoegen",
+    reply_prefix_subject_description: "Zet Re: voor het originele onderwerp wanneer je antwoordt.",
     change_plan: "Abonnement wijzigen",
     change_plan_description:
       "Upgrade of downgrade je abonnement via het factureringsportaal",
@@ -6611,6 +6629,7 @@ export const nl = {
     opened_in_browser:
       "{{ count }} gearchiveerd - handmatige bevestiging kan nodig zijn",
     could_not_unsubscribe: "{{ count }} konden niet worden uitgeschreven",
+    some_messages_not_archived: "Sommige berichten zijn niet gearchiveerd",
     unsubscribing: "Uitschrijven...",
     scanning: "Scannen...",
     all_clear: "Alles in orde",
@@ -6946,6 +6965,37 @@ export const nl = {
     bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
     bridge_linux_deb_arm64_link: ".deb (ARM64)",
     bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
+    bridge_other_formats: "Andere indelingen",
+    bridge_arch_x64: "x86-64",
+    bridge_arch_arm64: "ARM64",
+    bridge_format_msi_desc: "Voor beheerde installaties met groepsbeleid",
+    bridge_format_appimage_desc: "Werkt op de meeste distributies",
+    bridge_format_deb_desc: "Debian, Ubuntu en afgeleiden",
+    bridge_format_rpm_desc: "Fedora, RHEL en openSUSE",
+    bridge_format_pacman_desc: "Arch Linux en afgeleiden",
+    bridge_download_started: "Download gestart",
+    bridge_download_failed: "De download is niet gestart. Probeer het opnieuw.",
+    bridge_support_help_desc: "Installatiegidsen en antwoorden op veelgestelde vragen",
+    bridge_support_discord_desc: "Stel je vraag aan het team en andere Aster-gebruikers",
+    bridge_support_reddit_desc: "Volg aankondigingen en praat mee",
+    bridge_support_github_desc: "Bekijk de broncode en meld een probleem",
+    bridge_all_platforms: "Alle platforms",
+    bridge_upgrade_benefit_clients: "Werkt met Apple Mail, Thunderbird en Outlook",
+    bridge_upgrade_benefit_local: "Draait lokaal, zodat je e-mail versleuteld blijft",
+    bridge_upgrade_benefit_platforms: "Beschikbaar voor Windows, macOS en Linux",
+    bridge_upgrade_benefit_cli: "Inclusief een opdrachtregelversie voor servers",
+    bridge_cli_download: "Downloaden",
+    bridge_cli_install_hint: "Download het archief voor je platform, pak het uit en verplaats het binaire bestand naar je PATH.",
+    bridge_cli_install_hint_windows: "Download het archief, pak het uit en voeg de map toe aan je PATH.",
+    bridge_cli_copy_command: "Installatieopdrachten kopiëren",
+    bridge_cli_docs_link: "Lees de opdrachtregelhandleiding",
+    bridge_cli_name: "Opdrachtregel",
+    bridge_cli_desc:
+      "Voert dezelfde servers uit zonder venster, op een server of via SSH.",
+    bridge_cli_windows_link: "Windows",
+    bridge_cli_macos_link: "macOS",
+    bridge_cli_linux_link: "Linux (x86-64)",
+    bridge_cli_linux_arm64_link: "Linux (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Download de universele DMG voor Macs met Apple silicon en Intel.",
@@ -7538,6 +7588,11 @@ export const nl = {
       "Productnieuws staat uit. Je kunt het hier weer aanzetten.",
     product_updates_save_failed:
       "Je instelling voor productnieuws is niet opgeslagen. Probeer het opnieuw.",
+    special_offers: "Speciale aanbiedingen",
+    special_offers_description:
+      "Toon af en toe abonnementen met korting in de app. Als dit uitstaat, zie je geen aanbiedingen en tel je niet mee in de resultaten van aanbiedingen.",
+    special_offers_save_failed:
+      "Je instelling voor speciale aanbiedingen is niet opgeslagen. Probeer het opnieuw.",
     criterion_passkey: "Toegangssleutel geregistreerd",
     criterion_read_receipts_off: "Leesbevestigingen uit",
     send_read_receipts_label: "Leesbevestigingen verzenden",
@@ -8028,6 +8083,8 @@ export const nl = {
     already_reacted: "Je hebt hier al mee gereageerd",
     remove_your_reaction: "Je {emoji}-reactie verwijderen",
     you_reacted_with: "Je hebt gereageerd met {{emoji}}",
+    you_reacted_with_remove:
+      "Je hebt gereageerd met {{emoji}}. Klik om te verwijderen.",
     reacted_with: "{{name}} heeft gereageerd met {{emoji}}",
     forward: "Doorsturen",
     to: "Aan",
@@ -9565,6 +9622,8 @@ export const nl = {
       "Je kunt niet reageren op een bericht waarin je in de Bcc stond.",
     cannot_react_too_many_emojis:
       "Dit bericht heeft al het maximale aantal reacties.",
+    cannot_react_limit:
+      "Je kunt maximaal twee reacties aan een bericht toevoegen. Verwijder een van je reacties om een andere toe te voegen.",
     cannot_react_no_recipient:
       "Dit bericht heeft geen afzender om de reactie naar te sturen.",
     failed_send_reaction:

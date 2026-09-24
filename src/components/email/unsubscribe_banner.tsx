@@ -188,15 +188,7 @@ export function UnsubscribeBanner({
             borderColor: "var(--border-secondary)",
           }}
         >
-          <div
-            className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
-            style={{
-              backgroundColor:
-                "color-mix(in srgb, var(--accent-color) 10%, transparent)",
-            }}
-          >
-            <EnvelopeIcon className="w-5 h-5 text-brand" />
-          </div>
+          <EnvelopeIcon className="w-5 h-5 flex-shrink-0 text-txt-muted" />
 
           <div className="flex-1 min-w-0">
             <p className="text-[14px] font-medium text-txt-primary">

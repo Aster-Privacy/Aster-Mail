@@ -3398,7 +3398,8 @@ input:-webkit-autofill:active {
 }
 
 .quick_contacts_panel.quick_panel_closing,
-.quick_security_panel.quick_panel_closing {
+.quick_security_panel.quick_panel_closing,
+.quick_settings_panel.quick_panel_closing {
   animation: quick_settings_slide_out 160ms cubic-bezier(0.32, 0.72, 0, 1)
     forwards;
   pointer-events: none;
@@ -3419,7 +3420,8 @@ input:-webkit-autofill:active {
   .quick_contacts_panel,
   .quick_security_panel,
   .quick_contacts_panel.quick_panel_closing,
-  .quick_security_panel.quick_panel_closing {
+  .quick_security_panel.quick_panel_closing,
+  .quick_settings_panel.quick_panel_closing {
     animation: none;
   }
 }
@@ -4271,4 +4273,38 @@ input:-webkit-autofill:active {
   flex-shrink: 0;
   margin-top: 2px;
   color: var(--accent-color, #3b6aef);
+}
+
+.link_device_code_input {
+  background-color: color-mix(
+    in srgb,
+    var(--text-primary) 9%,
+    var(--dropdown-bg)
+  );
+  border: 1px solid color-mix(in srgb, var(--text-primary) 14%, transparent);
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.link_device_code_input:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--text-primary) 11%,
+    var(--dropdown-bg)
+  );
+}
+
+.link_device_code_input:focus {
+  outline: none;
+  border-color: var(--accent-color, #3b82f6);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--accent-color, #3b82f6) 28%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link_device_code_input {
+    transition: none;
+  }
 }

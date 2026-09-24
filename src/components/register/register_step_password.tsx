@@ -256,6 +256,7 @@ export const RegisterStepPassword = ({ reg }: RegisterStepPasswordProps) => {
         </AnimatePresence>
 
         <TurnstileWidget
+          ref={reg.turnstile_ref}
           on_expire={() => reg.set_captcha_token("")}
           on_verify={reg.set_captcha_token}
         />

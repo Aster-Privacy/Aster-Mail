@@ -51,6 +51,7 @@ export interface UserPreferences {
   time_zone: string;
   date_format: string;
   time_format: "12h" | "24h";
+  relative_dates: boolean;
   auto_save_drafts: boolean;
   auto_save_recent_recipients: boolean;
   density: string;
@@ -109,6 +110,8 @@ export interface UserPreferences {
   mark_as_read_delay: "immediate" | "1_second" | "3_seconds" | "never";
   reading_pane_position: "right" | "bottom" | "hidden";
   default_reply_behavior: "reply" | "reply_all";
+  reply_include_quoted: boolean;
+  reply_prefix_subject: boolean;
   load_remote_images: "always" | "ask" | "never";
   block_external_content: boolean;
   external_content_blocking_mode: "trackers" | "images" | "both";
@@ -629,6 +632,7 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   time_zone: "auto",
   date_format: locale_date_format(),
   time_format: locale_time_format(),
+  relative_dates: true,
   auto_save_drafts: true,
   auto_save_recent_recipients: true,
   density: "Comfortable",
@@ -638,6 +642,8 @@ export const DEFAULT_PREFERENCES: UserPreferences = {
   default_send_mode: "Send",
   undo_send_period: "10 seconds",
   undo_send_enabled: true,
+  reply_include_quoted: true,
+  reply_prefix_subject: true,
   undo_send_seconds: 10,
   auto_advance: "Go to next message",
   smart_reply: true,
@@ -977,6 +983,8 @@ export function build_merged_preferences(
   if (merged.time_format !== "12h" && merged.time_format !== "24h") {
     merged.time_format = DEFAULT_PREFERENCES.time_format;
   }
+
+  merged.relative_dates = merged.relative_dates !== false;
 
   merged.swipe_left_action = normalize_swipe_action(
     merged.swipe_left_action,

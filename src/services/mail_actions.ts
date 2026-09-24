@@ -33,6 +33,7 @@ import { ensure_post_quantum_consent } from "./post_quantum_consent";
 import { get_aster_footer } from "@/components/compose/compose_shared";
 import { sanitize_outgoing_html } from "@/lib/html_sanitizer";
 import { get_active_translations } from "@/lib/i18n/translations";
+import { resolve_reply_prefix } from "@/lib/reply_defaults";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   build_reply_subject as build_reply_subject_value,
@@ -101,7 +102,7 @@ export interface MailActionCallbacks {
 function build_reply_subject(original_subject: string): string {
   return build_reply_subject_value(
     original_subject,
-    get_active_translations().mail.reply_subject_prefix,
+    resolve_reply_prefix(get_active_translations().mail.reply_subject_prefix),
   );
 }
 

@@ -54,6 +54,7 @@ import {
 } from "@/services/api/multi_drafts";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { build_reply_subject } from "@/lib/reply_subject";
+import { resolve_reply_prefix } from "@/lib/reply_defaults";
 import { get_aster_footer } from "@/components/compose/compose_shared";
 import { build_badge_html } from "@/components/compose/compose_draft_helpers";
 import { fetch_my_badges, type Badge } from "@/services/api/user";
@@ -232,7 +233,10 @@ export const InlineReplySection = forwardRef<
         to_recipients: [sender_email],
         cc_recipients: [],
         bcc_recipients: [],
-        subject: build_reply_subject(subject, t("mail.reply_subject_prefix")),
+        subject: build_reply_subject(
+          subject,
+          resolve_reply_prefix(t("mail.reply_subject_prefix")),
+        ),
         message: text,
       };
 
@@ -435,7 +439,10 @@ export const InlineReplySection = forwardRef<
       item_type: "sent",
       sender_name: user?.display_name || user?.email || t("common.me"),
       sender_email: user?.email || "",
-      subject: build_reply_subject(subject, t("mail.reply_subject_prefix")),
+      subject: build_reply_subject(
+        subject,
+        resolve_reply_prefix(t("mail.reply_subject_prefix")),
+      ),
       body: reply_text.trim(),
       timestamp: new Date().toISOString(),
       is_read: true,
@@ -501,7 +508,7 @@ export const InlineReplySection = forwardRef<
             sender_email: user?.email || "",
             subject: build_reply_subject(
               subject,
-              t("mail.reply_subject_prefix"),
+              resolve_reply_prefix(t("mail.reply_subject_prefix")),
             ),
             body: reply_text.trim(),
             timestamp: new Date().toISOString(),
@@ -733,7 +740,9 @@ export const InlineReplySection = forwardRef<
                     😊
                   </button>
                   {show_emoji_picker && !is_disabled && (
-                    <EmojiPicker on_select={handle_emoji_select} />
+                    <div className="absolute bottom-full start-0 z-50 mb-2">
+                      <EmojiPicker on_select={handle_emoji_select} />
+                    </div>
                   )}
                 </div>
                 <span className="text-xs ms-auto text-txt-tertiary">

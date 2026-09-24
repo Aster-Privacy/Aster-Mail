@@ -1278,6 +1278,7 @@ export const fr = {
     emoji_activities: "Activités",
     emoji_flags: "Drapeaux",
     no_emojis_found: "Aucun émoji trouvé",
+    emoji_recent: "Utilisés récemment",
     item_copied: "{{ label }} copié",
     copied_item: "{{ label }} copié",
     blocked_email: "{{ email }} bloqué",
@@ -4254,6 +4255,11 @@ export const fr = {
     compose_mode_default: "Par défaut - popup flottante",
     compose_mode_fullscreen: "Toujours en plein écran",
     compose_mode_minimized: "Démarrer réduit",
+    default_sender_group: "Envoi",
+    default_sender_group_description: "Choisissez l'adresse depuis laquelle partent vos nouveaux messages.",
+    default_sender_title: "Expéditeur par défaut",
+    default_sender_description: "Les nouveaux messages partent de cette adresse. Les réponses utilisent l'adresse à laquelle le message a été envoyé.",
+    default_sender_no_addresses: "Aucune autre adresse",
     compose_defaults_title: "Mise en forme par défaut",
     compose_defaults_description:
       "Choisissez l'apparence des nouveaux messages au moment où vous commencez à écrire. Les réponses et les messages transférés conservent leur mise en forme d'origine.",
@@ -4267,6 +4273,12 @@ export const fr = {
       "Choisissez une couleur de texte par défaut",
     compose_default_font_color_theme: "Valeur par défaut du thème",
     compose_default_font_color_reset: "Utiliser la valeur par défaut du thème",
+    reply_defaults_title: "Réponses",
+    reply_defaults_description: "Choisissez ce qui figure dans une nouvelle réponse.",
+    reply_include_quoted: "Inclure le texte cité",
+    reply_include_quoted_description: "Chaque réponse commence par le message d'origine cité sous votre texte.",
+    reply_prefix_subject: "Ajouter Rép. : à l'objet",
+    reply_prefix_subject_description: "Place Rép. : devant l'objet d'origine lorsque vous répondez.",
     build_info: "Informations de build",
     release: "Version",
     build: "Version",
@@ -5644,6 +5656,12 @@ export const fr = {
     conversation_grouping: "Regroupement des conversations",
     conversation_grouping_confirm_title: "Êtes-vous sûr ?",
     show_message_size: "Afficher la taille des messages",
+    relative_dates: "Dates relatives",
+    relative_dates_description:
+      "Afficher Aujourd’hui et Hier sur les messages récents au lieu de la date",
+    info_relative_dates_title: "Dates relatives",
+    info_relative_dates_description:
+      "Lorsque cette option est activée, les messages d’aujourd’hui et d’hier s’affichent avec la mention Aujourd’hui et Hier. Désactivez-la pour toujours afficher la date et l’heure d’envoi ou de réception d’un message, dans la liste des messages, dans le message et à l’impression.",
     show_alias_indicators: "Afficher les indicateurs d'alias",
     show_alias_indicators_description:
       "Marquer les messages reçus via l'un de vos alias",
@@ -6377,6 +6395,7 @@ export const fr = {
     scanning: "Analyse en cours...",
     unsubscribing: "Désabonnement en cours...",
     could_not_unsubscribe: "{{ count }} n'ont pas pu être désabonnés",
+    some_messages_not_archived: "Certains messages n'ont pas été archivés",
     opened_in_browser:
       "{{ count }} archivé(s) - confirmation manuelle peut être nécessaire",
     senders_unsubscribed: "{{ count }} expéditeurs désabonnés",
@@ -7028,6 +7047,37 @@ export const fr = {
     bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
     bridge_linux_deb_arm64_link: ".deb (ARM64)",
     bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
+    bridge_other_formats: "Autres formats",
+    bridge_arch_x64: "x86-64",
+    bridge_arch_arm64: "ARM64",
+    bridge_format_msi_desc: "Pour les installations gérées par stratégie de groupe",
+    bridge_format_appimage_desc: "Fonctionne sur la plupart des distributions",
+    bridge_format_deb_desc: "Debian, Ubuntu et dérivées",
+    bridge_format_rpm_desc: "Fedora, RHEL et openSUSE",
+    bridge_format_pacman_desc: "Arch Linux et dérivées",
+    bridge_download_started: "Téléchargement démarré",
+    bridge_download_failed: "Le téléchargement n'a pas démarré. Réessaie.",
+    bridge_support_help_desc: "Guides de configuration et réponses aux questions fréquentes",
+    bridge_support_discord_desc: "Pose tes questions à l'équipe et aux autres personnes qui utilisent Aster",
+    bridge_support_reddit_desc: "Suis les annonces et participe aux discussions",
+    bridge_support_github_desc: "Consulte le code source et signale un problème",
+    bridge_all_platforms: "Toutes les plateformes",
+    bridge_upgrade_benefit_clients: "Compatible avec Apple Mail, Thunderbird et Outlook",
+    bridge_upgrade_benefit_local: "Fonctionne en local, vos messages restent chiffrés",
+    bridge_upgrade_benefit_platforms: "Disponible sur Windows, macOS et Linux",
+    bridge_upgrade_benefit_cli: "Inclut une version en ligne de commande pour les serveurs",
+    bridge_cli_download: "Télécharger",
+    bridge_cli_install_hint: "Téléchargez l'archive correspondant à votre plateforme, extrayez-la, puis déplacez le binaire dans votre PATH.",
+    bridge_cli_install_hint_windows: "Téléchargez l'archive, extrayez-la, puis ajoutez le dossier à votre PATH.",
+    bridge_cli_copy_command: "Copier les commandes d'installation",
+    bridge_cli_docs_link: "Lire le guide de la ligne de commande",
+    bridge_cli_name: "Ligne de commande",
+    bridge_cli_desc:
+      "Exécute les mêmes serveurs sans fenêtre, sur un serveur ou via SSH.",
+    bridge_cli_windows_link: "Windows",
+    bridge_cli_macos_link: "macOS",
+    bridge_cli_linux_link: "Linux (x86-64)",
+    bridge_cli_linux_arm64_link: "Linux (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Téléchargez le DMG universel pour les Mac Apple Silicon et Intel.",
@@ -7619,6 +7669,11 @@ export const fr = {
       "Les nouveautés du produit sont désactivées. Vous pouvez les réactiver ici.",
     product_updates_save_failed:
       "Votre préférence de nouveautés n’a pas été enregistrée. Réessayez.",
+    special_offers: "Offres spéciales",
+    special_offers_description:
+      "Affichez de temps en temps des offres de forfaits à prix réduit dans l’application. Lorsque cette option est désactivée, vous ne voyez aucune offre et vous n’êtes pas pris en compte dans les résultats des offres.",
+    special_offers_save_failed:
+      "Votre préférence d’offres spéciales n’a pas été enregistrée. Réessayez.",
     criterion_passkey: "Clé d’accès enregistrée",
     criterion_read_receipts_off: "Accusés de lecture désactivés",
     send_read_receipts_label: "Envoyer des accusés de lecture",
@@ -8107,6 +8162,8 @@ export const fr = {
     already_reacted: "Vous avez déjà réagi avec ceci",
     remove_your_reaction: "Supprimer votre réaction {emoji}",
     you_reacted_with: "Vous avez réagi avec {{emoji}}",
+    you_reacted_with_remove:
+      "Vous avez réagi avec {{emoji}}. Cliquez pour retirer.",
     reacted_with: "{{name}} a réagi avec {{emoji}}",
     forward: "Transférer",
     to: "À",
@@ -9651,6 +9708,8 @@ export const fr = {
     cannot_react_bcc: "Vous ne pouvez pas réagir à un message reçu en Cci.",
     cannot_react_too_many_emojis:
       "Ce message a déjà atteint le nombre maximal de réactions.",
+    cannot_react_limit:
+      "Vous pouvez ajouter jusqu'à deux réactions à un message. Pour en ajouter une autre, retirez l'une des vôtres.",
     cannot_react_no_recipient:
       "Ce message n'a pas d'expéditeur à qui envoyer la réaction.",
     failed_send_reaction:

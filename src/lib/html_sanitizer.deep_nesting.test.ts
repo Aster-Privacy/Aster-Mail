@@ -66,6 +66,41 @@ describe("html_sanitizer deep nesting", () => {
     });
   }
 
+  for (const depth of [1500, 4000]) {
+    it(`keeps css out of the rendered body when a style block sits ${depth} divs deep`, () => {
+      const body =
+        "<div>".repeat(depth) +
+        `<style type="text/css">${marketing_css}</style>readable body` +
+        "</div>".repeat(depth);
+      const result = sanitize_html(build_email(body), { sandbox_mode: true });
+
+      assert_no_css_text(result.html);
+      expect(result.html).toContain("readable body");
+    });
+
+    it(`keeps css out of the rendered body when a style block sits ${depth} cells deep`, () => {
+      const body =
+        "<table><tr><td>".repeat(depth) +
+        `<style type="text/css">${marketing_css}</style>readable body` +
+        "</td></tr></table>".repeat(depth);
+      const result = sanitize_html(build_email(body), { sandbox_mode: true });
+
+      assert_no_css_text(result.html);
+      expect(result.html).toContain("readable body");
+    });
+  }
+
+  it("keeps script source out of the rendered body below the depth limit", () => {
+    const body =
+      "<div>".repeat(1500) +
+      "<script>window.tracking_beacon = 1;</script>readable body" +
+      "</div>".repeat(1500);
+    const result = sanitize_html(build_email(body), { sandbox_mode: true });
+
+    expect(result.html).not.toContain("tracking_beacon");
+    expect(result.html).toContain("readable body");
+  });
+
   it("keeps css out of the rendered body without sandbox mode", () => {
     const body = "<div>".repeat(4000) + "readable body" + "</div>".repeat(4000);
     const result = sanitize_html(build_email(body));

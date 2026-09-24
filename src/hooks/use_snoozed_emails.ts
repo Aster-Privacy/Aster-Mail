@@ -284,6 +284,7 @@ export function use_snoozed_emails(): UseSnoozedEmailsReturn {
           (preferences.date_format as FormatOptions["date_format"]) ||
           "MM/DD/YYYY",
         time_format: preferences.time_format || "12h",
+        relative_dates: preferences.relative_dates !== false,
       };
 
       const results = await Promise.allSettled(

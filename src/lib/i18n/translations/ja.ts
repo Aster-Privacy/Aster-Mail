@@ -1307,6 +1307,7 @@ export const ja = {
     emoji_activities: "アクティビティ",
     emoji_flags: "旗",
     no_emojis_found: "絵文字が見つかりません",
+    emoji_recent: "最近使用",
     item_copied: "{{ label }}をコピーしました",
     copied_item: "{{ label }}をコピーしました",
     blocked_email: "{{ email }}をブロックしました",
@@ -4232,6 +4233,11 @@ export const ja = {
     compose_mode_default: "デフォルト - フローティングポップアップ",
     compose_mode_fullscreen: "常にフルスクリーン",
     compose_mode_minimized: "最小化して開始",
+    default_sender_group: "送信",
+    default_sender_group_description: "新しいメッセージの送信元にするアドレスを選びます。",
+    default_sender_title: "既定の送信者",
+    default_sender_description: "新しいメッセージはこのアドレスから送信されます。返信には、メッセージが届いたアドレスが使われます。",
+    default_sender_no_addresses: "ほかのアドレスがありません",
     compose_defaults_title: "デフォルトの書式",
     compose_defaults_description:
       "新規メッセージを書き始めるときの見た目を選択します。返信と転送メッセージは元の書式を保持します。",
@@ -4244,6 +4250,12 @@ export const ja = {
     compose_default_font_color_picker_label: "デフォルトの文字色を選択",
     compose_default_font_color_theme: "テーマのデフォルト",
     compose_default_font_color_reset: "テーマのデフォルトを使用",
+    reply_defaults_title: "返信",
+    reply_defaults_description: "新しい返信の開始内容を選択します。",
+    reply_include_quoted: "引用文を含める",
+    reply_include_quoted_description: "すべての返信が、入力欄の下に引用された元のメッセージで始まります。",
+    reply_prefix_subject: "件名に Re: を追加",
+    reply_prefix_subject_description: "返信するときに元の件名の前に Re: を付けます。",
     build_info: "ビルド情報",
     release: "リリース",
     build: "ビルド",
@@ -5601,6 +5613,12 @@ export const ja = {
     conversation_grouping_confirm_description:
       "会話のグループ化をオフにすると、返信をまとめる代わりに各メールが個別のアイテムとして受信トレイに表示されます。メールのスレッドを追跡しにくくなる場合があります。",
     show_message_size: "メッセージサイズを表示",
+    relative_dates: "相対的な日付",
+    relative_dates_description:
+      "最近のメールに日付ではなく「今日」「昨日」と表示します",
+    info_relative_dates_title: "相対的な日付",
+    info_relative_dates_description:
+      "オンにすると、今日と昨日のメールは「今日」「昨日」と表示されます。オフにすると、メール一覧、メール本文、印刷のいずれでも送受信した日付と時刻が常に表示されます。",
     show_alias_indicators: "エイリアスインジケーターを表示",
     show_alias_indicators_description:
       "エイリアス宛てに届いたメッセージに印を付けます",
@@ -6596,6 +6614,7 @@ export const ja = {
     opened_in_browser:
       "アーカイブ済み: {{ count }} 件 - 手動確認が必要な場合があります",
     could_not_unsubscribe: "配信停止できなかったもの: {{ count }} 件",
+    some_messages_not_archived: "一部のメッセージはアーカイブされませんでした",
     unsubscribing: "配信停止中...",
     scanning: "スキャン中...",
     all_clear: "問題なし",
@@ -6932,6 +6951,37 @@ export const ja = {
     bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
     bridge_linux_deb_arm64_link: ".deb (ARM64)",
     bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
+    bridge_other_formats: "その他の形式",
+    bridge_arch_x64: "x86-64",
+    bridge_arch_arm64: "ARM64",
+    bridge_format_msi_desc: "グループ ポリシーで管理するインストール向け",
+    bridge_format_appimage_desc: "ほとんどのディストリビューションで動作します",
+    bridge_format_deb_desc: "Debian、Ubuntu とその派生",
+    bridge_format_rpm_desc: "Fedora、RHEL、openSUSE",
+    bridge_format_pacman_desc: "Arch Linux とその派生",
+    bridge_download_started: "ダウンロードを開始しました",
+    bridge_download_failed: "ダウンロードを開始できませんでした。もう一度お試しください。",
+    bridge_support_help_desc: "セットアップガイドとよくある質問への回答",
+    bridge_support_discord_desc: "チームや他の Aster ユーザーに質問できます",
+    bridge_support_reddit_desc: "お知らせを確認して、話題に参加できます",
+    bridge_support_github_desc: "ソースコードを確認して、問題を報告できます",
+    bridge_all_platforms: "すべてのプラットフォーム",
+    bridge_upgrade_benefit_clients: "Apple Mail、Thunderbird、Outlook で使えます",
+    bridge_upgrade_benefit_local: "ローカルで動作するため、メールは暗号化されたままです",
+    bridge_upgrade_benefit_platforms: "Windows、macOS、Linux で利用できます",
+    bridge_upgrade_benefit_cli: "サーバー向けのコマンドライン版が含まれます",
+    bridge_cli_download: "ダウンロード",
+    bridge_cli_install_hint: "お使いのプラットフォーム用のアーカイブをダウンロードし、展開してバイナリを PATH に移動します。",
+    bridge_cli_install_hint_windows: "アーカイブをダウンロードし、展開してフォルダを PATH に追加します。",
+    bridge_cli_copy_command: "インストールコマンドをコピー",
+    bridge_cli_docs_link: "コマンドラインガイドを読む",
+    bridge_cli_name: "コマンドライン",
+    bridge_cli_desc:
+      "ウインドウなしで同じサーバを実行します。サーバ上でも SSH 経由でも使えます。",
+    bridge_cli_windows_link: "Windows",
+    bridge_cli_macos_link: "macOS",
+    bridge_cli_linux_link: "Linux (x86-64)",
+    bridge_cli_linux_arm64_link: "Linux (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Apple シリコンと Intel の Mac に対応したユニバーサル DMG をダウンロードします。",
@@ -7560,6 +7610,11 @@ export const ja = {
       "製品のお知らせはオフです。ここでオンに戻せます。",
     product_updates_save_failed:
       "製品のお知らせの設定を保存できませんでした。もう一度お試しください。",
+    special_offers: "特別オファー",
+    special_offers_description:
+      "割引されたプランのオファーをアプリ内でときどき表示します。オフにすると、オファーは表示されず、オファーの結果にも含まれません。",
+    special_offers_save_failed:
+      "特別オファーの設定を保存できませんでした。もう一度お試しください。",
     criterion_passkey: "パスキー登録済み",
     criterion_read_receipts_off: "開封確認オフ",
     send_read_receipts_label: "開封確認を送信",
@@ -8009,6 +8064,7 @@ export const ja = {
     already_reacted: "すでにこのリアクションを送信済みです",
     remove_your_reaction: "{emoji} のリアクションを削除",
     you_reacted_with: "{{emoji}} でリアクションしました",
+    you_reacted_with_remove: "{{emoji}} でリアクションしました。クリックすると削除されます。",
     reacted_with: "{{name}} が {{emoji}} でリアクションしました",
     forward: "転送",
     to: "宛先",
@@ -9532,6 +9588,8 @@ export const ja = {
     cannot_react_bcc: "BCCで受け取ったメッセージにはリアクションできません。",
     cannot_react_too_many_emojis:
       "このメッセージのリアクションは上限に達しています。",
+    cannot_react_limit:
+      "1件のメッセージに追加できるリアクションは2つまでです。別のリアクションを追加するには、自分のリアクションを1つ削除してください。",
     cannot_react_no_recipient:
       "このメッセージには、リアクションの送信先となる送信者がいません。",
     failed_send_reaction:

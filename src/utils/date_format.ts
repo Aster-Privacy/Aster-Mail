@@ -30,6 +30,7 @@ export type TimeFormatPreference = "12h" | "24h";
 export interface FormatOptions {
   date_format: DateFormatPreference;
   time_format: TimeFormatPreference;
+  relative_dates?: boolean;
 }
 
 const formatter_cache = new Map<string, Intl.DateTimeFormat>();
@@ -87,6 +88,32 @@ function is_date_format(value: unknown): value is DateFormatPreference {
   );
 }
 
+let display_relative_dates: boolean | undefined;
+
+export function set_display_relative_dates(value: boolean | undefined): void {
+  display_relative_dates = typeof value === "boolean" ? value : undefined;
+}
+
+export function app_relative_dates(): boolean {
+  if (typeof display_relative_dates === "boolean")
+    return display_relative_dates;
+  if (typeof window === "undefined") return true;
+
+  try {
+    const stored = localStorage.getItem("astermail_relative_dates");
+
+    if (stored === "true" || stored === "false") {
+      display_relative_dates = stored === "true";
+
+      return display_relative_dates;
+    }
+  } catch {
+    return true;
+  }
+
+  return true;
+}
+
 export function set_display_date_format(value: string | undefined): void {
   display_date_format = is_date_format(value) ? value : undefined;
 }
@@ -114,7 +141,12 @@ function default_options(): FormatOptions {
   return {
     date_format: app_date_format(),
     time_format: app_hour12() === false ? "24h" : "12h",
+    relative_dates: app_relative_dates(),
   };
+}
+
+function relative_dates_enabled(options: FormatOptions): boolean {
+  return options.relative_dates ?? app_relative_dates();
 }
 
 export function set_display_time_zone(zone: string | undefined): void {
@@ -633,6 +665,10 @@ export function format_timestamp_smart(
 ): string {
   const now = new Date();
 
+  if (!relative_dates_enabled(options)) {
+    return format_date_short(date, options);
+  }
+
   const is_today = day_key(date) === day_key(now);
 
   const is_yesterday = day_key(date) === shifted_day_key(now, -1);
@@ -657,7 +693,7 @@ export function format_email_list_timestamp(
   const now = new Date();
   const is_today = day_key(date) === day_key(now);
 
-  if (is_today) {
+  if (is_today && relative_dates_enabled(options)) {
     return format_time(date, options);
   }
 
@@ -675,9 +711,10 @@ export function format_email_detail_timestamp(
   if (!date || isNaN(date.getTime())) return "";
 
   const now = new Date();
-  const is_today = day_key(date) === day_key(now);
+  const relative = relative_dates_enabled(options);
+  const is_today = relative && day_key(date) === day_key(now);
 
-  const is_yesterday = day_key(date) === shifted_day_key(now, -1);
+  const is_yesterday = relative && day_key(date) === shifted_day_key(now, -1);
 
   const time_str = format_time(date, options);
 
@@ -710,6 +747,18 @@ export function format_email_popup_timestamp(
   options: FormatOptions = default_options(),
 ): string {
   return format_full_datetime(date, options);
+}
+
+export function format_print_timestamp(
+  value: Date | string | null | undefined,
+  fallback: string,
+): string {
+  if (value === null || value === undefined) return fallback;
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return fallback;
+  return date.toLocaleString(app_locale(), {
+    timeZone: get_display_time_zone(),
+  });
 }
 
 export function format_snooze_remaining(

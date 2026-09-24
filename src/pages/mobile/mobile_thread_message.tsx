@@ -538,20 +538,19 @@ export function MobileThreadMessage({
           </p>
         ) : (
           <>
-            {translation.status !== "idle" && (
-              <div className="px-4 pb-2">
-                <TranslationBanner
-                  download_bytes={translation.download_bytes}
-                  limited_quality={translation.limited_quality}
-                  on_show_original={translation.show_original}
-                  on_translate={translation.translate}
-                  showing_original={translation.showing_original}
-                  source_language={translation.source_language}
-                  status={translation.status}
-                  target_language={translation.target_language}
-                />
-              </div>
-            )}
+            <div className="px-4">
+              <TranslationBanner
+                download_bytes={translation.download_bytes}
+                limited_quality={translation.limited_quality}
+                on_show_original={translation.show_original}
+                on_translate={translation.translate}
+                showing_original={translation.showing_original}
+                source_language={translation.source_language}
+                spacing_class="pb-4"
+                status={translation.status}
+                target_language={translation.target_language}
+              />
+            </div>
             <SandboxedEmailRenderer
               body_background={sanitize_result.body_background}
               disable_auto_dark_mode={disable_auto_dark_mode}

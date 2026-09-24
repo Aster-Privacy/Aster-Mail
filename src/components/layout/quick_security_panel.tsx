@@ -62,7 +62,7 @@ import { use_panel_transition } from "@/components/layout/use_panel_transition";
 
 interface QuickSecurityPanelProps {
   is_open: boolean;
-  is_top_inset: boolean;
+  is_swapping: boolean;
   on_close: () => void;
 }
 
@@ -129,7 +129,7 @@ function PanelHeading({ label }: { label: string }) {
 
 export function QuickSecurityPanel({
   is_open,
-  is_top_inset,
+  is_swapping,
   on_close,
 }: QuickSecurityPanelProps) {
   const { t } = use_i18n();
@@ -153,8 +153,10 @@ export function QuickSecurityPanel({
     [go_to_settings],
   );
 
+  const { is_visible, is_closing } = use_panel_transition(is_open, is_swapping);
+
   use_escape_layer(is_open, on_close, "quick_security_panel", false);
-  use_panel_inset(is_open, panel_ref);
+  use_panel_inset(is_visible, panel_ref);
 
   const criteria = useMemo(
     () =>
@@ -243,15 +245,13 @@ export function QuickSecurityPanel({
     go_to_settings(SECURITY_CENTER_TARGETS.overview);
   }, [go_to_settings]);
 
-  const { is_visible, is_closing } = use_panel_transition(is_open);
-
   return (
     <aside
       ref={panel_ref}
       aria-label={t("common.security_center")}
-      className={`quick_security_panel me-1 mb-1 w-[min(320px,78vw)] flex-shrink-0 flex-col overflow-hidden rounded-lg bg-surf-primary md:me-2 md:mb-2 md:w-[clamp(272px,23vw,320px)] md:rounded-xl ${
+      className={`quick_security_panel absolute inset-0 flex-col overflow-hidden rounded-lg bg-surf-primary md:rounded-xl ${
         is_visible ? "flex" : "hidden"
-      } ${is_closing ? "quick_panel_closing" : ""} ${is_top_inset ? "mt-1 md:mt-2" : ""}`}
+      } ${is_closing ? "quick_panel_closing" : "z-10"}`}
     >
       <div className="flex h-12 flex-shrink-0 items-center gap-2 ps-3 pe-2">
         <AsterSecurityMark className="h-[18px] w-[18px] flex-shrink-0 text-brand-primary" />

@@ -1111,6 +1111,7 @@ export const de = {
     emoji_activities: "Aktivitäten",
     emoji_flags: "Flaggen",
     no_emojis_found: "Keine Emojis gefunden",
+    emoji_recent: "Zuletzt verwendet",
     item_copied: "{{ label }} kopiert",
     copied_item: "{{ label }} kopiert",
     blocked_email: "{{ email }} blockiert",
@@ -5551,6 +5552,12 @@ export const de = {
     conversation_grouping_confirm_description:
       "Wenn Sie die Konversationsgruppierung deaktivieren, wird jede E-Mail als einzelnes Element in Ihrem Posteingang angezeigt, anstatt Antworten zusammenzufassen. Dies kann es erschweren, E-Mail-Verläufe zu verfolgen.",
     show_message_size: "Nachrichtengröße anzeigen",
+    relative_dates: "Relative Datumsangaben",
+    relative_dates_description:
+      "Bei neuen Nachrichten Heute und Gestern statt des Datums anzeigen",
+    info_relative_dates_title: "Relative Datumsangaben",
+    info_relative_dates_description:
+      "Wenn diese Option aktiviert ist, werden Nachrichten von heute und gestern als Heute und Gestern angezeigt. Schalten Sie sie aus, um Datum und Uhrzeit des Sendens oder Empfangs immer anzuzeigen: in der Nachrichtenliste, in der Nachricht selbst und im Ausdruck.",
     show_alias_indicators: "Alias-Kennzeichnung anzeigen",
     show_alias_indicators_description:
       "Nachrichten kennzeichnen, die über einen Ihrer Aliasse eingegangen sind",
@@ -5591,6 +5598,11 @@ export const de = {
     compose_mode_default: "Standard - schwebendes Popup",
     compose_mode_fullscreen: "Immer Vollbild",
     compose_mode_minimized: "Minimiert starten",
+    default_sender_group: "Senden",
+    default_sender_group_description: "Wählen Sie, von welcher Ihrer Adressen neue Nachrichten ausgehen.",
+    default_sender_title: "Standardabsender",
+    default_sender_description: "Neue Nachrichten starten mit dieser Adresse. Antworten verwenden die Adresse, an die die Nachricht gesendet wurde.",
+    default_sender_no_addresses: "Keine weiteren Adressen",
     compose_defaults_title: "Standardformatierung",
     compose_defaults_description:
       "Legen Sie fest, wie neue Nachrichten aussehen, wenn Sie mit dem Schreiben beginnen. Antworten und weitergeleitete Nachrichten behalten ihre ursprüngliche Formatierung.",
@@ -5604,6 +5616,12 @@ export const de = {
       "Wählen Sie eine Standardtextfarbe",
     compose_default_font_color_theme: "Designstandard",
     compose_default_font_color_reset: "Designstandard verwenden",
+    reply_defaults_title: "Antworten",
+    reply_defaults_description: "Legen Sie fest, womit eine neue Antwort beginnt.",
+    reply_include_quoted: "Zitierten Text einfügen",
+    reply_include_quoted_description: "Jede Antwort beginnt mit der zitierten Originalnachricht unter Ihrem Text.",
+    reply_prefix_subject: "Aw: zum Betreff hinzufügen",
+    reply_prefix_subject_description: "Stellen Sie Aw: vor den ursprünglichen Betreff, wenn Sie antworten.",
     change_plan: "Tarif wechseln",
     change_plan_description:
       "Upgrade oder Downgrade Ihres Abonnements über das Abrechnungsportal",
@@ -6569,6 +6587,7 @@ export const de = {
     scanning: "Wird gescannt...",
     unsubscribing: "Wird abgemeldet...",
     could_not_unsubscribe: "{{ count }} konnten nicht abgemeldet werden",
+    some_messages_not_archived: "Einige Nachrichten wurden nicht archiviert",
     opened_in_browser:
       "{{ count }} archiviert - manuelle Bestätigung kann erforderlich sein",
     senders_unsubscribed: "{{ count }} Absender abgemeldet",
@@ -6928,6 +6947,37 @@ export const de = {
     bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
     bridge_linux_deb_arm64_link: ".deb (ARM64)",
     bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
+    bridge_other_formats: "Weitere Formate",
+    bridge_arch_x64: "x86-64",
+    bridge_arch_arm64: "ARM64",
+    bridge_format_msi_desc: "Für verwaltete Installationen per Gruppenrichtlinie",
+    bridge_format_appimage_desc: "Läuft auf den meisten Distributionen",
+    bridge_format_deb_desc: "Debian, Ubuntu und Derivate",
+    bridge_format_rpm_desc: "Fedora, RHEL und openSUSE",
+    bridge_format_pacman_desc: "Arch Linux und Derivate",
+    bridge_download_started: "Download gestartet",
+    bridge_download_failed: "Der Download wurde nicht gestartet. Versuche es erneut.",
+    bridge_support_help_desc: "Einrichtungsanleitungen und Antworten auf häufige Fragen",
+    bridge_support_discord_desc: "Frage das Team und andere Aster-Nutzer",
+    bridge_support_reddit_desc: "Ankündigungen verfolgen und mitdiskutieren",
+    bridge_support_github_desc: "Quellcode lesen und ein Problem melden",
+    bridge_all_platforms: "Alle Plattformen",
+    bridge_upgrade_benefit_clients: "Funktioniert mit Apple Mail, Thunderbird und Outlook",
+    bridge_upgrade_benefit_local: "Läuft lokal, damit deine E-Mails verschlüsselt bleiben",
+    bridge_upgrade_benefit_platforms: "Verfügbar für Windows, macOS und Linux",
+    bridge_upgrade_benefit_cli: "Enthält eine Befehlszeilenversion für Server",
+    bridge_cli_download: "Herunterladen",
+    bridge_cli_install_hint: "Lade das Archiv für deine Plattform herunter, entpacke es und verschiebe die Binärdatei in deinen PATH.",
+    bridge_cli_install_hint_windows: "Lade das Archiv herunter, entpacke es und füge den Ordner deinem PATH hinzu.",
+    bridge_cli_copy_command: "Installationsbefehle kopieren",
+    bridge_cli_docs_link: "Zur Befehlszeilen-Anleitung",
+    bridge_cli_name: "Befehlszeile",
+    bridge_cli_desc:
+      "Führt dieselben Server ohne Fenster aus, auf einem Server oder über SSH.",
+    bridge_cli_windows_link: "Windows",
+    bridge_cli_macos_link: "macOS",
+    bridge_cli_linux_link: "Linux (x86-64)",
+    bridge_cli_linux_arm64_link: "Linux (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Laden Sie das universelle DMG für Macs mit Apple Silicon und Intel herunter.",
@@ -7573,6 +7623,11 @@ export const de = {
       "Produktneuigkeiten sind ausgeschaltet. Sie können sie hier wieder einschalten.",
     product_updates_save_failed:
       "Ihre Einstellung für Produktneuigkeiten wurde nicht gespeichert. Versuchen Sie es erneut.",
+    special_offers: "Sonderangebote",
+    special_offers_description:
+      "Gelegentlich vergünstigte Tarifangebote in der App anzeigen. Wenn dies ausgeschaltet ist, sehen Sie keine Angebote und werden in den Angebotsergebnissen nicht mitgezählt.",
+    special_offers_save_failed:
+      "Ihre Einstellung für Sonderangebote wurde nicht gespeichert. Versuchen Sie es erneut.",
     criterion_passkey: "Passkey registriert",
     criterion_read_receipts_off: "Lesebestätigungen aus",
     send_read_receipts_label: "Lesebestätigungen senden",
@@ -8187,6 +8242,8 @@ export const de = {
     already_reacted: "Du hast bereits damit reagiert",
     remove_your_reaction: "Deine Reaktion {emoji} entfernen",
     you_reacted_with: "Du hast mit {{emoji}} reagiert",
+    you_reacted_with_remove:
+      "Du hast mit {{emoji}} reagiert. Zum Entfernen klicken.",
     reacted_with: "{{name}} hat mit {{emoji}} reagiert",
     forward: "Weiterleiten",
     to: "An",
@@ -9765,6 +9822,8 @@ export const de = {
       "Du kannst nicht auf eine Nachricht reagieren, bei der du in BCC warst.",
     cannot_react_too_many_emojis:
       "Diese Nachricht hat bereits die maximale Anzahl an Reaktionen.",
+    cannot_react_limit:
+      "Du kannst einer Nachricht höchstens zwei Reaktionen hinzufügen. Um eine weitere hinzuzufügen, entferne eine deiner Reaktionen.",
     cannot_react_no_recipient:
       "Diese Nachricht hat keinen Absender, an den die Reaktion gesendet werden kann.",
     failed_send_reaction:

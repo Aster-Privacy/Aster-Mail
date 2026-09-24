@@ -1322,6 +1322,7 @@ export const en: Translations = {
     emoji_activities: "Activities",
     emoji_flags: "Flags",
     no_emojis_found: "No emojis found",
+    emoji_recent: "Recently used",
     item_copied: "{{ label }} copied",
     copied_item: "Copied {{ label }}",
     blocked_email: "Blocked {{ email }}",
@@ -2293,9 +2294,41 @@ export const en: Translations = {
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
     bridge_linux_pacman_link: "Arch Linux",
-    bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
-    bridge_linux_deb_arm64_link: ".deb (ARM64)",
-    bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
+    bridge_linux_appimage_arm64_link: "AppImage",
+    bridge_linux_deb_arm64_link: ".deb",
+    bridge_linux_rpm_arm64_link: ".rpm",
+    bridge_other_formats: "Other formats",
+    bridge_arch_x64: "x86-64",
+    bridge_arch_arm64: "ARM64",
+    bridge_format_msi_desc: "For managed installs with Group Policy",
+    bridge_format_appimage_desc: "Runs on most distributions",
+    bridge_format_deb_desc: "Debian, Ubuntu, and derivatives",
+    bridge_format_rpm_desc: "Fedora, RHEL, and openSUSE",
+    bridge_format_pacman_desc: "Arch Linux and derivatives",
+    bridge_download_started: "Download started",
+    bridge_download_failed: "The download didn't start. Try again.",
+    bridge_support_help_desc: "Setup guides and answers to common questions",
+    bridge_support_discord_desc: "Ask the team and other people who use Aster",
+    bridge_support_reddit_desc: "Follow announcements and join discussions",
+    bridge_support_github_desc: "Read the source code and report an issue",
+    bridge_all_platforms: "All platforms",
+    bridge_upgrade_benefit_clients: "Works with Apple Mail, Thunderbird, and Outlook",
+    bridge_upgrade_benefit_local: "Runs locally, so your mail stays encrypted",
+    bridge_upgrade_benefit_platforms: "Available on Windows, macOS, and Linux",
+    bridge_upgrade_benefit_cli: "Includes a command-line version for servers",
+    bridge_cli_install_hint_windows: "Download the archive, then extract it and add the folder to your PATH.",
+    bridge_cli_name: "Command line",
+    bridge_cli_desc:
+      "Run aster-bridge without a window, on a server or over SSH.",
+    bridge_cli_download: "Download",
+    bridge_cli_install_hint:
+      "Download the archive for your platform, then extract it and move the binary onto your PATH.",
+    bridge_cli_copy_command: "Copy the install commands",
+    bridge_cli_docs_link: "Read the command-line guide",
+    bridge_cli_windows_link: "Windows",
+    bridge_cli_macos_link: "macOS",
+    bridge_cli_linux_link: "Linux (x86-64)",
+    bridge_cli_linux_arm64_link: "Linux (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
       "Download the universal DMG for Apple Silicon and Intel Macs.",
@@ -2860,6 +2893,11 @@ export const en: Translations = {
       "Product updates are off. You can turn them back on here.",
     product_updates_save_failed:
       "Your product updates setting didn't save. Try again.",
+    special_offers: "Special offers",
+    special_offers_description:
+      "Show occasional discounted plan offers in the app. When this is off, you don't see offers and aren't counted in offer results.",
+    special_offers_save_failed:
+      "Your special offers setting didn't save. Try again.",
     toast_position: "Notification Position",
     toast_position_description: "Where notification popups appear on screen",
     toast_position_top: "Top",
@@ -3008,6 +3046,12 @@ export const en: Translations = {
     conversation_grouping_confirm_description:
       "Turning off conversation grouping will show each email as a separate item in your inbox instead of grouping replies together. This may make it harder to follow email threads.",
     show_message_size: "Show Message Size",
+    relative_dates: "Relative Dates",
+    relative_dates_description:
+      "Show Today and Yesterday on recent messages instead of the date",
+    info_relative_dates_title: "Relative Dates",
+    info_relative_dates_description:
+      "When this is on, messages from today and yesterday show as Today and Yesterday. Turn it off to always show the date and time a message was sent or received, in the message list, in the message itself, and on printouts.",
     show_alias_indicators: "Show Alias Indicators",
     show_alias_indicators_description:
       "Mark messages that arrived through one of your aliases",
@@ -3203,6 +3247,11 @@ export const en: Translations = {
     compose_mode_default: "Default - floating popup",
     compose_mode_fullscreen: "Always full screen",
     compose_mode_minimized: "Start minimized",
+    default_sender_group: "Sending",
+    default_sender_group_description: "Choose which of your addresses new messages come from.",
+    default_sender_title: "Default sender",
+    default_sender_description: "New messages start from this address. Replies use the address the message was sent to.",
+    default_sender_no_addresses: "No other addresses",
     compose_defaults_title: "Default formatting",
     compose_defaults_description:
       "Choose how new messages look when you start writing. Replies and forwarded messages keep their original formatting.",
@@ -3215,6 +3264,12 @@ export const en: Translations = {
     compose_default_font_color_picker_label: "Choose a default text color",
     compose_default_font_color_theme: "Theme default",
     compose_default_font_color_reset: "Use theme default",
+    reply_defaults_title: "Replies",
+    reply_defaults_description: "Choose what a new reply starts with.",
+    reply_include_quoted: "Include quoted text",
+    reply_include_quoted_description: "Start every reply with the original message quoted below your text.",
+    reply_prefix_subject: "Add Re: to the subject",
+    reply_prefix_subject_description: "Put Re: in front of the original subject when you reply.",
     build_info: "Build Info",
     release: "Release",
     build: "Build",
@@ -6838,6 +6893,7 @@ export const en: Translations = {
     opened_in_browser:
       "{{ count }} archived - manual confirmation may be needed",
     could_not_unsubscribe: "{{ count }} could not be unsubscribed",
+    some_messages_not_archived: "Some messages were not archived",
     unsubscribing: "Unsubscribing...",
     scanning: "Scanning...",
     all_clear: "All clear",
@@ -7847,6 +7903,7 @@ export const en: Translations = {
     already_reacted: "You already reacted with this",
     remove_your_reaction: "Remove your {emoji} reaction",
     you_reacted_with: "You reacted with {{emoji}}",
+    you_reacted_with_remove: "You reacted with {{emoji}}. Click to remove.",
     reacted_with: "{{name}} reacted with {{emoji}}",
     reply_subject_prefix: "Re:",
     reply_from_mismatch_title: "Reply from a different address?",
@@ -9402,6 +9459,8 @@ export const en: Translations = {
     cannot_react_bcc: "You cannot react to a message you were BCC'd on.",
     cannot_react_too_many_emojis:
       "This message already has the maximum number of reactions.",
+    cannot_react_limit:
+      "You can add up to two reactions to a message. To add another, remove one of yours.",
     cannot_react_no_recipient:
       "This message has no sender to send the reaction to.",
     failed_send_reaction:

@@ -48,6 +48,7 @@ const MAX_CACHED_BYTE_MAPS = 20;
 const preview_urls = new Map<string, string>();
 const byte_maps = new Map<string, Map<string, AttachmentBytes>>();
 const record_fetches = new Map<string, Promise<MailAttachment[]>>();
+const record_lists = new Map<string, MailAttachment[]>();
 
 function touch<T>(store: Map<string, T>, key: string, value: T): void {
   store.delete(key);
@@ -130,6 +131,14 @@ export function attachment_records_fetch_failed(mail_item_id: string): boolean {
 }
 
 function fetch_records(mail_item_id: string): Promise<MailAttachment[]> {
+  const cached = record_lists.get(mail_item_id);
+
+  if (cached) {
+    touch(record_lists, mail_item_id, cached);
+
+    return Promise.resolve(cached);
+  }
+
   const in_flight = record_fetches.get(mail_item_id);
 
   if (in_flight) return in_flight;
@@ -165,6 +174,17 @@ function fetch_records(mail_item_id: string): Promise<MailAttachment[]> {
       }
 
       record_fetch_failures.delete(mail_item_id);
+
+      if (records.length > 0) {
+        touch(record_lists, mail_item_id, records);
+
+        while (record_lists.size > MAX_CACHED_BYTE_MAPS) {
+          const oldest = record_lists.keys().next().value;
+
+          if (oldest === undefined) break;
+          record_lists.delete(oldest);
+        }
+      }
 
       return records;
     } catch {
@@ -244,6 +264,7 @@ export function clear_attachment_preview_cache(): void {
   preview_touched_at.clear();
   preview_urls.clear();
   byte_maps.clear();
+  record_lists.clear();
   record_fetches.clear();
   record_fetch_failures.clear();
 }
