@@ -78,6 +78,8 @@ export interface CustomDomain {
   is_shared?: boolean;
   shared_from?: string | null;
   can_create_aliases?: boolean;
+  bimi_available?: boolean;
+  bimi_state?: string | null;
 }
 
 export interface DomainListResponse {
