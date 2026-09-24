@@ -57,6 +57,16 @@ describe("neutralize_amp_markup", () => {
     expect(out).toBe(`<img src="cid:pic1" alt="Banner" width="370" height="255">`);
   });
 
+  it("removes a boilerplate block rebuilt from nested markup", () => {
+    const out = neutralize_amp_markup(
+      "<st<style amp4email-boilerplate></style>yle amp4email-boilerplate>body{visibility:hidden}</style><p>ok</p>",
+    );
+
+    expect(out).not.toContain("visibility:hidden");
+    expect(out).not.toMatch(/amp4email-boilerplate/i);
+    expect(out).toContain("<p>ok</p>");
+  });
+
   it("leaves ordinary markup and text untouched", () => {
     const plain = `<style>body{color:red}</style><p>amp4email-boilerplate is a style name</p>`;
 

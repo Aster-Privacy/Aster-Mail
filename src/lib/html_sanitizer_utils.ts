@@ -341,10 +341,15 @@ const AMP_IMG_CLOSE_RE = /<\/amp-img\s*>/gi;
 export function neutralize_amp_markup(html: string): string {
   if (!/amp/i.test(html)) return html;
 
-  return html
-    .replace(AMP_BOILERPLATE_STYLE_RE, "")
-    .replace(AMP_IMG_OPEN_RE, "<img")
-    .replace(AMP_IMG_CLOSE_RE, "");
+  let previous: string;
+  let result = html;
+
+  do {
+    previous = result;
+    result = result.replace(AMP_BOILERPLATE_STYLE_RE, "");
+  } while (result !== previous);
+
+  return result.replace(AMP_IMG_OPEN_RE, "<img").replace(AMP_IMG_CLOSE_RE, "");
 }
 
 export function repair_comment_markup(html: string): string {
