@@ -5571,6 +5571,7 @@ export interface SettingsTranslations {
   signature_name_required: string;
   signature_content_required: string;
   signature_image_too_large: string;
+  signature_too_large: string;
   signature_image_invalid: string;
   signature_image_failed: string;
   signature_divider_limit: string;

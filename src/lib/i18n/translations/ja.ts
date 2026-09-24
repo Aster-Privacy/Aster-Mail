@@ -5433,7 +5433,8 @@ export const ja = {
       "よろしくお願いいたします\nお名前\nyour@email.com",
     signature_name_required: "この署名の名前を入力してください。",
     signature_content_required: "この署名の内容を入力してください。",
-    signature_image_too_large: "画像は 2 MB 未満にしてください。",
+    signature_image_too_large: "この画像は署名に追加するには大きすぎます。小さい画像を選択してください。",
+    signature_too_large: "署名が大きすぎるため保存できません。画像を削除するか、テキストを短くしてください。",
     signature_image_invalid:
       "追加できるのは PNG、JPEG、GIF、WebP の画像のみです。",
     signature_image_failed:

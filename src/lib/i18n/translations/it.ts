@@ -6516,7 +6516,10 @@ export const it = {
       "Cordiali saluti,\nIl tuo nome\ntua@email.com",
     signature_name_required: "Inserisci un nome per questa firma.",
     signature_content_required: "Aggiungi del contenuto a questa firma.",
-    signature_image_too_large: "Le immagini devono essere inferiori a 2 MB.",
+    signature_image_too_large:
+      "Questa immagine è troppo grande per la tua firma. Scegli un'immagine più piccola.",
+    signature_too_large:
+      "La tua firma è troppo grande per essere salvata. Rimuovi un'immagine o accorcia il testo.",
     signature_image_invalid:
       "Si possono aggiungere solo immagini PNG, JPEG, GIF e WebP.",
     signature_image_failed:

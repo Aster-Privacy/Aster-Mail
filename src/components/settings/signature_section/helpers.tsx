@@ -50,8 +50,6 @@ export function validate_image_magic_bytes(
   return expected.every((b, i) => bytes[i] === b);
 }
 
-export const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
-
 export function has_editor_content(html: string): boolean {
   const temp = document.createElement("div");
 

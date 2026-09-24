@@ -53,4 +53,16 @@ describe("undo send presets", () => {
     expect(clamp_undo_seconds(0)).toBe(10);
     expect(clamp_undo_seconds(600)).toBe(30);
   });
+
+  it("keeps any synced whole value from 1 to 30 selectable", () => {
+    for (let seconds = 1; seconds <= 30; seconds++) {
+      expect(clamp_undo_seconds(seconds)).toBe(seconds);
+    }
+  });
+
+  it("rounds a fractional synced value to a selectable whole value", () => {
+    expect(clamp_undo_seconds(7.4)).toBe(7);
+    expect(clamp_undo_seconds(7.6)).toBe(8);
+    expect(clamp_undo_seconds(0.4)).toBe(1);
+  });
 });

@@ -5368,7 +5368,8 @@ export const ko = {
     signature_content_placeholder: "감사합니다,\n이름\nyour@email.com",
     signature_name_required: "이 서명의 이름을 입력하세요.",
     signature_content_required: "이 서명의 내용을 입력하세요.",
-    signature_image_too_large: "이미지는 2 MB 미만이어야 합니다.",
+    signature_image_too_large: "이 이미지는 서명에 추가하기에 너무 큽니다. 더 작은 이미지를 선택하세요.",
+    signature_too_large: "서명이 너무 커서 저장할 수 없습니다. 이미지를 제거하거나 텍스트를 줄이세요.",
     signature_image_invalid:
       "PNG, JPEG, GIF, WebP 이미지만 추가할 수 있습니다.",
     signature_image_failed:

@@ -32,10 +32,16 @@ export type SendErrorType =
 
 export class SendError extends Error {
   type: SendErrorType;
+  status?: number;
 
-  constructor(message: string, type: SendErrorType = "send_failed") {
+  constructor(
+    message: string,
+    type: SendErrorType = "send_failed",
+    status?: number,
+  ) {
     super(message);
     this.type = type;
+    this.status = status;
     this.name = "SendError";
   }
 }
@@ -50,8 +56,12 @@ export class PostQuantumUnavailableError extends SendError {
   }
 }
 
-export function create_error(type: SendErrorType, message: string): SendError {
-  return new SendError(message, type);
+export function create_error(
+  type: SendErrorType,
+  message: string,
+  status?: number,
+): SendError {
+  return new SendError(message, type, status);
 }
 
 export function format_time_remaining(resets_at: string): string {

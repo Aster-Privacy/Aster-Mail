@@ -63,6 +63,12 @@ import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
 import { authenticate_biometric } from "@/native/biometric_auth";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  EXPIRATION_FEATURE,
+  PASSWORD_FEATURE,
+  prompt_expiry_upgrade,
+} from "@/components/compose/expiry_plan_gate";
 import {
   haptic_impact,
   haptic_send_success,
@@ -83,6 +89,9 @@ function MobileComposePage({
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const { preferences, update_preference, save_now } = use_preferences();
+  const { limits: plan_limits, is_feature_locked } = use_plan_limits();
+  const expiration_locked = is_feature_locked(EXPIRATION_FEATURE);
+  const password_locked = is_feature_locked(PASSWORD_FEATURE);
   const [show_cc_bcc, set_show_cc_bcc] = useState(false);
   const [show_sender_sheet, set_show_sender_sheet] = useState(false);
   const [show_schedule_sheet, set_show_schedule_sheet] = useState(false);
@@ -278,10 +287,18 @@ function MobileComposePage({
 
   const handle_set_expiration = useCallback(
     (date: Date) => {
-      compose.set_expires_at(date);
       set_show_expiration_sheet(false);
+      if (expiration_locked) {
+        prompt_expiry_upgrade(
+          EXPIRATION_FEATURE,
+          t("settings.feature_requires_upgrade"),
+        );
+
+        return;
+      }
+      compose.set_expires_at(date);
     },
-    [compose],
+    [compose, expiration_locked, t],
   );
 
   const handle_clear_expiration = useCallback(() => {
@@ -291,10 +308,33 @@ function MobileComposePage({
 
   const handle_save_password = useCallback(
     (password: string | null) => {
+      if (password && password_locked) {
+        set_show_expiration_sheet(false);
+        prompt_expiry_upgrade(
+          PASSWORD_FEATURE,
+          t("settings.feature_requires_upgrade"),
+        );
+
+        return;
+      }
       compose.set_expiry_password(password);
     },
-    [compose],
+    [compose, password_locked, t],
   );
+
+  const handle_open_expiration = useCallback(() => {
+    if (expiration_locked) {
+      if (plan_limits) {
+        prompt_expiry_upgrade(
+          EXPIRATION_FEATURE,
+          t("settings.feature_requires_upgrade"),
+        );
+      }
+
+      return;
+    }
+    set_show_expiration_sheet(true);
+  }, [expiration_locked, plan_limits, t]);
 
   const { image_input_ref, handle_image_select, handle_paste_with_images } =
     use_mobile_compose_images(compose);
@@ -585,14 +625,17 @@ function MobileComposePage({
           <ClockIcon className="h-5 w-5" />
         </button>
         <button
+          aria-label={
+            expiration_locked
+              ? t("settings.feature_requires_upgrade")
+              : t("mail.self_destruct")
+          }
           className={`flex h-9 w-9 items-center justify-center rounded-full active:bg-[var(--bg-tertiary)] disabled:opacity-40 ${
             compose.expires_at ? "text-red-500" : "text-[var(--text-secondary)]"
           }`}
-          disabled={!has_recipients}
+          disabled={!has_recipients || (expiration_locked && !plan_limits)}
           type="button"
-          onClick={() => {
-            set_show_expiration_sheet(true);
-          }}
+          onClick={handle_open_expiration}
         >
           <FireIcon className="h-5 w-5" />
         </button>
@@ -678,6 +721,7 @@ function MobileComposePage({
         on_close={() => set_show_expiration_sheet(false)}
         on_save_password={handle_save_password}
         on_set_expiration={handle_set_expiration}
+        password_locked={password_locked}
         t={t}
       />
 

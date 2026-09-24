@@ -6487,7 +6487,10 @@ export const nl = {
       "Met vriendelijke groet,\nJe Naam\nje@email.com",
     signature_name_required: "Voer een naam in voor deze ondertekening.",
     signature_content_required: "Voeg inhoud toe aan deze ondertekening.",
-    signature_image_too_large: "Afbeeldingen moeten kleiner zijn dan 2 MB.",
+    signature_image_too_large:
+      "Deze afbeelding is te groot voor je handtekening. Kies een kleinere afbeelding.",
+    signature_too_large:
+      "Je handtekening is te groot om op te slaan. Verwijder een afbeelding of maak de tekst korter.",
     signature_image_invalid:
       "Alleen PNG-, JPEG-, GIF- en WebP-afbeeldingen kunnen worden toegevoegd.",
     signature_image_failed:

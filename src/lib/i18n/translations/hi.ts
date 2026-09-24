@@ -6572,7 +6572,10 @@ export const hi = {
     signature_content_placeholder: "सादर,\nआपका नाम\nyour@email.com",
     signature_name_required: "इस हस्ताक्षर के लिए नाम डालें।",
     signature_content_required: "इस हस्ताक्षर के लिए कुछ सामग्री जोड़ें।",
-    signature_image_too_large: "तस्वीरें 2 MB से कम की होनी चाहिए।",
+    signature_image_too_large:
+      "यह तस्वीर आपके हस्ताक्षर में जोड़ने के लिए बहुत बड़ी है। कोई छोटी तस्वीर चुनें।",
+    signature_too_large:
+      "आपका हस्ताक्षर सहेजने के लिए बहुत बड़ा है। कोई तस्वीर हटाएं या टेक्स्ट छोटा करें।",
     signature_image_invalid:
       "सिर्फ़ PNG, JPEG, GIF और WebP तस्वीरें जोड़ी जा सकती हैं।",
     signature_image_failed:

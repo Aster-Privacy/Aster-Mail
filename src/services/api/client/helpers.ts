@@ -172,6 +172,7 @@ export interface ApiResponse<T> {
   data?: T;
   error?: string;
   code?: ApiErrorCode;
+  status?: number;
   server_code?: string;
   resets_at?: string;
   details?: Record<string, unknown>;

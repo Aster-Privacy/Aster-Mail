@@ -5452,7 +5452,10 @@ export const ar = {
     signature_content_placeholder: "مع أطيب التحيات،\nاسمك\nyour@email.com",
     signature_name_required: "أدخل اسمًا لهذا التوقيع.",
     signature_content_required: "أضف محتوى لهذا التوقيع.",
-    signature_image_too_large: "يجب أن يكون حجم الصورة أقل من 2 ميغابايت.",
+    signature_image_too_large:
+      "هذه الصورة كبيرة جدًا لإضافتها إلى توقيعك. اختر صورة أصغر.",
+    signature_too_large:
+      "توقيعك كبير جدًا بحيث لا يمكن حفظه. أزِل صورة أو اختصر النص.",
     signature_image_invalid: "يمكن إضافة صور PNG وJPEG وGIF وWebP فقط.",
     signature_image_failed: "لم تتم إضافة هذه الصورة. جرّب ملفًا آخر.",
     signature_divider_limit:

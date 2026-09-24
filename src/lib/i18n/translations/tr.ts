@@ -5379,7 +5379,10 @@ export const tr = {
       "Saygılarımla,\nAdınız\neposta@adresiniz.com",
     signature_name_required: "Bu imza için bir ad girin.",
     signature_content_required: "Bu imzaya içerik ekleyin.",
-    signature_image_too_large: "Görseller 2 MB'tan küçük olmalıdır.",
+    signature_image_too_large:
+      "Bu görsel imzanıza eklemek için çok büyük. Daha küçük bir görsel seçin.",
+    signature_too_large:
+      "İmzanız kaydedilemeyecek kadar büyük. Bir görseli kaldırın veya metni kısaltın.",
     signature_image_invalid:
       "Yalnızca PNG, JPEG, GIF ve WebP görselleri eklenebilir.",
     signature_image_failed: "Bu görsel eklenemedi. Başka bir dosya deneyin.",

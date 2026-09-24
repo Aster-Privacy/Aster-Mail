@@ -406,11 +406,14 @@ const UNDO_SEND_MAX_SECONDS = 30;
 const UNDO_SEND_DEFAULT_SECONDS = 10;
 
 function clamp_undo_seconds(seconds: number): number {
-  if (!Number.isFinite(seconds) || seconds < UNDO_SEND_MIN_SECONDS) {
+  if (!Number.isFinite(seconds) || seconds <= 0) {
     return UNDO_SEND_DEFAULT_SECONDS;
   }
 
-  return Math.min(seconds, UNDO_SEND_MAX_SECONDS);
+  return Math.min(
+    Math.max(Math.round(seconds), UNDO_SEND_MIN_SECONDS),
+    UNDO_SEND_MAX_SECONDS,
+  );
 }
 
 export function parse_undo_send_period(period: string): number {
