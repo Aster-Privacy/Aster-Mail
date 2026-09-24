@@ -120,32 +120,32 @@ export function ColorPickerPopover({
   return (
     <div>
       <Tooltip position="top" tip={t("mail.font_color")}>
-      <button
-        ref={button_ref}
-        aria-controls={open ? panel_id : undefined}
-        aria-expanded={open}
-        aria-haspopup="dialog"
-        aria-label={t("mail.font_color")}
-        className="press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"
-        type="button"
-        onClick={() => {
-          if (!open) {
-            on_before_open?.();
-          }
-          set_open(!open);
-        }}
-        onMouseDown={(e) => e.preventDefault()}
-      >
-        <div className="w-4 h-4 flex flex-col items-center justify-end">
-          <svg className="w-4 h-3.5" fill="currentColor" viewBox="0 0 24 20">
-            <path d="M11 2L5.5 16h2.25l1.12-3h6.25l1.12 3h2.25L13 2h-2zm-1.38 9L12 4.67 14.38 11H9.62z" />
-          </svg>
-          <div
-            className="w-full h-[3px] rounded-sm"
-            style={{ backgroundColor: font_color || "#000000" }}
-          />
-        </div>
-      </button>
+        <button
+          ref={button_ref}
+          aria-controls={open ? panel_id : undefined}
+          aria-expanded={open}
+          aria-haspopup="dialog"
+          aria-label={t("mail.font_color")}
+          className="press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"
+          type="button"
+          onClick={() => {
+            if (!open) {
+              on_before_open?.();
+            }
+            set_open(!open);
+          }}
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          <div className="w-4 h-4 flex flex-col items-center justify-end">
+            <svg className="w-4 h-3.5" fill="currentColor" viewBox="0 0 24 20">
+              <path d="M11 2L5.5 16h2.25l1.12-3h6.25l1.12 3h2.25L13 2h-2zm-1.38 9L12 4.67 14.38 11H9.62z" />
+            </svg>
+            <div
+              className="w-full h-[3px] rounded-sm"
+              style={{ backgroundColor: font_color || "#000000" }}
+            />
+          </div>
+        </button>
       </Tooltip>
       {createPortal(
         open && (
