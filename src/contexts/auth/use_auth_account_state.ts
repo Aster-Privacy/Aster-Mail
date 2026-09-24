@@ -269,6 +269,19 @@ export function use_auth_account_state() {
       current_account_id: null,
     });
 
+    const pending_checkout =
+      window.location.pathname === "/sign-in" &&
+      new URLSearchParams(window.location.search).get("checkout") ===
+        "success";
+
+    if (pending_checkout) {
+      hard_redirect(
+        `/sign-in${window.location.search}${window.location.hash}`,
+      );
+
+      return;
+    }
+
     show_toast(t("errors.session_identity_mismatch"), "error");
     hard_redirect("/sign-in");
   }, [t, navigate, set_is_adding_account]);
