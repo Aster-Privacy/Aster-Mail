@@ -424,25 +424,14 @@ interface CommandBlockProps {
 
 function CommandBlock({ commands, copy_label }: CommandBlockProps) {
   const { t } = use_i18n();
-  const [copied, set_copied] = useState(false);
-
   const copy_command = useCallback(async () => {
     try {
       await copy_text_or_throw(commands);
-      set_copied(true);
       show_toast(t("common.copied"), "success");
     } catch {
       show_toast(t("common.failed_to_copy"), "error");
     }
   }, [commands, t]);
-
-  useEffect(() => {
-    if (!copied) return;
-
-    const timer = window.setTimeout(() => set_copied(false), 1800);
-
-    return () => window.clearTimeout(timer);
-  }, [copied]);
 
   return (
     <div className="group relative rounded-md bg-surf-secondary">
@@ -454,15 +443,11 @@ function CommandBlock({ commands, copy_label }: CommandBlockProps) {
       <button
         aria-label={copy_label}
         className="absolute end-2 top-2 flex h-7 w-7 items-center justify-center rounded-md text-txt-muted transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
-        title={copied ? t("common.copied") : t("common.copy")}
+        title={t("common.copy")}
         type="button"
         onClick={copy_command}
       >
-        {copied ? (
-          <CheckIcon className="w-4 h-4 text-brand" />
-        ) : (
-          <ClipboardDocumentIcon className="w-4 h-4" />
-        )}
+        <ClipboardDocumentIcon className="w-4 h-4" />
       </button>
     </div>
   );
