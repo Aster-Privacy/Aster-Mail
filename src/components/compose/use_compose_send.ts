@@ -195,6 +195,8 @@ export function use_compose_send({
       set_queued_email_id,
       log_activities,
       t,
+      limits_loaded: limits !== null,
+      is_feature_locked,
     }),
     [
       preferences.undo_send_enabled,
@@ -208,6 +210,8 @@ export function use_compose_send({
       reset_form,
       log_activities,
       t,
+      limits,
+      is_feature_locked,
     ],
   );
 
