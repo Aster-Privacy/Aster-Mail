@@ -5546,7 +5546,10 @@ export const ru = {
     signature_content_placeholder: "С уважением,\nВаше имя\nyour@email.com",
     signature_name_required: "Введите название подписи.",
     signature_content_required: "Добавьте содержимое подписи.",
-    signature_image_too_large: "Размер изображения не должен превышать 2 МБ.",
+    signature_image_too_large:
+      "Это изображение слишком велико для подписи. Выберите изображение меньшего размера.",
+    signature_too_large:
+      "Подпись слишком большая, чтобы её сохранить. Удалите изображение или сократите текст.",
     signature_image_invalid:
       "Можно добавлять только изображения PNG, JPEG, GIF и WebP.",
     signature_image_failed:

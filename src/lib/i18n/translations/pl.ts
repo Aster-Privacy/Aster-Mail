@@ -5576,7 +5576,10 @@ export const pl = {
     signature_content_placeholder: "Z poważaniem,\nTwoje Imię\ntwoj@email.com",
     signature_name_required: "Podaj nazwę tego podpisu.",
     signature_content_required: "Dodaj treść do tego podpisu.",
-    signature_image_too_large: "Obrazy muszą być mniejsze niż 2 MB.",
+    signature_image_too_large:
+      "Ten obraz jest za duży, aby dodać go do podpisu. Wybierz mniejszy obraz.",
+    signature_too_large:
+      "Podpis jest za duży, aby go zapisać. Usuń obraz lub skróć tekst.",
     signature_image_invalid:
       "Można dodawać tylko obrazy PNG, JPEG, GIF i WebP.",
     signature_image_failed:

@@ -6522,7 +6522,10 @@ export const en: Translations = {
     signature_content_placeholder: "Best regards,\nYour Name\nyour@email.com",
     signature_name_required: "Enter a name for this signature.",
     signature_content_required: "Add some content for this signature.",
-    signature_image_too_large: "Images must be under 2 MB.",
+    signature_image_too_large:
+      "This image is too large to add to your signature. Choose a smaller image.",
+    signature_too_large:
+      "Your signature is too large to save. Remove an image or shorten the text.",
     signature_image_invalid:
       "Only PNG, JPEG, GIF, and WebP images can be added.",
     signature_image_failed:

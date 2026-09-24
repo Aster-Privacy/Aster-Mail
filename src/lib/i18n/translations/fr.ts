@@ -5486,7 +5486,10 @@ export const fr = {
     signature_content_placeholder: "Cordialement,\nVotre Nom\nvotre@email.com",
     signature_name_required: "Saisissez un nom pour cette signature.",
     signature_content_required: "Ajoutez du contenu à cette signature.",
-    signature_image_too_large: "Les images doivent faire moins de 2 Mo.",
+    signature_image_too_large:
+      "Cette image est trop volumineuse pour votre signature. Choisissez une image plus petite.",
+    signature_too_large:
+      "Votre signature est trop volumineuse pour être enregistrée. Supprimez une image ou raccourcissez le texte.",
     signature_image_invalid:
       "Seules les images PNG, JPEG, GIF et WebP peuvent être ajoutées.",
     signature_image_failed:

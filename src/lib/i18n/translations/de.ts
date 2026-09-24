@@ -6467,7 +6467,10 @@ export const de = {
       "Mit freundlichen Grüßen,\nIhr Name\nihre@email.com",
     signature_name_required: "Geben Sie einen Namen für diese Signatur ein.",
     signature_content_required: "Fügen Sie Inhalt für diese Signatur hinzu.",
-    signature_image_too_large: "Bilder müssen kleiner als 2 MB sein.",
+    signature_image_too_large:
+      "Dieses Bild ist zu groß für Ihre Signatur. Wählen Sie ein kleineres Bild.",
+    signature_too_large:
+      "Ihre Signatur ist zu groß zum Speichern. Entfernen Sie ein Bild oder kürzen Sie den Text.",
     signature_image_invalid:
       "Es können nur PNG-, JPEG-, GIF- und WebP-Bilder hinzugefügt werden.",
     signature_image_failed:

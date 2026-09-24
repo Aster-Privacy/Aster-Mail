@@ -5432,7 +5432,10 @@ export const es = {
       "Saludos cordiales,\nTu nombre\ntu@correo.com",
     signature_name_required: "Escribe un nombre para esta firma.",
     signature_content_required: "Añade contenido para esta firma.",
-    signature_image_too_large: "Las imágenes deben pesar menos de 2 MB.",
+    signature_image_too_large:
+      "Esta imagen es demasiado grande para tu firma. Elige una imagen más pequeña.",
+    signature_too_large:
+      "Tu firma es demasiado grande para guardarla. Quita una imagen o acorta el texto.",
     signature_image_invalid:
       "Solo se pueden añadir imágenes PNG, JPEG, GIF y WebP.",
     signature_image_failed:
