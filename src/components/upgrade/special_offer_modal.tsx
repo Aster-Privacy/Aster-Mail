@@ -208,6 +208,7 @@ export function SpecialOfferModal() {
         currency,
         undefined,
         promo_code ?? undefined,
+        true,
       );
 
       if (!result.ok) {
@@ -297,6 +298,7 @@ export function SpecialOfferModal() {
         plan_name={offer_tier.name}
         preferred_currency={currency}
         promo_code={promo_code}
+        special_offer
         yearly_price_cents={offer_tier.yearly_cents}
       />
       <Modal

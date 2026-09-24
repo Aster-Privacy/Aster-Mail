@@ -39,7 +39,6 @@ import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { Spinner } from "@/components/ui/spinner";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
-import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   show_toast,
@@ -198,7 +197,6 @@ function is_desktop(): boolean {
 
 export function UpgradeModal() {
   const { t } = use_i18n();
-  const offer_checkout = use_special_offer_checkout();
   const location = useLocation();
   const state = use_upgrade_state();
   const { is_authenticated } = use_auth();
@@ -1068,7 +1066,6 @@ export function UpgradeModal() {
           plan_name={pending_tier.name}
           selected_plan_id={pending_tier.id}
           selected_term={term_id}
-          special_offer={offer_checkout.plan_pricing(pending_tier.id)}
           term_options={[
             {
               id: "monthly",
@@ -1131,8 +1128,6 @@ export function UpgradeModal() {
 
       {crypto_tier && (
         <CryptoTermModal
-          discount_percent_off={offer_checkout.percent_off}
-          discounted_price_cents={offer_checkout.crypto_price(crypto_tier.id)}
           initial_term_months={crypto_term_months}
           is_open={!!crypto_tier}
           monthly_price_cents={crypto_tier.monthly_cents}

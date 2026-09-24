@@ -293,6 +293,7 @@ export async function create_checkout_session(
   currency?: string,
   apply_credits_cents?: number,
   promo_code?: string,
+  special_offer?: boolean,
 ) {
   const { success_url, cancel_url } = billing_return_urls();
   const code = promo_code?.trim();
@@ -310,6 +311,7 @@ export async function create_checkout_session(
         : {}),
       ...(code ? { promo_code: code } : {}),
       ...(arrived_with_promo_code() ? { arrived_with_promo_code: true } : {}),
+      ...(special_offer ? { special_offer: true } : {}),
     },
   );
 }
@@ -320,6 +322,7 @@ export async function start_hosted_checkout(
   currency?: string,
   apply_credits_cents?: number,
   promo_code?: string,
+  special_offer?: boolean,
 ): Promise<{ ok: boolean; error?: string; server_code?: string }> {
   const response = await create_checkout_session(
     plan_code,
@@ -327,6 +330,7 @@ export async function start_hosted_checkout(
     currency,
     apply_credits_cents,
     promo_code,
+    special_offer,
   );
 
   const url = response.data?.url;
@@ -587,6 +591,7 @@ export async function create_crypto_checkout_session(
   success_url?: string,
   cancel_url?: string,
   promo_code?: string,
+  special_offer?: boolean,
 ) {
   const code = promo_code?.trim();
 
@@ -598,6 +603,7 @@ export async function create_crypto_checkout_session(
       ...(success_url ? { success_url } : {}),
       ...(cancel_url ? { cancel_url } : {}),
       ...(code ? { promo_code: code } : {}),
+      ...(special_offer ? { special_offer: true } : {}),
     },
   );
 }
@@ -705,6 +711,7 @@ export async function create_crypto_native_invoice(
   currency: string,
   chain: string,
   promo_code?: string,
+  special_offer?: boolean,
 ) {
   const code = promo_code?.trim();
 
@@ -716,6 +723,7 @@ export async function create_crypto_native_invoice(
       currency,
       chain,
       ...(code ? { promo_code: code } : {}),
+      ...(special_offer ? { special_offer: true } : {}),
     },
   );
 }

@@ -41,7 +41,6 @@ import {
 import { create_family_group } from "@/services/api/family";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
-import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { type CancelReason } from "@/components/settings/billing/cancel_reason_step";
 import { type CancelStep } from "@/components/settings/billing/cancel_impact_step";
@@ -104,9 +103,6 @@ export function use_billing_section() {
   const { stats } = use_mail_stats();
   const [subscription, set_subscription] =
     useState<SubscriptionResponse | null>(null);
-  const special_offer_checkout = use_special_offer_checkout(
-    subscription?.plan.code,
-  );
   const [plans, set_plans] = useState<AvailablePlan[]>([]);
   const [history, set_history] = useState<BillingHistoryItem[]>([]);
   const [is_loading, set_is_loading] = useState(true);
@@ -1205,7 +1201,6 @@ export function use_billing_section() {
 
   return {
     t,
-    special_offer_checkout,
     subscription,
     plans,
     history,

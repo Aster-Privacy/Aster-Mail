@@ -82,6 +82,7 @@ interface CryptoTermModalProps {
     list_price_cents: number,
   ) => number | null;
   discount_percent_off?: number;
+  special_offer?: boolean;
 }
 
 const TERM_OPTIONS: TermMonths[] = [1, 3, 6, 12, 24];
@@ -124,6 +125,7 @@ export function crypto_term_modal({
   promo_code,
   discounted_price_cents,
   discount_percent_off,
+  special_offer = false,
 }: CryptoTermModalProps) {
   const { t } = use_i18n();
   const navigate = useNavigate();
@@ -350,6 +352,7 @@ export function crypto_term_modal({
         `${origin}/?crypto=success`,
         `${origin}/?crypto=cancelled`,
         promo_code ?? undefined,
+        special_offer,
       );
 
       if (response.data?.url) {
@@ -402,6 +405,7 @@ export function crypto_term_modal({
         coin.currency,
         coin.chain,
         promo_code ?? undefined,
+        special_offer,
       );
 
       if (response.data?.id) {

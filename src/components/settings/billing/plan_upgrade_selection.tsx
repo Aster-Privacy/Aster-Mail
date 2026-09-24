@@ -32,7 +32,6 @@ import { checkout_error_text } from "./checkout_error_text";
 
 import { safe_local_set } from "@/lib/safe_storage";
 import { use_i18n } from "@/lib/i18n/context";
-import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { Spinner } from "@/components/ui/spinner";
 import { pricing_comparison_url } from "@/lib/canonical_urls";
@@ -222,7 +221,6 @@ export function PlanUpgradeSelection({
   on_back,
 }: PlanUpgradeSelectionProps) {
   const { t } = use_i18n();
-  const offer_checkout = use_special_offer_checkout();
   const [plan_type, set_plan_type] = useState<"individual" | "family">(
     "individual",
   );
@@ -791,7 +789,6 @@ export function PlanUpgradeSelection({
             open={!!pending_tier}
             plan_name={pending_tier.tier.name}
             selected_term={billing_period}
-            special_offer={offer_checkout.plan_pricing(pending_tier.plan.code)}
             term_options={[
               {
                 id: "monthly",
@@ -829,10 +826,6 @@ export function PlanUpgradeSelection({
 
         {crypto_tier && (
           <CryptoTermModal
-            discount_percent_off={offer_checkout.percent_off}
-            discounted_price_cents={offer_checkout.crypto_price(
-              crypto_tier.plan.code,
-            )}
             initial_term_months={crypto_term_months}
             is_open={!!crypto_tier}
             monthly_price_cents={crypto_tier.tier.monthly_cents}
