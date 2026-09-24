@@ -549,6 +549,23 @@ describe("ChangePrimaryAddressModal", () => {
     expect(continue_button().disabled).toBe(false);
   });
 
+  it("reviews the address the way it is displayed everywhere else", async () => {
+    await go_to_review("new.name");
+
+    const text = container.textContent ?? "";
+
+    expect(text).toContain(
+      'settings.address_change_type_to_confirm:{"email":"new.name@astermail.org"}',
+    );
+
+    const confirm_input = container.querySelector(
+      "#primary-address-confirm",
+    ) as HTMLInputElement;
+
+    set_input(confirm_input, "new.name@astermail.org");
+    expect(continue_button().disabled).toBe(false);
+  });
+
   it("accepts the typed confirmation regardless of case", async () => {
     await go_to_review();
 
@@ -689,7 +706,7 @@ describe("ChangePrimaryAddressModal", () => {
     expect(on_changed).not.toHaveBeenCalled();
   });
 
-  it("stops sending codes once the attempts run out", async () => {
+  it("lets the user retry after the attempts run out", async () => {
     mocked_confirm.mockResolvedValue({
       error: "too many",
       code: "RATE_LIMIT_EXCEEDED",
@@ -703,13 +720,14 @@ describe("ChangePrimaryAddressModal", () => {
       ),
     );
 
-    const calls_when_locked = mocked_confirm.mock.calls.length;
+    expect(find_button("settings.address_change_title").disabled).toBe(true);
 
     set_input(code_input(), "111111");
-    await wait_until(() => true);
+    await wait_until(
+      () => find_button("settings.address_change_title").disabled === false,
+    );
 
-    expect(mocked_confirm.mock.calls.length).toBe(calls_when_locked);
-    expect(find_button("settings.address_change_title").disabled).toBe(true);
+    expect(find_button("settings.address_change_title").disabled).toBe(false);
   });
 
   it("keeps the confirm action disabled until the code is complete", async () => {

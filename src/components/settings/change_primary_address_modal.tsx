@@ -309,6 +309,7 @@ export function ChangePrimaryAddressModal({
   const [alias_addresses, set_alias_addresses] = useState<string[]>([]);
 
   const availability_request_ref = useRef(0);
+  const pending_code_ref = useRef(false);
   const check_timeout_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const new_address = `${local_part}@${domain}`;
@@ -391,6 +392,12 @@ export function ChangePrimaryAddressModal({
   }, [is_open]);
 
   useEffect(() => {
+    if (pending_code_ref.current) {
+      set_busy(false);
+      set_retrying(false);
+      return;
+    }
+
     set_step("intro");
     set_local_part("");
     set_domain(PRIMARY_DOMAINS[0]);
@@ -494,8 +501,7 @@ export function ChangePrimaryAddressModal({
       const salt_response = await get_user_salt({ user_hash });
 
       if (salt_response.error || !salt_response.data) {
-        set_password("");
-        set_error(t("settings.failed_verify_credentials"));
+        set_error(t("settings.address_change_failed"));
 
         return;
       }
@@ -524,6 +530,7 @@ export function ChangePrimaryAddressModal({
       set_code("");
       set_code_locked(false);
       set_resend_seconds(RESEND_COOLDOWN_SECONDS);
+      pending_code_ref.current = true;
       set_step("code");
     } catch (caught) {
       ignore_error(
@@ -548,8 +555,14 @@ export function ChangePrimaryAddressModal({
     return () => window.clearTimeout(timer);
   }, [resend_seconds]);
 
+  const handle_code_change = (next: string) => {
+    set_code(next);
+    if (code_locked) set_code_locked(false);
+    if (error) set_error(null);
+  };
+
   const handle_resend = async () => {
-    if (busy || resend_seconds > 0 || code_locked) return;
+    if (busy || resend_seconds > 0) return;
 
     set_busy(true);
     set_error(null);
@@ -676,8 +689,9 @@ export function ChangePrimaryAddressModal({
     set_code("");
     set_status(null);
     set_busy(false);
-    set_final_address(confirmed_address);
+    set_final_address(new_address);
     set_retained_address(current_address);
+    pending_code_ref.current = false;
     set_step("done");
     void Promise.resolve(on_changed(confirmed_address)).catch((caught) => {
       ignore_error(
@@ -716,8 +730,9 @@ export function ChangePrimaryAddressModal({
   const request_close = useCallback(() => {
     if (busy || retrying) return;
 
+    if (step !== "code") pending_code_ref.current = false;
     on_close();
-  }, [busy, retrying, on_close]);
+  }, [busy, retrying, step, on_close]);
 
   const error_line = error && (
     <p
@@ -807,7 +822,7 @@ export function ChangePrimaryAddressModal({
                     <button
                       key={address}
                       className={`h-9 px-3 rounded-lg border text-sm transition-colors ${
-                        new_address.toLowerCase() === address.toLowerCase()
+                        routing_form(new_address) === routing_form(address)
                           ? "border-accent-primary text-txt-primary"
                           : "border-edge-secondary text-txt-secondary hover:bg-surf-hover"
                       }`}
@@ -831,19 +846,11 @@ export function ChangePrimaryAddressModal({
                   : t("settings.address_change_pick_title")}
               </label>
               <div className="flex items-center gap-2">
-                <input
+                <Input
                   autoFocus
                   autoCapitalize="none"
                   autoCorrect="off"
-                  className={`flex-1 min-w-0 h-10 px-3 rounded-lg bg-transparent border text-sm text-txt-primary placeholder:text-txt-muted outline-none ${
-                    local_part && !validation.valid
-                      ? "border-red-500"
-                      : is_available === true
-                        ? "border-green-500"
-                        : is_available === false
-                          ? "border-red-500"
-                          : "border-edge-secondary"
-                  }`}
+                  className="flex-1 min-w-0"
                   id="primary-address-local-part"
                   placeholder={t("settings.address_change_name_placeholder")}
                   spellCheck={false}
@@ -854,6 +861,14 @@ export function ChangePrimaryAddressModal({
                         v.toLowerCase().trim(),
                       ),
                     )
+                  }
+                  size="md"
+                  status={
+                    (local_part && !validation.valid) || is_available === false
+                      ? "error"
+                      : is_available === true
+                        ? "success"
+                        : "default"
                   }
                   onKeyDown={(e) => {
                     if (e["key"] !== "Enter" || is_composing(e)) return;
@@ -1156,24 +1171,17 @@ export function ChangePrimaryAddressModal({
               length={CODE_LENGTH}
               status={error ? "error" : "default"}
               value={code}
-              onChange={set_code}
+              onChange={handle_code_change}
               onComplete={() => {
                 if (!busy) void handle_confirm();
               }}
             />
-            <p className="mt-3 inline-flex items-start gap-1.5 text-xs text-txt-muted">
-              <ExclamationTriangleIcon className="w-3.5 h-3.5 mt-0.5 shrink-0" />
-              <span>
-                {t("settings.address_change_permanent_body", {
-                  email: current_address,
-                })}
-              </span>
-            </p>
-            <div className="mt-3">
-              <button
-                className="text-sm text-accent-primary disabled:text-txt-muted disabled:cursor-default"
-                disabled={busy || resend_seconds > 0 || code_locked}
-                type="button"
+            {status && <p className="mt-2 text-xs text-txt-muted">{status}</p>}
+            <div className="mt-2">
+              <Button
+                disabled={busy || resend_seconds > 0}
+                size="sm"
+                variant="ghost"
                 onClick={handle_resend}
               >
                 {resend_seconds > 0
@@ -1181,9 +1189,8 @@ export function ChangePrimaryAddressModal({
                       seconds: String(resend_seconds),
                     })
                   : t("common.resend")}
-              </button>
+              </Button>
             </div>
-            {status && <p className="mt-3 text-xs text-txt-muted">{status}</p>}
             {error_line}
           </ModalBody>
           <ModalFooter>
