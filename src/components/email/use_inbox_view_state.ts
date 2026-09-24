@@ -287,7 +287,7 @@ export function use_inbox_view_state(props: EmailInboxProps) {
   const category_page =
     page_category_ref.current === categories.active_category ? current_page : 0;
 
-  const default_list = use_email_list(current_view);
+  const default_list = use_email_list(current_view, !categories.enabled);
   const category_list = use_category_inbox(
     categories.active_category,
     category_page,

@@ -28,10 +28,13 @@ import { decrypt_envelope } from "./decrypt";
 import { mail_to_email_safe } from "./mapping";
 
 import { list_mail_items } from "@/services/api/mail";
+import { map_sync_in_chunks } from "@/lib/scheduling";
 import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
 import { type FormatOptions } from "@/utils/date_format";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
 import { apply_flag_intents } from "@/services/read_intent";
+
+const MAP_CHUNK_SIZE = 25;
 
 export interface FetchByIdsResult {
   emails: InboxEmail[];
@@ -114,25 +117,23 @@ export async function fetch_mail_by_ids_reconciled(
         }
       }
 
-      const email = mail_to_email_safe(
-        item,
-        envelope,
-        metadata,
-        format_options,
-      );
-
-      if (!email) throw new Error("unconvertible mail item");
-
-      return email;
+      return { item, envelope, metadata };
     }),
   );
 
+  const decrypted = results.flatMap((result) =>
+    result.status === "fulfilled" ? [result.value] : [],
+  );
+  const mapped = await map_sync_in_chunks(
+    decrypted,
+    ({ item, envelope, metadata }) =>
+      mail_to_email_safe(item, envelope, metadata, format_options),
+    MAP_CHUNK_SIZE,
+  );
   const by_id = new Map<string, InboxEmail>();
 
-  for (const result of results) {
-    if (result.status === "fulfilled") {
-      by_id.set(result.value.id, result.value);
-    }
+  for (const email of mapped) {
+    if (email) by_id.set(email.id, email);
   }
 
   const emails = ids

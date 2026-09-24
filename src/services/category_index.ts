@@ -331,11 +331,20 @@ function now_ms(): number {
   return new Date().getTime();
 }
 
+const ts_cache = new Map<string, number>();
+
 function safe_ts(value: string | undefined): number {
   if (!value) return 0;
-  const ms = new Date(value).getTime();
+  const cached = ts_cache.get(value);
 
-  return Number.isNaN(ms) ? 0 : ms;
+  if (cached !== undefined) return cached;
+  if (ts_cache.size >= MAX_ENTRIES * 2) ts_cache.clear();
+  const parsed = new Date(value).getTime();
+  const ms = Number.isNaN(parsed) ? 0 : parsed;
+
+  ts_cache.set(value, ms);
+
+  return ms;
 }
 
 function open_db(): Promise<IDBDatabase> {
@@ -394,8 +403,29 @@ function open_db(): Promise<IDBDatabase> {
   });
 }
 
+let batch_depth = 0;
+let batch_pending = false;
+
+export function batch_index_updates(run: () => void): void {
+  batch_depth += 1;
+  try {
+    run();
+  } finally {
+    batch_depth -= 1;
+    if (batch_depth === 0 && batch_pending) {
+      batch_pending = false;
+      notify();
+    }
+  }
+}
+
 function notify(): void {
   version += 1;
+  if (batch_depth > 0) {
+    batch_pending = true;
+
+    return;
+  }
   listeners.forEach((listener) => {
     try {
       listener();
@@ -1361,8 +1391,9 @@ export function mark_category_seen(category: EmailCategory): void {
 
   if ((seen_ts[category] ?? 0) >= stamp) return;
   seen_ts[category] = stamp;
-  void persist_now();
-  notify();
+  derived = null;
+  schedule_persist();
+  notify_soon();
 }
 
 // Multi-category form of mark_category_seen, folding one pass over the index
@@ -1412,8 +1443,9 @@ export function mark_categories_seen(
   }
 
   if (!changed) return;
-  void persist_now();
-  notify();
+  derived = null;
+  schedule_persist();
+  notify_soon();
 }
 
 export function get_page_ids(

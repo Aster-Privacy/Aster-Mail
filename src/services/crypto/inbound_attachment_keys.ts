@@ -50,6 +50,20 @@ export const subscribe_attachment_keys = (
   };
 };
 
+let notify_scheduled = false;
+
+const notify_listeners_soon = (): void => {
+  if (notify_scheduled) return;
+  notify_scheduled = true;
+  queueMicrotask(() => {
+    notify_scheduled = false;
+
+    for (const listener of listeners) {
+      listener();
+    }
+  });
+};
+
 export const register_attachment_entry = (
   mail_item_id: string,
   seq: number,
@@ -64,10 +78,7 @@ export const register_attachment_entry = (
 
   version += 1;
   item_versions.set(mail_item_id, (item_versions.get(mail_item_id) ?? 0) + 1);
-
-  for (const listener of listeners) {
-    listener();
-  }
+  notify_listeners_soon();
 };
 
 export const register_envelope_attachment_keys = (

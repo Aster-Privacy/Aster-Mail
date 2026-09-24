@@ -52,6 +52,7 @@ import {
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
+  batch_index_updates,
   init_category_index,
   get_page_ids,
   get_category_total,
@@ -461,7 +462,7 @@ export function use_category_inbox(
         ),
       );
     } else {
-      set_state({ ...EMPTY_STATE, total_messages: state.total_messages });
+      set_state((prev) => ({ ...prev, is_loading: true }));
     }
   }
 
@@ -659,24 +660,26 @@ export function use_category_inbox(
 
         clear_absent_strikes(fetched.map((email) => email.id));
 
-        if (missing_ids.length > 0) {
-          remove_ids_absent_from_server(missing_ids);
-        }
-
-        if (unrenderable_ids.length > 0) {
-          suppress_ids(unrenderable_ids);
-        }
-
-        reconcile_server_read(fetched);
-        reconcile_unread_thread_siblings(fetched);
-
         const stale_fetched = fetched
           .filter((email) => !belongs_in_inbox(email))
           .map((email) => email.id);
 
-        if (stale_fetched.length > 0) {
-          remove_ids(stale_fetched);
-        }
+        batch_index_updates(() => {
+          if (missing_ids.length > 0) {
+            remove_ids_absent_from_server(missing_ids);
+          }
+
+          if (unrenderable_ids.length > 0) {
+            suppress_ids(unrenderable_ids);
+          }
+
+          reconcile_server_read(fetched);
+          reconcile_unread_thread_siblings(fetched);
+
+          if (stale_fetched.length > 0) {
+            remove_ids(stale_fetched);
+          }
+        });
 
         const received_only = correct_received_rows(
           fetched.filter(belongs_in_inbox),
@@ -765,7 +768,7 @@ export function use_category_inbox(
             const { emails: fetched, request_ok } =
               await fetch_mail_by_ids_reconciled(ids, format_options, account);
 
-            if (cancelled || !request_ok) return;
+            if (!request_ok) return;
 
             const received_only = correct_received_rows(
               fetched.filter(belongs_in_inbox),
@@ -793,7 +796,6 @@ export function use_category_inbox(
     page,
     page_size,
     page_variant,
-    index_version,
     state.has_initial_load,
     state.is_loading,
     format_options,

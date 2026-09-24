@@ -114,6 +114,7 @@ vi.mock("@/contexts/preferences_context", () => ({
 }));
 
 vi.mock("@/services/category_index", () => ({
+  batch_index_updates: (run: () => void) => run(),
   init_category_index: vi.fn(async () => {}),
   get_page_ids: (category: string) =>
     category === "primary" ? ["primary_1"] : ["promo_1"],
