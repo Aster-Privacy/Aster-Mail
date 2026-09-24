@@ -19,12 +19,4 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-export function is_composing(event: {
-  nativeEvent?: { isComposing?: boolean; keyCode?: number };
-  isComposing?: boolean;
-  keyCode?: number;
-}): boolean {
-  const native = event.nativeEvent ?? event;
-
-  return native.isComposing === true || native.keyCode === 229;
-}
+export { is_composing } from "@aster/ui/compose_core";

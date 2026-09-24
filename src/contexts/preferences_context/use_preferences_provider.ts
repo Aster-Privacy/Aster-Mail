@@ -48,6 +48,7 @@ import { request_cache } from "@/services/api/request_cache";
 import { get_effective_base_url } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
 import { sync_haptic_state } from "@/native/haptic_feedback";
+import { write_support_theme_cookie } from "@/lib/support_theme_cookie";
 import { set_toast_min_duration } from "@/components/toast/simple_toast";
 import {
   set_display_date_format,
@@ -508,6 +509,24 @@ export function use_preferences_provider() {
 
     set_theme_ref.current(effective_theme_fields.theme);
   }, [effective_theme_fields.theme, is_loading]);
+
+  useEffect(() => {
+    if (is_loading) return;
+    if (!has_loaded_ref.current) return;
+
+    write_support_theme_cookie(
+      effective_theme_fields.theme,
+      effective_theme_fields.color_theme,
+      preferences.accent_color,
+      effective_theme_fields.custom_theme_seed,
+    );
+  }, [
+    is_loading,
+    effective_theme_fields.theme,
+    effective_theme_fields.color_theme,
+    preferences.accent_color,
+    effective_theme_fields.custom_theme_seed,
+  ]);
 
   useEffect(() => {
     document.documentElement.style.setProperty(

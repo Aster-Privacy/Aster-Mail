@@ -18,31 +18,5 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-const SCHEME_PREFIX = /^[a-z][a-z0-9+.-]*:/i;
-const ALLOWED_PROTOCOLS = ["http:", "https:", "mailto:"];
 
-function parse_allowed(candidate: string): URL | null {
-  try {
-    const parsed = new URL(candidate);
-
-    return ALLOWED_PROTOCOLS.includes(parsed.protocol) ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-export function normalize_link_url(raw: string): string | null {
-  const value = raw.trim();
-
-  if (!value) return null;
-
-  if (SCHEME_PREFIX.test(value)) {
-    return parse_allowed(value) ? value : null;
-  }
-
-  if (value.includes("@") && !value.includes("/") && !value.includes(" ")) {
-    return parse_allowed(`mailto:${value}`) ? `mailto:${value}` : null;
-  }
-
-  return parse_allowed(`https://${value}`) ? `https://${value}` : null;
-}
+export { normalize_link_url } from "@aster/ui/compose_core";

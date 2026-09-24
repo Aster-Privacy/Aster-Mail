@@ -22,7 +22,7 @@ import type {} from "@/lib/i18n/types";
 import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
 import { useState } from "react";
-import { Button } from "@aster/ui";
+import { Button, ComposeIcon, ComposeToolbarLayout, Tooltip } from "@aster/ui";
 
 import { DraftStatusIndicator } from "./draft_status";
 import { FormatTools } from "./format_tools";
@@ -63,21 +63,33 @@ export function ComposeToolbar({
   };
 
   return (
-    <div className="relative flex-shrink-0">
-      {show_format_bar && !compose.is_plain_text_mode && (
-        <div
-          aria-label={t("mail.text_formatting")}
-          className="px-3 pt-1.5 flex items-center gap-0.5 overflow-x-auto scrollbar-hide"
-          role="toolbar"
-        >
+    <ComposeToolbarLayout
+      end={
+        <>
+          <DraftStatusIndicator
+            compose={compose}
+            reduce_motion={reduce_motion}
+          />
+          {compose.handle_show_delete_confirm && (
+            <ToolbarButton
+              title={t("common.delete_draft")}
+              onClick={compose.handle_show_delete_confirm}
+            >
+              <ComposeIcon name="trash" />
+            </ToolbarButton>
+          )}
+        </>
+      }
+      format_bar={
+        show_format_bar && !compose.is_plain_text_mode ? (
           <FormatTools compose={compose} />
-        </div>
-      )}
-
-      <div className="px-4 pt-1 pb-2.5 flex items-center gap-2">
-        {compose.scheduled_time ? (
+        ) : null
+      }
+      format_bar_label={t("mail.text_formatting")}
+      primary={
+        compose.scheduled_time ? (
           <Button
-            className="h-9 px-5 rounded-full"
+            className="aster_compose_send"
             disabled={!compose.has_recipients || compose.is_scheduling}
             size="md"
             variant="depth"
@@ -86,29 +98,34 @@ export function ComposeToolbar({
             {compose.is_scheduling ? t("mail.scheduling") : t("mail.schedule")}
           </Button>
         ) : (
-          <Button
-            className="h-9 px-6 rounded-full"
-            disabled={!compose.has_recipients || compose.is_sending}
-            size="md"
-            title={compose.is_mac ? "⌘+Enter" : "Ctrl+Enter"}
-            variant="depth"
-            onClick={compose.handle_send}
+          <Tooltip
+            position="top"
+            tip={compose.is_mac ? "⌘+Enter" : "Ctrl+Enter"}
           >
-            {t("mail.send")}
-            {compose.is_sending && <ButtonSpinner />}
-          </Button>
-        )}
-
-        <div className="flex items-center gap-1 ms-1">
+            <span className="inline-flex flex-shrink-0">
+              <Button
+                className="aster_compose_send"
+                disabled={!compose.has_recipients || compose.is_sending}
+                size="md"
+                variant="depth"
+                onClick={compose.handle_send}
+              >
+                {t("mail.send")}
+                {compose.is_sending && <ButtonSpinner />}
+              </Button>
+            </span>
+          </Tooltip>
+        )
+      }
+      tools={
+        <>
           {!compose.is_plain_text_mode && (
             <ToolbarButton
               active={show_format_bar}
               title={t("mail.text_formatting")}
               onClick={toggle_format_bar}
             >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M5 17v2h14v-2H5zm4.5-4.2h5l.9 2.2h2.1L12.75 4h-1.5L6.5 15h2.1l.9-2.2zm2.5-6.13L13.87 11h-3.74L12 6.67z" />
-              </svg>
+              <ComposeIcon name="formatting" />
             </ToolbarButton>
           )}
 
@@ -122,9 +139,7 @@ export function ComposeToolbar({
               }
               onClick={compose.toggle_plain_text_mode}
             >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M4 5h16v2H4V5zm0 4h16v2H4V9zm0 4h10v2H4v-2zm0 4h10v2H4v-2z" />
-              </svg>
+              <ComposeIcon name="plain_text" />
             </ToolbarButton>
           )}
 
@@ -137,25 +152,8 @@ export function ComposeToolbar({
           {extra_toolbar_items}
 
           {compose.template_picker_element}
-        </div>
-
-        <div className="ms-auto flex items-center gap-2 min-w-0">
-          <DraftStatusIndicator
-            compose={compose}
-            reduce_motion={reduce_motion}
-          />
-          {compose.handle_show_delete_confirm && (
-            <ToolbarButton
-              title={t("common.delete_draft")}
-              onClick={compose.handle_show_delete_confirm}
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-              </svg>
-            </ToolbarButton>
-          )}
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   );
 }

@@ -18,20 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type {} from "@/lib/i18n/types";
-import type {} from "@/components/compose/compose_shared";
 
-import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
-import { Button } from "@aster/ui";
+import { LinkPopover as SharedLinkPopover } from "@aster/ui";
 
-import { use_anchored_layer } from "./shared";
-
-import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
-import { use_escape_layer } from "@/lib/overlay_layer_stack";
-import { normalize_link_url } from "@/utils/link_url";
-import { is_composing } from "@/utils/ime";
 
 export function LinkPopover({
   open,
@@ -47,109 +37,21 @@ export function LinkPopover({
   on_insert: (url: string, text?: string) => void;
 }) {
   const { t } = use_i18n();
-  const [url, set_url] = useState("https://");
-  const [text, set_text] = useState("");
-  const [error, set_error] = useState("");
-  const [pos, set_pos] = useState({ top: 0, left: 0 });
-  const card_ref = useRef<HTMLDivElement>(null);
-  const url_input_ref = useRef<HTMLInputElement>(null);
 
-  use_escape_layer(open, on_close, "compose_link_popover");
-
-  use_anchored_layer(
-    open,
-    anchor_ref,
-    (rect) =>
-      set_pos({
-        top: rect.top,
-        left: Math.max(8, Math.min(rect.left, window.innerWidth - 308)),
-      }),
-    on_close,
-  );
-
-  useEffect(() => {
-    if (!open) return;
-    set_url("https://");
-    set_text(selected_text);
-    set_error("");
-    requestAnimationFrame(() => url_input_ref.current?.focus());
-
-    const handle_click_outside = (e: MouseEvent) => {
-      const target = e.target as Node;
-
-      if (anchor_ref.current?.contains(target)) return;
-      if (card_ref.current?.contains(target)) return;
-      on_close();
-    };
-
-    document.addEventListener("mousedown", handle_click_outside);
-
-    return () =>
-      document.removeEventListener("mousedown", handle_click_outside);
-  }, [open]);
-
-  const handle_insert = () => {
-    const normalized = normalize_link_url(url);
-
-    if (!normalized) {
-      set_error(t("common.please_enter_valid_url"));
-
-      return;
-    }
-    on_insert(normalized, text.trim() || undefined);
-    on_close();
-  };
-
-  if (!open) return null;
-
-  return createPortal(
-    <div
-      ref={card_ref}
-      className="fixed w-[300px] rounded-xl border shadow-lg p-3 flex flex-col gap-2 bg-modal-bg border-edge-primary"
-      style={{
-        zIndex: 9999,
-        left: pos.left,
-        bottom: window.innerHeight - pos.top + 8,
+  return (
+    <SharedLinkPopover
+      anchor_ref={anchor_ref}
+      labels={{
+        url_placeholder: t("mail.url_placeholder"),
+        display_text_placeholder: t("mail.display_text_placeholder"),
+        invalid_url: t("common.please_enter_valid_url"),
+        cancel: t("common.cancel"),
+        insert: t("mail.insert_link"),
       }}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" && !is_composing(e)) {
-          e.preventDefault();
-          handle_insert();
-        }
-      }}
-    >
-      <Input
-        ref={url_input_ref}
-        className="w-full"
-        placeholder={t("mail.url_placeholder")}
-        size="sm"
-        type="url"
-        value={url}
-        onChange={(e) => {
-          set_url(e.target.value);
-          if (error) set_error("");
-        }}
-      />
-      {error && <p className="text-[11px] text-red-500">{error}</p>}
-      {!selected_text && (
-        <Input
-          className="w-full"
-          placeholder={t("mail.display_text_placeholder")}
-          size="sm"
-          type="text"
-          value={text}
-          onChange={(e) => set_text(e.target.value)}
-        />
-      )}
-      <div className="flex justify-end gap-2 mt-0.5">
-        <Button size="sm" variant="outline" onClick={on_close}>
-          {t("common.cancel")}
-        </Button>
-        <Button size="sm" variant="depth" onClick={handle_insert}>
-          {t("mail.insert_link")}
-        </Button>
-      </div>
-    </div>,
-    document.body,
+      open={open}
+      selected_text={selected_text}
+      on_close={on_close}
+      on_insert={on_insert}
+    />
   );
 }

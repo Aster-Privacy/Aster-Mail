@@ -24,6 +24,8 @@ import type {} from "@/components/compose/compose_shared";
 import { useId, useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 
+import { Tooltip } from "@aster/ui";
+
 import { PRESET_COLORS, use_anchored_layer } from "./shared";
 
 import { Input } from "@/components/ui/input";
@@ -117,13 +119,14 @@ export function ColorPickerPopover({
 
   return (
     <div>
+      <Tooltip position="top" tip={t("mail.font_color")}>
       <button
         ref={button_ref}
         aria-controls={open ? panel_id : undefined}
         aria-expanded={open}
         aria-haspopup="dialog"
+        aria-label={t("mail.font_color")}
         className="press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"
-        title={t("mail.font_color")}
         type="button"
         onClick={() => {
           if (!open) {
@@ -143,6 +146,7 @@ export function ColorPickerPopover({
           />
         </div>
       </button>
+      </Tooltip>
       {createPortal(
         open && (
           <div
@@ -211,7 +215,7 @@ export function ColorPickerPopover({
                             ? "inset 0 0 0 1px rgba(128,128,128,0.45)"
                             : "none",
                       }}
-                      title={color}
+                      aria-label={color}
                       type="button"
                       onClick={() => handle_color_select(color)}
                       onMouseDown={(e) => e.preventDefault()}
