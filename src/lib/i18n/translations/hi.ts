@@ -4599,6 +4599,8 @@ export const hi = {
     plan_storage_tight_note:
       "आपने अपना {{percent}}% स्टोरेज इस्तेमाल किया है। {{plan}} आपको और जगह देता है।",
     money_back_guarantee: "30 दिन की पैसे वापसी की गारंटी",
+    plan_every_plan_includes:
+      "हर प्लान में एंड-टू-एंड एन्क्रिप्शन, ज़ीरो-नॉलेज स्टोरेज और ओपन-सोर्स ऐप्स शामिल हैं।",
     cancel_anytime: "कभी भी रद्द करें",
     billed_annually: "सालाना बिल",
     save_annually_hint: "सालाना पर 20% बचाएं",

@@ -7669,6 +7669,8 @@ export const pt = {
       "Os assuntos normalmente trafegam sem criptografia, então qualquer um que manipule a mensagem consegue lê-los. Com esta opção ativada, uma mensagem criptografada sai com três pontos no lugar do assunto, e o assunto real fica protegido dentro da parte criptografada. Destinatários cujo app de e-mail aceita cabeçalhos protegidos veem o assunto real. Os demais veem três pontos na lista e encontram o assunto no topo da mensagem, então ative apenas se você aceitar essa troca.",
     browse_folder: "Selecionar pasta",
     money_back_guarantee: "Garantia de reembolso de 30 dias",
+    plan_every_plan_includes:
+      "Todos os planos incluem criptografia de ponta a ponta, armazenamento de conhecimento zero e apps de código aberto.",
     cancel_anytime: "Cancele quando quiser",
     billed_annually: "cobrado anualmente",
     save_annually_hint: "Economize 20% no plano anual",

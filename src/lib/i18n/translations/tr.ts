@@ -7604,6 +7604,8 @@ export const tr = {
       "Konular normalde şifresiz iletilir, bu yüzden iletiyi taşıyan herkes okuyabilir. Bu ayar açıkken şifreli ileti konu yerine üç noktayla gönderilir ve gerçek konu şifreli bölümde korunur. Posta uygulaması korumalı başlıkları destekleyen alıcılar gerçek konuyu görür. Diğerleri listede üç nokta görür ve konuyu iletinin en üstünde bulur; bu dengeyi kabul ediyorsanız açın.",
     browse_folder: "Klasör seç",
     money_back_guarantee: "30 gün para iade garantisi",
+    plan_every_plan_includes:
+      "Her plan uçtan uca şifreleme, sıfır bilgi depolama ve açık kaynaklı uygulamalar içerir.",
     cancel_anytime: "İstediğiniz zaman iptal edin",
     billed_annually: "yıllık faturalandırılır",
     save_annually_hint: "Yıllık planla %20 tasarruf edin",

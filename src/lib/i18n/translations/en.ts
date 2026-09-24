@@ -4532,6 +4532,8 @@ export const en: Translations = {
     plan_storage_tight_note:
       "You've used {{percent}}% of your storage. {{plan}} gives you more room.",
     money_back_guarantee: "30-day money-back guarantee",
+    plan_every_plan_includes:
+      "Every plan includes end-to-end encryption, zero-knowledge storage, and open-source apps.",
     cancel_anytime: "Cancel anytime",
     billed_annually: "billed annually",
     save_annually_hint: "Save 20% with yearly",

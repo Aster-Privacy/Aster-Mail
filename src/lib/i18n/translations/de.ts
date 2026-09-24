@@ -7643,6 +7643,8 @@ export const de = {
       "Betreffzeilen werden normalerweise unverschlüsselt übertragen, sodass jeder, der die Nachricht weiterleitet, sie lesen kann. Ist diese Option aktiv, verlässt eine verschlüsselte Nachricht Ihr Postfach mit drei Punkten anstelle des Betreffs, und der echte Betreff ist im verschlüsselten Teil geschützt. Empfänger, deren Mailprogramm geschützte Kopfzeilen unterstützt, sehen den echten Betreff. Alle anderen sehen drei Punkte in der Liste und finden den Betreff oben in der Nachricht. Aktivieren Sie die Option nur, wenn Sie diesen Kompromiss akzeptieren.",
     browse_folder: "Ordner auswählen",
     money_back_guarantee: "30 Tage Geld-zurück-Garantie",
+    plan_every_plan_includes:
+      "Jeder Tarif enthält Ende-zu-Ende-Verschlüsselung, Zero-Knowledge-Speicher und Open-Source-Apps.",
     cancel_anytime: "Jederzeit kündbar",
     billed_annually: "jährliche Abrechnung",
     save_annually_hint: "Sparen Sie 20 % im Jahresabo",

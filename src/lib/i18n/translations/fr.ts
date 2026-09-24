@@ -7688,6 +7688,8 @@ export const fr = {
       "Les objets circulent normalement en clair : toute personne qui achemine le message peut les lire. Lorsque cette option est activée, un message chiffré part avec trois points à la place de l’objet, et l’objet réel est protégé dans la partie chiffrée. Les destinataires dont l’app de messagerie prend en charge les en-têtes protégés voient l’objet réel. Les autres voient trois points dans leur liste et retrouvent l’objet en haut du message : activez cette option seulement si ce compromis vous convient.",
     browse_folder: "Choisir un dossier",
     money_back_guarantee: "Garantie satisfait ou remboursé de 30 jours",
+    plan_every_plan_includes:
+      "Chaque forfait inclut le chiffrement de bout en bout, un stockage à connaissance nulle et des apps open source.",
     cancel_anytime: "Annulez à tout moment",
     billed_annually: "facturé chaque année",
     save_annually_hint: "Économisez 20 % avec l’offre annuelle",

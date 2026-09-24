@@ -7705,6 +7705,8 @@ export const it = {
       "Gli oggetti viaggiano normalmente in chiaro, quindi chiunque gestisca il messaggio può leggerli. Con questa opzione attiva, un messaggio cifrato parte con tre puntini al posto dell’oggetto e l’oggetto reale è protetto nella parte cifrata. I destinatari la cui app di posta supporta le intestazioni protette vedono l’oggetto reale. Tutti gli altri vedono tre puntini nell’elenco e trovano l’oggetto in cima al messaggio: attivala solo se accetti questo compromesso.",
     browse_folder: "Seleziona cartella",
     money_back_guarantee: "Garanzia di rimborso di 30 giorni",
+    plan_every_plan_includes:
+      "Ogni piano include crittografia end-to-end, archiviazione a conoscenza zero e app open source.",
     cancel_anytime: "Disdici quando vuoi",
     billed_annually: "con fatturazione annuale",
     save_annually_hint: "Risparmia il 20% con il piano annuale",

@@ -7802,6 +7802,8 @@ export const pl = {
       "Tematy zwykle podróżują niezaszyfrowane, więc może je odczytać każdy, przez kogo przechodzi wiadomość. Po włączeniu tej opcji zaszyfrowana wiadomość wychodzi z trzema kropkami zamiast tematu, a prawdziwy temat jest chroniony w zaszyfrowanej części. Odbiorcy, których program pocztowy obsługuje chronione nagłówki, zobaczą prawdziwy temat. Pozostali zobaczą trzy kropki na liście i znajdą temat na górze wiadomości, więc włącz to tylko wtedy, gdy akceptujesz ten kompromis.",
     browse_folder: "Wybierz folder",
     money_back_guarantee: "30-dniowa gwarancja zwrotu pieniędzy",
+    plan_every_plan_includes:
+      "Każdy plan obejmuje szyfrowanie end-to-end, przechowywanie z zerową wiedzą i aplikacje open source.",
     cancel_anytime: "Anuluj w dowolnym momencie",
     billed_annually: "rozliczane rocznie",
     save_annually_hint: "Oszczędź 20% przy planie rocznym",

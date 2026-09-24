@@ -6873,6 +6873,8 @@ export const zh_CN = {
       "邮件主题通常以明文传输，因此经手邮件的任何一方都能读到。开启后，加密邮件发出时主题会显示为三个点，真实主题受保护地放在加密部分中。邮件应用支持受保护标头的收件人能看到真实主题，其他人在列表中只看到三个点，并在邮件顶部找到主题。请在接受这一取舍后再开启。",
     browse_folder: "选择文件夹",
     money_back_guarantee: "30 天退款保证",
+    plan_every_plan_includes:
+      "每个方案都包含端到端加密、零知识存储和开源应用。",
     cancel_anytime: "随时可取消",
     billed_annually: "按年计费",
     save_annually_hint: "选择年付可省 20%",

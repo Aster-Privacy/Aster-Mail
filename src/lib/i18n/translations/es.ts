@@ -7605,6 +7605,8 @@ export const es = {
       "Los asuntos suelen viajar sin cifrar, así que cualquiera que maneje el mensaje puede leerlos. Con esta opción activada, un mensaje cifrado sale con tres puntos en lugar del asunto, y el asunto real queda protegido dentro de la parte cifrada. Los destinatarios cuya app de correo admite cabeceras protegidas ven el asunto real. El resto ve tres puntos en la lista y encuentra el asunto al principio del mensaje, así que actívalo solo si aceptas esa contrapartida.",
     browse_folder: "Elegir carpeta",
     money_back_guarantee: "Garantía de devolución de 30 días",
+    plan_every_plan_includes:
+      "Todos los planes incluyen cifrado de extremo a extremo, almacenamiento de conocimiento cero y apps de código abierto.",
     cancel_anytime: "Cancela cuando quieras",
     billed_annually: "con facturación anual",
     save_annually_hint: "Ahorra un 20 % con el plan anual",
