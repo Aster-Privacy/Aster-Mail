@@ -142,6 +142,7 @@ export function bimi_action_error(
   switch (response.server_code) {
     case "BIMI_UPLOAD_THROTTLED":
     case "BIMI_CHECK_THROTTLED":
+    case "BIMI_ACTION_THROTTLED":
       return "settings.bimi_error_throttled";
     case "BIMI_DOMAIN_NOT_ACTIVE":
       return "settings.bimi_error_domain_not_active";
