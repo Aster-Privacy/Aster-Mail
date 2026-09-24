@@ -8062,6 +8062,7 @@ export const zh_CN = {
     change_photo: "更换头像",
     active_account: "活动",
     add_another_account: "添加另一个账户",
+    resubscribe_to_aster: "重新订阅 Aster",
     switch_to_account: "切换到此账户",
     remove_account: "从此设备移除",
     remove_account_title: "移除账户？",

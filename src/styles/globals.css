@@ -3570,6 +3570,11 @@ input:-webkit-autofill:active {
   color: var(--text-primary);
 }
 
+.account_menu_tile_accent .account_menu_tile_icon,
+.account_menu_tile_accent .account_menu_tile_label {
+  color: var(--accent-color);
+}
+
 .account_menu_tile_meta {
   flex-shrink: 0;
   font-size: 11px;

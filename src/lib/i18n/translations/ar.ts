@@ -8886,6 +8886,7 @@ export const ar = {
     change_photo: "تغيير الصورة",
     active_account: "نشط",
     add_another_account: "إضافة حساب آخر",
+    resubscribe_to_aster: "إعادة الاشتراك في Aster",
     switch_to_account: "التبديل إلى هذا الحساب",
     remove_account: "إزالة من هذا الجهاز",
     remove_account_title: "إزالة الحساب؟",

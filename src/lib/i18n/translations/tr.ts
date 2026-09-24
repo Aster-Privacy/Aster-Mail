@@ -8916,6 +8916,7 @@ export const tr = {
     change_photo: "Fotoğrafı değiştir",
     active_account: "Aktif",
     add_another_account: "Başka bir hesap ekle",
+    resubscribe_to_aster: "Aster'a yeniden abone ol",
     switch_to_account: "Bu hesaba geç",
     remove_account: "Bu cihazdan kaldır",
     remove_account_title: "Hesap kaldırılsın mı?",

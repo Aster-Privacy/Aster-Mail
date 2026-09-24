@@ -8685,6 +8685,7 @@ export const ko = {
     change_photo: "사진 변경",
     active_account: "활성",
     add_another_account: "다른 계정 추가",
+    resubscribe_to_aster: "Aster 다시 구독하기",
     switch_to_account: "이 계정으로 전환",
     copy_email: "이메일 복사하려면 클릭",
     email_copied: "이메일 복사됨",

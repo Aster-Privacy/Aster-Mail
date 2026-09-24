@@ -8814,6 +8814,7 @@ export const hi = {
     remove_photo: "फ़ोटो निकालें",
     active_account: "सक्रिय",
     add_another_account: "दूसरा खाता जोड़ें",
+    resubscribe_to_aster: "Aster की सदस्यता फिर से लें",
     switch_to_account: "इसी खाते पर जाएं",
     copy_email: "ईमेल कॉपी करने के लिए क्लिक करें",
     email_copied: "ईमेल कॉपी हो गया",
