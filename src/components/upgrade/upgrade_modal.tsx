@@ -186,10 +186,10 @@ function checkout_interval_for(term_id: string): string {
 }
 
 function term_id_for_interval(interval: UpgradeInterval | null): string {
-  if (interval === "month") return "monthly";
+  if (interval === "year") return "yearly";
   if (interval === "biennial") return "biennial";
 
-  return "yearly";
+  return "monthly";
 }
 
 function is_desktop(): boolean {
@@ -211,10 +211,10 @@ export function UpgradeModal() {
   } = use_plan_limits();
   const [currency, set_currency] = useState("usd");
   const [audience, set_audience] = useState<PlanAudience>("individual");
-  const [interval, set_interval] = useState<"month" | "year">("year");
-  const [term_id, set_term_id] = useState("yearly");
+  const [interval, set_interval] = useState<"month" | "year">("month");
+  const [term_id, set_term_id] = useState("monthly");
   const [crypto_tier, set_crypto_tier] = useState<PlanTier | null>(null);
-  const [crypto_term_months, set_crypto_term_months] = useState(12);
+  const [crypto_term_months, set_crypto_term_months] = useState(1);
   const [pending_tier, set_pending_tier] = useState<PlanTier | null>(null);
   const [plan_change_target, set_plan_change_target] = useState<{
     tier: PlanTier;

@@ -227,7 +227,7 @@ export function PlanUpgradeSelection({
     "individual",
   );
   const [billing_period, set_billing_period] = useState<"monthly" | "yearly">(
-    "yearly",
+    "monthly",
   );
   const [currency, set_currency] = useState<string>("usd");
   const [plans, set_plans] = useState<AvailablePlan[]>([]);
@@ -242,7 +242,7 @@ export function PlanUpgradeSelection({
     tier: PlanTier;
     plan: AvailablePlan;
   } | null>(null);
-  const [crypto_term_months, set_crypto_term_months] = useState(12);
+  const [crypto_term_months, set_crypto_term_months] = useState(1);
   const [pending_family_tier, set_pending_family_tier] =
     useState<FamilyPlanTier | null>(null);
   const [crypto_family_tier, set_crypto_family_tier] =
