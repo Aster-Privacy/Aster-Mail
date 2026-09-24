@@ -256,9 +256,12 @@ export function undo_send_is_active(
 }
 
 export function clamp_undo_seconds(value: number): number {
-  if (!Number.isFinite(value) || value < UNDO_MIN_SECONDS) {
+  if (!Number.isFinite(value) || value <= 0) {
     return UNDO_DEFAULT_SECONDS;
   }
 
-  return Math.min(value, UNDO_MAX_SECONDS);
+  return Math.min(
+    Math.max(Math.round(value), UNDO_MIN_SECONDS),
+    UNDO_MAX_SECONDS,
+  );
 }

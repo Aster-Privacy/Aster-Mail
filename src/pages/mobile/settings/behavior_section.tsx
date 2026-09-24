@@ -48,6 +48,7 @@ import {
 import { get_member_retention_policy } from "@/services/api/family_org";
 import { ignore_error } from "@/lib/ignore_error";
 import {
+  UNDO_DEFAULT_SECONDS,
   UNDO_PRESET_SECONDS,
   clamp_undo_seconds,
   undo_send_is_active,
@@ -273,8 +274,11 @@ export function BehaviorSection({
     preferences.undo_send_enabled,
     preferences.undo_send_seconds,
   );
+  const undo_current_seconds = clamp_undo_seconds(
+    preferences.undo_send_seconds ?? UNDO_DEFAULT_SECONDS,
+  );
   const undo_custom_matches_preset = undo_presets.includes(
-    preferences.undo_send_seconds as (typeof undo_presets)[number],
+    undo_current_seconds as (typeof undo_presets)[number],
   );
 
   const signature_mode_options: {
@@ -645,12 +649,12 @@ export function BehaviorSection({
                   <button
                     key={sec}
                     className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
-                      preferences.undo_send_seconds === sec
+                      undo_current_seconds === sec
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
                     }`}
                     style={
-                      preferences.undo_send_seconds === sec
+                      undo_current_seconds === sec
                         ? chip_selected_style
                         : undefined
                     }
@@ -690,7 +694,7 @@ export function BehaviorSection({
                       undo_custom_input ??
                       (undo_custom_matches_preset
                         ? ""
-                        : preferences.undo_send_seconds)
+                        : undo_current_seconds)
                     }
                     onBlur={(e) => {
                       const parsed = parse_bounded_int(e.target.value, 1, 30);
