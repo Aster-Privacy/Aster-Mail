@@ -3668,24 +3668,6 @@ export const nl = {
       "Uw bestaande herstelzin blijft geldig. Voortaan worden herstelcodes gebruikt.",
     recovery_email_row_moved_hint:
       "De instellingen voor het herstel-e-mailadres zijn verplaatst naar Beveiliging > Accountherstel",
-    recover_older_data_title: "Oudere gegevens herstellen",
-    recover_older_data_desc:
-      "Dit account is gereset. Als u het wachtwoord van vóór de reset nog weet, kunnen uw oudere versleutelde gegevens worden ontgrendeld en hersteld.",
-    recover_older_data_button: "Oudere gegevens ontgrendelen",
-    resurrection_old_password: "Oud wachtwoord",
-    resurrection_old_password_prompt:
-      "Voer het wachtwoord in dat u vóór de reset gebruikte",
-    resurrection_success:
-      "Uw oudere gegevens zijn ontgrendeld. Oudere e-mails en aliassen openen weer normaal.",
-    resurrection_failed:
-      "Hiermee zijn de oudere gegevens niet ontgrendeld. Controleer het wachtwoord of de zin en probeer het opnieuw.",
-    discard_older_data_button: "Oudere gegevens verwijderen",
-    discard_older_data_title: "Oudere gegevens verwijderen?",
-    discard_older_data_desc:
-      "Hiermee verwijder je definitief de optie om e-mail en aliassen van vóór de reset te ontgrendelen. Dit kun je niet ongedaan maken.",
-    discard_older_data_success: "Oudere gegevens verwijderd.",
-    discard_older_data_failed:
-      "De oudere gegevens konden niet worden verwijderd. Probeer het opnieuw.",
     phrase_wrap_save_failed:
       "Uw herstelzin kon niet op de server worden opgeslagen. Probeer het opnieuw.",
     general: "Algemeen",
@@ -3930,20 +3912,6 @@ export const nl = {
       "Je wachtwoord is gewijzigd, maar een deel van je verzonden berichten en instellingen is niet opnieuw versleuteld. Neem contact op met de klantenservice als berichten of instellingen onleesbaar lijken.",
     previous_password: "Vorig wachtwoord",
     password_change_sent_mail_locked: "Je wachtwoord is gewijzigd. {{count}} verzonden e-mails waren versleuteld met een eerder wachtwoord en zijn niet bijgewerkt. Selecteer Gegevens herstellen in de banner boven je inbox om ze te ontgrendelen.",
-    restore_sent_mail: "Verzonden e-mails herstellen",
-    restore_sent_mail_description:
-      "Als verzonden e-mails van voor een wachtwoordwijziging niet openen, voer dan het wachtwoord in dat je toen gebruikte. Aster Mail versleutelt die kopieën opnieuw met je huidige wachtwoord.",
-    enter_previous_password: "Voer het vorige wachtwoord in",
-    restore_sent_mail_running:
-      "Verzonden e-mails controleren... {{count}} gecontroleerd",
-    restore_sent_mail_result:
-      "{{rewritten}} verzonden e-mails openen nu met je huidige wachtwoord. {{unreadable}} hebben nog een ander eerder wachtwoord nodig.",
-    restore_sent_mail_nothing:
-      "Alle verzonden e-mails openen al met je huidige wachtwoord.",
-    restore_sent_mail_failed:
-      "Sommige verzonden e-mails konden niet worden bijgewerkt. Controleer je verbinding en probeer het opnieuw.",
-    restore_sent_mail_session_expired:
-      "Je sessiesleutels zijn niet beschikbaar. Meld je af, meld je opnieuw aan en probeer het opnieuw.",
     password_changed_signing_out:
       "Wachtwoord succesvol gewijzigd. Je wordt uitgelogd...",
     password_changed_success: "Wachtwoord gewijzigd",

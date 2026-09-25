@@ -2238,23 +2238,6 @@ export const tr = {
       "Mevcut kurtarma ifadeniz geçerli olmaya devam eder. Bundan sonra kurtarma kodları kullanılır.",
     recovery_email_row_moved_hint:
       "Kurtarma e-postası ayarları Güvenlik > Hesap kurtarma bölümüne taşındı",
-    recover_older_data_title: "Eski verileri kurtar",
-    recover_older_data_desc:
-      "Bu hesap sıfırlandı. Sıfırlamadan önce kullandığınız parolayı hatırlıyorsanız, eski şifreli verilerinizin kilidi açılabilir ve geri yüklenebilir.",
-    recover_older_data_button: "Eski verilerin kilidini aç",
-    resurrection_old_password: "Eski parola",
-    resurrection_old_password_prompt:
-      "Sıfırlamadan önce kullandığınız parolayı girin",
-    resurrection_success:
-      "Eski verilerinizin kilidi açıldı. Önceki postalarınız ve takma adlarınız yeniden normal şekilde açılıyor.",
-    resurrection_failed:
-      "Bu, eski verilerin kilidini açmadı. Parolayı veya ifadeyi kontrol edip tekrar deneyin.",
-    discard_older_data_button: "Eski verileri sil",
-    discard_older_data_title: "Eski veriler silinsin mi?",
-    discard_older_data_desc:
-      "Bu işlem, sıfırlamadan önceki postaların ve takma adların kilidini açma seçeneğini kalıcı olarak kaldırır. Geri alınamaz.",
-    discard_older_data_success: "Eski veriler silindi.",
-    discard_older_data_failed: "Eski veriler silinemedi. Yeniden deneyin.",
     phrase_wrap_save_failed:
       "Kurtarma ifadeniz sunucuya kaydedilemedi. Tekrar deneyin.",
     smtp_tokens: "SMTP jetonları",
@@ -3896,20 +3879,6 @@ export const tr = {
       "Parolan değişti ancak gönderilen postalarının ve ayarlarının bir bölümü yeniden şifrelenmedi. Postaların veya ayarların okunamaz görünüyorsa destek ekibine ulaş.",
     previous_password: "Önceki parola",
     password_change_sent_mail_locked: "Parolanız değişti. {{count}} gönderilmiş e-posta önceki bir parolayla şifrelenmişti ve güncellenmedi. Kilidini açmak için gelen kutunuzun üst kısmındaki bantta Verileri kurtar seçeneğini seçin.",
-    restore_sent_mail: "Gönderilen postaları geri yükle",
-    restore_sent_mail_description:
-      "Parola değişikliğinden önce gönderilen postalar açılmıyorsa o sırada kullandığınız parolayı girin. Aster Mail bu kopyaları geçerli parolanızla yeniden şifreler.",
-    enter_previous_password: "Önceki parolayı girin",
-    restore_sent_mail_running:
-      "Gönderilen postalar denetleniyor... {{count}} denetlendi",
-    restore_sent_mail_result:
-      "{{rewritten}} gönderilen e-posta artık geçerli parolanızla açılıyor. {{unreadable}} tanesi hâlâ farklı bir önceki parola gerektiriyor.",
-    restore_sent_mail_nothing:
-      "Gönderilen tüm e-postalar zaten geçerli parolanızla açılıyor.",
-    restore_sent_mail_failed:
-      "Bazı gönderilen postalar güncellenemedi. Bağlantınızı denetleyip yeniden deneyin.",
-    restore_sent_mail_session_expired:
-      "Oturum anahtarlarınız kullanılamıyor. Oturumu kapatıp yeniden açın ve tekrar deneyin.",
     password_changed_signing_out:
       "Parola başarıyla değiştirildi. Çıkış yapılıyor...",
     password_changed_success: "Parola değiştirildi",

@@ -2276,24 +2276,6 @@ export const ja = {
       "既存のリカバリーフレーズは引き続き有効です。今後はリカバリーコードを使用します。",
     recovery_email_row_moved_hint:
       "リカバリーメールの設定は「セキュリティ > アカウントの復旧」に移動しました",
-    recover_older_data_title: "以前のデータを復旧",
-    recover_older_data_desc:
-      "このアカウントはリセットされています。リセット前に使用していたパスワードを覚えていれば、以前の暗号化されたデータのロックを解除して復元できます。",
-    recover_older_data_button: "以前のデータのロックを解除",
-    resurrection_old_password: "以前のパスワード",
-    resurrection_old_password_prompt:
-      "リセット前に使用していたパスワードを入力してください",
-    resurrection_success:
-      "以前のデータのロックを解除しました。過去のメールとエイリアスを再び通常どおり開けます。",
-    resurrection_failed:
-      "以前のデータのロックを解除できませんでした。パスワードまたはフレーズを確認して、もう一度お試しください。",
-    discard_older_data_button: "以前のデータを破棄",
-    discard_older_data_title: "以前のデータを破棄しますか？",
-    discard_older_data_desc:
-      "リセット前のメールとエイリアスのロックを解除するオプションが完全に削除されます。この操作は取り消せません。",
-    discard_older_data_success: "以前のデータを破棄しました。",
-    discard_older_data_failed:
-      "以前のデータを破棄できませんでした。もう一度お試しください。",
     phrase_wrap_save_failed:
       "リカバリーフレーズをサーバーに保存できませんでした。もう一度お試しください。",
     smtp_tokens: "SMTP トークン",
@@ -3954,20 +3936,6 @@ export const ja = {
       "パスワードは変更されましたが、送信済みメールと設定の一部の再暗号化が完了していません。メールや設定が読めない場合はサポートにご連絡ください。",
     previous_password: "以前のパスワード",
     password_change_sent_mail_locked: "パスワードが変更されました。{{count}} 件の送信済みメールは以前のパスワードで暗号化されており、更新されませんでした。ロックを解除するには、受信トレイ上部のバナーで「データを復元」を選択してください。",
-    restore_sent_mail: "送信済みメールを復元",
-    restore_sent_mail_description:
-      "パスワード変更前に送信したメールが開けない場合は、当時使用していたパスワードを入力してください。Aster Mail はそれらのコピーを現在のパスワードで再暗号化します。",
-    enter_previous_password: "以前のパスワードを入力",
-    restore_sent_mail_running:
-      "送信済みメールを確認しています... {{count}} 件確認済み",
-    restore_sent_mail_result:
-      "{{rewritten}} 件の送信済みメールが現在のパスワードで開けるようになりました。{{unreadable}} 件は別の以前のパスワードが必要です。",
-    restore_sent_mail_nothing:
-      "すべての送信済みメールはすでに現在のパスワードで開けます。",
-    restore_sent_mail_failed:
-      "一部の送信済みメールを更新できませんでした。接続を確認して、もう一度お試しください。",
-    restore_sent_mail_session_expired:
-      "セッションキーを利用できません。サインアウトしてからサインインし直し、もう一度お試しください。",
     password_changed_signing_out:
       "パスワードが正常に変更されました。サインアウトしています...",
     password_changed_success: "パスワードを変更しました",

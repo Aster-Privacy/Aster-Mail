@@ -2265,24 +2265,6 @@ export const it = {
       "La sua frase di recupero esistente resta valida. D'ora in poi si usano i codici di recupero.",
     recovery_email_row_moved_hint:
       "Le impostazioni dell'email di recupero sono state spostate in Sicurezza > Recupero account",
-    recover_older_data_title: "Recupera i dati precedenti",
-    recover_older_data_desc:
-      "Questo account è stato reimpostato. Se ricorda la password che usava prima del ripristino, i suoi dati crittografati precedenti possono essere sbloccati e ripristinati.",
-    recover_older_data_button: "Sblocca i dati precedenti",
-    resurrection_old_password: "Vecchia password",
-    resurrection_old_password_prompt:
-      "Inserisca la password che usava prima del ripristino",
-    resurrection_success:
-      "I suoi dati precedenti sono sbloccati. I messaggi e gli alias meno recenti si aprono di nuovo normalmente.",
-    resurrection_failed:
-      "Non è stato possibile sbloccare i dati precedenti. Verifichi la password o la frase e riprovi.",
-    discard_older_data_button: "Elimina i dati precedenti",
-    discard_older_data_title: "Eliminare i dati precedenti?",
-    discard_older_data_desc:
-      "Questa operazione rimuove in modo permanente la possibilità di sbloccare la posta e gli alias precedenti al ripristino. Non può essere annullata.",
-    discard_older_data_success: "Dati precedenti eliminati.",
-    discard_older_data_failed:
-      "Impossibile eliminare i dati precedenti. Riprova.",
     phrase_wrap_save_failed:
       "Non è stato possibile salvare la sua frase di recupero sul server. Riprovi.",
     smtp_tokens: "Token SMTP",
@@ -3986,20 +3968,6 @@ export const it = {
       "La tua password è stata cambiata, ma una parte della posta inviata e delle impostazioni non ha completato la ricifratura. Contatta l’assistenza se qualcosa risulta illeggibile.",
     previous_password: "Password precedente",
     password_change_sent_mail_locked: "La password è cambiata. {{count}} email inviate erano cifrate con una password precedente e non sono state aggiornate. Per sbloccarle, seleziona Recupera dati nel banner in cima alla posta in arrivo.",
-    restore_sent_mail: "Ripristina la posta inviata",
-    restore_sent_mail_description:
-      "Se le email inviate prima di un cambio di password non si aprono, inserisci la password che usavi allora. Aster Mail cifra di nuovo quelle copie con la password attuale.",
-    enter_previous_password: "Inserisci la password precedente",
-    restore_sent_mail_running:
-      "Controllo della posta inviata... {{count}} controllate",
-    restore_sent_mail_result:
-      "{{rewritten}} email inviate ora si aprono con la password attuale. {{unreadable}} richiedono ancora un'altra password precedente.",
-    restore_sent_mail_nothing:
-      "Tutte le email inviate si aprono già con la password attuale.",
-    restore_sent_mail_failed:
-      "Alcune email inviate non sono state aggiornate. Controlla la connessione e riprova.",
-    restore_sent_mail_session_expired:
-      "Le chiavi della sessione non sono disponibili. Esci, accedi di nuovo e riprova.",
     password_changed_signing_out:
       "Password cambiata con successo. Disconnessione in corso...",
     password_changed_success: "Password modificata",

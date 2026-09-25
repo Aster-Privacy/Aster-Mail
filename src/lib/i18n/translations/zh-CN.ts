@@ -2119,21 +2119,6 @@ export const zh_CN = {
     legacy_phrase_row: "恢复短语（旧版）",
     legacy_phrase_row_desc: "您现有的恢复短语仍然有效。今后将改用恢复代码。",
     recovery_email_row_moved_hint: "恢复邮箱设置已移至 安全 > 账户恢复",
-    recover_older_data_title: "恢复较早的数据",
-    recover_older_data_desc:
-      "此账户曾被重置。如果您还记得重置前使用的密码，就可以解锁并恢复较早的加密数据。",
-    recover_older_data_button: "解锁较早的数据",
-    resurrection_old_password: "旧密码",
-    resurrection_old_password_prompt: "输入您在重置前使用的密码",
-    resurrection_success:
-      "较早的数据已解锁。您之前的邮件和别名可以再次正常打开。",
-    resurrection_failed: "未能解锁较早的数据。请检查密码或短语后再试一次。",
-    discard_older_data_button: "放弃较早的数据",
-    discard_older_data_title: "要放弃较早的数据吗？",
-    discard_older_data_desc:
-      "这将永久移除解锁重置前邮件和别名的选项。此操作无法撤销。",
-    discard_older_data_success: "已放弃较早的数据。",
-    discard_older_data_failed: "无法放弃较早的数据。请重试。",
     phrase_wrap_save_failed: "您的恢复短语未能保存到服务器，再试一次应该可以。",
     smtp_tokens: "SMTP 令牌",
     smtp_tokens_description:
@@ -3643,17 +3628,6 @@ export const zh_CN = {
       "密码已更改，但部分已发送邮件和设置未完成重新加密。如果邮件或设置无法读取，请联系支持团队。",
     previous_password: "先前的密码",
     password_change_sent_mail_locked: "你的密码已更改。{{count}} 封已发送邮件使用以前的密码加密，未能更新。要解锁这些邮件，请在收件箱顶部的横幅中选择“恢复数据”。",
-    restore_sent_mail: "恢复已发送邮件",
-    restore_sent_mail_description:
-      "如果更改密码之前发送的邮件无法打开，请输入当时使用的密码。Aster Mail 会用你当前的密码重新加密这些副本。",
-    enter_previous_password: "输入先前的密码",
-    restore_sent_mail_running: "正在检查已发送邮件... 已检查 {{count}} 封",
-    restore_sent_mail_result:
-      "{{rewritten}} 封已发送邮件现在可以用当前密码打开。{{unreadable}} 封仍需要另一个先前的密码。",
-    restore_sent_mail_nothing: "所有已发送邮件都已可以用当前密码打开。",
-    restore_sent_mail_failed: "部分已发送邮件无法更新。请检查网络连接后重试。",
-    restore_sent_mail_session_expired:
-      "会话密钥不可用。请退出登录后重新登录，然后重试。",
     password_changed_signing_out: "密码更改成功，正在退出登录...",
     password_changed_success: "密码已更改",
     session_security: "会话安全",

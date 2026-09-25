@@ -2258,24 +2258,6 @@ export const de = {
       "Ihre bestehende Wiederherstellungsphrase bleibt gültig. Künftig werden stattdessen Wiederherstellungscodes verwendet.",
     recovery_email_row_moved_hint:
       "Die Einstellungen zur Wiederherstellungs-E-Mail befinden sich jetzt unter Sicherheit > Kontowiederherstellung",
-    recover_older_data_title: "Ältere Daten wiederherstellen",
-    recover_older_data_desc:
-      "Dieses Konto wurde zurückgesetzt. Wenn Sie sich an das Passwort erinnern, das Sie vor dem Zurücksetzen verwendet haben, können Ihre älteren verschlüsselten Daten entsperrt und wiederhergestellt werden.",
-    recover_older_data_button: "Ältere Daten entsperren",
-    resurrection_old_password: "Altes Passwort",
-    resurrection_old_password_prompt:
-      "Geben Sie das Passwort ein, das Sie vor dem Zurücksetzen verwendet haben",
-    resurrection_success:
-      "Ihre älteren Daten sind entsperrt. Frühere E-Mails und Aliasse lassen sich wieder normal öffnen.",
-    resurrection_failed:
-      "Damit ließen sich die älteren Daten nicht entsperren. Prüfen Sie das Passwort oder die Phrase und versuchen Sie es erneut.",
-    discard_older_data_button: "Ältere Daten verwerfen",
-    discard_older_data_title: "Ältere Daten verwerfen?",
-    discard_older_data_desc:
-      "Damit wird die Option, E-Mails und Aliasse aus der Zeit vor dem Zurücksetzen zu entsperren, dauerhaft entfernt. Das lässt sich nicht rückgängig machen.",
-    discard_older_data_success: "Ältere Daten verworfen.",
-    discard_older_data_failed:
-      "Die älteren Daten konnten nicht verworfen werden. Versuchen Sie es erneut.",
     phrase_wrap_save_failed:
       "Ihre Wiederherstellungsphrase konnte nicht auf dem Server gespeichert werden. Versuchen Sie es erneut.",
     smtp_tokens: "SMTP-Token",
@@ -3973,20 +3955,6 @@ export const de = {
       "Dein Passwort wurde geändert, aber ein Teil deiner gesendeten Nachrichten und Einstellungen wurde nicht neu verschlüsselt. Wende dich an den Support, wenn Nachrichten oder Einstellungen unlesbar wirken.",
     previous_password: "Vorheriges Passwort",
     password_change_sent_mail_locked: "Dein Passwort wurde geändert. {{count}} gesendete E-Mails waren mit einem früheren Passwort verschlüsselt und wurden nicht aktualisiert. Wähle zum Entsperren Daten wiederherstellen im Banner oben in deinem Posteingang.",
-    restore_sent_mail: "Gesendete E-Mails wiederherstellen",
-    restore_sent_mail_description:
-      "Wenn sich gesendete E-Mails aus der Zeit vor einer Passwortänderung nicht öffnen lassen, gib das damals verwendete Passwort ein. Aster Mail verschlüsselt diese Kopien mit deinem aktuellen Passwort neu.",
-    enter_previous_password: "Vorheriges Passwort eingeben",
-    restore_sent_mail_running:
-      "Gesendete E-Mails werden geprüft... {{count}} geprüft",
-    restore_sent_mail_result:
-      "{{rewritten}} gesendete E-Mails lassen sich jetzt mit deinem aktuellen Passwort öffnen. {{unreadable}} benötigen weiterhin ein anderes früheres Passwort.",
-    restore_sent_mail_nothing:
-      "Alle gesendeten E-Mails lassen sich bereits mit deinem aktuellen Passwort öffnen.",
-    restore_sent_mail_failed:
-      "Einige gesendete E-Mails konnten nicht aktualisiert werden. Prüfe deine Verbindung und versuche es erneut.",
-    restore_sent_mail_session_expired:
-      "Deine Sitzungsschlüssel sind nicht verfügbar. Melde dich ab, wieder an und versuche es erneut.",
     password_changed_signing_out:
       "Passwort erfolgreich geändert. Sie werden abgemeldet...",
     password_changed_success: "Passwort geändert",

@@ -2251,24 +2251,6 @@ export const fr = {
       "Votre phrase de récupération existante reste valide. Les codes de récupération la remplacent désormais.",
     recovery_email_row_moved_hint:
       "Les paramètres de l'e-mail de récupération ont été déplacés vers Sécurité > Récupération du compte",
-    recover_older_data_title: "Récupérer les données antérieures",
-    recover_older_data_desc:
-      "Ce compte a été réinitialisé. Si vous vous souvenez du mot de passe utilisé avant la réinitialisation, vos données chiffrées antérieures peuvent être déverrouillées et restaurées.",
-    recover_older_data_button: "Déverrouiller les données antérieures",
-    resurrection_old_password: "Ancien mot de passe",
-    resurrection_old_password_prompt:
-      "Saisissez le mot de passe que vous utilisiez avant la réinitialisation",
-    resurrection_success:
-      "Vos données antérieures sont déverrouillées. Les anciens messages et alias s'ouvrent de nouveau normalement.",
-    resurrection_failed:
-      "Cela n'a pas déverrouillé les données antérieures. Vérifiez le mot de passe ou la phrase et réessayez.",
-    discard_older_data_button: "Abandonner les données antérieures",
-    discard_older_data_title: "Abandonner les données antérieures ?",
-    discard_older_data_desc:
-      "Cette action supprime définitivement la possibilité de déverrouiller les e-mails et les alias antérieurs à la réinitialisation. Elle est irréversible.",
-    discard_older_data_success: "Données antérieures abandonnées.",
-    discard_older_data_failed:
-      "Impossible d'abandonner les données antérieures. Réessayez.",
     phrase_wrap_save_failed:
       "Votre phrase de récupération n'a pas pu être enregistrée sur le serveur. Réessayez.",
     smtp_tokens: "Jetons SMTP",
@@ -3971,20 +3953,6 @@ export const fr = {
       "Votre mot de passe a été modifié, mais une partie de vos messages envoyés et de vos réglages n’a pas fini d’être rechiffrée. Contactez l’assistance si des messages ou des réglages semblent illisibles.",
     previous_password: "Ancien mot de passe",
     password_change_sent_mail_locked: "Votre mot de passe a changé. {{count}} e-mails envoyés étaient chiffrés avec un ancien mot de passe et n'ont pas été mis à jour. Pour les déverrouiller, sélectionnez Récupérer les données dans la bannière en haut de votre boîte de réception.",
-    restore_sent_mail: "Restaurer les e-mails envoyés",
-    restore_sent_mail_description:
-      "Si des e-mails envoyés avant un changement de mot de passe ne s'ouvrent pas, saisissez le mot de passe que vous utilisiez à ce moment-là. Aster Mail rechiffre ces copies avec votre mot de passe actuel.",
-    enter_previous_password: "Saisissez l'ancien mot de passe",
-    restore_sent_mail_running:
-      "Vérification des e-mails envoyés... {{count}} vérifiés",
-    restore_sent_mail_result:
-      "{{rewritten}} e-mails envoyés s'ouvrent désormais avec votre mot de passe actuel. {{unreadable}} nécessitent encore un autre ancien mot de passe.",
-    restore_sent_mail_nothing:
-      "Tous les e-mails envoyés s'ouvrent déjà avec votre mot de passe actuel.",
-    restore_sent_mail_failed:
-      "Certains e-mails envoyés n'ont pas pu être mis à jour. Vérifiez votre connexion et réessayez.",
-    restore_sent_mail_session_expired:
-      "Les clés de votre session ne sont pas disponibles. Déconnectez-vous, reconnectez-vous et réessayez.",
     password_changed_signing_out:
       "Mot de passe changé avec succès. Déconnexion en cours...",
     password_changed_success: "Mot de passe modifié",
