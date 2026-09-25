@@ -87,6 +87,7 @@ import { checkout_error_text } from "@/components/settings/billing/checkout_erro
 import {
   SPECIAL_OFFER_INTERVAL,
   SPECIAL_OFFER_PLAN_CODE,
+  special_offer_checkout,
 } from "@/lib/special_offer";
 
 const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
@@ -596,6 +597,10 @@ export function UpgradeModal() {
 
     return state.offer_promo_code;
   };
+
+  const crypto_offer = special_offer_checkout(
+    !!crypto_tier && !!offer_promo_code_for(crypto_tier.id),
+  );
 
   const handle_choose_crypto = (selected_term_id?: string) => {
     if (is_starting || !pending_tier) return;
@@ -1128,6 +1133,8 @@ export function UpgradeModal() {
 
       {crypto_tier && (
         <CryptoTermModal
+          discount_percent_off={crypto_offer.percent_off}
+          discounted_price_cents={crypto_offer.crypto_price(crypto_tier.id)}
           initial_term_months={crypto_term_months}
           is_open={!!crypto_tier}
           monthly_price_cents={crypto_tier.monthly_cents}
@@ -1145,6 +1152,7 @@ export function UpgradeModal() {
           plan_name={crypto_tier.name}
           preferred_currency={currency}
           promo_code={offer_promo_code_for(crypto_tier.id) ?? null}
+          special_offer={!!crypto_offer.crypto_price(crypto_tier.id)}
           yearly_price_cents={crypto_tier.yearly_cents}
         />
       )}
