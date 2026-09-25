@@ -484,7 +484,10 @@ export const InboxEmailListItem = memo(
           )}
 
           {!email.is_read && (
-            <span className="mail_unread_dot w-2 h-2 rounded-full flex-shrink-0 hidden sm:block" />
+            <>
+              <span className="sr-only">{t("mail.unread")}</span>
+              <span className="mail_unread_dot w-2 h-2 rounded-full flex-shrink-0 hidden sm:block" />
+            </>
           )}
 
           <div className="flex-1 min-w-0 flex items-center gap-3 sm:gap-10 overflow-hidden">

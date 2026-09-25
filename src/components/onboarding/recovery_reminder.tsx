@@ -23,9 +23,16 @@ import { AnimatePresence, motion } from "framer-motion";
 import { KeyIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import type { TranslationKey } from "@/lib/i18n/types";
+import type { SettingsTarget } from "@/lib/settings_links";
+
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
-import { get_recovery_methods } from "@/services/api/recovery";
+import {
+  load_recovery_status,
+  recovery_nudge,
+} from "@/hooks/use_recovery_status";
+import { SETTINGS_ANCHORS, open_settings_target } from "@/lib/settings_links";
 import {
   first_run_age_ms,
   is_recovery_snoozed,
@@ -34,17 +41,59 @@ import {
 
 const ELIGIBLE_AFTER_MS = 24 * 60 * 60 * 1000;
 const SNOOZE_MS = 3 * 24 * 60 * 60 * 1000;
+const PHRASE_SNOOZE_MS = 7 * 24 * 60 * 60 * 1000;
 
-interface RecoveryReminderProps {
-  on_open_recovery: () => void;
+type NudgeKind = "phrase" | "codes" | "codes_low" | "email";
+
+interface NudgeCopy {
+  title_key: TranslationKey;
+  body_key: TranslationKey;
+  action_key: TranslationKey;
+  target: SettingsTarget;
+  snooze_ms: number;
 }
 
-export function RecoveryReminder({
-  on_open_recovery,
-}: RecoveryReminderProps): JSX.Element | null {
+const CODES_TARGET: SettingsTarget = {
+  section: "security",
+  anchor: SETTINGS_ANCHORS.account_recovery,
+};
+
+const NUDGE_COPY: Record<NudgeKind, NudgeCopy> = {
+  phrase: {
+    title_key: "common.recovery_phrase_migrate_title",
+    body_key: "common.recovery_phrase_migrate_body",
+    action_key: "common.recovery_phrase_migrate_action",
+    target: CODES_TARGET,
+    snooze_ms: PHRASE_SNOOZE_MS,
+  },
+  codes: {
+    title_key: "common.recovery_codes_reminder_title",
+    body_key: "common.recovery_codes_reminder_body",
+    action_key: "common.recovery_codes_reminder_action",
+    target: CODES_TARGET,
+    snooze_ms: SNOOZE_MS,
+  },
+  codes_low: {
+    title_key: "common.recovery_codes_low_reminder_title",
+    body_key: "common.recovery_codes_low_reminder_body",
+    action_key: "common.recovery_codes_low_reminder_action",
+    target: CODES_TARGET,
+    snooze_ms: SNOOZE_MS,
+  },
+  email: {
+    title_key: "common.recovery_reminder_title",
+    body_key: "common.recovery_reminder_body",
+    action_key: "common.recovery_reminder_action",
+    target: { section: "account", anchor: SETTINGS_ANCHORS.recovery_email },
+    snooze_ms: SNOOZE_MS,
+  },
+};
+
+export function RecoveryReminder(): JSX.Element | null {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
-  const [is_open, set_is_open] = useState(false);
+  const [nudge, set_nudge] = useState<NudgeKind | null>(null);
+  const [codes_remaining, set_codes_remaining] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,15 +101,18 @@ export function RecoveryReminder({
     const age = first_run_age_ms();
 
     if (age === null || age < ELIGIBLE_AFTER_MS) return;
-    if (is_recovery_snoozed()) return;
 
     const check = async () => {
-      const response = await get_recovery_methods();
+      const values = await load_recovery_status();
 
-      if (cancelled || response.error || !response.data) return;
-      if (response.data.recovery_email_set) return;
+      if (cancelled || !values) return;
 
-      set_is_open(true);
+      const kind = recovery_nudge(values);
+
+      if (!kind || is_recovery_snoozed(kind)) return;
+
+      set_codes_remaining(values.codes_remaining);
+      set_nudge(kind);
     };
 
     void check();
@@ -70,21 +122,26 @@ export function RecoveryReminder({
     };
   }, []);
 
+  const copy = nudge ? NUDGE_COPY[nudge] : null;
+  const is_open = nudge !== null && copy !== null;
+
   const dismiss = () => {
-    snooze_recovery(SNOOZE_MS);
-    set_is_open(false);
+    if (nudge && copy) snooze_recovery(copy.snooze_ms, nudge);
+    set_nudge(null);
   };
 
   const handle_setup = () => {
+    const target = copy ? copy.target : CODES_TARGET;
+
     dismiss();
-    on_open_recovery();
+    open_settings_target(target);
   };
 
   const duration = reduce_motion ? 0 : 0.25;
 
   return (
     <AnimatePresence>
-      {is_open && (
+      {is_open && copy && (
         <motion.div
           animate={{ opacity: 1 }}
           aria-modal="true"
@@ -113,12 +170,12 @@ export function RecoveryReminder({
                 strokeWidth={1.75}
               />
               <h2 className="text-base font-semibold text-txt-primary">
-                {t("common.recovery_reminder_title")}
+                {t(copy.title_key)}
               </h2>
             </div>
 
             <p className="mt-2.5 text-sm leading-relaxed text-txt-secondary">
-              {t("common.recovery_reminder_body")}
+              {t(copy.body_key, { count: codes_remaining })}
             </p>
 
             <div className="mt-5 flex items-center justify-end gap-2">
@@ -126,7 +183,7 @@ export function RecoveryReminder({
                 {t("common.recovery_reminder_later")}
               </Button>
               <Button onClick={handle_setup}>
-                {t("common.recovery_reminder_action")}
+                {t(copy.action_key)}
               </Button>
             </div>
           </motion.div>

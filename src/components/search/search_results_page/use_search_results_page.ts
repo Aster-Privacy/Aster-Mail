@@ -45,6 +45,7 @@ import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { use_split_pane } from "@/components/email/inbox/use_split_pane";
 import { filter_locked_folder_emails } from "@/services/locked_folders";
 import { show_toast } from "@/components/toast/simple_toast";
+import { on_user_opened_mail } from "@/services/user_opened_mail";
 
 export function use_search_results_page(props: SearchResultsPageProps) {
   const { query, on_result_click, split_email_id, on_split_close } = props;
@@ -373,11 +374,27 @@ export function use_search_results_page(props: SearchResultsPageProps) {
     [shift_ref],
   );
 
-  const handle_email_click = useCallback(
+  const open_result = useCallback(
     (id: string) => {
+      on_user_opened_mail(id, {
+        delay: preferences.mark_as_read_delay,
+        conversation_grouping: preferences.conversation_grouping,
+        row: filtered_results_ref.current.find((r) => r.id === id),
+      });
       on_result_click(id);
     },
-    [on_result_click],
+    [
+      on_result_click,
+      preferences.mark_as_read_delay,
+      preferences.conversation_grouping,
+    ],
+  );
+
+  const handle_email_click = useCallback(
+    (id: string) => {
+      open_result(id);
+    },
+    [open_result],
   );
 
   const fetch_as_minimal_emails = useCallback(
@@ -698,18 +715,18 @@ export function use_search_results_page(props: SearchResultsPageProps) {
 
   const handle_search_navigate_prev = useCallback(() => {
     if (search_nav_index > 0) {
-      on_result_click(filtered_results[search_nav_index - 1].id);
+      open_result(filtered_results[search_nav_index - 1].id);
     }
-  }, [search_nav_index, filtered_results, on_result_click]);
+  }, [search_nav_index, filtered_results, open_result]);
 
   const handle_search_navigate_next = useCallback(() => {
     if (
       search_nav_index >= 0 &&
       search_nav_index < filtered_results.length - 1
     ) {
-      on_result_click(filtered_results[search_nav_index + 1].id);
+      open_result(filtered_results[search_nav_index + 1].id);
     }
-  }, [search_nav_index, filtered_results, on_result_click]);
+  }, [search_nav_index, filtered_results, open_result]);
 
   const search_result_ids = useMemo(
     () => filtered_results.map((r) => r.id),

@@ -81,6 +81,7 @@ import {
 import {
   get_current_plan_code,
   max_accounts_for_plan,
+  resolve_max_accounts,
   UNLIMITED_ACCOUNTS,
 } from "@/services/plan_limits";
 import { ensure_default_labels } from "@/services/labels/ensure_defaults";
@@ -1008,29 +1009,7 @@ export function use_auth_provider_state() {
       (a) => a.kind !== "shared",
     ).length;
 
-    const plan_fallback_limit = async () => {
-      try {
-        return max_accounts_for_plan(await get_current_plan_code());
-      } catch (e) {
-        safe_log_error(e);
-
-        return max_accounts_for_plan(null);
-      }
-    };
-
-    let limit: number;
-
-    try {
-      const limit_response = await get_account_limit();
-
-      limit =
-        limit_response.data && limit_response.data.max_accounts !== 0
-          ? limit_response.data.max_accounts
-          : await plan_fallback_limit();
-    } catch (e) {
-      safe_log_error(e);
-      limit = await plan_fallback_limit();
-    }
+    const limit = await resolve_max_accounts();
 
     if (limit === UNLIMITED_ACCOUNTS) return true;
 

@@ -172,19 +172,14 @@ export const hi = {
       "क्या आप वाकई अपना रिकवरी ईमेल निकालना चाहते हैं? इसके बाद आप इस ईमेल से अपना खाता वापस नहीं पा सकेंगे।",
     recovery_email_removed: "रिकवरी ईमेल हटा दिया गया",
     recovery_email_hidden: "इस खाते पर सहेजा गया",
-    failed_remove_recovery_email:
-      "फिर से कोशिश करें।",
+    failed_remove_recovery_email: "फिर से कोशिश करें।",
     profile_picture_updated: "प्रोफ़ाइल तस्वीर अपडेट हो गई",
     profile_picture_removed: "प्रोफ़ाइल तस्वीर हटा दी गई",
-    failed_save_profile_picture:
-      "फिर से कोशिश करें।",
-    failed_remove_profile_picture:
-      "फिर से कोशिश करें।",
+    failed_save_profile_picture: "फिर से कोशिश करें।",
+    failed_remove_profile_picture: "फिर से कोशिश करें।",
     remove_photo: "फ़ोटो निकालें",
-    failed_save_profile_color:
-      "फिर से कोशिश करें।",
-    failed_upload_image:
-      "फिर से कोशिश करें।",
+    failed_save_profile_color: "फिर से कोशिश करें।",
+    failed_upload_image: "फिर से कोशिश करें।",
     image_load_failed:
       "यह छवि लोड नहीं हुई। रीफ़्रेश करने से आमतौर पर काम बन जाता है।",
     image_processing_failed:
@@ -195,11 +190,9 @@ export const hi = {
       "यह छवि 5 MB की सीमा से बड़ी है। छोटी छवि, या कंप्रेस किया गया संस्करण, आ जाएगा।",
     alias_avatar_updated: "एलियास अवतार अपडेट हो गया",
     alias_avatar_removed: "एलियास अवतार निकाल दिया गया",
-    failed_update_alias_avatar:
-      "फिर से कोशिश करें।",
+    failed_update_alias_avatar: "फिर से कोशिश करें।",
     alias_display_name_updated: "प्रदर्शन नाम अपडेट हो गया",
-    failed_update_alias_display_name:
-      "फिर से कोशिश करें।",
+    failed_update_alias_display_name: "फिर से कोशिश करें।",
     display_name_too_long:
       "यह प्रदर्शन नाम लंबाई की सीमा से बड़ा है। छोटा नाम चलेगा।",
     add_display_name_placeholder: "प्रदर्शन नाम जोड़ें",
@@ -217,8 +210,7 @@ export const hi = {
     alias_add_details: "विवरण जोड़ें",
     alias_websites_count: "{{count}} वेबसाइट",
     remove_alias_website: "वेबसाइट निकालें",
-    failed_update_alias_note:
-      "फिर से कोशिश करें।",
+    failed_update_alias_note: "फिर से कोशिश करें।",
     alias_note_too_long: "यह नोट लंबाई की सीमा से बड़ा है। छोटा नोट चलेगा।",
     add_alias_note_placeholder: "नोट जोड़ें",
     edit_alias_note: "नोट संपादित करें",
@@ -638,12 +630,9 @@ export const hi = {
     failed_to_load_emails:
       "आपका इनबॉक्स लोड नहीं हुआ। रीफ़्रेश करने के लिए नीचे खींचना, या एक और कोशिश, आमतौर पर काम कर जाती है। सर्वर पर आपका मेल सुरक्षित है।",
     no_emails_match_criteria: "इस शर्त से कोई ईमेल मेल नहीं खाता",
-    failed_to_update_emails:
-      "फिर से कोशिश करें।",
-    failed_to_archive_emails:
-      "फिर से कोशिश करें।",
-    failed_to_unarchive_emails:
-      "फिर से कोशिश करें।",
+    failed_to_update_emails: "फिर से कोशिश करें।",
+    failed_to_archive_emails: "फिर से कोशिश करें।",
+    failed_to_unarchive_emails: "फिर से कोशिश करें।",
     keyboard_shortcut_label: "कीबोर्ड शॉर्टकट: {shortcut}",
     something_went_wrong_try_again:
       "वह काम नहीं आया। थोड़ी देर बाद एक और कोशिश आमतौर पर काम कर जाती है।",
@@ -709,17 +698,13 @@ export const hi = {
     scheduled_email_cancelled: "शेड्यूल किया गया ईमेल रद्द हो गया",
     email_snoozed: "ईमेल स्नूज़ हो गया",
     email_unsnoozed: "ईमेल का स्नूज़ हटा दिया गया",
-    failed_to_snooze:
-      "फिर से कोशिश करें।",
-    failed_to_unsnooze:
-      "फिर से कोशिश करें।",
+    failed_to_snooze: "फिर से कोशिश करें।",
+    failed_to_unsnooze: "फिर से कोशिश करें।",
     conversation_moved_to_trash: "बातचीत ट्रैश में ले जाई गई",
     conversation_archived: "बातचीत आर्काइव हो गई",
     conversation_marked_as_spam: "बातचीत स्पैम के रूप में चिह्नित",
-    failed_to_mark_as_spam:
-      "फिर से कोशिश करें।",
-    failed_to_snooze_conversations:
-      "फिर से कोशिश करें।",
+    failed_to_mark_as_spam: "फिर से कोशिश करें।",
+    failed_to_snooze_conversations: "फिर से कोशिश करें।",
     marked_as_read_toast: "पढ़ी गई के रूप में चिह्नित",
     marked_as_unread_toast: "अपठित के रूप में चिह्नित",
     email_permanently_deleted: "ईमेल हमेशा के लिए हटा दिया गया",
@@ -777,62 +762,42 @@ export const hi = {
     number_type: "नंबर",
     phone_type: "फ़ोन",
     email_type: "ईमेल",
-    failed_to_fetch_contacts:
-      "फिर से कोशिश करें।",
-    failed_to_delete_contact:
-      "फिर से कोशिश करें।",
+    failed_to_fetch_contacts: "फिर से कोशिश करें।",
+    failed_to_delete_contact: "फिर से कोशिश करें।",
     contact_deleted: "संपर्क हटा दिया गया",
     contact_saved: "संपर्क सहेज लिया गया",
     contact_created: "संपर्क बन गया",
-    failed_to_create_contact:
-      "फिर से कोशिश करें।",
-    failed_to_save_contact:
-      "फिर से कोशिश करें।",
-    failed_to_delete_contacts:
-      "फिर से कोशिश करें।",
-    failed_to_update_favorites:
-      "फिर से कोशिश करें।",
+    failed_to_create_contact: "फिर से कोशिश करें।",
+    failed_to_save_contact: "फिर से कोशिश करें।",
+    failed_to_delete_contacts: "फिर से कोशिश करें।",
+    failed_to_update_favorites: "फिर से कोशिश करें।",
     contacts_import_partial:
       "{{total}} में से सिर्फ़ {{imported}} संपर्क इंपोर्ट हुए। बाकी जोड़ने के लिए फ़ाइल दोबारा इंपोर्ट करें।",
-    failed_to_import_contacts:
-      "फिर से कोशिश करें।",
+    failed_to_import_contacts: "फिर से कोशिश करें।",
     failed_to_read_file: "यह फ़ाइल पढ़ी नहीं जा सकी। कोई दूसरी काम करेगी।",
-    import_failed:
-      "फिर से कोशिश करें।",
-    failed_to_load_duplicates:
-      "फिर से कोशिश करें।",
+    import_failed: "फिर से कोशिश करें।",
+    failed_to_load_duplicates: "फिर से कोशिश करें।",
     scan_failed: "फिर से कोशिश करें।",
-    dismiss_failed:
-      "फिर से कोशिश करें।",
-    failed_to_load_custom_fields:
-      "फिर से कोशिश करें।",
-    failed_to_create_field:
-      "फिर से कोशिश करें।",
+    dismiss_failed: "फिर से कोशिश करें।",
+    failed_to_load_custom_fields: "फिर से कोशिश करें।",
+    failed_to_create_field: "फिर से कोशिश करें।",
     delete_custom_field_title: "कस्टम फ़ील्ड हटाएं?",
     delete_custom_field_message:
       "यह फ़ील्ड हटाने पर इसके मान हर संपर्क से भी निकल जाते हैं। इसे पहले जैसा नहीं किया जा सकता।",
-    failed_to_delete_field:
-      "फिर से कोशिश करें।",
-    failed_to_save_value:
-      "फिर से कोशिश करें।",
+    failed_to_delete_field: "फिर से कोशिश करें।",
+    failed_to_save_value: "फिर से कोशिश करें।",
     click_scan_duplicates: 'डुप्लिकेट जांचने के लिए "स्कैन" पर क्लिक करें',
     never_synced: "कभी सिंक नहीं हुआ",
     last_sync_successful: "पिछला सिंक सफल रहा",
     last_sync_failed:
       "पिछला सिंक पूरा नहीं हुआ, और हम अपने आप फिर से कोशिश करेंगे।",
-    failed_to_forward:
-      "फिर से कोशिश करें।",
-    failed_to_schedule:
-      "फिर से कोशिश करें।",
+    failed_to_forward: "फिर से कोशिश करें।",
+    failed_to_schedule: "फिर से कोशिश करें।",
     fill_required_fields: "सभी ज़रूरी फ़ील्ड भरें",
-    failed_to_load_sources:
-      "फिर से कोशिश करें।",
-    failed_to_add_source:
-      "फिर से कोशिश करें।",
-    failed_to_delete_source:
-      "फिर से कोशिश करें।",
-    failed_to_toggle_source:
-      "फिर से कोशिश करें।",
+    failed_to_load_sources: "फिर से कोशिश करें।",
+    failed_to_add_source: "फिर से कोशिश करें।",
+    failed_to_delete_source: "फिर से कोशिश करें।",
+    failed_to_toggle_source: "फिर से कोशिश करें।",
     sync_failed:
       "सिंक पूरा नहीं हुआ, और हम अपने आप फिर से कोशिश करेंगे। दोनों तरफ़ आपका मेल सुरक्षित है।",
     clearing: "साफ़ किया जा रहा है...",
@@ -855,8 +820,7 @@ export const hi = {
     conversations_marked_as_spam_bulk:
       "{{count}} बातचीत स्पैम के रूप में चिह्नित",
     conversations_restored_bulk: "{{count}} बातचीत बहाल हुईं",
-    failed_to_restore_conversations:
-      "फिर से कोशिश करें।",
+    failed_to_restore_conversations: "फिर से कोशिश करें।",
     conversations_snoozed_bulk: "{{count}} बातचीत स्नूज़ की गईं",
     conversations_marked_as_read_bulk:
       "{{count}} बातचीत पढ़ी गई के रूप में चिह्नित",
@@ -929,12 +893,10 @@ export const hi = {
     add_contacts_hint: "शुरू करने के लिए संपर्क जोड़ें",
     add_contact: "संपर्क जोड़ें",
     file_too_large: "फ़ाइल {{size}} से छोटी होनी चाहिए",
-    failed_to_upload_attachment:
-      "फिर से कोशिश करें।",
+    failed_to_upload_attachment: "फिर से कोशिश करें।",
     upload_failed: "फिर से कोशिश करें।",
     delete_failed: "फिर से कोशिश करें।",
-    download_failed:
-      "फिर से कोशिश करें।",
+    download_failed: "फिर से कोशिश करें।",
     attachment_locked:
       "यह अटैचमेंट नहीं खुल सकता, क्योंकि इसकी एन्क्रिप्शन कुंजी इस डिवाइस पर उपलब्ध नहीं है।",
     scheduled_no_attachments:
@@ -943,21 +905,16 @@ export const hi = {
       "जुड़े हुए खातों के लिए शेड्यूल करके भेजना उपलब्ध नहीं है। यह संदेश अभी भेजें, या कोई Aster पता चुनें।",
     scheduled_no_expiry:
       "शेड्यूल किए गए ईमेल में अभी समाप्ति नहीं लगाई जा सकती। अभी भेजें, या शेड्यूल करने के लिए समाप्ति हटा दें।",
-    failed_to_merge_contacts:
-      "फिर से कोशिश करें।",
-    merge_failed:
-      "फिर से कोशिश करें।",
-    failed_to_load_history:
-      "फिर से कोशिश करें।",
-    failed_to_load_more:
-      "फिर से कोशिश करें।",
+    failed_to_merge_contacts: "फिर से कोशिश करें।",
+    merge_failed: "फिर से कोशिश करें।",
+    failed_to_load_history: "फिर से कोशिश करें।",
+    failed_to_load_more: "फिर से कोशिश करें।",
     enter_valid_emails: "मान्य ईमेल पते डालें",
     enter_contact_details: "संपर्क विवरण डालें",
     select_valid_image: "JPEG, PNG, WebP या GIF छवि चुनें",
     image_too_large:
       "यह छवि 10 MB की सीमा से बड़ी है। छोटी छवि, या कंप्रेस किया गया संस्करण, आ जाएगा।",
-    failed_to_upload_photo:
-      "फिर से कोशिश करें।",
+    failed_to_upload_photo: "फिर से कोशिश करें।",
     contact_photo: "संपर्क फ़ोटो",
     failed_to_delete_account: "खाता नहीं हटाया जा सका। फिर से कोशिश करें।",
     no_emails_older_than_30_days: "30 दिन से पुराना कोई ईमेल नहीं",
@@ -970,47 +927,30 @@ export const hi = {
       "{{senders}} के {{count}} ईमेल आर्काइव किए गए",
     emails_from_senders_deleted: "{{senders}} के {{count}} ईमेल हटा दिए गए",
     emails_added_to_folder: "{{count}} ईमेल {{folder}} में जोड़े गए",
-    failed_to_snooze_emails:
-      "फिर से कोशिश करें।",
+    failed_to_snooze_emails: "फिर से कोशिश करें।",
     failed_to_copy: "फिर से कोशिश करें।",
     error_copied_to_clipboard: "त्रुटि क्लिपबोर्ड पर कॉपी हो गई",
-    failed_to_update_contact:
-      "फिर से कोशिश करें।",
-    failed_to_block_sender:
-      "फिर से कोशिश करें।",
-    failed_to_rename_folder:
-      "फिर से कोशिश करें।",
-    failed_to_change_folder_color:
-      "फिर से कोशिश करें।",
-    failed_to_delete_folder:
-      "फिर से कोशिश करें।",
-    failed_to_move_folder:
-      "फिर से कोशिश करें।",
-    failed_to_update_folder_encryption:
-      "फिर से कोशिश करें।",
-    failed_to_rename_label:
-      "फिर से कोशिश करें।",
-    failed_to_change_label_color:
-      "फिर से कोशिश करें।",
-    failed_to_change_label_icon:
-      "फिर से कोशिश करें।",
-    failed_to_delete_label:
-      "फिर से कोशिश करें।",
-    failed_to_create_label:
-      "फिर से कोशिश करें।",
-    failed_to_create_folder_error:
-      "फिर से कोशिश करें।",
+    failed_to_update_contact: "फिर से कोशिश करें।",
+    failed_to_block_sender: "फिर से कोशिश करें।",
+    failed_to_rename_folder: "फिर से कोशिश करें।",
+    failed_to_change_folder_color: "फिर से कोशिश करें।",
+    failed_to_delete_folder: "फिर से कोशिश करें।",
+    failed_to_move_folder: "फिर से कोशिश करें।",
+    failed_to_update_folder_encryption: "फिर से कोशिश करें।",
+    failed_to_rename_label: "फिर से कोशिश करें।",
+    failed_to_change_label_color: "फिर से कोशिश करें।",
+    failed_to_change_label_icon: "फिर से कोशिश करें।",
+    failed_to_delete_label: "फिर से कोशिश करें।",
+    failed_to_create_label: "फिर से कोशिश करें।",
+    failed_to_create_folder_error: "फिर से कोशिश करें।",
     folder_plan_limit_reached:
       "आप अपने मौजूदा प्लान की फ़ोल्डर सीमा तक पहुंच चुके हैं। और फ़ोल्डर बनाने के लिए अपग्रेड करें।",
     authenticate_to_send: "ईमेल भेजने के लिए प्रमाणित करें",
     send_authentication_failed:
       "प्रमाणीकरण पूरा नहीं हुआ, इसलिए यह ईमेल नहीं भेजा गया।",
-    failed_to_send_reply:
-      "फिर से कोशिश करें।",
-    failed_to_delete_draft:
-      "फिर से कोशिश करें।",
-    failed_to_update_rule:
-      "फिर से कोशिश करें।",
+    failed_to_send_reply: "फिर से कोशिश करें।",
+    failed_to_delete_draft: "फिर से कोशिश करें।",
+    failed_to_update_rule: "फिर से कोशिश करें।",
     failed_to_send_verification:
       "हम सत्यापन ईमेल नहीं भेज सके। थोड़ी देर बाद एक और कोशिश आमतौर पर काम कर जाती है।",
     failed_to_load_email:
@@ -1019,8 +959,7 @@ export const hi = {
       "हम इस डिवाइस पर यह ईमेल नहीं खोल सके। रीफ़्रेश करने से आमतौर पर काम बन जाता है, और बार-बार विफल होने पर साइन आउट करके फिर से साइन इन करना दूसरा उपाय है।",
     failed_to_unsubscribe:
       "सदस्यता रद्द करना पूरा नहीं हुआ। ईमेल में मौजूद लिंक आपको प्रेषक की साइट पर ले जाएगा, जहां आप यह खुद कर सकते हैं।",
-    failed_to_disable_2fa:
-      "फिर से कोशिश करें।",
+    failed_to_disable_2fa: "फिर से कोशिश करें।",
     failed_to_parse_settings:
       "यह सेटिंग फ़ाइल पढ़ी नहीं जा सकी। कोई दूसरी फ़ाइल काम करेगी। आपकी मौजूदा सेटिंग जस की तस हैं।",
     removed_from_contacts: "संपर्कों से निकाल दिया गया",
@@ -1048,26 +987,18 @@ export const hi = {
       "आपकी निजी कुंजियां इस डिवाइस पर लोड नहीं हैं। दोबारा साइन इन करने पर वे अनलॉक हो जाएंगी। सर्वर पर आपकी कुंजियों पर कोई असर नहीं पड़ा है।",
     offline_action_queued:
       "आप अभी ऑफ़लाइन हैं। यह कतार में है और दोबारा कनेक्ट होते ही पूरा हो जाएगा।",
-    failed_to_update:
-      "फिर से कोशिश करें।",
-    failed_to_load_search_results:
-      "फिर से कोशिश करें।",
+    failed_to_update: "फिर से कोशिश करें।",
+    failed_to_load_search_results: "फिर से कोशिश करें।",
     search_failed_try_again:
       "खोज पूरी नहीं हुई। थोड़ी देर बाद एक और कोशिश आमतौर पर काम कर जाती है।",
-    search_load_failed_try_again:
-      "फिर से कोशिश करें।",
-    failed_to_fetch_tags:
-      "फिर से कोशिश करें।",
-    failed_to_fetch_folders:
-      "फिर से कोशिश करें।",
+    search_load_failed_try_again: "फिर से कोशिश करें।",
+    failed_to_fetch_tags: "फिर से कोशिश करें।",
+    failed_to_fetch_folders: "फिर से कोशिश करें।",
     failed_to_unlock_folder:
       "हम यह फ़ोल्डर अनलॉक नहीं कर सके। अपना पासवर्ड जांचें और फिर से कोशिश करें। फ़ोल्डर की सामग्री सुरक्षित है।",
-    failed_to_set_folder_password:
-      "फिर से कोशिश करें।",
-    failed_to_change_folder_password:
-      "फिर से कोशिश करें।",
-    failed_to_remove_folder_password:
-      "फिर से कोशिश करें।",
+    failed_to_set_folder_password: "फिर से कोशिश करें।",
+    failed_to_change_folder_password: "फिर से कोशिश करें।",
+    failed_to_remove_folder_password: "फिर से कोशिश करें।",
     incorrect_password:
       "गलत पासवर्ड। फिर से कोशिश करें। आपका खाता लॉक नहीं हुआ है।",
     folder_no_password_protection:
@@ -1078,25 +1009,17 @@ export const hi = {
       "पहले फ़ोल्डर अनलॉक करने पर यह सेटिंग बदली जा सकेगी।",
     cannot_remove_vault_password:
       "आपके वॉल्ट फ़ोल्डर को हमेशा अपना अलग पासवर्ड चाहिए, और यह सुरक्षा हटाई नहीं जा सकती।",
-    failed_to_load_snoozed_emails:
-      "फिर से कोशिश करें।",
-    failed_to_load_subscriptions:
-      "फिर से कोशिश करें।",
-    unexpected_error:
-      "फिर से कोशिश करें।",
-    failed_to_load_more_subscriptions:
-      "फिर से कोशिश करें।",
-    failed_to_scan_subscriptions:
-      "फिर से कोशिश करें।",
-    failed_to_load_drafts:
-      "फिर से कोशिश करें।",
-    failed_to_load_scheduled_emails:
-      "फिर से कोशिश करें।",
+    failed_to_load_snoozed_emails: "फिर से कोशिश करें।",
+    failed_to_load_subscriptions: "फिर से कोशिश करें।",
+    unexpected_error: "फिर से कोशिश करें।",
+    failed_to_load_more_subscriptions: "फिर से कोशिश करें।",
+    failed_to_scan_subscriptions: "फिर से कोशिश करें।",
+    failed_to_load_drafts: "फिर से कोशिश करें।",
+    failed_to_load_scheduled_emails: "फिर से कोशिश करें।",
     recently_archived: "हाल में आर्काइव किए गए",
     older_items: "पुराने आइटम",
     long_term_archive: "दीर्घकालिक आर्काइव",
-    failed_to_fetch_archive_stats:
-      "फिर से कोशिश करें।",
+    failed_to_fetch_archive_stats: "फिर से कोशिश करें।",
     value_too_long: "यह मान लंबाई की सीमा से बड़ा है। छोटा संस्करण काम करेगा।",
     please_enter_valid_domain:
       "यह मान्य डोमेन नहीं है। example.com जैसा कुछ काम करेगा।",
@@ -1207,22 +1130,18 @@ export const hi = {
     tor_snowflake_label: "Tor (Snowflake)",
     cdn_relay_label: "CDN रिले",
     toggle_selection: "चयन बदलें",
-    failed_to_send_email:
-      "फिर से कोशिश करें।",
-    failed_to_send_external_email:
-      "फिर से कोशिश करें।",
+    failed_to_send_email: "फिर से कोशिश करें।",
+    failed_to_send_external_email: "फिर से कोशिश करें।",
     external_account_token_missing:
       "आपके लिंक किए गए बाहरी खाते से भेजने से पहले उसे फिर से जोड़ना होगा। यह सेटिंग, जुड़े हुए खाते में मिलेगा।",
-    failed_to_send_via_external:
-      "फिर से कोशिश करें।",
+    failed_to_send_via_external: "फिर से कोशिश करें।",
     offline_change_failed:
       "ऑफ़लाइन रहते हुए आपने जो बदलाव किया, वह सहेजा नहीं जा सका।",
     offline_send_failed:
       "ऑफ़लाइन रहते हुए आपने जो ईमेल लिखा, वह भेजा नहीं जा सका।",
     offline_email_queued:
       "आप अभी ऑफ़लाइन हैं। दोबारा कनेक्ट होते ही यह ईमेल भेज दिया जाएगा।",
-    failed_to_queue_offline:
-      "फिर से कोशिश करें।",
+    failed_to_queue_offline: "फिर से कोशिश करें।",
     cannot_mix_recipients:
       "Aster उपयोगकर्ता और बाहरी पते एक ही ईमेल में नहीं भेजे जा सकते। इन्हें दो अलग संदेशों के रूप में भेजना काम करेगा।",
     post_quantum_unavailable_title: "पोस्ट-क्वांटम एन्क्रिप्शन के बिना भेजें?",
@@ -1230,18 +1149,20 @@ export const hi = {
       "{{recipients}} ने अभी तक पोस्ट-क्वांटम कुंजियां प्रकाशित नहीं की हैं, इसलिए यह संदेश सिर्फ़ मानक एंड-टू-एंड एन्क्रिप्शन का इस्तेमाल कर सकता है। पोस्ट-क्वांटम सुरक्षा फिर से चालू करने के लिए उनसे Aster खोलने या अपना ऐप अपडेट करने को कहें।",
     post_quantum_send_anyway: "फिर भी भेजें",
     key_trust_change_title: "एन्क्रिप्शन कुंजी बदल गई",
-    key_trust_change_message: "पिछली खोज के बाद {{recipients}} की एन्क्रिप्शन कुंजी बदल गई है। भेजने से पहले नई फिंगरप्रिंट की पुष्टि प्रापतकर्ता से किसी दूसरे माध्यम से करें।",
+    key_trust_change_message:
+      "पिछली खोज के बाद {{recipients}} की एन्क्रिप्शन कुंजी बदल गई है। भेजने से पहले नई फिंगरप्रिंट की पुष्टि प्रापतकर्ता से किसी दूसरे माध्यम से करें।",
     key_trust_change_detail: "{{email}}: पहले {{prior}}, अब {{current}}।",
     key_trust_change_confirm: "नई कुंजी पर भरोसा करें",
-    post_quantum_downgrade_title: "अपेक्षित पोस्ट-क्वांटम कुंजियों के बिना भेजें?",
-    post_quantum_downgrade_message: "{{recipients}} पोस्ट-क्वांटम कुंजियाँ प्रकाशित करता है, लेकिन इस संदेश के लिए मिले कुंजी बंडल में एक भी नहीं है। इसका कारण सर्वर की कोई समस्या हो सकती है या कुंजी खोज में छेड़छाड़ भी हो सकती है। पोस्ट-क्वांटम सुरक्षा बनाए रखने के लिए, रद्द करें और बाद में फिर कोशिश करें।",
+    post_quantum_downgrade_title:
+      "अपेक्षित पोस्ट-क्वांटम कुंजियों के बिना भेजें?",
+    post_quantum_downgrade_message:
+      "{{recipients}} पोस्ट-क्वांटम कुंजियाँ प्रकाशित करता है, लेकिन इस संदेश के लिए मिले कुंजी बंडल में एक भी नहीं है। इसका कारण सर्वर की कोई समस्या हो सकती है या कुंजी खोज में छेड़छाड़ भी हो सकती है। पोस्ट-क्वांटम सुरक्षा बनाए रखने के लिए, रद्द करें और बाद में फिर कोशिश करें।",
     empty_body_error: "भेजने से पहले कोई विषय या संदेश का कुछ पाठ ज़रूरी है।",
     duplicate_send_blocked:
       "यह संदेश अभी-अभी चला गया है। दोबारा भेजने से पहले अपना भेजे गए फ़ोल्डर देखें।",
     subject_too_long:
       "आपका विषय 998 वर्ण की सीमा से बड़ा है। छोटा संस्करण भेजा जाएगा।",
-    failed_to_schedule_email:
-      "फिर से कोशिश करें।",
+    failed_to_schedule_email: "फिर से कोशिश करें।",
     failed_to_restore_draft:
       "हम यह ड्राफ़्ट वापस नहीं ला सके। इसे फिर से खोलने पर आमतौर पर काम बन जाता है। आपके बाकी ड्राफ़्ट पर कोई असर नहीं पड़ा है।",
     enter_url: "URL डालें:",
@@ -1255,8 +1176,7 @@ export const hi = {
     message_archived: "संदेश आर्काइव हो गया",
     message_moved_to_trash: "संदेश ट्रैश में ले जाया गया",
     message_marked_as_spam: "संदेश स्पैम के रूप में चिह्नित",
-    undo_failed:
-      "फिर से कोशिश करें।",
+    undo_failed: "फिर से कोशिश करें।",
     action_undone: "कार्रवाई पहले जैसी कर दी गई",
     expired: "समाप्त हो गया",
     expires_in: "समाप्त होने में ",
@@ -1284,14 +1204,10 @@ export const hi = {
       "कुछ अटैचमेंट इस संदेश में नहीं जोड़े जा सके।",
     image: "छवि",
     system: "सिस्टम",
-    failed_to_permanently_delete:
-      "फिर से कोशिश करें।",
-    failed_to_delete_emails:
-      "फिर से कोशिश करें।",
-    failed_to_mark_as_read:
-      "फिर से कोशिश करें।",
-    failed_to_mark_as_unread:
-      "फिर से कोशिश करें।",
+    failed_to_permanently_delete: "फिर से कोशिश करें।",
+    failed_to_delete_emails: "फिर से कोशिश करें।",
+    failed_to_mark_as_read: "फिर से कोशिश करें।",
+    failed_to_mark_as_unread: "फिर से कोशिश करें।",
     n_conversations_archived: "{{ count }} बातचीत आर्काइव हो गईं",
     n_conversations_archived_one: "{{count}} बातचीत आर्काइव हो गई",
     n_conversations_archived_other: "{{count}} बातचीत आर्काइव हो गईं",
@@ -1305,8 +1221,7 @@ export const hi = {
     external_only: "सिर्फ़ बाहरी",
     all_accounts: "सभी खाते",
     all_external_accounts: "सभी बाहरी खाते",
-    failed_to_rotate_keys:
-      "फिर से कोशिश करें।",
+    failed_to_rotate_keys: "फिर से कोशिश करें।",
     read: "पढ़े गए",
     or_conjunction: "या",
     press_label: "दबाएं",
@@ -1334,18 +1249,12 @@ export const hi = {
     no_content: "कोई सामग्री नहीं",
     unblocked_count_senders: "{{ count }} प्रेषक अनब्लॉक हो गए",
     removed_count_from_allowlist: "अनुमति सूची से {{ count }} निकाले गए",
-    failed_to_add_label:
-      "फिर से कोशिश करें।",
-    failed_to_remove_label:
-      "फिर से कोशिश करें।",
-    failed_to_move_email:
-      "फिर से कोशिश करें।",
-    failed_to_add_labels:
-      "फिर से कोशिश करें।",
-    failed_to_remove_labels:
-      "फिर से कोशिश करें।",
-    failed_to_copy_to_clipboard:
-      "फिर से कोशिश करें।",
+    failed_to_add_label: "फिर से कोशिश करें।",
+    failed_to_remove_label: "फिर से कोशिश करें।",
+    failed_to_move_email: "फिर से कोशिश करें।",
+    failed_to_add_labels: "फिर से कोशिश करें।",
+    failed_to_remove_labels: "फिर से कोशिश करें।",
+    failed_to_copy_to_clipboard: "फिर से कोशिश करें।",
     add_note_placeholder: "नोट जोड़ें...",
     add_private_note_placeholder: "निजी नोट जोड़ें...",
     search_anything: "कुछ भी खोजें...",
@@ -1768,8 +1677,7 @@ export const hi = {
       "{{names}} से छिपा हुआ मेटाडेटा नहीं निकाला जा सका। फ़ाइल जस की तस जोड़ी गई।",
     failed_to_read_named_file:
       'हम "{{name}}" नहीं पढ़ सके। कोई दूसरी फ़ाइल काम करेगी।',
-    unknown_error:
-      "फिर से कोशिश करें।",
+    unknown_error: "फिर से कोशिश करें।",
     unsaved_changes_title: "अपने बदलाव छोड़ दें?",
     unsaved_changes_body:
       "आपने जो विवरण डाला है, वह सहेजा नहीं गया है। यह फ़ॉर्म अभी बंद करने पर वह हट जाएगा।",
@@ -1783,12 +1691,9 @@ export const hi = {
     account_suspended: "आपका खाता निलंबित है।",
     account_limit_reached:
       "आप इस नेटवर्क के लिए खाता सीमा तक पहुंच चुके हैं। अगर यह गलत लगता है, तो hello@astermail.org मदद कर सकता है।",
-    health_check_failed:
-      "फिर से कोशिश करें।",
-    failed_to_get_key_status:
-      "फिर से कोशिश करें।",
-    unknown_rotation_error:
-      "फिर से कोशिश करें।",
+    health_check_failed: "फिर से कोशिश करें।",
+    failed_to_get_key_status: "फिर से कोशिश करें।",
+    unknown_rotation_error: "फिर से कोशिश करें।",
     new_email_notification: "{{ sender }} से नया ईमेल",
     reply_notification: "{{ sender }} ने जवाब दिया",
     mention_notification: "{{ sender }} ने आपका उल्लेख किया",
@@ -1877,8 +1782,7 @@ export const hi = {
     aster_user: "Aster उपयोगकर्ता",
     allow_sender: "अनुमति सूची में जोड़ें",
     remove_from_allowlist_action: "अनुमति सूची से निकालें",
-    failed_to_allow_sender:
-      "फिर से कोशिश करें।",
+    failed_to_allow_sender: "फिर से कोशिश करें।",
     contacts_deleted: "{{ count }} संपर्क हटा दिए गए",
     contacts_starred: "{{ count }} संपर्क तारांकित किए गए",
     contacts_unstarred: "{{ count }} संपर्क से तारा हटाया गया",
@@ -1906,6 +1810,18 @@ export const hi = {
       "Aster आपका मेल आपके पासवर्ड से एन्क्रिप्ट करता है, इसलिए कोई भी इसे आपके लिए रीसेट नहीं कर सकता। अंदर आने का रास्ता बनाए रखने के लिए रिकवरी ईमेल जोड़ें।",
     recovery_reminder_action: "रिकवरी ईमेल जोड़ें",
     recovery_reminder_later: "बाद में",
+    recovery_codes_reminder_title: "अपने रिकवरी कोड सहेजें",
+    recovery_codes_reminder_body:
+      "Aster आपका मेल आपके पासवर्ड से एन्क्रिप्ट करता है, इसलिए कोई भी इसे आपके लिए रीसेट नहीं कर सकता। एन्क्रिप्टेड मेल तक वापस पहुंचने का एकमात्र रास्ता रिकवरी कोड हैं।",
+    recovery_codes_reminder_action: "रिकवरी कोड पाएं",
+    recovery_codes_low_reminder_title: "आपके रिकवरी कोड कम रह गए हैं",
+    recovery_codes_low_reminder_body:
+      "हर कोड एक बार काम करता है और आपके पास {{count}} बचे हैं। खाते से बाहर होने से बचने के लिए नए कोड पाएं।",
+    recovery_codes_low_reminder_action: "नए कोड पाएं",
+    recovery_phrase_migrate_title: "रिकवरी कोड पर जाएं",
+    recovery_phrase_migrate_body:
+      "रिकवरी फ़्रेज़ हटाए जा रहे हैं। अभी रिकवरी कोड पाएं ताकि आप आगे भी अपना खाता रिकवर कर सकें।",
+    recovery_phrase_migrate_action: "कोड पाएं",
     plan_prompt_title: "आप मुफ़्त प्लान पर हैं",
     plan_prompt_body:
       "सशुल्क प्लान में ज़्यादा स्टोरेज, कस्टम डोमेन और असीमित एलियास मिलते हैं।",
@@ -2312,11 +2228,23 @@ export const hi = {
       "रिकवरी कोड के बिना, पासवर्ड भूलने पर आपकी एन्क्रिप्टेड मेल हमेशा के लिए बंद हो जाती है।",
     recovery_codes_row: "रिकवरी कोड",
     recovery_codes_row_desc:
-      "छह एक-बार इस्तेमाल होने वाले कोड, जो आपका खाता और सारा एन्क्रिप्टेड डेटा वापस लाते हैं।",
-    recovery_codes_generate: "कोड बनाएं",
-    recovery_codes_regenerate: "कोड दोबारा बनाएं",
+      "एक बार इस्तेमाल होने वाले कोड जो आपका खाता और सभी एन्क्रिप्टेड डेटा वापस लाते हैं।",
+    recovery_codes_generate: "कोड पाएं",
+    recovery_codes_regenerate: "नए कोड पाएं",
     recovery_codes_regenerate_warning:
-      "दोबारा बनाने पर नए कोड बनते हैं और पुराने कोड हमेशा के लिए बेकार हो जाते हैं।",
+      "नए कोड पाते ही आपके मौजूदा कोड काम करना बंद कर देते हैं।",
+    recovery_codes_show: "कोड दिखाएं",
+    recovery_codes_get_new_title: "नए रिकवरी कोड पाएं?",
+    recovery_codes_confirm_title: "पुष्टि करें कि यह आप हैं",
+    recovery_codes_confirm_desc: "अपने रिकवरी कोड देखने के लिए पासवर्ड डालें।",
+    recovery_codes_title: "आपके रिकवरी कोड",
+    recovery_codes_status:
+      "{{date}} को बनाए गए। {{total}} में से {{remaining}} बचे हैं।",
+    recovery_codes_low:
+      "आपके रिकवरी कोड कम रह गए हैं। खाते से बाहर होने से बचने के लिए नए कोड पाएं।",
+    recovery_codes_used: "इस्तेमाल किया गया",
+    recovery_codes_unavailable:
+      "आपके कोड इस डिवाइस पर सेव नहीं हैं। उन्हें देखने के लिए नए कोड पाएं।",
     recovery_method_active: "सक्रिय",
     recovery_method_not_set: "सेट नहीं है",
     recovery_codes_saved_confirm:
@@ -3220,6 +3148,7 @@ export const hi = {
     security_center_identity_key: "पहचान कुंजी",
     criterion_two_factor: "दो-चरणीय प्रमाणीकरण",
     criterion_passkey: "पासकी दर्ज हो गई",
+    criterion_recovery_codes: "रिकवरी कोड सहेजे गए",
     criterion_recovery_email: "पुष्ट रिकवरी ईमेल",
     criterion_auto_lock: "अपने आप लॉक",
     criterion_login_alerts: "साइन इन अलर्ट",
@@ -3481,8 +3410,7 @@ export const hi = {
       "हम भुगतान नहीं ले सके। सेटिंग्स, बिलिंग में अपनी भुगतान विधि अपडेट करें, फिर दोबारा कोशिश करें।",
     plan_not_available:
       "यह प्लान अभी खरीदा नहीं जा सकता। कोई दूसरा प्लान, या बाद में फिर देखना, काम करेगा।",
-    failed_checkout:
-      "फिर से कोशिश करें।",
+    failed_checkout: "फिर से कोशिश करें।",
     checkout_welcome: "Aster में आपका स्वागत है। आपकी सदस्यता चालू है।",
     card_declined_title: "आपका पिछला कार्ड भुगतान पूरा नहीं हुआ",
     card_declined_insufficient_funds:
@@ -3665,14 +3593,11 @@ export const hi = {
     crypto_renew_link: "क्रिप्टो से नवीनीकृत करें",
     crypto_success_toast: "क्रिप्टो भुगतान मिल गया। आपका प्लान चालू है।",
     crypto_cancelled_toast: "क्रिप्टो भुगतान रद्द कर दिया गया।",
-    failed_billing_portal:
-      "फिर से कोशिश करें।",
+    failed_billing_portal: "फिर से कोशिश करें।",
     subscription_cancelled: "बिलिंग अवधि खत्म होने पर सदस्यता रद्द हो जाएगी",
-    failed_cancel_subscription:
-      "फिर से कोशिश करें।",
+    failed_cancel_subscription: "फिर से कोशिश करें।",
     subscription_reactivated: "सदस्यता फिर से चालू हो गई",
-    failed_reactivate:
-      "फिर से कोशिश करें।",
+    failed_reactivate: "फिर से कोशिश करें।",
     payment_failed_warning:
       "आपके भुगतान के तरीके से पिछला शुल्क नहीं लिया जा सका। सेटिंग, बिलिंग में इसे अपडेट करने से आपका प्लान चलता रहेगा। आपकी मेल पर कोई असर नहीं पड़ा।",
     grace_period_remaining:
@@ -4533,8 +4458,7 @@ export const hi = {
     switch_billing_loss:
       "मासिक बिलिंग पर जाने से आपको साल में {{amount}} ज़्यादा देना होगा।",
     billing_switched: "बिलिंग चक्र बदल दिया गया",
-    failed_switch_billing:
-      "फिर से कोशिश करें।",
+    failed_switch_billing: "फिर से कोशिश करें।",
     current_billing_interval: "{{interval}} बिल",
     switching_billing: "बदला जा रहा है...",
     daily: "रोज़",
@@ -4557,8 +4481,7 @@ export const hi = {
     auto_lock_after: "{{duration}} तक कोई गतिविधि न होने पर अपने आप लॉक करें",
     hours: "{{count}} घंटे",
     days: "{{count}} दिन",
-    failed_get_auth_data:
-      "फिर से कोशिश करें।",
+    failed_get_auth_data: "फिर से कोशिश करें।",
     downgrade: "प्लान घटाएं",
     upgrade: "अपग्रेड करें",
     downgrade_scheduled: "मौजूदा अवधि के अंत में प्लान घटाना तय है",
@@ -4592,10 +4515,8 @@ export const hi = {
     confirm_cancel_addon: "स्टोरेज ऐड-ऑन रद्द करें",
     confirm_cancel_addon_description:
       "क्या आप वाकई यह स्टोरेज ऐड-ऑन रद्द करना चाहते हैं? आपका अतिरिक्त स्टोरेज मौजूदा बिलिंग अवधि के अंत तक उपलब्ध रहेगा।",
-    addon_purchase_failed:
-      "फिर से कोशिश करें।",
-    addon_cancel_failed:
-      "फिर से कोशिश करें।",
+    addon_purchase_failed: "फिर से कोशिश करें।",
+    addon_cancel_failed: "फिर से कोशिश करें।",
     addon_purchase_success: "चेकआउट पर ले जाया जा रहा है...",
     addon_checkout_opened: "नए टैब में अपनी खरीदारी पूरी करें।",
     plan_recommended: "अनुशंसित",
@@ -5065,8 +4986,7 @@ export const hi = {
     use_credits_for_renewals_description:
       "अपने क्रेडिट को प्लान और ऐड-ऑन के नवीनीकरण पर अपने आप लगाएं। अगर आपके क्रेडिट से पूरी रकम नहीं बनती, तो बाकी रकम आपके भुगतान तरीके से ली जाती है।",
     credits_toggle_updated: "क्रेडिट सेटिंग अपडेट हो गईं",
-    credits_toggle_failed:
-      "फिर से कोशिश करें।",
+    credits_toggle_failed: "फिर से कोशिश करें।",
     credits_earn_first: "इसे चालू करने के लिए क्रेडिट कमाएं",
     recent_transactions: "हाल के लेन-देन",
     view_all_transactions: "सब देखें",
@@ -5314,8 +5234,7 @@ export const hi = {
     country: "देश",
     save_address: "पता सहेजें",
     address_saved: "बिलिंग पता सहेज लिया गया",
-    address_save_failed:
-      "फिर से कोशिश करें।",
+    address_save_failed: "फिर से कोशिश करें।",
     saving: "सहेजा जा रहा है...",
     redeem: "भुनाएं",
     redeeming: "भुनाया जा रहा है...",
@@ -5329,8 +5248,7 @@ export const hi = {
     export_ready: "आपका एक्सपोर्ट डाउनलोड के लिए तैयार है।",
     export_processing: "एक्सपोर्ट तैयार किया जा रहा है...",
     download_export: "डाउनलोड करें",
-    export_failed:
-      "फिर से कोशिश करें।",
+    export_failed: "फिर से कोशिश करें।",
     biennial: "2 साल",
     all_star_features: "Star का सब कुछ, साथ में:",
     all_nova_features: "Nova का सब कुछ, साथ में:",
@@ -5350,8 +5268,7 @@ export const hi = {
     too_many_requests:
       "आप यह बहुत तेज़ी से कर रहे हैं। थोड़ा रुककर फिर से कोशिश करें।",
     please_log_in_feedback: "साइन इन करने पर आप प्रतिक्रिया भेज सकेंगे।",
-    failed_send_feedback:
-      "फिर से कोशिश करें।",
+    failed_send_feedback: "फिर से कोशिश करें।",
     other_ways_to_reach: "हम तक पहुंचने के दूसरे तरीके",
     reset_to_defaults: "डिफ़ॉल्ट पर लौटाएं",
     section_reset: "यह हिस्सा डिफ़ॉल्ट पर लौट आया",
@@ -5714,32 +5631,24 @@ export const hi = {
     alias_restore_confirm: "वापस लाएं",
     alias_restore_mismatch:
       "वह पता इस एलियास से मेल नहीं खाता। इससे पहुंचे किसी संदेश का हेडर देखें।",
-    alias_restore_failed:
-      "फिर से कोशिश करें।",
-    recently_deleted_load_failed:
-      "फिर से कोशिश करें।",
-    invalid_address:
-      "मान्य ईमेल पता दर्ज करें।",
+    alias_restore_failed: "फिर से कोशिश करें।",
+    recently_deleted_load_failed: "फिर से कोशिश करें।",
+    invalid_address: "मान्य ईमेल पता दर्ज करें।",
     alias_already_taken:
       "यह एलियास पहले से इस्तेमाल में है। कोई दूसरा काम कर जाना चाहिए।",
-    alias_create_failed:
-      "फिर से कोशिश करें।",
+    alias_create_failed: "फिर से कोशिश करें।",
     alias_captcha_required: "एलियास बनाने के लिए कैप्चा पूरा करें।",
-    alias_generate_failed:
-      "फिर से कोशिश करें।",
+    alias_generate_failed: "फिर से कोशिश करें।",
     alias_invalid:
       "यह एलियास मान्य नहीं है। अक्षर, संख्याएं, बिंदु, अंडरस्कोर और हाइफ़न ही अनुमत वर्ण हैं।",
     domain_not_available:
       "यह डोमेन अभी उपलब्ध नहीं है। कोई दूसरा काम कर जाना चाहिए।",
-    failed_create_address:
-      "फिर से कोशिश करें।",
+    failed_create_address: "फिर से कोशिश करें।",
     domain_limit_reached: "डोमेन की सीमा पूरी हुई",
     add_custom_domain: "कस्टम डोमेन जोड़ें",
     domain_name_label: "डोमेन नाम",
-    invalid_domain:
-      "मान्य डोमेन दर्ज करें।",
-    failed_add_domain:
-      "फिर से कोशिश करें।",
+    invalid_domain: "मान्य डोमेन दर्ज करें।",
+    failed_add_domain: "फिर से कोशिश करें।",
     configure_dns_for: "{{domain}} के लिए DNS सेट करें",
     dns_instruction_login:
       "अपने डोमेन रजिस्ट्रार या DNS प्रदाता में साइन इन करें",
@@ -5790,19 +5699,14 @@ export const hi = {
     account_added: "खाता जोड़ दिया गया",
     account_settings_not_saved:
       "खाता सहेज लिया गया, लेकिन उसकी सिंक और उन्नत सेटिंग नहीं सहेजी गईं",
-    failed_update_account:
-      "फिर से कोशिश करें।",
-    failed_add_account:
-      "फिर से कोशिश करें।",
+    failed_update_account: "फिर से कोशिश करें।",
+    failed_add_account: "फिर से कोशिश करें।",
     switch_failed: "फिर से कोशिश करें।",
-    unexpected_error:
-      "फिर से कोशिश करें।",
+    unexpected_error: "फिर से कोशिश करें।",
     failed_sync:
       "सिंक पूरा नहीं हुआ, और हम अपने आप फिर से कोशिश करेंगे। दोनों तरफ़ आपका मेल सुरक्षित है।",
-    failed_delete_emails_external:
-      "फिर से कोशिश करें।",
-    failed_fetch_folders_external:
-      "फिर से कोशिश करें।",
+    failed_delete_emails_external: "फिर से कोशिश करें।",
+    failed_fetch_folders_external: "फिर से कोशिश करें।",
     external_sign_in_rejected:
       "मेल सर्वर ने यह उपयोगकर्ता नाम और पासवर्ड स्वीकार नहीं किया। इन्हें फिर से जांचें। अगर आपका प्रदाता ऐप पासवर्ड मांगता है, तो उसके बजाय वह डालें।",
     external_server_unreachable:
@@ -5821,11 +5725,9 @@ export const hi = {
       "वह कोड मेल नहीं खाया। आपके प्रमाणक ऐप का मौजूदा कोड काम करेगा।",
     incorrect_password_error:
       "गलत पासवर्ड। फिर से कोशिश करें। आपका खाता लॉक नहीं हुआ है।",
-    failed_retrieve_auth:
-      "फिर से कोशिश करें।",
+    failed_retrieve_auth: "फिर से कोशिश करें।",
     failed_verify_password: "पासवर्ड सही नहीं है। फिर से कोशिश करें।",
-    failed_export_private_key:
-      "फिर से कोशिश करें।",
+    failed_export_private_key: "फिर से कोशिश करें।",
     type_regenerate: "regenerate लिखें",
     client_side_encryption: "क्लाइंट-साइड एन्क्रिप्शन",
     client_side_encryption_description:
@@ -5840,13 +5742,10 @@ export const hi = {
     auto_discover_keys_description: "लिखते समय WKD और कीसर्वर अपने आप खोजें",
     key_published_wkd: "कुंजी WKD पर प्रकाशित हो गई",
     key_removed_wkd: "कुंजी WKD से हटा दी गई",
-    failed_publish_wkd:
-      "फिर से कोशिश करें।",
-    failed_remove_wkd:
-      "फिर से कोशिश करें।",
+    failed_publish_wkd: "फिर से कोशिश करें।",
+    failed_remove_wkd: "फिर से कोशिश करें।",
     key_published_keyserver: "कुंजी कीसर्वर पर प्रकाशित हो गई",
-    failed_publish_keyserver:
-      "फिर से कोशिश करें।",
+    failed_publish_keyserver: "फिर से कोशिश करें।",
     mailto_unregister_manual:
       "Aster Mail को mailto लिंक खोलने से रोकने के लिए, अपनी ब्राउज़र सेटिंग में हैंडलर हटाएं।",
     failed_save_setting: "सेटिंग सहेजी नहीं जा सकी। फिर से कोशिश करें।",
@@ -6624,10 +6523,8 @@ export const hi = {
     external_accounts_limit_reached:
       "आप ज़्यादा से ज़्यादा 5 खाते जोड़ सकते हैं। एक और जोड़ने के लिए पहले किसी एक को हटाएं।",
     no_allowed_senders: "कोई अनुमति वाला प्रेषक नहीं",
-    failed_to_load_allowlist:
-      "फिर से कोशिश करें।",
-    failed_to_load_blocklist:
-      "फिर से कोशिश करें।",
+    failed_to_load_allowlist: "फिर से कोशिश करें।",
+    failed_to_load_blocklist: "फिर से कोशिश करें।",
     add_senders_allowlist_hint:
       "प्रेषक या डोमेन जोड़ें ताकि उनके ईमेल हमेशा आपके इनबॉक्स में पहुंचें",
     allow_sender: "प्रेषक को अनुमति दें",
@@ -6660,8 +6557,7 @@ export const hi = {
       "आपका स्टोरेज भर गया है। प्लान बढ़ाने या कुछ ईमेल हटाने से और इंपोर्ट के लिए जगह बनेगी।",
     no_emails_in_file:
       "चुनी गई फ़ाइलों में कोई ईमेल नहीं मिली। पक्का करें कि हर फ़ाइल समर्थित प्रारूप (MBOX, EML, CSV या PST) में है।",
-    import_failed:
-      "फिर से कोशिश करें।",
+    import_failed: "फिर से कोशिश करें।",
     failed_to_parse_file: "यह फ़ाइल पढ़ी नहीं जा सकी। कोई दूसरी काम करेगी।",
     plan_storage_value: "{{value}} स्टोरेज",
     plan_aliases_count: "{{count}} एलियास",
@@ -6815,6 +6711,9 @@ export const hi = {
     spam_sensitivity_description:
       "तय करें कि स्पैम फ़िल्टर संदिग्ध ईमेल को कितनी सख़्ती से पकड़े।",
     auto_delete_spam_after: "इतने समय बाद स्पैम अपने आप हटाएं",
+    auto_delete_trash_after: "इतने समय बाद ट्रैश अपने आप हटाएं",
+    auto_delete_trash_description:
+      "ट्रैश में इससे पुराने ईमेल हमेशा के लिए हटा दिए जाते हैं।",
     auto_delete_spam_description:
       "इससे पुराने स्पैम ईमेल हमेशा के लिए हटा दिए जाएंगे।",
     spam_delete_hint: "इससे पुरानी स्पैम ईमेल हमेशा के लिए हटा दी जाएंगी",
@@ -6831,6 +6730,9 @@ export const hi = {
     retention_30_days: "30 दिन",
     retention_60_days: "60 दिन",
     retention_90_days: "90 दिन",
+    retention_days_count: "{{ days }} दिन",
+    retention_180_days: "180 दिन",
+    retention_365_days: "365 दिन",
     retention_never: "कभी नहीं (हमेशा रखें)",
     import_emails_title: "ईमेल इंपोर्ट करें",
     import_add_another: "दूसरा खाता जोड़ें",
@@ -6913,8 +6815,7 @@ export const hi = {
     connect_sign_in_yahoo: "Yahoo से साइन इन करें",
     oauth_reason_provider_denied:
       "दूसरे प्रदाता ने कनेक्शन स्वीकार नहीं किया। दोबारा कनेक्ट करने की कोशिश करें, या उस प्रदाता के पास खाता जांचें।",
-    oauth_reason_missing_code:
-      "फिर से कोशिश करें।",
+    oauth_reason_missing_code: "फिर से कोशिश करें।",
     oauth_reason_missing_state:
       "कनेक्शन का अनुरोध हमारी उम्मीद से मेल नहीं खाया। दोबारा शुरू करके फिर कोशिश करने से आमतौर पर काम बन जाता है।",
     oauth_reason_internal_error:
@@ -6927,23 +6828,19 @@ export const hi = {
       "हम इस प्रदाता को नहीं पहचानते। सूची में से कोई समर्थित प्रदाता काम करेगा।",
     oauth_reason_provider_not_configured:
       "यह प्रदाता अभी Aster पर सेट नहीं है। ज़रूरत हो तो hello@astermail.org मदद कर सकता है।",
-    oauth_reason_token_exchange_failed:
-      "फिर से कोशिश करें।",
+    oauth_reason_token_exchange_failed: "फिर से कोशिश करें।",
     oauth_reason_encryption_error:
       "हम कनेक्शन सुरक्षित नहीं कर सके। फिर से कोशिश करें। समस्या बनी रहे तो hello@astermail.org से संपर्क करें।",
-    oauth_reason_account_creation_failed:
-      "फिर से कोशिश करें।",
+    oauth_reason_account_creation_failed: "फिर से कोशिश करें।",
     oauth_reason_email_not_found:
       "हम प्रदाता से आपका ईमेल पता नहीं ला सके। फिर से कोशिश करें, और अगर यह बार-बार विफल हो तो इसके बजाय मैन्युअल IMAP विकल्प इस्तेमाल करें।",
     oauth_reason_session_expired:
       "साइन इन सत्र खत्म हो गया। फिर से कोशिश करें।",
-    oauth_reason_unknown:
-      "फिर से कोशिश करें।",
+    oauth_reason_unknown: "फिर से कोशिश करें।",
     oauth_import_loading: "{{ provider }} से जोड़ा जा रहा है...",
     oauth_setting_up_folders: "फ़ोल्डर सेट किए जा रहे हैं...",
     oauth_folders_ready: "फ़ोल्डर सिंक हो गए",
-    oauth_folders_error:
-      "फिर से कोशिश करें।",
+    oauth_folders_error: "फिर से कोशिश करें।",
     oauth_folders_partial:
       "{{count}} फ़ोल्डर का सेटअप पूरा नहीं हुआ, बाकी इस्तेमाल के लिए तैयार हैं।",
     import_stage_setting_up_folders: "फ़ोल्डर सेट किए जा रहे हैं",
@@ -7161,8 +7058,7 @@ export const hi = {
     dev_signatures_label: "हस्ताक्षर",
     dev_password_kdf_label: "पासवर्ड KDF",
     select_color: "रंग {{name}} चुनें",
-    failed_create_import_job:
-      "फिर से कोशिश करें।",
+    failed_create_import_job: "फिर से कोशिश करें।",
     alias_local_part_placeholder: "myalias",
     username_placeholder: "user@example.com",
     smtp_host_placeholder: "smtp.example.com",
@@ -7205,8 +7101,7 @@ export const hi = {
     alias_deleted_at: "{{ date }} को हटाया गया",
     restore_alias_action: "वापस लाएं",
     alias_restored: "एलियास वापस आ गया",
-    failed_restore_alias:
-      "फिर से कोशिश करें।",
+    failed_restore_alias: "फिर से कोशिश करें।",
     recently_deleted_empty_trash: "ट्रैश खाली करें",
     delete_alias_permanently_action: "हमेशा के लिए हटाएं",
     purge_alias_confirm_title: "एलियास हमेशा के लिए हटाएं?",
@@ -7223,8 +7118,7 @@ export const hi = {
     recently_deleted_directories_description:
       "हटाई गई कोई डायरेक्टरी वापस लाएं। हटाई गई डायरेक्टरी वापस आने तक नई मेल नहीं पकड़तीं।",
     directory_restored: "डायरेक्टरी वापस आ गई",
-    failed_restore_directory:
-      "फिर से कोशिश करें।",
+    failed_restore_directory: "फिर से कोशिश करें।",
     purge_directory_confirm_title: "डायरेक्टरी हमेशा के लिए हटाएं?",
     purge_directory_confirm_message:
       "{{ key }}@{{ domain }} हमेशा के लिए हटाएं? इसे पहले जैसा नहीं किया जा सकता। यह डायरेक्टरी आपके खाते के लिए आरक्षित रहेगी, इसलिए इसे कोई और कभी नहीं ले सकेगा।",
@@ -7358,8 +7252,7 @@ export const hi = {
       "चुनें कि इस एलियास पर आया मेल कहां पहुंचे। डिफ़ॉल्ट रूप से यह इनबॉक्स है।",
     alias_delivery_folder_info:
       "इस एलियास पर भेजा गया मेल बिना किसी नियम के सीधे आपके चुने हुए फ़ोल्डर में जाता है। संदेश से मेल खाने वाला कोई नियम फिर भी भारी पड़ता है, इसलिए मेल उस फ़ोल्डर में चला जाता है।",
-    alias_delivery_folder_error:
-      "फिर से कोशिश करें।",
+    alias_delivery_folder_error: "फिर से कोशिश करें।",
     alias_delivery_folder_missing: "हटाया गया फ़ोल्डर",
     alias_delivery_label: "लेबल",
     alias_delivery_label_desc:
@@ -7391,8 +7284,7 @@ export const hi = {
       "मौजूदा मेल पर लागू करना विफल रहा। फिर से कोशिश करें।",
     alias_apply_existing_unavailable:
       "आपके खाते में पहले से मौजूद मेल को स्पैम में नहीं ले जाया जा सकता।",
-    alias_delivery_label_error:
-      "फिर से कोशिश करें।",
+    alias_delivery_label_error: "फिर से कोशिश करें।",
     alias_delivery_rule_note:
       'मेल नियम "{{ rule }}" पहले से इस एलियास के मेल को {{ target }} में ले जाता है।',
     alias_delivery_rule_conflict:
@@ -8004,7 +7896,8 @@ export const hi = {
     alias_direction_all: "सभी",
     alias_direction_received: "प्राप्त",
     alias_direction_sent: "भेजे गए",
-    alias_sent_indexing: "पुराने भेजे गए मेल को अब भी अनुक्रमित किया जा रहा है।",
+    alias_sent_indexing:
+      "पुराने भेजे गए मेल को अब भी अनुक्रमित किया जा रहा है।",
     bulk_archive_title: "{{count}} ईमेल संग्रहित करें?",
     bulk_archive_title_one: "1 ईमेल संग्रहित करें?",
     bulk_archive_title_other: "{{count}} ईमेल संग्रहित करें?",
@@ -9019,7 +8912,8 @@ export const hi = {
     link_device_signed_in_as: "इस रूप में साइन इन हैं",
     hub_accounts_or_password: "या अपने पासवर्ड से साइन इन करें",
     hub_account_password_required: "पासवर्ड आवश्यक है",
-    hub_account_link_failed: "इस खाते से जारी रखने के लिए, इसका पासवर्ड दर्ज करें।",
+    hub_account_link_failed:
+      "इस खाते से जारी रखने के लिए, इसका पासवर्ड दर्ज करें।",
     link_device_success: "डिवाइस लिंक हो गया",
     link_device_success_description:
       "आपका डेस्कटॉप ऐप अब लिंक हो गया है। आप यह टैब बंद कर सकते हैं।",
@@ -9125,15 +9019,20 @@ export const hi = {
     add_backup_email: "बैकअप ईमेल जोड़ें",
     skip_for_now: "अभी छोड़ें",
     create_your_account: "अपना खाता बनाएं",
-    welcome_workspace_subtitle: "Aster में आपका स्वागत है। शुरू करने के लिए एक उपयोगकर्ता नाम चुनें।",
+    welcome_workspace_subtitle:
+      "Aster में आपका स्वागत है। शुरू करने के लिए एक उपयोगकर्ता नाम चुनें।",
     username_placeholder: "उपयोगकर्ता नाम",
     switch_domain: "डोमेन बदलें",
-    sign_in_domain_hint: "अपने पते का डोमेन चुनें। अगर आपको पक्का पता नहीं है, तो दोनों में से कोई भी चलेगा।",
-    terms_footer_next: "ऊपर आगे पर क्लिक करके, आप पुष्टि करते हैं कि आपने Aster के निम्नलिखित दस्तावेज़ पढ़ लिए हैं और उनसे सहमत हैं:",
+    sign_in_domain_hint:
+      "अपने पते का डोमेन चुनें। अगर आपको पक्का पता नहीं है, तो दोनों में से कोई भी चलेगा।",
+    terms_footer_next:
+      "ऊपर आगे पर क्लिक करके, आप पुष्टि करते हैं कि आपने Aster के निम्नलिखित दस्तावेज़ पढ़ लिए हैं और उनसे सहमत हैं:",
     create_a_password: "पासवर्ड बनाएं",
-    recommend_strong_password: "कम से कम 8 अक्षर इस्तेमाल करें। मिश्रित अक्षरों वाला लंबा पासवर्ड ज़्यादा मज़बूत होता है।",
+    recommend_strong_password:
+      "कम से कम 8 अक्षर इस्तेमाल करें। मिश्रित अक्षरों वाला लंबा पासवर्ड ज़्यादा मज़बूत होता है।",
     password_recovery_key: "पासवर्ड रिकवरी कुंजी",
-    recovery_key_only_way: "अगर आप पासवर्ड भूल जाते हैं तो यह कुंजी आपके खाते को वापस पाने का एकमात्र तरीका है। इसे किसी सुरक्षित जगह सहेजें।",
+    recovery_key_only_way:
+      "अगर आप पासवर्ड भूल जाते हैं तो यह कुंजी आपके खाते को वापस पाने का एकमात्र तरीका है। इसे किसी सुरक्षित जगह सहेजें।",
     download_key_lower: "कुंजी डाउनलोड करें",
     downloading: "डाउनलोड हो रहा है...",
     save_key: "कुंजी सहेजें",
@@ -9141,7 +9040,8 @@ export const hi = {
     copy_codes: "कोड कॉपी करें",
     recovery_key_copied: "रिकवरी कुंजी कॉपी की गई",
     password_recovery_email: "पासवर्ड रिकवरी ईमेल",
-    recovery_email_step_desc: "अगर आप अपने रिकवरी कोड खो देते हैं तो खाते में वापस आने के लिए एक ईमेल पता जोड़ें।",
+    recovery_email_step_desc:
+      "अगर आप अपने रिकवरी कोड खो देते हैं तो खाते में वापस आने के लिए एक ईमेल पता जोड़ें।",
     download_apps_title: "मोबाइल और डेस्कटॉप ऐप डाउनलोड करें",
     download_apps_desc: "अपना इनबॉक्स हर डिवाइस पर अपने साथ रखें।",
     mail_mobile: "Mail Mobile",
@@ -9149,21 +9049,27 @@ export const hi = {
     mail_desktop: "Mail Desktop",
     mail_desktop_desc: "Windows, macOS और Linux के लिए डेस्कटॉप ऐप।",
     notifications_step_title: "ब्राउज़र सूचनाएं चालू करें",
-    notifications_step_desc: "नया मेल आने पर सूचना पाएं, तब भी जब यह टैब पृष्ठभूमि में हो।",
+    notifications_step_desc:
+      "नया मेल आने पर सूचना पाएं, तब भी जब यह टैब पृष्ठभूमि में हो।",
     notifications_turned_on: "सूचनाएं चालू हैं",
-    notifications_blocked_hint: "सूचनाएं ब्लॉक हैं। उन्हें चालू करने के लिए, अपने ब्राउज़र की सेटिंग में इस साइट के लिए सूचनाओं की अनुमति दें।",
+    notifications_blocked_hint:
+      "सूचनाएं ब्लॉक हैं। उन्हें चालू करने के लिए, अपने ब्राउज़र की सेटिंग में इस साइट के लिए सूचनाओं की अनुमति दें।",
     notifications_sample_body: "नया मेल आने पर आपको ऐसी ही सूचना मिलेगी।",
     notification_preview_title: "नया संदेश",
     notification_preview_body: "आपके इनबॉक्स में एक नया संदेश है।",
     turn_on: "चालू करें",
     addresses_step_title: "अलग-अलग उद्देश्यों के लिए पते बनाएं",
-    addresses_step_desc: "काम, न्यूज़लेटर या खरीदारी के लिए अतिरिक्त पते जोड़ें। सभी एक ही इनबॉक्स में आते हैं।",
+    addresses_step_desc:
+      "काम, न्यूज़लेटर या खरीदारी के लिए अतिरिक्त पते जोड़ें। सभी एक ही इनबॉक्स में आते हैं।",
     address_n: "पता {{n}}",
-    address_must_begin_end_alphanumeric: "ईमेल पता किसी अक्षर या अंक से शुरू और खत्म होना चाहिए।",
+    address_must_begin_end_alphanumeric:
+      "ईमेल पता किसी अक्षर या अंक से शुरू और खत्म होना चाहिए।",
     custom_domain_step_title: "अपने पते को कस्टम डोमेन से निजी बनाएं",
-    custom_domain_step_desc: "ऐसे डोमेन के पते से मेल भेजें और पाएं जो आपका अपना है।",
+    custom_domain_step_desc:
+      "ऐसे डोमेन के पते से मेल भेजें और पाएं जो आपका अपना है।",
     custom_domain_own: "पहले से मौजूद डोमेन सेट करें",
-    custom_domain_own_desc: "किसी भी रजिस्ट्रार का डोमेन कुछ ही मिनटों में जोड़ें।",
+    custom_domain_own_desc:
+      "किसी भी रजिस्ट्रार का डोमेन कुछ ही मिनटों में जोड़ें।",
     custom_domain_new: "नया डोमेन लें",
     custom_domain_new_desc: "Aster छोड़े बिना डोमेन खोजें और खरीदें।",
     recovery_email_required_gate_title: "रिकवरी ईमेल ज़रूरी है",
@@ -9176,7 +9082,8 @@ export const hi = {
     username_max_length: "40 से कम वर्ण इस्तेमाल करें।",
     username_alphanumeric:
       "अक्षर, अंक और बिंदु इस्तेमाल करें। बिंदु न तो पहले, न आखिर में, और न ही लगातार दो हो सकते हैं।",
-    username_not_available: "यह उपयोगकर्ता नाम उपलब्ध नहीं है। कोई दूसरा नाम आज़माएं।",
+    username_not_available:
+      "यह उपयोगकर्ता नाम उपलब्ध नहीं है। कोई दूसरा नाम आज़माएं।",
     password_req_length: "कम से कम 8 वर्ण",
     password_req_uppercase: "एक बड़ा अक्षर",
     password_req_lowercase: "एक छोटा अक्षर",
@@ -9214,8 +9121,7 @@ export const hi = {
       "यह मान्य ईमेल नहीं लगता। name@example.com जैसा कुछ काम करेगा।",
     recovery_email_conflict:
       "यह पता पहले से ही अधिकतम 20 Aster खातों की सुरक्षा कर रहा है। कोई दूसरा पता इस्तेमाल करें।",
-    failed_save_recovery_email:
-      "फिर से कोशिश करें।",
+    failed_save_recovery_email: "फिर से कोशिश करें।",
     recovery_phrase_title: "अपना रिकवरी फ़्रेज़ सहेजें",
     recovery_phrase_desc:
       "अगर आप कभी अपना पासवर्ड भूल जाते हैं, तो अपना खाता और सारा एन्क्रिप्टेड मेल पूरी तरह बहाल करने का यही 12 शब्द एकमात्र तरीका हैं। इन्हें क्रम से लिख लें और कहीं सुरक्षित और ऑफ़लाइन रखें।",
@@ -9233,9 +9139,6 @@ export const hi = {
     recovery_phrase_confirm_error:
       "एक या ज़्यादा शब्द मेल नहीं खाते। अपना सहेजा गया फ़्रेज़ जांचें और फिर से कोशिश करें।",
     recovery_phrase_skip_check: "मैंने इसे सहेज लिया, यह जांच छोड़ें",
-    forgot_method_title: "आप अपना खाता कैसे रिकवर करना चाहते हैं?",
-    forgot_method_desc:
-      "आप जो तरीका चुनते हैं, वही तय करता है कि आपका एन्क्रिप्टेड डेटा बहाल हो सकता है या नहीं।",
     forgot_method_full_restore: "पूरी बहाली",
     forgot_method_access_only: "सिर्फ़ पहुंच",
     forgot_method_phrase_title: "मेरा रिकवरी फ़्रेज़ इस्तेमाल करें",
@@ -9247,10 +9150,6 @@ export const hi = {
     forgot_method_email_title: "मुझे रीसेट लिंक ईमेल करें",
     forgot_method_email_desc:
       "अपने खाते तक फिर से पहुंच पाएं। रीसेट से पहले का एन्क्रिप्टेड मेल दोबारा तभी पढ़ा जा सकता है, जब आपको बाद में अपना फ़्रेज़ या कोई कोड मिल जाए।",
-    phrase_entry_title: "अपना रिकवरी फ़्रेज़ डालें",
-    phrase_entry_desc: "12 शब्द क्रम से टाइप करें या पेस्ट करें।",
-    phrase_entry_invalid:
-      "यह मान्य रिकवरी फ़्रेज़ नहीं है। शब्द और उनका क्रम जांचें।",
     phrase_recovery_failed:
       "यह फ़्रेज़ इस खाते से मेल नहीं खाता। शब्द और ईमेल पता जांचें।",
     reset_consent_title: "यह रीसेट आपका पुराना डेटा डिक्रिप्ट नहीं कर सकता",
@@ -9312,8 +9211,7 @@ export const hi = {
     creating_new_recovery_backup: "नया रिकवरी बैकअप बनाया जा रहा है...",
     saving_new_credentials: "नए क्रेडेंशियल सहेजे जा रहे हैं...",
     recover_your_account: "अपना खाता रिकवर करें",
-    enter_email_associated:
-      "अपना खाता रिकवर करने के लिए अपना उपयोगकर्ता नाम डालें",
+    enter_email_associated: "जिस खाते को रिकवर करना है उसका पता दर्ज करें।",
     back_to_sign_in: "साइन इन पर वापस जाएं",
     email_me_reset_link: "मुझे रीसेट लिंक ईमेल करें",
     have_recovery_code: "रिकवरी कोड है?",
@@ -9332,9 +9230,7 @@ export const hi = {
     set_new_password: "नया पासवर्ड सेट करें",
     resetting_password: "पासवर्ड रीसेट किया जा रहा है...",
     enter_recovery_code: "रिकवरी कोड डालें",
-    enter_recovery_code_desc:
-      "खाता बनाते समय सहेजे गए रिकवरी कोड में से कोई एक डालें",
-    verify_code: "कोड सत्यापित करें",
+    enter_recovery_code_desc: "खाता बनाते समय सहेजे गए रिकवरी कोड में से कोई एक दर्ज करें।",
     create_new_password: "नया पासवर्ड बनाएं",
     choose_strong_password: "अपने खाते के लिए एक मज़बूत पासवर्ड चुनें",
     recovering_your_account: "आपका खाता रिकवर किया जा रहा है",
@@ -9344,8 +9240,50 @@ export const hi = {
     old_codes_invalidated:
       "आपके पुराने रिकवरी कोड अब काम नहीं करते। यह विंडो बंद करने से पहले इस नए सेट को कहीं सुरक्षित सहेज लेने पर आप सुरक्षित रहेंगे।",
     n_recovery_codes: "{{count}} रिकवरी कोड",
+    recovery_code_already_used:
+      "यह कोड पहले ही इस्तेमाल हो चुका है। हर कोड एक बार काम करता है, इसलिए अपनी सेव की गई सूची से कोई दूसरा कोड डालें।",
+    try_another_way: "दूसरा तरीका आज़माएं",
+    recovery_email_label: "Aster Mail पता",
+    recovery_domain_hint: "वह डोमेन चुनें जो आपके खाते से मेल खाता है।",
+    recovery_code_label: "रिकवरी कोड",
+    recovery_code_hint: "हर कोड एक बार काम करता है। कोड ऐसे दिखते हैं: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "दूसरा पता इस्तेमाल करें",
+    change_account_desc: "कोई दूसरा Aster Mail खाता पुनर्प्राप्त करें।",
+    support_step_title: "सहायता से संपर्क करें",
+    support_step_desc: "Aster Mail आपका एन्क्रिप्टेड डेटा नहीं पढ़ सकता, इसलिए रिकवरी कोड या रिकवरी ईमेल के बिना कोई उसे नहीं खोल सकता। सहायता टीम आपका खाता देख सकती है और आगे के कदमों में मदद कर सकती है।",
+    support_email_action: "सहायता को ईमेल करें",
+    support_help_center: "सहायता केंद्र खोलें",
+    other_ways_title: "दूसरा तरीका आज़माएं",
+    other_ways_desc: "चुनें कि आप अपने खाते में वापस कैसे आना चाहते हैं।",
+    other_way_code_title: "रिकवरी कोड इस्तेमाल करें",
+    other_way_code_desc: "सेव किए गए कोड में से कोई एक डालें।",
+    other_way_email_title: "रिकवरी ईमेल से रीसेट करें",
+    other_way_email_desc:
+      "Aster Mail आपके रिकवरी ईमेल पर एक लिंक भेजता है। रीसेट से पहले के मेल तक आपकी पहुंच खत्म हो जाती है।",
+    other_way_none_title: "मेरे पास इनमें से कुछ नहीं है",
+    other_way_none_desc: "सहायता से संपर्क करें, हम आगे के कदमों में मदद करेंगे।",
+    reset_account_title: "क्या खाता रीसेट करना है?",
+    reset_account_desc:
+      "रीसेट से पहले के एन्क्रिप्ट किए गए मेल, संपर्क और फ़ाइलें तब तक लॉक रहती हैं जब तक आप उन्हें अपने पुराने पासवर्ड से रिकवर नहीं करते। आपको एक नई, खाली एन्क्रिप्शन कुंजी मिलती है।",
+    send_reset_link: "रीसेट लिंक भेजें",
+    print_codes: "प्रिंट करें",
+    codes_copied: "कोड कॉपी हो गए।",
+    i_saved_these_codes: "मैंने ये कोड सेव कर लिए हैं",
+    review_security_title: "अपनी सुरक्षा जांचें",
+    review_security_desc:
+      "आपका पासवर्ड बदल दिया गया और आपका खाता रिकवर हो गया।",
+    review_devices_signed_out: "दूसरे डिवाइस से साइन आउट कर दिया गया।",
+    review_two_step_off: "2-चरणीय सत्यापन बंद है।",
+    review_turn_on: "चालू करें",
+    review_recovery_email_kept: "आपका रिकवरी ईमेल अब भी सेट है।",
+    review_no_recovery_email: "कोई रिकवरी ईमेल नहीं।",
+    review_add: "जोड़ें",
+    review_codes_left: "{{count}} रिकवरी कोड बचे हैं।",
+    review_codes_left_one: "{{count}} रिकवरी कोड बचा है।",
+    review_codes_left_other: "{{count}} रिकवरी कोड बचे हैं।",
     import_mail_step_title: "अपना मेल साथ लाएँ",
-    import_mail_step_desc: "दूसरे खाते के संदेश Aster में लाएँ। सब कुछ सहेजे जाने से पहले आपके डिवाइस पर एन्क्रिप्ट होता है।",
+    import_mail_step_desc:
+      "दूसरे खाते के संदेश Aster में लाएँ। सब कुछ सहेजे जाने से पहले आपके डिवाइस पर एन्क्रिप्ट होता है।",
     import_mail_action: "मेल इंपोर्ट करें",
     import_mail_skip: "खाली इनबॉक्स से शुरू करें",
     import_mail_privacy_note: "आप बाद में सेटिंग्स से भी इंपोर्ट कर सकते हैं।",
@@ -9620,8 +9558,7 @@ export const hi = {
       "आप किसी संदेश पर अधिकतम दो प्रतिक्रियाएं जोड़ सकते हैं। दूसरी जोड़ने के लिए, अपनी एक प्रतिक्रिया हटाएं।",
     cannot_react_no_recipient:
       "इस संदेश का कोई प्रेषक नहीं है जिसे प्रतिक्रिया भेजी जा सके।",
-    failed_send_reaction:
-      "फिर से कोशिश करें।",
+    failed_send_reaction: "फिर से कोशिश करें।",
     reactions_disabled: "आपकी सेटिंग में प्रतिक्रियाएं बंद हैं।",
     network:
       "हम सर्वर तक नहीं पहुंच सके। अपना कनेक्शन जांचकर फिर से कोशिश करने से आमतौर पर काम बन जाता है।",
@@ -9655,44 +9592,30 @@ export const hi = {
       "यह पासवर्ड लंबाई की सीमा से बड़ा है। छोटा पासवर्ड काम करेगा।",
     account_not_found:
       "हमें उस नाम का कोई खाता नहीं मिला। वर्तनी जांचें, या astermail.org/reset पर अपना पासवर्ड रीसेट करें।",
-    login_failed:
-      "फिर से कोशिश करें।",
+    login_failed: "फिर से कोशिश करें।",
     decrypt_failed:
       "उस पासवर्ड से इस डिवाइस पर आपकी कुंजियां अनलॉक नहीं हुईं। दोबारा कोशिश करने पर काम बन जाएगा, और बार-बार विफल होने पर astermail.org/reset पर रिकवरी कोड दूसरा रास्ता है। सर्वर पर आपका डेटा जस का तस है।",
     an_error_occurred: "फिर से कोशिश करें।",
-    failed_to_block_sender:
-      "फिर से कोशिश करें।",
-    failed_to_snooze:
-      "फिर से कोशिश करें।",
+    failed_to_block_sender: "फिर से कोशिश करें।",
+    failed_to_snooze: "फिर से कोशिश करें।",
     ghost_alias_not_found: "हमें इस थ्रेड से जुड़ा घोस्ट पता नहीं मिला।",
-    failed_to_resolve_ghost_alias:
-      "फिर से कोशिश करें।",
+    failed_to_resolve_ghost_alias: "फिर से कोशिश करें।",
     ghost_alias_rate_limit:
       "आपने इस महीने के अपने सभी घोस्ट एलियास इस्तेमाल कर लिए हैं। अपना प्लान अपग्रेड करने, या अगले महीने के रीसेट का इंतज़ार करने पर आपको और मिलेंगे।",
     ghost_alias_already_exists: "यह घोस्ट एलियास पहले से आपके खाते में है।",
-    failed_to_create_ghost_alias:
-      "फिर से कोशिश करें।",
+    failed_to_create_ghost_alias: "फिर से कोशिश करें।",
     ghost_expiry_extend_only:
       "आप घोस्ट पते की अवधि सिर्फ़ बढ़ा सकते हैं, घटा नहीं सकते।",
     ghost_expiry_update_failed: "समाप्ति अपडेट नहीं हुई। फिर से कोशिश करें।",
-    failed_to_activate_ghost_mode:
-      "फिर से कोशिश करें।",
-    failed_to_queue_email:
-      "फिर से कोशिश करें।",
-    failed_to_send_queued:
-      "फिर से कोशिश करें।",
-    failed_to_send_external_queued:
-      "फिर से कोशिश करें।",
-    authentication_failed:
-      "फिर से कोशिश करें।",
-    failed_to_snooze_email:
-      "फिर से कोशिश करें।",
-    failed_to_snooze_emails:
-      "फिर से कोशिश करें।",
-    failed_to_unsnooze_email:
-      "फिर से कोशिश करें।",
-    failed_to_list_snoozed:
-      "फिर से कोशिश करें।",
+    failed_to_activate_ghost_mode: "फिर से कोशिश करें।",
+    failed_to_queue_email: "फिर से कोशिश करें।",
+    failed_to_send_queued: "फिर से कोशिश करें।",
+    failed_to_send_external_queued: "फिर से कोशिश करें।",
+    authentication_failed: "फिर से कोशिश करें।",
+    failed_to_snooze_email: "फिर से कोशिश करें।",
+    failed_to_snooze_emails: "फिर से कोशिश करें।",
+    failed_to_unsnooze_email: "फिर से कोशिश करें।",
+    failed_to_list_snoozed: "फिर से कोशिश करें।",
     auth_required: "जारी रखने के लिए साइन इन करें।",
     no_permission:
       "आपके पास यह करने की पहुंच नहीं है। अगर यह गलत लगता है, तो आपका एडमिन मदद कर सकता है।",
@@ -9708,8 +9631,7 @@ export const hi = {
       "हम सर्वर तक नहीं पहुंच सके। अपना कनेक्शन जांचकर फिर से कोशिश करने से आमतौर पर काम बन जाता है।",
     request_timeout:
       "अनुरोध पूरा होने में बहुत समय लग गया। अपना कनेक्शन जांचकर फिर से कोशिश करने पर आमतौर पर काम बन जाता है।",
-    unexpected_error:
-      "फिर से कोशिश करें।",
+    unexpected_error: "फिर से कोशिश करें।",
     encryption_keys_not_loaded:
       "आपकी निजी कुंजियां इस डिवाइस पर लॉक हैं। आपका पासवर्ड उन्हें अनलॉक कर देगा। सर्वर पर आपकी कुंजियों पर कोई असर नहीं पड़ा है।",
     session_expired_reenter:
@@ -9718,10 +9640,8 @@ export const hi = {
       "आपकी निजी कुंजियां इस डिवाइस पर लॉक हैं। आपका पासवर्ड उन्हें अनलॉक कर देगा। सर्वर पर आपकी कुंजियों पर कोई असर नहीं पड़ा है।",
     session_expired_send:
       "यह ईमेल भेजे जाने से पहले आपका सेशन खत्म हो गया। दोबारा साइन इन करने पर यह भेज दिया जाएगा। आपका ड्राफ़्ट सहेज लिया गया है।",
-    failed_encrypt_envelope:
-      "फिर से कोशिश करें।",
-    failed_pgp_encrypt:
-      "फिर से कोशिश करें।",
+    failed_encrypt_envelope: "फिर से कोशिश करें।",
+    failed_pgp_encrypt: "फिर से कोशिश करें।",
     no_authenticated_account:
       "इस डिवाइस पर कोई साइन इन किया हुआ खाता नहीं मिला। जारी रखने के लिए साइन इन करें।",
     daily_limit_reached:
@@ -9735,8 +9655,7 @@ export const hi = {
       "ये अटैचमेंट मिलकर {{size}} से ज़्यादा हो जाते हैं, जो आपके प्लान में एक संदेश की अधिकतम सीमा है। कोई फ़ाइल निकालने या छोटी करने पर यह भेजा जा सकेगा। आपका ड्राफ़्ट सहेज लिया गया है।",
     too_many_attachments:
       "इस संदेश में {{max}} से ज़्यादा अटैचमेंट हैं, जो एक संदेश की अधिकतम सीमा है। कुछ निकालने पर यह भेजा जा सकेगा। आपका ड्राफ़्ट सहेज लिया गया है।",
-    failed_send_email:
-      "फिर से कोशिश करें।",
+    failed_send_email: "फिर से कोशिश करें।",
     cannot_send_no_keys:
       "आपने अनिवार्य एन्क्रिप्शन चालू कर रखा है, और हमारे पास {{recipients}} के लिए कोई कुंजी नहीं है। उनसे कुंजी साझा करने को कहने, या सेटिंग में अनिवार्य एन्क्रिप्शन बंद करने पर यह भेजा जा सकेगा। आपका ड्राफ़्ट सहेज लिया गया है।",
     cannot_send_no_recipient_keys:
@@ -9745,19 +9664,14 @@ export const hi = {
       "Aster खातों के बीच के संदेश Aster पोस्ट-क्वांटम एन्क्रिप्शन में रखता है, और {{recipients}} ने अभी तक पोस्ट-क्वांटम कुंजियां प्रकाशित नहीं की हैं। उनसे Aster खोलने या अपना ऐप अपडेट करने को कहें, फिर दोबारा कोशिश करें। आपका ड्राफ़्ट सहेज लिया गया है।",
     cannot_send_no_recovery_key:
       "Aster यह संदेश अभी नहीं भेज सकता, क्योंकि प्राप्तकर्ता के खाते में इसे पढ़ने के लिए ज़रूरी कुंजियां नहीं हैं। उनसे किसी भी डिवाइस पर Aster खोलने या अपना ऐप अपडेट करने को कहें ताकि वे कुंजियां ताज़ा हो जाएं, फिर दोबारा कोशिश करें। आपका ड्राफ़्ट सहेज लिया गया है।",
-    failed_send_external:
-      "फिर से कोशिश करें।",
-    failed_queue_email:
-      "फिर से कोशिश करें।",
+    failed_send_external: "फिर से कोशिश करें।",
+    failed_queue_email: "फिर से कोशिश करें।",
     no_active_account:
       "इस डिवाइस पर कोई साइन इन किया हुआ खाता नहीं मिला। जारी रखने के लिए साइन इन करें।",
-    failed_queue_reply:
-      "फिर से कोशिश करें।",
+    failed_queue_reply: "फिर से कोशिश करें।",
     no_recipients: "भेजने से पहले कम से कम एक प्राप्तकर्ता ज़रूरी है।",
-    failed_queue_forward:
-      "फिर से कोशिश करें।",
-    failed_send:
-      "फिर से कोशिश करें।",
+    failed_queue_forward: "फिर से कोशिश करें।",
+    failed_send: "फिर से कोशिश करें।",
     incorrect_password:
       "गलत पासवर्ड। फिर से कोशिश करें। आपका खाता लॉक नहीं हुआ है।",
     no_keys_available:
@@ -9773,8 +9687,7 @@ export const hi = {
     registration_failed:
       "साइन अप पूरा नहीं हुआ। दोबारा शुरू करके कोशिश करने से आमतौर पर काम बन जाता है। कोई खाता नहीं बना।",
     registration_cancelled: "पंजीकरण रद्द हो गया",
-    authentication_failed_webauthn:
-      "फिर से कोशिश करें।",
+    authentication_failed_webauthn: "फिर से कोशिश करें।",
     authentication_cancelled: "प्रमाणीकरण रद्द हो गया",
     alias_empty: "यहां एलियास का नाम ज़रूरी है।",
     alias_too_short: "कम से कम 3 वर्ण इस्तेमाल करें।",
@@ -9789,8 +9702,7 @@ export const hi = {
     domain_too_long: "यह डोमेन बहुत लंबा है। छोटा डोमेन काम करेगा।",
     domain_reserved:
       "यहां astermail.org और aster.cx इस्तेमाल नहीं हो सकते। आपका अपना कोई दूसरा डोमेन काम करेगा।",
-    domain_invalid_format:
-      "मान्य डोमेन दर्ज करें।",
+    domain_invalid_format: "मान्य डोमेन दर्ज करें।",
     domain_invalid_label:
       "इस डोमेन का एक हिस्सा बहुत लंबा या बहुत छोटा है। डोमेन जांचें और फिर से कोशिश करें।",
     domain_invalid_chars:
@@ -9806,8 +9718,7 @@ export const hi = {
       "एक साथ अधिकतम {{max}} खाते चालू रह सकते हैं। एक खाता निकालने पर दूसरे के लिए जगह बन जाएगी।",
     account_already_added:
       "यह खाता इस डिवाइस पर पहले से साइन इन है। इसके बजाय खाता मेन्यू से उस पर जाएं।",
-    failed_encrypt_draft:
-      "फिर से कोशिश करें।",
+    failed_encrypt_draft: "फिर से कोशिश करें।",
     failed_decrypt_draft:
       "हम इस डिवाइस पर यह ड्राफ़्ट नहीं खोल सके। साइन आउट करके फिर से साइन इन करने के बाद एक और कोशिश आमतौर पर काम कर जाती है।",
     version_conflict:
@@ -9841,12 +9752,9 @@ export const hi = {
       "हमने {{count}} ऐसे ईमेल छोड़ दिए जिनमें प्रेषक या मुख्य भाग नहीं था। बाकी इंपोर्ट हो गए।",
     unrecognized_format:
       "Aster {{name}} नहीं पढ़ सकता। समर्थित फ़ॉर्मैट MBOX, EML, CSV और PST हैं। फ़ाइल को इनमें से किसी एक रूप में सहेजकर फिर से कोशिश करें।",
-    unknown_error:
-      "फिर से कोशिश करें।",
-    health_check_failed:
-      "फिर से कोशिश करें।",
-    unexpected_health_check_error:
-      "फिर से कोशिश करें।",
+    unknown_error: "फिर से कोशिश करें।",
+    health_check_failed: "फिर से कोशिश करें।",
+    unexpected_health_check_error: "फिर से कोशिश करें।",
     all_emails_rejected:
       "इस फ़ाइल के सभी {{count}} ईमेल छोड़ दिए गए क्योंकि हर एक में प्रेषक या मुख्य भाग नहीं था, इसलिए कुछ भी आयात नहीं हुआ। स्रोत निर्यात जांचें और फिर से कोशिश करें।",
     wrong_vault_password:
@@ -10066,14 +9974,10 @@ export const hi = {
     value_placeholder: "मान",
     pick_folder: "एक फ़ोल्डर चुनें",
     pick_labels: "लेबल चुनें",
-    load_failed:
-      "फिर से कोशिश करें।",
-    save_failed:
-      "फिर से कोशिश करें।",
-    reorder_failed:
-      "फिर से कोशिश करें।",
-    rule_delete_failed:
-      "फिर से कोशिश करें।",
+    load_failed: "फिर से कोशिश करें।",
+    save_failed: "फिर से कोशिश करें।",
+    reorder_failed: "फिर से कोशिश करें।",
+    rule_delete_failed: "फिर से कोशिश करें।",
     snooze_needs_future: "भविष्य की कोई तारीख और समय चुनें।",
     match_case: "बड़े-छोटे अक्षर का मिलान करें",
     header_name_placeholder: "हेडर का नाम",

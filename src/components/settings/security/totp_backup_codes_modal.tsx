@@ -96,7 +96,7 @@ export function TotpBackupCodesModal({
               {backup_codes.map((code, index) => (
                 <button
                   key={index}
-                  className="px-3 py-2 text-sm font-mono text-center rounded cursor-pointer transition-colors hover:opacity-80 bg-surf-secondary text-txt-primary"
+                  className="px-3 py-2 text-sm font-mono text-center rounded cursor-pointer select-text transition-colors hover:opacity-80 bg-surf-secondary text-txt-primary"
                   type="button"
                   onClick={() => copy_single_code(code)}
                 >

@@ -132,6 +132,18 @@ describe("plural selection", () => {
     );
   });
 
+  it("uses the singular form for a single recovery code", () => {
+    expect(translate("auth.review_codes_left", { count: 1 })).toBe(
+      "1 recovery code left.",
+    );
+    expect(translate("auth.review_codes_left", { count: 10 })).toBe(
+      "10 recovery codes left.",
+    );
+    expect(translate("auth.review_codes_left", { count: 0 })).toBe(
+      "0 recovery codes left.",
+    );
+  });
+
   it("leaves keys without plural variants untouched", () => {
     expect(translate("settings.fam_org_stat_pending", { count: 1 })).toBe(
       "1 pending",

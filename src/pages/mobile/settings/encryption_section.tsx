@@ -25,11 +25,9 @@ import {
   LockClosedIcon,
   ClipboardDocumentIcon,
   ArrowDownTrayIcon,
-  ArrowPathIcon,
   ServerStackIcon,
   LinkIcon,
   CheckCircleIcon,
-  XCircleIcon,
 } from "@heroicons/react/24/outline";
 import { Switch, Radio } from "@aster/ui";
 
@@ -40,7 +38,6 @@ import {
   chip_selected_style,
 } from "./shared";
 
-import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { Spinner } from "@/components/ui/spinner";
@@ -52,7 +49,6 @@ import { api_client } from "@/services/api/client";
 import { derive_password_hash } from "@/services/crypto/key_manager";
 import { use_encryption } from "@/components/settings/hooks/use_encryption";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { show_toast } from "@/components/toast/simple_toast";
 
 function base64_to_array(base64: string): Uint8Array {
   const binary = atob(base64);
@@ -393,136 +389,6 @@ export function EncryptionSection({
           </SettingsGroup>
         )}
 
-        <SettingsGroup title={t("settings.recovery_codes")}>
-          <div className="px-4 py-3">
-            <div className="rounded-2xl bg-[var(--mobile-bg-card)] overflow-hidden">
-              <div className="px-4 py-3">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[14px] font-medium text-[var(--mobile-text-primary)]">
-                    {t("settings.recovery_codes")}
-                  </span>
-                  {enc.codes_used > 0 && (
-                    <span
-                      className="text-[11px] font-medium px-2.5 py-1 rounded-full"
-                      style={{
-                        backgroundColor:
-                          enc.codes_remaining <= 2
-                            ? "rgba(239, 68, 68, 0.1)"
-                            : "rgba(234, 179, 8, 0.1)",
-                        color: enc.codes_remaining <= 2 ? "#ef4444" : "#eab308",
-                      }}
-                    >
-                      {t("settings.codes_used_count", { used: enc.codes_used })}
-                    </span>
-                  )}
-                </div>
-                <p className="text-[12px] text-[var(--mobile-text-muted)] mb-3">
-                  {t("settings.codes_remaining_count", {
-                    remaining: enc.codes_remaining,
-                    total: enc.codes_total,
-                  })}
-                </p>
-                <div className="flex gap-1">
-                  {Array.from({ length: enc.codes_total }).map((_, i) => (
-                    <div
-                      key={i}
-                      className="flex-1 h-1.5 rounded-full"
-                      style={{
-                        backgroundColor:
-                          i < enc.codes_remaining
-                            ? "var(--mobile-accent, #6b8aff)"
-                            : "var(--mobile-border)",
-                      }}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {enc.codes_remaining <= 2 && enc.codes_remaining > 0 && (
-                <div className="px-4 py-2.5 flex items-center gap-2 border-t border-[var(--mobile-border)] bg-red-500/5">
-                  <XCircleIcon className="w-4 h-4 text-red-500 shrink-0" />
-                  <p className="text-[12px] text-red-500">
-                    {t("settings.running_low_warning")}
-                  </p>
-                </div>
-              )}
-
-              {enc.show_recovery_codes && enc.recovery_codes && (
-                <div className="px-4 py-3 border-t border-[var(--mobile-border)]">
-                  <div className="flex flex-col gap-1.5 mb-3">
-                    {enc.recovery_codes.map((code, index) => (
-                      <button
-                        key={`${enc.codes_key}-${index}`}
-                        className="flex items-center gap-2 px-3 py-2.5 rounded-[14px] bg-[var(--mobile-bg-page)] active:bg-[var(--mobile-bg-card-hover)]"
-                        type="button"
-                        onClick={async () => {
-                          try {
-                            await copy_text_or_throw(code);
-                            show_toast(
-                              t("settings.copied_to_clipboard"),
-                              "success",
-                            );
-                          } catch {
-                            show_toast(t("common.failed_to_copy"), "error");
-                          }
-                        }}
-                      >
-                        <span className="text-[11px] font-medium w-5 text-[var(--mobile-text-muted)]">
-                          {index + 1}
-                        </span>
-                        <code className="text-[13px] font-mono text-[var(--mobile-text-primary)]">
-                          {code}
-                        </code>
-                      </button>
-                    ))}
-                  </div>
-                  <div className="flex gap-2">
-                    <motion.button
-                      className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3 text-[14px] font-semibold text-white"
-                      style={{
-                        background:
-                          "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                        boxShadow:
-                          "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                      }}
-                      type="button"
-                      onClick={enc.handle_download_codes}
-                    >
-                      <ArrowDownTrayIcon className="w-4 h-4" />
-                      {t("settings.download_pdf")}
-                    </motion.button>
-                    <button
-                      aria-label={t("settings.copy_all_codes")}
-                      className="p-3 rounded-[14px] bg-[var(--mobile-bg-card-hover)]"
-                      type="button"
-                      onClick={enc.handle_copy_all_codes}
-                    >
-                      <ClipboardDocumentIcon className="w-4 h-4 text-[var(--mobile-text-muted)]" />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              <div className="px-4 py-3 border-t border-[var(--mobile-border)]">
-                <motion.button
-                  className="flex w-full items-center justify-center gap-2 rounded-xl py-3 text-[14px] font-semibold text-white"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                    boxShadow:
-                      "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                  }}
-                  type="button"
-                  onClick={enc.open_regenerate_confirm}
-                >
-                  <ArrowPathIcon className="w-4 h-4" />
-                  {t("settings.regenerate_codes_label")}
-                </motion.button>
-              </div>
-            </div>
-          </div>
-        </SettingsGroup>
-
         <SettingsGroup title={t("settings.storage_format_title")}>
           <div className="px-4 py-3">
             <p className="text-[12px] text-[var(--mobile-text-muted)] mb-3">
@@ -844,127 +710,6 @@ export function EncryptionSection({
           </motion.div>
         </div>
       )}
-
-      {enc.show_regenerate_confirm && (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50"
-          onClick={enc.close_regenerate_confirm}
-        >
-          <motion.div
-            animate={{ y: 0 }}
-            className="w-full max-w-lg rounded-t-3xl bg-[var(--mobile-bg-card)] px-6 pt-6 pb-8"
-            exit={{ y: "100%" }}
-            initial={{ y: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[var(--mobile-text-muted)] opacity-30" />
-            <h3 className="text-[17px] font-semibold text-[var(--mobile-text-primary)] mb-1">
-              {t("common.regenerate_recovery_codes")}
-            </h3>
-            <p className="text-[13px] text-[var(--mobile-text-muted)] mb-4">
-              {t("settings.regenerate_codes_warning")}{" "}
-              <code className="px-1 py-0.5 rounded text-[11px] bg-[var(--mobile-bg-page)]">
-                regenerate
-              </code>{" "}
-              {t("common.confirm").toLowerCase()}.
-            </p>
-            <div className="flex flex-col gap-3">
-              <Input
-                autoFocus
-                className="w-full"
-                placeholder={t("settings.type_regenerate")}
-                status={enc.regenerate_error ? "error" : "default"}
-                type="text"
-                value={enc.regenerate_confirm_text}
-                onChange={(e) =>
-                  enc.set_regenerate_confirm_text(e.target.value)
-                }
-              />
-              <Input
-                className="w-full"
-                maxLength={128}
-                placeholder={t("common.enter_password_prompt")}
-                status={enc.regenerate_error ? "error" : "default"}
-                type="password"
-                value={enc.regenerate_password}
-                onChange={(e) =>
-                  enc.set_regenerate_password(clamp_password(e.target.value))
-                }
-                onKeyDown={(e) =>
-                  e.key === "Enter" &&
-                  enc.regenerate_confirm_text.toLowerCase() === "regenerate" &&
-                  enc.regenerate_password.trim() &&
-                  enc.handle_regenerate_codes()
-                }
-              />
-              {enc.regenerate_totp_required && (
-                <Input
-                  className="w-full"
-                  inputMode="numeric"
-                  maxLength={6}
-                  placeholder={t("common.two_fa_code_placeholder")}
-                  status={enc.regenerate_error ? "error" : "default"}
-                  type="text"
-                  value={enc.regenerate_totp_code}
-                  onChange={(e) =>
-                    enc.set_regenerate_totp_code(
-                      e.target.value.replace(/\D/g, "").slice(0, 6),
-                    )
-                  }
-                  onKeyDown={(e) =>
-                    e.key === "Enter" &&
-                    enc.regenerate_confirm_text.toLowerCase() ===
-                      "regenerate" &&
-                    enc.regenerate_password.trim() &&
-                    enc.handle_regenerate_codes()
-                  }
-                />
-              )}
-              {enc.regenerate_error && (
-                <p className="text-[13px] text-[var(--mobile-danger)]">
-                  {enc.regenerate_error}
-                </p>
-              )}
-              <div className="flex gap-3 mt-2">
-                <button
-                  className="flex-1 rounded-[16px] py-3.5 text-[15px] font-medium text-[var(--mobile-text-secondary)] bg-[var(--mobile-bg-card-hover)]"
-                  type="button"
-                  onClick={enc.close_regenerate_confirm}
-                >
-                  {t("common.cancel")}
-                </button>
-                <motion.button
-                  className="flex flex-1 items-center justify-center rounded-xl py-3.5 text-[15px] font-semibold text-white disabled:opacity-50"
-                  disabled={
-                    enc.regenerate_confirm_text.toLowerCase() !==
-                      "regenerate" ||
-                    !enc.regenerate_password.trim() ||
-                    (enc.regenerate_totp_required &&
-                      enc.regenerate_totp_code.length !== 6) ||
-                    enc.is_regenerating
-                  }
-                  style={{
-                    background:
-                      "linear-gradient(180deg, #ef4444 0%, #dc2626 100%)",
-                    boxShadow:
-                      "0 2px 4px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                  }}
-                  type="button"
-                  onClick={enc.handle_regenerate_codes}
-                >
-                  {enc.is_regenerating ? (
-                    <Spinner size="md" />
-                  ) : (
-                    t("common.regenerate")
-                  )}
-                </motion.button>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
       <ConfirmationModal
         confirm_text={t("common.confirm")}
         is_open={show_ipfs_confirm}

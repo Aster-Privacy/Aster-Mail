@@ -322,28 +322,28 @@ export function EmailReplySection({
           </motion.div>
 
           {error_message && (
-            <div className="px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-              <p className="text-sm text-red-700 dark:text-red-400">
+            <div className="px-3 py-2 rounded-lg bg-red-600 border border-red-600">
+              <p className="text-sm text-white">
                 {error_message}
               </p>
             </div>
           )}
 
           {send_state === "queued" && (
-            <div className="px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+            <div className="px-3 py-2 rounded-lg bg-brand border border-brand">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-blue-700 dark:text-blue-400">
+                <p className="text-sm text-[var(--accent-fg,#ffffff)]">
                   {`${t("mail.sending_in")} ${countdown}${t("common.seconds")}...`}
                 </p>
                 <div className="flex gap-2">
                   <button
-                    className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline"
+                    className="text-sm font-medium text-[var(--accent-fg,#ffffff)] hover:underline"
                     onClick={handle_undo}
                   >
                     {t("common.undo")}
                   </button>
                   <button
-                    className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline"
+                    className="text-sm font-medium text-[var(--accent-fg,#ffffff)] hover:underline"
                     onClick={handle_send_now}
                   >
                     {t("common.send_now")}
@@ -354,8 +354,8 @@ export function EmailReplySection({
           )}
 
           {send_state === "sent" && (
-            <div className="px-3 py-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-              <p className="text-sm text-green-700 dark:text-green-400">
+            <div className="px-3 py-2 rounded-lg bg-green-700 border border-green-700">
+              <p className="text-sm text-white">
                 {t("mail.reply_sent_successfully")}
               </p>
             </div>
@@ -422,7 +422,7 @@ export function EmailReplySection({
             transition={{ delay: 0.25 }}
           >
             <motion.button
-              className="flex-1 py-2 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:from-blue-400 disabled:to-blue-500 transition-all text-sm"
+              className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:from-blue-400 disabled:to-blue-500 transition-all text-sm"
               disabled={!reply_text.trim() || is_disabled}
               transition={{
                 type: "tween",
@@ -434,11 +434,8 @@ export function EmailReplySection({
               }}
               onClick={handle_send_reply}
             >
-              {send_state === "sending" ? (
-                <Spinner size="sm" />
-              ) : (
-                t("mail.send")
-              )}
+              {send_state === "sending" && <Spinner size="sm" />}
+              {t("mail.send")}
             </motion.button>
             <motion.button
               className="px-4 py-2 border border-edge-secondary rounded-lg font-semibold transition-colors text-sm hover_bg text-txt-secondary"

@@ -28,6 +28,40 @@
   [role="button"][aria-disabled="true"] {
     cursor: not-allowed;
   }
+
+  button,
+  [role="button"],
+  [role="tab"],
+  [role="menuitem"],
+  [role="menuitemcheckbox"],
+  [role="menuitemradio"],
+  [role="option"],
+  [role="switch"],
+  [role="checkbox"],
+  [role="radio"],
+  [role="slider"],
+  summary,
+  label,
+  select,
+  nav,
+  .aster_btn {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  input,
+  textarea,
+  [contenteditable="true"],
+  [contenteditable="true"] *,
+  button code,
+  button pre,
+  [role="button"] code,
+  [role="button"] pre,
+  label input,
+  label textarea {
+    -webkit-user-select: auto;
+    user-select: text;
+  }
 }
 
 *,
@@ -3009,6 +3043,17 @@ aside[data-collapsed="true"] .sidebar-rail-btn:hover {
   }
 }
 
+.reduce-motion .animate-pulse,
+.reduce-motion .aster_skeleton {
+  animation: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse {
+    animation: none !important;
+  }
+}
+
 .compact-mode .p-6 {
   padding: 1rem;
 }
@@ -3283,6 +3328,12 @@ img[draggable="false"] {
   -webkit-user-drag: none;
 }
 
+.full-page-loader-logo {
+  height: 28px;
+  width: 112.56px;
+  display: block;
+}
+
 .loader-spinner {
   width: 24px;
   height: 24px;
@@ -3307,6 +3358,8 @@ img[draggable="false"] {
 
 .loader-text {
   font-size: 13px;
+  line-height: 20px;
+  height: 20px;
   font-weight: 500;
   color: var(--text-tertiary);
 }

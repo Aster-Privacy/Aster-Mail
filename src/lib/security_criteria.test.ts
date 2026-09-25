@@ -31,6 +31,7 @@ import { SETTINGS_ANCHORS } from "./settings_links";
 const none: SecurityCriterionSource = {
   totp_enabled: false,
   passkey_registered: false,
+  recovery_codes_saved: false,
   recovery_email_verified: false,
   login_alerts_enabled: false,
   block_tracking_pixels: false,
@@ -41,6 +42,7 @@ const none: SecurityCriterionSource = {
 const all: SecurityCriterionSource = {
   totp_enabled: true,
   passkey_registered: true,
+  recovery_codes_saved: true,
   recovery_email_verified: true,
   login_alerts_enabled: true,
   block_tracking_pixels: true,
@@ -60,7 +62,7 @@ describe("security criteria", () => {
   it("rounds a partial score", () => {
     const criteria = build_security_criteria({ ...none, totp_enabled: true });
 
-    expect(security_percent(criteria)).toBe(14);
+    expect(security_percent(criteria)).toBe(13);
   });
 
   it("routes the recovery email criterion to its account row", () => {
@@ -73,12 +75,22 @@ describe("security criteria", () => {
     });
   });
 
+  it("routes the recovery codes criterion to the security row", () => {
+    const criteria = build_security_criteria(none);
+    const codes = criteria.find((item) => item.id === "recovery_codes");
+
+    expect(codes?.target).toEqual({
+      section: "security",
+      anchor: SETTINGS_ANCHORS.account_recovery,
+    });
+  });
+
   it("gives every criterion an anchor to scroll to", () => {
     const criteria = build_security_criteria(none);
 
     expect(
       criteria.filter((item) => item.target.section === "security"),
-    ).toHaveLength(6);
+    ).toHaveLength(7);
     expect(criteria.every((item) => Boolean(item.target.anchor))).toBe(true);
   });
 

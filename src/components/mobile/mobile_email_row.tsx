@@ -334,6 +334,9 @@ export const MobileEmailRow = memo(function MobileEmailRow(
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
+          {!email.is_read && (
+            <span className="sr-only">{t("mail.unread")}</span>
+          )}
           <span
             className={`min-w-0 flex-1 truncate text-[15px] leading-tight ${
               !email.is_read

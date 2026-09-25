@@ -71,7 +71,7 @@ interface DraftContext {
   is_deleted: boolean;
 }
 
-interface SaveResult {
+export interface SaveResult {
   success: boolean;
   id?: string;
   version?: number;

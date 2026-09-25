@@ -112,9 +112,16 @@ export function EmailStep({
           className={`w-full ${error ? "mt-4" : "mt-6"}`}
           variants={reduce_motion ? undefined : fade_up_item}
         >
+          <label
+            className="mb-2 block text-sm font-medium text-[var(--text-primary)]"
+            htmlFor="mobile_recovery_address"
+          >
+            {t("auth.recovery_email_label")}
+          </label>
           <div className={DEPTH_INPUT_WRAPPER_CLASS}>
             <Input
               autoCapitalize="none"
+              id="mobile_recovery_address"
               autoComplete="username"
               autoCorrect="off"
               className={INNER_INPUT_CLASS}
@@ -181,6 +188,9 @@ export function EmailStep({
               @aster.cx
             </button>
           </div>
+          <p className="mt-2 text-xs text-[var(--text-tertiary)]">
+            {t("auth.recovery_domain_hint")}
+          </p>
         </motion.div>
       </motion.div>
 

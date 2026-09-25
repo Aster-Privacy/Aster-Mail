@@ -67,9 +67,11 @@ import {
   execute_internal_send,
   execute_external_email_send,
   execute_external_account_email_send,
+  type FailedSendData,
   type SendActionContext,
 } from "@/components/compose/compose_send_actions";
 import { ensure_external_key_trust } from "@/services/key_trust_consent";
+import { save_failed_send_as_draft } from "@/components/compose/compose_failed_send_draft";
 import { ensure_post_quantum_consent } from "@/services/post_quantum_consent";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
@@ -179,6 +181,28 @@ export function use_compose_send({
       }
     },
     [contacts],
+  );
+
+  const restore_failed_send_to_drafts = useCallback(
+    async (
+      failed: FailedSendData,
+      kept_draft: { id: string; version: number } | null,
+    ) => {
+      if (!vault) return;
+
+      const saved = await save_failed_send_as_draft(
+        draft_manager,
+        vault,
+        failed,
+        kept_draft,
+        edit_draft,
+      );
+
+      if (!saved) {
+        show_toast(t("common.failed_to_save"), "error");
+      }
+    },
+    [vault, edit_draft, t],
   );
 
   const build_send_context = useCallback(
@@ -414,7 +438,16 @@ export function use_compose_send({
         await draft_manager.await_pending_save(pending_draft_id);
       }
 
+      const pending_context = pending_draft_id
+        ? draft_manager.get_context(pending_draft_id)
+        : undefined;
+      const kept_draft = pending_context?.id
+        ? { id: pending_context.id, version: pending_context.version }
+        : null;
+      let draft_deleted = false;
+
       const confirm_draft_deleted = async () => {
+        draft_deleted = true;
         if (pending_draft_id) {
           await draft_manager.delete_draft(pending_draft_id);
           draft_manager.clear_context(pending_draft_id);
@@ -488,7 +521,14 @@ export function use_compose_send({
         });
       }
 
-      const ctx = build_send_context();
+      const ctx: SendActionContext = {
+        ...build_send_context(),
+        on_send_failed: (failed: FailedSendData) =>
+          restore_failed_send_to_drafts(
+            failed,
+            draft_deleted ? null : kept_draft,
+          ),
+      };
 
       if (selected_sender?.type === "external") {
         const sent = await execute_external_account_email_send(
@@ -582,6 +622,7 @@ export function use_compose_send({
     contacts,
     clear_all_errors,
     build_send_context,
+    restore_failed_send_to_drafts,
     reset_form,
     on_close,
     edit_draft,

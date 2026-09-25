@@ -1022,6 +1022,7 @@ export default function SignInPage() {
                     </label>
                     <Link
                       className="text-xs transition-colors hover:opacity-80 text-txt-tertiary"
+                      state={{ email_domain, username }}
                       to="/forgot-password"
                     >
                       {t("auth.forgot_password")}
