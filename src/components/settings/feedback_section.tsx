@@ -23,6 +23,13 @@ import {
   ChatBubbleBottomCenterTextIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
+import {
+  IslandRow,
+  IslandSection,
+  IslandSections,
+  PillButton,
+} from "@aster/ui";
+
 import { Button } from "@/components/ui/button";
 
 import { is_desktop } from "@/native/invoke_bridge";
@@ -30,7 +37,6 @@ import { api_client } from "@/services/api/client";
 import { API_ENDPOINTS } from "@/services/api/endpoints";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
-import { cn } from "@/lib/utils";
 
 const MAX_FEEDBACK_LENGTH = 2000;
 
@@ -86,30 +92,24 @@ export function FeedbackSection() {
   }, [feedback_text, category, t]);
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-4">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <ChatBubbleBottomCenterTextIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.your_feedback")}
-          </h3>
-        </div>
-        <div className="flex flex-wrap gap-2 mb-3">
+    <IslandSections>
+      <IslandSection
+        icon={<ChatBubbleBottomCenterTextIcon />}
+        island_class_name="space-y-3"
+        padding="md"
+        title={t("settings.your_feedback")}
+      >
+        <div className="flex flex-wrap gap-2">
           {FEEDBACK_CATEGORIES.map((option) => (
-            <button
+            <PillButton
               key={option.value}
               aria-pressed={category === option.value}
-              className={cn(
-                "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
-                category === option.value
-                  ? "border-transparent bg-[var(--accent-color)] text-[var(--accent-fg,#ffffff)] font-semibold"
-                  : "border-edge-secondary text-txt-secondary hover:text-txt-primary",
-              )}
-              type="button"
+              size="sm"
+              variant={category === option.value ? "filled" : "neutral"}
               onClick={() => set_category(option.value)}
             >
               {t(option.label_key)}
-            </button>
+            </PillButton>
           ))}
         </div>
         <textarea
@@ -122,11 +122,11 @@ export function FeedbackSection() {
           value={feedback_text}
           onChange={(e) => set_feedback_text(e.target.value)}
         />
-        <p className="text-xs mt-2 text-txt-muted">
+        <p className="text-xs text-txt-muted">
           {t("settings.feedback_not_encrypted")}
         </p>
-        <div className="flex items-center justify-between mt-4">
-          <span className="text-xs text-txt-muted">
+        <div className="flex items-center justify-between">
+          <span className="text-xs tabular-nums text-txt-muted">
             {feedback_text.length}/{MAX_FEEDBACK_LENGTH}
           </span>
           <Button
@@ -139,25 +139,18 @@ export function FeedbackSection() {
             {t("settings.send_feedback_button")}
           </Button>
         </div>
-      </div>
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <EnvelopeIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.other_ways_to_reach")}
-          </h3>
-        </div>
-        <p className="text-xs text-txt-muted">
-          {t("settings.email_label")}{" "}
-          <a
-            className="text-[var(--accent-color)] hover:underline cursor-pointer"
-            href="mailto:hello@astermail.org"
-          >
-            hello@astermail.org
-          </a>
-        </p>
-      </div>
-    </div>
+      <IslandSection
+        icon={<EnvelopeIcon />}
+        title={t("settings.other_ways_to_reach")}
+      >
+        <IslandRow
+          description={t("settings.email_label").replace(/[:：]\s*$/, "")}
+          href="mailto:hello@astermail.org"
+          label="hello@astermail.org"
+        />
+      </IslandSection>
+    </IslandSections>
   );
 }

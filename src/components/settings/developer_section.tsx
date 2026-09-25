@@ -31,7 +31,7 @@ import {
   CircleStackIcon,
   WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Island, IslandSection, IslandSections } from "@aster/ui";
 
 import { trigger_download } from "@/utils/download_blob";
 import { copy_text_or_throw } from "@/utils/copy_text";
@@ -464,27 +464,20 @@ export function DeveloperSection() {
     </div>
   );
 
-  const section_header = (
-    title: string,
-    Icon: React.ComponentType<{ className?: string }>,
-  ) => (
-    <div className="mb-4">
-      <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-        <Icon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-        {title}
-      </h3>
-    </div>
-  );
-
   const section_box = (children: React.ReactNode) => (
-    <div className="rounded-lg p-4 space-y-2 bg-surf-tertiary">{children}</div>
+    <Island className="space-y-2" padding="md">
+      {children}
+    </Island>
   );
 
   return (
-    <div className="space-y-4">
-      <div>
-        {section_header(t("settings.build_info"), InformationCircleIcon)}
-        <div className="rounded-lg p-4 bg-surf-tertiary">
+    <IslandSections>
+      <IslandSection
+        bare
+        icon={<InformationCircleIcon />}
+        title={t("settings.build_info")}
+      >
+        <Island padding="md">
           <div className="grid grid-cols-2 gap-y-3 gap-x-6">
             <div>
               <p className="text-[11px] text-txt-muted">
@@ -530,15 +523,18 @@ export function DeveloperSection() {
               </p>
             </div>
           </div>
-        </div>
-      </div>
+        </Island>
+      </IslandSection>
 
-      <div>
-        {section_header(t("settings.crypto_status"), LockClosedIcon)}
+      <IslandSection
+        bare
+        icon={<LockClosedIcon />}
+        title={t("settings.crypto_status")}
+      >
         {key_loading ? (
-          <div className="flex items-center justify-center py-8">
+          <Island className="flex items-center justify-center py-8">
             <Spinner className="text-txt-muted" size="md" />
-          </div>
+          </Island>
         ) : (
           section_box(
             <>
@@ -575,7 +571,7 @@ export function DeveloperSection() {
                 publication_label(keyserver_published),
                 keyserver_published,
               )}
-              <div className="border-t pt-2 mt-2 border-edge-secondary">
+              <div className="border-t pt-2 mt-2 space-y-2 border-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]">
                 {dev_row(t("settings.dev_encryption_label"), "AES-256-GCM")}
                 {dev_row(t("settings.dev_key_exchange_label"), "KEM-768")}
                 {dev_row(t("settings.dev_signatures_label"), "PGP Ed25519")}
@@ -587,10 +583,13 @@ export function DeveloperSection() {
             </>,
           )
         )}
-      </div>
+      </IslandSection>
 
-      <div>
-        {section_header(t("settings.session_account"), UserIcon)}
+      <IslandSection
+        bare
+        icon={<UserIcon />}
+        title={t("settings.session_account")}
+      >
         {section_box(
           <>
             {dev_row(
@@ -608,10 +607,13 @@ export function DeveloperSection() {
             )}
           </>,
         )}
-      </div>
+      </IslandSection>
 
-      <div>
-        {section_header(t("settings.email_statistics"), ChartBarIcon)}
+      <IslandSection
+        bare
+        icon={<ChartBarIcon />}
+        title={t("settings.email_statistics")}
+      >
         {section_box(
           <>
             {dev_row(
@@ -640,10 +642,9 @@ export function DeveloperSection() {
             )}
           </>,
         )}
-      </div>
+      </IslandSection>
 
-      <div>
-        {section_header(t("settings.performance"), BoltIcon)}
+      <IslandSection bare icon={<BoltIcon />} title={t("settings.performance")}>
         {section_box(
           <>
             {dev_row(
@@ -662,10 +663,9 @@ export function DeveloperSection() {
             {dev_row(t("settings.viewport"), get_viewport_info())}
           </>,
         )}
-      </div>
+      </IslandSection>
 
-      <div>
-        {section_header(t("settings.network"), GlobeAltIcon)}
+      <IslandSection bare icon={<GlobeAltIcon />} title={t("settings.network")}>
         {section_box(
           <>
             {dev_row_with_status(
@@ -687,10 +687,13 @@ export function DeveloperSection() {
             )}
           </>,
         )}
-      </div>
+      </IslandSection>
 
-      <div>
-        {section_header(t("settings.storage"), CircleStackIcon)}
+      <IslandSection
+        bare
+        icon={<CircleStackIcon />}
+        title={t("settings.storage")}
+      >
         {section_box(
           <>
             {dev_row(t("settings.service_worker"), sw_status)}
@@ -707,11 +710,14 @@ export function DeveloperSection() {
             {dev_row(t("settings.indexed_db"), idb_info)}
           </>,
         )}
-      </div>
+      </IslandSection>
 
-      <div>
-        {section_header(t("settings.actions"), WrenchScrewdriverIcon)}
-        <div className="rounded-lg p-4 space-y-2 bg-surf-tertiary">
+      <IslandSection
+        bare
+        icon={<WrenchScrewdriverIcon />}
+        title={t("settings.actions")}
+      >
+        <Island className="space-y-2" padding="md">
           <Button
             className="w-full"
             variant="secondary"
@@ -747,8 +753,8 @@ export function DeveloperSection() {
           >
             {t("settings.clear_cache_reload")}
           </Button>
-        </div>
-      </div>
+        </Island>
+      </IslandSection>
 
       <ConfirmationModal
         cancel_text={t("common.cancel")}
@@ -760,6 +766,6 @@ export function DeveloperSection() {
         title={t("settings.clear_cache_reload")}
         variant="danger"
       />
-    </div>
+    </IslandSections>
   );
 }

@@ -29,12 +29,18 @@ import {
   GlobeAltIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
-import { Checkbox, Radio } from "@aster/ui";
+import {
+  Checkbox,
+  Island,
+  IslandEmpty,
+  IslandSection,
+  IslandSections,
+  Radio,
+} from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
-import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
@@ -293,12 +299,12 @@ export function BlockedSection() {
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="flex items-center justify-between">
-          <h3 className="text-base font-semibold text-txt-primary">
-            {t("settings.blocked_senders_title")}
-          </h3>
+    <IslandSections>
+      <IslandSection
+        bare
+        description={t("settings.blocked_senders_description")}
+        title={t("settings.blocked_senders_title")}
+        trailing={
           <Button
             className="gap-2"
             onClick={() => (show_add_form ? close_add_form() : open_add_form())}
@@ -306,37 +312,34 @@ export function BlockedSection() {
             <PlusIcon className="w-4 h-4" />
             {t("common.add")}
           </Button>
+        }
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="relative flex-1 max-w-xs">
+            <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
+            <Input
+              placeholder={t("common.search_blocked_senders")}
+              size="md"
+              style={{ paddingInlineStart: "38px" }}
+              value={search_query}
+              onChange={(e) => set_search_query(e.target.value)}
+            />
+          </div>
+          {selected_ids.size > 0 && (
+            <Button
+              className="gap-2"
+              disabled={is_unblocking}
+              is_loading={is_unblocking}
+              size="md"
+              variant="destructive"
+              onClick={handle_bulk_unblock}
+            >
+              <TrashIcon className="w-4 h-4" />
+              {t("mail.unblock_sender")} ({selected_ids.size})
+            </Button>
+          )}
         </div>
-        <p className="text-sm mt-3 text-txt-muted">
-          {t("settings.blocked_senders_description")}
-        </p>
-      </div>
-
-      <div className="flex items-center justify-between gap-3">
-        <div className="relative flex-1 max-w-xs">
-          <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
-          <Input
-            placeholder={t("common.search_blocked_senders")}
-            size="md"
-            style={{ paddingInlineStart: "38px" }}
-            value={search_query}
-            onChange={(e) => set_search_query(e.target.value)}
-          />
-        </div>
-        {selected_ids.size > 0 && (
-          <Button
-            className="gap-2"
-            disabled={is_unblocking}
-            size="md"
-            variant="destructive"
-            onClick={handle_bulk_unblock}
-          >
-            <TrashIcon className="w-4 h-4" />
-            {is_unblocking && <ButtonSpinner />}
-            {t("mail.unblock_sender")} ({selected_ids.size})
-          </Button>
-        )}
-      </div>
+      </IslandSection>
 
       <Modal
         is_open={show_add_form}
@@ -399,53 +402,48 @@ export function BlockedSection() {
           </Button>
           <Button
             disabled={is_adding || !new_email.trim()}
+            is_loading={is_adding}
+            variant="depth"
             onClick={handle_add_blocked}
           >
             {t("common.block")}
-            {is_adding && <ButtonSpinner />}
           </Button>
         </ModalFooter>
       </Modal>
 
       {load_error && blocked_senders.length === 0 ? (
-        <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-          <ExclamationTriangleIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
-          <p className="text-sm text-txt-muted">
-            {t("settings.failed_to_load_blocklist")}
-          </p>
-          <Button
-            className="mt-3 gap-2"
-            size="md"
-            variant="ghost"
-            onClick={() => {
-              set_is_loading(true);
-              fetch_blocked_senders();
-            }}
-          >
-            <ArrowPathIcon className="w-4 h-4" />
-            {t("common.retry")}
-          </Button>
-        </div>
+        <IslandEmpty
+          action={
+            <Button
+              className="mt-3 gap-2"
+              size="md"
+              variant="ghost"
+              onClick={() => {
+                set_is_loading(true);
+                fetch_blocked_senders();
+              }}
+            >
+              <ArrowPathIcon className="w-4 h-4" />
+              {t("common.retry")}
+            </Button>
+          }
+          icon={<ExclamationTriangleIcon />}
+          title={t("settings.failed_to_load_blocklist")}
+        />
       ) : blocked_senders.length === 0 ? (
-        <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-          <NoSymbolIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
-          <p className="text-sm text-txt-muted">
-            {t("settings.no_blocked_senders")}
-          </p>
-        </div>
+        <IslandEmpty
+          icon={<NoSymbolIcon />}
+          title={t("settings.no_blocked_senders")}
+        />
       ) : filtered_senders.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 rounded-lg border bg-surf-tertiary border-edge-secondary">
-          <MagnifyingGlassIcon className="w-6 h-6 mb-2 text-txt-muted" />
-          <p className="text-[14px] font-medium text-txt-primary">
-            {t("common.no_results")}
-          </p>
-          <p className="text-[13px] mt-1 text-txt-muted">
-            {t("settings.try_different_search")}
-          </p>
-        </div>
+        <IslandEmpty
+          description={t("settings.try_different_search")}
+          icon={<MagnifyingGlassIcon />}
+          title={t("common.no_results")}
+        />
       ) : (
-        <div className="rounded-lg overflow-hidden border border-edge-secondary">
-          <div className="flex items-center px-4 py-2 border-b border-edge-secondary">
+        <Island className="overflow-hidden">
+          <div className="flex items-center px-4 py-2.5 border-b border-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]">
             <Checkbox
               checked={all_filtered_selected}
               className="p-2 -m-2"
@@ -463,7 +461,9 @@ export function BlockedSection() {
               className="flex items-center gap-3 px-4 py-3"
               style={{
                 borderTop:
-                  index > 0 ? "1px solid var(--border-secondary)" : "none",
+                  index > 0
+                    ? "1px solid color-mix(in srgb, var(--text-primary) 8%, transparent)"
+                    : "none",
                 contentVisibility: "auto",
                 containIntrinsicSize: "auto 57px",
               }}
@@ -502,13 +502,7 @@ export function BlockedSection() {
                         : sender.email}
                   </span>
                   {!sender.is_unreadable && sender.is_domain && (
-                    <span
-                      className="text-[10px] px-1.5 py-0.5 rounded"
-                      style={{
-                        backgroundColor: "var(--accent-red-muted)",
-                        color: "var(--accent-red)",
-                      }}
-                    >
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full flex-shrink-0 bg-[color-mix(in_srgb,var(--text-primary)_7%,transparent)] text-txt-secondary">
                       {t("settings.entire_domain")}
                     </span>
                   )}
@@ -534,6 +528,7 @@ export function BlockedSection() {
                   })}
                 </span>
                 <Button
+                  size="sm"
                   variant="destructive"
                   onClick={() => handle_unblock(sender)}
                 >
@@ -542,8 +537,8 @@ export function BlockedSection() {
               </div>
             </div>
           ))}
-        </div>
+        </Island>
       )}
-    </div>
+    </IslandSections>
   );
 }

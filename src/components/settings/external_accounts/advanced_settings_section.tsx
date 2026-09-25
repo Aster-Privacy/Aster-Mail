@@ -90,7 +90,7 @@ export function AdvancedSettingsSection({
             </label>
             <div
               aria-labelledby="ext-account-tls-method-label"
-              className="inline-flex p-1 rounded-lg bg-surf-secondary"
+              className="inline-flex gap-0.5 p-1 rounded-full bg-[color-mix(in_srgb,var(--text-primary)_7%,transparent)]"
               role="radiogroup"
             >
               {tls_method_options.map((option) =>

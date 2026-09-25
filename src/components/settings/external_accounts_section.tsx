@@ -21,9 +21,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { PlusIcon, ServerStackIcon } from "@heroicons/react/24/outline";
-import { Button, Checkbox } from "@aster/ui";
+import { Button, Checkbox, IslandSection, IslandSections } from "@aster/ui";
 
-import { ButtonSpinner } from "@/components/ui/spinner";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import {
   AlertDialog,
@@ -88,13 +87,18 @@ export function ExternalAccountsSection() {
   }
 
   return (
-    <div className="space-y-4 overflow-x-hidden">
-      <div>
-        <div className="flex items-center justify-between">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <ServerStackIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {state.t("settings.external_accounts")}
-          </h3>
+    <IslandSections className="overflow-x-hidden">
+      <IslandSection
+        bare
+        description={state.t("settings.external_accounts_description")}
+        footer={
+          at_account_limit
+            ? state.t("settings.external_accounts_limit_reached")
+            : undefined
+        }
+        icon={<ServerStackIcon />}
+        title={state.t("settings.external_accounts")}
+        trailing={
           <Button
             className="gap-2"
             variant="depth"
@@ -111,139 +115,132 @@ export function ExternalAccountsSection() {
             <PlusIcon className="w-4 h-4" />
             {state.t("settings.add_account")}
           </Button>
-        </div>
-        <p className="text-sm mt-3 text-txt-muted">
-          {state.t("settings.external_accounts_description")}
-        </p>
-        {at_account_limit && (
-          <p className="text-[12px] mt-2 text-txt-muted">
-            {state.t("settings.external_accounts_limit_reached")}
-          </p>
+        }
+      >
+        {gmail_wizard_open && state.show_add_form && (
+          <GmailSetupWizard
+            close_form={() => {
+              set_gmail_wizard_open(false);
+              state.close_form();
+            }}
+            form_email={state.form_email}
+            form_password={state.form_password}
+            handle_email_change={state.handle_email_change}
+            handle_password_change={state.handle_password_change}
+            handle_submit={state.handle_submit}
+            handle_test_connection={state.handle_test_connection}
+            is_form_busy={state.is_form_busy}
+            is_submitting={state.is_submitting}
+            is_testing={state.is_testing}
+            t={state.t}
+            test_result={state.test_result}
+          />
         )}
-      </div>
 
-      {gmail_wizard_open && state.show_add_form && (
-        <GmailSetupWizard
-          close_form={() => {
-            set_gmail_wizard_open(false);
-            state.close_form();
-          }}
-          form_email={state.form_email}
-          form_password={state.form_password}
-          handle_email_change={state.handle_email_change}
-          handle_password_change={state.handle_password_change}
-          handle_submit={state.handle_submit}
-          handle_test_connection={state.handle_test_connection}
-          is_form_busy={state.is_form_busy}
-          is_submitting={state.is_submitting}
-          is_testing={state.is_testing}
-          t={state.t}
-          test_result={state.test_result}
-        />
-      )}
+        {!gmail_wizard_open &&
+          (state.show_add_form || state.editing_account) && (
+            <AddAccountForm
+              active_preset={state.active_preset}
+              available_folders={state.available_folders}
+              close_form={state.close_form}
+              editing_account={state.editing_account}
+              form_archive_sent={state.form_archive_sent}
+              form_connection_timeout={state.form_connection_timeout}
+              form_delete_after_fetch={state.form_delete_after_fetch}
+              form_display_name={state.form_display_name}
+              form_email={state.form_email}
+              form_host={state.form_host}
+              form_label_color={state.form_label_color}
+              form_label_name={state.form_label_name}
+              form_password={state.form_password}
+              form_port={state.form_port}
+              form_protocol={state.form_protocol}
+              form_smtp_host={state.form_smtp_host}
+              form_smtp_password={state.form_smtp_password}
+              form_smtp_port={state.form_smtp_port}
+              form_smtp_use_tls={state.form_smtp_use_tls}
+              form_smtp_username={state.form_smtp_username}
+              form_sync_frequency={state.form_sync_frequency}
+              form_tls_method={state.form_tls_method}
+              form_use_tls={state.form_use_tls}
+              form_username={state.form_username}
+              form_visible={state.form_visible}
+              handle_connection_timeout_change={
+                state.handle_connection_timeout_change
+              }
+              handle_email_change={state.handle_email_change}
+              handle_fetch_folders={state.handle_fetch_folders}
+              handle_folder_toggle={state.handle_folder_toggle}
+              handle_host_change={state.handle_host_change}
+              handle_label_color_change={state.handle_label_color_change}
+              handle_label_color_input={state.handle_label_color_input}
+              handle_password_change={state.handle_password_change}
+              handle_port_change={state.handle_port_change}
+              handle_protocol_change={state.handle_protocol_change}
+              handle_smtp_host_change={state.handle_smtp_host_change}
+              handle_smtp_password_change={state.handle_smtp_password_change}
+              handle_smtp_port_change={state.handle_smtp_port_change}
+              handle_smtp_same_toggle={state.handle_smtp_same_toggle}
+              handle_smtp_username_change={state.handle_smtp_username_change}
+              handle_submit={state.handle_submit}
+              handle_test_connection={state.handle_test_connection}
+              handle_test_smtp={state.handle_test_smtp}
+              handle_username_change={state.handle_username_change}
+              has_fetched_folders={state.has_fetched_folders}
+              has_stored_password={state.has_stored_password}
+              has_stored_smtp_password={state.has_stored_smtp_password}
+              is_fetching_folders={state.is_fetching_folders}
+              is_form_busy={state.is_form_busy}
+              is_oauth_account={state.is_oauth_account}
+              is_submitting={state.is_submitting}
+              is_testing={state.is_testing}
+              is_testing_smtp={state.is_testing_smtp}
+              prefill_failed={state.prefill_failed}
+              retry_prefill={state.retry_prefill}
+              selected_folders={state.selected_folders}
+              set_form_archive_sent={state.set_form_archive_sent}
+              set_form_delete_after_fetch={state.set_form_delete_after_fetch}
+              set_form_display_name={state.set_form_display_name}
+              set_form_label_color={state.set_form_label_color}
+              set_form_label_name={state.set_form_label_name}
+              set_form_smtp_use_tls={state.set_form_smtp_use_tls}
+              set_form_sync_frequency={state.set_form_sync_frequency}
+              set_form_tls_method={state.set_form_tls_method}
+              set_form_use_tls={state.set_form_use_tls}
+              set_show_advanced={state.set_show_advanced}
+              set_show_password={state.set_show_password}
+              set_show_smtp_password={state.set_show_smtp_password}
+              show_advanced={state.show_advanced}
+              show_password={state.show_password}
+              show_smtp_password={state.show_smtp_password}
+              smtp_same_as_incoming={state.smtp_same_as_incoming}
+              smtp_test_result={state.smtp_test_result}
+              sync_frequency_options={state.sync_frequency_options}
+              t={state.t}
+              test_result={state.test_result}
+              tls_method_options={state.tls_method_options}
+              truncated_folders={state.truncated_folders}
+            />
+          )}
 
-      {!gmail_wizard_open && (state.show_add_form || state.editing_account) && (
-        <AddAccountForm
-          active_preset={state.active_preset}
-          available_folders={state.available_folders}
-          close_form={state.close_form}
-          editing_account={state.editing_account}
-          form_archive_sent={state.form_archive_sent}
-          form_connection_timeout={state.form_connection_timeout}
-          form_delete_after_fetch={state.form_delete_after_fetch}
-          form_display_name={state.form_display_name}
-          form_email={state.form_email}
-          form_host={state.form_host}
-          form_label_color={state.form_label_color}
-          form_label_name={state.form_label_name}
-          form_password={state.form_password}
-          form_port={state.form_port}
-          form_protocol={state.form_protocol}
-          form_smtp_host={state.form_smtp_host}
-          form_smtp_password={state.form_smtp_password}
-          form_smtp_port={state.form_smtp_port}
-          form_smtp_use_tls={state.form_smtp_use_tls}
-          form_smtp_username={state.form_smtp_username}
-          form_sync_frequency={state.form_sync_frequency}
-          form_tls_method={state.form_tls_method}
-          form_use_tls={state.form_use_tls}
-          form_username={state.form_username}
-          form_visible={state.form_visible}
-          handle_connection_timeout_change={
-            state.handle_connection_timeout_change
-          }
-          handle_email_change={state.handle_email_change}
-          handle_fetch_folders={state.handle_fetch_folders}
-          handle_folder_toggle={state.handle_folder_toggle}
-          handle_host_change={state.handle_host_change}
-          handle_label_color_change={state.handle_label_color_change}
-          handle_label_color_input={state.handle_label_color_input}
-          handle_password_change={state.handle_password_change}
-          handle_port_change={state.handle_port_change}
-          handle_protocol_change={state.handle_protocol_change}
-          handle_smtp_host_change={state.handle_smtp_host_change}
-          handle_smtp_password_change={state.handle_smtp_password_change}
-          handle_smtp_port_change={state.handle_smtp_port_change}
-          handle_smtp_same_toggle={state.handle_smtp_same_toggle}
-          handle_smtp_username_change={state.handle_smtp_username_change}
-          handle_submit={state.handle_submit}
-          handle_test_connection={state.handle_test_connection}
-          handle_test_smtp={state.handle_test_smtp}
-          handle_username_change={state.handle_username_change}
-          has_fetched_folders={state.has_fetched_folders}
-          has_stored_password={state.has_stored_password}
-          has_stored_smtp_password={state.has_stored_smtp_password}
-          is_fetching_folders={state.is_fetching_folders}
-          is_form_busy={state.is_form_busy}
-          is_oauth_account={state.is_oauth_account}
-          is_submitting={state.is_submitting}
-          is_testing={state.is_testing}
-          is_testing_smtp={state.is_testing_smtp}
-          prefill_failed={state.prefill_failed}
-          retry_prefill={state.retry_prefill}
-          selected_folders={state.selected_folders}
-          set_form_archive_sent={state.set_form_archive_sent}
-          set_form_delete_after_fetch={state.set_form_delete_after_fetch}
-          set_form_display_name={state.set_form_display_name}
-          set_form_label_color={state.set_form_label_color}
-          set_form_label_name={state.set_form_label_name}
-          set_form_smtp_use_tls={state.set_form_smtp_use_tls}
-          set_form_sync_frequency={state.set_form_sync_frequency}
-          set_form_tls_method={state.set_form_tls_method}
-          set_form_use_tls={state.set_form_use_tls}
-          set_show_advanced={state.set_show_advanced}
-          set_show_password={state.set_show_password}
-          set_show_smtp_password={state.set_show_smtp_password}
-          show_advanced={state.show_advanced}
-          show_password={state.show_password}
-          show_smtp_password={state.show_smtp_password}
-          smtp_same_as_incoming={state.smtp_same_as_incoming}
-          smtp_test_result={state.smtp_test_result}
-          sync_frequency_options={state.sync_frequency_options}
-          t={state.t}
-          test_result={state.test_result}
-          tls_method_options={state.tls_method_options}
-          truncated_folders={state.truncated_folders}
-        />
-      )}
-
-      {state.load_error && state.accounts.length === 0 ? (
-        <LoadFailedNotice on_retry={() => state.reload_accounts()} />
-      ) : (
-        <AccountList
-          accounts={state.accounts}
-          expanded_error_ids={state.expanded_error_ids}
-          failed_icons={state.failed_icons}
-          format_sync_time={state.format_sync_time}
-          handle_edit={state.handle_edit}
-          handle_sync={state.handle_sync}
-          handle_toggle={state.handle_toggle}
-          set_failed_icons={state.set_failed_icons}
-          set_purge_target={state.set_purge_target}
-          t={state.t}
-          toggle_error_expand={state.toggle_error_expand}
-        />
-      )}
+        {state.load_error && state.accounts.length === 0 ? (
+          <LoadFailedNotice on_retry={() => state.reload_accounts()} />
+        ) : (
+          <AccountList
+            accounts={state.accounts}
+            expanded_error_ids={state.expanded_error_ids}
+            failed_icons={state.failed_icons}
+            format_sync_time={state.format_sync_time}
+            handle_edit={state.handle_edit}
+            handle_sync={state.handle_sync}
+            handle_toggle={state.handle_toggle}
+            set_failed_icons={state.set_failed_icons}
+            set_purge_target={state.set_purge_target}
+            t={state.t}
+            toggle_error_expand={state.toggle_error_expand}
+          />
+        )}
+      </IslandSection>
 
       <AlertDialog
         open={!!state.purge_target}
@@ -302,12 +299,12 @@ export function ExternalAccountsSection() {
             <Button
               className="max-sm:flex-1"
               disabled={state.is_purging}
+              is_loading={state.is_purging}
               size="xl"
               variant="destructive"
               onClick={state.handle_purge_confirm}
             >
               {state.t("settings.disconnect_button")}
-              {state.is_purging && <ButtonSpinner />}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -351,6 +348,6 @@ export function ExternalAccountsSection() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </IslandSections>
   );
 }

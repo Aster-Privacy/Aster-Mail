@@ -31,7 +31,7 @@ import {
   XMarkIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
-import { Switch } from "@aster/ui";
+import { Island, IslandRow, IslandSection, IslandSections } from "@aster/ui";
 import { Button } from "@/components/ui/button";
 
 import { StepUpModal } from "./step_up_modal";
@@ -42,7 +42,7 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_should_reduce_motion } from "@/provider";
-import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   Modal,
@@ -564,12 +564,12 @@ export function AccountSection() {
   }
 
   return (
-    <div className="space-y-4">
+    <IslandSections>
       <FreePlanBanner />
 
       {load_failed && <LoadFailedNotice on_retry={reload_account_data} />}
 
-      <div className="rounded-xl overflow-hidden bg-surf-tertiary border border-edge-secondary">
+      <Island className="overflow-hidden">
         <div
           className="h-20"
           style={{
@@ -696,8 +696,10 @@ export function AccountSection() {
                   className="relative w-9 h-9 rounded-full"
                   style={{
                     backgroundColor: c,
+                    outline: is_selected ? `1.5px solid ${c}` : "none",
+                    outlineOffset: 2,
                     boxShadow: is_selected
-                      ? `0 0 0 2px var(--bg-tertiary), 0 0 0 3.5px ${c}, 0 2px 8px ${c}50`
+                      ? `0 2px 8px ${c}50`
                       : `inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.15), 0 2px 6px ${c}30`,
                   }}
                   onClick={async () => {
@@ -744,216 +746,227 @@ export function AccountSection() {
             })}
           </div>
         </div>
-      </div>
+      </Island>
 
-      <div className="flex items-center justify-between py-4">
-        <div>
-          <p className="text-sm font-medium text-txt-primary">
-            {t("settings.primary_address_label")}
-          </p>
-          {primary_identity.is_custom && account_email && (
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.also_receives_at", { email: account_email })}
-            </p>
-          )}
-        </div>
-        <div
-          className="cursor-pointer rounded-md px-2 -me-2 py-1 hover:bg-surf-hover transition-colors"
-          onClick={() =>
-            copy_primary_address(primary_identity.email || account_email)
+      <IslandSection divided>
+        <IslandRow
+          description={
+            primary_identity.is_custom && account_email
+              ? t("settings.also_receives_at", { email: account_email })
+              : undefined
           }
-        >
-          <span className="text-sm font-medium text-txt-secondary truncate max-w-[16rem]">
-            {primary_identity.email || account_email}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between py-4">
-        <div>
-          <p className="text-sm font-medium text-txt-primary">
-            {t("settings.display_name")}
-          </p>
-          <p className="text-sm mt-0.5 text-txt-muted">
-            {t("common.display_name_visible")}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Input
-            aria-label={t("settings.display_name")}
-            className="w-48"
-            maxLength={MAX_DISPLAY_NAME_LENGTH}
-            value={name}
-            onBlur={save_name}
-            onChange={(e) => set_name(e.target.value)}
-            onKeyDown={(e) =>
-              e["key"] === "Enter" && !is_composing(e) && save_name()
-            }
-          />
-          {saving_name && <Spinner className="text-txt-muted" size="md" />}
-        </div>
-      </div>
-
-      {badges.length > 0 && badge_prefs && (
-        <div className="py-4 space-y-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-                {t("badges.active_badge")}
-                <InfoPopover
-                  description={t("settings.badges_description_full")}
-                  title={t("badges.active_badge")}
-                />
-              </p>
-              <p className="text-sm mt-0.5 text-txt-muted">
-                {t("settings.badges_description")}
-              </p>
-            </div>
-            <Select
-              value={badge_prefs.active_badge_slug ?? "none"}
-              onValueChange={(v) =>
-                persist_badge_prefs({
-                  active_badge_slug: v === "none" ? null : v,
-                })
+          label={t("settings.primary_address_label")}
+          trailing={
+            <div
+              className="min-w-0 cursor-pointer rounded-full px-2.5 py-1 -me-2.5 transition-colors hover:bg-[color-mix(in_srgb,var(--text-primary)_6%,transparent)]"
+              onClick={() =>
+                copy_primary_address(primary_identity.email || account_email)
               }
             >
-              <SelectTrigger className="h-10 w-48 flex-shrink-0 bg-transparent text-sm">
-                <SelectValue placeholder={t("badges.none")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">{t("badges.none")}</SelectItem>
-                {badges.map((badge) => {
-                  const visual = get_badge_visual(badge.slug);
-                  const Icon = visual.icon;
+              <span className="block text-sm font-medium text-txt-secondary truncate max-w-[16rem]">
+                {primary_identity.email || account_email}
+              </span>
+            </div>
+          }
+        />
 
-                  return (
-                    <SelectItem
-                      key={badge.slug}
-                      title={badge.description || undefined}
-                      value={badge.slug}
-                    >
-                      <span className="inline-flex items-center gap-1.5">
-                        <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                        <span className="truncate">{badge.display_name}</span>
-                        {badge.find_order != null && (
-                          <span className="tabular-nums opacity-70">
-                            #{badge.find_order.toLocaleString(app_locale())}
-                          </span>
-                        )}
-                      </span>
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {badge_prefs.active_badge_slug && (
-            <>
-              <BadgeToggleRow
-                checked={badge_prefs.show_badge_profile}
-                description={t("badges.show_on_profile_description")}
-                label={t("badges.show_on_profile")}
-                on_change={(v) =>
-                  persist_badge_prefs({ show_badge_profile: v })
+        <IslandRow
+          description={t("common.display_name_visible")}
+          label={t("settings.display_name")}
+          layout="stacked"
+          trailing={
+            <div className="relative">
+              <Input
+                aria-label={t("settings.display_name")}
+                className="w-48"
+                maxLength={MAX_DISPLAY_NAME_LENGTH}
+                value={name}
+                onBlur={save_name}
+                onChange={(e) => set_name(e.target.value)}
+                onKeyDown={(e) =>
+                  e["key"] === "Enter" && !is_composing(e) && save_name()
                 }
               />
-              <BadgeToggleRow
-                checked={badge_prefs.show_badge_signature}
-                description={t("badges.show_in_signature_description")}
-                label={t("badges.show_in_signature")}
-                on_change={(v) =>
-                  persist_badge_prefs({ show_badge_signature: v })
-                }
-              />
-            </>
-          )}
-        </div>
-      )}
+              {saving_name && (
+                <Spinner
+                  className="absolute end-3 top-1/2 -translate-y-1/2 text-txt-muted pointer-events-none"
+                  size="xs"
+                />
+              )}
+            </div>
+          }
+        />
 
-      <div className="py-4" id={SETTINGS_ANCHORS.recovery_email}>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-txt-primary">
-              {t("common.recovery_email")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("common.recovery_email_description")}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            {recovery.exists && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-txt-secondary">
-                  {recovery.email
-                    ? mask_email(recovery.email)
-                    : t("common.recovery_email_hidden")}
+        {badges.length > 0 && badge_prefs && (
+          <>
+            <IslandRow
+              description={t("settings.badges_description")}
+              label={
+                <span className="inline-flex items-center gap-1.5">
+                  {t("badges.active_badge")}
+                  <InfoPopover
+                    description={t("settings.badges_description_full")}
+                    title={t("badges.active_badge")}
+                  />
                 </span>
-                {recovery.verified ? (
-                  <span className="flex items-center gap-1 text-xs text-green-500">
-                    <CheckCircleIcon className="w-4 h-4" />
-                    {t("common.verified")}
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-xs text-amber-500">
-                    <ExclamationCircleIcon className="w-4 h-4" />
-                    {t("common.not_verified")}
-                  </span>
-                )}
-              </div>
-            )}
-            <Button variant="secondary" onClick={() => set_show_modal(true)}>
-              {recovery.exists ? t("common.update") : t("common.add")}
-            </Button>
-            {recovery.exists && !recovery.verified && (
-              <Button
-                disabled={resending}
-                variant="ghost"
-                onClick={handle_resend}
-              >
-                {t("common.resend")}
-                {resending && <ButtonSpinner />}
-              </Button>
-            )}
-            {recovery.exists && (
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  set_step_up_mode("remove");
-                  set_show_step_up(true);
-                }}
-              >
-                {t("common.remove")}
-              </Button>
-            )}
-          </div>
-        </div>
-        {pending && recovery.email && !recovery.verified && (
-          <p className="text-sm mt-3 text-txt-tertiary">
-            {t("common.verification_sent").replace(
-              "{{email}}",
-              mask_email(recovery.email),
-            )}
-          </p>
-        )}
-      </div>
+              }
+              layout="stacked"
+              trailing={
+                <Select
+                  value={badge_prefs.active_badge_slug ?? "none"}
+                  onValueChange={(v) =>
+                    persist_badge_prefs({
+                      active_badge_slug: v === "none" ? null : v,
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-10 w-48 flex-shrink-0 bg-transparent text-sm">
+                    <SelectValue placeholder={t("badges.none")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{t("badges.none")}</SelectItem>
+                    {badges.map((badge) => {
+                      const visual = get_badge_visual(badge.slug);
+                      const Icon = visual.icon;
 
-      <div className="py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+                      return (
+                        <SelectItem
+                          key={badge.slug}
+                          title={badge.description || undefined}
+                          value={badge.slug}
+                        >
+                          <span className="inline-flex items-center gap-1.5">
+                            <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                            <span className="truncate">
+                              {badge.display_name}
+                            </span>
+                            {badge.find_order != null && (
+                              <span className="tabular-nums opacity-70">
+                                #{badge.find_order.toLocaleString(app_locale())}
+                              </span>
+                            )}
+                          </span>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              }
+            />
+            {badge_prefs.active_badge_slug && (
+              <>
+                <IslandRow
+                  description={t("badges.show_on_profile_description")}
+                  label={t("badges.show_on_profile")}
+                  toggle={{
+                    checked: badge_prefs.show_badge_profile,
+                    aria_label: t("badges.show_on_profile"),
+                    on_change: (v) =>
+                      persist_badge_prefs({ show_badge_profile: v }),
+                  }}
+                />
+                <IslandRow
+                  description={t("badges.show_in_signature_description")}
+                  label={t("badges.show_in_signature")}
+                  toggle={{
+                    checked: badge_prefs.show_badge_signature,
+                    aria_label: t("badges.show_in_signature"),
+                    on_change: (v) =>
+                      persist_badge_prefs({ show_badge_signature: v }),
+                  }}
+                />
+              </>
+            )}
+          </>
+        )}
+
+        <IslandRow
+          description={
+            <>
+              {t("common.recovery_email_description")}
+              {pending && recovery.email && !recovery.verified && (
+                <span className="block mt-1 text-txt-tertiary">
+                  {t("common.verification_sent").replace(
+                    "{{email}}",
+                    mask_email(recovery.email),
+                  )}
+                </span>
+              )}
+            </>
+          }
+          id={SETTINGS_ANCHORS.recovery_email}
+          label={t("common.recovery_email")}
+          layout="stacked"
+          trailing={
+            <div className="flex flex-wrap items-center gap-2">
+              {recovery.exists && (
+                <div className="flex items-center gap-2 me-1">
+                  <span className="text-sm font-medium text-txt-secondary">
+                    {recovery.email
+                      ? mask_email(recovery.email)
+                      : t("common.recovery_email_hidden")}
+                  </span>
+                  {recovery.verified ? (
+                    <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                      <CheckCircleIcon className="w-4 h-4" />
+                      {t("common.verified")}
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                      <ExclamationCircleIcon className="w-4 h-4" />
+                      {t("common.not_verified")}
+                    </span>
+                  )}
+                </div>
+              )}
+              <Button
+                size="md"
+                variant="secondary"
+                onClick={() => set_show_modal(true)}
+              >
+                {recovery.exists ? t("common.update") : t("common.add")}
+              </Button>
+              {recovery.exists && !recovery.verified && (
+                <Button
+                  disabled={resending}
+                  is_loading={resending}
+                  size="md"
+                  variant="outline"
+                  onClick={handle_resend}
+                >
+                  {t("common.resend")}
+                </Button>
+              )}
+              {recovery.exists && (
+                <Button
+                  size="md"
+                  variant="outline"
+                  onClick={() => {
+                    set_step_up_mode("remove");
+                    set_show_step_up(true);
+                  }}
+                >
+                  {t("common.remove")}
+                </Button>
+              )}
+            </div>
+          }
+        />
+
+        <IslandRow
+          description={t("common.inactivity_window_description")}
+          label={
+            <span className="inline-flex items-center gap-1.5">
               {t("common.inactivity_window")}
               <InfoPopover
                 description={inactivity_window_info_description}
                 learn_more_url="https://astermail.org/terms#section-9"
                 title={t("common.inactivity_window_info_title")}
               />
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("common.inactivity_window_description")}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
+            </span>
+          }
+          layout="stacked"
+          trailing={
             <Select
               disabled={saving_inactivity}
               value={String(inactivity_window)}
@@ -973,28 +986,25 @@ export function AccountSection() {
                 ))}
               </SelectContent>
             </Select>
-          </div>
-        </div>
-      </div>
+          }
+        />
+      </IslandSection>
 
-      <div className="py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-txt-primary">
-              {t("common.reset_all_settings")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("common.restore_defaults_description")}
-            </p>
-          </div>
-          <Button
-            variant="secondary"
-            onClick={() => set_show_reset_confirm(true)}
-          >
-            {t("settings.reset")}
-          </Button>
-        </div>
-      </div>
+      <IslandSection>
+        <IslandRow
+          description={t("common.restore_defaults_description")}
+          label={t("common.reset_all_settings")}
+          trailing={
+            <Button
+              size="md"
+              variant="secondary"
+              onClick={() => set_show_reset_confirm(true)}
+            >
+              {t("settings.reset")}
+            </Button>
+          }
+        />
+      </IslandSection>
 
       <ConfirmationModal
         cancel_text={t("common.cancel")}
@@ -1043,35 +1053,6 @@ export function AccountSection() {
         on_close={() => set_show_modal(false)}
         on_save={save_recovery}
       />
-    </div>
-  );
-}
-
-interface BadgeToggleRowProps {
-  label: string;
-  description: string;
-  checked: boolean;
-  on_change: (value: boolean) => void;
-}
-
-function BadgeToggleRow({
-  label,
-  description,
-  checked,
-  on_change,
-}: BadgeToggleRowProps) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <div className="min-w-0">
-        <div className="text-sm font-medium text-txt-primary">{label}</div>
-        <div className="text-xs mt-0.5 text-txt-muted">{description}</div>
-      </div>
-      <Switch
-        aria-label={label}
-        checked={checked}
-        size="lg"
-        onCheckedChange={on_change}
-      />
-    </div>
+    </IslandSections>
   );
 }

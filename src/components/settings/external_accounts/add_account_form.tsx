@@ -138,7 +138,7 @@ export function AddAccountForm({
 
       <div className="p-6 space-y-6">
         {prefill_failed && (
-          <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-surf-tertiary border border-edge-secondary">
+          <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-[color-mix(in_srgb,var(--text-primary)_7%,transparent)]">
             <p className="text-[13px] text-txt-secondary">
               {t("common.something_went_wrong_try_again")}
             </p>

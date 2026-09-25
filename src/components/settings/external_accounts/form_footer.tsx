@@ -24,8 +24,6 @@ import type { TranslationFn } from "@/components/settings/external_accounts/form
 import { ServerStackIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-import { ButtonSpinner } from "@/components/ui/spinner";
-
 interface FormFooterProps {
   editing_account: DecryptedExternalAccount | null;
   is_oauth_account: boolean;
@@ -62,24 +60,24 @@ export function FormFooter({
               aria-label={t("settings.test_incoming_connection")}
               className="gap-1.5"
               disabled={is_form_busy}
+              is_loading={is_testing}
               size="md"
               variant="outline"
               onClick={handle_test_connection}
             >
               <ServerStackIcon className="w-4 h-4" />
-              {is_testing && <ButtonSpinner />}
               {t("settings.test_connection")}
             </Button>
             <Button
               aria-label={t("settings.test_smtp_connection")}
               className="gap-1.5"
               disabled={is_form_busy}
+              is_loading={is_testing_smtp}
               size="md"
               variant="outline"
               onClick={handle_test_smtp}
             >
               <EnvelopeIcon className="w-4 h-4" />
-              {is_testing_smtp && <ButtonSpinner />}
               {t("settings.test_smtp")}
             </Button>
           </>
@@ -89,11 +87,15 @@ export function FormFooter({
         <Button disabled={is_submitting} variant="ghost" onClick={close_form}>
           {t("common.cancel")}
         </Button>
-        <Button disabled={is_form_busy} onClick={handle_submit}>
+        <Button
+          disabled={is_form_busy}
+          is_loading={is_submitting}
+          variant="depth"
+          onClick={handle_submit}
+        >
           {editing_account
             ? t("settings.update_account_button")
             : t("settings.save_account")}
-          {is_submitting && <ButtonSpinner />}
         </Button>
       </div>
     </div>

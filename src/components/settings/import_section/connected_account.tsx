@@ -27,12 +27,12 @@ import {
   ExclamationTriangleIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Island } from "@aster/ui";
 
 import { get_provider_icon } from "./provider_icon";
 import { format_relative_time } from "./status";
 
-import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
+import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -242,17 +242,16 @@ export function ConnectedAccountCard({
   const sync_active = (is_syncing || should_poll) && !purging_active;
 
   return (
-    <div
-      className={[
-        "flex flex-col gap-0 rounded-xl border overflow-hidden",
+    <Island
+      className="flex flex-col gap-0 overflow-hidden"
+      tone={
         needs_reauth
-          ? "border-amber-400/40 bg-amber-50/30 dark:bg-amber-900/10"
+          ? "warning"
           : has_error && !sync_active
-            ? "border-red-400/30 bg-surf-secondary"
-            : "border-edge-secondary bg-surf-secondary",
-      ].join(" ")}
+            ? "danger"
+            : "default"
+      }
     >
-      {/* Main row */}
       <div className="flex items-center gap-3 px-4 py-3">
         <div className="flex-shrink-0 relative">
           {get_provider_icon(
@@ -261,7 +260,7 @@ export function ConnectedAccountCard({
             account.oauth_provider,
           )}
           {needs_reauth && (
-            <span className="absolute -top-0.5 -end-0.5 w-2 h-2 rounded-full bg-amber-400 ring-1 ring-surf-secondary" />
+            <span className="absolute -top-0.5 -end-0.5 w-2 h-2 rounded-full bg-amber-400 ring-1 ring-surf-primary" />
           )}
         </div>
 
@@ -337,17 +336,18 @@ export function ConnectedAccountCard({
               variant="outline"
               onClick={() => on_sync(account.account_token)}
             >
-              {sync_active ? (
-                <>
-                  {t("common.stop")}
-                  <ButtonSpinner />
-                </>
-              ) : (
-                <span className="flex items-center gap-1.5">
-                  <ArrowPathIcon className="w-4 h-4" />
-                  {t("settings.connected_accounts_sync_now")}
+              <span className="flex items-center gap-1.5">
+                <span className="flex w-4 h-4 items-center justify-center">
+                  {sync_active ? (
+                    <Spinner size="xs" />
+                  ) : (
+                    <ArrowPathIcon className="w-4 h-4" />
+                  )}
                 </span>
-              )}
+                {sync_active
+                  ? t("common.stop")
+                  : t("settings.connected_accounts_sync_now")}
+              </span>
             </Button>
           )}
           <Button
@@ -364,14 +364,13 @@ export function ConnectedAccountCard({
         </div>
       </div>
 
-      {/* Progress / status strip */}
       {is_setting_up_folders && (
         <div className="px-4 pb-3">
           <div className="flex items-center gap-2 mb-1.5 text-xs text-txt-secondary">
             <Spinner className="text-brand flex-shrink-0" size="sm" />
             {t("settings.import_stage_setting_up_folders")}
           </div>
-          <div className="h-1 w-full rounded-full bg-surf-tertiary overflow-hidden">
+          <div className="h-1 w-full rounded-full bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] overflow-hidden">
             <div
               className="h-full rounded-full bg-brand animate-[sync_bar_indeterminate_1.5s_ease-in-out_infinite]"
               style={{ width: "40%" }}
@@ -394,7 +393,7 @@ export function ConnectedAccountCard({
               </span>
             </span>
           </div>
-          <div className="h-1 w-full rounded-full bg-surf-tertiary overflow-hidden">
+          <div className="h-1 w-full rounded-full bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] overflow-hidden">
             <div
               className="h-full rounded-full transition-[width] duration-700 ease-out"
               style={{
@@ -423,7 +422,7 @@ export function ConnectedAccountCard({
               </span>
             )}
           </div>
-          <div className="h-1 w-full rounded-full bg-surf-tertiary overflow-hidden">
+          <div className="h-1 w-full rounded-full bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] overflow-hidden">
             {progress?.status === "purging" && total > 0 ? (
               <div
                 className="h-full rounded-full transition-[width] duration-700 ease-out"
@@ -461,7 +460,7 @@ export function ConnectedAccountCard({
                   : ""}
               </span>
             </div>
-            <div className="mt-1.5 h-1 w-full rounded-full bg-surf-tertiary overflow-hidden">
+            <div className="mt-1.5 h-1 w-full rounded-full bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] overflow-hidden">
               <div
                 className="h-full rounded-full bg-brand animate-[sync_bar_indeterminate_1.5s_ease-in-out_infinite]"
                 style={{ width: "40%" }}
@@ -469,6 +468,6 @@ export function ConnectedAccountCard({
             </div>
           </div>
         )}
-    </div>
+    </Island>
   );
 }

@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type ReactNode } from "react";
 import {
   ArrowTopRightOnSquareIcon,
   PlusIcon,
@@ -26,8 +26,15 @@ import {
   MagnifyingGlassIcon,
   PencilIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
-import { Checkbox } from "@aster/ui";
+import {
+  Button,
+  Checkbox,
+  Island,
+  IslandEmpty,
+  IslandIconButton,
+  IslandSection,
+  IslandSections,
+} from "@aster/ui";
 
 import {
   FIELD_KEYS,
@@ -37,7 +44,6 @@ import {
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
-import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   Modal,
@@ -471,47 +477,48 @@ export function AutoForwardSection() {
       is_locked={is_feature_locked("has_auto_forwarding")}
       min_plan="Star"
     >
-      <div className="space-y-4">
-        <div>
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold text-txt-primary">
-              {t("settings.auto_forward_title")}
-            </h3>
-            <Button className="gap-2" onClick={() => open_builder()}>
+      <IslandSections>
+        <IslandSection
+          bare
+          description={t("settings.auto_forward_description")}
+          title={t("settings.auto_forward_title")}
+          trailing={
+            <Button
+              className="gap-2"
+              variant="depth"
+              onClick={() => open_builder()}
+            >
               <PlusIcon className="w-4 h-4" />
               {t("settings.add_rule")}
             </Button>
+          }
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="relative flex-1 max-w-xs">
+              <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
+              <Input
+                placeholder={t("common.search_forwarding_rules")}
+                size="md"
+                style={{ paddingInlineStart: "38px" }}
+                value={search_query}
+                onChange={(e) => set_search_query(e.target.value)}
+              />
+            </div>
+            {selected_ids.size > 0 && (
+              <Button
+                className="gap-2"
+                disabled={is_deleting}
+                is_loading={is_deleting}
+                size="md"
+                variant="destructive"
+                onClick={() => set_confirm_bulk_delete(true)}
+              >
+                <TrashIcon className="w-4 h-4" />
+                {t("common.remove")} ({selected_ids.size})
+              </Button>
+            )}
           </div>
-          <p className="text-sm mt-3 text-txt-muted">
-            {t("settings.auto_forward_description")}
-          </p>
-        </div>
-
-        <div className="flex items-center justify-between gap-3">
-          <div className="relative flex-1 max-w-xs">
-            <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
-            <Input
-              placeholder={t("common.search_forwarding_rules")}
-              size="md"
-              style={{ paddingInlineStart: "38px" }}
-              value={search_query}
-              onChange={(e) => set_search_query(e.target.value)}
-            />
-          </div>
-          {selected_ids.size > 0 && (
-            <Button
-              className="gap-2"
-              disabled={is_deleting}
-              size="md"
-              variant="destructive"
-              onClick={() => set_confirm_bulk_delete(true)}
-            >
-              <TrashIcon className="w-4 h-4" />
-              {is_deleting && <ButtonSpinner />}
-              {t("common.remove")} ({selected_ids.size})
-            </Button>
-          )}
-        </div>
+        </IslandSection>
 
         <Modal
           close_on_overlay={false}
@@ -542,42 +549,35 @@ export function AutoForwardSection() {
         </Modal>
 
         {load_failed && rules.length === 0 ? (
-          <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-            <p className="text-sm text-txt-muted">
-              {t("common.something_went_wrong_try_again")}
-            </p>
-            <Button
-              className="mt-3"
-              size="sm"
-              variant="secondary"
-              onClick={() => {
-                set_is_loading(true);
-                fetch_rules();
-              }}
-            >
-              {t("common.retry")}
-            </Button>
-          </div>
+          <IslandEmpty
+            action={
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  set_is_loading(true);
+                  fetch_rules();
+                }}
+              >
+                {t("common.retry")}
+              </Button>
+            }
+            title={t("common.something_went_wrong_try_again")}
+          />
         ) : rules.length === 0 ? (
-          <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-            <ArrowTopRightOnSquareIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
-            <p className="text-sm text-txt-muted">
-              {t("settings.no_forwarding_rules")}
-            </p>
-          </div>
+          <IslandEmpty
+            icon={<ArrowTopRightOnSquareIcon />}
+            title={t("settings.no_forwarding_rules")}
+          />
         ) : filtered_rules.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 rounded-lg border bg-surf-tertiary border-edge-secondary">
-            <MagnifyingGlassIcon className="w-6 h-6 mb-2 text-txt-muted" />
-            <p className="text-[14px] font-medium text-txt-primary">
-              {t("common.no_results")}
-            </p>
-            <p className="text-[13px] mt-1 text-txt-muted">
-              {t("settings.try_different_search")}
-            </p>
-          </div>
+          <IslandEmpty
+            description={t("settings.try_different_search")}
+            icon={<MagnifyingGlassIcon />}
+            title={t("common.no_results")}
+          />
         ) : (
-          <div className="rounded-lg overflow-hidden border border-edge-secondary">
-            <div className="flex items-center px-4 py-2 border-b border-edge-secondary">
+          <Island className="overflow-hidden">
+            <div className="flex items-center px-4 py-2.5 border-b border-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]">
               <Checkbox
                 checked={all_filtered_selected}
                 onCheckedChange={handle_select_all}
@@ -591,11 +591,11 @@ export function AutoForwardSection() {
             {filtered_rules.map((rule, index) => (
               <div
                 key={rule.id}
-                className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surf-hover"
-                style={{
-                  borderTop:
-                    index > 0 ? "1px solid var(--border-secondary)" : "none",
-                }}
+                className={`flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[color-mix(in_srgb,var(--text-primary)_4%,transparent)] ${
+                  index > 0
+                    ? "border-t border-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]"
+                    : ""
+                }`}
               >
                 <Checkbox
                   checked={selected_ids.has(rule.id)}
@@ -606,8 +606,8 @@ export function AutoForwardSection() {
                   className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
                   style={{
                     backgroundColor: rule.is_enabled
-                      ? "var(--accent-blue-muted)"
-                      : "var(--bg-tertiary)",
+                      ? "color-mix(in srgb, var(--accent-color) 14%, transparent)"
+                      : "color-mix(in srgb, var(--text-primary) 7%, transparent)",
                   }}
                 >
                   {get_forward_favicon_url(rule.forward_to) ? (
@@ -627,7 +627,7 @@ export function AutoForwardSection() {
                     className={`w-4 h-4 ${get_forward_favicon_url(rule.forward_to) ? "hidden" : ""}`}
                     style={{
                       color: rule.is_enabled
-                        ? "var(--accent-blue)"
+                        ? "var(--accent-color)"
                         : "var(--text-muted)",
                     }}
                   />
@@ -638,51 +638,25 @@ export function AutoForwardSection() {
                     <span className="text-[13px] font-medium truncate text-txt-primary">
                       {rule.name}
                     </span>
-                    <span
-                      className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 font-medium"
-                      style={{
-                        backgroundColor: rule.is_enabled
-                          ? "#16a34a"
-                          : "#d97706",
-                        color: "#fff",
-                      }}
-                    >
+                    <StatusBadge tone={rule.is_enabled ? "success" : "warning"}>
                       {rule.is_enabled
                         ? t("common.active")
                         : t("common.paused")}
-                    </span>
+                    </StatusBadge>
                     {rule.keep_copy && (
-                      <span
-                        className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 font-medium"
-                        style={{
-                          backgroundColor: "var(--accent-color-hover)",
-                          color: "var(--accent-fg, #ffffff)",
-                        }}
-                      >
+                      <StatusBadge tone="neutral">
                         {t("settings.keeps_copy")}
-                      </span>
+                      </StatusBadge>
                     )}
                     {pending_destinations(rule).length > 0 && (
-                      <span
-                        className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 font-medium"
-                        style={{
-                          backgroundColor: "#d97706",
-                          color: "#fff",
-                        }}
-                      >
+                      <StatusBadge tone="warning">
                         {t("settings.forwarding_pending_verification")}
-                      </span>
+                      </StatusBadge>
                     )}
                     {is_failing(rule) && (
-                      <span
-                        className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 font-medium"
-                        style={{
-                          backgroundColor: "#dc2626",
-                          color: "#fff",
-                        }}
-                      >
+                      <StatusBadge tone="danger">
                         {t("settings.forwarding_failed_badge")}
-                      </span>
+                      </StatusBadge>
                     )}
                   </div>
                   <p className="text-[12px] truncate text-txt-muted">
@@ -703,16 +677,14 @@ export function AutoForwardSection() {
                         <Button
                           key={destination.address}
                           disabled={resending_address === destination.address}
+                          is_loading={resending_address === destination.address}
                           size="sm"
-                          variant="secondary"
+                          variant="outline"
                           onClick={() =>
                             handle_resend(rule, destination.address)
                           }
                         >
                           {t("settings.resend_verification_email")}
-                          {resending_address === destination.address && (
-                            <ButtonSpinner />
-                          )}
                         </Button>
                       ))}
                     </div>
@@ -744,24 +716,23 @@ export function AutoForwardSection() {
                   <span className="text-[11px] me-1 text-txt-muted">
                     {format_date(rule.created_at)}
                   </span>
-                  <Button
-                    aria-label={t("common.edit")}
-                    size="md"
-                    variant="secondary"
+                  <IslandIconButton
+                    label={t("common.edit")}
+                    size="sm"
                     onClick={() => open_builder(rule)}
                   >
-                    <PencilIcon className="w-3.5 h-3.5" />
-                  </Button>
+                    <PencilIcon className="w-4 h-4" />
+                  </IslandIconButton>
                   <Button
-                    size="md"
-                    variant="secondary"
+                    size="sm"
+                    variant="outline"
                     onClick={() => handle_toggle(rule)}
                   >
                     {rule.is_enabled ? t("common.disable") : t("common.enable")}
                   </Button>
                   <Button
                     disabled={is_deleting}
-                    size="md"
+                    size="sm"
                     variant="destructive"
                     onClick={() => set_confirm_delete_rule(rule)}
                   >
@@ -770,9 +741,9 @@ export function AutoForwardSection() {
                 </div>
               </div>
             ))}
-          </div>
+          </Island>
         )}
-      </div>
+      </IslandSections>
 
       <ConfirmationModal
         confirm_text={t("common.remove")}
@@ -803,5 +774,32 @@ export function AutoForwardSection() {
         variant="danger"
       />
     </UpgradeGate>
+  );
+}
+
+const STATUS_BADGE_TONES = {
+  success:
+    "bg-[color-mix(in_srgb,#16a34a_14%,transparent)] text-green-700 dark:text-green-400",
+  warning:
+    "bg-[color-mix(in_srgb,#d97706_14%,transparent)] text-amber-700 dark:text-amber-400",
+  danger:
+    "bg-[color-mix(in_srgb,#dc2626_14%,transparent)] text-red-700 dark:text-red-400",
+  neutral:
+    "bg-[color-mix(in_srgb,var(--text-primary)_7%,transparent)] text-txt-secondary",
+} as const;
+
+function StatusBadge({
+  tone,
+  children,
+}: {
+  tone: keyof typeof STATUS_BADGE_TONES;
+  children: ReactNode;
+}) {
+  return (
+    <span
+      className={`text-[11px] leading-4 px-2 py-0.5 rounded-full flex-shrink-0 font-medium ${STATUS_BADGE_TONES[tone]}`}
+    >
+      {children}
+    </span>
   );
 }
