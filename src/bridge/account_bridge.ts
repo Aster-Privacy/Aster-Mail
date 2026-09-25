@@ -54,6 +54,7 @@ import {
   clear_app_lock_config,
   clear_session_unlock,
 } from "@/services/app_lock_store";
+import { support_site_origins } from "@/lib/support_return";
 import {
   base64url_decode,
   base64url_encode,
@@ -61,8 +62,6 @@ import {
 } from "@/lib/crypto/device_envelope";
 
 const CHANNEL = "aster_account_link";
-const DEV_LINK_ORIGINS = ["http://localhost:5175", "http://localhost:5176"];
-const PROD_LINK_ORIGINS = ["https://support.astermail.org"];
 const MAX_LINK_ATTEMPTS_PER_LOAD = 3;
 const MAX_ACCOUNTS = 20;
 const MAX_PROFILE_PICTURE_LENGTH = 512_000;
@@ -111,18 +110,6 @@ let link_completed = false;
 let parent_origin: string | null = null;
 let changed_timer: number | null = null;
 
-function allowed_origins(): string[] {
-  const configured =
-    (import.meta.env.VITE_ACCOUNT_LINK_ORIGINS as string | undefined) ?? "";
-  const list = configured
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter((origin) => origin.length > 0 && origin !== window.location.origin);
-
-  if (list.length > 0) return list;
-
-  return import.meta.env.DEV ? DEV_LINK_ORIGINS : PROD_LINK_ORIGINS;
-}
 
 function error_from_api_code(code: ApiErrorCode | undefined): bridge_error {
   if (code === "UNAUTHORIZED" || code === "FORBIDDEN") return "session";
@@ -515,7 +502,7 @@ function post_to_parent(message: Record<string, unknown>, origins: string[]) {
 }
 
 function start_bridge() {
-  const origins = allowed_origins();
+  const origins = support_site_origins();
 
   if (origins.length === 0) return;
 
