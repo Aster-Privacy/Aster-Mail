@@ -915,16 +915,17 @@ export function use_compose({
         preferences.compose_font_size,
         preferences.compose_font_color,
       );
+      const footer_html = is_fresh_reply_forward
+        ? ""
+        : get_aster_footer(t, preferences.show_aster_branding);
       const caret_block =
-        default_block || (signature_block ? COMPOSE_CARET_BLOCK : "");
+        default_block ||
+        (signature_block || footer_html ? COMPOSE_CARET_BLOCK : "");
 
       if (is_fresh_reply_forward && edit_draft) {
         content = caret_block + signature_block + edit_draft.message;
       } else {
-        content =
-          caret_block +
-          signature_block +
-          get_aster_footer(t, preferences.show_aster_branding);
+        content = caret_block + signature_block + footer_html;
       }
 
       const sanitized_result = sanitize_html(

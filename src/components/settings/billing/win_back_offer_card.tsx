@@ -21,6 +21,7 @@
 import type { PendingOffer } from "@/services/api/billing";
 
 import { TagIcon } from "@heroicons/react/24/outline";
+import { PillButton } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { BillingNotice } from "@/components/settings/billing/billing_layout";
@@ -81,13 +82,14 @@ export function WinBackOfferCard({
       tone="neutral"
     >
       {on_choose_plan && (
-        <button
-          className="aster_btn aster_btn_primary aster_btn_sm"
+        <PillButton
+          size="sm"
           type="button"
+          variant="filled"
           onClick={on_choose_plan}
         >
           {t("settings.win_back_offer_action")}
-        </button>
+        </PillButton>
       )}
     </BillingNotice>
   );

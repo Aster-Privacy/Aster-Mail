@@ -36,7 +36,7 @@ import { get_favicon_url } from "@/lib/favicon_url";
 import { CloseIcon, LockIcon } from "@/components/common/icons";
 import { EmailAutocomplete } from "@/components/common/email_autocomplete";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import { get_email_username } from "@/lib/utils";
+import { cn, get_email_username } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
@@ -121,6 +121,7 @@ interface RecipientBadgeProps {
   encryption_status?: EncryptionStatus;
   pgp_active?: boolean;
   on_toggle_encryption?: () => void;
+  class_name?: string;
 }
 
 export function RecipientBadge({
@@ -130,6 +131,7 @@ export function RecipientBadge({
   encryption_status,
   pgp_active = false,
   on_toggle_encryption,
+  class_name,
 }: RecipientBadgeProps) {
   const { t } = use_i18n();
   const [info_open, set_info_open] = useState(false);
@@ -181,7 +183,12 @@ export function RecipientBadge({
     : lock_label;
 
   return (
-    <div className="flex items-center gap-1.5 bg-default-100 rounded-full px-2 py-1 border border-edge-secondary">
+    <div
+      className={cn(
+        "flex items-center gap-1.5 bg-default-100 rounded-full px-2 py-1 border border-edge-secondary",
+        class_name,
+      )}
+    >
       {encryption_status && (
         <span className="relative flex-shrink-0 flex items-center">
           <button
@@ -285,6 +292,11 @@ interface RecipientFieldProps {
   pgp_enabled?: boolean;
   on_toggle_pgp?: () => void;
   all_recipients?: string[];
+  label_class_name?: string;
+  chip_class_name?: string;
+  list_class_name?: string;
+  input_class_name?: string;
+  class_name?: string;
 }
 
 export function RecipientField({
@@ -307,6 +319,11 @@ export function RecipientField({
   pgp_enabled = false,
   on_toggle_pgp,
   all_recipients,
+  label_class_name,
+  chip_class_name,
+  list_class_name,
+  input_class_name,
+  class_name,
 }: RecipientFieldProps) {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -657,9 +674,12 @@ export function RecipientField({
   };
 
   return (
-    <div ref={field_ref} className="flex items-start gap-2">
+    <div ref={field_ref} className={cn("flex items-start gap-2", class_name)}>
       <button
-        className="text-sm flex-shrink-0 py-1.5 text-txt-tertiary cursor-text"
+        className={cn(
+          "text-sm flex-shrink-0 py-1.5 text-txt-tertiary cursor-text",
+          label_class_name,
+        )}
         type="button"
         onClick={focus_input}
       >
@@ -698,13 +718,18 @@ export function RecipientField({
           </div>
         )}
         <div
-          className={`flex flex-wrap items-center gap-1.5${is_expanded && overflow_count > 0 ? " max-h-[160px] overflow-y-auto pe-1" : ""}`}
+          className={cn(
+            "flex flex-wrap items-center gap-1.5",
+            is_expanded && overflow_count > 0 && "max-h-[160px] overflow-y-auto pe-1",
+            list_class_name,
+          )}
           role="presentation"
           onKeyDown={handle_key_down}
         >
           {visible_recipients.map((email) => (
             <RecipientBadge
               key={email}
+              class_name={chip_class_name}
               email={email}
               encryption_status={
                 show_locks ? resolve_encryption_status(email) : undefined
@@ -745,7 +770,12 @@ export function RecipientField({
               {t("common.show_less")}
             </button>
           )}
-          <div className="flex-1 min-w-[120px] compose_recipient_input">
+          <div
+            className={cn(
+              "flex-1 min-w-[120px] compose_recipient_input",
+              input_class_name,
+            )}
+          >
             <EmailAutocomplete
               auto_focus={auto_focus}
               contacts={contacts}

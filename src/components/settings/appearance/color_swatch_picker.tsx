@@ -255,7 +255,7 @@ export function ColorSwatchPicker({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-64 border border-edge-primary bg-modal-bg shadow-lg rounded-xl p-4 z-[200]"
+        className="w-64 p-4 z-[200]"
         sideOffset={8}
       >
         <div

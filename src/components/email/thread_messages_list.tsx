@@ -34,8 +34,8 @@ import {
   useImperativeHandle,
   forwardRef,
 } from "react";
-import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
-import { Island, IslandCountPill, IslandStack } from "@aster/ui";
+import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import { IslandStack, ThreadHiddenRow } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -974,74 +974,70 @@ export const ThreadMessagesList = forwardRef<
       msg.id === regular_messages[regular_messages.length - 1]?.id;
 
     return (
-      <Island
+      <ThreadMessageBlock
         key={msg.id}
-        ref={msg.id === scroll_target_id ? first_unread_ref : undefined}
-        className="overflow-hidden"
-      >
-        <ThreadMessageBlock
-          disable_auto_dark_mode={is_dark_mode_opted_out(msg.id)}
-          existing_draft={existing_draft}
-          external_content_mode={external_content_mode}
-          folders={folder_options}
-          force_dark_mode={is_dark_mode_message(msg.id)}
-          hide_bottom_border={extra_props?.hide_bottom_border}
-          inline_mode={inline_mode}
-          inline_reply_is_external={inline_reply_is_external}
-          inline_reply_references={
-            inline_reply_msg?.id === msg.id
-              ? inline_reply_references
-              : undefined
-          }
-          inline_reply_thread_token={inline_reply_thread_token}
-          is_expanded={expanded_ids.has(msg.id)}
-          is_last_in_thread={
-            regular_messages.length > 1 &&
-            msg.id === regular_messages[regular_messages.length - 1].id
-          }
-          is_own_message={same_address_ignoring_dots(
-            msg.sender_email,
-            current_user_email,
-          )}
-          is_read={read_ids.has(msg.id)}
-          is_reply={
-            preferences.conversation_order === "desc"
-              ? display_idx < display_messages.length - 1
-              : display_idx > 0
-          }
-          is_single_message={regular_messages.length === 1}
-          is_starred={starred_ids.has(msg.id)}
-          loaded_content_types={loaded_content_types}
-          message={msg}
-          message_folder_tokens={applied_folders.get(msg.id)}
-          on_archive={on_archive}
-          on_block_sender={on_block_sender}
-          on_close_inline_reply={on_close_inline_reply}
-          on_draft_saved={on_draft_saved}
-          on_external_content_detected={on_external_content_detected}
-          on_forward={on_forward}
-          on_load_external_content={on_load_external_content}
-          on_manual_unsubscribed={is_last ? on_manual_unsubscribed : undefined}
-          on_move_to_folder={handle_move_to_folder}
-          on_not_spam={on_not_spam}
-          on_print={on_print}
-          on_reply={on_reply}
-          on_reply_all={on_reply_all}
-          on_report_phishing={on_report_phishing}
-          on_set_inline_mode={on_set_inline_mode}
-          on_star_toggle={() => toggle_star(msg)}
-          on_toggle={() => toggle(msg)}
-          on_toggle_dark_mode={() => toggle_dark_mode(msg.id)}
-          on_toggle_read={() => toggle_read(msg)}
-          on_trash={on_trash}
-          on_unsubscribe={is_last ? on_unsubscribe : undefined}
-          on_view_source={on_view_source}
-          preloaded_sanitized={preloaded_sanitized?.get(msg.id)}
-          show_inline_reply={inline_reply_msg?.id === msg.id}
-          size_bytes={size_bytes}
-          unsubscribe_url={is_last ? unsubscribe_url : undefined}
-        />
-      </Island>
+        disable_auto_dark_mode={is_dark_mode_opted_out(msg.id)}
+        existing_draft={existing_draft}
+        external_content_mode={external_content_mode}
+        folders={folder_options}
+        force_dark_mode={is_dark_mode_message(msg.id)}
+        hide_bottom_border={extra_props?.hide_bottom_border}
+        inline_mode={inline_mode}
+        inline_reply_is_external={inline_reply_is_external}
+        inline_reply_references={
+          inline_reply_msg?.id === msg.id
+            ? inline_reply_references
+            : undefined
+        }
+        inline_reply_thread_token={inline_reply_thread_token}
+        is_expanded={expanded_ids.has(msg.id)}
+        is_last_in_thread={
+          regular_messages.length > 1 &&
+          msg.id === regular_messages[regular_messages.length - 1].id
+        }
+        is_own_message={same_address_ignoring_dots(
+          msg.sender_email,
+          current_user_email,
+        )}
+        is_read={read_ids.has(msg.id)}
+        is_reply={
+          preferences.conversation_order === "desc"
+            ? display_idx < display_messages.length - 1
+            : display_idx > 0
+        }
+        is_single_message={regular_messages.length === 1}
+        is_starred={starred_ids.has(msg.id)}
+        loaded_content_types={loaded_content_types}
+        message={msg}
+        message_folder_tokens={applied_folders.get(msg.id)}
+        on_archive={on_archive}
+        on_block_sender={on_block_sender}
+        on_close_inline_reply={on_close_inline_reply}
+        on_draft_saved={on_draft_saved}
+        on_external_content_detected={on_external_content_detected}
+        on_forward={on_forward}
+        on_load_external_content={on_load_external_content}
+        on_manual_unsubscribed={is_last ? on_manual_unsubscribed : undefined}
+        on_move_to_folder={handle_move_to_folder}
+        on_not_spam={on_not_spam}
+        on_print={on_print}
+        on_reply={on_reply}
+        on_reply_all={on_reply_all}
+        on_report_phishing={on_report_phishing}
+        on_set_inline_mode={on_set_inline_mode}
+        on_star_toggle={() => toggle_star(msg)}
+        on_toggle={() => toggle(msg)}
+        on_toggle_dark_mode={() => toggle_dark_mode(msg.id)}
+        on_toggle_read={() => toggle_read(msg)}
+        on_trash={on_trash}
+        on_unsubscribe={is_last ? on_unsubscribe : undefined}
+        on_view_source={on_view_source}
+        preloaded_sanitized={preloaded_sanitized?.get(msg.id)}
+        show_inline_reply={inline_reply_msg?.id === msg.id}
+        size_bytes={size_bytes}
+        island_ref={msg.id === scroll_target_id ? first_unread_ref : undefined}
+        unsubscribe_url={is_last ? unsubscribe_url : undefined}
+      />
     );
   };
 
@@ -1077,13 +1073,10 @@ export const ThreadMessagesList = forwardRef<
       </IslandStack>
       {hidden_ids && (
         <>
-          <IslandCountPill
-            className="my-1.5"
-            count={hidden_count}
-            label={`${hidden_count} ${t("mail.messages_label")}`}
-            size="md"
-            trailing={<ChevronUpDownIcon />}
-            title={t("common.show_more")}
+          <ThreadHiddenRow
+            aria-expanded={false}
+            icon={<ChevronDownIcon />}
+            label={t("mail.more_messages_count", { count: hidden_count })}
             onClick={() => set_hidden_group_revealed(true)}
           />
           <IslandStack grouped>

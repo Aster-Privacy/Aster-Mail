@@ -126,7 +126,7 @@ function VacationDatePicker({
           </PopoverTrigger>
           <PopoverContent
             align="start"
-            className="w-auto min-w-[280px] p-0 bg-surf-primary border-edge-primary z-[70]"
+            className="w-auto min-w-[280px] p-0 z-[70]"
             side="bottom"
             sideOffset={4}
           >

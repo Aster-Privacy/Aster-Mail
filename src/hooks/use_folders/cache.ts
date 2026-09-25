@@ -21,9 +21,14 @@
 
 import { DecryptedFolder } from "./tree";
 
-export const cached_folders: { data: DecryptedFolder[]; total: number } = {
+export const cached_folders: {
+  data: DecryptedFolder[];
+  total: number;
+  has_loaded: boolean;
+} = {
   data: [],
   total: 0,
+  has_loaded: false,
 };
 
 export const FOLDER_SYNC_CHANNEL = "aster-folders-sync";
@@ -50,6 +55,7 @@ export function get_cached_folders(): DecryptedFolder[] {
 export function clear_folders_cache(): void {
   cached_folders.data = [];
   cached_folders.total = 0;
+  cached_folders.has_loaded = false;
 }
 
 export function get_protected_folder_tokens(): Set<string> {

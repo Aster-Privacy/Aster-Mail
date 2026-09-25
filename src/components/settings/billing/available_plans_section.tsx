@@ -20,18 +20,13 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
-import { Island, IslandSection } from "@aster/ui";
+import { Island, IslandDivider, IslandSection, PillButton } from "@aster/ui";
 
 import { checkout_error_text } from "./checkout_error_text";
 
 import { CrownIcon } from "@/components/ui/crown_icon";
-import {
-  PlanCard,
-  Segmented,
-  Tabs,
-} from "@/components/settings/billing/plan_card";
 import {
   format_price,
   type AvailablePlan,
@@ -40,8 +35,6 @@ import {
 import {
   PLAN_TIERS,
   FAMILY_PLAN_TIERS,
-  FAMILY_PLAN_DUO_FEATURES,
-  FAMILY_PLAN_FAMILY_FEATURES,
   SUPPORTED_CURRENCIES,
   convert_cents,
   is_crypto_provider,
@@ -56,6 +49,7 @@ import { scroll_to_storage_addons } from "@/components/layout/storage_meter";
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
+import { BillingOptionRow } from "@/components/settings/billing/billing_option_row";
 import { create_family_group } from "@/services/api/family";
 import {
   show_toast,
@@ -78,6 +72,13 @@ function tier_description(
   const key = TIER_DESCRIPTION_KEYS[tier.id];
 
   return key ? t(key) : tier.description;
+}
+
+function yearly_save_percent(tier: {
+  monthly_cents: number;
+  yearly_cents: number;
+}): number {
+  return Math.round((1 - tier.yearly_cents / (tier.monthly_cents * 12)) * 100);
 }
 
 interface AvailablePlansSectionProps {
@@ -109,7 +110,6 @@ export function AvailablePlansSection({
   set_billing_period,
   preferred_currency,
   handle_currency_change,
-  plan_features,
   is_action_loading,
   on_upgrade,
   on_family_plan_change,
@@ -123,6 +123,10 @@ export function AvailablePlansSection({
   const [plan_type, set_plan_type] = useState<"individual" | "family">(
     "individual",
   );
+  const [selected_individual, set_selected_individual] = useState<
+    string | null
+  >(null);
+  const [selected_family, set_selected_family] = useState<string | null>(null);
   const [family_loading, set_family_loading] = useState(false);
   const [pending_family_tier, set_pending_family_tier] =
     useState<FamilyPlanTier | null>(null);
@@ -215,7 +219,6 @@ export function AvailablePlansSection({
 
   const card_interval: "month" | "year" =
     billing_period === "yearly" ? "year" : "month";
-  const period_label = t("settings.per_month_short");
   const recommendation = compute_plan_recommendation({
     current_plan_code: subscription?.plan.code,
     storage_used_bytes: subscription?.storage?.used_bytes,
@@ -251,181 +254,273 @@ export function AvailablePlansSection({
           recommendation.recommended_family_plan_code),
     )?.name ?? null;
 
+  const is_family_view = plan_type === "family";
+  const tiers = is_family_view ? FAMILY_PLAN_TIERS : PLAN_TIERS;
+  const chosen_code = is_family_view ? selected_family : selected_individual;
+  const selected_code =
+    chosen_code ??
+    (is_family_view ? family_recommended_code : individual_recommended_code);
+  const set_selected_code = is_family_view
+    ? set_selected_family
+    : set_selected_individual;
+  const recommended_code = is_family_view
+    ? family_recommended_code
+    : individual_recommended_code;
+  const selected_tier = tiers.find((tier) => tier.id === selected_code) ?? null;
+  const price_tier = selected_tier ?? tiers.find((tier) => tier.id === recommended_code) ?? tiers[0];
+  const current_plan_code = subscription?.plan.code;
+  const current_tier_index = tiers.findIndex(
+    (tier) => tier.id === current_plan_code,
+  );
+  const is_yearly = billing_period !== "monthly";
+
+  const money = (cents: number) =>
+    format_price(convert_cents(cents, preferred_currency), preferred_currency);
+
+  const selected_is_same_plan = !!selected_tier && selected_tier.id === current_plan_code;
+  const selected_is_current =
+    selected_is_same_plan && current_billing_interval === card_interval;
+  const selected_is_interval_switch =
+    selected_is_same_plan && current_billing_interval !== card_interval;
+  const selected_index = selected_tier
+    ? tiers.findIndex((tier) => tier.id === selected_tier.id)
+    : -1;
+  const selected_is_downgrade =
+    !!selected_tier &&
+    !selected_is_same_plan &&
+    current_tier_index > -1 &&
+    selected_index < current_tier_index;
+
+  const cta_label = !selected_tier
+    ? t("settings.billing_select_plan_hint")
+    : selected_is_current
+      ? t("settings.current_plan")
+      : selected_is_interval_switch
+        ? card_interval === "year"
+          ? t("settings.switch_to_yearly")
+          : t("settings.switch_to_monthly")
+        : selected_is_downgrade
+          ? t("settings.downgrade")
+          : t("settings.get_plan", { name: selected_tier.name });
+
+  const handle_cta = () => {
+    if (!selected_tier || selected_is_current) return;
+    if (is_family_view) {
+      handle_family_select(selected_tier as FamilyPlanTier);
+
+      return;
+    }
+    const api_plan = plans.find((plan) => plan.code === selected_tier.id);
+
+    if (api_plan) {
+      on_upgrade(api_plan);
+
+      return;
+    }
+    if (plans_load_failed) {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+      on_reload_plans?.();
+
+      return;
+    }
+    show_toast(
+      t("settings.plans_coming_soon"),
+      "info",
+      TOAST_DURATION_BILLING_MS,
+    );
+  };
+
   return (
     <IslandSection
       bare
       icon={<CrownIcon className="flex-shrink-0" />}
       id="available-plans"
       title={t("settings.available_plans")}
-    >
-      <div>
-      <div className="flex flex-col items-center gap-4 mb-4">
-        <Tabs
-          on_change={set_plan_type}
-          options={[
-            { id: "individual", label: t("settings.plan_type_individual") },
-            { id: "family", label: t("settings.plan_type_family") },
-          ]}
-          value={plan_type}
-        />
-        <Segmented
-          on_change={(v) => set_billing_period(v)}
-          options={[
-            { id: "monthly", label: t("settings.billing_monthly") },
-            { id: "yearly", label: t("settings.billing_yearly") },
-          ]}
-          value={billing_period === "yearly" ? "yearly" : "monthly"}
-        />
-      </div>
-
-      <div className="flex flex-wrap items-center justify-center gap-2 mb-5">
-        <p className="text-xs text-txt-muted text-center max-w-md">
-          {preferred_currency === "usd"
-            ? t("settings.prices_in_usd_note")
-            : t("settings.prices_converted_note")}
-        </p>
-        <select
-          className="text-xs bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1 text-txt-secondary cursor-pointer outline-none focus:border-blue-500 transition-colors"
-          value={preferred_currency}
-          onChange={handle_currency_change}
+      trailing={
+        <div
+          aria-label={t("settings.available_plans")}
+          className="aster_segmented"
+          role="group"
         >
-          {SUPPORTED_CURRENCIES.map((c) => (
-            <option key={c.code} value={c.code}>
-              {c.label}
-            </option>
+          {(["individual", "family"] as const).map((type) => (
+            <button
+              key={type}
+              aria-pressed={plan_type === type}
+              className="aster_segmented_option"
+              type="button"
+              onClick={() => set_plan_type(type)}
+            >
+              {type === "individual"
+                ? t("settings.plan_type_individual")
+                : t("settings.plan_type_family")}
+            </button>
           ))}
-        </select>
-      </div>
-
-      {recommendation.is_paid && current_plan_name && (
-        <Island className="mb-5 px-4 py-3">
-          <div className="flex items-start gap-3">
-            <CrownIcon className="w-5 h-5 mt-0.5 flex-shrink-0 text-txt-primary" />
-            <div className="min-w-0">
-              <p className="text-sm font-semibold text-txt-primary">
-                {recommendation.is_top_tier
-                  ? t("settings.plan_top_tier_title")
-                  : t("settings.plan_current_title", {
-                      plan: current_plan_name,
-                    })}
-              </p>
-              <p className="mt-1 text-xs text-txt-secondary">
-                {recommendation.is_top_tier
-                  ? t("settings.plan_top_tier_note", {
-                      plan: current_plan_name,
-                    })
-                  : recommendation.storage_is_tight && recommended_tier_name
-                    ? t("settings.plan_storage_tight_note", {
-                        percent: Math.round(recommendation.storage_percent),
-                        plan: recommended_tier_name,
-                      })
-                    : t("settings.plan_current_note", {
-                        percent: Math.round(recommendation.storage_percent),
+        </div>
+      }
+    >
+      <div className="flex flex-col gap-3">
+        {recommendation.is_paid && current_plan_name && (
+          <Island padding="md">
+            <div className="flex items-start gap-3">
+              <CrownIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-txt-primary" />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-txt-primary">
+                  {recommendation.is_top_tier
+                    ? t("settings.plan_top_tier_title")
+                    : t("settings.plan_current_title", {
+                        plan: current_plan_name,
                       })}
-              </p>
-              <button
-                className="mt-2 text-xs font-semibold hover:underline"
-                style={{ color: "var(--accent-blue)" }}
-                type="button"
-                onClick={scroll_to_storage_addons}
-              >
-                {t("settings.plan_add_storage_link")}
-              </button>
+                </p>
+                <p className="mt-1 text-[13px] leading-5 text-txt-secondary">
+                  {recommendation.is_top_tier
+                    ? t("settings.plan_top_tier_note", {
+                        plan: current_plan_name,
+                      })
+                    : recommendation.storage_is_tight && recommended_tier_name
+                      ? t("settings.plan_storage_tight_note", {
+                          percent: Math.round(recommendation.storage_percent),
+                          plan: recommended_tier_name,
+                        })
+                      : t("settings.plan_current_note", {
+                          percent: Math.round(recommendation.storage_percent),
+                        })}
+                </p>
+                <button
+                  className="mt-2 text-[13px] font-medium hover:underline"
+                  style={{ color: "var(--accent-color)" }}
+                  type="button"
+                  onClick={scroll_to_storage_addons}
+                >
+                  {t("settings.plan_add_storage_link")}
+                </button>
+              </div>
             </div>
-          </div>
-        </Island>
-      )}
+          </Island>
+        )}
 
-      {plan_type === "family" && (
-        <div className="grid gap-4 pt-3 grid-cols-1 sm:grid-cols-2 sm:gap-2 items-stretch">
-          {FAMILY_PLAN_TIERS.map((tier) => {
-            const is_same_plan = subscription?.plan.code === tier.id;
+        <Island
+          aria-label={t("settings.available_plans")}
+          className="overflow-hidden"
+          padding="none"
+          role="radiogroup"
+        >
+          {tiers.map((tier, index) => {
+            const is_same_plan = tier.id === current_plan_code;
             const is_current =
               is_same_plan && current_billing_interval === card_interval;
-            const is_interval_switch =
-              is_same_plan && current_billing_interval !== card_interval;
-            const price_cents =
-              billing_period === "yearly"
-                ? Math.round(tier.yearly_cents / 12)
-                : tier.monthly_cents;
-            const features = (
-              tier.max_members === 2
-                ? FAMILY_PLAN_DUO_FEATURES
-                : FAMILY_PLAN_FAMILY_FEATURES
-            ).map((feature) => ({
-              label: t(feature.label_key),
-              on: feature.on,
-              icon: feature.icon,
-            }));
+            const is_recommended = recommended_code === tier.id;
+            const per_month = is_yearly
+              ? Math.round(tier.yearly_cents / 12)
+              : tier.monthly_cents;
 
             return (
-              <PlanCard
-                key={tier.id}
-                anchor_label={
-                  billing_period === "yearly"
-                    ? format_price(
-                        convert_cents(tier.monthly_cents, preferred_currency),
-                        preferred_currency,
-                      )
-                    : null
-                }
-                badge={
-                  is_current
-                    ? t("settings.current_plan")
-                    : family_recommended_code === tier.id
-                      ? t("settings.plan_recommended")
-                      : null
-                }
-                billed_note={
-                  billing_period === "yearly"
-                    ? t("settings.billed_annually")
-                    : null
-                }
-                cta_disabled={is_action_loading || family_loading || is_current}
-                cta_label={
-                  is_current
-                    ? t("settings.current_plan")
-                    : is_interval_switch
-                      ? card_interval === "year"
-                        ? t("settings.switch_to_yearly")
-                        : t("settings.switch_to_monthly")
-                      : t("settings.get_plan", { name: tier.name })
-                }
-                description={tier_description(tier, t)}
-                featured={family_recommended_code === tier.id}
-                features={features}
-                is_current={is_current}
-                lead_in={
-                  tier.max_members === 2
-                    ? null
-                    : t("settings.plan_everything_in", {
-                        plan: FAMILY_PLAN_TIERS[0].name,
-                      })
-                }
-                name={tier.name}
-                on_cta={() => {
-                  if (!is_current) handle_family_select(tier);
-                }}
-                period_label={period_label}
-                price_label={format_price(
-                  convert_cents(price_cents, preferred_currency),
-                  preferred_currency,
-                )}
-                save_label={
-                  billing_period === "yearly"
-                    ? t("settings.save_percent", {
-                        percent: Math.round(
-                          (1 - tier.yearly_cents / (tier.monthly_cents * 12)) *
-                            100,
-                        ),
-                      })
-                    : null
-                }
-              />
+              <Fragment key={tier.id}>
+                {index > 0 && <IslandDivider inset={52} />}
+                <BillingOptionRow
+                  data_featured={is_recommended}
+                  data_plan={tier.name}
+                  note_tone={is_current ? "muted" : "accent"}
+                  on_select={() => set_selected_code(tier.id)}
+                  price={money(per_month)}
+                  selected={selected_code === tier.id}
+                  subtitle={tier_description(tier, t)}
+                  title={tier.name}
+                  title_note={
+                    is_current
+                      ? t("settings.current_plan")
+                      : is_recommended
+                        ? t("settings.plan_recommended")
+                        : undefined
+                  }
+                  unit={t("settings.per_month_short")}
+                />
+              </Fragment>
             );
           })}
+        </Island>
+
+        <Island
+          aria-label={t("settings.billing_term_heading")}
+          className="overflow-hidden"
+          padding="none"
+          role="radiogroup"
+        >
+          <BillingOptionRow
+            note_tone="success"
+            on_select={() => set_billing_period("yearly")}
+            price={money(Math.round(price_tier.yearly_cents / 12))}
+            selected={is_yearly}
+            subtitle={t("settings.billing_billed_yearly_total", {
+              amount: money(price_tier.yearly_cents),
+            })}
+            title={t("settings.billing_pay_yearly")}
+            title_note={t("settings.billing_save_percent", {
+              percent: yearly_save_percent(price_tier),
+            })}
+            unit={t("settings.per_month_short")}
+          />
+          <IslandDivider inset={52} />
+          <BillingOptionRow
+            on_select={() => set_billing_period("monthly")}
+            price={money(price_tier.monthly_cents)}
+            selected={!is_yearly}
+            subtitle={t("settings.billing_billed_monthly")}
+            title={t("settings.billing_pay_monthly")}
+            unit={t("settings.per_month_short")}
+          />
+        </Island>
+
+        <Island padding="none">
+          <label className="flex items-center justify-between gap-4 px-4 py-3">
+            <span className="min-w-0">
+              <span className="block text-[15px] font-medium leading-5 text-txt-primary">
+                {t("settings.currency")}
+              </span>
+              <span className="mt-0.5 block text-[13px] leading-[18px] text-txt-muted">
+                {preferred_currency === "usd"
+                  ? t("settings.prices_in_usd_note")
+                  : t("settings.prices_converted_note")}
+              </span>
+            </span>
+            <select
+              className="h-9 flex-shrink-0 cursor-pointer rounded-[var(--aster-radius-field)] bg-surf-tertiary px-3 text-[13px] font-medium text-txt-primary outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+              value={preferred_currency}
+              onChange={handle_currency_change}
+            >
+              {SUPPORTED_CURRENCIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        </Island>
+
+        <div className="flex flex-col items-center gap-2 pt-1">
+          <PillButton
+            block
+            disabled={
+              !selected_tier ||
+              selected_is_current ||
+              is_action_loading ||
+              family_loading
+            }
+            size="lg"
+            type="button"
+            variant={selected_tier && !selected_is_current ? "filled" : "neutral"}
+            onClick={handle_cta}
+          >
+            {cta_label}
+          </PillButton>
+          <p className="flex items-center gap-1.5 text-center text-[12px] text-txt-muted">
+            <ShieldCheckIcon className="h-3.5 w-3.5 flex-shrink-0" />
+            <span>
+              {t("settings.money_back_guarantee")} ·{" "}
+              {t("settings.cancel_anytime")}
+            </span>
+          </p>
         </div>
-      )}
+      </div>
 
       {pending_family_tier && (
         <PlanPaymentMethodModal
@@ -499,128 +594,6 @@ export function AvailablePlansSection({
           yearly_price_cents={crypto_family_tier.yearly_cents}
         />
       )}
-
-      {plan_type === "individual" && (
-        <div className="grid gap-4 pt-3 grid-cols-1 lg:grid-cols-3 lg:gap-2 items-stretch">
-          {PLAN_TIERS.map((tier) => {
-            const tier_index = PLAN_TIERS.findIndex((p) => p.id === tier.id);
-            const current_plan_code = subscription?.plan.code;
-            const current_tier_index = PLAN_TIERS.findIndex(
-              (p) => p.id === current_plan_code,
-            );
-            const is_same_plan = current_plan_code === tier.id;
-            const is_current =
-              is_same_plan && current_billing_interval === card_interval;
-            const is_interval_switch =
-              is_same_plan && current_billing_interval !== card_interval;
-            const is_downgrade =
-              !is_same_plan &&
-              current_tier_index > -1 &&
-              tier_index < current_tier_index;
-
-            return (
-              <PlanCard
-                key={tier.id}
-                anchor_label={
-                  billing_period === "yearly"
-                    ? format_price(
-                        convert_cents(tier.monthly_cents, preferred_currency),
-                        preferred_currency,
-                      )
-                    : null
-                }
-                badge={
-                  is_current
-                    ? t("settings.current_plan")
-                    : individual_recommended_code === tier.id
-                      ? t("settings.plan_recommended")
-                      : null
-                }
-                billed_note={
-                  billing_period === "yearly"
-                    ? t("settings.billed_annually")
-                    : null
-                }
-                cta_disabled={is_action_loading || is_current}
-                cta_label={
-                  is_current
-                    ? t("settings.current_plan")
-                    : is_interval_switch
-                      ? card_interval === "year"
-                        ? t("settings.switch_to_yearly")
-                        : t("settings.switch_to_monthly")
-                      : is_downgrade
-                        ? t("settings.downgrade")
-                        : t("settings.get_plan", { name: tier.name })
-                }
-                description={tier_description(tier, t)}
-                featured={individual_recommended_code === tier.id}
-                features={plan_features[tier.id] ?? []}
-                is_current={is_current}
-                lead_in={t("settings.plan_everything_in", {
-                  plan:
-                    tier_index === 0
-                      ? t("settings.plan_free")
-                      : PLAN_TIERS[tier_index - 1].name,
-                })}
-                name={tier.name}
-                on_cta={() => {
-                  if (is_current) return;
-                  const api_plan = plans.find((p) => p.code === tier.id);
-
-                  if (api_plan) {
-                    on_upgrade(api_plan);
-
-                    return;
-                  }
-                  if (plans_load_failed) {
-                    show_toast(
-                      t("common.something_went_wrong_try_again"),
-                      "error",
-                    );
-                    on_reload_plans?.();
-
-                    return;
-                  }
-                  show_toast(
-                    t("settings.plans_coming_soon"),
-                    "info",
-                    TOAST_DURATION_BILLING_MS,
-                  );
-                }}
-                period_label={period_label}
-                price_label={format_price(
-                  convert_cents(
-                    billing_period === "monthly"
-                      ? tier.monthly_cents
-                      : Math.round(tier.yearly_cents / 12),
-                    preferred_currency,
-                  ),
-                  preferred_currency,
-                )}
-                save_label={
-                  billing_period === "yearly"
-                    ? t("settings.save_percent", {
-                        percent: Math.round(
-                          (1 - tier.yearly_cents / (tier.monthly_cents * 12)) *
-                            100,
-                        ),
-                      })
-                    : null
-                }
-              />
-            );
-          })}
-        </div>
-      )}
-
-      <div className="mt-6 flex items-center justify-center gap-1.5 text-xs text-txt-muted">
-        <ShieldCheckIcon className="w-3.5 h-3.5 text-txt-muted" />
-        <span>
-          {t("settings.money_back_guarantee")} · {t("settings.cancel_anytime")}
-        </span>
-      </div>
-      </div>
     </IslandSection>
   );
 }

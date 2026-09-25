@@ -207,7 +207,7 @@ export function AliasPreferencesPanel({
                     on_default_domain_change?.(v);
                   }}
                 >
-                  <SelectTrigger className="h-9 w-44 shrink-0 bg-transparent">
+                  <SelectTrigger className="h-9 w-44 shrink-0">
                     <SelectValue
                       placeholder={t("settings.alias_pref_default_domain")}
                     />
@@ -234,7 +234,7 @@ export function AliasPreferencesPanel({
                   save_pref({ alias_sender_format: v as "via" | "at" })
                 }
               >
-                <SelectTrigger className="h-9 w-44 shrink-0 bg-transparent">
+                <SelectTrigger className="h-9 w-44 shrink-0">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -293,7 +293,7 @@ export function AliasPreferencesPanel({
                   })
                 }
               >
-                <SelectTrigger className="h-9 w-40 shrink-0 bg-transparent">
+                <SelectTrigger className="h-9 w-40 shrink-0">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -323,7 +323,7 @@ export function AliasPreferencesPanel({
                   })
                 }
               >
-                <SelectTrigger className="h-9 w-36 shrink-0 bg-transparent">
+                <SelectTrigger className="h-9 w-36 shrink-0">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -348,7 +348,7 @@ export function AliasPreferencesPanel({
                   save_pref({ alias_delete_action: v as "trash" | "immediate" })
                 }
               >
-                <SelectTrigger className="h-9 w-40 shrink-0 bg-transparent">
+                <SelectTrigger className="h-9 w-40 shrink-0">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

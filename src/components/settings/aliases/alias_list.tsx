@@ -659,7 +659,7 @@ export function AliasList({
           value={filter_mode}
           onValueChange={(v) => set_filter_mode(v as FilterMode)}
         >
-          <SelectTrigger className="h-9 w-28 bg-transparent">
+          <SelectTrigger className="h-9 w-28">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

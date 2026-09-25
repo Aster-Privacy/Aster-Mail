@@ -22,7 +22,11 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-import { use_delayed_flag, SKELETON_DELAY_MS } from "./use_delayed_flag";
+import {
+  use_delayed_flag,
+  SKELETON_DELAY_MS,
+  SKELETON_MIN_VISIBLE_MS,
+} from "./use_delayed_flag";
 
 (
   globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
@@ -61,12 +65,12 @@ describe("use_delayed_flag", () => {
     vi.useRealTimers();
   });
 
-  it("never shows a skeleton when loading finishes under 150ms", () => {
+  it("never shows a skeleton when loading finishes under the delay", () => {
     render(true);
     expect(latest).toBe(false);
 
     act(() => {
-      vi.advanceTimersByTime(140);
+      vi.advanceTimersByTime(SKELETON_DELAY_MS - 10);
     });
     expect(latest).toBe(false);
 
@@ -85,10 +89,31 @@ describe("use_delayed_flag", () => {
     expect(latest).toBe(true);
   });
 
-  it("hides in the same render that pending ends", () => {
+  it("keeps a shown skeleton up for the minimum visible time", () => {
     render(true);
     act(() => {
       vi.advanceTimersByTime(SKELETON_DELAY_MS);
+    });
+    expect(latest).toBe(true);
+
+    render(false);
+    expect(latest).toBe(true);
+
+    act(() => {
+      vi.advanceTimersByTime(SKELETON_MIN_VISIBLE_MS - 10);
+    });
+    expect(latest).toBe(true);
+
+    act(() => {
+      vi.advanceTimersByTime(10);
+    });
+    expect(latest).toBe(false);
+  });
+
+  it("hides at once when pending ends after the minimum visible time", () => {
+    render(true);
+    act(() => {
+      vi.advanceTimersByTime(SKELETON_DELAY_MS + SKELETON_MIN_VISIBLE_MS);
     });
     expect(latest).toBe(true);
 
@@ -102,6 +127,10 @@ describe("use_delayed_flag", () => {
       vi.advanceTimersByTime(SKELETON_DELAY_MS);
     });
     render(false);
+    act(() => {
+      vi.advanceTimersByTime(SKELETON_MIN_VISIBLE_MS);
+    });
+    expect(latest).toBe(false);
     render(true);
     expect(latest).toBe(false);
   });

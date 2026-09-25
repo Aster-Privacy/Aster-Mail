@@ -47,7 +47,7 @@ export function ActionRecommendedBadge({ tip }: ActionRecommendedBadgeProps) {
 
   const label = (
     <span
-      className="inline-flex items-center gap-1 text-xs font-medium"
+      className="inline-flex items-center gap-1 text-xs font-medium normal-case tracking-normal"
       style={{ color: "var(--color-warning, #f59e0b)" }}
     >
       <ExclamationTriangleIcon className="w-3.5 h-3.5" />

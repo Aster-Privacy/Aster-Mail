@@ -92,11 +92,8 @@ interface OptionButtonProps {
 function OptionButton({ is_selected, label, on_click }: OptionButtonProps) {
   return (
     <button
-      className={`px-3 py-2 text-xs rounded-[14px] border transition-colors ${
-        is_selected
-          ? "bg-brand border-brand text-[var(--accent-fg,#ffffff)]"
-          : "bg-surf-secondary border-edge-secondary text-txt-secondary"
-      }`}
+      aria-pressed={is_selected}
+      className="aster_segmented_option"
       type="button"
       onClick={on_click}
     >
@@ -260,7 +257,7 @@ export function LoginAlertsSessionsGroup({
             <p className="text-sm font-medium mb-3 text-txt-primary">
               {t("settings.timeout_duration")}
             </p>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="aster_segmented grid-flow-row grid-cols-2 sm:grid-cols-4">
               {SESSION_TIMEOUT_OPTIONS.map((option) => (
                 <OptionButton
                   key={option.value}
@@ -362,11 +359,15 @@ export function LoginAlertsSessionsGroup({
               key={event.id}
               description={event.location || undefined}
               label={
-                <>
+                <span className="block truncate">
                   {event.device_type} - {event.browser}
-                </>
+                </span>
               }
-              value={format_relative_time_short(event.created_at, t)}
+              trailing={
+                <span className="aster_island_row_value shrink-0 max-w-none">
+                  {format_relative_time_short(event.created_at, t)}
+                </span>
+              }
             />
           ))
         )}
@@ -470,15 +471,17 @@ export function ForwardSecrecyGroup({
         }}
       />
       {forward_secrecy_enabled && (
-        <div className="px-4 pb-4 space-y-4">
+        <>
+        <div className="mx-4 h-px bg-[var(--aster-island-divider)]" />
+        <div className="px-4 pt-4 pb-4 space-y-6">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <FingerPrintIcon className="w-4 h-4 text-txt-muted" />
-              <span className="text-xs font-medium text-txt-muted">
+              <span className="text-[13px] font-medium text-txt-muted">
                 {t("settings.current_key_status")}
               </span>
             </div>
-            <div className="flex justify-between items-center text-xs">
+            <div className="flex justify-between items-center text-[13px]">
               <span className="text-txt-secondary">{t("settings.age")}</span>
               <span className="text-txt-primary">
                 {key_age_hours !== null
@@ -490,7 +493,7 @@ export function ForwardSecrecyGroup({
                   : "—"}
               </span>
             </div>
-            <div className="flex justify-between items-center text-xs mt-1">
+            <div className="flex justify-between items-center text-[13px] mt-1.5">
               <span className="text-txt-secondary">
                 {t("settings.fingerprint")}
               </span>
@@ -500,7 +503,7 @@ export function ForwardSecrecyGroup({
             </div>
           </div>
           <div>
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center gap-2 mb-3">
               <ArrowPathIcon className="w-4 h-4 text-txt-muted" />
               <span className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
                 {t("settings.key_rotation_interval")}
@@ -512,7 +515,7 @@ export function ForwardSecrecyGroup({
                 />
               </span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="aster_segmented grid-flow-row grid-cols-2 sm:grid-cols-4">
               {KEY_ROTATION_OPTIONS.map((option) => (
                 <OptionButton
                   key={option.value}
@@ -524,7 +527,7 @@ export function ForwardSecrecyGroup({
             </div>
           </div>
           <div>
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center gap-2 mb-3">
               <KeyIcon className="w-4 h-4 text-txt-muted" />
               <span className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
                 {t("settings.key_history_limit")}
@@ -534,7 +537,7 @@ export function ForwardSecrecyGroup({
                 />
               </span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div className="aster_segmented grid-flow-row grid-cols-2 sm:grid-cols-4">
               {KEY_HISTORY_OPTIONS.map((option) => (
                 <OptionButton
                   key={option.value}
@@ -548,8 +551,8 @@ export function ForwardSecrecyGroup({
               {t("settings.key_history_description")}
             </p>
           </div>
-          <div className="pt-2">
-            <Button size="md" variant="outline" onClick={on_rotate_keys_now}>
+          <div>
+            <Button size="md" variant="secondary" onClick={on_rotate_keys_now}>
               <ArrowPathIcon className="w-4 h-4 me-2" />
               {t("settings.rotate_keys_now")}
             </Button>
@@ -558,6 +561,7 @@ export function ForwardSecrecyGroup({
             </p>
           </div>
         </div>
+        </>
       )}
     </IslandSection>
   );

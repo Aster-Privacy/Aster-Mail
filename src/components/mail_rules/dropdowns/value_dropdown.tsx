@@ -201,7 +201,7 @@ export function ValueDropdown(props: ValueDropdownProps) {
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
       <PopoverContent
         align="start"
-        className="z-[200] p-2 bg-[var(--dropdown-bg)] border border-[var(--border-secondary)] rounded-md shadow-md"
+        className="z-[200] p-1.5"
         sideOffset={6}
         onCloseAutoFocus={(e) => e.preventDefault()}
         onFocusOutside={(e) => {

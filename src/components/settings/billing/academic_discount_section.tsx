@@ -20,7 +20,7 @@
 //
 import { useEffect, useRef, useState } from "react";
 import { CheckIcon, ClipboardIcon } from "@heroicons/react/24/outline";
-import { Button, Island, IslandSection } from "@aster/ui";
+import { Island, IslandSection, PillButton } from "@aster/ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import {
@@ -218,14 +218,16 @@ export function AcademicDiscountSection({
               on_verify={(token) => set_turnstile_token(token)}
             />
           )}
-          <button
-            className="aster_btn aster_btn_outline aster_btn_sm mt-3 disabled:opacity-50"
+          <PillButton
+            className="mt-3"
             disabled={
               resend_cooldown > 0 ||
               submitting ||
               (captcha_required && !turnstile_token)
             }
+            size="sm"
             type="button"
+            variant="neutral"
             onClick={handle_resend}
           >
             {resend_cooldown > 0
@@ -233,7 +235,7 @@ export function AcademicDiscountSection({
                   seconds: resend_cooldown,
                 })
               : t("settings.academic_resend")}
-          </button>
+          </PillButton>
         </Island>
       )}
 
@@ -253,20 +255,22 @@ export function AcademicDiscountSection({
                 if (e.key === "Enter" && !is_composing(e)) handle_submit();
               }}
             />
-            <Button
-              className="h-10 shrink-0"
+            <PillButton
+              className="shrink-0"
               disabled={
                 !academic_email.trim() ||
                 submitting ||
                 (captcha_required && !turnstile_token)
               }
-              variant="primary"
+              size="md"
+              type="button"
+              variant="filled"
               onClick={handle_submit}
             >
               {submitting
                 ? t("settings.academic_sending")
                 : t("settings.academic_send_verification")}
-            </Button>
+            </PillButton>
           </div>
           {captcha_required && (
             <TurnstileWidget

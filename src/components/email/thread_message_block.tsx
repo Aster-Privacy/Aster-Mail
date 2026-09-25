@@ -43,7 +43,8 @@ import {
   ArrowUturnRightIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
-import { Tooltip } from "@aster/ui";
+import { Island, Tooltip } from "@aster/ui";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { render_collapsed_thread_message } from "./thread_message_collapsed";
 import { use_thread_message_block } from "./use_thread_message_block";
@@ -78,6 +79,9 @@ import { SpamReasonsBanner } from "@/components/email/banners/spam_reasons_banne
 import { TranslationBanner } from "@/components/email/banners/translation_banner";
 import { ThreadMessageActions } from "@/components/email/thread_message_actions";
 import { MessageDetailsModal } from "@/components/email/message_details_modal";
+import { MessageDetailCard } from "@/components/email/message_detail_card";
+import { AnimatedHeight } from "@/components/email/animated_height";
+import { use_should_reduce_motion } from "@/provider";
 import { SenderProfileTrigger } from "@/components/profile/sender_profile_trigger";
 import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
 import { open_external } from "@/utils/open_link";
@@ -125,8 +129,10 @@ export function ThreadMessageBlock(
     on_manual_unsubscribed,
     unsubscribe_url,
     on_load_external_content,
+    island_ref,
   } = props;
   const state = use_thread_message_block(props);
+  const reduce_motion = use_should_reduce_motion();
   const {
     t,
     auth,
@@ -164,19 +170,106 @@ export function ThreadMessageBlock(
     can_collapse,
   } = state;
 
-  if (message.is_deleted) {
+  const shows_full_message =
+    !message.is_deleted &&
+    (is_expanded || is_last_in_thread || is_single_message);
+
+  const wrap_in_island = (
+    content: React.ReactNode,
+    reply: React.ReactNode = null,
+  ) => (
+    <>
+      <Island ref={island_ref} className="overflow-hidden">
+        <AnimatedHeight animate_key={shows_full_message}>
+          {content}
+        </AnimatedHeight>
+      </Island>
+      <AnimatePresence initial={false}>{reply}</AnimatePresence>
+    </>
+  );
+
+  const render_inline_reply_island = (on_close: () => void) => {
+    const is_own_msg = message.item_type === "sent";
+    const {
+      recipient_name: inline_recipient_name,
+      recipient_email: inline_recipient_email,
+    } = build_reply_recipient_for_message(
+      message,
+      auth?.user?.email ? [auth.user.email] : undefined,
+    );
+
+    const original_cc_emails =
+      message.cc_recipients?.map((r) => r.email).filter(Boolean) ?? [];
+
+    const all_to_emails =
+      message.to_recipients?.map((r) => r.email).filter(Boolean) ?? [];
+
+    const inline_reply_from = is_own_msg
+      ? message.sender_email
+      : delivered_to_address;
+
     return (
+      <motion.div
+        key="inline_reply"
+        animate={{ height: "auto", opacity: 1 }}
+        className="aster_island overflow-hidden"
+        exit={{ height: 0, opacity: 0 }}
+        initial={{ height: 0, opacity: 0 }}
+        transition={
+          reduce_motion
+            ? { duration: 0 }
+            : { duration: 0.24, ease: [0.32, 0.72, 0, 1] }
+        }
+        onClick={(e) => e.stopPropagation()}
+      >
+        <InlineReplyComposer
+          existing_draft={existing_draft}
+          inline_mode={inline_mode}
+          is_external={inline_reply_is_external}
+          on_close={on_close}
+          on_draft_saved={on_draft_saved}
+          on_set_inline_mode={on_set_inline_mode}
+          original_body={
+            is_ratchet_undecryptable ? "" : message.body || ""
+          }
+          original_cc={original_cc_emails}
+          original_email_id={message.id}
+          original_rfc_message_id={inline_reply_references}
+          original_subject={message.subject}
+          original_timestamp={message.timestamp}
+          original_to={all_to_emails}
+          quote_sender_email={
+            is_own_msg ? undefined : message.display_sender_email
+          }
+          quote_sender_name={
+            !is_own_msg && message.display_sender_email
+              ? message.display_sender_name || message.sender_name
+              : undefined
+          }
+          recipient_email={inline_recipient_email}
+          recipient_name={inline_recipient_name}
+          reply_from_address={inline_reply_from}
+          sender_email={message.sender_email}
+          sender_name={message.sender_name}
+          thread_token={inline_reply_thread_token}
+        />
+      </motion.div>
+    );
+  };
+
+  if (message.is_deleted) {
+    return wrap_in_island(
       <div className="px-4 py-3 text-sm italic text-txt-muted">
         {t("mail.message_deleted")}
-      </div>
+      </div>,
     );
   }
 
-  if (!is_expanded && !is_last_in_thread && !is_single_message) {
-    return render_collapsed_thread_message(props, state);
+  if (!shows_full_message) {
+    return wrap_in_island(render_collapsed_thread_message(props, state));
   }
 
-  return (
+  return wrap_in_island(
     <div className="overflow-hidden">
       <div
         className={`group flex items-start gap-3 ps-4 pe-2 pt-3 pb-2 ${can_collapse ? "cursor-pointer select-none" : ""}`}
@@ -390,200 +483,21 @@ export function ThreadMessageBlock(
               </PopoverTrigger>
               <PopoverContent
                 align="start"
-                className="w-[26rem] max-w-[90vw] p-3 text-xs space-y-2 bg-surf-primary border-edge-primary"
+                className="w-[28rem] max-w-[calc(100vw-2rem)] p-4"
                 side="bottom"
+                sideOffset={6}
                 onClick={(e: React.MouseEvent) => e.stopPropagation()}
               >
-                <div className="flex">
-                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
-                    {t("common.from_label")}
-                  </span>
-                  <span
-                    className="min-w-0 text-txt-secondary break-words"
-                    dir="auto"
-                  >
-                    {show_sender_name}{" "}
-                    <button
-                      className="hover:underline text-txt-muted break-all text-start"
-                      onClick={() => {
-                        copy_text_or_throw(show_sender_email)
-                          .then(() =>
-                            show_toast(t("common.email_copied"), "success"),
-                          )
-                          .catch(() =>
-                            show_toast(t("common.failed_to_copy"), "error"),
-                          );
-                      }}
-                    >
-                      &lt;{show_sender_email}&gt;
-                    </button>
-                  </span>
-                </div>
-                {delivered_to_address && (
-                  <div className="flex">
-                    <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
-                      {t("common.received_on_label")}
-                    </span>
-                    <span className="min-w-0 text-txt-secondary break-words">
-                      {delivered_to_address}
-                    </span>
-                  </div>
-                )}
-                {message.to_recipients && message.to_recipients.length > 0 && (
-                  <div className="flex items-start">
-                    <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium pt-0.5 text-txt-muted">
-                      {t("common.to_label")}
-                    </span>
-                    <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
-                      {message.to_recipients.map((r, i) => (
-                        <span
-                          key={r.email}
-                          className="inline-flex items-center gap-1"
-                        >
-                          <ProfileAvatar
-                            use_domain_logo
-                            email={r.email}
-                            name={r.name || ""}
-                            size="xs"
-                          />
-                          <button
-                            className="hover:underline"
-                            onClick={() => {
-                              copy_text_or_throw(r.email)
-                                .then(() =>
-                                  show_toast(
-                                    t("common.email_copied"),
-                                    "success",
-                                  ),
-                                )
-                                .catch(() =>
-                                  show_toast(
-                                    t("common.failed_to_copy"),
-                                    "error",
-                                  ),
-                                );
-                            }}
-                          >
-                            {r.name || r.email}
-                          </button>
-                          {i < (message.to_recipients?.length ?? 0) - 1 && (
-                            <span>,</span>
-                          )}
-                        </span>
-                      ))}
-                    </span>
-                  </div>
-                )}
-                {message.cc_recipients && message.cc_recipients.length > 0 && (
-                  <div className="flex items-start">
-                    <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium pt-0.5 text-txt-muted">
-                      {t("common.cc_label")}
-                    </span>
-                    <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
-                      {message.cc_recipients.map((r, i) => (
-                        <span
-                          key={r.email}
-                          className="inline-flex items-center gap-1"
-                        >
-                          <ProfileAvatar
-                            use_domain_logo
-                            email={r.email}
-                            name={r.name || ""}
-                            size="xs"
-                          />
-                          <button
-                            className="hover:underline"
-                            onClick={() => {
-                              copy_text_or_throw(r.email)
-                                .then(() =>
-                                  show_toast(
-                                    t("common.email_copied"),
-                                    "success",
-                                  ),
-                                )
-                                .catch(() =>
-                                  show_toast(
-                                    t("common.failed_to_copy"),
-                                    "error",
-                                  ),
-                                );
-                            }}
-                          >
-                            {r.name || r.email}
-                          </button>
-                          {i < (message.cc_recipients?.length ?? 0) - 1 && (
-                            <span>,</span>
-                          )}
-                        </span>
-                      ))}
-                    </span>
-                  </div>
-                )}
-                {message.bcc_recipients &&
-                  message.bcc_recipients.length > 0 && (
-                    <div className="flex items-start">
-                      <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium pt-0.5 text-txt-muted">
-                        {t("common.bcc_label")}
-                      </span>
-                      <span className="flex-1 min-w-0 flex flex-wrap items-center gap-1 text-txt-secondary">
-                        {message.bcc_recipients.map((r, i) => (
-                          <span
-                            key={r.email}
-                            className="inline-flex items-center gap-1"
-                          >
-                            <ProfileAvatar
-                              use_domain_logo
-                              email={r.email}
-                              name={r.name || ""}
-                              size="xs"
-                            />
-                            <button
-                              className="hover:underline"
-                              onClick={() => {
-                                copy_text_or_throw(r.email)
-                                  .then(() =>
-                                    show_toast(
-                                      t("common.email_copied"),
-                                      "success",
-                                    ),
-                                  )
-                                  .catch(() =>
-                                    show_toast(
-                                      t("common.failed_to_copy"),
-                                      "error",
-                                    ),
-                                  );
-                              }}
-                            >
-                              {r.name || r.email}
-                            </button>
-                            {i < (message.bcc_recipients?.length ?? 0) - 1 && (
-                              <span>,</span>
-                            )}
-                          </span>
-                        ))}
-                      </span>
-                    </div>
-                  )}
-                <div className="flex">
-                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
-                    {t("common.date_label")}
-                  </span>
-                  <span className="text-txt-secondary">
-                    {format_email_detail(new Date(message.timestamp))}
-                  </span>
-                </div>
-                <div className="flex">
-                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
-                    {t("common.subject_label")}
-                  </span>
-                  <span
-                    className="min-w-0 text-txt-secondary break-words"
-                    dir="auto"
-                  >
-                    {message.subject || t("mail.no_subject")}
-                  </span>
-                </div>
+                <MessageDetailCard
+                  bcc_recipients={message.bcc_recipients}
+                  cc_recipients={message.cc_recipients}
+                  date_label={format_email_detail(new Date(message.timestamp))}
+                  delivered_to_address={delivered_to_address}
+                  sender_email={show_sender_email}
+                  sender_name={show_sender_name}
+                  subject={message.subject || t("mail.no_subject")}
+                  to_recipients={message.to_recipients}
+                />
               </PopoverContent>
             </Popover>
             {alias_delivery && (
@@ -613,8 +527,8 @@ export function ThreadMessageBlock(
           )}
         </div>
 
-        <div className="flex flex-col items-end flex-shrink-0">
-          <span className="text-xs text-txt-muted whitespace-nowrap pe-2">
+        <div className="flex flex-shrink-0 items-center gap-0.5 -mt-1">
+          <span className="text-xs text-txt-muted whitespace-nowrap pe-1.5">
             {format_email_detail(new Date(message.timestamp))}
           </span>
           <div className="flex items-center">
@@ -1032,66 +946,10 @@ export function ThreadMessageBlock(
           />
         </div>
       )}
-
-      {show_inline_reply &&
-        on_close_inline_reply &&
-        (() => {
-          const is_own_msg = message.item_type === "sent";
-          const {
-            recipient_name: inline_recipient_name,
-            recipient_email: inline_recipient_email,
-          } = build_reply_recipient_for_message(
-            message,
-            auth?.user?.email ? [auth.user.email] : undefined,
-          );
-
-          const original_cc_emails =
-            message.cc_recipients?.map((r) => r.email).filter(Boolean) ?? [];
-
-          const all_to_emails =
-            message.to_recipients?.map((r) => r.email).filter(Boolean) ?? [];
-
-          const inline_reply_from = is_own_msg
-            ? message.sender_email
-            : delivered_to_address;
-
-          return (
-            <div onClick={(e) => e.stopPropagation()}>
-              <InlineReplyComposer
-                existing_draft={existing_draft}
-                inline_mode={inline_mode}
-                is_external={inline_reply_is_external}
-                on_close={on_close_inline_reply}
-                on_draft_saved={on_draft_saved}
-                on_set_inline_mode={on_set_inline_mode}
-                original_body={
-                  is_ratchet_undecryptable ? "" : message.body || ""
-                }
-                original_cc={original_cc_emails}
-                original_email_id={message.id}
-                original_rfc_message_id={inline_reply_references}
-                original_subject={message.subject}
-                original_timestamp={message.timestamp}
-                original_to={all_to_emails}
-                quote_sender_email={
-                  is_own_msg ? undefined : message.display_sender_email
-                }
-                quote_sender_name={
-                  !is_own_msg && message.display_sender_email
-                    ? message.display_sender_name || message.sender_name
-                    : undefined
-                }
-                recipient_email={inline_recipient_email}
-                recipient_name={inline_recipient_name}
-                reply_from_address={inline_reply_from}
-                sender_email={message.sender_email}
-                sender_name={message.sender_name}
-                thread_token={inline_reply_thread_token}
-              />
-            </div>
-          );
-        })()}
-    </div>
+    </div>,
+    show_inline_reply && on_close_inline_reply
+      ? render_inline_reply_island(on_close_inline_reply)
+      : null,
   );
 }
 

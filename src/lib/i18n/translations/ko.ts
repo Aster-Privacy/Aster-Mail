@@ -8675,6 +8675,12 @@ export const ko = {
     translation_unavailable_info_body:
       "기기 내 번역기가 이 메일을 끝까지 처리하지 못했습니다. 보통은 언어 팩을 아직 내려받는 중이거나, 메일에 여러 언어가 섞여 있거나, 대부분 이름과 숫자, 링크로 이뤄진 경우입니다. 서버로 전송된 내용은 없습니다.",
     more_folders_count_other: "폴더 {{count}}개 더",
+    more_messages_count: "메시지 {{count}}개 더",
+    more_messages_count_one: "메시지 {{count}}개 더",
+    more_messages_count_other: "메시지 {{count}}개 더",
+    reply_to_name: "{{name}}님에게 답장",
+    reply_all_to_name: "{{name}}님 및 전체에게 답장",
+    forward_message_heading: "메시지 전달",
     trackers_found_other: "추적기 {{count}}개를 발견하여 차단했습니다",
     spy_pixels_blocked_count_other: "스파이 픽셀 {{count}}개를 차단했습니다",
     links_cleaned_count_other: "링크 {{count}}개를 정리했습니다",

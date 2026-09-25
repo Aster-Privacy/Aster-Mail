@@ -399,7 +399,7 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
       <PopoverContent
         align="start"
         alignOffset={align_offset}
-        className="z-[200] w-60 p-1 bg-[var(--dropdown-bg)] border border-[var(--border-secondary)] rounded-md shadow-md"
+        className="z-[200] w-60 p-1.5"
         sideOffset={6}
       >
         {props.action_type === "forward" && (

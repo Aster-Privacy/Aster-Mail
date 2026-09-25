@@ -21,6 +21,7 @@
 import type { YearlySwitchOffer } from "@/services/api/billing";
 
 import { CalendarIcon } from "@heroicons/react/24/outline";
+import { PillButton } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { BillingNotice } from "@/components/settings/billing/billing_layout";
@@ -63,13 +64,14 @@ export function YearlySwitchCard({
       })}
       tone="neutral"
     >
-      <button
-        className="aster_btn aster_btn_primary aster_btn_sm"
+      <PillButton
+        size="sm"
         type="button"
+        variant="filled"
         onClick={() => on_switch(offer.plan_code)}
       >
         {t("settings.yearly_switch_action")}
-      </button>
+      </PillButton>
     </BillingNotice>
   );
 }

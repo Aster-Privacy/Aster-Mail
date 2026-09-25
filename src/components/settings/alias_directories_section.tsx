@@ -335,7 +335,7 @@ export function AliasDirectoriesSection() {
                 }
               />
               <Select value={domain} onValueChange={set_domain}>
-                <SelectTrigger className="h-10 w-44 shrink-0 bg-transparent">
+                <SelectTrigger className="h-10 w-44 shrink-0">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

@@ -383,11 +383,12 @@ export function build_forced_dark_mode_css(
   rail_color = "#3b82f6",
   link_color = "#60a5fa",
   link_visited_color = derive_visited_ink(link_color, DARK_BODY_SURFACE),
+  text_color = DARK_INHERITED_INK,
 ) {
   return `
 html, body {
   background-color: transparent !important;
-  color: ${DARK_INHERITED_INK};
+  color: ${text_color};
   color-scheme: dark !important;
 }
 

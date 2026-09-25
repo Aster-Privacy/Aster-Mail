@@ -99,6 +99,7 @@ import {
 } from "@/services/attachment_preview_cache";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { clip_code_points } from "@/utils/preview_text";
+import { move_leading_footer_to_end } from "@/components/email/message_body_parts";
 
 export interface PreloadedSanitizedContent {
   html: string;
@@ -514,7 +515,7 @@ function presanitize(
   body: string,
   sender: SenderTrustSource,
 ): PreloadedSanitizedContent {
-  const raw = html_content || body;
+  const raw = move_leading_footer_to_end(html_content || body);
   const is_plain = !raw || !has_rich_html(raw);
   const is_system = is_system_email(sender);
 

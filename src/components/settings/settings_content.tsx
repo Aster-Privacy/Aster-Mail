@@ -219,7 +219,7 @@ function SettingsContentInner(props: SettingsContentProps) {
         ref={(el) => {
           nav_item_refs.current[item.id] = el;
         }}
-        className={`w-full flex items-center gap-2.5 px-2.5 h-[34px] rounded-[10px] text-[13px] transition-colors duration-150 relative z-[1] outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 font-medium ${is_selected ? "" : "hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"}`}
+        className={`w-full flex items-center gap-2.5 px-2.5 h-[34px] rounded-[10px] text-[13px] transition-colors duration-150 relative z-[1] outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 font-medium ${is_selected ? "" : "hover:bg-[var(--aster-hover)]"}`}
         style={{
           color: is_selected ? "var(--text-primary)" : "var(--text-secondary)",
         }}
@@ -477,7 +477,7 @@ function SettingsContentInner(props: SettingsContentProps) {
           </div>
         )}
         <nav
-          className={`min-h-0 flex-1 px-3 pb-6 overflow-y-auto [mask-image:linear-gradient(to_bottom,black_calc(100%-28px),transparent)] ${is_popup ? "pt-4" : "pt-1"}`}
+          className={`min-h-0 flex-1 px-3 pb-6 overflow-y-auto [mask-image:linear-gradient(to_bottom,black_calc(100%-28px),transparent)] ${is_popup ? "pt-4" : "pt-2"}`}
         >
           <div ref={nav_container_ref} className="relative">
             <div
@@ -486,8 +486,7 @@ function SettingsContentInner(props: SettingsContentProps) {
                 top: indicator_style.top,
                 height: indicator_style.height,
                 opacity: is_searching ? 0 : indicator_style.opacity,
-                backgroundColor: "var(--indicator-bg)",
-                border: "1px solid var(--border-primary)",
+                backgroundColor: "var(--aster-selected)",
                 zIndex: 0,
                 transition: should_animate_indicator
                   ? "top 200ms ease, height 200ms ease, opacity 200ms ease"

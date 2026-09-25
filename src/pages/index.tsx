@@ -254,6 +254,22 @@ export default function IndexPage() {
   );
 
   useEffect(() => {
+    const preload = () => {
+      void load_settings_content();
+    };
+
+    if (typeof requestIdleCallback === "function") {
+      const idle_id = requestIdleCallback(preload, { timeout: 4000 });
+
+      return () => cancelIdleCallback(idle_id);
+    }
+
+    const timer = window.setTimeout(preload, 2500);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
     if (section) {
       const academic_result = new URLSearchParams(window.location.search).get(
         "academic",

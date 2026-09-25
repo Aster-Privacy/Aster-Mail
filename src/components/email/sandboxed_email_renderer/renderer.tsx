@@ -72,7 +72,6 @@ import {
   strip_unresolved_cid_references,
 } from "@/lib/cid_resolver";
 import { use_attachment_keys_version } from "@/hooks/use_attachment_keys_version";
-import { useTheme } from "@/contexts/theme_context";
 import {
   use_preferences,
   FONT_SIZE_DEFAULT,
@@ -264,9 +263,11 @@ export function SandboxedEmailRenderer({
         ? strip_unresolved_cid_references(sanitized_html, true)
         : sanitized_html);
 
-  const { theme } = useTheme();
   const resolved_accent = use_resolved_accent();
-  const app_is_dark = theme === "dark";
+  const app_is_dark = resolved_accent.is_dark;
+  const theme_text = normalize_hex(resolved_accent.text);
+  const dark_ink = app_is_dark && theme_text ? theme_text : "#e5e5e5";
+  const light_ink = !app_is_dark && theme_text ? theme_text : "#111827";
   const is_dark_theme = app_is_dark && !disable_auto_dark_mode;
   const is_html_email = !is_plain_text;
   const layout_flags = useMemo(() => {
@@ -332,11 +333,8 @@ export function SandboxedEmailRenderer({
   const forced_dark_canvas =
     force_dark_mode && !app_is_dark ? FORCED_DARK_CANVAS : "transparent";
   const plain_bg = force_dark_mode ? forced_dark_canvas : light_override_bg;
-  const plain_text_color = force_dark_mode
-    ? "#e5e5e5"
-    : is_dark_theme
-      ? "#e5e5e5"
-      : "#111827";
+  const plain_text_color =
+    force_dark_mode || is_dark_theme ? dark_ink : light_ink;
   const simple_dark_html =
     is_dark_theme &&
     !force_dark_mode &&
@@ -346,7 +344,7 @@ export function SandboxedEmailRenderer({
   const auto_dark_active =
     is_dark_theme && !force_dark_mode && (!is_html_email || simple_dark_html);
   const html_text_color =
-    force_dark_mode || simple_dark_html ? "#e5e5e5" : "#111827";
+    force_dark_mode || simple_dark_html ? dark_ink : light_ink;
   const html_bg = force_dark_mode
     ? forced_dark_canvas
     : simple_dark_html
@@ -449,7 +447,12 @@ a:focus-visible {
     ? build_auto_dark_mode_css(plain_text_color, link_ink, link_visited_ink)
     : "";
   const dark_mode_css = force_dark_mode
-    ? build_forced_dark_mode_css(quote_rail_ink, link_ink, link_visited_ink)
+    ? build_forced_dark_mode_css(
+        quote_rail_ink,
+        link_ink,
+        link_visited_ink,
+        dark_ink,
+      )
     : plain_dark_css;
 
   const force_light_scheme =

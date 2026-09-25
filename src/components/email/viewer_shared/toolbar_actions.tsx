@@ -178,8 +178,8 @@ export function ViewerToolbarActions({
   const muted_style = btn_style
     ? { ...btn_style, color: "var(--text-muted)" }
     : { color: "var(--text-muted)" };
-  const btn_common = `flex-shrink-0 ${hide_class} ${button_size}`;
-  const btn_base = `${btn_common} hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]`;
+  const btn_common = `flex-shrink-0 rounded-full ${hide_class} ${button_size}`;
+  const btn_base = `${btn_common} hover:!text-[var(--text-primary)] hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]`;
   const btn_trash = btn_base;
   const btn_spam = btn_base;
   const thread_message_count = thread_messages.length;
@@ -246,7 +246,7 @@ export function ViewerToolbarActions({
         <Tooltip tip={t("mail.shortcut_previous_email")}>
           <Button
             aria-disabled={!can_go_prev}
-            className={`flex-shrink-0 ${button_size} ${can_go_prev ? "hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]" : "opacity-40 cursor-default"}`}
+            className={`flex-shrink-0 rounded-full ${button_size} ${can_go_prev ? "hover:!text-[var(--text-primary)] hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]" : "opacity-40 cursor-default"}`}
             size="icon"
             style={muted_style}
             tabIndex={can_go_prev ? undefined : -1}
@@ -267,7 +267,7 @@ export function ViewerToolbarActions({
         <Tooltip tip={t("mail.shortcut_next_email")}>
           <Button
             aria-disabled={!can_go_next}
-            className={`flex-shrink-0 ${button_size} ${can_go_next ? "hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]" : "opacity-40 cursor-default"}`}
+            className={`flex-shrink-0 rounded-full ${button_size} ${can_go_next ? "hover:!text-[var(--text-primary)] hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]" : "opacity-40 cursor-default"}`}
             size="icon"
             style={muted_style}
             tabIndex={can_go_next ? undefined : -1}
@@ -532,7 +532,7 @@ export function ViewerToolbarActions({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
-            className={`${button_size} hover:!text-[var(--text-primary)] hover:bg-[var(--bg-hover)]`}
+            className={`${button_size} hover:!text-[var(--text-primary)] hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]`}
             size="icon"
             style={muted_style}
             title={t("common.more")}

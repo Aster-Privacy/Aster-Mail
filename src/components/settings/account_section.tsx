@@ -201,7 +201,7 @@ function FreePlanBanner() {
   if (is_onion_host() || !limits || limits.plan_code !== "free") return null;
 
   return (
-    <div className="plan_galaxy rounded-2xl border border-edge-secondary px-4 py-3.5">
+    <div className="plan_galaxy rounded-[var(--aster-island-radius)] px-4 py-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -582,20 +582,18 @@ export function AccountSection() {
             onMouseEnter={() => set_avatar_hovered(true)}
             onMouseLeave={() => set_avatar_hovered(false)}
           >
-            <div className="w-16 h-16 rounded-xl overflow-hidden shadow-lg relative bg-surf-primary">
+            <div className="w-20 h-20 rounded-full overflow-hidden relative bg-surf-primary ring-4 ring-[var(--aster-island-fill,var(--bg-primary))]">
               {has_custom_picture ? (
                 <img
                   alt=""
-                  className="w-full h-full object-cover rounded-xl"
+                  className="w-full h-full object-cover rounded-full"
                   src={picture}
                 />
               ) : (
                 <div
-                  className="w-full h-full rounded-xl flex items-center justify-center select-none"
+                  className="w-full h-full rounded-full flex items-center justify-center select-none"
                   style={{
                     backgroundColor: color,
-                    boxShadow:
-                      "inset 0 -3px 8px rgba(0,0,0,0.25), inset 0 1px 3px rgba(255,255,255,0.2)",
                   }}
                 >
                   <span
@@ -611,25 +609,23 @@ export function AccountSection() {
                 </div>
               )}
               {uploading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full">
                   <Spinner className="text-white" size="md" />
                 </div>
               )}
             </div>
             <button
               aria-label={t("auth.change_photo")}
-              className="absolute -bottom-1 -end-1 p-1.5 rounded-full transition-colors disabled:opacity-50 bg-surf-card text-txt-muted border-2 border-edge-secondary"
+              className="absolute -bottom-0.5 -end-0.5 flex h-7 w-7 items-center justify-center rounded-full transition-colors disabled:opacity-50 bg-[var(--aster-field-bg)] text-txt-primary ring-[3px] ring-[var(--aster-island-fill,var(--bg-primary))]"
               disabled={uploading || removing_photo}
               title={t("auth.change_photo")}
               onClick={open_picker}
               onMouseEnter={(e) => {
                 if (!uploading) {
-                  e.currentTarget.style.backgroundColor = "var(--bg-hover)";
+                  e.currentTarget.style.backgroundColor = "var(--aster-field-hover)";
                 }
               }}
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = "var(--bg-card)")
-              }
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
             >
               {uploading ? (
                 <Spinner size="xs" />
@@ -648,7 +644,7 @@ export function AccountSection() {
               <button
                 aria-label={t("common.remove_photo")}
                 className={cn(
-                  "absolute -top-1 -right-1 p-1.5 rounded-full transition disabled:opacity-50 bg-surf-card text-txt-muted border-2 border-edge-secondary hover:text-[var(--color-danger)] focus-visible:opacity-100",
+                  "absolute -top-0.5 -end-0.5 flex h-7 w-7 items-center justify-center rounded-full transition disabled:opacity-50 bg-[var(--aster-field-bg)] text-txt-muted ring-[3px] ring-[var(--aster-island-fill,var(--bg-primary))] hover:text-[var(--color-danger)] focus-visible:opacity-100",
                   avatar_hovered || removing_photo
                     ? "opacity-100"
                     : "opacity-0 [@media(hover:none)]:opacity-100",
@@ -696,7 +692,9 @@ export function AccountSection() {
                   className="relative w-9 h-9 rounded-full"
                   style={{
                     backgroundColor: c,
-                    outline: is_selected ? `1.5px solid ${c}` : "none",
+                    outline: is_selected
+                      ? "2px solid var(--text-primary)"
+                      : "none",
                     outlineOffset: 2,
                     boxShadow: is_selected
                       ? `0 2px 8px ${c}50`
@@ -778,7 +776,7 @@ export function AccountSection() {
             <div className="relative">
               <Input
                 aria-label={t("settings.display_name")}
-                className="w-48"
+                className="w-[220px] text-[13px] font-medium"
                 maxLength={MAX_DISPLAY_NAME_LENGTH}
                 value={name}
                 onBlur={save_name}
@@ -820,7 +818,7 @@ export function AccountSection() {
                     })
                   }
                 >
-                  <SelectTrigger className="h-10 w-48 flex-shrink-0 bg-transparent text-sm">
+                  <SelectTrigger className="h-10 w-[220px] flex-shrink-0">
                     <SelectValue placeholder={t("badges.none")} />
                   </SelectTrigger>
                   <SelectContent>
@@ -972,7 +970,7 @@ export function AccountSection() {
               value={String(inactivity_window)}
               onValueChange={(v) => request_inactivity_window_change(Number(v))}
             >
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-[220px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

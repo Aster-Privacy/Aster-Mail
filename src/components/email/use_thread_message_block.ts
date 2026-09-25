@@ -25,10 +25,15 @@ import type {
 } from "@/lib/html_sanitizer";
 import type { PreloadedSanitizedContent } from "@/components/email/hooks/preload_cache";
 import type { PhishingLevel } from "@/lib/phishing_analyzer";
+import type { Ref } from "react";
 
 import { useState, useMemo, useEffect, useRef } from "react";
 
 import { resolve_content_blocking } from "./resolve_content_blocking";
+import {
+  extract_preview_html,
+  move_leading_footer_to_end,
+} from "./message_body_parts";
 
 import { pop_preloaded_thread_cid } from "@/components/email/hooks/preload_cache";
 import { dispatch_iframe_ready } from "@/components/email/sandboxed_email_renderer";
@@ -135,6 +140,7 @@ export interface ThreadMessageBlockProps {
   unsubscribe_url?: string;
   loaded_content_types?: Set<string>;
   on_load_external_content?: (types?: string[]) => void;
+  island_ref?: Ref<HTMLDivElement>;
 }
 
 export function use_thread_message_block(props: ThreadMessageBlockProps) {
@@ -182,7 +188,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     }
 
     if (message.html_content && !is_ratchet_envelope(message.html_content)) {
-      return message.html_content;
+      return move_leading_footer_to_end(message.html_content);
     }
 
     return strip_reply_quotes(message.body);
@@ -200,7 +206,7 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     ) {
       return t("mail.encrypted_message_unavailable");
     }
-    const plain = strip_html_tags_bounded(clean_body, 600)
+    const plain = strip_html_tags_bounded(extract_preview_html(clean_body), 600)
       .replace(/\s+/g, " ")
       .trim();
 

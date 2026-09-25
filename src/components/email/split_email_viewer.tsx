@@ -502,8 +502,8 @@ export function SplitEmailViewer({
           <ViewerToolbarActions
             show_nav
             show_read_toggle
-            button_px={32}
-            button_size="h-8 w-8"
+            button_px={36}
+            button_size="h-9 w-9"
             can_go_next={can_go_next}
             can_go_prev={can_go_prev}
             current_index={current_index}
@@ -511,7 +511,7 @@ export function SplitEmailViewer({
             email={email}
             folders={folders}
             hide_class="hidden @lg:flex"
-            icon_size="w-4 h-4"
+            icon_size="w-[18px] h-[18px]"
             is_archive_loading={viewer.is_archive_loading}
             is_archived={email.is_archived === true}
             is_pin_loading={viewer.is_pin_loading}
@@ -560,7 +560,7 @@ export function SplitEmailViewer({
 
         <button
           aria-label={t("common.close")}
-          className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-hover flex-shrink-0 text-txt-muted"
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-txt-muted transition-colors hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] hover:text-txt-primary"
           onClick={on_close}
         >
           <XMarkIcon className="w-5 h-5" />

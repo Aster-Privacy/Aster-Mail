@@ -20,7 +20,6 @@
 //
 import { useEffect, useRef, useState, useCallback } from "react";
 import { loadStripe } from "@stripe/stripe-js/pure";
-import { CreditCardIcon } from "@heroicons/react/24/outline";
 import { IslandSections } from "@aster/ui";
 
 import { checkout_error_text } from "./billing/checkout_error_text";
@@ -87,17 +86,9 @@ import {
 } from "@/components/settings/billing/billing_constants";
 import { DEFAULT_RECOMMENDED_PLAN } from "@/components/settings/billing/plan_recommendation";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
-import {
-  CurrentPlanCard,
-  CurrentPlanNotices,
-} from "@/components/settings/billing/current_plan_card";
-import { BillingIconBox } from "@/components/settings/billing/billing_layout";
+import { BillingHeroCard } from "@/components/settings/billing/billing_hero_card";
+import { BillingNoticeStack } from "@/components/settings/billing/billing_notice_stack";
 import { scroll_to_storage_addons } from "@/components/layout/storage_meter";
-import { CardDeclineNotice } from "@/components/settings/billing/card_decline_notice";
-import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
-import { ResumeCheckoutCard } from "@/components/settings/billing/resume_checkout_card";
-import { WinBackOfferCard } from "@/components/settings/billing/win_back_offer_card";
-import { YearlySwitchCard } from "@/components/settings/billing/yearly_switch_card";
 import { AvailablePlansSection } from "@/components/settings/billing/available_plans_section";
 import { PlanComparisonSection } from "@/components/settings/billing/plan_comparison_section";
 import { StorageAddonsSection } from "@/components/settings/billing/storage_addons_section";
@@ -1078,27 +1069,35 @@ export function BillingSection() {
 
   return (
     <IslandSections>
-      <CurrentPlanCard
+      <BillingHeroCard
         current_billing_interval={current_billing_interval}
-        grace_days_remaining={grace_days_remaining}
         has_payment_failed={has_payment_failed}
-        include_notices={false}
         is_action_loading={is_action_loading}
         is_over_limit={is_storage_over_limit}
-        on_manage_billing={() => set_show_payment_methods(true)}
-        on_manage_plan={() => set_show_manage_plan(true)}
+        on_add_storage={scroll_to_storage_addons}
+        on_cancel_plan={() => {
+          set_cancel_password("");
+          set_cancel_password_error("");
+          set_show_cancel_password(false);
+          set_show_cancel_dialog(true);
+        }}
+        on_manage_payment={() => set_show_payment_methods(true)}
         on_reactivate={handle_reactivate}
         on_renew_with_crypto={handle_crypto_renew}
-        on_scroll_to_plans={scroll_to_plans}
-        on_toggle_plans={() => set_show_plans((open) => !open)}
+        on_switch_billing={() => set_show_switch_billing_dialog(true)}
+        on_toggle_plans={() => {
+          if (show_plans) {
+            set_show_plans(false);
+          } else {
+            scroll_to_plans();
+          }
+        }}
         plans_open={show_plans}
         preferred_currency={preferred_currency}
-        show_storage={false}
         storage_limit_bytes={storage_limit_bytes}
         storage_percentage={storage_percentage}
         storage_used_bytes={storage_used_bytes}
         subscription={subscription}
-        upgrade_features={plan_features[DEFAULT_RECOMMENDED_PLAN]}
       />
 
       {show_plans && (
@@ -1142,30 +1141,6 @@ export function BillingSection() {
 
       <CreditsSection
         credit_balance={credit_balance}
-        payment_cell={
-          <div className="flex items-center gap-3 px-4 py-3.5">
-            <BillingIconBox icon={CreditCardIcon} />
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-medium text-txt-primary">
-                {t("settings.payment")}
-              </p>
-              <p className="truncate text-xs text-txt-muted">
-                {is_crypto_provider(subscription?.payment_provider)
-                  ? t("settings.checkout_method_crypto")
-                  : subscription && subscription.plan.code !== "free"
-                    ? t("settings.checkout_method_card")
-                    : t("settings.payment_methods_description")}
-              </p>
-            </div>
-            <button
-              className="aster_btn aster_btn_secondary aster_btn_sm flex-shrink-0"
-              type="button"
-              onClick={() => set_show_payment_methods(true)}
-            >
-              {t("common.update")}
-            </button>
-          </div>
-        }
         preferred_currency={preferred_currency}
         set_credit_balance={set_credit_balance}
       />
@@ -1186,45 +1161,22 @@ export function BillingSection() {
         preferred_currency={preferred_currency}
         selected_storage={selected_storage}
         set_selected_storage={set_selected_storage}
-        storage_limit_bytes={storage_limit_bytes}
-        storage_percentage={storage_percentage}
-        storage_used_bytes={storage_used_bytes}
       />
 
-      <div className="flex flex-col gap-2 empty:hidden">
-        <CurrentPlanNotices
-          grace_days_remaining={grace_days_remaining}
-          has_payment_failed={has_payment_failed}
-          is_action_loading={is_action_loading}
-          is_over_limit={is_storage_over_limit}
-          on_add_storage={scroll_to_storage_addons}
-          on_manage_billing={() => set_show_payment_methods(true)}
-          on_reactivate={handle_reactivate}
-          on_renew_with_crypto={handle_crypto_renew}
-          subscription={subscription}
-        />
-
-        {!has_payment_failed && (
-          <CardDeclineNotice decline={subscription?.last_card_decline} />
-        )}
-
-        <CryptoResumeBanner />
-
-        <ResumeCheckoutCard
-          current_plan_code={subscription?.plan.code ?? null}
-        />
-
-        <WinBackOfferCard
-          offer={subscription?.pending_offer}
-          on_choose_plan={scroll_to_plans}
-        />
-
-        <YearlySwitchCard
-          currency={preferred_currency}
-          offer={subscription?.yearly_switch_offer}
-          on_switch={handle_switch_to_yearly}
-        />
-      </div>
+      <BillingNoticeStack
+        grace_days_remaining={grace_days_remaining}
+        has_payment_failed={has_payment_failed}
+        is_action_loading={is_action_loading}
+        is_over_limit={is_storage_over_limit}
+        on_add_storage={scroll_to_storage_addons}
+        on_choose_plan={scroll_to_plans}
+        on_manage_billing={() => set_show_payment_methods(true)}
+        on_reactivate={handle_reactivate}
+        on_renew_with_crypto={handle_crypto_renew}
+        on_switch_to_yearly={handle_switch_to_yearly}
+        preferred_currency={preferred_currency}
+        subscription={subscription}
+      />
 
       <BillingHistorySection
         history={history}

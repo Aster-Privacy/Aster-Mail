@@ -18,14 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useState } from "react";
-import { IslandSection } from "@aster/ui";
+import { Fragment, useEffect, useState } from "react";
+import { CircleStackIcon } from "@heroicons/react/24/outline";
+import {
+  Island,
+  IslandDivider,
+  IslandRow,
+  IslandSection,
+  PillButton,
+} from "@aster/ui";
 
-import { Progress } from "@/components/ui/progress";
 import {
   format_date,
   format_price,
-  format_storage,
   type StorageAddonItem,
   type UserActiveAddon,
 } from "@/services/api/billing";
@@ -33,7 +38,7 @@ import {
   ADDON_BADGES,
   convert_cents,
 } from "@/components/settings/billing/billing_constants";
-import { BillingRow } from "@/components/settings/billing/billing_layout";
+import { BillingMeter } from "@/components/settings/billing/billing_meter";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -82,155 +87,175 @@ export function StorageAddonsSection({
       window.removeEventListener(OPEN_STORAGE_ADDONS_EVENT, open_picker);
   }, []);
 
-  const handle_buy = () => {
-    const addon = available_addons.find((a) => a.id === selected_storage);
+  const selected_addon =
+    available_addons.find((addon) => addon.id === selected_storage) ?? null;
 
-    if (!addon) {
+  const handle_buy = () => {
+    if (!selected_addon) {
       show_toast(t("settings.storage_select_option_first"), "info");
 
       return;
     }
 
-    on_purchase_addon(addon);
+    on_purchase_addon(selected_addon);
   };
+
+  const money = (cents: number) =>
+    format_price(convert_cents(cents, preferred_currency), preferred_currency);
 
   return (
     <IslandSection
+      bare
       id="additional_storage_section"
-      island_class_name="overflow-hidden"
       title={t("settings.storage")}
-    >
-        <BillingRow
-          action={
-            <button
-              aria-expanded={is_picker_open}
-              className="aster_btn aster_btn_secondary aster_btn_sm"
-              type="button"
-              onClick={() => set_is_picker_open((open) => !open)}
-            >
-              {is_picker_open ? t("common.close") : t("settings.add_storage")}
-            </button>
-          }
-          description={
-            has_usage ? (
-              <div className="space-y-2">
-                <p>
-                  {t("settings.storage_used_of_total", {
-                    used: format_storage(storage_used_bytes),
-                    total: format_storage(storage_limit_bytes),
-                  })}
-                </p>
-                <Progress
-                  className={`h-1.5 max-w-xs ${is_over_limit ? "[&>div]:bg-red-500" : ""}`}
-                  value={storage_percentage ?? 0}
-                />
-              </div>
-            ) : (
-              t("settings.storage_addons_description")
-            )
-          }
-          title={t("settings.storage_addons")}
+      trailing={
+        <PillButton
+          aria-expanded={is_picker_open}
+          size="sm"
+          type="button"
+          variant={is_picker_open ? "neutral" : "tonal"}
+          onClick={() => set_is_picker_open((open) => !open)}
         >
+          {is_picker_open ? t("common.close") : t("settings.add_storage")}
+        </PillButton>
+      }
+    >
+      <div className="flex flex-col gap-3">
+        <Island padding="md">
+          {has_usage ? (
+            <BillingMeter
+              label={t("settings.storage_addons")}
+              limit_bytes={storage_limit_bytes}
+              over_limit={is_over_limit}
+              percent={storage_percentage ?? 0}
+              used_bytes={storage_used_bytes}
+            />
+          ) : (
+            <p className="text-[13px] leading-5 text-txt-muted">
+              {t("settings.storage_addons_description")}
+            </p>
+          )}
+
           {is_picker_open && (
-            <div className="mt-4">
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="mt-4 flex flex-col gap-3">
+              <div className="flex flex-wrap gap-2" role="radiogroup">
                 {available_addons.map((addon) => {
                   const badge = ADDON_BADGES[addon.name];
                   const is_selected = selected_storage === addon.id;
 
                   return (
-                    <button
+                    <PillButton
                       key={addon.id}
-                      aria-pressed={is_selected}
-                      className={`rounded-xl px-3 py-2.5 text-start transition-colors ${
-                        is_selected
-                          ? "aster_island_selected"
-                          : "hover:opacity-90"
-                      }`}
-                      style={{
-                        backgroundColor: is_selected
-                          ? "color-mix(in srgb, var(--accent-color) 10%, transparent)"
-                          : "color-mix(in srgb, var(--text-primary) 5%, transparent)",
-                      }}
+                      aria-checked={is_selected}
+                      role="radio"
+                      size="md"
                       type="button"
+                      variant={is_selected ? "filled" : "tonal"}
                       onClick={() =>
                         set_selected_storage(is_selected ? null : addon.id)
                       }
                     >
-                      <p className="text-sm font-semibold text-txt-primary">
-                        {addon.name}
-                      </p>
-                      <p className="mt-0.5 text-xs text-txt-muted">
-                        {format_price(
-                          convert_cents(addon.price_cents, preferred_currency),
-                          preferred_currency,
-                        )}
-                        {t("settings.per_month_short")}
-                      </p>
+                      {addon.name}
                       {badge && (
-                        <p className="mt-1 text-[11px] font-medium text-txt-secondary">
+                        <span className="ms-1.5 text-[11px] font-medium opacity-80">
                           {badge === "popular"
                             ? t("settings.popular")
                             : t("settings.best_value")}
-                        </p>
+                        </span>
                       )}
-                    </button>
+                    </PillButton>
                   );
                 })}
               </div>
-              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-xs text-txt-muted">
-                  {t("settings.storage_addons_monthly_note")}
-                </p>
-                <button
-                  className="aster_btn aster_btn_primary aster_btn_sm flex-shrink-0 self-start sm:self-auto"
-                  disabled={is_action_loading}
+
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-[15px] font-medium text-txt-primary">
+                    {selected_addon
+                      ? t("settings.billing_add_storage_summary", {
+                          size: selected_addon.name,
+                        })
+                      : t("settings.storage_select_option_first")}
+                  </p>
+                  <p className="mt-0.5 text-[13px] text-txt-muted">
+                    {selected_addon
+                      ? `${money(selected_addon.price_cents)}${t("settings.per_month_short")}`
+                      : t("settings.storage_addons_monthly_note")}
+                  </p>
+                </div>
+                <PillButton
+                  className="flex-shrink-0 self-start sm:self-auto"
+                  disabled={is_action_loading || !selected_addon}
+                  size="md"
                   type="button"
+                  variant="filled"
                   onClick={handle_buy}
                 >
                   {t("common.buy_more_storage")}
-                </button>
+                </PillButton>
               </div>
+              {selected_addon && (
+                <p className="text-[12px] text-txt-muted">
+                  {t("settings.storage_addons_monthly_note")}
+                </p>
+              )}
             </div>
           )}
-        </BillingRow>
+        </Island>
 
-        {active_addons.map((addon) => (
-          <BillingRow
-            key={addon.user_addon_id}
-            action={
-              !addon.cancel_at_period_end && (
-                <button
-                  className="aster_btn aster_btn_secondary aster_btn_sm"
-                  disabled={is_action_loading}
-                  type="button"
-                  onClick={() => on_cancel_addon(addon)}
-                >
-                  {t("settings.cancel_addon")}
-                </button>
-              )
-            }
-            description={
-              <>
-                {format_price(
-                  convert_cents(addon.price_cents, preferred_currency),
-                  preferred_currency,
-                )}
-                {t("settings.per_month_short")}
-                {addon.cancel_at_period_end && addon.current_period_end && (
-                  <>
-                    <span aria-hidden="true" className="mx-1.5">
-                      ·
-                    </span>
-                    {t("settings.cancels")}{" "}
-                    {format_date(addon.current_period_end)}
-                  </>
-                )}
-              </>
-            }
-            title={addon.size_label}
-          />
-        ))}
+        {active_addons.length > 0 && (
+          <Island className="overflow-hidden" padding="none">
+            {active_addons.map((addon, index) => {
+              const ending =
+                addon.cancel_at_period_end && !!addon.current_period_end;
+
+              return (
+                <Fragment key={addon.user_addon_id}>
+                  {index > 0 && <IslandDivider inset={52} />}
+                  <IslandRow
+                    description={
+                      ending
+                        ? t("settings.billing_addon_ends", {
+                            date: format_date(addon.current_period_end!),
+                          })
+                        : `${money(addon.price_cents)}${t("settings.per_month_short")}`
+                    }
+                    icon={<CircleStackIcon className="h-[22px] w-[22px]" />}
+                    label={addon.size_label}
+                    trailing={
+                      <span className="flex items-center gap-2">
+                        <span
+                          className="text-[12px] font-medium"
+                          style={{
+                            color: ending
+                              ? "var(--color-warning)"
+                              : "var(--color-success)",
+                          }}
+                        >
+                          {ending
+                            ? t("settings.billing_addon_ending")
+                            : t("settings.billing_addon_active")}
+                        </span>
+                        {!addon.cancel_at_period_end && (
+                          <PillButton
+                            disabled={is_action_loading}
+                            size="sm"
+                            type="button"
+                            variant="neutral"
+                            onClick={() => on_cancel_addon(addon)}
+                          >
+                            {t("settings.cancel_addon")}
+                          </PillButton>
+                        )}
+                      </span>
+                    }
+                  />
+                </Fragment>
+              );
+            })}
+          </Island>
+        )}
+      </div>
     </IslandSection>
   );
 }

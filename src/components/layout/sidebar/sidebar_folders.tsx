@@ -43,6 +43,7 @@ import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { FolderContextMenu } from "@/components/folders/folder_context_menu";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { app_locale } from "@/utils/date_format";
@@ -124,6 +125,7 @@ export const SidebarFolders = memo(function SidebarFolders({
   on_retry,
 }: SidebarFoldersProps) {
   const { t } = use_i18n();
+  const skeleton_visible = use_delayed_flag(is_loading);
   const is_pinned = variant === "pinned";
 
   const [drag_over_token, set_drag_over_token] = useState<string | null>(null);
@@ -416,7 +418,7 @@ export const SidebarFolders = memo(function SidebarFolders({
           !is_collapsed &&
           !section_collapsed &&
           !is_pinned &&
-          (is_loading ? (
+          (skeleton_visible ? (
             <NavSectionSkeleton rows={3} />
           ) : load_failed && on_retry ? (
             <LoadFailedNotice on_retry={on_retry} />

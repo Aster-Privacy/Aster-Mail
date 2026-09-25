@@ -8117,6 +8117,12 @@ export const zh_CN = {
     translation_unavailable_info_body:
       "设备上的翻译器无法完成这封邮件。通常是语言包仍在下载、邮件混用多种语言，或内容主要是姓名、数字和链接。没有任何内容发送到服务器。",
     more_folders_count_other: "另外 {{count}} 个文件夹",
+    more_messages_count: "另外 {{count}} 封邮件",
+    more_messages_count_one: "另外 {{count}} 封邮件",
+    more_messages_count_other: "另外 {{count}} 封邮件",
+    reply_to_name: "回复 {{name}}",
+    reply_all_to_name: "回复 {{name}} 及所有人",
+    forward_message_heading: "转发邮件",
     trackers_found_other: "已发现并拦截 {{count}} 个跟踪器",
     spy_pixels_blocked_count_other: "已拦截 {{count}} 个间谍像素",
     links_cleaned_count_other: "已清理 {{count}} 个链接",

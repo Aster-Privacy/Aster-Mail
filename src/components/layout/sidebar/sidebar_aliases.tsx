@@ -35,6 +35,7 @@ import {
 } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { CountBadge } from "@/components/common/count_badge";
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
@@ -100,6 +101,7 @@ export const SidebarAliases = memo(function SidebarAliases({
   on_retry,
 }: SidebarAliasesProps) {
   const { t } = use_i18n();
+  const skeleton_visible = use_delayed_flag(is_loading);
 
   const max_visible = is_collapsed ? 3 : 5;
   const has_more = aliases.length > max_visible;
@@ -193,7 +195,7 @@ export const SidebarAliases = memo(function SidebarAliases({
           />
         )}
         {aliases.length === 0 &&
-          is_loading &&
+          skeleton_visible &&
           !is_collapsed &&
           !section_collapsed && <NavSectionSkeleton rows={2} />}
         {aliases.length === 0 &&

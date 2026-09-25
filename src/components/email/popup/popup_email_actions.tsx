@@ -120,7 +120,7 @@ export function PopupEmailActions({
 }: PopupEmailActionsProps) {
   return (
     <div
-      className="flex items-center gap-1 px-3 py-2 flex-shrink-0 select-none border-b border-edge-primary"
+      className="flex items-center gap-1 px-2 py-1.5 flex-shrink-0 select-none border-b border-edge-primary"
       role="presentation"
       style={{
         cursor: is_fullscreen ? "default" : is_dragging ? "grabbing" : "grab",
@@ -132,12 +132,12 @@ export function PopupEmailActions({
       <Tooltip tip={t("common.close")}>
         <Button
           data-no-drag
-          className="h-7 w-7 text-txt-muted hover:text-txt-primary"
+          className="h-9 w-9 rounded-full hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] text-txt-muted hover:text-txt-primary"
           size="icon"
           variant="ghost"
           onClick={on_close}
         >
-          <XMarkIcon className="w-4 h-4" />
+          <XMarkIcon className="w-[18px] h-[18px]" />
         </Button>
       </Tooltip>
 
@@ -149,15 +149,15 @@ export function PopupEmailActions({
         >
           <Button
             data-no-drag
-            className="h-7 w-7 text-txt-muted hover:text-txt-primary"
+            className="h-9 w-9 rounded-full hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] text-txt-muted hover:text-txt-primary"
             size="icon"
             variant="ghost"
             onClick={on_toggle_size}
           >
             {popup_size === "default" ? (
-              <ArrowsPointingOutIcon className="w-4 h-4" />
+              <ArrowsPointingOutIcon className="w-[18px] h-[18px]" />
             ) : (
-              <ArrowsPointingInIcon className="w-4 h-4" />
+              <ArrowsPointingInIcon className="w-[18px] h-[18px]" />
             )}
           </Button>
         </Tooltip>
@@ -170,15 +170,15 @@ export function PopupEmailActions({
       >
         <Button
           data-no-drag
-          className="h-7 w-7 text-txt-muted hover:text-txt-primary"
+          className="h-9 w-9 rounded-full hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] text-txt-muted hover:text-txt-primary"
           size="icon"
           variant="ghost"
           onClick={on_fullscreen}
         >
           {is_fullscreen ? (
-            <ArrowsPointingInIcon className="w-4 h-4" />
+            <ArrowsPointingInIcon className="w-[18px] h-[18px]" />
           ) : (
-            <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+            <ArrowTopRightOnSquareIcon className="w-[18px] h-[18px]" />
           )}
         </Button>
       </Tooltip>
@@ -188,14 +188,14 @@ export function PopupEmailActions({
       <Tooltip tip={is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}>
         <Button
           data-no-drag
-          className={`h-7 w-7 ${is_pinned ? "text-blue-500" : "text-txt-muted hover:text-blue-500"}`}
+          className={`h-9 w-9 rounded-full hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] ${is_pinned ? "text-blue-500" : "text-txt-muted hover:text-blue-500"}`}
           disabled={is_pin_loading}
           size="icon"
           variant="ghost"
           onClick={on_pin_toggle}
         >
           <PinIcon
-            className={`w-4 h-4 ${is_pinned ? "-rotate-[38deg]" : ""}`}
+            className={`w-[18px] h-[18px] ${is_pinned ? "-rotate-[38deg]" : ""}`}
             filled={is_pinned}
           />
         </Button>
@@ -210,16 +210,16 @@ export function PopupEmailActions({
       >
         <Button
           data-no-drag
-          className="h-7 w-7 text-txt-muted hover:text-txt-primary"
+          className="h-9 w-9 rounded-full hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] text-txt-muted hover:text-txt-primary"
           disabled={is_archive_loading}
           size="icon"
           variant="ghost"
           onClick={is_archived && on_unarchive ? on_unarchive : on_archive}
         >
           {is_archived && on_unarchive ? (
-            <InboxIcon className="w-4 h-4" />
+            <InboxIcon className="w-[18px] h-[18px]" />
           ) : (
-            <ArchiveBoxIcon className="w-4 h-4" />
+            <ArchiveBoxIcon className="w-[18px] h-[18px]" />
           )}
         </Button>
       </Tooltip>
@@ -231,26 +231,26 @@ export function PopupEmailActions({
       >
         <Button
           data-no-drag
-          className="h-7 w-7 text-txt-muted hover:text-txt-primary"
+          className="h-9 w-9 rounded-full hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] text-txt-muted hover:text-txt-primary"
           disabled={is_spam_loading}
           size="icon"
           variant="ghost"
           onClick={is_spam && on_not_spam ? on_not_spam : on_spam}
         >
-          <NoSymbolIcon className="w-4 h-4" />
+          <NoSymbolIcon className="w-[18px] h-[18px]" />
         </Button>
       </Tooltip>
 
       <Tooltip tip={t("mail.move_to_trash")}>
         <Button
           data-no-drag
-          className="h-7 w-7 text-txt-muted hover:text-txt-primary"
+          className="h-9 w-9 rounded-full hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] text-txt-muted hover:text-txt-primary"
           disabled={is_trash_loading}
           size="icon"
           variant="ghost"
           onClick={on_trash}
         >
-          <TrashIcon className="w-4 h-4" />
+          <TrashIcon className="w-[18px] h-[18px]" />
         </Button>
       </Tooltip>
 
@@ -258,12 +258,12 @@ export function PopupEmailActions({
         <DropdownMenuTrigger asChild>
           <Button
             data-no-drag
-            className="h-7 w-7 text-txt-muted hover:text-txt-primary"
+            className="h-9 w-9 rounded-full hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] text-txt-muted hover:text-txt-primary"
             size="icon"
             title={t("common.more")}
             variant="ghost"
           >
-            <EllipsisHorizontalIcon className="w-4 h-4" />
+            <EllipsisHorizontalIcon className="w-[18px] h-[18px]" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-48">

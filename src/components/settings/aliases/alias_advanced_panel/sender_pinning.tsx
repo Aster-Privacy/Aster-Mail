@@ -203,7 +203,7 @@ export function SenderPinningPanel({
           value={String(mode)}
           onValueChange={(v) => change_mode(Number(v) as SenderPinMode)}
         >
-          <SelectTrigger className="h-9 w-64 shrink-0 bg-transparent">
+          <SelectTrigger className="h-9 w-64 shrink-0">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

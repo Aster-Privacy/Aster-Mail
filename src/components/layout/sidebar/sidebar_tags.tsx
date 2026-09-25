@@ -38,6 +38,7 @@ import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { TagContextMenu } from "@/components/tags/tag_context_menu";
 import { tag_icon_map } from "@/components/ui/email_tag";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 
 export interface TagModalData {
   tag_id: string;
@@ -94,6 +95,7 @@ export const SidebarTags = memo(function SidebarTags({
   on_retry,
 }: SidebarTagsProps) {
   const { t } = use_i18n();
+  const skeleton_visible = use_delayed_flag(is_loading);
 
   const [drag_over_token, set_drag_over_token] = useState<string | null>(null);
 
@@ -234,7 +236,7 @@ export const SidebarTags = memo(function SidebarTags({
           />
         )}
         {all_tags.length === 0 &&
-          is_loading &&
+          skeleton_visible &&
           !is_collapsed &&
           !section_collapsed && <NavSectionSkeleton rows={2} />}
         {all_tags.length === 0 &&

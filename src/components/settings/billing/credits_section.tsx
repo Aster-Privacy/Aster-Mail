@@ -26,7 +26,15 @@ import {
   CurrencyDollarIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Island, IslandSection, Switch } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandDivider,
+  IslandRow,
+  IslandSection,
+  PillButton,
+  SettingToggleRow,
+} from "@aster/ui";
 
 import {
   CardBrandMarks,
@@ -61,10 +69,6 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { convert_cents } from "@/components/settings/billing/billing_constants";
 import { describe_credit_entry } from "@/utils/billing_description";
-import {
-  BillingIconBox,
-  BillingRow,
-} from "@/components/settings/billing/billing_layout";
 import text_logo_url from "@/assets/text_logo.webp";
 
 const tile_base =
@@ -335,31 +339,27 @@ export function CreditsSection({
 
   return (
     <div className="flex flex-col gap-7" id="credits_section">
-      <div
-        className={`grid grid-cols-1 gap-2 ${
-          payment_cell ? "sm:grid-cols-2" : ""
-        }`}
-      >
-        {payment_cell && <Island>{payment_cell}</Island>}
-        <Island className="flex items-center gap-3 px-4 py-3.5">
-          <BillingIconBox icon={ArrowPathIcon} />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.credits")}
-            </p>
-            <p className="text-xs text-txt-muted tabular-nums">
-              {format_price(credit_balance?.balance_cents ?? 0)}
-            </p>
-          </div>
-          <button
-            className="aster_btn aster_btn_primary aster_btn_sm flex-shrink-0"
-            type="button"
-            onClick={() => set_show_picker(true)}
-          >
-            {t("settings.top_up_credits")}
-          </button>
+      <IslandSection bare title={t("settings.credits")}>
+        <Island className="overflow-hidden" padding="none">
+          {payment_cell}
+          {payment_cell && <IslandDivider inset={52} />}
+          <IslandRow
+            description={t("settings.credits_balance_label")}
+            icon={<ArrowPathIcon className="h-[22px] w-[22px]" />}
+            label={format_price(credit_balance?.balance_cents ?? 0)}
+            trailing={
+              <PillButton
+                size="sm"
+                type="button"
+                variant="filled"
+                onClick={() => set_show_picker(true)}
+              >
+                {t("settings.top_up_credits")}
+              </PillButton>
+            }
+          />
         </Island>
-      </div>
+      </IslandSection>
 
       <Modal
         show_close_button
@@ -638,36 +638,35 @@ export function CreditsSection({
       {credit_balance &&
         (Number(credit_balance.balance_cents) > 0 || has_transactions) && (
           <IslandSection
-            className="overflow-hidden"
+            island_class_name="overflow-hidden"
+            padding="none"
             title={t("settings.billing_renewals_heading")}
           >
-              <BillingRow
-                action={
-                  <Switch
-                    aria-label={t("settings.use_credits_for_renewals")}
-                    checked={!!credit_balance?.use_credits_for_renewals}
-                    onCheckedChange={toggle_renewals}
-                  />
-                }
+              <SettingToggleRow
+                checked={!!credit_balance?.use_credits_for_renewals}
                 description={t("settings.use_credits_for_renewals_description")}
-                title={t("settings.use_credits_for_renewals")}
+                label={t("settings.use_credits_for_renewals")}
+                on_change={toggle_renewals}
               />
               {has_transactions && (
-                <BillingRow
-                  action={
-                    <button
-                      className="aster_btn aster_btn_secondary aster_btn_sm"
-                      type="button"
-                      onClick={toggle_transactions}
-                    >
-                      {show_all_transactions
-                        ? t("common.close")
-                        : t("settings.view_all_transactions")}
-                    </button>
-                  }
-                  title={t("settings.recent_transactions")}
-                >
-                  <div className="-mx-4 mt-2">
+                <>
+                  <IslandDivider />
+                  <IslandRow
+                    label={t("settings.recent_transactions")}
+                    trailing={
+                      <PillButton
+                        size="sm"
+                        type="button"
+                        variant="neutral"
+                        onClick={toggle_transactions}
+                      >
+                        {show_all_transactions
+                          ? t("common.close")
+                          : t("settings.view_all_transactions")}
+                      </PillButton>
+                    }
+                  />
+                  <div className="pb-1">
                     {(show_all_transactions
                       ? credit_transactions_list
                       : credit_balance.recent_transactions
@@ -742,7 +741,7 @@ export function CreditsSection({
                       );
                     })}
                   </div>
-                </BillingRow>
+                </>
               )}
           </IslandSection>
         )}

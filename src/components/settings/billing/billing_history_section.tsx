@@ -18,7 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { IslandSection } from "@aster/ui";
+import { Fragment } from "react";
+import { Island, IslandDivider, IslandRow, IslandSection } from "@aster/ui";
 
 import {
   format_price,
@@ -35,14 +36,17 @@ interface BillingHistorySectionProps {
   on_retry?: () => void;
 }
 
-const history_grid =
-  "grid grid-cols-[minmax(0,1fr)_auto_auto] gap-x-4 md:grid-cols-[7.5rem_minmax(0,1fr)_6.5rem_5.5rem_2.5rem]";
-
 function status_color(status: string): string {
   if (status === "paid") return "var(--color-success)";
-  if (status === "failed") return "var(--color-danger)";
+  if (status === "failed" || status === "void") return "var(--color-danger)";
 
   return "var(--color-warning)";
+}
+
+function year_of(item: BillingHistoryItem): string {
+  const year = new Date(item.created_at).getFullYear();
+
+  return Number.isNaN(year) ? "" : String(year);
 }
 
 export function BillingHistorySection({
@@ -54,64 +58,68 @@ export function BillingHistorySection({
 
   if (history.length === 0 && !(load_failed && on_retry)) return null;
 
+  const years = Array.from(new Set(history.map(year_of)));
+  const show_years = years.length > 1;
+  const groups = show_years
+    ? years.map((year) => ({
+        year,
+        items: history.filter((item) => year_of(item) === year),
+      }))
+    : [{ year: "", items: history }];
+
   return (
-    <IslandSection
-      bare={history.length === 0 && !!load_failed && !!on_retry}
-      island_class_name="overflow-hidden"
-      title={t("settings.billing_history")}
-    >
+    <IslandSection bare title={t("settings.billing_history")}>
       {history.length === 0 && load_failed && on_retry ? (
         <LoadFailedNotice on_retry={on_retry} />
       ) : (
-        <>
-          <div
-            className={`${history_grid} hidden px-4 pb-1 pt-3 text-xs font-medium text-txt-muted md:grid`}
-          >
-            <span>{t("mail.date")}</span>
-            <span>{t("common.description")}</span>
-            <span>{t("settings.billing_amount")}</span>
-            <span>{t("settings.status")}</span>
-            <span className="sr-only">{t("settings.pdf")}</span>
-          </div>
-          <ul>
-            {history.map((item) => (
-              <li
-                key={item.id}
-                className={`${history_grid} min-h-14 items-center gap-y-0.5 px-4 py-2.5 text-sm`}
-              >
-                <span className="col-start-1 row-start-2 text-xs text-txt-muted md:col-start-auto md:row-start-auto md:text-sm md:text-txt-secondary">
-                  {format_date(item.created_at)}
-                </span>
-                <span className="col-start-1 row-start-1 truncate text-txt-primary md:col-start-auto md:row-start-auto">
-                  {describe_billing_entry(item.description, t) ||
-                    item.plan_name ||
-                    t("settings.payment")}
-                </span>
-                <span className="col-start-2 row-start-1 text-end font-medium text-txt-primary md:col-start-auto md:row-start-auto md:text-start">
-                  {format_price(item.amount_cents, item.currency)}
-                </span>
-                <span
-                  className="col-start-2 row-start-2 text-end text-xs font-medium md:col-start-auto md:row-start-auto md:text-start md:text-sm"
-                  style={{ color: status_color(item.status) }}
-                >
-                  {t(`settings.invoice_status_${item.status}` as any)}
-                </span>
-                <span className="col-start-3 row-span-2 row-start-1 text-end md:col-start-auto md:row-span-1 md:row-start-auto">
-                  {item.invoice_pdf_url && (
-                    <a
-                      className="text-xs text-txt-secondary underline-offset-2 hover:text-txt-primary hover:underline"
-                      href={item.invoice_pdf_url}
-                      rel="noopener noreferrer"
-                      target="_blank"
-                    >
-                      {t("settings.pdf")}
-                    </a>
-                  )}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </>
+        <div className="flex flex-col gap-3">
+          {groups.map((group) => (
+            <div key={group.year || "all"} className="flex flex-col gap-1.5">
+              {show_years && (
+                <p className="px-1 text-[12px] font-semibold uppercase tracking-wide text-txt-muted">
+                  {group.year}
+                </p>
+              )}
+              <Island className="overflow-hidden" padding="none">
+                <ul>
+                  {group.items.map((item, index) => (
+                    <Fragment key={item.id}>
+                      {index > 0 && <IslandDivider />}
+                      <li>
+                        <IslandRow
+                          description={format_date(item.created_at)}
+                          href={item.invoice_pdf_url || undefined}
+                          label={
+                            describe_billing_entry(item.description, t) ||
+                            item.plan_name ||
+                            t("settings.payment")
+                          }
+                          rel="noopener noreferrer"
+                          target={item.invoice_pdf_url ? "_blank" : undefined}
+                          value={
+                            <span className="flex flex-col items-end gap-0.5">
+                              <span className="text-[15px] font-semibold tabular-nums text-txt-primary">
+                                {format_price(item.amount_cents, item.currency)}
+                              </span>
+                              <span
+                                className="text-[12px] font-medium"
+                                style={{ color: status_color(item.status) }}
+                              >
+                                {t(
+                                  `settings.invoice_status_${item.status}` as any,
+                                )}
+                              </span>
+                            </span>
+                          }
+                        />
+                      </li>
+                    </Fragment>
+                  ))}
+                </ul>
+              </Island>
+            </div>
+          ))}
+        </div>
       )}
     </IslandSection>
   );

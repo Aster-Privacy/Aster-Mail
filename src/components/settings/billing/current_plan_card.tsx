@@ -115,14 +115,15 @@ export function CurrentPlanNotices({
           title={t("settings.card_declined_title")}
           tone="danger"
         >
-          <button
-            className="aster_btn aster_btn_primary aster_btn_sm"
+          <PillButton
             disabled={is_action_loading}
+            size="sm"
             type="button"
+            variant="filled"
             onClick={on_manage_billing}
           >
             {t("settings.update_payment_method")}
-          </button>
+          </PillButton>
         </BillingNotice>
       )}
 
@@ -134,13 +135,14 @@ export function CurrentPlanNotices({
           tone="danger"
         >
           {on_add_storage && (
-            <button
-              className="aster_btn aster_btn_primary aster_btn_sm"
+            <PillButton
+              size="sm"
               type="button"
+              variant="filled"
               onClick={on_add_storage}
             >
               {t("settings.add_storage")}
-            </button>
+            </PillButton>
           )}
         </BillingNotice>
       )}
@@ -155,28 +157,30 @@ export function CurrentPlanNotices({
             })}
             title={t("settings.billing_cancel_notice_title")}
           >
-            <button
-              className="aster_btn aster_btn_primary aster_btn_sm"
+            <PillButton
               disabled={is_action_loading}
+              size="sm"
               type="button"
+              variant="filled"
               onClick={on_reactivate}
             >
               {t("settings.reactivate")}
-            </button>
+            </PillButton>
           </BillingNotice>
         )}
 
       {is_paid_plan && is_crypto && paid_until && (
         <BillingNotice title={t("settings.crypto_no_renew_notice")}>
           {on_renew_with_crypto && (
-            <button
-              className="aster_btn aster_btn_primary aster_btn_sm"
+            <PillButton
               disabled={is_action_loading}
+              size="sm"
               type="button"
+              variant="filled"
               onClick={on_renew_with_crypto}
             >
               {t("settings.crypto_renew_link")}
-            </button>
+            </PillButton>
           )}
         </BillingNotice>
       )}

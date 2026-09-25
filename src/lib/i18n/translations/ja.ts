@@ -8876,6 +8876,12 @@ export const ja = {
     translation_unavailable_info_body:
       "端末内の翻訳エンジンがこのメールを処理しきれませんでした。多くの場合、言語パックのダウンロード中か、複数の言語が混在しているか、名前・数字・リンクが大半を占めています。サーバーには何も送信されていません。",
     more_folders_count_other: "他 {{count}} 件のフォルダ",
+    more_messages_count: "他 {{count}} 件のメッセージ",
+    more_messages_count_one: "他 {{count}} 件のメッセージ",
+    more_messages_count_other: "他 {{count}} 件のメッセージ",
+    reply_to_name: "{{name}} さんに返信",
+    reply_all_to_name: "{{name}} さんと全員に返信",
+    forward_message_heading: "メッセージを転送",
     trackers_found_other: "{{count}} 件のトラッカーを検出してブロックしました",
     spy_pixels_blocked_count_other:
       "{{count}} 件のスパイピクセルをブロックしました",
