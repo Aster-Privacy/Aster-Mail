@@ -24,6 +24,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { FullPageLoader } from "@/components/common/full_page_loader";
+import { take_support_return } from "@/lib/support_return";
 
 function dispatch_app_ready() {
   window.dispatchEvent(new CustomEvent("astermail:app-ready"));
@@ -37,6 +38,14 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const dispatched = useRef(false);
 
   const is_ready = !is_loading && (!is_authenticated || !preferences_loading);
+
+  useEffect(() => {
+    if (!is_ready || !is_authenticated) return;
+
+    const support_return = take_support_return();
+
+    if (support_return) window.location.replace(support_return);
+  }, [is_ready, is_authenticated]);
 
   useEffect(() => {
     if (is_ready && !dispatched.current) {
