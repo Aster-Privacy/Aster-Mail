@@ -43,11 +43,14 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_folders } from "@/hooks/use_folders";
 import { use_should_reduce_motion } from "@/provider";
 import {
-  parse_import_file,
   compute_message_id_hash,
   type ParsedEmail,
   type ParseProgress,
 } from "@/services/import/parser";
+import {
+  build_import_collection,
+  type ImportCollection,
+} from "@/services/import/import_collection";
 import {
   encrypt_imported_email,
   type EncryptedImportEmail,
@@ -165,7 +168,9 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   }, []);
 
   const process_emails = useCallback(
-    async (emails: ParsedEmail[], source: ImportSource) => {
+    async (collection: ImportCollection, source: ImportSource) => {
+      const emails = collection.summaries;
+
       if (!vault) {
         set_error(t("common.encryption_vault_not_available"));
         set_is_processing(false);
@@ -293,16 +298,19 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         }
 
         const seen_hashes = new Set<string>();
-        const emails_to_import = emails.filter((email) => {
+        const indices_to_import = new Set<number>();
+        const emails_to_import: ParsedEmail[] = [];
+
+        emails.forEach((email, index) => {
           const hash = message_id_hashes.get(email.message_id);
 
           if (!hash || existing_hashes.has(hash) || seen_hashes.has(hash)) {
-            return false;
+            return;
           }
 
           seen_hashes.add(hash);
-
-          return true;
+          indices_to_import.add(index);
+          emails_to_import.push(email);
         });
 
         const thread_map = await build_thread_map(emails_to_import);
@@ -310,6 +318,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         let imported_count = 0;
         let failed_count = 0;
         let store_duplicate_count = 0;
+        let invalid_count = 0;
         const pre_skipped_count = emails.length - emails_to_import.length;
 
         if (emails_to_import.length === 0) {
@@ -381,23 +390,64 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
 
         const BATCH_SIZE = 10;
         let quota_exceeded = false;
+        let attempted_count = 0;
+        let encrypted_batch: EncryptedImportEmail[] = [];
 
-        for (let i = 0; i < emails_to_import.length; i += BATCH_SIZE) {
-          // Remaining emails were never attempted, so they are not failures.
+        const report_store_progress = () => {
+          set_progress({
+            current: attempted_count,
+            total: emails_to_import.length,
+            percentage: Math.round(
+              (attempted_count / emails_to_import.length) * 100,
+            ),
+          });
+        };
+
+        const flush_batch = async () => {
+          const batch = encrypted_batch;
+
+          encrypted_batch = [];
+          if (batch.length === 0) return;
+
+          const store_response = await store_imported_emails(job_id!, batch);
+
+          if (store_response.data) {
+            const { stored_count, duplicate_count, skipped_quota_count } =
+              store_response.data;
+
+            imported_count += stored_count;
+            store_duplicate_count += duplicate_count;
+            failed_count +=
+              batch.length -
+              stored_count -
+              duplicate_count -
+              skipped_quota_count;
+
+            if (store_response.data.quota_exceeded) {
+              quota_exceeded = true;
+            }
+          } else {
+            failed_count += batch.length;
+          }
+
+          report_store_progress();
+        };
+
+        for await (const item of collection.load(indices_to_import)) {
           if (cancel_ref.current || quota_exceeded) break;
 
-          const batch = emails_to_import.slice(i, i + BATCH_SIZE);
-          const encrypted_batch: EncryptedImportEmail[] = [];
+          attempted_count++;
 
-          for (const email of batch) {
-            const hash = message_id_hashes.get(email.message_id);
+          const summary = emails[item.index];
+          const hash = message_id_hashes.get(summary.message_id);
 
-            if (!hash) {
-              failed_count++;
-              continue;
-            }
-
+          if (item.status === "invalid") {
+            invalid_count++;
+          } else if (!item.email || !hash) {
+            failed_count++;
+          } else {
             try {
+              const email = item.email;
               const encrypted = await encrypt_imported_email(
                 email,
                 vault,
@@ -405,7 +455,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 hash,
               );
 
-              const token = thread_map.get(email.message_id);
+              const token = thread_map.get(summary.message_id);
 
               if (token) {
                 encrypted.thread_token = token;
@@ -430,43 +480,20 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             }
           }
 
-          if (encrypted_batch.length > 0) {
-            const store_response = await store_imported_emails(
-              job_id!,
-              encrypted_batch,
-            );
-
-            if (store_response.data) {
-              const { stored_count, duplicate_count, skipped_quota_count } =
-                store_response.data;
-
-              imported_count += stored_count;
-              store_duplicate_count += duplicate_count;
-              failed_count +=
-                encrypted_batch.length -
-                stored_count -
-                duplicate_count -
-                skipped_quota_count;
-
-              if (store_response.data.quota_exceeded) {
-                quota_exceeded = true;
-              }
-            } else {
-              failed_count += encrypted_batch.length;
-            }
+          if (encrypted_batch.length >= BATCH_SIZE) {
+            await flush_batch();
+          } else if (attempted_count % BATCH_SIZE === 0) {
+            report_store_progress();
           }
+        }
 
-          const current = Math.min(i + BATCH_SIZE, emails_to_import.length);
-
-          set_progress({
-            current,
-            total: emails_to_import.length,
-            percentage: Math.round((current / emails_to_import.length) * 100),
-          });
+        if (!cancel_ref.current && !quota_exceeded) {
+          await flush_batch();
         }
 
         const final_status = cancel_ref.current ? "cancelled" : "completed";
-        const skipped_count = pre_skipped_count + store_duplicate_count;
+        const skipped_count =
+          pre_skipped_count + store_duplicate_count + invalid_count;
 
         await update_import_job(job_id!, {
           status: final_status,
@@ -551,50 +578,29 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
       cancel_ref.current = false;
 
       try {
-        const all_emails: ParsedEmail[] = [];
-        const all_errors: string[] = [];
-        const all_warnings: string[] = [];
+        const collection = await build_import_collection(
+          files,
+          set_progress,
+          () => cancel_ref.current,
+        );
 
-        const multiple_files = files.length > 1;
+        if (cancel_ref.current) {
+          set_is_processing(false);
 
-        for (let i = 0; i < files.length; i++) {
-          if (cancel_ref.current) {
-            set_is_processing(false);
-
-            return;
-          }
-
-          const file = files[i];
-          const result = await parse_import_file(file, (progress) => {
-            if (!multiple_files) set_progress(progress);
-          });
-
-          all_emails.push(...result.emails);
-          all_errors.push(...result.errors);
-          all_warnings.push(...result.warnings);
-
-          if (multiple_files) {
-            const current = i + 1;
-
-            set_progress({
-              current,
-              total: files.length,
-              percentage: Math.round((current / files.length) * 100),
-            });
-          }
+          return;
         }
 
-        if (all_emails.length === 0) {
+        if (collection.summaries.length === 0) {
           const error_message =
-            all_errors.length > 0
-              ? all_errors[0]
+            collection.errors.length > 0
+              ? collection.errors[0]
               : t("settings.no_emails_in_file");
 
           throw new Error(error_message);
         }
 
-        if (all_warnings.length > 0) {
-          set_parse_warnings(all_warnings.slice(0, 10));
+        if (collection.warnings.length > 0) {
+          set_parse_warnings(collection.warnings.slice(0, 10));
         }
 
         const effective_source: ImportSource =
@@ -608,7 +614,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           return;
         }
 
-        await process_emails(all_emails, effective_source);
+        await process_emails(collection, effective_source);
       } catch (err) {
         set_error(
           err instanceof Error
