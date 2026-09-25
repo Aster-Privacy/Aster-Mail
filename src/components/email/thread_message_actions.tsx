@@ -37,7 +37,6 @@ import {
 import EmojiPicker from "@/components/compose/emoji_picker";
 import {
   is_own_reaction_address,
-  remove_reaction,
   send_reaction,
 } from "@/services/reaction_actions";
 import {
@@ -162,22 +161,13 @@ export function ThreadMessageActions({
   const [pending_reactions, set_pending_reactions] = useState<
     PendingReaction[]
   >([]);
-  const [removing_ids, set_removing_ids] = useState<string[]>([]);
 
   const total_recipients =
     (message.to_recipients?.length ?? 0) + (message.cc_recipients?.length ?? 0);
   const show_reply_all = on_reply_all && total_recipients >= 2;
   const is_own_message = message.item_type === "sent";
-  const visible_message = removing_ids.length
-    ? {
-        ...message,
-        reactions: message.reactions?.filter(
-          (reaction) => !removing_ids.includes(reaction.reaction_mail_item_id),
-        ),
-      }
-    : message;
   const server_reaction_groups = group_reactions(
-    visible_message.reactions,
+    message.reactions,
     auth?.user?.email,
   );
   const reaction_groups = merge_pending_reactions(
@@ -189,7 +179,7 @@ export function ThreadMessageActions({
   ).length;
   const restriction =
     reaction_restriction(
-      visible_message,
+      message,
       auth?.user?.email ?? "",
       reactions_enabled,
       is_own_reaction_address,
@@ -252,48 +242,8 @@ export function ThreadMessageActions({
     send_reaction_emoji(emoji);
   }
 
-  function remove_own_reaction(group: ReactionChipGroup): void {
-    const reaction_mail_item_id = group.self_reaction_mail_item_id;
-
-    if (
-      !reaction_mail_item_id ||
-      removing_ids.includes(reaction_mail_item_id)
-    ) {
-      return;
-    }
-
-    const removed_pending = pending_reactions.filter(
-      (pending) => pending.emoji === group.emoji,
-    );
-
-    set_removing_ids((prev) => [...prev, reaction_mail_item_id]);
-    set_pending_reactions((prev) =>
-      prev.filter((pending) => pending.emoji !== group.emoji),
-    );
-
-    void remove_reaction(reaction_mail_item_id).then((result) => {
-      if (!result.success) {
-        set_removing_ids((prev) =>
-          prev.filter((id) => id !== reaction_mail_item_id),
-        );
-        set_pending_reactions((prev) => [...prev, ...removed_pending]);
-        show_toast(result.error ?? t("errors.failed_remove_reaction"), "error");
-
-        return;
-      }
-
-      emit_mail_soft_refresh();
-    });
-  }
-
   function handle_chip_click(group: ReactionChipGroup): void {
-    if (is_own_message) return;
-
-    if (group.includes_self) {
-      remove_own_reaction(group);
-
-      return;
-    }
+    if (is_own_message || group.includes_self) return;
 
     send_reaction_emoji(group.emoji);
   }
@@ -309,14 +259,14 @@ export function ThreadMessageActions({
           <AnimatePresence initial={false}>
             {reaction_groups.map((group) => {
               const tooltip = group.includes_self
-                ? t("mail.you_reacted_with_remove", { emoji: group.emoji })
+                ? t("mail.you_reacted_with", { emoji: group.emoji })
                 : group.reactor_names[0]
                   ? t("mail.reacted_with", {
                       name: group.reactor_names[0],
                       emoji: group.emoji,
                     })
                   : "";
-              const is_locked = is_own_message;
+              const is_locked = is_own_message || group.includes_self;
 
               const chip = (
                 <motion.button
@@ -325,7 +275,7 @@ export function ThreadMessageActions({
                   aria-pressed={group.includes_self}
                   className={`group/chip inline-flex items-center gap-1 h-7 ps-2.5 pe-2 rounded-full select-none transition-colors duration-150 ${
                     group.includes_self
-                      ? "bg-[#d3e3fd] dark:bg-[#004a77] hover:bg-[#c3d7fb] dark:hover:bg-[#0a5687] active:scale-95"
+                      ? "cursor-default bg-[#d3e3fd] dark:bg-[#004a77]"
                       : is_locked
                         ? "cursor-default bg-[#eceef1] dark:bg-[#282a2c]"
                         : "bg-[#eceef1] dark:bg-[#282a2c] hover:bg-[#e1e4e8] dark:hover:bg-[#333537] active:scale-95"
