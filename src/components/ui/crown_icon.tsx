@@ -18,25 +18,4 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { SVGProps } from "react";
-
-export function CrownIcon(props: SVGProps<SVGSVGElement>) {
-  return (
-    <svg
-      aria-hidden="true"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.5}
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-      {...props}
-    >
-      <path
-        d="M3.75 18.75h16.5L21.75 8.25l-5.25 4.5L12 5.25l-4.5 7.5-5.25-4.5z"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path d="M4.5 15.75h15" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
+export { CrownIcon } from "@aster/ui";

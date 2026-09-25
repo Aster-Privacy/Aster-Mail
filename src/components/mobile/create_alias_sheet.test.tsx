@@ -55,7 +55,8 @@ vi.mock("@/components/auth/turnstile_widget", () => ({
   TURNSTILE_SITE_KEY: "test-site-key",
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({
     children,
     disabled,

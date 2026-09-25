@@ -20,25 +20,11 @@
 //
 import type { ContactFormData } from "@/types/contacts";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  UserPlusIcon,
-  UserMinusIcon,
-  DocumentTextIcon,
-  EnvelopeIcon,
-  NoSymbolIcon,
-  ClipboardDocumentIcon,
-} from "@heroicons/react/24/outline";
+import { ProfileDropdownView } from "@aster/ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown_menu";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { ProfileNotesInline } from "@/components/profile/profile_notes_inline";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -81,13 +67,8 @@ export function ProfileDropdown({
   >(() => get_cached_contact_id(email) ?? null);
   const [is_blocking, set_is_blocking] = useState(false);
 
-  const [address_expanded, set_address_expanded] = useState(false);
   const display_name = name || get_email_username(email);
   const domain = get_email_domain(email);
-
-  useEffect(() => {
-    set_address_expanded(false);
-  }, [email, is_open]);
 
   const prewarm_contact_state = useCallback(() => {
     if (!has_keys) return;
@@ -224,123 +205,49 @@ export function ProfileDropdown({
     }
   }, [email, name, is_blocking, t]);
 
+  const labels = useMemo(
+    () => ({
+      copy: t("common.copy"),
+      add_to_contacts: t("common.add_to_contacts"),
+      remove_from_contacts: t("common.remove_from_contacts"),
+      notes: t("common.notes"),
+      hide_notes: t("common.hide_notes"),
+      messages_from_sender: t("common.messages_from_sender"),
+      block_sender: t("mail.block_sender"),
+    }),
+    [t],
+  );
+
   return (
-    <DropdownMenu open={is_open} onOpenChange={set_is_open}>
-      <DropdownMenuTrigger
-        asChild
-        onFocus={prewarm_contact_state}
-        onPointerDown={prewarm_contact_state}
-        onPointerEnter={prewarm_contact_state}
-      >
-        {children}
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="start"
-        className="w-64"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="px-3 pt-3 pb-2">
-          <div className="flex items-center gap-3">
-            <ProfileAvatar
-              use_domain_logo
-              className="ring-1 ring-black/5 dark:ring-white/10 flex-shrink-0"
-              email={email}
-              name={display_name}
-              size="md"
-            />
-            <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-medium truncate text-txt-primary">
-                {display_name}
-              </p>
-              {domain && (
-                <p className="text-[11px] truncate text-txt-muted">{domain}</p>
-              )}
-            </div>
-          </div>
-          <div className="mt-2 w-full flex items-center gap-1.5 px-2 py-1.5 rounded-[12px] text-[12px] border text-txt-secondary border-edge-secondary bg-surf-secondary">
-            <button
-              className={`flex-1 min-w-0 text-start ${
-                address_expanded ? "whitespace-normal break-all" : "truncate"
-              }`}
-              title={email}
-              type="button"
-              onClick={() => set_address_expanded((current) => !current)}
-            >
-              {email}
-            </button>
-            <button
-              aria-label={t("common.copy")}
-              className="flex-shrink-0 opacity-60 transition-opacity hover:opacity-100"
-              title={t("common.copy")}
-              type="button"
-              onClick={handle_copy_email}
-            >
-              <ClipboardDocumentIcon className="w-3 h-3" />
-            </button>
-          </div>
-        </div>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuItem
-          className="gap-2 cursor-pointer"
-          disabled={is_contact_loading}
-          onClick={handle_contact_action}
-        >
-          {existing_contact_id ? (
-            <>
-              <UserMinusIcon className="w-4 h-4" />
-              <span>{t("common.remove_from_contacts")}</span>
-            </>
-          ) : (
-            <>
-              <UserPlusIcon className="w-4 h-4" />
-              <span>{t("common.add_to_contacts")}</span>
-            </>
-          )}
-        </DropdownMenuItem>
-
-        <DropdownMenuItem
-          className="gap-2 cursor-pointer"
-          onSelect={(e) => {
-            e.preventDefault();
-            handle_toggle_notes();
-          }}
-        >
-          <DocumentTextIcon className="w-4 h-4" />
-          <span>{show_notes ? t("common.hide_notes") : t("common.notes")}</span>
-        </DropdownMenuItem>
-
-        {show_notes && (
-          <div
-            className="mx-1 my-1 rounded-md overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ProfileNotesInline email={email} />
-          </div>
-        )}
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuItem
-          className="gap-2 cursor-pointer"
-          onClick={handle_messages_from_sender}
-        >
-          <EnvelopeIcon className="w-4 h-4" />
-          <span>{t("common.messages_from_sender")}</span>
-        </DropdownMenuItem>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuItem
-          className="gap-2 cursor-pointer text-red-500 focus:text-red-500 focus:bg-red-500/10"
-          disabled={is_blocking}
-          onClick={handle_block_sender}
-        >
-          <NoSymbolIcon className="w-4 h-4" />
-          <span>{t("mail.block_sender")}</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <ProfileDropdownView
+      avatar={
+        <ProfileAvatar
+          use_domain_logo
+          className="ring-1 ring-black/5 dark:ring-white/10 flex-shrink-0"
+          email={email}
+          name={display_name}
+          size="md"
+        />
+      }
+      display_name={display_name}
+      domain={domain}
+      email={email}
+      is_blocking={is_blocking}
+      is_contact={!!existing_contact_id}
+      is_contact_loading={is_contact_loading}
+      labels={labels}
+      notes={<ProfileNotesInline email={email} />}
+      open={is_open}
+      show_notes={show_notes}
+      on_block_sender={handle_block_sender}
+      on_contact_action={handle_contact_action}
+      on_copy_email={handle_copy_email}
+      on_messages_from_sender={handle_messages_from_sender}
+      on_open_change={set_is_open}
+      on_prewarm={prewarm_contact_state}
+      on_toggle_notes={handle_toggle_notes}
+    >
+      {children}
+    </ProfileDropdownView>
   );
 }

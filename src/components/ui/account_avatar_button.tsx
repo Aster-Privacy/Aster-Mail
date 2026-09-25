@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { CameraIcon } from "@heroicons/react/24/solid";
+import { AccountAvatarButtonView } from "@aster/ui";
 
 import { ProfileAvatar } from "./profile_avatar";
 
@@ -40,13 +40,6 @@ interface AccountAvatarButtonProps {
   className?: string;
 }
 
-const OVERLAY_ICON_SIZE: Record<string, string> = {
-  sm: "w-3.5 h-3.5",
-  md: "w-4 h-4",
-  lg: "w-5 h-5",
-  xl: "w-7 h-7",
-};
-
 export function AccountAvatarButton({
   name,
   email,
@@ -67,55 +60,26 @@ export function AccountAvatarButton({
     });
 
   return (
-    <div className={`relative flex-shrink-0 ${className}`}>
-      <input
-        ref={file_ref}
-        accept={PROFILE_PICTURE_ACCEPT}
-        className="hidden"
-        type="file"
-        onChange={handle_file}
-      />
-      <button
-        aria-label={t("auth.change_photo")}
-        className="group relative flex w-fit rounded-full leading-none focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] focus-visible:ring-offset-2"
-        disabled={uploading}
-        style={{ ["--tw-ring-offset-color" as string]: ring_offset_color }}
-        title={t("auth.change_photo")}
-        type="button"
-        onClick={open_picker}
-      >
-        <span
-          className={is_paid_plan ? "plan_ring" : "inline-flex leading-none"}
-        >
-          <span className="relative flex rounded-full leading-none">
-            <ProfileAvatar
-              email={email}
-              image_url={preview || image_url}
-              name={name}
-              profile_color={profile_color}
-              size={size}
-            />
-            <span
-              aria-hidden="true"
-              className="absolute inset-0 flex items-center justify-center rounded-full opacity-0 transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100 group-active:opacity-100 motion-reduce:transition-none"
-              style={{ backgroundColor: "rgba(0, 0, 0, 0.55)" }}
-            >
-              <CameraIcon className={`${OVERLAY_ICON_SIZE[size]} text-white`} />
-            </span>
-            {uploading && (
-              <span
-                className="absolute inset-0 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: "rgba(0, 0, 0, 0.55)" }}
-              >
-                <span
-                  className="rounded-full border-2 border-white border-t-transparent animate-spin motion-reduce:animate-none"
-                  style={{ width: "50%", height: "50%" }}
-                />
-              </span>
-            )}
-          </span>
-        </span>
-      </button>
-    </div>
+    <AccountAvatarButtonView
+      accept={PROFILE_PICTURE_ACCEPT}
+      avatar={
+        <ProfileAvatar
+          email={email}
+          image_url={preview || image_url}
+          name={name}
+          profile_color={profile_color}
+          size={size}
+        />
+      }
+      className={className}
+      file_input_ref={file_ref}
+      is_paid_plan={is_paid_plan}
+      label={t("auth.change_photo")}
+      ring_offset_color={ring_offset_color}
+      size={size}
+      uploading={uploading}
+      on_file_change={handle_file}
+      on_open_picker={open_picker}
+    />
   );
 }
