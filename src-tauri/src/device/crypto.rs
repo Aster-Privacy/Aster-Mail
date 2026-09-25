@@ -829,7 +829,11 @@ pub fn device_auth_store_clear(window: tauri::WebviewWindow) -> Result<(), Strin
 }
 
 #[tauri::command]
-pub fn device_forget_account(device_id: String) -> Result<(), String> {
+pub fn device_forget_account(
+    window: tauri::WebviewWindow,
+    device_id: String,
+) -> Result<(), String> {
+    require_primary_webview(&window)?;
     let parsed = Uuid::parse_str(&device_id).map_err(|e| e.to_string())?;
 
     if let Ok(path) = passphrase_file_path_for(parsed) {
@@ -848,7 +852,8 @@ pub fn device_forget_account(device_id: String) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn device_clear_session() -> Result<(), String> {
+pub fn device_clear_session(window: tauri::WebviewWindow) -> Result<(), String> {
+    require_primary_webview(&window)?;
     auth_store_clear_all();
     delete_all_passphrase_files();
 
@@ -860,7 +865,8 @@ pub fn device_clear_session() -> Result<(), String> {
 }
 
 #[tauri::command]
-pub fn device_clear_identity() -> Result<(), String> {
+pub fn device_clear_identity(window: tauri::WebviewWindow) -> Result<(), String> {
+    require_primary_webview(&window)?;
     auth_store_clear_all();
     delete_all_passphrase_files();
 
