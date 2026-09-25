@@ -35,6 +35,7 @@ import {
   forwardRef,
 } from "react";
 import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
+import { Island, IslandCountPill, IslandStack } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -963,9 +964,10 @@ export const ThreadMessagesList = forwardRef<
       msg.id === regular_messages[regular_messages.length - 1]?.id;
 
     return (
-      <div
+      <Island
         key={msg.id}
         ref={msg.id === scroll_target_id ? first_unread_ref : undefined}
+        className="overflow-hidden"
       >
         <ThreadMessageBlock
           disable_auto_dark_mode={is_dark_mode_opted_out(msg.id)}
@@ -1029,9 +1031,19 @@ export const ThreadMessagesList = forwardRef<
           size_bytes={size_bytes}
           unsubscribe_url={is_last ? unsubscribe_url : undefined}
         />
-      </div>
+      </Island>
     );
   };
+
+  const indexed_messages = display_messages.map((msg, idx) => ({ msg, idx }));
+  const leading_messages = hidden_ids
+    ? indexed_messages.slice(0, 1)
+    : indexed_messages;
+  const trailing_messages = hidden_ids
+    ? indexed_messages.filter(
+        ({ msg, idx }) => idx > 0 && !hidden_ids.has(msg.id),
+      )
+    : [];
 
   return (
     <div
@@ -1046,37 +1058,29 @@ export const ThreadMessagesList = forwardRef<
             </span>
           </div>
         )}
-      {display_messages.map((msg, idx) => {
-        if (hidden_ids?.has(msg.id)) {
-          if (idx === 1) {
-            return (
-              <div
-                key="hidden-group"
-                className="group/collapse relative h-[36px] -mt-px"
-              >
-                <div className="absolute start-0 end-0 top-1/2 border-t border-[var(--border-thread-divider)]" />
-                <button
-                  className="absolute start-0 end-0 top-0 h-full flex items-center px-[18px] cursor-pointer select-none z-10 hover:bg-surf-hover/10 transition-colors"
-                  onClick={() => set_hidden_group_revealed(true)}
-                >
-                  <span className="flex items-center justify-center w-[40px] h-[40px] rounded-full border border-[var(--border-thread-divider)] bg-[var(--bg-primary)] text-[15px] font-semibold text-txt-muted transition-colors">
-                    <span className="group-hover/collapse:hidden">
-                      {hidden_count}
-                    </span>
-                    <ChevronUpDownIcon className="w-5 h-5 hidden group-hover/collapse:block text-txt-muted" />
-                  </span>
-                </button>
-              </div>
-            );
-          }
-
-          return null;
-        }
-
-        return render_message(msg, idx, {
-          hide_bottom_border: idx === 0 && !!hidden_ids,
-        });
-      })}
+      <IslandStack grouped>
+        {leading_messages.map(({ msg, idx }) =>
+          render_message(msg, idx, {
+            hide_bottom_border: idx === 0 && !!hidden_ids,
+          }),
+        )}
+      </IslandStack>
+      {hidden_ids && (
+        <>
+          <IslandCountPill
+            className="my-1.5"
+            count={hidden_count}
+            label={`${hidden_count} ${t("mail.messages_label")}`}
+            size="md"
+            trailing={<ChevronUpDownIcon />}
+            title={t("common.show_more")}
+            onClick={() => set_hidden_group_revealed(true)}
+          />
+          <IslandStack grouped>
+            {trailing_messages.map(({ msg, idx }) => render_message(msg, idx))}
+          </IslandStack>
+        </>
+      )}
       <div ref={send_anchor_ref} />
     </div>
   );

@@ -21,6 +21,7 @@
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 
 import { useState, useCallback } from "react";
+import { Island } from "@aster/ui";
 
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { delete_thread_draft } from "@/services/api/multi_drafts";
@@ -87,7 +88,7 @@ export function ThreadDraftBadge({
     "flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors";
 
   return (
-    <div className="mt-2 px-4 flex items-center gap-3">
+    <Island className="mt-2 flex items-center gap-3 px-4 py-3">
       <ProfileAvatar
         email={current_user_email}
         name={current_user_name || t("common.me")}
@@ -109,6 +110,6 @@ export function ThreadDraftBadge({
           {t("common.delete")}
         </button>
       </div>
-    </div>
+    </Island>
   );
 }

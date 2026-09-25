@@ -32,7 +32,8 @@ vi.mock("@/lib/i18n/context", () => ({
   }),
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Tooltip: ({ children }: { children: React.ReactNode }) => children,
 }));
 

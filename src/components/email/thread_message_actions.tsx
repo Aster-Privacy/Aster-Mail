@@ -27,7 +27,7 @@ import {
   ArrowUturnRightIcon,
   FaceSmileIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Tooltip } from "@aster/ui";
+import { PillButton, Tooltip } from "@aster/ui";
 
 import {
   Popover,
@@ -370,38 +370,39 @@ export function ThreadMessageActions({
           </AnimatePresence>
         </div>
       )}
-      <div className="flex items-center gap-2 px-4 pt-2 pb-3 border-t border-[var(--border-thread-divider)]">
+      <div className="flex items-center gap-2 px-4 pt-2 pb-4">
         {on_reply && (
-          <Button
-            className={`gap-1.5 ${is_system_email(message) ? "opacity-50 pointer-events-none" : ""}`}
+          <PillButton
+            className={`flex-1 min-w-0 max-w-[200px] ${is_system_email(message) ? "opacity-50 pointer-events-none" : ""}`}
+            leading={<ArrowUturnLeftIcon className="w-4 h-4 rtl:-scale-x-100" />}
             size="md"
+            variant="filled"
             onClick={() => on_reply(message)}
           >
-            <ArrowUturnLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
-            {t("mail.reply")}
-          </Button>
+            <span className="truncate">{t("mail.reply")}</span>
+          </PillButton>
         )}
         {show_reply_all && (
-          <Button
-            className={`gap-1.5 ${is_system_email(message) ? "opacity-50 pointer-events-none" : ""}`}
+          <PillButton
+            className={`flex-1 min-w-0 max-w-[200px] ${is_system_email(message) ? "opacity-50 pointer-events-none" : ""}`}
+            leading={<ArrowUturnLeftIcon className="w-4 h-4 rtl:-scale-x-100" />}
             size="md"
             variant="outline"
             onClick={() => on_reply_all(message)}
           >
-            <ArrowUturnLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
-            {t("mail.reply_all")}
-          </Button>
+            <span className="truncate">{t("mail.reply_all")}</span>
+          </PillButton>
         )}
         {on_forward && (
-          <Button
-            className="gap-1.5"
+          <PillButton
+            className="flex-1 min-w-0 max-w-[200px]"
+            leading={<ArrowUturnRightIcon className="w-4 h-4 rtl:-scale-x-100" />}
             size="md"
             variant="outline"
             onClick={() => on_forward(message)}
           >
-            <ArrowUturnRightIcon className="w-4 h-4 rtl:-scale-x-100" />
-            {t("mail.forward")}
-          </Button>
+            <span className="truncate">{t("mail.forward")}</span>
+          </PillButton>
         )}
         {show_react_button &&
           (can_react ? (
@@ -409,7 +410,7 @@ export function ThreadMessageActions({
               <PopoverTrigger asChild>
                 <button
                   aria-label={t("mail.react")}
-                  className="flex items-center justify-center w-8 h-8 rounded-full border border-black/[0.15] dark:border-white/[0.15] text-[var(--text-secondary)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors duration-150"
+                  className="flex items-center justify-center w-10 h-10 flex-shrink-0 rounded-full border border-black/[0.15] dark:border-white/[0.15] text-[var(--text-secondary)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors duration-150"
                   title={t("mail.react")}
                   type="button"
                 >
@@ -428,7 +429,7 @@ export function ThreadMessageActions({
               <button
                 aria-disabled="true"
                 aria-label={restriction_message}
-                className="flex items-center justify-center w-8 h-8 rounded-full border border-black/[0.15] dark:border-white/[0.15] text-[var(--text-secondary)] opacity-50 cursor-not-allowed"
+                className="flex items-center justify-center w-10 h-10 flex-shrink-0 rounded-full border border-black/[0.15] dark:border-white/[0.15] text-[var(--text-secondary)] opacity-50 cursor-not-allowed"
                 type="button"
                 onClick={() => show_toast(restriction_message, "error")}
               >

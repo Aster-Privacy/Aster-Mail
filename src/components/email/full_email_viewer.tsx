@@ -545,8 +545,8 @@ export function FullEmailViewer({
         >
           {email && (
             <div className="py-4 sm:py-5">
-              <div className="px-4 sm:px-6 flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-4">
-                <h1 className="text-xl sm:text-2xl font-semibold text-txt-primary break-words">
+              <div className="px-4 sm:px-5 flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-3">
+                <h1 className="text-[22px] sm:text-2xl font-bold leading-[1.3] text-txt-primary break-words">
                   <span
                     className="inline-flex items-center gap-1 me-2"
                     style={{ verticalAlign: "-0.15em" }}

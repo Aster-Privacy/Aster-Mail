@@ -23,6 +23,8 @@ import { motion } from "framer-motion";
 import { StarIcon } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 
+import { Island, IslandStack } from "@aster/ui";
+
 import { MobileThreadMessage } from "./mobile_thread_message";
 import {
   MobileUnsubscribeBanner,
@@ -245,14 +247,15 @@ function MobileMailDetail() {
             />
           )}
 
-        <div className="pt-1 pb-6">
+        <IslandStack grouped className="px-3 pt-1 pb-6">
           {(preferences.conversation_order === "desc"
             ? [...display_messages].reverse()
             : display_messages
           ).map((msg) => (
-            <div
+            <Island
               key={msg.id}
               ref={msg.id === first_unread_id ? first_unread_ref : undefined}
+              className="overflow-hidden"
             >
               <MobileThreadMessage
                 disable_auto_dark_mode={is_dark_mode_opted_out(msg.id)}
@@ -275,9 +278,9 @@ function MobileMailDetail() {
                 on_toggle={() => handle_toggle_expand(msg)}
                 t={detail.t}
               />
-            </div>
+            </Island>
           ))}
-        </div>
+        </IslandStack>
       </div>
 
       <MobileToolbar

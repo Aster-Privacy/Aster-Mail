@@ -28,7 +28,7 @@ import {
   StarIcon,
   EyeIcon,
   EyeSlashIcon,
-  EllipsisHorizontalIcon,
+  EllipsisVerticalIcon,
   TrashIcon,
   ArrowUturnRightIcon,
 } from "@heroicons/react/24/outline";
@@ -53,7 +53,6 @@ export function render_collapsed_thread_message(
 ): React.ReactElement {
   const {
     message,
-    hide_bottom_border = false,
     on_toggle,
     is_starred = false,
     is_read = true,
@@ -77,7 +76,7 @@ export function render_collapsed_thread_message(
 
   return (
     <div
-      className={`group flex cursor-pointer select-none gap-3 px-4 py-3 hover:bg-surf-hover/20 ${hide_bottom_border ? "" : "border-b border-[var(--border-thread-divider)]"}`}
+      className="group flex cursor-pointer select-none items-center gap-3 px-4 py-3 transition-colors hover:bg-[var(--aster-island-hover)]"
       role="button"
       tabIndex={0}
       onClick={(e) => {
@@ -94,7 +93,7 @@ export function render_collapsed_thread_message(
     >
       <ProfileAvatar
         use_domain_logo
-        className="flex-shrink-0 mt-0.5"
+        className="flex-shrink-0"
         email={show_sender_email}
         name={show_sender_name}
         sender_authenticated={is_system_email(
@@ -119,17 +118,20 @@ export function render_collapsed_thread_message(
               />
             </Tooltip>
           )}
+          <span className="ms-auto text-xs text-txt-muted whitespace-nowrap flex-shrink-0">
+            {format_email_detail(new Date(message.timestamp))}
+          </span>
         </div>
         {collapsed_preview && (
-          <p className="text-sm text-txt-muted truncate mt-0.5">
+          <p className="text-[13px] text-txt-muted truncate mt-0.5">
             {collapsed_preview}
           </p>
         )}
       </div>
 
-      <div className="flex items-center gap-0.5 flex-shrink-0 mt-0.5">
+      <div className="flex items-center flex-shrink-0 -me-2">
         <button
-          className="rounded-full p-1.5 hover:bg-surf-hover"
+          className="flex h-9 w-9 items-center justify-center rounded-full text-txt-secondary transition-colors hover:bg-[var(--aster-island-hover)]"
           title={is_starred ? t("mail.unstar") : t("mail.star")}
           onClick={(e) => {
             e.stopPropagation();
@@ -139,17 +141,17 @@ export function render_collapsed_thread_message(
           {is_starred ? (
             <StarIconSolid className="h-[18px] w-[18px] text-amber-400" />
           ) : (
-            <StarIcon className="h-[18px] w-[18px] text-txt-muted" />
+            <StarIcon className="h-[18px] w-[18px]" />
           )}
         </button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className="rounded-full p-1.5 hover:bg-surf-hover"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-txt-secondary transition-colors hover:bg-[var(--aster-island-hover)]"
               title={t("common.more")}
               onClick={(e) => e.stopPropagation()}
             >
-              <EllipsisHorizontalIcon className="h-[18px] w-[18px] text-txt-muted" />
+              <EllipsisVerticalIcon className="h-[18px] w-[18px]" />
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
@@ -210,9 +212,6 @@ export function render_collapsed_thread_message(
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-        <span className="text-[13px] text-txt-muted whitespace-nowrap ms-1.5 flex-shrink-0">
-          {format_email_detail(new Date(message.timestamp))}
-        </span>
       </div>
 
       <MessageDetailsModal

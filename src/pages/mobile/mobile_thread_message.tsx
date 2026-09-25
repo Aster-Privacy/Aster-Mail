@@ -352,7 +352,7 @@ export function MobileThreadMessage({
   if (!is_expanded) {
     return (
       <div
-        className="border border-[var(--border-primary)] rounded-xl mx-3 my-1.5 overflow-hidden bg-[var(--thread-header-bg)] cursor-pointer"
+        className="cursor-pointer transition-colors active:bg-[color:var(--aster-island-press)]"
         role="button"
         tabIndex={0}
         onClick={on_toggle}
@@ -394,12 +394,10 @@ export function MobileThreadMessage({
           </div>
           <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
             <button
-              className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[var(--text-secondary)] active:opacity-70"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-secondary)] active:opacity-70"
               style={{
-                background: "var(--bg-tertiary)",
-                boxShadow:
-                  "0 1px 2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.06)",
-                border: "1px solid var(--border-primary)",
+                background:
+                  "color-mix(in srgb, var(--text-primary) 7%, transparent)",
               }}
               type="button"
               onClick={() => on_open_menu(message)}
@@ -413,9 +411,9 @@ export function MobileThreadMessage({
   }
 
   return (
-    <div className="border border-[var(--border-primary)] rounded-xl mx-3 my-1.5 overflow-hidden bg-[var(--bg-primary)]">
+    <div>
       <div
-        className="flex items-start gap-3 px-4 py-3 bg-[var(--thread-header-bg)] cursor-pointer"
+        className="flex items-start gap-3 px-4 py-3 cursor-pointer"
         role="button"
         tabIndex={0}
         onClick={on_toggle}
@@ -445,12 +443,10 @@ export function MobileThreadMessage({
               onClick={(e) => e.stopPropagation()}
             >
               <button
-                className="flex h-8 items-center gap-1 rounded-[12px] px-2.5 text-[var(--text-secondary)] active:opacity-70"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-secondary)] active:opacity-70"
                 style={{
-                  background: "var(--bg-tertiary)",
-                  boxShadow:
-                    "0 1px 2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.06)",
-                  border: "1px solid var(--border-primary)",
+                  background:
+                    "color-mix(in srgb, var(--text-primary) 7%, transparent)",
                 }}
                 type="button"
                 onClick={() => on_reply(message)}
@@ -458,12 +454,10 @@ export function MobileThreadMessage({
                 <ArrowUturnLeftIcon className="h-4 w-4 rtl:-scale-x-100" />
               </button>
               <button
-                className="flex h-8 items-center gap-1 rounded-[12px] px-2.5 text-[var(--text-secondary)] active:opacity-70"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-secondary)] active:opacity-70"
                 style={{
-                  background: "var(--bg-tertiary)",
-                  boxShadow:
-                    "0 1px 2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.06)",
-                  border: "1px solid var(--border-primary)",
+                  background:
+                    "color-mix(in srgb, var(--text-primary) 7%, transparent)",
                 }}
                 type="button"
                 onClick={() => on_forward(message)}
@@ -471,12 +465,10 @@ export function MobileThreadMessage({
                 <ArrowUturnRightIcon className="h-4 w-4 rtl:-scale-x-100" />
               </button>
               <button
-                className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[var(--text-secondary)] active:opacity-70"
+                className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-secondary)] active:opacity-70"
                 style={{
-                  background: "var(--bg-tertiary)",
-                  boxShadow:
-                    "0 1px 2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.06)",
-                  border: "1px solid var(--border-primary)",
+                  background:
+                    "color-mix(in srgb, var(--text-primary) 7%, transparent)",
                 }}
                 type="button"
                 onClick={() => on_open_menu(message)}
@@ -592,16 +584,10 @@ export function MobileThreadMessage({
         </div>
       )}
 
-      <div className="flex items-center gap-2 border-t border-[var(--border-primary)] px-4 py-2">
+      <div className="flex items-center gap-2 px-4 pt-1 pb-4">
         <button
-          className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-[14px] text-[13px] font-medium text-[var(--accent-fg,#ffffff)] active:opacity-70"
-          style={{
-            background:
-              "linear-gradient(180deg, var(--accent-color, #3b82f6) 0%, var(--accent-color-hover, #2563eb) 100%)",
-            boxShadow:
-              "0 1px 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-            border: "none",
-          }}
+          className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full text-[14px] font-medium text-[var(--accent-fg,#ffffff)] active:opacity-70"
+          style={{ background: "var(--accent-color, #3b82f6)" }}
           type="button"
           onClick={() => on_reply(message)}
         >
@@ -609,12 +595,10 @@ export function MobileThreadMessage({
           {t("mail.reply")}
         </button>
         <button
-          className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-[14px] text-[13px] font-medium text-[var(--text-secondary)] active:opacity-70"
+          className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full text-[14px] font-medium text-[var(--text-secondary)] active:opacity-70"
           style={{
-            background: "var(--bg-tertiary)",
-            boxShadow:
-              "0 1px 2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.06)",
-            border: "1px solid var(--border-primary)",
+            background:
+              "color-mix(in srgb, var(--text-primary) 7%, transparent)",
           }}
           type="button"
           onClick={() => on_forward(message)}
