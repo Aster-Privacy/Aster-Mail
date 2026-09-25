@@ -871,7 +871,7 @@ export function use_billing_section() {
       }
 
       const offer_applies =
-        checkout_interval === "month" &&
+        (checkout_interval === "month" || checkout_interval === "year") &&
         !!offer_checkout.plan_pricing(plan.code);
       const result = await start_hosted_checkout(
         plan.code,

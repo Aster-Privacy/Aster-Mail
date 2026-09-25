@@ -4962,21 +4962,21 @@ export const de = {
     special_offer_was_price: "Vorher {{price}} pro Monat",
     special_offer_original_price: "Ursprünglicher Preis: {{price}}",
     special_offer_cta: "{{percent}}% Rabatt sichern",
-    special_offer_feature_aliases: "Unbegrenzte Aliasse",
+    special_offer_feature_aliases: "Unbegrenzte Aliase",
     special_offer_feature_vanguard: "Mehr Sicherheit mit Vanguard",
     special_offer_feature_storage: "500 GB verschlüsselter Speicher",
     special_offer_why_body:
-      "Aster ist ein unabhängiges Unternehmen mit einem kleinen Team, und deine Unterstützung bedeutet uns viel. Abonnements halten den Dienst am Laufen und ermöglichen es uns, Aster jeden Tag mit Sorgfalt weiterzuentwickeln. Mit diesem Angebot fällt dir der Einstieg leichter.",
+      "Aster ist ein unabhängiges Unternehmen mit einem kleinen Team, und Ihre Unterstützung bedeutet uns viel. Abonnements halten den Dienst am Laufen und ermöglichen es uns, Aster jeden Tag mit Sorgfalt weiterzuentwickeln. Mit diesem Angebot fällt Ihnen der Einstieg leichter.",
     special_offer_why_label: "Warum dieses Angebot?",
     special_offer_feature_vanguard_body:
       "App-Sperre und erweiterter Datenschutz.",
     special_offer_feature_domains_body:
-      "Sende von Adressen auf deinen eigenen Domains.",
+      "Senden Sie von Adressen auf Ihren eigenen Domains.",
     special_offer_feature_domains: "Bis zu 30 eigene Domains",
     special_offer_feature_storage_body:
       "Platz für E-Mails und Dateien aus vielen Jahren.",
     special_offer_feature_aliases_body:
-      "Gib jeder Website eine eigene Adresse.",
+      "Geben Sie jeder Website eine eigene Adresse.",
     special_offer_fine_print:
       "Sie zahlen {{offer_price}} pro Monat für die ersten {{months}} Monate. Danach verlängert sich Ihr Tarif für {{price}} pro Monat, bis Sie ihn in den Einstellungen kündigen.",
     special_offer_dismiss: "Dieses Angebot nicht mehr anzeigen",

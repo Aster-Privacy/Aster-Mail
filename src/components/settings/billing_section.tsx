@@ -664,7 +664,7 @@ export function BillingSection() {
     set_is_action_loading(true);
     try {
       const offer_applies =
-        checkout_interval === "month" &&
+        (checkout_interval === "month" || checkout_interval === "year") &&
         !!offer_checkout.plan_pricing(plan.code);
       const result = await start_hosted_checkout(
         plan.code,
