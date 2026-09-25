@@ -55,13 +55,17 @@ import {
   clear_session_unlock,
 } from "@/services/app_lock_store";
 import {
+  account_link_origins,
+  support_site_origins,
+} from "@/lib/support_return";
+import {
   base64url_decode,
   base64url_encode,
   seal_vault_key_for_device,
 } from "@/lib/crypto/device_envelope";
 
 const CHANNEL = "aster_account_link";
-const DEV_LINK_ORIGINS = ["http://localhost:5175", "http://localhost:5176"];
+const SUPPORT_SITE_ACTIONS = new Set(["accounts", "set_current", "sign_out"]);
 const MAX_LINK_ATTEMPTS_PER_LOAD = 3;
 const MAX_ACCOUNTS = 20;
 const MAX_PROFILE_PICTURE_LENGTH = 512_000;
@@ -110,16 +114,6 @@ let link_completed = false;
 let parent_origin: string | null = null;
 let changed_timer: number | null = null;
 
-function allowed_origins(): string[] {
-  const configured =
-    (import.meta.env.VITE_ACCOUNT_LINK_ORIGINS as string | undefined) ?? "";
-  const list = configured
-    .split(",")
-    .map((origin) => origin.trim())
-    .filter((origin) => origin.length > 0 && origin !== window.location.origin);
-
-  return list.length > 0 || !import.meta.env.DEV ? list : DEV_LINK_ORIGINS;
-}
 
 function error_from_api_code(code: ApiErrorCode | undefined): bridge_error {
   if (code === "UNAUTHORIZED" || code === "FORBIDDEN") return "session";
@@ -511,8 +505,18 @@ function post_to_parent(message: Record<string, unknown>, origins: string[]) {
   }
 }
 
+function action_allowed(origin: string, action: string): boolean {
+  if (account_link_origins().includes(origin)) return true;
+
+  return (
+    support_site_origins().includes(origin) && SUPPORT_SITE_ACTIONS.has(action)
+  );
+}
+
 function start_bridge() {
-  const origins = allowed_origins();
+  const origins = Array.from(
+    new Set([...account_link_origins(), ...support_site_origins()]),
+  );
 
   if (origins.length === 0) return;
 
@@ -545,7 +549,11 @@ function start_bridge() {
 
     parent_origin = event.origin;
 
-    handle(request)
+    const outcome = action_allowed(event.origin, request.action)
+      ? handle(request)
+      : Promise.resolve<bridge_result>({ ok: false, error: "unsupported" });
+
+    outcome
       .catch((): bridge_result => ({ ok: false, error: "unavailable" }))
       .then((result) => {
         window.parent.postMessage(
