@@ -61,12 +61,14 @@ import "@/styles/mobile.css";
 
 import { ignore_error } from "@/lib/ignore_error";
 import { safe_local_get } from "@/lib/safe_storage";
+import { capture_support_return } from "@/lib/support_return";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
 
 const MobileApp = lazy_with_retry(() => import("@/mobile_app"));
 
 start_input_modality_tracking();
 install_global_error_reporting();
+capture_support_return();
 
 initialize_capacitor().catch((e) => {
   if (import.meta.env.DEV) console.error(e);
