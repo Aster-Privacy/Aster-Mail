@@ -786,7 +786,7 @@ const sidebar_base = ({
       <RailTipLayer />
 
       <div
-        className={`flex-1 overflow-y-auto ${is_collapsed ? "px-2" : "px-2.5"} pt-0.5 pb-2`}
+        className={`min-h-0 flex-1 overflow-y-auto ${is_collapsed ? "px-2" : "px-2.5"} pt-0.5 pb-4 [mask-image:linear-gradient(to_bottom,black_calc(100%-28px),transparent)]`}
       >
         <div ref={container_ref} className="relative">
           {!is_collapsed && !is_search_active && (

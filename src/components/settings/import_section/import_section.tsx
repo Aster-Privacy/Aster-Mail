@@ -57,7 +57,6 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert_dialog";
-import { ButtonSpinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -924,6 +923,7 @@ export function ImportSection() {
                   {is_oauth && (
                     <Button
                       disabled={any_loading}
+                      is_loading={is_loading}
                       size="sm"
                       variant="depth"
                       onClick={() => {
@@ -935,14 +935,7 @@ export function ImportSection() {
                         }
                       }}
                     >
-                      {is_loading ? (
-                        <>
-                          {t("settings.import_oauth_button")}
-                          <ButtonSpinner />
-                        </>
-                      ) : (
-                        t("settings.import_oauth_button")
-                      )}
+                      {t("settings.import_oauth_button")}
                     </Button>
                   )}
                   {provider.id === "gmail" && (
