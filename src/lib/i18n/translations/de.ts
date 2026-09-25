@@ -9574,6 +9574,16 @@ export const de = {
     reset_consent_email_mismatch:
       "Die E-Mail-Adresse passt nicht zu diesem Konto.",
     reset_consent_continue: "Passwort trotzdem zurücksetzen",
+    reset_second_factor_title: "Bestätige, dass du es bist",
+    reset_second_factor_description:
+      "Dieses Konto verwendet die Zwei-Faktor-Authentifizierung. Bestätige einen zweiten Faktor, bevor du das Passwort zurücksetzt.",
+    reset_second_factor_backup_description:
+      "Gib einen deiner Backup-Codes ein, um fortzufahren.",
+    reset_second_factor_key_description:
+      "Verwende den Sicherheitsschlüssel oder Passkey, der für dieses Konto registriert ist, um fortzufahren.",
+    reset_second_factor_use_key:
+      "Stattdessen einen Sicherheitsschlüssel verwenden",
+    reset_second_factor_use_key_button: "Mit Sicherheitsschlüssel fortfahren",
     please_enter_recovery_code:
       "Einer Ihrer Wiederherstellungscodes wird hier benötigt.",
     recovery_codes_start_with_aster:

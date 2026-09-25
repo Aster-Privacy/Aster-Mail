@@ -9516,6 +9516,15 @@ export const pl = {
     reset_consent_type_email: "Wpisz swój pełny adres e-mail, aby potwierdzić",
     reset_consent_email_mismatch: "Adres e-mail nie pasuje do tego konta.",
     reset_consent_continue: "Resetuj hasło mimo to",
+    reset_second_factor_title: "Potwierdź, że to Ty",
+    reset_second_factor_description:
+      "To konto używa uwierzytelniania dwuskładnikowego. Zweryfikuj drugi składnik przed zresetowaniem hasła.",
+    reset_second_factor_backup_description:
+      "Wpisz jeden ze swoich kodów zapasowych, aby kontynuować.",
+    reset_second_factor_key_description:
+      "Użyj klucza bezpieczeństwa lub klucza dostępu zarejestrowanego na tym koncie, aby kontynuować.",
+    reset_second_factor_use_key: "Użyj zamiast tego klucza bezpieczeństwa",
+    reset_second_factor_use_key_button: "Kontynuuj z kluczem bezpieczeństwa",
     plan_starter_badge: "Startowy",
     plan_personal_badge: "Osobisty",
     plan_pro_badge: "Pro",

@@ -9366,6 +9366,15 @@ export const it = {
     reset_consent_email_mismatch:
       "L'indirizzo email non corrisponde a questo account.",
     reset_consent_continue: "Reimposta comunque la password",
+    reset_second_factor_title: "Conferma la tua identità",
+    reset_second_factor_description:
+      "Questo account usa l'autenticazione a due fattori. Verifica un secondo fattore prima di reimpostare la password.",
+    reset_second_factor_backup_description:
+      "Inserisci uno dei tuoi codici di backup per continuare.",
+    reset_second_factor_key_description:
+      "Usa la chiave di sicurezza o la passkey registrata su questo account per continuare.",
+    reset_second_factor_use_key: "Usa invece una chiave di sicurezza",
+    reset_second_factor_use_key_button: "Continua con la chiave di sicurezza",
     plan_starter_badge: "Starter",
     plan_personal_badge: "Personale",
     plan_pro_badge: "Pro",

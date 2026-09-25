@@ -9364,6 +9364,15 @@ export const fr = {
     reset_consent_email_mismatch:
       "L'adresse de courriel ne correspond pas à ce compte.",
     reset_consent_continue: "Réinitialiser le mot de passe malgré tout",
+    reset_second_factor_title: "Confirmez que c'est bien vous",
+    reset_second_factor_description:
+      "Ce compte utilise l'authentification à deux facteurs. Vérifiez un second facteur avant de réinitialiser le mot de passe.",
+    reset_second_factor_backup_description:
+      "Saisissez l'un de vos codes de secours pour continuer.",
+    reset_second_factor_key_description:
+      "Utilisez la clé de sécurité ou la clé d'accès enregistrée sur ce compte pour continuer.",
+    reset_second_factor_use_key: "Utiliser plutôt une clé de sécurité",
+    reset_second_factor_use_key_button: "Continuer avec la clé de sécurité",
     plan_starter_badge: "Starter",
     plan_personal_badge: "Personnel",
     plan_pro_badge: "Pro",

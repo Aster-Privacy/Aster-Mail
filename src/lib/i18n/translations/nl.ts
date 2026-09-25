@@ -9259,6 +9259,16 @@ export const nl = {
     reset_consent_email_mismatch:
       "Het e-mailadres komt niet overeen met dit account.",
     reset_consent_continue: "Wachtwoord toch resetten",
+    reset_second_factor_title: "Bevestig dat jij het bent",
+    reset_second_factor_description:
+      "Dit account gebruikt tweestapsverificatie. Verifieer een tweede factor voordat je het wachtwoord opnieuw instelt.",
+    reset_second_factor_backup_description:
+      "Voer een van je back-upcodes in om door te gaan.",
+    reset_second_factor_key_description:
+      "Gebruik de beveiligingssleutel of passkey die voor dit account is geregistreerd om door te gaan.",
+    reset_second_factor_use_key:
+      "In plaats daarvan een beveiligingssleutel gebruiken",
+    reset_second_factor_use_key_button: "Doorgaan met beveiligingssleutel",
     plan_starter_badge: "Starter",
     plan_personal_badge: "Persoonlijk",
     plan_pro_badge: "Pro",

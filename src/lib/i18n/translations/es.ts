@@ -9255,6 +9255,15 @@ export const es = {
     reset_consent_email_mismatch:
       "La dirección de correo no coincide con esta cuenta.",
     reset_consent_continue: "Restablecer la contraseña de todos modos",
+    reset_second_factor_title: "Confirma que eres tú",
+    reset_second_factor_description:
+      "Esta cuenta usa la autenticación de dos factores. Verifica un segundo factor antes de restablecer la contraseña.",
+    reset_second_factor_backup_description:
+      "Introduce uno de tus códigos de respaldo para continuar.",
+    reset_second_factor_key_description:
+      "Usa la llave de seguridad o la clave de acceso registrada en esta cuenta para continuar.",
+    reset_second_factor_use_key: "Usar una llave de seguridad en su lugar",
+    reset_second_factor_use_key_button: "Continuar con la llave de seguridad",
     plan_starter_badge: "Starter",
     plan_personal_badge: "Personal",
     plan_pro_badge: "Pro",

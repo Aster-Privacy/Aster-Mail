@@ -9205,6 +9205,15 @@ export const ar = {
     reset_consent_email_mismatch:
       "عنوان البريد الإلكتروني لا يطابق هذا الحساب.",
     reset_consent_continue: "إعادة تعيين كلمة المرور على أي حال",
+    reset_second_factor_title: "أكّد أنك أنت",
+    reset_second_factor_description:
+      "يستخدم هذا الحساب المصادقة الثنائية. تحقّق من عامل ثانٍ قبل إعادة تعيين كلمة المرور.",
+    reset_second_factor_backup_description:
+      "أدخل أحد رموز النسخ الاحتياطي للمتابعة.",
+    reset_second_factor_key_description:
+      "استخدم مفتاح الأمان أو مفتاح المرور المسجّل في هذا الحساب للمتابعة.",
+    reset_second_factor_use_key: "استخدام مفتاح أمان بدلاً من ذلك",
+    reset_second_factor_use_key_button: "المتابعة باستخدام مفتاح الأمان",
     plan_starter_badge: "مبتدئ",
     plan_personal_badge: "شخصي",
     plan_pro_badge: "احترافي",

@@ -9241,6 +9241,15 @@ export const tr = {
       "Onaylamak için e-posta adresinizin tamamını yazın",
     reset_consent_email_mismatch: "E-posta adresi bu hesapla eşleşmiyor.",
     reset_consent_continue: "Yine de parolayı sıfırla",
+    reset_second_factor_title: "Sen olduğunu doğrula",
+    reset_second_factor_description:
+      "Bu hesap iki adımlı doğrulama kullanıyor. Parolayı sıfırlamadan önce ikinci bir adımı doğrula.",
+    reset_second_factor_backup_description:
+      "Devam etmek için yedek kodlarından birini gir.",
+    reset_second_factor_key_description:
+      "Devam etmek için bu hesapta kayıtlı güvenlik anahtarını veya geçiş anahtarını kullan.",
+    reset_second_factor_use_key: "Bunun yerine güvenlik anahtarı kullan",
+    reset_second_factor_use_key_button: "Güvenlik anahtarıyla devam et",
     plan_starter_badge: "Başlangıç",
     plan_personal_badge: "Kişisel",
     plan_pro_badge: "Profesyonel",

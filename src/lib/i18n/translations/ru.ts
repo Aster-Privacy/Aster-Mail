@@ -9496,6 +9496,15 @@ export const ru = {
     reset_consent_email_mismatch:
       "Адрес электронной почты не совпадает с этим аккаунтом.",
     reset_consent_continue: "Всё равно сбросить пароль",
+    reset_second_factor_title: "Подтвердите, что это вы",
+    reset_second_factor_description:
+      "В этом аккаунте включена двухфакторная аутентификация. Подтвердите второй фактор, прежде чем сбрасывать пароль.",
+    reset_second_factor_backup_description:
+      "Введите один из резервных кодов, чтобы продолжить.",
+    reset_second_factor_key_description:
+      "Используйте ключ безопасности или ключ доступа, зарегистрированный в этом аккаунте, чтобы продолжить.",
+    reset_second_factor_use_key: "Использовать ключ безопасности",
+    reset_second_factor_use_key_button: "Продолжить с ключом безопасности",
     plan_starter_badge: "Стартовый",
     plan_personal_badge: "Персональный",
     plan_pro_badge: "Профессиональный",

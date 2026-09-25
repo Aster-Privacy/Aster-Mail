@@ -18,6 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type {
+  StepUpHardwareKeyAssertion,
+  WebAuthnAssertionOptions,
+} from "./webauthn";
+
 import { RecoveryShareData } from "../crypto/recovery_key";
 
 import { api_client, ApiResponse } from "./client";
@@ -159,6 +164,55 @@ export async function reset_password_with_token(
       vault_format,
       acknowledged_data_loss,
     },
+  );
+}
+
+export interface ResetSecondFactorStatus {
+  required: boolean;
+  verified: boolean;
+  totp: boolean;
+  backup_codes: boolean;
+  hardware_key: boolean;
+}
+
+export type ResetSecondFactorMethod = "totp" | "backup_code";
+
+export async function get_reset_second_factor_status(
+  token: string,
+): Promise<ApiResponse<ResetSecondFactorStatus>> {
+  return api_client.post<ResetSecondFactorStatus>(
+    "/core/v1/recovery/reset-password/second-factor/status",
+    { token },
+  );
+}
+
+export async function verify_reset_second_factor(
+  token: string,
+  method: ResetSecondFactorMethod,
+  code: string,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.post<{ success: boolean }>(
+    "/core/v1/recovery/reset-password/second-factor/verify",
+    { token, method, code },
+  );
+}
+
+export async function get_reset_hardware_key_options(
+  token: string,
+): Promise<ApiResponse<WebAuthnAssertionOptions>> {
+  return api_client.post<WebAuthnAssertionOptions>(
+    "/core/v1/recovery/reset-password/second-factor/hardware-key/options",
+    { token },
+  );
+}
+
+export async function verify_reset_hardware_key(
+  token: string,
+  assertion: StepUpHardwareKeyAssertion,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.post<{ success: boolean }>(
+    "/core/v1/recovery/reset-password/second-factor/hardware-key/verify",
+    { token, ...assertion },
   );
 }
 

@@ -9224,6 +9224,15 @@ export const en: Translations = {
     reset_consent_email_mismatch:
       "The email address does not match this account.",
     reset_consent_continue: "Reset password anyway",
+    reset_second_factor_title: "Confirm it's you",
+    reset_second_factor_description:
+      "This account uses two-factor authentication. Verify a second factor before you reset the password.",
+    reset_second_factor_backup_description:
+      "Enter one of your backup codes to continue.",
+    reset_second_factor_key_description:
+      "Use the security key or passkey registered on this account to continue.",
+    reset_second_factor_use_key: "Use a security key instead",
+    reset_second_factor_use_key_button: "Continue with security key",
     plan_starter_badge: "Starter",
     plan_personal_badge: "Personal",
     plan_pro_badge: "Pro",

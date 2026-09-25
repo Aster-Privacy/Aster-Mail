@@ -9242,6 +9242,14 @@ export const ja = {
     reset_consent_email_mismatch:
       "メールアドレスがこのアカウントと一致しません。",
     reset_consent_continue: "それでもパスワードをリセットする",
+    reset_second_factor_title: "本人確認",
+    reset_second_factor_description:
+      "このアカウントは 2 段階認証を使用しています。パスワードをリセットする前に、2 つ目の認証要素を確認してください。",
+    reset_second_factor_backup_description: "続行するには、バックアップコードのいずれかを入力してください。",
+    reset_second_factor_key_description:
+      "続行するには、このアカウントに登録されているセキュリティキーまたはパスキーを使用してください。",
+    reset_second_factor_use_key: "代わりにセキュリティキーを使用する",
+    reset_second_factor_use_key_button: "セキュリティキーで続行",
     plan_starter_badge: "スターター",
     plan_personal_badge: "パーソナル",
     plan_pro_badge: "プロ",

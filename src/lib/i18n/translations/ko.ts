@@ -9007,6 +9007,13 @@ export const ko = {
     reset_consent_type_email: "확인을 위해 전체 이메일 주소를 입력하세요",
     reset_consent_email_mismatch: "이메일 주소가 이 계정과 일치하지 않습니다.",
     reset_consent_continue: "그래도 비밀번호 재설정",
+    reset_second_factor_title: "본인 확인",
+    reset_second_factor_description:
+      "이 계정은 2단계 인증을 사용합니다. 비밀번호를 재설정하기 전에 두 번째 인증 수단을 확인하세요.",
+    reset_second_factor_backup_description: "계속하려면 백업 코드 중 하나를 입력하세요.",
+    reset_second_factor_key_description: "계속하려면 이 계정에 등록된 보안 키 또는 패스키를 사용하세요.",
+    reset_second_factor_use_key: "대신 보안 키 사용",
+    reset_second_factor_use_key_button: "보안 키로 계속",
     plan_starter_badge: "스타터",
     plan_personal_badge: "개인",
     plan_pro_badge: "프로",

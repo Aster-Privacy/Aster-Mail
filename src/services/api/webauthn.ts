@@ -386,8 +386,12 @@ export async function perform_step_up_webauthn_assertion(): Promise<StepUpHardwa
     );
   }
 
-  const options = options_res.data;
+  return perform_webauthn_assertion_with_options(options_res.data);
+}
 
+export async function perform_webauthn_assertion_with_options(
+  options: WebAuthnAssertionOptions,
+): Promise<StepUpHardwareKeyAssertion> {
   const public_key: PublicKeyCredentialRequestOptions = {
     challenge: base64_url_to_array_buffer(options.challenge),
     rpId: options.rpId,

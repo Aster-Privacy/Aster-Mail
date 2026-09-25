@@ -9245,6 +9245,15 @@ export const hi = {
     reset_consent_type_email: "पुष्टि के लिए अपना पूरा ईमेल पता टाइप करें",
     reset_consent_email_mismatch: "ईमेल पता इस खाते से मेल नहीं खाता।",
     reset_consent_continue: "फिर भी पासवर्ड रीसेट करें",
+    reset_second_factor_title: "पुष्टि करें कि यह आप ही हैं",
+    reset_second_factor_description:
+      "यह खाता दो-चरणीय प्रमाणीकरण का उपयोग करता है। पासवर्ड रीसेट करने से पहले दूसरे चरण की पुष्टि करें।",
+    reset_second_factor_backup_description:
+      "जारी रखने के लिए अपना कोई एक बैकअप कोड दर्ज करें।",
+    reset_second_factor_key_description:
+      "जारी रखने के लिए इस खाते में पंजीकृत सुरक्षा कुंजी या पासकी का उपयोग करें।",
+    reset_second_factor_use_key: "इसके बजाय सुरक्षा कुंजी का उपयोग करें",
+    reset_second_factor_use_key_button: "सुरक्षा कुंजी के साथ जारी रखें",
     plan_starter_badge: "Starter",
     plan_personal_badge: "निजी",
     plan_pro_badge: "Pro",

@@ -9323,6 +9323,15 @@ export const pt = {
     reset_consent_email_mismatch:
       "O endereço de e-mail não corresponde a esta conta.",
     reset_consent_continue: "Redefinir a senha mesmo assim",
+    reset_second_factor_title: "Confirme que é você",
+    reset_second_factor_description:
+      "Esta conta usa a autenticação de dois fatores. Verifique um segundo fator antes de redefinir a senha.",
+    reset_second_factor_backup_description:
+      "Digite um dos seus códigos de backup para continuar.",
+    reset_second_factor_key_description:
+      "Use a chave de segurança ou a chave de acesso registrada nesta conta para continuar.",
+    reset_second_factor_use_key: "Usar uma chave de segurança em vez disso",
+    reset_second_factor_use_key_button: "Continuar com a chave de segurança",
     plan_starter_badge: "Iniciante",
     plan_personal_badge: "Pessoal",
     plan_pro_badge: "Pro",
