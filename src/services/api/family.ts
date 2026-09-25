@@ -129,12 +129,14 @@ export function create_family_group(
   billing_interval: string,
   success_url?: string,
   cancel_url?: string,
+  promo_code?: string,
 ): Promise<ApiResponse<CreateFamilyGroupResponse>> {
   return api_client.post<CreateFamilyGroupResponse>("/payments/v1/family", {
     plan_code,
     billing_interval,
     success_url,
     cancel_url,
+    promo_code,
   });
 }
 
