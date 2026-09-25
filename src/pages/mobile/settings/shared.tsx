@@ -248,7 +248,7 @@ export function OptionList<T extends string>({
   on_change: (v: T) => void;
 }) {
   return (
-    <div className="divide-y divide-[var(--border-primary)]">
+    <div>
       {options.map((opt) => (
         <button
           key={opt.value}

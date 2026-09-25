@@ -129,7 +129,7 @@ export function AppearanceSection({
       />
       <div className="flex-1 overflow-y-auto pb-8">
         <SettingsGroup title={t("settings.theme")}>
-          <div className="divide-y divide-[var(--border-primary)]">
+          <div>
             {theme_options.map((opt) => (
               <button
                 key={opt.value}

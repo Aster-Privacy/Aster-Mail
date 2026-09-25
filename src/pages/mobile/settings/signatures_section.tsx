@@ -692,7 +692,7 @@ export function SignaturesSection({
               {t("settings.signature_alias")}
             </label>
             <div className="rounded-xl border border-[var(--border-secondary)] bg-[var(--mobile-bg-card)] overflow-hidden">
-              <div className="divide-y divide-[var(--border-primary)]">
+              <div>
                 <button
                   className="flex w-full items-center gap-3 px-4 py-3 text-start active:bg-[var(--mobile-bg-card-hover)]"
                   type="button"
@@ -738,7 +738,7 @@ export function SignaturesSection({
               {t("settings.signature_placement")}
             </label>
             <div className="rounded-xl border border-[var(--border-secondary)] bg-[var(--mobile-bg-card)] overflow-hidden">
-              <div className="divide-y divide-[var(--border-primary)]">
+              <div>
                 {[
                   {
                     value: null,

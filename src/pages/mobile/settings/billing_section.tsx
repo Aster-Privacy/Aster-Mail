@@ -718,9 +718,15 @@ export function BillingSection({
               }
             >
               <div className="px-4 py-3">
-                <p className="text-xs text-txt-muted mb-3">
-                  {t("settings.referral_program_description")}
-                </p>
+                {referral_info && (
+                  <p className="text-xs text-txt-muted mb-3">
+                    {t("settings.referral_program_description", {
+                      amount: format_bytes(
+                        referral_info.bonus_bytes_per_referral,
+                      ),
+                    })}
+                  </p>
+                )}
 
                 {referral_info && referral_info.referral_code ? (
                   <>
@@ -732,13 +738,17 @@ export function BillingSection({
                         <input
                           readOnly
                           aria-label={t("settings.your_referral_link")}
-                          className="flex-1 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary outline-none"
+                          className="min-w-0 flex-1 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary outline-none"
                           value={build_referral_invite_url(
                             referral_info.referral_code,
                           )}
                         />
                         <button
-                          className="h-9 px-3 text-sm rounded-[14px] border border-edge-secondary text-txt-primary flex items-center gap-1.5 active:scale-95 transition-transform"
+                          className="h-9 px-4 text-sm font-medium rounded-full shrink-0 whitespace-nowrap text-txt-primary flex items-center gap-1.5 active:scale-95 transition-transform"
+                          style={{
+                            background:
+                              "color-mix(in srgb, var(--text-primary) 7%, transparent)",
+                          }}
                           onClick={async () => {
                             if (
                               await copy_text(
@@ -758,7 +768,11 @@ export function BillingSection({
                         </button>
                       </div>
                       <button
-                        className="w-full mt-2 h-9 px-3 text-sm rounded-[14px] border border-edge-secondary text-txt-primary flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+                        className="w-full mt-2 h-10 px-4 text-sm font-medium rounded-full text-txt-primary flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+                        style={{
+                          background:
+                            "color-mix(in srgb, var(--text-primary) 7%, transparent)",
+                        }}
                         disabled={is_sending_referral}
                         onClick={handle_send_referral}
                       >
@@ -795,7 +809,13 @@ export function BillingSection({
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 mb-3">
-                      <div className="px-3 py-2.5 rounded-lg border border-edge-secondary text-center">
+                      <div
+                        className="px-3 py-3 rounded-xl text-center"
+                        style={{
+                          background:
+                            "color-mix(in srgb, var(--text-primary) 7%, transparent)",
+                        }}
+                      >
                         <p className="text-lg font-bold text-txt-primary">
                           {referral_info.total_referrals}
                         </p>
@@ -803,7 +823,13 @@ export function BillingSection({
                           {t("settings.total_referrals")}
                         </p>
                       </div>
-                      <div className="px-3 py-2.5 rounded-lg border border-edge-secondary text-center">
+                      <div
+                        className="px-3 py-3 rounded-xl text-center"
+                        style={{
+                          background:
+                            "color-mix(in srgb, var(--text-primary) 7%, transparent)",
+                        }}
+                      >
                         <p className="text-lg font-bold text-yellow-500">
                           {referral_info.pending_referrals}
                         </p>
@@ -811,7 +837,13 @@ export function BillingSection({
                           {t("settings.pending_referrals")}
                         </p>
                       </div>
-                      <div className="px-3 py-2.5 rounded-lg border border-edge-secondary text-center">
+                      <div
+                        className="px-3 py-3 rounded-xl text-center"
+                        style={{
+                          background:
+                            "color-mix(in srgb, var(--text-primary) 7%, transparent)",
+                        }}
+                      >
                         <p className="text-lg font-bold text-green-500">
                           {referral_info.completed_referrals}
                         </p>
@@ -819,7 +851,13 @@ export function BillingSection({
                           {t("settings.completed_referrals")}
                         </p>
                       </div>
-                      <div className="px-3 py-2.5 rounded-lg border border-edge-secondary text-center">
+                      <div
+                        className="px-3 py-3 rounded-xl text-center"
+                        style={{
+                          background:
+                            "color-mix(in srgb, var(--text-primary) 7%, transparent)",
+                        }}
+                      >
                         <p className="text-lg font-bold text-txt-primary">
                           {format_price(
                             (referral_info.credits_earned_cents || 0) +
@@ -837,7 +875,13 @@ export function BillingSection({
                         <p className="text-xs font-medium text-txt-secondary mb-2">
                           {t("settings.referral_history")}
                         </p>
-                        <div className="rounded-lg border overflow-hidden border-edge-secondary">
+                        <div
+                          className="rounded-xl overflow-hidden"
+                          style={{
+                            background:
+                              "color-mix(in srgb, var(--text-primary) 7%, transparent)",
+                          }}
+                        >
                           {referral_history_list.map((ref_item) => (
                             <div
                               key={ref_item.id}

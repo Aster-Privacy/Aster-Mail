@@ -989,7 +989,7 @@ export function BehaviorSection({
             <p className="mb-2 text-[13px] font-medium text-[var(--text-primary)]">
               {t("settings.swipe_left")}
             </p>
-            <div className="mb-3 divide-y divide-[var(--border-primary)] overflow-hidden rounded-xl bg-[var(--mobile-bg-card-hover)]">
+            <div className="mb-3 overflow-hidden rounded-xl bg-[var(--mobile-bg-card-hover)]">
               {SWIPE_ACTION_OPTIONS.map((id) => {
                 const def = get_swipe_action(id);
 
@@ -1023,7 +1023,7 @@ export function BehaviorSection({
             <p className="mb-2 text-[13px] font-medium text-[var(--text-primary)]">
               {t("settings.swipe_right")}
             </p>
-            <div className="mb-1 divide-y divide-[var(--border-primary)] overflow-hidden rounded-xl bg-[var(--mobile-bg-card-hover)]">
+            <div className="mb-1 overflow-hidden rounded-xl bg-[var(--mobile-bg-card-hover)]">
               {SWIPE_ACTION_OPTIONS.map((id) => {
                 const def = get_swipe_action(id);
 

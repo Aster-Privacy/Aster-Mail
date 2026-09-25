@@ -50,12 +50,17 @@ export function ReferralSection({
   return (
     <IslandSection
       bare
-      description={t("settings.referral_program_description")}
+      description={
+        referral_info
+          ? t("settings.referral_program_description", {
+              amount: format_bytes(referral_info.bonus_bytes_per_referral),
+            })
+          : undefined
+      }
       icon={<UserGroupIcon className="flex-shrink-0" />}
       id="referral_section"
       title={t("settings.referral_program")}
     >
-
       {referral_info && referral_info.referral_code ? (
         <>
           <Island className="mb-2" padding="md">
