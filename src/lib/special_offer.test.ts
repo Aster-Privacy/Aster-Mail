@@ -28,6 +28,7 @@ import {
   is_special_offer_available,
   special_offer_checkout,
   special_offer_checkout_total_cents,
+  special_offer_interval_months,
   special_offer_crypto_total_cents,
   special_offer_discounted_cents,
   special_offer_pricing,
@@ -47,6 +48,15 @@ describe("special_offer_pricing", () => {
     expect(pricing).not.toBeNull();
     expect(pricing?.list_cents).toBe(899);
     expect(pricing?.offer_cents).toBe(449);
+  });
+
+  it("matches the yearly card charge", () => {
+    const pricing = special_offer_pricing("year");
+
+    expect(pricing?.list_cents).toBe(8699);
+    expect(pricing?.offer_cents).toBe(4349);
+    expect(special_offer_interval_months("year")).toBe(12);
+    expect(special_offer_interval_months("month")).toBe(1);
   });
 
   it("applies the declared discount", () => {
@@ -104,12 +114,15 @@ describe("special_offer_term_months", () => {
 });
 
 describe("special_offer_checkout_total_cents", () => {
-  it("discounts card only on monthly billing", () => {
+  it("discounts card on monthly and yearly billing", () => {
     expect(special_offer_checkout_total_cents("card", "nova", 1, 899)).toBe(
       449,
     );
+    expect(special_offer_checkout_total_cents("card", "nova", 12, 8699)).toBe(
+      4349,
+    );
     expect(
-      special_offer_checkout_total_cents("card", "nova", 12, 8699),
+      special_offer_checkout_total_cents("card", "nova", 3, 2697),
     ).toBeNull();
     expect(
       special_offer_checkout_total_cents("card", "nova", 24, 14999),
@@ -151,7 +164,7 @@ describe("special_offer_checkout", () => {
 
     expect(pricing?.percent_off).toBe(SPECIAL_OFFER_PERCENT_OFF);
     expect(pricing?.discounted_total_cents("card", "monthly", 899)).toBe(449);
-    expect(pricing?.discounted_total_cents("card", "yearly", 8699)).toBeNull();
+    expect(pricing?.discounted_total_cents("card", "yearly", 8699)).toBe(4349);
     expect(pricing?.discounted_total_cents("crypto", "yearly", 8699)).toBe(
       4349,
     );

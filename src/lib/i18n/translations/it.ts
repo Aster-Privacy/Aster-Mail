@@ -6150,6 +6150,11 @@ export const it = {
     special_offer_success_body:
       "Grazie per esserti abbonato. Il tuo supporto significa molto per noi.",
     special_offer_hero_duration: "per {{months}} mesi",
+    special_offer_price_period_year: "all'anno",
+    special_offer_hero_duration_year: "per il primo anno",
+    special_offer_fine_print_year:
+      "Paghi {{offer_price}} per il primo anno. Il piano si rinnova poi a {{price}} all'anno finché non lo annulli in Impostazioni.",
+    special_offer_billing_period: "Periodo di fatturazione",
     plan_billing_terms:
       "Gli abbonamenti si rinnovano automaticamente alla tariffa standard finché non li annulli. Puoi annullare in qualsiasi momento in Impostazioni.",
     upgrade_offer_note:

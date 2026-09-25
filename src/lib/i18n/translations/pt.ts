@@ -5070,6 +5070,11 @@ export const pt = {
     special_offer_success_body:
       "Obrigado por assinar. Seu apoio significa muito para nós.",
     special_offer_hero_duration: "por {{months}} meses",
+    special_offer_price_period_year: "por ano",
+    special_offer_hero_duration_year: "no primeiro ano",
+    special_offer_fine_print_year:
+      "Você paga {{offer_price}} pelo primeiro ano. Depois, seu plano é renovado por {{price}} por ano até você cancelar em Configurações.",
+    special_offer_billing_period: "Período de cobrança",
     plan_billing_terms:
       "As assinaturas são renovadas automaticamente pelo preço padrão até você cancelar. Cancele quando quiser em Configurações.",
     upgrade_offer_note: "Seu desconto de {{percent}}% é aplicado no pagamento.",

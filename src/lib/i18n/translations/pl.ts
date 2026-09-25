@@ -5204,6 +5204,11 @@ export const pl = {
     special_offer_success_body:
       "Dziękujemy za subskrypcję. Twoje wsparcie wiele dla nas znaczy.",
     special_offer_hero_duration: "przez {{months}} miesięcy",
+    special_offer_price_period_year: "rocznie",
+    special_offer_hero_duration_year: "przez pierwszy rok",
+    special_offer_fine_print_year:
+      "Za pierwszy rok płacisz {{offer_price}}. Potem plan odnawia się za {{price}} rocznie, dopóki nie anulujesz go w Ustawieniach.",
+    special_offer_billing_period: "Okres rozliczeniowy",
     plan_billing_terms:
       "Subskrypcje odnawiają się automatycznie w cenie standardowej, dopóki ich nie anulujesz. Możesz anulować w dowolnym momencie w Ustawieniach.",
     upgrade_offer_note:

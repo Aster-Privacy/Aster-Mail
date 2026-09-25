@@ -41,14 +41,16 @@ import {
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
+import { Segmented } from "@/components/settings/billing/plan_card";
 import { SpecialOfferFeatureList } from "@/components/upgrade/special_offer_success_modal";
 import {
   SPECIAL_OFFER_DURATION_MONTHS,
-  SPECIAL_OFFER_INTERVAL,
   SPECIAL_OFFER_PERCENT_OFF,
   SPECIAL_OFFER_PLAN_CODE,
+  type SpecialOfferInterval,
   is_special_offer_available,
   special_offer_discounted_cents,
+  special_offer_interval_months,
   special_offer_pricing,
   special_offer_promo_code,
 } from "@/lib/special_offer";
@@ -87,6 +89,7 @@ export function SpecialOfferModal() {
   const { is_authenticated, user } = use_auth();
   const { plan_code, refresh: refresh_plan_limits } = use_plan_limits();
   const [currency, set_currency] = useState("usd");
+  const [interval, set_interval] = useState<SpecialOfferInterval>("month");
   const [is_accepting, set_is_accepting] = useState(false);
   const [is_hero_loaded, set_is_hero_loaded] = useState(false);
   const [step, set_step] = useState<checkout_step>(null);
@@ -179,7 +182,7 @@ export function SpecialOfferModal() {
     };
   }, [can_auto_show, user_id]);
 
-  const pricing = useMemo(() => special_offer_pricing(), []);
+  const pricing = useMemo(() => special_offer_pricing(interval), [interval]);
   const promo_code = useMemo(() => special_offer_promo_code(), []);
   const offer_tier = useMemo(
     () => PLAN_TIERS.find((tier) => tier.id === SPECIAL_OFFER_PLAN_CODE),
@@ -187,6 +190,9 @@ export function SpecialOfferModal() {
   );
 
   if (!pricing || !offer_tier) return null;
+
+  const is_yearly = interval === "year";
+  const term_id = is_yearly ? "yearly" : "monthly";
 
   const offer_label = format_price(
     special_offer_discounted_cents(convert_cents(pricing.list_cents, currency)),
@@ -231,7 +237,7 @@ export function SpecialOfferModal() {
     try {
       const result = await start_hosted_checkout(
         SPECIAL_OFFER_PLAN_CODE,
-        SPECIAL_OFFER_INTERVAL,
+        interval,
         currency,
         undefined,
         promo_code ?? undefined,
@@ -294,13 +300,17 @@ export function SpecialOfferModal() {
         on_close={close_method_step}
         open={step === "method"}
         plan_name={offer_tier.name}
-        selected_term="monthly"
+        selected_term={term_id}
         special_offer={offer_checkout.plan_pricing(SPECIAL_OFFER_PLAN_CODE)}
         term_options={[
           {
-            id: "monthly",
-            label: t("settings.billing_monthly"),
-            per_month_cents: pricing.list_cents,
+            id: term_id,
+            label: t(
+              is_yearly ? "settings.billing_yearly" : "settings.billing_monthly",
+            ),
+            per_month_cents: Math.round(
+              pricing.list_cents / special_offer_interval_months(interval),
+            ),
             total_cents: pricing.list_cents,
             save_cents: 0,
           },
@@ -312,7 +322,7 @@ export function SpecialOfferModal() {
         discounted_price_cents={offer_checkout.crypto_price(
           SPECIAL_OFFER_PLAN_CODE,
         )}
-        initial_term_months={1}
+        initial_term_months={special_offer_interval_months(interval)}
         is_open={step === "crypto"}
         monthly_price_cents={offer_tier.monthly_cents}
         on_checkout_opened={handle_crypto_checkout_opened}
@@ -363,12 +373,31 @@ export function SpecialOfferModal() {
             {t("settings.special_offer_title")}
           </ModalTitle>
 
+          <div
+            aria-label={t("settings.special_offer_billing_period")}
+            className="mt-4 w-56"
+            role="group"
+          >
+            <Segmented
+              on_change={set_interval}
+              options={[
+                { id: "month", label: t("settings.billing_monthly") },
+                { id: "year", label: t("settings.billing_yearly") },
+              ]}
+              value={interval}
+            />
+          </div>
+
           <div className="mt-4 flex items-baseline gap-2.5">
             <span className="text-[32px] font-semibold leading-none tracking-[-0.025em] text-txt-primary">
               {offer_label}
             </span>
             <span className="text-[13px] font-medium text-txt-secondary">
-              {t("settings.special_offer_price_period")}
+              {t(
+                is_yearly
+                  ? "settings.special_offer_price_period_year"
+                  : "settings.special_offer_price_period",
+              )}
             </span>
             <span className="text-[15px] font-medium text-txt-tertiary line-through">
               {list_label}
@@ -376,9 +405,11 @@ export function SpecialOfferModal() {
           </div>
 
           <p className="mt-1.5 mb-4 text-[13px] font-medium text-txt-secondary">
-            {t("settings.special_offer_hero_duration", {
-              months: String(SPECIAL_OFFER_DURATION_MONTHS),
-            })}
+            {is_yearly
+              ? t("settings.special_offer_hero_duration_year")
+              : t("settings.special_offer_hero_duration", {
+                  months: String(SPECIAL_OFFER_DURATION_MONTHS),
+                })}
           </p>
 
           <SpecialOfferFeatureList />
@@ -421,11 +452,16 @@ export function SpecialOfferModal() {
           </Button>
 
           <p className="mt-4 text-center text-[12px] leading-relaxed text-txt-tertiary">
-            {t("settings.special_offer_fine_print", {
-              offer_price: offer_label,
-              price: list_label,
-              months: String(SPECIAL_OFFER_DURATION_MONTHS),
-            })}
+            {t(
+              is_yearly
+                ? "settings.special_offer_fine_print_year"
+                : "settings.special_offer_fine_print",
+              {
+                offer_price: offer_label,
+                price: list_label,
+                months: String(SPECIAL_OFFER_DURATION_MONTHS),
+              },
+            )}
           </p>
 
           <button

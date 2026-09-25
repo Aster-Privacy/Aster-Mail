@@ -5061,6 +5061,11 @@ export const ja = {
     special_offer_success_body:
       "ご登録ありがとうございます。皆さまのご支援が私たちの大きな励みです。",
     special_offer_hero_duration: "{{months}}か月間",
+    special_offer_price_period_year: "年額",
+    special_offer_hero_duration_year: "最初の1年間",
+    special_offer_fine_print_year:
+      "最初の1年間は{{offer_price}}です。その後は、設定で解約するまで年額{{price}}で更新されます。",
+    special_offer_billing_period: "請求期間",
     plan_billing_terms:
       "サブスクリプションは、解約するまで通常価格で自動的に更新されます。設定からいつでも解約できます。",
     upgrade_offer_note: "{{percent}}%の割引は決済時に適用されます。",

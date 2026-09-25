@@ -5121,6 +5121,11 @@ export const fr = {
     special_offer_success_body:
       "Merci pour votre abonnement. Votre soutien compte beaucoup pour nous.",
     special_offer_hero_duration: "pendant {{months}} mois",
+    special_offer_price_period_year: "par an",
+    special_offer_hero_duration_year: "pendant la première année",
+    special_offer_fine_print_year:
+      "Vous payez {{offer_price}} pour la première année. Votre offre est ensuite renouvelée à {{price}} par an jusqu'à ce que vous l'annuliez dans Réglages.",
+    special_offer_billing_period: "Période de facturation",
     plan_billing_terms:
       "Les abonnements sont renouvelés automatiquement au tarif standard jusqu'à leur annulation. Vous pouvez annuler à tout moment dans Réglages.",
     upgrade_offer_note:

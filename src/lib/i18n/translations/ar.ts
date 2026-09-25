@@ -5151,6 +5151,11 @@ export const ar = {
     special_offer_success_title: "شكرًا لك. أصبحت مشتركًا في Nova.",
     special_offer_success_body: "شكرًا لاشتراكك. دعمك يعني لنا الكثير.",
     special_offer_hero_duration: "لمدة {{months}} شهرًا",
+    special_offer_price_period_year: "سنويًا",
+    special_offer_hero_duration_year: "للسنة الأولى",
+    special_offer_fine_print_year:
+      "تدفع {{offer_price}} للسنة الأولى. بعد ذلك تُجدَّد خطتك بسعر {{price}} سنويًا حتى تلغيها من الإعدادات.",
+    special_offer_billing_period: "فترة الفوترة",
     plan_billing_terms:
       "تُجدَّد الاشتراكات تلقائيًا بالسعر العادي حتى تلغيها. يمكنك الإلغاء في أي وقت من الإعدادات.",
     upgrade_offer_note: "يُطبَّق خصم {{percent}}% عند الدفع.",

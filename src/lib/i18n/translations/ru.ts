@@ -5180,6 +5180,11 @@ export const ru = {
     special_offer_success_body:
       "Спасибо за подписку. Ваша поддержка очень много для нас значит.",
     special_offer_hero_duration: "на {{months}} месяцев",
+    special_offer_price_period_year: "в год",
+    special_offer_hero_duration_year: "на первый год",
+    special_offer_fine_print_year:
+      "За первый год вы платите {{offer_price}}. Затем план продлевается за {{price}} в год, пока вы не отмените его в Настройках.",
+    special_offer_billing_period: "Период оплаты",
     plan_billing_terms:
       "Подписки продлеваются автоматически по стандартной цене, пока вы их не отмените. Отменить можно в любой момент в Настройках.",
     upgrade_offer_note: "Скидка {{percent}}% применяется при оплате.",

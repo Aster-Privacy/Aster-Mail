@@ -4637,6 +4637,11 @@ export const zh_CN = {
     special_offer_success_title: "谢谢。你已升级到 Nova。",
     special_offer_success_body: "感谢你的订阅。你的支持对我们意义重大。",
     special_offer_hero_duration: "为期 {{months}} 个月",
+    special_offer_price_period_year: "每年",
+    special_offer_hero_duration_year: "首年",
+    special_offer_fine_print_year:
+      "首年支付 {{offer_price}}。之后套餐将按每年 {{price}} 续订，直到你在设置中取消。",
+    special_offer_billing_period: "计费周期",
     plan_billing_terms:
       "订阅会按标准价格自动续订，直到你取消。你可以随时在设置中取消。",
     upgrade_offer_note: "你的 {{percent}}% 折扣将在结账时生效。",

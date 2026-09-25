@@ -6035,6 +6035,11 @@ export const en: Translations = {
     special_offer_success_body:
       "Thank you for subscribing. Your support means a lot to us.",
     special_offer_hero_duration: "for {{months}} months",
+    special_offer_price_period_year: "per year",
+    special_offer_hero_duration_year: "for your first year",
+    special_offer_fine_print_year:
+      "You pay {{offer_price}} for your first year. Your plan then renews at {{price}} per year until you cancel it in Settings.",
+    special_offer_billing_period: "Billing period",
     plan_billing_terms:
       "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
     upgrade_offer_note: "Your {{percent}}% discount is applied at checkout.",

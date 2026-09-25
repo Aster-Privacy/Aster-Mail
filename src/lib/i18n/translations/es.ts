@@ -5075,6 +5075,11 @@ export const es = {
     special_offer_success_body:
       "Gracias por suscribirte. Tu apoyo significa mucho para nosotros.",
     special_offer_hero_duration: "durante {{months}} meses",
+    special_offer_price_period_year: "al año",
+    special_offer_hero_duration_year: "durante el primer año",
+    special_offer_fine_print_year:
+      "Pagas {{offer_price}} por el primer año. Después, tu plan se renueva por {{price}} al año hasta que lo canceles en Ajustes.",
+    special_offer_billing_period: "Periodo de facturación",
     plan_billing_terms:
       "Las suscripciones se renuevan automáticamente a la tarifa estándar hasta que las canceles. Puedes cancelarla cuando quieras en Ajustes.",
     upgrade_offer_note:

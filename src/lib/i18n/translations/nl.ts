@@ -4974,6 +4974,11 @@ export const nl = {
     special_offer_success_body:
       "Bedankt voor je abonnement. Je steun betekent veel voor ons.",
     special_offer_hero_duration: "voor {{months}} maanden",
+    special_offer_price_period_year: "per jaar",
+    special_offer_hero_duration_year: "voor het eerste jaar",
+    special_offer_fine_print_year:
+      "Je betaalt {{offer_price}} voor het eerste jaar. Daarna wordt je abonnement verlengd voor {{price}} per jaar totdat je het opzegt in Instellingen.",
+    special_offer_billing_period: "Factuurperiode",
     plan_billing_terms:
       "Abonnementen worden automatisch verlengd tegen het standaardtarief totdat je opzegt. Je kunt op elk moment opzeggen in Instellingen.",
     upgrade_offer_note:

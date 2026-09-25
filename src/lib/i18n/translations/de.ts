@@ -4985,6 +4985,11 @@ export const de = {
     special_offer_success_body:
       "Danke für Ihr Abonnement. Ihre Unterstützung bedeutet uns sehr viel.",
     special_offer_hero_duration: "für {{months}} Monate",
+    special_offer_price_period_year: "pro Jahr",
+    special_offer_hero_duration_year: "für das erste Jahr",
+    special_offer_fine_print_year:
+      "Sie zahlen {{offer_price}} für das erste Jahr. Danach verlängert sich Ihr Tarif für {{price}} pro Jahr, bis Sie ihn in den Einstellungen kündigen.",
+    special_offer_billing_period: "Abrechnungszeitraum",
     plan_billing_terms:
       "Abonnements verlängern sich automatisch zum Standardpreis, bis Sie kündigen. Sie können jederzeit in den Einstellungen kündigen.",
     upgrade_offer_note:

@@ -6016,6 +6016,11 @@ export const hi = {
     special_offer_success_body:
       "सदस्यता लेने के लिए धन्यवाद। आपका समर्थन हमारे लिए बहुत मायने रखता है।",
     special_offer_hero_duration: "{{months}} महीनों के लिए",
+    special_offer_price_period_year: "प्रति वर्ष",
+    special_offer_hero_duration_year: "पहले वर्ष के लिए",
+    special_offer_fine_print_year:
+      "पहले वर्ष के लिए आप {{offer_price}} चुकाते हैं। इसके बाद आपकी योजना {{price}} प्रति वर्ष पर नवीनीकृत होती रहेगी, जब तक आप इसे सेटिंग में रद्द नहीं करते।",
+    special_offer_billing_period: "बिलिंग अवधि",
     plan_billing_terms:
       "सदस्यताएँ रद्द करने तक मानक दर पर अपने आप नवीनीकृत होती हैं। आप सेटिंग में कभी भी रद्द कर सकते हैं।",
     upgrade_offer_note: "आपकी {{percent}}% छूट चेकआउट पर लागू होती है।",

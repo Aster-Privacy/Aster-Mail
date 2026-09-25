@@ -5008,6 +5008,11 @@ export const tr = {
     special_offer_success_body:
       "Abone olduğunuz için teşekkürler. Desteğiniz bizim için çok değerli.",
     special_offer_hero_duration: "{{months}} ay boyunca",
+    special_offer_price_period_year: "yıllık",
+    special_offer_hero_duration_year: "ilk yıl için",
+    special_offer_fine_print_year:
+      "İlk yıl için {{offer_price}} ödersiniz. Ardından planınız, Ayarlar bölümünden iptal edene kadar yıllık {{price}} olarak yenilenir.",
+    special_offer_billing_period: "Faturalandırma dönemi",
     plan_billing_terms:
       "Abonelikler, siz iptal edene kadar standart fiyattan otomatik olarak yenilenir. İstediğiniz zaman Ayarlar bölümünden iptal edebilirsiniz.",
     upgrade_offer_note: "%{{percent}} indiriminiz ödeme sırasında uygulanır.",

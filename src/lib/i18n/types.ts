@@ -5339,6 +5339,10 @@ export interface SettingsTranslations {
   special_offer_success_title: string;
   special_offer_success_body: string;
   special_offer_hero_duration: string;
+  special_offer_price_period_year: string;
+  special_offer_hero_duration_year: string;
+  special_offer_fine_print_year: string;
+  special_offer_billing_period: string;
   plan_billing_terms: string;
   upgrade_offer_note: string;
   dns_records_for_domain: string;

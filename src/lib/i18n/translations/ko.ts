@@ -5054,6 +5054,11 @@ export const ko = {
     special_offer_success_body:
       "구독해 주셔서 감사합니다. 보내주신 응원은 저희에게 큰 힘이 됩니다.",
     special_offer_hero_duration: "{{months}}개월 동안",
+    special_offer_price_period_year: "연",
+    special_offer_hero_duration_year: "첫 1년 동안",
+    special_offer_fine_print_year:
+      "첫 1년 동안 {{offer_price}}을 결제합니다. 이후에는 설정에서 취소할 때까지 연 {{price}}으로 갱신됩니다.",
+    special_offer_billing_period: "결제 주기",
     plan_billing_terms:
       "구독은 취소할 때까지 표준 요금으로 자동 갱신됩니다. 설정에서 언제든지 취소할 수 있습니다.",
     upgrade_offer_note: "{{percent}}% 할인은 결제 시 적용됩니다.",
