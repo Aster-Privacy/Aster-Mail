@@ -290,7 +290,7 @@ describe("PlanPaymentMethodModal special offer pricing", () => {
     expect(document.body.textContent).toContain("$43.49");
 
     act(() => {
-      method_button(document.body, "settings.continue_to_checkout").click();
+      method_button(document.body, "settings.special_offer_cta(50)").click();
     });
 
     expect(on_choose_crypto).toHaveBeenCalledWith("yearly");
@@ -308,8 +308,52 @@ describe("PlanPaymentMethodModal special offer pricing", () => {
     expect(
       document.body.querySelector('[data-special-offer-term="biennial"]'),
     ).toBeNull();
-    expect(document.body.textContent).not.toContain(
+    expect(document.body.querySelector("aside")?.textContent).not.toContain(
       "settings.special_offer_save_badge",
+    );
+    expect(document.body.textContent).toContain(
+      "settings.continue_to_checkout",
+    );
+  });
+
+  it("offers a one-tap switch back to the discounted term", () => {
+    const on_select_term = vi.fn();
+
+    act(() => {
+      root.render(
+        <PlanPaymentMethodModal
+          open
+          on_choose_card={vi.fn()}
+          on_choose_crypto={vi.fn()}
+          on_close={vi.fn()}
+          on_select_term={on_select_term}
+          plan_name="Nova"
+          selected_term="biennial"
+          special_offer={special_offer_checkout(true).plan_pricing("nova")}
+          term_options={NOVA_TERMS}
+        />,
+      );
+    });
+
+    const switch_button = document.body.querySelector(
+      "[data-special-offer-switch]",
+    ) as HTMLButtonElement | null;
+
+    expect(switch_button?.textContent).toBe(
+      "settings.checkout_offer_switch_term(settings.billing_monthly,50)",
+    );
+
+    act(() => switch_button?.click());
+
+    expect(on_select_term).toHaveBeenCalledWith("monthly");
+    expect(
+      document.body.querySelector('[data-special-offer-summary="card"]'),
+    ).not.toBeNull();
+    expect(
+      document.body.querySelector("[data-special-offer-switch]"),
+    ).toBeNull();
+    expect(document.body.textContent).toContain(
+      "settings.checkout_offer_renewal($4.49,12,$8.99)",
     );
   });
 

@@ -45,7 +45,7 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { is_system_email } from "@/lib/utils";
 import { use_should_reduce_motion } from "@/provider";
 import { get_aster_footer } from "@/components/compose/compose_shared";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { record_review_prompt_action } from "@/lib/review_prompt";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
 import { with_caret_block } from "@/lib/signature_html";
@@ -434,11 +434,8 @@ export function EmailReplySection({
               }}
               onClick={handle_send_reply}
             >
-              {send_state === "sending" ? (
-                <Spinner size="sm" />
-              ) : (
-                t("mail.send")
-              )}
+              {t("mail.send")}
+              {send_state === "sending" && <ButtonSpinner />}
             </motion.button>
             <motion.button
               className="px-4 py-2 border border-edge-secondary rounded-lg font-semibold transition-colors text-sm hover_bg text-txt-secondary"

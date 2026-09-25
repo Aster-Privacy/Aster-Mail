@@ -18,20 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ComponentType, type ReactNode } from "react";
 import {
   ArrowLeftIcon,
   CheckIcon,
   ClipboardDocumentIcon,
-  ExclamationTriangleIcon,
+  ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
-
-import {
-  WARNING_BG,
-  WARNING_BORDER,
-  WARNING_FG,
-  WARNING_TEXT,
-} from "./constants";
 
 import { Spinner } from "@/components/ui/spinner";
 
@@ -41,8 +34,7 @@ export interface StatusStep {
   hint: string;
 }
 
-export const TICKET_CARD =
-  "relative rounded-[16px] border border-edge-secondary bg-surf-secondary";
+export const TICKET_CARD = "relative rounded-2xl bg-surf-secondary";
 
 export interface PageShellProps {
   children: ReactNode;
@@ -66,7 +58,7 @@ export function page_shell({ children, on_back, back_label }: PageShellProps) {
             src="/text_logo.png"
           />
           <button
-            className="inline-flex w-fit items-center gap-2 rounded-[10px] border border-edge-secondary px-3 py-1.5 text-sm font-medium text-txt-secondary transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+            className="inline-flex w-fit items-center gap-2 rounded-md text-sm font-medium text-txt-secondary transition-colors hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
             type="button"
             onClick={on_back}
           >
@@ -97,13 +89,13 @@ export function ticket_divider({
       <div className="mx-5 border-t border-dashed border-edge-secondary" />
       <span className="absolute -start-px top-0 h-4 w-2 -translate-y-1/2 overflow-hidden">
         <span
-          className="absolute -start-2 top-0 h-4 w-4 rounded-full border border-edge-secondary"
+          className="absolute -start-2 top-0 h-4 w-4 rounded-full"
           style={notch_style}
         />
       </span>
       <span className="absolute -end-px top-0 h-4 w-2 -translate-y-1/2 overflow-hidden">
         <span
-          className="absolute -end-2 top-0 h-4 w-4 rounded-full border border-edge-secondary"
+          className="absolute -end-2 top-0 h-4 w-4 rounded-full"
           style={notch_style}
         />
       </span>
@@ -115,35 +107,28 @@ export const TicketDivider = ticket_divider;
 
 export interface NoticeProps {
   children: ReactNode;
+  icon?: ComponentType<{ className?: string }>;
   role?: "alert" | "note" | "status";
   tone?: "warning" | "neutral";
 }
 
-export function notice({ children, role, tone = "warning" }: NoticeProps) {
+export function notice({
+  children,
+  icon: Icon = ExclamationCircleIcon,
+  role,
+  tone = "warning",
+}: NoticeProps) {
   const is_warning = tone === "warning";
 
   return (
     <div
-      className={`flex items-start gap-2.5 rounded-[12px] border px-3.5 py-3 text-start ${
-        is_warning ? "" : "border-edge-secondary bg-surf-tertiary"
+      className={`flex items-start gap-2.5 text-start text-[13px] leading-5 ${
+        is_warning ? "font-medium text-amber-500" : "text-txt-secondary"
       }`}
       role={role}
-      style={
-        is_warning
-          ? { backgroundColor: WARNING_BG, borderColor: WARNING_BORDER }
-          : undefined
-      }
     >
-      <ExclamationTriangleIcon
-        className={`mt-px h-4 w-4 shrink-0 ${is_warning ? "" : "text-txt-muted"}`}
-        style={is_warning ? { color: WARNING_TEXT } : undefined}
-      />
-      <div
-        className="min-w-0 flex-1 text-xs leading-relaxed"
-        style={{ color: WARNING_FG }}
-      >
-        {children}
-      </div>
+      <Icon className="mt-0.5 h-4 w-4 shrink-0" />
+      <div className="min-w-0 flex-1">{children}</div>
     </div>
   );
 }
@@ -172,13 +157,7 @@ export function result_card({
   }, []);
 
   const tone_style =
-    tone === "accent"
-      ? {
-          backgroundColor:
-            "color-mix(in srgb, var(--accent-color) 12%, transparent)",
-          color: "var(--accent-color)",
-        }
-      : undefined;
+    tone === "accent" ? { color: "var(--accent-color)" } : undefined;
 
   return (
     <div
@@ -187,8 +166,8 @@ export function result_card({
       role="status"
     >
       <div
-        className={`mx-auto flex h-12 w-12 items-center justify-center rounded-[12px] ${
-          tone_style ? "" : "border border-edge-secondary text-txt-muted"
+        className={`mx-auto flex h-12 w-12 items-center justify-center ${
+          tone_style ? "" : "text-txt-muted"
         }`}
         style={tone_style}
       >
@@ -240,7 +219,7 @@ export function copy_field({
       </div>
       <button
         aria-label={copy_hint}
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[8px] border border-edge-secondary text-txt-muted transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
         type="button"
         onClick={() => on_copy(copy_value ?? value)}
       >
@@ -259,9 +238,9 @@ export interface DetailRowProps {
 
 export function detail_row({ children, label }: DetailRowProps) {
   return (
-    <div className="flex items-center justify-between gap-3 py-2.5">
-      <span className="shrink-0 text-xs text-txt-muted">{label}</span>
-      <span className="min-w-0 break-all text-end text-sm font-medium text-txt-primary">
+    <div className="flex min-h-[28px] items-center justify-between gap-3">
+      <span className="shrink-0 text-[13px] text-txt-muted">{label}</span>
+      <span className="min-w-0 break-all text-end text-[13px] font-medium text-txt-primary">
         {children}
       </span>
     </div>
@@ -270,113 +249,82 @@ export function detail_row({ children, label }: DetailRowProps) {
 
 export const DetailRow = detail_row;
 
-export interface LiveStatusProps {
-  hint: string;
-  is_live: boolean;
-  label: string;
-}
-
-export function live_status({ hint, is_live, label }: LiveStatusProps) {
-  return (
-    <div className="flex items-start gap-3">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] border border-edge-secondary">
-        <Spinner
-          className={`h-4 w-4 text-[var(--accent-color)] ${is_live ? "" : "opacity-40"}`}
-          size="sm"
-        />
-      </span>
-      <span className="flex min-w-0 flex-col">
-        <span className="text-sm font-semibold text-txt-primary">{label}</span>
-        <span className="mt-0.5 text-xs leading-relaxed text-txt-secondary">
-          {hint}
-        </span>
-      </span>
-    </div>
-  );
-}
-
-export const LiveStatus = live_status;
-
 export interface StepListProps {
   active_index: number;
+  current_hint: string;
+  current_label: string;
+  is_live: boolean;
   steps: StatusStep[];
   title: string;
 }
 
-function step_marker_style(done: boolean, current: boolean) {
-  if (done) {
-    return { backgroundColor: "var(--color-success)", color: "#ffffff" };
-  }
-  if (current) {
-    return {
-      backgroundColor: "var(--accent-color)",
-      color: "var(--accent-fg, #ffffff)",
-    };
-  }
-
-  return {
-    border: "1.5px solid var(--border-secondary)",
-    color: "var(--text-muted)",
-  };
-}
-
-export function step_list({ active_index, steps, title }: StepListProps) {
+export function step_list({
+  active_index,
+  current_hint,
+  current_label,
+  is_live,
+  steps,
+  title,
+}: StepListProps) {
   return (
     <div>
-      <span className="text-xs text-txt-muted">{title}</span>
+      <span className="text-xs font-medium text-txt-muted">{title}</span>
       <ol className="mt-3 flex flex-col">
         {steps.map((step, index) => {
           const done = index < active_index;
           const current = index === active_index;
-          const reached = done || current;
           const is_last = index === steps.length - 1;
 
           return (
             <li
               key={step.key}
+              aria-current={current ? "step" : undefined}
               className={`relative flex items-start gap-3 ${is_last ? "" : "pb-4"}`}
             >
               {!is_last && (
                 <span
                   aria-hidden="true"
-                  className="absolute start-0 flex w-[26px] justify-center"
-                  style={{ top: 30, bottom: 4 }}
-                >
-                  <span
-                    className="h-full w-[2px] rounded-full"
-                    style={{
-                      backgroundColor: done
-                        ? "var(--color-success)"
-                        : "var(--border-secondary)",
-                    }}
-                  />
-                </span>
+                  className="absolute start-[9px] top-[22px] bottom-0.5 w-0.5 rounded-full"
+                  style={{
+                    backgroundColor: done
+                      ? "var(--color-success)"
+                      : "var(--border-secondary)",
+                  }}
+                />
               )}
               <span
-                className="relative z-10 flex h-[26px] w-[26px] shrink-0 items-center justify-center rounded-full text-[11px] font-semibold tabular-nums"
-                style={step_marker_style(done, current)}
+                aria-hidden="true"
+                className="flex h-5 w-5 shrink-0 items-center justify-center"
               >
                 {done ? (
-                  <CheckIcon className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-success)]">
+                    <CheckIcon className="h-3 w-3 text-white" strokeWidth={3} />
+                  </span>
+                ) : current && is_live ? (
+                  <Spinner className="text-txt-primary" size="md" />
+                ) : current ? (
+                  <span className="h-5 w-5 rounded-full bg-[var(--accent-color)]" />
                 ) : (
-                  index + 1
+                  <span className="h-5 w-5 rounded-full border-2 border-edge-secondary" />
                 )}
               </span>
-              <span className="flex min-w-0 flex-col pt-[3px]">
+              <span className="flex min-w-0 flex-col">
                 <span
-                  className="text-[13px] leading-tight"
-                  style={{
-                    color: reached
-                      ? "var(--text-primary)"
-                      : "var(--text-muted)",
-                    fontWeight: current ? 600 : 500,
-                  }}
+                  className={`text-sm leading-5 ${
+                    current
+                      ? "font-semibold text-txt-primary"
+                      : done
+                        ? "text-txt-secondary"
+                        : "text-txt-muted"
+                  }`}
                 >
-                  {step.label}
+                  {current ? current_label : step.label}
                 </span>
-                <span className="mt-0.5 text-xs leading-relaxed text-txt-muted">
-                  {step.hint}
-                </span>
+                {current && current_hint && (
+                  <span className="mt-0.5 text-[13px] leading-5 text-txt-secondary">
+                    {current_hint}
+                  </span>
+                )}
               </span>
             </li>
           );
@@ -449,9 +397,7 @@ export function invoice_skeleton() {
         </div>
 
         <div className="mt-5 flex flex-col items-center gap-4">
-          <div
-            className={`${SKELETON_TONE} h-[228px] w-[228px] rounded-[16px]`}
-          />
+          <div className={`${SKELETON_TONE} h-[228px] w-[228px] rounded-2xl`} />
           <div className="w-full space-y-3">
             <SkeletonBar className="h-12 w-full" />
             <SkeletonBar className="h-12 w-full" />

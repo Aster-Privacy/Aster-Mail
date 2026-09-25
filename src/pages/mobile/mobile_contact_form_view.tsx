@@ -157,10 +157,8 @@ export function ContactFormView({
           type="button"
           onClick={on_save}
         >
-          <span className="inline-flex items-center">
-            {t("common.save")}
-            {is_saving && <ButtonSpinner size="xs" />}
-          </span>
+          {t("common.save")}
+          {is_saving && <ButtonSpinner size="xs" />}
         </button>
       </div>
 

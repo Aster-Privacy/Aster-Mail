@@ -119,14 +119,21 @@ export function SpecialOfferModal() {
   }, [user_id]);
 
   useEffect(() => {
-    if (!is_offer_active) set_step(null);
+    if (is_offer_active) return;
+
+    set_step(null);
+    close_special_offer();
   }, [is_offer_active]);
 
   useEffect(() => {
-    if (checkout_seq === handled_checkout_seq_ref.current) return;
+    close_special_offer();
+  }, [user_id]);
+
+  useEffect(() => {
+    if (!is_offer_active || checkout_seq === handled_checkout_seq_ref.current)
+      return;
 
     handled_checkout_seq_ref.current = checkout_seq;
-    if (!is_offer_active) return;
 
     opened_from_popup_ref.current = false;
     set_step("method");

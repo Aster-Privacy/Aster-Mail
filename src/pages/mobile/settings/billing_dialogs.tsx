@@ -30,7 +30,7 @@ import {
   is_crypto_provider,
 } from "@/components/settings/billing/billing_constants";
 import { format_price } from "@/services/api/billing";
-import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
@@ -286,11 +286,8 @@ export function render_billing_dialogs(
                   handle_cancel();
                 }}
               >
-                {is_action_loading ? (
-                  <Spinner size="sm" />
-                ) : (
-                  t("settings.cancel_final_confirm")
-                )}
+                {t("settings.cancel_final_confirm")}
+                {is_action_loading && <ButtonSpinner />}
               </AlertDialogAction>
             </AlertDialogFooter>
           ) : (
@@ -690,11 +687,8 @@ export function render_billing_dialogs(
                 handle_cancel_addon();
               }}
             >
-              {is_action_loading ? (
-                <Spinner size="sm" />
-              ) : (
-                t("settings.confirm_cancel_addon")
-              )}
+              {t("settings.confirm_cancel_addon")}
+              {is_action_loading && <ButtonSpinner />}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -184,10 +184,8 @@ export const en: Translations = {
     failed_remove_profile_picture:
       "Your profile picture could not be removed. Try again.",
     remove_photo: "Remove photo",
-    failed_save_profile_color:
-      "Your color choice did not save. Try again.",
-    failed_upload_image:
-      "The upload did not finish. Try again.",
+    failed_save_profile_color: "Your color choice did not save. Try again.",
+    failed_upload_image: "The upload did not finish. Try again.",
     image_load_failed: "This image did not load. A refresh usually does it.",
     image_processing_failed:
       "We could not prepare this image. A different file will work.",
@@ -197,8 +195,7 @@ export const en: Translations = {
       "This image is over the 5 MB limit. A smaller one, or a compressed version, will fit.",
     alias_avatar_updated: "Alias avatar updated",
     alias_avatar_removed: "Alias avatar removed",
-    failed_update_alias_avatar:
-      "Your alias avatar did not update. Try again.",
+    failed_update_alias_avatar: "Your alias avatar did not update. Try again.",
     alias_display_name_updated: "Display name updated",
     failed_update_alias_display_name:
       "Your display name did not update. Try again.",
@@ -217,8 +214,7 @@ export const en: Translations = {
     alias_add_details: "Add details",
     alias_websites_count: "{{count}} websites",
     remove_alias_website: "Remove website",
-    failed_update_alias_note:
-      "Your note did not save. Try again.",
+    failed_update_alias_note: "Your note did not save. Try again.",
     alias_note_too_long:
       "This note is over the length limit. A shorter one will work.",
     add_alias_note_placeholder: "Add note",
@@ -712,13 +708,11 @@ export const en: Translations = {
     email_unsnoozed: "Email unsnoozed",
     failed_to_snooze:
       "This email did not snooze. Try again. It is still in your inbox.",
-    failed_to_unsnooze:
-      "This email did not return to your inbox. Try again.",
+    failed_to_unsnooze: "This email did not return to your inbox. Try again.",
     conversation_moved_to_trash: "Conversation moved to trash",
     conversation_archived: "Conversation archived",
     conversation_marked_as_spam: "Conversation marked as spam",
-    failed_to_mark_as_spam:
-      "This email did not move to spam. Try again.",
+    failed_to_mark_as_spam: "This email did not move to spam. Try again.",
     failed_to_snooze_conversations:
       "These conversations did not snooze. Try again.",
     marked_as_read_toast: "Marked as read",
@@ -780,19 +774,15 @@ export const en: Translations = {
     email_type: "Email",
     failed_to_fetch_contacts:
       "Your contacts did not load. Try again. Your saved contacts are safe.",
-    failed_to_delete_contact:
-      "This contact was not removed. Try again.",
+    failed_to_delete_contact: "This contact was not removed. Try again.",
     contact_deleted: "Contact deleted",
     contact_saved: "Contact saved",
     contact_created: "Contact created",
-    failed_to_create_contact:
-      "This contact was not saved. Try again.",
+    failed_to_create_contact: "This contact was not saved. Try again.",
     failed_to_save_contact:
       "Your changes to this contact did not save. Try again. The earlier version is still there.",
-    failed_to_delete_contacts:
-      "These contacts were not removed. Try again.",
-    failed_to_update_favorites:
-      "Your favorites did not update. Try again.",
+    failed_to_delete_contacts: "These contacts were not removed. Try again.",
+    failed_to_update_favorites: "Your favorites did not update. Try again.",
     contacts_import_partial:
       "Only {{imported}} of {{total}} contacts imported. Import the file again to add the rest.",
     failed_to_import_contacts:
@@ -801,19 +791,16 @@ export const en: Translations = {
       "This file could not be read. A different one will work.",
     import_failed:
       "The import did not finish. Try again. Your existing data is unchanged.",
-    failed_to_load_duplicates:
-      "The duplicate list did not load. Try again.",
+    failed_to_load_duplicates: "The duplicate list did not load. Try again.",
     scan_failed: "The scan did not finish. Try again.",
     dismiss_failed: "We could not dismiss that. Try again.",
     failed_to_load_custom_fields:
       "These custom fields did not load. Try again.",
-    failed_to_create_field:
-      "This custom field was not saved. Try again.",
+    failed_to_create_field: "This custom field was not saved. Try again.",
     delete_custom_field_title: "Delete custom field?",
     delete_custom_field_message:
       "Deleting this field also removes its values from every contact. You cannot undo this.",
-    failed_to_delete_field:
-      "This custom field was not removed. Try again.",
+    failed_to_delete_field: "This custom field was not removed. Try again.",
     failed_to_save_value:
       "Your change did not save. Try again. The previous value is still there.",
     click_scan_duplicates: 'Click "Scan" to check for duplicates',
@@ -828,12 +815,9 @@ export const en: Translations = {
     fill_required_fields: "Please fill in all required fields",
     failed_to_load_sources:
       "Your synced accounts did not load. Try again. The accounts themselves are unaffected.",
-    failed_to_add_source:
-      "This account was not added. Try again.",
-    failed_to_delete_source:
-      "This account was not removed. Try again.",
-    failed_to_toggle_source:
-      "We could not change that setting. Try again.",
+    failed_to_add_source: "This account was not added. Try again.",
+    failed_to_delete_source: "This account was not removed. Try again.",
+    failed_to_toggle_source: "We could not change that setting. Try again.",
     sync_failed:
       "The sync did not finish, and we will retry automatically. Your mail on each side is safe.",
     clearing: "Clearing...",
@@ -937,8 +921,7 @@ export const en: Translations = {
       "This attachment did not upload. Try again. Your draft is saved.",
     upload_failed: "The upload did not finish. Try again.",
     delete_failed: "This item was not removed. Try again.",
-    download_failed:
-      "This download did not finish. Try again.",
+    download_failed: "This download did not finish. Try again.",
     attachment_locked:
       "This attachment can't be opened because its encryption key isn't available on this device.",
     scheduled_no_attachments:
@@ -951,17 +934,14 @@ export const en: Translations = {
       "The merge did not complete. Try again. Your original contacts are unchanged.",
     merge_failed:
       "The merge did not complete. Try again. Your original contacts are unchanged.",
-    failed_to_load_history:
-      "The history did not load. Try again.",
-    failed_to_load_more:
-      "We could not load more items. Try again.",
+    failed_to_load_history: "The history did not load. Try again.",
+    failed_to_load_more: "We could not load more items. Try again.",
     enter_valid_emails: "Please enter valid email addresses",
     enter_contact_details: "Enter contact details",
     select_valid_image: "Please select a JPEG, PNG, WebP, or GIF image",
     image_too_large:
       "This image is over the 10 MB limit. A smaller one, or a compressed version, will fit.",
-    failed_to_upload_photo:
-      "This photo did not upload. Try again.",
+    failed_to_upload_photo: "This photo did not upload. Try again.",
     contact_photo: "Contact photo",
     failed_to_delete_account: "Failed to delete account. Please try again.",
     no_emails_older_than_30_days: "No emails older than 30 days",
@@ -979,30 +959,23 @@ export const en: Translations = {
     error_copied_to_clipboard: "Error copied to clipboard",
     failed_to_update_contact:
       "Your contact changes did not save. Try again. The earlier version is still there.",
-    failed_to_block_sender:
-      "We could not block this sender. Try again.",
+    failed_to_block_sender: "We could not block this sender. Try again.",
     failed_to_rename_folder:
       "This folder was not renamed. Try again. The folder and its emails are unchanged.",
     failed_to_change_folder_color:
       "The folder color did not update. Try again.",
     failed_to_delete_folder:
       "This folder was not removed. Try again. Your emails inside it are safe.",
-    failed_to_move_folder:
-      "This folder was not moved. Try again.",
+    failed_to_move_folder: "This folder was not moved. Try again.",
     failed_to_update_folder_encryption:
       "The folder lock setting did not change. Try again. The folder stays as it was.",
-    failed_to_rename_label:
-      "This label was not renamed. Try again.",
-    failed_to_change_label_color:
-      "The label color did not update. Try again.",
-    failed_to_change_label_icon:
-      "The label icon did not update. Try again.",
+    failed_to_rename_label: "This label was not renamed. Try again.",
+    failed_to_change_label_color: "The label color did not update. Try again.",
+    failed_to_change_label_icon: "The label icon did not update. Try again.",
     failed_to_delete_label:
       "This label was not removed. Try again. Your emails are unaffected.",
-    failed_to_create_label:
-      "This label was not saved. Try again.",
-    failed_to_create_folder_error:
-      "This folder was not saved. Try again.",
+    failed_to_create_label: "This label was not saved. Try again.",
+    failed_to_create_folder_error: "This folder was not saved. Try again.",
     folder_plan_limit_reached:
       "You've reached the folder limit for your current plan. Upgrade to create more folders.",
     authenticate_to_send: "Authenticate to send email",
@@ -1010,8 +983,7 @@ export const en: Translations = {
       "Authentication did not finish, so this email was not sent.",
     failed_to_send_reply:
       "This reply did not send. Try again. Your draft is saved.",
-    failed_to_delete_draft:
-      "This draft was not removed. Try again.",
+    failed_to_delete_draft: "This draft was not removed. Try again.",
     failed_to_update_rule:
       "This rule did not save. Try again. The earlier version is still active.",
     failed_to_send_verification:
@@ -1052,16 +1024,13 @@ export const en: Translations = {
     offline_action_queued:
       "You are offline right now. This is queued and will finish as soon as you reconnect.",
     failed_to_update: "This change did not save. Try again.",
-    failed_to_load_search_results:
-      "Your search did not finish. Try again.",
+    failed_to_load_search_results: "Your search did not finish. Try again.",
     search_failed_try_again:
       "Search did not finish. Another attempt in a moment usually does it.",
     search_load_failed_try_again:
       "We could not load your emails for search. Try again. Your mail is safe.",
-    failed_to_fetch_tags:
-      "Your labels did not load. Try again.",
-    failed_to_fetch_folders:
-      "Your folders did not load. Try again.",
+    failed_to_fetch_tags: "Your labels did not load. Try again.",
+    failed_to_fetch_folders: "Your folders did not load. Try again.",
     failed_to_unlock_folder:
       "We could not unlock this folder. Check your password and try again. The folder contents are safe.",
     failed_to_set_folder_password:
@@ -1082,10 +1051,8 @@ export const en: Translations = {
       "Your Vault folder always needs its own password, and this protection cannot be removed.",
     failed_to_load_snoozed_emails:
       "Your snoozed emails did not load. Try again. They are safe on the server.",
-    failed_to_load_subscriptions:
-      "Your subscriptions did not load. Try again.",
-    unexpected_error:
-      "Something did not work as expected. Try again.",
+    failed_to_load_subscriptions: "Your subscriptions did not load. Try again.",
+    unexpected_error: "Something did not work as expected. Try again.",
     failed_to_load_more_subscriptions:
       "We could not load more subscriptions. Try again.",
     failed_to_scan_subscriptions:
@@ -1097,8 +1064,7 @@ export const en: Translations = {
     recently_archived: "Recently Archived",
     older_items: "Older Items",
     long_term_archive: "Long-term Archive",
-    failed_to_fetch_archive_stats:
-      "Archive stats did not load. Try again.",
+    failed_to_fetch_archive_stats: "Archive stats did not load. Try again.",
     value_too_long:
       "This value is over the length limit. A shorter version will work.",
     please_enter_valid_domain:
@@ -1229,11 +1195,14 @@ export const en: Translations = {
       "{{recipients}} has not published post-quantum keys yet, so this message can only use standard end-to-end encryption. Ask them to open Aster or update their app to turn post-quantum protection back on.",
     post_quantum_send_anyway: "Send anyway",
     key_trust_change_title: "Encryption key changed",
-    key_trust_change_message: "The encryption key for {{recipients}} changed since the last lookup. Check the new fingerprint with the recipient over another channel before you send.",
+    key_trust_change_message:
+      "The encryption key for {{recipients}} changed since the last lookup. Check the new fingerprint with the recipient over another channel before you send.",
     key_trust_change_detail: "{{email}}: was {{prior}}, now {{current}}.",
     key_trust_change_confirm: "Trust new key",
-    post_quantum_downgrade_title: "Send without the expected post-quantum keys?",
-    post_quantum_downgrade_message: "{{recipients}} publishes post-quantum keys, but the key bundle delivered for this message has none. A server problem can cause this, and so can tampering with the key lookup. To keep post-quantum protection, cancel and try again later.",
+    post_quantum_downgrade_title:
+      "Send without the expected post-quantum keys?",
+    post_quantum_downgrade_message:
+      "{{recipients}} publishes post-quantum keys, but the key bundle delivered for this message has none. A server problem can cause this, and so can tampering with the key lookup. To keep post-quantum protection, cancel and try again later.",
     empty_body_error:
       "A subject or some message text is needed before this can send.",
     duplicate_send_blocked:
@@ -1283,14 +1252,10 @@ export const en: Translations = {
       "Some attachments couldn't be added to this message.",
     image: "Image",
     system: "System",
-    failed_to_permanently_delete:
-      "These items were not removed. Try again.",
-    failed_to_delete_emails:
-      "These emails were not removed. Try again.",
-    failed_to_mark_as_read:
-      "These emails are still marked unread. Try again.",
-    failed_to_mark_as_unread:
-      "These emails are still marked read. Try again.",
+    failed_to_permanently_delete: "These items were not removed. Try again.",
+    failed_to_delete_emails: "These emails were not removed. Try again.",
+    failed_to_mark_as_read: "These emails are still marked unread. Try again.",
+    failed_to_mark_as_unread: "These emails are still marked read. Try again.",
     n_conversations_archived: "{{ count }} conversations archived",
     n_conversations_archived_one: "{{count}} conversation archived",
     n_conversations_archived_other: "{{count}} conversations archived",
@@ -1332,16 +1297,12 @@ export const en: Translations = {
     no_content: "No content",
     unblocked_count_senders: "Unblocked {{ count }} senders",
     removed_count_from_allowlist: "Removed {{ count }} from allowlist",
-    failed_to_add_label:
-      "This label was not added. Try again.",
-    failed_to_remove_label:
-      "This label was not removed. Try again.",
+    failed_to_add_label: "This label was not added. Try again.",
+    failed_to_remove_label: "This label was not removed. Try again.",
     failed_to_move_email:
       "This email did not move. Try again. The email is safe where it was.",
-    failed_to_add_labels:
-      "These labels were not added. Try again.",
-    failed_to_remove_labels:
-      "These labels were not removed. Try again.",
+    failed_to_add_labels: "These labels were not added. Try again.",
+    failed_to_remove_labels: "These labels were not removed. Try again.",
     failed_to_copy_to_clipboard:
       "Nothing was copied to your clipboard. Try again.",
     add_note_placeholder: "Add a note...",
@@ -1420,11 +1381,14 @@ export const en: Translations = {
     locked_data_banner_action: "Recover data",
     locked_data_banner_dismiss: "Dismiss",
     recover_data_title: "Recover data",
-    recover_data_description: "To unlock data from before a password change or reset, enter the password you used at that time.",
+    recover_data_description:
+      "To unlock data from before a password change or reset, enter the password you used at that time.",
     recover_data_button: "Recover",
     recover_data_success: "Your older data is unlocked.",
-    recover_data_no_match: "That password didn't unlock any data. Try another previous password.",
-    recover_data_failed: "Some data couldn't be unlocked. Check your connection and try again.",
+    recover_data_no_match:
+      "That password didn't unlock any data. Try another previous password.",
+    recover_data_failed:
+      "Some data couldn't be unlocked. Check your connection and try again.",
     payment_past_due_message:
       "Your last payment didn't go through. Update your payment method to keep your plan.",
     payment_past_due_message_days:
@@ -1807,8 +1771,7 @@ export const en: Translations = {
     account_suspended: "Your account is suspended.",
     account_limit_reached:
       "You have reached the account limit for this network. If this looks wrong, hello@astermail.org can help.",
-    health_check_failed:
-      "The diagnostic did not finish. Try again.",
+    health_check_failed: "The diagnostic did not finish. Try again.",
     failed_to_get_key_status:
       "We could not check your key status. Try again. Your keys are unchanged.",
     unknown_rotation_error:
@@ -2312,11 +2275,13 @@ export const en: Translations = {
     bridge_support_reddit_desc: "Follow announcements and join discussions",
     bridge_support_github_desc: "Read the source code and report an issue",
     bridge_all_platforms: "All platforms",
-    bridge_upgrade_benefit_clients: "Works with Apple Mail, Thunderbird, and Outlook",
+    bridge_upgrade_benefit_clients:
+      "Works with Apple Mail, Thunderbird, and Outlook",
     bridge_upgrade_benefit_local: "Runs locally, so your mail stays encrypted",
     bridge_upgrade_benefit_platforms: "Available on Windows, macOS, and Linux",
     bridge_upgrade_benefit_cli: "Includes a command-line version for servers",
-    bridge_cli_install_hint_windows: "Download the archive, then extract it and add the folder to your PATH.",
+    bridge_cli_install_hint_windows:
+      "Download the archive, then extract it and add the folder to your PATH.",
     bridge_cli_name: "Command line",
     bridge_cli_desc:
       "Run aster-bridge without a window, on a server or over SSH.",
@@ -2800,7 +2765,8 @@ export const en: Translations = {
     password_change_background_reencrypt_failed:
       "Your password changed, but some of your sent mail and settings did not finish re-encrypting. Contact support if any mail or settings look unreadable.",
     previous_password: "Previous password",
-    password_change_sent_mail_locked: "Your password changed. {{count}} sent emails were encrypted with an earlier password and did not update. To unlock them, select Recover data in the banner at the top of your inbox.",
+    password_change_sent_mail_locked:
+      "Your password changed. {{count}} sent emails were encrypted with an earlier password and did not update. To unlock them, select Recover data in the banner at the top of your inbox.",
     password_changed_signing_out:
       "Password changed successfully. Signing you out...",
     password_changed_success: "Password changed",
@@ -3248,9 +3214,11 @@ export const en: Translations = {
     compose_mode_fullscreen: "Always full screen",
     compose_mode_minimized: "Start minimized",
     default_sender_group: "Sending",
-    default_sender_group_description: "Choose which of your addresses new messages come from.",
+    default_sender_group_description:
+      "Choose which of your addresses new messages come from.",
     default_sender_title: "Default sender",
-    default_sender_description: "New messages start from this address. Replies use the address the message was sent to.",
+    default_sender_description:
+      "New messages start from this address. Replies use the address the message was sent to.",
     default_sender_no_addresses: "No other addresses",
     compose_defaults_title: "Default formatting",
     compose_defaults_description:
@@ -3267,9 +3235,11 @@ export const en: Translations = {
     reply_defaults_title: "Replies",
     reply_defaults_description: "Choose what a new reply starts with.",
     reply_include_quoted: "Include quoted text",
-    reply_include_quoted_description: "Start every reply with the original message quoted below your text.",
+    reply_include_quoted_description:
+      "Start every reply with the original message quoted below your text.",
     reply_prefix_subject: "Add Re: to the subject",
-    reply_prefix_subject_description: "Put Re: in front of the original subject when you reply.",
+    reply_prefix_subject_description:
+      "Put Re: in front of the original subject when you reply.",
     build_info: "Build Info",
     release: "Release",
     build: "Build",
@@ -3340,7 +3310,8 @@ export const en: Translations = {
     billing_plan_heading: "Plan",
     billing_hide_plans: "Hide plans",
     billing_cancel_notice_title: "Your plan is set to cancel",
-    billing_cancel_notice_body: "Your plan ends on {{date}}. After that, your account moves to the free plan.",
+    billing_cancel_notice_body:
+      "Your plan ends on {{date}}. After that, your account moves to the free plan.",
     billing_renewals_heading: "Renewals",
     billing_amount: "Amount",
     billing_desc_payment_failed: "Payment failed",
@@ -3473,7 +3444,7 @@ export const en: Translations = {
     crypto_native_recommended: "Recommended",
     crypto_native_resume_selected: "Selected",
     crypto_native_status_underpaid: "Partially paid",
-    crypto_native_what_happens: "What happens next",
+    crypto_native_what_happens: "Payment progress",
     crypto_native_stripe_option: "Pay by stablecoin",
     crypto_native_stripe_desc:
       "USDC and other stablecoins through our payment processor",
@@ -3483,7 +3454,7 @@ export const en: Translations = {
       "You have created too many crypto invoices today. Please try again later.",
     crypto_native_invoice_title: "Pay with {{coin}}",
     crypto_native_awaiting_body:
-      "Send the exact amount to the address below. This page updates automatically.",
+      "Send the exact amount to the address below. This page will update automatically.",
     crypto_native_received_title: "Payment received",
     crypto_native_received_body:
       "The full amount has been received and is being processed. No further payment is needed.",
@@ -3504,6 +3475,8 @@ export const en: Translations = {
     crypto_native_usd_total_label: "Invoice total",
     crypto_native_rate_locked:
       "Your rate is locked until this invoice expires.",
+    crypto_native_rate_label: "Exchange rate",
+    crypto_native_last_checked_label: "Last checked",
     crypto_native_rate_value: "Rate used: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "Pick a coin to lock your exchange rate. You then send the payment yourself, from your own wallet.",
@@ -3520,7 +3493,7 @@ export const en: Translations = {
       "Your payment needs a quick manual check. We will credit your account shortly.",
     crypto_native_transaction: "Transaction",
     crypto_native_refund_notice:
-      "If you send more than the amount due, the extra goes to your Aster account balance in US dollars. You can ask us to refund it instead.",
+      "If you send more than the amount due, the extra goes to your Aster account balance in US dollars.",
     crypto_native_cancel_invoice: "Cancel this invoice",
     crypto_native_cancel_failed: "Could not cancel this invoice.",
     crypto_native_cancel_has_payment:
@@ -3552,6 +3525,13 @@ export const en: Translations = {
       "Check the address on your wallet screen against the one shown here before you send. Only this address is monitored for your order.",
     crypto_native_fee_headroom:
       "If your wallet takes its network fee out of the amount you enter, add a little extra so the full amount arrives.",
+    crypto_native_network_only: "Send only {{coin}} on the {{chain}} network",
+    crypto_native_tip_unrecoverable:
+      "Funds sent on another network can't be recovered.",
+    crypto_native_tip_check_address:
+      "Check the address in your wallet before you send.",
+    crypto_native_tip_fee:
+      "If your wallet takes its fee from the amount, send a little extra.",
     crypto_native_expired_do_not_send:
       "Do not send to the address on this invoice. Funds sent now need a manual review before they can be credited.",
     crypto_native_not_found: "We couldn't find this invoice",
@@ -3612,8 +3592,7 @@ export const en: Translations = {
     failed_cancel_subscription:
       "Your cancel did not go through. Try again. Your plan is still active.",
     subscription_reactivated: "Subscription reactivated",
-    failed_reactivate:
-      "We could not reactivate your plan. Try again.",
+    failed_reactivate: "We could not reactivate your plan. Try again.",
     payment_failed_warning:
       "The last charge to your payment method did not go through. Updating it in Settings, Billing will keep your plan running. Your mail is unaffected.",
     grace_period_remaining:
@@ -4485,8 +4464,7 @@ export const en: Translations = {
     auto_lock_after: "Automatically lock after {{duration}} of inactivity",
     hours: "{{count}} hours",
     days: "{{count}} days",
-    failed_get_auth_data:
-      "We could not load your sign-in info. Try again.",
+    failed_get_auth_data: "We could not load your sign-in info. Try again.",
     downgrade: "Downgrade",
     upgrade: "Upgrade",
     downgrade_scheduled: "Downgrade scheduled for end of current period",
@@ -5166,10 +5144,14 @@ export const en: Translations = {
     referral_claim_success:
       "Invite added. Your storage arrives once you have been using Aster Mail for a couple of days.",
     referral_claim_invalid: "That invite code isn't valid.",
-    referral_commission_headline: "Earn {{ percent }}% of every payment your friends make",
-    referral_commission_subhead: "Share your link. Once a friend subscribes, you earn a share of every payment they make, for as long as they stay subscribed.",
-    referral_step_earn_commission: "Once they subscribe, you earn {{ percent }}% of every payment they make.",
-    referral_share_message_plain: "I use Aster Mail for end to end encrypted email. Join with my link.",
+    referral_commission_headline:
+      "Earn {{ percent }}% of every payment your friends make",
+    referral_commission_subhead:
+      "Share your link. Once a friend subscribes, you earn a share of every payment they make, for as long as they stay subscribed.",
+    referral_step_earn_commission:
+      "Once they subscribe, you earn {{ percent }}% of every payment they make.",
+    referral_share_message_plain:
+      "I use Aster Mail for end to end encrypted email. Join with my link.",
     referral_email_body_plain:
       "Hey,\n\nI've been using Aster Mail for a while now and really like it. Everything is end to end encrypted, so nobody can read your emails except you. Not even the people who run it.\n\nIf you want to give it a try, here's my invite link:\n\n{{ referral_link }}\n\nCheers",
     referral_claim_window_closed:
@@ -5292,8 +5274,7 @@ export const en: Translations = {
     too_many_requests:
       "You're doing that too quickly. Please wait a moment and try again.",
     please_log_in_feedback: "Signing in will let you send feedback.",
-    failed_send_feedback:
-      "Your feedback did not send. Try again.",
+    failed_send_feedback: "Your feedback did not send. Try again.",
     other_ways_to_reach: "Other Ways to Reach Us",
     reset_to_defaults: "Reset to defaults",
     section_reset: "Section reset to defaults",
@@ -5655,12 +5636,10 @@ export const en: Translations = {
     alias_restore_confirm: "Restore",
     alias_restore_mismatch:
       "That address doesn't match this alias. Check the header of a message it delivered.",
-    alias_restore_failed:
-      "The alias didn't restore. Try again.",
+    alias_restore_failed: "The alias didn't restore. Try again.",
     recently_deleted_load_failed:
       "We could not load your recently deleted aliases. Try again.",
-    invalid_address:
-      "Enter a valid email address.",
+    invalid_address: "Enter a valid email address.",
     alias_already_taken:
       "This alias is already in use. A different one should work.",
     alias_create_failed:
@@ -5672,13 +5651,11 @@ export const en: Translations = {
       "This alias is not valid. Letters, numbers, dots, underscores, and hyphens are the allowed characters.",
     domain_not_available:
       "This domain is not available right now. Another one should work.",
-    failed_create_address:
-      "This address did not save. Try again.",
+    failed_create_address: "This address did not save. Try again.",
     domain_limit_reached: "Domain Limit Reached",
     add_custom_domain: "Add Custom Domain",
     domain_name_label: "Domain Name",
-    invalid_domain:
-      "Enter a valid domain.",
+    invalid_domain: "Enter a valid domain.",
     failed_add_domain:
       "This domain was not added. Try again. Your other domains are unchanged.",
     configure_dns_for: "Configure DNS for {{domain}}",
@@ -5718,8 +5695,7 @@ export const en: Translations = {
       "This needs to be a public mail server, not a local or private address. The public hostname your provider gave you will work.",
     username_required: "A username is needed for this account.",
     password_required: "A password is needed for this account.",
-    connection_timeout_error:
-      "Enter a timeout between 5 and 120 seconds.",
+    connection_timeout_error: "Enter a timeout between 5 and 120 seconds.",
     fill_server_first:
       "The server, username, and password are needed first so the connection can be tested.",
     fill_smtp_first:
@@ -5734,12 +5710,9 @@ export const en: Translations = {
       "Account saved, but its sync and advanced settings did not save",
     failed_update_account:
       "This account did not update. Try again. The earlier settings are still active.",
-    failed_add_account:
-      "This account was not added. Try again.",
-    switch_failed:
-      "We could not switch accounts. Try again.",
-    unexpected_error:
-      "Something did not work as expected. Try again.",
+    failed_add_account: "This account was not added. Try again.",
+    switch_failed: "We could not switch accounts. Try again.",
+    unexpected_error: "Something did not work as expected. Try again.",
     failed_sync:
       "The sync did not finish, and we will retry automatically. Your mail on both sides is safe.",
     failed_delete_emails_external:
@@ -5765,8 +5738,7 @@ export const en: Translations = {
       "That code did not match. The current code from your authenticator app will work.",
     incorrect_password_error:
       "Incorrect password. Please try again. Your account is not locked.",
-    failed_retrieve_auth:
-      "We could not load your sign-in info. Try again.",
+    failed_retrieve_auth: "We could not load your sign-in info. Try again.",
     failed_verify_password: "Incorrect password. Please try again.",
     failed_export_private_key:
       "We could not export your key just now. Try again. Your key is unchanged.",
@@ -6045,10 +6017,13 @@ export const en: Translations = {
     special_offer_feature_aliases: "Unlimited aliases",
     special_offer_feature_vanguard: "Advanced security with Vanguard",
     special_offer_feature_storage: "500 GB of encrypted storage",
-    special_offer_why_body: "Aster is an independent company run by a small team, and your support means a lot to us. Subscriptions keep the service running and let us keep building Aster with care every day. This offer makes it easier to get started.",
+    special_offer_why_body:
+      "Aster is an independent company run by a small team, and your support means a lot to us. Subscriptions keep the service running and let us keep building Aster with care every day. This offer makes it easier to get started.",
     special_offer_why_label: "Why this offer?",
-    special_offer_feature_vanguard_body: "App lock and advanced privacy protection.",
-    special_offer_feature_domains_body: "Send from addresses on your own domains.",
+    special_offer_feature_vanguard_body:
+      "App lock and advanced privacy protection.",
+    special_offer_feature_domains_body:
+      "Send from addresses on your own domains.",
     special_offer_feature_domains: "Up to 30 custom domains",
     special_offer_feature_storage_body: "Room for years of mail and files.",
     special_offer_feature_aliases_body: "Give each site its own address.",
@@ -6057,7 +6032,8 @@ export const en: Translations = {
     special_offer_dismiss: "Don't show this offer again",
     special_offer_dismissed_toast: "We won't show you this again.",
     special_offer_success_title: "Thank you. You're on Nova.",
-    special_offer_success_body: "Thank you for subscribing. Your support means a lot to us.",
+    special_offer_success_body:
+      "Thank you for subscribing. Your support means a lot to us.",
     special_offer_hero_duration: "for {{months}} months",
     plan_billing_terms:
       "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
@@ -6463,10 +6439,8 @@ export const en: Translations = {
     external_accounts_limit_reached:
       "You can connect up to 5 accounts. To add another, remove one first.",
     no_allowed_senders: "No allowed senders",
-    failed_to_load_allowlist:
-      "Your allowlist did not load. Try again.",
-    failed_to_load_blocklist:
-      "Your blocklist did not load. Try again.",
+    failed_to_load_allowlist: "Your allowlist did not load. Try again.",
+    failed_to_load_blocklist: "Your blocklist did not load. Try again.",
     add_senders_allowlist_hint:
       "Add senders or domains to ensure their emails always reach your inbox",
     allow_sender: "Allow sender",
@@ -6777,8 +6751,7 @@ export const en: Translations = {
     oauth_import_loading: "Connecting to {{ provider }}...",
     oauth_setting_up_folders: "Setting up folders...",
     oauth_folders_ready: "Folders synced successfully",
-    oauth_folders_error:
-      "Your folders did not finish setting up. Try again.",
+    oauth_folders_error: "Your folders did not finish setting up. Try again.",
     oauth_folders_partial:
       "{{count}} folders did not finish setting up, and the rest are ready to use.",
     import_stage_setting_up_folders: "Setting up folders",
@@ -7037,8 +7010,7 @@ export const en: Translations = {
     alias_deleted_at: "Deleted {{ date }}",
     restore_alias_action: "Restore",
     alias_restored: "Alias restored",
-    failed_restore_alias:
-      "This alias was not restored. Try again.",
+    failed_restore_alias: "This alias was not restored. Try again.",
     recently_deleted_empty_trash: "Empty trash",
     delete_alias_permanently_action: "Delete permanently",
     purge_alias_confirm_title: "Delete alias permanently?",
@@ -7055,8 +7027,7 @@ export const en: Translations = {
     recently_deleted_directories_description:
       "Restore a directory you deleted. Deleted directories stop catching new mail until restored.",
     directory_restored: "Directory restored",
-    failed_restore_directory:
-      "This directory was not restored. Try again.",
+    failed_restore_directory: "This directory was not restored. Try again.",
     purge_directory_confirm_title: "Delete directory permanently?",
     purge_directory_confirm_message:
       "Permanently delete {{ key }}@{{ domain }}? This cannot be undone. The directory stays reserved to your account, so no one else can ever claim it.",
@@ -7190,8 +7161,7 @@ export const en: Translations = {
       "Mail sent to this alias goes to the folder you pick. Inbox is the default.",
     alias_delivery_folder_info:
       "Mail sent to this alias goes straight to the folder you pick, with no rule needed. A rule that matches the message still wins, so it lands in that folder instead.",
-    alias_delivery_folder_error:
-      "That setting did not save. Try again.",
+    alias_delivery_folder_error: "That setting did not save. Try again.",
     alias_delivery_folder_missing: "Deleted folder",
     alias_delivery_label: "Label",
     alias_delivery_label_desc:
@@ -7221,8 +7191,7 @@ export const en: Translations = {
     alias_apply_existing_error: "Applying to existing mail failed. Try again.",
     alias_apply_existing_unavailable:
       "Mail already in your account can't be moved to Spam.",
-    alias_delivery_label_error:
-      "That setting did not save. Try again.",
+    alias_delivery_label_error: "That setting did not save. Try again.",
     alias_delivery_rule_note:
       'Mail rule "{{ rule }}" already moves mail for this alias to {{ target }}.',
     alias_delivery_rule_conflict:
@@ -7701,6 +7670,11 @@ export const en: Translations = {
     checkout_abandon_title: "Cancel this payment?",
     checkout_add_promo: "Add a promo code",
     checkout_amount_due: "Amount due",
+    checkout_offer_switch_term: "Switch to {{term}} to get {{percent}}% off",
+    checkout_offer_switch_crypto: "Pay with crypto to get {{percent}}% off",
+    checkout_offer_switch_card: "Pay by card to get {{percent}}% off",
+    checkout_offer_renewal:
+      "{{offer_price}} per month for {{months}} months, then {{price}} per month",
     checkout_card_details: "Card details",
     checkout_full_features_title: "{{plan}} features",
     checkout_leave_warning:
@@ -8990,15 +8964,20 @@ export const en: Translations = {
     add_backup_email: "Add a backup email",
     skip_for_now: "Skip for now",
     create_your_account: "Create your account",
-    welcome_workspace_subtitle: "Welcome to Aster. Choose a username to get started.",
+    welcome_workspace_subtitle:
+      "Welcome to Aster. Choose a username to get started.",
     username_placeholder: "Username",
     switch_domain: "Switch domain",
-    sign_in_domain_hint: "Choose the domain in your address. If you are not sure, either option works.",
-    terms_footer_next: "By clicking Next above, you acknowledge that you have read and agree to Aster's",
+    sign_in_domain_hint:
+      "Choose the domain in your address. If you are not sure, either option works.",
+    terms_footer_next:
+      "By clicking Next above, you acknowledge that you have read and agree to Aster's",
     create_a_password: "Create a password",
-    recommend_strong_password: "Use at least 8 characters. A longer password with mixed characters is stronger.",
+    recommend_strong_password:
+      "Use at least 8 characters. A longer password with mixed characters is stronger.",
     password_recovery_key: "Password recovery key",
-    recovery_key_only_way: "This key is the only way to recover your account if you forget your password. Save it somewhere safe.",
+    recovery_key_only_way:
+      "This key is the only way to recover your account if you forget your password. Save it somewhere safe.",
     download_key_lower: "Download key",
     downloading: "Downloading...",
     save_key: "Save key",
@@ -9006,7 +8985,8 @@ export const en: Translations = {
     copy_codes: "Copy codes",
     recovery_key_copied: "Recovery key copied",
     password_recovery_email: "Password recovery email",
-    recovery_email_step_desc: "Add an email address so you can get back into your account if you lose your recovery codes.",
+    recovery_email_step_desc:
+      "Add an email address so you can get back into your account if you lose your recovery codes.",
     download_apps_title: "Download mobile and desktop apps",
     download_apps_desc: "Take your inbox with you on every device.",
     mail_mobile: "Mail Mobile",
@@ -9014,23 +8994,31 @@ export const en: Translations = {
     mail_desktop: "Mail Desktop",
     mail_desktop_desc: "The desktop app for Windows, macOS, and Linux.",
     notifications_step_title: "Turn on browser notifications",
-    notifications_step_desc: "Get notified when new mail arrives, even when this tab is in the background.",
+    notifications_step_desc:
+      "Get notified when new mail arrives, even when this tab is in the background.",
     notifications_turned_on: "Notifications are on",
-    notifications_blocked_hint: "Notifications are blocked. To turn them on, allow notifications for this site in your browser settings.",
-    notifications_sample_body: "You'll get a notification like this one when new mail arrives.",
+    notifications_blocked_hint:
+      "Notifications are blocked. To turn them on, allow notifications for this site in your browser settings.",
+    notifications_sample_body:
+      "You'll get a notification like this one when new mail arrives.",
     notification_preview_title: "New message",
     notification_preview_body: "You have a new message in your inbox.",
     turn_on: "Turn on",
     addresses_step_title: "Create addresses for different purposes",
-    addresses_step_desc: "Add extra addresses for work, newsletters, or shopping. They all arrive in the same inbox.",
+    addresses_step_desc:
+      "Add extra addresses for work, newsletters, or shopping. They all arrive in the same inbox.",
     address_n: "Address {{n}}",
-    address_must_begin_end_alphanumeric: "Email address must begin and end with a letter or number.",
+    address_must_begin_end_alphanumeric:
+      "Email address must begin and end with a letter or number.",
     custom_domain_step_title: "Personalize your address with a custom domain",
-    custom_domain_step_desc: "Send and receive mail from an address on a domain that is yours.",
+    custom_domain_step_desc:
+      "Send and receive mail from an address on a domain that is yours.",
     custom_domain_own: "Set up a domain you already own",
-    custom_domain_own_desc: "Connect a domain from any registrar in a few minutes.",
+    custom_domain_own_desc:
+      "Connect a domain from any registrar in a few minutes.",
     custom_domain_new: "Get a new domain",
-    custom_domain_new_desc: "Search for and buy a domain without leaving Aster.",
+    custom_domain_new_desc:
+      "Search for and buy a domain without leaving Aster.",
     recovery_email_required_gate_title: "Recovery email required",
     recovery_email_required_gate_desc:
       "A recovery email is required to create an additional account. This helps protect all your accounts.",
@@ -9208,7 +9196,8 @@ export const en: Translations = {
       "Your old recovery codes no longer work. Saving this new set somewhere safe before closing this window will keep you covered.",
     n_recovery_codes: "{{count}} recovery codes",
     import_mail_step_title: "Bring your mail with you",
-    import_mail_step_desc: "Move messages from another account into Aster. Everything is encrypted on your device before it is stored.",
+    import_mail_step_desc:
+      "Move messages from another account into Aster. Everything is encrypted on your device before it is stored.",
     import_mail_action: "Import mail",
     import_mail_skip: "Start with an empty inbox",
     import_mail_privacy_note: "You can also import later from Settings.",
@@ -9478,8 +9467,7 @@ export const en: Translations = {
       "You can add up to two reactions to a message. To add another, remove one of yours.",
     cannot_react_no_recipient:
       "This message has no sender to send the reaction to.",
-    failed_send_reaction:
-      "The reaction could not be sent. Try again.",
+    failed_send_reaction: "The reaction could not be sent. Try again.",
     reactions_disabled: "Reactions are turned off in your settings.",
     network:
       "We could not reach the server. Checking your connection and trying again usually does it.",
@@ -9517,8 +9505,7 @@ export const en: Translations = {
     decrypt_failed:
       "That password did not unlock your keys on this device. Trying again will work, and a recovery code at astermail.org/reset is the backup if it keeps failing. Your data on the server is unchanged.",
     an_error_occurred: "That did not work. Try again.",
-    failed_to_block_sender:
-      "We could not block this sender. Try again.",
+    failed_to_block_sender: "We could not block this sender. Try again.",
     failed_to_snooze:
       "This email did not snooze. Try again. It is still in your inbox.",
     ghost_alias_not_found:
@@ -9534,8 +9521,7 @@ export const en: Translations = {
     ghost_expiry_extend_only:
       "You can only extend a ghost address, not shorten it.",
     ghost_expiry_update_failed: "The expiration did not update. Try again.",
-    failed_to_activate_ghost_mode:
-      "Ghost mode did not turn on. Try again.",
+    failed_to_activate_ghost_mode: "Ghost mode did not turn on. Try again.",
     failed_to_queue_email:
       "We could not save this email for later sending. Try again. Your draft is saved.",
     failed_to_send_queued:
@@ -9546,8 +9532,7 @@ export const en: Translations = {
       "Sign-in did not finish. Try again. Your account is not locked.",
     failed_to_snooze_email:
       "This email did not snooze. Try again. It is still in your inbox.",
-    failed_to_snooze_emails:
-      "These emails did not snooze. Try again.",
+    failed_to_snooze_emails: "These emails did not snooze. Try again.",
     failed_to_unsnooze_email:
       "This email did not return to your inbox. Try again.",
     failed_to_list_snoozed:
@@ -9567,8 +9552,7 @@ export const en: Translations = {
       "We could not reach the server. Checking your connection and trying again usually does it.",
     request_timeout:
       "The request took too long to finish. Checking your connection and trying again usually does it.",
-    unexpected_error:
-      "Something did not work as expected. Try again.",
+    unexpected_error: "Something did not work as expected. Try again.",
     encryption_keys_not_loaded:
       "Your private keys are locked on this device. Your password will unlock them. Your keys on the server are untouched.",
     session_expired_reenter:
@@ -9615,8 +9599,7 @@ export const en: Translations = {
     no_recipients: "At least one recipient is needed before sending.",
     failed_queue_forward:
       "We could not save this forward for later sending. Try again. Your draft is saved.",
-    failed_send:
-      "This email did not send. Try again. Your draft is saved.",
+    failed_send: "This email did not send. Try again. Your draft is saved.",
     incorrect_password:
       "Incorrect password. Please try again. Your account is not locked.",
     no_keys_available:
@@ -9647,8 +9630,7 @@ export const en: Translations = {
     domain_too_long: "This domain is too long. A shorter one will work.",
     domain_reserved:
       "astermail.org and aster.cx cannot be used here. Another domain you own will work.",
-    domain_invalid_format:
-      "Enter a valid domain.",
+    domain_invalid_format: "Enter a valid domain.",
     domain_invalid_label:
       "One part of this domain is too long or too short. Check the domain and try again.",
     domain_invalid_chars:
@@ -9702,10 +9684,8 @@ export const en: Translations = {
       "Aster cannot read {{name}}. Supported formats are MBOX, EML, CSV, and PST. Save the file as one of these and try again.",
     unknown_error:
       "Something did not work as expected. Try again. We could not pinpoint the cause.",
-    health_check_failed:
-      "The diagnostic did not finish. Try again.",
-    unexpected_health_check_error:
-      "The diagnostic hit a snag. Try again.",
+    health_check_failed: "The diagnostic did not finish. Try again.",
+    unexpected_health_check_error: "The diagnostic hit a snag. Try again.",
     all_emails_rejected:
       "All {{count}} emails in this file were skipped because each one was missing a sender or body, so nothing was imported. Check the source export and try again.",
     wrong_vault_password:

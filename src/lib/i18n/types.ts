@@ -3553,6 +3553,8 @@ export interface SettingsTranslations {
   crypto_native_usd_value_label: string;
   crypto_native_usd_total_label: string;
   crypto_native_rate_locked: string;
+  crypto_native_rate_label: string;
+  crypto_native_last_checked_label: string;
   crypto_native_rate_value: string;
   crypto_native_commit_notice: string;
   crypto_native_expires_in: string;
@@ -3589,6 +3591,10 @@ export interface SettingsTranslations {
   crypto_native_copy_address: string;
   crypto_native_verify_address: string;
   crypto_native_fee_headroom: string;
+  crypto_native_network_only: string;
+  crypto_native_tip_unrecoverable: string;
+  crypto_native_tip_check_address: string;
+  crypto_native_tip_fee: string;
   crypto_native_expired_do_not_send: string;
   crypto_native_not_found: string;
   crypto_native_unavailable: string;
@@ -6060,6 +6066,10 @@ export interface SettingsTranslations {
   credits_will_be_applied: string;
   checkout_review_title: string;
   checkout_amount_due: string;
+  checkout_offer_switch_term: string;
+  checkout_offer_switch_crypto: string;
+  checkout_offer_switch_card: string;
+  checkout_offer_renewal: string;
   checkout_pay_amount: string;
   checkout_what_you_get: string;
   checkout_add_promo: string;

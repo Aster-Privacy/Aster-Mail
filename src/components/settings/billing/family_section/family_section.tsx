@@ -1920,11 +1920,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               disabled={changing_plan}
               onClick={handle_upgrade_to_family}
             >
-              {changing_plan ? (
-                <Spinner size="sm" />
-              ) : (
-                t("settings.plan_change_confirm_button")
-              )}
+              {t("settings.plan_change_confirm_button")}
+              {changing_plan && <ButtonSpinner />}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1954,11 +1951,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               disabled={action_loading}
               onClick={handle_remove_confirm}
             >
-              {action_loading ? (
-                <Spinner size="sm" />
-              ) : (
-                t("settings.family_remove_confirm_action")
-              )}
+              {t("settings.family_remove_confirm_action")}
+              {action_loading && <ButtonSpinner />}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -1987,11 +1981,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               disabled={action_loading}
               onClick={handle_transfer_confirm}
             >
-              {action_loading ? (
-                <Spinner size="sm" />
-              ) : (
-                t("settings.family_transfer_confirm_action")
-              )}
+              {t("settings.family_transfer_confirm_action")}
+              {action_loading && <ButtonSpinner />}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -2017,11 +2008,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               disabled={action_loading}
               onClick={handle_leave_confirm}
             >
-              {action_loading ? (
-                <Spinner size="sm" />
-              ) : (
-                t("settings.family_leave_confirm_action")
-              )}
+              {t("settings.family_leave_confirm_action")}
+              {action_loading && <ButtonSpinner />}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

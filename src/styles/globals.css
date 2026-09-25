@@ -1813,11 +1813,13 @@ label {
   pointer-events: none;
 }
 
-.aster_btn_loading_host:has(.aster_btn_spinner:not(.aster_btn_spinner_centered)),
+.aster_btn_loading_host:has(
+  .aster_btn_spinner:not(.aster_btn_spinner_centered)
+),
 button:has(.aster_btn_spinner:not(.aster_btn_spinner_centered)),
 a:has(.aster_btn_spinner:not(.aster_btn_spinner_centered)),
 label:has(.aster_btn_spinner:not(.aster_btn_spinner_centered)) {
-  padding-inline-end: calc(var(--aster-btn-spinner-end) + 1.5rem);
+  padding-inline: calc(var(--aster-btn-spinner-end) + 1.5rem);
 }
 
 .aster_btn_icon .aster_btn_spinner,

@@ -96,10 +96,6 @@ function coin_title(display_name: string, chain: string): string {
     : display_name;
 }
 
-const ACCENT_TINT = "color-mix(in srgb, var(--accent-color) 12%, transparent)";
-const ACCENT_TINT_SOFT =
-  "color-mix(in srgb, var(--accent-color) 6%, transparent)";
-
 export function crypto_addon_term_modal({
   is_open,
   on_close,
@@ -310,16 +306,7 @@ export function crypto_addon_term_modal({
 
         return;
       }
-      if (response.code === "CONFLICT") {
-        show_toast(
-          t("settings.crypto_native_too_many_open"),
-          "error",
-          TOAST_DURATION_BILLING_MS,
-        );
-
-        return;
-      }
-      if (response.code === "RATE_LIMIT_EXCEEDED") {
+      if (response.code === "RATE_LIMIT_EXCEEDED" && response.resets_at) {
         show_toast(
           t("settings.crypto_native_daily_limit"),
           "error",
@@ -388,21 +375,13 @@ export function crypto_addon_term_modal({
                         term_button_refs.current[index] = element;
                       }}
                       aria-checked={is_selected}
-                      className={`w-full flex items-center justify-between gap-3 rounded-[12px] border px-3.5 py-3 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 disabled:cursor-not-allowed ${
+                      className={`w-full flex items-center justify-between gap-3 rounded-xl px-3.5 py-3 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 disabled:cursor-not-allowed ${
                         is_selected
-                          ? ""
-                          : "border-edge-secondary hover:bg-surf-hover"
+                          ? "bg-surf-hover"
+                          : "bg-surf-secondary hover:bg-surf-hover"
                       }`}
                       disabled={is_loading}
                       role="radio"
-                      style={
-                        is_selected
-                          ? {
-                              backgroundColor: ACCENT_TINT_SOFT,
-                              borderColor: "var(--accent-color)",
-                            }
-                          : undefined
-                      }
                       tabIndex={is_selected ? 0 : -1}
                       type="button"
                       onClick={() => set_selected_term(term)}
@@ -471,7 +450,7 @@ export function crypto_addon_term_modal({
               </ModalTitle>
             </ModalHeader>
             <ModalBody>
-              <div className="relative mb-4 rounded-[12px] border border-edge-secondary">
+              <div className="relative mb-4 rounded-xl bg-surf-secondary">
                 <dl className="space-y-2 p-3.5">
                   <div className="flex items-baseline justify-between gap-3">
                     <dt className="text-xs text-txt-muted">
@@ -511,7 +490,7 @@ export function crypto_addon_term_modal({
                 <div className="space-y-2">
                   {coins_status === "failed" && (
                     <div
-                      className="flex flex-col gap-3 rounded-[12px] border border-edge-secondary p-3.5"
+                      className="flex flex-col gap-3 rounded-xl bg-surf-secondary p-3.5"
                       role="alert"
                     >
                       <span className="text-sm text-txt-secondary">
@@ -542,13 +521,8 @@ export function crypto_addon_term_modal({
                       <button
                         key={key}
                         aria-busy={is_creating}
-                        className="w-full flex items-center justify-between gap-3 rounded-[12px] border px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
+                        className="w-full flex items-center justify-between gap-3 rounded-xl bg-surf-secondary px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
                         disabled={busy}
-                        style={{
-                          borderColor: coin.recommended
-                            ? "var(--accent-color)"
-                            : "var(--border-secondary)",
-                        }}
                         type="button"
                         onClick={() => handle_native(coin)}
                       >
@@ -574,13 +548,7 @@ export function crypto_addon_term_modal({
                           {is_creating ? (
                             <Spinner size="sm" />
                           ) : coin.recommended ? (
-                            <span
-                              className="rounded-[6px] px-1.5 py-0.5 text-[11px] font-semibold"
-                              style={{
-                                backgroundColor: ACCENT_TINT,
-                                color: "var(--accent-color)",
-                              }}
-                            >
+                            <span className="plan_galaxy_badge inline-flex flex-shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
                               {t("settings.crypto_native_recommended")}
                             </span>
                           ) : null}
@@ -591,7 +559,7 @@ export function crypto_addon_term_modal({
 
                   <button
                     aria-busy={is_loading}
-                    className="w-full flex items-center justify-between gap-3 rounded-[12px] border border-edge-secondary px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
+                    className="w-full flex items-center justify-between gap-3 rounded-xl bg-surf-secondary px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
                     disabled={busy}
                     type="button"
                     onClick={handle_stripe}

@@ -48,6 +48,7 @@ import { is_onion_host } from "@/lib/onion_host";
 import { format_price } from "@/services/api/billing";
 import { convert_cents } from "@/components/settings/billing/billing_constants";
 import {
+  SPECIAL_OFFER_DURATION_MONTHS,
   special_offer_term_months,
   type SpecialOfferPlanPricing,
 } from "@/lib/special_offer";
@@ -258,11 +259,66 @@ export function PlanPaymentMethodModal({
       ),
       offer_total_cents,
       offer_per_month_cents: Math.round(offer_total_cents / term_months),
+      offer_save_cents: list_total_cents - offer_total_cents,
+      term_months,
     };
   };
   const offer_quote = (entry_method: pay_method) =>
     option_offer_quote(entry_method, active_option);
   const summary_quote = offer_quote(effective_method);
+  const offer_switch = (() => {
+    if (!special_offer || summary_quote || busy) return null;
+
+    const method_order: pay_method[] = [
+      method,
+      method === "card" ? "crypto" : "card",
+    ];
+
+    for (const entry_method of method_order) {
+      const option = (term_options ?? []).find(
+        (candidate) =>
+          !(entry_method === "card" && (candidate.crypto_only || on_onion)) &&
+          !!option_offer_quote(entry_method, candidate),
+      );
+
+      if (option) return { method: entry_method, option };
+    }
+
+    return null;
+  })();
+  const offer_switch_label = offer_switch
+    ? offer_switch.option.id !== term_id
+      ? t("settings.checkout_offer_switch_term", {
+          term: offer_switch.option.label,
+          percent: String(special_offer?.percent_off ?? 0),
+        })
+      : t(
+          offer_switch.method === "crypto"
+            ? "settings.checkout_offer_switch_crypto"
+            : "settings.checkout_offer_switch_card",
+          { percent: String(special_offer?.percent_off ?? 0) },
+        )
+    : null;
+  const apply_offer_switch = () => {
+    if (!offer_switch) return;
+
+    set_method(offer_switch.method);
+    if (offer_switch.option.id !== term_id) {
+      set_active_term(offer_switch.option.id);
+      on_select_term?.(offer_switch.option.id);
+    }
+  };
+  const offer_renewal_note =
+    summary_quote &&
+    effective_method === "card" &&
+    summary_quote.term_months === 1 &&
+    active_option
+      ? t("settings.checkout_offer_renewal", {
+          offer_price: format_for("card", summary_quote.offer_total_cents),
+          months: String(SPECIAL_OFFER_DURATION_MONTHS),
+          price: format_for("card", summary_quote.list_per_month_cents),
+        })
+      : null;
   const summary_per_month_cents =
     summary_quote?.offer_per_month_cents ??
     to_method_cents(effective_method, active_option?.per_month_cents ?? 0);
@@ -435,18 +491,32 @@ export function PlanPaymentMethodModal({
                           <span className="text-[13px] font-semibold text-txt-primary">
                             {option.label}
                           </span>
-                          {option.id === best_value_id && (
-                            <span className="plan_galaxy_badge inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                              {t("settings.best_value")}
-                            </span>
-                          )}
+                          {term_quote
+                            ? save_badge
+                            : !special_offer &&
+                              option.id === best_value_id && (
+                                <span className="plan_galaxy_badge inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                                  {t("settings.best_value")}
+                                </span>
+                              )}
                         </span>
-                        {option.save_cents > 0 && (
+                        {term_quote ? (
                           <span className="text-txt-secondary mt-0.5 block text-[11px] leading-snug">
                             {t("settings.checkout_term_save", {
-                              amount: format_price(option.save_cents),
+                              amount: format_for(
+                                effective_method,
+                                term_quote.offer_save_cents,
+                              ),
                             })}
                           </span>
+                        ) : (
+                          option.save_cents > 0 && (
+                            <span className="text-txt-secondary mt-0.5 block text-[11px] leading-snug">
+                              {t("settings.checkout_term_save", {
+                                amount: format_price(option.save_cents),
+                              })}
+                            </span>
+                          )
                         )}
                       </span>
                       {term_quote ? (
@@ -639,7 +709,8 @@ export function PlanPaymentMethodModal({
               </span>
               {summary_quote
                 ? save_badge
-                : active_option &&
+                : !special_offer &&
+                  active_option &&
                   active_option.id === best_value_id && (
                     <span className="plan_galaxy_badge inline-flex flex-shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
                       {t("settings.best_value")}
@@ -681,15 +752,36 @@ export function PlanPaymentMethodModal({
                       {t("common.subtotal")}
                     </span>
                     <span>
-                      {format_for(effective_method, summary_total_cents)}
+                      {format_for(
+                        effective_method,
+                        summary_total_cents +
+                          (summary_quote?.offer_save_cents ?? 0),
+                      )}
                     </span>
                   </div>
-                  {active_option.save_cents > 0 && (
-                    <div className="plan_galaxy_text_body">
-                      {t("settings.checkout_term_save", {
-                        amount: format_price(active_option.save_cents),
-                      })}
+                  {summary_quote ? (
+                    <div className="flex items-center justify-between gap-2 font-semibold plan_galaxy_text_primary">
+                      <span>
+                        {t("settings.special_offer_save_badge", {
+                          percent: String(special_offer?.percent_off ?? 0),
+                        })}
+                      </span>
+                      <span>
+                        -
+                        {format_for(
+                          effective_method,
+                          summary_quote.offer_save_cents,
+                        )}
+                      </span>
                     </div>
+                  ) : (
+                    active_option.save_cents > 0 && (
+                      <div className="plan_galaxy_text_body">
+                        {t("settings.checkout_term_save", {
+                          amount: format_price(active_option.save_cents),
+                        })}
+                      </div>
+                    )
                   )}
                 </div>
 
@@ -702,6 +794,11 @@ export function PlanPaymentMethodModal({
                       {amount_due}
                     </span>
                   </div>
+                  {offer_renewal_note && (
+                    <p className="mt-2 text-[11px] leading-snug plan_galaxy_text_muted">
+                      {offer_renewal_note}
+                    </p>
+                  )}
                 </div>
               </>
             )}
@@ -712,9 +809,25 @@ export function PlanPaymentMethodModal({
               variant="primary"
               onClick={handle_continue}
             >
-              {t("settings.continue_to_checkout")}
+              {summary_quote
+                ? t("settings.special_offer_cta", {
+                    percent: String(special_offer?.percent_off ?? 0),
+                  })
+                : t("settings.continue_to_checkout")}
               {busy && <ButtonSpinner size="xs" />}
             </Button>
+
+            {offer_switch_label && (
+              <button
+                data-special-offer-switch
+                className="mt-3 flex w-full items-center justify-center gap-1.5 rounded text-[12px] font-semibold plan_galaxy_text_primary underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+                type="button"
+                onClick={apply_offer_switch}
+              >
+                <TagIcon className="h-3.5 w-3.5 flex-shrink-0" />
+                <span>{offer_switch_label}</span>
+              </button>
+            )}
 
             {features && features.length > 0 && (
               <div className="plan_galaxy_divider mt-3 border-t pt-3">

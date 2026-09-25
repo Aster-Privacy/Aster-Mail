@@ -59,6 +59,7 @@ import { is_resumable_checkout_plan } from "@/components/settings/billing/billin
 import { AliasCapUpsellModal } from "@/components/upgrade/alias_cap_upsell_modal";
 import { SpecialOfferModal } from "@/components/upgrade/special_offer_modal";
 import { SpecialOfferSuccessModal } from "@/components/upgrade/special_offer_success_modal";
+import { request_special_offer_checkout } from "@/stores/special_offer_store";
 import { UndoSendContainer } from "@/components/toast/undo_send_container";
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { EmailNotificationManager } from "@/components/email/email_notification_manager";
@@ -200,6 +201,12 @@ function BillingSuccessHandler() {
 
     if (billing === "cancelled") {
       const target = read_checkout_target();
+
+      if (target?.special_offer && request_special_offer_checkout()) {
+        clear_checkout_target();
+
+        return;
+      }
 
       if (
         target &&
