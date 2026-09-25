@@ -168,7 +168,7 @@ export function CoinStack({
         <span
           key={`${coin.currency}_${coin.chain}`}
           aria-label={coin.label}
-          className="inline-flex"
+          className="inline-flex h-6 w-6 shrink-0 items-center justify-center"
           role="img"
           title={coin.label}
         >

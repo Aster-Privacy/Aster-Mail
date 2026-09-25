@@ -184,7 +184,7 @@ class UndoSendManager {
       return false;
     }
 
-    this.apply_terminal_status(pending, "sent");
+    await this.finalize_send(queue_id);
 
     return true;
   }

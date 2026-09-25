@@ -43,6 +43,7 @@ import {
   build_auto_dark_mode_css,
   build_email_body_ink,
   build_forced_dark_mode_css,
+  FORCED_DARK_CANVAS,
   LINK_BUTTON_EXCLUDE,
   LINK_BUTTON_HOVER_SELECTOR,
 } from "@/lib/email_body_styles";
@@ -328,7 +329,9 @@ export function SandboxedEmailRenderer({
     (is_literal_plain_text ?? is_plain_text) && !has_block_html;
   const light_override_bg =
     disable_auto_dark_mode && app_is_dark ? "#ffffff" : "transparent";
-  const plain_bg = light_override_bg;
+  const forced_dark_canvas =
+    force_dark_mode && !app_is_dark ? FORCED_DARK_CANVAS : "transparent";
+  const plain_bg = force_dark_mode ? forced_dark_canvas : light_override_bg;
   const plain_text_color = force_dark_mode
     ? "#e5e5e5"
     : is_dark_theme
@@ -344,8 +347,9 @@ export function SandboxedEmailRenderer({
     is_dark_theme && !force_dark_mode && (!is_html_email || simple_dark_html);
   const html_text_color =
     force_dark_mode || simple_dark_html ? "#e5e5e5" : "#111827";
-  const html_bg =
-    force_dark_mode || simple_dark_html
+  const html_bg = force_dark_mode
+    ? forced_dark_canvas
+    : simple_dark_html
       ? "transparent"
       : body_background || light_override_bg;
   const dyslexia_font_stack =

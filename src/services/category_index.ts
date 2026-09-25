@@ -67,10 +67,14 @@ import { yield_to_browser } from "@/lib/scheduling";
 import {
   clear_all_read_intents,
   get_read_intent,
-  note_read_intent,
+  settle_flag_intents,
 } from "@/services/read_intent";
-
-import { is_recently_removed } from "@/services/removed_items";
+import {
+  clear_removed_items,
+  forget_removed_ids,
+  is_recently_removed,
+  note_removed_ids,
+} from "@/services/removed_items";
 
 const DB_NAME = "astermail_category_index";
 const STORE_NAME = "indexes";
@@ -293,20 +297,9 @@ const listeners = new Set<() => void>();
 const in_flight_reclassify = new Map<string, boolean>();
 const reclassify_promises = new Map<string, Promise<void>>();
 const recent_reclassify_meta = new Map<string, string>();
-const recently_read = new Map<string, number>();
 const recent_pins = new Map<string, { category: EmailCategory; at: number }>();
 
-const RECENT_READ_GUARD_MS = 30000;
 const RECENT_PIN_GUARD_MS = 30000;
-
-function note_recently_read(id: string): void {
-  recently_read.set(id, now_ms());
-  if (recently_read.size > 500) {
-    const oldest = recently_read.keys().next().value;
-
-    if (oldest) recently_read.delete(oldest);
-  }
-}
 
 export function note_recent_pin(id: string, category: EmailCategory): void {
   recent_pins.set(id, { category, at: now_ms() });
@@ -767,7 +760,7 @@ async function ensure_loaded(): Promise<boolean> {
 
 function apply_upsert(
   incoming: CategoryIndexEntry[],
-  guard_recent_read = false,
+  fetched_at?: number,
 ): boolean {
   let changed = false;
 
@@ -778,16 +771,7 @@ function apply_upsert(
     if (!existing && is_recently_removed(raw.id)) continue;
 
     let entry = raw;
-
-    if (guard_recent_read && existing?.is_read && !raw.is_read) {
-      const noted = recently_read.get(raw.id);
-
-      if (noted && now_ms() - noted < RECENT_READ_GUARD_MS) {
-        entry = { ...raw, is_read: true };
-      }
-    }
-
-    const intended = get_read_intent(raw.id);
+    const intended = get_read_intent(raw.id, fetched_at);
 
     if (intended !== undefined && entry.is_read !== intended) {
       entry = { ...entry, is_read: intended };
@@ -929,13 +913,13 @@ export function clear_entry_previews(): void {
 export function upsert_entries(
   incoming: CategoryIndexEntry[],
   generation?: number,
-  guard_recent_read = false,
+  fetched_at?: number,
   immediate_notify = false,
 ): void {
   if (incoming.length === 0) return;
   if (generation !== undefined && generation !== index_generation) return;
 
-  if (apply_upsert(incoming, guard_recent_read)) {
+  if (apply_upsert(incoming, fetched_at)) {
     enforce_cap();
     schedule_persist();
     notify_soon(immediate_notify);
@@ -955,7 +939,7 @@ export function get_index_entries(ids: string[]): CategoryIndexEntry[] {
 }
 
 export function set_ids_read(ids: string[], is_read: boolean): void {
-  note_read_intent(ids, is_read);
+  settle_flag_intents(ids, { is_read });
 
   let changed = false;
 
@@ -965,7 +949,6 @@ export function set_ids_read(ids: string[], is_read: boolean): void {
     if (entry && entry.is_read !== is_read) {
       entries_map.set(id, { ...entry, is_read });
       mark_dirty(id);
-      if (is_read) note_recently_read(id);
       changed = true;
     }
   }
@@ -999,13 +982,12 @@ export function mark_thread_read_entries(thread_token: string): void {
     if (entry.thread_token === thread_token && !entry.is_read) {
       entries_map.set(id, { ...entry, is_read: true });
       mark_dirty(id);
-      note_recently_read(id);
       read_ids.push(id);
       changed = true;
     }
   }
 
-  if (read_ids.length > 0) note_read_intent(read_ids, true);
+  if (read_ids.length > 0) settle_flag_intents(read_ids, { is_read: true });
 
   if (changed) {
     schedule_persist();
@@ -1103,6 +1085,8 @@ export function remove_ids_absent_from_server(ids: string[]): void {
 
 export function remove_ids(ids: string[]): void {
   let changed = false;
+
+  if (ids.length > 0) note_removed_ids(ids);
 
   for (const id of ids) {
     if (entries_map.delete(id)) {
@@ -1313,8 +1297,12 @@ export function get_counts(): CategoryCounts {
   return ensure_derived().counts;
 }
 
+export function is_index_reconciled(): boolean {
+  return loaded_for_account !== null && session_reconciled;
+}
+
 export function get_inbox_unread_total(): number | null {
-  if (loaded_for_account === null || !session_reconciled) return null;
+  if (!is_index_reconciled()) return null;
   if (!fully_built || build_in_progress || build_capped) return null;
 
   let total = 0;
@@ -1447,19 +1435,6 @@ export function is_representative_unread(id: string): boolean {
   return ensure_derived().unread_reps.has(id);
 }
 
-export function is_recently_read(id: string): boolean {
-  const noted = recently_read.get(id);
-
-  if (noted === undefined) return false;
-  if (now_ms() - noted >= RECENT_READ_GUARD_MS) {
-    recently_read.delete(id);
-
-    return false;
-  }
-
-  return entries_map.get(id)?.is_read !== false;
-}
-
 export function get_category_action_ids(category: EmailCategory): {
   rep_ids: string[];
   all_ids: string[];
@@ -1555,7 +1530,6 @@ export function reconcile_server_read(
     if (entry && !entry.is_read) {
       entries_map.set(row.id, { ...entry, is_read: true });
       mark_dirty(row.id);
-      note_recently_read(row.id);
       changed = true;
     }
   }
@@ -1889,6 +1863,7 @@ export async function build_index(options?: {
     for (;;) {
       if (options?.signal?.aborted || token !== build_token) return;
 
+      const fetched_at = now_ms();
       const response = await with_deadline(
         list_mail_items({
           item_type: "received",
@@ -1918,7 +1893,7 @@ export async function build_index(options?: {
 
         if (options?.signal?.aborted || token !== build_token) return;
 
-        let chunk_changed = apply_upsert(upserts, true);
+        let chunk_changed = apply_upsert(upserts, fetched_at);
 
         for (const id of removals) {
           if (entries_map.delete(id)) {
@@ -1997,6 +1972,7 @@ export async function sync_recent(notify_new = false): Promise<void> {
   const token = build_token;
 
   try {
+    const fetched_at = now_ms();
     const response = await with_deadline(
       list_mail_items({
         item_type: "received",
@@ -2046,10 +2022,14 @@ export async function sync_recent(notify_new = false): Promise<void> {
     if (token !== build_token) return;
 
     const newly_received_ids = notify_new
-      ? upserts.filter((e) => e.id && !entries_map.has(e.id)).map((e) => e.id)
+      ? upserts
+          .filter(
+            (e) => e.id && !entries_map.has(e.id) && !is_recently_removed(e.id),
+          )
+          .map((e) => e.id)
       : [];
 
-    let changed = apply_upsert(upserts, true);
+    let changed = apply_upsert(upserts, fetched_at);
 
     if (newly_received_ids.length > 0) {
       for (const id of newly_received_ids) {
@@ -2249,6 +2229,8 @@ function schedule_resync(): void {
 }
 
 export function index_arrival(id: string): Promise<void> {
+  if (is_recently_removed(id)) return Promise.resolve();
+
   const pending = reclassify_promises.get(id);
 
   if (pending) return pending;
@@ -2277,6 +2259,7 @@ async function reclassify_id(id: string): Promise<void> {
   const generation = index_generation;
 
   try {
+    const fetched_at = now_ms();
     const response = await list_mail_items({ ids: [id] });
 
     if (generation !== index_generation) return;
@@ -2310,7 +2293,7 @@ async function reclassify_id(id: string): Promise<void> {
     }
     if (result.kind === "keep") return;
 
-    upsert_entries([result.entry], generation, true, !was_indexed);
+    upsert_entries([result.entry], generation, fetched_at, !was_indexed);
   } catch {
     return;
   } finally {
@@ -2351,6 +2334,7 @@ async function reclassify_many(ids: string[]): Promise<void> {
     const chunk = pending.slice(i, i + REINDEX_CHUNK_SIZE);
 
     try {
+      const fetched_at = now_ms();
       const response = await list_mail_items({ ids: chunk });
 
       if (generation !== index_generation) return;
@@ -2370,7 +2354,7 @@ async function reclassify_many(ids: string[]): Promise<void> {
 
       if (generation !== index_generation) return;
 
-      upsert_entries(upserts, generation, true);
+      upsert_entries(upserts, generation, fetched_at);
       clear_absent_strikes([...returned]);
       remove_ids_absent_from_server(gone);
       remove_ids([...non_received, ...removals]);
@@ -2382,6 +2366,8 @@ async function reclassify_many(ids: string[]): Promise<void> {
 
 export function reindex_ids(ids: string[]): void {
   if (ids.length === 0) return;
+
+  forget_removed_ids(ids);
 
   if (ids.length > REINDEX_FULL_REBUILD_CAP) {
     request_full_rebuild();
@@ -2437,8 +2423,9 @@ export function clear_category_index_memory(): void {
   build_capped = false;
   resync_failures = 0;
   entries_map = new Map();
-  recently_read.clear();
   clear_all_read_intents();
+  clear_removed_items();
+  absent_strikes.clear();
   recent_pins.clear();
   sibling_verify_at.clear();
   dirty_chunks.clear();
@@ -2561,6 +2548,7 @@ export function start_event_listeners(): void {
         !detail.is_spam &&
         (!!detail.encrypted_metadata || explicit_restore)
       ) {
+        if (explicit_restore) forget_removed_ids([detail.id]);
         void reclassify_id(detail.id);
       }
 
@@ -2578,8 +2566,9 @@ export function start_event_listeners(): void {
         typeof detail.is_read === "boolean" &&
         existing.is_read !== detail.is_read
       ) {
-        if (detail.is_read) note_recently_read(detail.id);
-        if (apply_upsert([{ ...existing, is_read: detail.is_read }])) {
+        if (
+          apply_upsert([{ ...existing, is_read: detail.is_read }], now_ms())
+        ) {
           schedule_persist();
           notify();
         }
@@ -2602,8 +2591,7 @@ export function start_event_listeners(): void {
       typeof detail.is_read === "boolean" &&
       existing.is_read !== detail.is_read
     ) {
-      if (detail.is_read) note_recently_read(detail.id);
-      if (apply_upsert([{ ...existing, is_read: detail.is_read }])) {
+      if (apply_upsert([{ ...existing, is_read: detail.is_read }], now_ms())) {
         schedule_persist();
         notify();
       }
@@ -2703,8 +2691,9 @@ export async function clear_category_index(): Promise<void> {
   index_generation += 1;
   clear_entry_previews();
   entries_map = new Map();
-  recently_read.clear();
   clear_all_read_intents();
+  clear_removed_items();
+  absent_strikes.clear();
   recent_pins.clear();
   sibling_verify_at.clear();
   dirty_chunks.clear();

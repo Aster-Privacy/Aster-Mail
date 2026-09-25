@@ -51,6 +51,7 @@ import {
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { is_composing } from "@/utils/ime";
 import { show_upgrade_plans } from "@/stores/upgrade_store";
+import { use_resubscribe } from "@/hooks/use_resubscribe";
 
 interface AccountMenuSheetProps {
   is_open: boolean;
@@ -73,6 +74,7 @@ export function AccountMenuSheet({
   handle_nav,
   handle_logout,
 }: AccountMenuSheetProps) {
+  const { can_resubscribe, resubscribe } = use_resubscribe(is_open);
   const { t } = use_i18n();
 
   return (
@@ -146,10 +148,13 @@ export function AccountMenuSheet({
             variant="depth"
             onClick={() => {
               on_close();
-              show_upgrade_plans();
+              if (can_resubscribe) resubscribe();
+              else show_upgrade_plans();
             }}
           >
-            {t("common.upgrade")}
+            {can_resubscribe
+              ? t("auth.resubscribe_to_aster")
+              : t("common.upgrade")}
           </Button>
           <button
             className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start active:bg-[var(--bg-tertiary)]"

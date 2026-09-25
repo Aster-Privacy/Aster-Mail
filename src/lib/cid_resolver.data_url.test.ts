@@ -85,7 +85,7 @@ describe("resolve_cid_references url_mode", () => {
     expect(result.html).not.toContain("cid:");
   });
 
-  it("returns blob urls by default", async () => {
+  it("returns cache-owned blob urls by default", async () => {
     const create_object_url = vi
       .spyOn(URL, "createObjectURL")
       .mockReturnValue("blob:mock-url");
@@ -96,7 +96,7 @@ describe("resolve_cid_references url_mode", () => {
     );
 
     expect(create_object_url).toHaveBeenCalled();
-    expect(result.blob_urls).toEqual(["blob:mock-url"]);
+    expect(result.blob_urls).toEqual([]);
     expect(result.html).toContain('src="blob:mock-url"');
 
     create_object_url.mockRestore();

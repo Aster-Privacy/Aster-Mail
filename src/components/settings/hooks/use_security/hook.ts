@@ -27,6 +27,7 @@ import { resolve_password_change_error } from "../password_change_error";
 import { LogoutOthersResponse, SESSION_TIMEOUT_OPTIONS } from "./options";
 import { use_security_fetchers } from "./fetchers";
 
+import { reprotect_vault_keys_for_password_change } from "@/services/crypto/identity_key_materials";
 import { collect_vault_key_fingerprints } from "@/services/crypto/vault_key_fingerprints";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_auth } from "@/contexts/auth_context";
@@ -53,7 +54,6 @@ import {
   encrypt_vault,
   base64_to_array,
 } from "@/services/crypto/key_manager";
-import { reprotect_pgp_key } from "@/services/crypto/key_manager_pgp";
 import {
   derive_kek_from_password,
   serialize_kek_for_vault,
@@ -68,6 +68,10 @@ import {
   save_dev_mode,
 } from "@/services/api/preferences";
 import { reencrypt_all_sent_mail } from "@/services/send_queue_encryption";
+import {
+  convert_before_password_change,
+  sent_mail_needs_password_reseal,
+} from "@/services/account_data_conversion";
 import { re_encrypt_user_data } from "@/services/crypto/password_change_reencrypt";
 import {
   reencrypt_settings_password_change,
@@ -98,6 +102,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
+import { write_locked_sent_mail } from "@/services/locked_sent_mail_store";
 
 export function use_security() {
   const { t } = use_i18n();
@@ -142,14 +147,6 @@ export function use_security() {
   const [password_success, set_password_success] = useState(false);
   const [password_unreadable_notice, set_password_unreadable_notice] =
     useState("");
-  const [show_restore_sent_mail, set_show_restore_sent_mail] = useState(false);
-  const [previous_password, set_previous_password] = useState("");
-  const [restore_sent_mail_loading, set_restore_sent_mail_loading] =
-    useState(false);
-  const [restore_sent_mail_progress, set_restore_sent_mail_progress] =
-    useState(0);
-  const [restore_sent_mail_result, set_restore_sent_mail_result] = useState("");
-  const [restore_sent_mail_error, set_restore_sent_mail_error] = useState("");
   const [password_breach_warning, set_password_breach_warning] =
     useState(false);
   const [logout_others_loading, set_logout_others_loading] = useState(false);
@@ -435,6 +432,9 @@ export function use_security() {
           vault.data_kek = memory_vault?.data_kek;
           vault.vault_format = memory_vault?.vault_format;
           vault.mk_created_at = memory_vault?.mk_created_at;
+          vault.legacy_identity_keys = memory_vault?.legacy_identity_keys
+            ? [...memory_vault.legacy_identity_keys]
+            : vault.legacy_identity_keys;
           vault.legacy_keks = memory_vault?.legacy_keks
             ? [...memory_vault.legacy_keks]
             : vault.legacy_keks;
@@ -461,6 +461,11 @@ export function use_security() {
           memory_vault.ratchet_regen_v4_done ?? vault.ratchet_regen_v4_done;
       }
 
+      const sent_mail_conversion = await convert_before_password_change({
+        identity_key: vault.identity_key,
+        passphrase: current_password,
+      });
+
       await upgrade_vault_to_master_key(vault, current_password);
 
       const master_key_mode = is_master_key_vault(vault);
@@ -472,43 +477,11 @@ export function use_security() {
       const old_dev_mode_key_raw =
         await derive_dev_mode_key_raw(old_identity_key);
 
-      const reprotected_identity_key = await reprotect_pgp_key(
-        vault.identity_key,
+      await reprotect_vault_keys_for_password_change(
+        vault,
         current_password,
         new_password,
       );
-
-      const reprotected_previous: string[] = [];
-
-      for (const previous_key of vault.previous_keys ?? []) {
-        try {
-          reprotected_previous.push(
-            await reprotect_pgp_key(
-              previous_key,
-              current_password,
-              new_password,
-            ),
-          );
-        } catch {
-          reprotected_previous.push(previous_key);
-        }
-      }
-      vault.previous_keys = reprotected_previous;
-      vault.previous_keys.unshift(reprotected_identity_key);
-
-      if (vault.previous_keys.length > 10) {
-        vault.previous_keys = vault.previous_keys.slice(0, 10);
-      }
-
-      vault.identity_key = reprotected_identity_key;
-
-      if (vault.signed_prekey_private) {
-        vault.signed_prekey_private = await reprotect_pgp_key(
-          vault.signed_prekey_private,
-          current_password,
-          new_password,
-        );
-      }
 
       const new_salt = crypto.getRandomValues(new Uint8Array(16));
       const { hash: new_password_hash, salt: new_password_salt } =
@@ -705,8 +678,17 @@ export function use_security() {
         );
       };
 
-      reencrypt_all_sent_mail(current_password, new_password)
+      sent_mail_needs_password_reseal(sent_mail_conversion)
+        .then((needed) =>
+          needed
+            ? reencrypt_all_sent_mail(current_password, new_password)
+            : null,
+        )
         .then((summary) => {
+          if (!summary) return;
+
+          write_locked_sent_mail(user.id, summary.unreadable);
+
           if (summary.failed > 0) {
             note_reencrypt_failure(
               new Error(`sent mail reseal failed for ${summary.failed} items`),
@@ -1026,74 +1008,6 @@ export function use_security() {
     set_show_password_section(show);
   };
 
-  const handle_restore_sent_mail = async () => {
-    if (!previous_password || restore_sent_mail_loading) return;
-
-    const current = get_passphrase_from_memory();
-
-    set_restore_sent_mail_error("");
-    set_restore_sent_mail_result("");
-    set_restore_sent_mail_progress(0);
-
-    if (!current) {
-      set_restore_sent_mail_error(
-        t("settings.restore_sent_mail_session_expired"),
-      );
-
-      return;
-    }
-
-    set_restore_sent_mail_loading(true);
-
-    try {
-      const summary = await reencrypt_all_sent_mail(
-        previous_password,
-        current,
-        {
-          on_progress: (progress) =>
-            set_restore_sent_mail_progress(progress.checked),
-        },
-      );
-
-      if (summary.failed > 0) {
-        set_restore_sent_mail_error(t("settings.restore_sent_mail_failed"));
-      }
-
-      if (summary.rewritten === 0 && summary.unreadable === 0) {
-        set_restore_sent_mail_result(t("settings.restore_sent_mail_nothing"));
-      } else {
-        set_restore_sent_mail_result(
-          t("settings.restore_sent_mail_result")
-            .replace("{{rewritten}}", String(summary.rewritten))
-            .replace("{{unreadable}}", String(summary.unreadable)),
-        );
-      }
-
-      if (summary.rewritten > 0) {
-        set_password_unreadable_notice("");
-        set_previous_password("");
-      }
-    } catch (caught) {
-      ignore_error(
-        "components/settings/hooks/use_security/hook:handle_restore_sent_mail",
-        caught,
-      );
-      set_restore_sent_mail_error(t("settings.restore_sent_mail_failed"));
-    } finally {
-      set_restore_sent_mail_loading(false);
-    }
-  };
-
-  const handle_restore_sent_mail_cancel = () => {
-    if (restore_sent_mail_loading) return;
-
-    set_show_restore_sent_mail(false);
-    set_previous_password("");
-    set_restore_sent_mail_result("");
-    set_restore_sent_mail_error("");
-    set_restore_sent_mail_progress(0);
-  };
-
   const handle_password_cancel = () => {
     set_password_success(false);
     set_show_password_section(false);
@@ -1160,18 +1074,6 @@ export function use_security() {
     password_unreadable_notice,
     handle_change_password,
     handle_password_cancel,
-    restore_sent_mail: {
-      show: show_restore_sent_mail,
-      set_show: set_show_restore_sent_mail,
-      previous_password,
-      set_previous_password,
-      loading: restore_sent_mail_loading,
-      progress: restore_sent_mail_progress,
-      result: restore_sent_mail_result,
-      error: restore_sent_mail_error,
-      on_restore: handle_restore_sent_mail,
-      on_cancel: handle_restore_sent_mail_cancel,
-    },
 
     handle_timeout_toggle,
     handle_timeout_change,

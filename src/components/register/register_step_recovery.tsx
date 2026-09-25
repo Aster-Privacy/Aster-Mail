@@ -22,6 +22,10 @@ import type { UseRegistrationReturn } from "@/components/register/hooks/use_regi
 
 import { motion, AnimatePresence } from "framer-motion";
 
+import {
+  TurnstileWidget,
+  TURNSTILE_SITE_KEY,
+} from "@/components/auth/turnstile_widget";
 import { Spinner } from "@/components/ui/spinner";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { EyeIcon, EyeSlashIcon } from "@/components/auth/auth_styles";
@@ -367,9 +371,18 @@ export const RegisterStepRecoveryEmailGate = ({
         )}
       </AnimatePresence>
 
+      <TurnstileWidget
+        ref={reg.turnstile_ref}
+        on_expire={() => reg.set_captcha_token("")}
+        on_verify={reg.set_captcha_token}
+      />
+
       <OnboardingButton
         className="mt-4 w-full"
-        disabled={reg.is_saving_recovery_email}
+        disabled={
+          reg.is_saving_recovery_email ||
+          (!!TURNSTILE_SITE_KEY && !reg.captcha_token)
+        }
         is_loading={reg.is_saving_recovery_email}
         variant="primary"
         onClick={reg.handle_recovery_email_gate_submit}

@@ -447,9 +447,19 @@ export function ComposeWindow({
             <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
               <div className="px-4 pt-3 relative z-20">
                 <div className="flex items-center gap-2 py-2 border-b border-edge-secondary">
-                  <span className="text-sm flex-shrink-0 text-txt-tertiary">
+                  <button
+                    className="text-sm flex-shrink-0 text-txt-tertiary"
+                    type="button"
+                    onClick={(e) =>
+                      e.currentTarget.parentElement
+                        ?.querySelector<HTMLButtonElement>(
+                          "button[aria-haspopup]",
+                        )
+                        ?.click()
+                    }
+                  >
                     {t("mail.from")}
-                  </span>
+                  </button>
                   <SenderSelector
                     disabled={compose.aliases_loading}
                     ghost_error={compose.ghost_mode.error}

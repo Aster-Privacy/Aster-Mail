@@ -128,7 +128,6 @@ vi.mock("@/services/category_index", () => ({
   remove_ids_absent_from_server: vi.fn(),
   clear_absent_strikes: vi.fn(),
   suppress_ids: vi.fn(),
-  is_recently_read: () => false,
   is_representative_unread: () => false,
   sync_recent: vi.fn(async () => {}),
   set_sort_order: vi.fn(),

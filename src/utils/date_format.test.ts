@@ -26,9 +26,12 @@ import {
   format_email_list_timestamp,
   format_full_date,
   format_full_datetime,
+  format_print_timestamp,
   format_timestamp_smart,
   locale_date_format,
   set_display_date_format,
+  set_display_relative_dates,
+  app_relative_dates,
   format_date,
   format_iso_date,
   set_display_time_zone,
@@ -145,6 +148,84 @@ describe("format_email_detail_timestamp", () => {
     expect(format_email_detail_timestamp(d, US)).toMatch(/2019/);
     expect(format_email_detail_timestamp(d, EU)).toMatch(/2019/);
     expect(format_email_detail_timestamp(d, ISO)).toMatch(/2019/);
+  });
+});
+
+describe("relative dates turned off", () => {
+  const ABSOLUTE: FormatOptions = { ...US, relative_dates: false };
+
+  afterEach(() => {
+    set_display_relative_dates(undefined);
+    localStorage.clear();
+  });
+
+  it("shows the date instead of the time for today in the list", () => {
+    expect(
+      format_email_list_timestamp(new Date("2026-08-03T09:30:00Z"), ABSOLUTE),
+    ).toBe("Aug 3");
+  });
+
+  it("shows the date and time instead of Today in the detail header", () => {
+    const result = format_email_detail_timestamp(
+      new Date("2026-08-03T09:30:00Z"),
+      ABSOLUTE,
+    );
+
+    expect(result).not.toMatch(/Today/);
+    expect(result).toMatch(/^Aug 3 at /);
+  });
+
+  it("shows the date and time instead of Yesterday in the detail header", () => {
+    const result = format_email_detail_timestamp(
+      new Date("2026-08-02T09:30:00Z"),
+      ABSOLUTE,
+    );
+
+    expect(result).not.toMatch(/Yesterday/);
+    expect(result).toMatch(/^Aug 2 at /);
+  });
+
+  it("keeps the year on an older message", () => {
+    expect(
+      format_email_detail_timestamp(new Date("2022-08-02T09:30:00Z"), ABSOLUTE),
+    ).toMatch(/2022/);
+  });
+
+  it("drops the relative wording from format_timestamp_smart", () => {
+    expect(
+      format_timestamp_smart(new Date("2026-08-03T09:30:00Z"), ABSOLUTE),
+    ).toBe("Aug 3");
+  });
+
+  it("keeps relative wording when the option is on", () => {
+    expect(
+      format_email_detail_timestamp(new Date("2026-08-02T09:30:00Z"), {
+        ...US,
+        relative_dates: true,
+      }),
+    ).toMatch(/Yesterday/);
+  });
+
+  it("falls back to the stored preference when no option is passed", () => {
+    set_display_relative_dates(false);
+
+    expect(format_timestamp_smart(new Date("2026-08-02T09:30:00Z"), US)).toBe(
+      "Aug 2",
+    );
+  });
+
+  it("reads the preference from storage on a cold start", () => {
+    set_display_relative_dates(undefined);
+    localStorage.setItem("astermail_relative_dates", "false");
+
+    expect(app_relative_dates()).toBe(false);
+  });
+
+  it("defaults to relative dates when nothing is stored", () => {
+    set_display_relative_dates(undefined);
+    localStorage.clear();
+
+    expect(app_relative_dates()).toBe(true);
   });
 });
 
@@ -442,5 +523,38 @@ describe("zoned date construction", () => {
     expect(zoned_start_of_day(source).getTime()).toBe(
       new Date(2026, 7, 3, 0, 0, 0, 0).getTime(),
     );
+  });
+});
+
+describe("format_print_timestamp", () => {
+  it("formats an ISO string as an absolute date and time", () => {
+    set_display_time_zone("UTC");
+    set_display_locale("en-US");
+
+    const printed = format_print_timestamp(
+      "2026-09-16T12:05:00.000Z",
+      "fallback",
+    );
+
+    expect(printed).toContain("2026");
+    expect(printed).not.toBe("fallback");
+    expect(printed).not.toContain("Invalid");
+  });
+
+  it("formats a Date the same way as an equivalent ISO string", () => {
+    set_display_time_zone("UTC");
+    set_display_locale("en-US");
+
+    const date = new Date("2026-09-16T12:05:00.000Z");
+
+    expect(format_print_timestamp(date, "fallback")).toBe(
+      format_print_timestamp("2026-09-16T12:05:00.000Z", "fallback"),
+    );
+  });
+
+  it("returns the fallback for an unparsable, null, or undefined value", () => {
+    expect(format_print_timestamp("Yesterday", "Yesterday")).toBe("Yesterday");
+    expect(format_print_timestamp(null, "fallback")).toBe("fallback");
+    expect(format_print_timestamp(undefined, "fallback")).toBe("fallback");
   });
 });

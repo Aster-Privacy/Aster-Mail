@@ -49,6 +49,7 @@ interface ToastState {
   message: string;
   icon_type?: ToastIconType;
   action?: ToastAction;
+  repeat?: number;
 }
 
 const MAX_TOASTS = 3;
@@ -95,6 +96,11 @@ export function show_toast(
   );
 
   if (duplicate) {
+    toast_stack = toast_stack.map((t) =>
+      t.id === duplicate.id ? { ...t, repeat: (t.repeat ?? 0) + 1 } : t,
+    );
+    toast_listeners.forEach((listener) => listener([...toast_stack]));
+
     const existing_timeout = toast_timeouts.get(duplicate.id);
 
     if (existing_timeout) {
@@ -240,7 +246,13 @@ export function SimpleToast({ position }: SimpleToastProps) {
               layout: { duration: 0.2 },
             }}
           >
-            <div className="px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 bg-modal-bg border border-edge-secondary max-w-[min(92vw,28rem)]">
+            <motion.div
+              key={toast.repeat ?? 0}
+              animate={{ x: toast.repeat ? [0, -5, 5, -3, 0] : 0 }}
+              className="px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 bg-modal-bg border border-edge-secondary max-w-[min(92vw,28rem)]"
+              initial={{ x: 0 }}
+              transition={{ duration: reduce_motion ? 0 : 0.32 }}
+            >
               {get_toast_icon(toast.icon_type) && (
                 <span className="flex-shrink-0 text-txt-primary">
                   {get_toast_icon(toast.icon_type)}
@@ -269,7 +281,7 @@ export function SimpleToast({ position }: SimpleToastProps) {
               >
                 <XMarkIcon className="w-3.5 h-3.5" />
               </button>
-            </div>
+            </motion.div>
           </motion.div>
         ))}
       </AnimatePresence>

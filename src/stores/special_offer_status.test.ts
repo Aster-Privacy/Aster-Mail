@@ -41,6 +41,8 @@ import {
   load_special_offer_status,
   record_special_offer_accepted,
   reset_special_offer_status,
+  restore_special_offer_status,
+  suppress_special_offer_status,
 } from "./special_offer_status";
 
 function make_status(
@@ -212,5 +214,86 @@ describe("record_special_offer_accepted", () => {
     expect(status?.shown).toBe(true);
     expect(status?.auto_show).toBe(false);
     expect(status?.available).toBe(true);
+  });
+});
+
+describe("special offer opt-out", () => {
+  beforeEach(() => {
+    reset_special_offer_status();
+    vi.clearAllMocks();
+  });
+
+  it("hides the offer and stops the auto show at once", async () => {
+    api.fetch_special_offer_status.mockResolvedValueOnce(make_status());
+
+    await load_special_offer_status("user_a");
+    suppress_special_offer_status();
+
+    const state = get_special_offer_status_snapshot();
+
+    expect(state.user_id).toBe("user_a");
+    expect(state.status?.available).toBe(false);
+    expect(state.status?.auto_show).toBe(false);
+  });
+
+  it("drops an in-flight response that would show the offer again", async () => {
+    const pending = deferred<SpecialOfferStatus | null>();
+
+    api.fetch_special_offer_status.mockReturnValueOnce(pending.promise);
+
+    const request = load_special_offer_status("user_a");
+
+    suppress_special_offer_status();
+    pending.resolve(make_status());
+    await request;
+
+    const state = get_special_offer_status_snapshot();
+
+    expect(state.is_loaded).toBe(true);
+    expect(state.status).toBeNull();
+  });
+
+  it("ignores a claim that resolves after the opt-out", async () => {
+    const claim = deferred<boolean>();
+
+    api.fetch_special_offer_status.mockResolvedValueOnce(make_status());
+    api.claim_special_offer.mockReturnValueOnce(claim.promise);
+
+    await load_special_offer_status("user_a");
+
+    const granted = claim_special_offer_slot();
+
+    suppress_special_offer_status();
+    claim.resolve(true);
+
+    expect(await granted).toBe(false);
+    expect(get_special_offer_status_snapshot().status?.auto_show).toBe(false);
+  });
+
+  it("refreshes from the server without opening the offer when turned back on", async () => {
+    api.fetch_special_offer_status
+      .mockResolvedValueOnce(make_status())
+      .mockResolvedValueOnce(make_status({ available: true, auto_show: true }));
+
+    await load_special_offer_status("user_a");
+    suppress_special_offer_status();
+    await restore_special_offer_status();
+
+    const status = get_special_offer_status_snapshot().status;
+
+    expect(api.fetch_special_offer_status).toHaveBeenCalledTimes(2);
+    expect(status?.available).toBe(true);
+    expect(status?.auto_show).toBe(false);
+  });
+
+  it("does nothing when no account is signed in", async () => {
+    suppress_special_offer_status();
+    await restore_special_offer_status();
+
+    const state = get_special_offer_status_snapshot();
+
+    expect(api.fetch_special_offer_status).not.toHaveBeenCalled();
+    expect(state.user_id).toBeNull();
+    expect(state.is_loaded).toBe(false);
   });
 });

@@ -147,6 +147,15 @@ pub fn encrypt_and_sign(
     recipients: &[&PublicKey],
     signer: &KeyPair,
 ) -> Result<Vec<u8>> {
+    encrypt_and_sign_with_passphrase(plaintext, recipients, signer, "")
+}
+
+pub fn encrypt_and_sign_with_passphrase(
+    plaintext: &[u8],
+    recipients: &[&PublicKey],
+    signer: &KeyPair,
+    passphrase: &str,
+) -> Result<Vec<u8>> {
     if recipients.is_empty() {
         return Err(CryptoError::NoValidRecipient);
     }
@@ -157,7 +166,7 @@ pub fn encrypt_and_sign(
         .sign(
             &mut OsRng,
             signer.secret_key(),
-            || "".to_string(),
+            || passphrase.to_string(),
             HashAlgorithm::SHA2_512,
         )
         .map_err(|e: pgp::errors::Error| CryptoError::Signing(e.to_string()))?;

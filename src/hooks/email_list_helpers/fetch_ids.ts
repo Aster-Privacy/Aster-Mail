@@ -54,6 +54,7 @@ export async function fetch_mail_by_ids_reconciled(
     };
   }
 
+  const fetched_at = Date.now();
   const response = await list_mail_items({ ids });
 
   if (!response.data) {
@@ -143,7 +144,7 @@ export async function fetch_mail_by_ids_reconciled(
   );
 
   return {
-    emails: apply_flag_intents(emails),
+    emails: apply_flag_intents(emails, fetched_at),
     missing_ids,
     unrenderable_ids,
     request_ok: true,

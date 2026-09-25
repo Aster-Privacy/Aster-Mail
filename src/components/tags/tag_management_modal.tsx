@@ -25,8 +25,8 @@ import {
   TrashIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import {
   Modal,
   ModalHeader,
@@ -309,7 +309,9 @@ export function TagManagementModal({
               </div>
 
               {error && (
-                <p className="text-[13px] text-red-500 mt-4">{error}</p>
+                <p className="text-[13px] text-red-500 mt-4" role="alert">
+                  {error}
+                </p>
               )}
             </ModalBody>
 
@@ -365,7 +367,9 @@ export function TagManagementModal({
               />
 
               {error && (
-                <p className="text-[13px] text-red-500 mt-4">{error}</p>
+                <p className="text-[13px] text-red-500 mt-4" role="alert">
+                  {error}
+                </p>
               )}
             </ModalBody>
 
@@ -427,7 +431,9 @@ export function TagManagementModal({
               </p>
 
               {error && (
-                <p className="text-[13px] text-red-500 mt-4">{error}</p>
+                <p className="text-[13px] text-red-500 mt-4" role="alert">
+                  {error}
+                </p>
               )}
             </ModalBody>
 

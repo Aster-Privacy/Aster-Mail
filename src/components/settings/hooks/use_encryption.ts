@@ -27,7 +27,6 @@ import type {
 import { useState, useEffect, useRef } from "react";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { api_client } from "@/services/api/client";
@@ -48,7 +47,11 @@ import {
   get_keyserver_publication_status,
   clear_external_key_cache,
 } from "@/services/api/keys";
-import { generate_recovery_codes } from "@/services/crypto/key_manager_pgp";
+import {
+  armored_private_key_matches,
+  find_unlockable_private_key,
+  generate_recovery_codes,
+} from "@/services/crypto/key_manager_pgp";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import {
   generate_recovery_key,
@@ -387,9 +390,16 @@ export function use_encryption() {
         return;
       }
 
-      let armored_key: string | undefined;
+      const vault = get_vault_from_memory();
+      let armored_key: string | undefined =
+        (await find_unlockable_private_key(
+          [vault?.identity_key, ...(vault?.previous_keys ?? [])],
+          response.data?.fingerprint ?? "",
+          export_password,
+        )) ?? undefined;
 
       if (
+        !armored_key &&
         response.data?.client_side_decryption &&
         response.data.encrypted_private_key_blob &&
         response.data.private_key_nonce
@@ -424,15 +434,20 @@ export function use_encryption() {
           ["decrypt"],
         );
 
-        const decrypted = await decrypt_aes_gcm_with_fallback(
+        const decrypted = await crypto.subtle.decrypt(
+          { name: "AES-GCM", iv: nonce },
           decryption_key,
           ciphertext,
-          nonce,
         );
 
-        armored_key = new TextDecoder().decode(decrypted);
-      } else {
-        armored_key = response.data?.private_key_encrypted;
+        const opened = new TextDecoder().decode(decrypted);
+
+        armored_key = (await armored_private_key_matches(
+          opened,
+          response.data.fingerprint ?? "",
+        ))
+          ? opened
+          : undefined;
       }
 
       if (!armored_key) {

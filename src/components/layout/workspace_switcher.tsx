@@ -21,6 +21,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
+  ArrowPathIcon,
   ArrowRightStartOnRectangleIcon,
   PlusIcon,
   PowerIcon,
@@ -41,6 +42,7 @@ import { AccountAvatarButton } from "@/components/ui/account_avatar_button";
 import { use_auth } from "@/contexts/auth_context";
 import { use_mail_stats, prefetch_mail_stats } from "@/hooks/use_mail_stats";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { use_resubscribe } from "@/hooks/use_resubscribe";
 import { PlanBadge } from "@/components/common/plan_badge";
 import { use_preferences } from "@/contexts/preferences_context";
 import { get_all_accounts } from "@/services/account_manager";
@@ -86,6 +88,7 @@ export function WorkspaceSwitcher({
   const { preferences } = use_preferences();
   const { stats, has_initialized: stats_ready, refresh } = use_mail_stats();
   const { limits } = use_plan_limits();
+  const { can_resubscribe, resubscribe } = use_resubscribe(is_open);
   const is_paid_plan = !!limits && limits.plan_code !== "free";
 
   const is_unlimited_accounts = max_account_limit === UNLIMITED_ACCOUNTS;
@@ -548,6 +551,24 @@ export function WorkspaceSwitcher({
                   );
                 })}
               </div>
+            )}
+
+            {can_resubscribe && (
+              <button
+                className="account_menu_tile account_menu_tile_accent"
+                type="button"
+                onClick={() => {
+                  on_open_change(false);
+                  resubscribe();
+                }}
+              >
+                <span className="account_menu_tile_icon">
+                  <ArrowPathIcon className="w-[18px] h-[18px]" />
+                </span>
+                <span className="account_menu_tile_label">
+                  {t("auth.resubscribe_to_aster")}
+                </span>
+              </button>
             )}
 
             <button

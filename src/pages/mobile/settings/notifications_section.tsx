@@ -39,6 +39,7 @@ import {
   set_product_updates_subscription,
 } from "@/services/api/product_updates";
 import { show_toast } from "@/components/toast/simple_toast";
+import { use_offer_preferences } from "@/hooks/use_offer_preferences";
 
 type PermissionState = "granted" | "denied" | "default" | "unsupported";
 
@@ -66,6 +67,7 @@ export function NotificationsSection({
   const [product_updates_busy, set_product_updates_busy] = useState(false);
   const [product_updates_info_open, set_product_updates_info_open] =
     useState(false);
+  const offer_preferences = use_offer_preferences();
 
   useEffect(() => {
     let cancelled = false;
@@ -306,6 +308,21 @@ export function NotificationsSection({
                 )}
               </div>
             </>
+          )}
+          {offer_preferences.enabled !== null && (
+            <SettingsRow
+              description={t("settings.special_offers_description")}
+              label={t("settings.special_offers")}
+              trailing={
+                <Switch
+                  checked={offer_preferences.enabled}
+                  disabled={offer_preferences.busy}
+                  onCheckedChange={(next) =>
+                    void offer_preferences.toggle(next)
+                  }
+                />
+              }
+            />
           )}
         </SettingsGroup>
 

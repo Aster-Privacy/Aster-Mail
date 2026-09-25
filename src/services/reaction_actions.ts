@@ -105,7 +105,9 @@ export async function remove_reaction(
     if (response.error || !response.data?.success) {
       return {
         success: false,
-        error: get_active_translations().errors.failed_remove_reaction,
+        error:
+          response.error ??
+          get_active_translations().errors.failed_remove_reaction,
       };
     }
 
@@ -215,10 +217,19 @@ export async function send_reaction(
         : resolve_reaction_in_reply_to(message),
     });
 
+    if (response.server_code === "REACTION_LIMIT_REACHED") {
+      return {
+        success: false,
+        error: get_active_translations().errors.cannot_react_limit,
+      };
+    }
+
     if (response.error || !response.data?.success) {
       return {
         success: false,
-        error: get_active_translations().errors.failed_send_reaction,
+        error:
+          response.error ??
+          get_active_translations().errors.failed_send_reaction,
       };
     }
 

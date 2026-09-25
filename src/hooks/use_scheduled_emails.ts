@@ -236,8 +236,13 @@ export function use_scheduled_emails(
     () => ({
       date_format: preferences.date_format as FormatOptions["date_format"],
       time_format: preferences.time_format,
+      relative_dates: preferences.relative_dates !== false,
     }),
-    [preferences.date_format, preferences.time_format],
+    [
+      preferences.date_format,
+      preferences.time_format,
+      preferences.relative_dates,
+    ],
   );
 
   const fetch_scheduled = useCallback(async () => {

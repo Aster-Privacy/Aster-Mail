@@ -84,6 +84,8 @@ export async function complete_recovery(
   new_signed_prekey_signature?: string,
   new_pgp_key?: NewPgpKeyData,
   vault_format?: number,
+  new_account_key_token?: string,
+  new_account_key_fingerprint?: string,
 ): Promise<ApiResponse<CompleteRecoveryResponse>> {
   return api_client.post<CompleteRecoveryResponse>(
     "/core/v1/recovery/complete",
@@ -102,6 +104,8 @@ export async function complete_recovery(
       new_signed_prekey_signature,
       new_pgp_key,
       vault_format,
+      new_account_key_token,
+      new_account_key_fingerprint,
     },
   );
 }
@@ -270,5 +274,87 @@ export async function consume_inactive_key_set(
   return api_client.post<{ success: boolean }>(
     "/core/v1/recovery/inactive/consume",
     { inactive_vault_id },
+  );
+}
+
+export interface DeviceRecoverySecret {
+  snapshot_id: string;
+  secret: string;
+}
+
+export async function put_device_recovery_secret(
+  snapshot_id: string,
+  secret: string,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.put<{ success: boolean }>(
+    "/core/v1/recovery/device-secrets",
+    { snapshot_id, secret },
+  );
+}
+
+export async function fetch_device_recovery_secrets(
+  snapshot_ids: string[],
+): Promise<ApiResponse<{ secrets: DeviceRecoverySecret[] }>> {
+  return api_client.post<{ secrets: DeviceRecoverySecret[] }>(
+    "/core/v1/recovery/device-secrets/fetch",
+    { snapshot_ids },
+  );
+}
+
+export async function delete_device_recovery_secrets(
+  snapshot_ids: string[],
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.post<{ success: boolean }>(
+    "/core/v1/recovery/device-secrets/delete",
+    { snapshot_ids },
+  );
+}
+
+export interface EscrowEntry {
+  token_version: number;
+  sealed: string;
+}
+
+export interface EscrowStateResponse {
+  escrow_public_key: string | null;
+  token_versions: number[];
+}
+
+export interface FetchEscrowResponse {
+  user_id: string;
+  escrow_public_key: string | null;
+  entries: EscrowEntry[];
+}
+
+export async function get_recovery_escrow_state(): Promise<
+  ApiResponse<EscrowStateResponse>
+> {
+  return api_client.get<EscrowStateResponse>("/core/v1/recovery/escrow");
+}
+
+export async function put_recovery_escrow_public_key(
+  escrow_public_key: string,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.put<{ success: boolean }>("/core/v1/recovery/escrow", {
+    escrow_public_key,
+  });
+}
+
+export async function put_recovery_escrow_key(
+  token_version: number,
+  sealed: string,
+): Promise<ApiResponse<{ success: boolean }>> {
+  return api_client.put<{ success: boolean }>("/core/v1/recovery/escrow/key", {
+    token_version,
+    sealed,
+  });
+}
+
+export async function fetch_recovery_escrow_keys(
+  recovery_token: string,
+): Promise<ApiResponse<FetchEscrowResponse>> {
+  return api_client.post<FetchEscrowResponse>(
+    "/core/v1/recovery/escrow/fetch",
+    { recovery_token },
   );
 }

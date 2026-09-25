@@ -119,6 +119,9 @@ export function use_sign_in_page() {
   const [email_domain, set_email_domain] = useState<SignInDomain>(
     () => parse_prefill_identity().domain ?? "astermail.org",
   );
+  const [is_domain_explicit, set_is_domain_explicit] = useState(
+    () => parse_prefill_identity().domain !== null,
+  );
   const [remember_me, set_remember_me] = useState(true);
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState(() =>
@@ -600,6 +603,7 @@ export function use_sign_in_page() {
           set_error(t("common.account_suspended"));
           set_is_loading(false);
           set_captcha_token("");
+          turnstile_ref.current?.reset();
           set_totp_required(false);
           set_pending_login_token("");
           set_available_2fa_methods([]);
@@ -670,6 +674,7 @@ export function use_sign_in_page() {
             set_error(t("passkeys.vault_needs_password"));
             set_is_loading(false);
             set_captcha_token("");
+            turnstile_ref.current?.reset();
             set_totp_required(false);
             set_pending_login_token("");
             set_available_2fa_methods([]);
@@ -736,6 +741,7 @@ export function use_sign_in_page() {
             set_error(add_result.error || t("errors.login_failed"));
             set_is_loading(false);
             set_captcha_token("");
+            turnstile_ref.current?.reset();
             set_totp_required(false);
             set_pending_login_token("");
             set_available_2fa_methods([]);
@@ -802,6 +808,7 @@ export function use_sign_in_page() {
         }
         set_is_loading(false);
         set_captcha_token("");
+        turnstile_ref.current?.reset();
         set_totp_required(false);
         set_pending_login_token("");
         set_available_2fa_methods([]);
@@ -913,6 +920,8 @@ export function use_sign_in_page() {
     set_password,
     email_domain,
     set_email_domain,
+    is_domain_explicit,
+    set_is_domain_explicit,
     remember_me,
     set_remember_me,
     set_is_loading,

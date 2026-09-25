@@ -41,6 +41,8 @@ import { use_auto_advance } from "@/components/email/hooks/use_auto_advance";
 import { use_metadata_migration } from "@/hooks/use_metadata_migration";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { use_background_subscription_scan } from "@/hooks/use_background_subscription_scan";
+import { use_account_data_conversion } from "@/hooks/use_account_data_conversion";
+import { use_device_recovery } from "@/hooks/use_device_recovery";
 import { use_subscriptions } from "@/hooks/use_subscriptions";
 import { use_document_title } from "@/hooks/use_document_title";
 import { use_keyboard_shortcuts } from "@/hooks/use_keyboard_shortcuts";
@@ -71,7 +73,10 @@ import {
   batched_bulk_add_tag,
   batched_bulk_remove_tag,
 } from "@/services/api/tags";
-import { remove_ids as remove_category_index_ids } from "@/services/category_index";
+import {
+  remove_ids as remove_category_index_ids,
+  reindex_ids as reindex_category_ids,
+} from "@/services/category_index";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { set_forward_mail_id } from "@/services/forward_store";
@@ -151,6 +156,8 @@ export function use_index_page_state() {
 
   use_metadata_migration();
   use_background_subscription_scan();
+  use_account_data_conversion();
+  use_device_recovery();
 
   const { unsubscribe: unsubscribe_sender } = use_subscriptions();
 
@@ -968,6 +975,7 @@ export function use_index_page_state() {
               stale_all_view_caches();
             }
           }
+          reindex_category_ids(moved_ids);
           emit_mail_stats_stale();
           emit_mail_soft_refresh();
         },

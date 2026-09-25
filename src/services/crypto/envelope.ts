@@ -174,6 +174,36 @@ export async function encrypt_envelope(
   return result;
 }
 
+export async function decrypt_envelope_plaintext_with_bytes(
+  encrypted_data: string,
+  passphrase_bytes: Uint8Array,
+): Promise<string | null> {
+  try {
+    const combined = base64_to_array(encrypted_data);
+
+    if (combined.length <= SALT_LENGTH + NONCE_LENGTH) return null;
+
+    const salt = combined.slice(0, SALT_LENGTH);
+    const nonce = combined.slice(SALT_LENGTH, SALT_LENGTH + NONCE_LENGTH);
+    const ciphertext = combined.slice(SALT_LENGTH + NONCE_LENGTH);
+
+    const crypto_key = await derive_envelope_key_from_bytes(
+      passphrase_bytes,
+      salt,
+    );
+
+    const decrypted = await decrypt_aes_gcm_with_fallback(
+      crypto_key,
+      ciphertext,
+      nonce,
+    );
+
+    return new TextDecoder("utf-8", { fatal: true }).decode(decrypted);
+  } catch {
+    return null;
+  }
+}
+
 export async function decrypt_envelope_with_bytes<T>(
   encrypted_data: string,
   passphrase_bytes: Uint8Array,

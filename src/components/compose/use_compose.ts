@@ -72,6 +72,10 @@ import { escape_html } from "@/hooks/editor_utils";
 import { get_max_total_attachments_size } from "@/services/attachment_limits";
 import { build_compose_default_block } from "@/lib/compose_defaults";
 import {
+  COMPOSE_CARET_BLOCK,
+  insert_signature_node,
+} from "@/lib/signature_html";
+import {
   extract_cid_references,
   resolve_cid_references,
 } from "@/lib/cid_resolver";
@@ -876,20 +880,18 @@ export function use_compose({
           ? get_formatted_signature(initial_signature) + badge_html
           : badge_html;
 
+      const default_block = build_compose_default_block(
+        preferences.compose_font_size,
+        preferences.compose_font_color,
+      );
+      const caret_block =
+        default_block || (signature_block ? COMPOSE_CARET_BLOCK : "");
+
       if (is_fresh_reply_forward && edit_draft) {
-        content =
-          build_compose_default_block(
-            preferences.compose_font_size,
-            preferences.compose_font_color,
-          ) +
-          signature_block +
-          edit_draft.message;
+        content = caret_block + signature_block + edit_draft.message;
       } else {
         content =
-          build_compose_default_block(
-            preferences.compose_font_size,
-            preferences.compose_font_color,
-          ) +
+          caret_block +
           signature_block +
           get_aster_footer(t, preferences.show_aster_branding);
       }
@@ -975,7 +977,7 @@ export function use_compose({
     if (existing) {
       existing.replaceWith(new_node);
     } else {
-      editor.insertBefore(new_node, editor.firstChild);
+      insert_signature_node(editor, new_node);
     }
     set_message(
       is_plain_text_ref.current

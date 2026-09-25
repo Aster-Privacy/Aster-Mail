@@ -329,19 +329,6 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     ],
   },
   {
-    label: "Recover older data",
-    label_key: "settings.recover_older_data_title",
-    section: "security",
-    breadcrumb: "Security > Account Recovery",
-    crumb_key: "settings_search.account_recovery",
-    keywords: [
-      "old password",
-      "unlock older data",
-      "restore old mail",
-      "resurrection",
-    ],
-  },
-  {
     label: "Active sessions",
     label_key: "settings_search.active_sessions",
     section: "security",
@@ -638,6 +625,22 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
       "thunderbird",
       "apple mail",
       "mac mail",
+    ],
+  },
+  {
+    label: "Command line",
+    label_key: "settings.bridge_cli_name",
+    section: "bridge",
+    breadcrumb: "Bridge > Download",
+    crumb_key: "settings_search.download",
+    keywords: [
+      "cli",
+      "command line",
+      "terminal",
+      "headless",
+      "ssh",
+      "server",
+      "aster-bridge",
     ],
   },
   {

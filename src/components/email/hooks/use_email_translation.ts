@@ -21,6 +21,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { use_preferences } from "@/contexts/preferences_context";
+import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import {
   derive_accepted_languages,
@@ -92,30 +93,101 @@ function read_body_text(body: HTMLElement): string {
   return text.slice(0, 20000);
 }
 
-const BODY_REVEAL_FALLBACK_MS = 300;
+const BODY_FADE_OUT_MS = 110;
+const BODY_FADE_OUT = `opacity ${BODY_FADE_OUT_MS}ms cubic-bezier(0.3, 0, 1, 1)`;
+const BODY_FADE_IN = "opacity 220ms cubic-bezier(0, 0, 0, 1)";
+const BODY_SETTLE_OPACITY = "0.45";
 
-function animate_body_swap(body: HTMLElement, remeasure: () => void): void {
-  const view = body.ownerDocument?.defaultView ?? null;
+interface PendingSwap {
+  timer: number;
+  run: () => void;
+}
+
+const pending_swaps = new WeakMap<HTMLElement, PendingSwap>();
+
+function flush_pending_swap(body: HTMLElement): void {
+  const pending = pending_swaps.get(body);
+
+  if (!pending) return;
+
+  window.clearTimeout(pending.timer);
+  pending.run();
+}
+
+function settle_body(
+  body: HTMLElement,
+  remeasure: () => void,
+  reduce_motion: boolean,
+): void {
+  flush_pending_swap(body);
+  remeasure();
+
+  if (reduce_motion) return;
+
+  body.style.transition = "none";
+  body.style.opacity = BODY_SETTLE_OPACITY;
+  void body.offsetWidth;
+  body.style.transition = BODY_FADE_IN;
+  body.style.opacity = "";
+}
+
+function swap_body(
+  body: HTMLElement,
+  mutate: () => void,
+  remeasure: () => void,
+  reduce_motion: boolean,
+): void {
+  flush_pending_swap(body);
+
+  if (reduce_motion) {
+    mutate();
+    remeasure();
+
+    return;
+  }
+
+  const run = () => {
+    pending_swaps.delete(body);
+    mutate();
+    remeasure();
+    body.style.transition = BODY_FADE_IN;
+    body.style.opacity = "";
+  };
+
+  body.style.transition = BODY_FADE_OUT;
+  body.style.opacity = "0";
+  pending_swaps.set(body, {
+    timer: window.setTimeout(run, BODY_FADE_OUT_MS),
+    run,
+  });
+}
+
+const CONCEAL_LIMIT_MS = 700;
+
+const concealed_bodies = new WeakMap<HTMLElement, number>();
+
+function conceal_body(body: HTMLElement): void {
+  if (concealed_bodies.has(body)) return;
 
   body.style.transition = "none";
   body.style.opacity = "0";
+  concealed_bodies.set(
+    body,
+    window.setTimeout(() => reveal_concealed(body), CONCEAL_LIMIT_MS),
+  );
+}
 
-  remeasure();
+function reveal_concealed(body: HTMLElement): boolean {
+  const timer = concealed_bodies.get(body);
 
-  const reveal = () => {
-    body.style.transition = "opacity 260ms ease";
-    body.style.opacity = "1";
-  };
+  if (timer === undefined) return false;
 
-  const parent = typeof window !== "undefined" ? window : view;
+  window.clearTimeout(timer);
+  concealed_bodies.delete(body);
+  body.style.transition = BODY_FADE_IN;
+  body.style.opacity = "";
 
-  parent?.setTimeout(reveal, BODY_REVEAL_FALLBACK_MS);
-
-  if (view && typeof view.requestAnimationFrame === "function") {
-    view.requestAnimationFrame(() => view.requestAnimationFrame(reveal));
-  } else {
-    reveal();
-  }
+  return true;
 }
 
 export function use_email_translation({
@@ -126,6 +198,10 @@ export function use_email_translation({
 }: EmailTranslationInput): EmailTranslationControl {
   const { preferences } = use_preferences();
   const { language: ui_locale } = use_i18n();
+  const reduce_motion = use_should_reduce_motion();
+  const reduce_motion_ref = useRef(reduce_motion);
+
+  reduce_motion_ref.current = reduce_motion;
 
   const accepted = useMemo(
     () =>
@@ -244,16 +320,26 @@ export function use_email_translation({
         signal: controller.signal,
       });
 
-      if (controller.signal.aborted) return;
+      if (controller.signal.aborted) {
+        reveal_concealed(render.body);
+
+        return;
+      }
 
       if (!result.translated) {
         render.remeasure();
+        reveal_concealed(render.body);
         set_status(result.unsupported ? "unsupported" : "unavailable");
 
         return;
       }
 
-      animate_body_swap(render.body, render.remeasure);
+      if (reveal_concealed(render.body)) {
+        flush_pending_swap(render.body);
+        render.remeasure();
+      } else {
+        settle_body(render.body, render.remeasure, reduce_motion_ref.current);
+      }
       set_showing_original(false);
       set_status("translated");
 
@@ -285,6 +371,8 @@ export function use_email_translation({
 
         return;
       }
+
+      if (target_ref.current) reveal_concealed(target_ref.current.body);
 
       set_download_bytes(bytes);
       set_status("offer");
@@ -327,6 +415,10 @@ export function use_email_translation({
 
       if (decision.kind === "offer") set_status("offer");
 
+      if (decision.kind === "translate" && !reduce_motion_ref.current) {
+        conceal_body(body);
+      }
+
       void offer_translation(decision.language, decision.kind === "translate");
     },
     [email_id, translatable, offer_translation],
@@ -340,6 +432,7 @@ export function use_email_translation({
 
       return () => {
         abort_active();
+        reveal_concealed(body);
 
         if (target_ref.current?.body === body) {
           target_ref.current = null;
@@ -353,6 +446,8 @@ export function use_email_translation({
     const render = target_ref.current;
 
     abort_active();
+
+    if (render) flush_pending_swap(render.body);
 
     if (render && !showing_original_ref.current) {
       restore_originals(render.body);
@@ -423,20 +518,32 @@ export function use_email_translation({
 
     if (!render) return;
 
+    const target = config_ref.current.target_language;
+
     if (showing_original) {
-      restore_translated(render.body);
-      mark_translated(render.body, config_ref.current.target_language);
+      swap_body(
+        render.body,
+        () => {
+          restore_translated(render.body);
+          mark_translated(render.body, target);
+        },
+        render.remeasure,
+        reduce_motion_ref.current,
+      );
       set_showing_original(false);
       set_translated_subject(last_translated_subject_ref.current);
-      animate_body_swap(render.body, render.remeasure);
 
       return;
     }
 
-    restore_originals(render.body);
+    swap_body(
+      render.body,
+      () => restore_originals(render.body),
+      render.remeasure,
+      reduce_motion_ref.current,
+    );
     set_showing_original(true);
     set_translated_subject(null);
-    animate_body_swap(render.body, render.remeasure);
   }, [showing_original]);
 
   return {

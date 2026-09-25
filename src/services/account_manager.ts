@@ -64,6 +64,12 @@ async function clear_account_session_material(
 
     clear_stored_encrypted_vault(account_id);
     await clear_session_passphrase(account_id);
+
+    const { delete_user_snapshots } = await import(
+      "@/services/crypto/device_recovery_store"
+    );
+
+    await delete_user_snapshots(account_id);
   } catch (caught) {
     ignore_error(
       "services/account_manager:clear_account_session_material",
@@ -602,6 +608,7 @@ const ACCOUNT_SCOPED_LOCAL_KEYS: readonly string[] = [
   "astermail_active_category",
   "astermail_date_format",
   "astermail_time_format",
+  "astermail_relative_dates",
 ];
 
 function clear_account_scoped_local_keys(): void {

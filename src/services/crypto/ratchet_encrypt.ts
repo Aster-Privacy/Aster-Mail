@@ -129,6 +129,39 @@ export async function encrypt_for_ratchet_recipient(
   );
 }
 
+type BundleVerification = Awaited<
+  ReturnType<typeof verify_ratchet_prekey_bundle_detailed>
+>;
+
+async function verify_recipient_bundle(
+  bundle: PrekeyBundle,
+  recipient_username: string,
+  recipient_email: string,
+): Promise<BundleVerification> {
+  const owner_key = await get_recipient_public_key(
+    recipient_username,
+    recipient_email,
+  );
+
+  return verify_ratchet_prekey_bundle_detailed(
+    bundle.signed_prekey_signature,
+    bundle.kem_identity_key,
+    bundle.signed_prekey,
+    owner_key.data?.public_key ?? null,
+    bundle.pq_kem_public_key ?? null,
+  );
+}
+
+function is_bundle_verification_rejected(
+  verification: BundleVerification,
+): boolean {
+  return (
+    verification.verdict === "tampered" ||
+    (is_strict_recipient_bundle_enforced() &&
+      (verification.verdict !== "verified" || !verification.strict))
+  );
+}
+
 function resolve_recovery_lane_keys(
   bundle: PrekeyBundle | null,
   bootstrap: BootstrapData | null,
@@ -223,16 +256,10 @@ async function encrypt_for_ratchet_recipient_unlocked(
         bundle.kem_identity_key,
       );
 
-      const owner_key = await get_recipient_public_key(
+      const bundle_verification = await verify_recipient_bundle(
+        bundle,
         recipient_username,
         recipient_email,
-      );
-      const bundle_verification = await verify_ratchet_prekey_bundle_detailed(
-        bundle.signed_prekey_signature,
-        bundle.kem_identity_key,
-        bundle.signed_prekey,
-        owner_key.data?.public_key ?? null,
-        bundle.pq_kem_public_key ?? null,
       );
 
       const bundle_peer = (recipient_email ?? recipient_username).toLowerCase();
@@ -244,11 +271,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
         !advertises_pq && (await has_peer_advertised_pq(bundle_peer));
 
       const bundle_rejected =
-        bundle_verification.verdict === "tampered" ||
-        pq_downgraded ||
-        (is_strict_recipient_bundle_enforced() &&
-          (bundle_verification.verdict !== "verified" ||
-            !bundle_verification.strict));
+        pq_downgraded || is_bundle_verification_rejected(bundle_verification);
 
       if (bundle_rejected) {
         if (pq_downgraded) {
@@ -441,7 +464,17 @@ export async function recipient_post_quantum_status(
 
   if (!bundle) return "unsupported";
 
-  if (bundle_supports_pq(bundle)) return "supported";
+  if (bundle_supports_pq(bundle)) {
+    const verification = await verify_recipient_bundle(
+      bundle,
+      recipient_username,
+      recipient_email,
+    );
+
+    return is_bundle_verification_rejected(verification)
+      ? "unsupported"
+      : "supported";
+  }
 
   return bundle_is_downgraded(bundle) ? "downgraded" : "unsupported";
 }

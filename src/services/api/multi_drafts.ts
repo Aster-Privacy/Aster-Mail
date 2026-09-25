@@ -23,6 +23,10 @@ import type { EncryptedVault } from "@/services/crypto/key_manager";
 import { api_client, type ApiResponse, type ApiErrorCode } from "./client";
 
 import { HASH_ALG } from "@/services/crypto/constants";
+import {
+  account_data_write_key,
+  retry_after_account_key_load,
+} from "@/services/crypto/account_data_writer";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { get_active_translations } from "@/lib/i18n/translations";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
@@ -286,7 +290,9 @@ async function encrypt_content(
   content: DraftContent,
   vault: EncryptedVault,
 ): Promise<EncryptedDraftPayload> {
-  const key = await derive_draft_encryption_key(vault);
+  const key =
+    (await account_data_write_key(DRAFT_KEY_VERSION)) ??
+    (await derive_draft_encryption_key(vault));
   const nonce = crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
   const plaintext = new TextEncoder().encode(JSON.stringify(content));
 
@@ -381,9 +387,8 @@ async function decrypt_content_with_envelope_keys(
   nonce: string,
 ): Promise<DraftContent | null> {
   try {
-    const { decrypt_envelope } = await import(
-      "@/hooks/email_list_helpers/decrypt"
-    );
+    const { decrypt_envelope } =
+      await import("@/hooks/email_list_helpers/decrypt");
     const envelope = await decrypt_envelope(encrypted, nonce);
 
     if (!envelope) return null;
@@ -406,10 +411,8 @@ async function decrypt_content(
   let plaintext_buffer: ArrayBuffer;
 
   try {
-    plaintext_buffer = await decrypt_aes_gcm_with_fallback(
-      key,
-      ciphertext,
-      nonce_bytes,
+    plaintext_buffer = await retry_after_account_key_load(() =>
+      decrypt_aes_gcm_with_fallback(key, ciphertext, nonce_bytes),
     );
   } catch {
     const fallback = await decrypt_content_with_envelope_keys(encrypted, nonce);

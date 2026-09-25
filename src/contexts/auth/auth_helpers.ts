@@ -22,6 +22,7 @@
 import { request_cache } from "@/services/api/request_cache";
 import { clear_mail_stats } from "@/hooks/use_mail_stats";
 import { clear_plan_limits_cache } from "@/hooks/use_plan_limits";
+import { clear_resubscribe_cache } from "@/hooks/use_resubscribe";
 import { clear_attachment_limits_cache } from "@/services/attachment_limits";
 import { clear_aliases_cache } from "@/components/settings/hooks/use_aliases";
 import { clear_plan_cache } from "@/services/plan_limits";
@@ -65,6 +66,7 @@ export async function clear_account_scoped_caches(): Promise<void> {
   clear_tags_cache();
   clear_preload_cache();
   clear_plan_limits_cache();
+  clear_resubscribe_cache();
   reset_special_offer_status();
   clear_attachment_limits_cache();
   clear_aliases_cache();

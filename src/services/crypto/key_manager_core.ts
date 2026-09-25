@@ -111,6 +111,7 @@ export function retain_previous_ratchet_keys(
 export interface EncryptedVault {
   identity_key: string;
   previous_keys?: string[];
+  legacy_identity_keys?: string[];
   signed_prekey: string;
   signed_prekey_private: string;
   recovery_codes: string[];
@@ -125,6 +126,7 @@ export interface EncryptedVault {
   ratchet_regen_v4_done?: boolean;
   legacy_keks?: LegacyDerivedKek[];
   data_kek?: string;
+  escrow_seed?: string;
   vault_format?: number;
   kdf_version?: number;
   mk_created_at?: string;

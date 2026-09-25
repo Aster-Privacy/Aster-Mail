@@ -20,6 +20,8 @@
 //
 import { describe, it, expect } from "vitest";
 
+import { BRAND_BACKGROUND_MARK } from "./email_brand_backgrounds";
+
 import {
   build_forced_dark_mode_css,
   LINK_BUTTON_EXCLUDE,
@@ -37,6 +39,8 @@ function matches(html: string, selector: string): boolean {
 
   return doc.querySelector(selector) !== null;
 }
+
+const BRAND_EXCLUDE = `:not([${BRAND_BACKGROUND_MARK}])`;
 
 describe("link button selectors", () => {
   it("excludes a background-styled link from forced link colors", () => {
@@ -58,7 +62,9 @@ describe("link button selectors", () => {
   it("keeps forced dark mode away from button link text", () => {
     const css = build_forced_dark_mode_css("#3b82f6", "#60a5fa");
 
-    expect(css).toContain(`a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} *`);
+    expect(css).toContain(
+      `a${LINK_BUTTON_EXCLUDE}${BRAND_EXCLUDE}, a${LINK_BUTTON_EXCLUDE}${BRAND_EXCLUDE} *`,
+    );
     expect(css).not.toMatch(/\na, a \* \{/);
     expect(css).toContain(
       'a[style*="background" i] *, [bgcolor] > a * { color: inherit !important; }',

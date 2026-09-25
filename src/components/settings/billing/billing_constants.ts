@@ -199,7 +199,7 @@ export const PLAN_TIERS: PlanTier[] = [
   {
     id: "star",
     name: "Star",
-    description: "More storage, more aliases, and your first custom domains.",
+    description: "More storage, more aliases, and up to 5 custom domains.",
     monthly_cents: 299,
     yearly_cents: 2899,
     biennial_cents: 4999,

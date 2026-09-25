@@ -22,6 +22,10 @@ import type { EncryptedVault } from "./key_manager";
 
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
+vi.mock("./account_key_loader", () => ({
+  load_account_keys_for_session: vi.fn().mockResolvedValue(0),
+}));
+
 import { subtle_crypto_mock } from "@/tests/setup";
 
 function build_vault(): EncryptedVault {

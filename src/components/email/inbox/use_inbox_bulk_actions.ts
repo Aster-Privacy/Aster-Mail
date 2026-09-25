@@ -842,13 +842,21 @@ export function use_inbox_bulk_actions({
   const handle_restore_wrapped = useCallback(() => {
     if (selection.select_all_mode) {
       queue_select_all_action("mail.restore", () => {
-        void run_scope_action("restore_trash");
+        void run_scope_action(
+          current_view === "spam" ? "unmark_spam" : "restore_trash",
+        );
       });
 
       return;
     }
     toolbar.handle_toolbar_restore();
-  }, [selection, toolbar, run_scope_action, queue_select_all_action]);
+  }, [
+    selection,
+    toolbar,
+    current_view,
+    run_scope_action,
+    queue_select_all_action,
+  ]);
 
   const handle_not_spam_wrapped = useCallback(() => {
     if (selection.select_all_mode) {

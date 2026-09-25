@@ -251,11 +251,16 @@ fn wrap_key_file_adopt() -> Option<[u8; 32]> {
 
 fn wrap_key_load() -> Result<Option<[u8; 32]>, String> {
     match keyring_wrap_key_load() {
-        Ok(Some(key)) => return Ok(Some(key)),
-        Ok(None) => {}
-        Err(e) => tracing::warn!("system keychain read failed: {}", e),
+        Ok(Some(key)) => Ok(Some(key)),
+        Ok(None) => Ok(wrap_key_file_adopt()),
+        Err(e) => match wrap_key_file_adopt() {
+            Some(key) => Ok(Some(key)),
+            None => Err(format!(
+                "the system keychain could not be read, so this device's keys cannot be unlocked: {}. Your existing keys were left untouched. Unlock the system keychain and try again.",
+                e
+            )),
+        },
     }
-    Ok(wrap_key_file_adopt())
 }
 
 fn wrap_key_load_or_create() -> Result<[u8; 32], String> {

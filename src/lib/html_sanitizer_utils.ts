@@ -331,8 +331,31 @@ export function neutralize_unterminated_comments(html: string): string {
   return result + html.slice(cursor);
 }
 
+const AMP_BOILERPLATE_STYLE_RE =
+  /<style\b[^>]*?\samp(?:4email|4ads)?-boilerplate\b[^>]*>[\s\S]*?<\/style\s*>/gi;
+
+const AMP_IMG_OPEN_RE = /<amp-img\b/gi;
+
+const AMP_IMG_CLOSE_RE = /<\/amp-img\s*>/gi;
+
+export function neutralize_amp_markup(html: string): string {
+  if (!/amp/i.test(html)) return html;
+
+  let previous: string;
+  let result = html;
+
+  do {
+    previous = result;
+    result = result.replace(AMP_BOILERPLATE_STYLE_RE, "");
+  } while (result !== previous);
+
+  return result.replace(AMP_IMG_OPEN_RE, "<img").replace(AMP_IMG_CLOSE_RE, "");
+}
+
 export function repair_comment_markup(html: string): string {
-  return neutralize_unterminated_comments(strip_mso_conditionals(html));
+  return neutralize_unterminated_comments(
+    strip_mso_conditionals(neutralize_amp_markup(html)),
+  );
 }
 
 function strip_attribute_markup(value: string): string {

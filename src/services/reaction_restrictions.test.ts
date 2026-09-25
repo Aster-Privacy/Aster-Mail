@@ -145,6 +145,53 @@ describe("reaction_restriction", () => {
     expect(reaction_restriction(message, me, true)).toBe("too_many_emojis");
   });
 
+  it("allows a second reaction of your own", () => {
+    const message = build_message({
+      reactions: [
+        {
+          reaction_mail_item_id: "reaction_own",
+          source: "internal",
+          emoji: "\u{1f44d}",
+          reactor_email: me,
+          is_own: true,
+          created_at: new Date(0).toISOString(),
+        },
+      ],
+    });
+
+    expect(reaction_restriction(message, me, true)).toBeNull();
+  });
+
+  it("blocks once you have added two reactions", () => {
+    const message = build_message({
+      reactions: ["\u{1f44d}", "\u{1f389}"].map((emoji, index) => ({
+        reaction_mail_item_id: `reaction_own_${index}`,
+        source: "internal" as const,
+        emoji,
+        reactor_email: me,
+        is_own: true,
+        created_at: new Date(0).toISOString(),
+      })),
+    });
+
+    expect(reaction_restriction(message, me, true)).toBe("reaction_limit");
+  });
+
+  it("does not count other people's reactions toward your limit", () => {
+    const message = build_message({
+      reactions: ["\u{1f44d}", "\u{1f389}", "\u{2764}"].map((emoji, index) => ({
+        reaction_mail_item_id: `reaction_other_${index}`,
+        source: "internal" as const,
+        emoji,
+        reactor_email: `person${index}@example.com`,
+        is_own: false,
+        created_at: new Date(0).toISOString(),
+      })),
+    });
+
+    expect(reaction_restriction(message, me, true)).toBeNull();
+  });
+
   it("blocks when there is no sender to reply to", () => {
     expect(
       reaction_restriction(build_message({ sender_email: "  " }), me, true),

@@ -21,6 +21,7 @@
 import { api_client, type ApiResponse } from "./client";
 
 import { BATCH_LIMITS } from "@/constants/batch_config";
+import { clear_flag_intents, note_flag_intents } from "@/services/read_intent";
 
 export interface ArchiveTierStats {
   tier: string;
@@ -110,19 +111,61 @@ export interface SearchArchiveResponse {
   has_more: boolean;
 }
 
+function settle_archive_intents(
+  ids: string[],
+  is_archived: boolean,
+  succeeded: boolean,
+  failed_ids: string[] | undefined,
+): void {
+  if (!succeeded) {
+    clear_flag_intents(ids, { is_archived });
+
+    return;
+  }
+
+  if (Array.isArray(failed_ids) && failed_ids.length > 0) {
+    clear_flag_intents(failed_ids, { is_archived });
+  }
+}
+
 export async function batch_archive(
   data: BatchArchiveRequest,
 ): Promise<ApiResponse<BatchArchiveResponse>> {
-  return api_client.post<BatchArchiveResponse>("/mail/v1/archive/batch", data);
+  note_flag_intents(data.ids, { is_archived: true });
+
+  const result = await api_client.post<BatchArchiveResponse>(
+    "/mail/v1/archive/batch",
+    data,
+  );
+
+  settle_archive_intents(
+    data.ids,
+    true,
+    !result.error && result.data?.success === true,
+    result.data?.failed_ids,
+  );
+
+  return result;
 }
 
 export async function batch_unarchive(
   data: BatchUnarchiveRequest,
 ): Promise<ApiResponse<BatchUnarchiveResponse>> {
-  return api_client.post<BatchUnarchiveResponse>(
+  note_flag_intents(data.ids, { is_archived: false });
+
+  const result = await api_client.post<BatchUnarchiveResponse>(
     "/mail/v1/archive/unarchive/batch",
     data,
   );
+
+  settle_archive_intents(
+    data.ids,
+    false,
+    !result.error && result.data?.success === true,
+    result.data?.failed_ids,
+  );
+
+  return result;
 }
 
 export interface BatchedArchiveResult {

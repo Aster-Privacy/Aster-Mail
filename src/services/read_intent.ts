@@ -18,7 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-const INTENT_TTL_MS = 30_000;
+const PENDING_MAX_AGE_MS = 30_000;
+const ACKED_MAX_AGE_MS = 10 * 60_000;
 const MAX_INTENTS = 2000;
 
 export const BOOLEAN_INTENT_FLAGS = [
@@ -47,6 +48,7 @@ type IntentValue = boolean | string | null;
 interface IntentEntry {
   value: IntentValue;
   at: number;
+  acked_at: number | null;
 }
 
 const intents = new Map<string, IntentEntry>();
@@ -71,18 +73,33 @@ function prune_oldest(): void {
 function read_entry(
   flag: keyof FlagIntents,
   id: string,
+  fetched_at?: number,
 ): IntentValue | undefined {
   const key = intent_key(flag, id);
   const current = intents.get(key);
 
   if (!current) return undefined;
-  if (now_ms() - current.at >= INTENT_TTL_MS) {
+
+  const { acked_at } = current;
+  const superseded =
+    acked_at !== null && fetched_at !== undefined && fetched_at >= acked_at;
+  const expired =
+    acked_at === null
+      ? now_ms() - current.at >= PENDING_MAX_AGE_MS
+      : now_ms() - acked_at >= ACKED_MAX_AGE_MS;
+
+  if (superseded || expired) {
     intents.delete(key);
 
     return undefined;
   }
 
   return current.value;
+}
+
+function set_entry(key: string, entry: IntentEntry): void {
+  intents.delete(key);
+  intents.set(key, entry);
 }
 
 export function pick_flag_intents(
@@ -143,10 +160,48 @@ export function note_flag_intents(
     if (!id) continue;
 
     for (const [flag, value] of entries) {
-      const key = intent_key(flag, id);
+      set_entry(intent_key(flag, id), { value, at, acked_at: null });
+    }
+  }
 
-      intents.delete(key);
-      intents.set(key, { value, at });
+  prune_oldest();
+}
+
+export function ack_flag_intents(
+  ids: readonly string[],
+  updates: FlagIntents,
+): void {
+  const entries = intent_entries(updates);
+  const at = now_ms();
+
+  for (const id of ids) {
+    for (const [flag, value] of entries) {
+      const current = intents.get(intent_key(flag, id));
+
+      if (current && current.value === value) current.acked_at = at;
+    }
+  }
+}
+
+export function settle_flag_intents(
+  ids: readonly string[],
+  updates: FlagIntents,
+): void {
+  const entries = intent_entries(updates);
+
+  if (entries.length === 0 || ids.length === 0) return;
+
+  const at = now_ms();
+
+  for (const id of ids) {
+    if (!id) continue;
+
+    for (const [flag, value] of entries) {
+      const key = intent_key(flag, id);
+      const current = intents.get(key);
+
+      if (current?.value === value && current.acked_at === null) continue;
+      set_entry(key, { value, at, acked_at: at });
     }
   }
 
@@ -173,14 +228,18 @@ export function clear_flag_intents(
 export function get_flag_intent(
   id: string,
   flag: BooleanIntentFlag,
+  fetched_at?: number,
 ): boolean | undefined {
-  const value = read_entry(flag, id);
+  const value = read_entry(flag, id, fetched_at);
 
   return typeof value === "boolean" ? value : undefined;
 }
 
-export function get_snooze_intent(id: string): string | null | undefined {
-  const value = read_entry("snoozed_until", id);
+export function get_snooze_intent(
+  id: string,
+  fetched_at?: number,
+): string | null | undefined {
+  const value = read_entry("snoozed_until", id, fetched_at);
 
   return typeof value === "boolean" ? undefined : value;
 }
@@ -221,8 +280,11 @@ export function clear_read_intent(
   }
 }
 
-export function get_read_intent(id: string): boolean | undefined {
-  return get_flag_intent(id, "is_read");
+export function get_read_intent(
+  id: string,
+  fetched_at?: number,
+): boolean | undefined {
+  return get_flag_intent(id, "is_read", fetched_at);
 }
 
 export function has_any_read_intent(): boolean {
@@ -250,8 +312,11 @@ export interface FlagIntentRow extends ReadIntentRow {
   snoozed_until?: string;
 }
 
-export function resolve_read_intent(row: ReadIntentRow): boolean | undefined {
-  const own = get_read_intent(row.id);
+export function resolve_read_intent(
+  row: ReadIntentRow,
+  fetched_at?: number,
+): boolean | undefined {
+  const own = get_read_intent(row.id, fetched_at);
 
   if (own !== undefined) return own;
   if (!row.grouped_email_ids || row.grouped_email_ids.length < 2) {
@@ -260,7 +325,7 @@ export function resolve_read_intent(row: ReadIntentRow): boolean | undefined {
 
   for (const member_id of row.grouped_email_ids) {
     if (member_id === row.id) continue;
-    if (get_read_intent(member_id) === false) return false;
+    if (get_read_intent(member_id, fetched_at) === false) return false;
   }
 
   return undefined;
@@ -274,22 +339,25 @@ const OVERLAY_FLAGS: BooleanIntentFlag[] = [
   "is_spam",
 ];
 
-export function resolve_flag_intents<T extends FlagIntentRow>(row: T): T {
+export function resolve_flag_intents<T extends FlagIntentRow>(
+  row: T,
+  fetched_at?: number,
+): T {
   let next: T | null = null;
-  const intended_read = resolve_read_intent(row);
+  const intended_read = resolve_read_intent(row, fetched_at);
 
   if (intended_read !== undefined && intended_read !== row.is_read) {
     next = { ...row, is_read: intended_read };
   }
 
   for (const flag of OVERLAY_FLAGS) {
-    const intended = get_flag_intent(row.id, flag);
+    const intended = get_flag_intent(row.id, flag, fetched_at);
 
     if (intended === undefined || intended === (row[flag] ?? false)) continue;
     next = { ...(next ?? row), [flag]: intended };
   }
 
-  const snooze = get_snooze_intent(row.id);
+  const snooze = get_snooze_intent(row.id, fetched_at);
 
   if (snooze !== undefined) {
     const intended = snooze || undefined;
@@ -302,12 +370,15 @@ export function resolve_flag_intents<T extends FlagIntentRow>(row: T): T {
   return next ?? row;
 }
 
-export function apply_flag_intents<T extends FlagIntentRow>(rows: T[]): T[] {
+export function apply_flag_intents<T extends FlagIntentRow>(
+  rows: T[],
+  fetched_at?: number,
+): T[] {
   if (intents.size === 0 || rows.length === 0) return rows;
 
   let changed = false;
   const next = rows.map((row) => {
-    const resolved = resolve_flag_intents(row);
+    const resolved = resolve_flag_intents(row, fetched_at);
 
     if (resolved !== row) changed = true;
 

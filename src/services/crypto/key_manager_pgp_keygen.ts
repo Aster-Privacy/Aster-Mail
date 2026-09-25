@@ -210,6 +210,76 @@ export async function reprotect_pgp_key(
   return reencrypted.armor();
 }
 
+export async function lock_unlocked_pgp_key(
+  unlocked_armored: string,
+  passphrase: string,
+): Promise<string> {
+  const read_key = await openpgp.readPrivateKey({
+    armoredKey: unlocked_armored,
+  });
+
+  if (!read_key.isDecrypted()) {
+    throw new Error("lock_unlocked_pgp_key: key is already locked");
+  }
+
+  const encrypted = await openpgp.encryptKey({
+    privateKey: read_key,
+    passphrase,
+  });
+
+  return encrypted.armor();
+}
+
+export async function armored_private_key_matches(
+  armored: string,
+  fingerprint: string,
+): Promise<boolean> {
+  const wanted = fingerprint.trim().toUpperCase();
+
+  if (
+    !wanted ||
+    !armored.trimStart().startsWith("-----BEGIN PGP PRIVATE KEY BLOCK-----")
+  ) {
+    return false;
+  }
+
+  try {
+    const private_key = await openpgp.readPrivateKey({ armoredKey: armored });
+
+    return private_key.getFingerprint().toUpperCase() === wanted;
+  } catch {
+    return false;
+  }
+}
+
+export async function find_unlockable_private_key(
+  armored_keys: (string | undefined)[],
+  fingerprint: string,
+  passphrase: string,
+): Promise<string | null> {
+  const wanted = fingerprint.trim().toUpperCase();
+
+  if (!wanted) return null;
+
+  for (const armored of armored_keys) {
+    if (!armored) continue;
+
+    try {
+      const private_key = await openpgp.readPrivateKey({ armoredKey: armored });
+
+      if (private_key.getFingerprint().toUpperCase() !== wanted) continue;
+
+      await openpgp.decryptKey({ privateKey: private_key, passphrase });
+
+      return armored;
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+}
+
 export function generate_recovery_codes(count: number = 6): string[] {
   const codes: string[] = [];
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";

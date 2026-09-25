@@ -54,8 +54,12 @@ import {
   verify_vault_roundtrip,
 } from "./ensure_ratchet_keys";
 import { with_vault_write_lock } from "./vault_write_lock";
+import {
+  merge_recovered_identity_keys,
+  type RecoveredIdentityKeys,
+} from "./identity_key_materials";
 
-async function harvest_storage_keys(
+export async function harvest_storage_keys(
   old_vault: EncryptedVault,
   old_password: string,
 ): Promise<Uint8Array[]> {
@@ -95,26 +99,6 @@ async function harvest_storage_keys(
   return harvested;
 }
 
-export async function count_inactive_key_sets(): Promise<number> {
-  const listed = await list_inactive_key_sets();
-
-  return listed.data?.inactive_key_sets.length ?? 0;
-}
-
-export async function discard_inactive_key_sets(): Promise<number> {
-  const listed = await list_inactive_key_sets();
-  const inactive = listed.data?.inactive_key_sets ?? [];
-  let discarded = 0;
-
-  for (const key_set of inactive) {
-    const consumed = await consume_inactive_key_set(key_set.id);
-
-    if (consumed.data?.success) discarded += 1;
-  }
-
-  return discarded;
-}
-
 export async function restore_inactive_key_sets(
   old_password: string,
 ): Promise<number> {
@@ -134,6 +118,7 @@ export async function restore_inactive_key_sets(
     const recovered: RatchetKeySet[][] = [];
     const recovered_keks: Uint8Array[] = [];
     const unlocked: string[] = [];
+    const old_vaults: EncryptedVault[] = [];
 
     for (const key_set of inactive) {
       const fetched = await fetch_inactive_key_set(key_set.id);
@@ -152,6 +137,7 @@ export async function restore_inactive_key_sets(
           ...(await harvest_storage_keys(old_vault, old_password)),
         );
         unlocked.push(key_set.id);
+        old_vaults.push(old_vault);
       } catch {
         continue;
       }
@@ -159,63 +145,95 @@ export async function restore_inactive_key_sets(
 
     if (unlocked.length === 0) return 0;
 
-    const harvested_entries: LegacyDerivedKek[] = [];
-
-    for (const raw of recovered_keks) {
-      harvested_entries.push(serialize_kek_for_vault(raw));
-      zero_uint8_array(raw);
-    }
-
-    const next_legacy_keks = append_keks_to_list(
-      vault.legacy_keks,
-      harvested_entries,
-    );
-
-    const next_vault: EncryptedVault = {
-      ...vault,
-      legacy_keks: next_legacy_keks,
-      ratchet_previous_keys: merge_previous_ratchet_keys(
-        vault.ratchet_previous_keys,
-        ...recovered,
-      ),
-    };
-
-    const { encrypted_vault, vault_nonce } = await encrypt_vault(
-      next_vault,
+    const identity_keys = await merge_recovered_identity_keys(
+      vault,
+      old_vaults,
+      old_password,
       passphrase,
     );
 
-    const roundtrip_ok = await verify_vault_roundtrip(
-      encrypted_vault,
-      vault_nonce,
-      passphrase,
-      next_vault.identity_key,
-    );
-
-    if (!roundtrip_ok) return 0;
-
-    const pushed = await push_vault_to_server(
-      encrypted_vault,
-      vault_nonce,
+    const committed = await commit_recovered_keys({
       user_id,
-      next_vault.vault_format,
-      next_vault,
-    );
+      vault,
+      passphrase,
+      identity_keys,
+      ratchet_groups: recovered,
+      storage_keys: recovered_keks,
+    });
 
-    if (!pushed) return 0;
+    if (!committed) return 0;
 
-    await store_vault_in_memory(next_vault, passphrase, user_id);
+    const absorbed = unlocked.filter((_, i) => identity_keys.absorbed[i]);
 
-    localStorage.setItem(
-      `astermail_encrypted_vault_${user_id}`,
-      encrypted_vault,
-    );
-    localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
-
-    for (const id of unlocked) {
+    for (const id of absorbed) {
       await consume_inactive_key_set(id);
     }
 
     return unlocked.length;
   });
+}
+
+export interface RecoveredKeyCommit {
+  user_id: string;
+  vault: EncryptedVault;
+  passphrase: string;
+  identity_keys: RecoveredIdentityKeys;
+  ratchet_groups: RatchetKeySet[][];
+  storage_keys: Uint8Array[];
+}
+
+export async function commit_recovered_keys(
+  commit: RecoveredKeyCommit,
+): Promise<boolean> {
+  const { user_id, vault, passphrase, identity_keys } = commit;
+  const harvested_entries: LegacyDerivedKek[] = [];
+
+  for (const raw of commit.storage_keys) {
+    harvested_entries.push(serialize_kek_for_vault(raw));
+    zero_uint8_array(raw);
+  }
+
+  const absorbed_keks = append_keks_to_list(vault.legacy_keks, harvested_entries);
+
+  const next_vault: EncryptedVault = {
+    ...vault,
+    previous_keys: identity_keys.previous_keys,
+    legacy_identity_keys: identity_keys.legacy_identity_keys,
+    legacy_keks: absorbed_keks.list,
+    ratchet_previous_keys: merge_previous_ratchet_keys(
+      vault.ratchet_previous_keys,
+      ...commit.ratchet_groups,
+    ),
+  };
+
+  const { encrypted_vault, vault_nonce } = await encrypt_vault(
+    next_vault,
+    passphrase,
+  );
+
+  const roundtrip_ok = await verify_vault_roundtrip(
+    encrypted_vault,
+    vault_nonce,
+    passphrase,
+    next_vault.identity_key,
+  );
+
+  if (!roundtrip_ok) return false;
+
+  const pushed = await push_vault_to_server(
+    encrypted_vault,
+    vault_nonce,
+    user_id,
+    next_vault.vault_format,
+    next_vault,
+  );
+
+  if (!pushed) return false;
+
+  await store_vault_in_memory(next_vault, passphrase, user_id);
+
+  localStorage.setItem(`astermail_encrypted_vault_${user_id}`, encrypted_vault);
+  localStorage.setItem(`astermail_vault_nonce_${user_id}`, vault_nonce);
+
+  return absorbed_keks.dropped === 0;
 }

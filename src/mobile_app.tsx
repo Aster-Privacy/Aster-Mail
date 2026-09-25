@@ -32,6 +32,8 @@ import { AnimatePresence } from "framer-motion";
 
 import { use_auth } from "@/contexts/auth_context";
 import { use_background_subscription_scan } from "@/hooks/use_background_subscription_scan";
+import { use_account_data_conversion } from "@/hooks/use_account_data_conversion";
+import { use_device_recovery } from "@/hooks/use_device_recovery";
 import { AppLock } from "@/components/mobile/app_lock";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MobileDrawer } from "@/components/mobile/mobile_drawer";
@@ -48,6 +50,7 @@ import { EmailNotificationManager } from "@/components/email/email_notification_
 import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
 import { Family2faDialog } from "@/components/common/family_2fa_dialog";
 import { BillingAlertBanner } from "@/components/common/billing_alert_banner";
+import { LockedDataBanner } from "@/components/common/locked_data_banner";
 import { MobileStorageBanner } from "@/components/common/mobile_storage_banner";
 import { CheckoutReturnHandler } from "@/components/common/checkout_return_handler";
 import { MobileBillingReturnHandler } from "@/pages/mobile/mobile_billing_return_handler";
@@ -212,6 +215,8 @@ function MobileApp() {
   const edit_draft_ref = useRef<EditDraftData | null>(null);
 
   use_background_subscription_scan();
+  use_account_data_conversion();
+  use_device_recovery();
 
   const handle_selection_mode_change = useCallback((active: boolean) => {
     set_is_selection_active(active);
@@ -307,6 +312,7 @@ function MobileApp() {
           rfc_message_id?: string;
           forward_from_id?: string;
           thread_token?: string;
+          from_email?: string;
         }>
       ).detail;
 
@@ -323,6 +329,7 @@ function MobileApp() {
         bcc_recipients: data.bcc_recipients,
         subject: data.subject,
         message: data.message,
+        from_email: data.from_email,
         updated_at: new Date().toISOString(),
       };
       set_is_compose_open(true);
@@ -518,6 +525,7 @@ function MobileApp() {
         <MobileBillingReturnHandler />
         <CheckoutReturnHandler />
         <MobileDomainOrderReturn />
+        {!is_auth_route && <LockedDataBanner />}
         {!is_auth_route && <BillingAlertBanner />}
         {!is_auth_route && <MobileStorageBanner />}
         <ErrorBoundary>

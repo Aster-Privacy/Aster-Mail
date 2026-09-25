@@ -288,6 +288,7 @@ export function StepPassword({
 
       <div className="shrink-0 px-6 pb-4 pt-4 space-y-4">
         <TurnstileWidget
+          ref={reg.turnstile_ref}
           class_name="flex justify-center"
           on_expire={() => reg.set_captcha_token("")}
           on_verify={reg.set_captcha_token}

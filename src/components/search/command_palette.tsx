@@ -24,7 +24,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  EnvelopeIcon,
+  InboxIcon,
   PaperAirplaneIcon,
   DocumentTextIcon,
   StarIcon,
@@ -39,10 +39,10 @@ import {
   PlusIcon,
   ClockIcon,
   ArrowPathIcon,
+  MagnifyingGlassIcon,
   EyeIcon,
 } from "@heroicons/react/24/outline";
 
-import { Input } from "@/components/ui/input";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { useTheme } from "@/contexts/theme_context";
 import { use_auth } from "@/contexts/auth_context";
@@ -411,7 +411,7 @@ export function CommandPalette({
         id: "inbox",
         label: t("mail.go_to_inbox"),
         description: t("mail.view_inbox"),
-        icon: EnvelopeIcon,
+        icon: InboxIcon,
         shortcut: "G I",
         category: "navigation",
         keywords: ["home", "main"],
@@ -861,133 +861,131 @@ export function CommandPalette({
         {is_open && (
           <motion.div
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-[60] flex items-start justify-center pt-[15vh]"
+            className="fixed inset-0 z-[60] flex items-start justify-center px-4 pt-[15vh]"
             exit={{ opacity: 0 }}
             initial={reduce_motion ? false : { opacity: 0 }}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >
             <motion.div
-              className="absolute inset-0 bg-black/60"
+              className="absolute inset-0 bg-black/40"
               onClick={on_close}
             />
             <motion.div
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              className="relative w-full max-w-xl rounded-xl overflow-hidden shadow-2xl bg-surf-primary border border-edge-secondary"
-              exit={{ opacity: 0, scale: 0.95, y: -10 }}
-              initial={
-                reduce_motion ? false : { opacity: 0, scale: 0.95, y: -20 }
-              }
+              animate={{ opacity: 1, y: 0 }}
+              className="relative w-full max-w-[620px]"
+              exit={{ opacity: 0, y: -4 }}
+              initial={reduce_motion ? false : { opacity: 0, y: -4 }}
               transition={{
-                duration: reduce_motion ? 0 : 0.2,
+                duration: reduce_motion ? 0 : 0.14,
                 ease: "easeOut",
               }}
             >
-              <div className="flex items-center gap-3 px-4 py-3 border-b border-edge-secondary">
-                <CommandLineIcon className="w-5 h-5 flex-shrink-0 text-txt-muted" />
-                <Input
+              <div className="flex items-center gap-2 h-10 ps-4 pe-3 aster_search_open rounded-t-[22px]">
+                <MagnifyingGlassIcon className="w-5 h-5 flex-shrink-0 text-[var(--text-secondary)]" />
+                <input
                   ref={input_ref}
-                  className="flex-1 bg-transparent border-none"
+                  className="flex-1 min-w-0 bg-transparent outline-none border-0 ring-0 focus:outline-none focus:ring-0 focus:border-0 text-sm text-[var(--text-primary)] placeholder:text-[var(--text-muted)]"
                   placeholder={t("common.type_command_or_search")}
                   type="text"
                   value={query}
                   onChange={(e) => set_query(e.target.value)}
                   onKeyDown={handle_keydown}
                 />
-                <kbd className="px-1.5 py-0.5 rounded text-[11px] font-medium bg-surf-tertiary text-txt-muted border border-edge-secondary">
+                <kbd className="flex-shrink-0 font-sans text-[11px] text-[var(--text-muted)]">
                   ESC
                 </kbd>
               </div>
 
-              <div
-                ref={list_ref}
-                className="max-h-[400px] overflow-y-auto py-2"
-                style={{ scrollbarWidth: "thin" }}
-              >
-                {flat_commands.length === 0 ? (
-                  <div className="px-4 py-8 text-center">
-                    <p className="text-[13px] text-txt-muted">
-                      {t("common.no_commands_found")}
-                    </p>
-                  </div>
-                ) : (
-                  Object.entries(grouped_commands).map(([category, cmds]) => {
-                    if (cmds.length === 0) return null;
-                    const start_index = flat_commands.findIndex(
-                      (c) => c.id === cmds[0].id,
-                    );
+              <div className="overflow-hidden aster_search_open aster_search_open_panel rounded-b-[22px]">
+                <div
+                  ref={list_ref}
+                  className="max-h-[420px] overflow-y-auto border-t border-[var(--border-secondary)] py-1"
+                  style={{ scrollbarWidth: "thin" }}
+                >
+                  {flat_commands.length === 0 ? (
+                    <div className="px-6 py-8 flex flex-col items-center justify-center text-center">
+                      <MagnifyingGlassIcon className="w-8 h-8 text-[var(--text-muted)] mb-2" />
+                      <p className="text-sm text-[var(--text-muted)]">
+                        {t("common.no_commands_found")}
+                      </p>
+                    </div>
+                  ) : (
+                    Object.entries(grouped_commands).map(([category, cmds]) => {
+                      if (cmds.length === 0) return null;
+                      const start_index = flat_commands.findIndex(
+                        (c) => c.id === cmds[0].id,
+                      );
 
-                    return (
-                      <div key={category} className="mb-2">
-                        <div className="px-4 py-1.5 text-[11px] font-medium uppercase tracking-wider text-txt-muted">
-                          {category_labels[category]}
-                        </div>
-                        {cmds.map((cmd, idx) => {
-                          const global_index = start_index + idx;
-                          const is_selected = selected_index === global_index;
-                          const is_this_loading = loading_action === cmd.id;
-                          const Icon = cmd.icon;
+                      return (
+                        <div key={category} className="pb-1">
+                          <div className="px-4 pt-2 pb-1 text-[11px] font-medium text-[var(--text-muted)]">
+                            {category_labels[category]}
+                          </div>
+                          {cmds.map((cmd, idx) => {
+                            const global_index = start_index + idx;
+                            const is_selected = selected_index === global_index;
+                            const is_this_loading = loading_action === cmd.id;
+                            const Icon = cmd.icon;
 
-                          return (
-                            <button
-                              key={cmd.id}
-                              className={`w-full flex items-center gap-3 px-4 py-2 text-start transition-colors ${is_selected ? "bg-surf-secondary" : "bg-transparent"}`}
-                              data-index={global_index}
-                              disabled={!!loading_action}
-                              onClick={() => !loading_action && cmd.action()}
-                              onMouseEnter={() =>
-                                set_selected_index(global_index)
-                              }
-                            >
-                              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-surf-tertiary">
-                                <Icon className="w-4 h-4 text-txt-secondary" />
-                                {is_this_loading && (
-                                  <ButtonSpinner className="text-txt-secondary" />
+                            return (
+                              <button
+                                key={cmd.id}
+                                className={`w-full flex items-center gap-3 px-4 py-2 text-start ${is_selected ? "bg-[var(--bg-hover)]" : "bg-transparent"}`}
+                                data-index={global_index}
+                                disabled={!!loading_action}
+                                onClick={() => !loading_action && cmd.action()}
+                                onMouseEnter={() =>
+                                  set_selected_index(global_index)
+                                }
+                              >
+                                {is_this_loading ? (
+                                  <ButtonSpinner
+                                    className="flex-shrink-0 text-[var(--icon-secondary)]"
+                                    size="xs"
+                                  />
+                                ) : (
+                                  <Icon
+                                    className="w-4 h-4 flex-shrink-0"
+                                    style={{
+                                      color: is_selected
+                                        ? "var(--text-primary)"
+                                        : "var(--icon-secondary)",
+                                    }}
+                                  />
                                 )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-[13px] font-medium truncate text-txt-primary">
-                                  {cmd.label}
-                                </p>
-                                {cmd.description && (
-                                  <p className="text-[11px] truncate text-txt-muted">
-                                    {cmd.description}
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[13px] truncate text-[var(--text-primary)]">
+                                    {cmd.label}
                                   </p>
+                                  {cmd.description && (
+                                    <p className="text-[12px] truncate text-[var(--text-muted)]">
+                                      {cmd.description}
+                                    </p>
+                                  )}
+                                </div>
+                                {cmd.shortcut && (
+                                  <kbd className="flex-shrink-0 font-sans text-[11px] tracking-[0.08em] text-[var(--text-muted)]">
+                                    {cmd.shortcut}
+                                  </kbd>
                                 )}
-                              </div>
-                              {cmd.shortcut && (
-                                <kbd className="px-1.5 py-0.5 rounded text-[10px] font-medium flex-shrink-0 bg-surf-tertiary text-txt-muted border border-edge-secondary">
-                                  {cmd.shortcut}
-                                </kbd>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
 
-              <div className="flex items-center justify-between px-4 py-2 text-[11px] border-t border-edge-secondary text-txt-muted">
-                <div className="flex items-center gap-3">
-                  <span className="flex items-center gap-1">
-                    <kbd className="px-1 py-0.5 rounded bg-surf-tertiary">
-                      ↑↓
-                    </kbd>
-                    {t("common.navigate")}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <kbd className="px-1 py-0.5 rounded bg-surf-tertiary">
-                      ↵
-                    </kbd>
-                    {t("mail.select")}
+                <div className="flex items-center gap-4 px-4 py-2.5 text-[11px] border-t border-[var(--border-secondary)] text-[var(--text-muted)]">
+                  <span>↑↓ {t("common.navigate")}</span>
+                  <span>↵ {t("mail.select")}</span>
+                  <span className="ms-auto">
+                    {t("common.commands_count", {
+                      count: flat_commands.length,
+                    })}
                   </span>
                 </div>
-                <span>
-                  {t("common.commands_count", {
-                    count: flat_commands.length,
-                  })}
-                </span>
               </div>
             </motion.div>
           </motion.div>

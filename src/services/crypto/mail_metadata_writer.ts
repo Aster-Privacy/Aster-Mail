@@ -31,6 +31,7 @@ import {
 } from "./mail_metadata_core";
 
 import {
+  ack_flag_intents,
   clear_flag_intents,
   note_flag_intents,
   pick_flag_intents,
@@ -112,6 +113,8 @@ export async function update_item_metadata(
   const cached = recently_completed.get(dedup_key);
 
   if (cached && cached.result.success) {
+    ack_flag_intents([item_id], intent);
+
     return cached.result;
   }
 
@@ -152,9 +155,8 @@ export async function update_item_metadata(
       };
     }
 
-    const { patch_mail_item_metadata, get_mail_item } = await import(
-      "@/services/api/mail"
-    );
+    const { patch_mail_item_metadata, get_mail_item } =
+      await import("@/services/api/mail");
 
     if (!base.encrypted_metadata || !base.metadata_nonce) {
       const fetched = await get_mail_item(item_id);
@@ -265,6 +267,7 @@ export async function update_item_metadata(
     if (!result.success) clear_flag_intents([item_id], intent);
 
     if (result.success) {
+      ack_flag_intents([item_id], intent);
       const item_prefix = `${item_id}|`;
 
       for (const key of recently_completed.keys()) {

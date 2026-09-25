@@ -53,8 +53,8 @@ import {
   StarIcon as StarSolidIcon,
 } from "@heroicons/react/24/solid";
 import { Spinner, Tooltip } from "@aster/ui";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -115,7 +115,7 @@ type PanelTab = "contacts" | "groups";
 
 interface QuickContactsPanelProps {
   is_open: boolean;
-  is_top_inset: boolean;
+  is_swapping: boolean;
   on_close: () => void;
   on_compose: (address: string) => void;
 }
@@ -214,7 +214,7 @@ function initial_of(contact: DecryptedContact) {
 
 export function QuickContactsPanel({
   is_open,
-  is_top_inset,
+  is_swapping,
   on_close,
   on_compose,
 }: QuickContactsPanelProps) {
@@ -329,8 +329,10 @@ export function QuickContactsPanel({
     load();
   }, [is_open, load]);
 
+  const { is_visible, is_closing } = use_panel_transition(is_open, is_swapping);
+
   useEffect(() => {
-    if (is_open) return;
+    if (is_visible) return;
     set_is_editor_open(false);
     set_is_import_open(false);
     set_editor_contact(null);
@@ -346,10 +348,10 @@ export function QuickContactsPanel({
     set_is_bulk_menu_open(false);
     set_is_group_picker_open(false);
     set_merge_targets([]);
-  }, [is_open]);
+  }, [is_visible]);
 
   use_escape_layer(is_open, on_close, "quick_contacts_panel", false);
-  use_panel_inset(is_open, panel_ref);
+  use_panel_inset(is_visible, panel_ref);
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -390,7 +392,7 @@ export function QuickContactsPanel({
   useEffect(() => {
     set_render_limit(RENDER_PAGE_SIZE);
     if (scroll_ref.current) scroll_ref.current.scrollTop = 0;
-  }, [active_tab, group_filter, query, is_open, detail_id]);
+  }, [active_tab, group_filter, query, is_visible, detail_id]);
 
   const rendered = useMemo(
     () => visible.slice(0, render_limit),
@@ -751,16 +753,14 @@ export function QuickContactsPanel({
     visible.every((contact) => selected_ids.has(contact.id));
   const is_selecting = selection_count > 0;
 
-  const { is_visible, is_closing } = use_panel_transition(is_open);
-
   return (
     <>
       <aside
         ref={panel_ref}
         aria-label={t("common.contacts")}
-        className={`quick_contacts_panel me-1 mb-1 w-[min(320px,78vw)] flex-shrink-0 flex-col overflow-hidden rounded-lg bg-surf-primary md:me-2 md:mb-2 md:w-[clamp(272px,23vw,320px)] md:rounded-xl ${
+        className={`quick_contacts_panel absolute inset-0 flex-col overflow-hidden rounded-lg bg-surf-primary md:rounded-xl ${
           is_visible ? "flex" : "hidden"
-        } ${is_closing ? "quick_panel_closing" : ""} ${is_top_inset ? "mt-1 md:mt-2" : ""}`}
+        } ${is_closing ? "quick_panel_closing" : "z-10"}`}
       >
         {detail_contact ? (
           <div className="flex h-12 flex-shrink-0 items-center gap-1 ps-2 pe-2">

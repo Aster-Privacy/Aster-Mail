@@ -37,8 +37,8 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import EmojiPicker from "@/components/compose/emoji_picker";
 
-const EMOJI_PICKER_WIDTH = 296;
-const EMOJI_PICKER_MAX_HEIGHT = 332;
+const EMOJI_PICKER_WIDTH = 360;
+const EMOJI_PICKER_MAX_HEIGHT = 420;
 const VIEWPORT_MARGIN = 8;
 
 function clamp_emoji_picker_position(rect: DOMRect) {
