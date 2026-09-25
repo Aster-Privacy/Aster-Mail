@@ -2100,6 +2100,8 @@ export const ko = {
   settings: {
     bill_thanks_title: "Aster를 지원해 주셔서 감사합니다",
     bill_thanks_body: "여러분의 지원은 저희에게 큰 힘이 됩니다. 덕분에 작은 팀이 매일 정성껏 Aster를 계속 만들어 갈 수 있습니다.",
+    bill_thanks_free_title: "Aster를 사용해 주셔서 감사합니다",
+    bill_thanks_free_body: "작은 팀이 정성껏 Aster를 만들고 있으며, 메일을 맡겨 주시는 모든 분이 저희의 원동력입니다. 더 많은 저장 공간, 별칭, 사용자 지정 도메인이 필요할 때 언제든 업그레이드하세요.",
     bill_attachments: "첨부파일",
     bill_dedicated_support: "전담 지원",
     bill_early_access: "새 기능 우선 이용",

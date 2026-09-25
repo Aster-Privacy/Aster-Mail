@@ -1978,6 +1978,8 @@ export const zh_CN = {
   settings: {
     bill_thanks_title: "感谢你支持 Aster",
     bill_thanks_body: "你的支持对我们意义重大。它让一个小团队能够每天用心地继续打造 Aster。",
+    bill_thanks_free_title: "感谢你使用 Aster",
+    bill_thanks_free_body: "一个小团队用心打造 Aster，每一位把邮件托付给它的人都是我们前进的动力。需要更多存储空间、别名或自定义域名时，随时可以升级。",
     bill_attachments: "附件",
     bill_dedicated_support: "专属支持",
     bill_early_access: "抢先体验新功能",

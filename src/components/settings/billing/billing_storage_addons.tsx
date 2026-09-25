@@ -122,7 +122,7 @@ export function BillingStorageAddons({
             <div className={`${BILLING_CARD_CLASS} space-y-4 p-4`}>
               <div
                 aria-label={t("settings.bill_add_more_storage")}
-                className="flex flex-wrap gap-2"
+                className="grid grid-cols-4 gap-2"
                 role="radiogroup"
               >
                 {available_addons.map((addon) => {
@@ -132,7 +132,7 @@ export function BillingStorageAddons({
                     <button
                       key={addon.id}
                       aria-checked={is_selected}
-                      className="rounded-full border px-[14px] py-[8px] text-[13px] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                      className="w-full rounded-full border px-2 py-[9px] text-center text-[13px] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                       disabled={is_action_loading}
                       role="radio"
                       style={{

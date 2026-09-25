@@ -2156,6 +2156,8 @@ export const de = {
   settings: {
     bill_thanks_title: "Danke für deine Unterstützung",
     bill_thanks_body: "Deine Unterstützung bedeutet uns alles. Sie ermöglicht es einem kleinen Team, Aster jeden Tag mit Sorgfalt weiterzuentwickeln.",
+    bill_thanks_free_title: "Danke, dass du Aster nutzt",
+    bill_thanks_free_body: "Ein kleines Team entwickelt Aster mit Sorgfalt, und jede Person, die ihm ihre E-Mails anvertraut, hält uns am Laufen. Führe ein Upgrade durch, wann immer du mehr Speicher, Aliasse oder eigene Domains brauchst.",
     bill_attachments: "Anhänge",
     bill_dedicated_support: "Persönlicher Support",
     bill_early_access: "Früher Zugang zu neuen Funktionen",

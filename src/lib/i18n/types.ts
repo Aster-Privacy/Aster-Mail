@@ -2542,6 +2542,8 @@ export interface SettingsTranslations {
   bill_status_ends: string;
   bill_status_payment_needed: string;
   bill_thanks_body: string;
+  bill_thanks_free_body: string;
+  bill_thanks_free_title: string;
   bill_thanks_title: string;
   bill_top_up: string;
   bill_top_ups_unavailable: string;

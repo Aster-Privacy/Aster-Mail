@@ -2125,6 +2125,8 @@ export const ja = {
   settings: {
     bill_thanks_title: "Aster をご支援いただきありがとうございます",
     bill_thanks_body: "あなたのご支援は私たちにとってかけがえのないものです。小さなチームが毎日、心を込めて Aster を作り続けられるのはそのおかげです。",
+    bill_thanks_free_title: "Aster をご利用いただきありがとうございます",
+    bill_thanks_free_body: "小さなチームが Aster を丁寧に作っています。メールを託してくださる一人ひとりが私たちの支えです。ストレージ、エイリアス、カスタムドメインがもっと必要になったら、いつでもアップグレードできます。",
     bill_attachments: "添付ファイル",
     bill_dedicated_support: "専任サポート",
     bill_early_access: "新機能への早期アクセス",

@@ -2261,6 +2261,8 @@ export const ar = {
   settings: {
     bill_thanks_title: "شكرًا لدعمك Aster",
     bill_thanks_body: "دعمك يعني لنا كل شيء. فهو يتيح لفريق صغير مواصلة بناء Aster بعناية، كل يوم.",
+    bill_thanks_free_title: "شكرًا لاستخدامك Aster",
+    bill_thanks_free_body: "يبني فريق صغير Aster بعناية، وكل شخص يثق به في بريده يبقينا مستمرين. قم بالترقية متى احتجت إلى مساحة تخزين أو أسماء مستعارة أو نطاقات مخصصة إضافية.",
     bill_attachments: "المرفقات",
     bill_dedicated_support: "دعم مخصص",
     bill_early_access: "وصول مبكر إلى الميزات الجديدة",

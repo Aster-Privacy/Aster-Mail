@@ -2114,6 +2114,8 @@ export const tr = {
   settings: {
     bill_thanks_title: "Aster’ı desteklediğiniz için teşekkürler",
     bill_thanks_body: "Desteğiniz bizim için her şey demek. Küçük bir ekibin Aster’ı her gün özenle geliştirmeye devam etmesini sağlıyor.",
+    bill_thanks_free_title: "Aster'ı kullandığınız için teşekkürler",
+    bill_thanks_free_body: "Küçük bir ekip Aster'ı özenle geliştiriyor ve postasını ona emanet eden herkes bizi ayakta tutuyor. Daha fazla depolama, takma ad veya özel alan adı gerektiğinde istediğiniz zaman yükseltin.",
     bill_attachments: "Ekler",
     bill_dedicated_support: "Özel destek",
     bill_early_access: "Yeni özelliklere erken erişim",

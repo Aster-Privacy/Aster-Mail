@@ -180,7 +180,7 @@ export function BillingHeroCard({
 
       <div className={`${BILLING_CARD_CLASS} p-5`}>
         <div className="flex items-center gap-2">
-          <img alt="Aster" className="h-[15px] w-auto" src={text_logo_url} />
+          <img alt="Aster" className="h-[16px] w-auto" src={text_logo_url} />
           <span className="text-[21px] font-bold leading-none tracking-tight text-txt-primary">
             {is_paid_plan ? subscription.plan.name : t("settings.free")}
           </span>
@@ -225,13 +225,21 @@ export function BillingHeroCard({
           <p className="mt-2 text-[13px] text-txt-muted">{detail_line}</p>
         )}
 
-        {is_paid_plan && !has_payment_failed && !ends_on && (
+        {!has_payment_failed && !ends_on && (
           <div className="mt-4">
             <p className="text-[15px] font-semibold text-txt-primary">
-              {t("settings.bill_thanks_title")}
+              {t(
+                is_paid_plan
+                  ? "settings.bill_thanks_title"
+                  : "settings.bill_thanks_free_title",
+              )}
             </p>
             <p className="mt-1 text-sm leading-5 text-txt-secondary">
-              {t("settings.bill_thanks_body")}
+              {t(
+                is_paid_plan
+                  ? "settings.bill_thanks_body"
+                  : "settings.bill_thanks_free_body",
+              )}
             </p>
           </div>
         )}

@@ -2128,6 +2128,8 @@ export const nl = {
   settings: {
     bill_thanks_title: "Bedankt dat je Aster steunt",
     bill_thanks_body: "Je steun betekent alles voor ons. Dankzij jou kan een klein team Aster elke dag met zorg blijven bouwen.",
+    bill_thanks_free_title: "Bedankt dat je Aster gebruikt",
+    bill_thanks_free_body: "Een klein team bouwt Aster met zorg, en iedereen die het zijn e-mail toevertrouwt, houdt ons gaande. Upgrade wanneer je meer opslag, aliassen of eigen domeinen nodig hebt.",
     bill_attachments: "Bijlagen",
     bill_dedicated_support: "Persoonlijke ondersteuning",
     bill_early_access: "Vroege toegang tot nieuwe functies",

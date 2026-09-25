@@ -2149,6 +2149,8 @@ export const en: Translations = {
   settings: {
     bill_thanks_title: "Thanks for supporting Aster",
     bill_thanks_body: "Your support means everything to us. It lets a small team keep building Aster with care, every single day.",
+    bill_thanks_free_title: "Thanks for using Aster",
+    bill_thanks_free_body: "A small team builds Aster with care, and every person who trusts it with their mail keeps us going. Upgrade whenever you need more storage, aliases, or custom domains.",
     bill_attachments: "Attachments",
     bill_dedicated_support: "Dedicated support",
     bill_early_access: "Early access to new features",
