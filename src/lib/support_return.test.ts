@@ -34,7 +34,8 @@ const set_location = (url: string) => {
 
 describe("support return", () => {
   beforeEach(() => {
-    vi.stubEnv("VITE_ACCOUNT_LINK_ORIGINS", SUPPORT);
+    vi.stubEnv("VITE_SUPPORT_SITE_ORIGINS", SUPPORT);
+    vi.stubEnv("VITE_ACCOUNT_LINK_ORIGINS", "https://link.example");
     window.sessionStorage.clear();
     set_location("/sign-in");
   });
@@ -49,6 +50,12 @@ describe("support return", () => {
     expect(safe_support_return(`${SUPPORT}/requests/AB12?x=1#reply`)).toBe(
       `${SUPPORT}/requests/AB12?x=1#reply`,
     );
+  });
+
+  it("never treats an account link origin as a return target", async () => {
+    const { safe_support_return } = await load();
+
+    expect(safe_support_return("https://link.example/requests")).toBeNull();
   });
 
   it("rejects other origins and unsafe forms", async () => {

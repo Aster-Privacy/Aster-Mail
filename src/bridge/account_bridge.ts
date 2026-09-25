@@ -54,7 +54,10 @@ import {
   clear_app_lock_config,
   clear_session_unlock,
 } from "@/services/app_lock_store";
-import { support_site_origins } from "@/lib/support_return";
+import {
+  account_link_origins,
+  support_site_origins,
+} from "@/lib/support_return";
 import {
   base64url_decode,
   base64url_encode,
@@ -62,6 +65,7 @@ import {
 } from "@/lib/crypto/device_envelope";
 
 const CHANNEL = "aster_account_link";
+const SUPPORT_SITE_ACTIONS = new Set(["accounts", "set_current", "sign_out"]);
 const MAX_LINK_ATTEMPTS_PER_LOAD = 3;
 const MAX_ACCOUNTS = 20;
 const MAX_PROFILE_PICTURE_LENGTH = 512_000;
@@ -501,8 +505,18 @@ function post_to_parent(message: Record<string, unknown>, origins: string[]) {
   }
 }
 
+function action_allowed(origin: string, action: string): boolean {
+  if (account_link_origins().includes(origin)) return true;
+
+  return (
+    support_site_origins().includes(origin) && SUPPORT_SITE_ACTIONS.has(action)
+  );
+}
+
 function start_bridge() {
-  const origins = support_site_origins();
+  const origins = Array.from(
+    new Set([...account_link_origins(), ...support_site_origins()]),
+  );
 
   if (origins.length === 0) return;
 
@@ -535,7 +549,11 @@ function start_bridge() {
 
     parent_origin = event.origin;
 
-    handle(request)
+    const outcome = action_allowed(event.origin, request.action)
+      ? handle(request)
+      : Promise.resolve<bridge_result>({ ok: false, error: "unsupported" });
+
+    outcome
       .catch((): bridge_result => ({ ok: false, error: "unavailable" }))
       .then((result) => {
         window.parent.postMessage(
