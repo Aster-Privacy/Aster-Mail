@@ -32,7 +32,7 @@ use tauri::menu::Submenu;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    webview::NewWindowResponse,
+    webview::{DownloadEvent, NewWindowResponse},
     Emitter, Manager, State, Url, WindowEvent,
 };
 
@@ -92,6 +92,48 @@ fn is_app_navigation(url: &Url) -> bool {
 
 fn should_forward_to_app(url: &Url) -> bool {
     FORWARDED_SCHEMES.contains(&url.scheme())
+}
+
+fn unique_download_path(dir: &std::path::Path, suggested: &std::path::Path) -> std::path::PathBuf {
+    let file_name = suggested
+        .file_name()
+        .and_then(|name| name.to_str())
+        .filter(|name| !name.is_empty())
+        .unwrap_or("download");
+    let stem = std::path::Path::new(file_name)
+        .file_stem()
+        .and_then(|value| value.to_str())
+        .unwrap_or("download");
+    let extension = std::path::Path::new(file_name)
+        .extension()
+        .and_then(|value| value.to_str())
+        .map(|value| format!(".{value}"))
+        .unwrap_or_default();
+    let mut candidate = dir.join(file_name);
+    let mut counter = 1;
+
+    while candidate.exists() {
+        candidate = dir.join(format!("{stem} ({counter}){extension}"));
+        counter += 1;
+    }
+
+    candidate
+}
+
+fn resolve_download_destination(app: &tauri::AppHandle, destination: &mut std::path::PathBuf) {
+    if destination.is_absolute() {
+        return;
+    }
+
+    let Ok(dir) = app.path().download_dir() else {
+        return;
+    };
+
+    if std::fs::create_dir_all(&dir).is_err() {
+        return;
+    }
+
+    *destination = unique_download_path(&dir, destination);
 }
 
 struct TrayState(Mutex<Option<tauri::tray::TrayIcon>>);
@@ -429,6 +471,7 @@ fn main() {
 
             let navigation_handle = app.handle().clone();
             let new_window_handle = app.handle().clone();
+            let download_handle = app.handle().clone();
 
             tauri::WebviewWindowBuilder::from_config(app, &window_config)?
                 .on_navigation(move |url| {
@@ -447,6 +490,13 @@ fn main() {
                     }
 
                     NewWindowResponse::Deny
+                })
+                .on_download(move |_webview, event| {
+                    if let DownloadEvent::Requested { destination, .. } = event {
+                        resolve_download_destination(&download_handle, destination);
+                    }
+
+                    true
                 })
                 .build()?;
 

@@ -52,6 +52,7 @@ import {
   activate_subscription,
   create_crypto_checkout_session,
   format_price,
+  open_payment_url,
   type PromoValidateResponse,
 } from "@/services/api/billing";
 import {
@@ -78,6 +79,13 @@ import {
   build_stripe_element_style,
 } from "@/lib/stripe_appearance";
 import { is_composing } from "@/utils/ime";
+import { is_tauri_env } from "@/services/api/client/helpers";
+
+const WEB_APP_ORIGIN = "https://app.astermail.org";
+
+function return_origin(): string {
+  return is_tauri_env() ? WEB_APP_ORIGIN : window.location.origin;
+}
 
 interface payment_form_props {
   plan_name: string;
@@ -408,7 +416,7 @@ export function PaymentForm({
             clientSecret: secret,
             confirmParams: {
               payment_method: ev.paymentMethod.id,
-              return_url: `${window.location.origin}${window.location.pathname}`,
+              return_url: `${return_origin()}${window.location.pathname}`,
             },
             redirect: "if_required",
           });
@@ -526,7 +534,7 @@ export function PaymentForm({
       set_phase("processing");
       set_error_message("");
       try {
-        const origin = window.location.origin;
+        const origin = return_origin();
         const response = await create_crypto_checkout_session(
           plan_code,
           active_term,
@@ -540,6 +548,12 @@ export function PaymentForm({
 
             if (parsed.protocol !== "https:")
               throw new Error("invalid_protocol");
+            if (is_tauri_env()) {
+              await open_payment_url(parsed.toString());
+              set_phase("ready");
+
+              return;
+            }
             window.location.href = parsed.toString();
           } catch {
             set_error_message(t("settings.failed_checkout"));
@@ -608,7 +622,7 @@ export function PaymentForm({
               name: cardholder_name || "Aster User",
             },
           },
-          return_url: `${window.location.origin}${window.location.pathname}?stripe_redirect=1`,
+          return_url: `${return_origin()}${window.location.pathname}?stripe_redirect=1`,
         });
 
         error = result.error;
