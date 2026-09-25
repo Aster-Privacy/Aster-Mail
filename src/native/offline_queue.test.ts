@@ -23,6 +23,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 const hoisted = vi.hoisted(() => ({
   account_id: { value: "acct_a" as string | null },
   storage_unreadable: { value: false },
+  connected: { value: true },
   update_item_metadata: vi.fn(async () => ({ success: true })),
   get_mail_item: vi.fn(async () => ({
     data: {
@@ -35,7 +36,7 @@ const hoisted = vi.hoisted(() => ({
 
 vi.mock("./capacitor_bridge", () => ({
   is_native_platform: () => false,
-  get_network_status: async () => ({ connected: true }),
+  get_network_status: async () => ({ connected: hoisted.connected.value }),
 }));
 
 vi.mock("./haptic_feedback", () => ({
@@ -60,6 +61,17 @@ vi.mock("@/services/crypto/mail_metadata", () => ({
   update_item_metadata: hoisted.update_item_metadata,
 }));
 
+vi.mock("@/services/crypto/secure_storage", () => ({
+  device_encrypt: async (data: string) =>
+    JSON.stringify({
+      v: 2,
+      n: "nonce",
+      c: Buffer.from(data, "utf8").toString("base64"),
+    }),
+  device_decrypt: async (sealed: string) =>
+    Buffer.from(JSON.parse(sealed).c, "base64").toString("utf8"),
+}));
+
 import {
   get_failed_actions,
   get_queue,
@@ -73,6 +85,14 @@ import { MAIL_EVENTS } from "@/hooks/mail_events";
 const LEGACY_KEY = "aster_offline_queue";
 const SCOPED_KEY_A = "aster_offline_queue:acct_a";
 const SCOPED_KEY_B = "aster_offline_queue:acct_b";
+
+function unseal(value: string | null): unknown {
+  if (!value) return [];
+
+  return JSON.parse(
+    Buffer.from(JSON.parse(value).c, "base64").toString("utf8"),
+  );
+}
 
 function star_action(id: string, retry_count = 0) {
   return {
@@ -100,9 +120,7 @@ describe("offline queue account scoping", () => {
     expect(queue).toHaveLength(1);
     expect(queue[0].id).toBe("a1");
     expect(localStorage.getItem(LEGACY_KEY)).toBeNull();
-    expect(JSON.parse(localStorage.getItem(SCOPED_KEY_A) || "[]")).toHaveLength(
-      1,
-    );
+    expect(unseal(localStorage.getItem(SCOPED_KEY_A))).toHaveLength(1);
   });
 
   it("does not read another account's queue", async () => {
@@ -124,6 +142,44 @@ describe("offline queue account scoping", () => {
 
     expect(queue).toHaveLength(1);
     expect(localStorage.getItem(LEGACY_KEY)).not.toBeNull();
+  });
+});
+
+describe("offline queue storage at rest", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    hoisted.account_id.value = "acct_a";
+    hoisted.connected.value = false;
+  });
+
+  afterEach(() => {
+    hoisted.connected.value = true;
+  });
+
+  it("never stores queued mail content as plaintext", async () => {
+    const { enqueue_action } = await import("./offline_queue");
+
+    await enqueue_action("send_email", {
+      to: ["friend@example.com"],
+      subject: "private subject",
+      body: "private body",
+    });
+
+    const stored = localStorage.getItem(SCOPED_KEY_A) || "";
+
+    expect(stored).not.toContain("private subject");
+    expect(stored).not.toContain("friend@example.com");
+  });
+
+  it("reseals a plaintext queue left by an older version", async () => {
+    localStorage.setItem(SCOPED_KEY_B, JSON.stringify([star_action("p1")]));
+    hoisted.account_id.value = "acct_b";
+
+    const queue = await get_queue();
+
+    expect(queue).toHaveLength(1);
+    expect(localStorage.getItem(SCOPED_KEY_B)).not.toContain("p1");
+    expect(unseal(localStorage.getItem(SCOPED_KEY_B))).toHaveLength(1);
   });
 });
 

@@ -94,7 +94,7 @@ async function resolve_queue_key(): Promise<string> {
   return account_id ? `${QUEUE_KEY}:${account_id}` : QUEUE_KEY;
 }
 
-async function read_raw(key: string): Promise<string | null> {
+async function read_stored(key: string): Promise<string | null> {
   if (!is_native_platform()) {
     return localStorage.getItem(key);
   }
@@ -104,7 +104,7 @@ async function read_raw(key: string): Promise<string | null> {
   return value;
 }
 
-async function write_raw(key: string, value: string): Promise<void> {
+async function write_stored(key: string, value: string): Promise<void> {
   if (!is_native_platform()) {
     localStorage.setItem(key, value);
 
@@ -112,6 +112,65 @@ async function write_raw(key: string, value: string): Promise<void> {
   }
 
   await Preferences.set({ key, value });
+}
+
+async function load_device_cipher() {
+  return import("@/services/crypto/secure_storage");
+}
+
+function is_sealed(value: string): boolean {
+  try {
+    const parsed = JSON.parse(value);
+
+    return (
+      parsed !== null &&
+      typeof parsed === "object" &&
+      !Array.isArray(parsed) &&
+      typeof parsed.n === "string" &&
+      typeof parsed.c === "string"
+    );
+  } catch {
+    return false;
+  }
+}
+
+async function reseal_plaintext(key: string, plaintext: string): Promise<void> {
+  try {
+    const { device_encrypt } = await load_device_cipher();
+    const sealed = await device_encrypt(plaintext);
+
+    if ((await read_stored(key)) !== plaintext) return;
+
+    await write_stored(key, sealed);
+  } catch {
+    return;
+  }
+}
+
+async function read_raw(key: string): Promise<string | null> {
+  const stored = await read_stored(key);
+
+  if (stored === null) return null;
+
+  if (!is_sealed(stored)) {
+    await reseal_plaintext(key, stored);
+
+    return stored;
+  }
+
+  try {
+    const { device_decrypt } = await load_device_cipher();
+
+    return await device_decrypt(stored);
+  } catch {
+    return stored;
+  }
+}
+
+async function write_raw(key: string, value: string): Promise<void> {
+  const { device_encrypt } = await load_device_cipher();
+
+  await write_stored(key, await device_encrypt(value));
 }
 
 async function remove_raw(key: string): Promise<void> {
@@ -300,8 +359,9 @@ async function read_failed_unlocked(): Promise<QueuedAction[]> {
   try {
     const key = await resolve_failed_key();
     const stored = await read_raw(key);
+    const parsed = stored ? JSON.parse(stored) : [];
 
-    return stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
