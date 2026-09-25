@@ -22,13 +22,8 @@ import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  BackspaceIcon,
-  CheckIcon,
-  EyeIcon,
-  EyeSlashIcon,
-} from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { BackspaceIcon } from "@heroicons/react/24/outline";
+import { PinLockDuressView, PinLockOverlayView } from "@aster/ui";
 
 import { cn } from "@/lib/utils";
 import {
@@ -65,113 +60,9 @@ import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { set_app_network_locked } from "@/services/app_lock_network_gate";
 import { lock_all_folders } from "@/hooks/use_protected_folder";
 import { ignore_error } from "@/lib/ignore_error";
-import { is_composing } from "@/utils/ime";
 import { ButtonSpinner } from "@/components/ui/spinner";
 
 const LOCK_TIMEOUT_MS = 5 * 60 * 1000;
-
-function PinDots({
-  digits,
-  filled,
-  shake_key,
-}: {
-  digits: number;
-  filled: number;
-  shake_key: number;
-}) {
-  return (
-    <motion.div
-      key={shake_key}
-      animate={shake_key > 0 ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }}
-      className="flex items-center gap-3"
-      transition={{ duration: 0.4 }}
-    >
-      {Array.from({ length: digits }).map((_, i) => (
-        <div
-          key={i}
-          className={cn(
-            "w-4 h-4 rounded-full border-2 transition-all duration-150",
-            i < filled
-              ? "bg-primary border-primary"
-              : "border-muted-foreground/40 bg-transparent",
-          )}
-        />
-      ))}
-    </motion.div>
-  );
-}
-
-function PinPad({
-  on_digit,
-  on_backspace,
-  on_check,
-  can_check,
-  pressed_key,
-}: {
-  on_digit: (d: string) => void;
-  on_backspace: () => void;
-  on_check: () => void;
-  can_check: boolean;
-  pressed_key: string | null;
-}) {
-  const { t } = use_i18n();
-  const btn_base =
-    "h-14 w-14 mx-auto rounded-full flex items-center justify-center transition-all duration-75";
-  const digit_cls = (k: string) =>
-    cn(
-      btn_base,
-      "text-xl font-medium bg-muted hover:bg-muted/70 focus:outline-none",
-      pressed_key === k && "scale-90 bg-muted/50",
-    );
-
-  return (
-    <div className="grid grid-cols-3 gap-2.5">
-      {["1", "2", "3", "4", "5", "6", "7", "8", "9"].map((k) => (
-        <button
-          key={k}
-          className={digit_cls(k)}
-          type="button"
-          onClick={() => on_digit(k)}
-        >
-          {k}
-        </button>
-      ))}
-      <button
-        className={cn(
-          btn_base,
-          "bg-muted hover:bg-muted/70 focus:outline-none",
-          pressed_key === "Backspace" && "scale-90 bg-muted/50",
-        )}
-        aria-label={t("common.delete")}
-        type="button"
-        onClick={on_backspace}
-      >
-        <BackspaceIcon className="h-5 w-5 text-txt-primary" />
-      </button>
-      <button
-        className={digit_cls("0")}
-        type="button"
-        onClick={() => on_digit("0")}
-      >
-        0
-      </button>
-      <button
-        className={cn(
-          btn_base,
-          "bg-muted hover:bg-muted/70 focus:outline-none",
-          pressed_key === "Enter" && "scale-90 bg-muted/50",
-          !can_check && "opacity-40",
-        )}
-        aria-label={t("common.confirm")}
-        disabled={!can_check}
-        type="button"
-        onClick={on_check}
-      >
-        <CheckIcon className="h-5 w-5 text-txt-primary" />
-      </button>
-    </div>
-  );
-}
 
 function WebPinOverlay({
   account_id,
@@ -197,7 +88,6 @@ function WebPinOverlay({
   const [locked_out, set_locked_out] = useState(false);
   const [lockout_remaining, set_lockout_remaining] = useState(0);
   const [pressed_key, set_pressed_key] = useState<string | null>(null);
-  const [show_passphrase, set_show_passphrase] = useState(false);
   const [show_duress_confirm, set_show_duress_confirm] = useState(false);
   const [wiping, set_wiping] = useState(false);
   const wiping_ref = useRef(false);
@@ -347,184 +237,53 @@ function WebPinOverlay({
 
   if (show_duress_confirm) {
     return (
-      <motion.div
-        animate={{ opacity: 1 }}
-        className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background select-none px-6"
-        exit={{ opacity: 0 }}
-        initial={reduce_motion ? false : { opacity: 0 }}
-      >
-        <motion.div
-          animate={{ scale: 1, opacity: 1 }}
-          className="flex flex-col items-center gap-5 max-w-sm w-full text-center"
-          initial={reduce_motion ? false : { scale: 0.9, opacity: 0 }}
-          transition={{ delay: 0.05 }}
-        >
-          <img
-            alt="Aster Mail"
-            className="h-7 opacity-90"
-            draggable={false}
-            src="/text_logo.png"
-          />
-          <div className="flex flex-col gap-1.5">
-            <p className="text-xs font-semibold uppercase tracking-widest text-red-500/80">
-              {t("common.duress_confirm_subtitle")}
-            </p>
-            <h1 className="text-xl font-semibold text-txt-primary">
-              {t("common.duress_confirm_title")}
-            </h1>
-          </div>
-          <div className="w-full rounded-2xl bg-surf-secondary border border-edge-secondary px-4 py-3.5 flex flex-col gap-2 text-start">
-            <p className="text-sm text-txt-primary font-medium">
-              {t("common.duress_confirm_desc")}
-            </p>
-            <p className="text-xs text-txt-muted leading-relaxed">
-              {t("common.duress_confirm_detail")}
-            </p>
-          </div>
-          <div className="flex flex-col gap-2 w-full">
-            <Button
-              className="w-full"
-              disabled={wiping}
-              variant="depth_destructive"
-              onClick={handle_duress_confirm}
-            >
-              {t("common.duress_confirm_proceed")}
-              {wiping && <ButtonSpinner />}
-            </Button>
-            <Button
-              className="w-full"
-              disabled={wiping}
-              variant="outline"
-              onClick={() => set_show_duress_confirm(false)}
-            >
-              {t("common.cancel")}
-            </Button>
-          </div>
-        </motion.div>
-      </motion.div>
+      <PinLockDuressView
+        cancel_label={t("common.cancel")}
+        description={t("common.duress_confirm_desc")}
+        detail={t("common.duress_confirm_detail")}
+        is_wiping={wiping}
+        logo_alt="Aster Mail"
+        logo_src="/text_logo.png"
+        proceed_label={t("common.duress_confirm_proceed")}
+        reduce_motion={reduce_motion}
+        subtitle={t("common.duress_confirm_subtitle")}
+        title={t("common.duress_confirm_title")}
+        on_cancel={() => set_show_duress_confirm(false)}
+        on_proceed={handle_duress_confirm}
+      />
     );
   }
 
   return (
-    <motion.div
-      animate={{ opacity: 1 }}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-background select-none"
-      exit={{ opacity: 0 }}
-      initial={reduce_motion ? false : { opacity: 0 }}
-    >
-      <motion.div
-        animate={{ scale: 1, opacity: 1 }}
-        className={cn(
-          "flex flex-col items-center",
-          pin_type === "text" ? "gap-3" : "gap-4",
-        )}
-        initial={reduce_motion ? false : { scale: 0.9, opacity: 0 }}
-        transition={{ delay: 0.05 }}
-      >
-        <img
-          alt="Aster Mail"
-          className="h-7 opacity-90"
-          draggable={false}
-          src="/text_logo.png"
-        />
-        <div className="text-center">
-          <h1 className="text-lg font-semibold text-txt-primary">
-            {t("common.app_locked")}
-          </h1>
-          {locked_out && (
-            <p className="mt-0.5 text-sm text-txt-muted">
-              {t("common.app_lock_try_again_in", { s: lockout_remaining })}
-            </p>
-          )}
-        </div>
-        {pin_type === "numeric" ? (
-          <>
-            <div className="flex flex-col items-center gap-2">
-              <PinDots
-                digits={digits}
-                filled={input.length}
-                shake_key={shake_key}
-              />
-              <div className="h-4 flex items-center justify-center">
-                {message && <p className="text-xs text-red-500">{message}</p>}
-                {verifying && !message && (
-                  <div className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                )}
-              </div>
-            </div>
-            <PinPad
-              can_check={input.length >= digits}
-              on_backspace={handle_backspace}
-              on_check={handle_text_submit}
-              on_digit={handle_digit}
-              pressed_key={pressed_key}
-            />
-            <Button variant="outline" onClick={on_sign_out}>
-              {t("settings.sign_out")}
-            </Button>
-          </>
-        ) : (
-          <div className="flex flex-col items-center gap-2 w-72">
-            <motion.div
-              key={shake_key}
-              animate={
-                shake_key > 0 ? { x: [0, -10, 10, -10, 10, 0] } : { x: 0 }
-              }
-              className="w-full"
-              transition={{ duration: 0.4 }}
-            >
-              <div className="relative w-full">
-                <input
-                  autoFocus
-                  autoComplete="off"
-                  className="w-full px-4 py-2.5 pe-10 rounded-xl bg-surf-secondary border border-edge-secondary text-sm text-txt-primary focus:outline-none focus:border-brand transition-colors text-center"
-                  disabled={verifying || locked_out}
-                  placeholder={t("common.enter_passphrase")}
-                  type={show_passphrase ? "text" : "password"}
-                  value={input}
-                  onChange={(e) => {
-                    if (!verifying && !locked_out) set_input(e.target.value);
-                  }}
-                  onKeyDown={(e) => {
-                    if (
-                      e.key === "Enter" &&
-                      !is_composing(e) &&
-                      input.length >= 1
-                    )
-                      handle_text_submit();
-                  }}
-                />
-                <button
-                  className="absolute end-3 top-1/2 -translate-y-1/2 text-txt-muted hover:text-txt-primary transition-colors"
-                  tabIndex={-1}
-                  type="button"
-                  onClick={() => set_show_passphrase((v) => !v)}
-                >
-                  {show_passphrase ? (
-                    <EyeSlashIcon className="h-4 w-4" />
-                  ) : (
-                    <EyeIcon className="h-4 w-4" />
-                  )}
-                </button>
-              </div>
-            </motion.div>
-            {message && <p className="text-xs text-red-500 -mt-1">{message}</p>}
-            <Button
-              className="w-full"
-              disabled={verifying || locked_out || input.length < 1}
-              variant="depth"
-              onClick={handle_text_submit}
-            >
-              {t("common.unlock")}
-              {verifying && <ButtonSpinner />}
-            </Button>
-            <Button className="w-full" variant="outline" onClick={on_sign_out}>
-              {t("settings.sign_out")}
-            </Button>
-          </div>
-        )}
-      </motion.div>
-    </motion.div>
+    <PinLockOverlayView
+      confirm_label={t("common.confirm")}
+      delete_label={t("common.delete")}
+      digits={digits}
+      is_locked_out={locked_out}
+      is_verifying={verifying}
+      lockout_text={
+        locked_out
+          ? t("common.app_lock_try_again_in", { s: lockout_remaining })
+          : null
+      }
+      logo_alt="Aster Mail"
+      logo_src="/text_logo.png"
+      message={message}
+      passphrase_placeholder={t("common.enter_passphrase")}
+      pin_type={pin_type}
+      pressed_key={pressed_key}
+      reduce_motion={reduce_motion}
+      shake_key={shake_key}
+      sign_out_label={t("settings.sign_out")}
+      title={t("common.app_locked")}
+      unlock_label={t("common.unlock")}
+      value={input}
+      on_backspace={handle_backspace}
+      on_digit={handle_digit}
+      on_sign_out={on_sign_out}
+      on_submit={handle_text_submit}
+      on_value_change={set_input}
+    />
   );
 }
 

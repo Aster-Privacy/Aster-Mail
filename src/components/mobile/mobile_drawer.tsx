@@ -28,10 +28,13 @@ import {
   useMemo,
   useState,
   useRef,
-  useLayoutEffect,
 } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import {
+  MobileDrawerHeaderView,
+  MobileDrawerScrollArea,
+  MobileDrawerShell,
+  use_drawer_nav_indicator,
+} from "@aster/ui";
 
 import { use_platform } from "@/hooks/use_platform";
 import { create_folder_error_message } from "@/lib/folder_error_message";
@@ -172,16 +175,11 @@ export const MobileDrawer = memo(function MobileDrawer({
   const folder_input_ref = useRef<HTMLInputElement>(null);
   const label_input_ref = useRef<HTMLInputElement>(null);
   const nav_container_ref = useRef<HTMLDivElement>(null);
-  const [indicator_style, set_indicator_style] = useState<{
-    y: number;
-    height: number;
-    opacity: number;
-  }>({ y: 0, height: 0, opacity: 0 });
-  const drawer_scroll_ref = useRef<HTMLDivElement>(null);
-  const bounce_content_ref = useRef<HTMLDivElement>(null);
-  const bounce_touch_y = useRef(0);
-  const bounce_origin_y = useRef(0);
-  const is_bouncing = useRef(false);
+  const indicator_style = use_drawer_nav_indicator(
+    nav_container_ref,
+    is_open,
+    active_path,
+  );
 
   useEffect(() => {
     const fetch_alias_limit = () => {
@@ -308,28 +306,6 @@ export const MobileDrawer = memo(function MobileDrawer({
     return () => clearTimeout(handle);
   }, [show_create_label]);
 
-  useLayoutEffect(() => {
-    if (!is_open || !nav_container_ref.current) return;
-    const container = nav_container_ref.current;
-    const active_btn = container.querySelector(
-      "[data-nav-active='true']",
-    ) as HTMLElement | null;
-
-    if (!active_btn) {
-      set_indicator_style((prev) => ({ ...prev, opacity: 0 }));
-
-      return;
-    }
-    const container_rect = container.getBoundingClientRect();
-    const btn_rect = active_btn.getBoundingClientRect();
-    const y = Math.round(
-      btn_rect.top - container_rect.top + container.scrollTop,
-    );
-    const height = Math.round(btn_rect.height);
-
-    set_indicator_style({ y, height, opacity: 1 });
-  }, [is_open, active_path]);
-
   const handle_nav = useCallback(
     (path: string) => {
       on_navigate(path);
@@ -337,65 +313,6 @@ export const MobileDrawer = memo(function MobileDrawer({
     },
     [on_navigate, on_close],
   );
-
-  const last_touch_y = useRef(0);
-
-  const handle_bounce_touch_start = useCallback((e: React.TouchEvent) => {
-    const y = e.touches[0].clientY;
-
-    bounce_touch_y.current = y;
-    last_touch_y.current = y;
-    is_bouncing.current = false;
-  }, []);
-
-  const handle_bounce_touch_move = useCallback((e: React.TouchEvent) => {
-    const el = drawer_scroll_ref.current;
-    const content = bounce_content_ref.current;
-
-    if (!el || !content) return;
-
-    const current_y = e.touches[0].clientY;
-    const incremental_delta = current_y - last_touch_y.current;
-
-    last_touch_y.current = current_y;
-    const at_top = el.scrollTop <= 0;
-    const at_bottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
-
-    if (at_top && incremental_delta > 0) {
-      if (!is_bouncing.current) {
-        is_bouncing.current = true;
-        bounce_origin_y.current = current_y;
-      }
-      const overscroll = (current_y - bounce_origin_y.current) * 0.4;
-
-      content.style.transform = `translateY(${Math.min(Math.max(overscroll, 0), 80)}px)`;
-      content.style.transition = "none";
-    } else if (at_bottom && incremental_delta < 0) {
-      if (!is_bouncing.current) {
-        is_bouncing.current = true;
-        bounce_origin_y.current = current_y;
-      }
-      const overscroll = (current_y - bounce_origin_y.current) * 0.4;
-
-      content.style.transform = `translateY(${Math.max(Math.min(overscroll, 0), -80)}px)`;
-      content.style.transition = "none";
-    } else if (is_bouncing.current) {
-      is_bouncing.current = false;
-      content.style.transform = "translateY(0)";
-      content.style.transition =
-        "transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-    }
-  }, []);
-
-  const handle_bounce_touch_end = useCallback(() => {
-    const content = bounce_content_ref.current;
-
-    if (!content || !is_bouncing.current) return;
-    is_bouncing.current = false;
-    content.style.transform = "translateY(0)";
-    content.style.transition =
-      "transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-  }, []);
 
   const handle_create_folder = useCallback(async () => {
     const name = new_folder_name.trim();
@@ -639,133 +556,71 @@ export const MobileDrawer = memo(function MobileDrawer({
 
   return (
     <>
-      <AnimatePresence>
-        {is_open && (
-          <motion.div
-            animate={{ opacity: 1 }}
-            className="fixed inset-0 z-50 bg-black/50"
-            exit={{ opacity: 0 }}
-            initial={reduce_motion ? false : { opacity: 0 }}
-            transition={{ duration: reduce_motion ? 0 : 0.2 }}
-            onPointerDown={handle_backdrop_pointer_down}
-          />
-        )}
-      </AnimatePresence>
-
-      <motion.nav
-        ref={dialog_ref}
-        animate={{ x: is_open ? 0 : -320 }}
-        className="fixed inset-y-0 start-0 z-50 flex w-80 max-w-[85vw] flex-col outline-none"
-        initial={false}
-        style={{
-          paddingTop: safe_area_insets.top,
-          paddingBottom: safe_area_insets.bottom,
-          backgroundColor: "var(--mobile-sidebar-bg, var(--bg-primary))",
-          willChange: "transform",
-          pointerEvents: is_open ? "auto" : "none",
-        }}
-        tabIndex={-1}
-        transition={
-          reduce_motion
-            ? { duration: 0 }
-            : { type: "tween", duration: 0.25, ease: "easeOut" }
-        }
-        onAnimationComplete={(definition) => {
-          if (
-            typeof definition === "object" &&
-            "x" in definition &&
-            definition.x === -320
-          ) {
-            const el = nav_container_ref.current?.closest("nav");
-
-            if (el) el.style.visibility = "hidden";
-          }
-        }}
-        onAnimationStart={() => {
-          const el = nav_container_ref.current?.closest("nav");
-
-          if (el) el.style.visibility = "visible";
-        }}
+      <MobileDrawerShell
+        focusable
+        hide_when_closed
+        is_open={is_open}
+        lock_body_scroll={false}
+        on_backdrop_pointer_down={handle_backdrop_pointer_down}
+        on_close={on_close}
+        panel_ref={dialog_ref}
+        reduce_motion={reduce_motion}
+        safe_area_bottom={safe_area_insets.bottom}
+        safe_area_top={safe_area_insets.top}
+        side="start"
+        width_class_name="w-80 max-w-[85vw]"
       >
-        <div className="px-4 pb-4 pt-5">
-          <button
-            className="flex w-full items-center gap-3.5"
-            type="button"
-            onClick={() => set_show_account_menu(true)}
-          >
-            <div className="relative h-11 w-11 shrink-0">
-              <img
-                alt="Aster"
-                className="h-full w-full select-none rounded-xl"
-                draggable={false}
-                src={mail_logo_url}
-              />
-            </div>
-            <div className="min-w-0 flex-1">
-              <span className="block truncate text-start text-[17px] font-semibold text-[var(--text-primary)]">
-                Aster Mail
-              </span>
-              <span className="block truncate text-start text-[13px] text-[var(--text-muted)]">
-                {primary_identity.email || (user?.email ?? "")}
-              </span>
-            </div>
-            <ChevronDownIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
-          </button>
-        </div>
+        <MobileDrawerHeaderView
+          logo_src={mail_logo_url}
+          subtitle={primary_identity.email || (user?.email ?? "")}
+          title="Aster Mail"
+          on_click={() => set_show_account_menu(true)}
+        />
 
-        <div
-          ref={drawer_scroll_ref}
-          className="flex-1 overflow-y-auto overscroll-y-auto px-2.5 pb-2 pt-0.5"
-          style={{ WebkitOverflowScrolling: "touch" }}
-          onTouchEnd={handle_bounce_touch_end}
-          onTouchMove={handle_bounce_touch_move}
-          onTouchStart={handle_bounce_touch_start}
-        >
-          <div ref={bounce_content_ref}>
-            <DrawerNavContent
-              active_path={active_path}
-              alias_unread_counts={alias_unread_counts}
-              aliases={aliases}
-              aliases_load_failed={aliases_load_failed}
-              aliases_loading={aliases_loading}
-              folder_unread_counts={folder_unread_counts}
-              folders={folders}
-              folders_load_failed={Boolean(folders_state.error)}
-              folders_loading={folders_state.is_loading}
-              handle_nav={handle_nav}
-              indicator_style={indicator_style}
-              nav_container_ref={nav_container_ref}
-              on_open_create_alias={() => {
-                set_show_create_folder(false);
-                set_show_create_label(false);
-                set_show_create_alias(true);
-              }}
-              on_open_create_folder={() => {
-                set_show_create_label(false);
-                set_show_create_alias(false);
-                set_show_create_folder(true);
-              }}
-              on_open_create_label={() => {
-                set_show_create_folder(false);
-                set_show_create_alias(false);
-                set_show_create_label(true);
-              }}
-              on_open_edit_folder={handle_open_edit_folder}
-              on_open_edit_tag={handle_open_edit_tag}
-              on_password_modal={set_password_modal_folder}
-              on_retry_aliases={() => void refresh_aliases()}
-              on_retry_folders={() => void refresh_folders()}
-              on_retry_tags={() => void refresh_tags()}
-              on_toggle_lock={handle_toggle_lock}
-              stats={stats}
-              tag_counts={tag_counts}
-              tags={tags}
-              tags_load_failed={Boolean(tags_state.error)}
-              tags_loading={tags_state.is_loading}
-            />
-          </div>
-        </div>
-      </motion.nav>
+        <MobileDrawerScrollArea>
+          <DrawerNavContent
+            active_path={active_path}
+            alias_unread_counts={alias_unread_counts}
+            aliases={aliases}
+            aliases_load_failed={aliases_load_failed}
+            aliases_loading={aliases_loading}
+            folder_unread_counts={folder_unread_counts}
+            folders={folders}
+            folders_load_failed={Boolean(folders_state.error)}
+            folders_loading={folders_state.is_loading}
+            handle_nav={handle_nav}
+            indicator_style={indicator_style}
+            nav_container_ref={nav_container_ref}
+            on_open_create_alias={() => {
+              set_show_create_folder(false);
+              set_show_create_label(false);
+              set_show_create_alias(true);
+            }}
+            on_open_create_folder={() => {
+              set_show_create_label(false);
+              set_show_create_alias(false);
+              set_show_create_folder(true);
+            }}
+            on_open_create_label={() => {
+              set_show_create_folder(false);
+              set_show_create_alias(false);
+              set_show_create_label(true);
+            }}
+            on_open_edit_folder={handle_open_edit_folder}
+            on_open_edit_tag={handle_open_edit_tag}
+            on_password_modal={set_password_modal_folder}
+            on_retry_aliases={() => void refresh_aliases()}
+            on_retry_folders={() => void refresh_folders()}
+            on_retry_tags={() => void refresh_tags()}
+            on_toggle_lock={handle_toggle_lock}
+            stats={stats}
+            tag_counts={tag_counts}
+            tags={tags}
+            tags_load_failed={Boolean(tags_state.error)}
+            tags_loading={tags_state.is_loading}
+          />
+        </MobileDrawerScrollArea>
+      </MobileDrawerShell>
 
       <AccountMenuSheet
         handle_logout={handle_logout}

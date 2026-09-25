@@ -102,6 +102,7 @@ function MailUiStrings({ children }: { children: React.ReactNode }) {
       next_month: t("common.next_month"),
       qr_code: t("common.qr_code"),
       learn_more: t("common.learn_more"),
+      delete: t("common.delete"),
     }),
     [t],
   );

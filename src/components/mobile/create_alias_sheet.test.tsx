@@ -93,6 +93,16 @@ vi.mock("@/components/folders/folder_password_modal", () => ({
 
 import { CreateAliasSheet } from "@/components/mobile/mobile_drawer_sheets";
 
+function find_create_button(container: HTMLElement): HTMLButtonElement {
+  const match = Array.from(container.querySelectorAll("button")).find(
+    (button) => button.textContent?.trim() === "common.create",
+  );
+
+  if (!match) throw new Error("create button not found");
+
+  return match;
+}
+
 function create_ref() {
   return { current: { reset: vi.fn(), refresh: vi.fn(async () => "") } };
 }
@@ -141,9 +151,7 @@ describe("CreateAliasSheet captcha gating", () => {
   it("disables Create until a captcha token is present", () => {
     act(() => root.render(<CreateAliasSheet {...base_props()} />));
 
-    const btn = container.querySelector(
-      '[data-testid="create-btn"]',
-    ) as HTMLButtonElement;
+    const btn = find_create_button(container);
 
     expect(btn.disabled).toBe(true);
 
@@ -153,9 +161,7 @@ describe("CreateAliasSheet captcha gating", () => {
       ),
     );
 
-    const btn_after = container.querySelector(
-      '[data-testid="create-btn"]',
-    ) as HTMLButtonElement;
+    const btn_after = find_create_button(container);
 
     expect(btn_after.disabled).toBe(false);
   });
@@ -165,9 +171,7 @@ describe("CreateAliasSheet captcha gating", () => {
 
     act(() => root.render(<CreateAliasSheet {...props} />));
 
-    const btn = container.querySelector(
-      '[data-testid="create-btn"]',
-    ) as HTMLButtonElement;
+    const btn = find_create_button(container);
 
     act(() => btn.click());
 
@@ -197,9 +201,7 @@ describe("CreateAliasSheet captcha gating", () => {
       ),
     );
 
-    const btn = container.querySelector(
-      '[data-testid="create-btn"]',
-    ) as HTMLButtonElement;
+    const btn = find_create_button(container);
 
     expect(btn.disabled).toBe(false);
     expect(container.querySelector('[data-testid="turnstile"]')).toBeNull();
