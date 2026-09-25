@@ -23,7 +23,12 @@ import type { MemberRetentionPolicy } from "@/services/api/family_org";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Capacitor } from "@capacitor/core";
-import { Button, Switch } from "@aster/ui";
+import {
+  Button,
+  IslandSection,
+  IslandSections,
+  SettingToggleRow,
+} from "@aster/ui";
 import {
   BookOpenIcon,
   PencilSquareIcon,
@@ -415,17 +420,13 @@ export function BehaviorSection() {
   };
 
   return (
-    <div className="space-y-4">
+    <IslandSections>
       <SettingsSaveIndicatorInline />
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <BookOpenIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.reading_and_conversations")}
-          </h3>
-        </div>
-
+      <IslandSection
+        icon={<BookOpenIcon />}
+        title={t("settings.reading_and_conversations")}
+      >
         <SelectSetting
           description={t("settings.mark_as_read_description")}
           info={{
@@ -526,33 +527,25 @@ export function BehaviorSection() {
           value={preferences.thread_count_position ?? "left"}
         />
 
-        <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pe-4">
-            <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
-              {t("settings.conversation_grouping")}
-              <InfoPopover
-                description={t("settings.conversation_grouping_description")}
-                title={t("settings.conversation_grouping")}
-              />
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.conversation_grouping_description")}
-            </p>
-          </div>
-          <Switch
-            aria-label={t("settings.conversation_grouping")}
-            checked={preferences.conversation_grouping !== false}
-            size="lg"
-            onCheckedChange={(checked) => {
-              if (!checked) {
-                set_show_grouping_dialog(true);
+        <SettingToggleRow
+          checked={preferences.conversation_grouping !== false}
+          description={t("settings.conversation_grouping_description")}
+          info={
+            <InfoPopover
+              description={t("settings.conversation_grouping_description")}
+              title={t("settings.conversation_grouping")}
+            />
+          }
+          label={t("settings.conversation_grouping")}
+          on_change={(checked) => {
+            if (!checked) {
+              set_show_grouping_dialog(true);
 
-                return;
-              }
-              update_preference("conversation_grouping", true, true);
-            }}
-          />
-        </div>
+              return;
+            }
+            update_preference("conversation_grouping", true, true);
+          }}
+        />
 
         <SelectSetting
           description={t("settings.conversation_order_description")}
@@ -567,28 +560,18 @@ export function BehaviorSection() {
           value={preferences.conversation_order ?? "asc"}
         />
 
-        <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.show_message_size")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.show_message_size_description")}
-            </p>
-          </div>
-          <Switch
-            aria-label={t("settings.show_message_size")}
-            checked={preferences.show_message_size === true}
-            size="lg"
-            onCheckedChange={() =>
-              update_preference(
-                "show_message_size",
-                !preferences.show_message_size,
-                true,
-              )
-            }
-          />
-        </div>
+        <SettingToggleRow
+          checked={preferences.show_message_size === true}
+          description={t("settings.show_message_size_description")}
+          label={t("settings.show_message_size")}
+          on_change={() =>
+            update_preference(
+              "show_message_size",
+              !preferences.show_message_size,
+              true,
+            )
+          }
+        />
 
         <ToggleSetting
           description={t("settings.relative_dates_description")}
@@ -657,16 +640,9 @@ export function BehaviorSection() {
           }
           title={t("settings.force_dark_mode_emails")}
         />
-      </div>
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <LanguageIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.translation")}
-          </h3>
-        </div>
-
+      <IslandSection icon={<LanguageIcon />} title={t("settings.translation")}>
         <SelectSetting
           description={t("settings.translate_incoming_description")}
           info={{
@@ -722,17 +698,13 @@ export function BehaviorSection() {
             <TranslationPacks />
           </>
         )}
-      </div>
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <ViewColumnsIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.navigation_panel")}
-          </h3>
-        </div>
-
-        <div className="py-4">
+      <IslandSection
+        icon={<ViewColumnsIcon />}
+        title={t("settings.navigation_panel")}
+      >
+        <div className="px-4 py-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex-1 pe-4">
               <p className="text-sm font-medium text-txt-primary">
@@ -899,16 +871,12 @@ export function BehaviorSection() {
           }
           title={t("settings.show_side_panel")}
         />
-      </div>
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <PencilSquareIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.composing_and_replies")}
-          </h3>
-        </div>
-
+      <IslandSection
+        icon={<PencilSquareIcon />}
+        title={t("settings.composing_and_replies")}
+      >
         <SelectSetting
           description={t("settings.default_reply_description")}
           on_change={(v) =>
@@ -966,7 +934,7 @@ export function BehaviorSection() {
           }
           title={t("settings.purge_locked_folder_on_delete")}
         />
-      </div>
+      </IslandSection>
 
       <UpgradeGate
         description={t("settings.protected_folders_description")}
@@ -974,14 +942,10 @@ export function BehaviorSection() {
         is_locked={is_feature_locked("has_password_protected_folders")}
         min_plan="Nova"
       >
-        <div>
-          <div className="mb-4">
-            <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-              <LockClosedIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-              {t("settings.protected_folders")}
-            </h3>
-          </div>
-
+        <IslandSection
+          icon={<LockClosedIcon />}
+          title={t("settings.protected_folders")}
+        >
           <SelectSetting
             description={t("settings.folder_lock_mode_description")}
             info={{
@@ -1002,17 +966,10 @@ export function BehaviorSection() {
             title={t("settings.folder_lock_mode")}
             value={preferences.protected_folder_lock_mode ?? "session"}
           />
-        </div>
+        </IslandSection>
       </UpgradeGate>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <ClockIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.undo_send")}
-          </h3>
-        </div>
-
+      <IslandSection icon={<ClockIcon />} title={t("settings.undo_send")}>
         <ToggleSetting
           description={t("settings.undo_send_delay_description")}
           enabled={undo_send_active}
@@ -1040,7 +997,7 @@ export function BehaviorSection() {
         />
 
         {undo_send_active && (
-          <div className="py-4">
+          <div className="px-4 py-4">
             <div className="flex items-center justify-between mb-4">
               <div className="flex-1 pe-4">
                 <p className="text-sm font-medium text-txt-primary">
@@ -1133,16 +1090,12 @@ export function BehaviorSection() {
             </div>
           </div>
         )}
-      </div>
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <QuestionMarkCircleIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.confirmations")}
-          </h3>
-        </div>
-
+      <IslandSection
+        icon={<QuestionMarkCircleIcon />}
+        title={t("settings.confirmations")}
+      >
         <ToggleSetting
           description={t("settings.confirm_delete_description")}
           enabled={preferences.confirm_before_delete}
@@ -1181,21 +1134,15 @@ export function BehaviorSection() {
           }
           title={t("settings.confirm_spam")}
         />
-      </div>
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.spam_filtering_title")}
-          </h3>
-          <p className="text-sm text-txt-muted mt-1">
-            {t("settings.spam_filtering_description")}
-          </p>
-        </div>
-
+      <IslandSection
+        description={t("settings.spam_filtering_description")}
+        icon={<ShieldCheckIcon />}
+        title={t("settings.spam_filtering_title")}
+      >
         {spam_load_failed && (
-          <div className="flex items-center justify-between gap-3 rounded-lg border border-edge-secondary p-3">
+          <div className="flex items-center justify-between gap-3 px-4 py-4">
             <p className="text-xs text-txt-muted">
               {t("settings.spam_settings_load_failed")}
             </p>
@@ -1270,16 +1217,9 @@ export function BehaviorSection() {
             />
           </>
         )}
-      </div>
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <Cog6ToothIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.advanced")}
-          </h3>
-        </div>
-
+      <IslandSection icon={<Cog6ToothIcon />} title={t("settings.advanced")}>
         <SelectSetting
           description={t("settings.settings_view_mode_description")}
           on_change={(v) =>
@@ -1322,7 +1262,7 @@ export function BehaviorSection() {
           on_toggle={handle_dev_mode_toggle}
           title={t("settings.developer_mode")}
         />
-      </div>
+      </IslandSection>
 
       <AlertDialog
         open={pending_translate_mode !== null}
@@ -1392,6 +1332,6 @@ export function BehaviorSection() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </IslandSections>
   );
 }

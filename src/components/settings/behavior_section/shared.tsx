@@ -21,7 +21,12 @@
 import type {} from "@/services/api/preferences";
 import type {} from "@/services/api/family_org";
 
-import { Switch } from "@aster/ui";
+import {
+  IslandRow,
+  SettingControlRow,
+  SettingNote,
+  SettingToggleRow,
+} from "@aster/ui";
 import {
   LockClosedIcon,
   XMarkIcon,
@@ -67,24 +72,20 @@ export function ToggleSetting({
   on_toggle,
   info,
 }: ToggleSettingProps) {
+  const show_info = !is_redundant_info(info, title, description) && info;
+
   return (
-    <div className="flex items-center justify-between py-4">
-      <div className="flex-1 pe-4">
-        <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
-          {title}
-          {!is_redundant_info(info, title, description) && info && (
-            <InfoPopover description={info.description} title={info.title} />
-          )}
-        </p>
-        <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
-      </div>
-      <Switch
-        aria-label={title}
-        checked={enabled}
-        size="lg"
-        onCheckedChange={on_toggle}
-      />
-    </div>
+    <SettingToggleRow
+      checked={enabled}
+      description={description}
+      info={
+        show_info ? (
+          <InfoPopover description={info.description} title={info.title} />
+        ) : undefined
+      }
+      label={title}
+      on_change={() => on_toggle()}
+    />
   );
 }
 
@@ -109,38 +110,41 @@ export function SelectSetting({
   disabled,
   disabled_note,
 }: SelectSettingProps) {
+  const show_info = !is_redundant_info(info, title, description) && info;
+
   return (
-    <div className="flex items-center justify-between py-4">
-      <div className="flex-1 pe-4">
-        <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-          {title}
-          {!is_redundant_info(info, title, description) && info && (
-            <InfoPopover description={info.description} title={info.title} />
-          )}
-        </p>
-        <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
-        {disabled && disabled_note && (
-          <p className="text-xs mt-1 text-amber-500 dark:text-amber-400 flex items-center gap-1">
-            <LockClosedIcon className="w-3 h-3 flex-shrink-0" />
+    <SettingControlRow
+      control={
+        <Select disabled={disabled} value={value} onValueChange={on_change}>
+          <SelectTrigger aria-label={title} className="w-full">
+            <SelectValue>
+              {disabled && disabled_note ? disabled_note : undefined}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      }
+      description={description}
+      info={
+        show_info ? (
+          <InfoPopover description={info.description} title={info.title} />
+        ) : undefined
+      }
+      label={title}
+      note={
+        disabled && disabled_note ? (
+          <SettingNote icon={<LockClosedIcon />} tone="warning">
             {disabled_note}
-          </p>
-        )}
-      </div>
-      <Select disabled={disabled} value={value} onValueChange={on_change}>
-        <SelectTrigger className="w-[200px]">
-          <SelectValue>
-            {disabled && disabled_note ? disabled_note : undefined}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+          </SettingNote>
+        ) : undefined
+      }
+    />
   );
 }
 
@@ -174,50 +178,53 @@ export function LanguagePicker({
     language_display_name(code as LanguageCode, ui_locale);
 
   return (
-    <div className="py-4">
-      <p className="text-sm font-medium text-txt-primary">{title}</p>
-      <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        {selected.map((code) => (
-          <span
-            key={code}
-            className="inline-flex items-center gap-1.5 rounded-full border border-edge-primary bg-surf-tertiary ps-3 pe-1.5 py-1 text-sm font-medium text-txt-primary"
-          >
-            {display(code)}
-            <button
-              aria-label={display(code)}
-              className="rounded-full p-0.5 text-txt-muted hover:text-txt-primary hover:bg-white/10 transition-colors"
-              type="button"
-              onClick={() => on_remove(code)}
+    <IslandRow
+      description={description}
+      label={title}
+      layout="block"
+      trailing={
+        <div className="flex flex-wrap items-center gap-2">
+          {selected.map((code) => (
+            <span
+              key={code}
+              className="inline-flex items-center gap-1.5 rounded-full bg-surf-primary ps-3 pe-1.5 py-1 text-sm font-medium text-txt-primary"
             >
-              <XMarkIcon className="w-3.5 h-3.5" />
-            </button>
-          </span>
-        ))}
+              {display(code)}
+              <button
+                aria-label={display(code)}
+                className="rounded-full p-0.5 text-txt-muted hover:text-txt-primary hover:bg-white/10 transition-colors"
+                type="button"
+                onClick={() => on_remove(code)}
+              >
+                <XMarkIcon className="w-3.5 h-3.5" />
+              </button>
+            </span>
+          ))}
 
-        {available.length > 0 && (
-          <Select value="" onValueChange={(v) => v && on_add(v)}>
-            <SelectTrigger className="h-auto w-auto gap-1.5 rounded-full border-dashed bg-transparent px-3 py-1 text-txt-secondary hover:text-txt-primary">
-              <span className="inline-flex items-center gap-1.5">
-                <PlusIcon className="w-3.5 h-3.5" />
-                {add_label}
-              </span>
-            </SelectTrigger>
-            <SelectContent>
-              {available.map((code) => (
-                <SelectItem key={code} value={code}>
-                  {display(code)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+          {available.length > 0 && (
+            <Select value="" onValueChange={(v) => v && on_add(v)}>
+              <SelectTrigger className="h-auto w-auto gap-1.5 rounded-full border-dashed bg-transparent px-3 py-1 text-txt-secondary hover:text-txt-primary">
+                <span className="inline-flex items-center gap-1.5">
+                  <PlusIcon className="w-3.5 h-3.5" />
+                  {add_label}
+                </span>
+              </SelectTrigger>
+              <SelectContent>
+                {available.map((code) => (
+                  <SelectItem key={code} value={code}>
+                    {display(code)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
-        {is_auto && selected.length > 0 && (
-          <span className="text-xs text-txt-muted">{auto_label}</span>
-        )}
-      </div>
-    </div>
+          {is_auto && selected.length > 0 && (
+            <span className="text-xs text-txt-muted">{auto_label}</span>
+          )}
+        </div>
+      }
+    />
   );
 }
 
