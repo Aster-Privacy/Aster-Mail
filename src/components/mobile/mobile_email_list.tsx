@@ -46,6 +46,7 @@ import {
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { use_settled_empty_state } from "@/components/email/inbox/use_settled_empty_state";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { Spinner } from "@/components/ui/spinner";
 import { MobileEmailRow } from "@/components/mobile/mobile_email_row";
 import { use_i18n } from "@/lib/i18n/context";
@@ -539,8 +540,11 @@ export const MobileEmailList = memo(function MobileEmailList({
     is_settled:
       has_initial_load && !is_loading && !is_loading_more && !is_refreshing,
   });
+  const skeleton_visible = use_delayed_flag(
+    all_emails_empty && !empty_state_visible,
+  );
 
-  if ((is_loading || all_emails_empty) && !empty_state_visible) {
+  if (skeleton_visible) {
     return (
       <div className="flex-1 space-y-1 px-0 pt-1">
         {Array.from({ length: 8 }).map((_, i) => (

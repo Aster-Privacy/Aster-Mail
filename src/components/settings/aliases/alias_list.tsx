@@ -50,6 +50,7 @@ import {
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { UpgradeInlineCard } from "@/components/upgrade/upgrade_inline_card";
 import {
   AliasItem,
@@ -570,17 +571,21 @@ export function AliasList({
     set_selected_ids(new Set());
   };
 
+  const skeleton_visible = use_delayed_flag(aliases_loading);
+
   const all_filtered_selected =
     filtered_aliases.length > 0 &&
     filtered_aliases.every((a) => selected_ids.has(a.id));
 
   if (aliases_loading) {
+    if (!skeleton_visible) return null;
+
     return (
-      <IslandStack>
+      <IslandStack aria-busy="true">
         {[1, 2].map((i) => (
           <Island
             key={i}
-            className="flex items-center gap-3 animate-pulse"
+            className="flex items-center gap-3 animate-pulse motion-reduce:animate-none"
             padding="sm"
           >
             <div className="w-10 h-10 rounded-full bg-surf-tertiary" />
