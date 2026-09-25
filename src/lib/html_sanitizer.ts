@@ -32,7 +32,7 @@ import {
   sanitize_css_block,
   block_remote_fonts,
   strip_css_urls,
-  proxy_css_urls_outside_font_faces,
+  proxy_css_urls,
   escape_style_terminator,
 } from "./html_sanitizer_css";
 
@@ -141,20 +141,6 @@ function classify_local_image_url(value: string): LocalImageUrl {
   }
 
   return { kind: "local" };
-}
-
-function is_same_origin_proxy(proxy_url: string): boolean {
-  if (proxy_url.startsWith("/") && !proxy_url.startsWith("//")) return true;
-
-  const page_origin = get_page_origin();
-
-  if (!page_origin) return false;
-
-  try {
-    return new URL(proxy_url).origin === page_origin;
-  } catch {
-    return false;
-  }
 }
 
 const MAX_RESERVED_PIXEL_HEIGHT = 40;
@@ -456,11 +442,7 @@ function sanitize_html_impl(
       external_content_mode !== "always");
 
   const allowed_css_image_proxy =
-    lockdown_mode ||
-    block_images ||
-    block_css ||
-    !effective_proxy ||
-    !is_same_origin_proxy(effective_proxy)
+    lockdown_mode || block_images || block_css || !effective_proxy
       ? undefined
       : effective_proxy;
 
@@ -592,10 +574,7 @@ function sanitize_html_impl(
         }
         sanitized_css = strip_css_urls(sanitized_css);
       } else if (allowed_css_image_proxy) {
-        sanitized_css = proxy_css_urls_outside_font_faces(
-          sanitized_css,
-          allowed_css_image_proxy,
-        );
+        sanitized_css = proxy_css_urls(sanitized_css, allowed_css_image_proxy);
       }
 
       if (sanitized_css.trim()) {
@@ -807,10 +786,7 @@ function sanitize_html_impl(
         }
         sanitized_css = strip_css_urls(sanitized_css);
       } else if (allowed_css_image_proxy) {
-        sanitized_css = proxy_css_urls_outside_font_faces(
-          sanitized_css,
-          allowed_css_image_proxy,
-        );
+        sanitized_css = proxy_css_urls(sanitized_css, allowed_css_image_proxy);
       }
 
       if (!sanitized_css.trim()) {

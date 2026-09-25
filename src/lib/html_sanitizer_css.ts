@@ -403,16 +403,50 @@ function find_font_face_ranges(css: string): Array<[number, number]> {
   return ranges;
 }
 
-export function proxy_css_urls_outside_font_faces(
-  css: string,
-  image_proxy_url: string,
-): string {
+const IMAGE_PROXY_PATH = /\/api\/images\/v1\/proxy$/;
+
+function font_proxy_for(image_proxy_url: string): string | undefined {
+  if (!IMAGE_PROXY_PATH.test(image_proxy_url)) return undefined;
+
+  return image_proxy_url.replace(IMAGE_PROXY_PATH, "/api/content/v1/proxy");
+}
+
+function proxy_font_face_urls(css: string, image_proxy_url: string): string {
+  const font_proxy = font_proxy_for(image_proxy_url);
+  const decoded = strip_css_comments(decode_css_escapes(css));
+
+  return decoded.replace(/url\s*\(([^)]*)\)/gi, (match, url_content) => {
+    let inner = (url_content || "").trim();
+
+    if (
+      inner.length >= 2 &&
+      (inner[0] === '"' || inner[0] === "'") &&
+      inner[inner.length - 1] === inner[0]
+    ) {
+      inner = inner.slice(1, -1).trim();
+    }
+    const lowered = inner.toLowerCase();
+
+    if (lowered.startsWith("data:") || lowered.startsWith("#")) return match;
+
+    if (
+      font_proxy &&
+      (lowered.startsWith("http://") || lowered.startsWith("https://"))
+    ) {
+      return `url("${font_proxy}?url=${encodeURIComponent(inner)}&content_type=font")`;
+    }
+
+    return "none";
+  });
+}
+
+export function proxy_css_urls(css: string, image_proxy_url: string): string {
   let result = "";
   let cursor = 0;
 
   for (const [start, end] of find_font_face_ranges(css)) {
     result += strip_css_urls(css.slice(cursor, start), { image_proxy_url });
-    result += css.slice(start, end);
+    result += proxy_font_face_urls(css.slice(start, end), image_proxy_url);
     cursor = end;
   }
 

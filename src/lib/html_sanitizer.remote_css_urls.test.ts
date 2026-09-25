@@ -303,7 +303,7 @@ describe("remote css urls when remote content is allowed", () => {
     expect(result.html).not.toContain(`url(${TRACKER}`);
   });
 
-  it("leaves @font-face sources loading directly", () => {
+  it("routes @font-face sources through the font proxy", () => {
     const result = sanitize_html(
       head_style_email(
         `@font-face { font-family: brand; src: url(${FONT}); } ${REMOTE_RULE}`,
@@ -311,8 +311,35 @@ describe("remote css urls when remote content is allowed", () => {
       allowed_options(),
     );
 
-    expect(result.html).toContain(`url(${FONT})`);
+    expect(result.html).toContain(
+      `/api/content/v1/proxy?url=${encodeURIComponent(FONT)}&content_type=font`,
+    );
+    expect(result.html).not.toContain(`url(${FONT})`);
     expect(result.html).toContain(PROXIED);
+  });
+
+  it("drops @font-face sources when no font proxy can be derived", () => {
+    const result = sanitize_html(
+      head_style_email(`@font-face { font-family: brand; src: url(${FONT}); }`),
+      {
+        ...allowed_options(),
+        image_proxy_url: "https://proxy.example.com/img",
+      },
+    );
+
+    expect(result.html).not.toContain("fonts.example.com");
+  });
+
+  it("routes css url() through a proxy on another origin", () => {
+    const result = sanitize_html(head_style_email(REMOTE_RULE), {
+      ...allowed_options(),
+      image_proxy_url: "https://app.astermail.org/api/images/v1/proxy",
+    });
+
+    expect(result.html).toContain(
+      `https://app.astermail.org/api/images/v1/proxy?url=${encodeURIComponent(TRACKER)}`,
+    );
+    expect(result.html).not.toContain(`url(${TRACKER}`);
   });
 
   it("does not treat @font-face inside a selector string as a font rule", () => {
