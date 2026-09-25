@@ -5782,6 +5782,8 @@ export const nl = {
     storage_addons: "Extra opslag",
     storage_addons_monthly_note:
       "Add-ons worden elke maand verlengd en apart van je abonnement gefactureerd. Betaal je met crypto, dan kies je zelf hoelang je vooruitbetaalt.",
+    bill_addon_summary: "{size} extra opslag",
+    bill_addon_pick_size: "Kies hoeveel je wilt toevoegen",
     storage_addons_description:
       "Meer ruimte nodig? Koop extra versleutelde opslag voor je account.",
     per_month_short: "/mnd",

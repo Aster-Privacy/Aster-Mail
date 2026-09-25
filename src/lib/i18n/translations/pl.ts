@@ -5974,6 +5974,8 @@ export const pl = {
     storage_addons: "Dodatkowe miejsce",
     storage_addons_monthly_note:
       "Dodatki odnawiają się co miesiąc i są rozliczane oddzielnie od planu. Płacąc kryptowalutą, wybierasz okres przedpłaty.",
+    bill_addon_summary: "{size} dodatkowej przestrzeni",
+    bill_addon_pick_size: "Wybierz, ile chcesz dodać",
     storage_addons_description:
       "Potrzebujesz więcej miejsca? Kup dodatkowe szyfrowane miejsce dla swojego konta.",
     per_month_short: "/mies.",

@@ -4515,6 +4515,8 @@ export const en: Translations = {
     storage_addons: "Additional Storage",
     storage_addons_monthly_note:
       "Add-ons renew every month and are billed separately from your plan. If you pay with crypto, you choose how long to prepay.",
+    bill_addon_summary: "{size} of extra storage",
+    bill_addon_pick_size: "Choose how much to add",
     storage_addons_description:
       "Need more space? Purchase additional encrypted storage for your account.",
     per_month_short: "/mo",

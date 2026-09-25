@@ -5889,6 +5889,8 @@ export const ar = {
     storage_addons: "تخزين إضافي",
     storage_addons_monthly_note:
       "تتجدد الإضافات كل شهر وتتم فوترتها بشكل منفصل عن خطتك. إذا دفعت بالعملات المشفرة، فأنت تختار مدة الدفع المسبق.",
+    bill_addon_summary: "{size} مساحة تخزين إضافية",
+    bill_addon_pick_size: "اختر المقدار الذي تريد إضافته",
     storage_addons_description:
       "تحتاج مساحة أكبر؟ اشترِ مساحة تخزين مشفرة إضافية لحسابك.",
     per_month_short: "/شهريًا",

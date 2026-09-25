@@ -180,8 +180,8 @@ export function BillingHeroCard({
 
       <div className={`${BILLING_CARD_CLASS} p-5`}>
         <div className="flex items-center gap-2">
-          <img alt="Aster" className="h-[18px] w-auto" src={text_logo_url} />
-          <span className="text-2xl font-bold leading-none text-txt-primary">
+          <img alt="Aster" className="h-[15px] w-auto" src={text_logo_url} />
+          <span className="text-[21px] font-bold leading-none tracking-tight text-txt-primary">
             {is_paid_plan ? subscription.plan.name : t("settings.free")}
           </span>
         </div>
@@ -253,7 +253,7 @@ export function BillingHeroCard({
               variant="depth"
               onClick={on_scroll_to_plans}
             >
-              {t("settings.bill_upgrade")}
+              {t("settings.upgrade_view_plans")}
             </Button>
           )}
           {is_paid_plan && subscription.cancel_at_period_end && (

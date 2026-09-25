@@ -5335,6 +5335,8 @@ export const zh_CN = {
     storage_addons: "额外存储空间",
     storage_addons_monthly_note:
       "附加服务按月续订，并与你的方案分开计费。使用加密货币付款时，你可以选择预付的时长。",
+    bill_addon_summary: "{size} 额外存储空间",
+    bill_addon_pick_size: "选择要添加的容量",
     storage_addons_description:
       "需要更多空间？为您的账户购买额外的加密存储空间。",
     per_month_short: "/月",

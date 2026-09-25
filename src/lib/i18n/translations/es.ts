@@ -6558,6 +6558,8 @@ export const es = {
       "Mejora tu plan o compra almacenamiento adicional para mantener tu privacidad protegida.",
     storage_addons_monthly_note:
       "Los complementos se renuevan cada mes y se cobran aparte de tu plan. Si pagas con cripto, tú eliges cuánto tiempo pagar por adelantado.",
+    bill_addon_summary: "{size} de almacenamiento adicional",
+    bill_addon_pick_size: "Elige cuánto quieres añadir",
     storage_addons_description:
       "¿Necesitas más espacio? Compra almacenamiento cifrado adicional para tu cuenta.",
     storage_purchase_coming_soon:

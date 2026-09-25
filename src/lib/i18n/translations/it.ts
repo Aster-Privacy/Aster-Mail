@@ -4412,6 +4412,8 @@ export const it = {
     storage_addons: "Spazio aggiuntivo",
     storage_addons_monthly_note:
       "I componenti aggiuntivi si rinnovano ogni mese e vengono fatturati separatamente dal tuo piano. Se paghi in criptovaluta, scegli tu la durata da prepagare.",
+    bill_addon_summary: "{size} di spazio aggiuntivo",
+    bill_addon_pick_size: "Scegli quanto aggiungere",
     storage_addons_description:
       "Hai bisogno di più spazio? Acquista spazio crittografato aggiuntivo per il tuo account.",
     per_month_short: "/mese",

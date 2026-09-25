@@ -6617,6 +6617,8 @@ export const fr = {
       "Passez à une offre supérieure ou achetez du stockage supplémentaire pour protéger votre vie privée.",
     storage_addons_monthly_note:
       "Le stockage supplémentaire est facturé chaque mois, même si votre forfait est facturé chaque année.",
+    bill_addon_summary: "{size} de stockage supplémentaire",
+    bill_addon_pick_size: "Choisissez la quantité à ajouter",
     storage_addons_description:
       "Besoin de plus d'espace ? Achetez du stockage chiffré supplémentaire pour votre compte.",
     storage_purchase_coming_soon:

@@ -36,48 +36,36 @@ export function BillingSegmented<T extends string>({
   on_change,
   aria_label,
 }: BillingSegmentedProps<T>) {
-  const index = Math.max(
-    0,
-    options.findIndex((option) => option.id === value),
-  );
-
   return (
-    <div
-      aria-label={aria_label}
-      className="relative grid w-full rounded-xl bg-surf-tertiary p-1"
-      role="tablist"
-      style={{
-        gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,
-      }}
-    >
-      <span
-        aria-hidden="true"
-        className="absolute bottom-1 left-1 top-1 rounded-lg bg-surf-primary shadow-sm transition-transform duration-200 ease-out motion-reduce:transition-none"
-        style={{
-          width: `calc((100% - 8px) / ${options.length})`,
-          transform: `translateX(${index * 100}%)`,
-        }}
-      />
-      {options.map((option) => {
-        const is_active = option.id === value;
+    <div className="flex justify-center">
+      <div
+        aria-label={aria_label}
+        className="inline-flex items-center gap-1 rounded-full border border-edge-secondary bg-surf-secondary p-[5px]"
+        role="tablist"
+      >
+        {options.map((option) => {
+          const is_active = option.id === value;
 
-        return (
-          <button
-            key={option.id}
-            aria-selected={is_active}
-            className={`relative z-10 h-9 rounded-lg text-sm font-medium transition-colors ${
-              is_active
-                ? "text-txt-primary"
-                : "text-txt-muted hover:text-txt-secondary"
-            }`}
-            role="tab"
-            type="button"
-            onClick={() => on_change(option.id)}
-          >
-            {option.label}
-          </button>
-        );
-      })}
+          return (
+            <button
+              key={option.id}
+              aria-selected={is_active}
+              className="rounded-full px-[18px] py-[8px] text-[13px] font-medium transition-colors"
+              role="tab"
+              style={{
+                backgroundColor: is_active
+                  ? "var(--accent-blue)"
+                  : "transparent",
+                color: is_active ? "#ffffff" : "var(--text-tertiary)",
+              }}
+              type="button"
+              onClick={() => on_change(option.id)}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

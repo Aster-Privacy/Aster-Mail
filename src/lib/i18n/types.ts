@@ -4431,6 +4431,8 @@ export interface SettingsTranslations {
   billing_banner_cta: string;
   storage_addons: string;
   storage_addons_monthly_note: string;
+  bill_addon_summary: string;
+  bill_addon_pick_size: string;
   storage_addons_description: string;
   per_month_short: string;
   add_storage: string;

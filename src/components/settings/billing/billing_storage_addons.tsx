@@ -20,7 +20,6 @@
 //
 import { Button } from "@aster/ui";
 
-import { BillingOptionRow } from "@/components/settings/billing/billing_option_row";
 import {
   BILLING_CARD_CLASS,
   BillingOptionRowsSkeleton,
@@ -120,27 +119,65 @@ export function BillingStorageAddons({
           )}
 
           {available_addons.length > 0 && (
-            <>
+            <div className={`${BILLING_CARD_CLASS} space-y-4 p-4`}>
               <div
                 aria-label={t("settings.bill_add_more_storage")}
-                className={`${BILLING_CARD_CLASS} p-1`}
+                className="flex flex-wrap gap-2"
                 role="radiogroup"
               >
-                {available_addons.map((addon) => (
-                  <BillingOptionRow
-                    key={addon.id}
-                    disabled={is_action_loading}
-                    on_select={() => set_selected_storage(addon.id)}
-                    selected={selected?.id === addon.id}
-                    title={
-                      addon.storage_bytes > 0
+                {available_addons.map((addon) => {
+                  const is_selected = selected?.id === addon.id;
+
+                  return (
+                    <button
+                      key={addon.id}
+                      aria-checked={is_selected}
+                      className="rounded-full border px-[14px] py-[8px] text-[13px] transition-colors disabled:cursor-not-allowed disabled:opacity-60"
+                      disabled={is_action_loading}
+                      role="radio"
+                      style={{
+                        backgroundColor: is_selected
+                          ? "var(--accent-blue)"
+                          : "transparent",
+                        borderColor: is_selected
+                          ? "var(--accent-blue)"
+                          : "var(--border-secondary)",
+                        color: is_selected
+                          ? "#ffffff"
+                          : "var(--text-secondary)",
+                        fontWeight: is_selected ? 600 : 500,
+                      }}
+                      type="button"
+                      onClick={() => set_selected_storage(addon.id)}
+                    >
+                      {addon.storage_bytes > 0
                         ? format_storage(addon.storage_bytes)
-                        : addon.name
-                    }
-                    trailing_amount={money(addon.price_cents)}
-                    trailing_unit={t("settings.per_month_short")}
-                  />
-                ))}
+                        : addon.name}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="min-w-0 flex-1 text-[15px] font-medium text-txt-primary">
+                  {selected
+                    ? t("settings.bill_addon_summary", {
+                        size:
+                          selected.storage_bytes > 0
+                            ? format_storage(selected.storage_bytes)
+                            : selected.name,
+                      })
+                    : t("settings.bill_addon_pick_size")}
+                </span>
+                {selected && (
+                  <span className="text-right">
+                    <span className="block text-[15px] font-semibold text-txt-primary">
+                      {money(selected.price_cents)}
+                    </span>
+                    <span className="block text-xs text-txt-muted">
+                      {t("settings.per_month_short")}
+                    </span>
+                  </span>
+                )}
               </div>
               <Button
                 className="w-full"
@@ -154,7 +191,7 @@ export function BillingStorageAddons({
               <p className="text-center text-xs text-txt-muted">
                 {t("settings.storage_addons_monthly_note")}
               </p>
-            </>
+            </div>
           )}
         </>
       )}

@@ -5822,6 +5822,8 @@ export const ja = {
     storage_addons: "追加ストレージ",
     storage_addons_monthly_note:
       "アドオンは毎月更新され、プランとは別に請求されます。暗号資産で支払う場合は、前払いする期間を選べます。",
+    bill_addon_summary: "追加ストレージ {size}",
+    bill_addon_pick_size: "追加する容量を選択してください",
     storage_addons_description:
       "もっとスペースが必要ですか？アカウントに追加の暗号化ストレージを購入できます。",
     storage_purchase_coming_soon:

@@ -5821,6 +5821,8 @@ export const de = {
     storage_addons: "Zusätzlicher Speicher",
     storage_addons_monthly_note:
       "Add-ons verlängern sich monatlich und werden getrennt von deinem Tarif abgerechnet. Wenn du mit Krypto zahlst, wählst du die Vorauszahlungsdauer.",
+    bill_addon_summary: "{size} zusätzlicher Speicher",
+    bill_addon_pick_size: "Wähle aus, wie viel du hinzufügen möchtest",
     storage_addons_description:
       "Mehr Platz benötigt? Erwerben Sie zusätzlichen verschlüsselten Speicher für Ihr Konto.",
     per_month_short: "/Mo.",

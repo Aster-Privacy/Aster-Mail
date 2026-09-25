@@ -5808,6 +5808,8 @@ export const ko = {
     storage_addons: "추가 저장 공간",
     storage_addons_monthly_note:
       "추가 저장 공간은 매월 갱신되며 요금제와 별도로 청구됩니다. 암호화폐로 결제하면 선결제 기간을 직접 선택할 수 있습니다.",
+    bill_addon_summary: "추가 저장 공간 {size}",
+    bill_addon_pick_size: "추가할 용량을 선택하세요",
     storage_addons_description:
       "더 많은 공간이 필요하세요? 계정에 추가 암호화된 저장 공간을 구매하세요.",
     per_month_short: "/월",
