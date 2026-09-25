@@ -2251,6 +2251,8 @@ export const ru = {
     share_contact_device: "Поделиться в другом приложении",
   },
   settings: {
+    bill_thanks_title: "Спасибо, что поддерживаете Aster",
+    bill_thanks_body: "Ваша поддержка значит для нас очень много. Благодаря ей небольшая команда может каждый день бережно развивать Aster.",
     bill_attachments: "Вложения",
     bill_dedicated_support: "Персональная поддержка",
     bill_early_access: "Ранний доступ к новым функциям",

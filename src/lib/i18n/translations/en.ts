@@ -2147,6 +2147,8 @@ export const en: Translations = {
     undo_change: "Undo change",
   },
   settings: {
+    bill_thanks_title: "Thanks for supporting Aster",
+    bill_thanks_body: "Your support means everything to us. It lets a small team keep building Aster with care, every single day.",
     bill_attachments: "Attachments",
     bill_dedicated_support: "Dedicated support",
     bill_early_access: "Early access to new features",

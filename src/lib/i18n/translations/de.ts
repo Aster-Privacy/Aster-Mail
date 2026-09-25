@@ -2154,6 +2154,8 @@ export const de = {
     undo_change: "Änderung rückgängig machen",
   },
   settings: {
+    bill_thanks_title: "Danke für deine Unterstützung",
+    bill_thanks_body: "Deine Unterstützung bedeutet uns alles. Sie ermöglicht es einem kleinen Team, Aster jeden Tag mit Sorgfalt weiterzuentwickeln.",
     bill_attachments: "Anhänge",
     bill_dedicated_support: "Persönlicher Support",
     bill_early_access: "Früher Zugang zu neuen Funktionen",

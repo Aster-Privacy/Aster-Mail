@@ -2129,6 +2129,8 @@ export const pt = {
     share_contact_device: "Compartilhar com outro app",
   },
   settings: {
+    bill_thanks_title: "Obrigado por apoiar o Aster",
+    bill_thanks_body: "Seu apoio significa tudo para nós. Ele permite que uma equipe pequena continue construindo o Aster com cuidado, todos os dias.",
     bill_attachments: "Anexos",
     bill_dedicated_support: "Suporte dedicado",
     bill_early_access: "Acesso antecipado a novos recursos",

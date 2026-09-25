@@ -2270,6 +2270,8 @@ export const pl = {
     share_contact_device: "Udostępnij w innej aplikacji",
   },
   settings: {
+    bill_thanks_title: "Dziękujemy za wspieranie Aster",
+    bill_thanks_body: "Twoje wsparcie znaczy dla nas wszystko. Dzięki niemu mały zespół może każdego dnia z troską rozwijać Aster.",
     bill_attachments: "Załączniki",
     bill_dedicated_support: "Dedykowane wsparcie",
     bill_early_access: "Wczesny dostęp do nowych funkcji",

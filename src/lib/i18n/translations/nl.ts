@@ -2126,6 +2126,8 @@ export const nl = {
     share_contact_device: "Delen met een andere app",
   },
   settings: {
+    bill_thanks_title: "Bedankt dat je Aster steunt",
+    bill_thanks_body: "Je steun betekent alles voor ons. Dankzij jou kan een klein team Aster elke dag met zorg blijven bouwen.",
     bill_attachments: "Bijlagen",
     bill_dedicated_support: "Persoonlijke ondersteuning",
     bill_early_access: "Vroege toegang tot nieuwe functies",

@@ -2098,6 +2098,8 @@ export const ko = {
     share_contact_device: "다른 앱으로 공유",
   },
   settings: {
+    bill_thanks_title: "Aster를 지원해 주셔서 감사합니다",
+    bill_thanks_body: "여러분의 지원은 저희에게 큰 힘이 됩니다. 덕분에 작은 팀이 매일 정성껏 Aster를 계속 만들어 갈 수 있습니다.",
     bill_attachments: "첨부파일",
     bill_dedicated_support: "전담 지원",
     bill_early_access: "새 기능 우선 이용",

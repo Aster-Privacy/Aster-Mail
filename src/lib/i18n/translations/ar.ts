@@ -2259,6 +2259,8 @@ export const ar = {
     trash_days_left: "بقي {{count}} يوم",
   },
   settings: {
+    bill_thanks_title: "شكرًا لدعمك Aster",
+    bill_thanks_body: "دعمك يعني لنا كل شيء. فهو يتيح لفريق صغير مواصلة بناء Aster بعناية، كل يوم.",
     bill_attachments: "المرفقات",
     bill_dedicated_support: "دعم مخصص",
     bill_early_access: "وصول مبكر إلى الميزات الجديدة",

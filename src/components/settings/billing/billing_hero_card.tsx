@@ -225,6 +225,17 @@ export function BillingHeroCard({
           <p className="mt-2 text-[13px] text-txt-muted">{detail_line}</p>
         )}
 
+        {is_paid_plan && !has_payment_failed && !ends_on && (
+          <div className="mt-4">
+            <p className="text-[15px] font-semibold text-txt-primary">
+              {t("settings.bill_thanks_title")}
+            </p>
+            <p className="mt-1 text-sm leading-5 text-txt-secondary">
+              {t("settings.bill_thanks_body")}
+            </p>
+          </div>
+        )}
+
         {is_paid_plan && is_crypto && (
           <p
             className="mt-1 text-[13px]"

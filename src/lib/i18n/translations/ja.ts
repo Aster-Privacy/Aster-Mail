@@ -2123,6 +2123,8 @@ export const ja = {
     share_contact_device: "他のアプリで共有",
   },
   settings: {
+    bill_thanks_title: "Aster をご支援いただきありがとうございます",
+    bill_thanks_body: "あなたのご支援は私たちにとってかけがえのないものです。小さなチームが毎日、心を込めて Aster を作り続けられるのはそのおかげです。",
     bill_attachments: "添付ファイル",
     bill_dedicated_support: "専任サポート",
     bill_early_access: "新機能への早期アクセス",

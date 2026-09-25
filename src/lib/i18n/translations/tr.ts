@@ -2112,6 +2112,8 @@ export const tr = {
     share_contact_device: "Başka bir uygulamayla paylaş",
   },
   settings: {
+    bill_thanks_title: "Aster’ı desteklediğiniz için teşekkürler",
+    bill_thanks_body: "Desteğiniz bizim için her şey demek. Küçük bir ekibin Aster’ı her gün özenle geliştirmeye devam etmesini sağlıyor.",
     bill_attachments: "Ekler",
     bill_dedicated_support: "Özel destek",
     bill_early_access: "Yeni özelliklere erken erişim",

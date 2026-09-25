@@ -2102,6 +2102,8 @@ export const hi = {
     undo_change: "बदलाव पूर्ववत करें",
   },
   settings: {
+    bill_thanks_title: "Aster को समर्थन देने के लिए धन्यवाद",
+    bill_thanks_body: "आपका समर्थन हमारे लिए सब कुछ है। इससे एक छोटी टीम हर दिन Aster को सावधानी से बनाती रहती है।",
     bill_attachments: "अटैचमेंट",
     bill_dedicated_support: "समर्पित सहायता",
     bill_early_access: "नई सुविधाओं तक जल्दी पहुँच",
