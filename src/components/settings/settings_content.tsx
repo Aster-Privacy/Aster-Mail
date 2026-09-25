@@ -477,7 +477,7 @@ function SettingsContentInner(props: SettingsContentProps) {
           </div>
         )}
         <nav
-          className={`flex-1 px-3 pb-4 overflow-y-auto ${is_popup ? "pt-4" : "pt-1"}`}
+          className={`min-h-0 flex-1 px-3 pb-6 overflow-y-auto [mask-image:linear-gradient(to_bottom,black_calc(100%-28px),transparent)] ${is_popup ? "pt-4" : "pt-1"}`}
         >
           <div ref={nav_container_ref} className="relative">
             <div
