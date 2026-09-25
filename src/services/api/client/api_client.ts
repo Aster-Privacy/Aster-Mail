@@ -1631,6 +1631,7 @@ export class ApiClient {
                 get_active_translations().auth
                   .recovery_email_required_gate_title,
               code: "FORBIDDEN",
+              status: response.status,
             };
           }
 
@@ -1643,6 +1644,7 @@ export class ApiClient {
             return {
               error: get_active_translations().common.pending_deletion_body,
               code: "FORBIDDEN",
+              status: response.status,
               server_code: PENDING_DELETION_SERVER_CODE,
             };
           }
@@ -1658,6 +1660,7 @@ export class ApiClient {
                 error_data.error ||
                 "Your family plan requires two-factor authentication",
               code: "FORBIDDEN",
+              status: response.status,
               server_code: FAMILY_2FA_SERVER_CODE,
             };
           }
@@ -1677,6 +1680,7 @@ export class ApiClient {
             return {
               error: get_active_translations().common.account_suspended,
               code: "FORBIDDEN",
+              status: response.status,
             };
           }
 
@@ -1687,6 +1691,7 @@ export class ApiClient {
             return {
               error: get_active_translations().common.account_limit_reached,
               code: "ABUSE_ACCOUNT_LIMIT",
+              status: response.status,
             };
           }
 
@@ -1699,6 +1704,7 @@ export class ApiClient {
                 get_active_translations().auth
                   .recovery_email_required_gate_title,
               code: "RECOVERY_EMAIL_REQUIRED",
+              status: response.status,
             };
           }
 
@@ -1735,6 +1741,7 @@ export class ApiClient {
                     )
                   : get_active_translations().settings.plan_limit_reached,
               code: "FORBIDDEN",
+              status: response.status,
               server_code: "PLAN_LIMIT_EXCEEDED",
             };
           }
@@ -1756,6 +1763,7 @@ export class ApiClient {
             return {
               error: get_active_translations().settings.storage_full,
               code: "UNKNOWN_ERROR",
+              status: response.status,
               server_code: "STORAGE_QUOTA_EXCEEDED",
             };
           }
@@ -1764,6 +1772,7 @@ export class ApiClient {
             return {
               error: get_active_translations().errors.upload_too_large,
               code: "UNKNOWN_ERROR",
+              status: response.status,
               server_code: "PAYLOAD_TOO_LARGE",
             };
           }
@@ -1784,6 +1793,7 @@ export class ApiClient {
             return {
               error: get_active_translations().errors.account_already_added,
               code: "CONFLICT",
+              status: response.status,
               server_code: "ALREADY_SIGNED_IN_ON_DEVICE",
             };
           }
@@ -1795,6 +1805,7 @@ export class ApiClient {
             return {
               error: get_active_translations().auth.username_in_use,
               code: "USERNAME_IN_USE",
+              status: response.status,
             };
           }
 
@@ -1870,6 +1881,7 @@ export class ApiClient {
           last_error = {
             error: sanitized_error,
             code: error_code,
+            status: response.status,
             server_code: error_data.code,
             resets_at: error_data.resets_at,
             details: error_data.details,

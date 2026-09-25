@@ -283,7 +283,6 @@ const INTERNAL_DOMAINS = [
   "aster.cx",
   "astermail.me",
   "astermail.net",
-  "gs-cloud.space",
   GHOST_DOMAIN,
 ];
 

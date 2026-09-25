@@ -50,6 +50,28 @@ export interface QueuedAction {
 const QUEUE_KEY = "aster_offline_queue";
 const FAILED_KEY = "aster_offline_failed_queue";
 const MAX_RETRIES = 3;
+const RETRYABLE_CLIENT_STATUSES = new Set([401, 408, 429]);
+
+class OfflineActionError extends Error {
+  status?: number;
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.status = status;
+    this.name = "OfflineActionError";
+  }
+}
+
+export function is_permanent_failure(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+
+  const status = (error as { status?: unknown }).status;
+
+  if (typeof status !== "number") return false;
+  if (status < 400 || status >= 500) return false;
+
+  return !RETRYABLE_CLIENT_STATUSES.has(status);
+}
 
 let is_processing = false;
 let web_listeners_registered = false;
@@ -361,7 +383,10 @@ export async function process_offline_queue(): Promise<void> {
         action.retry_count++;
         action.last_error = user_facing_error(error, "Unknown error");
 
-        if (action.retry_count >= MAX_RETRIES) {
+        if (
+          action.retry_count >= MAX_RETRIES ||
+          is_permanent_failure(error)
+        ) {
           await move_action_to_failed(action);
           dropped_count++;
           notify_queue_failure(action);
@@ -498,7 +523,10 @@ async function process_archive(payload: EmailActionPayload): Promise<void> {
     const item_result = await get_mail_item(email_id);
 
     if (item_result.error || !item_result.data) {
-      throw new Error(`Failed to fetch email ${email_id}`);
+      throw new OfflineActionError(
+        `Failed to fetch email ${email_id}`,
+        item_result.status,
+      );
     }
 
     const item = item_result.data;
@@ -528,7 +556,10 @@ async function process_delete(payload: EmailActionPayload): Promise<void> {
     const item_result = await get_mail_item(email_id);
 
     if (item_result.error || !item_result.data) {
-      throw new Error(`Failed to fetch email ${email_id}`);
+      throw new OfflineActionError(
+        `Failed to fetch email ${email_id}`,
+        item_result.status,
+      );
     }
 
     const item = item_result.data;
@@ -558,7 +589,10 @@ async function process_star(payload: StarPayload): Promise<void> {
     const item_result = await get_mail_item(email_id);
 
     if (item_result.error || !item_result.data) {
-      throw new Error(`Failed to fetch email ${email_id}`);
+      throw new OfflineActionError(
+        `Failed to fetch email ${email_id}`,
+        item_result.status,
+      );
     }
 
     const item = item_result.data;
@@ -588,7 +622,10 @@ async function process_mark_read(payload: MarkReadPayload): Promise<void> {
     const item_result = await get_mail_item(email_id);
 
     if (item_result.error || !item_result.data) {
-      throw new Error(`Failed to fetch email ${email_id}`);
+      throw new OfflineActionError(
+        `Failed to fetch email ${email_id}`,
+        item_result.status,
+      );
     }
 
     const item = item_result.data;
@@ -619,7 +656,10 @@ async function process_move(payload: MovePayload): Promise<void> {
     });
 
     if (result.error) {
-      throw new Error(`Failed to move email ${email_id}: ${result.error}`);
+      throw new OfflineActionError(
+        `Failed to move email ${email_id}: ${result.error}`,
+        result.status,
+      );
     }
   }
 }

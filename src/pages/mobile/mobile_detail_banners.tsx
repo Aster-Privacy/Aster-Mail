@@ -40,6 +40,7 @@ import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_preferences } from "@/contexts/preferences_context";
+import { get_undo_send_delay_ms } from "@/services/send_queue";
 import { ignore_error } from "@/lib/ignore_error";
 
 export function MobileUnsubscribeBanner({
@@ -83,8 +84,11 @@ export function MobileUnsubscribeBanner({
     cancelled_ref.current = false;
     set_dismissed(true);
 
-    const delay_seconds = preferences.undo_send_seconds ?? 10;
-    const delay_ms = delay_seconds * 1000;
+    const delay_ms = get_undo_send_delay_ms(
+      preferences.undo_send_enabled,
+      preferences.undo_send_seconds,
+      preferences.undo_send_period,
+    );
 
     track_subscription({
       sender_email: email.sender_email,
@@ -102,15 +106,17 @@ export function MobileUnsubscribeBanner({
       message: t("mail.successfully_unsubscribed"),
       action_type: "not_spam",
       email_ids: [],
-      duration_ms: delay_ms,
-      on_undo: async () => {
-        cancelled_ref.current = true;
-        if (pending_timeout_ref.current) {
-          clearTimeout(pending_timeout_ref.current);
-          pending_timeout_ref.current = null;
-        }
-        if (mounted_ref.current) set_dismissed(false);
-      },
+      ...(delay_ms > 0 && {
+        duration_ms: delay_ms,
+        on_undo: async () => {
+          cancelled_ref.current = true;
+          if (pending_timeout_ref.current) {
+            clearTimeout(pending_timeout_ref.current);
+            pending_timeout_ref.current = null;
+          }
+          if (mounted_ref.current) set_dismissed(false);
+        },
+      }),
     });
 
     pending_timeout_ref.current = setTimeout(async () => {

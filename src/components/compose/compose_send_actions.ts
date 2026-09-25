@@ -42,6 +42,10 @@ import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { emit_email_sent } from "@/hooks/mail_events";
 import { record_review_prompt_action } from "@/lib/review_prompt";
 import { safe_session_set } from "@/lib/safe_storage";
+import {
+  find_locked_expiry_feature,
+  prompt_expiry_upgrade,
+} from "@/components/compose/expiry_plan_gate";
 
 export interface SendActionContext {
   undo_send_enabled: boolean;
@@ -60,6 +64,28 @@ export interface SendActionContext {
   ) => void | Promise<void>;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   confirm_draft_deleted?: () => Promise<void>;
+  limits_loaded?: boolean;
+  is_feature_locked?: (feature_key: string) => boolean;
+}
+
+function blocked_by_plan(
+  ctx: SendActionContext,
+  email_data: { expires_at?: string; expiry_password?: string },
+): boolean {
+  if (!ctx.is_feature_locked) return false;
+
+  const feature = find_locked_expiry_feature({
+    expires_at: email_data.expires_at,
+    expiry_password: email_data.expiry_password,
+    limits_loaded: ctx.limits_loaded === true,
+    is_feature_locked: ctx.is_feature_locked,
+  });
+
+  if (!feature) return false;
+
+  prompt_expiry_upgrade(feature, ctx.t("settings.feature_requires_upgrade"));
+
+  return true;
 }
 
 function compute_delay(ctx: SendActionContext) {
@@ -165,6 +191,8 @@ export async function execute_internal_send(
     allow_non_post_quantum?: boolean;
   },
 ): Promise<boolean> {
+  if (blocked_by_plan(ctx, email_data)) return false;
+
   const { delay_ms, delay_seconds } = compute_delay(ctx);
 
   if (delay_seconds > 0) {
@@ -288,6 +316,8 @@ export async function execute_external_email_send(
   require_encryption = false,
   obscure_subject = false,
 ): Promise<boolean> {
+  if (blocked_by_plan(ctx, email_data)) return false;
+
   const { delay_ms, delay_seconds } = compute_delay(ctx);
 
   const use_pgp = pgp_enabled && !email_data.secure_external;

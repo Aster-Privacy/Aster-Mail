@@ -61,9 +61,8 @@ vi.mock("@/hooks/use_mail_stats", () => ({ invalidate_mail_stats: vi.fn() }));
 
 vi.mock("@/hooks/mail_events", () => ({ emit_email_sent: vi.fn() }));
 
-const { execute_internal_send, execute_external_email_send } = await import(
-  "@/components/compose/compose_send_actions"
-);
+const { execute_internal_send, execute_external_email_send } =
+  await import("@/components/compose/compose_send_actions");
 
 function make_ctx(overrides: Record<string, unknown> = {}) {
   return {
@@ -268,5 +267,69 @@ describe("the pending payload keeps the draft context for undo", () => {
     expect(undo_send_add).toHaveBeenCalledWith(
       expect.objectContaining({ thread_token: "thread-1" }),
     );
+  });
+});
+
+describe("send actions stop before closing when the plan lacks the feature", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    undo_send_delay_ms = 30000;
+  });
+
+  const locked_ctx = (on_close: () => void) =>
+    make_ctx({
+      on_close,
+      limits_loaded: true,
+      is_feature_locked: (key: string) =>
+        key === "has_email_expiration" ||
+        key === "has_password_protected_messages",
+    });
+
+  it("keeps the composer open for a locked password-protected external send", async () => {
+    const on_close = vi.fn();
+
+    await expect(
+      execute_external_email_send(locked_ctx(on_close), {
+        ...email_data,
+        expires_at: "2030-01-01T00:00:00.000Z",
+        expiry_password: "hunter22",
+        secure_external: true,
+      }),
+    ).resolves.toBe(false);
+
+    expect(on_close).not.toHaveBeenCalled();
+    expect(undo_send_add).not.toHaveBeenCalled();
+    expect(execute_external_send).not.toHaveBeenCalled();
+  });
+
+  it("never queues a locked internal send with an expiry", async () => {
+    const on_close = vi.fn();
+
+    await expect(
+      execute_internal_send(locked_ctx(on_close), {
+        ...email_data,
+        expires_at: "2030-01-01T00:00:00.000Z",
+      }),
+    ).resolves.toBe(false);
+
+    expect(on_close).not.toHaveBeenCalled();
+    expect(queue_email_to_server).not.toHaveBeenCalled();
+  });
+
+  it("sends normally when the plan includes the feature", async () => {
+    undo_send_delay_ms = 0;
+    execute_external_send.mockResolvedValue(undefined);
+
+    await expect(
+      execute_external_email_send(
+        make_ctx({ limits_loaded: true, is_feature_locked: () => false }),
+        {
+          ...email_data,
+          expires_at: "2030-01-01T00:00:00.000Z",
+          expiry_password: "hunter22",
+          secure_external: true,
+        },
+      ),
+    ).resolves.toBe(true);
   });
 });

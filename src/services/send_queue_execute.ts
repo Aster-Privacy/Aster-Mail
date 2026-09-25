@@ -179,11 +179,12 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
     const refusal = describe_send_refusal(result);
 
     if (refusal) {
-      throw create_error(refusal.kind, refusal.message);
+      throw create_error(refusal.kind, refusal.message, result.status);
     }
     throw create_error(
       "send_failed",
       result.error || get_active_translations().errors.failed_send_email,
+      result.status,
     );
   }
 
@@ -483,11 +484,12 @@ export async function execute_external_send(
     const refusal = describe_send_refusal(result);
 
     if (refusal) {
-      throw create_error(refusal.kind, refusal.message);
+      throw create_error(refusal.kind, refusal.message, result.status);
     }
     throw create_error(
       "send_failed",
       result.error || get_active_translations().errors.failed_send_external,
+      result.status,
     );
   }
 

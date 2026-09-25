@@ -23,7 +23,6 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import {
   EditorState,
   IMAGE_MAGIC_BYTES,
-  MAX_IMAGE_SIZE,
   SignatureMode,
   escape_html,
   has_editor_content,
@@ -38,6 +37,12 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { use_signatures } from "@/contexts/signatures_context";
 import { use_editor } from "@/hooks/use_editor";
 import { MAX_HORIZONTAL_RULES } from "@/hooks/use_editor_format";
+import {
+  prepare_signature_image,
+  signature_content_fits,
+  signature_image_budget,
+  signature_image_html,
+} from "@/lib/signature_image";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   list_signatures,
@@ -117,50 +122,46 @@ export function use_signature_section() {
     editor.show_validation && !has_editor_content(editor.content);
 
   const handle_image_upload = useCallback(
-    (file: File) => {
+    async (file: File) => {
       if (!IMAGE_MAGIC_BYTES[file.type]) {
         show_toast(t("settings.signature_image_invalid"), "error");
 
         return;
       }
 
-      if (file.size > MAX_IMAGE_SIZE) {
-        show_toast(t("settings.signature_image_too_large"), "error");
+      let header: ArrayBuffer;
+
+      try {
+        header = await file.slice(0, 16).arrayBuffer();
+      } catch {
+        show_toast(t("settings.signature_image_failed"), "error");
 
         return;
       }
 
-      const reader = new FileReader();
+      if (!validate_image_magic_bytes(header, file.type)) {
+        show_toast(t("settings.signature_image_invalid"), "error");
 
-      reader.onerror = () => {
-        show_toast(t("settings.signature_image_failed"), "error");
-      };
+        return;
+      }
 
-      reader.onload = () => {
-        const data_url = reader.result as string;
-        let arr_buf: ArrayBuffer;
+      const result = await prepare_signature_image(
+        file,
+        signature_image_budget(rich_editor.get_html()),
+      );
 
-        try {
-          arr_buf = Uint8Array.from(atob(data_url.split(",")[1] || ""), (c) =>
-            c.charCodeAt(0),
-          ).buffer;
-        } catch {
-          show_toast(t("settings.signature_image_failed"), "error");
-
-          return;
-        }
-
-        if (!validate_image_magic_bytes(arr_buf, file.type)) {
-          show_toast(t("settings.signature_image_invalid"), "error");
-
-          return;
-        }
-
-        rich_editor.insert_html(
-          `<img src="${data_url}" style="max-width: min(100%, 480px); height: auto; border-radius: 6px; display: block; margin: 8px 0;" />`,
+      if (!result.ok) {
+        show_toast(
+          result.reason === "too_large"
+            ? t("settings.signature_image_too_large")
+            : t("settings.signature_image_failed"),
+          "error",
         );
-      };
-      reader.readAsDataURL(file);
+
+        return;
+      }
+
+      rich_editor.insert_html(signature_image_html(result.data_url));
     },
     [rich_editor, t],
   );
@@ -350,6 +351,13 @@ export function use_signature_section() {
       alias_id: editor.alias_id,
       placement: editor.placement,
     };
+
+    if (!signature_content_fits(form_data.content)) {
+      set_editor_error(t("settings.signature_too_large"));
+      set_editor((prev) => ({ ...prev, is_saving: false }));
+
+      return;
+    }
 
     if (editor.editing_id) {
       const response = await update_signature(editor.editing_id, form_data);

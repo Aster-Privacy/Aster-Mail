@@ -134,6 +134,11 @@ import { record_review_prompt_action } from "@/lib/review_prompt";
 import { is_contact_trashed } from "@/lib/contact_trash";
 import { ignore_error } from "@/lib/ignore_error";
 import { with_caret_block } from "@/lib/signature_html";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  find_locked_expiry_feature,
+  prompt_expiry_upgrade,
+} from "@/components/compose/expiry_plan_gate";
 
 export function use_forward_modal({
   is_open,
@@ -152,6 +157,7 @@ export function use_forward_modal({
   const reduce_motion = use_should_reduce_motion();
   const { user, vault } = use_auth();
   const { preferences } = use_preferences();
+  const { limits: plan_limits, is_feature_locked } = use_plan_limits();
   const {
     default_signature,
     get_formatted_signature,
@@ -684,6 +690,21 @@ export function use_forward_modal({
 
     if (is_loading_attachments) return;
 
+    const locked_expiry_feature = find_locked_expiry_feature({
+      expires_at,
+      limits_loaded: plan_limits !== null,
+      is_feature_locked,
+    });
+
+    if (locked_expiry_feature) {
+      prompt_expiry_upgrade(
+        locked_expiry_feature,
+        t("settings.feature_requires_upgrade"),
+      );
+
+      return;
+    }
+
     is_sending_ref.current = true;
     send_lock_started_at_ref.current = Date.now();
     set_error_message(null);
@@ -888,6 +909,8 @@ export function use_forward_modal({
     preferences.auto_save_recent_recipients,
     on_close,
     expires_at,
+    plan_limits,
+    is_feature_locked,
     selected_sender,
     attachments,
     is_loading_attachments,
