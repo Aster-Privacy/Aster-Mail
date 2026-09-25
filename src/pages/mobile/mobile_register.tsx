@@ -215,7 +215,7 @@ export default function MobileRegisterPage() {
                 className={BACK_BUTTON_CLASS}
                 style={BACK_BUTTON_STYLE}
                 type="button"
-                whileTap={{ scale: 0.9 }}
+                whileTap={{ opacity: 0.7 }}
                 onClick={handle_back}
               >
                 <svg
@@ -237,7 +237,7 @@ export default function MobileRegisterPage() {
                 className={BACK_BUTTON_CLASS}
                 style={BACK_BUTTON_STYLE}
                 type="button"
-                whileTap={{ scale: 0.9 }}
+                whileTap={{ opacity: 0.7 }}
                 onClick={() => navigate("/welcome")}
               >
                 <svg

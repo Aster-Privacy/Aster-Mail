@@ -270,7 +270,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             {show_indexing_notice && <AliasIndexingNotice />}
           </div>
           {(skeleton_visible ||
-            manual_refresh_active ||
+            (manual_refresh_active && filtered_emails.length === 0) ||
             (email_state.is_loading_more && primary_emails.length === 0)) && (
             <div className="absolute inset-0 z-10 bg-surf-primary">
               <LoadingState />

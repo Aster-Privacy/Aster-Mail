@@ -617,7 +617,9 @@ export function SharedMailboxesTab({
           {t("shared_mailboxes.load_failed_retry")}
         </button>
       ) : (
-        <p className="text-[11px] text-txt-muted">
+        <p
+          className={`text-[11px] text-txt-muted ${loading ? "invisible" : ""}`}
+        >
           {at_mailbox_limit
             ? t("shared_mailboxes.limit_reached", {
                 max: max_mailboxes,

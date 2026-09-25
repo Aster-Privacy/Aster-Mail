@@ -413,7 +413,7 @@ export function use_email_viewer({
       loaded_email_id_ref.current = preloaded.email.id;
     };
 
-    async function load_email() {
+    async function load_email(background: boolean) {
       const cached = usable_preloaded(
         get_preloaded_email(email_id),
         preferences.conversation_grouping !== false,
@@ -421,7 +421,7 @@ export function use_email_viewer({
 
       if (cached) {
         commit_preloaded(cached);
-      } else {
+      } else if (!background) {
         set_is_loading(true);
         set_error(null);
         set_email(null);
@@ -556,7 +556,7 @@ export function use_email_viewer({
       const result = await get_mail_item(email_id);
 
       if (result.error || !result.data) {
-        if (!cancelled) {
+        if (!cancelled && !background) {
           set_error(t("common.failed_to_load_email"));
           set_is_loading(false);
         }
@@ -567,7 +567,7 @@ export function use_email_viewer({
       const item = result.data;
 
       if (!item.encrypted_envelope || item.envelope_nonce == null) {
-        if (!cancelled) {
+        if (!cancelled && !background) {
           set_error(t("common.email_data_missing"));
           set_is_loading(false);
         }
@@ -581,7 +581,7 @@ export function use_email_viewer({
       );
 
       if (!envelope) {
-        if (!cancelled) {
+        if (!cancelled && !background) {
           set_error(t("common.failed_to_decrypt_email"));
           set_is_loading(false);
         }
@@ -849,8 +849,10 @@ export function use_email_viewer({
     }
 
     if (loaded_email_id_ref.current !== email_id || refresh_key > 0) {
+      const background = loaded_email_id_ref.current === email_id;
+
       loaded_email_id_ref.current = null;
-      load_email();
+      load_email(background);
     }
 
     return () => {

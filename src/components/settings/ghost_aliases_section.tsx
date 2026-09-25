@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { EyeSlashIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
 import {
   Button,
@@ -93,8 +93,10 @@ export function GhostAliasesSection() {
     ? aliases.find((a) => a.id === confirm_expire_info.alias_id)?.full_address
     : undefined;
 
+  const loaded_once_ref = useRef(false);
+
   const load_aliases = useCallback(async () => {
-    set_loading(true);
+    if (!loaded_once_ref.current) set_loading(true);
     set_load_error(false);
     try {
       const response = await list_ghost_aliases();
@@ -110,6 +112,7 @@ export function GhostAliasesSection() {
     } catch {
       set_load_error(true);
     } finally {
+      loaded_once_ref.current = true;
       set_loading(false);
     }
   }, []);

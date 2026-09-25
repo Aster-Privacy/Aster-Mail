@@ -139,8 +139,10 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
     set_alloc((prev) => Math.min(prev, pool_remaining));
   }, [pool_remaining]);
 
+  const loaded_once_ref = useRef(false);
+
   const load = useCallback(async () => {
-    set_loading(true);
+    if (!loaded_once_ref.current) set_loading(true);
     set_load_failed(false);
     const r = await list_reservations();
 
@@ -288,6 +290,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
         show_toast(t("settings.fam_org_action_failed"), "error");
       }
     } finally {
+      loaded_once_ref.current = true;
       set_regenerating_id(null);
     }
   };

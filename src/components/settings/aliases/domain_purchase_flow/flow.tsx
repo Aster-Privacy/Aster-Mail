@@ -709,11 +709,11 @@ export function DomainPurchaseFlow({
                       <span className="w-6 h-6 rounded-full border-2 border-edge-secondary flex-shrink-0" />
                     )}
                     <span
-                      className={`text-sm ${
+                      className={`text-sm font-medium ${
                         done
                           ? "text-txt-secondary"
                           : active
-                            ? "font-semibold text-txt-primary"
+                            ? "text-txt-primary"
                             : "text-txt-muted"
                       }`}
                     >
@@ -758,9 +758,9 @@ export function DomainPurchaseFlow({
                 {[1, 2, 3].map((y) => (
                   <button
                     key={y}
-                    className={`flex-1 h-10 rounded-full border text-sm transition-colors ${
+                    className={`flex-1 h-10 rounded-full border text-sm font-medium transition-colors ${
                       years === y
-                        ? "border-transparent text-[var(--accent-fg,#ffffff)] font-semibold bg-[var(--accent-color)]"
+                        ? "border-transparent text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)]"
                         : "border-edge-secondary text-txt-secondary hover:bg-surf-secondary"
                     }`}
                     onClick={() => set_years(y)}
@@ -794,9 +794,9 @@ export function DomainPurchaseFlow({
                 ).map(([method, Icon, label]) => (
                   <button
                     key={method}
-                    className={`flex-1 h-10 rounded-full border text-sm flex items-center justify-center gap-2 transition-colors ${
+                    className={`flex-1 h-10 rounded-full border text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
                       payment_method === method
-                        ? "border-transparent text-[var(--accent-fg,#ffffff)] font-semibold bg-[var(--accent-color)]"
+                        ? "border-transparent text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)]"
                         : "border-edge-secondary text-txt-secondary hover:bg-surf-secondary"
                     }`}
                     onClick={() => set_payment_method(method)}

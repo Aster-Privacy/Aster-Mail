@@ -598,21 +598,34 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     state.is_loading_more,
   ]);
 
+  const has_emails_ref = useRef(false);
+
+  has_emails_ref.current = state.emails.length > 0;
+
   const refresh = useCallback(() => {
+    const keep_visible = has_emails_ref.current;
+
     last_fetch_ref.current = null;
     windowed_page_ref.current = false;
     page_cache_ref.current.clear();
     page_offset_ref.current.clear();
     request_cache.invalidate("GET:/mail/v1/messages");
-    set_state((prev) => ({
-      emails: [],
-      is_loading: true,
-      is_loading_more: false,
-      total_messages: prev.total_messages,
-      has_more: false,
-      has_initial_load: false,
-    }));
-    fetch_page_ref.current?.(0, page_size);
+    set_state((prev) => {
+      if (keep_visible && prev.emails.length > 0) return { ...prev, is_loading_more: false };
+
+      return {
+        emails: [],
+        is_loading: true,
+        is_loading_more: false,
+        total_messages: prev.total_messages,
+        has_more: false,
+        has_initial_load: false,
+      };
+    });
+    fetch_page_ref.current?.(0, page_size, {
+      force: true,
+      silent: keep_visible,
+    });
   }, [page_size]);
 
   const prev_grouping_ref = useRef(preferences.conversation_grouping);

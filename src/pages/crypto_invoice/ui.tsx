@@ -369,7 +369,7 @@ export function step_list({ active_index, steps, title }: StepListProps) {
                     color: reached
                       ? "var(--text-primary)"
                       : "var(--text-muted)",
-                    fontWeight: current ? 600 : 500,
+                    fontWeight: 500,
                   }}
                 >
                   {step.label}

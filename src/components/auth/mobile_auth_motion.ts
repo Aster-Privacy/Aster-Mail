@@ -47,8 +47,8 @@ export const page_slide_transition: Transition = {
 };
 
 export const button_tap = {
-  scale: 0.98,
-  transition: { duration: 0.1 },
+  opacity: 0.85,
+  transition: { duration: 0.08 },
 };
 
 export const DEPTH_INPUT_CLASS =

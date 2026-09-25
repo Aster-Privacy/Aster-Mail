@@ -45,8 +45,10 @@ export function BlockedSendersTab() {
   const [is_adding, set_is_adding] = useState(false);
   const pending_tokens = useRef<Set<string>>(new Set());
 
+  const loaded_once_ref = useRef(false);
+
   const load_senders = useCallback(async () => {
-    set_is_loading(true);
+    if (!loaded_once_ref.current) set_is_loading(true);
     try {
       const result = await list_blocked_senders();
 
@@ -60,6 +62,7 @@ export function BlockedSendersTab() {
       ignore_error("pages/mobile/settings/blocked_senders_tab:load", caught);
       set_load_error(true);
     } finally {
+      loaded_once_ref.current = true;
       set_is_loading(false);
     }
   }, []);

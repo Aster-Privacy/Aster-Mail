@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { TrashIcon } from "@heroicons/react/24/outline";
 
 import { SettingsGroup, SettingsHeader, SettingsRow } from "./shared";
@@ -61,8 +61,10 @@ export function TrustedDevicesSection({
   const [pending_revoke_all, set_pending_revoke_all] = useState(false);
   const [is_revoking_all, set_is_revoking_all] = useState(false);
 
+  const loaded_once_ref = useRef(false);
+
   const load_devices = useCallback(async () => {
-    set_loading(true);
+    if (!loaded_once_ref.current) set_loading(true);
     set_load_error(false);
     try {
       const response = await list_devices();
@@ -77,6 +79,7 @@ export function TrustedDevicesSection({
       set_load_error(true);
       set_devices([]);
     } finally {
+      loaded_once_ref.current = true;
       set_loading(false);
     }
   }, []);

@@ -111,8 +111,10 @@ export function AliasDirectoriesSection() {
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
   const turnstile_required = !!TURNSTILE_SITE_KEY;
 
+  const loaded_once_ref = useRef(false);
+
   const load = useCallback(async () => {
-    set_loading(true);
+    if (!loaded_once_ref.current) set_loading(true);
     set_load_error(false);
     try {
       const response = await list_alias_directories();
@@ -132,6 +134,7 @@ export function AliasDirectoriesSection() {
       set_load_error(true);
       set_directories([]);
     } finally {
+      loaded_once_ref.current = true;
       set_loading(false);
     }
   }, [t]);

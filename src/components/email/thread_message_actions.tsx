@@ -278,7 +278,7 @@ export function ThreadMessageActions({
                       ? "cursor-default bg-[#d3e3fd] dark:bg-[#004a77]"
                       : is_locked
                         ? "cursor-default bg-[#eceef1] dark:bg-[#282a2c]"
-                        : "bg-[#eceef1] dark:bg-[#282a2c] hover:bg-[#e1e4e8] dark:hover:bg-[#333537] active:scale-95"
+                        : "bg-[#eceef1] dark:bg-[#282a2c] hover:bg-[#e1e4e8] dark:hover:bg-[#333537]"
                   }`}
                   exit={{ opacity: 0, scale: 0.6 }}
                   initial={{ opacity: 0, scale: 0.6 }}

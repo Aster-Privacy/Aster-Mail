@@ -540,7 +540,7 @@ export const MobileEmailList = memo(function MobileEmailList({
       has_initial_load && !is_loading && !is_loading_more && !is_refreshing,
   });
 
-  if ((is_loading || all_emails_empty) && !empty_state_visible) {
+  if (all_emails_empty && !empty_state_visible) {
     return (
       <div className="flex-1 space-y-1 px-0 pt-1">
         {Array.from({ length: 8 }).map((_, i) => (

@@ -329,13 +329,13 @@ export function ModalContactList({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-40">
                     <DropdownMenuItem
-                      className={filter_by === "all" ? "font-medium" : ""}
+                      className={filter_by === "all" ? "text-txt-primary" : ""}
                       onClick={() => set_filter_by("all")}
                     >
                       {t("mail.all")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className={filter_by === "favorites" ? "font-medium" : ""}
+                      className={filter_by === "favorites" ? "text-txt-primary" : ""}
                       onClick={() => set_filter_by("favorites")}
                     >
                       <StarIconSolid className="h-3.5 w-3.5 me-2 text-amber-400" />
@@ -343,14 +343,14 @@ export function ModalContactList({
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      className={filter_by === "has_email" ? "font-medium" : ""}
+                      className={filter_by === "has_email" ? "text-txt-primary" : ""}
                       onClick={() => set_filter_by("has_email")}
                     >
                       <EnvelopeIcon className="h-3.5 w-3.5 me-2" />
                       {t("common.has_email")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className={filter_by === "has_phone" ? "font-medium" : ""}
+                      className={filter_by === "has_phone" ? "text-txt-primary" : ""}
                       onClick={() => set_filter_by("has_phone")}
                     >
                       <PhoneIcon className="h-3.5 w-3.5 me-2" />
@@ -358,7 +358,7 @@ export function ModalContactList({
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className={
-                        filter_by === "has_company" ? "font-medium" : ""
+                        filter_by === "has_company" ? "text-txt-primary" : ""
                       }
                       onClick={() => set_filter_by("has_company")}
                     >
@@ -387,25 +387,25 @@ export function ModalContactList({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-40">
                     <DropdownMenuItem
-                      className={sort_by === "name_asc" ? "font-medium" : ""}
+                      className={sort_by === "name_asc" ? "text-txt-primary" : ""}
                       onClick={() => set_sort_by("name_asc")}
                     >
                       {t("common.name")} A-Z
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className={sort_by === "name_desc" ? "font-medium" : ""}
+                      className={sort_by === "name_desc" ? "text-txt-primary" : ""}
                       onClick={() => set_sort_by("name_desc")}
                     >
                       {t("common.name")} Z-A
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className={sort_by === "company" ? "font-medium" : ""}
+                      className={sort_by === "company" ? "text-txt-primary" : ""}
                       onClick={() => set_sort_by("company")}
                     >
                       {t("common.company")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className={sort_by === "recent" ? "font-medium" : ""}
+                      className={sort_by === "recent" ? "text-txt-primary" : ""}
                       onClick={() => set_sort_by("recent")}
                     >
                       {t("common.recently_added")}
@@ -499,7 +499,7 @@ export function ModalContactList({
                 borderTopColor: "var(--text-muted)",
               }}
               transition={{
-                duration: reduce_motion ? 0 : 1,
+                duration: 1,
                 repeat: Infinity,
                 ease: "linear",
               }}

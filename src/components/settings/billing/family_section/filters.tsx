@@ -509,7 +509,7 @@ export function FiltersContent({
                 title={t("settings.fam_org_filters_info_title")}
               />
               <span className="text-xs font-normal text-txt-muted">
-                {loading ? "..." : filters.length}
+                {loading ? null : filters.length}
               </span>
             </h3>
             <Button variant="depth" onClick={() => set_show_form(true)}>

@@ -147,8 +147,10 @@ export function FamilySection({
 
   const turnstile_required = !!TURNSTILE_SITE_KEY;
 
+  const loaded_once_ref = useRef(false);
+
   const load = useCallback(async () => {
-    set_loading(true);
+    if (!loaded_once_ref.current) set_loading(true);
     set_load_error(false);
     try {
       const res = await get_family_group();
@@ -163,6 +165,7 @@ export function FamilySection({
       set_load_error(true);
       set_group(null);
     } finally {
+      loaded_once_ref.current = true;
       set_loading(false);
     }
   }, []);

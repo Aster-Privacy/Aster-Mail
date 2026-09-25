@@ -144,7 +144,9 @@ export function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
           </SelectContent>
         </Select>
       </div>
-      <span className="text-sm text-txt-muted">
+      <span
+        className={`text-sm text-txt-muted ${loading && entries.length === 0 ? "invisible" : ""}`}
+      >
         {t("settings.fam_org_activity_events", { count: total })}
       </span>
       {loading && entries.length === 0 ? (

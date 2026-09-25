@@ -202,7 +202,7 @@ export function ColorPickerPopover({
                   return (
                     <button
                       key={color}
-                      className="w-6 h-6 rounded-full cursor-pointer transition-transform duration-100 hover:scale-125 active:scale-95"
+                      className="w-6 h-6 rounded-full cursor-pointer transition-transform duration-100 hover:scale-125"
                       style={{
                         backgroundColor: color,
                         boxShadow: selected

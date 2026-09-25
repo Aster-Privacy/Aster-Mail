@@ -1804,26 +1804,26 @@ label {
 
 .aster_btn_spinner {
   position: absolute;
-  inset-inline-end: var(--aster-btn-spinner-end);
-  top: 0;
-  bottom: 0;
+  inset: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   pointer-events: none;
+  -webkit-text-fill-color: currentColor;
 }
 
-.aster_btn_loading_host:has(.aster_btn_spinner:not(.aster_btn_spinner_centered)),
-button:has(.aster_btn_spinner:not(.aster_btn_spinner_centered)),
-a:has(.aster_btn_spinner:not(.aster_btn_spinner_centered)),
-label:has(.aster_btn_spinner:not(.aster_btn_spinner_centered)) {
-  padding-inline-end: calc(var(--aster-btn-spinner-end) + 1.5rem);
+.aster_btn_loading_host:has(> .aster_btn_spinner),
+button:has(> .aster_btn_spinner),
+a:has(> .aster_btn_spinner),
+label:has(> .aster_btn_spinner) {
+  -webkit-text-fill-color: transparent;
 }
 
-.aster_btn_icon .aster_btn_spinner,
-.aster_btn_spinner_centered {
-  position: static;
-  inset-inline-end: auto;
+.aster_btn_loading_host:has(> .aster_btn_spinner) > :not(.aster_btn_spinner),
+button:has(> .aster_btn_spinner) > :not(.aster_btn_spinner),
+a:has(> .aster_btn_spinner) > :not(.aster_btn_spinner),
+label:has(> .aster_btn_spinner) > :not(.aster_btn_spinner) {
+  opacity: 0;
 }
 
 html[data-input-modality="keyboard"] :focus-visible {
@@ -2310,10 +2310,6 @@ button.press_scale:active {
 
 .quick_contacts_cta:hover:not(:disabled) {
   filter: brightness(1.08);
-}
-
-.quick_contacts_cta:active:not(:disabled) {
-  transform: scale(0.97);
 }
 
 .quick_contacts_card {

@@ -744,7 +744,7 @@ export function BillingSection({
                           )}
                         />
                         <button
-                          className="h-9 px-4 text-sm font-medium rounded-full shrink-0 whitespace-nowrap text-txt-primary flex items-center gap-1.5 active:scale-95 transition-transform"
+                          className="h-9 px-4 text-sm font-medium rounded-full shrink-0 whitespace-nowrap text-txt-primary flex items-center gap-1.5 transition-transform"
                           style={{
                             background:
                               "color-mix(in srgb, var(--text-primary) 7%, transparent)",
@@ -768,7 +768,7 @@ export function BillingSection({
                         </button>
                       </div>
                       <button
-                        className="w-full mt-2 h-10 px-4 text-sm font-medium rounded-full text-txt-primary flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+                        className="w-full mt-2 h-10 px-4 text-sm font-medium rounded-full text-txt-primary flex items-center justify-center gap-1.5 transition-transform"
                         style={{
                           background:
                             "color-mix(in srgb, var(--text-primary) 7%, transparent)",
