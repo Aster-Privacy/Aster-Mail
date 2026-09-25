@@ -33,6 +33,11 @@ import {
   LockClosedIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
+import {
+  ArrowPathIcon as ArrowPathSolidIcon,
+  CheckCircleIcon as CheckCircleSolidIcon,
+  InboxArrowDownIcon as InboxArrowDownSolidIcon,
+} from "@heroicons/react/24/solid";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -114,19 +119,35 @@ interface ChangePrimaryAddressModalProps {
 
 function IntroPoint({
   icon,
+  icon_class = "text-txt-muted",
   title,
   body,
 }: {
   icon: React.ReactNode;
+  icon_class?: string;
   title: string;
   body: string | null;
 }) {
   return (
     <div className="flex gap-3">
-      <div className="mt-0.5 shrink-0 text-txt-muted">{icon}</div>
+      <div className={`mt-0.5 shrink-0 ${icon_class}`}>{icon}</div>
       <div className="min-w-0">
         <p className="text-sm font-medium text-txt-primary">{title}</p>
         {body && <p className="text-sm mt-0.5 text-txt-secondary">{body}</p>}
+      </div>
+    </div>
+  );
+}
+
+function IntroWarning({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="rounded-xl bg-amber-500 p-3.5">
+      <div className="flex items-start gap-2.5">
+        <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-black mt-0.5" />
+        <div>
+          <p className="text-sm font-semibold text-black">{title}</p>
+          <p className="text-xs text-black/80 leading-relaxed mt-1">{body}</p>
+        </div>
       </div>
     </div>
   );
@@ -294,6 +315,7 @@ export function ChangePrimaryAddressModal({
   const [domain, set_domain] = useState(PRIMARY_DOMAINS[0]);
   const [checking, set_checking] = useState(false);
   const [is_available, set_is_available] = useState<boolean | null>(null);
+  const [consumes_alias, set_consumes_alias] = useState(false);
   const [check_failed, set_check_failed] = useState(false);
   const [partial, set_partial] = useState(false);
   const [retrying, set_retrying] = useState(false);
@@ -310,6 +332,7 @@ export function ChangePrimaryAddressModal({
 
   const availability_request_ref = useRef(0);
   const pending_code_ref = useRef(false);
+  const republish_address_ref = useRef("");
   const check_timeout_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const new_address = `${local_part}@${domain}`;
@@ -403,6 +426,7 @@ export function ChangePrimaryAddressModal({
     set_domain(PRIMARY_DOMAINS[0]);
     set_checking(false);
     set_is_available(null);
+    set_consumes_alias(false);
     set_check_failed(false);
     set_partial(false);
     set_retrying(false);
@@ -433,6 +457,7 @@ export function ChangePrimaryAddressModal({
 
       if (request_id !== availability_request_ref.current) return;
       set_is_available(response.data ? response.data.available : null);
+      set_consumes_alias(response.data?.consumes_alias === true);
       set_check_failed(!response.data);
     } catch (caught) {
       ignore_error(
@@ -441,6 +466,7 @@ export function ChangePrimaryAddressModal({
       );
       if (request_id !== availability_request_ref.current) return;
       set_is_available(null);
+      set_consumes_alias(false);
       set_check_failed(true);
     } finally {
       if (request_id === availability_request_ref.current) set_checking(false);
@@ -452,6 +478,7 @@ export function ChangePrimaryAddressModal({
 
     availability_request_ref.current += 1;
     set_is_available(null);
+    set_consumes_alias(false);
     set_check_failed(false);
     set_checking(false);
 
@@ -464,9 +491,11 @@ export function ChangePrimaryAddressModal({
     };
   }, [local_part, domain, check_availability]);
 
-  const new_address_is_existing_alias = alias_addresses.some(
-    (address) => routing_form(address) === routing_form(new_address),
-  );
+  const new_address_is_existing_alias =
+    consumes_alias ||
+    alias_addresses.some(
+      (address) => routing_form(address) === routing_form(new_address),
+    );
 
   const pick_alias = (address: string) => {
     const at = address.lastIndexOf("@");
@@ -690,6 +719,7 @@ export function ChangePrimaryAddressModal({
     set_status(null);
     set_busy(false);
     set_final_address(new_address);
+    republish_address_ref.current = confirmed_address;
     set_retained_address(current_address);
     pending_code_ref.current = false;
     set_step("done");
@@ -702,7 +732,7 @@ export function ChangePrimaryAddressModal({
   };
 
   const retry_republish = async () => {
-    if (!final_address || retrying) return;
+    if (!republish_address_ref.current || retrying) return;
 
     set_error(null);
     set_retrying(true);
@@ -710,7 +740,7 @@ export function ChangePrimaryAddressModal({
     try {
       const republished = await with_timeout(
         republish_identity_with_new_address(
-          final_address,
+          republish_address_ref.current,
           user?.display_name || "",
         ),
         REPUBLISH_TIMEOUT_MS,
@@ -722,6 +752,7 @@ export function ChangePrimaryAddressModal({
         "components/settings/change_primary_address_modal:retry_republish",
         caught,
       );
+      set_error(t("settings.address_change_failed"));
     }
 
     set_retrying(false);
@@ -733,6 +764,13 @@ export function ChangePrimaryAddressModal({
     if (step !== "code") pending_code_ref.current = false;
     on_close();
   }, [busy, retrying, step, on_close]);
+
+  const abandon_close = useCallback(() => {
+    if (busy || retrying) return;
+
+    pending_code_ref.current = false;
+    on_close();
+  }, [busy, retrying, on_close]);
 
   const error_line = error && (
     <p
@@ -775,26 +813,28 @@ export function ChangePrimaryAddressModal({
           <ModalBody className="space-y-4">
             <IntroPoint
               body={t("settings.address_change_keep_old_body")}
-              icon={<InboxArrowDownIcon className="w-5 h-5" />}
+              icon={<InboxArrowDownSolidIcon className="w-5 h-5" />}
+              icon_class="text-accent-primary"
               title={t("settings.address_change_keep_old_title", {
                 email: current_address,
               })}
             />
             <IntroPoint
               body={t("settings.address_change_no_limit_body")}
-              icon={<CheckCircleIcon className="w-5 h-5" />}
+              icon={<CheckCircleSolidIcon className="w-5 h-5" />}
+              icon_class="text-green-500"
               title={t("settings.address_change_no_limit_title")}
             />
             <IntroPoint
               body={next_change_line}
-              icon={<ArrowPathIcon className="w-5 h-5" />}
+              icon={<ArrowPathSolidIcon className="w-5 h-5" />}
+              icon_class="text-sky-500"
               title={t("settings.address_change_once_title")}
             />
-            <IntroPoint
+            <IntroWarning
               body={t("settings.address_change_permanent_body", {
                 email: current_address,
               })}
-              icon={<ExclamationTriangleIcon className="w-5 h-5" />}
               title={t("settings.address_change_permanent_title")}
             />
           </ModalBody>
@@ -954,6 +994,13 @@ export function ChangePrimaryAddressModal({
                   )}
               </div>
             </div>
+
+            <IntroWarning
+              body={t("settings.address_change_permanent_body", {
+                email: current_address,
+              })}
+              title={t("settings.address_change_permanent_title")}
+            />
           </ModalBody>
           <ModalFooter>
             <Button variant="outline" onClick={() => set_step("intro")}>
@@ -1194,7 +1241,7 @@ export function ChangePrimaryAddressModal({
             {error_line}
           </ModalBody>
           <ModalFooter>
-            <Button disabled={busy} variant="outline" onClick={request_close}>
+            <Button disabled={busy} variant="outline" onClick={abandon_close}>
               {t("common.cancel")}
             </Button>
             <Button
@@ -1234,6 +1281,7 @@ export function ChangePrimaryAddressModal({
                 </p>
               </div>
             )}
+            {error_line}
           </ModalBody>
           <ModalFooter>
             {partial && (

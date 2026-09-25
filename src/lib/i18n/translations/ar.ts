@@ -4748,28 +4748,28 @@ export const ar = {
     primary_address_label: "العنوان الأساسي",
     change_address: "تغيير العنوان",
     address_change_title: "غيّر عنوانك",
-    address_change_intro_lead:
-      "يتيح لك Supernova تغيير عنوانك مرة واحدة في السنة. قبل أن تبدأ، اقرأ ما سيحدث.",
+    address_change_intro_lead: "اقرأ ما سيتغير قبل المتابعة.",
     address_change_keep_old_title: "تحتفظ بـ {{email}}",
     address_change_keep_old_body:
-      "يظل يستقبل البريد ويظل يتيح لك تسجيل الدخول على كل جهاز.",
-    address_change_no_limit_title: "يبقى عنوانك القديم مجانيًا",
+      "البريد المرسل إلى ذلك العنوان يصل إلى صندوق الوارد كما كان، ويمكنك تسجيل الدخول به على كل جهاز.",
+    address_change_no_limit_title: "عنوانك القديم يبقى لك",
     address_change_no_limit_body:
-      "لا يُحتسب عنوانك القديم ضمن حد الأسماء المستعارة، ولا يمكن لأي شخص آخر أخذه، ولا يمكنك حذفه.",
-    address_change_once_title: "مرة واحدة في السنة",
+      "لا يُحتسب ضمن حد الأسماء المستعارة، ولا يمكن لأحد غيرك أخذه، ولا يمكن حذفه.",
+    address_change_once_title: "تغيير واحد كل 30 يومًا",
     address_change_once_body:
-      "بعد هذا التغيير، يصبح التغيير التالي متاحاً في {{date}}.",
+      "بعد هذا التغيير، يمكنك التغيير مرة أخرى في {{date}}.",
     address_change_effect_alias_title: "{{email}} لم يعد اسمًا مستعارًا",
     address_change_effect_alias_body:
       "تُحذف أي قواعد وإعادة توجيه وتوقيعات وأسماء مستعارة عكسية أعددتها لهذا الاسم المستعار. تستمر الرسائل المرسلة إلى هذا العنوان في الوصول، بصفته عنوانك الأساسي الآن.",
     address_change_permanent_title: "لا يمكنك التراجع عن هذا",
     address_change_permanent_body:
-      "لا يمكنك جعل {{email}} عنوانك الأساسي مرة أخرى.",
+      "لا يمكن أن يعود {{email}} عنوانك الأساسي.",
     address_change_pick_title: "اختر عنوانك الجديد",
     address_change_use_alias: "استخدام أحد أسمائك المستعارة",
     address_change_use_new: "اختيار عنوان جديد",
     address_change_name_rule: "استخدم من 3 إلى 40 حرفًا أو رقمًا أو نقطة. لا يمكن أن تبدأ النقطة العنوان أو تنهيه، ولا يمكن تكرار النقاط.",
-    address_change_name_placeholder: "الاسم",
+    address_change_name_placeholder: "yourname",
+    primary_address_info: "تتيح لك خطة Supernova تغيير عنوانك مرة كل 30 يومًا. عنوانك القديم يبقى لك: يواصل استقبال البريد ويظل يسجّل دخولك.",
     address_change_checking: "جارٍ التحقق من التوفر",
     address_change_available: "{{email}} متاح",
     address_change_unavailable: "{{email}} غير متاح",
@@ -4806,9 +4806,9 @@ export const ar = {
     address_change_locked_plan: "تغيير عنوانك ميزة في Supernova.",
     address_change_locked_cooldown: "يمكنك تغيير عنوانك مرة أخرى في {{date}}.",
     address_change_locked_cooldown_unknown:
-      "غيّرت عنوانك خلال السنة الماضية، لذا لا يمكنك تغييره مرة أخرى بعد.",
+      "غيّرت عنوانك خلال آخر 30 يومًا، لذلك لا يمكنك تغييره مرة أخرى بعد.",
     address_change_once_unknown:
-      "بعد هذا التغيير، يصبح التغيير التالي متاحًا بعد عام.",
+      "بعد هذا التغيير، يمكنك التغيير مرة أخرى بعد 30 يومًا.",
     address_change_password_wrong: "كلمة المرور هذه غير صحيحة.",
     address_change_not_eligible: "لا يمكنك تغيير عنوانك الآن.",
     address_change_too_many_requests:

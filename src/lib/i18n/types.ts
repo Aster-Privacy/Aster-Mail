@@ -4974,6 +4974,7 @@ export interface SettingsTranslations {
   address_change_use_new: string;
   address_change_name_rule: string;
   address_change_name_placeholder: string;
+  primary_address_info: string;
   address_change_checking: string;
   address_change_available: string;
   address_change_unavailable: string;

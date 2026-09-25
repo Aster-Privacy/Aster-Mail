@@ -4613,28 +4613,28 @@ export const tr = {
     primary_address_label: "Birincil adres",
     change_address: "Adresi değiştir",
     address_change_title: "Adresini değiştir",
-    address_change_intro_lead:
-      "Supernova, adresini yılda bir kez değiştirmene olanak tanır. Başlamadan önce neler olacağını oku.",
+    address_change_intro_lead: "Devam etmeden önce nelerin değiştiğini okuyun.",
     address_change_keep_old_title: "{{email}} sende kalır",
     address_change_keep_old_body:
-      "Posta almaya devam eder ve her cihazda oturum açmanı sağlamayı sürdürür.",
-    address_change_no_limit_title: "Eski adresin ücretsiz kalır",
+      "Bu adrese gelen postalar gelen kutuna düşmeye devam eder ve her cihazda bu adresle oturum açmayı sürdürebilirsin.",
+    address_change_no_limit_title: "Eski adresin senin kalır",
     address_change_no_limit_body:
-      "Eski adresin takma ad sınırına dahil edilmez, başka kimse onu alamaz ve onu silemezsin.",
-    address_change_once_title: "Yılda bir kez",
+      "Takma ad sınırına dahil edilmez, başkası alamaz ve silinemez.",
+    address_change_once_title: "30 günde bir değişiklik",
     address_change_once_body:
-      "Bu değişiklikten sonra bir sonraki {{date}} tarihinde kullanılabilir.",
+      "Bu değişiklikten sonra {{date}} tarihinde yeniden değiştirebilirsin.",
     address_change_effect_alias_title: "{{email}} artık bir takma ad olmayacak",
     address_change_effect_alias_body:
       "Bu takma ad için ayarladığın kurallar, yönlendirmeler, imzalar ve ters rumuzlar kaldırılır. Bu adrese gönderilen iletiler, artık birincil adresin olarak gelmeye devam eder.",
     address_change_permanent_title: "Bunu geri alamazsın",
     address_change_permanent_body:
-      "{{email}} adresini yeniden birincil adresin yapamazsın.",
+      "{{email}} yeniden birincil adresin olamaz.",
     address_change_pick_title: "Yeni adresini seç",
     address_change_use_alias: "Takma adlarından birini kullan",
     address_change_use_new: "Yeni bir adres seç",
     address_change_name_rule: "3 ile 40 arasında harf, rakam veya nokta kullan. Nokta adresin başında veya sonunda olamaz ve noktalar tekrarlanamaz.",
-    address_change_name_placeholder: "ad",
+    address_change_name_placeholder: "adiniz",
+    primary_address_info: "Supernova planın adresini 30 günde bir değiştirmene izin verir. Eski adresin senin kalır: posta almayı sürdürür ve oturum açmanı sağlar.",
     address_change_checking: "Uygunluk kontrol ediliyor",
     address_change_available: "{{email}} kullanılabilir",
     address_change_unavailable: "{{email}} kullanılamaz",
@@ -4674,9 +4674,9 @@ export const tr = {
     address_change_locked_cooldown:
       "Adresini {{date}} tarihinde yeniden değiştirebilirsin.",
     address_change_locked_cooldown_unknown:
-      "Son bir yıl içinde adresini değiştirdin, bu yüzden henüz yeniden değiştiremezsin.",
+      "Adresini son 30 gün içinde değiştirdin, bu yüzden henüz yeniden değiştiremezsin.",
     address_change_once_unknown:
-      "Bu değişiklikten sonra bir sonrakini bir yıl içinde yapabilirsin.",
+      "Bu değişiklikten sonra 30 gün içinde yeniden değiştirebilirsin.",
     address_change_password_wrong: "Bu parola doğru değil.",
     address_change_not_eligible: "Şu anda adresini değiştiremezsin.",
     address_change_too_many_requests:

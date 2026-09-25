@@ -50,6 +50,7 @@ import { api_client } from "@/services/api/client";
 import { verify_auth_status, get_user_info } from "@/services/api/auth";
 import { rekey_pgp_if_needed } from "@/services/pgp_rekey_service";
 import { republish_identity_with_new_address } from "@/services/pgp_uid_service";
+import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 import { set_lockdown_enabled } from "@/services/lockdown_store";
 import {
   store_vault_in_memory,
@@ -631,15 +632,19 @@ export function use_auth_account_state() {
         set_lockdown_enabled(logged_in_user.id, info.lockdown_mode_enabled);
       }
 
+      const uid_address = info.email
+        ? normalize_address_ignoring_dots(info.email)
+        : info.email;
+
       if ((info as { pgp_rekey_required?: boolean }).pgp_rekey_required) {
-        void rekey_pgp_if_needed(info.email, info.display_name);
+        void rekey_pgp_if_needed(uid_address, info.display_name);
       } else if (
         (info as { pgp_uid_update_required?: boolean })
           .pgp_uid_update_required &&
-        info.email
+        uid_address
       ) {
         void republish_identity_with_new_address(
-          info.email,
+          uid_address,
           info.display_name || "",
         ).catch((caught) =>
           ignore_error("contexts/auth:republish_identity_uid", caught),

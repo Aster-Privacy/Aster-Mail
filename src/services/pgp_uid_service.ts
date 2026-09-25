@@ -187,6 +187,14 @@ async function run_identity_republish(
 
       if (!current_vault || !passphrase) return false;
 
+      if (
+        !current_vault.identity_key
+          ?.trimStart()
+          .startsWith("-----BEGIN PGP PRIVATE KEY")
+      ) {
+        return false;
+      }
+
       const next_vault = await add_address_to_identity_key(
         current_vault,
         passphrase,

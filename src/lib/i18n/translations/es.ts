@@ -4673,28 +4673,28 @@ export const es = {
     primary_address_label: "Dirección principal",
     change_address: "Cambiar dirección",
     address_change_title: "Cambia tu dirección",
-    address_change_intro_lead:
-      "Supernova te permite cambiar tu dirección una vez al año. Antes de empezar, lee lo que ocurre.",
+    address_change_intro_lead: "Lee lo que cambia antes de continuar.",
     address_change_keep_old_title: "Conservas {{email}}",
     address_change_keep_old_body:
-      "Sigue recibiendo correo y sigue permitiéndote iniciar sesión en todos tus dispositivos.",
-    address_change_no_limit_title: "Tu dirección anterior sigue siendo gratis",
+      "El correo que llegue a esa dirección sigue apareciendo en tu bandeja de entrada y puedes seguir usándola para iniciar sesión en todos tus dispositivos.",
+    address_change_no_limit_title: "Tu dirección anterior sigue siendo tuya",
     address_change_no_limit_body:
-      "Tu dirección anterior no cuenta para tu límite de alias, nadie más puede quedársela y no puedes eliminarla.",
-    address_change_once_title: "Una vez al año",
+      "No cuenta para tu límite de alias, nadie más puede reclamarla y no se puede eliminar.",
+    address_change_once_title: "Un cambio cada 30 días",
     address_change_once_body:
-      "Después de este cambio, el siguiente estará disponible el {{date}}.",
+      "Después de este cambio, podrás volver a cambiarla el {{date}}.",
     address_change_effect_alias_title: "{{email}} deja de ser un alias",
     address_change_effect_alias_body:
       "Se eliminan las reglas, los reenvíos, las firmas y los alias inversos que configuraste para este alias. Los mensajes enviados a esa dirección siguen llegando, ahora como tu dirección principal.",
     address_change_permanent_title: "No puedes deshacer esto",
     address_change_permanent_body:
-      "No puedes volver a convertir {{email}} en tu dirección principal.",
+      "{{email}} no puede volver a ser tu dirección principal.",
     address_change_pick_title: "Elige tu nueva dirección",
     address_change_use_alias: "Usar uno de tus alias",
     address_change_use_new: "Elegir una dirección nueva",
     address_change_name_rule: "Usa de 3 a 40 letras, números o puntos. Un punto no puede ir al principio ni al final, y los puntos no pueden repetirse.",
-    address_change_name_placeholder: "nombre",
+    address_change_name_placeholder: "tunombre",
+    primary_address_info: "Tu plan Supernova te permite cambiar tu dirección una vez cada 30 días. Tu dirección anterior sigue siendo tuya: continúa recibiendo correo y te permite iniciar sesión.",
     address_change_checking: "Comprobando disponibilidad",
     address_change_available: "{{email}} está disponible",
     address_change_unavailable: "{{email}} no está disponible",
@@ -4737,9 +4737,9 @@ export const es = {
     address_change_locked_cooldown:
       "Puedes volver a cambiar tu dirección el {{date}}.",
     address_change_locked_cooldown_unknown:
-      "Cambiaste tu dirección durante el último año, así que todavía no puedes volver a cambiarla.",
+      "Cambiaste tu dirección en los últimos 30 días, así que aún no puedes volver a cambiarla.",
     address_change_once_unknown:
-      "Después de este cambio, el siguiente estará disponible en un año.",
+      "Después de este cambio, podrás volver a cambiarla en 30 días.",
     address_change_password_wrong: "Esa contraseña no es correcta.",
     address_change_not_eligible: "Ahora mismo no puedes cambiar tu dirección.",
     address_change_too_many_requests:

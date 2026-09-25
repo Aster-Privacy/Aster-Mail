@@ -5538,28 +5538,28 @@ export const hi = {
     primary_address_label: "मुख्य पता",
     change_address: "पता बदलें",
     address_change_title: "अपना पता बदलें",
-    address_change_intro_lead:
-      "Supernova आपको साल में एक बार अपना पता बदलने देता है। शुरू करने से पहले, पढ़ें कि क्या होता है।",
+    address_change_intro_lead: "जारी रखने से पहले पढ़ें कि क्या बदलता है.",
     address_change_keep_old_title: "{{email}} आपके पास रहता है",
     address_change_keep_old_body:
-      "यह अब भी मेल पाता है और हर डिवाइस पर आपको साइन इन करने देता है।",
-    address_change_no_limit_title: "आपका पुराना पता मुफ़्त रहता है",
+      "उस पते पर भेजा गया मेल अब भी आपके इनबॉक्स में आता है, और आप हर डिवाइस पर उससे साइन इन कर सकते हैं।",
+    address_change_no_limit_title: "आपका पुराना पता आपका ही रहता है",
     address_change_no_limit_body:
-      "आपका पुराना पता आपकी उपनाम सीमा में नहीं गिना जाता, कोई और इसे नहीं ले सकता, और आप इसे हटा नहीं सकते।",
-    address_change_once_title: "साल में एक बार",
+      "यह आपकी उपनाम सीमा में नहीं गिना जाता, कोई और इसे नहीं ले सकता, और इसे मिटाया नहीं जा सकता।",
+    address_change_once_title: "हर 30 दिन में एक बदलाव",
     address_change_once_body:
-      "इस बदलाव के बाद, अगला बदलाव {{date}} को उपलब्ध होगा।",
+      "इस बदलाव के बाद, आप {{date}} को फिर से बदल सकते हैं।",
     address_change_effect_alias_title: "{{email}} अब उपनाम नहीं रहेगा",
     address_change_effect_alias_body:
       "इस उपनाम के लिए बनाए गए सभी नियम, अग्रेषण, हस्ताक्षर और रिवर्स एलियास हटा दिए जाते हैं। इस पते पर भेजे गए संदेश आते रहते हैं, अब आपके मुख्य पते के रूप में।",
     address_change_permanent_title: "आप इसे पहले जैसा नहीं कर सकते",
     address_change_permanent_body:
-      "आप {{email}} को दोबारा अपना मुख्य पता नहीं बना सकते।",
+      "{{email}} दोबारा आपका प्राथमिक पता नहीं बन सकता।",
     address_change_pick_title: "अपना नया पता चुनें",
     address_change_use_alias: "अपने किसी उपनाम का उपयोग करें",
     address_change_use_new: "नया पता चुनें",
     address_change_name_rule: "3 से 40 अक्षर, अंक या बिंदु इस्तेमाल करें। बिंदु न शुरुआत में हो सकता है, न अंत में, और बिंदु दोहराए नहीं जा सकते।",
-    address_change_name_placeholder: "नाम",
+    address_change_name_placeholder: "yourname",
+    primary_address_info: "आपका Supernova प्लान हर 30 दिन में एक बार पता बदलने देता है। आपका पुराना पता आपका ही रहता है: यह मेल पाता रहता है और साइन इन भी कराता है।",
     address_change_checking: "उपलब्धता जाँची जा रही है",
     address_change_available: "{{email}} उपलब्ध है",
     address_change_unavailable: "{{email}} उपलब्ध नहीं है",
@@ -5598,9 +5598,9 @@ export const hi = {
     address_change_locked_cooldown:
       "आप {{date}} को अपना पता दोबारा बदल सकते हैं।",
     address_change_locked_cooldown_unknown:
-      "आपने पिछले साल के भीतर अपना पता बदला था, इसलिए आप इसे अभी दोबारा नहीं बदल सकते।",
+      "आपने पिछले 30 दिनों में अपना पता बदला है, इसलिए आप इसे अभी दोबारा नहीं बदल सकते।",
     address_change_once_unknown:
-      "इस बदलाव के बाद, अगला बदलाव एक साल में उपलब्ध होगा.",
+      "इस बदलाव के बाद, आप 30 दिन में फिर से बदल सकते हैं।",
     address_change_password_wrong: "यह पासवर्ड सही नहीं है.",
     address_change_not_eligible: "आप अभी अपना पता नहीं बदल सकते.",
     address_change_too_many_requests:

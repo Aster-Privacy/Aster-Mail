@@ -4667,17 +4667,16 @@ export const ja = {
     primary_address_label: "プライマリアドレス",
     change_address: "アドレスを変更",
     address_change_title: "アドレスを変更する",
-    address_change_intro_lead:
-      "Supernova では年に 1 回アドレスを変更できます。始める前に、何が起こるかをお読みください。",
+    address_change_intro_lead: "続ける前に、何が変わるかをお読みください。",
     address_change_keep_old_title: "{{email}} はそのまま使えます",
     address_change_keep_old_body:
-      "引き続きメールを受信でき、すべてのデバイスでサインインにも使えます。",
-    address_change_no_limit_title: "以前のアドレスは無料のままです",
+      "そのアドレス宛てのメールは引き続き受信トレイに届き、すべてのデバイスでサインインにも使えます。",
+    address_change_no_limit_title: "以前のアドレスはあなたのものです",
     address_change_no_limit_body:
-      "以前のアドレスはエイリアスの上限に含まれず、ほかの人が取得することも、削除することもできません。",
-    address_change_once_title: "年に 1 回",
+      "エイリアスの上限には含まれず、ほかの人が取得することはできず、削除もできません。",
+    address_change_once_title: "30 日に 1 回の変更",
     address_change_once_body:
-      "今回の変更後、次の変更は {{date}} から可能になります。",
+      "この変更のあと、次は {{date}} に変更できます。",
     address_change_effect_alias_title: "{{email}} はエイリアスではなくなります",
     address_change_effect_alias_body:
       "このエイリアスに設定したルール、転送、署名、リバースエイリアスはすべて削除されます。このアドレス宛のメールは、メインアドレスとして引き続き届きます。",
@@ -4688,7 +4687,8 @@ export const ja = {
     address_change_use_alias: "エイリアスから選ぶ",
     address_change_use_new: "新しいアドレスを入力する",
     address_change_name_rule: "3～40 文字の英数字またはドットを使ってください。ドットは先頭と末尾には置けず、連続もできません。",
-    address_change_name_placeholder: "名前",
+    address_change_name_placeholder: "yourname",
+    primary_address_info: "Supernova プランでは、アドレスを 30 日に 1 回変更できます。以前のアドレスはあなたのものです。引き続きメールを受信し、サインインにも使えます。",
     address_change_checking: "利用できるか確認しています",
     address_change_available: "{{email}} は利用できます",
     address_change_unavailable: "{{email}} は利用できません",
@@ -4729,8 +4729,8 @@ export const ja = {
     address_change_locked_plan: "アドレスの変更は Supernova の機能です。",
     address_change_locked_cooldown: "{{date}} にアドレスを再び変更できます。",
     address_change_locked_cooldown_unknown:
-      "過去 1 年以内にアドレスを変更したため、まだ変更できません。",
-    address_change_once_unknown: "この変更のあと、次の変更は1年後に行えます。",
+      "過去 30 日以内にアドレスを変更したため、まだ変更できません。",
+    address_change_once_unknown: "この変更のあと、次は 30 日後に変更できます。",
     address_change_password_wrong: "このパスワードは正しくありません。",
     address_change_not_eligible: "今はアドレスを変更できません。",
     address_change_too_many_requests: "アドレス変更の開始が多すぎます。1 時間後にもう一度お試しください。",

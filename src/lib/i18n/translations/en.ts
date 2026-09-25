@@ -5565,28 +5565,28 @@ export const en: Translations = {
     primary_address_label: "Primary address",
     change_address: "Change address",
     address_change_title: "Change your address",
-    address_change_intro_lead:
-      "Supernova lets you change your address once a year. Before you start, read what happens.",
+    address_change_intro_lead: "Read what changes before you continue.",
     address_change_keep_old_title: "You keep {{email}}",
     address_change_keep_old_body:
-      "It still receives mail and still signs you in, on every device.",
-    address_change_no_limit_title: "Your old address stays free",
+      "Mail sent there still arrives in your inbox, and you can still sign in with it on every device.",
+    address_change_no_limit_title: "Your old address stays yours",
     address_change_no_limit_body:
-      "Your old address does not count toward your alias limit, nobody else can take it, and you cannot delete it.",
-    address_change_once_title: "Once a year",
+      "It does not count toward your alias limit, no one else can claim it, and it cannot be deleted.",
+    address_change_once_title: "One change every 30 days",
     address_change_once_body:
-      "After this change, your next one is available on {{date}}.",
+      "After this change, you can change again on {{date}}.",
     address_change_effect_alias_title: "{{email}} stops being an alias",
     address_change_effect_alias_body:
       "Any rules, forwarding, signatures, and reverse aliases you set up for this alias are removed. Mail sent to the address keeps arriving, now as your primary address.",
     address_change_permanent_title: "You cannot undo this",
     address_change_permanent_body:
-      "You cannot make {{email}} your primary address again.",
+      "{{email}} cannot become your primary address again.",
     address_change_pick_title: "Pick your new address",
     address_change_use_alias: "Use one of your aliases",
     address_change_use_new: "Choose a new address",
     address_change_name_rule: "Use 3 to 40 letters, numbers, or dots. A dot cannot start or end the address, and dots cannot repeat.",
-    address_change_name_placeholder: "name",
+    address_change_name_placeholder: "yourname",
+    primary_address_info: "Your Supernova plan lets you change your address once every 30 days. Your old address stays yours: it keeps receiving mail and it still signs you in.",
     address_change_checking: "Checking availability",
     address_change_available: "{{email}} is available",
     address_change_unavailable: "{{email}} is not available",
@@ -5626,9 +5626,9 @@ export const en: Translations = {
     address_change_locked_cooldown:
       "You can change your address again on {{date}}.",
     address_change_locked_cooldown_unknown:
-      "You changed your address in the past year, so you cannot change it again yet.",
+      "You changed your address in the past 30 days, so you cannot change it again yet.",
     address_change_once_unknown:
-      "After this change, your next one is available in a year.",
+      "After this change, you can change again in 30 days.",
     address_change_password_wrong: "That password is not correct.",
     address_change_not_eligible: "You cannot change your address right now.",
     address_change_too_many_requests:

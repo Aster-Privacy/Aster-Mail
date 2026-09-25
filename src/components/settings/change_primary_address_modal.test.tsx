@@ -184,7 +184,8 @@ const eligibility_fixture: PrimaryAddressEligibility = {
   reason: null,
   current_address: "old@astermail.org",
   next_change_available_at: "2027-01-01T00:00:00Z",
-  renames_allowed_per_year: 1,
+  renames_allowed: 1,
+  retained_addresses: [],
 };
 
 let container: HTMLDivElement;
@@ -330,7 +331,7 @@ describe("ChangePrimaryAddressModal", () => {
     mocked_ensure_aliases.mockResolvedValue(undefined);
     mocked_cached_aliases.mockReturnValue([]);
     mocked_availability.mockResolvedValue({
-      data: { available: true },
+      data: { available: true, consumes_alias: false },
     } as never);
     mocked_salt.mockResolvedValue({ data: { salt: btoa("salt") } } as never);
     mocked_start.mockResolvedValue({
@@ -434,7 +435,7 @@ describe("ChangePrimaryAddressModal", () => {
 
   it("blocks continuing from the pick step until the address is available", async () => {
     mocked_availability.mockResolvedValue({
-      data: { available: false },
+      data: { available: false, consumes_alias: false },
     } as never);
     await go_to_pick();
 

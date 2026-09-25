@@ -467,7 +467,7 @@ export function AliasItem({
           <Switch
             aria-label={t("common.toggle_alias")}
             checked={alias.is_enabled}
-            disabled={toggling || in_grace_period}
+            disabled={toggling || in_grace_period || !!alias.is_retained_primary}
             size="lg"
             onCheckedChange={(checked) => on_toggle(alias.id, checked)}
           />

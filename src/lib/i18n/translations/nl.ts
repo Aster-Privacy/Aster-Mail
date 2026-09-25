@@ -4607,28 +4607,28 @@ export const nl = {
     primary_address_label: "Primair adres",
     change_address: "Adres wijzigen",
     address_change_title: "Wijzig je adres",
-    address_change_intro_lead:
-      "Met Supernova kun je je adres één keer per jaar wijzigen. Lees voordat je begint wat er gebeurt.",
+    address_change_intro_lead: "Lees wat er verandert voordat je doorgaat.",
     address_change_keep_old_title: "Je houdt {{email}}",
     address_change_keep_old_body:
-      "Het ontvangt nog steeds e-mail en laat je nog steeds inloggen, op elk apparaat.",
-    address_change_no_limit_title: "Je oude adres blijft gratis",
+      "Berichten aan dat adres komen nog steeds in je inbox, en je kunt er op al je apparaten mee inloggen.",
+    address_change_no_limit_title: "Je oude adres blijft van jou",
     address_change_no_limit_body:
-      "Je oude adres telt niet mee voor je aliaslimiet, niemand anders kan het overnemen en je kunt het niet verwijderen.",
-    address_change_once_title: "Eén keer per jaar",
+      "Het telt niet mee voor je aliaslimiet, niemand anders kan het claimen en het kan niet worden verwijderd.",
+    address_change_once_title: "Eén wijziging per 30 dagen",
     address_change_once_body:
-      "Na deze wijziging is de volgende beschikbaar op {{date}}.",
+      "Na deze wijziging kun je het op {{date}} opnieuw wijzigen.",
     address_change_effect_alias_title: "{{email}} is dan geen alias meer",
     address_change_effect_alias_body:
       "Regels, doorsturen, handtekeningen en omgekeerde aliassen die je voor dit alias hebt ingesteld, worden verwijderd. Berichten aan dit adres blijven binnenkomen, nu als je primaire adres.",
     address_change_permanent_title: "Je kunt dit niet ongedaan maken",
     address_change_permanent_body:
-      "Je kunt {{email}} niet opnieuw je primaire adres maken.",
+      "{{email}} kan niet opnieuw je primaire adres worden.",
     address_change_pick_title: "Kies je nieuwe adres",
     address_change_use_alias: "Een van je aliassen gebruiken",
     address_change_use_new: "Een nieuw adres kiezen",
     address_change_name_rule: "Gebruik 3 tot 40 letters, cijfers of punten. Een punt mag niet aan het begin of eind staan en punten mogen zich niet herhalen.",
-    address_change_name_placeholder: "naam",
+    address_change_name_placeholder: "jouwnaam",
+    primary_address_info: "Met je Supernova-abonnement kun je je adres eens per 30 dagen wijzigen. Je oude adres blijft van jou: het ontvangt nog steeds mail en je logt er nog steeds mee in.",
     address_change_checking: "Beschikbaarheid controleren",
     address_change_available: "{{email}} is beschikbaar",
     address_change_unavailable: "{{email}} is niet beschikbaar",
@@ -4670,9 +4670,9 @@ export const nl = {
     address_change_locked_cooldown:
       "Je kunt je adres weer wijzigen op {{date}}.",
     address_change_locked_cooldown_unknown:
-      "Je hebt je adres in het afgelopen jaar gewijzigd, dus je kunt het nog niet opnieuw wijzigen.",
+      "Je hebt je adres in de afgelopen 30 dagen gewijzigd, dus je kunt het nog niet opnieuw wijzigen.",
     address_change_once_unknown:
-      "Na deze wijziging is de volgende over een jaar beschikbaar.",
+      "Na deze wijziging kun je het over 30 dagen opnieuw wijzigen.",
     address_change_password_wrong: "Dat wachtwoord is niet juist.",
     address_change_not_eligible: "Je kunt je adres nu niet wijzigen.",
     address_change_too_many_requests:

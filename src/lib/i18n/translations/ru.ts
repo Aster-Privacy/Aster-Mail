@@ -4784,28 +4784,28 @@ export const ru = {
     primary_address_label: "Основной адрес",
     change_address: "Изменить адрес",
     address_change_title: "Измените свой адрес",
-    address_change_intro_lead:
-      "Supernova позволяет менять адрес раз в год. Прежде чем начать, прочитайте, что произойдет.",
+    address_change_intro_lead: "Прочитайте, что изменится, прежде чем продолжить.",
     address_change_keep_old_title: "Вы сохраняете {{email}}",
     address_change_keep_old_body:
-      "Он по-прежнему получает почту и позволяет входить в аккаунт на всех устройствах.",
-    address_change_no_limit_title: "Прежний адрес остается бесплатным",
+      "Письма на этот адрес по-прежнему приходят в ваш почтовый ящик, и вы можете входить с ним на всех устройствах.",
+    address_change_no_limit_title: "Старый адрес остается вашим",
     address_change_no_limit_body:
-      "Ваш прежний адрес не учитывается в лимите псевдонимов, никто другой не сможет его занять, и удалить его нельзя.",
-    address_change_once_title: "Раз в год",
+      "Он не учитывается в лимите псевдонимов, никто другой не может его занять, и удалить его нельзя.",
+    address_change_once_title: "Одно изменение раз в 30 дней",
     address_change_once_body:
-      "После этого изменения следующее будет доступно {{date}}.",
+      "После этого изменения вы сможете сменить адрес снова {{date}}.",
     address_change_effect_alias_title: "{{email}} перестаёт быть псевдонимом",
     address_change_effect_alias_body:
       "Правила, пересылка, подписи и обратные псевдонимы, настроенные для этого псевдонима, будут удалены. Письма на этот адрес продолжат приходить, теперь как на основной адрес.",
     address_change_permanent_title: "Отменить это нельзя",
     address_change_permanent_body:
-      "Вы не сможете снова сделать {{email}} основным адресом.",
+      "{{email}} больше не сможет стать вашим основным адресом.",
     address_change_pick_title: "Выберите новый адрес",
     address_change_use_alias: "Использовать один из ваших псевдонимов",
     address_change_use_new: "Выбрать новый адрес",
     address_change_name_rule: "Используйте от 3 до 40 букв, цифр или точек. Точка не может быть в начале или конце адреса, и точки не могут повторяться.",
-    address_change_name_placeholder: "имя",
+    address_change_name_placeholder: "yourname",
+    primary_address_info: "Тариф Supernova позволяет менять адрес раз в 30 дней. Старый адрес остается вашим: он продолжает получать почту и по-прежнему подходит для входа.",
     address_change_checking: "Проверка доступности",
     address_change_available: "{{email}} доступен",
     address_change_unavailable: "{{email}} недоступен",
@@ -4845,9 +4845,9 @@ export const ru = {
     address_change_locked_plan: "Изменение адреса доступно в Supernova.",
     address_change_locked_cooldown: "Вы сможете снова изменить адрес {{date}}.",
     address_change_locked_cooldown_unknown:
-      "Вы меняли адрес в течение последнего года, поэтому пока не можете сменить его снова.",
+      "Вы меняли адрес в последние 30 дней, поэтому пока не можете сменить его снова.",
     address_change_once_unknown:
-      "После этой смены следующая будет доступна через год.",
+      "После этого изменения вы сможете сменить адрес снова через 30 дней.",
     address_change_password_wrong: "Этот пароль неверен.",
     address_change_not_eligible: "Сейчас вы не можете сменить адрес.",
     address_change_too_many_requests:

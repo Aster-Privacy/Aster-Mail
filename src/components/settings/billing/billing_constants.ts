@@ -439,6 +439,7 @@ export const FEATURE_MIN_PLAN: Record<string, string> = {
   has_dedicated_support: "supernova",
   has_early_access: "supernova",
   has_receipt_tracking: "supernova",
+  max_primary_renames: "supernova",
 };
 
 export const PREMIUM_ALIAS_DOMAINS = ["astermail.me", "astermail.net"];

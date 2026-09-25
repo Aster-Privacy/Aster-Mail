@@ -4629,28 +4629,28 @@ export const de = {
     primary_address_label: "Primäre Adresse",
     change_address: "Adresse ändern",
     address_change_title: "Adresse ändern",
-    address_change_intro_lead:
-      "Mit Supernova kannst du deine Adresse einmal pro Jahr ändern. Bevor du startest, lies, was dabei passiert.",
+    address_change_intro_lead: "Lies, was sich ändert, bevor du fortfährst.",
     address_change_keep_old_title: "Du behältst {{email}}",
     address_change_keep_old_body:
-      "Die Adresse empfängt weiterhin Mail und meldet dich auf allen Geräten an.",
-    address_change_no_limit_title: "Deine alte Adresse bleibt kostenlos",
+      "Nachrichten an diese Adresse landen weiterhin in deinem Posteingang, und du kannst dich damit weiterhin auf allen Geräten anmelden.",
+    address_change_no_limit_title: "Deine alte Adresse bleibt deine",
     address_change_no_limit_body:
-      "Deine alte Adresse zählt nicht zu deinem Alias-Limit, niemand sonst kann sie übernehmen, und du kannst sie nicht löschen.",
-    address_change_once_title: "Einmal pro Jahr",
+      "Sie zählt nicht zu deinem Alias-Limit, niemand sonst kann sie übernehmen, und sie lässt sich nicht löschen.",
+    address_change_once_title: "Eine Änderung alle 30 Tage",
     address_change_once_body:
-      "Nach dieser Änderung ist die nächste am {{date}} möglich.",
+      "Nach dieser Änderung kannst du sie am {{date}} erneut ändern.",
     address_change_effect_alias_title: "{{email}} ist dann kein Alias mehr",
     address_change_effect_alias_body:
       "Regeln, Weiterleitungen, Signaturen und Reverse-Aliase, die du für diesen Alias eingerichtet hast, werden entfernt. Nachrichten an diese Adresse kommen weiterhin an, jetzt als deine primäre Adresse.",
     address_change_permanent_title: "Du kannst das nicht rückgängig machen",
     address_change_permanent_body:
-      "Du kannst {{email}} nicht wieder zu deiner Hauptadresse machen.",
+      "{{email}} kann nicht wieder deine primäre Adresse werden.",
     address_change_pick_title: "Wähle deine neue Adresse",
     address_change_use_alias: "Einen deiner Aliasse verwenden",
     address_change_use_new: "Neue Adresse wählen",
     address_change_name_rule: "Verwende 3 bis 40 Buchstaben, Ziffern oder Punkte. Ein Punkt darf nicht am Anfang oder Ende stehen, und Punkte dürfen sich nicht wiederholen.",
-    address_change_name_placeholder: "Name",
+    address_change_name_placeholder: "deinname",
+    primary_address_info: "Mit deinem Supernova-Tarif kannst du deine Adresse alle 30 Tage einmal ändern. Deine alte Adresse bleibt deine: Sie empfängt weiterhin Nachrichten und meldet dich weiterhin an.",
     address_change_checking: "Verfügbarkeit wird geprüft",
     address_change_available: "{{email}} ist verfügbar",
     address_change_unavailable: "{{email}} ist nicht verfügbar",
@@ -4694,9 +4694,9 @@ export const de = {
     address_change_locked_cooldown:
       "Du kannst deine Adresse am {{date}} wieder ändern.",
     address_change_locked_cooldown_unknown:
-      "Du hast deine Adresse im vergangenen Jahr geändert, deshalb kannst du sie noch nicht erneut ändern.",
+      "Du hast deine Adresse in den letzten 30 Tagen geändert und kannst sie deshalb noch nicht erneut ändern.",
     address_change_once_unknown:
-      "Nach dieser Änderung ist die nächste in einem Jahr möglich.",
+      "Nach dieser Änderung kannst du sie in 30 Tagen erneut ändern.",
     address_change_password_wrong: "Dieses Passwort ist nicht korrekt.",
     address_change_not_eligible: "Du kannst deine Adresse gerade nicht ändern.",
     address_change_too_many_requests:

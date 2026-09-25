@@ -27,22 +27,26 @@ import { motion } from "framer-motion";
 import {
   CameraIcon,
   CheckCircleIcon,
+  ChevronDownIcon,
+  ClipboardIcon,
   ExclamationCircleIcon,
+  LockClosedIcon,
+  PencilSquareIcon,
   XMarkIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { Switch } from "@aster/ui";
-import { Button } from "@/components/ui/button";
 
 import { StepUpModal } from "./step_up_modal";
 
+import { Button } from "@/components/ui/button";
 import { ChangePrimaryAddressModal } from "@/components/settings/change_primary_address_modal";
 import {
   load_primary_address_eligibility,
   primary_address_eligibility_failed,
+  PRIMARY_ADDRESS_FEATURE_KEY,
   type PrimaryAddressEligibility,
 } from "@/services/api/primary_address";
-
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { ignore_error } from "@/lib/ignore_error";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -51,6 +55,12 @@ import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_should_reduce_motion } from "@/provider";
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
 import {
   Modal,
   ModalHeader,
@@ -109,7 +119,10 @@ import {
 } from "@/hooks/use_profile_picture_upload";
 import { is_onion_host } from "@/lib/onion_host";
 import { SETTINGS_ANCHORS } from "@/lib/settings_links";
-import { show_upgrade_plans } from "@/stores/upgrade_store";
+import {
+  show_plan_limit_upgrade,
+  show_upgrade_plans,
+} from "@/stores/upgrade_store";
 import { app_locale } from "@/utils/date_format";
 import { is_composing } from "@/utils/ime";
 import { MAX_DISPLAY_NAME_LENGTH } from "@/services/sanitize";
@@ -416,6 +429,10 @@ export function AccountSection() {
   }, []);
 
   const can_change_address = !!address_eligibility;
+  const address_plan_locked =
+    !!address_eligibility &&
+    !address_eligibility.eligible &&
+    address_eligibility.reason === "plan";
 
   const address_cooldown_date = (() => {
     const raw = address_eligibility?.next_change_available_at;
@@ -757,9 +774,9 @@ export function AccountSection() {
             </motion.p>
           )}
           <div
+            aria-label={t("auth.profile_color")}
             className="flex items-center gap-2.5"
             role="radiogroup"
-            aria-label={t("auth.profile_color")}
           >
             {PROFILE_COLORS.map((c) => {
               const is_selected = c === color;
@@ -767,17 +784,17 @@ export function AccountSection() {
               return (
                 <button
                   key={c}
-                  type="button"
-                  role="radio"
                   aria-checked={is_selected}
                   aria-label={c}
                   className="relative w-9 h-9 rounded-full"
+                  role="radio"
                   style={{
                     backgroundColor: c,
                     boxShadow: is_selected
                       ? `0 0 0 2px var(--bg-tertiary), 0 0 0 3.5px ${c}, 0 2px 8px ${c}50`
                       : `inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.15), 0 2px 6px ${c}30`,
                   }}
+                  type="button"
                   onClick={async () => {
                     const prev = color;
                     const revert = async () => {
@@ -826,19 +843,18 @@ export function AccountSection() {
 
       <div className="flex items-center justify-between py-4">
         <div>
-          <p className="text-sm font-medium text-txt-primary">
+          <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
             {t("settings.primary_address_label")}
+            {can_change_address && (
+              <InfoPopover
+                description={t("settings.primary_address_info")}
+                title={t("settings.primary_address_label")}
+              />
+            )}
           </p>
           {primary_identity.is_custom && account_email && (
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("settings.also_receives_at", { email: account_email })}
-            </p>
-          )}
-          {can_change_address && address_eligibility && (
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {address_eligibility.eligible
-                ? t("settings.address_change_once_title")
-                : address_lock_message}
             </p>
           )}
           {address_eligibility_failed && (
@@ -854,28 +870,61 @@ export function AccountSection() {
             </p>
           )}
         </div>
-        <div className="flex items-center gap-2">
-          {can_change_address && (
-            <Button
-              disabled={!address_eligibility?.eligible}
-              size="sm"
-              variant="outline"
-              onClick={() => set_show_address_change(true)}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="flex items-center gap-1.5 rounded-md px-2 -me-2 py-1 hover:bg-surf-hover transition-colors"
+              type="button"
             >
-              {t("settings.change_address")}
-            </Button>
-          )}
-          <div
-            className="cursor-pointer rounded-md px-2 -me-2 py-1 hover:bg-surf-hover transition-colors"
-            onClick={() =>
-              copy_primary_address(primary_identity.email || account_email)
-            }
-          >
-            <span className="text-sm font-medium text-txt-secondary truncate max-w-[16rem]">
-              {primary_identity.email || account_email}
-            </span>
-          </div>
-        </div>
+              <span className="text-sm font-medium text-txt-secondary truncate max-w-[16rem]">
+                {primary_identity.email || account_email}
+              </span>
+              <ChevronDownIcon className="w-4 h-4 shrink-0 text-txt-muted" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-[13rem]">
+            <DropdownMenuItem
+              onClick={() =>
+                copy_primary_address(primary_identity.email || account_email)
+              }
+            >
+              <ClipboardIcon className="w-4 h-4" />
+              {t("common.copy_address")}
+            </DropdownMenuItem>
+            {can_change_address && (
+              <DropdownMenuItem
+                className={address_plan_locked ? "text-txt-muted" : undefined}
+                disabled={
+                  !address_eligibility?.eligible && !address_plan_locked
+                }
+                onClick={() => {
+                  if (address_plan_locked) {
+                    show_plan_limit_upgrade({
+                      feature: PRIMARY_ADDRESS_FEATURE_KEY,
+                      plan_code: "supernova",
+                    });
+
+                    return;
+                  }
+
+                  set_show_address_change(true);
+                }}
+              >
+                {address_plan_locked ? (
+                  <LockClosedIcon className="w-4 h-4" />
+                ) : (
+                  <PencilSquareIcon className="w-4 h-4" />
+                )}
+                {t("settings.change_address")}
+              </DropdownMenuItem>
+            )}
+            {can_change_address && !address_eligibility?.eligible && (
+              <p className="px-2 py-1.5 text-xs text-txt-muted">
+                {address_lock_message}
+              </p>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {address_eligibility && can_change_address && (

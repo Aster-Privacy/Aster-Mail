@@ -4640,29 +4640,29 @@ export const ko = {
     primary_address_label: "기본 주소",
     change_address: "주소 변경",
     address_change_title: "주소 변경하기",
-    address_change_intro_lead:
-      "Supernova에서는 1년에 한 번 주소를 변경할 수 있습니다. 시작하기 전에 어떤 일이 일어나는지 읽어 보세요.",
+    address_change_intro_lead: "계속하기 전에 무엇이 바뀔는지 읽어 보세요.",
     address_change_keep_old_title: "{{email}}은 계속 사용할 수 있습니다",
     address_change_keep_old_body:
-      "메일을 계속 받고, 모든 기기에서 로그인에도 계속 사용할 수 있습니다.",
-    address_change_no_limit_title: "이전 주소는 무료로 유지됩니다",
+      "그 주소로 보낸 메일은 계속 받은편지함에 도착하고, 모든 기기에서 그대로 로그인할 수 있습니다.",
+    address_change_no_limit_title: "이전 주소는 계속 내 것입니다",
     address_change_no_limit_body:
-      "이전 주소는 별칭 한도에 포함되지 않고, 다른 사람이 가져갈 수 없으며, 삭제할 수도 없습니다.",
-    address_change_once_title: "1년에 한 번",
+      "별칭 한도에 포함되지 않고, 다른 사람이 가져갈 수 없으며, 삭제할 수도 없습니다.",
+    address_change_once_title: "30일에 한 번 변경",
     address_change_once_body:
-      "이번 변경 후 다음 변경은 {{date}}부터 가능합니다.",
+      "이번 변경 후에는 {{date}}에 다시 변경할 수 있습니다.",
     address_change_effect_alias_title:
       "{{email}}은(는) 더 이상 별칭이 아닙니다",
     address_change_effect_alias_body:
       "이 별칭에 설정한 규칙, 전달, 서명, 역방향 별칭이 모두 삭제됩니다. 이 주소로 보낸 메일은 이제 기본 주소로 계속 도착합니다.",
     address_change_permanent_title: "이 작업은 되돌릴 수 없습니다",
     address_change_permanent_body:
-      "{{email}}을 다시 기본 주소로 설정할 수 없습니다.",
+      "{{email}}은 다시 기본 주소가 될 수 없습니다.",
     address_change_pick_title: "새 주소 선택",
     address_change_use_alias: "별칭 중에서 선택",
     address_change_use_new: "새 주소 직접 입력",
     address_change_name_rule: "3자에서 40자의 영문, 숫자, 점을 사용하세요. 점은 맨 앞이나 맨 뒤에 올 수 없고, 점을 연속해서 쓸 수도 없습니다.",
-    address_change_name_placeholder: "이름",
+    address_change_name_placeholder: "yourname",
+    primary_address_info: "Supernova 요금제에서는 30일에 한 번 주소를 변경할 수 있습니다. 이전 주소는 계속 내 것입니다. 메일을 계속 받고 로그인에도 쓸 수 있습니다.",
     address_change_checking: "사용 가능 여부 확인 중",
     address_change_available: "{{email}}을 사용할 수 있습니다",
     address_change_unavailable: "{{email}}은 사용할 수 없습니다",
@@ -4702,9 +4702,9 @@ export const ko = {
     address_change_locked_cooldown:
       "{{date}}에 주소를 다시 변경할 수 있습니다.",
     address_change_locked_cooldown_unknown:
-      "지난 1년 안에 주소를 변경해서 아직 다시 변경할 수 없습니다.",
+      "지난 30일 안에 주소를 변경해서 아직 다시 변경할 수 없습니다.",
     address_change_once_unknown:
-      "이번 변경 후에는 1년 뒤에 다시 변경할 수 있습니다.",
+      "이번 변경 후에는 30일 뒤에 다시 변경할 수 있습니다.",
     address_change_password_wrong: "비밀번호가 올바르지 않습니다.",
     address_change_not_eligible: "지금은 주소를 변경할 수 없습니다.",
     address_change_too_many_requests: "주소 변경을 너무 많이 시작했습니다. 1시간 후에 다시 시도하세요.",

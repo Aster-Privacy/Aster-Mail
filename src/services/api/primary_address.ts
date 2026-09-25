@@ -21,17 +21,19 @@
 import { api_client } from "@/services/api/client";
 import { hash_email } from "@/services/crypto/key_manager";
 import {
-  compute_alias_hash,
   compute_routing_hash,
   encrypt_alias_field,
 } from "@/services/api/aliases/crypto";
+
+export const PRIMARY_ADDRESS_FEATURE_KEY = "max_primary_renames";
 
 export interface PrimaryAddressEligibility {
   eligible: boolean;
   reason: string | null;
   current_address: string;
   next_change_available_at: string | null;
-  renames_allowed_per_year: number;
+  renames_allowed: number;
+  retained_addresses: string[];
 }
 
 export interface StartPrimaryAddressChangeResult {
@@ -66,6 +68,7 @@ export function primary_address_eligibility_failed(response: {
 
 export interface PrimaryAddressAvailability {
   available: boolean;
+  consumes_alias: boolean;
 }
 
 export async function check_primary_address_availability(
@@ -111,13 +114,13 @@ export async function confirm_primary_address_change(params: {
   const retained_local_part = retained.slice(0, at);
   const retained_domain = retained.slice(at + 1);
 
-  const [new_user_hash, alias_hash, routing_hash, encrypted_local_part] =
-    await Promise.all([
+  const [new_user_hash, routing_hash, encrypted_local_part] = await Promise.all(
+    [
       hash_email(params.new_address),
-      compute_alias_hash(retained_local_part, retained_domain),
       compute_routing_hash(retained_local_part, retained_domain),
       encrypt_alias_field(retained_local_part),
-    ]);
+    ],
+  );
 
   return api_client.post<ConfirmPrimaryAddressChangeResult>(
     "/core/v1/account/primary-address/confirm",
@@ -126,7 +129,6 @@ export async function confirm_primary_address_change(params: {
       new_user_hash,
       retained_encrypted_local_part: encrypted_local_part.encrypted,
       retained_local_part_nonce: encrypted_local_part.nonce,
-      retained_alias_address_hash: alias_hash,
       retained_routing_address_hash: routing_hash,
     },
   );
