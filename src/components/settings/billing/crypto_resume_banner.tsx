@@ -21,6 +21,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import { Island } from "@aster/ui";
 
 import {
   CRYPTO_INVOICE_CHANGED_EVENT,
@@ -266,9 +267,7 @@ export function CryptoResumeBanner({
   const is_pending = invoice.status === "pending";
 
   return (
-    <div
-      className={`rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5 ${class_name}`}
-    >
+    <Island className={`px-4 py-3.5 ${class_name}`}>
       <div className="flex items-center gap-3">
         <CoinIcon chain={invoice.chain} currency={invoice.currency} size={32} />
         <div className="flex-1 min-w-0">
@@ -346,6 +345,6 @@ export function CryptoResumeBanner({
         show={confirm_open}
         title={t("settings.crypto_native_cancel_confirm_title")}
       />
-    </div>
+    </Island>
   );
 }

@@ -51,7 +51,7 @@ export function BillingTermSelector<T extends string>({
       )}
 
       <div
-        className="rounded-[18px] border border-edge-secondary bg-surf-secondary p-1.5"
+        className="aster_island rounded-[18px] p-1.5"
         role="radiogroup"
       >
         <div

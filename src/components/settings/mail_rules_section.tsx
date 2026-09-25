@@ -251,7 +251,7 @@ export function MailRulesSection() {
             {[0, 1, 2].map((i) => (
               <div
                 key={i}
-                className="h-20 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse"
+                className="h-20 rounded-2xl bg-surf-tertiary animate-pulse"
               />
             ))}
           </div>
@@ -508,7 +508,7 @@ function RuleCard({
                   />
                 </React.Fragment>
               ))}
-            <span className="text-neutral-400 text-[12px] px-0.5">→</span>
+            <span className="text-txt-muted text-[12px] px-0.5">→</span>
             {rule.actions.map((a, i) => (
               <ActionChip
                 key={`a-${i}`}
@@ -523,7 +523,7 @@ function RuleCard({
         <div className="flex items-center gap-1 flex-shrink-0">
           <span
             aria-label={t("mail_rules.drag_handle")}
-            className="text-neutral-400 cursor-grab transition-opacity opacity-0 group-hover:opacity-100"
+            className="text-txt-muted cursor-grab transition-opacity opacity-0 group-hover:opacity-100"
             onMouseDown={() => set_draggable_on(true)}
             onMouseUp={() => set_draggable_on(false)}
           >

@@ -20,7 +20,7 @@
 //
 import { useState, useEffect, useCallback, useRef } from "react";
 import { InformationCircleIcon } from "@heroicons/react/24/outline";
-import { Switch, Button } from "@aster/ui";
+import { Switch, Button, Island } from "@aster/ui";
 
 import { ConsentGateDialog } from "./filters";
 
@@ -178,13 +178,13 @@ export function RetentionContent({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start gap-2 rounded-lg bg-surf-secondary px-3 py-2.5 border border-edge-secondary">
+      <Island className="flex items-start gap-2 px-4 py-3">
         <InformationCircleIcon className="w-4 h-4 text-txt-muted flex-shrink-0 mt-0.5" />
         <p className="text-xs text-txt-muted">
           {t("settings.fam_org_ret_intro")}
         </p>
-      </div>
-      <div className="divide-y divide-edge-secondary">
+      </Island>
+      <Island className="overflow-hidden">
         {[
           {
             key: "trash_retention_days" as const,
@@ -212,7 +212,7 @@ export function RetentionContent({
           },
         ].map(({ key, label, hint, info }) => {
           return (
-            <div key={key} className="flex items-center justify-between py-4">
+            <div key={key} className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
               <div className="flex-1 pe-4">
                 <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
                   {label}
@@ -256,7 +256,7 @@ export function RetentionContent({
             </div>
           );
         })}
-        <div className="flex items-center justify-between py-4">
+        <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
           <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
               {t("settings.fam_org_ret_enforce")}
@@ -295,15 +295,15 @@ export function RetentionContent({
             }}
           />
         </div>
-      </div>
+      </Island>
       {(() => {
         if (consent_sent_payload) {
           return (
-            <div className="flex items-center justify-between rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700 px-3 py-2.5">
+            <Island className="flex flex-wrap items-center justify-between gap-2 px-4 py-3" tone="warning">
               <p className="text-xs text-amber-700 dark:text-amber-300 flex-1 me-3">
                 {t("settings.fam_consent_sent_toast")}
               </p>
-            </div>
+            </Island>
           );
         }
 
@@ -314,7 +314,7 @@ export function RetentionContent({
           JSON.stringify(policy) !== JSON.stringify(server_policy);
 
         return has_enforce_draft ? (
-          <div className="flex items-center justify-between rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-700 px-3 py-2.5">
+          <Island className="flex flex-wrap items-center justify-between gap-2 px-4 py-3" tone="warning">
             <p className="text-xs text-amber-700 dark:text-amber-300 flex-1 me-3">
               {t("settings.fam_ret_unsaved_consent")}
             </p>
@@ -336,7 +336,7 @@ export function RetentionContent({
                 {t("settings.fam_ret_request_consent")}
               </Button>
             </div>
-          </div>
+          </Island>
         ) : null;
       })()}
       {saving && (

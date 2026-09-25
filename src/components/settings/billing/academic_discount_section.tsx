@@ -20,7 +20,7 @@
 //
 import { useEffect, useRef, useState } from "react";
 import { CheckIcon, ClipboardIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Island, IslandSection } from "@aster/ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import {
@@ -36,7 +36,6 @@ import {
   type TurnstileWidgetRef,
 } from "@/components/auth/turnstile_widget";
 import { is_composing } from "@/utils/ime";
-import { BillingSectionLabel } from "@/components/settings/billing/billing_layout";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -168,16 +167,13 @@ export function AcademicDiscountSection({
   const status = academic_status?.status ?? "none";
 
   return (
-    <section>
-      <BillingSectionLabel>
-        {t("settings.academic_discount_title")}
-      </BillingSectionLabel>
-      <p className="-mt-1 mb-3 text-xs text-txt-muted">
-        {t("settings.academic_discount_description")}
-      </p>
-
+    <IslandSection
+      bare
+      description={t("settings.academic_discount_description")}
+      title={t("settings.academic_discount_title")}
+    >
       {status === "verified" && academic_status?.promo_code && (
-        <div className="rounded-xl border border-edge-secondary px-4 py-4 sm:px-5">
+        <Island padding="md">
           <p className="text-xs text-txt-muted">
             {t("settings.academic_code_ready_title")}
           </p>
@@ -203,11 +199,11 @@ export function AcademicDiscountSection({
           <p className="text-xs text-txt-muted mt-1">
             {t("settings.academic_terms")}
           </p>
-        </div>
+        </Island>
       )}
 
       {status === "pending" && (
-        <div className="rounded-xl border border-edge-secondary px-4 py-4 sm:px-5">
+        <Island padding="md">
           <p className="text-sm text-txt-primary">
             {t("settings.academic_pending_title")}
           </p>
@@ -238,11 +234,11 @@ export function AcademicDiscountSection({
                 })
               : t("settings.academic_resend")}
           </button>
-        </div>
+        </Island>
       )}
 
       {status === "none" && (
-        <div className="rounded-xl border border-edge-secondary px-4 py-4 sm:px-5">
+        <Island padding="md">
           <p className="text-xs text-txt-muted mb-3">
             {t("settings.academic_intro")}
           </p>
@@ -283,8 +279,8 @@ export function AcademicDiscountSection({
           <p className="text-xs text-txt-muted mt-3">
             {t("settings.academic_journalist_hint")}
           </p>
-        </div>
+        </Island>
       )}
-    </section>
+    </IslandSection>
   );
 }

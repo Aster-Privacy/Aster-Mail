@@ -33,6 +33,7 @@ import {
   TagIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import { IslandSection, IslandSections, PillButton } from "@aster/ui";
 
 import {
   AlertDialog,
@@ -495,13 +496,13 @@ export function StorageSection() {
   }));
 
   return (
-    <div className="space-y-8">
+    <IslandSections>
       {STORAGE_PROMO_ENABLED &&
         !on_onion &&
         promo?.eligible &&
         available_addons.length > 0 && (
-          <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5">
-            <div className="flex items-center gap-3">
+          <IslandSection padding="md" tone="accent">
+            <div className="flex flex-wrap items-center gap-3">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <TagIcon className="h-5 w-5 flex-shrink-0 text-brand" />
@@ -524,9 +525,11 @@ export function StorageSection() {
                   {t("settings.storage_promo_note")}
                 </p>
               </div>
-              <button
-                className="flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)]"
+              <PillButton
+                className="flex-shrink-0"
+                size="sm"
                 type="button"
+                variant="filled"
                 onClick={() => {
                   document
                     .getElementById("additional_storage_section")
@@ -534,12 +537,12 @@ export function StorageSection() {
                 }}
               >
                 {t("settings.storage_promo_cta")}
-              </button>
+              </PillButton>
             </div>
-          </div>
+          </IslandSection>
         )}
 
-      <section>
+      <IslandSection padding="lg">
         <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
           <div className="min-w-0">
             <p className="flex items-baseline gap-2.5">
@@ -584,10 +587,8 @@ export function StorageSection() {
 
         {overview?.is_over_limit && (
           <div
-            className="mt-6 flex items-start gap-2 rounded-lg border p-3"
+            className="mt-6 flex items-start gap-2 rounded-xl p-3"
             style={{
-              borderColor:
-                "color-mix(in srgb, var(--color-danger) 40%, transparent)",
               backgroundColor:
                 "color-mix(in srgb, var(--color-danger) 10%, transparent)",
             }}
@@ -606,16 +607,13 @@ export function StorageSection() {
             </div>
           </div>
         )}
-      </section>
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <ChartPieIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.storage_breakdown_title")}
-          </h3>
-        </div>
-
+      <IslandSection
+        icon={<ChartPieIcon />}
+        padding="lg"
+        title={t("settings.storage_breakdown_title")}
+      >
         {total_breakdown_bytes === 0 ? (
           <p className="py-6 text-center text-sm text-txt-muted">
             {t("settings.storage_breakdown_empty")}
@@ -680,7 +678,7 @@ export function StorageSection() {
               </div>
             </div>
 
-            <div className="w-full min-w-0 flex-1 divide-y divide-edge-secondary">
+            <div className="w-full min-w-0 flex-1">
               {breakdown_rows.map((entry) => {
                 const style = style_of(entry.name);
                 const row_share = share_of(
@@ -763,16 +761,13 @@ export function StorageSection() {
             </div>
           </div>
         )}
-      </div>
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <CircleStackIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.storage_capacity_title")}
-          </h3>
-        </div>
-
+      <IslandSection
+        icon={<CircleStackIcon />}
+        padding="lg"
+        title={t("settings.storage_capacity_title")}
+      >
         <div>
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
@@ -822,7 +817,7 @@ export function StorageSection() {
             ))}
           </div>
         </div>
-      </div>
+      </IslandSection>
 
       <StorageFormatPicker
         on_change={handle_storage_format_change}
@@ -1004,6 +999,6 @@ export function StorageSection() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </IslandSections>
   );
 }

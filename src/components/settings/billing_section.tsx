@@ -21,6 +21,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { loadStripe } from "@stripe/stripe-js/pure";
 import { CreditCardIcon } from "@heroicons/react/24/outline";
+import { IslandSections } from "@aster/ui";
 
 import { checkout_error_text } from "./billing/checkout_error_text";
 
@@ -1074,7 +1075,7 @@ export function BillingSection() {
   }
 
   return (
-    <div className="space-y-8">
+    <IslandSections>
       <CurrentPlanCard
         current_billing_interval={current_billing_interval}
         grace_days_remaining={grace_days_remaining}
@@ -1099,7 +1100,7 @@ export function BillingSection() {
       />
 
       {show_plans && (
-        <div className="space-y-6">
+        <IslandSections>
           <AvailablePlansSection
             billing_period={billing_period}
             current_billing_interval={current_billing_interval}
@@ -1124,7 +1125,7 @@ export function BillingSection() {
           />
 
           <PlanComparisonSection current_plan_code={subscription?.plan.code} />
-        </div>
+        </IslandSections>
       )}
 
       {stripe_load_failed && (
@@ -1140,7 +1141,7 @@ export function BillingSection() {
       <CreditsSection
         credit_balance={credit_balance}
         payment_cell={
-          <div className="flex items-center gap-3 px-4 py-4 sm:px-5">
+          <div className="flex items-center gap-3 px-4 py-3.5">
             <BillingIconBox icon={CreditCardIcon} />
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-txt-primary">
@@ -1188,7 +1189,7 @@ export function BillingSection() {
         storage_used_bytes={storage_used_bytes}
       />
 
-      <div className="space-y-3 empty:hidden">
+      <div className="flex flex-col gap-2 empty:hidden">
         <CurrentPlanNotices
           grace_days_remaining={grace_days_remaining}
           has_payment_failed={has_payment_failed}
@@ -1494,6 +1495,6 @@ export function BillingSection() {
         target_billing_interval={target_billing_interval}
         yearly_savings={yearly_savings}
       />
-    </div>
+    </IslandSections>
   );
 }

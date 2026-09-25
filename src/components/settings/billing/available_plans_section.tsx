@@ -22,6 +22,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useState } from "react";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
+import { Island, IslandSection } from "@aster/ui";
 
 import { checkout_error_text } from "./checkout_error_text";
 
@@ -251,14 +252,13 @@ export function AvailablePlansSection({
     )?.name ?? null;
 
   return (
-    <div className="pt-4" id="available-plans">
-      <div className="mb-4">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-          <CrownIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
-          {t("settings.available_plans")}
-        </h3>
-      </div>
-
+    <IslandSection
+      bare
+      icon={<CrownIcon className="flex-shrink-0" />}
+      id="available-plans"
+      title={t("settings.available_plans")}
+    >
+      <div>
       <div className="flex flex-col items-center gap-4 mb-4">
         <Tabs
           on_change={set_plan_type}
@@ -298,7 +298,7 @@ export function AvailablePlansSection({
       </div>
 
       {recommendation.is_paid && current_plan_name && (
-        <div className="mb-5 rounded-xl border border-edge-secondary bg-surf-tertiary px-4 py-3">
+        <Island className="mb-5 px-4 py-3">
           <div className="flex items-start gap-3">
             <CrownIcon className="w-5 h-5 mt-0.5 flex-shrink-0 text-txt-primary" />
             <div className="min-w-0">
@@ -333,11 +333,11 @@ export function AvailablePlansSection({
               </button>
             </div>
           </div>
-        </div>
+        </Island>
       )}
 
       {plan_type === "family" && (
-        <div className="grid gap-4 pt-3 grid-cols-1 sm:grid-cols-2 items-stretch">
+        <div className="grid gap-4 pt-3 grid-cols-1 sm:grid-cols-2 sm:gap-2 items-stretch">
           {FAMILY_PLAN_TIERS.map((tier) => {
             const is_same_plan = subscription?.plan.code === tier.id;
             const is_current =
@@ -501,7 +501,7 @@ export function AvailablePlansSection({
       )}
 
       {plan_type === "individual" && (
-        <div className="grid gap-4 pt-3 grid-cols-1 lg:grid-cols-3 items-stretch">
+        <div className="grid gap-4 pt-3 grid-cols-1 lg:grid-cols-3 lg:gap-2 items-stretch">
           {PLAN_TIERS.map((tier) => {
             const tier_index = PLAN_TIERS.findIndex((p) => p.id === tier.id);
             const current_plan_code = subscription?.plan.code;
@@ -620,6 +620,7 @@ export function AvailablePlansSection({
           {t("settings.money_back_guarantee")} · {t("settings.cancel_anytime")}
         </span>
       </div>
-    </div>
+      </div>
+    </IslandSection>
   );
 }

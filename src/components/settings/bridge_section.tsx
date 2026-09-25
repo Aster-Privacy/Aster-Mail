@@ -32,7 +32,13 @@ import {
   QuestionMarkCircleIcon,
   LinkSlashIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandRow,
+  IslandSection,
+  IslandSections,
+} from "@aster/ui";
 
 import {
   DropdownMenu,
@@ -468,7 +474,7 @@ function BridgeUpgradeCard({ on_upgrade }: BridgeUpgradeCardProps) {
   const { t } = use_i18n();
 
   return (
-    <div className="rounded-2xl border border-edge-secondary bg-surf-primary p-5 sm:p-6">
+    <Island padding="lg">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
           <h3 className="text-base font-semibold text-txt-primary">
@@ -498,7 +504,7 @@ function BridgeUpgradeCard({ on_upgrade }: BridgeUpgradeCardProps) {
           </li>
         ))}
       </ul>
-    </div>
+    </Island>
   );
 }
 
@@ -512,7 +518,7 @@ function PlatformRow({ card, is_locked, is_primary }: PlatformRowProps) {
   const { t } = use_i18n();
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-edge-secondary py-4 last:border-b-0">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-4">
       <span className="flex w-6 flex-shrink-0 justify-center text-txt-secondary">
         {card.icon}
       </span>
@@ -559,7 +565,7 @@ function BridgeCliCard({ is_locked }: BridgeCliCardProps) {
     CLI_VARIANTS.find((item) => item.id === active_id) ?? CLI_VARIANTS[0];
 
   return (
-    <div className="border-b border-edge-secondary py-4 last:border-b-0">
+    <div className="px-4 py-4">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         <span className="flex w-6 flex-shrink-0 justify-center text-txt-secondary">
           {terminal_icon}
@@ -722,7 +728,7 @@ function BridgeSupportLinks() {
       {SUPPORT_LINKS.map(({ label_key, desc_key, href, icon }) => (
         <a
           key={href}
-          className="group flex items-start gap-3 rounded-xl border border-edge-secondary p-4 transition-colors hover:border-edge-primary hover:bg-surf-hover"
+          className="aster_island aster_island_interactive aster_island_pad_md group flex items-start gap-3"
           href={href}
           rel="noopener noreferrer"
           target="_blank"
@@ -869,7 +875,7 @@ export function BridgeSection() {
   const confirm_device = devices.find((d) => d.id === confirm_revoke_id);
 
   return (
-    <div className="space-y-6">
+    <IslandSections>
       {plan_load_failed && !limits && (
         <LoadFailedNotice on_retry={() => void refresh_plan_limits(true)} />
       )}
@@ -883,61 +889,52 @@ export function BridgeSection() {
         />
       )}
 
-      <div>
-        <div className="mb-1 flex items-center gap-1.5">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <ArrowDownTrayIcon className="w-[18px] h-[18px] flex-shrink-0 text-txt-primary" />
+      <IslandSection
+        description={t("settings.desktop_bridge_description")}
+        icon={<ArrowDownTrayIcon />}
+        title={
+          <span className="inline-flex items-center gap-1.5">
             {t("settings.bridge_app_name")}
-          </h3>
-          <InfoPopover
-            description={t("settings.bridge_popover_description")}
-            learn_more_label={t("settings.bridge_info_link")}
-            learn_more_url="https://astermail.org/bridge"
-            title={t("settings.bridge_app_name")}
-          />
-        </div>
-        <p className="text-sm text-txt-muted">
-          {t("settings.desktop_bridge_description")}
-        </p>
-
-        <div className="mt-2">
-          {ordered_cards.map((card) => (
-            <PlatformRow
-              key={card.id}
-              card={card}
-              is_locked={is_locked}
-              is_primary={card.id === primary_id}
+            <InfoPopover
+              description={t("settings.bridge_popover_description")}
+              learn_more_label={t("settings.bridge_info_link")}
+              learn_more_url="https://astermail.org/bridge"
+              title={t("settings.bridge_app_name")}
             />
-          ))}
-          <BridgeCliCard is_locked={is_locked} />
-        </div>
-      </div>
+          </span>
+        }
+      >
+        {ordered_cards.map((card) => (
+          <PlatformRow
+            key={card.id}
+            card={card}
+            is_locked={is_locked}
+            is_primary={card.id === primary_id}
+          />
+        ))}
+        <BridgeCliCard is_locked={is_locked} />
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <div className="flex items-center justify-between">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-              <LinkSlashIcon className="w-[18px] h-[18px] flex-shrink-0 text-txt-primary" />
-              {t("settings.bridge_installations")}
-            </h3>
-            {devices.length > 1 && (
-              <Button
-                disabled={revoking_all || revoking_id !== null}
-                variant="destructive"
-                onClick={() => set_confirm_revoke_all(true)}
-              >
-                {t("settings.trusted_devices_revoke_all")}
-                {revoking_all && <ButtonSpinner />}
-              </Button>
-            )}
-          </div>
-          <p className="mt-2 text-sm text-txt-muted">
-            {t("settings.bridge_installations_description")}
-          </p>
-        </div>
-
+      <IslandSection
+        bare
+        description={t("settings.bridge_installations_description")}
+        icon={<LinkSlashIcon />}
+        title={t("settings.bridge_installations")}
+        trailing={
+          devices.length > 1 ? (
+            <Button
+              disabled={revoking_all || revoking_id !== null}
+              variant="destructive"
+              onClick={() => set_confirm_revoke_all(true)}
+            >
+              {t("settings.trusted_devices_revoke_all")}
+              {revoking_all && <ButtonSpinner />}
+            </Button>
+          ) : undefined
+        }
+      >
         {devices_loading ? (
-          <div className="space-y-3">
+          <Island className="space-y-3" padding="md">
             {[1, 2].map((i) => (
               <div key={i} className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
@@ -950,54 +947,50 @@ export function BridgeSection() {
                 <Skeleton className="h-8 w-20 rounded-lg" />
               </div>
             ))}
-          </div>
+          </Island>
         ) : devices_load_failed ? (
-          <div className="py-6">
+          <Island padding="lg">
             <LoadFailedNotice on_retry={load_devices} />
-          </div>
+          </Island>
         ) : devices.length === 0 ? (
-          <div className="rounded-2xl border border-edge-secondary px-6 py-8 text-center">
+          <Island className="text-center" padding="lg">
             <ComputerDesktopIcon className="mx-auto mb-2 w-8 h-8 text-txt-muted" />
             <p className="text-sm text-txt-muted">
               {t("settings.bridge_installations_empty")}
             </p>
-          </div>
+          </Island>
         ) : (
-          <div className="space-y-1">
+          <Island>
             {devices.map((device) => (
-              <div
+              <IslandRow
                 key={device.id}
-                className="flex items-center justify-between border-b border-edge-secondary py-3 last:border-b-0"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <ComputerDesktopIcon className="w-5 h-5 flex-shrink-0 text-txt-muted" />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-txt-primary">
-                      {device.name}
-                    </p>
-                    <p className="mt-0.5 text-xs text-txt-muted">
-                      {t("settings.trusted_devices_created")}{" "}
-                      {format_date_short(device.created_at)}
-                      {" · "}
-                      {t("settings.trusted_devices_last_seen")}{" "}
-                      {format_last_seen(t, device.last_seen_at)}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  className="ms-3 flex-shrink-0"
-                  disabled={revoking_id === device.id || revoking_all}
-                  variant="destructive"
-                  onClick={() => set_confirm_revoke_id(device.id)}
-                >
-                  {t("settings.trusted_devices_revoke")}
-                  {revoking_id === device.id && <ButtonSpinner />}
-                </Button>
-              </div>
+                description={
+                  <>
+                    {t("settings.trusted_devices_created")}{" "}
+                    {format_date_short(device.created_at)}
+                    {" · "}
+                    {t("settings.trusted_devices_last_seen")}{" "}
+                    {format_last_seen(t, device.last_seen_at)}
+                  </>
+                }
+                icon={<ComputerDesktopIcon />}
+                label={<span className="block truncate">{device.name}</span>}
+                trailing={
+                  <Button
+                    className="flex-shrink-0"
+                    disabled={revoking_id === device.id || revoking_all}
+                    variant="destructive"
+                    onClick={() => set_confirm_revoke_id(device.id)}
+                  >
+                    {t("settings.trusted_devices_revoke")}
+                    {revoking_id === device.id && <ButtonSpinner />}
+                  </Button>
+                }
+              />
             ))}
-          </div>
+          </Island>
         )}
-      </div>
+      </IslandSection>
 
       <ConfirmationModal
         cancel_text={t("common.cancel")}
@@ -1026,18 +1019,14 @@ export function BridgeSection() {
 
       {!is_locked && <SmtpTokensSection />}
 
-      <div>
-        <div className="mb-3">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <QuestionMarkCircleIcon className="w-[18px] h-[18px] flex-shrink-0 text-txt-primary" />
-            {t("settings.bridge_support_title")}
-          </h3>
-          <p className="mt-1 text-sm text-txt-muted">
-            {t("settings.bridge_support_description")}
-          </p>
-        </div>
+      <IslandSection
+        bare
+        description={t("settings.bridge_support_description")}
+        icon={<QuestionMarkCircleIcon />}
+        title={t("settings.bridge_support_title")}
+      >
         <BridgeSupportLinks />
-      </div>
-    </div>
+      </IslandSection>
+    </IslandSections>
   );
 }

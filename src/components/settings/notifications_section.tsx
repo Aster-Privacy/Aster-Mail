@@ -26,7 +26,15 @@ import {
   InformationCircleIcon,
   MoonIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Switch, Tooltip } from "@aster/ui";
+import {
+  Button,
+  IslandRow,
+  IslandSection,
+  IslandSections,
+  SettingControlRow,
+  SettingToggleRow,
+  Tooltip,
+} from "@aster/ui";
 
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
 
@@ -179,11 +187,13 @@ function ToggleSetting({
   info,
 }: ToggleSettingProps) {
   return (
-    <div className="flex items-center justify-between py-3">
-      <div className="flex-1 pe-4">
-        <div className="flex items-center gap-1.5">
-          <p className="text-sm font-medium text-txt-primary">{title}</p>
-          {info && (
+    <IslandRow
+      description={description}
+      disabled={disabled}
+      label={
+        info ? (
+          <span className="inline-flex items-center gap-1.5">
+            {title}
             <Tooltip tip={info}>
               <button
                 aria-label={info}
@@ -193,21 +203,20 @@ function ToggleSetting({
                 <InformationCircleIcon className="h-4 w-4" />
               </button>
             </Tooltip>
-          )}
-        </div>
-        <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
-      </div>
-      <div className="flex items-center gap-2 flex-shrink-0">
-        {action}
-        <Switch
-          aria-label={title}
-          checked={enabled}
-          disabled={disabled}
-          size="lg"
-          onCheckedChange={on_toggle}
-        />
-      </div>
-    </div>
+          </span>
+        ) : (
+          title
+        )
+      }
+      toggle={{
+        checked: enabled,
+        on_change: () => on_toggle(),
+        size: "lg",
+        aria_label: title,
+        disabled,
+      }}
+      trailing={action}
+    />
   );
 }
 
@@ -256,19 +265,14 @@ function MutedCategoriesSetting() {
   };
 
   return (
-    <div className="pt-3">
-      <div className="mb-4">
-        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-          <BellSlashIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-          {t("settings.muted_categories")}
-        </h3>
-        <p className="text-sm mt-2 text-txt-muted">
-          {t("settings.muted_categories_description")}
-        </p>
-      </div>
-
+    <IslandSection
+      description={t("settings.muted_categories_description")}
+      icon={<BellSlashIcon />}
+      padding={rows.length === 0 ? "lg" : "none"}
+      title={t("settings.muted_categories")}
+    >
       {rows.length === 0 ? (
-        <p className="text-sm py-3 text-txt-muted">
+        <p className="text-sm text-center text-txt-muted">
           {t("settings.muted_categories_empty")}
         </p>
       ) : (
@@ -277,27 +281,17 @@ function MutedCategoriesSetting() {
           const is_muted = muted_ids.has(row.id);
 
           return (
-            <div
+            <SettingToggleRow
               key={row.id}
-              className="flex items-center justify-between py-3"
-            >
-              <div className="flex-1 pe-4 flex items-center gap-3">
-                <Icon className="w-[18px] h-[18px] text-txt-muted flex-shrink-0" />
-                <p className="text-sm font-medium text-txt-primary">
-                  {row.label}
-                </p>
-              </div>
-              <Switch
-                aria-label={row.label}
-                checked={is_muted}
-                size="lg"
-                onCheckedChange={() => toggle_muted(row.id, is_muted)}
-              />
-            </div>
+              checked={is_muted}
+              icon={<Icon />}
+              label={row.label}
+              on_change={() => toggle_muted(row.id, is_muted)}
+            />
           );
         })
       )}
-    </div>
+    </IslandSection>
   );
 }
 
@@ -607,17 +601,10 @@ export function NotificationsSection() {
         : t("settings.show_desktop_notifications");
 
   return (
-    <div className="space-y-4">
+    <IslandSections>
       <SettingsSaveIndicatorInline />
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <BellIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.notifications")}
-          </h3>
-        </div>
-
+      <IslandSection icon={<BellIcon />} title={t("settings.notifications")}>
         <ToggleSetting
           action={
             is_tauri &&
@@ -660,113 +647,99 @@ export function NotificationsSection() {
             title={t("settings.push")}
           />
         )}
-        <div className="flex items-center justify-between py-3">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.toast_position")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.toast_position_description")}
-            </p>
-          </div>
-          <Select
-            value={preferences.toast_position}
-            onValueChange={(v) =>
-              update_preference(
-                "toast_position",
-                v as
-                  | "top"
-                  | "bottom"
-                  | "top-right"
-                  | "bottom-right"
-                  | "top-left"
-                  | "bottom-left",
-                true,
-              )
-            }
-          >
-            <SelectTrigger className="w-[160px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="bottom">
-                {t("settings.toast_position_middle")}
-              </SelectItem>
-              <SelectItem value="top">
-                {t("settings.toast_position_top")}
-              </SelectItem>
-              <SelectItem value="top-right">
-                {t("settings.toast_position_top_right")}
-              </SelectItem>
-              <SelectItem value="bottom-right">
-                {t("settings.toast_position_bottom_right")}
-              </SelectItem>
-              <SelectItem value="top-left">
-                {t("settings.toast_position_top_left")}
-              </SelectItem>
-              <SelectItem value="bottom-left">
-                {t("settings.toast_position_bottom_left")}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center justify-between py-3">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.toast_duration")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.toast_duration_description")}
-            </p>
-          </div>
-          <Select
-            value={String(preferences.toast_duration_ms)}
-            onValueChange={(v) =>
-              update_preference("toast_duration_ms", Number(v), true)
-            }
-          >
-            <SelectTrigger className="w-[160px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="2000">
-                {t("settings.toast_duration_default")}
-              </SelectItem>
-              <SelectItem value="5000">
-                {t("settings.toast_duration_long")}
-              </SelectItem>
-              <SelectItem value="10000">
-                {t("settings.toast_duration_longer")}
-              </SelectItem>
-              <SelectItem value="20000">
-                {t("settings.toast_duration_longest")}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex items-center justify-between py-3">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary">
+        <SettingControlRow
+          control={
+            <Select
+              value={preferences.toast_position}
+              onValueChange={(v) =>
+                update_preference(
+                  "toast_position",
+                  v as
+                    | "top"
+                    | "bottom"
+                    | "top-right"
+                    | "bottom-right"
+                    | "top-left"
+                    | "bottom-left",
+                  true,
+                )
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="bottom">
+                  {t("settings.toast_position_middle")}
+                </SelectItem>
+                <SelectItem value="top">
+                  {t("settings.toast_position_top")}
+                </SelectItem>
+                <SelectItem value="top-right">
+                  {t("settings.toast_position_top_right")}
+                </SelectItem>
+                <SelectItem value="bottom-right">
+                  {t("settings.toast_position_bottom_right")}
+                </SelectItem>
+                <SelectItem value="top-left">
+                  {t("settings.toast_position_top_left")}
+                </SelectItem>
+                <SelectItem value="bottom-left">
+                  {t("settings.toast_position_bottom_left")}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          }
+          description={t("settings.toast_position_description")}
+          label={t("settings.toast_position")}
+        />
+        <SettingControlRow
+          control={
+            <Select
+              value={String(preferences.toast_duration_ms)}
+              onValueChange={(v) =>
+                update_preference("toast_duration_ms", Number(v), true)
+              }
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2000">
+                  {t("settings.toast_duration_default")}
+                </SelectItem>
+                <SelectItem value="5000">
+                  {t("settings.toast_duration_long")}
+                </SelectItem>
+                <SelectItem value="10000">
+                  {t("settings.toast_duration_longer")}
+                </SelectItem>
+                <SelectItem value="20000">
+                  {t("settings.toast_duration_longest")}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          }
+          description={t("settings.toast_duration_description")}
+          label={t("settings.toast_duration")}
+        />
+        <SettingControlRow
+          control={
+            <Button
+              size="md"
+              variant="outline"
+              onClick={send_test_notification}
+            >
               {t("settings.send_test_notification")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.test_notification_body")}
-            </p>
-          </div>
-          <Button size="md" variant="outline" onClick={send_test_notification}>
-            {t("settings.send_test_notification")}
-          </Button>
-        </div>
-      </div>
+            </Button>
+          }
+          control_width="auto"
+          description={t("settings.test_notification_body")}
+          label={t("settings.send_test_notification")}
+        />
+      </IslandSection>
 
-      <div className="pt-3">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <BellAlertIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.events")}
-          </h3>
-        </div>
-
+      <IslandSection icon={<BellAlertIcon />} title={t("settings.events")}>
         <ToggleSetting
           description={t("settings.new_email_description")}
           enabled={preferences.notify_new_email}
@@ -814,27 +787,20 @@ export function NotificationsSection() {
             title={t("settings.special_offers")}
           />
         )}
-      </div>
+      </IslandSection>
 
       {preferences.inbox_categories_enabled !== false && (
         <MutedCategoriesSetting />
       )}
 
-      <div className="pt-3">
+      <div>
         <UpgradeGate
           description={t("settings.quiet_hours_locked")}
           feature_name={t("settings.quiet_hours")}
           is_locked={!plan_load_failed && is_feature_locked("has_quiet_hours")}
           min_plan="Star"
         >
-          <div>
-            <div className="mb-4">
-              <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-                <MoonIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-                {t("settings.quiet_hours")}
-              </h3>
-            </div>
-
+          <IslandSection icon={<MoonIcon />} title={t("settings.quiet_hours")}>
             <ToggleSetting
               description={t("settings.mute_notifications_description")}
               enabled={preferences.quiet_hours_enabled}
@@ -848,7 +814,7 @@ export function NotificationsSection() {
               title={t("settings.enable_quiet_hours")}
             />
             {preferences.quiet_hours_enabled && (
-              <div className="py-4">
+              <div className="px-4 py-4">
                 <div className="mb-4">
                   <p className="text-sm font-medium text-txt-primary">
                     {t("settings.quiet_hours_schedule")}
@@ -857,7 +823,7 @@ export function NotificationsSection() {
                     {t("settings.quiet_hours_schedule_description")}
                   </p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex flex-wrap items-center gap-4">
                   <QuietHoursTimeSelect
                     fallback_value={DEFAULT_PREFERENCES.quiet_hours_start}
                     label={t("settings.from")}
@@ -877,9 +843,9 @@ export function NotificationsSection() {
                 </div>
               </div>
             )}
-          </div>
+          </IslandSection>
         </UpgradeGate>
       </div>
-    </div>
+    </IslandSections>
   );
 }

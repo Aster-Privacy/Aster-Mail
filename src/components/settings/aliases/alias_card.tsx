@@ -35,7 +35,7 @@ import {
   ClockIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
-import { Badge, Button, Checkbox, Switch } from "@aster/ui";
+import { Badge, Button, Checkbox, Island, Switch } from "@aster/ui";
 
 import { get_grace_days_remaining } from "./grace_period";
 
@@ -184,7 +184,7 @@ function AliasAvatar({
       {!is_locked && profile_picture && (
         <button
           aria-label={t("common.remove_alias_avatar" as TranslationKey)}
-          className="absolute -bottom-1 -end-1 rounded-full border border-edge-secondary bg-surf-card p-1 opacity-0 transition-opacity hover:border-red-500/30 group-hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-50"
+          className="absolute -bottom-1 -end-1 rounded-full bg-surf-card p-1 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={uploading}
           title={t("common.remove_alias_avatar" as TranslationKey)}
           type="button"
@@ -346,8 +346,8 @@ export function AliasItem({
   };
 
   return (
-    <div className="group rounded-xl transition-all border border-edge-secondary">
-      <div className="flex items-center gap-3 p-4">
+    <Island className="group">
+      <div className="flex flex-wrap items-center gap-3 p-4">
         {bulk_mode && (
           <Checkbox
             checked={!!is_selected}
@@ -356,7 +356,7 @@ export function AliasItem({
           />
         )}
         <div
-          className="flex flex-1 min-w-0 items-center gap-3"
+          className="flex flex-1 basis-56 min-w-0 items-center gap-3"
           style={{
             opacity: alias.is_enabled && !in_grace_period ? 1 : 0.5,
           }}
@@ -415,7 +415,7 @@ export function AliasItem({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="ms-auto flex items-center gap-2 flex-shrink-0">
           <Button
             className="h-8 w-8"
             size="icon"
@@ -488,7 +488,7 @@ export function AliasItem({
           </Button>
         </div>
       </div>
-    </div>
+    </Island>
   );
 }
 
@@ -653,8 +653,8 @@ export function DomainAddressItem({
   };
 
   return (
-    <div className="group rounded-xl transition-all border border-edge-secondary">
-      <div className="flex items-center gap-3 p-4">
+    <Island className="group">
+      <div className="flex flex-wrap items-center gap-3 p-4">
         <AliasAvatar
           gradient={gradient}
           icon={<GlobeAltIcon className="w-5 h-5 text-white" />}
@@ -696,7 +696,7 @@ export function DomainAddressItem({
           />
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="ms-auto flex items-center gap-2 flex-shrink-0">
           <Button
             className="h-8 w-8"
             size="icon"
@@ -784,6 +784,6 @@ export function DomainAddressItem({
           </Button>
         </div>
       </div>
-    </div>
+    </Island>
   );
 }

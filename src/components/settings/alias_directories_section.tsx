@@ -20,7 +20,15 @@
 //
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FolderIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { Button, Switch } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandEmpty,
+  IslandRow,
+  IslandSection,
+  IslandSections,
+  Switch,
+} from "@aster/ui";
 
 import {
   Select,
@@ -286,30 +294,26 @@ export function AliasDirectoriesSection() {
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-2">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <FolderIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.alias_directories_title")}
-            <InfoHint
-              tip={t("settings.alias_directories_info")}
-              title={t("settings.alias_directories_title")}
-            />
-          </h3>
-        </div>
-        <p className="text-sm mb-3 text-txt-muted">
-          {t("settings.alias_directories_description")}
-        </p>
-      </div>
-
+    <IslandSections>
+      <IslandSection
+        bare
+        description={t("settings.alias_directories_description")}
+        icon={<FolderIcon />}
+        title={t("settings.alias_directories_title")}
+        title_info={
+          <InfoHint
+            tip={t("settings.alias_directories_info")}
+            title={t("settings.alias_directories_title")}
+          />
+        }
+      >
       <LockedFeature
         feature="max_alias_directories"
         locked={locked}
         message={t("settings.alias_feature_locked_directories")}
       >
-        <div className="space-y-4">
-          <div className="space-y-2">
+        <div className="space-y-2">
+          <Island className="space-y-2" padding="md">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm text-txt-muted">@</span>
               <input
@@ -394,38 +398,32 @@ export function AliasDirectoriesSection() {
                 on_verify={set_captcha_token}
               />
             )}
-          </div>
+          </Island>
 
           {load_error ? (
             <LoadFailedNotice on_retry={() => load()} />
           ) : directories.length === 0 ? (
-            <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-              <FolderIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
-              <p className="text-sm text-txt-muted">
-                {t("settings.alias_directories_empty")}
-              </p>
-            </div>
+            <IslandEmpty
+              icon={<FolderIcon className="w-6 h-6" />}
+              title={t("settings.alias_directories_empty")}
+            />
           ) : (
-            <div className="space-y-2">
+            <Island divided>
               {directories.map((directory) => (
-                <div
+                <IslandRow
                   key={directory.id}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg bg-surf-tertiary border border-edge-secondary"
-                >
-                  <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-surf-secondary border border-edge-secondary">
-                    <FolderIcon className="w-4 h-4 text-txt-muted" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate text-txt-primary">
+                  description={t("settings.alias_directory_pattern_hint", {
+                    key: directory.label,
+                    domain: directory.domain,
+                  })}
+                  icon={<FolderIcon />}
+                  label={
+                    <span className="block truncate">
                       anything.{directory.label}@{directory.domain}
-                    </p>
-                    <p className="text-xs text-txt-muted">
-                      {t("settings.alias_directory_pattern_hint", {
-                        key: directory.label,
-                        domain: directory.domain,
-                      })}
-                    </p>
-                  </div>
+                    </span>
+                  }
+                  layout="stacked"
+                  trailing={
                   <div className="flex items-center gap-2 flex-shrink-0">
                     <span className="flex items-center gap-1.5 text-xs text-txt-muted">
                       {t("settings.alias_directory_auto_create")}
@@ -446,9 +444,10 @@ export function AliasDirectoriesSection() {
                       <TrashIcon className="w-4 h-4" />
                     </Button>
                   </div>
-                </div>
+                  }
+                />
               ))}
-            </div>
+            </Island>
           )}
 
           <RecentlyDeletedDirectoriesSection
@@ -479,6 +478,7 @@ export function AliasDirectoriesSection() {
           />
         </div>
       </LockedFeature>
-    </div>
+      </IslandSection>
+    </IslandSections>
   );
 }

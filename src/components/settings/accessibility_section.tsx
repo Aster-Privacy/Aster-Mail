@@ -18,8 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useId, useState } from "react";
-import { Switch } from "@aster/ui";
+import { useEffect, useState } from "react";
+import {
+  IslandRow,
+  IslandSection,
+  IslandSections,
+  PillButton,
+  SettingToggleRow,
+} from "@aster/ui";
 import {
   AdjustmentsHorizontalIcon,
   EyeIcon,
@@ -40,31 +46,6 @@ import {
 } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_composing } from "@/utils/ime";
-import { label_toggle_children } from "@/lib/labeled_control";
-
-interface SettingRowProps {
-  label: string;
-  description: string;
-  children: React.ReactNode;
-}
-
-function SettingRow({ label, description, children }: SettingRowProps) {
-  const label_id = useId();
-
-  return (
-    <div className="flex items-center justify-between py-3">
-      <div className="flex-1 pe-4">
-        <p className="text-sm font-medium text-txt-primary" id={label_id}>
-          {label}
-        </p>
-        <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
-      </div>
-      <div className="flex-shrink-0">
-        {label_toggle_children(children, label_id)}
-      </div>
-    </div>
-  );
-}
 
 export function AccessibilitySection() {
   const { t } = use_i18n();
@@ -92,17 +73,13 @@ export function AccessibilitySection() {
   const [shortcuts_modal_open, set_shortcuts_modal_open] = useState(false);
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <AdjustmentsHorizontalIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.font_size")}
-          </h3>
-        </div>
-        <p className="text-sm mb-3 text-txt-muted">
-          {t("settings.font_size_description")}
-        </p>
+    <IslandSections>
+      <IslandSection
+        description={t("settings.font_size_description")}
+        icon={<AdjustmentsHorizontalIcon />}
+        padding="md"
+        title={t("settings.font_size")}
+      >
         <div className="flex items-center gap-4">
           <Slider
             ariaLabel={t("settings.font_size")}
@@ -155,203 +132,128 @@ export function AccessibilitySection() {
           </div>
         </div>
         <div className="mt-3 flex">
-          <button
-            className="px-3 py-1.5 rounded-[12px] text-sm font-medium text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] transition-colors"
-            type="button"
+          <PillButton
+            size="sm"
             onClick={() => commit_font_size(FONT_SIZE_DEFAULT)}
           >
             {t("settings.font_size_reset")}
-          </button>
+          </PillButton>
         </div>
-      </div>
+      </IslandSection>
 
-      <div className="pt-3">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <EyeIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.vision")}
-          </h3>
-        </div>
-        <p className="text-sm mb-1 text-txt-muted">
-          {t("settings.vision_description")}
-        </p>
-        <SettingRow
+      <IslandSection
+        description={t("settings.vision_description")}
+        icon={<EyeIcon />}
+        title={t("settings.vision")}
+      >
+        <SettingToggleRow
+          checked={preferences.high_contrast}
           description={t("settings.high_contrast_description")}
           label={t("settings.high_contrast")}
-        >
-          <Switch
-            checked={preferences.high_contrast}
-            size="lg"
-            onCheckedChange={(v) => update_preference("high_contrast", v, true)}
-          />
-        </SettingRow>
-        <SettingRow
+          on_change={(v) => update_preference("high_contrast", v, true)}
+        />
+        <SettingToggleRow
+          checked={preferences.reduce_transparency}
           description={t("settings.reduce_transparency_description")}
           label={t("settings.reduce_transparency")}
-        >
-          <Switch
-            checked={preferences.reduce_transparency}
-            size="lg"
-            onCheckedChange={(v) =>
-              update_preference("reduce_transparency", v, true)
-            }
-          />
-        </SettingRow>
-        <SettingRow
+          on_change={(v) => update_preference("reduce_transparency", v, true)}
+        />
+        <SettingToggleRow
+          checked={preferences.link_underlines}
           description={t("settings.underline_links_description")}
           label={t("settings.underline_links")}
-        >
-          <Switch
-            checked={preferences.link_underlines}
-            size="lg"
-            onCheckedChange={(v) =>
-              update_preference("link_underlines", v, true)
-            }
-          />
-        </SettingRow>
-      </div>
+          on_change={(v) => update_preference("link_underlines", v, true)}
+        />
+      </IslandSection>
 
-      <div className="pt-3">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <DocumentTextIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.reading")}
-          </h3>
-        </div>
-        <p className="text-sm mb-1 text-txt-muted">
-          {t("settings.reading_description")}
-        </p>
-        <SettingRow
+      <IslandSection
+        description={t("settings.reading_description")}
+        icon={<DocumentTextIcon />}
+        title={t("settings.reading")}
+      >
+        <SettingToggleRow
+          checked={preferences.dyslexia_font}
           description={t("settings.dyslexia_friendly_font_description")}
           label={t("settings.dyslexia_friendly_font")}
-        >
-          <Switch
-            checked={preferences.dyslexia_font}
-            size="lg"
-            onCheckedChange={(v) => update_preference("dyslexia_font", v, true)}
-          />
-        </SettingRow>
-        <SettingRow
+          on_change={(v) => update_preference("dyslexia_font", v, true)}
+        />
+        <SettingToggleRow
+          checked={preferences.text_spacing}
           description={t("settings.text_spacing_description")}
           label={t("settings.text_spacing")}
-        >
-          <Switch
-            checked={preferences.text_spacing}
-            size="lg"
-            onCheckedChange={(v) => update_preference("text_spacing", v, true)}
-          />
-        </SettingRow>
-      </div>
+          on_change={(v) => update_preference("text_spacing", v, true)}
+        />
+      </IslandSection>
 
-      <div className="pt-3">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <Square2StackIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.motion_layout")}
-          </h3>
-        </div>
-        <p className="text-sm mb-1 text-txt-muted">
-          {t("settings.motion_layout_description")}
-        </p>
-        <SettingRow
+      <IslandSection
+        description={t("settings.motion_layout_description")}
+        icon={<Square2StackIcon />}
+        title={t("settings.motion_layout")}
+      >
+        <SettingToggleRow
+          checked={preferences.reduce_motion}
           description={t("settings.reduce_motion_description")}
           label={t("settings.reduce_motion")}
-        >
-          <Switch
-            checked={preferences.reduce_motion}
-            size="lg"
-            onCheckedChange={(v) => update_preference("reduce_motion", v, true)}
-          />
-        </SettingRow>
-        <SettingRow
+          on_change={(v) => update_preference("reduce_motion", v, true)}
+        />
+        <SettingToggleRow
+          checked={preferences.compact_mode}
           description={t("settings.compact_mode_description")}
           label={t("settings.compact_mode")}
-        >
-          <Switch
-            checked={preferences.compact_mode}
-            size="lg"
-            onCheckedChange={(v) => update_preference("compact_mode", v, true)}
-          />
-        </SettingRow>
-      </div>
+          on_change={(v) => update_preference("compact_mode", v, true)}
+        />
+      </IslandSection>
 
-      <div className="pt-3">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <CommandLineIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("common.keyboard_shortcuts")}
-          </h3>
-        </div>
-        <p className="text-sm mb-1 text-txt-muted">
-          {t("settings.keyboard_shortcuts_description")}
-        </p>
-        <div className="flex items-center justify-between py-3">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("common.enable_shortcuts")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.enable_shortcuts_description")}
-            </p>
-          </div>
-          <div className="flex flex-shrink-0 items-center gap-3">
+      <IslandSection
+        description={t("settings.keyboard_shortcuts_description")}
+        icon={<CommandLineIcon />}
+        title={t("common.keyboard_shortcuts")}
+      >
+        <IslandRow
+          description={t("settings.enable_shortcuts_description")}
+          label={t("common.enable_shortcuts")}
+          toggle={{
+            checked: preferences.keyboard_shortcuts_enabled,
+            on_change: (v) =>
+              update_preference("keyboard_shortcuts_enabled", v, true),
+            size: "lg",
+            aria_label: t("common.enable_shortcuts"),
+          }}
+          trailing={
             <button
               aria-label={t("mail.view_keyboard_shortcuts")}
-              className="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded border border-edge-secondary bg-surf-tertiary px-1.5 font-mono text-[11px] font-medium text-txt-muted shadow-[0_1px_0_var(--border-secondary)] transition-colors hover:bg-surf-tertiary/80"
+              className="inline-flex h-[22px] min-w-[22px] items-center justify-center rounded bg-surf-tertiary px-1.5 font-mono text-[11px] font-medium text-txt-muted transition-colors hover:bg-surf-tertiary/80"
               type="button"
               onClick={() => set_shortcuts_modal_open(true)}
             >
               ?
             </button>
-            <Switch
-              aria-label={t("common.enable_shortcuts")}
-              checked={preferences.keyboard_shortcuts_enabled}
-              size="lg"
-              onCheckedChange={(v) =>
-                update_preference("keyboard_shortcuts_enabled", v, true)
-              }
-            />
-          </div>
-        </div>
-      </div>
+          }
+        />
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <WifiIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.low_network_mode_section_title")}
-          </h3>
-        </div>
-        <div className="flex items-center justify-between py-3">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-              {t("settings.low_network_mode_label")}
-              <InfoPopover
-                description={t("settings.info_low_network_mode_description")}
-                title={t("settings.info_low_network_mode_title")}
-              />
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.low_network_mode_description")}
-            </p>
-          </div>
-          <div className="flex-shrink-0">
-            <Switch
-              aria-label={t("settings.low_network_mode_label")}
-              checked={preferences.low_network_mode}
-              size="lg"
-              onCheckedChange={(v) =>
-                update_preference("low_network_mode", v, true)
-              }
+      <IslandSection
+        icon={<WifiIcon />}
+        title={t("settings.low_network_mode_section_title")}
+      >
+        <SettingToggleRow
+          checked={preferences.low_network_mode}
+          description={t("settings.low_network_mode_description")}
+          info={
+            <InfoPopover
+              description={t("settings.info_low_network_mode_description")}
+              title={t("settings.info_low_network_mode_title")}
             />
-          </div>
-        </div>
-      </div>
+          }
+          label={t("settings.low_network_mode_label")}
+          on_change={(v) => update_preference("low_network_mode", v, true)}
+        />
+      </IslandSection>
 
       <KeyboardShortcutsModal
         is_open={shortcuts_modal_open}
         on_close={() => set_shortcuts_modal_open(false)}
       />
-    </div>
+    </IslandSections>
   );
 }

@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { Island } from "@aster/ui";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   UserPlusIcon,
@@ -114,7 +115,7 @@ export function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
         <Input
           className="flex-1"
           placeholder={t("settings.fam_org_activity_search_placeholder")}
@@ -126,7 +127,7 @@ export function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
           value={filter_type || "all"}
           onValueChange={(v) => set_filter_type(v === "all" ? "" : v)}
         >
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-full sm:w-48">
             <SelectValue
               placeholder={t("settings.fam_org_activity_all_events")}
             />
@@ -153,7 +154,7 @@ export function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
           on_retry={() => void load_page(1, filter_type || undefined)}
         />
       ) : entries.length === 0 ? (
-        <div className="flex flex-col items-center py-10 gap-3">
+        <Island className="flex flex-col items-center gap-3 py-8" padding="lg">
           <ChartBarIcon className="w-12 h-12 text-txt-muted" />
           <p className="text-sm font-medium text-txt-primary">
             {t("settings.fam_org_activity_empty_title")}
@@ -179,13 +180,13 @@ export function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
               </div>
             ))}
           </div>
-        </div>
+        </Island>
       ) : filtered_entries.length === 0 ? (
-        <p className="py-10 text-center text-sm text-txt-muted">
-          {t("common.no_results")}
-        </p>
+        <Island className="text-center" padding="lg">
+          <p className="text-sm text-txt-muted">{t("common.no_results")}</p>
+        </Island>
       ) : (
-        <div className="divide-y divide-edge-secondary">
+        <Island className="overflow-hidden">
           {filtered_entries.map((entry) => {
             const actor_member = entry.actor_username
               ? members.find((m) => m.username === entry.actor_username)
@@ -197,7 +198,7 @@ export function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
                 : null;
 
             return (
-              <div key={entry.id} className="flex items-center gap-3 py-3">
+              <div key={entry.id} className="flex min-h-14 items-center gap-3 px-4 py-3">
                 {actor_email && (
                   <ProfileAvatar
                     className="flex-shrink-0"
@@ -253,7 +254,7 @@ export function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
               </div>
             );
           })}
-        </div>
+        </Island>
       )}
       {entries.length < total && (
         <button

@@ -55,7 +55,8 @@ vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => h.i18n,
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({
     children,
     onClick,

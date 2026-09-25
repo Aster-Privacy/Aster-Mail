@@ -20,7 +20,7 @@
 //
 import { XCircleIcon } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
-import { Button } from "@aster/ui";
+import { Button, Island } from "@aster/ui";
 
 import {
   PLAN_FEATURE_ICONS,
@@ -97,18 +97,12 @@ export function PlanCard({
   const muted_cls = galaxy ? "plan_galaxy_text_muted" : "text-txt-muted";
   const body_cls = galaxy ? "plan_galaxy_text_body" : "text-txt-secondary";
 
-  return (
-    <div
-      className={`relative flex h-full flex-col rounded-2xl border transition-colors ${
-        compact ? "p-4" : "p-6"
-      } ${
-        galaxy
-          ? "plan_galaxy z-10"
-          : is_current
-            ? "border-edge-primary bg-surf-tertiary"
-            : "border-edge-secondary bg-surf-tertiary"
-      }`}
-    >
+  const card_class = `relative flex h-full flex-col transition-colors ${
+    compact ? "p-4" : "p-6"
+  }`;
+
+  const body = (
+    <>
       {badge && (
         <span
           className={`absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${
@@ -180,12 +174,13 @@ export function PlanCard({
       </Button>
 
       <div
-        className={`flex-1 border-t ${compact ? "mt-4 pt-4" : "mt-5 pt-5"} ${
-          galaxy ? "plan_galaxy_divider" : ""
+        className={`flex-1 ${
+          galaxy
+            ? `plan_galaxy_divider border-t ${compact ? "mt-4 pt-4" : "mt-5 pt-5"}`
+            : compact
+              ? "mt-4 pt-1"
+              : "mt-5 pt-1"
         }`}
-        style={
-          galaxy ? undefined : { borderTopColor: "var(--border-secondary)" }
-        }
       >
         {lead_in && (
           <p
@@ -238,7 +233,21 @@ export function PlanCard({
           })}
         </ul>
       </div>
-    </div>
+    </>
+  );
+
+  if (galaxy) {
+    return (
+      <div className={`${card_class} plan_galaxy z-10 rounded-2xl border`}>
+        {body}
+      </div>
+    );
+  }
+
+  return (
+    <Island className={card_class} selected={is_current}>
+      {body}
+    </Island>
   );
 }
 

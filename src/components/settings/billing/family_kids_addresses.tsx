@@ -28,7 +28,7 @@ import {
   ArrowPathIcon,
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
-import { Switch } from "@aster/ui";
+import { Island, Switch } from "@aster/ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import {
@@ -325,8 +325,8 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
           <h3 className="text-sm font-semibold text-txt-primary flex items-center gap-1.5">
             <UserIcon className="w-4 h-4" /> {t("settings.fam_kids_title")}
           </h3>
@@ -363,7 +363,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
       </div>
 
       {show_form && (
-        <div className="rounded-xl border border-edge-secondary p-4 space-y-5">
+        <Island className="space-y-5" padding="md">
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <label
@@ -518,7 +518,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
               {t("settings.fam_kids_cancel")}
             </button>
           </div>
-        </div>
+        </Island>
       )}
 
       {loading ? (
@@ -528,24 +528,21 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
       ) : load_failed && reservations.length === 0 ? (
         <LoadFailedNotice on_retry={() => void load()} />
       ) : visible.length === 0 ? (
-        <div className="py-6 text-center">
+        <Island className="text-center" padding="lg">
           <UserIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
           <p className="text-sm text-txt-muted">
             {t("settings.fam_kids_empty")}
           </p>
-        </div>
+        </Island>
       ) : (
         <div className="space-y-2">
           {visible.map((r) => {
             const token = claim_token_from_url(r.claim_url);
 
             return (
-              <div
-                key={r.id}
-                className="rounded-xl border border-edge-secondary px-4 py-3"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-txt-primary truncate">
+              <Island key={r.id} className="px-4 py-3">
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  <span className="min-w-0 text-sm font-medium text-txt-primary truncate">
                     {r.username}@{r.email_domain}
                   </span>
                   {r.status === "reserved" ? (
@@ -600,7 +597,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
                     </button>
                   </div>
                 )}
-              </div>
+              </Island>
             );
           })}
         </div>

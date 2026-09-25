@@ -27,6 +27,8 @@ import {
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
 
+import { Island, IslandEmpty } from "@aster/ui";
+
 import { SkeletonRows, StorageBar } from "./shared";
 
 import { Slider } from "@/components/ui/slider";
@@ -123,7 +125,7 @@ export function MemberRow({
   const no_2fa = compliance && !compliance.has_2fa && member.role !== "owner";
 
   return (
-    <div className="flex items-center gap-3 py-3">
+    <div className="flex min-h-14 items-center gap-3 px-4 py-3">
       <ProfileAvatar
         email={`${member.username}@${member.email_domain}`}
         name={member.username}
@@ -218,7 +220,7 @@ export function MemberRow({
         <div className="flex items-center gap-1 flex-shrink-0 self-center">
           <button
             aria-label={t("settings.family_storage_edit")}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-black/5 dark:hover:bg-white/10 hover:text-txt-primary"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-surf-hover hover:text-txt-primary"
             title={t("settings.family_storage_edit")}
             onClick={() => set_editing(true)}
           >
@@ -228,7 +230,7 @@ export function MemberRow({
             <>
               <button
                 aria-label={t("settings.family_transfer_admin")}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-black/5 dark:hover:bg-white/10 hover:text-accent-blue"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-surf-hover hover:text-accent-blue"
                 title={t("settings.family_transfer_admin")}
                 onClick={() => on_transfer(member)}
               >
@@ -236,7 +238,7 @@ export function MemberRow({
               </button>
               <button
                 aria-label={t("settings.family_remove_member")}
-                className="w-8 h-8 flex items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-black/5 dark:hover:bg-white/10 hover:text-red-500"
+                className="w-8 h-8 flex items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-surf-hover hover:text-red-500"
                 title={t("settings.family_remove_member")}
                 onClick={() => on_remove(member)}
               >
@@ -278,23 +280,19 @@ export function MemberGroupsContent() {
 
   if (my_groups.length === 0)
     return (
-      <div className="flex flex-col items-center py-10 gap-3">
-        <UserGroupIcon className="w-12 h-12 text-txt-muted" />
-        <p className="text-sm font-medium text-txt-primary">
-          {t("settings.fam_org_member_groups_empty_title")}
-        </p>
-        <p className="text-xs text-txt-muted text-center max-w-xs">
-          {t("settings.fam_org_member_groups_empty_desc")}
-        </p>
-      </div>
+      <IslandEmpty
+        description={t("settings.fam_org_member_groups_empty_desc")}
+        icon={<UserGroupIcon />}
+        title={t("settings.fam_org_member_groups_empty_title")}
+      />
     );
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col gap-2">
       {my_groups.map((g) => (
-        <div
+        <Island
           key={g.id}
-          className="flex items-center gap-3 px-3 py-3 rounded-xl border border-edge-secondary"
+          className="flex flex-wrap items-center gap-3 px-4 py-3"
         >
           <div className="w-8 h-8 rounded-full flex items-center justify-center bg-accent-blue/10 flex-shrink-0">
             <UserGroupIcon className="w-4 h-4 text-accent-blue" />
@@ -314,7 +312,7 @@ export function MemberGroupsContent() {
               {t("settings.fam_org_groups_has_email_title")}
             </span>
           )}
-        </div>
+        </Island>
       ))}
     </div>
   );

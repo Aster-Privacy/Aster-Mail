@@ -20,6 +20,8 @@
 //
 import type { PlanFeature } from "@/components/settings/billing/plan_card";
 
+import { IslandSection, PillButton } from "@aster/ui";
+
 import { Progress } from "@/components/ui/progress";
 import {
   format_storage,
@@ -33,10 +35,7 @@ import {
   is_crypto_provider,
   PLAN_TIERS,
 } from "@/components/settings/billing/billing_constants";
-import {
-  BillingNotice,
-  BillingSectionLabel,
-} from "@/components/settings/billing/billing_layout";
+import { BillingNotice } from "@/components/settings/billing/billing_layout";
 import { card_decline_message_key } from "@/components/settings/billing/card_decline_notice";
 
 interface CurrentPlanCardProps {
@@ -261,101 +260,104 @@ export function CurrentPlanCard({
         />
       )}
 
-      <section>
-        <BillingSectionLabel>
-          {t("settings.billing_plan_heading")}
-        </BillingSectionLabel>
-
-        <div className="rounded-xl border border-edge-secondary px-4 py-4 sm:px-6 sm:py-5">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="min-w-0">
-              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                <h4 className="text-xl font-semibold tracking-tight text-txt-primary">
-                  {subscription?.plan.name || t("settings.free")}
-                </h4>
-                <span
-                  className="text-xs font-medium"
-                  style={{ color: "var(--color-success)" }}
-                >
-                  {is_paid_plan && subscription.active_discount_description
-                    ? subscription.active_discount_description
-                    : t("common.active")}
-                </span>
-              </div>
-              <p className="mt-1 text-sm text-txt-secondary">
+      <IslandSection padding="lg" title={t("settings.billing_plan_heading")}>
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+              <h4 className="text-2xl font-semibold tracking-tight text-txt-primary">
+                {subscription?.plan.name || t("settings.free")}
+              </h4>
+              <span
+                className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                style={{
+                  color: "var(--color-success)",
+                  backgroundColor:
+                    "color-mix(in srgb, var(--color-success) 12%, transparent)",
+                }}
+              >
+                {is_paid_plan && subscription.active_discount_description
+                  ? subscription.active_discount_description
+                  : t("common.active")}
+              </span>
+            </div>
+            <p className="mt-1.5 text-sm text-txt-secondary">
+              <span className="font-medium text-txt-primary">
                 {price_label}
-                {date_label && (
-                  <>
-                    <span aria-hidden="true" className="mx-1.5">
-                      ·
-                    </span>
-                    {date_label}
-                  </>
-                )}
-              </p>
-            </div>
-
-            <div className="flex flex-shrink-0 flex-col items-start gap-1.5 sm:items-end">
-              {is_paid_plan ? (
-                <button
-                  className="aster_btn aster_btn_secondary aster_btn_sm"
-                  disabled={is_action_loading}
-                  type="button"
-                  onClick={on_manage_plan}
-                >
-                  {t("settings.manage_plan")}
-                </button>
-              ) : (
-                <button
-                  className="aster_btn aster_btn_primary aster_btn_sm"
-                  type="button"
-                  onClick={on_scroll_to_plans}
-                >
-                  {t("common.upgrade")}
-                </button>
+              </span>
+              {date_label && (
+                <>
+                  <span aria-hidden="true" className="mx-1.5">
+                    ·
+                  </span>
+                  {date_label}
+                </>
               )}
-              {is_paid_plan && on_toggle_plans ? (
-                <button
-                  aria-expanded={plans_open}
-                  className="text-xs text-txt-muted transition-colors hover:text-txt-primary"
-                  type="button"
-                  onClick={on_toggle_plans}
-                >
-                  {plans_open
-                    ? t("settings.billing_hide_plans")
-                    : t("settings.compare_plans")}
-                </button>
-              ) : (
-                <p className="text-xs text-txt-muted">
-                  {is_paid_plan
-                    ? t("settings.manage_plan_description")
-                    : t("settings.free_upgrade_price_note", {
-                        price: entry_price_label,
-                      })}
-                </p>
-              )}
-            </div>
+            </p>
           </div>
 
-          {show_storage && (
-            <div className="mt-4 space-y-2 border-t border-edge-secondary pt-4">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-txt-muted">
-                  {t("settings.storage")}
-                </span>
-                <span className="text-xs text-txt-secondary">
-                  {format_storage(storage_used_bytes)} /{" "}
-                  {format_storage(storage_limit_bytes)}
-                </span>
-              </div>
-              <Progress
-                className={`h-1.5 ${is_over_limit ? "[&>div]:bg-red-500" : ""}`}
-                value={storage_percentage}
-              />
-            </div>
-          )}
+          <div className="flex flex-shrink-0 flex-col items-start gap-2 sm:items-end">
+            {is_paid_plan ? (
+              <PillButton
+                disabled={is_action_loading}
+                size="sm"
+                type="button"
+                variant="neutral"
+                onClick={on_manage_plan}
+              >
+                {t("settings.manage_plan")}
+              </PillButton>
+            ) : (
+              <PillButton
+                size="sm"
+                type="button"
+                variant="filled"
+                onClick={on_scroll_to_plans}
+              >
+                {t("common.upgrade")}
+              </PillButton>
+            )}
+            {is_paid_plan && on_toggle_plans ? (
+              <PillButton
+                aria-expanded={plans_open}
+                size="sm"
+                type="button"
+                variant="ghost"
+                onClick={on_toggle_plans}
+              >
+                {plans_open
+                  ? t("settings.billing_hide_plans")
+                  : t("settings.compare_plans")}
+              </PillButton>
+            ) : (
+              <p className="text-xs text-txt-muted">
+                {is_paid_plan
+                  ? t("settings.manage_plan_description")
+                  : t("settings.free_upgrade_price_note", {
+                      price: entry_price_label,
+                    })}
+              </p>
+            )}
+          </div>
         </div>
-      </section>
+
+        {show_storage && (
+          <div className="mt-5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-txt-muted">
+                {t("settings.storage")}
+              </span>
+              <span className="text-xs text-txt-secondary">
+                {format_storage(storage_used_bytes)} /{" "}
+                {format_storage(storage_limit_bytes)}
+              </span>
+            </div>
+            <Progress
+              className={`h-1.5 ${is_over_limit ? "[&>div]:bg-red-500" : ""}`}
+              value={storage_percentage}
+            />
+          </div>
+        )}
+      </IslandSection>
     </>
   );
 }

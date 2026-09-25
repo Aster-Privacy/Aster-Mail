@@ -28,7 +28,7 @@ import {
   ServerStackIcon,
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
-import { Switch, Button, Badge } from "@aster/ui";
+import { Button, Badge, IslandRow, IslandSection } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { InfoPopover } from "@/components/ui/info_popover";
@@ -51,23 +51,23 @@ function ToggleSetting({
   info,
 }: ToggleSettingProps) {
   return (
-    <div className="flex items-center justify-between py-4">
-      <div className="flex-1 pe-4">
-        <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+    <IslandRow
+      description={description}
+      label={
+        <span className="inline-flex flex-wrap items-center gap-1.5">
           {title}
           {info && (
             <InfoPopover description={info.description} title={info.title} />
           )}
-        </p>
-        <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
-      </div>
-      <Switch
-        aria-label={title}
-        checked={enabled}
-        size="lg"
-        onCheckedChange={on_toggle}
-      />
-    </div>
+        </span>
+      }
+      toggle={{
+        checked: enabled,
+        on_change: () => on_toggle(),
+        size: "lg",
+        aria_label: title,
+      }}
+    />
   );
 }
 
@@ -163,161 +163,172 @@ export function EncryptionSettingsForm({
   };
 
   return (
-    <div>
-      <div className="mb-4">
-        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-          <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-          {t("settings.encryption_behavior")}
-        </h3>
-      </div>
-      <p className="text-sm mb-3 text-txt-muted">
-        {t("settings.control_encryption_description")}
-      </p>
+    <>
+      <IslandSection
+        description={t("settings.control_encryption_description")}
+        icon={<ShieldCheckIcon />}
+        title={t("settings.encryption_behavior")}
+      >
+        <ToggleSetting
+          description={t("settings.auto_discover_keys_description")}
+          enabled={preferences.auto_discover_keys}
+          info={{
+            title: t("settings.info_auto_discover_keys_title"),
+            description: t("settings.info_auto_discover_keys_description"),
+          }}
+          on_toggle={handle_auto_discover_keys_toggle}
+          title={t("settings.auto_discover_keys_title")}
+        />
+        <ToggleSetting
+          description={t("settings.encrypt_by_default_description")}
+          enabled={preferences.encrypt_emails}
+          info={{
+            title: t("settings.info_encrypt_by_default_title"),
+            description: t("settings.info_encrypt_by_default_description"),
+          }}
+          on_toggle={handle_encrypt_emails_toggle}
+          title={t("settings.encrypt_by_default_title")}
+        />
+        <ToggleSetting
+          description={t("settings.obscure_subject_description")}
+          enabled={preferences.obscure_subject_when_encrypted}
+          info={{
+            title: t("settings.info_obscure_subject_title"),
+            description: t("settings.info_obscure_subject_description"),
+          }}
+          on_toggle={() =>
+            update_preference(
+              "obscure_subject_when_encrypted",
+              !preferences.obscure_subject_when_encrypted,
+              true,
+            )
+          }
+          title={t("settings.obscure_subject_title")}
+        />
+        <ToggleSetting
+          description={t("settings.require_encryption_description")}
+          enabled={preferences.require_encryption}
+          info={{
+            title: t("settings.info_require_encryption_title"),
+            description: t("settings.info_require_encryption_description"),
+          }}
+          on_toggle={handle_require_encryption_toggle}
+          title={t("settings.require_encryption_title")}
+        />
+        <ToggleSetting
+          description={t("settings.show_encryption_indicators_description")}
+          enabled={preferences.show_encryption_indicators}
+          on_toggle={() =>
+            update_preference(
+              "show_encryption_indicators",
+              !preferences.show_encryption_indicators,
+              true,
+            )
+          }
+          title={t("settings.show_encryption_indicators_title")}
+        />
+        <ToggleSetting
+          description={t("settings.publish_keys_wkd_description")}
+          enabled={preferences.publish_to_wkd}
+          info={{
+            title: t("settings.info_wkd_title"),
+            description: t("settings.info_wkd_description"),
+          }}
+          on_toggle={handle_wkd_toggle}
+          title={t("settings.publish_keys_wkd_title")}
+        />
+      </IslandSection>
 
-      <ToggleSetting
-        description={t("settings.auto_discover_keys_description")}
-        enabled={preferences.auto_discover_keys}
-        info={{
-          title: t("settings.info_auto_discover_keys_title"),
-          description: t("settings.info_auto_discover_keys_description"),
-        }}
-        on_toggle={handle_auto_discover_keys_toggle}
-        title={t("settings.auto_discover_keys_title")}
-      />
-      <ToggleSetting
-        description={t("settings.encrypt_by_default_description")}
-        enabled={preferences.encrypt_emails}
-        info={{
-          title: t("settings.info_encrypt_by_default_title"),
-          description: t("settings.info_encrypt_by_default_description"),
-        }}
-        on_toggle={handle_encrypt_emails_toggle}
-        title={t("settings.encrypt_by_default_title")}
-      />
-      <ToggleSetting
-        description={t("settings.obscure_subject_description")}
-        enabled={preferences.obscure_subject_when_encrypted}
-        info={{
-          title: t("settings.info_obscure_subject_title"),
-          description: t("settings.info_obscure_subject_description"),
-        }}
-        on_toggle={() =>
-          update_preference(
-            "obscure_subject_when_encrypted",
-            !preferences.obscure_subject_when_encrypted,
-            true,
-          )
+      <IslandSection
+        icon={<ServerStackIcon />}
+        title={
+          <span className="inline-flex items-center gap-1.5">
+            {t("settings.keyserver_urls_title")}
+            <InfoPopover
+              description={t("settings.info_keyservers_description")}
+              title={t("settings.info_keyservers_title")}
+            />
+          </span>
         }
-        title={t("settings.obscure_subject_title")}
-      />
-      <ToggleSetting
-        description={t("settings.require_encryption_description")}
-        enabled={preferences.require_encryption}
-        info={{
-          title: t("settings.info_require_encryption_title"),
-          description: t("settings.info_require_encryption_description"),
-        }}
-        on_toggle={handle_require_encryption_toggle}
-        title={t("settings.require_encryption_title")}
-      />
-      <ToggleSetting
-        description={t("settings.show_encryption_indicators_description")}
-        enabled={preferences.show_encryption_indicators}
-        on_toggle={() =>
-          update_preference(
-            "show_encryption_indicators",
-            !preferences.show_encryption_indicators,
-            true,
-          )
-        }
-        title={t("settings.show_encryption_indicators_title")}
-      />
-      <ToggleSetting
-        description={t("settings.publish_keys_wkd_description")}
-        enabled={preferences.publish_to_wkd}
-        info={{
-          title: t("settings.info_wkd_title"),
-          description: t("settings.info_wkd_description"),
-        }}
-        on_toggle={handle_wkd_toggle}
-        title={t("settings.publish_keys_wkd_title")}
-      />
-
-      <div className="mt-6 mb-4">
-        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-          <ServerStackIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-          {t("settings.keyserver_urls_title")}
-          <InfoPopover
-            description={t("settings.info_keyservers_description")}
-            title={t("settings.info_keyservers_title")}
-          />
-        </h3>
-      </div>
-
-      <div className="flex items-center justify-between py-4 border-b border-b-edge-secondary">
-        <div className="flex-1 pe-4">
-          <p className="text-sm font-medium text-txt-primary flex items-center gap-2">
-            {t("settings.keyserver_publication_status")}
-            {keyserver_badge()}
-          </p>
-          <p className="text-sm mt-0.5 text-txt-muted">{keyserver_hint()}</p>
-        </div>
-        <Button
-          disabled={is_publishing_keyserver}
-          variant="depth"
-          onClick={handle_publish_to_keyservers}
-        >
-          {keyserver_published
-            ? t("settings.keyserver_republish_btn")
-            : t("settings.keyserver_publish_btn")}
-          {is_publishing_keyserver && <ButtonSpinner />}
-        </Button>
-      </div>
-
-      <div className="divide-y divide-edge-secondary mt-1">
-        {DEFAULT_KEYSERVERS.map((url) => (
-          <div key={url} className="flex items-center gap-2 py-2.5">
-            <span className="flex-1 text-sm font-mono text-txt-secondary truncate">
-              {url}
+      >
+        <IslandRow
+          description={keyserver_hint()}
+          label={
+            <span className="inline-flex flex-wrap items-center gap-2">
+              {t("settings.keyserver_publication_status")}
+              {keyserver_badge()}
             </span>
-            <a
-              aria-label={url}
-              className="flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors"
-              href={url}
-              rel="noopener noreferrer"
-              target="_blank"
+          }
+          layout="stacked"
+          trailing={
+            <Button
+              disabled={is_publishing_keyserver}
+              variant="depth"
+              onClick={handle_publish_to_keyservers}
             >
-              <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
-            </a>
-          </div>
+              {keyserver_published
+                ? t("settings.keyserver_republish_btn")
+                : t("settings.keyserver_publish_btn")}
+              {is_publishing_keyserver && <ButtonSpinner />}
+            </Button>
+          }
+        />
+
+        {DEFAULT_KEYSERVERS.map((url) => (
+          <IslandRow
+            key={url}
+            label={
+              <span className="block text-sm font-mono text-txt-secondary truncate">
+                {url}
+              </span>
+            }
+            trailing={
+              <a
+                aria-label={url}
+                className="flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors"
+                href={url}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
+              </a>
+            }
+          />
         ))}
         {keyserver_urls.map((url) => (
-          <div key={url} className="flex items-center gap-2 py-2.5">
-            <span className="flex-1 text-sm font-mono text-txt-primary truncate">
-              {url}
-            </span>
-            <a
-              aria-label={url}
-              className="flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors"
-              href={url}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
-            </a>
-            <button
-              aria-label={t("settings.keyserver_remove")}
-              className="flex-shrink-0 text-txt-muted hover:text-red-500 transition-colors"
-              disabled={is_saving_keyservers}
-              onClick={() => handle_remove_keyserver(url)}
-            >
-              <XMarkIcon className="w-4 h-4" />
-            </button>
-          </div>
+          <IslandRow
+            key={url}
+            label={
+              <span className="block text-sm font-mono text-txt-primary truncate">
+                {url}
+              </span>
+            }
+            trailing={
+              <>
+                <a
+                  aria-label={url}
+                  className="flex-shrink-0 text-txt-muted hover:text-txt-primary transition-colors"
+                  href={url}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  <ArrowTopRightOnSquareIcon className="w-3.5 h-3.5" />
+                </a>
+                <button
+                  aria-label={t("settings.keyserver_remove")}
+                  className="flex-shrink-0 text-txt-muted hover:text-red-500 transition-colors"
+                  disabled={is_saving_keyservers}
+                  onClick={() => handle_remove_keyserver(url)}
+                >
+                  <XMarkIcon className="w-4 h-4" />
+                </button>
+              </>
+            }
+          />
         ))}
-        <div className="flex items-center gap-2 pt-3 pb-2">
+        <div className="flex items-center gap-2 px-4 pt-2 pb-4">
           <input
-            className="flex-1 px-3 h-8 rounded-lg text-sm font-mono bg-transparent"
+            className="flex-1 min-w-0 px-3 h-8 rounded-lg text-sm font-mono bg-transparent"
             disabled={is_saving_keyservers}
             placeholder={t("settings.keyserver_url_placeholder")}
             style={{
@@ -341,7 +352,7 @@ export function EncryptionSettingsForm({
             {t("settings.keyserver_add")}
           </Button>
         </div>
-      </div>
-    </div>
+      </IslandSection>
+    </>
   );
 }

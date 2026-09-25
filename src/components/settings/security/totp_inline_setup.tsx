@@ -153,8 +153,8 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
 
   return (
     <>
-      <div className="mt-3 min-w-0 rounded-2xl border border-edge-secondary bg-surf-secondary p-3.5">
-        <div className="flex items-center justify-between gap-3 mb-2.5">
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-2.5">
           <p className="text-sm font-semibold text-txt-primary">
             {t("settings.enable_2fa")}
           </p>

@@ -24,7 +24,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { Badge, Button } from "@aster/ui";
+import { Badge, Button, Island, IslandRow, IslandSection } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { SETTINGS_ANCHORS } from "@/lib/settings_links";
@@ -56,105 +56,104 @@ export function AccountRecoverySection() {
   const has_offline_method = has_codes || (methods?.has_phrase ?? false);
 
   return (
-    <div id={SETTINGS_ANCHORS.account_recovery}>
-      <div className="mb-4">
-        <div className="flex items-center flex-wrap gap-x-3 gap-y-1">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <LifebuoyIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.account_recovery_title")}
-          </h3>
-          {methods && has_offline_method && (
-            <p
+    <>
+      <IslandSection
+        bare
+        description={t("settings.account_recovery_desc")}
+        icon={<LifebuoyIcon />}
+        id={SETTINGS_ANCHORS.account_recovery}
+        title={t("settings.account_recovery_title")}
+        trailing={
+          methods && has_offline_method ? (
+            <span
               className="inline-flex items-center gap-1.5 text-xs font-medium"
               style={{ color: "var(--color-success)" }}
             >
               <CheckCircleIcon className="w-3.5 h-3.5 flex-shrink-0" />
               {t("settings.recovery_status_protected")}
+            </span>
+          ) : undefined
+        }
+      >
+        {load_error && !methods && (
+          <Island className="flex items-start gap-3" padding="md">
+            <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-amber-500" />
+            <p className="text-sm text-txt-muted">
+              {t("settings.failed_load_security_status")}
             </p>
-          )}
-        </div>
-        <p className="text-sm mt-1 text-txt-muted">
-          {t("settings.account_recovery_desc")}
-        </p>
-      </div>
-
-      {load_error && !methods && (
-        <div className="flex items-start gap-3 p-3 rounded-lg border bg-surf-tertiary border-edge-secondary">
-          <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-amber-500" />
-          <p className="text-sm text-txt-muted">
-            {t("settings.failed_load_security_status")}
-          </p>
-        </div>
-      )}
-
-      {methods && !has_offline_method && (
-        <div className="flex items-start gap-3 p-3 rounded-lg border bg-surf-tertiary border-edge-secondary">
-          <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-amber-500" />
-          <div>
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.recovery_status_at_risk")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.recovery_status_at_risk_desc")}
-            </p>
-          </div>
-        </div>
-      )}
-
-      <div className="flex items-center justify-between py-4">
-        <div className="flex-1 pe-4">
-          <p className="text-sm font-medium text-txt-primary flex items-center gap-2">
-            {t("settings.recovery_codes_row")}
-            {methods &&
-              (has_codes ? (
-                <Badge color="green">
-                  {t("settings.recovery_method_active")}
-                </Badge>
-              ) : (
-                <Badge color="gray">
-                  {t("settings.recovery_method_not_set")}
-                </Badge>
-              ))}
-          </p>
-          <p className="text-sm mt-0.5 text-txt-muted">
-            {t("settings.recovery_codes_row_desc")}
-          </p>
-        </div>
-        {load_error && !methods ? (
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => void fetch_methods()}
-          >
-            {t("settings.try_again")}
-          </Button>
-        ) : (
-          <Button
-            variant={has_codes ? "secondary" : "depth"}
-            onClick={() => set_show_codes_modal(true)}
-          >
-            {has_codes
-              ? t("settings.recovery_codes_regenerate")
-              : t("settings.recovery_codes_generate")}
-          </Button>
+          </Island>
         )}
-      </div>
 
-      {methods?.has_phrase && (
-        <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary flex items-center gap-2">
-              {t("settings.legacy_phrase_row")}
-              <Badge color="green">
-                {t("settings.recovery_method_active")}
-              </Badge>
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.legacy_phrase_row_desc")}
-            </p>
-          </div>
-        </div>
-      )}
+        {methods && !has_offline_method && (
+          <Island className="flex items-start gap-3" padding="md">
+            <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-amber-500" />
+            <div>
+              <p className="text-sm font-medium text-txt-primary">
+                {t("settings.recovery_status_at_risk")}
+              </p>
+              <p className="text-sm mt-0.5 text-txt-muted">
+                {t("settings.recovery_status_at_risk_desc")}
+              </p>
+            </div>
+          </Island>
+        )}
+
+        <Island>
+          <IslandRow
+            description={t("settings.recovery_codes_row_desc")}
+            label={
+              <span className="inline-flex flex-wrap items-center gap-2">
+                {t("settings.recovery_codes_row")}
+                {methods &&
+                  (has_codes ? (
+                    <Badge color="green">
+                      {t("settings.recovery_method_active")}
+                    </Badge>
+                  ) : (
+                    <Badge color="gray">
+                      {t("settings.recovery_method_not_set")}
+                    </Badge>
+                  ))}
+              </span>
+            }
+            layout="stacked"
+            trailing={
+              load_error && !methods ? (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => void fetch_methods()}
+                >
+                  {t("settings.try_again")}
+                </Button>
+              ) : (
+                <Button
+                  variant={has_codes ? "secondary" : "depth"}
+                  onClick={() => set_show_codes_modal(true)}
+                >
+                  {has_codes
+                    ? t("settings.recovery_codes_regenerate")
+                    : t("settings.recovery_codes_generate")}
+                </Button>
+              )
+            }
+          />
+
+          {methods?.has_phrase && (
+            <IslandRow
+              description={t("settings.legacy_phrase_row_desc")}
+              label={
+                <span className="inline-flex flex-wrap items-center gap-2">
+                  {t("settings.legacy_phrase_row")}
+                  <Badge color="green">
+                    {t("settings.recovery_method_active")}
+                  </Badge>
+                </span>
+              }
+            />
+          )}
+        </Island>
+      </IslandSection>
 
       <RecoveryCodesModal
         has_codes={has_codes}
@@ -162,6 +161,6 @@ export function AccountRecoverySection() {
         on_close={() => set_show_codes_modal(false)}
         on_saved={fetch_methods}
       />
-    </div>
+    </>
   );
 }

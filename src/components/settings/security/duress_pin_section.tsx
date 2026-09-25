@@ -18,7 +18,7 @@
 //
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Button } from "@aster/ui";
+import { Button, Island, IslandRow } from "@aster/ui";
 import {
   ArrowLeftIcon,
   BackspaceIcon,
@@ -651,11 +651,11 @@ function SetupDuressPinModal({
         )}
         {step === "confirm_setup" && (
           <div className="flex flex-col gap-3 pt-1">
-            <div className="rounded-2xl bg-surf-secondary border border-edge-secondary px-4 py-3.5 flex flex-col gap-2">
+            <Island className="flex flex-col gap-2" padding="md">
               <p className="text-sm text-txt-primary leading-relaxed">
                 {t("settings.duress_pin_how_it_works_body")}
               </p>
-            </div>
+            </Island>
             {error_msg && <p className="text-sm text-red-500">{error_msg}</p>}
           </div>
         )}
@@ -1005,16 +1005,24 @@ export function DuressPinSection() {
 
   return (
     <>
-      <div className="py-4 px-1">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.duress_pin")}
-            </p>
-            <p className="text-xs mt-0.5 text-txt-muted">
-              {t("settings.duress_pin_description")}
-            </p>
-          </div>
+      <IslandRow
+        description={
+          <>
+            {t("settings.duress_pin_description")}
+            {enabled && (
+              <button
+                className="block mt-2 text-xs text-brand underline underline-offset-2 hover:opacity-80"
+                type="button"
+                onClick={() => set_modal("change")}
+              >
+                {t("settings.duress_pin_change")}
+              </button>
+            )}
+          </>
+        }
+        label={t("settings.duress_pin")}
+        layout="stacked"
+        trailing={
           <Button
             variant={enabled ? "outline" : "depth"}
             onClick={() => set_modal(enabled ? "remove" : "setup")}
@@ -1023,17 +1031,8 @@ export function DuressPinSection() {
               ? t("settings.duress_pin_remove")
               : t("settings.duress_pin_setup")}
           </Button>
-        </div>
-        {enabled && (
-          <button
-            className="mt-3 text-xs text-brand underline underline-offset-2 hover:opacity-80"
-            type="button"
-            onClick={() => set_modal("change")}
-          >
-            {t("settings.duress_pin_change")}
-          </button>
-        )}
-      </div>
+        }
+      />
 
       <SetupDuressPinModal
         account_id={account_id}

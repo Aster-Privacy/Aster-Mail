@@ -26,7 +26,7 @@ import {
   ChevronRightIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Island } from "@aster/ui";
 
 import { SkeletonRows } from "./shared";
 
@@ -351,9 +351,9 @@ export function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2 items-start">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
         <Input
-          className="flex-1"
+          className="sm:flex-1"
           placeholder={t("settings.fam_org_groups_name_placeholder")}
           size="md"
           value={new_name}
@@ -363,7 +363,7 @@ export function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
           }
         />
         <div
-          className={`flex items-center h-9 rounded-xl border bg-white dark:bg-white/[0.04] overflow-hidden flex-1 min-w-0 ${address_available === true ? "border-green-500" : address_available === false ? "border-red-500" : "border-black/10 dark:border-white/10"}`}
+          className={`flex items-center h-9 rounded-xl border bg-white dark:bg-white/[0.04] overflow-hidden min-w-0 sm:flex-1 ${address_available === true ? "border-green-500" : address_available === false ? "border-red-500" : "border-black/10 dark:border-white/10"}`}
         >
           <input
             className="bg-transparent text-sm text-txt-primary outline-none px-3 h-full flex-1 min-w-0 placeholder:text-txt-muted"
@@ -430,7 +430,7 @@ export function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
       ) : groups_load_failed && groups.length === 0 ? (
         <LoadFailedNotice on_retry={() => void load_groups()} />
       ) : groups.length === 0 ? (
-        <div className="flex flex-col items-center py-10 gap-3">
+        <Island className="flex flex-col items-center gap-3 py-8" padding="lg">
           <UserGroupIcon className="w-12 h-12 text-txt-muted" />
           <p className="text-sm font-medium text-txt-primary">
             {t("settings.fam_org_groups_empty_title")}
@@ -438,7 +438,7 @@ export function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
           <p className="text-xs text-txt-muted text-center max-w-xs">
             {t("settings.fam_org_groups_empty_desc")}
           </p>
-        </div>
+        </Island>
       ) : (
         <div className="space-y-2">
           {groups.map((g) => {
@@ -449,11 +449,8 @@ export function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
               is_open && !group_members[g.id] && !members_failed;
 
             return (
-              <div
-                key={g.id}
-                className="rounded-xl border border-edge-secondary overflow-hidden"
-              >
-                <div className="flex items-center gap-2 px-3 py-2.5">
+              <Island key={g.id} className="overflow-hidden">
+                <div className="flex min-h-14 items-center gap-2 px-4 py-2.5">
                   <button
                     className="flex items-center gap-2.5 flex-1 min-w-0 text-start"
                     onClick={() => handle_expand(g.id)}
@@ -485,7 +482,7 @@ export function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                 </div>
 
                 {is_open && (
-                  <div className="border-t border-edge-secondary px-4 py-3 space-y-2">
+                  <div className="px-4 pb-3 space-y-2">
                     {loading_members ? (
                       <div className="flex items-center gap-2 py-2">
                         <Spinner size="sm" />
@@ -522,7 +519,7 @@ export function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                           return (
                             <div
                               key={m.user_id}
-                              className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-surf-secondary transition-colors"
+                              className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-surf-hover transition-colors"
                             >
                               <ProfileAvatar
                                 email={`${m.username}@${m.email_domain}`}
@@ -557,7 +554,7 @@ export function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                           value={member_search}
                           onChange={(e) => set_member_search(e.target.value)}
                         />
-                        <div className="rounded-lg border border-edge-secondary overflow-hidden max-h-44 overflow-y-auto">
+                        <div className="rounded-xl bg-surf-primary overflow-hidden max-h-44 overflow-y-auto">
                           {members.filter(
                             (m) =>
                               !gm.some((x) => x.user_id === m.user_id) &&
@@ -583,7 +580,7 @@ export function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                                 return (
                                   <button
                                     key={m.user_id}
-                                    className={`w-full flex items-center gap-3 px-3 py-2.5 text-start transition-colors hover:bg-black/5 dark:hover:bg-white/5 ${add_user_id === m.user_id ? "bg-accent-blue/10" : ""}`}
+                                    className={`w-full flex items-center gap-3 px-3 py-2.5 text-start transition-colors hover:bg-surf-hover ${add_user_id === m.user_id ? "bg-accent-blue/10" : ""}`}
                                     onClick={() =>
                                       set_add_user_id((prev) =>
                                         prev === m.user_id ? "" : m.user_id,
@@ -617,7 +614,7 @@ export function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                             {t("settings.fam_org_groups_add")}
                           </Button>
                           <button
-                            className="px-3 py-1.5 text-sm text-txt-muted hover:text-txt-primary rounded-lg hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                            className="px-3 py-1.5 text-sm text-txt-muted hover:text-txt-primary rounded-lg hover:bg-surf-hover transition-colors"
                             onClick={() => {
                               set_adding_to(null);
                               set_add_user_id("");
@@ -646,7 +643,7 @@ export function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
                     )}
                   </div>
                 )}
-              </div>
+              </Island>
             );
           })}
         </div>

@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { IslandSections } from "@aster/ui";
+
 import { use_encryption } from "@/components/settings/hooks/use_encryption";
 import { EncryptionFlowBanner } from "@/components/settings/encryption/encryption_flow_banner";
 import { KeyRotationPanel } from "@/components/settings/encryption/key_rotation_panel";
@@ -32,7 +34,7 @@ export function EncryptionSection() {
   }
 
   return (
-    <div className="space-y-6">
+    <IslandSections>
       <EncryptionFlowBanner
         your_fingerprint={encryption.pgp_key?.fingerprint}
       />
@@ -104,6 +106,6 @@ export function EncryptionSection() {
         set_keyserver_input={encryption.set_keyserver_input}
         update_preference={encryption.update_preference}
       />
-    </div>
+    </IslandSections>
   );
 }

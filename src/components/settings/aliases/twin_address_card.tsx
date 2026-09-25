@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { ShieldCheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Island, IslandIconButton, PillButton } from "@aster/ui";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
@@ -42,8 +42,8 @@ export function TwinAddressCard({ siblings, on_claim }: TwinAddressCardProps) {
   const multiple = siblings.length > 1;
 
   return (
-    <div className="mb-3 rounded-xl border border-edge-secondary bg-surf-secondary p-3">
-      <div className="flex items-start gap-3">
+    <Island className="mb-2" padding="md">
+      <div className="flex flex-wrap items-start gap-3 sm:flex-nowrap">
         <ShieldCheckIcon className="mt-0.5 h-5 w-5 shrink-0 text-txt-secondary" />
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-txt-primary">
@@ -66,26 +66,25 @@ export function TwinAddressCard({ siblings, on_claim }: TwinAddressCardProps) {
                   })}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-1 self-center">
-          <Button
+        <div className="ml-8 flex shrink-0 items-center gap-1 self-center sm:ml-0">
+          <PillButton
             size="sm"
-            variant="secondary"
+            variant="tonal"
             onClick={() => on_claim(primary.local_part, primary.domain)}
           >
             {t("settings.twin_address_create")}
-          </Button>
-          <button
-            aria-label={t("settings.twin_address_dismiss")}
-            className="rounded-lg p-1.5 text-txt-muted transition-colors hover:bg-surf-tertiary hover:text-txt-primary"
-            type="button"
+          </PillButton>
+          <IslandIconButton
+            label={t("settings.twin_address_dismiss")}
+            size="sm"
             onClick={() =>
               update_preference("twin_address_banner_dismissed", true, true)
             }
           >
             <XMarkIcon className="h-4 w-4" />
-          </button>
+          </IslandIconButton>
         </div>
       </div>
-    </div>
+    </Island>
   );
 }

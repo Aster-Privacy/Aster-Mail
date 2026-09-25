@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useState } from "react";
+import { IslandSection } from "@aster/ui";
 
 import { Progress } from "@/components/ui/progress";
 import {
@@ -32,11 +33,7 @@ import {
   ADDON_BADGES,
   convert_cents,
 } from "@/components/settings/billing/billing_constants";
-import {
-  BillingGroup,
-  BillingRow,
-  BillingSectionLabel,
-} from "@/components/settings/billing/billing_layout";
+import { BillingRow } from "@/components/settings/billing/billing_layout";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -98,9 +95,11 @@ export function StorageAddonsSection({
   };
 
   return (
-    <section id="additional_storage_section">
-      <BillingSectionLabel>{t("settings.storage")}</BillingSectionLabel>
-      <BillingGroup>
+    <IslandSection
+      id="additional_storage_section"
+      island_class_name="overflow-hidden"
+      title={t("settings.storage")}
+    >
         <BillingRow
           action={
             <button
@@ -143,11 +142,16 @@ export function StorageAddonsSection({
                     <button
                       key={addon.id}
                       aria-pressed={is_selected}
-                      className={`rounded-lg border px-3 py-2.5 text-start transition-colors ${
+                      className={`rounded-xl px-3 py-2.5 text-start transition-colors ${
                         is_selected
-                          ? "border-txt-primary bg-surf-hover"
-                          : "border-edge-secondary hover:bg-surf-hover"
+                          ? "aster_island_selected"
+                          : "hover:opacity-90"
                       }`}
+                      style={{
+                        backgroundColor: is_selected
+                          ? "color-mix(in srgb, var(--accent-color) 10%, transparent)"
+                          : "color-mix(in srgb, var(--text-primary) 5%, transparent)",
+                      }}
                       type="button"
                       onClick={() =>
                         set_selected_storage(is_selected ? null : addon.id)
@@ -227,7 +231,6 @@ export function StorageAddonsSection({
             title={addon.size_label}
           />
         ))}
-      </BillingGroup>
-    </section>
+    </IslandSection>
   );
 }

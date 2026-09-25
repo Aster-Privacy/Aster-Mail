@@ -25,7 +25,7 @@ import {
   KeyIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Island, IslandRow, IslandSection } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -115,27 +115,24 @@ export function SmtpTokensSection() {
   const confirm_token = tokens.find((tok) => tok.id === confirm_revoke_id);
   const has_addresses = addresses.length > 0;
 
-  const header = (
-    <div className="mb-4">
-      <div className="flex items-center gap-1.5">
-        <h3 className="text-base font-semibold text-txt-primary">
-          {t("settings.smtp_tokens")}
-        </h3>
+  const section_props = {
+    bare: true,
+    description: t("settings.smtp_tokens_description"),
+    icon: <KeyIcon />,
+    title: (
+      <span className="inline-flex items-center gap-1.5">
+        {t("settings.smtp_tokens")}
         <InfoPopover
           description={t("settings.smtp_tokens_popover_description")}
           title={t("settings.smtp_tokens")}
         />
-      </div>
-      <p className="text-sm text-txt-muted mt-2">
-        {t("settings.smtp_tokens_description")}
-      </p>
-    </div>
-  );
+      </span>
+    ),
+  };
 
   if (is_locked) {
     return (
-      <div className="space-y-5">
-        {header}
+      <IslandSection {...section_props}>
         <div
           className="relative overflow-hidden rounded-2xl p-6"
           style={{ backgroundColor: "var(--accent-mix-b85, #326fd1)" }}
@@ -173,24 +170,22 @@ export function SmtpTokensSection() {
             </button>
           </div>
         </div>
-      </div>
+      </IslandSection>
     );
   }
 
   if (!addresses_loading && !has_addresses && addresses_load_failed) {
     return (
-      <div className="space-y-5">
-        {header}
+      <IslandSection {...section_props}>
         <LoadFailedNotice on_retry={() => void reload_addresses()} />
-      </div>
+      </IslandSection>
     );
   }
 
   if (!addresses_loading && !has_addresses) {
     return (
-      <div className="space-y-5">
-        {header}
-        <div className="rounded-xl border border-edge-secondary bg-surf-primary px-6 py-10 text-center">
+      <IslandSection {...section_props}>
+        <Island className="py-10 text-center" padding="lg">
           <p className="text-sm font-medium text-txt-primary">
             {t("settings.smtp_tokens_no_domain_title")}
           </p>
@@ -208,15 +203,25 @@ export function SmtpTokensSection() {
           >
             {t("settings.smtp_tokens_add_domain_cta")}
           </Button>
-        </div>
-      </div>
+        </Island>
+      </IslandSection>
     );
   }
 
   return (
-    <div className="space-y-5">
-      {header}
-
+    <IslandSection
+      {...section_props}
+      trailing={
+        <Button
+          disabled={addresses_loading || !has_addresses}
+          variant="depth"
+          onClick={() => set_create_open(true)}
+        >
+          <PlusIcon className="w-4 h-4 me-1.5" />
+          {t("settings.smtp_token_generate")}
+        </Button>
+      }
+    >
       <div className="rounded-xl bg-amber-500 p-3.5">
         <div className="flex items-start gap-2.5">
           <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-black mt-0.5" />
@@ -231,19 +236,8 @@ export function SmtpTokensSection() {
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <Button
-          disabled={addresses_loading || !has_addresses}
-          variant="depth"
-          onClick={() => set_create_open(true)}
-        >
-          <PlusIcon className="w-4 h-4 me-1.5" />
-          {t("settings.smtp_token_generate")}
-        </Button>
-      </div>
-
       {tokens_loading ? (
-        <div className="space-y-3">
+        <Island className="space-y-3" padding="md">
           {[1, 2].map((i) => (
             <div key={i} className="flex items-center justify-between py-3">
               <div className="flex items-center gap-3">
@@ -256,35 +250,27 @@ export function SmtpTokensSection() {
               <Skeleton className="h-8 w-20 rounded-lg" />
             </div>
           ))}
-        </div>
+        </Island>
       ) : tokens_load_failed ? (
-        <div className="py-6">
+        <Island padding="lg">
           <LoadFailedNotice on_retry={() => void load_tokens()} />
-        </div>
+        </Island>
       ) : tokens.length === 0 ? (
-        <div className="py-6 text-center">
+        <Island className="text-center" padding="lg">
           <KeyIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
           <p className="text-sm text-txt-muted">
             {t("settings.smtp_tokens_empty")}
           </p>
-        </div>
+        </Island>
       ) : (
-        <div className="space-y-1">
+        <Island>
           {tokens.map((token) => (
-            <div
+            <IslandRow
               key={token.id}
-              className="flex items-center justify-between py-3 border-b last:border-b-0 border-edge-secondary"
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                <KeyIcon className="w-5 h-5 text-txt-muted flex-shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-txt-primary truncate">
-                    {token.name}
-                  </p>
-                  <p className="text-xs text-txt-muted mt-0.5 truncate">
-                    {token.bound_address}
-                  </p>
-                  <p className="text-xs text-txt-muted mt-0.5">
+              description={
+                <>
+                  <span className="block truncate">{token.bound_address}</span>
+                  <span className="block mt-0.5">
                     {t("settings.trusted_devices_created")}{" "}
                     {format_date_short(token.created_at)}
                     {" · "}
@@ -292,21 +278,25 @@ export function SmtpTokensSection() {
                     {token.last_used_at
                       ? format_date_short(token.last_used_at)
                       : t("settings.smtp_token_never_used")}
-                  </p>
-                </div>
-              </div>
-              <Button
-                className="flex-shrink-0 ms-3"
-                disabled={revoking_id === token.id}
-                variant="destructive"
-                onClick={() => set_confirm_revoke_id(token.id)}
-              >
-                {t("settings.trusted_devices_revoke")}
-                {revoking_id === token.id && <ButtonSpinner />}
-              </Button>
-            </div>
+                  </span>
+                </>
+              }
+              icon={<KeyIcon />}
+              label={<span className="block truncate">{token.name}</span>}
+              trailing={
+                <Button
+                  className="flex-shrink-0"
+                  disabled={revoking_id === token.id}
+                  variant="destructive"
+                  onClick={() => set_confirm_revoke_id(token.id)}
+                >
+                  {t("settings.trusted_devices_revoke")}
+                  {revoking_id === token.id && <ButtonSpinner />}
+                </Button>
+              }
+            />
           ))}
-        </div>
+        </Island>
       )}
 
       <ConfirmationModal
@@ -329,6 +319,6 @@ export function SmtpTokensSection() {
         on_close={() => set_create_open(false)}
         on_created={load_tokens}
       />
-    </div>
+    </IslandSection>
   );
 }

@@ -27,7 +27,7 @@ import {
   ChevronDownIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { Button, UpgradeBtn } from "@aster/ui";
+import { Button, Island, IslandRow, UpgradeBtn } from "@aster/ui";
 
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
@@ -255,24 +255,24 @@ export function RecentlyDeletedAliasesSection({
 
   if (load_error) {
     return (
-      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 rounded-lg bg-surf-tertiary border border-edge-secondary">
+      <Island className="flex flex-wrap items-center justify-between gap-2 mt-2" padding="sm">
         <p className="text-xs text-txt-muted">
           {t("settings.recently_deleted_load_failed")}
         </p>
         <Button size="sm" variant="outline" onClick={() => load_deleted()}>
           {t("common.retry")}
         </Button>
-      </div>
+      </Island>
     );
   }
 
   if (aliases.length === 0) return null;
 
   return (
-    <div>
+    <div className="mt-4">
       <button
         aria-expanded={expanded}
-        className="flex w-full items-center justify-between gap-2 py-2 text-start"
+        className="flex w-full items-center justify-between gap-2 px-1 py-2 text-start"
         type="button"
         onClick={() => set_expanded((v) => !v)}
       >
@@ -291,7 +291,7 @@ export function RecentlyDeletedAliasesSection({
 
       {expanded && (
         <div className="space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-1">
             <p className="text-xs text-txt-muted">
               {t(
                 "settings.recently_deleted_aliases_description" as TranslationKey,
@@ -310,31 +310,18 @@ export function RecentlyDeletedAliasesSection({
               </Button>
             )}
           </div>
+          <Island divided>
           {aliases.map((alias) => (
-            <div
+            <IslandRow
               key={alias.id}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg bg-surf-tertiary border border-edge-secondary opacity-80"
-            >
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)",
-                }}
-              >
-                <TrashIcon aria-hidden="true" className="w-4 h-4 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate text-txt-primary">
-                  {alias.full_address}
-                </p>
-                <p className="text-xs text-txt-muted">
-                  {t("settings.alias_deleted_at" as TranslationKey, {
-                    date: format_date(alias.deleted_at),
-                  })}
-                </p>
-              </div>
-              {restore_locked ? (
+              description={t("settings.alias_deleted_at" as TranslationKey, {
+                date: format_date(alias.deleted_at),
+              })}
+              icon={<TrashIcon />}
+              label={
+                <span className="block truncate">{alias.full_address}</span>
+              }
+              trailing={restore_locked ? (
                 <UpgradeBtn
                   size="sm"
                   onClick={() =>
@@ -382,8 +369,9 @@ export function RecentlyDeletedAliasesSection({
                   </Button>
                 </div>
               )}
-            </div>
+            />
           ))}
+          </Island>
         </div>
       )}
 

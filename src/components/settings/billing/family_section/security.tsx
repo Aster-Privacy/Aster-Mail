@@ -24,7 +24,7 @@ import {
   ShieldCheckIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { Switch, Button } from "@aster/ui";
+import { Switch, Button, Island } from "@aster/ui";
 
 import { ConsentGateDialog } from "./filters";
 
@@ -82,14 +82,14 @@ export function MemberSecurityView() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2 p-3 rounded-lg bg-surf-tertiary border border-edge-secondary">
+      <Island className="flex items-center gap-2 p-3">
         <ShieldCheckIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
         <p className="text-xs text-txt-muted">
           {t("settings.fam_org_sec_member_notice")}
         </p>
-      </div>
-      <div className="divide-y divide-edge-secondary">
-        <div className="flex items-center justify-between py-4">
+      </Island>
+      <Island className="overflow-hidden">
+        <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
           <p className="text-sm font-medium text-txt-primary">
             {t("settings.fam_org_sec_require_2fa")}
           </p>
@@ -106,7 +106,7 @@ export function MemberSecurityView() {
           </span>
         </div>
         {policy.require_2fa && (
-          <div className="flex items-center justify-between py-4">
+          <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
             <p className="text-sm font-medium text-txt-primary">
               {t("settings.fam_org_sec_grace")}
             </p>
@@ -115,7 +115,7 @@ export function MemberSecurityView() {
             </span>
           </div>
         )}
-        <div className="flex items-center justify-between py-4">
+        <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
           <p className="text-sm font-medium text-txt-primary">
             {t("settings.fam_org_sec_max_sessions")}
           </p>
@@ -124,7 +124,7 @@ export function MemberSecurityView() {
               t("settings.fam_org_sec_no_limit")}
           </span>
         </div>
-        <div className="flex items-center justify-between py-4">
+        <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
           <p className="text-sm font-medium text-txt-primary">
             {t("settings.fam_org_sec_auto_signout")}
           </p>
@@ -134,7 +134,7 @@ export function MemberSecurityView() {
               : t("settings.fam_org_sec_never")}
           </span>
         </div>
-      </div>
+      </Island>
     </div>
   );
 }
@@ -299,7 +299,7 @@ export function SecurityContent({
   return (
     <div className="space-y-4">
       {total_members > 0 && (
-        <div className="space-y-2">
+        <Island className="space-y-2" padding="md">
           <div className="flex items-center justify-between text-sm">
             <span className="text-txt-primary font-medium">
               {t("settings.fam_org_2fa_summary", {
@@ -317,24 +317,19 @@ export function SecurityContent({
               style={{ width: `${(with_2fa / total_members) * 100}%` }}
             />
           </div>
-        </div>
+        </Island>
       )}
       {non_2fa > 0 && !banner_dismissed && (
-        <div
-          className="flex items-center gap-3 px-4 py-3 rounded-xl"
-          style={{
-            background: "#ef4444",
-            backgroundImage: "none",
-            boxShadow: "none",
-            border: "none",
-          }}
+        <Island
+          className="flex flex-wrap items-center gap-3 px-4 py-3"
+          tone="danger"
         >
-          <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0 text-white" />
-          <p className="text-sm font-semibold flex-1 min-w-0 text-white">
+          <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0 text-aster-danger" />
+          <p className="text-sm font-semibold flex-1 min-w-0 text-txt-primary">
             {t("settings.fam_org_2fa_banner", { count: non_2fa })}
           </p>
           <button
-            className="text-xs font-semibold text-white hover:underline flex-shrink-0 disabled:opacity-60 disabled:no-underline disabled:cursor-default"
+            className="text-xs font-semibold text-txt-primary hover:underline flex-shrink-0 disabled:opacity-60 disabled:no-underline disabled:cursor-default"
             disabled={reminding || reminder_sent}
             onClick={async () => {
               if (reminding) return;
@@ -377,16 +372,16 @@ export function SecurityContent({
           </button>
           <button
             aria-label={t("settings.fam_org_2fa_dismiss")}
-            className="p-0.5 text-white hover:opacity-70 flex-shrink-0"
+            className="p-0.5 text-txt-muted hover:text-txt-primary flex-shrink-0"
             title={t("settings.fam_org_2fa_dismiss")}
             onClick={dismiss_banner}
           >
             <XMarkIcon className="w-4 h-4" />
           </button>
-        </div>
+        </Island>
       )}
-      <div className="divide-y divide-edge-secondary">
-        <div className="flex items-center justify-between py-4">
+      <Island className="overflow-hidden">
+        <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
           <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
               {t("settings.fam_org_sec_require_2fa")}
@@ -412,7 +407,7 @@ export function SecurityContent({
           />
         </div>
         {policy.require_2fa && (
-          <div className="flex items-center justify-between py-4">
+          <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
             <div className="flex-1 pe-4">
               <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
                 {t("settings.fam_org_sec_grace")}
@@ -445,7 +440,7 @@ export function SecurityContent({
             </div>
           </div>
         )}
-        <div className="flex items-center justify-between py-4">
+        <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
           <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
               {t("settings.fam_org_sec_max_sessions")}
@@ -480,7 +475,7 @@ export function SecurityContent({
             </span>
           </div>
         </div>
-        <div className="flex items-center justify-between py-4">
+        <div className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
           <div className="flex-1 pe-4">
             <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
               {t("settings.fam_org_sec_auto_signout")}
@@ -515,7 +510,7 @@ export function SecurityContent({
             </span>
           </div>
         </div>
-      </div>
+      </Island>
       {(has_changes || saving) && (
         <div className="flex items-center justify-between gap-3 pt-1">
           {saving ? (
@@ -628,15 +623,17 @@ export function SecurityContent({
       )}
       {compliance.length > 0 && (
         <div className="space-y-2 pt-2">
-          <div className="mb-3">
-            <h3 className="text-sm font-semibold text-txt-primary">
-              {t("settings.fam_org_sec_compliance")}
-            </h3>
+          <div className="aster_island_section_header">
+            <div className="aster_island_section_heading">
+              <h3 className="aster_island_section_title">
+                <span>{t("settings.fam_org_sec_compliance")}</span>
+              </h3>
+            </div>
           </div>
-          <div className="divide-y divide-edge-secondary">
+          <Island className="overflow-hidden">
             {compliance.map((m) => {
               return (
-                <div key={m.user_id} className="flex items-center gap-3 py-3.5">
+                <div key={m.user_id} className="flex min-h-14 items-center gap-3 px-4 py-3">
                   <ProfileAvatar
                     email={`${m.username}@${m.email_domain}`}
                     name={m.username}
@@ -666,7 +663,7 @@ export function SecurityContent({
                 </div>
               );
             })}
-          </div>
+          </Island>
         </div>
       )}
       <ConsentGateDialog

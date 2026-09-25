@@ -31,7 +31,14 @@ import {
   CheckCircleIcon,
   NoSymbolIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Checkbox } from "@aster/ui";
+import {
+  Button,
+  Checkbox,
+  Island,
+  IslandEmpty,
+  IslandStack,
+  PillButton,
+} from "@aster/ui";
 
 import {
   Select,
@@ -146,10 +153,10 @@ function UndecryptableAliasCard({
   };
 
   return (
-    <div
-      className={`flex items-center gap-3 p-3 rounded-xl bg-surf-secondary border ${
-        orphaned ? "border-edge-primary" : "border-amber-500/30"
-      }`}
+    <Island
+      className="flex items-center gap-3"
+      padding="sm"
+      tone={orphaned ? "default" : "warning"}
     >
       <div
         className={`flex w-10 h-10 items-center justify-center rounded-full flex-shrink-0 ${
@@ -240,7 +247,7 @@ function UndecryptableAliasCard({
       >
         {deleting ? <Spinner size="xs" /> : <TrashIcon className="w-4 h-4" />}
       </Button>
-    </div>
+    </Island>
   );
 }
 
@@ -569,20 +576,21 @@ export function AliasList({
 
   if (aliases_loading) {
     return (
-      <div className="space-y-2">
+      <IslandStack>
         {[1, 2].map((i) => (
-          <div
+          <Island
             key={i}
-            className="flex items-center gap-3 p-3 rounded-xl animate-pulse bg-surf-secondary border border-edge-secondary"
+            className="flex items-center gap-3 animate-pulse"
+            padding="sm"
           >
             <div className="w-10 h-10 rounded-full bg-surf-tertiary" />
             <div className="flex-1 space-y-2">
-              <div className="h-4 w-48 rounded bg-surf-tertiary" />
+              <div className="h-4 w-48 max-w-full rounded bg-surf-tertiary" />
               <div className="h-3 w-24 rounded bg-surf-tertiary" />
             </div>
-          </div>
+          </Island>
         ))}
-      </div>
+      </IslandStack>
     );
   }
 
@@ -592,32 +600,30 @@ export function AliasList({
     domain_addresses.length === 0
   ) {
     return (
-      <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-        <p className="text-sm text-txt-secondary mb-3">
-          {t("settings.aliases_load_failed")}
-        </p>
-        {on_reload && (
-          <Button size="sm" variant="outline" onClick={on_reload}>
-            {t("common.retry")}
-          </Button>
-        )}
-      </div>
+      <IslandEmpty
+        action={
+          on_reload && (
+            <PillButton size="sm" variant="outline" onClick={on_reload}>
+              {t("common.retry")}
+            </PillButton>
+          )
+        }
+        title={t("settings.aliases_load_failed")}
+      />
     );
   }
 
   if (aliases.length === 0 && domain_addresses.length === 0) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-2">
         <UpgradeInlineCard
           limit_key="max_email_aliases"
           resource_label="aliases"
         />
-        <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-          <AtSymbolIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
-          <p className="text-sm text-txt-muted">
-            {t("settings.no_aliases_yet")}
-          </p>
-        </div>
+        <IslandEmpty
+          icon={<AtSymbolIcon className="w-6 h-6" />}
+          title={t("settings.no_aliases_yet")}
+        />
         <RecentlyDeletedAliasesSection
           on_restored={() => on_aliases_changed?.()}
           refresh_signal={deleted_refresh_signal}
@@ -634,8 +640,8 @@ export function AliasList({
         resource_label="aliases"
       />
 
-      <div className="flex items-center gap-2 mb-3">
-        <div className="relative flex-1">
+      <div className="flex flex-wrap items-center gap-2 mb-2">
+        <div className="relative min-w-0 flex-1 basis-48">
           <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted pointer-events-none" />
           <input
             className="w-full h-9 ps-9 pe-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none focus:border-blue-500"
@@ -674,7 +680,10 @@ export function AliasList({
       </div>
 
       {bulk_mode && (
-        <div className="flex h-12 items-center justify-between gap-2 mb-3 px-1 border-b border-edge-secondary">
+        <Island
+          className="flex min-h-12 flex-wrap items-center justify-between gap-2 mb-2"
+          padding="sm"
+        >
           <button
             className="flex min-w-0 cursor-pointer items-center gap-2 text-start"
             type="button"
@@ -695,7 +704,7 @@ export function AliasList({
           </button>
           <div
             aria-hidden={selected_ids.size === 0}
-            className={`flex shrink-0 items-center gap-1.5 transition-opacity ${
+            className={`flex flex-wrap shrink-0 items-center gap-1.5 transition-opacity ${
               selected_ids.size > 0
                 ? "opacity-100"
                 : "pointer-events-none opacity-0"
@@ -730,10 +739,10 @@ export function AliasList({
               {t("settings.alias_bulk_delete")}
             </Button>
           </div>
-        </div>
+        </Island>
       )}
 
-      <div ref={list_top_ref} className="space-y-2">
+      <IslandStack ref={list_top_ref}>
         {page_entries.map((entry) =>
           entry.kind === "domain_address" ? (
             <DomainAddressItem
@@ -773,7 +782,7 @@ export function AliasList({
             />
           ),
         )}
-      </div>
+      </IslandStack>
       <BottomPagination
         current_page={current_page}
         on_page_change={handle_page_change}

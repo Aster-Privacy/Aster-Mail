@@ -54,7 +54,8 @@ vi.mock("@/services/api/passkeys", () => ({
   is_platform_passkey_available: vi.fn(async () => false),
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({
     children,
     onClick,

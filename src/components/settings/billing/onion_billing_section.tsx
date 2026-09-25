@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useCallback, useEffect, useState } from "react";
+import { IslandSections } from "@aster/ui";
 
 import { use_plan_features } from "@/components/settings/billing/use_plan_features";
 import { CurrentPlanCard } from "@/components/settings/billing/current_plan_card";
@@ -206,7 +207,7 @@ export function OnionBillingSection() {
   }
 
   return (
-    <div className="space-y-6">
+    <IslandSections>
       <CryptoResumeBanner />
 
       <p className="text-sm leading-relaxed text-txt-muted">
@@ -261,6 +262,6 @@ export function OnionBillingSection() {
           yearly_price_cents={crypto_tier.yearly_cents}
         />
       )}
-    </div>
+    </IslandSections>
   );
 }

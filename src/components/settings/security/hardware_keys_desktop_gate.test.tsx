@@ -41,7 +41,8 @@ vi.mock("@/services/api/webauthn", () => ({
   HardwareKeyInfo: {},
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({
     children,
     onClick,

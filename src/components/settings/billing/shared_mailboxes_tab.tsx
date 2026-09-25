@@ -29,7 +29,7 @@ import {
   TrashIcon,
   UsersIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Island } from "@aster/ui";
 
 import { apply_input_transform } from "@/utils/input_transform";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -557,9 +557,9 @@ export function SharedMailboxesTab({
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-2 items-start">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
         <div
-          className={`flex items-center h-9 rounded-xl border bg-white dark:bg-white/[0.04] overflow-hidden flex-1 min-w-0 ${address_available === true ? "border-green-500" : address_available === false ? "border-red-500" : "border-black/10 dark:border-white/10"}`}
+          className={`flex items-center h-9 rounded-xl border bg-white dark:bg-white/[0.04] overflow-hidden min-w-0 sm:flex-1 ${address_available === true ? "border-green-500" : address_available === false ? "border-red-500" : "border-black/10 dark:border-white/10"}`}
         >
           <input
             className="bg-transparent text-sm text-txt-primary outline-none px-3 h-full flex-1 min-w-0 placeholder:text-txt-muted"
@@ -641,7 +641,7 @@ export function SharedMailboxesTab({
           }}
         />
       ) : mailboxes.length === 0 ? (
-        <div className="flex flex-col items-center py-10 gap-3">
+        <Island className="flex flex-col items-center gap-3 py-8" padding="lg">
           <InboxStackIcon className="w-12 h-12 text-txt-muted" />
           <p className="text-sm font-medium text-txt-primary">
             {t("shared_mailboxes.empty_title")}
@@ -649,7 +649,7 @@ export function SharedMailboxesTab({
           <p className="text-xs text-txt-muted text-center max-w-xs">
             {t("shared_mailboxes.empty_desc")}
           </p>
-        </div>
+        </Island>
       ) : (
         <div className="space-y-2">
           {mailboxes.map((mailbox) => {
@@ -660,11 +660,8 @@ export function SharedMailboxesTab({
             );
 
             return (
-              <div
-                key={mailbox.id}
-                className="rounded-xl border border-edge-secondary overflow-hidden"
-              >
-                <div className="flex items-center gap-2 px-3 py-2.5">
+              <Island key={mailbox.id} className="overflow-hidden">
+                <div className="flex min-h-14 items-center gap-2 px-4 py-2.5">
                   <button
                     className="flex items-center gap-2.5 flex-1 min-w-0 text-start"
                     onClick={() => set_expanded(is_open ? null : mailbox.id)}
@@ -711,7 +708,7 @@ export function SharedMailboxesTab({
                 </div>
 
                 {is_open && (
-                  <div className="border-t border-edge-secondary px-4 py-3 space-y-3">
+                  <div className="px-4 pb-3 space-y-3">
                     {mailbox.rotation_required && mailbox.my_grant && (
                       <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-amber-500/10">
                         <p className="text-xs text-txt-secondary flex-1">
@@ -750,7 +747,7 @@ export function SharedMailboxesTab({
                           return (
                             <div
                               key={member.user_id}
-                              className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-black/[0.02] dark:hover:bg-white/[0.03]"
+                              className="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-surf-hover"
                             >
                               <span className="text-sm text-txt-primary flex-1 min-w-0 truncate">
                                 {member.username}@{member.email_domain}
@@ -790,7 +787,7 @@ export function SharedMailboxesTab({
                     </div>
                   </div>
                 )}
-              </div>
+              </Island>
             );
           })}
         </div>

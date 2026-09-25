@@ -503,7 +503,7 @@ function SettingsContentInner(props: SettingsContentProps) {
             )}
           </div>
         </nav>
-        <div className="flex-shrink-0 px-3 pb-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="flex-shrink-0 px-3 pt-2 pb-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <StorageMeter
             on_buy_more={
               is_onion_host()

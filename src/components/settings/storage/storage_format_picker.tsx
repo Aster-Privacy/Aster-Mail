@@ -20,7 +20,7 @@
 //
 import { useState } from "react";
 import { CircleStackIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Island, IslandSection } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { InfoPopover } from "@/components/ui/info_popover";
@@ -62,89 +62,69 @@ export function StorageFormatPicker({
     set_show_ipfs_confirm(false);
   };
 
+  const options: {
+    format: "aster" | "ipfs";
+    image: string;
+    label: string;
+  }[] = [
+    {
+      format: "aster",
+      image: "/settings/aster_server.webp",
+      label: t("settings.storage_format_aster_server"),
+    },
+    {
+      format: "ipfs",
+      image: "/settings/decentralized.webp",
+      label: t("settings.storage_format_decentralized_ipfs"),
+    },
+  ];
+
   return (
-    <div>
-      <div className="mb-4">
-        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-          <CircleStackIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-          {t("settings.storage_format_title")}
-          <InfoPopover
-            description={t("settings.info_storage_format_description")}
-            title={t("settings.info_storage_format_title")}
-          />
-        </h3>
-      </div>
-      <p className="text-sm mb-4 text-txt-muted">
-        {t("settings.storage_format_description")}
-      </p>
-
-      <div className="grid grid-cols-2 gap-3">
-        <button
-          className="rounded-[14px] text-start transition-all"
-          style={{ backgroundColor: "var(--bg-tertiary)" }}
-          type="button"
-          onClick={() => handle_select("aster")}
-        >
-          <div
-            className={`relative aspect-[5/3] rounded-[14px] transition-all ${
-              storage_format === "aster"
-                ? "ring-2 ring-brand ring-offset-2 ring-offset-surf-primary"
-                : ""
-            }`}
+    <IslandSection
+      bare
+      description={t("settings.storage_format_description")}
+      footer={t("settings.storage_format_ipfs_hint")}
+      icon={<CircleStackIcon />}
+      title={t("settings.storage_format_title")}
+      title_info={
+        <InfoPopover
+          description={t("settings.info_storage_format_description")}
+          title={t("settings.info_storage_format_title")}
+        />
+      }
+    >
+      <div className="grid grid-cols-2 gap-2">
+        {options.map((option) => (
+          <Island
+            key={option.format}
+            interactive
+            className="overflow-hidden"
+            selected={storage_format === option.format}
           >
-            <div className="w-full h-full rounded-[14px] overflow-hidden">
-              <img
-                alt=""
-                className="w-full h-full object-cover block"
-                draggable={false}
-                loading="lazy"
-                src="/settings/aster_server.webp"
-              />
-            </div>
-            {storage_format === "aster" && <SelectedBadge />}
-          </div>
-          <div className="px-3.5 py-3 flex items-center justify-center">
-            <span className="text-sm font-medium text-txt-primary">
-              {t("settings.storage_format_aster_server")}
-            </span>
-          </div>
-        </button>
-
-        <button
-          className="rounded-[14px] text-start transition-all"
-          style={{ backgroundColor: "var(--bg-tertiary)" }}
-          type="button"
-          onClick={() => handle_select("ipfs")}
-        >
-          <div
-            className={`relative aspect-[5/3] rounded-[14px] transition-all ${
-              storage_format === "ipfs"
-                ? "ring-2 ring-brand ring-offset-2 ring-offset-surf-primary"
-                : ""
-            }`}
-          >
-            <div className="w-full h-full rounded-[14px] overflow-hidden">
-              <img
-                alt=""
-                className="w-full h-full object-cover block"
-                draggable={false}
-                loading="lazy"
-                src="/settings/decentralized.webp"
-              />
-            </div>
-            {storage_format === "ipfs" && <SelectedBadge />}
-          </div>
-          <div className="px-3.5 py-3 flex items-center justify-center">
-            <span className="text-sm font-medium text-txt-primary">
-              {t("settings.storage_format_decentralized_ipfs")}
-            </span>
-          </div>
-        </button>
+            <button
+              className="block w-full text-start"
+              type="button"
+              onClick={() => handle_select(option.format)}
+            >
+              <div className="relative aspect-[5/3] overflow-hidden">
+                <img
+                  alt=""
+                  className="w-full h-full object-cover block"
+                  draggable={false}
+                  loading="lazy"
+                  src={option.image}
+                />
+                {storage_format === option.format && <SelectedBadge />}
+              </div>
+              <div className="px-3.5 py-3 flex items-center justify-center">
+                <span className="text-sm font-medium text-txt-primary">
+                  {option.label}
+                </span>
+              </div>
+            </button>
+          </Island>
+        ))}
       </div>
-
-      <p className="text-xs mt-3 text-txt-muted leading-relaxed">
-        {t("settings.storage_format_ipfs_hint")}
-      </p>
 
       <Modal
         is_open={show_ipfs_confirm}
@@ -171,6 +151,6 @@ export function StorageFormatPicker({
           </Button>
         </ModalFooter>
       </Modal>
-    </div>
+    </IslandSection>
   );
 }

@@ -21,7 +21,14 @@
 import type { CustomCategoryRule } from "@/data/category_catalog";
 
 import { useState } from "react";
-import { Switch, Button, UpgradeBtn } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandRow,
+  IslandSection,
+  IslandSections,
+  UpgradeBtn,
+} from "@aster/ui";
 import {
   PlusIcon,
   PencilIcon,
@@ -182,93 +189,91 @@ export function CategorySettingsSection() {
   if (plan_loading && !limits) return <SettingsSkeleton variant="list" />;
 
   return (
-    <div>
-      <div className="mb-4">
-        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-          <Squares2X2Icon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-          {t("settings.categories_title")}
-        </h3>
-        <p className="text-sm text-txt-muted mt-1">
-          {t("settings.categories_description")}
-        </p>
-      </div>
+    <IslandSections>
+      <IslandSection
+        bare
+        description={t("settings.categories_description")}
+        icon={<Squares2X2Icon />}
+        title={t("settings.categories_title")}
+      >
+        <Island>
+          <IslandRow
+            description={t("settings.inbox_categories_short")}
+            label={
+              <span className="inline-flex items-center gap-1.5">
+                {t("settings.inbox_categories")}
+                <InfoPopover
+                  description={t("settings.inbox_categories_description")}
+                  title={t("settings.inbox_categories")}
+                />
+              </span>
+            }
+            toggle={{
+              checked: preferences.inbox_categories_enabled !== false,
+              on_change: () =>
+                update_preference(
+                  "inbox_categories_enabled",
+                  preferences.inbox_categories_enabled === false,
+                  true,
+                ),
+              size: "lg",
+              aria_label: t("settings.inbox_categories"),
+            }}
+          />
+        </Island>
 
-      <div className="flex items-center justify-between py-4 border-t border-b border-edge-secondary">
-        <div className="flex-1 pe-4">
-          <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
-            {t("settings.inbox_categories")}
-            <InfoPopover
-              description={t("settings.inbox_categories_description")}
-              title={t("settings.inbox_categories")}
-            />
-          </p>
-          <p className="text-sm mt-0.5 text-txt-muted">
-            {t("settings.inbox_categories_short")}
-          </p>
-        </div>
-        <Switch
-          aria-label={t("settings.inbox_categories")}
-          checked={preferences.inbox_categories_enabled !== false}
-          size="lg"
-          onCheckedChange={() =>
-            update_preference(
-              "inbox_categories_enabled",
-              preferences.inbox_categories_enabled === false,
-              true,
-            )
-          }
-        />
-      </div>
+        <Island className="aster_scrollbar_thin max-h-[420px] overflow-y-auto">
+          {BUILTIN_CATEGORIES.filter((cat) => cat.removable).map((cat) => {
+            const Icon = category_icon(cat.icon);
+            const is_enabled = enabled_ids.has(cat.id);
 
-      <div className="aster_scrollbar_thin max-h-[420px] overflow-y-auto pe-1 mt-2">
-        {BUILTIN_CATEGORIES.filter((cat) => cat.removable).map((cat) => {
-          const Icon = category_icon(cat.icon);
-          const is_enabled = enabled_ids.has(cat.id);
-
-          return (
-            <div
-              key={cat.id}
-              className="flex items-center justify-between py-3"
-            >
-              <div className="flex-1 pe-4 flex items-center gap-3">
-                <Icon className="w-[18px] h-[18px] text-txt-muted flex-shrink-0" />
-                <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
-                  {t(cat.label_key)}
-                  <InfoPopover
-                    description={t(cat.info_key)}
-                    title={t(cat.label_key)}
+            return (
+              <IslandRow
+                key={cat.id}
+                icon={<Icon />}
+                label={
+                  <span className="inline-flex items-center gap-1.5">
+                    {t(cat.label_key)}
+                    <InfoPopover
+                      description={t(cat.info_key)}
+                      title={t(cat.label_key)}
+                    />
+                  </span>
+                }
+                toggle={{
+                  checked: is_enabled,
+                  on_change: () => toggle_builtin(cat.id, is_enabled),
+                  aria_label: t(cat.label_key),
+                }}
+                trailing={
+                  <MuteToggle
+                    id={cat.id}
+                    is_enabled={is_enabled}
+                    is_muted={muted_ids.has(cat.id)}
+                    label={t(cat.label_key)}
+                    on_toggle={toggle_muted}
                   />
-                </p>
-              </div>
-              <div className="flex items-center gap-1">
-                <MuteToggle
-                  id={cat.id}
-                  is_enabled={is_enabled}
-                  is_muted={muted_ids.has(cat.id)}
-                  label={t(cat.label_key)}
-                  on_toggle={toggle_muted}
-                />
-                <Switch
-                  aria-label={t(cat.label_key)}
-                  checked={is_enabled}
-                  onCheckedChange={() => toggle_builtin(cat.id, is_enabled)}
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
+                }
+              />
+            );
+          })}
+        </Island>
+      </IslandSection>
 
-      <div className="mt-5 pt-4 border-t border-edge-secondary">
-        <div className="flex items-center justify-between mb-3">
-          <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
+      <IslandSection
+        bare
+        description={t("settings.custom_categories_tutorial")}
+        title={
+          <span className="inline-flex items-center gap-1.5">
             {t("settings.custom_categories_title")}
             <InfoPopover
               description={t("settings.category_tutorial_text")}
               title={t("settings.custom_categories_title")}
             />
-          </p>
-          {!can_add_custom || at_limit ? (
+          </span>
+        }
+        trailing={
+          !can_add_custom || at_limit ? (
             <UpgradeBtn size="sm" onClick={handle_add_category}>
               {t("settings.add_category")}
             </UpgradeBtn>
@@ -277,13 +282,9 @@ export function CategorySettingsSection() {
               <PlusIcon className="w-4 h-4" />
               {t("settings.add_category")}
             </Button>
-          )}
-        </div>
-
-        <p className="text-sm text-txt-muted mb-3">
-          {t("settings.custom_categories_tutorial")}
-        </p>
-
+          )
+        }
+      >
         {!can_add_custom ? (
           <FeatureLockOverlay
             feature="max_custom_categories"
@@ -292,102 +293,107 @@ export function CategorySettingsSection() {
         ) : (
           <>
             {at_limit && (
-              <p className="text-sm text-txt-muted italic mb-2">
+              <p className="px-1 text-sm text-txt-muted italic">
                 {t("settings.custom_categories_limit_reached")}
               </p>
             )}
 
             {custom_categories.length === 0 ? (
-              <p className="text-sm text-txt-muted italic">
-                {t("settings.no_custom_categories")}
-              </p>
+              <Island className="text-center" padding="lg">
+                <p className="text-sm text-txt-muted italic">
+                  {t("settings.no_custom_categories")}
+                </p>
+              </Island>
             ) : (
-              <div className="aster_scrollbar_thin max-h-[320px] space-y-1 overflow-y-auto pe-1">
+              <Island className="aster_scrollbar_thin max-h-[320px] overflow-y-auto">
                 {custom_categories.map((rule) => {
                   const Icon = category_icon(rule.icon);
                   const is_locked = !permitted_custom_ids.has(rule.id);
 
                   return (
-                    <div
+                    <IslandRow
                       key={rule.id}
-                      className={`flex items-center justify-between py-2 ${is_locked ? "opacity-60" : ""}`}
-                    >
-                      <div className="flex-1 pe-4 flex items-center gap-3">
-                        <Icon className="w-[18px] h-[18px] text-txt-muted flex-shrink-0" />
-                        <div>
-                          <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
-                            {rule.name}
-                            {is_locked && (
-                              <span className="text-xs font-normal text-txt-muted italic">
-                                {t("settings.custom_category_locked_badge")}
-                              </span>
-                            )}
-                          </p>
-                          <p className="text-xs text-txt-muted">
-                            {[...rule.match_domains, ...rule.match_keywords]
-                              .slice(0, 4)
-                              .join(", ")}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MuteToggle
-                          id={rule.id}
-                          is_enabled={rule.enabled && !is_locked}
-                          is_muted={muted_ids.has(rule.id)}
-                          label={rule.name}
-                          on_toggle={toggle_muted}
-                        />
-                        <Button
-                          size="icon"
-                          title={t("common.edit")}
-                          variant="ghost"
-                          onClick={() => {
-                            set_editing_rule(rule);
-                            set_modal_open(true);
-                          }}
-                        >
-                          <PencilIcon className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          className="text-red-500 hover:text-red-500 hover:bg-red-500/10"
-                          size="icon"
-                          title={t("common.delete")}
-                          variant="ghost"
-                          onClick={() => set_deleting_rule(rule)}
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </Button>
-                        {is_locked ? (
+                      className={is_locked ? "opacity-60" : undefined}
+                      description={[
+                        ...rule.match_domains,
+                        ...rule.match_keywords,
+                      ]
+                        .slice(0, 4)
+                        .join(", ")}
+                      icon={<Icon />}
+                      label={
+                        <span className="inline-flex flex-wrap items-center gap-1.5">
+                          {rule.name}
+                          {is_locked && (
+                            <span className="text-xs font-normal text-txt-muted italic">
+                              {t("settings.custom_category_locked_badge")}
+                            </span>
+                          )}
+                        </span>
+                      }
+                      toggle={
+                        is_locked
+                          ? undefined
+                          : {
+                              checked: rule.enabled,
+                              on_change: () => toggle_custom(rule),
+                              aria_label: rule.name,
+                            }
+                      }
+                      trailing={
+                        <span className="flex items-center gap-1">
+                          <MuteToggle
+                            id={rule.id}
+                            is_enabled={rule.enabled && !is_locked}
+                            is_muted={muted_ids.has(rule.id)}
+                            label={rule.name}
+                            on_toggle={toggle_muted}
+                          />
                           <Button
                             size="icon"
-                            title={t("settings.custom_category_locked_badge")}
+                            title={t("common.edit")}
                             variant="ghost"
-                            onClick={() =>
-                              show_plan_limit_upgrade({
-                                resource: "custom categories",
-                                feature: "max_custom_categories",
-                              })
-                            }
+                            onClick={() => {
+                              set_editing_rule(rule);
+                              set_modal_open(true);
+                            }}
                           >
-                            <LockClosedIcon className="w-4 h-4" />
+                            <PencilIcon className="w-4 h-4" />
                           </Button>
-                        ) : (
-                          <Switch
-                            aria-label={rule.name}
-                            checked={rule.enabled}
-                            onCheckedChange={() => toggle_custom(rule)}
-                          />
-                        )}
-                      </div>
-                    </div>
+                          <Button
+                            className="text-red-500 hover:text-red-500 hover:bg-red-500/10"
+                            size="icon"
+                            title={t("common.delete")}
+                            variant="ghost"
+                            onClick={() => set_deleting_rule(rule)}
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </Button>
+                          {is_locked && (
+                            <Button
+                              size="icon"
+                              title={t("settings.custom_category_locked_badge")}
+                              variant="ghost"
+                              onClick={() =>
+                                show_plan_limit_upgrade({
+                                  resource: "custom categories",
+                                  feature: "max_custom_categories",
+                                })
+                              }
+                            >
+                              <LockClosedIcon className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </span>
+                      }
+                    />
                   );
                 })}
-              </div>
+              </Island>
             )}
           </>
         )}
-      </div>
+      </IslandSection>
 
       <CustomCategoryModal
         existing={editing_rule}
@@ -410,6 +416,6 @@ export function CategorySettingsSection() {
         show={!!deleting_rule}
         title={t("settings.delete_category_title")}
       />
-    </div>
+    </IslandSections>
   );
 }

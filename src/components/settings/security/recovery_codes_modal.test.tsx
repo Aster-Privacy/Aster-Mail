@@ -85,7 +85,8 @@ vi.mock("@/components/ui/modal", () => ({
   ),
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({
     children,
     disabled,

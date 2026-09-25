@@ -33,7 +33,13 @@ import {
   ExclamationTriangleIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandDivider,
+  IslandRow,
+  IslandSection,
+} from "@aster/ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { InfoPopover } from "@/components/ui/info_popover";
@@ -144,41 +150,35 @@ export function KeyRotationPanel({
 
   return (
     <>
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <KeyIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.encryption_keys")}
-          </h3>
-        </div>
-        <p className="text-sm mb-4 text-txt-muted">
-          {t("settings.encryption_keys_description")}
-        </p>
-
+      <IslandSection
+        bare
+        description={t("settings.encryption_keys_description")}
+        icon={<KeyIcon />}
+        title={t("settings.encryption_keys")}
+      >
         {pgp_key ? (
-          <div className="rounded-lg bg-surf-tertiary border border-edge-secondary">
-            <div className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-txt-primary">
-                    {t("settings.your_encryption_key")}
-                  </p>
-                  <p className="text-xs mt-0.5 text-txt-muted">
-                    {pgp_key.algorithm.toUpperCase()}-{pgp_key.key_size}{" "}
-                    &middot;{" "}
-                    {t("settings.created_date", {
-                      date: format_date(pgp_key.created_at),
-                    })}
-                  </p>
-                </div>
+          <Island>
+            <IslandRow
+              description={
+                <>
+                  {pgp_key.algorithm.toUpperCase()}-{pgp_key.key_size} &middot;{" "}
+                  {t("settings.created_date", {
+                    date: format_date(pgp_key.created_at),
+                  })}
+                </>
+              }
+              label={t("settings.your_encryption_key")}
+              trailing={
                 <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-green-500/10 text-green-500">
                   <CheckCircleIcon className="w-3.5 h-3.5" />
                   {t("common.active")}
                 </span>
-              </div>
-            </div>
+              }
+            />
 
-            <div className="px-4 py-3 border-t border-edge-secondary">
+            <IslandDivider />
+
+            <div className="px-4 py-3">
               <div className="flex items-center gap-1.5 mb-2">
                 <p className="text-xs font-medium text-txt-secondary">
                   {t("settings.key_fingerprint")}
@@ -189,7 +189,7 @@ export function KeyRotationPanel({
                 />
               </div>
               <div className="flex items-center gap-2">
-                <code className="flex-1 px-3 py-2 rounded-md text-[11px] font-mono tracking-wide bg-surf-secondary text-txt-secondary border border-edge-primary">
+                <code className="flex-1 min-w-0 break-all px-3 py-2 rounded-md text-[11px] font-mono tracking-wide bg-surf-secondary text-txt-secondary border border-edge-primary">
                   {format_fingerprint(pgp_key.fingerprint)}
                 </code>
                 <Button
@@ -204,7 +204,9 @@ export function KeyRotationPanel({
               </div>
             </div>
 
-            <div className="px-4 py-3 flex gap-2 border-t border-edge-secondary">
+            <IslandDivider />
+
+            <div className="px-4 py-3 flex flex-wrap gap-2">
               <Button
                 className="flex-1"
                 size="md"
@@ -233,9 +235,9 @@ export function KeyRotationPanel({
                 <ClipboardIcon className="w-3.5 h-3.5" />
               </Button>
             </div>
-          </div>
+          </Island>
         ) : pgp_key_load_failed ? (
-          <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
+          <Island className="text-center" padding="lg">
             <ExclamationTriangleIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
             <p className="text-sm text-txt-muted mb-3">
               {t("settings.encryption_key_load_failed")}
@@ -247,340 +249,334 @@ export function KeyRotationPanel({
             >
               {t("common.retry")}
             </Button>
-          </div>
+          </Island>
         ) : (
-          <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
+          <Island className="text-center" padding="lg">
             <KeyIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
             <p className="text-sm text-txt-muted">
               {t("settings.no_encryption_key")}
             </p>
-          </div>
+          </Island>
         )}
+      </IslandSection>
 
-        <Modal
-          is_open={show_export_prompt}
-          on_close={close_export_prompt}
-          size="md"
-        >
-          <ModalHeader>
-            <ModalTitle>{t("common.export_private_key")}</ModalTitle>
-            <ModalDescription>
-              {t("settings.verify_identity_export")}
-            </ModalDescription>
-          </ModalHeader>
-          <ModalBody>
-            <div className="space-y-3">
+      <Modal
+        is_open={show_export_prompt}
+        on_close={close_export_prompt}
+        size="md"
+      >
+        <ModalHeader>
+          <ModalTitle>{t("common.export_private_key")}</ModalTitle>
+          <ModalDescription>
+            {t("settings.verify_identity_export")}
+          </ModalDescription>
+        </ModalHeader>
+        <ModalBody>
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium mb-1.5 text-txt-secondary">
+                {t("settings.password")}
+              </label>
+              <Input
+                // eslint-disable-next-line jsx-a11y/no-autofocus
+                autoFocus
+                maxLength={128}
+                placeholder={t("common.enter_password_prompt")}
+                type="password"
+                value={export_password}
+                onChange={(e) =>
+                  set_export_password(clamp_password(e.target.value))
+                }
+                onKeyDown={(e) =>
+                  e["key"] === "Enter" &&
+                  !is_exporting_private_key &&
+                  export_password.trim() &&
+                  (!export_totp_required || export_totp_code.length === 6) &&
+                  handle_export_secret_key()
+                }
+              />
+            </div>
+            {export_totp_required && (
               <div>
                 <label className="block text-xs font-medium mb-1.5 text-txt-secondary">
-                  {t("settings.password")}
+                  {t("settings.two_fa_code_label")}
                 </label>
                 <Input
-                  // eslint-disable-next-line jsx-a11y/no-autofocus
-                  autoFocus
-                  maxLength={128}
-                  placeholder={t("common.enter_password_prompt")}
-                  type="password"
-                  value={export_password}
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder={t("common.two_fa_code_placeholder")}
+                  type="text"
+                  value={export_totp_code}
                   onChange={(e) =>
-                    set_export_password(clamp_password(e.target.value))
+                    set_export_totp_code(
+                      e.target.value.replace(/\D/g, "").slice(0, 6),
+                    )
                   }
                   onKeyDown={(e) =>
                     e["key"] === "Enter" &&
                     !is_exporting_private_key &&
                     export_password.trim() &&
-                    (!export_totp_required || export_totp_code.length === 6) &&
+                    export_totp_code.length === 6 &&
                     handle_export_secret_key()
                   }
                 />
               </div>
-              {export_totp_required && (
-                <div>
-                  <label className="block text-xs font-medium mb-1.5 text-txt-secondary">
-                    {t("settings.two_fa_code_label")}
-                  </label>
-                  <Input
-                    inputMode="numeric"
-                    maxLength={6}
-                    placeholder={t("common.two_fa_code_placeholder")}
-                    type="text"
-                    value={export_totp_code}
-                    onChange={(e) =>
-                      set_export_totp_code(
-                        e.target.value.replace(/\D/g, "").slice(0, 6),
-                      )
-                    }
-                    onKeyDown={(e) =>
-                      e["key"] === "Enter" &&
-                      !is_exporting_private_key &&
-                      export_password.trim() &&
-                      export_totp_code.length === 6 &&
-                      handle_export_secret_key()
-                    }
-                  />
-                </div>
-              )}
-              {export_error && (
-                <p className="text-xs text-red-500">{export_error}</p>
-              )}
-            </div>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" onClick={close_export_prompt}>
-              {t("common.cancel")}
-            </Button>
-            <Button
-              disabled={
-                is_exporting_private_key ||
-                !export_password.trim() ||
-                (export_totp_required && export_totp_code.length !== 6)
-              }
-              variant="depth"
-              onClick={handle_export_secret_key}
-            >
-              {t("common.export")}
-              {is_exporting_private_key && <ButtonSpinner />}
-            </Button>
-          </ModalFooter>
-        </Modal>
-      </div>
+            )}
+            {export_error && (
+              <p className="text-xs text-red-500">{export_error}</p>
+            )}
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="ghost" onClick={close_export_prompt}>
+            {t("common.cancel")}
+          </Button>
+          <Button
+            disabled={
+              is_exporting_private_key ||
+              !export_password.trim() ||
+              (export_totp_required && export_totp_code.length !== 6)
+            }
+            variant="depth"
+            onClick={handle_export_secret_key}
+          >
+            {t("common.export")}
+            {is_exporting_private_key && <ButtonSpinner />}
+          </Button>
+        </ModalFooter>
+      </Modal>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.recovery_codes")}
-          </h3>
-        </div>
-        <p className="text-sm mb-4 text-txt-muted">
-          {recovery_info
+      <IslandSection
+        description={
+          recovery_info
             ? t("settings.codes_remaining_count", {
                 remaining: codes_remaining,
                 total: codes_total,
               })
-            : t("common.something_went_wrong_try_again")}
-        </p>
-
-        <div className="rounded-lg bg-surf-tertiary border border-edge-secondary">
-          <div className="p-4">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-txt-primary">
-                {t("settings.recovery_codes")}
+            : t("common.something_went_wrong_try_again")
+        }
+        icon={<ShieldCheckIcon />}
+        title={t("settings.recovery_codes")}
+      >
+        <div className="p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <span className="text-sm font-medium text-txt-primary">
+              {t("settings.recovery_codes")}
+            </span>
+            {codes_used > 0 && (
+              <span
+                className="text-xs font-medium px-2.5 py-1 rounded-full"
+                style={{
+                  backgroundColor: codes_remaining <= 2 ? "#dc2626" : "#d97706",
+                  color: "#fff",
+                }}
+              >
+                {t("settings.codes_used_count", { used: codes_used })}
               </span>
-              {codes_used > 0 && (
-                <span
-                  className="text-xs font-medium px-2.5 py-1 rounded-full"
+            )}
+          </div>
+          <div className="flex gap-1">
+            {(recovery_info ? Array.from({ length: codes_total }) : []).map(
+              (_, i) => (
+                <div
+                  key={i}
+                  className="flex-1 h-1.5 rounded-full"
                   style={{
                     backgroundColor:
-                      codes_remaining <= 2 ? "#dc2626" : "#d97706",
-                    color: "#fff",
+                      i < codes_remaining
+                        ? "var(--accent-color)"
+                        : "var(--border-secondary)",
                   }}
-                >
-                  {t("settings.codes_used_count", { used: codes_used })}
-                </span>
-              )}
-            </div>
-            <div className="flex gap-1">
-              {(recovery_info ? Array.from({ length: codes_total }) : []).map(
-                (_, i) => (
-                  <div
-                    key={i}
-                    className="flex-1 h-1.5 rounded-full"
-                    style={{
-                      backgroundColor:
-                        i < codes_remaining
-                          ? "var(--accent-color)"
-                          : "var(--border-secondary)",
-                    }}
-                  />
-                ),
-              )}
-            </div>
-          </div>
-
-          {codes_remaining <= 2 && codes_remaining > 0 && (
-            <div className="px-4 py-2.5 flex items-center gap-2 border-t border-edge-secondary bg-red-500/5">
-              <ExclamationTriangleIcon className="w-4 h-4 text-red-500 flex-shrink-0" />
-              <p className="text-xs text-red-500">
-                {t("settings.running_low_warning")}
-              </p>
-            </div>
-          )}
-
-          <AnimatePresence mode="wait">
-            {show_recovery_codes && recovery_codes && (
-              <motion.div
-                key={codes_key}
-                animate={{ opacity: 1 }}
-                className="px-4 py-3 border-t border-edge-secondary"
-                exit={{ opacity: 0 }}
-                initial={reduce_motion ? false : { opacity: 0 }}
-                transition={{ duration: reduce_motion ? 0 : 0.2 }}
-              >
-                <div className="grid grid-cols-2 gap-2 mb-3">
-                  {recovery_codes.map((code, index) => (
-                    <button
-                      key={`${codes_key}-${index}`}
-                      className="flex items-center gap-2 px-3 py-2 rounded-[14px] cursor-pointer transition-colors bg-surf-secondary border border-edge-primary hover:bg-surf-hover"
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          await copy_text_or_throw(code);
-                          show_toast(
-                            t("settings.copied_to_clipboard"),
-                            "success",
-                          );
-                        } catch (error) {
-                          if (import.meta.env.DEV) console.error(error);
-                          show_toast(t("common.failed_to_copy"), "error");
-                        }
-                      }}
-                    >
-                      <span className="text-[10px] font-medium w-4 text-txt-muted">
-                        {index + 1}
-                      </span>
-                      <code className="text-xs font-mono text-txt-primary">
-                        {code}
-                      </code>
-                    </button>
-                  ))}
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    className="flex-1"
-                    size="md"
-                    variant="outline"
-                    onClick={handle_download_codes}
-                  >
-                    <ArrowDownTrayIcon className="w-3.5 h-3.5" />
-                    {t("settings.download_pdf")}
-                  </Button>
-                  <Button
-                    size="icon"
-                    title={t("common.copy")}
-                    variant="ghost"
-                    onClick={handle_copy_all_codes}
-                  >
-                    <ClipboardIcon className="w-4 h-4" />
-                  </Button>
-                </div>
-              </motion.div>
+                />
+              ),
             )}
-          </AnimatePresence>
-
-          <div className="px-4 py-3 border-t border-edge-secondary">
-            <Button
-              className="w-full"
-              size="md"
-              variant="depth"
-              onClick={open_regenerate_confirm}
-            >
-              <ArrowPathIcon className="w-3.5 h-3.5" />
-              {t("settings.regenerate_codes_label")}
-            </Button>
           </div>
         </div>
 
-        <Modal
-          is_open={show_regenerate_confirm}
-          on_close={close_regenerate_confirm}
-          size="md"
-        >
-          <ModalHeader>
-            <ModalTitle>{t("common.regenerate_recovery_codes")}</ModalTitle>
-            <ModalDescription>
-              {t("settings.regenerate_codes_warning")}{" "}
-              <code className="px-1 py-0.5 rounded text-[10px] bg-surf-secondary">
-                regenerate
-              </code>{" "}
-              {t("common.confirm").toLowerCase()}.
-            </ModalDescription>
-          </ModalHeader>
-          <ModalBody>
-            <div className="space-y-3">
+        {codes_remaining <= 2 && codes_remaining > 0 && (
+          <div className="px-4 py-2.5 flex items-center gap-2 bg-red-500/5">
+            <ExclamationTriangleIcon className="w-4 h-4 text-red-500 flex-shrink-0" />
+            <p className="text-xs text-red-500">
+              {t("settings.running_low_warning")}
+            </p>
+          </div>
+        )}
+
+        <AnimatePresence mode="wait">
+          {show_recovery_codes && recovery_codes && (
+            <motion.div
+              key={codes_key}
+              animate={{ opacity: 1 }}
+              className="px-4 py-3"
+              exit={{ opacity: 0 }}
+              initial={reduce_motion ? false : { opacity: 0 }}
+              transition={{ duration: reduce_motion ? 0 : 0.2 }}
+            >
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                {recovery_codes.map((code, index) => (
+                  <button
+                    key={`${codes_key}-${index}`}
+                    className="flex items-center gap-2 px-3 py-2 rounded-[14px] cursor-pointer transition-colors bg-surf-secondary border border-edge-primary hover:bg-surf-hover"
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await copy_text_or_throw(code);
+                        show_toast(
+                          t("settings.copied_to_clipboard"),
+                          "success",
+                        );
+                      } catch (error) {
+                        if (import.meta.env.DEV) console.error(error);
+                        show_toast(t("common.failed_to_copy"), "error");
+                      }
+                    }}
+                  >
+                    <span className="text-[10px] font-medium w-4 text-txt-muted">
+                      {index + 1}
+                    </span>
+                    <code className="text-xs font-mono text-txt-primary">
+                      {code}
+                    </code>
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  className="flex-1"
+                  size="md"
+                  variant="outline"
+                  onClick={handle_download_codes}
+                >
+                  <ArrowDownTrayIcon className="w-3.5 h-3.5" />
+                  {t("settings.download_pdf")}
+                </Button>
+                <Button
+                  size="icon"
+                  title={t("common.copy")}
+                  variant="ghost"
+                  onClick={handle_copy_all_codes}
+                >
+                  <ClipboardIcon className="w-4 h-4" />
+                </Button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <IslandDivider />
+
+        <div className="px-4 py-3">
+          <Button
+            className="w-full"
+            size="md"
+            variant="depth"
+            onClick={open_regenerate_confirm}
+          >
+            <ArrowPathIcon className="w-3.5 h-3.5" />
+            {t("settings.regenerate_codes_label")}
+          </Button>
+        </div>
+      </IslandSection>
+
+      <Modal
+        is_open={show_regenerate_confirm}
+        on_close={close_regenerate_confirm}
+        size="md"
+      >
+        <ModalHeader>
+          <ModalTitle>{t("common.regenerate_recovery_codes")}</ModalTitle>
+          <ModalDescription>
+            {t("settings.regenerate_codes_warning")}{" "}
+            <code className="px-1 py-0.5 rounded text-[10px] bg-surf-secondary">
+              regenerate
+            </code>{" "}
+            {t("common.confirm").toLowerCase()}.
+          </ModalDescription>
+        </ModalHeader>
+        <ModalBody>
+          <div className="space-y-3">
+            <Input
+              // eslint-disable-next-line jsx-a11y/no-autofocus
+              autoFocus
+              placeholder={t("settings.type_regenerate")}
+              type="text"
+              value={regenerate_confirm_text}
+              onChange={(e) => set_regenerate_confirm_text(e.target.value)}
+            />
+            <div>
+              <label className="block text-xs font-medium mb-1.5 text-txt-secondary">
+                {t("settings.password")}
+              </label>
               <Input
-                // eslint-disable-next-line jsx-a11y/no-autofocus
-                autoFocus
-                placeholder={t("settings.type_regenerate")}
-                type="text"
-                value={regenerate_confirm_text}
-                onChange={(e) => set_regenerate_confirm_text(e.target.value)}
+                maxLength={128}
+                placeholder={t("common.enter_password_prompt")}
+                type="password"
+                value={regenerate_password}
+                onChange={(e) =>
+                  set_regenerate_password(clamp_password(e.target.value))
+                }
+                onKeyDown={(e) =>
+                  e["key"] === "Enter" &&
+                  !is_regenerating &&
+                  regenerate_confirm_text.toLowerCase() === "regenerate" &&
+                  regenerate_password.trim() &&
+                  (!regenerate_totp_required ||
+                    regenerate_totp_code.length === 6) &&
+                  handle_regenerate_codes()
+                }
               />
+            </div>
+            {regenerate_totp_required && (
               <div>
                 <label className="block text-xs font-medium mb-1.5 text-txt-secondary">
-                  {t("settings.password")}
+                  {t("settings.two_fa_code_label")}
                 </label>
                 <Input
-                  maxLength={128}
-                  placeholder={t("common.enter_password_prompt")}
-                  type="password"
-                  value={regenerate_password}
+                  inputMode="numeric"
+                  maxLength={6}
+                  placeholder={t("common.two_fa_code_placeholder")}
+                  type="text"
+                  value={regenerate_totp_code}
                   onChange={(e) =>
-                    set_regenerate_password(clamp_password(e.target.value))
+                    set_regenerate_totp_code(
+                      e.target.value.replace(/\D/g, "").slice(0, 6),
+                    )
                   }
                   onKeyDown={(e) =>
                     e["key"] === "Enter" &&
                     !is_regenerating &&
                     regenerate_confirm_text.toLowerCase() === "regenerate" &&
                     regenerate_password.trim() &&
-                    (!regenerate_totp_required ||
-                      regenerate_totp_code.length === 6) &&
+                    regenerate_totp_code.length === 6 &&
                     handle_regenerate_codes()
                   }
                 />
               </div>
-              {regenerate_totp_required && (
-                <div>
-                  <label className="block text-xs font-medium mb-1.5 text-txt-secondary">
-                    {t("settings.two_fa_code_label")}
-                  </label>
-                  <Input
-                    inputMode="numeric"
-                    maxLength={6}
-                    placeholder={t("common.two_fa_code_placeholder")}
-                    type="text"
-                    value={regenerate_totp_code}
-                    onChange={(e) =>
-                      set_regenerate_totp_code(
-                        e.target.value.replace(/\D/g, "").slice(0, 6),
-                      )
-                    }
-                    onKeyDown={(e) =>
-                      e["key"] === "Enter" &&
-                      !is_regenerating &&
-                      regenerate_confirm_text.toLowerCase() === "regenerate" &&
-                      regenerate_password.trim() &&
-                      regenerate_totp_code.length === 6 &&
-                      handle_regenerate_codes()
-                    }
-                  />
-                </div>
-              )}
-              {regenerate_error && (
-                <p className="text-xs text-red-500">{regenerate_error}</p>
-              )}
-            </div>
-          </ModalBody>
-          <ModalFooter>
-            <Button variant="ghost" onClick={close_regenerate_confirm}>
-              {t("common.cancel")}
-            </Button>
-            <Button
-              disabled={
-                regenerate_confirm_text.toLowerCase() !== "regenerate" ||
-                !regenerate_password.trim() ||
-                (regenerate_totp_required &&
-                  regenerate_totp_code.length !== 6) ||
-                is_regenerating
-              }
-              variant="destructive"
-              onClick={handle_regenerate_codes}
-            >
-              {t("common.regenerate")}
-              {is_regenerating && <ButtonSpinner />}
-            </Button>
-          </ModalFooter>
-        </Modal>
-      </div>
+            )}
+            {regenerate_error && (
+              <p className="text-xs text-red-500">{regenerate_error}</p>
+            )}
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="ghost" onClick={close_regenerate_confirm}>
+            {t("common.cancel")}
+          </Button>
+          <Button
+            disabled={
+              regenerate_confirm_text.toLowerCase() !== "regenerate" ||
+              !regenerate_password.trim() ||
+              (regenerate_totp_required && regenerate_totp_code.length !== 6) ||
+              is_regenerating
+            }
+            variant="destructive"
+            onClick={handle_regenerate_codes}
+          >
+            {t("common.regenerate")}
+            {is_regenerating && <ButtonSpinner />}
+          </Button>
+        </ModalFooter>
+      </Modal>
     </>
   );
 }

@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { LoginEventEntry } from "@/services/api/auth";
+import type { IslandRowToggle } from "@aster/ui";
 
 import { useId, useState } from "react";
 import {
@@ -29,8 +30,7 @@ import {
   ComputerDesktopIcon,
   LinkIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
-import { Switch } from "@aster/ui";
+import { Button, IslandRow, IslandSection } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -48,7 +48,8 @@ import { format_relative_time_short } from "@/utils/date_utils";
 interface SecuritySettingProps {
   title: React.ReactNode;
   description: string;
-  action: React.ReactNode;
+  action?: React.ReactNode;
+  toggle?: IslandRowToggle;
   info?: { title: string; description: string };
 }
 
@@ -56,28 +57,29 @@ function SecuritySetting({
   title,
   description,
   action,
+  toggle,
   info,
 }: SecuritySettingProps) {
   const label_id = useId();
 
   return (
-    <div className="flex items-center justify-between py-4">
-      <div className="flex-1 pe-4">
-        <p
-          className="text-sm font-medium text-txt-primary flex items-center gap-1.5"
+    <IslandRow
+      description={description}
+      label={
+        <span
+          className="inline-flex flex-wrap items-center gap-1.5"
           id={label_id}
         >
           {title}
           {info && (
             <InfoPopover description={info.description} title={info.title} />
           )}
-        </p>
-        <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
-      </div>
-      <div className="flex-shrink-0">
-        {label_toggle_children(action, label_id)}
-      </div>
-    </div>
+        </span>
+      }
+      layout={toggle ? "inline" : "stacked"}
+      toggle={toggle}
+      trailing={action ? label_toggle_children(action, label_id) : undefined}
+    />
   );
 }
 
@@ -127,49 +129,57 @@ export function TwoStepVerificationGroup({
   const { t } = use_i18n();
 
   return (
-    <div>
-      <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-        {t("settings.two_step_verification")}
-        {!totp_enabled && !totp_status_failed && (
-          <ActionRecommendedBadge
-            tip={t("settings.two_step_verification_recommendation")}
-          />
-        )}
-      </p>
-      {!totp_status_failed && (
-        <p className="text-sm mt-0.5 text-txt-muted">
-          {totp_enabled
-            ? t("settings.two_step_verification_enabled_description")
-            : t("settings.two_step_verification_description")}
-        </p>
-      )}
+    <>
+      <IslandRow
+        description={
+          totp_status_failed
+            ? undefined
+            : totp_enabled
+              ? t("settings.two_step_verification_enabled_description")
+              : t("settings.two_step_verification_description")
+        }
+        label={
+          <span className="inline-flex flex-wrap items-center gap-1.5">
+            {t("settings.two_step_verification")}
+            {!totp_enabled && !totp_status_failed && (
+              <ActionRecommendedBadge
+                tip={t("settings.two_step_verification_recommendation")}
+              />
+            )}
+          </span>
+        }
+      />
 
       {totp_status_failed ? (
-        <div className="py-3">
+        <div className="px-4 pb-4">
           <LoadFailedNotice on_retry={() => on_totp_status_retry?.()} />
         </div>
+      ) : totp_enabled ? (
+        <IslandRow
+          label={t("settings.authenticator_app")}
+          toggle={{
+            checked: totp_enabled,
+            on_change: () => on_two_factor_toggle(),
+            size: "lg",
+            aria_label: t("settings.authenticator_app"),
+          }}
+        />
       ) : (
-        <div className="flex items-center justify-between py-3">
-          <p className="text-sm text-txt-primary">
-            {t("settings.authenticator_app")}
-          </p>
-          {totp_enabled ? (
-            <Switch
-              aria-label={t("settings.authenticator_app")}
-              checked={totp_enabled}
-              size="lg"
-              onCheckedChange={on_two_factor_toggle}
-            />
-          ) : (
+        <IslandRow
+          label={t("settings.authenticator_app")}
+          layout="stacked"
+          trailing={
             <Button variant="outline" onClick={on_two_factor_toggle}>
               {show_inline_setup ? t("common.cancel") : t("settings.setup_2fa")}
             </Button>
-          )}
-        </div>
+          }
+        />
       )}
 
       {show_inline_setup && !totp_status_failed && (
-        <TotpInlineSetup on_success={on_inline_setup_success} />
+        <div className="px-4 pb-4">
+          <TotpInlineSetup on_success={on_inline_setup_success} />
+        </div>
       )}
 
       {totp_enabled && on_regenerate_backup_codes && (
@@ -185,7 +195,7 @@ export function TwoStepVerificationGroup({
           title={t("settings.backup_codes")}
         />
       )}
-    </div>
+    </>
   );
 }
 
@@ -231,91 +241,103 @@ export function LoginAlertsSessionsGroup({
     : login_events.slice(0, SIGN_IN_PREVIEW_COUNT);
 
   return (
-    <div>
-      <div className="mb-4">
-        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-          <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-          {t("settings.login_alerts_sessions_title")}
-        </h3>
-      </div>
-
-      <SecuritySetting
-        action={
-          <Switch
-            checked={session_timeout_enabled}
-            size="lg"
-            onCheckedChange={on_timeout_toggle}
-          />
-        }
-        description={timeout_description}
-        title={t("settings.session_timeout")}
-      />
-      {session_timeout_enabled && (
-        <div className="pb-4">
-          <p className="text-sm font-medium mb-3 text-txt-primary">
-            {t("settings.timeout_duration")}
-          </p>
-          <div className="grid grid-cols-4 gap-2">
-            {SESSION_TIMEOUT_OPTIONS.map((option) => (
-              <OptionButton
-                key={option.value}
-                is_selected={session_timeout_minutes === option.value}
-                label={t(option.label_key)}
-                on_click={() => on_timeout_change(option.value)}
-              />
-            ))}
+    <>
+      <IslandSection
+        icon={<ShieldCheckIcon />}
+        title={t("settings.login_alerts_sessions_title")}
+      >
+        <SecuritySetting
+          description={timeout_description}
+          title={t("settings.session_timeout")}
+          toggle={{
+            checked: session_timeout_enabled,
+            on_change: () => on_timeout_toggle(),
+            size: "lg",
+          }}
+        />
+        {session_timeout_enabled && (
+          <div className="px-4 pb-4">
+            <p className="text-sm font-medium mb-3 text-txt-primary">
+              {t("settings.timeout_duration")}
+            </p>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {SESSION_TIMEOUT_OPTIONS.map((option) => (
+                <OptionButton
+                  key={option.value}
+                  is_selected={session_timeout_minutes === option.value}
+                  label={t(option.label_key)}
+                  on_click={() => on_timeout_change(option.value)}
+                />
+              ))}
+            </div>
+            <p className="text-xs mt-3 text-txt-muted">
+              {t("settings.timeout_logout_description")}
+            </p>
           </div>
-          <p className="text-xs mt-3 text-txt-muted">
-            {t("settings.timeout_logout_description")}
-          </p>
-        </div>
-      )}
-      <SecuritySetting
-        action={
-          login_alerts_failed && !login_alerts_loaded ? (
+        )}
+        <SecuritySetting
+          action={
+            login_alerts_failed && !login_alerts_loaded ? (
+              <button
+                className="text-xs font-medium text-brand hover:underline"
+                type="button"
+                onClick={on_reload_login_alerts}
+              >
+                {t("common.retry")}
+              </button>
+            ) : undefined
+          }
+          description={
+            login_alerts_failed && !login_alerts_loaded
+              ? t("common.something_went_wrong_try_again")
+              : t("settings.login_alerts_description")
+          }
+          title={
+            <>
+              {t("settings.login_alerts")}
+              {login_alerts_loaded && !login_alerts_enabled && (
+                <ActionRecommendedBadge
+                  tip={t("settings.login_alerts_off_recommendation")}
+                />
+              )}
+            </>
+          }
+          toggle={
+            login_alerts_failed && !login_alerts_loaded
+              ? undefined
+              : {
+                  checked: login_alerts_enabled,
+                  on_change: () => on_login_alerts_toggle(),
+                  disabled: !login_alerts_loaded,
+                  size: "lg",
+                }
+          }
+        />
+      </IslandSection>
+
+      <IslandSection
+        bare={login_events_loading}
+        footer={
+          !login_events_loading &&
+          login_events.length > SIGN_IN_PREVIEW_COUNT ? (
             <button
               className="text-xs font-medium text-brand hover:underline"
               type="button"
-              onClick={on_reload_login_alerts}
+              onClick={() => set_show_all_sign_ins((prev) => !prev)}
             >
-              {t("common.retry")}
+              {show_all_sign_ins
+                ? t("common.show_less")
+                : t("common.show_more")}
             </button>
-          ) : (
-            <Switch
-              checked={login_alerts_enabled}
-              disabled={!login_alerts_loaded}
-              size="lg"
-              onCheckedChange={on_login_alerts_toggle}
-            />
-          )
+          ) : undefined
         }
-        description={
-          login_alerts_failed && !login_alerts_loaded
-            ? t("common.something_went_wrong_try_again")
-            : t("settings.login_alerts_description")
-        }
-        title={
-          <>
-            {t("settings.login_alerts")}
-            {login_alerts_loaded && !login_alerts_enabled && (
-              <ActionRecommendedBadge
-                tip={t("settings.login_alerts_off_recommendation")}
-              />
-            )}
-          </>
-        }
-      />
-      <div className="pb-4">
-        <div className="flex items-center gap-2 mb-2">
-          <ComputerDesktopIcon className="w-4 h-4 text-txt-muted" />
-          <span className="text-xs font-medium text-txt-muted">
-            {t("settings.recent_sign_ins")}
-          </span>
-        </div>
+        icon={<ComputerDesktopIcon />}
+        title={t("settings.recent_sign_ins")}
+      >
         {login_events_loading ? (
-          <p className="text-xs text-txt-muted">{t("common.loading")}</p>
+          <p className="px-1 text-xs text-txt-muted">{t("common.loading")}</p>
         ) : login_events_failed && login_events.length === 0 ? (
-          <div className="py-4 text-center">
+          <div className="px-4 py-6 text-center">
             <p className="text-xs text-txt-muted">
               {t("common.something_went_wrong_try_again")}
             </p>
@@ -328,49 +350,28 @@ export function LoginAlertsSessionsGroup({
             </button>
           </div>
         ) : login_events.length === 0 ? (
-          <div className="py-4 text-center">
+          <div className="px-4 py-6 text-center">
             <ComputerDesktopIcon className="w-6 h-6 text-txt-muted mx-auto mb-2" />
             <p className="text-xs text-txt-muted">
               {t("settings.no_sign_in_history")}
             </p>
           </div>
         ) : (
-          <div className="space-y-1">
-            {visible_login_events.map((event) => (
-              <div
-                key={event.id}
-                className="flex items-center justify-between py-2 border-b border-edge-secondary last:border-0"
-              >
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-xs font-medium text-txt-primary">
-                    {event.device_type} - {event.browser}
-                  </span>
-                  {event.location && (
-                    <span className="text-xs text-txt-muted">
-                      {event.location}
-                    </span>
-                  )}
-                </div>
-                <span className="text-xs text-txt-muted ms-4 shrink-0">
-                  {format_relative_time_short(event.created_at, t)}
-                </span>
-              </div>
-            ))}
-            {login_events.length > SIGN_IN_PREVIEW_COUNT && (
-              <button
-                className="mt-1 text-xs font-medium text-brand hover:underline"
-                type="button"
-                onClick={() => set_show_all_sign_ins((prev) => !prev)}
-              >
-                {show_all_sign_ins
-                  ? t("common.show_less")
-                  : t("common.show_more")}
-              </button>
-            )}
-          </div>
+          visible_login_events.map((event) => (
+            <IslandRow
+              key={event.id}
+              description={event.location || undefined}
+              label={
+                <>
+                  {event.device_type} - {event.browser}
+                </>
+              }
+              value={format_relative_time_short(event.created_at, t)}
+            />
+          ))
         )}
-      </div>
-    </div>
+      </IslandSection>
+    </>
   );
 }
 
@@ -386,21 +387,11 @@ export function ExternalLinkWarningsGroup({
   const { t } = use_i18n();
 
   return (
-    <div>
-      <div className="mb-4">
-        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-          <LinkIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-          {t("settings.external_link_warnings")}
-        </h3>
-      </div>
+    <IslandSection
+      icon={<LinkIcon />}
+      title={t("settings.external_link_warnings")}
+    >
       <SecuritySetting
-        action={
-          <Switch
-            checked={!external_link_warning_dismissed}
-            size="lg"
-            onCheckedChange={on_external_link_toggle}
-          />
-        }
         description={
           external_link_warning_dismissed
             ? t("settings.external_link_warning_disabled")
@@ -411,8 +402,13 @@ export function ExternalLinkWarningsGroup({
           description: t("settings.info_external_link_warnings_description"),
         }}
         title={t("settings.external_link_warnings")}
+        toggle={{
+          checked: !external_link_warning_dismissed,
+          on_change: () => on_external_link_toggle(),
+          size: "lg",
+        }}
       />
-    </div>
+    </IslandSection>
   );
 }
 
@@ -444,22 +440,11 @@ export function ForwardSecrecyGroup({
   const { t } = use_i18n();
 
   return (
-    <div>
-      <div className="mb-4">
-        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-          <FingerPrintIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-          {t("settings.forward_secrecy")}
-        </h3>
-      </div>
+    <IslandSection
+      icon={<FingerPrintIcon />}
+      title={t("settings.forward_secrecy")}
+    >
       <SecuritySetting
-        action={
-          <Switch
-            checked={forward_secrecy_enabled}
-            disabled={forward_secrecy_working}
-            size="lg"
-            onCheckedChange={on_forward_secrecy_toggle}
-          />
-        }
         description={
           forward_secrecy_enabled
             ? t("settings.forward_secrecy_enabled_description").replace(
@@ -477,9 +462,15 @@ export function ForwardSecrecyGroup({
           description: t("settings.info_forward_secrecy_description"),
         }}
         title={t("settings.forward_secrecy")}
+        toggle={{
+          checked: forward_secrecy_enabled,
+          on_change: () => on_forward_secrecy_toggle(),
+          disabled: forward_secrecy_working,
+          size: "lg",
+        }}
       />
       {forward_secrecy_enabled && (
-        <div className="pb-4 space-y-4">
+        <div className="px-4 pb-4 space-y-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <FingerPrintIcon className="w-4 h-4 text-txt-muted" />
@@ -503,7 +494,7 @@ export function ForwardSecrecyGroup({
               <span className="text-txt-secondary">
                 {t("settings.fingerprint")}
               </span>
-              <span className="font-mono text-txt-primary">
+              <span className="font-mono text-txt-primary min-w-0 break-all text-end ms-4">
                 {key_fingerprint || "—"}
               </span>
             </div>
@@ -521,7 +512,7 @@ export function ForwardSecrecyGroup({
                 />
               </span>
             </div>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {KEY_ROTATION_OPTIONS.map((option) => (
                 <OptionButton
                   key={option.value}
@@ -543,7 +534,7 @@ export function ForwardSecrecyGroup({
                 />
               </span>
             </div>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {KEY_HISTORY_OPTIONS.map((option) => (
                 <OptionButton
                   key={option.value}
@@ -568,6 +559,6 @@ export function ForwardSecrecyGroup({
           </div>
         </div>
       )}
-    </div>
+    </IslandSection>
   );
 }

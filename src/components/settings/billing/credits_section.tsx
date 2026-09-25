@@ -26,7 +26,7 @@ import {
   CurrencyDollarIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Switch } from "@aster/ui";
+import { Button, Island, IslandSection, Switch } from "@aster/ui";
 
 import {
   CardBrandMarks,
@@ -62,10 +62,8 @@ import { use_i18n } from "@/lib/i18n/context";
 import { convert_cents } from "@/components/settings/billing/billing_constants";
 import { describe_credit_entry } from "@/utils/billing_description";
 import {
-  BillingGroup,
   BillingIconBox,
   BillingRow,
-  BillingSectionLabel,
 } from "@/components/settings/billing/billing_layout";
 import text_logo_url from "@/assets/text_logo.webp";
 
@@ -336,16 +334,14 @@ export function CreditsSection({
     !!credit_balance && (credit_balance.recent_transactions?.length ?? 0) > 0;
 
   return (
-    <div className="space-y-8" id="credits_section">
+    <div className="flex flex-col gap-7" id="credits_section">
       <div
-        className={`grid grid-cols-1 overflow-hidden rounded-xl border border-edge-secondary ${
-          payment_cell
-            ? "divide-y divide-edge-secondary sm:grid-cols-2 sm:divide-x sm:divide-y-0 rtl:sm:divide-x-reverse"
-            : ""
+        className={`grid grid-cols-1 gap-2 ${
+          payment_cell ? "sm:grid-cols-2" : ""
         }`}
       >
-        {payment_cell}
-        <div className="flex items-center gap-3 px-4 py-3.5 sm:px-5">
+        {payment_cell && <Island>{payment_cell}</Island>}
+        <Island className="flex items-center gap-3 px-4 py-3.5">
           <BillingIconBox icon={ArrowPathIcon} />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-txt-primary">
@@ -362,7 +358,7 @@ export function CreditsSection({
           >
             {t("settings.top_up_credits")}
           </button>
-        </div>
+        </Island>
       </div>
 
       <Modal
@@ -641,11 +637,10 @@ export function CreditsSection({
 
       {credit_balance &&
         (Number(credit_balance.balance_cents) > 0 || has_transactions) && (
-          <section>
-            <BillingSectionLabel>
-              {t("settings.billing_renewals_heading")}
-            </BillingSectionLabel>
-            <BillingGroup>
+          <IslandSection
+            className="overflow-hidden"
+            title={t("settings.billing_renewals_heading")}
+          >
               <BillingRow
                 action={
                   <Switch
@@ -672,7 +667,7 @@ export function CreditsSection({
                   }
                   title={t("settings.recent_transactions")}
                 >
-                  <div className="-mx-4 mt-3 divide-y divide-edge-secondary border-t border-edge-secondary sm:-mx-5">
+                  <div className="-mx-4 mt-2">
                     {(show_all_transactions
                       ? credit_transactions_list
                       : credit_balance.recent_transactions
@@ -724,7 +719,7 @@ export function CreditsSection({
                       return (
                         <div
                           key={tx.id}
-                          className="flex items-center justify-between gap-3 px-4 py-2.5 sm:px-5"
+                          className="flex items-center justify-between gap-3 px-4 py-2.5"
                         >
                           <div className="min-w-0">
                             <p className="truncate text-sm text-txt-primary">
@@ -749,8 +744,7 @@ export function CreditsSection({
                   </div>
                 </BillingRow>
               )}
-            </BillingGroup>
-          </section>
+          </IslandSection>
         )}
     </div>
   );

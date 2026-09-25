@@ -21,7 +21,7 @@
 import type { Matcher } from "react-day-picker";
 
 import { useCallback, useEffect, useState, useMemo } from "react";
-import { Checkbox } from "@aster/ui";
+import { Checkbox, Island, IslandRow, IslandSection } from "@aster/ui";
 import { Button } from "@/components/ui/button";
 import { CalendarIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
 
@@ -380,77 +380,64 @@ export function VacationReplySection() {
       is_locked={is_feature_locked("has_vacation_reply")}
       min_plan="Star"
     >
-      <div className="space-y-4">
-        <div>
-          <div className="mb-4">
-            <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-              <PaperAirplaneIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-              {t("settings.vacation_reply_title")}
-            </h3>
-          </div>
-          <p
-            className="mt-1 text-sm"
-            style={{ color: "var(--text-secondary)" }}
-          >
-            {t("settings.vacation_reply_description")}
-          </p>
-        </div>
-
+      <IslandSection
+        bare
+        description={t("settings.vacation_reply_description")}
+        icon={<PaperAirplaneIcon />}
+        title={t("settings.vacation_reply_title")}
+      >
         {vacation && (
-          <div
-            className="flex items-center justify-between rounded-lg p-3"
-            style={{ backgroundColor: "var(--bg-secondary)" }}
-          >
-            <div className="flex items-center gap-3">
-              <div
-                className="h-2.5 w-2.5 rounded-full"
-                style={{
-                  backgroundColor: vacation.is_enabled
-                    ? "rgb(34, 197, 94)"
-                    : "rgb(245, 158, 11)",
-                }}
-              />
-              <span
-                className="text-sm font-medium"
-                style={{ color: "var(--text-primary)" }}
-              >
-                {vacation.is_enabled
+          <Island>
+            <IslandRow
+              description={
+                vacation.reply_count > 0 ? (
+                  <>
+                    {t("settings.vacation_reply_count", {
+                      count: vacation.reply_count,
+                    })}
+                    {vacation.last_replied_at &&
+                      ` · ${t("settings.vacation_reply_last", { date: new Date(vacation.last_replied_at).toLocaleDateString(app_locale(), { timeZone: get_display_time_zone(), month: "short", day: "numeric", year: "numeric" }) })}`}
+                  </>
+                ) : undefined
+              }
+              icon={
+                <span
+                  className="block h-2.5 w-2.5 rounded-full"
+                  style={{
+                    backgroundColor: vacation.is_enabled
+                      ? "rgb(34, 197, 94)"
+                      : "rgb(245, 158, 11)",
+                  }}
+                />
+              }
+              label={
+                vacation.is_enabled
                   ? t("settings.vacation_reply_enabled")
-                  : t("settings.vacation_reply_disabled")}
-              </span>
-            </div>
-            <Button
-              disabled={is_toggling}
-              variant="secondary"
-              onClick={() => handle_toggle(!vacation.is_enabled)}
-            >
-              {vacation.is_enabled ? t("common.disable") : t("common.enable")}
-              {is_toggling && <ButtonSpinner />}
-            </Button>
-          </div>
+                  : t("settings.vacation_reply_disabled")
+              }
+              trailing={
+                <Button
+                  disabled={is_toggling}
+                  variant="secondary"
+                  onClick={() => handle_toggle(!vacation.is_enabled)}
+                >
+                  {vacation.is_enabled
+                    ? t("common.disable")
+                    : t("common.enable")}
+                  {is_toggling && <ButtonSpinner />}
+                </Button>
+              }
+            />
+          </Island>
         )}
 
-        {vacation && vacation.reply_count > 0 && (
-          <div
-            className="rounded-lg p-3 text-sm"
-            style={{
-              backgroundColor: "var(--bg-secondary)",
-              color: "var(--text-secondary)",
-            }}
-          >
-            {t("settings.vacation_reply_count", {
-              count: vacation.reply_count,
-            })}
-            {vacation.last_replied_at &&
-              ` · ${t("settings.vacation_reply_last", { date: new Date(vacation.last_replied_at).toLocaleDateString(app_locale(), { timeZone: get_display_time_zone(), month: "short", day: "numeric", year: "numeric" }) })}`}
-          </div>
-        )}
-
-        <Button variant="depth" onClick={open_editor}>
-          {vacation
-            ? t("settings.vacation_reply_edit")
-            : t("settings.vacation_reply_setup")}
-        </Button>
+        <div>
+          <Button variant="depth" onClick={open_editor}>
+            {vacation
+              ? t("settings.vacation_reply_edit")
+              : t("settings.vacation_reply_setup")}
+          </Button>
+        </div>
 
         <Modal
           close_on_overlay={false}
@@ -496,7 +483,7 @@ export function VacationReplySection() {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <VacationDatePicker
                 date={start_date}
                 label={t("settings.vacation_reply_start_date")}
@@ -573,7 +560,7 @@ export function VacationReplySection() {
           title={t("settings.vacation_reply_delete")}
           variant="danger"
         />
-      </div>
+      </IslandSection>
     </UpgradeGate>
   );
 }

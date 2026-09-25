@@ -105,7 +105,7 @@ export function EncryptionFlowBanner({
         </p>
 
         <div
-          className="inline-flex items-center gap-3 px-4 py-2.5 rounded-xl"
+          className="inline-flex flex-wrap items-center gap-3 px-4 py-2.5 rounded-xl max-w-full"
           style={{
             background: "rgba(0, 0, 0, 0.15)",
             border: "1px solid rgba(255, 255, 255, 0.08)",

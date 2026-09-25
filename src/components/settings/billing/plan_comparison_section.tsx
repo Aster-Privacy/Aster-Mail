@@ -20,6 +20,7 @@
 //
 import { useState } from "react";
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { PillButton } from "@aster/ui";
 
 import { PlanComparisonTable } from "@/components/settings/billing/plan_comparison_table";
 import { use_i18n } from "@/lib/i18n/context";
@@ -35,22 +36,25 @@ export function PlanComparisonSection({
   const [is_open, set_is_open] = useState(false);
 
   return (
-    <div className="mt-4 mb-6">
+    <div>
       <div className="flex justify-center">
-        <button
+        <PillButton
           aria-expanded={is_open}
-          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-txt-secondary transition-colors hover:bg-surf-hover hover:text-txt-primary"
+          size="sm"
+          trailing={
+            <ChevronDownIcon
+              aria-hidden="true"
+              className={`transition-transform ${is_open ? "rotate-180" : ""}`}
+            />
+          }
           type="button"
+          variant="ghost"
           onClick={() => set_is_open((open) => !open)}
         >
           {is_open
             ? t("settings.compare_features_hide")
             : t("settings.compare_features_show")}
-          <ChevronDownIcon
-            aria-hidden="true"
-            className={`h-4 w-4 transition-transform ${is_open ? "rotate-180" : ""}`}
-          />
-        </button>
+        </PillButton>
       </div>
 
       {is_open && (

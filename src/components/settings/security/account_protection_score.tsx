@@ -22,6 +22,7 @@
 //
 import { useState } from "react";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
+import { Island } from "@aster/ui";
 
 import {
   Modal,
@@ -93,24 +94,24 @@ export function AccountProtectionScore({
 
   if (!security_loaded) {
     return (
-      <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5 animate-pulse">
+      <Island className="animate-pulse" padding="md">
         <div className="flex items-start gap-2.5">
           <div className="h-5 w-5 rounded-full bg-surf-tertiary flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <div className="h-4 w-56 rounded bg-surf-tertiary mb-2" />
-            <div className="h-3.5 w-72 rounded bg-surf-tertiary" />
+          <div className="flex-1 min-w-0">
+            <div className="h-4 w-56 max-w-full rounded bg-surf-tertiary mb-2" />
+            <div className="h-3.5 w-72 max-w-full rounded bg-surf-tertiary" />
           </div>
         </div>
-      </div>
+      </Island>
     );
   }
 
   if (dismissed || preferences.account_security_banner_dismissed) return null;
 
   return (
-    <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5">
-      <div className="flex items-center gap-3">
-        <div className="flex-1 min-w-0">
+    <Island padding="md">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex-1 min-w-[12rem]">
           <div className="flex items-center gap-2">
             <SecurityLockIcon
               className="h-5 w-5 flex-shrink-0"
@@ -207,6 +208,6 @@ export function AccountProtectionScore({
           </ModalBody>
         </Modal>
       </div>
-    </div>
+    </Island>
   );
 }
