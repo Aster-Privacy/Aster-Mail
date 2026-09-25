@@ -22,14 +22,15 @@ import type { MutableRefObject } from "react";
 import type { DecryptedFolder } from "@/hooks/use_folders";
 
 import { memo, useState, useEffect, useMemo } from "react";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import {
-  PlusIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ChevronRightIcon,
-  FolderIcon,
-  LockClosedIcon,
-} from "@heroicons/react/24/outline";
+  SidebarEmptyText,
+  SidebarFolderRowView,
+  SidebarMoreToggle,
+  SidebarRailSectionButton,
+  SidebarSectionAddButton,
+  SidebarSectionToggle,
+} from "@aster/ui";
 
 import {
   build_folder_tree,
@@ -38,14 +39,13 @@ import {
   get_sibling_folders,
 } from "@/hooks/use_folders";
 import { EMAIL_DRAG_MIME } from "@/components/email/inbox/category_drag";
-import { CountBadge } from "@/components/common/count_badge";
-import { RailUnreadDot } from "@/components/common/rail_unread_dot";
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { FolderContextMenu } from "@/components/folders/folder_context_menu";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
+import { app_locale } from "@/utils/date_format";
 
 export interface FolderModalData {
   folder_id: string;
@@ -188,47 +188,29 @@ export const SidebarFolders = memo(function SidebarFolders({
 
   return (
     <>
-      {!is_collapsed && !is_pinned && (
-        <div className="mt-5 mb-1 px-2.5" data-onboarding="folders-section">
-          <div className="w-full flex items-center justify-between">
-            <button
-              className="flex-1 flex items-center gap-1 py-1 text-txt-muted opacity-70 hover:opacity-100"
-              type="button"
-              onClick={on_toggle_section}
-            >
-              {section_collapsed ? (
-                <ChevronRightIcon className="w-3 h-3 rtl:-scale-x-100" />
-              ) : (
-                <ChevronDownIcon className="w-3 h-3" />
-              )}
-              <span className="text-[10px] font-semibold uppercase tracking-[0.05em]">
-                {t("common.folders")}
-              </span>
-            </button>
-            <button
-              aria-label={t("common.create_folder")}
-              className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-icon-muted"
-              data-rail-tip={t("common.create_folder")}
-              type="button"
-              onClick={() => set_is_create_folder_open(true)}
-            >
-              <PlusIcon aria-hidden="true" className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
+      {!is_pinned && (
+        <SidebarSectionToggle
+          data_onboarding="folders-section"
+          is_collapsed={is_collapsed}
+          label={t("common.folders")}
+          on_toggle={on_toggle_section ?? (() => {})}
+          right_slot={
+            <SidebarSectionAddButton
+              rail_tip
+              label={t("common.create_folder")}
+              on_click={() => set_is_create_folder_open(true)}
+            />
+          }
+          section_collapsed={section_collapsed}
+        />
       )}
 
       {is_collapsed && !is_pinned && (
-        <div className="mt-3">
-          <button
-            className="sidebar-rail-btn"
-            data-rail-tip={t("common.create_folder")}
-            type="button"
-            onClick={() => set_is_create_folder_open(true)}
-          >
-            <PlusIcon className="w-5 h-5" />
-          </button>
-        </div>
+        <SidebarRailSectionButton
+          icon={PlusIcon}
+          label={t("common.create_folder")}
+          on_click={() => set_is_create_folder_open(true)}
+        />
       )}
 
       <div>
@@ -246,8 +228,6 @@ export const SidebarFolders = memo(function SidebarFolders({
             };
             const hasChildren = node.children.length > 0;
             const is_expanded = expanded_folders.has(folder.folder_token);
-            const indent = is_collapsed ? 0 : node.depth * 16;
-            const row_inset = indent > 0 ? indent + 4 : 0;
             const siblings = reorder_folders
               ? get_sibling_folders(folders, folder.id)
               : [];
@@ -277,6 +257,12 @@ export const SidebarFolders = memo(function SidebarFolders({
                 show_toast(t("common.something_went_wrong_try_again"), "error");
               }
             };
+            const selected = effective_selected === folder_item_id;
+            const unread_count =
+              folder_unread_counts?.[folder.folder_token] ??
+              folder.unread_count ??
+              0;
+            const guides = tree_guides.get(folder.folder_token);
             const is_locked_closed =
               folder.is_locked ||
               (folder.is_password_protected &&
@@ -316,121 +302,24 @@ export const SidebarFolders = memo(function SidebarFolders({
                 password_set={folder.password_set}
               >
                 <div className="relative">
-                  {!is_collapsed && node.depth > 0 && (
-                    <>
-                      {Array.from(
-                        { length: node.depth - 1 },
-                        (_, level) =>
-                          tree_guides.get(folder.folder_token)?.trail[
-                            level + 1
-                          ] && (
-                            <svg
-                              key={`guide-${level}`}
-                              aria-hidden="true"
-                              className="absolute pointer-events-none"
-                              data-tree-guide="vertical"
-                              fill="none"
-                              style={{
-                                left: `${level * 16 + 8}px`,
-                                top: "-2px",
-                                height: "calc(100% + 4px)",
-                              }}
-                              width={2}
-                              xmlns="http://www.w3.org/2000/svg"
-                            >
-                              <line
-                                stroke="var(--border-primary)"
-                                strokeWidth={1.5}
-                                x1={0.75}
-                                x2={0.75}
-                                y1={0}
-                                y2="100%"
-                              />
-                            </svg>
-                          ),
-                      )}
-                      {tree_guides.get(folder.folder_token)?.has_next && (
-                        <svg
-                          aria-hidden="true"
-                          className="absolute pointer-events-none"
-                          data-tree-guide="vertical"
-                          fill="none"
-                          style={{
-                            left: `${(node.depth - 1) * 16 + 8}px`,
-                            top: "-2px",
-                            height: "calc(100% + 4px)",
-                          }}
-                          width={2}
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <line
-                            stroke="var(--border-primary)"
-                            strokeWidth={1.5}
-                            x1={0.75}
-                            x2={0.75}
-                            y1={0}
-                            y2="100%"
-                          />
-                        </svg>
-                      )}
-                      <svg
-                        aria-hidden="true"
-                        className="absolute pointer-events-none"
-                        data-tree-guide="elbow"
-                        fill="none"
-                        height={35}
-                        style={{
-                          left: `${(node.depth - 1) * 16 + 8}px`,
-                          top: "-2px",
-                        }}
-                        width={13}
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d={
-                            tree_guides.get(folder.folder_token)?.has_next
-                              ? "M0.75 8 Q 0.75 18 8.75 18 H 12"
-                              : "M0.75 0 V 10 Q 0.75 18 8.75 18 H 12"
-                          }
-                          stroke="var(--border-primary)"
-                          strokeLinecap="round"
-                          strokeWidth={1.5}
-                        />
-                      </svg>
-                    </>
-                  )}
-                  <button
-                    ref={(el) => {
+                  <SidebarFolderRowView
+                    button_ref={(el: HTMLButtonElement | null) => {
                       folder_refs.current[folder.folder_token] = el;
                     }}
-                    className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : ""} h-8 text-[14px]  ${effective_selected === folder_item_id ? "sidebar-active" : ""} ${is_collapsed && effective_selected === folder_item_id ? "sidebar-selected" : ""} ${drag_over_token === folder.folder_token ? "ring-2 ring-brand/60 bg-brand/10" : ""}`}
-                    data-rail-tip={is_collapsed ? folder.name : undefined}
-                    style={{
-                      zIndex: 1,
-                      marginInlineStart: is_collapsed
-                        ? undefined
-                        : `${row_inset}px`,
-                      width: is_collapsed
-                        ? undefined
-                        : `calc(100% - ${row_inset}px)`,
-                      paddingInlineStart: is_collapsed
-                        ? undefined
-                        : `${hasChildren ? 18 : 10}px`,
-                      paddingInlineEnd: is_collapsed ? undefined : "10px",
-                      color:
-                        effective_selected === folder_item_id
-                          ? "var(--text-primary)"
-                          : "var(--text-secondary)",
-                      backgroundColor:
-                        drag_over_token === folder.folder_token
-                          ? undefined
-                          : is_collapsed &&
-                              effective_selected === folder_item_id
-                            ? "var(--indicator-bg)"
-                            : undefined,
-                    }}
-                    type="button"
-                    onClick={() =>
+                    collapse_label={t("common.collapse")}
+                    color={folder_color}
+                    depth={node.depth}
+                    drag_over={drag_over_token === folder.folder_token}
+                    expand_label={t("common.expand")}
+                    guide_has_next={guides?.has_next ?? false}
+                    guide_trail={guides?.trail}
+                    has_children={hasChildren}
+                    is_collapsed={is_collapsed}
+                    is_expanded={is_expanded}
+                    is_locked_closed={is_locked_closed}
+                    label={folder.name}
+                    locale={app_locale()}
+                    on_click={() =>
                       handle_nav_click(() => {
                         if (folder.is_password_protected) {
                           if (!folder.password_set) {
@@ -460,17 +349,18 @@ export const SidebarFolders = memo(function SidebarFolders({
                         );
                       })
                     }
-                    onDragEnter={(e) => {
+                    on_toggle_expanded={() => toggle_expanded(folder.folder_token)}
+                    on_drag_enter={(e) => {
                       if (!e.dataTransfer.types.includes(EMAIL_DRAG_MIME))
                         return;
                       set_drag_over_token(folder.folder_token);
                     }}
-                    onDragLeave={(e) => {
+                    on_drag_leave={(e) => {
                       if (e.currentTarget.contains(e.relatedTarget as Node))
                         return;
                       set_drag_over_token(null);
                     }}
-                    onDragOver={(e) => {
+                    on_drag_over={(e) => {
                       e.preventDefault();
                       e.dataTransfer.dropEffect = e.dataTransfer.types.includes(
                         EMAIL_DRAG_MIME,
@@ -478,7 +368,7 @@ export const SidebarFolders = memo(function SidebarFolders({
                         ? "move"
                         : "none";
                     }}
-                    onDrop={(e) => {
+                    on_drop={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       set_drag_over_token(null);
@@ -506,99 +396,21 @@ export const SidebarFolders = memo(function SidebarFolders({
                         return;
                       }
                     }}
-                  >
-                    {!is_collapsed && hasChildren && (
-                      <span
-                        aria-expanded={is_expanded}
-                        aria-label={t(
-                          is_expanded ? "common.collapse" : "common.expand",
-                        )}
-                        className="absolute start-0 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"
-                        role="button"
-                        tabIndex={0}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggle_expanded(folder.folder_token);
-                        }}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            toggle_expanded(folder.folder_token);
-                          }
-                        }}
-                      >
-                        {is_expanded ? (
-                          <ChevronDownIcon className="w-3 h-3" />
-                        ) : (
-                          <ChevronRightIcon className="w-3 h-3 rtl:-scale-x-100" />
-                        )}
-                      </span>
-                    )}
-                    <div className="relative">
-                      <FolderIcon
-                        className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"}`}
-                        style={{ color: folder_color }}
-                      />
-                      {(folder.is_locked ||
-                        (folder.is_password_protected &&
-                          (!folder.password_set ||
-                            !is_folder_unlocked(folder.id)))) && (
-                        <LockClosedIcon className="absolute -bottom-0.5 -end-0.5 w-2.5 h-2.5 p-0.5 rounded-full text-icon-active bg-surf-secondary" />
-                      )}
-                    </div>
-                    {is_collapsed && !is_locked_closed && (
-                      <RailUnreadDot
-                        count={
-                          folder_unread_counts?.[folder.folder_token] ??
-                          folder.unread_count ??
-                          0
-                        }
-                        label={folder.name}
-                      />
-                    )}
-                    {!is_collapsed && (
-                      <>
-                        <span className="flex-1 text-start truncate">
-                          {folder.name}
-                        </span>
-                        {is_locked_closed && (
-                          <LockClosedIcon className="w-3 h-3 ms-1 text-icon-muted" />
-                        )}
-                        {!is_locked_closed && (
-                          <CountBadge
-                            count={
-                              folder_unread_counts?.[folder.folder_token] ??
-                              folder.unread_count ??
-                              0
-                            }
-                            is_active={effective_selected === folder_item_id}
-                          />
-                        )}
-                      </>
-                    )}
-                  </button>
+                    selected={selected}
+                    unread_count={unread_count}
+                  />
                 </div>
               </FolderContextMenu>
             );
           })}
         {has_more && !is_collapsed && !section_collapsed && !is_pinned && (
-          <button
-            className="w-full flex items-center gap-2 px-2.5 h-7 text-[12px]  rounded-[12px] hover:bg-black/[0.03] dark:hover:bg-white/[0.04] text-txt-muted"
-            type="button"
-            onClick={() => set_folders_expanded(!folders_expanded)}
-          >
-            {folders_expanded ? (
-              <ChevronUpIcon className="w-3.5 h-3.5" />
-            ) : (
-              <ChevronDownIcon className="w-3.5 h-3.5" />
-            )}
-            <span>
-              {folders_expanded
-                ? t("common.show_less")
-                : t("common.more_folders", { count: hidden_count })}
-            </span>
-          </button>
+          <SidebarMoreToggle
+            expanded={folders_expanded}
+            hidden_count={hidden_count}
+            less_label={t("common.show_less")}
+            more_label={t("common.more_folders", { count: hidden_count })}
+            on_toggle={() => set_folders_expanded(!folders_expanded)}
+          />
         )}
         {root_count === 0 &&
           !is_collapsed &&
@@ -609,9 +421,7 @@ export const SidebarFolders = memo(function SidebarFolders({
           ) : load_failed && on_retry ? (
             <LoadFailedNotice on_retry={on_retry} />
           ) : (
-            <p className="text-[11px] px-2.5 py-2 text-txt-muted">
-              {t("common.no_folders_yet")}
-            </p>
+            <SidebarEmptyText>{t("common.no_folders_yet")}</SidebarEmptyText>
           ))}
       </div>
     </>

@@ -18,85 +18,22 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import {
+  resolve_toast_layout,
+  resolve_toast_position,
+  type ResolvedToastPosition,
+  type ToastPosition,
+} from "@aster/ui";
+
 import { use_preferences } from "@/contexts/preferences_context";
 
-export type ToastPosition =
-  | "top"
-  | "bottom"
-  | "top-right"
-  | "bottom-right"
-  | "top-left"
-  | "bottom-left";
-
-export interface ToastPositionLayout {
-  anchor: string;
-  align: string;
-  column: string;
-  style: { top: string } | { bottom: string };
-}
-
-const TOP_STYLE = { top: "calc(env(safe-area-inset-top, 0px) + 12px)" };
-const BOTTOM_STYLE = { bottom: "24px" };
-const BOTTOM_ISLAND_STYLE = { bottom: "80px" };
-
-export const TOAST_POSITION_LAYOUT: Record<ToastPosition, ToastPositionLayout> =
-  {
-    top: {
-      anchor: "inset-x-0 mx-auto w-fit max-w-[min(92vw,28rem)]",
-      align: "items-center",
-      column: "flex-col",
-      style: TOP_STYLE,
-    },
-    bottom: {
-      anchor: "inset-x-0 mx-auto w-fit max-w-[min(92vw,28rem)]",
-      align: "items-center",
-      column: "flex-col-reverse",
-      style: BOTTOM_STYLE,
-    },
-    "top-right": {
-      anchor: "right-4",
-      align: "items-end",
-      column: "flex-col",
-      style: TOP_STYLE,
-    },
-    "top-left": {
-      anchor: "left-4",
-      align: "items-start",
-      column: "flex-col",
-      style: TOP_STYLE,
-    },
-    "bottom-right": {
-      anchor: "right-4",
-      align: "items-end",
-      column: "flex-col-reverse",
-      style: BOTTOM_STYLE,
-    },
-    "bottom-left": {
-      anchor: "left-4",
-      align: "items-start",
-      column: "flex-col-reverse",
-      style: BOTTOM_STYLE,
-    },
-  };
-
-export const DEFAULT_TOAST_POSITION: ToastPosition = "bottom";
-
-export function is_top_position(position: ToastPosition) {
-  return position.startsWith("top");
-}
-
-export function resolve_toast_position(value: string | undefined) {
-  return value && value in TOAST_POSITION_LAYOUT
-    ? (value as ToastPosition)
-    : DEFAULT_TOAST_POSITION;
-}
-
-interface ResolvedToastPosition {
-  position: ToastPosition;
-  layout: ToastPositionLayout;
-  is_top: boolean;
-  y_offset: number;
-}
+export {
+  TOAST_POSITION_LAYOUT,
+  DEFAULT_TOAST_POSITION,
+  is_top_position,
+  resolve_toast_position,
+} from "@aster/ui";
+export type { ToastPosition, ToastPositionLayout } from "@aster/ui";
 
 export function use_toast_position(
   override?: ToastPosition,
@@ -105,12 +42,6 @@ export function use_toast_position(
   const { preferences } = use_preferences();
   const position =
     override ?? resolve_toast_position(preferences.toast_position);
-  const base_layout = TOAST_POSITION_LAYOUT[position];
-  const is_top = is_top_position(position);
-  const layout =
-    lift_above_island && !is_top
-      ? { ...base_layout, style: BOTTOM_ISLAND_STYLE }
-      : base_layout;
 
-  return { position, layout, is_top, y_offset: is_top ? -20 : 20 };
+  return resolve_toast_layout(position, lift_above_island);
 }

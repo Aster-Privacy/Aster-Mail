@@ -19,8 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { InboxEmail } from "@/types/email";
+import type { MobileActionSheetItem } from "@aster/ui";
 
 import { memo, useCallback, useMemo } from "react";
+import { MobileContextMenuView } from "@aster/ui";
 import {
   EnvelopeOpenIcon,
   EnvelopeIcon,
@@ -33,7 +35,8 @@ import {
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 
-import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
+import { use_platform } from "@/hooks/use_platform";
+import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 
 interface MobileContextMenuProps {
@@ -58,6 +61,8 @@ export const MobileContextMenu = memo(function MobileContextMenu({
   on_delete,
 }: MobileContextMenuProps) {
   const { t } = use_i18n();
+  const { safe_area_insets } = use_platform();
+  const reduce_motion = use_should_reduce_motion();
 
   const handle_action = useCallback(
     (action: (email: InboxEmail) => void) => {
@@ -72,12 +77,7 @@ export const MobileContextMenu = memo(function MobileContextMenu({
   const items = useMemo(() => {
     if (!email) return [];
 
-    const result: {
-      icon: React.ComponentType<{ className?: string }>;
-      label: string;
-      on_action: () => void;
-      destructive?: boolean;
-    }[] = [];
+    const result: MobileActionSheetItem[] = [];
 
     if (on_toggle_read && email.item_type !== "sent") {
       result.push({
@@ -146,55 +146,16 @@ export const MobileContextMenu = memo(function MobileContextMenu({
   ]);
 
   return (
-    <MobileBottomSheet
+    <MobileContextMenuView
       aria_label={t("common.actions")}
+      cancel_label={t("common.cancel")}
       is_open={is_open}
+      items={items}
+      reduce_motion={reduce_motion}
+      safe_area_bottom={safe_area_insets.bottom}
+      subtitle={email ? email.subject || t("mail.no_subject") : undefined}
+      title={email ? email.sender_name : undefined}
       on_close={on_close}
-    >
-      <div className="px-2 pb-2">
-        {email && (
-          <div className="mb-2 px-4 pb-2 border-b border-[var(--border-primary)]">
-            <p
-              className="truncate text-[14px] font-medium text-[var(--text-primary)]"
-              dir="auto"
-            >
-              {email.sender_name}
-            </p>
-            <p
-              className="truncate text-[13px] text-[var(--text-muted)]"
-              dir="auto"
-            >
-              {email.subject || t("mail.no_subject")}
-            </p>
-          </div>
-        )}
-
-        {items.map((item) => (
-          <button
-            key={item.label}
-            className={`flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-start active:bg-[var(--bg-tertiary)] ${
-              item.destructive
-                ? "text-[var(--color-danger,#ef4444)]"
-                : "text-[var(--text-primary)]"
-            }`}
-            type="button"
-            onClick={item.on_action}
-          >
-            <item.icon className="h-5 w-5 shrink-0" />
-            <span className="text-[15px]">{item.label}</span>
-          </button>
-        ))}
-
-        <div className="mx-4 my-1 border-t border-[var(--border-primary)]" />
-
-        <button
-          className="flex w-full items-center justify-center rounded-[16px] px-4 py-3 text-[15px] font-medium text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)]"
-          type="button"
-          onClick={on_close}
-        >
-          {t("common.cancel")}
-        </button>
-      </div>
-    </MobileBottomSheet>
+    />
   );
 });

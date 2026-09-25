@@ -307,7 +307,7 @@ export function TemplatesSection() {
       <IslandSection
         bare
         title={t("settings.your_templates", {
-          count: String(templates.length),
+          count: templates.length,
         })}
         trailing={
           <Button

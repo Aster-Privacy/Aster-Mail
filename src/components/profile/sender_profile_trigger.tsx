@@ -19,29 +19,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { ContactFormData } from "@/types/contacts";
-import type { TranslationKey } from "@/lib/i18n/types";
+import type { SenderProfileAvatarRenderer } from "@aster/ui";
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  UserPlusIcon,
-  UserMinusIcon,
-  EnvelopeIcon,
-  NoSymbolIcon,
-  ClipboardDocumentIcon,
-  ShieldCheckIcon,
-  DocumentTextIcon,
-} from "@heroicons/react/24/outline";
-import { ShieldCheckIcon as ShieldCheckSolid } from "@heroicons/react/24/solid";
+import { SenderProfileCardView, is_aster_email_address } from "@aster/ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown_menu";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { ProfileNotesInline } from "@/components/profile/profile_notes_inline";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -68,24 +52,6 @@ import {
 } from "@/services/api/allowed_senders";
 import { emit_mail_changed, emit_contacts_changed } from "@/hooks/mail_events";
 import { build_sender_mail_query } from "@/utils/contact_mail_search";
-
-const ASTER_DOMAINS = new Set([
-  "astermail.org",
-  "aster.cx",
-  "astermail.me",
-  "astermail.net",
-]);
-
-function extract_root_domain(email: string): string {
-  const match = email.match(/@([^@]+)$/);
-
-  if (!match) return "";
-  const parts = match[1].toLowerCase().split(".");
-
-  if (parts.length >= 2) return parts.slice(-2).join(".");
-
-  return match[1].toLowerCase();
-}
 
 export interface SenderProfileTriggerProps {
   email: string;
@@ -118,8 +84,7 @@ export function SenderProfileTrigger({
 
   const checked_ref = useRef<string | null>(null);
   const domain = get_email_domain(email);
-  const root_domain = extract_root_domain(email);
-  const is_aster_user = ASTER_DOMAINS.has(root_domain);
+  const is_aster_user = is_aster_email_address(email);
   const display_name = name || get_email_username(email);
 
   const load_status = useCallback(async () => {
@@ -308,238 +273,58 @@ export function SenderProfileTrigger({
     set_is_open(false);
   }, [email, on_compose]);
 
-  return (
-    <DropdownMenu open={is_open} onOpenChange={set_is_open}>
-      <DropdownMenuTrigger
-        asChild
-        onFocus={load_status}
-        onPointerDown={load_status}
-        onPointerEnter={load_status}
-      >
-        <button
-          className={`outline-none${className ? ` ${className}` : ""}`}
-          type="button"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {children}
-        </button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="start"
-        className="w-72 p-0 overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {is_aster_user ? (
-          <AsterHeader display_name={display_name} email={email} t={t} />
-        ) : (
-          <ExternalHeader
-            display_name={display_name}
-            domain={domain}
-            email={email}
-            on_copy_email={handle_copy_email}
-            t={t}
-          />
-        )}
-
-        <div className="p-1">
-          <DropdownMenuItem
-            className="gap-2 cursor-pointer"
-            disabled={is_contact_loading || !has_keys}
-            onSelect={(e) => {
-              e.preventDefault();
-              handle_contact_action();
-            }}
-          >
-            {existing_contact_id ? (
-              <UserMinusIcon className="w-4 h-4 flex-shrink-0" />
-            ) : (
-              <UserPlusIcon className="w-4 h-4 flex-shrink-0" />
-            )}
-            <span className="flex-1">
-              {existing_contact_id
-                ? t("common.remove_from_contacts")
-                : t("common.add_to_contacts")}
-            </span>
-            {is_contact_loading && (
-              <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
-            )}
-          </DropdownMenuItem>
-
-          <DropdownMenuItem
-            className="gap-2 cursor-pointer"
-            onSelect={(e) => {
-              e.preventDefault();
-              set_show_notes((p) => !p);
-            }}
-          >
-            <DocumentTextIcon className="w-4 h-4 flex-shrink-0" />
-            <span>
-              {show_notes ? t("common.hide_notes") : t("common.notes")}
-            </span>
-          </DropdownMenuItem>
-
-          {show_notes && has_keys && (
-            <div
-              className="mx-1 my-1 rounded-md overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <ProfileNotesInline email={email} />
-            </div>
-          )}
-
-          <DropdownMenuSeparator />
-
-          <DropdownMenuItem
-            className="gap-2 cursor-pointer"
-            onSelect={handle_messages_from}
-          >
-            <EnvelopeIcon className="w-4 h-4 flex-shrink-0" />
-            <span>{t("common.messages_from_sender")}</span>
-          </DropdownMenuItem>
-
-          {on_compose && (
-            <DropdownMenuItem
-              className="gap-2 cursor-pointer"
-              onSelect={handle_compose}
-            >
-              <EnvelopeIcon className="w-4 h-4 flex-shrink-0" />
-              <span>{t("common.send_email")}</span>
-            </DropdownMenuItem>
-          )}
-
-          {!is_aster_user && (
-            <>
-              <DropdownMenuSeparator />
-
-              <DropdownMenuItem
-                className="gap-2 cursor-pointer"
-                disabled={is_allowlist_loading || !has_keys}
-                onSelect={(e) => {
-                  e.preventDefault();
-                  handle_allowlist_action();
-                }}
-              >
-                {is_allowlisted ? (
-                  <ShieldCheckSolid className="w-4 h-4 flex-shrink-0 text-emerald-500" />
-                ) : (
-                  <ShieldCheckIcon className="w-4 h-4 flex-shrink-0" />
-                )}
-                <span
-                  className={`flex-1 ${is_allowlisted ? "text-emerald-600 dark:text-emerald-400" : ""}`}
-                >
-                  {is_allowlisted
-                    ? t("common.remove_from_allowlist_action")
-                    : t("common.allow_sender")}
-                </span>
-                {is_allowlist_loading && (
-                  <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin flex-shrink-0" />
-                )}
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                className={`gap-2 cursor-pointer ${
-                  is_blocked
-                    ? ""
-                    : "text-red-500 focus:text-red-500 focus:bg-red-500/10"
-                }`}
-                disabled={is_blocking}
-                onSelect={(e) => {
-                  e.preventDefault();
-                  handle_block();
-                }}
-              >
-                <NoSymbolIcon className="w-4 h-4 flex-shrink-0" />
-                <span className="flex-1">
-                  {is_blocked
-                    ? t("mail.unblock_sender")
-                    : t("mail.block_sender")}
-                </span>
-                {is_blocking && (
-                  <div
-                    className={`w-3 h-3 border-2 ${
-                      is_blocked ? "border-blue-500" : "border-red-500"
-                    } border-t-transparent rounded-full animate-spin flex-shrink-0`}
-                  />
-                )}
-              </DropdownMenuItem>
-            </>
-          )}
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
+  const render_avatar: SenderProfileAvatarRenderer = ({ size, className }) => (
+    <ProfileAvatar
+      use_domain_logo
+      className={className}
+      email={email}
+      name={display_name}
+      size={size}
+    />
   );
-}
 
-interface AsterHeaderProps {
-  display_name: string;
-  email: string;
-  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
-}
-
-function AsterHeader({ display_name, email, t: _t }: AsterHeaderProps) {
   return (
-    <div className="px-3 pt-3 pb-2 border-b border-edge-secondary">
-      <div className="flex items-center gap-3">
-        <ProfileAvatar
-          use_domain_logo
-          className="ring-1 ring-black/5 dark:ring-white/10 flex-shrink-0"
-          email={email}
-          name={display_name}
-          size="md"
-        />
-        <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-medium truncate text-txt-primary">
-            {display_name}
-          </p>
-          <p className="text-[11px] truncate text-txt-muted">{email}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-interface ExternalHeaderProps {
-  display_name: string;
-  email: string;
-  domain: string;
-  on_copy_email: () => void;
-  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
-}
-
-function ExternalHeader({
-  display_name,
-  email,
-  domain,
-  on_copy_email,
-  t: _t,
-}: ExternalHeaderProps) {
-  return (
-    <div className="px-3 pt-3 pb-2 border-b border-edge-secondary">
-      <div className="flex items-center gap-3">
-        <ProfileAvatar
-          use_domain_logo
-          className="ring-1 ring-black/5 dark:ring-white/10 flex-shrink-0"
-          email={email}
-          name={display_name}
-          size="md"
-        />
-        <div className="flex-1 min-w-0">
-          <p className="text-[13px] font-medium truncate text-txt-primary">
-            {display_name}
-          </p>
-          {domain && (
-            <p className="text-[11px] truncate text-txt-muted">{domain}</p>
-          )}
-        </div>
-      </div>
-      <button
-        className="mt-2 w-full flex items-center justify-center gap-1.5 py-1.5 rounded-[12px] text-[12px] transition-colors border text-txt-secondary border-edge-secondary bg-surf-secondary hover:bg-surf-hover"
-        type="button"
-        onClick={on_copy_email}
-      >
-        <span className="truncate">{email}</span>
-        <ClipboardDocumentIcon className="w-3 h-3 flex-shrink-0 opacity-60" />
-      </button>
-    </div>
+    <SenderProfileCardView
+      allowlist_disabled={is_allowlist_loading || !has_keys}
+      contact_disabled={is_contact_loading || !has_keys}
+      display_name={display_name}
+      domain={domain}
+      email={email}
+      is_allowlist_loading={is_allowlist_loading}
+      is_allowlisted={is_allowlisted}
+      is_aster_user={is_aster_user}
+      is_blocked={is_blocked}
+      is_blocking={is_blocking}
+      is_contact={!!existing_contact_id}
+      is_contact_loading={is_contact_loading}
+      is_open={is_open}
+      notes={has_keys ? <ProfileNotesInline email={email} /> : undefined}
+      on_allowlist_action={handle_allowlist_action}
+      on_block_action={handle_block}
+      on_compose={on_compose ? handle_compose : undefined}
+      on_contact_action={handle_contact_action}
+      on_copy_email={handle_copy_email}
+      on_messages_from={handle_messages_from}
+      on_open_change={set_is_open}
+      on_toggle_notes={() => set_show_notes((p) => !p)}
+      on_trigger_intent={load_status}
+      render_avatar={render_avatar}
+      show_notes={show_notes}
+      strings={{
+        add_to_contacts: t("common.add_to_contacts"),
+        remove_from_contacts: t("common.remove_from_contacts"),
+        notes: t("common.notes"),
+        hide_notes: t("common.hide_notes"),
+        messages_from: t("common.messages_from_sender"),
+        send_email: t("common.send_email"),
+        allow_sender: t("common.allow_sender"),
+        remove_from_allowlist: t("common.remove_from_allowlist_action"),
+        block_sender: t("mail.block_sender"),
+        unblock_sender: t("mail.unblock_sender"),
+      }}
+      trigger_className={className}
+    >
+      {children}
+    </SenderProfileCardView>
   );
 }

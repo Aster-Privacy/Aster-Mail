@@ -19,8 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useCallback } from "react";
+import { SuspensionBannerView } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+
+const APPEAL_URL = "https://astermail.org/appeal";
 
 export function SuspensionBanner() {
   const { t } = use_i18n();
@@ -65,42 +68,11 @@ export function SuspensionBanner() {
   }
 
   return (
-    <div
-      className="flex items-center gap-3 px-4 py-2.5 text-sm border-b"
-      style={{
-        backgroundColor: "var(--bg-tertiary)",
-        borderColor: "var(--border-secondary)",
-        color: "var(--text-secondary)",
-      }}
-    >
-      <svg
-        className="w-4 h-4 flex-shrink-0"
-        fill="currentColor"
-        style={{ color: "var(--color-error, #ef4444)" }}
-        viewBox="0 0 20 20"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          clipRule="evenodd"
-          d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-          fillRule="evenodd"
-        />
-      </svg>
-      <span className="flex-1 min-w-0">
-        <span className="font-medium" style={{ color: "var(--text-primary)" }}>
-          {t("common.account_suspended_label")}
-        </span>{" "}
-        {reason}{" "}
-        <a
-          className="hover:underline whitespace-nowrap"
-          href="https://astermail.org/appeal"
-          rel="noopener noreferrer"
-          style={{ color: "var(--accent-color)" }}
-          target="_blank"
-        >
-          {t("common.submit_an_appeal")}
-        </a>
-      </span>
-    </div>
+    <SuspensionBannerView
+      appeal_href={APPEAL_URL}
+      appeal_label={t("common.submit_an_appeal")}
+      label={t("common.account_suspended_label")}
+      reason={reason}
+    />
   );
 }

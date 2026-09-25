@@ -20,23 +20,11 @@
 //
 import type { DecryptedEmailAlias } from "@/services/api/aliases";
 
-import {
-  ClipboardDocumentIcon,
-  Cog6ToothIcon,
-  PaperAirplaneIcon,
-  PowerIcon,
-} from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
+import { AliasContextMenuView } from "@aster/ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { PinIcon } from "@/components/common/icons";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from "@/components/ui/context_menu";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -135,65 +123,38 @@ export function AliasContextMenu({
   };
 
   return (
-    <ContextMenu>
-      <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
-      <ContextMenuContent className="w-48">
-        <ContextMenuItem onClick={copy_address}>
-          <ClipboardDocumentIcon className="me-2 h-4 w-4" />
-          {t("common.copy_address")}
-        </ContextMenuItem>
-
-        <ContextMenuItem onClick={view_sent_mail}>
-          <PaperAirplaneIcon className="me-2 h-4 w-4" />
-          {t("mail.alias_view_sent")}
-        </ContextMenuItem>
-
-        {is_real_alias && (
-          <ContextMenuItem onClick={toggle_pin}>
-            <PinIcon
-              className={`me-2 h-4 w-4 ${alias.is_pinned ? "-rotate-[38deg]" : ""}`}
-              filled={!!alias.is_pinned}
-              style={{
-                color: alias.is_pinned
-                  ? "var(--color-blue-500, #3b82f6)"
-                  : undefined,
-              }}
-            />
-            {alias.is_pinned
-              ? t("settings.alias_unpin")
-              : t("settings.alias_pin")}
-          </ContextMenuItem>
-        )}
-
-        {is_real_alias && !alias.downgrade_grace_expires_at && (
-          <ContextMenuItem onClick={toggle_enabled}>
-            <PowerIcon
-              className="me-2 h-4 w-4"
-              style={{
-                color: alias.is_enabled
-                  ? "var(--color-red-500, #ef4444)"
-                  : "var(--color-green-500, #22c55e)",
-              }}
-            />
-            <span
-              style={{
-                color: alias.is_enabled
-                  ? "var(--color-red-500, #ef4444)"
-                  : "var(--color-green-500, #22c55e)",
-              }}
-            >
-              {alias.is_enabled ? t("common.disable") : t("common.enable")}
-            </span>
-          </ContextMenuItem>
-        )}
-
-        <ContextMenuSeparator />
-
-        <ContextMenuItem onClick={on_manage}>
-          <Cog6ToothIcon className="me-2 h-4 w-4" />
-          {t("common.manage")}
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
+    <AliasContextMenuView
+      is_enabled={alias.is_enabled}
+      is_pinned={!!alias.is_pinned}
+      labels={{
+        copy_address: t("common.copy_address"),
+        view_sent: t("mail.alias_view_sent"),
+        pin: t("settings.alias_pin"),
+        unpin: t("settings.alias_unpin"),
+        enable: t("common.enable"),
+        disable: t("common.disable"),
+        manage: t("common.manage"),
+      }}
+      on_copy_address={copy_address}
+      on_manage={on_manage}
+      on_toggle_enabled={toggle_enabled}
+      on_toggle_pin={toggle_pin}
+      on_view_sent={view_sent_mail}
+      pin_icon={
+        <PinIcon
+          className={`me-2 h-4 w-4 ${alias.is_pinned ? "-rotate-[38deg]" : ""}`}
+          filled={!!alias.is_pinned}
+          style={{
+            color: alias.is_pinned
+              ? "var(--color-blue-500, #3b82f6)"
+              : undefined,
+          }}
+        />
+      }
+      show_pin={is_real_alias}
+      show_toggle_enabled={is_real_alias && !alias.downgrade_grace_expires_at}
+    >
+      {children}
+    </AliasContextMenuView>
   );
 }

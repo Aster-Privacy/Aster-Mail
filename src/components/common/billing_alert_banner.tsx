@@ -20,8 +20,8 @@
 //
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AnimatePresence, motion } from "framer-motion";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { StatusBanner } from "@aster/ui";
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
@@ -131,39 +131,22 @@ export function BillingAlertBanner() {
   };
 
   return (
-    <AnimatePresence>
-      {is_past_due && (
-        <motion.div
-          animate={{ opacity: 1, height: "auto" }}
-          className="w-full flex-shrink-0 overflow-hidden text-white"
-          exit={{ opacity: 0, height: 0, overflow: "hidden" }}
-          initial={reduce_motion ? false : { opacity: 0, height: 0 }}
-          role="alert"
-          style={{ backgroundColor: "#dc2626" }}
-          transition={{ duration: reduce_motion ? 0 : 0.2 }}
-        >
-          <div className="flex items-center justify-between gap-2 px-4 py-1.5">
-            <div className="flex min-w-0 items-center gap-1.5">
-              <ExclamationTriangleIcon className="h-3.5 w-3.5 flex-shrink-0 opacity-90" />
-              <span className="truncate text-xs font-medium opacity-95">
-                {grace_days === null
-                  ? t("common.billing_alert_body")
-                  : t("common.billing_alert_body_days", {
-                      days: String(grace_days),
-                    })}
-              </span>
-            </div>
-            <button
-              className="flex-shrink-0 rounded-[12px] px-2.5 py-0.5 text-xs font-medium transition-colors"
-              style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
-              type="button"
-              onClick={handle_pay}
-            >
-              {t("common.billing_alert_action")}
-            </button>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <StatusBanner
+      actions={[
+        { label: t("common.billing_alert_action"), on_click: handle_pay },
+      ]}
+      icon={ExclamationTriangleIcon}
+      is_visible={is_past_due}
+      message={
+        grace_days === null
+          ? t("common.billing_alert_body")
+          : t("common.billing_alert_body_days", {
+              days: String(grace_days),
+            })
+      }
+      reduce_motion={reduce_motion}
+      role="alert"
+      tone="danger"
+    />
   );
 }

@@ -21,12 +21,10 @@
 import type { PaymentPastDueState } from "@/hooks/use_payment_past_due";
 
 import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
+import { StatusBanner } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { request_payment_method_update } from "@/lib/payment_action";
-
-const BANNER_BG = "#dc2626";
-const BANNER_TEXT = "#ffffff";
 
 interface PaymentPastDueBannerProps {
   state: PaymentPastDueState;
@@ -52,34 +50,16 @@ export function PaymentPastDueBanner({
       : t("common.payment_past_due_message");
 
   return (
-    <div
-      className="w-full flex-shrink-0"
+    <StatusBanner
+      actions={[
+        { label: t("common.payment_past_due_action"), on_click: handle_action },
+      ]}
+      animated={false}
+      icon={ExclamationTriangleIcon}
+      message={message}
       role="alert"
-      style={{ backgroundColor: BANNER_BG, color: BANNER_TEXT }}
-    >
-      <div className="flex items-center justify-between gap-4 px-4 py-1.5">
-        <div className="flex items-center gap-1.5 min-w-0">
-          <ExclamationTriangleIcon className="h-3.5 w-3.5 flex-shrink-0" />
-          <span className="text-xs font-semibold truncate">{message}</span>
-        </div>
-
-        <button
-          className="flex-shrink-0 rounded-[12px] px-2.5 py-0.5 text-xs font-semibold transition-colors"
-          style={{ backgroundColor: "rgba(255, 255, 255, 0.22)" }}
-          type="button"
-          onClick={handle_action}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor =
-              "rgba(255, 255, 255, 0.34)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor =
-              "rgba(255, 255, 255, 0.22)")
-          }
-        >
-          {t("common.payment_past_due_action")}
-        </button>
-      </div>
-    </div>
+      tone="danger"
+      variant="alert"
+    />
   );
 }
