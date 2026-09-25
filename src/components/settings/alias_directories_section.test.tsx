@@ -161,6 +161,7 @@ vi.mock("@/components/modals/confirmation_modal", () => ({
 
 vi.mock("@/components/ui/spinner", () => ({
   Spinner: () => null,
+  ButtonSpinner: () => null,
 }));
 
 vi.mock("@/services/api/domains", () => ({
