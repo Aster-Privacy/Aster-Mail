@@ -120,7 +120,8 @@ export function use_compose_drafts({
       recipients.cc.length > 0 ||
       recipients.bcc.length > 0 ||
       subject ||
-      message;
+      message ||
+      attachments.length > 0;
 
     if (!has_content) {
       set_draft_status("idle");

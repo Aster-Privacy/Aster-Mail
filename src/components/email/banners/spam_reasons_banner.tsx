@@ -84,16 +84,16 @@ export function SpamReasonsBanner({
   }
 
   return (
-    <div className="mx-4 mt-2 mb-3 rounded-md bg-surface-2 border border-border">
+    <div className="mx-4 mt-2 mb-3 rounded-md bg-surf-secondary border border-edge-secondary">
       <div className="flex items-start gap-2 px-3 py-2">
         <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
-          <p className="text-[13px] text-txt leading-snug">
+          <p className="text-[13px] text-txt-primary leading-snug">
             {t("mail.spam_reasons_title")}
           </p>
           {unique_reasons.length > 0 && (
             <button
-              className="text-xs text-txt-muted mt-1 flex items-center gap-1 hover:text-txt transition-colors"
+              className="text-xs text-txt-muted mt-1 flex items-center gap-1 hover:text-txt-primary transition-colors"
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
@@ -136,7 +136,7 @@ export function SpamReasonsBanner({
         </div>
         {on_not_spam && (
           <button
-            className="text-xs text-txt-muted hover:text-txt transition-colors flex-shrink-0"
+            className="text-xs text-txt-muted hover:text-txt-primary transition-colors flex-shrink-0"
             type="button"
             onClick={(e) => {
               e.stopPropagation();

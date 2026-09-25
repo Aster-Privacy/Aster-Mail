@@ -43,19 +43,19 @@ export function SendFailureBanner({
 
   return (
     <div
-      className={`rounded-md bg-surface-2 border border-red-500/40 ${className ?? ""}`}
+      className={`rounded-md bg-red-600 border border-red-600 ${className ?? ""}`}
     >
       <div className="flex items-start gap-2 px-3 py-2">
-        <ExclamationTriangleIcon className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+        <ExclamationTriangleIcon className="w-4 h-4 text-white flex-shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
-          <p className="text-[13px] text-txt leading-snug">
+          <p className="text-[13px] text-white leading-snug">
             {t("mail.send_failed_title")}
           </p>
-          <p className="text-xs text-txt-muted mt-1 leading-snug">
+          <p className="text-xs text-white mt-1 leading-snug">
             {t("mail.send_failed_help")}
           </p>
           {reason && (
-            <p className="text-xs text-txt-muted mt-2 break-words font-mono leading-snug">
+            <p className="text-xs text-white mt-2 break-words font-mono leading-snug">
               {reason}
             </p>
           )}
