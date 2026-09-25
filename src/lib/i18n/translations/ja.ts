@@ -1837,6 +1837,18 @@ export const ja = {
       "Aster はパスワードでメールを暗号化するため、誰もパスワードを再設定できません。アクセスを保つために復旧用メールアドレスを追加してください。",
     recovery_reminder_action: "復旧用メールを追加",
     recovery_reminder_later: "あとで",
+    recovery_codes_reminder_title: "リカバリーコードを保存",
+    recovery_codes_reminder_body:
+      "Aster はパスワードでメールを暗号化するため、誰もパスワードを再設定できません。暗号化されたメールに戻る手段はリカバリーコードだけです。",
+    recovery_codes_reminder_action: "リカバリーコードを取得",
+    recovery_codes_low_reminder_title: "リカバリーコードが残りわずかです",
+    recovery_codes_low_reminder_body:
+      "各コードは一度だけ使えます。残りは {{count}} 個です。ロックアウトされないよう新しいコードを取得してください。",
+    recovery_codes_low_reminder_action: "新しいコードを取得",
+    recovery_phrase_migrate_title: "リカバリーコードに切り替え",
+    recovery_phrase_migrate_body:
+      "リカバリーフレーズは廃止されます。今のうちにリカバリーコードを取得して、アカウントを復旧できるようにしてください。",
+    recovery_phrase_migrate_action: "コードを取得",
     plan_prompt_title: "無料プランをご利用中です",
     plan_prompt_body:
       "有料プランでは、容量が増え、独自ドメインと無制限のエイリアスを使えます。",
@@ -2233,11 +2245,24 @@ export const ja = {
       "リカバリーコードがない状態でパスワードを忘れると、暗号化されたメールは永久にロックされます。",
     recovery_codes_row: "リカバリーコード",
     recovery_codes_row_desc:
-      "アカウントとすべての暗号化されたデータを復元できる6個の使い切りコードです。",
-    recovery_codes_generate: "コードを生成",
-    recovery_codes_regenerate: "コードを再生成",
+      "アカウントと暗号化されたデータをすべて復元する一回限りのコードです。",
+    recovery_codes_generate: "コードを取得",
+    recovery_codes_regenerate: "新しいコードを取得",
     recovery_codes_regenerate_warning:
-      "再生成すると新しいコードが作成され、以前のコードは永久に無効になります。",
+      "新しいコードを取得すると、現在のコードは使えなくなります。",
+    recovery_codes_show: "コードを表示",
+    recovery_codes_get_new_title: "新しいリカバリーコードを取得しますか？",
+    recovery_codes_confirm_title: "本人確認",
+    recovery_codes_confirm_desc:
+      "リカバリーコードを表示するにはパスワードを入力してください。",
+    recovery_codes_title: "リカバリーコード",
+    recovery_codes_status:
+      "{{date}} に作成。{{total}} 個中 {{remaining}} 個が残っています。",
+    recovery_codes_low:
+      "リカバリーコードが残りわずかです。ロックアウトされないよう新しいコードを取得してください。",
+    recovery_codes_used: "使用済み",
+    recovery_codes_unavailable:
+      "このデバイスにはコードが保存されていません。表示するには新しいコードを取得してください。",
     recovery_method_active: "有効",
     recovery_method_not_set: "未設定",
     recovery_codes_saved_confirm:
@@ -7639,6 +7664,7 @@ export const ja = {
     special_offers_save_failed:
       "特別オファーの設定を保存できませんでした。もう一度お試しください。",
     criterion_passkey: "パスキー登録済み",
+    criterion_recovery_codes: "リカバリーコードを保存済み",
     criterion_read_receipts_off: "開封確認オフ",
     send_read_receipts_label: "開封確認を送信",
     send_read_receipts_description:
@@ -9140,9 +9166,6 @@ export const ja = {
     recovery_phrase_confirm_error:
       "一致しない単語があります。保存したフレーズを確認して、もう一度お試しください。",
     recovery_phrase_skip_check: "保存済みなので、この確認をスキップする",
-    forgot_method_title: "どの方法でアカウントを復旧しますか？",
-    forgot_method_desc:
-      "選択する方法によって、暗号化されたデータを復元できるかどうかが決まります。",
     forgot_method_full_restore: "完全復元",
     forgot_method_access_only: "アクセスのみ",
     forgot_method_phrase_title: "リカバリーフレーズを使用する",
@@ -9154,11 +9177,6 @@ export const ja = {
     forgot_method_email_title: "リセットリンクをメールで受け取る",
     forgot_method_email_desc:
       "アカウントへのアクセスを取り戻します。リセット前の暗号化されたメールは、後でフレーズまたはコードが見つからない限り、再び読むことはできません。",
-    phrase_entry_title: "リカバリーフレーズを入力",
-    phrase_entry_desc:
-      "12個の単語を順番どおりに入力するか、貼り付けてください。",
-    phrase_entry_invalid:
-      "有効なリカバリーフレーズではありません。単語と順番を確認してください。",
     phrase_recovery_failed:
       "このフレーズはこのアカウントと一致しません。単語とメールアドレスを確認してください。",
     reset_consent_title: "このリセットでは以前のデータを復号できません",
@@ -9219,8 +9237,7 @@ export const ja = {
     creating_new_recovery_backup: "新しい復旧バックアップを作成中...",
     saving_new_credentials: "新しい認証情報を保存中...",
     recover_your_account: "アカウントの復旧",
-    enter_email_associated:
-      "アカウントを復元するにはユーザー名を入力してください",
+    enter_email_associated: "復旧したいアカウントのアドレスを入力してください。",
     back_to_sign_in: "サインインに戻る",
     email_me_reset_link: "リセットリンクをメールで送信",
     have_recovery_code: "リカバリーコードをお持ちですか？",
@@ -9240,9 +9257,7 @@ export const ja = {
     set_new_password: "新しいパスワードを設定",
     resetting_password: "パスワードをリセット中...",
     enter_recovery_code: "リカバリーコードを入力",
-    enter_recovery_code_desc:
-      "アカウント作成時に保存したリカバリーコードの1つを入力してください",
-    verify_code: "コードを確認",
+    enter_recovery_code_desc: "アカウント作成時に保存したリカバリーコードのいずれかを入力してください。",
     create_new_password: "新しいパスワードを作成",
     choose_strong_password: "アカウントの強力なパスワードを選択してください",
     recovering_your_account: "アカウントを復旧中",
@@ -9252,6 +9267,45 @@ export const ja = {
     old_codes_invalidated:
       "以前のリカバリーコードは使えなくなりました。このウィンドウを閉じる前に、新しいセットを安全な場所に保存しておくと安心です。",
     n_recovery_codes: "{{count}}個のリカバリーコード",
+    recovery_code_already_used:
+      "このコードはすでに使用されています。各コードは1回だけ使えるため、保存したリストから別のコードを入力してください。",
+    try_another_way: "別の方法を試す",
+    recovery_email_label: "Aster Mail のアドレス",
+    recovery_domain_hint: "アカウントのドメインを選択してください。",
+    recovery_code_label: "リカバリーコード",
+    recovery_code_hint: "各コードは 1 回だけ使えます。コードの形式は ASTER-XXXX-XXXX-XXXX-XXXX です。",
+    change_account: "別のアドレスを使う",
+    change_account_desc: "別の Aster Mail アカウントを復元します。",
+    support_step_title: "サポートに問い合わせる",
+    support_step_desc: "Aster Mail は暗号化されたデータを読み取れないため、リカバリーコードまたは復旧用メールなしで解除できる人はいません。サポートがアカウントを確認し、次の手順を案内します。",
+    support_email_action: "サポートにメールする",
+    support_help_center: "ヘルプセンターを開く",
+    other_ways_title: "別の方法を試す",
+    other_ways_desc: "アカウントに戻る方法を選択してください。",
+    other_way_code_title: "リカバリーコードを使う",
+    other_way_code_desc: "保存したコードのいずれかを入力します。",
+    other_way_email_title: "リカバリーメールでリセットする",
+    other_way_email_desc:
+      "Aster Mail がリカバリーメールにリンクを送信します。リセット前のメールにはアクセスできなくなります。",
+    other_way_none_title: "どれも持っていない",
+    other_way_none_desc: "サポートにお問い合わせください。次の手順をご案内します。",
+    reset_account_title: "アカウントをリセットしますか?",
+    reset_account_desc:
+      "リセット前の暗号化されたメール、連絡先、ファイルは、以前のパスワードで復元するまでロックされたままです。新しい空の暗号鍵が発行されます。",
+    send_reset_link: "リセットリンクを送信",
+    print_codes: "印刷",
+    codes_copied: "コードをコピーしました。",
+    i_saved_these_codes: "これらのコードを保存しました",
+    review_security_title: "セキュリティを確認する",
+    review_security_desc: "パスワードが変更され、アカウントが復元されました。",
+    review_devices_signed_out: "他のデバイスからログアウトしました。",
+    review_two_step_off: "2 段階認証はオフです。",
+    review_turn_on: "オンにする",
+    review_recovery_email_kept: "リカバリーメールは設定されたままです。",
+    review_no_recovery_email: "リカバリーメールはありません。",
+    review_add: "追加",
+    review_codes_left: "リカバリーコードは残り {{count}} 個です。",
+    review_codes_left_other: "リカバリーコードは残り {{count}} 個です。",
     import_mail_step_title: "メールを一緒に持ってくる",
     import_mail_step_desc:
       "別のアカウントのメッセージを Aster に移行します。すべて保存前にお使いのデバイスで暗号化されます。",

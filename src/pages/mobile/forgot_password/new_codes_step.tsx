@@ -30,19 +30,24 @@ import {
   button_tap,
   DEPTH_CTA_CLASS,
   DEPTH_CTA_STYLE,
-  DEPTH_SECONDARY_CLASS,
 } from "@/components/auth/mobile_auth_motion";
+
+const SMALL_ACTION_CLASS =
+  "h-11 w-full rounded-xl text-sm font-medium text-[var(--text-primary)] bg-[var(--bg-tertiary)] border border-[var(--border-secondary)] shadow-[0_1px_2px_rgba(0,0,0,0.05)] transition-colors duration-150";
 
 export function NewCodesStep({
   new_recovery_codes,
   is_key_visible,
   set_is_key_visible,
   copy_success,
+  codes_saved,
+  set_codes_saved,
   reduce_motion,
-  set_step,
   on_copy_codes,
   on_download_pdf,
   on_download_txt,
+  on_print_codes,
+  on_continue,
 }: NewCodesStepProps) {
   const { t } = use_i18n();
 
@@ -78,40 +83,13 @@ export function NewCodesStep({
                 count: new_recovery_codes.length.toString(),
               })}
             </span>
-            <div className="flex items-center gap-1">
-              <button
-                className="p-1.5 rounded text-[var(--text-muted)]"
-                type="button"
-                onClick={() => set_is_key_visible(!is_key_visible)}
-              >
-                {is_key_visible ? <EyeSlashIcon /> : <EyeIcon />}
-              </button>
-              <button
-                aria-label={t("auth.copy_codes")}
-                className="p-1.5 rounded"
-                style={{
-                  color: copy_success
-                    ? "var(--color-success)"
-                    : "var(--text-muted)",
-                }}
-                type="button"
-                onClick={on_copy_codes}
-              >
-                <svg
-                  className="h-5 w-5"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              </button>
-            </div>
+            <button
+              className="p-1.5 rounded text-[var(--text-muted)]"
+              type="button"
+              onClick={() => set_is_key_visible(!is_key_visible)}
+            >
+              {is_key_visible ? <EyeSlashIcon /> : <EyeIcon />}
+            </button>
           </div>
           <div className="grid grid-cols-2 gap-2">
             {new_recovery_codes.map((code, index) => (
@@ -132,38 +110,76 @@ export function NewCodesStep({
             ))}
           </div>
         </motion.div>
+
+        <motion.div
+          className="mt-6 grid grid-cols-3 gap-2"
+          variants={reduce_motion ? undefined : fade_up_item}
+        >
+          <motion.button
+            className={SMALL_ACTION_CLASS}
+            type="button"
+            whileTap={button_tap}
+            onClick={on_download_pdf}
+          >
+            {t("common.download")}
+          </motion.button>
+          <motion.button
+            className={SMALL_ACTION_CLASS}
+            type="button"
+            whileTap={button_tap}
+            onClick={on_print_codes}
+          >
+            {t("auth.print_codes")}
+          </motion.button>
+          <motion.button
+            className={SMALL_ACTION_CLASS}
+            type="button"
+            whileTap={button_tap}
+            onClick={on_copy_codes}
+          >
+            {copy_success ? t("common.copied") : t("auth.copy_codes")}
+          </motion.button>
+        </motion.div>
+
+        <motion.button
+          className="mt-4 w-full py-2 text-center text-sm text-[var(--text-tertiary)]"
+          type="button"
+          variants={reduce_motion ? undefined : fade_up_item}
+          onClick={on_download_txt}
+        >
+          {t("auth.download_as_text")}
+        </motion.button>
       </motion.div>
 
       <motion.div
         animate={{ opacity: 1 }}
-        className="shrink-0 space-y-3 px-6 pb-4 pt-4"
+        className="shrink-0 space-y-4 px-6 pb-4 pt-4"
         initial={reduce_motion ? false : { opacity: 0 }}
         transition={
           reduce_motion ? { duration: 0 } : { duration: 0.3, delay: 0.1 }
         }
       >
+        <label className="flex cursor-pointer items-start gap-3 text-start">
+          <input
+            checked={codes_saved}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--accent-color)]"
+            type="checkbox"
+            onChange={(e) => set_codes_saved(e.target.checked)}
+          />
+          <span className="text-sm text-[var(--text-secondary)]">
+            {t("auth.i_saved_these_codes")}
+          </span>
+        </label>
+
         <motion.button
           className={DEPTH_CTA_CLASS}
+          disabled={!codes_saved}
           style={DEPTH_CTA_STYLE}
-          whileTap={button_tap}
-          onClick={on_download_pdf}
+          whileTap={codes_saved ? button_tap : undefined}
+          onClick={on_continue}
         >
-          {t("auth.download_key")}
+          {t("common.continue")}
         </motion.button>
-        <motion.button
-          className={DEPTH_SECONDARY_CLASS}
-          whileTap={button_tap}
-          onClick={on_download_txt}
-        >
-          {t("auth.download_as_text")}
-        </motion.button>
-        <button
-          className="w-full py-2 text-center text-sm text-[var(--text-tertiary)]"
-          type="button"
-          onClick={() => set_step("success")}
-        >
-          {t("auth.continue_without_download")}
-        </button>
       </motion.div>
     </div>
   );

@@ -1760,6 +1760,18 @@ export const nl = {
       "Aster versleutelt je mail met je wachtwoord, dus niemand kan het voor je herstellen. Voeg een herstel-e-mailadres toe om toegang te houden.",
     recovery_reminder_action: "Herstel-e-mailadres toevoegen",
     recovery_reminder_later: "Later",
+    recovery_codes_reminder_title: "Bewaar je herstelcodes",
+    recovery_codes_reminder_body:
+      "Aster versleutelt je mail met je wachtwoord, dus niemand kan het voor je herstellen. Herstelcodes zijn de enige weg terug naar je versleutelde mail.",
+    recovery_codes_reminder_action: "Herstelcodes ophalen",
+    recovery_codes_low_reminder_title: "Je hebt nog maar weinig herstelcodes",
+    recovery_codes_low_reminder_body:
+      "Elke code werkt één keer en je hebt er nog {{count}}. Haal nieuwe codes op zodat je niet buitengesloten raakt.",
+    recovery_codes_low_reminder_action: "Nieuwe codes ophalen",
+    recovery_phrase_migrate_title: "Overstappen op herstelcodes",
+    recovery_phrase_migrate_body:
+      "Herstelzinnen verdwijnen. Haal nu herstelcodes op zodat je je account nog kunt herstellen.",
+    recovery_phrase_migrate_action: "Codes ophalen",
     plan_prompt_title: "Je gebruikt het gratis abonnement",
     plan_prompt_body:
       "Betaalde abonnementen geven meer opslag, eigen domeinen en onbeperkte aliassen.",
@@ -3625,11 +3637,24 @@ export const nl = {
       "Zonder herstelcodes wordt uw versleutelde e-mail permanent vergrendeld als u uw wachtwoord vergeet.",
     recovery_codes_row: "Herstelcodes",
     recovery_codes_row_desc:
-      "Zes eenmalige codes die uw account en alle versleutelde gegevens herstellen.",
-    recovery_codes_generate: "Codes genereren",
-    recovery_codes_regenerate: "Codes opnieuw genereren",
+      "Eenmalige codes waarmee je je account en alle versleutelde gegevens herstelt.",
+    recovery_codes_generate: "Codes ophalen",
+    recovery_codes_regenerate: "Nieuwe codes ophalen",
     recovery_codes_regenerate_warning:
-      "Opnieuw genereren maakt nieuwe codes aan en maakt de oude permanent ongeldig.",
+      "Je huidige codes werken niet meer zodra je nieuwe ophaalt.",
+    recovery_codes_show: "Codes tonen",
+    recovery_codes_get_new_title: "Nieuwe herstelcodes ophalen?",
+    recovery_codes_confirm_title: "Bevestig dat jij het bent",
+    recovery_codes_confirm_desc:
+      "Voer je wachtwoord in om je herstelcodes te zien.",
+    recovery_codes_title: "Je herstelcodes",
+    recovery_codes_status:
+      "Aangemaakt op {{date}}. Nog {{remaining}} van {{total}} over.",
+    recovery_codes_low:
+      "Je hebt nog maar weinig herstelcodes. Haal nieuwe codes op zodat je niet buitengesloten raakt.",
+    recovery_codes_used: "Gebruikt",
+    recovery_codes_unavailable:
+      "Je codes staan niet op dit apparaat. Haal nieuwe codes op om ze te zien.",
     recovery_method_active: "Actief",
     recovery_method_not_set: "Niet ingesteld",
     recovery_codes_saved_confirm:
@@ -7636,6 +7661,7 @@ export const nl = {
     special_offers_save_failed:
       "Je instelling voor speciale aanbiedingen is niet opgeslagen. Probeer het opnieuw.",
     criterion_passkey: "Toegangssleutel geregistreerd",
+    criterion_recovery_codes: "Herstelcodes opgeslagen",
     criterion_read_receipts_off: "Leesbevestigingen uit",
     send_read_receipts_label: "Leesbevestigingen verzenden",
     send_read_receipts_description:
@@ -9176,9 +9202,6 @@ export const nl = {
     recovery_phrase_confirm_error:
       "Een of meer woorden komen niet overeen. Controleer uw opgeslagen zin en probeer het opnieuw.",
     recovery_phrase_skip_check: "Ik heb hem opgeslagen, sla deze controle over",
-    forgot_method_title: "Hoe wilt u uw account herstellen?",
-    forgot_method_desc:
-      "De methode die u kiest, bepaalt of uw versleutelde gegevens kunnen worden hersteld.",
     forgot_method_full_restore: "Volledig herstel",
     forgot_method_access_only: "Alleen toegang",
     forgot_method_phrase_title: "Mijn herstelzin gebruiken",
@@ -9190,10 +9213,6 @@ export const nl = {
     forgot_method_email_title: "E-mail mij een resetlink",
     forgot_method_email_desc:
       "Krijg weer toegang tot uw account. Versleutelde e-mail van vóór de reset kan niet meer worden gelezen, tenzij u later uw zin of een code terugvindt.",
-    phrase_entry_title: "Voer uw herstelzin in",
-    phrase_entry_desc: "Typ of plak de 12 woorden in volgorde.",
-    phrase_entry_invalid:
-      "Dit is geen geldige herstelzin. Controleer de woorden en hun volgorde.",
     phrase_recovery_failed:
       "Deze zin hoort niet bij dit account. Controleer de woorden en het e-mailadres.",
     reset_consent_title: "Deze reset kan uw oude gegevens niet ontsleutelen",
@@ -9253,8 +9272,7 @@ export const nl = {
     creating_new_recovery_backup: "Nieuwe herstelback-up aanmaken...",
     saving_new_credentials: "Nieuwe inloggegevens opslaan...",
     recover_your_account: "Herstel je account",
-    enter_email_associated:
-      "Voer je gebruikersnaam in om je account te herstellen",
+    enter_email_associated: "Voer het adres in van het account dat je wilt herstellen.",
     back_to_sign_in: "Terug naar inloggen",
     email_me_reset_link: "Stuur me een resetlink per e-mail",
     have_recovery_code: "Heb je een herstelcode?",
@@ -9273,9 +9291,7 @@ export const nl = {
     set_new_password: "Nieuw wachtwoord instellen",
     resetting_password: "Wachtwoord opnieuw instellen...",
     enter_recovery_code: "Voer herstelcode in",
-    enter_recovery_code_desc:
-      "Voer een van de herstelcodes in die je hebt opgeslagen bij het aanmaken van je account",
-    verify_code: "Code verifiëren",
+    enter_recovery_code_desc: "Voer een van de herstelcodes in die je hebt opgeslagen toen je je account aanmaakte.",
     create_new_password: "Nieuw wachtwoord aanmaken",
     choose_strong_password: "Kies een sterk wachtwoord voor je account",
     recovering_your_account: "Je account herstellen",
@@ -9285,6 +9301,47 @@ export const nl = {
     old_codes_invalidated:
       "Uw oude herstelcodes werken niet meer. Deze nieuwe set op een veilige plek bewaren voordat u dit venster sluit, houdt u gedekt.",
     n_recovery_codes: "{{count}} herstelcodes",
+    recovery_code_already_used:
+      "Deze code is al gebruikt. Elke code werkt één keer, dus voer een andere code uit je opgeslagen lijst in.",
+    try_another_way: "Probeer het anders",
+    recovery_email_label: "Aster Mail-adres",
+    recovery_domain_hint: "Kies het domein dat bij je account hoort.",
+    recovery_code_label: "Herstelcode",
+    recovery_code_hint: "Elke code werkt één keer. Codes zien er zo uit: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "Een ander adres gebruiken",
+    change_account_desc: "Herstel een ander Aster Mail-account.",
+    support_step_title: "Contact opnemen met support",
+    support_step_desc: "Aster Mail kan je versleutelde gegevens niet lezen, dus niemand kan ze ontgrendelen zonder een herstelcode of je herstel-e-mail. Support kan je account controleren en je helpen met de volgende stappen.",
+    support_email_action: "Support mailen",
+    support_help_center: "Naar het helpcentrum",
+    other_ways_title: "Probeer het anders",
+    other_ways_desc: "Kies hoe je weer toegang tot je account wilt krijgen.",
+    other_way_code_title: "Een herstelcode gebruiken",
+    other_way_code_desc: "Voer een van de codes in die je hebt opgeslagen.",
+    other_way_email_title: "Opnieuw instellen met je herstel-e-mail",
+    other_way_email_desc:
+      "Aster Mail stuurt een link naar je herstel-e-mail. Je verliest toegang tot e-mail van voor het opnieuw instellen.",
+    other_way_none_title: "Ik heb hier niets van",
+    other_way_none_desc: "Neem contact op met support, dan helpen we je met de volgende stappen.",
+    reset_account_title: "Je account opnieuw instellen?",
+    reset_account_desc:
+      "Je versleutelde e-mail, contacten en bestanden van voor het opnieuw instellen blijven vergrendeld tot je ze herstelt met je oude wachtwoord. Je krijgt een nieuwe, lege versleutelingssleutel.",
+    send_reset_link: "Herstellink sturen",
+    print_codes: "Afdrukken",
+    codes_copied: "Codes gekopieerd.",
+    i_saved_these_codes: "Ik heb deze codes opgeslagen",
+    review_security_title: "Controleer je beveiliging",
+    review_security_desc:
+      "Je wachtwoord is gewijzigd en je account is hersteld.",
+    review_devices_signed_out: "Andere apparaten zijn afgemeld.",
+    review_two_step_off: "Verificatie in twee stappen staat uit.",
+    review_turn_on: "Inschakelen",
+    review_recovery_email_kept: "Je herstel-e-mail is nog ingesteld.",
+    review_no_recovery_email: "Geen herstel-e-mail.",
+    review_add: "Toevoegen",
+    review_codes_left: "Nog {{count}} herstelcodes over.",
+    review_codes_left_one: "Nog {{count}} herstelcode over.",
+    review_codes_left_other: "Nog {{count}} herstelcodes over.",
     import_mail_step_title: "Neem je mail mee",
     import_mail_step_desc:
       "Verplaats berichten uit een ander account naar Aster. Alles wordt op je apparaat versleuteld voordat het wordt opgeslagen.",

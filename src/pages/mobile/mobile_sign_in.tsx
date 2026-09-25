@@ -528,6 +528,7 @@ export default function MobileSignInPage() {
                 </label>
                 <Link
                   className="text-xs font-semibold text-[var(--mobile-accent)]"
+                  state={{ email_domain, username }}
                   to="/forgot-password"
                 >
                   {t("auth.forgot_password")}

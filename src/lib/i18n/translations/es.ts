@@ -1768,6 +1768,19 @@ export const es = {
       "Aster cifra tu correo con tu contraseña, así que nadie puede restablecerla por ti. Añade un correo de recuperación para conservar el acceso.",
     recovery_reminder_action: "Añadir correo de recuperación",
     recovery_reminder_later: "Más tarde",
+    recovery_codes_reminder_title: "Guarda tus códigos de recuperación",
+    recovery_codes_reminder_body:
+      "Aster cifra tu correo con tu contraseña, así que nadie puede restablecerla por ti. Los códigos de recuperación son la única forma de volver a tu correo cifrado.",
+    recovery_codes_reminder_action: "Obtener códigos de recuperación",
+    recovery_codes_low_reminder_title:
+      "Te quedan pocos códigos de recuperación",
+    recovery_codes_low_reminder_body:
+      "Cada código funciona una vez y te quedan {{count}}. Obtén códigos nuevos para no perder el acceso.",
+    recovery_codes_low_reminder_action: "Obtener códigos nuevos",
+    recovery_phrase_migrate_title: "Cambia a códigos de recuperación",
+    recovery_phrase_migrate_body:
+      "Las frases de recuperación van a desaparecer. Obtén códigos de recuperación ahora para poder seguir recuperando tu cuenta.",
+    recovery_phrase_migrate_action: "Obtener códigos",
     plan_prompt_title: "Estás en el plan gratuito",
     plan_prompt_body:
       "Los planes de pago añaden más almacenamiento, dominios propios y alias ilimitados.",
@@ -2202,11 +2215,24 @@ export const es = {
       "Sin códigos de recuperación, olvidar tu contraseña bloquea tu correo cifrado de forma permanente.",
     recovery_codes_row: "Códigos de recuperación",
     recovery_codes_row_desc:
-      "Seis códigos de un solo uso que restauran tu cuenta y todos tus datos cifrados.",
-    recovery_codes_generate: "Generar códigos",
-    recovery_codes_regenerate: "Regenerar códigos",
+      "Códigos de un solo uso que restauran tu cuenta y todos los datos cifrados.",
+    recovery_codes_generate: "Obtener códigos",
+    recovery_codes_regenerate: "Obtener códigos nuevos",
     recovery_codes_regenerate_warning:
-      "Al regenerar se crean códigos nuevos y los anteriores quedan invalidados de forma permanente.",
+      "Tus códigos actuales dejan de funcionar en cuanto obtienes otros nuevos.",
+    recovery_codes_show: "Mostrar códigos",
+    recovery_codes_get_new_title: "¿Obtener códigos de recuperación nuevos?",
+    recovery_codes_confirm_title: "Confirma que eres tú",
+    recovery_codes_confirm_desc:
+      "Introduce tu contraseña para ver tus códigos de recuperación.",
+    recovery_codes_title: "Tus códigos de recuperación",
+    recovery_codes_status:
+      "Creados el {{date}}. Quedan {{remaining}} de {{total}}.",
+    recovery_codes_low:
+      "Te quedan pocos códigos de recuperación. Obtén códigos nuevos para no perder el acceso.",
+    recovery_codes_used: "Usado",
+    recovery_codes_unavailable:
+      "Tus códigos no están guardados en este dispositivo. Obtén códigos nuevos para verlos.",
     recovery_method_active: "Activo",
     recovery_method_not_set: "Sin configurar",
     recovery_codes_saved_confirm:
@@ -7644,6 +7670,7 @@ export const es = {
     special_offers_save_failed:
       "No se guardó tu preferencia de ofertas especiales. Inténtalo de nuevo.",
     criterion_passkey: "Clave de acceso registrada",
+    criterion_recovery_codes: "Códigos de recuperación guardados",
     criterion_read_receipts_off: "Confirmaciones de lectura desactivadas",
     send_read_receipts_label: "Enviar confirmaciones de lectura",
     send_read_receipts_description:
@@ -9184,9 +9211,6 @@ export const es = {
     recovery_phrase_confirm_error:
       "Una o más palabras no coinciden. Revisa tu frase guardada e inténtalo de nuevo.",
     recovery_phrase_skip_check: "La guardé, omitir esta verificación",
-    forgot_method_title: "¿Cómo quieres recuperar tu cuenta?",
-    forgot_method_desc:
-      "El método que elijas determina si tus datos cifrados se pueden restaurar.",
     forgot_method_full_restore: "Restauración completa",
     forgot_method_access_only: "Solo acceso",
     forgot_method_phrase_title: "Usar mi frase de recuperación",
@@ -9198,10 +9222,6 @@ export const es = {
     forgot_method_email_title: "Enviarme un enlace de restablecimiento",
     forgot_method_email_desc:
       "Recupera el acceso a tu cuenta. El correo cifrado anterior al restablecimiento no podrá leerse de nuevo a menos que más adelante encuentres tu frase o un código.",
-    phrase_entry_title: "Ingresa tu frase de recuperación",
-    phrase_entry_desc: "Escribe o pega las 12 palabras en orden.",
-    phrase_entry_invalid:
-      "Esta no es una frase de recuperación válida. Revisa las palabras y su orden.",
     phrase_recovery_failed:
       "Esta frase no corresponde a esta cuenta. Revisa las palabras y la dirección de correo.",
     reset_consent_title:
@@ -9265,8 +9285,7 @@ export const es = {
       "Creando nueva copia de seguridad de recuperación...",
     saving_new_credentials: "Guardando nuevas credenciales...",
     recover_your_account: "Recupera tu cuenta",
-    enter_email_associated:
-      "Ingresa tu nombre de usuario para recuperar tu cuenta",
+    enter_email_associated: "Escribe la dirección de la cuenta que quieres recuperar.",
     back_to_sign_in: "Volver a iniciar sesión",
     email_me_reset_link: "Enviarme un enlace de restablecimiento por correo",
     have_recovery_code: "¿Tienes un código de recuperación?",
@@ -9285,9 +9304,7 @@ export const es = {
     set_new_password: "Establecer nueva contraseña",
     resetting_password: "Restableciendo contraseña...",
     enter_recovery_code: "Ingresar código de recuperación",
-    enter_recovery_code_desc:
-      "Ingresa uno de los códigos de recuperación que guardaste al crear tu cuenta",
-    verify_code: "Verificar código",
+    enter_recovery_code_desc: "Escribe uno de los códigos de recuperación que guardaste al crear tu cuenta.",
     create_new_password: "Crear nueva contraseña",
     choose_strong_password: "Elige una contraseña segura para tu cuenta",
     recovering_your_account: "Recuperando tu cuenta",
@@ -9297,6 +9314,46 @@ export const es = {
     old_codes_invalidated:
       "Tus códigos de recuperación antiguos ya no funcionan. Guardar este conjunto nuevo en un lugar seguro antes de cerrar esta ventana te mantendrá cubierto.",
     n_recovery_codes: "{{count}} códigos de recuperación",
+    recovery_code_already_used:
+      "Ese código ya se usó. Cada código funciona una sola vez, así que introduce otro de tu lista guardada.",
+    try_another_way: "Probar de otra forma",
+    recovery_email_label: "Dirección de Aster Mail",
+    recovery_domain_hint: "Elige el dominio que corresponde a tu cuenta.",
+    recovery_code_label: "Código de recuperación",
+    recovery_code_hint: "Cada código funciona una vez. Los códigos tienen este formato: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "Usar otra dirección",
+    change_account_desc: "Recupera otra cuenta de Aster Mail.",
+    support_step_title: "Contactar con soporte",
+    support_step_desc: "Aster Mail no puede leer tus datos cifrados, así que nadie puede desbloquearlos sin un código de recuperación o tu correo de recuperación. Soporte puede revisar tu cuenta y ayudarte con los siguientes pasos.",
+    support_email_action: "Escribir a soporte",
+    support_help_center: "Ir al centro de ayuda",
+    other_ways_title: "Probar de otra forma",
+    other_ways_desc: "Elige cómo quieres volver a entrar en tu cuenta.",
+    other_way_code_title: "Usar un código de recuperación",
+    other_way_code_desc: "Introduce uno de los códigos que guardaste.",
+    other_way_email_title: "Restablecer con tu correo de recuperación",
+    other_way_email_desc:
+      "Aster Mail envía un enlace a tu correo de recuperación. Pierdes el acceso al correo anterior al restablecimiento.",
+    other_way_none_title: "No tengo ninguna de estas opciones",
+    other_way_none_desc: "Contacta con soporte y te ayudamos con los siguientes pasos.",
+    reset_account_title: "¿Restablecer tu cuenta?",
+    reset_account_desc:
+      "Tu correo, contactos y archivos cifrados anteriores al restablecimiento siguen bloqueados hasta que los recuperes con tu contraseña anterior. Obtienes una clave de cifrado nueva y vacía.",
+    send_reset_link: "Enviar enlace de restablecimiento",
+    print_codes: "Imprimir",
+    codes_copied: "Códigos copiados.",
+    i_saved_these_codes: "He guardado estos códigos",
+    review_security_title: "Revisa tu seguridad",
+    review_security_desc: "Tu contraseña se cambió y tu cuenta se recuperó.",
+    review_devices_signed_out: "Se cerró la sesión en otros dispositivos.",
+    review_two_step_off: "La verificación en dos pasos está desactivada.",
+    review_turn_on: "Activar",
+    review_recovery_email_kept: "Tu correo de recuperación sigue configurado.",
+    review_no_recovery_email: "Sin correo de recuperación.",
+    review_add: "Añadir",
+    review_codes_left: "Quedan {{count}} códigos de recuperación.",
+    review_codes_left_one: "Queda {{count}} código de recuperación.",
+    review_codes_left_other: "Quedan {{count}} códigos de recuperación.",
     import_mail_step_title: "Trae tu correo contigo",
     import_mail_step_desc:
       "Mueve los mensajes de otra cuenta a Aster. Todo se cifra en tu dispositivo antes de guardarse.",

@@ -1744,6 +1744,19 @@ export const ar = {
       "تُشفّر Aster بريدك بكلمة سرك، لذا لا يستطيع أحد إعادة تعيينها نيابة عنك. أضف بريدًا للاسترداد للحفاظ على وصولك.",
     recovery_reminder_action: "إضافة بريد للاسترداد",
     recovery_reminder_later: "لاحقًا",
+    recovery_codes_reminder_title: "احفظ رموز الاسترداد",
+    recovery_codes_reminder_body:
+      "تُشفّر Aster بريدك بكلمة سرك، لذا لا يستطيع أحد إعادة تعيينها نيابة عنك. رموز الاسترداد هي الطريقة الوحيدة للعودة إلى بريدك المشفّر.",
+    recovery_codes_reminder_action: "الحصول على رموز الاسترداد",
+    recovery_codes_low_reminder_title:
+      "لم يتبقّ لديك سوى عدد قليل من رموز الاسترداد",
+    recovery_codes_low_reminder_body:
+      "يعمل كل رمز مرة واحدة، وتبقى لديك {{count}}. احصل على رموز جديدة حتى لا تفقد الوصول إلى حسابك.",
+    recovery_codes_low_reminder_action: "الحصول على رموز جديدة",
+    recovery_phrase_migrate_title: "انتقل إلى رموز الاسترداد",
+    recovery_phrase_migrate_body:
+      "سيتوقف العمل بعبارات الاسترداد. احصل على رموز الاسترداد الآن حتى تظل قادرًا على استرداد حسابك.",
+    recovery_phrase_migrate_action: "الحصول على الرموز",
     plan_prompt_title: "أنت على الخطة المجانية",
     plan_prompt_body:
       "تضيف الخطط المدفوعة مساحة أكبر ونطاقات مخصصة وأسماء مستعارة غير محدودة.",
@@ -2340,11 +2353,23 @@ export const ar = {
       "بدون رموز استرداد، نسيان كلمة المرور يقفل بريدك المشفر نهائيًا.",
     recovery_codes_row: "رموز الاسترداد",
     recovery_codes_row_desc:
-      "ستة رموز تُستخدم مرة واحدة وتستعيد حسابك وجميع بياناتك المشفرة.",
-    recovery_codes_generate: "إنشاء الرموز",
-    recovery_codes_regenerate: "إعادة إنشاء الرموز",
+      "رموز تُستخدم مرة واحدة لاستعادة حسابك وجميع بياناتك المشفّرة.",
+    recovery_codes_generate: "احصل على رموز",
+    recovery_codes_regenerate: "احصل على رموز جديدة",
     recovery_codes_regenerate_warning:
-      "إعادة الإنشاء تنشئ رموزًا جديدة وتبطل الرموز القديمة نهائيًا.",
+      "تتوقف رموزك الحالية عن العمل بمجرد حصولك على رموز جديدة.",
+    recovery_codes_show: "إظهار الرموز",
+    recovery_codes_get_new_title: "هل تريد الحصول على رموز استرداد جديدة؟",
+    recovery_codes_confirm_title: "أكّد هويتك",
+    recovery_codes_confirm_desc: "أدخل كلمة المرور لعرض رموز الاسترداد.",
+    recovery_codes_title: "رموز الاسترداد الخاصة بك",
+    recovery_codes_status:
+      "أُنشئت في {{date}}. تبقّى {{remaining}} من {{total}}.",
+    recovery_codes_low:
+      "لم يتبقّ لديك سوى عدد قليل من رموز الاسترداد. احصل على رموز جديدة حتى لا تفقد الوصول إلى حسابك.",
+    recovery_codes_used: "مستخدَم",
+    recovery_codes_unavailable:
+      "رموزك غير محفوظة على هذا الجهاز. احصل على رموز جديدة لعرضها.",
     recovery_method_active: "نشطة",
     recovery_method_not_set: "غير معيّنة",
     recovery_codes_saved_confirm:
@@ -7557,6 +7582,7 @@ export const ar = {
     special_offers_save_failed:
       "لم يُحفظ إعداد العروض الخاصة. حاول مرة أخرى.",
     criterion_passkey: "مفتاح مرور مسجَّل",
+    criterion_recovery_codes: "رموز الاسترداد محفوظة",
     criterion_read_receipts_off: "إيصالات القراءة موقوفة",
     send_read_receipts_label: "إرسال إشعارات القراءة",
     send_read_receipts_description: "أخبر المرسلين بوقت فتحك لرسائلهم.",
@@ -9136,9 +9162,6 @@ export const ar = {
     recovery_phrase_confirm_error:
       "كلمة أو أكثر غير متطابقة. تحقق من العبارة المحفوظة وحاول مجددًا.",
     recovery_phrase_skip_check: "لقد حفظتها، تخطَّ هذا التحقق",
-    forgot_method_title: "كيف تريد استرداد حسابك؟",
-    forgot_method_desc:
-      "الطريقة التي تختارها تحدد ما إذا كان يمكن استعادة بياناتك المشفرة.",
     forgot_method_full_restore: "استعادة كاملة",
     forgot_method_access_only: "الوصول فقط",
     forgot_method_phrase_title: "استخدام عبارة الاسترداد",
@@ -9150,10 +9173,6 @@ export const ar = {
     forgot_method_email_title: "إرسال رابط إعادة تعيين بالبريد",
     forgot_method_email_desc:
       "استعد الوصول إلى حسابك. البريد المشفر من قبل إعادة التعيين لا يمكن قراءته مجددًا إلا إذا عثرت لاحقًا على عبارتك أو أحد الرموز.",
-    phrase_entry_title: "أدخل عبارة الاسترداد",
-    phrase_entry_desc: "اكتب أو الصق الكلمات الاثنتي عشرة بالترتيب.",
-    phrase_entry_invalid:
-      "هذه ليست عبارة استرداد صالحة. تحقق من الكلمات وترتيبها.",
     phrase_recovery_failed:
       "هذه العبارة لا تطابق هذا الحساب. تحقق من الكلمات وعنوان البريد الإلكتروني.",
     reset_consent_title: "إعادة التعيين هذه لا يمكنها فك تشفير بياناتك القديمة",
@@ -9213,7 +9232,7 @@ export const ar = {
     creating_new_recovery_backup: "جارٍ إنشاء نسخة استرداد احتياطية جديدة...",
     saving_new_credentials: "جارٍ حفظ بيانات الاعتماد الجديدة...",
     recover_your_account: "استرداد حسابك",
-    enter_email_associated: "أدخل اسم المستخدم الخاص بك لاسترداد حسابك",
+    enter_email_associated: "أدخل عنوان الحساب الذي تريد استرداده.",
     back_to_sign_in: "العودة إلى تسجيل الدخول",
     email_me_reset_link: "أرسل لي رابط إعادة التعيين عبر البريد الإلكتروني",
     have_recovery_code: "هل لديك رمز استرداد؟",
@@ -9232,9 +9251,7 @@ export const ar = {
     set_new_password: "تعيين كلمة المرور الجديدة",
     resetting_password: "جارٍ إعادة تعيين كلمة المرور...",
     enter_recovery_code: "أدخل رمز الاسترداد",
-    enter_recovery_code_desc:
-      "أدخل أحد رموز الاسترداد التي حفظتها عند إنشاء حسابك",
-    verify_code: "التحقق من الرمز",
+    enter_recovery_code_desc: "أدخل أحد رموز الاسترداد التي حفظتها عند إنشاء حسابك.",
     create_new_password: "إنشاء كلمة مرور جديدة",
     choose_strong_password: "اختر كلمة مرور قوية لحسابك",
     recovering_your_account: "جارٍ استرداد حسابك",
@@ -9243,6 +9260,50 @@ export const ar = {
     old_codes_invalidated:
       "رموز الاسترداد القديمة لم تعد تعمل. حفظ هذه المجموعة الجديدة في مكان آمن قبل إغلاق هذه النافذة يبقيك مغطّى.",
     n_recovery_codes: "{{count}} رمز استرداد",
+    recovery_code_already_used:
+      "تم استخدام هذا الرمز من قبل. يعمل كل رمز مرة واحدة، لذا أدخل رمزًا آخر من قائمتك المحفوظة.",
+    try_another_way: "جرب طريقة أخرى",
+    recovery_email_label: "عنوان Aster Mail",
+    recovery_domain_hint: "اختر النطاق الذي يطابق حسابك.",
+    recovery_code_label: "رمز الاسترداد",
+    recovery_code_hint: "يعمل كل رمز مرة واحدة. تبدو الرموز هكذا: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "استخدام عنوان آخر",
+    change_account_desc: "استعد حسابًا آخر في Aster Mail.",
+    support_step_title: "التواصل مع الدعم",
+    support_step_desc: "لا يستطيع Aster Mail قراءة بياناتك المشفرة، لذلك لا أحد يفتحها بدون رمز استرداد أو بريد الاسترداد. يمكن للدعم مراجعة حسابك ومساعدتك في الخطوات التالية.",
+    support_email_action: "مراسلة الدعم",
+    support_help_center: "فتح مركز المساعدة",
+    other_ways_title: "جرب طريقة أخرى",
+    other_ways_desc: "اختر كيف تريد العودة إلى حسابك.",
+    other_way_code_title: "استخدام رمز استرداد",
+    other_way_code_desc: "أدخل أحد الرموز التي حفظتها.",
+    other_way_email_title: "إعادة التعيين ببريد الاسترداد",
+    other_way_email_desc:
+      "يرسل Aster Mail رابطًا إلى بريد الاسترداد. تفقد إمكانية الوصول إلى الرسائل السابقة لإعادة التعيين.",
+    other_way_none_title: "لا أملك أيًا من هذه",
+    other_way_none_desc: "تواصل مع الدعم وسنساعدك في الخطوات التالية.",
+    reset_account_title: "هل تريد إعادة تعيين حسابك؟",
+    reset_account_desc:
+      "تظل رسائلك وجهات اتصالك وملفاتك المشفرة السابقة لإعادة التعيين مقفلة حتى تستردها بكلمة المرور القديمة. تحصل على مفتاح تشفير جديد وفارغ.",
+    send_reset_link: "إرسال رابط إعادة التعيين",
+    print_codes: "طباعة",
+    codes_copied: "تم نسخ الرموز.",
+    i_saved_these_codes: "لقد حفظت هذه الرموز",
+    review_security_title: "راجع أمان حسابك",
+    review_security_desc: "تم تغيير كلمة المرور واسترداد حسابك.",
+    review_devices_signed_out: "تم تسجيل الخروج من الأجهزة الأخرى.",
+    review_two_step_off: "التحقق بخطوتين متوقف.",
+    review_turn_on: "تفعيل",
+    review_recovery_email_kept: "بريد الاسترداد ما زال مضبوطًا.",
+    review_no_recovery_email: "لا يوجد بريد استرداد.",
+    review_add: "إضافة",
+    review_codes_left: "تبقى {{count}} من رموز الاسترداد.",
+    review_codes_left_zero: "لم يتبق أي رمز استرداد.",
+    review_codes_left_one: "تبقى رمز استرداد واحد.",
+    review_codes_left_two: "تبقى رمزا استرداد.",
+    review_codes_left_few: "تبقى {{count}} رموز استرداد.",
+    review_codes_left_many: "تبقى {{count}} رمز استرداد.",
+    review_codes_left_other: "تبقى {{count}} من رموز الاسترداد.",
     import_mail_step_title: "خذ بريدك معك",
     import_mail_step_desc:
       "انقل الرسائل من حساب آخر إلى Aster. يُشفَّر كل شيء على جهازك قبل تخزينه.",

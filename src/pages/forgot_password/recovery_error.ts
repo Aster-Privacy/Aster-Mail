@@ -38,6 +38,10 @@ export function recovery_error_message(
     });
   }
 
+  if (response.server_code === "RECOVERY_CODE_USED") {
+    return t("auth.recovery_code_already_used");
+  }
+
   if (response.server_code === "INVALID_RECOVERY_CODE") {
     return t("auth.invalid_recovery_code");
   }

@@ -1892,6 +1892,18 @@ export const tr = {
       "Aster postanızı parolanızla şifreler, bu yüzden kimse onu sizin için sıfırlayamaz. Erişiminizi korumak için bir kurtarma e-postası ekleyin.",
     recovery_reminder_action: "Kurtarma e-postası ekle",
     recovery_reminder_later: "Daha sonra",
+    recovery_codes_reminder_title: "Kurtarma kodlarınızı kaydedin",
+    recovery_codes_reminder_body:
+      "Aster postanızı parolanızla şifreler, bu yüzden kimse onu sizin için sıfırlayamaz. Şifreli postanıza dönmenin tek yolu kurtarma kodlarıdır.",
+    recovery_codes_reminder_action: "Kurtarma kodu al",
+    recovery_codes_low_reminder_title: "Kurtarma kodlarınız azalıyor",
+    recovery_codes_low_reminder_body:
+      "Her kod bir kez çalışır ve {{count}} kodunuz kaldı. Hesabınızdan kilitlenmemek için yeni kod alın.",
+    recovery_codes_low_reminder_action: "Yeni kod al",
+    recovery_phrase_migrate_title: "Kurtarma kodlarına geçin",
+    recovery_phrase_migrate_body:
+      "Kurtarma ifadeleri kaldırılıyor. Hesabınızı hâlâ kurtarabilmek için şimdi kurtarma kodu alın.",
+    recovery_phrase_migrate_action: "Kod al",
     plan_prompt_title: "Ücretsiz plandasınız",
     plan_prompt_body:
       "Ücretli planlar daha fazla depolama, özel alan adları ve sınırsız takma ad sunar.",
@@ -2195,11 +2207,24 @@ export const tr = {
       "Kurtarma kodlarınız yoksa, parolanızı unutmanız şifreli postalarınızı kalıcı olarak kilitler.",
     recovery_codes_row: "Kurtarma kodları",
     recovery_codes_row_desc:
-      "Hesabınızı ve tüm şifreli verilerinizi geri yükleyen altı tek kullanımlık kod.",
-    recovery_codes_generate: "Kodları oluştur",
-    recovery_codes_regenerate: "Kodları yeniden oluştur",
+      "Hesabınızı ve şifrelenmiş tüm verilerinizi geri getiren tek kullanımlık kodlar.",
+    recovery_codes_generate: "Kod al",
+    recovery_codes_regenerate: "Yeni kod al",
     recovery_codes_regenerate_warning:
-      "Yeniden oluşturmak yeni kodlar üretir ve eskilerini kalıcı olarak geçersiz kılar.",
+      "Yeni kod aldığınız anda mevcut kodlarınız çalışmaz.",
+    recovery_codes_show: "Kodları göster",
+    recovery_codes_get_new_title: "Yeni kurtarma kodları alınsın mı?",
+    recovery_codes_confirm_title: "Kimliğinizi doğrulayın",
+    recovery_codes_confirm_desc:
+      "Kurtarma kodlarınızı görmek için parolanızı girin.",
+    recovery_codes_title: "Kurtarma kodlarınız",
+    recovery_codes_status:
+      "{{date}} tarihinde oluşturuldu. {{total}} kodun {{remaining}} tanesi kaldı.",
+    recovery_codes_low:
+      "Kurtarma kodlarınız azalıyor. Hesabınızdan kilitlenmemek için yeni kod alın.",
+    recovery_codes_used: "Kullanıldı",
+    recovery_codes_unavailable:
+      "Kodlarınız bu cihazda saklanmıyor. Görmek için yeni kod alın.",
     recovery_method_active: "Etkin",
     recovery_method_not_set: "Ayarlanmadı",
     recovery_codes_saved_confirm:
@@ -7616,6 +7641,7 @@ export const tr = {
     special_offers_save_failed:
       "Özel teklifler ayarınız kaydedilmedi. Tekrar deneyin.",
     criterion_passkey: "Geçiş anahtarı kayıtlı",
+    criterion_recovery_codes: "Kurtarma kodları kaydedildi",
     criterion_read_receipts_off: "Okundu bilgisi kapalı",
     send_read_receipts_label: "Okundu bilgisi gönder",
     send_read_receipts_description:
@@ -9144,9 +9170,6 @@ export const tr = {
     recovery_phrase_confirm_error:
       "Bir veya daha fazla kelime eşleşmiyor. Kaydettiğiniz ifadeyi kontrol edip tekrar deneyin.",
     recovery_phrase_skip_check: "Kaydettim, bu kontrolü atla",
-    forgot_method_title: "Hesabınızı nasıl kurtarmak istiyorsunuz?",
-    forgot_method_desc:
-      "Seçtiğiniz yöntem, şifreli verilerinizin geri yüklenip yüklenemeyeceğini belirler.",
     forgot_method_full_restore: "Tam geri yükleme",
     forgot_method_access_only: "Yalnızca erişim",
     forgot_method_phrase_title: "Kurtarma ifademi kullan",
@@ -9158,10 +9181,6 @@ export const tr = {
     forgot_method_email_title: "Bana sıfırlama bağlantısı gönder",
     forgot_method_email_desc:
       "Hesabınıza yeniden erişim kazanırsınız. Sıfırlamadan önceki şifreli postalar, ifadenizi veya bir kodu daha sonra bulmadıkça bir daha okunamaz.",
-    phrase_entry_title: "Kurtarma ifadenizi girin",
-    phrase_entry_desc: "12 kelimeyi sırasıyla yazın veya yapıştırın.",
-    phrase_entry_invalid:
-      "Bu geçerli bir kurtarma ifadesi değil. Kelimeleri ve sıralarını kontrol edin.",
     phrase_recovery_failed:
       "Bu ifade bu hesapla eşleşmiyor. Kelimeleri ve e-posta adresini kontrol edin.",
     reset_consent_title: "Bu sıfırlama eski verilerinizin şifresini çözemez",
@@ -9223,7 +9242,7 @@ export const tr = {
     creating_new_recovery_backup: "Yeni kurtarma yedeği oluşturuluyor...",
     saving_new_credentials: "Yeni kimlik bilgileri kaydediliyor...",
     recover_your_account: "Hesabınızı kurtarın",
-    enter_email_associated: "Hesabınızı kurtarmak için kullanıcı adınızı girin",
+    enter_email_associated: "Kurtarmak istediğiniz hesabın adresini girin.",
     back_to_sign_in: "Giriş sayfasına dön",
     email_me_reset_link: "Bana e-posta ile sıfırlama bağlantısı gönder",
     have_recovery_code: "Kurtarma kodunuz var mı?",
@@ -9242,9 +9261,7 @@ export const tr = {
     set_new_password: "Yeni parola belirle",
     resetting_password: "Parola sıfırlanıyor...",
     enter_recovery_code: "Kurtarma kodunu girin",
-    enter_recovery_code_desc:
-      "Hesabınızı oluştururken kaydettiğiniz kurtarma kodlarından birini girin",
-    verify_code: "Kodu Doğrula",
+    enter_recovery_code_desc: "Hesabınızı oluştururken kaydettiğiniz kurtarma kodlarından birini girin.",
     create_new_password: "Yeni parola oluşturun",
     choose_strong_password: "Hesabınız için güçlü bir parola seçin",
     recovering_your_account: "Hesabınız kurtarılıyor",
@@ -9253,6 +9270,46 @@ export const tr = {
     old_codes_invalidated:
       "Eski kurtarma kodlarınız artık çalışmıyor. Bu yeni seti pencereyi kapatmadan önce güvenli bir yere kaydetmek sizi korunaklı tutar.",
     n_recovery_codes: "{{count}} kurtarma kodu",
+    recovery_code_already_used:
+      "Bu kod zaten kullanıldı. Her kod bir kez çalışır, bu yüzden kayıtlı listenizden başka bir kod girin.",
+    try_another_way: "Başka bir yol deneyin",
+    recovery_email_label: "Aster Mail adresi",
+    recovery_domain_hint: "Hesabınıza ait alan adını seçin.",
+    recovery_code_label: "Kurtarma kodu",
+    recovery_code_hint: "Her kod bir kez çalışır. Kodlar şöyle görünür: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "Başka bir adres kullan",
+    change_account_desc: "Başka bir Aster Mail hesabını kurtarın.",
+    support_step_title: "Destek ile iletişime geçin",
+    support_step_desc: "Aster Mail şifreli verilerinizi okuyamaz, bu yüzden kurtarma kodu veya kurtarma e-postanız olmadan kimse bunları açamaz. Destek ekibi hesabınızı kontrol edip sonraki adımlarda yardımcı olabilir.",
+    support_email_action: "Desteğe e-posta gönder",
+    support_help_center: "Yardım merkezini aç",
+    other_ways_title: "Başka bir yol deneyin",
+    other_ways_desc: "Hesabınıza nasıl geri dönmek istediğinizi seçin.",
+    other_way_code_title: "Kurtarma kodu kullanın",
+    other_way_code_desc: "Kaydettiğiniz kodlardan birini girin.",
+    other_way_email_title: "Kurtarma e-postanızla sıfırlayın",
+    other_way_email_desc:
+      "Aster Mail kurtarma e-postanıza bir bağlantı gönderir. Sıfırlamadan önceki postalara erişiminizi kaybedersiniz.",
+    other_way_none_title: "Bunların hiçbiri bende yok",
+    other_way_none_desc: "Destek ile iletişime geçin, sonraki adımlarda yardımcı olalım.",
+    reset_account_title: "Hesabınız sıfırlansın mı?",
+    reset_account_desc:
+      "Sıfırlamadan önceki şifrelenmiş postanız, kişileriniz ve dosyalarınız, eski parolanızla kurtarana kadar kilitli kalır. Yeni ve boş bir şifreleme anahtarı alırsınız.",
+    send_reset_link: "Sıfırlama bağlantısı gönder",
+    print_codes: "Yazdır",
+    codes_copied: "Kodlar kopyalandı.",
+    i_saved_these_codes: "Bu kodları kaydettim",
+    review_security_title: "Güvenliğinizi gözden geçirin",
+    review_security_desc: "Parolanız değiştirildi ve hesabınız kurtarıldı.",
+    review_devices_signed_out: "Diğer cihazların oturumu kapatıldı.",
+    review_two_step_off: "İki adımlı doğrulama kapalı.",
+    review_turn_on: "Aç",
+    review_recovery_email_kept: "Kurtarma e-postanız hâlâ ayarlı.",
+    review_no_recovery_email: "Kurtarma e-postası yok.",
+    review_add: "Ekle",
+    review_codes_left: "{{count}} kurtarma kodu kaldı.",
+    review_codes_left_one: "{{count}} kurtarma kodu kaldı.",
+    review_codes_left_other: "{{count}} kurtarma kodu kaldı.",
     import_mail_step_title: "Postanı yanında getir",
     import_mail_step_desc:
       "Başka bir hesaptaki iletileri Aster'a taşı. Her şey kaydedilmeden önce cihazında şifrelenir.",

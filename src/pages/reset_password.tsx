@@ -31,6 +31,7 @@ import { use_should_reduce_motion } from "@/provider";
 import {
   derive_password_hash,
   generate_recovery_codes,
+  RECOVERY_CODE_SET_SIZE,
   encrypt_vault,
   generate_identity_keypair,
   generate_signed_prekey,
@@ -337,7 +338,7 @@ export default function ResetPasswordPage() {
       );
 
       set_processing_status(t("auth.creating_new_recovery_codes"));
-      const new_codes = generate_recovery_codes(6);
+      const new_codes = generate_recovery_codes(RECOVERY_CODE_SET_SIZE);
 
       set_new_recovery_codes(new_codes);
 

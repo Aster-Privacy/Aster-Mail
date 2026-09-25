@@ -1810,6 +1810,18 @@ export const hi = {
       "Aster आपका मेल आपके पासवर्ड से एन्क्रिप्ट करता है, इसलिए कोई भी इसे आपके लिए रीसेट नहीं कर सकता। अंदर आने का रास्ता बनाए रखने के लिए रिकवरी ईमेल जोड़ें।",
     recovery_reminder_action: "रिकवरी ईमेल जोड़ें",
     recovery_reminder_later: "बाद में",
+    recovery_codes_reminder_title: "अपने रिकवरी कोड सहेजें",
+    recovery_codes_reminder_body:
+      "Aster आपका मेल आपके पासवर्ड से एन्क्रिप्ट करता है, इसलिए कोई भी इसे आपके लिए रीसेट नहीं कर सकता। एन्क्रिप्टेड मेल तक वापस पहुंचने का एकमात्र रास्ता रिकवरी कोड हैं।",
+    recovery_codes_reminder_action: "रिकवरी कोड पाएं",
+    recovery_codes_low_reminder_title: "आपके रिकवरी कोड कम रह गए हैं",
+    recovery_codes_low_reminder_body:
+      "हर कोड एक बार काम करता है और आपके पास {{count}} बचे हैं। खाते से बाहर होने से बचने के लिए नए कोड पाएं।",
+    recovery_codes_low_reminder_action: "नए कोड पाएं",
+    recovery_phrase_migrate_title: "रिकवरी कोड पर जाएं",
+    recovery_phrase_migrate_body:
+      "रिकवरी फ़्रेज़ हटाए जा रहे हैं। अभी रिकवरी कोड पाएं ताकि आप आगे भी अपना खाता रिकवर कर सकें।",
+    recovery_phrase_migrate_action: "कोड पाएं",
     plan_prompt_title: "आप मुफ़्त प्लान पर हैं",
     plan_prompt_body:
       "सशुल्क प्लान में ज़्यादा स्टोरेज, कस्टम डोमेन और असीमित एलियास मिलते हैं।",
@@ -2216,11 +2228,23 @@ export const hi = {
       "रिकवरी कोड के बिना, पासवर्ड भूलने पर आपकी एन्क्रिप्टेड मेल हमेशा के लिए बंद हो जाती है।",
     recovery_codes_row: "रिकवरी कोड",
     recovery_codes_row_desc:
-      "छह एक-बार इस्तेमाल होने वाले कोड, जो आपका खाता और सारा एन्क्रिप्टेड डेटा वापस लाते हैं।",
-    recovery_codes_generate: "कोड बनाएं",
-    recovery_codes_regenerate: "कोड दोबारा बनाएं",
+      "एक बार इस्तेमाल होने वाले कोड जो आपका खाता और सभी एन्क्रिप्टेड डेटा वापस लाते हैं।",
+    recovery_codes_generate: "कोड पाएं",
+    recovery_codes_regenerate: "नए कोड पाएं",
     recovery_codes_regenerate_warning:
-      "दोबारा बनाने पर नए कोड बनते हैं और पुराने कोड हमेशा के लिए बेकार हो जाते हैं।",
+      "नए कोड पाते ही आपके मौजूदा कोड काम करना बंद कर देते हैं।",
+    recovery_codes_show: "कोड दिखाएं",
+    recovery_codes_get_new_title: "नए रिकवरी कोड पाएं?",
+    recovery_codes_confirm_title: "पुष्टि करें कि यह आप हैं",
+    recovery_codes_confirm_desc: "अपने रिकवरी कोड देखने के लिए पासवर्ड डालें।",
+    recovery_codes_title: "आपके रिकवरी कोड",
+    recovery_codes_status:
+      "{{date}} को बनाए गए। {{total}} में से {{remaining}} बचे हैं।",
+    recovery_codes_low:
+      "आपके रिकवरी कोड कम रह गए हैं। खाते से बाहर होने से बचने के लिए नए कोड पाएं।",
+    recovery_codes_used: "इस्तेमाल किया गया",
+    recovery_codes_unavailable:
+      "आपके कोड इस डिवाइस पर सेव नहीं हैं। उन्हें देखने के लिए नए कोड पाएं।",
     recovery_method_active: "सक्रिय",
     recovery_method_not_set: "सेट नहीं है",
     recovery_codes_saved_confirm:
@@ -3124,6 +3148,7 @@ export const hi = {
     security_center_identity_key: "पहचान कुंजी",
     criterion_two_factor: "दो-चरणीय प्रमाणीकरण",
     criterion_passkey: "पासकी दर्ज हो गई",
+    criterion_recovery_codes: "रिकवरी कोड सहेजे गए",
     criterion_recovery_email: "पुष्ट रिकवरी ईमेल",
     criterion_auto_lock: "अपने आप लॉक",
     criterion_login_alerts: "साइन इन अलर्ट",
@@ -9128,9 +9153,6 @@ export const hi = {
     recovery_phrase_confirm_error:
       "एक या ज़्यादा शब्द मेल नहीं खाते। अपना सहेजा गया फ़्रेज़ जांचें और फिर से कोशिश करें।",
     recovery_phrase_skip_check: "मैंने इसे सहेज लिया, यह जांच छोड़ें",
-    forgot_method_title: "आप अपना खाता कैसे रिकवर करना चाहते हैं?",
-    forgot_method_desc:
-      "आप जो तरीका चुनते हैं, वही तय करता है कि आपका एन्क्रिप्टेड डेटा बहाल हो सकता है या नहीं।",
     forgot_method_full_restore: "पूरी बहाली",
     forgot_method_access_only: "सिर्फ़ पहुंच",
     forgot_method_phrase_title: "मेरा रिकवरी फ़्रेज़ इस्तेमाल करें",
@@ -9142,10 +9164,6 @@ export const hi = {
     forgot_method_email_title: "मुझे रीसेट लिंक ईमेल करें",
     forgot_method_email_desc:
       "अपने खाते तक फिर से पहुंच पाएं। रीसेट से पहले का एन्क्रिप्टेड मेल दोबारा तभी पढ़ा जा सकता है, जब आपको बाद में अपना फ़्रेज़ या कोई कोड मिल जाए।",
-    phrase_entry_title: "अपना रिकवरी फ़्रेज़ डालें",
-    phrase_entry_desc: "12 शब्द क्रम से टाइप करें या पेस्ट करें।",
-    phrase_entry_invalid:
-      "यह मान्य रिकवरी फ़्रेज़ नहीं है। शब्द और उनका क्रम जांचें।",
     phrase_recovery_failed:
       "यह फ़्रेज़ इस खाते से मेल नहीं खाता। शब्द और ईमेल पता जांचें।",
     reset_consent_title: "यह रीसेट आपका पुराना डेटा डिक्रिप्ट नहीं कर सकता",
@@ -9207,8 +9225,7 @@ export const hi = {
     creating_new_recovery_backup: "नया रिकवरी बैकअप बनाया जा रहा है...",
     saving_new_credentials: "नए क्रेडेंशियल सहेजे जा रहे हैं...",
     recover_your_account: "अपना खाता रिकवर करें",
-    enter_email_associated:
-      "अपना खाता रिकवर करने के लिए अपना उपयोगकर्ता नाम डालें",
+    enter_email_associated: "जिस खाते को रिकवर करना है उसका पता दर्ज करें।",
     back_to_sign_in: "साइन इन पर वापस जाएं",
     email_me_reset_link: "मुझे रीसेट लिंक ईमेल करें",
     have_recovery_code: "रिकवरी कोड है?",
@@ -9227,9 +9244,7 @@ export const hi = {
     set_new_password: "नया पासवर्ड सेट करें",
     resetting_password: "पासवर्ड रीसेट किया जा रहा है...",
     enter_recovery_code: "रिकवरी कोड डालें",
-    enter_recovery_code_desc:
-      "खाता बनाते समय सहेजे गए रिकवरी कोड में से कोई एक डालें",
-    verify_code: "कोड सत्यापित करें",
+    enter_recovery_code_desc: "खाता बनाते समय सहेजे गए रिकवरी कोड में से कोई एक दर्ज करें।",
     create_new_password: "नया पासवर्ड बनाएं",
     choose_strong_password: "अपने खाते के लिए एक मज़बूत पासवर्ड चुनें",
     recovering_your_account: "आपका खाता रिकवर किया जा रहा है",
@@ -9239,6 +9254,47 @@ export const hi = {
     old_codes_invalidated:
       "आपके पुराने रिकवरी कोड अब काम नहीं करते। यह विंडो बंद करने से पहले इस नए सेट को कहीं सुरक्षित सहेज लेने पर आप सुरक्षित रहेंगे।",
     n_recovery_codes: "{{count}} रिकवरी कोड",
+    recovery_code_already_used:
+      "यह कोड पहले ही इस्तेमाल हो चुका है। हर कोड एक बार काम करता है, इसलिए अपनी सेव की गई सूची से कोई दूसरा कोड डालें।",
+    try_another_way: "दूसरा तरीका आज़माएं",
+    recovery_email_label: "Aster Mail पता",
+    recovery_domain_hint: "वह डोमेन चुनें जो आपके खाते से मेल खाता है।",
+    recovery_code_label: "रिकवरी कोड",
+    recovery_code_hint: "हर कोड एक बार काम करता है। कोड ऐसे दिखते हैं: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "दूसरा पता इस्तेमाल करें",
+    change_account_desc: "कोई दूसरा Aster Mail खाता पुनर्प्राप्त करें।",
+    support_step_title: "सहायता से संपर्क करें",
+    support_step_desc: "Aster Mail आपका एन्क्रिप्टेड डेटा नहीं पढ़ सकता, इसलिए रिकवरी कोड या रिकवरी ईमेल के बिना कोई उसे नहीं खोल सकता। सहायता टीम आपका खाता देख सकती है और आगे के कदमों में मदद कर सकती है।",
+    support_email_action: "सहायता को ईमेल करें",
+    support_help_center: "सहायता केंद्र खोलें",
+    other_ways_title: "दूसरा तरीका आज़माएं",
+    other_ways_desc: "चुनें कि आप अपने खाते में वापस कैसे आना चाहते हैं।",
+    other_way_code_title: "रिकवरी कोड इस्तेमाल करें",
+    other_way_code_desc: "सेव किए गए कोड में से कोई एक डालें।",
+    other_way_email_title: "रिकवरी ईमेल से रीसेट करें",
+    other_way_email_desc:
+      "Aster Mail आपके रिकवरी ईमेल पर एक लिंक भेजता है। रीसेट से पहले के मेल तक आपकी पहुंच खत्म हो जाती है।",
+    other_way_none_title: "मेरे पास इनमें से कुछ नहीं है",
+    other_way_none_desc: "सहायता से संपर्क करें, हम आगे के कदमों में मदद करेंगे।",
+    reset_account_title: "क्या खाता रीसेट करना है?",
+    reset_account_desc:
+      "रीसेट से पहले के एन्क्रिप्ट किए गए मेल, संपर्क और फ़ाइलें तब तक लॉक रहती हैं जब तक आप उन्हें अपने पुराने पासवर्ड से रिकवर नहीं करते। आपको एक नई, खाली एन्क्रिप्शन कुंजी मिलती है।",
+    send_reset_link: "रीसेट लिंक भेजें",
+    print_codes: "प्रिंट करें",
+    codes_copied: "कोड कॉपी हो गए।",
+    i_saved_these_codes: "मैंने ये कोड सेव कर लिए हैं",
+    review_security_title: "अपनी सुरक्षा जांचें",
+    review_security_desc:
+      "आपका पासवर्ड बदल दिया गया और आपका खाता रिकवर हो गया।",
+    review_devices_signed_out: "दूसरे डिवाइस से साइन आउट कर दिया गया।",
+    review_two_step_off: "2-चरणीय सत्यापन बंद है।",
+    review_turn_on: "चालू करें",
+    review_recovery_email_kept: "आपका रिकवरी ईमेल अब भी सेट है।",
+    review_no_recovery_email: "कोई रिकवरी ईमेल नहीं।",
+    review_add: "जोड़ें",
+    review_codes_left: "{{count}} रिकवरी कोड बचे हैं।",
+    review_codes_left_one: "{{count}} रिकवरी कोड बचा है।",
+    review_codes_left_other: "{{count}} रिकवरी कोड बचे हैं।",
     import_mail_step_title: "अपना मेल साथ लाएँ",
     import_mail_step_desc:
       "दूसरे खाते के संदेश Aster में लाएँ। सब कुछ सहेजे जाने से पहले आपके डिवाइस पर एन्क्रिप्ट होता है।",

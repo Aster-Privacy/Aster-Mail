@@ -1907,6 +1907,18 @@ export const it = {
       "Aster cifra la tua posta con la tua password, quindi nessuno può reimpostarla per te. Aggiungi un'email di recupero per mantenere l'accesso.",
     recovery_reminder_action: "Aggiungi email di recupero",
     recovery_reminder_later: "Più tardi",
+    recovery_codes_reminder_title: "Salva i tuoi codici di recupero",
+    recovery_codes_reminder_body:
+      "Aster cifra la tua posta con la tua password, quindi nessuno può reimpostarla per te. I codici di recupero sono l'unico modo per tornare alla tua posta cifrata.",
+    recovery_codes_reminder_action: "Ottieni codici di recupero",
+    recovery_codes_low_reminder_title: "Ti restano pochi codici di recupero",
+    recovery_codes_low_reminder_body:
+      "Ogni codice funziona una volta e te ne restano {{count}}. Ottieni nuovi codici per non perdere l'accesso.",
+    recovery_codes_low_reminder_action: "Ottieni nuovi codici",
+    recovery_phrase_migrate_title: "Passa ai codici di recupero",
+    recovery_phrase_migrate_body:
+      "Le frasi di recupero stanno per essere rimosse. Ottieni ora i codici di recupero per poter ancora recuperare il tuo account.",
+    recovery_phrase_migrate_action: "Ottieni codici",
     plan_prompt_title: "Sei sul piano gratuito",
     plan_prompt_body:
       "I piani a pagamento aggiungono più spazio, domini personalizzati e alias illimitati.",
@@ -2222,11 +2234,24 @@ export const it = {
       "Senza codici di recupero, dimenticare la password blocca per sempre la sua posta crittografata.",
     recovery_codes_row: "Codici di recupero",
     recovery_codes_row_desc:
-      "Sei codici monouso che ripristinano il suo account e tutti i dati crittografati.",
-    recovery_codes_generate: "Genera codici",
-    recovery_codes_regenerate: "Rigenera codici",
+      "Codici monouso che ripristinano il tuo account e tutti i dati cifrati.",
+    recovery_codes_generate: "Ottieni codici",
+    recovery_codes_regenerate: "Ottieni nuovi codici",
     recovery_codes_regenerate_warning:
-      "La rigenerazione crea nuovi codici e invalida definitivamente quelli precedenti.",
+      "I codici attuali smettono di funzionare non appena ne ottieni di nuovi.",
+    recovery_codes_show: "Mostra codici",
+    recovery_codes_get_new_title: "Vuoi ottenere nuovi codici di recupero?",
+    recovery_codes_confirm_title: "Conferma la tua identità",
+    recovery_codes_confirm_desc:
+      "Inserisci la password per vedere i codici di recupero.",
+    recovery_codes_title: "I tuoi codici di recupero",
+    recovery_codes_status:
+      "Creati il {{date}}. Ne restano {{remaining}} su {{total}}.",
+    recovery_codes_low:
+      "Ti restano pochi codici di recupero. Ottieni nuovi codici per non perdere l'accesso.",
+    recovery_codes_used: "Usato",
+    recovery_codes_unavailable:
+      "I tuoi codici non sono salvati su questo dispositivo. Ottieni nuovi codici per vederli.",
     recovery_method_active: "Attivo",
     recovery_method_not_set: "Non impostato",
     recovery_codes_saved_confirm:
@@ -7719,6 +7744,7 @@ export const it = {
     special_offers_save_failed:
       "La tua preferenza sulle offerte speciali non è stata salvata. Riprova.",
     criterion_passkey: "Passkey registrata",
+    criterion_recovery_codes: "Codici di recupero salvati",
     criterion_read_receipts_off: "Conferme di lettura disattivate",
     send_read_receipts_label: "Invia conferme di lettura",
     send_read_receipts_description:
@@ -9273,9 +9299,6 @@ export const it = {
     recovery_phrase_confirm_error:
       "Una o più parole non corrispondono. Controlli la frase salvata e riprovi.",
     recovery_phrase_skip_check: "L'ho salvata, salta questa verifica",
-    forgot_method_title: "Come vuole recuperare il suo account?",
-    forgot_method_desc:
-      "Il metodo scelto determina se i suoi dati crittografati potranno essere ripristinati.",
     forgot_method_full_restore: "Ripristino completo",
     forgot_method_access_only: "Solo accesso",
     forgot_method_phrase_title: "Usa la mia frase di recupero",
@@ -9287,10 +9310,6 @@ export const it = {
     forgot_method_email_title: "Inviami un link di reimpostazione via email",
     forgot_method_email_desc:
       "Riottiene l'accesso al suo account. La posta crittografata precedente al ripristino non potrà più essere letta, a meno che in seguito non ritrovi la sua frase o un codice.",
-    phrase_entry_title: "Inserisca la sua frase di recupero",
-    phrase_entry_desc: "Digiti o incolli le 12 parole in ordine.",
-    phrase_entry_invalid:
-      "Questa non è una frase di recupero valida. Controlli le parole e il loro ordine.",
     phrase_recovery_failed:
       "Questa frase non corrisponde a questo account. Controlli le parole e l'indirizzo email.",
     reset_consent_title:
@@ -9355,8 +9374,7 @@ export const it = {
     creating_new_recovery_backup: "Creazione nuovo backup di recupero...",
     saving_new_credentials: "Salvataggio nuove credenziali...",
     recover_your_account: "Recupera il tuo account",
-    enter_email_associated:
-      "Inserisci il tuo nome utente per recuperare il tuo account",
+    enter_email_associated: "Inserisci l'indirizzo dell'account che vuoi recuperare.",
     back_to_sign_in: "Torna all'accesso",
     email_me_reset_link: "Inviami un link di reimpostazione via email",
     have_recovery_code: "Hai un codice di recupero?",
@@ -9375,9 +9393,7 @@ export const it = {
     set_new_password: "Imposta nuova password",
     resetting_password: "Reimpostazione della password...",
     enter_recovery_code: "Inserisci codice di recupero",
-    enter_recovery_code_desc:
-      "Inserisci uno dei codici di recupero che hai salvato quando hai creato il tuo account",
-    verify_code: "Verifica codice",
+    enter_recovery_code_desc: "Inserisci uno dei codici di recupero salvati quando hai creato l'account.",
     create_new_password: "Crea nuova password",
     choose_strong_password: "Scegli una password forte per il tuo account",
     recovering_your_account: "Recupero del tuo account",
@@ -9387,6 +9403,47 @@ export const it = {
     old_codes_invalidated:
       "I suoi vecchi codici di recupero non funzionano più. Salvare questo nuovo set in un luogo sicuro prima di chiudere questa finestra la terrà protetta.",
     n_recovery_codes: "{{count}} codici di recupero",
+    recovery_code_already_used:
+      "Questo codice è già stato usato. Ogni codice funziona una sola volta, quindi inserisci un altro codice dall'elenco salvato.",
+    try_another_way: "Prova in un altro modo",
+    recovery_email_label: "Indirizzo Aster Mail",
+    recovery_domain_hint: "Scegli il dominio del tuo account.",
+    recovery_code_label: "Codice di recupero",
+    recovery_code_hint: "Ogni codice funziona una volta sola. I codici hanno questo formato: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "Usa un altro indirizzo",
+    change_account_desc: "Recupera un altro account Aster Mail.",
+    support_step_title: "Contatta l'assistenza",
+    support_step_desc: "Aster Mail non può leggere i tuoi dati cifrati, quindi nessuno può sbloccarli senza un codice di recupero o la tua email di recupero. L'assistenza può controllare il tuo account e aiutarti con i passaggi successivi.",
+    support_email_action: "Scrivi all'assistenza",
+    support_help_center: "Vai al centro assistenza",
+    other_ways_title: "Prova in un altro modo",
+    other_ways_desc: "Scegli come vuoi tornare nel tuo account.",
+    other_way_code_title: "Usa un codice di recupero",
+    other_way_code_desc: "Inserisci uno dei codici che hai salvato.",
+    other_way_email_title: "Reimposta con la tua email di recupero",
+    other_way_email_desc:
+      "Aster Mail invia un link alla tua email di recupero. Perdi l'accesso alla posta precedente alla reimpostazione.",
+    other_way_none_title: "Non ho nessuna di queste opzioni",
+    other_way_none_desc: "Contatta l'assistenza e ti aiutiamo con i passaggi successivi.",
+    reset_account_title: "Reimpostare il tuo account?",
+    reset_account_desc:
+      "La posta, i contatti e i file cifrati precedenti alla reimpostazione restano bloccati finché non li recuperi con la tua vecchia password. Ricevi una nuova chiave di cifratura vuota.",
+    send_reset_link: "Invia link di reimpostazione",
+    print_codes: "Stampa",
+    codes_copied: "Codici copiati.",
+    i_saved_these_codes: "Ho salvato questi codici",
+    review_security_title: "Controlla la tua sicurezza",
+    review_security_desc:
+      "La tua password è stata cambiata e il tuo account è stato recuperato.",
+    review_devices_signed_out: "Gli altri dispositivi sono stati disconnessi.",
+    review_two_step_off: "La verifica in due passaggi è disattivata.",
+    review_turn_on: "Attiva",
+    review_recovery_email_kept: "La tua email di recupero è ancora impostata.",
+    review_no_recovery_email: "Nessuna email di recupero.",
+    review_add: "Aggiungi",
+    review_codes_left: "Restano {{count}} codici di recupero.",
+    review_codes_left_one: "Resta {{count}} codice di recupero.",
+    review_codes_left_other: "Restano {{count}} codici di recupero.",
     import_mail_step_title: "Porta la tua posta con te",
     import_mail_step_desc:
       "Sposta i messaggi da un altro account in Aster. Tutto viene cifrato sul tuo dispositivo prima di essere salvato.",

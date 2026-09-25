@@ -25,6 +25,7 @@ import {
   hash_email,
   derive_password_hash,
   generate_recovery_codes,
+  RECOVERY_CODE_SET_SIZE,
   generate_ke_keypair,
   import_ke_public_key,
   compute_agreement_as_key,
@@ -165,16 +166,17 @@ describe("derive_password_hash", () => {
 });
 
 describe("generate_recovery_codes", () => {
-  it("should generate default 6 codes", () => {
+  it("should generate default 10 codes", () => {
     const codes = generate_recovery_codes();
 
-    expect(codes.length).toBe(6);
+    expect(codes.length).toBe(RECOVERY_CODE_SET_SIZE);
+    expect(codes.length).toBe(10);
   });
 
   it("should generate specified number of codes", () => {
-    const codes = generate_recovery_codes(10);
+    const codes = generate_recovery_codes(6);
 
-    expect(codes.length).toBe(10);
+    expect(codes.length).toBe(6);
   });
 
   it("should format codes correctly", () => {

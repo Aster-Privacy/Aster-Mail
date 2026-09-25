@@ -18,39 +18,38 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { CodeStepProps } from "./types";
+import type { ResetEmailConfirmStepProps } from "./types";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeftIcon } from "@heroicons/react/20/solid";
 
-import { apply_input_transform } from "@/utils/input_transform";
 import { use_i18n } from "@/lib/i18n/context";
-import { Input } from "@/components/ui/input";
+import { WarningIcon } from "@/pages/forgot_password/shared";
 import {
   stagger_container,
   fade_up_item,
   button_tap,
-  DEPTH_INPUT_WRAPPER_CLASS,
-  DEPTH_CTA_CLASS,
-  DEPTH_CTA_STYLE,
   BACK_BUTTON_CLASS,
   BACK_BUTTON_STYLE,
-  INNER_INPUT_CLASS,
+  DEPTH_CTA_CLASS,
+  DEPTH_CTA_STYLE,
+  DEPTH_SECONDARY_CLASS,
 } from "@/components/auth/mobile_auth_motion";
 
-export function CodeStep({
-  email,
-  recovery_code,
-  set_recovery_code,
+export function ResetEmailConfirmStep({
   error,
   is_dark,
   reduce_motion,
   set_error,
   set_step,
-  on_change_account,
-  on_submit,
-}: CodeStepProps) {
+  on_send_reset_link,
+}: ResetEmailConfirmStepProps) {
   const { t } = use_i18n();
+
+  const go_back = () => {
+    set_error("");
+    set_step("other_ways");
+  };
 
   return (
     <div className="flex flex-1 flex-col">
@@ -59,7 +58,7 @@ export function CodeStep({
           className={BACK_BUTTON_CLASS}
           style={BACK_BUTTON_STYLE}
           whileTap={button_tap}
-          onClick={on_change_account}
+          onClick={go_back}
         >
           <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
         </motion.button>
@@ -71,34 +70,25 @@ export function CodeStep({
         initial={reduce_motion ? false : "initial"}
         variants={reduce_motion ? undefined : stagger_container}
       >
-        <motion.img
-          alt="Aster"
-          className="h-8"
-          decoding="async"
-          draggable={false}
-          src="/text_logo.png"
-          variants={reduce_motion ? undefined : fade_up_item}
-        />
-
-        <motion.h1
-          className="mt-6 text-xl font-semibold text-[var(--text-primary)]"
+        <motion.div
+          className="text-[var(--color-warning)]"
           variants={reduce_motion ? undefined : fade_up_item}
         >
-          {t("auth.enter_recovery_code")}
+          <WarningIcon />
+        </motion.div>
+
+        <motion.h1
+          className="mt-6 text-center text-xl font-semibold text-[var(--text-primary)]"
+          variants={reduce_motion ? undefined : fade_up_item}
+        >
+          {t("auth.reset_account_title")}
         </motion.h1>
 
         <motion.p
           className="mt-2 text-center text-sm leading-relaxed text-[var(--text-tertiary)]"
           variants={reduce_motion ? undefined : fade_up_item}
         >
-          {t("auth.enter_recovery_code_desc")}
-        </motion.p>
-
-        <motion.p
-          className="notranslate mt-1 max-w-full truncate text-sm font-medium text-[var(--text-primary)]"
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
-          {email}
+          {t("auth.reset_account_desc")}
         </motion.p>
 
         <AnimatePresence>
@@ -114,39 +104,6 @@ export function CodeStep({
             </motion.p>
           )}
         </AnimatePresence>
-
-        <motion.div
-          className={`w-full ${error ? "mt-4" : "mt-6"}`}
-          variants={reduce_motion ? undefined : fade_up_item}
-        >
-          <label
-            className="mb-2 block text-sm font-medium text-[var(--text-primary)]"
-            htmlFor="mobile_recovery_code"
-          >
-            {t("auth.recovery_code_label")}
-          </label>
-          <div className={DEPTH_INPUT_WRAPPER_CLASS}>
-            <Input
-              autoComplete="off"
-              id="mobile_recovery_code"
-              className={INNER_INPUT_CLASS}
-              placeholder="ASTER-XXXX-XXXX-XXXX-XXXX"
-              status={error ? "error" : "default"}
-              style={{ fontFamily: "monospace", letterSpacing: "0.5px" }}
-              type="text"
-              value={recovery_code}
-              onChange={(e) =>
-                set_recovery_code(
-                  apply_input_transform(e.target, (v) => v.toUpperCase()),
-                )
-              }
-              onKeyDown={(e) => e["key"] === "Enter" && on_submit()}
-            />
-          </div>
-          <p className="mt-2 text-xs text-[var(--text-tertiary)]">
-            {t("auth.recovery_code_hint")}
-          </p>
-        </motion.div>
       </motion.div>
 
       <motion.div
@@ -161,20 +118,17 @@ export function CodeStep({
           className={DEPTH_CTA_CLASS}
           style={DEPTH_CTA_STYLE}
           whileTap={button_tap}
-          onClick={on_submit}
+          onClick={on_send_reset_link}
         >
-          {t("common.continue")}
+          {t("auth.send_reset_link")}
         </motion.button>
-        <button
-          className="w-full py-2 text-center text-sm font-medium text-[var(--text-secondary)]"
-          type="button"
-          onClick={() => {
-            set_error("");
-            set_step("other_ways");
-          }}
+        <motion.button
+          className={DEPTH_SECONDARY_CLASS}
+          whileTap={button_tap}
+          onClick={go_back}
         >
-          {t("auth.try_another_way")}
-        </button>
+          {t("common.back")}
+        </motion.button>
       </motion.div>
     </div>
   );

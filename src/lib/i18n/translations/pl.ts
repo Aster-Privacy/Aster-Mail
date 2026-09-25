@@ -1907,6 +1907,18 @@ export const pl = {
       "Aster szyfruje Twoją pocztę Twoim hasłem, więc nikt nie zresetuje go za Ciebie. Dodaj adres do odzyskiwania, aby zachować dostęp.",
     recovery_reminder_action: "Dodaj adres do odzyskiwania",
     recovery_reminder_later: "Później",
+    recovery_codes_reminder_title: "Zapisz kody odzyskiwania",
+    recovery_codes_reminder_body:
+      "Aster szyfruje Twoją pocztę Twoim hasłem, więc nikt nie zresetuje go za Ciebie. Kody odzyskiwania to jedyna droga powrotu do zaszyfrowanej poczty.",
+    recovery_codes_reminder_action: "Pobierz kody odzyskiwania",
+    recovery_codes_low_reminder_title: "Zostało Ci mało kodów odzyskiwania",
+    recovery_codes_low_reminder_body:
+      "Każdy kod działa raz, a zostało Ci {{count}}. Pobierz nowe kody, aby nie stracić dostępu.",
+    recovery_codes_low_reminder_action: "Pobierz nowe kody",
+    recovery_phrase_migrate_title: "Przejdź na kody odzyskiwania",
+    recovery_phrase_migrate_body:
+      "Frazy odzyskiwania zostaną wycofane. Pobierz teraz kody odzyskiwania, aby nadal móc odzyskać konto.",
+    recovery_phrase_migrate_action: "Pobierz kody",
     plan_prompt_title: "Korzystasz z planu darmowego",
     plan_prompt_body:
       "Plany płatne dają więcej miejsca, własne domeny i nieograniczone aliasy.",
@@ -2356,11 +2368,23 @@ export const pl = {
       "Bez kodów odzyskiwania zapomnienie hasła trwale zablokuje dostęp do zaszyfrowanej poczty.",
     recovery_codes_row: "Kody odzyskiwania",
     recovery_codes_row_desc:
-      "Sześć jednorazowych kodów, które przywracają konto i wszystkie zaszyfrowane dane.",
-    recovery_codes_generate: "Wygeneruj kody",
-    recovery_codes_regenerate: "Wygeneruj kody ponownie",
+      "Jednorazowe kody, które przywracają konto i wszystkie zaszyfrowane dane.",
+    recovery_codes_generate: "Pobierz kody",
+    recovery_codes_regenerate: "Pobierz nowe kody",
     recovery_codes_regenerate_warning:
-      "Ponowne wygenerowanie tworzy nowe kody i trwale unieważnia stare.",
+      "Obecne kody przestają działać, gdy tylko pobierzesz nowe.",
+    recovery_codes_show: "Pokaż kody",
+    recovery_codes_get_new_title: "Pobrać nowe kody odzyskiwania?",
+    recovery_codes_confirm_title: "Potwierdź swoją tożsamość",
+    recovery_codes_confirm_desc: "Wpisz hasło, aby zobaczyć kody odzyskiwania.",
+    recovery_codes_title: "Twoje kody odzyskiwania",
+    recovery_codes_status:
+      "Utworzono {{date}}. Pozostało {{remaining}} z {{total}}.",
+    recovery_codes_low:
+      "Zostało Ci mało kodów odzyskiwania. Pobierz nowe kody, aby nie stracić dostępu.",
+    recovery_codes_used: "Użyty",
+    recovery_codes_unavailable:
+      "Twoje kody nie są zapisane na tym urządzeniu. Pobierz nowe kody, aby je zobaczyć.",
     recovery_method_active: "Aktywne",
     recovery_method_not_set: "Nie ustawiono",
     recovery_codes_saved_confirm:
@@ -7812,6 +7836,7 @@ export const pl = {
     special_offers_save_failed:
       "Nie zapisano ustawienia ofert specjalnych. Spróbuj ponownie.",
     criterion_passkey: "Zarejestrowano klucz dostępu",
+    criterion_recovery_codes: "Kody odzyskiwania zapisane",
     criterion_read_receipts_off: "Potwierdzenia odczytu wyłączone",
     send_read_receipts_label: "Wysyłaj potwierdzenia odczytu",
     send_read_receipts_description:
@@ -9416,9 +9441,6 @@ export const pl = {
     recovery_phrase_confirm_error:
       "Co najmniej jedno słowo się nie zgadza. Sprawdź zapisaną frazę i spróbuj ponownie.",
     recovery_phrase_skip_check: "Mam ją zapisaną, pomiń to sprawdzenie",
-    forgot_method_title: "Jak chcesz odzyskać konto?",
-    forgot_method_desc:
-      "Wybrana metoda decyduje o tym, czy zaszyfrowane dane będzie można przywrócić.",
     forgot_method_full_restore: "Pełne przywracanie",
     forgot_method_access_only: "Tylko dostęp",
     forgot_method_phrase_title: "Użyj mojej frazy odzyskiwania",
@@ -9430,10 +9452,6 @@ export const pl = {
     forgot_method_email_title: "Wyślij mi link do resetu e-mailem",
     forgot_method_email_desc:
       "Odzyskaj dostęp do konta. Zaszyfrowanej poczty sprzed resetu nie da się ponownie odczytać, chyba że później odnajdziesz frazę lub kod.",
-    phrase_entry_title: "Wprowadź frazę odzyskiwania",
-    phrase_entry_desc: "Wpisz lub wklej 12 słów w kolejności.",
-    phrase_entry_invalid:
-      "To nie jest prawidłowa fraza odzyskiwania. Sprawdź słowa i ich kolejność.",
     phrase_recovery_failed:
       "Ta fraza nie pasuje do tego konta. Sprawdź słowa i adres e-mail.",
     reset_consent_title: "Ten reset nie odszyfruje Twoich starych danych",
@@ -9495,8 +9513,7 @@ export const pl = {
       "Tworzenie nowej kopii zapasowej odzyskiwania...",
     saving_new_credentials: "Zapisywanie nowych poświadczeń...",
     recover_your_account: "Odzyskaj swoje konto",
-    enter_email_associated:
-      "Wprowadź nazwę użytkownika, aby odzyskać swoje konto",
+    enter_email_associated: "Wpisz adres konta, które chcesz odzyskać.",
     back_to_sign_in: "Powrót do logowania",
     email_me_reset_link: "Wyślij mi link resetujący e-mailem",
     have_recovery_code: "Masz kod odzyskiwania?",
@@ -9515,9 +9532,7 @@ export const pl = {
     set_new_password: "Ustaw nowe hasło",
     resetting_password: "Resetowanie hasła...",
     enter_recovery_code: "Wprowadź kod odzyskiwania",
-    enter_recovery_code_desc:
-      "Wprowadź jeden z kodów odzyskiwania, które zapisałeś podczas tworzenia konta",
-    verify_code: "Zweryfikuj kod",
+    enter_recovery_code_desc: "Wpisz jeden z kodów odzyskiwania zapisanych podczas tworzenia konta.",
     create_new_password: "Utwórz nowe hasło",
     choose_strong_password: "Wybierz silne hasło dla swojego konta",
     recovering_your_account: "Odzyskiwanie konta",
@@ -9526,6 +9541,48 @@ export const pl = {
     old_codes_invalidated:
       "Stare kody odzyskiwania nie działają już. Zapisanie nowego zestawu w bezpiecznym miejscu przed zamknięciem tego okna pozwoli zachować dostęp.",
     n_recovery_codes: "{{count}} kodów odzyskiwania",
+    recovery_code_already_used:
+      "Ten kod został już użyty. Każdy kod działa raz, więc wpisz inny kod z zapisanej listy.",
+    try_another_way: "Spróbuj inaczej",
+    recovery_email_label: "Adres Aster Mail",
+    recovery_domain_hint: "Wybierz domenę pasującą do Twojego konta.",
+    recovery_code_label: "Kod odzyskiwania",
+    recovery_code_hint: "Każdy kod działa raz. Kody wyglądają tak: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "Użyj innego adresu",
+    change_account_desc: "Odzyskaj inne konto Aster Mail.",
+    support_step_title: "Skontaktuj się z pomocą",
+    support_step_desc: "Aster Mail nie odczytuje Twoich zaszyfrowanych danych, więc nikt ich nie odblokuje bez kodu odzyskiwania ani adresu odzyskiwania. Pomoc techniczna sprawdzi konto i podpowie, co dalej.",
+    support_email_action: "Napisz do pomocy",
+    support_help_center: "Otwórz centrum pomocy",
+    other_ways_title: "Spróbuj inaczej",
+    other_ways_desc: "Wybierz, jak chcesz odzyskać dostęp do konta.",
+    other_way_code_title: "Użyj kodu odzyskiwania",
+    other_way_code_desc: "Wpisz jeden z zapisanych kodów.",
+    other_way_email_title: "Zresetuj przy użyciu adresu odzyskiwania",
+    other_way_email_desc:
+      "Aster Mail wysyła link na Twój adres odzyskiwania. Tracisz dostęp do poczty sprzed resetu.",
+    other_way_none_title: "Nie mam żadnej z tych opcji",
+    other_way_none_desc: "Skontaktuj się z pomocą, a podpowiemy, co dalej.",
+    reset_account_title: "Zresetować konto?",
+    reset_account_desc:
+      "Zaszyfrowana poczta, kontakty i pliki sprzed resetu pozostają zablokowane, dopóki nie odzyskasz ich starym hasłem. Otrzymasz nowy, pusty klucz szyfrowania.",
+    send_reset_link: "Wyślij link resetujący",
+    print_codes: "Drukuj",
+    codes_copied: "Skopiowano kody.",
+    i_saved_these_codes: "Zapisałem te kody",
+    review_security_title: "Sprawdź zabezpieczenia",
+    review_security_desc: "Hasło zostało zmienione, a konto odzyskane.",
+    review_devices_signed_out: "Inne urządzenia zostały wylogowane.",
+    review_two_step_off: "Weryfikacja dwuetapowa jest wyłączona.",
+    review_turn_on: "Włącz",
+    review_recovery_email_kept: "Adres odzyskiwania jest nadal ustawiony.",
+    review_no_recovery_email: "Brak adresu odzyskiwania.",
+    review_add: "Dodaj",
+    review_codes_left: "Pozostało kodów odzyskiwania: {{count}}.",
+    review_codes_left_one: "Pozostał {{count}} kod odzyskiwania.",
+    review_codes_left_few: "Pozostały {{count}} kody odzyskiwania.",
+    review_codes_left_many: "Pozostało {{count}} kodów odzyskiwania.",
+    review_codes_left_other: "Pozostało {{count}} kodu odzyskiwania.",
     import_mail_step_title: "Zabierz pocztę ze sobą",
     import_mail_step_desc:
       "Przenieś wiadomości z innego konta do Aster. Wszystko jest szyfrowane na Twoim urządzeniu przed zapisaniem.",
