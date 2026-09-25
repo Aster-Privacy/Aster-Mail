@@ -2962,6 +2962,7 @@ aside[data-collapsed="true"] .sidebar-rail-btn:hover {
 .reduce-motion *::after {
   animation-duration: 0.001s !important;
   animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
   transition-duration: 0.001s !important;
   transition-delay: 0s !important;
   scroll-behavior: auto !important;
@@ -2973,6 +2974,7 @@ aside[data-collapsed="true"] .sidebar-rail-btn:hover {
   *::after {
     animation-duration: 0.001s !important;
     animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.001s !important;
     transition-delay: 0s !important;
     scroll-behavior: auto !important;
@@ -2985,13 +2987,29 @@ aside[data-collapsed="true"] .sidebar-rail-btn:hover {
   animation-timing-function: linear;
 }
 
-.reduce-motion .animate-spin {
+.reduce-motion .animate-spin,
+.reduce-motion .aster_spinner,
+.reduce-motion .loader-spinner {
   animation-duration: 1s !important;
+  animation-iteration-count: infinite !important;
+}
+
+.reduce-motion .aster_skeleton,
+.reduce-motion .animate-pulse {
+  animation: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-spin {
+  .animate-spin,
+  .aster_spinner,
+  .loader-spinner {
     animation-duration: 1s !important;
+    animation-iteration-count: infinite !important;
+  }
+
+  .aster_skeleton,
+  .animate-pulse {
+    animation: none !important;
   }
 }
 
