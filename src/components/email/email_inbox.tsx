@@ -105,6 +105,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     is_scheduled_view,
     is_archive_view,
     spam_retention_days,
+    trash_retention_days,
     family_policy,
     folder_not_found,
     tag_not_found,
@@ -287,6 +288,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
         {!show_full_email_viewer && (
           <EmailListHeader
             active_filter={active_filter}
+            alias_direction={alias_view_active ? alias_direction : undefined}
             all_selected={selection.all_selected}
             can_go_next={nav.local_can_go_next}
             can_go_prev={nav.local_can_go_prev}
@@ -382,7 +384,6 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             total_email_count={nav.visible_ids.length}
             total_messages={effective_total_for_pages}
             trash_count={mail_stats.trash}
-            alias_direction={alias_view_active ? alias_direction : undefined}
             view_title={get_view_title(
               current_view,
               folders_state.folders,
@@ -438,7 +439,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 effective_days = family_policy.trash_retention_days;
                 banner_family_enforced = true;
               } else {
-                effective_days = null;
+                effective_days = trash_retention_days;
                 banner_family_enforced = false;
               }
             } else {
