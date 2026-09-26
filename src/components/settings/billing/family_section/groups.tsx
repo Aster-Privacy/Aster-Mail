@@ -363,7 +363,7 @@ export function GroupsContent({ members }: { members: FamilyMemberInfo[] }) {
           }
         />
         <div
-          className={`flex items-center h-9 rounded-xl border bg-white dark:bg-white/[0.04] overflow-hidden min-w-0 sm:flex-1 ${address_available === true ? "border-green-500" : address_available === false ? "border-red-500" : "border-black/10 dark:border-white/10"}`}
+          className={`flex items-center h-9 rounded-[var(--aster-radius-control)] border bg-white dark:bg-white/[0.04] overflow-hidden min-w-0 sm:flex-1 transition-[border-color,box-shadow] duration-150 ${address_available === true ? "border-green-500" : address_available === false ? "border-red-500" : "border-black/10 dark:border-white/10 hover:border-black/[0.18] dark:hover:border-white/[0.18] focus-within:border-[var(--accent-color)] focus-within:shadow-[inset_0_0_0_1px_var(--accent-color)] dark:focus-within:border-[var(--accent-color)] hover:focus-within:border-[var(--accent-color)] dark:hover:focus-within:border-[var(--accent-color)]"}`}
         >
           <input
             className="bg-transparent text-sm text-txt-primary outline-none px-3 h-full flex-1 min-w-0 placeholder:text-txt-muted"
