@@ -22,7 +22,13 @@ import type { AliasPreferences } from "@/services/api/aliases";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AdjustmentsHorizontalIcon } from "@heroicons/react/24/outline";
-import { Switch, UpgradeBtn } from "@aster/ui";
+import {
+  IslandSection,
+  IslandSections,
+  SettingControlRow,
+  Switch,
+  UpgradeBtn,
+} from "@aster/ui";
 
 import { InfoHint } from "@/components/settings/aliases/info_hint";
 import { label_toggle_children_with_text } from "@/lib/labeled_control";
@@ -52,23 +58,25 @@ interface PrefRowProps {
   label: string;
   description: string;
   info?: string;
+  control_width?: "auto";
   children: React.ReactNode;
 }
 
-function pref_row({ label, description, info, children }: PrefRowProps) {
+function pref_row({
+  label,
+  description,
+  info,
+  control_width,
+  children,
+}: PrefRowProps) {
   return (
-    <div className="flex items-center justify-between py-4">
-      <div className="flex-1 pe-6">
-        <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-          {label}
-          {info && <InfoHint tip={info} title={label} />}
-        </p>
-        <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
-      </div>
-      <div className="flex-shrink-0">
-        {label_toggle_children_with_text(children, label)}
-      </div>
-    </div>
+    <SettingControlRow
+      control={label_toggle_children_with_text(children, label)}
+      control_width={control_width}
+      description={description}
+      info={info ? <InfoHint tip={info} title={label} /> : undefined}
+      label={label}
+    />
   );
 }
 
@@ -176,14 +184,11 @@ export function AliasPreferencesPanel({
   const readable_locked = is_feature_locked("has_advanced_aliases");
 
   return (
-    <div className="space-y-0">
-      <div className="mb-4">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-          <AdjustmentsHorizontalIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-          {t("settings.alias_pref_section")}
-        </h3>
-      </div>
-      <div>
+    <IslandSections>
+      <IslandSection
+        icon={<AdjustmentsHorizontalIcon />}
+        title={t("settings.alias_pref_section")}
+      >
         {loading ? (
           <div />
         ) : load_failed ? (
@@ -207,7 +212,7 @@ export function AliasPreferencesPanel({
                     on_default_domain_change?.(v);
                   }}
                 >
-                  <SelectTrigger className="h-9 w-44 shrink-0">
+                  <SelectTrigger className="w-full">
                     <SelectValue
                       placeholder={t("settings.alias_pref_default_domain")}
                     />
@@ -234,7 +239,7 @@ export function AliasPreferencesPanel({
                   save_pref({ alias_sender_format: v as "via" | "at" })
                 }
               >
-                <SelectTrigger className="h-9 w-44 shrink-0">
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -249,6 +254,7 @@ export function AliasPreferencesPanel({
             </PrefRow>
 
             <PrefRow
+              control_width="auto"
               description={t("settings.alias_pref_readable_reverse_desc")}
               info={t("settings.alias_pref_readable_reverse_info")}
               label={t("settings.alias_pref_readable_reverse")}
@@ -293,7 +299,7 @@ export function AliasPreferencesPanel({
                   })
                 }
               >
-                <SelectTrigger className="h-9 w-40 shrink-0">
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -323,7 +329,7 @@ export function AliasPreferencesPanel({
                   })
                 }
               >
-                <SelectTrigger className="h-9 w-36 shrink-0">
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -348,7 +354,7 @@ export function AliasPreferencesPanel({
                   save_pref({ alias_delete_action: v as "trash" | "immediate" })
                 }
               >
-                <SelectTrigger className="h-9 w-40 shrink-0">
+                <SelectTrigger className="w-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -363,7 +369,7 @@ export function AliasPreferencesPanel({
             </PrefRow>
           </>
         )}
-      </div>
-    </div>
+      </IslandSection>
+    </IslandSections>
   );
 }
