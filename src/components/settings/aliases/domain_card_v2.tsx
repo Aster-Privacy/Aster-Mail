@@ -32,6 +32,7 @@ import {
 import { Button, Switch } from "@aster/ui";
 
 import { DnsRecordCard } from "./dns_record_card";
+import { BimiRow } from "./bimi/bimi_row";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
@@ -389,6 +390,10 @@ export function DomainCardV2({
                   <DnsRecordCard key={index} record={record} />
                 ))}
               </div>
+            )}
+
+            {!is_shared && domain.bimi_available === true && (
+              <BimiRow domain={domain} on_changed={on_domains_changed} />
             )}
 
             {!is_shared && domain.status === "active" && (

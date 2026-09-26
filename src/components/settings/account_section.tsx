@@ -27,15 +27,26 @@ import { motion } from "framer-motion";
 import {
   CameraIcon,
   CheckCircleIcon,
+  ChevronDownIcon,
+  ClipboardIcon,
   ExclamationCircleIcon,
+  LockClosedIcon,
+  PencilSquareIcon,
   XMarkIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
 import { Switch } from "@aster/ui";
-import { Button } from "@/components/ui/button";
 
 import { StepUpModal } from "./step_up_modal";
 
+import { Button } from "@/components/ui/button";
+import { ChangePrimaryAddressModal } from "@/components/settings/change_primary_address_modal";
+import {
+  load_primary_address_eligibility,
+  primary_address_eligibility_failed,
+  PRIMARY_ADDRESS_FEATURE_KEY,
+  type PrimaryAddressEligibility,
+} from "@/services/api/primary_address";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { ignore_error } from "@/lib/ignore_error";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -44,6 +55,12 @@ import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_should_reduce_motion } from "@/provider";
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
 import {
   Modal,
   ModalHeader,
@@ -78,6 +95,7 @@ import {
 import { get_badge_visual } from "@/components/ui/badge_registry";
 import { set_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { cn } from "@/lib/utils";
+import { format_date } from "@/utils/date_format";
 import {
   get_recovery_email,
   save_recovery_email,
@@ -101,7 +119,10 @@ import {
 } from "@/hooks/use_profile_picture_upload";
 import { is_onion_host } from "@/lib/onion_host";
 import { SETTINGS_ANCHORS } from "@/lib/settings_links";
-import { show_upgrade_plans } from "@/stores/upgrade_store";
+import {
+  show_plan_limit_upgrade,
+  show_upgrade_plans,
+} from "@/stores/upgrade_store";
 import { app_locale } from "@/utils/date_format";
 import { is_composing } from "@/utils/ime";
 import { MAX_DISPLAY_NAME_LENGTH } from "@/services/sanitize";
@@ -289,6 +310,11 @@ export function AccountSection() {
   );
   const [is_initial_load, set_is_initial_load] = useState(true);
   const [load_failed, set_load_failed] = useState(false);
+  const [address_eligibility, set_address_eligibility] =
+    useState<PrimaryAddressEligibility | null>(null);
+  const [show_address_change, set_show_address_change] = useState(false);
+  const [address_eligibility_failed, set_address_eligibility_failed] =
+    useState(false);
 
   const inactivity_window_info_description = (() => {
     const [first, second, final] =
@@ -313,6 +339,7 @@ export function AccountSection() {
       prefs_response,
       recovery_response,
       inactivity_response,
+      eligibility_response,
     ] = await Promise.all([
       fetch_my_badges(),
       fetch_badge_preferences(),
@@ -322,6 +349,7 @@ export function AccountSection() {
           }))
         : Promise.resolve({ data: EMPTY_RECOVERY_EMAIL }),
       get_inactivity_settings(),
+      load_primary_address_eligibility(),
     ]);
 
     if (badges_response.data) set_badges(badges_response.data);
@@ -332,6 +360,10 @@ export function AccountSection() {
     if (recovery_response.data) set_recovery(recovery_response.data);
     if (inactivity_response.data)
       set_inactivity_window(inactivity_response.data.inactivity_window_months);
+    set_address_eligibility((prev) => eligibility_response.data ?? prev);
+    set_address_eligibility_failed(
+      primary_address_eligibility_failed(eligibility_response),
+    );
 
     if (
       !badges_response.data ||
@@ -384,6 +416,69 @@ export function AccountSection() {
       show_toast(t("badges.claim_failed"), "error");
     }
   };
+
+  const retry_address_eligibility = useCallback(async () => {
+    set_address_eligibility_failed(false);
+
+    const response = await load_primary_address_eligibility();
+
+    set_address_eligibility((prev) => response.data ?? prev);
+    set_address_eligibility_failed(
+      primary_address_eligibility_failed(response),
+    );
+  }, []);
+
+  const can_change_address = !!address_eligibility;
+  const address_plan_locked =
+    !!address_eligibility &&
+    !address_eligibility.eligible &&
+    address_eligibility.reason === "plan";
+
+  const address_cooldown_date = (() => {
+    const raw = address_eligibility?.next_change_available_at;
+    const parsed = raw ? new Date(raw) : null;
+
+    if (!parsed || Number.isNaN(parsed.getTime())) return "";
+
+    return format_date(parsed);
+  })();
+
+  const address_lock_message = (() => {
+    if (!address_eligibility || address_eligibility.eligible) return null;
+
+    switch (address_eligibility.reason) {
+      case "plan":
+        return t("settings.address_change_locked_plan");
+      case "account_kind":
+        return t("settings.address_change_locked_account_kind");
+      case "custom_domain":
+        return t("settings.address_change_locked_custom_domain");
+      case "cooldown":
+        return address_cooldown_date
+          ? t("settings.address_change_locked_cooldown", {
+              date: address_cooldown_date,
+            })
+          : t("settings.address_change_locked_cooldown_unknown");
+      default:
+        return t("settings.address_change_locked_unavailable");
+    }
+  })();
+
+  const handle_address_changed = useCallback(
+    async (new_address: string) => {
+      if (user) {
+        await update_user({
+          ...user,
+          email: new_address,
+          username: new_address.slice(0, new_address.lastIndexOf("@")),
+        });
+      }
+
+      show_toast(t("settings.primary_address_set"), "success");
+      reload_account_data();
+    },
+    [user, update_user, t, reload_account_data],
+  );
 
   const derived_name = user?.display_name || user?.username || "";
   const derived_name_ref = useRef(derived_name);
@@ -679,9 +774,9 @@ export function AccountSection() {
             </motion.p>
           )}
           <div
+            aria-label={t("auth.profile_color")}
             className="flex items-center gap-2.5"
             role="radiogroup"
-            aria-label={t("auth.profile_color")}
           >
             {PROFILE_COLORS.map((c) => {
               const is_selected = c === color;
@@ -689,17 +784,17 @@ export function AccountSection() {
               return (
                 <button
                   key={c}
-                  type="button"
-                  role="radio"
                   aria-checked={is_selected}
                   aria-label={c}
                   className="relative w-9 h-9 rounded-full"
+                  role="radio"
                   style={{
                     backgroundColor: c,
                     boxShadow: is_selected
                       ? `0 0 0 2px var(--bg-tertiary), 0 0 0 3.5px ${c}, 0 2px 8px ${c}50`
                       : `inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.15), 0 2px 6px ${c}30`,
                   }}
+                  type="button"
                   onClick={async () => {
                     const prev = color;
                     const revert = async () => {
@@ -748,26 +843,98 @@ export function AccountSection() {
 
       <div className="flex items-center justify-between py-4">
         <div>
-          <p className="text-sm font-medium text-txt-primary">
+          <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
             {t("settings.primary_address_label")}
+            {can_change_address && (
+              <InfoPopover
+                description={t("settings.primary_address_info")}
+                title={t("settings.primary_address_label")}
+              />
+            )}
           </p>
           {primary_identity.is_custom && account_email && (
             <p className="text-sm mt-0.5 text-txt-muted">
               {t("settings.also_receives_at", { email: account_email })}
             </p>
           )}
+          {address_eligibility_failed && (
+            <p className="text-sm mt-0.5 text-txt-muted">
+              {t("settings.address_change_eligibility_failed")}{" "}
+              <button
+                className="underline hover:text-txt-primary transition-colors"
+                type="button"
+                onClick={() => void retry_address_eligibility()}
+              >
+                {t("common.retry")}
+              </button>
+            </p>
+          )}
         </div>
-        <div
-          className="cursor-pointer rounded-md px-2 -me-2 py-1 hover:bg-surf-hover transition-colors"
-          onClick={() =>
-            copy_primary_address(primary_identity.email || account_email)
-          }
-        >
-          <span className="text-sm font-medium text-txt-secondary truncate max-w-[16rem]">
-            {primary_identity.email || account_email}
-          </span>
-        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="flex items-center gap-1.5 rounded-md px-2 -me-2 py-1 hover:bg-surf-hover transition-colors"
+              type="button"
+            >
+              <span className="text-sm font-medium text-txt-secondary truncate max-w-[16rem]">
+                {primary_identity.email || account_email}
+              </span>
+              <ChevronDownIcon className="w-4 h-4 shrink-0 text-txt-muted" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-[13rem]">
+            <DropdownMenuItem
+              onClick={() =>
+                copy_primary_address(primary_identity.email || account_email)
+              }
+            >
+              <ClipboardIcon className="w-4 h-4" />
+              {t("common.copy_address")}
+            </DropdownMenuItem>
+            {can_change_address && (
+              <DropdownMenuItem
+                className={address_plan_locked ? "text-txt-muted" : undefined}
+                disabled={
+                  !address_eligibility?.eligible && !address_plan_locked
+                }
+                onClick={() => {
+                  if (address_plan_locked) {
+                    show_plan_limit_upgrade({
+                      feature: PRIMARY_ADDRESS_FEATURE_KEY,
+                      plan_code: "supernova",
+                    });
+
+                    return;
+                  }
+
+                  set_show_address_change(true);
+                }}
+              >
+                {address_plan_locked ? (
+                  <LockClosedIcon className="w-4 h-4" />
+                ) : (
+                  <PencilSquareIcon className="w-4 h-4" />
+                )}
+                {t("settings.change_address")}
+              </DropdownMenuItem>
+            )}
+            {can_change_address && !address_eligibility?.eligible && (
+              <p className="px-2 py-1.5 text-xs text-txt-muted">
+                {address_lock_message}
+              </p>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+
+      {address_eligibility && can_change_address && (
+        <ChangePrimaryAddressModal
+          eligibility={address_eligibility}
+          is_open={show_address_change}
+          on_changed={handle_address_changed}
+          on_close={() => set_show_address_change(false)}
+        />
+      )}
 
       <div className="flex items-center justify-between py-4">
         <div>

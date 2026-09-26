@@ -29,6 +29,7 @@ interface OtpInputProps {
   status?: "default" | "error";
   autofocus?: boolean;
   align?: "center" | "left";
+  aria_label?: string;
   onChange: (value: string) => void;
   onComplete?: (value: string) => void;
 }
@@ -40,6 +41,7 @@ export function OtpInput({
   status = "default",
   autofocus = true,
   align = "center",
+  aria_label,
   onChange,
   onComplete,
 }: OtpInputProps) {
@@ -145,6 +147,8 @@ export function OtpInput({
         "flex flex-wrap items-center gap-2",
         align === "left" ? "justify-start" : "justify-center",
       )}
+      aria-label={aria_label}
+      role={aria_label ? "group" : undefined}
     >
       {digits.map((digit, index) => (
         <input
