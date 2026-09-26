@@ -10268,6 +10268,7 @@ export const pt = {
     op_is_empty: "está vazio",
     op_matches_regex: "corresponde a regex",
     op_matches_domain: "corresponde ao domínio",
+    op_does_not_match_domain: "não corresponde ao domínio",
     op_greater_than: "maior que",
     op_less_than: "menor que",
     op_equals: "igual a",

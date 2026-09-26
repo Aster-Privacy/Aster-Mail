@@ -10466,6 +10466,7 @@ export const de = {
     op_is_not: "ist nicht",
     op_less_than: "kleiner als",
     op_matches_domain: "entspricht Domain",
+    op_does_not_match_domain: "entspricht nicht Domain",
     op_matches_regex: "entspricht Regex",
     op_newer_than_days: "neuer als (Tage)",
     op_no: "nein",

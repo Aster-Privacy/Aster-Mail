@@ -10479,6 +10479,7 @@ export const ru = {
     op_is_not: "не является",
     op_less_than: "меньше",
     op_matches_domain: "совпадает с доменом",
+    op_does_not_match_domain: "не совпадает с доменом",
     op_matches_regex: "совпадает с regex",
     op_newer_than_days: "новее (дней)",
     op_no: "нет",

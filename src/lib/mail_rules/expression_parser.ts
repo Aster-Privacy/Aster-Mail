@@ -102,18 +102,18 @@ const ADDRESS_OPS: AddressOperator[] = [
   "is",
   "is_not",
   "contains",
+  "does_not_contain",
+  "starts_with",
+  "ends_with",
   "matches_domain",
+  "does_not_match_domain",
+  "is_empty",
   "matches_regex",
 ];
 
-const ADDRESS_OPS_EXTRA = ["starts_with", "ends_with"];
-
-function escape_regex(s: string): string {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 const TEXT_OPS: TextOperator[] = [
   "is",
+  "is_not",
   "contains",
   "does_not_contain",
   "starts_with",
@@ -586,9 +586,7 @@ class Parser {
 
       return {
         type: meta.internal as
-          | "attachment_size"
-          | "total_size"
-          | "recipient_count",
+          "attachment_size" | "total_size" | "recipient_count",
         operator: op,
         value: num,
       };
@@ -633,10 +631,7 @@ class Parser {
     const op_name = op_tok.value.toLowerCase();
 
     if (meta.kind === "address") {
-      const is_direct = (ADDRESS_OPS as string[]).includes(op_name);
-      const is_extra = ADDRESS_OPS_EXTRA.includes(op_name);
-
-      if (!is_direct && !is_extra) {
+      if (!(ADDRESS_OPS as string[]).includes(op_name)) {
         throw new ParseError(
           `bad_address_op:${op_tok.value}`,
           op_tok.line,
@@ -644,29 +639,13 @@ class Parser {
         );
       }
       this.consume();
-      const v = this.expect_string();
       const addr_type = meta.internal as
-        | "from"
-        | "reply_to"
-        | "to"
-        | "cc"
-        | "bcc"
-        | "any_recipient";
+        "from" | "reply_to" | "to" | "cc" | "bcc" | "any_recipient";
 
-      if (op_name === "starts_with") {
-        return {
-          type: addr_type,
-          operator: "matches_regex",
-          value: `^${escape_regex(v)}`,
-        };
+      if (op_name === "is_empty") {
+        return { type: addr_type, operator: "is_empty", value: "" };
       }
-      if (op_name === "ends_with") {
-        return {
-          type: addr_type,
-          operator: "matches_regex",
-          value: `${escape_regex(v)}$`,
-        };
-      }
+      const v = this.expect_string();
 
       return {
         type: addr_type,
@@ -943,6 +922,10 @@ function serialize_leaf(c: LeafCondition): string {
     case "cc":
     case "bcc":
     case "any_recipient":
+      if (c.operator === "is_empty") {
+        return `${ADDRESS_TO_NAME[c.type]} is_empty`;
+      }
+
       return `${ADDRESS_TO_NAME[c.type]} ${c.operator} ${quote_string(c.value)}`;
     case "subject":
     case "body":
