@@ -176,7 +176,6 @@ export function BillingSection() {
   const [cancel_reason_text, set_cancel_reason_text] = useState("");
   const [show_payment_methods, set_show_payment_methods] = useState(false);
   const [auto_add_card, set_auto_add_card] = useState(false);
-  const [show_manage_plan, set_show_manage_plan] = useState(false);
   const [show_plans, set_show_plans] = useState(false);
   const [credit_balance, set_credit_balance] =
     useState<CreditBalanceResponse | null>(null);
@@ -1475,7 +1474,6 @@ export function BillingSection() {
         set_show_cancel_dialog={set_show_cancel_dialog}
         set_show_cancel_password={set_show_cancel_password}
         set_show_checkout_modal={set_show_checkout_modal}
-        set_show_manage_plan={set_show_manage_plan}
         set_show_payment_methods={set_show_payment_methods}
         set_show_switch_billing_dialog={set_show_switch_billing_dialog}
         set_subscription={set_subscription}
@@ -1484,7 +1482,6 @@ export function BillingSection() {
         show_cancel_dialog={show_cancel_dialog}
         show_cancel_password={show_cancel_password}
         show_checkout_modal={show_checkout_modal}
-        show_manage_plan={show_manage_plan}
         show_payment_methods={show_payment_methods}
         show_switch_billing_dialog={show_switch_billing_dialog}
         subscription={subscription}
