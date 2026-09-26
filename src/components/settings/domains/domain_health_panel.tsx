@@ -209,10 +209,10 @@ export function DomainHealthPanel({
   }, [domain_id]);
 
   useEffect(() => {
-    detect_dns_provider(domain_name).then((detected) => {
+    detect_dns_provider(domain_id).then((detected) => {
       if (mounted.current) set_provider(detected);
     });
-  }, [domain_name]);
+  }, [domain_id]);
 
   useEffect(() => {
     if (loading || !should_keep_polling(health)) return;

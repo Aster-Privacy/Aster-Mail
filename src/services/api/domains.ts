@@ -457,6 +457,14 @@ export async function get_dns_records(
   );
 }
 
+export async function get_domain_nameservers(
+  domain_id: string,
+): Promise<ApiResponse<{ nameservers: string[] }>> {
+  return api_client.get<{ nameservers: string[] }>(
+    `/addresses/v1/domains/${domain_id}/nameservers`,
+  );
+}
+
 export async function get_domain_health(
   domain_id: string,
 ): Promise<ApiResponse<DomainHealth>> {

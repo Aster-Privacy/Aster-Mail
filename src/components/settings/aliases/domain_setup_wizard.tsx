@@ -221,8 +221,8 @@ export function DomainSetupWizard({
   useEffect(() => {
     let cancelled = false;
 
-    if (mode === "dns" && domain_name && is_open) {
-      detect_dns_provider(domain_name).then((provider) => {
+    if (mode === "dns" && domain_id && is_open) {
+      detect_dns_provider(domain_id).then((provider) => {
         if (cancelled) return;
         set_detected_provider(provider);
       });
@@ -231,7 +231,7 @@ export function DomainSetupWizard({
     return () => {
       cancelled = true;
     };
-  }, [mode, domain_name, is_open]);
+  }, [mode, domain_id, is_open]);
 
   const handle_add = async () => {
     if (saving || (turnstile_required && !captcha_token)) return;
