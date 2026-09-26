@@ -1807,12 +1807,14 @@ button:focus:not(:focus-visible),
   animation: aster_spin 1s linear infinite;
 }
 
-.aster_btn,
-.aster_btn_loading_host,
-button:has(.aster_btn_spinner),
-a:has(.aster_btn_spinner),
-label:has(.aster_btn_spinner) {
-  position: relative;
+@layer components {
+  .aster_btn,
+  .aster_btn_loading_host,
+  button:has(.aster_btn_spinner),
+  a:has(.aster_btn_spinner),
+  label:has(.aster_btn_spinner) {
+    position: relative;
+  }
 }
 
 .aster_btn,

@@ -5309,6 +5309,8 @@ export interface SettingsTranslations {
   export_public_key_label: string;
   export_private_key_label: string;
   verify_identity_export: string;
+  export_private_key_warning: string;
+  export_two_factor_hint: string;
   two_fa_code_label: string;
   codes_remaining_count: string;
   codes_used_count: string;

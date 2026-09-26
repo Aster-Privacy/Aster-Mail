@@ -28,6 +28,7 @@ import {
   ServerStackIcon,
   LinkIcon,
   CheckCircleIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 import { Switch, Radio } from "@aster/ui";
 
@@ -631,9 +632,18 @@ export function EncryptionSection({
             <h3 className="text-[17px] font-semibold text-[var(--mobile-text-primary)] mb-1">
               {t("common.export_private_key")}
             </h3>
-            <p className="text-[13px] text-[var(--mobile-text-muted)] mb-4">
+            <p className="text-[13px] text-[var(--mobile-text-muted)] mb-3">
               {t("settings.verify_identity_export")}
             </p>
+            <div className="mb-4 flex items-start gap-2.5 rounded-[16px] bg-[var(--mobile-bg-card-hover)] px-3.5 py-3">
+              <ExclamationTriangleIcon
+                aria-hidden="true"
+                className="mt-0.5 h-4 w-4 shrink-0 text-[var(--mobile-warning,#f59e0b)]"
+              />
+              <p className="text-[13px] leading-relaxed text-[var(--mobile-text-secondary)]">
+                {t("settings.export_private_key_warning")}
+              </p>
+            </div>
             <div className="flex flex-col gap-3">
               <Input
                 autoFocus
@@ -652,6 +662,8 @@ export function EncryptionSection({
               />
               {enc.export_totp_required && (
                 <Input
+                  autoFocus
+                  autoComplete="one-time-code"
                   className="w-full"
                   inputMode="numeric"
                   maxLength={6}
@@ -668,6 +680,11 @@ export function EncryptionSection({
                     e.key === "Enter" && enc.handle_export_secret_key()
                   }
                 />
+              )}
+              {enc.export_totp_required && !enc.export_error && (
+                <p className="text-[13px] text-[var(--mobile-text-muted)]">
+                  {t("settings.export_two_factor_hint")}
+                </p>
               )}
               {enc.export_error && (
                 <p className="text-[13px] text-[var(--mobile-danger)]">

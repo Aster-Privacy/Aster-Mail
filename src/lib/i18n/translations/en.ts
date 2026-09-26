@@ -5983,8 +5983,13 @@ export const en: Translations = {
     created_date: "Created {{date}}",
     export_public_key_label: "Export Public Key",
     export_private_key_label: "Export Private Key",
-    verify_identity_export: "Verify your identity to export your private key",
-    two_fa_code_label: "2FA Code",
+    verify_identity_export:
+      "Your private key unlocks every message sent to you. Enter your password to download it as a file.",
+    export_private_key_warning:
+      "Keep the file somewhere safe and never share it. Anyone who has it can read your mail.",
+    export_two_factor_hint:
+      "Your account uses two-factor authentication. Enter the current code from your authenticator app to continue.",
+    two_fa_code_label: "Verification code",
     codes_remaining_count: "{{remaining}} of {{total}} remaining",
     codes_used_count: "{{used}} used",
     running_low_warning:
