@@ -194,7 +194,7 @@ export function TimeZonePicker({
     <Popover open={is_open} onOpenChange={set_is_open}>
       <PopoverTrigger asChild>
         <button
-          className="aster_select_trigger group flex h-10 w-[220px] items-center justify-between gap-2 overflow-hidden border-0 ps-3.5 pe-3 text-[13px] font-medium text-[var(--text-primary)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]/50"
+          className="aster_select_trigger group flex h-10 w-[200px] items-center justify-between gap-2 overflow-hidden border-0 ps-3.5 pe-3 text-[13px] font-medium text-[var(--text-primary)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]/50"
           type="button"
         >
           <span className="min-w-0 truncate">{trigger_label}</span>

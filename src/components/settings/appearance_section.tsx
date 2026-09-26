@@ -630,7 +630,7 @@ export function AppearanceSection() {
             value={preferences.time_format}
             onValueChange={handle_time_format_change}
           >
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[200px]">
               <SelectValue>{time_format_display}</SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -652,7 +652,7 @@ export function AppearanceSection() {
             value={preferences.date_format}
             onValueChange={handle_date_format_change}
           >
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[200px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
