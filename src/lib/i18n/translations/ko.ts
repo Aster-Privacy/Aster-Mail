@@ -321,6 +321,7 @@ export const ko = {
     create_subfolder: "하위 폴더 만들기",
     mute_notifications: "알림 음소거",
     unmute_notifications: "음소거 해제",
+    notifications_muted: "알림 음소거됨",
     remove_lock: "잠금 해제",
     lock: "잠금",
     change_color: "색상 변경",

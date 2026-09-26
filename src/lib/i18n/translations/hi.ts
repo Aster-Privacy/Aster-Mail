@@ -246,6 +246,7 @@ export const hi = {
     create_subfolder: "सबफ़ोल्डर बनाएं",
     mute_notifications: "सूचनाएं म्यूट करें",
     unmute_notifications: "सूचनाएं अनम्यूट करें",
+    notifications_muted: "सूचनाएं म्यूट हैं",
     remove_lock: "लॉक हटाएं",
     lock: "लॉक करें",
     change_color: "रंग बदलें",

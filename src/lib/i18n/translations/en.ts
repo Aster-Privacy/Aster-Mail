@@ -251,6 +251,7 @@ export const en: Translations = {
     create_subfolder: "Create Subfolder",
     mute_notifications: "Mute notifications",
     unmute_notifications: "Unmute notifications",
+    notifications_muted: "Notifications muted",
     remove_lock: "Remove Lock",
     lock: "Lock",
     change_color: "Change color",

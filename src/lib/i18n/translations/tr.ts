@@ -256,6 +256,7 @@ export const tr = {
     create_subfolder: "Alt klasör oluştur",
     mute_notifications: "Bildirimleri sessize al",
     unmute_notifications: "Sessize almayı kaldır",
+    notifications_muted: "Bildirimler sessize alındı",
     remove_lock: "Kilidi kaldır",
     lock: "Kilitle",
     change_color: "Rengi değiştir",

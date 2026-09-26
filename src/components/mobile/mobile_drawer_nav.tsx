@@ -42,9 +42,11 @@ import {
   AtSymbolIcon,
   BoltIcon,
   ChevronLeftIcon,
+  BellSlashIcon,
 } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 import {
   build_folder_tree,
   build_tree_guides,
@@ -181,6 +183,8 @@ export const DrawerNavContent = memo(function DrawerNavContent({
   indicator_style,
 }: DrawerNavContentProps) {
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
+  const muted_folder_tokens = new Set(preferences.muted_folder_tokens ?? []);
 
   const folder_tree = build_folder_tree(folders);
   const folder_nodes = flatten_folder_tree(folder_tree);
@@ -380,6 +384,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
             folder.unread_count ??
             0);
         const folder_color = folder.color || "#3b82f6";
+        const is_muted = muted_folder_tokens.has(folder.folder_token);
 
         return (
           <div
@@ -465,21 +470,35 @@ export const DrawerNavContent = memo(function DrawerNavContent({
               }}
               on_long_press={() => on_open_edit_folder(folder)}
               trailing={
-                folder.is_password_protected ? (
-                  <button
-                    className="flex h-7 w-7 items-center justify-center rounded-[8px] text-[var(--text-muted)] active:bg-[var(--bg-tertiary)]"
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_toggle_lock(folder.id, folder.is_locked);
-                    }}
-                  >
-                    {folder.is_locked || !is_folder_unlocked(folder.id) ? (
-                      <LockClosedIcon className="h-4 w-4" />
-                    ) : (
-                      <LockOpenIcon className="h-4 w-4" />
+                is_muted || folder.is_password_protected ? (
+                  <>
+                    {is_muted && (
+                      <BellSlashIcon
+                        aria-hidden={false}
+                        aria-label={t("common.notifications_muted")}
+                        className="h-4 w-4 shrink-0 text-[var(--text-muted)]"
+                        data-testid="folder-muted-indicator"
+                        role="img"
+                        title={t("common.notifications_muted")}
+                      />
                     )}
-                  </button>
+                    {folder.is_password_protected && (
+                      <button
+                        className="flex h-7 w-7 items-center justify-center rounded-[8px] text-[var(--text-muted)] active:bg-[var(--bg-tertiary)]"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          on_toggle_lock(folder.id, folder.is_locked);
+                        }}
+                      >
+                        {folder.is_locked || !is_folder_unlocked(folder.id) ? (
+                          <LockClosedIcon className="h-4 w-4" />
+                        ) : (
+                          <LockOpenIcon className="h-4 w-4" />
+                        )}
+                      </button>
+                    )}
+                  </>
                 ) : undefined
               }
             />

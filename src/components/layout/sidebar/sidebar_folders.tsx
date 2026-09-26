@@ -29,6 +29,7 @@ import {
   ChevronRightIcon,
   FolderIcon,
   LockClosedIcon,
+  BellSlashIcon,
 } from "@heroicons/react/24/outline";
 
 import {
@@ -45,6 +46,7 @@ import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { FolderContextMenu } from "@/components/folders/folder_context_menu";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
 
 export interface FolderModalData {
@@ -149,6 +151,11 @@ export const SidebarFolders = memo(function SidebarFolders({
     return () => window.removeEventListener("astermail:folder-locked", handler);
   }, []);
 
+  const { preferences } = use_preferences();
+  const muted_folder_tokens = useMemo(
+    () => new Set(preferences.muted_folder_tokens ?? []),
+    [preferences.muted_folder_tokens],
+  );
   const tree = useMemo(() => build_folder_tree(folders), [folders]);
   const tree_guides = useMemo(() => build_tree_guides(tree), [tree]);
 
@@ -562,6 +569,16 @@ export const SidebarFolders = memo(function SidebarFolders({
                         <span className="flex-1 text-start truncate">
                           {folder.name}
                         </span>
+                        {muted_folder_tokens.has(folder.folder_token) && (
+                          <BellSlashIcon
+                            aria-hidden={false}
+                            aria-label={t("common.notifications_muted")}
+                            className="w-3.5 h-3.5 shrink-0 text-icon-muted"
+                            data-testid="folder-muted-indicator"
+                            role="img"
+                            title={t("common.notifications_muted")}
+                          />
+                        )}
                         {is_locked_closed && (
                           <LockClosedIcon className="w-3 h-3 ms-1 text-icon-muted" />
                         )}
