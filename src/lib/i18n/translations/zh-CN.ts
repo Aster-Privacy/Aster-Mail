@@ -1165,7 +1165,8 @@ export const zh_CN = {
     locked_data_banner_action: "恢复数据",
     locked_data_banner_dismiss: "关闭",
     recover_data_title: "恢复数据",
-    recover_data_description: "要解锁更改或重置密码之前的数据，请输入你当时使用的密码。",
+    recover_data_description:
+      "要解锁更改或重置密码之前的数据，请输入你当时使用的密码。",
     recover_data_button: "恢复",
     recover_data_success: "你的较早数据已解锁。",
     recover_data_no_match: "该密码未解锁任何数据。请尝试其他以前的密码。",
@@ -3627,7 +3628,8 @@ export const zh_CN = {
     password_change_background_reencrypt_failed:
       "密码已更改，但部分已发送邮件和设置未完成重新加密。如果邮件或设置无法读取，请联系支持团队。",
     previous_password: "先前的密码",
-    password_change_sent_mail_locked: "你的密码已更改。{{count}} 封已发送邮件使用以前的密码加密，未能更新。要解锁这些邮件，请在收件箱顶部的横幅中选择“恢复数据”。",
+    password_change_sent_mail_locked:
+      "你的密码已更改。{{count}} 封已发送邮件使用以前的密码加密，未能更新。要解锁这些邮件，请在收件箱顶部的横幅中选择“恢复数据”。",
     password_changed_signing_out: "密码更改成功，正在退出登录...",
     password_changed_success: "密码已更改",
     session_security: "会话安全",
@@ -3830,7 +3832,8 @@ export const zh_CN = {
     default_sender_group: "发送",
     default_sender_group_description: "选择新邮件从你的哪个地址发出。",
     default_sender_title: "默认发件人",
-    default_sender_description: "新邮件从该地址发出。回复时使用邮件原本寄达的地址。",
+    default_sender_description:
+      "新邮件从该地址发出。回复时使用邮件原本寄达的地址。",
     default_sender_no_addresses: "没有其他地址",
     compose_defaults_title: "默认格式",
     compose_defaults_description:
@@ -3847,7 +3850,8 @@ export const zh_CN = {
     reply_defaults_title: "回复",
     reply_defaults_description: "选择新回复的起始内容。",
     reply_include_quoted: "包含引用的文本",
-    reply_include_quoted_description: "每条回复都以引用在你所写文本下方的原始邮件开头。",
+    reply_include_quoted_description:
+      "每条回复都以引用在你所写文本下方的原始邮件开头。",
     reply_prefix_subject: "在主题中添加“回复：”",
     reply_prefix_subject_description: "回复时在原主题前加上“回复：”。",
     build_info: "构建信息",
@@ -3912,10 +3916,26 @@ export const zh_CN = {
       "您可以继续使用付费功能直到本计费周期结束，之后您的方案会变为免费。您的邮件、联系人和设置都会保留。",
     cancel_plan: "取消套餐",
     billing_history: "账单历史",
+    billing_more_title: "更多",
+    billing_addons_subtitle: "扩充空间，套餐不变",
+    billing_support_subtitle: "给团队发消息",
+    billing_credits_subtitle: "余额与充值",
+    billing_academic_subtitle: "用学校邮箱享优惠",
+    billing_history_empty: "暂无账单。首次扣款后，付款记录会显示在这里。",
+    billing_invoice_count: "{{count}} 张账单",
+    billing_invoice_count_one: "{{count}} 张账单",
+    billing_invoice_count_other: "{{count}} 张账单",
+    billing_addons_active_count: "{{count}} 个生效中",
+    billing_addons_active_count_one: "{{count}} 个生效中",
+    billing_addons_active_count_other: "{{count}} 个生效中",
+    academic_status_none: "未申请",
+    academic_status_pending: "等待验证",
+    academic_status_verified: "已验证",
     billing_plan_heading: "套餐",
     billing_hide_plans: "隐藏套餐",
     billing_cancel_notice_title: "你的套餐将被取消",
-    billing_cancel_notice_body: "你的套餐将于 {{date}} 结束。之后，你的账户将转为免费套餐。",
+    billing_cancel_notice_body:
+      "你的套餐将于 {{date}} 结束。之后，你的账户将转为免费套餐。",
     billing_renewals_heading: "续订",
     billing_amount: "金额",
     billing_desc_payment_failed: "支付失败",
@@ -4638,7 +4658,8 @@ export const zh_CN = {
     special_offer_feature_aliases: "无限别名",
     special_offer_feature_vanguard: "Vanguard 高级安全防护",
     special_offer_feature_storage: "500 GB 加密存储空间",
-    special_offer_why_body: "Aster 是一家由小团队运营的独立公司，你的支持对我们意义重大。订阅让服务得以持续运行，也让我们能够每天用心打造 Aster。这个优惠让你能更轻松地开始使用。",
+    special_offer_why_body:
+      "Aster 是一家由小团队运营的独立公司，你的支持对我们意义重大。订阅让服务得以持续运行，也让我们能够每天用心打造 Aster。这个优惠让你能更轻松地开始使用。",
     special_offer_why_label: "为什么有这个优惠？",
     special_offer_feature_vanguard_body: "应用锁和高级隐私保护。",
     special_offer_feature_domains_body: "使用你自己域名下的地址发送邮件。",
@@ -4695,11 +4716,14 @@ export const zh_CN = {
     bimi_choose_file: "选择文件",
     bimi_dmarc_invalid: "无法读取您的 DMARC 记录。请将其替换为有效记录。",
     bimi_dmarc_missing: "请添加包含 p=quarantine 或 p=reject 的 DMARC 记录。",
-    bimi_dmarc_not_enforced: "请将您的 DMARC 策略更改为 p=quarantine 或 p=reject。",
-    bimi_dmarc_organization_not_enforced: "您的上级域名的 DMARC 策略也必须为 quarantine 或 reject。",
+    bimi_dmarc_not_enforced:
+      "请将您的 DMARC 策略更改为 p=quarantine 或 p=reject。",
+    bimi_dmarc_organization_not_enforced:
+      "您的上级域名的 DMARC 策略也必须为 quarantine 或 reject。",
     bimi_dmarc_partial: "请从 DMARC 记录中删除 pct 标签，或将其设为 100。",
     bimi_dmarc_ready: "您的 DMARC 策略为 quarantine 或 reject。",
-    bimi_dmarc_subdomain_policy_none: "请将 DMARC 记录中的 sp 标签更改为 quarantine 或 reject。",
+    bimi_dmarc_subdomain_policy_none:
+      "请将 DMARC 记录中的 sp 标签更改为 quarantine 或 reject。",
     bimi_drop_here: "将 SVG 徽标拖到此处。",
     bimi_err_doctype_entities: "此文件声明了自定义实体，这是不允许的。",
     bimi_err_empty: "图像为空。",
@@ -4717,7 +4741,8 @@ export const zh_CN = {
     bimi_err_too_complex: "图像过于复杂。请简化后重新导出。",
     bimi_err_too_large: "文件过大。",
     bimi_err_unsupported_element: "此文件包含不允许的元素。",
-    bimi_err_unsupported_style: "此文件使用了不允许的样式或效果，例如滤镜、蒙版或样式表。",
+    bimi_err_unsupported_style:
+      "此文件使用了不允许的样式或效果，例如滤镜、蒙版或样式表。",
     bimi_error_domain_not_active: "请先完成此域名的设置，再发布徽标。",
     bimi_error_file_too_large: "文件大于 64 KB。",
     bimi_error_logo_required: "发布前请先上传徽标。",
@@ -4727,7 +4752,8 @@ export const zh_CN = {
     bimi_last_checked: "上次检查时间：{time}",
     bimi_logo_public_note: "您的徽标是公开的。收到您邮件的任何人都能看到它。",
     bimi_logo_ready: "你的徽标符合要求。",
-    bimi_managed_note: "您的域名是通过 Aster 购买的，因此系统会为您添加 DNS 记录。",
+    bimi_managed_note:
+      "您的域名是通过 Aster 购买的，因此系统会为您添加 DNS 记录。",
     bimi_preview_alt: "品牌徽标预览",
     bimi_preview_dark: "深色",
     bimi_preview_inbox_subject: "我们的最新动态",
@@ -4735,10 +4761,13 @@ export const zh_CN = {
     bimi_preview_light: "浅色",
     bimi_publish: "发布徽标",
     bimi_publishing: "正在发布",
-    bimi_record_conflict: "此域名已存在另一条 BIMI 记录。请将其删除，只保留此记录。",
-    bimi_record_external: "现有 BIMI 记录指向其他主机。请将其替换为此记录，以使用 Aster 托管。",
+    bimi_record_conflict:
+      "此域名已存在另一条 BIMI 记录。请将其删除，只保留此记录。",
+    bimi_record_external:
+      "现有 BIMI 记录指向其他主机。请将其替换为此记录，以使用 Aster 托管。",
     bimi_record_host: "主机",
-    bimi_record_missing: "该记录尚不可见。DNS 更改最多可能需要 48 小时才能生效。",
+    bimi_record_missing:
+      "该记录尚不可见。DNS 更改最多可能需要 48 小时才能生效。",
     bimi_record_removed: "Aster 已找不到此记录。请在 DNS 服务商处重新添加。",
     bimi_record_published: "该记录已发布。",
     bimi_record_title: "请在您的 DNS 服务商处添加此记录",
@@ -4780,10 +4809,12 @@ export const zh_CN = {
     bimi_turn_off_body: "您的徽标将立即停止托管，收件箱将改为显示默认图标。",
     bimi_turn_off_confirm: "关闭",
     bimi_turn_off_description: "停止在收件箱中显示你的徽标。",
-    bimi_turn_off_remove_record: "请在您的 DNS 服务商处删除 default._bimi TXT 记录。",
+    bimi_turn_off_remove_record:
+      "请在您的 DNS 服务商处删除 default._bimi TXT 记录。",
     bimi_turn_off_title: "要关闭品牌徽标吗？",
     bimi_uploading: "正在上传",
-    bimi_verified_mark_note: "部分收件箱仅为拥有经验证标志证书 (VMC) 的域名显示品牌徽标。",
+    bimi_verified_mark_note:
+      "部分收件箱仅为拥有经验证标志证书 (VMC) 的域名显示品牌徽标。",
     catch_all_description: "接收发送到此域名任何地址的邮件",
     set_host_root: "将主机设置为 @（请勿输入您的域名；服务商会自动添加）",
     use_exact_host: "使用下方显示的确切主机/名称（包含选择器前缀）",
@@ -5016,7 +5047,8 @@ export const zh_CN = {
     signature_content_placeholder: "此致敬礼，\n您的名字\nyour@email.com",
     signature_name_required: "请输入此签名的名称。",
     signature_content_required: "请为此签名添加内容。",
-    signature_image_too_large: "此图片太大，无法添加到签名中。请选择较小的图片。",
+    signature_image_too_large:
+      "此图片太大，无法添加到签名中。请选择较小的图片。",
     signature_too_large: "签名太大，无法保存。请移除图片或缩短文字。",
     signature_image_invalid: "仅支持添加 PNG、JPEG、GIF 和 WebP 图片。",
     signature_image_failed: "无法添加该图片，请尝试其他文件。",
@@ -5154,8 +5186,7 @@ export const zh_CN = {
     encryption_banner_you: "您",
     encryption_banner_recipient: "收件人",
     storage_format_title: "存储格式",
-    storage_format_description:
-      "选择您的加密文件和静态内容的存储位置。",
+    storage_format_description: "选择您的加密文件和静态内容的存储位置。",
     storage_format_aster_server: "Aster 服务器",
     storage_format_decentralized_ipfs: "私有IPFS",
     storage_format_ipfs_confirm_title: "切换到 IPFS 存储",
@@ -5171,8 +5202,7 @@ export const zh_CN = {
       "关闭对话分组后，每封邮件将作为单独的项目显示在收件箱中，而不是将回复归为一组。这可能会使跟踪邮件线程更加困难。",
     show_message_size: "显示邮件大小",
     relative_dates: "相对日期",
-    relative_dates_description:
-      "最近邮件显示“今天”和“昨天”，而不是日期",
+    relative_dates_description: "最近邮件显示“今天”和“昨天”，而不是日期",
     info_relative_dates_title: "相对日期",
     info_relative_dates_description:
       "开启后，今天和昨天的邮件显示为“今天”和“昨天”。关闭后，邮件列表、邮件正文和打印内容中始终显示邮件的发送或接收日期和时间。",
@@ -6221,8 +6251,10 @@ export const zh_CN = {
     bridge_upgrade_benefit_platforms: "支持 Windows、macOS 和 Linux",
     bridge_upgrade_benefit_cli: "包含适用于服务器的命令行版本",
     bridge_cli_download: "下载",
-    bridge_cli_install_hint: "下载适用于你的平台的压缩包，解压后将二进制文件移动到 PATH 中。",
-    bridge_cli_install_hint_windows: "下载压缩包，解压后将该文件夹添加到 PATH 中。",
+    bridge_cli_install_hint:
+      "下载适用于你的平台的压缩包，解压后将二进制文件移动到 PATH 中。",
+    bridge_cli_install_hint_windows:
+      "下载压缩包，解压后将该文件夹添加到 PATH 中。",
     bridge_cli_copy_command: "复制安装命令",
     bridge_cli_docs_link: "阅读命令行指南",
     bridge_cli_name: "命令行",
@@ -6916,7 +6948,8 @@ export const zh_CN = {
     key_source_cached: "已缓存",
     key_source_dane: "DANE",
     key_source_unknown: "未知",
-    storage_format_ipfs_hint: "私有IPFS按内容哈希将您的加密文件存储在Aster自己的服务器上。它不连接公共IPFS网络，只有您的密钥才能解密您的文件。",
+    storage_format_ipfs_hint:
+      "私有IPFS按内容哈希将您的加密文件存储在Aster自己的服务器上。它不连接公共IPFS网络，只有您的密钥才能解密您的文件。",
     need_help_link: "需要帮助？",
     username_placeholder: "用户名",
     email_label: "邮箱",
@@ -6958,8 +6991,7 @@ export const zh_CN = {
     special_offers: "特别优惠",
     special_offers_description:
       "在应用中偶尔显示套餐折扣优惠。关闭后，你不会看到优惠，也不会被计入优惠结果。",
-    special_offers_save_failed:
-      "特别优惠设置未保存。请重试。",
+    special_offers_save_failed: "特别优惠设置未保存。请重试。",
     criterion_passkey: "已注册通行密钥",
     criterion_recovery_codes: "已保存恢复代码",
     criterion_read_receipts_off: "已关闭已读回执",
@@ -8448,11 +8480,13 @@ export const zh_CN = {
     recovery_email_label: "Aster Mail 地址",
     recovery_domain_hint: "选择与你的账户匹配的域名。",
     recovery_code_label: "恢复代码",
-    recovery_code_hint: "每个代码只能使用一次。代码格式为 ASTER-XXXX-XXXX-XXXX-XXXX。",
+    recovery_code_hint:
+      "每个代码只能使用一次。代码格式为 ASTER-XXXX-XXXX-XXXX-XXXX。",
     change_account: "使用其他地址",
     change_account_desc: "恢复其他 Aster Mail 账户。",
     support_step_title: "联系支持团队",
-    support_step_desc: "Aster Mail 无法读取你的加密数据，因此没有恢复代码或恢复邮箱，任何人都无法解锁。支持团队可以检查你的账户并说明后续步骤。",
+    support_step_desc:
+      "Aster Mail 无法读取你的加密数据，因此没有恢复代码或恢复邮箱，任何人都无法解锁。支持团队可以检查你的账户并说明后续步骤。",
     support_email_action: "给支持团队发邮件",
     support_help_center: "打开帮助中心",
     other_ways_title: "尝试其他方式",
@@ -8814,7 +8848,8 @@ export const zh_CN = {
     cannot_react_too_many_recipients: "无法对收件人超过 20 人的邮件添加回应。",
     cannot_react_bcc: "无法对以密送方式收到的邮件添加回应。",
     cannot_react_too_many_emojis: "此邮件的回应数量已达上限。",
-    cannot_react_limit: "每封邮件最多可添加两个回应。要添加其他回应，请先移除你的一个回应。",
+    cannot_react_limit:
+      "每封邮件最多可添加两个回应。要添加其他回应，请先移除你的一个回应。",
     cannot_react_no_recipient: "此邮件没有可接收回应的发件人。",
     failed_send_reaction: "请重试。",
     reactions_disabled: "回应功能已在设置中关闭。",

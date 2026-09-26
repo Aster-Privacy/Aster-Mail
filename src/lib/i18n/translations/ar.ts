@@ -1268,11 +1268,14 @@ export const ar = {
     locked_data_banner_action: "استعادة البيانات",
     locked_data_banner_dismiss: "تجاهل",
     recover_data_title: "استعادة البيانات",
-    recover_data_description: "لفتح البيانات من قبل تغيير كلمة السر أو إعادة تعيينها، أدخل كلمة السر التي كنت تستخدمها في ذلك الوقت.",
+    recover_data_description:
+      "لفتح البيانات من قبل تغيير كلمة السر أو إعادة تعيينها، أدخل كلمة السر التي كنت تستخدمها في ذلك الوقت.",
     recover_data_button: "استعادة",
     recover_data_success: "تم فتح بياناتك الأقدم.",
-    recover_data_no_match: "لم تفتح كلمة السر هذه أي بيانات. جرّب كلمة سر سابقة أخرى.",
-    recover_data_failed: "تعذّر فتح بعض البيانات. تحقق من اتصالك وحاول مرة أخرى.",
+    recover_data_no_match:
+      "لم تفتح كلمة السر هذه أي بيانات. جرّب كلمة سر سابقة أخرى.",
+    recover_data_failed:
+      "تعذّر فتح بعض البيانات. تحقق من اتصالك وحاول مرة أخرى.",
     payment_past_due_message:
       "لم تتم عملية الدفع الأخيرة. حدّث طريقة الدفع للاحتفاظ بخطتك.",
     payment_past_due_message_days:
@@ -3796,13 +3799,14 @@ export const ar = {
     bridge_upgrade_benefit_platforms: "متوفر على Windows وmacOS وLinux",
     bridge_upgrade_benefit_cli: "يتضمّن إصدارًا لسطر الأوامر للخوادم",
     bridge_cli_download: "تنزيل",
-    bridge_cli_install_hint: "نزّل الأرشيف المناسب لنظامك، ثم استخرجه وانقل الملف التنفيذي إلى مسار PATH.",
-    bridge_cli_install_hint_windows: "نزّل الأرشيف، ثم استخرجه وأضف المجلد إلى مسار PATH.",
+    bridge_cli_install_hint:
+      "نزّل الأرشيف المناسب لنظامك، ثم استخرجه وانقل الملف التنفيذي إلى مسار PATH.",
+    bridge_cli_install_hint_windows:
+      "نزّل الأرشيف، ثم استخرجه وأضف المجلد إلى مسار PATH.",
     bridge_cli_copy_command: "نسخ أوامر التثبيت",
     bridge_cli_docs_link: "اقرأ دليل سطر الأوامر",
     bridge_cli_name: "سطر الأوامر",
-    bridge_cli_desc:
-      "يشغّل الخوادم نفسها بدون نافذة، على خادم أو عبر SSH.",
+    bridge_cli_desc: "يشغّل الخوادم نفسها بدون نافذة، على خادم أو عبر SSH.",
     bridge_cli_windows_link: "Windows",
     bridge_cli_macos_link: "macOS",
     bridge_cli_linux_link: "Linux (x86-64)",
@@ -4010,8 +4014,7 @@ export const ar = {
     external_link_warning_disabled: "تُفتح الروابط مباشرة بدون تأكيد",
     ipfs_attachment_storage: "تخزين المرفقات على IPFS",
     ipfs_enabled_description: "تُخزَّن المرفقات في مخزن IPFS الخاص بـ Aster",
-    ipfs_disabled_description:
-      "تخزين المرفقات في مخزن IPFS الخاص بـ Aster",
+    ipfs_disabled_description: "تخزين المرفقات في مخزن IPFS الخاص بـ Aster",
     forward_secrecy: "السرية الأمامية",
     forward_secrecy_disable_title: "إيقاف السرية التامة للتوجيه؟",
     forward_secrecy_disable_message:
@@ -4080,7 +4083,8 @@ export const ar = {
     password_change_background_reencrypt_failed:
       "تم تغيير كلمة السر، لكن بعض الرسائل المرسلة والإعدادات لم تكتمل إعادة تشفيرها. تواصل مع الدعم إذا ظهرت رسائل أو إعدادات غير مقروءة.",
     previous_password: "كلمة السر السابقة",
-    password_change_sent_mail_locked: "تم تغيير كلمة السر. كانت {{count}} من الرسائل المرسلة مشفّرة بكلمة سر سابقة ولم يتم تحديثها. لفتحها، اختر استعادة البيانات في الشريط أعلى صندوق الوارد.",
+    password_change_sent_mail_locked:
+      "تم تغيير كلمة السر. كانت {{count}} من الرسائل المرسلة مشفّرة بكلمة سر سابقة ولم يتم تحديثها. لفتحها، اختر استعادة البيانات في الشريط أعلى صندوق الوارد.",
     password_changed_signing_out:
       "تم تغيير كلمة المرور بنجاح. جارٍ تسجيل خروجك...",
     password_changed_success: "تم تغيير كلمة المرور",
@@ -4289,9 +4293,11 @@ export const ar = {
     compose_mode_fullscreen: "ملء الشاشة دائماً",
     compose_mode_minimized: "بدء مصغراً",
     default_sender_group: "الإرسال",
-    default_sender_group_description: "اختر العنوان الذي تُرسل منه الرسائل الجديدة.",
+    default_sender_group_description:
+      "اختر العنوان الذي تُرسل منه الرسائل الجديدة.",
     default_sender_title: "المرسل الافتراضي",
-    default_sender_description: "تبدأ الرسائل الجديدة من هذا العنوان. وتستخدم الردود العنوان الذي وصلت إليه الرسالة.",
+    default_sender_description:
+      "تبدأ الرسائل الجديدة من هذا العنوان. وتستخدم الردود العنوان الذي وصلت إليه الرسالة.",
     default_sender_no_addresses: "لا توجد عناوين أخرى",
     compose_defaults_title: "التنسيق الافتراضي",
     compose_defaults_description:
@@ -4308,7 +4314,8 @@ export const ar = {
     reply_defaults_title: "الردود",
     reply_defaults_description: "اختر بماذا يبدأ الرد الجديد.",
     reply_include_quoted: "تضمين النص المقتبس",
-    reply_include_quoted_description: "يبدأ كل رد بالرسالة الأصلية مقتبسة أسفل نصك.",
+    reply_include_quoted_description:
+      "يبدأ كل رد بالرسالة الأصلية مقتبسة أسفل نصك.",
     reply_prefix_subject: "إضافة رد: إلى الموضوع",
     reply_prefix_subject_description: "يضع رد: قبل الموضوع الأصلي عند الرد.",
     build_info: "معلومات البناء",
@@ -4374,10 +4381,27 @@ export const ar = {
       "ميزات الخطة المدفوعة تبقى لديك حتى نهاية دورة الفوترة الحالية، ثم تنتقل خطتك إلى المجانية. بريدك وجهات اتصالك وإعداداتك تبقى معك.",
     cancel_plan: "إلغاء الخطة",
     billing_history: "سجل الفوترة",
+    billing_more_title: "المزيد",
+    billing_addons_subtitle: "مساحة أكبر، الخطة نفسها",
+    billing_support_subtitle: "أرسل رسالة إلى الفريق",
+    billing_credits_subtitle: "الرصيد وعمليات الشحن",
+    billing_academic_subtitle: "وفّر باستخدام بريد جامعي",
+    billing_history_empty:
+      "لا توجد فواتير بعد. ستظهر مدفوعاتك هنا بعد أول عملية خصم.",
+    billing_invoice_count: "{{count}} فاتورة",
+    billing_invoice_count_one: "فاتورة واحدة",
+    billing_invoice_count_other: "{{count}} فاتورة",
+    billing_addons_active_count: "{{count}} نشطة",
+    billing_addons_active_count_one: "{{count}} نشط",
+    billing_addons_active_count_other: "{{count}} نشطة",
+    academic_status_none: "لم يُطلب",
+    academic_status_pending: "في انتظار التحقق",
+    academic_status_verified: "تم التحقق",
     billing_plan_heading: "الخطة",
     billing_hide_plans: "إخفاء الخطط",
     billing_cancel_notice_title: "سيتم إلغاء خطتك",
-    billing_cancel_notice_body: "تنتهي خطتك في {{date}}. بعد ذلك، ينتقل حسابك إلى الخطة المجانية.",
+    billing_cancel_notice_body:
+      "تنتهي خطتك في {{date}}. بعد ذلك، ينتقل حسابك إلى الخطة المجانية.",
     billing_renewals_heading: "التجديدات",
     billing_amount: "المبلغ",
     billing_desc_payment_failed: "فشل الدفع",
@@ -5153,7 +5177,8 @@ export const ar = {
     special_offer_feature_aliases: "أسماء مستعارة غير محدودة",
     special_offer_feature_vanguard: "أمان متقدم مع Vanguard",
     special_offer_feature_storage: "مساحة تخزين مشفرة بسعة 500 GB",
-    special_offer_why_body: "Aster شركة مستقلة يديرها فريق صغير، ودعمك يعني لنا الكثير. تحافظ الاشتراكات على استمرار الخدمة وتتيح لنا مواصلة تطوير Aster بعناية كل يوم. يسهّل عليك هذا العرض البدء.",
+    special_offer_why_body:
+      "Aster شركة مستقلة يديرها فريق صغير، ودعمك يعني لنا الكثير. تحافظ الاشتراكات على استمرار الخدمة وتتيح لنا مواصلة تطوير Aster بعناية كل يوم. يسهّل عليك هذا العرض البدء.",
     special_offer_why_label: "لماذا هذا العرض؟",
     special_offer_feature_vanguard_body: "قفل التطبيق وحماية متقدمة للخصوصية.",
     special_offer_feature_domains_body: "أرسل من عناوين على نطاقاتك الخاصة.",
@@ -5206,17 +5231,21 @@ export const ar = {
     bimi_adj_removed_unsupported_attributes: "تمت إزالة السمات غير المدعومة.",
     bimi_adj_set_tiny_ps_profile: "تم ضبط ملف تعريف SVG على Tiny PS.",
     bimi_adjustments_title: "عدّل Aster ملفك ليستوفي المتطلبات:",
-    bimi_auto_checking: "يتحقق Aster من السجل تلقائيًا ما دامت هذه الصفحة مفتوحة.",
+    bimi_auto_checking:
+      "يتحقق Aster من السجل تلقائيًا ما دامت هذه الصفحة مفتوحة.",
     bimi_check_again: "التحقق مرة أخرى",
     bimi_checking: "جارٍ التحقق",
     bimi_choose_file: "اختيار ملف",
     bimi_dmarc_invalid: "تتعذر قراءة سجل DMARC الخاص بك. استبدله بسجل صالح.",
     bimi_dmarc_missing: "أضف سجل DMARC يتضمن p=quarantine أو p=reject.",
-    bimi_dmarc_not_enforced: "غيّر سياسة DMARC لديك إلى p=quarantine أو p=reject.",
-    bimi_dmarc_organization_not_enforced: "يجب أن تكون سياسة DMARC للنطاق الرئيسي أيضاً quarantine أو reject.",
+    bimi_dmarc_not_enforced:
+      "غيّر سياسة DMARC لديك إلى p=quarantine أو p=reject.",
+    bimi_dmarc_organization_not_enforced:
+      "يجب أن تكون سياسة DMARC للنطاق الرئيسي أيضاً quarantine أو reject.",
     bimi_dmarc_partial: "احذف الوسم pct من سجل DMARC أو اضبطه على 100.",
     bimi_dmarc_ready: "سياسة DMARC لديك هي quarantine أو reject.",
-    bimi_dmarc_subdomain_policy_none: "غيّر الوسم sp في سجل DMARC إلى quarantine أو reject.",
+    bimi_dmarc_subdomain_policy_none:
+      "غيّر الوسم sp في سجل DMARC إلى quarantine أو reject.",
     bimi_drop_here: "اسحب شعار SVG إلى هنا.",
     bimi_err_doctype_entities: "يعرّف الملف كيانات مخصصة، وهذا غير مسموح به.",
     bimi_err_empty: "الصورة فارغة.",
@@ -5224,17 +5253,21 @@ export const ar = {
     bimi_err_invalid_reference: "يحتوي الملف على مرجع داخلي معطّل.",
     bimi_err_invalid_value: "يحتوي الملف على قيمة سمة غير مسموح بها.",
     bimi_err_malformed: "هذا الملف ليس SVG صالحاً.",
-    bimi_err_missing_view_box: "لا تحتوي الصورة على viewBox. صدّرها مع viewBox.",
+    bimi_err_missing_view_box:
+      "لا تحتوي الصورة على viewBox. صدّرها مع viewBox.",
     bimi_err_not_square: "الشعار ليس مربعاً. اجعل العرض والارتفاع متساويين.",
     bimi_err_not_svg: "هذا الملف ليس صورة SVG.",
     bimi_err_not_utf8: "هذا الملف ليس ملف SVG نصياً.",
-    bimi_err_raster_image: "يحتوي الملف على صورة نقطية مضمّنة. استخدم الأشكال المتجهة فقط.",
+    bimi_err_raster_image:
+      "يحتوي الملف على صورة نقطية مضمّنة. استخدم الأشكال المتجهة فقط.",
     bimi_err_script_content: "يحتوي الملف على نص برمجي، وهذا غير مسموح به.",
-    bimi_err_text_not_outlined: "يحتوي الشعار على نص. حوّل النص إلى مخططات قبل التصدير.",
+    bimi_err_text_not_outlined:
+      "يحتوي الشعار على نص. حوّل النص إلى مخططات قبل التصدير.",
     bimi_err_too_complex: "الصورة معقدة جداً. بسّطها ثم صدّرها مرة أخرى.",
     bimi_err_too_large: "الملف كبير جداً.",
     bimi_err_unsupported_element: "يحتوي الملف على عناصر غير مسموح بها.",
-    bimi_err_unsupported_style: "يستخدم الملف أنماطاً أو تأثيرات غير مسموح بها، مثل المرشحات أو الأقنعة أو أوراق الأنماط.",
+    bimi_err_unsupported_style:
+      "يستخدم الملف أنماطاً أو تأثيرات غير مسموح بها، مثل المرشحات أو الأقنعة أو أوراق الأنماط.",
     bimi_error_domain_not_active: "أكمل إعداد هذا النطاق قبل نشر شعار.",
     bimi_error_file_too_large: "حجم الملف أكبر من 64 KB.",
     bimi_error_logo_required: "حمّل شعارًا قبل النشر.",
@@ -5244,7 +5277,8 @@ export const ar = {
     bimi_last_checked: "آخر تحقق: {time}",
     bimi_logo_public_note: "شعارك عام. يمكن لأي شخص يتلقى رسائلك رؤيته.",
     bimi_logo_ready: "يستوفي شعارك المتطلبات.",
-    bimi_managed_note: "اشتريت نطاقك من خلال Aster، لذا تتم إضافة سجل DNS نيابةً عنك.",
+    bimi_managed_note:
+      "اشتريت نطاقك من خلال Aster، لذا تتم إضافة سجل DNS نيابةً عنك.",
     bimi_preview_alt: "معاينة شعار علامتك التجارية",
     bimi_preview_dark: "داكن",
     bimi_preview_inbox_subject: "آخر تحديثاتك",
@@ -5252,11 +5286,15 @@ export const ar = {
     bimi_preview_light: "فاتح",
     bimi_publish: "نشر الشعار",
     bimi_publishing: "جارٍ النشر",
-    bimi_record_conflict: "يوجد سجل BIMI آخر لهذا النطاق. احذفه ليبقى هذا السجل وحده.",
-    bimi_record_external: "يشير سجل BIMI الحالي إلى مضيف آخر. استبدله بهذا السجل لاستخدام استضافة Aster.",
+    bimi_record_conflict:
+      "يوجد سجل BIMI آخر لهذا النطاق. احذفه ليبقى هذا السجل وحده.",
+    bimi_record_external:
+      "يشير سجل BIMI الحالي إلى مضيف آخر. استبدله بهذا السجل لاستخدام استضافة Aster.",
     bimi_record_host: "المضيف",
-    bimi_record_missing: "السجل غير مرئي بعد. قد يستغرق تطبيق تغييرات DNS ما يصل إلى 48 ساعة.",
-    bimi_record_removed: "لم يعد Aster يعثر على هذا السجل. أضفه مرة أخرى لدى مزوّد DNS.",
+    bimi_record_missing:
+      "السجل غير مرئي بعد. قد يستغرق تطبيق تغييرات DNS ما يصل إلى 48 ساعة.",
+    bimi_record_removed:
+      "لم يعد Aster يعثر على هذا السجل. أضفه مرة أخرى لدى مزوّد DNS.",
     bimi_record_published: "تم نشر السجل.",
     bimi_record_title: "أضف هذا السجل لدى مزوّد DNS الخاص بك",
     bimi_record_type: "النوع",
@@ -5274,9 +5312,11 @@ export const ar = {
     bimi_row_external: "يحتوي هذا النطاق على سجل BIMI يشير إلى مضيف آخر.",
     bimi_row_inactive: "أكمل إعداد هذا النطاق لإضافة شعار العلامة التجارية.",
     bimi_row_live: "تم نشر شعارك.",
-    bimi_row_off: "اعرض شعارك بجانب رسائلك في صناديق الوارد التي تدعم شعارات العلامات التجارية.",
+    bimi_row_off:
+      "اعرض شعارك بجانب رسائلك في صناديق الوارد التي تدعم شعارات العلامات التجارية.",
     bimi_row_pending: "أضف سجل DNS، ثم تحقق مرة أخرى.",
-    bimi_row_pending_managed: "جارٍ نشر سجل DNS الخاص بك. قد يستغرق ذلك بضع دقائق.",
+    bimi_row_pending_managed:
+      "جارٍ نشر سجل DNS الخاص بك. قد يستغرق ذلك بضع دقائق.",
     bimi_rule_safe: "بدون نصوص برمجية أو روابط خارجية",
     bimi_rule_size: "32 كيلوبايت أو أقل بعد أن يحسّنه Aster",
     bimi_rule_square: "مربع، بعرض وارتفاع متساويين",
@@ -5294,13 +5334,16 @@ export const ar = {
     bimi_step_publish: "النشر",
     bimi_title: "شعار العلامة التجارية",
     bimi_turn_off: "إيقاف",
-    bimi_turn_off_body: "تتوقف استضافة شعارك فوراً، وتعرض صناديق الوارد رمزاً افتراضياً بدلاً منه.",
+    bimi_turn_off_body:
+      "تتوقف استضافة شعارك فوراً، وتعرض صناديق الوارد رمزاً افتراضياً بدلاً منه.",
     bimi_turn_off_confirm: "إيقاف",
     bimi_turn_off_description: "إيقاف عرض شعارك في صناديق البريد.",
-    bimi_turn_off_remove_record: "احذف سجل TXT باسم default._bimi من مزوّد DNS الخاص بك.",
+    bimi_turn_off_remove_record:
+      "احذف سجل TXT باسم default._bimi من مزوّد DNS الخاص بك.",
     bimi_turn_off_title: "هل تريد إيقاف شعار العلامة التجارية؟",
     bimi_uploading: "جارٍ الرفع",
-    bimi_verified_mark_note: "لا تعرض بعض صناديق الوارد شعارات العلامات التجارية إلا للنطاقات التي لديها شهادة علامة موثّقة.",
+    bimi_verified_mark_note:
+      "لا تعرض بعض صناديق الوارد شعارات العلامات التجارية إلا للنطاقات التي لديها شهادة علامة موثّقة.",
     catch_all_description: "استقبال الرسائل المرسلة إلى أي عنوان في هذا النطاق",
     set_host_root:
       "اضبط المضيف على @ (لا تُدخل نطاقك؛ يضيفه مزود الخدمة تلقائيًا)",
@@ -7549,8 +7592,7 @@ export const ar = {
     special_offers: "العروض الخاصة",
     special_offers_description:
       "اعرض من حين لآخر عروضًا مخفّضة على الخطط داخل التطبيق. عند إيقاف هذا الخيار، لا تظهر لك العروض ولا تُحتسب ضمن نتائج العروض.",
-    special_offers_save_failed:
-      "لم يُحفظ إعداد العروض الخاصة. حاول مرة أخرى.",
+    special_offers_save_failed: "لم يُحفظ إعداد العروض الخاصة. حاول مرة أخرى.",
     criterion_passkey: "مفتاح مرور مسجَّل",
     criterion_recovery_codes: "رموز الاسترداد محفوظة",
     criterion_read_receipts_off: "إيصالات القراءة موقوفة",
@@ -9231,7 +9273,8 @@ export const ar = {
     set_new_password: "تعيين كلمة المرور الجديدة",
     resetting_password: "جارٍ إعادة تعيين كلمة المرور...",
     enter_recovery_code: "أدخل رمز الاسترداد",
-    enter_recovery_code_desc: "أدخل أحد رموز الاسترداد التي حفظتها عند إنشاء حسابك.",
+    enter_recovery_code_desc:
+      "أدخل أحد رموز الاسترداد التي حفظتها عند إنشاء حسابك.",
     create_new_password: "إنشاء كلمة مرور جديدة",
     choose_strong_password: "اختر كلمة مرور قوية لحسابك",
     recovering_your_account: "جارٍ استرداد حسابك",
@@ -9246,11 +9289,13 @@ export const ar = {
     recovery_email_label: "عنوان Aster Mail",
     recovery_domain_hint: "اختر النطاق الذي يطابق حسابك.",
     recovery_code_label: "رمز الاسترداد",
-    recovery_code_hint: "يعمل كل رمز مرة واحدة. تبدو الرموز هكذا: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    recovery_code_hint:
+      "يعمل كل رمز مرة واحدة. تبدو الرموز هكذا: ASTER-XXXX-XXXX-XXXX-XXXX.",
     change_account: "استخدام عنوان آخر",
     change_account_desc: "استعد حسابًا آخر في Aster Mail.",
     support_step_title: "التواصل مع الدعم",
-    support_step_desc: "لا يستطيع Aster Mail قراءة بياناتك المشفرة، لذلك لا أحد يفتحها بدون رمز استرداد أو بريد الاسترداد. يمكن للدعم مراجعة حسابك ومساعدتك في الخطوات التالية.",
+    support_step_desc:
+      "لا يستطيع Aster Mail قراءة بياناتك المشفرة، لذلك لا أحد يفتحها بدون رمز استرداد أو بريد الاسترداد. يمكن للدعم مراجعة حسابك ومساعدتك في الخطوات التالية.",
     support_email_action: "مراسلة الدعم",
     support_help_center: "فتح مركز المساعدة",
     other_ways_title: "جرب طريقة أخرى",

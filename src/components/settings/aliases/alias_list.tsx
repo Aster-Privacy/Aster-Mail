@@ -648,9 +648,10 @@ export function AliasList({
       <div className="flex flex-wrap items-center gap-2 mb-2">
         <div className="relative min-w-0 flex-1 basis-48">
           <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted pointer-events-none" />
-          <input
-            className="w-full h-9 ps-9 pe-3 rounded-[var(--aster-radius-control)] bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none focus:border-blue-500"
+          <Input
+            className="ps-9"
             placeholder={t("settings.alias_search_placeholder")}
+            size="md"
             value={search_query}
             onChange={(e) => set_search_query(e.target.value)}
           />

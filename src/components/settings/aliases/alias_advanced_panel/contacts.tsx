@@ -23,7 +23,7 @@ import type {} from "@/lib/i18n/types";
 
 import { useCallback, useEffect, useState } from "react";
 import { TrashIcon, PlusIcon, NoSymbolIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Input } from "@aster/ui";
 
 import { INPUT_CLASS } from "./shared";
 
@@ -192,9 +192,10 @@ export function ContactsPanel({
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <input
+        <Input
           className={INPUT_CLASS}
           placeholder={t("settings.alias_contact_email_placeholder")}
+          size="md"
           type="email"
           value={email}
           onChange={(e) => set_email(e.target.value)}

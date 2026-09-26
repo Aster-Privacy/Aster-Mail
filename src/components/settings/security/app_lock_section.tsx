@@ -20,7 +20,7 @@
 //
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Button, IslandRow } from "@aster/ui";
+import { Button, Input, IslandRow } from "@aster/ui";
 import {
   ArrowLeftIcon,
   BackspaceIcon,
@@ -370,13 +370,14 @@ function VerifyPinModal({
               transition={{ duration: 0.35 }}
             >
               <div className="relative">
-                <input
+                <Input
                   ref={text_input_ref}
                   autoComplete="off"
-                  className="w-full px-3 py-2.5 pe-10 rounded-[var(--aster-radius-control)] text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
+                  className="pe-10"
                   data-form-type="other"
                   disabled={verifying || locked_out}
                   placeholder={t("settings.app_lock_text_placeholder")}
+                  size="md"
                   type={show_passphrase ? "text" : "password"}
                   value={input}
                   onChange={(e) => {
@@ -867,12 +868,13 @@ function SetupPinModal({
               className="relative"
               transition={{ duration: 0.35 }}
             >
-              <input
+              <Input
                 autoFocus
                 autoComplete="off"
-                className="w-full px-3 py-2.5 pe-10 rounded-[var(--aster-radius-control)] text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
+                className="pe-10"
                 data-form-type="other"
                 placeholder={t("settings.app_lock_text_placeholder")}
+                size="md"
                 type={show_passphrase ? "text" : "password"}
                 value={text_input}
                 onChange={(e) => set_text_input(e.target.value)}

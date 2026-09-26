@@ -1331,11 +1331,14 @@ export const hi = {
     locked_data_banner_action: "डेटा वापस पाएं",
     locked_data_banner_dismiss: "खारिज करें",
     recover_data_title: "डेटा वापस पाएं",
-    recover_data_description: "पासवर्ड बदलने या रीसेट करने से पहले का डेटा अनलॉक करने के लिए, वह पासवर्ड डालें जो आप उस समय इस्तेमाल करते थे।",
+    recover_data_description:
+      "पासवर्ड बदलने या रीसेट करने से पहले का डेटा अनलॉक करने के लिए, वह पासवर्ड डालें जो आप उस समय इस्तेमाल करते थे।",
     recover_data_button: "वापस पाएं",
     recover_data_success: "आपका पुराना डेटा अनलॉक हो गया है।",
-    recover_data_no_match: "इस पासवर्ड से कोई डेटा अनलॉक नहीं हुआ। कोई दूसरा पुराना पासवर्ड आज़माएं।",
-    recover_data_failed: "कुछ डेटा अनलॉक नहीं हो सका। अपना कनेक्शन जांचें और फिर से कोशिश करें।",
+    recover_data_no_match:
+      "इस पासवर्ड से कोई डेटा अनलॉक नहीं हुआ। कोई दूसरा पुराना पासवर्ड आज़माएं।",
+    recover_data_failed:
+      "कुछ डेटा अनलॉक नहीं हो सका। अपना कनेक्शन जांचें और फिर से कोशिश करें।",
     payment_past_due_message:
       "आपका पिछला भुगतान नहीं हो सका। अपना प्लान बनाए रखने के लिए भुगतान का तरीका अपडेट करें।",
     payment_past_due_message_days:
@@ -2298,7 +2301,8 @@ export const hi = {
     bridge_other_formats: "अन्य प्रारूप",
     bridge_arch_x64: "x86-64",
     bridge_arch_arm64: "ARM64",
-    bridge_format_msi_desc: "ग्रुप पॉलिसी से मैनेज किए जाने वाले इंस्टॉल के लिए",
+    bridge_format_msi_desc:
+      "ग्रुप पॉलिसी से मैनेज किए जाने वाले इंस्टॉल के लिए",
     bridge_format_appimage_desc: "ज़्यादातर डिस्ट्रिब्यूशन पर चलता है",
     bridge_format_deb_desc: "Debian, Ubuntu और उन पर आधारित डिस्ट्रिब्यूशन",
     bridge_format_rpm_desc: "Fedora, RHEL और openSUSE",
@@ -2306,17 +2310,22 @@ export const hi = {
     bridge_download_started: "डाउनलोड शुरू हुआ",
     bridge_download_failed: "डाउनलोड शुरू नहीं हुआ. फिर से कोशिश करें.",
     bridge_support_help_desc: "सेटअप गाइड और आम सवालों के जवाब",
-    bridge_support_discord_desc: "टीम और Aster इस्तेमाल करने वाले दूसरे लोगों से पूछें",
+    bridge_support_discord_desc:
+      "टीम और Aster इस्तेमाल करने वाले दूसरे लोगों से पूछें",
     bridge_support_reddit_desc: "घोषणाएं देखें और चर्चा में शामिल हों",
     bridge_support_github_desc: "सोर्स कोड पढ़ें और समस्या की जानकारी दें",
     bridge_all_platforms: "सभी प्लेटफ़ॉर्म",
-    bridge_upgrade_benefit_clients: "Apple Mail, Thunderbird और Outlook के साथ काम करता है",
-    bridge_upgrade_benefit_local: "यह स्थानीय रूप से चलता है, इसलिए आपका मेल एन्क्रिप्टेड रहता है",
+    bridge_upgrade_benefit_clients:
+      "Apple Mail, Thunderbird और Outlook के साथ काम करता है",
+    bridge_upgrade_benefit_local:
+      "यह स्थानीय रूप से चलता है, इसलिए आपका मेल एन्क्रिप्टेड रहता है",
     bridge_upgrade_benefit_platforms: "Windows, macOS और Linux पर उपलब्ध",
     bridge_upgrade_benefit_cli: "सर्वर के लिए कमांड-लाइन संस्करण शामिल है",
     bridge_cli_download: "डाउनलोड करें",
-    bridge_cli_install_hint: "अपने प्लेटफ़ॉर्म के लिए संग्रह डाउनलोड करें, उसे निकालें और बाइनरी को अपने PATH में ले जाएँ।",
-    bridge_cli_install_hint_windows: "संग्रह डाउनलोड करें, उसे निकालें और फ़ोल्डर को अपने PATH में जोड़ें।",
+    bridge_cli_install_hint:
+      "अपने प्लेटफ़ॉर्म के लिए संग्रह डाउनलोड करें, उसे निकालें और बाइनरी को अपने PATH में ले जाएँ।",
+    bridge_cli_install_hint_windows:
+      "संग्रह डाउनलोड करें, उसे निकालें और फ़ोल्डर को अपने PATH में जोड़ें।",
     bridge_cli_copy_command: "इंस्टॉल कमांड कॉपी करें",
     bridge_cli_docs_link: "कमांड-लाइन गाइड पढ़ें",
     bridge_cli_name: "कमांड लाइन",
@@ -2714,8 +2723,7 @@ export const hi = {
     ipfs_attachment_storage: "IPFS अटैचमेंट स्टोरेज",
     ipfs_enabled_description:
       "अटैचमेंट Aster के निजी IPFS स्टोर में रखे जाते हैं",
-    ipfs_disabled_description:
-      "अटैचमेंट Aster के निजी IPFS स्टोर में रखें",
+    ipfs_disabled_description: "अटैचमेंट Aster के निजी IPFS स्टोर में रखें",
     storage_format_title: "स्टोरेज का प्रारूप",
     storage_format_description:
       "चुनें कि आपकी एन्क्रिप्टेड फ़ाइलें और स्थिर सामग्री कहाँ रखी जाएँ।",
@@ -3239,7 +3247,8 @@ export const hi = {
     default_sender_group: "भेजना",
     default_sender_group_description: "चुनें कि नए संदेश आपके किस पते से जाएँ।",
     default_sender_title: "डिफ़ॉल्ट प्रेषक",
-    default_sender_description: "नए संदेश इसी पते से शुरू होते हैं। उत्तर उसी पते का उपयोग करते हैं जिस पर संदेश आया था।",
+    default_sender_description:
+      "नए संदेश इसी पते से शुरू होते हैं। उत्तर उसी पते का उपयोग करते हैं जिस पर संदेश आया था।",
     default_sender_no_addresses: "कोई अन्य पता नहीं",
     compose_defaults_title: "डिफ़ॉल्ट फ़ॉर्मैटिंग",
     compose_defaults_description:
@@ -3256,9 +3265,11 @@ export const hi = {
     reply_defaults_title: "उत्तर",
     reply_defaults_description: "चुनें कि नया उत्तर किससे शुरू हो।",
     reply_include_quoted: "उद्धृत टेक्स्ट शामिल करें",
-    reply_include_quoted_description: "हर उत्तर आपके टेक्स्ट के नीचे उद्धृत मूल संदेश से शुरू होता है।",
+    reply_include_quoted_description:
+      "हर उत्तर आपके टेक्स्ट के नीचे उद्धृत मूल संदेश से शुरू होता है।",
     reply_prefix_subject: "विषय में Re: जोड़ें",
-    reply_prefix_subject_description: "उत्तर देने पर मूल विषय से पहले Re: लगाता है।",
+    reply_prefix_subject_description:
+      "उत्तर देने पर मूल विषय से पहले Re: लगाता है।",
     build_info: "बिल्ड की जानकारी",
     release: "छोड़ें",
     build: "बिल्ड",
@@ -3326,10 +3337,27 @@ export const hi = {
     cancel_plan_warning:
       "इस बिलिंग अवधि के अंत तक आपके पास प्रीमियम सुविधाएं रहेंगी, और उसके बाद आपका प्लान मुफ़्त हो जाएगा। आपका मेल, संपर्क और सेटिंग आपके पास ही रहेंगे।",
     billing_history: "बिलिंग इतिहास",
+    billing_more_title: "और",
+    billing_addons_subtitle: "ज़्यादा जगह, वही प्लान",
+    billing_support_subtitle: "टीम को संदेश भेजें",
+    billing_credits_subtitle: "बैलेंस और टॉप-अप",
+    billing_academic_subtitle: "स्कूल ईमेल से बचत करें",
+    billing_history_empty:
+      "अभी कोई इनवॉइस नहीं है। पहले भुगतान के बाद आपके भुगतान यहाँ दिखेंगे।",
+    billing_invoice_count: "{{count}} इनवॉइस",
+    billing_invoice_count_one: "{{count}} इनवॉइस",
+    billing_invoice_count_other: "{{count}} इनवॉइस",
+    billing_addons_active_count: "{{count}} सक्रिय",
+    billing_addons_active_count_one: "{{count}} सक्रिय",
+    billing_addons_active_count_other: "{{count}} सक्रिय",
+    academic_status_none: "आवेदन नहीं किया",
+    academic_status_pending: "सत्यापन की प्रतीक्षा में",
+    academic_status_verified: "सत्यापित",
     billing_plan_heading: "प्लान",
     billing_hide_plans: "प्लान छिपाएं",
     billing_cancel_notice_title: "आपका प्लान रद्द होने वाला है",
-    billing_cancel_notice_body: "आपका प्लान {{date}} को समाप्त होगा। इसके बाद आपका खाता मुफ़्त प्लान पर चला जाएगा।",
+    billing_cancel_notice_body:
+      "आपका प्लान {{date}} को समाप्त होगा। इसके बाद आपका खाता मुफ़्त प्लान पर चला जाएगा।",
     billing_renewals_heading: "नवीनीकरण",
     billing_amount: "राशि",
     billing_desc_payment_failed: "भुगतान विफल रहा",
@@ -3637,10 +3665,12 @@ export const hi = {
       "आप पहले से इस प्लान पर हैं। प्रोमो कोड किसी दूसरे प्लान पर जाने पर लागू होते हैं।",
     promo_error_not_upgrade:
       "प्रोमो कोड ऊंचे प्लान पर अपग्रेड करने पर लागू होते हैं।",
-    promo_error_card_only: "यह प्रोमो कोड केवल कार्ड भुगतान के साथ काम करता है।",
+    promo_error_card_only:
+      "यह प्रोमो कोड केवल कार्ड भुगतान के साथ काम करता है।",
     promo_error_with_credits:
       "आप एक ही भुगतान पर प्रोमो कोड और खाता क्रेडिट का उपयोग नहीं कर सकते।",
-    promo_error_not_for_addon: "ऐड-ऑन पर प्रोमो कोड का उपयोग नहीं किया जा सकता।",
+    promo_error_not_for_addon:
+      "ऐड-ऑन पर प्रोमो कोड का उपयोग नहीं किया जा सकता।",
     promo_error_generic:
       "आपका प्रोमो कोड जांचा नहीं जा सका। थोड़ी देर बाद फिर से कोशिश करें।",
     plan_change_discount_amount: "{{amount}} की छूट",
@@ -6001,7 +6031,8 @@ export const hi = {
     special_offer_feature_aliases: "असीमित उपनाम",
     special_offer_feature_vanguard: "Vanguard के साथ उन्नत सुरक्षा",
     special_offer_feature_storage: "500 GB एन्क्रिप्टेड स्टोरेज",
-    special_offer_why_body: "Aster एक छोटी टीम वाली स्वतंत्र कंपनी है, और आपका समर्थन हमारे लिए बहुत मायने रखता है। सदस्यताएँ सेवा को चालू रखती हैं और हमें हर दिन ध्यान से Aster को बेहतर बनाते रहने में मदद करती हैं। यह ऑफ़र शुरुआत करना आसान बनाता है।",
+    special_offer_why_body:
+      "Aster एक छोटी टीम वाली स्वतंत्र कंपनी है, और आपका समर्थन हमारे लिए बहुत मायने रखता है। सदस्यताएँ सेवा को चालू रखती हैं और हमें हर दिन ध्यान से Aster को बेहतर बनाते रहने में मदद करती हैं। यह ऑफ़र शुरुआत करना आसान बनाता है।",
     special_offer_why_label: "यह ऑफ़र क्यों?",
     special_offer_feature_vanguard_body: "ऐप लॉक और उन्नत गोपनीयता सुरक्षा।",
     special_offer_feature_domains_body: "अपने डोमेन के पतों से मेल भेजें।",
@@ -6013,7 +6044,8 @@ export const hi = {
     special_offer_dismiss: "यह ऑफ़र दोबारा न दिखाएँ",
     special_offer_dismissed_toast: "हम यह दोबारा नहीं दिखाएँगे।",
     special_offer_success_title: "धन्यवाद। अब आप Nova पर हैं।",
-    special_offer_success_body: "सदस्यता लेने के लिए धन्यवाद। आपका समर्थन हमारे लिए बहुत मायने रखता है।",
+    special_offer_success_body:
+      "सदस्यता लेने के लिए धन्यवाद। आपका समर्थन हमारे लिए बहुत मायने रखता है।",
     special_offer_hero_duration: "{{months}} महीनों के लिए",
     plan_billing_terms:
       "सदस्यताएँ रद्द करने तक मानक दर पर अपने आप नवीनीकृत होती हैं। आप सेटिंग में कभी भी रद्द कर सकते हैं।",
@@ -6277,46 +6309,67 @@ export const hi = {
     bimi_adj_removed_size: "तय चौड़ाई और ऊंचाई हटाई।",
     bimi_adj_removed_unsupported_attributes: "असमर्थित एट्रिब्यूट हटाए।",
     bimi_adj_set_tiny_ps_profile: "SVG प्रोफ़ाइल को Tiny PS पर सेट किया।",
-    bimi_adjustments_title: "ज़रूरी शर्तें पूरी करने के लिए Aster ने आपकी फ़ाइल में ये बदलाव किए:",
-    bimi_auto_checking: "जब तक यह पेज खुला है, Aster रिकॉर्ड की अपने-आप जाँच करता है।",
+    bimi_adjustments_title:
+      "ज़रूरी शर्तें पूरी करने के लिए Aster ने आपकी फ़ाइल में ये बदलाव किए:",
+    bimi_auto_checking:
+      "जब तक यह पेज खुला है, Aster रिकॉर्ड की अपने-आप जाँच करता है।",
     bimi_check_again: "दोबारा जांचें",
     bimi_checking: "जांच हो रही है",
     bimi_choose_file: "फ़ाइल चुनें",
-    bimi_dmarc_invalid: "आपका DMARC रिकॉर्ड पढ़ा नहीं जा सकता। इसे किसी मान्य रिकॉर्ड से बदलें।",
-    bimi_dmarc_missing: "p=quarantine या p=reject के साथ एक DMARC रिकॉर्ड जोड़ें।",
-    bimi_dmarc_not_enforced: "अपनी DMARC नीति को p=quarantine या p=reject में बदलें।",
-    bimi_dmarc_organization_not_enforced: "आपके पैरेंट डोमेन की DMARC नीति भी quarantine या reject होनी चाहिए।",
-    bimi_dmarc_partial: "अपने DMARC रिकॉर्ड से pct टैग हटाएं या उसे 100 पर सेट करें।",
+    bimi_dmarc_invalid:
+      "आपका DMARC रिकॉर्ड पढ़ा नहीं जा सकता। इसे किसी मान्य रिकॉर्ड से बदलें।",
+    bimi_dmarc_missing:
+      "p=quarantine या p=reject के साथ एक DMARC रिकॉर्ड जोड़ें।",
+    bimi_dmarc_not_enforced:
+      "अपनी DMARC नीति को p=quarantine या p=reject में बदलें।",
+    bimi_dmarc_organization_not_enforced:
+      "आपके पैरेंट डोमेन की DMARC नीति भी quarantine या reject होनी चाहिए।",
+    bimi_dmarc_partial:
+      "अपने DMARC रिकॉर्ड से pct टैग हटाएं या उसे 100 पर सेट करें।",
     bimi_dmarc_ready: "आपकी DMARC नीति quarantine या reject है।",
-    bimi_dmarc_subdomain_policy_none: "अपने DMARC रिकॉर्ड में sp टैग को quarantine या reject में बदलें।",
+    bimi_dmarc_subdomain_policy_none:
+      "अपने DMARC रिकॉर्ड में sp टैग को quarantine या reject में बदलें।",
     bimi_drop_here: "अपना SVG लोगो यहां खींचें।",
-    bimi_err_doctype_entities: "यह फ़ाइल कस्टम एंटिटी डिक्लेयर करती है, जिनकी अनुमति नहीं है।",
+    bimi_err_doctype_entities:
+      "यह फ़ाइल कस्टम एंटिटी डिक्लेयर करती है, जिनकी अनुमति नहीं है।",
     bimi_err_empty: "इमेज खाली है।",
-    bimi_err_external_reference: "यह फ़ाइल किसी बाहरी रिसोर्स से लिंक करती है, जिसकी अनुमति नहीं है।",
+    bimi_err_external_reference:
+      "यह फ़ाइल किसी बाहरी रिसोर्स से लिंक करती है, जिसकी अनुमति नहीं है।",
     bimi_err_invalid_reference: "इस फ़ाइल में एक टूटा हुआ आंतरिक रेफ़रेंस है।",
-    bimi_err_invalid_value: "इस फ़ाइल में ऐसी एट्रिब्यूट वैल्यू है जिसकी अनुमति नहीं है।",
+    bimi_err_invalid_value:
+      "इस फ़ाइल में ऐसी एट्रिब्यूट वैल्यू है जिसकी अनुमति नहीं है।",
     bimi_err_malformed: "यह फ़ाइल मान्य SVG नहीं है।",
-    bimi_err_missing_view_box: "इमेज में viewBox नहीं है। इसे viewBox के साथ एक्सपोर्ट करें।",
+    bimi_err_missing_view_box:
+      "इमेज में viewBox नहीं है। इसे viewBox के साथ एक्सपोर्ट करें।",
     bimi_err_not_square: "लोगो वर्गाकार नहीं है। चौड़ाई और ऊंचाई बराबर करें।",
     bimi_err_not_svg: "यह फ़ाइल SVG इमेज नहीं है।",
     bimi_err_not_utf8: "यह फ़ाइल टेक्स्ट वाली SVG फ़ाइल नहीं है।",
-    bimi_err_raster_image: "इस फ़ाइल में एक एम्बेड की गई बिटमैप इमेज है। सिर्फ़ वेक्टर आकृतियों का इस्तेमाल करें।",
+    bimi_err_raster_image:
+      "इस फ़ाइल में एक एम्बेड की गई बिटमैप इमेज है। सिर्फ़ वेक्टर आकृतियों का इस्तेमाल करें।",
     bimi_err_script_content: "इस फ़ाइल में स्क्रिप्ट है, जिसकी अनुमति नहीं है।",
-    bimi_err_text_not_outlined: "लोगो में टेक्स्ट है। एक्सपोर्ट करने से पहले टेक्स्ट को आउटलाइन में बदलें।",
-    bimi_err_too_complex: "इमेज बहुत जटिल है। इसे सरल बनाएं और फिर से एक्सपोर्ट करें।",
+    bimi_err_text_not_outlined:
+      "लोगो में टेक्स्ट है। एक्सपोर्ट करने से पहले टेक्स्ट को आउटलाइन में बदलें।",
+    bimi_err_too_complex:
+      "इमेज बहुत जटिल है। इसे सरल बनाएं और फिर से एक्सपोर्ट करें।",
     bimi_err_too_large: "फ़ाइल बहुत बड़ी है।",
-    bimi_err_unsupported_element: "इस फ़ाइल में ऐसे एलिमेंट हैं जिनकी अनुमति नहीं है।",
-    bimi_err_unsupported_style: "यह फ़ाइल ऐसी स्टाइल या इफ़ेक्ट इस्तेमाल करती है जिनकी अनुमति नहीं है, जैसे फ़िल्टर, मास्क या स्टाइल शीट।",
-    bimi_error_domain_not_active: "लोगो पब्लिश करने से पहले इस डोमेन का सेटअप पूरा करें।",
+    bimi_err_unsupported_element:
+      "इस फ़ाइल में ऐसे एलिमेंट हैं जिनकी अनुमति नहीं है।",
+    bimi_err_unsupported_style:
+      "यह फ़ाइल ऐसी स्टाइल या इफ़ेक्ट इस्तेमाल करती है जिनकी अनुमति नहीं है, जैसे फ़िल्टर, मास्क या स्टाइल शीट।",
+    bimi_error_domain_not_active:
+      "लोगो पब्लिश करने से पहले इस डोमेन का सेटअप पूरा करें।",
     bimi_error_file_too_large: "फ़ाइल 64 KB से बड़ी है।",
     bimi_error_logo_required: "प्रकाशित करने से पहले लोगो अपलोड करें।",
     bimi_error_not_svg_file: "कोई SVG फ़ाइल चुनें।",
     bimi_error_throttled: "थोड़ी देर रुकें, फिर से कोशिश करें।",
-    bimi_errors_title: "इस फ़ाइल को ब्रैंड लोगो के रूप में इस्तेमाल नहीं किया जा सकता:",
+    bimi_errors_title:
+      "इस फ़ाइल को ब्रैंड लोगो के रूप में इस्तेमाल नहीं किया जा सकता:",
     bimi_last_checked: "पिछली जांच: {time}",
-    bimi_logo_public_note: "आपका लोगो सार्वजनिक है। आपका मेल पाने वाला कोई भी व्यक्ति इसे देख सकता है।",
+    bimi_logo_public_note:
+      "आपका लोगो सार्वजनिक है। आपका मेल पाने वाला कोई भी व्यक्ति इसे देख सकता है।",
     bimi_logo_ready: "आपका लोगो आवश्यकताओं को पूरा करता है।",
-    bimi_managed_note: "आपका डोमेन Aster से खरीदा गया था, इसलिए DNS रिकॉर्ड आपके लिए अपने-आप जोड़ दिया जाता है।",
+    bimi_managed_note:
+      "आपका डोमेन Aster से खरीदा गया था, इसलिए DNS रिकॉर्ड आपके लिए अपने-आप जोड़ दिया जाता है।",
     bimi_preview_alt: "आपके ब्रांड लोगो का पूर्वावलोकन",
     bimi_preview_dark: "डार्क",
     bimi_preview_inbox_subject: "आपका नया अपडेट",
@@ -6324,11 +6377,15 @@ export const hi = {
     bimi_preview_light: "लाइट",
     bimi_publish: "लोगो पब्लिश करें",
     bimi_publishing: "पब्लिश हो रहा है",
-    bimi_record_conflict: "इस डोमेन के लिए एक और BIMI रिकॉर्ड मौजूद है। उसे हटाएं ताकि सिर्फ़ यही रिकॉर्ड बचे।",
-    bimi_record_external: "मौजूदा BIMI रिकॉर्ड किसी दूसरे होस्ट की ओर इशारा करता है। Aster होस्टिंग इस्तेमाल करने के लिए उसे इस रिकॉर्ड से बदलें।",
+    bimi_record_conflict:
+      "इस डोमेन के लिए एक और BIMI रिकॉर्ड मौजूद है। उसे हटाएं ताकि सिर्फ़ यही रिकॉर्ड बचे।",
+    bimi_record_external:
+      "मौजूदा BIMI रिकॉर्ड किसी दूसरे होस्ट की ओर इशारा करता है। Aster होस्टिंग इस्तेमाल करने के लिए उसे इस रिकॉर्ड से बदलें।",
     bimi_record_host: "होस्ट",
-    bimi_record_missing: "रिकॉर्ड अभी दिखाई नहीं दे रहा है। DNS बदलावों में 48 घंटे तक लग सकते हैं।",
-    bimi_record_removed: "Aster को अब यह रिकॉर्ड नहीं मिल रहा है। इसे अपने DNS प्रदाता पर फिर से जोड़ें।",
+    bimi_record_missing:
+      "रिकॉर्ड अभी दिखाई नहीं दे रहा है। DNS बदलावों में 48 घंटे तक लग सकते हैं।",
+    bimi_record_removed:
+      "Aster को अब यह रिकॉर्ड नहीं मिल रहा है। इसे अपने DNS प्रदाता पर फिर से जोड़ें।",
     bimi_record_published: "रिकॉर्ड पब्लिश हो गया है।",
     bimi_record_title: "अपने DNS प्रोवाइडर पर यह रिकॉर्ड जोड़ें",
     bimi_record_type: "प्रकार",
@@ -6341,19 +6398,25 @@ export const hi = {
     bimi_req_dmarc_title: "DMARC लागू करना",
     bimi_req_not_checked: "अभी तक जांचा नहीं गया।",
     bimi_requirements_title: "ज़रूरी शर्तें",
-    bimi_row_attention: "आपका लोगो पब्लिश है, लेकिन एक ज़रूरी शर्त अब पूरी नहीं हो रही है।",
-    bimi_row_draft: "आपका लोगो तैयार है। इसका इस्तेमाल शुरू करने के लिए इसे पब्लिश करें।",
-    bimi_row_external: "इस डोमेन का एक BIMI रिकॉर्ड है, जो किसी दूसरे होस्ट की ओर इशारा करता है।",
+    bimi_row_attention:
+      "आपका लोगो पब्लिश है, लेकिन एक ज़रूरी शर्त अब पूरी नहीं हो रही है।",
+    bimi_row_draft:
+      "आपका लोगो तैयार है। इसका इस्तेमाल शुरू करने के लिए इसे पब्लिश करें।",
+    bimi_row_external:
+      "इस डोमेन का एक BIMI रिकॉर्ड है, जो किसी दूसरे होस्ट की ओर इशारा करता है।",
     bimi_row_inactive: "ब्रैंड लोगो जोड़ने के लिए इस डोमेन का सेटअप पूरा करें।",
     bimi_row_live: "आपका लोगो पब्लिश हो गया है।",
-    bimi_row_off: "ब्रैंड लोगो सपोर्ट करने वाले इनबॉक्स में अपने मेल के साथ अपना लोगो दिखाएं।",
+    bimi_row_off:
+      "ब्रैंड लोगो सपोर्ट करने वाले इनबॉक्स में अपने मेल के साथ अपना लोगो दिखाएं।",
     bimi_row_pending: "DNS रिकॉर्ड जोड़ें, फिर दोबारा जांचें।",
-    bimi_row_pending_managed: "आपका DNS रिकॉर्ड पब्लिश किया जा रहा है। इसमें कुछ मिनट लग सकते हैं।",
+    bimi_row_pending_managed:
+      "आपका DNS रिकॉर्ड पब्लिश किया जा रहा है। इसमें कुछ मिनट लग सकते हैं।",
     bimi_rule_safe: "कोई स्क्रिप्ट या बाहरी लिंक नहीं",
     bimi_rule_size: "Aster द्वारा ऑप्टिमाइज़ करने के बाद 32 KB या उससे कम",
     bimi_rule_square: "वर्गाकार, बराबर चौड़ाई और ऊँचाई के साथ",
     bimi_rule_svg: "SVG फ़ाइल",
-    bimi_rule_vector: "केवल वेक्टर आकृतियाँ, टेक्स्ट को आउटलाइन में बदला गया हो",
+    bimi_rule_vector:
+      "केवल वेक्टर आकृतियाँ, टेक्स्ट को आउटलाइन में बदला गया हो",
     bimi_rules_title: "फ़ाइल की आवश्यकताएँ",
     bimi_set_up: "सेट अप करें",
     bimi_state_attention: "ध्यान देने की ज़रूरत",
@@ -6366,13 +6429,16 @@ export const hi = {
     bimi_step_publish: "पब्लिश करें",
     bimi_title: "ब्रैंड लोगो",
     bimi_turn_off: "बंद करें",
-    bimi_turn_off_body: "आपका लोगो तुरंत होस्ट होना बंद हो जाता है और इनबॉक्स उसकी जगह डिफ़ॉल्ट आइकन दिखाते हैं।",
+    bimi_turn_off_body:
+      "आपका लोगो तुरंत होस्ट होना बंद हो जाता है और इनबॉक्स उसकी जगह डिफ़ॉल्ट आइकन दिखाते हैं।",
     bimi_turn_off_confirm: "बंद करें",
     bimi_turn_off_description: "इनबॉक्स में अपना लोगो दिखाना बंद करें।",
-    bimi_turn_off_remove_record: "अपने DNS प्रोवाइडर से default._bimi TXT रिकॉर्ड हटाएं।",
+    bimi_turn_off_remove_record:
+      "अपने DNS प्रोवाइडर से default._bimi TXT रिकॉर्ड हटाएं।",
     bimi_turn_off_title: "ब्रैंड लोगो बंद करें?",
     bimi_uploading: "अपलोड हो रहा है",
-    bimi_verified_mark_note: "कुछ इनबॉक्स सिर्फ़ उन डोमेन के ब्रैंड लोगो दिखाते हैं जिनके पास वेरिफ़ाइड मार्क सर्टिफ़िकेट होता है।",
+    bimi_verified_mark_note:
+      "कुछ इनबॉक्स सिर्फ़ उन डोमेन के ब्रैंड लोगो दिखाते हैं जिनके पास वेरिफ़ाइड मार्क सर्टिफ़िकेट होता है।",
     catch_all_description: "इस डोमेन के किसी भी पते पर भेजे गए ईमेल पाएं",
     set_host_root:
       "होस्ट को @ रखें (अपना डोमेन नाम न डालें, आपका प्रदाता उसे अपने आप जोड़ देता है)",
@@ -7882,11 +7948,16 @@ export const hi = {
     upgrade_external_accounts_note:
       "अधिक बाहरी खाते कनेक्ट करने के लिए अपग्रेड करें।",
     previous_password: "पिछला पासवर्ड",
-    password_change_sent_mail_locked: "आपका पासवर्ड बदल गया। {{count}} भेजे गए ईमेल पुराने पासवर्ड से एन्क्रिप्ट थे और अपडेट नहीं हुए। उन्हें अनलॉक करने के लिए, अपने इनबॉक्स के ऊपर बैनर में डेटा वापस पाएं चुनें।",
-    referral_commission_headline: "अपने दोस्तों के हर भुगतान का {{ percent }}% कमाएं",
-    referral_commission_subhead: "अपना लिंक साझा करें। जब कोई दोस्त सदस्यता लेता है, तो जब तक वह सदस्य रहता है, आपको उसके हर भुगतान का हिस्सा मिलता है।",
-    referral_step_earn_commission: "जब वे सदस्यता लेते हैं, तो आपको उनके हर भुगतान का {{ percent }}% मिलता है।",
-    referral_share_message_plain: "मैं एंड-टू-एंड एन्क्रिप्टेड ईमेल के लिए Aster Mail इस्तेमाल करता हूं। मेरे लिंक से जुड़ें।",
+    password_change_sent_mail_locked:
+      "आपका पासवर्ड बदल गया। {{count}} भेजे गए ईमेल पुराने पासवर्ड से एन्क्रिप्ट थे और अपडेट नहीं हुए। उन्हें अनलॉक करने के लिए, अपने इनबॉक्स के ऊपर बैनर में डेटा वापस पाएं चुनें।",
+    referral_commission_headline:
+      "अपने दोस्तों के हर भुगतान का {{ percent }}% कमाएं",
+    referral_commission_subhead:
+      "अपना लिंक साझा करें। जब कोई दोस्त सदस्यता लेता है, तो जब तक वह सदस्य रहता है, आपको उसके हर भुगतान का हिस्सा मिलता है।",
+    referral_step_earn_commission:
+      "जब वे सदस्यता लेते हैं, तो आपको उनके हर भुगतान का {{ percent }}% मिलता है।",
+    referral_share_message_plain:
+      "मैं एंड-टू-एंड एन्क्रिप्टेड ईमेल के लिए Aster Mail इस्तेमाल करता हूं। मेरे लिंक से जुड़ें।",
     referral_email_body_plain:
       "नमस्ते,\n\nमैं कुछ समय से Aster Mail इस्तेमाल कर रहा हूं और यह मुझे बहुत पसंद है। इसमें सब कुछ एंड टू एंड एन्क्रिप्टेड है, इसलिए आपकी ईमेल आपके सिवा कोई नहीं पढ़ सकता। इसे चलाने वाले लोग भी नहीं।\n\nअगर आप इसे आज़माना चाहें, तो यह रहा मेरा आमंत्रण लिंक:\n\n{{ referral_link }}\n\nशुभकामनाएं",
   },
@@ -9236,7 +9307,8 @@ export const hi = {
     set_new_password: "नया पासवर्ड सेट करें",
     resetting_password: "पासवर्ड रीसेट किया जा रहा है...",
     enter_recovery_code: "रिकवरी कोड डालें",
-    enter_recovery_code_desc: "खाता बनाते समय सहेजे गए रिकवरी कोड में से कोई एक दर्ज करें।",
+    enter_recovery_code_desc:
+      "खाता बनाते समय सहेजे गए रिकवरी कोड में से कोई एक दर्ज करें।",
     create_new_password: "नया पासवर्ड बनाएं",
     choose_strong_password: "अपने खाते के लिए एक मज़बूत पासवर्ड चुनें",
     recovering_your_account: "आपका खाता रिकवर किया जा रहा है",
@@ -9252,11 +9324,13 @@ export const hi = {
     recovery_email_label: "Aster Mail पता",
     recovery_domain_hint: "वह डोमेन चुनें जो आपके खाते से मेल खाता है।",
     recovery_code_label: "रिकवरी कोड",
-    recovery_code_hint: "हर कोड एक बार काम करता है। कोड ऐसे दिखते हैं: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    recovery_code_hint:
+      "हर कोड एक बार काम करता है। कोड ऐसे दिखते हैं: ASTER-XXXX-XXXX-XXXX-XXXX.",
     change_account: "दूसरा पता इस्तेमाल करें",
     change_account_desc: "कोई दूसरा Aster Mail खाता पुनर्प्राप्त करें।",
     support_step_title: "सहायता से संपर्क करें",
-    support_step_desc: "Aster Mail आपका एन्क्रिप्टेड डेटा नहीं पढ़ सकता, इसलिए रिकवरी कोड या रिकवरी ईमेल के बिना कोई उसे नहीं खोल सकता। सहायता टीम आपका खाता देख सकती है और आगे के कदमों में मदद कर सकती है।",
+    support_step_desc:
+      "Aster Mail आपका एन्क्रिप्टेड डेटा नहीं पढ़ सकता, इसलिए रिकवरी कोड या रिकवरी ईमेल के बिना कोई उसे नहीं खोल सकता। सहायता टीम आपका खाता देख सकती है और आगे के कदमों में मदद कर सकती है।",
     support_email_action: "सहायता को ईमेल करें",
     support_help_center: "सहायता केंद्र खोलें",
     other_ways_title: "दूसरा तरीका आज़माएं",
@@ -9267,7 +9341,8 @@ export const hi = {
     other_way_email_desc:
       "Aster Mail आपके रिकवरी ईमेल पर एक लिंक भेजता है। रीसेट से पहले के मेल तक आपकी पहुंच खत्म हो जाती है।",
     other_way_none_title: "मेरे पास इनमें से कुछ नहीं है",
-    other_way_none_desc: "सहायता से संपर्क करें, हम आगे के कदमों में मदद करेंगे।",
+    other_way_none_desc:
+      "सहायता से संपर्क करें, हम आगे के कदमों में मदद करेंगे।",
     reset_account_title: "क्या खाता रीसेट करना है?",
     reset_account_desc:
       "रीसेट से पहले के एन्क्रिप्ट किए गए मेल, संपर्क और फ़ाइलें तब तक लॉक रहती हैं जब तक आप उन्हें अपने पुराने पासवर्ड से रिकवर नहीं करते। आपको एक नई, खाली एन्क्रिप्शन कुंजी मिलती है।",
@@ -9387,8 +9462,7 @@ export const hi = {
       "अपना मुफ़्त खाता बनाएं, फिर किसी भी सशुल्क प्लान पर 12 महीने तक 30% छूट पाने के लिए अपना छात्र ईमेल सत्यापित करें।",
     offer_welcome_subline_journalist:
       "अपना मुफ़्त खाता बनाएं, फिर किसी भी सशुल्क प्लान पर 12 महीने तक 30% छूट पाने के लिए अपने प्रेस क्रेडेंशियल सत्यापित करें।",
-    plan_star_description:
-      "अधिक स्टोरेज, अधिक उपनाम, और अधिकतम 5 कस्टम डोमेन।",
+    plan_star_description: "अधिक स्टोरेज, अधिक उपनाम, और अधिकतम 5 कस्टम डोमेन।",
     plan_nova_description: "ज़्यादा स्टोरेज, कस्टम डोमेन और असीमित एलियास।",
     plan_supernova_description:
       "अधिकतम स्टोरेज, हर चीज़ असीमित, और समर्पित सहायता।",

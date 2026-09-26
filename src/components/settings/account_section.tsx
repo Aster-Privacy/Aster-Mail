@@ -201,32 +201,29 @@ function FreePlanBanner() {
   if (is_onion_host() || !limits || limits.plan_code !== "free") return null;
 
   return (
-    <div className="plan_galaxy rounded-[var(--aster-island-radius)] px-4 py-4">
+    <Island padding="md" tone="accent">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <span className="hidden h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-brand text-white sm:flex">
+          <SparklesIcon className="h-5 w-5" />
+        </span>
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <SparklesIcon
-              className="h-5 w-5 flex-shrink-0"
-              style={{ color: "var(--accent-blue)" }}
-            />
-            <p className="text-sm font-semibold plan_galaxy_text_primary">
-              {t("settings.free_plan_banner_title")}
-            </p>
-          </div>
-          <p className="mt-1 ms-7 text-sm leading-relaxed plan_galaxy_text_body">
+          <p className="text-[15px] font-semibold leading-5 text-txt-primary">
+            {t("settings.free_plan_banner_title")}
+          </p>
+          <p className="mt-0.5 text-[13px] leading-5 text-txt-secondary">
             {t("settings.free_plan_description")}
           </p>
         </div>
         <Button
-          className="plan_galaxy_cta flex-shrink-0"
-          size="sm"
-          variant="primary"
+          className="flex-shrink-0"
+          size="md"
+          variant="depth"
           onClick={() => show_upgrade_plans()}
         >
           {t("settings.upgrade_view_plans")}
         </Button>
       </div>
-    </div>
+    </Island>
   );
 }
 
@@ -622,7 +619,8 @@ export function AccountSection() {
               onClick={open_picker}
               onMouseEnter={(e) => {
                 if (!uploading) {
-                  e.currentTarget.style.backgroundColor = "var(--aster-field-hover)";
+                  e.currentTarget.style.backgroundColor =
+                    "var(--aster-field-hover)";
                 }
               }}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}

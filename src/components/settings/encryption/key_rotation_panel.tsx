@@ -159,7 +159,7 @@ export function KeyRotationPanel({
                 />
               </div>
               <div className="flex items-center gap-2">
-                <code className="flex-1 min-w-0 break-all px-3 py-2 rounded-md text-[11px] font-mono tracking-wide bg-surf-secondary text-txt-secondary border border-edge-primary">
+                <code className="flex-1 min-w-0 break-all rounded-[var(--aster-radius-field,10px)] bg-[var(--aster-field-bg)] px-3 py-2 text-[11px] font-mono tracking-wide text-txt-primary">
                   {format_fingerprint(pgp_key.fingerprint)}
                 </code>
                 <Button
@@ -180,7 +180,7 @@ export function KeyRotationPanel({
               <Button
                 className="flex-1"
                 size="md"
-                variant="depth"
+                variant="secondary"
                 onClick={handle_export_public_key}
               >
                 <ArrowDownTrayIcon className="w-3.5 h-3.5" />
@@ -189,7 +189,7 @@ export function KeyRotationPanel({
               <Button
                 className="flex-1"
                 size="md"
-                variant="depth"
+                variant="secondary"
                 onClick={open_export_prompt}
               >
                 <ArrowDownTrayIcon className="w-3.5 h-3.5" />

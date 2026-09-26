@@ -23,11 +23,16 @@ import type { ComponentType, SVGProps } from "react";
 import {
   ArrowPathIcon,
   CalendarIcon,
-  CircleStackIcon,
   CreditCardIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Island, IslandDivider, IslandRow, PillButton } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandDivider,
+  IslandRow,
+  PillButton,
+} from "@aster/ui";
 
 import { Spinner } from "@/components/ui/spinner";
 import {
@@ -281,13 +286,13 @@ export function BillingHeroCard({
           </div>
         )}
 
-        <div className="flex flex-col items-center gap-2">
-          <PillButton
+        <div className="flex flex-col items-center gap-2.5">
+          <Button
             aria-expanded={plans_open}
-            block
+            className="w-full sm:w-auto sm:min-w-[220px]"
             size="lg"
             type="button"
-            variant={is_paid_plan ? "neutral" : "filled"}
+            variant={is_paid_plan ? "secondary" : "depth"}
             onClick={on_toggle_plans}
           >
             {plans_open
@@ -295,7 +300,7 @@ export function BillingHeroCard({
               : is_paid_plan
                 ? t("settings.change_plan")
                 : t("common.upgrade")}
-          </PillButton>
+          </Button>
           <p className="text-center text-[12px] text-txt-muted">
             {is_paid_plan
               ? t("settings.cancel_anytime")
@@ -306,7 +311,7 @@ export function BillingHeroCard({
 
       <IslandDivider />
 
-      <div className="py-1">
+      <div>
         <IslandRow
           description={
             is_crypto
@@ -361,17 +366,10 @@ export function BillingHeroCard({
           />
         )}
 
-        <IslandRow
-          description={t("settings.storage_addons_description")}
-          icon={row_icon(CircleStackIcon)}
-          label={t("settings.add_storage")}
-          on_press={on_add_storage}
-        />
-
         {is_paid_plan && !is_crypto && !cancels && (
           <IslandRow
-            description={t("settings.cancel_plan_warning")}
             destructive
+            description={t("settings.cancel_plan_warning")}
             disabled={is_action_loading}
             icon={row_icon(XCircleIcon)}
             label={t("settings.cancel_plan")}

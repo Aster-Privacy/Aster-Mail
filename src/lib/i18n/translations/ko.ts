@@ -1344,11 +1344,14 @@ export const ko = {
     locked_data_banner_action: "데이터 복구",
     locked_data_banner_dismiss: "닫기",
     recover_data_title: "데이터 복구",
-    recover_data_description: "비밀번호 변경 또는 재설정 이전의 데이터를 잠금 해제하려면 당시 사용하던 비밀번호를 입력하세요.",
+    recover_data_description:
+      "비밀번호 변경 또는 재설정 이전의 데이터를 잠금 해제하려면 당시 사용하던 비밀번호를 입력하세요.",
     recover_data_button: "복구",
     recover_data_success: "이전 데이터의 잠금이 해제되었습니다.",
-    recover_data_no_match: "이 비밀번호로 잠금 해제된 데이터가 없습니다. 다른 이전 비밀번호를 사용해 보세요.",
-    recover_data_failed: "일부 데이터를 잠금 해제하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
+    recover_data_no_match:
+      "이 비밀번호로 잠금 해제된 데이터가 없습니다. 다른 이전 비밀번호를 사용해 보세요.",
+    recover_data_failed:
+      "일부 데이터를 잠금 해제하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
     payment_past_due_message:
       "지난 결제가 처리되지 않았습니다. 요금제를 유지하려면 결제 수단을 업데이트하세요.",
     payment_past_due_message_days:
@@ -3681,13 +3684,18 @@ export const ko = {
     bridge_support_reddit_desc: "공지를 확인하고 토론에 참여하세요",
     bridge_support_github_desc: "소스 코드를 확인하고 문제를 신고하세요",
     bridge_all_platforms: "모든 플랫폼",
-    bridge_upgrade_benefit_clients: "Apple Mail, Thunderbird, Outlook에서 사용할 수 있습니다",
-    bridge_upgrade_benefit_local: "로컬에서 실행되므로 메일이 암호화된 상태로 유지됩니다",
-    bridge_upgrade_benefit_platforms: "Windows, macOS, Linux에서 사용할 수 있습니다",
+    bridge_upgrade_benefit_clients:
+      "Apple Mail, Thunderbird, Outlook에서 사용할 수 있습니다",
+    bridge_upgrade_benefit_local:
+      "로컬에서 실행되므로 메일이 암호화된 상태로 유지됩니다",
+    bridge_upgrade_benefit_platforms:
+      "Windows, macOS, Linux에서 사용할 수 있습니다",
     bridge_upgrade_benefit_cli: "서버용 명령줄 버전이 포함됩니다",
     bridge_cli_download: "다운로드",
-    bridge_cli_install_hint: "사용 중인 플랫폼용 아카이브를 다운로드하고 압축을 푼 다음 바이너리를 PATH로 옮깁니다.",
-    bridge_cli_install_hint_windows: "아카이브를 다운로드하고 압축을 푼 다음 폴더를 PATH에 추가합니다.",
+    bridge_cli_install_hint:
+      "사용 중인 플랫폼용 아카이브를 다운로드하고 압축을 푼 다음 바이너리를 PATH로 옮깁니다.",
+    bridge_cli_install_hint_windows:
+      "아카이브를 다운로드하고 압축을 푼 다음 폴더를 PATH에 추가합니다.",
     bridge_cli_copy_command: "설치 명령 복사",
     bridge_cli_docs_link: "명령줄 가이드 읽기",
     bridge_cli_name: "명령줄",
@@ -3896,7 +3904,8 @@ export const ko = {
       "이메일의 외부 링크를 열기 전에 경고를 표시합니다",
     external_link_warning_disabled: "확인 없이 링크가 바로 열립니다",
     ipfs_attachment_storage: "IPFS 첨부 파일 저장소",
-    ipfs_enabled_description: "첨부 파일이 Aster의 비공개 IPFS 저장소에 저장됩니다",
+    ipfs_enabled_description:
+      "첨부 파일이 Aster의 비공개 IPFS 저장소에 저장됩니다",
     ipfs_disabled_description:
       "첨부 파일을 Aster의 비공개 IPFS 저장소에 저장합니다",
     forward_secrecy: "전방 비밀성",
@@ -3967,7 +3976,8 @@ export const ko = {
     password_change_background_reencrypt_failed:
       "비밀번호가 변경되었지만 보낸 메일과 설정 일부가 다시 암호화되지 않았습니다. 메일이나 설정이 읽힐 수 없는 상태라면 고객 지원에 문의하세요.",
     previous_password: "이전 비밀번호",
-    password_change_sent_mail_locked: "비밀번호가 변경되었습니다. 보낸 이메일 {{count}}개가 이전 비밀번호로 암호화되어 있어 업데이트되지 않았습니다. 잠금 해제하려면 받은편지함 상단 배너에서 데이터 복구를 선택하세요.",
+    password_change_sent_mail_locked:
+      "비밀번호가 변경되었습니다. 보낸 이메일 {{count}}개가 이전 비밀번호로 암호화되어 있어 업데이트되지 않았습니다. 잠금 해제하려면 받은편지함 상단 배너에서 데이터 복구를 선택하세요.",
     password_changed_signing_out:
       "비밀번호가 성공적으로 변경되었습니다. 로그아웃 중...",
     password_changed_success: "비밀번호를 변경했습니다",
@@ -4183,7 +4193,8 @@ export const ko = {
     default_sender_group: "보내기",
     default_sender_group_description: "새 메일을 보낼 주소를 선택하세요.",
     default_sender_title: "기본 보내는 주소",
-    default_sender_description: "새 메일은 이 주소에서 시작합니다. 답장에는 메일을 받은 주소를 사용합니다.",
+    default_sender_description:
+      "새 메일은 이 주소에서 시작합니다. 답장에는 메일을 받은 주소를 사용합니다.",
     default_sender_no_addresses: "다른 주소 없음",
     compose_defaults_title: "기본 서식",
     compose_defaults_description:
@@ -4200,9 +4211,11 @@ export const ko = {
     reply_defaults_title: "답장",
     reply_defaults_description: "새 답장이 무엇으로 시작할지 선택합니다.",
     reply_include_quoted: "인용된 텍스트 포함",
-    reply_include_quoted_description: "모든 답장이 작성 영역 아래에 인용된 원본 메시지로 시작합니다.",
+    reply_include_quoted_description:
+      "모든 답장이 작성 영역 아래에 인용된 원본 메시지로 시작합니다.",
     reply_prefix_subject: "제목에 Re: 추가",
-    reply_prefix_subject_description: "답장할 때 원본 제목 앞에 Re: 를 붙입니다.",
+    reply_prefix_subject_description:
+      "답장할 때 원본 제목 앞에 Re: 를 붙입니다.",
     build_info: "빌드 정보",
     release: "릴리스",
     build: "빌드",
@@ -4265,10 +4278,27 @@ export const ko = {
       "이번 결제 주기가 끝날 때까지는 프리미엄 기능을 그대로 사용할 수 있으며, 이후로는 요금제가 무료로 전환됩니다. 메일, 연락처, 설정은 그대로 보관됩니다.",
     cancel_plan: "플랜 취소",
     billing_history: "결제 내역",
+    billing_more_title: "더보기",
+    billing_addons_subtitle: "공간 추가, 플랜은 그대로",
+    billing_support_subtitle: "팀에 메시지 보내기",
+    billing_credits_subtitle: "잔액 및 충전",
+    billing_academic_subtitle: "학교 이메일로 할인 받기",
+    billing_history_empty:
+      "아직 청구서가 없습니다. 첫 결제 후 여기에 표시됩니다.",
+    billing_invoice_count: "청구서 {{count}}건",
+    billing_invoice_count_one: "청구서 {{count}}건",
+    billing_invoice_count_other: "청구서 {{count}}건",
+    billing_addons_active_count: "{{count}}개 사용 중",
+    billing_addons_active_count_one: "{{count}}개 사용 중",
+    billing_addons_active_count_other: "{{count}}개 사용 중",
+    academic_status_none: "신청 안 함",
+    academic_status_pending: "확인 대기 중",
+    academic_status_verified: "확인됨",
     billing_plan_heading: "플랜",
     billing_hide_plans: "플랜 숨기기",
     billing_cancel_notice_title: "플랜이 해지될 예정입니다",
-    billing_cancel_notice_body: "플랜이 {{date}}에 종료됩니다. 이후 계정은 무료 플랜으로 전환됩니다.",
+    billing_cancel_notice_body:
+      "플랜이 {{date}}에 종료됩니다. 이후 계정은 무료 플랜으로 전환됩니다.",
     billing_renewals_heading: "갱신",
     billing_amount: "금액",
     billing_desc_payment_failed: "결제에 실패했습니다",
@@ -5046,19 +5076,23 @@ export const ko = {
     special_offer_feature_aliases: "무제한 별칭",
     special_offer_feature_vanguard: "Vanguard로 강화된 보안",
     special_offer_feature_storage: "500GB 암호화 저장공간",
-    special_offer_why_body: "Aster는 작은 팀으로 운영되는 독립 기업이며, 여러분의 지원은 저희에게 큰 의미가 있습니다. 구독은 서비스 운영을 유지하고 저희가 매일 정성껏 Aster를 발전시켜 나갈 수 있게 해 줍니다. 이 혜택으로 더 쉽게 시작할 수 있습니다.",
+    special_offer_why_body:
+      "Aster는 작은 팀으로 운영되는 독립 기업이며, 여러분의 지원은 저희에게 큰 의미가 있습니다. 구독은 서비스 운영을 유지하고 저희가 매일 정성껏 Aster를 발전시켜 나갈 수 있게 해 줍니다. 이 혜택으로 더 쉽게 시작할 수 있습니다.",
     special_offer_why_label: "이 혜택을 드리는 이유",
     special_offer_feature_vanguard_body: "앱 잠금과 고급 개인정보 보호.",
     special_offer_feature_domains_body: "내 도메인의 주소로 메일을 보내세요.",
     special_offer_feature_domains: "최대 30개의 사용자 지정 도메인",
-    special_offer_feature_storage_body: "수년간의 메일과 파일을 담을 수 있는 공간입니다.",
+    special_offer_feature_storage_body:
+      "수년간의 메일과 파일을 담을 수 있는 공간입니다.",
     special_offer_feature_aliases_body: "사이트마다 별도의 주소를 사용하세요.",
     special_offer_fine_print:
       "처음 {{months}}개월 동안 월 {{offer_price}}을 결제합니다. 이후에는 설정에서 취소할 때까지 월 {{price}}으로 갱신됩니다.",
     special_offer_dismiss: "이 혜택 다시 보지 않기",
     special_offer_dismissed_toast: "다시 표시하지 않습니다.",
-    special_offer_success_title: "감사합니다. 이제 Nova를 이용하실 수 있습니다.",
-    special_offer_success_body: "구독해 주셔서 감사합니다. 보내주신 응원은 저희에게 큰 힘이 됩니다.",
+    special_offer_success_title:
+      "감사합니다. 이제 Nova를 이용하실 수 있습니다.",
+    special_offer_success_body:
+      "구독해 주셔서 감사합니다. 보내주신 응원은 저희에게 큰 힘이 됩니다.",
     special_offer_hero_duration: "{{months}}개월 동안",
     plan_billing_terms:
       "구독은 취소할 때까지 표준 요금으로 자동 갱신됩니다. 설정에서 언제든지 취소할 수 있습니다.",
@@ -5096,48 +5130,69 @@ export const ko = {
     bimi_adj_removed_metadata: "메타데이터를 삭제했습니다.",
     bimi_adj_removed_position: "위치 오프셋을 삭제했습니다.",
     bimi_adj_removed_size: "고정된 너비와 높이를 삭제했습니다.",
-    bimi_adj_removed_unsupported_attributes: "지원되지 않는 속성을 삭제했습니다.",
+    bimi_adj_removed_unsupported_attributes:
+      "지원되지 않는 속성을 삭제했습니다.",
     bimi_adj_set_tiny_ps_profile: "SVG 프로필을 Tiny PS로 설정했습니다.",
     bimi_adjustments_title: "Aster가 요구 사항에 맞게 파일을 조정했습니다.",
-    bimi_auto_checking: "이 페이지가 열려 있는 동안 Aster가 레코드를 자동으로 확인합니다.",
+    bimi_auto_checking:
+      "이 페이지가 열려 있는 동안 Aster가 레코드를 자동으로 확인합니다.",
     bimi_check_again: "다시 확인",
     bimi_checking: "확인 중",
     bimi_choose_file: "파일 선택",
-    bimi_dmarc_invalid: "DMARC 레코드를 읽을 수 없습니다. 올바른 레코드로 교체하세요.",
-    bimi_dmarc_missing: "p=quarantine 또는 p=reject가 포함된 DMARC 레코드를 추가하세요.",
-    bimi_dmarc_not_enforced: "DMARC 정책을 p=quarantine 또는 p=reject로 변경하세요.",
-    bimi_dmarc_organization_not_enforced: "상위 도메인의 DMARC 정책도 quarantine 또는 reject여야 합니다.",
-    bimi_dmarc_partial: "DMARC 레코드에서 pct 태그를 삭제하거나 100으로 설정하세요.",
+    bimi_dmarc_invalid:
+      "DMARC 레코드를 읽을 수 없습니다. 올바른 레코드로 교체하세요.",
+    bimi_dmarc_missing:
+      "p=quarantine 또는 p=reject가 포함된 DMARC 레코드를 추가하세요.",
+    bimi_dmarc_not_enforced:
+      "DMARC 정책을 p=quarantine 또는 p=reject로 변경하세요.",
+    bimi_dmarc_organization_not_enforced:
+      "상위 도메인의 DMARC 정책도 quarantine 또는 reject여야 합니다.",
+    bimi_dmarc_partial:
+      "DMARC 레코드에서 pct 태그를 삭제하거나 100으로 설정하세요.",
     bimi_dmarc_ready: "DMARC 정책이 quarantine 또는 reject입니다.",
-    bimi_dmarc_subdomain_policy_none: "DMARC 레코드의 sp 태그를 quarantine 또는 reject로 변경하세요.",
+    bimi_dmarc_subdomain_policy_none:
+      "DMARC 레코드의 sp 태그를 quarantine 또는 reject로 변경하세요.",
     bimi_drop_here: "SVG 로고를 여기로 드래그하세요.",
-    bimi_err_doctype_entities: "파일에 허용되지 않는 사용자 지정 엔터티가 선언되어 있습니다.",
+    bimi_err_doctype_entities:
+      "파일에 허용되지 않는 사용자 지정 엔터티가 선언되어 있습니다.",
     bimi_err_empty: "이미지가 비어 있습니다.",
-    bimi_err_external_reference: "파일이 허용되지 않는 외부 리소스에 연결되어 있습니다.",
+    bimi_err_external_reference:
+      "파일이 허용되지 않는 외부 리소스에 연결되어 있습니다.",
     bimi_err_invalid_reference: "파일에 손상된 내부 참조가 있습니다.",
     bimi_err_invalid_value: "파일에 허용되지 않는 속성 값이 포함되어 있습니다.",
     bimi_err_malformed: "올바른 SVG 파일이 아닙니다.",
-    bimi_err_missing_view_box: "이미지에 viewBox가 없습니다. viewBox를 포함하여 내보내세요.",
-    bimi_err_not_square: "로고가 정사각형이 아닙니다. 너비와 높이를 같게 만드세요.",
+    bimi_err_missing_view_box:
+      "이미지에 viewBox가 없습니다. viewBox를 포함하여 내보내세요.",
+    bimi_err_not_square:
+      "로고가 정사각형이 아닙니다. 너비와 높이를 같게 만드세요.",
     bimi_err_not_svg: "SVG 이미지가 아닙니다.",
     bimi_err_not_utf8: "텍스트 형식의 SVG 파일이 아닙니다.",
-    bimi_err_raster_image: "파일에 비트맵 이미지가 포함되어 있습니다. 벡터 도형만 사용하세요.",
-    bimi_err_script_content: "파일에 허용되지 않는 스크립트가 포함되어 있습니다.",
-    bimi_err_text_not_outlined: "로고에 텍스트가 포함되어 있습니다. 내보내기 전에 텍스트를 윤곽선으로 변환하세요.",
-    bimi_err_too_complex: "이미지가 너무 복잡합니다. 단순화한 다음 다시 내보내세요.",
+    bimi_err_raster_image:
+      "파일에 비트맵 이미지가 포함되어 있습니다. 벡터 도형만 사용하세요.",
+    bimi_err_script_content:
+      "파일에 허용되지 않는 스크립트가 포함되어 있습니다.",
+    bimi_err_text_not_outlined:
+      "로고에 텍스트가 포함되어 있습니다. 내보내기 전에 텍스트를 윤곽선으로 변환하세요.",
+    bimi_err_too_complex:
+      "이미지가 너무 복잡합니다. 단순화한 다음 다시 내보내세요.",
     bimi_err_too_large: "파일이 너무 큽니다.",
-    bimi_err_unsupported_element: "파일에 허용되지 않는 요소가 포함되어 있습니다.",
-    bimi_err_unsupported_style: "파일에 필터, 마스크, 스타일시트 등 허용되지 않는 스타일이나 효과가 사용되었습니다.",
-    bimi_error_domain_not_active: "로고를 게시하기 전에 이 도메인 설정을 완료하세요.",
+    bimi_err_unsupported_element:
+      "파일에 허용되지 않는 요소가 포함되어 있습니다.",
+    bimi_err_unsupported_style:
+      "파일에 필터, 마스크, 스타일시트 등 허용되지 않는 스타일이나 효과가 사용되었습니다.",
+    bimi_error_domain_not_active:
+      "로고를 게시하기 전에 이 도메인 설정을 완료하세요.",
     bimi_error_file_too_large: "파일이 64 KB보다 큽니다.",
     bimi_error_logo_required: "게시하기 전에 로고를 업로드하세요.",
     bimi_error_not_svg_file: "SVG 파일을 선택하세요.",
     bimi_error_throttled: "잠시 후 다시 시도하세요.",
     bimi_errors_title: "이 파일은 브랜드 로고로 사용할 수 없습니다.",
     bimi_last_checked: "마지막 확인: {time}",
-    bimi_logo_public_note: "로고는 공개됩니다. 내 메일을 받는 모든 사람이 로고를 볼 수 있습니다.",
+    bimi_logo_public_note:
+      "로고는 공개됩니다. 내 메일을 받는 모든 사람이 로고를 볼 수 있습니다.",
     bimi_logo_ready: "로고가 요구 사항을 충족합니다.",
-    bimi_managed_note: "Aster에서 구입한 도메인이므로 DNS 레코드가 자동으로 추가됩니다.",
+    bimi_managed_note:
+      "Aster에서 구입한 도메인이므로 DNS 레코드가 자동으로 추가됩니다.",
     bimi_preview_alt: "브랜드 로고 미리보기",
     bimi_preview_dark: "다크",
     bimi_preview_inbox_subject: "최신 소식",
@@ -5145,11 +5200,15 @@ export const ko = {
     bimi_preview_light: "라이트",
     bimi_publish: "로고 게시",
     bimi_publishing: "게시 중",
-    bimi_record_conflict: "이 도메인에 다른 BIMI 레코드가 있습니다. 이 레코드만 남도록 다른 레코드를 삭제하세요.",
-    bimi_record_external: "기존 BIMI 레코드가 다른 호스트를 가리킵니다. Aster 호스팅을 사용하려면 이 레코드로 교체하세요.",
+    bimi_record_conflict:
+      "이 도메인에 다른 BIMI 레코드가 있습니다. 이 레코드만 남도록 다른 레코드를 삭제하세요.",
+    bimi_record_external:
+      "기존 BIMI 레코드가 다른 호스트를 가리킵니다. Aster 호스팅을 사용하려면 이 레코드로 교체하세요.",
     bimi_record_host: "호스트",
-    bimi_record_missing: "레코드가 아직 표시되지 않습니다. DNS 변경 사항이 반영되는 데 최대 48시간이 걸릴 수 있습니다.",
-    bimi_record_removed: "Aster에서 이 레코드를 더 이상 찾을 수 없습니다. DNS 제공업체에서 다시 추가하세요.",
+    bimi_record_missing:
+      "레코드가 아직 표시되지 않습니다. DNS 변경 사항이 반영되는 데 최대 48시간이 걸릴 수 있습니다.",
+    bimi_record_removed:
+      "Aster에서 이 레코드를 더 이상 찾을 수 없습니다. DNS 제공업체에서 다시 추가하세요.",
     bimi_record_published: "레코드가 게시되었습니다.",
     bimi_record_title: "DNS 제공업체에서 이 레코드를 추가하세요",
     bimi_record_type: "유형",
@@ -5162,14 +5221,19 @@ export const ko = {
     bimi_req_dmarc_title: "DMARC 적용",
     bimi_req_not_checked: "아직 확인하지 않았습니다.",
     bimi_requirements_title: "요구 사항",
-    bimi_row_attention: "로고가 게시되었지만 더 이상 충족되지 않는 요구 사항이 있습니다.",
-    bimi_row_draft: "로고가 준비되었습니다. 게시하면 사용을 시작할 수 있습니다.",
-    bimi_row_external: "이 도메인에는 다른 호스트를 가리키는 BIMI 레코드가 있습니다.",
+    bimi_row_attention:
+      "로고가 게시되었지만 더 이상 충족되지 않는 요구 사항이 있습니다.",
+    bimi_row_draft:
+      "로고가 준비되었습니다. 게시하면 사용을 시작할 수 있습니다.",
+    bimi_row_external:
+      "이 도메인에는 다른 호스트를 가리키는 BIMI 레코드가 있습니다.",
     bimi_row_inactive: "브랜드 로고를 추가하려면 이 도메인 설정을 완료하세요.",
     bimi_row_live: "로고가 게시되었습니다.",
-    bimi_row_off: "브랜드 로고를 지원하는 받은편지함에서 메일 옆에 로고를 표시합니다.",
+    bimi_row_off:
+      "브랜드 로고를 지원하는 받은편지함에서 메일 옆에 로고를 표시합니다.",
     bimi_row_pending: "DNS 레코드를 추가한 다음 다시 확인하세요.",
-    bimi_row_pending_managed: "DNS 레코드를 게시하는 중입니다. 몇 분 정도 걸릴 수 있습니다.",
+    bimi_row_pending_managed:
+      "DNS 레코드를 게시하는 중입니다. 몇 분 정도 걸릴 수 있습니다.",
     bimi_rule_safe: "스크립트나 외부 링크 없음",
     bimi_rule_size: "Aster가 최적화한 후 32KB 이하",
     bimi_rule_square: "너비와 높이가 같은 정사각형",
@@ -5187,13 +5251,16 @@ export const ko = {
     bimi_step_publish: "게시",
     bimi_title: "브랜드 로고",
     bimi_turn_off: "끄기",
-    bimi_turn_off_body: "로고 호스팅이 즉시 중단되며 받은편지함에는 대신 기본 아이콘이 표시됩니다.",
+    bimi_turn_off_body:
+      "로고 호스팅이 즉시 중단되며 받은편지함에는 대신 기본 아이콘이 표시됩니다.",
     bimi_turn_off_confirm: "끄기",
     bimi_turn_off_description: "받은편지함에 로고 표시를 중지합니다.",
-    bimi_turn_off_remove_record: "DNS 제공업체에서 default._bimi TXT 레코드를 삭제하세요.",
+    bimi_turn_off_remove_record:
+      "DNS 제공업체에서 default._bimi TXT 레코드를 삭제하세요.",
     bimi_turn_off_title: "브랜드 로고를 끄시겠습니까?",
     bimi_uploading: "업로드 중",
-    bimi_verified_mark_note: "일부 받은편지함은 인증된 마크 인증서가 있는 도메인에만 브랜드 로고를 표시합니다.",
+    bimi_verified_mark_note:
+      "일부 받은편지함은 인증된 마크 인증서가 있는 도메인에만 브랜드 로고를 표시합니다.",
     catch_all_description: "이 도메인의 모든 주소로 보낸 이메일을 수신합니다",
     set_host_root:
       "호스트를 @로 설정하세요 (도메인을 입력하지 마세요. 제공업체가 자동으로 추가합니다)",
@@ -5444,8 +5511,10 @@ export const ko = {
     signature_content_placeholder: "감사합니다,\n이름\nyour@email.com",
     signature_name_required: "이 서명의 이름을 입력하세요.",
     signature_content_required: "이 서명의 내용을 입력하세요.",
-    signature_image_too_large: "이 이미지는 서명에 추가하기에 너무 큽니다. 더 작은 이미지를 선택하세요.",
-    signature_too_large: "서명이 너무 커서 저장할 수 없습니다. 이미지를 제거하거나 텍스트를 줄이세요.",
+    signature_image_too_large:
+      "이 이미지는 서명에 추가하기에 너무 큽니다. 더 작은 이미지를 선택하세요.",
+    signature_too_large:
+      "서명이 너무 커서 저장할 수 없습니다. 이미지를 제거하거나 텍스트를 줄이세요.",
     signature_image_invalid:
       "PNG, JPEG, GIF, WebP 이미지만 추가할 수 있습니다.",
     signature_image_failed:
@@ -5683,10 +5752,12 @@ export const ko = {
       "이미 이 플랜을 사용 중입니다. 프로모션 코드는 다른 플랜으로 변경할 때 적용됩니다.",
     promo_error_not_upgrade:
       "프로모션 코드는 상위 플랜으로 업그레이드할 때 적용됩니다.",
-    promo_error_card_only: "이 프로모션 코드는 카드 결제에서만 사용할 수 있습니다.",
+    promo_error_card_only:
+      "이 프로모션 코드는 카드 결제에서만 사용할 수 있습니다.",
     promo_error_with_credits:
       "같은 결제에 프로모션 코드와 계정 크레딧을 함께 사용할 수 없습니다.",
-    promo_error_not_for_addon: "프로모션 코드는 부가 기능에 사용할 수 없습니다.",
+    promo_error_not_for_addon:
+      "프로모션 코드는 부가 기능에 사용할 수 없습니다.",
     promo_error_generic:
       "프로모션 코드를 확인할 수 없습니다. 잠시 후 다시 시도하세요.",
     plan_change_discount_amount: "{{amount}} 할인",
@@ -7895,7 +7966,8 @@ export const ko = {
     already_reacted: "이미 이 반응을 남겼습니다",
     remove_your_reaction: "{emoji} 반응 삭제",
     you_reacted_with: "{{emoji}} 반응을 남겼습니다",
-    you_reacted_with_remove: "{{emoji}}(으)로 반응했습니다. 삭제하려면 클릭하세요.",
+    you_reacted_with_remove:
+      "{{emoji}}(으)로 반응했습니다. 삭제하려면 클릭하세요.",
     reacted_with: "{{name}}님이 {{emoji}} 반응을 남겼습니다",
     forward: "전달",
     to: "받는 사람",
@@ -9017,7 +9089,8 @@ export const ko = {
     set_new_password: "새 비밀번호 설정",
     resetting_password: "비밀번호 재설정 중...",
     enter_recovery_code: "복구 코드 입력",
-    enter_recovery_code_desc: "계정을 만들 때 저장한 복구 코드 중 하나를 입력하세요.",
+    enter_recovery_code_desc:
+      "계정을 만들 때 저장한 복구 코드 중 하나를 입력하세요.",
     create_new_password: "새 비밀번호 만들기",
     choose_strong_password: "계정을 위한 강력한 비밀번호를 선택하세요",
     recovering_your_account: "계정 복구 중",
@@ -9032,11 +9105,13 @@ export const ko = {
     recovery_email_label: "Aster Mail 주소",
     recovery_domain_hint: "계정에 해당하는 도메인을 선택하세요.",
     recovery_code_label: "복구 코드",
-    recovery_code_hint: "각 코드는 한 번만 사용할 수 있습니다. 코드 형식은 ASTER-XXXX-XXXX-XXXX-XXXX입니다.",
+    recovery_code_hint:
+      "각 코드는 한 번만 사용할 수 있습니다. 코드 형식은 ASTER-XXXX-XXXX-XXXX-XXXX입니다.",
     change_account: "다른 주소 사용",
     change_account_desc: "다른 Aster Mail 계정을 복구합니다.",
     support_step_title: "고객 지원에 문의",
-    support_step_desc: "Aster Mail은 암호화된 데이터를 읽을 수 없으므로 복구 코드나 복구 이메일 없이는 누구도 잠금을 해제할 수 없습니다. 고객 지원이 계정을 확인하고 다음 단계를 안내합니다.",
+    support_step_desc:
+      "Aster Mail은 암호화된 데이터를 읽을 수 없으므로 복구 코드나 복구 이메일 없이는 누구도 잠금을 해제할 수 없습니다. 고객 지원이 계정을 확인하고 다음 단계를 안내합니다.",
     support_email_action: "고객 지원에 이메일 보내기",
     support_help_center: "도움말 센터 열기",
     other_ways_title: "다른 방법 사용",

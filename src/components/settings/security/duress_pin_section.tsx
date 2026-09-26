@@ -18,7 +18,7 @@
 //
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Button, Island, IslandRow } from "@aster/ui";
+import { Button, Input, Island, IslandRow } from "@aster/ui";
 import {
   ArrowLeftIcon,
   BackspaceIcon,
@@ -562,12 +562,13 @@ function SetupDuressPinModal({
                 {t("settings.duress_pin_password_label")}
               </label>
               <div className="relative">
-                <input
+                <Input
                   ref={password_ref}
                   autoComplete="current-password"
-                  className="w-full px-3 py-2.5 pe-10 rounded-[var(--aster-radius-control)] text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
+                  className="pe-10"
                   disabled={verifying_creds}
                   maxLength={128}
+                  size="md"
                   type={show_password ? "text" : "password"}
                   value={password}
                   onChange={(e) => set_password(clamp_password(e.target.value))}
@@ -595,12 +596,13 @@ function SetupDuressPinModal({
                 <label className="text-xs font-medium text-txt-secondary">
                   {t("settings.duress_pin_totp_label")}
                 </label>
-                <input
+                <Input
                   autoComplete="one-time-code"
-                  className="w-full px-3 py-2.5 rounded-[var(--aster-radius-control)] text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors tracking-widest"
+                  className="tracking-widest"
                   disabled={verifying_creds}
                   inputMode="numeric"
                   maxLength={6}
+                  size="md"
                   type="text"
                   value={totp_code}
                   onChange={(e) =>
@@ -671,12 +673,13 @@ function SetupDuressPinModal({
               className="relative"
               transition={{ duration: 0.35 }}
             >
-              <input
+              <Input
                 autoFocus
                 autoComplete="off"
-                className="w-full px-3 py-2.5 pe-10 rounded-[var(--aster-radius-control)] text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
+                className="pe-10"
                 data-form-type="other"
                 placeholder={t("settings.app_lock_text_placeholder")}
+                size="md"
                 type={show_passphrase ? "text" : "password"}
                 value={text_input}
                 onChange={(e) => set_text_input(e.target.value)}
@@ -922,12 +925,13 @@ function RemoveDuressPinModal({
               transition={{ duration: 0.35 }}
             >
               <div className="relative">
-                <input
+                <Input
                   ref={text_ref}
                   autoComplete="off"
-                  className="w-full px-3 py-2.5 pe-10 rounded-[var(--aster-radius-control)] text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
+                  className="pe-10"
                   disabled={verifying}
                   placeholder={t("settings.app_lock_text_placeholder")}
+                  size="md"
                   type={show_passphrase ? "text" : "password"}
                   value={input}
                   onChange={(e) => {

@@ -19,8 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useRef, useState } from "react";
-import { CheckIcon, ClipboardIcon } from "@heroicons/react/24/outline";
-import { Island, IslandSection, PillButton } from "@aster/ui";
+import {
+  AcademicCapIcon,
+  CheckIcon,
+  ClipboardIcon,
+} from "@heroicons/react/24/outline";
+import { Input, Island, IslandSection, PillButton } from "@aster/ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import {
@@ -36,19 +40,26 @@ import {
   type TurnstileWidgetRef,
 } from "@/components/auth/turnstile_widget";
 import { is_composing } from "@/utils/ime";
+import {
+  BillingMoreRow,
+  billing_row_icon,
+} from "@/components/settings/billing/billing_more_section";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
 interface AcademicDiscountSectionProps {
   academic_status: AcademicDiscountStatusResponse | null;
   refresh_academic_status: () => Promise<void>;
+  embedded?: boolean;
 }
 
 export function AcademicDiscountSection({
   academic_status,
   refresh_academic_status,
+  embedded = false,
 }: AcademicDiscountSectionProps) {
   const { t } = use_i18n();
+  const [open, set_open] = useState(false);
   const [academic_email, set_academic_email] = useState("");
   const [submitting, set_submitting] = useState(false);
   const [resend_cooldown, set_resend_cooldown] = useState(0);
@@ -166,125 +177,171 @@ export function AcademicDiscountSection({
 
   const status = academic_status?.status ?? "none";
 
+  const verified_panel = status === "verified" &&
+    academic_status?.promo_code && (
+      <>
+        <p className="text-xs text-txt-muted">
+          {t("settings.academic_code_ready_title")}
+        </p>
+        <div className="mt-1.5 flex items-center gap-2">
+          <code className="text-lg font-bold tracking-wide text-txt-primary">
+            {academic_status.promo_code}
+          </code>
+          <button
+            aria-label={t("common.copy")}
+            className="rounded-full p-1.5 transition-colors hover:bg-surf-hover"
+            type="button"
+            onClick={handle_copy}
+          >
+            {copied ? (
+              <CheckIcon className="h-4 w-4 text-txt-primary" />
+            ) : (
+              <ClipboardIcon className="h-4 w-4 text-txt-muted" />
+            )}
+          </button>
+        </div>
+        <p className="mt-2 text-xs text-txt-muted">
+          {t("settings.academic_use_at_checkout")}
+        </p>
+        <p className="mt-1 text-xs text-txt-muted">
+          {t("settings.academic_terms")}
+        </p>
+      </>
+    );
+
+  const pending_panel = status === "pending" && (
+    <>
+      <p className="text-sm text-txt-primary">
+        {t("settings.academic_pending_title")}
+      </p>
+      <p className="mt-1 text-xs text-txt-muted">
+        {t("settings.academic_pending_description")}
+      </p>
+      {captcha_required && (
+        <TurnstileWidget
+          ref={turnstile_ref}
+          class_name="mt-3 flex justify-start"
+          on_expire={() => set_turnstile_token("")}
+          on_verify={(token) => set_turnstile_token(token)}
+        />
+      )}
+      <PillButton
+        className="mt-3"
+        disabled={
+          resend_cooldown > 0 ||
+          submitting ||
+          (captcha_required && !turnstile_token)
+        }
+        size="sm"
+        type="button"
+        variant="neutral"
+        onClick={handle_resend}
+      >
+        {resend_cooldown > 0
+          ? t("settings.academic_resend_cooldown", {
+              seconds: resend_cooldown,
+            })
+          : t("settings.academic_resend")}
+      </PillButton>
+    </>
+  );
+
+  const request_panel = status === "none" && (
+    <>
+      <p className="mb-3 text-[13px] leading-5 text-txt-secondary">
+        {t("settings.academic_intro")}
+      </p>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Input
+          aria-label={t("settings.academic_email_placeholder")}
+          autoComplete="email"
+          className="flex-1"
+          placeholder={t("settings.academic_email_placeholder")}
+          type="email"
+          value={academic_email}
+          onChange={(e) => set_academic_email(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !is_composing(e)) handle_submit();
+          }}
+        />
+        <PillButton
+          className="shrink-0"
+          disabled={
+            !academic_email.trim() ||
+            submitting ||
+            (captcha_required && !turnstile_token)
+          }
+          size="md"
+          type="button"
+          variant="filled"
+          onClick={handle_submit}
+        >
+          {submitting
+            ? t("settings.academic_sending")
+            : t("settings.academic_send_verification")}
+        </PillButton>
+      </div>
+      {captcha_required && (
+        <TurnstileWidget
+          ref={turnstile_ref}
+          class_name="mt-3 flex justify-start"
+          on_expire={() => set_turnstile_token("")}
+          on_verify={(token) => set_turnstile_token(token)}
+        />
+      )}
+      <p className="mt-3 text-xs text-txt-muted">
+        {t("settings.academic_journalist_hint")}
+      </p>
+    </>
+  );
+
+  if (embedded) {
+    const status_label =
+      status === "verified"
+        ? t("settings.academic_status_verified")
+        : status === "pending"
+          ? t("settings.academic_status_pending")
+          : t("settings.academic_status_none");
+
+    return (
+      <BillingMoreRow
+        description={t("settings.billing_academic_subtitle")}
+        icon={billing_row_icon(AcademicCapIcon)}
+        label={t("settings.academic_discount_title")}
+        open={open}
+        value={
+          <span
+            className="text-[13px] font-medium"
+            style={{
+              color:
+                status === "verified"
+                  ? "var(--color-success)"
+                  : status === "pending"
+                    ? "var(--color-warning)"
+                    : "var(--text-secondary)",
+            }}
+          >
+            {status_label}
+          </span>
+        }
+        on_toggle={() => set_open((value) => !value)}
+      >
+        {verified_panel}
+        {pending_panel}
+        {request_panel}
+      </BillingMoreRow>
+    );
+  }
+
   return (
     <IslandSection
       bare
       description={t("settings.academic_discount_description")}
       title={t("settings.academic_discount_title")}
     >
-      {status === "verified" && academic_status?.promo_code && (
-        <Island padding="md">
-          <p className="text-xs text-txt-muted">
-            {t("settings.academic_code_ready_title")}
-          </p>
-          <div className="flex items-center gap-2 mt-1.5">
-            <code className="text-lg font-bold tracking-wide text-txt-primary">
-              {academic_status.promo_code}
-            </code>
-            <button
-              className="p-1.5 rounded-md hover:bg-surf-hover transition-colors"
-              type="button"
-              onClick={handle_copy}
-            >
-              {copied ? (
-                <CheckIcon className="w-4 h-4 text-txt-primary" />
-              ) : (
-                <ClipboardIcon className="w-4 h-4 text-txt-muted" />
-              )}
-            </button>
-          </div>
-          <p className="text-xs text-txt-muted mt-2">
-            {t("settings.academic_use_at_checkout")}
-          </p>
-          <p className="text-xs text-txt-muted mt-1">
-            {t("settings.academic_terms")}
-          </p>
-        </Island>
-      )}
-
-      {status === "pending" && (
-        <Island padding="md">
-          <p className="text-sm text-txt-primary">
-            {t("settings.academic_pending_title")}
-          </p>
-          <p className="text-xs text-txt-muted mt-1">
-            {t("settings.academic_pending_description")}
-          </p>
-          {captcha_required && (
-            <TurnstileWidget
-              ref={turnstile_ref}
-              class_name="flex justify-start mt-3"
-              on_expire={() => set_turnstile_token("")}
-              on_verify={(token) => set_turnstile_token(token)}
-            />
-          )}
-          <PillButton
-            className="mt-3"
-            disabled={
-              resend_cooldown > 0 ||
-              submitting ||
-              (captcha_required && !turnstile_token)
-            }
-            size="sm"
-            type="button"
-            variant="neutral"
-            onClick={handle_resend}
-          >
-            {resend_cooldown > 0
-              ? t("settings.academic_resend_cooldown", {
-                  seconds: resend_cooldown,
-                })
-              : t("settings.academic_resend")}
-          </PillButton>
-        </Island>
-      )}
-
-      {status === "none" && (
-        <Island padding="md">
-          <p className="text-xs text-txt-muted mb-3">
-            {t("settings.academic_intro")}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <input
-              className="flex-1 h-10 px-3 rounded-lg border border-edge-secondary bg-transparent text-sm text-txt-primary placeholder:text-txt-muted focus:outline-none focus:border-edge-primary"
-              placeholder={t("settings.academic_email_placeholder")}
-              type="email"
-              value={academic_email}
-              onChange={(e) => set_academic_email(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !is_composing(e)) handle_submit();
-              }}
-            />
-            <PillButton
-              className="shrink-0"
-              disabled={
-                !academic_email.trim() ||
-                submitting ||
-                (captcha_required && !turnstile_token)
-              }
-              size="md"
-              type="button"
-              variant="filled"
-              onClick={handle_submit}
-            >
-              {submitting
-                ? t("settings.academic_sending")
-                : t("settings.academic_send_verification")}
-            </PillButton>
-          </div>
-          {captcha_required && (
-            <TurnstileWidget
-              ref={turnstile_ref}
-              class_name="flex justify-start mt-3"
-              on_expire={() => set_turnstile_token("")}
-              on_verify={(token) => set_turnstile_token(token)}
-            />
-          )}
-          <p className="text-xs text-txt-muted mt-3">
-            {t("settings.academic_journalist_hint")}
-          </p>
-        </Island>
-      )}
+      {verified_panel && <Island padding="md">{verified_panel}</Island>}
+      {pending_panel && <Island padding="md">{pending_panel}</Island>}
+      {request_panel && <Island padding="md">{request_panel}</Island>}
     </IslandSection>
   );
 }

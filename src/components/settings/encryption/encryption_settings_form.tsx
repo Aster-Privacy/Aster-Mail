@@ -32,7 +32,7 @@ import {
   ExclamationCircleIcon,
   MinusCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Button, IslandRow, IslandSection } from "@aster/ui";
+import { Button, Input, IslandRow, IslandSection } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { InfoPopover } from "@/components/ui/info_popover";
@@ -357,15 +357,11 @@ export function EncryptionSettingsForm({
           />
         ))}
         <div className="flex items-center gap-2 px-4 pt-2 pb-4">
-          <input
-            className="flex-1 min-w-0 px-3 h-8 rounded-[var(--aster-radius-control)] text-sm font-mono bg-transparent"
+          <Input
+            className="w-auto flex-1 min-w-0 font-mono"
             disabled={is_saving_keyservers}
             placeholder={t("settings.keyserver_url_placeholder")}
-            style={{
-              border: "1px solid var(--border-primary)",
-              color: "var(--text-primary)",
-              outline: "none",
-            }}
+            size="sm"
             value={keyserver_input}
             onChange={(e) => set_keyserver_input(e.target.value)}
             onKeyDown={(e) => {

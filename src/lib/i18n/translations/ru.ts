@@ -1291,15 +1291,19 @@ export const ru = {
     subject_too_long:
       "Тема превышает лимит в 998 символов. Более короткий вариант отправится без проблем.",
     notification_banner_no_thanks: "Нет, спасибо",
-    locked_data_banner_message: "Часть ваших старых зашифрованных данных заблокирована.",
+    locked_data_banner_message:
+      "Часть ваших старых зашифрованных данных заблокирована.",
     locked_data_banner_action: "Восстановить данные",
     locked_data_banner_dismiss: "Скрыть",
     recover_data_title: "Восстановить данные",
-    recover_data_description: "Чтобы разблокировать данные, созданные до смены или сброса пароля, введите пароль, который вы использовали в то время.",
+    recover_data_description:
+      "Чтобы разблокировать данные, созданные до смены или сброса пароля, введите пароль, который вы использовали в то время.",
     recover_data_button: "Восстановить",
     recover_data_success: "Ваши старые данные разблокированы.",
-    recover_data_no_match: "Этот пароль не разблокировал никаких данных. Попробуйте другой прежний пароль.",
-    recover_data_failed: "Не удалось разблокировать часть данных. Проверьте подключение и повторите попытку.",
+    recover_data_no_match:
+      "Этот пароль не разблокировал никаких данных. Попробуйте другой прежний пароль.",
+    recover_data_failed:
+      "Не удалось разблокировать часть данных. Проверьте подключение и повторите попытку.",
     payment_past_due_message:
       "Последний платеж не прошел. Обновите способ оплаты, чтобы сохранить тариф.",
     payment_past_due_message_days:
@@ -4048,7 +4052,8 @@ export const ru = {
     password_change_background_reencrypt_failed:
       "Пароль изменён, но часть отправленных писем и настроек не была перешифрована. Обратитесь в службу поддержки, если письма или настройки отображаются неверно.",
     previous_password: "Предыдущий пароль",
-    password_change_sent_mail_locked: "Ваш пароль изменен. Отправленные письма ({{count}}) были зашифрованы прежним паролем и не обновились. Чтобы разблокировать их, выберите «Восстановить данные» в баннере в верхней части папки «Входящие».",
+    password_change_sent_mail_locked:
+      "Ваш пароль изменен. Отправленные письма ({{count}}) были зашифрованы прежним паролем и не обновились. Чтобы разблокировать их, выберите «Восстановить данные» в баннере в верхней части папки «Входящие».",
     password_changed_signing_out:
       "Пароль успешно изменён. Выполняется выход из системы...",
     password_changed_success: "Пароль изменён",
@@ -4276,9 +4281,11 @@ export const ru = {
     compose_mode_fullscreen: "Всегда полноэкранный",
     compose_mode_minimized: "Открывать свёрнутым",
     default_sender_group: "Отправка",
-    default_sender_group_description: "Выберите адрес, с которого отправляются новые письма.",
+    default_sender_group_description:
+      "Выберите адрес, с которого отправляются новые письма.",
     default_sender_title: "Отправитель по умолчанию",
-    default_sender_description: "Новые письма отправляются с этого адреса. В ответах используется адрес, на который пришло письмо.",
+    default_sender_description:
+      "Новые письма отправляются с этого адреса. В ответах используется адрес, на который пришло письмо.",
     default_sender_no_addresses: "Других адресов нет",
     compose_defaults_title: "Форматирование по умолчанию",
     compose_defaults_description:
@@ -4296,9 +4303,11 @@ export const ru = {
     reply_defaults_title: "Ответы",
     reply_defaults_description: "Выберите, с чего начинается новый ответ.",
     reply_include_quoted: "Включать цитируемый текст",
-    reply_include_quoted_description: "Каждый ответ начинается с исходного письма, процитированного под вашим текстом.",
+    reply_include_quoted_description:
+      "Каждый ответ начинается с исходного письма, процитированного под вашим текстом.",
     reply_prefix_subject: "Добавлять Re: к теме",
-    reply_prefix_subject_description: "Ставит Re: перед исходной темой, когда вы отвечаете.",
+    reply_prefix_subject_description:
+      "Ставит Re: перед исходной темой, когда вы отвечаете.",
     build_info: "Информация о сборке",
     release: "Релиз",
     build: "Сборка",
@@ -4362,10 +4371,27 @@ export const ru = {
       "Премиум-функции остаются доступны до конца этого расчётного периода, после чего тариф переходит на Free. Почта, контакты и настройки остаются с вами.",
     cancel_plan: "Отменить тариф",
     billing_history: "История оплат",
+    billing_more_title: "Ещё",
+    billing_addons_subtitle: "Больше места, тот же тариф",
+    billing_support_subtitle: "Написать команде",
+    billing_credits_subtitle: "Баланс и пополнения",
+    billing_academic_subtitle: "Скидка по учебной почте",
+    billing_history_empty:
+      "Счетов пока нет. Платежи появятся здесь после первого списания.",
+    billing_invoice_count: "{{count}} счетов",
+    billing_invoice_count_one: "{{count}} счёт",
+    billing_invoice_count_other: "{{count}} счетов",
+    billing_addons_active_count: "{{count}} активно",
+    billing_addons_active_count_one: "{{count}} активен",
+    billing_addons_active_count_other: "{{count}} активно",
+    academic_status_none: "Не запрошена",
+    academic_status_pending: "Ожидает проверки",
+    academic_status_verified: "Подтверждена",
     billing_plan_heading: "Тариф",
     billing_hide_plans: "Скрыть тарифы",
     billing_cancel_notice_title: "Ваш тариф будет отменён",
-    billing_cancel_notice_body: "Ваш тариф действует до {{date}}. После этого аккаунт перейдёт на бесплатный тариф.",
+    billing_cancel_notice_body:
+      "Ваш тариф действует до {{date}}. После этого аккаунт перейдёт на бесплатный тариф.",
     billing_renewals_heading: "Продления",
     billing_amount: "Сумма",
     billing_desc_payment_failed: "Платёж не прошёл",
@@ -5178,10 +5204,13 @@ export const ru = {
     special_offer_feature_aliases: "Неограниченные псевдонимы",
     special_offer_feature_vanguard: "Усиленная защита с Vanguard",
     special_offer_feature_storage: "500 ГБ зашифрованного хранилища",
-    special_offer_why_body: "Aster является независимой компанией с небольшой командой, и ваша поддержка очень много для нас значит. Подписки поддерживают работу сервиса и позволяют нам каждый день бережно развивать Aster, а с этим предложением начать проще.",
+    special_offer_why_body:
+      "Aster является независимой компанией с небольшой командой, и ваша поддержка очень много для нас значит. Подписки поддерживают работу сервиса и позволяют нам каждый день бережно развивать Aster, а с этим предложением начать проще.",
     special_offer_why_label: "Почему это предложение?",
-    special_offer_feature_vanguard_body: "Блокировка приложения и расширенная защита конфиденциальности.",
-    special_offer_feature_domains_body: "Отправляйте письма с адресов на своих доменах.",
+    special_offer_feature_vanguard_body:
+      "Блокировка приложения и расширенная защита конфиденциальности.",
+    special_offer_feature_domains_body:
+      "Отправляйте письма с адресов на своих доменах.",
     special_offer_feature_domains: "До 30 собственных доменов",
     special_offer_feature_storage_body: "Места хватит на годы писем и файлов.",
     special_offer_feature_aliases_body: "Отдельный адрес для каждого сайта.",
@@ -5190,7 +5219,8 @@ export const ru = {
     special_offer_dismiss: "Больше не показывать это предложение",
     special_offer_dismissed_toast: "Мы больше это не покажем.",
     special_offer_success_title: "Спасибо. Теперь у вас Nova.",
-    special_offer_success_body: "Спасибо за подписку. Ваша поддержка очень много для нас значит.",
+    special_offer_success_body:
+      "Спасибо за подписку. Ваша поддержка очень много для нас значит.",
     special_offer_hero_duration: "на {{months}} месяцев",
     plan_billing_terms:
       "Подписки продлеваются автоматически по стандартной цене, пока вы их не отмените. Отменить можно в любой момент в Настройках.",
@@ -5222,55 +5252,75 @@ export const ru = {
     domain_without_www_note: "Введите домен без www или https://",
     catch_all_label: "Перехват всех",
     bimi_adj_added_title: "Добавлен заголовок.",
-    bimi_adj_converted_inline_styles: "Встроенные стили преобразованы в атрибуты.",
+    bimi_adj_converted_inline_styles:
+      "Встроенные стили преобразованы в атрибуты.",
     bimi_adj_derived_view_box: "Добавлен viewBox.",
     bimi_adj_removed_doctype: "Удалено объявление типа документа.",
     bimi_adj_removed_editor_data: "Удалены данные редактора.",
     bimi_adj_removed_metadata: "Удалены метаданные.",
     bimi_adj_removed_position: "Удалено смещение позиции.",
     bimi_adj_removed_size: "Удалены фиксированные ширина и высота.",
-    bimi_adj_removed_unsupported_attributes: "Удалены неподдерживаемые атрибуты.",
+    bimi_adj_removed_unsupported_attributes:
+      "Удалены неподдерживаемые атрибуты.",
     bimi_adj_set_tiny_ps_profile: "Для SVG задан профиль Tiny PS.",
-    bimi_adjustments_title: "Aster изменил ваш файл, чтобы он соответствовал требованиям:",
-    bimi_auto_checking: "Пока эта страница открыта, Aster автоматически проверяет запись.",
+    bimi_adjustments_title:
+      "Aster изменил ваш файл, чтобы он соответствовал требованиям:",
+    bimi_auto_checking:
+      "Пока эта страница открыта, Aster автоматически проверяет запись.",
     bimi_check_again: "Проверить снова",
     bimi_checking: "Проверка",
     bimi_choose_file: "Выбрать файл",
-    bimi_dmarc_invalid: "Не удается прочитать запись DMARC. Замените ее допустимой записью.",
+    bimi_dmarc_invalid:
+      "Не удается прочитать запись DMARC. Замените ее допустимой записью.",
     bimi_dmarc_missing: "Добавьте запись DMARC с p=quarantine или p=reject.",
-    bimi_dmarc_not_enforced: "Измените политику DMARC на p=quarantine или p=reject.",
-    bimi_dmarc_organization_not_enforced: "Политика DMARC родительского домена тоже должна иметь значение quarantine или reject.",
-    bimi_dmarc_partial: "Удалите тег pct из записи DMARC или задайте для него значение 100.",
+    bimi_dmarc_not_enforced:
+      "Измените политику DMARC на p=quarantine или p=reject.",
+    bimi_dmarc_organization_not_enforced:
+      "Политика DMARC родительского домена тоже должна иметь значение quarantine или reject.",
+    bimi_dmarc_partial:
+      "Удалите тег pct из записи DMARC или задайте для него значение 100.",
     bimi_dmarc_ready: "Ваша политика DMARC: quarantine или reject.",
-    bimi_dmarc_subdomain_policy_none: "Измените тег sp в записи DMARC на quarantine или reject.",
+    bimi_dmarc_subdomain_policy_none:
+      "Измените тег sp в записи DMARC на quarantine или reject.",
     bimi_drop_here: "Перетащите сюда логотип в формате SVG.",
-    bimi_err_doctype_entities: "В файле объявлены пользовательские сущности, что не допускается.",
+    bimi_err_doctype_entities:
+      "В файле объявлены пользовательские сущности, что не допускается.",
     bimi_err_empty: "Изображение пустое.",
-    bimi_err_external_reference: "Файл ссылается на внешний ресурс, что не допускается.",
+    bimi_err_external_reference:
+      "Файл ссылается на внешний ресурс, что не допускается.",
     bimi_err_invalid_reference: "Файл содержит неработающую внутреннюю ссылку.",
     bimi_err_invalid_value: "Файл содержит недопустимое значение атрибута.",
     bimi_err_malformed: "Файл не является допустимым SVG.",
-    bimi_err_missing_view_box: "У изображения нет viewBox. Экспортируйте его с viewBox.",
-    bimi_err_not_square: "Логотип не квадратный. Сделайте ширину и высоту одинаковыми.",
+    bimi_err_missing_view_box:
+      "У изображения нет viewBox. Экспортируйте его с viewBox.",
+    bimi_err_not_square:
+      "Логотип не квадратный. Сделайте ширину и высоту одинаковыми.",
     bimi_err_not_svg: "Файл не является изображением SVG.",
     bimi_err_not_utf8: "Файл не является текстовым файлом SVG.",
-    bimi_err_raster_image: "Файл содержит встроенное растровое изображение. Используйте только векторные фигуры.",
+    bimi_err_raster_image:
+      "Файл содержит встроенное растровое изображение. Используйте только векторные фигуры.",
     bimi_err_script_content: "Файл содержит скрипт, что не допускается.",
-    bimi_err_text_not_outlined: "Логотип содержит текст. Перед экспортом преобразуйте текст в кривые.",
-    bimi_err_too_complex: "Изображение слишком сложное. Упростите его и экспортируйте снова.",
+    bimi_err_text_not_outlined:
+      "Логотип содержит текст. Перед экспортом преобразуйте текст в кривые.",
+    bimi_err_too_complex:
+      "Изображение слишком сложное. Упростите его и экспортируйте снова.",
     bimi_err_too_large: "Файл слишком большой.",
     bimi_err_unsupported_element: "Файл содержит недопустимые элементы.",
-    bimi_err_unsupported_style: "В файле используются недопустимые стили или эффекты, например фильтры, маски или таблицы стилей.",
-    bimi_error_domain_not_active: "Завершите настройку этого домена, прежде чем публиковать логотип.",
+    bimi_err_unsupported_style:
+      "В файле используются недопустимые стили или эффекты, например фильтры, маски или таблицы стилей.",
+    bimi_error_domain_not_active:
+      "Завершите настройку этого домена, прежде чем публиковать логотип.",
     bimi_error_file_too_large: "Размер файла превышает 64 KB.",
     bimi_error_logo_required: "Загрузите логотип перед публикацией.",
     bimi_error_not_svg_file: "Выберите файл SVG.",
     bimi_error_throttled: "Подождите немного и повторите попытку.",
     bimi_errors_title: "Этот файл нельзя использовать как логотип бренда:",
     bimi_last_checked: "Последняя проверка: {time}",
-    bimi_logo_public_note: "Ваш логотип общедоступен. Его увидит любой, кто получит от вас письмо.",
+    bimi_logo_public_note:
+      "Ваш логотип общедоступен. Его увидит любой, кто получит от вас письмо.",
     bimi_logo_ready: "Ваш логотип соответствует требованиям.",
-    bimi_managed_note: "Ваш домен куплен через Aster, поэтому запись DNS добавляется автоматически.",
+    bimi_managed_note:
+      "Ваш домен куплен через Aster, поэтому запись DNS добавляется автоматически.",
     bimi_preview_alt: "Предпросмотр логотипа бренда",
     bimi_preview_dark: "Тёмная",
     bimi_preview_inbox_subject: "Наши последние новости",
@@ -5278,31 +5328,42 @@ export const ru = {
     bimi_preview_light: "Светлая",
     bimi_publish: "Опубликовать логотип",
     bimi_publishing: "Публикация",
-    bimi_record_conflict: "Для этого домена существует другая запись BIMI. Удалите ее, чтобы осталась только эта запись.",
-    bimi_record_external: "Существующая запись BIMI указывает на другой хост. Замените ее этой записью, чтобы использовать размещение в Aster.",
+    bimi_record_conflict:
+      "Для этого домена существует другая запись BIMI. Удалите ее, чтобы осталась только эта запись.",
+    bimi_record_external:
+      "Существующая запись BIMI указывает на другой хост. Замените ее этой записью, чтобы использовать размещение в Aster.",
     bimi_record_host: "Хост",
-    bimi_record_missing: "Запись пока не видна. Применение изменений DNS может занять до 48 часов.",
-    bimi_record_removed: "Aster больше не находит эту запись. Добавьте её снова у своего DNS-провайдера.",
+    bimi_record_missing:
+      "Запись пока не видна. Применение изменений DNS может занять до 48 часов.",
+    bimi_record_removed:
+      "Aster больше не находит эту запись. Добавьте её снова у своего DNS-провайдера.",
     bimi_record_published: "Запись опубликована.",
     bimi_record_title: "Добавьте эту запись у своего DNS-провайдера",
     bimi_record_type: "Тип",
     bimi_copy_field: "Копировать {field}",
     bimi_record_value: "Значение",
     bimi_replace_logo: "Заменить логотип",
-    bimi_req_auth_fail: "Сначала подтвердите записи SPF и DKIM для этого домена.",
+    bimi_req_auth_fail:
+      "Сначала подтвердите записи SPF и DKIM для этого домена.",
     bimi_req_auth_ok: "SPF и DKIM проверены.",
     bimi_req_auth_title: "Аутентификация почты",
     bimi_req_dmarc_title: "Применение DMARC",
     bimi_req_not_checked: "Еще не проверено.",
     bimi_requirements_title: "Требования",
-    bimi_row_attention: "Логотип опубликован, но одно из требований больше не выполняется.",
-    bimi_row_draft: "Логотип готов. Опубликуйте его, чтобы начать использовать.",
-    bimi_row_external: "У этого домена есть запись BIMI, которая указывает на другой хост.",
-    bimi_row_inactive: "Завершите настройку этого домена, чтобы добавить логотип бренда.",
+    bimi_row_attention:
+      "Логотип опубликован, но одно из требований больше не выполняется.",
+    bimi_row_draft:
+      "Логотип готов. Опубликуйте его, чтобы начать использовать.",
+    bimi_row_external:
+      "У этого домена есть запись BIMI, которая указывает на другой хост.",
+    bimi_row_inactive:
+      "Завершите настройку этого домена, чтобы добавить логотип бренда.",
     bimi_row_live: "Логотип опубликован.",
-    bimi_row_off: "Показывайте свой логотип рядом с письмами в почтовых ящиках, которые поддерживают логотипы брендов.",
+    bimi_row_off:
+      "Показывайте свой логотип рядом с письмами в почтовых ящиках, которые поддерживают логотипы брендов.",
     bimi_row_pending: "Добавьте запись DNS, а затем проверьте снова.",
-    bimi_row_pending_managed: "Ваша запись DNS публикуется. Это может занять несколько минут.",
+    bimi_row_pending_managed:
+      "Ваша запись DNS публикуется. Это может занять несколько минут.",
     bimi_rule_safe: "Без скриптов и внешних ссылок",
     bimi_rule_size: "Не более 32 КБ после оптимизации в Aster",
     bimi_rule_square: "Квадрат с одинаковой шириной и высотой",
@@ -5320,13 +5381,16 @@ export const ru = {
     bimi_step_publish: "Публикация",
     bimi_title: "Логотип бренда",
     bimi_turn_off: "Выключить",
-    bimi_turn_off_body: "Размещение логотипа сразу прекратится, и вместо него в почтовых ящиках будет показываться значок по умолчанию.",
+    bimi_turn_off_body:
+      "Размещение логотипа сразу прекратится, и вместо него в почтовых ящиках будет показываться значок по умолчанию.",
     bimi_turn_off_confirm: "Выключить",
     bimi_turn_off_description: "Логотип перестанет отображаться во входящих.",
-    bimi_turn_off_remove_record: "Удалите запись TXT default._bimi у своего DNS-провайдера.",
+    bimi_turn_off_remove_record:
+      "Удалите запись TXT default._bimi у своего DNS-провайдера.",
     bimi_turn_off_title: "Выключить логотип бренда?",
     bimi_uploading: "Загрузка",
-    bimi_verified_mark_note: "Некоторые почтовые сервисы показывают логотипы брендов только для доменов с сертификатом проверенного знака (VMC).",
+    bimi_verified_mark_note:
+      "Некоторые почтовые сервисы показывают логотипы брендов только для доменов с сертификатом проверенного знака (VMC).",
     catch_all_description:
       "Получать письма, отправленные на любой адрес этого домена",
     set_host_root:
@@ -7124,30 +7188,38 @@ export const ru = {
     bridge_other_formats: "Другие форматы",
     bridge_arch_x64: "x86-64",
     bridge_arch_arm64: "ARM64",
-    bridge_format_msi_desc: "Для управляемых установок через групповые политики",
+    bridge_format_msi_desc:
+      "Для управляемых установок через групповые политики",
     bridge_format_appimage_desc: "Работает в большинстве дистрибутивов",
     bridge_format_deb_desc: "Debian, Ubuntu и производные",
     bridge_format_rpm_desc: "Fedora, RHEL и openSUSE",
     bridge_format_pacman_desc: "Arch Linux и производные",
     bridge_download_started: "Загрузка началась",
     bridge_download_failed: "Загрузка не началась. Попробуйте ещё раз.",
-    bridge_support_help_desc: "Руководства по настройке и ответы на частые вопросы",
-    bridge_support_discord_desc: "Спросите команду и других пользователей Aster",
-    bridge_support_reddit_desc: "Следите за анонсами и участвуйте в обсуждениях",
+    bridge_support_help_desc:
+      "Руководства по настройке и ответы на частые вопросы",
+    bridge_support_discord_desc:
+      "Спросите команду и других пользователей Aster",
+    bridge_support_reddit_desc:
+      "Следите за анонсами и участвуйте в обсуждениях",
     bridge_support_github_desc: "Изучите исходный код и сообщите о проблеме",
     bridge_all_platforms: "Все платформы",
-    bridge_upgrade_benefit_clients: "Работает с Apple Mail, Thunderbird и Outlook",
-    bridge_upgrade_benefit_local: "Работает локально, поэтому почта остаётся зашифрованной",
+    bridge_upgrade_benefit_clients:
+      "Работает с Apple Mail, Thunderbird и Outlook",
+    bridge_upgrade_benefit_local:
+      "Работает локально, поэтому почта остаётся зашифрованной",
     bridge_upgrade_benefit_platforms: "Доступно для Windows, macOS и Linux",
-    bridge_upgrade_benefit_cli: "Включает версию для командной строки на серверах",
+    bridge_upgrade_benefit_cli:
+      "Включает версию для командной строки на серверах",
     bridge_cli_download: "Скачать",
-    bridge_cli_install_hint: "Скачайте архив для своей платформы, распакуйте его и переместите исполняемый файл в PATH.",
-    bridge_cli_install_hint_windows: "Скачайте архив, распакуйте его и добавьте папку в PATH.",
+    bridge_cli_install_hint:
+      "Скачайте архив для своей платформы, распакуйте его и переместите исполняемый файл в PATH.",
+    bridge_cli_install_hint_windows:
+      "Скачайте архив, распакуйте его и добавьте папку в PATH.",
     bridge_cli_copy_command: "Скопировать команды установки",
     bridge_cli_docs_link: "Руководство по командной строке",
     bridge_cli_name: "Командная строка",
-    bridge_cli_desc:
-      "Запускает те же серверы без окна, на сервере или по SSH.",
+    bridge_cli_desc: "Запускает те же серверы без окна, на сервере или по SSH.",
     bridge_cli_windows_link: "Windows",
     bridge_cli_macos_link: "macOS",
     bridge_cli_linux_link: "Linux (x86-64)",
@@ -9483,7 +9555,8 @@ export const ru = {
       "Создание новой резервной копии для восстановления...",
     saving_new_credentials: "Сохранение новых учётных данных...",
     recover_your_account: "Восстановить ваш аккаунт",
-    enter_email_associated: "Введите адрес аккаунта, который нужно восстановить.",
+    enter_email_associated:
+      "Введите адрес аккаунта, который нужно восстановить.",
     back_to_sign_in: "Вернуться ко входу",
     email_me_reset_link: "Отправить ссылку для сброса на почту",
     have_recovery_code: "Есть код восстановления?",
@@ -9502,7 +9575,8 @@ export const ru = {
     set_new_password: "Установить новый пароль",
     resetting_password: "Сброс пароля...",
     enter_recovery_code: "Введите код восстановления",
-    enter_recovery_code_desc: "Введите один из кодов восстановления, сохранённых при создании аккаунта.",
+    enter_recovery_code_desc:
+      "Введите один из кодов восстановления, сохранённых при создании аккаунта.",
     create_new_password: "Создать новый пароль",
     choose_strong_password: "Выберите надёжный пароль для вашего аккаунта",
     recovering_your_account: "Восстановление вашего аккаунта",
@@ -9518,11 +9592,13 @@ export const ru = {
     recovery_email_label: "Адрес Aster Mail",
     recovery_domain_hint: "Выберите домен вашего аккаунта.",
     recovery_code_label: "Код восстановления",
-    recovery_code_hint: "Каждый код работает один раз. Коды выглядят так: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    recovery_code_hint:
+      "Каждый код работает один раз. Коды выглядят так: ASTER-XXXX-XXXX-XXXX-XXXX.",
     change_account: "Указать другой адрес",
     change_account_desc: "Восстановите другой аккаунт Aster Mail.",
     support_step_title: "Связаться с поддержкой",
-    support_step_desc: "Aster Mail не может прочитать ваши зашифрованные данные, поэтому никто не откроет их без кода восстановления или резервного адреса. Поддержка проверит аккаунт и подскажет, что делать дальше.",
+    support_step_desc:
+      "Aster Mail не может прочитать ваши зашифрованные данные, поэтому никто не откроет их без кода восстановления или резервного адреса. Поддержка проверит аккаунт и подскажет, что делать дальше.",
     support_email_action: "Написать в поддержку",
     support_help_center: "Открыть центр помощи",
     other_ways_title: "Другой способ",
@@ -9533,7 +9609,8 @@ export const ru = {
     other_way_email_desc:
       "Aster Mail отправляет ссылку на ваш резервный адрес. Вы теряете доступ к письмам, полученным до сброса.",
     other_way_none_title: "У меня нет ничего из этого",
-    other_way_none_desc: "Свяжитесь с поддержкой, и мы подскажем, что делать дальше.",
+    other_way_none_desc:
+      "Свяжитесь с поддержкой, и мы подскажем, что делать дальше.",
     reset_account_title: "Сбросить аккаунт?",
     reset_account_desc:
       "Зашифрованные письма, контакты и файлы, созданные до сброса, останутся заблокированными, пока вы не восстановите их старым паролем. Вы получите новый пустой ключ шифрования.",

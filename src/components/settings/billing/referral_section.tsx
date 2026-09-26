@@ -22,7 +22,7 @@ import {
   UserGroupIcon,
   ClipboardDocumentIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Island, IslandSection } from "@aster/ui";
+import { Button, Input, Island, IslandSection } from "@aster/ui";
 
 import {
   format_price,
@@ -68,10 +68,11 @@ export function ReferralSection({
               {t("settings.your_referral_link")}
             </p>
             <div className="flex flex-col gap-2 sm:flex-row">
-              <input
+              <Input
                 readOnly
                 aria-label={t("settings.your_referral_link")}
-                className="min-w-0 flex-1 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary outline-none"
+                className="min-w-0 flex-1"
+                size="md"
                 value={build_referral_invite_url(referral_info.referral_code)}
               />
               <Button

@@ -1298,15 +1298,19 @@ export const pl = {
     subject_too_long:
       "Temat przekracza limit 998 znaków. Krótsza wersja zostanie wysłana.",
     notification_banner_no_thanks: "Nie, dziękuję",
-    locked_data_banner_message: "Część Twoich starszych zaszyfrowanych danych jest zablokowana.",
+    locked_data_banner_message:
+      "Część Twoich starszych zaszyfrowanych danych jest zablokowana.",
     locked_data_banner_action: "Odzyskaj dane",
     locked_data_banner_dismiss: "Zamknij",
     recover_data_title: "Odzyskaj dane",
-    recover_data_description: "Aby odblokować dane sprzed zmiany lub zresetowania hasła, wpisz hasło używane w tamtym czasie.",
+    recover_data_description:
+      "Aby odblokować dane sprzed zmiany lub zresetowania hasła, wpisz hasło używane w tamtym czasie.",
     recover_data_button: "Odzyskaj",
     recover_data_success: "Twoje starsze dane zostały odblokowane.",
-    recover_data_no_match: "To hasło nie odblokowało żadnych danych. Spróbuj innego wcześniejszego hasła.",
-    recover_data_failed: "Nie udało się odblokować części danych. Sprawdź połączenie i spróbuj ponownie.",
+    recover_data_no_match:
+      "To hasło nie odblokowało żadnych danych. Spróbuj innego wcześniejszego hasła.",
+    recover_data_failed:
+      "Nie udało się odblokować części danych. Sprawdź połączenie i spróbuj ponownie.",
     payment_past_due_message:
       "Ostatnia płatność nie powiodła się. Zaktualizuj metodę płatności, aby zachować swój plan.",
     payment_past_due_message_days:
@@ -4074,7 +4078,8 @@ export const pl = {
     password_change_background_reencrypt_failed:
       "Twoje hasło zostało zmienione, ale część wysłanych wiadomości i ustawień nie została ponownie zaszyfrowana. Skontaktuj się z pomocą techniczną, jeśli coś wygląda na nieczytelne.",
     previous_password: "Poprzednie hasło",
-    password_change_sent_mail_locked: "Hasło zostało zmienione. Wysłane e-maile ({{count}}) były zaszyfrowane wcześniejszym hasłem i nie zostały zaktualizowane. Aby je odblokować, wybierz Odzyskaj dane na banerze u góry skrzynki odbiorczej.",
+    password_change_sent_mail_locked:
+      "Hasło zostało zmienione. Wysłane e-maile ({{count}}) były zaszyfrowane wcześniejszym hasłem i nie zostały zaktualizowane. Aby je odblokować, wybierz Odzyskaj dane na banerze u góry skrzynki odbiorczej.",
     password_changed_signing_out: "Hasło zmienione pomyślnie. Wylogowywanie...",
     password_changed_success: "Zmieniono hasło",
     session_security: "Bezpieczeństwo sesji",
@@ -4298,9 +4303,11 @@ export const pl = {
     compose_mode_fullscreen: "Zawsze pełny ekran",
     compose_mode_minimized: "Zacznij zminimalizowany",
     default_sender_group: "Wysyłanie",
-    default_sender_group_description: "Wybierz, z którego adresu wychodzą nowe wiadomości.",
+    default_sender_group_description:
+      "Wybierz, z którego adresu wychodzą nowe wiadomości.",
     default_sender_title: "Domyślny nadawca",
-    default_sender_description: "Nowe wiadomości wychodzą z tego adresu. Odpowiedzi używają adresu, na który wiadomość przyszła.",
+    default_sender_description:
+      "Nowe wiadomości wychodzą z tego adresu. Odpowiedzi używają adresu, na który wiadomość przyszła.",
     default_sender_no_addresses: "Brak innych adresów",
     compose_defaults_title: "Domyślne formatowanie",
     compose_defaults_description:
@@ -4317,9 +4324,11 @@ export const pl = {
     reply_defaults_title: "Odpowiedzi",
     reply_defaults_description: "Wybierz, od czego zaczyna się nowa odpowiedź.",
     reply_include_quoted: "Dołącz cytowany tekst",
-    reply_include_quoted_description: "Każda odpowiedź zaczyna się od oryginalnej wiadomości cytowanej pod Twoim tekstem.",
+    reply_include_quoted_description:
+      "Każda odpowiedź zaczyna się od oryginalnej wiadomości cytowanej pod Twoim tekstem.",
     reply_prefix_subject: "Dodaj Odp: do tematu",
-    reply_prefix_subject_description: "Umieszcza Odp: przed oryginalnym tematem, gdy odpowiadasz.",
+    reply_prefix_subject_description:
+      "Umieszcza Odp: przed oryginalnym tematem, gdy odpowiadasz.",
     build_info: "Informacje o kompilacji",
     release: "Wydanie",
     build: "Kompilacja",
@@ -4383,10 +4392,27 @@ export const pl = {
       "Funkcje premium pozostają do końca tego okresu rozliczeniowego, po czym plan przechodzi na Bezpłatny. Poczta, kontakty i ustawienia pozostają na koncie.",
     cancel_plan: "Anuluj plan",
     billing_history: "Historia rozliczeń",
+    billing_more_title: "Więcej",
+    billing_addons_subtitle: "Więcej miejsca, ten sam plan",
+    billing_support_subtitle: "Wyślij wiadomość do zespołu",
+    billing_credits_subtitle: "Saldo i doładowania",
+    billing_academic_subtitle: "Oszczędzaj z e-mailem uczelnianym",
+    billing_history_empty:
+      "Brak faktur. Twoje płatności pojawią się tutaj po pierwszym obciążeniu.",
+    billing_invoice_count: "{{count}} faktur",
+    billing_invoice_count_one: "{{count}} faktura",
+    billing_invoice_count_other: "{{count}} faktur",
+    billing_addons_active_count: "{{count}} aktywnych",
+    billing_addons_active_count_one: "{{count}} aktywny",
+    billing_addons_active_count_other: "{{count}} aktywnych",
+    academic_status_none: "Nie złożono",
+    academic_status_pending: "Oczekuje na weryfikację",
+    academic_status_verified: "Zweryfikowano",
     billing_plan_heading: "Plan",
     billing_hide_plans: "Ukryj plany",
     billing_cancel_notice_title: "Twój plan zostanie anulowany",
-    billing_cancel_notice_body: "Twój plan kończy się {{date}}. Następnie Twoje konto przejdzie na plan darmowy.",
+    billing_cancel_notice_body:
+      "Twój plan kończy się {{date}}. Następnie Twoje konto przejdzie na plan darmowy.",
     billing_renewals_heading: "Odnowienia",
     billing_amount: "Kwota",
     billing_desc_payment_failed: "Płatność nie powiodła się",
@@ -5199,19 +5225,24 @@ export const pl = {
     special_offer_feature_aliases: "Nieograniczone aliasy",
     special_offer_feature_vanguard: "Lepsza ochrona z Vanguard",
     special_offer_feature_storage: "500 GB zaszyfrowanej przestrzeni",
-    special_offer_why_body: "Aster to niezależna firma z małym zespołem, a Twoje wsparcie wiele dla nas znaczy. Subskrypcje utrzymują działanie usługi i pozwalają nam każdego dnia starannie rozwijać Aster. Dzięki tej ofercie łatwiej zacząć.",
+    special_offer_why_body:
+      "Aster to niezależna firma z małym zespołem, a Twoje wsparcie wiele dla nas znaczy. Subskrypcje utrzymują działanie usługi i pozwalają nam każdego dnia starannie rozwijać Aster. Dzięki tej ofercie łatwiej zacząć.",
     special_offer_why_label: "Dlaczego ta oferta?",
-    special_offer_feature_vanguard_body: "Blokada aplikacji i zaawansowana ochrona prywatności.",
-    special_offer_feature_domains_body: "Wysyłaj z adresów we własnych domenach.",
+    special_offer_feature_vanguard_body:
+      "Blokada aplikacji i zaawansowana ochrona prywatności.",
+    special_offer_feature_domains_body:
+      "Wysyłaj z adresów we własnych domenach.",
     special_offer_feature_domains: "Do 30 własnych domen",
-    special_offer_feature_storage_body: "Miejsce na pocztę i pliki z wielu lat.",
+    special_offer_feature_storage_body:
+      "Miejsce na pocztę i pliki z wielu lat.",
     special_offer_feature_aliases_body: "Każda witryna dostaje własny adres.",
     special_offer_fine_print:
       "Przez pierwsze {{months}} miesięcy płacisz {{offer_price}} miesięcznie. Potem plan odnawia się za {{price}} miesięcznie, dopóki nie anulujesz go w Ustawieniach.",
     special_offer_dismiss: "Nie pokazuj więcej tej oferty",
     special_offer_dismissed_toast: "Nie pokażemy tego ponownie.",
     special_offer_success_title: "Dziękujemy. Masz teraz Nova.",
-    special_offer_success_body: "Dziękujemy za subskrypcję. Twoje wsparcie wiele dla nas znaczy.",
+    special_offer_success_body:
+      "Dziękujemy za subskrypcję. Twoje wsparcie wiele dla nas znaczy.",
     special_offer_hero_duration: "przez {{months}} miesięcy",
     plan_billing_terms:
       "Subskrypcje odnawiają się automatycznie w cenie standardowej, dopóki ich nie anulujesz. Możesz anulować w dowolnym momencie w Ustawieniach.",
@@ -5244,55 +5275,73 @@ export const pl = {
     domain_without_www_note: "Wprowadź domenę bez www lub https://",
     catch_all_label: "Adres zbiorczy",
     bimi_adj_added_title: "Dodano tytuł.",
-    bimi_adj_converted_inline_styles: "Przekształcono style wbudowane w atrybuty.",
+    bimi_adj_converted_inline_styles:
+      "Przekształcono style wbudowane w atrybuty.",
     bimi_adj_derived_view_box: "Dodano viewBox.",
     bimi_adj_removed_doctype: "Usunięto deklarację typu dokumentu.",
     bimi_adj_removed_editor_data: "Usunięto dane edytora.",
     bimi_adj_removed_metadata: "Usunięto metadane.",
     bimi_adj_removed_position: "Usunięto przesunięcie pozycji.",
     bimi_adj_removed_size: "Usunięto stałą szerokość i wysokość.",
-    bimi_adj_removed_unsupported_attributes: "Usunięto nieobsługiwane atrybuty.",
+    bimi_adj_removed_unsupported_attributes:
+      "Usunięto nieobsługiwane atrybuty.",
     bimi_adj_set_tiny_ps_profile: "Ustawiono profil SVG na Tiny PS.",
     bimi_adjustments_title: "Aster dostosował plik do wymagań:",
-    bimi_auto_checking: "Aster automatycznie sprawdza rekord, dopóki ta strona jest otwarta.",
+    bimi_auto_checking:
+      "Aster automatycznie sprawdza rekord, dopóki ta strona jest otwarta.",
     bimi_check_again: "Sprawdź ponownie",
     bimi_checking: "Sprawdzanie",
     bimi_choose_file: "Wybierz plik",
-    bimi_dmarc_invalid: "Nie można odczytać rekordu DMARC. Zastąp go prawidłowym rekordem.",
+    bimi_dmarc_invalid:
+      "Nie można odczytać rekordu DMARC. Zastąp go prawidłowym rekordem.",
     bimi_dmarc_missing: "Dodaj rekord DMARC z p=quarantine lub p=reject.",
     bimi_dmarc_not_enforced: "Zmień zasadę DMARC na p=quarantine lub p=reject.",
-    bimi_dmarc_organization_not_enforced: "Zasada DMARC domeny nadrzędnej również musi mieć wartość quarantine lub reject.",
+    bimi_dmarc_organization_not_enforced:
+      "Zasada DMARC domeny nadrzędnej również musi mieć wartość quarantine lub reject.",
     bimi_dmarc_partial: "Usuń tag pct z rekordu DMARC lub ustaw go na 100.",
     bimi_dmarc_ready: "Twoja zasada DMARC to quarantine lub reject.",
-    bimi_dmarc_subdomain_policy_none: "Zmień tag sp w rekordzie DMARC na quarantine lub reject.",
+    bimi_dmarc_subdomain_policy_none:
+      "Zmień tag sp w rekordzie DMARC na quarantine lub reject.",
     bimi_drop_here: "Przeciągnij tutaj logo w formacie SVG.",
-    bimi_err_doctype_entities: "Plik deklaruje niestandardowe encje, które są niedozwolone.",
+    bimi_err_doctype_entities:
+      "Plik deklaruje niestandardowe encje, które są niedozwolone.",
     bimi_err_empty: "Obraz jest pusty.",
-    bimi_err_external_reference: "Plik odwołuje się do zasobu zewnętrznego, co jest niedozwolone.",
-    bimi_err_invalid_reference: "Plik zawiera nieprawidłowe odwołanie wewnętrzne.",
+    bimi_err_external_reference:
+      "Plik odwołuje się do zasobu zewnętrznego, co jest niedozwolone.",
+    bimi_err_invalid_reference:
+      "Plik zawiera nieprawidłowe odwołanie wewnętrzne.",
     bimi_err_invalid_value: "Plik zawiera niedozwoloną wartość atrybutu.",
     bimi_err_malformed: "Plik nie jest prawidłowym plikiem SVG.",
-    bimi_err_missing_view_box: "Obraz nie ma atrybutu viewBox. Wyeksportuj go z atrybutem viewBox.",
-    bimi_err_not_square: "Logo nie jest kwadratowe. Ustaw równą szerokość i wysokość.",
+    bimi_err_missing_view_box:
+      "Obraz nie ma atrybutu viewBox. Wyeksportuj go z atrybutem viewBox.",
+    bimi_err_not_square:
+      "Logo nie jest kwadratowe. Ustaw równą szerokość i wysokość.",
     bimi_err_not_svg: "Plik nie jest obrazem SVG.",
     bimi_err_not_utf8: "Plik nie jest tekstowym plikiem SVG.",
-    bimi_err_raster_image: "Plik zawiera osadzony obraz bitmapowy. Używaj tylko kształtów wektorowych.",
+    bimi_err_raster_image:
+      "Plik zawiera osadzony obraz bitmapowy. Używaj tylko kształtów wektorowych.",
     bimi_err_script_content: "Plik zawiera skrypt, który jest niedozwolony.",
-    bimi_err_text_not_outlined: "Logo zawiera tekst. Przed eksportem przekształć tekst w krzywe.",
-    bimi_err_too_complex: "Obraz jest zbyt złożony. Uprość go i wyeksportuj ponownie.",
+    bimi_err_text_not_outlined:
+      "Logo zawiera tekst. Przed eksportem przekształć tekst w krzywe.",
+    bimi_err_too_complex:
+      "Obraz jest zbyt złożony. Uprość go i wyeksportuj ponownie.",
     bimi_err_too_large: "Plik jest za duży.",
     bimi_err_unsupported_element: "Plik zawiera niedozwolone elementy.",
-    bimi_err_unsupported_style: "Plik używa niedozwolonych stylów lub efektów, takich jak filtry, maski lub arkusze stylów.",
-    bimi_error_domain_not_active: "Dokończ konfigurację tej domeny, zanim opublikujesz logo.",
+    bimi_err_unsupported_style:
+      "Plik używa niedozwolonych stylów lub efektów, takich jak filtry, maski lub arkusze stylów.",
+    bimi_error_domain_not_active:
+      "Dokończ konfigurację tej domeny, zanim opublikujesz logo.",
     bimi_error_file_too_large: "Plik jest większy niż 64 KB.",
     bimi_error_logo_required: "Prześlij logo przed opublikowaniem.",
     bimi_error_not_svg_file: "Wybierz plik SVG.",
     bimi_error_throttled: "Poczekaj chwilę i spróbuj ponownie.",
     bimi_errors_title: "Tego pliku nie można użyć jako logo marki:",
     bimi_last_checked: "Ostatnio sprawdzono: {time}",
-    bimi_logo_public_note: "Twoje logo jest publiczne. Każdy, kto otrzyma od Ciebie wiadomość, może je zobaczyć.",
+    bimi_logo_public_note:
+      "Twoje logo jest publiczne. Każdy, kto otrzyma od Ciebie wiadomość, może je zobaczyć.",
     bimi_logo_ready: "Twoje logo spełnia wymagania.",
-    bimi_managed_note: "Twoja domena została kupiona w Aster, więc rekord DNS zostanie dodany automatycznie.",
+    bimi_managed_note:
+      "Twoja domena została kupiona w Aster, więc rekord DNS zostanie dodany automatycznie.",
     bimi_preview_alt: "Podgląd logo marki",
     bimi_preview_dark: "Ciemny",
     bimi_preview_inbox_subject: "Najnowsze informacje",
@@ -5300,31 +5349,40 @@ export const pl = {
     bimi_preview_light: "Jasny",
     bimi_publish: "Opublikuj logo",
     bimi_publishing: "Publikowanie",
-    bimi_record_conflict: "Dla tej domeny istnieje inny rekord BIMI. Usuń go, aby pozostał tylko ten rekord.",
-    bimi_record_external: "Istniejący rekord BIMI wskazuje na inny host. Zastąp go tym rekordem, aby korzystać z hostingu Aster.",
+    bimi_record_conflict:
+      "Dla tej domeny istnieje inny rekord BIMI. Usuń go, aby pozostał tylko ten rekord.",
+    bimi_record_external:
+      "Istniejący rekord BIMI wskazuje na inny host. Zastąp go tym rekordem, aby korzystać z hostingu Aster.",
     bimi_record_host: "Host",
-    bimi_record_missing: "Rekord nie jest jeszcze widoczny. Zmiany DNS mogą potrwać do 48 godzin.",
-    bimi_record_removed: "Aster nie może już znaleźć tego rekordu. Dodaj go ponownie u swojego dostawcy DNS.",
+    bimi_record_missing:
+      "Rekord nie jest jeszcze widoczny. Zmiany DNS mogą potrwać do 48 godzin.",
+    bimi_record_removed:
+      "Aster nie może już znaleźć tego rekordu. Dodaj go ponownie u swojego dostawcy DNS.",
     bimi_record_published: "Rekord został opublikowany.",
     bimi_record_title: "Dodaj ten rekord u swojego dostawcy DNS",
     bimi_record_type: "Typ",
     bimi_copy_field: "Kopiuj {field}",
     bimi_record_value: "Wartość",
     bimi_replace_logo: "Zastąp logo",
-    bimi_req_auth_fail: "Najpierw zweryfikuj rekordy SPF i DKIM dla tej domeny.",
+    bimi_req_auth_fail:
+      "Najpierw zweryfikuj rekordy SPF i DKIM dla tej domeny.",
     bimi_req_auth_ok: "SPF i DKIM są zweryfikowane.",
     bimi_req_auth_title: "Uwierzytelnianie poczty",
     bimi_req_dmarc_title: "Egzekwowanie DMARC",
     bimi_req_not_checked: "Jeszcze nie sprawdzono.",
     bimi_requirements_title: "Wymagania",
-    bimi_row_attention: "Twoje logo zostało opublikowane, ale jedno z wymagań nie jest już spełnione.",
-    bimi_row_draft: "Twoje logo jest gotowe. Opublikuj je, aby zacząć go używać.",
+    bimi_row_attention:
+      "Twoje logo zostało opublikowane, ale jedno z wymagań nie jest już spełnione.",
+    bimi_row_draft:
+      "Twoje logo jest gotowe. Opublikuj je, aby zacząć go używać.",
     bimi_row_external: "Ta domena ma rekord BIMI, który wskazuje na inny host.",
     bimi_row_inactive: "Dokończ konfigurację tej domeny, aby dodać logo marki.",
     bimi_row_live: "Twoje logo zostało opublikowane.",
-    bimi_row_off: "Wyświetlaj swoje logo obok wiadomości w skrzynkach, które obsługują logo marek.",
+    bimi_row_off:
+      "Wyświetlaj swoje logo obok wiadomości w skrzynkach, które obsługują logo marek.",
     bimi_row_pending: "Dodaj rekord DNS, a następnie sprawdź ponownie.",
-    bimi_row_pending_managed: "Twój rekord DNS jest publikowany. Może to potrwać kilka minut.",
+    bimi_row_pending_managed:
+      "Twój rekord DNS jest publikowany. Może to potrwać kilka minut.",
     bimi_rule_safe: "Bez skryptów i linków zewnętrznych",
     bimi_rule_size: "Maksymalnie 32 KB po optymalizacji przez Aster",
     bimi_rule_square: "Kwadrat o równej szerokości i wysokości",
@@ -5342,13 +5400,17 @@ export const pl = {
     bimi_step_publish: "Publikacja",
     bimi_title: "Logo marki",
     bimi_turn_off: "Wyłącz",
-    bimi_turn_off_body: "Twoje logo od razu przestanie być hostowane, a skrzynki odbiorcze będą wyświetlać zamiast niego domyślną ikonę.",
+    bimi_turn_off_body:
+      "Twoje logo od razu przestanie być hostowane, a skrzynki odbiorcze będą wyświetlać zamiast niego domyślną ikonę.",
     bimi_turn_off_confirm: "Wyłącz",
-    bimi_turn_off_description: "Twoje logo przestanie być wyświetlane w skrzynkach odbiorczych.",
-    bimi_turn_off_remove_record: "Usuń rekord TXT default._bimi u swojego dostawcy DNS.",
+    bimi_turn_off_description:
+      "Twoje logo przestanie być wyświetlane w skrzynkach odbiorczych.",
+    bimi_turn_off_remove_record:
+      "Usuń rekord TXT default._bimi u swojego dostawcy DNS.",
     bimi_turn_off_title: "Wyłączyć logo marki?",
     bimi_uploading: "Przesyłanie",
-    bimi_verified_mark_note: "Niektóre skrzynki wyświetlają logo marek tylko dla domen z certyfikatem zweryfikowanego znaku (VMC).",
+    bimi_verified_mark_note:
+      "Niektóre skrzynki wyświetlają logo marek tylko dla domen z certyfikatem zweryfikowanego znaku (VMC).",
     catch_all_description:
       "Odbieraj e-maile wysyłane na dowolny adres w tej domenie",
     set_host_root:
@@ -5851,10 +5913,12 @@ export const pl = {
       "Masz już ten plan. Kody promocyjne działają, gdy przechodzisz na inny plan.",
     promo_error_not_upgrade:
       "Kody promocyjne działają, gdy przechodzisz na wyższy plan.",
-    promo_error_card_only: "Ten kod promocyjny działa tylko przy płatności kartą.",
+    promo_error_card_only:
+      "Ten kod promocyjny działa tylko przy płatności kartą.",
     promo_error_with_credits:
       "Nie możesz użyć kodu promocyjnego i środków na koncie w tej samej płatności.",
-    promo_error_not_for_addon: "Kodów promocyjnych nie można używać do dodatków.",
+    promo_error_not_for_addon:
+      "Kodów promocyjnych nie można używać do dodatków.",
     promo_error_generic:
       "Nie udało się sprawdzić kodu promocyjnego. Spróbuj ponownie za chwilę.",
     plan_change_discount_amount: "{{amount}} zniżki",
@@ -6796,7 +6860,8 @@ export const pl = {
     opened_in_browser:
       "{{ count }} zarchiwizowane - może być wymagane ręczne potwierdzenie",
     could_not_unsubscribe: "{{ count }} nie udało się zrezygnować",
-    some_messages_not_archived: "Niektóre wiadomości nie zostały zarchiwizowane",
+    some_messages_not_archived:
+      "Niektóre wiadomości nie zostały zarchiwizowane",
     unsubscribing: "Rezygnowanie...",
     scanning: "Skanowanie...",
     all_clear: "Wszystko czyste",
@@ -6842,18 +6907,24 @@ export const pl = {
     bridge_format_pacman_desc: "Arch Linux i pochodne",
     bridge_download_started: "Pobieranie rozpoczęte",
     bridge_download_failed: "Pobieranie nie rozpoczęło się. Spróbuj ponownie.",
-    bridge_support_help_desc: "Przewodniki konfiguracji i odpowiedzi na częste pytania",
+    bridge_support_help_desc:
+      "Przewodniki konfiguracji i odpowiedzi na częste pytania",
     bridge_support_discord_desc: "Zapytaj zespół i innych użytkowników Aster",
     bridge_support_reddit_desc: "Śledź ogłoszenia i dołącz do dyskusji",
     bridge_support_github_desc: "Przejrzyj kod źródłowy i zgłoś problem",
     bridge_all_platforms: "Wszystkie platformy",
-    bridge_upgrade_benefit_clients: "Działa z Apple Mail, Thunderbird i Outlook",
-    bridge_upgrade_benefit_local: "Działa lokalnie, więc poczta pozostaje zaszyfrowana",
-    bridge_upgrade_benefit_platforms: "Dostępne w systemach Windows, macOS i Linux",
+    bridge_upgrade_benefit_clients:
+      "Działa z Apple Mail, Thunderbird i Outlook",
+    bridge_upgrade_benefit_local:
+      "Działa lokalnie, więc poczta pozostaje zaszyfrowana",
+    bridge_upgrade_benefit_platforms:
+      "Dostępne w systemach Windows, macOS i Linux",
     bridge_upgrade_benefit_cli: "Zawiera wersję wiersza poleceń dla serwerów",
     bridge_cli_download: "Pobierz",
-    bridge_cli_install_hint: "Pobierz archiwum dla swojej platformy, rozpakuj je i przenieś plik binarny do zmiennej PATH.",
-    bridge_cli_install_hint_windows: "Pobierz archiwum, rozpakuj je i dodaj folder do zmiennej PATH.",
+    bridge_cli_install_hint:
+      "Pobierz archiwum dla swojej platformy, rozpakuj je i przenieś plik binarny do zmiennej PATH.",
+    bridge_cli_install_hint_windows:
+      "Pobierz archiwum, rozpakuj je i dodaj folder do zmiennej PATH.",
     bridge_cli_copy_command: "Kopiuj polecenia instalacji",
     bridge_cli_docs_link: "Przeczytaj przewodnik wiersza poleceń",
     bridge_cli_name: "Wiersz poleceń",
@@ -9509,7 +9580,8 @@ export const pl = {
     set_new_password: "Ustaw nowe hasło",
     resetting_password: "Resetowanie hasła...",
     enter_recovery_code: "Wprowadź kod odzyskiwania",
-    enter_recovery_code_desc: "Wpisz jeden z kodów odzyskiwania zapisanych podczas tworzenia konta.",
+    enter_recovery_code_desc:
+      "Wpisz jeden z kodów odzyskiwania zapisanych podczas tworzenia konta.",
     create_new_password: "Utwórz nowe hasło",
     choose_strong_password: "Wybierz silne hasło dla swojego konta",
     recovering_your_account: "Odzyskiwanie konta",
@@ -9524,11 +9596,13 @@ export const pl = {
     recovery_email_label: "Adres Aster Mail",
     recovery_domain_hint: "Wybierz domenę pasującą do Twojego konta.",
     recovery_code_label: "Kod odzyskiwania",
-    recovery_code_hint: "Każdy kod działa raz. Kody wyglądają tak: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    recovery_code_hint:
+      "Każdy kod działa raz. Kody wyglądają tak: ASTER-XXXX-XXXX-XXXX-XXXX.",
     change_account: "Użyj innego adresu",
     change_account_desc: "Odzyskaj inne konto Aster Mail.",
     support_step_title: "Skontaktuj się z pomocą",
-    support_step_desc: "Aster Mail nie odczytuje Twoich zaszyfrowanych danych, więc nikt ich nie odblokuje bez kodu odzyskiwania ani adresu odzyskiwania. Pomoc techniczna sprawdzi konto i podpowie, co dalej.",
+    support_step_desc:
+      "Aster Mail nie odczytuje Twoich zaszyfrowanych danych, więc nikt ich nie odblokuje bez kodu odzyskiwania ani adresu odzyskiwania. Pomoc techniczna sprawdzi konto i podpowie, co dalej.",
     support_email_action: "Napisz do pomocy",
     support_help_center: "Otwórz centrum pomocy",
     other_ways_title: "Spróbuj inaczej",

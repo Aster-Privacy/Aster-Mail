@@ -25,7 +25,14 @@ import {
   KeyIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Badge, Island, IslandRow, IslandSection } from "@aster/ui";
+import {
+  Badge,
+  Button,
+  Input,
+  Island,
+  IslandRow,
+  IslandSection,
+} from "@aster/ui";
 
 import {
   RecommendationBox,
@@ -139,10 +146,11 @@ function KeyRow({
       label={
         editing ? (
           <span className="flex flex-wrap items-center gap-2">
-            <input
+            <Input
               autoFocus
-              className="text-sm font-medium bg-surf-secondary border border-edge-secondary rounded px-2 py-0.5 text-txt-primary outline-none focus:ring-1 focus:ring-primary w-40 max-w-full"
+              className="!w-40 max-w-full font-medium"
               maxLength={100}
+              size="sm"
               type="text"
               value={draft}
               onChange={(e) => set_draft(e.target.value)}

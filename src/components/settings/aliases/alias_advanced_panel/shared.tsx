@@ -31,8 +31,7 @@ import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
 import { is_composing } from "@/utils/ime";
 
-export const INPUT_CLASS =
-  "flex-1 min-w-0 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none";
+export const INPUT_CLASS = "w-auto flex-1 min-w-0";
 
 export const MAX_DISPLAY_NAME_LENGTH = 128;
 export const MAX_NOTE_LENGTH = 500;

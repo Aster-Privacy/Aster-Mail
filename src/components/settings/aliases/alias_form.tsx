@@ -25,6 +25,7 @@ import {
   LockClosedIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
+import { Input } from "@aster/ui";
 
 import { Button } from "@/components/ui/button";
 import { generate_ghost_local_part } from "@/services/api/ghost_aliases";
@@ -467,22 +468,23 @@ export function CreateAliasModal({
                   >
                     <ArrowPathIcon className="w-4 h-4" />
                   </button>
-                  <input
+                  <Input
                     autoFocus
                     autoCapitalize="none"
                     autoCorrect="off"
-                    className={`flex-1 min-w-0 h-10 px-3 rounded-[var(--aster-radius-control)] bg-transparent border text-sm text-txt-primary placeholder:text-txt-muted outline-none ${
-                      local_part && !current_validation.valid
-                        ? "border-red-500"
-                        : is_available === true
-                          ? "border-green-500"
-                          : is_available === false
-                            ? "border-red-500"
-                            : "border-edge-secondary"
-                    }`}
+                    className="w-auto flex-1 min-w-0"
                     id="alias-address"
                     placeholder={t("settings.alias_local_part_placeholder")}
                     spellCheck={false}
+                    status={
+                      local_part && !current_validation.valid
+                        ? "error"
+                        : is_available === true
+                          ? "success"
+                          : is_available === false
+                            ? "error"
+                            : "default"
+                    }
                     value={local_part}
                     onChange={(e) =>
                       set_local_part(
@@ -652,8 +654,7 @@ export function CreateAliasModal({
                     </button>
                   </div>
                 ) : (
-                  <input
-                    className="w-full h-10 px-3 rounded-[var(--aster-radius-control)] bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none"
+                  <Input
                     id="alias-display-name"
                     maxLength={128}
                     placeholder={t(
@@ -672,8 +673,7 @@ export function CreateAliasModal({
                   >
                     {t("settings.create_alias_note_label")}
                   </label>
-                  <input
-                    className="w-full h-10 px-3 rounded-[var(--aster-radius-control)] bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none"
+                  <Input
                     id="alias-note"
                     maxLength={500}
                     placeholder={t("settings.create_alias_note_placeholder")}

@@ -20,7 +20,8 @@
 //
 import { useEffect, useRef, useState, useCallback } from "react";
 import { loadStripe } from "@stripe/stripe-js/pure";
-import { IslandSections } from "@aster/ui";
+import { ChatBubbleLeftRightIcon } from "@heroicons/react/24/outline";
+import { IslandDivider, IslandSections } from "@aster/ui";
 
 import { checkout_error_text } from "./billing/checkout_error_text";
 
@@ -95,6 +96,13 @@ import { StorageAddonsSection } from "@/components/settings/billing/storage_addo
 import { CreditsSection } from "@/components/settings/billing/credits_section";
 import { AcademicDiscountSection } from "@/components/settings/billing/academic_discount_section";
 import { BillingHistorySection } from "@/components/settings/billing/billing_history_section";
+import {
+  BillingMoreRow,
+  BillingMoreSection,
+  billing_row_icon,
+} from "@/components/settings/billing/billing_more_section";
+import { open_settings_target } from "@/lib/settings_links";
+import { use_auth } from "@/contexts/auth_context";
 import { BillingDialogs } from "@/components/settings/billing/billing_dialogs";
 import { type CancelReason } from "@/components/settings/billing/cancel_reason_step";
 import {
@@ -117,6 +125,8 @@ import { use_plan_features } from "@/components/settings/billing/use_plan_featur
 
 export function BillingSection() {
   const { t } = use_i18n();
+  const { user } = use_auth();
+  const account_email = user?.email ?? "";
   const { stats } = use_mail_stats();
   const [subscription, set_subscription] =
     useState<SubscriptionResponse | null>(null);
@@ -1064,6 +1074,30 @@ export function BillingSection() {
 
   return (
     <IslandSections>
+      <div className="flex flex-col items-center gap-1.5 pb-1 pt-3 text-center">
+        <img
+          alt="Aster"
+          className="h-6 w-auto select-none dark:hidden"
+          decoding="async"
+          draggable={false}
+          height={24}
+          src="/text_logo.png"
+        />
+        <img
+          alt="Aster"
+          className="hidden h-6 w-auto select-none dark:block"
+          decoding="async"
+          draggable={false}
+          height={24}
+          src="/text_logo_white.png"
+        />
+        {account_email && (
+          <p className="text-[13px] leading-5 text-txt-secondary">
+            {account_email}
+          </p>
+        )}
+      </div>
+
       <BillingHeroCard
         current_billing_interval={current_billing_interval}
         has_payment_failed={has_payment_failed}
@@ -1134,30 +1168,6 @@ export function BillingSection() {
         </p>
       )}
 
-      <CreditsSection
-        credit_balance={credit_balance}
-        preferred_currency={preferred_currency}
-        set_credit_balance={set_credit_balance}
-      />
-
-      <StorageAddonsSection
-        active_addons={active_addons}
-        available_addons={available_addons}
-        is_action_loading={is_action_loading}
-        is_over_limit={is_storage_over_limit}
-        on_cancel_addon={(addon) => {
-          set_addon_to_cancel(addon);
-          set_show_cancel_addon_dialog(true);
-        }}
-        on_purchase_addon={(addon) => {
-          set_addon_method_target(addon);
-          set_show_addon_method_modal(true);
-        }}
-        preferred_currency={preferred_currency}
-        selected_storage={selected_storage}
-        set_selected_storage={set_selected_storage}
-      />
-
       <BillingNoticeStack
         grace_days_remaining={grace_days_remaining}
         has_payment_failed={has_payment_failed}
@@ -1173,16 +1183,53 @@ export function BillingSection() {
         subscription={subscription}
       />
 
-      <BillingHistorySection
-        history={history}
-        load_failed={history_load_failed}
-        on_retry={() => void load_data()}
-      />
-
-      <AcademicDiscountSection
-        academic_status={academic_status}
-        refresh_academic_status={refresh_academic_status}
-      />
+      <BillingMoreSection>
+        <StorageAddonsSection
+          embedded
+          active_addons={active_addons}
+          available_addons={available_addons}
+          is_action_loading={is_action_loading}
+          is_over_limit={is_storage_over_limit}
+          on_cancel_addon={(addon) => {
+            set_addon_to_cancel(addon);
+            set_show_cancel_addon_dialog(true);
+          }}
+          on_purchase_addon={(addon) => {
+            set_addon_method_target(addon);
+            set_show_addon_method_modal(true);
+          }}
+          preferred_currency={preferred_currency}
+          selected_storage={selected_storage}
+          set_selected_storage={set_selected_storage}
+        />
+        <IslandDivider inset={52} />
+        <BillingHistorySection
+          embedded
+          history={history}
+          load_failed={history_load_failed}
+          on_retry={() => void load_data()}
+        />
+        <IslandDivider inset={52} />
+        <CreditsSection
+          embedded
+          credit_balance={credit_balance}
+          preferred_currency={preferred_currency}
+          set_credit_balance={set_credit_balance}
+        />
+        <IslandDivider inset={52} />
+        <AcademicDiscountSection
+          embedded
+          academic_status={academic_status}
+          refresh_academic_status={refresh_academic_status}
+        />
+        <IslandDivider inset={52} />
+        <BillingMoreRow
+          description={t("settings.billing_support_subtitle")}
+          icon={billing_row_icon(ChatBubbleLeftRightIcon)}
+          label={t("common.contact_support")}
+          on_press={() => open_settings_target({ section: "feedback" })}
+        />
+      </BillingMoreSection>
 
       {crypto_plan &&
         (() => {

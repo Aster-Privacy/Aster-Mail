@@ -1345,15 +1345,19 @@ export const ja = {
     subject_too_long:
       "件名が 998 文字の上限を超えています。短くすると送信できます。",
     notification_banner_no_thanks: "いいえ、結構です",
-    locked_data_banner_message: "以前の暗号化データの一部がロックされています。",
+    locked_data_banner_message:
+      "以前の暗号化データの一部がロックされています。",
     locked_data_banner_action: "データを復元",
     locked_data_banner_dismiss: "閉じる",
     recover_data_title: "データを復元",
-    recover_data_description: "パスワードの変更またはリセット前のデータのロックを解除するには、その時に使用していたパスワードを入力してください。",
+    recover_data_description:
+      "パスワードの変更またはリセット前のデータのロックを解除するには、その時に使用していたパスワードを入力してください。",
     recover_data_button: "復元",
     recover_data_success: "以前のデータのロックが解除されました。",
-    recover_data_no_match: "そのパスワードではデータのロックを解除できませんでした。別の以前のパスワードをお試しください。",
-    recover_data_failed: "一部のデータのロックを解除できませんでした。接続を確認して、もう一度お試しください。",
+    recover_data_no_match:
+      "そのパスワードではデータのロックを解除できませんでした。別の以前のパスワードをお試しください。",
+    recover_data_failed:
+      "一部のデータのロックを解除できませんでした。接続を確認して、もう一度お試しください。",
     payment_past_due_message:
       "前回のお支払いを処理できませんでした。プランを継続するには、お支払い方法を更新してください。",
     payment_past_due_message_days:
@@ -3935,7 +3939,8 @@ export const ja = {
     password_change_background_reencrypt_failed:
       "パスワードは変更されましたが、送信済みメールと設定の一部の再暗号化が完了していません。メールや設定が読めない場合はサポートにご連絡ください。",
     previous_password: "以前のパスワード",
-    password_change_sent_mail_locked: "パスワードが変更されました。{{count}} 件の送信済みメールは以前のパスワードで暗号化されており、更新されませんでした。ロックを解除するには、受信トレイ上部のバナーで「データを復元」を選択してください。",
+    password_change_sent_mail_locked:
+      "パスワードが変更されました。{{count}} 件の送信済みメールは以前のパスワードで暗号化されており、更新されませんでした。ロックを解除するには、受信トレイ上部のバナーで「データを復元」を選択してください。",
     password_changed_signing_out:
       "パスワードが正常に変更されました。サインアウトしています...",
     password_changed_success: "パスワードを変更しました",
@@ -4155,9 +4160,11 @@ export const ja = {
     compose_mode_fullscreen: "常にフルスクリーン",
     compose_mode_minimized: "最小化して開始",
     default_sender_group: "送信",
-    default_sender_group_description: "新しいメッセージの送信元にするアドレスを選びます。",
+    default_sender_group_description:
+      "新しいメッセージの送信元にするアドレスを選びます。",
     default_sender_title: "既定の送信者",
-    default_sender_description: "新しいメッセージはこのアドレスから送信されます。返信には、メッセージが届いたアドレスが使われます。",
+    default_sender_description:
+      "新しいメッセージはこのアドレスから送信されます。返信には、メッセージが届いたアドレスが使われます。",
     default_sender_no_addresses: "ほかのアドレスがありません",
     compose_defaults_title: "デフォルトの書式",
     compose_defaults_description:
@@ -4174,9 +4181,11 @@ export const ja = {
     reply_defaults_title: "返信",
     reply_defaults_description: "新しい返信の開始内容を選択します。",
     reply_include_quoted: "引用文を含める",
-    reply_include_quoted_description: "すべての返信が、入力欄の下に引用された元のメッセージで始まります。",
+    reply_include_quoted_description:
+      "すべての返信が、入力欄の下に引用された元のメッセージで始まります。",
     reply_prefix_subject: "件名に Re: を追加",
-    reply_prefix_subject_description: "返信するときに元の件名の前に Re: を付けます。",
+    reply_prefix_subject_description:
+      "返信するときに元の件名の前に Re: を付けます。",
     build_info: "ビルド情報",
     release: "リリース",
     build: "ビルド",
@@ -4239,10 +4248,27 @@ export const ja = {
       "今回の請求期間の終わりまでプレミアム機能を引き続き使え、その後プランは無料に戻ります。メール、連絡先、設定はそのまま残ります。",
     cancel_plan: "プランをキャンセル",
     billing_history: "請求履歴",
+    billing_more_title: "その他",
+    billing_addons_subtitle: "容量を追加、プランはそのまま",
+    billing_support_subtitle: "チームにメッセージを送る",
+    billing_credits_subtitle: "残高とチャージ",
+    billing_academic_subtitle: "学校のメールで割引",
+    billing_history_empty:
+      "請求書はまだありません。初回の請求後にここに表示されます。",
+    billing_invoice_count: "{{count}} 件の請求書",
+    billing_invoice_count_one: "{{count}} 件の請求書",
+    billing_invoice_count_other: "{{count}} 件の請求書",
+    billing_addons_active_count: "{{count}} 件有効",
+    billing_addons_active_count_one: "{{count}} 件有効",
+    billing_addons_active_count_other: "{{count}} 件有効",
+    academic_status_none: "未申請",
+    academic_status_pending: "確認待ち",
+    academic_status_verified: "確認済み",
     billing_plan_heading: "プラン",
     billing_hide_plans: "プランを非表示",
     billing_cancel_notice_title: "プランは解約予定です",
-    billing_cancel_notice_body: "プランは {{date}} に終了します。その後、アカウントは無料プランに移行します。",
+    billing_cancel_notice_body:
+      "プランは {{date}} に終了します。その後、アカウントは無料プランに移行します。",
     billing_renewals_heading: "更新",
     billing_amount: "金額",
     billing_desc_payment_failed: "支払いに失敗しました",
@@ -5055,19 +5081,26 @@ export const ja = {
     special_offer_feature_aliases: "エイリアス無制限",
     special_offer_feature_vanguard: "Vanguardで強化されたセキュリティ",
     special_offer_feature_storage: "500 GBの暗号化ストレージ",
-    special_offer_why_body: "Aster は小さなチームで運営する独立した企業で、皆さまのご支援は私たちにとって大きな意味があります。サブスクリプションはサービスの運営を支え、Aster を毎日丁寧に開発し続けることを可能にしています。このオファーで、より気軽に始めていただけます。",
+    special_offer_why_body:
+      "Aster は小さなチームで運営する独立した企業で、皆さまのご支援は私たちにとって大きな意味があります。サブスクリプションはサービスの運営を支え、Aster を毎日丁寧に開発し続けることを可能にしています。このオファーで、より気軽に始めていただけます。",
     special_offer_why_label: "このオファーを提供する理由",
-    special_offer_feature_vanguard_body: "アプリロックと高度なプライバシー保護。",
-    special_offer_feature_domains_body: "独自ドメインのアドレスから送信できます。",
+    special_offer_feature_vanguard_body:
+      "アプリロックと高度なプライバシー保護。",
+    special_offer_feature_domains_body:
+      "独自ドメインのアドレスから送信できます。",
     special_offer_feature_domains: "カスタムドメイン最大30個",
-    special_offer_feature_storage_body: "何年分ものメールとファイルを保存できます。",
-    special_offer_feature_aliases_body: "サイトごとに専用のアドレスを使えます。",
+    special_offer_feature_storage_body:
+      "何年分ものメールとファイルを保存できます。",
+    special_offer_feature_aliases_body:
+      "サイトごとに専用のアドレスを使えます。",
     special_offer_fine_print:
       "最初の{{months}}か月は月額{{offer_price}}です。その後は、設定で解約するまで月額{{price}}で更新されます。",
     special_offer_dismiss: "このオファーを今後表示しない",
     special_offer_dismissed_toast: "今後は表示しません。",
-    special_offer_success_title: "ありがとうございます。Nova をご利用いただけます。",
-    special_offer_success_body: "ご登録ありがとうございます。皆さまのご支援が私たちの大きな励みです。",
+    special_offer_success_title:
+      "ありがとうございます。Nova をご利用いただけます。",
+    special_offer_success_body:
+      "ご登録ありがとうございます。皆さまのご支援が私たちの大きな励みです。",
     special_offer_hero_duration: "{{months}}か月間",
     plan_billing_terms:
       "サブスクリプションは、解約するまで通常価格で自動的に更新されます。設定からいつでも解約できます。",
@@ -5098,55 +5131,80 @@ export const ja = {
     domain_without_www_note: "wwwやhttps://なしでドメインを入力してください",
     catch_all_label: "キャッチオール",
     bimi_adj_added_title: "タイトルを追加しました。",
-    bimi_adj_converted_inline_styles: "インラインスタイルを属性に変換しました。",
+    bimi_adj_converted_inline_styles:
+      "インラインスタイルを属性に変換しました。",
     bimi_adj_derived_view_box: "viewBox を追加しました。",
     bimi_adj_removed_doctype: "文書型宣言を削除しました。",
     bimi_adj_removed_editor_data: "エディタのデータを削除しました。",
     bimi_adj_removed_metadata: "メタデータを削除しました。",
     bimi_adj_removed_position: "位置のオフセットを削除しました。",
     bimi_adj_removed_size: "固定の幅と高さを削除しました。",
-    bimi_adj_removed_unsupported_attributes: "サポートされていない属性を削除しました。",
+    bimi_adj_removed_unsupported_attributes:
+      "サポートされていない属性を削除しました。",
     bimi_adj_set_tiny_ps_profile: "SVG プロファイルを Tiny PS に設定しました。",
     bimi_adjustments_title: "要件を満たすため、Aster がファイルを調整しました:",
-    bimi_auto_checking: "このページを開いている間、Aster がレコードを自動的に確認します。",
+    bimi_auto_checking:
+      "このページを開いている間、Aster がレコードを自動的に確認します。",
     bimi_check_again: "再確認",
     bimi_checking: "確認中",
     bimi_choose_file: "ファイルを選択",
-    bimi_dmarc_invalid: "DMARC レコードを読み取れません。有効なレコードに置き換えてください。",
-    bimi_dmarc_missing: "p=quarantine または p=reject を含む DMARC レコードを追加してください。",
-    bimi_dmarc_not_enforced: "DMARC ポリシーを p=quarantine または p=reject に変更してください。",
-    bimi_dmarc_organization_not_enforced: "親ドメインの DMARC ポリシーも quarantine または reject である必要があります。",
-    bimi_dmarc_partial: "DMARC レコードから pct タグを削除するか、100 に設定してください。",
+    bimi_dmarc_invalid:
+      "DMARC レコードを読み取れません。有効なレコードに置き換えてください。",
+    bimi_dmarc_missing:
+      "p=quarantine または p=reject を含む DMARC レコードを追加してください。",
+    bimi_dmarc_not_enforced:
+      "DMARC ポリシーを p=quarantine または p=reject に変更してください。",
+    bimi_dmarc_organization_not_enforced:
+      "親ドメインの DMARC ポリシーも quarantine または reject である必要があります。",
+    bimi_dmarc_partial:
+      "DMARC レコードから pct タグを削除するか、100 に設定してください。",
     bimi_dmarc_ready: "DMARC ポリシーは quarantine または reject です。",
-    bimi_dmarc_subdomain_policy_none: "DMARC レコードの sp タグを quarantine または reject に変更してください。",
+    bimi_dmarc_subdomain_policy_none:
+      "DMARC レコードの sp タグを quarantine または reject に変更してください。",
     bimi_drop_here: "SVG ロゴをここにドラッグしてください。",
-    bimi_err_doctype_entities: "このファイルはカスタムエンティティを宣言しています。これは許可されていません。",
+    bimi_err_doctype_entities:
+      "このファイルはカスタムエンティティを宣言しています。これは許可されていません。",
     bimi_err_empty: "画像が空です。",
-    bimi_err_external_reference: "このファイルは外部リソースにリンクしています。これは許可されていません。",
-    bimi_err_invalid_reference: "このファイルには壊れた内部参照が含まれています。",
-    bimi_err_invalid_value: "このファイルには許可されていない属性値が含まれています。",
+    bimi_err_external_reference:
+      "このファイルは外部リソースにリンクしています。これは許可されていません。",
+    bimi_err_invalid_reference:
+      "このファイルには壊れた内部参照が含まれています。",
+    bimi_err_invalid_value:
+      "このファイルには許可されていない属性値が含まれています。",
     bimi_err_malformed: "このファイルは有効な SVG ではありません。",
-    bimi_err_missing_view_box: "画像に viewBox がありません。viewBox を含めて書き出してください。",
-    bimi_err_not_square: "ロゴが正方形ではありません。幅と高さを同じにしてください。",
+    bimi_err_missing_view_box:
+      "画像に viewBox がありません。viewBox を含めて書き出してください。",
+    bimi_err_not_square:
+      "ロゴが正方形ではありません。幅と高さを同じにしてください。",
     bimi_err_not_svg: "このファイルは SVG 画像ではありません。",
-    bimi_err_not_utf8: "このファイルはテキスト形式の SVG ファイルではありません。",
-    bimi_err_raster_image: "このファイルには埋め込みのビットマップ画像が含まれています。ベクター図形のみを使用してください。",
-    bimi_err_script_content: "このファイルにはスクリプトが含まれています。これは許可されていません。",
-    bimi_err_text_not_outlined: "ロゴにテキストが含まれています。書き出す前にテキストをアウトライン化してください。",
-    bimi_err_too_complex: "画像が複雑すぎます。簡略化してから、もう一度書き出してください。",
+    bimi_err_not_utf8:
+      "このファイルはテキスト形式の SVG ファイルではありません。",
+    bimi_err_raster_image:
+      "このファイルには埋め込みのビットマップ画像が含まれています。ベクター図形のみを使用してください。",
+    bimi_err_script_content:
+      "このファイルにはスクリプトが含まれています。これは許可されていません。",
+    bimi_err_text_not_outlined:
+      "ロゴにテキストが含まれています。書き出す前にテキストをアウトライン化してください。",
+    bimi_err_too_complex:
+      "画像が複雑すぎます。簡略化してから、もう一度書き出してください。",
     bimi_err_too_large: "ファイルが大きすぎます。",
-    bimi_err_unsupported_element: "このファイルには許可されていない要素が含まれています。",
-    bimi_err_unsupported_style: "このファイルでは、フィルタ、マスク、スタイルシートなど、許可されていないスタイルや効果が使用されています。",
-    bimi_error_domain_not_active: "ロゴを公開する前に、このドメインの設定を完了してください。",
+    bimi_err_unsupported_element:
+      "このファイルには許可されていない要素が含まれています。",
+    bimi_err_unsupported_style:
+      "このファイルでは、フィルタ、マスク、スタイルシートなど、許可されていないスタイルや効果が使用されています。",
+    bimi_error_domain_not_active:
+      "ロゴを公開する前に、このドメインの設定を完了してください。",
     bimi_error_file_too_large: "ファイルが 64 KB を超えています。",
     bimi_error_logo_required: "公開する前にロゴをアップロードしてください。",
     bimi_error_not_svg_file: "SVG ファイルを選択してください。",
     bimi_error_throttled: "しばらく待ってから、もう一度お試しください。",
     bimi_errors_title: "このファイルはブランドロゴとして使用できません:",
     bimi_last_checked: "最終確認: {time}",
-    bimi_logo_public_note: "ロゴは公開されます。あなたのメールを受け取った人は誰でも表示できます。",
+    bimi_logo_public_note:
+      "ロゴは公開されます。あなたのメールを受け取った人は誰でも表示できます。",
     bimi_logo_ready: "ロゴは要件を満たしています。",
-    bimi_managed_note: "このドメインは Aster で購入されたため、DNS レコードは自動的に追加されます。",
+    bimi_managed_note:
+      "このドメインは Aster で購入されたため、DNS レコードは自動的に追加されます。",
     bimi_preview_alt: "ブランドロゴのプレビュー",
     bimi_preview_dark: "ダーク",
     bimi_preview_inbox_subject: "最新のお知らせ",
@@ -5154,31 +5212,41 @@ export const ja = {
     bimi_preview_light: "ライト",
     bimi_publish: "ロゴを公開",
     bimi_publishing: "公開中",
-    bimi_record_conflict: "このドメインには別の BIMI レコードが存在します。このレコードだけが残るように、もう一方を削除してください。",
-    bimi_record_external: "既存の BIMI レコードは別のホストを指しています。Aster のホスティングを使用するには、このレコードに置き換えてください。",
+    bimi_record_conflict:
+      "このドメインには別の BIMI レコードが存在します。このレコードだけが残るように、もう一方を削除してください。",
+    bimi_record_external:
+      "既存の BIMI レコードは別のホストを指しています。Aster のホスティングを使用するには、このレコードに置き換えてください。",
     bimi_record_host: "ホスト",
-    bimi_record_missing: "レコードはまだ確認できません。DNS の変更が反映されるまで最大 48 時間かかる場合があります。",
-    bimi_record_removed: "Aster はこのレコードを検出できなくなりました。DNS プロバイダで再度追加してください。",
+    bimi_record_missing:
+      "レコードはまだ確認できません。DNS の変更が反映されるまで最大 48 時間かかる場合があります。",
+    bimi_record_removed:
+      "Aster はこのレコードを検出できなくなりました。DNS プロバイダで再度追加してください。",
     bimi_record_published: "レコードは公開されています。",
     bimi_record_title: "DNS プロバイダでこのレコードを追加してください",
     bimi_record_type: "タイプ",
     bimi_copy_field: "{field}をコピー",
     bimi_record_value: "値",
     bimi_replace_logo: "ロゴを置き換える",
-    bimi_req_auth_fail: "まず、このドメインの SPF レコードと DKIM レコードを確認してください。",
+    bimi_req_auth_fail:
+      "まず、このドメインの SPF レコードと DKIM レコードを確認してください。",
     bimi_req_auth_ok: "SPF と DKIM は確認済みです。",
     bimi_req_auth_title: "メール認証",
     bimi_req_dmarc_title: "DMARC の適用",
     bimi_req_not_checked: "まだ確認されていません。",
     bimi_requirements_title: "要件",
-    bimi_row_attention: "ロゴは公開されていますが、満たされていない要件があります。",
+    bimi_row_attention:
+      "ロゴは公開されていますが、満たされていない要件があります。",
     bimi_row_draft: "ロゴの準備ができました。公開すると使用を開始できます。",
-    bimi_row_external: "このドメインには、別のホストを指す BIMI レコードがあります。",
-    bimi_row_inactive: "ブランドロゴを追加するには、このドメインの設定を完了してください。",
+    bimi_row_external:
+      "このドメインには、別のホストを指す BIMI レコードがあります。",
+    bimi_row_inactive:
+      "ブランドロゴを追加するには、このドメインの設定を完了してください。",
     bimi_row_live: "ロゴは公開されています。",
-    bimi_row_off: "ブランドロゴに対応した受信トレイで、メールの横にロゴを表示します。",
+    bimi_row_off:
+      "ブランドロゴに対応した受信トレイで、メールの横にロゴを表示します。",
     bimi_row_pending: "DNS レコードを追加してから、もう一度確認してください。",
-    bimi_row_pending_managed: "DNS レコードを公開しています。数分かかる場合があります。",
+    bimi_row_pending_managed:
+      "DNS レコードを公開しています。数分かかる場合があります。",
     bimi_rule_safe: "スクリプトや外部リンクを含まない",
     bimi_rule_size: "Aster による最適化後に 32 KB 以下",
     bimi_rule_square: "正方形で、幅と高さが同じ",
@@ -5196,13 +5264,16 @@ export const ja = {
     bimi_step_publish: "公開",
     bimi_title: "ブランドロゴ",
     bimi_turn_off: "オフにする",
-    bimi_turn_off_body: "ロゴのホスティングはすぐに停止し、受信トレイには代わりにデフォルトのアイコンが表示されます。",
+    bimi_turn_off_body:
+      "ロゴのホスティングはすぐに停止し、受信トレイには代わりにデフォルトのアイコンが表示されます。",
     bimi_turn_off_confirm: "オフにする",
     bimi_turn_off_description: "受信トレイでのロゴ表示を停止します。",
-    bimi_turn_off_remove_record: "DNS プロバイダから default._bimi の TXT レコードを削除してください。",
+    bimi_turn_off_remove_record:
+      "DNS プロバイダから default._bimi の TXT レコードを削除してください。",
     bimi_turn_off_title: "ブランドロゴをオフにしますか?",
     bimi_uploading: "アップロード中",
-    bimi_verified_mark_note: "受信トレイによっては、認証済みマーク証明書を持つドメインにのみブランドロゴを表示します。",
+    bimi_verified_mark_note:
+      "受信トレイによっては、認証済みマーク証明書を持つドメインにのみブランドロゴを表示します。",
     catch_all_description:
       "このドメインの任意のアドレスに送信されたメールを受信します",
     set_host_root:
@@ -5461,8 +5532,10 @@ export const ja = {
       "よろしくお願いいたします\nお名前\nyour@email.com",
     signature_name_required: "この署名の名前を入力してください。",
     signature_content_required: "この署名の内容を入力してください。",
-    signature_image_too_large: "この画像は署名に追加するには大きすぎます。小さい画像を選択してください。",
-    signature_too_large: "署名が大きすぎるため保存できません。画像を削除するか、テキストを短くしてください。",
+    signature_image_too_large:
+      "この画像は署名に追加するには大きすぎます。小さい画像を選択してください。",
+    signature_too_large:
+      "署名が大きすぎるため保存できません。画像を削除するか、テキストを短くしてください。",
     signature_image_invalid:
       "追加できるのは PNG、JPEG、GIF、WebP の画像のみです。",
     signature_image_failed:
@@ -5699,10 +5772,12 @@ export const ja = {
       "すでにこのプランをご利用中です。プロモーションコードは別のプランに変更するときに適用されます。",
     promo_error_not_upgrade:
       "プロモーションコードは上位プランにアップグレードするときに適用されます。",
-    promo_error_card_only: "このプロモーションコードはカード払いでのみ使用できます。",
+    promo_error_card_only:
+      "このプロモーションコードはカード払いでのみ使用できます。",
     promo_error_with_credits:
       "同じ支払いでプロモーションコードとアカウントクレジットを併用することはできません。",
-    promo_error_not_for_addon: "プロモーションコードはアドオンには使用できません。",
+    promo_error_not_for_addon:
+      "プロモーションコードはアドオンには使用できません。",
     promo_error_generic:
       "プロモーションコードを確認できませんでした。しばらくしてからもう一度お試しください。",
     plan_change_discount_amount: "{{amount}}オフ",
@@ -6983,19 +7058,24 @@ export const ja = {
     bridge_format_rpm_desc: "Fedora、RHEL、openSUSE",
     bridge_format_pacman_desc: "Arch Linux とその派生",
     bridge_download_started: "ダウンロードを開始しました",
-    bridge_download_failed: "ダウンロードを開始できませんでした。もう一度お試しください。",
+    bridge_download_failed:
+      "ダウンロードを開始できませんでした。もう一度お試しください。",
     bridge_support_help_desc: "セットアップガイドとよくある質問への回答",
     bridge_support_discord_desc: "チームや他の Aster ユーザーに質問できます",
     bridge_support_reddit_desc: "お知らせを確認して、話題に参加できます",
     bridge_support_github_desc: "ソースコードを確認して、問題を報告できます",
     bridge_all_platforms: "すべてのプラットフォーム",
-    bridge_upgrade_benefit_clients: "Apple Mail、Thunderbird、Outlook で使えます",
-    bridge_upgrade_benefit_local: "ローカルで動作するため、メールは暗号化されたままです",
+    bridge_upgrade_benefit_clients:
+      "Apple Mail、Thunderbird、Outlook で使えます",
+    bridge_upgrade_benefit_local:
+      "ローカルで動作するため、メールは暗号化されたままです",
     bridge_upgrade_benefit_platforms: "Windows、macOS、Linux で利用できます",
     bridge_upgrade_benefit_cli: "サーバー向けのコマンドライン版が含まれます",
     bridge_cli_download: "ダウンロード",
-    bridge_cli_install_hint: "お使いのプラットフォーム用のアーカイブをダウンロードし、展開してバイナリを PATH に移動します。",
-    bridge_cli_install_hint_windows: "アーカイブをダウンロードし、展開してフォルダを PATH に追加します。",
+    bridge_cli_install_hint:
+      "お使いのプラットフォーム用のアーカイブをダウンロードし、展開してバイナリを PATH に移動します。",
+    bridge_cli_install_hint_windows:
+      "アーカイブをダウンロードし、展開してフォルダを PATH に追加します。",
     bridge_cli_copy_command: "インストールコマンドをコピー",
     bridge_cli_docs_link: "コマンドラインガイドを読む",
     bridge_cli_name: "コマンドライン",
@@ -8085,7 +8165,8 @@ export const ja = {
     already_reacted: "すでにこのリアクションを送信済みです",
     remove_your_reaction: "{emoji} のリアクションを削除",
     you_reacted_with: "{{emoji}} でリアクションしました",
-    you_reacted_with_remove: "{{emoji}} でリアクションしました。クリックすると削除されます。",
+    you_reacted_with_remove:
+      "{{emoji}} でリアクションしました。クリックすると削除されます。",
     reacted_with: "{{name}} が {{emoji}} でリアクションしました",
     forward: "転送",
     to: "宛先",
@@ -9211,7 +9292,8 @@ export const ja = {
     creating_new_recovery_backup: "新しい復旧バックアップを作成中...",
     saving_new_credentials: "新しい認証情報を保存中...",
     recover_your_account: "アカウントの復旧",
-    enter_email_associated: "復旧したいアカウントのアドレスを入力してください。",
+    enter_email_associated:
+      "復旧したいアカウントのアドレスを入力してください。",
     back_to_sign_in: "サインインに戻る",
     email_me_reset_link: "リセットリンクをメールで送信",
     have_recovery_code: "リカバリーコードをお持ちですか？",
@@ -9231,7 +9313,8 @@ export const ja = {
     set_new_password: "新しいパスワードを設定",
     resetting_password: "パスワードをリセット中...",
     enter_recovery_code: "リカバリーコードを入力",
-    enter_recovery_code_desc: "アカウント作成時に保存したリカバリーコードのいずれかを入力してください。",
+    enter_recovery_code_desc:
+      "アカウント作成時に保存したリカバリーコードのいずれかを入力してください。",
     create_new_password: "新しいパスワードを作成",
     choose_strong_password: "アカウントの強力なパスワードを選択してください",
     recovering_your_account: "アカウントを復旧中",
@@ -9247,11 +9330,13 @@ export const ja = {
     recovery_email_label: "Aster Mail のアドレス",
     recovery_domain_hint: "アカウントのドメインを選択してください。",
     recovery_code_label: "リカバリーコード",
-    recovery_code_hint: "各コードは 1 回だけ使えます。コードの形式は ASTER-XXXX-XXXX-XXXX-XXXX です。",
+    recovery_code_hint:
+      "各コードは 1 回だけ使えます。コードの形式は ASTER-XXXX-XXXX-XXXX-XXXX です。",
     change_account: "別のアドレスを使う",
     change_account_desc: "別の Aster Mail アカウントを復元します。",
     support_step_title: "サポートに問い合わせる",
-    support_step_desc: "Aster Mail は暗号化されたデータを読み取れないため、リカバリーコードまたは復旧用メールなしで解除できる人はいません。サポートがアカウントを確認し、次の手順を案内します。",
+    support_step_desc:
+      "Aster Mail は暗号化されたデータを読み取れないため、リカバリーコードまたは復旧用メールなしで解除できる人はいません。サポートがアカウントを確認し、次の手順を案内します。",
     support_email_action: "サポートにメールする",
     support_help_center: "ヘルプセンターを開く",
     other_ways_title: "別の方法を試す",
@@ -9262,7 +9347,8 @@ export const ja = {
     other_way_email_desc:
       "Aster Mail がリカバリーメールにリンクを送信します。リセット前のメールにはアクセスできなくなります。",
     other_way_none_title: "どれも持っていない",
-    other_way_none_desc: "サポートにお問い合わせください。次の手順をご案内します。",
+    other_way_none_desc:
+      "サポートにお問い合わせください。次の手順をご案内します。",
     reset_account_title: "アカウントをリセットしますか?",
     reset_account_desc:
       "リセット前の暗号化されたメール、連絡先、ファイルは、以前のパスワードで復元するまでロックされたままです。新しい空の暗号鍵が発行されます。",

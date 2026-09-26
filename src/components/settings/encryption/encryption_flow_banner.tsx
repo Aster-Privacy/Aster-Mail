@@ -76,7 +76,7 @@ export function EncryptionFlowBanner({
     : fallback_hex;
 
   return (
-    <Island>
+    <Island padding="md">
       <p className="text-[15px] font-semibold text-txt-primary">
         {t("settings.encryption_banner_title")}
       </p>

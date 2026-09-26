@@ -30,7 +30,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Input } from "@aster/ui";
 
 import {
   DnsChecklist,
@@ -412,9 +412,8 @@ export function DomainSetupWizard({
               >
                 {t("settings.domain_name_label")}
               </label>
-              <input
+              <Input
                 autoFocus
-                className="w-full h-10 px-3 rounded-[var(--aster-radius-control)] bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none"
                 id="domain-name"
                 placeholder={t("settings.enter_domain_placeholder")}
                 value={domain_input}

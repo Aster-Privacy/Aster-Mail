@@ -1296,15 +1296,19 @@ export const nl = {
     n_conversations_marked_as_spam:
       "{{ count }} gesprekken als spam gemarkeerd",
     notification_banner_no_thanks: "Nee, bedankt",
-    locked_data_banner_message: "Een deel van je oudere versleutelde gegevens is vergrendeld.",
+    locked_data_banner_message:
+      "Een deel van je oudere versleutelde gegevens is vergrendeld.",
     locked_data_banner_action: "Gegevens herstellen",
     locked_data_banner_dismiss: "Sluiten",
     recover_data_title: "Gegevens herstellen",
-    recover_data_description: "Voer het wachtwoord in dat je toen gebruikte om gegevens van vóór een wachtwoordwijziging of -reset te ontgrendelen.",
+    recover_data_description:
+      "Voer het wachtwoord in dat je toen gebruikte om gegevens van vóór een wachtwoordwijziging of -reset te ontgrendelen.",
     recover_data_button: "Herstellen",
     recover_data_success: "Je oudere gegevens zijn ontgrendeld.",
-    recover_data_no_match: "Met dat wachtwoord zijn geen gegevens ontgrendeld. Probeer een ander eerder wachtwoord.",
-    recover_data_failed: "Sommige gegevens konden niet worden ontgrendeld. Controleer je verbinding en probeer het opnieuw.",
+    recover_data_no_match:
+      "Met dat wachtwoord zijn geen gegevens ontgrendeld. Probeer een ander eerder wachtwoord.",
+    recover_data_failed:
+      "Sommige gegevens konden niet worden ontgrendeld. Controleer je verbinding en probeer het opnieuw.",
     payment_past_due_message:
       "Je laatste betaling is niet gelukt. Werk je betaalmethode bij om je abonnement te behouden.",
     payment_past_due_message_days:
@@ -3911,7 +3915,8 @@ export const nl = {
     password_change_background_reencrypt_failed:
       "Je wachtwoord is gewijzigd, maar een deel van je verzonden berichten en instellingen is niet opnieuw versleuteld. Neem contact op met de klantenservice als berichten of instellingen onleesbaar lijken.",
     previous_password: "Vorig wachtwoord",
-    password_change_sent_mail_locked: "Je wachtwoord is gewijzigd. {{count}} verzonden e-mails waren versleuteld met een eerder wachtwoord en zijn niet bijgewerkt. Selecteer Gegevens herstellen in de banner boven je inbox om ze te ontgrendelen.",
+    password_change_sent_mail_locked:
+      "Je wachtwoord is gewijzigd. {{count}} verzonden e-mails waren versleuteld met een eerder wachtwoord en zijn niet bijgewerkt. Selecteer Gegevens herstellen in de banner boven je inbox om ze te ontgrendelen.",
     password_changed_signing_out:
       "Wachtwoord succesvol gewijzigd. Je wordt uitgelogd...",
     password_changed_success: "Wachtwoord gewijzigd",
@@ -4176,10 +4181,27 @@ export const nl = {
       "U behoudt de premiumfuncties tot het einde van deze factureringsperiode, en daarna gaat uw abonnement over op Gratis. Uw post, contacten en instellingen blijven bij u.",
     cancel_plan: "Abonnement annuleren",
     billing_history: "Factureringsgeschiedenis",
+    billing_more_title: "Meer",
+    billing_addons_subtitle: "Meer ruimte, zelfde abonnement",
+    billing_support_subtitle: "Stuur het team een bericht",
+    billing_credits_subtitle: "Saldo en opwaarderingen",
+    billing_academic_subtitle: "Bespaar met een school-e-mailadres",
+    billing_history_empty:
+      "Nog geen facturen. Je betalingen verschijnen hier na de eerste afschrijving.",
+    billing_invoice_count: "{{count}} facturen",
+    billing_invoice_count_one: "{{count}} factuur",
+    billing_invoice_count_other: "{{count}} facturen",
+    billing_addons_active_count: "{{count}} actief",
+    billing_addons_active_count_one: "{{count}} actief",
+    billing_addons_active_count_other: "{{count}} actief",
+    academic_status_none: "Niet aangevraagd",
+    academic_status_pending: "Wacht op verificatie",
+    academic_status_verified: "Geverifieerd",
     billing_plan_heading: "Abonnement",
     billing_hide_plans: "Abonnementen verbergen",
     billing_cancel_notice_title: "Je abonnement wordt opgezegd",
-    billing_cancel_notice_body: "Je abonnement eindigt op {{date}}. Daarna gaat je account over naar het gratis abonnement.",
+    billing_cancel_notice_body:
+      "Je abonnement eindigt op {{date}}. Daarna gaat je account over naar het gratis abonnement.",
     billing_renewals_heading: "Verlengingen",
     billing_amount: "Bedrag",
     billing_desc_payment_failed: "Betaling mislukt",
@@ -4974,19 +4996,24 @@ export const nl = {
     special_offer_feature_aliases: "Onbeperkte aliassen",
     special_offer_feature_vanguard: "Extra beveiliging met Vanguard",
     special_offer_feature_storage: "500 GB versleutelde opslag",
-    special_offer_why_body: "Aster is een onafhankelijk bedrijf met een klein team, en je steun betekent veel voor ons. Abonnementen houden de dienst draaiende en stellen ons in staat Aster elke dag met zorg verder te ontwikkelen. Met deze aanbieding is beginnen makkelijker.",
+    special_offer_why_body:
+      "Aster is een onafhankelijk bedrijf met een klein team, en je steun betekent veel voor ons. Abonnementen houden de dienst draaiende en stellen ons in staat Aster elke dag met zorg verder te ontwikkelen. Met deze aanbieding is beginnen makkelijker.",
     special_offer_why_label: "Waarom deze aanbieding?",
-    special_offer_feature_vanguard_body: "App-vergrendeling en geavanceerde privacybescherming.",
-    special_offer_feature_domains_body: "Verstuur vanaf adressen op je eigen domeinen.",
+    special_offer_feature_vanguard_body:
+      "App-vergrendeling en geavanceerde privacybescherming.",
+    special_offer_feature_domains_body:
+      "Verstuur vanaf adressen op je eigen domeinen.",
     special_offer_feature_domains: "Tot 30 eigen domeinen",
-    special_offer_feature_storage_body: "Ruimte voor jaren aan mail en bestanden.",
+    special_offer_feature_storage_body:
+      "Ruimte voor jaren aan mail en bestanden.",
     special_offer_feature_aliases_body: "Geef elke site een eigen adres.",
     special_offer_fine_print:
       "Je betaalt {{offer_price}} per maand voor de eerste {{months}} maanden. Daarna wordt je abonnement verlengd voor {{price}} per maand totdat je het opzegt in Instellingen.",
     special_offer_dismiss: "Deze aanbieding niet meer tonen",
     special_offer_dismissed_toast: "We laten dit niet meer zien.",
     special_offer_success_title: "Bedankt. Je hebt nu Nova.",
-    special_offer_success_body: "Bedankt voor je abonnement. Je steun betekent veel voor ons.",
+    special_offer_success_body:
+      "Bedankt voor je abonnement. Je steun betekent veel voor ons.",
     special_offer_hero_duration: "voor {{months}} maanden",
     plan_billing_terms:
       "Abonnementen worden automatisch verlengd tegen het standaardtarief totdat je opzegt. Je kunt op elk moment opzeggen in Instellingen.",
@@ -5025,48 +5052,72 @@ export const nl = {
     bimi_adj_removed_metadata: "Metadata verwijderd.",
     bimi_adj_removed_position: "Positieverschuiving verwijderd.",
     bimi_adj_removed_size: "Vaste breedte en hoogte verwijderd.",
-    bimi_adj_removed_unsupported_attributes: "Niet-ondersteunde kenmerken verwijderd.",
+    bimi_adj_removed_unsupported_attributes:
+      "Niet-ondersteunde kenmerken verwijderd.",
     bimi_adj_set_tiny_ps_profile: "SVG-profiel ingesteld op Tiny PS.",
-    bimi_adjustments_title: "Aster heeft uw bestand aangepast om aan de vereisten te voldoen:",
-    bimi_auto_checking: "Aster controleert het record automatisch zolang deze pagina open is.",
+    bimi_adjustments_title:
+      "Aster heeft uw bestand aangepast om aan de vereisten te voldoen:",
+    bimi_auto_checking:
+      "Aster controleert het record automatisch zolang deze pagina open is.",
     bimi_check_again: "Opnieuw controleren",
     bimi_checking: "Controleren",
     bimi_choose_file: "Bestand kiezen",
-    bimi_dmarc_invalid: "Uw DMARC-record kan niet worden gelezen. Vervang het door een geldig record.",
-    bimi_dmarc_missing: "Voeg een DMARC-record toe met p=quarantine of p=reject.",
-    bimi_dmarc_not_enforced: "Wijzig uw DMARC-beleid in p=quarantine of p=reject.",
-    bimi_dmarc_organization_not_enforced: "Het DMARC-beleid van uw bovenliggende domein moet ook quarantine of reject zijn.",
-    bimi_dmarc_partial: "Verwijder de pct-tag uit uw DMARC-record of stel deze in op 100.",
+    bimi_dmarc_invalid:
+      "Uw DMARC-record kan niet worden gelezen. Vervang het door een geldig record.",
+    bimi_dmarc_missing:
+      "Voeg een DMARC-record toe met p=quarantine of p=reject.",
+    bimi_dmarc_not_enforced:
+      "Wijzig uw DMARC-beleid in p=quarantine of p=reject.",
+    bimi_dmarc_organization_not_enforced:
+      "Het DMARC-beleid van uw bovenliggende domein moet ook quarantine of reject zijn.",
+    bimi_dmarc_partial:
+      "Verwijder de pct-tag uit uw DMARC-record of stel deze in op 100.",
     bimi_dmarc_ready: "Uw DMARC-beleid is quarantine of reject.",
-    bimi_dmarc_subdomain_policy_none: "Wijzig de sp-tag in uw DMARC-record in quarantine of reject.",
+    bimi_dmarc_subdomain_policy_none:
+      "Wijzig de sp-tag in uw DMARC-record in quarantine of reject.",
     bimi_drop_here: "Sleep je SVG-logo hierheen.",
-    bimi_err_doctype_entities: "Het bestand declareert aangepaste entiteiten, wat niet is toegestaan.",
+    bimi_err_doctype_entities:
+      "Het bestand declareert aangepaste entiteiten, wat niet is toegestaan.",
     bimi_err_empty: "De afbeelding is leeg.",
-    bimi_err_external_reference: "Het bestand linkt naar een externe bron, wat niet is toegestaan.",
-    bimi_err_invalid_reference: "Het bestand bevat een ongeldige interne verwijzing.",
-    bimi_err_invalid_value: "Het bestand bevat een kenmerkwaarde die niet is toegestaan.",
+    bimi_err_external_reference:
+      "Het bestand linkt naar een externe bron, wat niet is toegestaan.",
+    bimi_err_invalid_reference:
+      "Het bestand bevat een ongeldige interne verwijzing.",
+    bimi_err_invalid_value:
+      "Het bestand bevat een kenmerkwaarde die niet is toegestaan.",
     bimi_err_malformed: "Het bestand is geen geldige SVG.",
-    bimi_err_missing_view_box: "De afbeelding heeft geen viewBox. Exporteer het bestand met een viewBox.",
-    bimi_err_not_square: "Het logo is niet vierkant. Maak de breedte en hoogte gelijk.",
+    bimi_err_missing_view_box:
+      "De afbeelding heeft geen viewBox. Exporteer het bestand met een viewBox.",
+    bimi_err_not_square:
+      "Het logo is niet vierkant. Maak de breedte en hoogte gelijk.",
     bimi_err_not_svg: "Het bestand is geen SVG-afbeelding.",
     bimi_err_not_utf8: "Het bestand is geen SVG-tekstbestand.",
-    bimi_err_raster_image: "Het bestand bevat een ingesloten bitmapafbeelding. Gebruik alleen vectorvormen.",
-    bimi_err_script_content: "Het bestand bevat een script, wat niet is toegestaan.",
-    bimi_err_text_not_outlined: "Het logo bevat tekst. Zet tekst om in contouren voordat u het exporteert.",
-    bimi_err_too_complex: "De afbeelding is te complex. Vereenvoudig deze en exporteer opnieuw.",
+    bimi_err_raster_image:
+      "Het bestand bevat een ingesloten bitmapafbeelding. Gebruik alleen vectorvormen.",
+    bimi_err_script_content:
+      "Het bestand bevat een script, wat niet is toegestaan.",
+    bimi_err_text_not_outlined:
+      "Het logo bevat tekst. Zet tekst om in contouren voordat u het exporteert.",
+    bimi_err_too_complex:
+      "De afbeelding is te complex. Vereenvoudig deze en exporteer opnieuw.",
     bimi_err_too_large: "Het bestand is te groot.",
-    bimi_err_unsupported_element: "Het bestand bevat elementen die niet zijn toegestaan.",
-    bimi_err_unsupported_style: "Het bestand gebruikt stijlen of effecten die niet zijn toegestaan, zoals filters, maskers of stylesheets.",
-    bimi_error_domain_not_active: "Rond de configuratie van dit domein af voordat u een logo publiceert.",
+    bimi_err_unsupported_element:
+      "Het bestand bevat elementen die niet zijn toegestaan.",
+    bimi_err_unsupported_style:
+      "Het bestand gebruikt stijlen of effecten die niet zijn toegestaan, zoals filters, maskers of stylesheets.",
+    bimi_error_domain_not_active:
+      "Rond de configuratie van dit domein af voordat u een logo publiceert.",
     bimi_error_file_too_large: "Het bestand is groter dan 64 KB.",
     bimi_error_logo_required: "Upload een logo voordat je publiceert.",
     bimi_error_not_svg_file: "Kies een SVG-bestand.",
     bimi_error_throttled: "Wacht even en probeer het dan opnieuw.",
     bimi_errors_title: "Dit bestand kan niet als merklogo worden gebruikt:",
     bimi_last_checked: "Laatst gecontroleerd: {time}",
-    bimi_logo_public_note: "Uw logo is openbaar. Iedereen die uw e-mail ontvangt, kan het zien.",
+    bimi_logo_public_note:
+      "Uw logo is openbaar. Iedereen die uw e-mail ontvangt, kan het zien.",
     bimi_logo_ready: "Je logo voldoet aan de vereisten.",
-    bimi_managed_note: "Uw domein is via Aster gekocht, dus het DNS-record wordt voor u toegevoegd.",
+    bimi_managed_note:
+      "Uw domein is via Aster gekocht, dus het DNS-record wordt voor u toegevoegd.",
     bimi_preview_alt: "Voorbeeld van je merklogo",
     bimi_preview_dark: "Donker",
     bimi_preview_inbox_subject: "Onze nieuwste update",
@@ -5074,31 +5125,42 @@ export const nl = {
     bimi_preview_light: "Licht",
     bimi_publish: "Logo publiceren",
     bimi_publishing: "Publiceren",
-    bimi_record_conflict: "Er bestaat al een ander BIMI-record voor dit domein. Verwijder het zodat alleen dit record overblijft.",
-    bimi_record_external: "Het bestaande BIMI-record verwijst naar een andere host. Vervang het door dit record om hosting via Aster te gebruiken.",
+    bimi_record_conflict:
+      "Er bestaat al een ander BIMI-record voor dit domein. Verwijder het zodat alleen dit record overblijft.",
+    bimi_record_external:
+      "Het bestaande BIMI-record verwijst naar een andere host. Vervang het door dit record om hosting via Aster te gebruiken.",
     bimi_record_host: "Host",
-    bimi_record_missing: "Het record is nog niet zichtbaar. DNS-wijzigingen kunnen tot 48 uur duren.",
-    bimi_record_removed: "Aster kan dit record niet meer vinden. Voeg het opnieuw toe bij uw DNS-provider.",
+    bimi_record_missing:
+      "Het record is nog niet zichtbaar. DNS-wijzigingen kunnen tot 48 uur duren.",
+    bimi_record_removed:
+      "Aster kan dit record niet meer vinden. Voeg het opnieuw toe bij uw DNS-provider.",
     bimi_record_published: "Het record is gepubliceerd.",
     bimi_record_title: "Voeg dit record toe bij uw DNS-provider",
     bimi_record_type: "Type",
     bimi_copy_field: "{field} kopiëren",
     bimi_record_value: "Waarde",
     bimi_replace_logo: "Logo vervangen",
-    bimi_req_auth_fail: "Verifieer eerst de SPF- en DKIM-records voor dit domein.",
+    bimi_req_auth_fail:
+      "Verifieer eerst de SPF- en DKIM-records voor dit domein.",
     bimi_req_auth_ok: "SPF en DKIM zijn geverifieerd.",
     bimi_req_auth_title: "E-mailverificatie",
     bimi_req_dmarc_title: "DMARC-handhaving",
     bimi_req_not_checked: "Nog niet gecontroleerd.",
     bimi_requirements_title: "Vereisten",
-    bimi_row_attention: "Uw logo is gepubliceerd, maar er wordt niet meer aan een vereiste voldaan.",
+    bimi_row_attention:
+      "Uw logo is gepubliceerd, maar er wordt niet meer aan een vereiste voldaan.",
     bimi_row_draft: "Uw logo is klaar. Publiceer het om het te gaan gebruiken.",
-    bimi_row_external: "Dit domein heeft een BIMI-record dat naar een andere host verwijst.",
-    bimi_row_inactive: "Rond de configuratie van dit domein af om een merklogo toe te voegen.",
+    bimi_row_external:
+      "Dit domein heeft een BIMI-record dat naar een andere host verwijst.",
+    bimi_row_inactive:
+      "Rond de configuratie van dit domein af om een merklogo toe te voegen.",
     bimi_row_live: "Uw logo is gepubliceerd.",
-    bimi_row_off: "Toon uw logo naast uw e-mails in inboxen die merklogo's ondersteunen.",
-    bimi_row_pending: "Voeg het DNS-record toe en controleer het daarna opnieuw.",
-    bimi_row_pending_managed: "Uw DNS-record wordt gepubliceerd. Dit kan een paar minuten duren.",
+    bimi_row_off:
+      "Toon uw logo naast uw e-mails in inboxen die merklogo's ondersteunen.",
+    bimi_row_pending:
+      "Voeg het DNS-record toe en controleer het daarna opnieuw.",
+    bimi_row_pending_managed:
+      "Uw DNS-record wordt gepubliceerd. Dit kan een paar minuten duren.",
     bimi_rule_safe: "Geen scripts of externe links",
     bimi_rule_size: "32 KB of kleiner nadat Aster het heeft geoptimaliseerd",
     bimi_rule_square: "Vierkant, met gelijke breedte en hoogte",
@@ -5116,13 +5178,16 @@ export const nl = {
     bimi_step_publish: "Publiceren",
     bimi_title: "Merklogo",
     bimi_turn_off: "Uitschakelen",
-    bimi_turn_off_body: "Uw logo wordt direct niet meer gehost en inboxen tonen in plaats daarvan een standaardpictogram.",
+    bimi_turn_off_body:
+      "Uw logo wordt direct niet meer gehost en inboxen tonen in plaats daarvan een standaardpictogram.",
     bimi_turn_off_confirm: "Uitschakelen",
     bimi_turn_off_description: "Je logo wordt niet meer getoond in inboxen.",
-    bimi_turn_off_remove_record: "Verwijder het default._bimi TXT-record bij uw DNS-provider.",
+    bimi_turn_off_remove_record:
+      "Verwijder het default._bimi TXT-record bij uw DNS-provider.",
     bimi_turn_off_title: "Merklogo uitschakelen?",
     bimi_uploading: "Uploaden",
-    bimi_verified_mark_note: "Sommige inboxen tonen alleen merklogo's voor domeinen met een Verified Mark Certificate.",
+    bimi_verified_mark_note:
+      "Sommige inboxen tonen alleen merklogo's voor domeinen met een Verified Mark Certificate.",
     set_host_root:
       "Stel de host in op @ (voer je domein niet in; je provider voegt het automatisch toe)",
     use_exact_host:
@@ -5587,9 +5652,11 @@ export const nl = {
     compose_mode_fullscreen: "Altijd volledig scherm",
     compose_mode_minimized: "Geminimaliseerd starten",
     default_sender_group: "Verzenden",
-    default_sender_group_description: "Kies vanaf welk van je adressen nieuwe berichten vertrekken.",
+    default_sender_group_description:
+      "Kies vanaf welk van je adressen nieuwe berichten vertrekken.",
     default_sender_title: "Standaardafzender",
-    default_sender_description: "Nieuwe berichten vertrekken vanaf dit adres. Antwoorden gebruiken het adres waarnaar het bericht is verstuurd.",
+    default_sender_description:
+      "Nieuwe berichten vertrekken vanaf dit adres. Antwoorden gebruiken het adres waarnaar het bericht is verstuurd.",
     default_sender_no_addresses: "Geen andere adressen",
     compose_defaults_title: "Standaardopmaak",
     compose_defaults_description:
@@ -5606,9 +5673,11 @@ export const nl = {
     reply_defaults_title: "Antwoorden",
     reply_defaults_description: "Kies waarmee een nieuw antwoord begint.",
     reply_include_quoted: "Geciteerde tekst toevoegen",
-    reply_include_quoted_description: "Elk antwoord begint met het originele bericht geciteerd onder je tekst.",
+    reply_include_quoted_description:
+      "Elk antwoord begint met het originele bericht geciteerd onder je tekst.",
     reply_prefix_subject: "Re: aan het onderwerp toevoegen",
-    reply_prefix_subject_description: "Zet Re: voor het originele onderwerp wanneer je antwoordt.",
+    reply_prefix_subject_description:
+      "Zet Re: voor het originele onderwerp wanneer je antwoordt.",
     change_plan: "Abonnement wijzigen",
     change_plan_description:
       "Upgrade of downgrade je abonnement via het factureringsportaal",
@@ -5653,7 +5722,8 @@ export const nl = {
       "Je hebt dit plan al. Promotiecodes gelden als je naar een ander plan overstapt.",
     promo_error_not_upgrade:
       "Promotiecodes gelden als je upgradet naar een hoger plan.",
-    promo_error_card_only: "Deze promotiecode werkt alleen bij betalingen met een kaart.",
+    promo_error_card_only:
+      "Deze promotiecode werkt alleen bij betalingen met een kaart.",
     promo_error_with_credits:
       "Je kunt een promotiecode en accounttegoed niet voor dezelfde betaling gebruiken.",
     promo_error_not_for_addon: "Promotiecodes gelden niet voor add-ons.",
@@ -7010,18 +7080,26 @@ export const nl = {
     bridge_format_pacman_desc: "Arch Linux en afgeleiden",
     bridge_download_started: "Download gestart",
     bridge_download_failed: "De download is niet gestart. Probeer het opnieuw.",
-    bridge_support_help_desc: "Installatiegidsen en antwoorden op veelgestelde vragen",
-    bridge_support_discord_desc: "Stel je vraag aan het team en andere Aster-gebruikers",
+    bridge_support_help_desc:
+      "Installatiegidsen en antwoorden op veelgestelde vragen",
+    bridge_support_discord_desc:
+      "Stel je vraag aan het team en andere Aster-gebruikers",
     bridge_support_reddit_desc: "Volg aankondigingen en praat mee",
     bridge_support_github_desc: "Bekijk de broncode en meld een probleem",
     bridge_all_platforms: "Alle platforms",
-    bridge_upgrade_benefit_clients: "Werkt met Apple Mail, Thunderbird en Outlook",
-    bridge_upgrade_benefit_local: "Draait lokaal, zodat je e-mail versleuteld blijft",
-    bridge_upgrade_benefit_platforms: "Beschikbaar voor Windows, macOS en Linux",
-    bridge_upgrade_benefit_cli: "Inclusief een opdrachtregelversie voor servers",
+    bridge_upgrade_benefit_clients:
+      "Werkt met Apple Mail, Thunderbird en Outlook",
+    bridge_upgrade_benefit_local:
+      "Draait lokaal, zodat je e-mail versleuteld blijft",
+    bridge_upgrade_benefit_platforms:
+      "Beschikbaar voor Windows, macOS en Linux",
+    bridge_upgrade_benefit_cli:
+      "Inclusief een opdrachtregelversie voor servers",
     bridge_cli_download: "Downloaden",
-    bridge_cli_install_hint: "Download het archief voor je platform, pak het uit en verplaats het binaire bestand naar je PATH.",
-    bridge_cli_install_hint_windows: "Download het archief, pak het uit en voeg de map toe aan je PATH.",
+    bridge_cli_install_hint:
+      "Download het archief voor je platform, pak het uit en verplaats het binaire bestand naar je PATH.",
+    bridge_cli_install_hint_windows:
+      "Download het archief, pak het uit en voeg de map toe aan je PATH.",
     bridge_cli_copy_command: "Installatieopdrachten kopiëren",
     bridge_cli_docs_link: "Lees de opdrachtregelhandleiding",
     bridge_cli_name: "Opdrachtregel",
@@ -9246,7 +9324,8 @@ export const nl = {
     creating_new_recovery_backup: "Nieuwe herstelback-up aanmaken...",
     saving_new_credentials: "Nieuwe inloggegevens opslaan...",
     recover_your_account: "Herstel je account",
-    enter_email_associated: "Voer het adres in van het account dat je wilt herstellen.",
+    enter_email_associated:
+      "Voer het adres in van het account dat je wilt herstellen.",
     back_to_sign_in: "Terug naar inloggen",
     email_me_reset_link: "Stuur me een resetlink per e-mail",
     have_recovery_code: "Heb je een herstelcode?",
@@ -9265,7 +9344,8 @@ export const nl = {
     set_new_password: "Nieuw wachtwoord instellen",
     resetting_password: "Wachtwoord opnieuw instellen...",
     enter_recovery_code: "Voer herstelcode in",
-    enter_recovery_code_desc: "Voer een van de herstelcodes in die je hebt opgeslagen toen je je account aanmaakte.",
+    enter_recovery_code_desc:
+      "Voer een van de herstelcodes in die je hebt opgeslagen toen je je account aanmaakte.",
     create_new_password: "Nieuw wachtwoord aanmaken",
     choose_strong_password: "Kies een sterk wachtwoord voor je account",
     recovering_your_account: "Je account herstellen",
@@ -9281,11 +9361,13 @@ export const nl = {
     recovery_email_label: "Aster Mail-adres",
     recovery_domain_hint: "Kies het domein dat bij je account hoort.",
     recovery_code_label: "Herstelcode",
-    recovery_code_hint: "Elke code werkt één keer. Codes zien er zo uit: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    recovery_code_hint:
+      "Elke code werkt één keer. Codes zien er zo uit: ASTER-XXXX-XXXX-XXXX-XXXX.",
     change_account: "Een ander adres gebruiken",
     change_account_desc: "Herstel een ander Aster Mail-account.",
     support_step_title: "Contact opnemen met support",
-    support_step_desc: "Aster Mail kan je versleutelde gegevens niet lezen, dus niemand kan ze ontgrendelen zonder een herstelcode of je herstel-e-mail. Support kan je account controleren en je helpen met de volgende stappen.",
+    support_step_desc:
+      "Aster Mail kan je versleutelde gegevens niet lezen, dus niemand kan ze ontgrendelen zonder een herstelcode of je herstel-e-mail. Support kan je account controleren en je helpen met de volgende stappen.",
     support_email_action: "Support mailen",
     support_help_center: "Naar het helpcentrum",
     other_ways_title: "Probeer het anders",
@@ -9296,7 +9378,8 @@ export const nl = {
     other_way_email_desc:
       "Aster Mail stuurt een link naar je herstel-e-mail. Je verliest toegang tot e-mail van voor het opnieuw instellen.",
     other_way_none_title: "Ik heb hier niets van",
-    other_way_none_desc: "Neem contact op met support, dan helpen we je met de volgende stappen.",
+    other_way_none_desc:
+      "Neem contact op met support, dan helpen we je met de volgende stappen.",
     reset_account_title: "Je account opnieuw instellen?",
     reset_account_desc:
       "Je versleutelde e-mail, contacten en bestanden van voor het opnieuw instellen blijven vergrendeld tot je ze herstelt met je oude wachtwoord. Je krijgt een nieuwe, lege versleutelingssleutel.",

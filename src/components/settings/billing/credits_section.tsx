@@ -69,6 +69,10 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { convert_cents } from "@/components/settings/billing/billing_constants";
 import { describe_credit_entry } from "@/utils/billing_description";
+import {
+  BillingMoreRow,
+  billing_row_icon,
+} from "@/components/settings/billing/billing_more_section";
 import text_logo_url from "@/assets/text_logo.webp";
 
 const tile_base =
@@ -128,6 +132,7 @@ interface CreditsSectionProps {
   >;
   preferred_currency: string;
   payment_cell?: React.ReactNode;
+  embedded?: boolean;
 }
 
 export function CreditsSection({
@@ -135,8 +140,10 @@ export function CreditsSection({
   set_credit_balance,
   preferred_currency,
   payment_cell,
+  embedded = false,
 }: CreditsSectionProps) {
   const { t } = use_i18n();
+  const [open, set_open] = useState(false);
   const [credit_transactions_list, set_credit_transactions_list] = useState<
     CreditTransactionItem[]
   >([]);
@@ -337,414 +344,448 @@ export function CreditsSection({
   const has_transactions =
     !!credit_balance && (credit_balance.recent_transactions?.length ?? 0) > 0;
 
+  const show_renewals =
+    !!credit_balance &&
+    (Number(credit_balance.balance_cents) > 0 || has_transactions);
+
+  const renewals_content = show_renewals && (
+    <>
+      <SettingToggleRow
+        checked={!!credit_balance?.use_credits_for_renewals}
+        description={t("settings.use_credits_for_renewals_description")}
+        label={t("settings.use_credits_for_renewals")}
+        on_change={toggle_renewals}
+      />
+      {has_transactions && (
+        <>
+          <IslandDivider />
+          <IslandRow
+            label={t("settings.recent_transactions")}
+            trailing={
+              <PillButton
+                size="sm"
+                type="button"
+                variant="neutral"
+                onClick={toggle_transactions}
+              >
+                {show_all_transactions
+                  ? t("common.close")
+                  : t("settings.view_all_transactions")}
+              </PillButton>
+            }
+          />
+          <div className="pb-1">
+            {(show_all_transactions
+              ? credit_transactions_list
+              : credit_balance.recent_transactions
+            ).map((tx) => {
+              const credit_type_labels: Record<string, string> = {
+                referral_reward: t("settings.credit_type_referral_reward"),
+                referral_commission: t(
+                  "settings.credit_type_referral_commission",
+                ),
+                admin_grant: t("settings.credit_type_admin_grant"),
+                promo: t("settings.credit_type_promo"),
+                renewal_deduction: t("settings.credit_type_renewal_deduction"),
+                reversal: t("settings.credit_type_reversal"),
+                purchase: t("settings.credit_type_purchase"),
+                install_android_reward: t(
+                  "settings.credit_type_install_android",
+                ),
+                install_desktop_reward: t(
+                  "settings.credit_type_install_desktop",
+                ),
+                install_ios_reward: t("settings.credit_type_install_ios"),
+                refunded: t("settings.credit_type_refunded"),
+                spent: t("settings.credit_type_spent"),
+                clawback: t("settings.credit_type_clawback"),
+                admin_removal: t("settings.credit_type_admin_removal"),
+                crypto_overpayment: t(
+                  "settings.credit_type_crypto_overpayment",
+                ),
+                crypto_overpayment_reversal: t(
+                  "settings.credit_type_crypto_overpayment_reversal",
+                ),
+                prepaid_switch_residual: t(
+                  "settings.credit_type_prepaid_switch_residual",
+                ),
+                prepaid_switch_residual_reversal: t(
+                  "settings.credit_type_prepaid_switch_residual_reversal",
+                ),
+              };
+              const type_label =
+                credit_type_labels[tx.transaction_type] ||
+                capitalize_words(tx.transaction_type);
+
+              return (
+                <div
+                  key={tx.id}
+                  className="flex items-center justify-between gap-3 px-4 py-2.5"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm text-txt-primary">
+                      {describe_credit_entry(tx.description, t) ||
+                        capitalize_words(tx.transaction_type)}
+                    </p>
+                    <p className="mt-0.5 text-xs text-txt-muted">
+                      {format_date(tx.created_at)}
+                      <span aria-hidden="true" className="mx-1.5">
+                        ·
+                      </span>
+                      {type_label}
+                    </p>
+                  </div>
+                  <p className="flex-shrink-0 text-sm font-medium tabular-nums text-txt-primary">
+                    {tx.amount_cents < 0 ? "-" : "+"}
+                    {format_price(Math.abs(tx.amount_cents))}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </>
+  );
+
+  const top_up_modal = (
+    <Modal
+      show_close_button
+      close_on_escape={false}
+      close_on_overlay={false}
+      is_open={show_picker}
+      on_close={request_close}
+      size="2xl"
+    >
+      <ModalHeader className="pb-4">
+        <ModalTitle className="text-lg">
+          {t("settings.checkout_review_title")}
+        </ModalTitle>
+      </ModalHeader>
+      <ModalBody className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_312px]">
+        <div className="min-w-0 space-y-5">
+          <div>
+            {section_heading(t("settings.top_up_credits"))}
+            {packages.length === 0 ? (
+              <div className="flex items-center justify-between gap-3 rounded-xl border border-edge-secondary px-3 py-4">
+                <p className="text-xs text-txt-muted">
+                  {packages_failed
+                    ? t("settings.credit_packages_failed")
+                    : t("settings.credit_packages_loading")}
+                </p>
+                {packages_failed && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => set_packages_tick((n) => n + 1)}
+                  >
+                    {t("common.retry")}
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <div className="grid gap-2 sm:grid-cols-3" role="radiogroup">
+                {packages.map((pkg) => {
+                  const price = convert_cents(
+                    pkg.price_cents,
+                    preferred_currency,
+                  );
+                  const total = convert_cents(
+                    pkg.amount_cents + pkg.bonus_cents,
+                    preferred_currency,
+                  );
+                  const bonus = convert_cents(
+                    pkg.bonus_cents,
+                    preferred_currency,
+                  );
+                  const active = selected_package?.id === pkg.id;
+
+                  return (
+                    <button
+                      key={pkg.id}
+                      aria-checked={active}
+                      className={`${tile_base} flex h-full flex-col px-3 pb-3 pt-3 ${
+                        active
+                          ? ""
+                          : "border-edge-secondary hover:bg-surf-tertiary"
+                      }`}
+                      disabled={buying}
+                      role="radio"
+                      style={tile_style(active)}
+                      type="button"
+                      onClick={() => set_selected_package(pkg)}
+                    >
+                      {tile_check(active)}
+                      <span className="block pe-5 text-[15px] font-bold text-txt-primary">
+                        {format_price(price, preferred_currency)}
+                      </span>
+                      {bonus > 0 && (
+                        <span
+                          className="mt-1 block text-[11px] font-medium leading-snug"
+                          style={{ color: "var(--accent-color)" }}
+                        >
+                          {t("settings.credit_package_bonus", {
+                            bonus: format_price(bonus, preferred_currency),
+                          })}
+                        </span>
+                      )}
+                      <span className="mt-auto block pt-1 text-[11px] text-txt-muted">
+                        {t("settings.credit_package_total", {
+                          total: format_price(total, preferred_currency),
+                        })}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {packages.length > 0 && (
+            <div>
+              {section_heading(t("settings.payment_details"))}
+              <div className="grid gap-2 sm:grid-cols-2" role="radiogroup">
+                {credit_methods.map((entry) => {
+                  const active = entry.id === credit_method;
+                  const MethodIcon = entry.icon;
+
+                  return (
+                    <button
+                      key={entry.id}
+                      aria-checked={active}
+                      className={`${tile_base} flex h-full flex-col px-3 pb-3 pt-3 ${
+                        active
+                          ? ""
+                          : "border-edge-secondary hover:bg-surf-tertiary"
+                      }`}
+                      disabled={buying}
+                      role="radio"
+                      style={tile_style(active)}
+                      type="button"
+                      onClick={() => set_credit_method(entry.id)}
+                    >
+                      {tile_check(active)}
+                      <span className="flex items-center gap-2">
+                        <MethodIcon className="h-5 w-5 flex-shrink-0 text-txt-primary" />
+                        <span className="text-[13px] font-semibold text-txt-primary">
+                          {entry.label}
+                        </span>
+                      </span>
+                      <span className="mt-1 block text-[11px] leading-snug text-txt-muted">
+                        {entry.note}
+                      </span>
+                      {entry.id === "card" ? (
+                        <CardBrandMarks class_name="mt-auto pt-2.5" />
+                      ) : (
+                        <CoinStack class_name="mt-auto pt-2.5" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              <SecurityMarks
+                class_name="mt-2.5 px-1"
+                label={t("settings.stripe_secure_short")}
+              />
+            </div>
+          )}
+        </div>
+
+        <aside className="min-w-0">
+          <div className="plan_galaxy rounded-2xl border border-edge-secondary p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[11px] font-semibold uppercase tracking-wider plan_galaxy_text_muted">
+                {t("settings.domain_purchase_order_summary")}
+              </p>
+              <img
+                alt="Aster"
+                className="h-4 w-auto flex-shrink-0 opacity-80"
+                decoding="async"
+                draggable={false}
+                {...{ fetchpriority: "high" }}
+                height={16}
+                src={text_logo_url}
+              />
+            </div>
+
+            <p className="mt-3 text-[15px] font-bold plan_galaxy_text_primary">
+              {t("settings.top_up_credits")}
+            </p>
+
+            {summary && (
+              <>
+                <div className="mt-3 space-y-1.5 text-[12px] plan_galaxy_text_body">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="plan_galaxy_text_muted">
+                      {t("common.subtotal")}
+                    </span>
+                    <span>
+                      {format_price(summary.price, preferred_currency)}
+                    </span>
+                  </div>
+                  {summary.bonus > 0 && (
+                    <div style={{ color: "var(--accent-color)" }}>
+                      {t("settings.credit_package_bonus", {
+                        bonus: format_price(summary.bonus, preferred_currency),
+                      })}
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="plan_galaxy_text_muted">
+                      {t("settings.credits")}
+                    </span>
+                    <span>
+                      {format_price(summary.total, preferred_currency)}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="plan_galaxy_divider mt-3 border-t pt-3">
+                  <div className="flex items-end justify-between gap-2">
+                    <span className="text-[12px] font-semibold plan_galaxy_text_muted">
+                      {t("settings.checkout_amount_due")}
+                    </span>
+                    <span className="text-[22px] font-bold leading-none plan_galaxy_text_primary">
+                      {format_price(summary.price, preferred_currency)}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+
+            <Button
+              className="mt-4 w-full"
+              disabled={buying || !selected_package}
+              variant="primary"
+              onClick={handle_buy}
+            >
+              {buying ? (
+                <>
+                  <ButtonSpinner size="xs" />
+                  {t("settings.buying_credits")}
+                </>
+              ) : (
+                t("settings.buy_credits")
+              )}
+            </Button>
+
+            <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] plan_galaxy_text_muted">
+              <LockClosedIcon className="h-3.5 w-3.5 flex-shrink-0" />
+              <span>{t("settings.stripe_secure_short")}</span>
+            </div>
+
+            <p className="mt-2 text-[11px] leading-relaxed plan_galaxy_text_muted">
+              {t("settings.top_up_credits_description")}
+            </p>
+          </div>
+        </aside>
+      </ModalBody>
+
+      <Modal
+        close_on_escape
+        close_on_overlay={false}
+        is_open={confirm_abandon}
+        on_close={() => set_confirm_abandon(false)}
+        show_close_button={false}
+        size="sm"
+        z_index={90}
+      >
+        <ModalHeader className="pb-2">
+          <ModalTitle className="text-base">
+            {t("settings.checkout_abandon_title")}
+          </ModalTitle>
+        </ModalHeader>
+        <ModalBody>
+          <p className="text-[13px] leading-relaxed text-txt-secondary">
+            {t("settings.checkout_abandon_message")}
+          </p>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            variant="secondary"
+            onClick={() => set_confirm_abandon(false)}
+          >
+            {t("settings.checkout_abandon_keep")}
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => {
+              set_confirm_abandon(false);
+              set_show_picker(false);
+            }}
+          >
+            {t("settings.checkout_abandon_confirm")}
+          </Button>
+        </ModalFooter>
+      </Modal>
+    </Modal>
+  );
+
+  const balance_row = (
+    <IslandRow
+      description={t("settings.credits_balance_label")}
+      icon={<ArrowPathIcon className="h-[22px] w-[22px]" />}
+      label={format_price(credit_balance?.balance_cents ?? 0)}
+      trailing={
+        <PillButton
+          size="sm"
+          type="button"
+          variant="filled"
+          onClick={() => set_show_picker(true)}
+        >
+          {t("settings.top_up_credits")}
+        </PillButton>
+      }
+    />
+  );
+
+  if (embedded) {
+    return (
+      <>
+        <BillingMoreRow
+          flush
+          description={t("settings.billing_credits_subtitle")}
+          icon={billing_row_icon(CurrencyDollarIcon)}
+          id="credits_section"
+          label={t("settings.credits")}
+          on_toggle={() => set_open((value) => !value)}
+          open={open}
+          value={format_price(credit_balance?.balance_cents ?? 0)}
+        >
+          {balance_row}
+          {renewals_content && (
+            <>
+              <IslandDivider />
+              {renewals_content}
+            </>
+          )}
+        </BillingMoreRow>
+        {top_up_modal}
+      </>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-7" id="credits_section">
       <IslandSection bare title={t("settings.credits")}>
         <Island className="overflow-hidden" padding="none">
           {payment_cell}
           {payment_cell && <IslandDivider inset={52} />}
-          <IslandRow
-            description={t("settings.credits_balance_label")}
-            icon={<ArrowPathIcon className="h-[22px] w-[22px]" />}
-            label={format_price(credit_balance?.balance_cents ?? 0)}
-            trailing={
-              <PillButton
-                size="sm"
-                type="button"
-                variant="filled"
-                onClick={() => set_show_picker(true)}
-              >
-                {t("settings.top_up_credits")}
-              </PillButton>
-            }
-          />
+          {balance_row}
         </Island>
       </IslandSection>
 
-      <Modal
-        show_close_button
-        close_on_escape={false}
-        close_on_overlay={false}
-        is_open={show_picker}
-        on_close={request_close}
-        size="2xl"
-      >
-        <ModalHeader className="pb-4">
-          <ModalTitle className="text-lg">
-            {t("settings.checkout_review_title")}
-          </ModalTitle>
-        </ModalHeader>
-        <ModalBody className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_312px]">
-          <div className="min-w-0 space-y-5">
-            <div>
-              {section_heading(t("settings.top_up_credits"))}
-              {packages.length === 0 ? (
-                <div className="flex items-center justify-between gap-3 rounded-xl border border-edge-secondary px-3 py-4">
-                  <p className="text-xs text-txt-muted">
-                    {packages_failed
-                      ? t("settings.credit_packages_failed")
-                      : t("settings.credit_packages_loading")}
-                  </p>
-                  {packages_failed && (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => set_packages_tick((n) => n + 1)}
-                    >
-                      {t("common.retry")}
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <div className="grid gap-2 sm:grid-cols-3" role="radiogroup">
-                  {packages.map((pkg) => {
-                    const price = convert_cents(
-                      pkg.price_cents,
-                      preferred_currency,
-                    );
-                    const total = convert_cents(
-                      pkg.amount_cents + pkg.bonus_cents,
-                      preferred_currency,
-                    );
-                    const bonus = convert_cents(
-                      pkg.bonus_cents,
-                      preferred_currency,
-                    );
-                    const active = selected_package?.id === pkg.id;
+      {top_up_modal}
 
-                    return (
-                      <button
-                        key={pkg.id}
-                        aria-checked={active}
-                        className={`${tile_base} flex h-full flex-col px-3 pb-3 pt-3 ${
-                          active
-                            ? ""
-                            : "border-edge-secondary hover:bg-surf-tertiary"
-                        }`}
-                        disabled={buying}
-                        role="radio"
-                        style={tile_style(active)}
-                        type="button"
-                        onClick={() => set_selected_package(pkg)}
-                      >
-                        {tile_check(active)}
-                        <span className="block pe-5 text-[15px] font-bold text-txt-primary">
-                          {format_price(price, preferred_currency)}
-                        </span>
-                        {bonus > 0 && (
-                          <span
-                            className="mt-1 block text-[11px] font-medium leading-snug"
-                            style={{ color: "var(--accent-color)" }}
-                          >
-                            {t("settings.credit_package_bonus", {
-                              bonus: format_price(bonus, preferred_currency),
-                            })}
-                          </span>
-                        )}
-                        <span className="mt-auto block pt-1 text-[11px] text-txt-muted">
-                          {t("settings.credit_package_total", {
-                            total: format_price(total, preferred_currency),
-                          })}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {packages.length > 0 && (
-              <div>
-                {section_heading(t("settings.payment_details"))}
-                <div className="grid gap-2 sm:grid-cols-2" role="radiogroup">
-                  {credit_methods.map((entry) => {
-                    const active = entry.id === credit_method;
-                    const MethodIcon = entry.icon;
-
-                    return (
-                      <button
-                        key={entry.id}
-                        aria-checked={active}
-                        className={`${tile_base} flex h-full flex-col px-3 pb-3 pt-3 ${
-                          active
-                            ? ""
-                            : "border-edge-secondary hover:bg-surf-tertiary"
-                        }`}
-                        disabled={buying}
-                        role="radio"
-                        style={tile_style(active)}
-                        type="button"
-                        onClick={() => set_credit_method(entry.id)}
-                      >
-                        {tile_check(active)}
-                        <span className="flex items-center gap-2">
-                          <MethodIcon className="h-5 w-5 flex-shrink-0 text-txt-primary" />
-                          <span className="text-[13px] font-semibold text-txt-primary">
-                            {entry.label}
-                          </span>
-                        </span>
-                        <span className="mt-1 block text-[11px] leading-snug text-txt-muted">
-                          {entry.note}
-                        </span>
-                        {entry.id === "card" ? (
-                          <CardBrandMarks class_name="mt-auto pt-2.5" />
-                        ) : (
-                          <CoinStack class_name="mt-auto pt-2.5" />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-                <SecurityMarks
-                  class_name="mt-2.5 px-1"
-                  label={t("settings.stripe_secure_short")}
-                />
-              </div>
-            )}
-          </div>
-
-          <aside className="min-w-0">
-            <div className="plan_galaxy rounded-2xl border border-edge-secondary p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-[11px] font-semibold uppercase tracking-wider plan_galaxy_text_muted">
-                  {t("settings.domain_purchase_order_summary")}
-                </p>
-                <img
-                  alt="Aster"
-                  className="h-4 w-auto flex-shrink-0 opacity-80"
-                  decoding="async"
-                  draggable={false}
-                  {...{ fetchpriority: "high" }}
-                  height={16}
-                  src={text_logo_url}
-                />
-              </div>
-
-              <p className="mt-3 text-[15px] font-bold plan_galaxy_text_primary">
-                {t("settings.top_up_credits")}
-              </p>
-
-              {summary && (
-                <>
-                  <div className="mt-3 space-y-1.5 text-[12px] plan_galaxy_text_body">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="plan_galaxy_text_muted">
-                        {t("common.subtotal")}
-                      </span>
-                      <span>
-                        {format_price(summary.price, preferred_currency)}
-                      </span>
-                    </div>
-                    {summary.bonus > 0 && (
-                      <div style={{ color: "var(--accent-color)" }}>
-                        {t("settings.credit_package_bonus", {
-                          bonus: format_price(
-                            summary.bonus,
-                            preferred_currency,
-                          ),
-                        })}
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="plan_galaxy_text_muted">
-                        {t("settings.credits")}
-                      </span>
-                      <span>
-                        {format_price(summary.total, preferred_currency)}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="plan_galaxy_divider mt-3 border-t pt-3">
-                    <div className="flex items-end justify-between gap-2">
-                      <span className="text-[12px] font-semibold plan_galaxy_text_muted">
-                        {t("settings.checkout_amount_due")}
-                      </span>
-                      <span className="text-[22px] font-bold leading-none plan_galaxy_text_primary">
-                        {format_price(summary.price, preferred_currency)}
-                      </span>
-                    </div>
-                  </div>
-                </>
-              )}
-
-              <Button
-                className="mt-4 w-full"
-                disabled={buying || !selected_package}
-                variant="primary"
-                onClick={handle_buy}
-              >
-                {buying ? (
-                  <>
-                    <ButtonSpinner size="xs" />
-                    {t("settings.buying_credits")}
-                  </>
-                ) : (
-                  t("settings.buy_credits")
-                )}
-              </Button>
-
-              <div className="mt-3 flex items-center justify-center gap-1.5 text-[11px] plan_galaxy_text_muted">
-                <LockClosedIcon className="h-3.5 w-3.5 flex-shrink-0" />
-                <span>{t("settings.stripe_secure_short")}</span>
-              </div>
-
-              <p className="mt-2 text-[11px] leading-relaxed plan_galaxy_text_muted">
-                {t("settings.top_up_credits_description")}
-              </p>
-            </div>
-          </aside>
-        </ModalBody>
-
-        <Modal
-          close_on_escape
-          close_on_overlay={false}
-          is_open={confirm_abandon}
-          on_close={() => set_confirm_abandon(false)}
-          show_close_button={false}
-          size="sm"
-          z_index={90}
+      {show_renewals && (
+        <IslandSection
+          island_class_name="overflow-hidden"
+          padding="none"
+          title={t("settings.billing_renewals_heading")}
         >
-          <ModalHeader className="pb-2">
-            <ModalTitle className="text-base">
-              {t("settings.checkout_abandon_title")}
-            </ModalTitle>
-          </ModalHeader>
-          <ModalBody>
-            <p className="text-[13px] leading-relaxed text-txt-secondary">
-              {t("settings.checkout_abandon_message")}
-            </p>
-          </ModalBody>
-          <ModalFooter>
-            <Button
-              variant="secondary"
-              onClick={() => set_confirm_abandon(false)}
-            >
-              {t("settings.checkout_abandon_keep")}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => {
-                set_confirm_abandon(false);
-                set_show_picker(false);
-              }}
-            >
-              {t("settings.checkout_abandon_confirm")}
-            </Button>
-          </ModalFooter>
-        </Modal>
-      </Modal>
-
-      {credit_balance &&
-        (Number(credit_balance.balance_cents) > 0 || has_transactions) && (
-          <IslandSection
-            island_class_name="overflow-hidden"
-            padding="none"
-            title={t("settings.billing_renewals_heading")}
-          >
-              <SettingToggleRow
-                checked={!!credit_balance?.use_credits_for_renewals}
-                description={t("settings.use_credits_for_renewals_description")}
-                label={t("settings.use_credits_for_renewals")}
-                on_change={toggle_renewals}
-              />
-              {has_transactions && (
-                <>
-                  <IslandDivider />
-                  <IslandRow
-                    label={t("settings.recent_transactions")}
-                    trailing={
-                      <PillButton
-                        size="sm"
-                        type="button"
-                        variant="neutral"
-                        onClick={toggle_transactions}
-                      >
-                        {show_all_transactions
-                          ? t("common.close")
-                          : t("settings.view_all_transactions")}
-                      </PillButton>
-                    }
-                  />
-                  <div className="pb-1">
-                    {(show_all_transactions
-                      ? credit_transactions_list
-                      : credit_balance.recent_transactions
-                    ).map((tx) => {
-                      const credit_type_labels: Record<string, string> = {
-                        referral_reward: t(
-                          "settings.credit_type_referral_reward",
-                        ),
-                        referral_commission: t(
-                          "settings.credit_type_referral_commission",
-                        ),
-                        admin_grant: t("settings.credit_type_admin_grant"),
-                        promo: t("settings.credit_type_promo"),
-                        renewal_deduction: t(
-                          "settings.credit_type_renewal_deduction",
-                        ),
-                        reversal: t("settings.credit_type_reversal"),
-                        purchase: t("settings.credit_type_purchase"),
-                        install_android_reward: t(
-                          "settings.credit_type_install_android",
-                        ),
-                        install_desktop_reward: t(
-                          "settings.credit_type_install_desktop",
-                        ),
-                        install_ios_reward: t(
-                          "settings.credit_type_install_ios",
-                        ),
-                        refunded: t("settings.credit_type_refunded"),
-                        spent: t("settings.credit_type_spent"),
-                        clawback: t("settings.credit_type_clawback"),
-                        admin_removal: t("settings.credit_type_admin_removal"),
-                        crypto_overpayment: t(
-                          "settings.credit_type_crypto_overpayment",
-                        ),
-                        crypto_overpayment_reversal: t(
-                          "settings.credit_type_crypto_overpayment_reversal",
-                        ),
-                        prepaid_switch_residual: t(
-                          "settings.credit_type_prepaid_switch_residual",
-                        ),
-                        prepaid_switch_residual_reversal: t(
-                          "settings.credit_type_prepaid_switch_residual_reversal",
-                        ),
-                      };
-                      const type_label =
-                        credit_type_labels[tx.transaction_type] ||
-                        capitalize_words(tx.transaction_type);
-
-                      return (
-                        <div
-                          key={tx.id}
-                          className="flex items-center justify-between gap-3 px-4 py-2.5"
-                        >
-                          <div className="min-w-0">
-                            <p className="truncate text-sm text-txt-primary">
-                              {describe_credit_entry(tx.description, t) ||
-                                capitalize_words(tx.transaction_type)}
-                            </p>
-                            <p className="mt-0.5 text-xs text-txt-muted">
-                              {format_date(tx.created_at)}
-                              <span aria-hidden="true" className="mx-1.5">
-                                ·
-                              </span>
-                              {type_label}
-                            </p>
-                          </div>
-                          <p className="flex-shrink-0 text-sm font-medium tabular-nums text-txt-primary">
-                            {tx.amount_cents < 0 ? "-" : "+"}
-                            {format_price(Math.abs(tx.amount_cents))}
-                          </p>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </>
-              )}
-          </IslandSection>
-        )}
+          {renewals_content}
+        </IslandSection>
+      )}
     </div>
   );
 }

@@ -23,10 +23,10 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { Fragment, useState } from "react";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
 import {
+  Button,
   Island,
   IslandDivider,
   IslandSection,
-  PillButton,
   Select,
   SelectContent,
   SelectItem,
@@ -518,8 +518,8 @@ export function AvailablePlansSection({
         </Island>
 
         <div className="flex flex-col items-center gap-2 pt-1">
-          <PillButton
-            block
+          <Button
+            className="w-full"
             disabled={
               !selected_tier ||
               selected_is_current ||
@@ -529,12 +529,12 @@ export function AvailablePlansSection({
             size="lg"
             type="button"
             variant={
-              selected_tier && !selected_is_current ? "filled" : "neutral"
+              selected_tier && !selected_is_current ? "depth" : "secondary"
             }
             onClick={handle_cta}
           >
             {cta_label}
-          </PillButton>
+          </Button>
           <p className="flex items-center gap-1.5 text-center text-[12px] text-txt-muted">
             <ShieldCheckIcon className="h-3.5 w-3.5 flex-shrink-0" />
             <span>

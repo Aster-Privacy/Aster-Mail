@@ -38,7 +38,6 @@ import {
   IslandRow,
   IslandSection,
   IslandSections,
-  UpgradeBtn,
 } from "@aster/ui";
 
 import {
@@ -481,41 +480,39 @@ function BridgeUpgradeCard({ on_upgrade }: BridgeUpgradeCardProps) {
   const { t } = use_i18n();
 
   return (
-    <Island padding="lg" tone="accent">
+    <Island padding="lg">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
         <div className="min-w-0 flex-1">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-white">
-            <LockClosedIcon className="h-3 w-3" />
-            {t("settings.requires_plan", { plan: "Star" })}
-          </span>
-          <h3 className="mt-3 text-lg font-semibold leading-6 text-txt-primary">
+          <h3 className="text-[17px] font-semibold leading-6 text-txt-primary">
             {t("settings.desktop_bridge_upgrade_title")}
           </h3>
-          <p className="mt-1.5 max-w-[46ch] text-sm leading-5 text-txt-secondary">
+          <p className="mt-1 max-w-[52ch] text-sm leading-5 text-txt-secondary">
             {t("settings.desktop_bridge_upgrade_description")}
           </p>
           <ul className="mt-4 grid grid-cols-1 gap-x-6 gap-y-2 md:grid-cols-2">
             {UPGRADE_BENEFIT_KEYS.map((key) => (
               <li
                 key={key}
-                className="flex items-start gap-2 text-sm leading-5 text-txt-primary"
+                className="flex items-start gap-2.5 text-sm leading-5 text-txt-primary"
               >
-                <span className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-brand text-white">
-                  <CheckIcon className="h-2.5 w-2.5" strokeWidth={3} />
-                </span>
+                <CheckIcon
+                  className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand"
+                  strokeWidth={2.5}
+                />
                 {t(key)}
               </li>
             ))}
           </ul>
         </div>
-        <div className="flex-shrink-0 sm:pt-1">
-          <UpgradeBtn
+        <div className="flex-shrink-0 sm:pt-0.5">
+          <Button
             className="w-full sm:w-auto"
             size="md"
+            variant="depth"
             onClick={on_upgrade}
           >
             {t("settings.desktop_bridge_upgrade_cta")}
-          </UpgradeBtn>
+          </Button>
         </div>
       </div>
     </Island>

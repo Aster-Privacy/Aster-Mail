@@ -22,6 +22,7 @@ import * as React from "react";
 import { PlusIcon, ClockIcon } from "@heroicons/react/24/outline";
 import {
   Button,
+  Input,
   Island,
   IslandEmpty,
   IslandSection,
@@ -607,10 +608,11 @@ export function RetentionEditorModal({
                     {preset}
                   </button>
                 ))}
-                <input
-                  className="w-20 rounded-full border border-edge-secondary bg-surf-primary px-3 py-1.5 text-sm text-txt-primary"
+                <Input
+                  className="!w-20"
                   max={3650}
                   min={1}
+                  size="sm"
                   type="number"
                   value={days_input ?? days}
                   onBlur={(e) => {

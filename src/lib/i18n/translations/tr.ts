@@ -1295,11 +1295,14 @@ export const tr = {
     locked_data_banner_action: "Verileri kurtar",
     locked_data_banner_dismiss: "Kapat",
     recover_data_title: "Verileri kurtar",
-    recover_data_description: "Parola değişikliğinden veya sıfırlamadan önceki verilerin kilidini açmak için o sırada kullandığınız parolayı girin.",
+    recover_data_description:
+      "Parola değişikliğinden veya sıfırlamadan önceki verilerin kilidini açmak için o sırada kullandığınız parolayı girin.",
     recover_data_button: "Kurtar",
     recover_data_success: "Eski verilerinizin kilidi açıldı.",
-    recover_data_no_match: "Bu parola hiçbir verinin kilidini açmadı. Başka bir eski parola deneyin.",
-    recover_data_failed: "Bazı verilerin kilidi açılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
+    recover_data_no_match:
+      "Bu parola hiçbir verinin kilidini açmadı. Başka bir eski parola deneyin.",
+    recover_data_failed:
+      "Bazı verilerin kilidi açılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
     payment_past_due_message:
       "Son ödemeniz alınamadı. Planınızı sürdürmek için ödeme yönteminizi güncelleyin.",
     payment_past_due_message_days:
@@ -3807,8 +3810,7 @@ export const tr = {
     external_link_warning_disabled: "Bağlantılar onay olmadan doğrudan açılır",
     ipfs_attachment_storage: "IPFS Ek Depolama",
     ipfs_enabled_description: "Ekler, Aster'in özel IPFS deposunda saklanır",
-    ipfs_disabled_description:
-      "Ekleri Aster'in özel IPFS deposunda saklayın",
+    ipfs_disabled_description: "Ekleri Aster'in özel IPFS deposunda saklayın",
     forward_secrecy: "İleri Gizlilik",
     forward_secrecy_disable_title: "İleri gizliliği kapatmak istiyor musunuz?",
     forward_secrecy_disable_message:
@@ -3878,7 +3880,8 @@ export const tr = {
     password_change_background_reencrypt_failed:
       "Parolan değişti ancak gönderilen postalarının ve ayarlarının bir bölümü yeniden şifrelenmedi. Postaların veya ayarların okunamaz görünüyorsa destek ekibine ulaş.",
     previous_password: "Önceki parola",
-    password_change_sent_mail_locked: "Parolanız değişti. {{count}} gönderilmiş e-posta önceki bir parolayla şifrelenmişti ve güncellenmedi. Kilidini açmak için gelen kutunuzun üst kısmındaki bantta Verileri kurtar seçeneğini seçin.",
+    password_change_sent_mail_locked:
+      "Parolanız değişti. {{count}} gönderilmiş e-posta önceki bir parolayla şifrelenmişti ve güncellenmedi. Kilidini açmak için gelen kutunuzun üst kısmındaki bantta Verileri kurtar seçeneğini seçin.",
     password_changed_signing_out:
       "Parola başarıyla değiştirildi. Çıkış yapılıyor...",
     password_changed_success: "Parola değiştirildi",
@@ -4106,9 +4109,11 @@ export const tr = {
     compose_mode_fullscreen: "Her zaman tam ekran",
     compose_mode_minimized: "Küçültülmüş başlat",
     default_sender_group: "Gönderme",
-    default_sender_group_description: "Yeni iletilerin hangi adresinizden gideceğini seçin.",
+    default_sender_group_description:
+      "Yeni iletilerin hangi adresinizden gideceğini seçin.",
     default_sender_title: "Varsayılan gönderen",
-    default_sender_description: "Yeni iletiler bu adresten gider. Yanıtlar, iletinin gönderildiği adresi kullanır.",
+    default_sender_description:
+      "Yeni iletiler bu adresten gider. Yanıtlar, iletinin gönderildiği adresi kullanır.",
     default_sender_no_addresses: "Başka adres yok",
     compose_defaults_title: "Varsayılan biçimlendirme",
     compose_defaults_description:
@@ -4125,9 +4130,11 @@ export const tr = {
     reply_defaults_title: "Yanıtlar",
     reply_defaults_description: "Yeni bir yanıtın neyle başlayacağını seçin.",
     reply_include_quoted: "Alıntılanan metni ekle",
-    reply_include_quoted_description: "Her yanıt, metninizin altında alıntılanan özgün iletiyle başlar.",
+    reply_include_quoted_description:
+      "Her yanıt, metninizin altında alıntılanan özgün iletiyle başlar.",
     reply_prefix_subject: "Konuya Yt: ekle",
-    reply_prefix_subject_description: "Yanıtladığınızda özgün konunun önüne Yt: ekler.",
+    reply_prefix_subject_description:
+      "Yanıtladığınızda özgün konunun önüne Yt: ekler.",
     build_info: "Yapı Bilgisi",
     release: "Sürüm",
     build: "Yapı",
@@ -4186,10 +4193,27 @@ export const tr = {
     reactivate: "Yeniden Etkinleştir",
     cancel_plan: "Planı İptal Et",
     billing_history: "Faturalandırma Geçmişi",
+    billing_more_title: "Daha fazla",
+    billing_addons_subtitle: "Daha fazla alan, aynı plan",
+    billing_support_subtitle: "Ekibe mesaj gönderin",
+    billing_credits_subtitle: "Bakiye ve yüklemeler",
+    billing_academic_subtitle: "Okul e-postasıyla tasarruf edin",
+    billing_history_empty:
+      "Henüz fatura yok. Ödemeleriniz ilk tahsilattan sonra burada görünür.",
+    billing_invoice_count: "{{count}} fatura",
+    billing_invoice_count_one: "{{count}} fatura",
+    billing_invoice_count_other: "{{count}} fatura",
+    billing_addons_active_count: "{{count}} etkin",
+    billing_addons_active_count_one: "{{count}} etkin",
+    billing_addons_active_count_other: "{{count}} etkin",
+    academic_status_none: "Başvurulmadı",
+    academic_status_pending: "Doğrulama bekleniyor",
+    academic_status_verified: "Doğrulandı",
     billing_plan_heading: "Plan",
     billing_hide_plans: "Planları gizle",
     billing_cancel_notice_title: "Planınız iptal edilecek",
-    billing_cancel_notice_body: "Planınız {{date}} tarihinde sona eriyor. Ardından hesabınız ücretsiz plana geçer.",
+    billing_cancel_notice_body:
+      "Planınız {{date}} tarihinde sona eriyor. Ardından hesabınız ücretsiz plana geçer.",
     billing_renewals_heading: "Yenilemeler",
     billing_amount: "Tutar",
     billing_desc_payment_failed: "Ödeme başarısız oldu",
@@ -5007,10 +5031,13 @@ export const tr = {
     special_offer_feature_aliases: "Sınırsız takma ad",
     special_offer_feature_vanguard: "Vanguard ile gelişmiş güvenlik",
     special_offer_feature_storage: "500 GB şifreli depolama",
-    special_offer_why_body: "Aster, küçük bir ekibe sahip bağımsız bir şirkettir ve desteğiniz bizim için çok değerlidir. Abonelikler hizmetin çalışmasını sağlar ve Aster'ı her gün özenle geliştirmeye devam etmemize olanak tanır. Bu teklif başlamanızı kolaylaştırır.",
+    special_offer_why_body:
+      "Aster, küçük bir ekibe sahip bağımsız bir şirkettir ve desteğiniz bizim için çok değerlidir. Abonelikler hizmetin çalışmasını sağlar ve Aster'ı her gün özenle geliştirmeye devam etmemize olanak tanır. Bu teklif başlamanızı kolaylaştırır.",
     special_offer_why_label: "Neden bu teklif?",
-    special_offer_feature_vanguard_body: "Uygulama kilidi ve gelişmiş gizlilik koruması.",
-    special_offer_feature_domains_body: "Kendi alan adlarınızdaki adreslerden gönderin.",
+    special_offer_feature_vanguard_body:
+      "Uygulama kilidi ve gelişmiş gizlilik koruması.",
+    special_offer_feature_domains_body:
+      "Kendi alan adlarınızdaki adreslerden gönderin.",
     special_offer_feature_domains: "30'a kadar özel alan adı",
     special_offer_feature_storage_body: "Yıllarca e-posta ve dosya için yer.",
     special_offer_feature_aliases_body: "Her siteye ayrı bir adres verin.",
@@ -5019,7 +5046,8 @@ export const tr = {
     special_offer_dismiss: "Bu teklifi bir daha gösterme",
     special_offer_dismissed_toast: "Bunu bir daha göstermeyeceğiz.",
     special_offer_success_title: "Teşekkürler. Artık Nova kullanıyorsunuz.",
-    special_offer_success_body: "Abone olduğunuz için teşekkürler. Desteğiniz bizim için çok değerli.",
+    special_offer_success_body:
+      "Abone olduğunuz için teşekkürler. Desteğiniz bizim için çok değerli.",
     special_offer_hero_duration: "{{months}} ay boyunca",
     plan_billing_terms:
       "Abonelikler, siz iptal edene kadar standart fiyattan otomatik olarak yenilenir. İstediğiniz zaman Ayarlar bölümünden iptal edebilirsiniz.",
@@ -5050,55 +5078,76 @@ export const tr = {
     domain_without_www_note: "Alan adınızı www veya https:// olmadan girin",
     catch_all_label: "Tümünü yakala",
     bimi_adj_added_title: "Başlık eklendi.",
-    bimi_adj_converted_inline_styles: "Satır içi stiller özniteliklere dönüştürüldü.",
+    bimi_adj_converted_inline_styles:
+      "Satır içi stiller özniteliklere dönüştürüldü.",
     bimi_adj_derived_view_box: "viewBox eklendi.",
     bimi_adj_removed_doctype: "Belge türü bildirimi kaldırıldı.",
     bimi_adj_removed_editor_data: "Düzenleyici verileri kaldırıldı.",
     bimi_adj_removed_metadata: "Meta veriler kaldırıldı.",
     bimi_adj_removed_position: "Konum kaydırması kaldırıldı.",
     bimi_adj_removed_size: "Sabit genişlik ve yükseklik kaldırıldı.",
-    bimi_adj_removed_unsupported_attributes: "Desteklenmeyen öznitelikler kaldırıldı.",
+    bimi_adj_removed_unsupported_attributes:
+      "Desteklenmeyen öznitelikler kaldırıldı.",
     bimi_adj_set_tiny_ps_profile: "SVG profili Tiny PS olarak ayarlandı.",
-    bimi_adjustments_title: "Aster, dosyanızı gereksinimleri karşılayacak şekilde düzenledi:",
-    bimi_auto_checking: "Bu sayfa açıkken Aster kaydı otomatik olarak kontrol eder.",
+    bimi_adjustments_title:
+      "Aster, dosyanızı gereksinimleri karşılayacak şekilde düzenledi:",
+    bimi_auto_checking:
+      "Bu sayfa açıkken Aster kaydı otomatik olarak kontrol eder.",
     bimi_check_again: "Tekrar kontrol et",
     bimi_checking: "Kontrol ediliyor",
     bimi_choose_file: "Dosya seç",
-    bimi_dmarc_invalid: "DMARC kaydınız okunamıyor. Geçerli bir kayıtla değiştirin.",
-    bimi_dmarc_missing: "p=quarantine veya p=reject içeren bir DMARC kaydı ekleyin.",
-    bimi_dmarc_not_enforced: "DMARC politikanızı p=quarantine veya p=reject olarak değiştirin.",
-    bimi_dmarc_organization_not_enforced: "Üst alan adınızın DMARC politikası da quarantine veya reject olmalıdır.",
-    bimi_dmarc_partial: "DMARC kaydınızdan pct etiketini kaldırın veya 100 olarak ayarlayın.",
+    bimi_dmarc_invalid:
+      "DMARC kaydınız okunamıyor. Geçerli bir kayıtla değiştirin.",
+    bimi_dmarc_missing:
+      "p=quarantine veya p=reject içeren bir DMARC kaydı ekleyin.",
+    bimi_dmarc_not_enforced:
+      "DMARC politikanızı p=quarantine veya p=reject olarak değiştirin.",
+    bimi_dmarc_organization_not_enforced:
+      "Üst alan adınızın DMARC politikası da quarantine veya reject olmalıdır.",
+    bimi_dmarc_partial:
+      "DMARC kaydınızdan pct etiketini kaldırın veya 100 olarak ayarlayın.",
     bimi_dmarc_ready: "DMARC politikanız quarantine veya reject.",
-    bimi_dmarc_subdomain_policy_none: "DMARC kaydınızdaki sp etiketini quarantine veya reject olarak değiştirin.",
+    bimi_dmarc_subdomain_policy_none:
+      "DMARC kaydınızdaki sp etiketini quarantine veya reject olarak değiştirin.",
     bimi_drop_here: "SVG logonuzu buraya sürükleyin.",
-    bimi_err_doctype_entities: "Dosya, izin verilmeyen özel varlıklar tanımlıyor.",
+    bimi_err_doctype_entities:
+      "Dosya, izin verilmeyen özel varlıklar tanımlıyor.",
     bimi_err_empty: "Görüntü boş.",
-    bimi_err_external_reference: "Dosya, izin verilmeyen bir harici kaynağa bağlantı veriyor.",
+    bimi_err_external_reference:
+      "Dosya, izin verilmeyen bir harici kaynağa bağlantı veriyor.",
     bimi_err_invalid_reference: "Dosya bozuk bir dahili başvuru içeriyor.",
-    bimi_err_invalid_value: "Dosya, izin verilmeyen bir öznitelik değeri içeriyor.",
+    bimi_err_invalid_value:
+      "Dosya, izin verilmeyen bir öznitelik değeri içeriyor.",
     bimi_err_malformed: "Dosya geçerli bir SVG değil.",
-    bimi_err_missing_view_box: "Görüntüde viewBox yok. Görüntüyü bir viewBox ile dışa aktarın.",
+    bimi_err_missing_view_box:
+      "Görüntüde viewBox yok. Görüntüyü bir viewBox ile dışa aktarın.",
     bimi_err_not_square: "Logo kare değil. Genişliği ve yüksekliği eşit yapın.",
     bimi_err_not_svg: "Dosya bir SVG görüntüsü değil.",
     bimi_err_not_utf8: "Dosya metin tabanlı bir SVG dosyası değil.",
-    bimi_err_raster_image: "Dosya gömülü bir bitmap görüntü içeriyor. Yalnızca vektör şekiller kullanın.",
+    bimi_err_raster_image:
+      "Dosya gömülü bir bitmap görüntü içeriyor. Yalnızca vektör şekiller kullanın.",
     bimi_err_script_content: "Dosya, izin verilmeyen bir betik içeriyor.",
-    bimi_err_text_not_outlined: "Logo metin içeriyor. Dışa aktarmadan önce metni anahatlara dönüştürün.",
-    bimi_err_too_complex: "Görüntü çok karmaşık. Basitleştirip tekrar dışa aktarın.",
+    bimi_err_text_not_outlined:
+      "Logo metin içeriyor. Dışa aktarmadan önce metni anahatlara dönüştürün.",
+    bimi_err_too_complex:
+      "Görüntü çok karmaşık. Basitleştirip tekrar dışa aktarın.",
     bimi_err_too_large: "Dosya çok büyük.",
     bimi_err_unsupported_element: "Dosya, izin verilmeyen öğeler içeriyor.",
-    bimi_err_unsupported_style: "Dosya, filtreler, maskeler veya stil sayfaları gibi izin verilmeyen stiller ya da efektler kullanıyor.",
-    bimi_error_domain_not_active: "Logo yayımlamadan önce bu alan adının kurulumunu tamamlayın.",
+    bimi_err_unsupported_style:
+      "Dosya, filtreler, maskeler veya stil sayfaları gibi izin verilmeyen stiller ya da efektler kullanıyor.",
+    bimi_error_domain_not_active:
+      "Logo yayımlamadan önce bu alan adının kurulumunu tamamlayın.",
     bimi_error_file_too_large: "Dosya 64 KB'tan büyük.",
     bimi_error_logo_required: "Yayımlamadan önce bir logo yükleyin.",
     bimi_error_not_svg_file: "Bir SVG dosyası seçin.",
     bimi_error_throttled: "Biraz bekleyin, ardından tekrar deneyin.",
     bimi_errors_title: "Bu dosya marka logosu olarak kullanılamaz:",
     bimi_last_checked: "Son kontrol: {time}",
-    bimi_logo_public_note: "Logonuz herkese açıktır. Postanızı alan herkes logonuzu görebilir.",
+    bimi_logo_public_note:
+      "Logonuz herkese açıktır. Postanızı alan herkes logonuzu görebilir.",
     bimi_logo_ready: "Logonuz gereksinimleri karşılıyor.",
-    bimi_managed_note: "Alan adınız Aster üzerinden satın alındığı için DNS kaydı sizin için eklenir.",
+    bimi_managed_note:
+      "Alan adınız Aster üzerinden satın alındığı için DNS kaydı sizin için eklenir.",
     bimi_preview_alt: "Marka logonuzun önizlemesi",
     bimi_preview_dark: "Koyu",
     bimi_preview_inbox_subject: "En son güncellememiz",
@@ -5106,36 +5155,47 @@ export const tr = {
     bimi_preview_light: "Açık",
     bimi_publish: "Logoyu yayımla",
     bimi_publishing: "Yayımlanıyor",
-    bimi_record_conflict: "Bu alan adı için başka bir BIMI kaydı var. Yalnızca bu kaydın kalması için diğerini kaldırın.",
-    bimi_record_external: "Mevcut BIMI kaydı başka bir sunucuyu gösteriyor. Aster barındırmayı kullanmak için bu kayıtla değiştirin.",
+    bimi_record_conflict:
+      "Bu alan adı için başka bir BIMI kaydı var. Yalnızca bu kaydın kalması için diğerini kaldırın.",
+    bimi_record_external:
+      "Mevcut BIMI kaydı başka bir sunucuyu gösteriyor. Aster barındırmayı kullanmak için bu kayıtla değiştirin.",
     bimi_record_host: "Ana bilgisayar",
-    bimi_record_missing: "Kayıt henüz görünmüyor. DNS değişikliklerinin yayılması 48 saate kadar sürebilir.",
-    bimi_record_removed: "Aster bu kaydı artık bulamıyor. Kaydı DNS sağlayıcınızda yeniden ekleyin.",
+    bimi_record_missing:
+      "Kayıt henüz görünmüyor. DNS değişikliklerinin yayılması 48 saate kadar sürebilir.",
+    bimi_record_removed:
+      "Aster bu kaydı artık bulamıyor. Kaydı DNS sağlayıcınızda yeniden ekleyin.",
     bimi_record_published: "Kayıt yayımlandı.",
     bimi_record_title: "Bu kaydı DNS sağlayıcınıza ekleyin",
     bimi_record_type: "Tür",
     bimi_copy_field: "{field} kopyala",
     bimi_record_value: "Değer",
     bimi_replace_logo: "Logoyu değiştir",
-    bimi_req_auth_fail: "Önce bu alan adının SPF ve DKIM kayıtlarını doğrulayın.",
+    bimi_req_auth_fail:
+      "Önce bu alan adının SPF ve DKIM kayıtlarını doğrulayın.",
     bimi_req_auth_ok: "SPF ve DKIM doğrulandı.",
     bimi_req_auth_title: "Posta kimlik doğrulaması",
     bimi_req_dmarc_title: "DMARC uygulaması",
     bimi_req_not_checked: "Henüz kontrol edilmedi.",
     bimi_requirements_title: "Gereksinimler",
-    bimi_row_attention: "Logonuz yayımlandı, ancak bir gereksinim artık karşılanmıyor.",
+    bimi_row_attention:
+      "Logonuz yayımlandı, ancak bir gereksinim artık karşılanmıyor.",
     bimi_row_draft: "Logonuz hazır. Kullanmaya başlamak için yayımlayın.",
-    bimi_row_external: "Bu alan adının başka bir sunucuyu gösteren bir BIMI kaydı var.",
-    bimi_row_inactive: "Marka logosu eklemek için bu alan adının kurulumunu tamamlayın.",
+    bimi_row_external:
+      "Bu alan adının başka bir sunucuyu gösteren bir BIMI kaydı var.",
+    bimi_row_inactive:
+      "Marka logosu eklemek için bu alan adının kurulumunu tamamlayın.",
     bimi_row_live: "Logonuz yayımlandı.",
-    bimi_row_off: "Marka logolarını destekleyen gelen kutularında postalarınızın yanında logonuzu gösterin.",
+    bimi_row_off:
+      "Marka logolarını destekleyen gelen kutularında postalarınızın yanında logonuzu gösterin.",
     bimi_row_pending: "DNS kaydını ekleyin, ardından tekrar kontrol edin.",
-    bimi_row_pending_managed: "DNS kaydınız yayımlanıyor. Bu işlem birkaç dakika sürebilir.",
+    bimi_row_pending_managed:
+      "DNS kaydınız yayımlanıyor. Bu işlem birkaç dakika sürebilir.",
     bimi_rule_safe: "Komut dosyası veya harici bağlantı yok",
     bimi_rule_size: "Aster optimize ettikten sonra 32 KB veya daha küçük",
     bimi_rule_square: "Genişliği ve yüksekliği eşit bir kare",
     bimi_rule_svg: "SVG dosyası",
-    bimi_rule_vector: "Yalnızca vektör şekiller, metin anahatlara dönüştürülmüş",
+    bimi_rule_vector:
+      "Yalnızca vektör şekiller, metin anahatlara dönüştürülmüş",
     bimi_rules_title: "Dosya gereksinimleri",
     bimi_set_up: "Kur",
     bimi_state_attention: "İlgilenmeniz gerekiyor",
@@ -5148,13 +5208,16 @@ export const tr = {
     bimi_step_publish: "Yayımla",
     bimi_title: "Marka logosu",
     bimi_turn_off: "Kapat",
-    bimi_turn_off_body: "Logonuzun barındırılması hemen durur ve gelen kutuları bunun yerine varsayılan bir simge gösterir.",
+    bimi_turn_off_body:
+      "Logonuzun barındırılması hemen durur ve gelen kutuları bunun yerine varsayılan bir simge gösterir.",
     bimi_turn_off_confirm: "Kapat",
     bimi_turn_off_description: "Logonuz gelen kutularında artık gösterilmez.",
-    bimi_turn_off_remove_record: "default._bimi TXT kaydını DNS sağlayıcınızdan kaldırın.",
+    bimi_turn_off_remove_record:
+      "default._bimi TXT kaydını DNS sağlayıcınızdan kaldırın.",
     bimi_turn_off_title: "Marka logosu kapatılsın mı?",
     bimi_uploading: "Yükleniyor",
-    bimi_verified_mark_note: "Bazı gelen kutuları marka logolarını yalnızca doğrulanmış marka sertifikası (VMC) olan alan adları için gösterir.",
+    bimi_verified_mark_note:
+      "Bazı gelen kutuları marka logolarını yalnızca doğrulanmış marka sertifikası (VMC) olan alan adları için gösterir.",
     catch_all_description:
       "Bu alan adındaki herhangi bir adrese gönderilen e-postaları al",
     set_host_root:
@@ -6598,7 +6661,8 @@ export const tr = {
       "Zaten bu plandasınız. Promosyon kodları farklı bir plana geçtiğinizde geçerlidir.",
     promo_error_not_upgrade:
       "Promosyon kodları daha yüksek bir plana yükselttiğinizde geçerlidir.",
-    promo_error_card_only: "Bu promosyon kodu yalnızca kartla ödemelerde geçerlidir.",
+    promo_error_card_only:
+      "Bu promosyon kodu yalnızca kartla ödemelerde geçerlidir.",
     promo_error_with_credits:
       "Aynı ödemede promosyon kodu ve hesap kredisini birlikte kullanamazsınız.",
     promo_error_not_for_addon: "Promosyon kodları eklentilerde kullanılamaz.",
@@ -6661,18 +6725,24 @@ export const tr = {
     bridge_format_pacman_desc: "Arch Linux ve türevleri",
     bridge_download_started: "İndirme başladı",
     bridge_download_failed: "İndirme başlamadı. Yeniden deneyin.",
-    bridge_support_help_desc: "Kurulum kılavuzları ve sık sorulan soruların yanıtları",
+    bridge_support_help_desc:
+      "Kurulum kılavuzları ve sık sorulan soruların yanıtları",
     bridge_support_discord_desc: "Ekibe ve Aster kullanan diğer kişilere sorun",
     bridge_support_reddit_desc: "Duyuruları takip edin ve tartışmalara katılın",
     bridge_support_github_desc: "Kaynak kodu inceleyin ve sorun bildirin",
     bridge_all_platforms: "Tüm platformlar",
-    bridge_upgrade_benefit_clients: "Apple Mail, Thunderbird ve Outlook ile çalışır",
-    bridge_upgrade_benefit_local: "Yerel olarak çalışır, böylece postanız şifreli kalır",
-    bridge_upgrade_benefit_platforms: "Windows, macOS ve Linux'ta kullanılabilir",
+    bridge_upgrade_benefit_clients:
+      "Apple Mail, Thunderbird ve Outlook ile çalışır",
+    bridge_upgrade_benefit_local:
+      "Yerel olarak çalışır, böylece postanız şifreli kalır",
+    bridge_upgrade_benefit_platforms:
+      "Windows, macOS ve Linux'ta kullanılabilir",
     bridge_upgrade_benefit_cli: "Sunucular için komut satırı sürümü içerir",
     bridge_cli_download: "İndir",
-    bridge_cli_install_hint: "Platformunuza uygun arşivi indirin, ayıklayın ve ikili dosyayı PATH dizininize taşıyın.",
-    bridge_cli_install_hint_windows: "Arşivi indirin, ayıklayın ve klasörü PATH değişkeninize ekleyin.",
+    bridge_cli_install_hint:
+      "Platformunuza uygun arşivi indirin, ayıklayın ve ikili dosyayı PATH dizininize taşıyın.",
+    bridge_cli_install_hint_windows:
+      "Arşivi indirin, ayıklayın ve klasörü PATH değişkeninize ekleyin.",
     bridge_cli_copy_command: "Kurulum komutlarını kopyala",
     bridge_cli_docs_link: "Komut satırı kılavuzunu okuyun",
     bridge_cli_name: "Komut satırı",
@@ -9236,7 +9306,8 @@ export const tr = {
     set_new_password: "Yeni parola belirle",
     resetting_password: "Parola sıfırlanıyor...",
     enter_recovery_code: "Kurtarma kodunu girin",
-    enter_recovery_code_desc: "Hesabınızı oluştururken kaydettiğiniz kurtarma kodlarından birini girin.",
+    enter_recovery_code_desc:
+      "Hesabınızı oluştururken kaydettiğiniz kurtarma kodlarından birini girin.",
     create_new_password: "Yeni parola oluşturun",
     choose_strong_password: "Hesabınız için güçlü bir parola seçin",
     recovering_your_account: "Hesabınız kurtarılıyor",
@@ -9251,11 +9322,13 @@ export const tr = {
     recovery_email_label: "Aster Mail adresi",
     recovery_domain_hint: "Hesabınıza ait alan adını seçin.",
     recovery_code_label: "Kurtarma kodu",
-    recovery_code_hint: "Her kod bir kez çalışır. Kodlar şöyle görünür: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    recovery_code_hint:
+      "Her kod bir kez çalışır. Kodlar şöyle görünür: ASTER-XXXX-XXXX-XXXX-XXXX.",
     change_account: "Başka bir adres kullan",
     change_account_desc: "Başka bir Aster Mail hesabını kurtarın.",
     support_step_title: "Destek ile iletişime geçin",
-    support_step_desc: "Aster Mail şifreli verilerinizi okuyamaz, bu yüzden kurtarma kodu veya kurtarma e-postanız olmadan kimse bunları açamaz. Destek ekibi hesabınızı kontrol edip sonraki adımlarda yardımcı olabilir.",
+    support_step_desc:
+      "Aster Mail şifreli verilerinizi okuyamaz, bu yüzden kurtarma kodu veya kurtarma e-postanız olmadan kimse bunları açamaz. Destek ekibi hesabınızı kontrol edip sonraki adımlarda yardımcı olabilir.",
     support_email_action: "Desteğe e-posta gönder",
     support_help_center: "Yardım merkezini aç",
     other_ways_title: "Başka bir yol deneyin",
@@ -9266,7 +9339,8 @@ export const tr = {
     other_way_email_desc:
       "Aster Mail kurtarma e-postanıza bir bağlantı gönderir. Sıfırlamadan önceki postalara erişiminizi kaybedersiniz.",
     other_way_none_title: "Bunların hiçbiri bende yok",
-    other_way_none_desc: "Destek ile iletişime geçin, sonraki adımlarda yardımcı olalım.",
+    other_way_none_desc:
+      "Destek ile iletişime geçin, sonraki adımlarda yardımcı olalım.",
     reset_account_title: "Hesabınız sıfırlansın mı?",
     reset_account_desc:
       "Sıfırlamadan önceki şifrelenmiş postanız, kişileriniz ve dosyalarınız, eski parolanızla kurtarana kadar kilitli kalır. Yeni ve boş bir şifreleme anahtarı alırsınız.",

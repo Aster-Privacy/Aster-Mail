@@ -1284,15 +1284,19 @@ export const it = {
       "Attiva le notifiche desktop per restare aggiornato sulle nuove email",
     notification_banner_allow: "Consenti",
     notification_banner_no_thanks: "No grazie",
-    locked_data_banner_message: "Alcuni dei tuoi dati cifrati meno recenti sono bloccati.",
+    locked_data_banner_message:
+      "Alcuni dei tuoi dati cifrati meno recenti sono bloccati.",
     locked_data_banner_action: "Recupera dati",
     locked_data_banner_dismiss: "Ignora",
     recover_data_title: "Recupera dati",
-    recover_data_description: "Per sbloccare i dati precedenti a una modifica o reimpostazione della password, inserisci la password che usavi in quel momento.",
+    recover_data_description:
+      "Per sbloccare i dati precedenti a una modifica o reimpostazione della password, inserisci la password che usavi in quel momento.",
     recover_data_button: "Recupera",
     recover_data_success: "I tuoi dati meno recenti sono sbloccati.",
-    recover_data_no_match: "Questa password non ha sbloccato alcun dato. Prova un'altra password precedente.",
-    recover_data_failed: "Non è stato possibile sbloccare alcuni dati. Controlla la connessione e riprova.",
+    recover_data_no_match:
+      "Questa password non ha sbloccato alcun dato. Prova un'altra password precedente.",
+    recover_data_failed:
+      "Non è stato possibile sbloccare alcuni dati. Controlla la connessione e riprova.",
     payment_past_due_message:
       "Il tuo ultimo pagamento non è andato a buon fine. Aggiorna il metodo di pagamento per mantenere il tuo piano.",
     payment_past_due_message_days:
@@ -3967,7 +3971,8 @@ export const it = {
     password_change_background_reencrypt_failed:
       "La tua password è stata cambiata, ma una parte della posta inviata e delle impostazioni non ha completato la ricifratura. Contatta l’assistenza se qualcosa risulta illeggibile.",
     previous_password: "Password precedente",
-    password_change_sent_mail_locked: "La password è cambiata. {{count}} email inviate erano cifrate con una password precedente e non sono state aggiornate. Per sbloccarle, seleziona Recupera dati nel banner in cima alla posta in arrivo.",
+    password_change_sent_mail_locked:
+      "La password è cambiata. {{count}} email inviate erano cifrate con una password precedente e non sono state aggiornate. Per sbloccarle, seleziona Recupera dati nel banner in cima alla posta in arrivo.",
     password_changed_signing_out:
       "Password cambiata con successo. Disconnessione in corso...",
     password_changed_success: "Password modificata",
@@ -4229,9 +4234,11 @@ export const it = {
     compose_mode_fullscreen: "Sempre a schermo intero",
     compose_mode_minimized: "Avvia ridotto a icona",
     default_sender_group: "Invio",
-    default_sender_group_description: "Scegli da quale dei tuoi indirizzi partono i nuovi messaggi.",
+    default_sender_group_description:
+      "Scegli da quale dei tuoi indirizzi partono i nuovi messaggi.",
     default_sender_title: "Mittente predefinito",
-    default_sender_description: "I nuovi messaggi partono da questo indirizzo. Le risposte usano l'indirizzo a cui è stato inviato il messaggio.",
+    default_sender_description:
+      "I nuovi messaggi partono da questo indirizzo. Le risposte usano l'indirizzo a cui è stato inviato il messaggio.",
     default_sender_no_addresses: "Nessun altro indirizzo",
     compose_defaults_title: "Formattazione predefinita",
     compose_defaults_description:
@@ -4249,9 +4256,11 @@ export const it = {
     reply_defaults_title: "Risposte",
     reply_defaults_description: "Scegli come inizia una nuova risposta.",
     reply_include_quoted: "Includi il testo citato",
-    reply_include_quoted_description: "Ogni risposta inizia con il messaggio originale citato sotto il tuo testo.",
+    reply_include_quoted_description:
+      "Ogni risposta inizia con il messaggio originale citato sotto il tuo testo.",
     reply_prefix_subject: "Aggiungi Re: all'oggetto",
-    reply_prefix_subject_description: "Mette Re: davanti all'oggetto originale quando rispondi.",
+    reply_prefix_subject_description:
+      "Mette Re: davanti all'oggetto originale quando rispondi.",
     build_info: "Info build",
     release: "Rilascio",
     build: "Compilazione",
@@ -4351,10 +4360,12 @@ export const it = {
       "Hai già questo piano. I codici promozionali si applicano quando passi a un piano diverso.",
     promo_error_not_upgrade:
       "I codici promozionali si applicano quando passi a un piano superiore.",
-    promo_error_card_only: "Questo codice promozionale funziona solo con i pagamenti con carta.",
+    promo_error_card_only:
+      "Questo codice promozionale funziona solo con i pagamenti con carta.",
     promo_error_with_credits:
       "Non puoi usare un codice promozionale e il credito dell'account nello stesso pagamento.",
-    promo_error_not_for_addon: "I codici promozionali non si possono usare per i componenti aggiuntivi.",
+    promo_error_not_for_addon:
+      "I codici promozionali non si possono usare per i componenti aggiuntivi.",
     promo_error_generic:
       "Impossibile verificare il codice promozionale. Riprova tra un momento.",
     plan_change_discount_amount: "{{amount}} di sconto",
@@ -5010,10 +5021,27 @@ export const it = {
     reactivate: "Riattiva",
     cancel_plan: "Annulla piano",
     billing_history: "Cronologia fatturazione",
+    billing_more_title: "Altro",
+    billing_addons_subtitle: "Più spazio, stesso piano",
+    billing_support_subtitle: "Invia un messaggio al team",
+    billing_credits_subtitle: "Saldo e ricariche",
+    billing_academic_subtitle: "Risparmia con un'email universitaria",
+    billing_history_empty:
+      "Nessuna fattura ancora. I tuoi pagamenti compariranno qui dopo il primo addebito.",
+    billing_invoice_count: "{{count}} fatture",
+    billing_invoice_count_one: "{{count}} fattura",
+    billing_invoice_count_other: "{{count}} fatture",
+    billing_addons_active_count: "{{count}} attivi",
+    billing_addons_active_count_one: "{{count}} attivo",
+    billing_addons_active_count_other: "{{count}} attivi",
+    academic_status_none: "Non richiesto",
+    academic_status_pending: "In attesa di verifica",
+    academic_status_verified: "Verificato",
     billing_plan_heading: "Piano",
     billing_hide_plans: "Nascondi piani",
     billing_cancel_notice_title: "Il tuo piano verrà annullato",
-    billing_cancel_notice_body: "Il tuo piano termina il {{date}}. Dopo questa data, il tuo account passerà al piano gratuito.",
+    billing_cancel_notice_body:
+      "Il tuo piano termina il {{date}}. Dopo questa data, il tuo account passerà al piano gratuito.",
     billing_renewals_heading: "Rinnovi",
     billing_amount: "Importo",
     billing_desc_payment_failed: "Pagamento non riuscito",
@@ -6144,19 +6172,23 @@ export const it = {
     special_offer_feature_aliases: "Alias illimitati",
     special_offer_feature_vanguard: "Sicurezza avanzata con Vanguard",
     special_offer_feature_storage: "500 GB di spazio crittografato",
-    special_offer_why_body: "Aster è un'azienda indipendente con un piccolo team, e il tuo supporto per noi conta molto. Gli abbonamenti mantengono attivo il servizio e ci permettono di continuare a sviluppare Aster con cura ogni giorno. Questa offerta ti rende più facile iniziare.",
+    special_offer_why_body:
+      "Aster è un'azienda indipendente con un piccolo team, e il tuo supporto per noi conta molto. Gli abbonamenti mantengono attivo il servizio e ci permettono di continuare a sviluppare Aster con cura ogni giorno. Questa offerta ti rende più facile iniziare.",
     special_offer_why_label: "Perché questa offerta?",
-    special_offer_feature_vanguard_body: "Blocco dell'app e protezione avanzata della privacy.",
+    special_offer_feature_vanguard_body:
+      "Blocco dell'app e protezione avanzata della privacy.",
     special_offer_feature_domains_body: "Invia da indirizzi sui tuoi domini.",
     special_offer_feature_domains: "Fino a 30 domini personalizzati",
     special_offer_feature_storage_body: "Spazio per anni di email e file.",
-    special_offer_feature_aliases_body: "Dai a ogni sito un indirizzo tutto suo.",
+    special_offer_feature_aliases_body:
+      "Dai a ogni sito un indirizzo tutto suo.",
     special_offer_fine_print:
       "Paghi {{offer_price}} al mese per i primi {{months}} mesi. Il piano si rinnova poi a {{price}} al mese finché non lo annulli in Impostazioni.",
     special_offer_dismiss: "Non mostrare più questa offerta",
     special_offer_dismissed_toast: "Non te lo mostreremo più.",
     special_offer_success_title: "Grazie. Ora hai Nova.",
-    special_offer_success_body: "Grazie per esserti abbonato. Il tuo supporto significa molto per noi.",
+    special_offer_success_body:
+      "Grazie per esserti abbonato. Il tuo supporto significa molto per noi.",
     special_offer_hero_duration: "per {{months}} mesi",
     plan_billing_terms:
       "Gli abbonamenti si rinnovano automaticamente alla tariffa standard finché non li annulli. Puoi annullare in qualsiasi momento in Impostazioni.",
@@ -6195,48 +6227,70 @@ export const it = {
     bimi_adj_removed_metadata: "Metadati rimossi.",
     bimi_adj_removed_position: "Spostamento di posizione rimosso.",
     bimi_adj_removed_size: "Larghezza e altezza fisse rimosse.",
-    bimi_adj_removed_unsupported_attributes: "Attributi non supportati rimossi.",
+    bimi_adj_removed_unsupported_attributes:
+      "Attributi non supportati rimossi.",
     bimi_adj_set_tiny_ps_profile: "Profilo SVG impostato su Tiny PS.",
-    bimi_adjustments_title: "Aster ha modificato il tuo file per soddisfare i requisiti:",
-    bimi_auto_checking: "Aster controlla il record automaticamente finché questa pagina è aperta.",
+    bimi_adjustments_title:
+      "Aster ha modificato il tuo file per soddisfare i requisiti:",
+    bimi_auto_checking:
+      "Aster controlla il record automaticamente finché questa pagina è aperta.",
     bimi_check_again: "Verifica di nuovo",
     bimi_checking: "Verifica in corso",
     bimi_choose_file: "Scegli file",
-    bimi_dmarc_invalid: "Impossibile leggere il tuo record DMARC. Sostituiscilo con un record valido.",
+    bimi_dmarc_invalid:
+      "Impossibile leggere il tuo record DMARC. Sostituiscilo con un record valido.",
     bimi_dmarc_missing: "Aggiungi un record DMARC con p=quarantine o p=reject.",
-    bimi_dmarc_not_enforced: "Cambia la tua policy DMARC in p=quarantine o p=reject.",
-    bimi_dmarc_organization_not_enforced: "Anche la policy DMARC del tuo dominio principale deve essere quarantine o reject.",
-    bimi_dmarc_partial: "Rimuovi il tag pct dal tuo record DMARC oppure impostalo su 100.",
+    bimi_dmarc_not_enforced:
+      "Cambia la tua policy DMARC in p=quarantine o p=reject.",
+    bimi_dmarc_organization_not_enforced:
+      "Anche la policy DMARC del tuo dominio principale deve essere quarantine o reject.",
+    bimi_dmarc_partial:
+      "Rimuovi il tag pct dal tuo record DMARC oppure impostalo su 100.",
     bimi_dmarc_ready: "La tua policy DMARC è quarantine o reject.",
-    bimi_dmarc_subdomain_policy_none: "Cambia il tag sp nel tuo record DMARC in quarantine o reject.",
+    bimi_dmarc_subdomain_policy_none:
+      "Cambia il tag sp nel tuo record DMARC in quarantine o reject.",
     bimi_drop_here: "Trascina qui il tuo logo SVG.",
-    bimi_err_doctype_entities: "Il file dichiara entità personalizzate, che non sono consentite.",
+    bimi_err_doctype_entities:
+      "Il file dichiara entità personalizzate, che non sono consentite.",
     bimi_err_empty: "L'immagine è vuota.",
-    bimi_err_external_reference: "Il file rimanda a una risorsa esterna, che non è consentita.",
-    bimi_err_invalid_reference: "Il file contiene un riferimento interno non valido.",
-    bimi_err_invalid_value: "Il file contiene un valore di attributo non consentito.",
+    bimi_err_external_reference:
+      "Il file rimanda a una risorsa esterna, che non è consentita.",
+    bimi_err_invalid_reference:
+      "Il file contiene un riferimento interno non valido.",
+    bimi_err_invalid_value:
+      "Il file contiene un valore di attributo non consentito.",
     bimi_err_malformed: "Il file non è un SVG valido.",
-    bimi_err_missing_view_box: "L'immagine non ha un viewBox. Esportala con un viewBox.",
-    bimi_err_not_square: "Il logo non è quadrato. Imposta larghezza e altezza uguali.",
+    bimi_err_missing_view_box:
+      "L'immagine non ha un viewBox. Esportala con un viewBox.",
+    bimi_err_not_square:
+      "Il logo non è quadrato. Imposta larghezza e altezza uguali.",
     bimi_err_not_svg: "Il file non è un'immagine SVG.",
     bimi_err_not_utf8: "Il file non è un file SVG di testo.",
-    bimi_err_raster_image: "Il file contiene un'immagine bitmap incorporata. Usa solo forme vettoriali.",
-    bimi_err_script_content: "Il file contiene uno script, che non è consentito.",
-    bimi_err_text_not_outlined: "Il logo contiene del testo. Converti il testo in tracciati prima di esportarlo.",
-    bimi_err_too_complex: "L'immagine è troppo complessa. Semplificala ed esportala di nuovo.",
+    bimi_err_raster_image:
+      "Il file contiene un'immagine bitmap incorporata. Usa solo forme vettoriali.",
+    bimi_err_script_content:
+      "Il file contiene uno script, che non è consentito.",
+    bimi_err_text_not_outlined:
+      "Il logo contiene del testo. Converti il testo in tracciati prima di esportarlo.",
+    bimi_err_too_complex:
+      "L'immagine è troppo complessa. Semplificala ed esportala di nuovo.",
     bimi_err_too_large: "Il file è troppo grande.",
     bimi_err_unsupported_element: "Il file contiene elementi non consentiti.",
-    bimi_err_unsupported_style: "Il file usa stili o effetti non consentiti, come filtri, maschere o fogli di stile.",
-    bimi_error_domain_not_active: "Completa la configurazione di questo dominio prima di pubblicare un logo.",
+    bimi_err_unsupported_style:
+      "Il file usa stili o effetti non consentiti, come filtri, maschere o fogli di stile.",
+    bimi_error_domain_not_active:
+      "Completa la configurazione di questo dominio prima di pubblicare un logo.",
     bimi_error_file_too_large: "Il file supera i 64 KB.",
     bimi_error_logo_required: "Carica un logo prima di pubblicare.",
     bimi_error_not_svg_file: "Scegli un file SVG.",
     bimi_error_throttled: "Attendi un momento, poi riprova.",
     bimi_errors_title: "Questo file non può essere usato come logo del brand:",
     bimi_last_checked: "Ultima verifica: {time}",
-    bimi_logo_public_note: "Il tuo logo è pubblico. Chiunque riceva le tue email può vederlo.",
+    bimi_logo_public_note:
+      "Il tuo logo è pubblico. Chiunque riceva le tue email può vederlo.",
     bimi_logo_ready: "Il tuo logo soddisfa i requisiti.",
-    bimi_managed_note: "Hai acquistato il dominio tramite Aster, quindi il record DNS viene aggiunto automaticamente.",
+    bimi_managed_note:
+      "Hai acquistato il dominio tramite Aster, quindi il record DNS viene aggiunto automaticamente.",
     bimi_preview_alt: "Anteprima del logo del tuo marchio",
     bimi_preview_dark: "Scuro",
     bimi_preview_inbox_subject: "Il tuo ultimo aggiornamento",
@@ -6244,11 +6298,15 @@ export const it = {
     bimi_preview_light: "Chiaro",
     bimi_publish: "Pubblica logo",
     bimi_publishing: "Pubblicazione in corso",
-    bimi_record_conflict: "Esiste già un altro record BIMI per questo dominio. Rimuovilo in modo che resti solo questo record.",
-    bimi_record_external: "Il record BIMI esistente punta a un altro host. Sostituiscilo con questo record per usare l'hosting di Aster.",
+    bimi_record_conflict:
+      "Esiste già un altro record BIMI per questo dominio. Rimuovilo in modo che resti solo questo record.",
+    bimi_record_external:
+      "Il record BIMI esistente punta a un altro host. Sostituiscilo con questo record per usare l'hosting di Aster.",
     bimi_record_host: "Host",
-    bimi_record_missing: "Il record non è ancora visibile. Le modifiche DNS possono richiedere fino a 48 ore.",
-    bimi_record_removed: "Aster non trova più questo record. Aggiungilo di nuovo presso il tuo provider DNS.",
+    bimi_record_missing:
+      "Il record non è ancora visibile. Le modifiche DNS possono richiedere fino a 48 ore.",
+    bimi_record_removed:
+      "Aster non trova più questo record. Aggiungilo di nuovo presso il tuo provider DNS.",
     bimi_record_published: "Il record è pubblicato.",
     bimi_record_title: "Aggiungi questo record presso il tuo provider DNS",
     bimi_record_type: "Tipo",
@@ -6261,19 +6319,25 @@ export const it = {
     bimi_req_dmarc_title: "Applicazione di DMARC",
     bimi_req_not_checked: "Non ancora verificato.",
     bimi_requirements_title: "Requisiti",
-    bimi_row_attention: "Il tuo logo è pubblicato, ma un requisito non è più soddisfatto.",
+    bimi_row_attention:
+      "Il tuo logo è pubblicato, ma un requisito non è più soddisfatto.",
     bimi_row_draft: "Il tuo logo è pronto. Pubblicalo per iniziare a usarlo.",
-    bimi_row_external: "Questo dominio ha un record BIMI che punta a un altro host.",
-    bimi_row_inactive: "Completa la configurazione di questo dominio per aggiungere un logo del brand.",
+    bimi_row_external:
+      "Questo dominio ha un record BIMI che punta a un altro host.",
+    bimi_row_inactive:
+      "Completa la configurazione di questo dominio per aggiungere un logo del brand.",
     bimi_row_live: "Il tuo logo è pubblicato.",
-    bimi_row_off: "Mostra il tuo logo accanto alle tue email nelle caselle di posta che supportano i logo del brand.",
+    bimi_row_off:
+      "Mostra il tuo logo accanto alle tue email nelle caselle di posta che supportano i logo del brand.",
     bimi_row_pending: "Aggiungi il record DNS, quindi verifica di nuovo.",
-    bimi_row_pending_managed: "Il tuo record DNS è in fase di pubblicazione. L'operazione può richiedere alcuni minuti.",
+    bimi_row_pending_managed:
+      "Il tuo record DNS è in fase di pubblicazione. L'operazione può richiedere alcuni minuti.",
     bimi_rule_safe: "Nessuno script o link esterno",
     bimi_rule_size: "32 KB o meno dopo l'ottimizzazione di Aster",
     bimi_rule_square: "Quadrato, con larghezza e altezza uguali",
     bimi_rule_svg: "File SVG",
-    bimi_rule_vector: "Solo forme vettoriali, con il testo convertito in tracciati",
+    bimi_rule_vector:
+      "Solo forme vettoriali, con il testo convertito in tracciati",
     bimi_rules_title: "Requisiti del file",
     bimi_set_up: "Configura",
     bimi_state_attention: "Richiede attenzione",
@@ -6286,13 +6350,17 @@ export const it = {
     bimi_step_publish: "Pubblica",
     bimi_title: "Logo del brand",
     bimi_turn_off: "Disattiva",
-    bimi_turn_off_body: "Il tuo logo non viene più ospitato da subito e le caselle di posta mostrano un'icona predefinita al suo posto.",
+    bimi_turn_off_body:
+      "Il tuo logo non viene più ospitato da subito e le caselle di posta mostrano un'icona predefinita al suo posto.",
     bimi_turn_off_confirm: "Disattiva",
-    bimi_turn_off_description: "Il tuo logo non viene più mostrato nelle caselle di posta.",
-    bimi_turn_off_remove_record: "Rimuovi il record TXT default._bimi dal tuo provider DNS.",
+    bimi_turn_off_description:
+      "Il tuo logo non viene più mostrato nelle caselle di posta.",
+    bimi_turn_off_remove_record:
+      "Rimuovi il record TXT default._bimi dal tuo provider DNS.",
     bimi_turn_off_title: "Disattivare il logo del brand?",
     bimi_uploading: "Caricamento in corso",
-    bimi_verified_mark_note: "Alcune caselle di posta mostrano i logo del brand solo per i domini con un certificato di marchio verificato.",
+    bimi_verified_mark_note:
+      "Alcune caselle di posta mostrano i logo del brand solo per i domini con un certificato di marchio verificato.",
     catch_all_description:
       "Ricevi email inviate a qualsiasi indirizzo di questo dominio",
     set_host_root:
@@ -6733,24 +6801,34 @@ export const it = {
     bridge_arch_x64: "x86-64",
     bridge_arch_arm64: "ARM64",
     bridge_format_msi_desc: "Per installazioni gestite con criteri di gruppo",
-    bridge_format_appimage_desc: "Funziona sulla maggior parte delle distribuzioni",
+    bridge_format_appimage_desc:
+      "Funziona sulla maggior parte delle distribuzioni",
     bridge_format_deb_desc: "Debian, Ubuntu e derivate",
     bridge_format_rpm_desc: "Fedora, RHEL e openSUSE",
     bridge_format_pacman_desc: "Arch Linux e derivate",
     bridge_download_started: "Download avviato",
     bridge_download_failed: "Il download non è stato avviato. Riprova.",
-    bridge_support_help_desc: "Guide alla configurazione e risposte alle domande frequenti",
-    bridge_support_discord_desc: "Chiedi al team e ad altre persone che usano Aster",
-    bridge_support_reddit_desc: "Segui gli annunci e partecipa alle discussioni",
-    bridge_support_github_desc: "Consulta il codice sorgente e segnala un problema",
+    bridge_support_help_desc:
+      "Guide alla configurazione e risposte alle domande frequenti",
+    bridge_support_discord_desc:
+      "Chiedi al team e ad altre persone che usano Aster",
+    bridge_support_reddit_desc:
+      "Segui gli annunci e partecipa alle discussioni",
+    bridge_support_github_desc:
+      "Consulta il codice sorgente e segnala un problema",
     bridge_all_platforms: "Tutte le piattaforme",
-    bridge_upgrade_benefit_clients: "Funziona con Apple Mail, Thunderbird e Outlook",
-    bridge_upgrade_benefit_local: "Viene eseguito in locale, così la posta resta cifrata",
+    bridge_upgrade_benefit_clients:
+      "Funziona con Apple Mail, Thunderbird e Outlook",
+    bridge_upgrade_benefit_local:
+      "Viene eseguito in locale, così la posta resta cifrata",
     bridge_upgrade_benefit_platforms: "Disponibile su Windows, macOS e Linux",
-    bridge_upgrade_benefit_cli: "Include una versione a riga di comando per i server",
+    bridge_upgrade_benefit_cli:
+      "Include una versione a riga di comando per i server",
     bridge_cli_download: "Scarica",
-    bridge_cli_install_hint: "Scarica l'archivio per la tua piattaforma, estrailo e sposta il binario nel tuo PATH.",
-    bridge_cli_install_hint_windows: "Scarica l'archivio, estrailo e aggiungi la cartella al tuo PATH.",
+    bridge_cli_install_hint:
+      "Scarica l'archivio per la tua piattaforma, estrailo e sposta il binario nel tuo PATH.",
+    bridge_cli_install_hint_windows:
+      "Scarica l'archivio, estrailo e aggiungi la cartella al tuo PATH.",
     bridge_cli_copy_command: "Copia i comandi di installazione",
     bridge_cli_docs_link: "Leggi la guida alla riga di comando",
     bridge_cli_name: "Riga di comando",
@@ -9348,7 +9426,8 @@ export const it = {
     creating_new_recovery_backup: "Creazione nuovo backup di recupero...",
     saving_new_credentials: "Salvataggio nuove credenziali...",
     recover_your_account: "Recupera il tuo account",
-    enter_email_associated: "Inserisci l'indirizzo dell'account che vuoi recuperare.",
+    enter_email_associated:
+      "Inserisci l'indirizzo dell'account che vuoi recuperare.",
     back_to_sign_in: "Torna all'accesso",
     email_me_reset_link: "Inviami un link di reimpostazione via email",
     have_recovery_code: "Hai un codice di recupero?",
@@ -9367,7 +9446,8 @@ export const it = {
     set_new_password: "Imposta nuova password",
     resetting_password: "Reimpostazione della password...",
     enter_recovery_code: "Inserisci codice di recupero",
-    enter_recovery_code_desc: "Inserisci uno dei codici di recupero salvati quando hai creato l'account.",
+    enter_recovery_code_desc:
+      "Inserisci uno dei codici di recupero salvati quando hai creato l'account.",
     create_new_password: "Crea nuova password",
     choose_strong_password: "Scegli una password forte per il tuo account",
     recovering_your_account: "Recupero del tuo account",
@@ -9383,11 +9463,13 @@ export const it = {
     recovery_email_label: "Indirizzo Aster Mail",
     recovery_domain_hint: "Scegli il dominio del tuo account.",
     recovery_code_label: "Codice di recupero",
-    recovery_code_hint: "Ogni codice funziona una volta sola. I codici hanno questo formato: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    recovery_code_hint:
+      "Ogni codice funziona una volta sola. I codici hanno questo formato: ASTER-XXXX-XXXX-XXXX-XXXX.",
     change_account: "Usa un altro indirizzo",
     change_account_desc: "Recupera un altro account Aster Mail.",
     support_step_title: "Contatta l'assistenza",
-    support_step_desc: "Aster Mail non può leggere i tuoi dati cifrati, quindi nessuno può sbloccarli senza un codice di recupero o la tua email di recupero. L'assistenza può controllare il tuo account e aiutarti con i passaggi successivi.",
+    support_step_desc:
+      "Aster Mail non può leggere i tuoi dati cifrati, quindi nessuno può sbloccarli senza un codice di recupero o la tua email di recupero. L'assistenza può controllare il tuo account e aiutarti con i passaggi successivi.",
     support_email_action: "Scrivi all'assistenza",
     support_help_center: "Vai al centro assistenza",
     other_ways_title: "Prova in un altro modo",
@@ -9398,7 +9480,8 @@ export const it = {
     other_way_email_desc:
       "Aster Mail invia un link alla tua email di recupero. Perdi l'accesso alla posta precedente alla reimpostazione.",
     other_way_none_title: "Non ho nessuna di queste opzioni",
-    other_way_none_desc: "Contatta l'assistenza e ti aiutiamo con i passaggi successivi.",
+    other_way_none_desc:
+      "Contatta l'assistenza e ti aiutiamo con i passaggi successivi.",
     reset_account_title: "Reimpostare il tuo account?",
     reset_account_desc:
       "La posta, i contatti e i file cifrati precedenti alla reimpostazione restano bloccati finché non li recuperi con la tua vecchia password. Ricevi una nuova chiave di cifratura vuota.",
