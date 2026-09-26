@@ -60,6 +60,10 @@ import {
 } from "@/hooks/mail_events";
 import { print_email } from "@/utils/print_email";
 import {
+  begin_read_change,
+  is_read_ticket_current,
+} from "@/services/read_intent";
+import {
   execute_unsubscribe,
   get_manual_unsubscribe_url,
 } from "@/utils/unsubscribe_detector";
@@ -297,6 +301,8 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     const current_mail_item = deps.mail_item;
     const new_state = !deps.is_read;
     const is_received = current_mail_item.item_type === "received";
+    const acted_id = deps.email_id;
+    const read_ticket = begin_read_change([acted_id]);
 
     deps.set_is_read(new_state);
     deps.set_mail_item((prev) =>
@@ -331,7 +337,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     }
 
     const result = await update_item_metadata(
-      deps.email_id,
+      acted_id,
       {
         encrypted_metadata: current_mail_item.encrypted_metadata,
         metadata_nonce: current_mail_item.metadata_nonce,
@@ -339,6 +345,8 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       },
       { is_read: new_state },
     );
+
+    if (!is_read_ticket_current(acted_id, read_ticket)) return;
 
     if (!result.success) {
       deps.set_is_read(!new_state);
@@ -369,7 +377,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           : prev,
       );
       emit_mail_item_updated({
-        id: deps.email_id,
+        id: acted_id,
         is_read: new_state,
         encrypted_metadata: result.encrypted?.encrypted_metadata,
         metadata_nonce: result.encrypted?.metadata_nonce,

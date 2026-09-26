@@ -45,6 +45,10 @@ import { reindex_ids } from "@/services/category_index";
 import { set_forward_mail_id } from "@/services/forward_store";
 import { ignore_error } from "@/lib/ignore_error";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import {
+  begin_read_change,
+  is_read_ticket_current,
+} from "@/services/read_intent";
 
 export function use_message_actions(
   deps: EmailViewerActionsDeps,
@@ -292,6 +296,8 @@ export function use_message_actions(
         deps.on_dismiss();
       }
 
+      const read_ticket = begin_read_change([message_id]);
+
       update_item_metadata(
         message_id,
         {
@@ -300,6 +306,7 @@ export function use_message_actions(
         },
         { is_read: new_read },
       ).then((result) => {
+        if (!is_read_ticket_current(message_id, read_ticket)) return;
         if (!result.success) {
           deps.set_thread_messages((prev) =>
             prev.map((m) =>

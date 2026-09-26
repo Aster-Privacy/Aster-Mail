@@ -84,6 +84,10 @@ import {
   reindex_ids,
   set_ids_read,
 } from "@/services/category_index";
+import {
+  begin_read_change,
+  is_read_ticket_current,
+} from "@/services/read_intent";
 
 const EMIT_UPDATED_MAX = 200;
 
@@ -520,6 +524,12 @@ export function use_inbox_toolbar_actions({
       });
     }
 
+    const read_ids = Array.from(
+      new Set(selected.flatMap((email) => [email.id, ...expand_email_ids(email)])),
+    );
+    const read_ticket = begin_read_change(read_ids);
+    const is_live = (email: InboxEmail): boolean =>
+      is_read_ticket_current(email.id, read_ticket);
     const failed_id_set = await run_bulk_metadata_update(
       selected,
       { is_read: new_state },
@@ -528,7 +538,7 @@ export function use_inbox_toolbar_actions({
 
     if (new_state) {
       const thread_candidates = selected.filter(
-        (email) => !failed_id_set.has(email.id),
+        (email) => !failed_id_set.has(email.id) && is_live(email),
       );
       const thread_tokens = collect_conversation_thread_tokens(
         thread_candidates,
@@ -544,13 +554,14 @@ export function use_inbox_toolbar_actions({
       }
     }
     const failed = selected.filter((email) => failed_id_set.has(email.id));
+    const live_failed = failed.filter(is_live);
 
-    if (failed.length > 0) {
-      for (const email of failed) {
+    if (live_failed.length > 0) {
+      for (const email of live_failed) {
         update_email(email.id, { is_read: email.is_read });
       }
       const failed_delta = conversation_read_delta(
-        failed,
+        live_failed,
         new_state,
         preferences.conversation_grouping,
       );
@@ -563,7 +574,7 @@ export function use_inbox_toolbar_actions({
     const succeeded_message_ids = Array.from(
       new Set(
         selected
-          .filter((email) => !failed_id_set.has(email.id))
+          .filter((email) => !failed_id_set.has(email.id) && is_live(email))
           .flatMap(expand_email_ids),
       ),
     );
@@ -631,19 +642,26 @@ export function use_inbox_toolbar_actions({
       });
     }
 
+    const read_ids = Array.from(
+      new Set(selected.flatMap((email) => [email.id, ...expand_email_ids(email)])),
+    );
+    const read_ticket = begin_read_change(read_ids);
+    const is_live = (email: InboxEmail): boolean =>
+      is_read_ticket_current(email.id, read_ticket);
     const failed_id_set = await run_bulk_metadata_update(
       selected,
       { is_read: false },
       t,
     );
     const failed = selected.filter((email) => failed_id_set.has(email.id));
+    const live_failed = failed.filter(is_live);
 
-    if (failed.length > 0) {
-      for (const email of failed) {
+    if (live_failed.length > 0) {
+      for (const email of live_failed) {
         update_email(email.id, { is_read: email.is_read });
       }
       const failed_delta = conversation_read_delta(
-        failed,
+        live_failed,
         false,
         preferences.conversation_grouping,
       );
@@ -656,7 +674,7 @@ export function use_inbox_toolbar_actions({
     const succeeded_unread_ids = Array.from(
       new Set(
         selected
-          .filter((email) => !failed_id_set.has(email.id))
+          .filter((email) => !failed_id_set.has(email.id) && is_live(email))
           .flatMap(expand_email_ids),
       ),
     );

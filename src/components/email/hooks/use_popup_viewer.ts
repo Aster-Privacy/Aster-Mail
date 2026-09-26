@@ -85,6 +85,11 @@ import { register_popup_email } from "@/components/email/hooks/popup_email_regis
 import { viewer_still_showing } from "@/components/email/thread_reply_target";
 import { use_thread_draft_removal } from "@/components/email/hooks/use_thread_draft_removal";
 import { UNDO_SEND_PREVIEW_ID } from "@/components/email/email_viewer_types";
+import {
+  claim_auto_read,
+  is_read_ticket_current,
+  peek_read_ticket,
+} from "@/services/read_intent";
 
 export type {
   EmailRecipient,
@@ -337,7 +342,11 @@ export function use_popup_viewer({
 
       const current_email_id = email_id;
       const is_received = mail_data.item_type === "received";
+      const armed_read_ticket = peek_read_ticket(current_email_id);
       const mark_read = async () => {
+        const read_ticket = claim_auto_read(current_email_id, armed_read_ticket);
+
+        if (read_ticket === null) return;
         const conversation_options = {
           thread_token: mail_data.thread_token,
           thread_message_count: mail_data.thread_message_count,
@@ -360,6 +369,8 @@ export function use_popup_viewer({
           },
           { is_read: true },
         );
+
+        if (!is_read_ticket_current(current_email_id, read_ticket)) return;
 
         if (result.success) {
           set_is_read(true);

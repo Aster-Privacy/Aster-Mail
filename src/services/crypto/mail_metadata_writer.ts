@@ -33,7 +33,9 @@ import {
 import {
   ack_flag_intents,
   clear_flag_intents,
+  is_read_ticket_current,
   note_flag_intents,
+  peek_read_ticket,
   pick_flag_intents,
 } from "@/services/read_intent";
 
@@ -49,6 +51,7 @@ const last_written_by_item = new Map<
   string,
   { version: number; encrypted: MetadataUpdateResult; timestamp: number }
 >();
+const last_issued_key_by_item = new Map<string, string>();
 const DEDUP_WINDOW_MS = 2000;
 const LAST_WRITTEN_TTL_MS = 60000;
 
@@ -102,15 +105,32 @@ export async function update_item_metadata(
   item_id: string,
   current: MetadataUpdateOptions,
   updates: Partial<MailItemMetadata>,
+  options?: { force?: boolean },
 ): Promise<UpdateResult> {
   const dedup_key = create_dedup_key(item_id, updates);
   const intent = pick_flag_intents(updates);
+  const read_ticket =
+    intent.is_read !== undefined ? peek_read_ticket(item_id) : null;
+  const ticket_current = (): boolean =>
+    read_ticket === null || is_read_ticket_current(item_id, read_ticket);
+  const repeats_last_write =
+    !options?.force && last_issued_key_by_item.get(item_id) === dedup_key;
 
   note_flag_intents([item_id], intent);
+  last_issued_key_by_item.delete(item_id);
+  last_issued_key_by_item.set(item_id, dedup_key);
+  while (last_issued_key_by_item.size > 2000) {
+    const oldest = last_issued_key_by_item.keys().next().value;
+
+    if (oldest === undefined) break;
+    last_issued_key_by_item.delete(oldest);
+  }
 
   cleanup_completed_cache();
 
-  const cached = recently_completed.get(dedup_key);
+  const cached = repeats_last_write
+    ? recently_completed.get(dedup_key)
+    : undefined;
 
   if (cached && cached.result.success) {
     ack_flag_intents([item_id], intent);
@@ -118,7 +138,9 @@ export async function update_item_metadata(
     return cached.result;
   }
 
-  const in_flight = in_flight_requests.get(dedup_key);
+  const in_flight = repeats_last_write
+    ? in_flight_requests.get(dedup_key)
+    : undefined;
 
   if (in_flight) {
     return in_flight;
@@ -264,7 +286,9 @@ export async function update_item_metadata(
   try {
     const result = await promise;
 
-    if (!result.success) clear_flag_intents([item_id], intent);
+    if (!result.success && ticket_current()) {
+      clear_flag_intents([item_id], intent);
+    }
 
     if (result.success) {
       ack_flag_intents([item_id], intent);
@@ -288,10 +312,12 @@ export async function update_item_metadata(
 
     return result;
   } catch (caught) {
-    clear_flag_intents([item_id], intent);
+    if (ticket_current()) clear_flag_intents([item_id], intent);
     throw caught;
   } finally {
-    in_flight_requests.delete(dedup_key);
+    if (in_flight_requests.get(dedup_key) === promise) {
+      in_flight_requests.delete(dedup_key);
+    }
     if (item_chains.get(item_id) === chained) {
       item_chains.delete(item_id);
     }

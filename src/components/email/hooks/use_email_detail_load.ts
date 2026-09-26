@@ -81,6 +81,11 @@ import { use_email_detail_actions } from "@/components/email/hooks/email_detail_
 import { prefetch_attachment_meta } from "@/services/attachment_meta_cache";
 import { prefetch_attachment_previews } from "@/services/attachment_preview_cache";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  claim_auto_read,
+  is_read_ticket_current,
+  peek_read_ticket,
+} from "@/services/read_intent";
 
 export function use_email_detail_load() {
   const { t } = use_i18n();
@@ -426,7 +431,11 @@ export function use_email_detail_load() {
 
       if (should_auto_mark_read) {
         const is_received = item.item_type === "received";
+        const armed_read_ticket = peek_read_ticket(email_id);
         const mark_read = () => {
+          const read_ticket = claim_auto_read(email_id, armed_read_ticket);
+
+          if (read_ticket === null) return;
           const conversation_options = {
             thread_token: item.thread_token,
             thread_message_count: item.thread_message_count,
@@ -453,6 +462,7 @@ export function use_email_detail_load() {
             },
             { is_read: true },
           ).then((result) => {
+            if (!is_read_ticket_current(email_id, read_ticket)) return;
             if (result.success) {
               emit_mail_item_updated({
                 id: email_id,
@@ -679,7 +689,11 @@ export function use_email_detail_load() {
       if (should_auto_mark_read) {
         const mail_data = response.data;
         const is_received = response.data.item_type === "received";
+        const armed_read_ticket = peek_read_ticket(email_id);
         const mark_read = () => {
+          const read_ticket = claim_auto_read(email_id, armed_read_ticket);
+
+          if (read_ticket === null) return;
           const conversation_options = {
             thread_token: mail_data.thread_token,
             thread_message_count: mail_data.thread_message_count,
@@ -706,6 +720,7 @@ export function use_email_detail_load() {
             },
             { is_read: true },
           ).then((result) => {
+            if (!is_read_ticket_current(email_id, read_ticket)) return;
             if (result.success) {
               emit_mail_item_updated({
                 id: email_id,
