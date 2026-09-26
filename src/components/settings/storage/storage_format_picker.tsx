@@ -93,28 +93,29 @@ export function StorageFormatPicker({
         />
       }
     >
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2">
         {options.map((option) => (
           <Island
             key={option.format}
             interactive
-            className="overflow-hidden"
+            className="min-w-0 overflow-hidden"
             selected={storage_format === option.format}
           >
             <button
-              className="block w-full text-start"
+              aria-pressed={storage_format === option.format}
+              className="block w-full min-w-0 text-start"
               type="button"
               onClick={() => handle_select(option.format)}
             >
-              <div className="relative aspect-[5/3] overflow-hidden">
+              <div className="relative aspect-video overflow-hidden bg-[#0b0b0b]">
                 <img
                   alt=""
-                  className="w-full h-full object-cover block"
+                  className="absolute inset-0 h-full w-full object-cover"
                   draggable={false}
                   loading="lazy"
                   src={option.image}
                 />
-                {storage_format === option.format && <SelectedBadge />}
+                {storage_format === option.format && <SelectedBadge inset />}
               </div>
               <div className="px-3.5 py-3 flex items-center justify-center">
                 <span className="text-sm font-medium text-txt-primary">
@@ -140,12 +141,9 @@ export function StorageFormatPicker({
           </ModalDescription>
         </ModalHeader>
         <ModalFooter>
-          <button
-            className="px-4 py-2 text-sm font-medium rounded-[14px] transition-colors hover_bg text-txt-muted"
-            onClick={() => set_show_ipfs_confirm(false)}
-          >
+          <Button variant="ghost" onClick={() => set_show_ipfs_confirm(false)}>
             {t("common.cancel")}
-          </button>
+          </Button>
           <Button variant="depth" onClick={handle_confirm_ipfs}>
             {t("common.confirm")}
           </Button>

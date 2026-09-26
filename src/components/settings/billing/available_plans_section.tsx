@@ -22,7 +22,17 @@ import type { TranslationKey } from "@/lib/i18n/types";
 
 import { Fragment, useState } from "react";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
-import { Island, IslandDivider, IslandSection, PillButton } from "@aster/ui";
+import {
+  Island,
+  IslandDivider,
+  IslandSection,
+  PillButton,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@aster/ui";
 
 import { checkout_error_text } from "./checkout_error_text";
 
@@ -89,7 +99,7 @@ interface AvailablePlansSectionProps {
   billing_period: "monthly" | "yearly" | "biennial";
   set_billing_period: (value: "monthly" | "yearly" | "biennial") => void;
   preferred_currency: string;
-  handle_currency_change: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  handle_currency_change: (currency: string) => void;
   plan_features: Record<string, { label: string; on: boolean }[]>;
   is_action_loading: boolean;
   on_upgrade: (plan: AvailablePlan) => void;
@@ -267,7 +277,10 @@ export function AvailablePlansSection({
     ? family_recommended_code
     : individual_recommended_code;
   const selected_tier = tiers.find((tier) => tier.id === selected_code) ?? null;
-  const price_tier = selected_tier ?? tiers.find((tier) => tier.id === recommended_code) ?? tiers[0];
+  const price_tier =
+    selected_tier ??
+    tiers.find((tier) => tier.id === recommended_code) ??
+    tiers[0];
   const current_plan_code = subscription?.plan.code;
   const current_tier_index = tiers.findIndex(
     (tier) => tier.id === current_plan_code,
@@ -277,7 +290,8 @@ export function AvailablePlansSection({
   const money = (cents: number) =>
     format_price(convert_cents(cents, preferred_currency), preferred_currency);
 
-  const selected_is_same_plan = !!selected_tier && selected_tier.id === current_plan_code;
+  const selected_is_same_plan =
+    !!selected_tier && selected_tier.id === current_plan_code;
   const selected_is_current =
     selected_is_same_plan && current_billing_interval === card_interval;
   const selected_is_interval_switch =
@@ -471,7 +485,7 @@ export function AvailablePlansSection({
         </Island>
 
         <Island padding="none">
-          <label className="flex items-center justify-between gap-4 px-4 py-3">
+          <div className="flex items-center justify-between gap-4 px-4 py-3">
             <span className="min-w-0">
               <span className="block text-[15px] font-medium leading-5 text-txt-primary">
                 {t("settings.currency")}
@@ -482,18 +496,25 @@ export function AvailablePlansSection({
                   : t("settings.prices_converted_note")}
               </span>
             </span>
-            <select
-              className="h-9 flex-shrink-0 cursor-pointer rounded-[var(--aster-radius-field)] bg-surf-tertiary px-3 text-[13px] font-medium text-txt-primary outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+            <Select
               value={preferred_currency}
-              onChange={handle_currency_change}
+              onValueChange={handle_currency_change}
             >
-              {SUPPORTED_CURRENCIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-          </label>
+              <SelectTrigger
+                aria-label={t("settings.currency")}
+                className="h-9 w-auto flex-shrink-0"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent align="end">
+                {SUPPORTED_CURRENCIES.map((c) => (
+                  <SelectItem key={c.code} value={c.code}>
+                    {c.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </Island>
 
         <div className="flex flex-col items-center gap-2 pt-1">
@@ -507,7 +528,9 @@ export function AvailablePlansSection({
             }
             size="lg"
             type="button"
-            variant={selected_tier && !selected_is_current ? "filled" : "neutral"}
+            variant={
+              selected_tier && !selected_is_current ? "filled" : "neutral"
+            }
             onClick={handle_cta}
           >
             {cta_label}

@@ -26,7 +26,14 @@ import {
   ArrowTopRightOnSquareIcon,
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import {
+  Button,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@aster/ui";
 
 import { checkout_error_text } from "./checkout_error_text";
 
@@ -290,9 +297,7 @@ export function PlanUpgradeSelection({
   const billing_interval: "month" | "year" =
     billing_period === "yearly" ? "year" : "month";
 
-  const handle_currency_change = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const next = e.target.value;
-
+  const handle_currency_change = (next: string) => {
     set_currency(next);
     safe_local_set(CURRENCY_STORAGE_KEY, next);
   };
@@ -514,17 +519,21 @@ export function PlanUpgradeSelection({
               ? t("settings.prices_in_usd_note")
               : t("settings.prices_converted_note")}
           </p>
-          <select
-            className="text-xs bg-surf-tertiary border border-edge-secondary rounded-lg px-2 py-1 text-txt-secondary cursor-pointer outline-none focus:border-blue-500 transition-colors"
-            value={currency}
-            onChange={handle_currency_change}
-          >
-            {SUPPORTED_CURRENCIES.map((c) => (
-              <option key={c.code} value={c.code}>
-                {c.label}
-              </option>
-            ))}
-          </select>
+          <Select value={currency} onValueChange={handle_currency_change}>
+            <SelectTrigger
+              aria-label={t("settings.currency")}
+              className="h-8 w-auto text-xs"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SUPPORTED_CURRENCIES.map((c) => (
+                <SelectItem key={c.code} value={c.code}>
+                  {c.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         {is_loading ? (

@@ -306,15 +306,10 @@ export function BillingSection() {
   const pending_tauri_checkout_ref = useRef(false);
   const plan_before_checkout_ref = useRef<string | null>(null);
 
-  const handle_currency_change = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const new_currency = e.target.value;
-
-      set_preferred_currency(new_currency);
-      safe_local_set(CURRENCY_STORAGE_KEY, new_currency);
-    },
-    [],
-  );
+  const handle_currency_change = useCallback((new_currency: string) => {
+    set_preferred_currency(new_currency);
+    safe_local_set(CURRENCY_STORAGE_KEY, new_currency);
+  }, []);
 
   const refresh_academic_status = useCallback(async () => {
     const res = await get_academic_discount_status();

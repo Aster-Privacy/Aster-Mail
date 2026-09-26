@@ -624,7 +624,7 @@ export function CreateAliasModal({
                   {t("settings.create_alias_display_name_label")}
                 </label>
                 {display_name_locked ? (
-                  <div className="flex items-center justify-between w-full h-10 px-3 rounded-[var(--aster-radius-control)] border border-edge-secondary opacity-60 cursor-not-allowed">
+                  <div className="flex items-center justify-between w-full h-10 px-3 rounded-[var(--aster-radius-control)] bg-surf-tertiary cursor-not-allowed">
                     <span className="text-sm text-txt-muted">
                       {t("settings.create_alias_display_name_placeholder")}
                     </span>

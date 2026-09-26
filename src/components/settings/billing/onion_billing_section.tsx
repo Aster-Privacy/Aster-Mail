@@ -99,9 +99,7 @@ export function OnionBillingSection() {
     void load_data();
   }, [load_data]);
 
-  const handle_currency_change = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const new_currency = e.target.value;
-
+  const handle_currency_change = (new_currency: string) => {
     set_preferred_currency(new_currency);
     safe_local_set(CURRENCY_STORAGE_KEY, new_currency);
   };

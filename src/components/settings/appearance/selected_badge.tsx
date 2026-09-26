@@ -18,9 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export function SelectedBadge() {
+interface SelectedBadgeProps {
+  inset?: boolean;
+}
+
+export function SelectedBadge({ inset = false }: SelectedBadgeProps) {
   return (
-    <span className="absolute -top-1.5 -end-1.5 flex items-center justify-center w-5 h-5 rounded-full bg-brand shadow-sm ring-2 ring-surf-primary">
+    <span
+      className={`absolute flex items-center justify-center w-5 h-5 rounded-full bg-brand ${
+        inset
+          ? "top-2 end-2 shadow-md ring-2 ring-white/90"
+          : "-top-1.5 -end-1.5 shadow-sm ring-2 ring-surf-primary"
+      }`}
+    >
       <svg fill="none" height="10" viewBox="0 0 16 16" width="10">
         <path
           d="M3.5 8.5L6.3 11.3L12.5 4.7"

@@ -143,7 +143,9 @@ function PinPad({
   const btn = (active: boolean) =>
     cn(
       "h-12 w-12 mx-auto rounded-full flex items-center justify-center transition-all duration-75 focus:outline-none focus-visible:outline-none",
-      disabled ? "opacity-40 cursor-not-allowed" : "bg-muted hover:bg-muted/70",
+      disabled
+        ? "bg-muted/40 text-txt-muted cursor-not-allowed"
+        : "bg-muted hover:bg-muted/70",
       active && !disabled && "scale-90 bg-muted/50",
     );
 

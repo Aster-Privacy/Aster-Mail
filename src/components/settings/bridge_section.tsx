@@ -23,12 +23,12 @@ import type { TranslationKey } from "@/lib/i18n";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   ArrowDownTrayIcon,
-  ArrowRightIcon,
   ArrowTopRightOnSquareIcon,
   CheckIcon,
   ChevronDownIcon,
   ClipboardDocumentIcon,
   ComputerDesktopIcon,
+  LockClosedIcon,
   QuestionMarkCircleIcon,
   LinkSlashIcon,
 } from "@heroicons/react/24/outline";
@@ -38,6 +38,7 @@ import {
   IslandRow,
   IslandSection,
   IslandSections,
+  UpgradeBtn,
 } from "@aster/ui";
 
 import {
@@ -312,39 +313,46 @@ async function start_bridge_download(
 interface BridgeDownloadLinkProps {
   platform: string;
   is_locked: boolean;
-  className: string;
-  children: React.ReactNode;
+  is_primary?: boolean;
+  label: string;
 }
+
+const DOWNLOAD_BTN_BASE =
+  "aster_btn aster_btn_md inline-flex flex-shrink-0 items-center justify-center gap-1.5 whitespace-nowrap";
 
 function BridgeDownloadLink({
   platform,
   is_locked,
-  className,
-  children,
+  is_primary = false,
+  label,
 }: BridgeDownloadLinkProps) {
   const { t } = use_i18n();
-  const classes = [
-    className,
-    is_locked ? "opacity-40 cursor-not-allowed" : "",
-  ].join(" ");
 
   if (is_locked) {
     return (
-      <button disabled className={classes} type="button">
-        {children}
+      <button
+        disabled
+        className={`${DOWNLOAD_BTN_BASE} aster_btn_outline cursor-not-allowed text-txt-muted`}
+        type="button"
+      >
+        <LockClosedIcon className="w-3.5 h-3.5 flex-shrink-0" />
+        {label}
       </button>
     );
   }
 
   return (
     <a
-      className={classes}
+      className={`${DOWNLOAD_BTN_BASE} ${
+        is_primary ? "aster_btn_depth" : "aster_btn_outline"
+      }`}
       href={`${DL}/${platform}`}
       onClick={(event) =>
         void start_bridge_download(platform, is_locked, t, event)
       }
     >
-      {children}
+      <ArrowDownTrayIcon className="w-3.5 h-3.5 flex-shrink-0" />
+      {label}
     </a>
   );
 }
@@ -366,11 +374,9 @@ function DownloadFormatMenu({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild disabled={is_locked}>
+      <DropdownMenuTrigger asChild>
         <button
-          className={`aster_btn aster_btn_outline aster_btn_md inline-flex items-center justify-center gap-1.5 whitespace-nowrap ${
-            is_locked ? "opacity-40 cursor-not-allowed" : ""
-          }`}
+          className="aster_btn aster_btn_outline aster_btn_md inline-flex items-center justify-center gap-1.5 whitespace-nowrap"
           type="button"
         >
           {children ?? label}
@@ -475,36 +481,43 @@ function BridgeUpgradeCard({ on_upgrade }: BridgeUpgradeCardProps) {
   const { t } = use_i18n();
 
   return (
-    <Island padding="lg">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h3 className="text-base font-semibold text-txt-primary">
+    <Island padding="lg" tone="accent">
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
+        <div className="min-w-0 flex-1">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-brand px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-white">
+            <LockClosedIcon className="h-3 w-3" />
+            {t("settings.requires_plan", { plan: "Star" })}
+          </span>
+          <h3 className="mt-3 text-lg font-semibold leading-6 text-txt-primary">
             {t("settings.desktop_bridge_upgrade_title")}
           </h3>
-          <p className="mt-1 text-sm text-txt-muted">
+          <p className="mt-1.5 max-w-[46ch] text-sm leading-5 text-txt-secondary">
             {t("settings.desktop_bridge_upgrade_description")}
           </p>
+          <ul className="mt-4 grid grid-cols-1 gap-x-6 gap-y-2 md:grid-cols-2">
+            {UPGRADE_BENEFIT_KEYS.map((key) => (
+              <li
+                key={key}
+                className="flex items-start gap-2 text-sm leading-5 text-txt-primary"
+              >
+                <span className="mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-brand text-white">
+                  <CheckIcon className="h-2.5 w-2.5" strokeWidth={3} />
+                </span>
+                {t(key)}
+              </li>
+            ))}
+          </ul>
         </div>
-        <button
-          className="aster_btn aster_btn_upgrade aster_btn_md inline-flex flex-shrink-0 items-center gap-2"
-          type="button"
-          onClick={on_upgrade}
-        >
-          {t("settings.desktop_bridge_upgrade_cta")}
-          <ArrowRightIcon className="w-4 h-4 rtl:-scale-x-100" />
-        </button>
-      </div>
-      <ul className="mt-5 grid grid-cols-1 gap-x-8 gap-y-2 sm:grid-cols-2">
-        {UPGRADE_BENEFIT_KEYS.map((key) => (
-          <li
-            key={key}
-            className="flex items-start gap-2 text-sm text-txt-secondary"
+        <div className="flex-shrink-0 sm:pt-1">
+          <UpgradeBtn
+            className="w-full sm:w-auto"
+            size="md"
+            onClick={on_upgrade}
           >
-            <CheckIcon className="mt-0.5 w-4 h-4 flex-shrink-0 text-brand" />
-            {t(key)}
-          </li>
-        ))}
-      </ul>
+            {t("settings.desktop_bridge_upgrade_cta")}
+          </UpgradeBtn>
+        </div>
+      </div>
     </Island>
   );
 }
@@ -531,16 +544,12 @@ function PlatformRow({ card, is_locked, is_primary }: PlatformRowProps) {
       </div>
       <div className="flex flex-shrink-0 items-center gap-1.5">
         <BridgeDownloadLink
-          className={`aster_btn ${
-            is_primary ? "aster_btn_depth" : "aster_btn_outline"
-          } aster_btn_md inline-flex items-center justify-center gap-1.5 whitespace-nowrap`}
           is_locked={is_locked}
+          is_primary={is_primary}
+          label={t(card.cta_key)}
           platform={card.platform}
-        >
-          <ArrowDownTrayIcon className="w-3.5 h-3.5 flex-shrink-0" />
-          {t(card.cta_key)}
-        </BridgeDownloadLink>
-        {card.format_groups && (
+        />
+        {card.format_groups && !is_locked && (
           <DownloadFormatMenu
             groups={card.format_groups}
             is_locked={is_locked}
@@ -580,13 +589,10 @@ function BridgeCliCard({ is_locked }: BridgeCliCardProps) {
           </p>
         </div>
         <BridgeDownloadLink
-          className="aster_btn aster_btn_outline aster_btn_md inline-flex flex-shrink-0 items-center justify-center gap-1.5 whitespace-nowrap"
           is_locked={is_locked}
+          label={t("settings.bridge_cli_download")}
           platform={variant.download_platform}
-        >
-          <ArrowDownTrayIcon className="w-3.5 h-3.5 flex-shrink-0" />
-          {t("settings.bridge_cli_download")}
-        </BridgeDownloadLink>
+        />
       </div>
 
       <div className="mt-3 ps-10">

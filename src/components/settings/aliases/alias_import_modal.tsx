@@ -25,7 +25,14 @@ import {
   ExclamationTriangleIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import {
+  Button,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -823,17 +830,24 @@ export function AliasImportModal({
                     <span className="text-sm text-txt-muted shrink-0">
                       {t("settings.alias_import_target_domain")}
                     </span>
-                    <select
-                      className="text-sm rounded-[var(--aster-radius-control)] border border-edge-secondary bg-surf-primary text-txt-primary px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer"
+                    <Select
                       value={target_domain}
-                      onChange={(e) => handle_domain_change(e.target.value)}
+                      onValueChange={handle_domain_change}
                     >
-                      {selectable_domains.map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger
+                        aria-label={t("settings.alias_import_target_domain")}
+                        className="h-9 w-auto"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {selectable_domains.map((d) => (
+                          <SelectItem key={d} value={d}>
+                            {d}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </>
                 )}
                 {selectable_domains.length === 1 && (
