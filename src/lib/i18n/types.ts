@@ -2167,6 +2167,15 @@ export interface CommonTranslations {
   no_folders_available: string;
   submitting: string;
   account_suspended_label: string;
+  suspended_alert: string;
+  suspended_alert_terms: string;
+  suspended_since_with_deletion: string;
+  suspended_since: string;
+  suspended_title: string;
+  suspended_appeal_hint: string;
+  suspended_download_hint: string;
+  suspended_download: string;
+  suspended_start_appeal: string;
   account_suspended_default_reason: string;
   submit_an_appeal: string;
   settings_disabled_suspended: string;

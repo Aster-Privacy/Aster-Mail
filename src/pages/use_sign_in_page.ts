@@ -598,20 +598,6 @@ export function use_sign_in_page() {
       set_status(t("auth.decrypting_vault"));
 
       try {
-        if (totp_response.is_suspended) {
-          sessionStorage.setItem("aster_suspended", "true");
-          set_error(t("common.account_suspended"));
-          set_is_loading(false);
-          set_captcha_token("");
-          turnstile_ref.current?.reset();
-          set_totp_required(false);
-          set_pending_login_token("");
-          set_available_2fa_methods([]);
-          set_active_2fa_method("totp");
-
-          return;
-        }
-
         let vault;
 
         try {

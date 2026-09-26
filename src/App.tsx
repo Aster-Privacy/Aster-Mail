@@ -39,7 +39,7 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { ProtectedRoute } from "@/components/common/protected_route";
-import { SuspensionBanner } from "@/components/common/suspension_overlay";
+import { SuspendedAccountGate } from "@/components/common/suspended_account_gate";
 import { Family2faDialog } from "@/components/common/family_2fa_dialog";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
 import { DesktopPairGate } from "@/components/common/desktop_pair_gate";
@@ -353,7 +353,7 @@ function App() {
     <AppLock>
       <BillingSuccessHandler />
       <CheckoutReturnHandler />
-      <SuspensionBanner />
+      <SuspendedAccountGate />
       <PendingDeletionDialog />
       <Family2faDialog />
       <UpdateBanner />
