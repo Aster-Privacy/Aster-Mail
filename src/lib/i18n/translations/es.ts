@@ -265,6 +265,7 @@ export const es = {
     create_subfolder: "Crear subcarpeta",
     mute_notifications: "Silenciar notificaciones",
     unmute_notifications: "Activar notificaciones",
+    notifications_muted: "Notificaciones silenciadas",
     remove_lock: "Quitar bloqueo",
     lock: "Bloquear",
     change_color: "Cambiar color",

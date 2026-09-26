@@ -314,6 +314,7 @@ export const ja = {
     create_subfolder: "サブフォルダを作成",
     mute_notifications: "通知をミュート",
     unmute_notifications: "ミュートを解除",
+    notifications_muted: "通知はミュート中",
     remove_lock: "ロックを解除",
     lock: "ロック",
     change_color: "色を変更",

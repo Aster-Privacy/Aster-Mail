@@ -250,6 +250,7 @@ export const ar = {
     create_subfolder: "إنشاء مجلد فرعي",
     mute_notifications: "كتم الإشعارات",
     unmute_notifications: "إلغاء كتم الإشعارات",
+    notifications_muted: "الإشعارات مكتومة",
     remove_lock: "إزالة القفل",
     lock: "قفل",
     change_color: "تغيير اللون",

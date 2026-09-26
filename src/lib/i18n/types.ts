@@ -880,6 +880,7 @@ export interface CommonTranslations {
   create_subfolder: string;
   mute_notifications: string;
   unmute_notifications: string;
+  notifications_muted: string;
   remove_lock: string;
   lock: string;
   change_color: string;

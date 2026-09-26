@@ -324,6 +324,7 @@ export const fr = {
     create_subfolder: "Créer un sous-dossier",
     mute_notifications: "Désactiver les notifications",
     unmute_notifications: "Réactiver les notifications",
+    notifications_muted: "Notifications désactivées",
     new_message: "Nouveau message",
     expand: "Agrandir",
     collapse: "Réduire",

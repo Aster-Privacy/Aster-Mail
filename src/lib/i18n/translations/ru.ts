@@ -252,6 +252,7 @@ export const ru = {
     create_subfolder: "Создать подпапку",
     mute_notifications: "Отключить уведомления",
     unmute_notifications: "Включить уведомления",
+    notifications_muted: "Уведомления отключены",
     remove_lock: "Снять блокировку",
     lock: "Заблокировать",
     change_color: "Изменить цвет",

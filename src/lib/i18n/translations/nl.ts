@@ -250,6 +250,7 @@ export const nl = {
     create_subfolder: "Submap maken",
     mute_notifications: "Meldingen dempen",
     unmute_notifications: "Dempen opheffen",
+    notifications_muted: "Meldingen gedempt",
     remove_lock: "Vergrendeling verwijderen",
     lock: "Vergrendelen",
     change_color: "Kleur wijzigen",

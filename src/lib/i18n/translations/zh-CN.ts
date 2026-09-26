@@ -1261,6 +1261,7 @@ export const zh_CN = {
     create_subfolder: "创建子文件夹",
     mute_notifications: "静音通知",
     unmute_notifications: "取消静音",
+    notifications_muted: "通知已静音",
     remove_lock: "移除锁",
     lock: "锁定",
     change_color: "更改颜色",

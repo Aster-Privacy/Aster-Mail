@@ -238,6 +238,7 @@ export const de = {
     create_subfolder: "Unterordner erstellen",
     mute_notifications: "Benachrichtigungen stummschalten",
     unmute_notifications: "Stummschaltung aufheben",
+    notifications_muted: "Benachrichtigungen stummgeschaltet",
     new_message: "Neue Nachricht",
     expand: "Erweitern",
     collapse: "Einklappen",

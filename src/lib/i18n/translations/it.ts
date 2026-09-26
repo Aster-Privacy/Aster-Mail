@@ -258,6 +258,7 @@ export const it = {
     create_subfolder: "Crea sottocartella",
     mute_notifications: "Silenzia notifiche",
     unmute_notifications: "Riattiva notifiche",
+    notifications_muted: "Notifiche disattivate",
     remove_lock: "Rimuovi blocco",
     lock: "Blocca",
     change_color: "Cambia colore",
