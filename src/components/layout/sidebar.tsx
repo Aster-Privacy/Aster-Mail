@@ -818,6 +818,7 @@ const sidebar_base = ({
               inbox_pinned_folders.length > 0 ? (
                 <SidebarFolders
                   folders_expanded
+                  account_id={user?.id ?? ""}
                   effective_selected={effective_selected}
                   folder_refs={folder_refs}
                   folder_unread_counts={folder_unread_counts}
@@ -859,6 +860,7 @@ const sidebar_base = ({
           />
 
           <SidebarFolders
+            account_id={user?.id ?? ""}
             effective_selected={effective_selected}
             folder_refs={folder_refs}
             folder_unread_counts={folder_unread_counts}

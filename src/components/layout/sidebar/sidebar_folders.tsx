@@ -19,9 +19,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { MutableRefObject } from "react";
-import type { DecryptedFolder } from "@/hooks/use_folders";
+import type { DecryptedFolder, FolderTreeNode } from "@/hooks/use_folders";
 
-import { memo, useState, useEffect, useMemo } from "react";
+import {
+  memo,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useSyncExternalStore,
+} from "react";
 import {
   PlusIcon,
   ChevronDownIcon,
@@ -34,6 +41,7 @@ import {
 import {
   build_folder_tree,
   build_tree_guides,
+  flatten_folder_tree,
   flatten_visible_tree,
   get_sibling_folders,
 } from "@/hooks/use_folders";
@@ -46,6 +54,11 @@ import { FolderContextMenu } from "@/components/folders/folder_context_menu";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
+import {
+  get_expanded_folders,
+  set_expanded_folders,
+  subscribe_expanded_folders,
+} from "@/services/expanded_folders_store";
 
 export interface FolderModalData {
   folder_id: string;
@@ -57,6 +70,7 @@ export interface FolderModalData {
 }
 
 interface SidebarFoldersProps {
+  account_id?: string;
   is_collapsed: boolean;
   effective_selected: string | null;
   folders: DecryptedFolder[];
@@ -99,6 +113,7 @@ interface SidebarFoldersProps {
 }
 
 export const SidebarFolders = memo(function SidebarFolders({
+  account_id = "",
   is_collapsed,
   effective_selected,
   folders,
@@ -127,8 +142,13 @@ export const SidebarFolders = memo(function SidebarFolders({
   const is_pinned = variant === "pinned";
 
   const [drag_over_token, set_drag_over_token] = useState<string | null>(null);
-  const [expanded_folders, set_expanded_folders] = useState<Set<string>>(
-    new Set(),
+  const get_expanded_snapshot = useCallback(
+    () => get_expanded_folders(account_id),
+    [account_id],
+  );
+  const expanded_folders = useSyncExternalStore(
+    subscribe_expanded_folders,
+    get_expanded_snapshot,
   );
 
   useEffect(() => {
@@ -173,17 +193,30 @@ export const SidebarFolders = memo(function SidebarFolders({
   const hidden_count = root_count - max_visible;
 
   const toggle_expanded = (folder_token: string) => {
-    set_expanded_folders((prev) => {
-      const next = new Set(prev);
+    const next = new Set(expanded_folders);
 
-      if (next.has(folder_token)) {
-        next.delete(folder_token);
+    if (next.has(folder_token)) {
+      next.delete(folder_token);
+    } else {
+      next.add(folder_token);
+    }
+
+    set_expanded_folders(account_id, next);
+  };
+
+  const set_subtree_expanded = (node: FolderTreeNode, expanded: boolean) => {
+    const next = new Set(expanded_folders);
+
+    for (const item of flatten_folder_tree([node])) {
+      if (item.children.length === 0) continue;
+      if (expanded) {
+        next.add(item.folder.folder_token);
       } else {
-        next.add(folder_token);
+        next.delete(item.folder.folder_token);
       }
+    }
 
-      return next;
-    });
+    set_expanded_folders(account_id, next);
   };
 
   return (
@@ -292,6 +325,11 @@ export const SidebarFolders = memo(function SidebarFolders({
                 can_move_up={sibling_index > 0}
                 folder_color={folder_color}
                 folder_token={folder.folder_token}
+                on_collapse_all={
+                  hasChildren && !is_collapsed
+                    ? () => set_subtree_expanded(node, false)
+                    : undefined
+                }
                 on_create_subfolder={
                   set_create_folder_parent_token
                     ? () => {
@@ -301,6 +339,11 @@ export const SidebarFolders = memo(function SidebarFolders({
                     : undefined
                 }
                 on_delete={() => handle_folder_modal(folder_data, "delete")}
+                on_expand_all={
+                  hasChildren && !is_collapsed
+                    ? () => set_subtree_expanded(node, true)
+                    : undefined
+                }
                 on_lock={() =>
                   handle_folder_lock(folder_data, folder.password_set)
                 }

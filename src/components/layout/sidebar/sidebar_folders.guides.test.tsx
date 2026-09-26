@@ -50,6 +50,8 @@ vi.mock("@/contexts/preferences_context", () => ({
 
 import { SidebarFolders } from "./sidebar_folders";
 
+import { clear_expanded_folders } from "@/services/expanded_folders_store";
+
 function folder(
   token: string,
   name: string,
@@ -120,6 +122,7 @@ describe("sidebar folder tree guides", () => {
     act(() => {
       root?.unmount();
     });
+    clear_expanded_folders("");
     container?.remove();
     root = null;
     container = null;

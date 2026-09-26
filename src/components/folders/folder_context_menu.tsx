@@ -24,6 +24,8 @@ import {
   ArrowUpIcon,
   BellIcon,
   BellSlashIcon,
+  ChevronDoubleDownIcon,
+  ChevronDoubleUpIcon,
   FolderIcon,
   FolderPlusIcon,
   LockClosedIcon,
@@ -57,6 +59,8 @@ interface FolderContextMenuProps {
   on_move_down?: () => void;
   can_move_up?: boolean;
   can_move_down?: boolean;
+  on_expand_all?: () => void;
+  on_collapse_all?: () => void;
 }
 
 export function FolderContextMenu({
@@ -75,6 +79,8 @@ export function FolderContextMenu({
   on_move_down,
   can_move_up,
   can_move_down,
+  on_expand_all,
+  on_collapse_all,
 }: FolderContextMenuProps): React.ReactElement {
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
@@ -100,6 +106,26 @@ export function FolderContextMenu({
           <ContextMenuItem onClick={on_create_subfolder}>
             <FolderPlusIcon className="me-2 h-4 w-4" />
             {t("common.create_subfolder")}
+          </ContextMenuItem>
+        )}
+
+        {on_expand_all && (
+          <ContextMenuItem
+            data-testid="folder-menu-expand-all"
+            onClick={on_expand_all}
+          >
+            <ChevronDoubleDownIcon className="me-2 h-4 w-4" />
+            {t("common.expand_all")}
+          </ContextMenuItem>
+        )}
+
+        {on_collapse_all && (
+          <ContextMenuItem
+            data-testid="folder-menu-collapse-all"
+            onClick={on_collapse_all}
+          >
+            <ChevronDoubleUpIcon className="me-2 h-4 w-4" />
+            {t("common.collapse_all")}
           </ContextMenuItem>
         )}
 
