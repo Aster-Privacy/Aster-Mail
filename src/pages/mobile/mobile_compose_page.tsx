@@ -377,7 +377,13 @@ function MobileComposePage({
             )}
           </Button>
         }
-        title={t("mail.new_message")}
+        title={
+          edit_draft?.draft_type === "reply"
+            ? t("mail.reply")
+            : edit_draft?.draft_type === "forward"
+              ? t("mail.forward")
+              : t("mail.new_message")
+        }
       />
 
       <div className="flex-1 overflow-y-auto relative z-0">

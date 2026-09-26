@@ -62,6 +62,8 @@ import {
 import { use_auth_safe } from "@/contexts/auth_context";
 import { app_locale } from "@/utils/date_format";
 import { resolve_reply_references } from "@/lib/reply_references";
+import { sanitize_outgoing_html } from "@/lib/html_sanitizer_compose";
+import { inline_email_css } from "@/lib/forward_css_inliner";
 
 export function use_mobile_mail_detail() {
   const navigate = useNavigate();
@@ -547,20 +549,24 @@ export function use_mobile_mail_detail() {
     (msg: DecryptedThreadMessage, mode: "reply" | "reply_all" | "forward") => {
       const subject = msg.subject || "";
       const body = msg.body || "";
+      const escape_html = (text: string): string =>
+        text
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
       const quote_header =
         mode === "forward"
-          ? t("common.forwarded_message_header")
+          ? escape_html(t("common.forwarded_message_header"))
           : t("mail.reply_quote_header", {
               date: new Date(msg.timestamp).toLocaleString(app_locale()),
-              name: msg.display_sender_name || msg.sender_name,
+              name: `${escape_html(
+                msg.display_sender_name || msg.sender_name,
+              )} &lt;${escape_html(msg.sender_email)}&gt;`,
             });
       const include_quoted =
         mode === "forward" || reply_includes_quoted_by_default();
       const quoted = include_quoted
-        ? `\n\n${quote_header}\n${body
-            .split("\n")
-            .map((l) => "> " + l)
-            .join("\n")}`
+        ? `<br><br><div class="aster_quote"><div class="aster_quote_attr">${quote_header}</div><blockquote class="aster_quote_body" style="margin:0 0 0 0.8ex;border-left:1px solid #ccc;padding-left:1ex">${sanitize_outgoing_html(inline_email_css(body))}</blockquote></div>`
         : "";
       const rfc_message_id = resolve_reply_references(
         msg,
