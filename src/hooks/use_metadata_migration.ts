@@ -54,8 +54,6 @@ export function use_metadata_migration(): {
     set_is_migrating(false);
 
     if (!result.success) {
-      migration_started.current = false;
-
       return;
     }
 

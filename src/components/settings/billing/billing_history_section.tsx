@@ -18,86 +18,140 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { ReceiptPercentIcon } from "@heroicons/react/24/outline";
-
+import {
+  BILLING_CARD_CLASS,
+  BillingHistorySkeleton,
+} from "@/components/settings/billing/billing_skeleton";
 import {
   format_price,
   format_date,
   type BillingHistoryItem,
+  type CreditTransactionItem,
 } from "@/services/api/billing";
 import { use_i18n } from "@/lib/i18n/context";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
-import { describe_billing_entry } from "@/utils/billing_description";
+import {
+  describe_billing_entry,
+  describe_credit_entry,
+} from "@/utils/billing_description";
 
 interface BillingHistorySectionProps {
   history: BillingHistoryItem[];
+  credit_transactions?: CreditTransactionItem[];
+  is_loading?: boolean;
   load_failed?: boolean;
   on_retry?: () => void;
 }
 
 export function BillingHistorySection({
   history,
+  credit_transactions = [],
+  is_loading = false,
   load_failed,
   on_retry,
 }: BillingHistorySectionProps) {
   const { t } = use_i18n();
+  const show_history = history.length > 0 || (is_loading && !load_failed);
+  const show_failed = history.length === 0 && !!load_failed && !!on_retry;
 
-  if (history.length === 0 && !(load_failed && on_retry)) return null;
+  if (!show_history && !show_failed && credit_transactions.length === 0)
+    return null;
 
   return (
-    <div className="border-t border-edge-secondary pt-8">
-      <div className="mb-2">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-          <ReceiptPercentIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
-          {t("settings.billing_history")}
-        </h3>
-      </div>
-      {history.length === 0 && load_failed && on_retry ? (
-        <LoadFailedNotice on_retry={on_retry} />
-      ) : (
-        <div className="rounded-lg border overflow-hidden border-edge-secondary">
-          <div>
-            {history.map((item) => (
-              <div
-                key={item.id}
-                className="flex items-center justify-between px-4 py-3 hover:bg-surf-hover transition-colors"
-              >
-                <div>
-                  <p className="text-sm text-txt-primary">
-                    {describe_billing_entry(item.description, t) ||
-                      item.plan_name ||
-                      t("settings.payment")}
-                  </p>
-                  <p className="text-xs mt-0.5 text-txt-muted">
-                    {format_date(item.created_at)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span
-                    className={
-                      item.status === "paid"
-                        ? "aster_badge aster_badge_green"
-                        : item.status === "failed"
-                          ? "aster_badge aster_badge_red"
-                          : "aster_badge aster_badge_amber"
-                    }
-                  >
-                    {t(`settings.invoice_status_${item.status}` as any)}
-                  </span>
-                  <p className="text-sm font-medium text-txt-primary">
-                    {format_price(item.amount_cents, item.currency)}
-                  </p>
-                  {item.invoice_pdf_url && (
-                    <a
-                      className="text-xs text-blue-500 hover:underline"
-                      href={item.invoice_pdf_url}
-                      rel="noopener noreferrer"
-                      target="_blank"
+    <div className="space-y-6">
+      {(show_history || show_failed) && (
+        <div className="space-y-3">
+          <h3 className="text-base font-semibold text-txt-primary">
+            {t("settings.bill_history")}
+          </h3>
+          {show_failed ? (
+            <LoadFailedNotice on_retry={on_retry!} />
+          ) : history.length === 0 ? (
+            <BillingHistorySkeleton rows={3} />
+          ) : (
+            <div className={`${BILLING_CARD_CLASS} py-1`}>
+              {history.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex min-h-[54px] items-center justify-between gap-3 px-4 py-2 transition-colors hover:bg-surf-hover"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-txt-primary">
+                      {describe_billing_entry(item.description, t) ||
+                        item.plan_name ||
+                        t("settings.payment")}
+                    </p>
+                    <p className="text-[13px] text-txt-muted">
+                      {format_date(item.created_at)}
+                    </p>
+                  </div>
+                  <div className="flex flex-shrink-0 items-center gap-3">
+                    <span
+                      className="text-xs font-semibold"
+                      style={{
+                        color:
+                          item.status === "paid"
+                            ? "var(--color-success)"
+                            : item.status === "failed"
+                              ? "var(--color-danger)"
+                              : "var(--color-warning)",
+                      }}
                     >
-                      PDF
-                    </a>
-                  )}
+                      {t(`settings.invoice_status_${item.status}` as any)}
+                    </span>
+                    <p className="text-sm font-semibold text-txt-primary">
+                      {format_price(item.amount_cents, item.currency)}
+                    </p>
+                    {item.invoice_pdf_url && (
+                      <a
+                        className="text-xs font-semibold hover:underline"
+                        href={item.invoice_pdf_url}
+                        rel="noopener noreferrer"
+                        style={{ color: "var(--accent-blue)" }}
+                        target="_blank"
+                      >
+                        PDF
+                      </a>
+                    )}
+                  </div>
                 </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {credit_transactions.length > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-base font-semibold text-txt-primary">
+            {t("settings.bill_recent_transactions")}
+          </h3>
+          <div className={`${BILLING_CARD_CLASS} py-1`}>
+            {credit_transactions.map((entry) => (
+              <div
+                key={entry.id}
+                className="flex min-h-[54px] items-center justify-between gap-3 px-4 py-2"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-txt-primary">
+                    {describe_credit_entry(entry.description, t)}
+                  </p>
+                  <p className="text-[13px] text-txt-muted">
+                    {format_date(entry.created_at)}
+                  </p>
+                </div>
+                <p
+                  className="flex-shrink-0 text-sm font-semibold"
+                  style={{
+                    color:
+                      entry.amount_cents >= 0
+                        ? "var(--color-success)"
+                        : "var(--text-primary)",
+                  }}
+                >
+                  {entry.amount_cents >= 0 ? "+" : ""}
+                  {format_price(entry.amount_cents)}
+                </p>
               </div>
             ))}
           </div>

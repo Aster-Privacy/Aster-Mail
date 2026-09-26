@@ -57,6 +57,7 @@ import { MobileBillingReturnHandler } from "@/pages/mobile/mobile_billing_return
 import { MobileDomainOrderReturn } from "@/pages/mobile/mobile_domain_order_return";
 import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
+import { SuspendedAccountGate } from "@/components/common/suspended_account_gate";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
 import { FullPageLoader } from "@/components/common/full_page_loader";
@@ -834,6 +835,7 @@ function MobileApp() {
             </Suspense>
           )}
         </AnimatePresence>
+        <SuspendedAccountGate />
         <PendingDeletionDialog />
         <Family2faDialog />
         <SimpleToast position="top" />

@@ -151,18 +151,6 @@ export function use_mobile_sign_in() {
       set_status(t("auth.decrypting_vault"));
 
       try {
-        if (totp_response.is_suspended) {
-          sessionStorage.setItem("aster_suspended", "true");
-          set_error(t("common.account_suspended"));
-          set_is_loading(false);
-          set_totp_required(false);
-          set_pending_login_token("");
-          set_available_2fa_methods([]);
-          set_active_2fa_method("totp");
-
-          return;
-        }
-
         const vault = await decrypt_vault(
           totp_response.encrypted_vault,
           totp_response.vault_nonce,

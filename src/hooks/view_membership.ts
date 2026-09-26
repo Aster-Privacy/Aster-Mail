@@ -78,7 +78,10 @@ export function compute_should_remove_from_view(
     case "trash":
       return detail.is_trashed === false;
     case "archive":
-      return detail.is_archived === false;
+      return (
+        detail.is_archived === false ||
+        (detail.folders !== undefined && detail.folders.length > 0)
+      );
     case "spam":
       return detail.is_spam === false;
     default:

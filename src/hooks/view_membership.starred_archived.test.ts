@@ -110,3 +110,23 @@ describe("archived mail in the starred view", () => {
     ).toBe(true);
   });
 });
+
+describe("filed mail in the archive view", () => {
+  it("removes a message from archive once it is filed in a folder", () => {
+    expect(
+      compute_should_remove_from_view(
+        {
+          id: "a",
+          folders: [{ folder_token: "f1", name: "Receipts" }],
+        },
+        "archive",
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps an archived message with no folder in archive", () => {
+    expect(
+      compute_should_remove_from_view({ id: "a", folders: [] }, "archive"),
+    ).toBe(false);
+  });
+});
