@@ -41,7 +41,7 @@ import {
   MagnifyingGlassIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Input } from "@aster/ui";
 
 import { StorageSection } from "./settings_lazy_sections";
 import {
@@ -576,16 +576,12 @@ function SettingsContentInner(props: SettingsContentProps) {
                     className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4"
                     style={{ color: "var(--text-muted)" }}
                   />
-                  <input
+                  <Input
                     autoComplete="off"
-                    className="w-full h-9 ps-9 pe-3 rounded-[10px] text-[14px] outline-none"
+                    className="ps-9"
                     placeholder={t("settings.search_placeholder")}
+                    size="md"
                     spellCheck={false}
-                    style={{
-                      backgroundColor: "var(--input-bg, var(--bg-secondary))",
-                      border: "1px solid var(--border-primary)",
-                      color: "var(--text-primary)",
-                    }}
                     type="search"
                     value={search_query}
                     onChange={(e) => set_search_query(e.target.value)}

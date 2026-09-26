@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useRef } from "react";
-import { Button } from "@aster/ui";
+import { Button, Input } from "@aster/ui";
 
 import {
   plan_change_discount_text,
@@ -257,17 +257,19 @@ export function PlanChangeConfirmModal({
                     {t("settings.promo_code")}
                   </label>
                   <div className="flex items-center gap-2">
-                    <input
+                    <Input
                       aria-describedby={
                         promo_error ? "plan_change_promo_error" : undefined
                       }
                       aria-invalid={promo_error ? true : undefined}
                       autoComplete="off"
-                      className="flex-1 px-3 py-2 text-sm rounded-lg bg-surface-secondary border border-edge-secondary text-txt-primary placeholder:text-txt-muted"
+                      className="w-auto flex-1 min-w-0"
                       disabled={is_confirming}
                       id="plan_change_promo_code"
                       maxLength={64}
                       placeholder={t("settings.promo_code_placeholder")}
+                      size="md"
+                      status={promo_error ? "error" : "default"}
                       value={promo_input}
                       onChange={(event) => set_promo_input(event.target.value)}
                       onKeyDown={(event) => {

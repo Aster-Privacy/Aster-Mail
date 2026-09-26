@@ -31,7 +31,7 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon as CheckCircleSolid } from "@heroicons/react/24/solid";
-import { Button } from "@aster/ui";
+import { Button, Input } from "@aster/ui";
 
 import {
   filter_results,
@@ -959,10 +959,11 @@ export function DomainPurchaseFlow({
       <div>
         <div className="relative">
           <MagnifyingGlassIcon className="w-[18px] h-[18px] absolute start-4 top-1/2 -translate-y-1/2 text-txt-muted" />
-          <input
+          <Input
             autoFocus
-            className="w-full h-12 ps-11 pe-11 rounded-[var(--aster-radius-control)] bg-surf-secondary border border-edge-secondary text-[15px] text-txt-primary placeholder:text-txt-muted outline-none focus:border-[var(--accent-color)]/70 transition-colors"
+            className="ps-11 pe-11"
             placeholder={t("settings.domain_purchase_search_placeholder")}
+            size="xl"
             value={query}
             onChange={(e) =>
               set_query(apply_input_transform(e.target, (v) => v.toLowerCase()))

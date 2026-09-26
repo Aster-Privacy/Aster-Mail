@@ -34,7 +34,6 @@ import {
 } from "@aster/ui";
 
 import { Button } from "@/components/ui/button";
-
 import { StepUpModal } from "@/components/settings/step_up_modal";
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -281,10 +280,11 @@ export function HardwareKeysSection() {
                   icon={<KeyIcon />}
                   label={
                     <span className="flex flex-wrap items-center gap-2">
-                      <input
+                      <Input
                         autoFocus
-                        className="aster_input !h-9 !w-44"
+                        className="!w-44 font-medium"
                         maxLength={100}
+                        size="sm"
                         type="text"
                         value={rename_draft}
                         onChange={(e) => set_rename_draft(e.target.value)}

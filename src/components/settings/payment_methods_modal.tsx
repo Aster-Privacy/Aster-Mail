@@ -19,10 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { KeyboardEvent } from "react";
-
-import { useState, useEffect, useCallback, useMemo } from "react";
 import type { Stripe } from "@stripe/stripe-js";
 
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { loadStripe } from "@stripe/stripe-js/pure";
 import {
   Elements,
@@ -41,7 +40,7 @@ import {
   BuildingLibraryIcon,
   BanknotesIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Input } from "@aster/ui";
 
 import {
   Modal,
@@ -246,13 +245,9 @@ function AddPaymentForm({
         >
           {t("settings.cardholder_name")}
         </label>
-        <input
-          className="w-full rounded-[var(--aster-radius-control)] border px-3 py-2.5 text-sm outline-none"
+        <Input
           placeholder={t("settings.cardholder_name_placeholder")}
-          style={{
-            ...field_wrapper_style,
-            color: "var(--text-primary)",
-          }}
+          size="md"
           type="text"
           value={cardholder_name}
           onChange={(e) => set_cardholder_name(e.target.value)}
@@ -266,13 +261,9 @@ function AddPaymentForm({
         >
           {t("settings.billing_postal")}
         </label>
-        <input
-          className="w-full rounded-[var(--aster-radius-control)] border px-3 py-2.5 text-sm outline-none"
+        <Input
           placeholder={t("settings.billing_postal_placeholder")}
-          style={{
-            ...field_wrapper_style,
-            color: "var(--text-primary)",
-          }}
+          size="md"
           type="text"
           value={billing_postal}
           onChange={(e) => set_billing_postal(e.target.value)}

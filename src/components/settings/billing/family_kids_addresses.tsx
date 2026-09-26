@@ -314,12 +314,12 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
     }
   };
 
-  const address_border =
+  const address_status =
     availability.state === "ok"
-      ? "border-green-500"
+      ? "success"
       : availability.state === "bad"
-        ? "border-red-500"
-        : "border-edge-secondary";
+        ? "error"
+        : "default";
 
   const max_gib = Math.max(1, Math.floor(pool_remaining / GIB));
   const visible = reservations.filter(
@@ -381,15 +381,17 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
               />
             </div>
             <div className="flex items-center gap-2">
-              <input
+              <Input
                 autoFocus
                 autoCapitalize="none"
                 autoCorrect="off"
-                className={`flex-1 min-w-0 h-10 px-3 rounded-lg bg-transparent border text-sm text-txt-primary placeholder:text-txt-muted outline-none ${address_border}`}
+                className="w-auto flex-1 min-w-0"
                 id="kid-address"
                 maxLength={40}
                 placeholder={t("settings.fam_kids_username_ph")}
+                size="lg"
                 spellCheck={false}
+                status={address_status}
                 value={username}
                 onChange={(e) =>
                   set_username(

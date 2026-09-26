@@ -26,8 +26,7 @@ import {
   PencilIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
-
-import { Island, IslandEmpty } from "@aster/ui";
+import { Input, Island, IslandEmpty } from "@aster/ui";
 
 import { SkeletonRows, StorageBar } from "./shared";
 
@@ -157,11 +156,12 @@ export function MemberRow({
                 onChange={(v) => set_storage_input(String(v))}
               />
               <div className="flex items-center gap-1 flex-shrink-0">
-                <input
-                  className="w-16 text-xs font-semibold text-end text-txt-primary bg-transparent border border-edge-secondary rounded px-1.5 py-0.5 focus:outline-none focus:border-accent-blue"
+                <Input
+                  className="!w-16 px-2 text-end text-xs font-semibold"
                   inputMode="numeric"
                   max={max_gb}
                   min={min_gb}
+                  size="sm"
                   type="number"
                   value={storage_input}
                   onBlur={() => set_storage_input(String(storage_gb))}

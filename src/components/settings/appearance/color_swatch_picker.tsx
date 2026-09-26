@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useRef, useState } from "react";
+import { Input } from "@aster/ui";
 
 import {
   Popover,
@@ -308,12 +309,12 @@ export function ColorSwatchPicker({
             className="h-8 w-8 flex-shrink-0 rounded-md border border-edge-secondary"
             style={{ backgroundColor: safe_value }}
           />
-          <input
+          <Input
             aria-invalid={hex_error}
-            className={`flex-1 min-w-0 rounded-[var(--aster-radius-control)] border bg-transparent px-2 py-1.5 text-sm text-txt-primary font-mono focus:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
-              hex_error ? "border-danger" : "border-edge-secondary"
-            }`}
+            className="w-auto flex-1 min-w-0 font-mono"
+            size="sm"
             spellCheck={false}
+            status={hex_error ? "error" : "default"}
             type="text"
             value={hex_draft}
             onBlur={commit_hex_draft}
