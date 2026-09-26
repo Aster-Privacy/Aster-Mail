@@ -18,12 +18,15 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { PDFDocumentProxy } from "@/lib/pdf_utils";
+import type { FormEvent } from "react";
+import type { PDFDocumentProxy, PdfPasswordReason } from "@/lib/pdf_utils";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
+import { LockClosedIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { MAX_PDF_PASSWORD_LENGTH } from "@/lib/pdf_limits";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
 import { use_dialog_shell } from "@/lib/use_dialog_shell";
@@ -72,6 +75,21 @@ function DownloadIcon({ className }: { className?: string }) {
   );
 }
 
+type PdfViewState = "loading" | "password" | "ready" | "error";
+
+const PDF_LOAD_TIMEOUT_MS = 30000;
+
+function with_timeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  let handle: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    handle = setTimeout(() => reject(new Error("timeout")), ms);
+  });
+
+  return Promise.race([promise, timeout]).finally(() => {
+    if (handle) clearTimeout(handle);
+  });
+}
+
 export function PdfPreviewModal({
   att,
   filename,
@@ -82,25 +100,93 @@ export function PdfPreviewModal({
   const { dialog_ref, handle_backdrop_pointer_down } =
     use_dialog_shell<HTMLDivElement>(true, on_close, "pdf_preview");
   const scroll_ref = useRef<HTMLDivElement>(null);
+  const password_input_ref = useRef<HTMLInputElement>(null);
   const pdf_doc_ref = useRef<PDFDocumentProxy | null>(null);
-  const render_lock_ref = useRef(false);
   const created_urls_ref = useRef<string[]>([]);
+  const cancelled_ref = useRef(false);
   const decrypted_ref = useRef<{
     data: ArrayBuffer;
     filename: string;
     content_type: string;
   } | null>(null);
   const [total_pages, set_total_pages] = useState(0);
-  const [is_loading, set_is_loading] = useState(true);
+  const [view_state, set_view_state] = useState<PdfViewState>("loading");
   const [page_canvases, set_page_canvases] = useState<string[]>([]);
+  const [password_value, set_password_value] = useState("");
+  const [password_reason, set_password_reason] =
+    useState<PdfPasswordReason>("required");
+  const [is_unlocking, set_is_unlocking] = useState(false);
+  const [is_rendering, set_is_rendering] = useState(false);
+
+  const render_document = useCallback(async (doc: PDFDocumentProxy) => {
+    const { render_pdf_page } = await import("@/lib/pdf_utils");
+
+    if (cancelled_ref.current) {
+      doc.destroy();
+
+      return;
+    }
+
+    pdf_doc_ref.current = doc;
+    set_total_pages(doc.numPages);
+    set_view_state("ready");
+    set_is_rendering(true);
+
+    const max_width = Math.min(window.innerWidth * 0.88, 900);
+    const urls: string[] = [];
+
+    try {
+      for (let i = 1; i <= doc.numPages; i++) {
+        if (cancelled_ref.current) return;
+
+        const offscreen = document.createElement("canvas");
+
+        await render_pdf_page(doc, i, offscreen, max_width);
+
+        const blob = await new Promise<Blob | null>((resolve) =>
+          offscreen.toBlob(resolve, "image/png"),
+        );
+
+        offscreen.width = 0;
+        offscreen.height = 0;
+
+        if (!blob) throw new Error("page_render_failed");
+        if (cancelled_ref.current) return;
+
+        urls.push(URL.createObjectURL(blob));
+        created_urls_ref.current = urls;
+
+        if (i === 1 || i % 3 === 0 || i === doc.numPages) {
+          set_page_canvases([...urls]);
+        }
+      }
+    } finally {
+      if (!cancelled_ref.current) {
+        set_page_canvases([...urls]);
+        set_is_rendering(false);
+        if (urls.length === 0) set_view_state("error");
+      }
+    }
+  }, []);
+
+  const open_document = useCallback(async (password?: string) => {
+    const cached = decrypted_ref.current;
+
+    if (!cached) throw new Error("pdf_data_unavailable");
+
+    const { load_pdf_document } = await import("@/lib/pdf_utils");
+
+    return with_timeout(
+      load_pdf_document(cached.data.slice(0), password),
+      PDF_LOAD_TIMEOUT_MS,
+    );
+  }, []);
 
   useEffect(() => {
-    let cancelled = false;
+    cancelled_ref.current = false;
 
     async function load() {
-      let timeout_handle: ReturnType<typeof setTimeout> | undefined;
-
-      set_is_loading(true);
+      set_view_state("loading");
 
       try {
         const meta = await decrypt_attachment_meta(
@@ -118,7 +204,7 @@ export function PdfPreviewModal({
           att.seq_num,
         );
 
-        if (cancelled) return;
+        if (cancelled_ref.current) return;
 
         decrypted_ref.current = {
           data,
@@ -126,80 +212,88 @@ export function PdfPreviewModal({
           content_type: meta.content_type,
         };
 
-        const { load_pdf_document, render_pdf_page } = await import(
-          "@/lib/pdf_utils"
-        );
-        const timeout = new Promise<never>((_, reject) => {
-          timeout_handle = setTimeout(
-            () => reject(new Error("timeout")),
-            30000,
-          );
-        });
-        const doc = await Promise.race([
-          load_pdf_document(data.slice(0)),
-          timeout,
-        ]);
+        const doc = await open_document();
 
-        if (cancelled) {
-          doc.destroy();
+        await render_document(doc);
+      } catch (err) {
+        if (cancelled_ref.current) return;
+
+        const { is_pdf_password_error } = await import("@/lib/pdf_utils");
+
+        if (is_pdf_password_error(err)) {
+          set_password_reason("required");
+          set_view_state("password");
 
           return;
         }
 
-        pdf_doc_ref.current = doc;
-        set_total_pages(doc.numPages);
-
-        if (render_lock_ref.current) return;
-        render_lock_ref.current = true;
-
-        const max_width = Math.min(window.innerWidth * 0.88, 900);
-        const urls: string[] = [];
-
-        for (let i = 1; i <= doc.numPages; i++) {
-          if (cancelled) break;
-
-          const offscreen = document.createElement("canvas");
-
-          await render_pdf_page(doc, i, offscreen, max_width);
-
-          const blob = await new Promise<Blob>((resolve) =>
-            offscreen.toBlob((b) => resolve(b!), "image/png"),
-          );
-
-          urls.push(URL.createObjectURL(blob));
-          created_urls_ref.current = urls;
-
-          if (i === 1 || i % 3 === 0 || i === doc.numPages) {
-            set_page_canvases([...urls]);
-          }
-        }
-
-        if (!cancelled) {
-          set_page_canvases([...urls]);
-        }
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-
         if (import.meta.env.DEV)
-          console.error("[pdf_preview] load error:", msg, err);
-      } finally {
-        if (timeout_handle) clearTimeout(timeout_handle);
-        if (!cancelled) set_is_loading(false);
-        render_lock_ref.current = false;
+          console.error(
+            "[pdf_preview] load error:",
+            err instanceof Error ? err.message : String(err),
+          );
+        set_view_state("error");
       }
     }
 
     load();
 
     return () => {
-      cancelled = true;
+      cancelled_ref.current = true;
       pdf_doc_ref.current?.destroy();
       pdf_doc_ref.current = null;
       created_urls_ref.current.forEach((url) => URL.revokeObjectURL(url));
       created_urls_ref.current = [];
       decrypted_ref.current = null;
+      set_password_value("");
     };
-  }, [att]);
+  }, [att, open_document, render_document]);
+
+  useEffect(() => {
+    if (view_state === "password" && !is_unlocking) {
+      password_input_ref.current?.focus();
+    }
+  }, [view_state, is_unlocking, password_reason]);
+
+  const handle_unlock = useCallback(
+    async (event: FormEvent<HTMLFormElement>) => {
+      event.preventDefault();
+
+      if (is_unlocking || password_value.length === 0) return;
+
+      const attempt = password_value;
+
+      set_password_value("");
+      set_is_unlocking(true);
+
+      try {
+        const doc = await open_document(attempt);
+
+        if (cancelled_ref.current) {
+          doc.destroy();
+
+          return;
+        }
+
+        await render_document(doc);
+      } catch (err) {
+        if (cancelled_ref.current) return;
+
+        const { is_pdf_password_error } = await import("@/lib/pdf_utils");
+
+        if (is_pdf_password_error(err)) {
+          set_password_reason("incorrect");
+
+          return;
+        }
+
+        set_view_state("error");
+      } finally {
+        if (!cancelled_ref.current) set_is_unlocking(false);
+      }
+    },
+    [is_unlocking, password_value, open_document, render_document],
+  );
 
   const handle_download = useCallback(async () => {
     try {
@@ -268,8 +362,9 @@ export function PdfPreviewModal({
         initial={{ scale: 0.95, opacity: 0 }}
         transition={{ duration: reduce_motion ? 0 : 0.2 }}
       >
-        {is_loading && page_canvases.length === 0 && (
-          <div className="flex items-center justify-center w-[400px] h-[300px]">
+        {(view_state === "loading" ||
+          (view_state === "ready" && page_canvases.length === 0)) && (
+          <div className="flex items-center justify-center w-[400px] max-w-[88vw] h-[300px]">
             <div className="flex flex-col items-center gap-2">
               <div className="w-8 h-8 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
               <span className="text-white/60 text-sm">
@@ -279,23 +374,105 @@ export function PdfPreviewModal({
           </div>
         )}
 
-        {!is_loading && page_canvases.length === 0 && (
-          <div className="flex flex-col items-center justify-center gap-2 w-[400px] h-[300px]">
-            <span className="text-white/60 text-sm">
-              {t("mail.preview_failed")}
+        {view_state === "error" && (
+          <div className="flex flex-col items-center justify-center gap-2 w-[400px] max-w-[88vw] h-[300px] px-6 text-center">
+            <span className="text-white/60 text-sm" role="alert">
+              {t("mail.pdf_preview_failed")}
             </span>
           </div>
         )}
 
-        {page_canvases.length > 0 && (
+        {view_state === "password" && (
+          <form
+            noValidate
+            autoComplete="off"
+            className="flex flex-col gap-3 w-[360px] max-w-[88vw] p-5 rounded-[16px] bg-white/10 backdrop-blur-sm"
+            data-testid="pdf-password-form"
+            onSubmit={handle_unlock}
+          >
+            <div className="flex items-center gap-2">
+              <LockClosedIcon
+                aria-hidden="true"
+                className="w-5 h-5 shrink-0 text-white/80"
+              />
+              <h2
+                className="text-white text-[15px] font-semibold"
+                id="pdf-password-title"
+              >
+                {t("mail.pdf_password_title")}
+              </h2>
+            </div>
+            <p
+              className="text-white/60 text-[13px] leading-snug"
+              id="pdf-password-description"
+            >
+              {t("mail.pdf_password_description")}
+            </p>
+            <label className="sr-only" htmlFor="pdf-password-input">
+              {t("mail.pdf_password_label")}
+            </label>
+            <input
+              ref={password_input_ref}
+              aria-describedby={
+                password_reason === "incorrect"
+                  ? "pdf-password-error"
+                  : "pdf-password-description"
+              }
+              aria-invalid={password_reason === "incorrect"}
+              autoCapitalize="none"
+              autoComplete="off"
+              autoCorrect="off"
+              className="w-full h-10 px-3 rounded-[12px] text-sm text-white bg-black/30 border border-white/15 placeholder:text-white/40 outline-none focus:border-white/50 disabled:opacity-60"
+              data-1p-ignore="true"
+              data-bwignore="true"
+              data-form-type="other"
+              data-lpignore="true"
+              data-testid="pdf-password-input"
+              disabled={is_unlocking}
+              id="pdf-password-input"
+              maxLength={MAX_PDF_PASSWORD_LENGTH}
+              name="pdf-document-key"
+              placeholder={t("mail.pdf_password_label")}
+              spellCheck={false}
+              type="password"
+              value={password_value}
+              onChange={(e) => set_password_value(e.target.value)}
+            />
+            <div aria-live="polite" className="min-h-[18px]">
+              {password_reason === "incorrect" && !is_unlocking && (
+                <span
+                  className="text-[12.5px] text-red-300"
+                  data-testid="pdf-password-error"
+                  id="pdf-password-error"
+                >
+                  {t("mail.pdf_password_incorrect")}
+                </span>
+              )}
+            </div>
+            <button
+              className="h-10 rounded-[12px] text-sm font-medium text-black bg-white hover:bg-white/90 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              data-testid="pdf-password-submit"
+              disabled={is_unlocking || password_value.length === 0}
+              type="submit"
+            >
+              {is_unlocking && (
+                <span className="w-4 h-4 border-2 border-black/20 border-t-black/70 rounded-full animate-spin" />
+              )}
+              {t("mail.pdf_password_submit")}
+            </button>
+          </form>
+        )}
+
+        {view_state === "ready" && page_canvases.length > 0 && (
           <div
             ref={scroll_ref}
             className="overflow-y-auto overflow-x-hidden flex flex-col items-center gap-3 pb-3"
+            data-testid="pdf-pages"
             style={{ maxHeight: "calc(92vh - 52px)", maxWidth: "90vw" }}
           >
             {page_canvases.map((url, i) => (
               <img
-                key={i}
+                key={url}
                 alt={t("mail.page_of_total", {
                   current: i + 1,
                   total: total_pages || page_canvases.length,
@@ -309,7 +486,7 @@ export function PdfPreviewModal({
                 }}
               />
             ))}
-            {is_loading && (
+            {is_rendering && (
               <div className="flex items-center gap-2 py-2">
                 <div className="w-5 h-5 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
                 <span className="text-white/50 text-xs">
@@ -320,7 +497,7 @@ export function PdfPreviewModal({
           </div>
         )}
 
-        {(page_canvases.length > 0 || !is_loading) && (
+        {view_state !== "loading" && (
           <div className="flex items-center gap-3 px-4 py-2 mt-2 rounded-lg bg-white/10 backdrop-blur-sm">
             <span className="text-white/80 text-sm truncate max-w-[300px]">
               {filename}

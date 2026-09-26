@@ -8127,6 +8127,13 @@ export const en: Translations = {
     total_pages_label: "{{count}} pages",
     loading_preview: "Loading preview\u2026",
     preview_failed: "The preview did not load. Opening the email will show it.",
+    pdf_preview_failed: "This PDF can't be shown here. To open it, download it.",
+    pdf_password_title: "This PDF is password-protected",
+    pdf_password_description: "To view this PDF, enter its password. The password stays on this device.",
+    pdf_password_label: "PDF password",
+    pdf_password_incorrect: "That password is incorrect. Try again.",
+    pdf_password_submit: "Open",
+    pdf_password_protected: "Password-protected",
     translation_offer: "This message is in {{language}}.",
     translation_translate: "Translate",
     translation_offer_download:

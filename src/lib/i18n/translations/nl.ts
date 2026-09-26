@@ -8760,6 +8760,13 @@ export const nl = {
     loading_preview: "Voorbeeld laden…",
     preview_failed:
       "Het voorbeeld is niet geladen. De e-mail openen toont het.",
+    pdf_preview_failed: "Deze pdf kan hier niet worden getoond. Download de pdf om hem te openen.",
+    pdf_password_title: "Deze pdf is beveiligd met een wachtwoord",
+    pdf_password_description: "Voer het wachtwoord in om deze pdf te bekijken. Het wachtwoord blijft op dit apparaat.",
+    pdf_password_label: "Pdf-wachtwoord",
+    pdf_password_incorrect: "Dat wachtwoord is onjuist. Probeer het opnieuw.",
+    pdf_password_submit: "Openen",
+    pdf_password_protected: "Beveiligd met wachtwoord",
     move_1_conversation: "1 gesprek verplaatsen",
     move_n_conversations: "{{ count }} gesprekken verplaatsen",
     move_n_conversations_one: "{{count}} gesprek verplaatsen",

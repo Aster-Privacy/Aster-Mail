@@ -20,6 +20,8 @@
 //
 import type {} from "@/lib/i18n/types";
 
+import { LockClosedIcon } from "@heroicons/react/24/outline";
+
 import { DownloadIcon, FileTypeIcon } from "./icons";
 import { DecryptedAttachmentInfo } from "./types";
 
@@ -36,11 +38,13 @@ import {
 export function AttachmentCard({
   att,
   is_downloading,
+  is_password_protected = false,
   on_click,
   on_download,
 }: {
   att: DecryptedAttachmentInfo;
   is_downloading: boolean;
+  is_password_protected?: boolean;
   on_click: () => void;
   on_download: (e: React.MouseEvent) => void;
 }) {
@@ -81,13 +85,26 @@ export function AttachmentCard({
         </div>
       ) : (
         <div
-          className="w-full h-[128px] flex items-center justify-center"
+          className="relative w-full h-[128px] flex items-center justify-center"
           style={{
             backgroundColor:
               "color-mix(in srgb, var(--thread-card-border) 22%, var(--thread-content-bg))",
           }}
         >
           <FileTypeIcon color={color} glyph={glyph} label={label} />
+          {is_pdf && is_password_protected && (
+            <div
+              className="absolute top-2 end-2 flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-medium text-txt-secondary"
+              data-testid="attachment-password-protected"
+              style={{
+                backgroundColor: "var(--thread-content-bg)",
+                border: "1px solid var(--thread-card-border)",
+              }}
+            >
+              <LockClosedIcon aria-hidden="true" className="w-3 h-3" />
+              {t("mail.pdf_password_protected")}
+            </div>
+          )}
         </div>
       )}
 

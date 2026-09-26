@@ -8849,6 +8849,13 @@ export const it = {
     loading_preview: "Caricamento anteprima…",
     preview_failed:
       "L'anteprima non si è caricata. Aprire l'email la mostrerà.",
+    pdf_preview_failed: "Questo PDF non può essere mostrato qui. Per aprirlo, scaricalo.",
+    pdf_password_title: "Questo PDF è protetto da password",
+    pdf_password_description: "Per visualizzare questo PDF, inserisci la password. La password resta su questo dispositivo.",
+    pdf_password_label: "Password del PDF",
+    pdf_password_incorrect: "La password non è corretta. Riprova.",
+    pdf_password_submit: "Apri",
+    pdf_password_protected: "Protetto da password",
     move_1_conversation: "Sposta 1 conversazione",
     move_n_conversations: "Sposta {{ count }} conversazioni",
     move_n_conversations_one: "Sposta {{count}} conversazione",

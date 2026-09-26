@@ -8891,6 +8891,13 @@ export const de = {
     loading_preview: "Vorschau wird geladen…",
     preview_failed:
       "Die Vorschau wurde nicht geladen. Ein Öffnen der E-Mail zeigt sie.",
+    pdf_preview_failed: "Diese PDF kann hier nicht angezeigt werden. Lade sie herunter, um sie zu öffnen.",
+    pdf_password_title: "Diese PDF ist passwortgeschützt",
+    pdf_password_description: "Gib das Passwort ein, um diese PDF anzuzeigen. Das Passwort bleibt auf diesem Gerät.",
+    pdf_password_label: "PDF-Passwort",
+    pdf_password_incorrect: "Das Passwort ist falsch. Versuche es noch einmal.",
+    pdf_password_submit: "Öffnen",
+    pdf_password_protected: "Passwortgeschützt",
     move_1_conversation: "1 Konversation verschieben",
     move_n_conversations: "{{ count }} Konversationen verschieben",
     move_n_conversations_one: "{{count}} Konversation verschieben",
