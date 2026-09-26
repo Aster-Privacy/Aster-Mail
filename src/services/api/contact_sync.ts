@@ -26,6 +26,9 @@ import type {
   ImportVCardContact,
   ContactFormData,
   Address,
+  SocialLinks,
+  EmailEntryType,
+  AddressEntryType,
   EmailEntry,
   PhoneEntry,
   PhoneEntryType,
@@ -809,12 +812,18 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
 }
 
 export type CsvFieldTarget =
+  | "full_name"
   | "first_name"
+  | "middle_name"
   | "last_name"
+  | "name_prefix"
+  | "name_suffix"
+  | "nickname"
   | "emails"
   | "phone"
   | "company"
   | "job_title"
+  | "department"
   | "street"
   | "city"
   | "state"
@@ -822,57 +831,576 @@ export type CsvFieldTarget =
   | "country"
   | "website"
   | "birthday"
+  | "event"
+  | "related_person"
+  | "instant_messenger"
   | "notes"
+  | "groups"
   | "is_favorite";
 
-const CSV_HEADER_ALIASES: { target: CsvFieldTarget; names: string[] }[] = [
-  { target: "first_name", names: ["first name", "given name", "first"] },
-  { target: "last_name", names: ["last name", "family name", "surname"] },
-  { target: "emails", names: ["email", "e-mail", "email address", "mail"] },
-  { target: "phone", names: ["phone", "telephone", "tel", "mobile"] },
-  { target: "company", names: ["company", "organization", "organisation"] },
-  { target: "job_title", names: ["job title", "title", "role", "position"] },
-  { target: "street", names: ["street", "address", "address line 1"] },
-  { target: "city", names: ["city", "town", "locality"] },
-  { target: "state", names: ["state", "region", "province", "county"] },
-  {
-    target: "postal_code",
-    names: ["postal code", "zip", "zip code", "postcode"],
-  },
-  { target: "country", names: ["country", "country/region"] },
-  { target: "website", names: ["website", "web page", "url", "homepage"] },
-  { target: "birthday", names: ["birthday", "birth date", "date of birth"] },
-  { target: "notes", names: ["notes", "note", "comment", "comments"] },
-  { target: "is_favorite", names: ["favorite", "favourite", "starred"] },
-];
+export type CsvColumnPart =
+  "value" | "label" | "service" | "formatted" | "extended";
+
+export interface CsvColumn {
+  target: CsvFieldTarget | null;
+  key: string;
+  part: CsvColumnPart;
+  implied_type?: string;
+}
+
+const ADDRESS_PART_TARGETS: Record<string, CsvFieldTarget | null> = {
+  street: "street",
+  "street 2": null,
+  "street 3": null,
+  address: "street",
+  city: "city",
+  state: "state",
+  province: "state",
+  region: "state",
+  "postal code": "postal_code",
+  zip: "postal_code",
+  "zip code": "postal_code",
+  postcode: "postal_code",
+  country: "country",
+  "country/region": "country",
+};
+
+const ADDRESS_PART_KINDS: Record<string, CsvColumnPart> = {
+  "street 2": "extended",
+  "street 3": "extended",
+  "po box": "extended",
+  "address po box": "extended",
+  address: "formatted",
+  "extended address": "extended",
+  formatted: "formatted",
+  label: "label",
+  type: "label",
+};
+
+const PHONE_KIND_WORDS: Record<string, string> = {
+  home: "home",
+  business: "work",
+  work: "work",
+  company: "work",
+  "company main": "work",
+  "assistant's": "work",
+  mobile: "mobile",
+  cell: "mobile",
+  car: "mobile",
+  other: "other",
+  primary: "other",
+  radio: "other",
+  callback: "other",
+  telex: "other",
+  "tty/tdd": "other",
+  isdn: "other",
+};
+
+const PLACE_WORDS: Record<string, string> = {
+  home: "home",
+  personal: "home",
+  business: "work",
+  work: "work",
+  other: "other",
+};
+
+const SIMPLE_HEADERS: Record<string, CsvFieldTarget> = {
+  "first name": "first_name",
+  "given name": "first_name",
+  first: "first_name",
+  given: "first_name",
+  "middle name": "middle_name",
+  "additional name": "middle_name",
+  middle: "middle_name",
+  "last name": "last_name",
+  "family name": "last_name",
+  surname: "last_name",
+  last: "last_name",
+  "name prefix": "name_prefix",
+  prefix: "name_prefix",
+  "honorific prefix": "name_prefix",
+  salutation: "name_prefix",
+  "name suffix": "name_suffix",
+  suffix: "name_suffix",
+  "honorific suffix": "name_suffix",
+  nickname: "nickname",
+  "nick name": "nickname",
+  "short name": "nickname",
+  name: "full_name",
+  "full name": "full_name",
+  "display name": "full_name",
+  "contact name": "full_name",
+  email: "emails",
+  "e-mail": "emails",
+  "email address": "emails",
+  "e-mail address": "emails",
+  mail: "emails",
+  emails: "emails",
+  phone: "phone",
+  telephone: "phone",
+  tel: "phone",
+  "phone number": "phone",
+  "primary phone": "phone",
+  mobile: "phone",
+  "mobile phone": "phone",
+  "mobile number": "phone",
+  cell: "phone",
+  "cell phone": "phone",
+  pager: "phone",
+  fax: "phone",
+  "fax number": "phone",
+  company: "company",
+  "company name": "company",
+  organization: "company",
+  organisation: "company",
+  "organization name": "company",
+  "job title": "job_title",
+  title: "job_title",
+  position: "job_title",
+  role: "job_title",
+  occupation: "job_title",
+  profession: "job_title",
+  department: "department",
+  street: "street",
+  "street address": "street",
+  address: "street",
+  "address line 1": "street",
+  "address 1": "street",
+  city: "city",
+  town: "city",
+  locality: "city",
+  state: "state",
+  region: "state",
+  province: "state",
+  county: "state",
+  "postal code": "postal_code",
+  zip: "postal_code",
+  "zip code": "postal_code",
+  postcode: "postal_code",
+  country: "country",
+  "country/region": "country",
+  website: "website",
+  "web page": "website",
+  "web site": "website",
+  url: "website",
+  homepage: "website",
+  "home page": "website",
+  "personal web page": "website",
+  "business web page": "website",
+  birthday: "birthday",
+  "birth date": "birthday",
+  "date of birth": "birthday",
+  dob: "birthday",
+  anniversary: "event",
+  spouse: "related_person",
+  partner: "related_person",
+  "manager's name": "related_person",
+  manager: "related_person",
+  "assistant's name": "related_person",
+  assistant: "related_person",
+  children: "related_person",
+  child: "related_person",
+  "im address": "instant_messenger",
+  imaddress: "instant_messenger",
+  im: "instant_messenger",
+  "instant messenger": "instant_messenger",
+  notes: "notes",
+  note: "notes",
+  comment: "notes",
+  comments: "notes",
+  description: "notes",
+  "group membership": "groups",
+  labels: "groups",
+  categories: "groups",
+  groups: "groups",
+  group: "groups",
+  tags: "groups",
+  favorite: "is_favorite",
+  favourite: "is_favorite",
+  starred: "is_favorite",
+  "is favorite": "is_favorite",
+};
+
+const IMPLIED_TYPES: Record<string, string> = {
+  mobile: "mobile",
+  "mobile phone": "mobile",
+  "mobile number": "mobile",
+  cell: "mobile",
+  "cell phone": "mobile",
+  pager: "pager",
+  fax: "fax",
+  "fax number": "fax",
+  anniversary: "anniversary",
+  spouse: "spouse",
+  partner: "partner",
+  "manager's name": "manager",
+  manager: "manager",
+  "assistant's name": "assistant",
+  assistant: "assistant",
+  children: "child",
+  child: "child",
+  "personal web page": "private",
+  "home page": "private",
+  homepage: "private",
+  "business web page": "work",
+};
+
+const ORG_PART_TARGETS: Record<string, CsvFieldTarget> = {
+  name: "company",
+  title: "job_title",
+  department: "department",
+};
+
+function normalize_csv_header(header: string): string {
+  return header.trim().toLowerCase().replace(/_/g, " ").replace(/\s+/g, " ");
+}
+
+function part_of(word: string): CsvColumnPart {
+  return word === "value" ? "value" : "label";
+}
+
+export function describe_csv_column(header: string): CsvColumn {
+  const lower = normalize_csv_header(header);
+
+  if (!lower) return { target: null, key: "", part: "value" };
+
+  let match = lower.match(/^e-?mail (\d+) - (value|label|type)$/);
+
+  if (match) {
+    const part = part_of(match[2]);
+
+    return {
+      target: part === "value" ? "emails" : null,
+      key: `email:${match[1]}`,
+      part,
+    };
+  }
+
+  match = lower.match(/^e-?mail(?: (\d+))?(?: address)?$/);
+  if (match && match[1]) {
+    return { target: "emails", key: `email:${match[1]}`, part: "value" };
+  }
+
+  match = lower.match(/^e-?mail(?: (\d+))? (display name|type)$/);
+  if (match) return { target: null, key: "", part: "value" };
+
+  match = lower.match(
+    /^(home|business|work|other|personal) (e-?mail|email address|e-mail address)(?: (\d+))?$/,
+  );
+  if (match) {
+    return {
+      target: "emails",
+      key: `email:${match[1]}:${match[3] ?? "1"}`,
+      part: "value",
+      implied_type: PLACE_WORDS[match[1]],
+    };
+  }
+
+  match = lower.match(/^phone (\d+) - (value|label|type)$/);
+  if (match) {
+    const part = part_of(match[2]);
+
+    return {
+      target: part === "value" ? "phone" : null,
+      key: `phone:${match[1]}`,
+      part,
+    };
+  }
+
+  match = lower.match(
+    /^(home|business|work|company|company main|assistant's|mobile|cell|car|other|primary|radio|callback|telex|tty\/tdd|isdn) (phone|fax|telephone)(?: (\d+))?$/,
+  );
+  if (match) {
+    return {
+      target: "phone",
+      key: `phone:${match[1]} ${match[2]}:${match[3] ?? "1"}`,
+      part: "value",
+      implied_type: match[2] === "fax" ? "fax" : PHONE_KIND_WORDS[match[1]],
+    };
+  }
+
+  match = lower.match(/^address (\d+) - (.+)$/);
+  if (match) {
+    const kind = ADDRESS_PART_KINDS[match[2]];
+
+    if (kind) return { target: null, key: `address:${match[1]}`, part: kind };
+
+    const target = ADDRESS_PART_TARGETS[match[2]];
+
+    if (target === undefined) return { target: null, key: "", part: "value" };
+
+    return { target, key: `address:${match[1]}`, part: "value" };
+  }
+
+  match = lower.match(/^(home|business|work|other) (.+)$/);
+  if (match && match[2] in ADDRESS_PART_TARGETS) {
+    const kind = ADDRESS_PART_KINDS[match[2]];
+    const key = `address:${PLACE_WORDS[match[1]]}`;
+
+    if (kind) return { target: null, key, part: kind };
+
+    return {
+      target: ADDRESS_PART_TARGETS[match[2]],
+      key,
+      part: "value",
+      implied_type: PLACE_WORDS[match[1]],
+    };
+  }
+
+  match = lower.match(/^(address line 2|address 2|street 2|street 3)$/);
+  if (match) return { target: null, key: "address:1", part: "extended" };
+
+  match = lower.match(/^organization(?: (\d+))? - (.+)$/);
+  if (match) {
+    const target = ORG_PART_TARGETS[match[2]];
+
+    return {
+      target: target ?? null,
+      key: `org:${match[1] ?? "1"}`,
+      part: "value",
+    };
+  }
+
+  match = lower.match(/^organization (name|title|department)$/);
+  if (match) {
+    return { target: ORG_PART_TARGETS[match[1]], key: "org:1", part: "value" };
+  }
+
+  match = lower.match(/^website (\d+) - (value|label|type)$/);
+  if (match) {
+    const part = part_of(match[2]);
+
+    return {
+      target: part === "value" ? "website" : null,
+      key: `website:${match[1]}`,
+      part,
+    };
+  }
+
+  match = lower.match(/^event (\d+) - (value|label|type)$/);
+  if (match) {
+    const part = part_of(match[2]);
+
+    return {
+      target: part === "value" ? "event" : null,
+      key: `event:${match[1]}`,
+      part,
+    };
+  }
+
+  match = lower.match(/^relation (\d+) - (value|label|type)$/);
+  if (match) {
+    const part = part_of(match[2]);
+
+    return {
+      target: part === "value" ? "related_person" : null,
+      key: `relation:${match[1]}`,
+      part,
+    };
+  }
+
+  match = lower.match(/^im (\d+) - (value|label|type|service)$/);
+  if (match) {
+    const part =
+      match[2] === "value"
+        ? "value"
+        : match[2] === "service"
+          ? "service"
+          : "label";
+
+    return {
+      target: part === "value" ? "instant_messenger" : null,
+      key: `im:${match[1]}`,
+      part,
+    };
+  }
+
+  match = lower.match(/^custom field (\d+) - (value|label|type)$/);
+  if (match) {
+    const part = part_of(match[2]);
+
+    return {
+      target: part === "value" ? "notes" : null,
+      key: `custom:${match[1]}`,
+      part,
+    };
+  }
+
+  const simple = SIMPLE_HEADERS[lower];
+
+  if (!simple) return { target: null, key: "", part: "value" };
+
+  const implied_type = IMPLIED_TYPES[lower];
+  const key = ["street", "city", "state", "postal_code", "country"].includes(
+    simple,
+  )
+    ? "address:1"
+    : `${simple}:${lower}`;
+
+  return implied_type
+    ? { target: simple, key, part: "value", implied_type }
+    : { target: simple, key, part: "value" };
+}
+
+export function auto_map_csv_headers(
+  headers: string[],
+): Record<string, CsvFieldTarget | null> {
+  const columns = headers.map((header) => describe_csv_column(header));
+  const normalized = headers.map((header) => normalize_csv_header(header));
+  const has_other_job_title = columns.some(
+    (column, index) =>
+      column.target === "job_title" && normalized[index] !== "title",
+  );
+  const has_name_suffix = columns.some(
+    (column) => column.target === "name_suffix",
+  );
+  const mapping: Record<string, CsvFieldTarget | null> = {};
+
+  headers.forEach((header, index) => {
+    let target = columns[index].target;
+
+    if (
+      normalized[index] === "title" &&
+      (has_other_job_title || has_name_suffix)
+    ) {
+      target = "name_prefix";
+    }
+
+    mapping[header] = target;
+  });
+
+  return mapping;
+}
 
 export function auto_map_csv_header(header: string): CsvFieldTarget | null {
-  const lower = header.trim().toLowerCase();
-
-  if (!lower) return null;
-  if (lower === "name" || lower === "full name" || lower === "display name") {
-    return "first_name";
-  }
-
-  for (const alias of CSV_HEADER_ALIASES) {
-    if (alias.names.includes(lower)) return alias.target;
-  }
-
-  for (const alias of CSV_HEADER_ALIASES) {
-    if (alias.names.some((name) => lower.includes(name))) return alias.target;
-  }
-
-  return null;
+  return auto_map_csv_headers([header])[header] ?? null;
 }
 
 const strip_csv_guard = (value: string): string =>
   value.startsWith("'") ? value.slice(1) : value;
 
-const split_csv_values = (value: string): string[] =>
-  value
-    .split(";")
-    .map((part) => part.trim())
-    .filter((part) => part.length > 0);
+const MULTI_VALUE_SEPARATOR = " ::: ";
+
+function split_multi_values(value: string, extra: RegExp | null): string[] {
+  const out: string[] = [];
+
+  for (const piece of value.split(MULTI_VALUE_SEPARATOR)) {
+    const parts = extra ? piece.split(extra) : [piece];
+
+    for (const part of parts) {
+      const trimmed = part.trim();
+
+      if (trimmed) out.push(trimmed);
+    }
+  }
+
+  return out;
+}
+
+const SPLIT_LIST = /[;,]/;
+const SPLIT_SEMICOLON = /;/;
+
+function clean_label(label: string | undefined): string {
+  return (label ?? "")
+    .replace(/^\*\s*/, "")
+    .trim()
+    .toLowerCase();
+}
+
+function email_type_of(label: string): EmailEntryType {
+  if (label.includes("work") || label.includes("business")) return "work";
+  if (label.includes("home") || label.includes("personal")) return "home";
+
+  return "other";
+}
+
+function phone_type_of(label: string): PhoneEntryType {
+  if (label.includes("fax")) return "fax";
+  if (label.includes("pager")) return "pager";
+  if (
+    label.includes("mobile") ||
+    label.includes("cell") ||
+    label.includes("iphone")
+  ) {
+    return "mobile";
+  }
+  if (label.includes("work") || label.includes("business")) return "work";
+  if (label.includes("home")) return "home";
+
+  return "other";
+}
+
+function place_type_of(label: string): AddressEntryType {
+  if (label.includes("work") || label.includes("business")) return "work";
+  if (label.includes("home") || label.includes("personal")) return "home";
+
+  return "other";
+}
+
+function website_type_of(label: string): WebsiteType {
+  return mapped_type(
+    VCARD_WEBSITE_TYPES,
+    [label, label.split(" ")[0]],
+    "other",
+  );
+}
+
+function clean_email(value: string): string {
+  const stripped = value.replace(/^mailto:/i, "").trim();
+  const angled = stripped.match(/<([^>]+)>/);
+
+  return (angled ? angled[1] : stripped).trim();
+}
+
+function split_full_name(full_name: string): [string, string] {
+  const trimmed = full_name.trim().replace(/\s+/g, " ");
+  const separator = trimmed.lastIndexOf(" ");
+
+  if (separator <= 0) return [trimmed, ""];
+
+  return [trimmed.slice(0, separator), trimmed.slice(separator + 1)];
+}
+
+interface CsvSlot {
+  values: string[];
+  label?: string;
+  service?: string;
+  implied_type?: string;
+}
+
+interface CsvAddressSlot {
+  label?: string;
+  implied_type?: string;
+  street?: string;
+  extended?: string;
+  formatted?: string;
+  city?: string;
+  state?: string;
+  postal_code?: string;
+  country?: string;
+}
+
+function slot_for(map: Map<string, CsvSlot>, key: string): CsvSlot {
+  let slot = map.get(key);
+
+  if (!slot) {
+    slot = { values: [] };
+    map.set(key, slot);
+  }
+
+  return slot;
+}
+
+function social_host_of(url: string): keyof SocialLinks | null {
+  const lower = url.toLowerCase();
+
+  if (lower.includes("linkedin.com")) return "linkedin";
+  if (lower.includes("twitter.com") || lower.includes("x.com/"))
+    return "twitter";
+  if (lower.includes("github.com")) return "github";
+
+  return null;
+}
 
 export function parse_csv(
   csv_data: string,
@@ -883,6 +1411,7 @@ export function parse_csv(
   if (records.length < 2) return [];
 
   const headers = records[0];
+  const columns = headers.map((header) => describe_csv_column(header));
   const contacts: ContactFormData[] = [];
 
   for (let i = 1; i < records.length; i++) {
@@ -893,62 +1422,162 @@ export function parse_csv(
       emails: [],
       is_favorite: false,
     };
-    const address: Address = {};
-    let website = "";
+    const emails = new Map<string, CsvSlot>();
+    const phones = new Map<string, CsvSlot>();
+    const websites = new Map<string, CsvSlot>();
+    const events = new Map<string, CsvSlot>();
+    const relations = new Map<string, CsvSlot>();
+    const messengers = new Map<string, CsvSlot>();
+    const custom_fields = new Map<string, CsvSlot>();
+    const addresses = new Map<string, CsvAddressSlot>();
+    const notes: string[] = [];
+    const groups: string[] = [];
+    let full_name = "";
+
+    const address_for = (key: string, implied_type?: string) => {
+      let slot = addresses.get(key);
+
+      if (!slot) {
+        slot = { implied_type };
+        addresses.set(key, slot);
+      }
+
+      return slot;
+    };
 
     headers.forEach((header, idx) => {
-      const field = field_mapping[header];
       const raw = values[idx];
 
-      if (!field || !raw) return;
+      if (!raw) return;
 
       const value = strip_csv_guard(raw).trim();
 
       if (!value) return;
 
-      switch (field) {
-        case "emails":
-          for (const email of split_csv_values(value)) {
-            if (!contact.emails.includes(email)) contact.emails.push(email);
-          }
-          break;
-        case "phone": {
-          const phones = split_csv_values(value);
+      const column = columns[idx];
+      const mapped = field_mapping[header];
 
-          contact.phone = phones[0] ?? value;
-          if (phones.length > 1) {
-            contact.phone_entries = phones.map((entry, index) => ({
-              value: entry,
-              type: index === 0 ? "mobile" : "work",
-            }));
-          }
-          break;
+      if (column.part !== "value" && column.key) {
+        const [kind] = column.key.split(":");
+
+        if (kind === "address") {
+          const slot = address_for(column.key);
+
+          if (column.part === "label") slot.label = value;
+          else if (column.part === "extended") slot.extended = value;
+          else if (column.part === "formatted") slot.formatted = value;
+
+          return;
         }
+
+        const maps: Record<string, Map<string, CsvSlot>> = {
+          email: emails,
+          phone: phones,
+          website: websites,
+          event: events,
+          relation: relations,
+          im: messengers,
+          custom: custom_fields,
+        };
+        const map = maps[kind];
+
+        if (map) {
+          const slot = slot_for(map, column.key);
+
+          if (column.part === "service") slot.service = value;
+          else slot.label = value;
+        }
+
+        return;
+      }
+
+      if (!mapped) return;
+
+      const key = mapped === column.target ? column.key : `${mapped}:${header}`;
+      const implied_type =
+        mapped === column.target ? column.implied_type : undefined;
+
+      switch (mapped) {
+        case "full_name":
+          full_name = value;
+          break;
         case "first_name":
         case "last_name":
         case "company":
         case "job_title":
         case "birthday":
-        case "notes":
-          contact[field] = value;
+          if (!contact[mapped]) contact[mapped] = value;
           break;
+        case "middle_name":
+        case "nickname":
+        case "department":
+        case "name_suffix":
+          if (!contact[mapped]) contact[mapped] = value;
+          break;
+        case "name_prefix":
+          if (!contact.title) contact.title = value;
+          break;
+        case "emails": {
+          const slot = slot_for(emails, key);
+
+          slot.implied_type = implied_type;
+          slot.values.push(...split_multi_values(value, SPLIT_LIST));
+          break;
+        }
+        case "phone": {
+          const slot = slot_for(phones, key);
+
+          slot.implied_type = implied_type;
+          slot.values.push(...split_multi_values(value, SPLIT_SEMICOLON));
+          break;
+        }
+        case "website": {
+          const slot = slot_for(websites, key);
+
+          slot.implied_type = implied_type;
+          slot.values.push(...split_multi_values(value, SPLIT_SEMICOLON));
+          break;
+        }
+        case "event": {
+          const slot = slot_for(events, key);
+
+          slot.implied_type = implied_type;
+          slot.values.push(...split_multi_values(value, null));
+          break;
+        }
+        case "related_person": {
+          const slot = slot_for(relations, key);
+
+          slot.implied_type = implied_type;
+          slot.values.push(...split_multi_values(value, SPLIT_SEMICOLON));
+          break;
+        }
+        case "instant_messenger": {
+          const slot = slot_for(messengers, key);
+
+          slot.implied_type = implied_type;
+          slot.values.push(...split_multi_values(value, SPLIT_SEMICOLON));
+          break;
+        }
         case "street":
-          address.street = value;
-          break;
         case "city":
-          address.city = value;
-          break;
         case "state":
-          address.state = value;
-          break;
         case "postal_code":
-          address.postal_code = value;
+        case "country": {
+          const slot = address_for(key, implied_type);
+
+          if (!slot[mapped]) slot[mapped] = value;
           break;
-        case "country":
-          address.country = value;
+        }
+        case "notes":
+          if (key.startsWith("custom:")) {
+            slot_for(custom_fields, key).values.push(value);
+          } else {
+            notes.push(value);
+          }
           break;
-        case "website":
-          website = value;
+        case "groups":
+          groups.push(...split_multi_values(value, SPLIT_LIST));
           break;
         case "is_favorite":
           contact.is_favorite = /^(true|yes|y|1|starred)$/i.test(value);
@@ -956,8 +1585,182 @@ export function parse_csv(
       }
     });
 
-    if (Object.values(address).some((part) => part)) contact.address = address;
-    if (website) contact.social_links = { website };
+    if (!contact.first_name && !contact.last_name && full_name) {
+      const [first, last] = split_full_name(full_name);
+
+      contact.first_name = first;
+      contact.last_name = last;
+    }
+
+    const email_entries: EmailEntry[] = [];
+    const seen_emails = new Set<string>();
+
+    for (const slot of emails.values()) {
+      const type = email_type_of(clean_label(slot.label ?? slot.implied_type));
+
+      for (const raw_email of slot.values) {
+        const email = clean_email(raw_email);
+        const lower = email.toLowerCase();
+
+        if (!email || seen_emails.has(lower)) continue;
+        seen_emails.add(lower);
+        contact.emails.push(email);
+        email_entries.push({ value: email, type });
+      }
+    }
+    if (email_entries.length > 0) contact.email_entries = email_entries;
+
+    const phone_entries: PhoneEntry[] = [];
+    const seen_phones = new Set<string>();
+
+    for (const slot of phones.values()) {
+      const type = phone_type_of(clean_label(slot.label ?? slot.implied_type));
+
+      for (const phone of slot.values) {
+        const digits = phone.replace(/[^\d+]/g, "");
+
+        if (seen_phones.has(digits || phone)) continue;
+        seen_phones.add(digits || phone);
+        phone_entries.push({ value: phone, type });
+      }
+    }
+    if (phone_entries.length > 0) {
+      contact.phone = phone_entries[0].value;
+      contact.phone_entries = phone_entries;
+    }
+
+    const address_entries: AddressEntry[] = [];
+
+    for (const slot of addresses.values()) {
+      const street = [slot.street, slot.extended]
+        .filter((part): part is string => Boolean(part))
+        .join(", ");
+      const entry: AddressEntry = {
+        type: place_type_of(clean_label(slot.label ?? slot.implied_type)),
+      };
+
+      if (street) entry.street = street;
+      else if (slot.formatted && !slot.city && !slot.postal_code) {
+        entry.street = slot.formatted.replace(/\s*\n\s*/g, ", ");
+      }
+      if (slot.city) entry.city = slot.city;
+      if (slot.state) entry.state = slot.state;
+      if (slot.postal_code) entry.postal_code = slot.postal_code;
+      if (slot.country) entry.country = slot.country;
+
+      if (Object.keys(entry).length > 1) address_entries.push(entry);
+    }
+    if (address_entries.length > 0) {
+      const first = address_entries[0];
+      const primary: Address = {};
+
+      if (first.street) primary.street = first.street;
+      if (first.city) primary.city = first.city;
+      if (first.state) primary.state = first.state;
+      if (first.postal_code) primary.postal_code = first.postal_code;
+      if (first.country) primary.country = first.country;
+      contact.address = primary;
+      contact.address_entries = address_entries;
+    }
+
+    const website_entries: WebsiteEntry[] = [];
+    const social_links: SocialLinks = {};
+
+    for (const slot of websites.values()) {
+      const type = website_type_of(
+        clean_label(slot.label ?? slot.implied_type),
+      );
+
+      for (const url of slot.values) {
+        const social = social_host_of(url);
+
+        if (social && !social_links[social]) {
+          social_links[social] = url;
+          continue;
+        }
+        if (!social_links.website) social_links.website = url;
+        website_entries.push({ value: url, type });
+      }
+    }
+    if (Object.keys(social_links).length > 0)
+      contact.social_links = social_links;
+    if (website_entries.length > 0) contact.websites = website_entries;
+
+    const date_entries: DateEntry[] = [];
+
+    for (const slot of events.values()) {
+      const label = clean_label(slot.label ?? slot.implied_type);
+
+      for (const date of slot.values) {
+        if (label === "birthday") {
+          if (!contact.birthday) contact.birthday = date;
+          continue;
+        }
+        date_entries.push({
+          value: date,
+          type: mapped_type(VCARD_DATE_TYPES, [label], "other"),
+        });
+      }
+    }
+    if (date_entries.length > 0) contact.date_entries = date_entries;
+
+    const related_people: RelatedPersonEntry[] = [];
+
+    for (const slot of relations.values()) {
+      const label = clean_label(slot.label ?? slot.implied_type);
+
+      for (const person of slot.values) {
+        related_people.push({
+          value: person,
+          type: mapped_type(VCARD_RELATION_TYPES, [label], "other"),
+        });
+      }
+    }
+    if (related_people.length > 0) contact.related_people = related_people;
+
+    const instant_messengers: InstantMessengerEntry[] = [];
+
+    for (const slot of messengers.values()) {
+      const label = clean_label(
+        slot.service ?? slot.label ?? slot.implied_type,
+      );
+
+      for (const handle of slot.values) {
+        instant_messengers.push({
+          value: handle,
+          type: mapped_type(VCARD_MESSENGER_TYPES, [label], "other"),
+        });
+      }
+    }
+    if (instant_messengers.length > 0) {
+      contact.instant_messengers = instant_messengers;
+    }
+
+    for (const slot of custom_fields.values()) {
+      const label = (slot.label ?? "").replace(/^\*\s*/, "").trim();
+
+      for (const value of slot.values) {
+        notes.push(label ? `${label}: ${value}` : value);
+      }
+    }
+    if (notes.length > 0) contact.notes = notes.join("\n");
+
+    const group_names: string[] = [];
+
+    for (const raw_group of groups) {
+      const name = raw_group.replace(/^\*\s*/, "").trim();
+      const lower = name.toLowerCase();
+
+      if (!name || lower === "mycontacts" || lower === "my contacts") continue;
+      if (lower === "starred") {
+        contact.is_favorite = true;
+        continue;
+      }
+      if (!group_names.some((existing) => existing.toLowerCase() === lower)) {
+        group_names.push(name);
+      }
+    }
+    if (group_names.length > 0) contact.groups = group_names;
 
     if (contact.first_name || contact.last_name || contact.emails.length > 0) {
       contacts.push(contact);

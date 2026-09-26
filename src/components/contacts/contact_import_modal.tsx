@@ -41,8 +41,8 @@ import {
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import { CheckIcon } from "@heroicons/react/24/solid";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { TAG_COLOR_PRESETS } from "@/components/ui/email_tag";
 import {
@@ -59,10 +59,10 @@ import {
   import_csv,
   parse_vcard,
   parse_csv,
-  auto_map_csv_header,
+  auto_map_csv_headers,
 } from "@/services/api/contact_sync";
 import {
-  add_contact_to_group,
+  add_contacts_to_group,
   create_contact_group,
   generate_contact_token,
   list_contact_groups,
@@ -77,6 +77,8 @@ const NO_GROUP_VALUE = "__none__";
 const IMPORT_RETRY_LIMIT = 2;
 const GROUP_ASSIGN_PAGE_LIMIT = 100;
 const MAX_GROUP_ASSIGN_PAGES = 100;
+const GROUP_ASSIGN_CHUNK = 100;
+const CONTACT_LIMIT_ERROR = "Contact limit reached";
 
 function preview_name_of(contact: ContactFormData): string {
   const full = `${contact.first_name} ${contact.last_name}`.trim();
@@ -98,12 +100,18 @@ function get_csv_field_options(t: (key: TranslationKey) => string): {
 }[] {
   return [
     { value: null, label: t("common.skip") },
+    { value: "full_name", label: t("common.name") },
+    { value: "name_prefix", label: t("common.title") },
     { value: "first_name", label: t("common.first_name") },
+    { value: "middle_name", label: t("common.middle_name") },
     { value: "last_name", label: t("common.last_name") },
+    { value: "name_suffix", label: t("common.name_suffix") },
+    { value: "nickname", label: t("common.nickname") },
     { value: "emails", label: t("common.email") },
     { value: "phone", label: t("common.phone") },
     { value: "company", label: t("common.company") },
     { value: "job_title", label: t("common.job_title") },
+    { value: "department", label: t("common.department") },
     { value: "street", label: t("common.street") },
     { value: "city", label: t("common.city") },
     { value: "state", label: t("common.state") },
@@ -111,6 +119,10 @@ function get_csv_field_options(t: (key: TranslationKey) => string): {
     { value: "country", label: t("common.country") },
     { value: "website", label: t("common.website") },
     { value: "birthday", label: t("common.birthday") },
+    { value: "event", label: t("common.event") },
+    { value: "related_person", label: t("common.related_person") },
+    { value: "instant_messenger", label: t("common.instant_messenger") },
+    { value: "groups", label: t("common.groups") },
     { value: "notes", label: t("common.notes") },
     { value: "is_favorite", label: t("common.favorite") },
   ];
@@ -137,6 +149,7 @@ export function ContactImportModal({
     updated: number;
     skipped: number;
     failed: number;
+    limit_reached: boolean;
   } | null>(null);
   const [preview_query, set_preview_query] = useState("");
   const [excluded_rows, set_excluded_rows] = useState<Set<number>>(new Set());
@@ -178,13 +191,7 @@ export function ContactImportModal({
 
             set_csv_headers(headers);
 
-            const auto_mapping: Record<string, CsvFieldTarget | null> = {};
-
-            headers.forEach((header) => {
-              auto_mapping[header] = auto_map_csv_header(header);
-            });
-
-            set_csv_mapping(auto_mapping);
+            set_csv_mapping(auto_map_csv_headers(headers));
             set_step("mapping");
           } else {
             set_error(t("common.csv_file_empty"));
@@ -357,6 +364,7 @@ export function ContactImportModal({
 
       if (pending.size === 0) return;
 
+      const members_by_group = new Map<string, string[]>();
       let cursor: string | undefined;
 
       for (let page = 0; page < MAX_GROUP_ASSIGN_PAGES; page += 1) {
@@ -365,7 +373,7 @@ export function ContactImportModal({
           cursor,
         });
 
-        if (response.error || !response.data) return;
+        if (response.error || !response.data) break;
 
         for (const item of response.data.items) {
           const group_ids = pending.get(item.contact_token);
@@ -373,13 +381,25 @@ export function ContactImportModal({
           if (!group_ids) continue;
           pending.delete(item.contact_token);
           for (const group_id of group_ids) {
-            await add_contact_to_group(item.id, group_id);
+            const members = members_by_group.get(group_id) ?? [];
+
+            members.push(item.id);
+            members_by_group.set(group_id, members);
           }
         }
 
-        if (pending.size === 0) return;
-        if (!response.data.has_more || !response.data.next_cursor) return;
+        if (pending.size === 0) break;
+        if (!response.data.has_more || !response.data.next_cursor) break;
         cursor = response.data.next_cursor;
+      }
+
+      for (const [group_id, contact_ids] of members_by_group) {
+        for (let i = 0; i < contact_ids.length; i += GROUP_ASSIGN_CHUNK) {
+          await add_contacts_to_group(
+            group_id,
+            contact_ids.slice(i, i + GROUP_ASSIGN_CHUNK),
+          );
+        }
       }
     },
     [],
@@ -411,6 +431,8 @@ export function ContactImportModal({
       let updated = 0;
       let skipped = 0;
       let failed = 0;
+      let limit_reached = false;
+      let last_error: string | null = null;
 
       for (let i = 0; i < payload.length; i += batch_size) {
         const batch = payload.slice(i, i + batch_size);
@@ -420,7 +442,8 @@ export function ContactImportModal({
         while (
           attempt < IMPORT_RETRY_LIMIT &&
           (response.code === "TIMEOUT_ERROR" ||
-            response.code === "NETWORK_ERROR")
+            response.code === "NETWORK_ERROR" ||
+            response.code === "RATE_LIMIT_EXCEEDED")
         ) {
           attempt += 1;
           await new Promise((resolve) => setTimeout(resolve, 1500 * attempt));
@@ -428,23 +451,41 @@ export function ContactImportModal({
         }
 
         if (response.error || !response.data) {
-          set_error(response.error || t("common.import_failed"));
-          failed += payload.length - i;
-          set_import_result({ imported, updated, skipped, failed });
-          set_step("complete");
-
-          return;
+          last_error = response.error || t("common.import_failed");
+          failed += batch.length;
+          continue;
         }
 
         imported += response.data.imported ?? 0;
         updated += response.data.updated ?? 0;
         skipped += response.data.skipped ?? 0;
         failed += response.data.failed ?? 0;
+
+        const errors = response.data.errors ?? [];
+
+        if (errors.some((message) => message.includes(CONTACT_LIMIT_ERROR))) {
+          limit_reached = true;
+          skipped += payload.length - i - batch.length;
+          break;
+        }
+        if (errors.length > 0) last_error = errors[0];
       }
 
-      await assign_imported_groups(payload);
+      if (imported > 0 || updated > 0) {
+        try {
+          await assign_imported_groups(payload);
+        } catch (group_err) {
+          last_error = user_facing_error(group_err, t("common.import_failed"));
+        }
+      }
 
-      set_import_result({ imported, updated, skipped, failed });
+      if (limit_reached) {
+        set_error(t("common.contact_limit_reached"));
+      } else if (last_error && (failed > 0 || imported + updated === 0)) {
+        set_error(last_error);
+      }
+
+      set_import_result({ imported, updated, skipped, failed, limit_reached });
       set_step("complete");
     } catch (err) {
       set_error(user_facing_error(err, t("common.import_failed")));
@@ -852,7 +893,7 @@ export function ContactImportModal({
 
           {step === "complete" && import_result && (
             <div className="space-y-4 text-center py-4">
-              {import_result.imported === 0 && error ? (
+              {import_result.imported + import_result.updated === 0 && error ? (
                 <ExclamationTriangleIcon
                   className="w-16 h-16 mx-auto"
                   style={{ color: "var(--color-danger)" }}
@@ -865,11 +906,13 @@ export function ContactImportModal({
               )}
               <div>
                 <p className="text-lg font-semibold text-txt-primary">
-                  {import_result.imported === 0 && error
+                  {import_result.imported + import_result.updated === 0 && error
                     ? t("common.import_failed")
                     : t("common.import_complete")}
                 </p>
-                {!(import_result.imported === 0 && error) && (
+                {!(
+                  import_result.imported + import_result.updated === 0 && error
+                ) && (
                   <p className="text-sm text-txt-secondary mt-1">
                     {t("common.contacts_imported_desc")}
                   </p>

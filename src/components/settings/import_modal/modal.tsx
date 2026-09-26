@@ -32,10 +32,12 @@ import {
   ImportStep,
   PICKER_REOPEN_DELAY_MS,
   build_thread_map,
+  classify_import_labels,
   derive_manual_import_source,
   detect_item_type,
   extract_source_folders,
   folder_for_email,
+  source_labels,
 } from "./helpers";
 
 import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
@@ -299,6 +301,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           if (!hash || existing_hashes.has(hash) || seen_hashes.has(hash)) {
             return false;
           }
+          if (classify_import_labels(source_labels(email)).skip) return false;
 
           seen_hashes.add(hash);
 
@@ -411,9 +414,10 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 encrypted.thread_token = token;
               }
 
+              const disposition = classify_import_labels(source_labels(email));
               const type = detect_item_type(email, user_addresses);
 
-              if (type === "sent") {
+              if (type === "sent" || disposition.sent) {
                 encrypted.item_type = "sent";
               }
 
@@ -421,6 +425,16 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
 
               if (target_folder) {
                 encrypted.folder_token = target_folder;
+              }
+
+              if (disposition.is_read !== undefined) {
+                encrypted.is_read = disposition.is_read;
+              }
+              if (disposition.is_starred) encrypted.is_starred = true;
+              if (disposition.is_trashed) encrypted.is_trashed = true;
+              else if (disposition.is_spam) encrypted.is_spam = true;
+              else if (disposition.is_archived && !target_folder) {
+                encrypted.is_archived = true;
               }
 
               encrypted_batch.push(encrypted);

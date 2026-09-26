@@ -34,7 +34,11 @@ import { get_active_translations } from "@/lib/i18n/translations";
 import { ignore_error } from "@/lib/ignore_error";
 import { format_decimal } from "@/lib/utils";
 
-function convert_pst_message(msg: PstMessage, index: number): ParsedEmail {
+function convert_pst_message(
+  msg: PstMessage,
+  index: number,
+  source_folder: string,
+): ParsedEmail {
   const message_id =
     msg.internetMessageId ||
     `pst-import-${index}-${Date.now().toString(36)}-${secure_hex(4)}@astermail.local`;
@@ -120,6 +124,7 @@ function convert_pst_message(msg: PstMessage, index: number): ParsedEmail {
     text_body,
     attachments,
     raw_headers: {},
+    source_folder: source_folder || undefined,
   };
 }
 
@@ -153,7 +158,7 @@ export async function parse_pst_file(
     let processed = 0;
     let total_estimate = 100;
 
-    const process_folder = (folder: PstFolder) => {
+    const process_folder = (folder: PstFolder, path: string) => {
       if (folder.contentCount > 0) {
         total_estimate = Math.max(
           total_estimate,
@@ -163,7 +168,7 @@ export async function parse_pst_file(
 
         while (message !== null) {
           try {
-            const parsed = convert_pst_message(message, processed);
+            const parsed = convert_pst_message(message, processed, path);
 
             emails.push(parsed);
           } catch (err) {
@@ -198,14 +203,16 @@ export async function parse_pst_file(
         const subfolders = folder.getSubFolders();
 
         for (const subfolder of subfolders) {
-          process_folder(subfolder);
+          const name = (subfolder.displayName || "").trim();
+
+          process_folder(subfolder, path && name ? `${path}/${name}` : name);
         }
       }
     };
 
     const root = pst.getRootFolder();
 
-    process_folder(root);
+    process_folder(root, "");
 
     if (on_progress) {
       on_progress({ current: processed, total: processed, percentage: 100 });
