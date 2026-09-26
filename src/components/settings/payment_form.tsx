@@ -755,9 +755,13 @@ export function PaymentForm({
           height: "44px",
           borderRadius: "14px",
           border: `1px solid ${get_field_border(key, has_error)}`,
+          boxShadow:
+            focused_field === key && !has_error
+              ? `inset 0 0 0 1px ${colors.accent}`
+              : "none",
           background: colors.bg_input,
           padding: "0 16px",
-          transition: "border-color 0.15s ease",
+          transition: "border-color 0.15s ease, box-shadow 0.15s ease",
           cursor: "text",
         }}
         onClick={focus_this_field}
@@ -798,6 +802,8 @@ export function PaymentForm({
           ? colors.border_hover
           : colors.border_rest
     }`,
+    boxShadow:
+      focused_field === key ? `inset 0 0 0 1px ${colors.accent}` : "none",
     background: colors.bg_input,
     color: colors.text_primary,
     fontFamily: "'Google Sans Flex', system-ui, sans-serif",
@@ -808,7 +814,7 @@ export function PaymentForm({
     padding: "0 16px",
     width: "100%",
     outline: "none",
-    transition: "border-color 0.15s ease",
+    transition: "border-color 0.15s ease, box-shadow 0.15s ease",
   });
 
   const money = (cents: number) =>
