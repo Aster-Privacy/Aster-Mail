@@ -39,9 +39,13 @@ import {
   is_html_content,
   has_rich_html,
   plain_text_to_html,
-  strip_html_tags,
+  strip_html_tags_bounded,
   type ExternalContentReport,
 } from "@/lib/html_sanitizer";
+import {
+  extract_preview_html,
+  move_leading_footer_to_end,
+} from "@/components/email/message_body_parts";
 import { is_system_email } from "@/lib/utils";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { MobileAttachmentRow } from "@/components/mobile/mobile_attachment_row";
@@ -52,6 +56,7 @@ import {
 } from "@/utils/attachment_download";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_preferences } from "@/contexts/preferences_context";
+import { clip_with_ellipsis } from "@/utils/preview_text";
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
   PGP_UNDECRYPTABLE_SENTINEL,
@@ -149,7 +154,7 @@ export function MobileThreadMessage({
     }
 
     if (message.html_content && !is_ratchet_envelope(message.html_content)) {
-      return message.html_content;
+      return move_leading_footer_to_end(message.html_content);
     }
 
     return strip_reply_quotes(message.body);
@@ -179,9 +184,11 @@ export function MobileThreadMessage({
     ) {
       return t("mail.encrypted_message_unavailable");
     }
-    const plain = strip_html_tags(clean_body);
+    const plain = strip_html_tags_bounded(extract_preview_html(clean_body), 600)
+      .replace(/\s+/g, " ")
+      .trim();
 
-    return plain.length > 60 ? plain.substring(0, 60) + "..." : plain;
+    return clip_with_ellipsis(plain, 60);
   }, [clean_body, password_protected, t]);
 
   const is_system = is_system_email(message);
