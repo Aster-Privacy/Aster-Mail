@@ -341,9 +341,11 @@ export function AliasDirectoriesSection() {
                   </SelectTrigger>
                   <SelectContent>
                     {[
-                      ...DIRECTORY_DOMAINS,
-                      ...(premium_domains_allowed ? PREMIUM_ALIAS_DOMAINS : []),
-                      ...custom_domains,
+                      ...new Set([
+                        ...DIRECTORY_DOMAINS,
+                        ...(premium_domains_allowed ? PREMIUM_ALIAS_DOMAINS : []),
+                        ...custom_domains,
+                      ]),
                     ].map((d) => (
                       <SelectItem key={d} value={d}>
                         @{d}
