@@ -225,13 +225,6 @@ export function SessionSection({
                   <div className="flex items-center gap-3 flex-shrink-0">
                     {location_label && (
                       <span className="hidden sm:flex items-center gap-1.5 text-xs text-txt-muted">
-                        {session.country_code && (
-                          <img
-                            alt={session.country ?? session.country_code}
-                            className="w-4 h-3 rounded-[1px] object-cover"
-                            src={`https://flagcdn.com/16x12/${session.country_code.toLowerCase()}.png`}
-                          />
-                        )}
                         {location_label}
                       </span>
                     )}
