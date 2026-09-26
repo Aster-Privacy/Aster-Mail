@@ -39,7 +39,6 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_auto_advance } from "@/components/email/hooks/use_auto_advance";
 import { use_metadata_migration } from "@/hooks/use_metadata_migration";
-import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { use_background_subscription_scan } from "@/hooks/use_background_subscription_scan";
 import { use_account_data_conversion } from "@/hooks/use_account_data_conversion";
 import { use_device_recovery } from "@/hooks/use_device_recovery";
@@ -56,19 +55,12 @@ import {
   emit_mail_stats_stale,
 } from "@/hooks/mail_events";
 import { use_show_mobile_ui } from "@/hooks/use_platform";
-import {
-  adjust_stats_inbox,
-  adjust_stats_archived,
-} from "@/hooks/use_mail_stats";
+import { adjust_stats_inbox } from "@/hooks/use_mail_stats";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import {
   batched_bulk_add_folder,
   batched_bulk_remove_folder,
 } from "@/services/api/mail";
-import {
-  batch_archive as api_batch_archive,
-  batch_unarchive as api_batch_unarchive,
-} from "@/services/api/archive";
 import {
   batched_bulk_add_tag,
   batched_bulk_remove_tag,
@@ -96,34 +88,6 @@ export interface ForwardData {
   email_timestamp: string;
   is_external?: boolean;
   original_mail_id?: string;
-}
-
-const ARCHIVE_CHUNK_SIZE = 100;
-
-async function api_batch_archive_chunked(
-  ids: string[],
-): Promise<{ success: boolean }> {
-  for (let i = 0; i < ids.length; i += ARCHIVE_CHUNK_SIZE) {
-    const chunk = ids.slice(i, i + ARCHIVE_CHUNK_SIZE);
-    const result = await api_batch_archive({ ids: chunk, tier: "hot" });
-
-    if (result.error || !result.data?.success) return { success: false };
-  }
-
-  return { success: true };
-}
-
-async function api_batch_unarchive_chunked(
-  ids: string[],
-): Promise<{ success: boolean }> {
-  for (let i = 0; i < ids.length; i += ARCHIVE_CHUNK_SIZE) {
-    const chunk = ids.slice(i, i + ARCHIVE_CHUNK_SIZE);
-    const result = await api_batch_unarchive({ ids: chunk });
-
-    if (result.error || !result.data?.success) return { success: false };
-  }
-
-  return { success: true };
 }
 
 export function use_index_page_state() {
@@ -916,25 +880,14 @@ export function use_index_page_state() {
         emit_mail_soft_refresh();
       }
 
-      let archived = false;
+      const left_inbox = current_view === "inbox" || current_view === "";
 
       if (is_inbox_like_view) {
-        const archive_result = await api_batch_archive_chunked(moved_ids);
-
-        if (archive_result.success) {
-          archived = true;
-          void bulk_update_metadata_by_ids(moved_ids, {
-            is_archived: true,
-          }).catch((caught) =>
-            ignore_error("pages/use_index_page_state:get_current_view", caught),
-          );
+        if (left_inbox) {
           adjust_stats_inbox(-moved_ids.length);
-          adjust_stats_archived(moved_ids.length);
-          stale_all_view_caches();
-          remove_category_index_ids(moved_ids);
-        } else {
-          emit_mail_soft_refresh();
         }
+        stale_all_view_caches();
+        remove_category_index_ids(moved_ids);
       }
 
       const new_folders = [{ folder_token, name: folder_name }];
@@ -957,23 +910,11 @@ export function use_index_page_state() {
         email_ids: moved_ids,
         on_undo: async () => {
           await batched_bulk_remove_folder(moved_ids, folder_token);
-          if (archived) {
-            const unarchive_result =
-              await api_batch_unarchive_chunked(moved_ids);
-
-            if (unarchive_result.success) {
-              void bulk_update_metadata_by_ids(moved_ids, {
-                is_archived: false,
-              }).catch((caught) =>
-                ignore_error(
-                  "pages/use_index_page_state:get_current_view",
-                  caught,
-                ),
-              );
+          if (is_inbox_like_view) {
+            if (left_inbox) {
               adjust_stats_inbox(moved_ids.length);
-              adjust_stats_archived(-moved_ids.length);
-              stale_all_view_caches();
             }
+            stale_all_view_caches();
           }
           reindex_category_ids(moved_ids);
           emit_mail_stats_stale();
