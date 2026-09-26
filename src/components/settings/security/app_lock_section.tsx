@@ -371,7 +371,7 @@ function VerifyPinModal({
                 <input
                   ref={text_input_ref}
                   autoComplete="off"
-                  className="w-full px-3 py-2.5 pe-10 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
+                  className="w-full px-3 py-2.5 pe-10 rounded-[var(--aster-radius-control)] text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
                   data-form-type="other"
                   disabled={verifying || locked_out}
                   placeholder={t("settings.app_lock_text_placeholder")}
@@ -723,7 +723,7 @@ function SetupPinModal({
         <div className="flex items-center gap-2">
           {!is_first_step && (
             <button
-              className="p-1 -ms-1 rounded-lg hover:bg-muted transition-colors"
+              className="p-1 -ms-1 rounded-[var(--aster-radius-control)] hover:bg-muted transition-colors"
               type="button"
               onClick={handle_back}
             >
@@ -749,7 +749,7 @@ function SetupPinModal({
           <div className="flex flex-col gap-2">
             <button
               className={cn(
-                "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-start",
+                "w-full py-3 px-4 rounded-[var(--aster-radius-control)] text-sm font-medium transition-colors text-start",
                 chosen_mode === "numeric"
                   ? "bg-brand text-[var(--accent-fg,#ffffff)] border border-brand"
                   : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
@@ -773,7 +773,7 @@ function SetupPinModal({
             </button>
             <button
               className={cn(
-                "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-start",
+                "w-full py-3 px-4 rounded-[var(--aster-radius-control)] text-sm font-medium transition-colors text-start",
                 chosen_mode === "text"
                   ? "bg-brand text-[var(--accent-fg,#ffffff)] border border-brand"
                   : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
@@ -801,7 +801,7 @@ function SetupPinModal({
               <button
                 key={n}
                 className={cn(
-                  "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-start",
+                  "w-full py-3 px-4 rounded-[var(--aster-radius-control)] text-sm font-medium transition-colors text-start",
                   chosen_digits === n
                     ? "bg-brand text-[var(--accent-fg,#ffffff)] border border-brand"
                     : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
@@ -868,7 +868,7 @@ function SetupPinModal({
               <input
                 autoFocus
                 autoComplete="off"
-                className="w-full px-3 py-2.5 pe-10 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
+                className="w-full px-3 py-2.5 pe-10 rounded-[var(--aster-radius-control)] text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
                 data-form-type="other"
                 placeholder={t("settings.app_lock_text_placeholder")}
                 type={show_passphrase ? "text" : "password"}

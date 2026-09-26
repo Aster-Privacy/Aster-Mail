@@ -215,6 +215,23 @@ export function BillingHeroCard({
           </div>
         </div>
 
+        <div>
+          <p className="text-[15px] font-semibold text-txt-primary">
+            {t(
+              is_paid_plan
+                ? "settings.billing_thanks_title"
+                : "settings.billing_thanks_free_title",
+            )}
+          </p>
+          <p className="mt-1 text-[14px] leading-5 text-txt-secondary">
+            {t(
+              is_paid_plan
+                ? "settings.billing_thanks_body"
+                : "settings.billing_thanks_free_body",
+            )}
+          </p>
+        </div>
+
         <BillingMeter
           label={t("settings.storage")}
           limit_bytes={storage_limit_bytes}

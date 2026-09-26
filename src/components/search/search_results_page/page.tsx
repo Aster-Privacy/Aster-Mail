@@ -32,7 +32,7 @@ import {
   StarIcon,
   AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
-import { Tooltip } from "@aster/ui";
+import { IslandIconButton, Tooltip } from "@aster/ui";
 
 import {
   MIN_LIST_WIDTH,
@@ -223,13 +223,9 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
   const overflow_menu = (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
-          aria-label={t("common.more")}
-          className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)] flex-shrink-0"
-          type="button"
-        >
-          <EllipsisVerticalIcon className="w-[18px] h-[18px]" />
-        </button>
+        <IslandIconButton label={t("common.more")}>
+          <EllipsisVerticalIcon />
+        </IslandIconButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
         <DropdownMenuItem onClick={() => handle_select_by_filter("unread")}>

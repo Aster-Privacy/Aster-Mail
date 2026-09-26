@@ -449,7 +449,7 @@ function CommandBlock({ commands, copy_label }: CommandBlockProps) {
       </div>
       <button
         aria-label={copy_label}
-        className="absolute end-2 top-2 flex h-7 w-7 items-center justify-center rounded-md text-txt-muted transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+        className="absolute end-2 top-2 flex h-7 w-7 items-center justify-center rounded-[var(--aster-radius-control)] text-txt-muted transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
         title={t("common.copy")}
         type="button"
         onClick={copy_command}

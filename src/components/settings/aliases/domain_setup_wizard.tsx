@@ -414,7 +414,7 @@ export function DomainSetupWizard({
               </label>
               <input
                 autoFocus
-                className="w-full h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none"
+                className="w-full h-10 px-3 rounded-[var(--aster-radius-control)] bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none"
                 id="domain-name"
                 placeholder={t("settings.enter_domain_placeholder")}
                 value={domain_input}

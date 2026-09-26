@@ -115,8 +115,14 @@ export function KeyRotationPanel({
               }
               label={t("settings.your_encryption_key")}
               trailing={
-                <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2.5 py-1 rounded-full bg-green-500/10 text-green-500">
-                  <CheckCircleIcon className="w-3.5 h-3.5" />
+                <span
+                  className="inline-flex items-center gap-1 text-[12px] font-semibold"
+                  style={{ color: "var(--color-success)" }}
+                >
+                  <CheckCircleIcon
+                    aria-hidden="true"
+                    className="h-[15px] w-[15px]"
+                  />
                   {t("common.active")}
                 </span>
               }

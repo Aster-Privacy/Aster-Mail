@@ -770,7 +770,7 @@ export function AliasImportModal({
             <div
               ref={drop_ref}
               className={[
-                "flex flex-col items-center justify-center gap-2.5 rounded-xl border-2 border-dashed p-6 transition-colors cursor-pointer",
+                "flex flex-col items-center justify-center gap-2.5 rounded-[var(--aster-radius-control)] border-2 border-dashed p-6 transition-colors cursor-pointer",
                 drag_over
                   ? "border-blue-500 bg-blue-500/5"
                   : "border-edge-secondary hover:border-blue-400 hover:bg-surf-secondary",
@@ -824,7 +824,7 @@ export function AliasImportModal({
                       {t("settings.alias_import_target_domain")}
                     </span>
                     <select
-                      className="text-sm rounded-lg border border-edge-secondary bg-surf-primary text-txt-primary px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer"
+                      className="text-sm rounded-[var(--aster-radius-control)] border border-edge-secondary bg-surf-primary text-txt-primary px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer"
                       value={target_domain}
                       onChange={(e) => handle_domain_change(e.target.value)}
                     >
@@ -917,23 +917,30 @@ export function AliasImportModal({
                       </td>
                       <td className="px-3 py-2">
                         {row.status === "will_import" && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-600">
-                            <CheckCircleIcon className="w-3 h-3" />
+                          <span
+                            className="inline-flex items-center gap-1 text-[12px] font-semibold"
+                            style={{ color: "var(--color-success)" }}
+                          >
+                            <CheckCircleIcon className="h-[15px] w-[15px]" />
                             {t("settings.alias_import_will_import")}
                           </span>
                         )}
                         {row.status === "exists" && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-600">
-                            <ExclamationTriangleIcon className="w-3 h-3" />
+                          <span
+                            className="inline-flex items-center gap-1 text-[12px] font-semibold"
+                            style={{ color: "var(--color-warning)" }}
+                          >
+                            <ExclamationTriangleIcon className="h-[15px] w-[15px]" />
                             {t("settings.alias_import_already_exists")}
                           </span>
                         )}
                         {row.status === "invalid" && (
                           <span
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-500"
+                            className="inline-flex items-center gap-1 text-[12px] font-semibold"
+                            style={{ color: "var(--color-danger)" }}
                             title={row.invalid_reason}
                           >
-                            <XCircleIcon className="w-3 h-3" />
+                            <XCircleIcon className="h-[15px] w-[15px]" />
                             {t("settings.alias_import_invalid")}
                           </span>
                         )}

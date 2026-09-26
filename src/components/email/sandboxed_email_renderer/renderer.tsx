@@ -29,6 +29,7 @@ import {
   SETTLE_REMEASURE_DELAYS_MS,
   SKELETON_DELAY_MEASURED_MS,
   SKELETON_DELAY_MS,
+  UNMEASURED_PLACEHOLDER_HEIGHT,
   get_cached_iframe_height,
   link_hover_ink_for,
   link_ink_for,
@@ -670,6 +671,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       set_iframe_height,
     });
 
+    reveal_content();
     reveal_cleanup_ref.current?.();
     reveal_cleanup_ref.current = reveal_on_fonts_ready(
       iframe.contentDocument.fonts,
@@ -809,7 +811,9 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
         return;
       }
-      set_iframe_height((height) => (height === "0px" ? "480px" : height));
+      set_iframe_height((height) =>
+        height === "0px" ? UNMEASURED_PLACEHOLDER_HEIGHT : height,
+      );
       set_height_ready(true);
     };
 
@@ -988,12 +992,13 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
           style={{
             border: "none",
             width: "100%",
-            height: height_ready ? iframe_height : "0px",
+            height: height_ready
+              ? iframe_height
+              : UNMEASURED_PLACEHOLDER_HEIGHT,
             maxHeight: "12000px",
             overflow: "hidden",
             display: "block",
             opacity: height_ready && contrast_ready ? 1 : 0,
-            transition: "opacity 110ms ease-out",
             backgroundColor: effective_bg,
             touchAction: "pan-y",
           }}

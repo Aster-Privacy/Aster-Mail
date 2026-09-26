@@ -218,7 +218,10 @@ export function DomainCard({
                 </span>
               )}
               {domain.downgrade_grace_expires_at && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
+                <span
+                  className="inline-flex items-center gap-1 text-[12px] font-semibold"
+                  style={{ color: "var(--color-warning)" }}
+                >
                   {t("settings.domain_grace_days", {
                     days: String(
                       get_grace_days_remaining(

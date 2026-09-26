@@ -79,11 +79,13 @@ export function DnsRecordCard({
           </span>
         )}
         <span
-          className={`text-xs px-2 py-0.5 rounded ${
-            record.required === false
-              ? "bg-surf-tertiary text-txt-muted"
-              : "bg-brand/10 text-brand"
+          className={`inline-flex items-center rounded-[14px] border px-2 py-0.5 text-[12px] font-medium ${
+            record.required === false ? "text-txt-muted" : "text-txt-secondary"
           }`}
+          style={{
+            borderColor:
+              "color-mix(in srgb, var(--text-primary) 14%, transparent)",
+          }}
         >
           {record.required === false
             ? t("common.dns_recommended")

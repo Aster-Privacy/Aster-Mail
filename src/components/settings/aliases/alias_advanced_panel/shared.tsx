@@ -172,7 +172,7 @@ export function TextFieldRow({
         {is_locked && (
           <button
             aria-label={t("settings.feature_requires_upgrade")}
-            className="absolute inset-0 cursor-pointer rounded-[12px]"
+            className="absolute inset-0 cursor-pointer rounded-[var(--aster-radius-control)]"
             type="button"
             onClick={() =>
               prompt_upgrade(

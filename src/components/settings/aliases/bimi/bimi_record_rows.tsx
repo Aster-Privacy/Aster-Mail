@@ -60,7 +60,7 @@ export function BimiRecordRows({ record }: BimiRecordRowsProps) {
           </dd>
           <button
             aria-label={t("settings.bimi_copy_field", { field: row.label })}
-            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-txt-muted transition-colors hover:text-txt-primary"
+            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[var(--aster-radius-control)] text-txt-muted transition-colors hover:text-txt-primary"
             type="button"
             onClick={() => copy(row.value)}
           >

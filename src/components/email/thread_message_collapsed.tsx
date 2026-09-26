@@ -33,7 +33,7 @@ import {
   ArrowUturnRightIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
-import { Tooltip } from "@aster/ui";
+import { IslandIconButton, Tooltip } from "@aster/ui";
 
 import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { EmailTag } from "@/components/ui/email_tag";
@@ -118,9 +118,6 @@ export function render_collapsed_thread_message(
               />
             </Tooltip>
           )}
-          <span className="ms-auto text-xs text-txt-muted whitespace-nowrap flex-shrink-0">
-            {format_email_detail(new Date(message.timestamp))}
-          </span>
         </div>
         {collapsed_preview && (
           <p className="text-[13px] text-txt-muted truncate mt-0.5">
@@ -129,9 +126,13 @@ export function render_collapsed_thread_message(
         )}
       </div>
 
-      <div className="flex items-center flex-shrink-0 -me-2">
-        <button
-          className="flex h-9 w-9 items-center justify-center rounded-full text-txt-secondary transition-colors hover:bg-[var(--aster-island-hover)]"
+      <div className="flex flex-shrink-0 items-center gap-0.5 -me-2">
+        <span className="pe-1.5 text-xs leading-none text-txt-muted whitespace-nowrap">
+          {format_email_detail(new Date(message.timestamp))}
+        </span>
+        <IslandIconButton
+          active={is_starred}
+          label={is_starred ? t("mail.unstar") : t("mail.star")}
           title={is_starred ? t("mail.unstar") : t("mail.star")}
           onClick={(e) => {
             e.stopPropagation();
@@ -139,20 +140,21 @@ export function render_collapsed_thread_message(
           }}
         >
           {is_starred ? (
-            <StarIconSolid className="h-[18px] w-[18px] text-amber-400" />
+            <StarIconSolid className="text-amber-400" />
           ) : (
-            <StarIcon className="h-[18px] w-[18px]" />
+            <StarIcon />
           )}
-        </button>
+        </IslandIconButton>
+        <span aria-hidden="true" className="h-9 w-9 flex-shrink-0" />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button
-              className="flex h-9 w-9 items-center justify-center rounded-full text-txt-secondary transition-colors hover:bg-[var(--aster-island-hover)]"
+            <IslandIconButton
+              label={t("common.more")}
               title={t("common.more")}
               onClick={(e) => e.stopPropagation()}
             >
-              <EllipsisVerticalIcon className="h-[18px] w-[18px]" />
-            </button>
+              <EllipsisVerticalIcon />
+            </IslandIconButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
             {on_forward && (

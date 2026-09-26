@@ -496,7 +496,7 @@ function SetupDuressPinModal({
         <div className="flex items-center gap-2">
           {step !== "verify_credentials" && (
             <button
-              className="p-1 -ms-1 rounded-lg hover:bg-muted transition-colors"
+              className="p-1 -ms-1 rounded-[var(--aster-radius-control)] hover:bg-muted transition-colors"
               type="button"
               onClick={() => {
                 if (step === "set_pin" || step === "set_text") {
@@ -563,7 +563,7 @@ function SetupDuressPinModal({
                 <input
                   ref={password_ref}
                   autoComplete="current-password"
-                  className="w-full px-3 py-2.5 pe-10 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
+                  className="w-full px-3 py-2.5 pe-10 rounded-[var(--aster-radius-control)] text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
                   disabled={verifying_creds}
                   maxLength={128}
                   type={show_password ? "text" : "password"}
@@ -595,7 +595,7 @@ function SetupDuressPinModal({
                 </label>
                 <input
                   autoComplete="one-time-code"
-                  className="w-full px-3 py-2.5 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors tracking-widest"
+                  className="w-full px-3 py-2.5 rounded-[var(--aster-radius-control)] text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors tracking-widest"
                   disabled={verifying_creds}
                   inputMode="numeric"
                   maxLength={6}
@@ -672,7 +672,7 @@ function SetupDuressPinModal({
               <input
                 autoFocus
                 autoComplete="off"
-                className="w-full px-3 py-2.5 pe-10 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
+                className="w-full px-3 py-2.5 pe-10 rounded-[var(--aster-radius-control)] text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
                 data-form-type="other"
                 placeholder={t("settings.app_lock_text_placeholder")}
                 type={show_passphrase ? "text" : "password"}
@@ -923,7 +923,7 @@ function RemoveDuressPinModal({
                 <input
                   ref={text_ref}
                   autoComplete="off"
-                  className="w-full px-3 py-2.5 pe-10 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
+                  className="w-full px-3 py-2.5 pe-10 rounded-[var(--aster-radius-control)] text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
                   disabled={verifying}
                   placeholder={t("settings.app_lock_text_placeholder")}
                   type={show_passphrase ? "text" : "password"}

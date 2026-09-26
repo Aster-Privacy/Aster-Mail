@@ -25,7 +25,7 @@ import type { DecryptedEmail } from "@/components/email/hooks/use_popup_viewer";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
 import { useState, useMemo } from "react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -253,13 +253,18 @@ export function PopupEmailHeader({
             <div className="flex items-center gap-2">
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="text-xs text-txt-muted hover:text-txt-secondary transition-colors text-start max-w-[32ch] truncate">
-                    {email.to.length > 0
-                      ? `${t("common.to_label")} ${email.to
-                          .map((r) => r.name || r.email)
-                          .join(", ")}`
-                      : t("common.to_me")}{" "}
-                    &#x25BC;
+                  <button
+                    className="group -ms-1.5 flex min-w-0 max-w-[36ch] items-center gap-1 rounded-[var(--aster-radius-control)] px-1.5 py-0.5 text-start text-xs text-txt-muted transition-colors hover:bg-[var(--aster-island-hover)] hover:text-txt-primary data-[state=open]:bg-[var(--aster-island-hover)] data-[state=open]:text-txt-primary"
+                    type="button"
+                  >
+                    <span className="truncate">
+                      {email.to.length > 0
+                        ? `${t("common.to_label")} ${email.to
+                            .map((r) => r.name || r.email)
+                            .join(", ")}`
+                        : t("common.to_me")}
+                    </span>
+                    <ChevronDownIcon className="h-3.5 w-3.5 flex-shrink-0 stroke-[2.25] transition-transform duration-150 group-data-[state=open]:rotate-180" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent

@@ -33,7 +33,12 @@ import {
   TagIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { IslandSection, IslandSections, PillButton } from "@aster/ui";
+import {
+  IslandRow,
+  IslandSection,
+  IslandSections,
+  PillButton,
+} from "@aster/ui";
 
 import {
   AlertDialog,
@@ -501,32 +506,35 @@ export function StorageSection() {
         !on_onion &&
         promo?.eligible &&
         available_addons.length > 0 && (
-          <IslandSection padding="md" tone="accent">
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <TagIcon className="h-5 w-5 flex-shrink-0 text-brand" />
-                  <p className="text-sm font-semibold text-txt-primary">
+          <IslandSection padding="md">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+              <div className="flex min-w-0 flex-1 items-start gap-3">
+                <TagIcon
+                  className="mt-0.5 h-5 w-5 flex-shrink-0"
+                  style={{ color: "var(--accent-color)" }}
+                />
+                <div className="min-w-0">
+                  <p className="text-[15px] font-semibold leading-5 text-txt-primary">
                     {t("settings.storage_promo_title")}
                   </p>
+                  <p className="mt-1 text-[14px] leading-5 text-txt-secondary">
+                    {(promo.duration_months === 1
+                      ? t("settings.storage_promo_body_singular")
+                      : t("settings.storage_promo_body")
+                    )
+                      .replace("{{percent}}", format_number(promo.percent_off))
+                      .replace(
+                        "{{months}}",
+                        format_number(promo.duration_months),
+                      )}
+                  </p>
+                  <p className="mt-1 text-[12.5px] text-txt-muted">
+                    {t("settings.storage_promo_note")}
+                  </p>
                 </div>
-                <p className="text-sm text-txt-muted mt-1 ms-7">
-                  {(promo.duration_months === 1
-                    ? t("settings.storage_promo_body_singular")
-                    : t("settings.storage_promo_body")
-                  )
-                    .replace("{{percent}}", format_number(promo.percent_off))
-                    .replace(
-                      "{{months}}",
-                      format_number(promo.duration_months),
-                    )}
-                </p>
-                <p className="text-xs text-txt-muted mt-1 ms-7">
-                  {t("settings.storage_promo_note")}
-                </p>
               </div>
               <PillButton
-                className="flex-shrink-0"
+                className="flex-shrink-0 self-start sm:self-center"
                 size="sm"
                 type="button"
                 variant="filled"
@@ -586,22 +594,16 @@ export function StorageSection() {
         </div>
 
         {overview?.is_over_limit && (
-          <div
-            className="mt-6 flex items-start gap-2 rounded-xl p-3"
-            style={{
-              backgroundColor:
-                "color-mix(in srgb, var(--color-danger) 10%, transparent)",
-            }}
-          >
+          <div className="mt-5 flex items-start gap-2.5">
             <ExclamationTriangleIcon
-              className="w-4 h-4 mt-0.5 flex-shrink-0"
+              className="mt-0.5 h-4 w-4 flex-shrink-0"
               style={{ color: "var(--color-danger)" }}
             />
             <div>
               <p className="text-sm font-medium text-txt-primary">
                 {t("settings.storage_locked_title")}
               </p>
-              <p className="text-sm mt-0.5 text-txt-muted">
+              <p className="mt-0.5 text-sm text-txt-muted">
                 {t("settings.storage_locked_description")}
               </p>
             </div>
@@ -611,76 +613,81 @@ export function StorageSection() {
 
       <IslandSection
         icon={<ChartPieIcon />}
-        padding="lg"
+        padding="none"
         title={t("settings.storage_breakdown_title")}
       >
         {total_breakdown_bytes === 0 ? (
-          <p className="py-6 text-center text-sm text-txt-muted">
+          <p className="px-5 py-8 text-center text-sm text-txt-muted">
             {t("settings.storage_breakdown_empty")}
           </p>
         ) : (
-          <div className="flex flex-col items-center gap-7 sm:flex-row sm:gap-6 lg:gap-9">
-            <div className="relative h-36 w-36 flex-shrink-0 lg:h-44 lg:w-44">
-              <svg
-                aria-label={t("settings.storage_breakdown_title")}
-                className="h-full w-full -rotate-90"
-                role="img"
-                viewBox="0 0 42 42"
-              >
-                <circle
-                  cx="21"
-                  cy="21"
-                  fill="none"
-                  r="15.915494"
-                  stroke="var(--storage-track)"
-                  strokeWidth="3"
-                />
-                {donut_segments.map((segment) => {
-                  const dimmed =
-                    active_category !== null &&
-                    active_category !== segment.name;
+          <div className="flex flex-col sm:flex-row sm:items-center">
+            <div className="flex flex-shrink-0 items-center justify-center px-5 pt-5 sm:py-5 sm:pe-2">
+              <div className="relative h-32 w-32">
+                <svg
+                  aria-label={t("settings.storage_breakdown_title")}
+                  className="h-full w-full -rotate-90"
+                  role="img"
+                  viewBox="0 0 42 42"
+                >
+                  <circle
+                    cx="21"
+                    cy="21"
+                    fill="none"
+                    r="15.915494"
+                    stroke="var(--storage-track)"
+                    strokeWidth="3"
+                  />
+                  {donut_segments.map((segment) => {
+                    const dimmed =
+                      active_category !== null &&
+                      active_category !== segment.name;
 
-                  return (
-                    <circle
-                      key={segment.name}
-                      className="transition-all duration-300 motion-reduce:transition-none"
-                      cx="21"
-                      cy="21"
-                      fill="none"
-                      opacity={dimmed ? 0.25 : 1}
-                      r="15.915494"
-                      stroke={segment.color}
-                      strokeDasharray={`${segment.share} ${Math.max(0, 100 - segment.share)}`}
-                      strokeDashoffset={-segment.offset}
-                      strokeLinecap="butt"
-                      strokeWidth={active_category === segment.name ? 4.5 : 3}
-                      onMouseEnter={() => set_active_category(segment.name)}
-                      onMouseLeave={() => set_active_category(null)}
-                    >
-                      <title>{t(style_of(segment.name).label_key)}</title>
-                    </circle>
-                  );
-                })}
-              </svg>
-              <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-4 text-center lg:px-6">
-                <span className="text-2xl font-semibold tabular-nums text-txt-primary lg:text-3xl">
-                  {format_bytes(
-                    focused_row
-                      ? focused_row.bytes_used
-                      : total_breakdown_bytes,
-                  )}
-                </span>
-                <span className="mt-1.5 truncate text-xs text-txt-muted">
-                  {focused_row
-                    ? t(style_of(focused_row.name).label_key)
-                    : t("settings.storage_items_count", { count: total_items })}
-                </span>
+                    return (
+                      <circle
+                        key={segment.name}
+                        className="transition-all duration-300 motion-reduce:transition-none"
+                        cx="21"
+                        cy="21"
+                        fill="none"
+                        opacity={dimmed ? 0.25 : 1}
+                        r="15.915494"
+                        stroke={segment.color}
+                        strokeDasharray={`${segment.share} ${Math.max(0, 100 - segment.share)}`}
+                        strokeDashoffset={-segment.offset}
+                        strokeLinecap="butt"
+                        strokeWidth={active_category === segment.name ? 4.5 : 3}
+                        onMouseEnter={() => set_active_category(segment.name)}
+                        onMouseLeave={() => set_active_category(null)}
+                      >
+                        <title>{t(style_of(segment.name).label_key)}</title>
+                      </circle>
+                    );
+                  })}
+                </svg>
+                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center px-4 text-center">
+                  <span className="text-[20px] font-semibold leading-6 tabular-nums text-txt-primary">
+                    {format_bytes(
+                      focused_row
+                        ? focused_row.bytes_used
+                        : total_breakdown_bytes,
+                    )}
+                  </span>
+                  <span className="mt-1 max-w-full truncate text-[12px] text-txt-muted">
+                    {focused_row
+                      ? t(style_of(focused_row.name).label_key)
+                      : t("settings.storage_items_count", {
+                          count: total_items,
+                        })}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="w-full min-w-0 flex-1">
+            <div className="aster_island_divided min-w-0 flex-1 py-1">
               {breakdown_rows.map((entry) => {
                 const style = style_of(entry.name);
+                const Icon = style.icon;
                 const row_share = share_of(
                   entry.bytes_used,
                   total_breakdown_bytes,
@@ -689,73 +696,78 @@ export function StorageSection() {
                   entry.name === "trash" || entry.name === "spam";
                 const is_busy =
                   is_action_loading && cleanup_target === entry.name;
+                const dimmed =
+                  active_category !== null && active_category !== entry.name;
+                const cleanup_label =
+                  entry.name === "spam"
+                    ? t("mail.empty_spam")
+                    : t("mail.empty_trash");
 
                 return (
-                  <div
+                  <IslandRow
                     key={entry.name}
-                    className={`flex items-center gap-2 py-2.5 transition-opacity duration-200 motion-reduce:transition-none lg:gap-3 ${
-                      active_category !== null && active_category !== entry.name
-                        ? "opacity-40"
-                        : "opacity-100"
-                    }`}
-                  >
-                    <span
-                      className="h-2.5 w-2.5 flex-shrink-0 rounded-full"
-                      style={{
-                        backgroundColor:
-                          entry.bytes_used > 0
-                            ? style.color
-                            : "var(--storage-track)",
-                      }}
-                    />
-                    <span className="min-w-0 flex-1 basis-20 truncate text-sm text-txt-primary">
-                      {t(style.label_key)}
-                    </span>
-                    {is_cleanable && entry.item_count > 0 && (
-                      <button
-                        aria-busy={is_busy}
-                        aria-label={
-                          entry.name === "spam"
-                            ? t("mail.empty_spam")
-                            : t("mail.empty_trash")
-                        }
-                        className="flex-shrink-0 rounded-md px-1.5 py-0.5 text-xs font-medium text-brand transition-colors hover:bg-surf-tertiary disabled:cursor-default disabled:hover:bg-transparent"
-                        disabled={is_action_loading}
-                        type="button"
-                        onClick={() =>
-                          set_cleanup_target(
-                            entry.name === "spam" ? "spam" : "trash",
-                          )
-                        }
-                      >
-                        <span className="relative inline-flex items-center justify-center">
-                          <span className={is_busy ? "invisible" : undefined}>
-                            {entry.name === "spam"
-                              ? t("mail.empty_spam")
-                              : t("mail.empty_trash")}
-                          </span>
-                          {is_busy && <ButtonSpinner size="xs" />}
-                        </span>
-                      </button>
-                    )}
-                    <span className="hidden flex-shrink-0 text-end text-xs tabular-nums text-txt-muted lg:block">
-                      {entry.item_count > 0
+                    description={
+                      entry.item_count > 0
                         ? t("settings.storage_items_count", {
                             count: entry.item_count,
                           })
-                        : ""}
-                    </span>
-                    <span className="w-10 flex-shrink-0 text-end text-xs tabular-nums text-txt-muted sm:hidden lg:block lg:w-11">
-                      {row_share > 0
-                        ? `${format_decimal(row_share, row_share < 10 ? 1 : 0)}%`
-                        : ""}
-                    </span>
-                    <span
-                      className={`w-16 flex-shrink-0 text-end text-sm tabular-nums lg:w-20 ${entry.bytes_used > 0 ? "text-txt-primary" : "text-txt-muted"}`}
-                    >
-                      {format_bytes(entry.bytes_used)}
-                    </span>
-                  </div>
+                        : undefined
+                    }
+                    icon={
+                      <Icon
+                        className="h-[22px] w-[22px]"
+                        style={{
+                          color:
+                            entry.bytes_used > 0
+                              ? style.color
+                              : "var(--text-muted)",
+                        }}
+                      />
+                    }
+                    label={t(style.label_key)}
+                    style={{
+                      opacity: dimmed ? 0.4 : 1,
+                      transition: "opacity 0.2s",
+                    }}
+                    trailing={
+                      is_cleanable && entry.item_count > 0 ? (
+                        <PillButton
+                          aria-busy={is_busy}
+                          aria-label={cleanup_label}
+                          disabled={is_action_loading}
+                          size="sm"
+                          type="button"
+                          variant="neutral"
+                          onClick={() =>
+                            set_cleanup_target(
+                              entry.name === "spam" ? "spam" : "trash",
+                            )
+                          }
+                        >
+                          <span className="relative inline-flex items-center justify-center">
+                            <span className={is_busy ? "invisible" : undefined}>
+                              {cleanup_label}
+                            </span>
+                            {is_busy && <ButtonSpinner size="xs" />}
+                          </span>
+                        </PillButton>
+                      ) : undefined
+                    }
+                    value={
+                      <span className="flex flex-col items-end">
+                        <span
+                          className={`text-[14px] font-medium leading-5 tabular-nums ${entry.bytes_used > 0 ? "text-txt-primary" : "text-txt-muted"}`}
+                        >
+                          {format_bytes(entry.bytes_used)}
+                        </span>
+                        <span className="text-[12px] leading-4 tabular-nums text-txt-muted">
+                          {row_share > 0
+                            ? `${format_decimal(row_share, row_share < 10 ? 1 : 0)}%`
+                            : "0%"}
+                        </span>
+                      </span>
+                    }
+                  />
                 );
               })}
             </div>

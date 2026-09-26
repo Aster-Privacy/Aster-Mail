@@ -240,7 +240,7 @@ export function SessionSection({
                           )}
                           <button
                             aria-label={t("settings.sign_out")}
-                            className="w-8 h-8 rounded-lg flex items-center justify-center text-txt-muted hover:text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                            className="w-8 h-8 rounded-[var(--aster-radius-control)] flex items-center justify-center text-txt-muted hover:text-red-500 hover:bg-red-500/10 transition-colors disabled:opacity-50"
                             disabled={revoking_id === session.id}
                             type="button"
                             onClick={() => set_show_confirm_single(session.id)}

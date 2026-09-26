@@ -83,12 +83,13 @@ export function BillingMeter({
           <span className="text-[13px] font-medium text-txt-secondary">
             {label}
           </span>
-          <StatusIcon
-            aria-hidden="true"
-            className="h-4 w-4 flex-shrink-0"
+          <span
+            className="inline-flex flex-shrink-0 items-center gap-1 text-[12px] font-semibold"
             style={{ color: styles.color }}
-          />
-          <span className="sr-only">{status_label}</span>
+          >
+            <StatusIcon aria-hidden="true" className="h-[15px] w-[15px]" />
+            {status_label}
+          </span>
         </div>
         {trailing && <div className="flex-shrink-0">{trailing}</div>}
       </div>

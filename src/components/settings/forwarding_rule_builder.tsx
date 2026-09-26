@@ -207,7 +207,7 @@ export function ForwardingRuleBuilder({
               className="flex items-center gap-2 p-2.5 rounded-lg bg-surf-tertiary"
             >
               <select
-                className={`px-2.5 py-1.5 rounded-md text-[13px] border bg-transparent text-txt-primary ${
+                className={`px-2.5 py-1.5 rounded-[var(--aster-radius-control)] text-[13px] border bg-transparent text-txt-primary ${
                   incomplete_condition_indexes.includes(index) &&
                   condition.field === "all"
                     ? "border-danger"
@@ -228,7 +228,7 @@ export function ForwardingRuleBuilder({
               {condition.field !== "all" && (
                 <>
                   <select
-                    className="px-2.5 py-1.5 rounded-md text-[13px] border bg-transparent border-edge-secondary text-txt-primary"
+                    className="px-2.5 py-1.5 rounded-[var(--aster-radius-control)] text-[13px] border bg-transparent border-edge-secondary text-txt-primary"
                     value={condition.operator}
                     onChange={(e) =>
                       update_condition(index, "operator", e.target.value)

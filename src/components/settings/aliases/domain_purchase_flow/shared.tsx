@@ -141,7 +141,7 @@ export function ResultRow({
 
   return (
     <button
-      className={`w-full flex items-center justify-between gap-3 px-3 h-[52px] text-start transition-colors rounded-xl ${
+      className={`w-full flex items-center justify-between gap-3 px-3 h-[52px] text-start transition-colors rounded-[var(--aster-radius-control)] ${
         available ? "hover:bg-surf-secondary" : "cursor-default"
       }`}
       disabled={!available}

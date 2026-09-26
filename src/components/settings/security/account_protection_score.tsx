@@ -133,14 +133,14 @@ export function AccountProtectionScore({
         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
           <div className="flex items-center gap-2">
             <button
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-txt-primary bg-surf-primary border border-edge-secondary hover:bg-surf-tertiary transition-colors"
+              className="px-3 py-1.5 rounded-[var(--aster-radius-control)] text-sm font-medium text-txt-primary bg-surf-primary border border-edge-secondary hover:bg-surf-tertiary transition-colors"
               type="button"
               onClick={() => set_dismissed(true)}
             >
               {t("settings.account_security_dismiss")}
             </button>
             <button
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${STATUS_BUTTON_STYLES[status]}`}
+              className={`px-3 py-1.5 rounded-[var(--aster-radius-control)] text-sm font-medium transition-colors ${STATUS_BUTTON_STYLES[status]}`}
               type="button"
               onClick={() => set_popover_open(true)}
             >
@@ -177,7 +177,7 @@ export function AccountProtectionScore({
                 return (
                   <li key={criterion.id}>
                     <button
-                      className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-colors text-start ${is_clickable ? "hover:bg-edge-secondary/60 cursor-pointer" : "cursor-default"}`}
+                      className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-[var(--aster-radius-control)] transition-colors text-start ${is_clickable ? "hover:bg-edge-secondary/60 cursor-pointer" : "cursor-default"}`}
                       disabled={!is_clickable}
                       type="button"
                       onClick={() => {

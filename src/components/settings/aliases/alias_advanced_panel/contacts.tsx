@@ -233,7 +233,10 @@ export function ContactsPanel({
               </span>
               <div className="flex items-center gap-1 shrink-0">
                 {contact.is_blocked && (
-                  <span className="inline-flex items-center text-[11px] px-2 py-0.5 rounded-md bg-red-100 text-red-700 border border-red-200 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/30">
+                  <span
+                    className="inline-flex items-center gap-1 text-[12px] font-semibold"
+                    style={{ color: "var(--color-danger)" }}
+                  >
                     {t("settings.alias_contact_blocked")}
                   </span>
                 )}

@@ -218,13 +218,12 @@ export const InlineReplyComposer = forwardRef<
     original_mail_id: original_email_id,
   });
 
-  const recipient_display = recipient_name || recipient_email;
   const mode_label =
     inline_mode === "reply"
-      ? t("mail.reply_to_name", { name: recipient_display })
+      ? t("mail.reply")
       : inline_mode === "reply_all"
-        ? t("mail.reply_all_to_name", { name: recipient_display })
-        : t("mail.forward_message_heading");
+        ? t("mail.reply_all")
+        : t("mail.forward");
   const field_row_class = "flex min-h-9 items-center gap-2";
   const field_label_class =
     "flex h-9 w-12 flex-shrink-0 items-center py-0 text-start text-sm text-txt-muted";
@@ -282,54 +281,70 @@ export const InlineReplyComposer = forwardRef<
   };
 
   const header = (
-    <div className="flex items-center justify-between gap-2 ps-2.5 pe-2 pt-2.5 pb-1 flex-shrink-0">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            className="flex min-w-0 items-center gap-2.5 rounded-full py-1 ps-1 pe-2.5 text-sm font-medium text-txt-primary transition-colors hover:bg-[var(--aster-island-hover)]"
-            title={is_reply_mode ? recipient_email : original_subject}
-            type="button"
-          >
-            {is_reply_mode ? (
-              <ProfileAvatar
-                use_domain_logo
-                email={recipient_email}
-                name={recipient_name}
-                size="sm"
-              />
-            ) : (
-              <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-[var(--aster-island-hover)] text-txt-secondary">
-                {render_mode_icon("forward", "w-4 h-4")}
-              </span>
-            )}
-            <span className="truncate">{mode_label}</span>
-            <ChevronDownIcon className="h-3.5 w-3.5 flex-shrink-0 text-txt-muted" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-44">
-          <DropdownMenuItem onClick={() => on_set_inline_mode?.("reply")}>
-            {render_mode_icon("reply", "w-4 h-4 me-2")}
-            {t("mail.reply")}
-          </DropdownMenuItem>
-          {(original_to?.length ?? 0) + (original_cc?.length ?? 0) >= 2 && (
-            <DropdownMenuItem onClick={() => on_set_inline_mode?.("reply_all")}>
-              {render_mode_icon("reply_all", "w-4 h-4 me-2")}
-              {t("mail.reply_all")}
+    <div className="flex items-center justify-between px-4 py-2 flex-shrink-0">
+      <div className="flex items-center gap-2 text-sm text-txt-secondary min-w-0">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button
+              className="flex items-center gap-1 p-1.5 rounded hover:bg-surf-hover transition-colors"
+              type="button"
+            >
+              {render_mode_icon(
+                inline_mode,
+                "w-4 h-4 flex-shrink-0 text-txt-muted",
+              )}
+              <ChevronDownIcon className="w-3 h-3 text-txt-muted" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-40">
+            <DropdownMenuItem onClick={() => on_set_inline_mode?.("reply")}>
+              {render_mode_icon("reply", "w-4 h-4 me-2")}
+              {t("mail.reply")}
             </DropdownMenuItem>
-          )}
-          <DropdownMenuItem onClick={() => on_set_inline_mode?.("forward")}>
-            {render_mode_icon("forward", "w-4 h-4 me-2")}
-            {t("mail.forward")}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+            {(original_to?.length ?? 0) + (original_cc?.length ?? 0) >= 2 && (
+              <DropdownMenuItem
+                onClick={() => on_set_inline_mode?.("reply_all")}
+              >
+                {render_mode_icon("reply_all", "w-4 h-4 me-2")}
+                {t("mail.reply_all")}
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem onClick={() => on_set_inline_mode?.("forward")}>
+              {render_mode_icon("forward", "w-4 h-4 me-2")}
+              {t("mail.forward")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        {is_reply_mode && (
+          <>
+            <ProfileAvatar
+              use_domain_logo
+              email={recipient_email}
+              name={recipient_name}
+              size="xs"
+            />
+            <span className="truncate">
+              {mode_label}: {recipient_email}
+            </span>
+          </>
+        )}
+        {inline_mode === "forward" && (
+          <span className="truncate">
+            {mode_label}: {original_subject}
+          </span>
+        )}
+      </div>
       <div className="flex items-center gap-0.5 flex-shrink-0">
         <IslandIconButton
           label={
-            is_fullscreen ? t("mail.exit_fullscreen") : t("mail.enter_fullscreen")
+            is_fullscreen
+              ? t("mail.exit_fullscreen")
+              : t("mail.enter_fullscreen")
           }
           title={
-            is_fullscreen ? t("mail.exit_fullscreen") : t("mail.enter_fullscreen")
+            is_fullscreen
+              ? t("mail.exit_fullscreen")
+              : t("mail.enter_fullscreen")
           }
           onClick={toggle_fullscreen}
         >

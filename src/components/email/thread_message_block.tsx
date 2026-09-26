@@ -43,7 +43,7 @@ import {
   ArrowUturnRightIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
-import { Island, Tooltip } from "@aster/ui";
+import { Island, IslandIconButton, Tooltip } from "@aster/ui";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { render_collapsed_thread_message } from "./thread_message_collapsed";
@@ -80,7 +80,6 @@ import { TranslationBanner } from "@/components/email/banners/translation_banner
 import { ThreadMessageActions } from "@/components/email/thread_message_actions";
 import { MessageDetailsModal } from "@/components/email/message_details_modal";
 import { MessageDetailCard } from "@/components/email/message_detail_card";
-import { AnimatedHeight } from "@/components/email/animated_height";
 import { use_should_reduce_motion } from "@/provider";
 import { SenderProfileTrigger } from "@/components/profile/sender_profile_trigger";
 import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
@@ -180,9 +179,7 @@ export function ThreadMessageBlock(
   ) => (
     <>
       <Island ref={island_ref} className="overflow-hidden">
-        <AnimatedHeight animate_key={shows_full_message}>
-          {content}
-        </AnimatedHeight>
+        {content}
       </Island>
       <AnimatePresence initial={false}>{reply}</AnimatePresence>
     </>
@@ -229,9 +226,7 @@ export function ThreadMessageBlock(
           on_close={on_close}
           on_draft_saved={on_draft_saved}
           on_set_inline_mode={on_set_inline_mode}
-          original_body={
-            is_ratchet_undecryptable ? "" : message.body || ""
-          }
+          original_body={is_ratchet_undecryptable ? "" : message.body || ""}
           original_cc={original_cc_emails}
           original_email_id={message.id}
           original_rfc_message_id={inline_reply_references}
@@ -464,7 +459,7 @@ export function ThreadMessageBlock(
             <Popover>
               <PopoverTrigger asChild>
                 <button
-                  className="flex min-w-0 max-w-full items-center gap-0.5 text-xs text-txt-muted hover:text-txt-secondary mt-0.5 text-start"
+                  className="group -ms-1.5 mt-0.5 flex min-w-0 max-w-full items-center gap-1 rounded-[var(--aster-radius-control)] px-1.5 py-0.5 text-start text-xs text-txt-muted transition-colors hover:bg-[var(--aster-island-hover)] hover:text-txt-primary data-[state=open]:bg-[var(--aster-island-hover)] data-[state=open]:text-txt-primary"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {message.to_recipients && message.to_recipients.length > 0
@@ -478,7 +473,7 @@ export function ThreadMessageBlock(
                       : t("mail.to_recipients_prefix", {
                           recipients: t("common.me"),
                         })}
-                  <ChevronDownIcon className="h-[15px] w-[15px] flex-shrink-0" />
+                  <ChevronDownIcon className="h-3.5 w-3.5 flex-shrink-0 stroke-[2.25] transition-transform duration-150 group-data-[state=open]:rotate-180" />
                 </button>
               </PopoverTrigger>
               <PopoverContent
@@ -527,273 +522,272 @@ export function ThreadMessageBlock(
           )}
         </div>
 
-        <div className="flex flex-shrink-0 items-center gap-0.5 -mt-1">
-          <span className="text-xs text-txt-muted whitespace-nowrap pe-1.5">
+        <div className="flex flex-shrink-0 items-center gap-0.5 -mt-1.5 -me-2">
+          <span className="pe-1.5 text-xs leading-none text-txt-muted whitespace-nowrap">
             {format_email_detail(new Date(message.timestamp))}
           </span>
-          <div className="flex items-center">
-            <button
-              className="flex h-9 w-9 items-center justify-center rounded-full text-txt-secondary transition-colors hover:bg-[var(--aster-island-hover)]"
-              title={is_starred ? t("mail.unstar") : t("mail.star")}
+          <IslandIconButton
+            active={is_starred}
+            label={is_starred ? t("mail.unstar") : t("mail.star")}
+            title={is_starred ? t("mail.unstar") : t("mail.star")}
+            onClick={(e) => {
+              e.stopPropagation();
+              on_star_toggle?.();
+            }}
+          >
+            {is_starred ? (
+              <StarIconSolid className="text-amber-400" />
+            ) : (
+              <StarIcon />
+            )}
+          </IslandIconButton>
+          {on_reply && !is_system && (
+            <IslandIconButton
+              label={t("mail.reply")}
+              title={t("mail.reply")}
               onClick={(e) => {
                 e.stopPropagation();
-                on_star_toggle?.();
+                on_reply(message);
               }}
             >
-              {is_starred ? (
-                <StarIconSolid className="h-5 w-5 text-amber-400" />
-              ) : (
-                <StarIcon className="h-5 w-5" />
+              <ArrowUturnLeftIcon className="rtl:-scale-x-100" />
+            </IslandIconButton>
+          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <IslandIconButton
+                label={t("common.more")}
+                title={t("common.more")}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <EllipsisVerticalIcon />
+              </IslandIconButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              {on_reply && !is_system && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_reply(message);
+                  }}
+                >
+                  <ArrowUturnLeftIcon className="w-4 h-4 me-2 rtl:-scale-x-100" />
+                  {t("mail.reply")}
+                </DropdownMenuItem>
               )}
-            </button>
-            {on_reply && !is_system && (
-              <button
-                className="flex h-9 w-9 items-center justify-center rounded-full text-txt-secondary transition-colors hover:bg-[var(--aster-island-hover)]"
-                title={t("mail.reply")}
+              {on_reply_all && !is_system && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_reply_all(message);
+                  }}
+                >
+                  <ArrowUturnLeftIcon className="w-4 h-4 me-2 rtl:-scale-x-100" />
+                  {t("mail.reply_all")}
+                </DropdownMenuItem>
+              )}
+              {on_forward && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_forward(message);
+                  }}
+                >
+                  <ArrowUturnRightIcon className="w-4 h-4 me-2 rtl:-scale-x-100" />
+                  {t("mail.forward")}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              {message.item_type !== "sent" && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_toggle_read?.();
+                  }}
+                >
+                  {is_read ? (
+                    <EyeSlashIcon className="w-4 h-4 me-2" />
+                  ) : (
+                    <EyeIcon className="w-4 h-4 me-2" />
+                  )}
+                  {is_read ? t("mail.mark_unread") : t("mail.mark_read")}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
                 onClick={(e) => {
                   e.stopPropagation();
-                  on_reply(message);
+                  on_star_toggle?.();
                 }}
               >
-                <ArrowUturnLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
-              </button>
-            )}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className="flex h-9 w-9 items-center justify-center rounded-full text-txt-secondary transition-colors hover:bg-[var(--aster-island-hover)]"
-                  title={t("common.more")}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <EllipsisVerticalIcon className="h-5 w-5" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-52">
-                {on_reply && !is_system && (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_reply(message);
-                    }}
-                  >
-                    <ArrowUturnLeftIcon className="w-4 h-4 me-2 rtl:-scale-x-100" />
-                    {t("mail.reply")}
-                  </DropdownMenuItem>
+                {is_starred ? (
+                  <StarIconSolid className="w-4 h-4 me-2 text-amber-400" />
+                ) : (
+                  <StarIcon className="w-4 h-4 me-2" />
                 )}
-                {on_reply_all && !is_system && (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_reply_all(message);
-                    }}
-                  >
-                    <ArrowUturnLeftIcon className="w-4 h-4 me-2 rtl:-scale-x-100" />
-                    {t("mail.reply_all")}
-                  </DropdownMenuItem>
-                )}
-                {on_forward && (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_forward(message);
-                    }}
-                  >
-                    <ArrowUturnRightIcon className="w-4 h-4 me-2 rtl:-scale-x-100" />
-                    {t("mail.forward")}
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                {message.item_type !== "sent" && (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_toggle_read?.();
-                    }}
-                  >
-                    {is_read ? (
-                      <EyeSlashIcon className="w-4 h-4 me-2" />
-                    ) : (
-                      <EyeIcon className="w-4 h-4 me-2" />
-                    )}
-                    {is_read ? t("mail.mark_unread") : t("mail.mark_read")}
-                  </DropdownMenuItem>
-                )}
+                {is_starred ? t("mail.unstar") : t("mail.star")}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              {on_archive && (
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
-                    on_star_toggle?.();
+                    on_archive(message);
                   }}
                 >
-                  {is_starred ? (
-                    <StarIconSolid className="w-4 h-4 me-2 text-amber-400" />
-                  ) : (
-                    <StarIcon className="w-4 h-4 me-2" />
-                  )}
-                  {is_starred ? t("mail.unstar") : t("mail.star")}
+                  <ArchiveBoxIcon className="w-4 h-4 me-2" />
+                  {t("mail.archive")}
                 </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {on_archive && (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_archive(message);
-                    }}
-                  >
-                    <ArchiveBoxIcon className="w-4 h-4 me-2" />
-                    {t("mail.archive")}
-                  </DropdownMenuItem>
-                )}
-                {on_trash && (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_trash(message);
-                    }}
-                  >
-                    <TrashIcon className="w-4 h-4 me-2" />
-                    {message.is_deleted
-                      ? t("mail.delete_permanently")
-                      : t("mail.move_to_trash")}
-                  </DropdownMenuItem>
-                )}
-                {folders.length > 0 && on_move_to_folder && (
-                  <DropdownMenuSub>
-                    <DropdownMenuSubTrigger>
-                      <FolderIcon className="w-4 h-4 me-2" />
-                      {t("mail.move_to_folder")}
-                    </DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent className="w-48">
-                      {folders.map((folder) => {
-                        const is_current = (message_folder_tokens ?? []).includes(
-                          folder.id,
-                        );
-
-                        return (
-                          <DropdownMenuItem
-                            key={folder.id}
-                            onSelect={(e) => {
-                              e.preventDefault();
-                              on_move_to_folder(message, folder.id);
-                            }}
-                          >
-                            {is_current && (
-                              <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
-                            )}
-                            <span
-                              className="me-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
-                              style={
-                                folder.color.startsWith("#")
-                                  ? { backgroundColor: folder.color }
-                                  : {}
-                              }
-                            />
-                            <span className="truncate">{folder.name}</span>
-                          </DropdownMenuItem>
-                        );
-                      })}
-                    </DropdownMenuSubContent>
-                  </DropdownMenuSub>
-                )}
-                <DropdownMenuSeparator />
-                {on_print && (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_print(message);
-                    }}
-                  >
-                    <PrinterIcon className="w-4 h-4 me-2" />
-                    {t("mail.print")}
-                  </DropdownMenuItem>
-                )}
-                {on_toggle_dark_mode && (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_toggle_dark_mode();
-                    }}
-                  >
-                    {force_dark_mode ? (
-                      <SunIcon className="w-4 h-4 me-2" />
-                    ) : (
-                      <MoonIcon className="w-4 h-4 me-2" />
-                    )}
-                    {force_dark_mode
-                      ? t("mail.exit_dark_mode")
-                      : t("mail.view_dark_mode")}
-                  </DropdownMenuItem>
-                )}
+              )}
+              {on_trash && (
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
-                    set_viewing_source(!viewing_source);
+                    on_trash(message);
                   }}
                 >
-                  <CodeBracketIcon className="w-4 h-4 me-2" />
-                  {viewing_source ? t("mail.hide_source") : t("mail.view_source")}
+                  <TrashIcon className="w-4 h-4 me-2" />
+                  {message.is_deleted
+                    ? t("mail.delete_permanently")
+                    : t("mail.move_to_trash")}
                 </DropdownMenuItem>
-                {on_not_spam ? (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_not_spam(message);
-                    }}
-                  >
-                    <ShieldExclamationIcon className="w-4 h-4 me-2" />
-                    {t("mail.not_spam")}
-                  </DropdownMenuItem>
-                ) : on_report_phishing ? (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_report_phishing(message);
-                    }}
-                  >
-                    <ShieldExclamationIcon className="w-4 h-4 me-2 text-amber-500" />
-                    <span className="text-amber-500">
-                      {t("common.report_phishing")}
-                    </span>
-                  </DropdownMenuItem>
-                ) : null}
-                {on_block_sender && !is_own_message && (
-                  <DropdownMenuItem
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_block_sender(message);
-                    }}
-                  >
-                    <NoSymbolIcon className="w-4 h-4 me-2 text-red-500" />
-                    <span className="text-red-500">{t("mail.block_sender")}</span>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    copy_text_or_throw(message.id)
-                      .then(() => {
-                        show_toast(t("common.message_id_copied"), "success");
-                      })
-                      .catch(() =>
-                        show_toast(t("common.failed_to_copy"), "error"),
+              )}
+              {folders.length > 0 && on_move_to_folder && (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger>
+                    <FolderIcon className="w-4 h-4 me-2" />
+                    {t("mail.move_to_folder")}
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-48">
+                    {folders.map((folder) => {
+                      const is_current = (message_folder_tokens ?? []).includes(
+                        folder.id,
                       );
-                  }}
-                >
-                  <ClipboardDocumentIcon className="w-4 h-4 me-2" />
-                  {t("mail.copy_message_id")}
-                </DropdownMenuItem>
+
+                      return (
+                        <DropdownMenuItem
+                          key={folder.id}
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            on_move_to_folder(message, folder.id);
+                          }}
+                        >
+                          {is_current && (
+                            <CheckIcon className="me-0.5 h-3 w-3 flex-shrink-0" />
+                          )}
+                          <span
+                            className="me-1.5 h-2.5 w-2.5 rounded-full flex-shrink-0"
+                            style={
+                              folder.color.startsWith("#")
+                                ? { backgroundColor: folder.color }
+                                : {}
+                            }
+                          />
+                          <span className="truncate">{folder.name}</span>
+                        </DropdownMenuItem>
+                      );
+                    })}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              )}
+              <DropdownMenuSeparator />
+              {on_print && (
                 <DropdownMenuItem
                   onClick={(e) => {
                     e.stopPropagation();
-                    set_show_details_modal(true);
+                    on_print(message);
                   }}
                 >
-                  <InformationCircleIcon className="w-4 h-4 me-2" />
-                  {t("mail.message_details")}
+                  <PrinterIcon className="w-4 h-4 me-2" />
+                  {t("mail.print")}
                 </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+              )}
+              {on_toggle_dark_mode && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_toggle_dark_mode();
+                  }}
+                >
+                  {force_dark_mode ? (
+                    <SunIcon className="w-4 h-4 me-2" />
+                  ) : (
+                    <MoonIcon className="w-4 h-4 me-2" />
+                  )}
+                  {force_dark_mode
+                    ? t("mail.exit_dark_mode")
+                    : t("mail.view_dark_mode")}
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  set_viewing_source(!viewing_source);
+                }}
+              >
+                <CodeBracketIcon className="w-4 h-4 me-2" />
+                {viewing_source ? t("mail.hide_source") : t("mail.view_source")}
+              </DropdownMenuItem>
+              {on_not_spam ? (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_not_spam(message);
+                  }}
+                >
+                  <ShieldExclamationIcon className="w-4 h-4 me-2" />
+                  {t("mail.not_spam")}
+                </DropdownMenuItem>
+              ) : on_report_phishing ? (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_report_phishing(message);
+                  }}
+                >
+                  <ShieldExclamationIcon className="w-4 h-4 me-2 text-amber-500" />
+                  <span className="text-amber-500">
+                    {t("common.report_phishing")}
+                  </span>
+                </DropdownMenuItem>
+              ) : null}
+              {on_block_sender && !is_own_message && (
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    on_block_sender(message);
+                  }}
+                >
+                  <NoSymbolIcon className="w-4 h-4 me-2 text-red-500" />
+                  <span className="text-red-500">{t("mail.block_sender")}</span>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  copy_text_or_throw(message.id)
+                    .then(() => {
+                      show_toast(t("common.message_id_copied"), "success");
+                    })
+                    .catch(() =>
+                      show_toast(t("common.failed_to_copy"), "error"),
+                    );
+                }}
+              >
+                <ClipboardDocumentIcon className="w-4 h-4 me-2" />
+                {t("mail.copy_message_id")}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={(e) => {
+                  e.stopPropagation();
+                  set_show_details_modal(true);
+                }}
+              >
+                <InformationCircleIcon className="w-4 h-4 me-2" />
+                {t("mail.message_details")}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

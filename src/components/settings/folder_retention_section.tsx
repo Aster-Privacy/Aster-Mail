@@ -734,7 +734,7 @@ function ModeOption({
 }: ModeOptionProps) {
   return (
     <button
-      className={`w-full text-start rounded-xl px-3 py-2.5 transition-colors ${
+      className={`w-full text-start rounded-[var(--aster-radius-control)] px-3 py-2.5 transition-colors ${
         active
           ? danger
             ? "bg-[var(--color-danger)]"

@@ -3491,6 +3491,10 @@ export interface SettingsTranslations {
   billing_storage_status_near: string;
   billing_storage_status_full: string;
   billing_upgrade_note: string;
+  billing_thanks_title: string;
+  billing_thanks_body: string;
+  billing_thanks_free_title: string;
+  billing_thanks_free_body: string;
   billing_hide_plans: string;
   billing_cancel_notice_title: string;
   billing_cancel_notice_body: string;

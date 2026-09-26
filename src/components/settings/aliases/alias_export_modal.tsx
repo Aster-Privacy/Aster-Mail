@@ -525,7 +525,7 @@ export function AliasExportModal({
                 {(["csv", "json"] as ExportFormat[]).map((option) => (
                   <label
                     key={option}
-                    className="flex items-center gap-3 rounded-lg border border-edge-secondary px-3 py-2.5 cursor-pointer hover:bg-surf-secondary"
+                    className="flex items-center gap-3 rounded-[var(--aster-radius-control)] border border-edge-secondary px-3 py-2.5 cursor-pointer hover:bg-surf-secondary"
                     htmlFor={`alias-export-format-${option}`}
                   >
                     <input

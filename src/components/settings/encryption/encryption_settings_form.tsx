@@ -27,8 +27,12 @@ import {
   XMarkIcon,
   ServerStackIcon,
   ArrowTopRightOnSquareIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  ExclamationCircleIcon,
+  MinusCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Badge, IslandRow, IslandSection } from "@aster/ui";
+import { Button, IslandRow, IslandSection } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { InfoPopover } from "@/components/ui/info_popover";
@@ -41,6 +45,22 @@ interface ToggleSettingProps {
   enabled: boolean;
   on_toggle: () => void;
   info?: { title: string; description: string };
+}
+
+function status_text(
+  Icon: typeof CheckCircleIcon,
+  color: string,
+  label: string,
+) {
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-[12px] font-semibold"
+      style={{ color }}
+    >
+      <Icon aria-hidden="true" className="h-[15px] w-[15px]" />
+      {label}
+    </span>
+  );
 }
 
 function ToggleSetting({
@@ -131,21 +151,31 @@ export function EncryptionSettingsForm({
       keyserver_state === "published" ||
       (keyserver_published && !keyserver_state)
     ) {
-      return (
-        <Badge color="green">{t("settings.keyserver_status_published")}</Badge>
+      return status_text(
+        CheckCircleIcon,
+        "var(--color-success)",
+        t("settings.keyserver_status_published"),
       );
     }
     if (keyserver_state === "failed") {
-      return <Badge color="red">{t("settings.keyserver_status_failed")}</Badge>;
+      return status_text(
+        ExclamationCircleIcon,
+        "var(--color-danger)",
+        t("settings.keyserver_status_failed"),
+      );
     }
     if (keyserver_state === "awaiting_verification") {
-      return (
-        <Badge color="amber">{t("settings.keyserver_status_awaiting")}</Badge>
+      return status_text(
+        ClockIcon,
+        "var(--color-warning)",
+        t("settings.keyserver_status_awaiting"),
       );
     }
 
-    return (
-      <Badge color="gray">{t("settings.keyserver_status_not_published")}</Badge>
+    return status_text(
+      MinusCircleIcon,
+      "var(--text-muted)",
+      t("settings.keyserver_status_not_published"),
     );
   };
 
@@ -328,7 +358,7 @@ export function EncryptionSettingsForm({
         ))}
         <div className="flex items-center gap-2 px-4 pt-2 pb-4">
           <input
-            className="flex-1 min-w-0 px-3 h-8 rounded-lg text-sm font-mono bg-transparent"
+            className="flex-1 min-w-0 px-3 h-8 rounded-[var(--aster-radius-control)] text-sm font-mono bg-transparent"
             disabled={is_saving_keyservers}
             placeholder={t("settings.keyserver_url_placeholder")}
             style={{

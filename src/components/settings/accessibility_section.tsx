@@ -93,7 +93,7 @@ export function AccessibilitySection() {
           <div className="flex items-center gap-2">
             <input
               aria-label={t("settings.font_size")}
-              className="w-16 h-9 px-2 rounded-md border bg-surf-secondary border-edge-secondary text-sm text-txt-primary text-center focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
+              className="w-16 h-9 px-2 rounded-[var(--aster-radius-control)] border bg-surf-secondary border-edge-secondary text-sm text-txt-primary text-center focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
               inputMode="numeric"
               maxLength={3}
               type="text"

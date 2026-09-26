@@ -626,7 +626,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
       icon: typeof EnvelopeIcon;
     }) => (
       <label
-        className={`flex items-start gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
+        className={`flex items-start gap-3 px-4 py-3 rounded-[var(--aster-radius-control)] border cursor-pointer transition-colors ${
           checked
             ? "border-brand"
             : "border-edge-secondary hover:bg-surf-secondary/50"

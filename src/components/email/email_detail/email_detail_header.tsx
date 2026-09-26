@@ -33,7 +33,7 @@ import {
   DocumentTextIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Tooltip } from "@aster/ui";
+import { Button, IslandIconButton, Tooltip } from "@aster/ui";
 
 import { MobileMenuButton } from "@/components/layout/sidebar";
 import {
@@ -212,14 +212,13 @@ export function EmailDetailHeader({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            className="lg:hidden h-8 w-8"
-            size="icon"
+          <IslandIconButton
+            className="lg:hidden"
+            label={t("common.more")}
             title={t("common.more")}
-            variant="ghost"
           >
-            <EllipsisVerticalIcon className="w-4 h-4 text-txt-secondary" />
-          </Button>
+            <EllipsisVerticalIcon />
+          </IslandIconButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <div className="sm:hidden">

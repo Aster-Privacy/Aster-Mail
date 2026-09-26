@@ -738,7 +738,7 @@ export function DomainPurchaseFlow({
     return (
       <div>
         <button
-          className="flex items-center gap-1.5 mb-4 -ms-1.5 px-1.5 py-1 rounded-lg text-[13px] font-medium text-txt-secondary hover:text-txt-primary hover:bg-surf-secondary transition-colors"
+          className="flex items-center gap-1.5 mb-4 -ms-1.5 px-1.5 py-1 rounded-[var(--aster-radius-control)] text-[13px] font-medium text-txt-secondary hover:text-txt-primary hover:bg-surf-secondary transition-colors"
           type="button"
           onClick={() => {
             set_view("search");
@@ -961,7 +961,7 @@ export function DomainPurchaseFlow({
           <MagnifyingGlassIcon className="w-[18px] h-[18px] absolute start-4 top-1/2 -translate-y-1/2 text-txt-muted" />
           <input
             autoFocus
-            className="w-full h-12 ps-11 pe-11 rounded-xl bg-surf-secondary border border-edge-secondary text-[15px] text-txt-primary placeholder:text-txt-muted outline-none focus:border-[var(--accent-color)]/70 transition-colors"
+            className="w-full h-12 ps-11 pe-11 rounded-[var(--aster-radius-control)] bg-surf-secondary border border-edge-secondary text-[15px] text-txt-primary placeholder:text-txt-muted outline-none focus:border-[var(--accent-color)]/70 transition-colors"
             placeholder={t("settings.domain_purchase_search_placeholder")}
             value={query}
             onChange={(e) =>

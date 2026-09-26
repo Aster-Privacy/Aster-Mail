@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { LockClosedIcon } from "@heroicons/react/24/solid";
-import { Badge, UpgradeBtn } from "@aster/ui";
+import { UpgradeBtn } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
@@ -71,9 +71,15 @@ export function RequiredPlanPill({
   if (!tier) return null;
 
   return (
-    <Badge className={className} color="blue">
+    <span
+      className={`inline-flex shrink-0 items-center gap-1 rounded-[14px] border px-2 py-0.5 text-[12px] font-medium text-txt-secondary ${className}`}
+      style={{
+        borderColor: "color-mix(in srgb, var(--text-primary) 14%, transparent)",
+      }}
+    >
+      <LockClosedIcon aria-hidden="true" className="h-3.5 w-3.5" />
       {t("settings.requires_plan", { plan: tier.name })}
-    </Badge>
+    </span>
   );
 }
 

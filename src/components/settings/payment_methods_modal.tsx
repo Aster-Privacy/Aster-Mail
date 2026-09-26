@@ -247,7 +247,7 @@ function AddPaymentForm({
           {t("settings.cardholder_name")}
         </label>
         <input
-          className="w-full rounded-lg border px-3 py-2.5 text-sm outline-none"
+          className="w-full rounded-[var(--aster-radius-control)] border px-3 py-2.5 text-sm outline-none"
           placeholder={t("settings.cardholder_name_placeholder")}
           style={{
             ...field_wrapper_style,
@@ -267,7 +267,7 @@ function AddPaymentForm({
           {t("settings.billing_postal")}
         </label>
         <input
-          className="w-full rounded-lg border px-3 py-2.5 text-sm outline-none"
+          className="w-full rounded-[var(--aster-radius-control)] border px-3 py-2.5 text-sm outline-none"
           placeholder={t("settings.billing_postal_placeholder")}
           style={{
             ...field_wrapper_style,
@@ -609,7 +609,7 @@ export function PaymentMethodsModal({
         <div className="flex items-center gap-1">
           {!method.is_default && (
             <button
-              className="flex items-center gap-1 rounded-[12px] px-2 py-1.5 text-xs font-medium transition-colors hover:opacity-80"
+              className="flex items-center gap-1 rounded-[var(--aster-radius-control)] px-2 py-1.5 text-xs font-medium transition-colors hover:opacity-80"
               disabled={is_any_busy}
               style={{ color: "var(--text-secondary)" }}
               onClick={() => handle_set_default(method.id)}

@@ -337,6 +337,8 @@ export const SETTLE_REMEASURE_DELAYS_MS = [250, 700, 1400];
 
 export const SKELETON_DELAY_MS = 180;
 
+export const UNMEASURED_PLACEHOLDER_HEIGHT = "96px";
+
 export const SKELETON_DELAY_MEASURED_MS = 90;
 
 export function needs_settle_remeasure(body: HTMLElement): boolean {

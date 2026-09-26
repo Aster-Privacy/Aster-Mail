@@ -392,8 +392,11 @@ export function AliasItem({
                 </Badge>
               )}
               {in_grace_period && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                  <ClockIcon className="w-3 h-3" />
+                <span
+                  className="inline-flex items-center gap-1 text-[12px] font-semibold"
+                  style={{ color: "var(--color-warning)" }}
+                >
+                  <ClockIcon className="h-[15px] w-[15px]" />
                   {t("settings.alias_grace_days" as TranslationKey, {
                     days: grace_days,
                   })}
@@ -678,7 +681,13 @@ export function DomainAddressItem({
               {t("common.custom")}
             </span>
             {is_primary && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+              <span
+                className="inline-flex shrink-0 items-center gap-1 rounded-[14px] border px-2 py-0.5 text-[12px] font-medium text-txt-secondary"
+                style={{
+                  borderColor:
+                    "color-mix(in srgb, var(--text-primary) 14%, transparent)",
+                }}
+              >
                 {t("settings.primary_badge")}
               </span>
             )}
