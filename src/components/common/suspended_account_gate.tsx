@@ -18,7 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useRef, useCallback, lazy, Suspense } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  lazy,
+  Suspense,
+} from "react";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
@@ -73,6 +80,7 @@ function format_date(date: Date | null): string {
 
 function split_on_token(text: string, token: string): [string, string] {
   const index = text.indexOf(token);
+
   if (index === -1) return [text, ""];
 
   return [text.slice(0, index), text.slice(index + token.length)];
