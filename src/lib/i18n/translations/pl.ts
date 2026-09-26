@@ -5872,9 +5872,9 @@ export const pl = {
     no_encryption_key_description:
       "Twój klucz szyfrowania zostanie wygenerowany automatycznie",
     encryption_banner_title:
-      "Twoje klucze prywatne nigdy nie opuszczają Twojego urządzenia",
+      "Tylko Ty możesz odblokować swoje klucze prywatne",
     encryption_banner_subtitle:
-      "E-maile są szyfrowane przed opuszczeniem Twojego urządzenia. Aster przechowuje jedynie nieczytelny szyfrogramy, nigdy nie możemy zobaczyć Twojej poczty.",
+      "Aster przechowuje Twoją pocztę w postaci zaszyfrowanej, więc nie możemy jej odczytać. Poczta między użytkownikami Aster jest też szyfrowana na Twoim urządzeniu przed wysłaniem.",
     encryption_banner_you: "Ty",
     encryption_banner_recipient: "Odbiorca",
     storage_format_title: "Format przechowywania",
@@ -6063,7 +6063,7 @@ export const pl = {
     plan_tip_instant_alias_delete:
       "Usuwaj aliasy i wygaszaj aliasy ghost od razu: w planie Supernova nie czekasz 30 dni na usunięcie.",
     plan_tip_zero_knowledge:
-      "Nigdy nie odczytamy twoich danych, nawet na żądanie. Klucze szyfrowania nie opuszczają twojego urządzenia.",
+      "Nie możemy odczytać Twojej przechowywanej poczty, nawet pod przymusem. Twoje klucze są szyfrowane Twoim hasłem przed zapisaniem, więc nigdy nie widzimy ich w postaci niezaszyfrowanej.",
     plan_tip_tracker_protection:
       "Niewidoczne piksele śledzące są usuwane, zanim wiadomość trafi do twojej skrzynki.",
     plan_tip_key_rotation:
@@ -9791,7 +9791,7 @@ export const pl = {
     link_device_choose_account_description:
       "Aby połączyć aplikację na komputer",
     link_device_choose_account_note:
-      "Twoje klucze szyfrowania nigdy nie opuszczają Twoich urządzeń.",
+      "Twoje klucze szyfrowania pozostają zaszyfrowane podczas przesyłania między Twoimi urządzeniami.",
     link_device_use_another_account: "Użyj innego konta",
     link_device_use_this_account: "Użyj tego konta",
     link_device_other_accounts: "Przełącz na inne konto",

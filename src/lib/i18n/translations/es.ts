@@ -5746,7 +5746,7 @@ export const es = {
     encryption_key_load_failed:
       "No se pudo cargar tu clave de cifrado. Comprueba tu conexión e inténtalo de nuevo.",
     encryption_banner_title:
-      "Tus claves privadas nunca salen de tu dispositivo",
+      "Solo usted puede desbloquear sus claves privadas",
     encryption_banner_you: "Tú",
     encryption_banner_recipient: "Destinatario",
     storage_format_title: "Formato de almacenamiento",
@@ -5858,7 +5858,7 @@ export const es = {
     plan_tip_instant_alias_delete:
       "Elimina alias y caduca alias fantasma de inmediato: Supernova se salta la espera de eliminación de 30 días.",
     plan_tip_zero_knowledge:
-      "Nunca podemos leer tus datos, ni aunque se nos obligara. Tus claves de cifrado nunca salen de tu dispositivo.",
+      "No podemos leer su correo almacenado, ni siquiera bajo obligación legal. Sus claves se cifran con su contraseña antes de almacenarse, así que nunca las vemos sin cifrar.",
     plan_tip_tracker_protection:
       "Los píxeles de rastreo invisibles se eliminan antes de que los correos lleguen a tu bandeja de entrada.",
     plan_tip_key_rotation:
@@ -6500,7 +6500,7 @@ export const es = {
     no_encryption_key_description:
       "Tu clave de cifrado se generará automáticamente",
     encryption_banner_subtitle:
-      "Los correos se cifran antes de salir de tu dispositivo. Aster solo almacena texto cifrado ilegible, nunca podemos ver tu correo.",
+      "Aster almacena su correo cifrado, así que no podemos leerlo. El correo entre usuarios de Aster también se cifra en su dispositivo antes de enviarse.",
     storage_format_description:
       "Elige dónde se guardan tus archivos cifrados y tu contenido estático.",
     storage_format_ipfs_confirm_description:
@@ -9550,7 +9550,7 @@ export const es = {
     link_device_choose_account_description:
       "Para vincular tu aplicación de escritorio",
     link_device_choose_account_note:
-      "Tus claves de cifrado nunca salen de tus dispositivos.",
+      "Sus claves de cifrado permanecen cifradas mientras se transfieren entre sus dispositivos.",
     link_device_use_another_account: "Usar otra cuenta",
     link_device_use_this_account: "Usar esta cuenta",
     link_device_other_accounts: "Cambiar a otra cuenta",

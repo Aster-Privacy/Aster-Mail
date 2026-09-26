@@ -5793,7 +5793,7 @@ export const fr = {
     encryption_key_load_failed:
       "Impossible de charger votre clé de chiffrement. Vérifiez votre connexion et réessayez.",
     encryption_banner_title:
-      "Vos clés privées ne quittent jamais votre appareil",
+      "Vous seul pouvez déverrouiller vos clés privées",
     encryption_banner_you: "Vous",
     encryption_banner_recipient: "Destinataire",
     storage_format_title: "Format de stockage",
@@ -5906,7 +5906,7 @@ export const fr = {
     plan_tip_instant_alias_delete:
       "Supprimez des alias et faites expirer des alias fantômes tout de suite - Supernova ignore le délai de suppression de 30 jours.",
     plan_tip_zero_knowledge:
-      "Nous ne pouvons jamais lire tes données, même si nous y étions contraints. Tes clés de chiffrement ne quittent jamais ton appareil.",
+      "Nous ne pouvons pas lire vos e-mails stockés, même sous la contrainte. Vos clés sont chiffrées avec votre mot de passe avant d'être stockées, nous ne les voyons donc jamais en clair.",
     plan_tip_tracker_protection:
       "Les pixels de pistage invisibles sont supprimés avant que les e-mails n'atteignent ta boîte de réception.",
     plan_tip_key_rotation:
@@ -6561,7 +6561,7 @@ export const fr = {
     no_encryption_key_description:
       "Votre clé de chiffrement sera générée automatiquement",
     encryption_banner_subtitle:
-      "Les e-mails sont chiffrés avant de quitter votre appareil. Aster ne stocke que du texte chiffré illisible, nous ne pouvons jamais voir votre courrier.",
+      "Aster stocke vos e-mails chiffrés, nous ne pouvons donc pas les lire. Les e-mails entre utilisateurs d'Aster sont aussi chiffrés sur votre appareil avant leur envoi.",
     storage_format_description:
       "Choisissez où vos fichiers chiffrés et votre contenu statique sont stockés.",
     storage_format_ipfs_confirm_description:
@@ -9666,7 +9666,7 @@ export const fr = {
     link_device_choose_account_description:
       "Pour associer votre application de bureau",
     link_device_choose_account_note:
-      "Vos clés de chiffrement ne quittent jamais vos appareils.",
+      "Vos clés de chiffrement restent chiffrées lorsqu'elles passent d'un appareil à l'autre.",
     link_device_use_another_account: "Utiliser un autre compte",
     link_device_use_this_account: "Utiliser ce compte",
     link_device_other_accounts: "Passer à un autre compte",

@@ -5709,9 +5709,9 @@ export const ko = {
     encryption_key_load_failed:
       "암호화 키를 불러오지 못했습니다. 연결 상태를 확인하고 다시 시도하세요.",
     no_encryption_key_description: "암호화 키가 자동으로 생성됩니다",
-    encryption_banner_title: "개인 키는 기기를 떠나지 않습니다",
+    encryption_banner_title: "개인 키는 사용자만 잠금 해제할 수 있습니다",
     encryption_banner_subtitle:
-      "이메일은 기기를 떠나기 전에 암호화됩니다. Aster는 읽을 수 없는 암호문만 저장하며, 메일을 절대 볼 수 없습니다.",
+      "Aster는 메일을 암호화하여 저장하므로 저희는 메일을 읽을 수 없습니다. Aster 사용자 간의 메일도 전송 전에 기기에서 암호화됩니다.",
     encryption_banner_you: "나",
     encryption_banner_recipient: "수신자",
     storage_format_title: "저장 형식",
@@ -5896,7 +5896,7 @@ export const ko = {
     plan_tip_instant_alias_delete:
       "별칭을 삭제하고 고스트 별칭을 바로 만료시키세요. Supernova는 30일 삭제 대기를 건너뜁니다.",
     plan_tip_zero_knowledge:
-      "강제되어도 데이터를 읽을 수 없습니다. 암호화 키는 기기를 떠나지 않습니다.",
+      "강요를 받더라도 저희는 저장된 메일을 읽을 수 없습니다. 키는 저장되기 전에 비밀번호로 암호화되므로 저희는 암호화되지 않은 키를 볼 수 없습니다.",
     plan_tip_tracker_protection:
       "보이지 않는 추적 픽셀이 이메일이 받은편지함에 도달하기 전에 제거됩니다.",
     plan_tip_key_rotation:
@@ -9293,7 +9293,7 @@ export const ko = {
     link_device_change_account: "계정 변경",
     link_device_choose_account: "계정 선택",
     link_device_choose_account_description: "데스크톱 앱을 연결합니다",
-    link_device_choose_account_note: "암호화 키는 기기를 벗어나지 않습니다.",
+    link_device_choose_account_note: "암호화 키는 기기 간에 전송되는 동안에도 암호화된 상태로 유지됩니다.",
     link_device_use_another_account: "다른 계정 사용",
     link_device_use_this_account: "이 계정 사용",
     link_device_other_accounts: "다른 계정으로 전환",

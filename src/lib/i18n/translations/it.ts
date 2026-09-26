@@ -3929,9 +3929,9 @@ export const it = {
     external_link_warning_disabled:
       "I link si aprono direttamente senza conferma",
     encryption_banner_title:
-      "Le tue chiavi private non lasciano mai il tuo dispositivo",
+      "Solo tu puoi sbloccare le tue chiavi private",
     encryption_banner_subtitle:
-      "Le email vengono crittografate prima di lasciare il tuo dispositivo. Aster conserva solo testo cifrato illeggibile, non possiamo mai vedere la tua posta.",
+      "Aster archivia la tua posta crittografata, quindi non possiamo leggerla. Anche la posta tra utenti Aster viene crittografata sul tuo dispositivo prima dell'invio.",
     encryption_banner_you: "Tu",
     encryption_banner_recipient: "Destinatario",
     storage_format_title: "Formato di archiviazione",
@@ -4500,7 +4500,7 @@ export const it = {
     plan_tip_instant_alias_delete:
       "Elimina gli alias e fai scadere gli alias fantasma subito: con Supernova non devi attendere i 30 giorni previsti per l'eliminazione.",
     plan_tip_zero_knowledge:
-      "Non possiamo mai leggere i tuoi dati, nemmeno se costretti. Le tue chiavi di crittografia non lasciano mai il tuo dispositivo.",
+      "Non possiamo leggere la tua posta archiviata, nemmeno se costretti. Le tue chiavi vengono crittografate con la tua password prima di essere archiviate, quindi non le vediamo mai in chiaro.",
     plan_tip_tracker_protection:
       "I pixel di tracciamento invisibili vengono rimossi prima che le email arrivino nella tua casella.",
     plan_tip_key_rotation:
@@ -9640,7 +9640,7 @@ export const it = {
     link_device_choose_account: "Scegli un account",
     link_device_choose_account_description: "Per collegare la tua app desktop",
     link_device_choose_account_note:
-      "Le tue chiavi di crittografia non lasciano mai i tuoi dispositivi.",
+      "Le tue chiavi di crittografia restano crittografate mentre passano da un dispositivo all'altro.",
     link_device_use_another_account: "Usa un altro account",
     link_device_use_this_account: "Usa questo account",
     link_device_other_accounts: "Passa a un altro account",

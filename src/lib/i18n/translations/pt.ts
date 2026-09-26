@@ -5745,7 +5745,7 @@ export const pt = {
     encryption_key_load_failed:
       "Não foi possível carregar sua chave de criptografia. Verifique sua conexão e tente novamente.",
     encryption_banner_title:
-      "Suas chaves privadas nunca saem do seu dispositivo",
+      "Somente você pode desbloquear suas chaves privadas",
     encryption_banner_you: "Você",
     encryption_banner_recipient: "Destinatário",
     storage_format_title: "Formato de armazenamento",
@@ -5857,7 +5857,7 @@ export const pt = {
     plan_tip_instant_alias_delete:
       "Exclua aliases e expire aliases fantasma na hora - o Supernova ignora a espera de exclusão de 30 dias.",
     plan_tip_zero_knowledge:
-      "Nunca podemos ler seus dados, mesmo se forçados. Suas chaves de criptografia nunca saem do seu dispositivo.",
+      "Não podemos ler seus e-mails armazenados, nem mesmo se formos obrigados. Suas chaves são criptografadas com sua senha antes de serem armazenadas, então nunca as vemos sem criptografia.",
     plan_tip_tracker_protection:
       "Pixels de rastreamento invisíveis são removidos antes que os e-mails cheguem à sua caixa de entrada.",
     plan_tip_key_rotation:
@@ -6469,7 +6469,7 @@ export const pt = {
     no_encryption_key_description:
       "Sua chave de criptografia será gerada automaticamente",
     encryption_banner_subtitle:
-      "Os e-mails são criptografados antes de saírem do seu dispositivo. O Aster armazena apenas texto cifrado ilegível, nós nunca conseguimos ver seu e-mail.",
+      "O Aster armazena seus e-mails criptografados, então não podemos lê-los. Os e-mails entre usuários do Aster também são criptografados no seu dispositivo antes do envio.",
     storage_format_description:
       "Escolha onde seus arquivos cifrados e conteúdo estático são armazenados.",
     storage_format_ipfs_confirm_description:
@@ -9597,7 +9597,7 @@ export const pt = {
     link_device_choose_account_description:
       "Para associar o seu aplicativo desktop",
     link_device_choose_account_note:
-      "As suas chaves de criptografia nunca saem dos seus dispositivos.",
+      "Suas chaves de criptografia continuam criptografadas enquanto passam entre seus dispositivos.",
     link_device_use_another_account: "Usar outra conta",
     link_device_use_this_account: "Usar esta conta",
     link_device_other_accounts: "Mudar para outra conta",

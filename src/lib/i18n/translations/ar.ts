@@ -5794,9 +5794,9 @@ export const ar = {
     encryption_key_load_failed:
       "تعذر تحميل مفتاح التشفير الخاص بك. تحقق من اتصالك وحاول مرة أخرى.",
     no_encryption_key_description: "سيتم إنشاء مفتاح التشفير تلقائيًا",
-    encryption_banner_title: "مفاتيحك الخاصة لا تغادر جهازك أبدًا",
+    encryption_banner_title: "أنت وحدك من يمكنه فتح مفاتيحك الخاصة",
     encryption_banner_subtitle:
-      "يتم تشفير الرسائل قبل مغادرة جهازك. يخزن Aster نصًا مشفرًا غير قابل للقراءة فقط، ولا يمكننا أبدًا رؤية بريدك.",
+      "يخزّن Aster بريدك مشفّرًا، لذا لا يمكننا قراءته. كما يُشفَّر البريد بين مستخدمي Aster على جهازك قبل إرساله.",
     encryption_banner_you: "أنت",
     encryption_banner_recipient: "المستلم",
     storage_format_title: "صيغة التخزين",
@@ -5977,7 +5977,7 @@ export const ar = {
     plan_tip_instant_alias_delete:
       "احذف الأسماء المستعارة وأنهِ الأسماء الشبحية فورًا - تتخطى Supernova مدة انتظار الحذف البالغة 30 يومًا.",
     plan_tip_zero_knowledge:
-      "لا نستطيع قراءة بياناتك أبداً، حتى لو أُجبرنا. مفاتيح التشفير لا تغادر جهازك أبداً.",
+      "لا يمكننا قراءة بريدك المخزَّن، حتى لو أُجبرنا على ذلك. تُشفَّر مفاتيحك بكلمة مرورك قبل تخزينها، لذا لا نراها أبدًا دون تشفير.",
     plan_tip_tracker_protection:
       "تُجرَّد بيكسلات التتبع غير المرئية قبل وصول الرسائل إلى صندوقك.",
     plan_tip_key_rotation:
@@ -9496,7 +9496,7 @@ export const ar = {
     link_device_choose_account: "اختر حسابًا",
     link_device_choose_account_description: "لربط تطبيق سطح المكتب",
     link_device_choose_account_note:
-      "مفاتيح التشفير الخاصة بك لا تغادر أجهزتك أبدًا.",
+      "تبقى مفاتيح التشفير الخاصة بك مشفّرة أثناء انتقالها بين أجهزتك.",
     link_device_use_another_account: "استخدام حساب آخر",
     link_device_use_this_account: "استخدام هذا الحساب",
     link_device_other_accounts: "التبديل إلى حساب آخر",

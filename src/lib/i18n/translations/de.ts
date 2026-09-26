@@ -5647,9 +5647,9 @@ export const de = {
     undo_send_description:
       "Verzögerung beim E-Mail-Versand für Rückgängig-Funktion konfigurieren",
     encryption_banner_title:
-      "Ihre privaten Schlüssel verlassen niemals Ihr Gerät",
+      "Nur Sie können Ihre privaten Schlüssel entsperren",
     encryption_banner_subtitle:
-      "E-Mails werden verschlüsselt, bevor sie Ihr Gerät verlassen. Aster speichert nur unlesbaren Chiffretext, wir können Ihre E-Mails niemals lesen.",
+      "Aster speichert Ihre E-Mails verschlüsselt, daher können wir sie nicht lesen. E-Mails zwischen Aster-Nutzern werden zudem auf Ihrem Gerät verschlüsselt, bevor sie gesendet werden.",
     encryption_banner_you: "Sie",
     encryption_banner_recipient: "Empfänger",
     login_alerts_description:
@@ -5909,7 +5909,7 @@ export const de = {
     plan_tip_instant_alias_delete:
       "Aliase sofort löschen und Ghost-Aliase sofort auslaufen lassen - Supernova überspringt die 30-tägige Löschwartezeit.",
     plan_tip_zero_knowledge:
-      "Wir können Ihre Daten niemals lesen, selbst wenn wir dazu gezwungen werden. Ihre Verschlüsselungsschlüssel verlassen nie Ihr Gerät.",
+      "Wir können Ihre gespeicherten E-Mails nicht lesen, auch nicht unter Zwang. Ihre Schlüssel werden mit Ihrem Passwort verschlüsselt, bevor sie gespeichert werden, daher sehen wir sie nie unverschlüsselt.",
     plan_tip_tracker_protection:
       "Unsichtbare Tracking-Pixel werden entfernt, bevor E-Mails Ihren Posteingang erreichen.",
     plan_tip_key_rotation:
@@ -9734,7 +9734,7 @@ export const de = {
     link_device_choose_account_description:
       "Um deine Desktop-App zu verknüpfen",
     link_device_choose_account_note:
-      "Deine Schlüssel verlassen niemals deine Geräte.",
+      "Ihre Schlüssel bleiben verschlüsselt, während sie zwischen Ihren Geräten übertragen werden.",
     link_device_use_another_account: "Anderes Konto verwenden",
     link_device_use_this_account: "Dieses Konto verwenden",
     link_device_other_accounts: "Zu einem anderen Konto wechseln",

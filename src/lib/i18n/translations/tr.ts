@@ -5674,7 +5674,7 @@ export const tr = {
     no_encryption_key: "Şifreleme anahtarı yok",
     encryption_key_load_failed:
       "Şifreleme anahtarınız yüklenemedi. Bağlantınızı kontrol edip tekrar deneyin.",
-    encryption_banner_title: "Özel anahtarlarınız cihazınızdan asla ayrılmaz",
+    encryption_banner_title: "Özel anahtarlarınızın kilidini yalnızca siz açabilirsiniz",
     encryption_banner_you: "Siz",
     encryption_banner_recipient: "Alıcı",
     storage_format_title: "Depolama formatı",
@@ -5790,7 +5790,7 @@ export const tr = {
     plan_tip_instant_alias_delete:
       "Takma adları sil ve hayalet takma adları hemen sonlandır: Supernova'da 30 günlük silme beklemesi yok.",
     plan_tip_zero_knowledge:
-      "Verilerini asla okuyamayız, zorlansak bile. Şifreleme anahtarların cihazından hiç çıkmaz.",
+      "Zorlansak bile saklanan postalarınızı okuyamayız. Anahtarlarınız saklanmadan önce parolanızla şifrelenir, bu yüzden onları asla şifresiz görmeyiz.",
     plan_tip_tracker_protection:
       "Görünmez izleme pikselleri, e-postalar gelen kutuna ulaşmadan önce temizlenir.",
     plan_tip_key_rotation:
@@ -6630,7 +6630,7 @@ export const tr = {
     domain_purchase_detail_instant_title: "Saniyeler içinde hazır",
     domain_purchase_detail_ownership_title: "Tamamen sizin",
     encryption_banner_subtitle:
-      "E-postalar cihazınızdan ayrılmadan önce şifrelenir. Aster yalnızca okunamaz şifreli metin saklar, postanızı asla göremeyiz.",
+      "Aster postalarınızı şifreli olarak saklar, bu yüzden onları okuyamayız. Aster kullanıcıları arasındaki postalar da gönderilmeden önce cihazınızda şifrelenir.",
     folder_lock_locked: "Hassas klasörleri ek bir parolayla koruyun",
     free_plan_description:
       "Ücretsiz plandasınız. Daha fazla depolama, takma ad ve özellik için aşağıdaki ücretli planları keşfedin.",
@@ -9521,7 +9521,7 @@ export const tr = {
     link_device_choose_account_description:
       "Masaüstü uygulamanızı bağlamak için",
     link_device_choose_account_note:
-      "Şifreleme anahtarlarınız cihazlarınızdan asla çıkmaz.",
+      "Şifreleme anahtarlarınız cihazlarınız arasında aktarılırken şifreli kalır.",
     link_device_use_another_account: "Başka bir hesap kullan",
     link_device_use_this_account: "Bu hesabı kullan",
     link_device_other_accounts: "Başka bir hesaba geç",

@@ -5724,9 +5724,9 @@ export const ja = {
       "暗号化キーを読み込めませんでした。接続を確認してもう一度お試しください。",
     no_encryption_key_description: "暗号化キーは自動的に生成されます",
     encryption_banner_title:
-      "秘密鍵はお使いのデバイスから離れることはありません",
+      "秘密鍵のロックを解除できるのはあなただけです",
     encryption_banner_subtitle:
-      "メールはデバイスから送信される前に暗号化されます。Asterは読み取り不可能な暗号文のみを保存し、あなたのメールを見ることはできません。",
+      "Aster はメールを暗号化して保存するため、私たちはメールを読むことができません。Aster ユーザー間のメールも、送信前にお使いのデバイスで暗号化されます。",
     encryption_banner_you: "あなた",
     encryption_banner_recipient: "受信者",
     storage_format_description:
@@ -5912,7 +5912,7 @@ export const ja = {
     plan_tip_instant_alias_delete:
       "エイリアスの削除とゴーストエイリアスの失効をすぐに実行できます。Supernova では30日間の削除待機がありません。",
     plan_tip_zero_knowledge:
-      "強制されてもあなたのデータを読むことはできません。暗号鍵はデバイスから離れません。",
+      "強制されても、保存されたメールを私たちが読むことはできません。鍵は保存前にパスワードで暗号化されるため、暗号化されていない状態で私たちが目にすることはありません。",
     plan_tip_tracker_protection:
       "見えないトラッキングピクセルは、メールが受信箱に届く前に除去されます。",
     plan_tip_key_rotation:
@@ -9517,7 +9517,7 @@ export const ja = {
     link_device_choose_account: "アカウントを選択",
     link_device_choose_account_description: "デスクトップアプリを連携します",
     link_device_choose_account_note:
-      "暗号鍵がお使いのデバイスから出ることはありません。",
+      "暗号鍵は、デバイス間で転送される間も暗号化されたままです。",
     link_device_use_another_account: "別のアカウントを使用",
     link_device_use_this_account: "このアカウントを使用",
     link_device_other_accounts: "別のアカウントに切り替える",

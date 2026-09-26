@@ -5627,9 +5627,9 @@ export const nl = {
       "Je versleutelingssleutel wordt automatisch gegenereerd",
     undo_send_description:
       "Configureer de vertraging bij het verzenden van e-mail voor de mogelijkheid om te annuleren",
-    encryption_banner_title: "Je privésleutels verlaten nooit je apparaat",
+    encryption_banner_title: "Alleen u kunt uw privésleutels ontgrendelen",
     encryption_banner_subtitle:
-      "E-mails worden versleuteld voordat ze je apparaat verlaten. Aster slaat alleen onleesbare versleutelde tekst op, we kunnen je e-mail nooit lezen.",
+      "Aster slaat uw e-mail versleuteld op, dus wij kunnen die niet lezen. E-mail tussen Aster-gebruikers wordt bovendien op uw apparaat versleuteld voordat die wordt verzonden.",
     encryption_banner_you: "Jij",
     encryption_banner_recipient: "Ontvanger",
     login_alerts_description:
@@ -5871,7 +5871,7 @@ export const nl = {
     plan_tip_instant_alias_delete:
       "Verwijder aliassen en laat ghost-aliassen meteen verlopen: met Supernova vervalt de wachttijd van 30 dagen.",
     plan_tip_zero_knowledge:
-      "We kunnen je gegevens nooit lezen, ook niet onder dwang. Je encryptiesleutels verlaten je apparaat nooit.",
+      "Wij kunnen uw opgeslagen e-mail niet lezen, zelfs niet onder dwang. Uw sleutels worden met uw wachtwoord versleuteld voordat ze worden opgeslagen, dus wij zien ze nooit onversleuteld.",
     plan_tip_tracker_protection:
       "Onzichtbare trackingpixels worden verwijderd voordat e-mail je postvak bereikt.",
     plan_tip_key_rotation:
@@ -9566,7 +9566,7 @@ export const nl = {
     link_device_choose_account: "Kies een account",
     link_device_choose_account_description: "Om je desktop-app te koppelen",
     link_device_choose_account_note:
-      "Je encryptiesleutels verlaten nooit je apparaten.",
+      "Uw versleutelingssleutels blijven versleuteld terwijl ze tussen uw apparaten worden overgedragen.",
     link_device_use_another_account: "Een ander account gebruiken",
     link_device_use_this_account: "Dit account gebruiken",
     link_device_other_accounts: "Overschakelen naar een ander account",

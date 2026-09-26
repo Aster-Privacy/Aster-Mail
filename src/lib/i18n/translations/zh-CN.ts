@@ -5248,9 +5248,9 @@ export const zh_CN = {
     no_encryption_key: "无加密密钥",
     encryption_key_load_failed: "无法加载您的加密密钥。请检查网络连接后重试。",
     no_encryption_key_description: "您的加密密钥将自动生成",
-    encryption_banner_title: "您的私钥永远不会离开您的设备",
+    encryption_banner_title: "只有您可以解锁您的私钥",
     encryption_banner_subtitle:
-      "邮件在离开您的设备之前就已加密。Aster 仅存储不可读的密文，我们无法查看您的邮件。",
+      "Aster 以加密形式存储您的邮件，因此我们无法读取。Aster 用户之间的邮件在发送前也会在您的设备上加密。",
     encryption_banner_you: "您",
     encryption_banner_recipient: "收件人",
     storage_format_title: "存储格式",
@@ -5418,7 +5418,7 @@ export const zh_CN = {
     plan_tip_instant_alias_delete:
       "随时删除别名并停用隐身别名 - Supernova 可跳过 30 天删除等待。",
     plan_tip_zero_knowledge:
-      "即使被强制要求，我们也无法读取您的数据。您的加密密钥永远不会离开您的设备。",
+      "即使受到强制，我们也无法读取您存储的邮件。您的密钥在存储前会用您的密码加密，因此我们永远看不到未加密的密钥。",
     plan_tip_tracker_protection:
       "在邮件到达您的收件箱之前剥离不可见的追踪像素。",
     plan_tip_key_rotation: "定期自动轮换您的加密密钥以获得更强的安全性。",
@@ -8684,7 +8684,7 @@ export const zh_CN = {
     link_device_change_account: "切换账号",
     link_device_choose_account: "选择账号",
     link_device_choose_account_description: "以关联桌面应用",
-    link_device_choose_account_note: "您的加密密钥始终保存在您的设备上。",
+    link_device_choose_account_note: "您的加密密钥在设备之间传输时始终保持加密状态。",
     link_device_use_another_account: "使用其他账号",
     link_device_use_this_account: "使用此账号",
     link_device_other_accounts: "切换到其他账号",

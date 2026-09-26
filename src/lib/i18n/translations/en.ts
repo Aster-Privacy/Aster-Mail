@@ -2728,9 +2728,9 @@ export const en: Translations = {
     snooze: "Snooze",
     mail_management: "Mail Management",
     change_appearance: "Change the appearance of Aster",
-    encryption_banner_title: "Your private keys never leave your device",
+    encryption_banner_title: "Only you can unlock your private keys",
     encryption_banner_subtitle:
-      "Emails are encrypted before they leave your device. Aster stores only unreadable ciphertext, we can never see your mail.",
+      "Aster stores your mail encrypted, so we can't read it. Mail between Aster users is also encrypted on your device before it's sent.",
     encryption_banner_you: "You",
     encryption_banner_recipient: "Recipient",
     security_settings: "Security Settings",
@@ -4612,7 +4612,7 @@ export const en: Translations = {
     plan_tip_instant_alias_delete:
       "Delete aliases and expire ghost aliases right away - Supernova skips the 30-day deletion wait.",
     plan_tip_zero_knowledge:
-      "We can never read your data, even if compelled to. Your encryption keys never leave your device.",
+      "We can't read your stored mail, even if compelled to. Your keys are encrypted with your password before they're stored, so we never see them unencrypted.",
     plan_tip_tracker_protection:
       "Invisible tracking pixels are stripped before emails reach your inbox.",
     plan_tip_key_rotation:
@@ -9087,7 +9087,7 @@ export const en: Translations = {
     link_device_choose_account: "Choose an account",
     link_device_choose_account_description: "To link your desktop app",
     link_device_choose_account_note:
-      "Your encryption keys never leave your devices.",
+      "Your encryption keys stay encrypted as they move between your devices.",
     link_device_use_another_account: "Use another account",
     link_device_use_this_account: "Use this account",
     link_device_other_accounts: "Switch to another account",
