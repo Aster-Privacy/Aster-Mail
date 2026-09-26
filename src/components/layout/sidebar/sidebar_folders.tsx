@@ -54,6 +54,7 @@ import { FolderContextMenu } from "@/components/folders/folder_context_menu";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   get_expanded_folders,
@@ -174,6 +175,11 @@ export const SidebarFolders = memo(function SidebarFolders({
     return () => window.removeEventListener("astermail:folder-locked", handler);
   }, []);
 
+  const { preferences } = use_preferences();
+  const muted_folder_tokens = useMemo(
+    () => new Set(preferences.muted_folder_tokens ?? []),
+    [preferences.muted_folder_tokens],
+  );
   const tree = useMemo(() => build_folder_tree(folders), [folders]);
   const can_sort_a_to_z = useMemo(
     () => folders.length > 1 && !is_folder_tree_sorted_a_z(folders),
@@ -400,6 +406,11 @@ export const SidebarFolders = memo(function SidebarFolders({
                     is_locked_closed={is_locked_closed}
                     label={folder.name}
                     locale={app_locale()}
+                    muted_label={
+                      muted_folder_tokens.has(folder.folder_token)
+                        ? t("common.notifications_muted")
+                        : undefined
+                    }
                     on_click={() =>
                       handle_nav_click(() => {
                         if (folder.is_password_protected) {
