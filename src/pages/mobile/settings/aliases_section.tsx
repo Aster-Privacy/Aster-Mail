@@ -404,7 +404,11 @@ export function AliasesSection({
           <p className="text-[13px] text-[var(--text-muted)] mb-3">
             {t("settings.aliases_description")}
           </p>
-          <AliasUsageMeter limit={max_count} used={total_count} />
+          <AliasUsageMeter
+            className="mb-3"
+            limit={max_count}
+            used={total_count}
+          />
         </div>
 
         <div className="px-4">
