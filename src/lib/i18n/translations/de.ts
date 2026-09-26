@@ -7443,6 +7443,8 @@ export const de = {
       "Ihre E-Mail-Adresse konnte beim Anbieter nicht abgerufen werden. Versuchen Sie es erneut; wenn es weiterhin fehlschlägt, verwenden Sie die manuelle IMAP-Option.",
     oauth_reason_session_expired:
       "Die Anmeldesitzung ist abgelaufen. Versuchen Sie es erneut.",
+    oauth_reason_wrong_account:
+      "Die Verbindung wurde von einem anderen Aster Mail-Konto gestartet. Melden Sie sich mit diesem Konto an und versuchen Sie es erneut.",
     oauth_reason_encryption_error:
       "Die Verbindung konnte nicht gesichert werden. Versuchen Sie es erneut. Wenn das Problem weiterhin besteht, wenden Sie sich an hello@astermail.org.",
     oauth_reason_expired_state:

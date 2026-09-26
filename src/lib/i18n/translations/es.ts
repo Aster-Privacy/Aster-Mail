@@ -7443,6 +7443,8 @@ export const es = {
       "No pudimos obtener tu dirección de correo del proveedor. Vuelve a intentarlo; si sigue fallando, usa la opción de IMAP manual.",
     oauth_reason_session_expired:
       "La sesión de inicio de sesión ha caducado. Inténtalo de nuevo.",
+    oauth_reason_wrong_account:
+      "La conexión se inició desde otra cuenta de Aster Mail. Inicia sesión con esa cuenta e inténtalo de nuevo.",
     oauth_reason_encryption_error: "No pudimos proteger la conexión. Inténtalo de nuevo. Si el problema continúa, escribe a hello@astermail.org.",
     oauth_reason_expired_state: "El enlace de conexión ha caducado. Empieza de nuevo para volver a conectar.",
     oauth_reason_internal_error: "Error interno",

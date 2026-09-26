@@ -7297,6 +7297,8 @@ export const ar = {
     oauth_reason_email_not_found:
       "تعذّر جلب عنوان بريدك من المزوّد. حاول مرة أخرى، وإن استمر الفشل فاستخدم خيار IMAP اليدوي.",
     oauth_reason_session_expired: "انتهت جلسة تسجيل الدخول. حاول مرة أخرى.",
+    oauth_reason_wrong_account:
+      "بدأ الاتصال من حساب Aster Mail مختلف. سجّل الدخول بذلك الحساب وحاول مرة أخرى.",
     oauth_reason_unknown:
       "حاول مجددًا.",
     oauth_setting_up_folders: "جارٍ إعداد المجلدات...",

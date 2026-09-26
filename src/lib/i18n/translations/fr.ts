@@ -7514,6 +7514,8 @@ export const fr = {
       "Nous n’avons pas pu récupérer votre adresse e-mail auprès du fournisseur. Réessayez ; si le problème persiste, utilisez l’option IMAP manuelle.",
     oauth_reason_session_expired:
       "La session de connexion a expiré. Réessayez.",
+    oauth_reason_wrong_account:
+      "La connexion a été lancée depuis un autre compte Aster Mail. Connectez-vous avec ce compte et réessayez.",
     oauth_reason_encryption_error: "Nous n'avons pas pu sécuriser la connexion. Réessayez. Si le problème persiste, contactez hello@astermail.org.",
     oauth_reason_expired_state: "Le lien de connexion a expiré. Recommencez pour vous reconnecter.",
     oauth_reason_internal_error: "Erreur interne",

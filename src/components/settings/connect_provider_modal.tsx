@@ -29,6 +29,11 @@ import { ButtonSpinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { start_oauth_authorize } from "@/services/api/external_accounts";
+import {
+  DESKTOP_OAUTH_CALLBACK_EVENT,
+  DESKTOP_OAUTH_RETURN_TO,
+  type DesktopOAuthCallbackDetail,
+} from "@/native/desktop_oauth_bridge";
 
 function is_tauri(): boolean {
   return (
@@ -36,6 +41,22 @@ function is_tauri(): boolean {
     ("__TAURI_INTERNALS__" in window || "__TAURI__" in window)
   );
 }
+
+const REASON_KEY_MAP: Record<string, TranslationKey> = {
+  provider_denied: "settings.oauth_reason_provider_denied",
+  missing_code: "settings.oauth_reason_missing_code",
+  missing_state: "settings.oauth_reason_missing_state",
+  internal_error: "settings.oauth_reason_internal_error",
+  invalid_provider: "settings.oauth_reason_invalid_provider",
+  provider_not_configured: "settings.oauth_reason_provider_not_configured",
+  token_exchange_failed: "settings.oauth_reason_token_exchange_failed",
+  encryption_error: "settings.oauth_reason_encryption_error",
+  account_creation_failed: "settings.oauth_reason_account_creation_failed",
+  email_not_found: "settings.oauth_reason_email_not_found",
+  invalid_state: "settings.oauth_reason_session_expired",
+  expired_state: "settings.oauth_reason_session_expired",
+  wrong_account: "settings.oauth_reason_wrong_account",
+};
 
 export type ConnectProvider = "google" | "microsoft" | "yahoo";
 
@@ -129,6 +150,7 @@ export function ConnectProviderModal({
   if (!provider) return null;
 
   const theme = PROVIDER_THEME[provider];
+  const desktop = is_tauri();
 
   const handle_connect = async () => {
     set_is_loading(true);
@@ -136,7 +158,11 @@ export function ConnectProviderModal({
       const tag_token = new Uint8Array(32);
 
       window.crypto.getRandomValues(tag_token);
-      const result = await start_oauth_authorize(provider, tag_token);
+      const result = await start_oauth_authorize(
+        provider,
+        tag_token,
+        desktop ? { return_to: DESKTOP_OAUTH_RETURN_TO } : undefined,
+      );
 
       if (result.error) {
         show_toast(
@@ -176,12 +202,55 @@ export function ConnectProviderModal({
         return;
       }
 
-      if (is_tauri()) {
+      if (desktop) {
+        let desktop_finished = false;
+
+        const handle_desktop_callback = (event: Event) => {
+          const detail = (event as CustomEvent<DesktopOAuthCallbackDetail>)
+            .detail;
+
+          if (desktop_finished || !detail) return;
+          desktop_finished = true;
+          teardown_desktop();
+          teardown_ref.current = null;
+          set_is_loading(false);
+          if (detail.status === "success") {
+            on_oauth_success?.(detail.provider || provider);
+            on_close();
+
+            return;
+          }
+          show_toast(
+            t("settings.oauth_import_error", {
+              reason: t(
+                REASON_KEY_MAP[detail.reason ?? ""] ||
+                  "settings.oauth_reason_unknown",
+              ),
+            }),
+            "error",
+          );
+        };
+
+        const teardown_desktop = () => {
+          window.removeEventListener(
+            DESKTOP_OAUTH_CALLBACK_EVENT,
+            handle_desktop_callback,
+          );
+        };
+
+        window.addEventListener(
+          DESKTOP_OAUTH_CALLBACK_EVENT,
+          handle_desktop_callback,
+        );
+        teardown_ref.current = teardown_desktop;
+
         try {
           const core = await import("@tauri-apps/api/core");
 
           await core.invoke("open_external_url", { url: parsed.toString() });
         } catch {
+          teardown_desktop();
+          teardown_ref.current = null;
           show_toast(
             t("settings.oauth_import_error", {
               reason: t("settings.oauth_reason_unknown"),
@@ -189,11 +258,7 @@ export function ConnectProviderModal({
             "error",
           );
           set_is_loading(false);
-
-          return;
         }
-        on_oauth_success?.(provider);
-        on_close();
 
         return;
       }
@@ -213,23 +278,6 @@ export function ConnectProviderModal({
       }
 
       let finished = false;
-
-      const reason_key_map: Record<string, string> = {
-        provider_denied: "settings.oauth_reason_provider_denied",
-        missing_code: "settings.oauth_reason_missing_code",
-        missing_state: "settings.oauth_reason_missing_state",
-        internal_error: "settings.oauth_reason_internal_error",
-        invalid_provider: "settings.oauth_reason_invalid_provider",
-        provider_not_configured:
-          "settings.oauth_reason_provider_not_configured",
-        token_exchange_failed: "settings.oauth_reason_token_exchange_failed",
-        encryption_error: "settings.oauth_reason_encryption_error",
-        account_creation_failed:
-          "settings.oauth_reason_account_creation_failed",
-        email_not_found: "settings.oauth_reason_email_not_found",
-        invalid_state: "settings.oauth_reason_session_expired",
-        expired_state: "settings.oauth_reason_session_expired",
-      };
 
       let close_timeout: number | undefined;
 
@@ -254,11 +302,11 @@ export function ConnectProviderModal({
           on_close();
         } else if (!success && reason) {
           const i18n_key =
-            reason_key_map[reason] || "settings.oauth_reason_unknown";
+            REASON_KEY_MAP[reason] || "settings.oauth_reason_unknown";
 
           show_toast(
             t("settings.oauth_import_error", {
-              reason: t(i18n_key as TranslationKey),
+              reason: t(i18n_key),
             }),
             "error",
           );
@@ -347,7 +395,7 @@ export function ConnectProviderModal({
 
           <Button
             className="mt-3 w-full"
-            disabled={is_loading}
+            disabled={is_loading && !desktop}
             size="xl"
             variant="outline"
             onClick={on_close}

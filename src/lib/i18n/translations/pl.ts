@@ -7570,6 +7570,8 @@ export const pl = {
     oauth_reason_email_not_found:
       "Nie udało się pobrać Twojego adresu e-mail od dostawcy. Spróbuj ponownie, a jeśli błąd się powtarza, użyj ręcznej opcji IMAP.",
     oauth_reason_session_expired: "Sesja logowania wygasła. Spróbuj ponownie.",
+    oauth_reason_wrong_account:
+      "Połączenie zostało rozpoczęte z innego konta Aster Mail. Zaloguj się na to konto i spróbuj ponownie.",
     oauth_reason_unknown:
       "Spróbuj ponownie.",
     oauth_setting_up_folders: "Konfigurowanie folderów...",

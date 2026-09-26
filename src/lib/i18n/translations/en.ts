@@ -6862,6 +6862,8 @@ export const en: Translations = {
       "We could not retrieve your email address from the provider. Try again - if it keeps failing, use the manual IMAP option instead.",
     oauth_reason_session_expired:
       "The sign-in session expired. Please try again.",
+    oauth_reason_wrong_account:
+      "The connection was started from a different Aster Mail account. Sign in with that account and try again.",
     oauth_reason_unknown:
       "Something did not work as expected. Try again. We could not pinpoint the cause.",
     oauth_import_loading: "Connecting to {{ provider }}...",

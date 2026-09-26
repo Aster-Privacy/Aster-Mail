@@ -7476,6 +7476,8 @@ export const it = {
     oauth_reason_email_not_found:
       "Non siamo riusciti a recuperare il tuo indirizzo e-mail dal provider. Riprova; se continua a non funzionare, usa l’opzione IMAP manuale.",
     oauth_reason_session_expired: "La sessione di accesso è scaduta. Riprova.",
+    oauth_reason_wrong_account:
+      "La connessione è stata avviata da un altro account Aster Mail. Accedi con quell'account e riprova.",
     oauth_reason_unknown:
       "Riprova.",
     oauth_setting_up_folders: "Configurazione cartelle...",

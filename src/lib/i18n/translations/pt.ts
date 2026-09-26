@@ -7433,6 +7433,8 @@ export const pt = {
     oauth_reason_email_not_found:
       "Não conseguimos obter seu endereço de e-mail do provedor. Tente de novo; se continuar falhando, use a opção IMAP manual.",
     oauth_reason_session_expired: "A sessão de login expirou. Tente de novo.",
+    oauth_reason_wrong_account:
+      "A conexão foi iniciada a partir de outra conta do Aster Mail. Faça login com essa conta e tente de novo.",
     oauth_reason_encryption_error:
       "Não foi possível proteger a conexão. Tente novamente. Se o problema continuar, entre em contato com hello@astermail.org.",
     oauth_reason_expired_state:

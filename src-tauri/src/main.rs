@@ -383,6 +383,7 @@ fn main() {
                 let _ = window.set_focus();
             }
         }))
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_notification::init())
@@ -423,6 +424,15 @@ fn main() {
             device::crypto::crypto_hmac_sign,
         ])
         .setup(|app| {
+            #[cfg(any(windows, target_os = "linux"))]
+            {
+                use tauri_plugin_deep_link::DeepLinkExt;
+
+                if let Err(error) = app.deep_link().register_all() {
+                    tracing::warn!(%error, "deep link scheme registration failed");
+                }
+            }
+
             let window_config = app
                 .config()
                 .app

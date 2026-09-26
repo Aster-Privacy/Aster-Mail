@@ -7232,6 +7232,8 @@ export const ko = {
       "제공업체에서 이메일 주소를 가져오지 못했습니다. 다시 시도하고, 계속 실패하면 수동 IMAP 옵션을 사용하세요.",
     oauth_reason_session_expired:
       "로그인 세션이 만료되었습니다. 다시 시도하세요.",
+    oauth_reason_wrong_account:
+      "이 연결은 다른 Aster Mail 계정에서 시작되었습니다. 해당 계정으로 로그인한 후 다시 시도하세요.",
     oauth_reason_unknown: "다시 시도하세요.",
     oauth_setting_up_folders: "폴더 설정 중...",
     oauth_folders_ready: "폴더가 준비되었습니다",

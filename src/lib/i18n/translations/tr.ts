@@ -7377,6 +7377,8 @@ export const tr = {
     oauth_reason_email_not_found:
       "E-posta adresiniz sağlayıcıdan alınamadı. Tekrar deneyin; sorun sürerse elle IMAP seçeneğini kullanın.",
     oauth_reason_session_expired: "Oturum açma süresi doldu. Tekrar deneyin.",
+    oauth_reason_wrong_account:
+      "Bağlantı farklı bir Aster Mail hesabından başlatıldı. O hesapla oturum açıp tekrar deneyin.",
     oauth_reason_unknown:
       "Tekrar deneyin.",
     oauth_setting_up_folders: "Klasörler ayarlanıyor...",

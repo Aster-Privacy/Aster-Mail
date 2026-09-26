@@ -7436,6 +7436,8 @@ export const nl = {
       "We konden je e-mailadres niet ophalen bij de provider. Probeer het opnieuw; blijft het misgaan, gebruik dan de handmatige IMAP-optie.",
     oauth_reason_session_expired:
       "De aanmeldsessie is verlopen. Probeer het opnieuw.",
+    oauth_reason_wrong_account:
+      "De verbinding is gestart vanuit een ander Aster Mail-account. Meld u aan met dat account en probeer het opnieuw.",
     oauth_reason_encryption_error:
       "We konden de verbinding niet beveiligen. Probeer het opnieuw. Als het probleem aanhoudt, neem dan contact op met hello@astermail.org.",
     oauth_reason_expired_state:

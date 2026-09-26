@@ -7335,6 +7335,8 @@ export const ja = {
       "プロバイダからメールアドレスを取得できませんでした。もう一度お試しください。解決しない場合は手動の IMAP 設定をご利用ください。",
     oauth_reason_session_expired:
       "サインインのセッションが期限切れになりました。もう一度お試しください。",
+    oauth_reason_wrong_account:
+      "この接続は別の Aster Mail アカウントから開始されました。そのアカウントでサインインして、もう一度お試しください。",
     oauth_reason_encryption_error:
       "接続を保護できませんでした。もう一度お試しください。問題が続く場合は、hello@astermail.org までご連絡ください。",
     oauth_reason_expired_state:

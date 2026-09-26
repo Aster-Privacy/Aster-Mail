@@ -7576,6 +7576,8 @@ export const ru = {
     oauth_reason_email_not_found:
       "Не удалось получить ваш адрес у провайдера. Повторите попытку; если ошибка сохраняется, используйте ручную настройку IMAP.",
     oauth_reason_session_expired: "Сессия входа истекла. Повторите попытку.",
+    oauth_reason_wrong_account:
+      "Подключение было начато из другой учётной записи Aster Mail. Войдите в эту учётную запись и повторите попытку.",
     oauth_reason_encryption_error:
       "Не удалось защитить подключение. Попробуйте снова. Если проблема сохраняется, напишите на hello@astermail.org.",
     oauth_reason_expired_state:

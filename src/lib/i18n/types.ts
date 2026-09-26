@@ -5893,6 +5893,7 @@ export interface SettingsTranslations {
   oauth_reason_account_creation_failed: string;
   oauth_reason_email_not_found: string;
   oauth_reason_session_expired: string;
+  oauth_reason_wrong_account: string;
   oauth_reason_unknown: string;
   oauth_import_loading: string;
   oauth_setting_up_folders: string;

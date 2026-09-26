@@ -6534,6 +6534,8 @@ export const zh_CN = {
     oauth_reason_email_not_found:
       "我们无法从服务提供商处获取你的邮箱地址。请重试；若仍然失败，请改用手动 IMAP 选项。",
     oauth_reason_session_expired: "登录会话已过期。请重试。",
+    oauth_reason_wrong_account:
+      "此连接是从另一个 Aster Mail 账户发起的。请使用该账户登录后重试。",
     oauth_reason_encryption_error: "无法保护此连接。请重试。如果问题仍然存在，请联系 hello@astermail.org。",
     oauth_reason_internal_error: "内部错误",
     oauth_reason_unknown: "请重试。",
