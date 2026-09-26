@@ -10216,6 +10216,7 @@ export const nl = {
     op_is_empty: "is leeg",
     op_matches_regex: "komt overeen met regex",
     op_matches_domain: "komt overeen met domein",
+    op_does_not_match_domain: "komt niet overeen met domein",
     op_greater_than: "groter dan",
     op_less_than: "kleiner dan",
     op_equals: "gelijk aan",

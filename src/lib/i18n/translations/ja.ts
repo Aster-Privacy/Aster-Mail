@@ -10159,6 +10159,7 @@ export const ja = {
     op_is_empty: "が空である",
     op_matches_regex: "正規表現に一致",
     op_matches_domain: "ドメインに一致",
+    op_does_not_match_domain: "ドメインに一致しない",
     op_greater_than: "より大きい",
     op_less_than: "より小さい",
     op_equals: "と等しい",

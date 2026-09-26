@@ -539,6 +539,7 @@ export interface MailRulesTranslations {
   op_is_empty: string;
   op_matches_regex: string;
   op_matches_domain: string;
+  op_does_not_match_domain: string;
   op_greater_than: string;
   op_less_than: string;
   op_equals: string;

@@ -51,13 +51,19 @@ export type ConditionField =
 
 export type AddressOperator =
   | "is"
-  | "contains"
   | "is_not"
+  | "contains"
+  | "does_not_contain"
+  | "starts_with"
+  | "ends_with"
   | "matches_domain"
+  | "does_not_match_domain"
+  | "is_empty"
   | "matches_regex";
 
 export type TextOperator =
   | "is"
+  | "is_not"
   | "contains"
   | "does_not_contain"
   | "starts_with"
@@ -695,11 +701,15 @@ function update_request_to_wire(
 }
 
 const BASE = "/mail/v1/mail-rules";
+const OPERATOR_VERSION_QUERY = "?ops=2";
 
 export async function list_rules(): Promise<ApiResponse<RulesListResponse>> {
-  const response = await api_client.get<WireRulesListResponse>(BASE, {
-    cache_ttl: 30_000,
-  });
+  const response = await api_client.get<WireRulesListResponse>(
+    `${BASE}${OPERATOR_VERSION_QUERY}`,
+    {
+      cache_ttl: 30_000,
+    },
+  );
 
   if (response.data) {
     return {
@@ -743,7 +753,10 @@ export async function update_rule(
   patch: UpdateRuleRequest,
 ): Promise<ApiResponse<Rule>> {
   const wire = update_request_to_wire(patch);
-  const response = await api_client.patch<WireRule>(`${BASE}/${id}`, wire);
+  const response = await api_client.patch<WireRule>(
+    `${BASE}/${id}${OPERATOR_VERSION_QUERY}`,
+    wire,
+  );
 
   if (response.data) {
     return { data: rule_from_wire(response.data) };

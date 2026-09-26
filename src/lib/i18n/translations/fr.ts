@@ -10352,6 +10352,7 @@ export const fr = {
     op_is_not: "n'est pas",
     op_less_than: "inférieur à",
     op_matches_domain: "correspond au domaine",
+    op_does_not_match_domain: "ne correspond pas au domaine",
     op_matches_regex: "correspond à l'expression régulière",
     op_newer_than_days: "plus récent que (jours)",
     op_no: "non",

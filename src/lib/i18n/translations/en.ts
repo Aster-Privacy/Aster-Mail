@@ -10093,6 +10093,7 @@ export const en: Translations = {
     op_is_empty: "is empty",
     op_matches_regex: "matches regex",
     op_matches_domain: "matches domain",
+    op_does_not_match_domain: "does not match domain",
     op_greater_than: "greater than",
     op_less_than: "less than",
     op_equals: "equals",

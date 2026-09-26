@@ -10228,6 +10228,7 @@ export const es = {
     op_is_not: "no es",
     op_less_than: "menor que",
     op_matches_domain: "coincide con el dominio",
+    op_does_not_match_domain: "no coincide con el dominio",
     op_matches_regex: "coincide con la expresión regular",
     op_newer_than_days: "más reciente que (días)",
     op_no: "no",

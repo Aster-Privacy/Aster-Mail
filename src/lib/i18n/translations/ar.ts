@@ -10115,6 +10115,7 @@ export const ar = {
     op_is_empty: "فارغ",
     op_matches_regex: "يطابق التعبير النمطي",
     op_matches_domain: "يطابق النطاق",
+    op_does_not_match_domain: "لا يطابق النطاق",
     op_greater_than: "أكبر من",
     op_less_than: "أصغر من",
     op_equals: "يساوي",

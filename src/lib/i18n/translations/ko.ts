@@ -9911,6 +9911,7 @@ export const ko = {
     op_is_empty: "비어 있다",
     op_matches_regex: "정규식 일치",
     op_matches_domain: "도메인 일치",
+    op_does_not_match_domain: "도메인 불일치",
     op_greater_than: "보다 크다",
     op_less_than: "보다 작다",
     op_equals: "같다",

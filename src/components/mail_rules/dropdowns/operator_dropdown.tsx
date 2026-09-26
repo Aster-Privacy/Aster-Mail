@@ -41,16 +41,25 @@ export interface OperatorOption {
 
 const ADDRESS_OPS: OperatorOption[] = [
   { value: "is", label_key: "mail_rules.op_is" },
-  { value: "contains", label_key: "mail_rules.op_contains" },
   { value: "is_not", label_key: "mail_rules.op_is_not" },
+  { value: "contains", label_key: "mail_rules.op_contains" },
+  { value: "does_not_contain", label_key: "mail_rules.op_does_not_contain" },
+  { value: "starts_with", label_key: "mail_rules.op_starts_with" },
+  { value: "ends_with", label_key: "mail_rules.op_ends_with" },
   { value: "matches_domain", label_key: "mail_rules.op_matches_domain" },
+  {
+    value: "does_not_match_domain",
+    label_key: "mail_rules.op_does_not_match_domain",
+  },
+  { value: "is_empty", label_key: "mail_rules.op_is_empty" },
   { value: "matches_regex", label_key: "mail_rules.op_matches_regex" },
 ];
 
 const TEXT_OPS: OperatorOption[] = [
+  { value: "is", label_key: "mail_rules.op_is" },
+  { value: "is_not", label_key: "mail_rules.op_is_not" },
   { value: "contains", label_key: "mail_rules.op_contains" },
   { value: "does_not_contain", label_key: "mail_rules.op_does_not_contain" },
-  { value: "is", label_key: "mail_rules.op_is" },
   { value: "starts_with", label_key: "mail_rules.op_starts_with" },
   { value: "ends_with", label_key: "mail_rules.op_ends_with" },
   { value: "is_empty", label_key: "mail_rules.op_is_empty" },
