@@ -3337,6 +3337,37 @@ export const hi = {
     cancel_plan_warning:
       "इस बिलिंग अवधि के अंत तक आपके पास प्रीमियम सुविधाएं रहेंगी, और उसके बाद आपका प्लान मुफ़्त हो जाएगा। आपका मेल, संपर्क और सेटिंग आपके पास ही रहेंगे।",
     billing_history: "बिलिंग इतिहास",
+    billing_status_active: "सक्रिय",
+    billing_status_renews: "{{date}} को नवीनीकृत होगा",
+    billing_status_ending: "{{date}} को समाप्त होगा",
+    billing_status_attention: "भुगतान पर ध्यान देने की ज़रूरत है",
+    billing_member_since: "{{date}} से सदस्य",
+    billing_keep_title: "अपना प्लान रखें",
+    billing_payment_method: "भुगतान का तरीका",
+    billing_switch_yearly_subtitle:
+      "{{monthly}}/माह, सालाना {{yearly}} बिल किया जाता है",
+    billing_save_amount: "{{amount}} बचाएँ",
+    billing_term_heading: "बिलिंग अवधि",
+    billing_pay_yearly: "सालाना भुगतान करें",
+    billing_pay_monthly: "मासिक भुगतान करें",
+    billing_billed_yearly_total: "सालाना {{amount}} बिल किया जाता है",
+    billing_billed_monthly: "हर महीने बिल किया जाता है",
+    billing_save_percent: "{{percent}}% बचाएँ",
+    billing_select_plan_hint: "जारी रखने के लिए एक प्लान चुनें",
+    billing_addon_active: "सक्रिय",
+    billing_addon_ending: "समाप्त हो रहा है",
+    billing_addon_ends: "{{date}} को समाप्त होगा",
+    billing_add_storage_summary: "{{size}} स्टोरेज जोड़ें",
+    billing_storage_status_ok: "सब ठीक है",
+    billing_storage_status_near: "लगभग भर गया",
+    billing_storage_status_full: "कार्रवाई ज़रूरी",
+    billing_upgrade_note: "कभी भी रद्द करें। आपका मेल आपके पास रहता है।",
+    billing_thanks_title: "Aster का समर्थन करने के लिए धन्यवाद",
+    billing_thanks_body:
+      "आपका समर्थन हमारे लिए सब कुछ है। इससे एक छोटी टीम हर दिन Aster को सावधानी से बनाती रहती है।",
+    billing_thanks_free_title: "Aster इस्तेमाल करने के लिए धन्यवाद",
+    billing_thanks_free_body:
+      "एक छोटी टीम Aster को सावधानी से बनाती है, और जो भी व्यक्ति अपने मेल के लिए इस पर भरोसा करता है, वह हमें आगे बढ़ाता है। जब भी आपको ज़्यादा स्टोरेज, उपनाम या कस्टम डोमेन चाहिए, अपग्रेड करें।",
     billing_more_title: "और",
     billing_addons_subtitle: "ज़्यादा जगह, वही प्लान",
     billing_support_subtitle: "टीम को संदेश भेजें",
@@ -5945,6 +5976,10 @@ export const hi = {
     created_date: "{{date}} को बनाया गया",
     export_public_key_label: "सार्वजनिक कुंजी एक्सपोर्ट करें",
     export_private_key_label: "निजी कुंजी एक्सपोर्ट करें",
+    export_private_key_warning:
+      "फ़ाइल को सुरक्षित जगह रखें और कभी साझा न करें। जिसके पास यह होगी, वह आपका मेल पढ़ सकता है।",
+    export_two_factor_hint:
+      "आपका खाता दो-चरणीय प्रमाणीकरण इस्तेमाल करता है। जारी रखने के लिए अपने प्रमाणक ऐप का मौजूदा कोड दर्ज करें।",
     verify_identity_export:
       "अपनी निजी कुंजी एक्सपोर्ट करने के लिए अपनी पहचान सत्यापित करें",
     two_fa_code_label: "2FA कोड",
