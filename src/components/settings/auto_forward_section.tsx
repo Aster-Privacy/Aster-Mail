@@ -481,6 +481,7 @@ export function AutoForwardSection() {
         <IslandSection
           bare
           description={t("settings.auto_forward_description")}
+          icon={<ArrowTopRightOnSquareIcon />}
           title={t("settings.auto_forward_title")}
           trailing={
             <Button
@@ -497,6 +498,7 @@ export function AutoForwardSection() {
             <div className="relative flex-1 max-w-xs">
               <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
               <Input
+                className="aster_input_tonal"
                 placeholder={t("common.search_forwarding_rules")}
                 size="md"
                 style={{ paddingInlineStart: "38px" }}

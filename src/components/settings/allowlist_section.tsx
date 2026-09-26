@@ -316,6 +316,7 @@ export function AllowlistSection() {
       <IslandSection
         bare
         description={t("settings.allowlist_description")}
+        icon={<CheckCircleIcon />}
         title={t("settings.allowlist_title")}
         trailing={
           <Button
@@ -331,6 +332,7 @@ export function AllowlistSection() {
           <div className="relative flex-1 max-w-xs">
             <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
             <Input
+              className="aster_input_tonal"
               placeholder={t("common.search_allowlist")}
               size="md"
               style={{ paddingInlineStart: "38px" }}

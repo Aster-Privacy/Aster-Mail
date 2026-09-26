@@ -303,6 +303,7 @@ export function BlockedSection() {
       <IslandSection
         bare
         description={t("settings.blocked_senders_description")}
+        icon={<NoSymbolIcon />}
         title={t("settings.blocked_senders_title")}
         trailing={
           <Button
@@ -318,6 +319,7 @@ export function BlockedSection() {
           <div className="relative flex-1 max-w-xs">
             <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
             <Input
+              className="aster_input_tonal"
               placeholder={t("common.search_blocked_senders")}
               size="md"
               style={{ paddingInlineStart: "38px" }}
