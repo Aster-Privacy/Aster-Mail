@@ -51,7 +51,10 @@ vi.mock("@/services/crypto/attachment_crypto", () => ({
   prepare_external_attachments: vi.fn(async () => []),
 }));
 
-vi.mock("@/components/toast/simple_toast", () => ({ show_toast: vi.fn() }));
+vi.mock("@/components/toast/simple_toast", () => ({
+  show_toast: vi.fn(() => "toast_1"),
+  dismiss_toast: vi.fn(),
+}));
 
 vi.mock("@/components/toast/action_toast", () => ({
   show_action_toast: vi.fn(),
@@ -61,9 +64,8 @@ vi.mock("@/hooks/use_mail_stats", () => ({ invalidate_mail_stats: vi.fn() }));
 
 vi.mock("@/hooks/mail_events", () => ({ emit_email_sent: vi.fn() }));
 
-const { execute_internal_send, execute_external_email_send } = await import(
-  "@/components/compose/compose_send_actions"
-);
+const { execute_internal_send, execute_external_email_send } =
+  await import("@/components/compose/compose_send_actions");
 
 function make_ctx(overrides: Record<string, unknown> = {}) {
   return {
@@ -108,20 +110,43 @@ describe("send actions report whether the message was handed off", () => {
     );
   });
 
-  it("reports failure when an immediate external send throws", async () => {
+  it("closes the window and keeps the draft when an immediate external send throws", async () => {
     execute_external_send.mockRejectedValue(new Error("smtp refused"));
+    const confirm_draft_deleted = vi.fn(async () => {});
+    const ctx = make_ctx({ confirm_draft_deleted }) as unknown as {
+      on_close: ReturnType<typeof vi.fn>;
+    };
 
     await expect(
-      execute_external_email_send(make_ctx(), email_data),
+      execute_external_email_send(ctx as never, email_data),
     ).resolves.toBe(false);
+
+    expect(ctx.on_close).toHaveBeenCalledTimes(1);
+    expect(confirm_draft_deleted).not.toHaveBeenCalled();
   });
 
-  it("reports success when an immediate external send resolves", async () => {
-    execute_external_send.mockResolvedValue(undefined);
+  it("closes the window before an immediate external send finishes", async () => {
+    let finish_send: () => void = () => {};
 
-    await expect(
-      execute_external_email_send(make_ctx(), email_data),
-    ).resolves.toBe(true);
+    execute_external_send.mockReturnValue(
+      new Promise<void>((resolve) => {
+        finish_send = resolve;
+      }),
+    );
+    const confirm_draft_deleted = vi.fn(async () => {});
+    const ctx = make_ctx({ confirm_draft_deleted }) as unknown as {
+      on_close: ReturnType<typeof vi.fn>;
+    };
+
+    const pending = execute_external_email_send(ctx as never, email_data);
+
+    expect(ctx.on_close).toHaveBeenCalledTimes(1);
+    expect(confirm_draft_deleted).not.toHaveBeenCalled();
+
+    finish_send();
+    await pending;
+
+    expect(confirm_draft_deleted).toHaveBeenCalledTimes(1);
   });
 
   it("keeps the draft while a secure external send is only scheduled", async () => {

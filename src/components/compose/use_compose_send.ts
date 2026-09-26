@@ -385,7 +385,7 @@ export function use_compose_send({
       const pending_draft_id = draft_context_id_ref.current;
 
       if (pending_draft_id) {
-        await draft_manager.await_pending_save(pending_draft_id);
+        draft_manager.drop_queued_saves(pending_draft_id);
       }
 
       const confirm_draft_deleted = async () => {
