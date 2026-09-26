@@ -166,7 +166,16 @@ export function ConditionChip({
 
   const handle_op_change = (op: AnyOperator) => {
     if ("operator" in condition) {
-      on_change({ ...condition, operator: op } as LeafCondition);
+      on_change(
+        (op === "is_empty"
+          ? { ...condition, operator: op, value: "" }
+          : { ...condition, operator: op }) as LeafCondition,
+      );
+    }
+    if (op === "is_empty") {
+      close();
+
+      return;
     }
     auto_open_guard_until.current = Date.now() + 400;
     queueMicrotask(() => set_open_segment("value"));
@@ -377,7 +386,10 @@ export function ConditionChip({
     />
   ) : null;
 
-  const value_segment_node = (
+  const needs_value =
+    !("operator" in condition) || condition.operator !== "is_empty";
+
+  const value_segment_node = needs_value ? (
     <ValueDropdown
       case_sensitive={case_sensitive}
       field={field}
@@ -413,7 +425,7 @@ export function ConditionChip({
         (condition as { value: unknown }).value as string | number | boolean
       }
     />
-  );
+  ) : null;
 
   return (
     <ChipPill on_remove={remove}>

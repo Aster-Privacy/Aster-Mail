@@ -10159,6 +10159,7 @@ export const tr = {
     op_is_empty: "boş",
     op_matches_regex: "regex ile eşleşiyor",
     op_matches_domain: "alan adıyla eşleşiyor",
+    op_does_not_match_domain: "alan adıyla eşleşmiyor",
     op_greater_than: "büyük",
     op_less_than: "küçük",
     op_equals: "eşit",

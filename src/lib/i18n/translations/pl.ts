@@ -10437,6 +10437,7 @@ export const pl = {
     op_is_empty: "jest puste",
     op_matches_regex: "pasuje do wyrażenia regularnego",
     op_matches_domain: "pasuje do domeny",
+    op_does_not_match_domain: "nie pasuje do domeny",
     op_greater_than: "większy niż",
     op_less_than: "mniejszy niż",
     op_equals: "równa się",

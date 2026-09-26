@@ -10014,6 +10014,7 @@ export const hi = {
     op_is_empty: "खाली है",
     op_matches_regex: "regex से मेल खाता है",
     op_matches_domain: "डोमेन से मेल खाता है",
+    op_does_not_match_domain: "डोमेन से मेल नहीं खाता है",
     op_greater_than: "इससे बड़ा",
     op_less_than: "इससे छोटा",
     op_equals: "बराबर है",

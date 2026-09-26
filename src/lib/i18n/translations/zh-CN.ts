@@ -9257,6 +9257,7 @@ export const zh_CN = {
     op_is_empty: "为空",
     op_matches_regex: "匹配正则表达式",
     op_matches_domain: "匹配域名",
+    op_does_not_match_domain: "不匹配域名",
     op_greater_than: "大于",
     op_less_than: "小于",
     op_equals: "等于",

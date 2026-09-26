@@ -10316,6 +10316,7 @@ export const it = {
     op_is_empty: "è vuoto",
     op_matches_regex: "corrisponde a regex",
     op_matches_domain: "corrisponde al dominio",
+    op_does_not_match_domain: "non corrisponde al dominio",
     op_greater_than: "maggiore di",
     op_less_than: "minore di",
     op_equals: "uguale a",
