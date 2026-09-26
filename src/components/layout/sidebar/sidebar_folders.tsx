@@ -23,6 +23,7 @@ import type { DecryptedFolder } from "@/hooks/use_folders";
 
 import { memo, useState, useEffect, useMemo } from "react";
 import {
+  BarsArrowDownIcon,
   PlusIcon,
   ChevronDownIcon,
   ChevronUpIcon,
@@ -36,6 +37,7 @@ import {
   build_tree_guides,
   flatten_visible_tree,
   get_sibling_folders,
+  is_folder_tree_sorted_a_z,
 } from "@/hooks/use_folders";
 import { EMAIL_DRAG_MIME } from "@/components/email/inbox/category_drag";
 import { CountBadge } from "@/components/common/count_badge";
@@ -94,6 +96,7 @@ interface SidebarFoldersProps {
   reorder_folders?: (
     entries: { id: string; sort_order: number }[],
   ) => Promise<boolean>;
+  sort_folders_a_z?: () => Promise<boolean>;
   load_failed?: boolean;
   on_retry?: () => void;
 }
@@ -120,6 +123,7 @@ export const SidebarFolders = memo(function SidebarFolders({
   on_toggle_section,
   variant = "section",
   reorder_folders,
+  sort_folders_a_z,
   load_failed = false,
   on_retry,
 }: SidebarFoldersProps) {
@@ -150,6 +154,19 @@ export const SidebarFolders = memo(function SidebarFolders({
   }, []);
 
   const tree = useMemo(() => build_folder_tree(folders), [folders]);
+  const can_sort_a_to_z = useMemo(
+    () => folders.length > 1 && !is_folder_tree_sorted_a_z(folders),
+    [folders],
+  );
+  const handle_sort_a_to_z = sort_folders_a_z
+    ? async () => {
+        if (await sort_folders_a_z()) {
+          show_toast(t("common.folders_sorted_a_to_z"), "success");
+        } else {
+          show_toast(t("common.something_went_wrong_try_again"), "error");
+        }
+      }
+    : undefined;
   const tree_guides = useMemo(() => build_tree_guides(tree), [tree]);
 
   const visible_nodes = useMemo(() => {
@@ -205,6 +222,18 @@ export const SidebarFolders = memo(function SidebarFolders({
                 {t("common.folders")}
               </span>
             </button>
+            {handle_sort_a_to_z && can_sort_a_to_z && (
+              <button
+                aria-label={t("common.sort_a_to_z")}
+                className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-icon-muted"
+                data-rail-tip={t("common.sort_a_to_z")}
+                data-testid="folders-sort-a-to-z"
+                type="button"
+                onClick={() => void handle_sort_a_to_z()}
+              >
+                <BarsArrowDownIcon aria-hidden="true" className="w-4 h-4" />
+              </button>
+            )}
             <button
               aria-label={t("common.create_folder")}
               className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-icon-muted"
@@ -290,6 +319,7 @@ export const SidebarFolders = memo(function SidebarFolders({
                   sibling_index >= 0 && sibling_index < siblings.length - 1
                 }
                 can_move_up={sibling_index > 0}
+                can_sort_a_to_z={can_sort_a_to_z}
                 folder_color={folder_color}
                 folder_token={folder.folder_token}
                 on_create_subfolder={
@@ -312,6 +342,11 @@ export const SidebarFolders = memo(function SidebarFolders({
                   reorder_folders ? () => handle_sibling_reorder(-1) : undefined
                 }
                 on_recolor={() => handle_folder_modal(folder_data, "recolor")}
+                on_sort_a_to_z={
+                  handle_sort_a_to_z
+                    ? () => void handle_sort_a_to_z()
+                    : undefined
+                }
                 on_rename={() => handle_folder_modal(folder_data, "rename")}
                 password_set={folder.password_set}
               >

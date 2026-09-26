@@ -22,6 +22,7 @@ import {
   ArrowDownIcon,
   ArrowRightIcon,
   ArrowUpIcon,
+  BarsArrowDownIcon,
   BellIcon,
   BellSlashIcon,
   FolderIcon,
@@ -57,6 +58,8 @@ interface FolderContextMenuProps {
   on_move_down?: () => void;
   can_move_up?: boolean;
   can_move_down?: boolean;
+  on_sort_a_to_z?: () => void;
+  can_sort_a_to_z?: boolean;
 }
 
 export function FolderContextMenu({
@@ -75,6 +78,8 @@ export function FolderContextMenu({
   on_move_down,
   can_move_up,
   can_move_down,
+  on_sort_a_to_z,
+  can_sort_a_to_z,
 }: FolderContextMenuProps): React.ReactElement {
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
@@ -158,6 +163,17 @@ export function FolderContextMenu({
           <ContextMenuItem disabled={!can_move_down} onClick={on_move_down}>
             <ArrowDownIcon className="me-2 h-4 w-4" />
             {t("common.move_down")}
+          </ContextMenuItem>
+        )}
+
+        {on_sort_a_to_z && (
+          <ContextMenuItem
+            data-testid="folder-menu-sort-a-to-z"
+            disabled={!can_sort_a_to_z}
+            onClick={on_sort_a_to_z}
+          >
+            <BarsArrowDownIcon className="me-2 h-4 w-4" />
+            {t("common.sort_a_to_z")}
           </ContextMenuItem>
         )}
 

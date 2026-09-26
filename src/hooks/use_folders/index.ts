@@ -29,6 +29,16 @@ export {
 export type { DeleteFolderOutcome } from "./cache";
 export { use_folders } from "./hook";
 export {
+  compare_folders_a_z,
+  get_child_folders,
+  is_folder_tree_sorted_a_z,
+  is_sorted_a_z,
+  place_folder_among_siblings,
+  resort_after_rename,
+  sort_folder_tree_a_z,
+} from "./sort";
+export type { FolderOrderEntry } from "./sort";
+export {
   build_folder_tree,
   build_tree_guides,
   compare_sibling_folders,

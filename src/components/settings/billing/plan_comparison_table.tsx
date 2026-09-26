@@ -133,6 +133,14 @@ export function get_plan_comparison_rows(
     },
     {
       category: mail,
+      label: t("settings.plan_f_sort_folders"),
+      free: yes,
+      star: yes,
+      nova: yes,
+      supernova: yes,
+    },
+    {
+      category: mail,
       label: t("settings.f_folder_lock"),
       tip: t("settings.plan_tip_folder_lock"),
       free: no,

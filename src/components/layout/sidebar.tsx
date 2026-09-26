@@ -172,6 +172,7 @@ const sidebar_base = ({
     state: folders_state,
     unread_counts: folder_unread_counts,
     reorder_folders,
+    sort_folders_a_z,
     refresh: refresh_folders,
   } = use_folders();
   const { state: tags_state, refresh: refresh_tags } = use_tags();
@@ -876,6 +877,7 @@ const sidebar_base = ({
             on_toggle_section={toggle_folders_collapsed}
             reorder_folders={reorder_folders}
             section_collapsed={preferences.sidebar_folders_collapsed}
+            sort_folders_a_z={sort_folders_a_z}
             set_create_folder_parent_token={set_create_folder_parent_token}
             set_folders_expanded={set_folders_expanded}
             set_is_create_folder_open={set_is_create_folder_open}

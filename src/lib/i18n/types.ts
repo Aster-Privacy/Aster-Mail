@@ -906,6 +906,8 @@ export interface CommonTranslations {
   parent_folder: string;
   move_up: string;
   move_down: string;
+  sort_a_to_z: string;
+  folders_sorted_a_to_z: string;
   move_to: string;
   change_folder_color: string;
   select_a_color: string;
@@ -6225,6 +6227,7 @@ export interface SettingsTranslations {
   plan_cat_support: string;
   plan_f_cross_platform: string;
   plan_f_folders: string;
+  plan_f_sort_folders: string;
   plan_f_custom_categories: string;
   plan_f_scheduled_send: string;
   plan_f_snooze: string;

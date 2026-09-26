@@ -301,6 +301,8 @@ export const fr = {
     parent_folder: "Dossier parent",
     move_up: "Monter",
     move_down: "Descendre",
+    sort_a_to_z: "Trier de A à Z",
+    folders_sorted_a_to_z: "Dossiers triés de A à Z",
     move_to: "Déplacer vers",
     lock_extra_security:
       "Le verrouillage ajoute une sécurité supplémentaire au chiffrement existant. Vous pouvez le déverrouiller à tout moment.",
@@ -6264,6 +6266,7 @@ export const fr = {
     plan_f_expiration: "Messages à expiration",
     plan_f_folder_auto_clean: "Nettoyage automatique des dossiers",
     plan_f_folders: "Dossiers et libellés",
+    plan_f_sort_folders: "Trier les dossiers de A à Z",
     plan_f_key_management: "Gestion des clés",
     plan_f_link_warnings: "Alertes sur les liens suspects",
     plan_f_one_click_unsub: "Désabonnement en un clic",

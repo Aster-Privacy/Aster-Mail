@@ -34,6 +34,7 @@ import {
   TrashIcon,
   EnvelopeIcon,
   PlusIcon,
+  BarsArrowDownIcon,
   LockClosedIcon,
   LockOpenIcon,
   UsersIcon,
@@ -49,6 +50,7 @@ import {
   build_folder_tree,
   build_tree_guides,
   flatten_folder_tree,
+  is_folder_tree_sorted_a_z,
 } from "@/hooks/use_folders";
 import { tag_icon_map } from "@/components/ui/email_tag";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
@@ -136,6 +138,7 @@ interface DrawerNavContentProps {
     trash: number;
   };
   on_open_create_folder: () => void;
+  on_sort_folders?: () => void;
   on_open_create_label: () => void;
   on_open_create_alias: () => void;
   on_open_edit_folder: (folder: DecryptedFolder) => void;
@@ -171,6 +174,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
   alias_unread_counts = {},
   stats,
   on_open_create_folder,
+  on_sort_folders,
   on_open_create_label,
   on_open_create_alias,
   on_open_edit_folder,
@@ -184,6 +188,8 @@ export const DrawerNavContent = memo(function DrawerNavContent({
 
   const folder_tree = build_folder_tree(folders);
   const folder_nodes = flatten_folder_tree(folder_tree);
+  const can_sort_folders =
+    folders.length > 1 && !is_folder_tree_sorted_a_z(folders);
   const folder_guides = build_tree_guides(folder_tree);
 
   const is_active = (path: string) => {
@@ -344,14 +350,27 @@ export const DrawerNavContent = memo(function DrawerNavContent({
           <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[var(--text-muted)] opacity-70">
             {t("common.folders")}
           </span>
-          <button
-            className="-m-1 flex min-h-6 min-w-6 items-center justify-center rounded p-1.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
-            type="button"
-            aria-label={t("common.create_folder")}
-            onClick={on_open_create_folder}
-          >
-            <PlusIcon className="h-3.5 w-3.5" />
-          </button>
+          <div className="flex items-center gap-2">
+            {on_sort_folders && can_sort_folders && (
+              <button
+                className="-m-1 flex min-h-6 min-w-6 items-center justify-center rounded p-1.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
+                type="button"
+                aria-label={t("common.sort_a_to_z")}
+                data-testid="mobile-folders-sort-a-to-z"
+                onClick={on_sort_folders}
+              >
+                <BarsArrowDownIcon className="h-3.5 w-3.5" />
+              </button>
+            )}
+            <button
+              className="-m-1 flex min-h-6 min-w-6 items-center justify-center rounded p-1.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
+              type="button"
+              aria-label={t("common.create_folder")}
+              onClick={on_open_create_folder}
+            >
+              <PlusIcon className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       </div>
       {folders.length === 0 &&
