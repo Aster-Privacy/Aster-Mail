@@ -5529,8 +5529,6 @@ export const ru = {
       "Ожидается подтверждение от {{ addresses }}. Пересылка туда пока не выполняется.",
     forwarding_verification_sent:
       "Письмо для подтверждения отправлено на {{ address }}. Пересылка начнётся после подтверждения.",
-    forwarding_internal_active:
-      "Пересылка активна. Адреса Aster на Aster не требуют подтверждения.",
     forwarding_verification_resent:
       "Письмо для подтверждения повторно отправлено на {{ address }}",
     forwarding_confirmed_success:

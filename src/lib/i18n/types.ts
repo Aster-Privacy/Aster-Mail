@@ -5593,7 +5593,6 @@ export interface SettingsTranslations {
   resend_verification_email: string;
   forwarding_awaiting_verification: string;
   forwarding_verification_sent: string;
-  forwarding_internal_active: string;
   forwarding_verification_resent: string;
   forwarding_confirmed_success: string;
   forwarding_confirmed_failed: string;

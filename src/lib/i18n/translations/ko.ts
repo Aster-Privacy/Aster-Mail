@@ -5384,8 +5384,6 @@ export const ko = {
       "{{ addresses }}의 확인을 기다리는 중입니다. 아직 그곳으로 전달되지 않습니다.",
     forwarding_verification_sent:
       "확인 이메일을 {{ address }}(으)로 보냈습니다. 확인 후 전달이 시작됩니다.",
-    forwarding_internal_active:
-      "전달이 활성화되어 있습니다. Aster에서 Aster로 향하는 주소는 확인이 필요 없습니다.",
     forwarding_verification_resent:
       "확인 이메일을 {{ address }}(으)로 다시 보냈습니다",
     forwarding_confirmed_success:

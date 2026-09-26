@@ -5464,8 +5464,6 @@ export const fr = {
       "En attente de confirmation de {{ addresses }}. Aucun message n'y est encore transféré.",
     forwarding_verification_sent:
       "E-mail de vérification envoyé à {{ address }}. Le transfert démarrera après confirmation.",
-    forwarding_internal_active:
-      "Le transfert est actif. Les destinations Aster vers Aster ne nécessitent aucune vérification.",
     forwarding_verification_resent:
       "E-mail de vérification renvoyé à {{ address }}",
     forwarding_confirmed_success:

@@ -5469,8 +5469,6 @@ export const ar = {
       "في انتظار تأكيد {{ addresses }}. لا تتم إعادة التوجيه إلى هناك بعد.",
     forwarding_verification_sent:
       "تم إرسال بريد التحقق إلى {{ address }}. تبدأ إعادة التوجيه بعد التأكيد.",
-    forwarding_internal_active:
-      "إعادة التوجيه نشطة. الوجهات من Aster إلى Aster لا تحتاج إلى تحقق.",
     forwarding_verification_resent:
       "تمت إعادة إرسال بريد التحقق إلى {{ address }}",
     forwarding_confirmed_success:

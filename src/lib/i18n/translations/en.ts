@@ -6523,8 +6523,6 @@ export const en: Translations = {
       "Waiting for {{ addresses }} to confirm. Mail is not forwarded there yet.",
     forwarding_verification_sent:
       "Verification email sent to {{ address }}. Forwarding starts once it is confirmed.",
-    forwarding_internal_active:
-      "Forwarding is active. Aster to Aster destinations do not need verification.",
     forwarding_verification_resent:
       "Verification email resent to {{ address }}",
     forwarding_confirmed_success:

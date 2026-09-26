@@ -5412,8 +5412,6 @@ export const ja = {
       "{{ addresses }} の確認を待っています。まだそこへは転送されません。",
     forwarding_verification_sent:
       "確認メールを {{ address }} に送信しました。確認後に転送が始まります。",
-    forwarding_internal_active:
-      "転送は有効です。Aster から Aster への宛先は確認が不要です。",
     forwarding_verification_resent:
       "確認メールを {{ address }} に再送信しました",
     forwarding_confirmed_success:

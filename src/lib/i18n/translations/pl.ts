@@ -5559,8 +5559,6 @@ export const pl = {
       "Oczekiwanie na potwierdzenie od {{ addresses }}. Poczta nie jest jeszcze tam przekazywana.",
     forwarding_verification_sent:
       "E-mail weryfikacyjny wysłany na {{ address }}. Przekazywanie ruszy po potwierdzeniu.",
-    forwarding_internal_active:
-      "Przekazywanie jest aktywne. Adresy Aster do Aster nie wymagają weryfikacji.",
     forwarding_verification_resent:
       "E-mail weryfikacyjny wysłany ponownie na {{ address }}",
     forwarding_confirmed_success:

@@ -6500,8 +6500,6 @@ export const it = {
       "In attesa della conferma di {{ addresses }}. La posta non viene ancora inoltrata lì.",
     forwarding_verification_sent:
       "Email di verifica inviata a {{ address }}. L'inoltro inizierà dopo la conferma.",
-    forwarding_internal_active:
-      "L'inoltro è attivo. Le destinazioni da Aster a Aster non richiedono verifica.",
     forwarding_verification_resent:
       "Email di verifica inviata di nuovo a {{ address }}",
     forwarding_confirmed_success:

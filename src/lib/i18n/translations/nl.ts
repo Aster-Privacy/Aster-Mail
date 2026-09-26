@@ -5317,8 +5317,6 @@ export const nl = {
       "Wachten op bevestiging van {{ addresses }}. Er wordt daar nog niets doorgestuurd.",
     forwarding_verification_sent:
       "Verificatiemail verzonden naar {{ address }}. Doorsturen begint na bevestiging.",
-    forwarding_internal_active:
-      "Doorsturen is actief. Bestemmingen van Aster naar Aster hoeven niet geverifieerd te worden.",
     forwarding_verification_resent:
       "Verificatiemail opnieuw verzonden naar {{ address }}",
     forwarding_confirmed_success:

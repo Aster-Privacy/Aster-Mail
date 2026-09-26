@@ -5331,8 +5331,6 @@ export const de = {
       "Warten auf die Bestätigung von {{ addresses }}. Dorthin wird noch nicht weitergeleitet.",
     forwarding_verification_sent:
       "Bestätigungs-E-Mail an {{ address }} gesendet. Die Weiterleitung startet nach der Bestätigung.",
-    forwarding_internal_active:
-      "Weiterleitung ist aktiv. Ziele von Aster zu Aster benötigen keine Bestätigung.",
     forwarding_verification_resent:
       "Bestätigungs-E-Mail erneut an {{ address }} gesendet",
     forwarding_confirmed_success:

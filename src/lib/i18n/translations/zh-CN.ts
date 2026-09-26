@@ -4908,7 +4908,6 @@ export const zh_CN = {
       "正在等待 {{ addresses }} 确认，暂不会转发到该地址。",
     forwarding_verification_sent:
       "验证邮件已发送至 {{ address }}，确认后即开始转发。",
-    forwarding_internal_active: "转发已启用。Aster 到 Aster 的地址无需验证。",
     forwarding_verification_resent: "验证邮件已重新发送至 {{ address }}",
     forwarding_confirmed_success: "地址已验证，转发现已启用。",
     forwarding_confirmed_failed:

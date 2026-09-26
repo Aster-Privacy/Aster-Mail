@@ -83,14 +83,6 @@ export function AutoForwardTab() {
         return;
       }
 
-      const destinations = rule.destinations ?? [];
-
-      if (destinations.length > 0 && destinations.every((d) => d.is_internal)) {
-        show_toast(t("settings.forwarding_internal_active"), "success");
-
-        return;
-      }
-
       show_toast(
         created
           ? t("common.forwarding_rule_created")

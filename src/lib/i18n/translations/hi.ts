@@ -6574,8 +6574,6 @@ export const hi = {
       "{{ addresses }} की पुष्टि का इंतज़ार है। मेल वहां अभी फ़ॉरवर्ड नहीं हो रही।",
     forwarding_verification_sent:
       "पुष्टि ईमेल {{ address }} पर भेज दी गई। पुष्टि होते ही फ़ॉरवर्डिंग शुरू हो जाएगी।",
-    forwarding_internal_active:
-      "फ़ॉरवर्डिंग चालू है। Aster से Aster गंतव्यों के लिए पुष्टि ज़रूरी नहीं है।",
     forwarding_verification_resent:
       "पुष्टि ईमेल {{ address }} पर फिर से भेज दी गई",
     forwarding_confirmed_success:

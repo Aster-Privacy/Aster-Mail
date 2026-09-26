@@ -5414,8 +5414,6 @@ export const es = {
       "Esperando la confirmación de {{ addresses }}. Todavía no se reenvía allí.",
     forwarding_verification_sent:
       "Correo de verificación enviado a {{ address }}. El reenvío empezará cuando se confirme.",
-    forwarding_internal_active:
-      "El reenvío está activo. Los destinos de Aster a Aster no necesitan verificación.",
     forwarding_verification_resent:
       "Correo de verificación reenviado a {{ address }}",
     forwarding_confirmed_success:

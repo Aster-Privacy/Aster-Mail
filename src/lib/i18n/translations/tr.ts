@@ -5363,8 +5363,6 @@ export const tr = {
       "{{ addresses }} adresinin onayı bekleniyor. Oraya henüz iletim yapılmıyor.",
     forwarding_verification_sent:
       "Doğrulama e-postası {{ address }} adresine gönderildi. İletim onaydan sonra başlar.",
-    forwarding_internal_active:
-      "İletim etkin. Aster'dan Aster'a hedefler doğrulama gerektirmez.",
     forwarding_verification_resent:
       "Doğrulama e-postası {{ address }} adresine yeniden gönderildi",
     forwarding_confirmed_success: "Hedef doğrulandı. İletim artık etkin.",
