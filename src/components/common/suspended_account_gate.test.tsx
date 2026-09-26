@@ -94,7 +94,7 @@ async function render(): Promise<HTMLDivElement> {
 
 function button_with(text: string): HTMLButtonElement {
   const match = Array.from(container?.querySelectorAll("button") ?? []).find(
-    (element) => element.textContent === text,
+    (element) => element.textContent?.startsWith(text),
   );
 
   expect(match).toBeTruthy();
@@ -149,8 +149,12 @@ describe("suspended account gate", () => {
     expect(element.querySelector("[data-testid=switcher]")).toBeTruthy();
     button_with("common.suspended_download");
     button_with("common.pending_deletion_sign_out");
+    expect(element.querySelector("img[src='/text_logo.png']")).toBeTruthy();
 
-    const appeal = element.querySelector("a.aster_btn_depth");
+    const appeal = element.querySelector(
+      "[data-testid=suspended_start_appeal]",
+    );
+
     expect(appeal?.getAttribute("href")).toBe(
       "https://astermail.org/appeal?address=sam%40astermail.org",
     );

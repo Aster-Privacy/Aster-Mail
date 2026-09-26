@@ -36,6 +36,7 @@ import { app_locale } from "@/utils/date_format";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { WorkspaceSwitcher } from "@/components/layout/workspace_switcher";
 import { use_primary_identity } from "@/lib/primary_identity";
+import { WarningIcon } from "@/components/auth/auth_styles";
 
 const ExportModal = lazy(() =>
   import("@/components/settings/export_modal").then((m) => ({
@@ -85,6 +86,20 @@ function split_on_token(text: string, token: string): [string, string] {
 
   return [text.slice(0, index), text.slice(index + token.length)];
 }
+
+const RowChevron = () => (
+  <svg
+    aria-hidden="true"
+    className="h-4 w-4 flex-shrink-0"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    style={{ color: "var(--text-muted)" }}
+    viewBox="0 0 24 24"
+  >
+    <path d="m9 6 6 6-6 6" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 
 export function build_appeal_url(address: string): string {
   return address
@@ -215,157 +230,164 @@ export function SuspendedAccountGate() {
         ? t("common.suspended_since", {
             date: format_date(details.suspended_at),
           })
-        : t("common.suspended_title");
+        : "";
 
   return (
     <div
       aria-labelledby="suspended_account_title"
       aria-modal="true"
-      className="fixed inset-0 z-[55] flex flex-col overflow-y-auto"
+      className="fixed inset-0 z-[55] overflow-y-auto bg-surf-primary text-txt-primary"
       data-testid="suspended_account_gate"
       role="dialog"
-      style={{
-        backgroundColor: "var(--bg-primary)",
-        color: "var(--text-primary)",
-      }}
     >
-      <header className="flex items-center justify-between gap-3 px-4 pt-[max(0.75rem,env(safe-area-inset-top))] pb-2 sm:px-6">
-        <span className="text-[15px] font-semibold tracking-tight">Aster</span>
-        <WorkspaceSwitcher
-          align="end"
-          is_open={is_switcher_open}
-          on_open_change={set_is_switcher_open}
-          trigger={
-            <button
-              aria-label={t("auth.your_accounts")}
-              className="flex max-w-[280px] items-center gap-2 rounded-full py-1 ps-1 pe-3 text-start transition-colors hover:bg-[var(--bg-secondary)]"
-              type="button"
-            >
-              <ProfileAvatar
-                className="block"
-                email={account_email}
-                image_url={user?.profile_picture}
-                name={display_name}
-                profile_color={preferences.profile_color}
-                size="sm"
-              />
-              <span className="hidden min-w-0 sm:block">
-                <span className="block truncate text-[13px] font-medium leading-tight">
-                  {display_name}
-                </span>
-                <span
-                  className="block truncate text-[12px] leading-tight"
-                  style={{ color: "var(--text-muted)" }}
-                >
-                  {display_email}
-                </span>
-              </span>
-              <svg
-                aria-hidden="true"
-                className="h-4 w-4 flex-shrink-0"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                style={{ color: "var(--text-muted)" }}
-                viewBox="0 0 24 24"
+      <div className="min-h-full flex items-start md:items-center justify-center py-8 md:py-4 px-4 pt-[max(2rem,env(safe-area-inset-top))]">
+        <div className="flex w-full max-w-[440px] flex-col items-start px-4 text-start">
+          <img
+            alt="Aster"
+            className="h-7"
+            decoding="async"
+            draggable={false}
+            src="/text_logo.png"
+          />
+
+          <WorkspaceSwitcher
+            align="start"
+            is_open={is_switcher_open}
+            on_open_change={set_is_switcher_open}
+            trigger={
+              <button
+                aria-label={t("auth.your_accounts")}
+                className="account_menu_card mt-6 flex w-full items-center gap-3.5 rounded-[18px] px-4 py-3.5 text-start transition-[filter] hover:brightness-[1.06]"
+                data-testid="suspended_account_switcher"
+                type="button"
               >
-                <path
-                  d="m6 9 6 6 6-6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
+                <ProfileAvatar
+                  className="block"
+                  email={account_email}
+                  image_url={user?.profile_picture}
+                  name={display_name}
+                  profile_color={preferences.profile_color}
+                  size="lg"
                 />
-              </svg>
-            </button>
-          }
-        />
-      </header>
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="truncate text-[15px] font-semibold leading-tight">
+                    {display_name}
+                  </span>
+                  <span
+                    className="truncate text-[12px] leading-tight"
+                    style={{ color: "var(--text-muted)" }}
+                  >
+                    {display_email}
+                  </span>
+                </span>
+                <svg
+                  aria-hidden="true"
+                  className="h-4 w-4 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  style={{ color: "var(--text-muted)" }}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="m6 9 6 6 6-6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            }
+          />
 
-      <main className="mx-auto flex w-full max-w-[600px] flex-1 flex-col px-5 pb-10 pt-4 sm:px-6 sm:pt-8">
-        <h1 className="sr-only" id="suspended_account_title">
-          {t("common.suspended_title")}
-        </h1>
-
-        <div
-          className="flex items-start gap-3 rounded-[20px] px-4 py-3.5"
-          role="alert"
-          style={{
-            backgroundColor:
-              "color-mix(in srgb, var(--color-warning, #f59e0b) 16%, var(--bg-primary))",
-          }}
-        >
-          <svg
-            aria-hidden="true"
-            className="mt-0.5 h-5 w-5 flex-shrink-0"
-            fill="currentColor"
-            style={{ color: "var(--color-warning, #f59e0b)" }}
-            viewBox="0 0 20 20"
+          <h1
+            className="mt-6 text-base font-semibold text-txt-primary"
+            id="suspended_account_title"
           >
-            <path
-              clipRule="evenodd"
-              d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 5a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 5Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-              fillRule="evenodd"
-            />
-          </svg>
-          <p className="text-[15px] leading-snug">
-            {alert_before}
+            {t("common.suspended_title")}
+          </h1>
+          {status_line && (
+            <p className="mt-1.5 text-sm leading-relaxed text-txt-tertiary">
+              {status_line}
+            </p>
+          )}
+
+          <div
+            className="mt-4 flex w-full items-start gap-2.5 rounded-lg px-4 py-3 text-sm leading-relaxed"
+            role="alert"
+            style={{
+              backgroundColor:
+                "color-mix(in srgb, var(--color-warning, #f59e0b) 14%, transparent)",
+            }}
+          >
+            <WarningIcon color="var(--color-warning, #f59e0b)" />
+            <p>
+              {alert_before}
+              <a
+                className="font-medium underline underline-offset-2"
+                href={TERMS_URL}
+                rel="noopener noreferrer"
+                target="_blank"
+              >
+                {t("common.suspended_alert_terms")}
+              </a>
+              {alert_after}
+            </p>
+          </div>
+
+          <div className="mt-6 flex w-full flex-col gap-2">
             <a
-              className="font-medium underline underline-offset-2"
-              href={TERMS_URL}
+              className="account_menu_row flex w-full items-center gap-3.5 rounded-[16px] px-3.5 py-3.5 no-underline"
+              data-testid="suspended_start_appeal"
+              href={build_appeal_url(display_email)}
               rel="noopener noreferrer"
               target="_blank"
             >
-              {t("common.suspended_alert_terms")}
+              <span className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="text-[13px] font-medium leading-tight text-txt-primary">
+                  {t("common.suspended_start_appeal")}
+                </span>
+                <span
+                  className="text-[12px] leading-snug"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {t("common.suspended_appeal_hint")}
+                </span>
+              </span>
+              <RowChevron />
             </a>
-            {alert_after}
-          </p>
-        </div>
+            <button
+              className="account_menu_row flex w-full items-center gap-3.5 rounded-[16px] px-3.5 py-3.5 text-start disabled:opacity-50"
+              data-testid="suspended_download"
+              disabled={is_busy}
+              type="button"
+              onClick={() => set_is_export_open(true)}
+            >
+              <span className="flex min-w-0 flex-1 flex-col gap-1">
+                <span className="text-[13px] font-medium leading-tight text-txt-primary">
+                  {t("common.suspended_download")}
+                </span>
+                <span
+                  className="text-[12px] leading-snug"
+                  style={{ color: "var(--text-muted)" }}
+                >
+                  {t("common.suspended_download_hint")}
+                </span>
+              </span>
+              <RowChevron />
+            </button>
+          </div>
 
-        <p className="mt-7 text-[17px] font-semibold leading-snug">
-          {status_line}
-        </p>
-
-        <p
-          className="mt-4 text-[15px] leading-relaxed"
-          style={{ color: "var(--text-secondary)" }}
-        >
-          {t("common.suspended_appeal_hint")}
-        </p>
-        <p
-          className="mt-4 text-[15px] leading-relaxed"
-          style={{ color: "var(--text-secondary)" }}
-        >
-          {t("common.suspended_download_hint")}
-        </p>
-
-        <div className="mt-9 flex flex-wrap items-center justify-between gap-3">
           <button
-            className="aster_btn aster_btn_ghost aster_btn_lg -ms-3"
+            className="account_menu_manage mt-6 h-9 w-full rounded-full text-[13px] font-medium transition-colors disabled:opacity-50"
+            data-testid="suspended_sign_out"
             disabled={is_busy}
             type="button"
-            onClick={() => set_is_export_open(true)}
+            onClick={handle_sign_out}
           >
-            {t("common.suspended_download")}
+            {t("common.pending_deletion_sign_out")}
           </button>
-          <a
-            className="aster_btn aster_btn_depth aster_btn_lg"
-            href={build_appeal_url(display_email)}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            {t("common.suspended_start_appeal")}
-          </a>
         </div>
-
-        <button
-          className="mt-8 self-start text-[14px] font-medium hover:underline disabled:opacity-50"
-          disabled={is_busy}
-          style={{ color: "var(--text-muted)" }}
-          type="button"
-          onClick={handle_sign_out}
-        >
-          {t("common.pending_deletion_sign_out")}
-        </button>
-      </main>
+      </div>
 
       {is_export_open && (
         <Suspense fallback={null}>
