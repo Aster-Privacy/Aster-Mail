@@ -295,17 +295,6 @@ export function build_mobile_sign_in_handlers(
         return;
       }
 
-      if (response.data.is_suspended) {
-        sessionStorage.setItem("aster_suspended", "true");
-        await timing_safe_delay();
-        set_error(t("common.account_suspended"));
-        set_is_loading(false);
-        set_captcha_token("");
-        turnstile_ref.current?.reset();
-
-        return;
-      }
-
       set_status(t("auth.decrypting_vault"));
       const vault = await decrypt_vault(
         response.data.encrypted_vault,
