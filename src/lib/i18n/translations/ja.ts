@@ -8716,6 +8716,13 @@ export const ja = {
     loading_preview: "プレビューを読み込み中…",
     preview_failed:
       "プレビューが読み込まれませんでした。メールを開くと内容が表示されます。",
+    pdf_preview_failed: "このPDFはここに表示できません。開くにはダウンロードしてください。",
+    pdf_password_title: "このPDFはパスワードで保護されています",
+    pdf_password_description: "このPDFを表示するには、パスワードを入力してください。パスワードはこのデバイスから送信されません。",
+    pdf_password_label: "PDFのパスワード",
+    pdf_password_incorrect: "パスワードが正しくありません。もう一度お試しください。",
+    pdf_password_submit: "開く",
+    pdf_password_protected: "パスワード保護",
     move_1_conversation: "1件の会話を移動",
     move_n_conversations: "{{ count }}件の会話を移動",
     move_n_conversations_other: "{{count}}件の会話を移動",

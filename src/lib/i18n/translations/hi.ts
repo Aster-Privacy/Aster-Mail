@@ -8074,6 +8074,13 @@ export const hi = {
     total_pages_label: "{{count}} पेज",
     loading_preview: "झलक लोड हो रही है…",
     preview_failed: "झलक लोड नहीं हुई। ईमेल खोलने पर वह दिख जाएगी।",
+    pdf_preview_failed: "यह PDF यहां नहीं दिखाई जा सकती। इसे खोलने के लिए, इसे डाउनलोड करें।",
+    pdf_password_title: "यह PDF पासवर्ड से सुरक्षित है",
+    pdf_password_description: "इस PDF को देखने के लिए, इसका पासवर्ड डालें। पासवर्ड इसी डिवाइस पर रहता है।",
+    pdf_password_label: "PDF पासवर्ड",
+    pdf_password_incorrect: "यह पासवर्ड गलत है। फिर से कोशिश करें।",
+    pdf_password_submit: "खोलें",
+    pdf_password_protected: "पासवर्ड से सुरक्षित",
     translation_offer: "यह संदेश {{language}} में है।",
     translation_translate: "अनुवाद करें",
     translation_offer_download:

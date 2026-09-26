@@ -7323,6 +7323,13 @@ export interface MailTranslations {
   total_pages_label: string;
   loading_preview: string;
   preview_failed: string;
+  pdf_preview_failed: string;
+  pdf_password_title: string;
+  pdf_password_description: string;
+  pdf_password_label: string;
+  pdf_password_incorrect: string;
+  pdf_password_submit: string;
+  pdf_password_protected: string;
   translation_offer: string;
   translation_translate: string;
   translation_offer_download: string;

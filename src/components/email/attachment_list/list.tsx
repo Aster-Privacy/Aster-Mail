@@ -118,6 +118,9 @@ export function AttachmentList({
   );
   const [load_failed, set_load_failed] = useState(false);
   const [reload_token, set_reload_token] = useState(0);
+  const [locked_pdf_ids, set_locked_pdf_ids] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
   const bytes_fetch_ref = useRef<Promise<
     Map<string, { encrypted_data: string; data_nonce: string }>
   > | null>(null);
@@ -203,11 +206,13 @@ export function AttachmentList({
       if (pdf_atts.length === 0) return;
 
       let render_pdf_thumbnail: (typeof import("@/lib/pdf_utils"))["render_pdf_thumbnail"];
+      let is_pdf_password_error: (typeof import("@/lib/pdf_utils"))["is_pdf_password_error"];
 
       try {
         const pdf_mod = await import("@/lib/pdf_utils");
 
         render_pdf_thumbnail = pdf_mod.render_pdf_thumbnail;
+        is_pdf_password_error = pdf_mod.is_pdf_password_error;
       } catch {
         return;
       }
@@ -268,8 +273,14 @@ export function AttachmentList({
           set_attachments((prev) =>
             prev.map((a) => (a.id === att.id ? { ...a, preview_url: url } : a)),
           );
-        } catch {
-          if (is_cancelled()) pdf_attempted_ref.current.delete(att.id);
+        } catch (caught) {
+          if (is_cancelled()) {
+            pdf_attempted_ref.current.delete(att.id);
+          } else if (is_pdf_password_error(caught)) {
+            set_locked_pdf_ids((prev) =>
+              prev.has(att.id) ? prev : new Set(prev).add(att.id),
+            );
+          }
         }
       }
     },
@@ -856,6 +867,7 @@ export function AttachmentList({
               key={att.id}
               att={att}
               is_downloading={downloading === att.id}
+              is_password_protected={locked_pdf_ids.has(att.id)}
               on_click={() => handle_click(att)}
               on_download={(e) => handle_download(att, e)}
             />

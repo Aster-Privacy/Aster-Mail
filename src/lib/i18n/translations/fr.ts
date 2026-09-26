@@ -8851,6 +8851,13 @@ export const fr = {
     loading_preview: "Chargement de l'aperçu…",
     preview_failed:
       "L'aperçu ne s'est pas chargé. Ouvrir le message l'affichera.",
+    pdf_preview_failed: "Ce PDF ne peut pas s'afficher ici. Pour l'ouvrir, téléchargez-le.",
+    pdf_password_title: "Ce PDF est protégé par un mot de passe",
+    pdf_password_description: "Pour afficher ce PDF, saisissez son mot de passe. Le mot de passe reste sur cet appareil.",
+    pdf_password_label: "Mot de passe du PDF",
+    pdf_password_incorrect: "Ce mot de passe est incorrect. Réessayez.",
+    pdf_password_submit: "Ouvrir",
+    pdf_password_protected: "Protégé par mot de passe",
     move_1_conversation: "Déplacer 1 conversation",
     move_n_conversations: "Déplacer {{ count }} conversations",
     move_n_conversations_one: "Déplacer {{count}} conversation",

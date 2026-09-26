@@ -8956,6 +8956,13 @@ export const ru = {
     loading_preview: "Загрузка предпросмотра…",
     preview_failed:
       "Предпросмотр не загрузился. Открытие письма его показывает.",
+    pdf_preview_failed: "Этот PDF нельзя показать здесь. Чтобы открыть его, скачайте файл.",
+    pdf_password_title: "Этот PDF защищен паролем",
+    pdf_password_description: "Чтобы просмотреть этот PDF, введите его пароль. Пароль остается на этом устройстве.",
+    pdf_password_label: "Пароль PDF",
+    pdf_password_incorrect: "Неверный пароль. Попробуйте еще раз.",
+    pdf_password_submit: "Открыть",
+    pdf_password_protected: "Защищен паролем",
     move_1_conversation: "Переместить 1 переписку",
     move_n_conversations: "Переместить {{ count }} переписок",
     move_n_conversations_one: "Переместить {{count}} переписку",
