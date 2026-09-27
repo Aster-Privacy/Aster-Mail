@@ -209,28 +209,28 @@ export function AliasesSection() {
             trailing={
               <div className="flex items-center gap-1">
                 <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={
-                      alias_csv_locked
-                        ? () =>
-                            prompt_upgrade(
-                              t("settings.feature_requires_upgrade"),
-                              undefined,
-                              "has_advanced_aliases",
-                            )
-                        : () => set_show_export_modal(true)
-                    }
-                  >
-                    {t("settings.alias_export_csv")}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => set_show_import_modal(true)}
-                  >
-                    {t("settings.alias_import_csv")}
-                  </Button>
+                  size="sm"
+                  variant="ghost"
+                  onClick={
+                    alias_csv_locked
+                      ? () =>
+                          prompt_upgrade(
+                            t("settings.feature_requires_upgrade"),
+                            undefined,
+                            "has_advanced_aliases",
+                          )
+                      : () => set_show_export_modal(true)
+                  }
+                >
+                  {t("settings.alias_export_csv")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => set_show_import_modal(true)}
+                >
+                  {t("settings.alias_import_csv")}
+                </Button>
               </div>
             }
           >

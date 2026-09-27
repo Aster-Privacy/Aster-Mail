@@ -183,7 +183,10 @@ export function RecentlyDeletedDirectoriesSection({
 
   if (load_error) {
     return (
-      <Island className="flex flex-wrap items-center justify-between gap-2" padding="sm">
+      <Island
+        className="flex flex-wrap items-center justify-between gap-2"
+        padding="sm"
+      >
         <p className="text-xs text-txt-muted">
           {t("settings.recently_deleted_load_failed")}
         </p>
@@ -237,53 +240,55 @@ export function RecentlyDeletedDirectoriesSection({
             </Button>
           </div>
           <Island divided>
-          {directories.map((directory) => (
-            <IslandRow
-              key={directory.id}
-              description={t("settings.alias_deleted_at", {
-                date: format_date(directory.deleted_at),
-              })}
-              icon={<TrashIcon />}
-              label={
-                <span className="block truncate">
-                  anything.{directory.label}@{directory.domain}
-                </span>
-              }
-              trailing={
-              <div className="flex items-center gap-1.5 flex-shrink-0">
-                <Button
-                  disabled={restoring_id === directory.id}
-                  size="sm"
-                  variant="depth"
-                  onClick={() => handle_restore(directory.id)}
-                >
-                  <ArrowUturnLeftIcon
-                    aria-hidden="true"
-                    className="w-3.5 h-3.5 rtl:-scale-x-100"
-                  />
-                  {t("settings.restore_alias_action")}
-                  {restoring_id === directory.id && <ButtonSpinner size="xs" />}
-                </Button>
-                <Button
-                  aria-label={t("settings.delete_alias_permanently_action")}
-                  disabled={purging_id === directory.id}
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => set_confirm_purge(directory)}
-                >
-                  {purging_id === directory.id ? (
-                    <Spinner size="xs" />
-                  ) : (
-                    <TrashIcon
-                      aria-hidden="true"
-                      className="w-3.5 h-3.5 text-red-500"
-                    />
-                  )}
-                </Button>
-              </div>
-              }
-            />
-          ))}
+            {directories.map((directory) => (
+              <IslandRow
+                key={directory.id}
+                description={t("settings.alias_deleted_at", {
+                  date: format_date(directory.deleted_at),
+                })}
+                icon={<TrashIcon />}
+                label={
+                  <span className="block truncate">
+                    anything.{directory.label}@{directory.domain}
+                  </span>
+                }
+                trailing={
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <Button
+                      disabled={restoring_id === directory.id}
+                      size="sm"
+                      variant="depth"
+                      onClick={() => handle_restore(directory.id)}
+                    >
+                      <ArrowUturnLeftIcon
+                        aria-hidden="true"
+                        className="w-3.5 h-3.5 rtl:-scale-x-100"
+                      />
+                      {t("settings.restore_alias_action")}
+                      {restoring_id === directory.id && (
+                        <ButtonSpinner size="xs" />
+                      )}
+                    </Button>
+                    <Button
+                      aria-label={t("settings.delete_alias_permanently_action")}
+                      disabled={purging_id === directory.id}
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => set_confirm_purge(directory)}
+                    >
+                      {purging_id === directory.id ? (
+                        <Spinner size="xs" />
+                      ) : (
+                        <TrashIcon
+                          aria-hidden="true"
+                          className="w-3.5 h-3.5 text-red-500"
+                        />
+                      )}
+                    </Button>
+                  </div>
+                }
+              />
+            ))}
           </Island>
         </div>
       )}

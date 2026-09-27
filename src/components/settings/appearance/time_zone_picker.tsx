@@ -201,10 +201,7 @@ export function TimeZonePicker({
           <ChevronDownIcon className="h-4 w-4 shrink-0 text-[var(--text-muted)] transition-transform duration-200 group-data-[state=open]:rotate-180" />
         </button>
       </PopoverTrigger>
-      <PopoverContent
-        align="end"
-        className="w-[320px] p-0"
-      >
+      <PopoverContent align="end" className="w-[320px] p-0">
         <div className="flex items-center gap-2 border-b border-[var(--aster-floating-divider)] px-3.5 py-2.5">
           <MagnifyingGlassIcon className="h-4 w-4 flex-shrink-0 text-txt-muted" />
           <input

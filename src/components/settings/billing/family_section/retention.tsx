@@ -212,7 +212,10 @@ export function RetentionContent({
           },
         ].map(({ key, label, hint, info }) => {
           return (
-            <div key={key} className="flex min-h-14 items-center justify-between gap-3 px-4 py-4">
+            <div
+              key={key}
+              className="flex min-h-14 items-center justify-between gap-3 px-4 py-4"
+            >
               <div className="flex-1 pe-4">
                 <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
                   {label}
@@ -299,7 +302,10 @@ export function RetentionContent({
       {(() => {
         if (consent_sent_payload) {
           return (
-            <Island className="flex flex-wrap items-center justify-between gap-2 px-4 py-3" tone="warning">
+            <Island
+              className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
+              tone="warning"
+            >
               <p className="text-xs text-amber-700 dark:text-amber-300 flex-1 me-3">
                 {t("settings.fam_consent_sent_toast")}
               </p>
@@ -314,7 +320,10 @@ export function RetentionContent({
           JSON.stringify(policy) !== JSON.stringify(server_policy);
 
         return has_enforce_draft ? (
-          <Island className="flex flex-wrap items-center justify-between gap-2 px-4 py-3" tone="warning">
+          <Island
+            className="flex flex-wrap items-center justify-between gap-2 px-4 py-3"
+            tone="warning"
+          >
             <p className="text-xs text-amber-700 dark:text-amber-300 flex-1 me-3">
               {t("settings.fam_ret_unsaved_consent")}
             </p>

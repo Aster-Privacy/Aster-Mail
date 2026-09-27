@@ -633,7 +633,10 @@ export function SecurityContent({
           <Island className="overflow-hidden">
             {compliance.map((m) => {
               return (
-                <div key={m.user_id} className="flex min-h-14 items-center gap-3 px-4 py-3">
+                <div
+                  key={m.user_id}
+                  className="flex min-h-14 items-center gap-3 px-4 py-3"
+                >
                   <ProfileAvatar
                     email={`${m.username}@${m.email_domain}`}
                     name={m.username}

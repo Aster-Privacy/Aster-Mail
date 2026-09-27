@@ -200,7 +200,10 @@ export function ActivityContent({ members }: { members: FamilyMemberInfo[] }) {
                 : null;
 
             return (
-              <div key={entry.id} className="flex min-h-14 items-center gap-3 px-4 py-3">
+              <div
+                key={entry.id}
+                className="flex min-h-14 items-center gap-3 px-4 py-3"
+              >
                 {actor_email && (
                   <ProfileAvatar
                     className="flex-shrink-0"

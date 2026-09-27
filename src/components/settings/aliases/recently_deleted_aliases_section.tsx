@@ -255,7 +255,10 @@ export function RecentlyDeletedAliasesSection({
 
   if (load_error) {
     return (
-      <Island className="flex flex-wrap items-center justify-between gap-2 mt-2" padding="sm">
+      <Island
+        className="flex flex-wrap items-center justify-between gap-2 mt-2"
+        padding="sm"
+      >
         <p className="text-xs text-txt-muted">
           {t("settings.recently_deleted_load_failed")}
         </p>
@@ -311,66 +314,70 @@ export function RecentlyDeletedAliasesSection({
             )}
           </div>
           <Island divided>
-          {aliases.map((alias) => (
-            <IslandRow
-              key={alias.id}
-              description={t("settings.alias_deleted_at" as TranslationKey, {
-                date: format_date(alias.deleted_at),
-              })}
-              icon={<TrashIcon />}
-              label={
-                <span className="block truncate">{alias.full_address}</span>
-              }
-              trailing={restore_locked ? (
-                <UpgradeBtn
-                  size="sm"
-                  onClick={() =>
-                    prompt_upgrade(
-                      t("settings.feature_requires_upgrade"),
-                      undefined,
-                      "has_advanced_aliases",
-                    )
-                  }
-                >
-                  {t("settings.alias_feature_locked_upgrade_cta")}
-                </UpgradeBtn>
-              ) : (
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <Button
-                    disabled={restoring_id === alias.id}
-                    size="sm"
-                    variant="depth"
-                    onClick={() => handle_restore(alias.id)}
-                  >
-                    <ArrowUturnLeftIcon
-                      aria-hidden="true"
-                      className="w-3.5 h-3.5 rtl:-scale-x-100"
-                    />
-                    {t("settings.restore_alias_action" as TranslationKey)}
-                    {restoring_id === alias.id && <ButtonSpinner size="xs" />}
-                  </Button>
-                  <Button
-                    aria-label={t(
-                      "settings.delete_alias_permanently_action" as TranslationKey,
-                    )}
-                    disabled={purging_id === alias.id}
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => set_confirm_purge(alias)}
-                  >
-                    {purging_id === alias.id ? (
-                      <Spinner size="xs" />
-                    ) : (
-                      <TrashIcon
-                        aria-hidden="true"
-                        className="w-3.5 h-3.5 text-red-500"
-                      />
-                    )}
-                  </Button>
-                </div>
-              )}
-            />
-          ))}
+            {aliases.map((alias) => (
+              <IslandRow
+                key={alias.id}
+                description={t("settings.alias_deleted_at" as TranslationKey, {
+                  date: format_date(alias.deleted_at),
+                })}
+                icon={<TrashIcon />}
+                label={
+                  <span className="block truncate">{alias.full_address}</span>
+                }
+                trailing={
+                  restore_locked ? (
+                    <UpgradeBtn
+                      size="sm"
+                      onClick={() =>
+                        prompt_upgrade(
+                          t("settings.feature_requires_upgrade"),
+                          undefined,
+                          "has_advanced_aliases",
+                        )
+                      }
+                    >
+                      {t("settings.alias_feature_locked_upgrade_cta")}
+                    </UpgradeBtn>
+                  ) : (
+                    <div className="flex items-center gap-1.5 flex-shrink-0">
+                      <Button
+                        disabled={restoring_id === alias.id}
+                        size="sm"
+                        variant="depth"
+                        onClick={() => handle_restore(alias.id)}
+                      >
+                        <ArrowUturnLeftIcon
+                          aria-hidden="true"
+                          className="w-3.5 h-3.5 rtl:-scale-x-100"
+                        />
+                        {t("settings.restore_alias_action" as TranslationKey)}
+                        {restoring_id === alias.id && (
+                          <ButtonSpinner size="xs" />
+                        )}
+                      </Button>
+                      <Button
+                        aria-label={t(
+                          "settings.delete_alias_permanently_action" as TranslationKey,
+                        )}
+                        disabled={purging_id === alias.id}
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => set_confirm_purge(alias)}
+                      >
+                        {purging_id === alias.id ? (
+                          <Spinner size="xs" />
+                        ) : (
+                          <TrashIcon
+                            aria-hidden="true"
+                            className="w-3.5 h-3.5 text-red-500"
+                          />
+                        )}
+                      </Button>
+                    </div>
+                  )
+                }
+              />
+            ))}
           </Island>
         </div>
       )}

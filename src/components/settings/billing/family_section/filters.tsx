@@ -335,10 +335,7 @@ export function MemberConsentPanel() {
       </div>
       <div className="space-y-2">
         {requests.map((req) => (
-          <div
-            key={req.id}
-            className="rounded-xl bg-surf-primary p-3"
-          >
+          <div key={req.id} className="rounded-xl bg-surf-primary p-3">
             <p className="text-xs text-txt-muted mb-1">
               {t("settings.fam_consent_member_from", {
                 name: req.admin_username,
@@ -526,10 +523,7 @@ export function FiltersContent({
       {loading && filters.length === 0 && (
         <div className="flex flex-col gap-2">
           {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="aster_island h-20 animate-pulse"
-            />
+            <div key={i} className="aster_island h-20 animate-pulse" />
           ))}
         </div>
       )}

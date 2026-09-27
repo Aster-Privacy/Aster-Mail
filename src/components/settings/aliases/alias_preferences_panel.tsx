@@ -293,9 +293,7 @@ export function AliasPreferencesPanel({
                 onValueChange={(v) =>
                   save_pref({
                     alias_unsubscribe_action: v as
-                      | "preserve"
-                      | "disable_alias"
-                      | "block_contact",
+                      "preserve" | "disable_alias" | "block_contact",
                   })
                 }
               >

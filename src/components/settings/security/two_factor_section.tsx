@@ -472,95 +472,101 @@ export function ForwardSecrecyGroup({
       />
       {forward_secrecy_enabled && (
         <>
-        <div className="mx-4 h-px bg-[var(--aster-island-divider)]" />
-        <div className="px-4 pt-4 pb-4 space-y-6">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <FingerPrintIcon className="w-4 h-4 text-txt-muted" />
-              <span className="text-[13px] font-medium text-txt-muted">
-                {t("settings.current_key_status")}
-              </span>
+          <div className="mx-4 h-px bg-[var(--aster-island-divider)]" />
+          <div className="px-4 pt-4 pb-4 space-y-6">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <FingerPrintIcon className="w-4 h-4 text-txt-muted" />
+                <span className="text-[13px] font-medium text-txt-muted">
+                  {t("settings.current_key_status")}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-[13px]">
+                <span className="text-txt-secondary">{t("settings.age")}</span>
+                <span className="text-txt-primary">
+                  {key_age_hours !== null
+                    ? key_age_hours < 24
+                      ? t("settings.hours", { count: key_age_hours })
+                      : t("settings.days", {
+                          count: Math.floor(key_age_hours / 24),
+                        })
+                    : "—"}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-[13px] mt-1.5">
+                <span className="text-txt-secondary">
+                  {t("settings.fingerprint")}
+                </span>
+                <span className="font-mono text-txt-primary min-w-0 break-all text-end ms-4">
+                  {key_fingerprint || "—"}
+                </span>
+              </div>
             </div>
-            <div className="flex justify-between items-center text-[13px]">
-              <span className="text-txt-secondary">{t("settings.age")}</span>
-              <span className="text-txt-primary">
-                {key_age_hours !== null
-                  ? key_age_hours < 24
-                    ? t("settings.hours", { count: key_age_hours })
-                    : t("settings.days", {
-                        count: Math.floor(key_age_hours / 24),
-                      })
-                  : "—"}
-              </span>
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <ArrowPathIcon className="w-4 h-4 text-txt-muted" />
+                <span className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+                  {t("settings.key_rotation_interval")}
+                  <InfoPopover
+                    description={t(
+                      "settings.info_key_rotation_interval_description",
+                    )}
+                    title={t("settings.info_key_rotation_interval_title")}
+                  />
+                </span>
+              </div>
+              <div className="aster_segmented grid-flow-row grid-cols-2 sm:grid-cols-4">
+                {KEY_ROTATION_OPTIONS.map((option) => (
+                  <OptionButton
+                    key={option.value}
+                    is_selected={key_rotation_hours === option.value}
+                    label={t(option.label_key)}
+                    on_click={() => on_key_rotation_change(option.value)}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="flex justify-between items-center text-[13px] mt-1.5">
-              <span className="text-txt-secondary">
-                {t("settings.fingerprint")}
-              </span>
-              <span className="font-mono text-txt-primary min-w-0 break-all text-end ms-4">
-                {key_fingerprint || "—"}
-              </span>
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <KeyIcon className="w-4 h-4 text-txt-muted" />
+                <span className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+                  {t("settings.key_history_limit")}
+                  <InfoPopover
+                    description={t(
+                      "settings.info_key_history_limit_description",
+                    )}
+                    title={t("settings.info_key_history_limit_title")}
+                  />
+                </span>
+              </div>
+              <div className="aster_segmented grid-flow-row grid-cols-2 sm:grid-cols-4">
+                {KEY_HISTORY_OPTIONS.map((option) => (
+                  <OptionButton
+                    key={option.value}
+                    is_selected={key_history_limit === option.value}
+                    label={t(option.label_key)}
+                    on_click={() => on_key_history_change(option.value)}
+                  />
+                ))}
+              </div>
+              <p className="text-xs mt-2 text-txt-muted">
+                {t("settings.key_history_description")}
+              </p>
+            </div>
+            <div>
+              <Button
+                size="md"
+                variant="secondary"
+                onClick={on_rotate_keys_now}
+              >
+                <ArrowPathIcon className="w-4 h-4 me-2" />
+                {t("settings.rotate_keys_now")}
+              </Button>
+              <p className="text-xs mt-2 text-txt-muted">
+                {t("settings.rotate_keys_description")}
+              </p>
             </div>
           </div>
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <ArrowPathIcon className="w-4 h-4 text-txt-muted" />
-              <span className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-                {t("settings.key_rotation_interval")}
-                <InfoPopover
-                  description={t(
-                    "settings.info_key_rotation_interval_description",
-                  )}
-                  title={t("settings.info_key_rotation_interval_title")}
-                />
-              </span>
-            </div>
-            <div className="aster_segmented grid-flow-row grid-cols-2 sm:grid-cols-4">
-              {KEY_ROTATION_OPTIONS.map((option) => (
-                <OptionButton
-                  key={option.value}
-                  is_selected={key_rotation_hours === option.value}
-                  label={t(option.label_key)}
-                  on_click={() => on_key_rotation_change(option.value)}
-                />
-              ))}
-            </div>
-          </div>
-          <div>
-            <div className="flex items-center gap-2 mb-3">
-              <KeyIcon className="w-4 h-4 text-txt-muted" />
-              <span className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-                {t("settings.key_history_limit")}
-                <InfoPopover
-                  description={t("settings.info_key_history_limit_description")}
-                  title={t("settings.info_key_history_limit_title")}
-                />
-              </span>
-            </div>
-            <div className="aster_segmented grid-flow-row grid-cols-2 sm:grid-cols-4">
-              {KEY_HISTORY_OPTIONS.map((option) => (
-                <OptionButton
-                  key={option.value}
-                  is_selected={key_history_limit === option.value}
-                  label={t(option.label_key)}
-                  on_click={() => on_key_history_change(option.value)}
-                />
-              ))}
-            </div>
-            <p className="text-xs mt-2 text-txt-muted">
-              {t("settings.key_history_description")}
-            </p>
-          </div>
-          <div>
-            <Button size="md" variant="secondary" onClick={on_rotate_keys_now}>
-              <ArrowPathIcon className="w-4 h-4 me-2" />
-              {t("settings.rotate_keys_now")}
-            </Button>
-            <p className="text-xs mt-2 text-txt-muted">
-              {t("settings.rotate_keys_description")}
-            </p>
-          </div>
-        </div>
         </>
       )}
     </IslandSection>

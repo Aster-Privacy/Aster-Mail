@@ -91,7 +91,8 @@ export function AccountRecoverySection({
   const has_codes = methods?.has_codes ?? false;
   const has_offline_method = has_codes || (methods?.has_phrase ?? false);
   const remaining = status?.remaining ?? 0;
-  const is_low = has_codes && status !== null && remaining <= LOW_CODES_THRESHOLD;
+  const is_low =
+    has_codes && status !== null && remaining <= LOW_CODES_THRESHOLD;
 
   const open_modal = (mode: RecoveryCodesModalMode) => {
     set_modal_mode(mode);

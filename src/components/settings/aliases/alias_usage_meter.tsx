@@ -62,11 +62,7 @@ export function AliasUsageMeter({
     (() => show_alias_cap_upsell({ used: usage.used, limit: usage.limit }));
 
   return (
-    <Island
-      className={className}
-      padding="md"
-      tone={ISLAND_TONE[usage.level]}
-    >
+    <Island className={className} padding="md" tone={ISLAND_TONE[usage.level]}>
       <div className="mb-1.5 flex items-center justify-between gap-2">
         <span className="text-sm font-medium text-txt-primary">
           {t("settings.usage_aliases")}

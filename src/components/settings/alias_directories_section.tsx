@@ -342,7 +342,9 @@ export function AliasDirectoriesSection() {
                     {[
                       ...new Set([
                         ...DIRECTORY_DOMAINS,
-                        ...(premium_domains_allowed ? PREMIUM_ALIAS_DOMAINS : []),
+                        ...(premium_domains_allowed
+                          ? PREMIUM_ALIAS_DOMAINS
+                          : []),
                         ...custom_domains,
                       ]),
                     ].map((d) => (

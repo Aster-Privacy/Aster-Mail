@@ -755,9 +755,7 @@ export function BehaviorSection({
                     type="number"
                     value={
                       undo_custom_input ??
-                      (undo_custom_matches_preset
-                        ? ""
-                        : undo_current_seconds)
+                      (undo_custom_matches_preset ? "" : undo_current_seconds)
                     }
                     onBlur={(e) => {
                       const parsed = parse_bounded_int(e.target.value, 1, 30);

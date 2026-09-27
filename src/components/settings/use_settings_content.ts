@@ -172,18 +172,27 @@ export function use_settings_content(props: SettingsContentProps) {
     const preload = () => {
       if (is_onion_host()) {
         void load_onion_billing_section().catch((caught) =>
-          ignore_error("components/settings/use_settings_content:load_onion_billing_section", caught),
+          ignore_error(
+            "components/settings/use_settings_content:load_onion_billing_section",
+            caught,
+          ),
         );
 
         return;
       }
 
       void load_billing_section().catch((caught) =>
-          ignore_error("components/settings/use_settings_content:load_billing_section", caught),
-        );
+        ignore_error(
+          "components/settings/use_settings_content:load_billing_section",
+          caught,
+        ),
+      );
       void load_storage_section().catch((caught) =>
-          ignore_error("components/settings/use_settings_content:load_storage_section", caught),
-        );
+        ignore_error(
+          "components/settings/use_settings_content:load_storage_section",
+          caught,
+        ),
+      );
     };
     const idle = (
       window as Window & {

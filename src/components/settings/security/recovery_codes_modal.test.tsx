@@ -340,7 +340,9 @@ describe("RecoveryCodesModal", () => {
     render_modal();
 
     await submit_password("settings.recovery_codes_regenerate");
-    await wait_until(() => container.querySelector("#codes-totp-code") !== null);
+    await wait_until(
+      () => container.querySelector("#codes-totp-code") !== null,
+    );
 
     expect(mocked_step_up).not.toHaveBeenCalled();
 

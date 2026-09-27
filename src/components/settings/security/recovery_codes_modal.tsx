@@ -230,7 +230,10 @@ export function RecoveryCodesModal({
 
     try {
       const updated_vault = { ...vault, recovery_codes: new_codes };
-      const new_backup = await encrypt_vault_backup(updated_vault, recovery_key);
+      const new_backup = await encrypt_vault_backup(
+        updated_vault,
+        recovery_key,
+      );
       const new_shares = await generate_all_recovery_shares(
         new_codes,
         recovery_key,
@@ -367,7 +370,9 @@ export function RecoveryCodesModal({
       {step === "confirm" && (
         <>
           <ModalHeader>
-            <ModalTitle>{t("settings.recovery_codes_get_new_title")}</ModalTitle>
+            <ModalTitle>
+              {t("settings.recovery_codes_get_new_title")}
+            </ModalTitle>
             <ModalDescription>
               {t("settings.recovery_codes_regenerate_warning")}
             </ModalDescription>
@@ -385,7 +390,9 @@ export function RecoveryCodesModal({
       {step === "verify" && (
         <>
           <ModalHeader>
-            <ModalTitle>{t("settings.recovery_codes_confirm_title")}</ModalTitle>
+            <ModalTitle>
+              {t("settings.recovery_codes_confirm_title")}
+            </ModalTitle>
             <ModalDescription>
               {t("settings.recovery_codes_confirm_desc")}
             </ModalDescription>
@@ -473,9 +480,7 @@ export function RecoveryCodesModal({
         <>
           <ModalHeader>
             <ModalTitle>{t("settings.recovery_codes_title")}</ModalTitle>
-            <ModalDescription>
-              {t("auth.store_codes_safely")}
-            </ModalDescription>
+            <ModalDescription>{t("auth.store_codes_safely")}</ModalDescription>
           </ModalHeader>
           <ModalBody>
             {codes_unavailable ? (
