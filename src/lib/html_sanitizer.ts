@@ -257,9 +257,9 @@ export function degraded_text_html(html: string): string {
   const text =
     typeof html === "string"
       ? html
-          .replace(/<style[\s\S]*?<\/style\s*>/gi, " ")
+          .replace(/<style\b[\s\S]*?<\/style\b[^>]*>/gi, " ")
           .replace(/<style\b[^>]*>[\s\S]*/gi, " ")
-          .replace(/<script[\s\S]*?<\/script\s*>/gi, " ")
+          .replace(/<script\b[\s\S]*?<\/script\b[^>]*>/gi, " ")
           .replace(/<script\b[^>]*>[\s\S]*/gi, " ")
           .replace(/<[^>]*>/g, " ")
           .replace(/\s+/g, " ")

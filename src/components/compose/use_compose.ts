@@ -104,6 +104,7 @@ import { use_compose_attachments } from "@/components/compose/use_compose_attach
 import { use_compose_send } from "@/components/compose/use_compose_send";
 import { use_compose_drafts } from "@/components/compose/use_compose_drafts";
 import { use_compose_editor } from "@/components/compose/use_compose_editor";
+import { take_pending_send_stash } from "@/components/compose/pending_send_stash";
 import { ignore_error } from "@/lib/ignore_error";
 
 export interface UseComposeOptions {
@@ -1039,18 +1040,10 @@ export function use_compose({
 
       if (id !== send_hook.queued_email_id) return;
 
-      const saved = sessionStorage.getItem(session_storage_key);
+      const data = take_pending_send_stash(session_storage_key);
 
-      if (saved) {
+      if (data) {
         try {
-          const data = JSON.parse(saved) as {
-            to_recipients?: string[];
-            cc_recipients?: string[];
-            bcc_recipients?: string[];
-            subject?: string;
-            message?: string;
-          };
-
           dispatch_recipients({
             type: "SET",
             field: "to",
@@ -1072,7 +1065,6 @@ export function use_compose({
             cc: (data.cc_recipients || []).length > 0,
             bcc: (data.bcc_recipients || []).length > 0,
           });
-          sessionStorage.removeItem(session_storage_key);
         } catch (error) {
           if (import.meta.env.DEV) console.error(error);
           show_toast(t("common.failed_to_restore_draft"), "error");
