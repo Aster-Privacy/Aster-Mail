@@ -1883,6 +1883,12 @@ export const nl = {
     preview_contact: "Contactvoorbeeld",
     share_contact_via_email: "Aan een nieuwe e-mail toevoegen",
     share_contact_device: "Delen met een andere app",
+    biometry_fingerprint: "vingerafdruk",
+    biometry_face_recognition: "gezichtsherkenning",
+    biometry_iris: "iris",
+    biometry_generic: "biometrie",
+    share_via: "Delen via",
+    zip_archive: "ZIP-archief",
   },
   settings: {
     bill_thanks_title: "Bedankt dat je Aster steunt",
@@ -4290,7 +4296,7 @@ export const nl = {
     keyserver_failed_hint:
       "De keyserver heeft je sleutel geweigerd. Probeer opnieuw te publiceren.",
     keyserver_publish_btn: "Sleutel publiceren",
-    keyserver_republish_btn: "Sleutel opnieuw publiceren",
+    keyserver_republish_btn: "Opnieuw publiceren",
     keyserver_permanent_warning:
       "Eenmaal gepubliceerde sleutels kunnen bij de meeste servers niet volledig worden verwijderd.",
     keyserver_add_custom_label: "Aangepaste server toevoegen",
@@ -6532,7 +6538,7 @@ export const nl = {
     addon_limit_one_active:
       "Je hebt al een actieve opslag-add-on. Annuleer deze voordat je een nieuwe aanschaft.",
     alias_local_part_placeholder: "mijnalias",
-    allowlist_tab: "Toelatingslijst",
+    allowlist_tab: "Toegestaan",
     attachments_suffix: "bijlagen",
     auto_delete_spam_description:
       "Spamberichten ouder dan dit worden definitief verwijderd.",
@@ -6644,7 +6650,7 @@ export const nl = {
     credit_task_earned: "Verdiend",
     credit_task_ios_hint_coming: "Binnenkort beschikbaar voor iOS",
     credit_task_ios_title: "Aster voor iOS",
-    credit_task_refer_cta: "Nu doorverwijzen",
+    credit_task_refer_cta: "Uitnodigen",
     credit_task_refer_hint:
       "Verdien een percentage van elke betaling die je vriend doet zodra hij zich abonneert.",
     credit_task_refer_title: "Vrienden doorverwijzen",
@@ -6917,7 +6923,7 @@ export const nl = {
     bridge_support_github: "GitHub",
     bridge_support_reddit: "Reddit",
     desktop_bridge_title: "Desktopbrug",
-    desktop_bridge_upgrade_cta: "Upgraden om te ontgrendelen",
+    desktop_bridge_upgrade_cta: "Upgraden naar Star",
     desktop_bridge_upgrade_description:
       "De desktopbrug is beschikbaar voor betaalde abonnees",
     desktop_bridge_upgrade_title: "Upgrade vereist",

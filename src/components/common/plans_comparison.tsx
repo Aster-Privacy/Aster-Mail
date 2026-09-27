@@ -588,7 +588,7 @@ function get_plans(
   return [
     {
       key: "free" as const,
-      label: "Free",
+      label: t("settings.plan_free"),
       price: "$0.00",
       period: t("settings.for_life"),
     },

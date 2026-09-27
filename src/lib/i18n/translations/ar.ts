@@ -2017,6 +2017,12 @@ export const ar = {
     share_contact_via_email: "إرفاق برسالة جديدة",
     share_contact_device: "المشاركة مع تطبيق آخر",
     trash_days_left: "بقي {{count}} يوم",
+    biometry_fingerprint: "بصمة الإصبع",
+    biometry_face_recognition: "التعرف على الوجه",
+    biometry_iris: "بصمة القزحية",
+    biometry_generic: "المقاييس الحيوية",
+    share_via: "مشاركة عبر",
+    zip_archive: "أرشيف ZIP",
   },
   settings: {
     bill_thanks_title: "شكرًا لدعمك Aster",

@@ -289,7 +289,10 @@ export async function execute_external_send(
           if (recipients_without_keys.length > 0) {
             throw create_error(
               "encryption_failed",
-              `Cannot send: encryption is required but no keys found for: ${recipients_without_keys.join(", ")}`,
+              get_active_translations().errors.cannot_send_no_keys.replace(
+                "{{recipients}}",
+                recipients_without_keys.join(", "),
+              ),
             );
           }
         }

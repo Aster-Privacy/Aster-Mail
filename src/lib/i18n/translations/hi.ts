@@ -1859,6 +1859,12 @@ export const hi = {
     share_contact_device: "दूसरे ऐप के साथ शेयर करें",
     trash_days_left: "{{count}} दिन शेष",
     undo_change: "बदलाव पूर्ववत करें",
+    biometry_fingerprint: "फ़िंगरप्रिंट",
+    biometry_face_recognition: "फ़ेस रिकग्निशन",
+    biometry_iris: "आइरिस स्कैन",
+    biometry_generic: "बायोमेट्रिक",
+    share_via: "इसके ज़रिए शेयर करें",
+    zip_archive: "ZIP आर्काइव",
   },
   settings: {
     bill_thanks_title: "Aster को समर्थन देने के लिए धन्यवाद",

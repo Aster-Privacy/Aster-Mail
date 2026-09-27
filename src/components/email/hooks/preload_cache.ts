@@ -84,6 +84,7 @@ import {
 import { EMAIL_BODY_CSS } from "@/lib/email_body_styles";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { ignore_error } from "@/lib/ignore_error";
+import { get_active_translations } from "@/lib/i18n/translations";
 import {
   extract_cid_references,
   resolve_cid_references,
@@ -816,7 +817,7 @@ export async function preload_email_detail(
         sender_name:
           envelope.from.name ||
           get_email_username(envelope.from.email) ||
-          "Unknown",
+          get_active_translations().common.unknown_sender,
         sender_email: envelope.from.email || "",
         ...(forwarding ?? {}),
         subject: envelope.subject || "",

@@ -65,6 +65,7 @@ import { MAIL_EVENTS } from "@/hooks/mail_events";
 import { set_app_network_locked } from "@/services/app_lock_network_gate";
 import { lock_all_folders } from "@/hooks/use_protected_folder";
 import { ignore_error } from "@/lib/ignore_error";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { is_composing } from "@/utils/ime";
 import { ButtonSpinner } from "@/components/ui/spinner";
 
@@ -540,7 +541,9 @@ export function AppLock({ children }: { children: React.ReactNode }) {
   );
   const [is_authenticating, set_is_authenticating] = useState(false);
   const [unlock_error, set_unlock_error] = useState<string | null>(null);
-  const [biometry_name, set_biometry_name] = useState("Biometric");
+  const [biometry_name, set_biometry_name] = useState(
+    () => get_active_translations().common.biometry_generic,
+  );
   const [last_active, set_last_active] = useState(Date.now());
   const [is_web_locked, set_is_web_locked] = useState(() => {
     if (is_native_platform()) return false;

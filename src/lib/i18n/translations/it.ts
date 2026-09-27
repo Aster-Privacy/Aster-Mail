@@ -1892,6 +1892,12 @@ export const it = {
     share_contact_via_email: "Allega a una nuova email",
     share_contact_device: "Condividi con un'altra app",
     undo_change: "Annulla la modifica",
+    biometry_fingerprint: "l'impronta digitale",
+    biometry_face_recognition: "il riconoscimento facciale",
+    biometry_iris: "l'iride",
+    biometry_generic: "la biometria",
+    share_via: "Condividi tramite",
+    zip_archive: "Archivio ZIP",
   },
   settings: {
     bill_thanks_title: "Grazie per sostenere Aster",
@@ -4316,7 +4322,7 @@ export const it = {
       "Lo sconto vale solo per il tuo primo componente aggiuntivo di spazio.",
     storage_select_option_first:
       "Per acquistare più spazio, seleziona prima un’opzione.",
-    storage_promo_cta: "Vedi i componenti aggiuntivi",
+    storage_promo_cta: "Vedi componenti aggiuntivi",
     storage_used_of_total: "{{used}} di {{total}} in uso",
     storage_free_space: "{{size}} liberi, {{percent}} dello spazio in uso",
     storage_breakdown_title: "Cosa occupa il tuo spazio",
@@ -6542,7 +6548,7 @@ export const it = {
       "Non siamo riusciti a connetterci. Un altro sguardo alle sue impostazioni, poi un altro tentativo, di solito risolve la cosa.",
     removed_forwarding_rule: 'Regola di inoltro "{{ name }}" rimossa',
     removed_forwarding_rules_count: "{{ count }} regole di inoltro rimosse",
-    customize_toolbar: "Personalizza barra degli strumenti",
+    customize_toolbar: "Personalizza barra strumenti",
     customize_toolbar_description:
       "Scegli quali azioni appaiono nella barra degli strumenti inferiore.",
     toolbar_dots_hint:
@@ -7385,7 +7391,7 @@ export const it = {
     ghost_alias_grace_until: "Periodo di grazia fino al {{ date }}",
     external_accounts_tab: "Account esterni",
     blocked_tab: "Bloccati",
-    allowlist_tab: "Lista consentiti",
+    allowlist_tab: "Consentiti",
     auto_forward_tab_label: "Inoltro automatico",
     vacation_reply_tab_label: "Risposta automatica",
     per_two_years: "/2anni",

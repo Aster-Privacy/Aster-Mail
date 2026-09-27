@@ -410,7 +410,7 @@ export const fr = {
     verifying: "Vérification...",
     continue: "Continuer",
     processing: "Traitement...",
-    action_cannot_be_undone: "Cette action ne peut pas être annulée.",
+    action_cannot_be_undone: "Cette action est irréversible.",
     discard_changes_title: "Abandonner les modifications ?",
     discard_changes_message:
       "Vos modifications n'ont pas été enregistrées. Si vous fermez maintenant, vous les perdez.",
@@ -1452,7 +1452,7 @@ export const fr = {
     add_display_name_placeholder: "Ajouter un nom d'affichage",
     adding_file_would_exceed_limit:
       "L'ajout de « {{name}} » dépasserait la limite de {{size}} pour les pièces jointes. Retirez d'abord un fichier, ou envoyez-le dans un e-mail séparé.",
-    advanced_toolbar: "Barre d'outils avancée",
+    advanced_toolbar: "Avancée",
     alias_avatar_removed: "Avatar de l'alias supprimé",
     alias_avatar_updated: "Avatar de l'alias mis à jour",
     alias_avatars_locked: "Les avatars personnalisés font partie des forfaits payants. Passez à un forfait supérieur pour les activer.",
@@ -1647,7 +1647,7 @@ export const fr = {
       "L'expéditeur a été vérifié via une signature cryptographique.",
     sending_in_seconds: "Envoi dans {{seconds}} secondes...",
     sending_in_one_second: "Envoi dans 1 seconde...",
-    simple_toolbar: "Barre d'outils simple",
+    simple_toolbar: "Simple",
     star_selected: "Marquer la sélection d'une étoile",
     stop: "Arrêter",
     switch_to_advanced: "Passer en mode avancé",
@@ -1878,6 +1878,12 @@ export const fr = {
       "Ce contact n’a pas encore d’informations. Choisissez Modifier pour en ajouter.",
     share_contact_via_email: "Joindre à un nouvel e-mail",
     share_contact_device: "Partager avec une autre app",
+    biometry_fingerprint: "l'empreinte digitale",
+    biometry_face_recognition: "la reconnaissance faciale",
+    biometry_iris: "l'iris",
+    biometry_generic: "la biométrie",
+    share_via: "Partager via",
+    zip_archive: "Archive ZIP",
   },
   settings: {
     bill_thanks_title: "Merci de soutenir Aster",
@@ -1955,7 +1961,7 @@ export const fr = {
     edit_account_tooltip: "Modifier le compte",
     gmail_sync_continue: "Continuer",
     gmail_sync_open_google: "Ouvrir les réglages du compte",
-    gmail_sync_setup_button: "Voir la marche à suivre",
+    gmail_sync_setup_button: "Voir le guide",
     gmail_sync_step_4:
       "Saisissez votre adresse e-mail et collez le mot de passe d’application dans Aster.",
     gmail_sync_title: "Créer un mot de passe d’application",
@@ -3147,7 +3153,7 @@ export const fr = {
     fam_org_filter_field_domain: "Domaine",
     fam_org_filter_field_subject: "Objet",
     fam_org_filter_field_ip: "IP de l'expéditeur",
-    fam_org_filter_action_trash: "Déplacer vers la corbeille",
+    fam_org_filter_action_trash: "Mettre à la corbeille",
     fam_org_filter_action_block: "Bloquer",
     fam_org_filter_action_archive: "Archiver",
     fam_org_filter_action_tag: "Étiqueter",
@@ -3181,7 +3187,7 @@ export const fr = {
     fam_org_filters_action_info_title: "Action",
     fam_org_filters_action_info_desc:
       "Que faire du courrier qui correspond à la condition : le déplacer vers la corbeille, bloquer l'expéditeur, l'archiver, l'étiqueter ou le rediriger vers une autre adresse.",
-    fam_org_filters_action_trash_option: "Déplacer vers la corbeille",
+    fam_org_filters_action_trash_option: "Mettre à la corbeille",
     fam_org_filters_action_block_option: "Bloquer l'expéditeur",
     fam_org_filters_action_archive_option: "Archiver",
     fam_org_filters_action_tag_option: "Étiqueter",
@@ -6614,7 +6620,7 @@ export const fr = {
     addon_limit_one_active:
       "Un seul module complémentaire peut être actif à la fois.",
     alias_local_part_placeholder: "alias",
-    allowlist_tab: "Liste autorisée",
+    allowlist_tab: "Autorisés",
     attachments_suffix: "pièce(s) jointe(s)",
     auto_delete_spam_description:
       "Supprimer automatiquement les spams après 30 jours.",
@@ -6683,7 +6689,7 @@ export const fr = {
     block_tracking_links: "Bloquer les liens de suivi",
     block_tracking_links_description:
       "Nettoyer les paramètres de suivi des liens.",
-    blocked_tab: "Liste bloquée",
+    blocked_tab: "Bloqués",
     browser_on_os: "{{browser}} sur {{os}}",
     card_cvc: "CVC",
     card_expiry: "Date d'expiration",
@@ -8670,7 +8676,7 @@ export const fr = {
     op_has_spreadsheet: "A une feuille de calcul",
     op_has_video: "A une vidéo",
     op_in_drafts: "Dans les brouillons",
-    chip_any_time: "N'importe quand",
+    chip_any_time: "Toute date",
     chip_older_than_week: "Plus d'une semaine",
     chip_older_than_month: "Plus d'un mois",
     chip_older_than_six_months: "Plus de 6 mois",

@@ -2258,6 +2258,12 @@ export interface CommonTranslations {
   too_many_recipients_in_field: string;
   too_many_recipients_in_message: string;
   credit_balance_changed: string;
+  biometry_fingerprint: string;
+  biometry_face_recognition: string;
+  biometry_iris: string;
+  biometry_generic: string;
+  share_via: string;
+  zip_archive: string;
 }
 
 export interface SettingsTranslations {

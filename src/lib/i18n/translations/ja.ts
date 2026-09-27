@@ -1877,6 +1877,12 @@ export const ja = {
     review_duplicates: "重複した連絡先を確認",
     share_contact_via_email: "新規メールに添付",
     share_contact_device: "他のアプリで共有",
+    biometry_fingerprint: "指紋認証",
+    biometry_face_recognition: "顔認証",
+    biometry_iris: "虹彩認証",
+    biometry_generic: "生体認証",
+    share_via: "共有方法",
+    zip_archive: "ZIP アーカイブ",
   },
   settings: {
     bill_thanks_title: "Aster をご支援いただきありがとうございます",

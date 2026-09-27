@@ -1750,6 +1750,12 @@ export const zh_CN = {
     share_contact_via_email: "添加到新邮件",
     share_contact_device: "通过其他应用分享",
     undo_change: "撤消更改",
+    biometry_fingerprint: "指纹",
+    biometry_face_recognition: "面部识别",
+    biometry_iris: "虹膜",
+    biometry_generic: "生物识别",
+    share_via: "分享方式",
+    zip_archive: "ZIP 压缩文件",
   },
   settings: {
     bill_thanks_title: "感谢您支持 Aster",

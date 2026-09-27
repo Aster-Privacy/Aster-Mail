@@ -1895,6 +1895,12 @@ export const en: Translations = {
     share_contact_device: "Share with another app",
     trash_days_left: "{{count}} days left",
     undo_change: "Undo change",
+    biometry_fingerprint: "fingerprint",
+    biometry_face_recognition: "face recognition",
+    biometry_iris: "iris",
+    biometry_generic: "biometrics",
+    share_via: "Share via",
+    zip_archive: "ZIP archive",
   },
   settings: {
     bill_thanks_title: "Thanks for supporting Aster",

@@ -23,6 +23,7 @@ import {
   type ZipStreamTarget,
 } from "@/utils/export/zip_stream";
 import { trigger_download } from "@/utils/download_blob";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 const MBOX_ENTRY = "mailbox.mbox";
 const FLUSH_THRESHOLD = 4 * 1024 * 1024;
@@ -187,7 +188,7 @@ export async function pick_zip_file(
       suggestedName: suggested_name,
       types: [
         {
-          description: "Zip archive",
+          description: get_active_translations().common.zip_archive,
           accept: { "application/zip": [".zip"] },
         },
       ],

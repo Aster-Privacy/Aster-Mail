@@ -1444,7 +1444,7 @@ export const es = {
     add_display_name_placeholder: "Agregar nombre visible",
     adding_file_would_exceed_limit:
       'Agregar "{{name}}" superaría el límite de {{size}} para los archivos adjuntos. Quita un archivo primero, o envíalo en un correo aparte.',
-    advanced_toolbar: "Barra de herramientas avanzada",
+    advanced_toolbar: "Avanzada",
     alias_avatar_removed: "Avatar del alias eliminado",
     alias_avatar_updated: "Avatar del alias actualizado",
     alias_avatars_locked: "Los avatares personalizados forman parte de los planes de pago. Mejora tu plan para activarlos.",
@@ -1640,7 +1640,7 @@ export const es = {
       "El remitente fue verificado mediante firma criptográfica.",
     sending_in_seconds: "Enviando en {{seconds}} segundos...",
     sending_in_one_second: "Enviando en 1 segundo...",
-    simple_toolbar: "Barra de herramientas simple",
+    simple_toolbar: "Simple",
     star_selected: "Marcar selección con estrella",
     stop: "Detener",
     switch_to_advanced: "Cambiar a modo avanzado",
@@ -1870,6 +1870,12 @@ export const es = {
     share_contact_via_email: "Adjuntar a un correo nuevo",
     share_contact_device: "Compartir con otra app",
     undo_change: "Deshacer el cambio",
+    biometry_fingerprint: "la huella digital",
+    biometry_face_recognition: "el reconocimiento facial",
+    biometry_iris: "el iris",
+    biometry_generic: "la biometría",
+    share_via: "Compartir mediante",
+    zip_archive: "Archivo ZIP",
   },
   settings: {
     bill_thanks_title: "Gracias por apoyar a Aster",
@@ -6096,7 +6102,7 @@ export const es = {
       "Aún no tienes ningún pago pendiente que solicitar.",
     affiliate_payout_request_failed:
       "No se pudo crear la solicitud de pago. Inténtalo de nuevo.",
-    affiliate_email_link_button: "Enlace por Correo",
+    affiliate_email_link_button: "Enlace por correo",
     affiliate_payout_amount_label: "Importe a solicitar",
     affiliate_payout_amount_max: "Máx.",
     affiliate_payout_amount_invalid:
@@ -6553,7 +6559,7 @@ export const es = {
     add_security_key: "Agregar clave de seguridad",
     addon_limit_one_active: "Solo puede haber un complemento activo a la vez.",
     alias_local_part_placeholder: "alias",
-    allowlist_tab: "Lista permitida",
+    allowlist_tab: "Permitidos",
     attachments_suffix: "archivo(s) adjunto(s)",
     auto_delete_spam_description:
       "Eliminar spam automáticamente después de 30 días.",
@@ -6619,7 +6625,7 @@ export const es = {
     block_tracking_links: "Bloquear enlaces de rastreo",
     block_tracking_links_description:
       "Limpiar parámetros de rastreo de los enlaces.",
-    blocked_tab: "Lista bloqueada",
+    blocked_tab: "Bloqueados",
     browser_on_os: "{{browser}} en {{os}}",
     card_cvc: "CVC",
     card_expiry: "Fecha de vencimiento",

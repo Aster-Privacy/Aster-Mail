@@ -1867,6 +1867,12 @@ export const tr = {
     select_contact: "Kişi seç",
     share_contact_via_email: "Yeni e-postaya ekle",
     share_contact_device: "Başka bir uygulamayla paylaş",
+    biometry_fingerprint: "parmak izi",
+    biometry_face_recognition: "yüz tanıma",
+    biometry_iris: "iris",
+    biometry_generic: "biyometri",
+    share_via: "Paylaşma yöntemi",
+    zip_archive: "ZIP arşivi",
   },
   settings: {
     bill_thanks_title: "Aster’ı desteklediğiniz için teşekkürler",
@@ -4304,7 +4310,7 @@ export const tr = {
     keyserver_failed_hint:
       "Anahtar sunucusu anahtarınızı reddetti. Yeniden yayımlamayı deneyin.",
     keyserver_publish_btn: "Anahtar Yayınla",
-    keyserver_republish_btn: "Anahtarı Yeniden Yayınla",
+    keyserver_republish_btn: "Yeniden yayınla",
     keyserver_permanent_warning:
       "Yayınlanan anahtarlar çoğu sunucudan tamamen silinemez.",
     keyserver_add_custom_label: "Özel Sunucu Ekle",
@@ -9633,7 +9639,7 @@ export const tr = {
       "{{ alias }} takma adı {{ alias_target }} klasörüne teslim ediyor, bu yüzden {{ rule_target }} klasörüne gönderen bu kural üstün gelir.",
     alias_label_conflict:
       "{{ alias }} takma adı postasını {{ alias_target }} ile etiketliyor, bu kural ayrıca {{ rule_target }} ekler.",
-    action_mark_as: "Şu şekilde işaretle",
+    action_mark_as: "İşaretle",
     action_star: "Yıldızla",
     action_skip_inbox: "Gelen kutusunu atla",
     action_delete: "Sil",

@@ -1906,6 +1906,12 @@ export const de = {
     some_contacts_not_created: "Einige Kontakte konnten nicht erstellt werden.",
     trash_days_left: "Noch {{count}} Tage",
     undo_change: "Änderung rückgängig machen",
+    biometry_fingerprint: "Fingerabdruck",
+    biometry_face_recognition: "Gesichtserkennung",
+    biometry_iris: "Iris",
+    biometry_generic: "Biometrie",
+    share_via: "Teilen über",
+    zip_archive: "ZIP-Archiv",
   },
   settings: {
     bill_thanks_title: "Danke für Ihre Unterstützung",
@@ -4307,7 +4313,7 @@ export const de = {
     keyserver_failed_hint:
       "Der Schlüsselserver hat Ihren Schlüssel abgelehnt. Versuchen Sie es erneut.",
     keyserver_publish_btn: "Schlüssel veröffentlichen",
-    keyserver_republish_btn: "Schlüssel erneut veröffentlichen",
+    keyserver_republish_btn: "Erneut veröffentlichen",
     keyserver_permanent_warning:
       "Einmal veröffentlichte Schlüssel können von den meisten Schlüsselservern nicht vollständig entfernt werden.",
     keyserver_add_custom_label: "Benutzerdefinierten Server hinzufügen",
@@ -7245,7 +7251,7 @@ export const de = {
       "Wechseln Sie zur Jahreszahlung und sparen Sie {{amount}} pro Jahr",
     yearly_switch_body:
       "Sie zahlen derzeit {{monthly}} pro Monat. Im Jahrestarif entspricht das {{yearly_monthly}} pro Monat, und Ihre nächste Rechnung wird um den bereits bezahlten Zeitraum angepasst.",
-    yearly_switch_action: "Zur Jahreszahlung wechseln",
+    yearly_switch_action: "Jährlich zahlen",
     win_back_offer_title: "Ihr {{discount}} wartet auf Sie",
     win_back_offer_expires_today:
       "Heute ist der letzte Tag, um ihn einzulösen.",

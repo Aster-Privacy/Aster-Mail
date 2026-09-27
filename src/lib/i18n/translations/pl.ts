@@ -2023,6 +2023,12 @@ export const pl = {
     no_groups_yet: "Na razie brak grup",
     share_contact_via_email: "Dołącz do nowej wiadomości",
     share_contact_device: "Udostępnij w innej aplikacji",
+    biometry_fingerprint: "odcisku palca",
+    biometry_face_recognition: "rozpoznawania twarzy",
+    biometry_iris: "tęczówki",
+    biometry_generic: "biometrii",
+    share_via: "Udostępnij przez",
+    zip_archive: "Archiwum ZIP",
   },
   settings: {
     bill_thanks_title: "Dziękujemy za wspieranie Aster",
@@ -2485,7 +2491,7 @@ export const pl = {
       "Przekazać uprawnienia administratora do {{name}}?",
     family_transfer_confirm_body:
       "{{name}} zostanie właścicielem grupy i będzie zarządzać rozliczeniami. Ty staniesz się zwykłym członkiem.",
-    family_transfer_confirm_action: "Przekaż uprawnienia administratora",
+    family_transfer_confirm_action: "Przekaż uprawnienia",
     family_leave: "Opuść plan rodzinny",
     family_leave_confirm_title: "Opuścić plan rodzinny?",
     family_leave_confirm_body:
@@ -4500,7 +4506,7 @@ export const pl = {
     keyserver_failed_hint:
       "Serwer kluczy odrzucił Twój klucz. Spróbuj opublikować ponownie.",
     keyserver_publish_btn: "Opublikuj klucz",
-    keyserver_republish_btn: "Ponownie opublikuj klucz",
+    keyserver_republish_btn: "Opublikuj ponownie",
     keyserver_permanent_warning:
       "Raz opublikowane klucze nie mogą być całkowicie usunięte z większości serwerów.",
     keyserver_add_custom_label: "Dodaj niestandardowy serwer",
@@ -5063,7 +5069,7 @@ export const pl = {
     special_offer_title: "Prywatna poczta o połowę taniej",
     special_offer_subtitle: "50% zniżki przez pierwsze 12 miesięcy",
     special_offer_price_period: "miesięcznie",
-    special_offer_save_badge: "Oszczędzasz {{percent}}%",
+    special_offer_save_badge: "Oszczędź {{percent}}%",
     special_offer_checkout_error:
       "Coś poszło nie tak podczas rozpoczynania płatności. Spróbuj ponownie.",
     special_offer_was_price: "Wcześniej {{price}} miesięcznie",
@@ -7469,7 +7475,7 @@ export const pl = {
     ghost_alias_grace_until: "Okres tolerancji do {{ date }}",
     external_accounts_tab: "Konta zewnętrzne",
     blocked_tab: "Zablokowani",
-    allowlist_tab: "Lista dozwolonych",
+    allowlist_tab: "Dozwolone",
     auto_forward_tab_label: "Automatyczne przekazywanie",
     vacation_reply_tab_label: "Odpowiedź urlopowa",
     per_two_years: "/2 lata",

@@ -1659,7 +1659,7 @@ export const ru = {
     unsaved_changes_body:
       "Введённые данные не сохранены. Если закрыть форму сейчас, они будут удалены.",
     unknown_sender: "Неизвестный",
-    unlock_with_biometry: "Разблокировать с помощью {{name}}",
+    unlock_with_biometry: "Разблокировать через {{name}}",
     unpin_preferred_sender: "Открепить предпочтительного отправителя",
     use_biometry_to_unlock: "Использовать {{name}} для разблокировки",
     wkd_encrypted_description:
@@ -2006,6 +2006,12 @@ export const ru = {
     removed_from_group: "Удалено из группы",
     share_contact_via_email: "Вложить в новое письмо",
     share_contact_device: "Поделиться в другом приложении",
+    biometry_fingerprint: "отпечаток пальца",
+    biometry_face_recognition: "распознавание лица",
+    biometry_iris: "сканирование радужки",
+    biometry_generic: "биометрию",
+    share_via: "Поделиться через",
+    zip_archive: "ZIP-архив",
   },
   settings: {
     bill_thanks_title: "Спасибо, что поддерживаете Aster",
@@ -2466,7 +2472,7 @@ export const ru = {
     family_transfer_confirm_title: "Передать права администратора {{name}}?",
     family_transfer_confirm_body:
       "{{name}} станет владельцем группы и будет управлять оплатой. Вы станете обычным участником.",
-    family_transfer_confirm_action: "Передать права администратора",
+    family_transfer_confirm_action: "Передать права",
     family_leave: "Покинуть семейный план",
     family_leave_confirm_title: "Покинуть семейный план?",
     family_leave_confirm_body:
@@ -3258,7 +3264,7 @@ export const ru = {
     fam_org_filter_field_domain: "Домен",
     fam_org_filter_field_subject: "Тема",
     fam_org_filter_field_ip: "IP отправителя",
-    fam_org_filter_action_trash: "Переместить в Корзину",
+    fam_org_filter_action_trash: "Переместить в корзину",
     fam_org_filter_action_block: "Заблокировать",
     fam_org_filter_action_archive: "Архивировать",
     fam_org_filter_action_tag: "Пометить",
@@ -3292,7 +3298,7 @@ export const ru = {
     fam_org_filters_action_info_title: "Действие",
     fam_org_filters_action_info_desc:
       "Что делать с почтой, которая соответствует условию: переместить в Корзину, заблокировать отправителя, архивировать, пометить или перенаправить на другой адрес.",
-    fam_org_filters_action_trash_option: "Переместить в Корзину",
+    fam_org_filters_action_trash_option: "Переместить в корзину",
     fam_org_filters_action_block_option: "Заблокировать отправителя",
     fam_org_filters_action_archive_option: "Архивировать",
     fam_org_filters_action_tag_option: "Пометить",
@@ -10097,7 +10103,7 @@ export const ru = {
     password_prompt:
       "Это сообщение защищено. Введите пароль, чтобы просмотреть его.",
     password_label: "Пароль",
-    view_button: "Просмотреть сообщение",
+    view_button: "Открыть сообщение",
     unlocking: "Разблокировка...",
     wrong_password: "Неверный пароль. Пожалуйста, попробуйте ещё раз.",
     locked: "Слишком много попыток. Пожалуйста, повторите попытку позже.",
