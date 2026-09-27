@@ -41,7 +41,10 @@ import { show_action_toast } from "@/components/toast/action_toast";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { emit_email_sent } from "@/hooks/mail_events";
 import { record_review_prompt_action } from "@/lib/review_prompt";
-import { safe_session_set } from "@/lib/safe_storage";
+import {
+  clear_pending_send_stash,
+  set_pending_send_stash,
+} from "@/components/compose/pending_send_stash";
 
 export interface SendActionContext {
   undo_send_enabled: boolean;
@@ -113,7 +116,7 @@ function save_and_close(
   };
 
   ctx.set_queued_email_id(email_id);
-  safe_session_set(ctx.session_storage_key, JSON.stringify(saved_data));
+  set_pending_send_stash(ctx.session_storage_key, saved_data);
 
   ctx.reset_form();
   ctx.on_close();
@@ -123,11 +126,7 @@ function save_and_close(
 }
 
 function clear_stash(ctx: SendActionContext) {
-  try {
-    sessionStorage.removeItem(ctx.session_storage_key);
-  } catch {
-    return;
-  }
+  clear_pending_send_stash(ctx.session_storage_key);
 }
 
 function dispatch_email_sent() {

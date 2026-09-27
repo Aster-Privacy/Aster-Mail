@@ -91,22 +91,6 @@ import { DeveloperSection } from "./settings/developer_section";
 import { FamilySection } from "./settings/family_section";
 import { ConnectionSection } from "./settings/connection_section";
 import { AliasDirectoriesSection } from "./settings/alias_directories_section";
-const StorageSection = lazy_with_retry(() =>
-  import("./settings/storage_section").then((m) => ({
-    default: m.StorageSection,
-  })),
-);
-const DomainsSection = lazy_with_retry(() =>
-  import("./settings/domains_section").then((m) => ({
-    default: m.DomainsSection,
-  })),
-);
-const BridgeSection = lazy_with_retry(() =>
-  import("./settings/bridge_section").then((m) => ({
-    default: m.BridgeSection,
-  })),
-);
-
 import { SettingsSaveIndicatorInline } from "@/components/settings/settings_save_indicator";
 import { FullPageLoader } from "@/components/common/full_page_loader";
 import { format_bytes } from "@/lib/utils";
@@ -129,6 +113,22 @@ import {
 import { refresh_family_plan_flag } from "@/services/api/family";
 import { ignore_error } from "@/lib/ignore_error";
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
+
+const StorageSection = lazy_with_retry(() =>
+  import("./settings/storage_section").then((m) => ({
+    default: m.StorageSection,
+  })),
+);
+const DomainsSection = lazy_with_retry(() =>
+  import("./settings/domains_section").then((m) => ({
+    default: m.DomainsSection,
+  })),
+);
+const BridgeSection = lazy_with_retry(() =>
+  import("./settings/bridge_section").then((m) => ({
+    default: m.BridgeSection,
+  })),
+);
 
 const BillingSection = lazy_with_retry(() =>
   import("./settings/billing_section").then((m) => ({

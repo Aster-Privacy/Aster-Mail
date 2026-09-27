@@ -19,6 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import {
+  clear_pending_send_stash,
+  has_pending_send_stash,
+} from "@/components/compose/pending_send_stash";
 
 const queue_email_to_server = vi.fn();
 const queue_email = vi.fn();
@@ -162,7 +166,7 @@ describe("the stashed plaintext message is cleared once it is no longer needed",
   beforeEach(() => {
     vi.clearAllMocks();
     undo_send_delay_ms = 30000;
-    sessionStorage.clear();
+    clear_pending_send_stash("compose_test");
   });
 
   it("clears the stash after a queued internal send is delivered", async () => {
@@ -173,7 +177,7 @@ describe("the stashed plaintext message is cleared once it is no longer needed",
       email_data,
     );
 
-    expect(sessionStorage.getItem("compose_test")).not.toBeNull();
+    expect(has_pending_send_stash("compose_test")).toBe(true);
 
     const callbacks = queue_email_to_server.mock.calls[0][2] as {
       on_sent: () => void;
@@ -181,7 +185,7 @@ describe("the stashed plaintext message is cleared once it is no longer needed",
 
     callbacks.on_sent();
 
-    expect(sessionStorage.getItem("compose_test")).toBeNull();
+    expect(has_pending_send_stash("compose_test")).toBe(false);
   });
 
   it("keeps the stash when a queued internal send fails", async () => {
@@ -198,7 +202,7 @@ describe("the stashed plaintext message is cleared once it is no longer needed",
 
     callbacks.on_error("smtp refused");
 
-    expect(sessionStorage.getItem("compose_test")).not.toBeNull();
+    expect(has_pending_send_stash("compose_test")).toBe(true);
   });
 
   it("clears the stash after a scheduled secure external send is delivered", async () => {
@@ -209,7 +213,7 @@ describe("the stashed plaintext message is cleared once it is no longer needed",
       secure_external: true,
     });
 
-    expect(sessionStorage.getItem("compose_test")).not.toBeNull();
+    expect(has_pending_send_stash("compose_test")).toBe(true);
 
     const pending = undo_send_add.mock.calls[0][0] as {
       on_send_immediately: () => Promise<void>;
@@ -217,7 +221,7 @@ describe("the stashed plaintext message is cleared once it is no longer needed",
 
     await pending.on_send_immediately();
 
-    expect(sessionStorage.getItem("compose_test")).toBeNull();
+    expect(has_pending_send_stash("compose_test")).toBe(false);
   });
 });
 
