@@ -611,7 +611,8 @@ export function use_email_list(current_view: string): UseEmailListReturn {
     page_offset_ref.current.clear();
     request_cache.invalidate("GET:/mail/v1/messages");
     set_state((prev) => {
-      if (keep_visible && prev.emails.length > 0) return { ...prev, is_loading_more: false };
+      if (keep_visible && prev.emails.length > 0)
+        return { ...prev, is_loading_more: false };
 
       return {
         emails: [],
