@@ -43,7 +43,7 @@ export const de = {
     failed_remove_profile_picture: "Versuchen Sie es erneut.",
     remove_photo: "Foto entfernen",
     toggle_alias: "Diesen Alias aktivieren oder deaktivieren",
-    enter_passphrase: "Gib deine Passphrase ein",
+    enter_passphrase: "Geben Sie Ihre Passphrase ein",
     app_name: "Aster Mail",
     loading_stuck: "Das dauert länger als gewöhnlich",
     reload_page: "Neu laden",
@@ -797,7 +797,7 @@ export const de = {
     scheduled_no_attachments:
       "Geplante E-Mails können noch keine Anhänge enthalten. Sende jetzt oder entferne die Dateien, um zu planen.",
     scheduled_connected_account:
-      "Geplanter Versand ist für verbundene Konten nicht verfügbar. Sende diese Nachricht jetzt oder wähle eine Aster-Adresse.",
+      "Geplanter Versand ist für verbundene Konten nicht verfügbar. Senden Sie diese Nachricht jetzt oder wählen Sie eine Aster-Adresse.",
     scheduled_no_expiry:
       "Geplante E-Mails können noch kein Ablaufdatum haben. Sende jetzt oder entferne das Ablaufdatum, um sie zu planen.",
     failed_to_merge_contacts: "Versuchen Sie es erneut.",
@@ -2170,7 +2170,7 @@ export const de = {
     bill_thanks_title: "Danke für deine Unterstützung",
     bill_thanks_body: "Deine Unterstützung bedeutet uns alles. Sie ermöglicht es einem kleinen Team, Aster jeden Tag mit Sorgfalt weiterzuentwickeln.",
     bill_thanks_free_title: "Danke, dass du Aster nutzt",
-    bill_thanks_free_body: "Ein kleines Team entwickelt Aster mit Sorgfalt, und jede Person, die ihm ihre E-Mails anvertraut, hält uns am Laufen. Führe ein Upgrade durch, wann immer du mehr Speicher, Aliasse oder eigene Domains brauchst.",
+    bill_thanks_free_body: "Ein kleines Team entwickelt Aster mit Sorgfalt, und jede Person, die ihm ihre E-Mails anvertraut, hält uns am Laufen. Führen Sie ein Upgrade durch, wann immer Sie mehr Speicher, Aliasse oder eigene Domains brauchen.",
     bill_attachments: "Anhänge",
     bill_dedicated_support: "Persönlicher Support",
     bill_early_access: "Früher Zugang zu neuen Funktionen",
@@ -2523,7 +2523,7 @@ export const de = {
     no_custom_categories: "Noch keine eigenen Kategorien.",
     category_name_required: "Gib einen Namen für diese Kategorie ein.",
     category_rule_required:
-      "Füge mindestens eine Domain oder ein Stichwort zum Abgleich hinzu.",
+      "Fügen Sie mindestens eine Domain oder ein Stichwort zum Abgleich hinzu.",
     template_name_required: "Geben Sie einen Namen für diese Vorlage ein.",
     template_content_required: "Fügen Sie Inhalt für diese Vorlage hinzu.",
     category_domains_invalid:
@@ -4246,7 +4246,7 @@ export const de = {
     clear_cache_reload: "Gesamten Cache leeren & neu laden",
     clear_cache_confirm_message:
       "Dadurch werden zwischengespeicherte Daten auf diesem Gerät gelöscht und Aster Mail neu geladen. Du musst dich möglicherweise erneut anmelden.",
-    current_plan: "Aktueller Plan",
+    current_plan: "Aktueller Tarif",
     free: "Kostenlos",
     available_plans: "Verfügbare Pläne",
     current: "Aktuell",
@@ -4748,7 +4748,7 @@ export const de = {
     address_change_locked_cooldown:
       "Du kannst deine Adresse am {{date}} wieder ändern.",
     address_change_locked_cooldown_unknown:
-      "Du hast deine Adresse in den letzten 30 Tagen geändert und kannst sie deshalb noch nicht erneut ändern.",
+      "Sie haben Ihre Adresse in den letzten 30 Tagen geändert und können sie deshalb noch nicht erneut ändern.",
     address_change_once_unknown:
       "Nach dieser Änderung kannst du sie in 30 Tagen erneut ändern.",
     address_change_password_wrong: "Dieses Passwort ist nicht korrekt.",
@@ -6145,7 +6145,7 @@ export const de = {
     cancel_early_continue: "Weiter zur Kündigung",
     cancel_reason_continue: "Weiter",
     cancel_impact_title: "Was sich bei einer Kündigung ändert",
-    cancel_impact_description: "Dein Plan bleibt bis {{date}} aktiv. Danach:",
+    cancel_impact_description: "Ihr Tarif bleibt bis {{date}} aktiv. Danach:",
     cancel_impact_description_nodate:
       "Wenn dein aktueller Abrechnungszeitraum endet:",
     cancel_impact_loading: "Änderungen für dein Konto werden geprüft...",
@@ -6538,7 +6538,7 @@ export const de = {
     domain_purchase_manage_term: "Laufzeit",
     domain_purchase_manage_paid: "Bezahlt",
     domain_purchase_manage_auto_renew_note:
-      "Diese Domain wird nicht automatisch verlängert. Verlängere sie vor dem Ablaufdatum, um sie zu behalten.",
+      "Diese Domain wird nicht automatisch verlängert. Um sie zu behalten, verlängern Sie sie vor dem Ablaufdatum.",
     domain_purchase_manage_dns: "Domain-Einrichtung öffnen",
     domain_purchase_manage_support_note:
       "Um diese Domain zu einem anderen Registrar zu übertragen oder nach einer Rückerstattung zu fragen, kontaktiere den Support.",
@@ -9431,7 +9431,7 @@ export const de = {
     password_strong: "Stark",
     please_enter_email_address: "Ihre E-Mail-Adresse wird hier benötigt.",
     invalid_recovery_code:
-      "Dieser Wiederherstellungscode stimmt nicht überein. Ein anderer aus Ihrer gespeicherten Liste funktioniert.",
+      "Dieser Code passt nicht zu diesem Konto. Gleichen Sie ihn mit Ihrer gespeicherten Liste ab und geben Sie ihn erneut ein. Leerzeichen und Großschreibung spielen keine Rolle.",
     recovery_locked_out:
       "Für dieses Konto gab es zu viele Wiederherstellungsversuche. Du kannst es in {{time}} erneut versuchen. Keiner deiner Codes wurde verwendet, du hast also weiterhin alle.",
     invalid_backup_code:

@@ -9012,7 +9012,7 @@ export const es = {
     official_sender_desc:
       "Este mensaje proviene de una dirección oficial de Aster. Aster nunca te pedirá tu contraseña ni tu frase de recuperación por correo.",
     verification_verified: "Verificado",
-    zero_access_encrypted: "Cifrado sin acceso",
+    zero_access_encrypted: "Cifrado de extremo a extremo",
     sort_by: "Ordenar por",
     newest_first: "Más recientes primero",
     oldest_first: "Más antiguos primero",

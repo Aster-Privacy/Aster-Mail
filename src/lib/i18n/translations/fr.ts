@@ -701,7 +701,7 @@ export const fr = {
     dns_caveat_spf_single_record_other_senders:
       "Ne publiez qu'un seul enregistrement SPF. Si d'autres services envoient du courrier pour ce domaine, fusionnez leurs termes include: dans cet unique enregistrement.",
     dns_caveat_dmarc_add_after_spf_dkim:
-      "Ajoutez ceci en dernier, une fois SPF et DKIM verifies. Le publier trop tot peut envoyer vos propres messages en spam.",
+      "Ajoutez cet enregistrement en dernier, une fois SPF et DKIM vérifiés. Le publier trop tôt peut envoyer vos propres messages dans les indésirables.",
     value_points_to: "Valeur / Pointe vers",
     dns_records_to_add: "Enregistrements DNS à ajouter",
     dns_propagation_note:
@@ -720,13 +720,13 @@ export const fr = {
     scheduled_email_cancelled: "E-mail programmé annulé",
     email_snoozed: "E-mail mis en veille",
     email_unsnoozed: "E-mail sorti de la veille",
-    failed_to_snooze: "Réessayez.",
+    failed_to_snooze: "Cet e-mail n'a pas été mis en veille. Réessayez. Il se trouve toujours dans votre boîte de réception.",
     failed_to_unsnooze: "Réessayez.",
     conversation_moved_to_trash: "Conversation déplacée vers la corbeille",
     conversation_archived: "Conversation archivée",
     conversation_marked_as_spam: "Conversation marquée comme indésirable",
     failed_to_mark_as_spam: "Réessayez.",
-    failed_to_snooze_conversations: "Réessayez.",
+    failed_to_snooze_conversations: "Ces conversations n'ont pas été mises en veille. Réessayez.",
     marked_as_read_toast: "Marqué comme lu",
     marked_as_unread_toast: "Marqué comme non lu",
     email_permanently_deleted: "E-mail supprimé définitivement",
@@ -930,7 +930,7 @@ export const fr = {
     emails_from_senders_archived: "{{count}} e-mails archivés de {{senders}}",
     emails_from_senders_deleted: "{{count}} e-mails supprimés de {{senders}}",
     emails_added_to_folder: "{{count}} e-mail(s) ajouté(s) à {{folder}}",
-    failed_to_snooze_emails: "Réessayez.",
+    failed_to_snooze_emails: "Ces e-mails n'ont pas été mis en veille. Réessayez. Ils se trouvent toujours dans votre boîte de réception.",
     failed_to_copy: "Réessayez.",
     error_copied_to_clipboard: "Erreur copiée dans le presse-papiers",
     failed_to_update_contact: "Réessayez.",
@@ -1006,7 +1006,7 @@ export const fr = {
       "Déverrouiller le dossier d'abord permettra à ce réglage de changer.",
     cannot_remove_vault_password:
       "Votre dossier Coffre a toujours besoin de son propre mot de passe, et cette protection ne peut pas être retirée.",
-    failed_to_load_snoozed_emails: "Réessayez.",
+    failed_to_load_snoozed_emails: "Vos e-mails en veille n'ont pas pu être chargés. Réessayez. Ils sont en sécurité sur le serveur.",
     failed_to_load_subscriptions: "Réessayez.",
     unexpected_error: "Réessayez.",
     failed_to_load_more_subscriptions: "Réessayez.",
@@ -1140,7 +1140,7 @@ export const fr = {
     undo_failed: "Réessayez.",
     expired: "Expiré",
     expires_in: "Expire dans ",
-    report_phishing: "Signaler le spam",
+    report_phishing: "Signaler comme indésirable",
     suspicious: "Suspect",
     dangerous: "Dangereux",
     click_to_edit: "Cliquez pour modifier",
@@ -1683,7 +1683,7 @@ export const fr = {
     alias_avatar_removed: "Avatar de l'alias supprimé",
     alias_avatar_updated: "Avatar de l'alias mis à jour",
     alias_avatars_feature: "Avatars d'alias",
-    alias_avatars_locked: "Avatars d'alias verrouillés",
+    alias_avatars_locked: "Les avatars personnalisés font partie des forfaits payants. Passez à un forfait supérieur pour les activer.",
     alias_display_name_updated: "Nom d'affichage de l'alias mis à jour",
     all_short: "Tout",
     and_n_more: "Et {{count}} de plus...",
@@ -3868,7 +3868,7 @@ export const fr = {
     developer: "Développeur",
     developer_description:
       "Outils de développement et informations de débogage",
-    updates: "Mises a jour",
+    updates: "Mises à jour",
     updates_description:
       "Verifier les mises a jour et configurer la mise a jour automatique",
     updates_check_now: "Verifier les mises a jour",
@@ -4321,7 +4321,7 @@ export const fr = {
     manage_plan: "Gérer le forfait",
     manage_plan_description: "Modifier votre abonnement",
     cancel_plan_warning:
-      "Vous conserverez les fonctionnalités premium jusqu'à la fin de cette période de facturation, puis votre plan passera au plan gratuit. Votre courrier, vos contacts et vos paramètres restent avec vous.",
+      "Vous conserverez les fonctionnalités premium jusqu'à la fin de cette période de facturation, puis votre forfait passera au forfait gratuit. Votre courrier, vos contacts et vos paramètres restent avec vous.",
     cancel_plan: "Annuler le forfait",
     billing_history: "Historique de facturation",
     billing_desc_payment_failed: "Échec du paiement",
@@ -4364,7 +4364,7 @@ export const fr = {
       "Crédit de trop-perçu en {{currency}} sur {{chain}}",
     storage_limit_exceeded: "Votre stockage est plein.",
     storage_limit_description:
-      "Le nouveau courrier est en pause jusqu'à ce que vous libériez de l'espace. Effacer quelques messages, ou mettre à niveau votre plan, le laissera circuler à nouveau. Le courrier existant est en sécurité.",
+      "Le nouveau courrier est en pause jusqu'à ce que vous libériez de l'espace. Supprimez quelques messages ou passez à un forfait supérieur pour le rétablir. Le courrier existant est en sécurité.",
     cancel_subscription: "Annuler l'abonnement",
     cancel_subscription_description:
       "Votre abonnement restera actif jusqu'à la fin de la période de facturation en cours. Après cela, vous serez basculé vers le forfait gratuit.",
@@ -8423,9 +8423,9 @@ export const fr = {
       "L'adresse de réponse ne correspond pas à l'expéditeur",
     spam_reason_future_dated: "Le message est daté dans le futur",
     spam_reason_phishing_url:
-      "Il contient un lien figurant sur une liste de blocage de phishing",
+      "Il contient un lien figurant sur une liste de blocage d'hameçonnage",
     spam_reason_phishing_domain:
-      "Il pointe vers un domaine associé au phishing",
+      "Il pointe vers un domaine associé à l'hameçonnage",
     spam_reason_user_spam_learning:
       "Vous avez déjà signalé des courriers indésirables provenant du domaine de cet expéditeur",
     spam_reason_global_domain_reputation:
