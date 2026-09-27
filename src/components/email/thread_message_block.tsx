@@ -43,7 +43,7 @@ import {
   ArrowUturnRightIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
-import { Island, IslandIconButton, Tooltip } from "@aster/ui";
+import { IslandDivider, IslandIconButton, Tooltip } from "@aster/ui";
 import { AnimatePresence, motion } from "framer-motion";
 
 import { render_collapsed_thread_message } from "./thread_message_collapsed";
@@ -177,12 +177,10 @@ export function ThreadMessageBlock(
     content: React.ReactNode,
     reply: React.ReactNode = null,
   ) => (
-    <>
-      <Island ref={island_ref} className="overflow-hidden">
-        {content}
-      </Island>
+    <div ref={island_ref} className="overflow-hidden">
+      {content}
       <AnimatePresence initial={false}>{reply}</AnimatePresence>
-    </>
+    </div>
   );
 
   const render_inline_reply_island = (on_close: () => void) => {
@@ -209,7 +207,7 @@ export function ThreadMessageBlock(
       <motion.div
         key="inline_reply"
         animate={{ height: "auto", opacity: 1 }}
-        className="aster_island overflow-hidden"
+        className="overflow-hidden"
         exit={{ height: 0, opacity: 0 }}
         initial={{ height: 0, opacity: 0 }}
         transition={
@@ -219,6 +217,7 @@ export function ThreadMessageBlock(
         }
         onClick={(e) => e.stopPropagation()}
       >
+        <IslandDivider />
         <InlineReplyComposer
           existing_draft={existing_draft}
           inline_mode={inline_mode}

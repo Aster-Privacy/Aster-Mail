@@ -372,17 +372,18 @@ export function EmailDetailBody({
               size_bytes={mail_item?.metadata?.size_bytes}
               subject={email.subject}
               thread_token={mail_item?.thread_token}
+              footer={
+                thread_draft ? (
+                  <ThreadDraftBadge
+                    current_user_email={current_user_email}
+                    current_user_name={user?.display_name}
+                    draft={thread_draft}
+                    on_deleted={handle_thread_draft_deleted}
+                    on_edit={handle_edit_thread_draft}
+                  />
+                ) : null
+              }
             />
-
-            {thread_draft && (
-              <ThreadDraftBadge
-                current_user_email={current_user_email}
-                current_user_name={user?.display_name}
-                draft={thread_draft}
-                on_deleted={handle_thread_draft_deleted}
-                on_edit={handle_edit_thread_draft}
-              />
-            )}
           </div>
 
           {email.attachments.length > 0 && (

@@ -34,8 +34,9 @@ import {
   useImperativeHandle,
   forwardRef,
 } from "react";
+import { Fragment } from "react";
 import { ChevronDownIcon } from "@heroicons/react/20/solid";
-import { IslandStack, ThreadHiddenRow } from "@aster/ui";
+import { Island, IslandDivider } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
@@ -138,6 +139,7 @@ interface ThreadMessagesListProps {
   unsubscribe_url?: string;
   loaded_content_types?: Set<string>;
   on_load_external_content?: (types?: string[]) => void;
+  footer?: React.ReactNode;
 }
 
 export interface ThreadMessagesListRef {
@@ -195,6 +197,7 @@ export const ThreadMessagesList = forwardRef<
     unsubscribe_url,
     loaded_content_types,
     on_load_external_content,
+    footer,
   },
   ref,
 ): React.ReactElement {
@@ -965,11 +968,7 @@ export const ThreadMessagesList = forwardRef<
     return ids;
   }, [display_messages, hidden_count]);
 
-  const render_message = (
-    msg: DecryptedThreadMessage,
-    display_idx: number,
-    extra_props?: { hide_bottom_border?: boolean },
-  ) => {
+  const render_message = (msg: DecryptedThreadMessage, display_idx: number) => {
     const is_last =
       msg.id === regular_messages[regular_messages.length - 1]?.id;
 
@@ -981,7 +980,6 @@ export const ThreadMessagesList = forwardRef<
         external_content_mode={external_content_mode}
         folders={folder_options}
         force_dark_mode={is_dark_mode_message(msg.id)}
-        hide_bottom_border={extra_props?.hide_bottom_border}
         inline_mode={inline_mode}
         inline_reply_is_external={inline_reply_is_external}
         inline_reply_references={
@@ -1041,20 +1039,42 @@ export const ThreadMessagesList = forwardRef<
     );
   };
 
-  const indexed_messages = display_messages.map((msg, idx) => ({ msg, idx }));
-  const leading_messages = hidden_ids
-    ? indexed_messages.slice(0, 1)
-    : indexed_messages;
-  const trailing_messages = hidden_ids
-    ? indexed_messages.filter(
-        ({ msg, idx }) => idx > 0 && !hidden_ids.has(msg.id),
-      )
-    : [];
+  const rows: React.ReactNode[] = [];
+
+  display_messages.forEach((msg, idx) => {
+    if (hidden_ids?.has(msg.id)) {
+      if (idx === 1) {
+        rows.push(
+          <button
+            key="hidden_group"
+            aria-expanded={false}
+            className="group/hidden flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-start transition-colors hover:bg-[var(--aster-island-hover)] focus:outline-none focus-visible:bg-[var(--aster-island-hover)]"
+            type="button"
+            onClick={() => set_hidden_group_revealed(true)}
+          >
+            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[var(--bg-primary)] text-[14px] font-semibold tabular-nums text-txt-secondary">
+              {hidden_count}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-txt-secondary group-hover/hidden:text-txt-primary">
+              {t("mail.more_messages_count", { count: hidden_count })}
+            </span>
+            <ChevronDownIcon className="h-4 w-4 flex-shrink-0 text-txt-muted" />
+          </button>,
+        );
+      }
+
+      return;
+    }
+
+    rows.push(<Fragment key={msg.id}>{render_message(msg, idx)}</Fragment>);
+  });
+
+  if (footer) {
+    rows.push(<Fragment key="footer">{footer}</Fragment>);
+  }
 
   return (
-    <div
-      className={`flex flex-col ${regular_messages.length > 1 ? "gap-0" : "gap-2"}`}
-    >
+    <div className="flex flex-col gap-2">
       {(thread_message_count ?? regular_messages.length) > 1 &&
         !hide_counter && (
           <div className="flex items-center justify-end px-1">
@@ -1064,26 +1084,14 @@ export const ThreadMessagesList = forwardRef<
             </span>
           </div>
         )}
-      <IslandStack grouped>
-        {leading_messages.map(({ msg, idx }) =>
-          render_message(msg, idx, {
-            hide_bottom_border: idx === 0 && !!hidden_ids,
-          }),
-        )}
-      </IslandStack>
-      {hidden_ids && (
-        <>
-          <ThreadHiddenRow
-            aria-expanded={false}
-            icon={<ChevronDownIcon />}
-            label={t("mail.more_messages_count", { count: hidden_count })}
-            onClick={() => set_hidden_group_revealed(true)}
-          />
-          <IslandStack grouped>
-            {trailing_messages.map(({ msg, idx }) => render_message(msg, idx))}
-          </IslandStack>
-        </>
-      )}
+      <Island className="overflow-hidden">
+        {rows.map((row, idx) => (
+          <Fragment key={idx}>
+            {idx > 0 && <IslandDivider />}
+            {row}
+          </Fragment>
+        ))}
+      </Island>
       <div ref={send_anchor_ref} />
     </div>
   );

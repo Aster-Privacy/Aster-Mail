@@ -267,37 +267,34 @@ export function ViewerThreadContent({
           subject={email.subject}
           thread_token={email.thread_token}
           unsubscribe_url={unsubscribe_url}
+          footer={
+            thread_draft && !inline_reply_msg ? (
+              <ThreadDraftBadge
+                current_user_email={current_user_email}
+                current_user_name={current_user_name}
+                draft={thread_draft}
+                on_deleted={() => on_thread_draft_deleted?.()}
+                on_edit={(draft) => {
+                  const target =
+                    thread_messages.find((m) => m.id === draft.reply_to_id) ??
+                    thread_messages[thread_messages.length - 1];
+
+                  if (!target) return;
+                  set_inline_reply_msg(target);
+                  set_inline_mode(
+                    draft.draft_type === "forward" ? "forward" : "reply",
+                  );
+                }}
+                thread_token={email.thread_token}
+              />
+            ) : sending_message ? (
+              <SendingMessageBlock
+                current_user_name={current_user_name ?? ""}
+                message={sending_message}
+              />
+            ) : null
+          }
         />
-
-        {thread_draft && !inline_reply_msg && (
-          <ThreadDraftBadge
-            current_user_email={current_user_email}
-            current_user_name={current_user_name}
-            draft={thread_draft}
-            on_deleted={() => on_thread_draft_deleted?.()}
-            on_edit={(draft) => {
-              const target =
-                thread_messages.find((m) => m.id === draft.reply_to_id) ??
-                thread_messages[thread_messages.length - 1];
-
-              if (!target) return;
-              set_inline_reply_msg(target);
-              set_inline_mode(
-                draft.draft_type === "forward" ? "forward" : "reply",
-              );
-            }}
-            thread_token={email.thread_token}
-          />
-        )}
-
-        {sending_message && (
-          <div className="mt-4">
-            <SendingMessageBlock
-              current_user_name={current_user_name ?? ""}
-              message={sending_message}
-            />
-          </div>
-        )}
       </div>
     </div>
   );
