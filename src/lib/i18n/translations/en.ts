@@ -437,7 +437,8 @@ export const en: Translations = {
     related_person: "Related person",
     event: "Event",
     instant_messenger: "Instant messenger",
-    contact_limit_reached: "You reached your contact limit. Upgrade your plan to import the rest.",
+    contact_limit_reached:
+      "You reached your contact limit. Upgrade your plan to import the rest.",
     social_networks: "Social networks",
     websites: "Websites",
     instant_messengers: "Instant messengers",
@@ -1260,11 +1261,14 @@ export const en: Translations = {
     locked_data_banner_action: "Recover data",
     locked_data_banner_dismiss: "Dismiss",
     recover_data_title: "Recover data",
-    recover_data_description: "To unlock data from before a password change or reset, enter the password you used at that time.",
+    recover_data_description:
+      "To unlock data from before a password change or reset, enter the password you used at that time.",
     recover_data_button: "Recover",
     recover_data_success: "Your older data is unlocked.",
-    recover_data_no_match: "That password didn't unlock any data. Try another previous password.",
-    recover_data_failed: "Some data couldn't be unlocked. Check your connection and try again.",
+    recover_data_no_match:
+      "That password didn't unlock any data. Try another previous password.",
+    recover_data_failed:
+      "Some data couldn't be unlocked. Check your connection and try again.",
     payment_past_due_message:
       "Your last payment didn't go through. Update your payment method to keep your plan.",
     payment_past_due_message_days:
@@ -1414,13 +1418,17 @@ export const en: Translations = {
     select_destination_folder: "Select destination folder",
     no_folders_available: "No folders available",
     submitting: "Submitting...",
-    suspended_alert: "This account was used in a way that goes against the {terms}.",
+    suspended_alert:
+      "This account was used in a way that goes against the {terms}.",
     suspended_alert_terms: "Aster Terms of Service",
-    suspended_since_with_deletion: "This account became unavailable on {date}. Starting on {deletion_date}, it may be considered for deletion.",
+    suspended_since_with_deletion:
+      "This account became unavailable on {date}. Starting on {deletion_date}, it may be considered for deletion.",
     suspended_since: "This account became unavailable on {date}.",
     suspended_title: "This account is suspended",
-    suspended_appeal_hint: "If you think this is a mistake, you can submit an appeal. Aster reviews every appeal and replies by email.",
-    suspended_download_hint: "You can still download a copy of your data. Your mail is decrypted on this device only, so nobody else can read the export.",
+    suspended_appeal_hint:
+      "If you think this is a mistake, you can submit an appeal. Aster reviews every appeal and replies by email.",
+    suspended_download_hint:
+      "You can still download a copy of your data. Your mail is decrypted on this device only, so nobody else can read the export.",
     suspended_download: "Download your data",
     suspended_start_appeal: "Start appeal",
     pending_deletion_title: "Account scheduled for deletion",
@@ -1904,9 +1912,11 @@ export const en: Translations = {
   },
   settings: {
     bill_thanks_title: "Thanks for supporting Aster",
-    bill_thanks_body: "Your support means everything to us. It lets a small team keep building Aster with care, every single day.",
+    bill_thanks_body:
+      "Your support means everything to us. It lets a small team keep building Aster with care, every single day.",
     bill_thanks_free_title: "Thanks for using Aster",
-    bill_thanks_free_body: "A small team builds Aster with care, and every person who trusts it with their mail keeps us going. Upgrade whenever you need more storage, aliases, or custom domains.",
+    bill_thanks_free_body:
+      "A small team builds Aster with care, and every person who trusts it with their mail keeps us going. Upgrade whenever you need more storage, aliases, or custom domains.",
     bill_attachments: "Attachments",
     bill_dedicated_support: "Dedicated support",
     bill_early_access: "Early access to new features",
@@ -1922,7 +1932,8 @@ export const en: Translations = {
     bill_tracker_protection: "Tracker protection",
     bill_action_required: "Action required",
     bill_add_funds: "Add funds",
-    bill_add_funds_body: "Credits pay for renewals and add-ons before your card is charged.",
+    bill_add_funds_body:
+      "Credits pay for renewals and add-ons before your card is charged.",
     bill_add_more_storage: "Add more storage",
     bill_aliases: "Aliases",
     bill_all_good: "All good",
@@ -1966,7 +1977,8 @@ export const en: Translations = {
     bill_update_payment: "Update",
     bill_upgrade: "Upgrade",
     bill_use_credits_renewals: "Use credits for renewals",
-    bill_use_credits_renewals_body: "Your balance is applied before your card is charged.",
+    bill_use_credits_renewals_body:
+      "Your balance is applied before your card is charged.",
     alias_sent_mail_label: "Sent mail",
     alias_sent_mail_desc: "See the messages you sent from this address.",
     purge_locked_folder_on_delete: "Purge Protected Folder Contents",
@@ -2092,11 +2104,13 @@ export const en: Translations = {
     bridge_support_reddit_desc: "Follow announcements and join discussions",
     bridge_support_github_desc: "Read the source code and report an issue",
     bridge_all_platforms: "All platforms",
-    bridge_upgrade_benefit_clients: "Works with Apple Mail, Thunderbird, and Outlook",
+    bridge_upgrade_benefit_clients:
+      "Works with Apple Mail, Thunderbird, and Outlook",
     bridge_upgrade_benefit_local: "Runs locally, so your mail stays encrypted",
     bridge_upgrade_benefit_platforms: "Available on Windows, macOS, and Linux",
     bridge_upgrade_benefit_cli: "Includes a command-line version for servers",
-    bridge_cli_install_hint_windows: "Download the archive, then extract it and add the folder to your PATH.",
+    bridge_cli_install_hint_windows:
+      "Download the archive, then extract it and add the folder to your PATH.",
     bridge_cli_name: "Command line",
     bridge_cli_desc:
       "Run aster-bridge without a window, on a server or over SSH.",
@@ -2580,7 +2594,8 @@ export const en: Translations = {
     password_change_background_reencrypt_failed:
       "Your password changed, but some of your sent mail and settings did not finish re-encrypting. Contact support if any mail or settings look unreadable.",
     previous_password: "Previous password",
-    password_change_sent_mail_locked: "Your password changed. {{count}} sent emails were encrypted with an earlier password and did not update. To unlock them, select Recover data in the banner at the top of your inbox.",
+    password_change_sent_mail_locked:
+      "Your password changed. {{count}} sent emails were encrypted with an earlier password and did not update. To unlock them, select Recover data in the banner at the top of your inbox.",
     password_changed_signing_out:
       "Password changed successfully. Signing you out...",
     password_changed_success: "Password changed",
@@ -3028,9 +3043,11 @@ export const en: Translations = {
     compose_mode_fullscreen: "Always full screen",
     compose_mode_minimized: "Start minimized",
     default_sender_group: "Sending",
-    default_sender_group_description: "Choose which of your addresses new messages come from.",
+    default_sender_group_description:
+      "Choose which of your addresses new messages come from.",
     default_sender_title: "Default sender",
-    default_sender_description: "New messages start from this address. Replies use the address the message was sent to.",
+    default_sender_description:
+      "New messages start from this address. Replies use the address the message was sent to.",
     default_sender_no_addresses: "No other addresses",
     compose_defaults_title: "Default formatting",
     compose_defaults_description:
@@ -3047,9 +3064,11 @@ export const en: Translations = {
     reply_defaults_title: "Replies",
     reply_defaults_description: "Choose what a new reply starts with.",
     reply_include_quoted: "Include quoted text",
-    reply_include_quoted_description: "Start every reply with the original message quoted below your text.",
+    reply_include_quoted_description:
+      "Start every reply with the original message quoted below your text.",
     reply_prefix_subject: "Add Re: to the subject",
-    reply_prefix_subject_description: "Put Re: in front of the original subject when you reply.",
+    reply_prefix_subject_description:
+      "Put Re: in front of the original subject when you reply.",
     build_info: "Build Info",
     release: "Release",
     build: "Build",
@@ -5422,19 +5441,23 @@ export const en: Translations = {
     address_change_pick_title: "Pick your new address",
     address_change_use_alias: "Use one of your aliases",
     address_change_use_new: "Choose a new address",
-    address_change_name_rule: "Use 3 to 40 letters, numbers, or dots. A dot cannot start or end the address, and dots cannot repeat.",
+    address_change_name_rule:
+      "Use 3 to 40 letters, numbers, or dots. A dot cannot start or end the address, and dots cannot repeat.",
     address_change_name_placeholder: "yourname",
-    primary_address_info: "Your Supernova plan lets you change your address once every 30 days. Your old address stays yours: it keeps receiving mail and it still signs you in.",
+    primary_address_info:
+      "Your Supernova plan lets you change your address once every 30 days. Your old address stays yours: it keeps receiving mail and it still signs you in.",
     address_change_checking: "Checking availability",
     address_change_available: "{{email}} is available",
     address_change_unavailable: "{{email}} is not available",
     address_change_same_as_current: "That is already your address",
-    address_change_check_failed: "Aster Mail could not check that address. Try again in a moment.",
+    address_change_check_failed:
+      "Aster Mail could not check that address. Try again in a moment.",
     address_change_review_title: "Review the change",
     address_change_from: "Now",
     address_change_to: "After",
     address_change_effect_sending: "Messages you send come from {{email}}.",
-    address_change_effect_key: "Your encryption key stays the same and gains {{email}} as a second identity.",
+    address_change_effect_key:
+      "Your encryption key stays the same and gains {{email}} as a second identity.",
     address_change_effect_signed_in: "You stay signed in everywhere.",
     address_change_effect_final:
       "The change is final. To continue, type your new address.",
@@ -6168,46 +6191,67 @@ export const en: Translations = {
     bimi_adj_removed_size: "Removed fixed width and height.",
     bimi_adj_removed_unsupported_attributes: "Removed unsupported attributes.",
     bimi_adj_set_tiny_ps_profile: "Set the SVG profile to Tiny PS.",
-    bimi_adjustments_title: "Aster adjusted your file to meet the requirements:",
-    bimi_auto_checking: "Aster checks for the record automatically while this page is open.",
+    bimi_adjustments_title:
+      "Aster adjusted your file to meet the requirements:",
+    bimi_auto_checking:
+      "Aster checks for the record automatically while this page is open.",
     bimi_check_again: "Check again",
     bimi_checking: "Checking",
     bimi_choose_file: "Choose file",
-    bimi_dmarc_invalid: "Your DMARC record can't be read. Replace it with a valid record.",
+    bimi_dmarc_invalid:
+      "Your DMARC record can't be read. Replace it with a valid record.",
     bimi_dmarc_missing: "Add a DMARC record with p=quarantine or p=reject.",
-    bimi_dmarc_not_enforced: "Change your DMARC policy to p=quarantine or p=reject.",
-    bimi_dmarc_organization_not_enforced: "The DMARC policy of your parent domain must also be quarantine or reject.",
-    bimi_dmarc_partial: "Remove the pct tag from your DMARC record, or set it to 100.",
+    bimi_dmarc_not_enforced:
+      "Change your DMARC policy to p=quarantine or p=reject.",
+    bimi_dmarc_organization_not_enforced:
+      "The DMARC policy of your parent domain must also be quarantine or reject.",
+    bimi_dmarc_partial:
+      "Remove the pct tag from your DMARC record, or set it to 100.",
     bimi_dmarc_ready: "Your DMARC policy is quarantine or reject.",
-    bimi_dmarc_subdomain_policy_none: "Change the sp tag in your DMARC record to quarantine or reject.",
+    bimi_dmarc_subdomain_policy_none:
+      "Change the sp tag in your DMARC record to quarantine or reject.",
     bimi_drop_here: "Drag your SVG logo here.",
-    bimi_err_doctype_entities: "The file declares custom entities, which aren't allowed.",
+    bimi_err_doctype_entities:
+      "The file declares custom entities, which aren't allowed.",
     bimi_err_empty: "The image is empty.",
-    bimi_err_external_reference: "The file links to an external resource, which isn't allowed.",
-    bimi_err_invalid_reference: "The file contains a broken internal reference.",
-    bimi_err_invalid_value: "The file contains an attribute value that isn't allowed.",
+    bimi_err_external_reference:
+      "The file links to an external resource, which isn't allowed.",
+    bimi_err_invalid_reference:
+      "The file contains a broken internal reference.",
+    bimi_err_invalid_value:
+      "The file contains an attribute value that isn't allowed.",
     bimi_err_malformed: "The file isn't valid SVG.",
-    bimi_err_missing_view_box: "The image has no viewBox. Export it with a viewBox.",
-    bimi_err_not_square: "The logo isn't square. Make the width and height equal.",
+    bimi_err_missing_view_box:
+      "The image has no viewBox. Export it with a viewBox.",
+    bimi_err_not_square:
+      "The logo isn't square. Make the width and height equal.",
     bimi_err_not_svg: "The file isn't an SVG image.",
     bimi_err_not_utf8: "The file isn't a text SVG file.",
-    bimi_err_raster_image: "The file contains an embedded bitmap image. Use vector shapes only.",
+    bimi_err_raster_image:
+      "The file contains an embedded bitmap image. Use vector shapes only.",
     bimi_err_script_content: "The file contains a script, which isn't allowed.",
-    bimi_err_text_not_outlined: "The logo contains text. Convert text to outlines before you export it.",
-    bimi_err_too_complex: "The image is too complex. Simplify it and export again.",
+    bimi_err_text_not_outlined:
+      "The logo contains text. Convert text to outlines before you export it.",
+    bimi_err_too_complex:
+      "The image is too complex. Simplify it and export again.",
     bimi_err_too_large: "The file is too large.",
-    bimi_err_unsupported_element: "The file contains elements that aren't allowed.",
-    bimi_err_unsupported_style: "The file uses styles or effects that aren't allowed, such as filters, masks, or style sheets.",
-    bimi_error_domain_not_active: "Finish setting up this domain before you publish a logo.",
+    bimi_err_unsupported_element:
+      "The file contains elements that aren't allowed.",
+    bimi_err_unsupported_style:
+      "The file uses styles or effects that aren't allowed, such as filters, masks, or style sheets.",
+    bimi_error_domain_not_active:
+      "Finish setting up this domain before you publish a logo.",
     bimi_error_file_too_large: "The file is larger than 64 KB.",
     bimi_error_logo_required: "Upload a logo before you publish.",
     bimi_error_not_svg_file: "Choose an SVG file.",
     bimi_error_throttled: "Wait a moment, then try again.",
     bimi_errors_title: "This file can't be used as a brand logo:",
     bimi_last_checked: "Last checked {time}",
-    bimi_logo_public_note: "Your logo is public. Anyone who receives your mail can see it.",
+    bimi_logo_public_note:
+      "Your logo is public. Anyone who receives your mail can see it.",
     bimi_logo_ready: "Your logo meets the requirements.",
-    bimi_managed_note: "Your domain was bought through Aster, so the DNS record is added for you.",
+    bimi_managed_note:
+      "Your domain was bought through Aster, so the DNS record is added for you.",
     bimi_preview_alt: "Preview of your brand logo",
     bimi_preview_dark: "Dark",
     bimi_preview_inbox_subject: "Your latest update",
@@ -6215,31 +6259,40 @@ export const en: Translations = {
     bimi_preview_light: "Light",
     bimi_publish: "Publish logo",
     bimi_publishing: "Publishing",
-    bimi_record_conflict: "Another BIMI record exists for this domain. Remove it so only this record remains.",
-    bimi_record_external: "The existing BIMI record points to another host. Replace it with this record to use Aster hosting.",
+    bimi_record_conflict:
+      "Another BIMI record exists for this domain. Remove it so only this record remains.",
+    bimi_record_external:
+      "The existing BIMI record points to another host. Replace it with this record to use Aster hosting.",
     bimi_record_host: "Host",
-    bimi_record_missing: "The record isn't visible yet. DNS changes can take up to 48 hours.",
-    bimi_record_removed: "Aster can't find this record anymore. Add it again at your DNS provider.",
+    bimi_record_missing:
+      "The record isn't visible yet. DNS changes can take up to 48 hours.",
+    bimi_record_removed:
+      "Aster can't find this record anymore. Add it again at your DNS provider.",
     bimi_record_published: "The record is published.",
     bimi_record_title: "Add this record at your DNS provider",
     bimi_record_type: "Type",
     bimi_copy_field: "Copy {field}",
     bimi_record_value: "Value",
     bimi_replace_logo: "Replace logo",
-    bimi_req_auth_fail: "Verify the SPF and DKIM records for this domain first.",
+    bimi_req_auth_fail:
+      "Verify the SPF and DKIM records for this domain first.",
     bimi_req_auth_ok: "SPF and DKIM are verified.",
     bimi_req_auth_title: "Mail authentication",
     bimi_req_dmarc_title: "DMARC enforcement",
     bimi_req_not_checked: "Not checked yet.",
     bimi_requirements_title: "Requirements",
-    bimi_row_attention: "Your logo is published, but a requirement is no longer met.",
+    bimi_row_attention:
+      "Your logo is published, but a requirement is no longer met.",
     bimi_row_draft: "Your logo is ready. Publish it to start using it.",
-    bimi_row_external: "This domain has a BIMI record that points to another host.",
+    bimi_row_external:
+      "This domain has a BIMI record that points to another host.",
     bimi_row_inactive: "Finish setting up this domain to add a brand logo.",
     bimi_row_live: "Your logo is published.",
-    bimi_row_off: "Show your logo next to your mail in inboxes that support brand logos.",
+    bimi_row_off:
+      "Show your logo next to your mail in inboxes that support brand logos.",
     bimi_row_pending: "Add the DNS record, then check again.",
-    bimi_row_pending_managed: "Your DNS record is being published. This can take a few minutes.",
+    bimi_row_pending_managed:
+      "Your DNS record is being published. This can take a few minutes.",
     bimi_rule_safe: "No scripts or external links",
     bimi_rule_size: "32 KB or smaller after Aster optimizes it",
     bimi_rule_square: "Square, with equal width and height",
@@ -6257,13 +6310,16 @@ export const en: Translations = {
     bimi_step_publish: "Publish",
     bimi_title: "Brand logo",
     bimi_turn_off: "Turn off",
-    bimi_turn_off_body: "Your logo stops being hosted right away and inboxes show a default icon instead.",
+    bimi_turn_off_body:
+      "Your logo stops being hosted right away and inboxes show a default icon instead.",
     bimi_turn_off_confirm: "Turn off",
     bimi_turn_off_description: "Stop showing your logo in inboxes.",
-    bimi_turn_off_remove_record: "Remove the default._bimi TXT record from your DNS provider.",
+    bimi_turn_off_remove_record:
+      "Remove the default._bimi TXT record from your DNS provider.",
     bimi_turn_off_title: "Turn off brand logo?",
     bimi_uploading: "Uploading",
-    bimi_verified_mark_note: "Some inboxes only show brand logos for domains with a verified mark certificate.",
+    bimi_verified_mark_note:
+      "Some inboxes only show brand logos for domains with a verified mark certificate.",
     catch_all_description: "Receive emails sent to any address at this domain",
     set_host_root:
       "Set the host to @ (do not enter your domain name; your provider adds it automatically)",
@@ -9843,8 +9899,7 @@ export const en: Translations = {
     delete_confirm_no: "Cancel",
     delete_failed: "Could not delete this message. Please try again.",
   },
-  compose: {
-  },
+  compose: {},
   shared_mailboxes: {
     tab_label: "Shared Mailboxes",
     create: "Create",

@@ -355,8 +355,7 @@ export interface SecureViewTranslations {
   delete_failed: string;
 }
 
-export interface ComposeTranslations {
-}
+export interface ComposeTranslations {}
 
 export interface FolderRetentionTranslations {
   title: string;

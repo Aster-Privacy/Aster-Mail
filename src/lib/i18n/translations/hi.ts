@@ -166,10 +166,13 @@ export const hi = {
     recovery_email_hidden: "इस खाते पर सहेजा गया",
     profile_picture_updated: "प्रोफ़ाइल तस्वीर अपडेट हो गई",
     profile_picture_removed: "प्रोफ़ाइल तस्वीर हटा दी गई",
-    failed_save_profile_picture: "आपकी नई प्रोफ़ाइल तस्वीर सहेजी नहीं गई। फिर से कोशिश करें। पुरानी तस्वीर अभी भी दिख रही है।",
-    failed_remove_profile_picture: "आपकी प्रोफ़ाइल तस्वीर हटाई नहीं जा सकी। फिर से कोशिश करें।",
+    failed_save_profile_picture:
+      "आपकी नई प्रोफ़ाइल तस्वीर सहेजी नहीं गई। फिर से कोशिश करें। पुरानी तस्वीर अभी भी दिख रही है।",
+    failed_remove_profile_picture:
+      "आपकी प्रोफ़ाइल तस्वीर हटाई नहीं जा सकी। फिर से कोशिश करें।",
     remove_photo: "फ़ोटो निकालें",
-    failed_save_profile_color: "आपका चुना हुआ रंग सहेजा नहीं गया। फिर से कोशिश करें।",
+    failed_save_profile_color:
+      "आपका चुना हुआ रंग सहेजा नहीं गया। फिर से कोशिश करें।",
     failed_upload_image: "फिर से कोशिश करें।",
     image_load_failed:
       "यह छवि लोड नहीं हुई। रीफ़्रेश करने से आमतौर पर काम बन जाता है।",
@@ -181,9 +184,11 @@ export const hi = {
       "यह छवि 5 MB की सीमा से बड़ी है। छोटी छवि, या कंप्रेस किया गया संस्करण, आ जाएगा।",
     alias_avatar_updated: "एलियास अवतार अपडेट हो गया",
     alias_avatar_removed: "एलियास अवतार निकाल दिया गया",
-    failed_update_alias_avatar: "आपके एलियास का अवतार अपडेट नहीं हुआ। फिर से कोशिश करें।",
+    failed_update_alias_avatar:
+      "आपके एलियास का अवतार अपडेट नहीं हुआ। फिर से कोशिश करें।",
     alias_display_name_updated: "प्रदर्शन नाम अपडेट हो गया",
-    failed_update_alias_display_name: "आपका डिस्प्ले नाम अपडेट नहीं हुआ। फिर से कोशिश करें।",
+    failed_update_alias_display_name:
+      "आपका डिस्प्ले नाम अपडेट नहीं हुआ। फिर से कोशिश करें।",
     display_name_too_long:
       "यह प्रदर्शन नाम लंबाई की सीमा से बड़ा है। छोटा नाम चलेगा।",
     add_display_name_placeholder: "प्रदर्शन नाम जोड़ें",
@@ -431,7 +436,8 @@ export const hi = {
     related_person: "संबंधित व्यक्ति",
     event: "इवेंट",
     instant_messenger: "इंस्टेंट मैसेंजर",
-    contact_limit_reached: "आप अपनी संपर्क सीमा तक पहुँच गए हैं। बाकी आयात करने के लिए अपना प्लान अपग्रेड करें।",
+    contact_limit_reached:
+      "आप अपनी संपर्क सीमा तक पहुँच गए हैं। बाकी आयात करने के लिए अपना प्लान अपग्रेड करें।",
     social_networks: "सोशल नेटवर्क",
     websites: "वेबसाइट",
     instant_messengers: "इंस्टेंट मैसेंजर",
@@ -610,9 +616,12 @@ export const hi = {
     failed_to_load_emails:
       "आपका इनबॉक्स लोड नहीं हुआ। रीफ़्रेश करने के लिए नीचे खींचना, या एक और कोशिश, आमतौर पर काम कर जाती है। सर्वर पर आपका मेल सुरक्षित है।",
     no_emails_match_criteria: "इस शर्त से कोई ईमेल मेल नहीं खाता",
-    failed_to_update_emails: "ये बदलाव सहेजे नहीं गए। फिर से कोशिश करें। ईमेल में कोई बदलाव नहीं हुआ है।",
-    failed_to_archive_emails: "आर्काइव पूरा नहीं हुआ। फिर से कोशिश करें। ईमेल अब भी आपके इनबॉक्स में हैं।",
-    failed_to_unarchive_emails: "इनबॉक्स में ले जाना पूरा नहीं हुआ। फिर से कोशिश करें। ईमेल अब भी आर्काइव में हैं।",
+    failed_to_update_emails:
+      "ये बदलाव सहेजे नहीं गए। फिर से कोशिश करें। ईमेल में कोई बदलाव नहीं हुआ है।",
+    failed_to_archive_emails:
+      "आर्काइव पूरा नहीं हुआ। फिर से कोशिश करें। ईमेल अब भी आपके इनबॉक्स में हैं।",
+    failed_to_unarchive_emails:
+      "इनबॉक्स में ले जाना पूरा नहीं हुआ। फिर से कोशिश करें। ईमेल अब भी आर्काइव में हैं।",
     keyboard_shortcut_label: "कीबोर्ड शॉर्टकट: {shortcut}",
     something_went_wrong_try_again:
       "वह काम नहीं आया। थोड़ी देर बाद एक और कोशिश आमतौर पर काम कर जाती है।",
@@ -669,13 +678,16 @@ export const hi = {
     scheduled_email_cancelled: "शेड्यूल किया गया ईमेल रद्द हो गया",
     email_snoozed: "ईमेल स्नूज़ हो गया",
     email_unsnoozed: "ईमेल का स्नूज़ हटा दिया गया",
-    failed_to_snooze: "यह ईमेल स्नूज़ नहीं हुआ। फिर से कोशिश करें। यह अब भी आपके इनबॉक्स में है।",
-    failed_to_unsnooze: "यह ईमेल आपके इनबॉक्स में वापस नहीं आया। फिर से कोशिश करें।",
+    failed_to_snooze:
+      "यह ईमेल स्नूज़ नहीं हुआ। फिर से कोशिश करें। यह अब भी आपके इनबॉक्स में है।",
+    failed_to_unsnooze:
+      "यह ईमेल आपके इनबॉक्स में वापस नहीं आया। फिर से कोशिश करें।",
     conversation_moved_to_trash: "बातचीत ट्रैश में ले जाई गई",
     conversation_archived: "बातचीत आर्काइव हो गई",
     conversation_marked_as_spam: "बातचीत स्पैम के रूप में चिह्नित",
     failed_to_mark_as_spam: "यह ईमेल स्पैम में नहीं गया। फिर से कोशिश करें।",
-    failed_to_snooze_conversations: "ये बातचीत स्नूज़ नहीं हुईं। फिर से कोशिश करें।",
+    failed_to_snooze_conversations:
+      "ये बातचीत स्नूज़ नहीं हुईं। फिर से कोशिश करें।",
     marked_as_read_toast: "पढ़ी गई के रूप में चिह्नित",
     marked_as_unread_toast: "अपठित के रूप में चिह्नित",
     email_permanently_deleted: "ईमेल हमेशा के लिए हटा दिया गया",
@@ -729,31 +741,41 @@ export const hi = {
     number_type: "नंबर",
     phone_type: "फ़ोन",
     email_type: "ईमेल",
-    failed_to_fetch_contacts: "आपके संपर्क लोड नहीं हुए। फिर से कोशिश करें। आपके सहेजे गए संपर्क सुरक्षित हैं।",
+    failed_to_fetch_contacts:
+      "आपके संपर्क लोड नहीं हुए। फिर से कोशिश करें। आपके सहेजे गए संपर्क सुरक्षित हैं।",
     failed_to_delete_contact: "फिर से कोशिश करें।",
     contact_deleted: "संपर्क हटा दिया गया",
     contact_saved: "संपर्क सहेज लिया गया",
     contact_created: "संपर्क बन गया",
     failed_to_create_contact: "फिर से कोशिश करें।",
-    failed_to_save_contact: "इस संपर्क में किए गए बदलाव सहेजे नहीं गए। फिर से कोशिश करें। पिछला संस्करण अब भी मौजूद है।",
+    failed_to_save_contact:
+      "इस संपर्क में किए गए बदलाव सहेजे नहीं गए। फिर से कोशिश करें। पिछला संस्करण अब भी मौजूद है।",
     failed_to_delete_contacts: "ये संपर्क हटाए नहीं गए। फिर से कोशिश करें।",
-    failed_to_update_favorites: "आपके पसंदीदा अपडेट नहीं हुए। फिर से कोशिश करें।",
+    failed_to_update_favorites:
+      "आपके पसंदीदा अपडेट नहीं हुए। फिर से कोशिश करें।",
     failed_to_read_file: "यह फ़ाइल पढ़ी नहीं जा सकी। कोई दूसरी काम करेगी।",
-    import_failed: "इंपोर्ट पूरा नहीं हुआ। फिर से कोशिश करें। आपके मौजूदा डेटा में कोई बदलाव नहीं हुआ है।",
+    import_failed:
+      "इंपोर्ट पूरा नहीं हुआ। फिर से कोशिश करें। आपके मौजूदा डेटा में कोई बदलाव नहीं हुआ है।",
     scan_failed: "फिर से कोशिश करें।",
-    failed_to_load_custom_fields: "ये कस्टम फ़ील्ड लोड नहीं हुए। फिर से कोशिश करें।",
-    failed_to_create_field: "यह कस्टम फ़ील्ड सहेजा नहीं गया। फिर से कोशिश करें।",
+    failed_to_load_custom_fields:
+      "ये कस्टम फ़ील्ड लोड नहीं हुए। फिर से कोशिश करें।",
+    failed_to_create_field:
+      "यह कस्टम फ़ील्ड सहेजा नहीं गया। फिर से कोशिश करें।",
     delete_custom_field_title: "कस्टम फ़ील्ड हटाएं?",
     delete_custom_field_message:
       "यह फ़ील्ड हटाने पर इसके मान हर संपर्क से भी निकल जाते हैं। इसे पहले जैसा नहीं किया जा सकता।",
-    failed_to_delete_field: "यह कस्टम फ़ील्ड हटाया नहीं गया। फिर से कोशिश करें।",
-    failed_to_save_value: "आपका बदलाव सहेजा नहीं गया। फिर से कोशिश करें। पिछला मान अब भी मौजूद है।",
+    failed_to_delete_field:
+      "यह कस्टम फ़ील्ड हटाया नहीं गया। फिर से कोशिश करें।",
+    failed_to_save_value:
+      "आपका बदलाव सहेजा नहीं गया। फिर से कोशिश करें। पिछला मान अब भी मौजूद है।",
     never_synced: "कभी सिंक नहीं हुआ",
     last_sync_successful: "पिछला सिंक सफल रहा",
     last_sync_failed:
       "पिछला सिंक पूरा नहीं हुआ, और हम अपने आप फिर से कोशिश करेंगे।",
-    failed_to_forward: "फ़ॉरवर्ड नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
-    failed_to_schedule: "शेड्यूल सहेजा नहीं गया। फिर से कोशिश करें। आपका ड्राफ़्ट सुरक्षित है।",
+    failed_to_forward:
+      "फ़ॉरवर्ड नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    failed_to_schedule:
+      "शेड्यूल सहेजा नहीं गया। फिर से कोशिश करें। आपका ड्राफ़्ट सुरक्षित है।",
     sync_failed:
       "सिंक पूरा नहीं हुआ, और हम अपने आप फिर से कोशिश करेंगे। दोनों तरफ़ आपका मेल सुरक्षित है।",
     clearing: "साफ़ किया जा रहा है...",
@@ -776,7 +798,8 @@ export const hi = {
     conversations_marked_as_spam_bulk:
       "{{count}} बातचीत स्पैम के रूप में चिह्नित",
     conversations_restored_bulk: "{{count}} बातचीत बहाल हुईं",
-    failed_to_restore_conversations: "ये बातचीत रीस्टोर नहीं हुईं। फिर से कोशिश करें।",
+    failed_to_restore_conversations:
+      "ये बातचीत रीस्टोर नहीं हुईं। फिर से कोशिश करें।",
     conversations_snoozed_bulk: "{{count}} बातचीत स्नूज़ की गईं",
     conversations_marked_as_read_bulk:
       "{{count}} बातचीत पढ़ी गई के रूप में चिह्नित",
@@ -852,7 +875,8 @@ export const hi = {
       "जुड़े हुए खातों के लिए शेड्यूल करके भेजना उपलब्ध नहीं है। यह संदेश अभी भेजें, या कोई Aster पता चुनें।",
     scheduled_no_expiry:
       "शेड्यूल किए गए ईमेल में अभी समाप्ति नहीं लगाई जा सकती। अभी भेजें, या शेड्यूल करने के लिए समाप्ति हटा दें।",
-    failed_to_merge_contacts: "मर्ज पूरा नहीं हुआ। फिर से कोशिश करें। आपके मूल संपर्कों में कोई बदलाव नहीं हुआ है।",
+    failed_to_merge_contacts:
+      "मर्ज पूरा नहीं हुआ। फिर से कोशिश करें। आपके मूल संपर्कों में कोई बदलाव नहीं हुआ है।",
     enter_valid_emails: "मान्य ईमेल पते डालें",
     enter_contact_details: "संपर्क विवरण डालें",
     select_valid_image: "JPEG, PNG, WebP या GIF छवि चुनें",
@@ -871,20 +895,30 @@ export const hi = {
       "{{senders}} के {{count}} ईमेल आर्काइव किए गए",
     emails_from_senders_deleted: "{{senders}} के {{count}} ईमेल हटा दिए गए",
     emails_added_to_folder: "{{count}} ईमेल {{folder}} में जोड़े गए",
-    failed_to_snooze_emails: "ये ईमेल स्नूज़ नहीं हुए। फिर से कोशिश करें। ये अब भी आपके इनबॉक्स में हैं।",
+    failed_to_snooze_emails:
+      "ये ईमेल स्नूज़ नहीं हुए। फिर से कोशिश करें। ये अब भी आपके इनबॉक्स में हैं।",
     failed_to_copy: "फिर से कोशिश करें।",
     error_copied_to_clipboard: "त्रुटि क्लिपबोर्ड पर कॉपी हो गई",
-    failed_to_update_contact: "आपके संपर्क में किए गए बदलाव सहेजे नहीं गए। फिर से कोशिश करें। पिछला संस्करण अब भी मौजूद है।",
-    failed_to_block_sender: "हम इस प्रेषक को ब्लॉक नहीं कर सके। फिर से कोशिश करें।",
-    failed_to_rename_folder: "इस फ़ोल्डर का नाम नहीं बदला गया। फिर से कोशिश करें। फ़ोल्डर और उसके ईमेल में कोई बदलाव नहीं हुआ है।",
-    failed_to_change_folder_color: "फ़ोल्डर का रंग अपडेट नहीं हुआ। फिर से कोशिश करें।",
-    failed_to_delete_folder: "यह फ़ोल्डर हटाया नहीं गया। फिर से कोशिश करें। इसके अंदर के ईमेल सुरक्षित हैं।",
+    failed_to_update_contact:
+      "आपके संपर्क में किए गए बदलाव सहेजे नहीं गए। फिर से कोशिश करें। पिछला संस्करण अब भी मौजूद है।",
+    failed_to_block_sender:
+      "हम इस प्रेषक को ब्लॉक नहीं कर सके। फिर से कोशिश करें।",
+    failed_to_rename_folder:
+      "इस फ़ोल्डर का नाम नहीं बदला गया। फिर से कोशिश करें। फ़ोल्डर और उसके ईमेल में कोई बदलाव नहीं हुआ है।",
+    failed_to_change_folder_color:
+      "फ़ोल्डर का रंग अपडेट नहीं हुआ। फिर से कोशिश करें।",
+    failed_to_delete_folder:
+      "यह फ़ोल्डर हटाया नहीं गया। फिर से कोशिश करें। इसके अंदर के ईमेल सुरक्षित हैं।",
     failed_to_move_folder: "फिर से कोशिश करें।",
-    failed_to_update_folder_encryption: "फ़ोल्डर लॉक की सेटिंग नहीं बदली। फिर से कोशिश करें। फ़ोल्डर पहले जैसा ही है।",
+    failed_to_update_folder_encryption:
+      "फ़ोल्डर लॉक की सेटिंग नहीं बदली। फिर से कोशिश करें। फ़ोल्डर पहले जैसा ही है।",
     failed_to_rename_label: "फिर से कोशिश करें।",
-    failed_to_change_label_color: "लेबल का रंग अपडेट नहीं हुआ। फिर से कोशिश करें।",
-    failed_to_change_label_icon: "लेबल का आइकन अपडेट नहीं हुआ। फिर से कोशिश करें।",
-    failed_to_delete_label: "यह लेबल हटाया नहीं गया। फिर से कोशिश करें। आपके ईमेल पर कोई असर नहीं पड़ा है।",
+    failed_to_change_label_color:
+      "लेबल का रंग अपडेट नहीं हुआ। फिर से कोशिश करें।",
+    failed_to_change_label_icon:
+      "लेबल का आइकन अपडेट नहीं हुआ। फिर से कोशिश करें।",
+    failed_to_delete_label:
+      "यह लेबल हटाया नहीं गया। फिर से कोशिश करें। आपके ईमेल पर कोई असर नहीं पड़ा है।",
     failed_to_create_label: "फिर से कोशिश करें।",
     failed_to_create_folder_error: "फिर से कोशिश करें।",
     folder_plan_limit_reached:
@@ -892,16 +926,19 @@ export const hi = {
     authenticate_to_send: "ईमेल भेजने के लिए प्रमाणित करें",
     send_authentication_failed:
       "प्रमाणीकरण पूरा नहीं हुआ, इसलिए यह ईमेल नहीं भेजा गया।",
-    failed_to_send_reply: "यह जवाब नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    failed_to_send_reply:
+      "यह जवाब नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
     failed_to_delete_draft: "फिर से कोशिश करें।",
-    failed_to_update_rule: "यह नियम सहेजा नहीं गया। फिर से कोशिश करें। पिछला संस्करण अब भी सक्रिय है।",
+    failed_to_update_rule:
+      "यह नियम सहेजा नहीं गया। फिर से कोशिश करें। पिछला संस्करण अब भी सक्रिय है।",
     failed_to_send_verification:
       "हम सत्यापन ईमेल नहीं भेज सके। थोड़ी देर बाद एक और कोशिश आमतौर पर काम कर जाती है।",
     failed_to_load_email:
       "यह ईमेल लोड नहीं हुआ। रीफ़्रेश करने से आमतौर पर काम बन जाता है। ईमेल सर्वर पर सुरक्षित है।",
     failed_to_decrypt_email:
       "हम इस डिवाइस पर यह ईमेल नहीं खोल सके। रीफ़्रेश करने से आमतौर पर काम बन जाता है, और बार-बार विफल होने पर साइन आउट करके फिर से साइन इन करना दूसरा उपाय है।",
-    failed_to_disable_2fa: "दो-चरणीय सत्यापन चालू ही रहा। फिर से कोशिश करें। आपका खाता अब भी सुरक्षित है।",
+    failed_to_disable_2fa:
+      "दो-चरणीय सत्यापन चालू ही रहा। फिर से कोशिश करें। आपका खाता अब भी सुरक्षित है।",
     removed_from_contacts: "संपर्कों से निकाल दिया गया",
     added_to_contacts: "संपर्कों में जुड़ गया",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -927,14 +964,18 @@ export const hi = {
     failed_to_update: "फिर से कोशिश करें।",
     search_failed_try_again:
       "खोज पूरी नहीं हुई। थोड़ी देर बाद एक और कोशिश आमतौर पर काम कर जाती है।",
-    search_load_failed_try_again: "हम खोज के लिए आपके ईमेल लोड नहीं कर सके। फिर से कोशिश करें। आपका मेल सुरक्षित है।",
+    search_load_failed_try_again:
+      "हम खोज के लिए आपके ईमेल लोड नहीं कर सके। फिर से कोशिश करें। आपका मेल सुरक्षित है।",
     failed_to_fetch_tags: "फिर से कोशिश करें।",
     failed_to_fetch_folders: "फिर से कोशिश करें।",
     failed_to_unlock_folder:
       "हम यह फ़ोल्डर अनलॉक नहीं कर सके। अपना पासवर्ड जांचें और फिर से कोशिश करें। फ़ोल्डर की सामग्री सुरक्षित है।",
-    failed_to_set_folder_password: "फ़ोल्डर का पासवर्ड सहेजा नहीं गया। फिर से कोशिश करें। फ़ोल्डर की सामग्री में कोई बदलाव नहीं हुआ है।",
-    failed_to_change_folder_password: "फ़ोल्डर का पासवर्ड नहीं बदला। फिर से कोशिश करें। पुराना पासवर्ड अब भी काम करता है।",
-    failed_to_remove_folder_password: "हम फ़ोल्डर का पासवर्ड नहीं हटा सके। फिर से कोशिश करें। फ़ोल्डर पहले की तरह लॉक है।",
+    failed_to_set_folder_password:
+      "फ़ोल्डर का पासवर्ड सहेजा नहीं गया। फिर से कोशिश करें। फ़ोल्डर की सामग्री में कोई बदलाव नहीं हुआ है।",
+    failed_to_change_folder_password:
+      "फ़ोल्डर का पासवर्ड नहीं बदला। फिर से कोशिश करें। पुराना पासवर्ड अब भी काम करता है।",
+    failed_to_remove_folder_password:
+      "हम फ़ोल्डर का पासवर्ड नहीं हटा सके। फिर से कोशिश करें। फ़ोल्डर पहले की तरह लॉक है।",
     incorrect_password:
       "गलत पासवर्ड। फिर से कोशिश करें। आपका खाता लॉक नहीं हुआ है।",
     folder_no_password_protection:
@@ -945,10 +986,13 @@ export const hi = {
       "पहले फ़ोल्डर अनलॉक करने पर यह सेटिंग बदली जा सकेगी।",
     cannot_remove_vault_password:
       "आपके वॉल्ट फ़ोल्डर को हमेशा अपना अलग पासवर्ड चाहिए, और यह सुरक्षा हटाई नहीं जा सकती।",
-    failed_to_load_snoozed_emails: "आपके स्नूज़ किए गए ईमेल लोड नहीं हुए। फिर से कोशिश करें। वे सर्वर पर सुरक्षित हैं।",
+    failed_to_load_snoozed_emails:
+      "आपके स्नूज़ किए गए ईमेल लोड नहीं हुए। फिर से कोशिश करें। वे सर्वर पर सुरक्षित हैं।",
     unexpected_error: "कुछ उम्मीद के मुताबिक काम नहीं किया। फिर से कोशिश करें।",
-    failed_to_load_drafts: "आपके ड्राफ़्ट लोड नहीं हुए। फिर से कोशिश करें। आपके सहेजे गए ड्राफ़्ट सुरक्षित हैं।",
-    failed_to_load_scheduled_emails: "आपके शेड्यूल किए गए ईमेल लोड नहीं हुए। फिर से कोशिश करें। वे अब भी तय समय पर भेजे जाएंगे।",
+    failed_to_load_drafts:
+      "आपके ड्राफ़्ट लोड नहीं हुए। फिर से कोशिश करें। आपके सहेजे गए ड्राफ़्ट सुरक्षित हैं।",
+    failed_to_load_scheduled_emails:
+      "आपके शेड्यूल किए गए ईमेल लोड नहीं हुए। फिर से कोशिश करें। वे अब भी तय समय पर भेजे जाएंगे।",
     value_too_long: "यह मान लंबाई की सीमा से बड़ा है। छोटा संस्करण काम करेगा।",
     please_enter_valid_domain:
       "यह मान्य डोमेन नहीं है। example.com जैसा कुछ काम करेगा।",
@@ -1038,18 +1082,22 @@ export const hi = {
     sender_unsigned: "प्रेषक ने इस ईमेल पर हस्ताक्षर नहीं किया",
     sender_unsigned_desc:
       "यह संदेश हस्ताक्षरित नहीं है, इसलिए हम पुष्टि नहीं कर सकते कि यह वाकई इसी प्रेषक से आया है। इसमें मौजूद किसी भी संवेदनशील बात को सावधानी से लेना बेहतर है।",
-    failed_to_send_email: "यह ईमेल नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
-    failed_to_send_external_email: "यह ईमेल आपके लिंक किए गए बाहरी खाते से नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    failed_to_send_email:
+      "यह ईमेल नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    failed_to_send_external_email:
+      "यह ईमेल आपके लिंक किए गए बाहरी खाते से नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
     external_account_token_missing:
       "आपके लिंक किए गए बाहरी खाते से भेजने से पहले उसे फिर से जोड़ना होगा। यह सेटिंग, जुड़े हुए खाते में मिलेगा।",
-    failed_to_send_via_external: "आपके लिंक किए गए बाहरी खाते से भेजना काम नहीं किया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    failed_to_send_via_external:
+      "आपके लिंक किए गए बाहरी खाते से भेजना काम नहीं किया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
     offline_change_failed:
       "ऑफ़लाइन रहते हुए आपने जो बदलाव किया, वह सहेजा नहीं जा सका।",
     offline_send_failed:
       "ऑफ़लाइन रहते हुए आपने जो ईमेल लिखा, वह भेजा नहीं जा सका।",
     offline_email_queued:
       "आप अभी ऑफ़लाइन हैं। दोबारा कनेक्ट होते ही यह ईमेल भेज दिया जाएगा।",
-    failed_to_queue_offline: "हम इस ईमेल को बाद में भेजने के लिए कतार में नहीं डाल सके। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    failed_to_queue_offline:
+      "हम इस ईमेल को बाद में भेजने के लिए कतार में नहीं डाल सके। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
     cannot_mix_recipients:
       "Aster उपयोगकर्ता और बाहरी पते एक ही ईमेल में नहीं भेजे जा सकते। इन्हें दो अलग संदेशों के रूप में भेजना काम करेगा।",
     post_quantum_unavailable_title: "पोस्ट-क्वांटम एन्क्रिप्शन के बिना भेजें?",
@@ -1070,7 +1118,8 @@ export const hi = {
       "यह संदेश अभी-अभी चला गया है। दोबारा भेजने से पहले अपना भेजे गए फ़ोल्डर देखें।",
     subject_too_long:
       "आपका विषय 998 वर्ण की सीमा से बड़ा है। छोटा संस्करण भेजा जाएगा।",
-    failed_to_schedule_email: "शेड्यूल सहेजा नहीं गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    failed_to_schedule_email:
+      "शेड्यूल सहेजा नहीं गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
     failed_to_restore_draft:
       "हम यह ड्राफ़्ट वापस नहीं ला सके। इसे फिर से खोलने पर आमतौर पर काम बन जाता है। आपके बाकी ड्राफ़्ट पर कोई असर नहीं पड़ा है।",
     failed_to_undo_spam:
@@ -1106,8 +1155,10 @@ export const hi = {
     system: "सिस्टम",
     failed_to_permanently_delete: "फिर से कोशिश करें।",
     failed_to_delete_emails: "ये ईमेल हटाए नहीं गए। फिर से कोशिश करें।",
-    failed_to_mark_as_read: "ये ईमेल अब भी अपठित के रूप में चिह्नित हैं। फिर से कोशिश करें।",
-    failed_to_mark_as_unread: "ये ईमेल अब भी पठित के रूप में चिह्नित हैं। फिर से कोशिश करें।",
+    failed_to_mark_as_read:
+      "ये ईमेल अब भी अपठित के रूप में चिह्नित हैं। फिर से कोशिश करें।",
+    failed_to_mark_as_unread:
+      "ये ईमेल अब भी पठित के रूप में चिह्नित हैं। फिर से कोशिश करें।",
     n_conversations_archived: "{{ count }} बातचीत आर्काइव हो गईं",
     n_conversations_archived_one: "{{count}} बातचीत आर्काइव हो गई",
     n_conversations_archived_other: "{{count}} बातचीत आर्काइव हो गईं",
@@ -1119,7 +1170,8 @@ export const hi = {
       "{{ count }} बातचीत स्पैम के रूप में चिह्नित",
     external_only: "सिर्फ़ बाहरी",
     all_accounts: "सभी खाते",
-    failed_to_rotate_keys: "कुंजी रीफ़्रेश पूरा नहीं हुआ। फिर से कोशिश करें। आपकी पुरानी कुंजियां अब भी काम करती हैं और आपका डेटा सुरक्षित है।",
+    failed_to_rotate_keys:
+      "कुंजी रीफ़्रेश पूरा नहीं हुआ। फिर से कोशिश करें। आपकी पुरानी कुंजियां अब भी काम करती हैं और आपका डेटा सुरक्षित है।",
     read: "पढ़े गए",
     or_conjunction: "या",
     press_label: "दबाएं",
@@ -1147,10 +1199,12 @@ export const hi = {
     removed_count_from_allowlist: "अनुमति सूची से {{ count }} निकाले गए",
     failed_to_add_label: "फिर से कोशिश करें।",
     failed_to_remove_label: "फिर से कोशिश करें।",
-    failed_to_move_email: "यह ईमेल दूसरी जगह नहीं ले जाया गया। फिर से कोशिश करें। ईमेल अपनी पिछली जगह पर सुरक्षित है।",
+    failed_to_move_email:
+      "यह ईमेल दूसरी जगह नहीं ले जाया गया। फिर से कोशिश करें। ईमेल अपनी पिछली जगह पर सुरक्षित है।",
     failed_to_add_labels: "फिर से कोशिश करें।",
     failed_to_remove_labels: "ये लेबल हटाए नहीं गए। फिर से कोशिश करें।",
-    failed_to_copy_to_clipboard: "आपके क्लिपबोर्ड पर कुछ भी कॉपी नहीं हुआ। फिर से कोशिश करें।",
+    failed_to_copy_to_clipboard:
+      "आपके क्लिपबोर्ड पर कुछ भी कॉपी नहीं हुआ। फिर से कोशिश करें।",
     add_note_placeholder: "नोट जोड़ें...",
     add_private_note_placeholder: "निजी नोट जोड़ें...",
     search_anything: "कुछ भी खोजें...",
@@ -1217,11 +1271,14 @@ export const hi = {
     locked_data_banner_action: "डेटा वापस पाएं",
     locked_data_banner_dismiss: "खारिज करें",
     recover_data_title: "डेटा वापस पाएं",
-    recover_data_description: "पासवर्ड बदलने या रीसेट करने से पहले का डेटा अनलॉक करने के लिए, वह पासवर्ड डालें जो आप उस समय इस्तेमाल करते थे।",
+    recover_data_description:
+      "पासवर्ड बदलने या रीसेट करने से पहले का डेटा अनलॉक करने के लिए, वह पासवर्ड डालें जो आप उस समय इस्तेमाल करते थे।",
     recover_data_button: "वापस पाएं",
     recover_data_success: "आपका पुराना डेटा अनलॉक हो गया है।",
-    recover_data_no_match: "इस पासवर्ड से कोई डेटा अनलॉक नहीं हुआ। कोई दूसरा पुराना पासवर्ड आज़माएं।",
-    recover_data_failed: "कुछ डेटा अनलॉक नहीं हो सका। अपना कनेक्शन जांचें और फिर से कोशिश करें।",
+    recover_data_no_match:
+      "इस पासवर्ड से कोई डेटा अनलॉक नहीं हुआ। कोई दूसरा पुराना पासवर्ड आज़माएं।",
+    recover_data_failed:
+      "कुछ डेटा अनलॉक नहीं हो सका। अपना कनेक्शन जांचें और फिर से कोशिश करें।",
     payment_past_due_message:
       "आपका पिछला भुगतान नहीं हो सका। अपना प्लान बनाए रखने के लिए भुगतान का तरीका अपडेट करें।",
     payment_past_due_message_days:
@@ -1373,13 +1430,17 @@ export const hi = {
     select_destination_folder: "गंतव्य फ़ोल्डर चुनें",
     no_folders_available: "कोई फ़ोल्डर उपलब्ध नहीं",
     submitting: "दर्ज किया जा रहा है...",
-    suspended_alert: "इस खाते का उपयोग {terms} के विरुद्ध तरीके से किया गया था।",
+    suspended_alert:
+      "इस खाते का उपयोग {terms} के विरुद्ध तरीके से किया गया था।",
     suspended_alert_terms: "Aster सेवा की शर्तों",
-    suspended_since_with_deletion: "यह खाता {date} से उपलब्ध नहीं है। {deletion_date} से इसे हटाने पर विचार किया जा सकता है।",
+    suspended_since_with_deletion:
+      "यह खाता {date} से उपलब्ध नहीं है। {deletion_date} से इसे हटाने पर विचार किया जा सकता है।",
     suspended_since: "यह खाता {date} से उपलब्ध नहीं है।",
     suspended_title: "यह खाता निलंबित है",
-    suspended_appeal_hint: "अगर आपको लगता है कि यह गलती है, तो आप अपील भेज सकते हैं। Aster हर अपील की समीक्षा करता है और ईमेल से जवाब देता है।",
-    suspended_download_hint: "आप अब भी अपने डेटा की एक प्रति डाउनलोड कर सकते हैं। आपका मेल केवल इसी डिवाइस पर डिक्रिप्ट होता है, इसलिए कोई और निर्यात नहीं पढ़ सकता।",
+    suspended_appeal_hint:
+      "अगर आपको लगता है कि यह गलती है, तो आप अपील भेज सकते हैं। Aster हर अपील की समीक्षा करता है और ईमेल से जवाब देता है।",
+    suspended_download_hint:
+      "आप अब भी अपने डेटा की एक प्रति डाउनलोड कर सकते हैं। आपका मेल केवल इसी डिवाइस पर डिक्रिप्ट होता है, इसलिए कोई और निर्यात नहीं पढ़ सकता।",
     suspended_download: "अपना डेटा डाउनलोड करें",
     suspended_start_appeal: "अपील शुरू करें",
     pending_deletion_title: "खाता हटाने के लिए तय है",
@@ -1462,7 +1523,8 @@ export const hi = {
       "{{names}} से छिपा हुआ मेटाडेटा नहीं निकाला जा सका। फ़ाइल जस की तस जोड़ी गई।",
     failed_to_read_named_file:
       'हम "{{name}}" नहीं पढ़ सके। कोई दूसरी फ़ाइल काम करेगी।',
-    unknown_error: "कुछ उम्मीद के मुताबिक काम नहीं किया। फिर से कोशिश करें। हम इसकी वजह का पता नहीं लगा सके।",
+    unknown_error:
+      "कुछ उम्मीद के मुताबिक काम नहीं किया। फिर से कोशिश करें। हम इसकी वजह का पता नहीं लगा सके।",
     unsaved_changes_title: "अपने बदलाव छोड़ दें?",
     unsaved_changes_body:
       "आपने जो विवरण डाला है, वह सहेजा नहीं गया है। यह फ़ॉर्म अभी बंद करने पर वह हट जाएगा।",
@@ -1550,7 +1612,8 @@ export const hi = {
     yourname_placeholder: "आपकानाम",
     allow_sender: "अनुमति सूची में जोड़ें",
     remove_from_allowlist_action: "अनुमति सूची से निकालें",
-    failed_to_allow_sender: "यह प्रेषक आपकी अनुमति सूची में नहीं जोड़ा गया। फिर से कोशिश करें।",
+    failed_to_allow_sender:
+      "यह प्रेषक आपकी अनुमति सूची में नहीं जोड़ा गया। फिर से कोशिश करें।",
     contacts_deleted: "{{ count }} संपर्क हटा दिए गए",
     contacts_starred: "{{ count }} संपर्क तारांकित किए गए",
     contacts_unstarred: "{{ count }} संपर्क से तारा हटाया गया",
@@ -1868,9 +1931,11 @@ export const hi = {
   },
   settings: {
     bill_thanks_title: "Aster को समर्थन देने के लिए धन्यवाद",
-    bill_thanks_body: "आपका समर्थन हमारे लिए सब कुछ है। इससे एक छोटी टीम हर दिन Aster को सावधानी से बनाती रहती है।",
+    bill_thanks_body:
+      "आपका समर्थन हमारे लिए सब कुछ है। इससे एक छोटी टीम हर दिन Aster को सावधानी से बनाती रहती है।",
     bill_thanks_free_title: "Aster इस्तेमाल करने के लिए धन्यवाद",
-    bill_thanks_free_body: "एक छोटी टीम Aster को सावधानी से बनाती है, और हर व्यक्ति जो अपने मेल के लिए इस पर भरोसा करता है, हमें आगे बढ़ाता है। जब भी आपको अधिक स्टोरेज, उपनाम या कस्टम डोमेन चाहिए, अपग्रेड करें।",
+    bill_thanks_free_body:
+      "एक छोटी टीम Aster को सावधानी से बनाती है, और हर व्यक्ति जो अपने मेल के लिए इस पर भरोसा करता है, हमें आगे बढ़ाता है। जब भी आपको अधिक स्टोरेज, उपनाम या कस्टम डोमेन चाहिए, अपग्रेड करें।",
     bill_attachments: "अटैचमेंट",
     bill_dedicated_support: "समर्पित सहायता",
     bill_early_access: "नई सुविधाओं तक जल्दी पहुँच",
@@ -1886,7 +1951,8 @@ export const hi = {
     bill_tracker_protection: "ट्रैकर सुरक्षा",
     bill_action_required: "कार्रवाई ज़रूरी है",
     bill_add_funds: "धनराशि जोड़ें",
-    bill_add_funds_body: "आपके कार्ड से शुल्क लेने से पहले क्रेडिट से नवीनीकरण और ऐड-ऑन का भुगतान होता है।",
+    bill_add_funds_body:
+      "आपके कार्ड से शुल्क लेने से पहले क्रेडिट से नवीनीकरण और ऐड-ऑन का भुगतान होता है।",
     bill_add_more_storage: "और स्टोरेज जोड़ें",
     bill_aliases: "उपनाम",
     bill_all_good: "सब ठीक है",
@@ -1930,7 +1996,8 @@ export const hi = {
     bill_update_payment: "अपडेट करें",
     bill_upgrade: "अपग्रेड करें",
     bill_use_credits_renewals: "नवीनीकरण के लिए क्रेडिट का उपयोग करें",
-    bill_use_credits_renewals_body: "आपके कार्ड से शुल्क लेने से पहले आपका बैलेंस लागू किया जाता है।",
+    bill_use_credits_renewals_body:
+      "आपके कार्ड से शुल्क लेने से पहले आपका बैलेंस लागू किया जाता है।",
     alias_sent_mail_label: "भेजे गए मेल",
     alias_sent_mail_desc: "इस पते से भेजे गए संदेश देखें।",
     account_enabled_tooltip: "यह खाता सिंक हो रहा है।",
@@ -2103,7 +2170,8 @@ export const hi = {
     bridge_other_formats: "अन्य प्रारूप",
     bridge_arch_x64: "x86-64",
     bridge_arch_arm64: "ARM64",
-    bridge_format_msi_desc: "ग्रुप पॉलिसी से मैनेज किए जाने वाले इंस्टॉल के लिए",
+    bridge_format_msi_desc:
+      "ग्रुप पॉलिसी से मैनेज किए जाने वाले इंस्टॉल के लिए",
     bridge_format_appimage_desc: "ज़्यादातर डिस्ट्रिब्यूशन पर चलता है",
     bridge_format_deb_desc: "Debian, Ubuntu और उन पर आधारित डिस्ट्रिब्यूशन",
     bridge_format_rpm_desc: "Fedora, RHEL और openSUSE",
@@ -2111,17 +2179,22 @@ export const hi = {
     bridge_download_started: "डाउनलोड शुरू हुआ",
     bridge_download_failed: "डाउनलोड शुरू नहीं हुआ. फिर से कोशिश करें.",
     bridge_support_help_desc: "सेटअप गाइड और आम सवालों के जवाब",
-    bridge_support_discord_desc: "टीम और Aster इस्तेमाल करने वाले दूसरे लोगों से पूछें",
+    bridge_support_discord_desc:
+      "टीम और Aster इस्तेमाल करने वाले दूसरे लोगों से पूछें",
     bridge_support_reddit_desc: "घोषणाएं देखें और चर्चा में शामिल हों",
     bridge_support_github_desc: "सोर्स कोड पढ़ें और समस्या की जानकारी दें",
     bridge_all_platforms: "सभी प्लेटफ़ॉर्म",
-    bridge_upgrade_benefit_clients: "Apple Mail, Thunderbird और Outlook के साथ काम करता है",
-    bridge_upgrade_benefit_local: "यह स्थानीय रूप से चलता है, इसलिए आपका मेल एन्क्रिप्टेड रहता है",
+    bridge_upgrade_benefit_clients:
+      "Apple Mail, Thunderbird और Outlook के साथ काम करता है",
+    bridge_upgrade_benefit_local:
+      "यह स्थानीय रूप से चलता है, इसलिए आपका मेल एन्क्रिप्टेड रहता है",
     bridge_upgrade_benefit_platforms: "Windows, macOS और Linux पर उपलब्ध",
     bridge_upgrade_benefit_cli: "सर्वर के लिए कमांड-लाइन संस्करण शामिल है",
     bridge_cli_download: "डाउनलोड करें",
-    bridge_cli_install_hint: "अपने प्लेटफ़ॉर्म के लिए संग्रह डाउनलोड करें, उसे निकालें और बाइनरी को अपने PATH में ले जाएँ।",
-    bridge_cli_install_hint_windows: "संग्रह डाउनलोड करें, उसे निकालें और फ़ोल्डर को अपने PATH में जोड़ें।",
+    bridge_cli_install_hint:
+      "अपने प्लेटफ़ॉर्म के लिए संग्रह डाउनलोड करें, उसे निकालें और बाइनरी को अपने PATH में ले जाएँ।",
+    bridge_cli_install_hint_windows:
+      "संग्रह डाउनलोड करें, उसे निकालें और फ़ोल्डर को अपने PATH में जोड़ें।",
     bridge_cli_copy_command: "इंस्टॉल कमांड कॉपी करें",
     bridge_cli_docs_link: "कमांड-लाइन गाइड पढ़ें",
     bridge_cli_name: "कमांड लाइन",
@@ -2519,8 +2592,7 @@ export const hi = {
     ipfs_attachment_storage: "IPFS अटैचमेंट स्टोरेज",
     ipfs_enabled_description:
       "अटैचमेंट Aster के निजी IPFS स्टोर में रखे जाते हैं",
-    ipfs_disabled_description:
-      "अटैचमेंट Aster के निजी IPFS स्टोर में रखें",
+    ipfs_disabled_description: "अटैचमेंट Aster के निजी IPFS स्टोर में रखें",
     storage_format_title: "स्टोरेज का प्रारूप",
     storage_format_description:
       "चुनें कि आपकी एन्क्रिप्टेड फ़ाइलें और स्थिर सामग्री कहाँ रखी जाएँ।",
@@ -3043,7 +3115,8 @@ export const hi = {
     default_sender_group: "भेजना",
     default_sender_group_description: "चुनें कि नए संदेश आपके किस पते से जाएँ।",
     default_sender_title: "डिफ़ॉल्ट प्रेषक",
-    default_sender_description: "नए संदेश इसी पते से शुरू होते हैं। उत्तर उसी पते का उपयोग करते हैं जिस पर संदेश आया था।",
+    default_sender_description:
+      "नए संदेश इसी पते से शुरू होते हैं। उत्तर उसी पते का उपयोग करते हैं जिस पर संदेश आया था।",
     default_sender_no_addresses: "कोई अन्य पता नहीं",
     compose_defaults_title: "डिफ़ॉल्ट फ़ॉर्मैटिंग",
     compose_defaults_description:
@@ -3060,9 +3133,11 @@ export const hi = {
     reply_defaults_title: "उत्तर",
     reply_defaults_description: "चुनें कि नया उत्तर किससे शुरू हो।",
     reply_include_quoted: "उद्धृत टेक्स्ट शामिल करें",
-    reply_include_quoted_description: "हर उत्तर आपके टेक्स्ट के नीचे उद्धृत मूल संदेश से शुरू होता है।",
+    reply_include_quoted_description:
+      "हर उत्तर आपके टेक्स्ट के नीचे उद्धृत मूल संदेश से शुरू होता है।",
     reply_prefix_subject: "विषय में Re: जोड़ें",
-    reply_prefix_subject_description: "उत्तर देने पर मूल विषय से पहले Re: लगाता है।",
+    reply_prefix_subject_description:
+      "उत्तर देने पर मूल विषय से पहले Re: लगाता है।",
     build_info: "बिल्ड की जानकारी",
     release: "छोड़ें",
     build: "बिल्ड",
@@ -3208,7 +3283,8 @@ export const hi = {
       "हम भुगतान नहीं ले सके। सेटिंग्स, बिलिंग में अपनी भुगतान विधि अपडेट करें, फिर दोबारा कोशिश करें।",
     plan_not_available:
       "यह प्लान अभी खरीदा नहीं जा सकता। कोई दूसरा प्लान, या बाद में फिर देखना, काम करेगा।",
-    failed_checkout: "हम अभी चेकआउट नहीं खोल सके। फिर से कोशिश करें। आपकी बिलिंग में कोई बदलाव नहीं हुआ है।",
+    failed_checkout:
+      "हम अभी चेकआउट नहीं खोल सके। फिर से कोशिश करें। आपकी बिलिंग में कोई बदलाव नहीं हुआ है।",
     checkout_welcome: "Aster में आपका स्वागत है। आपकी सदस्यता चालू है।",
     card_declined_title: "आपका पिछला कार्ड भुगतान पूरा नहीं हुआ",
     card_declined_insufficient_funds:
@@ -3391,11 +3467,14 @@ export const hi = {
     crypto_renew_link: "क्रिप्टो से नवीनीकृत करें",
     crypto_success_toast: "क्रिप्टो भुगतान मिल गया। आपका प्लान चालू है।",
     crypto_cancelled_toast: "क्रिप्टो भुगतान रद्द कर दिया गया।",
-    failed_billing_portal: "हम बिलिंग पोर्टल नहीं खोल सके। फिर से कोशिश करें। आपके प्लान में कोई बदलाव नहीं हुआ है।",
+    failed_billing_portal:
+      "हम बिलिंग पोर्टल नहीं खोल सके। फिर से कोशिश करें। आपके प्लान में कोई बदलाव नहीं हुआ है।",
     subscription_cancelled: "बिलिंग अवधि खत्म होने पर सदस्यता रद्द हो जाएगी",
-    failed_cancel_subscription: "आपका रद्द करने का अनुरोध पूरा नहीं हुआ। फिर से कोशिश करें। आपका प्लान अब भी सक्रिय है।",
+    failed_cancel_subscription:
+      "आपका रद्द करने का अनुरोध पूरा नहीं हुआ। फिर से कोशिश करें। आपका प्लान अब भी सक्रिय है।",
     subscription_reactivated: "सदस्यता फिर से चालू हो गई",
-    failed_reactivate: "हम आपका प्लान फिर से सक्रिय नहीं कर सके। फिर से कोशिश करें।",
+    failed_reactivate:
+      "हम आपका प्लान फिर से सक्रिय नहीं कर सके। फिर से कोशिश करें।",
     payment_failed_warning:
       "आपके भुगतान के तरीके से पिछला शुल्क नहीं लिया जा सका। सेटिंग, बिलिंग में इसे अपडेट करने से आपका प्लान चलता रहेगा। आपकी मेल पर कोई असर नहीं पड़ा।",
     grace_period_remaining:
@@ -4252,7 +4331,8 @@ export const hi = {
     switch_billing_loss:
       "मासिक बिलिंग पर जाने से आपको साल में {{amount}} ज़्यादा देना होगा।",
     billing_switched: "बिलिंग चक्र बदल दिया गया",
-    failed_switch_billing: "आपका बिलिंग चक्र नहीं बदला। फिर से कोशिश करें। आपका मौजूदा चक्र अब भी सक्रिय है।",
+    failed_switch_billing:
+      "आपका बिलिंग चक्र नहीं बदला। फिर से कोशिश करें। आपका मौजूदा चक्र अब भी सक्रिय है।",
     current_billing_interval: "{{interval}} बिल",
     switching_billing: "बदला जा रहा है...",
     daily: "रोज़",
@@ -4275,7 +4355,8 @@ export const hi = {
     auto_lock_after: "{{duration}} तक कोई गतिविधि न होने पर अपने आप लॉक करें",
     hours: "{{count}} घंटे",
     days: "{{count}} दिन",
-    failed_get_auth_data: "हम आपकी साइन-इन जानकारी लोड नहीं कर सके। फिर से कोशिश करें।",
+    failed_get_auth_data:
+      "हम आपकी साइन-इन जानकारी लोड नहीं कर सके। फिर से कोशिश करें।",
     downgrade: "प्लान घटाएं",
     upgrade: "अपग्रेड करें",
     downgrade_scheduled: "मौजूदा अवधि के अंत में प्लान घटाना तय है",
@@ -4311,8 +4392,10 @@ export const hi = {
     confirm_cancel_addon: "स्टोरेज ऐड-ऑन रद्द करें",
     confirm_cancel_addon_description:
       "क्या आप वाकई यह स्टोरेज ऐड-ऑन रद्द करना चाहते हैं? आपका अतिरिक्त स्टोरेज मौजूदा बिलिंग अवधि के अंत तक उपलब्ध रहेगा।",
-    addon_purchase_failed: "हम ऐड-ऑन की खरीदारी शुरू नहीं कर सके। फिर से कोशिश करें। आपकी बिलिंग में कोई बदलाव नहीं हुआ है।",
-    addon_cancel_failed: "हम आपका स्टोरेज ऐड-ऑन रद्द नहीं कर सके। फिर से कोशिश करें। आपका ऐड-ऑन अब भी सक्रिय है।",
+    addon_purchase_failed:
+      "हम ऐड-ऑन की खरीदारी शुरू नहीं कर सके। फिर से कोशिश करें। आपकी बिलिंग में कोई बदलाव नहीं हुआ है।",
+    addon_cancel_failed:
+      "हम आपका स्टोरेज ऐड-ऑन रद्द नहीं कर सके। फिर से कोशिश करें। आपका ऐड-ऑन अब भी सक्रिय है।",
     addon_purchase_success: "चेकआउट पर ले जाया जा रहा है...",
     addon_checkout_opened: "नए टैब में अपनी खरीदारी पूरी करें।",
     plan_recommended: "अनुशंसित",
@@ -4782,7 +4865,8 @@ export const hi = {
     use_credits_for_renewals_description:
       "अपने क्रेडिट को प्लान और ऐड-ऑन के नवीनीकरण पर अपने आप लगाएं। अगर आपके क्रेडिट से पूरी रकम नहीं बनती, तो बाकी रकम आपके भुगतान तरीके से ली जाती है।",
     credits_toggle_updated: "क्रेडिट सेटिंग अपडेट हो गईं",
-    credits_toggle_failed: "यह सेटिंग सहेजी नहीं गई। फिर से कोशिश करें। पिछला मान अब भी सक्रिय है।",
+    credits_toggle_failed:
+      "यह सेटिंग सहेजी नहीं गई। फिर से कोशिश करें। पिछला मान अब भी सक्रिय है।",
     credits_earn_first: "इसे चालू करने के लिए क्रेडिट कमाएं",
     recent_transactions: "हाल के लेन-देन",
     view_all_transactions: "सब देखें",
@@ -5030,7 +5114,8 @@ export const hi = {
     country: "देश",
     save_address: "पता सहेजें",
     address_saved: "बिलिंग पता सहेज लिया गया",
-    address_save_failed: "आपका बिलिंग पता सहेजा नहीं गया। फिर से कोशिश करें। पिछला पता अब भी मौजूद है।",
+    address_save_failed:
+      "आपका बिलिंग पता सहेजा नहीं गया। फिर से कोशिश करें। पिछला पता अब भी मौजूद है।",
     saving: "सहेजा जा रहा है...",
     redeem: "भुनाएं",
     redeeming: "भुनाया जा रहा है...",
@@ -5044,7 +5129,8 @@ export const hi = {
     export_ready: "आपका एक्सपोर्ट डाउनलोड के लिए तैयार है।",
     export_processing: "एक्सपोर्ट तैयार किया जा रहा है...",
     download_export: "डाउनलोड करें",
-    export_failed: "हम आपका एक्सपोर्ट शुरू नहीं कर सके। फिर से कोशिश करें। आपके मेल में कोई बदलाव नहीं हुआ है।",
+    export_failed:
+      "हम आपका एक्सपोर्ट शुरू नहीं कर सके। फिर से कोशिश करें। आपके मेल में कोई बदलाव नहीं हुआ है।",
     biennial: "2 साल",
     all_star_features: "Star का सब कुछ, साथ में:",
     all_nova_features: "Nova का सब कुछ, साथ में:",
@@ -5416,19 +5502,23 @@ export const hi = {
     address_change_pick_title: "अपना नया पता चुनें",
     address_change_use_alias: "अपने किसी उपनाम का उपयोग करें",
     address_change_use_new: "नया पता चुनें",
-    address_change_name_rule: "3 से 40 अक्षर, अंक या बिंदु इस्तेमाल करें। बिंदु न शुरुआत में हो सकता है, न अंत में, और बिंदु दोहराए नहीं जा सकते।",
+    address_change_name_rule:
+      "3 से 40 अक्षर, अंक या बिंदु इस्तेमाल करें। बिंदु न शुरुआत में हो सकता है, न अंत में, और बिंदु दोहराए नहीं जा सकते।",
     address_change_name_placeholder: "yourname",
-    primary_address_info: "आपका Supernova प्लान हर 30 दिन में एक बार पता बदलने देता है। आपका पुराना पता आपका ही रहता है: यह मेल पाता रहता है और साइन इन भी कराता है।",
+    primary_address_info:
+      "आपका Supernova प्लान हर 30 दिन में एक बार पता बदलने देता है। आपका पुराना पता आपका ही रहता है: यह मेल पाता रहता है और साइन इन भी कराता है।",
     address_change_checking: "उपलब्धता जाँची जा रही है",
     address_change_available: "{{email}} उपलब्ध है",
     address_change_unavailable: "{{email}} उपलब्ध नहीं है",
     address_change_same_as_current: "यह पहले से ही आपका पता है",
-    address_change_check_failed: "Aster Mail यह पता जाँच नहीं सका। थोड़ी देर बाद फिर कोशिश करें।",
+    address_change_check_failed:
+      "Aster Mail यह पता जाँच नहीं सका। थोड़ी देर बाद फिर कोशिश करें।",
     address_change_review_title: "बदलाव की समीक्षा करें",
     address_change_from: "अभी",
     address_change_to: "बाद में",
     address_change_effect_sending: "आपके भेजे गए संदेश {{email}} से जाते हैं।",
-    address_change_effect_key: "आपकी एन्क्रिप्शन कुंजी वही रहती है और उसमें {{email}} दूसरी पहचान के रूप में जुड़ जाता है।",
+    address_change_effect_key:
+      "आपकी एन्क्रिप्शन कुंजी वही रहती है और उसमें {{email}} दूसरी पहचान के रूप में जुड़ जाता है।",
     address_change_effect_signed_in: "आप हर जगह साइन इन रहते हैं।",
     address_change_effect_final:
       "यह बदलाव अंतिम है। जारी रखने के लिए, अपना नया पता टाइप करें।",
@@ -5509,11 +5599,13 @@ export const hi = {
     alias_restore_mismatch:
       "वह पता इस एलियास से मेल नहीं खाता। इससे पहुंचे किसी संदेश का हेडर देखें।",
     alias_restore_failed: "फिर से कोशिश करें।",
-    recently_deleted_load_failed: "हम आपके हाल ही में हटाए गए एलियास लोड नहीं कर सके। फिर से कोशिश करें।",
+    recently_deleted_load_failed:
+      "हम आपके हाल ही में हटाए गए एलियास लोड नहीं कर सके। फिर से कोशिश करें।",
     invalid_address: "मान्य ईमेल पता दर्ज करें।",
     alias_already_taken:
       "यह एलियास पहले से इस्तेमाल में है। कोई दूसरा काम कर जाना चाहिए।",
-    alias_create_failed: "यह एलियास सहेजा नहीं गया। फिर से कोशिश करें। आपके अन्य एलियास में कोई बदलाव नहीं हुआ है।",
+    alias_create_failed:
+      "यह एलियास सहेजा नहीं गया। फिर से कोशिश करें। आपके अन्य एलियास में कोई बदलाव नहीं हुआ है।",
     alias_captcha_required: "एलियास बनाने के लिए कैप्चा पूरा करें।",
     alias_generate_failed: "हम अभी एलियास नहीं बना सके। फिर से कोशिश करें।",
     alias_invalid:
@@ -5525,7 +5617,8 @@ export const hi = {
     add_custom_domain: "कस्टम डोमेन जोड़ें",
     domain_name_label: "डोमेन नाम",
     invalid_domain: "मान्य डोमेन दर्ज करें।",
-    failed_add_domain: "यह डोमेन नहीं जोड़ा गया। फिर से कोशिश करें। आपके अन्य डोमेन में कोई बदलाव नहीं हुआ है।",
+    failed_add_domain:
+      "यह डोमेन नहीं जोड़ा गया। फिर से कोशिश करें। आपके अन्य डोमेन में कोई बदलाव नहीं हुआ है।",
     configure_dns_for: "{{domain}} के लिए DNS सेट करें",
     dns_instruction_login:
       "अपने डोमेन रजिस्ट्रार या DNS प्रदाता में साइन इन करें",
@@ -5576,14 +5669,17 @@ export const hi = {
     account_added: "खाता जोड़ दिया गया",
     account_settings_not_saved:
       "खाता सहेज लिया गया, लेकिन उसकी सिंक और उन्नत सेटिंग नहीं सहेजी गईं",
-    failed_update_account: "यह खाता अपडेट नहीं हुआ। फिर से कोशिश करें। पिछली सेटिंग अब भी सक्रिय हैं।",
+    failed_update_account:
+      "यह खाता अपडेट नहीं हुआ। फिर से कोशिश करें। पिछली सेटिंग अब भी सक्रिय हैं।",
     failed_add_account: "यह खाता नहीं जोड़ा गया। फिर से कोशिश करें।",
     switch_failed: "फिर से कोशिश करें।",
     unexpected_error: "कुछ उम्मीद के मुताबिक काम नहीं किया। फिर से कोशिश करें।",
     failed_sync:
       "सिंक पूरा नहीं हुआ, और हम अपने आप फिर से कोशिश करेंगे। दोनों तरफ़ आपका मेल सुरक्षित है।",
-    failed_delete_emails_external: "ये ईमेल आपके लिंक किए गए खाते से हटाए नहीं गए। फिर से कोशिश करें।",
-    failed_fetch_folders_external: "आपके लिंक किए गए खाते के फ़ोल्डर लोड नहीं हुए। फिर से कोशिश करें।",
+    failed_delete_emails_external:
+      "ये ईमेल आपके लिंक किए गए खाते से हटाए नहीं गए। फिर से कोशिश करें।",
+    failed_fetch_folders_external:
+      "आपके लिंक किए गए खाते के फ़ोल्डर लोड नहीं हुए। फिर से कोशिश करें।",
     external_sign_in_rejected:
       "मेल सर्वर ने यह उपयोगकर्ता नाम और पासवर्ड स्वीकार नहीं किया। इन्हें फिर से जांचें। अगर आपका प्रदाता ऐप पासवर्ड मांगता है, तो उसके बजाय वह डालें।",
     external_server_unreachable:
@@ -5602,9 +5698,11 @@ export const hi = {
       "वह कोड मेल नहीं खाया। आपके प्रमाणक ऐप का मौजूदा कोड काम करेगा।",
     incorrect_password_error:
       "गलत पासवर्ड। फिर से कोशिश करें। आपका खाता लॉक नहीं हुआ है।",
-    failed_retrieve_auth: "हम आपकी साइन-इन जानकारी लोड नहीं कर सके। फिर से कोशिश करें।",
+    failed_retrieve_auth:
+      "हम आपकी साइन-इन जानकारी लोड नहीं कर सके। फिर से कोशिश करें।",
     failed_verify_password: "पासवर्ड सही नहीं है। फिर से कोशिश करें।",
-    failed_export_private_key: "हम अभी आपकी कुंजी एक्सपोर्ट नहीं कर सके। फिर से कोशिश करें। आपकी कुंजी में कोई बदलाव नहीं हुआ है।",
+    failed_export_private_key:
+      "हम अभी आपकी कुंजी एक्सपोर्ट नहीं कर सके। फिर से कोशिश करें। आपकी कुंजी में कोई बदलाव नहीं हुआ है।",
     type_regenerate: "regenerate लिखें",
     client_side_encryption: "क्लाइंट-साइड एन्क्रिप्शन",
     client_side_encryption_description:
@@ -5619,10 +5717,13 @@ export const hi = {
     auto_discover_keys_description: "लिखते समय WKD और कीसर्वर अपने आप खोजें",
     key_published_wkd: "कुंजी WKD पर प्रकाशित हो गई",
     key_removed_wkd: "कुंजी WKD से हटा दी गई",
-    failed_publish_wkd: "आपकी सार्वजनिक कुंजी सार्वजनिक डायरेक्टरी में प्रकाशित नहीं हुई। फिर से कोशिश करें। आपकी कुंजियों में कोई बदलाव नहीं हुआ है।",
-    failed_remove_wkd: "आपकी कुंजी सार्वजनिक डायरेक्टरी से हटाई नहीं गई। फिर से कोशिश करें।",
+    failed_publish_wkd:
+      "आपकी सार्वजनिक कुंजी सार्वजनिक डायरेक्टरी में प्रकाशित नहीं हुई। फिर से कोशिश करें। आपकी कुंजियों में कोई बदलाव नहीं हुआ है।",
+    failed_remove_wkd:
+      "आपकी कुंजी सार्वजनिक डायरेक्टरी से हटाई नहीं गई। फिर से कोशिश करें।",
     key_published_keyserver: "कुंजी कीसर्वर पर प्रकाशित हो गई",
-    failed_publish_keyserver: "आपकी सार्वजनिक कुंजी कीसर्वर पर प्रकाशित नहीं हुई। फिर से कोशिश करें।",
+    failed_publish_keyserver:
+      "आपकी सार्वजनिक कुंजी कीसर्वर पर प्रकाशित नहीं हुई। फिर से कोशिश करें।",
     mailto_unregister_manual:
       "Aster Mail को mailto लिंक खोलने से रोकने के लिए, अपनी ब्राउज़र सेटिंग में हैंडलर हटाएं।",
     failed_save_setting: "सेटिंग सहेजी नहीं जा सकी। फिर से कोशिश करें।",
@@ -6145,46 +6246,67 @@ export const hi = {
     bimi_adj_removed_size: "तय चौड़ाई और ऊंचाई हटाई।",
     bimi_adj_removed_unsupported_attributes: "असमर्थित एट्रिब्यूट हटाए।",
     bimi_adj_set_tiny_ps_profile: "SVG प्रोफ़ाइल को Tiny PS पर सेट किया।",
-    bimi_adjustments_title: "ज़रूरी शर्तें पूरी करने के लिए Aster ने आपकी फ़ाइल में ये बदलाव किए:",
-    bimi_auto_checking: "जब तक यह पेज खुला है, Aster रिकॉर्ड की अपने-आप जाँच करता है।",
+    bimi_adjustments_title:
+      "ज़रूरी शर्तें पूरी करने के लिए Aster ने आपकी फ़ाइल में ये बदलाव किए:",
+    bimi_auto_checking:
+      "जब तक यह पेज खुला है, Aster रिकॉर्ड की अपने-आप जाँच करता है।",
     bimi_check_again: "दोबारा जांचें",
     bimi_checking: "जांच हो रही है",
     bimi_choose_file: "फ़ाइल चुनें",
-    bimi_dmarc_invalid: "आपका DMARC रिकॉर्ड पढ़ा नहीं जा सकता। इसे किसी मान्य रिकॉर्ड से बदलें।",
-    bimi_dmarc_missing: "p=quarantine या p=reject के साथ एक DMARC रिकॉर्ड जोड़ें।",
-    bimi_dmarc_not_enforced: "अपनी DMARC नीति को p=quarantine या p=reject में बदलें।",
-    bimi_dmarc_organization_not_enforced: "आपके पैरेंट डोमेन की DMARC नीति भी quarantine या reject होनी चाहिए।",
-    bimi_dmarc_partial: "अपने DMARC रिकॉर्ड से pct टैग हटाएं या उसे 100 पर सेट करें।",
+    bimi_dmarc_invalid:
+      "आपका DMARC रिकॉर्ड पढ़ा नहीं जा सकता। इसे किसी मान्य रिकॉर्ड से बदलें।",
+    bimi_dmarc_missing:
+      "p=quarantine या p=reject के साथ एक DMARC रिकॉर्ड जोड़ें।",
+    bimi_dmarc_not_enforced:
+      "अपनी DMARC नीति को p=quarantine या p=reject में बदलें।",
+    bimi_dmarc_organization_not_enforced:
+      "आपके पैरेंट डोमेन की DMARC नीति भी quarantine या reject होनी चाहिए।",
+    bimi_dmarc_partial:
+      "अपने DMARC रिकॉर्ड से pct टैग हटाएं या उसे 100 पर सेट करें।",
     bimi_dmarc_ready: "आपकी DMARC नीति quarantine या reject है।",
-    bimi_dmarc_subdomain_policy_none: "अपने DMARC रिकॉर्ड में sp टैग को quarantine या reject में बदलें।",
+    bimi_dmarc_subdomain_policy_none:
+      "अपने DMARC रिकॉर्ड में sp टैग को quarantine या reject में बदलें।",
     bimi_drop_here: "अपना SVG लोगो यहां खींचें।",
-    bimi_err_doctype_entities: "यह फ़ाइल कस्टम एंटिटी डिक्लेयर करती है, जिनकी अनुमति नहीं है।",
+    bimi_err_doctype_entities:
+      "यह फ़ाइल कस्टम एंटिटी डिक्लेयर करती है, जिनकी अनुमति नहीं है।",
     bimi_err_empty: "इमेज खाली है।",
-    bimi_err_external_reference: "यह फ़ाइल किसी बाहरी रिसोर्स से लिंक करती है, जिसकी अनुमति नहीं है।",
+    bimi_err_external_reference:
+      "यह फ़ाइल किसी बाहरी रिसोर्स से लिंक करती है, जिसकी अनुमति नहीं है।",
     bimi_err_invalid_reference: "इस फ़ाइल में एक टूटा हुआ आंतरिक रेफ़रेंस है।",
-    bimi_err_invalid_value: "इस फ़ाइल में ऐसी एट्रिब्यूट वैल्यू है जिसकी अनुमति नहीं है।",
+    bimi_err_invalid_value:
+      "इस फ़ाइल में ऐसी एट्रिब्यूट वैल्यू है जिसकी अनुमति नहीं है।",
     bimi_err_malformed: "यह फ़ाइल मान्य SVG नहीं है।",
-    bimi_err_missing_view_box: "इमेज में viewBox नहीं है। इसे viewBox के साथ एक्सपोर्ट करें।",
+    bimi_err_missing_view_box:
+      "इमेज में viewBox नहीं है। इसे viewBox के साथ एक्सपोर्ट करें।",
     bimi_err_not_square: "लोगो वर्गाकार नहीं है। चौड़ाई और ऊंचाई बराबर करें।",
     bimi_err_not_svg: "यह फ़ाइल SVG इमेज नहीं है।",
     bimi_err_not_utf8: "यह फ़ाइल टेक्स्ट वाली SVG फ़ाइल नहीं है।",
-    bimi_err_raster_image: "इस फ़ाइल में एक एम्बेड की गई बिटमैप इमेज है। सिर्फ़ वेक्टर आकृतियों का इस्तेमाल करें।",
+    bimi_err_raster_image:
+      "इस फ़ाइल में एक एम्बेड की गई बिटमैप इमेज है। सिर्फ़ वेक्टर आकृतियों का इस्तेमाल करें।",
     bimi_err_script_content: "इस फ़ाइल में स्क्रिप्ट है, जिसकी अनुमति नहीं है।",
-    bimi_err_text_not_outlined: "लोगो में टेक्स्ट है। एक्सपोर्ट करने से पहले टेक्स्ट को आउटलाइन में बदलें।",
-    bimi_err_too_complex: "इमेज बहुत जटिल है। इसे सरल बनाएं और फिर से एक्सपोर्ट करें।",
+    bimi_err_text_not_outlined:
+      "लोगो में टेक्स्ट है। एक्सपोर्ट करने से पहले टेक्स्ट को आउटलाइन में बदलें।",
+    bimi_err_too_complex:
+      "इमेज बहुत जटिल है। इसे सरल बनाएं और फिर से एक्सपोर्ट करें।",
     bimi_err_too_large: "फ़ाइल बहुत बड़ी है।",
-    bimi_err_unsupported_element: "इस फ़ाइल में ऐसे एलिमेंट हैं जिनकी अनुमति नहीं है।",
-    bimi_err_unsupported_style: "यह फ़ाइल ऐसी स्टाइल या इफ़ेक्ट इस्तेमाल करती है जिनकी अनुमति नहीं है, जैसे फ़िल्टर, मास्क या स्टाइल शीट।",
-    bimi_error_domain_not_active: "लोगो पब्लिश करने से पहले इस डोमेन का सेटअप पूरा करें।",
+    bimi_err_unsupported_element:
+      "इस फ़ाइल में ऐसे एलिमेंट हैं जिनकी अनुमति नहीं है।",
+    bimi_err_unsupported_style:
+      "यह फ़ाइल ऐसी स्टाइल या इफ़ेक्ट इस्तेमाल करती है जिनकी अनुमति नहीं है, जैसे फ़िल्टर, मास्क या स्टाइल शीट।",
+    bimi_error_domain_not_active:
+      "लोगो पब्लिश करने से पहले इस डोमेन का सेटअप पूरा करें।",
     bimi_error_file_too_large: "फ़ाइल 64 KB से बड़ी है।",
     bimi_error_logo_required: "प्रकाशित करने से पहले लोगो अपलोड करें।",
     bimi_error_not_svg_file: "कोई SVG फ़ाइल चुनें।",
     bimi_error_throttled: "थोड़ी देर रुकें, फिर से कोशिश करें।",
-    bimi_errors_title: "इस फ़ाइल को ब्रैंड लोगो के रूप में इस्तेमाल नहीं किया जा सकता:",
+    bimi_errors_title:
+      "इस फ़ाइल को ब्रैंड लोगो के रूप में इस्तेमाल नहीं किया जा सकता:",
     bimi_last_checked: "पिछली जांच: {time}",
-    bimi_logo_public_note: "आपका लोगो सार्वजनिक है। आपका मेल पाने वाला कोई भी व्यक्ति इसे देख सकता है।",
+    bimi_logo_public_note:
+      "आपका लोगो सार्वजनिक है। आपका मेल पाने वाला कोई भी व्यक्ति इसे देख सकता है।",
     bimi_logo_ready: "आपका लोगो आवश्यकताओं को पूरा करता है।",
-    bimi_managed_note: "आपका डोमेन Aster से खरीदा गया था, इसलिए DNS रिकॉर्ड आपके लिए अपने-आप जोड़ दिया जाता है।",
+    bimi_managed_note:
+      "आपका डोमेन Aster से खरीदा गया था, इसलिए DNS रिकॉर्ड आपके लिए अपने-आप जोड़ दिया जाता है।",
     bimi_preview_alt: "आपके ब्रांड लोगो का पूर्वावलोकन",
     bimi_preview_dark: "डार्क",
     bimi_preview_inbox_subject: "आपका नया अपडेट",
@@ -6192,11 +6314,15 @@ export const hi = {
     bimi_preview_light: "लाइट",
     bimi_publish: "लोगो पब्लिश करें",
     bimi_publishing: "पब्लिश हो रहा है",
-    bimi_record_conflict: "इस डोमेन के लिए एक और BIMI रिकॉर्ड मौजूद है। उसे हटाएं ताकि सिर्फ़ यही रिकॉर्ड बचे।",
-    bimi_record_external: "मौजूदा BIMI रिकॉर्ड किसी दूसरे होस्ट की ओर इशारा करता है। Aster होस्टिंग इस्तेमाल करने के लिए उसे इस रिकॉर्ड से बदलें।",
+    bimi_record_conflict:
+      "इस डोमेन के लिए एक और BIMI रिकॉर्ड मौजूद है। उसे हटाएं ताकि सिर्फ़ यही रिकॉर्ड बचे।",
+    bimi_record_external:
+      "मौजूदा BIMI रिकॉर्ड किसी दूसरे होस्ट की ओर इशारा करता है। Aster होस्टिंग इस्तेमाल करने के लिए उसे इस रिकॉर्ड से बदलें।",
     bimi_record_host: "होस्ट",
-    bimi_record_missing: "रिकॉर्ड अभी दिखाई नहीं दे रहा है। DNS बदलावों में 48 घंटे तक लग सकते हैं।",
-    bimi_record_removed: "Aster को अब यह रिकॉर्ड नहीं मिल रहा है। इसे अपने DNS प्रदाता पर फिर से जोड़ें।",
+    bimi_record_missing:
+      "रिकॉर्ड अभी दिखाई नहीं दे रहा है। DNS बदलावों में 48 घंटे तक लग सकते हैं।",
+    bimi_record_removed:
+      "Aster को अब यह रिकॉर्ड नहीं मिल रहा है। इसे अपने DNS प्रदाता पर फिर से जोड़ें।",
     bimi_record_published: "रिकॉर्ड पब्लिश हो गया है।",
     bimi_record_title: "अपने DNS प्रोवाइडर पर यह रिकॉर्ड जोड़ें",
     bimi_record_type: "प्रकार",
@@ -6209,19 +6335,25 @@ export const hi = {
     bimi_req_dmarc_title: "DMARC लागू करना",
     bimi_req_not_checked: "अभी तक जांचा नहीं गया।",
     bimi_requirements_title: "ज़रूरी शर्तें",
-    bimi_row_attention: "आपका लोगो पब्लिश है, लेकिन एक ज़रूरी शर्त अब पूरी नहीं हो रही है।",
-    bimi_row_draft: "आपका लोगो तैयार है। इसका इस्तेमाल शुरू करने के लिए इसे पब्लिश करें।",
-    bimi_row_external: "इस डोमेन का एक BIMI रिकॉर्ड है, जो किसी दूसरे होस्ट की ओर इशारा करता है।",
+    bimi_row_attention:
+      "आपका लोगो पब्लिश है, लेकिन एक ज़रूरी शर्त अब पूरी नहीं हो रही है।",
+    bimi_row_draft:
+      "आपका लोगो तैयार है। इसका इस्तेमाल शुरू करने के लिए इसे पब्लिश करें।",
+    bimi_row_external:
+      "इस डोमेन का एक BIMI रिकॉर्ड है, जो किसी दूसरे होस्ट की ओर इशारा करता है।",
     bimi_row_inactive: "ब्रैंड लोगो जोड़ने के लिए इस डोमेन का सेटअप पूरा करें।",
     bimi_row_live: "आपका लोगो पब्लिश हो गया है।",
-    bimi_row_off: "ब्रैंड लोगो सपोर्ट करने वाले इनबॉक्स में अपने मेल के साथ अपना लोगो दिखाएं।",
+    bimi_row_off:
+      "ब्रैंड लोगो सपोर्ट करने वाले इनबॉक्स में अपने मेल के साथ अपना लोगो दिखाएं।",
     bimi_row_pending: "DNS रिकॉर्ड जोड़ें, फिर दोबारा जांचें।",
-    bimi_row_pending_managed: "आपका DNS रिकॉर्ड पब्लिश किया जा रहा है। इसमें कुछ मिनट लग सकते हैं।",
+    bimi_row_pending_managed:
+      "आपका DNS रिकॉर्ड पब्लिश किया जा रहा है। इसमें कुछ मिनट लग सकते हैं।",
     bimi_rule_safe: "कोई स्क्रिप्ट या बाहरी लिंक नहीं",
     bimi_rule_size: "Aster द्वारा ऑप्टिमाइज़ करने के बाद 32 KB या उससे कम",
     bimi_rule_square: "वर्गाकार, बराबर चौड़ाई और ऊँचाई के साथ",
     bimi_rule_svg: "SVG फ़ाइल",
-    bimi_rule_vector: "केवल वेक्टर आकृतियाँ, टेक्स्ट को आउटलाइन में बदला गया हो",
+    bimi_rule_vector:
+      "केवल वेक्टर आकृतियाँ, टेक्स्ट को आउटलाइन में बदला गया हो",
     bimi_rules_title: "फ़ाइल की आवश्यकताएँ",
     bimi_set_up: "सेट अप करें",
     bimi_state_attention: "ध्यान देने की ज़रूरत",
@@ -6234,13 +6366,16 @@ export const hi = {
     bimi_step_publish: "पब्लिश करें",
     bimi_title: "ब्रैंड लोगो",
     bimi_turn_off: "बंद करें",
-    bimi_turn_off_body: "आपका लोगो तुरंत होस्ट होना बंद हो जाता है और इनबॉक्स उसकी जगह डिफ़ॉल्ट आइकन दिखाते हैं।",
+    bimi_turn_off_body:
+      "आपका लोगो तुरंत होस्ट होना बंद हो जाता है और इनबॉक्स उसकी जगह डिफ़ॉल्ट आइकन दिखाते हैं।",
     bimi_turn_off_confirm: "बंद करें",
     bimi_turn_off_description: "इनबॉक्स में अपना लोगो दिखाना बंद करें।",
-    bimi_turn_off_remove_record: "अपने DNS प्रोवाइडर से default._bimi TXT रिकॉर्ड हटाएं।",
+    bimi_turn_off_remove_record:
+      "अपने DNS प्रोवाइडर से default._bimi TXT रिकॉर्ड हटाएं।",
     bimi_turn_off_title: "ब्रैंड लोगो बंद करें?",
     bimi_uploading: "अपलोड हो रहा है",
-    bimi_verified_mark_note: "कुछ इनबॉक्स सिर्फ़ उन डोमेन के ब्रैंड लोगो दिखाते हैं जिनके पास वेरिफ़ाइड मार्क सर्टिफ़िकेट होता है।",
+    bimi_verified_mark_note:
+      "कुछ इनबॉक्स सिर्फ़ उन डोमेन के ब्रैंड लोगो दिखाते हैं जिनके पास वेरिफ़ाइड मार्क सर्टिफ़िकेट होता है।",
     catch_all_description: "इस डोमेन के किसी भी पते पर भेजे गए ईमेल पाएं",
     set_host_root:
       "होस्ट को @ रखें (अपना डोमेन नाम न डालें, आपका प्रदाता उसे अपने आप जोड़ देता है)",
@@ -6425,7 +6560,8 @@ export const hi = {
       "आपका स्टोरेज भर गया है। प्लान बढ़ाने या कुछ ईमेल हटाने से और इंपोर्ट के लिए जगह बनेगी।",
     no_emails_in_file:
       "चुनी गई फ़ाइलों में कोई ईमेल नहीं मिली। पक्का करें कि हर फ़ाइल समर्थित प्रारूप (MBOX, EML, CSV या PST) में है।",
-    import_failed: "इंपोर्ट पूरा नहीं हुआ। फिर से कोशिश करें। आपके मौजूदा डेटा में कोई बदलाव नहीं हुआ है।",
+    import_failed:
+      "इंपोर्ट पूरा नहीं हुआ। फिर से कोशिश करें। आपके मौजूदा डेटा में कोई बदलाव नहीं हुआ है।",
     failed_to_parse_file: "यह फ़ाइल पढ़ी नहीं जा सकी। कोई दूसरी काम करेगी।",
     plan_storage_value: "{{value}} स्टोरेज",
     plan_aliases_count: "{{count}} एलियास",
@@ -6674,7 +6810,8 @@ export const hi = {
     connect_sign_in_yahoo: "Yahoo से साइन इन करें",
     oauth_reason_provider_denied:
       "दूसरे प्रदाता ने कनेक्शन स्वीकार नहीं किया। दोबारा कनेक्ट करने की कोशिश करें, या उस प्रदाता के पास खाता जांचें।",
-    oauth_reason_missing_code: "प्रदाता की ओर से साइन-इन पूरा नहीं हुआ। फिर से कोशिश करें।",
+    oauth_reason_missing_code:
+      "प्रदाता की ओर से साइन-इन पूरा नहीं हुआ। फिर से कोशिश करें।",
     oauth_reason_missing_state:
       "कनेक्शन का अनुरोध हमारी उम्मीद से मेल नहीं खाया। दोबारा शुरू करके फिर कोशिश करने से आमतौर पर काम बन जाता है।",
     oauth_reason_internal_error:
@@ -6687,19 +6824,23 @@ export const hi = {
       "हम इस प्रदाता को नहीं पहचानते। सूची में से कोई समर्थित प्रदाता काम करेगा।",
     oauth_reason_provider_not_configured:
       "यह प्रदाता अभी Aster पर सेट नहीं है। ज़रूरत हो तो hello@astermail.org मदद कर सकता है।",
-    oauth_reason_token_exchange_failed: "कनेक्शन पूरा नहीं हुआ। फिर से कोशिश करें। आपके अन्य खातों में कोई बदलाव नहीं हुआ है।",
+    oauth_reason_token_exchange_failed:
+      "कनेक्शन पूरा नहीं हुआ। फिर से कोशिश करें। आपके अन्य खातों में कोई बदलाव नहीं हुआ है।",
     oauth_reason_encryption_error:
       "हम कनेक्शन सुरक्षित नहीं कर सके। फिर से कोशिश करें। समस्या बनी रहे तो hello@astermail.org से संपर्क करें।",
-    oauth_reason_account_creation_failed: "हम आपके लिंक किए गए खाते का सेटअप पूरा नहीं कर सके। फिर से कोशिश करें।",
+    oauth_reason_account_creation_failed:
+      "हम आपके लिंक किए गए खाते का सेटअप पूरा नहीं कर सके। फिर से कोशिश करें।",
     oauth_reason_email_not_found:
       "हम प्रदाता से आपका ईमेल पता नहीं ला सके। फिर से कोशिश करें, और अगर यह बार-बार विफल हो तो इसके बजाय मैन्युअल IMAP विकल्प इस्तेमाल करें।",
     oauth_reason_session_expired:
       "साइन इन सत्र खत्म हो गया। फिर से कोशिश करें।",
-    oauth_reason_unknown: "कुछ उम्मीद के मुताबिक काम नहीं किया। फिर से कोशिश करें। हम इसकी वजह का पता नहीं लगा सके।",
+    oauth_reason_unknown:
+      "कुछ उम्मीद के मुताबिक काम नहीं किया। फिर से कोशिश करें। हम इसकी वजह का पता नहीं लगा सके।",
     oauth_import_loading: "{{ provider }} से जोड़ा जा रहा है...",
     oauth_setting_up_folders: "फ़ोल्डर सेट किए जा रहे हैं...",
     oauth_folders_ready: "फ़ोल्डर सिंक हो गए",
-    oauth_folders_error: "आपके फ़ोल्डर का सेटअप पूरा नहीं हुआ। फिर से कोशिश करें।",
+    oauth_folders_error:
+      "आपके फ़ोल्डर का सेटअप पूरा नहीं हुआ। फिर से कोशिश करें।",
     oauth_folders_partial:
       "{{count}} फ़ोल्डर का सेटअप पूरा नहीं हुआ, बाकी इस्तेमाल के लिए तैयार हैं।",
     import_stage_setting_up_folders: "फ़ोल्डर सेट किए जा रहे हैं",
@@ -6917,7 +7058,8 @@ export const hi = {
     dev_signatures_label: "हस्ताक्षर",
     dev_password_kdf_label: "पासवर्ड KDF",
     select_color: "रंग {{name}} चुनें",
-    failed_create_import_job: "हम आपका इंपोर्ट शुरू नहीं कर सके। फिर से कोशिश करें। आपके मौजूदा ईमेल सुरक्षित हैं।",
+    failed_create_import_job:
+      "हम आपका इंपोर्ट शुरू नहीं कर सके। फिर से कोशिश करें। आपके मौजूदा ईमेल सुरक्षित हैं।",
     alias_local_part_placeholder: "myalias",
     username_placeholder: "user@example.com",
     smtp_host_placeholder: "smtp.example.com",
@@ -6977,7 +7119,8 @@ export const hi = {
     recently_deleted_directories_description:
       "हटाई गई कोई डायरेक्टरी वापस लाएं। हटाई गई डायरेक्टरी वापस आने तक नई मेल नहीं पकड़तीं।",
     directory_restored: "डायरेक्टरी वापस आ गई",
-    failed_restore_directory: "यह डायरेक्टरी रीस्टोर नहीं हुई। फिर से कोशिश करें।",
+    failed_restore_directory:
+      "यह डायरेक्टरी रीस्टोर नहीं हुई। फिर से कोशिश करें।",
     purge_directory_confirm_title: "डायरेक्टरी हमेशा के लिए हटाएं?",
     purge_directory_confirm_message:
       "{{ key }}@{{ domain }} हमेशा के लिए हटाएं? इसे पहले जैसा नहीं किया जा सकता। यह डायरेक्टरी आपके खाते के लिए आरक्षित रहेगी, इसलिए इसे कोई और कभी नहीं ले सकेगा।",
@@ -7741,11 +7884,16 @@ export const hi = {
     upgrade_external_accounts_note:
       "अधिक बाहरी खाते कनेक्ट करने के लिए अपग्रेड करें।",
     previous_password: "पिछला पासवर्ड",
-    password_change_sent_mail_locked: "आपका पासवर्ड बदल गया। {{count}} भेजे गए ईमेल पुराने पासवर्ड से एन्क्रिप्ट थे और अपडेट नहीं हुए। उन्हें अनलॉक करने के लिए, अपने इनबॉक्स के ऊपर बैनर में डेटा वापस पाएं चुनें।",
-    referral_commission_headline: "अपने दोस्तों के हर भुगतान का {{ percent }}% कमाएं",
-    referral_commission_subhead: "अपना लिंक साझा करें। जब कोई दोस्त सदस्यता लेता है, तो जब तक वह सदस्य रहता है, आपको उसके हर भुगतान का हिस्सा मिलता है।",
-    referral_step_earn_commission: "जब वे सदस्यता लेते हैं, तो आपको उनके हर भुगतान का {{ percent }}% मिलता है।",
-    referral_share_message_plain: "मैं एंड-टू-एंड एन्क्रिप्टेड ईमेल के लिए Aster Mail इस्तेमाल करता हूं। मेरे लिंक से जुड़ें।",
+    password_change_sent_mail_locked:
+      "आपका पासवर्ड बदल गया। {{count}} भेजे गए ईमेल पुराने पासवर्ड से एन्क्रिप्ट थे और अपडेट नहीं हुए। उन्हें अनलॉक करने के लिए, अपने इनबॉक्स के ऊपर बैनर में डेटा वापस पाएं चुनें।",
+    referral_commission_headline:
+      "अपने दोस्तों के हर भुगतान का {{ percent }}% कमाएं",
+    referral_commission_subhead:
+      "अपना लिंक साझा करें। जब कोई दोस्त सदस्यता लेता है, तो जब तक वह सदस्य रहता है, आपको उसके हर भुगतान का हिस्सा मिलता है।",
+    referral_step_earn_commission:
+      "जब वे सदस्यता लेते हैं, तो आपको उनके हर भुगतान का {{ percent }}% मिलता है।",
+    referral_share_message_plain:
+      "मैं एंड-टू-एंड एन्क्रिप्टेड ईमेल के लिए Aster Mail इस्तेमाल करता हूं। मेरे लिंक से जुड़ें।",
     referral_email_body_plain:
       "नमस्ते,\n\nमैं कुछ समय से Aster Mail इस्तेमाल कर रहा हूं और यह मुझे बहुत पसंद है। इसमें सब कुछ एंड टू एंड एन्क्रिप्टेड है, इसलिए आपकी ईमेल आपके सिवा कोई नहीं पढ़ सकता। इसे चलाने वाले लोग भी नहीं।\n\nअगर आप इसे आज़माना चाहें, तो यह रहा मेरा आमंत्रण लिंक:\n\n{{ referral_link }}\n\nशुभकामनाएं",
   },
@@ -8842,7 +8990,8 @@ export const hi = {
       "यह मान्य ईमेल नहीं लगता। name@example.com जैसा कुछ काम करेगा।",
     recovery_email_conflict:
       "यह पता पहले से ही अधिकतम 20 Aster खातों की सुरक्षा कर रहा है। कोई दूसरा पता इस्तेमाल करें।",
-    failed_save_recovery_email: "आपका रिकवरी ईमेल सहेजा नहीं गया। फिर से कोशिश करें। आपकी मौजूदा रिकवरी सेटिंग में कोई बदलाव नहीं हुआ है।",
+    failed_save_recovery_email:
+      "आपका रिकवरी ईमेल सहेजा नहीं गया। फिर से कोशिश करें। आपकी मौजूदा रिकवरी सेटिंग में कोई बदलाव नहीं हुआ है।",
     recovery_phrase_title: "अपना रिकवरी फ़्रेज़ सहेजें",
     recovery_phrase_desc:
       "अगर आप कभी अपना पासवर्ड भूल जाते हैं, तो अपना खाता और सारा एन्क्रिप्टेड मेल पूरी तरह बहाल करने का यही 12 शब्द एकमात्र तरीका हैं। इन्हें क्रम से लिख लें और कहीं सुरक्षित और ऑफ़लाइन रखें।",
@@ -8917,7 +9066,8 @@ export const hi = {
     recovery_failed:
       "रिकवरी पूरी नहीं हुई। दोबारा शुरू करने से आमतौर पर काम बन जाता है। आपका खाता जस का तस है।",
     add_special_characters: "विशेष वर्ण जोड़ें (!@#$%)",
-    recovery_codes_start_with_aster: "रिकवरी कोड ASTER-XXXX-XXXX-XXXX-XXXX जैसा दिखता है। कोड जांचें और उसे फिर से डालें।",
+    recovery_codes_start_with_aster:
+      "रिकवरी कोड ASTER-XXXX-XXXX-XXXX-XXXX जैसा दिखता है। कोड जांचें और उसे फिर से डालें।",
     verifying_recovery_code: "रिकवरी कोड सत्यापित किया जा रहा है...",
     recovery_session_expired:
       "यह रिकवरी सेशन खत्म हो गया है। रिकवरी प्रक्रिया दोबारा शुरू करने पर काम आगे बढ़ जाएगा। आपका खाता जस का तस है।",
@@ -9042,8 +9192,7 @@ export const hi = {
       "अपना मुफ़्त खाता बनाएं, फिर किसी भी सशुल्क प्लान पर 12 महीने तक 30% छूट पाने के लिए अपना छात्र ईमेल सत्यापित करें।",
     offer_welcome_subline_journalist:
       "अपना मुफ़्त खाता बनाएं, फिर किसी भी सशुल्क प्लान पर 12 महीने तक 30% छूट पाने के लिए अपने प्रेस क्रेडेंशियल सत्यापित करें।",
-    plan_star_description:
-      "अधिक स्टोरेज, अधिक उपनाम, और अधिकतम 5 कस्टम डोमेन।",
+    plan_star_description: "अधिक स्टोरेज, अधिक उपनाम, और अधिकतम 5 कस्टम डोमेन।",
     plan_nova_description: "ज़्यादा स्टोरेज, कस्टम डोमेन और असीमित एलियास।",
     plan_supernova_description:
       "अधिकतम स्टोरेज, हर चीज़ असीमित, और समर्पित सहायता।",
@@ -9184,30 +9333,42 @@ export const hi = {
       "यह पासवर्ड लंबाई की सीमा से बड़ा है। छोटा पासवर्ड काम करेगा।",
     account_not_found:
       "हमें उस नाम का कोई खाता नहीं मिला। वर्तनी जांचें, या astermail.org/reset पर अपना पासवर्ड रीसेट करें।",
-    login_failed: "साइन-इन पूरा नहीं हुआ। फिर से कोशिश करें। आपका खाता लॉक नहीं है।",
+    login_failed:
+      "साइन-इन पूरा नहीं हुआ। फिर से कोशिश करें। आपका खाता लॉक नहीं है।",
     decrypt_failed:
       "उस पासवर्ड से इस डिवाइस पर आपकी कुंजियां अनलॉक नहीं हुईं। दोबारा कोशिश करने पर काम बन जाएगा, और बार-बार विफल होने पर astermail.org/reset पर रिकवरी कोड दूसरा रास्ता है। सर्वर पर आपका डेटा जस का तस है।",
     an_error_occurred: "फिर से कोशिश करें।",
-    failed_to_block_sender: "हम इस प्रेषक को ब्लॉक नहीं कर सके। फिर से कोशिश करें।",
-    failed_to_snooze: "यह ईमेल स्नूज़ नहीं हुआ। फिर से कोशिश करें। यह अब भी आपके इनबॉक्स में है।",
+    failed_to_block_sender:
+      "हम इस प्रेषक को ब्लॉक नहीं कर सके। फिर से कोशिश करें।",
+    failed_to_snooze:
+      "यह ईमेल स्नूज़ नहीं हुआ। फिर से कोशिश करें। यह अब भी आपके इनबॉक्स में है।",
     ghost_alias_not_found: "हमें इस थ्रेड से जुड़ा घोस्ट पता नहीं मिला।",
-    failed_to_resolve_ghost_alias: "इस थ्रेड का घोस्ट पता लोड नहीं हुआ। फिर से कोशिश करें।",
+    failed_to_resolve_ghost_alias:
+      "इस थ्रेड का घोस्ट पता लोड नहीं हुआ। फिर से कोशिश करें।",
     ghost_alias_rate_limit:
       "आपने इस महीने के अपने सभी घोस्ट एलियास इस्तेमाल कर लिए हैं। अपना प्लान अपग्रेड करने, या अगले महीने के रीसेट का इंतज़ार करने पर आपको और मिलेंगे।",
     ghost_alias_already_exists: "यह घोस्ट एलियास पहले से आपके खाते में है।",
-    failed_to_create_ghost_alias: "यह घोस्ट एलियास सहेजा नहीं गया। फिर से कोशिश करें। आपके अन्य एलियास में कोई बदलाव नहीं हुआ है।",
+    failed_to_create_ghost_alias:
+      "यह घोस्ट एलियास सहेजा नहीं गया। फिर से कोशिश करें। आपके अन्य एलियास में कोई बदलाव नहीं हुआ है।",
     ghost_expiry_extend_only:
       "आप घोस्ट पते की अवधि सिर्फ़ बढ़ा सकते हैं, घटा नहीं सकते।",
     ghost_expiry_update_failed: "समाप्ति अपडेट नहीं हुई। फिर से कोशिश करें।",
     failed_to_activate_ghost_mode: "फिर से कोशिश करें।",
-    failed_to_queue_email: "हम इस ईमेल को बाद में भेजने के लिए सहेज नहीं सके। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
-    failed_to_send_queued: "यह ईमेल नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
-    failed_to_send_external_queued: "यह ईमेल आपके लिंक किए गए बाहरी खाते से नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
-    authentication_failed: "साइन-इन पूरा नहीं हुआ। फिर से कोशिश करें। आपका खाता लॉक नहीं है।",
-    failed_to_snooze_email: "यह ईमेल स्नूज़ नहीं हुआ। फिर से कोशिश करें। यह अब भी आपके इनबॉक्स में है।",
+    failed_to_queue_email:
+      "हम इस ईमेल को बाद में भेजने के लिए सहेज नहीं सके। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    failed_to_send_queued:
+      "यह ईमेल नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    failed_to_send_external_queued:
+      "यह ईमेल आपके लिंक किए गए बाहरी खाते से नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    authentication_failed:
+      "साइन-इन पूरा नहीं हुआ। फिर से कोशिश करें। आपका खाता लॉक नहीं है।",
+    failed_to_snooze_email:
+      "यह ईमेल स्नूज़ नहीं हुआ। फिर से कोशिश करें। यह अब भी आपके इनबॉक्स में है।",
     failed_to_snooze_emails: "फिर से कोशिश करें।",
-    failed_to_unsnooze_email: "यह ईमेल आपके इनबॉक्स में वापस नहीं आया। फिर से कोशिश करें।",
-    failed_to_list_snoozed: "आपके स्नूज़ किए गए ईमेल लोड नहीं हुए। फिर से कोशिश करें। वे सर्वर पर सुरक्षित हैं।",
+    failed_to_unsnooze_email:
+      "यह ईमेल आपके इनबॉक्स में वापस नहीं आया। फिर से कोशिश करें।",
+    failed_to_list_snoozed:
+      "आपके स्नूज़ किए गए ईमेल लोड नहीं हुए। फिर से कोशिश करें। वे सर्वर पर सुरक्षित हैं।",
     auth_required: "जारी रखने के लिए साइन इन करें।",
     no_permission:
       "आपके पास यह करने की पहुंच नहीं है। अगर यह गलत लगता है, तो आपका एडमिन मदद कर सकता है।",
@@ -9232,8 +9393,10 @@ export const hi = {
       "आपकी निजी कुंजियां इस डिवाइस पर लॉक हैं। आपका पासवर्ड उन्हें अनलॉक कर देगा। सर्वर पर आपकी कुंजियों पर कोई असर नहीं पड़ा है।",
     session_expired_send:
       "यह ईमेल भेजे जाने से पहले आपका सेशन खत्म हो गया। दोबारा साइन इन करने पर यह भेज दिया जाएगा। आपका ड्राफ़्ट सहेज लिया गया है।",
-    failed_encrypt_envelope: "हम इस ईमेल को भेजने के लिए सुरक्षित नहीं कर सके। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
-    failed_pgp_encrypt: "हम इस ईमेल को प्राप्तकर्ता की PGP कुंजी से एन्क्रिप्ट नहीं कर सके। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    failed_encrypt_envelope:
+      "हम इस ईमेल को भेजने के लिए सुरक्षित नहीं कर सके। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    failed_pgp_encrypt:
+      "हम इस ईमेल को प्राप्तकर्ता की PGP कुंजी से एन्क्रिप्ट नहीं कर सके। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
     no_authenticated_account:
       "इस डिवाइस पर कोई साइन इन किया हुआ खाता नहीं मिला। जारी रखने के लिए साइन इन करें।",
     daily_limit_reached:
@@ -9247,7 +9410,8 @@ export const hi = {
       "ये अटैचमेंट मिलकर {{size}} से ज़्यादा हो जाते हैं, जो आपके प्लान में एक संदेश की अधिकतम सीमा है। कोई फ़ाइल निकालने या छोटी करने पर यह भेजा जा सकेगा। आपका ड्राफ़्ट सहेज लिया गया है।",
     too_many_attachments:
       "इस संदेश में {{max}} से ज़्यादा अटैचमेंट हैं, जो एक संदेश की अधिकतम सीमा है। कुछ निकालने पर यह भेजा जा सकेगा। आपका ड्राफ़्ट सहेज लिया गया है।",
-    failed_send_email: "यह ईमेल नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    failed_send_email:
+      "यह ईमेल नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
     cannot_send_no_keys:
       "आपने अनिवार्य एन्क्रिप्शन चालू कर रखा है, और हमारे पास {{recipients}} के लिए कोई कुंजी नहीं है। उनसे कुंजी साझा करने को कहने, या सेटिंग में अनिवार्य एन्क्रिप्शन बंद करने पर यह भेजा जा सकेगा। आपका ड्राफ़्ट सहेज लिया गया है।",
     cannot_send_no_recipient_keys:
@@ -9256,14 +9420,19 @@ export const hi = {
       "Aster खातों के बीच के संदेश Aster पोस्ट-क्वांटम एन्क्रिप्शन में रखता है, और {{recipients}} ने अभी तक पोस्ट-क्वांटम कुंजियां प्रकाशित नहीं की हैं। उनसे Aster खोलने या अपना ऐप अपडेट करने को कहें, फिर दोबारा कोशिश करें। आपका ड्राफ़्ट सहेज लिया गया है।",
     cannot_send_no_recovery_key:
       "Aster यह संदेश अभी नहीं भेज सकता, क्योंकि प्राप्तकर्ता के खाते में इसे पढ़ने के लिए ज़रूरी कुंजियां नहीं हैं। उनसे किसी भी डिवाइस पर Aster खोलने या अपना ऐप अपडेट करने को कहें ताकि वे कुंजियां ताज़ा हो जाएं, फिर दोबारा कोशिश करें। आपका ड्राफ़्ट सहेज लिया गया है।",
-    failed_send_external: "यह ईमेल आपके लिंक किए गए बाहरी खाते से नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
-    failed_queue_email: "हम इस ईमेल को बाद में भेजने के लिए सहेज नहीं सके। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    failed_send_external:
+      "यह ईमेल आपके लिंक किए गए बाहरी खाते से नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    failed_queue_email:
+      "हम इस ईमेल को बाद में भेजने के लिए सहेज नहीं सके। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
     no_active_account:
       "इस डिवाइस पर कोई साइन इन किया हुआ खाता नहीं मिला। जारी रखने के लिए साइन इन करें।",
-    failed_queue_reply: "हम इस जवाब को बाद में भेजने के लिए सहेज नहीं सके। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    failed_queue_reply:
+      "हम इस जवाब को बाद में भेजने के लिए सहेज नहीं सके। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
     no_recipients: "भेजने से पहले कम से कम एक प्राप्तकर्ता ज़रूरी है।",
-    failed_queue_forward: "हम इस फ़ॉरवर्ड को बाद में भेजने के लिए सहेज नहीं सके। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
-    failed_send: "यह ईमेल नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    failed_queue_forward:
+      "हम इस फ़ॉरवर्ड को बाद में भेजने के लिए सहेज नहीं सके। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    failed_send:
+      "यह ईमेल नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
     incorrect_password:
       "गलत पासवर्ड। फिर से कोशिश करें। आपका खाता लॉक नहीं हुआ है।",
     no_keys_available:
@@ -9279,7 +9448,8 @@ export const hi = {
     registration_failed:
       "साइन अप पूरा नहीं हुआ। दोबारा शुरू करके कोशिश करने से आमतौर पर काम बन जाता है। कोई खाता नहीं बना।",
     registration_cancelled: "पंजीकरण रद्द हो गया",
-    authentication_failed_webauthn: "सुरक्षा कुंजी से साइन-इन पूरा नहीं हुआ या रद्द कर दिया गया। फिर से कोशिश करें।",
+    authentication_failed_webauthn:
+      "सुरक्षा कुंजी से साइन-इन पूरा नहीं हुआ या रद्द कर दिया गया। फिर से कोशिश करें।",
     authentication_cancelled: "प्रमाणीकरण रद्द हो गया",
     alias_empty: "यहां एलियास का नाम ज़रूरी है।",
     alias_too_short: "कम से कम 3 वर्ण इस्तेमाल करें।",
@@ -9310,7 +9480,8 @@ export const hi = {
       "एक साथ अधिकतम {{max}} खाते चालू रह सकते हैं। एक खाता निकालने पर दूसरे के लिए जगह बन जाएगी।",
     account_already_added:
       "यह खाता इस डिवाइस पर पहले से साइन इन है। इसके बजाय खाता मेन्यू से उस पर जाएं।",
-    failed_encrypt_draft: "हम इस डिवाइस पर इस ड्राफ़्ट को सुरक्षित रूप से सहेज नहीं सके। फिर से कोशिश करें। आपका टाइप किया गया टेक्स्ट अब भी कंपोज़र में है।",
+    failed_encrypt_draft:
+      "हम इस डिवाइस पर इस ड्राफ़्ट को सुरक्षित रूप से सहेज नहीं सके। फिर से कोशिश करें। आपका टाइप किया गया टेक्स्ट अब भी कंपोज़र में है।",
     failed_decrypt_draft:
       "हम इस डिवाइस पर यह ड्राफ़्ट नहीं खोल सके। साइन आउट करके फिर से साइन इन करने के बाद एक और कोशिश आमतौर पर काम कर जाती है।",
     version_conflict:
@@ -9344,7 +9515,8 @@ export const hi = {
       "हमने {{count}} ऐसे ईमेल छोड़ दिए जिनमें प्रेषक या मुख्य भाग नहीं था। बाकी इंपोर्ट हो गए।",
     unrecognized_format:
       "Aster {{name}} नहीं पढ़ सकता। समर्थित फ़ॉर्मैट MBOX, EML, CSV और PST हैं। फ़ाइल को इनमें से किसी एक रूप में सहेजकर फिर से कोशिश करें।",
-    unknown_error: "कुछ उम्मीद के मुताबिक काम नहीं किया। फिर से कोशिश करें। हम इसकी वजह का पता नहीं लगा सके।",
+    unknown_error:
+      "कुछ उम्मीद के मुताबिक काम नहीं किया। फिर से कोशिश करें। हम इसकी वजह का पता नहीं लगा सके।",
     health_check_failed: "जांच पूरी नहीं हुई। फिर से कोशिश करें।",
     unexpected_health_check_error: "फिर से कोशिश करें।",
     all_emails_rejected:
@@ -9567,10 +9739,14 @@ export const hi = {
     value_placeholder: "मान",
     pick_folder: "एक फ़ोल्डर चुनें",
     pick_labels: "लेबल चुनें",
-    load_failed: "आपके नियम लोड नहीं हुए। फिर से कोशिश करें। आपके सहेजे गए नियम सुरक्षित हैं।",
-    save_failed: "यह नियम सहेजा नहीं गया। फिर से कोशिश करें। पिछला संस्करण अब भी सक्रिय है।",
-    reorder_failed: "नया क्रम सहेजा नहीं गया। फिर से कोशिश करें। आपके नियम अब भी पिछले क्रम में चलते हैं।",
-    rule_delete_failed: "यह नियम हटाया नहीं गया। फिर से कोशिश करें। नियम अब भी सक्रिय है।",
+    load_failed:
+      "आपके नियम लोड नहीं हुए। फिर से कोशिश करें। आपके सहेजे गए नियम सुरक्षित हैं।",
+    save_failed:
+      "यह नियम सहेजा नहीं गया। फिर से कोशिश करें। पिछला संस्करण अब भी सक्रिय है।",
+    reorder_failed:
+      "नया क्रम सहेजा नहीं गया। फिर से कोशिश करें। आपके नियम अब भी पिछले क्रम में चलते हैं।",
+    rule_delete_failed:
+      "यह नियम हटाया नहीं गया। फिर से कोशिश करें। नियम अब भी सक्रिय है।",
     snooze_needs_future: "भविष्य की कोई तारीख और समय चुनें।",
     match_case: "बड़े-छोटे अक्षर का मिलान करें",
     header_name_placeholder: "हेडर का नाम",
@@ -9624,7 +9800,7 @@ export const hi = {
     tab_visual: "विज़ुअल",
     tab_expression: "एक्सप्रेशन",
     expression_placeholder:
-      "from.address is \"alice@example.com\" and subject contains \"रसीद\"",
+      'from.address is "alice@example.com" and subject contains "रसीद"',
     expression_parse_error:
       "यह एक्सप्रेशन मान्य नहीं है। सिंटैक्स जांचें और फिर से कोशिश करें।",
     expr_empty_expression: "सहेजने से पहले एक एक्सप्रेशन डालें।",
@@ -9760,8 +9936,7 @@ export const hi = {
     delete_confirm_no: "रद्द करें",
     delete_failed: "यह संदेश हटाया नहीं जा सका। फिर से कोशिश करें।",
   },
-  compose: {
-  },
+  compose: {},
   shared_mailboxes: {
     tab_label: "साझा मेलबॉक्स",
     create: "बनाएं",

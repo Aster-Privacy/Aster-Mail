@@ -596,7 +596,8 @@ export const zh_CN = {
     no_emails_match_criteria: "没有匹配此条件的邮件",
     failed_to_update_emails: "这些更改未能保存。请重试。邮件本身未受影响。",
     failed_to_archive_emails: "归档未能完成。请重试。这些邮件仍在收件箱中。",
-    failed_to_unarchive_emails: "未能移回收件箱。请重试。这些邮件仍处于归档状态。",
+    failed_to_unarchive_emails:
+      "未能移回收件箱。请重试。这些邮件仍处于归档状态。",
     keyboard_shortcut_label: "键盘快捷键：{shortcut}",
     something_went_wrong_try_again: "这次没有成功，稍后再试一次通常可以。",
     something_went_wrong: "发生了错误。",
@@ -670,13 +671,15 @@ export const zh_CN = {
     number_type: "数字",
     phone_type: "电话",
     email_type: "邮箱",
-    failed_to_fetch_contacts: "联系人未能加载。请重试。您已保存的联系人安全无虞。",
+    failed_to_fetch_contacts:
+      "联系人未能加载。请重试。您已保存的联系人安全无虞。",
     failed_to_delete_contact: "未能移除此联系人。请重试。",
     contact_deleted: "联系人已删除",
     contact_saved: "联系人已保存",
     contact_created: "联系人已创建",
     failed_to_create_contact: "请重试。",
-    failed_to_save_contact: "对此联系人的更改未能保存。请重试。之前的版本仍然保留。",
+    failed_to_save_contact:
+      "对此联系人的更改未能保存。请重试。之前的版本仍然保留。",
     failed_to_delete_contacts: "未能移除这些联系人。请重试。",
     failed_to_update_favorites: "收藏未能更新。请重试。",
     failed_to_read_file: "这个文件无法读取，换一个可以。",
@@ -781,13 +784,16 @@ export const zh_CN = {
     failed_to_snooze_emails: "未能暂停提醒这些邮件。请重试。它们仍在收件箱中。",
     failed_to_copy: "请重试。",
     error_copied_to_clipboard: "错误信息已复制到剪贴板",
-    failed_to_update_contact: "联系人更改未能保存。请重试。之前的版本仍然保留。",
+    failed_to_update_contact:
+      "联系人更改未能保存。请重试。之前的版本仍然保留。",
     failed_to_block_sender: "我们无法屏蔽此发件人。请重试。",
-    failed_to_rename_folder: "未能重命名此文件夹。请重试。文件夹及其中的邮件未受影响。",
+    failed_to_rename_folder:
+      "未能重命名此文件夹。请重试。文件夹及其中的邮件未受影响。",
     failed_to_change_folder_color: "文件夹颜色未能更新。请重试。",
     failed_to_delete_folder: "未能移除此文件夹。请重试。其中的邮件安全无虞。",
     failed_to_move_folder: "请重试。",
-    failed_to_update_folder_encryption: "文件夹锁定设置未能更改。请重试。文件夹保持原样。",
+    failed_to_update_folder_encryption:
+      "文件夹锁定设置未能更改。请重试。文件夹保持原样。",
     failed_to_rename_label: "请重试。",
     failed_to_change_label_color: "标签颜色未能更新。请重试。",
     failed_to_change_label_icon: "标签图标未能更新。请重试。",
@@ -831,18 +837,19 @@ export const zh_CN = {
     failed_to_fetch_folders: "请重试。",
     failed_to_unlock_folder:
       "无法解锁此文件夹。请检查密码后重试。文件夹内容是安全的。",
-    incorrect_password:
-      "密码不正确。请重试。您的账户未被锁定。",
+    incorrect_password: "密码不正确。请重试。您的账户未被锁定。",
     folder_no_password_protection: "该文件夹目前没有密码，因此无需更改。",
     password_already_set:
       "该文件夹已经设置了密码。更新密码请选择「更改密码」。",
     folder_must_be_unlocked: "先解锁该文件夹，然后才能更改这项设置。",
     cannot_remove_vault_password:
       "保险库文件夹始终需要它自己的密码，因此无法移除这项保护。",
-    failed_to_load_snoozed_emails: "已暂停提醒的邮件未能加载。请重试。它们安全地保存在服务器上。",
+    failed_to_load_snoozed_emails:
+      "已暂停提醒的邮件未能加载。请重试。它们安全地保存在服务器上。",
     unexpected_error: "出现了意外问题。请重试。",
     failed_to_load_drafts: "您的草稿未能加载。请重试。已保存的草稿安全无虞。",
-    failed_to_load_scheduled_emails: "定时邮件未能加载。请重试。它们仍会按计划发送。",
+    failed_to_load_scheduled_emails:
+      "定时邮件未能加载。请重试。它们仍会按计划发送。",
     value_too_long: "这个值超过了长度限制，缩短一些就可以。",
     please_enter_valid_domain:
       "这不是有效的域名，类似 example.com 这样的格式可以使用。",
@@ -904,14 +911,17 @@ export const zh_CN = {
     only_you_can_read_contacts:
       "只有您可以读取自己的联系人，Aster 无法看到这些数据。",
     failed_to_send_email: "此邮件未能发送。请重试。您的草稿已保存。",
-    failed_to_send_external_email: "此邮件未能通过您关联的外部账户发送。请重试。您的草稿已保存。",
+    failed_to_send_external_email:
+      "此邮件未能通过您关联的外部账户发送。请重试。您的草稿已保存。",
     external_account_token_missing:
       "通过链接的外部账户发送之前，需要先重新连接它。在「设置」「关联账户」中可以完成。",
-    failed_to_send_via_external: "通过您关联的外部账户发送失败。请重试。您的草稿已保存。",
+    failed_to_send_via_external:
+      "通过您关联的外部账户发送失败。请重试。您的草稿已保存。",
     offline_change_failed: "无法保存您在离线时所做的更改。",
     offline_send_failed: "无法发送您在离线时撰写的邮件。",
     offline_email_queued: "您当前处于离线状态，这封邮件会在您重新联网后发出。",
-    failed_to_queue_offline: "我们无法将此邮件加入稍后发送的队列。请重试。您的草稿已保存。",
+    failed_to_queue_offline:
+      "我们无法将此邮件加入稍后发送的队列。请重试。您的草稿已保存。",
     cannot_mix_recipients:
       "Aster 用户和外部地址不能放在同一封邮件中，分两封发送就可以。",
     failed_to_schedule_email: "定时设置未能保存。请重试。您的草稿已保存。",
@@ -954,7 +964,8 @@ export const zh_CN = {
     n_conversations_marked_as_spam: "{{ count }}个对话已标记为垃圾邮件",
     external_only: "仅外部",
     all_accounts: "所有账户",
-    failed_to_rotate_keys: "密钥更新未能完成。请重试。您的旧密钥仍然有效，数据安全无虞。",
+    failed_to_rotate_keys:
+      "密钥更新未能完成。请重试。您的旧密钥仍然有效，数据安全无虞。",
     read: "已读",
     or_conjunction: "或",
     press_label: "按下",
@@ -1063,7 +1074,8 @@ export const zh_CN = {
     locked_data_banner_action: "恢复数据",
     locked_data_banner_dismiss: "关闭",
     recover_data_title: "恢复数据",
-    recover_data_description: "要解锁更改或重置密码之前的数据，请输入您当时使用的密码。",
+    recover_data_description:
+      "要解锁更改或重置密码之前的数据，请输入您当时使用的密码。",
     recover_data_button: "恢复",
     recover_data_success: "您的较早数据已解锁。",
     recover_data_no_match: "该密码未解锁任何数据。请尝试其他以前的密码。",
@@ -1291,11 +1303,14 @@ export const zh_CN = {
     submitting: "提交中...",
     suspended_alert: "此账户的使用方式违反了{terms}。",
     suspended_alert_terms: "Aster 服务条款",
-    suspended_since_with_deletion: "此账户自 {date} 起不可用。从 {deletion_date} 起，此账户可能会被删除。",
+    suspended_since_with_deletion:
+      "此账户自 {date} 起不可用。从 {deletion_date} 起，此账户可能会被删除。",
     suspended_since: "此账户自 {date} 起不可用。",
     suspended_title: "此账户已被暂停",
-    suspended_appeal_hint: "如果您认为这是误判，可以提交申诉。Aster 会审核每一份申诉并通过电子邮件回复。",
-    suspended_download_hint: "您仍然可以下载数据副本。您的邮件仅在此设备上解密，因此其他人无法读取导出的内容。",
+    suspended_appeal_hint:
+      "如果您认为这是误判，可以提交申诉。Aster 会审核每一份申诉并通过电子邮件回复。",
+    suspended_download_hint:
+      "您仍然可以下载数据副本。您的邮件仅在此设备上解密，因此其他人无法读取导出的内容。",
     suspended_download: "下载您的数据",
     suspended_start_appeal: "开始申诉",
     new_email_body: "您有一封新邮件",
@@ -1466,10 +1481,14 @@ export const zh_CN = {
     scanning_mailbox: "扫描邮箱中...",
     marking_as_read_count: "标记 {{completed}}/{{total}} 为已读...",
     search_failed_try_again: "搜索未能完成，稍后再试一次通常可以。",
-    search_load_failed_try_again: "我们无法加载用于搜索的邮件。请重试。您的邮件安全无虞。",
-    failed_to_set_folder_password: "文件夹密码未能保存。请重试。文件夹内容未受影响。",
-    failed_to_change_folder_password: "文件夹密码未能更改。请重试。旧密码仍然有效。",
-    failed_to_remove_folder_password: "我们无法移除文件夹密码。请重试。文件夹仍像之前一样保持锁定。",
+    search_load_failed_try_again:
+      "我们无法加载用于搜索的邮件。请重试。您的邮件安全无虞。",
+    failed_to_set_folder_password:
+      "文件夹密码未能保存。请重试。文件夹内容未受影响。",
+    failed_to_change_folder_password:
+      "文件夹密码未能更改。请重试。旧密码仍然有效。",
+    failed_to_remove_folder_password:
+      "我们无法移除文件夹密码。请重试。文件夹仍像之前一样保持锁定。",
     failed_to_read_named_file: '我们无法读取"{{name}}"，换一个文件就可以。',
     file_already_attached: '"{{name}}"已在这封邮件上，无需再次添加。',
     metadata_not_removed:
@@ -1519,7 +1538,8 @@ export const zh_CN = {
     recovery_text_keep_safe: "请安全妥善保管此文件",
     recovery_text_store_secure: "请将此文件保存在安全的地方",
     recovery_text_no_share: "请勿与任何人共享",
-    recovery_text_unrecoverable: "如果您忘记了密码，没有这些代码，任何人都无法帮您重新进入账户。",
+    recovery_text_unrecoverable:
+      "如果您忘记了密码，没有这些代码，任何人都无法帮您重新进入账户。",
     recovery_text_your_codes: "您的恢复代码：",
     recovery_text_mark_used: "标记已使用的代码：",
     recovery_text_code_used_on: "代码 {{ number }} 使用于：____________",
@@ -1759,9 +1779,11 @@ export const zh_CN = {
   },
   settings: {
     bill_thanks_title: "感谢您支持 Aster",
-    bill_thanks_body: "您的支持对我们意义重大。它让一个小团队能够每天用心地继续打造 Aster。",
+    bill_thanks_body:
+      "您的支持对我们意义重大。它让一个小团队能够每天用心地继续打造 Aster。",
     bill_thanks_free_title: "感谢您使用 Aster",
-    bill_thanks_free_body: "一个小团队用心打造 Aster，每一位把邮件托付给它的人都是我们前进的动力。需要更多存储空间、别名或自定义域名时，随时可以升级。",
+    bill_thanks_free_body:
+      "一个小团队用心打造 Aster，每一位把邮件托付给它的人都是我们前进的动力。需要更多存储空间、别名或自定义域名时，随时可以升级。",
     bill_attachments: "附件",
     bill_dedicated_support: "专属支持",
     bill_early_access: "抢先体验新功能",
@@ -1777,7 +1799,8 @@ export const zh_CN = {
     bill_tracker_protection: "跟踪器防护",
     bill_action_required: "需要处理",
     bill_add_funds: "添加余额",
-    bill_add_funds_body: "在从您的银行卡扣款之前，余额会先用于支付续订和附加服务。",
+    bill_add_funds_body:
+      "在从您的银行卡扣款之前，余额会先用于支付续订和附加服务。",
     bill_add_more_storage: "添加更多存储空间",
     bill_aliases: "别名",
     bill_all_good: "一切正常",
@@ -2560,7 +2583,8 @@ export const zh_CN = {
     alias_delivery_log_reason_unknown: "已屏蔽",
     alias_delivery_title: "投递",
     alias_delivery_folder: "投递到",
-    alias_delivery_folder_desc: "发送到此别名的邮件会进入您选择的文件夹。默认为收件箱。",
+    alias_delivery_folder_desc:
+      "发送到此别名的邮件会进入您选择的文件夹。默认为收件箱。",
     alias_delivery_folder_info:
       "发送到此别名的邮件会直接进入您选择的文件夹，无需设置规则。如果有规则匹配该邮件，则仍以规则为准，邮件会进入规则指定的文件夹。",
     alias_delivery_folder_error: "请重试。",
@@ -3452,7 +3476,8 @@ export const zh_CN = {
     password_change_background_reencrypt_failed:
       "密码已更改，但部分已发送邮件和设置未完成重新加密。如果邮件或设置无法读取，请联系支持团队。",
     previous_password: "先前的密码",
-    password_change_sent_mail_locked: "您的密码已更改。{{count}} 封已发送邮件使用以前的密码加密，未能更新。要解锁这些邮件，请在收件箱顶部的横幅中选择“恢复数据”。",
+    password_change_sent_mail_locked:
+      "您的密码已更改。{{count}} 封已发送邮件使用以前的密码加密，未能更新。要解锁这些邮件，请在收件箱顶部的横幅中选择“恢复数据”。",
     password_changed_signing_out: "密码更改成功，正在退出登录...",
     password_changed_success: "密码已更改",
     session_security: "会话安全",
@@ -3655,7 +3680,8 @@ export const zh_CN = {
     default_sender_group: "发送",
     default_sender_group_description: "选择新邮件从您的哪个地址发出。",
     default_sender_title: "默认发件人",
-    default_sender_description: "新邮件从该地址发出。回复时使用邮件原本寄达的地址。",
+    default_sender_description:
+      "新邮件从该地址发出。回复时使用邮件原本寄达的地址。",
     default_sender_no_addresses: "没有其他地址",
     compose_defaults_title: "默认格式",
     compose_defaults_description:
@@ -3672,7 +3698,8 @@ export const zh_CN = {
     reply_defaults_title: "回复",
     reply_defaults_description: "选择新回复的起始内容。",
     reply_include_quoted: "包含引用的文本",
-    reply_include_quoted_description: "每条回复都以引用在您所写文本下方的原始邮件开头。",
+    reply_include_quoted_description:
+      "每条回复都以引用在您所写文本下方的原始邮件开头。",
     reply_prefix_subject: "在主题中添加“回复：”",
     reply_prefix_subject_description: "回复时在原主题前加上“回复：”。",
     build_info: "构建信息",
@@ -3862,8 +3889,7 @@ export const zh_CN = {
     type_to_confirm_placeholder: "输入以确认",
     enter_password_confirm: "输入密码以确认：",
     verifying_credentials: "正在验证凭据...",
-    failed_verify_credentials:
-      "密码不正确。请重试。您的账户未受影响。",
+    failed_verify_credentials: "密码不正确。请重试。您的账户未受影响。",
     deleting_account: "正在删除账户...",
     failed_delete_account:
       "无法删除您的账户。请检查密码后重试。您的账户没有变化。",
@@ -3874,13 +3900,15 @@ export const zh_CN = {
     "connection.title_info":
       "Aster 支持多种到达其服务器的路径。所选路径会决定谁可以看到您的 IP 地址以及请求如何到达我们。无论哪种方式，您的消息始终保持端到端加密。",
     "connection.direct": "直连",
-    "connection.direct_description": "您的设备直接连接到 Aster 服务器。路径最快、延迟最低，但 Aster 可以看到您的 IP 地址。",
+    "connection.direct_description":
+      "您的设备直接连接到 Aster 服务器。路径最快、延迟最低，但 Aster 可以看到您的 IP 地址。",
     "connection.tor": "Tor",
     "connection.tor_description": "通过 Tor 网络路由流量",
     "connection.tor_snowflake": "Tor + Snowflake",
     "connection.tor_snowflake_description": "使用 Snowflake 桥接以抵抗审查",
     "connection.cdn_relay": "CDN 中继",
-    "connection.cdn_relay_description": "请求在到达 Aster 之前会经过全球 CDN 路由。您的 IP 地址对 Aster 保持隐藏，流量也会与常规 CDN 流量混在一起。",
+    "connection.cdn_relay_description":
+      "请求在到达 Aster 之前会经过全球 CDN 路由。您的 IP 地址对 Aster 保持隐藏，流量也会与常规 CDN 流量混在一起。",
     "connection.status_connected": "已连接",
     "connection.status_connecting": "连接中...",
     "connection.status_error": "连接已断开，我们正在自动重试。",
@@ -4132,7 +4160,8 @@ export const zh_CN = {
     address_change_keep_old_body:
       "发送到该地址的邮件仍会进入您的收件箱，您也仍可用它在所有设备上登录。",
     address_change_no_limit_title: "旧地址仍然属于您",
-    address_change_no_limit_body: "它不计入别名上限，别人无法占用，也无法删除。",
+    address_change_no_limit_body:
+      "它不计入别名上限，别人无法占用，也无法删除。",
     address_change_once_title: "每 30 天可更改一次",
     address_change_once_body: "本次更改后，您可以在 {{date}} 再次更改。",
     address_change_effect_alias_title: "{{email}} 将不再是别名",
@@ -4143,9 +4172,11 @@ export const zh_CN = {
     address_change_pick_title: "选择您的新地址",
     address_change_use_alias: "使用您的某个别名",
     address_change_use_new: "选择一个新地址",
-    address_change_name_rule: "请使用 3 到 40 个字母、数字或点。点不能位于开头或结尾，点也不能连续出现。",
+    address_change_name_rule:
+      "请使用 3 到 40 个字母、数字或点。点不能位于开头或结尾，点也不能连续出现。",
     address_change_name_placeholder: "yourname",
-    primary_address_info: "Supernova 方案允许您每 30 天更改一次地址。旧地址仍然属于您：它会继续接收邮件，也仍可用于登录。",
+    primary_address_info:
+      "Supernova 方案允许您每 30 天更改一次地址。旧地址仍然属于您：它会继续接收邮件，也仍可用于登录。",
     address_change_checking: "正在检查可用性",
     address_change_available: "{{email}} 可以使用",
     address_change_unavailable: "{{email}} 不可使用",
@@ -4155,7 +4186,8 @@ export const zh_CN = {
     address_change_from: "当前",
     address_change_to: "更改后",
     address_change_effect_sending: "您发送的邮件将来自 {{email}}。",
-    address_change_effect_key: "您的加密密钥保持不变，并将 {{email}} 添加为第二个身份。",
+    address_change_effect_key:
+      "您的加密密钥保持不变，并将 {{email}} 添加为第二个身份。",
     address_change_effect_signed_in: "您在所有设备上都保持登录状态。",
     address_change_effect_final: "此更改不可撤销。若要继续，请输入您的新地址。",
     address_change_type_to_confirm: "输入 {{email}} 以确认",
@@ -4168,7 +4200,8 @@ export const zh_CN = {
     address_change_code_label: "确认码",
     address_change_done_title: "您的地址现在是 {{email}}",
     address_change_done_body: "{{email}} 仍会接收邮件，也仍可用于登录。",
-    address_change_done_partial: "地址已更改，但加密密钥尚未更新完成。在此之前，新地址不会出现在您的密钥中。",
+    address_change_done_partial:
+      "地址已更改，但加密密钥尚未更新完成。在此之前，新地址不会出现在您的密钥中。",
     address_change_updating_key: "正在更新您的加密密钥",
     address_change_failed: "地址更改未完成。请重试。",
     address_change_code_too_many:
@@ -4184,7 +4217,8 @@ export const zh_CN = {
     address_change_once_unknown: "本次更改后，您可以在 30 天后再次更改。",
     address_change_password_wrong: "密码不正确。",
     address_change_not_eligible: "您目前无法更改地址。",
-    address_change_too_many_requests: "您发起的地址更改次数过多。请在一小时后重试。",
+    address_change_too_many_requests:
+      "您发起的地址更改次数过多。请在一小时后重试。",
     address_change_resend_too_soon: "请稍候再申请新的验证码。",
     address_change_send_failed: "Aster Mail 无法发送验证码。请几分钟后重试。",
     address_change_invalid_address: "该地址无效。请选择其他地址。",
@@ -4283,11 +4317,11 @@ export const zh_CN = {
     please_enter_2fa_code: "这里需要您认证应用上当前显示的验证码。",
     invalid_2fa_code:
       "这个验证码不匹配，使用您的认证应用上当前显示的验证码可以。",
-    incorrect_password_error:
-      "密码不正确。请重试。您的账户未被锁定。",
+    incorrect_password_error: "密码不正确。请重试。您的账户未被锁定。",
     failed_retrieve_auth: "我们无法加载您的登录信息。请重试。",
     failed_verify_password: "密码不正确。请重试。",
-    failed_export_private_key: "我们暂时无法导出您的密钥。请重试。您的密钥未受影响。",
+    failed_export_private_key:
+      "我们暂时无法导出您的密钥。请重试。您的密钥未受影响。",
     type_regenerate: "输入 regenerate",
     client_side_encryption: "客户端加密",
     client_side_encryption_description:
@@ -4302,7 +4336,8 @@ export const zh_CN = {
     auto_discover_keys_description: "撰写邮件时自动搜索 WKD 和密钥服务器",
     key_published_wkd: "密钥已发布到 WKD",
     key_removed_wkd: "密钥已从 WKD 移除",
-    failed_publish_wkd: "您的公钥未能发布到公共目录。请重试。您的密钥未受影响。",
+    failed_publish_wkd:
+      "您的公钥未能发布到公共目录。请重试。您的密钥未受影响。",
     failed_remove_wkd: "未能从公共目录中移除您的密钥。请重试。",
     key_published_keyserver: "密钥已发布到密钥服务器",
     failed_publish_keyserver: "您的公钥未能发布到密钥服务器。请重试。",
@@ -4574,11 +4609,14 @@ export const zh_CN = {
     bimi_choose_file: "选择文件",
     bimi_dmarc_invalid: "无法读取您的 DMARC 记录。请将其替换为有效记录。",
     bimi_dmarc_missing: "请添加包含 p=quarantine 或 p=reject 的 DMARC 记录。",
-    bimi_dmarc_not_enforced: "请将您的 DMARC 策略更改为 p=quarantine 或 p=reject。",
-    bimi_dmarc_organization_not_enforced: "您的上级域名的 DMARC 策略也必须为 quarantine 或 reject。",
+    bimi_dmarc_not_enforced:
+      "请将您的 DMARC 策略更改为 p=quarantine 或 p=reject。",
+    bimi_dmarc_organization_not_enforced:
+      "您的上级域名的 DMARC 策略也必须为 quarantine 或 reject。",
     bimi_dmarc_partial: "请从 DMARC 记录中删除 pct 标签，或将其设为 100。",
     bimi_dmarc_ready: "您的 DMARC 策略为 quarantine 或 reject。",
-    bimi_dmarc_subdomain_policy_none: "请将 DMARC 记录中的 sp 标签更改为 quarantine 或 reject。",
+    bimi_dmarc_subdomain_policy_none:
+      "请将 DMARC 记录中的 sp 标签更改为 quarantine 或 reject。",
     bimi_drop_here: "将 SVG 徽标拖到此处。",
     bimi_err_doctype_entities: "此文件声明了自定义实体，这是不允许的。",
     bimi_err_empty: "图像为空。",
@@ -4596,7 +4634,8 @@ export const zh_CN = {
     bimi_err_too_complex: "图像过于复杂。请简化后重新导出。",
     bimi_err_too_large: "文件过大。",
     bimi_err_unsupported_element: "此文件包含不允许的元素。",
-    bimi_err_unsupported_style: "此文件使用了不允许的样式或效果，例如滤镜、蒙版或样式表。",
+    bimi_err_unsupported_style:
+      "此文件使用了不允许的样式或效果，例如滤镜、蒙版或样式表。",
     bimi_error_domain_not_active: "请先完成此域名的设置，再发布徽标。",
     bimi_error_file_too_large: "文件大于 64 KB。",
     bimi_error_logo_required: "发布前请先上传徽标。",
@@ -4606,7 +4645,8 @@ export const zh_CN = {
     bimi_last_checked: "上次检查时间：{time}",
     bimi_logo_public_note: "您的徽标是公开的。收到您邮件的任何人都能看到它。",
     bimi_logo_ready: "您的徽标符合要求。",
-    bimi_managed_note: "您的域名是通过 Aster 购买的，因此系统会为您添加 DNS 记录。",
+    bimi_managed_note:
+      "您的域名是通过 Aster 购买的，因此系统会为您添加 DNS 记录。",
     bimi_preview_alt: "品牌徽标预览",
     bimi_preview_dark: "深色",
     bimi_preview_inbox_subject: "我们的最新动态",
@@ -4614,10 +4654,13 @@ export const zh_CN = {
     bimi_preview_light: "浅色",
     bimi_publish: "发布徽标",
     bimi_publishing: "正在发布",
-    bimi_record_conflict: "此域名已存在另一条 BIMI 记录。请将其删除，只保留此记录。",
-    bimi_record_external: "现有 BIMI 记录指向其他主机。请将其替换为此记录，以使用 Aster 托管。",
+    bimi_record_conflict:
+      "此域名已存在另一条 BIMI 记录。请将其删除，只保留此记录。",
+    bimi_record_external:
+      "现有 BIMI 记录指向其他主机。请将其替换为此记录，以使用 Aster 托管。",
     bimi_record_host: "主机",
-    bimi_record_missing: "该记录尚不可见。DNS 更改最多可能需要 48 小时才能生效。",
+    bimi_record_missing:
+      "该记录尚不可见。DNS 更改最多可能需要 48 小时才能生效。",
     bimi_record_removed: "Aster 已找不到此记录。请在 DNS 服务商处重新添加。",
     bimi_record_published: "该记录已发布。",
     bimi_record_title: "请在您的 DNS 服务商处添加此记录",
@@ -4659,10 +4702,12 @@ export const zh_CN = {
     bimi_turn_off_body: "您的徽标将立即停止托管，收件箱将改为显示默认图标。",
     bimi_turn_off_confirm: "关闭",
     bimi_turn_off_description: "停止在收件箱中显示您的徽标。",
-    bimi_turn_off_remove_record: "请在您的 DNS 服务商处删除 default._bimi TXT 记录。",
+    bimi_turn_off_remove_record:
+      "请在您的 DNS 服务商处删除 default._bimi TXT 记录。",
     bimi_turn_off_title: "要关闭品牌徽标吗？",
     bimi_uploading: "正在上传",
-    bimi_verified_mark_note: "部分收件箱仅为拥有经验证标志证书 (VMC) 的域名显示品牌徽标。",
+    bimi_verified_mark_note:
+      "部分收件箱仅为拥有经验证标志证书 (VMC) 的域名显示品牌徽标。",
     catch_all_description: "接收发送到此域名任何地址的邮件",
     set_host_root: "将主机设置为 @（请勿输入您的域名；服务商会自动添加）",
     use_exact_host: "使用下方显示的确切主机/名称（包含选择器前缀）",
@@ -5027,8 +5072,7 @@ export const zh_CN = {
     encryption_banner_you: "您",
     encryption_banner_recipient: "收件人",
     storage_format_title: "存储格式",
-    storage_format_description:
-      "选择您的加密文件和静态内容的存储位置。",
+    storage_format_description: "选择您的加密文件和静态内容的存储位置。",
     storage_format_aster_server: "Aster 服务器",
     storage_format_decentralized_ipfs: "私有IPFS",
     storage_format_ipfs_confirm_title: "切换到 IPFS 存储",
@@ -5044,8 +5088,7 @@ export const zh_CN = {
       "关闭对话分组后，每封邮件将作为单独的项目显示在收件箱中，而不是将回复归为一组。这可能会使跟踪邮件线程更加困难。",
     show_message_size: "显示邮件大小",
     relative_dates: "相对日期",
-    relative_dates_description:
-      "最近邮件显示“今天”和“昨天”，而不是日期",
+    relative_dates_description: "最近邮件显示“今天”和“昨天”，而不是日期",
     info_relative_dates_title: "相对日期",
     info_relative_dates_description:
       "开启后，今天和昨天的邮件显示为“今天”和“昨天”。关闭后，邮件列表、邮件正文和打印内容中始终显示邮件的发送或接收日期和时间。",
@@ -5138,7 +5181,8 @@ export const zh_CN = {
     confirm_cancel_addon_description:
       "确定要取消此存储插件吗？您的额外存储空间将在当前计费周期结束前保持可用。",
     addon_purchase_failed: "我们无法开始购买附加项。请重试。您的账单未受影响。",
-    addon_cancel_failed: "我们无法取消您的存储附加项。请重试。该附加项仍然有效。",
+    addon_cancel_failed:
+      "我们无法取消您的存储附加项。请重试。该附加项仍然有效。",
     addon_purchase_success: "正在跳转到结账页面...",
     addon_checkout_opened: "请在新标签页中完成购买。",
     plan_recommended: "推荐",
@@ -5184,8 +5228,7 @@ export const zh_CN = {
       "将别名锁定给指定发件人，只有他们才能通过该别名联系您。",
     plan_tip_alias_rules:
       "按发件人或主题，为每个别名拦截邮件或将其移至废纸篓。",
-    plan_tip_reverse_alias:
-      "回复任何邮件，而不暴露您的真实地址。",
+    plan_tip_reverse_alias: "回复任何邮件，而不暴露您的真实地址。",
     plan_tip_alias_directory:
       "发往 anything.key@astermail.org 的邮件会自动创建新别名。",
     plan_tip_instant_alias_delete:
@@ -5959,7 +6002,8 @@ export const zh_CN = {
     rotate_keys_description_required:
       "您的加密密钥到了轮换时间。输入密码以生成新密钥，保持前向保密。",
     trusted_devices: "受信任的设备",
-    trusted_devices_description: "您与账户配对的桌面和移动应用。撤销某台设备会将其退出登录，并删除其本地保险库密钥。",
+    trusted_devices_description:
+      "您与账户配对的桌面和移动应用。撤销某台设备会将其退出登录，并删除其本地保险库密钥。",
     trusted_devices_empty: "没有受信任的设备",
     trusted_devices_created: "已配对",
     trusted_devices_last_seen: "最近使用",
@@ -5970,7 +6014,8 @@ export const zh_CN = {
     trusted_devices_revoke_all_confirm: "确定要撤销所有受信任设备吗？",
     trusted_devices_revoked_all_toast: "已撤销所有设备",
     trusted_2fa_title: "受信任的 2FA 设备",
-    trusted_2fa_description: "您标记为受信任的设备在 30 天内无需进行双重验证。更改密码会立即使所有受信任设备失效。",
+    trusted_2fa_description:
+      "您标记为受信任的设备在 30 天内无需进行双重验证。更改密码会立即使所有受信任设备失效。",
     trusted_2fa_empty: "没有受信任的 2FA 设备",
     trusted_2fa_expires: "到期：{{when}}",
     trusted_2fa_last_used: "最近使用：{{when}}",
@@ -6007,7 +6052,8 @@ export const zh_CN = {
     app_lock_wrong_pin: "PIN 不正确",
     app_lock_locked_out_for: "尝试次数过多 - {{s}}秒后重试",
     vanguard_title: "Aster Vanguard",
-    vanguard_description: "为记者、社会活动人士和高风险账户提供的高级保护。仅限 Nova+。",
+    vanguard_description:
+      "为记者、社会活动人士和高风险账户提供的高级保护。仅限 Nova+。",
     vanguard_info:
       "Aster Vanguard 为记者、律师及高风险用户启用精密安全功能，包括 PIN 应用锁定、增强的会话控制及更多保护措施。",
     vanguard_active: "Vanguard 已激活",
@@ -6091,8 +6137,10 @@ export const zh_CN = {
     bridge_upgrade_benefit_platforms: "支持 Windows、macOS 和 Linux",
     bridge_upgrade_benefit_cli: "包含适用于服务器的命令行版本",
     bridge_cli_download: "下载",
-    bridge_cli_install_hint: "下载适用于您的平台的压缩包，解压后将二进制文件移动到 PATH 中。",
-    bridge_cli_install_hint_windows: "下载压缩包，解压后将该文件夹添加到 PATH 中。",
+    bridge_cli_install_hint:
+      "下载适用于您的平台的压缩包，解压后将二进制文件移动到 PATH 中。",
+    bridge_cli_install_hint_windows:
+      "下载压缩包，解压后将该文件夹添加到 PATH 中。",
     bridge_cli_copy_command: "复制安装命令",
     bridge_cli_docs_link: "阅读命令行指南",
     bridge_cli_name: "命令行",
@@ -6168,7 +6216,8 @@ export const zh_CN = {
     tracking_protection_enabled_description:
       "屏蔽邮件中的追踪像素、远程字体和 CSS",
     block_spy_pixels: "屏蔽间谍像素",
-    block_spy_pixels_description: "屏蔽隐形追踪像素，防止在您打开邮件时通知发件人",
+    block_spy_pixels_description:
+      "屏蔽隐形追踪像素，防止在您打开邮件时通知发件人",
     block_remote_fonts_label: "屏蔽远程字体",
     block_remote_fonts_description: "阻止邮件从外部服务器加载字体",
     block_remote_css_label: "屏蔽远程样式表",
@@ -6234,7 +6283,8 @@ export const zh_CN = {
     f_auto_forward: "自动转发",
     export: "导出",
     export_title: "导出您的数据",
-    export_description: "将您的邮箱下载为标准 MBOX 文件，或包含单封 .EML 邮件的文件夹。",
+    export_description:
+      "将您的邮箱下载为标准 MBOX 文件，或包含单封 .EML 邮件的文件夹。",
     export_start_button: "开始导出",
     export_step_scope_title: "选择内容",
     export_step_destination_title: "选择位置",
@@ -6256,11 +6306,13 @@ export const zh_CN = {
     export_scope_mail_help:
       "MBOX 将所有邮件合并为一个文件;.EML 将每封邮件单独保存。两种格式都适用于大多数桌面邮件客户端。",
     export_scope_contacts_title: "联系人",
-    export_scope_contacts_body: "通讯录将导出为 vCard 4.0（可导入 Apple、Google、Thunderbird 等）以及完整的 JSON。",
+    export_scope_contacts_body:
+      "通讯录将导出为 vCard 4.0（可导入 Apple、Google、Thunderbird 等）以及完整的 JSON。",
     export_scope_contacts_help:
       "vCard 4.0 是大多数应用可直接导入的通用联系人格式。额外的 JSON 文件会保留 vCard 无法存储的字段。",
     export_scope_settings_title: "设置",
-    export_scope_settings_body: "别名、签名、模板、邮件规则、已屏蔽和已允许的发件人、文件夹以及其他账户数据。",
+    export_scope_settings_body:
+      "别名、签名、模板、邮件规则、已屏蔽和已允许的发件人、文件夹以及其他账户数据。",
     export_scope_preset_all: "全部内容",
     export_scope_preset_custom: "自定义",
     export_scope_folders_label: "文件夹",
@@ -6270,13 +6322,16 @@ export const zh_CN = {
     export_scope_date_to: "结束日期",
     export_scope_empty_warning: "请至少选择一项要导出的内容",
     export_format_mbox_name: "MBOX",
-    export_format_mbox_hint: "单个邮箱文件，可在 Thunderbird、mutt、Apple Mail 和大多数桌面客户端中打开。",
+    export_format_mbox_hint:
+      "单个邮箱文件，可在 Thunderbird、mutt、Apple Mail 和大多数桌面客户端中打开。",
     export_format_eml_name: "EML",
-    export_format_eml_hint: "在您选择的文件夹中，每封邮件保存为一个 .eml 文件。每个文件都是符合 RFC 5322 标准的邮件，附件以内联方式包含。",
+    export_format_eml_hint:
+      "在您选择的文件夹中，每封邮件保存为一个 .eml 文件。每个文件都是符合 RFC 5322 标准的邮件，附件以内联方式包含。",
     export_destination_pick_folder: "选择文件夹",
     export_destination_pick_file: "选择文件",
     export_destination_chosen: "已选择 {{location}}",
-    export_destination_fallback_notice: "您的浏览器不支持直接保存到磁盘。导出完成后将以单个文件的形式下载。",
+    export_destination_fallback_notice:
+      "您的浏览器不支持直接保存到磁盘。导出完成后将以单个文件的形式下载。",
     export_reauth_prompt: "请重新输入您的账户密码以授权此次导出。",
     export_reauth_submit: "验证",
     export_reauth_failed: "密码不匹配，再试一次应该可以。",
@@ -6337,7 +6392,8 @@ export const zh_CN = {
     import_delete_confirm_title: "删除导入的邮件",
     import_delete_confirm_description:
       "这将删除此导入任务导入的所有邮件。您之后可以重新导入，不会被跳过。此操作无法撤销。",
-    failed_create_import_job: "我们无法开始导入。请重试。您现有的邮件安全无虞。",
+    failed_create_import_job:
+      "我们无法开始导入。请重试。您现有的邮件安全无虞。",
     allowlist_tab: "白名单",
     blocked_tab: "已屏蔽",
     external_accounts_tab: "外部账户",
@@ -6350,7 +6406,8 @@ export const zh_CN = {
     newest_first: "最新优先",
     oldest_first: "最早优先",
     spam_filter_enabled: "垃圾邮件过滤",
-    spam_filter_enabled_description: "自动检测垃圾邮件并将其过滤到垃圾邮件文件夹。如果您希望手动管理垃圾邮件，请关闭此选项。",
+    spam_filter_enabled_description:
+      "自动检测垃圾邮件并将其过滤到垃圾邮件文件夹。如果您希望手动管理垃圾邮件，请关闭此选项。",
     spam_settings_load_failed:
       "垃圾邮件设置未能加载，因此这些值可能与您的帐户不一致。",
     dev_mode_needs_unlock: "请解锁保险库后再更改开发者模式。",
@@ -6374,7 +6431,8 @@ export const zh_CN = {
     stop_sync_title: "停止同步",
     stop_sync_description: "停止此账户的同步？您已导入的邮件将被保留。",
     disconnect_title: "断开连接",
-    disconnect_confirm: "确定要断开此账户的连接吗？除非您选择删除，否则从此账户同步的所有邮件都将保留在收件箱中。",
+    disconnect_confirm:
+      "确定要断开此账户的连接吗？除非您选择删除，否则从此账户同步的所有邮件都将保留在收件箱中。",
     disconnect_delete_messages_label: "同时删除从此账户导入的邮件",
     disconnect_delete_messages_label_count:
       "同时删除其 {{ count }} 封导入的邮件",
@@ -6383,18 +6441,24 @@ export const zh_CN = {
     disconnect_deleted_success: "账户已断开连接，已删除 {{ count }} 封邮件",
     oauth_folders_ready: "文件夹已就绪",
     oauth_folders_error: "您的文件夹未能完成设置。请重试。",
-    oauth_folders_partial: "{{count}} 个文件夹未能完成设置，其余文件夹已可使用。",
+    oauth_folders_partial:
+      "{{count}} 个文件夹未能完成设置，其余文件夹已可使用。",
     oauth_setting_up_folders: "正在设置文件夹...",
     oauth_reason_missing_code: "登录未能在服务提供商一侧完成。请重试。",
-    oauth_reason_missing_state: "连接请求与预期不符。重新开始并再试一次通常即可解决。",
+    oauth_reason_missing_state:
+      "连接请求与预期不符。重新开始并再试一次通常即可解决。",
     oauth_reason_invalid_state: "连接会话已失效。请重新开始以再次连接。",
     oauth_reason_expired_state: "连接链接已过期。请重新开始以再次连接。",
     oauth_reason_provider_denied:
       "对方提供商未接受此连接。请重新尝试连接，或检查您在该提供商处的账户。",
-    oauth_reason_token_exchange_failed: "连接未能完成。请重试。您的其他账户未受影响。",
-    oauth_reason_provider_not_configured: "Aster 尚未设置此服务提供商。如需帮助，请联系 hello@astermail.org。",
-    oauth_reason_invalid_provider: "我们无法识别此服务提供商。请从列表中选择受支持的服务提供商。",
-    oauth_reason_account_creation_failed: "我们无法完成关联账户的设置。请重试。",
+    oauth_reason_token_exchange_failed:
+      "连接未能完成。请重试。您的其他账户未受影响。",
+    oauth_reason_provider_not_configured:
+      "Aster 尚未设置此服务提供商。如需帮助，请联系 hello@astermail.org。",
+    oauth_reason_invalid_provider:
+      "我们无法识别此服务提供商。请从列表中选择受支持的服务提供商。",
+    oauth_reason_account_creation_failed:
+      "我们无法完成关联账户的设置。请重试。",
     oauth_reason_email_not_found:
       "我们无法从服务提供商处获取您的邮箱地址。请重试；若仍然失败，请改用手动 IMAP 选项。",
     oauth_reason_session_expired: "登录会话已过期。请重试。",
@@ -6403,7 +6467,8 @@ export const zh_CN = {
     oauth_reason_internal_error: "服务器遇到了问题。稍后再试一次通常即可解决。",
     oauth_reason_unknown: "出现了意外问题。请重试。我们无法确定具体原因。",
     connect_modal_title: "连接 {{provider}}",
-    connect_modal_description: "登录 {{ provider }} 以将邮件导入 Aster。在我们的服务器存储任何内容之前，您的邮件会先在此设备上加密。",
+    connect_modal_description:
+      "登录 {{ provider }} 以将邮件导入 Aster。在我们的服务器存储任何内容之前，您的邮件会先在此设备上加密。",
     connect_modal_privacy_note:
       "Aster 仅请求导入收件箱所需的邮件权限范围。我们绝不会读取、扫描或出售您的邮件。",
     connect_provider_name_google: "Google",
@@ -6415,7 +6480,8 @@ export const zh_CN = {
     connected_accounts_no_new_emails: "没有新邮件",
     upgrade: "升级",
     upgrade_modal_title: "升级您的套餐",
-    upgrade_modal_description_generic: "您已达到当前套餐的限额。升级即可解锁更多功能，让收件箱畅通无阻。",
+    upgrade_modal_description_generic:
+      "您已达到当前套餐的限额。升级即可解锁更多功能，让收件箱畅通无阻。",
     upgrade_modal_description_specific:
       "您已达到 {{plan}} 套餐的 {{resource}} 限额。升级以解锁更多，让您的收件箱保持畅通。",
     upgrade_view_plans: "查看套餐",
@@ -6478,7 +6544,8 @@ export const zh_CN = {
     checkout_method_crypto: "加密货币",
     checkout_pay_now: "立即支付",
     or_pay_with_card: "或使用信用卡支付",
-    cashapp_redirect_notice: "您将被重定向到 Cash App 以批准此付款。批准后请返回此处完成操作。",
+    cashapp_redirect_notice:
+      "您将被重定向到 Cash App 以批准此付款。批准后请返回此处完成操作。",
     card_declined_title: "您上次的银行卡支付未能完成",
     card_declined_insufficient_funds:
       "账户余额不足，银行拒绝了这笔支付。请换一张卡，或在下方使用加密货币支付。",
@@ -6616,7 +6683,8 @@ export const zh_CN = {
     crypto_native_copy_tx_hash: "复制交易哈希",
     crypto_native_expiry_progress: "此账单过期前的剩余时间",
     crypto_native_confirmations_progress: "网络确认数",
-    crypto_select_term: "选择期限。您将以 USDC 一次性付款，套餐在期限结束前保持有效。不会自动续订。",
+    crypto_select_term:
+      "选择期限。您将以 USDC 一次性付款，套餐在期限结束前保持有效。不会自动续订。",
     crypto_term_1mo: "1个月",
     crypto_term_3mo: "3个月",
     crypto_term_6mo: "6个月",
@@ -6728,8 +6796,10 @@ export const zh_CN = {
     credits_balance_label: "积分余额",
     credits_balance_note: "额度会自动用于付费套餐的购买和续订。",
     credits_shop_plans: "用积分购买套餐",
-    addon_limit_one_active: "您已有一个生效中的存储附加项。请先取消，再购买新的附加项。",
-    dkim_rotated: "DKIM 密钥已轮换。请在您的域名注册商处添加下方的新 DNS 记录。",
+    addon_limit_one_active:
+      "您已有一个生效中的存储附加项。请先取消，再购买新的附加项。",
+    dkim_rotated:
+      "DKIM 密钥已轮换。请在您的域名注册商处添加下方的新 DNS 记录。",
     dkim_rotated_warning_title: "DKIM 密钥已更改",
     dkim_rotated_warning_body:
       "轮换会更改选择器，因此下方的主机名与您旧的 DKIM 记录不同。请在此主机下创建新的 TXT 记录，不要编辑旧记录。在验证成功之前请保留旧记录，验证成功后即可将其删除。",
@@ -6738,20 +6808,25 @@ export const zh_CN = {
       "轮换您的 DKIM 密钥以提高安全性。轮换后请更新 DNS 记录。",
     rotate_label: "轮换",
     error_tip_mx: "确保 MX 记录指向 Aster 的邮件服务器，优先级正确。",
-    error_tip_spf: "如果已存在 SPF 记录，请将其与上方的记录合并。两条 SPF 记录会相互抵消。",
-    error_tip_dkim: "签名记录较长。请仔细检查是否完整粘贴了整个值，没有被截断。",
-    error_tip_dmarc: "部分 DNS 服务商会自动添加您的域名。主机名只需填写 _dmarc，而不是 _dmarc.yourdomain.com。",
+    error_tip_spf:
+      "如果已存在 SPF 记录，请将其与上方的记录合并。两条 SPF 记录会相互抵消。",
+    error_tip_dkim:
+      "签名记录较长。请仔细检查是否完整粘贴了整个值，没有被截断。",
+    error_tip_dmarc:
+      "部分 DNS 服务商会自动添加您的域名。主机名只需填写 _dmarc，而不是 _dmarc.yourdomain.com。",
     error_tip_txt: "检查 TXT 记录是否已添加，内容是否完全匹配。",
     instructions_for_provider: "{{provider}} 操作说明",
     verify_all_records: "验证所有记录",
     view_dns_records: "查看 DNS 记录",
-    record_not_detected: "我们尚未找到此 DNS 记录。更改可能需要几分钟才能生效，稍后再检查通常即可。",
+    record_not_detected:
+      "我们尚未找到此 DNS 记录。更改可能需要几分钟才能生效，稍后再检查通常即可。",
     status_active: "活跃",
     status_verifying: "验证中",
     status_dns_pending: "DNS 待生效",
     status_suspended: "已暂停",
     domain_pending_hint: "DNS 更改可能需要最多 48 小时生效",
-    delete_domain_warning: "一旦移除此域名，该域名下的所有地址都将立即停止接收邮件，且此操作无法撤销。",
+    delete_domain_warning:
+      "一旦移除此域名，该域名下的所有地址都将立即停止接收邮件，且此操作无法撤销。",
     delete_domain_cooldown: "域名删除后将有一段冷却期，在此期间无法重新添加。",
     catch_all_enabled_toast: "全部接收已启用",
     catch_all_disabled: "全部接收已禁用",
@@ -6764,13 +6839,15 @@ export const zh_CN = {
     provider_cf_login: "登录 Cloudflare",
     provider_cf_select_domain: "选择您的域名，然后前往 DNS > Records",
     provider_cf_add_record: "点击 Add Record，选择 TXT，然后粘贴下方的值",
-    provider_cf_add_mx: "点击 Add Record，选择 MX，设置优先级，然后粘贴下方的值",
+    provider_cf_add_mx:
+      "点击 Add Record，选择 MX，设置优先级，然后粘贴下方的值",
     provider_cf_add_txt_record: "点击 Add Record，选择 TXT，然后粘贴下方的值",
     provider_cf_save: "保存",
     provider_nc_login: "登录 Namecheap",
     provider_nc_advanced_dns: "前往 Domain List > 您的域名 > Advanced DNS",
     provider_nc_add_record: "点击 Add New Record，选择 TXT，然后输入下方的值",
-    provider_nc_add_mx: "点击 Add New Record，选择 MX，设置优先级，然后输入下方的值",
+    provider_nc_add_mx:
+      "点击 Add New Record，选择 MX，设置优先级，然后输入下方的值",
     provider_nc_add_txt: "点击 Add New Record，选择 TXT，然后输入下方的值",
     vacation_reply_count_one: "已发送 {{count}} 封自动回复",
     vacation_reply_count_other: "已发送 {{count}} 条回复",
@@ -6786,7 +6863,8 @@ export const zh_CN = {
     key_source_cached: "已缓存",
     key_source_dane: "DANE",
     key_source_unknown: "未知",
-    storage_format_ipfs_hint: "私有IPFS按内容哈希将您的加密文件存储在Aster自己的服务器上。它不连接公共IPFS网络，只有您的密钥才能解密您的文件。",
+    storage_format_ipfs_hint:
+      "私有IPFS按内容哈希将您的加密文件存储在Aster自己的服务器上。它不连接公共IPFS网络，只有您的密钥才能解密您的文件。",
     need_help_link: "需要帮助？",
     username_placeholder: "用户名",
     email_label: "邮箱",
@@ -6828,8 +6906,7 @@ export const zh_CN = {
     special_offers: "特别优惠",
     special_offers_description:
       "在应用中偶尔显示套餐折扣优惠。关闭后，您不会看到优惠，也不会被计入优惠结果。",
-    special_offers_save_failed:
-      "特别优惠设置未保存。请重试。",
+    special_offers_save_failed: "特别优惠设置未保存。请重试。",
     criterion_passkey: "已注册通行密钥",
     criterion_read_receipts_off: "已关闭已读回执",
     send_read_receipts_label: "发送已读回执",
@@ -7626,7 +7703,8 @@ export const zh_CN = {
     items: "商品",
     more_items_count: "+{{count}}件更多商品",
     card_ending_in: "尾号{{last_four}}的卡",
-    purchase_extraction_privacy: "在本地从您的邮件中提取，没有任何内容发送到我们的服务器。",
+    purchase_extraction_privacy:
+      "在本地从您的邮件中提取，没有任何内容发送到我们的服务器。",
     receipt_is_this_correct: "信息是否正确？",
     receipt_feedback_correct: "是，正确",
     receipt_feedback_incorrect: "否，有误",
@@ -8095,7 +8173,8 @@ export const zh_CN = {
       "这看起来不像有效的邮箱，类似 name@example.com 这样的格式可以使用。",
     recovery_email_conflict:
       "此地址已用于最多 20 个 Aster 账户。请使用其他地址。",
-    failed_save_recovery_email: "您的恢复邮箱未能保存。请重试。当前的恢复设置未受影响。",
+    failed_save_recovery_email:
+      "您的恢复邮箱未能保存。请重试。当前的恢复设置未受影响。",
     recovery_phrase_title: "保存您的恢复短语",
     recovery_phrase_desc:
       "如果您忘记密码，这 12 个单词是完整恢复账户和全部加密邮件的唯一方式。请按顺序抄写下来，保存在安全的离线位置。",
@@ -8150,7 +8229,8 @@ export const zh_CN = {
     password_strong: "强",
     please_enter_email_address: "这里需要您的邮箱地址。",
     please_enter_recovery_code: "这里需要您的一个恢复码。",
-    invalid_recovery_code: "该代码与此账户不匹配。请对照您保存的列表检查后重新输入。空格和大小写不影响。",
+    invalid_recovery_code:
+      "该代码与此账户不匹配。请对照您保存的列表检查后重新输入。空格和大小写不影响。",
     recovery_locked_out:
       "这个账户的恢复尝试次数过多。请在 {{time}} 后重试。您的验证码一个都没有被使用，因此它们都还在。",
     invalid_backup_code:
@@ -8160,7 +8240,8 @@ export const zh_CN = {
     email_address_placeholder: "邮箱地址",
     recovery_failed: "找回未能完成，重新开始通常可以。您的账户没有变化。",
     add_special_characters: "添加特殊字符（!@#$%）",
-    recovery_codes_start_with_aster: "恢复代码的格式为 ASTER-XXXX-XXXX-XXXX-XXXX。请检查代码后重新输入。",
+    recovery_codes_start_with_aster:
+      "恢复代码的格式为 ASTER-XXXX-XXXX-XXXX-XXXX。请检查代码后重新输入。",
     verifying_recovery_code: "验证恢复代码中...",
     recovery_session_expired:
       "这次找回会话已结束，重新开始找回流程就可以继续。您的账户没有变化。",
@@ -8274,7 +8355,8 @@ export const zh_CN = {
     link_device_change_account: "切换账号",
     link_device_choose_account: "选择账号",
     link_device_choose_account_description: "以关联桌面应用",
-    link_device_choose_account_note: "您的加密密钥在设备之间传输时始终保持加密状态。",
+    link_device_choose_account_note:
+      "您的加密密钥在设备之间传输时始终保持加密状态。",
     link_device_use_another_account: "使用其他账号",
     link_device_use_this_account: "使用此账号",
     link_device_other_accounts: "切换到其他账号",
@@ -8428,7 +8510,8 @@ export const zh_CN = {
     cannot_react_too_many_recipients: "无法对收件人超过 20 人的邮件添加回应。",
     cannot_react_bcc: "无法对以密送方式收到的邮件添加回应。",
     cannot_react_too_many_emojis: "此邮件的回应数量已达上限。",
-    cannot_react_limit: "每封邮件最多可添加两个回应。要添加其他回应，请先移除您的一个回应。",
+    cannot_react_limit:
+      "每封邮件最多可添加两个回应。要添加其他回应，请先移除您的一个回应。",
     cannot_react_no_recipient: "此邮件没有可接收回应的发件人。",
     failed_send_reaction: "未能发送回应。请重试。",
     reactions_disabled: "回应功能已在设置中关闭。",
@@ -8470,7 +8553,8 @@ export const zh_CN = {
     ghost_alias_rate_limit:
       "您本月的幽灵别名额度已用完，升级方案，或等待下个月重置，可以获得更多。",
     ghost_alias_already_exists: "您的账户上已经有这个幽灵别名。",
-    failed_to_create_ghost_alias: "此幽灵别名未能保存。请重试。您的其他别名未受影响。",
+    failed_to_create_ghost_alias:
+      "此幽灵别名未能保存。请重试。您的其他别名未受影响。",
     ghost_expiry_extend_only: "幽灵地址只能延长，不能缩短。",
     ghost_expiry_update_failed: "有效期未更新。请重试。",
     failed_to_activate_ghost_mode: "请重试。",
@@ -8482,8 +8566,7 @@ export const zh_CN = {
       "您的加密存储来自较旧版本的 Aster，我们正在为其升级。您的数据是安全的，此过程只会进行一次。",
     vault_missing_key:
       "我们找不到读取此存储所需的设备密钥。退出并重新登录通常可以重新关联此设备。您在服务器上的数据未受影响。",
-    wrong_folder_password:
-      "文件夹密码不正确。请重试。文件夹仍处于锁定状态。",
+    wrong_folder_password: "文件夹密码不正确。请重试。文件夹仍处于锁定状态。",
     wrong_external_account_password:
       "该外部账户密码不匹配。在“设置”中核对后再试一次通常就能成功。您已保存的连接未受影响。",
     decrypt_wrong_key:
@@ -8511,14 +8594,17 @@ export const zh_CN = {
       "此设备的身份验证不匹配，可能存在被篡改的迹象。请从您的桌面应用重新配对，如果该提示再次出现，请联系 hello@astermail.org。",
     metadata_migration_stalled:
       "多次尝试后，我们仍未能完成本地存储的升级。检查网络后重新打开 Aster 通常可以解决。您在服务器上的邮件是安全的。",
-    failed_to_queue_email: "我们无法保存此邮件以便稍后发送。请重试。您的草稿已保存。",
+    failed_to_queue_email:
+      "我们无法保存此邮件以便稍后发送。请重试。您的草稿已保存。",
     failed_to_send_queued: "此邮件未能发送。请重试。您的草稿已保存。",
-    failed_to_send_external_queued: "此邮件未能通过您关联的外部账户发送。请重试。您的草稿已保存。",
+    failed_to_send_external_queued:
+      "此邮件未能通过您关联的外部账户发送。请重试。您的草稿已保存。",
     authentication_failed: "登录未能完成。请重试。您的账户未被锁定。",
     failed_to_snooze_email: "未能暂停提醒此邮件。请重试。邮件仍在收件箱中。",
     failed_to_snooze_emails: "请重试。",
     failed_to_unsnooze_email: "此邮件未能返回收件箱。请重试。",
-    failed_to_list_snoozed: "已暂停提醒的邮件未能加载。请重试。它们安全地保存在服务器上。",
+    failed_to_list_snoozed:
+      "已暂停提醒的邮件未能加载。请重试。它们安全地保存在服务器上。",
     auth_required: "请登录以继续。",
     no_permission:
       "您没有执行该操作的权限。如果这看起来有误，您的管理员可以提供帮助。",
@@ -8539,8 +8625,10 @@ export const zh_CN = {
       "您的私钥在此设备上被锁定。您的密码可以解锁它们。服务器上的密钥未受影响。",
     session_expired_send:
       "您的会话在此邮件发送前结束。重新登录后将发送它。您的草稿已保存。",
-    failed_encrypt_envelope: "我们无法为发送此邮件进行安全处理。请重试。您的草稿已保存。",
-    failed_pgp_encrypt: "我们无法使用收件人的 PGP 密钥加密此邮件。请重试。您的草稿已保存。",
+    failed_encrypt_envelope:
+      "我们无法为发送此邮件进行安全处理。请重试。您的草稿已保存。",
+    failed_pgp_encrypt:
+      "我们无法使用收件人的 PGP 密钥加密此邮件。请重试。您的草稿已保存。",
     no_authenticated_account: "在此设备上未找到已登录的账户。请登录以继续。",
     daily_limit_reached:
       "您已达到每日发送上限。{{time}} 后再试一次可以。您的草稿已保存。",
@@ -8560,12 +8648,16 @@ export const zh_CN = {
       "您已开启强制加密，但所有收件人均没有密钥记录。请他们分享密钥，或在设置中关闭强制加密，即可发送。您的草稿已保存。",
     cannot_send_no_recovery_key:
       "Aster 暂时无法发送此邮件，因为收件人的账户缺少读取所需的密钥。请其在任意设备上打开 Aster 或更新应用以刷新密钥，然后重试。您的草稿已保存。",
-    failed_send_external: "此邮件未能通过您关联的外部账户发送。请重试。您的草稿已保存。",
-    failed_queue_email: "我们无法保存此邮件以便稍后发送。请重试。您的草稿已保存。",
+    failed_send_external:
+      "此邮件未能通过您关联的外部账户发送。请重试。您的草稿已保存。",
+    failed_queue_email:
+      "我们无法保存此邮件以便稍后发送。请重试。您的草稿已保存。",
     no_active_account: "在此设备上未找到已登录的账户。请登录以继续。",
-    failed_queue_reply: "我们无法保存此回复以便稍后发送。请重试。您的草稿已保存。",
+    failed_queue_reply:
+      "我们无法保存此回复以便稍后发送。请重试。您的草稿已保存。",
     no_recipients: "发送前至少需要一个收件人。",
-    failed_queue_forward: "我们无法保存此转发以便稍后发送。请重试。您的草稿已保存。",
+    failed_queue_forward:
+      "我们无法保存此转发以便稍后发送。请重试。您的草稿已保存。",
     failed_send: "此邮件未能发送。请重试。您的草稿已保存。",
     incorrect_password: "密码不正确。请重试。您的账户未被锁定。",
     no_keys_available:
@@ -8605,7 +8697,8 @@ export const zh_CN = {
     address_numeric_only: "地址不能仅由数字组成。",
     max_accounts: "最多可以同时使用 {{max}} 个账户。移除一个即可腾出位置。",
     account_already_added: "此账户已在此设备上登录。请从账户菜单切换到它。",
-    failed_encrypt_draft: "我们无法在此设备上安全地保存此草稿。请重试。您输入的文字仍在编辑器中。",
+    failed_encrypt_draft:
+      "我们无法在此设备上安全地保存此草稿。请重试。您输入的文字仍在编辑器中。",
     failed_decrypt_draft:
       "我们无法在此设备上打开此草稿。退出并重新登录后再试一次通常可以解决。",
     version_conflict: "其他人或其他操作先更改了这个内容。刷新将显示最新版本。",
@@ -8901,7 +8994,7 @@ export const zh_CN = {
     tab_visual: "可视化",
     tab_expression: "表达式",
     expression_placeholder:
-      "from.address is \"alice@example.com\" and subject contains \"收据\"",
+      'from.address is "alice@example.com" and subject contains "收据"',
     expression_parse_error: "此表达式无效。请检查语法后重试。",
     cannot_render_visual:
       "此规则包含可视化编辑器无法显示的嵌套条件。可以在表达式视图中编辑。",
@@ -8994,8 +9087,7 @@ export const zh_CN = {
     delete_confirm_no: "取消",
     delete_failed: "无法删除此邮件，请重试。",
   },
-  compose: {
-  },
+  compose: {},
   shared_mailboxes: {
     tab_label: "共享邮箱",
     create: "创建",
