@@ -108,6 +108,7 @@ export interface CategoryIndexEntry {
   is_read: boolean;
   category: EmailCategory;
   category_pinned?: boolean;
+  is_pinned?: boolean;
   snoozed_until?: string;
   needs_reclassify?: boolean;
 }
@@ -133,10 +134,12 @@ interface PersistedMeta {
   built_at_ms: number;
   fully_built: boolean;
   classifier_version?: number;
+  entry_schema?: number;
   seen_ts?: Record<string, number>;
 }
 
 const PERSIST_CHUNK_COUNT = 32;
+const ENTRY_SCHEMA_VERSION = 2;
 
 const dirty_chunks = new Set<number>();
 let previews_dirty = false;
@@ -481,6 +484,7 @@ async function persist_now(): Promise<void> {
       built_at_ms: last_build_ms,
       fully_built,
       classifier_version: CLASSIFIER_VERSION,
+      entry_schema: ENTRY_SCHEMA_VERSION,
       seen_ts,
     };
     const encrypted_meta = await secure_encrypt(JSON.stringify(meta));
@@ -680,7 +684,10 @@ async function load_from_disk(account_id: string): Promise<void> {
     }
 
     entries_map = new Map(valid_entries);
-    fully_built = payload.fully_built === true && !chunks_incomplete;
+    fully_built =
+      payload.fully_built === true &&
+      !chunks_incomplete &&
+      payload.entry_schema === ENTRY_SCHEMA_VERSION;
 
     if (chunks_incomplete) {
       mark_all_dirty();
@@ -790,6 +797,7 @@ function apply_upsert(
       existing.message_ts !== entry.message_ts ||
       (existing.category_pinned ?? false) !==
         (entry.category_pinned ?? false) ||
+      (existing.is_pinned ?? false) !== (entry.is_pinned ?? false) ||
       (existing.snoozed_until ?? "") !== (entry.snoozed_until ?? "") ||
       (existing.needs_reclassify ?? false) !== (entry.needs_reclassify ?? false)
     ) {
@@ -948,6 +956,25 @@ export function set_ids_read(ids: string[], is_read: boolean): void {
 
     if (entry && entry.is_read !== is_read) {
       entries_map.set(id, { ...entry, is_read });
+      mark_dirty(id);
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    schedule_persist();
+    notify();
+  }
+}
+
+export function set_ids_pinned(ids: string[], is_pinned: boolean): void {
+  let changed = false;
+
+  for (const id of ids) {
+    const entry = entries_map.get(id);
+
+    if (entry && (entry.is_pinned ?? false) !== is_pinned) {
+      entries_map.set(id, { ...entry, is_pinned });
       mark_dirty(id);
       changed = true;
     }
@@ -1206,7 +1233,10 @@ function compute_derived(): DerivedData {
   }
 
   const counts = empty_counts();
-  const grouped = new Map<EmailCategory, { id: string; ts: number }[]>();
+  const grouped = new Map<
+    EmailCategory,
+    { id: string; ts: number; pinned: boolean }[]
+  >();
   const unread_reps = new Set<string>();
   const thread_reps = new Map<string, string>();
   const new_heads = new Map<EmailCategory, string>();
@@ -1244,13 +1274,21 @@ function compute_derived(): DerivedData {
         }
       }
     }
-    list.push({ id: rep.entry.id, ts: rep.ts });
+    list.push({
+      id: rep.entry.id,
+      ts: rep.ts,
+      pinned: rep.entry.is_pinned === true,
+    });
   }
 
   const pages = new Map<EmailCategory, string[]>();
 
   for (const [tab, list] of grouped) {
-    list.sort((a, b) => (sort_order === "asc" ? a.ts - b.ts : b.ts - a.ts));
+    list.sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+
+      return sort_order === "asc" ? a.ts - b.ts : b.ts - a.ts;
+    });
     pages.set(
       tab,
       list.map((item) => item.id),
@@ -1783,6 +1821,7 @@ async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
         metadata?.category_pinned === true &&
         !!metadata?.category &&
         !is_locked_to_primary(envelope, item),
+      is_pinned: item.is_pinned ?? metadata?.is_pinned ?? false,
       ...(snoozed_until ? { snoozed_until } : {}),
     },
   };
@@ -2559,6 +2598,10 @@ export function start_event_listeners(): void {
       remove_ids([detail.id]);
 
       return;
+    }
+
+    if (typeof detail.is_pinned === "boolean") {
+      set_ids_pinned([detail.id], detail.is_pinned);
     }
 
     if (detail.encrypted_metadata && detail.metadata_nonce) {

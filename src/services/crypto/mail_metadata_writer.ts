@@ -39,6 +39,14 @@ import {
 
 type UpdateResult = MetadataWriteResult;
 
+function sync_index_pins(ids: string[], is_pinned: boolean | undefined): void {
+  if (is_pinned === undefined || ids.length === 0) return;
+
+  void import("@/services/category_index")
+    .then((index) => index.set_ids_pinned(ids, is_pinned))
+    .catch(() => undefined);
+}
+
 const in_flight_requests = new Map<string, Promise<UpdateResult>>();
 const item_chains = new Map<string, Promise<UpdateResult>>();
 const recently_completed = new Map<
@@ -268,6 +276,7 @@ export async function update_item_metadata(
 
     if (result.success) {
       ack_flag_intents([item_id], intent);
+      sync_index_pins([item_id], updates.is_pinned);
       const item_prefix = `${item_id}|`;
 
       for (const key of recently_completed.keys()) {
@@ -484,6 +493,7 @@ export async function bulk_update_items_metadata(
     encrypted_by_id.delete(failed_id);
   }
   clear_flag_intents([...failed_ids, ...undecryptable_ids], intent);
+  sync_index_pins(result.succeeded_ids, updates.is_pinned);
 
   return {
     success: failed_ids.length === 0 && !result.was_cancelled,
