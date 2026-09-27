@@ -229,7 +229,7 @@ export function RecipientBadge({
                 }}
               />
               <div
-                className="absolute start-0 top-full mt-1 z-50 w-60 rounded-lg border shadow-lg p-2.5 bg-surf-primary border-edge-secondary"
+                className="aster_floating absolute start-0 top-full mt-1 z-50 w-60 p-2.5"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center gap-1.5">

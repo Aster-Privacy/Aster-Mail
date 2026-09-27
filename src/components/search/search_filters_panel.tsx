@@ -516,7 +516,7 @@ export function ClearDataMenu({
   return (
     <motion.div
       animate={{ opacity: 1, y: 0 }}
-      className="absolute end-0 top-full mt-1 py-2 px-3 rounded-lg border shadow-sm z-50 w-56 bg-modal-bg border-edge-secondary"
+      className="aster_floating absolute end-0 top-full mt-1 py-2 px-3 z-50 w-56"
       exit={{ opacity: 0, y: -4 }}
       initial={reduce_motion ? false : { opacity: 0, y: -4 }}
       onClick={(e) => e.stopPropagation()}

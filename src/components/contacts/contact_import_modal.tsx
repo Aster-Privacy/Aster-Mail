@@ -623,7 +623,7 @@ export function ContactImportModal({
                     </span>
                     <ArrowRightIcon className="w-4 h-4 text-txt-muted rtl:-scale-x-100" />
                     <select
-                      className="h-8 px-2 rounded border text-sm min-w-32 bg-modal-bg border-edge-secondary text-txt-primary"
+                      className="h-8 px-2 rounded-[var(--aster-radius-item)] border-0 text-sm min-w-32 bg-[var(--aster-field-bg)] text-txt-primary outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
                       value={csv_mapping[header] || ""}
                       onChange={(e) =>
                         set_csv_mapping((prev) => ({

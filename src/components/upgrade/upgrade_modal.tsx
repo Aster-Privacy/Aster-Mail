@@ -891,7 +891,7 @@ export function UpgradeModal() {
                   </div>
                   <select
                     aria-label={t("settings.select_currency")}
-                    className="cursor-pointer rounded-full border border-edge-secondary bg-transparent px-3 py-1.5 text-xs text-txt-secondary outline-none transition-colors hover:text-txt-primary focus:border-blue-500"
+                    className="cursor-pointer rounded-full border-0 bg-[var(--aster-field-bg)] px-3 py-1.5 text-xs text-txt-secondary outline-none transition-colors hover:text-txt-primary focus:ring-2 focus:ring-[var(--accent-color)]"
                     value={currency}
                     onChange={handle_currency_change}
                   >
