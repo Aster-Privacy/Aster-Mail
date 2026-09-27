@@ -149,12 +149,12 @@ function get_empty_text(
       subtitle: t("mail.empty_starred_subtitle"),
     },
     scheduled: {
-      title: t("mail.empty_sent_title"),
+      title: t("mail.no_messages"),
       subtitle: t("mail.empty_default_subtitle"),
     },
     snoozed: {
-      title: t("mail.empty_sent_title"),
-      subtitle: t("mail.empty_default_subtitle"),
+      title: t("mail.empty_snoozed_title"),
+      subtitle: t("mail.empty_snoozed_subtitle"),
     },
     archive: {
       title: t("mail.empty_archive_title"),
