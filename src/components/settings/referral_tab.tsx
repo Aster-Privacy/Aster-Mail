@@ -985,8 +985,26 @@ export function ReferralTab() {
           padding="none"
           title={t("settings.referral_program")}
         >
-          <div className="px-5 pb-5 pt-5">
-            <h4 className="text-[18px] font-semibold leading-6 tracking-tight text-txt-primary">
+          <div
+            className="relative m-2 mb-0 overflow-hidden rounded-[var(--aster-radius-field)] px-5 pb-5 pt-5 sm:min-h-[140px] sm:pe-[42%]"
+            style={{ backgroundColor: "var(--accent-mix-b85, #326fd1)" }}
+          >
+            <img
+              alt=""
+              className="pointer-events-none absolute end-0 top-0 h-full w-1/2 object-cover opacity-60 mix-blend-screen"
+              draggable={false}
+              src="/settings/decentralized.webp"
+              style={{
+                maskImage:
+                  "linear-gradient(to right, transparent, black 35%, black 90%, transparent)",
+                WebkitMaskImage:
+                  "linear-gradient(to right, transparent, black 35%, black 90%, transparent)",
+              }}
+            />
+            <h4
+              className="relative z-10 text-[18px] font-bold leading-6 tracking-tight text-white"
+              style={{ textShadow: "0 1px 3px rgba(0, 0, 0, 0.15)" }}
+            >
               {storage_bonus
                 ? t("settings.referral_storage_headline", {
                     amount: bonus_amount,
@@ -995,7 +1013,10 @@ export function ReferralTab() {
                     percent: commission_percent,
                   })}
             </h4>
-            <p className="mt-1 text-[14px] leading-5 text-txt-secondary">
+            <p
+              className="relative z-10 mt-1 text-[14px] leading-5 text-white/75"
+              style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
+            >
               {storage_bonus
                 ? t("settings.referral_storage_subhead", {
                     amount: bonus_amount,
@@ -1004,17 +1025,15 @@ export function ReferralTab() {
                 : t("settings.referral_commission_subhead")}
             </p>
             {referral_info.bonus_bytes_earned > 0 && (
-              <p
-                className="mt-2 text-[13px] font-medium tabular-nums"
-                style={{ color: "var(--color-success)" }}
-              >
+              <p className="relative z-10 mt-3 inline-flex rounded-full bg-white/15 px-2.5 py-1 text-[12px] font-semibold tabular-nums text-white">
                 {t("settings.referral_storage_earned_badge", {
                   amount: bonus_earned,
                 })}
               </p>
             )}
-
-            <p className="mb-2 mt-5 text-[13px] font-medium text-txt-secondary">
+          </div>
+          <div className="px-5 pb-5 pt-4">
+            <p className="mb-2 text-[13px] font-medium text-txt-secondary">
               {t("settings.your_referral_link")}
             </p>
             <div className="flex flex-col gap-2 sm:flex-row">
