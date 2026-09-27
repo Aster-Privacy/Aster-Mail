@@ -969,14 +969,13 @@ export function AccountSection() {
               />
             </span>
           }
-          layout="stacked"
           trailing={
             <Select
               disabled={saving_inactivity}
               value={String(inactivity_window)}
               onValueChange={(v) => request_inactivity_window_change(Number(v))}
             >
-              <SelectTrigger className="w-[220px]">
+              <SelectTrigger className="w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
