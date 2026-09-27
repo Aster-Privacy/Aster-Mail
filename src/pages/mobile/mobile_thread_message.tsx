@@ -401,6 +401,7 @@ export function MobileThreadMessage({
           </div>
           <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
             <button
+              aria-label={t("common.more")}
               className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-secondary)] active:opacity-70"
               style={{
                 background:
@@ -450,6 +451,7 @@ export function MobileThreadMessage({
               onClick={(e) => e.stopPropagation()}
             >
               <button
+                aria-label={t("common.more")}
                 className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-secondary)] active:opacity-70"
                 style={{
                   background:
