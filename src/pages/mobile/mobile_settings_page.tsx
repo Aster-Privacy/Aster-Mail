@@ -458,7 +458,9 @@ function MobileSettingsPage() {
                       email={user?.email ?? ""}
                       image_url={user?.profile_picture}
                       name={user?.display_name ?? ""}
-                      profile_color={preferences.profile_color}
+                      profile_color={
+                        user?.profile_color || preferences.profile_color
+                      }
                       size="xl"
                     />
                   </span>

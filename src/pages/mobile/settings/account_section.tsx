@@ -175,6 +175,7 @@ export function AccountSection({
   const { user, update_user, vault } = use_auth();
   const { preferences, update_preference, reset_to_defaults } =
     use_preferences();
+  const active_profile_color = user?.profile_color || preferences.profile_color;
   const { limits } = use_plan_limits();
   const is_paid_plan = !!limits && limits.plan_code !== "free";
   const {
@@ -438,7 +439,7 @@ export function AccountSection({
                 email={user?.email ?? ""}
                 image_url={preview || user?.profile_picture}
                 name={user?.display_name ?? user?.username ?? ""}
-                profile_color={preferences.profile_color}
+                profile_color={active_profile_color}
                 size="xl"
               />
             </span>
@@ -506,19 +507,19 @@ export function AccountSection({
               <button
                 key={color}
                 role="radio"
-                aria-checked={preferences.profile_color === color}
+                aria-checked={active_profile_color === color}
                 aria-label={color}
                 className="flex h-10 w-10 items-center justify-center rounded-full"
                 style={{
                   backgroundColor: color,
                   boxShadow:
-                    preferences.profile_color === color
+                    active_profile_color === color
                       ? `0 0 0 2px var(--bg-primary), 0 0 0 4px ${color}`
                       : "none",
                 }}
                 type="button"
                 onClick={async () => {
-                  const prev = preferences.profile_color;
+                  const prev = active_profile_color;
 
                   update_preference("profile_color", color, true);
                   if (user) {
@@ -540,7 +541,7 @@ export function AccountSection({
                   }
                 }}
               >
-                {preferences.profile_color === color && (
+                {active_profile_color === color && (
                   <CheckIcon
                     className="h-4.5 w-4.5 text-white"
                     strokeWidth={2.5}

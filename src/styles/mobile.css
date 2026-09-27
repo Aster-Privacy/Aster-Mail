@@ -24,7 +24,7 @@
   --mobile-text-muted: #9ca3af;
   --mobile-accent: var(--accent-color, #3b82f6);
   --mobile-danger: #ef4444;
-  --mobile-indicator-bg: #ffffff;
+  --mobile-indicator-bg: #e7e7e9;
 }
 
 .dark {
@@ -40,5 +40,5 @@
   --mobile-text-muted: #737373;
   --mobile-accent: var(--accent-color, #3b82f6);
   --mobile-danger: #ef4444;
-  --mobile-indicator-bg: #121212;
+  --mobile-indicator-bg: #1f1f21;
 }

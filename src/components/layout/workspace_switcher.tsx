@@ -306,7 +306,9 @@ export function WorkspaceSwitcher({
 
   const account_rows = other_accounts.map((acc) => {
     const acc_name =
-      acc.user.display_name || acc.user.username || acc.user.email.split("@")[0];
+      acc.user.display_name ||
+      acc.user.username ||
+      acc.user.email.split("@")[0];
     const needs_sign_in = token_backed_sessions
       ? !acc.refresh_token
       : !has_stored_session_passphrase(acc.id);
@@ -361,7 +363,9 @@ export function WorkspaceSwitcher({
       accounts={account_rows}
       add_account_dimmed={at_limit}
       add_account_meta={
-        is_unlimited_accounts ? null : `${personal_account_count}/${display_max}`
+        is_unlimited_accounts
+          ? null
+          : `${personal_account_count}/${display_max}`
       }
       align={align}
       display_name={current_display_name}
@@ -375,7 +379,7 @@ export function WorkspaceSwitcher({
           image_url={user?.profile_picture}
           is_paid_plan={is_paid_plan}
           name={current_display_name}
-          profile_color={preferences.profile_color}
+          profile_color={user?.profile_color || preferences.profile_color}
           ring_offset_color="color-mix(in srgb, var(--text-primary) 9%, var(--dropdown-bg))"
           size="lg"
         />

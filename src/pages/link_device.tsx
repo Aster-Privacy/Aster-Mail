@@ -106,11 +106,7 @@ function LinkDeviceShell({
 }
 
 function Panel({ children }: { children: ReactNode }) {
-  return (
-    <div className="w-full mt-6 flex flex-col gap-2">
-      {children}
-    </div>
-  );
+  return <div className="w-full mt-6 flex flex-col gap-2">{children}</div>;
 }
 
 function use_time_greeting() {
@@ -145,7 +141,7 @@ function use_account_identity() {
     display_email,
     display_name,
     profile_picture: user?.profile_picture,
-    profile_color: preferences.profile_color,
+    profile_color: user?.profile_color || preferences.profile_color,
     plan_code: limits?.plan_code,
     is_paid_plan: !!limits && limits.plan_code !== "free",
   };

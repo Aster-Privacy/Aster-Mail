@@ -408,7 +408,9 @@ function top_bar_base({
                     email={account_email}
                     image_url={user?.profile_picture}
                     name={display_name}
-                    profile_color={preferences.profile_color}
+                    profile_color={
+                      user?.profile_color || preferences.profile_color
+                    }
                     size="sm"
                   />
                 </span>

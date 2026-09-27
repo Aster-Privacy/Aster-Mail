@@ -259,7 +259,7 @@ export function AccountSection() {
   );
 
   const [color, set_color] = useState(
-    preferences.profile_color || PROFILE_COLORS[5],
+    user?.profile_color || preferences.profile_color || PROFILE_COLORS[5],
   );
   const [name, set_name] = useState(user?.display_name || user?.username || "");
   const [saving_name, set_saving_name] = useState(false);
@@ -395,10 +395,12 @@ export function AccountSection() {
   }, [derived_name]);
 
   useEffect(() => {
-    if (preferences.profile_color) {
-      set_color(preferences.profile_color);
+    const synced_color = user?.profile_color || preferences.profile_color;
+
+    if (synced_color) {
+      set_color(synced_color);
     }
-  }, [preferences.profile_color]);
+  }, [user?.profile_color, preferences.profile_color]);
 
   const save_name = async () => {
     if (saving_name) return;
