@@ -780,10 +780,7 @@ export function PlanComparisonTable({
             <Fragment key={row.label}>
               {(index === 0 || rows[index - 1].category !== row.category) && (
                 <tr>
-                  <td
-                    className="px-5 pb-2 pt-5"
-                    colSpan={COLUMNS.length + 1}
-                  >
+                  <td className="px-5 pb-2 pt-5" colSpan={COLUMNS.length + 1}>
                     <span className="flex items-center gap-2.5 text-[15px] font-semibold text-txt-primary">
                       <img
                         alt=""

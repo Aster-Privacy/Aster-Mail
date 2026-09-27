@@ -93,8 +93,11 @@ export function StorageAddonsSection({
       window.removeEventListener(OPEN_STORAGE_ADDONS_EVENT, open_picker);
   }, []);
 
+  const purchasable_addons = available_addons.filter(
+    (addon) => addon.storage_bytes > 0 && addon.price_cents > 0,
+  );
   const selected_addon =
-    available_addons.find((addon) => addon.id === selected_storage) ?? null;
+    purchasable_addons.find((addon) => addon.id === selected_storage) ?? null;
 
   const handle_buy = () => {
     if (!selected_addon) {
@@ -111,32 +114,58 @@ export function StorageAddonsSection({
 
   const picker = (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap gap-2" role="radiogroup">
-        {available_addons.map((addon) => {
+      <div
+        aria-label={t("settings.add_storage")}
+        className="grid grid-cols-2 gap-2 sm:grid-cols-3"
+        role="radiogroup"
+      >
+        {purchasable_addons.map((addon) => {
           const badge = ADDON_BADGES[addon.name];
           const is_selected = selected_storage === addon.id;
 
           return (
-            <PillButton
+            <button
               key={addon.id}
               aria-checked={is_selected}
+              className="flex min-h-[68px] flex-col items-start justify-between gap-1 rounded-[var(--aster-radius-control)] px-3.5 py-3 text-start outline-none transition-[background-color,box-shadow] duration-150 focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
               role="radio"
-              size="md"
+              style={{
+                backgroundColor: is_selected
+                  ? "color-mix(in srgb, var(--accent-color) 10%, var(--aster-field-bg))"
+                  : "var(--aster-field-bg)",
+                boxShadow: is_selected
+                  ? "inset 0 0 0 2px var(--accent-color)"
+                  : "none",
+              }}
               type="button"
-              variant={is_selected ? "filled" : "tonal"}
               onClick={() =>
                 set_selected_storage(is_selected ? null : addon.id)
               }
             >
-              {addon.name}
-              {badge && (
-                <span className="ms-1.5 text-[11px] font-medium opacity-80">
-                  {badge === "popular"
-                    ? t("settings.popular")
-                    : t("settings.best_value")}
+              <span className="flex w-full items-center justify-between gap-2">
+                <span className="text-[15px] font-semibold tabular-nums text-txt-primary">
+                  {addon.name}
                 </span>
-              )}
-            </PillButton>
+                {badge && (
+                  <span
+                    className="flex-shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-semibold leading-4"
+                    style={{
+                      color: "var(--accent-color)",
+                      backgroundColor:
+                        "color-mix(in srgb, var(--accent-color) 14%, transparent)",
+                    }}
+                  >
+                    {badge === "popular"
+                      ? t("settings.popular")
+                      : t("settings.best_value")}
+                  </span>
+                )}
+              </span>
+              <span className="text-[13px] tabular-nums text-txt-muted">
+                {money(addon.price_cents)}
+                {t("settings.per_month_short")}
+              </span>
+            </button>
           );
         })}
       </div>

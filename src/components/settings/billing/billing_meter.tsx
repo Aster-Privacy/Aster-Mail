@@ -50,6 +50,84 @@ const status_styles: Record<
   full: { color: "var(--color-danger)", icon: ExclamationCircleIcon },
 };
 
+function MeterBar({
+  percent,
+  status,
+  label,
+}: {
+  percent: number;
+  status: BillingMeterStatus;
+  label: string;
+}) {
+  return (
+    <div
+      aria-label={label}
+      aria-valuemax={100}
+      aria-valuemin={0}
+      aria-valuenow={Math.round(percent)}
+      className="h-1.5 w-full overflow-hidden rounded-full"
+      role="progressbar"
+      style={{
+        backgroundColor:
+          "color-mix(in srgb, var(--text-primary) 10%, transparent)",
+      }}
+    >
+      <div
+        className="h-full rounded-full transition-[width] duration-300"
+        style={{
+          width: `${percent}%`,
+          backgroundColor:
+            status === "full"
+              ? "var(--color-danger)"
+              : status === "near"
+                ? "var(--color-warning)"
+                : "var(--accent-color)",
+        }}
+      />
+    </div>
+  );
+}
+
+function MeterHeader({
+  label,
+  value,
+  status,
+  status_label,
+  trailing,
+}: {
+  label: ReactNode;
+  value: string;
+  status: BillingMeterStatus;
+  status_label: string | null;
+  trailing?: ReactNode;
+}) {
+  const styles = status_styles[status];
+  const StatusIcon = styles.icon;
+
+  return (
+    <div className="flex items-baseline justify-between gap-3">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="text-[14px] font-medium text-txt-primary">
+          {label}
+        </span>
+        {status !== "ok" && status_label && (
+          <span
+            className="inline-flex flex-shrink-0 items-center gap-1 text-[12px] font-semibold"
+            style={{ color: styles.color }}
+          >
+            <StatusIcon aria-hidden="true" className="h-[14px] w-[14px]" />
+            {status_label}
+          </span>
+        )}
+      </div>
+      <div className="flex flex-shrink-0 items-baseline gap-3">
+        <span className="text-[13px] tabular-nums text-txt-muted">{value}</span>
+        {trailing}
+      </div>
+    </div>
+  );
+}
+
 interface BillingMeterProps {
   label: ReactNode;
   used_bytes: number;
@@ -71,55 +149,23 @@ export function BillingMeter({
 }: BillingMeterProps) {
   const { t } = use_i18n();
   const status = billing_meter_status(percent, over_limit);
-  const styles = status_styles[status];
-  const StatusIcon = styles.icon;
   const clamped = Math.max(0, Math.min(100, percent));
   const status_label = t(`settings.billing_storage_status_${status}`);
+  const value = t("settings.storage_used_of_total", {
+    used: format_bytes(used_bytes),
+    total: format_bytes(limit_bytes),
+  });
 
   return (
     <div className={`flex flex-col gap-2 ${class_name}`} data-status={status}>
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="text-[13px] font-medium text-txt-secondary">
-            {label}
-          </span>
-          <span
-            className="inline-flex flex-shrink-0 items-center gap-1 text-[12px] font-semibold"
-            style={{ color: styles.color }}
-          >
-            <StatusIcon aria-hidden="true" className="h-[15px] w-[15px]" />
-            {status_label}
-          </span>
-        </div>
-        {trailing && <div className="flex-shrink-0">{trailing}</div>}
-      </div>
-      <div
-        aria-label={status_label}
-        aria-valuemax={100}
-        aria-valuemin={0}
-        aria-valuenow={Math.round(clamped)}
-        className="h-1.5 w-full overflow-hidden rounded-full"
-        role="progressbar"
-        style={{
-          backgroundColor:
-            "color-mix(in srgb, var(--text-primary) 10%, transparent)",
-        }}
-      >
-        <div
-          className="h-full rounded-full transition-[width] duration-300"
-          style={{
-            width: `${clamped}%`,
-            backgroundColor:
-              status === "full" ? "var(--color-danger)" : "var(--accent-color)",
-          }}
-        />
-      </div>
-      <p className="text-[12.5px] text-txt-muted">
-        {t("settings.storage_used_of_total", {
-          used: format_bytes(used_bytes),
-          total: format_bytes(limit_bytes),
-        })}
-      </p>
+      <MeterHeader
+        label={label}
+        status={status}
+        status_label={status_label}
+        trailing={trailing}
+        value={value}
+      />
+      <MeterBar label={value} percent={clamped} status={status} />
     </div>
   );
 }
@@ -147,69 +193,39 @@ export function BillingUsageMeter({
   const status = unlimited
     ? "ok"
     : billing_meter_status(percent, current >= (limit as number));
-  const styles = status_styles[status];
-  const StatusIcon = styles.icon;
   const clamped = Math.max(0, Math.min(100, percent));
   const value_text = unlimited
     ? t("settings.usage_in_use", { current })
     : t("settings.usage_of", { current, limit: limit as number });
-  const status_label = !loaded
-    ? null
-    : unlimited
-      ? t("settings.usage_unlimited")
-      : t(`settings.billing_storage_status_${status}`);
+  const status_label =
+    loaded && !unlimited
+      ? t(`settings.billing_storage_status_${status}`)
+      : null;
   const show_upgrade = loaded && !unlimited && status !== "ok" && on_upgrade;
 
   return (
     <div className={`flex flex-col gap-2 ${class_name}`} data-status={status}>
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="text-[13px] font-medium text-txt-secondary">
-            {label}
-          </span>
-          {status_label && (
-            <span
-              className="inline-flex flex-shrink-0 items-center gap-1 text-[12px] font-semibold"
-              style={{ color: styles.color }}
-            >
-              <StatusIcon aria-hidden="true" className="h-[15px] w-[15px]" />
-              {status_label}
-            </span>
-          )}
-        </div>
-        {show_upgrade ? (
+      <MeterHeader
+        label={label}
+        status={status}
+        status_label={status_label}
+        value={value_text}
+      />
+      {!unlimited && (
+        <MeterBar label={value_text} percent={clamped} status={status} />
+      )}
+      {show_upgrade && (
+        <div className="flex justify-end">
           <button
-            className="flex-shrink-0 text-[12.5px] font-medium hover:underline"
+            className="text-[12.5px] font-medium hover:underline"
             style={{ color: "var(--accent-color)" }}
             type="button"
             onClick={on_upgrade}
           >
             {t("settings.billing_usage_upgrade_hint")}
           </button>
-        ) : null}
-      </div>
-      <div
-        aria-label={value_text}
-        aria-valuemax={100}
-        aria-valuemin={0}
-        aria-valuenow={Math.round(clamped)}
-        className="h-1.5 w-full overflow-hidden rounded-full"
-        role="progressbar"
-        style={{
-          backgroundColor:
-            "color-mix(in srgb, var(--text-primary) 10%, transparent)",
-        }}
-      >
-        <div
-          className="h-full rounded-full transition-[width] duration-300"
-          style={{
-            width: `${clamped}%`,
-            backgroundColor:
-              status === "full" ? "var(--color-danger)" : "var(--accent-color)",
-          }}
-        />
-      </div>
-      <p className="text-[12.5px] text-txt-muted">{value_text}</p>
+        </div>
+      )}
     </div>
   );
 }

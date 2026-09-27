@@ -50,10 +50,7 @@ export function BillingTermSelector<T extends string>({
         </p>
       )}
 
-      <div
-        className="aster_island rounded-[18px] p-1.5"
-        role="radiogroup"
-      >
+      <div className="aster_island rounded-[18px] p-1.5" role="radiogroup">
         <div
           className="grid gap-1.5"
           style={{

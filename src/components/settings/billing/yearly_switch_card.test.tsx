@@ -28,9 +28,8 @@ vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key, language: "en" }),
 }));
 
-const { YearlySwitchCard, monthly_equivalent_cents } = await import(
-  "./yearly_switch_card"
-);
+const { YearlySwitchCard, monthly_equivalent_cents } =
+  await import("./yearly_switch_card");
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;

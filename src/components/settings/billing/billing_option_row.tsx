@@ -59,7 +59,9 @@ export function BillingOptionRow({
     <button
       aria-checked={selected}
       className="flex w-full items-center gap-3.5 px-4 py-3.5 text-start transition-colors disabled:cursor-not-allowed disabled:opacity-60"
-      data-featured={data_featured === undefined ? undefined : String(data_featured)}
+      data-featured={
+        data_featured === undefined ? undefined : String(data_featured)
+      }
       data-plan={data_plan}
       disabled={disabled}
       role="radio"

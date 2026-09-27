@@ -136,7 +136,7 @@ describe("AvailablePlansSection plan recommendation", () => {
   it("acknowledges a top-tier subscriber instead of recommending an upgrade", async () => {
     await render_section(subscription_for("family", gb(100), gb(3000)));
 
-    expect(container.textContent).toContain("settings.plan_top_tier_title");
+    expect(container.textContent).toContain("settings.plan_top_tier_note");
     expect(container.textContent).toContain('"plan":"Family"');
     expect(container.textContent).toContain("settings.plan_add_storage_link");
     expect(container.textContent).not.toContain(
@@ -166,21 +166,23 @@ describe("AvailablePlansSection plan recommendation", () => {
   it("names the current plan while recommending the next tier up", async () => {
     await render_section(subscription_for("star", gb(90), gb(100)));
 
-    expect(container.textContent).toContain("settings.plan_current_title");
-    expect(container.textContent).toContain('"plan":"Star"');
+    expect(
+      container.querySelector('[data-plan="Star"]')?.textContent,
+    ).toContain("settings.current_plan");
     expect(container.textContent).toContain("settings.plan_storage_tight_note");
     expect(container.textContent).toContain('"percent":90');
     expect(container.textContent).toContain('"plan":"Nova"');
-    expect(container.textContent).not.toContain("settings.plan_top_tier_title");
+    expect(container.textContent).not.toContain("settings.plan_top_tier_note");
   });
 
   it("names the current plan and still points at the next tier up", async () => {
     await render_section(subscription_for("star", gb(1), gb(100)));
 
-    expect(container.textContent).toContain("settings.plan_current_title");
-    expect(container.textContent).toContain('"plan":"Star"');
+    expect(
+      container.querySelector('[data-plan="Star"]')?.textContent,
+    ).toContain("settings.current_plan");
     expect(container.textContent).toContain("settings.plan_current_note");
-    expect(container.textContent).not.toContain("settings.plan_top_tier_title");
+    expect(container.textContent).not.toContain("settings.plan_top_tier_note");
     expect(container.textContent).not.toContain(
       "settings.plan_storage_tight_note",
     );
@@ -190,7 +192,7 @@ describe("AvailablePlansSection plan recommendation", () => {
   it("keeps every individual plan visible for a top-tier subscriber", async () => {
     await render_section(subscription_for("supernova", gb(10), gb(5000)));
 
-    expect(container.textContent).toContain("settings.plan_top_tier_title");
+    expect(container.textContent).toContain("settings.plan_top_tier_note");
 
     const plan_names = Array.from(
       container.querySelectorAll("[data-plan]"),
@@ -202,8 +204,8 @@ describe("AvailablePlansSection plan recommendation", () => {
   it("still guides an unpaid visitor toward a plan", async () => {
     await render_section(subscription_for("free", gb(1), gb(1)));
 
-    expect(container.textContent).not.toContain("settings.plan_top_tier_title");
-    expect(container.textContent).not.toContain("settings.plan_current_title");
+    expect(container.textContent).not.toContain("settings.plan_top_tier_note");
+    expect(container.textContent).not.toContain("settings.plan_current_note");
     expect(container.querySelectorAll('[data-featured="true"]').length).toBe(1);
   });
 });

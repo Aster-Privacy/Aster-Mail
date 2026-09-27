@@ -62,7 +62,9 @@ export function BillingGroup({
   children: ReactNode;
   class_name?: string;
 }) {
-  return <Island className={`overflow-hidden ${class_name}`}>{children}</Island>;
+  return (
+    <Island className={`overflow-hidden ${class_name}`}>{children}</Island>
+  );
 }
 
 export function BillingRow({
