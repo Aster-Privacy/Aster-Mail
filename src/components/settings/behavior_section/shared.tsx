@@ -190,7 +190,7 @@ export function LanguagePicker({
               {display(code)}
               <button
                 aria-label={display(code)}
-                className="rounded-full p-0.5 text-txt-muted hover:text-txt-primary hover:bg-white/10 transition-colors"
+                className="rounded-full p-0.5 text-txt-muted hover:text-txt-primary hover:bg-[var(--aster-island-hover)] transition-colors"
                 type="button"
                 onClick={() => on_remove(code)}
               >

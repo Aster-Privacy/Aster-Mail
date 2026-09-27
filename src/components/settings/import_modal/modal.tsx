@@ -991,7 +991,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
               {step !== "progress" && (
                 <button
                   aria-label={t("common.close")}
-                  className="p-1 rounded-[14px] transition-colors hover:bg-white/10"
+                  className="p-1 rounded-[var(--aster-radius-control)] transition-colors hover:bg-[var(--aster-island-hover)]"
                   type="button"
                   onClick={handle_close}
                 >

@@ -115,7 +115,7 @@ export function TranslationPacks() {
                   </span>
                   <button
                     aria-label={t("settings.translation_packs_remove")}
-                    className="rounded-[var(--aster-radius-control)] p-1 text-txt-muted hover:text-txt-primary hover:bg-white/10 transition-colors"
+                    className="rounded-[var(--aster-radius-control)] p-1 text-txt-muted hover:text-txt-primary hover:bg-[var(--aster-island-hover)] transition-colors"
                     type="button"
                     onClick={() => remove_one(pack.pair)}
                   >
