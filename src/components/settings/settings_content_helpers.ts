@@ -122,6 +122,8 @@ const SECTION_TAB_ALIASES: Record<
   signature: { section: "compose", tab: "signature" },
   signatures: { section: "compose", tab: "signature" },
   templates: { section: "compose", tab: "templates" },
+  filters: { section: "mail_rules", tab: "rules" },
+  rules: { section: "mail_rules", tab: "rules" },
   sender_filters: { section: "mail_rules", tab: "blocked" },
   blocked: { section: "mail_rules", tab: "blocked" },
   allowlist: { section: "mail_rules", tab: "allowlist" },

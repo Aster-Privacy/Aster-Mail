@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { RuleEditorSeed } from "@/components/mail_rules/rule_templates";
+
 import { useSyncExternalStore } from "react";
 
 import {
@@ -39,6 +41,7 @@ import {
 interface MailRulesState {
   rules: Rule[];
   loading: boolean;
+  loaded: boolean;
   error: string | null;
   runs: Record<string, RuleRun>;
 }
@@ -53,6 +56,7 @@ type Listener = () => void;
 let state: MailRulesState = {
   rules: [],
   loading: false,
+  loaded: false,
   error: null,
   runs: {},
 };
@@ -150,13 +154,28 @@ export async function load_rules(): Promise<void> {
       (a, b) => a.sort_order - b.sort_order,
     );
 
-    set_state({ rules: sorted, loading: false });
+    set_state({ rules: sorted, loading: false, loaded: true });
   } else {
     set_state({
       loading: false,
+      loaded: true,
       error: response.error || "Failed to load rules",
     });
   }
+}
+
+let pending_seed: RuleEditorSeed | null = null;
+
+export function queue_rule_seed(seed: RuleEditorSeed): void {
+  pending_seed = seed;
+}
+
+export function take_rule_seed(): RuleEditorSeed | null {
+  const seed = pending_seed;
+
+  pending_seed = null;
+
+  return seed;
 }
 
 let last_save_error: string | null = null;

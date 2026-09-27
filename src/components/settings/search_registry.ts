@@ -841,7 +841,15 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     section: "mail_rules",
     breadcrumb: "Mail Rules > Create",
     crumb_key: "settings_search.create",
-    keywords: ["add rule", "new filter"],
+    keywords: [
+      "add rule",
+      "new filter",
+      "create filter",
+      "filter",
+      "filters",
+      "email filter",
+      "organize mail",
+    ],
   },
   {
     label: "Auto label",

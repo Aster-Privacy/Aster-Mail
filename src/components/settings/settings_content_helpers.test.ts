@@ -78,6 +78,10 @@ describe("resolve_settings_section", () => {
       section: "mail_rules",
       tab: "vacation_reply",
     });
+    expect(resolve_nav_target("filters")).toEqual({
+      section: "mail_rules",
+      tab: "rules",
+    });
     expect(resolve_nav_target("billing")).toEqual({ section: "billing" });
   });
 

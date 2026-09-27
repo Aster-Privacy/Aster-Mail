@@ -47,6 +47,8 @@ import { SearchContentBanner } from "@/components/search/search_content_banner";
 import { CorrectionNotice } from "@/components/search/correction_notice";
 import { use_search_modal } from "@/components/search/use_search_modal";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
+import { queue_rule_seed } from "@/stores/mail_rules_store";
+import { search_filters_to_rule_seed } from "@/components/mail_rules/search_filter_seed";
 
 export { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
 
@@ -255,6 +257,17 @@ export function SearchModal({
     handle_search(query);
   };
 
+  const handle_create_filter = () => {
+    queue_rule_seed(
+      search_filters_to_rule_seed(filters, t("mail_rules.untitled_rule_name")),
+    );
+    set_show_filters(false);
+    handle_close();
+    window.dispatchEvent(
+      new CustomEvent("navigate-settings", { detail: "filters" }),
+    );
+  };
+
   if (!is_open) return null;
 
   const show_first_time_state = !state.query;
@@ -310,6 +323,7 @@ export function SearchModal({
 
       <SearchModalFilterPanel
         filters={filters}
+        on_create_filter={handle_create_filter}
         on_submit={handle_submit_advanced}
         set_filters={set_filters}
         show_filters={show_filters}
