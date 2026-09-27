@@ -55,7 +55,11 @@ function format_date(iso: string): string {
   }
 }
 
-export function AccountRecoverySection() {
+export function AccountRecoverySection({
+  on_changed,
+}: {
+  on_changed?: () => void;
+} = {}) {
   const { t } = use_i18n();
   const [methods, set_methods] = useState<RecoveryMethods | null>(null);
   const [status, set_status] = useState<CodesStatus | null>(null);
@@ -226,7 +230,10 @@ export function AccountRecoverySection() {
         is_open={show_codes_modal}
         mode={modal_mode}
         on_close={() => set_show_codes_modal(false)}
-        on_saved={fetch_methods}
+        on_saved={() => {
+          void fetch_methods();
+          on_changed?.();
+        }}
       />
     </>
   );

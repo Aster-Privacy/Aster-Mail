@@ -129,12 +129,19 @@ export function RecoveryCodesModal({
       set_codes_unavailable(false);
       set_are_codes_visible(false);
       set_saved_checkbox(false);
-      setTimeout(() => input_ref.current?.focus(), 100);
     } else {
       set_codes([]);
       set_password("");
     }
   }, [is_open, is_regenerate, has_codes]);
+
+  useEffect(() => {
+    if (!is_open || step !== "verify") return;
+
+    const timer = setTimeout(() => input_ref.current?.focus(), 100);
+
+    return () => clearTimeout(timer);
+  }, [is_open, step]);
 
   const plain_codes = codes.map((entry) => entry.code);
 
@@ -480,8 +487,13 @@ export function RecoveryCodesModal({
                 <div className="flex items-center justify-end">
                   <div className="flex items-center gap-1">
                     <button
-                      aria-label={t("settings.show_password_toggle")}
-                      className="p-1.5 rounded transition-colors hover:opacity-80 text-txt-muted"
+                      aria-label={
+                        are_codes_visible
+                          ? t("common.hide")
+                          : t("settings.recovery_codes_show")
+                      }
+                      aria-pressed={are_codes_visible}
+                      className="p-1.5 rounded-[var(--aster-radius-control)] transition-colors hover:opacity-80 text-txt-muted"
                       type="button"
                       onClick={() => set_are_codes_visible(!are_codes_visible)}
                     >

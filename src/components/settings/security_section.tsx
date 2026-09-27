@@ -310,7 +310,7 @@ export function SecuritySection({
         on_rotate_keys_now={security.show_manual_rotation_modal}
       />
 
-      <AccountRecoverySection />
+      <AccountRecoverySection on_changed={recovery.reload} />
 
       <IslandSection
         icon={<ShieldCheckIcon />}
