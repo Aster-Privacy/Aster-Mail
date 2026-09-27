@@ -25,7 +25,7 @@ import { CheckIcon } from "@heroicons/react/24/outline";
 import { SettingsHeader } from "./shared";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { api_client } from "@/services/api/client";
 import { API_ENDPOINTS } from "@/services/api/endpoints";
 import { ignore_error } from "@/lib/ignore_error";
@@ -157,11 +157,8 @@ export function FeedbackSection({
               type="button"
               onClick={handle_submit}
             >
-              {is_sending ? (
-                <Spinner size="md" />
-              ) : (
-                t("settings.send_feedback_button")
-              )}
+              {t("settings.send_feedback_button")}
+              {is_sending && <ButtonSpinner />}
             </motion.button>
             <div className="mt-6 rounded-xl bg-[var(--mobile-bg-card)] px-4 py-3.5">
               <p className="text-[13px] font-medium text-[var(--mobile-text-muted)]">

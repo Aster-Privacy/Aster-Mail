@@ -1345,15 +1345,19 @@ export const ja = {
     subject_too_long:
       "件名が 998 文字の上限を超えています。短くすると送信できます。",
     notification_banner_no_thanks: "いいえ、結構です",
-    locked_data_banner_message: "以前の暗号化データの一部がロックされています。",
+    locked_data_banner_message:
+      "以前の暗号化データの一部がロックされています。",
     locked_data_banner_action: "データを復元",
     locked_data_banner_dismiss: "閉じる",
     recover_data_title: "データを復元",
-    recover_data_description: "パスワードの変更またはリセット前のデータのロックを解除するには、その時に使用していたパスワードを入力してください。",
+    recover_data_description:
+      "パスワードの変更またはリセット前のデータのロックを解除するには、その時に使用していたパスワードを入力してください。",
     recover_data_button: "復元",
     recover_data_success: "以前のデータのロックが解除されました。",
-    recover_data_no_match: "そのパスワードではデータのロックを解除できませんでした。別の以前のパスワードをお試しください。",
-    recover_data_failed: "一部のデータのロックを解除できませんでした。接続を確認して、もう一度お試しください。",
+    recover_data_no_match:
+      "そのパスワードではデータのロックを解除できませんでした。別の以前のパスワードをお試しください。",
+    recover_data_failed:
+      "一部のデータのロックを解除できませんでした。接続を確認して、もう一度お試しください。",
     payment_past_due_message:
       "前回のお支払いを処理できませんでした。プランを継続するには、お支払い方法を更新してください。",
     payment_past_due_message_days:
@@ -3983,7 +3987,8 @@ export const ja = {
     password_change_background_reencrypt_failed:
       "パスワードは変更されましたが、送信済みメールと設定の一部の再暗号化が完了していません。メールや設定が読めない場合はサポートにご連絡ください。",
     previous_password: "以前のパスワード",
-    password_change_sent_mail_locked: "パスワードが変更されました。{{count}} 件の送信済みメールは以前のパスワードで暗号化されており、更新されませんでした。ロックを解除するには、受信トレイ上部のバナーで「データを復元」を選択してください。",
+    password_change_sent_mail_locked:
+      "パスワードが変更されました。{{count}} 件の送信済みメールは以前のパスワードで暗号化されており、更新されませんでした。ロックを解除するには、受信トレイ上部のバナーで「データを復元」を選択してください。",
     password_changed_signing_out:
       "パスワードが正常に変更されました。サインアウトしています...",
     password_changed_success: "パスワードを変更しました",
@@ -4203,9 +4208,11 @@ export const ja = {
     compose_mode_fullscreen: "常にフルスクリーン",
     compose_mode_minimized: "最小化して開始",
     default_sender_group: "送信",
-    default_sender_group_description: "新しいメッセージの送信元にするアドレスを選びます。",
+    default_sender_group_description:
+      "新しいメッセージの送信元にするアドレスを選びます。",
     default_sender_title: "既定の送信者",
-    default_sender_description: "新しいメッセージはこのアドレスから送信されます。返信には、メッセージが届いたアドレスが使われます。",
+    default_sender_description:
+      "新しいメッセージはこのアドレスから送信されます。返信には、メッセージが届いたアドレスが使われます。",
     default_sender_no_addresses: "ほかのアドレスがありません",
     compose_defaults_title: "デフォルトの書式",
     compose_defaults_description:
@@ -4222,9 +4229,11 @@ export const ja = {
     reply_defaults_title: "返信",
     reply_defaults_description: "新しい返信の開始内容を選択します。",
     reply_include_quoted: "引用文を含める",
-    reply_include_quoted_description: "すべての返信が、入力欄の下に引用された元のメッセージで始まります。",
+    reply_include_quoted_description:
+      "すべての返信が、入力欄の下に引用された元のメッセージで始まります。",
     reply_prefix_subject: "件名に Re: を追加",
-    reply_prefix_subject_description: "返信するときに元の件名の前に Re: を付けます。",
+    reply_prefix_subject_description:
+      "返信するときに元の件名の前に Re: を付けます。",
     build_info: "ビルド情報",
     release: "リリース",
     build: "ビルド",
@@ -4287,6 +4296,13 @@ export const ja = {
       "今回の請求期間の終わりまでプレミアム機能を引き続き使え、その後プランは無料に戻ります。メール、連絡先、設定はそのまま残ります。",
     cancel_plan: "プランをキャンセル",
     billing_history: "請求履歴",
+    billing_plan_heading: "プラン",
+    billing_hide_plans: "プランを非表示",
+    billing_cancel_notice_title: "プランは解約予定です",
+    billing_cancel_notice_body:
+      "プランは {{date}} に終了します。その後、アカウントは無料プランに移行します。",
+    billing_renewals_heading: "更新",
+    billing_amount: "金額",
     billing_desc_payment_failed: "支払いに失敗しました",
     billing_desc_refund_processed: "返金を処理しました",
     billing_desc_payment_disputed:
@@ -5176,16 +5192,36 @@ export const ja = {
       "決済を開始できませんでした。もう一度お試しください。",
     special_offer_was_price: "以前は月額{{price}}",
     special_offer_original_price: "通常価格：{{price}}",
-    special_offer_cta: "{{percent}}%オフで購入",
-    special_offer_feature_aliases: "エイリアスとカスタムドメインが無制限",
-    special_offer_feature_vanguard:
-      "Aster Vanguardのアプリロック、ロックダウンモード、セキュリティ監視",
-    special_offer_feature_storage: "暗号化ストレージ500 GB",
+    special_offer_cta: "{{percent}}%オフで始める",
+    special_offer_feature_aliases: "エイリアス無制限",
+    special_offer_feature_vanguard: "Vanguardで強化されたセキュリティ",
+    special_offer_feature_storage: "500 GBの暗号化ストレージ",
+    special_offer_why_body:
+      "Aster は小さなチームで運営する独立した企業で、皆さまのご支援は私たちにとって大きな意味があります。サブスクリプションはサービスの運営を支え、Aster を毎日丁寧に開発し続けることを可能にしています。このオファーで、より気軽に始めていただけます。",
+    special_offer_why_label: "このオファーを提供する理由",
+    special_offer_feature_vanguard_body:
+      "アプリロックと高度なプライバシー保護。",
+    special_offer_feature_domains_body:
+      "独自ドメインのアドレスから送信できます。",
+    special_offer_feature_domains: "カスタムドメイン最大30個",
+    special_offer_feature_storage_body:
+      "何年分ものメールとファイルを保存できます。",
+    special_offer_feature_aliases_body:
+      "サイトごとに専用のアドレスを使えます。",
     special_offer_fine_print:
       "最初の{{months}}か月は月額{{offer_price}}です。その後は、設定で解約するまで月額{{price}}で更新されます。",
     special_offer_dismiss: "このオファーを今後表示しない",
     special_offer_dismissed_toast: "今後は表示しません。",
+    special_offer_success_title:
+      "ありがとうございます。Nova をご利用いただけます。",
+    special_offer_success_body:
+      "ご登録ありがとうございます。皆さまのご支援が私たちの大きな励みです。",
     special_offer_hero_duration: "{{months}}か月間",
+    special_offer_price_period_year: "年額",
+    special_offer_hero_duration_year: "最初の1年間",
+    special_offer_fine_print_year:
+      "最初の1年間は{{offer_price}}です。その後は、設定で解約するまで年額{{price}}で更新されます。",
+    special_offer_billing_period: "請求期間",
     plan_billing_terms:
       "サブスクリプションは、解約するまで通常価格で自動的に更新されます。設定からいつでも解約できます。",
     upgrade_offer_note: "{{percent}}%の割引は決済時に適用されます。",
@@ -6218,6 +6254,11 @@ export const ja = {
     checkout_abandon_title: "この支払いをキャンセルしますか？",
     checkout_add_promo: "プロモーションコードを追加",
     checkout_amount_due: "お支払い金額",
+    checkout_offer_switch_term: "{{term}} に切り替えると {{percent}}% オフ",
+    checkout_offer_switch_crypto: "暗号資産で支払うと {{percent}}% オフ",
+    checkout_offer_switch_card: "カードで支払うと {{percent}}% オフ",
+    checkout_offer_renewal:
+      "{{months}} か月間は月額 {{offer_price}}、その後は月額 {{price}}",
     checkout_card_details: "カード情報",
     checkout_full_features_title: "{{plan}} の機能",
     checkout_leave_warning:
@@ -6898,7 +6939,7 @@ export const ja = {
     crypto_native_recommended: "おすすめ",
     crypto_native_resume_selected: "選択中",
     crypto_native_status_underpaid: "一部支払い済み",
-    crypto_native_what_happens: "この後の流れ",
+    crypto_native_what_happens: "支払いの進行状況",
     crypto_native_stripe_option: "ステーブルコインで支払う",
     crypto_native_stripe_desc:
       "決済代行を通じて USDC などのステーブルコインでお支払いいただけます",
@@ -6942,7 +6983,7 @@ export const ja = {
       "お支払いの手動確認が必要です。まもなくアカウントに反映されます。",
     crypto_native_transaction: "トランザクション",
     crypto_native_refund_notice:
-      "支払額を超えて送金した場合、超過分は米ドルで Aster アカウントの残高に加算されます。代わりに返金を依頼することもできます。",
+      "支払額を超えて送金した場合、超過分は米ドルで Aster アカウントの残高に加算されます。",
     crypto_native_cancel_invoice: "この請求をキャンセル",
     crypto_native_cancel_failed: "この請求をキャンセルできませんでした。",
     crypto_native_cancel_has_payment:
@@ -6974,6 +7015,14 @@ export const ja = {
       "送金前に、ウォレットの画面に表示されたアドレスとここに表示されたアドレスを照合してください。ご注文で監視しているのはこのアドレスのみです。",
     crypto_native_fee_headroom:
       "ウォレットがネットワーク手数料を入力額から差し引く場合は、満額が届くよう少し多めに入力してください。",
+    crypto_native_network_only:
+      "{{chain}} ネットワークで {{coin}} のみを送金してください",
+    crypto_native_tip_unrecoverable:
+      "別のネットワークで送金した資金は回収できません。",
+    crypto_native_tip_check_address:
+      "送金する前にウォレットでアドレスを確認してください。",
+    crypto_native_tip_fee:
+      "ウォレットが金額から手数料を差し引く場合は、少し多めに送金してください。",
     crypto_native_expired_do_not_send:
       "この請求のアドレスには送金しないでください。今送金された資金は、反映される前に手動確認が必要になります。",
     crypto_native_not_found: "この請求が見つかりませんでした",
@@ -7090,19 +7139,24 @@ export const ja = {
     bridge_format_rpm_desc: "Fedora、RHEL、openSUSE",
     bridge_format_pacman_desc: "Arch Linux とその派生",
     bridge_download_started: "ダウンロードを開始しました",
-    bridge_download_failed: "ダウンロードを開始できませんでした。もう一度お試しください。",
+    bridge_download_failed:
+      "ダウンロードを開始できませんでした。もう一度お試しください。",
     bridge_support_help_desc: "セットアップガイドとよくある質問への回答",
     bridge_support_discord_desc: "チームや他の Aster ユーザーに質問できます",
     bridge_support_reddit_desc: "お知らせを確認して、話題に参加できます",
     bridge_support_github_desc: "ソースコードを確認して、問題を報告できます",
     bridge_all_platforms: "すべてのプラットフォーム",
-    bridge_upgrade_benefit_clients: "Apple Mail、Thunderbird、Outlook で使えます",
-    bridge_upgrade_benefit_local: "ローカルで動作するため、メールは暗号化されたままです",
+    bridge_upgrade_benefit_clients:
+      "Apple Mail、Thunderbird、Outlook で使えます",
+    bridge_upgrade_benefit_local:
+      "ローカルで動作するため、メールは暗号化されたままです",
     bridge_upgrade_benefit_platforms: "Windows、macOS、Linux で利用できます",
     bridge_upgrade_benefit_cli: "サーバー向けのコマンドライン版が含まれます",
     bridge_cli_download: "ダウンロード",
-    bridge_cli_install_hint: "お使いのプラットフォーム用のアーカイブをダウンロードし、展開してバイナリを PATH に移動します。",
-    bridge_cli_install_hint_windows: "アーカイブをダウンロードし、展開してフォルダを PATH に追加します。",
+    bridge_cli_install_hint:
+      "お使いのプラットフォーム用のアーカイブをダウンロードし、展開してバイナリを PATH に移動します。",
+    bridge_cli_install_hint_windows:
+      "アーカイブをダウンロードし、展開してフォルダを PATH に追加します。",
     bridge_cli_copy_command: "インストールコマンドをコピー",
     bridge_cli_docs_link: "コマンドラインガイドを読む",
     bridge_cli_name: "コマンドライン",
@@ -7893,6 +7947,8 @@ export const ja = {
       "Monero: プルーフ・オブ・ワークを採用し、汎用プロセッサでマイニングされます。裏付けできる最新の数値が見つからないため、公表していません。",
     crypto_energy_caveat:
       "これらは第三者による推定値で、当社の測定値ではありません。1件あたりの数値には異論もあります。当社はいずれの支払い方法についても環境に関する主張を行いません。",
+    crypto_native_rate_label: "為替レート",
+    crypto_native_last_checked_label: "最終確認",
     crypto_native_rate_value: "適用レート: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "コインを選ぶとレートが固定されます。その後、ご自分のウォレットから送金してください。",
@@ -8191,7 +8247,8 @@ export const ja = {
     already_reacted: "すでにこのリアクションを送信済みです",
     remove_your_reaction: "{emoji} のリアクションを削除",
     you_reacted_with: "{{emoji}} でリアクションしました",
-    you_reacted_with_remove: "{{emoji}} でリアクションしました。クリックすると削除されます。",
+    you_reacted_with_remove:
+      "{{emoji}} でリアクションしました。クリックすると削除されます。",
     reacted_with: "{{name}} が {{emoji}} でリアクションしました",
     forward: "転送",
     to: "宛先",

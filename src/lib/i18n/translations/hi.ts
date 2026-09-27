@@ -1331,11 +1331,14 @@ export const hi = {
     locked_data_banner_action: "डेटा वापस पाएं",
     locked_data_banner_dismiss: "खारिज करें",
     recover_data_title: "डेटा वापस पाएं",
-    recover_data_description: "पासवर्ड बदलने या रीसेट करने से पहले का डेटा अनलॉक करने के लिए, वह पासवर्ड डालें जो आप उस समय इस्तेमाल करते थे।",
+    recover_data_description:
+      "पासवर्ड बदलने या रीसेट करने से पहले का डेटा अनलॉक करने के लिए, वह पासवर्ड डालें जो आप उस समय इस्तेमाल करते थे।",
     recover_data_button: "वापस पाएं",
     recover_data_success: "आपका पुराना डेटा अनलॉक हो गया है।",
-    recover_data_no_match: "इस पासवर्ड से कोई डेटा अनलॉक नहीं हुआ। कोई दूसरा पुराना पासवर्ड आज़माएं।",
-    recover_data_failed: "कुछ डेटा अनलॉक नहीं हो सका। अपना कनेक्शन जांचें और फिर से कोशिश करें।",
+    recover_data_no_match:
+      "इस पासवर्ड से कोई डेटा अनलॉक नहीं हुआ। कोई दूसरा पुराना पासवर्ड आज़माएं।",
+    recover_data_failed:
+      "कुछ डेटा अनलॉक नहीं हो सका। अपना कनेक्शन जांचें और फिर से कोशिश करें।",
     payment_past_due_message:
       "आपका पिछला भुगतान नहीं हो सका। अपना प्लान बनाए रखने के लिए भुगतान का तरीका अपडेट करें।",
     payment_past_due_message_days:
@@ -2185,6 +2188,13 @@ export const hi = {
     checkout_abandon_title: "यह भुगतान रद्द करें?",
     checkout_add_promo: "प्रोमो कोड जोड़ें",
     checkout_amount_due: "देय राशि",
+    checkout_offer_switch_term: "{{percent}}% छूट पाने के लिए {{term}} चुनें",
+    checkout_offer_switch_crypto:
+      "{{percent}}% छूट पाने के लिए क्रिप्टो से भुगतान करें",
+    checkout_offer_switch_card:
+      "{{percent}}% छूट पाने के लिए कार्ड से भुगतान करें",
+    checkout_offer_renewal:
+      "{{months}} महीनों तक {{offer_price}} प्रति माह, फिर {{price}} प्रति माह",
     checkout_full_features_title: "{{plan}} की सुविधाएँ",
     checkout_pay_amount: "{{amount}} का भुगतान करें",
     checkout_what_you_get: "आपको क्या मिलता है",
@@ -2347,7 +2357,8 @@ export const hi = {
     bridge_other_formats: "अन्य प्रारूप",
     bridge_arch_x64: "x86-64",
     bridge_arch_arm64: "ARM64",
-    bridge_format_msi_desc: "ग्रुप पॉलिसी से मैनेज किए जाने वाले इंस्टॉल के लिए",
+    bridge_format_msi_desc:
+      "ग्रुप पॉलिसी से मैनेज किए जाने वाले इंस्टॉल के लिए",
     bridge_format_appimage_desc: "ज़्यादातर डिस्ट्रिब्यूशन पर चलता है",
     bridge_format_deb_desc: "Debian, Ubuntu और उन पर आधारित डिस्ट्रिब्यूशन",
     bridge_format_rpm_desc: "Fedora, RHEL और openSUSE",
@@ -2355,17 +2366,22 @@ export const hi = {
     bridge_download_started: "डाउनलोड शुरू हुआ",
     bridge_download_failed: "डाउनलोड शुरू नहीं हुआ. फिर से कोशिश करें.",
     bridge_support_help_desc: "सेटअप गाइड और आम सवालों के जवाब",
-    bridge_support_discord_desc: "टीम और Aster इस्तेमाल करने वाले दूसरे लोगों से पूछें",
+    bridge_support_discord_desc:
+      "टीम और Aster इस्तेमाल करने वाले दूसरे लोगों से पूछें",
     bridge_support_reddit_desc: "घोषणाएं देखें और चर्चा में शामिल हों",
     bridge_support_github_desc: "सोर्स कोड पढ़ें और समस्या की जानकारी दें",
     bridge_all_platforms: "सभी प्लेटफ़ॉर्म",
-    bridge_upgrade_benefit_clients: "Apple Mail, Thunderbird और Outlook के साथ काम करता है",
-    bridge_upgrade_benefit_local: "यह स्थानीय रूप से चलता है, इसलिए आपका मेल एन्क्रिप्टेड रहता है",
+    bridge_upgrade_benefit_clients:
+      "Apple Mail, Thunderbird और Outlook के साथ काम करता है",
+    bridge_upgrade_benefit_local:
+      "यह स्थानीय रूप से चलता है, इसलिए आपका मेल एन्क्रिप्टेड रहता है",
     bridge_upgrade_benefit_platforms: "Windows, macOS और Linux पर उपलब्ध",
     bridge_upgrade_benefit_cli: "सर्वर के लिए कमांड-लाइन संस्करण शामिल है",
     bridge_cli_download: "डाउनलोड करें",
-    bridge_cli_install_hint: "अपने प्लेटफ़ॉर्म के लिए संग्रह डाउनलोड करें, उसे निकालें और बाइनरी को अपने PATH में ले जाएँ।",
-    bridge_cli_install_hint_windows: "संग्रह डाउनलोड करें, उसे निकालें और फ़ोल्डर को अपने PATH में जोड़ें।",
+    bridge_cli_install_hint:
+      "अपने प्लेटफ़ॉर्म के लिए संग्रह डाउनलोड करें, उसे निकालें और बाइनरी को अपने PATH में ले जाएँ।",
+    bridge_cli_install_hint_windows:
+      "संग्रह डाउनलोड करें, उसे निकालें और फ़ोल्डर को अपने PATH में जोड़ें।",
     bridge_cli_copy_command: "इंस्टॉल कमांड कॉपी करें",
     bridge_cli_docs_link: "कमांड-लाइन गाइड पढ़ें",
     bridge_cli_name: "कमांड लाइन",
@@ -2763,8 +2779,7 @@ export const hi = {
     ipfs_attachment_storage: "IPFS अटैचमेंट स्टोरेज",
     ipfs_enabled_description:
       "अटैचमेंट Aster के निजी IPFS स्टोर में रखे जाते हैं",
-    ipfs_disabled_description:
-      "अटैचमेंट Aster के निजी IPFS स्टोर में रखें",
+    ipfs_disabled_description: "अटैचमेंट Aster के निजी IPFS स्टोर में रखें",
     storage_format_title: "स्टोरेज का प्रारूप",
     storage_format_description:
       "चुनें कि आपकी एन्क्रिप्टेड फ़ाइलें और स्थिर सामग्री कहाँ रखी जाएँ।",
@@ -3287,7 +3302,8 @@ export const hi = {
     default_sender_group: "भेजना",
     default_sender_group_description: "चुनें कि नए संदेश आपके किस पते से जाएँ।",
     default_sender_title: "डिफ़ॉल्ट प्रेषक",
-    default_sender_description: "नए संदेश इसी पते से शुरू होते हैं। उत्तर उसी पते का उपयोग करते हैं जिस पर संदेश आया था।",
+    default_sender_description:
+      "नए संदेश इसी पते से शुरू होते हैं। उत्तर उसी पते का उपयोग करते हैं जिस पर संदेश आया था।",
     default_sender_no_addresses: "कोई अन्य पता नहीं",
     compose_defaults_title: "डिफ़ॉल्ट फ़ॉर्मैटिंग",
     compose_defaults_description:
@@ -3304,9 +3320,11 @@ export const hi = {
     reply_defaults_title: "उत्तर",
     reply_defaults_description: "चुनें कि नया उत्तर किससे शुरू हो।",
     reply_include_quoted: "उद्धृत टेक्स्ट शामिल करें",
-    reply_include_quoted_description: "हर उत्तर आपके टेक्स्ट के नीचे उद्धृत मूल संदेश से शुरू होता है।",
+    reply_include_quoted_description:
+      "हर उत्तर आपके टेक्स्ट के नीचे उद्धृत मूल संदेश से शुरू होता है।",
     reply_prefix_subject: "विषय में Re: जोड़ें",
-    reply_prefix_subject_description: "उत्तर देने पर मूल विषय से पहले Re: लगाता है।",
+    reply_prefix_subject_description:
+      "उत्तर देने पर मूल विषय से पहले Re: लगाता है।",
     build_info: "बिल्ड की जानकारी",
     release: "छोड़ें",
     build: "बिल्ड",
@@ -3374,6 +3392,13 @@ export const hi = {
     cancel_plan_warning:
       "इस बिलिंग अवधि के अंत तक आपके पास प्रीमियम सुविधाएं रहेंगी, और उसके बाद आपका प्लान मुफ़्त हो जाएगा। आपका मेल, संपर्क और सेटिंग आपके पास ही रहेंगे।",
     billing_history: "बिलिंग इतिहास",
+    billing_plan_heading: "प्लान",
+    billing_hide_plans: "प्लान छिपाएं",
+    billing_cancel_notice_title: "आपका प्लान रद्द होने वाला है",
+    billing_cancel_notice_body:
+      "आपका प्लान {{date}} को समाप्त होगा। इसके बाद आपका खाता मुफ़्त प्लान पर चला जाएगा।",
+    billing_renewals_heading: "नवीनीकरण",
+    billing_amount: "राशि",
     billing_desc_payment_failed: "भुगतान विफल रहा",
     billing_desc_refund_processed: "रिफ़ंड कर दिया गया",
     billing_desc_payment_disputed: "भुगतान पर विवाद: {{reason}}",
@@ -3502,7 +3527,7 @@ export const hi = {
     crypto_native_recommended: "अनुशंसित",
     crypto_native_resume_selected: "चुना गया",
     crypto_native_status_underpaid: "आंशिक भुगतान हुआ",
-    crypto_native_what_happens: "आगे क्या होगा",
+    crypto_native_what_happens: "भुगतान की प्रगति",
     crypto_native_stripe_option: "स्टेबलकॉइन से भुगतान करें",
     crypto_native_stripe_desc:
       "हमारे भुगतान प्रोसेसर के ज़रिए USDC और दूसरे स्टेबलकॉइन",
@@ -3512,7 +3537,7 @@ export const hi = {
       "आपने आज बहुत ज़्यादा क्रिप्टो इनवॉइस बनाई हैं। बाद में फिर कोशिश करें।",
     crypto_native_invoice_title: "{{coin}} से भुगतान करें",
     crypto_native_awaiting_body:
-      "नीचे दिए पते पर बिल्कुल यही रकम भेजें। यह पेज अपने आप अपडेट होता रहता है।",
+      "नीचे दिए पते पर बिल्कुल यही रकम भेजें। यह पेज अपने आप अपडेट हो जाएगा।",
     crypto_native_received_title: "भुगतान मिल गया",
     crypto_native_received_body:
       "पूरी रकम मिल गई है और संसाधित हो रही है। अब और भुगतान की ज़रूरत नहीं है।",
@@ -3532,6 +3557,8 @@ export const hi = {
     crypto_native_usd_value_label: "देय राशि",
     crypto_native_usd_total_label: "इनवॉइस कुल",
     crypto_native_rate_locked: "इस इनवॉइस के खत्म होने तक आपकी दर तय है।",
+    crypto_native_rate_label: "विनिमय दर",
+    crypto_native_last_checked_label: "अंतिम जाँच",
     crypto_native_rate_value: "इस्तेमाल की गई दर: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "अपनी विनिमय दर तय करने के लिए कोई कॉइन चुनें। इसके बाद भुगतान आप खुद अपने वॉलेट से भेजते हैं।",
@@ -3549,7 +3576,7 @@ export const hi = {
       "आपके भुगतान की एक छोटी सी जांच हाथ से करनी है। हम जल्द ही आपके खाते में क्रेडिट कर देंगे।",
     crypto_native_transaction: "लेनदेन",
     crypto_native_refund_notice:
-      "अधिक भुगतान और रिफ़ंड आपके Aster खाता बैलेंस में जमा किए जाते हैं।",
+      "अगर आप देय राशि से ज़्यादा भेजते हैं, तो अतिरिक्त राशि अमेरिकी डॉलर में आपके Aster खाते के बैलेंस में जुड़ जाती है।",
     crypto_native_cancel_invoice: "यह इनवॉइस रद्द करें",
     crypto_native_cancel_failed: "यह इनवॉइस रद्द नहीं हो सकी।",
     crypto_native_cancel_has_payment:
@@ -3580,6 +3607,13 @@ export const hi = {
       "भेजने से पहले अपने वॉलेट की स्क्रीन पर दिख रहे पते को यहां दिखाए पते से मिलाकर देखें। आपके ऑर्डर के लिए सिर्फ़ इसी पते पर नज़र रखी जाती है।",
     crypto_native_fee_headroom:
       "अगर आपका वॉलेट नेटवर्क शुल्क आपकी डाली रकम में से ही काटता है, तो थोड़ा ज़्यादा डालें ताकि पूरी रकम पहुंचे।",
+    crypto_native_network_only: "केवल {{chain}} नेटवर्क पर {{coin}} भेजें",
+    crypto_native_tip_unrecoverable:
+      "किसी दूसरे नेटवर्क पर भेजी गई राशि वापस नहीं मिल सकती।",
+    crypto_native_tip_check_address:
+      "भेजने से पहले अपने वॉलेट में पता जाँच लें।",
+    crypto_native_tip_fee:
+      "अगर आपका वॉलेट राशि से शुल्क काटता है, तो थोड़ा ज़्यादा भेजें।",
     crypto_native_expired_do_not_send:
       "इस इनवॉइस के पते पर पैसे न भेजें। अब भेजे गए पैसे जमा होने से पहले हाथ से जांचे जाने चाहिए।",
     crypto_native_not_found: "हमें यह इनवॉइस नहीं मिली",
@@ -6118,16 +6152,31 @@ export const hi = {
       "चेकआउट शुरू करने में कुछ गड़बड़ हुई। फिर से कोशिश करें।",
     special_offer_was_price: "पहले {{price}} प्रति माह",
     special_offer_original_price: "मूल कीमत: {{price}}",
-    special_offer_cta: "{{percent}}% की छूट पाएँ",
-    special_offer_feature_aliases: "असीमित उपनाम और कस्टम डोमेन",
-    special_offer_feature_vanguard:
-      "Aster Vanguard ऐप लॉक, लॉकडाउन मोड और सुरक्षा निगरानी",
+    special_offer_cta: "{{percent}}% छूट पाएं",
+    special_offer_feature_aliases: "असीमित उपनाम",
+    special_offer_feature_vanguard: "Vanguard के साथ उन्नत सुरक्षा",
     special_offer_feature_storage: "500 GB एन्क्रिप्टेड स्टोरेज",
+    special_offer_why_body:
+      "Aster एक छोटी टीम वाली स्वतंत्र कंपनी है, और आपका समर्थन हमारे लिए बहुत मायने रखता है। सदस्यताएँ सेवा को चालू रखती हैं और हमें हर दिन ध्यान से Aster को बेहतर बनाते रहने में मदद करती हैं। यह ऑफ़र शुरुआत करना आसान बनाता है।",
+    special_offer_why_label: "यह ऑफ़र क्यों?",
+    special_offer_feature_vanguard_body: "ऐप लॉक और उन्नत गोपनीयता सुरक्षा।",
+    special_offer_feature_domains_body: "अपने डोमेन के पतों से मेल भेजें।",
+    special_offer_feature_domains: "30 तक कस्टम डोमेन",
+    special_offer_feature_storage_body: "सालों के मेल और फ़ाइलों के लिए जगह।",
+    special_offer_feature_aliases_body: "हर साइट को उसका अपना पता दें।",
     special_offer_fine_print:
       "पहले {{months}} महीनों के लिए आप {{offer_price}} प्रति माह चुकाते हैं। इसके बाद आपकी योजना {{price}} प्रति माह पर नवीनीकृत होती रहेगी, जब तक आप इसे सेटिंग में रद्द नहीं करते।",
     special_offer_dismiss: "यह ऑफ़र दोबारा न दिखाएँ",
     special_offer_dismissed_toast: "हम यह दोबारा नहीं दिखाएँगे।",
+    special_offer_success_title: "धन्यवाद। अब आप Nova पर हैं।",
+    special_offer_success_body:
+      "सदस्यता लेने के लिए धन्यवाद। आपका समर्थन हमारे लिए बहुत मायने रखता है।",
     special_offer_hero_duration: "{{months}} महीनों के लिए",
+    special_offer_price_period_year: "प्रति वर्ष",
+    special_offer_hero_duration_year: "पहले वर्ष के लिए",
+    special_offer_fine_print_year:
+      "पहले वर्ष के लिए आप {{offer_price}} चुकाते हैं। इसके बाद आपकी योजना {{price}} प्रति वर्ष पर नवीनीकृत होती रहेगी, जब तक आप इसे सेटिंग में रद्द नहीं करते।",
+    special_offer_billing_period: "बिलिंग अवधि",
     plan_billing_terms:
       "सदस्यताएँ रद्द करने तक मानक दर पर अपने आप नवीनीकृत होती हैं। आप सेटिंग में कभी भी रद्द कर सकते हैं।",
     upgrade_offer_note: "आपकी {{percent}}% छूट चेकआउट पर लागू होती है।",
@@ -7985,11 +8034,16 @@ export const hi = {
     upgrade_external_accounts_note:
       "अधिक बाहरी खाते कनेक्ट करने के लिए अपग्रेड करें।",
     previous_password: "पिछला पासवर्ड",
-    password_change_sent_mail_locked: "आपका पासवर्ड बदल गया। {{count}} भेजे गए ईमेल पुराने पासवर्ड से एन्क्रिप्ट थे और अपडेट नहीं हुए। उन्हें अनलॉक करने के लिए, अपने इनबॉक्स के ऊपर बैनर में डेटा वापस पाएं चुनें।",
-    referral_commission_headline: "अपने दोस्तों के हर भुगतान का {{ percent }}% कमाएं",
-    referral_commission_subhead: "अपना लिंक साझा करें। जब कोई दोस्त सदस्यता लेता है, तो जब तक वह सदस्य रहता है, आपको उसके हर भुगतान का हिस्सा मिलता है।",
-    referral_step_earn_commission: "जब वे सदस्यता लेते हैं, तो आपको उनके हर भुगतान का {{ percent }}% मिलता है।",
-    referral_share_message_plain: "मैं एंड-टू-एंड एन्क्रिप्टेड ईमेल के लिए Aster Mail इस्तेमाल करता हूं। मेरे लिंक से जुड़ें।",
+    password_change_sent_mail_locked:
+      "आपका पासवर्ड बदल गया। {{count}} भेजे गए ईमेल पुराने पासवर्ड से एन्क्रिप्ट थे और अपडेट नहीं हुए। उन्हें अनलॉक करने के लिए, अपने इनबॉक्स के ऊपर बैनर में डेटा वापस पाएं चुनें।",
+    referral_commission_headline:
+      "अपने दोस्तों के हर भुगतान का {{ percent }}% कमाएं",
+    referral_commission_subhead:
+      "अपना लिंक साझा करें। जब कोई दोस्त सदस्यता लेता है, तो जब तक वह सदस्य रहता है, आपको उसके हर भुगतान का हिस्सा मिलता है।",
+    referral_step_earn_commission:
+      "जब वे सदस्यता लेते हैं, तो आपको उनके हर भुगतान का {{ percent }}% मिलता है।",
+    referral_share_message_plain:
+      "मैं एंड-टू-एंड एन्क्रिप्टेड ईमेल के लिए Aster Mail इस्तेमाल करता हूं। मेरे लिंक से जुड़ें।",
     referral_email_body_plain:
       "नमस्ते,\n\nमैं कुछ समय से Aster Mail इस्तेमाल कर रहा हूं और यह मुझे बहुत पसंद है। इसमें सब कुछ एंड टू एंड एन्क्रिप्टेड है, इसलिए आपकी ईमेल आपके सिवा कोई नहीं पढ़ सकता। इसे चलाने वाले लोग भी नहीं।\n\nअगर आप इसे आज़माना चाहें, तो यह रहा मेरा आमंत्रण लिंक:\n\n{{ referral_link }}\n\nशुभकामनाएं",
   },
@@ -9453,8 +9507,7 @@ export const hi = {
       "अपना मुफ़्त खाता बनाएं, फिर किसी भी सशुल्क प्लान पर 12 महीने तक 30% छूट पाने के लिए अपना छात्र ईमेल सत्यापित करें।",
     offer_welcome_subline_journalist:
       "अपना मुफ़्त खाता बनाएं, फिर किसी भी सशुल्क प्लान पर 12 महीने तक 30% छूट पाने के लिए अपने प्रेस क्रेडेंशियल सत्यापित करें।",
-    plan_star_description:
-      "अधिक स्टोरेज, अधिक उपनाम, और अधिकतम 5 कस्टम डोमेन।",
+    plan_star_description: "अधिक स्टोरेज, अधिक उपनाम, और अधिकतम 5 कस्टम डोमेन।",
     plan_nova_description: "ज़्यादा स्टोरेज, कस्टम डोमेन और असीमित एलियास।",
     plan_supernova_description:
       "अधिकतम स्टोरेज, हर चीज़ असीमित, और समर्पित सहायता।",

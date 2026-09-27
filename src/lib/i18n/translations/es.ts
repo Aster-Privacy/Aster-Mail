@@ -1310,15 +1310,19 @@ export const es = {
     subject_too_long:
       "Tu asunto supera el límite de 998 caracteres. Una versión más corta podrá enviarse.",
     notification_banner_no_thanks: "No, gracias",
-    locked_data_banner_message: "Algunos de tus datos cifrados más antiguos están bloqueados.",
+    locked_data_banner_message:
+      "Algunos de tus datos cifrados más antiguos están bloqueados.",
     locked_data_banner_action: "Recuperar datos",
     locked_data_banner_dismiss: "Descartar",
     recover_data_title: "Recuperar datos",
-    recover_data_description: "Para desbloquear datos de antes de un cambio o restablecimiento de contraseña, introduce la contraseña que usabas entonces.",
+    recover_data_description:
+      "Para desbloquear datos de antes de un cambio o restablecimiento de contraseña, introduce la contraseña que usabas entonces.",
     recover_data_button: "Recuperar",
     recover_data_success: "Tus datos más antiguos están desbloqueados.",
-    recover_data_no_match: "Esa contraseña no desbloqueó ningún dato. Prueba con otra contraseña anterior.",
-    recover_data_failed: "No se pudieron desbloquear algunos datos. Comprueba tu conexión e inténtalo de nuevo.",
+    recover_data_no_match:
+      "Esa contraseña no desbloqueó ningún dato. Prueba con otra contraseña anterior.",
+    recover_data_failed:
+      "No se pudieron desbloquear algunos datos. Comprueba tu conexión e inténtalo de nuevo.",
     payment_past_due_message:
       "Tu último pago no se procesó. Actualiza tu método de pago para mantener tu plan.",
     payment_past_due_message_days:
@@ -3972,7 +3976,8 @@ export const es = {
     password_change_background_reencrypt_failed:
       "Tu contraseña cambió, pero parte de tu correo enviado y de tus ajustes no terminó de cifrarse de nuevo. Ponte en contacto con el equipo de soporte si algo aparece ilegible.",
     previous_password: "Contraseña anterior",
-    password_change_sent_mail_locked: "Tu contraseña cambió. {{count}} correos enviados estaban cifrados con una contraseña anterior y no se actualizaron. Para desbloquearlos, selecciona Recuperar datos en el aviso de la parte superior de tu bandeja de entrada.",
+    password_change_sent_mail_locked:
+      "Tu contraseña cambió. {{count}} correos enviados estaban cifrados con una contraseña anterior y no se actualizaron. Para desbloquearlos, selecciona Recuperar datos en el aviso de la parte superior de tu bandeja de entrada.",
     password_changed_signing_out:
       "Contraseña cambiada exitosamente. Cerrando sesión...",
     password_changed_success: "Contraseña cambiada",
@@ -4201,9 +4206,11 @@ export const es = {
     compose_mode_fullscreen: "Siempre a pantalla completa",
     compose_mode_minimized: "Iniciar minimizado",
     default_sender_group: "Envío",
-    default_sender_group_description: "Elige desde cuál de tus direcciones salen los mensajes nuevos.",
+    default_sender_group_description:
+      "Elige desde cuál de tus direcciones salen los mensajes nuevos.",
     default_sender_title: "Remitente predeterminado",
-    default_sender_description: "Los mensajes nuevos parten de esta dirección. Las respuestas usan la dirección a la que se envió el mensaje.",
+    default_sender_description:
+      "Los mensajes nuevos parten de esta dirección. Las respuestas usan la dirección a la que se envió el mensaje.",
     default_sender_no_addresses: "No hay otras direcciones",
     compose_defaults_title: "Formato predeterminado",
     compose_defaults_description:
@@ -4221,9 +4228,11 @@ export const es = {
     reply_defaults_title: "Respuestas",
     reply_defaults_description: "Elige con qué empieza una respuesta nueva.",
     reply_include_quoted: "Incluir el texto citado",
-    reply_include_quoted_description: "Cada respuesta empieza con el mensaje original citado debajo de tu texto.",
+    reply_include_quoted_description:
+      "Cada respuesta empieza con el mensaje original citado debajo de tu texto.",
     reply_prefix_subject: "Añadir Re: al asunto",
-    reply_prefix_subject_description: "Coloca Re: delante del asunto original cuando respondes.",
+    reply_prefix_subject_description:
+      "Coloca Re: delante del asunto original cuando respondes.",
     build_info: "Información de compilación",
     release: "Versión",
     build: "Compilación",
@@ -4287,6 +4296,13 @@ export const es = {
       "Conservarás las funciones premium hasta el final de este periodo de facturación, y luego tu plan pasará a Gratis. Tu correo, contactos y ajustes se quedan contigo.",
     cancel_plan: "Cancelar plan",
     billing_history: "Historial de facturación",
+    billing_plan_heading: "Plan",
+    billing_hide_plans: "Ocultar planes",
+    billing_cancel_notice_title: "Tu plan se cancelará",
+    billing_cancel_notice_body:
+      "Tu plan finaliza el {{date}}. Después, tu cuenta pasará al plan gratuito.",
+    billing_renewals_heading: "Renovaciones",
+    billing_amount: "Importe",
     billing_desc_payment_failed: "Pago fallido",
     billing_desc_refund_processed: "Reembolso procesado",
     billing_desc_payment_disputed: "Pago en disputa: {{reason}}",
@@ -5196,16 +5212,34 @@ export const es = {
       "Se ha producido un error al iniciar el pago. Inténtalo de nuevo.",
     special_offer_was_price: "Antes {{price}} al mes",
     special_offer_original_price: "Precio original: {{price}}",
-    special_offer_cta: "Consigue un {{percent}} % de descuento",
-    special_offer_feature_aliases: "Alias ilimitados y dominios propios",
-    special_offer_feature_vanguard:
-      "Bloqueo de app Aster Vanguard, modo de bloqueo y supervisión de seguridad",
+    special_offer_cta: "Obtener un {{percent}}% de descuento",
+    special_offer_feature_aliases: "Alias ilimitados",
+    special_offer_feature_vanguard: "Seguridad avanzada con Vanguard",
     special_offer_feature_storage: "500 GB de almacenamiento cifrado",
+    special_offer_why_body:
+      "Aster es una empresa independiente con un equipo pequeño, y tu apoyo significa mucho para nosotros. Las suscripciones mantienen el servicio en funcionamiento y nos permiten seguir desarrollando Aster con cuidado cada día. Esta oferta te facilita empezar.",
+    special_offer_why_label: "¿Por qué esta oferta?",
+    special_offer_feature_vanguard_body:
+      "Bloqueo de la app y protección avanzada de la privacidad.",
+    special_offer_feature_domains_body:
+      "Envía desde direcciones de tus propios dominios.",
+    special_offer_feature_domains: "Hasta 30 dominios personalizados",
+    special_offer_feature_storage_body:
+      "Espacio para años de correo y archivos.",
+    special_offer_feature_aliases_body: "Da a cada sitio su propia dirección.",
     special_offer_fine_print:
       "Pagas {{offer_price}} al mes durante los primeros {{months}} meses. Después, tu plan se renueva por {{price}} al mes hasta que lo canceles en Ajustes.",
     special_offer_dismiss: "No volver a mostrar esta oferta",
     special_offer_dismissed_toast: "No volveremos a mostrártelo.",
+    special_offer_success_title: "Gracias. Ya tienes Nova.",
+    special_offer_success_body:
+      "Gracias por suscribirte. Tu apoyo significa mucho para nosotros.",
     special_offer_hero_duration: "durante {{months}} meses",
+    special_offer_price_period_year: "al año",
+    special_offer_hero_duration_year: "durante el primer año",
+    special_offer_fine_print_year:
+      "Pagas {{offer_price}} por el primer año. Después, tu plan se renueva por {{price}} al año hasta que lo canceles en Ajustes.",
+    special_offer_billing_period: "Periodo de facturación",
     plan_billing_terms:
       "Las suscripciones se renuevan automáticamente a la tarifa estándar hasta que las canceles. Puedes cancelarla cuando quieras en Ajustes.",
     upgrade_offer_note:
@@ -6157,6 +6191,14 @@ export const es = {
     checkout_abandon_title: "¿Cancelar este pago?",
     checkout_add_promo: "Añadir un código promocional",
     checkout_amount_due: "Importe a pagar",
+    checkout_offer_switch_term:
+      "Cambia a {{term}} para obtener un {{percent}} % de descuento",
+    checkout_offer_switch_crypto:
+      "Paga con cripto para obtener un {{percent}} % de descuento",
+    checkout_offer_switch_card:
+      "Paga con tarjeta para obtener un {{percent}} % de descuento",
+    checkout_offer_renewal:
+      "{{offer_price}} al mes durante {{months}} meses y después {{price}} al mes",
     checkout_card_details: "Datos de la tarjeta",
     checkout_full_features_title: "Funciones de {{plan}}",
     checkout_leave_warning:
@@ -6945,7 +6987,7 @@ export const es = {
     crypto_native_recommended: "Recomendado",
     crypto_native_resume_selected: "Seleccionado",
     crypto_native_status_underpaid: "Pago parcial",
-    crypto_native_what_happens: "Qué ocurre a continuación",
+    crypto_native_what_happens: "Progreso del pago",
     crypto_native_stripe_option: "Pagar con stablecoin",
     crypto_native_stripe_desc:
       "USDC y otras stablecoins a través de nuestro procesador de pagos",
@@ -6955,7 +6997,7 @@ export const es = {
       "Has creado demasiadas facturas de criptomonedas hoy. Inténtalo de nuevo más tarde.",
     crypto_native_invoice_title: "Pagar con {{coin}}",
     crypto_native_awaiting_body:
-      "Envía el importe exacto a la dirección de abajo. Esta página se actualiza automáticamente.",
+      "Envía el importe exacto a la dirección de abajo. Esta página se actualizará automáticamente.",
     crypto_native_received_title: "Pago recibido",
     crypto_native_received_body:
       "Hemos recibido el importe completo y lo estamos procesando. No es necesario que envíes otro pago.",
@@ -6989,7 +7031,7 @@ export const es = {
       "Tu pago necesita una comprobación manual rápida. Abonaremos tu cuenta en breve.",
     crypto_native_transaction: "Transacción",
     crypto_native_refund_notice:
-      "Si envías más del importe debido, la diferencia pasa al saldo de tu cuenta de Aster en dólares estadounidenses. Puedes pedirnos que te la reembolsemos en su lugar.",
+      "Si envías más del importe debido, la diferencia pasa al saldo de tu cuenta de Aster en dólares estadounidenses.",
     crypto_native_cancel_invoice: "Cancelar esta factura",
     crypto_native_cancel_failed: "No se pudo cancelar esta factura.",
     crypto_native_cancel_has_payment:
@@ -7021,6 +7063,13 @@ export const es = {
       "Antes de enviar, compara la dirección que ves en tu monedero con la que se muestra aquí. Solo esta dirección se supervisa para tu pedido.",
     crypto_native_fee_headroom:
       "Si tu monedero descuenta la comisión de red del importe que introduces, añade un poco más para que llegue el importe completo.",
+    crypto_native_network_only: "Envía solo {{coin}} en la red {{chain}}",
+    crypto_native_tip_unrecoverable:
+      "Los fondos enviados por otra red no se pueden recuperar.",
+    crypto_native_tip_check_address:
+      "Comprueba la dirección en tu billetera antes de enviar.",
+    crypto_native_tip_fee:
+      "Si tu billetera descuenta la comisión del importe, envía un poco más.",
     crypto_native_expired_do_not_send:
       "No envíes nada a la dirección de esta factura. Los fondos enviados ahora necesitan una revisión manual antes de poder abonarse.",
     crypto_native_not_found: "No encontramos esta factura",
@@ -7129,25 +7178,35 @@ export const es = {
     bridge_other_formats: "Otros formatos",
     bridge_arch_x64: "x86-64",
     bridge_arch_arm64: "ARM64",
-    bridge_format_msi_desc: "Para instalaciones gestionadas con directivas de grupo",
+    bridge_format_msi_desc:
+      "Para instalaciones gestionadas con directivas de grupo",
     bridge_format_appimage_desc: "Funciona en la mayoría de distribuciones",
     bridge_format_deb_desc: "Debian, Ubuntu y derivadas",
     bridge_format_rpm_desc: "Fedora, RHEL y openSUSE",
     bridge_format_pacman_desc: "Arch Linux y derivadas",
     bridge_download_started: "Descarga iniciada",
     bridge_download_failed: "La descarga no se inició. Inténtalo de nuevo.",
-    bridge_support_help_desc: "Guías de configuración y respuestas a preguntas frecuentes",
-    bridge_support_discord_desc: "Pregunta al equipo y a otras personas que usan Aster",
-    bridge_support_reddit_desc: "Sigue los anuncios y participa en las conversaciones",
-    bridge_support_github_desc: "Consulta el código fuente e informa de un problema",
+    bridge_support_help_desc:
+      "Guías de configuración y respuestas a preguntas frecuentes",
+    bridge_support_discord_desc:
+      "Pregunta al equipo y a otras personas que usan Aster",
+    bridge_support_reddit_desc:
+      "Sigue los anuncios y participa en las conversaciones",
+    bridge_support_github_desc:
+      "Consulta el código fuente e informa de un problema",
     bridge_all_platforms: "Todas las plataformas",
-    bridge_upgrade_benefit_clients: "Funciona con Apple Mail, Thunderbird y Outlook",
-    bridge_upgrade_benefit_local: "Se ejecuta en local, así que tu correo sigue cifrado",
+    bridge_upgrade_benefit_clients:
+      "Funciona con Apple Mail, Thunderbird y Outlook",
+    bridge_upgrade_benefit_local:
+      "Se ejecuta en local, así que tu correo sigue cifrado",
     bridge_upgrade_benefit_platforms: "Disponible en Windows, macOS y Linux",
-    bridge_upgrade_benefit_cli: "Incluye una versión de línea de comandos para servidores",
+    bridge_upgrade_benefit_cli:
+      "Incluye una versión de línea de comandos para servidores",
     bridge_cli_download: "Descargar",
-    bridge_cli_install_hint: "Descarga el archivo para tu plataforma, extráelo y mueve el binario a tu PATH.",
-    bridge_cli_install_hint_windows: "Descarga el archivo, extráelo y añade la carpeta a tu PATH.",
+    bridge_cli_install_hint:
+      "Descarga el archivo para tu plataforma, extráelo y mueve el binario a tu PATH.",
+    bridge_cli_install_hint_windows:
+      "Descarga el archivo, extráelo y añade la carpeta a tu PATH.",
     bridge_cli_copy_command: "Copiar los comandos de instalación",
     bridge_cli_docs_link: "Leer la guía de línea de comandos",
     bridge_cli_name: "Línea de comandos",
@@ -7902,6 +7961,8 @@ export const es = {
       "Monero: usa prueba de trabajo y se mina con procesadores de uso general. No hemos encontrado una cifra actual que respaldaríamos, así que no publicamos ninguna.",
     crypto_energy_caveat:
       "Son estimaciones de terceros, no mediciones propias, y las cifras por transacción son objeto de debate. No hacemos ninguna afirmación medioambiental sobre ningún método de pago.",
+    crypto_native_rate_label: "Tipo de cambio",
+    crypto_native_last_checked_label: "Última comprobación",
     crypto_native_rate_value: "Tipo aplicado: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "Elige una moneda para fijar tu tipo de cambio. Después envías el pago tú mismo desde tu propio monedero.",
@@ -9628,7 +9689,8 @@ export const es = {
     plan_selected: "Seleccionado",
     plan_selection_subtitle: "Comienza gratis o elige un plan premium.",
     plan_selection_title: "Elige tu plan",
-    plan_star_description: "Más almacenamiento, más alias y hasta 5 dominios personalizados.",
+    plan_star_description:
+      "Más almacenamiento, más alias y hasta 5 dominios personalizados.",
     plan_supernova_description: "Para equipos y profesionales.",
     plan_view_full_features: "Ver todas las funciones",
     privacy_policy_heading: "Política de privacidad",

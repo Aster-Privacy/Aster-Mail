@@ -21,11 +21,12 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { CheckIcon } from "@heroicons/react/20/solid";
 import {
+  ArrowPathIcon,
   CreditCardIcon,
   CurrencyDollarIcon,
   LockClosedIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Switch } from "@aster/ui";
 
 import {
   CardBrandMarks,
@@ -60,6 +61,12 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { convert_cents } from "@/components/settings/billing/billing_constants";
 import { describe_credit_entry } from "@/utils/billing_description";
+import {
+  BillingGroup,
+  BillingIconBox,
+  BillingRow,
+  BillingSectionLabel,
+} from "@/components/settings/billing/billing_layout";
 import text_logo_url from "@/assets/text_logo.webp";
 
 const tile_base =
@@ -118,12 +125,14 @@ interface CreditsSectionProps {
     React.SetStateAction<CreditBalanceResponse | null>
   >;
   preferred_currency: string;
+  payment_cell?: React.ReactNode;
 }
 
 export function CreditsSection({
   credit_balance,
   set_credit_balance,
   preferred_currency,
+  payment_cell,
 }: CreditsSectionProps) {
   const { t } = use_i18n();
   const [credit_transactions_list, set_credit_transactions_list] = useState<
@@ -269,37 +278,91 @@ export function CreditsSection({
     set_show_picker(false);
   };
 
+  const toggle_renewals = async () => {
+    const new_value = !credit_balance?.use_credits_for_renewals;
+
+    if (new_value && (credit_balance?.balance_cents ?? 0) <= 0) {
+      show_toast(t("settings.credits_earn_first"), "error");
+
+      return;
+    }
+    try {
+      const res = await update_credit_settings(new_value);
+
+      if (res.data) {
+        set_credit_balance((prev) =>
+          prev
+            ? {
+                ...prev,
+                use_credits_for_renewals: new_value,
+                balance_cents: res.data!.balance_cents,
+              }
+            : prev,
+        );
+        show_toast(t("settings.credits_toggle_updated"), "success");
+      } else {
+        show_toast(t("settings.credits_toggle_failed"), "error");
+      }
+    } catch {
+      show_toast(t("settings.credits_toggle_failed"), "error");
+    }
+  };
+
+  const toggle_transactions = async () => {
+    if (show_all_transactions) {
+      set_show_all_transactions(false);
+
+      return;
+    }
+
+    if (credit_transactions_list.length > 0) {
+      set_show_all_transactions(true);
+
+      return;
+    }
+
+    const res = await get_credit_transactions(1, 50);
+
+    if (!res.data) {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+
+      return;
+    }
+    set_credit_transactions_list(res.data.transactions);
+    set_show_all_transactions(true);
+  };
+
   const has_transactions =
     !!credit_balance && (credit_balance.recent_transactions?.length ?? 0) > 0;
 
   return (
-    <div className="border-t border-edge-secondary pt-8" id="credits_section">
-      <div className="mb-2">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-          <CurrencyDollarIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
-          {t("settings.credits")}
-        </h3>
-        <p className="text-xs text-txt-muted mt-1">
-          {t("settings.top_up_credits_description")}
-        </p>
-      </div>
-
-      <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-edge-secondary mb-3">
-        <div>
-          <p className="text-xs text-txt-muted">
-            {t("settings.credit_balance")}
-          </p>
-          <p className="text-2xl font-bold text-txt-primary mt-0.5">
-            {format_price(credit_balance?.balance_cents ?? 0)}
-          </p>
+    <div className="space-y-8" id="credits_section">
+      <div
+        className={`grid grid-cols-1 overflow-hidden rounded-xl border border-edge-secondary ${
+          payment_cell
+            ? "divide-y divide-edge-secondary sm:grid-cols-2 sm:divide-x sm:divide-y-0 rtl:sm:divide-x-reverse"
+            : ""
+        }`}
+      >
+        {payment_cell}
+        <div className="flex items-center gap-3 px-4 py-3.5 sm:px-5">
+          <BillingIconBox icon={ArrowPathIcon} />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-medium text-txt-primary">
+              {t("settings.credits")}
+            </p>
+            <p className="text-xs text-txt-muted tabular-nums">
+              {format_price(credit_balance?.balance_cents ?? 0)}
+            </p>
+          </div>
+          <button
+            className="aster_btn aster_btn_primary aster_btn_sm flex-shrink-0"
+            type="button"
+            onClick={() => set_show_picker(true)}
+          >
+            {t("settings.top_up_credits")}
+          </button>
         </div>
-        <button
-          className="aster_btn aster_btn_primary aster_btn_md"
-          type="button"
-          onClick={() => set_show_picker(true)}
-        >
-          {t("settings.top_up_credits")}
-        </button>
       </div>
 
       <Modal
@@ -578,196 +641,116 @@ export function CreditsSection({
 
       {credit_balance &&
         (Number(credit_balance.balance_cents) > 0 || has_transactions) && (
-          <>
-            <div className="flex items-center justify-between px-4 py-3 rounded-lg border border-edge-secondary mb-3">
-              <div className="flex-1">
-                <p className="text-sm text-txt-primary">
-                  {t("settings.use_credits_for_renewals")}
-                </p>
-                <p className="text-xs text-txt-muted mt-0.5">
-                  {t("settings.use_credits_for_renewals_description")}
-                </p>
-              </div>
-              <button
-                className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-                  credit_balance?.use_credits_for_renewals
-                    ? "bg-blue-500"
-                    : "bg-zinc-600"
-                }`}
-                type="button"
-                role="switch"
-                aria-checked={!!credit_balance?.use_credits_for_renewals}
-                aria-label={t("settings.use_credits_for_renewals")}
-                onClick={async () => {
-                  const new_value = !credit_balance?.use_credits_for_renewals;
-
-                  if (new_value && (credit_balance?.balance_cents ?? 0) <= 0) {
-                    show_toast(t("settings.credits_earn_first"), "error");
-
-                    return;
+          <section>
+            <BillingSectionLabel>
+              {t("settings.billing_renewals_heading")}
+            </BillingSectionLabel>
+            <BillingGroup>
+              <BillingRow
+                action={
+                  <Switch
+                    aria-label={t("settings.use_credits_for_renewals")}
+                    checked={!!credit_balance?.use_credits_for_renewals}
+                    onCheckedChange={toggle_renewals}
+                  />
+                }
+                description={t("settings.use_credits_for_renewals_description")}
+                title={t("settings.use_credits_for_renewals")}
+              />
+              {has_transactions && (
+                <BillingRow
+                  action={
+                    <button
+                      className="aster_btn aster_btn_secondary aster_btn_sm"
+                      type="button"
+                      onClick={toggle_transactions}
+                    >
+                      {show_all_transactions
+                        ? t("common.close")
+                        : t("settings.view_all_transactions")}
+                    </button>
                   }
-                  try {
-                    const res = await update_credit_settings(new_value);
+                  title={t("settings.recent_transactions")}
+                >
+                  <div className="-mx-4 mt-3 divide-y divide-edge-secondary border-t border-edge-secondary sm:-mx-5">
+                    {(show_all_transactions
+                      ? credit_transactions_list
+                      : credit_balance.recent_transactions
+                    ).map((tx) => {
+                      const credit_type_labels: Record<string, string> = {
+                        referral_reward: t(
+                          "settings.credit_type_referral_reward",
+                        ),
+                        referral_commission: t(
+                          "settings.credit_type_referral_commission",
+                        ),
+                        admin_grant: t("settings.credit_type_admin_grant"),
+                        promo: t("settings.credit_type_promo"),
+                        renewal_deduction: t(
+                          "settings.credit_type_renewal_deduction",
+                        ),
+                        reversal: t("settings.credit_type_reversal"),
+                        purchase: t("settings.credit_type_purchase"),
+                        install_android_reward: t(
+                          "settings.credit_type_install_android",
+                        ),
+                        install_desktop_reward: t(
+                          "settings.credit_type_install_desktop",
+                        ),
+                        install_ios_reward: t(
+                          "settings.credit_type_install_ios",
+                        ),
+                        refunded: t("settings.credit_type_refunded"),
+                        spent: t("settings.credit_type_spent"),
+                        clawback: t("settings.credit_type_clawback"),
+                        admin_removal: t("settings.credit_type_admin_removal"),
+                        crypto_overpayment: t(
+                          "settings.credit_type_crypto_overpayment",
+                        ),
+                        crypto_overpayment_reversal: t(
+                          "settings.credit_type_crypto_overpayment_reversal",
+                        ),
+                        prepaid_switch_residual: t(
+                          "settings.credit_type_prepaid_switch_residual",
+                        ),
+                        prepaid_switch_residual_reversal: t(
+                          "settings.credit_type_prepaid_switch_residual_reversal",
+                        ),
+                      };
+                      const type_label =
+                        credit_type_labels[tx.transaction_type] ||
+                        capitalize_words(tx.transaction_type);
 
-                    if (res.data) {
-                      set_credit_balance((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              use_credits_for_renewals: new_value,
-                              balance_cents: res.data!.balance_cents,
-                            }
-                          : prev,
-                      );
-                      show_toast(
-                        t("settings.credits_toggle_updated"),
-                        "success",
-                      );
-                    } else {
-                      show_toast(t("settings.credits_toggle_failed"), "error");
-                    }
-                  } catch {
-                    show_toast(t("settings.credits_toggle_failed"), "error");
-                  }
-                }}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                    credit_balance?.use_credits_for_renewals
-                      ? "translate-x-4"
-                      : "translate-x-0"
-                  }`}
-                />
-              </button>
-            </div>
-
-            {has_transactions && (
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs font-medium text-txt-secondary">
-                    {t("settings.recent_transactions")}
-                  </p>
-                  <button
-                    className="text-xs text-blue-500 hover:underline"
-                    type="button"
-                    onClick={async () => {
-                      if (show_all_transactions) {
-                        set_show_all_transactions(false);
-
-                        return;
-                      }
-
-                      if (credit_transactions_list.length > 0) {
-                        set_show_all_transactions(true);
-
-                        return;
-                      }
-
-                      const res = await get_credit_transactions(1, 50);
-
-                      if (!res.data) {
-                        show_toast(
-                          t("common.something_went_wrong_try_again"),
-                          "error",
-                        );
-
-                        return;
-                      }
-                      set_credit_transactions_list(res.data.transactions);
-                      set_show_all_transactions(true);
-                    }}
-                  >
-                    {show_all_transactions
-                      ? t("common.close")
-                      : t("settings.view_all_transactions")}
-                  </button>
-                </div>
-                <div className="rounded-lg border overflow-hidden border-edge-secondary">
-                  {(show_all_transactions
-                    ? credit_transactions_list
-                    : credit_balance.recent_transactions
-                  ).map((tx) => {
-                    const credit_type_labels: Record<string, string> = {
-                      referral_reward: t(
-                        "settings.credit_type_referral_reward",
-                      ),
-                      referral_commission: t(
-                        "settings.credit_type_referral_commission",
-                      ),
-                      admin_grant: t("settings.credit_type_admin_grant"),
-                      promo: t("settings.credit_type_promo"),
-                      renewal_deduction: t(
-                        "settings.credit_type_renewal_deduction",
-                      ),
-                      reversal: t("settings.credit_type_reversal"),
-                      purchase: t("settings.credit_type_purchase"),
-                      install_android_reward: t(
-                        "settings.credit_type_install_android",
-                      ),
-                      install_desktop_reward: t(
-                        "settings.credit_type_install_desktop",
-                      ),
-                      install_ios_reward: t("settings.credit_type_install_ios"),
-                      refunded: t("settings.credit_type_refunded"),
-                      spent: t("settings.credit_type_spent"),
-                      clawback: t("settings.credit_type_clawback"),
-                      admin_removal: t("settings.credit_type_admin_removal"),
-                      crypto_overpayment: t(
-                        "settings.credit_type_crypto_overpayment",
-                      ),
-                      crypto_overpayment_reversal: t(
-                        "settings.credit_type_crypto_overpayment_reversal",
-                      ),
-                      prepaid_switch_residual: t(
-                        "settings.credit_type_prepaid_switch_residual",
-                      ),
-                      prepaid_switch_residual_reversal: t(
-                        "settings.credit_type_prepaid_switch_residual_reversal",
-                      ),
-                    };
-                    const type_label =
-                      credit_type_labels[tx.transaction_type] ||
-                      capitalize_words(tx.transaction_type);
-                    const is_positive = tx.amount_cents > 0;
-
-                    return (
-                      <div
-                        key={tx.id}
-                        className="flex items-center justify-between px-4 py-2.5 hover:bg-surf-hover transition-colors"
-                      >
-                        <div>
-                          <p className="text-sm text-txt-primary">
-                            {describe_credit_entry(tx.description, t) ||
-                              capitalize_words(tx.transaction_type)}
-                          </p>
-                          <p className="text-xs mt-0.5 text-txt-muted">
-                            {format_date(tx.created_at)}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span
-                            className={
-                              is_positive
-                                ? "aster_badge aster_badge_green"
-                                : "aster_badge aster_badge_red"
-                            }
-                          >
-                            {type_label}
-                          </span>
-                          <p
-                            className={`text-sm font-medium ${is_positive ? "text-green-500" : "text-red-500"}`}
-                          >
-                            {is_positive ? "+" : ""}
+                      return (
+                        <div
+                          key={tx.id}
+                          className="flex items-center justify-between gap-3 px-4 py-2.5 sm:px-5"
+                        >
+                          <div className="min-w-0">
+                            <p className="truncate text-sm text-txt-primary">
+                              {describe_credit_entry(tx.description, t) ||
+                                capitalize_words(tx.transaction_type)}
+                            </p>
+                            <p className="mt-0.5 text-xs text-txt-muted">
+                              {format_date(tx.created_at)}
+                              <span aria-hidden="true" className="mx-1.5">
+                                ·
+                              </span>
+                              {type_label}
+                            </p>
+                          </div>
+                          <p className="flex-shrink-0 text-sm font-medium tabular-nums text-txt-primary">
+                            {tx.amount_cents < 0 ? "-" : "+"}
                             {format_price(Math.abs(tx.amount_cents))}
                           </p>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </>
+                      );
+                    })}
+                  </div>
+                </BillingRow>
+              )}
+            </BillingGroup>
+          </section>
         )}
     </div>
   );

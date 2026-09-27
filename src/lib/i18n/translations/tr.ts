@@ -1295,11 +1295,14 @@ export const tr = {
     locked_data_banner_action: "Verileri kurtar",
     locked_data_banner_dismiss: "Kapat",
     recover_data_title: "Verileri kurtar",
-    recover_data_description: "Parola değişikliğinden veya sıfırlamadan önceki verilerin kilidini açmak için o sırada kullandığınız parolayı girin.",
+    recover_data_description:
+      "Parola değişikliğinden veya sıfırlamadan önceki verilerin kilidini açmak için o sırada kullandığınız parolayı girin.",
     recover_data_button: "Kurtar",
     recover_data_success: "Eski verilerinizin kilidi açıldı.",
-    recover_data_no_match: "Bu parola hiçbir verinin kilidini açmadı. Başka bir eski parola deneyin.",
-    recover_data_failed: "Bazı verilerin kilidi açılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
+    recover_data_no_match:
+      "Bu parola hiçbir verinin kilidini açmadı. Başka bir eski parola deneyin.",
+    recover_data_failed:
+      "Bazı verilerin kilidi açılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
     payment_past_due_message:
       "Son ödemeniz alınamadı. Planınızı sürdürmek için ödeme yönteminizi güncelleyin.",
     payment_past_due_message_days:
@@ -3855,8 +3858,7 @@ export const tr = {
     external_link_warning_disabled: "Bağlantılar onay olmadan doğrudan açılır",
     ipfs_attachment_storage: "IPFS Ek Depolama",
     ipfs_enabled_description: "Ekler, Aster'in özel IPFS deposunda saklanır",
-    ipfs_disabled_description:
-      "Ekleri Aster'in özel IPFS deposunda saklayın",
+    ipfs_disabled_description: "Ekleri Aster'in özel IPFS deposunda saklayın",
     forward_secrecy: "İleri Gizlilik",
     forward_secrecy_disable_title: "İleri gizliliği kapatmak istiyor musunuz?",
     forward_secrecy_disable_message:
@@ -3926,7 +3928,8 @@ export const tr = {
     password_change_background_reencrypt_failed:
       "Parolan değişti ancak gönderilen postalarının ve ayarlarının bir bölümü yeniden şifrelenmedi. Postaların veya ayarların okunamaz görünüyorsa destek ekibine ulaş.",
     previous_password: "Önceki parola",
-    password_change_sent_mail_locked: "Parolanız değişti. {{count}} gönderilmiş e-posta önceki bir parolayla şifrelenmişti ve güncellenmedi. Kilidini açmak için gelen kutunuzun üst kısmındaki bantta Verileri kurtar seçeneğini seçin.",
+    password_change_sent_mail_locked:
+      "Parolanız değişti. {{count}} gönderilmiş e-posta önceki bir parolayla şifrelenmişti ve güncellenmedi. Kilidini açmak için gelen kutunuzun üst kısmındaki bantta Verileri kurtar seçeneğini seçin.",
     password_changed_signing_out:
       "Parola başarıyla değiştirildi. Çıkış yapılıyor...",
     password_changed_success: "Parola değiştirildi",
@@ -4154,9 +4157,11 @@ export const tr = {
     compose_mode_fullscreen: "Her zaman tam ekran",
     compose_mode_minimized: "Küçültülmüş başlat",
     default_sender_group: "Gönderme",
-    default_sender_group_description: "Yeni iletilerin hangi adresinizden gideceğini seçin.",
+    default_sender_group_description:
+      "Yeni iletilerin hangi adresinizden gideceğini seçin.",
     default_sender_title: "Varsayılan gönderen",
-    default_sender_description: "Yeni iletiler bu adresten gider. Yanıtlar, iletinin gönderildiği adresi kullanır.",
+    default_sender_description:
+      "Yeni iletiler bu adresten gider. Yanıtlar, iletinin gönderildiği adresi kullanır.",
     default_sender_no_addresses: "Başka adres yok",
     compose_defaults_title: "Varsayılan biçimlendirme",
     compose_defaults_description:
@@ -4173,9 +4178,11 @@ export const tr = {
     reply_defaults_title: "Yanıtlar",
     reply_defaults_description: "Yeni bir yanıtın neyle başlayacağını seçin.",
     reply_include_quoted: "Alıntılanan metni ekle",
-    reply_include_quoted_description: "Her yanıt, metninizin altında alıntılanan özgün iletiyle başlar.",
+    reply_include_quoted_description:
+      "Her yanıt, metninizin altında alıntılanan özgün iletiyle başlar.",
     reply_prefix_subject: "Konuya Yt: ekle",
-    reply_prefix_subject_description: "Yanıtladığınızda özgün konunun önüne Yt: ekler.",
+    reply_prefix_subject_description:
+      "Yanıtladığınızda özgün konunun önüne Yt: ekler.",
     build_info: "Yapı Bilgisi",
     release: "Sürüm",
     build: "Yapı",
@@ -4234,6 +4241,13 @@ export const tr = {
     reactivate: "Yeniden Etkinleştir",
     cancel_plan: "Planı İptal Et",
     billing_history: "Faturalandırma Geçmişi",
+    billing_plan_heading: "Plan",
+    billing_hide_plans: "Planları gizle",
+    billing_cancel_notice_title: "Planınız iptal edilecek",
+    billing_cancel_notice_body:
+      "Planınız {{date}} tarihinde sona eriyor. Ardından hesabınız ücretsiz plana geçer.",
+    billing_renewals_heading: "Yenilemeler",
+    billing_amount: "Tutar",
     billing_desc_payment_failed: "Ödeme başarısız oldu",
     billing_desc_refund_processed: "İade işleme alındı",
     billing_desc_payment_disputed: "Ödemeye itiraz edildi: {{reason}}",
@@ -5129,16 +5143,33 @@ export const tr = {
       "Ödeme başlatılırken bir sorun oluştu. Tekrar deneyin.",
     special_offer_was_price: "Önceki fiyat: aylık {{price}}",
     special_offer_original_price: "Normal fiyat: {{price}}",
-    special_offer_cta: "%{{percent}} indirim alın",
-    special_offer_feature_aliases: "Sınırsız takma ad ve özel alan adları",
-    special_offer_feature_vanguard:
-      "Aster Vanguard uygulama kilidi, kilitlenme modu ve güvenlik izleme",
-    special_offer_feature_storage: "500 GB şifrelenmiş depolama",
+    special_offer_cta: "%{{percent}} indirimi alın",
+    special_offer_feature_aliases: "Sınırsız takma ad",
+    special_offer_feature_vanguard: "Vanguard ile gelişmiş güvenlik",
+    special_offer_feature_storage: "500 GB şifreli depolama",
+    special_offer_why_body:
+      "Aster, küçük bir ekibe sahip bağımsız bir şirkettir ve desteğiniz bizim için çok değerlidir. Abonelikler hizmetin çalışmasını sağlar ve Aster'ı her gün özenle geliştirmeye devam etmemize olanak tanır. Bu teklif başlamanızı kolaylaştırır.",
+    special_offer_why_label: "Neden bu teklif?",
+    special_offer_feature_vanguard_body:
+      "Uygulama kilidi ve gelişmiş gizlilik koruması.",
+    special_offer_feature_domains_body:
+      "Kendi alan adlarınızdaki adreslerden gönderin.",
+    special_offer_feature_domains: "30'a kadar özel alan adı",
+    special_offer_feature_storage_body: "Yıllarca e-posta ve dosya için yer.",
+    special_offer_feature_aliases_body: "Her siteye ayrı bir adres verin.",
     special_offer_fine_print:
       "İlk {{months}} ay boyunca aylık {{offer_price}} ödersiniz. Ardından planınız, Ayarlar bölümünden iptal edene kadar aylık {{price}} olarak yenilenir.",
     special_offer_dismiss: "Bu teklifi bir daha gösterme",
     special_offer_dismissed_toast: "Bunu bir daha göstermeyeceğiz.",
+    special_offer_success_title: "Teşekkürler. Artık Nova kullanıyorsunuz.",
+    special_offer_success_body:
+      "Abone olduğunuz için teşekkürler. Desteğiniz bizim için çok değerli.",
     special_offer_hero_duration: "{{months}} ay boyunca",
+    special_offer_price_period_year: "yıllık",
+    special_offer_hero_duration_year: "ilk yıl için",
+    special_offer_fine_print_year:
+      "İlk yıl için {{offer_price}} ödersiniz. Ardından planınız, Ayarlar bölümünden iptal edene kadar yıllık {{price}} olarak yenilenir.",
+    special_offer_billing_period: "Faturalandırma dönemi",
     plan_billing_terms:
       "Abonelikler, siz iptal edene kadar standart fiyattan otomatik olarak yenilenir. İstediğiniz zaman Ayarlar bölümünden iptal edebilirsiniz.",
     upgrade_offer_note: "%{{percent}} indiriminiz ödeme sırasında uygulanır.",
@@ -6088,6 +6119,12 @@ export const tr = {
     checkout_abandon_title: "Bu ödeme iptal edilsin mi?",
     checkout_add_promo: "Promosyon kodu ekle",
     checkout_amount_due: "Ödenecek tutar",
+    checkout_offer_switch_term:
+      "%{{percent}} indirim için {{term}} seçeneğine geçin",
+    checkout_offer_switch_crypto: "%{{percent}} indirim için kriptoyla ödeyin",
+    checkout_offer_switch_card: "%{{percent}} indirim için kartla ödeyin",
+    checkout_offer_renewal:
+      "{{months}} ay boyunca aylık {{offer_price}}, sonra aylık {{price}}",
     checkout_card_details: "Kart bilgileri",
     checkout_full_features_title: "{{plan}} özellikleri",
     checkout_leave_warning:
@@ -6767,18 +6804,24 @@ export const tr = {
     bridge_format_pacman_desc: "Arch Linux ve türevleri",
     bridge_download_started: "İndirme başladı",
     bridge_download_failed: "İndirme başlamadı. Yeniden deneyin.",
-    bridge_support_help_desc: "Kurulum kılavuzları ve sık sorulan soruların yanıtları",
+    bridge_support_help_desc:
+      "Kurulum kılavuzları ve sık sorulan soruların yanıtları",
     bridge_support_discord_desc: "Ekibe ve Aster kullanan diğer kişilere sorun",
     bridge_support_reddit_desc: "Duyuruları takip edin ve tartışmalara katılın",
     bridge_support_github_desc: "Kaynak kodu inceleyin ve sorun bildirin",
     bridge_all_platforms: "Tüm platformlar",
-    bridge_upgrade_benefit_clients: "Apple Mail, Thunderbird ve Outlook ile çalışır",
-    bridge_upgrade_benefit_local: "Yerel olarak çalışır, böylece postanız şifreli kalır",
-    bridge_upgrade_benefit_platforms: "Windows, macOS ve Linux'ta kullanılabilir",
+    bridge_upgrade_benefit_clients:
+      "Apple Mail, Thunderbird ve Outlook ile çalışır",
+    bridge_upgrade_benefit_local:
+      "Yerel olarak çalışır, böylece postanız şifreli kalır",
+    bridge_upgrade_benefit_platforms:
+      "Windows, macOS ve Linux'ta kullanılabilir",
     bridge_upgrade_benefit_cli: "Sunucular için komut satırı sürümü içerir",
     bridge_cli_download: "İndir",
-    bridge_cli_install_hint: "Platformunuza uygun arşivi indirin, ayıklayın ve ikili dosyayı PATH dizininize taşıyın.",
-    bridge_cli_install_hint_windows: "Arşivi indirin, ayıklayın ve klasörü PATH değişkeninize ekleyin.",
+    bridge_cli_install_hint:
+      "Platformunuza uygun arşivi indirin, ayıklayın ve ikili dosyayı PATH dizininize taşıyın.",
+    bridge_cli_install_hint_windows:
+      "Arşivi indirin, ayıklayın ve klasörü PATH değişkeninize ekleyin.",
     bridge_cli_copy_command: "Kurulum komutlarını kopyala",
     bridge_cli_docs_link: "Komut satırı kılavuzunu okuyun",
     bridge_cli_name: "Komut satırı",
@@ -7033,7 +7076,7 @@ export const tr = {
     crypto_native_recommended: "Önerilen",
     crypto_native_resume_selected: "Seçili",
     crypto_native_status_underpaid: "Kısmen ödendi",
-    crypto_native_what_happens: "Sırada ne var",
+    crypto_native_what_happens: "Ödeme durumu",
     crypto_native_stripe_option: "Stablecoin ile öde",
     crypto_native_stripe_desc:
       "Ödeme sağlayıcımız üzerinden USDC ve diğer stablecoin'ler",
@@ -7043,7 +7086,7 @@ export const tr = {
       "Bugün çok fazla kripto faturası oluşturdunuz. Lütfen daha sonra tekrar deneyin.",
     crypto_native_invoice_title: "{{coin}} ile öde",
     crypto_native_awaiting_body:
-      "Aşağıdaki adrese tam tutarı gönderin. Bu sayfa otomatik olarak güncellenir.",
+      "Aşağıdaki adrese tam tutarı gönderin. Bu sayfa otomatik olarak güncellenecek.",
     crypto_native_received_title: "Ödeme alındı",
     crypto_native_received_body:
       "Tutarın tamamı alındı ve işleniyor. Başka bir ödeme yapmanıza gerek yok.",
@@ -7076,7 +7119,7 @@ export const tr = {
       "Ödemeniz kısa bir manuel kontrol gerektiriyor. Hesabınıza kısa süre içinde yansıtacağız.",
     crypto_native_transaction: "İşlem",
     crypto_native_refund_notice:
-      "Ödenmesi gereken tutardan fazlasını gönderirseniz fazla kısım ABD doları olarak Aster hesap bakiyenize eklenir. Bunun yerine iade edilmesini de isteyebilirsiniz.",
+      "Ödenmesi gereken tutardan fazlasını gönderirseniz fazla kısım ABD doları olarak Aster hesap bakiyenize eklenir.",
     crypto_native_cancel_invoice: "Bu faturayı iptal et",
     crypto_native_cancel_failed: "Bu fatura iptal edilemedi.",
     crypto_native_cancel_has_payment:
@@ -7108,6 +7151,13 @@ export const tr = {
       "Göndermeden önce cüzdan ekranınızdaki adresi burada gösterilenle karşılaştırın. Siparişiniz için yalnızca bu adres izlenir.",
     crypto_native_fee_headroom:
       "Cüzdanınız ağ ücretini girdiğiniz tutardan düşüyorsa, tutarın tamamı ulaşsın diye biraz fazlasını ekleyin.",
+    crypto_native_network_only: "Yalnızca {{chain}} ağında {{coin}} gönderin",
+    crypto_native_tip_unrecoverable:
+      "Başka bir ağdan gönderilen fonlar kurtarılamaz.",
+    crypto_native_tip_check_address:
+      "Göndermeden önce cüzdanınızdaki adresi kontrol edin.",
+    crypto_native_tip_fee:
+      "Cüzdanınız ücreti tutardan düşüyorsa biraz fazla gönderin.",
     crypto_native_expired_do_not_send:
       "Bu faturadaki adrese gönderim yapmayın. Şimdi gönderilen fonların hesabınıza geçmesi için manuel inceleme gerekir.",
     crypto_native_not_found: "Bu faturayı bulamadık",
@@ -7872,6 +7922,8 @@ export const tr = {
       "Monero: iş ispatı kullanır ve genel amaçlı işlemcilerde madenciliği yapılır. Arkasında durabileceğimiz güncel bir değer bulamadığımız için bir sayı yayımlamıyoruz.",
     crypto_energy_caveat:
       "Bunlar bizim ölçümlerimiz değil, üçüncü taraf tahminleridir ve işlem başına rakamlar tartışmalıdır. Hiçbir ödeme yöntemi için çevresel bir iddiada bulunmuyoruz.",
+    crypto_native_rate_label: "Döviz kuru",
+    crypto_native_last_checked_label: "Son kontrol",
     crypto_native_rate_value: "Kullanılan kur: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "Kurunuzu sabitlemek için bir kripto para seçin. Ödemeyi ardından kendi cüzdanınızdan siz gönderirsiniz.",

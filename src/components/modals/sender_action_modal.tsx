@@ -32,9 +32,9 @@ import {
   FolderIcon,
   CheckIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
 import { Checkbox } from "@aster/ui";
 
+import { Button } from "@/components/ui/button";
 import { FaviconOrInitial } from "@/components/ui/favicon_or_initial";
 import { yield_to_browser } from "@/lib/scheduling";
 import {
@@ -773,21 +773,16 @@ export function SenderActionModal({
                     : t("common.select_all")}
                 </button>
                 <Button
-                  disabled={!can_execute || is_executing}
+                  disabled={!can_execute}
+                  is_loading={is_executing}
                   size="xl"
                   variant="depth"
                   onClick={handle_execute}
                 >
-                  {is_executing ? (
-                    <Spinner size="md" />
-                  ) : (
-                    <>
-                      {config.button_text}
-                      {selected_senders.size > 0
-                        ? ` (${selected_senders.size})`
-                        : ""}
-                    </>
-                  )}
+                  {config.button_text}
+                  {selected_senders.size > 0
+                    ? ` (${selected_senders.size})`
+                    : ""}
                 </Button>
               </div>
             </motion.div>

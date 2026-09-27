@@ -19,11 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useRef, useState } from "react";
-import {
-  AcademicCapIcon,
-  CheckIcon,
-  ClipboardIcon,
-} from "@heroicons/react/24/outline";
+import { CheckIcon, ClipboardIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
@@ -40,6 +36,7 @@ import {
   type TurnstileWidgetRef,
 } from "@/components/auth/turnstile_widget";
 import { is_composing } from "@/utils/ime";
+import { BillingSectionLabel } from "@/components/settings/billing/billing_layout";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
@@ -171,19 +168,16 @@ export function AcademicDiscountSection({
   const status = academic_status?.status ?? "none";
 
   return (
-    <div className="border-t border-edge-secondary pt-8">
-      <div className="mb-2">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-          <AcademicCapIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
-          {t("settings.academic_discount_title")}
-        </h3>
-        <p className="text-xs text-txt-muted mt-1">
-          {t("settings.academic_discount_description")}
-        </p>
-      </div>
+    <section>
+      <BillingSectionLabel>
+        {t("settings.academic_discount_title")}
+      </BillingSectionLabel>
+      <p className="-mt-1 mb-3 text-xs text-txt-muted">
+        {t("settings.academic_discount_description")}
+      </p>
 
       {status === "verified" && academic_status?.promo_code && (
-        <div className="rounded-lg border border-edge-secondary px-4 py-4">
+        <div className="rounded-xl border border-edge-secondary px-4 py-4 sm:px-5">
           <p className="text-xs text-txt-muted">
             {t("settings.academic_code_ready_title")}
           </p>
@@ -197,7 +191,7 @@ export function AcademicDiscountSection({
               onClick={handle_copy}
             >
               {copied ? (
-                <CheckIcon className="w-4 h-4 text-green-500" />
+                <CheckIcon className="w-4 h-4 text-txt-primary" />
               ) : (
                 <ClipboardIcon className="w-4 h-4 text-txt-muted" />
               )}
@@ -213,7 +207,7 @@ export function AcademicDiscountSection({
       )}
 
       {status === "pending" && (
-        <div className="rounded-lg border border-edge-secondary px-4 py-4">
+        <div className="rounded-xl border border-edge-secondary px-4 py-4 sm:px-5">
           <p className="text-sm text-txt-primary">
             {t("settings.academic_pending_title")}
           </p>
@@ -248,13 +242,13 @@ export function AcademicDiscountSection({
       )}
 
       {status === "none" && (
-        <div className="rounded-lg border border-edge-secondary px-4 py-4">
+        <div className="rounded-xl border border-edge-secondary px-4 py-4 sm:px-5">
           <p className="text-xs text-txt-muted mb-3">
             {t("settings.academic_intro")}
           </p>
           <div className="flex flex-col sm:flex-row gap-2">
             <input
-              className="flex-1 h-10 px-3 rounded-lg border border-edge-secondary bg-transparent text-sm text-txt-primary placeholder:text-txt-muted focus:outline-none focus:border-blue-500"
+              className="flex-1 h-10 px-3 rounded-lg border border-edge-secondary bg-transparent text-sm text-txt-primary placeholder:text-txt-muted focus:outline-none focus:border-edge-primary"
               placeholder={t("settings.academic_email_placeholder")}
               type="email"
               value={academic_email}
@@ -291,6 +285,6 @@ export function AcademicDiscountSection({
           </p>
         </div>
       )}
-    </div>
+    </section>
   );
 }

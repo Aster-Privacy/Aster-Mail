@@ -1296,15 +1296,19 @@ export const nl = {
     n_conversations_marked_as_spam:
       "{{ count }} gesprekken als spam gemarkeerd",
     notification_banner_no_thanks: "Nee, bedankt",
-    locked_data_banner_message: "Een deel van je oudere versleutelde gegevens is vergrendeld.",
+    locked_data_banner_message:
+      "Een deel van je oudere versleutelde gegevens is vergrendeld.",
     locked_data_banner_action: "Gegevens herstellen",
     locked_data_banner_dismiss: "Sluiten",
     recover_data_title: "Gegevens herstellen",
-    recover_data_description: "Voer het wachtwoord in dat je toen gebruikte om gegevens van vóór een wachtwoordwijziging of -reset te ontgrendelen.",
+    recover_data_description:
+      "Voer het wachtwoord in dat je toen gebruikte om gegevens van vóór een wachtwoordwijziging of -reset te ontgrendelen.",
     recover_data_button: "Herstellen",
     recover_data_success: "Je oudere gegevens zijn ontgrendeld.",
-    recover_data_no_match: "Met dat wachtwoord zijn geen gegevens ontgrendeld. Probeer een ander eerder wachtwoord.",
-    recover_data_failed: "Sommige gegevens konden niet worden ontgrendeld. Controleer je verbinding en probeer het opnieuw.",
+    recover_data_no_match:
+      "Met dat wachtwoord zijn geen gegevens ontgrendeld. Probeer een ander eerder wachtwoord.",
+    recover_data_failed:
+      "Sommige gegevens konden niet worden ontgrendeld. Controleer je verbinding en probeer het opnieuw.",
     payment_past_due_message:
       "Je laatste betaling is niet gelukt. Werk je betaalmethode bij om je abonnement te behouden.",
     payment_past_due_message_days:
@@ -3959,7 +3963,8 @@ export const nl = {
     password_change_background_reencrypt_failed:
       "Je wachtwoord is gewijzigd, maar een deel van je verzonden berichten en instellingen is niet opnieuw versleuteld. Neem contact op met de klantenservice als berichten of instellingen onleesbaar lijken.",
     previous_password: "Vorig wachtwoord",
-    password_change_sent_mail_locked: "Je wachtwoord is gewijzigd. {{count}} verzonden e-mails waren versleuteld met een eerder wachtwoord en zijn niet bijgewerkt. Selecteer Gegevens herstellen in de banner boven je inbox om ze te ontgrendelen.",
+    password_change_sent_mail_locked:
+      "Je wachtwoord is gewijzigd. {{count}} verzonden e-mails waren versleuteld met een eerder wachtwoord en zijn niet bijgewerkt. Selecteer Gegevens herstellen in de banner boven je inbox om ze te ontgrendelen.",
     password_changed_signing_out:
       "Wachtwoord succesvol gewijzigd. Je wordt uitgelogd...",
     password_changed_success: "Wachtwoord gewijzigd",
@@ -4224,6 +4229,13 @@ export const nl = {
       "U behoudt de premiumfuncties tot het einde van deze factureringsperiode, en daarna gaat uw abonnement over op Gratis. Uw post, contacten en instellingen blijven bij u.",
     cancel_plan: "Abonnement annuleren",
     billing_history: "Factureringsgeschiedenis",
+    billing_plan_heading: "Abonnement",
+    billing_hide_plans: "Abonnementen verbergen",
+    billing_cancel_notice_title: "Je abonnement wordt opgezegd",
+    billing_cancel_notice_body:
+      "Je abonnement eindigt op {{date}}. Daarna gaat je account over naar het gratis abonnement.",
+    billing_renewals_heading: "Verlengingen",
+    billing_amount: "Bedrag",
     billing_desc_payment_failed: "Betaling mislukt",
     billing_desc_refund_processed: "Terugbetaling verwerkt",
     billing_desc_payment_disputed: "Betaling betwist: {{reason}}",
@@ -5099,16 +5111,34 @@ export const nl = {
       "Er is iets misgegaan bij het starten van het afrekenen. Probeer het opnieuw.",
     special_offer_was_price: "Was {{price}} per maand",
     special_offer_original_price: "Oorspronkelijke prijs: {{price}}",
-    special_offer_cta: "Krijg {{percent}}% korting",
-    special_offer_feature_aliases: "Onbeperkt aliassen en eigen domeinen",
-    special_offer_feature_vanguard:
-      "Aster Vanguard-appvergrendeling, lockdownmodus en beveiligingsmonitoring",
+    special_offer_cta: "Claim {{percent}}% korting",
+    special_offer_feature_aliases: "Onbeperkte aliassen",
+    special_offer_feature_vanguard: "Extra beveiliging met Vanguard",
     special_offer_feature_storage: "500 GB versleutelde opslag",
+    special_offer_why_body:
+      "Aster is een onafhankelijk bedrijf met een klein team, en je steun betekent veel voor ons. Abonnementen houden de dienst draaiende en stellen ons in staat Aster elke dag met zorg verder te ontwikkelen. Met deze aanbieding is beginnen makkelijker.",
+    special_offer_why_label: "Waarom deze aanbieding?",
+    special_offer_feature_vanguard_body:
+      "App-vergrendeling en geavanceerde privacybescherming.",
+    special_offer_feature_domains_body:
+      "Verstuur vanaf adressen op je eigen domeinen.",
+    special_offer_feature_domains: "Tot 30 eigen domeinen",
+    special_offer_feature_storage_body:
+      "Ruimte voor jaren aan mail en bestanden.",
+    special_offer_feature_aliases_body: "Geef elke site een eigen adres.",
     special_offer_fine_print:
       "Je betaalt {{offer_price}} per maand voor de eerste {{months}} maanden. Daarna wordt je abonnement verlengd voor {{price}} per maand totdat je het opzegt in Instellingen.",
     special_offer_dismiss: "Deze aanbieding niet meer tonen",
     special_offer_dismissed_toast: "We laten dit niet meer zien.",
+    special_offer_success_title: "Bedankt. Je hebt nu Nova.",
+    special_offer_success_body:
+      "Bedankt voor je abonnement. Je steun betekent veel voor ons.",
     special_offer_hero_duration: "voor {{months}} maanden",
+    special_offer_price_period_year: "per jaar",
+    special_offer_hero_duration_year: "voor het eerste jaar",
+    special_offer_fine_print_year:
+      "Je betaalt {{offer_price}} voor het eerste jaar. Daarna wordt je abonnement verlengd voor {{price}} per jaar totdat je het opzegt in Instellingen.",
+    special_offer_billing_period: "Factuurperiode",
     plan_billing_terms:
       "Abonnementen worden automatisch verlengd tegen het standaardtarief totdat je opzegt. Je kunt op elk moment opzeggen in Instellingen.",
     upgrade_offer_note:
@@ -5702,9 +5732,11 @@ export const nl = {
     compose_mode_fullscreen: "Altijd volledig scherm",
     compose_mode_minimized: "Geminimaliseerd starten",
     default_sender_group: "Verzenden",
-    default_sender_group_description: "Kies vanaf welk van je adressen nieuwe berichten vertrekken.",
+    default_sender_group_description:
+      "Kies vanaf welk van je adressen nieuwe berichten vertrekken.",
     default_sender_title: "Standaardafzender",
-    default_sender_description: "Nieuwe berichten vertrekken vanaf dit adres. Antwoorden gebruiken het adres waarnaar het bericht is verstuurd.",
+    default_sender_description:
+      "Nieuwe berichten vertrekken vanaf dit adres. Antwoorden gebruiken het adres waarnaar het bericht is verstuurd.",
     default_sender_no_addresses: "Geen andere adressen",
     compose_defaults_title: "Standaardopmaak",
     compose_defaults_description:
@@ -5721,9 +5753,11 @@ export const nl = {
     reply_defaults_title: "Antwoorden",
     reply_defaults_description: "Kies waarmee een nieuw antwoord begint.",
     reply_include_quoted: "Geciteerde tekst toevoegen",
-    reply_include_quoted_description: "Elk antwoord begint met het originele bericht geciteerd onder je tekst.",
+    reply_include_quoted_description:
+      "Elk antwoord begint met het originele bericht geciteerd onder je tekst.",
     reply_prefix_subject: "Re: aan het onderwerp toevoegen",
-    reply_prefix_subject_description: "Zet Re: voor het originele onderwerp wanneer je antwoordt.",
+    reply_prefix_subject_description:
+      "Zet Re: voor het originele onderwerp wanneer je antwoordt.",
     change_plan: "Abonnement wijzigen",
     change_plan_description:
       "Upgrade of downgrade je abonnement via het factureringsportaal",
@@ -6176,6 +6210,11 @@ export const nl = {
     checkout_abandon_title: "Deze betaling annuleren?",
     checkout_add_promo: "Een kortingscode toevoegen",
     checkout_amount_due: "Te betalen bedrag",
+    checkout_offer_switch_term: "Kies {{term}} voor {{percent}}% korting",
+    checkout_offer_switch_crypto: "Betaal met crypto voor {{percent}}% korting",
+    checkout_offer_switch_card: "Betaal met kaart voor {{percent}}% korting",
+    checkout_offer_renewal:
+      "{{offer_price}} per maand gedurende {{months}} maanden, daarna {{price}} per maand",
     checkout_card_details: "Kaartgegevens",
     checkout_full_features_title: "Functies van {{plan}}",
     checkout_leave_warning:
@@ -6928,7 +6967,7 @@ export const nl = {
     crypto_native_recommended: "Aanbevolen",
     crypto_native_resume_selected: "Geselecteerd",
     crypto_native_status_underpaid: "Gedeeltelijk betaald",
-    crypto_native_what_happens: "Wat er nu gebeurt",
+    crypto_native_what_happens: "Betalingsvoortgang",
     crypto_native_stripe_option: "Betalen met stablecoin",
     crypto_native_stripe_desc:
       "USDC en andere stablecoins via onze betaalprovider",
@@ -6971,7 +7010,7 @@ export const nl = {
       "Je betaling heeft een korte handmatige controle nodig. We schrijven het bedrag binnenkort bij.",
     crypto_native_transaction: "Transactie",
     crypto_native_refund_notice:
-      "Als je meer stuurt dan het verschuldigde bedrag, komt het extra bedrag in Amerikaanse dollars op je Aster-accountsaldo. Je kunt ons ook vragen het terug te betalen.",
+      "Als je meer stuurt dan het verschuldigde bedrag, komt het extra bedrag in Amerikaanse dollars op je Aster-accountsaldo.",
     crypto_native_cancel_invoice: "Deze factuur annuleren",
     crypto_native_cancel_failed: "Kon deze factuur niet annuleren.",
     crypto_native_cancel_has_payment:
@@ -7003,6 +7042,14 @@ export const nl = {
       "Vergelijk voor het versturen het adres op je wallet-scherm met het adres dat hier staat. Alleen dit adres wordt voor je bestelling gevolgd.",
     crypto_native_fee_headroom:
       "Als je wallet de netwerkkosten van het ingevoerde bedrag afhaalt, tel er dan iets bij op zodat het volledige bedrag aankomt.",
+    crypto_native_network_only:
+      "Stuur alleen {{coin}} via het {{chain}}-netwerk",
+    crypto_native_tip_unrecoverable:
+      "Geld dat via een ander netwerk wordt verstuurd, is niet terug te halen.",
+    crypto_native_tip_check_address:
+      "Controleer het adres in je wallet voordat je verstuurt.",
+    crypto_native_tip_fee:
+      "Als je wallet de kosten van het bedrag aftrekt, stuur dan iets meer.",
     crypto_native_expired_do_not_send:
       "Stuur niets naar het adres op deze factuur. Bedragen die je nu stuurt, moeten handmatig worden gecontroleerd voordat ze kunnen worden bijgeschreven.",
     crypto_native_not_found: "We konden deze factuur niet vinden",
@@ -7119,18 +7166,26 @@ export const nl = {
     bridge_format_pacman_desc: "Arch Linux en afgeleiden",
     bridge_download_started: "Download gestart",
     bridge_download_failed: "De download is niet gestart. Probeer het opnieuw.",
-    bridge_support_help_desc: "Installatiegidsen en antwoorden op veelgestelde vragen",
-    bridge_support_discord_desc: "Stel je vraag aan het team en andere Aster-gebruikers",
+    bridge_support_help_desc:
+      "Installatiegidsen en antwoorden op veelgestelde vragen",
+    bridge_support_discord_desc:
+      "Stel je vraag aan het team en andere Aster-gebruikers",
     bridge_support_reddit_desc: "Volg aankondigingen en praat mee",
     bridge_support_github_desc: "Bekijk de broncode en meld een probleem",
     bridge_all_platforms: "Alle platforms",
-    bridge_upgrade_benefit_clients: "Werkt met Apple Mail, Thunderbird en Outlook",
-    bridge_upgrade_benefit_local: "Draait lokaal, zodat je e-mail versleuteld blijft",
-    bridge_upgrade_benefit_platforms: "Beschikbaar voor Windows, macOS en Linux",
-    bridge_upgrade_benefit_cli: "Inclusief een opdrachtregelversie voor servers",
+    bridge_upgrade_benefit_clients:
+      "Werkt met Apple Mail, Thunderbird en Outlook",
+    bridge_upgrade_benefit_local:
+      "Draait lokaal, zodat je e-mail versleuteld blijft",
+    bridge_upgrade_benefit_platforms:
+      "Beschikbaar voor Windows, macOS en Linux",
+    bridge_upgrade_benefit_cli:
+      "Inclusief een opdrachtregelversie voor servers",
     bridge_cli_download: "Downloaden",
-    bridge_cli_install_hint: "Download het archief voor je platform, pak het uit en verplaats het binaire bestand naar je PATH.",
-    bridge_cli_install_hint_windows: "Download het archief, pak het uit en voeg de map toe aan je PATH.",
+    bridge_cli_install_hint:
+      "Download het archief voor je platform, pak het uit en verplaats het binaire bestand naar je PATH.",
+    bridge_cli_install_hint_windows:
+      "Download het archief, pak het uit en voeg de map toe aan je PATH.",
     bridge_cli_copy_command: "Installatieopdrachten kopiëren",
     bridge_cli_docs_link: "Lees de opdrachtregelhandleiding",
     bridge_cli_name: "Opdrachtregel",
@@ -7892,6 +7947,8 @@ export const nl = {
       "Monero: proof of work, gedolven op algemene processors. We hebben geen actueel cijfer gevonden waar we voor zouden instaan, dus publiceren we er geen.",
     crypto_energy_caveat:
       "Dit zijn schattingen van derden en geen eigen metingen, en cijfers per transactie zijn omstreden. We doen geen milieuclaim over welke betaalmethode dan ook.",
+    crypto_native_rate_label: "Wisselkoers",
+    crypto_native_last_checked_label: "Laatst gecontroleerd",
     crypto_native_rate_value: "Gebruikte koers: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "Kies een munt om je wisselkoers vast te zetten. Daarna stuur je de betaling zelf vanuit je eigen wallet.",

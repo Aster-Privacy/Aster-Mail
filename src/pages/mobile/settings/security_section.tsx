@@ -46,7 +46,7 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { api_client } from "@/services/api/client";
 import {
@@ -1057,11 +1057,8 @@ export function SecuritySection({
                   type="button"
                   onClick={handle_change_password}
                 >
-                  {pw_loading ? (
-                    <Spinner size="md" />
-                  ) : (
-                    t("settings.change_password")
-                  )}
+                  {t("settings.change_password")}
+                  {pw_loading && <ButtonSpinner />}
                 </motion.button>
               </div>
             </div>
@@ -1077,11 +1074,8 @@ export function SecuritySection({
               type="button"
               onClick={handle_logout_others}
             >
-              {logout_others_loading ? (
-                <Spinner size="md" />
-              ) : (
-                t("settings.sign_out_everywhere")
-              )}
+              {t("settings.sign_out_everywhere")}
+              {logout_others_loading && <ButtonSpinner />}
             </motion.button>
             {logout_others_result && (
               <p

@@ -39,7 +39,6 @@ import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { Spinner } from "@/components/ui/spinner";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
-import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   show_toast,
@@ -88,6 +87,7 @@ import { checkout_error_text } from "@/components/settings/billing/checkout_erro
 import {
   SPECIAL_OFFER_INTERVAL,
   SPECIAL_OFFER_PLAN_CODE,
+  special_offer_checkout,
 } from "@/lib/special_offer";
 
 const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
@@ -198,7 +198,6 @@ function is_desktop(): boolean {
 
 export function UpgradeModal() {
   const { t } = use_i18n();
-  const offer_checkout = use_special_offer_checkout();
   const location = useLocation();
   const state = use_upgrade_state();
   const { is_authenticated } = use_auth();
@@ -598,6 +597,10 @@ export function UpgradeModal() {
 
     return state.offer_promo_code;
   };
+
+  const crypto_offer = special_offer_checkout(
+    !!crypto_tier && !!offer_promo_code_for(crypto_tier.id),
+  );
 
   const handle_choose_crypto = (selected_term_id?: string) => {
     if (is_starting || !pending_tier) return;
@@ -1068,7 +1071,6 @@ export function UpgradeModal() {
           plan_name={pending_tier.name}
           selected_plan_id={pending_tier.id}
           selected_term={term_id}
-          special_offer={offer_checkout.plan_pricing(pending_tier.id)}
           term_options={[
             {
               id: "monthly",
@@ -1131,8 +1133,8 @@ export function UpgradeModal() {
 
       {crypto_tier && (
         <CryptoTermModal
-          discount_percent_off={offer_checkout.percent_off}
-          discounted_price_cents={offer_checkout.crypto_price(crypto_tier.id)}
+          discount_percent_off={crypto_offer.percent_off}
+          discounted_price_cents={crypto_offer.crypto_price(crypto_tier.id)}
           initial_term_months={crypto_term_months}
           is_open={!!crypto_tier}
           monthly_price_cents={crypto_tier.monthly_cents}
@@ -1145,10 +1147,12 @@ export function UpgradeModal() {
             set_crypto_tier(null);
             set_pending_tier(tier);
           }}
+          on_finished={() => set_crypto_tier(null)}
           plan_code={crypto_tier.id}
           plan_name={crypto_tier.name}
           preferred_currency={currency}
           promo_code={offer_promo_code_for(crypto_tier.id) ?? null}
+          special_offer={!!crypto_offer.crypto_price(crypto_tier.id)}
           yearly_price_cents={crypto_tier.yearly_cents}
         />
       )}

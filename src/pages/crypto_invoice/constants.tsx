@@ -21,6 +21,7 @@
 
 export type LoadState = "loading" | "ready" | "not_found" | "unavailable";
 
+export const HELP_CENTER_URL = "https://astermail.org/help";
 export const POLL_INTERVAL_MS = 6_000;
 export const MAX_POLL_INTERVAL_MS = 60_000;
 export const MAX_CONSECUTIVE_FAILURES = 5;
@@ -72,7 +73,5 @@ export const UNSAFE_WALLET_SCHEMES = new Set([
 export const WALLET_SCHEME_SHAPE = /^[a-z][a-z0-9+.-]{1,20}:$/;
 export const CANCEL_HAS_PAYMENT_MARKER = "payment has already been received";
 export const BILLING_ROUTE = "/settings/billing";
-export const WARNING_BG = "var(--color-warning)";
-export const WARNING_FG = "#1c1400";
 export const WARNING_TEXT = "var(--color-warning)";
 export const EXPIRING_SOON_MS = 5 * 60 * 1000;

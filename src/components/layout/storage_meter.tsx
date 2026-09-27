@@ -47,6 +47,10 @@ export function scroll_to_storage_addons() {
       return;
     }
 
+    if (last_offset === null) {
+      window.dispatchEvent(new Event("aster:open-storage-addons"));
+    }
+
     const offset = el.offsetTop;
     const moved =
       last_offset === null ||

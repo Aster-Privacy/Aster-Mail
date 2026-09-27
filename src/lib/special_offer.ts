@@ -26,6 +26,16 @@ export const SPECIAL_OFFER_INTERVAL = "month";
 export const SPECIAL_OFFER_PERCENT_OFF = 50;
 export const SPECIAL_OFFER_DURATION_MONTHS = 12;
 
+export type SpecialOfferInterval = "month" | "year";
+
+export const SPECIAL_OFFER_INTERVALS: SpecialOfferInterval[] = ["month", "year"];
+
+export function special_offer_interval_months(
+  interval: SpecialOfferInterval,
+): number {
+  return interval === "year" ? 12 : 1;
+}
+
 const SPECIAL_OFFER_PROMO_CODE = "";
 const PROMO_CODE_PATTERN = /^[A-Z0-9][A-Z0-9_-]{2,31}$/;
 
@@ -51,14 +61,17 @@ export function special_offer_discounted_cents(total_cents: number): number {
   return Math.max(total - discount_cents, SPECIAL_OFFER_MIN_CHARGE_CENTS);
 }
 
-export function special_offer_pricing(): SpecialOfferPricing | null {
+export function special_offer_pricing(
+  interval: SpecialOfferInterval = "month",
+): SpecialOfferPricing | null {
   const tier = PLAN_TIERS.find((entry) => entry.id === SPECIAL_OFFER_PLAN_CODE);
 
-  if (!tier || !Number.isFinite(tier.monthly_cents)) return null;
+  if (!tier) return null;
 
-  const list_cents = tier.monthly_cents;
+  const list_cents =
+    interval === "year" ? tier.yearly_cents : tier.monthly_cents;
 
-  if (list_cents <= 0) return null;
+  if (!Number.isFinite(list_cents) || list_cents <= 0) return null;
 
   return {
     list_cents,
@@ -121,7 +134,9 @@ export function special_offer_checkout_total_cents(
   term_months: number,
   list_total_cents: number,
 ): number | null {
-  if (method === "card" && term_months !== 1) return null;
+  if (method === "card" && term_months !== 1 && term_months !== 12) {
+    return null;
+  }
 
   return special_offer_crypto_total_cents(
     plan_code,

@@ -43,7 +43,7 @@ import {
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
@@ -219,7 +219,8 @@ export function EncryptionSection({
               type="button"
               onClick={handle_authenticate}
             >
-              {is_loading ? <Spinner size="md" /> : t("common.verify")}
+              {t("common.verify")}
+              {is_loading && <ButtonSpinner />}
             </motion.button>
           </div>
         </div>
@@ -833,11 +834,8 @@ export function EncryptionSection({
                   type="button"
                   onClick={enc.handle_export_secret_key}
                 >
-                  {enc.is_exporting_private_key ? (
-                    <Spinner size="md" />
-                  ) : (
-                    t("common.export")
-                  )}
+                  {t("common.export")}
+                  {enc.is_exporting_private_key && <ButtonSpinner />}
                 </motion.button>
               </div>
             </div>
@@ -953,11 +951,8 @@ export function EncryptionSection({
                   type="button"
                   onClick={enc.handle_regenerate_codes}
                 >
-                  {enc.is_regenerating ? (
-                    <Spinner size="md" />
-                  ) : (
-                    t("common.regenerate")
-                  )}
+                  {t("common.regenerate")}
+                  {enc.is_regenerating && <ButtonSpinner />}
                 </motion.button>
               </div>
             </div>

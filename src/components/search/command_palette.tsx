@@ -938,21 +938,14 @@ export function CommandPalette({
                                   set_selected_index(global_index)
                                 }
                               >
-                                {is_this_loading ? (
-                                  <ButtonSpinner
-                                    className="flex-shrink-0 text-[var(--icon-secondary)]"
-                                    size="xs"
-                                  />
-                                ) : (
-                                  <Icon
-                                    className="w-4 h-4 flex-shrink-0"
-                                    style={{
-                                      color: is_selected
-                                        ? "var(--text-primary)"
-                                        : "var(--icon-secondary)",
-                                    }}
-                                  />
-                                )}
+                                <Icon
+                                  className="w-4 h-4 flex-shrink-0"
+                                  style={{
+                                    color: is_selected
+                                      ? "var(--text-primary)"
+                                      : "var(--icon-secondary)",
+                                  }}
+                                />
                                 <div className="flex-1 min-w-0">
                                   <p className="text-[13px] truncate text-[var(--text-primary)]">
                                     {cmd.label}
@@ -963,10 +956,16 @@ export function CommandPalette({
                                     </p>
                                   )}
                                 </div>
-                                {cmd.shortcut && (
+                                {cmd.shortcut && !is_this_loading && (
                                   <kbd className="flex-shrink-0 font-sans text-[11px] tracking-[0.08em] text-[var(--text-muted)]">
                                     {cmd.shortcut}
                                   </kbd>
+                                )}
+                                {is_this_loading && (
+                                  <ButtonSpinner
+                                    className="text-[var(--icon-secondary)]"
+                                    size="xs"
+                                  />
                                 )}
                               </button>
                             );

@@ -1268,11 +1268,14 @@ export const ar = {
     locked_data_banner_action: "استعادة البيانات",
     locked_data_banner_dismiss: "تجاهل",
     recover_data_title: "استعادة البيانات",
-    recover_data_description: "لفتح البيانات من قبل تغيير كلمة السر أو إعادة تعيينها، أدخل كلمة السر التي كنت تستخدمها في ذلك الوقت.",
+    recover_data_description:
+      "لفتح البيانات من قبل تغيير كلمة السر أو إعادة تعيينها، أدخل كلمة السر التي كنت تستخدمها في ذلك الوقت.",
     recover_data_button: "استعادة",
     recover_data_success: "تم فتح بياناتك الأقدم.",
-    recover_data_no_match: "لم تفتح كلمة السر هذه أي بيانات. جرّب كلمة سر سابقة أخرى.",
-    recover_data_failed: "تعذّر فتح بعض البيانات. تحقق من اتصالك وحاول مرة أخرى.",
+    recover_data_no_match:
+      "لم تفتح كلمة السر هذه أي بيانات. جرّب كلمة سر سابقة أخرى.",
+    recover_data_failed:
+      "تعذّر فتح بعض البيانات. تحقق من اتصالك وحاول مرة أخرى.",
     payment_past_due_message:
       "لم تتم عملية الدفع الأخيرة. حدّث طريقة الدفع للاحتفاظ بخطتك.",
     payment_past_due_message_days:
@@ -3844,13 +3847,14 @@ export const ar = {
     bridge_upgrade_benefit_platforms: "متوفر على Windows وmacOS وLinux",
     bridge_upgrade_benefit_cli: "يتضمّن إصدارًا لسطر الأوامر للخوادم",
     bridge_cli_download: "تنزيل",
-    bridge_cli_install_hint: "نزّل الأرشيف المناسب لنظامك، ثم استخرجه وانقل الملف التنفيذي إلى مسار PATH.",
-    bridge_cli_install_hint_windows: "نزّل الأرشيف، ثم استخرجه وأضف المجلد إلى مسار PATH.",
+    bridge_cli_install_hint:
+      "نزّل الأرشيف المناسب لنظامك، ثم استخرجه وانقل الملف التنفيذي إلى مسار PATH.",
+    bridge_cli_install_hint_windows:
+      "نزّل الأرشيف، ثم استخرجه وأضف المجلد إلى مسار PATH.",
     bridge_cli_copy_command: "نسخ أوامر التثبيت",
     bridge_cli_docs_link: "اقرأ دليل سطر الأوامر",
     bridge_cli_name: "سطر الأوامر",
-    bridge_cli_desc:
-      "يشغّل الخوادم نفسها بدون نافذة، على خادم أو عبر SSH.",
+    bridge_cli_desc: "يشغّل الخوادم نفسها بدون نافذة، على خادم أو عبر SSH.",
     bridge_cli_windows_link: "Windows",
     bridge_cli_macos_link: "macOS",
     bridge_cli_linux_link: "Linux (x86-64)",
@@ -4058,8 +4062,7 @@ export const ar = {
     external_link_warning_disabled: "تُفتح الروابط مباشرة بدون تأكيد",
     ipfs_attachment_storage: "تخزين المرفقات على IPFS",
     ipfs_enabled_description: "تُخزَّن المرفقات في مخزن IPFS الخاص بـ Aster",
-    ipfs_disabled_description:
-      "تخزين المرفقات في مخزن IPFS الخاص بـ Aster",
+    ipfs_disabled_description: "تخزين المرفقات في مخزن IPFS الخاص بـ Aster",
     forward_secrecy: "السرية الأمامية",
     forward_secrecy_disable_title: "إيقاف السرية التامة للتوجيه؟",
     forward_secrecy_disable_message:
@@ -4128,7 +4131,8 @@ export const ar = {
     password_change_background_reencrypt_failed:
       "تم تغيير كلمة السر، لكن بعض الرسائل المرسلة والإعدادات لم تكتمل إعادة تشفيرها. تواصل مع الدعم إذا ظهرت رسائل أو إعدادات غير مقروءة.",
     previous_password: "كلمة السر السابقة",
-    password_change_sent_mail_locked: "تم تغيير كلمة السر. كانت {{count}} من الرسائل المرسلة مشفّرة بكلمة سر سابقة ولم يتم تحديثها. لفتحها، اختر استعادة البيانات في الشريط أعلى صندوق الوارد.",
+    password_change_sent_mail_locked:
+      "تم تغيير كلمة السر. كانت {{count}} من الرسائل المرسلة مشفّرة بكلمة سر سابقة ولم يتم تحديثها. لفتحها، اختر استعادة البيانات في الشريط أعلى صندوق الوارد.",
     password_changed_signing_out:
       "تم تغيير كلمة المرور بنجاح. جارٍ تسجيل خروجك...",
     password_changed_success: "تم تغيير كلمة المرور",
@@ -4337,9 +4341,11 @@ export const ar = {
     compose_mode_fullscreen: "ملء الشاشة دائماً",
     compose_mode_minimized: "بدء مصغراً",
     default_sender_group: "الإرسال",
-    default_sender_group_description: "اختر العنوان الذي تُرسل منه الرسائل الجديدة.",
+    default_sender_group_description:
+      "اختر العنوان الذي تُرسل منه الرسائل الجديدة.",
     default_sender_title: "المرسل الافتراضي",
-    default_sender_description: "تبدأ الرسائل الجديدة من هذا العنوان. وتستخدم الردود العنوان الذي وصلت إليه الرسالة.",
+    default_sender_description:
+      "تبدأ الرسائل الجديدة من هذا العنوان. وتستخدم الردود العنوان الذي وصلت إليه الرسالة.",
     default_sender_no_addresses: "لا توجد عناوين أخرى",
     compose_defaults_title: "التنسيق الافتراضي",
     compose_defaults_description:
@@ -4356,7 +4362,8 @@ export const ar = {
     reply_defaults_title: "الردود",
     reply_defaults_description: "اختر بماذا يبدأ الرد الجديد.",
     reply_include_quoted: "تضمين النص المقتبس",
-    reply_include_quoted_description: "يبدأ كل رد بالرسالة الأصلية مقتبسة أسفل نصك.",
+    reply_include_quoted_description:
+      "يبدأ كل رد بالرسالة الأصلية مقتبسة أسفل نصك.",
     reply_prefix_subject: "إضافة رد: إلى الموضوع",
     reply_prefix_subject_description: "يضع رد: قبل الموضوع الأصلي عند الرد.",
     build_info: "معلومات البناء",
@@ -4422,6 +4429,13 @@ export const ar = {
       "ميزات الخطة المدفوعة تبقى لديك حتى نهاية دورة الفوترة الحالية، ثم تنتقل خطتك إلى المجانية. بريدك وجهات اتصالك وإعداداتك تبقى معك.",
     cancel_plan: "إلغاء الخطة",
     billing_history: "سجل الفوترة",
+    billing_plan_heading: "الخطة",
+    billing_hide_plans: "إخفاء الخطط",
+    billing_cancel_notice_title: "سيتم إلغاء خطتك",
+    billing_cancel_notice_body:
+      "تنتهي خطتك في {{date}}. بعد ذلك، ينتقل حسابك إلى الخطة المجانية.",
+    billing_renewals_heading: "التجديدات",
+    billing_amount: "المبلغ",
     billing_desc_payment_failed: "فشل الدفع",
     billing_desc_refund_processed: "تمت معالجة الاسترداد",
     billing_desc_payment_disputed: "نزاع على الدفع: {{reason}}",
@@ -5271,15 +5285,29 @@ export const ar = {
     special_offer_was_price: "كان {{price}} شهريًا",
     special_offer_original_price: "السعر الأصلي: {{price}}",
     special_offer_cta: "احصل على خصم {{percent}}%",
-    special_offer_feature_aliases: "أسماء مستعارة غير محدودة ونطاقات مخصصة",
-    special_offer_feature_vanguard:
-      "قفل تطبيق Aster Vanguard ووضع الإغلاق ومراقبة الأمان",
-    special_offer_feature_storage: "500 غيغابايت من التخزين المشفّر",
+    special_offer_feature_aliases: "أسماء مستعارة غير محدودة",
+    special_offer_feature_vanguard: "أمان متقدم مع Vanguard",
+    special_offer_feature_storage: "مساحة تخزين مشفرة بسعة 500 GB",
+    special_offer_why_body:
+      "Aster شركة مستقلة يديرها فريق صغير، ودعمك يعني لنا الكثير. تحافظ الاشتراكات على استمرار الخدمة وتتيح لنا مواصلة تطوير Aster بعناية كل يوم. يسهّل عليك هذا العرض البدء.",
+    special_offer_why_label: "لماذا هذا العرض؟",
+    special_offer_feature_vanguard_body: "قفل التطبيق وحماية متقدمة للخصوصية.",
+    special_offer_feature_domains_body: "أرسل من عناوين على نطاقاتك الخاصة.",
+    special_offer_feature_domains: "حتى 30 نطاقًا مخصصًا",
+    special_offer_feature_storage_body: "مساحة تكفي بريدك وملفاتك لسنوات.",
+    special_offer_feature_aliases_body: "امنح كل موقع عنوانًا خاصًا به.",
     special_offer_fine_print:
       "تدفع {{offer_price}} شهريًا لأول {{months}} شهرًا. بعد ذلك تُجدَّد خطتك بسعر {{price}} شهريًا حتى تلغيها من الإعدادات.",
     special_offer_dismiss: "عدم عرض هذا العرض مرة أخرى",
     special_offer_dismissed_toast: "لن نعرض هذا مرة أخرى.",
+    special_offer_success_title: "شكرًا لك. أصبحت مشتركًا في Nova.",
+    special_offer_success_body: "شكرًا لاشتراكك. دعمك يعني لنا الكثير.",
     special_offer_hero_duration: "لمدة {{months}} شهرًا",
+    special_offer_price_period_year: "سنويًا",
+    special_offer_hero_duration_year: "للسنة الأولى",
+    special_offer_fine_print_year:
+      "تدفع {{offer_price}} للسنة الأولى. بعد ذلك تُجدَّد خطتك بسعر {{price}} سنويًا حتى تلغيها من الإعدادات.",
+    special_offer_billing_period: "فترة الفوترة",
     plan_billing_terms:
       "تُجدَّد الاشتراكات تلقائيًا بالسعر العادي حتى تلغيها. يمكنك الإلغاء في أي وقت من الإعدادات.",
     upgrade_offer_note: "يُطبَّق خصم {{percent}}% عند الدفع.",
@@ -6267,6 +6295,13 @@ export const ar = {
     checkout_abandon_title: "هل تريد إلغاء هذه العملية؟",
     checkout_add_promo: "إضافة رمز ترويجي",
     checkout_amount_due: "المبلغ المستحق",
+    checkout_offer_switch_term:
+      "انتقل إلى {{term}} للحصول على خصم {{percent}}%",
+    checkout_offer_switch_crypto:
+      "ادفع بالعملات المشفرة للحصول على خصم {{percent}}%",
+    checkout_offer_switch_card: "ادفع بالبطاقة للحصول على خصم {{percent}}%",
+    checkout_offer_renewal:
+      "{{offer_price}} شهريًا لمدة {{months}} شهرًا، ثم {{price}} شهريًا",
     checkout_card_details: "بيانات البطاقة",
     checkout_full_features_title: "مزايا {{plan}}",
     checkout_leave_warning: "لديك عملية دفع جارية. إذا خرجت الآن، فلن تكتمل.",
@@ -6988,7 +7023,7 @@ export const ar = {
     crypto_native_recommended: "موصى به",
     crypto_native_resume_selected: "محدد",
     crypto_native_status_underpaid: "مدفوع جزئيًا",
-    crypto_native_what_happens: "ما الذي يحدث بعد ذلك",
+    crypto_native_what_happens: "تقدّم الدفع",
     crypto_native_stripe_option: "الدفع بعملة مستقرة",
     crypto_native_stripe_desc: "USDC وعملات مستقرة أخرى عبر مزود الدفع لدينا",
     crypto_native_too_many_open:
@@ -6997,7 +7032,7 @@ export const ar = {
       "لقد أنشأت عددًا كبيرًا من فواتير العملات المشفرة اليوم. يرجى المحاولة لاحقًا.",
     crypto_native_invoice_title: "الدفع باستخدام {{coin}}",
     crypto_native_awaiting_body:
-      "أرسل المبلغ بالضبط إلى العنوان أدناه. تُحدَّث هذه الصفحة تلقائيًا.",
+      "أرسل المبلغ بالضبط إلى العنوان أدناه. ستُحدَّث هذه الصفحة تلقائيًا.",
     crypto_native_received_title: "تم استلام الدفعة",
     crypto_native_received_body:
       "تم استلام المبلغ بالكامل وتجري معالجته. لا حاجة إلى إرسال أي دفعة أخرى.",
@@ -7031,7 +7066,7 @@ export const ar = {
       "تحتاج دفعتك إلى مراجعة يدوية سريعة. سنضيف الرصيد إلى حسابك قريبًا.",
     crypto_native_transaction: "المعاملة",
     crypto_native_refund_notice:
-      "إذا أرسلت أكثر من المبلغ المستحق، يُضاف الفائض إلى رصيد حسابك في Aster بالدولار الأمريكي. ويمكنك أن تطلب منّا استرداده بدلاً من ذلك.",
+      "إذا أرسلت أكثر من المبلغ المستحق، يُضاف الفائض إلى رصيد حسابك في Aster بالدولار الأمريكي.",
     crypto_native_cancel_invoice: "إلغاء هذه الفاتورة",
     crypto_native_cancel_failed: "تعذر إلغاء هذه الفاتورة.",
     crypto_native_cancel_has_payment:
@@ -7061,6 +7096,12 @@ export const ar = {
       "قبل الإرسال، قارن العنوان الظاهر على شاشة محفظتك بالعنوان المعروض هنا. هذا العنوان وحده هو المراقَب لطلبك.",
     crypto_native_fee_headroom:
       "إذا كانت محفظتك تخصم رسوم الشبكة من المبلغ الذي تدخله، فأضف قليلاً فوقه ليصل المبلغ كاملاً.",
+    crypto_native_network_only: "أرسل {{coin}} فقط على شبكة {{chain}}",
+    crypto_native_tip_unrecoverable:
+      "لا يمكن استرداد الأموال المرسلة على شبكة أخرى.",
+    crypto_native_tip_check_address: "تحقق من العنوان في محفظتك قبل الإرسال.",
+    crypto_native_tip_fee:
+      "إذا كانت محفظتك تخصم الرسوم من المبلغ، فأرسل مبلغًا إضافيًا بسيطًا.",
     crypto_native_expired_do_not_send:
       "لا ترسل أي أموال إلى العنوان الموجود في هذه الفاتورة. الأموال المُرسَلة الآن تحتاج إلى مراجعة يدوية قبل إضافتها إلى رصيدك.",
     crypto_native_not_found: "تعذر العثور على هذه الفاتورة",
@@ -7650,8 +7691,7 @@ export const ar = {
     special_offers: "العروض الخاصة",
     special_offers_description:
       "اعرض من حين لآخر عروضًا مخفّضة على الخطط داخل التطبيق. عند إيقاف هذا الخيار، لا تظهر لك العروض ولا تُحتسب ضمن نتائج العروض.",
-    special_offers_save_failed:
-      "لم يُحفظ إعداد العروض الخاصة. حاول مرة أخرى.",
+    special_offers_save_failed: "لم يُحفظ إعداد العروض الخاصة. حاول مرة أخرى.",
     criterion_passkey: "مفتاح مرور مسجَّل",
     criterion_read_receipts_off: "إيصالات القراءة موقوفة",
     send_read_receipts_label: "إرسال إشعارات القراءة",
@@ -7803,6 +7843,8 @@ export const ar = {
       "Monero: يعتمد على إثبات العمل ويُعدَّن على معالجات عامة الاستخدام. لم نجد رقمًا حديثًا ندعمه، لذا لا ننشر رقمًا.",
     crypto_energy_caveat:
       "هذه تقديرات من جهات خارجية وليست قياسات أجريناها، والأرقام لكل معاملة محل خلاف. نحن لا نقدّم أي ادعاء بيئي عن أي طريقة دفع.",
+    crypto_native_rate_label: "سعر الصرف",
+    crypto_native_last_checked_label: "آخر تحقق",
     crypto_native_rate_value: "السعر المستخدَم: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "اختر عملة لتثبيت سعر الصرف. ثم ترسل الدفعة بنفسك من محفظتك الخاصة.",

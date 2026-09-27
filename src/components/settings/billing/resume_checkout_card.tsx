@@ -19,11 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useCallback, useEffect, useState } from "react";
-import { ArrowPathIcon } from "@heroicons/react/24/outline";
 
 import { FAMILY_PLAN_TIERS, PLAN_TIERS } from "./billing_constants";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { BillingNotice } from "@/components/settings/billing/billing_layout";
 import {
   show_toast,
   TOAST_DURATION_BILLING_MS,
@@ -37,6 +37,9 @@ import {
   show_checkout_cancelled_upgrade,
   type UpgradeInterval,
 } from "@/stores/upgrade_store";
+import { is_special_offer_available } from "@/lib/special_offer";
+import { request_special_offer_checkout } from "@/stores/special_offer_store";
+import { use_special_offer_status } from "@/stores/special_offer_status";
 
 interface ResumeCheckoutCardProps {
   current_plan_code: string | null;
@@ -67,6 +70,14 @@ export function ResumeCheckoutCard({
     read_checkout_target(),
   );
   const [is_resuming, set_is_resuming] = useState(false);
+  const { status: offer_status } = use_special_offer_status();
+  const can_resume_offer =
+    !!target?.special_offer &&
+    !!offer_status?.available &&
+    is_special_offer_available({
+      plan_code: current_plan_code ?? "free",
+      is_dismissed: offer_status.dismissed ?? false,
+    });
 
   useEffect(() => {
     const refresh = () => set_target(read_checkout_target());
@@ -98,10 +109,12 @@ export function ResumeCheckoutCard({
 
     set_is_resuming(true);
 
-    const opened = show_checkout_cancelled_upgrade({
-      plan_code: target.plan_code,
-      interval: upgrade_interval_for(target.billing_interval),
-    });
+    const opened = can_resume_offer
+      ? request_special_offer_checkout()
+      : show_checkout_cancelled_upgrade({
+          plan_code: target.plan_code,
+          interval: upgrade_interval_for(target.billing_interval),
+        });
 
     set_is_resuming(false);
 
@@ -112,46 +125,35 @@ export function ResumeCheckoutCard({
       "error",
       TOAST_DURATION_BILLING_MS,
     );
-  }, [is_resuming, t, target]);
+  }, [can_resume_offer, is_resuming, t, target]);
 
   if (!target) return null;
   if (current_plan_code && current_plan_code === target.plan_code) return null;
 
   return (
-    <div
-      className={`rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5 ${class_name}`}
+    <BillingNotice
+      body={t("settings.finish_plan_setup_message")}
+      class_name={class_name}
+      title={t("settings.finish_plan_setup_title", {
+        plan: plan_label(target.plan_code),
+      })}
     >
-      <div className="flex items-start gap-3">
-        <ArrowPathIcon className="mt-0.5 h-5 w-5 flex-shrink-0 text-txt-muted" />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-txt-primary">
-            {t("settings.finish_plan_setup_title", {
-              plan: plan_label(target.plan_code),
-            })}
-          </p>
-          <p className="mt-0.5 text-xs text-txt-muted">
-            {t("settings.finish_plan_setup_message")}
-          </p>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <button
-              className="aster_btn aster_btn_primary aster_btn_sm"
-              disabled={is_resuming}
-              type="button"
-              onClick={handle_resume}
-            >
-              {t("settings.finish_plan_setup_action")}
-            </button>
-            <button
-              className="aster_btn aster_btn_ghost aster_btn_sm"
-              disabled={is_resuming}
-              type="button"
-              onClick={handle_dismiss}
-            >
-              {t("common.not_now")}
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+      <button
+        className="aster_btn aster_btn_primary aster_btn_sm"
+        disabled={is_resuming}
+        type="button"
+        onClick={handle_resume}
+      >
+        {t("settings.finish_plan_setup_action")}
+      </button>
+      <button
+        className="aster_btn aster_btn_ghost aster_btn_sm"
+        disabled={is_resuming}
+        type="button"
+        onClick={handle_dismiss}
+      >
+        {t("common.not_now")}
+      </button>
+    </BillingNotice>
   );
 }

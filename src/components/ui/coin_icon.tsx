@@ -87,9 +87,10 @@ const NATIVE_CHAIN_OF: Record<MarkId, ChainId> = {
 
 const VIEW_SIZE = 40;
 const MARK_BOX = "0 0 32 32";
+const COIN_SIZE = 36;
 const BADGE_CUTOUT_RADIUS = VIEW_SIZE / 4;
 const BADGE_CENTER = VIEW_SIZE - BADGE_CUTOUT_RADIUS;
-const BADGE_RING = 1.8;
+const BADGE_RING = 2.4;
 const BADGE_RADIUS = BADGE_CUTOUT_RADIUS - BADGE_RING;
 const BADGE_ORIGIN = BADGE_CENTER - BADGE_RADIUS;
 const BADGE_SIZE = BADGE_RADIUS * 2;
@@ -456,11 +457,11 @@ export function CoinIcon({
         </defs>
       )}
       <svg
-        height={VIEW_SIZE}
+        height={show_badge ? COIN_SIZE : VIEW_SIZE}
         mask={show_badge ? `url(#${cutout_id})` : undefined}
         overflow="visible"
         viewBox={MARK_BOX}
-        width={VIEW_SIZE}
+        width={show_badge ? COIN_SIZE : VIEW_SIZE}
         x="0"
         y="0"
       >

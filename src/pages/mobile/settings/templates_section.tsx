@@ -33,7 +33,7 @@ import { SettingsHeader } from "./shared";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_templates } from "@/contexts/templates_context";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { Input } from "@/components/ui/input";
 import {
@@ -322,13 +322,10 @@ export function TemplatesSection({
                   type="button"
                   onClick={handle_save}
                 >
-                  {is_saving ? (
-                    <Spinner size="md" />
-                  ) : editing_id ? (
-                    t("settings.update_template")
-                  ) : (
-                    t("settings.create_template")
-                  )}
+                  {editing_id
+                    ? t("settings.update_template")
+                    : t("settings.create_template")}
+                  {is_saving && <ButtonSpinner />}
                 </motion.button>
               </div>
             </motion.div>

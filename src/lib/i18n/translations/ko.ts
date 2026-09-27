@@ -1344,11 +1344,14 @@ export const ko = {
     locked_data_banner_action: "데이터 복구",
     locked_data_banner_dismiss: "닫기",
     recover_data_title: "데이터 복구",
-    recover_data_description: "비밀번호 변경 또는 재설정 이전의 데이터를 잠금 해제하려면 당시 사용하던 비밀번호를 입력하세요.",
+    recover_data_description:
+      "비밀번호 변경 또는 재설정 이전의 데이터를 잠금 해제하려면 당시 사용하던 비밀번호를 입력하세요.",
     recover_data_button: "복구",
     recover_data_success: "이전 데이터의 잠금이 해제되었습니다.",
-    recover_data_no_match: "이 비밀번호로 잠금 해제된 데이터가 없습니다. 다른 이전 비밀번호를 사용해 보세요.",
-    recover_data_failed: "일부 데이터를 잠금 해제하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
+    recover_data_no_match:
+      "이 비밀번호로 잠금 해제된 데이터가 없습니다. 다른 이전 비밀번호를 사용해 보세요.",
+    recover_data_failed:
+      "일부 데이터를 잠금 해제하지 못했습니다. 연결을 확인하고 다시 시도하세요.",
     payment_past_due_message:
       "지난 결제가 처리되지 않았습니다. 요금제를 유지하려면 결제 수단을 업데이트하세요.",
     payment_past_due_message_days:
@@ -3730,13 +3733,18 @@ export const ko = {
     bridge_support_reddit_desc: "공지를 확인하고 토론에 참여하세요",
     bridge_support_github_desc: "소스 코드를 확인하고 문제를 신고하세요",
     bridge_all_platforms: "모든 플랫폼",
-    bridge_upgrade_benefit_clients: "Apple Mail, Thunderbird, Outlook에서 사용할 수 있습니다",
-    bridge_upgrade_benefit_local: "로컬에서 실행되므로 메일이 암호화된 상태로 유지됩니다",
-    bridge_upgrade_benefit_platforms: "Windows, macOS, Linux에서 사용할 수 있습니다",
+    bridge_upgrade_benefit_clients:
+      "Apple Mail, Thunderbird, Outlook에서 사용할 수 있습니다",
+    bridge_upgrade_benefit_local:
+      "로컬에서 실행되므로 메일이 암호화된 상태로 유지됩니다",
+    bridge_upgrade_benefit_platforms:
+      "Windows, macOS, Linux에서 사용할 수 있습니다",
     bridge_upgrade_benefit_cli: "서버용 명령줄 버전이 포함됩니다",
     bridge_cli_download: "다운로드",
-    bridge_cli_install_hint: "사용 중인 플랫폼용 아카이브를 다운로드하고 압축을 푼 다음 바이너리를 PATH로 옮깁니다.",
-    bridge_cli_install_hint_windows: "아카이브를 다운로드하고 압축을 푼 다음 폴더를 PATH에 추가합니다.",
+    bridge_cli_install_hint:
+      "사용 중인 플랫폼용 아카이브를 다운로드하고 압축을 푼 다음 바이너리를 PATH로 옮깁니다.",
+    bridge_cli_install_hint_windows:
+      "아카이브를 다운로드하고 압축을 푼 다음 폴더를 PATH에 추가합니다.",
     bridge_cli_copy_command: "설치 명령 복사",
     bridge_cli_docs_link: "명령줄 가이드 읽기",
     bridge_cli_name: "명령줄",
@@ -3945,7 +3953,8 @@ export const ko = {
       "이메일의 외부 링크를 열기 전에 경고를 표시합니다",
     external_link_warning_disabled: "확인 없이 링크가 바로 열립니다",
     ipfs_attachment_storage: "IPFS 첨부 파일 저장소",
-    ipfs_enabled_description: "첨부 파일이 Aster의 비공개 IPFS 저장소에 저장됩니다",
+    ipfs_enabled_description:
+      "첨부 파일이 Aster의 비공개 IPFS 저장소에 저장됩니다",
     ipfs_disabled_description:
       "첨부 파일을 Aster의 비공개 IPFS 저장소에 저장합니다",
     forward_secrecy: "전방 비밀성",
@@ -4016,7 +4025,8 @@ export const ko = {
     password_change_background_reencrypt_failed:
       "비밀번호가 변경되었지만 보낸 메일과 설정 일부가 다시 암호화되지 않았습니다. 메일이나 설정이 읽힐 수 없는 상태라면 고객 지원에 문의하세요.",
     previous_password: "이전 비밀번호",
-    password_change_sent_mail_locked: "비밀번호가 변경되었습니다. 보낸 이메일 {{count}}개가 이전 비밀번호로 암호화되어 있어 업데이트되지 않았습니다. 잠금 해제하려면 받은편지함 상단 배너에서 데이터 복구를 선택하세요.",
+    password_change_sent_mail_locked:
+      "비밀번호가 변경되었습니다. 보낸 이메일 {{count}}개가 이전 비밀번호로 암호화되어 있어 업데이트되지 않았습니다. 잠금 해제하려면 받은편지함 상단 배너에서 데이터 복구를 선택하세요.",
     password_changed_signing_out:
       "비밀번호가 성공적으로 변경되었습니다. 로그아웃 중...",
     password_changed_success: "비밀번호를 변경했습니다",
@@ -4232,7 +4242,8 @@ export const ko = {
     default_sender_group: "보내기",
     default_sender_group_description: "새 메일을 보낼 주소를 선택하세요.",
     default_sender_title: "기본 보내는 주소",
-    default_sender_description: "새 메일은 이 주소에서 시작합니다. 답장에는 메일을 받은 주소를 사용합니다.",
+    default_sender_description:
+      "새 메일은 이 주소에서 시작합니다. 답장에는 메일을 받은 주소를 사용합니다.",
     default_sender_no_addresses: "다른 주소 없음",
     compose_defaults_title: "기본 서식",
     compose_defaults_description:
@@ -4249,9 +4260,11 @@ export const ko = {
     reply_defaults_title: "답장",
     reply_defaults_description: "새 답장이 무엇으로 시작할지 선택합니다.",
     reply_include_quoted: "인용된 텍스트 포함",
-    reply_include_quoted_description: "모든 답장이 작성 영역 아래에 인용된 원본 메시지로 시작합니다.",
+    reply_include_quoted_description:
+      "모든 답장이 작성 영역 아래에 인용된 원본 메시지로 시작합니다.",
     reply_prefix_subject: "제목에 Re: 추가",
-    reply_prefix_subject_description: "답장할 때 원본 제목 앞에 Re: 를 붙입니다.",
+    reply_prefix_subject_description:
+      "답장할 때 원본 제목 앞에 Re: 를 붙입니다.",
     build_info: "빌드 정보",
     release: "릴리스",
     build: "빌드",
@@ -4314,6 +4327,13 @@ export const ko = {
       "이번 결제 주기가 끝날 때까지는 프리미엄 기능을 그대로 사용할 수 있으며, 이후로는 요금제가 무료로 전환됩니다. 메일, 연락처, 설정은 그대로 보관됩니다.",
     cancel_plan: "플랜 취소",
     billing_history: "결제 내역",
+    billing_plan_heading: "플랜",
+    billing_hide_plans: "플랜 숨기기",
+    billing_cancel_notice_title: "플랜이 해지될 예정입니다",
+    billing_cancel_notice_body:
+      "플랜이 {{date}}에 종료됩니다. 이후 계정은 무료 플랜으로 전환됩니다.",
+    billing_renewals_heading: "갱신",
+    billing_amount: "금액",
     billing_desc_payment_failed: "결제에 실패했습니다",
     billing_desc_refund_processed: "환불이 처리되었습니다",
     billing_desc_payment_disputed: "결제 이의 제기: {{reason}}",
@@ -5170,15 +5190,32 @@ export const ko = {
     special_offer_was_price: "이전 가격 월 {{price}}",
     special_offer_original_price: "정가: {{price}}",
     special_offer_cta: "{{percent}}% 할인 받기",
-    special_offer_feature_aliases: "무제한 별칭과 맞춤 도메인",
-    special_offer_feature_vanguard:
-      "Aster Vanguard 앱 잠금, 잠금 모드, 보안 모니터링",
-    special_offer_feature_storage: "암호화 저장 공간 500GB",
+    special_offer_feature_aliases: "무제한 별칭",
+    special_offer_feature_vanguard: "Vanguard로 강화된 보안",
+    special_offer_feature_storage: "500GB 암호화 저장공간",
+    special_offer_why_body:
+      "Aster는 작은 팀으로 운영되는 독립 기업이며, 여러분의 지원은 저희에게 큰 의미가 있습니다. 구독은 서비스 운영을 유지하고 저희가 매일 정성껏 Aster를 발전시켜 나갈 수 있게 해 줍니다. 이 혜택으로 더 쉽게 시작할 수 있습니다.",
+    special_offer_why_label: "이 혜택을 드리는 이유",
+    special_offer_feature_vanguard_body: "앱 잠금과 고급 개인정보 보호.",
+    special_offer_feature_domains_body: "내 도메인의 주소로 메일을 보내세요.",
+    special_offer_feature_domains: "최대 30개의 사용자 지정 도메인",
+    special_offer_feature_storage_body:
+      "수년간의 메일과 파일을 담을 수 있는 공간입니다.",
+    special_offer_feature_aliases_body: "사이트마다 별도의 주소를 사용하세요.",
     special_offer_fine_print:
       "처음 {{months}}개월 동안 월 {{offer_price}}을 결제합니다. 이후에는 설정에서 취소할 때까지 월 {{price}}으로 갱신됩니다.",
     special_offer_dismiss: "이 혜택 다시 보지 않기",
     special_offer_dismissed_toast: "다시 표시하지 않습니다.",
+    special_offer_success_title:
+      "감사합니다. 이제 Nova를 이용하실 수 있습니다.",
+    special_offer_success_body:
+      "구독해 주셔서 감사합니다. 보내주신 응원은 저희에게 큰 힘이 됩니다.",
     special_offer_hero_duration: "{{months}}개월 동안",
+    special_offer_price_period_year: "연",
+    special_offer_hero_duration_year: "첫 1년 동안",
+    special_offer_fine_print_year:
+      "첫 1년 동안 {{offer_price}}을 결제합니다. 이후에는 설정에서 취소할 때까지 연 {{price}}으로 갱신됩니다.",
+    special_offer_billing_period: "결제 주기",
     plan_billing_terms:
       "구독은 취소할 때까지 표준 요금으로 자동 갱신됩니다. 설정에서 언제든지 취소할 수 있습니다.",
     upgrade_offer_note: "{{percent}}% 할인은 결제 시 적용됩니다.",
@@ -6190,6 +6227,11 @@ export const ko = {
     checkout_abandon_title: "이 결제를 취소할까요?",
     checkout_add_promo: "프로모션 코드 추가",
     checkout_amount_due: "결제 금액",
+    checkout_offer_switch_term: "{{term}}(으)로 바꾸면 {{percent}}% 할인",
+    checkout_offer_switch_crypto: "암호화폐로 결제하면 {{percent}}% 할인",
+    checkout_offer_switch_card: "카드로 결제하면 {{percent}}% 할인",
+    checkout_offer_renewal:
+      "{{months}}개월 동안 월 {{offer_price}}, 이후 월 {{price}}",
     checkout_card_details: "카드 정보",
     checkout_full_features_title: "{{plan}} 기능",
     checkout_leave_warning:
@@ -6922,7 +6964,7 @@ export const ko = {
     crypto_native_recommended: "추천",
     crypto_native_resume_selected: "선택됨",
     crypto_native_status_underpaid: "부분 결제됨",
-    crypto_native_what_happens: "다음 단계",
+    crypto_native_what_happens: "결제 진행 상황",
     crypto_native_stripe_option: "스테이블코인으로 결제",
     crypto_native_stripe_desc:
       "결제 대행사를 통해 USDC 등 스테이블코인으로 결제하세요",
@@ -6965,7 +7007,7 @@ export const ko = {
       "결제에 대한 간단한 수동 확인이 필요합니다. 곧 계정에 반영해 드리겠습니다.",
     crypto_native_transaction: "트랜잭션",
     crypto_native_refund_notice:
-      "청구 금액보다 많이 보내면 초과분은 미구 달러로 Aster 계정 잔액에 적립됩니다. 적립 대신 환불을 요청할 수도 있습니다.",
+      "청구 금액보다 많이 보내면 초과분은 미국 달러로 Aster 계정 잔액에 적립됩니다.",
     crypto_native_cancel_invoice: "이 청구서 취소",
     crypto_native_cancel_failed: "이 청구서를 취소하지 못했습니다.",
     crypto_native_cancel_has_payment:
@@ -6997,6 +7039,12 @@ export const ko = {
       "보내기 전에 지갑 화면의 주소와 여기 표시된 주소를 대조하세요. 주문에 대해 모니터링하는 주소는 이 주소뿐입니다.",
     crypto_native_fee_headroom:
       "지갑이 입력한 금액에서 네트워크 수수료를 차감한다면, 전액이 도착하도록 조금 더 넉넉히 보내세요.",
+    crypto_native_network_only: "{{chain}} 네트워크에서 {{coin}}만 보내세요",
+    crypto_native_tip_unrecoverable:
+      "다른 네트워크로 보낸 자금은 복구할 수 없습니다.",
+    crypto_native_tip_check_address: "보내기 전에 지갑에서 주소를 확인하세요.",
+    crypto_native_tip_fee:
+      "지갑이 금액에서 수수료를 차감한다면 조금 더 보내세요.",
     crypto_native_expired_do_not_send:
       "이 청구서의 주소로 보내지 마세요. 지금 보낸 자금은 반영되기 전에 수동 검토가 필요합니다.",
     crypto_native_not_found: "이 청구서를 찾을 수 없습니다",
@@ -7715,6 +7763,8 @@ export const ko = {
       "모네로: 작업 증명 방식이며 범용 프로세서로 채굴합니다. 신뢰할 만한 최신 수치를 찾지 못해 공개하지 않습니다.",
     crypto_energy_caveat:
       "모두 제3자의 추정치이며 저희가 측정한 값이 아니고, 거래당 수치에는 이견이 있습니다. 저희는 어떤 결제 수단에 대해서도 환경 관련 주장을 하지 않습니다.",
+    crypto_native_rate_label: "환율",
+    crypto_native_last_checked_label: "마지막 확인",
     crypto_native_rate_value: "적용 환율: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "코인을 선택하면 환율이 고정됩니다. 그 다음 본인 지갑에서 직접 결제를 보내세요.",
@@ -8003,7 +8053,8 @@ export const ko = {
     already_reacted: "이미 이 반응을 남겼습니다",
     remove_your_reaction: "{emoji} 반응 삭제",
     you_reacted_with: "{{emoji}} 반응을 남겼습니다",
-    you_reacted_with_remove: "{{emoji}}(으)로 반응했습니다. 삭제하려면 클릭하세요.",
+    you_reacted_with_remove:
+      "{{emoji}}(으)로 반응했습니다. 삭제하려면 클릭하세요.",
     reacted_with: "{{name}}님이 {{emoji}} 반응을 남겼습니다",
     forward: "전달",
     to: "받는 사람",

@@ -1165,7 +1165,8 @@ export const zh_CN = {
     locked_data_banner_action: "恢复数据",
     locked_data_banner_dismiss: "关闭",
     recover_data_title: "恢复数据",
-    recover_data_description: "要解锁更改或重置密码之前的数据，请输入你当时使用的密码。",
+    recover_data_description:
+      "要解锁更改或重置密码之前的数据，请输入你当时使用的密码。",
     recover_data_button: "恢复",
     recover_data_success: "你的较早数据已解锁。",
     recover_data_no_match: "该密码未解锁任何数据。请尝试其他以前的密码。",
@@ -3679,7 +3680,8 @@ export const zh_CN = {
     password_change_background_reencrypt_failed:
       "密码已更改，但部分已发送邮件和设置未完成重新加密。如果邮件或设置无法读取，请联系支持团队。",
     previous_password: "先前的密码",
-    password_change_sent_mail_locked: "你的密码已更改。{{count}} 封已发送邮件使用以前的密码加密，未能更新。要解锁这些邮件，请在收件箱顶部的横幅中选择“恢复数据”。",
+    password_change_sent_mail_locked:
+      "你的密码已更改。{{count}} 封已发送邮件使用以前的密码加密，未能更新。要解锁这些邮件，请在收件箱顶部的横幅中选择“恢复数据”。",
     password_changed_signing_out: "密码更改成功，正在退出登录...",
     password_changed_success: "密码已更改",
     session_security: "会话安全",
@@ -3882,7 +3884,8 @@ export const zh_CN = {
     default_sender_group: "发送",
     default_sender_group_description: "选择新邮件从你的哪个地址发出。",
     default_sender_title: "默认发件人",
-    default_sender_description: "新邮件从该地址发出。回复时使用邮件原本寄达的地址。",
+    default_sender_description:
+      "新邮件从该地址发出。回复时使用邮件原本寄达的地址。",
     default_sender_no_addresses: "没有其他地址",
     compose_defaults_title: "默认格式",
     compose_defaults_description:
@@ -3899,7 +3902,8 @@ export const zh_CN = {
     reply_defaults_title: "回复",
     reply_defaults_description: "选择新回复的起始内容。",
     reply_include_quoted: "包含引用的文本",
-    reply_include_quoted_description: "每条回复都以引用在你所写文本下方的原始邮件开头。",
+    reply_include_quoted_description:
+      "每条回复都以引用在你所写文本下方的原始邮件开头。",
     reply_prefix_subject: "在主题中添加“回复：”",
     reply_prefix_subject_description: "回复时在原主题前加上“回复：”。",
     build_info: "构建信息",
@@ -3964,6 +3968,13 @@ export const zh_CN = {
       "您可以继续使用付费功能直到本计费周期结束，之后您的方案会变为免费。您的邮件、联系人和设置都会保留。",
     cancel_plan: "取消套餐",
     billing_history: "账单历史",
+    billing_plan_heading: "套餐",
+    billing_hide_plans: "隐藏套餐",
+    billing_cancel_notice_title: "你的套餐将被取消",
+    billing_cancel_notice_body:
+      "你的套餐将于 {{date}} 结束。之后，你的账户将转为免费套餐。",
+    billing_renewals_heading: "续订",
+    billing_amount: "金额",
     billing_desc_payment_failed: "支付失败",
     billing_desc_refund_processed: "退款已处理",
     billing_desc_payment_disputed: "支付被质疑：{{reason}}",
@@ -4749,15 +4760,30 @@ export const zh_CN = {
     special_offer_checkout_error: "启动结账时出错。请重试。",
     special_offer_was_price: "原价每月 {{price}}",
     special_offer_original_price: "原价：{{price}}",
-    special_offer_cta: "享 {{percent}}% 折扣",
-    special_offer_feature_aliases: "无限别名和自定义域名",
-    special_offer_feature_vanguard: "Aster Vanguard 应用锁、锁定模式和安全监控",
-    special_offer_feature_storage: "500 GB 加密存储",
+    special_offer_cta: "领取 {{percent}}% 优惠",
+    special_offer_feature_aliases: "无限别名",
+    special_offer_feature_vanguard: "Vanguard 高级安全防护",
+    special_offer_feature_storage: "500 GB 加密存储空间",
+    special_offer_why_body:
+      "Aster 是一家由小团队运营的独立公司，你的支持对我们意义重大。订阅让服务得以持续运行，也让我们能够每天用心打造 Aster。这个优惠让你能更轻松地开始使用。",
+    special_offer_why_label: "为什么有这个优惠？",
+    special_offer_feature_vanguard_body: "应用锁和高级隐私保护。",
+    special_offer_feature_domains_body: "使用你自己域名下的地址发送邮件。",
+    special_offer_feature_domains: "最多 30 个自定义域名",
+    special_offer_feature_storage_body: "足以存放多年的邮件和文件。",
+    special_offer_feature_aliases_body: "为每个网站使用独立的地址。",
     special_offer_fine_print:
       "前 {{months}} 个月每月支付 {{offer_price}}。之后套餐将按每月 {{price}} 续订，直到你在设置中取消。",
     special_offer_dismiss: "不再显示此优惠",
     special_offer_dismissed_toast: "我们不会再显示了。",
+    special_offer_success_title: "谢谢。你已升级到 Nova。",
+    special_offer_success_body: "感谢你的订阅。你的支持对我们意义重大。",
     special_offer_hero_duration: "为期 {{months}} 个月",
+    special_offer_price_period_year: "每年",
+    special_offer_hero_duration_year: "首年",
+    special_offer_fine_print_year:
+      "首年支付 {{offer_price}}。之后套餐将按每年 {{price}} 续订，直到你在设置中取消。",
+    special_offer_billing_period: "计费周期",
     plan_billing_terms:
       "订阅会按标准价格自动续订，直到你取消。你可以随时在设置中取消。",
     upgrade_offer_note: "你的 {{percent}}% 折扣将在结账时生效。",
@@ -5254,8 +5280,7 @@ export const zh_CN = {
     encryption_banner_you: "您",
     encryption_banner_recipient: "收件人",
     storage_format_title: "存储格式",
-    storage_format_description:
-      "选择您的加密文件和静态内容的存储位置。",
+    storage_format_description: "选择您的加密文件和静态内容的存储位置。",
     storage_format_aster_server: "Aster 服务器",
     storage_format_decentralized_ipfs: "私有IPFS",
     storage_format_ipfs_confirm_title: "切换到 IPFS 存储",
@@ -5271,8 +5296,7 @@ export const zh_CN = {
       "关闭对话分组后，每封邮件将作为单独的项目显示在收件箱中，而不是将回复归为一组。这可能会使跟踪邮件线程更加困难。",
     show_message_size: "显示邮件大小",
     relative_dates: "相对日期",
-    relative_dates_description:
-      "最近邮件显示“今天”和“昨天”，而不是日期",
+    relative_dates_description: "最近邮件显示“今天”和“昨天”，而不是日期",
     info_relative_dates_title: "相对日期",
     info_relative_dates_description:
       "开启后，今天和昨天的邮件显示为“今天”和“昨天”。关闭后，邮件列表、邮件正文和打印内容中始终显示邮件的发送或接收日期和时间。",
@@ -5689,6 +5713,11 @@ export const zh_CN = {
     checkout_abandon_title: "要取消这笔付款吗？",
     checkout_add_promo: "添加优惠码",
     checkout_amount_due: "应付金额",
+    checkout_offer_switch_term: "切换到{{term}}即可享受 {{percent}}% 折扣",
+    checkout_offer_switch_crypto: "使用加密货币支付即可享受 {{percent}}% 折扣",
+    checkout_offer_switch_card: "使用银行卡支付即可享受 {{percent}}% 折扣",
+    checkout_offer_renewal:
+      "前 {{months}} 个月每月 {{offer_price}}，之后每月 {{price}}",
     checkout_card_details: "银行卡信息",
     checkout_full_features_title: "{{plan}} 功能",
     checkout_leave_warning: "你有一笔付款正在进行。现在离开，付款将无法完成。",
@@ -6318,8 +6347,10 @@ export const zh_CN = {
     bridge_upgrade_benefit_platforms: "支持 Windows、macOS 和 Linux",
     bridge_upgrade_benefit_cli: "包含适用于服务器的命令行版本",
     bridge_cli_download: "下载",
-    bridge_cli_install_hint: "下载适用于你的平台的压缩包，解压后将二进制文件移动到 PATH 中。",
-    bridge_cli_install_hint_windows: "下载压缩包，解压后将该文件夹添加到 PATH 中。",
+    bridge_cli_install_hint:
+      "下载适用于你的平台的压缩包，解压后将二进制文件移动到 PATH 中。",
+    bridge_cli_install_hint_windows:
+      "下载压缩包，解压后将该文件夹添加到 PATH 中。",
     bridge_cli_copy_command: "复制安装命令",
     bridge_cli_docs_link: "阅读命令行指南",
     bridge_cli_name: "命令行",
@@ -6733,7 +6764,7 @@ export const zh_CN = {
     crypto_native_recommended: "推荐",
     crypto_native_resume_selected: "已选择",
     crypto_native_status_underpaid: "部分支付",
-    crypto_native_what_happens: "接下来会发生什么",
+    crypto_native_what_happens: "付款进度",
     crypto_native_stripe_option: "使用稳定币支付",
     crypto_native_stripe_desc: "通过我们的支付服务商使用 USDC 等稳定币付款",
     crypto_native_too_many_open:
@@ -6772,7 +6803,7 @@ export const zh_CN = {
       "您的付款需要一次快速的人工核对。我们会尽快为您的账户入账。",
     crypto_native_transaction: "交易",
     crypto_native_refund_notice:
-      "如果你支付的金额超过应付金额，多出的部分会以美元计入你的 Aster 账户余额。你也可以要求我们退款。",
+      "如果你支付的金额超过应付金额，多出的部分会以美元计入你的 Aster 账户余额。",
     crypto_native_cancel_invoice: "取消此账单",
     crypto_native_cancel_failed: "无法取消此账单。",
     crypto_native_cancel_has_payment: "此账单已收到付款，因此无法再取消。",
@@ -6801,6 +6832,10 @@ export const zh_CN = {
       "发送前请将钱包屏幕上的地址与此处显示的地址逐字核对。我们只会为你的订单监控这个地址。",
     crypto_native_fee_headroom:
       "如果你的钱包会从你输入的金额中扣除网络手续费，请多加一点，确保全额到账。",
+    crypto_native_network_only: "仅通过 {{chain}} 网络发送 {{coin}}",
+    crypto_native_tip_unrecoverable: "通过其他网络发送的资金无法找回。",
+    crypto_native_tip_check_address: "发送前，请在钱包中核对地址。",
+    crypto_native_tip_fee: "如果钱包从金额中扣除手续费，请多发送一点。",
     crypto_native_expired_do_not_send:
       "请勿向此账单中的地址转账。现在发送的资金需要人工审核后才能入账。",
     crypto_native_not_found: "未找到此账单",
@@ -7013,7 +7048,8 @@ export const zh_CN = {
     key_source_cached: "已缓存",
     key_source_dane: "DANE",
     key_source_unknown: "未知",
-    storage_format_ipfs_hint: "私有IPFS按内容哈希将您的加密文件存储在Aster自己的服务器上。它不连接公共IPFS网络，只有您的密钥才能解密您的文件。",
+    storage_format_ipfs_hint:
+      "私有IPFS按内容哈希将您的加密文件存储在Aster自己的服务器上。它不连接公共IPFS网络，只有您的密钥才能解密您的文件。",
     need_help_link: "需要帮助？",
     username_placeholder: "用户名",
     email_label: "邮箱",
@@ -7055,8 +7091,7 @@ export const zh_CN = {
     special_offers: "特别优惠",
     special_offers_description:
       "在应用中偶尔显示套餐折扣优惠。关闭后，你不会看到优惠，也不会被计入优惠结果。",
-    special_offers_save_failed:
-      "特别优惠设置未保存。请重试。",
+    special_offers_save_failed: "特别优惠设置未保存。请重试。",
     criterion_passkey: "已注册通行密钥",
     criterion_read_receipts_off: "已关闭已读回执",
     send_read_receipts_label: "发送已读回执",
@@ -7199,6 +7234,8 @@ export const zh_CN = {
       "门罗币：采用工作量证明，使用通用处理器挖矿。我们没有找到可以背书的当前数据，因此不公布数值。",
     crypto_energy_caveat:
       "这些是第三方估算值，并非我们的实测数据，且按笔计算的数字存在争议。我们不对任何付款方式作出环保声明。",
+    crypto_native_rate_label: "汇率",
+    crypto_native_last_checked_label: "上次检查",
     crypto_native_rate_value: "使用的汇率：1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "选择一种币种即可锁定汇率。然后从你自己的钱包发送付款。",
@@ -8871,7 +8908,8 @@ export const zh_CN = {
     cannot_react_too_many_recipients: "无法对收件人超过 20 人的邮件添加回应。",
     cannot_react_bcc: "无法对以密送方式收到的邮件添加回应。",
     cannot_react_too_many_emojis: "此邮件的回应数量已达上限。",
-    cannot_react_limit: "每封邮件最多可添加两个回应。要添加其他回应，请先移除你的一个回应。",
+    cannot_react_limit:
+      "每封邮件最多可添加两个回应。要添加其他回应，请先移除你的一个回应。",
     cannot_react_no_recipient: "此邮件没有可接收回应的发件人。",
     failed_send_reaction: "请重试。",
     reactions_disabled: "回应功能已在设置中关闭。",
