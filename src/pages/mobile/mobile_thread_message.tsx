@@ -456,28 +456,6 @@ export function MobileThreadMessage({
                     "color-mix(in srgb, var(--text-primary) 7%, transparent)",
                 }}
                 type="button"
-                onClick={() => on_reply(message)}
-              >
-                <ArrowUturnLeftIcon className="h-4 w-4 rtl:-scale-x-100" />
-              </button>
-              <button
-                className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-secondary)] active:opacity-70"
-                style={{
-                  background:
-                    "color-mix(in srgb, var(--text-primary) 7%, transparent)",
-                }}
-                type="button"
-                onClick={() => on_forward(message)}
-              >
-                <ArrowUturnRightIcon className="h-4 w-4 rtl:-scale-x-100" />
-              </button>
-              <button
-                className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-secondary)] active:opacity-70"
-                style={{
-                  background:
-                    "color-mix(in srgb, var(--text-primary) 7%, transparent)",
-                }}
-                type="button"
                 onClick={() => on_open_menu(message)}
               >
                 <EllipsisHorizontalIcon className="h-4.5 w-4.5" />
@@ -591,27 +569,24 @@ export function MobileThreadMessage({
         </div>
       )}
 
-      <div className="flex items-center gap-2 px-4 pt-1 pb-4">
+      <div className="flex items-center gap-2 px-4 pt-2 pb-4">
         <button
-          className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full text-[14px] font-medium text-[var(--accent-fg,#ffffff)] active:opacity-70"
+          className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-[var(--aster-radius-control)] text-[15px] font-medium text-[var(--accent-fg,#ffffff)] transition-opacity active:opacity-80"
           style={{ background: "var(--accent-color, #3b82f6)" }}
           type="button"
           onClick={() => on_reply(message)}
         >
-          <ArrowUturnLeftIcon className="h-4 w-4 rtl:-scale-x-100" />
-          {t("mail.reply")}
+          <ArrowUturnLeftIcon className="h-[18px] w-[18px] shrink-0 rtl:-scale-x-100" />
+          <span className="truncate">{t("mail.reply")}</span>
         </button>
         <button
-          className="flex h-10 flex-1 items-center justify-center gap-1.5 rounded-full text-[14px] font-medium text-[var(--text-secondary)] active:opacity-70"
-          style={{
-            background:
-              "color-mix(in srgb, var(--text-primary) 7%, transparent)",
-          }}
+          className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-[var(--aster-radius-control)] text-[15px] font-medium text-[var(--text-primary)] transition-opacity active:opacity-80"
+          style={{ background: "var(--aster-field-bg)" }}
           type="button"
           onClick={() => on_forward(message)}
         >
-          <ArrowUturnRightIcon className="h-4 w-4 rtl:-scale-x-100" />
-          {t("mail.forward")}
+          <ArrowUturnRightIcon className="h-[18px] w-[18px] shrink-0 rtl:-scale-x-100" />
+          <span className="truncate">{t("mail.forward")}</span>
         </button>
       </div>
     </div>
