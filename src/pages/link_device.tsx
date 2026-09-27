@@ -107,7 +107,7 @@ function LinkDeviceShell({
 
 function Panel({ children }: { children: ReactNode }) {
   return (
-    <div className="account_menu_surface w-full mt-6 rounded-[24px] p-2">
+    <div className="w-full mt-6 flex flex-col gap-2">
       {children}
     </div>
   );
@@ -346,7 +346,7 @@ function AccountChooser({
           on_action={on_select_current}
         />
 
-        <div className="mt-2 flex flex-col gap-2">
+        <div className="flex flex-col gap-2">
           {other_accounts.length > 0 && (
             <p
               className="px-3.5 pt-1.5 text-[11px] font-medium uppercase tracking-[0.06em]"
@@ -798,13 +798,13 @@ export default function LinkDevice() {
 
       <Button
         className="w-full mt-5"
-        disabled={is_verifying || code_input.replace(/-/g, "").length < 8}
+        disabled={code_input.replace(/-/g, "").length < 8}
+        is_loading={is_verifying}
         size="xl"
         variant="depth"
         onClick={handle_verify}
       >
         {t("auth.link_device_verify_button")}
-        {is_verifying && <ButtonSpinner />}
       </Button>
       <button
         className="mt-4 rounded-full px-4 py-2 text-[13px] font-medium text-txt-tertiary transition-colors hover:text-txt-primary"

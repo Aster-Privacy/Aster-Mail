@@ -3381,6 +3381,11 @@ input:-webkit-autofill:active {
   outline-offset: -2px;
 }
 
+.link_device_success_mark {
+  color: var(--accent-color);
+  background-color: color-mix(in srgb, var(--accent-color) 14%, transparent);
+}
+
 .account_menu_surface {
   background-color: color-mix(
     in srgb,
