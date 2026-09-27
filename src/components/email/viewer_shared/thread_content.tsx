@@ -26,6 +26,7 @@ import type { DecryptedEmail } from "@/components/email/use_email_viewer";
 import type { PreloadedSanitizedContent } from "@/components/email/hooks/preload_cache";
 
 import React, { useState, useCallback, useEffect, useMemo } from "react";
+import { IslandDivider } from "@aster/ui";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { is_system_email } from "@/lib/utils";
@@ -268,30 +269,39 @@ export function ViewerThreadContent({
           thread_token={email.thread_token}
           unsubscribe_url={unsubscribe_url}
           footer={
-            thread_draft && !inline_reply_msg ? (
-              <ThreadDraftBadge
-                current_user_email={current_user_email}
-                current_user_name={current_user_name}
-                draft={thread_draft}
-                on_deleted={() => on_thread_draft_deleted?.()}
-                on_edit={(draft) => {
-                  const target =
-                    thread_messages.find((m) => m.id === draft.reply_to_id) ??
-                    thread_messages[thread_messages.length - 1];
+            (thread_draft && !inline_reply_msg) || sending_message ? (
+              <>
+                {thread_draft && !inline_reply_msg && (
+                  <ThreadDraftBadge
+                    current_user_email={current_user_email}
+                    current_user_name={current_user_name}
+                    draft={thread_draft}
+                    on_deleted={() => on_thread_draft_deleted?.()}
+                    on_edit={(draft) => {
+                      const target =
+                        thread_messages.find(
+                          (m) => m.id === draft.reply_to_id,
+                        ) ?? thread_messages[thread_messages.length - 1];
 
-                  if (!target) return;
-                  set_inline_reply_msg(target);
-                  set_inline_mode(
-                    draft.draft_type === "forward" ? "forward" : "reply",
-                  );
-                }}
-                thread_token={email.thread_token}
-              />
-            ) : sending_message ? (
-              <SendingMessageBlock
-                current_user_name={current_user_name ?? ""}
-                message={sending_message}
-              />
+                      if (!target) return;
+                      set_inline_reply_msg(target);
+                      set_inline_mode(
+                        draft.draft_type === "forward" ? "forward" : "reply",
+                      );
+                    }}
+                    thread_token={email.thread_token}
+                  />
+                )}
+                {thread_draft && !inline_reply_msg && sending_message && (
+                  <IslandDivider />
+                )}
+                {sending_message && (
+                  <SendingMessageBlock
+                    current_user_name={current_user_name ?? ""}
+                    message={sending_message}
+                  />
+                )}
+              </>
             ) : null
           }
         />
