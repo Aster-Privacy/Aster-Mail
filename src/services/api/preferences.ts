@@ -20,6 +20,7 @@
 //
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import type { CustomCategoryRule } from "@/data/category_catalog";
+import type { LanguageCode } from "@/lib/i18n/types";
 
 import { api_client } from "./client";
 
@@ -48,6 +49,7 @@ import {
 export interface UserPreferences {
   theme: "light" | "dark" | "system";
   language: string;
+  language_explicit?: boolean;
   time_zone: string;
   date_format: string;
   time_format: "12h" | "24h";
@@ -614,6 +616,12 @@ export function cache_sidebar_state(key: string, value: boolean): void {
   } catch (caught) {
     ignore_error("services/api/preferences:cache_sidebar_state", caught);
   }
+}
+
+export function explicit_language_preference(
+  code: LanguageCode,
+): Pick<UserPreferences, "language" | "language_explicit"> {
+  return { language: get_display_name(code), language_explicit: true };
 }
 
 function default_language_label(): string {

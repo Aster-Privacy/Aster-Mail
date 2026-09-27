@@ -47,10 +47,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { use_i18n } from "@/lib/i18n/context";
-import {
-  get_supported_languages,
-  get_display_name,
-} from "@/lib/i18n/languages";
+import { get_supported_languages } from "@/lib/i18n/languages";
+import { explicit_language_preference } from "@/services/api/preferences";
 import { ThemeCard } from "@/components/settings/appearance/theme_card";
 import { ViewModeCard } from "@/components/settings/appearance/view_mode_card";
 import { ComposeModeCard } from "@/components/settings/appearance/compose_mode_card";
@@ -226,9 +224,7 @@ export function AppearanceSection() {
   };
 
   const handle_language_change = (code: string) => {
-    const display_name = get_display_name(code as LanguageCode);
-
-    update_preference("language", display_name, true);
+    update_preferences(explicit_language_preference(code as LanguageCode), true);
     set_language(code as LanguageCode);
   };
 
