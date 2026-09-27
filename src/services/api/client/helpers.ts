@@ -34,18 +34,18 @@ export const TAURI_AUTH_SLOT_CSRF = "csrf";
 export const ACCOUNTS_ROSTER_KEY = "astermail_accounts_v6";
 export const REFRESH_INTERVAL_MINUTES = 10;
 export const PROACTIVE_REFRESH_THRESHOLD_MINUTES = 25;
-export const WRITE_DEAD_REFRESH_DENIALS = 8;
-export const WRITE_DEAD_MIN_ELAPSED_MS = 10 * 60 * 1000;
+export const REFRESH_FAILURE_BACKOFF_BASE_MS = 30_000;
+export const REFRESH_FAILURE_BACKOFF_MAX_MS =
+  REFRESH_INTERVAL_MINUTES * 60 * 1000;
 
-export function is_write_dead_streak(
-  denial_count: number,
-  streak_started_at: number,
-  now: number,
-): boolean {
-  return (
-    denial_count >= WRITE_DEAD_REFRESH_DENIALS &&
-    streak_started_at > 0 &&
-    now - streak_started_at >= WRITE_DEAD_MIN_ELAPSED_MS
+export function refresh_backoff_ms(consecutive_failures: number): number {
+  if (consecutive_failures <= 0) return 0;
+
+  const exponent = Math.min(consecutive_failures - 1, 16);
+
+  return Math.min(
+    REFRESH_FAILURE_BACKOFF_BASE_MS * 2 ** exponent,
+    REFRESH_FAILURE_BACKOFF_MAX_MS,
   );
 }
 

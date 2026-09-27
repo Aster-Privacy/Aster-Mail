@@ -18,20 +18,24 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export { api_client } from "./api_client";
-export {
-  CLIENT_PLATFORM_HEADER,
-  is_api_error,
-  is_api_success,
-  is_offline_tombstoned,
-  refresh_backoff_ms,
-  unlock_token_cache_suffix,
-} from "./helpers";
-export type {
-  ApiError,
-  ApiErrorCode,
-  ApiResponse,
-  CachedUserInfo,
-  RequestConfig,
-  SessionReestablishResult,
-} from "./helpers";
+import { describe, it, expect } from "vitest";
+
+import { refresh_backoff_ms } from "./client";
+
+describe("refresh_backoff_ms", () => {
+  it("does not wait before the first attempt", () => {
+    expect(refresh_backoff_ms(0)).toBe(0);
+  });
+
+  it("doubles the wait after each consecutive failure", () => {
+    expect(refresh_backoff_ms(1)).toBe(30_000);
+    expect(refresh_backoff_ms(2)).toBe(60_000);
+    expect(refresh_backoff_ms(3)).toBe(120_000);
+    expect(refresh_backoff_ms(4)).toBe(240_000);
+  });
+
+  it("never waits longer than the regular refresh interval", () => {
+    expect(refresh_backoff_ms(6)).toBe(600_000);
+    expect(refresh_backoff_ms(1_000)).toBe(600_000);
+  });
+});

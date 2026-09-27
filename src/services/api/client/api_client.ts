@@ -69,8 +69,8 @@ import {
   is_offline_tombstoned,
   is_pending_deletion_error,
   is_tauri_env,
-  is_write_dead_streak,
   parse_retry_after_header,
+  refresh_backoff_ms,
   unlock_token_cache_suffix,
   with_declared_platform,
   write_last_auth_ms,
@@ -98,6 +98,9 @@ import {
 const RATE_LIMIT_DEFAULT_HOLD_MS = 2000;
 const RATE_LIMIT_MAX_HOLD_MS = 15_000;
 const RATE_LIMIT_RETRY_MAX_HOLD_MS = 5000;
+const REFRESH_MIN_GAP_MS = 5000;
+const REFRESH_LOCK_WAIT_MS = 20_000;
+const REFRESH_LOCK_PREFIX = "aster-session-refresh";
 
 export class ApiClient {
   private refresh_timeout: number | null = null;
@@ -110,8 +113,9 @@ export class ApiClient {
   private refresh_promise: Promise<void> | null = null;
   private _cached_user_info: CachedUserInfo | null = null;
   private last_refresh_timestamp: number = 0;
-  private refresh_denied_streak: number = 0;
-  private refresh_denied_streak_started_at: number = 0;
+  private last_refresh_attempt_at: number = 0;
+  private refresh_failures: number = 0;
+  private refresh_retry_at: number = 0;
   private session_expired_dispatched: boolean = false;
   private intentional_logout: boolean = false;
   private has_ever_authenticated: boolean = false;
@@ -522,9 +526,18 @@ export class ApiClient {
     refresh_token?: string,
     owner_account_id?: string | null,
   ): void {
+    void this.store_tokens(token, refresh_token, owner_account_id);
+  }
+
+  private store_tokens(
+    token: string,
+    refresh_token: string | undefined,
+    owner_account_id: string | null | undefined,
+  ): Promise<void> {
     this.dev_access_token = token;
     if (refresh_token) {
       this.active_refresh_token = refresh_token;
+      this.reset_refresh_backoff();
     }
     if (dev_token_storage_allowed()) {
       sessionStorage.setItem(DEV_TOKEN_KEY, token);
@@ -538,7 +551,12 @@ export class ApiClient {
     if (is_tauri_env()) {
       void this.auth_store_set(TAURI_AUTH_SLOT_ACCESS, token);
     }
-    this.persist_to_active_account(token, refresh_token, owner_account_id);
+
+    return this.persist_to_active_account(
+      token,
+      refresh_token,
+      owner_account_id,
+    );
   }
 
   suspend_account_persist(): void {
@@ -613,11 +631,11 @@ export class ApiClient {
     }
   }
 
-  private persist_to_active_account(
+  private async persist_to_active_account(
     access_token: string | null,
     refresh_token?: string | null,
     owner_account_id?: string | null,
-  ): void {
+  ): Promise<void> {
     if (this.intentional_logout) return;
     if (owner_account_id === null) return;
 
@@ -632,26 +650,28 @@ export class ApiClient {
     }
 
     if (owner_id) {
-      void this.write_account_tokens(owner_id, access_token, refresh_token);
+      await this.write_account_tokens(owner_id, access_token, refresh_token);
 
       return;
     }
 
-    import("@/services/account_manager")
-      .then(async ({ get_current_account_id, update_account_tokens }) => {
-        if (this.intentional_logout) return;
-        const id = await get_current_account_id();
-
-        if (!id) return;
-        if (this.intentional_logout) return;
-        await update_account_tokens(id, access_token, refresh_token);
-      })
-      .catch((caught) =>
-        ignore_error(
-          "services/api/client/api_client:resume_account_persist",
-          caught,
-        ),
+    try {
+      const { get_current_account_id, update_account_tokens } = await import(
+        "@/services/account_manager"
       );
+
+      if (this.intentional_logout) return;
+      const id = await get_current_account_id();
+
+      if (!id) return;
+      if (this.intentional_logout) return;
+      await update_account_tokens(id, access_token, refresh_token);
+    } catch (caught) {
+      ignore_error(
+        "services/api/client/api_client:resume_account_persist",
+        caught,
+      );
+    }
   }
 
   async load_tokens_for_account(account_id: string): Promise<boolean> {
@@ -660,6 +680,7 @@ export class ApiClient {
       const tokens = await get_account_tokens(account_id);
 
       this.active_refresh_token = tokens.refresh_token;
+      this.reset_refresh_backoff();
 
       if (tokens.access_token) {
         this.dev_access_token = tokens.access_token;
@@ -716,8 +737,7 @@ export class ApiClient {
   clear_dev_token(): void {
     this.dev_access_token = null;
     this.active_refresh_token = null;
-    this.refresh_denied_streak = 0;
-    this.refresh_denied_streak_started_at = 0;
+    this.reset_refresh_backoff();
     if (import.meta.env.DEV) {
       sessionStorage.removeItem(DEV_TOKEN_KEY);
     }
@@ -738,7 +758,7 @@ export class ApiClient {
     }
   }
 
-  private schedule_token_refresh(): void {
+  private schedule_token_refresh(delay_ms?: number): void {
     if (this.refresh_timeout) {
       clearTimeout(this.refresh_timeout);
     }
@@ -747,14 +767,30 @@ export class ApiClient {
       this.last_refresh_timestamp = Date.now();
     }
 
-    const refresh_interval = REFRESH_INTERVAL_MINUTES * 60 * 1000;
-
-    this.refresh_timeout = window.setTimeout(() => {
-      this.refresh_session();
-    }, refresh_interval);
+    this.refresh_timeout = window.setTimeout(
+      () => {
+        this.refresh_session();
+      },
+      delay_ms ?? REFRESH_INTERVAL_MINUTES * 60 * 1000,
+    );
   }
 
-  async refresh_session(): Promise<void> {
+  private reset_refresh_backoff(): void {
+    this.refresh_failures = 0;
+    this.refresh_retry_at = 0;
+  }
+
+  private note_refresh_failure(): void {
+    this.refresh_failures += 1;
+    const wait_ms = refresh_backoff_ms(this.refresh_failures);
+
+    this.refresh_retry_at = Date.now() + wait_ms;
+    this.schedule_token_refresh(wait_ms);
+  }
+
+  async refresh_session(
+    options: { after_unauthorized?: boolean } = {},
+  ): Promise<void> {
     if (!this.is_authenticated_flag) return;
     if (!this.initial_auth_verified) return;
 
@@ -768,18 +804,102 @@ export class ApiClient {
       return this.refresh_promise;
     }
 
-    if (
-      this.last_refresh_timestamp &&
-      Date.now() - this.last_refresh_timestamp < 5000
-    ) {
-      return;
-    }
+    const now = Date.now();
 
-    this.refresh_promise = this.refresh_session_impl().finally(() => {
+    if (now - this.last_refresh_attempt_at < REFRESH_MIN_GAP_MS) return;
+    if (!options.after_unauthorized && now < this.refresh_retry_at) return;
+
+    this.last_refresh_attempt_at = now;
+    this.refresh_promise = this.refresh_session_exclusively().finally(() => {
       this.refresh_promise = null;
     });
 
     return this.refresh_promise;
+  }
+
+  private async refresh_session_exclusively(): Promise<void> {
+    const locks =
+      typeof navigator !== "undefined" ? navigator.locks : undefined;
+
+    if (!locks) {
+      return this.refresh_session_impl();
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REFRESH_LOCK_WAIT_MS);
+    let acquired = false;
+
+    try {
+      await locks.request(
+        `${REFRESH_LOCK_PREFIX}:${this.expected_user_id ?? "anonymous"}`,
+        { signal: controller.signal },
+        () => {
+          acquired = true;
+          clearTimeout(timer);
+
+          return this.refresh_session_impl();
+        },
+      );
+    } catch (caught) {
+      if (acquired) throw caught;
+      this.note_refresh_failure();
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  private async read_latest_refresh_token(
+    owner_account_id: string | null | undefined,
+  ): Promise<string | null> {
+    if (Capacitor.isNativePlatform()) {
+      return (await this.load_native_refresh_token()) ?? this.active_refresh_token;
+    }
+
+    if (!owner_account_id) return this.active_refresh_token;
+
+    try {
+      const { read_stored_refresh_token } = await import(
+        "@/services/account_manager"
+      );
+
+      return (
+        (await read_stored_refresh_token(owner_account_id)) ??
+        this.active_refresh_token
+      );
+    } catch {
+      return this.active_refresh_token;
+    }
+  }
+
+  private async adopt_refreshed_session(
+    data: { csrf_token: string; access_token?: string; refresh_token?: string },
+    owner_account_id: string | null | undefined,
+  ): Promise<void> {
+    this.is_authenticated_flag = true;
+    this.last_refresh_timestamp = Date.now();
+    this.reset_refresh_backoff();
+    clear_csrf_cache();
+    this.set_csrf(data.csrf_token);
+
+    if (data.access_token) {
+      await this.store_tokens(
+        data.access_token,
+        data.refresh_token,
+        owner_account_id,
+      );
+    } else if (data.refresh_token) {
+      this.active_refresh_token = data.refresh_token;
+      if (Capacitor.isNativePlatform()) {
+        await this.persist_native_refresh_token(data.refresh_token);
+      }
+      await this.persist_to_active_account(
+        this.dev_access_token,
+        data.refresh_token,
+        owner_account_id,
+      );
+    }
+
+    this.schedule_token_refresh();
   }
 
   private is_transient_error_code(code: ApiErrorCode | undefined): boolean {
@@ -800,23 +920,23 @@ export class ApiClient {
       ? null
       : (this.expected_user_id ?? undefined);
 
-    let stored_refresh_token: string | null = this.active_refresh_token;
+    const refresh_token = await this.read_latest_refresh_token(
+      owner_account_id,
+    );
 
-    if (Capacitor.isNativePlatform()) {
-      stored_refresh_token =
-        (await this.load_native_refresh_token()) ?? stored_refresh_token;
+    if (refresh_token) {
+      this.active_refresh_token = refresh_token;
     }
 
     for (let attempt = 0; attempt < max_retries; attempt++) {
       try {
-        const scoped_user_id = owner_account_id ?? null;
         const body: {
           refresh_token?: string;
           expected_user_id?: string;
         } = {};
 
-        if (stored_refresh_token) body.refresh_token = stored_refresh_token;
-        if (scoped_user_id) body.expected_user_id = scoped_user_id;
+        if (refresh_token) body.refresh_token = refresh_token;
+        if (owner_account_id) body.expected_user_id = owner_account_id;
         const response = await this.post<{
           csrf_token: string;
           access_token?: string;
@@ -828,30 +948,7 @@ export class ApiClient {
         }
 
         if (response.data?.csrf_token) {
-          this.is_authenticated_flag = true;
-          this.last_refresh_timestamp = Date.now();
-          this.refresh_denied_streak = 0;
-          this.refresh_denied_streak_started_at = 0;
-          clear_csrf_cache();
-          this.set_csrf(response.data.csrf_token);
-          if (response.data.access_token) {
-            this.set_dev_token(
-              response.data.access_token,
-              response.data.refresh_token,
-              owner_account_id,
-            );
-          } else if (response.data.refresh_token) {
-            this.active_refresh_token = response.data.refresh_token;
-            if (Capacitor.isNativePlatform()) {
-              this.persist_native_refresh_token(response.data.refresh_token);
-            }
-            this.persist_to_active_account(
-              this.dev_access_token,
-              response.data.refresh_token,
-              owner_account_id,
-            );
-          }
-          this.schedule_token_refresh();
+          await this.adopt_refreshed_session(response.data, owner_account_id);
           await this.verify_identity(true);
 
           return;
@@ -862,87 +959,56 @@ export class ApiClient {
             await this.delay(retry_delay_base * (attempt + 1));
             continue;
           }
-          this.schedule_token_refresh();
+          this.note_refresh_failure();
 
           return;
         }
 
-        if (response.code === "UNAUTHORIZED" || response.code === "FORBIDDEN") {
-          let me_response: ApiResponse<{ user_id: string }> | null = null;
-
-          try {
-            me_response = await this.get<{ user_id: string }>(
-              "/core/v1/auth/me",
-              {
-                skip_cache: true,
-                skip_session_refresh: true,
-                skip_dedup: true,
-              },
-            );
-          } catch (e) {
-            if (import.meta.env.DEV) console.error(e);
-            if (attempt < max_retries - 1) {
-              await this.delay(retry_delay_base * (attempt + 1));
-              continue;
-            }
-            this.schedule_token_refresh();
-
-            return;
-          }
-
-          if (me_response.data?.user_id) {
-            if (this.is_identity_mismatch(me_response.data.user_id)) {
-              this.dispatch_identity_mismatch(me_response.data.user_id);
-
-              return;
-            }
-            this.refresh_denied_streak += 1;
-            if (!this.refresh_denied_streak_started_at) {
-              this.refresh_denied_streak_started_at = Date.now();
-            }
-            if (
-              is_write_dead_streak(
-                this.refresh_denied_streak,
-                this.refresh_denied_streak_started_at,
-                Date.now(),
-              )
-            ) {
-              this.is_authenticated_flag = false;
-              this.dispatch_session_expired();
-
-              return;
-            }
-            this.schedule_token_refresh();
-
-            return;
-          }
-
-          if (this.is_transient_error_code(me_response.code)) {
-            if (attempt < max_retries - 1) {
-              await this.delay(retry_delay_base * (attempt + 1));
-              continue;
-            }
-            this.schedule_token_refresh();
-
-            return;
-          }
-
-          if (
-            me_response.code === "UNAUTHORIZED" ||
-            me_response.code === "FORBIDDEN"
-          ) {
-            this.is_authenticated_flag = false;
-            this.dispatch_session_expired();
-
-            return;
-          }
-
-          this.schedule_token_refresh();
+        if (response.code !== "UNAUTHORIZED" && response.code !== "FORBIDDEN") {
+          this.note_refresh_failure();
 
           return;
         }
 
-        this.schedule_token_refresh();
+        const me_response = await this.get<{ user_id: string }>(
+          "/core/v1/auth/me",
+          {
+            skip_cache: true,
+            skip_session_refresh: true,
+            skip_dedup: true,
+          },
+        );
+
+        if (me_response.data?.user_id) {
+          if (this.is_identity_mismatch(me_response.data.user_id)) {
+            this.dispatch_identity_mismatch(me_response.data.user_id);
+
+            return;
+          }
+          this.note_refresh_failure();
+
+          return;
+        }
+
+        if (
+          me_response.code === "UNAUTHORIZED" ||
+          me_response.code === "FORBIDDEN"
+        ) {
+          this.is_authenticated_flag = false;
+          this.dispatch_session_expired();
+
+          return;
+        }
+
+        if (
+          this.is_transient_error_code(me_response.code) &&
+          attempt < max_retries - 1
+        ) {
+          await this.delay(retry_delay_base * (attempt + 1));
+          continue;
+        }
+
+        this.note_refresh_failure();
 
         return;
       } catch (error) {
@@ -956,7 +1022,7 @@ export class ApiClient {
           await this.delay(retry_delay_base * (attempt + 1));
           continue;
         }
-        this.schedule_token_refresh();
+        this.note_refresh_failure();
       }
     }
   }
@@ -1400,10 +1466,10 @@ export class ApiClient {
     }
   }
 
-  private async ensure_fresh_token(
+  private ensure_fresh_token(
     endpoint: string,
     skip_session_refresh = false,
-  ): Promise<void> {
+  ): void {
     if (
       skip_session_refresh ||
       !this.is_authenticated_flag ||
@@ -1423,14 +1489,12 @@ export class ApiClient {
       (Date.now() - this.last_refresh_timestamp) / 60_000;
 
     if (minutes_since_refresh >= PROACTIVE_REFRESH_THRESHOLD_MINUTES) {
-      try {
-        await this.refresh_session();
-      } catch (caught) {
+      this.refresh_session().catch((caught) =>
         ignore_error(
-          "services/api/client/api_client:clear_session_cookies",
+          "services/api/client/api_client:ensure_fresh_token",
           caught,
-        );
-      }
+        ),
+      );
     }
   }
 
@@ -1480,7 +1544,7 @@ export class ApiClient {
       this.set_expected_user_id(null);
     }
 
-    await this.ensure_fresh_token(endpoint, config.skip_session_refresh);
+    this.ensure_fresh_token(endpoint, config.skip_session_refresh);
 
     const {
       timeout = get_effective_timeout(DEFAULT_TIMEOUT),
@@ -1599,7 +1663,7 @@ export class ApiClient {
               has_attempted_refresh = true;
               clear_csrf_cache();
               try {
-                await this.refresh_session();
+                await this.refresh_session({ after_unauthorized: true });
               } catch (e) {
                 if (import.meta.env.DEV) console.error(e);
               }
@@ -1813,7 +1877,7 @@ export class ApiClient {
             ) {
               has_attempted_refresh = true;
               try {
-                await this.refresh_session();
+                await this.refresh_session({ after_unauthorized: true });
               } catch (e) {
                 if (import.meta.env.DEV) console.error(e);
               }
@@ -1836,7 +1900,11 @@ export class ApiClient {
             }
           }
 
-          if (response.status === 429 && !error_data.resets_at) {
+          if (
+            response.status === 429 &&
+            !error_data.resets_at &&
+            !endpoint.includes("/auth/refresh")
+          ) {
             const hold_ms = this.note_rate_limited(
               response.headers.get("retry-after"),
               error_data.resets_at,
