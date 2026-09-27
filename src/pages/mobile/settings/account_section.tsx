@@ -175,7 +175,11 @@ export function AccountSection({
   const { user, update_user, vault } = use_auth();
   const { preferences, update_preference, reset_to_defaults } =
     use_preferences();
-  const active_profile_color = user?.profile_color || preferences.profile_color;
+  const [pending_profile_color, set_pending_profile_color] = useState<
+    string | null
+  >(null);
+  const active_profile_color =
+    pending_profile_color ?? (user?.profile_color || preferences.profile_color);
   const { limits } = use_plan_limits();
   const is_paid_plan = !!limits && limits.plan_code !== "free";
   const {
@@ -521,23 +525,31 @@ export function AccountSection({
                 onClick={async () => {
                   const prev = active_profile_color;
 
-                  update_preference("profile_color", color, true);
-                  if (user) {
-                    await update_user({ ...user, profile_color: color });
-                  }
-                  const { update_profile_color } =
-                    await import("@/services/api/user");
-                  const response = await update_profile_color(color);
-
-                  if (response.error) {
-                    update_preference("profile_color", prev, true);
+                  set_pending_profile_color(color);
+                  try {
+                    update_preference("profile_color", color, true);
                     if (user) {
-                      await update_user({
-                        ...user,
-                        profile_color: prev || undefined,
-                      });
+                      await update_user({ ...user, profile_color: color });
                     }
-                    show_toast(t("common.failed_save_profile_color"), "error");
+                    const { update_profile_color } =
+                      await import("@/services/api/user");
+                    const response = await update_profile_color(color);
+
+                    if (response.error) {
+                      update_preference("profile_color", prev, true);
+                      if (user) {
+                        await update_user({
+                          ...user,
+                          profile_color: prev || undefined,
+                        });
+                      }
+                      show_toast(
+                        t("common.failed_save_profile_color"),
+                        "error",
+                      );
+                    }
+                  } finally {
+                    set_pending_profile_color(null);
                   }
                 }}
               >

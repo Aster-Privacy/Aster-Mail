@@ -261,6 +261,7 @@ export function AccountSection() {
   const [color, set_color] = useState(
     user?.profile_color || preferences.profile_color || PROFILE_COLORS[5],
   );
+  const color_saving_ref = useRef(false);
   const [name, set_name] = useState(user?.display_name || user?.username || "");
   const [saving_name, set_saving_name] = useState(false);
   const [avatar_hovered, set_avatar_hovered] = useState(false);
@@ -395,6 +396,8 @@ export function AccountSection() {
   }, [derived_name]);
 
   useEffect(() => {
+    if (color_saving_ref.current) return;
+
     const synced_color = user?.profile_color || preferences.profile_color;
 
     if (synced_color) {
@@ -722,6 +725,7 @@ export function AccountSection() {
                       );
                     };
 
+                    color_saving_ref.current = true;
                     try {
                       set_color(c);
                       update_preference("profile_color", c, true);
@@ -737,6 +741,8 @@ export function AccountSection() {
                         caught,
                       );
                       await revert();
+                    } finally {
+                      color_saving_ref.current = false;
                     }
                   }}
                 />
