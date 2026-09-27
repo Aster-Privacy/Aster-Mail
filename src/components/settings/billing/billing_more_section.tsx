@@ -21,23 +21,7 @@
 import type { ReactNode } from "react";
 
 import { ChevronDownIcon } from "@heroicons/react/24/outline";
-import { Island, IslandDivider, IslandRow, IslandSection } from "@aster/ui";
-
-import { use_i18n } from "@/lib/i18n/context";
-
-interface BillingMoreSectionProps {
-  children: ReactNode;
-}
-
-export function BillingMoreSection({ children }: BillingMoreSectionProps) {
-  const { t } = use_i18n();
-
-  return (
-    <IslandSection bare title={t("settings.billing_more_title")}>
-      <Island padding="none">{children}</Island>
-    </IslandSection>
-  );
-}
+import { IslandDivider, IslandRow } from "@aster/ui";
 
 interface BillingMoreRowProps {
   icon: ReactNode;

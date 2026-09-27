@@ -3368,7 +3368,6 @@ export const hi = {
     billing_thanks_free_title: "Aster इस्तेमाल करने के लिए धन्यवाद",
     billing_thanks_free_body:
       "एक छोटी टीम Aster को सावधानी से बनाती है, और जो भी व्यक्ति अपने मेल के लिए इस पर भरोसा करता है, वह हमें आगे बढ़ाता है। जब भी आपको ज़्यादा स्टोरेज, उपनाम या कस्टम डोमेन चाहिए, अपग्रेड करें।",
-    billing_more_title: "और",
     billing_addons_subtitle: "ज़्यादा जगह, वही प्लान",
     billing_support_subtitle: "टीम को संदेश भेजें",
     billing_credits_subtitle: "बैलेंस और टॉप-अप",

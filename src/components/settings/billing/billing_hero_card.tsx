@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { ComponentType, SVGProps } from "react";
+import type { ComponentType, ReactNode, SVGProps } from "react";
 
 import {
   ArrowPathIcon,
@@ -66,6 +66,7 @@ interface BillingHeroCardProps {
   on_renew_with_crypto: () => void;
   on_add_storage: () => void;
   on_cancel_plan: () => void;
+  children?: ReactNode;
 }
 
 function row_icon(Icon: ComponentType<SVGProps<SVGSVGElement>>) {
@@ -90,6 +91,7 @@ export function BillingHeroCard({
   on_renew_with_crypto,
   on_add_storage,
   on_cancel_plan,
+  children,
 }: BillingHeroCardProps) {
   const { t } = use_i18n();
   const is_paid_plan = !!subscription && subscription.plan.code !== "free";
@@ -377,6 +379,13 @@ export function BillingHeroCard({
           />
         )}
       </div>
+
+      {children && (
+        <>
+          <IslandDivider inset={52} />
+          <div>{children}</div>
+        </>
+      )}
     </Island>
   );
 }

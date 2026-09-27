@@ -4412,7 +4412,6 @@ export const ar = {
     billing_thanks_free_title: "شكرًا لاستخدامك Aster",
     billing_thanks_free_body:
       "فريق صغير يبني Aster بعناية، وكل شخص يأتمنه على بريده يبقينا مستمرين. قم بالترقية متى احتجت إلى مساحة أكبر أو أسماء مستعارة أو نطاقات مخصصة.",
-    billing_more_title: "المزيد",
     billing_addons_subtitle: "مساحة أكبر، الخطة نفسها",
     billing_support_subtitle: "أرسل رسالة إلى الفريق",
     billing_credits_subtitle: "الرصيد وعمليات الشحن",

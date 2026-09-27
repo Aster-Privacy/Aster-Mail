@@ -3332,7 +3332,6 @@ export const en: Translations = {
     cancel_plan_warning:
       "You will keep premium features until the end of this billing period, and then your plan moves to Free. Your mail, contacts, and settings stay with you.",
     billing_history: "Billing History",
-    billing_more_title: "More",
     billing_addons_subtitle: "Add space, keep your plan",
     billing_support_subtitle: "Send the team a message",
     billing_credits_subtitle: "Balance and top-ups",

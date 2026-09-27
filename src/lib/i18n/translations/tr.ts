@@ -4224,7 +4224,6 @@ export const tr = {
     billing_thanks_free_title: "Aster'ı kullandığınız için teşekkürler",
     billing_thanks_free_body:
       "Küçük bir ekip Aster'ı özenle geliştiriyor ve postasını ona emanet eden herkes bizi ayakta tutuyor. Daha fazla depolama, takma ad veya özel alan adına ihtiyaç duyduğunuzda planınızı yükseltin.",
-    billing_more_title: "Daha fazla",
     billing_addons_subtitle: "Daha fazla alan, aynı plan",
     billing_support_subtitle: "Ekibe mesaj gönderin",
     billing_credits_subtitle: "Bakiye ve yüklemeler",

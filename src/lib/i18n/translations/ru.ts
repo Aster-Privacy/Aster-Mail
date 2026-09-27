@@ -4401,7 +4401,6 @@ export const ru = {
     billing_thanks_free_title: "Спасибо, что пользуетесь Aster",
     billing_thanks_free_body:
       "Небольшая команда с заботой создаёт Aster, и каждый, кто доверяет ему свою почту, помогает нам двигаться дальше. Переходите на платный тариф, когда понадобится больше места, псевдонимов или собственных доменов.",
-    billing_more_title: "Ещё",
     billing_addons_subtitle: "Больше места, тот же тариф",
     billing_support_subtitle: "Написать команде",
     billing_credits_subtitle: "Баланс и пополнения",

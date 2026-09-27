@@ -4283,7 +4283,6 @@ export const pt = {
     billing_thanks_free_title: "Obrigado por usar o Aster",
     billing_thanks_free_body:
       "Uma equipe pequena constrói o Aster com cuidado, e cada pessoa que confia seu e-mail a ele nos mantém em frente. Faça upgrade sempre que precisar de mais armazenamento, aliases ou domínios personalizados.",
-    billing_more_title: "Mais",
     billing_addons_subtitle: "Mais espaço, mesmo plano",
     billing_support_subtitle: "Envie uma mensagem para a equipe",
     billing_credits_subtitle: "Saldo e recargas",

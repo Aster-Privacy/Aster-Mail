@@ -98,11 +98,9 @@ import { AcademicDiscountSection } from "@/components/settings/billing/academic_
 import { BillingHistorySection } from "@/components/settings/billing/billing_history_section";
 import {
   BillingMoreRow,
-  BillingMoreSection,
   billing_row_icon,
 } from "@/components/settings/billing/billing_more_section";
 import { open_settings_target } from "@/lib/settings_links";
-import { use_auth } from "@/contexts/auth_context";
 import { BillingDialogs } from "@/components/settings/billing/billing_dialogs";
 import { type CancelReason } from "@/components/settings/billing/cancel_reason_step";
 import {
@@ -125,8 +123,6 @@ import { use_plan_features } from "@/components/settings/billing/use_plan_featur
 
 export function BillingSection() {
   const { t } = use_i18n();
-  const { user } = use_auth();
-  const account_email = user?.email ?? "";
   const { stats } = use_mail_stats();
   const [subscription, set_subscription] =
     useState<SubscriptionResponse | null>(null);
@@ -1073,29 +1069,20 @@ export function BillingSection() {
 
   return (
     <IslandSections>
-      <div className="flex flex-col items-center gap-1.5 pb-1 pt-3 text-center">
-        <img
-          alt="Aster"
-          className="h-6 w-auto select-none dark:hidden"
-          decoding="async"
-          draggable={false}
-          height={24}
-          src="/text_logo.png"
-        />
-        <img
-          alt="Aster"
-          className="hidden h-6 w-auto select-none dark:block"
-          decoding="async"
-          draggable={false}
-          height={24}
-          src="/text_logo_white.png"
-        />
-        {account_email && (
-          <p className="text-[13px] leading-5 text-txt-secondary">
-            {account_email}
-          </p>
-        )}
-      </div>
+      <BillingNoticeStack
+        grace_days_remaining={grace_days_remaining}
+        has_payment_failed={has_payment_failed}
+        is_action_loading={is_action_loading}
+        is_over_limit={is_storage_over_limit}
+        on_add_storage={scroll_to_storage_addons}
+        on_choose_plan={scroll_to_plans}
+        on_manage_billing={() => set_show_payment_methods(true)}
+        on_reactivate={handle_reactivate}
+        on_renew_with_crypto={handle_crypto_renew}
+        on_switch_to_yearly={handle_switch_to_yearly}
+        preferred_currency={preferred_currency}
+        subscription={subscription}
+      />
 
       <BillingHeroCard
         current_billing_interval={current_billing_interval}
@@ -1126,63 +1113,7 @@ export function BillingSection() {
         storage_percentage={storage_percentage}
         storage_used_bytes={storage_used_bytes}
         subscription={subscription}
-      />
-
-      {show_plans && (
-        <IslandSections>
-          <AvailablePlansSection
-            billing_period={billing_period}
-            current_billing_interval={current_billing_interval}
-            handle_currency_change={handle_currency_change}
-            is_action_loading={is_action_loading}
-            on_family_plan_change={handle_family_plan_change}
-            on_reload_plans={() => {
-              void load_data();
-            }}
-            on_tauri_checkout_opened={() => {
-              plan_before_checkout_ref.current =
-                subscription?.plan.code ?? null;
-              pending_tauri_checkout_ref.current = true;
-            }}
-            on_upgrade={handle_select_plan}
-            plan_features={plan_features}
-            plans={plans}
-            plans_load_failed={plans_load_failed}
-            preferred_currency={preferred_currency}
-            set_billing_period={set_billing_period}
-            subscription={subscription}
-          />
-
-          <PlanComparisonSection current_plan_code={subscription?.plan.code} />
-        </IslandSections>
-      )}
-
-      {stripe_load_failed && (
-        <p
-          className="text-sm"
-          role="alert"
-          style={{ color: "var(--color-danger)" }}
-        >
-          {t("settings.failed_checkout")}
-        </p>
-      )}
-
-      <BillingNoticeStack
-        grace_days_remaining={grace_days_remaining}
-        has_payment_failed={has_payment_failed}
-        is_action_loading={is_action_loading}
-        is_over_limit={is_storage_over_limit}
-        on_add_storage={scroll_to_storage_addons}
-        on_choose_plan={scroll_to_plans}
-        on_manage_billing={() => set_show_payment_methods(true)}
-        on_reactivate={handle_reactivate}
-        on_renew_with_crypto={handle_crypto_renew}
-        on_switch_to_yearly={handle_switch_to_yearly}
-        preferred_currency={preferred_currency}
-        subscription={subscription}
-      />
-
-      <BillingMoreSection>
+      >
         <StorageAddonsSection
           embedded
           active_addons={active_addons}
@@ -1228,7 +1159,47 @@ export function BillingSection() {
           label={t("common.contact_support")}
           on_press={() => open_settings_target({ section: "feedback" })}
         />
-      </BillingMoreSection>
+      </BillingHeroCard>
+
+      {show_plans && (
+        <IslandSections>
+          <AvailablePlansSection
+            billing_period={billing_period}
+            current_billing_interval={current_billing_interval}
+            handle_currency_change={handle_currency_change}
+            is_action_loading={is_action_loading}
+            on_family_plan_change={handle_family_plan_change}
+            on_reload_plans={() => {
+              void load_data();
+            }}
+            on_tauri_checkout_opened={() => {
+              plan_before_checkout_ref.current =
+                subscription?.plan.code ?? null;
+              pending_tauri_checkout_ref.current = true;
+            }}
+            on_upgrade={handle_select_plan}
+            plan_features={plan_features}
+            plans={plans}
+            plans_load_failed={plans_load_failed}
+            preferred_currency={preferred_currency}
+            set_billing_period={set_billing_period}
+            subscription={subscription}
+          />
+
+          <PlanComparisonSection current_plan_code={subscription?.plan.code} />
+        </IslandSections>
+      )}
+
+      {stripe_load_failed && (
+        <p
+          className="text-sm"
+          role="alert"
+          style={{ color: "var(--color-danger)" }}
+        >
+          {t("settings.failed_checkout")}
+        </p>
+      )}
+
 
       {crypto_plan &&
         (() => {

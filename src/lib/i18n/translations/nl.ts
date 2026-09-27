@@ -4212,7 +4212,6 @@ export const nl = {
     billing_thanks_free_title: "Bedankt dat je Aster gebruikt",
     billing_thanks_free_body:
       "Een klein team bouwt Aster met zorg, en iedereen die ons zijn e-mail toevertrouwt houdt ons op de been. Upgrade wanneer je meer opslag, aliassen of eigen domeinen nodig hebt.",
-    billing_more_title: "Meer",
     billing_addons_subtitle: "Meer ruimte, zelfde abonnement",
     billing_support_subtitle: "Stuur het team een bericht",
     billing_credits_subtitle: "Saldo en opwaarderingen",

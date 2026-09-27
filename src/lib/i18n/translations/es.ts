@@ -4281,7 +4281,6 @@ export const es = {
     billing_thanks_free_title: "Gracias por usar Aster",
     billing_thanks_free_body:
       "Un equipo pequeño construye Aster con cuidado, y cada persona que le confía su correo nos mantiene en marcha. Mejora tu plan cuando necesites más almacenamiento, alias o dominios personalizados.",
-    billing_more_title: "Más",
     billing_addons_subtitle: "Más espacio, mismo plan",
     billing_support_subtitle: "Envía un mensaje al equipo",
     billing_credits_subtitle: "Saldo y recargas",

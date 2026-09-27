@@ -4309,7 +4309,6 @@ export const ko = {
     billing_thanks_free_title: "Aster를 사용해 주셔서 감사합니다",
     billing_thanks_free_body:
       "작은 팀이 정성껏 Aster를 만들고 있으며, 메일을 맡겨 주시는 한 분 한 분이 저희의 원동력입니다. 더 많은 저장 공간, 별칭, 사용자 지정 도메인이 필요하면 언제든 업그레이드하세요.",
-    billing_more_title: "더보기",
     billing_addons_subtitle: "공간 추가, 플랜은 그대로",
     billing_support_subtitle: "팀에 메시지 보내기",
     billing_credits_subtitle: "잔액 및 충전",

@@ -4314,7 +4314,6 @@ export const fr = {
     billing_thanks_free_title: "Merci d'utiliser Aster",
     billing_thanks_free_body:
       "Une petite équipe développe Aster avec soin, et chaque personne qui lui confie ses e-mails nous fait avancer. Passez à un forfait supérieur dès que vous avez besoin de plus de stockage, d'alias ou de domaines personnalisés.",
-    billing_more_title: "Plus",
     billing_addons_subtitle: "Plus d'espace, même forfait",
     billing_support_subtitle: "Envoyer un message à l'équipe",
     billing_credits_subtitle: "Solde et recharges",

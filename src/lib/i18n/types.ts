@@ -3466,7 +3466,6 @@ export interface SettingsTranslations {
   cancel_plan: string;
   cancel_plan_warning: string;
   billing_history: string;
-  billing_more_title: string;
   billing_addons_subtitle: string;
   billing_support_subtitle: string;
   billing_credits_subtitle: string;

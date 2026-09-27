@@ -3946,7 +3946,6 @@ export const zh_CN = {
     billing_thanks_free_title: "感谢你使用 Aster",
     billing_thanks_free_body:
       "一个小团队用心打造 Aster，每一位信任并把邮件交给它的人都是我们前进的动力。需要更多存储空间、别名或自定义域名时，随时可以升级。",
-    billing_more_title: "更多",
     billing_addons_subtitle: "扩充空间，套餐不变",
     billing_support_subtitle: "给团队发消息",
     billing_credits_subtitle: "余额与充值",
