@@ -89,6 +89,7 @@ import {
 import { check_and_run_recovery_reencryption } from "@/services/crypto/recovery_reencrypt";
 import { emit_auth_ready } from "@/hooks/mail_events";
 import { ensure_default_labels } from "@/services/labels/ensure_defaults";
+import { ensure_pgp_key_published } from "@/services/crypto/ensure_pgp_key_published";
 import { prime_server_recovery_email } from "@/services/api/recovery_email";
 import { connection_store } from "@/services/routing/connection_store";
 import { load_preferred_sender_from_server } from "@/lib/preferred_sender";
@@ -752,6 +753,9 @@ export function use_auth_account_state() {
       ensure_ratchet_keys().catch((caught) =>
         ignore_error("contexts/auth/use_auth_account_state:init", caught),
       );
+      ensure_pgp_key_published().catch((caught) =>
+        ignore_error("contexts/auth/use_auth_account_state:init", caught),
+      );
       ensure_default_labels(vault, t).catch(console.error);
       prime_server_recovery_email(vault).catch((caught) =>
         ignore_error("contexts/auth/use_auth_account_state:init", caught),
@@ -878,6 +882,9 @@ export function use_auth_account_state() {
           ignore_error("contexts/auth/use_auth_account_state:accounts", caught),
         );
         ensure_ratchet_keys().catch((caught) =>
+          ignore_error("contexts/auth/use_auth_account_state:accounts", caught),
+        );
+        ensure_pgp_key_published().catch((caught) =>
           ignore_error("contexts/auth/use_auth_account_state:accounts", caught),
         );
         ensure_default_labels(vault, t).catch(console.error);

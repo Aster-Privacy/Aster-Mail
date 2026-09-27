@@ -33,6 +33,7 @@ import { install_missing_identity_key } from "@/services/crypto/install_missing_
 import {
   get_vault_from_memory,
   get_passphrase_from_memory,
+  is_vault_owned_by,
 } from "@/services/crypto/memory_key_store";
 
 vi.mock("@/services/api/client", () => ({
@@ -48,6 +49,7 @@ vi.mock("@/services/api/key_rotation", () => ({
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: vi.fn(),
   get_passphrase_from_memory: vi.fn(),
+  is_vault_owned_by: vi.fn(),
 }));
 
 vi.mock("@/services/account_manager", () => ({
@@ -99,6 +101,7 @@ describe("ensure_pgp_key_published", () => {
     vi.clearAllMocks();
     reset_pgp_publish_attempt();
     vi.mocked(get_passphrase_from_memory).mockReturnValue(PASSPHRASE);
+    vi.mocked(is_vault_owned_by).mockReturnValue(true);
     vi.mocked(rekey_pgp_if_needed).mockResolvedValue(true);
   });
 
@@ -259,6 +262,7 @@ describe("ensure_pgp_key_published", () => {
     expect(result).toBe("failed");
     expect(republish_pgp_key).not.toHaveBeenCalled();
   });
+
   it("installs an identity key when the vault has none and the server has none", async () => {
     vi.mocked(install_missing_identity_key).mockResolvedValue(true);
     vi.mocked(get_vault_from_memory).mockReturnValue({} as never);
@@ -293,6 +297,20 @@ describe("ensure_pgp_key_published", () => {
     vi.mocked(api_client.get).mockResolvedValue({
       error: "Internal server error",
       code: "SERVER_ERROR",
+    });
+
+    const result = await ensure_pgp_key_published();
+
+    expect(result).toBe("skipped");
+    expect(install_missing_identity_key).not.toHaveBeenCalled();
+  });
+
+  it("never installs an identity key into a vault owned by another account", async () => {
+    vi.mocked(is_vault_owned_by).mockReturnValue(false);
+    vi.mocked(get_vault_from_memory).mockReturnValue({} as never);
+    vi.mocked(api_client.get).mockResolvedValue({
+      error: "PGP key not found",
+      code: "NOT_FOUND",
     });
 
     const result = await ensure_pgp_key_published();

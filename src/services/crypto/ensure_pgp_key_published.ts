@@ -30,6 +30,7 @@ import { get_current_account } from "@/services/account_manager";
 import {
   get_vault_from_memory,
   get_passphrase_from_memory,
+  is_vault_owned_by,
 } from "@/services/crypto/memory_key_store";
 
 const PGP_PRIVATE_KEY_HEADER = "-----BEGIN PGP PRIVATE KEY";
@@ -57,7 +58,12 @@ export async function ensure_pgp_key_published(options?: {
   const vault = get_vault_from_memory();
   const passphrase = get_passphrase_from_memory();
 
-  if (vault && !vault.identity_key && passphrase) {
+  if (
+    vault &&
+    !vault.identity_key &&
+    passphrase &&
+    is_vault_owned_by(account_id)
+  ) {
     return install_identity_key_when_unpublished(
       account_id,
       account?.user?.email ?? null,

@@ -84,6 +84,7 @@ import {
   UNLIMITED_ACCOUNTS,
 } from "@/services/plan_limits";
 import { ensure_default_labels } from "@/services/labels/ensure_defaults";
+import { ensure_pgp_key_published } from "@/services/crypto/ensure_pgp_key_published";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect } from "@/lib/hard_redirect";
 import { take_post_switch_path } from "@/lib/post_switch_path";
@@ -996,6 +997,9 @@ export function use_auth_provider_state() {
         start_session_timeout(state.current_account_id);
       }
 
+      ensure_pgp_key_published().catch((caught) =>
+        ignore_error("contexts/auth/use_auth_provider_state:set_vault", caught),
+      );
       ensure_default_labels(vault, t).catch(console.error);
 
       set_state((prev) => ({ ...prev, has_keys: true }));
