@@ -1232,6 +1232,7 @@ export function BillingSection() {
         on_manage_payment={() => set_show_payment_methods(true)}
         on_reactivate={handle_reactivate}
         on_renew_with_crypto={handle_crypto_renew}
+        on_show_plans={scroll_to_plans}
         on_switch_billing={() => set_show_switch_billing_dialog(true)}
         on_toggle_plans={() => {
           if (show_plans) {

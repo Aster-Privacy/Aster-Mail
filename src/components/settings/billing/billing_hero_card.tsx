@@ -67,6 +67,7 @@ interface BillingHeroCardProps {
   preferred_currency: string;
   plans_open: boolean;
   on_toggle_plans: () => void;
+  on_show_plans: () => void;
   on_manage_payment: () => void;
   on_switch_billing: () => void;
   on_reactivate: () => void;
@@ -112,6 +113,7 @@ export function BillingHeroCard({
   preferred_currency,
   plans_open,
   on_toggle_plans,
+  on_show_plans,
   on_manage_payment,
   on_switch_billing,
   on_reactivate,
@@ -287,14 +289,14 @@ export function BillingHeroCard({
             label={t("settings.usage_aliases")}
             limit={aliases.limit}
             loaded={aliases.loaded}
-            on_upgrade={on_toggle_plans}
+            on_upgrade={on_show_plans}
           />
           <BillingUsageMeter
             current={domains.current}
             label={t("settings.usage_domains")}
             limit={domains.limit}
             loaded={domains.loaded}
-            on_upgrade={on_toggle_plans}
+            on_upgrade={on_show_plans}
           />
         </div>
 
@@ -419,6 +421,21 @@ export function BillingHeroCard({
                   })}
                 </span>
               }
+            />
+          )}
+
+        {is_paid_plan &&
+          !is_crypto &&
+          !cancels &&
+          tier &&
+          current_billing_interval === "year" && (
+            <IslandRow
+              chevron={!is_action_loading}
+              disabled={is_action_loading}
+              icon={row_icon(CalendarIcon)}
+              label={t("settings.switch_to_monthly")}
+              on_press={on_switch_billing}
+              trailing={trailing_spinner}
             />
           )}
 
