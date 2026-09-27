@@ -891,7 +891,7 @@ export const pt = {
     forwarding_rule_updated: "Regra de encaminhamento atualizada",
     forwarding_rule_created: "Regra de encaminhamento criada",
     email_sent_via_external: "E-mail enviado através de uma conta externa.",
-    encryption_keys_rotated: "Chaves de encriptação rodadas com sucesso",
+    encryption_keys_rotated: "Chaves de encriptação renovadas com sucesso",
     failed_to_retrieve_key: "Não foi possível obter a chave atual do servidor",
     sending: "A enviar...",
     in_one_minute: "Em 1 min",
@@ -1903,8 +1903,6 @@ export const pt = {
     sender_count_other: "{{count}} remetentes",
     email_count_one: "{{count}} e-mail",
     email_count_other: "{{count}} e-mails",
-    entry_count_one: "{{count}} entrada",
-    entry_count_other: "{{count}} entradas",
     file_count_one: "{{count}} ficheiro",
     file_count_other: "{{count}} ficheiros",
     emails_from_senders_archived_one:
@@ -1919,7 +1917,6 @@ export const pt = {
     app_lock_attempts_remaining_other: "Restam {{count}} tentativas",
     sender_count: "{{count}} remetentes",
     email_count: "{{count}} e-mails",
-    entry_count: "{{count}} entradas",
     file_count: "{{count}} ficheiros",
     images_count_one: "{{count}} imagem",
     images_count_other: "{{count}} imagens",
@@ -2886,11 +2883,11 @@ export const pt = {
     alias_apply_existing_cancel_failed: "Não foi possível parar esta execução.",
     alias_apply_existing_queued: "Em fila...",
     alias_apply_existing_progress:
-      "A aplicar: {{scanned}} analisados, {{applied}} atualizados",
+      "A aplicar. Analisados: {{scanned}}, atualizados: {{applied}}",
     alias_apply_existing_progress_total:
-      "A aplicar: {{scanned}} de {{total}} analisados, {{applied}} atualizados",
+      "A aplicar. Analisados: {{scanned}} de {{total}}, atualizados: {{applied}}",
     alias_apply_existing_done:
-      "Concluído: {{scanned}} analisados, {{applied}} atualizados",
+      "Concluído. Analisados: {{scanned}}, atualizados: {{applied}}",
     alias_apply_existing_canceled: "Parado: {{applied}} atualizados",
     alias_apply_existing_error:
       "Não foi possível aplicar ao correio existente. Tente novamente.",
@@ -3781,9 +3778,10 @@ export const pt = {
     login_alerts_disable_message:
       "Deixa de receber um e-mail quando um novo dispositivo inicia sessão na sua conta.",
     turn_off_action: "Desativar",
-    forward_secrecy_enabled_description: "As chaves são rodadas {{frequency}}",
+    forward_secrecy_enabled_description:
+      "As chaves são renovadas {{frequency}}",
     forward_secrecy_disabled_description:
-      "Rodar automaticamente as chaves de encriptação para maior segurança",
+      "Renovar automaticamente as chaves de encriptação para maior segurança",
     forward_secrecy_setup_failed:
       "Não foi possível ativar o sigilo futuro. Verifique a ligação e tente novamente.",
     current_key_status: "Estado atual da chave",
@@ -3797,9 +3795,9 @@ export const pt = {
     key_history_limit: "Limite do histórico de chaves",
     key_history_description:
       "As chaves antigas são mantidas para desencriptar e-mails antigos. Defina como ilimitado para manter o histórico completo.",
-    rotate_keys_now: "Rodar chaves agora",
+    rotate_keys_now: "Renovar chaves agora",
     rotate_keys_description:
-      "Rode manualmente as suas chaves de encriptação. Os e-mails antigos continuarão legíveis.",
+      "Renove manualmente as suas chaves de encriptação. Os e-mails antigos continuarão legíveis.",
     password: "Palavra-passe",
     change_password: "Alterar palavra-passe",
     change_password_description: "Alterar a palavra-passe da sua conta",
@@ -4460,7 +4458,7 @@ export const pt = {
       "Tornar as suas chaves localizáveis em servidores de chaves públicos",
     info_forward_secrecy_title: "O que é o sigilo futuro?",
     info_forward_secrecy_description:
-      "As suas chaves de sessão rodam automaticamente de acordo com um calendário. Mesmo que alguém obtivesse hoje a sua chave privada, não conseguiria ler mensagens anteriores, porque cada sessão utilizou uma chave diferente que já não existe.",
+      "As suas chaves de sessão são renovadas automaticamente de acordo com um calendário. Mesmo que alguém obtivesse hoje a sua chave privada, não conseguiria ler mensagens anteriores, porque cada sessão utilizou uma chave diferente que já não existe.",
     info_key_rotation_interval_title: "Intervalo de rotação de chaves",
     info_key_rotation_interval_description:
       "Com que frequência a sua chave de encriptação é substituída. Quanto mais frequente, mais seguro, mas com um pouco mais de processamento. Uma semana é uma boa predefinição para a maioria das pessoas.",
@@ -5130,7 +5128,7 @@ export const pt = {
     domain_limit_all_used:
       "Utilizou todos os {{count}} domínios do seu plano atual.",
     domain_without_www_note: "Introduza o seu domínio sem www nem https://",
-    catch_all_label: "Capturar tudo",
+    catch_all_label: "Catch-all",
     bimi_adj_added_title: "Título adicionado.",
     bimi_adj_converted_inline_styles:
       "Estilos inline convertidos em atributos.",
@@ -5806,7 +5804,7 @@ export const pt = {
     plan_tip_tracker_protection:
       "Os píxeis de rastreio invisíveis são removidos antes de os e-mails chegarem à sua caixa de entrada.",
     plan_tip_key_rotation:
-      "Rode automaticamente as suas chaves de encriptação em intervalos regulares para maior segurança.",
+      "Renove automaticamente as suas chaves de encriptação em intervalos regulares para maior segurança.",
     plan_tip_imap_smtp:
       "Ligue o Apple Mail, o Thunderbird, o Outlook ou qualquer cliente IMAP. Funciona com a aplicação complementar Aster Bridge executada no seu dispositivo.",
     plan_tip_external_accounts:
@@ -6361,7 +6359,7 @@ export const pt = {
     sender_added_to_allowlist: "Remetente adicionado à lista de permitidos",
     vacation_reply_edit: "Editar resposta de férias",
     vacation_reply_setup: "Configurar resposta de férias",
-    show_badges_in_signature: "Mostrar distintivos nos e-mails",
+    show_badges_in_signature: "Mostrar medalhas nos e-mails",
     import_how_it_works: "Como funciona",
     import_oauth_title: "Ligar uma conta",
     import_manual_title: "Importação manual",
@@ -6695,7 +6693,7 @@ export const pt = {
     block_sender_popup_description:
       "E-mails deste remetente serão automaticamente filtrados da sua caixa de entrada.",
     show_badges_in_signature_description:
-      "Mostrar os seus distintivos na área de assinatura dos e-mails enviados.",
+      "Mostrar as suas medalhas na área de assinatura dos e-mails enviados.",
     import_oauth_description:
       "Ligue uma conta para importar todos os e-mails dela, incluindo os arquivados, os enviados e as etiquetas. O Gmail liga-se com uma palavra-passe de aplicação e o Outlook liga-se quando inicia sessão na sua conta. As caixas de correio grandes podem demorar alguns dias a ser importadas.",
     import_manual_step_1:
@@ -6709,7 +6707,7 @@ export const pt = {
     vacation_reply_locked:
       "As respostas de férias permitem enviar respostas automáticas quando estiver ausente",
     catch_all_locked:
-      "O coringa recebe e-mails enviados para qualquer endereço no seu domínio",
+      "O catch-all recebe e-mails enviados para qualquer endereço no seu domínio",
     auto_forward_locked:
       "Encaminhe automaticamente e-mails recebidos para outro endereço",
     subscription_manager_locked:
@@ -6723,14 +6721,14 @@ export const pt = {
     receipt_tracking_locked:
       "Extraia automaticamente detalhes de compra dos e-mails de recibos",
     ghost_aliases: "Aliases fantasma",
-    rotate_encryption_keys: "Rodar chaves de encriptação",
+    rotate_encryption_keys: "Renovar chaves de encriptação",
     key_rotation_required: "Rotação de chaves necessária",
     forward_secrecy_protection: "Proteção de sigilo futuro",
-    keys_rotated_successfully: "Chaves rodadas com êxito",
+    keys_rotated_successfully: "Chaves renovadas com êxito",
     encryption_keys_updated: "As suas chaves de encriptação foram atualizadas",
     current_key_age: "Idade da chave atual",
-    rotating: "A rodar...",
-    rotate_keys: "Rodar chaves",
+    rotating: "A renovar...",
+    rotate_keys: "Renovar chaves",
     key_rotation_data_loss_warning:
       "Após a rotação, a sua chave anterior é desativada. Os e-mails encriptados apenas com a sua chave antiga deixarão de poder ser desencriptados. Esta ação é irreversível.",
     bulk_unsubscribe: "Cancelamento em massa",
@@ -6745,9 +6743,9 @@ export const pt = {
     all_clear: "Tudo limpo",
     no_subscriptions_found: "Nenhuma subscrição encontrada",
     rotate_keys_description_manual:
-      "Introduza a sua palavra-passe para rodar as suas chaves de encriptação. Os e-mails antigos continuarão legíveis.",
+      "Introduza a sua palavra-passe para renovar as suas chaves de encriptação. Os e-mails antigos continuarão legíveis.",
     rotate_keys_description_required:
-      "As suas chaves de encriptação têm de ser rodadas. Introduza a sua palavra-passe para gerar novas chaves e manter o sigilo futuro.",
+      "As suas chaves de encriptação têm de ser renovadas. Introduza a sua palavra-passe para gerar novas chaves e manter o sigilo futuro.",
     trusted_devices: "Dispositivos confiáveis",
     trusted_devices_description:
       "Aplicações para computador e dispositivos móveis que emparelhou com a sua conta. Revogar um dispositivo termina a sessão nele e elimina a respetiva chave de cofre local.",
@@ -7422,8 +7420,8 @@ export const pt = {
       "Inicie sessão no {{provider}} para importar os seus e-mails para o Aster. As suas mensagens são encriptadas neste dispositivo antes de qualquer dado ser armazenado nos nossos servidores.",
     connect_modal_privacy_note:
       "O Aster pede apenas as permissões de e-mail necessárias para importar a sua caixa de entrada. Nunca lemos, analisamos nem vendemos as suas mensagens.",
-    connect_provider_name_google: "Google",
-    connect_provider_name_microsoft: "Microsoft",
+    connect_provider_name_google: "Gmail",
+    connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
     connect_sign_in_google: "Entrar com Google",
     connect_sign_in_microsoft: "Entrar com Microsoft",
@@ -7482,12 +7480,12 @@ export const pt = {
     need_help_link: "Precisa de ajuda?",
     catch_all_enabled_toast: "Catch-all ativado.",
     catch_all_disabled: "Catch-all desativado.",
-    rotate_dkim_key: "Rodar chave DKIM",
+    rotate_dkim_key: "Renovar chave DKIM",
     rotate_dkim_description:
       "Gere uma nova chave de assinatura DKIM. Isto cria um novo registo DNS num novo nome de host, que tem de publicar no seu registador.",
-    rotate_label: "Rodar",
+    rotate_label: "Renovar",
     dkim_rotated:
-      "Chave DKIM rodada. Adicione o novo registo DNS abaixo no seu registador.",
+      "Chave DKIM renovada. Adicione o novo registo DNS abaixo no seu registador.",
     dkim_rotated_warning_title: "Adicione isto como um novo registo DNS",
     dkim_rotated_warning_body:
       "A rotação altera o seletor, por isso o nome de host abaixo é diferente do seu registo DKIM antigo. Crie um novo registo TXT neste host. Não edite o registo antigo. Mantenha-o até a verificação ser concluída; depois, pode removê-lo.",
@@ -7999,7 +7997,8 @@ export const pt = {
       "Acesso à caixa partilhada concedido",
     fam_org_event_shared_mailbox_grant_revoked:
       "Acesso à caixa partilhada removido",
-    fam_org_event_shared_mailbox_rotated: "Chaves da caixa partilhada rodadas",
+    fam_org_event_shared_mailbox_rotated:
+      "Chaves da caixa partilhada renovadas",
     fam_org_event_consent_request_created: "Consentimento solicitado",
     fam_org_event_consent_declined: "Consentimento recusado",
     fam_org_event_consent_all_accepted: "Consentimento concluído",
@@ -8016,7 +8015,7 @@ export const pt = {
     fam_org_activity_shared_mailbox_grant_revoked:
       "{{actor}} removeu o acesso a uma caixa partilhada",
     fam_org_activity_shared_mailbox_rotated:
-      "{{actor}} rodou as chaves de uma caixa partilhada",
+      "{{actor}} renovou as chaves de uma caixa partilhada",
     fam_org_activity_group_member_added:
       "{{actor}} adicionou {{target}} a um grupo",
     fam_org_activity_group_member_added_generic:
@@ -9864,6 +9863,12 @@ export const pt = {
       "Alguém ou algo alterou isto primeiro. Atualizar mostrará a versão mais recente.",
     post_quantum_unavailable:
       "O Aster protege as mensagens entre contas Aster com encriptação pós-quântica, e {{recipients}} ainda não publicou chaves pós-quânticas. Peça-lhe que abra o Aster ou atualize a aplicação e tente novamente. O seu rascunho está guardado.",
+    load_failed: "Não foi possível carregar. Tente novamente.",
+    data_integrity_failed:
+      "Estes dados não passaram na verificação de integridade e não foram carregados.",
+    note_too_large: "Esta nota é demasiado longa. Encurte-a e tente novamente.",
+    number_out_of_range: "Introduza um número inteiro de {{min}} a {{max}}.",
+    invalid_date: "Introduza uma data válida.",
   },
   folder_retention: {
     title: "Limpeza automática de pastas",
@@ -9983,13 +9988,13 @@ export const pt = {
     apply_to_existing_cancel_failed: "Não foi possível parar esta execução.",
     apply_to_existing_queued: "Na fila...",
     apply_to_existing_progress:
-      "A aplicar: {{scanned}} verificados, {{applied}} atualizados",
+      "A aplicar. Verificados: {{scanned}}, atualizados: {{applied}}",
     apply_to_existing_progress_total:
-      "A aplicar: {{scanned}} de {{total}} verificados, {{applied}} atualizados",
+      "A aplicar. Verificados: {{scanned}} de {{total}}, atualizados: {{applied}}",
     apply_to_existing_done:
-      "Concluído: {{scanned}} verificados, {{applied}} atualizados",
+      "Concluído. Verificados: {{scanned}}, atualizados: {{applied}}",
     apply_to_existing_done_encrypted:
-      "Concluído: {{scanned}} verificados, {{applied}} atualizados. Esta regra ignorou {{encrypted}} mensagens encriptadas porque só o seu dispositivo consegue lê-las.",
+      "Concluído. Verificados: {{scanned}}, atualizados: {{applied}}. Esta regra ignorou {{encrypted}} mensagens encriptadas porque só o seu dispositivo consegue lê-las.",
     apply_to_existing_canceled: "Parado: {{applied}} atualizados",
     apply_to_existing_canceled_encrypted:
       "Parado: {{applied}} atualizados. Esta regra ignorou {{encrypted}} mensagens encriptadas porque só o seu dispositivo consegue lê-las.",
@@ -10205,19 +10210,19 @@ export const pt = {
       "Quando uma mensagem falhar nas verificações SPF, DKIM ou DMARC (um sinal comum de falsificação), mantenha-a fora da caixa de entrada e marque-a como lida.",
   },
   badges: {
-    title: "Distintivos",
+    title: "Medalhas",
     description: "Toques pessoais que colecionou.",
-    active_badge: "Distintivo ativo",
+    active_badge: "Medalha ativa",
     none: "Nenhum",
     show_on_profile: "Mostrar no perfil",
     show_on_profile_description:
-      "Mostrar o seu distintivo ativo a outros utilizadores do Aster.",
+      "Mostrar a sua medalha ativa a outros utilizadores do Aster.",
     show_in_signature: "Mostrar na assinatura",
     show_in_signature_description:
-      "Incluir o seu distintivo ativo nas assinaturas dos e-mails enviados.",
+      "Incluir a sua medalha ativa nas assinaturas dos e-mails enviados.",
     not_earned: "Ainda não conquistado",
-    empty_state: "Ainda não encontrou nenhum distintivo.",
-    claim_failed: "Este distintivo não foi guardado. Tente novamente.",
+    empty_state: "Ainda não encontrou nenhuma medalha.",
+    claim_failed: "Esta medalha não foi guardada. Tente novamente.",
     granted_at: "Conquistado em {date}",
   },
   secure_view: {
@@ -10434,8 +10439,8 @@ export const pt = {
     auto_clean: "Limpeza automática",
     auto_logout: "Terminar sessão automaticamente",
     auto_update: "Atualização automática",
-    badge: "Selo",
-    badge_count: "Contagem do selo",
+    badge: "Medalha",
+    badge_count: "Indicador de não lidos",
     block: "Bloquear",
     bug_report: "Relatório de erro",
     build_info: "Informações da versão",

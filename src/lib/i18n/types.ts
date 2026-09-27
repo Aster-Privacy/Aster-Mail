@@ -2234,15 +2234,12 @@ export interface CommonTranslations {
   sender_count_other: string;
   email_count_one: string;
   email_count_other: string;
-  entry_count_one: string;
-  entry_count_other: string;
   file_count_one: string;
   file_count_other: string;
   app_lock_attempts_remaining_one: string;
   app_lock_attempts_remaining_other: string;
   sender_count: string;
   email_count: string;
-  entry_count: string;
   file_count: string;
   images_count_one: string;
   images_count_other: string;
@@ -8334,6 +8331,11 @@ export interface ErrorTranslations {
   device_repair_required: string;
   device_challenge_mismatch: string;
   metadata_migration_stalled: string;
+  load_failed: string;
+  data_integrity_failed: string;
+  note_too_large: string;
+  number_out_of_range: string;
+  invalid_date: string;
 }
 
 export interface BadgesTranslations {

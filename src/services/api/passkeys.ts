@@ -206,13 +206,14 @@ export async function perform_passkey_login(
 
 function get_platform_passkey_name(): string {
   const ua = navigator.userAgent;
+  const base = get_active_translations().passkeys.unnamed_passkey;
 
-  if (/iPhone|iPad|iPod/.test(ua)) return "Passkey (iPhone/iPad)";
-  if (/Android/.test(ua)) return "Passkey (Android)";
-  if (/Mac/.test(ua)) return "Passkey (Mac)";
-  if (/Windows/.test(ua)) return "Passkey (Windows)";
+  if (/iPhone|iPad|iPod/.test(ua)) return `${base} (iPhone/iPad)`;
+  if (/Android/.test(ua)) return `${base} (Android)`;
+  if (/Mac/.test(ua)) return `${base} (Mac)`;
+  if (/Windows/.test(ua)) return `${base} (Windows)`;
 
-  return "Passkey";
+  return base;
 }
 
 export async function register_platform_passkey(
@@ -343,7 +344,8 @@ export async function register_security_key(
   }
 
   const options = options_response.data;
-  const resolved_name = friendly_name ?? "Security Key";
+  const resolved_name =
+    friendly_name ?? get_active_translations().passkeys.unnamed_security_key;
   const public_key: PublicKeyCredentialCreationOptions = {
     challenge: base64url_to_array_buffer(options.challenge),
     rp: { name: options.rp.name, id: options.rp.id },

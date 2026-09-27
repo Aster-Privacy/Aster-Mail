@@ -48,7 +48,9 @@ async function get_hmac_key(): Promise<CryptoKey> {
   const raw_key = get_derived_encryption_key();
 
   if (!raw_key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   const encoder = new TextEncoder();
@@ -80,7 +82,9 @@ async function get_blocked_senders_encryption_key(): Promise<CryptoKey> {
   const key = await get_or_create_derived_encryption_crypto_key();
 
   if (!key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   return key;
@@ -178,7 +182,7 @@ export async function decrypt_block_data(
     );
 
     if (!is_valid) {
-      throw new Error("Blocked sender data integrity check failed");
+      throw new Error(get_active_translations().errors.data_integrity_failed);
     }
   }
 

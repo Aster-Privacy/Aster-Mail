@@ -1972,11 +1972,6 @@ export const ar = {
     email_count_few: "{{count}} رسائل",
     email_count_many: "{{count}} رسائل",
     email_count_other: "{{count}} رسائل",
-    entry_count_one: "{{count}} إدخال",
-    entry_count_two: "{{count}} إدخالات",
-    entry_count_few: "{{count}} إدخالات",
-    entry_count_many: "{{count}} إدخالات",
-    entry_count_other: "{{count}} إدخالات",
     file_count_one: "{{count}} ملف",
     file_count_two: "{{count}} ملفات",
     file_count_few: "{{count}} ملفات",
@@ -2004,7 +1999,6 @@ export const ar = {
     app_lock_attempts_remaining_other: "بقيت {{count}} محاولات",
     sender_count: "{{count}} مُرسِلين",
     email_count: "{{count}} رسائل",
-    entry_count: "{{count}} إدخالات",
     file_count: "{{count}} ملفات",
     images_count_one: "{{count}} صورة",
     images_count_two: "{{count}} صور",
@@ -9565,6 +9559,12 @@ export const ar = {
     unknown_error: "حدث خطأ غير متوقع. حاول مجددًا. لم نتمكن من تحديد السبب.",
     post_quantum_unavailable:
       "يحمي Aster الرسائل بين حسابات Aster بتشفير ما بعد الكم، ولم ينشر {{recipients}} مفاتيح ما بعد الكم بعد. اطلب منه فتح Aster أو تحديث التطبيق ثم أعد المحاولة. تم حفظ مسودتك.",
+    load_failed: "تعذّر التحميل. حاول مجددًا.",
+    data_integrity_failed:
+      "لم تجتز هذه البيانات فحص السلامة، لذا لم يتم تحميلها.",
+    note_too_large: "هذه الملاحظة طويلة جدًا. اختصرها وحاول مجددًا.",
+    number_out_of_range: "أدخل عددًا صحيحًا من {{min}} إلى {{max}}.",
+    invalid_date: "أدخل تاريخًا صالحًا.",
   },
   folder_retention: {
     title: "التنظيف التلقائي للمجلدات",

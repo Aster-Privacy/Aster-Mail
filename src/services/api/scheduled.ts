@@ -26,6 +26,7 @@ import { is_internal_email } from "./keys";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export interface ScheduledEnvelopeSender {
   name: string;
@@ -57,11 +58,7 @@ export interface ScheduledEmailWithContent extends ScheduledEmail {
 }
 
 export type ScheduledEmailStatus =
-  | "pending"
-  | "sending"
-  | "sent"
-  | "cancelled"
-  | "failed";
+  "pending" | "sending" | "sent" | "cancelled" | "failed";
 
 interface CreateScheduledApiResponse {
   id: string;
@@ -189,7 +186,7 @@ async function decrypt_scheduled_content(
     );
   } catch {
     throw new ScheduledDecryptionError(
-      "Failed to decrypt scheduled email content",
+      get_active_translations().errors.load_failed,
     );
   }
 
@@ -234,7 +231,7 @@ async function decrypt_with_ephemeral_key(
     );
   } catch {
     throw new ScheduledDecryptionError(
-      "Failed to decrypt scheduled email with ephemeral key",
+      get_active_translations().errors.load_failed,
     );
   }
 
@@ -438,7 +435,7 @@ export async function get_scheduled_email(
     const message =
       error instanceof ScheduledDecryptionError
         ? error.message
-        : "Failed to decrypt scheduled email";
+        : get_active_translations().errors.load_failed;
 
     return { data: null, error: message };
   }

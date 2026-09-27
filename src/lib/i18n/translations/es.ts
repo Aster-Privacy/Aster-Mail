@@ -1881,8 +1881,6 @@ export const es = {
     sender_count_other: "{{count}} remitentes",
     email_count_one: "{{count}} correo",
     email_count_other: "{{count}} correos",
-    entry_count_one: "{{count}} entrada",
-    entry_count_other: "{{count}} entradas",
     file_count_one: "{{count}} archivo",
     file_count_other: "{{count}} archivos",
     emails_from_senders_archived_one:
@@ -1897,7 +1895,6 @@ export const es = {
     app_lock_attempts_remaining_other: "Quedan {{count}} intentos",
     sender_count: "{{count}} remitentes",
     email_count: "{{count}} correos",
-    entry_count: "{{count}} entradas",
     file_count: "{{count}} archivos",
     images_count_one: "{{count}} imagen",
     images_count_other: "{{count}} imágenes",
@@ -2846,11 +2843,11 @@ export const es = {
     alias_apply_existing_cancel_failed: "No se pudo detener esta ejecución.",
     alias_apply_existing_queued: "En cola...",
     alias_apply_existing_progress:
-      "Aplicando: {{scanned}} revisados, {{applied}} actualizados",
+      "Aplicando. Revisados: {{scanned}}, actualizados: {{applied}}",
     alias_apply_existing_progress_total:
-      "Aplicando: {{scanned}} de {{total}} revisados, {{applied}} actualizados",
+      "Aplicando. Revisados: {{scanned}} de {{total}}, actualizados: {{applied}}",
     alias_apply_existing_done:
-      "Listo: {{scanned}} revisados, {{applied}} actualizados",
+      "Listo. Revisados: {{scanned}}, actualizados: {{applied}}",
     alias_apply_existing_canceled: "Detenido: {{applied}} actualizados",
     alias_apply_existing_error:
       "No se pudo aplicar al correo existente. Inténtalo de nuevo.",
@@ -6801,8 +6798,8 @@ export const es = {
     connect_modal_privacy_note:
       "Aster solo solicita los permisos de correo necesarios para importar tu bandeja de entrada. Nunca leemos, analizamos ni vendemos tus mensajes.",
     connect_modal_title: "Conectar {{ provider }} a Aster",
-    connect_provider_name_google: "Google",
-    connect_provider_name_microsoft: "Microsoft",
+    connect_provider_name_google: "Gmail",
+    connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
     connect_sign_in_google: "Iniciar sesión con Google",
     connect_sign_in_microsoft: "Iniciar sesión con Microsoft",
@@ -9757,6 +9754,13 @@ export const es = {
       "Otra persona u otro proceso cambió esto antes. Actualiza para ver la versión más reciente.",
     post_quantum_unavailable:
       "Aster mantiene los mensajes entre cuentas de Aster con cifrado poscuántico, y {{recipients}} todavía no ha publicado claves poscuánticas. Pídele que abra Aster o actualice su app y vuelve a intentarlo. Tu borrador está guardado.",
+    load_failed: "No se ha podido cargar. Inténtalo de nuevo.",
+    data_integrity_failed:
+      "Estos datos no han superado la comprobación de integridad, así que no se han cargado.",
+    note_too_large:
+      "Esta nota es demasiado larga. Acórtala e inténtalo de nuevo.",
+    number_out_of_range: "Introduce un número entero entre {{min}} y {{max}}.",
+    invalid_date: "Introduce una fecha válida.",
   },
   folder_retention: {
     title: "Limpieza automática de carpetas",
@@ -9876,13 +9880,13 @@ export const es = {
     apply_to_existing_cancel_failed: "No se pudo detener esta ejecución.",
     apply_to_existing_queued: "En cola...",
     apply_to_existing_progress:
-      "Aplicando: {{scanned}} revisados, {{applied}} actualizados",
+      "Aplicando. Revisados: {{scanned}}, actualizados: {{applied}}",
     apply_to_existing_progress_total:
-      "Aplicando: {{scanned}} de {{total}} revisados, {{applied}} actualizados",
+      "Aplicando. Revisados: {{scanned}} de {{total}}, actualizados: {{applied}}",
     apply_to_existing_done:
-      "Listo: {{scanned}} revisados, {{applied}} actualizados",
+      "Listo. Revisados: {{scanned}}, actualizados: {{applied}}",
     apply_to_existing_done_encrypted:
-      "Listo: {{scanned}} analizados, {{applied}} actualizados. Esta regla omitió {{encrypted}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
+      "Listo. Analizados: {{scanned}}, actualizados: {{applied}}. Esta regla omitió {{encrypted}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
     apply_to_existing_canceled: "Detenido: {{applied}} actualizados",
     apply_to_existing_canceled_encrypted:
       "Detenido: {{applied}} actualizados. Esta regla omitió {{encrypted}} mensajes cifrados porque solo tu dispositivo puede leerlos.",

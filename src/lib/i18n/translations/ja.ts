@@ -91,7 +91,6 @@ export const ja = {
     emails_unstarred_one: "{{count}}件のメールのスターを外しました",
     emails_will_reappear_one:
       "{{count}} 件のメールは {{time}} に再表示されます",
-    entry_count_one: "{{count}} 件のエントリ",
     export_selection_vcf: "vCard として書き出す",
     failed_to_add_to_group: "連絡先をグループに追加できませんでした。",
     failed_to_delete_group: "グループを削除できませんでした。",
@@ -1857,7 +1856,6 @@ export const ja = {
       "{{count}} 件の連絡先を削除しますか。この操作は取り消せません。",
     sender_count_other: "{{count}} 人の送信者",
     email_count_other: "{{count}} 件のメール",
-    entry_count_other: "{{count}} 件のエントリ",
     file_count_other: "{{count}} 個のファイル",
     emails_from_senders_archived_other:
       "{{senders}} からの {{count}} 件のメールをアーカイブしました",
@@ -1866,7 +1864,6 @@ export const ja = {
     app_lock_attempts_remaining_other: "残り {{count}} 回",
     sender_count: "{{count}} 人の送信者",
     email_count: "{{count}} 件のメール",
-    entry_count: "{{count}} 件のエントリ",
     file_count: "{{count}} 個のファイル",
     images_count_other: "{{count}} 件の画像",
     contact_count: "{{count}} 件の連絡先",
@@ -9644,6 +9641,13 @@ export const ja = {
       "このファイルの {{count}} 件のメールは、いずれも送信者または本文がなかったためすべてスキップされ、何もインポートされませんでした。元のエクスポートを確認して、もう一度お試しください。",
     post_quantum_unavailable:
       "Aster アカウント間のメールは耐量子暗号で保護されますが、{{recipients}} はまだ耐量子鍵を公開していません。相手に Aster を開くかアプリを更新してもらってから、もう一度お試しください。下書きは保存されています。",
+    load_failed: "読み込めませんでした。もう一度お試しください。",
+    data_integrity_failed:
+      "このデータは整合性チェックに失敗したため、読み込まれませんでした。",
+    note_too_large:
+      "このメモは長すぎます。短くしてからもう一度お試しください。",
+    number_out_of_range: "{{min}}から{{max}}までの整数を入力してください。",
+    invalid_date: "有効な日付を入力してください。",
   },
   folder_retention: {
     title: "フォルダの自動整理",

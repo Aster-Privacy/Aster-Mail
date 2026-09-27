@@ -1857,8 +1857,6 @@ export const tr = {
     sender_count_other: "{{count}} gönderen",
     email_count_one: "{{count}} e-posta",
     email_count_other: "{{count}} e-posta",
-    entry_count_one: "{{count}} kayıt",
-    entry_count_other: "{{count}} kayıt",
     file_count_one: "{{count}} dosya",
     file_count_other: "{{count}} dosya",
     emails_from_senders_archived_one:
@@ -1873,7 +1871,6 @@ export const tr = {
     app_lock_attempts_remaining_other: "{{count}} deneme hakkı kaldı",
     sender_count: "{{count}} gönderen",
     email_count: "{{count}} e-posta",
-    entry_count: "{{count}} kayıt",
     file_count: "{{count}} dosya",
     images_count_one: "{{count}} görsel",
     images_count_other: "{{count}} görsel",
@@ -9646,6 +9643,12 @@ export const tr = {
       "Bu dosyadaki {{count}} e-postanın tamamı, her birinde gönderen veya içerik eksik olduğu için atlandı ve hiçbir şey içe aktarılmadı. Kaynak dışa aktarma dosyasını kontrol edin ve tekrar deneyin.",
     post_quantum_unavailable:
       "Aster, Aster hesapları arasındaki iletileri kuantum sonrası şifrelemeyle korur ve {{recipients}} henüz kuantum sonrası anahtar yayımlamadı. Aster’ı açmasını veya uygulamasını güncellemesini isteyip tekrar deneyin. Taslağınız kaydedildi.",
+    load_failed: "Yüklenemedi. Tekrar deneyin.",
+    data_integrity_failed:
+      "Bu veriler bütünlük denetiminden geçemediği için yüklenmedi.",
+    note_too_large: "Bu not çok uzun. Kısaltıp tekrar deneyin.",
+    number_out_of_range: "{{min}} ile {{max}} arasında bir tam sayı girin.",
+    invalid_date: "Geçerli bir tarih girin.",
   },
   folder_retention: {
     title: "Klasörleri otomatik temizleme",

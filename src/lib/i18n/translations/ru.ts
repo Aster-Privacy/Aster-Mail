@@ -1719,9 +1719,9 @@ export const ru = {
     unsaved_changes_body:
       "Введённые данные не сохранены. Если закрыть форму сейчас, они будут удалены.",
     unknown_sender: "Неизвестный",
-    unlock_with_biometry: "Разблокировать через {{name}}",
+    unlock_with_biometry: "Разблокировать: {{name}}",
     unpin_preferred_sender: "Открепить предпочтительного отправителя",
-    use_biometry_to_unlock: "Использовать {{name}} для разблокировки",
+    use_biometry_to_unlock: "Для разблокировки используйте: {{name}}",
     wkd_encrypted_description:
       "Зашифровано с использованием опубликованного публичного ключа получателя.",
     x_of_y: "{{ current }} из {{ total }}",
@@ -1980,10 +1980,6 @@ export const ru = {
     email_count_few: "{{count}} письма",
     email_count_many: "{{count}} писем",
     email_count_other: "{{count}} письма",
-    entry_count_one: "{{count}} запись",
-    entry_count_few: "{{count}} записи",
-    entry_count_many: "{{count}} записей",
-    entry_count_other: "{{count}} записи",
     file_count_one: "{{count}} файл",
     file_count_few: "{{count}} файла",
     file_count_many: "{{count}} файлов",
@@ -2007,7 +2003,6 @@ export const ru = {
     app_lock_attempts_remaining_other: "Осталось {{count}} попытки",
     sender_count: "{{count}} отправителей",
     email_count: "{{count}} письма",
-    entry_count: "Записей: {{count}}",
     file_count: "{{count}} файла",
     images_count_one: "{{count}} изображение",
     images_count_few: "{{count}} изображения",
@@ -2069,7 +2064,7 @@ export const ru = {
     biometry_fingerprint: "отпечаток пальца",
     biometry_face_recognition: "распознавание лица",
     biometry_iris: "сканирование радужки",
-    biometry_generic: "биометрию",
+    biometry_generic: "биометрия",
     share_via: "Поделиться через",
     zip_archive: "ZIP-архив",
   },
@@ -9918,6 +9913,12 @@ export const ru = {
       "Это уже изменил кто-то или что-то другое. Обновление покажет актуальную версию.",
     post_quantum_unavailable:
       "Aster защищает письма между аккаунтами Aster постквантовым шифрованием, а {{recipients}} ещё не опубликовал постквантовые ключи. Попросите его открыть Aster или обновить приложение и повторите попытку. Черновик сохранён.",
+    load_failed: "Не удалось загрузить. Попробуйте снова.",
+    data_integrity_failed:
+      "Эти данные не прошли проверку целостности и не были загружены.",
+    note_too_large: "Заметка слишком длинная. Сократите её и попробуйте снова.",
+    number_out_of_range: "Введите целое число от {{min}} до {{max}}.",
+    invalid_date: "Введите корректную дату.",
   },
   folder_retention: {
     title: "Автоочистка папок",

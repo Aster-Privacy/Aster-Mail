@@ -58,6 +58,7 @@ import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
 import { parse_csv_records } from "@/utils/contact_utils";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -92,7 +93,9 @@ export async function list_sync_sources(): Promise<
   );
 
   if (response.error || !response.data) {
-    return { error: response.error || "Failed to fetch sync sources" };
+    return {
+      error: response.error || get_active_translations().errors.load_failed,
+    };
   }
 
   const key = await get_contacts_encryption_key();
@@ -133,7 +136,10 @@ export async function list_sync_sources(): Promise<
     const first = failed[0] as PromiseRejectedResult;
 
     return {
-      error: user_facing_error(first.reason, "Failed to decrypt sync sources"),
+      error: user_facing_error(
+        first.reason,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 
@@ -162,7 +168,9 @@ export async function add_carddav_sync_source(
   );
 
   if (response.error || !response.data) {
-    return { error: response.error || "Failed to add sync source" };
+    return {
+      error: response.error || get_active_translations().common.save_failed,
+    };
   }
 
   return {
@@ -210,7 +218,9 @@ async function generate_search_token(value: string): Promise<string> {
   const raw_key = get_derived_encryption_key();
 
   if (!raw_key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   const encoder = new TextEncoder();

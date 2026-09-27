@@ -2013,10 +2013,6 @@ export const pl = {
     email_count_few: "{{count}} wiadomości",
     email_count_many: "{{count}} wiadomości",
     email_count_other: "{{count}} wiadomości",
-    entry_count_one: "{{count}} wpis",
-    entry_count_few: "{{count}} wpisy",
-    entry_count_many: "{{count}} wpisów",
-    entry_count_other: "{{count}} wpisy",
     file_count_one: "{{count}} plik",
     file_count_few: "{{count}} pliki",
     file_count_many: "{{count}} plików",
@@ -2043,7 +2039,6 @@ export const pl = {
     app_lock_attempts_remaining_other: "Pozostały {{count}} próby",
     sender_count: "{{count}} nadawców",
     email_count: "{{count}} wiadomości",
-    entry_count: "{{count}} wpisy",
     file_count: "{{count}} pliki",
     images_count_one: "{{count}} obraz",
     images_count_few: "{{count}} obrazy",
@@ -2060,7 +2055,7 @@ export const pl = {
     tray_display_reset: "Wyczyść pamięć podręczną obrazu i uruchom ponownie",
     push_new_message: "Masz nową wiadomość",
     too_many_recipients_in_field:
-      "Każde pole Do, DW i UDW mieści maksymalnie {{max}} adresów. Przenieś część do drugiej wiadomości, aby wysłać tę.",
+      "Limit adresów w każdym z pól Do, DW i UDW wynosi {{max}}. Aby wysłać tę wiadomość, przenieś część adresów do drugiej.",
     too_many_recipients_in_message:
       "Jedna wiadomość dociera maksymalnie do {{max}} adresów w polach Do, DW i UDW. Podzielenie listy na mniejsze wiadomości pozwoli ją wysłać.",
     credit_balance_changed:
@@ -9932,6 +9927,12 @@ export const pl = {
       "Pominięto wszystkie e-maile ({{count}}) w tym pliku, ponieważ w każdym brakowało nadawcy lub treści, więc niczego nie zaimportowano. Sprawdź eksport źródłowy i spróbuj ponownie.",
     post_quantum_unavailable:
       "Aster chroni wiadomości między kontami Aster szyfrowaniem postkwantowym, a {{recipients}} nie opublikował jeszcze kluczy postkwantowych. Poproś tę osobę o otwarcie Aster lub zaktualizowanie aplikacji i spróbuj ponownie. Twoja wersja robocza jest zapisana.",
+    load_failed: "Nie udało się wczytać. Spróbuj ponownie.",
+    data_integrity_failed:
+      "Te dane nie przeszły kontroli integralności, więc nie zostały wczytane.",
+    note_too_large: "Ta notatka jest za długa. Skróć ją i spróbuj ponownie.",
+    number_out_of_range: "Wpisz liczbę całkowitą od {{min}} do {{max}}.",
+    invalid_date: "Wpisz prawidłową datę.",
   },
   folder_retention: {
     title: "Automatyczne czyszczenie folderów",

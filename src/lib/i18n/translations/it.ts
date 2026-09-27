@@ -1888,8 +1888,6 @@ export const it = {
     sender_count_other: "{{count}} mittenti",
     email_count_one: "{{count}} email",
     email_count_other: "{{count}} email",
-    entry_count_one: "{{count}} voce",
-    entry_count_other: "{{count}} voci",
     file_count_one: "{{count}} file",
     file_count_other: "{{count}} file",
     emails_from_senders_archived_one:
@@ -1903,7 +1901,6 @@ export const it = {
     app_lock_attempts_remaining_other: "{{count}} tentativi rimasti",
     sender_count: "{{count}} mittenti",
     email_count: "{{count}} email",
-    entry_count: "{{count}} voci",
     file_count: "{{count}} file",
     images_count_one: "{{count}} immagine",
     images_count_other: "{{count}} immagini",
@@ -1914,7 +1911,7 @@ export const it = {
     tray_compat_on: "Riavvia in modalità compatibilità",
     tray_compat_off: "Riavvia con accelerazione hardware",
     tray_display_reset: "Reimposta la cache dello schermo e riavvia",
-    push_new_message: "Ha un nuovo messaggio",
+    push_new_message: "Hai un nuovo messaggio",
     too_many_recipients_in_field:
       "Ogni campo A, Cc e Ccn contiene al massimo {{max}} indirizzi. Ne sposti una parte in un secondo messaggio per inviare questo.",
     too_many_recipients_in_message:
@@ -2859,11 +2856,11 @@ export const it = {
       "Impossibile interrompere questa operazione.",
     alias_apply_existing_queued: "In coda...",
     alias_apply_existing_progress:
-      "Applicazione: {{scanned}} analizzati, {{applied}} aggiornati",
+      "Applicazione in corso. Analizzati: {{scanned}}, aggiornati: {{applied}}",
     alias_apply_existing_progress_total:
-      "Applicazione: {{scanned}} di {{total}} analizzati, {{applied}} aggiornati",
+      "Applicazione in corso. Analizzati: {{scanned}} di {{total}}, aggiornati: {{applied}}",
     alias_apply_existing_done:
-      "Fatto: {{scanned}} analizzati, {{applied}} aggiornati",
+      "Fatto. Analizzati: {{scanned}}, aggiornati: {{applied}}",
     alias_apply_existing_canceled: "Interrotto: {{applied}} aggiornati",
     alias_apply_existing_error:
       "Applicazione alla posta esistente non riuscita. Riprova.",
@@ -9813,6 +9810,12 @@ export const it = {
       "Qualcuno o qualcos'altro ha apportato modifiche prima. Un aggiornamento mostrerà la versione più recente.",
     post_quantum_unavailable:
       "Aster protegge i messaggi tra account Aster con crittografia post-quantistica e {{recipients}} non ha ancora pubblicato chiavi post-quantistiche. Chiedigli di aprire Aster o di aggiornare l’app, poi riprova. La tua bozza è salvata.",
+    load_failed: "Il caricamento non è riuscito. Riprova.",
+    data_integrity_failed:
+      "Questi dati non hanno superato il controllo di integrità e non sono stati caricati.",
+    note_too_large: "Questa nota è troppo lunga. Accorciala e riprova.",
+    number_out_of_range: "Inserisci un numero intero da {{min}} a {{max}}.",
+    invalid_date: "Inserisci una data valida.",
   },
   folder_retention: {
     title: "Pulizia automatica delle cartelle",
@@ -9936,13 +9939,13 @@ export const it = {
       "Non è stato possibile interrompere questa esecuzione.",
     apply_to_existing_queued: "In coda...",
     apply_to_existing_progress:
-      "Applicazione: {{scanned}} esaminati, {{applied}} aggiornati",
+      "Applicazione in corso. Esaminati: {{scanned}}, aggiornati: {{applied}}",
     apply_to_existing_progress_total:
-      "Applicazione: {{scanned}} di {{total}} esaminati, {{applied}} aggiornati",
+      "Applicazione in corso. Esaminati: {{scanned}} di {{total}}, aggiornati: {{applied}}",
     apply_to_existing_done:
-      "Completato: {{scanned}} esaminati, {{applied}} aggiornati",
+      "Completato. Esaminati: {{scanned}}, aggiornati: {{applied}}",
     apply_to_existing_done_encrypted:
-      "Fatto: {{scanned}} analizzati, {{applied}} aggiornati. Questa regola ha ignorato {{encrypted}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",
+      "Fatto. Analizzati: {{scanned}}, aggiornati: {{applied}}. Questa regola ha ignorato {{encrypted}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",
     apply_to_existing_canceled: "Interrotto: {{applied}} aggiornati",
     apply_to_existing_canceled_encrypted:
       "Interrotto: {{applied}} aggiornati. Questa regola ha ignorato {{encrypted}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",

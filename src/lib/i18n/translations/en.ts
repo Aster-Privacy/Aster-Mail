@@ -1770,8 +1770,6 @@ export const en: Translations = {
     sender_count_other: "{{count}} senders",
     email_count_one: "{{count}} email",
     email_count_other: "{{count}} emails",
-    entry_count_one: "{{count}} entry",
-    entry_count_other: "{{count}} entries",
     file_count_one: "{{count}} file",
     file_count_other: "{{count}} files",
     emails_from_senders_archived_one:
@@ -1785,7 +1783,6 @@ export const en: Translations = {
     app_lock_attempts_remaining_other: "{{count}} attempts remaining",
     sender_count: "{{count}} senders",
     email_count: "{{count}} emails",
-    entry_count: "{{count}} entries",
     file_count: "{{count}} files",
     images_count_one: "{{count}} image",
     images_count_other: "{{count}} images",
@@ -9520,6 +9517,12 @@ export const en: Translations = {
       "This device's identity check did not match, which can indicate tampering. Re-pair from your desktop app, and if the warning returns contact hello@astermail.org.",
     metadata_migration_stalled:
       "We could not finish upgrading your local storage after several tries. Checking your connection and reopening Aster usually does it. Your mail on the server is safe.",
+    load_failed: "This did not load. Try again.",
+    data_integrity_failed:
+      "This data failed an integrity check, so it was not loaded.",
+    note_too_large: "This note is too long. Shorten it and try again.",
+    number_out_of_range: "Enter a whole number from {{min}} to {{max}}.",
+    invalid_date: "Enter a valid date.",
   },
   folder_retention: {
     title: "Folder auto-clean",

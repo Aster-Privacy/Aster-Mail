@@ -1870,8 +1870,6 @@ export const nl = {
     sender_count_other: "{{count}} afzenders",
     email_count_one: "{{count}} e-mail",
     email_count_other: "{{count}} e-mails",
-    entry_count_one: "{{count}} vermelding",
-    entry_count_other: "{{count}} vermeldingen",
     file_count_one: "{{count}} bestand",
     file_count_other: "{{count}} bestanden",
     emails_from_senders_archived_one:
@@ -1886,7 +1884,6 @@ export const nl = {
     app_lock_attempts_remaining_other: "Nog {{count}} pogingen",
     sender_count: "{{count}} afzenders",
     email_count: "{{count}} e-mails",
-    entry_count: "{{count}} vermeldingen",
     file_count: "{{count}} bestanden",
     images_count_one: "{{count}} afbeelding",
     images_count_other: "{{count}} afbeeldingen",
@@ -2929,7 +2926,7 @@ export const nl = {
     alias_export_confirm_description: "Controleer wat je gaat downloaden.",
     alias_export_source_aliases: "Aliassen",
     alias_export_source_domain_addresses: "Adressen van eigen domein",
-    alias_export_source_directories: "Mappen",
+    alias_export_source_directories: "Directory's",
     alias_export_source_ghost: "Ghost-aliassen",
     alias_export_source_count: "{{count}} items",
     alias_export_choose_columns: "Kolommen kiezen ({{count}} geselecteerd)",
@@ -6777,8 +6774,8 @@ export const nl = {
     connect_modal_privacy_note:
       "Je inloggegevens worden versleuteld opgeslagen en worden nooit gedeeld",
     connect_modal_title: "{{provider}} verbinden",
-    connect_provider_name_google: "Google",
-    connect_provider_name_microsoft: "Microsoft",
+    connect_provider_name_google: "Gmail",
+    connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
     connect_sign_in_google: "Aanmelden met Google",
     connect_sign_in_microsoft: "Aanmelden met Microsoft",
@@ -9741,6 +9738,13 @@ export const nl = {
       "Alle {{count}} e-mails in dit bestand zijn overgeslagen omdat bij elk een afzender of inhoud ontbrak, dus er is niets geïmporteerd. Controleer de bronexport en probeer het opnieuw.",
     post_quantum_unavailable:
       "Aster beveiligt berichten tussen Aster-accounts met post-quantumversleuteling, en {{recipients}} heeft nog geen post-quantumsleutels gepubliceerd. Vraag of diegene Aster opent of de app bijwerkt en probeer het opnieuw. Je concept is opgeslagen.",
+    load_failed: "Dit is niet geladen. Probeer het opnieuw.",
+    data_integrity_failed:
+      "Deze gegevens zijn niet door de integriteitscontrole gekomen en zijn niet geladen.",
+    note_too_large:
+      "Deze notitie is te lang. Maak hem korter en probeer het opnieuw.",
+    number_out_of_range: "Voer een geheel getal van {{min}} tot {{max}} in.",
+    invalid_date: "Voer een geldige datum in.",
   },
   folder_retention: {
     title: "Mappen automatisch opruimen",

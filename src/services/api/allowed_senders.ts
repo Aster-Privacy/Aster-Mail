@@ -34,6 +34,7 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 const ALLOWED_SENDERS_HMAC_KEY_ID = "allowed_senders_hmac_key";
 
@@ -47,7 +48,9 @@ async function get_hmac_key(): Promise<CryptoKey> {
   const raw_key = get_derived_encryption_key();
 
   if (!raw_key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   const encoder = new TextEncoder();
@@ -79,7 +82,9 @@ async function get_allowed_senders_encryption_key(): Promise<CryptoKey> {
   const key = await get_or_create_derived_encryption_crypto_key();
 
   if (!key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   return key;
@@ -170,7 +175,7 @@ export async function decrypt_allow_data(
   integrity_hash: string,
 ): Promise<AllowedSenderData> {
   if (!integrity_hash) {
-    throw new Error("Integrity hash is required");
+    throw new Error(get_active_translations().errors.data_integrity_failed);
   }
 
   const is_valid = await verify_integrity_hash(
@@ -180,7 +185,7 @@ export async function decrypt_allow_data(
   );
 
   if (!is_valid) {
-    throw new Error("Allowed sender data integrity check failed");
+    throw new Error(get_active_translations().errors.data_integrity_failed);
   }
 
   const key = await get_allowed_senders_encryption_key();
@@ -285,7 +290,10 @@ export async function list_allowed_senders(
     return { data: decrypted };
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to list allowed senders"),
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -329,7 +337,9 @@ export async function allow_sender(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to allow sender" };
+      return {
+        error: response.error || get_active_translations().errors.generic,
+      };
     }
 
     return {
@@ -345,7 +355,7 @@ export async function allow_sender(
     };
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to allow sender"),
+      error: user_facing_error(err, get_active_translations().errors.generic),
     };
   }
 }
@@ -363,7 +373,7 @@ export async function remove_allowed_sender(
     return response;
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to remove allowed sender"),
+      error: user_facing_error(err, get_active_translations().errors.generic),
     };
   }
 }
@@ -379,7 +389,7 @@ export async function remove_allowed_sender_by_token(
     return response;
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to remove allowed sender"),
+      error: user_facing_error(err, get_active_translations().errors.generic),
     };
   }
 }
@@ -398,7 +408,7 @@ export async function bulk_remove_allowed_senders_by_tokens(
     return response;
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to bulk remove allowed senders"),
+      error: user_facing_error(err, get_active_translations().errors.generic),
     };
   }
 }

@@ -26,6 +26,7 @@ import {
   derive_password_hash,
   base64_to_array,
 } from "@/services/crypto/key_manager";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export interface StepUpCredentials {
   password_hash: string;
@@ -50,7 +51,9 @@ export async function fetch_step_up_requirements(): Promise<StepUpRequirements> 
   );
 
   if (salt_response.error || !salt_response.data?.salt) {
-    throw new Error(salt_response.error || "Could not load account data");
+    throw new Error(
+      salt_response.error || get_active_translations().errors.load_failed,
+    );
   }
 
   return {

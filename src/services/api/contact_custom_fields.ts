@@ -66,7 +66,9 @@ export async function list_custom_field_definitions(): Promise<
   );
 
   if (response.error || !response.data) {
-    return { error: response.error || "Failed to fetch field definitions" };
+    return {
+      error: response.error || get_active_translations().errors.load_failed,
+    };
   }
 
   try {
@@ -92,7 +94,10 @@ export async function list_custom_field_definitions(): Promise<
     return { data: items };
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to decrypt field definitions"),
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -119,7 +124,9 @@ export async function create_custom_field_definition(
   );
 
   if (response.error || !response.data) {
-    return { error: response.error || "Failed to create field definition" };
+    return {
+      error: response.error || get_active_translations().common.save_failed,
+    };
   }
 
   return {
@@ -154,7 +161,9 @@ export async function list_contact_custom_field_values(
   );
 
   if (response.error || !response.data) {
-    return { error: response.error || "Failed to fetch field values" };
+    return {
+      error: response.error || get_active_translations().errors.load_failed,
+    };
   }
 
   try {
@@ -187,7 +196,10 @@ export async function list_contact_custom_field_values(
     return { data: items };
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to decrypt field values"),
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }

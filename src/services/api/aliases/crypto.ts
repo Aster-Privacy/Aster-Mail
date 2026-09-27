@@ -32,6 +32,7 @@ import { DecryptedEmailAlias, EmailAlias } from "./types";
 import { parse_websites_payload } from "./website";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -58,7 +59,9 @@ export async function get_alias_hmac_key(): Promise<CryptoKey> {
   const raw_key = get_derived_encryption_key();
 
   if (!raw_key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   const encoder = new TextEncoder();
@@ -86,7 +89,9 @@ export async function get_alias_encryption_key(): Promise<CryptoKey> {
   const key = await get_or_create_derived_encryption_crypto_key();
 
   if (!key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   return key;

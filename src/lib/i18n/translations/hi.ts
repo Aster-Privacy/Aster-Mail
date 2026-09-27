@@ -1762,8 +1762,6 @@ export const hi = {
     sender_count_other: "{{count}} प्रेषक",
     email_count_one: "{{count}} ईमेल",
     email_count_other: "{{count}} ईमेल",
-    entry_count_one: "{{count}} प्रविष्टि",
-    entry_count_other: "{{count}} प्रविष्टियां",
     file_count_one: "{{count}} फ़ाइल",
     file_count_other: "{{count}} फ़ाइलें",
     emails_from_senders_archived_one:
@@ -1778,7 +1776,6 @@ export const hi = {
     app_lock_attempts_remaining_other: "{{count}} कोशिशें बची हैं",
     sender_count: "{{count}} प्रेषक",
     email_count: "{{count}} ईमेल",
-    entry_count: "{{count}} प्रविष्टियां",
     file_count: "{{count}} फ़ाइलें",
     images_count_one: "{{count}} छवि",
     images_count_other: "{{count}} छवियां",
@@ -9559,6 +9556,12 @@ export const hi = {
       "इस डिवाइस की पहचान जांच मेल नहीं खाई, जो छेड़छाड़ का संकेत हो सकता है। अपने डेस्कटॉप ऐप से दोबारा जोड़ें, और अगर चेतावनी फिर आए तो hello@astermail.org से संपर्क करें।",
     metadata_migration_stalled:
       "कई कोशिशों के बाद भी हम आपका लोकल स्टोरेज अपग्रेड पूरा नहीं कर सके। अपना कनेक्शन जांचकर Aster दोबारा खोलने से आमतौर पर काम बन जाता है। सर्वर पर आपका मेल सुरक्षित है।",
+    load_failed: "यह लोड नहीं हुआ। फिर से कोशिश करें।",
+    data_integrity_failed:
+      "यह डेटा अखंडता जांच में विफल रहा, इसलिए इसे लोड नहीं किया गया।",
+    note_too_large: "यह नोट बहुत लंबा है। इसे छोटा करें और फिर से कोशिश करें।",
+    number_out_of_range: "{{min}} से {{max}} तक की कोई पूर्ण संख्या दर्ज करें।",
+    invalid_date: "एक मान्य तारीख दर्ज करें।",
   },
   folder_retention: {
     title: "फ़ोल्डर ऑटो-क्लीन",

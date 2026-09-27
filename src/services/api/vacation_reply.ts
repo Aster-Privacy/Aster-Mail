@@ -21,6 +21,7 @@
 import { api_client, type ApiResponse } from "./client";
 
 import { user_facing_error } from "@/utils/user_facing_error";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export interface VacationReplyResponse {
   id: string;
@@ -56,7 +57,10 @@ export async function get_vacation_reply(): Promise<
     return response;
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to get vacation reply"),
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -73,7 +77,10 @@ export async function upsert_vacation_reply(
     return response;
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to save vacation reply"),
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }
@@ -89,7 +96,7 @@ export async function delete_vacation_reply(): Promise<
     return response;
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to delete vacation reply"),
+      error: user_facing_error(err, get_active_translations().errors.generic),
     };
   }
 }
@@ -106,7 +113,10 @@ export async function toggle_vacation_reply(
     return response;
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to toggle vacation reply"),
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }

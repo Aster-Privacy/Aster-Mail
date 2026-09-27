@@ -90,7 +90,6 @@ export const ko = {
     emails_starred_one: "{{count}}개의 메일에 별표를 표시했습니다",
     emails_unstarred_one: "{{count}}개의 메일의 별표를 해제했습니다",
     emails_will_reappear_one: "{{count}}개의 메일이 {{time}}에 다시 표시됩니다",
-    entry_count_one: "항목 {{count}}개",
     export_selection_vcf: "vCard로 내보내기",
     failed_to_add_to_group: "연락처를 그룹에 추가하지 못했습니다.",
     failed_to_delete_group: "그룹을 삭제하지 못했습니다.",
@@ -1857,7 +1856,6 @@ export const ko = {
       "연락처 {{count}}개를 삭제하시겠습니까? 이 작업은 취소할 수 없습니다.",
     sender_count_other: "발신자 {{count}}명",
     email_count_other: "메일 {{count}}개",
-    entry_count_other: "항목 {{count}}개",
     file_count_other: "파일 {{count}}개",
     emails_from_senders_archived_other:
       "{{senders}}의 메일 {{count}}개를 보관했습니다",
@@ -1866,7 +1864,6 @@ export const ko = {
     app_lock_attempts_remaining_other: "{{count}}회 남음",
     sender_count: "발신자 {{count}}명",
     email_count: "메일 {{count}}개",
-    entry_count: "항목 {{count}}개",
     file_count: "파일 {{count}}개",
     images_count_other: "이미지 {{count}}개",
     contact_count: "연락처 {{count}}개",
@@ -7149,8 +7146,8 @@ export const ko = {
       "{{provider}} 계정을 연결하여 Aster Mail에서 이메일을 보고 보낼 수 있습니다.",
     connect_modal_privacy_note:
       "이메일은 기기에서 종단간 암호화됩니다. 서버는 이메일을 읽을 수 없습니다.",
-    connect_provider_name_google: "Google",
-    connect_provider_name_microsoft: "Microsoft",
+    connect_provider_name_google: "Gmail",
+    connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
     connect_sign_in_google: "Google로 로그인",
     connect_sign_in_microsoft: "Microsoft로 로그인",
@@ -9451,6 +9448,12 @@ export const ko = {
       "예상대로 작동하지 않았습니다. 다시 시도하세요. 원인을 파악하지 못했습니다.",
     post_quantum_unavailable:
       "Aster 계정 간 메일은 양자 내성 암호로 보호되지만 {{recipients}}님은 아직 양자 내성 키를 게시하지 않았습니다. 상대방에게 Aster를 열거나 앱을 업데이트해 달라고 요청한 뒤 다시 시도하세요. 임시보관한 메일은 저장되어 있습니다.",
+    load_failed: "불러오지 못했습니다. 다시 시도하세요.",
+    data_integrity_failed:
+      "이 데이터는 무결성 검사를 통과하지 못해 불러오지 않았습니다.",
+    note_too_large: "메모가 너무 깁니다. 줄인 후 다시 시도하세요.",
+    number_out_of_range: "{{min}}에서 {{max}} 사이의 정수를 입력하세요.",
+    invalid_date: "올바른 날짜를 입력하세요.",
   },
   folder_retention: {
     title: "폴더 자동 정리",

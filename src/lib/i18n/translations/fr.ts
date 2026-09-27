@@ -1894,8 +1894,6 @@ export const fr = {
     sender_count_other: "{{count}} expéditeurs",
     email_count_one: "{{count}} e-mail",
     email_count_other: "{{count}} e-mails",
-    entry_count_one: "{{count}} entrée",
-    entry_count_other: "{{count}} entrées",
     file_count_one: "{{count}} fichier",
     file_count_other: "{{count}} fichiers",
     emails_from_senders_archived_one: "{{count}} e-mail archivé de {{senders}}",
@@ -1908,7 +1906,6 @@ export const fr = {
     app_lock_attempts_remaining_other: "{{count}} tentatives restantes",
     sender_count: "{{count}} expéditeurs",
     email_count: "{{count}} e-mails",
-    entry_count: "{{count}} entrées",
     file_count: "{{count}} fichiers",
     images_count_one: "{{count}} image",
     images_count_other: "{{count}} images",
@@ -2865,11 +2862,11 @@ export const fr = {
     alias_apply_existing_cancel_failed: "Impossible d'arrêter cette opération.",
     alias_apply_existing_queued: "En file d'attente...",
     alias_apply_existing_progress:
-      "Application : {{scanned}} analysés, {{applied}} mis à jour",
+      "Application en cours. Analysés : {{scanned}}, mis à jour : {{applied}}",
     alias_apply_existing_progress_total:
-      "Application : {{scanned}} sur {{total}} analysés, {{applied}} mis à jour",
+      "Application en cours. Analysés : {{scanned}} sur {{total}}, mis à jour : {{applied}}",
     alias_apply_existing_done:
-      "Terminé : {{scanned}} analysés, {{applied}} mis à jour",
+      "Terminé. Analysés : {{scanned}}, mis à jour : {{applied}}",
     alias_apply_existing_canceled: "Arrêté : {{applied}} mis à jour",
     alias_apply_existing_error:
       "L'application aux e-mails existants a échoué. Réessayez.",
@@ -6873,8 +6870,8 @@ export const fr = {
     connect_modal_privacy_note:
       "Aster demande uniquement les autorisations de messagerie nécessaires pour importer votre boîte de réception. Nous ne lisons, n'analysons et ne vendons jamais vos messages.",
     connect_modal_title: "Connecter {{ provider }} à Aster",
-    connect_provider_name_google: "Google",
-    connect_provider_name_microsoft: "Microsoft",
+    connect_provider_name_google: "Gmail",
+    connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
     connect_sign_in_google: "Se connecter avec Google",
     connect_sign_in_microsoft: "Se connecter avec Microsoft",
@@ -9877,6 +9874,14 @@ export const fr = {
       "Quelqu'un ou quelque chose a modifié cet élément avant vous. Actualisez pour voir la version la plus récente.",
     post_quantum_unavailable:
       "Aster protège les messages entre comptes Aster par un chiffrement post-quantique, et {{recipients}} n’a pas encore publié de clés post-quantiques. Demandez à cette personne d’ouvrir Aster ou de mettre à jour son app, puis réessayez. Votre brouillon est enregistré.",
+    load_failed: "Le chargement a échoué. Réessayez.",
+    data_integrity_failed:
+      "Ces données n'ont pas passé le contrôle d'intégrité et n'ont pas été chargées.",
+    note_too_large:
+      "Cette note est trop longue. Raccourcissez-la et réessayez.",
+    number_out_of_range:
+      "Saisissez un nombre entier compris entre {{min}} et {{max}}.",
+    invalid_date: "Saisissez une date valide.",
   },
   folder_retention: {
     title: "Nettoyage automatique des dossiers",
@@ -9998,13 +10003,13 @@ export const fr = {
     apply_to_existing_cancel_failed: "Impossible d'arrêter cette exécution.",
     apply_to_existing_queued: "En file d'attente...",
     apply_to_existing_progress:
-      "Application : {{scanned}} analysés, {{applied}} mis à jour",
+      "Application en cours. Analysés : {{scanned}}, mis à jour : {{applied}}",
     apply_to_existing_progress_total:
-      "Application : {{scanned}} sur {{total}} analysés, {{applied}} mis à jour",
+      "Application en cours. Analysés : {{scanned}} sur {{total}}, mis à jour : {{applied}}",
     apply_to_existing_done:
-      "Terminé : {{scanned}} analysés, {{applied}} mis à jour",
+      "Terminé. Analysés : {{scanned}}, mis à jour : {{applied}}",
     apply_to_existing_done_encrypted:
-      "Terminé : {{scanned}} analysés, {{applied}} mis à jour. Cette règle a ignoré {{encrypted}} messages chiffrés, car seul votre appareil peut les lire.",
+      "Terminé. Analysés : {{scanned}}, mis à jour : {{applied}}. Cette règle a ignoré {{encrypted}} messages chiffrés, car seul votre appareil peut les lire.",
     apply_to_existing_canceled: "Arrêté : {{applied}} mis à jour",
     apply_to_existing_canceled_encrypted:
       "Arrêté : {{applied}} mis à jour. Cette règle a ignoré {{encrypted}} messages chiffrés, car seul votre appareil peut les lire.",

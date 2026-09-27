@@ -78,7 +78,9 @@ async function get_hmac_key(): Promise<CryptoKey> {
   const raw_key = get_derived_encryption_key();
 
   if (!raw_key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
   const encoder = new TextEncoder();
   const info = encoder.encode("contacts-hmac-v2");
@@ -104,7 +106,9 @@ async function get_search_token_key(): Promise<CryptoKey> {
   const raw_key = get_derived_encryption_key();
 
   if (!raw_key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
   const encoder = new TextEncoder();
   const info = encoder.encode("contacts-search-v2");
@@ -130,7 +134,9 @@ export async function get_contacts_encryption_key(): Promise<CryptoKey> {
   const key = await get_or_create_derived_encryption_crypto_key();
 
   if (!key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   return key;
@@ -260,7 +266,7 @@ export async function decrypt_contact_data(
     );
 
     if (!is_valid) {
-      throw new Error("Contact data integrity check failed");
+      throw new Error(get_active_translations().errors.data_integrity_failed);
     }
   }
 
@@ -445,7 +451,9 @@ export async function list_all_contacts(
     const response = await list_contacts({ limit: page_limit, cursor });
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to fetch contacts" };
+      return {
+        error: response.error || get_active_translations().errors.load_failed,
+      };
     }
     items.push(...response.data.items);
     if (!response.data.has_more || !response.data.next_cursor) break;
@@ -488,7 +496,10 @@ export async function create_contact_encrypted(
     });
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to encrypt contact data"),
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }
@@ -523,7 +534,10 @@ export async function update_contact_encrypted(
     });
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to encrypt contact data"),
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }
@@ -569,7 +583,9 @@ export async function list_contact_groups(): Promise<
   );
 
   if (response.error || !response.data) {
-    return { error: response.error || "Failed to fetch contact groups" };
+    return {
+      error: response.error || get_active_translations().errors.load_failed,
+    };
   }
 
   try {
@@ -578,7 +594,10 @@ export async function list_contact_groups(): Promise<
     return { data: { groups: decrypted_groups } };
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to decrypt contact groups"),
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -634,7 +653,9 @@ export async function create_contact_group(
   );
 
   if (response.error || !response.data) {
-    return { error: response.error || "Failed to create contact group" };
+    return {
+      error: response.error || get_active_translations().common.save_failed,
+    };
   }
 
   return {
@@ -684,7 +705,9 @@ export async function update_contact_group(
   );
 
   if (response.error || !response.data) {
-    return { error: response.error || "Failed to update contact group" };
+    return {
+      error: response.error || get_active_translations().common.save_failed,
+    };
   }
 
   return {
@@ -764,7 +787,9 @@ export async function list_groups_for_contact(
   );
 
   if (response.error || !response.data) {
-    return { error: response.error || "Failed to fetch contact groups" };
+    return {
+      error: response.error || get_active_translations().errors.load_failed,
+    };
   }
 
   try {
@@ -773,7 +798,10 @@ export async function list_groups_for_contact(
     };
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to decrypt contact groups"),
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }

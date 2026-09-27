@@ -23,6 +23,7 @@ import { api_client, type ApiResponse } from "./client";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { get_or_create_derived_encryption_crypto_key } from "@/services/crypto/memory_key_store";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export type SignaturePlacement = "above" | "below";
 
@@ -161,7 +162,9 @@ async function get_encryption_key(): Promise<CryptoKey> {
   const key = await get_or_create_derived_encryption_crypto_key();
 
   if (!key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   return key;
@@ -241,7 +244,9 @@ export async function list_signatures(): Promise<
   );
 
   if (response.error || !response.data) {
-    return { error: response.error || "Failed to fetch signatures" };
+    return {
+      error: response.error || get_active_translations().errors.load_failed,
+    };
   }
 
   try {
@@ -250,7 +255,10 @@ export async function list_signatures(): Promise<
     return { data: { signatures: decrypted, total: response.data.total } };
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to decrypt signatures"),
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -263,7 +271,9 @@ export async function get_signature(
   );
 
   if (response.error || !response.data) {
-    return { error: response.error || "Failed to fetch signature" };
+    return {
+      error: response.error || get_active_translations().errors.load_failed,
+    };
   }
 
   try {
@@ -272,7 +282,10 @@ export async function get_signature(
     return { data: decrypted };
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to decrypt signature"),
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -298,7 +311,10 @@ export async function get_default_signature(): Promise<
     return { data: decrypted };
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to decrypt signature"),
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -330,7 +346,10 @@ export async function create_signature(
     );
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to encrypt signature"),
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }
@@ -374,7 +393,10 @@ export async function update_signature(
     );
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to encrypt signature"),
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }

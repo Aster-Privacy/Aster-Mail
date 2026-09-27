@@ -1889,8 +1889,6 @@ export const pt_br = {
     sender_count_other: "{{count}} remetentes",
     email_count_one: "{{count}} e-mail",
     email_count_other: "{{count}} e-mails",
-    entry_count_one: "{{count}} entrada",
-    entry_count_other: "{{count}} entradas",
     file_count_one: "{{count}} arquivo",
     file_count_other: "{{count}} arquivos",
     emails_from_senders_archived_one:
@@ -1904,7 +1902,6 @@ export const pt_br = {
     app_lock_attempts_remaining_other: "Restam {{count}} tentativas",
     sender_count: "{{count}} remetentes",
     email_count: "{{count}} e-mails",
-    entry_count: "{{count}} entradas",
     file_count: "{{count}} arquivos",
     images_count_one: "{{count}} imagem",
     images_count_other: "{{count}} imagens",
@@ -2865,11 +2862,11 @@ export const pt_br = {
     alias_apply_existing_cancel_failed: "Não foi possível parar esta execução.",
     alias_apply_existing_queued: "Na fila...",
     alias_apply_existing_progress:
-      "Aplicando: {{scanned}} analisados, {{applied}} atualizados",
+      "Aplicando. Analisados: {{scanned}}, atualizados: {{applied}}",
     alias_apply_existing_progress_total:
-      "Aplicando: {{scanned}} de {{total}} analisados, {{applied}} atualizados",
+      "Aplicando. Analisados: {{scanned}} de {{total}}, atualizados: {{applied}}",
     alias_apply_existing_done:
-      "Concluído: {{scanned}} analisados, {{applied}} atualizados",
+      "Concluído. Analisados: {{scanned}}, atualizados: {{applied}}",
     alias_apply_existing_canceled: "Parado: {{applied}} atualizados",
     alias_apply_existing_error:
       "Falha ao aplicar aos e-mails existentes. Tente novamente.",
@@ -5092,7 +5089,7 @@ export const pt_br = {
     domain_limit_all_used:
       "Você usou todos os {{count}} domínios do seu plano atual.",
     domain_without_www_note: "Digite seu domínio sem www ou https://",
-    catch_all_label: "Capturar tudo",
+    catch_all_label: "Endereço coringa",
     bimi_adj_added_title: "Título adicionado.",
     bimi_adj_converted_inline_styles:
       "Estilos inline convertidos em atributos.",
@@ -6268,7 +6265,7 @@ export const pt_br = {
     affiliate_payout_requested_on: "Solicitado em {{ date }}",
     billing_address: "Endereço de cobrança",
     company_name: "Nome da empresa",
-    vat_number: "Número de CNPJ/CPF",
+    vat_number: "CPF ou CNPJ",
     address_line1: "Endereço linha 1",
     address_line2: "Endereço linha 2",
     city: "Cidade",
@@ -6665,7 +6662,7 @@ export const pt_br = {
     vacation_reply_locked:
       "Respostas de férias permitem enviar respostas automáticas quando você estiver ausente",
     catch_all_locked:
-      "O coringa recebe e-mails enviados para qualquer endereço no seu domínio",
+      "O endereço coringa recebe e-mails enviados para qualquer endereço no seu domínio",
     auto_forward_locked:
       "Encaminhe automaticamente e-mails recebidos para outro endereço",
     subscription_manager_locked:
@@ -7376,8 +7373,8 @@ export const pt_br = {
       "Entre no {{provider}} para importar seus e-mails para o Aster. Suas mensagens são criptografadas neste dispositivo antes de qualquer coisa ser armazenada em nossos servidores.",
     connect_modal_privacy_note:
       "O Aster solicita apenas as permissões de e-mail necessárias para importar sua caixa de entrada. Nunca lemos, analisamos ou vendemos suas mensagens.",
-    connect_provider_name_google: "Google",
-    connect_provider_name_microsoft: "Microsoft",
+    connect_provider_name_google: "Gmail",
+    connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
     connect_sign_in_google: "Entrar com Google",
     connect_sign_in_microsoft: "Entrar com Microsoft",
@@ -9803,6 +9800,12 @@ export const pt_br = {
       "Algo ou alguém alterou isso primeiro. Uma atualização vai mostrar a versão mais recente.",
     post_quantum_unavailable:
       "O Aster mantém as mensagens entre contas Aster com criptografia pós-quântica, e {{recipients}} ainda não publicou chaves pós-quânticas. Peça para essa pessoa abrir o Aster ou atualizar o aplicativo e tente novamente. Seu rascunho está salvo.",
+    load_failed: "Não foi possível carregar. Tente novamente.",
+    data_integrity_failed:
+      "Esses dados não passaram na verificação de integridade e não foram carregados.",
+    note_too_large: "Esta nota está longa demais. Encurte e tente novamente.",
+    number_out_of_range: "Digite um número inteiro de {{min}} a {{max}}.",
+    invalid_date: "Digite uma data válida.",
   },
   folder_retention: {
     title: "Limpeza automática de pastas",
@@ -9921,13 +9924,13 @@ export const pt_br = {
     apply_to_existing_cancel_failed: "Não foi possível parar esta execução.",
     apply_to_existing_queued: "Na fila...",
     apply_to_existing_progress:
-      "Aplicando: {{scanned}} verificados, {{applied}} atualizados",
+      "Aplicando. Verificados: {{scanned}}, atualizados: {{applied}}",
     apply_to_existing_progress_total:
-      "Aplicando: {{scanned}} de {{total}} verificados, {{applied}} atualizados",
+      "Aplicando. Verificados: {{scanned}} de {{total}}, atualizados: {{applied}}",
     apply_to_existing_done:
-      "Concluído: {{scanned}} verificados, {{applied}} atualizados",
+      "Concluído. Verificados: {{scanned}}, atualizados: {{applied}}",
     apply_to_existing_done_encrypted:
-      "Concluído: {{scanned}} verificados, {{applied}} atualizados. Esta regra ignorou {{encrypted}} mensagens criptografadas porque só o seu dispositivo consegue lê-las.",
+      "Concluído. Verificados: {{scanned}}, atualizados: {{applied}}. Esta regra ignorou {{encrypted}} mensagens criptografadas porque só o seu dispositivo consegue lê-las.",
     apply_to_existing_canceled: "Parado: {{applied}} atualizados",
     apply_to_existing_canceled_encrypted:
       "Parado: {{applied}} atualizados. Esta regra ignorou {{encrypted}} mensagens criptografadas porque só o seu dispositivo consegue lê-las.",
@@ -10143,19 +10146,19 @@ export const pt_br = {
       "Quando uma mensagem falhar nas verificações SPF, DKIM ou DMARC (um sinal comum de falsificação), mantenha-a fora da caixa de entrada e marque-a como lida.",
   },
   badges: {
-    title: "Distintivos",
+    title: "Medalhas",
     description: "Toques pessoais que você coletou.",
-    active_badge: "Distintivo ativo",
+    active_badge: "Medalha ativa",
     none: "Nenhum",
     show_on_profile: "Mostrar no perfil",
     show_on_profile_description:
-      "Exibir seu distintivo ativo para outros usuários do Aster.",
+      "Exibir sua medalha ativa para outros usuários do Aster.",
     show_in_signature: "Mostrar na assinatura",
     show_in_signature_description:
-      "Incluir seu distintivo ativo nas assinaturas de e-mails enviados.",
+      "Incluir sua medalha ativa nas assinaturas de e-mails enviados.",
     not_earned: "Ainda não conquistado",
-    empty_state: "Você ainda não encontrou distintivos.",
-    claim_failed: "Este distintivo não foi salvo. Tente novamente.",
+    empty_state: "Você ainda não encontrou medalhas.",
+    claim_failed: "Esta medalha não foi salva. Tente novamente.",
     granted_at: "Conquistado em {date}",
   },
   secure_view: {
@@ -10372,8 +10375,8 @@ export const pt_br = {
     auto_clean: "Limpeza automática",
     auto_logout: "Encerramento automático da sessão",
     auto_update: "Atualização automática",
-    badge: "Selo",
-    badge_count: "Contagem do selo",
+    badge: "Medalha",
+    badge_count: "Indicador de não lidos",
     block: "Bloquear",
     bug_report: "Relatório de erro",
     build_info: "Informações da versão",
