@@ -1,6 +1,6 @@
 import fs from "fs";
 
-const codes = ["ar","de","es","fr","it","ja","ko","nl","pl","pt","ru","tr","zh-CN","en"];
+const codes = ["ar","de","es","fr","it","ja","ko","nl","pl","pt","pt-BR","ru","tr","zh-CN","en"];
 let ok = true;
 for (const code of codes) {
   const txt = fs.readFileSync(`src/lib/i18n/translations/${code}.ts`, "utf8");

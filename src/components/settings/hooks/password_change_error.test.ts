@@ -126,12 +126,13 @@ describe("resolve_password_change_error", () => {
       import("@/lib/i18n/translations/nl"),
       import("@/lib/i18n/translations/pl"),
       import("@/lib/i18n/translations/pt"),
+      import("@/lib/i18n/translations/pt-BR"),
       import("@/lib/i18n/translations/ru"),
       import("@/lib/i18n/translations/tr"),
       import("@/lib/i18n/translations/zh-CN"),
     ]);
 
-    expect(locales).toHaveLength(14);
+    expect(locales).toHaveLength(15);
 
     for (const locale of locales) {
       const bundle = Object.values(locale)[0] as {

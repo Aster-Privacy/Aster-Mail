@@ -31,6 +31,7 @@ import { fr } from "./translations/fr";
 import { de } from "./translations/de";
 import { it as it_locale } from "./translations/it";
 import { pt } from "./translations/pt";
+import { pt_br } from "./translations/pt-BR";
 import { nl } from "./translations/nl";
 import { tr } from "./translations/tr";
 import { ru } from "./translations/ru";
@@ -70,6 +71,7 @@ const locales: Array<[LanguageCode, Record<string, unknown>]> = [
   ["de", de],
   ["it", it_locale],
   ["pt", pt],
+  ["pt-BR", pt_br],
   ["nl", nl],
   ["tr", tr],
   ["ru", ru],
