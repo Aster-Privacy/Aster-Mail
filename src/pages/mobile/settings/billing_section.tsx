@@ -58,6 +58,7 @@ import { AcademicDiscountSection } from "@/components/settings/billing/academic_
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
 import { ResumeCheckoutCard } from "@/components/settings/billing/resume_checkout_card";
 import { WinBackOfferCard } from "@/components/settings/billing/win_back_offer_card";
+import { SpecialOfferBillingCard } from "@/components/settings/billing/special_offer_billing_card";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   build_referral_invite_url,
@@ -694,6 +695,9 @@ export function BillingSection({
                 <WinBackOfferCard
                   offer={subscription?.pending_offer}
                   on_choose_plan={open_plans}
+                />
+                <SpecialOfferBillingCard
+                  plan_code={subscription?.plan.code ?? null}
                 />
               </div>
 

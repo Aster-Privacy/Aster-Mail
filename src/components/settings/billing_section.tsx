@@ -102,6 +102,7 @@ import { CardDeclineNotice } from "@/components/settings/billing/card_decline_no
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
 import { ResumeCheckoutCard } from "@/components/settings/billing/resume_checkout_card";
 import { WinBackOfferCard } from "@/components/settings/billing/win_back_offer_card";
+import { SpecialOfferBillingCard } from "@/components/settings/billing/special_offer_billing_card";
 import { YearlySwitchCard } from "@/components/settings/billing/yearly_switch_card";
 import { AcademicDiscountSection } from "@/components/settings/billing/academic_discount_section";
 import { BillingHistorySection } from "@/components/settings/billing/billing_history_section";
@@ -1111,6 +1112,8 @@ export function BillingSection() {
         offer={subscription?.pending_offer}
         on_choose_plan={scroll_to_plans}
       />
+
+      <SpecialOfferBillingCard plan_code={subscription?.plan.code ?? null} />
 
       <YearlySwitchCard
         currency={preferred_currency}
