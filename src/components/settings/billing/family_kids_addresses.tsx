@@ -402,7 +402,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
                 }
               />
               <Select value={domain} onValueChange={set_domain}>
-                <SelectTrigger className="h-10 w-auto shrink-0 rounded-lg border border-edge-secondary bg-transparent text-sm px-3 focus:ring-0 focus:ring-offset-0">
+                <SelectTrigger className="h-10 w-auto shrink-0 text-sm px-3">
                   <span className="text-txt-muted me-0.5">@</span>
                   <SelectValue />
                 </SelectTrigger>

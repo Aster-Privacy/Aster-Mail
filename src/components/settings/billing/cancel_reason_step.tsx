@@ -107,7 +107,7 @@ export function CancelReasonStep({
       </RadioGroup>
 
       <textarea
-        className="mt-3 w-full rounded-md border border-edge-secondary bg-transparent px-3 py-2 text-sm text-txt-primary placeholder:text-txt-muted focus:outline-none focus:border-brand resize-none"
+        className="aster_input mt-3 w-full px-3.5 py-2.5 text-sm resize-none"
         maxLength={MAX_CANCEL_REASON_TEXT}
         placeholder={
           reason

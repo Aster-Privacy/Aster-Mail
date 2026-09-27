@@ -318,7 +318,6 @@ export function AliasDirectoriesSection() {
           <div className="space-y-2">
             <Island className="space-y-2" padding="md">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm text-txt-muted">@</span>
                 <Input
                   className={INPUT_CLASS}
                   placeholder={t("settings.alias_directory_key_placeholder")}
@@ -336,7 +335,7 @@ export function AliasDirectoriesSection() {
                   }
                 />
                 <Select value={domain} onValueChange={set_domain}>
-                  <SelectTrigger className="h-10 w-44 shrink-0">
+                  <SelectTrigger className="h-9 w-44 shrink-0">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -360,8 +359,8 @@ export function AliasDirectoriesSection() {
                     is_available === false ||
                     (turnstile_required && !captcha_token)
                   }
-                  size="xl"
-                  variant="depth"
+                  size="lg"
+                  variant="primary"
                   onClick={handle_create}
                 >
                   <PlusIcon className="w-4 h-4" />
@@ -370,30 +369,30 @@ export function AliasDirectoriesSection() {
               </div>
               {directory_key.trim() && (
                 <>
-                  <p className="text-xs text-txt-muted ps-5">
+                  <p className="text-xs text-txt-muted ps-1">
                     anything.{directory_key}@{domain}
                   </p>
-                  <p className="text-xs text-txt-muted ps-5">
+                  <p className="text-xs text-txt-muted ps-1">
                     {t("settings.alias_directory_separator_hint")}
                   </p>
                 </>
               )}
               {directory_key.trim() && checking_availability && (
-                <p className="text-xs text-txt-muted ps-5">
+                <p className="text-xs text-txt-muted ps-1">
                   {t("settings.checking_availability")}
                 </p>
               )}
               {directory_key.trim() &&
                 !checking_availability &&
                 is_available === true && (
-                  <p className="text-xs text-green-500 ps-5">
+                  <p className="text-xs text-green-500 ps-1">
                     {t("settings.alias_directory_available")}
                   </p>
                 )}
               {directory_key.trim() &&
                 !checking_availability &&
                 is_available === false && (
-                  <p className="text-xs text-red-500 ps-5">
+                  <p className="text-xs text-red-500 ps-1">
                     {t("settings.alias_directory_not_available")}
                   </p>
                 )}

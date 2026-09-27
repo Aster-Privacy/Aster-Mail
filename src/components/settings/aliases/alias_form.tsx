@@ -454,7 +454,7 @@ export function CreateAliasModal({
                     </SelectContent>
                   </Select>
                   <button
-                    className="h-10 w-10 shrink-0 flex items-center justify-center rounded-[var(--aster-radius-control)] border border-edge-secondary text-txt-muted hover:text-txt-primary hover:bg-surf-hover transition-colors"
+                    className="h-10 w-10 shrink-0 flex items-center justify-center rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] text-txt-muted hover:text-txt-primary hover:bg-[var(--aster-field-hover)] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
                     title={t("settings.alias_generate_random")}
                     type="button"
                     onClick={() => {
@@ -501,7 +501,7 @@ export function CreateAliasModal({
                     }}
                   />
                   <Select value={domain} onValueChange={handle_domain_change}>
-                    <SelectTrigger className="h-10 w-auto shrink-0 rounded-[var(--aster-radius-control)] border border-edge-secondary bg-transparent text-sm px-3 focus:ring-0 focus:ring-offset-0">
+                    <SelectTrigger className="h-10 w-auto shrink-0 text-sm px-3">
                       <span className="text-txt-muted me-0.5">@</span>
                       <span className="truncate">{domain}</span>
                     </SelectTrigger>
