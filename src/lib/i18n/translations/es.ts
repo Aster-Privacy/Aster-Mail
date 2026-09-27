@@ -5212,7 +5212,7 @@ export const es = {
       "Se ha producido un error al iniciar el pago. Inténtalo de nuevo.",
     special_offer_was_price: "Antes {{price}} al mes",
     special_offer_original_price: "Precio original: {{price}}",
-    special_offer_cta: "Obtener un {{percent}}% de descuento",
+    special_offer_cta: "Obtener un {{percent}} % de descuento",
     special_offer_feature_aliases: "Alias ilimitados",
     special_offer_feature_vanguard: "Seguridad avanzada con Vanguard",
     special_offer_feature_storage: "500 GB de almacenamiento cifrado",

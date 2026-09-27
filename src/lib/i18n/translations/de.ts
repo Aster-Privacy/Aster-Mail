@@ -5123,7 +5123,7 @@ export const de = {
       "Beim Start des Bezahlvorgangs ist ein Fehler aufgetreten. Versuchen Sie es erneut.",
     special_offer_was_price: "Vorher {{price}} pro Monat",
     special_offer_original_price: "Ursprünglicher Preis: {{price}}",
-    special_offer_cta: "{{percent}}% Rabatt sichern",
+    special_offer_cta: "{{percent}} % Rabatt sichern",
     special_offer_feature_aliases: "Unbegrenzte Aliase",
     special_offer_feature_vanguard: "Mehr Sicherheit mit Vanguard",
     special_offer_feature_storage: "500 GB verschlüsselter Speicher",
@@ -7551,13 +7551,13 @@ export const de = {
     yearly_switch_body:
       "Sie zahlen derzeit {{monthly}} pro Monat. Im Jahrestarif entspricht das {{yearly_monthly}} pro Monat, und Ihre nächste Rechnung wird um den bereits bezahlten Zeitraum angepasst.",
     yearly_switch_action: "Zur Jahreszahlung wechseln",
-    win_back_offer_title: "Dein {{discount}} wartet auf dich",
+    win_back_offer_title: "Ihr {{discount}} wartet auf Sie",
     win_back_offer_expires_today:
       "Heute ist der letzte Tag, um ihn einzulösen.",
     win_back_offer_expires_tomorrow: "Er endet morgen.",
     win_back_offer_expires_in: "Er endet in {{days}} Tagen.",
     win_back_offer_auto_applied:
-      "Der Rabatt liegt bereits auf deinem Konto, die Kasse zieht ihn für dich ab. Code {{code}}.",
+      "Der Rabatt liegt bereits auf Ihrem Konto und wird an der Kasse automatisch abgezogen. Code {{code}}.",
     win_back_offer_action: "Tarif wählen",
     payment_processing_delayed:
       "Ihre Zahlung wird bearbeitet. Die Aktivierung kann einen Moment dauern.",
@@ -8160,11 +8160,11 @@ export const de = {
     checkout_add_promo: "Gutscheincode hinzufügen",
     checkout_amount_due: "Fälliger Betrag",
     checkout_offer_switch_term:
-      "Wechsle zu {{term}} und erhalte {{percent}} % Rabatt",
+      "Wechseln Sie zu {{term}} und erhalten Sie {{percent}} % Rabatt",
     checkout_offer_switch_crypto:
-      "Zahle mit Krypto und erhalte {{percent}} % Rabatt",
+      "Zahlen Sie mit Krypto und erhalten Sie {{percent}} % Rabatt",
     checkout_offer_switch_card:
-      "Zahle mit Karte und erhalte {{percent}} % Rabatt",
+      "Zahlen Sie mit Karte und erhalten Sie {{percent}} % Rabatt",
     checkout_offer_renewal:
       "{{offer_price}} pro Monat für {{months}} Monate, danach {{price}} pro Monat",
     checkout_card_details: "Kartendaten",
@@ -8233,11 +8233,11 @@ export const de = {
     offer_modal_fine_print:
       "Der Code {{code}} gilt an der Kasse. Eine Verwendung pro Konto.",
     offer_modal_price_note: "Der Rabatt gilt an der Kasse.",
-    offer_modal_subtitle: "Wechsle günstiger zu {{plan}}.",
-    offer_modal_title: "Spare {{percent}} % bei deinem Tarif",
+    offer_modal_subtitle: "Wechseln Sie günstiger zu {{plan}}.",
+    offer_modal_title: "Sparen Sie {{percent}} % bei Ihrem Tarif",
     offer_upgrade_description:
-      "Wähle einen Tarif, um deinen Rabatt einzulösen.",
-    offer_upgrade_title: "Dein Angebot wartet",
+      "Wählen Sie einen Tarif, um Ihren Rabatt einzulösen.",
+    offer_upgrade_title: "Ihr Angebot wartet",
     plan_cat_advanced_aliases: "Erweiterte Aliasse",
     plan_cat_contacts: "Kontakte",
     plan_cat_general: "Allgemein",

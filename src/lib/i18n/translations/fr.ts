@@ -5260,7 +5260,7 @@ export const fr = {
       "Une erreur s'est produite au lancement du paiement. Réessayez.",
     special_offer_was_price: "Avant {{price}} par mois",
     special_offer_original_price: "Prix initial : {{price}}",
-    special_offer_cta: "Profiter de {{percent}}% de réduction",
+    special_offer_cta: "Profiter de {{percent}} % de réduction",
     special_offer_feature_aliases: "Alias illimités",
     special_offer_feature_vanguard: "Sécurité renforcée avec Vanguard",
     special_offer_feature_storage: "500 Go de stockage chiffré",
@@ -5277,7 +5277,7 @@ export const fr = {
     special_offer_feature_aliases_body:
       "Donnez à chaque site sa propre adresse.",
     special_offer_fine_print:
-      "Vous payez {{offer_price}} par mois pendant les {{months}} premiers mois. Votre offre est ensuite renouvelée à {{price}} par mois jusqu'à ce que vous l'annuliez dans Réglages.",
+      "Vous payez {{offer_price}} par mois pendant les {{months}} premiers mois. Votre forfait est ensuite renouvelé à {{price}} par mois jusqu'à ce que vous l'annuliez dans Réglages.",
     special_offer_dismiss: "Ne plus afficher cette offre",
     special_offer_dismissed_toast: "Nous ne vous le montrerons plus.",
     special_offer_success_title: "Merci. Vous êtes passé à Nova.",
@@ -5287,7 +5287,7 @@ export const fr = {
     special_offer_price_period_year: "par an",
     special_offer_hero_duration_year: "pendant la première année",
     special_offer_fine_print_year:
-      "Vous payez {{offer_price}} pour la première année. Votre offre est ensuite renouvelée à {{price}} par an jusqu'à ce que vous l'annuliez dans Réglages.",
+      "Vous payez {{offer_price}} pour la première année. Votre forfait est ensuite renouvelé à {{price}} par an jusqu'à ce que vous l'annuliez dans Réglages.",
     special_offer_billing_period: "Période de facturation",
     plan_billing_terms:
       "Les abonnements sont renouvelés automatiquement au tarif standard jusqu'à leur annulation. Vous pouvez annuler à tout moment dans Réglages.",
