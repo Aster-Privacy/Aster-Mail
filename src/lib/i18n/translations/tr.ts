@@ -1277,7 +1277,7 @@ export const tr = {
       "Yeni e-postalardan haberdar olmak için masaüstü bildirimlerini etkinleştirin",
     notification_banner_allow: "İzin Ver",
     subscriptions: "Abonelikler",
-    unsubscribed_count: "Aboneliksiz ({{count}})",
+    unsubscribed_count: "Abonelikten çıkılanlar ({{count}})",
     one_click_unsubscribe: "Tek tıkla abonelik iptali destekleniyor",
     no_unsubscribed_senders: "Aboneliksiz gönderen yok",
     total: "Toplam",
@@ -1379,7 +1379,7 @@ export const tr = {
     empty: "Boş",
     merging: "Birleştiriliyor...",
     disabled: "Devre dışı",
-    ghost_mode_title: "Ghost Modu",
+    ghost_mode_title: "Hayalet Mod",
     ghost_mode_description:
       "Tek kullanımlık bir takma adresten yanıtlayın. Gerçek adresiniz gizli kalır.",
     edit_folder: "Klasörü düzenle",
@@ -2847,7 +2847,7 @@ export const tr = {
     alias_pin: "Rumuzu sabitle",
     alias_unpin: "Rumuz sabitlemesini kaldır",
     alias_pinned_toast: "Rumuz sabitlendi",
-    alias_unpinned_toast: "Rumuz sabitlemesi kaldırıldı",
+    alias_unpinned_toast: "Takma ad sabitlemesi kaldırıldı",
     alias_advanced: "Gelişmiş",
     alias_advanced_hide: "Gelişmişi gizle",
     alias_advanced_show: "Gelişmiş ayarlar",
@@ -3836,7 +3836,7 @@ export const tr = {
     accessibility: "Erişilebilirlik",
     encryption: "Şifreleme",
     aliases_and_domains: "Takma Adlar ve Alan Adları",
-    ghost_aliases: "Ghost Takma Adları",
+    ghost_aliases: "Hayalet takma adlar",
     snooze: "Ertele",
     mail_management: "E-posta Yönetimi",
     change_appearance: "Aster'in görünümünü değiştirin",
@@ -5901,7 +5901,7 @@ export const tr = {
     usage_domains: "Özel Alan Adları",
     usage_templates: "E-posta Şablonları",
     usage_signatures: "İmzalar",
-    usage_ghost_aliases: "Bu Ayki Ghost Takma Adları",
+    usage_ghost_aliases: "Bu ayki hayalet takma adlar",
     usage_storage: "Depolama",
     usage_linked_accounts: "Oturum açılmış hesaplar",
     upgrade_linked_accounts_note:
@@ -6561,7 +6561,7 @@ export const tr = {
     domain_purchase_renew: "Yenile",
     domain_purchase_manage: "Yönet",
     domain_purchase_manage_description:
-      "Bu kaydı gözden geçir ve süresi dolmadan yenile.",
+      "Bu kaydı gözden geçirin ve süresi dolmadan yenileyin.",
     domain_purchase_manage_status: "Durum",
     domain_purchase_manage_status_active: "Etkin",
     domain_purchase_manage_status_expiring: "Yakında sona eriyor",
@@ -6945,7 +6945,7 @@ export const tr = {
       "Gizliliğinizi korumak için e-postalara gömülü izleme öğelerini engelle",
     block_spy_pixels: "Gözetleme Piksellerini Engelle",
     block_spy_pixels_description:
-      "Bir e-posta açtığınızda göndericilere haber veren görünmez izleme piksellerini engelle",
+      "Bir e-posta açtığınızda göndericilere haber veren görünmez izleme piksellerini engeller",
     block_tracking_links: "İzleme Bağlantılarını Temizle",
     block_tracking_links_description:
       "E-postalardaki bağlantılardan izleme parametrelerini kaldır",
@@ -9787,7 +9787,7 @@ export const tr = {
     ghost_alias_already_exists: "Bu ghost takma ad hesabınızda zaten var.",
     failed_to_create_ghost_alias: "Tekrar deneyin.",
     ghost_expiry_extend_only:
-      "Bir ghost adresini yalnızca uzatabilirsin, kısaltamazsın.",
+      "Bir hayalet adresin süresini yalnızca uzatabilirsiniz, kısaltamazsınız.",
     ghost_expiry_update_failed: "Sona erme süresi güncellenmedi. Yeniden dene.",
     failed_to_activate_ghost_mode: "Tekrar deneyin.",
     wrong_vault_password:
