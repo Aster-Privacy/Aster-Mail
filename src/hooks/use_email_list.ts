@@ -307,6 +307,21 @@ export function use_email_list(current_view: string): UseEmailListReturn {
           offset,
           preferences.conversation_grouping ?? true,
           preferences.inbox_sort_order ?? "newest_first",
+          (partial_emails) => {
+            if (signal.aborted || committed_view_ref.current !== fetch_view) {
+              return;
+            }
+
+            set_state((prev) => {
+              if (prev.emails.length > 0) return prev;
+
+              const surviving = drop_removed_after(partial_emails, start);
+
+              if (surviving.length === 0) return prev;
+
+              return { ...prev, emails: surviving };
+            });
+          },
         );
 
         if (signal.aborted) {

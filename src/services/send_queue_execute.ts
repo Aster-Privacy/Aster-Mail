@@ -222,6 +222,33 @@ async function create_attachment_with_retry(
   throw last_error;
 }
 
+async function store_sent_copy_attachments(
+  sent_copy_mail_item_id: string,
+  attachments: Attachment[],
+): Promise<void> {
+  try {
+    const encrypted_sender_attachments =
+      await encrypt_attachments_for_send(attachments);
+
+    for (let i = 0; i < encrypted_sender_attachments.length; i++) {
+      const att = encrypted_sender_attachments[i];
+
+      await create_attachment_with_retry(sent_copy_mail_item_id, {
+        encrypted_data: att.encrypted_data,
+        data_nonce: att.data_nonce,
+        encrypted_meta: att.sender_encrypted_meta,
+        meta_nonce: att.sender_meta_nonce,
+        seq_num: i,
+      });
+    }
+  } catch (caught) {
+    ignore_error(
+      "services/send_queue_execute:store_sent_copy_attachments",
+      caught,
+    );
+  }
+}
+
 export async function execute_external_send(
   email: EmailParams,
   acknowledge_server_readable: boolean = true,
@@ -496,27 +523,10 @@ export async function execute_external_send(
     email.attachments &&
     email.attachments.length > 0
   ) {
-    const sent_copy_mail_item_id = result.data.mail_item_id;
-
-    try {
-      const encrypted_sender_attachments = await encrypt_attachments_for_send(
-        email.attachments,
-      );
-
-      for (let i = 0; i < encrypted_sender_attachments.length; i++) {
-        const att = encrypted_sender_attachments[i];
-
-        await create_attachment_with_retry(sent_copy_mail_item_id, {
-          encrypted_data: att.encrypted_data,
-          data_nonce: att.data_nonce,
-          encrypted_meta: att.sender_encrypted_meta,
-          meta_nonce: att.sender_meta_nonce,
-          seq_num: i,
-        });
-      }
-    } catch (caught) {
-      ignore_error("services/send_queue_execute:execute_external_send", caught);
-    }
+    void store_sent_copy_attachments(
+      result.data.mail_item_id,
+      email.attachments,
+    );
   }
 
   if (effective_thread_id) {

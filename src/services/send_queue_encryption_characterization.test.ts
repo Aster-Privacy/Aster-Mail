@@ -827,7 +827,9 @@ describe("execute_external_send", () => {
       ],
     } as never);
 
-    expect(vi.mocked(create_attachment).mock.calls.length).toBeGreaterThan(1);
+    await vi.waitFor(() =>
+      expect(vi.mocked(create_attachment).mock.calls.length).toBeGreaterThan(1),
+    );
   });
 
   it("honours the acknowledge flag", async () => {

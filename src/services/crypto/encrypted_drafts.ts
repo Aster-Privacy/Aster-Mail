@@ -176,6 +176,14 @@ class DraftManager {
     }
   }
 
+  drop_queued_saves(context_id: string): void {
+    const context = this.contexts.get(context_id);
+
+    if (context) {
+      context.save_seq++;
+    }
+  }
+
   async save_draft(
     context_id: string,
     data: DraftData,
@@ -197,6 +205,10 @@ class DraftManager {
     const save_promise = (async (): Promise<void> => {
       if (previous_save) {
         await previous_save.catch(() => undefined);
+
+        if (context.save_seq !== save_seq) {
+          return;
+        }
       }
 
       if (context.is_deleted) {

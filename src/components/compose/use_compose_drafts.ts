@@ -39,6 +39,27 @@ import {
 } from "@/components/compose/compose_shared";
 import { attachments_to_draft_data } from "@/components/compose/compose_draft_helpers";
 
+const AUTOSAVE_DELAY_MS = 1000;
+const LOW_NETWORK_AUTOSAVE_DELAY_MS = 5000;
+const HEAVY_DRAFT_AUTOSAVE_DELAY_MS = 20_000;
+const HEAVY_DRAFT_ATTACHMENT_BYTES = 2 * 1024 * 1024;
+
+export function pick_autosave_delay(
+  attachments: Attachment[],
+  low_network_mode: boolean,
+): number {
+  const attachment_bytes = attachments.reduce(
+    (total, att) => total + att.data.byteLength,
+    0,
+  );
+
+  if (attachment_bytes >= HEAVY_DRAFT_ATTACHMENT_BYTES) {
+    return HEAVY_DRAFT_AUTOSAVE_DELAY_MS;
+  }
+
+  return low_network_mode ? LOW_NETWORK_AUTOSAVE_DELAY_MS : AUTOSAVE_DELAY_MS;
+}
+
 export interface UseComposeDraftsOptions {
   recipients: RecipientsState;
   subject: string;
@@ -140,7 +161,10 @@ export function use_compose_drafts({
     }
 
     const context_id = draft_context_id_ref.current;
-    const autosave_delay = preferences.low_network_mode ? 5000 : 1000;
+    const autosave_delay = pick_autosave_delay(
+      attachments,
+      preferences.low_network_mode,
+    );
 
     save_timer_ref.current = setTimeout(async () => {
       save_timer_ref.current = null;
