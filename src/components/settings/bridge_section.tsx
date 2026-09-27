@@ -987,7 +987,8 @@ export function BridgeSection() {
                   <Button
                     className="flex-shrink-0"
                     disabled={revoking_id === device.id || revoking_all}
-                    variant="destructive"
+                    style={{ color: "var(--color-danger)" }}
+                    variant="secondary"
                     onClick={() => set_confirm_revoke_id(device.id)}
                   >
                     {t("settings.trusted_devices_revoke")}

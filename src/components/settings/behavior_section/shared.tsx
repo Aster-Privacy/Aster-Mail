@@ -117,9 +117,7 @@ export function SelectSetting({
       control={
         <Select disabled={disabled} value={value} onValueChange={on_change}>
           <SelectTrigger aria-label={title} className="w-full">
-            <SelectValue>
-              {disabled && disabled_note ? disabled_note : undefined}
-            </SelectValue>
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {options.map((opt) => (
