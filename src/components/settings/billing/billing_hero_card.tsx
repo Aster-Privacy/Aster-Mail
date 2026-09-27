@@ -222,7 +222,7 @@ export function BillingHeroCard({
 
   return (
     <Island padding="none">
-      <div className="mx-2 mt-2 flex h-[88px] items-center justify-between gap-4 rounded-[var(--aster-radius-field)] bg-[var(--aster-field-bg)] px-5">
+      <div className="mx-2 mt-2 flex h-[88px] items-center justify-between gap-4 rounded-[var(--aster-radius-field)] bg-[color-mix(in_srgb,var(--text-primary)_6%,transparent)] px-5">
         <img
           alt={t("common.aster_mail")}
           className="h-8 w-auto select-none"
