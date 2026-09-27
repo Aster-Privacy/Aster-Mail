@@ -7305,6 +7305,8 @@ export const it = {
     crypto_paid_until: "Pagato fino al {{date}} (crypto)",
     crypto_no_renew_notice:
       "Gli acquisti crypto non si rinnovano automaticamente.",
+    special_offer_crypto_one_payment:
+      "Lo sconto del {{percent}}% vale solo per questo pagamento. I pagamenti successivi in criptovaluta sono a prezzo pieno. Per averlo per un anno intero, scegli 12 mesi.",
     crypto_renew_link: "Rinnova con crypto",
     crypto_success_toast: "Pagamento crypto ricevuto. Il tuo piano è attivo.",
     crypto_cancelled_toast: "Pagamento crypto annullato.",

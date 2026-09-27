@@ -7290,6 +7290,8 @@ export const pt = {
     crypto_native_confirmations_progress: "Confirmações da rede",
     crypto_paid_until: "Pago até {{date}} (cripto)",
     crypto_no_renew_notice: "Pagamentos cripto não renovam automaticamente.",
+    special_offer_crypto_one_payment:
+      "O desconto de {{percent}}% vale apenas para este pagamento. Os próximos pagamentos em cripto são cobrados pelo preço normal. Para ter o desconto por um ano inteiro, escolha 12 meses.",
     crypto_renew_link: "Renovar agora",
     crypto_success_toast:
       "Pagamento cripto confirmado. Sua assinatura está ativa.",

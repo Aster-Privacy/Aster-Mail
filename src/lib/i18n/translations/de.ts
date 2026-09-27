@@ -7072,6 +7072,8 @@ export const de = {
     crypto_summary_length: "Laufzeit",
     crypto_modal_title: "Mit Krypto bezahlen",
     crypto_no_renew_notice: "Krypto-Käufe verlängern sich nicht automatisch.",
+    special_offer_crypto_one_payment:
+      "Der Rabatt von {{percent}} % gilt nur für diese Zahlung. Spätere Krypto-Zahlungen erfolgen zum regulären Preis. Wählen Sie 12 Monate, um den Rabatt ein ganzes Jahr lang zu erhalten.",
     crypto_paid_until: "Bezahlt bis {{date}} (Krypto)",
     card_declined_title: "Ihre letzte Kartenzahlung war nicht erfolgreich",
     card_declined_insufficient_funds:

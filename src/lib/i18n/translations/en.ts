@@ -3655,6 +3655,8 @@ export const en: Translations = {
     crypto_native_confirmations_progress: "Network confirmations",
     crypto_paid_until: "Paid until {{date}} (crypto)",
     crypto_no_renew_notice: "Crypto purchases do not auto-renew.",
+    special_offer_crypto_one_payment:
+      "The {{percent}}% discount covers this payment only, and later crypto payments are at the regular price. To get the discount for a full year, choose 12 months.",
     crypto_renew_link: "Renew with crypto",
     crypto_success_toast: "Crypto payment received. Your plan is active.",
     crypto_cancelled_toast: "Crypto payment cancelled.",

@@ -7096,6 +7096,8 @@ export const ko = {
     crypto_native_confirmations_progress: "네트워크 승인 수",
     crypto_paid_until: "{{date}}까지 결제됨 (암호화폐)",
     crypto_no_renew_notice: "암호화폐 구매는 자동 갱신되지 않습니다.",
+    special_offer_crypto_one_payment:
+      "{{percent}}% 할인은 이번 결제에만 적용되며, 이후 암호화폐 결제는 정상가로 청구됩니다. 1년 내내 할인을 받으려면 12개월을 선택하세요.",
     crypto_renew_link: "암호화폐로 갱신",
     crypto_success_toast: "암호화폐 결제 완료. 플랜이 활성화되었습니다.",
     crypto_cancelled_toast: "암호화폐 결제가 취소되었습니다.",

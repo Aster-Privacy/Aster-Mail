@@ -3704,6 +3704,7 @@ export interface SettingsTranslations {
   crypto_native_confirmations_progress: string;
   crypto_paid_until: string;
   crypto_no_renew_notice: string;
+  special_offer_crypto_one_payment: string;
   crypto_renew_link: string;
   crypto_success_toast: string;
   crypto_cancelled_toast: string;

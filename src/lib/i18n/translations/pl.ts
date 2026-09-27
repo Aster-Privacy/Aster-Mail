@@ -7399,6 +7399,8 @@ export const pl = {
     crypto_paid_until: "Opłacono do {{date}} (kryptowaluta)",
     crypto_no_renew_notice:
       "Zakupy kryptowalutą nie odnawiają się automatycznie.",
+    special_offer_crypto_one_payment:
+      "Rabat {{percent}}% obejmuje tylko tę płatność. Kolejne płatności kryptowalutą są w normalnej cenie. Aby mieć rabat przez cały rok, wybierz 12 miesięcy.",
     crypto_renew_link: "Odnów kryptowalutą",
     crypto_success_toast: "Płatność kryptowalutą otrzymana. Plan jest aktywny.",
     crypto_cancelled_toast: "Płatność kryptowalutą anulowana.",

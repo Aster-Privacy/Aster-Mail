@@ -7221,6 +7221,8 @@ export const ru = {
     crypto_summary_length: "Срок",
     crypto_modal_title: "Оплата криптовалютой",
     crypto_no_renew_notice: "Крипто-покупки не продлеваются автоматически.",
+    special_offer_crypto_one_payment:
+      "Скидка {{percent}}% действует только для этого платежа. Последующие оплаты криптовалютой проходят по обычной цене. Чтобы получить скидку на целый год, выберите 12 месяцев.",
     crypto_paid_until: "Оплачено до {{date}} (крипто)",
     card_declined_title: "Последний платёж картой не прошёл",
     card_declined_insufficient_funds:

@@ -539,6 +539,18 @@ export function crypto_term_modal({
               <p className="mt-2 text-xs leading-relaxed text-txt-muted">
                 {t("settings.crypto_rate_notice")}
               </p>
+              {special_offer &&
+                discount_percent_off &&
+                selected_term < 12 &&
+                is_discounted(selected_term) && (
+                  <div className="mt-3">
+                    <Notice role="note">
+                      {t("settings.special_offer_crypto_one_payment", {
+                        percent: String(discount_percent_off),
+                      })}
+                    </Notice>
+                  </div>
+                )}
               <div className="mt-3">
                 <Notice role="note">
                   {t("settings.crypto_exchange_warning")}

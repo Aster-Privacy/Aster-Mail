@@ -7209,6 +7209,8 @@ export const tr = {
     crypto_native_confirmations_progress: "Ağ onayları",
     crypto_paid_until: "{{date}} tarihine kadar ödendi (kripto)",
     crypto_no_renew_notice: "Kripto ödemeleri otomatik olarak yenilenmez.",
+    special_offer_crypto_one_payment:
+      "%{{percent}} indirim yalnızca bu ödeme için geçerlidir. Sonraki kripto ödemeleri normal fiyattan alınır. İndirimi bir yıl boyunca almak için 12 ay seçin.",
     crypto_renew_link: "Kripto ile yenile",
     crypto_success_toast: "Kripto ödeme alındı. Planınız aktif.",
     crypto_cancelled_toast: "Kripto ödeme iptal edildi.",

@@ -7152,6 +7152,8 @@ export const ar = {
     crypto_native_confirmations_progress: "تأكيدات الشبكة",
     crypto_paid_until: "مدفوع حتى {{date}} (عملة مشفرة)",
     crypto_no_renew_notice: "مشتريات العملة المشفرة لا تُجدَّد تلقائيًا.",
+    special_offer_crypto_one_payment:
+      "ينطبق خصم {{percent}}% على هذه الدفعة فقط، وتُحتسب دفعات العملات المشفرة اللاحقة بالسعر العادي. للحصول على الخصم لمدة عام كامل، اختر 12 شهرًا.",
     crypto_renew_link: "التجديد بالعملة المشفرة",
     crypto_success_toast: "تم استلام دفع العملة المشفرة. خطتك نشطة.",
     crypto_cancelled_toast: "تم إلغاء دفع العملة المشفرة.",

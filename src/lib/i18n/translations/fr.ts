@@ -7195,6 +7195,8 @@ export const fr = {
     crypto_summary_length: "Durée",
     crypto_modal_title: "Paiement en cryptomonnaie",
     crypto_no_renew_notice: "Ce forfait ne se renouvelle pas automatiquement.",
+    special_offer_crypto_one_payment:
+      "La réduction de {{percent}} % s'applique uniquement à ce paiement. Les paiements en cryptomonnaie suivants sont au prix normal. Pour en profiter pendant un an, choisissez 12 mois.",
     crypto_paid_until: "Payé jusqu'au {{date}} (crypto)",
     card_declined_title: "Votre dernier paiement par carte n'a pas abouti",
     card_declined_insufficient_funds:

@@ -6889,6 +6889,8 @@ export const zh_CN = {
     crypto_paid_until: "已付费至 {{date}}（加密货币）",
     crypto_no_renew_notice:
       "加密货币订阅不会自动续费。您可以在到期前手动续费。",
+    special_offer_crypto_one_payment:
+      "{{percent}}% 优惠仅适用于本次付款，之后的加密货币付款按原价收取。如需全年享受优惠，请选择 12 个月。",
     crypto_success_toast: "加密货币支付已确认！",
     crypto_cancelled_toast: "支付已取消。",
     invoice_status_disputed: "有争议",

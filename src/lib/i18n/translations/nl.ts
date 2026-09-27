@@ -7106,6 +7106,8 @@ export const nl = {
     crypto_summary_length: "Duur",
     crypto_modal_title: "Betalen met cryptovaluta",
     crypto_no_renew_notice: "Dit abonnement wordt niet automatisch verlengd",
+    special_offer_crypto_one_payment:
+      "De korting van {{percent}}% geldt alleen voor deze betaling. Latere cryptobetalingen zijn tegen de normale prijs. Kies 12 maanden om de korting een heel jaar te krijgen.",
     crypto_paid_until: "Betaald tot {{date}} (crypto)",
     card_declined_title: "Je laatste kaartbetaling is niet gelukt",
     card_declined_insufficient_funds:

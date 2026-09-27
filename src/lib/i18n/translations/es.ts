@@ -7126,6 +7126,8 @@ export const es = {
     crypto_summary_length: "Duración",
     crypto_modal_title: "Pago con criptomoneda",
     crypto_no_renew_notice: "Este plan no se renueva automáticamente.",
+    special_offer_crypto_one_payment:
+      "El descuento del {{percent}} % solo se aplica a este pago. Los pagos posteriores con criptomonedas tienen el precio normal. Para obtenerlo durante un año completo, elige 12 meses.",
     crypto_paid_until: "Pagado hasta el {{date}} (cripto)",
     card_declined_title: "Tu último pago con tarjeta no se completó",
     card_declined_insufficient_funds:
