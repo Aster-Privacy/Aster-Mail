@@ -1055,48 +1055,52 @@ export const ThreadMessagesList = forwardRef<
     );
   };
 
-  const rows: React.ReactNode[] = [];
+  const rows: { key: string; node: React.ReactNode }[] = [];
 
   display_messages.forEach((msg, idx) => {
     if (hidden_ids?.has(msg.id)) {
       if (idx === 1) {
-        rows.push(
-          <button
-            key="hidden_group"
-            aria-expanded={false}
-            aria-label={t("mail.more_messages_count", { count: hidden_count })}
-            className="group/hidden flex w-full cursor-pointer select-none items-center gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--aster-island-hover)] focus:outline-none focus-visible:bg-[var(--aster-island-hover)]"
-            type="button"
-            onClick={() => set_hidden_group_revealed(true)}
-          >
-            <span className="flex flex-shrink-0 -space-x-2">
-              {hidden_senders.map((sender) => (
-                <ProfileAvatar
-                  key={sender.email}
-                  use_domain_logo
-                  className="rounded-full ring-2 ring-[var(--aster-island-fill)]"
-                  email={sender.email}
-                  name={sender.name}
-                  size="sm"
-                />
-              ))}
-            </span>
-            <span className="min-w-0 flex-1 truncate text-sm font-medium text-txt-secondary transition-colors group-hover/hidden:text-txt-primary">
-              {t("mail.more_messages_count", { count: hidden_count })}
-            </span>
-            <ChevronDownIcon className="h-4 w-4 flex-shrink-0 text-txt-muted transition-colors group-hover/hidden:text-txt-primary" />
-          </button>,
-        );
+        rows.push({
+          key: "hidden_group",
+          node: (
+            <button
+              aria-expanded={false}
+              aria-label={t("mail.more_messages_count", {
+                count: hidden_count,
+              })}
+              className="group/hidden flex w-full cursor-pointer select-none items-center gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--aster-island-hover)] focus:outline-none focus-visible:bg-[var(--aster-island-hover)]"
+              type="button"
+              onClick={() => set_hidden_group_revealed(true)}
+            >
+              <span className="flex flex-shrink-0 -space-x-2">
+                {hidden_senders.map((sender) => (
+                  <ProfileAvatar
+                    key={sender.email}
+                    use_domain_logo
+                    className="rounded-full ring-2 ring-[var(--aster-island-fill)]"
+                    email={sender.email}
+                    name={sender.name}
+                    size="sm"
+                  />
+                ))}
+              </span>
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-txt-secondary transition-colors group-hover/hidden:text-txt-primary">
+                {t("mail.more_messages_count", { count: hidden_count })}
+              </span>
+              <ChevronDownIcon className="h-4 w-4 flex-shrink-0 text-txt-muted transition-colors group-hover/hidden:text-txt-primary" />
+            </button>
+          ),
+        });
       }
 
       return;
     }
 
-    rows.push(<Fragment key={msg.id}>{render_message(msg, idx)}</Fragment>);
+    rows.push({ key: msg.id, node: render_message(msg, idx) });
   });
 
   if (footer) {
-    rows.push(<Fragment key="footer">{footer}</Fragment>);
+    rows.push({ key: "footer", node: footer });
   }
 
   return (
@@ -1112,9 +1116,9 @@ export const ThreadMessagesList = forwardRef<
         )}
       <Island className="overflow-hidden">
         {rows.map((row, idx) => (
-          <Fragment key={idx}>
+          <Fragment key={row.key}>
             {idx > 0 && <IslandDivider />}
-            {row}
+            {row.node}
           </Fragment>
         ))}
       </Island>
