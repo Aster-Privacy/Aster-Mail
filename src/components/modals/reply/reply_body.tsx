@@ -223,51 +223,48 @@ export function ReplyBody({
 
       {!is_minimized && original_body && include_quoted && (
         <div className="px-4 pb-2">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5">
             <button
-              className="flex items-center gap-1.5 text-xs transition-colors"
-              style={{ color: "var(--text-tertiary)" }}
+              aria-expanded={show_quoted}
+              aria-label={
+                show_quoted
+                  ? t("mail.hide_quoted_text")
+                  : t("mail.show_quoted_text")
+              }
+              className="inline-flex h-6 min-w-10 items-center justify-center rounded-full px-3 text-txt-secondary transition-colors hover:bg-[var(--aster-island-hover)] hover:text-txt-primary aria-expanded:bg-[var(--aster-island-hover)]"
+              style={{
+                backgroundColor: show_quoted
+                  ? undefined
+                  : "var(--aster-field-bg)",
+              }}
+              title={
+                show_quoted
+                  ? t("mail.hide_quoted_text")
+                  : t("mail.show_quoted_text")
+              }
               type="button"
               onClick={() => set_show_quoted(!show_quoted)}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.color = "var(--text-secondary)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.color = "var(--text-tertiary)")
-              }
             >
-              <svg
-                className={`w-3 h-3 transition-transform ${show_quoted ? "rotate-90" : ""}`}
-                fill="currentColor"
-                viewBox="0 0 20 20"
+              <span
+                aria-hidden="true"
+                className="flex items-center gap-[2.5px]"
               >
-                <path d="M6 6L14 10L6 14V6Z" />
-              </svg>
-              <span>
-                {show_quoted
-                  ? t("mail.hide_quoted_text")
-                  : t("mail.show_quoted_text")}
+                <span className="h-1 w-1 rounded-full bg-current" />
+                <span className="h-1 w-1 rounded-full bg-current" />
+                <span className="h-1 w-1 rounded-full bg-current" />
               </span>
             </button>
             <button
               aria-label={t("mail.remove_quoted_text")}
-              className="flex items-center gap-1 text-xs transition-colors"
-              style={{ color: "var(--text-tertiary)" }}
+              className="inline-flex h-6 w-6 items-center justify-center rounded-full text-txt-muted transition-colors hover:bg-[var(--aster-island-hover)] hover:text-txt-primary"
               title={t("mail.remove_quoted_text")}
               type="button"
               onClick={() => {
                 set_include_quoted(false);
                 set_show_quoted(false);
               }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.color = "var(--text-secondary)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.color = "var(--text-tertiary)")
-              }
             >
-              <CloseIcon className="w-3 h-3" />
-              <span>{t("mail.remove_quoted_text")}</span>
+              <CloseIcon className="h-3 w-3" />
             </button>
           </div>
           {show_quoted && (
@@ -301,9 +298,7 @@ export function ReplyBody({
           >
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
           </svg>
-          <span className="text-xs text-white flex-1">
-            {error_message}
-          </span>
+          <span className="text-xs text-white flex-1">{error_message}</span>
           <button
             className="text-white flex-shrink-0"
             onClick={() => set_error_message(null)}
@@ -328,9 +323,7 @@ export function ReplyBody({
           >
             <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
           </svg>
-          <span className="text-xs text-white flex-1">
-            {attachment_error}
-          </span>
+          <span className="text-xs text-white flex-1">{attachment_error}</span>
           <button
             className="text-white flex-shrink-0"
             type="button"

@@ -450,12 +450,10 @@ a:focus-visible {
   const quote_toggle_hover_bg = quote_toggle_dark
     ? "rgba(255, 255, 255, 0.14)"
     : "rgba(60, 64, 67, 0.12)";
-  const quote_toggle_css = `.aster-quote-toggle { display: inline-flex !important; align-items: center !important; gap: 4px !important; height: 28px !important; margin: 6px 0 !important; padding: 0 12px 0 8px !important; font-family: inherit !important; font-size: 12.5px !important; font-weight: 500 !important; line-height: 1 !important; letter-spacing: 0 !important; background: ${quote_toggle_bg} !important; border: 0 !important; border-radius: 16px !important; color: ${quote_toggle_ink} !important; cursor: pointer !important; vertical-align: middle !important; transition: background-color 0.16s ease !important; }
-.aster-quote-toggle:hover { background: ${quote_toggle_hover_bg} !important; }
+  const quote_toggle_css = `.aster-quote-toggle { display: inline-flex !important; align-items: center !important; justify-content: center !important; height: 24px !important; min-width: 40px !important; margin: 8px 0 !important; padding: 0 12px !important; font-size: 0 !important; line-height: 0 !important; background: ${quote_toggle_bg} !important; border: 0 !important; border-radius: 12px !important; color: ${quote_toggle_ink} !important; cursor: pointer !important; vertical-align: middle !important; transition: background-color 0.16s ease !important; }
+.aster-quote-toggle:hover, .aster-quote-toggle.aster-quote-expanded { background: ${quote_toggle_hover_bg} !important; }
 .aster-quote-toggle:focus-visible { outline: 2px solid ${link_ink} !important; outline-offset: 1px !important; }
-.aster-quote-toggle-icon { width: 16px !important; height: 16px !important; flex-shrink: 0 !important; transition: transform 0.18s ease !important; }
-.aster-quote-toggle.aster-quote-expanded .aster-quote-toggle-icon { transform: rotate(180deg) !important; }
-.aster-quote-toggle-label { white-space: nowrap !important; }
+.aster-quote-toggle-dots { display: block !important; width: 4px !important; height: 4px !important; border-radius: 50% !important; background: currentColor !important; box-shadow: -6.5px 0 0 currentColor, 6.5px 0 0 currentColor !important; }
 .aster-quoted-content { border-left-color: ${quote_rail_ink} !important; }`;
 
   const plain_dark_css = auto_dark_active

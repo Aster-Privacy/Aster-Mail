@@ -101,8 +101,6 @@ function reveal_hidden_quote_blocks(el: Element): void {
   });
 }
 
-const QUOTE_TOGGLE_ICON_NS = "http://www.w3.org/2000/svg";
-
 function fill_quote_toggle(
   doc: Document,
   toggle_btn: HTMLButtonElement,
@@ -115,32 +113,14 @@ function fill_quote_toggle(
 
   toggle_btn.textContent = "";
   toggle_btn.title = label;
+  toggle_btn.setAttribute("aria-label", label);
   toggle_btn.setAttribute("aria-expanded", expanded ? "true" : "false");
 
-  const icon = doc.createElementNS(QUOTE_TOGGLE_ICON_NS, "svg");
+  const dots = doc.createElement("span");
 
-  icon.setAttribute("viewBox", "0 0 20 20");
-  icon.setAttribute("fill", "currentColor");
-  icon.setAttribute("aria-hidden", "true");
-  icon.setAttribute("class", "aster-quote-toggle-icon");
-
-  const path = doc.createElementNS(QUOTE_TOGGLE_ICON_NS, "path");
-
-  path.setAttribute("fill-rule", "evenodd");
-  path.setAttribute("clip-rule", "evenodd");
-  path.setAttribute(
-    "d",
-    "M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z",
-  );
-  icon.appendChild(path);
-
-  const text = doc.createElement("span");
-
-  text.className = "aster-quote-toggle-label";
-  text.textContent = label;
-
-  toggle_btn.appendChild(icon);
-  toggle_btn.appendChild(text);
+  dots.className = "aster-quote-toggle-dots";
+  dots.setAttribute("aria-hidden", "true");
+  toggle_btn.appendChild(dots);
 }
 
 export function collapse_forwarded_content(

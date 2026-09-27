@@ -154,7 +154,7 @@ describe("ReplyBody quoted text controls", () => {
 
   const find_button = (label: string) =>
     Array.from(container.querySelectorAll("button")).find((b) =>
-      b.textContent?.includes(label),
+      (b.getAttribute("aria-label") ?? b.textContent ?? "").includes(label),
     );
 
   it("shows the remove control alongside the quote toggle when quoted text is included", () => {

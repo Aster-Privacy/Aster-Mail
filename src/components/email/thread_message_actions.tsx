@@ -323,8 +323,10 @@ export function ThreadMessageActions({
       <div className="flex items-center gap-2 px-4 pt-2 pb-4">
         {on_reply && (
           <PillButton
-            className={`flex-1 min-w-0 max-w-[200px] ${is_system_email(message) ? "opacity-50 pointer-events-none" : ""}`}
-            leading={<ArrowUturnLeftIcon className="w-4 h-4 rtl:-scale-x-100" />}
+            className={`flex-1 min-w-0 max-w-[200px] !rounded-full ${is_system_email(message) ? "opacity-50 pointer-events-none" : ""}`}
+            leading={
+              <ArrowUturnLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
+            }
             size="md"
             variant="filled"
             onClick={() => on_reply(message)}
@@ -334,8 +336,10 @@ export function ThreadMessageActions({
         )}
         {show_reply_all && (
           <PillButton
-            className={`flex-1 min-w-0 max-w-[200px] ${is_system_email(message) ? "opacity-50 pointer-events-none" : ""}`}
-            leading={<ArrowUturnLeftIcon className="w-4 h-4 rtl:-scale-x-100" />}
+            className={`flex-1 min-w-0 max-w-[200px] !rounded-full ${is_system_email(message) ? "opacity-50 pointer-events-none" : ""}`}
+            leading={
+              <ArrowUturnLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
+            }
             size="md"
             variant="tonal"
             onClick={() => on_reply_all(message)}
@@ -345,8 +349,10 @@ export function ThreadMessageActions({
         )}
         {on_forward && (
           <PillButton
-            className="flex-1 min-w-0 max-w-[200px]"
-            leading={<ArrowUturnRightIcon className="w-4 h-4 rtl:-scale-x-100" />}
+            className="flex-1 min-w-0 max-w-[200px] !rounded-full"
+            leading={
+              <ArrowUturnRightIcon className="w-4 h-4 rtl:-scale-x-100" />
+            }
             size="md"
             variant="tonal"
             onClick={() => on_forward(message)}
@@ -360,7 +366,7 @@ export function ThreadMessageActions({
               <PopoverTrigger asChild>
                 <button
                   aria-label={t("mail.react")}
-                  className="aster_pill aster_pill_tonal h-10 w-10 flex-shrink-0 !px-0"
+                  className="aster_pill aster_pill_tonal h-10 w-10 flex-shrink-0 !rounded-full !px-0"
                   title={t("mail.react")}
                   type="button"
                 >
@@ -379,7 +385,7 @@ export function ThreadMessageActions({
               <button
                 aria-disabled="true"
                 aria-label={restriction_message}
-                className="aster_pill aster_pill_tonal h-10 w-10 flex-shrink-0 !px-0 opacity-50 cursor-not-allowed"
+                className="aster_pill aster_pill_tonal h-10 w-10 flex-shrink-0 !rounded-full !px-0 opacity-50 cursor-not-allowed"
                 type="button"
                 onClick={() => show_toast(restriction_message, "error")}
               >

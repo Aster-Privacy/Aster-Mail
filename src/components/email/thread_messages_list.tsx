@@ -983,9 +983,7 @@ export const ThreadMessagesList = forwardRef<
         inline_mode={inline_mode}
         inline_reply_is_external={inline_reply_is_external}
         inline_reply_references={
-          inline_reply_msg?.id === msg.id
-            ? inline_reply_references
-            : undefined
+          inline_reply_msg?.id === msg.id ? inline_reply_references : undefined
         }
         inline_reply_thread_token={inline_reply_thread_token}
         is_expanded={expanded_ids.has(msg.id)}
@@ -1040,25 +1038,32 @@ export const ThreadMessagesList = forwardRef<
   };
 
   const rows: React.ReactNode[] = [];
+  let hidden_row_index = -1;
 
   display_messages.forEach((msg, idx) => {
     if (hidden_ids?.has(msg.id)) {
       if (idx === 1) {
+        hidden_row_index = rows.length;
         rows.push(
           <button
             key="hidden_group"
             aria-expanded={false}
-            className="group/hidden flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-start transition-colors hover:bg-[var(--aster-island-hover)] focus:outline-none focus-visible:bg-[var(--aster-island-hover)]"
+            aria-label={t("mail.more_messages_count", { count: hidden_count })}
+            className="group/hidden relative flex w-full cursor-pointer items-center px-4 py-2.5 focus:outline-none"
+            title={t("mail.more_messages_count", { count: hidden_count })}
             type="button"
             onClick={() => set_hidden_group_revealed(true)}
           >
-            <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[var(--bg-primary)] text-[14px] font-semibold tabular-nums text-txt-secondary">
-              {hidden_count}
+            <span
+              aria-hidden="true"
+              className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[var(--aster-island-divider)]"
+            />
+            <span className="relative inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--aster-field-bg)] px-3.5 text-txt-primary transition-colors group-hover/hidden:bg-[var(--aster-island-hover)] group-focus-visible/hidden:outline group-focus-visible/hidden:outline-2 group-focus-visible/hidden:outline-offset-2 group-focus-visible/hidden:outline-[var(--accent-color)]">
+              <span className="text-[14px] font-semibold tabular-nums leading-none">
+                {hidden_count}
+              </span>
+              <ChevronDownIcon className="h-4 w-4 text-txt-muted" />
             </span>
-            <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-txt-secondary group-hover/hidden:text-txt-primary">
-              {t("mail.more_messages_count", { count: hidden_count })}
-            </span>
-            <ChevronDownIcon className="h-4 w-4 flex-shrink-0 text-txt-muted" />
           </button>,
         );
       }
@@ -1087,7 +1092,9 @@ export const ThreadMessagesList = forwardRef<
       <Island className="overflow-hidden">
         {rows.map((row, idx) => (
           <Fragment key={idx}>
-            {idx > 0 && <IslandDivider />}
+            {idx > 0 &&
+              idx !== hidden_row_index &&
+              idx - 1 !== hidden_row_index && <IslandDivider />}
             {row}
           </Fragment>
         ))}
