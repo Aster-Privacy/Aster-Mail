@@ -4283,6 +4283,12 @@ export const es = {
       "Un equipo pequeño construye Aster con cuidado, y cada persona que le confía su correo nos mantiene en marcha. Mejora tu plan cuando necesites más almacenamiento, alias o dominios personalizados.",
     billing_addons_subtitle: "Más espacio, mismo plan",
     billing_support_subtitle: "Envía un mensaje al equipo",
+    billing_advantages_title_paid: "Qué incluye tu plan",
+    billing_advantages_title_free: "Qué obtienes con {{name}}",
+    billing_see_all_features: "Ver todas las funciones de {{name}}",
+    billing_compare_all_plans_subtitle: "Planes individuales y familiares, mensuales o anuales",
+    billing_usage_upgrade_hint: "Mejora para tener más espacio",
+    usage_in_use: "{{current}} en uso",
     billing_credits_subtitle: "Saldo y recargas",
     billing_academic_subtitle: "Ahorra con un correo académico",
     billing_history_empty:

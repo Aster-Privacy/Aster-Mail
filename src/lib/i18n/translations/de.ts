@@ -4245,6 +4245,12 @@ export const de = {
       "Ein kleines Team entwickelt Aster mit Sorgfalt, und jede Person, die uns ihre E-Mails anvertraut, hält uns am Laufen. Upgrade jederzeit, wenn du mehr Speicher, Aliasse oder eigene Domains brauchst.",
     billing_addons_subtitle: "Mehr Speicher, gleicher Tarif",
     billing_support_subtitle: "Schreib dem Team eine Nachricht",
+    billing_advantages_title_paid: "Was dein Tarif enthält",
+    billing_advantages_title_free: "Was du mit {{name}} bekommst",
+    billing_see_all_features: "Alle Funktionen von {{name}} ansehen",
+    billing_compare_all_plans_subtitle: "Einzel- und Familientarife, monatlich oder jährlich",
+    billing_usage_upgrade_hint: "Upgrade für mehr Platz",
+    usage_in_use: "{{current}} in Verwendung",
     billing_credits_subtitle: "Guthaben und Aufladungen",
     billing_academic_subtitle: "Mit einer Hochschul-E-Mail sparen",
     billing_history_empty:

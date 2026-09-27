@@ -123,3 +123,93 @@ export function BillingMeter({
     </div>
   );
 }
+
+interface BillingUsageMeterProps {
+  label: ReactNode;
+  current: number;
+  limit: number | null;
+  loaded: boolean;
+  on_upgrade?: () => void;
+  class_name?: string;
+}
+
+export function BillingUsageMeter({
+  label,
+  current,
+  limit,
+  loaded,
+  on_upgrade,
+  class_name = "",
+}: BillingUsageMeterProps) {
+  const { t } = use_i18n();
+  const unlimited = !loaded || limit === null || limit <= 0;
+  const percent = unlimited ? 0 : (current / (limit as number)) * 100;
+  const status = unlimited
+    ? "ok"
+    : billing_meter_status(percent, current >= (limit as number));
+  const styles = status_styles[status];
+  const StatusIcon = styles.icon;
+  const clamped = Math.max(0, Math.min(100, percent));
+  const value_text = unlimited
+    ? t("settings.usage_in_use", { current })
+    : t("settings.usage_of", { current, limit: limit as number });
+  const status_label = !loaded
+    ? null
+    : unlimited
+      ? t("settings.usage_unlimited")
+      : t(`settings.billing_storage_status_${status}`);
+  const show_upgrade = loaded && !unlimited && status !== "ok" && on_upgrade;
+
+  return (
+    <div className={`flex flex-col gap-2 ${class_name}`} data-status={status}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-2">
+          <span className="text-[13px] font-medium text-txt-secondary">
+            {label}
+          </span>
+          {status_label && (
+            <span
+              className="inline-flex flex-shrink-0 items-center gap-1 text-[12px] font-semibold"
+              style={{ color: styles.color }}
+            >
+              <StatusIcon aria-hidden="true" className="h-[15px] w-[15px]" />
+              {status_label}
+            </span>
+          )}
+        </div>
+        {show_upgrade ? (
+          <button
+            className="flex-shrink-0 text-[12.5px] font-medium hover:underline"
+            style={{ color: "var(--accent-color)" }}
+            type="button"
+            onClick={on_upgrade}
+          >
+            {t("settings.billing_usage_upgrade_hint")}
+          </button>
+        ) : null}
+      </div>
+      <div
+        aria-label={value_text}
+        aria-valuemax={100}
+        aria-valuemin={0}
+        aria-valuenow={Math.round(clamped)}
+        className="h-1.5 w-full overflow-hidden rounded-full"
+        role="progressbar"
+        style={{
+          backgroundColor:
+            "color-mix(in srgb, var(--text-primary) 10%, transparent)",
+        }}
+      >
+        <div
+          className="h-full rounded-full transition-[width] duration-300"
+          style={{
+            width: `${clamped}%`,
+            backgroundColor:
+              status === "full" ? "var(--color-danger)" : "var(--accent-color)",
+          }}
+        />
+      </div>
+      <p className="text-[12.5px] text-txt-muted">{value_text}</p>
+    </div>
+  );
+}

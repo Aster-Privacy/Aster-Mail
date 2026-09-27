@@ -18,12 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { ComponentType, ReactNode, SVGProps } from "react";
+import type { ComponentType, SVGProps } from "react";
 
 import {
   ArrowPathIcon,
   CalendarIcon,
   CreditCardIcon,
+  Squares2X2Icon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
 import {
@@ -38,6 +39,7 @@ import { Spinner } from "@/components/ui/spinner";
 import {
   format_date,
   format_price,
+  type PlanLimitsResponse,
   type SubscriptionResponse,
 } from "@/services/api/billing";
 import { use_i18n } from "@/lib/i18n/context";
@@ -46,10 +48,14 @@ import {
   is_crypto_provider,
   PLAN_TIERS,
 } from "@/components/settings/billing/billing_constants";
-import { BillingMeter } from "@/components/settings/billing/billing_meter";
+import {
+  BillingMeter,
+  BillingUsageMeter,
+} from "@/components/settings/billing/billing_meter";
 
 interface BillingHeroCardProps {
   subscription: SubscriptionResponse | null;
+  plan_limits: PlanLimitsResponse | null;
   storage_used_bytes: number;
   storage_limit_bytes: number;
   storage_percentage: number;
@@ -66,15 +72,32 @@ interface BillingHeroCardProps {
   on_renew_with_crypto: () => void;
   on_add_storage: () => void;
   on_cancel_plan: () => void;
-  children?: ReactNode;
 }
 
 function row_icon(Icon: ComponentType<SVGProps<SVGSVGElement>>) {
   return <Icon className="h-[22px] w-[22px]" />;
 }
 
+interface usage_entry {
+  current: number;
+  limit: number | null;
+  loaded: boolean;
+}
+
+function usage_of(
+  plan_limits: PlanLimitsResponse | null,
+  key: string,
+): usage_entry {
+  const entry = plan_limits?.limits[key];
+
+  if (!entry) return { current: 0, limit: null, loaded: false };
+
+  return { current: entry.current, limit: entry.limit, loaded: true };
+}
+
 export function BillingHeroCard({
   subscription,
+  plan_limits,
   storage_used_bytes,
   storage_limit_bytes,
   storage_percentage,
@@ -91,7 +114,6 @@ export function BillingHeroCard({
   on_renew_with_crypto,
   on_add_storage,
   on_cancel_plan,
-  children,
 }: BillingHeroCardProps) {
   const { t } = use_i18n();
   const is_paid_plan = !!subscription && subscription.plan.code !== "free";
@@ -101,6 +123,8 @@ export function BillingHeroCard({
   const period_start = subscription?.current_period_start ?? null;
   const paid_until = subscription?.paid_until || period_end;
   const tier = PLAN_TIERS.find((entry) => entry.id === subscription?.plan.code);
+  const aliases = usage_of(plan_limits, "max_email_aliases");
+  const domains = usage_of(plan_limits, "max_custom_domains");
 
   const interval_suffix =
     current_billing_interval === "biennial"
@@ -182,14 +206,11 @@ export function BillingHeroCard({
       <div className="flex flex-col gap-5 px-5 pb-5 pt-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-[12px] font-semibold uppercase tracking-wide text-txt-muted">
-              {t("settings.billing_plan_heading")}
-            </p>
-            <h4 className="mt-1 text-[21px] font-bold leading-7 tracking-tight text-txt-primary">
+            <h4 className="text-[22px] font-bold leading-7 tracking-tight text-txt-primary">
               {subscription?.plan.name || t("settings.free")}
             </h4>
             <p
-              className="mt-0.5 text-[13px] font-medium"
+              className="mt-1 text-[13px] font-medium"
               style={{ color: status_color }}
             >
               {status_text}
@@ -239,23 +260,39 @@ export function BillingHeroCard({
           </p>
         </div>
 
-        <BillingMeter
-          label={t("settings.storage")}
-          limit_bytes={storage_limit_bytes}
-          over_limit={is_over_limit}
-          percent={storage_percentage}
-          trailing={
-            <button
-              className="text-[12.5px] font-medium hover:underline"
-              style={{ color: "var(--accent-color)" }}
-              type="button"
-              onClick={on_add_storage}
-            >
-              {t("settings.add_storage")}
-            </button>
-          }
-          used_bytes={storage_used_bytes}
-        />
+        <div className="flex flex-col gap-4">
+          <BillingMeter
+            label={t("settings.storage")}
+            limit_bytes={storage_limit_bytes}
+            over_limit={is_over_limit}
+            percent={storage_percentage}
+            trailing={
+              <button
+                className="text-[12.5px] font-medium hover:underline"
+                style={{ color: "var(--accent-color)" }}
+                type="button"
+                onClick={on_add_storage}
+              >
+                {t("settings.add_storage")}
+              </button>
+            }
+            used_bytes={storage_used_bytes}
+          />
+          <BillingUsageMeter
+            current={aliases.current}
+            label={t("settings.usage_aliases")}
+            limit={aliases.limit}
+            loaded={aliases.loaded}
+            on_upgrade={on_toggle_plans}
+          />
+          <BillingUsageMeter
+            current={domains.current}
+            label={t("settings.usage_domains")}
+            limit={domains.limit}
+            loaded={domains.loaded}
+            on_upgrade={on_toggle_plans}
+          />
+        </div>
 
         {is_paid_plan && !is_crypto && cancels && period_end && (
           <div
@@ -288,32 +325,40 @@ export function BillingHeroCard({
           </div>
         )}
 
-        <div className="flex flex-col items-center gap-2.5">
-          <Button
-            aria-expanded={plans_open}
-            className="w-full sm:w-auto sm:min-w-[220px]"
-            size="lg"
-            type="button"
-            variant={is_paid_plan ? "secondary" : "depth"}
-            onClick={on_toggle_plans}
-          >
-            {plans_open
-              ? t("settings.billing_hide_plans")
-              : is_paid_plan
-                ? t("settings.change_plan")
-                : t("common.upgrade")}
-          </Button>
-          <p className="text-center text-[12px] text-txt-muted">
-            {is_paid_plan
-              ? t("settings.cancel_anytime")
-              : t("settings.billing_upgrade_note")}
-          </p>
-        </div>
+        {!is_paid_plan && (
+          <div className="flex flex-col items-center gap-2.5">
+            <Button
+              aria-expanded={plans_open}
+              className="w-full sm:w-auto sm:min-w-[220px]"
+              size="lg"
+              type="button"
+              variant="depth"
+              onClick={on_toggle_plans}
+            >
+              {plans_open
+                ? t("settings.billing_hide_plans")
+                : t("settings.upgrade_view_plans")}
+            </Button>
+            <p className="text-center text-[12px] text-txt-muted">
+              {t("settings.billing_upgrade_note")}
+            </p>
+          </div>
+        )}
       </div>
 
       <IslandDivider />
 
       <div>
+        {is_paid_plan && (
+          <IslandRow
+            aria-expanded={plans_open}
+            description={t("settings.change_plan_description")}
+            icon={row_icon(Squares2X2Icon)}
+            label={t("settings.change_plan")}
+            on_press={on_toggle_plans}
+          />
+        )}
+
         <IslandRow
           description={
             is_crypto
@@ -379,13 +424,6 @@ export function BillingHeroCard({
           />
         )}
       </div>
-
-      {children && (
-        <>
-          <IslandDivider inset={52} />
-          <div>{children}</div>
-        </>
-      )}
     </Island>
   );
 }

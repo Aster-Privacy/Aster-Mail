@@ -4414,6 +4414,12 @@ export const ar = {
       "فريق صغير يبني Aster بعناية، وكل شخص يأتمنه على بريده يبقينا مستمرين. قم بالترقية متى احتجت إلى مساحة أكبر أو أسماء مستعارة أو نطاقات مخصصة.",
     billing_addons_subtitle: "مساحة أكبر، الخطة نفسها",
     billing_support_subtitle: "أرسل رسالة إلى الفريق",
+    billing_advantages_title_paid: "ما تتضمنه خطتك",
+    billing_advantages_title_free: "ما تحصل عليه مع {{name}}",
+    billing_see_all_features: "عرض كل ميزات {{name}}",
+    billing_compare_all_plans_subtitle: "خطط فردية وعائلية، شهرية أو سنوية",
+    billing_usage_upgrade_hint: "قم بالترقية للحصول على مساحة أكبر",
+    usage_in_use: "{{current}} قيد الاستخدام",
     billing_credits_subtitle: "الرصيد وعمليات الشحن",
     billing_academic_subtitle: "وفّر باستخدام بريد جامعي",
     billing_history_empty:

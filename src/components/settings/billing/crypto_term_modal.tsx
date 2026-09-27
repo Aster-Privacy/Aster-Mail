@@ -510,7 +510,7 @@ export function crypto_term_modal({
                         term_button_refs.current[index] = element;
                       }}
                       aria-checked={is_selected}
-                      className={`w-full flex items-center justify-between gap-3 rounded-[12px] border px-3.5 py-3 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 disabled:cursor-not-allowed ${
+                      className={`w-full flex items-center justify-between gap-3 rounded-[var(--aster-radius-control)] border px-3.5 py-3 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 disabled:cursor-not-allowed ${
                         is_selected
                           ? ""
                           : "border-edge-secondary hover:bg-surf-hover"
@@ -675,7 +675,7 @@ export function crypto_term_modal({
                       <button
                         key={key}
                         aria-busy={is_creating}
-                        className="w-full flex items-center justify-between gap-3 rounded-[12px] border px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
+                        className="w-full flex items-center justify-between gap-3 rounded-[var(--aster-radius-control)] border px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
                         disabled={busy}
                         style={{
                           borderColor: is_highlighted
@@ -727,7 +727,7 @@ export function crypto_term_modal({
                   {card_checkout_available && (
                     <button
                       aria-busy={is_loading}
-                      className="w-full flex items-center justify-between gap-3 rounded-[12px] border border-edge-secondary px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
+                      className="w-full flex items-center justify-between gap-3 rounded-[var(--aster-radius-control)] border border-edge-secondary px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
                       disabled={busy}
                       type="button"
                       onClick={handle_stripe}

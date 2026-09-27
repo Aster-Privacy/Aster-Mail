@@ -4316,6 +4316,12 @@ export const fr = {
       "Une petite équipe développe Aster avec soin, et chaque personne qui lui confie ses e-mails nous fait avancer. Passez à un forfait supérieur dès que vous avez besoin de plus de stockage, d'alias ou de domaines personnalisés.",
     billing_addons_subtitle: "Plus d'espace, même forfait",
     billing_support_subtitle: "Envoyer un message à l'équipe",
+    billing_advantages_title_paid: "Ce que comprend votre forfait",
+    billing_advantages_title_free: "Ce que vous obtenez avec {{name}}",
+    billing_see_all_features: "Voir toutes les fonctionnalités de {{name}}",
+    billing_compare_all_plans_subtitle: "Forfaits individuels et familiaux, mensuels ou annuels",
+    billing_usage_upgrade_hint: "Passez à un forfait supérieur pour plus de place",
+    usage_in_use: "{{current}} utilisés",
     billing_credits_subtitle: "Solde et recharges",
     billing_academic_subtitle: "Économisez avec une adresse universitaire",
     billing_history_empty:

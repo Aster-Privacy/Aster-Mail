@@ -4226,6 +4226,12 @@ export const tr = {
       "Küçük bir ekip Aster'ı özenle geliştiriyor ve postasını ona emanet eden herkes bizi ayakta tutuyor. Daha fazla depolama, takma ad veya özel alan adına ihtiyaç duyduğunuzda planınızı yükseltin.",
     billing_addons_subtitle: "Daha fazla alan, aynı plan",
     billing_support_subtitle: "Ekibe mesaj gönderin",
+    billing_advantages_title_paid: "Planınıza dahil olanlar",
+    billing_advantages_title_free: "{{name}} ile neler elde edersiniz",
+    billing_see_all_features: "Tüm {{name}} özelliklerini gör",
+    billing_compare_all_plans_subtitle: "Bireysel ve aile planları, aylık veya yıllık",
+    billing_usage_upgrade_hint: "Daha fazla alan için yükseltin",
+    usage_in_use: "{{current}} kullanımda",
     billing_credits_subtitle: "Bakiye ve yüklemeler",
     billing_academic_subtitle: "Okul e-postasıyla tasarruf edin",
     billing_history_empty:

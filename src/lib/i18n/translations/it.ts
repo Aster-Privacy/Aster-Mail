@@ -5054,6 +5054,12 @@ export const it = {
       "Un piccolo team costruisce Aster con cura, e ogni persona che gli affida la propria posta ci fa andare avanti. Passa a un piano superiore quando ti servono più spazio, alias o domini personalizzati.",
     billing_addons_subtitle: "Più spazio, stesso piano",
     billing_support_subtitle: "Invia un messaggio al team",
+    billing_advantages_title_paid: "Cosa include il tuo piano",
+    billing_advantages_title_free: "Cosa ottieni con {{name}}",
+    billing_see_all_features: "Vedi tutte le funzioni di {{name}}",
+    billing_compare_all_plans_subtitle: "Piani individuali e famiglia, mensili o annuali",
+    billing_usage_upgrade_hint: "Passa a un piano superiore per più spazio",
+    usage_in_use: "{{current}} in uso",
     billing_credits_subtitle: "Saldo e ricariche",
     billing_academic_subtitle: "Risparmia con un'email universitaria",
     billing_history_empty:

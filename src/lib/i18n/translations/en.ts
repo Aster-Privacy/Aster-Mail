@@ -3334,6 +3334,12 @@ export const en: Translations = {
     billing_history: "Billing History",
     billing_addons_subtitle: "Add space, keep your plan",
     billing_support_subtitle: "Send the team a message",
+    billing_advantages_title_paid: "What your plan includes",
+    billing_advantages_title_free: "What you get with {{name}}",
+    billing_see_all_features: "See all {{name}} features",
+    billing_compare_all_plans_subtitle: "Individual and family plans, monthly or yearly",
+    billing_usage_upgrade_hint: "Upgrade for more room",
+    usage_in_use: "{{current}} in use",
     billing_credits_subtitle: "Balance and top-ups",
     billing_academic_subtitle: "Save with a school email",
     billing_history_empty:

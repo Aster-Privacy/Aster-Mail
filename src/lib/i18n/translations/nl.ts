@@ -4214,6 +4214,12 @@ export const nl = {
       "Een klein team bouwt Aster met zorg, en iedereen die ons zijn e-mail toevertrouwt houdt ons op de been. Upgrade wanneer je meer opslag, aliassen of eigen domeinen nodig hebt.",
     billing_addons_subtitle: "Meer ruimte, zelfde abonnement",
     billing_support_subtitle: "Stuur het team een bericht",
+    billing_advantages_title_paid: "Wat je abonnement bevat",
+    billing_advantages_title_free: "Wat je krijgt met {{name}}",
+    billing_see_all_features: "Alle functies van {{name}} bekijken",
+    billing_compare_all_plans_subtitle: "Individuele en gezinsabonnementen, maandelijks of jaarlijks",
+    billing_usage_upgrade_hint: "Upgrade voor meer ruimte",
+    usage_in_use: "{{current}} in gebruik",
     billing_credits_subtitle: "Saldo en opwaarderingen",
     billing_academic_subtitle: "Bespaar met een school-e-mailadres",
     billing_history_empty:

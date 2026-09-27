@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ReactNode } from "react";
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { Fragment, useState } from "react";
@@ -109,6 +110,22 @@ interface AvailablePlansSectionProps {
   ) => void;
   on_tauri_checkout_opened?: () => void;
   current_billing_interval: "month" | "year" | "biennial";
+  embedded?: boolean;
+}
+
+function EmbeddedPlansWrapper({
+  plan_type_switch,
+  children,
+}: {
+  plan_type_switch?: ReactNode;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-3" id="available-plans">
+      <div className="flex justify-center">{plan_type_switch}</div>
+      {children}
+    </div>
+  );
 }
 
 export function AvailablePlansSection({
@@ -125,6 +142,7 @@ export function AvailablePlansSection({
   on_family_plan_change,
   on_tauri_checkout_opened,
   current_billing_interval,
+  embedded = false,
 }: AvailablePlansSectionProps) {
   const { t } = use_i18n();
 
@@ -344,34 +362,41 @@ export function AvailablePlansSection({
     );
   };
 
-  return (
-    <IslandSection
-      bare
-      icon={<CrownIcon className="flex-shrink-0" />}
-      id="available-plans"
-      title={t("settings.available_plans")}
-      trailing={
-        <div
-          aria-label={t("settings.available_plans")}
-          className="aster_segmented"
-          role="group"
-        >
-          {(["individual", "family"] as const).map((type) => (
-            <button
-              key={type}
-              aria-pressed={plan_type === type}
-              className="aster_segmented_option"
-              type="button"
-              onClick={() => set_plan_type(type)}
-            >
-              {type === "individual"
-                ? t("settings.plan_type_individual")
-                : t("settings.plan_type_family")}
-            </button>
-          ))}
-        </div>
-      }
+  const plan_type_switch = (
+    <div
+      aria-label={t("settings.available_plans")}
+      className="aster_segmented"
+      role="group"
     >
+      {(["individual", "family"] as const).map((type) => (
+        <button
+          key={type}
+          aria-pressed={plan_type === type}
+          className="aster_segmented_option"
+          type="button"
+          onClick={() => set_plan_type(type)}
+        >
+          {type === "individual"
+            ? t("settings.plan_type_individual")
+            : t("settings.plan_type_family")}
+        </button>
+      ))}
+    </div>
+  );
+
+  const Wrapper = embedded ? EmbeddedPlansWrapper : IslandSection;
+  const wrapper_props = embedded
+    ? { plan_type_switch }
+    : {
+        bare: true,
+        icon: <CrownIcon className="flex-shrink-0" />,
+        id: "available-plans",
+        title: t("settings.available_plans"),
+        trailing: plan_type_switch,
+      };
+
+  return (
+    <Wrapper {...wrapper_props}>
       <div className="flex flex-col gap-3">
         {recommendation.is_paid && current_plan_name && (
           <Island padding="md">
@@ -617,6 +642,6 @@ export function AvailablePlansSection({
           yearly_price_cents={crypto_family_tier.yearly_cents}
         />
       )}
-    </IslandSection>
+    </Wrapper>
   );
 }
