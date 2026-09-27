@@ -40,7 +40,6 @@ import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
-import { Input } from "@/components/ui/input";
 import {
   get_spam_settings,
   save_spam_settings,
@@ -737,8 +736,9 @@ export function BehaviorSection({
                   </button>
                 ))}
                 <div className="flex items-center gap-1">
-                  <Input
-                    className={`w-14 text-center font-medium ${
+                  <input
+                    aria-label={t("common.custom")}
+                    className={`h-[30px] w-[4.5rem] rounded-[var(--aster-radius-control)] px-2 text-center text-[13px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] placeholder:text-[var(--text-muted)] ${
                       !undo_custom_matches_preset
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
