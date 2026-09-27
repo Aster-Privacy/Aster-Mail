@@ -336,11 +336,11 @@ export function BillingSection({
                                     className="flex w-full items-center justify-center rounded-xl py-2.5 mt-3 text-[14px] font-semibold disabled:opacity-50"
                                     disabled={is_action_loading || is_current}
                                     style={{
-                                      background: "var(--mobile-bg-card)",
+                                      background:
+                                        "color-mix(in srgb, var(--text-primary) 6%, transparent)",
                                       color: is_current
                                         ? "var(--text-muted)"
                                         : "var(--text-primary)",
-                                      border: "1px solid var(--border-primary)",
                                     }}
                                     type="button"
                                     onClick={() => {

@@ -178,7 +178,10 @@ export function TrustedDevicesSection({
                   <button
                     className="flex shrink-0 items-center gap-1 rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium text-[var(--color-danger,#ef4444)]"
                     disabled={revoking_id === device.id}
-                    style={{ border: "1px solid var(--border-primary)" }}
+                    style={{
+                      background:
+                        "color-mix(in srgb, var(--text-primary) 6%, transparent)",
+                    }}
                     type="button"
                     onClick={() => set_pending_revoke(device)}
                   >

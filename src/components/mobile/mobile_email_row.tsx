@@ -376,7 +376,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
           )}
 
           {thread_count > 1 && (
-            <span className="shrink-0 rounded border border-[var(--border-primary)] px-1 text-[11px] tabular-nums text-[var(--text-muted)]">
+            <span className="shrink-0 rounded-[5px] bg-[color-mix(in_srgb,currentColor_12%,transparent)] px-1.5 text-[11px] tabular-nums text-[var(--text-muted)]">
               {thread_count}
             </span>
           )}

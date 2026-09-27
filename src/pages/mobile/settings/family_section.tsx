@@ -365,8 +365,8 @@ export function FamilySection({
           <button
             className="rounded-xl px-4 py-2.5 text-[14px] font-semibold text-[var(--text-primary)]"
             style={{
-              background: "var(--mobile-bg-card)",
-              border: "1px solid var(--border-primary)",
+              background:
+                "color-mix(in srgb, var(--text-primary) 6%, transparent)",
             }}
             type="button"
             onClick={() =>

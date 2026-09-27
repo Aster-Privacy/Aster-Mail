@@ -1073,7 +1073,10 @@ export function SecuritySection({
             <motion.button
               className="flex w-full items-center justify-center rounded-xl py-3 text-[15px] font-medium text-[var(--color-danger,#ef4444)] disabled:opacity-50"
               disabled={logout_others_loading}
-              style={{ border: "1px solid var(--border-primary)" }}
+              style={{
+                background:
+                  "color-mix(in srgb, var(--text-primary) 6%, transparent)",
+              }}
               type="button"
               onClick={handle_logout_others}
             >
