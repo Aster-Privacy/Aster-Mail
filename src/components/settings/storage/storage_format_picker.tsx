@@ -20,11 +20,10 @@
 //
 import { useState } from "react";
 import { CircleStackIcon } from "@heroicons/react/24/outline";
-import { Button, Island, IslandSection } from "@aster/ui";
+import { Button, Island, IslandSection, SelectionMark } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { InfoPopover } from "@/components/ui/info_popover";
-import { SelectedBadge } from "@/components/settings/appearance/selected_badge";
 import {
   Modal,
   ModalHeader,
@@ -99,8 +98,8 @@ export function StorageFormatPicker({
             key={option.format}
             interactive
             className="min-w-0 overflow-hidden"
-            selected={storage_format === option.format}
           >
+            <SelectionMark selected={storage_format === option.format} />
             <button
               aria-pressed={storage_format === option.format}
               className="block w-full min-w-0 text-start"
@@ -115,7 +114,6 @@ export function StorageFormatPicker({
                   loading="lazy"
                   src={option.image}
                 />
-                {storage_format === option.format && <SelectedBadge inset />}
               </div>
               <div className="px-3.5 py-3 flex items-center justify-center">
                 <span className="text-sm font-medium text-txt-primary">

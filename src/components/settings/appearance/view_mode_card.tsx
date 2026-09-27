@@ -18,12 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { SelectionMark } from "@aster/ui";
+
 import {
   ViewMockupPopup,
   ViewMockupSplit,
   ViewMockupFullpage,
 } from "@/components/settings/appearance/view_mode_mockups";
-import { SelectedBadge } from "@/components/settings/appearance/selected_badge";
 
 interface ViewModeCardProps {
   mode: "popup" | "split" | "fullpage";
@@ -60,20 +61,14 @@ export function ViewModeCard({
       type="button"
       onClick={on_select}
     >
-      <div
-        className={`relative w-full aspect-[4/3] rounded-lg mb-3 transition-all ${
-          is_selected
-            ? "ring-2 ring-brand ring-offset-2 ring-offset-surf-primary"
-            : ""
-        }`}
-      >
+      <div className="relative w-full aspect-[4/3] rounded-lg mb-3">
         <div
           className="w-full h-full rounded-lg overflow-hidden"
           style={{ border: get_border_color() }}
         >
           {get_mockup()}
         </div>
-        {is_selected && <SelectedBadge />}
+        <SelectionMark selected={is_selected} />
       </div>
       <div className="flex items-center justify-center">
         <span className="text-sm font-medium text-txt-primary">{label}</span>

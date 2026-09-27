@@ -25,7 +25,7 @@ import type {
 
 import { useState, useEffect, useCallback } from "react";
 import { SignalIcon } from "@heroicons/react/24/outline";
-import { Island, IslandSection } from "@aster/ui";
+import { Island, IslandSection, SelectionMark } from "@aster/ui";
 
 import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
@@ -33,7 +33,6 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { connection_store } from "@/services/routing/connection_store";
 import { is_cdn_relay_supported } from "@/services/routing/tor_transport";
 import { InfoPopover } from "@/components/ui/info_popover";
-import { SelectedBadge } from "@/components/settings/appearance/selected_badge";
 
 interface ConnectionOptionDef {
   value: ConnectionMethod;
@@ -159,21 +158,15 @@ export function ConnectionSection() {
                 }
               }}
             >
-              <div
-                className={cn(
-                  "relative h-40 rounded-[14px] transition-all",
-                  is_selected &&
-                    "ring-2 ring-brand ring-offset-2 ring-offset-surf-primary",
-                )}
-              >
+              <SelectionMark selected={is_selected} />
+              <div className="h-40">
                 <img
                   alt=""
-                  className="w-full h-full object-cover rounded-[14px]"
+                  className="w-full h-full object-cover"
                   draggable={false}
                   loading="lazy"
                   src={option.image}
                 />
-                {is_selected && <SelectedBadge />}
               </div>
 
               <div className="flex items-center justify-center gap-1.5 px-3 py-2.5">
