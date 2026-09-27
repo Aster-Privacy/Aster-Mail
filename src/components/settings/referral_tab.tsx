@@ -1124,23 +1124,25 @@ export function ReferralTab() {
 
       <IslandSection padding="md">
         <div className="grid grid-cols-3 gap-4">
-          <div className="min-w-0">
-            <p className="flex items-center gap-1.5 text-[12.5px] text-txt-muted">
+          <div className="flex min-w-0 flex-col">
+            <p className="flex items-start gap-1.5 text-[12.5px] leading-4 text-txt-muted">
               <UserGroupIcon className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate">{t("settings.total_referrals")}</span>
+              <span className="min-w-0 break-words">
+                {t("settings.total_referrals")}
+              </span>
             </p>
-            <p className="mt-1 text-[22px] font-semibold leading-7 tabular-nums text-txt-primary">
+            <p className="mt-auto pt-1 text-[22px] font-semibold leading-7 tabular-nums text-txt-primary">
               {referral_info.total_referrals}
             </p>
           </div>
-          <div className="min-w-0">
-            <p className="flex items-center gap-1.5 text-[12.5px] text-txt-muted">
+          <div className="flex min-w-0 flex-col">
+            <p className="flex items-start gap-1.5 text-[12.5px] leading-4 text-txt-muted">
               <ClockIcon className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate">
+              <span className="min-w-0 break-words">
                 {t("settings.pending_referrals")}
               </span>
             </p>
-            <p className="mt-1 text-[22px] font-semibold leading-7 tabular-nums text-txt-primary">
+            <p className="mt-auto pt-1 text-[22px] font-semibold leading-7 tabular-nums text-txt-primary">
               {Math.max(
                 0,
                 referral_info.total_referrals -
@@ -1148,14 +1150,14 @@ export function ReferralTab() {
               )}
             </p>
           </div>
-          <div className="min-w-0">
-            <p className="flex items-center gap-1.5 text-[12.5px] text-txt-muted">
+          <div className="flex min-w-0 flex-col">
+            <p className="flex items-start gap-1.5 text-[12.5px] leading-4 text-txt-muted">
               <CheckCircleIcon className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate">
+              <span className="min-w-0 break-words">
                 {t("settings.referral_active_referrals")}
               </span>
             </p>
-            <p className="mt-1 text-[22px] font-semibold leading-7 tabular-nums text-txt-primary">
+            <p className="mt-auto pt-1 text-[22px] font-semibold leading-7 tabular-nums text-txt-primary">
               {referral_info.activated_referrals}
             </p>
           </div>
