@@ -202,7 +202,12 @@ function BillingSuccessHandler() {
     if (billing === "cancelled") {
       const target = read_checkout_target();
 
-      if (target?.special_offer && request_special_offer_checkout()) {
+      if (
+        target?.special_offer &&
+        request_special_offer_checkout(
+          target.billing_interval === "year" ? "year" : "month",
+        )
+      ) {
         clear_checkout_target();
 
         return;

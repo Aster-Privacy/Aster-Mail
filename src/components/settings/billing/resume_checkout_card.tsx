@@ -110,7 +110,9 @@ export function ResumeCheckoutCard({
     set_is_resuming(true);
 
     const opened = can_resume_offer
-      ? request_special_offer_checkout()
+      ? request_special_offer_checkout(
+          target.billing_interval === "year" ? "year" : "month",
+        )
       : show_checkout_cancelled_upgrade({
           plan_code: target.plan_code,
           interval: upgrade_interval_for(target.billing_interval),

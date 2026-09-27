@@ -45,6 +45,7 @@ const SERVER_CODE_KEYS: Record<string, TranslationKey> = {
   SCA_REQUIRED: "settings.checkout_sca_required",
   CARD_DECLINED: "settings.checkout_card_declined",
   COLLECTION_FAILED: "settings.checkout_collection_failed",
+  SPECIAL_OFFER_UNAVAILABLE: "settings.special_offer_unavailable",
 };
 
 export function checkout_error_text(

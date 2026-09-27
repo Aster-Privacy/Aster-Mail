@@ -66,6 +66,7 @@ import { request_cache } from "@/services/api/request_cache";
 import { use_mail_stats, invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
 import { special_offer_promo_code } from "@/lib/special_offer";
+import { refresh_special_offer_status } from "@/stores/special_offer_status";
 import {
   show_toast,
   TOAST_DURATION_BILLING_MS,
@@ -702,6 +703,9 @@ export function BillingSection() {
       );
 
       if (!result.ok) {
+        if (result.server_code === "SPECIAL_OFFER_UNAVAILABLE") {
+          void refresh_special_offer_status();
+        }
         show_toast(
           checkout_error_text(t, result.server_code),
           "error",

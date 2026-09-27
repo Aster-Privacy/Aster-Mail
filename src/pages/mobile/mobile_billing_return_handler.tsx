@@ -36,6 +36,7 @@ import {
 } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
+import { request_special_offer_checkout } from "@/stores/special_offer_store";
 import { ignore_error } from "@/lib/ignore_error";
 import { is_resumable_checkout_plan } from "@/components/settings/billing/billing_constants";
 import { SpecialOfferSuccessModal } from "@/components/upgrade/special_offer_success_modal";
@@ -115,6 +116,17 @@ export function MobileBillingReturnHandler() {
 
     if (billing === "cancelled") {
       const target = read_checkout_target();
+
+      if (
+        target?.special_offer &&
+        request_special_offer_checkout(
+          target.billing_interval === "year" ? "year" : "month",
+        )
+      ) {
+        clear_checkout_target();
+
+        return;
+      }
 
       if (
         target &&

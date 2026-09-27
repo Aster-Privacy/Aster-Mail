@@ -85,7 +85,8 @@ export function SpecialOfferModal() {
   const { t } = use_i18n();
   const { status, is_loaded } = use_special_offer_status();
   const offer_checkout = use_special_offer_checkout();
-  const { is_open, checkout_seq } = use_special_offer_state();
+  const { is_open, checkout_seq, checkout_interval } =
+    use_special_offer_state();
   const { is_authenticated, user } = use_auth();
   const { plan_code, refresh: refresh_plan_limits } = use_plan_limits();
   const [currency, set_currency] = useState("usd");
@@ -139,8 +140,9 @@ export function SpecialOfferModal() {
     handled_checkout_seq_ref.current = checkout_seq;
 
     opened_from_popup_ref.current = false;
+    set_interval(checkout_interval);
     set_step("method");
-  }, [checkout_seq, is_offer_active]);
+  }, [checkout_seq, checkout_interval, is_offer_active]);
 
   useEffect(() => {
     set_currency(detect_currency_from_locale());
@@ -245,7 +247,18 @@ export function SpecialOfferModal() {
       );
 
       if (!result.ok) {
-        show_toast(t("settings.special_offer_checkout_error"), "error", 4000);
+        const offer_gone = result.server_code === "SPECIAL_OFFER_UNAVAILABLE";
+
+        if (offer_gone) {
+          void refresh_special_offer_status();
+        }
+        show_toast(
+          offer_gone
+            ? t("settings.special_offer_unavailable")
+            : t("settings.special_offer_checkout_error"),
+          "error",
+          4000,
+        );
 
         return;
       }

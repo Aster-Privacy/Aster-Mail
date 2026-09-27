@@ -44,6 +44,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
 import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
 import { special_offer_promo_code } from "@/lib/special_offer";
+import { refresh_special_offer_status } from "@/stores/special_offer_status";
 import { use_auth } from "@/contexts/auth/use_auth_hook";
 import { type CancelReason } from "@/components/settings/billing/cancel_reason_step";
 import { type CancelStep } from "@/components/settings/billing/cancel_impact_step";
@@ -884,8 +885,11 @@ export function use_billing_section() {
 
       if (!result.ok) {
         set_is_action_loading(false);
+        if (result.server_code === "SPECIAL_OFFER_UNAVAILABLE") {
+          void refresh_special_offer_status();
+        }
         show_toast(
-          t("settings.failed_checkout"),
+          checkout_error_text(t, result.server_code),
           "error",
           TOAST_DURATION_BILLING_MS,
         );

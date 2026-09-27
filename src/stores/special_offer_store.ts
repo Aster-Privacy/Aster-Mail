@@ -33,6 +33,7 @@ export interface SpecialOfferState {
   source: SpecialOfferSource;
   open_seq: number;
   checkout_seq: number;
+  checkout_interval: "month" | "year";
 }
 
 const initial_state: SpecialOfferState = {
@@ -40,6 +41,7 @@ const initial_state: SpecialOfferState = {
   source: "auto",
   open_seq: 0,
   checkout_seq: 0,
+  checkout_interval: "month",
 };
 
 let current: SpecialOfferState = initial_state;
@@ -92,13 +94,16 @@ export function show_special_offer(
   return true;
 }
 
-export function request_special_offer_checkout(): boolean {
+export function request_special_offer_checkout(
+  interval: "month" | "year" = "month",
+): boolean {
   if (!can_show_special_offer()) return false;
 
   current = {
     ...current,
     is_open: false,
     checkout_seq: current.checkout_seq + 1,
+    checkout_interval: interval,
   };
   notify();
 
