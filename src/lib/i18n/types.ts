@@ -1078,6 +1078,10 @@ export interface CommonTranslations {
   pronouns: string;
   dates: string;
   related_people: string;
+  related_person: string;
+  event: string;
+  instant_messenger: string;
+  contact_limit_reached: string;
   social_networks: string;
   websites: string;
   instant_messengers: string;

@@ -38,6 +38,7 @@ export interface ParsedEmail {
   text_body: string | null;
   attachments: ParsedAttachment[];
   raw_headers: Record<string, string>;
+  source_folder?: string;
 }
 
 export interface ParseProgress {
@@ -79,6 +80,7 @@ export interface PstMessage {
 }
 
 export interface PstFolder {
+  displayName: string;
   contentCount: number;
   hasSubfolders: boolean;
   getNextChild(): PstMessage | null;

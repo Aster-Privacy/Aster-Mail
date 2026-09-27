@@ -100,6 +100,11 @@ export interface EncryptedImportEmail {
   thread_token?: string;
   item_type?: string;
   folder_token?: string;
+  is_read?: boolean;
+  is_starred?: boolean;
+  is_archived?: boolean;
+  is_spam?: boolean;
+  is_trashed?: boolean;
 }
 
 // Deterministic hash of the message content so re-importing the same email
