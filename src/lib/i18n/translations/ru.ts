@@ -108,7 +108,7 @@ export const ru = {
       "Проверьте пароль и код, затем повторите попытку.",
     qr_code: "QR-код",
     profile_picture_removed: "Фото профиля удалено",
-    failed_remove_profile_picture: "Попробуйте снова.",
+    failed_remove_profile_picture: "Не удалось удалить фото профиля. Попробуйте снова.",
     remove_photo: "Удалить фото",
     toggle_alias: "Включить или отключить этот псевдоним",
     enter_passphrase: "Введите кодовую фразу",
@@ -221,7 +221,7 @@ export const ru = {
     failed_verification_email:
       "Отправить письмо для подтверждения сейчас не получилось. Повторная попытка через мгновение обычно помогает. Учётная запись остаётся без изменений.",
     profile_picture_updated: "Фото профиля обновлено",
-    failed_save_profile_picture: "Попробуйте снова.",
+    failed_save_profile_picture: "Новое фото профиля не сохранилось. Попробуйте снова. Показывается прежнее фото.",
     failed_upload_image: "Попробуйте снова.",
     valid_image_error:
       "Этот файл не относится к поддерживаемым изображениям. Подойдёт JPEG, PNG или WebP.",
@@ -635,9 +635,9 @@ export const ru = {
     failed_to_load_emails:
       "Почтовый ящик не загрузился. Обновление потягиванием или повторная попытка обычно помогает. Почта на сервере в безопасности.",
     no_emails_match_criteria: "Нет писем, соответствующих этому критерию",
-    failed_to_update_emails: "Попробуйте снова.",
-    failed_to_archive_emails: "Попробуйте снова.",
-    failed_to_unarchive_emails: "Попробуйте снова.",
+    failed_to_update_emails: "Изменения не сохранились. Попробуйте снова. Сами письма не изменились.",
+    failed_to_archive_emails: "Архивирование не завершилось. Попробуйте снова. Письма по-прежнему во «Входящих».",
+    failed_to_unarchive_emails: "Перемещение во «Входящие» не завершилось. Попробуйте снова. Письма по-прежнему в архиве.",
     keyboard_shortcut_label: "Сочетание клавиш: {shortcut}",
     something_went_wrong_try_again:
       "Это не сработало. Повторная попытка через мгновение обычно помогает.",
@@ -701,12 +701,12 @@ export const ru = {
     scheduled_email_cancelled: "Запланированное письмо отменено",
     email_snoozed: "Письмо отложено",
     email_unsnoozed: "Откладывание письма отменено",
-    failed_to_snooze: "Попробуйте снова.",
-    failed_to_unsnooze: "Попробуйте снова.",
+    failed_to_snooze: "Это письмо не отложено. Попробуйте снова. Оно по-прежнему во «Входящих».",
+    failed_to_unsnooze: "Это письмо не вернулось во «Входящие». Попробуйте снова.",
     conversation_moved_to_trash: "Разговор перемещён в корзину",
     conversation_archived: "Разговор архивирован",
     conversation_marked_as_spam: "Разговор отмечен как спам",
-    failed_to_mark_as_spam: "Попробуйте снова.",
+    failed_to_mark_as_spam: "Это письмо не перемещено в спам. Попробуйте снова.",
     failed_to_snooze_conversations: "Не удалось отложить беседы. Попробуйте снова.",
     marked_as_read_toast: "Отмечено как прочитанное",
     marked_as_unread_toast: "Отмечено как непрочитанное",
@@ -765,44 +765,44 @@ export const ru = {
     number_type: "Число",
     phone_type: "Телефон",
     email_type: "Электронная почта",
-    failed_to_fetch_contacts: "Попробуйте снова.",
-    failed_to_delete_contact: "Попробуйте снова.",
+    failed_to_fetch_contacts: "Контакты не загрузились. Попробуйте снова. Сохранённые контакты в безопасности.",
+    failed_to_delete_contact: "Этот контакт не удалён. Попробуйте снова.",
     contact_deleted: "Контакт удалён",
     contact_saved: "Контакт сохранён",
     contact_created: "Контакт создан",
     failed_to_create_contact: "Попробуйте снова.",
-    failed_to_save_contact: "Попробуйте снова.",
-    failed_to_delete_contacts: "Попробуйте снова.",
-    failed_to_update_favorites: "Попробуйте снова.",
+    failed_to_save_contact: "Изменения этого контакта не сохранились. Попробуйте снова. Прежняя версия осталась.",
+    failed_to_delete_contacts: "Эти контакты не удалены. Попробуйте снова.",
+    failed_to_update_favorites: "Избранное не обновилось. Попробуйте снова.",
     contacts_import_partial:
       "Импортировано только {{imported}} из {{total}} контактов. Импортируйте файл ещё раз, чтобы добавить остальные.",
-    failed_to_import_contacts: "Попробуйте снова.",
+    failed_to_import_contacts: "Импорт контактов не завершился. Попробуйте снова. Ваши существующие контакты не изменились.",
     failed_to_read_file:
       "Этот файл прочитать не удалось. Другой обычно подходит.",
-    import_failed: "Попробуйте снова.",
-    failed_to_load_duplicates: "Попробуйте снова.",
-    scan_failed: "Попробуйте снова.",
+    import_failed: "Импорт не завершился. Попробуйте снова. Ваши существующие данные не изменились.",
+    failed_to_load_duplicates: "Список дубликатов не загрузился. Попробуйте снова.",
+    scan_failed: "Сканирование не завершилось. Попробуйте снова.",
     dismiss_failed: "Попробуйте снова.",
-    failed_to_load_custom_fields: "Попробуйте снова.",
-    failed_to_create_field: "Попробуйте снова.",
+    failed_to_load_custom_fields: "Эти настраиваемые поля не загрузились. Попробуйте снова.",
+    failed_to_create_field: "Это настраиваемое поле не сохранилось. Попробуйте снова.",
     delete_custom_field_title: "Delete custom field?",
     delete_custom_field_message:
       "Deleting this field also removes its values from every contact. You cannot undo this.",
-    failed_to_delete_field: "Попробуйте снова.",
-    failed_to_save_value: "Попробуйте снова.",
+    failed_to_delete_field: "Это настраиваемое поле не удалено. Попробуйте снова.",
+    failed_to_save_value: "Изменение не сохранилось. Попробуйте снова. Прежнее значение осталось.",
     click_scan_duplicates:
       'Нажмите "Сканировать", чтобы проверить наличие дубликатов',
     never_synced: "Никогда не синхронизировалось",
     last_sync_successful: "Последняя синхронизация успешна",
     last_sync_failed:
       "Последняя синхронизация не завершилась, и повтор будет автоматическим.",
-    failed_to_forward: "Попробуйте снова.",
-    failed_to_schedule: "Попробуйте снова.",
+    failed_to_forward: "Пересылка не отправлена. Попробуйте снова. Черновик сохранён.",
+    failed_to_schedule: "Расписание не сохранилось. Попробуйте снова. Черновик в безопасности.",
     fill_required_fields: "Пожалуйста, заполните все обязательные поля",
-    failed_to_load_sources: "Попробуйте снова.",
+    failed_to_load_sources: "Синхронизированные аккаунты не загрузились. Попробуйте снова. Сами аккаунты не затронуты.",
     failed_to_add_source: "Попробуйте снова.",
-    failed_to_delete_source: "Попробуйте снова.",
-    failed_to_toggle_source: "Попробуйте снова.",
+    failed_to_delete_source: "Этот аккаунт не удалён. Попробуйте снова.",
+    failed_to_toggle_source: "Не удалось изменить эту настройку. Попробуйте снова.",
     sync_failed:
       "Синхронизация не завершилась, и повтор будет автоматическим. Почта по обеим сторонам в безопасности.",
     clearing: "Очистка...",
@@ -876,10 +876,10 @@ export const ru = {
     add_contact: "Добавить контакт",
     file_too_large:
       "Этот файл занимает {{size}} МБ, что превышает допустимый размер. Меньший обычно подходит.",
-    failed_to_upload_attachment: "Попробуйте снова.",
-    upload_failed: "Попробуйте снова.",
+    failed_to_upload_attachment: "Это вложение не загрузилось. Попробуйте снова. Черновик сохранён.",
+    upload_failed: "Загрузка не завершилась. Попробуйте снова.",
     delete_failed: "Попробуйте снова.",
-    download_failed: "Попробуйте снова.",
+    download_failed: "Загрузка не завершилась. Попробуйте снова.",
     attachment_locked:
       "Это вложение нельзя открыть, потому что ключ шифрования недоступен на этом устройстве.",
     scheduled_no_attachments:
@@ -888,10 +888,10 @@ export const ru = {
       "Отложенная отправка недоступна для подключенных аккаунтов. Отправьте это сообщение сейчас или выберите адрес Aster.",
     scheduled_no_expiry:
       "Запланированные письма пока не поддерживают срок действия. Отправьте сейчас или уберите срок, чтобы запланировать отправку.",
-    failed_to_merge_contacts: "Попробуйте снова.",
-    merge_failed: "Попробуйте снова.",
+    failed_to_merge_contacts: "Объединение не завершилось. Попробуйте снова. Исходные контакты не изменились.",
+    merge_failed: "Объединение не завершилось. Попробуйте снова. Исходные контакты не изменились.",
     failed_to_load_history: "Попробуйте снова.",
-    failed_to_load_more: "Попробуйте снова.",
+    failed_to_load_more: "Не удалось загрузить больше элементов. Попробуйте снова.",
     enter_valid_emails: "Введите корректные адреса электронной почты",
     enter_contact_details: "Введите данные контакта",
     select_valid_image:
@@ -909,23 +909,23 @@ export const ru = {
     pinned_to_top: "Закреплено вверху",
     emails_snoozed_until: "{{count}} письм(о/а) отложено до {{time}}",
     emails_from_senders_archived:
-      "Архивировано {{count}} письма от {{senders}}",
+      "Архивировано писем от {{senders}}: {{count}}",
     emails_from_senders_deleted: "Удалено {{count}} письма от {{senders}}",
     emails_added_to_folder: "{{count}} письм(о/а) добавлено в {{folder}}",
-    failed_to_snooze_emails: "Попробуйте снова.",
+    failed_to_snooze_emails: "Эти письма не отложены. Попробуйте снова. Они по-прежнему во «Входящих».",
     failed_to_copy: "Попробуйте снова.",
     error_copied_to_clipboard: "Ошибка скопирована в буфер обмена",
-    failed_to_update_contact: "Попробуйте снова.",
-    failed_to_block_sender: "Попробуйте снова.",
-    failed_to_rename_folder: "Попробуйте снова.",
-    failed_to_change_folder_color: "Попробуйте снова.",
-    failed_to_delete_folder: "Попробуйте снова.",
+    failed_to_update_contact: "Изменения контакта не сохранились. Попробуйте снова. Прежняя версия осталась.",
+    failed_to_block_sender: "Не удалось заблокировать этого отправителя. Попробуйте снова.",
+    failed_to_rename_folder: "Эта папка не переименована. Попробуйте снова. Папка и её письма не изменились.",
+    failed_to_change_folder_color: "Цвет папки не обновился. Попробуйте снова.",
+    failed_to_delete_folder: "Эта папка не удалена. Попробуйте снова. Письма в ней в безопасности.",
     failed_to_move_folder: "Попробуйте снова.",
-    failed_to_update_folder_encryption: "Попробуйте снова.",
+    failed_to_update_folder_encryption: "Настройка блокировки папки не изменилась. Попробуйте снова. Папка осталась прежней.",
     failed_to_rename_label: "Попробуйте снова.",
-    failed_to_change_label_color: "Попробуйте снова.",
-    failed_to_change_label_icon: "Попробуйте снова.",
-    failed_to_delete_label: "Попробуйте снова.",
+    failed_to_change_label_color: "Цвет метки не обновился. Попробуйте снова.",
+    failed_to_change_label_icon: "Значок метки не обновился. Попробуйте снова.",
+    failed_to_delete_label: "Эта метка не удалена. Попробуйте снова. Ваши письма не затронуты.",
     failed_to_create_label: "Попробуйте снова.",
     failed_to_create_folder_error: "Попробуйте снова.",
     folder_plan_limit_reached:
@@ -933,9 +933,9 @@ export const ru = {
     authenticate_to_send: "Авторизуйтесь для отправки письма",
     send_authentication_failed:
       "Аутентификация не завершена, поэтому это письмо не отправлено.",
-    failed_to_send_reply: "Попробуйте снова.",
+    failed_to_send_reply: "Этот ответ не отправлен. Попробуйте снова. Черновик сохранён.",
     failed_to_delete_draft: "Попробуйте снова.",
-    failed_to_update_rule: "Попробуйте снова.",
+    failed_to_update_rule: "Это правило не сохранилось. Попробуйте снова. Прежняя версия по-прежнему действует.",
     failed_to_send_verification:
       "Отправить письмо для подтверждения не удалось. Повторная попытка через мгновение обычно помогает.",
     failed_to_load_email:
@@ -944,7 +944,7 @@ export const ru = {
       "Открыть это письмо на этом устройстве не удалось. Обновление обычно помогает, а повторный вход остаётся запасным вариантом, если ошибки продолжатся.",
     failed_to_unsubscribe:
       "Отписка не завершилась. Ссылка в письме ведёт на сайт отправителя для отписки вручную.",
-    failed_to_disable_2fa: "Попробуйте снова.",
+    failed_to_disable_2fa: "Двухфакторная аутентификация осталась включённой. Попробуйте снова. Ваш аккаунт по-прежнему защищён.",
     failed_to_parse_settings:
       "Этот файл настроек прочитать не удалось. Другой файл обычно подходит. Текущие настройки остаются без изменений.",
     removed_from_contacts: "Удалено из контактов",
@@ -979,7 +979,7 @@ export const ru = {
     failed_to_unlock_folder:
       "Не удалось разблокировать эту папку. Проверьте пароль и попробуйте снова. Содержимое папки в безопасности.",
     incorrect_password:
-      "Этот пароль не совпал. Повторная попытка обычно помогает. Учётная запись не заблокирована.",
+      "Неверный пароль. Попробуйте снова. Ваш аккаунт не заблокирован.",
     folder_no_password_protection:
       "У этой папки сейчас нет пароля, поэтому менять нечего.",
     password_already_set:
@@ -988,13 +988,13 @@ export const ru = {
       "Разблокировка папки даёт возможность изменить эту настройку.",
     cannot_remove_vault_password:
       "У папки Vault всегда есть собственный пароль, и эту защиту убрать нельзя.",
-    failed_to_load_snoozed_emails: "Попробуйте снова.",
-    failed_to_load_subscriptions: "Попробуйте снова.",
-    unexpected_error: "Попробуйте снова.",
-    failed_to_load_more_subscriptions: "Попробуйте снова.",
-    failed_to_scan_subscriptions: "Попробуйте снова.",
-    failed_to_load_drafts: "Попробуйте снова.",
-    failed_to_load_scheduled_emails: "Попробуйте снова.",
+    failed_to_load_snoozed_emails: "Отложенные письма не загрузились. Попробуйте снова. Они в безопасности на сервере.",
+    failed_to_load_subscriptions: "Подписки не загрузились. Попробуйте снова.",
+    unexpected_error: "Что-то пошло не так. Попробуйте снова.",
+    failed_to_load_more_subscriptions: "Не удалось загрузить больше подписок. Попробуйте снова.",
+    failed_to_scan_subscriptions: "Сканирование подписок не завершилось. Попробуйте снова.",
+    failed_to_load_drafts: "Черновики не загрузились. Попробуйте снова. Сохранённые черновики в безопасности.",
+    failed_to_load_scheduled_emails: "Запланированные письма не загрузились. Попробуйте снова. Они всё равно будут отправлены вовремя.",
     recently_archived: "Недавно архивированные",
     older_items: "Более старые элементы",
     long_term_archive: "Долгосрочный архив",
@@ -1086,21 +1086,21 @@ export const ru = {
     tor_snowflake_label: "Tor (Snowflake)",
     cdn_relay_label: "CDN-ретранслятор",
     toggle_selection: "Переключить выделение",
-    failed_to_send_email: "Попробуйте снова.",
-    failed_to_send_external_email: "Попробуйте снова.",
+    failed_to_send_email: "Это письмо не отправлено. Попробуйте снова. Черновик сохранён.",
+    failed_to_send_external_email: "Это письмо не отправлено через связанный внешний аккаунт. Попробуйте снова. Черновик сохранён.",
     external_account_token_missing:
       "Связанную внешнюю учётную запись стоит подключить заново перед отправкой через неё. Этот раздел находится в Настройках, Подключённые аккаунты.",
-    failed_to_send_via_external: "Попробуйте снова.",
+    failed_to_send_via_external: "Отправка через связанный внешний аккаунт не удалась. Попробуйте снова. Черновик сохранён.",
     offline_change_failed:
       "Не удалось сохранить изменение, сделанное без соединения.",
     offline_send_failed:
       "Не удалось отправить письмо, написанное без соединения.",
     offline_email_queued:
       "Сейчас нет соединения. Это письмо уйдёт сразу после восстановления связи.",
-    failed_to_queue_offline: "Попробуйте снова.",
+    failed_to_queue_offline: "Не удалось поставить это письмо в очередь на отправку. Попробуйте снова. Черновик сохранён.",
     cannot_mix_recipients:
       "Пользователи Aster и внешние адреса не могут быть в одном письме. Отправка их отдельными сообщениями обычно решает вопрос.",
-    failed_to_schedule_email: "Попробуйте снова.",
+    failed_to_schedule_email: "Расписание не сохранилось. Попробуйте снова. Черновик сохранён.",
     failed_to_restore_draft:
       "Вернуть этот черновик не удалось. Повторное открытие обычно помогает. Другие черновики не затронуты.",
     enter_url: "Введите URL:",
@@ -1141,10 +1141,10 @@ export const ru = {
       "Некоторые вложения не удалось добавить в это сообщение.",
     image: "Изображение",
     system: "Система",
-    failed_to_permanently_delete: "Попробуйте снова.",
-    failed_to_delete_emails: "Попробуйте снова.",
-    failed_to_mark_as_read: "Попробуйте снова.",
-    failed_to_mark_as_unread: "Попробуйте снова.",
+    failed_to_permanently_delete: "Эти элементы не удалены. Попробуйте снова.",
+    failed_to_delete_emails: "Эти письма не удалены. Попробуйте снова.",
+    failed_to_mark_as_read: "Эти письма по-прежнему отмечены как непрочитанные. Попробуйте снова.",
+    failed_to_mark_as_unread: "Эти письма по-прежнему отмечены как прочитанные. Попробуйте снова.",
     n_conversations_archived: "{{ count }} разговоров архивировано",
     n_conversations_archived_one: "{{count}} беседа архивирована",
     n_conversations_archived_other: "{{count}} беседы архивированы",
@@ -1158,7 +1158,7 @@ export const ru = {
     external_only: "Только внешние",
     all_accounts: "Все аккаунты",
     all_external_accounts: "Все внешние аккаунты",
-    failed_to_rotate_keys: "Попробуйте снова.",
+    failed_to_rotate_keys: "Обновление ключей не завершилось. Попробуйте снова. Старые ключи по-прежнему работают, а ваши данные в безопасности.",
     read: "Прочитано",
     or_conjunction: "или",
     press_label: "Нажмите",
@@ -1188,10 +1188,10 @@ export const ru = {
     removed_count_from_allowlist: "Удалено {{ count }} из списка разрешённых",
     failed_to_add_label: "Попробуйте снова.",
     failed_to_remove_label: "Попробуйте снова.",
-    failed_to_move_email: "Попробуйте снова.",
+    failed_to_move_email: "Это письмо не перемещено. Попробуйте снова. Письмо в безопасности на прежнем месте.",
     failed_to_add_labels: "Попробуйте снова.",
-    failed_to_remove_labels: "Попробуйте снова.",
-    failed_to_copy_to_clipboard: "Попробуйте снова.",
+    failed_to_remove_labels: "Эти метки не удалены. Попробуйте снова.",
+    failed_to_copy_to_clipboard: "В буфер обмена ничего не скопировано. Попробуйте снова.",
     add_note_placeholder: "Добавить заметку...",
     add_private_note_placeholder: "Добавить личную заметку...",
     search_anything: "Искать что угодно...",
@@ -1717,16 +1717,16 @@ export const ru = {
       "Эта заметка превышает допустимую длину. Более короткая подойдёт.",
     add_alias_note_placeholder: "Добавить заметку",
     edit_alias_note: "Изменить заметку",
-    failed_remove_recovery_email: "Попробуйте снова.",
-    failed_save_profile_color: "Попробуйте снова.",
-    failed_to_change_folder_password: "Попробуйте снова.",
-    failed_to_get_key_status: "Попробуйте снова.",
+    failed_remove_recovery_email: "Не удалось удалить адрес для восстановления. Попробуйте снова. Настройки восстановления не изменились.",
+    failed_save_profile_color: "Выбранный цвет не сохранился. Попробуйте снова.",
+    failed_to_change_folder_password: "Пароль папки не изменился. Попробуйте снова. Старый пароль по-прежнему действует.",
+    failed_to_get_key_status: "Не удалось проверить состояние ключей. Попробуйте снова. Ваши ключи не изменились.",
     failed_to_read_named_file:
       "Не удалось прочитать «{{name}}». Попробуйте другой файл.",
-    failed_to_remove_folder_password: "Попробуйте снова.",
-    failed_to_set_folder_password: "Попробуйте снова.",
-    failed_update_alias_avatar: "Попробуйте снова.",
-    failed_update_alias_display_name: "Попробуйте снова.",
+    failed_to_remove_folder_password: "Не удалось удалить пароль папки. Попробуйте снова. Папка по-прежнему заблокирована.",
+    failed_to_set_folder_password: "Пароль папки не сохранился. Попробуйте снова. Содержимое папки не изменилось.",
+    failed_update_alias_avatar: "Аватар псевдонима не обновился. Попробуйте снова.",
+    failed_update_alias_display_name: "Отображаемое имя не обновилось. Попробуйте снова.",
     file_already_attached:
       "«{{name}}» уже прикреплён к этому письму. Не нужно прикреплять повторно.",
     metadata_not_removed:
@@ -1738,7 +1738,7 @@ export const ru = {
     folder_fallback: "папка",
     found_n_contacts: "Найдено {{count}} контактов",
     found_one_contact: "Найден 1 контакт",
-    health_check_failed: "Попробуйте снова.",
+    health_check_failed: "Диагностика не завершилась. Попробуйте снова.",
     image_load_failed:
       "Изображение не загрузилось. Обычно помогает обновление страницы.",
     image_processing_failed:
@@ -1794,7 +1794,7 @@ export const ru = {
     family_2fa_action: "Включить двухфакторную аутентификацию",
     family_2fa_sign_out: "Выйти",
     pending_deletion_days:
-      "Ваш аккаунт будет удалён через {{days}} дней. В баннере ниже есть возможность отмены, если вы передумаете.",
+      "Ваш аккаунт будет удалён через {{days}} дн. Отмените удаление, чтобы сохранить аккаунт и восстановить доступ к почте.",
     pending_deletion_dismiss: "Нет, продолжить удаление",
     pending_deletion_body:
       "Ваш аккаунт запланирован к удалению. Отмените удаление, чтобы сохранить аккаунт и восстановить доступ к почте.",
@@ -1866,7 +1866,7 @@ export const ru = {
     scheduled_category: "Запланировано",
     search_failed_try_again:
       "Поиск не завершился. Обычно помогает повторная попытка через мгновение.",
-    search_load_failed_try_again: "Попробуйте снова.",
+    search_load_failed_try_again: "Не удалось загрузить письма для поиска. Попробуйте снова. Ваша почта в безопасности.",
     select_label: "Выбрать",
     select_none: "Нет",
     select_read: "Прочитанные",
@@ -1903,9 +1903,9 @@ export const ru = {
     trash_empty_failed:
       "Не удалось очистить корзину. Обычно помогает повторная попытка через мгновение. Ничего не удалено.",
     uncategorized: "Без категории",
-    unknown_error: "Попробуйте снова.",
+    unknown_error: "Что-то пошло не так. Попробуйте снова. Нам не удалось установить причину.",
     unknown_merchant: "Неизвестный продавец",
-    unknown_rotation_error: "Попробуйте снова.",
+    unknown_rotation_error: "Обновление ключей не завершилось. Попробуйте снова. Старые ключи по-прежнему работают, а ваши данные в безопасности.",
     unsaved_changes_title: "Отменить изменения?",
     unsaved_changes_body:
       "Введённые данные не сохранены. Если закрыть форму сейчас, они будут удалены.",
@@ -2434,9 +2434,9 @@ export const ru = {
       "Настройки резервного адреса перенесены в раздел Безопасность > Восстановление аккаунта",
     phrase_wrap_save_failed:
       "Вашу фразу восстановления не удалось сохранить на сервере. Попробуйте ещё раз.",
-    smtp_tokens: "Токены SMTP",
+    smtp_tokens: "SMTP, IMAP, POP3 и JMAP",
     smtp_tokens_description:
-      "Создавайте учётные данные SMTP только для отправки, чтобы внешние приложения и скрипты могли отправлять почту с ваших подтверждённых адресов на собственном домене.",
+      "Подключите любой почтовый клиент или приложение. Для полного доступа по IMAP, POP3, SMTP и JMAP используйте приложение Aster Bridge выше (почта расшифровывается на вашем устройстве) или создайте ниже учётные данные SMTP только для отправки для приложений и скриптов, которым нужно лишь отправлять письма с ваших подтверждённых адресов на собственном домене.",
     smtp_tokens_popover_description:
       "Токен SMTP - это пароль только для отправки, привязанный к одному из ваших подтверждённых адресов на собственном домене. Используйте его для отправки почты из автоматизированных систем, скриптов или сторонних сервисов по стандартному протоколу SMTP.",
     smtp_tokens_empty: "Токенов SMTP пока нет.",
@@ -2955,7 +2955,7 @@ export const ru = {
     alias_restore_mismatch:
       "Этот адрес не совпадает с псевдонимом. Проверьте заголовок доставленного сообщения.",
     alias_restore_failed: "Попробуйте снова.",
-    recently_deleted_load_failed: "Попробуйте снова.",
+    recently_deleted_load_failed: "Не удалось загрузить недавно удалённые псевдонимы. Попробуйте снова.",
     ghost_aliases_info:
       "Призрачные псевдонимы временны и истекают автоматически. Используйте их для одноразовых регистраций или там, где не нужен постоянный адрес. Они исчезают сами - очистка не требуется.",
     recently_deleted_aliases_title: "Недавно удалённые",
@@ -2983,7 +2983,7 @@ export const ru = {
     recently_deleted_directories_description:
       "Восстановите удалённый каталог. Удалённые каталоги не принимают новую почту, пока не будут восстановлены.",
     directory_restored: "Каталог восстановлен",
-    failed_restore_directory: "Попробуйте снова.",
+    failed_restore_directory: "Этот каталог не восстановлен. Попробуйте снова.",
     purge_directory_confirm_title: "Удалить каталог навсегда?",
     purge_directory_confirm_message:
       "Удалить {{ key }}@{{ domain }} навсегда? Это действие нельзя отменить. Каталог останется закреплён за вашей учётной записью, и никто другой не сможет его занять.",
@@ -3125,7 +3125,7 @@ export const ru = {
     alias_delivery_title: "Доставка",
     alias_delivery_folder: "Доставлять в",
     alias_delivery_folder_desc:
-      "Выберите, куда попадает почта этого псевдонима. По умолчанию - Входящие.",
+      "Письма на этот псевдоним попадают в выбранную вами папку. По умолчанию - «Входящие».",
     alias_delivery_folder_info:
       "Почта попадает сразу в выбранную папку без правил. Подходящее правило все равно имеет приоритет.",
     alias_delivery_folder_error: "Попробуйте снова.",
@@ -3408,14 +3408,14 @@ export const ru = {
     fam_org_tab_security: "Безопасность",
     fam_org_tab_retention: "Хранение данных",
     fam_org_groups_name_placeholder: "Название группы",
-    fam_org_groups_prefix_placeholder: "Префикс адреса (необязательно)",
+    fam_org_groups_prefix_placeholder: "Префикс",
     fam_org_groups_domain_placeholder: "Выбрать домен",
     fam_org_groups_create: "Создать",
     fam_org_groups_info_title: "Группы организации",
     fam_org_groups_info_desc:
       "Группа объединяет нескольких участников под одним общим адресом. Письма, отправленные на адрес группы, доставляются каждому её участнику - удобно для общих ящиков, таких как family@ или parents@. Префикс адреса необязателен.",
     fam_org_groups_prefix_hint:
-      "Префикс адреса необязателен - создаёт адрес группы вида",
+      "Введите префикс, чтобы назначить адрес электронной почты группы",
     fam_org_groups_address_preview: "Адрес группы: ",
     fam_org_groups_address_in_use:
       "Этот адрес уже используется псевдонимом или другой группой",
@@ -3922,7 +3922,7 @@ export const ru = {
     signature_custom: "Пользовательская",
     custom_signature: "Пользовательская подпись",
     time_zone: "Часовой пояс",
-    time_zone_description: "Ваш местный часовой пояс",
+    time_zone_description: "Часовой пояс для отображения времени писем на всех ваших устройствах",
     time_zone_auto: "Автоматически (часовой пояс устройства)",
     time_zone_search_placeholder: "Поиск города или региона",
     time_zone_no_results: "Подходящих часовых поясов нет",
@@ -3986,7 +3986,7 @@ export const ru = {
     updates_never_checked: "Ещё не проверялось",
     updates_auto_label: "Автоматически проверять обновления",
     updates_auto_description:
-      "Aster Mail ищет новые версии и сообщает, когда одна из них готова к установке.",
+      "Aster Mail ищет новые версии и сообщает, когда обновление готово к установке.",
     updates_release_notes: "Список изменений",
     updates_banner_title: "Доступна версия Aster Mail {{version}}",
     updates_banner_action: "Установить сейчас",
@@ -4492,13 +4492,13 @@ export const ru = {
       "Не удалось списать платёж. Обновите способ оплаты в разделе Настройки, Оплата, и повторите попытку.",
     plan_not_available:
       "Этот тариф сейчас недоступен для покупки. Другой тариф или возвращение позже обычно подходит.",
-    failed_checkout: "Попробуйте снова.",
-    failed_billing_portal: "Попробуйте снова.",
+    failed_checkout: "Сейчас не удалось открыть оформление заказа. Попробуйте снова. Ваша оплата не изменилась.",
+    failed_billing_portal: "Не удалось открыть портал оплаты. Попробуйте снова. Ваш тариф не изменился.",
     subscription_cancelled:
       "Подписка будет отменена в конце расчётного периода",
-    failed_cancel_subscription: "Попробуйте снова.",
+    failed_cancel_subscription: "Отмена не прошла. Попробуйте снова. Ваш тариф по-прежнему активен.",
     subscription_reactivated: "Подписка повторно активирована",
-    failed_reactivate: "Попробуйте снова.",
+    failed_reactivate: "Не удалось возобновить тариф. Попробуйте снова.",
     daily: "Ежедневно",
     weekly: "Еженедельно",
     biweekly: "Раз в две недели",
@@ -4520,7 +4520,7 @@ export const ru = {
       "Автоматическая блокировка через {{duration}} неактивности",
     hours: "{{count}} часов",
     days: "{{count}} дней",
-    failed_get_auth_data: "Попробуйте снова.",
+    failed_get_auth_data: "Не удалось загрузить данные для входа. Попробуйте снова.",
     downgrade: "Понизить",
     upgrade_to: "Улучшить до {{name}}",
     get_plan: "Выбрать {{name}}",
@@ -4561,7 +4561,7 @@ export const ru = {
     enter_password_confirm: "Введите пароль для подтверждения:",
     verifying_credentials: "Проверка учётных данных...",
     failed_verify_credentials:
-      "Этот пароль не совпал. Повторная попытка обычно помогает. Учётная запись остаётся без изменений.",
+      "Неверный пароль. Попробуйте снова. Ваш аккаунт не изменился.",
     deleting_account: "Удаление аккаунта...",
     failed_delete_account:
       "Не удалось удалить учётную запись. Проверьте пароль и попробуйте снова. Учётная запись не изменилась.",
@@ -4572,7 +4572,7 @@ export const ru = {
     "connection.title_info":
       "Aster поддерживает несколько маршрутов до своих серверов. Выбранный маршрут определяет, кто видит ваш IP-адрес и как запросы достигают нас. Ваши сообщения остаются зашифрованными сквозным образом в любом случае.",
     "connection.direct": "Прямое",
-    "connection.direct_description": "Прямое подключение к серверам Aster",
+    "connection.direct_description": "Ваше устройство подключается напрямую к серверам Aster. Самый быстрый путь и минимальная задержка, но ваш IP-адрес виден Aster.",
     "connection.tor": "Tor",
     "connection.tor_description": "Маршрутизировать трафик через сеть Tor",
     "connection.tor_snowflake": "Tor с Snowflake",
@@ -4580,10 +4580,10 @@ export const ru = {
       "Использовать мосты Snowflake для обхода цензуры",
     "connection.cdn_relay": "CDN-релей",
     "connection.cdn_relay_description":
-      "Маршрутизировать через серверы CDN Relay",
+      "Запросы проходят через глобальную CDN, прежде чем попасть в Aster. Ваш IP-адрес скрыт от Aster, а трафик не отличается от обычного трафика CDN.",
     "connection.status_connected": "Подключено",
     "connection.status_connecting": "Подключение...",
-    "connection.status_error": "Ошибка подключения",
+    "connection.status_error": "Соединение потеряно, мы автоматически пытаемся подключиться снова.",
     "connection.status_disconnected": "Отключено",
     "connection.tor_blocked":
       "Tor не активен. Запрос заблокирован для защиты вашей анонимности.",
@@ -4949,8 +4949,8 @@ export const ru = {
     invalid_address: "Введите действительный адрес электронной почты.",
     alias_already_taken:
       "Этот псевдоним уже используется. Другой обычно подходит.",
-    alias_create_failed: "Попробуйте снова.",
-    alias_generate_failed: "Попробуйте снова.",
+    alias_create_failed: "Этот псевдоним не сохранился. Попробуйте снова. Другие ваши псевдонимы не изменились.",
+    alias_generate_failed: "Сейчас не удалось создать псевдоним. Попробуйте снова.",
     alias_invalid:
       "Этот псевдоним не подходит. В нём разрешены буквы, цифры, точки, подчёркивания и дефисы.",
     domain_not_available:
@@ -4960,7 +4960,7 @@ export const ru = {
     add_custom_domain: "Добавить пользовательский домен",
     domain_name_label: "Имя домена",
     invalid_domain: "Введите действительный домен.",
-    failed_add_domain: "Попробуйте снова.",
+    failed_add_domain: "Этот домен не добавлен. Попробуйте снова. Другие ваши домены не изменились.",
     configure_dns_for: "Настроить DNS для {{domain}}",
     dns_instruction_login:
       "Войдите в панель вашего регистратора доменов или DNS-провайдера",
@@ -5014,14 +5014,14 @@ export const ru = {
     account_added: "Аккаунт успешно добавлен",
     account_settings_not_saved:
       "Аккаунт сохранён, но настройки синхронизации и дополнительные настройки не сохранены",
-    failed_update_account: "Попробуйте снова.",
+    failed_update_account: "Этот аккаунт не обновился. Попробуйте снова. Прежние настройки по-прежнему действуют.",
     failed_add_account: "Попробуйте снова.",
-    switch_failed: "Попробуйте снова.",
-    unexpected_error: "Попробуйте снова.",
+    switch_failed: "Не удалось переключить аккаунт. Попробуйте снова.",
+    unexpected_error: "Что-то пошло не так. Попробуйте снова.",
     failed_sync:
       "Синхронизация не завершилась, и повтор будет автоматическим. Почта по обеим сторонам в безопасности.",
-    failed_delete_emails_external: "Попробуйте снова.",
-    failed_fetch_folders_external: "Попробуйте снова.",
+    failed_delete_emails_external: "Эти письма не удалены из связанного аккаунта. Попробуйте снова.",
+    failed_fetch_folders_external: "Папки из связанного аккаунта не загрузились. Попробуйте снова.",
     external_sign_in_rejected:
       "Почтовый сервер не принял это имя пользователя и пароль. Проверьте их ещё раз. Если ваш провайдер требует пароль приложения, введите его вместо обычного пароля.",
     external_server_unreachable:
@@ -5039,11 +5039,11 @@ export const ru = {
       "Здесь нужен текущий код из приложения-аутентификатора.",
     invalid_2fa_code:
       "Этот код не совпал. Текущий код из приложения-аутентификатора обычно подходит.",
-    incorrect_password_error: "Неверный пароль",
-    failed_retrieve_auth: "Попробуйте снова.",
+    incorrect_password_error: "Неверный пароль. Попробуйте снова. Ваш аккаунт не заблокирован.",
+    failed_retrieve_auth: "Не удалось загрузить данные для входа. Попробуйте снова.",
     failed_verify_password:
-      "Этот пароль не совпал. Повторная попытка обычно помогает.",
-    failed_export_private_key: "Попробуйте снова.",
+      "Неверный пароль. Попробуйте снова.",
+    failed_export_private_key: "Сейчас не удалось экспортировать ключ. Попробуйте снова. Ваш ключ не изменился.",
     type_regenerate: "Введите regenerate",
     client_side_encryption: "Шифрование на стороне клиента",
     client_side_encryption_description:
@@ -5059,10 +5059,10 @@ export const ru = {
       "Автоматический поиск в WKD и на серверах ключей при написании",
     key_published_wkd: "Ключ опубликован в WKD",
     key_removed_wkd: "Ключ удалён из WKD",
-    failed_publish_wkd: "Попробуйте снова.",
-    failed_remove_wkd: "Попробуйте снова.",
+    failed_publish_wkd: "Открытый ключ не опубликован в публичном каталоге. Попробуйте снова. Ваши ключи не изменились.",
+    failed_remove_wkd: "Ключ не удалён из публичного каталога. Попробуйте снова.",
     key_published_keyserver: "Ключ опубликован на сервере ключей",
-    failed_publish_keyserver: "Попробуйте снова.",
+    failed_publish_keyserver: "Открытый ключ не опубликован на сервере ключей. Попробуйте снова.",
     mailto_unregister_manual:
       "Чтобы Aster Mail перестал открывать ссылки mailto, удалите обработчик в настройках браузера.",
     failed_save_setting: "Не удалось сохранить настройку. Попробуйте ещё раз.",
@@ -5237,7 +5237,7 @@ export const ru = {
       "Текущие коды восстановления перестанут работать сразу после генерации новых. Сохранение нового набора в надёжном месте перед закрытием этого окна обычно лучший способ остаться под защитой. Введите ",
     end_to_end_encrypted: "Сквозное шифрование",
     all_data_protected:
-      "Все ваши данные защищены шифрованием с нулевым разглашением",
+      "Все ваши данные защищены шифрованием с нулевым доступом",
     pgp_compatible: "Совместимо с PGP",
     pgp_compatible_description:
       "Отправляйте зашифрованные письма любому пользователю PGP.",
@@ -5628,7 +5628,7 @@ export const ru = {
       "Хранилище заполнено. Повышение тарифа или удаление части писем освобождает место для новых импортов.",
     no_emails_in_file:
       "В выбранных файлах не найдено писем. Убедитесь, что каждый файл имеет поддерживаемый формат (MBOX, EML, CSV или PST).",
-    import_failed: "Попробуйте снова.",
+    import_failed: "Импорт не завершился. Попробуйте снова. Ваши существующие данные не изменились.",
     failed_to_parse_file:
       "Этот файл прочитать не удалось. Другой обычно подходит.",
     plan_storage_value: "{{value}} хранилища",
@@ -5891,7 +5891,7 @@ export const ru = {
     switch_to_monthly: "Переключиться на месячную",
     switch_billing_confirm: "Переключить период оплаты",
     billing_switched: "Период оплаты успешно переключён",
-    failed_switch_billing: "Попробуйте снова.",
+    failed_switch_billing: "Период оплаты не изменился. Попробуйте снова. Текущий период по-прежнему действует.",
     current_billing_interval: "Оплата {{interval}}",
     switching_billing: "Переключение...",
     billing_banner_title: "Откройте больше возможностей с Aster",
@@ -5908,8 +5908,8 @@ export const ru = {
     active_addons: "Ваши активные дополнения",
     no_active_addons: "Нет активных дополнений хранилища.",
     confirm_cancel_addon: "Отменить дополнительное хранилище",
-    addon_purchase_failed: "Попробуйте снова.",
-    addon_cancel_failed: "Попробуйте снова.",
+    addon_purchase_failed: "Не удалось начать покупку дополнения. Попробуйте снова. Ваша оплата не изменилась.",
+    addon_cancel_failed: "Не удалось отменить дополнительное хранилище. Попробуйте снова. Дополнение по-прежнему активно.",
     addon_purchase_success: "Перенаправление на оплату...",
     addon_checkout_opened: "Завершите покупку в новой вкладке.",
     plan_recommended: "Рекомендуемый",
@@ -6237,7 +6237,7 @@ export const ru = {
     credit_balance: "Баланс кредитов",
     use_credits_for_renewals: "Использовать кредиты для продления",
     credits_toggle_updated: "Настройки кредитов обновлены",
-    credits_toggle_failed: "Попробуйте снова.",
+    credits_toggle_failed: "Эта настройка не сохранилась. Попробуйте снова. Прежнее значение по-прежнему действует.",
     credits_earn_first:
       "Сначала заработайте кредиты, чтобы включить эту функцию",
     recent_transactions: "Последние транзакции",
@@ -6474,7 +6474,7 @@ export const ru = {
     country: "Страна",
     save_address: "Сохранить адрес",
     address_saved: "Адрес для выставления счетов сохранён",
-    address_save_failed: "Попробуйте снова.",
+    address_save_failed: "Платёжный адрес не сохранился. Попробуйте снова. Прежний адрес остался.",
     saving: "Сохранение...",
     redeem: "Активировать",
     redeeming: "Активация...",
@@ -6486,7 +6486,7 @@ export const ru = {
     export_ready: "Ваш экспорт готов к загрузке.",
     export_processing: "Экспорт подготавливается...",
     download_export: "Скачать",
-    export_failed: "Попробуйте снова.",
+    export_failed: "Не удалось начать экспорт. Попробуйте снова. Ваша почта не изменилась.",
     biennial: "2 года",
     all_star_features: "Всё из тарифа Star, плюс:",
     all_nova_features: "Всё из тарифа Nova, плюс:",
@@ -7209,7 +7209,7 @@ export const ru = {
     desktop_bridge_description:
       "Используйте Aster с Thunderbird, Apple Mail, Outlook или любым IMAP/JMAP-клиентом. Aster Bridge работает локально и передаёт расшифрованный почтовый ящик вашему клиенту.",
     desktop_bridge_install_hint:
-      "Aster Bridge должен быть установлен и запущен. Скачайте его на astermail.org/bridge.",
+      "Aster Bridge должен быть установлен и запущен. Скачайте его в разделе Настройки > Bridge.",
     desktop_bridge_set_up: "Настроить {{ client }}",
     bridge: "Bridge",
     bridge_description:
@@ -7227,9 +7227,9 @@ export const ru = {
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
     bridge_linux_pacman_link: "Arch Linux",
-    bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
-    bridge_linux_deb_arm64_link: ".deb (ARM64)",
-    bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
+    bridge_linux_appimage_arm64_link: "AppImage",
+    bridge_linux_deb_arm64_link: ".deb",
+    bridge_linux_rpm_arm64_link: ".rpm",
     bridge_other_formats: "Другие форматы",
     bridge_arch_x64: "x86-64",
     bridge_arch_arm64: "ARM64",
@@ -7458,7 +7458,7 @@ export const ru = {
     f_folder_lock: "Блокировка папок",
     f_tracker_protection_long: "Блокировка трекеров и внешних изображений",
     f_zero_knowledge: "Архитектура нулевого доступа",
-    failed_create_import_job: "Попробуйте снова.",
+    failed_create_import_job: "Не удалось начать импорт. Попробуйте снова. Ваши существующие письма в безопасности.",
     failed_to_load_allowlist: "Не удалось загрузить список разрешённых. Попробуйте снова.",
     failed_to_load_blocklist: "Попробуйте снова.",
     feature_tracker_protection: "Защита от трекеров",
@@ -7562,7 +7562,7 @@ export const ru = {
     app_lock_wrong_pin: "Неверный PIN",
     app_lock_locked_out_for: "Слишком много попыток - повторите через {{s}}с",
     vanguard_title: "Aster Vanguard",
-    vanguard_description: "Только Nova+. Больше функций скоро.",
+    vanguard_description: "Расширенная защита для журналистов, активистов и аккаунтов с высоким риском. Только для Nova+.",
     vanguard_info:
       "Aster Vanguard активирует сложные функции безопасности для журналистов, юристов и людей с повышенным уровнем риска. Включает PIN-блокировку, расширенный контроль сессий и другие защиты.",
     vanguard_active: "Vanguard Активен",
@@ -7603,11 +7603,11 @@ export const ru = {
     lockdown_badge: "Блокировка",
     lockdown_must_disable_first:
       "Сначала выключите режим блокировки, затем Vanguard.",
-    oauth_folders_error: "Попробуйте снова.",
+    oauth_folders_error: "Настройка папок не завершилась. Попробуйте снова.",
     oauth_folders_partial:
       "{{count}} папок не удалось настроить, остальные готовы к использованию.",
     oauth_folders_ready: "Папки синхронизированы успешно",
-    oauth_reason_account_creation_failed: "Попробуйте снова.",
+    oauth_reason_account_creation_failed: "Не удалось завершить настройку связанного аккаунта. Попробуйте снова.",
     oauth_reason_email_not_found:
       "Не удалось получить ваш адрес у провайдера. Повторите попытку; если ошибка сохраняется, используйте ручную настройку IMAP.",
     oauth_reason_session_expired: "Сессия входа истекла. Повторите попытку.",
@@ -7621,15 +7621,15 @@ export const ru = {
       "Мы не распознаём этого провайдера. Выберите поддерживаемого из списка.",
     oauth_reason_invalid_state:
       "Сессия подключения больше недействительна. Начните заново, чтобы подключиться снова.",
-    oauth_reason_missing_code: "Попробуйте снова.",
+    oauth_reason_missing_code: "Вход на стороне провайдера не завершился. Попробуйте снова.",
     oauth_reason_missing_state:
       "Запрос на подключение не совпал с ожидаемым. Попробуйте начать заново.",
     oauth_reason_provider_denied:
       "Другой провайдер не принял подключение. Попробуйте подключиться снова или проверьте учётную запись у этого провайдера.",
     oauth_reason_provider_not_configured:
       "Этот провайдер ещё не настроен в Aster. При необходимости напишите на hello@astermail.org.",
-    oauth_reason_token_exchange_failed: "Попробуйте снова.",
-    oauth_reason_unknown: "Попробуйте снова.",
+    oauth_reason_token_exchange_failed: "Подключение не завершилось. Попробуйте снова. Другие ваши аккаунты не изменились.",
+    oauth_reason_unknown: "Что-то пошло не так. Попробуйте снова. Нам не удалось установить причину.",
     oauth_setting_up_folders: "Настройка папок...",
     oldest_first: "Сначала старые",
     or_pay_with_card: "Или оплатить картой",
@@ -7733,7 +7733,7 @@ export const ru = {
     refer_a_friend: "Пригласить друга",
     referral_email_body:
       "Привет!\n\nЯ уже некоторое время пользуюсь Aster Mail, и мне очень нравится. Всё зашифровано сквозным шифрованием, поэтому прочитать твою почту не может никто, кроме тебя. Даже те, кто управляет сервисом.\n\nЕсли хочешь попробовать, вот моя ссылка-приглашение:\n\n{{ referral_link }}\n\nКак только ты начнёшь им пользоваться, мы оба получим {{ amount }} дополнительного хранилища, так что тебе тоже будет польза.\n\nВсего доброго",
-    referral_email_subject: "Попробуй Aster Mail - приватная почта для всех",
+    referral_email_subject: "Попробуйте Aster Mail",
     referral_how_it_works: "Как это работает",
     referral_loading_contacts: "Загрузка контактов...",
     referral_no_contacts: "Контакты не найдены. Сначала добавьте контакты!",
@@ -8896,7 +8896,7 @@ export const ru = {
     pick_expiration: "Выбрать срок действия",
     set_expiration: "Установить срок действия",
     password_description:
-      "Внешним получателям потребуется этот пароль для просмотра письма",
+      "Получателям понадобится этот пароль, чтобы просмотреть письмо",
     no_password: "Без пароля",
     replying_to: "Ответ для {{name}}",
     reply_sent_successfully: "Ответ успешно отправлен",
@@ -9175,7 +9175,7 @@ export const ru = {
     search_within_3_months: "3 месяца",
     search_within_6_months: "6 месяцев",
     search_within_any: "За всё время",
-    searching_message_content: "Поиск в содержимом",
+    searching_message_content: "Искать в содержимом писем",
     search_taking_too_long: "Поиск занимает слишком много времени",
     search_refine_terms:
       "Попробуйте уточнить поиск, используя более конкретные слова.",
@@ -9490,7 +9490,7 @@ export const ru = {
       "Это не похоже на правильный адрес электронной почты. Что-то вроде name@example.com обычно подходит.",
     recovery_email_conflict:
       "Этот адрес уже защищает максимум 20 аккаунтов Aster. Используйте другой адрес.",
-    failed_save_recovery_email: "Попробуйте снова.",
+    failed_save_recovery_email: "Адрес для восстановления не сохранился. Попробуйте снова. Текущие настройки восстановления не изменились.",
     recovery_phrase_title: "Сохраните вашу фразу восстановления",
     recovery_phrase_desc:
       "Эти 12 слов - единственный способ полностью восстановить ваш аккаунт и всю зашифрованную почту, если вы когда-нибудь забудете пароль. Запишите их по порядку и храните в надёжном месте офлайн.",
@@ -9566,7 +9566,7 @@ export const ru = {
     please_enter_recovery_code:
       "Здесь нужен один из ваших кодов восстановления.",
     invalid_recovery_code:
-      "Этот код восстановления не совпал. Другой из сохранённого списка обычно подходит.",
+      "Этот код не подходит для этого аккаунта. Сверьте его с сохранённым списком и введите снова. Пробелы и регистр букв не важны.",
     recovery_locked_out:
       "С этим аккаунтом было слишком много попыток восстановления. Вы сможете повторить попытку через {{time}}. Ни один из ваших кодов не был использован, поэтому все они у вас остались.",
     invalid_backup_code:
@@ -9578,7 +9578,7 @@ export const ru = {
       "Восстановление не завершилось. Начать сначала обычно помогает. Учётная запись остаётся без изменений.",
     add_special_characters: "Добавьте специальные символы (!@#$%)",
     recovery_codes_start_with_aster:
-      "Коды восстановления начинаются с 'ASTER-'",
+      "Код восстановления выглядит так: ASTER-XXXX-XXXX-XXXX-XXXX. Проверьте код и введите его снова.",
     verifying_recovery_code: "Проверка кода восстановления...",
     recovery_session_expired:
       "Эта сессия восстановления завершилась. Повторный запуск процесса восстановления её возвращает. Учётная запись остаётся без изменений.",
@@ -9666,7 +9666,7 @@ export const ru = {
     resend_in_seconds: "Отправить повторно через {{seconds}}с",
     skip_verification: "Пропустить подтверждение",
     recovery_email_required_notice:
-      "Резервная почта обязательна для предотвращения спама.",
+      "Адрес для восстановления обязателен для защиты от спама.",
     abuse_account_limit:
       "Эта регистрация отмечена автоматической системой безопасности, и создать учётную запись не получается. Если это похоже на ошибку, hello@astermail.org сможет помочь.",
     abuse_flagged_message:
@@ -10011,7 +10011,7 @@ export const ru = {
       "К сообщению можно добавить не больше двух реакций. Чтобы добавить другую, удалите одну из своих.",
     cannot_react_no_recipient:
       "У этого сообщения нет отправителя, которому можно отправить реакцию.",
-    failed_send_reaction: "Попробуйте снова.",
+    failed_send_reaction: "Не удалось отправить реакцию. Попробуйте снова.",
     reactions_disabled: "Реакции отключены в ваших настройках.",
     pending_email_verification:
       "Проверьте почту и перейдите по ссылке подтверждения, чтобы активировать этот аккаунт.",
@@ -10040,7 +10040,7 @@ export const ru = {
       "Этот пароль превышает лимит длины. Более короткий обычно подходит.",
     account_not_found:
       "Учётная запись с таким именем не найдена. Проверьте написание или сбросьте пароль на astermail.org/reset.",
-    login_failed: "Попробуйте снова.",
+    login_failed: "Вход не завершился. Попробуйте снова. Ваш аккаунт не заблокирован.",
     decrypt_failed:
       "Этот пароль не открыл ключи на этом устройстве. Повторная попытка обычно помогает, а код восстановления на astermail.org/reset остаётся запасным вариантом, если ошибки продолжатся. Данные на сервере остаются без изменений.",
     send_limit_reached:
@@ -10048,16 +10048,16 @@ export const ru = {
     ip_blocked:
       "Слишком много неудачных попыток входа. Подождите {{time}} и попробуйте снова. Учётная запись не заблокирована.",
     an_error_occurred: "Попробуйте снова.",
-    failed_to_block_sender: "Попробуйте снова.",
-    failed_to_snooze: "Попробуйте снова.",
+    failed_to_block_sender: "Не удалось заблокировать этого отправителя. Попробуйте снова.",
+    failed_to_snooze: "Это письмо не отложено. Попробуйте снова. Оно по-прежнему во «Входящих».",
     ghost_alias_not_found:
       "Ghost-адрес, привязанный к этой переписке, найти не удалось.",
-    failed_to_resolve_ghost_alias: "Попробуйте снова.",
+    failed_to_resolve_ghost_alias: "Призрачный адрес для этой переписки не загрузился. Попробуйте снова.",
     ghost_alias_rate_limit:
       "Все ghost-псевдонимы за этот месяц израсходованы. Повышение тарифа или ожидание сброса в следующем месяце добавляет новые.",
     ghost_alias_already_exists:
       "Этот ghost-псевдоним уже есть на вашей учётной записи.",
-    failed_to_create_ghost_alias: "Попробуйте снова.",
+    failed_to_create_ghost_alias: "Этот призрачный псевдоним не сохранился. Попробуйте снова. Другие ваши псевдонимы не изменились.",
     ghost_expiry_extend_only:
       "Ghost-адрес можно только продлить, но не сократить.",
     ghost_expiry_update_failed: "Срок действия не обновился. Попробуйте снова.",
@@ -10071,7 +10071,7 @@ export const ru = {
     vault_missing_key:
       "Мы не нашли ключ устройства, нужный для чтения этого хранилища. Выход и повторный вход заново привяжут это устройство. Ваши данные на сервере не затронуты.",
     wrong_folder_password:
-      "Этот пароль папки не подошёл. Ещё одна попытка обычно помогает. Папка остаётся закрытой.",
+      "Неверный пароль папки. Попробуйте снова. Папка остаётся заблокированной.",
     wrong_external_account_password:
       "Этот пароль внешней учётной записи не подошёл. Проверка в Настройках и ещё одна попытка обычно помогают. Сохранённое подключение без изменений.",
     decrypt_wrong_key:
@@ -10119,11 +10119,11 @@ export const ru = {
     alias_too_long: "Используйте не более 64 символов.",
     alias_too_short: "Используйте не менее 3 символов.",
     all_emails_rejected:
-      "Все {{count}} писем в этом файле пропущены, потому что в каждом из них нет отправителя или текста, поэтому ничего не импортировано. Проверьте исходный экспорт и попробуйте снова.",
+      "Все письма в этом файле ({{count}}) пропущены, потому что в каждом нет отправителя или текста, поэтому ничего не импортировано. Проверьте исходный экспорт и попробуйте снова.",
     auth_required: "Войдите, чтобы продолжить.",
     authentication_cancelled: "Аутентификация отменена",
-    authentication_failed: "Попробуйте снова.",
-    authentication_failed_webauthn: "Попробуйте снова.",
+    authentication_failed: "Вход не завершился. Попробуйте снова. Ваш аккаунт не заблокирован.",
+    authentication_failed_webauthn: "Вход с ключом безопасности не завершился или был отменён. Попробуйте снова.",
     cannot_send_no_keys:
       "У вас включено обязательное шифрование, но у нас нет ключа для {{recipients}}. Попросите их поделиться ключом или отключите обязательное шифрование в Настройках. Черновик сохранён.",
     cannot_send_no_recipient_keys:
@@ -10160,9 +10160,9 @@ export const ru = {
       "Ваши закрытые ключи заблокированы на этом устройстве. Пароль их разблокирует. Ключи на сервере не изменились.",
     failed_decrypt_draft:
       "Не удалось открыть черновик на этом устройстве. Обычно помогает выйти и снова войти, затем повторить попытку.",
-    failed_encrypt_draft: "Попробуйте снова.",
-    failed_encrypt_envelope: "Попробуйте снова.",
-    failed_pgp_encrypt: "Попробуйте снова.",
+    failed_encrypt_draft: "Не удалось надёжно сохранить черновик на этом устройстве. Попробуйте снова. Набранный текст остался в окне письма.",
+    failed_encrypt_envelope: "Не удалось защитить это письмо для отправки. Попробуйте снова. Черновик сохранён.",
+    failed_pgp_encrypt: "Не удалось зашифровать это письмо ключом PGP получателя. Попробуйте снова. Черновик сохранён.",
     failed_parse_csv:
       "Не удалось прочитать этот CSV: {{error}}. Проверьте файл и попробуйте снова.",
     failed_parse_email:
@@ -10173,28 +10173,28 @@ export const ru = {
       "Не удалось прочитать сообщение в этом PST-файле: {{error}}. Попробуйте экспортировать из Outlook как MBOX.",
     failed_parse_pst_file:
       "Этот PST-файл не удалось прочитать: {{error}}. Обычно помогает экспорт из почтового клиента как MBOX.",
-    failed_queue_email: "Попробуйте снова.",
-    failed_queue_forward: "Попробуйте снова.",
-    failed_queue_reply: "Попробуйте снова.",
-    failed_send: "Попробуйте снова.",
+    failed_queue_email: "Не удалось сохранить это письмо для отправки позже. Попробуйте снова. Черновик сохранён.",
+    failed_queue_forward: "Не удалось сохранить эту пересылку для отправки позже. Попробуйте снова. Черновик сохранён.",
+    failed_queue_reply: "Не удалось сохранить этот ответ для отправки позже. Попробуйте снова. Черновик сохранён.",
+    failed_send: "Это письмо не отправлено. Попробуйте снова. Черновик сохранён.",
     attachments_too_large:
       "Вложения в сумме превышают {{size}}. Это максимум для одного письма на вашем тарифе. Удалите или уменьшите файл, чтобы отправить. Черновик сохранён.",
     too_many_attachments:
       "В письме больше {{max}} вложений. Это максимум для одного письма. Удалите несколько, чтобы отправить. Черновик сохранён.",
-    failed_send_email: "Попробуйте снова.",
-    failed_send_external: "Попробуйте снова.",
-    failed_to_list_snoozed: "Попробуйте снова.",
-    failed_to_queue_email: "Попробуйте снова.",
-    failed_to_send_external_queued: "Попробуйте снова.",
-    failed_to_send_queued: "Попробуйте снова.",
-    failed_to_snooze_email: "Попробуйте снова.",
+    failed_send_email: "Это письмо не отправлено. Попробуйте снова. Черновик сохранён.",
+    failed_send_external: "Это письмо не отправлено через связанный внешний аккаунт. Попробуйте снова. Черновик сохранён.",
+    failed_to_list_snoozed: "Отложенные письма не загрузились. Попробуйте снова. Они в безопасности на сервере.",
+    failed_to_queue_email: "Не удалось сохранить это письмо для отправки позже. Попробуйте снова. Черновик сохранён.",
+    failed_to_send_external_queued: "Это письмо не отправлено через связанный внешний аккаунт. Попробуйте снова. Черновик сохранён.",
+    failed_to_send_queued: "Это письмо не отправлено. Попробуйте снова. Черновик сохранён.",
+    failed_to_snooze_email: "Это письмо не отложено. Попробуйте снова. Оно по-прежнему во «Входящих».",
     failed_to_snooze_emails: "Попробуйте снова.",
-    failed_to_unsnooze_email: "Попробуйте снова.",
+    failed_to_unsnooze_email: "Это письмо не вернулось во «Входящие». Попробуйте снова.",
     file_too_large:
       "Этот файл {{size}} МБ, что превышает лимит {{limit}} МБ. Подойдёт меньший файл.",
-    health_check_failed: "Попробуйте снова.",
+    health_check_failed: "Диагностика не завершилась. Попробуйте снова.",
     incorrect_password:
-      "Пароль не совпал. Попробуйте ещё раз. Ваш аккаунт не заблокирован.",
+      "Неверный пароль. Попробуйте снова. Ваш аккаунт не заблокирован.",
     internal_error:
       "На нашей стороне возникла ошибка сервера. Обычно помогает повторная попытка через некоторое время. Мы разбираемся.",
     invalid_request:
@@ -10239,9 +10239,9 @@ export const ru = {
       "Сессия завершилась до того, как письмо было отправлено. Повторный вход отправит его. Черновик сохранён.",
     storage_compromised:
       "Зашифрованные данные на этом устройстве не соответствуют ожидаемым, что может указывать на вмешательство. Часто помогает выйти и снова войти. Если предупреждение повторится, немедленно свяжитесь с hello@astermail.org. Ваши данные на сервере не изменились.",
-    unexpected_error: "Попробуйте снова.",
+    unexpected_error: "Что-то пошло не так. Попробуйте снова.",
     unexpected_health_check_error: "Попробуйте снова.",
-    unknown_error: "Попробуйте снова.",
+    unknown_error: "Что-то пошло не так. Попробуйте снова. Нам не удалось установить причину.",
     unrecognized_format:
       "Aster не может прочитать {{name}}. Поддерживаемые форматы: MBOX, EML, CSV и PST. Сохраните файл в одном из них и попробуйте снова.",
     version_conflict:
@@ -10459,7 +10459,7 @@ export const ru = {
       "Перед сохранением правила нужно добавить хотя бы одно действие.",
     last_condition_required:
       "Перед сохранением правила нужно добавить хотя бы одно условие.",
-    load_failed: "Попробуйте снова.",
+    load_failed: "Правила не загрузились. Попробуйте снова. Сохранённые правила в безопасности.",
     match_all: "все условия",
     match_any: "любое условие",
     match_case: "С учётом регистра",
@@ -10506,15 +10506,15 @@ export const ru = {
       "Это регулярное выражение недействительно. Проверьте синтаксис и попробуйте снова.",
     regex_too_long: "Этот regex слишком длинный. Подойдёт сокращённая версия.",
     remove_action: "Удалить действие",
-    reorder_failed: "Попробуйте снова.",
-    rule_delete_failed: "Попробуйте снова.",
+    reorder_failed: "Новый порядок не сохранился. Попробуйте снова. Правила по-прежнему выполняются в прежнем порядке.",
+    rule_delete_failed: "Это правило не удалено. Попробуйте снова. Правило по-прежнему действует.",
     snooze_needs_future: "Выберите дату и время в будущем.",
     rule_color: "Цвет",
     rule_limit_body:
       "Вы достигли лимита правил. Обновите тарифный план, чтобы добавить больше.",
     rule_limit_reached: "Достигнут лимит правил",
     rule_name_placeholder: "Название правила",
-    save_failed: "Попробуйте снова.",
+    save_failed: "Это правило не сохранилось. Попробуйте снова. Прежняя версия по-прежнему действует.",
     save_rule: "Сохранить правило",
     snooze_1_day: "1 день",
     snooze_1_hour: "1 час",
@@ -10570,7 +10570,7 @@ export const ru = {
       "Если письмо создано автоматически (в нём есть заголовок Auto-Submitted, например от отправителей no-reply), помещайте его в «Уведомления».",
     tpl_receipts_name: "Архивировать чеки",
     tpl_receipts_desc:
-      "Если в теме упоминаются чек, счёт или подтверждение заказа, минуйте входящие и помещайте письмо в «Уведомления».",
+      "Если в теме упоминается чек, счёт или подтверждение заказа, пропускать «Входящие» и помещать письмо в «Уведомления».",
     tpl_vip_sender_name: "Отмечать важного отправителя",
     tpl_vip_sender_desc:
       "Когда приходит письмо от выбранного отправителя, отмечайте его и отправляйте уведомление. Укажите адрес отправителя перед сохранением.",
