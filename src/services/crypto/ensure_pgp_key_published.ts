@@ -41,11 +41,7 @@ export function reset_pgp_publish_attempt(): void {
 }
 
 export type PgpPublishHealResult =
-  | "already_published"
-  | "healed"
-  | "no_local_key"
-  | "skipped"
-  | "failed";
+  "already_published" | "healed" | "no_local_key" | "skipped" | "failed";
 
 export async function ensure_pgp_key_published(options?: {
   force?: boolean;
@@ -60,6 +56,14 @@ export async function ensure_pgp_key_published(options?: {
 
   const vault = get_vault_from_memory();
   const passphrase = get_passphrase_from_memory();
+
+  if (vault && !vault.identity_key && passphrase) {
+    return install_identity_key_when_unpublished(
+      account_id,
+      account?.user?.email ?? null,
+      account?.user?.display_name ?? null,
+    );
+  }
 
   if (!vault?.identity_key || !passphrase) return "skipped";
   if (!vault.identity_key.trimStart().startsWith(PGP_PRIVATE_KEY_HEADER)) {
@@ -82,6 +86,31 @@ export async function ensure_pgp_key_published(options?: {
       );
 
   if (healed) {
+    attempted_account_ids.add(account_id);
+
+    return "healed";
+  }
+
+  return "failed";
+}
+
+async function install_identity_key_when_unpublished(
+  account_id: string,
+  user_email: string | null,
+  user_name: string | null,
+): Promise<PgpPublishHealResult> {
+  const existing = await api_client
+    .get("/crypto/v1/encryption/pgp-key")
+    .catch(() => null);
+
+  if (!existing) return "skipped";
+  if (existing.data) return "no_local_key";
+  if (existing.code !== "NOT_FOUND") return "skipped";
+
+  const { install_missing_identity_key } =
+    await import("@/services/crypto/install_missing_identity_key");
+
+  if (await install_missing_identity_key(user_email, user_name)) {
     attempted_account_ids.add(account_id);
 
     return "healed";

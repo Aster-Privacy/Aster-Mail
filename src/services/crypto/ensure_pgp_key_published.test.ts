@@ -29,6 +29,7 @@ import {
 import { api_client } from "@/services/api/client";
 import { republish_pgp_key } from "@/services/api/key_rotation";
 import { rekey_pgp_if_needed } from "@/services/pgp_rekey_service";
+import { install_missing_identity_key } from "@/services/crypto/install_missing_identity_key";
 import {
   get_vault_from_memory,
   get_passphrase_from_memory,
@@ -61,6 +62,10 @@ vi.mock("@/services/account_manager", () => ({
 
 vi.mock("@/services/pgp_rekey_service", () => ({
   rekey_pgp_if_needed: vi.fn(async () => true),
+}));
+
+vi.mock("@/services/crypto/install_missing_identity_key", () => ({
+  install_missing_identity_key: vi.fn(async () => true),
 }));
 
 const PASSPHRASE = "correct horse battery staple";
@@ -253,5 +258,46 @@ describe("ensure_pgp_key_published", () => {
 
     expect(result).toBe("failed");
     expect(republish_pgp_key).not.toHaveBeenCalled();
+  });
+  it("installs an identity key when the vault has none and the server has none", async () => {
+    vi.mocked(install_missing_identity_key).mockResolvedValue(true);
+    vi.mocked(get_vault_from_memory).mockReturnValue({} as never);
+    vi.mocked(api_client.get).mockResolvedValue({
+      error: "PGP key not found",
+      code: "NOT_FOUND",
+    });
+
+    const result = await ensure_pgp_key_published();
+
+    expect(result).toBe("healed");
+    expect(install_missing_identity_key).toHaveBeenCalledWith(
+      "test_user@aster.cx",
+      "test_user",
+    );
+  });
+
+  it("never replaces a missing identity key when the server holds a published one", async () => {
+    vi.mocked(get_vault_from_memory).mockReturnValue({} as never);
+    vi.mocked(api_client.get).mockResolvedValue({
+      data: { fingerprint: "ABC" },
+    });
+
+    const result = await ensure_pgp_key_published();
+
+    expect(result).toBe("no_local_key");
+    expect(install_missing_identity_key).not.toHaveBeenCalled();
+  });
+
+  it("does not install an identity key on a server error", async () => {
+    vi.mocked(get_vault_from_memory).mockReturnValue({} as never);
+    vi.mocked(api_client.get).mockResolvedValue({
+      error: "Internal server error",
+      code: "SERVER_ERROR",
+    });
+
+    const result = await ensure_pgp_key_published();
+
+    expect(result).toBe("skipped");
+    expect(install_missing_identity_key).not.toHaveBeenCalled();
   });
 });
