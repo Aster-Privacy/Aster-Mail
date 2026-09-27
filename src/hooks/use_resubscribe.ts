@@ -31,6 +31,9 @@ import { request_cache } from "@/services/api/request_cache";
 import { get_current_account_id } from "@/services/account_manager";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { show_upgrade_plans } from "@/stores/upgrade_store";
+import { show_special_offer } from "@/stores/special_offer_store";
+import { get_special_offer_status_snapshot } from "@/stores/special_offer_status";
+import { is_special_offer_available } from "@/lib/special_offer";
 import { show_toast } from "@/components/toast/simple_toast";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { use_i18n } from "@/lib/i18n/context";
@@ -107,7 +110,8 @@ async function refresh_resubscribe_kind(): Promise<void> {
 
   const kind = await kind_request_in_flight.promise;
 
-  if ((await get_current_account_id()) === account_id) publish(kind, account_id);
+  if ((await get_current_account_id()) === account_id)
+    publish(kind, account_id);
 }
 
 export function clear_resubscribe_cache(): void {
@@ -133,7 +137,16 @@ export function use_resubscribe(is_open: boolean) {
 
   const resubscribe = useCallback(async () => {
     if (kind === "choose") {
-      show_upgrade_plans();
+      const offer = get_special_offer_status_snapshot().status;
+      const offer_open =
+        !!offer?.available &&
+        is_special_offer_available({
+          plan_code: "free",
+          is_dismissed: offer.dismissed ?? false,
+        }) &&
+        show_special_offer("manual");
+
+      if (!offer_open) show_upgrade_plans();
 
       return;
     }

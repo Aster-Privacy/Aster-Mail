@@ -4052,6 +4052,13 @@ export const tr = {
     reactivate: "Yeniden Etkinleştir",
     cancel_plan: "Planı İptal Et",
     billing_history: "Faturalandırma Geçmişi",
+    billing_plan_heading: "Plan",
+    billing_hide_plans: "Planları gizle",
+    billing_cancel_notice_title: "Planınız iptal edilecek",
+    billing_cancel_notice_body:
+      "Planınız {{date}} tarihinde sona eriyor. Ardından hesabınız ücretsiz plana geçer.",
+    billing_renewals_heading: "Yenilemeler",
+    billing_amount: "Tutar",
     billing_desc_payment_failed: "Ödeme başarısız oldu",
     billing_desc_refund_processed: "İade işleme alındı",
     billing_desc_payment_disputed: "Ödemeye itiraz edildi: {{reason}}",
@@ -4965,16 +4972,33 @@ export const tr = {
       "Ödeme başlatılırken bir sorun oluştu. Tekrar deneyin.",
     special_offer_was_price: "Önceki fiyat: aylık {{price}}",
     special_offer_original_price: "Normal fiyat: {{price}}",
-    special_offer_cta: "%{{percent}} indirim alın",
-    special_offer_feature_aliases: "Sınırsız takma ad ve özel alan adları",
-    special_offer_feature_vanguard:
-      "Aster Vanguard uygulama kilidi, kilitlenme modu ve güvenlik izleme",
-    special_offer_feature_storage: "500 GB şifrelenmiş depolama",
+    special_offer_cta: "%{{percent}} indirimi alın",
+    special_offer_feature_aliases: "Sınırsız takma ad",
+    special_offer_feature_vanguard: "Vanguard ile gelişmiş güvenlik",
+    special_offer_feature_storage: "500 GB şifreli depolama",
+    special_offer_why_body:
+      "Aster, küçük bir ekibe sahip bağımsız bir şirkettir ve desteğiniz bizim için çok değerlidir. Abonelikler hizmetin çalışmasını sağlar ve Aster'ı her gün özenle geliştirmeye devam etmemize olanak tanır. Bu teklif başlamanızı kolaylaştırır.",
+    special_offer_why_label: "Neden bu teklif?",
+    special_offer_feature_vanguard_body:
+      "Uygulama kilidi ve gelişmiş gizlilik koruması.",
+    special_offer_feature_domains_body:
+      "Kendi alan adlarınızdaki adreslerden gönderin.",
+    special_offer_feature_domains: "30'a kadar özel alan adı",
+    special_offer_feature_storage_body: "Yıllarca e-posta ve dosya için yer.",
+    special_offer_feature_aliases_body: "Her siteye ayrı bir adres verin.",
     special_offer_fine_print:
       "İlk {{months}} ay boyunca aylık {{offer_price}} ödersiniz. Ardından planınız, Ayarlar bölümünden iptal edene kadar aylık {{price}} olarak yenilenir.",
     special_offer_dismiss: "Bu teklifi bir daha gösterme",
     special_offer_dismissed_toast: "Bunu bir daha göstermeyeceğiz.",
+    special_offer_success_title: "Teşekkürler. Artık Nova kullanıyorsunuz.",
+    special_offer_success_body:
+      "Abone olduğunuz için teşekkürler. Desteğiniz bizim için çok değerli.",
     special_offer_hero_duration: "{{months}} ay boyunca",
+    special_offer_price_period_year: "yıllık",
+    special_offer_hero_duration_year: "ilk yıl için",
+    special_offer_fine_print_year:
+      "İlk yıl için {{offer_price}} ödersiniz. Ardından planınız, Ayarlar bölümünden iptal edene kadar yıllık {{price}} olarak yenilenir.",
+    special_offer_billing_period: "Faturalandırma dönemi",
     plan_billing_terms:
       "Abonelikler, siz iptal edene kadar standart fiyattan otomatik olarak yenilenir. İstediğiniz zaman Ayarlar bölümünden iptal edebilirsiniz.",
     upgrade_offer_note: "%{{percent}} indiriminiz ödeme sırasında uygulanır.",
@@ -5964,6 +5988,12 @@ export const tr = {
     checkout_abandon_title: "Bu ödeme iptal edilsin mi?",
     checkout_add_promo: "Promosyon kodu ekle",
     checkout_amount_due: "Ödenecek tutar",
+    checkout_offer_switch_term:
+      "%{{percent}} indirim için {{term}} seçeneğine geçin",
+    checkout_offer_switch_crypto: "%{{percent}} indirim için kriptoyla ödeyin",
+    checkout_offer_switch_card: "%{{percent}} indirim için kartla ödeyin",
+    checkout_offer_renewal:
+      "{{months}} ay boyunca aylık {{offer_price}}, sonra aylık {{price}}",
     checkout_card_details: "Kart bilgileri",
     checkout_full_features_title: "{{plan}} özellikleri",
     checkout_leave_warning:
@@ -6918,7 +6948,7 @@ export const tr = {
     crypto_native_recommended: "Önerilen",
     crypto_native_resume_selected: "Seçili",
     crypto_native_status_underpaid: "Kısmen ödendi",
-    crypto_native_what_happens: "Sırada ne var",
+    crypto_native_what_happens: "Ödeme durumu",
     crypto_native_stripe_option: "Stablecoin ile öde",
     crypto_native_stripe_desc:
       "Ödeme sağlayıcımız üzerinden USDC ve diğer stablecoin'ler",
@@ -6928,7 +6958,7 @@ export const tr = {
       "Bugün çok fazla kripto faturası oluşturdunuz. Lütfen daha sonra tekrar deneyin.",
     crypto_native_invoice_title: "{{coin}} ile öde",
     crypto_native_awaiting_body:
-      "Aşağıdaki adrese tam tutarı gönderin. Bu sayfa otomatik olarak güncellenir.",
+      "Aşağıdaki adrese tam tutarı gönderin. Bu sayfa otomatik olarak güncellenecek.",
     crypto_native_received_title: "Ödeme alındı",
     crypto_native_received_body:
       "Tutarın tamamı alındı ve işleniyor. Başka bir ödeme yapmanıza gerek yok.",
@@ -6961,7 +6991,7 @@ export const tr = {
       "Ödemeniz kısa bir manuel kontrol gerektiriyor. Hesabınıza kısa süre içinde yansıtacağız.",
     crypto_native_transaction: "İşlem",
     crypto_native_refund_notice:
-      "Ödenmesi gereken tutardan fazlasını gönderirseniz fazla kısım ABD doları olarak Aster hesap bakiyenize eklenir. Bunun yerine iade edilmesini de isteyebilirsiniz.",
+      "Ödenmesi gereken tutardan fazlasını gönderirseniz fazla kısım ABD doları olarak Aster hesap bakiyenize eklenir.",
     crypto_native_cancel_invoice: "Bu faturayı iptal et",
     crypto_native_cancel_failed: "Bu fatura iptal edilemedi.",
     crypto_native_cancel_has_payment:
@@ -6993,6 +7023,13 @@ export const tr = {
       "Göndermeden önce cüzdan ekranınızdaki adresi burada gösterilenle karşılaştırın. Siparişiniz için yalnızca bu adres izlenir.",
     crypto_native_fee_headroom:
       "Cüzdanınız ağ ücretini girdiğiniz tutardan düşüyorsa, tutarın tamamı ulaşsın diye biraz fazlasını ekleyin.",
+    crypto_native_network_only: "Yalnızca {{chain}} ağında {{coin}} gönderin",
+    crypto_native_tip_unrecoverable:
+      "Başka bir ağdan gönderilen fonlar kurtarılamaz.",
+    crypto_native_tip_check_address:
+      "Göndermeden önce cüzdanınızdaki adresi kontrol edin.",
+    crypto_native_tip_fee:
+      "Cüzdanınız ücreti tutardan düşüyorsa biraz fazla gönderin.",
     crypto_native_expired_do_not_send:
       "Bu faturadaki adrese gönderim yapmayın. Şimdi gönderilen fonların hesabınıza geçmesi için manuel inceleme gerekir.",
     crypto_native_not_found: "Bu faturayı bulamadık",
@@ -7044,6 +7081,8 @@ export const tr = {
     crypto_native_confirmations_progress: "Ağ onayları",
     crypto_paid_until: "{{date}} tarihine kadar ödendi (kripto)",
     crypto_no_renew_notice: "Kripto ödemeleri otomatik olarak yenilenmez.",
+    special_offer_crypto_one_payment:
+      "%{{percent}} indirim yalnızca bu ödeme için geçerlidir. Sonraki kripto ödemeleri normal fiyattan alınır. İndirimi bir yıl boyunca almak için 12 ay seçin.",
     crypto_renew_link: "Kripto ile yenile",
     crypto_success_toast: "Kripto ödeme alındı. Planınız aktif.",
     crypto_cancelled_toast: "Kripto ödeme iptal edildi.",
@@ -7763,6 +7802,8 @@ export const tr = {
       "Monero: iş ispatı kullanır ve genel amaçlı işlemcilerde madenciliği yapılır. Arkasında durabileceğimiz güncel bir değer bulamadığımız için bir sayı yayımlamıyoruz.",
     crypto_energy_caveat:
       "Bunlar bizim ölçümlerimiz değil, üçüncü taraf tahminleridir ve işlem başına rakamlar tartışmalıdır. Hiçbir ödeme yöntemi için çevresel bir iddiada bulunmuyoruz.",
+    crypto_native_rate_label: "Döviz kuru",
+    crypto_native_last_checked_label: "Son kontrol",
     crypto_native_rate_value: "Kullanılan kur: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "Kurunuzu sabitlemek için bir kripto para seçin. Ödemeyi ardından kendi cüzdanınızdan siz gönderirsiniz.",

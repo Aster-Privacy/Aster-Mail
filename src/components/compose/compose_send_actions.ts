@@ -36,7 +36,7 @@ import {
 } from "@/services/send_queue";
 import { send_via_external_account } from "@/services/api/external_accounts";
 import { prepare_external_attachments } from "@/services/crypto/attachment_crypto";
-import { show_toast } from "@/components/toast/simple_toast";
+import { dismiss_toast, show_toast } from "@/components/toast/simple_toast";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { emit_email_sent } from "@/hooks/mail_events";
@@ -64,6 +64,8 @@ export interface SendActionContext {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   confirm_draft_deleted?: () => Promise<void>;
 }
+
+const BACKGROUND_SEND_TOAST_MS = 15 * 60_000;
 
 function compute_delay(ctx: SendActionContext) {
   const delay_ms = get_undo_send_delay_ms(
@@ -426,15 +428,24 @@ export async function execute_external_email_send(
 
     return false;
   } else {
+    const sending_toast_id = show_toast(
+      ctx.t("common.sending"),
+      "info",
+      BACKGROUND_SEND_TOAST_MS,
+    );
+
+    ctx.reset_form();
+    ctx.on_close();
+    if (ctx.edit_draft && ctx.on_draft_cleared) {
+      ctx.on_draft_cleared();
+    }
+
     try {
       await execute_external_send(external_email_data, true);
+      dismiss_toast(sending_toast_id);
+      await ctx.confirm_draft_deleted?.();
       dispatch_email_sent();
       log_activities_for_sent(ctx, email_data);
-      ctx.reset_form();
-      ctx.on_close();
-      if (ctx.edit_draft && ctx.on_draft_cleared) {
-        ctx.on_draft_cleared();
-      }
       record_review_prompt_action();
       show_action_toast({
         message: ctx.t("common.email_sent"),
@@ -446,6 +457,7 @@ export async function execute_external_email_send(
         },
       });
     } catch (err) {
+      dismiss_toast(sending_toast_id);
       const msg = (err as Error).message;
 
       show_toast(
@@ -454,11 +466,9 @@ export async function execute_external_email_send(
           : msg || ctx.t("common.failed_to_send_external_email"),
         "error",
       );
-
-      return false;
     }
 
-    return true;
+    return false;
   }
 }
 

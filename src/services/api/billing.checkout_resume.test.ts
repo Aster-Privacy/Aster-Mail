@@ -55,6 +55,17 @@ describe("checkout resume plumbing", () => {
     expect(read_checkout_target()).toEqual({
       plan_code: "nova",
       billing_interval: "year",
+      special_offer: false,
+    });
+  });
+
+  it("remembers that a checkout came from the special offer", () => {
+    remember_checkout_target("nova", "month", true);
+
+    expect(read_checkout_target()).toEqual({
+      plan_code: "nova",
+      billing_interval: "month",
+      special_offer: true,
     });
   });
 

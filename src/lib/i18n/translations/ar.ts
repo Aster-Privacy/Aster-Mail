@@ -4225,6 +4225,13 @@ export const ar = {
       "ميزات الخطة المدفوعة تبقى لديك حتى نهاية دورة الفوترة الحالية، ثم تنتقل خطتك إلى المجانية. بريدك وجهات اتصالك وإعداداتك تبقى معك.",
     cancel_plan: "إلغاء الخطة",
     billing_history: "سجل الفوترة",
+    billing_plan_heading: "الخطة",
+    billing_hide_plans: "إخفاء الخطط",
+    billing_cancel_notice_title: "سيتم إلغاء خطتك",
+    billing_cancel_notice_body:
+      "تنتهي خطتك في {{date}}. بعد ذلك، ينتقل حسابك إلى الخطة المجانية.",
+    billing_renewals_heading: "التجديدات",
+    billing_amount: "المبلغ",
     billing_desc_payment_failed: "فشل الدفع",
     billing_desc_refund_processed: "تمت معالجة الاسترداد",
     billing_desc_payment_disputed: "نزاع على الدفع: {{reason}}",
@@ -5089,15 +5096,29 @@ export const ar = {
     special_offer_was_price: "كان {{price}} شهريًا",
     special_offer_original_price: "السعر الأصلي: {{price}}",
     special_offer_cta: "احصل على خصم {{percent}}%",
-    special_offer_feature_aliases: "أسماء مستعارة غير محدودة ونطاقات مخصصة",
-    special_offer_feature_vanguard:
-      "قفل تطبيق Aster Vanguard ووضع الإغلاق ومراقبة الأمان",
-    special_offer_feature_storage: "500 غيغابايت من التخزين المشفّر",
+    special_offer_feature_aliases: "أسماء مستعارة غير محدودة",
+    special_offer_feature_vanguard: "أمان متقدم مع Vanguard",
+    special_offer_feature_storage: "مساحة تخزين مشفرة بسعة 500 GB",
+    special_offer_why_body:
+      "Aster شركة مستقلة يديرها فريق صغير، ودعمك يعني لنا الكثير. تحافظ الاشتراكات على استمرار الخدمة وتتيح لنا مواصلة تطوير Aster بعناية كل يوم. يسهّل عليك هذا العرض البدء.",
+    special_offer_why_label: "لماذا هذا العرض؟",
+    special_offer_feature_vanguard_body: "قفل التطبيق وحماية متقدمة للخصوصية.",
+    special_offer_feature_domains_body: "أرسل من عناوين على نطاقاتك الخاصة.",
+    special_offer_feature_domains: "حتى 30 نطاقًا مخصصًا",
+    special_offer_feature_storage_body: "مساحة تكفي بريدك وملفاتك لسنوات.",
+    special_offer_feature_aliases_body: "امنح كل موقع عنوانًا خاصًا به.",
     special_offer_fine_print:
       "تدفع {{offer_price}} شهريًا لأول {{months}} شهرًا. بعد ذلك تُجدَّد خطتك بسعر {{price}} شهريًا حتى تلغيها من الإعدادات.",
     special_offer_dismiss: "عدم عرض هذا العرض مرة أخرى",
     special_offer_dismissed_toast: "لن نعرض هذا مرة أخرى.",
+    special_offer_success_title: "شكرًا لك. أصبحت مشتركًا في Nova.",
+    special_offer_success_body: "شكرًا لاشتراكك. دعمك يعني لنا الكثير.",
     special_offer_hero_duration: "لمدة {{months}} شهرًا",
+    special_offer_price_period_year: "سنويًا",
+    special_offer_hero_duration_year: "للسنة الأولى",
+    special_offer_fine_print_year:
+      "تدفع {{offer_price}} للسنة الأولى. بعد ذلك تُجدَّد خطتك بسعر {{price}} سنويًا حتى تلغيها من الإعدادات.",
+    special_offer_billing_period: "فترة الفوترة",
     plan_billing_terms:
       "تُجدَّد الاشتراكات تلقائيًا بالسعر العادي حتى تلغيها. يمكنك الإلغاء في أي وقت من الإعدادات.",
     upgrade_offer_note: "يُطبَّق خصم {{percent}}% عند الدفع.",
@@ -6107,6 +6128,13 @@ export const ar = {
     checkout_abandon_title: "هل تريد إلغاء هذه العملية؟",
     checkout_add_promo: "إضافة رمز ترويجي",
     checkout_amount_due: "المبلغ المستحق",
+    checkout_offer_switch_term:
+      "انتقل إلى {{term}} للحصول على خصم {{percent}}%",
+    checkout_offer_switch_crypto:
+      "ادفع بالعملات المشفرة للحصول على خصم {{percent}}%",
+    checkout_offer_switch_card: "ادفع بالبطاقة للحصول على خصم {{percent}}%",
+    checkout_offer_renewal:
+      "{{offer_price}} شهريًا لمدة {{months}} شهرًا، ثم {{price}} شهريًا",
     checkout_card_details: "بيانات البطاقة",
     checkout_full_features_title: "مزايا {{plan}}",
     checkout_leave_warning: "لديك عملية دفع جارية. إذا خرجت الآن، فلن تكتمل.",
@@ -6830,7 +6858,7 @@ export const ar = {
     crypto_native_recommended: "موصى به",
     crypto_native_resume_selected: "محدد",
     crypto_native_status_underpaid: "مدفوع جزئيًا",
-    crypto_native_what_happens: "ما الذي يحدث بعد ذلك",
+    crypto_native_what_happens: "تقدّم الدفع",
     crypto_native_stripe_option: "الدفع بعملة مستقرة",
     crypto_native_stripe_desc: "USDC وعملات مستقرة أخرى عبر مزود الدفع لدينا",
     crypto_native_too_many_open:
@@ -6839,7 +6867,7 @@ export const ar = {
       "لقد أنشأت عددًا كبيرًا من فواتير العملات المشفرة اليوم. يرجى المحاولة لاحقًا.",
     crypto_native_invoice_title: "الدفع باستخدام {{coin}}",
     crypto_native_awaiting_body:
-      "أرسل المبلغ بالضبط إلى العنوان أدناه. تُحدَّث هذه الصفحة تلقائيًا.",
+      "أرسل المبلغ بالضبط إلى العنوان أدناه. ستُحدَّث هذه الصفحة تلقائيًا.",
     crypto_native_received_title: "تم استلام الدفعة",
     crypto_native_received_body:
       "تم استلام المبلغ بالكامل وتجري معالجته. لا حاجة إلى إرسال أي دفعة أخرى.",
@@ -6873,7 +6901,7 @@ export const ar = {
       "تحتاج دفعتك إلى مراجعة يدوية سريعة. سنضيف الرصيد إلى حسابك قريبًا.",
     crypto_native_transaction: "المعاملة",
     crypto_native_refund_notice:
-      "إذا أرسلت أكثر من المبلغ المستحق، يُضاف الفائض إلى رصيد حسابك في Aster بالدولار الأمريكي. ويمكنك أن تطلب منّا استرداده بدلاً من ذلك.",
+      "إذا أرسلت أكثر من المبلغ المستحق، يُضاف الفائض إلى رصيد حسابك في Aster بالدولار الأمريكي.",
     crypto_native_cancel_invoice: "إلغاء هذه الفاتورة",
     crypto_native_cancel_failed: "تعذر إلغاء هذه الفاتورة.",
     crypto_native_cancel_has_payment:
@@ -6903,6 +6931,12 @@ export const ar = {
       "قبل الإرسال، قارن العنوان الظاهر على شاشة محفظتك بالعنوان المعروض هنا. هذا العنوان وحده هو المراقَب لطلبك.",
     crypto_native_fee_headroom:
       "إذا كانت محفظتك تخصم رسوم الشبكة من المبلغ الذي تدخله، فأضف قليلاً فوقه ليصل المبلغ كاملاً.",
+    crypto_native_network_only: "أرسل {{coin}} فقط على شبكة {{chain}}",
+    crypto_native_tip_unrecoverable:
+      "لا يمكن استرداد الأموال المرسلة على شبكة أخرى.",
+    crypto_native_tip_check_address: "تحقق من العنوان في محفظتك قبل الإرسال.",
+    crypto_native_tip_fee:
+      "إذا كانت محفظتك تخصم الرسوم من المبلغ، فأرسل مبلغًا إضافيًا بسيطًا.",
     crypto_native_expired_do_not_send:
       "لا ترسل أي أموال إلى العنوان الموجود في هذه الفاتورة. الأموال المُرسَلة الآن تحتاج إلى مراجعة يدوية قبل إضافتها إلى رصيدك.",
     crypto_native_not_found: "تعذر العثور على هذه الفاتورة",
@@ -6953,6 +6987,8 @@ export const ar = {
     crypto_native_confirmations_progress: "تأكيدات الشبكة",
     crypto_paid_until: "مدفوع حتى {{date}} (عملة مشفرة)",
     crypto_no_renew_notice: "مشتريات العملة المشفرة لا تُجدَّد تلقائيًا.",
+    special_offer_crypto_one_payment:
+      "ينطبق خصم {{percent}}% على هذه الدفعة فقط، وتُحتسب دفعات العملات المشفرة اللاحقة بالسعر العادي. للحصول على الخصم لمدة عام كامل، اختر 12 شهرًا.",
     crypto_renew_link: "التجديد بالعملة المشفرة",
     crypto_success_toast: "تم استلام دفع العملة المشفرة. خطتك نشطة.",
     crypto_cancelled_toast: "تم إلغاء دفع العملة المشفرة.",
@@ -7648,6 +7684,8 @@ export const ar = {
       "Monero: يعتمد على إثبات العمل ويُعدَّن على معالجات عامة الاستخدام. لم نجد رقمًا حديثًا ندعمه، لذا لا ننشر رقمًا.",
     crypto_energy_caveat:
       "هذه تقديرات من جهات خارجية وليست قياسات أجريناها، والأرقام لكل معاملة محل خلاف. نحن لا نقدّم أي ادعاء بيئي عن أي طريقة دفع.",
+    crypto_native_rate_label: "سعر الصرف",
+    crypto_native_last_checked_label: "آخر تحقق",
     crypto_native_rate_value: "السعر المستخدَم: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "اختر عملة لتثبيت سعر الصرف. ثم ترسل الدفعة بنفسك من محفظتك الخاصة.",

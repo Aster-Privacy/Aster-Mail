@@ -82,7 +82,7 @@ import {
   detect_currency_from_locale,
 } from "@/components/settings/billing/billing_constants";
 import { use_sticky_value } from "@/hooks/use_sticky_value";
-import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 
 export const STORAGE_PROMO_ENABLED = true;
 
@@ -730,14 +730,10 @@ export function StorageSection() {
                           )
                         }
                       >
-                        <span className="relative inline-flex items-center justify-center">
-                          <span className={is_busy ? "invisible" : undefined}>
-                            {entry.name === "spam"
-                              ? t("mail.empty_spam")
-                              : t("mail.empty_trash")}
-                          </span>
-                          {is_busy && <ButtonSpinner size="xs" />}
-                        </span>
+                        {entry.name === "spam"
+                          ? t("mail.empty_spam")
+                          : t("mail.empty_trash")}
+                        {is_busy && <ButtonSpinner size="xs" />}
                       </button>
                     )}
                     <span className="hidden flex-shrink-0 text-end text-xs tabular-nums text-txt-muted lg:block">
@@ -895,6 +891,10 @@ export function StorageSection() {
             set_addon_method_target(addon);
             set_show_addon_method_modal(true);
           }}
+          on_finished={() => {
+            set_show_crypto_addon_modal(false);
+            set_crypto_addon(null);
+          }}
           preferred_currency={preferred_currency}
           price_cents={crypto_addon.price_cents}
         />
@@ -936,11 +936,8 @@ export function StorageSection() {
               className="aster_btn_destructive max-sm:flex-1"
               onClick={handle_cancel_addon}
             >
-              {is_action_loading ? (
-                <Spinner size="sm" />
-              ) : (
-                t("settings.confirm_cancel_addon")
-              )}
+              {t("settings.confirm_cancel_addon")}
+              {is_action_loading && <ButtonSpinner />}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -995,7 +992,8 @@ export function StorageSection() {
               disabled={is_action_loading}
               onClick={handle_cleanup}
             >
-              {is_action_loading ? <Spinner size="sm" /> : t("common.confirm")}
+              {t("common.confirm")}
+              {is_action_loading && <ButtonSpinner />}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

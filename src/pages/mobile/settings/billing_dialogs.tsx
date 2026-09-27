@@ -30,7 +30,7 @@ import {
   is_crypto_provider,
 } from "@/components/settings/billing/billing_constants";
 import { format_price } from "@/services/api/billing";
-import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
@@ -56,6 +56,7 @@ import { CancelEarlyStep } from "@/components/settings/billing/cancel_early_step
 import { show_toast } from "@/components/toast/simple_toast";
 import { PaymentMethodsModal } from "@/components/settings/payment_methods_modal";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
+import { special_offer_promo_code } from "@/lib/special_offer";
 import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_change_confirm_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
@@ -65,7 +66,6 @@ export function render_billing_dialogs(
 ) {
   const {
     t,
-    special_offer_checkout,
     subscription,
     is_action_loading,
     show_cancel_dialog,
@@ -134,6 +134,9 @@ export function render_billing_dialogs(
     handle_pay_with_card,
     handle_confirm_plan_change,
     crypto_term_prices_for,
+    plan_term_options_for,
+    set_billing_period,
+    offer_checkout,
     handle_pay_with_crypto,
     handle_addon_pay_card,
     handle_addon_pay_crypto,
@@ -154,40 +157,6 @@ export function render_billing_dialogs(
   const downgrade_offer =
     base_offer && !base_offer.is_family ? base_offer : null;
   const step_after_reason: CancelStep = downgrade_offer ? "offer" : "impact";
-  const method_modal_tier = method_modal_plan
-    ? PLAN_TIERS.find((tier) => tier.id === method_modal_plan.code)
-    : undefined;
-  const method_modal_offer = method_modal_plan
-    ? special_offer_checkout.plan_pricing(method_modal_plan.code)
-    : undefined;
-  const method_modal_term =
-    method_modal_tier && method_modal_offer
-      ? billing_period === "yearly"
-        ? {
-            id: "yearly",
-            label: t("settings.billing_yearly"),
-            per_month_cents: Math.round(method_modal_tier.yearly_cents / 12),
-            total_cents: method_modal_tier.yearly_cents,
-            save_cents: 0,
-          }
-        : billing_period === "biennial"
-          ? {
-              id: "biennial",
-              label: t("settings.biennial"),
-              per_month_cents: Math.round(
-                method_modal_tier.biennial_cents / 24,
-              ),
-              total_cents: method_modal_tier.biennial_cents,
-              save_cents: 0,
-            }
-          : {
-              id: "monthly",
-              label: t("settings.billing_monthly"),
-              per_month_cents: method_modal_tier.monthly_cents,
-              total_cents: method_modal_tier.monthly_cents,
-              save_cents: 0,
-            }
-      : undefined;
 
   return (
     <>
@@ -317,11 +286,8 @@ export function render_billing_dialogs(
                   handle_cancel();
                 }}
               >
-                {is_action_loading ? (
-                  <Spinner size="sm" />
-                ) : (
-                  t("settings.cancel_final_confirm")
-                )}
+                {t("settings.cancel_final_confirm")}
+                {is_action_loading && <ButtonSpinner />}
               </AlertDialogAction>
             </AlertDialogFooter>
           ) : (
@@ -475,11 +441,20 @@ export function render_billing_dialogs(
             set_show_method_modal(false);
             set_method_modal_plan(null);
           }}
+          on_select_term={(id) =>
+            set_billing_period(
+              id === "monthly"
+                ? "monthly"
+                : id === "biennial"
+                  ? "biennial"
+                  : "yearly",
+            )
+          }
           open={show_method_modal}
           plan_name={method_modal_plan.name}
-          selected_term={method_modal_term?.id}
-          special_offer={method_modal_term ? method_modal_offer : undefined}
-          term_options={method_modal_term ? [method_modal_term] : undefined}
+          selected_term={billing_period}
+          special_offer={offer_checkout.plan_pricing(method_modal_plan.code)}
+          term_options={plan_term_options_for(method_modal_plan.code)}
         />
       )}
 
@@ -491,8 +466,8 @@ export function render_billing_dialogs(
 
           return (
             <CryptoTermModal
-              discount_percent_off={special_offer_checkout.percent_off}
-              discounted_price_cents={special_offer_checkout.crypto_price(
+              discount_percent_off={offer_checkout.percent_off}
+              discounted_price_cents={offer_checkout.crypto_price(
                 crypto_plan.code,
               )}
               initial_coin_key={
@@ -514,9 +489,21 @@ export function render_billing_dialogs(
                   set_crypto_back_plan(null);
                 }
               }}
+              on_finished={() => {
+                set_show_crypto_modal(false);
+                set_crypto_plan(null);
+                set_crypto_resume(null);
+                set_crypto_back_plan(null);
+              }}
               plan_code={crypto_plan.code}
               plan_name={crypto_plan.name}
               preferred_currency={preferred_currency}
+              promo_code={
+                offer_checkout.crypto_price(crypto_plan.code)
+                  ? special_offer_promo_code()
+                  : undefined
+              }
+              special_offer={!!offer_checkout.crypto_price(crypto_plan.code)}
               yearly_price_cents={tier.yearly_cents}
             />
           );
@@ -613,6 +600,7 @@ export function render_billing_dialogs(
             set_crypto_family_tier(null);
             set_pending_family_tier(tier);
           }}
+          on_finished={() => set_crypto_family_tier(null)}
           plan_code={crypto_family_tier.id}
           plan_name={crypto_family_tier.name}
           preferred_currency={preferred_currency}
@@ -633,6 +621,11 @@ export function render_billing_dialogs(
               set_show_addon_method_modal(true);
               set_crypto_back_addon(null);
             }
+          }}
+          on_finished={() => {
+            set_show_crypto_addon_modal(false);
+            set_crypto_addon(null);
+            set_crypto_back_addon(null);
           }}
           preferred_currency={preferred_currency}
           price_cents={crypto_addon.price_cents}
@@ -694,11 +687,8 @@ export function render_billing_dialogs(
                 handle_cancel_addon();
               }}
             >
-              {is_action_loading ? (
-                <Spinner size="sm" />
-              ) : (
-                t("settings.confirm_cancel_addon")
-              )}
+              {t("settings.confirm_cancel_addon")}
+              {is_action_loading && <ButtonSpinner />}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

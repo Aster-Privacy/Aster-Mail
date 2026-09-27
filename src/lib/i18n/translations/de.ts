@@ -4058,6 +4058,13 @@ export const de = {
       "Sie behalten Premium-Funktionen bis zum Ende dieses Abrechnungszeitraums, danach wechselt Ihr Tarif auf Frei. Ihre Mails, Kontakte und Einstellungen bleiben Ihnen erhalten.",
     cancel_plan: "Plan kündigen",
     billing_history: "Abrechnungsverlauf",
+    billing_plan_heading: "Tarif",
+    billing_hide_plans: "Tarife ausblenden",
+    billing_cancel_notice_title: "Dein Tarif wird gekündigt",
+    billing_cancel_notice_body:
+      "Dein Tarif endet am {{date}}. Danach wechselt dein Konto zum kostenlosen Tarif.",
+    billing_renewals_heading: "Verlängerungen",
+    billing_amount: "Betrag",
     billing_desc_payment_failed: "Zahlung fehlgeschlagen",
     billing_desc_refund_processed: "Rückerstattung verarbeitet",
     billing_desc_payment_disputed: "Zahlung angefochten: {{reason}}",
@@ -4932,15 +4939,34 @@ export const de = {
     special_offer_was_price: "Vorher {{price}} pro Monat",
     special_offer_original_price: "Ursprünglicher Preis: {{price}}",
     special_offer_cta: "{{percent}} % Rabatt sichern",
-    special_offer_feature_aliases: "Unbegrenzte Aliase und eigene Domains",
-    special_offer_feature_vanguard:
-      "Aster Vanguard App-Sperre, Lockdown-Modus und Sicherheitsüberwachung",
+    special_offer_feature_aliases: "Unbegrenzte Aliase",
+    special_offer_feature_vanguard: "Mehr Sicherheit mit Vanguard",
     special_offer_feature_storage: "500 GB verschlüsselter Speicher",
+    special_offer_why_body:
+      "Aster ist ein unabhängiges Unternehmen mit einem kleinen Team, und Ihre Unterstützung bedeutet uns viel. Abonnements halten den Dienst am Laufen und ermöglichen es uns, Aster jeden Tag mit Sorgfalt weiterzuentwickeln. Mit diesem Angebot fällt Ihnen der Einstieg leichter.",
+    special_offer_why_label: "Warum dieses Angebot?",
+    special_offer_feature_vanguard_body:
+      "App-Sperre und erweiterter Datenschutz.",
+    special_offer_feature_domains_body:
+      "Senden Sie von Adressen auf Ihren eigenen Domains.",
+    special_offer_feature_domains: "Bis zu 30 eigene Domains",
+    special_offer_feature_storage_body:
+      "Platz für E-Mails und Dateien aus vielen Jahren.",
+    special_offer_feature_aliases_body:
+      "Geben Sie jeder Website eine eigene Adresse.",
     special_offer_fine_print:
       "Sie zahlen {{offer_price}} pro Monat für die ersten {{months}} Monate. Danach verlängert sich Ihr Tarif für {{price}} pro Monat, bis Sie ihn in den Einstellungen kündigen.",
     special_offer_dismiss: "Dieses Angebot nicht mehr anzeigen",
     special_offer_dismissed_toast: "Wir zeigen Ihnen das nicht mehr an.",
+    special_offer_success_title: "Danke. Sie nutzen jetzt Nova.",
+    special_offer_success_body:
+      "Danke für Ihr Abonnement. Ihre Unterstützung bedeutet uns sehr viel.",
     special_offer_hero_duration: "für {{months}} Monate",
+    special_offer_price_period_year: "pro Jahr",
+    special_offer_hero_duration_year: "für das erste Jahr",
+    special_offer_fine_print_year:
+      "Sie zahlen {{offer_price}} für das erste Jahr. Danach verlängert sich Ihr Tarif für {{price}} pro Jahr, bis Sie ihn in den Einstellungen kündigen.",
+    special_offer_billing_period: "Abrechnungszeitraum",
     plan_billing_terms:
       "Abonnements verlängern sich automatisch zum Standardpreis, bis Sie kündigen. Sie können jederzeit in den Einstellungen kündigen.",
     upgrade_offer_note:
@@ -6771,7 +6797,7 @@ export const de = {
     crypto_native_recommended: "Empfohlen",
     crypto_native_resume_selected: "Ausgewählt",
     crypto_native_status_underpaid: "Teilweise bezahlt",
-    crypto_native_what_happens: "Wie es weitergeht",
+    crypto_native_what_happens: "Zahlungsfortschritt",
     crypto_native_stripe_option: "Mit Stablecoin bezahlen",
     crypto_native_stripe_desc:
       "USDC und andere Stablecoins über unseren Zahlungsdienstleister",
@@ -6781,7 +6807,7 @@ export const de = {
       "Sie haben heute zu viele Krypto-Rechnungen erstellt. Bitte versuchen Sie es später erneut.",
     crypto_native_invoice_title: "Mit {{coin}} bezahlen",
     crypto_native_awaiting_body:
-      "Senden Sie den exakten Betrag an die Adresse unten. Diese Seite aktualisiert sich automatisch.",
+      "Senden Sie den exakten Betrag an die Adresse unten. Diese Seite wird automatisch aktualisiert.",
     crypto_native_received_title: "Zahlung erhalten",
     crypto_native_received_body:
       "Der vollständige Betrag ist eingegangen und wird verarbeitet. Eine weitere Zahlung ist nicht nötig.",
@@ -6816,7 +6842,7 @@ export const de = {
       "Ihre Zahlung muss kurz manuell geprüft werden. Wir schreiben Ihrem Konto den Betrag in Kürze gut.",
     crypto_native_transaction: "Transaktion",
     crypto_native_refund_notice:
-      "Wenn Sie mehr als den fälligen Betrag senden, geht der Mehrbetrag als US-Dollar auf Ihr Aster-Kontoguthaben. Sie können stattdessen eine Erstattung anfordern.",
+      "Wenn Sie mehr als den fälligen Betrag senden, geht der Mehrbetrag als US-Dollar auf Ihr Aster-Kontoguthaben.",
     crypto_native_cancel_invoice: "Diese Rechnung stornieren",
     crypto_native_cancel_failed:
       "Diese Rechnung konnte nicht storniert werden.",
@@ -6849,6 +6875,13 @@ export const de = {
       "Vergleichen Sie die Adresse auf dem Bildschirm Ihrer Wallet vor dem Senden mit der hier angezeigten. Nur diese Adresse wird für Ihre Bestellung überwacht.",
     crypto_native_fee_headroom:
       "Wenn Ihre Wallet die Netzwerkgebühr vom eingegebenen Betrag abzieht, geben Sie etwas mehr an, damit der volle Betrag ankommt.",
+    crypto_native_network_only: "Sende nur {{coin}} im {{chain}}-Netzwerk",
+    crypto_native_tip_unrecoverable:
+      "Guthaben, das über ein anderes Netzwerk gesendet wird, ist verloren.",
+    crypto_native_tip_check_address:
+      "Prüfe die Adresse in deiner Wallet, bevor du sendest.",
+    crypto_native_tip_fee:
+      "Wenn deine Wallet die Gebühr vom Betrag abzieht, sende etwas mehr.",
     crypto_native_expired_do_not_send:
       "Senden Sie nichts an die Adresse dieser Rechnung. Jetzt gesendete Gelder müssen manuell geprüft werden, bevor sie gutgeschrieben werden können.",
     crypto_native_not_found: "Wir konnten diese Rechnung nicht finden",
@@ -6905,6 +6938,8 @@ export const de = {
     crypto_summary_length: "Laufzeit",
     crypto_modal_title: "Mit Krypto bezahlen",
     crypto_no_renew_notice: "Krypto-Käufe verlängern sich nicht automatisch.",
+    special_offer_crypto_one_payment:
+      "Der Rabatt von {{percent}} % gilt nur für diese Zahlung. Spätere Krypto-Zahlungen erfolgen zum regulären Preis. Wählen Sie 12 Monate, um den Rabatt ein ganzes Jahr lang zu erhalten.",
     crypto_paid_until: "Bezahlt bis {{date}} (Krypto)",
     card_declined_title: "Ihre letzte Kartenzahlung war nicht erfolgreich",
     card_declined_insufficient_funds:
@@ -7804,6 +7839,8 @@ export const de = {
       "Monero: Proof of Work, geschürft auf Allzweckprozessoren. Wir haben keine aktuelle Zahl gefunden, für die wir einstehen würden, daher veröffentlichen wir keine.",
     crypto_energy_caveat:
       "Das sind Schätzungen Dritter und keine eigenen Messungen, und Zahlen pro Transaktion sind umstritten. Wir machen keine Umweltaussage zu einer Zahlungsmethode.",
+    crypto_native_rate_label: "Wechselkurs",
+    crypto_native_last_checked_label: "Zuletzt geprüft",
     crypto_native_rate_value: "Verwendeter Kurs: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "Wählen Sie eine Münze, um Ihren Wechselkurs festzulegen. Die Zahlung senden Sie danach selbst aus Ihrer eigenen Wallet.",
@@ -7996,6 +8033,14 @@ export const de = {
     checkout_abandon_title: "Diese Zahlung abbrechen?",
     checkout_add_promo: "Gutscheincode hinzufügen",
     checkout_amount_due: "Fälliger Betrag",
+    checkout_offer_switch_term:
+      "Wechseln Sie zu {{term}} und erhalten Sie {{percent}} % Rabatt",
+    checkout_offer_switch_crypto:
+      "Zahlen Sie mit Krypto und erhalten Sie {{percent}} % Rabatt",
+    checkout_offer_switch_card:
+      "Zahlen Sie mit Karte und erhalten Sie {{percent}} % Rabatt",
+    checkout_offer_renewal:
+      "{{offer_price}} pro Monat für {{months}} Monate, danach {{price}} pro Monat",
     checkout_card_details: "Kartendaten",
     checkout_full_features_title: "Funktionen von {{plan}}",
     checkout_leave_warning:

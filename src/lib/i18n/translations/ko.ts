@@ -4148,6 +4148,13 @@ export const ko = {
       "이번 결제 주기가 끝날 때까지는 프리미엄 기능을 그대로 사용할 수 있으며, 이후로는 요금제가 무료로 전환됩니다. 메일, 연락처, 설정은 그대로 보관됩니다.",
     cancel_plan: "플랜 취소",
     billing_history: "결제 내역",
+    billing_plan_heading: "플랜",
+    billing_hide_plans: "플랜 숨기기",
+    billing_cancel_notice_title: "플랜이 해지될 예정입니다",
+    billing_cancel_notice_body:
+      "플랜이 {{date}}에 종료됩니다. 이후 계정은 무료 플랜으로 전환됩니다.",
+    billing_renewals_heading: "갱신",
+    billing_amount: "금액",
     billing_desc_payment_failed: "결제에 실패했습니다",
     billing_desc_refund_processed: "환불이 처리되었습니다",
     billing_desc_payment_disputed: "결제 이의 제기: {{reason}}",
@@ -5024,15 +5031,32 @@ export const ko = {
     special_offer_was_price: "이전 가격 월 {{price}}",
     special_offer_original_price: "정가: {{price}}",
     special_offer_cta: "{{percent}}% 할인 받기",
-    special_offer_feature_aliases: "무제한 별칭과 맞춤 도메인",
-    special_offer_feature_vanguard:
-      "Aster Vanguard 앱 잠금, 잠금 모드, 보안 모니터링",
-    special_offer_feature_storage: "암호화 저장 공간 500GB",
+    special_offer_feature_aliases: "무제한 별칭",
+    special_offer_feature_vanguard: "Vanguard로 강화된 보안",
+    special_offer_feature_storage: "500GB 암호화 저장공간",
+    special_offer_why_body:
+      "Aster는 작은 팀으로 운영되는 독립 기업이며, 여러분의 지원은 저희에게 큰 의미가 있습니다. 구독은 서비스 운영을 유지하고 저희가 매일 정성껏 Aster를 발전시켜 나갈 수 있게 해 줍니다. 이 혜택으로 더 쉽게 시작할 수 있습니다.",
+    special_offer_why_label: "이 혜택을 드리는 이유",
+    special_offer_feature_vanguard_body: "앱 잠금과 고급 개인정보 보호.",
+    special_offer_feature_domains_body: "내 도메인의 주소로 메일을 보내세요.",
+    special_offer_feature_domains: "최대 30개의 사용자 지정 도메인",
+    special_offer_feature_storage_body:
+      "수년간의 메일과 파일을 담을 수 있는 공간입니다.",
+    special_offer_feature_aliases_body: "사이트마다 별도의 주소를 사용하세요.",
     special_offer_fine_print:
       "처음 {{months}}개월 동안 월 {{offer_price}}을 결제합니다. 이후에는 설정에서 취소할 때까지 월 {{price}}으로 갱신됩니다.",
     special_offer_dismiss: "이 혜택 다시 보지 않기",
     special_offer_dismissed_toast: "다시 표시하지 않습니다.",
+    special_offer_success_title:
+      "감사합니다. 이제 Nova를 이용하실 수 있습니다.",
+    special_offer_success_body:
+      "구독해 주셔서 감사합니다. 보내주신 응원은 저희에게 큰 힘이 됩니다.",
     special_offer_hero_duration: "{{months}}개월 동안",
+    special_offer_price_period_year: "연",
+    special_offer_hero_duration_year: "첫 1년 동안",
+    special_offer_fine_print_year:
+      "첫 1년 동안 {{offer_price}}을 결제합니다. 이후에는 설정에서 취소할 때까지 연 {{price}}으로 갱신됩니다.",
+    special_offer_billing_period: "결제 주기",
     plan_billing_terms:
       "구독은 취소할 때까지 표준 요금으로 자동 갱신됩니다. 설정에서 언제든지 취소할 수 있습니다.",
     upgrade_offer_note: "{{percent}}% 할인은 결제 시 적용됩니다.",
@@ -6082,6 +6106,11 @@ export const ko = {
     checkout_abandon_title: "이 결제를 취소할까요?",
     checkout_add_promo: "프로모션 코드 추가",
     checkout_amount_due: "결제 금액",
+    checkout_offer_switch_term: "{{term}}(으)로 바꾸면 {{percent}}% 할인",
+    checkout_offer_switch_crypto: "암호화폐로 결제하면 {{percent}}% 할인",
+    checkout_offer_switch_card: "카드로 결제하면 {{percent}}% 할인",
+    checkout_offer_renewal:
+      "{{months}}개월 동안 월 {{offer_price}}, 이후 월 {{price}}",
     checkout_card_details: "카드 정보",
     checkout_full_features_title: "{{plan}} 기능",
     checkout_leave_warning:
@@ -6817,7 +6846,7 @@ export const ko = {
     crypto_native_recommended: "추천",
     crypto_native_resume_selected: "선택됨",
     crypto_native_status_underpaid: "부분 결제됨",
-    crypto_native_what_happens: "다음 단계",
+    crypto_native_what_happens: "결제 진행 상황",
     crypto_native_stripe_option: "스테이블코인으로 결제",
     crypto_native_stripe_desc:
       "결제 대행사를 통해 USDC 등 스테이블코인으로 결제하세요",
@@ -6860,7 +6889,7 @@ export const ko = {
       "결제에 대한 간단한 수동 확인이 필요합니다. 곧 계정에 반영해 드리겠습니다.",
     crypto_native_transaction: "트랜잭션",
     crypto_native_refund_notice:
-      "청구 금액보다 많이 보내면 초과분은 미구 달러로 Aster 계정 잔액에 적립됩니다. 적립 대신 환불을 요청할 수도 있습니다.",
+      "청구 금액보다 많이 보내면 초과분은 미국 달러로 Aster 계정 잔액에 적립됩니다.",
     crypto_native_cancel_invoice: "이 청구서 취소",
     crypto_native_cancel_failed: "이 청구서를 취소하지 못했습니다.",
     crypto_native_cancel_has_payment:
@@ -6892,6 +6921,12 @@ export const ko = {
       "보내기 전에 지갑 화면의 주소와 여기 표시된 주소를 대조하세요. 주문에 대해 모니터링하는 주소는 이 주소뿐입니다.",
     crypto_native_fee_headroom:
       "지갑이 입력한 금액에서 네트워크 수수료를 차감한다면, 전액이 도착하도록 조금 더 넉넉히 보내세요.",
+    crypto_native_network_only: "{{chain}} 네트워크에서 {{coin}}만 보내세요",
+    crypto_native_tip_unrecoverable:
+      "다른 네트워크로 보낸 자금은 복구할 수 없습니다.",
+    crypto_native_tip_check_address: "보내기 전에 지갑에서 주소를 확인하세요.",
+    crypto_native_tip_fee:
+      "지갑이 금액에서 수수료를 차감한다면 조금 더 보내세요.",
     crypto_native_expired_do_not_send:
       "이 청구서의 주소로 보내지 마세요. 지금 보낸 자금은 반영되기 전에 수동 검토가 필요합니다.",
     crypto_native_not_found: "이 청구서를 찾을 수 없습니다",
@@ -6943,6 +6978,8 @@ export const ko = {
     crypto_native_confirmations_progress: "네트워크 승인 수",
     crypto_paid_until: "{{date}}까지 결제됨 (암호화폐)",
     crypto_no_renew_notice: "암호화폐 구매는 자동 갱신되지 않습니다.",
+    special_offer_crypto_one_payment:
+      "{{percent}}% 할인은 이번 결제에만 적용되며, 이후 암호화폐 결제는 정상가로 청구됩니다. 1년 내내 할인을 받으려면 12개월을 선택하세요.",
     crypto_renew_link: "암호화폐로 갱신",
     crypto_success_toast: "암호화폐 결제 완료. 플랜이 활성화되었습니다.",
     crypto_cancelled_toast: "암호화폐 결제가 취소되었습니다.",
@@ -7637,6 +7674,8 @@ export const ko = {
       "모네로: 작업 증명 방식이며 범용 프로세서로 채굴합니다. 신뢰할 만한 최신 수치를 찾지 못해 공개하지 않습니다.",
     crypto_energy_caveat:
       "모두 제3자의 추정치이며 저희가 측정한 값이 아니고, 거래당 수치에는 이견이 있습니다. 저희는 어떤 결제 수단에 대해서도 환경 관련 주장을 하지 않습니다.",
+    crypto_native_rate_label: "환율",
+    crypto_native_last_checked_label: "마지막 확인",
     crypto_native_rate_value: "적용 환율: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "코인을 선택하면 환율이 고정됩니다. 그 다음 본인 지갑에서 직접 결제를 보내세요.",

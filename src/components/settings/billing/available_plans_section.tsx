@@ -492,6 +492,7 @@ export function AvailablePlansSection({
             set_crypto_family_tier(null);
             set_pending_family_tier(tier);
           }}
+          on_finished={() => set_crypto_family_tier(null)}
           plan_code={crypto_family_tier.id}
           plan_name={crypto_family_tier.name}
           preferred_currency={preferred_currency}

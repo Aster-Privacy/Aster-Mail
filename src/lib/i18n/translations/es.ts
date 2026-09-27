@@ -4120,6 +4120,13 @@ export const es = {
       "Conservarás las funciones premium hasta el final de este periodo de facturación, y luego tu plan pasará a Gratis. Tu correo, contactos y ajustes se quedan contigo.",
     cancel_plan: "Cancelar plan",
     billing_history: "Historial de facturación",
+    billing_plan_heading: "Plan",
+    billing_hide_plans: "Ocultar planes",
+    billing_cancel_notice_title: "Tu plan se cancelará",
+    billing_cancel_notice_body:
+      "Tu plan finaliza el {{date}}. Después, tu cuenta pasará al plan gratuito.",
+    billing_renewals_heading: "Renovaciones",
+    billing_amount: "Importe",
     billing_desc_payment_failed: "Pago fallido",
     billing_desc_refund_processed: "Reembolso procesado",
     billing_desc_payment_disputed: "Pago en disputa: {{reason}}",
@@ -5046,16 +5053,34 @@ export const es = {
       "Se ha producido un error al iniciar el pago. Inténtalo de nuevo.",
     special_offer_was_price: "Antes {{price}} al mes",
     special_offer_original_price: "Precio original: {{price}}",
-    special_offer_cta: "Consigue un {{percent}} % de descuento",
-    special_offer_feature_aliases: "Alias ilimitados y dominios propios",
-    special_offer_feature_vanguard:
-      "Bloqueo de app Aster Vanguard, modo de bloqueo y supervisión de seguridad",
+    special_offer_cta: "Obtener un {{percent}} % de descuento",
+    special_offer_feature_aliases: "Alias ilimitados",
+    special_offer_feature_vanguard: "Seguridad avanzada con Vanguard",
     special_offer_feature_storage: "500 GB de almacenamiento cifrado",
+    special_offer_why_body:
+      "Aster es una empresa independiente con un equipo pequeño, y tu apoyo significa mucho para nosotros. Las suscripciones mantienen el servicio en funcionamiento y nos permiten seguir desarrollando Aster con cuidado cada día. Esta oferta te facilita empezar.",
+    special_offer_why_label: "¿Por qué esta oferta?",
+    special_offer_feature_vanguard_body:
+      "Bloqueo de la app y protección avanzada de la privacidad.",
+    special_offer_feature_domains_body:
+      "Envía desde direcciones de tus propios dominios.",
+    special_offer_feature_domains: "Hasta 30 dominios personalizados",
+    special_offer_feature_storage_body:
+      "Espacio para años de correo y archivos.",
+    special_offer_feature_aliases_body: "Da a cada sitio su propia dirección.",
     special_offer_fine_print:
       "Pagas {{offer_price}} al mes durante los primeros {{months}} meses. Después, tu plan se renueva por {{price}} al mes hasta que lo canceles en Ajustes.",
     special_offer_dismiss: "No volver a mostrar esta oferta",
     special_offer_dismissed_toast: "No volveremos a mostrártelo.",
+    special_offer_success_title: "Gracias. Ya tienes Nova.",
+    special_offer_success_body:
+      "Gracias por suscribirte. Tu apoyo significa mucho para nosotros.",
     special_offer_hero_duration: "durante {{months}} meses",
+    special_offer_price_period_year: "al año",
+    special_offer_hero_duration_year: "durante el primer año",
+    special_offer_fine_print_year:
+      "Pagas {{offer_price}} por el primer año. Después, tu plan se renueva por {{price}} al año hasta que lo canceles en Ajustes.",
+    special_offer_billing_period: "Periodo de facturación",
     plan_billing_terms:
       "Las suscripciones se renuevan automáticamente a la tarifa estándar hasta que las canceles. Puedes cancelarla cuando quieras en Ajustes.",
     upgrade_offer_note:
@@ -6051,6 +6076,14 @@ export const es = {
     checkout_abandon_title: "¿Cancelar este pago?",
     checkout_add_promo: "Añadir un código promocional",
     checkout_amount_due: "Importe a pagar",
+    checkout_offer_switch_term:
+      "Cambia a {{term}} para obtener un {{percent}} % de descuento",
+    checkout_offer_switch_crypto:
+      "Paga con cripto para obtener un {{percent}} % de descuento",
+    checkout_offer_switch_card:
+      "Paga con tarjeta para obtener un {{percent}} % de descuento",
+    checkout_offer_renewal:
+      "{{offer_price}} al mes durante {{months}} meses y después {{price}} al mes",
     checkout_card_details: "Datos de la tarjeta",
     checkout_full_features_title: "Funciones de {{plan}}",
     checkout_leave_warning:
@@ -6843,7 +6876,7 @@ export const es = {
     crypto_native_recommended: "Recomendado",
     crypto_native_resume_selected: "Seleccionado",
     crypto_native_status_underpaid: "Pago parcial",
-    crypto_native_what_happens: "Qué ocurre a continuación",
+    crypto_native_what_happens: "Progreso del pago",
     crypto_native_stripe_option: "Pagar con stablecoin",
     crypto_native_stripe_desc:
       "USDC y otras stablecoins a través de nuestro procesador de pagos",
@@ -6853,7 +6886,7 @@ export const es = {
       "Has creado demasiadas facturas de criptomonedas hoy. Inténtalo de nuevo más tarde.",
     crypto_native_invoice_title: "Pagar con {{coin}}",
     crypto_native_awaiting_body:
-      "Envía el importe exacto a la dirección de abajo. Esta página se actualiza automáticamente.",
+      "Envía el importe exacto a la dirección de abajo. Esta página se actualizará automáticamente.",
     crypto_native_received_title: "Pago recibido",
     crypto_native_received_body:
       "Hemos recibido el importe completo y lo estamos procesando. No es necesario que envíes otro pago.",
@@ -6887,7 +6920,7 @@ export const es = {
       "Tu pago necesita una comprobación manual rápida. Abonaremos tu cuenta en breve.",
     crypto_native_transaction: "Transacción",
     crypto_native_refund_notice:
-      "Si envías más del importe debido, la diferencia pasa al saldo de tu cuenta de Aster en dólares estadounidenses. Puedes pedirnos que te la reembolsemos en su lugar.",
+      "Si envías más del importe debido, la diferencia pasa al saldo de tu cuenta de Aster en dólares estadounidenses.",
     crypto_native_cancel_invoice: "Cancelar esta factura",
     crypto_native_cancel_failed: "No se pudo cancelar esta factura.",
     crypto_native_cancel_has_payment:
@@ -6919,6 +6952,13 @@ export const es = {
       "Antes de enviar, compara la dirección que ves en tu monedero con la que se muestra aquí. Solo esta dirección se supervisa para tu pedido.",
     crypto_native_fee_headroom:
       "Si tu monedero descuenta la comisión de red del importe que introduces, añade un poco más para que llegue el importe completo.",
+    crypto_native_network_only: "Envía solo {{coin}} en la red {{chain}}",
+    crypto_native_tip_unrecoverable:
+      "Los fondos enviados por otra red no se pueden recuperar.",
+    crypto_native_tip_check_address:
+      "Comprueba la dirección en tu billetera antes de enviar.",
+    crypto_native_tip_fee:
+      "Si tu billetera descuenta la comisión del importe, envía un poco más.",
     crypto_native_expired_do_not_send:
       "No envíes nada a la dirección de esta factura. Los fondos enviados ahora necesitan una revisión manual antes de poder abonarse.",
     crypto_native_not_found: "No encontramos esta factura",
@@ -6975,6 +7015,8 @@ export const es = {
     crypto_summary_length: "Duración",
     crypto_modal_title: "Pago con criptomoneda",
     crypto_no_renew_notice: "Este plan no se renueva automáticamente.",
+    special_offer_crypto_one_payment:
+      "El descuento del {{percent}} % solo se aplica a este pago. Los pagos posteriores con criptomonedas tienen el precio normal. Para obtenerlo durante un año completo, elige 12 meses.",
     crypto_paid_until: "Pagado hasta el {{date}} (cripto)",
     card_declined_title: "Tu último pago con tarjeta no se completó",
     card_declined_insufficient_funds:
@@ -7849,6 +7891,8 @@ export const es = {
       "Monero: usa prueba de trabajo y se mina con procesadores de uso general. No hemos encontrado una cifra actual que respaldaríamos, así que no publicamos ninguna.",
     crypto_energy_caveat:
       "Son estimaciones de terceros, no mediciones propias, y las cifras por transacción son objeto de debate. No hacemos ninguna afirmación medioambiental sobre ningún método de pago.",
+    crypto_native_rate_label: "Tipo de cambio",
+    crypto_native_last_checked_label: "Última comprobación",
     crypto_native_rate_value: "Tipo aplicado: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "Elige una moneda para fijar tu tipo de cambio. Después envías el pago tú mismo desde tu propio monedero.",

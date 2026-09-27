@@ -20,9 +20,8 @@
 //
 import type { CardDecline } from "@/services/api/billing";
 
-import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
-
 import { use_i18n } from "@/lib/i18n/context";
+import { BillingNotice } from "@/components/settings/billing/billing_layout";
 
 interface CardDeclineNoticeProps {
   decline: CardDecline | null | undefined;
@@ -56,27 +55,10 @@ export function CardDeclineNotice({
   if (!decline) return null;
 
   return (
-    <div
-      className={`rounded-2xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 ${class_name}`}
-      role="status"
-    >
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-        <span
-          aria-hidden="true"
-          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400"
-        >
-          <ExclamationTriangleIcon className="h-5 w-5" />
-        </span>
-
-        <div className="min-w-0">
-          <p className="text-[15px] font-semibold leading-tight text-amber-900 dark:text-amber-200">
-            {t("settings.card_declined_title")}
-          </p>
-          <p className="mt-1.5 text-xs leading-relaxed text-amber-900/80 dark:text-amber-200/80">
-            {t(card_decline_message_key(decline.reason))}
-          </p>
-        </div>
-      </div>
-    </div>
+    <BillingNotice
+      body={t(card_decline_message_key(decline.reason))}
+      class_name={class_name}
+      title={t("settings.card_declined_title")}
+    />
   );
 }

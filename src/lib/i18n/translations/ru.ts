@@ -4229,6 +4229,13 @@ export const ru = {
       "Премиум-функции остаются доступны до конца этого расчётного периода, после чего тариф переходит на Free. Почта, контакты и настройки остаются с вами.",
     cancel_plan: "Отменить тариф",
     billing_history: "История оплат",
+    billing_plan_heading: "Тариф",
+    billing_hide_plans: "Скрыть тарифы",
+    billing_cancel_notice_title: "Ваш тариф будет отменён",
+    billing_cancel_notice_body:
+      "Ваш тариф действует до {{date}}. После этого аккаунт перейдёт на бесплатный тариф.",
+    billing_renewals_heading: "Продления",
+    billing_amount: "Сумма",
     billing_desc_payment_failed: "Платёж не прошёл",
     billing_desc_refund_processed: "Возврат обработан",
     billing_desc_payment_disputed: "Платёж оспорен: {{reason}}",
@@ -5142,16 +5149,32 @@ export const ru = {
     special_offer_was_price: "Было {{price}} в месяц",
     special_offer_original_price: "Обычная цена: {{price}}",
     special_offer_cta: "Получить скидку {{percent}}%",
-    special_offer_feature_aliases:
-      "Неограниченные псевдонимы и собственные домены",
-    special_offer_feature_vanguard:
-      "Блокировка приложения Aster Vanguard, режим блокировки и мониторинг безопасности",
+    special_offer_feature_aliases: "Неограниченные псевдонимы",
+    special_offer_feature_vanguard: "Усиленная защита с Vanguard",
     special_offer_feature_storage: "500 ГБ зашифрованного хранилища",
+    special_offer_why_body:
+      "Aster является независимой компанией с небольшой командой, и ваша поддержка очень много для нас значит. Подписки поддерживают работу сервиса и позволяют нам каждый день бережно развивать Aster, а с этим предложением начать проще.",
+    special_offer_why_label: "Почему это предложение?",
+    special_offer_feature_vanguard_body:
+      "Блокировка приложения и расширенная защита конфиденциальности.",
+    special_offer_feature_domains_body:
+      "Отправляйте письма с адресов на своих доменах.",
+    special_offer_feature_domains: "До 30 собственных доменов",
+    special_offer_feature_storage_body: "Места хватит на годы писем и файлов.",
+    special_offer_feature_aliases_body: "Отдельный адрес для каждого сайта.",
     special_offer_fine_print:
       "Первые {{months}} месяцев вы платите {{offer_price}} в месяц. Затем план продлевается за {{price}} в месяц, пока вы не отмените его в Настройках.",
     special_offer_dismiss: "Больше не показывать это предложение",
     special_offer_dismissed_toast: "Мы больше это не покажем.",
+    special_offer_success_title: "Спасибо. Теперь у вас Nova.",
+    special_offer_success_body:
+      "Спасибо за подписку. Ваша поддержка очень много для нас значит.",
     special_offer_hero_duration: "на {{months}} месяцев",
+    special_offer_price_period_year: "в год",
+    special_offer_hero_duration_year: "на первый год",
+    special_offer_fine_print_year:
+      "За первый год вы платите {{offer_price}}. Затем план продлевается за {{price}} в год, пока вы не отмените его в Настройках.",
+    special_offer_billing_period: "Период оплаты",
     plan_billing_terms:
       "Подписки продлеваются автоматически по стандартной цене, пока вы их не отмените. Отменить можно в любой момент в Настройках.",
     upgrade_offer_note: "Скидка {{percent}}% применяется при оплате.",
@@ -6137,6 +6160,14 @@ export const ru = {
     checkout_abandon_title: "Отменить этот платёж?",
     checkout_add_promo: "Добавить промокод",
     checkout_amount_due: "К оплате",
+    checkout_offer_switch_term:
+      "Выберите {{term}}, чтобы получить скидку {{percent}}%",
+    checkout_offer_switch_crypto:
+      "Оплатите криптовалютой, чтобы получить скидку {{percent}}%",
+    checkout_offer_switch_card:
+      "Оплатите картой, чтобы получить скидку {{percent}}%",
+    checkout_offer_renewal:
+      "{{offer_price}} в месяц в течение {{months}} мес., затем {{price}} в месяц",
     checkout_card_details: "Данные карты",
     checkout_full_features_title: "Возможности тарифа {{plan}}",
     checkout_leave_warning:
@@ -6927,7 +6958,7 @@ export const ru = {
     crypto_native_recommended: "Рекомендуется",
     crypto_native_resume_selected: "Выбрано",
     crypto_native_status_underpaid: "Оплачено частично",
-    crypto_native_what_happens: "Что будет дальше",
+    crypto_native_what_happens: "Ход оплаты",
     crypto_native_stripe_option: "Оплатить стейблкоином",
     crypto_native_stripe_desc:
       "USDC и другие стейблкоины через нашего платёжного провайдера",
@@ -6937,7 +6968,7 @@ export const ru = {
       "Сегодня создано слишком много криптосчетов. Попробуйте позже.",
     crypto_native_invoice_title: "Оплата в {{coin}}",
     crypto_native_awaiting_body:
-      "Отправьте точную сумму на адрес ниже. Страница обновляется автоматически.",
+      "Отправьте точную сумму на адрес ниже. Страница обновится автоматически.",
     crypto_native_received_title: "Платёж получен",
     crypto_native_received_body:
       "Полная сумма получена и обрабатывается. Отправлять что-либо ещё не нужно.",
@@ -6971,7 +7002,7 @@ export const ru = {
       "Ваш платёж требует быстрой ручной проверки. Мы пополним ваш счёт в ближайшее время.",
     crypto_native_transaction: "Транзакция",
     crypto_native_refund_notice:
-      "Если вы отправите больше нужной суммы, излишек зачисляется на баланс вашего аккаунта Aster в долларах США. Вы можете вместо этого попросить возврат.",
+      "Если вы отправите больше нужной суммы, излишек зачисляется на баланс вашего аккаунта Aster в долларах США.",
     crypto_native_cancel_invoice: "Отменить этот счёт",
     crypto_native_cancel_failed: "Не удалось отменить этот счёт.",
     crypto_native_cancel_has_payment:
@@ -7002,6 +7033,13 @@ export const ru = {
       "Перед отправкой сверьте адрес на экране кошелька с адресом, показанным здесь. Для вашего заказа отслеживается только этот адрес.",
     crypto_native_fee_headroom:
       "Если ваш кошелёк вычитает комиссию сети из введённой суммы, добавьте немного сверху, чтобы дошла полная сумма.",
+    crypto_native_network_only: "Отправляйте только {{coin}} в сети {{chain}}",
+    crypto_native_tip_unrecoverable:
+      "Средства, отправленные через другую сеть, нельзя вернуть.",
+    crypto_native_tip_check_address:
+      "Перед отправкой проверьте адрес в кошельке.",
+    crypto_native_tip_fee:
+      "Если кошелёк вычитает комиссию из суммы, отправьте немного больше.",
     crypto_native_expired_do_not_send:
       "Не отправляйте средства на адрес из этого счёта. Средства, отправленные сейчас, потребуют ручной проверки перед зачислением.",
     crypto_native_not_found: "Не удалось найти этот счёт",
@@ -7058,6 +7096,8 @@ export const ru = {
     crypto_summary_length: "Срок",
     crypto_modal_title: "Оплата криптовалютой",
     crypto_no_renew_notice: "Крипто-покупки не продлеваются автоматически.",
+    special_offer_crypto_one_payment:
+      "Скидка {{percent}}% действует только для этого платежа. Последующие оплаты криптовалютой проходят по обычной цене. Чтобы получить скидку на целый год, выберите 12 месяцев.",
     crypto_paid_until: "Оплачено до {{date}} (крипто)",
     card_declined_title: "Последний платёж картой не прошёл",
     card_declined_insufficient_funds:
@@ -7944,6 +7984,8 @@ export const ru = {
       "Monero: proof-of-work, майнится на процессорах общего назначения. Мы не нашли актуальной цифры, за которую бы поручились, поэтому её не публикуем.",
     crypto_energy_caveat:
       "Это оценки сторонних источников, а не наши измерения, и показатели на транзакцию оспариваются. Мы не делаем экологических заявлений ни об одном способе оплаты.",
+    crypto_native_rate_label: "Обменный курс",
+    crypto_native_last_checked_label: "Последняя проверка",
     crypto_native_rate_value: "Применённый курс: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "Выберите монету, чтобы зафиксировать курс. Платёж вы затем отправляете сами из своего кошелька.",

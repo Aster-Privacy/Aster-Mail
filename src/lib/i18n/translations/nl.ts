@@ -4045,6 +4045,13 @@ export const nl = {
       "Je behoudt de premiumfuncties tot het einde van deze factureringsperiode, en daarna gaat je abonnement over op Gratis. Je post, contacten en instellingen blijven bij jou.",
     cancel_plan: "Abonnement annuleren",
     billing_history: "Factureringsgeschiedenis",
+    billing_plan_heading: "Abonnement",
+    billing_hide_plans: "Abonnementen verbergen",
+    billing_cancel_notice_title: "Je abonnement wordt opgezegd",
+    billing_cancel_notice_body:
+      "Je abonnement eindigt op {{date}}. Daarna gaat je account over naar het gratis abonnement.",
+    billing_renewals_heading: "Verlengingen",
+    billing_amount: "Bedrag",
     billing_desc_payment_failed: "Betaling mislukt",
     billing_desc_refund_processed: "Terugbetaling verwerkt",
     billing_desc_payment_disputed: "Betaling betwist: {{reason}}",
@@ -4942,16 +4949,34 @@ export const nl = {
       "Er is iets misgegaan bij het starten van het afrekenen. Probeer het opnieuw.",
     special_offer_was_price: "Was {{price}} per maand",
     special_offer_original_price: "Oorspronkelijke prijs: {{price}}",
-    special_offer_cta: "Krijg {{percent}}% korting",
-    special_offer_feature_aliases: "Onbeperkt aliassen en eigen domeinen",
-    special_offer_feature_vanguard:
-      "Aster Vanguard-appvergrendeling, lockdownmodus en beveiligingsmonitoring",
+    special_offer_cta: "Claim {{percent}}% korting",
+    special_offer_feature_aliases: "Onbeperkte aliassen",
+    special_offer_feature_vanguard: "Extra beveiliging met Vanguard",
     special_offer_feature_storage: "500 GB versleutelde opslag",
+    special_offer_why_body:
+      "Aster is een onafhankelijk bedrijf met een klein team, en je steun betekent veel voor ons. Abonnementen houden de dienst draaiende en stellen ons in staat Aster elke dag met zorg verder te ontwikkelen. Met deze aanbieding is beginnen makkelijker.",
+    special_offer_why_label: "Waarom deze aanbieding?",
+    special_offer_feature_vanguard_body:
+      "App-vergrendeling en geavanceerde privacybescherming.",
+    special_offer_feature_domains_body:
+      "Verstuur vanaf adressen op je eigen domeinen.",
+    special_offer_feature_domains: "Tot 30 eigen domeinen",
+    special_offer_feature_storage_body:
+      "Ruimte voor jaren aan mail en bestanden.",
+    special_offer_feature_aliases_body: "Geef elke site een eigen adres.",
     special_offer_fine_print:
       "Je betaalt {{offer_price}} per maand voor de eerste {{months}} maanden. Daarna wordt je abonnement verlengd voor {{price}} per maand totdat je het opzegt in Instellingen.",
     special_offer_dismiss: "Deze aanbieding niet meer tonen",
     special_offer_dismissed_toast: "We laten dit niet meer zien.",
+    special_offer_success_title: "Bedankt. Je hebt nu Nova.",
+    special_offer_success_body:
+      "Bedankt voor je abonnement. Je steun betekent veel voor ons.",
     special_offer_hero_duration: "voor {{months}} maanden",
+    special_offer_price_period_year: "per jaar",
+    special_offer_hero_duration_year: "voor het eerste jaar",
+    special_offer_fine_print_year:
+      "Je betaalt {{offer_price}} voor het eerste jaar. Daarna wordt je abonnement verlengd voor {{price}} per jaar totdat je het opzegt in Instellingen.",
+    special_offer_billing_period: "Factuurperiode",
     plan_billing_terms:
       "Abonnementen worden automatisch verlengd tegen het standaardtarief totdat je opzegt. Je kunt op elk moment opzeggen in Instellingen.",
     upgrade_offer_note:
@@ -6066,6 +6091,11 @@ export const nl = {
     checkout_abandon_title: "Deze betaling annuleren?",
     checkout_add_promo: "Een kortingscode toevoegen",
     checkout_amount_due: "Te betalen bedrag",
+    checkout_offer_switch_term: "Kies {{term}} voor {{percent}}% korting",
+    checkout_offer_switch_crypto: "Betaal met crypto voor {{percent}}% korting",
+    checkout_offer_switch_card: "Betaal met kaart voor {{percent}}% korting",
+    checkout_offer_renewal:
+      "{{offer_price}} per maand gedurende {{months}} maanden, daarna {{price}} per maand",
     checkout_card_details: "Kaartgegevens",
     checkout_full_features_title: "Functies van {{plan}}",
     checkout_leave_warning:
@@ -6820,7 +6850,7 @@ export const nl = {
     crypto_native_recommended: "Aanbevolen",
     crypto_native_resume_selected: "Geselecteerd",
     crypto_native_status_underpaid: "Gedeeltelijk betaald",
-    crypto_native_what_happens: "Wat er nu gebeurt",
+    crypto_native_what_happens: "Betalingsvoortgang",
     crypto_native_stripe_option: "Betalen met stablecoin",
     crypto_native_stripe_desc:
       "USDC en andere stablecoins via onze betaalprovider",
@@ -6863,7 +6893,7 @@ export const nl = {
       "Je betaling heeft een korte handmatige controle nodig. We schrijven het bedrag binnenkort bij.",
     crypto_native_transaction: "Transactie",
     crypto_native_refund_notice:
-      "Als je meer stuurt dan het verschuldigde bedrag, komt het extra bedrag in Amerikaanse dollars op je Aster-accountsaldo. Je kunt ons ook vragen het terug te betalen.",
+      "Als je meer stuurt dan het verschuldigde bedrag, komt het extra bedrag in Amerikaanse dollars op je Aster-accountsaldo.",
     crypto_native_cancel_invoice: "Deze factuur annuleren",
     crypto_native_cancel_failed: "Kon deze factuur niet annuleren.",
     crypto_native_cancel_has_payment:
@@ -6895,6 +6925,14 @@ export const nl = {
       "Vergelijk voor het versturen het adres op je wallet-scherm met het adres dat hier staat. Alleen dit adres wordt voor je bestelling gevolgd.",
     crypto_native_fee_headroom:
       "Als je wallet de netwerkkosten van het ingevoerde bedrag afhaalt, tel er dan iets bij op zodat het volledige bedrag aankomt.",
+    crypto_native_network_only:
+      "Stuur alleen {{coin}} via het {{chain}}-netwerk",
+    crypto_native_tip_unrecoverable:
+      "Geld dat via een ander netwerk wordt verstuurd, is niet terug te halen.",
+    crypto_native_tip_check_address:
+      "Controleer het adres in je wallet voordat je verstuurt.",
+    crypto_native_tip_fee:
+      "Als je wallet de kosten van het bedrag aftrekt, stuur dan iets meer.",
     crypto_native_expired_do_not_send:
       "Stuur niets naar het adres op deze factuur. Bedragen die je nu stuurt, moeten handmatig worden gecontroleerd voordat ze kunnen worden bijgeschreven.",
     crypto_native_not_found: "We konden deze factuur niet vinden",
@@ -6951,6 +6989,8 @@ export const nl = {
     crypto_summary_length: "Duur",
     crypto_modal_title: "Betalen met cryptovaluta",
     crypto_no_renew_notice: "Dit abonnement wordt niet automatisch verlengd",
+    special_offer_crypto_one_payment:
+      "De korting van {{percent}}% geldt alleen voor deze betaling. Latere cryptobetalingen zijn tegen de normale prijs. Kies 12 maanden om de korting een heel jaar te krijgen.",
     crypto_paid_until: "Betaald tot {{date}} (crypto)",
     card_declined_title: "Je laatste kaartbetaling is niet gelukt",
     card_declined_insufficient_funds:
@@ -7818,6 +7858,8 @@ export const nl = {
       "Monero: proof of work, gedolven op algemene processors. We hebben geen actueel cijfer gevonden waar we voor zouden instaan, dus publiceren we er geen.",
     crypto_energy_caveat:
       "Dit zijn schattingen van derden en geen eigen metingen, en cijfers per transactie zijn omstreden. We doen geen milieuclaim over welke betaalmethode dan ook.",
+    crypto_native_rate_label: "Wisselkoers",
+    crypto_native_last_checked_label: "Laatst gecontroleerd",
     crypto_native_rate_value: "Gebruikte koers: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "Kies een munt om je wisselkoers vast te zetten. Daarna stuur je de betaling zelf vanuit je eigen wallet.",

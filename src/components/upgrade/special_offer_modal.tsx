@@ -19,9 +19,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CheckIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
+import {
+  ChevronDownIcon,
+  InformationCircleIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
 
+import { Button } from "@/components/ui/button";
 import { Modal, ModalTitle } from "@/components/ui/modal";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_auth } from "@/contexts/auth_context";
@@ -37,13 +41,16 @@ import {
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
+import { Segmented } from "@/components/settings/billing/plan_card";
+import { SpecialOfferFeatureList } from "@/components/upgrade/special_offer_success_modal";
 import {
   SPECIAL_OFFER_DURATION_MONTHS,
-  SPECIAL_OFFER_INTERVAL,
   SPECIAL_OFFER_PERCENT_OFF,
   SPECIAL_OFFER_PLAN_CODE,
+  type SpecialOfferInterval,
   is_special_offer_available,
   special_offer_discounted_cents,
+  special_offer_interval_months,
   special_offer_pricing,
   special_offer_promo_code,
 } from "@/lib/special_offer";
@@ -78,18 +85,22 @@ export function SpecialOfferModal() {
   const { t } = use_i18n();
   const { status, is_loaded } = use_special_offer_status();
   const offer_checkout = use_special_offer_checkout();
-  const { is_open } = use_special_offer_state();
+  const { is_open, checkout_seq } = use_special_offer_state();
   const { is_authenticated, user } = use_auth();
   const { plan_code, refresh: refresh_plan_limits } = use_plan_limits();
   const [currency, set_currency] = useState("usd");
+  const [interval, set_interval] = useState<SpecialOfferInterval>("month");
   const [is_accepting, set_is_accepting] = useState(false);
   const [is_hero_loaded, set_is_hero_loaded] = useState(false);
   const [step, set_step] = useState<checkout_step>(null);
   const [is_starting_checkout, set_is_starting_checkout] = useState(false);
+  const [is_why_open, set_is_why_open] = useState(false);
   const hero_ref = useRef<HTMLImageElement | null>(null);
   const accepting_ref = useRef(false);
   const starting_checkout_ref = useRef(false);
   const checkout_opened_ref = useRef(false);
+  const handled_checkout_seq_ref = useRef(0);
+  const opened_from_popup_ref = useRef(false);
   const user_id = is_authenticated ? (user?.id ?? null) : null;
   const is_offer_active =
     is_loaded &&
@@ -111,8 +122,25 @@ export function SpecialOfferModal() {
   }, [user_id]);
 
   useEffect(() => {
-    if (!is_offer_active) set_step(null);
+    if (is_offer_active) return;
+
+    set_step(null);
+    close_special_offer();
   }, [is_offer_active]);
+
+  useEffect(() => {
+    close_special_offer();
+  }, [user_id]);
+
+  useEffect(() => {
+    if (!is_offer_active || checkout_seq === handled_checkout_seq_ref.current)
+      return;
+
+    handled_checkout_seq_ref.current = checkout_seq;
+
+    opened_from_popup_ref.current = false;
+    set_step("method");
+  }, [checkout_seq, is_offer_active]);
 
   useEffect(() => {
     set_currency(detect_currency_from_locale());
@@ -121,6 +149,7 @@ export function SpecialOfferModal() {
   useEffect(() => {
     if (!is_open) {
       set_is_hero_loaded(false);
+      set_is_why_open(false);
 
       return;
     }
@@ -153,7 +182,7 @@ export function SpecialOfferModal() {
     };
   }, [can_auto_show, user_id]);
 
-  const pricing = useMemo(() => special_offer_pricing(), []);
+  const pricing = useMemo(() => special_offer_pricing(interval), [interval]);
   const promo_code = useMemo(() => special_offer_promo_code(), []);
   const offer_tier = useMemo(
     () => PLAN_TIERS.find((tier) => tier.id === SPECIAL_OFFER_PLAN_CODE),
@@ -161,6 +190,9 @@ export function SpecialOfferModal() {
   );
 
   if (!pricing || !offer_tier) return null;
+
+  const is_yearly = interval === "year";
+  const term_id = is_yearly ? "yearly" : "monthly";
 
   const offer_label = format_price(
     special_offer_discounted_cents(convert_cents(pricing.list_cents, currency)),
@@ -188,6 +220,7 @@ export function SpecialOfferModal() {
       }
 
       close_special_offer();
+      opened_from_popup_ref.current = true;
       set_step("method");
     } finally {
       accepting_ref.current = false;
@@ -204,10 +237,11 @@ export function SpecialOfferModal() {
     try {
       const result = await start_hosted_checkout(
         SPECIAL_OFFER_PLAN_CODE,
-        SPECIAL_OFFER_INTERVAL,
+        interval,
         currency,
         undefined,
         promo_code ?? undefined,
+        true,
       );
 
       if (!result.ok) {
@@ -234,6 +268,7 @@ export function SpecialOfferModal() {
     if (starting_checkout_ref.current) return;
 
     set_step(null);
+    if (opened_from_popup_ref.current) show_special_offer("manual");
   };
 
   const handle_crypto_checkout_opened = () => {
@@ -253,12 +288,6 @@ export function SpecialOfferModal() {
     show_toast(t("settings.special_offer_dismissed_toast"), "success", 3000);
   };
 
-  const features = [
-    t("settings.special_offer_feature_aliases"),
-    t("settings.special_offer_feature_vanguard"),
-    t("settings.special_offer_feature_storage"),
-  ];
-
   return (
     <>
       <PlanPaymentMethodModal
@@ -271,24 +300,29 @@ export function SpecialOfferModal() {
         on_close={close_method_step}
         open={step === "method"}
         plan_name={offer_tier.name}
-        selected_term="monthly"
+        selected_term={term_id}
         special_offer={offer_checkout.plan_pricing(SPECIAL_OFFER_PLAN_CODE)}
         term_options={[
           {
-            id: "monthly",
-            label: t("settings.billing_monthly"),
-            per_month_cents: pricing.list_cents,
+            id: term_id,
+            label: t(
+              is_yearly ? "settings.billing_yearly" : "settings.billing_monthly",
+            ),
+            per_month_cents: Math.round(
+              pricing.list_cents / special_offer_interval_months(interval),
+            ),
             total_cents: pricing.list_cents,
             save_cents: 0,
           },
         ]}
       />
       <CryptoTermModal
+        special_offer
         discount_percent_off={offer_checkout.percent_off}
         discounted_price_cents={offer_checkout.crypto_price(
           SPECIAL_OFFER_PLAN_CODE,
         )}
-        initial_term_months={1}
+        initial_term_months={special_offer_interval_months(interval)}
         is_open={step === "crypto"}
         monthly_price_cents={offer_tier.monthly_cents}
         on_checkout_opened={handle_crypto_checkout_opened}
@@ -309,12 +343,16 @@ export function SpecialOfferModal() {
         show_close_button={false}
         size="sm"
       >
-        <div className="special_offer_hero rounded-t-xl">
+        <div
+          className="special_offer_hero rounded-t-xl"
+          onDragStart={(event) => event.preventDefault()}
+        >
           <img
             ref={hero_ref}
             alt=""
             aria-hidden="true"
             className="special_offer_hero_image"
+            draggable={false}
             src={special_offer_hero_url}
             onError={() => set_is_hero_loaded(true)}
             onLoad={() => set_is_hero_loaded(true)}
@@ -335,12 +373,31 @@ export function SpecialOfferModal() {
             {t("settings.special_offer_title")}
           </ModalTitle>
 
+          <div
+            aria-label={t("settings.special_offer_billing_period")}
+            className="mt-4 w-56"
+            role="group"
+          >
+            <Segmented
+              on_change={set_interval}
+              options={[
+                { id: "month", label: t("settings.billing_monthly") },
+                { id: "year", label: t("settings.billing_yearly") },
+              ]}
+              value={interval}
+            />
+          </div>
+
           <div className="mt-4 flex items-baseline gap-2.5">
             <span className="text-[32px] font-semibold leading-none tracking-[-0.025em] text-txt-primary">
               {offer_label}
             </span>
             <span className="text-[13px] font-medium text-txt-secondary">
-              {t("settings.special_offer_price_period")}
+              {t(
+                is_yearly
+                  ? "settings.special_offer_price_period_year"
+                  : "settings.special_offer_price_period",
+              )}
             </span>
             <span className="text-[15px] font-medium text-txt-tertiary line-through">
               {list_label}
@@ -348,23 +405,39 @@ export function SpecialOfferModal() {
           </div>
 
           <p className="mt-1.5 mb-4 text-[13px] font-medium text-txt-secondary">
-            {t("settings.special_offer_hero_duration", {
-              months: String(SPECIAL_OFFER_DURATION_MONTHS),
-            })}
+            {is_yearly
+              ? t("settings.special_offer_hero_duration_year")
+              : t("settings.special_offer_hero_duration", {
+                  months: String(SPECIAL_OFFER_DURATION_MONTHS),
+                })}
           </p>
 
-          <ul className="special_offer_features">
-            {features.map((feature) => (
-              <li key={feature} className="special_offer_feature">
-                <CheckIcon
-                  aria-hidden="true"
-                  className="special_offer_check h-[15px] w-[15px]"
-                  strokeWidth={2.5}
-                />
-                <span>{feature}</span>
-              </li>
-            ))}
-          </ul>
+          <SpecialOfferFeatureList />
+
+          <div className="mt-4">
+            <button
+              aria-controls="special_offer_why_body"
+              aria-expanded={is_why_open}
+              className="special_offer_why_toggle"
+              type="button"
+              onClick={() => set_is_why_open((open) => !open)}
+            >
+              <InformationCircleIcon
+                aria-hidden="true"
+                className="h-[15px] w-[15px] shrink-0"
+              />
+              <span>{t("settings.special_offer_why_label")}</span>
+              <ChevronDownIcon
+                aria-hidden="true"
+                className="special_offer_why_chevron h-4 w-4"
+              />
+            </button>
+            {is_why_open && (
+              <p className="special_offer_why_body" id="special_offer_why_body">
+                {t("settings.special_offer_why_body")}
+              </p>
+            )}
+          </div>
 
           <Button
             className="mt-5 w-full !h-11 !text-[15px] !font-semibold"
@@ -379,11 +452,16 @@ export function SpecialOfferModal() {
           </Button>
 
           <p className="mt-4 text-center text-[12px] leading-relaxed text-txt-tertiary">
-            {t("settings.special_offer_fine_print", {
-              offer_price: offer_label,
-              price: list_label,
-              months: String(SPECIAL_OFFER_DURATION_MONTHS),
-            })}
+            {t(
+              is_yearly
+                ? "settings.special_offer_fine_print_year"
+                : "settings.special_offer_fine_print",
+              {
+                offer_price: offer_label,
+                price: list_label,
+                months: String(SPECIAL_OFFER_DURATION_MONTHS),
+              },
+            )}
           </p>
 
           <button

@@ -4096,6 +4096,13 @@ export const ja = {
       "今回の請求期間の終わりまでプレミアム機能を引き続き使え、その後プランは無料に戻ります。メール、連絡先、設定はそのまま残ります。",
     cancel_plan: "プランをキャンセル",
     billing_history: "請求履歴",
+    billing_plan_heading: "プラン",
+    billing_hide_plans: "プランを非表示",
+    billing_cancel_notice_title: "プランは解約予定です",
+    billing_cancel_notice_body:
+      "プランは {{date}} に終了します。その後、アカウントは無料プランに移行します。",
+    billing_renewals_heading: "更新",
+    billing_amount: "金額",
     billing_desc_payment_failed: "支払いに失敗しました",
     billing_desc_refund_processed: "返金を処理しました",
     billing_desc_payment_disputed:
@@ -5003,16 +5010,36 @@ export const ja = {
       "決済を開始できませんでした。もう一度お試しください。",
     special_offer_was_price: "以前は月額{{price}}",
     special_offer_original_price: "通常価格：{{price}}",
-    special_offer_cta: "{{percent}}%オフで購入",
-    special_offer_feature_aliases: "エイリアスとカスタムドメインが無制限",
-    special_offer_feature_vanguard:
-      "Aster Vanguardのアプリロック、ロックダウンモード、セキュリティ監視",
-    special_offer_feature_storage: "暗号化ストレージ500 GB",
+    special_offer_cta: "{{percent}}%オフで始める",
+    special_offer_feature_aliases: "エイリアス無制限",
+    special_offer_feature_vanguard: "Vanguardで強化されたセキュリティ",
+    special_offer_feature_storage: "500 GBの暗号化ストレージ",
+    special_offer_why_body:
+      "Aster は小さなチームで運営する独立した企業で、皆さまのご支援は私たちにとって大きな意味があります。サブスクリプションはサービスの運営を支え、Aster を毎日丁寧に開発し続けることを可能にしています。このオファーで、より気軽に始めていただけます。",
+    special_offer_why_label: "このオファーを提供する理由",
+    special_offer_feature_vanguard_body:
+      "アプリロックと高度なプライバシー保護。",
+    special_offer_feature_domains_body:
+      "独自ドメインのアドレスから送信できます。",
+    special_offer_feature_domains: "カスタムドメイン最大30個",
+    special_offer_feature_storage_body:
+      "何年分ものメールとファイルを保存できます。",
+    special_offer_feature_aliases_body:
+      "サイトごとに専用のアドレスを使えます。",
     special_offer_fine_print:
       "最初の{{months}}か月は月額{{offer_price}}です。その後は、設定で解約するまで月額{{price}}で更新されます。",
     special_offer_dismiss: "このオファーを今後表示しない",
     special_offer_dismissed_toast: "今後は表示しません。",
+    special_offer_success_title:
+      "ありがとうございます。Nova をご利用いただけます。",
+    special_offer_success_body:
+      "ご登録ありがとうございます。皆さまのご支援が私たちの大きな励みです。",
     special_offer_hero_duration: "{{months}}か月間",
+    special_offer_price_period_year: "年額",
+    special_offer_hero_duration_year: "最初の1年間",
+    special_offer_fine_print_year:
+      "最初の1年間は{{offer_price}}です。その後は、設定で解約するまで年額{{price}}で更新されます。",
+    special_offer_billing_period: "請求期間",
     plan_billing_terms:
       "サブスクリプションは、解約するまで通常価格で自動的に更新されます。設定からいつでも解約できます。",
     upgrade_offer_note: "{{percent}}%の割引は決済時に適用されます。",
@@ -6087,6 +6114,11 @@ export const ja = {
     checkout_abandon_title: "この支払いをキャンセルしますか？",
     checkout_add_promo: "プロモーションコードを追加",
     checkout_amount_due: "お支払い金額",
+    checkout_offer_switch_term: "{{term}} に切り替えると {{percent}}% オフ",
+    checkout_offer_switch_crypto: "暗号資産で支払うと {{percent}}% オフ",
+    checkout_offer_switch_card: "カードで支払うと {{percent}}% オフ",
+    checkout_offer_renewal:
+      "{{months}} か月間は月額 {{offer_price}}、その後は月額 {{price}}",
     checkout_card_details: "カード情報",
     checkout_full_features_title: "{{plan}} の機能",
     checkout_leave_warning:
@@ -6769,7 +6801,7 @@ export const ja = {
     crypto_native_recommended: "おすすめ",
     crypto_native_resume_selected: "選択中",
     crypto_native_status_underpaid: "一部支払い済み",
-    crypto_native_what_happens: "この後の流れ",
+    crypto_native_what_happens: "支払いの進行状況",
     crypto_native_stripe_option: "ステーブルコインで支払う",
     crypto_native_stripe_desc:
       "決済代行を通じて USDC などのステーブルコインでお支払いいただけます",
@@ -6813,7 +6845,7 @@ export const ja = {
       "お支払いの手動確認が必要です。まもなくアカウントに反映されます。",
     crypto_native_transaction: "トランザクション",
     crypto_native_refund_notice:
-      "支払額を超えて送金した場合、超過分は米ドルで Aster アカウントの残高に加算されます。代わりに返金を依頼することもできます。",
+      "支払額を超えて送金した場合、超過分は米ドルで Aster アカウントの残高に加算されます。",
     crypto_native_cancel_invoice: "この請求をキャンセル",
     crypto_native_cancel_failed: "この請求をキャンセルできませんでした。",
     crypto_native_cancel_has_payment:
@@ -6845,6 +6877,14 @@ export const ja = {
       "送金前に、ウォレットの画面に表示されたアドレスとここに表示されたアドレスを照合してください。ご注文で監視しているのはこのアドレスのみです。",
     crypto_native_fee_headroom:
       "ウォレットがネットワーク手数料を入力額から差し引く場合は、満額が届くよう少し多めに入力してください。",
+    crypto_native_network_only:
+      "{{chain}} ネットワークで {{coin}} のみを送金してください",
+    crypto_native_tip_unrecoverable:
+      "別のネットワークで送金した資金は回収できません。",
+    crypto_native_tip_check_address:
+      "送金する前にウォレットでアドレスを確認してください。",
+    crypto_native_tip_fee:
+      "ウォレットが金額から手数料を差し引く場合は、少し多めに送金してください。",
     crypto_native_expired_do_not_send:
       "この請求のアドレスには送金しないでください。今送金された資金は、反映される前に手動確認が必要になります。",
     crypto_native_not_found: "この請求が見つかりませんでした",
@@ -6900,6 +6940,8 @@ export const ja = {
     crypto_summary_length: "期間",
     crypto_modal_title: "仮想通貨で支払う",
     crypto_no_renew_notice: "仮想通貨での購入は自動更新されません。",
+    special_offer_crypto_one_payment:
+      "{{percent}}%オフはこのお支払いにのみ適用され、以降の仮想通貨でのお支払いは通常価格になります。1年間割引を受けるには、12か月を選択してください。",
     crypto_paid_until: "{{date}}まで有効（仮想通貨）",
     card_declined_title: "前回のカード決済が完了しませんでした",
     card_declined_insufficient_funds:
@@ -7775,6 +7817,8 @@ export const ja = {
       "Monero: プルーフ・オブ・ワークを採用し、汎用プロセッサでマイニングされます。裏付けできる最新の数値が見つからないため、公表していません。",
     crypto_energy_caveat:
       "これらは第三者による推定値で、当社の測定値ではありません。1件あたりの数値には異論もあります。当社はいずれの支払い方法についても環境に関する主張を行いません。",
+    crypto_native_rate_label: "為替レート",
+    crypto_native_last_checked_label: "最終確認",
     crypto_native_rate_value: "適用レート: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "コインを選ぶとレートが固定されます。その後、ご自分のウォレットから送金してください。",

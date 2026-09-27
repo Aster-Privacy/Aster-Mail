@@ -39,8 +39,7 @@ export function PlanComparisonSection({
       <div className="flex justify-center">
         <button
           aria-expanded={is_open}
-          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
-          style={{ color: "var(--accent-blue)" }}
+          className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium text-txt-secondary transition-colors hover:bg-surf-hover hover:text-txt-primary"
           type="button"
           onClick={() => set_is_open((open) => !open)}
         >

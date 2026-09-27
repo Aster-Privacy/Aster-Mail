@@ -58,6 +58,7 @@ import {
 } from "@/services/read_intent";
 
 const MAP_CHUNK_SIZE = 25;
+const FIRST_PAINT_COUNT = 15;
 
 export async function fetch_mail_from_api(
   view: string,
@@ -69,6 +70,7 @@ export async function fetch_mail_from_api(
   offset?: number,
   conversation_grouping = true,
   sort_order: "newest_first" | "oldest_first" = "newest_first",
+  on_partial?: (emails: InboxEmail[]) => void,
 ): Promise<{
   emails: InboxEmail[];
   total: number;
@@ -271,12 +273,41 @@ export async function fetch_mail_from_api(
     return emails;
   };
 
-  const first_batch = await process_items(items);
+  const finalize = (emails: InboxEmail[]) => {
+    const sorted = sort_emails_by_timestamp(emails, order);
 
-  if (first_batch === null) return null;
+    return should_group ? group_emails_by_thread(sorted) : sorted;
+  };
 
-  const collected: InboxEmail[] = [...first_batch];
+  const emit_partial = (emails: InboxEmail[]) => {
+    if (!on_partial || signal.aborted || emails.length === 0) return;
+    on_partial(finalize(emails));
+  };
+
+  const split_first_paint = !!on_partial && items.length > FIRST_PAINT_COUNT;
+  const head_promise = process_items(
+    split_first_paint ? items.slice(0, FIRST_PAINT_COUNT) : items,
+  );
+  const tail_promise = split_first_paint
+    ? process_items(items.slice(FIRST_PAINT_COUNT))
+    : Promise.resolve([] as InboxEmail[]);
+
+  const head_batch = await head_promise;
+
+  if (head_batch === null) return null;
+
+  if (split_first_paint) emit_partial(head_batch);
+
+  const tail_batch = await tail_promise;
+
+  if (tail_batch === null) return null;
+
+  const collected: InboxEmail[] = [...head_batch, ...tail_batch];
   const supports_top_up = offset !== undefined;
+
+  if (supports_top_up && has_more && collected.length < limit) {
+    emit_partial(collected);
+  }
 
   let top_up_rounds = 0;
 
@@ -320,11 +351,11 @@ export async function fetch_mail_from_api(
     collected.push(...top_up_batch.filter((e) => !seen_ids.has(e.id)));
   }
 
-  const sorted_emails = sort_emails_by_timestamp(collected, order);
-
-  const final_emails = should_group
-    ? group_emails_by_thread(sorted_emails)
-    : sorted_emails;
-
-  return { emails: final_emails, total, has_more, next_cursor, raw_consumed };
+  return {
+    emails: finalize(collected),
+    total,
+    has_more,
+    next_cursor,
+    raw_consumed,
+  };
 }

@@ -20,9 +20,10 @@
 //
 import type { PendingOffer } from "@/services/api/billing";
 
-import { SparklesIcon } from "@heroicons/react/24/solid";
+import { TagIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { BillingNotice } from "@/components/settings/billing/billing_layout";
 
 interface WinBackOfferCardProps {
   offer: PendingOffer | null | undefined;
@@ -62,43 +63,32 @@ export function WinBackOfferCard({
         : t("settings.win_back_offer_expires_in", { days: days_left });
 
   return (
-    <div className={`offer_banner px-5 py-5 ${class_name}`}>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-start gap-3.5">
-          <span
-            aria-hidden="true"
-            className="offer_banner_orb flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl"
-          >
-            <SparklesIcon className="h-5 w-5" />
+    <BillingNotice
+      body={
+        <>
+          {t("settings.win_back_offer_auto_applied", { code: offer.code })}
+          <span aria-hidden="true" className="mx-1.5">
+            ·
           </span>
-
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <p className="offer_banner_title text-[15px] font-semibold leading-tight">
-                {t("settings.win_back_offer_title", {
-                  discount: offer.discount_label,
-                })}
-              </p>
-              <span className="offer_banner_chip inline-flex flex-shrink-0 items-center rounded-full px-2.5 py-0.5 text-[11px] font-medium">
-                {expiry_text}
-              </span>
-            </div>
-            <p className="offer_banner_body mt-1.5 text-xs leading-relaxed">
-              {t("settings.win_back_offer_auto_applied", { code: offer.code })}
-            </p>
-          </div>
-        </div>
-
-        {on_choose_plan && (
-          <button
-            className="aster_btn aster_btn_primary aster_btn_sm w-full flex-shrink-0 sm:w-auto"
-            type="button"
-            onClick={on_choose_plan}
-          >
-            {t("settings.win_back_offer_action")}
-          </button>
-        )}
-      </div>
-    </div>
+          {expiry_text}
+        </>
+      }
+      class_name={class_name}
+      icon={TagIcon}
+      title={t("settings.win_back_offer_title", {
+        discount: offer.discount_label,
+      })}
+      tone="neutral"
+    >
+      {on_choose_plan && (
+        <button
+          className="aster_btn aster_btn_primary aster_btn_sm"
+          type="button"
+          onClick={on_choose_plan}
+        >
+          {t("settings.win_back_offer_action")}
+        </button>
+      )}
+    </BillingNotice>
   );
 }

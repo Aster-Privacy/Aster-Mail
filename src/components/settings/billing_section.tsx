@@ -65,6 +65,7 @@ import {
 import { request_cache } from "@/services/api/request_cache";
 import { use_mail_stats, invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { use_special_offer_checkout } from "@/hooks/use_special_offer_checkout";
+import { special_offer_promo_code } from "@/lib/special_offer";
 import {
   show_toast,
   TOAST_DURATION_BILLING_MS,
@@ -101,6 +102,7 @@ import { CardDeclineNotice } from "@/components/settings/billing/card_decline_no
 import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
 import { ResumeCheckoutCard } from "@/components/settings/billing/resume_checkout_card";
 import { WinBackOfferCard } from "@/components/settings/billing/win_back_offer_card";
+import { SpecialOfferBillingCard } from "@/components/settings/billing/special_offer_billing_card";
 import { YearlySwitchCard } from "@/components/settings/billing/yearly_switch_card";
 import { AcademicDiscountSection } from "@/components/settings/billing/academic_discount_section";
 import { BillingHistorySection } from "@/components/settings/billing/billing_history_section";
@@ -687,11 +689,16 @@ export function BillingSection() {
 
     set_is_action_loading(true);
     try {
+      const offer_applies =
+        (checkout_interval === "month" || checkout_interval === "year") &&
+        !!offer_checkout.plan_pricing(plan.code);
       const result = await start_hosted_checkout(
         plan.code,
         checkout_interval,
         preferred_currency,
         credit_balance?.balance_cents,
+        offer_applies ? (special_offer_promo_code() ?? undefined) : undefined,
+        offer_applies || undefined,
       );
 
       if (!result.ok) {
@@ -1106,6 +1113,8 @@ export function BillingSection() {
         on_choose_plan={scroll_to_plans}
       />
 
+      <SpecialOfferBillingCard plan_code={subscription?.plan.code ?? null} />
+
       <YearlySwitchCard
         currency={preferred_currency}
         offer={subscription?.yearly_switch_offer}
@@ -1254,9 +1263,21 @@ export function BillingSection() {
                   set_crypto_back_plan(null);
                 }
               }}
+              on_finished={() => {
+                set_show_crypto_modal(false);
+                set_crypto_plan(null);
+                set_crypto_resume(null);
+                set_crypto_back_plan(null);
+              }}
               plan_code={crypto_plan.code}
               plan_name={crypto_plan.name}
               preferred_currency={preferred_currency}
+              promo_code={
+                offer_checkout.crypto_price(crypto_plan.code)
+                  ? special_offer_promo_code()
+                  : undefined
+              }
+              special_offer={!!offer_checkout.crypto_price(crypto_plan.code)}
               yearly_price_cents={tier.yearly_cents}
             />
           );
@@ -1370,6 +1391,11 @@ export function BillingSection() {
               set_show_addon_method_modal(true);
               set_crypto_back_addon(null);
             }
+          }}
+          on_finished={() => {
+            set_show_crypto_addon_modal(false);
+            set_crypto_addon(null);
+            set_crypto_back_addon(null);
           }}
           preferred_currency={preferred_currency}
           price_cents={crypto_addon.price_cents}

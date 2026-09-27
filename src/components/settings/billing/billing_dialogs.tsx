@@ -28,7 +28,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { Input } from "@/components/ui/input";
-import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { clamp_password } from "@/services/sanitize";
 import {
   Modal,
@@ -543,11 +543,8 @@ export function BillingDialogs({
                   handle_cancel();
                 }}
               >
-                {is_action_loading ? (
-                  <Spinner size="sm" />
-                ) : (
-                  t("settings.cancel_final_confirm")
-                )}
+                {t("settings.cancel_final_confirm")}
+                {is_action_loading && <ButtonSpinner />}
               </AlertDialogAction>
             </AlertDialogFooter>
           ) : (
@@ -1037,11 +1034,8 @@ export function BillingDialogs({
                 }
               }}
             >
-              {is_action_loading ? (
-                <Spinner size="sm" />
-              ) : (
-                t("settings.confirm_cancel_addon")
-              )}
+              {t("settings.confirm_cancel_addon")}
+              {is_action_loading && <ButtonSpinner />}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -88,6 +88,36 @@ describe("draft_manager.save_draft concurrency", () => {
     expect(draft_manager.get_context(context_id)?.pending_save).toBeNull();
   });
 
+  it("uploads only the newest of several queued saves", async () => {
+    create_draft.mockResolvedValue({ data: { id: "d1", version: 1 } });
+    update_draft.mockResolvedValue({ data: { id: "d1", version: 2 } });
+    const context_id = draft_manager.create_context();
+
+    const first = draft_manager.save_draft(context_id, draft("one"), vault);
+    const second = draft_manager.save_draft(context_id, draft("two"), vault);
+    const third = draft_manager.save_draft(context_id, draft("three"), vault);
+
+    await Promise.all([first, second, third]);
+
+    expect(create_draft).toHaveBeenCalledTimes(1);
+    expect(update_draft).toHaveBeenCalledTimes(1);
+    expect(update_draft.mock.calls[0][1].message).toBe("three");
+  });
+
+  it("drops queued saves without touching the one in flight", async () => {
+    create_draft.mockResolvedValue({ data: { id: "d1", version: 1 } });
+    const context_id = draft_manager.create_context();
+
+    const first = draft_manager.save_draft(context_id, draft("one"), vault);
+    const second = draft_manager.save_draft(context_id, draft("two"), vault);
+
+    draft_manager.drop_queued_saves(context_id);
+    await Promise.all([first, second]);
+
+    expect(create_draft).toHaveBeenCalledTimes(1);
+    expect(update_draft).not.toHaveBeenCalled();
+  });
+
   it("skips the network when the content did not change", async () => {
     create_draft.mockResolvedValue({ data: { id: "d1", version: 1 } });
     const context_id = draft_manager.create_context();

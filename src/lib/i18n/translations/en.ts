@@ -3133,6 +3133,13 @@ export const en: Translations = {
     cancel_plan_warning:
       "You will keep premium features until the end of this billing period, and then your plan moves to Free. Your mail, contacts, and settings stay with you.",
     billing_history: "Billing History",
+    billing_plan_heading: "Plan",
+    billing_hide_plans: "Hide plans",
+    billing_cancel_notice_title: "Your plan is set to cancel",
+    billing_cancel_notice_body:
+      "Your plan ends on {{date}}. After that, your account moves to the free plan.",
+    billing_renewals_heading: "Renewals",
+    billing_amount: "Amount",
     billing_desc_payment_failed: "Payment failed",
     billing_desc_refund_processed: "Refund processed",
     billing_desc_payment_disputed: "Payment disputed: {{reason}}",
@@ -3263,7 +3270,7 @@ export const en: Translations = {
     crypto_native_recommended: "Recommended",
     crypto_native_resume_selected: "Selected",
     crypto_native_status_underpaid: "Partially paid",
-    crypto_native_what_happens: "What happens next",
+    crypto_native_what_happens: "Payment progress",
     crypto_native_stripe_option: "Pay by stablecoin",
     crypto_native_stripe_desc:
       "USDC and other stablecoins through our payment processor",
@@ -3273,7 +3280,7 @@ export const en: Translations = {
       "You have created too many crypto invoices today. Please try again later.",
     crypto_native_invoice_title: "Pay with {{coin}}",
     crypto_native_awaiting_body:
-      "Send the exact amount to the address below. This page updates automatically.",
+      "Send the exact amount to the address below. This page will update automatically.",
     crypto_native_received_title: "Payment received",
     crypto_native_received_body:
       "The full amount has been received and is being processed. No further payment is needed.",
@@ -3294,6 +3301,8 @@ export const en: Translations = {
     crypto_native_usd_total_label: "Invoice total",
     crypto_native_rate_locked:
       "Your rate is locked until this invoice expires.",
+    crypto_native_rate_label: "Exchange rate",
+    crypto_native_last_checked_label: "Last checked",
     crypto_native_rate_value: "Rate used: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "Pick a coin to lock your exchange rate. You then send the payment yourself, from your own wallet.",
@@ -3310,7 +3319,7 @@ export const en: Translations = {
       "Your payment needs a quick manual check. We will credit your account shortly.",
     crypto_native_transaction: "Transaction",
     crypto_native_refund_notice:
-      "If you send more than the amount due, the extra goes to your Aster account balance in US dollars. You can ask us to refund it instead.",
+      "If you send more than the amount due, the extra goes to your Aster account balance in US dollars.",
     crypto_native_cancel_invoice: "Cancel this invoice",
     crypto_native_cancel_failed: "Could not cancel this invoice.",
     crypto_native_cancel_has_payment:
@@ -3342,6 +3351,13 @@ export const en: Translations = {
       "Check the address on your wallet screen against the one shown here before you send. Only this address is monitored for your order.",
     crypto_native_fee_headroom:
       "If your wallet takes its network fee out of the amount you enter, add a little extra so the full amount arrives.",
+    crypto_native_network_only: "Send only {{coin}} on the {{chain}} network",
+    crypto_native_tip_unrecoverable:
+      "Funds sent on another network can't be recovered.",
+    crypto_native_tip_check_address:
+      "Check the address in your wallet before you send.",
+    crypto_native_tip_fee:
+      "If your wallet takes its fee from the amount, send a little extra.",
     crypto_native_expired_do_not_send:
       "Do not send to the address on this invoice. Funds sent now need a manual review before they can be credited.",
     crypto_native_not_found: "We couldn't find this invoice",
@@ -3392,6 +3408,8 @@ export const en: Translations = {
     crypto_native_confirmations_progress: "Network confirmations",
     crypto_paid_until: "Paid until {{date}} (crypto)",
     crypto_no_renew_notice: "Crypto purchases do not auto-renew.",
+    special_offer_crypto_one_payment:
+      "The {{percent}}% discount covers this payment only, and later crypto payments are at the regular price. To get the discount for a full year, choose 12 months.",
     crypto_renew_link: "Renew with crypto",
     crypto_success_toast: "Crypto payment received. Your plan is active.",
     crypto_cancelled_toast: "Crypto payment cancelled.",
@@ -5906,7 +5924,7 @@ export const en: Translations = {
       "{{plan}} removes the alias limit if you need more.",
     alias_cap_upsell_cta: "Upgrade to {{plan}}",
     special_offer_button: "Special offer",
-    special_offer_title: "Private mail, half price",
+    special_offer_title: "Private mail, half the price",
     special_offer_subtitle: "50% off your first 12 months",
     special_offer_price_period: "per month",
     special_offer_save_badge: "Save {{percent}}%",
@@ -5914,16 +5932,33 @@ export const en: Translations = {
       "Something went wrong starting checkout. Try again.",
     special_offer_was_price: "Was {{price}} per month",
     special_offer_original_price: "Original price: {{price}}",
-    special_offer_cta: "Get {{percent}}% off",
-    special_offer_feature_aliases: "Unlimited aliases and custom domains",
-    special_offer_feature_vanguard:
-      "Aster Vanguard app lock, lockdown mode, and security monitoring",
+    special_offer_cta: "Claim {{percent}}% off",
+    special_offer_feature_aliases: "Unlimited aliases",
+    special_offer_feature_vanguard: "Advanced security with Vanguard",
     special_offer_feature_storage: "500 GB of encrypted storage",
+    special_offer_why_body:
+      "Aster is an independent company run by a small team, and your support means a lot to us. Subscriptions keep the service running and let us keep building Aster with care every day. This offer makes it easier to get started.",
+    special_offer_why_label: "Why this offer?",
+    special_offer_feature_vanguard_body:
+      "App lock and advanced privacy protection.",
+    special_offer_feature_domains_body:
+      "Send from addresses on your own domains.",
+    special_offer_feature_domains: "Up to 30 custom domains",
+    special_offer_feature_storage_body: "Room for years of mail and files.",
+    special_offer_feature_aliases_body: "Give each site its own address.",
     special_offer_fine_print:
       "You pay {{offer_price}} per month for the first {{months}} months. Your plan then renews at {{price}} per month until you cancel it in Settings.",
     special_offer_dismiss: "Don't show this offer again",
     special_offer_dismissed_toast: "We won't show you this again.",
+    special_offer_success_title: "Thank you. You're on Nova.",
+    special_offer_success_body:
+      "Thank you for subscribing. Your support means a lot to us.",
     special_offer_hero_duration: "for {{months}} months",
+    special_offer_price_period_year: "per year",
+    special_offer_hero_duration_year: "for your first year",
+    special_offer_fine_print_year:
+      "You pay {{offer_price}} for your first year. Your plan then renews at {{price}} per year until you cancel it in Settings.",
+    special_offer_billing_period: "Billing period",
     plan_billing_terms:
       "Subscriptions renew automatically at the standard rate until you cancel. Cancel at any time in Settings.",
     upgrade_offer_note: "Your {{percent}}% discount is applied at checkout.",
@@ -7698,6 +7733,11 @@ export const en: Translations = {
     checkout_abandon_title: "Cancel this payment?",
     checkout_add_promo: "Add a promo code",
     checkout_amount_due: "Amount due",
+    checkout_offer_switch_term: "Switch to {{term}} to get {{percent}}% off",
+    checkout_offer_switch_crypto: "Pay with crypto to get {{percent}}% off",
+    checkout_offer_switch_card: "Pay by card to get {{percent}}% off",
+    checkout_offer_renewal:
+      "{{offer_price}} per month for {{months}} months, then {{price}} per month",
     checkout_card_details: "Card details",
     checkout_full_features_title: "{{plan}} features",
     checkout_leave_warning:

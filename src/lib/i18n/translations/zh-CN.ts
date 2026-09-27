@@ -3761,6 +3761,13 @@ export const zh_CN = {
       "您可以继续使用付费功能直到本计费周期结束，之后您的方案会变为免费。您的邮件、联系人和设置都会保留。",
     cancel_plan: "取消套餐",
     billing_history: "账单历史",
+    billing_plan_heading: "套餐",
+    billing_hide_plans: "隐藏套餐",
+    billing_cancel_notice_title: "你的套餐将被取消",
+    billing_cancel_notice_body:
+      "你的套餐将于 {{date}} 结束。之后，你的账户将转为免费套餐。",
+    billing_renewals_heading: "续订",
+    billing_amount: "金额",
     billing_desc_payment_failed: "支付失败",
     billing_desc_refund_processed: "退款已处理",
     billing_desc_payment_disputed: "支付被质疑：{{reason}}",
@@ -4554,15 +4561,30 @@ export const zh_CN = {
     special_offer_checkout_error: "启动结账时出错。请重试。",
     special_offer_was_price: "原价每月 {{price}}",
     special_offer_original_price: "原价：{{price}}",
-    special_offer_cta: "享 {{percent}}% 折扣",
-    special_offer_feature_aliases: "无限别名和自定义域名",
-    special_offer_feature_vanguard: "Aster Vanguard 应用锁、锁定模式和安全监控",
-    special_offer_feature_storage: "500 GB 加密存储",
+    special_offer_cta: "领取 {{percent}}% 优惠",
+    special_offer_feature_aliases: "无限别名",
+    special_offer_feature_vanguard: "Vanguard 高级安全防护",
+    special_offer_feature_storage: "500 GB 加密存储空间",
+    special_offer_why_body:
+      "Aster 是一家由小团队运营的独立公司，你的支持对我们意义重大。订阅让服务得以持续运行，也让我们能够每天用心打造 Aster。这个优惠让你能更轻松地开始使用。",
+    special_offer_why_label: "为什么有这个优惠？",
+    special_offer_feature_vanguard_body: "应用锁和高级隐私保护。",
+    special_offer_feature_domains_body: "使用你自己域名下的地址发送邮件。",
+    special_offer_feature_domains: "最多 30 个自定义域名",
+    special_offer_feature_storage_body: "足以存放多年的邮件和文件。",
+    special_offer_feature_aliases_body: "为每个网站使用独立的地址。",
     special_offer_fine_print:
       "前 {{months}} 个月每月支付 {{offer_price}}。之后套餐将按每月 {{price}} 续订，直到您在设置中取消。",
     special_offer_dismiss: "不再显示此优惠",
     special_offer_dismissed_toast: "我们不会再显示了。",
+    special_offer_success_title: "谢谢。你已升级到 Nova。",
+    special_offer_success_body: "感谢你的订阅。你的支持对我们意义重大。",
     special_offer_hero_duration: "为期 {{months}} 个月",
+    special_offer_price_period_year: "每年",
+    special_offer_hero_duration_year: "首年",
+    special_offer_fine_print_year:
+      "首年支付 {{offer_price}}。之后套餐将按每年 {{price}} 续订，直到你在设置中取消。",
+    special_offer_billing_period: "计费周期",
     plan_billing_terms:
       "订阅会按标准价格自动续订，直到您取消。您可以随时在设置中取消。",
     upgrade_offer_note: "您的 {{percent}}% 折扣将在结账时生效。",
@@ -5502,6 +5524,11 @@ export const zh_CN = {
     checkout_abandon_title: "要取消这笔付款吗？",
     checkout_add_promo: "添加优惠码",
     checkout_amount_due: "应付金额",
+    checkout_offer_switch_term: "切换到{{term}}即可享受 {{percent}}% 折扣",
+    checkout_offer_switch_crypto: "使用加密货币支付即可享受 {{percent}}% 折扣",
+    checkout_offer_switch_card: "使用银行卡支付即可享受 {{percent}}% 折扣",
+    checkout_offer_renewal:
+      "前 {{months}} 个月每月 {{offer_price}}，之后每月 {{price}}",
     checkout_card_details: "银行卡信息",
     checkout_full_features_title: "{{plan}} 功能",
     checkout_leave_warning: "您有一笔付款正在进行。现在离开，付款将无法完成。",
@@ -6570,7 +6597,7 @@ export const zh_CN = {
     crypto_native_recommended: "推荐",
     crypto_native_resume_selected: "已选择",
     crypto_native_status_underpaid: "部分支付",
-    crypto_native_what_happens: "接下来会发生什么",
+    crypto_native_what_happens: "付款进度",
     crypto_native_stripe_option: "使用稳定币支付",
     crypto_native_stripe_desc: "通过我们的支付服务商使用 USDC 等稳定币付款",
     crypto_native_too_many_open:
@@ -6638,6 +6665,10 @@ export const zh_CN = {
       "发送前请将钱包屏幕上的地址与此处显示的地址逐字核对。我们只会为您的订单监控这个地址。",
     crypto_native_fee_headroom:
       "如果您的钱包会从您输入的金额中扣除网络手续费，请多加一点，确保全额到账。",
+    crypto_native_network_only: "仅通过 {{chain}} 网络发送 {{coin}}",
+    crypto_native_tip_unrecoverable: "通过其他网络发送的资金无法找回。",
+    crypto_native_tip_check_address: "发送前，请在钱包中核对地址。",
+    crypto_native_tip_fee: "如果钱包从金额中扣除手续费，请多发送一点。",
     crypto_native_expired_do_not_send:
       "请勿向此账单中的地址转账。现在发送的资金需要人工审核后才能入账。",
     crypto_native_not_found: "未找到此账单",
@@ -6693,6 +6724,8 @@ export const zh_CN = {
     crypto_no_renew_notice:
       "加密货币订阅不会自动续费。您可以在到期前手动续费。",
     crypto_success_toast: "已收到加密货币付款。您的套餐已生效。",
+    special_offer_crypto_one_payment:
+      "{{percent}}% 优惠仅适用于本次付款，之后的加密货币付款按原价收取。如需全年享受优惠，请选择 12 个月。",
     crypto_cancelled_toast: "支付已取消。",
     invoice_status_disputed: "有争议",
     invoice_status_draft: "草稿",
@@ -7045,6 +7078,8 @@ export const zh_CN = {
       "门罗币：采用工作量证明，使用通用处理器挖矿。我们没有找到可以背书的当前数据，因此不公布数值。",
     crypto_energy_caveat:
       "这些是第三方估算值，并非我们的实测数据，且按笔计算的数字存在争议。我们不对任何付款方式作出环保声明。",
+    crypto_native_rate_label: "汇率",
+    crypto_native_last_checked_label: "上次检查",
     crypto_native_rate_value: "使用的汇率：1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "选择一种币种即可锁定汇率。然后从您自己的钱包发送付款。",

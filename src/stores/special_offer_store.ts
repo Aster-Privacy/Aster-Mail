@@ -32,12 +32,14 @@ export interface SpecialOfferState {
   is_open: boolean;
   source: SpecialOfferSource;
   open_seq: number;
+  checkout_seq: number;
 }
 
 const initial_state: SpecialOfferState = {
   is_open: false,
   source: "auto",
   open_seq: 0,
+  checkout_seq: 0,
 };
 
 let current: SpecialOfferState = initial_state;
@@ -84,7 +86,20 @@ export function show_special_offer(
   if (!can_show_special_offer()) return false;
 
   open_seq += 1;
-  current = { is_open: true, source, open_seq };
+  current = { ...current, is_open: true, source, open_seq };
+  notify();
+
+  return true;
+}
+
+export function request_special_offer_checkout(): boolean {
+  if (!can_show_special_offer()) return false;
+
+  current = {
+    ...current,
+    is_open: false,
+    checkout_seq: current.checkout_seq + 1,
+  };
   notify();
 
   return true;

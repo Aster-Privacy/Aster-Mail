@@ -18,11 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { CircleStackIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { useEffect, useState } from "react";
 
+import { Progress } from "@/components/ui/progress";
 import {
+  format_date,
   format_price,
+  format_storage,
   type StorageAddonItem,
   type UserActiveAddon,
 } from "@/services/api/billing";
@@ -30,9 +32,15 @@ import {
   ADDON_BADGES,
   convert_cents,
 } from "@/components/settings/billing/billing_constants";
+import {
+  BillingGroup,
+  BillingRow,
+  BillingSectionLabel,
+} from "@/components/settings/billing/billing_layout";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
-import { app_locale, get_display_time_zone } from "@/utils/date_format";
+
+export const OPEN_STORAGE_ADDONS_EVENT = "aster:open-storage-addons";
 
 interface StorageAddonsSectionProps {
   available_addons: StorageAddonItem[];
@@ -43,6 +51,10 @@ interface StorageAddonsSectionProps {
   on_cancel_addon: (addon: UserActiveAddon) => void;
   on_purchase_addon: (addon: StorageAddonItem) => void;
   preferred_currency: string;
+  storage_used_bytes?: number;
+  storage_limit_bytes?: number;
+  storage_percentage?: number;
+  is_over_limit?: boolean;
 }
 
 export function StorageAddonsSection({
@@ -54,145 +66,168 @@ export function StorageAddonsSection({
   on_cancel_addon,
   on_purchase_addon,
   preferred_currency,
+  storage_used_bytes,
+  storage_limit_bytes,
+  storage_percentage,
+  is_over_limit = false,
 }: StorageAddonsSectionProps) {
   const { t } = use_i18n();
+  const [is_picker_open, set_is_picker_open] = useState(false);
+  const has_usage =
+    storage_used_bytes !== undefined && storage_limit_bytes !== undefined;
+
+  useEffect(() => {
+    const open_picker = () => set_is_picker_open(true);
+
+    window.addEventListener(OPEN_STORAGE_ADDONS_EVENT, open_picker);
+
+    return () =>
+      window.removeEventListener(OPEN_STORAGE_ADDONS_EVENT, open_picker);
+  }, []);
+
+  const handle_buy = () => {
+    const addon = available_addons.find((a) => a.id === selected_storage);
+
+    if (!addon) {
+      show_toast(t("settings.storage_select_option_first"), "info");
+
+      return;
+    }
+
+    on_purchase_addon(addon);
+  };
 
   return (
-    <div className="pt-4" id="additional_storage_section">
-      <div className="mb-2">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-          <CircleStackIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
-          {t("settings.storage_addons")}
-        </h3>
-      </div>
-      <p className="text-sm mb-1 text-txt-muted">
-        {t("settings.storage_addons_description")}
-      </p>
-      <p className="text-xs mb-3 text-txt-muted">
-        {t("settings.storage_addons_monthly_note")}
-      </p>
-
-      {active_addons.length > 0 && (
-        <div className="mb-4">
-          <h4 className="text-sm font-medium text-txt-secondary mb-2">
-            {t("settings.active_addons")}
-          </h4>
-          <div className="divide-y divide-edge-secondary border-y border-edge-secondary">
-            {active_addons.map((addon) => (
-              <div
-                key={addon.user_addon_id}
-                className="flex items-center justify-between px-1 py-3"
-              >
-                <div>
-                  <p className="text-sm font-medium text-txt-primary">
-                    {addon.size_label}
-                  </p>
-                  <p className="text-xs text-txt-muted">
-                    {format_price(
-                      convert_cents(addon.price_cents, preferred_currency),
-                      preferred_currency,
-                    )}
-                    {t("settings.per_month_short")}
-                  </p>
-                  {addon.cancel_at_period_end && addon.current_period_end && (
-                    <p className="text-xs text-amber-500 mt-0.5">
-                      {t("settings.cancels")}{" "}
-                      {new Date(addon.current_period_end).toLocaleDateString(
-                        app_locale(),
-                        { timeZone: get_display_time_zone() },
-                      )}
-                    </p>
-                  )}
-                </div>
-                {!addon.cancel_at_period_end && (
-                  <Button
-                    disabled={is_action_loading}
-                    variant="ghost"
-                    onClick={() => on_cancel_addon(addon)}
-                  >
-                    {t("settings.cancel_addon")}
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {available_addons.map((addon) => {
-          const badge = ADDON_BADGES[addon.name];
-
-          return (
+    <section id="additional_storage_section">
+      <BillingSectionLabel>{t("settings.storage")}</BillingSectionLabel>
+      <BillingGroup>
+        <BillingRow
+          action={
             <button
-              key={addon.id}
-              className="relative p-3 rounded-[14px] border text-start transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{
-                backgroundColor:
-                  selected_storage === addon.id
-                    ? "color-mix(in srgb, var(--accent-color) 6%, transparent)"
-                    : "var(--bg-tertiary)",
-                borderColor:
-                  selected_storage === addon.id
-                    ? "var(--color-info)"
-                    : "var(--border-secondary)",
-                boxShadow:
-                  selected_storage === addon.id
-                    ? "0 0 0 1px color-mix(in srgb, var(--accent-color) 30%, transparent)"
-                    : "none",
-              }}
-              onClick={() =>
-                set_selected_storage(
-                  selected_storage === addon.id ? null : addon.id,
-                )
-              }
+              aria-expanded={is_picker_open}
+              className="aster_btn aster_btn_secondary aster_btn_sm"
+              type="button"
+              onClick={() => set_is_picker_open((open) => !open)}
             >
-              {badge && (
-                <span
-                  className="absolute -top-2 end-2 text-[10px] font-semibold px-2 py-0.5 rounded-full text-[var(--accent-fg,#ffffff)]"
-                  style={{
-                    backgroundColor: "var(--accent-color-hover)",
-                  }}
+              {is_picker_open ? t("common.close") : t("settings.add_storage")}
+            </button>
+          }
+          description={
+            has_usage ? (
+              <div className="space-y-2">
+                <p>
+                  {t("settings.storage_used_of_total", {
+                    used: format_storage(storage_used_bytes),
+                    total: format_storage(storage_limit_bytes),
+                  })}
+                </p>
+                <Progress
+                  className={`h-1.5 max-w-xs ${is_over_limit ? "[&>div]:bg-red-500" : ""}`}
+                  value={storage_percentage ?? 0}
+                />
+              </div>
+            ) : (
+              t("settings.storage_addons_description")
+            )
+          }
+          title={t("settings.storage_addons")}
+        >
+          {is_picker_open && (
+            <div className="mt-4">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                {available_addons.map((addon) => {
+                  const badge = ADDON_BADGES[addon.name];
+                  const is_selected = selected_storage === addon.id;
+
+                  return (
+                    <button
+                      key={addon.id}
+                      aria-pressed={is_selected}
+                      className={`rounded-lg border px-3 py-2.5 text-start transition-colors ${
+                        is_selected
+                          ? "border-txt-primary bg-surf-hover"
+                          : "border-edge-secondary hover:bg-surf-hover"
+                      }`}
+                      type="button"
+                      onClick={() =>
+                        set_selected_storage(is_selected ? null : addon.id)
+                      }
+                    >
+                      <p className="text-sm font-semibold text-txt-primary">
+                        {addon.name}
+                      </p>
+                      <p className="mt-0.5 text-xs text-txt-muted">
+                        {format_price(
+                          convert_cents(addon.price_cents, preferred_currency),
+                          preferred_currency,
+                        )}
+                        {t("settings.per_month_short")}
+                      </p>
+                      {badge && (
+                        <p className="mt-1 text-[11px] font-medium text-txt-secondary">
+                          {badge === "popular"
+                            ? t("settings.popular")
+                            : t("settings.best_value")}
+                        </p>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-xs text-txt-muted">
+                  {t("settings.storage_addons_monthly_note")}
+                </p>
+                <button
+                  className="aster_btn aster_btn_primary aster_btn_sm flex-shrink-0 self-start sm:self-auto"
+                  disabled={is_action_loading}
+                  type="button"
+                  onClick={handle_buy}
                 >
-                  {badge === "popular"
-                    ? t("settings.popular")
-                    : t("settings.best_value")}
-                </span>
-              )}
-              <p className="text-base font-bold text-txt-primary">
-                {addon.name}
-              </p>
-              <p className="text-xs text-txt-muted mt-0.5">
+                  {t("common.buy_more_storage")}
+                </button>
+              </div>
+            </div>
+          )}
+        </BillingRow>
+
+        {active_addons.map((addon) => (
+          <BillingRow
+            key={addon.user_addon_id}
+            action={
+              !addon.cancel_at_period_end && (
+                <button
+                  className="aster_btn aster_btn_secondary aster_btn_sm"
+                  disabled={is_action_loading}
+                  type="button"
+                  onClick={() => on_cancel_addon(addon)}
+                >
+                  {t("settings.cancel_addon")}
+                </button>
+              )
+            }
+            description={
+              <>
                 {format_price(
                   convert_cents(addon.price_cents, preferred_currency),
                   preferred_currency,
                 )}
                 {t("settings.per_month_short")}
-              </p>
-            </button>
-          );
-        })}
-      </div>
-
-      <Button
-        className="w-full mt-3"
-        disabled={is_action_loading}
-        size="xl"
-        variant="depth"
-        onClick={() => {
-          const addon = available_addons.find((a) => a.id === selected_storage);
-
-          if (!addon) {
-            show_toast(t("settings.storage_select_option_first"), "info");
-
-            return;
-          }
-
-          on_purchase_addon(addon);
-        }}
-      >
-        {t("common.buy_more_storage")}
-      </Button>
-    </div>
+                {addon.cancel_at_period_end && addon.current_period_end && (
+                  <>
+                    <span aria-hidden="true" className="mx-1.5">
+                      ·
+                    </span>
+                    {t("settings.cancels")}{" "}
+                    {format_date(addon.current_period_end)}
+                  </>
+                )}
+              </>
+            }
+            title={addon.size_label}
+          />
+        ))}
+      </BillingGroup>
+    </section>
   );
 }
