@@ -55,6 +55,7 @@ describe("resolve_mobile_section", () => {
     expect(resolve_mobile_section("storage_addons")).toBe("storage");
     expect(resolve_mobile_section("credits")).toBe("billing");
     expect(resolve_mobile_section("blocked")).toBe("sender_filters");
+    expect(resolve_mobile_section("filters")).toBe("mail_rules");
     expect(resolve_mobile_section("vacation_reply")).toBe("sender_filters");
     expect(resolve_mobile_section("export")).toBe("import");
     expect(resolve_mobile_section("help")).toBe("feedback");

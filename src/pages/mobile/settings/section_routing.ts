@@ -61,6 +61,8 @@ const SECTION_ALIASES: Record<string, SettingsSection> = {
   subscription: "billing",
   storage_addons: "storage",
   credits: "billing",
+  filters: "mail_rules",
+  rules: "mail_rules",
   blocked: "sender_filters",
   allowlist: "sender_filters",
   auto_forward: "sender_filters",

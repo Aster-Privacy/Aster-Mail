@@ -50,6 +50,7 @@ import {
   load_runs,
   stop_all_run_polls,
   reorder,
+  take_rule_seed,
 } from "@/stores/mail_rules_store";
 import { ConditionChip } from "@/components/mail_rules/condition_chip";
 import { ActionChip } from "@/components/mail_rules/action_chip";
@@ -74,10 +75,10 @@ import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 
 export function MailRulesSection() {
   const { t } = use_i18n();
-  const { rules, loading, runs, error } = use_mail_rules_store();
+  const { rules, loading, loaded, runs, error } = use_mail_rules_store();
   const { state: folders_state, fetch_folders } = use_folders();
   const { state: tags_state, fetch_tags } = use_tags();
-  const { limits } = use_plan_limits();
+  const { limits, is_loading: limits_loading } = use_plan_limits();
   const retention = use_folder_retention();
   const rules_limit = limits?.limits["max_custom_filters"]?.limit ?? -1;
   const rules_limit_label =
@@ -86,6 +87,8 @@ export function MailRulesSection() {
   const [editor_open, set_editor_open] = React.useState(false);
   const [editing_rule, set_editing_rule] = React.useState<Rule | null>(null);
   const [seed, set_seed] = React.useState<RuleEditorSeed | null>(null);
+  const [pending_seed, set_pending_seed] =
+    React.useState<RuleEditorSeed | null>(take_rule_seed);
   const [gallery_open, set_gallery_open] = React.useState(false);
   const [show_upgrade_modal, set_show_upgrade_modal] = React.useState(false);
   const [drag_index, set_drag_index] = React.useState<number | null>(null);
@@ -132,6 +135,19 @@ export function MailRulesSection() {
       fetch_tags();
     }
   }, []);
+
+  React.useEffect(() => {
+    if (!pending_seed || !loaded || loading || limits_loading) return;
+    set_pending_seed(null);
+    if (at_limit) {
+      set_show_upgrade_modal(true);
+
+      return;
+    }
+    set_editing_rule(null);
+    set_seed(pending_seed);
+    set_editor_open(true);
+  }, [pending_seed, loaded, loading, limits_loading, at_limit]);
 
   const open_new = () => {
     set_editing_rule(null);
