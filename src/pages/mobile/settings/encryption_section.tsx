@@ -38,6 +38,7 @@ import {
   SettingsHeader,
   chip_selected_style,
 } from "./shared";
+import { RecoveryCodesGroup } from "./recovery_codes_group";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
@@ -389,6 +390,8 @@ export function EncryptionSection({
             </div>
           </SettingsGroup>
         )}
+
+        <RecoveryCodesGroup />
 
         <SettingsGroup title={t("settings.storage_format_title")}>
           <div className="px-4 py-3">
