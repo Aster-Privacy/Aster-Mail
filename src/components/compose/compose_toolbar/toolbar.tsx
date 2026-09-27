@@ -78,19 +78,20 @@ export function ComposeToolbar({
       <div className="px-4 pt-1 pb-2.5 flex items-center gap-2">
         {compose.scheduled_time ? (
           <Button
-            className="h-9 px-5 rounded-[var(--aster-radius-control)]"
-            disabled={!compose.has_recipients || compose.is_scheduling}
-            size="md"
+            className="px-5 rounded-[var(--aster-radius-control)]"
+            disabled={!compose.has_recipients}
+            is_loading={compose.is_scheduling}
+            size="lg"
             variant="depth"
             onClick={compose.handle_scheduled_send}
           >
-            {compose.is_scheduling ? t("mail.scheduling") : t("mail.schedule")}
+            {t("mail.schedule")}
           </Button>
         ) : (
           <Button
-            className="h-9 px-6 rounded-[var(--aster-radius-control)]"
+            className="px-6 rounded-[var(--aster-radius-control)]"
             disabled={!compose.has_recipients || compose.is_sending}
-            size="md"
+            size="lg"
             title={compose.is_mac ? "⌘+Enter" : "Ctrl+Enter"}
             variant="depth"
             onClick={compose.handle_send}

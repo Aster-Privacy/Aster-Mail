@@ -160,7 +160,7 @@ export async function resolve_native_images(doc: Document): Promise<void> {
   );
 }
 
-export const BODY_PADDING = "8px 16px 16px 16px";
+export const BODY_PADDING = "8px 16px 8px 16px";
 
 export const HEX_COLOR_PATTERN = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
 export const FALLBACK_ACCENT = DEFAULT_ACCENT_COLOR;

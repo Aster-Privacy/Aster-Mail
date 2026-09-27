@@ -569,7 +569,7 @@ export function MobileThreadMessage({
         </div>
       )}
 
-      <div className="flex items-center gap-2 px-4 pt-2 pb-4">
+      <div className="flex items-center gap-2 px-4 pb-4">
         <button
           className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-[var(--aster-radius-control)] text-[15px] font-medium text-[var(--accent-fg,#ffffff)] transition-opacity active:opacity-80"
           style={{ background: "var(--accent-color, #3b82f6)" }}

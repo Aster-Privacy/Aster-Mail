@@ -603,7 +603,7 @@ function premeasure_height(
 
   const body_style = is_plain_text
     ? `margin:0;padding:16px 20px;font-family:${_email_font_stack};font-size:14px;line-height:1.6;white-space:pre-wrap;word-wrap:break-word;zoom:${_email_zoom}`
-    : `margin:0;padding:8px 16px 16px 16px;background-color:${body_background || "transparent"};zoom:${_email_zoom}`;
+    : `margin:0;padding:8px 16px 8px 16px;background-color:${body_background || "transparent"};zoom:${_email_zoom}`;
 
   shadow.innerHTML =
     `<style>${EMAIL_BODY_CSS}</style>` +

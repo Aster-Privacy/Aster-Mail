@@ -320,7 +320,7 @@ export function ThreadMessageActions({
           </AnimatePresence>
         </div>
       )}
-      <div className="flex items-center gap-2 px-4 pt-2 pb-4">
+      <div className="flex items-center gap-2 px-4 pb-4">
         {on_reply && (
           <PillButton
             className={`flex-1 min-w-0 max-w-[200px] !rounded-full ${is_system_email(message) ? "opacity-50 pointer-events-none" : ""}`}
