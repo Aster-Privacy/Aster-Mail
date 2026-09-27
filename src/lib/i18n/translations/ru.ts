@@ -665,7 +665,7 @@ export const ru = {
     emails_archived: "{{count}} письм(о/а) архивировано",
     emails_moved_to_trash: "{{count}} письм(о/а) перемещено в корзину",
     emails_starred: "{{count}} письм(о/а) отмечено звёздочкой",
-    emails_unstarred: "{{count}} письм(о/а) снято звёздочку",
+    emails_unstarred: "Звёздочка снята с писем: {{count}}",
     emails_permanently_deleted: "{{count}} письм(о/а) удалено навсегда",
     drafts_deleted: "{{count}} черновик(ов) удалено навсегда",
     spam_emails_moved_to_trash:
@@ -707,7 +707,7 @@ export const ru = {
     conversation_archived: "Разговор архивирован",
     conversation_marked_as_spam: "Разговор отмечен как спам",
     failed_to_mark_as_spam: "Попробуйте снова.",
-    failed_to_snooze_conversations: "Попробуйте снова.",
+    failed_to_snooze_conversations: "Не удалось отложить беседы. Попробуйте снова.",
     marked_as_read_toast: "Отмечено как прочитанное",
     marked_as_unread_toast: "Отмечено как непрочитанное",
     email_permanently_deleted: "Письмо удалено навсегда",
@@ -823,7 +823,7 @@ export const ru = {
     conversations_marked_as_spam_bulk:
       "{{count}} разговор(ов) отмечено как спам",
     conversations_restored_bulk: "{{count}} разговор(ов) восстановлено",
-    failed_to_restore_conversations: "Попробуйте снова.",
+    failed_to_restore_conversations: "Не удалось восстановить беседы. Попробуйте снова.",
     conversations_snoozed_bulk: "{{count}} разговор(ов) отложено",
     conversations_marked_as_read_bulk:
       "{{count}} разговор(ов) отмечено как прочитанное",
@@ -1381,7 +1381,7 @@ export const ru = {
     empty: "Пусто",
     merging: "Объединение...",
     disabled: "Отключено",
-    ghost_mode_title: "Режим инкогнито",
+    ghost_mode_title: "Режим «Призрак»",
     ghost_mode_description:
       "Отвечайте с одноразового псевдонима. Ваш настоящий адрес останется скрытым.",
     edit_folder: "Редактировать папку",
@@ -1645,9 +1645,9 @@ export const ru = {
     files_protected_in_transit:
       "Эти файлы были защищены и зашифрованы при передаче.",
     aster_user: "Пользователь Aster",
-    allow_sender: "Добавить в белый список",
-    remove_from_allowlist_action: "Убрать из белого списка",
-    failed_to_allow_sender: "Попробуйте снова.",
+    allow_sender: "Добавить в список разрешённых",
+    remove_from_allowlist_action: "Убрать из списка разрешённых",
+    failed_to_allow_sender: "Не удалось добавить отправителя в список разрешённых. Попробуйте снова.",
     account_limit_reached:
       "Вы достигли лимита аккаунтов для этой сети. Если это ошибка, напишите на hello@astermail.org.",
     account_suspended: "Ваш аккаунт заблокирован.",
@@ -1678,9 +1678,9 @@ export const ru = {
     click_to_add_value: "Нажмите для добавления значения...",
     contacts_deleted: "{{ count }} контакт(а/ов) удалено",
     contacts_starred: "{{ count }} контакт(а/ов) отмечено звёздочкой",
-    contacts_unstarred: "{{ count }} контакт(а/ов) сняты отметки",
+    contacts_unstarred: "Звёздочка снята с контактов: {{ count }}",
     conversations_starred_bulk: "{{count}} беседа(ы) отмечена звёздочкой",
-    conversations_unstarred_bulk: "{{count}} беседа(ы) сняты отметки",
+    conversations_unstarred_bulk: "Звёздочка снята с бесед: {{count}}",
     conversations_moved_to_inbox_bulk:
       "{{count}} беседа(ы) перемещены во входящие",
     conversations_marked_as_not_spam_bulk:
@@ -2201,7 +2201,7 @@ export const ru = {
     app_lock_attempts_remaining_other: "Осталось {{count}} попытки",
     sender_count: "{{count}} отправителей",
     email_count: "{{count}} письма",
-    entry_count: "{{count}} записи",
+    entry_count: "Записей: {{count}}",
     file_count: "{{count}} файла",
     images_count_one: "{{count}} изображение",
     images_count_few: "{{count}} изображения",
@@ -6243,7 +6243,7 @@ export const ru = {
     recent_transactions: "Последние транзакции",
     view_all_transactions: "Посмотреть все",
     no_credits_yet:
-      "Кредитов пока нет. Зарабатывайте кредиты через рефералов или подарочные карты!",
+      "Бонусов пока нет. Их можно получить за приглашения друзей или с подарочными картами.",
     credit_type_referral_reward: "Реферал",
     credit_type_referral_commission: "Комиссия",
     credit_type_admin_grant: "Бонус",
@@ -7459,7 +7459,7 @@ export const ru = {
     f_tracker_protection_long: "Блокировка трекеров и внешних изображений",
     f_zero_knowledge: "Архитектура нулевого доступа",
     failed_create_import_job: "Попробуйте снова.",
-    failed_to_load_allowlist: "Попробуйте снова.",
+    failed_to_load_allowlist: "Не удалось загрузить список разрешённых. Попробуйте снова.",
     failed_to_load_blocklist: "Попробуйте снова.",
     feature_tracker_protection: "Защита от трекеров",
     ghost_alias_active: "Активен",
@@ -7570,7 +7570,7 @@ export const ru = {
     vanguard_enable: "Включить Vanguard",
     vanguard_disable: "Отключить Vanguard",
     vanguard_requires_nova: "Требуется план Nova или выше",
-    vanguard_upgrade_cta: "Перейти на Nova",
+    vanguard_upgrade_cta: "Перейти на Nova+",
     vanguard_what_you_get: "Что вы получите:",
     vanguard_feature_app_lock: "PIN-блокировка приложения",
     vanguard_feature_app_lock_desc:
