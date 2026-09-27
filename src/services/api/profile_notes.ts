@@ -29,6 +29,7 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -51,23 +52,23 @@ function base64_to_array(base64: string): Uint8Array {
 
     return bytes;
   } catch {
-    throw new Error("Invalid base64 data");
+    throw new Error(get_active_translations().errors.unexpected_error);
   }
 }
 
 function validate_email(email: string): void {
   if (!email || typeof email !== "string") {
-    throw new Error("Email is required");
+    throw new Error(get_active_translations().settings.email_required);
   }
 
   const trimmed = email.trim();
 
   if (trimmed.length === 0) {
-    throw new Error("Email cannot be empty");
+    throw new Error(get_active_translations().settings.email_required);
   }
 
   if (trimmed.length > 320) {
-    throw new Error("Email is too long");
+    throw new Error(get_active_translations().settings.valid_email_required);
   }
 }
 
@@ -83,7 +84,9 @@ async function get_hmac_key(): Promise<CryptoKey> {
   const raw_key = get_derived_encryption_key();
 
   if (!raw_key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   const encoder = new TextEncoder();
@@ -115,7 +118,9 @@ async function get_notes_encryption_key(): Promise<CryptoKey> {
   const key = await get_or_create_derived_encryption_crypto_key();
 
   if (!key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   return key;
@@ -188,7 +193,7 @@ export async function encrypt_note(note: string): Promise<{
   integrity_hash: string;
 }> {
   if (note_exceeds_limit(note)) {
-    throw new Error("Note exceeds the maximum size");
+    throw new Error(get_active_translations().errors.note_too_large);
   }
 
   const key = await get_notes_encryption_key();
@@ -290,7 +295,10 @@ export async function get_profile_note(
     };
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to get profile note"),
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -315,7 +323,9 @@ export async function save_profile_note(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to save profile note" };
+      return {
+        error: response.error || get_active_translations().common.save_failed,
+      };
     }
 
     return {
@@ -329,7 +339,10 @@ export async function save_profile_note(
     };
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to save profile note"),
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }
@@ -346,7 +359,7 @@ export async function delete_profile_note(
     return response;
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to delete profile note"),
+      error: user_facing_error(err, get_active_translations().errors.generic),
     };
   }
 }

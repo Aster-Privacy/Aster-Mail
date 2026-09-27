@@ -75,8 +75,9 @@ async function load_partial(
     case "it":
       return (await import("./it")).it;
     case "pt":
-    case "pt-BR":
       return (await import("./pt")).pt;
+    case "pt-BR":
+      return (await import("./pt-BR")).pt_br;
     case "zh-CN":
       return (await import("./zh-CN")).zh_CN;
     case "ja":

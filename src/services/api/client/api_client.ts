@@ -576,9 +576,8 @@ export class ApiClient {
     refresh_token?: string | null,
   ): Promise<void> {
     try {
-      const { update_account_tokens } = await import(
-        "@/services/account_manager"
-      );
+      const { update_account_tokens } =
+        await import("@/services/account_manager");
 
       if (this.intentional_logout) return;
 
@@ -1105,9 +1104,8 @@ export class ApiClient {
 
     const clear_dead_tokens = async (): Promise<void> => {
       try {
-        const { update_account_tokens } = await import(
-          "@/services/account_manager"
-        );
+        const { update_account_tokens } =
+          await import("@/services/account_manager");
 
         await update_account_tokens(account_id, null, null);
       } catch (caught) {
@@ -1269,9 +1267,8 @@ export class ApiClient {
       }
 
       try {
-        const { update_account_tokens } = await import(
-          "@/services/account_manager"
-        );
+        const { update_account_tokens } =
+          await import("@/services/account_manager");
 
         await update_account_tokens(
           account_id,
@@ -1378,7 +1375,9 @@ export class ApiClient {
       controller.signal.addEventListener(
         "abort",
         () => {
-          const err = new Error("Request timed out");
+          const err = new Error(
+            get_active_translations().errors.request_timeout,
+          );
 
           err.name = "AbortError";
           reject(err);
@@ -1656,7 +1655,7 @@ export class ApiClient {
             return {
               error:
                 error_data.error ||
-                "Your family plan requires two-factor authentication",
+                get_active_translations().common.family_2fa_body,
               code: "FORBIDDEN",
               server_code: FAMILY_2FA_SERVER_CODE,
             };
@@ -1723,8 +1722,7 @@ export class ApiClient {
             }
 
             const device_max = error_data.details?.effective_max as
-              | number
-              | undefined;
+              number | undefined;
 
             return {
               error:

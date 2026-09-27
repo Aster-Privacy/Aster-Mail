@@ -31,6 +31,7 @@ import { get_contacts_encryption_key } from "./contacts";
 import { trigger_download } from "@/utils/download_blob";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -110,7 +111,9 @@ export async function list_contact_attachments(contact_id: string): Promise<
   );
 
   if (response.error || !response.data) {
-    return { error: response.error || "Failed to fetch attachments" };
+    return {
+      error: response.error || get_active_translations().errors.load_failed,
+    };
   }
 
   try {
@@ -134,7 +137,10 @@ export async function list_contact_attachments(contact_id: string): Promise<
     return { data: { items, total: response.data.total } };
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to decrypt attachments"),
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -148,7 +154,9 @@ export async function get_contact_attachment(
   );
 
   if (response.error || !response.data) {
-    return { error: response.error || "Failed to fetch attachment" };
+    return {
+      error: response.error || get_active_translations().errors.load_failed,
+    };
   }
 
   try {
@@ -183,7 +191,10 @@ export async function get_contact_attachment(
     };
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to decrypt attachment"),
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }

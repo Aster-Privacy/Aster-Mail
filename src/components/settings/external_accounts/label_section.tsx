@@ -28,7 +28,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { TAG_COLOR_PRESETS } from "@/components/ui/email_tag";
+import {
+  TAG_COLOR_PRESETS,
+  tag_color_label_key,
+} from "@/components/ui/email_tag";
 import { HEX_COLOR_REGEX } from "@/components/settings/hooks/use_external_accounts";
 
 interface LabelSectionProps {
@@ -115,7 +118,7 @@ export function LabelSection({
                     <button
                       key={color.hex}
                       aria-label={t("settings.select_color", {
-                        name: color.name,
+                        name: t(tag_color_label_key(color.variant)),
                       })}
                       className="w-9 h-9 rounded-full"
                       style={{
@@ -125,7 +128,7 @@ export function LabelSection({
                             ? `0 0 0 2px var(--modal-bg), 0 0 0 3.5px ${color.hex}`
                             : "none",
                       }}
-                      title={color.name}
+                      title={t(tag_color_label_key(color.variant))}
                       type="button"
                       onClick={() => set_form_label_color(color.hex)}
                     />

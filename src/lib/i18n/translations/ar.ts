@@ -49,7 +49,6 @@ export const ar = {
     email_group: "مراسلة المجموعة",
     export_selection_vcf: "التصدير بصيغة vCard",
     failed_to_add_to_group: "تعذّرت إضافة جهة الاتصال إلى المجموعة.",
-    failed_to_create_group: "تعذّر إنشاء المجموعة.",
     failed_to_delete_group: "تعذّر حذف المجموعة.",
     failed_to_load_groups: "تعذّر تحميل مجموعاتك.",
     failed_to_move_to_trash: "تعذّر نقل جهة الاتصال إلى المهملات.",
@@ -65,7 +64,6 @@ export const ar = {
     import_add_to_group: "إضافة جهات الاتصال المستوردة إلى مجموعة",
     import_clear_all: "مسح الكل",
     import_no_group: "بدون مجموعة",
-    import_nothing_selected: "حدّد جهة اتصال واحدة على الأقل للاستيراد.",
     import_search_placeholder: "ابحث عن جهات اتصال لاستيرادها",
     import_select_all: "تحديد الكل",
     manage_contacts: "إدارة جهات الاتصال",
@@ -108,7 +106,8 @@ export const ar = {
       "تحقق من كلمة السر والرمز ثم أعد المحاولة.",
     qr_code: "رمز QR",
     profile_picture_removed: "تمت إزالة صورة الملف الشخصي",
-    failed_remove_profile_picture: "حاول مجددًا.",
+    failed_remove_profile_picture:
+      "تعذّرت إزالة صورة ملفك الشخصي. حاول مجددًا.",
     remove_photo: "إزالة الصورة",
     toggle_alias: "تفعيل هذا الاسم المستعار أو تعطيله",
     enter_passphrase: "أدخل عبارة المرور الخاصة بك",
@@ -151,7 +150,6 @@ export const ar = {
     show_more: "عرض المزيد",
     show_less: "عرض أقل",
     contacts: "جهات الاتصال",
-    send_feedback: "إرسال ملاحظات",
     send_feedback_to_aster: "أرسل ملاحظاتك إلى Aster",
     folders: "المجلدات",
     add_to_folders: "إضافة إلى المجلدات",
@@ -169,7 +167,6 @@ export const ar = {
     page: "صفحة",
     aster_mail: "Aster Mail",
     aster_account: "حسابي في Aster",
-    deck: "لوحة {{name}}",
     workspace_title: "مساحة عمل {{name}} | Aster Mail",
     create_folder: "إنشاء مجلد",
     create_label: "إنشاء تصنيف",
@@ -203,7 +200,6 @@ export const ar = {
       "لأمانك، أكِّد كلمة المرور لتغيير مدة عدم النشاط.",
     inactivity_window_months: "{{n}} أشهر",
     inactivity_window_saved: "تم تحديث مدة عدم النشاط",
-    inactivity_window_save_failed: "تعذّر حفظ مدة عدم النشاط. حاول مرة أخرى.",
     recovery_email: "عنوان البريد الإلكتروني للاسترداد",
     recovery_email_description:
       "هذا هو البريد الإلكتروني المستخدم لاسترداد حسابك",
@@ -219,7 +215,8 @@ export const ar = {
     failed_verification_email:
       "تعذّر إرسال بريد التحقق حاليًا. محاولة أخرى بعد لحظات غالبًا ما تنجح. حسابك لم يتغير.",
     profile_picture_updated: "تم تحديث صورة الملف الشخصي",
-    failed_save_profile_picture: "حاول مجددًا.",
+    failed_save_profile_picture:
+      "لم تُحفظ صورة ملفك الشخصي الجديدة. حاول مجددًا. الصورة القديمة لا تزال معروضة.",
     failed_upload_image: "حاول مجددًا.",
     valid_image_error:
       "هذا الملف ليس صورة مدعومة. صيغة JPEG أو PNG أو WebP ستعمل.",
@@ -302,8 +299,6 @@ export const ar = {
       "أسماء التسميات محدودة بـ {{max}} حرفًا. اسم أقصر سيُحفظ.",
     label_already_exists:
       "لديك تسمية بهذا الاسم بالفعل. اسم آخر ينبغي أن يعمل.",
-    in_n_minutes: "خلال {{ count }} دقيقة",
-    in_n_minutes_plural: "خلال {{ count }} دقيقة",
     saved_at_time: "تم الحفظ في {{ time }}",
     saved_on_date: "تم الحفظ {{ date }}",
     now: "الآن",
@@ -390,10 +385,7 @@ export const ar = {
     export_private_key: "تصدير المفتاح الخاص",
     regenerate_recovery_codes: "إعادة إنشاء رموز الاسترداد",
     search_index: "فهرس البحث",
-    all_emails_and_conversations: "جميع الرسائل والمحادثات",
-    delete_imported_emails: "حذف الرسائل المستوردة؟",
     deleting: "جارٍ الحذف...",
-    delete_mail: "حذف البريد",
     search_forwarding_rules: "بحث في قواعد التحويل...",
     search_allowlist: "بحث في القائمة المسموحة...",
     search_blocked_senders: "بحث في المرسلين المحظورين...",
@@ -445,7 +437,8 @@ export const ar = {
     related_person: "شخص ذو صلة",
     event: "حدث",
     instant_messenger: "مراسلة فورية",
-    contact_limit_reached: "لقد وصلت إلى الحد الأقصى لجهات الاتصال. قم بترقية خطتك لاستيراد البقية.",
+    contact_limit_reached:
+      "لقد وصلت إلى الحد الأقصى لجهات الاتصال. قم بترقية خطتك لاستيراد البقية.",
     social_networks: "الشبكات الاجتماعية",
     websites: "المواقع الإلكترونية",
     instant_messengers: "برامج المراسلة الفورية",
@@ -504,21 +497,12 @@ export const ar = {
     add_new_field_type: "إضافة نوع حقل جديد",
     field_name_placeholder: "اسم الحقل...",
     skip: "تخطي",
-    add_carddav: "إضافة CardDAV",
-    add_carddav_server: "إضافة خادم CardDAV",
-    carddav_name_placeholder: "Nextcloud الخاص بي",
-    carddav_url_placeholder: "https://cloud.example.com/remote.php/dav",
-    carddav_username_placeholder: "user@example.com",
-    carddav_password_placeholder: "كلمة مرور التطبيق أو كلمة المرور العادية",
     password_strength_weak: "ضعيفة",
     password_strength_fair: "مقبولة",
     password_strength_strong: "قوية",
     password_strength_very_secure: "آمنة جدًا",
-    pending_email_notifications: "إشعارات البريد المعلقة",
     selected: "محدد",
     are_you_sure: "هل أنت متأكد؟",
-    remove_account_confirmation:
-      "هل أنت متأكد أنك تريد إزالة هذا الحساب؟ يمكنك إضافته مرة أخرى لاحقًا.",
     go_back: "الرجوع",
     continue_anyway: "المتابعة على أي حال",
     set_as_default: "تعيين كافتراضي",
@@ -632,9 +616,12 @@ export const ar = {
     failed_to_load_emails:
       "صندوق وارداتك لم يُحمَّل. السحب للتحديث أو محاولة أخرى غالبًا ما يحل الأمر. بريدك على الخادم بأمان.",
     no_emails_match_criteria: "لا توجد رسائل تطابق هذا المعيار",
-    failed_to_update_emails: "حاول مجددًا.",
-    failed_to_archive_emails: "حاول مجددًا.",
-    failed_to_unarchive_emails: "حاول مجددًا.",
+    failed_to_update_emails:
+      "لم تُحفظ هذه التغييرات. حاول مجددًا. الرسائل نفسها لم تتغير.",
+    failed_to_archive_emails:
+      "لم تكتمل الأرشفة. حاول مجددًا. الرسائل لا تزال في صندوق الوارد.",
+    failed_to_unarchive_emails:
+      "لم يكتمل النقل إلى صندوق الوارد. حاول مجددًا. الرسائل لا تزال في الأرشيف.",
     keyboard_shortcut_label: "اختصار لوحة المفاتيح: {shortcut}",
     something_went_wrong_try_again:
       "ذلك لم ينجح. محاولة أخرى بعد لحظات غالبًا ما تفي بالغرض.",
@@ -648,15 +635,12 @@ export const ar = {
     error_details: "تفاصيل الخطأ",
     unable_to_display_email: "تعذّر عرض هذا البريد حاليًا.",
     email_render_error:
-      "تعذّر عرض هذا البريد على هذا الجهاز. فتحه مجددًا أو عرض المصدر الخام غالبًا ما يحل الأمر. صندوق وارداتك لم يتأثر.",
+      "تعذّر عرض هذه الرسالة على هذا الجهاز. افتحها مجددًا أو اعرض المصدر الخام. صندوق الوارد لم يتأثر.",
     unable_to_load_composer: "محرر البريد لم يُحمَّل.",
     composer_load_error:
       "محرر البريد لم يُحمَّل. إغلاق هذه النافذة وفتحها مجددًا غالبًا ما يحل الأمر. مسوّدتك محفوظة.",
     enter_field_value: "أدخل {{field}}...",
     no_matching_labels: "لا توجد تصنيفات مطابقة",
-    phishing_confirm_placeholder:
-      'اكتب "I understand the risks" لإعادة تفعيل الروابط.',
-    phishing_confirm_text: "أتفهم المخاطر",
     and: "و",
     emails_marked_as_read: "تم تعليم {{count}} رسالة كمقروءة",
     emails_archived: "تم أرشفة {{count}} رسالة",
@@ -680,30 +664,25 @@ export const ar = {
       "انشر سجل SPF واحدًا فقط. إذا كانت خدمات أخرى ترسل بريدًا باسم هذا النطاق، فادمج قيم include: الخاصة بها في هذا السجل الواحد.",
     dns_caveat_dmarc_add_after_spf_dkim:
       "أضف هذا في النهاية، بعد التحقق من SPF وDKIM. نشره مبكرًا قد يرسل بريدك أنت إلى المزعج.",
-    value_points_to: "القيمة / يشير إلى",
-    dns_records_to_add: "سجلات DNS المطلوب إضافتها",
     dns_propagation_note: "قد تستغرق تغييرات DNS ما يصل إلى 48 ساعة للانتشار",
-    close_verify_later: "إغلاق والتحقق لاحقًا",
     post: "نشر",
     link_copied: "تم نسخ الرابط إلى الحافظة",
-    code_copied: "تم نسخ الرمز",
     invite_sent: "تم إرسال الدعوة!",
-    no_contacts_with_emails:
-      "لم يتم العثور على جهات اتصال بعناوين بريد إلكتروني",
-    join_aster_secure_email: "انضم إلي على Aster: بريد إلكتروني آمن",
     email_sent: "تم إرسال البريد.",
     undo_send_too_late: "تم إرسال هذه الرسالة بالفعل ولا يمكن استرجاعها.",
     email_sent_successfully: "تم إرسال البريد بنجاح",
     scheduled_email_cancelled: "تم إلغاء البريد المجدول",
     email_snoozed: "تم تأجيل البريد",
     email_unsnoozed: "تم إلغاء تأجيل البريد",
-    failed_to_snooze: "حاول مجددًا.",
-    failed_to_unsnooze: "حاول مجددًا.",
+    failed_to_snooze:
+      "لم يتم تأجيل هذه الرسالة. حاول مجددًا. لا تزال في صندوق الوارد.",
+    failed_to_unsnooze: "لم تعد هذه الرسالة إلى صندوق الوارد. حاول مجددًا.",
     conversation_moved_to_trash: "تم نقل المحادثة إلى سلة المهملات",
     conversation_archived: "تم أرشفة المحادثة",
     conversation_marked_as_spam: "تم تعليم المحادثة كرسالة مزعجة",
-    failed_to_mark_as_spam: "حاول مجددًا.",
-    failed_to_snooze_conversations: "حاول مجددًا.",
+    failed_to_mark_as_spam:
+      "لم تُنقل هذه الرسالة إلى الرسائل المزعجة. حاول مجددًا.",
+    failed_to_snooze_conversations: "لم يتم تأجيل هذه المحادثات. حاول مجددًا.",
     marked_as_read_toast: "تم التعليم كمقروء",
     marked_as_unread_toast: "تم التعليم كغير مقروء",
     email_permanently_deleted: "تم حذف البريد نهائيًا",
@@ -749,53 +728,42 @@ export const ar = {
     paused: "متوقف مؤقتًا",
     unnamed_contact: "جهة اتصال بدون اسم",
     unnamed: "بدون اسم",
-    no_name: "لا يوجد اسم",
     same_email: "نفس البريد الإلكتروني",
-    similar_name: "اسم مشابه",
     same_phone: "نفس الهاتف",
-    possible_duplicate: "تكرار محتمل",
-    add_server: "إضافة خادم",
     unknown: "غير معروف",
     text_type: "نص",
     date_type: "تاريخ",
     number_type: "رقم",
     phone_type: "هاتف",
     email_type: "بريد إلكتروني",
-    failed_to_fetch_contacts: "حاول مجددًا.",
-    failed_to_delete_contact: "حاول مجددًا.",
+    failed_to_fetch_contacts:
+      "لم يتم تحميل جهات الاتصال. حاول مجددًا. جهات الاتصال المحفوظة آمنة.",
+    failed_to_delete_contact: "لم تتم إزالة جهة الاتصال هذه. حاول مجددًا.",
     contact_deleted: "تم حذف جهة الاتصال",
     contact_saved: "تم حفظ جهة الاتصال",
     contact_created: "تم إنشاء جهة الاتصال",
     failed_to_create_contact: "حاول مجددًا.",
-    failed_to_save_contact: "حاول مجددًا.",
-    failed_to_delete_contacts: "حاول مجددًا.",
-    failed_to_update_favorites: "حاول مجددًا.",
-    contacts_import_partial:
-      "تم استيراد {{imported}} من أصل {{total}} جهة اتصال فقط. استورد الملف مرة أخرى لإضافة البقية.",
-    failed_to_import_contacts: "حاول مجددًا.",
+    failed_to_save_contact:
+      "لم تُحفظ تغييراتك على جهة الاتصال هذه. حاول مجددًا. الإصدار السابق لا يزال موجودًا.",
+    failed_to_delete_contacts: "لم تتم إزالة جهات الاتصال هذه. حاول مجددًا.",
+    failed_to_update_favorites: "لم يتم تحديث المفضلة. حاول مجددًا.",
     failed_to_read_file: "تعذّرت قراءة هذا الملف. ملف آخر سيعمل.",
-    import_failed: "حاول مجددًا.",
-    failed_to_load_duplicates: "حاول مجددًا.",
+    import_failed: "لم يكتمل الاستيراد. حاول مجددًا. بياناتك الحالية لم تتغير.",
     scan_failed: "حاول مجددًا.",
-    dismiss_failed: "حاول مجددًا.",
-    failed_to_load_custom_fields: "حاول مجددًا.",
-    failed_to_create_field: "حاول مجددًا.",
-    delete_custom_field_title: "Delete custom field?",
+    failed_to_load_custom_fields:
+      "لم يتم تحميل هذه الحقول المخصصة. حاول مجددًا.",
+    failed_to_create_field: "لم يُحفظ هذا الحقل المخصص. حاول مجددًا.",
+    delete_custom_field_title: "هل تريد حذف الحقل المخصص؟",
     delete_custom_field_message:
-      "Deleting this field also removes its values from every contact. You cannot undo this.",
-    failed_to_delete_field: "حاول مجددًا.",
-    failed_to_save_value: "حاول مجددًا.",
-    click_scan_duplicates: 'انقر على "فحص" للبحث عن التكرارات',
+      "يؤدي حذف هذا الحقل أيضًا إلى إزالة قيمه من جميع جهات الاتصال. لا يمكن التراجع عن هذا الإجراء.",
+    failed_to_delete_field: "لم تتم إزالة هذا الحقل المخصص. حاول مجددًا.",
+    failed_to_save_value:
+      "لم يُحفظ التغيير. حاول مجددًا. القيمة السابقة لا تزال موجودة.",
     never_synced: "لم تتم المزامنة مطلقًا",
     last_sync_successful: "نجحت آخر مزامنة",
     last_sync_failed: "آخر مزامنة لم تكتمل، وستُعاد المحاولة تلقائيًا.",
-    failed_to_forward: "حاول مجددًا.",
-    failed_to_schedule: "حاول مجددًا.",
-    fill_required_fields: "يرجى ملء جميع الحقول المطلوبة",
-    failed_to_load_sources: "حاول مجددًا.",
-    failed_to_add_source: "حاول مجددًا.",
-    failed_to_delete_source: "حاول مجددًا.",
-    failed_to_toggle_source: "حاول مجددًا.",
+    failed_to_forward: "لم تُرسل إعادة التوجيه. حاول مجددًا. مسوّدتك محفوظة.",
+    failed_to_schedule: "لم تُحفظ الجدولة. حاول مجددًا. مسوّدتك آمنة.",
     sync_failed:
       "المزامنة لم تكتمل، وستُعاد المحاولة تلقائيًا. بريدك على كلا الجانبين بأمان.",
     clearing: "جارٍ المسح...",
@@ -814,7 +782,8 @@ export const ar = {
       "تعذر إفراغ البريد المزعج. عادةً ما تنجح محاولة أخرى بعد قليل. لم يُحذف أي شيء.",
     conversations_marked_as_spam_bulk: "تم تعليم {{count}} محادثة كرسائل مزعجة",
     conversations_restored_bulk: "تمت استعادة {{count}} محادثة",
-    failed_to_restore_conversations: "حاول مجددًا.",
+    failed_to_restore_conversations:
+      "لم تتم استعادة هذه المحادثات. حاول مجددًا.",
     conversations_snoozed_bulk: "تم تأجيل {{count}} محادثة",
     conversations_marked_as_read_bulk: "تم تعليم {{count}} محادثة كمقروءة",
     conversations_marked_as_unread_bulk:
@@ -828,8 +797,6 @@ export const ar = {
     already_in_folder: "موجود بالفعل في {{folder}}",
     cannot_move_from_view: "لا يمكنك نقل الرسائل من هذا العرض.",
     already_has_label: "يحمل التصنيف {{label}} بالفعل",
-    birthday_today: "اليوم!",
-    birthday_tomorrow: "غدًا",
     contact_details: "تفاصيل جهة الاتصال",
     history: "السجل",
     all_mail: "كل الرسائل",
@@ -838,8 +805,6 @@ export const ar = {
       "اختر ملفًا لاستيراد جهات الاتصال منه. الصيغ المدعومة: vCard (.vcf) وCSV.",
     click_to_select_file: "انقر لاختيار ملف",
     or_drag_and_drop: "أو اسحب وأفلت",
-    vcf_files: "ملفات .vcf",
-    spreadsheet_export: "تصدير جدول بيانات",
     map_csv_columns: "ربط أعمدة CSV بحقول جهات الاتصال:",
     import_complete: "اكتمل الاستيراد",
     contacts_imported_desc: "تم استيراد جهات الاتصال الخاصة بك",
@@ -849,12 +814,10 @@ export const ar = {
     failed: "فشل",
     disable: "تعطيل",
     sync: "مزامنة",
-    delete_mail_from: "حذف البريد من",
     unknown_time: "وقت غير معروف",
     relationship: "العلاقة",
     no_contact_selected: "لم يتم اختيار جهة اتصال",
     select_contact_hint: "اختر جهة اتصال من القائمة لعرض تفاصيلها",
-    importing_contacts: "جارٍ استيراد جهات الاتصال...",
     export_all: "تصدير الكل",
     no_contacts: "لا توجد جهات اتصال",
     failed_to_load_contacts: "لم يتم تحميل جهات الاتصال.",
@@ -862,10 +825,8 @@ export const ar = {
     add_contacts_hint: "أضف جهات اتصال للبدء",
     add_contact: "إضافة جهة اتصال",
     file_too_large: "يجب أن يكون الملف أصغر من {{size}}.",
-    failed_to_upload_attachment: "حاول مجددًا.",
-    upload_failed: "حاول مجددًا.",
     delete_failed: "حاول مجددًا.",
-    download_failed: "حاول مجددًا.",
+    download_failed: "لم يكتمل التنزيل. حاول مجددًا.",
     attachment_locked:
       "لا يمكن فتح هذا المرفق لأن مفتاح التشفير الخاص به غير متوفر على هذا الجهاز.",
     scheduled_no_attachments:
@@ -874,10 +835,8 @@ export const ar = {
       "الإرسال المجدول غير متاح للحسابات المتصلة. أرسل هذه الرسالة الآن أو اختر عنوان Aster.",
     scheduled_no_expiry:
       "لا تدعم الرسائل المجدولة انتهاء الصلاحية بعد. أرسل الآن أو أزل انتهاء الصلاحية لجدولة الرسالة.",
-    failed_to_merge_contacts: "حاول مجددًا.",
-    merge_failed: "حاول مجددًا.",
-    failed_to_load_history: "حاول مجددًا.",
-    failed_to_load_more: "حاول مجددًا.",
+    failed_to_merge_contacts:
+      "لم يكتمل الدمج. حاول مجددًا. جهات الاتصال الأصلية لم تتغير.",
     enter_valid_emails: "يرجى إدخال عناوين بريد إلكتروني صالحة",
     enter_contact_details: "أدخل تفاصيل جهة الاتصال",
     select_valid_image: "يرجى اختيار صورة بصيغة JPEG أو PNG أو WebP أو GIF",
@@ -895,44 +854,47 @@ export const ar = {
     emails_from_senders_archived: "تمت أرشفة {{count}} رسائل من {{senders}}",
     emails_from_senders_deleted: "تم حذف {{count}} رسائل من {{senders}}",
     emails_added_to_folder: "تمت إضافة {{count}} رسالة إلى {{folder}}",
-    failed_to_snooze_emails: "حاول مجددًا.",
+    failed_to_snooze_emails:
+      "لم يتم تأجيل هذه الرسائل. حاول مجددًا. لا تزال في صندوق الوارد.",
     failed_to_copy: "حاول مجددًا.",
     error_copied_to_clipboard: "تم نسخ الخطأ إلى الحافظة",
-    failed_to_update_contact: "حاول مجددًا.",
-    failed_to_block_sender: "حاول مجددًا.",
-    failed_to_rename_folder: "حاول مجددًا.",
-    failed_to_change_folder_color: "حاول مجددًا.",
-    failed_to_delete_folder: "حاول مجددًا.",
+    failed_to_update_contact:
+      "لم تُحفظ تغييرات جهة الاتصال. حاول مجددًا. الإصدار السابق لا يزال موجودًا.",
+    failed_to_block_sender: "تعذّر حظر هذا المرسل. حاول مجددًا.",
+    failed_to_rename_folder:
+      "لم تتم إعادة تسمية هذا المجلد. حاول مجددًا. المجلد ورسائله لم تتغير.",
+    failed_to_change_folder_color: "لم يتم تحديث لون المجلد. حاول مجددًا.",
+    failed_to_delete_folder:
+      "لم تتم إزالة هذا المجلد. حاول مجددًا. الرسائل بداخله آمنة.",
     failed_to_move_folder: "حاول مجددًا.",
-    failed_to_update_folder_encryption: "حاول مجددًا.",
+    failed_to_update_folder_encryption:
+      "لم يتغير إعداد قفل المجلد. حاول مجددًا. يبقى المجلد كما هو.",
     failed_to_rename_label: "حاول مجددًا.",
-    failed_to_change_label_color: "حاول مجددًا.",
-    failed_to_change_label_icon: "حاول مجددًا.",
-    failed_to_delete_label: "حاول مجددًا.",
+    failed_to_change_label_color: "لم يتم تحديث لون التصنيف. حاول مجددًا.",
+    failed_to_change_label_icon: "لم يتم تحديث أيقونة التصنيف. حاول مجددًا.",
+    failed_to_delete_label:
+      "لم تتم إزالة هذا التصنيف. حاول مجددًا. رسائلك لم تتأثر.",
     failed_to_create_label: "حاول مجددًا.",
     failed_to_create_folder_error: "حاول مجددًا.",
     folder_plan_limit_reached:
       "لقد وصلت إلى حد المجلدات في خطتك الحالية. قم بالترقية لإنشاء المزيد.",
     authenticate_to_send: "قم بالمصادقة لإرسال البريد",
     send_authentication_failed: "لم تكتمل المصادقة، لذلك لم يُرسل هذا البريد.",
-    failed_to_send_reply: "حاول مجددًا.",
+    failed_to_send_reply: "لم يُرسل هذا الرد. حاول مجددًا. مسوّدتك محفوظة.",
     failed_to_delete_draft: "حاول مجددًا.",
-    failed_to_update_rule: "حاول مجددًا.",
+    failed_to_update_rule:
+      "لم تُحفظ هذه القاعدة. حاول مجددًا. الإصدار السابق لا يزال ساريًا.",
     failed_to_send_verification:
       "تعذّر إرسال بريد التحقق. محاولة أخرى بعد لحظات غالبًا ما تنجح.",
     failed_to_load_email:
       "هذا البريد لم يُحمَّل. تحديث الصفحة غالبًا ما يحل الأمر. البريد بأمان على الخادم.",
     failed_to_decrypt_email:
       "تعذّر فتح هذا البريد على هذا الجهاز. تحديث الصفحة غالبًا ما يحل الأمر، وتسجيل الخروج ثم الدخول هو البديل إن استمر الخطأ.",
-    failed_to_unsubscribe:
-      "إلغاء الاشتراك لم يكتمل. الرابط داخل البريد يأخذك إلى موقع المرسل لإكمال ذلك بنفسك.",
-    failed_to_disable_2fa: "حاول مجددًا.",
-    failed_to_parse_settings:
-      "تعذّرت قراءة ملف الإعدادات هذا. ملف آخر سيعمل. إعداداتك الحالية لم تتغير.",
+    failed_to_disable_2fa:
+      "بقيت المصادقة الثنائية مفعّلة. حاول مجددًا. حسابك لا يزال محميًا.",
     removed_from_contacts: "تمت الإزالة من جهات الاتصال",
     added_to_contacts: "تمت الإضافة إلى جهات الاتصال",
     senders_emails_count: "{{senders}} ({{emails}})",
-    no_emails: "لا رسائل هنا.",
     no_read_emails_to_archive: "لا توجد رسائل مقروءة للأرشفة",
     no_unread_emails: "لا توجد رسائل غير مقروءة",
     email_copied: "تم نسخ البريد",
@@ -947,39 +909,31 @@ export const ar = {
     session_expired_refresh:
       "انتهت جلستك. تحديث الصفحة يتيح تسجيل الدخول مجددًا. بياناتك بأمان.",
     email_in_locked_folder:
-      "هذا البريد يقع في مجلد قُفل. فتح قفل المجلد يتيح قراءته.",
-    vault_not_available:
-      "مفاتيحك الخاصة غير محمّلة على هذا الجهاز. تسجيل الدخول مجددًا يفتحها. مفاتيحك على الخادم لم تُمَس.",
+      "هذه الرسالة في مجلد قفلته. لفتحها، ألغِ قفل المجلد.",
     no_vault_available:
       "مفاتيحك الخاصة غير محمّلة على هذا الجهاز. تسجيل الدخول مجددًا يفتحها. مفاتيحك على الخادم لم تُمَس.",
     offline_action_queued:
       "أنت غير متصل حاليًا. هذا في قائمة الانتظار وسيكتمل بمجرد عودة الاتصال.",
     failed_to_update: "حاول مجددًا.",
-    failed_to_load_search_results: "حاول مجددًا.",
     failed_to_fetch_tags: "حاول مجددًا.",
     failed_to_fetch_folders: "حاول مجددًا.",
     failed_to_unlock_folder:
       "تعذّر فتح هذا المجلد. تحقق من كلمة المرور وحاول مجددًا. محتويات المجلد آمنة.",
-    incorrect_password:
-      "كلمة المرور هذه غير مطابقة. محاولة أخرى ينبغي أن تنجح. حسابك ليس مقفلًا.",
+    incorrect_password: "كلمة المرور غير صحيحة. حاول مجددًا. حسابك ليس مقفلًا.",
     folder_no_password_protection:
       "هذا المجلد لا يحمل كلمة مرور حاليًا، فلا شيء لتغييره.",
     password_already_set:
-      "هذا المجلد لديه كلمة مرور بالفعل. تغيير كلمة المرور هو الخيار المخصص لتحديثها.",
+      "لهذا المجلد كلمة مرور بالفعل. لتحديثها، استخدم تغيير كلمة المرور.",
     folder_must_be_unlocked: "فتح قفل المجلد أولًا يتيح تغيير هذا الإعداد.",
     cannot_remove_vault_password:
       "مجلد Vault يحتاج دائمًا إلى كلمة مروره الخاصة، ولا يمكن إزالة هذه الحماية.",
-    failed_to_load_snoozed_emails: "حاول مجددًا.",
-    failed_to_load_subscriptions: "حاول مجددًا.",
-    unexpected_error: "حاول مجددًا.",
-    failed_to_load_more_subscriptions: "حاول مجددًا.",
-    failed_to_scan_subscriptions: "حاول مجددًا.",
-    failed_to_load_drafts: "حاول مجددًا.",
-    failed_to_load_scheduled_emails: "حاول مجددًا.",
-    recently_archived: "أُرشف مؤخرًا",
-    older_items: "عناصر أقدم",
-    long_term_archive: "أرشيف طويل الأمد",
-    failed_to_fetch_archive_stats: "حاول مجددًا.",
+    failed_to_load_snoozed_emails:
+      "لم يتم تحميل الرسائل المؤجلة. حاول مجددًا. إنها آمنة على الخادم.",
+    unexpected_error: "حدث خطأ غير متوقع. حاول مجددًا.",
+    failed_to_load_drafts:
+      "لم يتم تحميل المسودات. حاول مجددًا. مسوداتك المحفوظة آمنة.",
+    failed_to_load_scheduled_emails:
+      "لم يتم تحميل الرسائل المجدولة. حاول مجددًا. ستُرسل في موعدها.",
     value_too_long: "هذه القيمة تتجاوز حد الطول. نسخة أقصر ستعمل.",
     please_enter_valid_domain:
       "هذا ليس نطاقًا صالحًا. شيء مثل example.com سيعمل.",
@@ -989,29 +943,18 @@ export const ar = {
       "الجزء الذي يسبق علامة @ طويل جدًا. نسخة أقصر ستعمل.",
     forwarding_rule_updated: "تم تحديث قاعدة التحويل",
     forwarding_rule_created: "تم إنشاء قاعدة التحويل",
-    spam_settings_saved: "تم حفظ إعدادات الرسائل المزعجة",
     email_sent_via_external: "تم إرسال البريد عبر حساب خارجي.",
     encryption_keys_rotated: "تم تدوير مفاتيح التشفير بنجاح",
     failed_to_retrieve_key: "فشل في استرداد المفتاح الحالي من الخادم",
-    failed_to_upload_keys: "فشل في رفع مفاتيح التشفير",
     sending: "جارٍ الإرسال...",
     in_one_minute: "خلال دقيقة واحدة",
-    user_label: "مستخدم",
     marketing: "تسويق",
-    finance_label: "مالية",
     operation: "عمليات",
-    no_marketing_messages: "لا توجد رسائل تسويقية",
-    no_finance_messages: "لا توجد رسائل مالية",
-    no_operation_messages: "لا توجد رسائل عمليات",
     folder_label: "مجلد",
-    no_email_id_provided:
-      "تعذّر تحديد البريد المراد فتحه. العودة إلى صندوق الوارد واختيار رسالة منه سيعمل.",
     please_enter_valid_url:
       "هذا ليس عنوان ويب صالحًا. رابط كامل مثل https://example.com سيعمل.",
     csv_file_empty:
       "هذا الملف CSV لا يحتوي على أي صفوف. ملف آخر ينبغي أن يعمل.",
-    no_valid_contacts_csv:
-      "لم يتم العثور على جهات اتصال قابلة للقراءة في ملف CSV هذا. تحقق من عناوين الأعمدة وحاول مجددًا.",
     label_name_cannot_be_empty: "هذه التسمية تحتاج إلى اسم قبل أن تُحفظ.",
     folder_name_cannot_be_empty: "هذا المجلد يحتاج إلى اسم قبل أن يُحفظ.",
     please_enter_password: "كلمة المرور لازمة للمتابعة.",
@@ -1020,7 +963,7 @@ export const ar = {
     delete_account_error:
       "تعذّر حذف حسابك الآن. حاول مجددًا بعد قليل. إذا استمرت المشكلة، تواصل مع hello@astermail.org.",
     encryption_vault_not_available:
-      "مفاتيحك الخاصة مقفلة على هذا الجهاز. تسجيل الدخول مجددًا يفتحها. مفاتيحك على الخادم لم تتغير.",
+      "مفاتيحك الخاصة مقفلة على هذا الجهاز. لفتحها، سجّل الدخول مجددًا. مفاتيحك على الخادم لم تتغير.",
     email_data_missing:
       "تعذّر تحميل محتوى هذا البريد. فتحه مجددًا من صندوق الوارد يستعيده. صندوق وارداتك لم يتغير.",
     later: "لاحقًا",
@@ -1039,12 +982,6 @@ export const ar = {
       "بريدك مشفّر من طرف إلى طرف، والمفاتيح لديك وحدك. اضغط ؟ في أي وقت لعرض جميع اختصارات لوحة المفاتيح.",
     skip_tour: "تخطي الجولة",
     get_started: "ابدأ الآن",
-    setup_complete: "اكتمل الإعداد!",
-    download_mobile_app: "تنزيل تطبيق الجوال",
-    add_recovery_email: "إضافة بريد استرداد",
-    import_your_email: "استيراد البريد من Gmail أو Outlook",
-    add_email_alias: "إضافة اسم مستعار للبريد",
-    hide_permanently: "إخفاء قائمة التحقق هذه",
     step: "خطوة",
     protected_in_transit: "محمي أثناء النقل",
     encryption_available: "التشفير متاح",
@@ -1060,28 +997,24 @@ export const ar = {
     only_you_and_sender: "أنت والمرسل فقط يمكنكما قراءة هذا.",
     only_you_can_read_contacts:
       "أنت وحدك من يمكنه قراءة جهات اتصالك. لا يرى Aster هذه البيانات.",
-    tor_label: "Tor",
-    tor_snowflake_label: "Tor (Snowflake)",
-    cdn_relay_label: "ترحيل CDN",
-    toggle_selection: "تبديل التحديد",
-    failed_to_send_email: "حاول مجددًا.",
-    failed_to_send_external_email: "حاول مجددًا.",
+    failed_to_send_email: "لم تُرسل هذه الرسالة. حاول مجددًا. مسوّدتك محفوظة.",
+    failed_to_send_external_email:
+      "لم تُرسل هذه الرسالة عبر حسابك الخارجي المرتبط. حاول مجددًا. مسوّدتك محفوظة.",
     external_account_token_missing:
       "حسابك الخارجي المرتبط يحتاج إلى إعادة اتصال قبل الإرسال عبره. الإعدادات، الحسابات المرتبطة هو المكان المخصص لذلك.",
-    failed_to_send_via_external: "حاول مجددًا.",
+    failed_to_send_via_external:
+      "تعذّر الإرسال عبر حسابك الخارجي المرتبط. حاول مجددًا. مسوّدتك محفوظة.",
     offline_change_failed: "تعذّر حفظ تغيير أجريته أثناء عدم الاتصال.",
     offline_send_failed: "تعذّر إرسال رسالة كتبتها أثناء عدم الاتصال.",
     offline_email_queued:
       "أنت غير متصل حاليًا. هذا البريد سيُرسل بمجرد عودة الاتصال.",
-    failed_to_queue_offline: "حاول مجددًا.",
+    failed_to_queue_offline:
+      "تعذّر وضع هذه الرسالة في قائمة الانتظار لإرسالها لاحقًا. حاول مجددًا. مسوّدتك محفوظة.",
     cannot_mix_recipients:
       "مستخدمو Aster والعناوين الخارجية لا يجتمعون في رسالة واحدة. إرسالهما رسالتين منفصلتين سيعمل.",
-    failed_to_schedule_email: "حاول مجددًا.",
+    failed_to_schedule_email: "لم تُحفظ الجدولة. حاول مجددًا. مسوّدتك محفوظة.",
     failed_to_restore_draft:
       "تعذّر استعادة هذه المسودّة. فتحها مجددًا غالبًا ما يحل الأمر. مسوّداتك الأخرى لم تتأثر.",
-    enter_url: "أدخل URL:",
-    enter_link_text: "أدخل نص الرابط:",
-    conversation_marked_as_spam_toast: "تم تعليم المحادثة كرسالة مزعجة",
     failed_to_undo_spam: "تعذّر التراجع عن ذلك. إعادتها يدويًا هي الحل البديل.",
     conversation_moved_to_trash_toast: "تم نقل المحادثة إلى سلة المهملات",
     failed_to_undo_trash:
@@ -1101,12 +1034,7 @@ export const ar = {
     switch_to_rich_text: "التبديل إلى نص منسق",
     switch_to_plain_text: "التبديل إلى نص عادي",
     font_size_label: "حجم الخط",
-    font_small: "صغير",
-    font_normal: "عادي",
-    font_large: "كبير",
-    font_huge: "كبير جدًا",
     enter_url_display_text: "أدخل URL ونص عرض اختياري",
-    select_table_size: "اختر حجم الجدول",
     emoji: "رمز تعبيري",
     recipients: "المستلمون",
     encrypted_attachment: "مرفق مشفر",
@@ -1116,10 +1044,12 @@ export const ar = {
       "تعذّرت إضافة بعض المرفقات إلى هذه الرسالة.",
     image: "صورة",
     system: "النظام",
-    failed_to_permanently_delete: "حاول مجددًا.",
-    failed_to_delete_emails: "حاول مجددًا.",
-    failed_to_mark_as_read: "حاول مجددًا.",
-    failed_to_mark_as_unread: "حاول مجددًا.",
+    failed_to_permanently_delete: "لم تتم إزالة هذه العناصر. حاول مجددًا.",
+    failed_to_delete_emails: "لم تتم إزالة هذه الرسائل. حاول مجددًا.",
+    failed_to_mark_as_read:
+      "لا تزال هذه الرسائل مُعلَّمة كغير مقروءة. حاول مجددًا.",
+    failed_to_mark_as_unread:
+      "لا تزال هذه الرسائل مُعلَّمة كمقروءة. حاول مجددًا.",
     n_conversations_archived: "تمت أرشفة {{ count }} محادثة",
     n_conversations_archived_one: "{{count}} محادثة تمت أرشفتها",
     n_conversations_archived_other: "{{count}} محادثة تمت أرشفتها",
@@ -1128,11 +1058,10 @@ export const ar = {
     n_conversations_moved_to_trash_one: "{{count}} محادثة نُقلت إلى المهملات",
     n_conversations_moved_to_trash_other: "{{count}} محادثة نُقلت إلى المهملات",
     n_conversations_marked_as_spam: "تم تعليم {{ count }} محادثة كرسائل مزعجة",
-    internal_only: "داخلي فقط",
     external_only: "خارجي فقط",
     all_accounts: "جميع الحسابات",
-    all_external_accounts: "جميع الحسابات الخارجية",
-    failed_to_rotate_keys: "حاول مجددًا.",
+    failed_to_rotate_keys:
+      "لم يكتمل تحديث المفاتيح. حاول مجددًا. مفاتيحك القديمة لا تزال تعمل وبياناتك آمنة.",
     read: "مقروء",
     or_conjunction: "أو",
     press_label: "اضغط",
@@ -1140,8 +1069,6 @@ export const ar = {
     showing_shortcuts_for: "عرض الاختصارات لـ",
     emoji_smileys: "وجوه مبتسمة",
     emoji_gestures: "إيماءات",
-    emoji_hearts: "قلوب",
-    emoji_celebration: "احتفال",
     emoji_symbols: "رموز",
     emoji_animals: "الحيوانات",
     emoji_food: "الطعام",
@@ -1162,10 +1089,11 @@ export const ar = {
     removed_count_from_allowlist: "تمت إزالة {{ count }} من القائمة المسموحة",
     failed_to_add_label: "حاول مجددًا.",
     failed_to_remove_label: "حاول مجددًا.",
-    failed_to_move_email: "حاول مجددًا.",
+    failed_to_move_email:
+      "لم تُنقل هذه الرسالة. حاول مجددًا. الرسالة آمنة في مكانها.",
     failed_to_add_labels: "حاول مجددًا.",
-    failed_to_remove_labels: "حاول مجددًا.",
-    failed_to_copy_to_clipboard: "حاول مجددًا.",
+    failed_to_remove_labels: "لم تتم إزالة هذه التصنيفات. حاول مجددًا.",
+    failed_to_copy_to_clipboard: "لم يُنسخ شيء إلى الحافظة. حاول مجددًا.",
     add_note_placeholder: "أضف ملاحظة...",
     add_private_note_placeholder: "أضف ملاحظة خاصة...",
     search_anything: "ابحث عن أي شيء...",
@@ -1176,12 +1104,7 @@ export const ar = {
     leaving_aster_mail: "مغادرة Aster Mail",
     unlock_aster_mail: "إلغاء قفل Aster Mail",
     aster_mail_locked: "Aster Mail مقفل",
-    share_aster_mail: "مشاركة Aster Mail",
-    share_aster_description: "شارك Aster Mail مع الأصدقاء والعائلة",
     merge_contacts: "دمج جهات الاتصال",
-    merged_result_preview: "معاينة نتيجة الدمج",
-    merge_all: "دمج الكل",
-    duplicate_contacts: "جهات اتصال مكررة",
     contact_sync: "مزامنة جهات الاتصال",
     sync_confirm_title: "مزامنة جهات الاتصال",
     sync_confirm_message:
@@ -1197,14 +1120,10 @@ export const ar = {
     subject_label: "الموضوع:",
     send_at_label: "الإرسال في:",
     received: "مستلم",
-    select_email_to_read: "اختر رسالة لقراءتها",
     remove_from_contacts: "إزالة من جهات الاتصال",
     messages_from_sender: "رسائل من هذا المرسل",
-    powered_by: "مدعوم بواسطة",
-    mobile_settings: "إعدادات الجوال",
     app_lock: "قفل التطبيق",
     app_locked: "Aster Mail مقفل",
-    enter_pin_to_unlock: "أدخل رمزك لإلغاء القفل",
     wrong_pin: "رمز غير صحيح",
     app_lock_locked_out: "محاولات كثيرة جداً",
     app_lock_attempts_remaining: "بقيت {{count}} محاولات",
@@ -1216,8 +1135,7 @@ export const ar = {
     duress_confirm_detail:
       "يبقى حسابك وبياناتك المشفَّرة بأمان على خوادم Aster. يمكنك تسجيل الدخول مجددًا في أي وقت.",
     duress_confirm_proceed: "محو البيانات المحلية",
-    secure_send: "إرسال آمن",
-    push_notifications: "إشعارات الدفع",
+    push_notifications: "الإشعارات الفورية",
     enabled: "مفعّل",
     haptic_feedback: "استجابة لمسية",
     offline_queue: "قائمة انتظار بدون اتصال",
@@ -1246,7 +1164,6 @@ export const ar = {
     stylesheet: "ورقة أنماط",
     tracking_pixel: "بكسل تتبع",
     me: "أنا",
-    snoozed_until_label: "مؤجل حتى {{time}}",
     notification_banner_message:
       "فعّل إشعارات سطح المكتب للبقاء على اطلاع بالرسائل الجديدة",
     notification_banner_allow: "السماح",
@@ -1272,11 +1189,14 @@ export const ar = {
     locked_data_banner_action: "استعادة البيانات",
     locked_data_banner_dismiss: "تجاهل",
     recover_data_title: "استعادة البيانات",
-    recover_data_description: "لفتح البيانات من قبل تغيير كلمة السر أو إعادة تعيينها، أدخل كلمة السر التي كنت تستخدمها في ذلك الوقت.",
+    recover_data_description:
+      "لفتح البيانات من قبل تغيير كلمة السر أو إعادة تعيينها، أدخل كلمة السر التي كنت تستخدمها في ذلك الوقت.",
     recover_data_button: "استعادة",
     recover_data_success: "تم فتح بياناتك الأقدم.",
-    recover_data_no_match: "لم تفتح كلمة السر هذه أي بيانات. جرّب كلمة سر سابقة أخرى.",
-    recover_data_failed: "تعذّر فتح بعض البيانات. تحقق من اتصالك وحاول مرة أخرى.",
+    recover_data_no_match:
+      "لم تفتح كلمة السر هذه أي بيانات. جرّب كلمة سر سابقة أخرى.",
+    recover_data_failed:
+      "تعذّر فتح بعض البيانات. تحقق من اتصالك وحاول مرة أخرى.",
     payment_past_due_message:
       "لم تتم عملية الدفع الأخيرة. حدّث طريقة الدفع للاحتفاظ بخطتك.",
     payment_past_due_message_days:
@@ -1294,7 +1214,6 @@ export const ar = {
     forward_label: "تحويل",
     carbon_copy: "نسخة كربونية",
     blind_carbon_copy: "نسخة كربونية مخفية",
-    end_to_end_encrypted_email: "بريد مشفر من طرف إلى طرف",
     terms_of_service: "شروط الخدمة",
     privacy_policy: "سياسة الخصوصية",
     invite_encrypted_email: "ادعُ أصدقاءك لتجربة البريد المشفر",
@@ -1316,23 +1235,17 @@ export const ar = {
     storage_keys: "مفاتيح التخزين",
     no_contacts_found_device: "لم يتم العثور على جهات اتصال على الجهاز",
     no_new_contacts_imported: "لم يتم استيراد جهات اتصال جديدة",
-    contacts_imported_count: "تم استيراد {{count}} جهة اتصال",
     sender_blocked: "تم حظر المرسل",
     snooze_label: "تأجيل",
     linkedin: "LinkedIn",
     twitter_x: "Twitter/X",
     github: "GitHub",
     social_links: "الروابط الاجتماعية",
-    profile_photo_label: "صورة الملف الشخصي",
     attachments_label: "المرفقات",
     custom_fields_label: "الحقول المخصصة",
-    none_label: "لا شيء",
     contact_1: "جهة الاتصال 1",
     contact_2: "جهة الاتصال 2",
-    name_colon: "الاسم:",
-    emails_colon: "البريد:",
     phone_colon: "الهاتف:",
-    company_colon: "الشركة:",
     address_colon: "العنوان:",
     icon_label: "أيقونة",
     color_label: "اللون",
@@ -1347,9 +1260,7 @@ export const ar = {
     new_contact: "جهة اتصال جديدة",
     at_least_one_name_required: "يجب إدخال اسم واحد على الأقل",
     at_least_one_email_required: "يجب إدخال بريد إلكتروني واحد على الأقل",
-    choose_values_to_keep: "اختر القيم التي تريد الاحتفاظ بها",
     empty: "فارغ",
-    merging: "جارٍ الدمج...",
     disabled: "معطل",
     ghost_mode_title: "الوضع الشبحي",
     ghost_mode_description:
@@ -1357,10 +1268,6 @@ export const ar = {
     edit_folder: "تعديل المجلد",
     edit_label: "تعديل التصنيف",
     communication_history: "سجل التواصل",
-    hide_stats: "إخفاء الإحصائيات",
-    show_stats: "عرض الإحصائيات",
-    last_colon: "الأخير:",
-    first_contact_colon: "أول تواصل:",
     no_email_history: "لا يوجد سجل بريد إلكتروني مع جهة الاتصال هذه بعد",
     load_more: "تحميل المزيد",
     selected_count: "تم تحديد {{ count }}",
@@ -1397,84 +1304,16 @@ export const ar = {
     check_out_aster_mail:
       "جرّب Aster Mail، طريقة أفضل لإدارة بريدك الإلكتروني!",
     n_lines: "{{ count }} أسطر",
-    suspicious_email_detected: "يبدو هذا البريد مريبًا.",
-    phishing_warning_message:
-      "وضعنا علامة على هذا البريد بوصفه مريبًا. كل ما بداخله يستحق التعامل معه بحذر، والتحقق من المرسل عبر قناة أخرى قبل فتح الروابط أو مشاركة معلومات شخصية يبقيك أكثر أمانًا. صندوق وارداتك وحسابك لم يتأثرا.",
     hide_details: "إخفاء التفاصيل",
     show_details: "عرض التفاصيل",
     not_phishing: "ليس تصيدًا",
-    i_understand: "أتفهم",
-    dangerous_email_links_disabled: "بريد خطير، الروابط معطّلة.",
-    phishing_danger_message:
-      "يبدو هذا البريد محاولة تصيّد، وقد عُطّلت روابطه حمايةً لك. إن كنت تثق بالمرسل، يوجد في الشريط خيار لإعادة تفعيلها. حسابك لم يتأثر بأي شيء آخر.",
-    hide_reasons: "إخفاء الأسباب",
-    show_reasons: "عرض الأسباب",
-    view_links_anyway: "عرض الروابط على أي حال",
-    enable_links: "تمكين الروابط",
-    links_re_enabled: "تمت إعادة تمكين الروابط.",
-    i_understand_the_risks: "أتفهم المخاطر",
-    signal_dkim_fail:
-      "تعذّر التحقق من توقيع المرسل. قد يكون هذا البريد قد عُدّل أثناء النقل أو زُوّر.",
-    signal_spf_fail:
-      "الخادم الذي أرسل هذا البريد ليس من الخوادم التي يعتمدها هذا النطاق عادةً. قد يكون المرسل منتحلًا.",
-    signal_dmarc_fail:
-      "نطاق هذا المرسل يرفض الرسائل التي لا تجتاز قواعد مكافحة الانتحال، وهذه الرسالة لم تجتزها. يستحسن التعامل معها بحذر.",
-    signal_all_auth_fail:
-      "كل عمليات التحقق من المرسل في هذا البريد قد فشلت، وقد يكون مزوّرًا. التحقق من المرسل بطريقة أخرى قبل الوثوق بأي روابط أو مرفقات هو الأسلم.",
     auth_fail_banner_title: "تعذّر تأكيد هوية المرسل.",
     auth_fail_banner_body:
       "تعذّر تأكيد أن هذا البريد جاء فعلًا من العنوان المعروض، وقد يكون منتحلًا. التحقق من المرسل عبر قناة أخرى قبل فتح الروابط أو المرفقات هو المسار الأسلم. حسابك لم يتأثر.",
-    signal_all_auth_pass: "اجتازت جميع فحوصات مصادقة البريد الإلكتروني",
-    signal_reply_to_mismatch:
-      "الردود على هذا البريد ستذهب إلى نطاق مختلف عن النطاق المعروض كمرسل، وهذا نمط شائع في التصيّد.",
-    signal_missing_from:
-      "هذا البريد لا يحمل سطر From، وهذا أمر غير معتاد ويستحق التعامل معه بحذر.",
-    signal_missing_message_id:
-      "يفتقر هذا البريد إلى المعرّف الفريد الذي يحمله البريد المشروع عادةً.",
-    signal_multiple_from:
-      "يذكر هذا البريد أكثر من مرسل في الوقت ذاته، وهذه علامة تزوير شائعة.",
-    signal_future_dated:
-      "تشير ساعة المرسل إلى أن هذا البريد كُتب في المستقبل، وقد يدل ذلك على تزوير أو على إعداد خاطئ لدى المرسل.",
-    signal_domain_reputation_high:
-      "يحمل نطاق هذا المرسل سمعة سيئة في مجتمع البريد الإلكتروني الواسع.",
-    signal_domain_reputation_medium:
-      "سمعة نطاق هذا المرسل متفاوتة. نظرة متأنية قبل التجاوب مع أي شيء بداخله تستحق العناء.",
-    signal_domain_new:
-      "نطاق هذا المرسل مسجّل حديثًا، وهذا أمر شائع في حملات الاحتيال.",
-    signal_user_reputation_high:
-      "سبق أن أبلغت عن هذا المرسل، لذا تُعرض هذه الرسالة بعلامة.",
-    signal_rbl_spamhaus:
-      "الخادم الذي أرسل هذا البريد مدرج في قائمة حظر بريد مزعج معروفة.",
-    signal_rbl_barracuda:
-      "الخادم الذي أرسل هذا البريد مدرج في قائمة حظر بريد مزعج معروفة.",
-    signal_rbl_other:
-      "الخادم الذي أرسل هذا البريد مدرج في قائمة حظر فورية للبريد المزعج.",
-    signal_display_name_brand_spoof:
-      "اسم المرسل يحاكي علامة تجارية معروفة، وهذه حيلة شائعة في التصيّد.",
-    signal_display_name_email_spoof:
-      "يعرض اسم المرسل عنوان بريد بينما الرسالة في الحقيقة من عنوان آخر، وهذا نمط شائع في التصيّد.",
-    signal_domain_blocklist:
-      "نطاق هذا المرسل مدرج في قائمة حظر تصيّد معروفة. يستحسن التعامل مع الرسالة على أنها معادية.",
-    signal_safe_browsing_match:
-      "نطاق هذا المرسل موسوم لاستضافته محتوى غير آمن.",
-    signal_url_on_blocklist:
-      "يحتوي هذا البريد على روابط لمواقع معروفة بالتصيّد. تجنّب الضغط عليها هو الأسلم.",
-    signal_homoglyph_domain:
-      "يحتوي هذا البريد على روابط لنطاقات مشابهة صُمّمت لتقليد مواقع حقيقية. تجنّب الضغط عليها هو الأسلم.",
-    signal_display_name_brand_spoof_client:
-      "اسم المرسل يحاكي علامة تجارية معروفة، وهذه حيلة شائعة في التصيّد.",
-    signal_display_name_email_mismatch:
-      "اسم المرسل وعنوانه الفعلي لا يتطابقان، وهذا نمط شائع في التصيّد.",
-    signal_urgency_language:
-      "يستخدم هذا البريد لغة عاجلة أو تهديدية شائعة في عمليات الاحتيال. التمهّل قبل التصرّف هو الأسلم.",
     shipment_update: "تحديث الشحنة",
-    estimated_short: "تقديري {{ date }}",
     track_package: "تتبع الشحنة",
     tracking_number: "رقم التتبع",
     estimated_delivery: "موعد التسليم التقديري",
-    delivery_address: "عنوان التسليم",
-    extracted_locally_message:
-      "تم الاستخراج محليًا من بريدك، ولا يُرسَل أي شيء إلى خوادمنا.",
     view_blocked_content_details: "عرض تفاصيل المحتوى المحظور",
     n_images: "{{ count }} صور",
     n_items: "{{ count }} عناصر",
@@ -1500,21 +1339,20 @@ export const ar = {
     select_destination_folder: "اختر مجلد الوجهة",
     no_folders_available: "لا توجد مجلدات متاحة",
     submitting: "جارٍ الإرسال...",
-    account_suspended_label: "حسابك معلّق.",
     suspended_alert: "استُخدم هذا الحساب بطريقة تخالف {terms}.",
     suspended_alert_terms: "شروط خدمة Aster",
-    suspended_since_with_deletion: "أصبح هذا الحساب غير متاح في {date}. اعتبارًا من {deletion_date}، قد يُنظر في حذفه.",
+    suspended_since_with_deletion:
+      "أصبح هذا الحساب غير متاح في {date}. اعتبارًا من {deletion_date}، قد يُنظر في حذفه.",
     suspended_since: "أصبح هذا الحساب غير متاح في {date}.",
     suspended_title: "هذا الحساب معلّق",
-    suspended_appeal_hint: "إذا كنت تعتقد أن هذا خطأ، يمكنك تقديم طعن. تراجع Aster كل طعن وترد عبر البريد الإلكتروني.",
-    suspended_download_hint: "لا يزال بإمكانك تنزيل نسخة من بياناتك. يُفك تشفير بريدك على هذا الجهاز فقط، لذا لا يمكن لأي شخص آخر قراءة الملف المُصدَّر.",
+    suspended_appeal_hint:
+      "إذا كنت تعتقد أن هذا خطأ، يمكنك تقديم طعن. تراجع Aster كل طعن وترد عبر البريد الإلكتروني.",
+    suspended_download_hint:
+      "لا يزال بإمكانك تنزيل نسخة من بياناتك. يُفك تشفير بريدك على هذا الجهاز فقط، لذا لا يمكن لأي شخص آخر قراءة الملف المُصدَّر.",
     suspended_download: "تنزيل بياناتك",
     suspended_start_appeal: "بدء الطعن",
-    account_suspended_default_reason:
-      "حسابك معلّق بسبب مخالفة شروط الخدمة. hello@astermail.org مستعد للمساعدة في الاعتراض أو لمزيد من التفاصيل.",
-    submit_an_appeal: "تقديم استئناف",
     settings_disabled_suspended:
-      "الإعدادات معطّلة طوال فترة تعليق حسابك. hello@astermail.org مستعد للمساعدة في الاعتراض أو لمزيد من التفاصيل.",
+      "الإعدادات معطّلة طوال فترة تعليق حسابك. للاعتراض أو لمزيد من التفاصيل، راسل hello@astermail.org.",
     new_email_body: "لديك رسالة جديدة",
     new_emails_body_one: "لديك {{count}} رسالة جديدة",
     new_emails_body: "لديك {{count}} رسائل جديدة",
@@ -1531,18 +1369,6 @@ export const ar = {
     sender_type_external: "خارجي",
     sender_type_ghost: "شبحي",
     recovery_email_label: "بريد الاسترداد",
-    vault_access_error:
-      "تعذّر فتح مفاتيحك الخاصة على هذا الجهاز. تسجيل الخروج ثم الدخول يعيد تحميلها. مفاتيحك وبياناتك على الخادم لم تتغير.",
-    recovery_email_already_used:
-      "هذا البريد عنوان استرداد لحساب آخر بالفعل. عنوان مختلف ينبغي أن يعمل.",
-    add_recovery_email_gate_desc:
-      "بريد استرداد متحقق منه لازم لمواصلة استخدام Aster Mail. هذا هو الطريق للعودة إن نسيت كلمة المرور، لذا عنوان يمكنك الوصول إليه دائمًا هو الأسلم.",
-    recovery_email_encrypted_note:
-      "سيُستخدم هذا البريد فقط لاسترداد الحساب والتحقق من الهوية. إنه مشفر ولا يمكن لـ Aster قراءته.",
-    recovery_email_verified_redirect:
-      "تم التحقق من بريد الاسترداد. جارٍ إعادة التوجيه...",
-    verification_link_sent_to:
-      "أرسلنا رابط تحقق إلى {{email}}. انقر على الرابط في البريد للتحقق من هويتك.",
     check_spam_folder_note:
       "لم يصلك البريد؟ تحقق من مجلد الرسائل المزعجة. ينتهي الرابط خلال 24 ساعة.",
     job_title_at_company: "{{ job_title }} في {{ company }}",
@@ -1564,18 +1390,13 @@ export const ar = {
     enter_contact_group_name: "أدخل اسم المجموعة",
     manage_contact_groups: "إدارة المجموعات",
     no_contact_groups_yet: "لا توجد مجموعات بعد",
-    add_contacts_to_group_hint:
-      "أنشئ مجموعة لتنظيم الأشخاص الذين تراسلهم أكثر من غيرهم.",
     contact_group_name_too_long:
       "يمكن أن يصل طول اسم المجموعة إلى {{ max }} حرفًا.",
     contact_group_already_exists: "توجد مجموعة بهذا الاسم بالفعل.",
     contact_group_limit_reached: "يمكنك إنشاء ما يصل إلى {{ max }} مجموعة.",
-    delete_contact_group_confirm:
-      "هل تريد حذف هذه المجموعة؟ تبقى جهات الاتصال في دفتر العناوين.",
     failed_to_fetch_contact_groups: "تعذر تحميل المجموعات. حاول مرة أخرى.",
     failed_to_save_contact_group: "تعذر حفظ المجموعة. حاول مرة أخرى.",
     failed_to_create_contact_group: "تعذر إنشاء المجموعة. حاول مرة أخرى.",
-    failed_to_delete_contact_group: "تعذر حذف المجموعة. حاول مرة أخرى.",
     failed_to_update_contact_groups: "تعذر تحديث عضوية المجموعة.",
     contacts_added_to_group: "تمت إضافة {{count}} جهات اتصال إلى المجموعة",
     contacts_added_to_group_one: "تمت إضافة {{count}} جهة اتصال إلى المجموعة",
@@ -1598,31 +1419,22 @@ export const ar = {
       "هذه التسمية ستُزال من كل رسالة تحملها، ولا يمكن التراجع. الرسائل ذاتها تبقى في حسابك.",
     confirm_delete_label: "هل أنت متأكد أنك تريد حذف التصنيف",
     add_another_email_count: "إضافة بريد آخر ({{current}}/{{max}})",
-    drop_files_or_click: "أفلت الملفات هنا أو انقر للرفع",
-    max_size_per_file: "الحد الأقصى {{size}} لكل ملف",
-    uploading_progress: "جارٍ الرفع...",
     n_messages_count: "{{count}} رسائل",
-    view_all_messages: "عرض جميع الرسائل",
     unable_to_decrypt: "تعذّر فتح هذه الرسالة",
     decrypt_session_expired_message:
       "تعذّر فتح هذه الرسالة على هذا الجهاز، وغالبًا ما يكون السبب انتهاء الجلسة. رسالتك ومفاتيحك على الخادم لم تتغير.",
     decrypt_try_sign_out:
-      "تسجيل الخروج ثم الدخول يعيد تحميل مفاتيحك. إن لم تُفتح الرسالة بعد ذلك، يمكن التواصل مع hello@astermail.org.",
-    n_files: "{{count}} ملف",
-    n_files_plural: "{{count}} ملفات",
-    aster_user: "مستخدم Aster",
+      "سجّل الخروج ثم سجّل الدخول مجددًا لإعادة تحميل مفاتيحك. إن لم تُفتح الرسالة بعد ذلك، راسل hello@astermail.org.",
     pin_preferred_sender: "تثبيت كمرسل مفضل",
     unpin_preferred_sender: "إلغاء تثبيت المرسل المفضل",
     pending_deletion_title: "الحساب مقرر حذفه",
     pending_deletion_days:
-      "سيتم حذف حسابك خلال {{days}} يومًا. يوجد في الشريط أدناه خيار للإلغاء إن غيّرت رأيك.",
-    pending_deletion_cancel_prompt: "هل تود إلغاء الحذف والاحتفاظ بحسابك؟",
+      "من المقرر حذف حسابك خلال {{days}} يومًا. ألغِ الحذف للاحتفاظ بحسابك واستعادة الوصول إلى بريدك.",
     pending_deletion_body:
       "حسابك مقرر حذفه. ألغِ الحذف للاحتفاظ بحسابك واستعادة الوصول إلى بريدك.",
     pending_deletion_sign_out: "تسجيل الخروج",
     pending_deletion_error: "تعذّرت استعادة حسابك. حاول مرة أخرى.",
     pending_deletion_keep: "الاحتفاظ بحسابي",
-    pending_deletion_dismiss: "لا، المتابعة في الحذف",
     pending_deletion_cancelling: "جارٍ الإلغاء...",
     family_2fa_title: "المصادقة الثنائية مطلوبة",
     family_2fa_body:
@@ -1634,18 +1446,14 @@ export const ar = {
       '"{{name}}" يتجاوز حد الملف الواحد البالغ {{size}}. نسخة أصغر أو رابط مشاركة سيمر.',
     file_exceeds_max_size_upgradable:
       '"{{name}}" يتجاوز حد الملف الواحد البالغ {{size}} في خطتك. الترقية ترفعه إلى {{max_size}}.',
-    total_attachments_exceed_limit:
-      "مرفقاتك تتجاوز الحد الإجمالي البالغ {{size}}. إزالة ملف أو مشاركة أحدها عبر رابط ستتيح مرور الباقي.",
     adding_file_would_exceed_limit:
       'إضافة "{{name}}" ستدفع مرفقاتك إلى ما بعد حد {{size}}. إزالة ملف أولًا أو إرساله في رسالة منفصلة سيعمل.',
-    unsupported_file_type:
-      '"{{name}}" ليس نوع ملف يمكننا إرفاقه. حفظه بتنسيق آخر أو مشاركته عبر رابط سيوصله.',
     file_already_attached:
       '"{{name}}" مرفق بالفعل في هذا البريد. لا داعي لإرفاقه مرة أخرى.',
     metadata_not_removed:
       "تعذر إزالة البيانات الوصفية المخفية من {{names}}. تم إرفاق الملف دون تغيير.",
     failed_to_read_named_file: 'تعذّرت قراءة "{{name}}". ملف آخر سيعمل.',
-    unknown_error: "حاول مجددًا.",
+    unknown_error: "حدث خطأ غير متوقع. حاول مجددًا. لم نتمكن من تحديد السبب.",
     unsaved_changes_title: "تجاهل التغييرات؟",
     unsaved_changes_body:
       "البيانات التي أدخلتها غير محفوظة. إغلاق هذا النموذج الآن يؤدي إلى حذفها.",
@@ -1654,17 +1462,10 @@ export const ar = {
     uncategorized: "غير مصنف",
     draft_category: "مسودة",
     scheduled_category: "مجدول",
-    request_timed_out:
-      "استغرق الطلب وقتًا طويلًا للانتهاء. التحقق من اتصالك والمحاولة مجددًا غالبًا ما يحل الأمر.",
     account_suspended: "حسابك معلّق.",
     account_limit_reached:
       "وصلت إلى حد الحسابات لهذه الشبكة. إن بدا هذا خطأً، يمكن التواصل مع hello@astermail.org.",
-    health_check_failed: "حاول مجددًا.",
-    failed_to_get_key_status: "حاول مجددًا.",
-    unknown_rotation_error: "حاول مجددًا.",
-    new_email_notification: "رسالة جديدة من {{ sender }}",
-    reply_notification: "{{ sender }} ردّ",
-    mention_notification: "{{ sender }} أشار إليك",
+    health_check_failed: "لم يكتمل التشخيص. حاول مجددًا.",
     print_from: "من:",
     print_to: "إلى:",
     print_cc: "نسخة:",
@@ -1693,27 +1494,19 @@ export const ar = {
     recovery_text_no_share: "لا تشاركه مع أحد",
     recovery_text_unrecoverable:
       "بدون هذه الرموز، لا يستطيع أحد إعادتك إلى حسابك إن نسيت كلمة المرور.",
-    recovery_text_if_forgot: "إن نسيت كلمة المرور",
     recovery_text_your_codes: "رموز الاسترداد الخاصة بك:",
     recovery_text_mark_used: "ضع علامة على الرموز المستخدمة:",
     recovery_text_code_used_on: "الرمز {{ number }} استُخدم في: ____________",
     custom_fields: "حقول مخصصة",
     click_to_add_value: "انقر لإضافة قيمة...",
     no_custom_fields_yet: "لا توجد حقول مخصصة بعد",
-    profile_photo: "صورة الملف الشخصي",
-    drop_image_or_click: "أفلت صورة أو انقر",
-    photo_format_hint: "JPEG أو PNG أو WebP أو GIF. الحد الأقصى 10 ميجابايت.",
-    found_one_contact: "تم العثور على جهة اتصال واحدة",
-    found_n_contacts: "تم العثور على {{count}} جهات اتصال",
     and_n_more: "و{{count}} آخرون...",
     import_one_contact: "استيراد جهة اتصال واحدة",
     import_n_contacts: "استيراد {{count}} جهات اتصال",
     one_email: "رسالة واحدة",
-    n_emails: "{{count}} رسائل",
     use_biometry_to_unlock: "استخدم {{name}} لإلغاء القفل",
     unlock_with_biometry: "إلغاء القفل بـ {{name}}",
     images_count: "{{count}} صور",
-    images_count_plural: "{{count}} صور",
     blocked_items_count: "{{count}} عنصر",
     n_more: "+{{count}} المزيد",
     x_of_y: "{{ current }} من {{ total }}",
@@ -1766,14 +1559,12 @@ export const ar = {
       "تمت إزالة هذا الجهاز من حسابك وتم تسجيل خروجك. إن لم يكن هذا أنت، قم بتغيير كلمة المرور فورًا على astermail.org/security.",
     allow_sender: "إضافة إلى قائمة السماح",
     remove_from_allowlist_action: "إزالة من قائمة السماح",
-    failed_to_allow_sender: "حاول مجددًا.",
+    failed_to_allow_sender: "لم يُضف هذا المرسل إلى قائمة السماح. حاول مجددًا.",
     press_enter: "Enter",
     press_enter_to_view_all: "اضغط Enter لعرض جميع النتائج",
     stop: "إيقاف",
     more_aliases: "{{count}} أسماء مستعارة إضافية",
     profile: "الملف الشخصي",
-    probation_message:
-      "حسابك خاضع لقيود إرسال مؤقتة. سترتفع هذه القيود تلقائيًا.",
     sending_in_seconds: "الإرسال خلال {{seconds}} ثوانٍ...",
     sending_in_one_second: "الإرسال خلال ثانية واحدة...",
     message_will_be_sent_shortly: "ستُرسل رسالتك قريبًا",
@@ -1782,19 +1573,18 @@ export const ar = {
     step_up_error: "كلمة المرور أو رمز التحقق غير صحيح. حاول مرة أخرى.",
     step_up_security_key_hint:
       "بعد إدخال كلمة المرور، سيُطلب منك التحقق باستخدام مفتاح الأمان الخاص بك.",
-    remove_recovery_email_confirm:
-      "هل أنت متأكد أنك تريد إزالة بريد الاسترداد؟ لن تتمكن بعد الآن من استرداد حسابك باستخدام هذا البريد.",
     recovery_email_removed: "تمت إزالة بريد الاسترداد",
     recovery_email_hidden: "محفوظ في هذا الحساب",
-    failed_remove_recovery_email: "حاول مجددًا.",
-    failed_save_profile_color: "حاول مجددًا.",
+    failed_save_profile_color: "لم يُحفظ اختيار اللون. حاول مجددًا.",
     image_load_failed: "هذه الصورة لم تُحمَّل. التحديث عادةً ما يحل الأمر.",
     image_processing_failed: "تعذّر تجهيز هذه الصورة. ملف مختلف سيعمل.",
     alias_avatar_updated: "تم تحديث صورة الاسم المستعار",
     alias_avatar_removed: "تمت إزالة صورة الاسم المستعار",
-    failed_update_alias_avatar: "حاول مجددًا.",
+    failed_update_alias_avatar:
+      "لم يتم تحديث صورة الاسم المستعار. حاول مجددًا.",
     alias_display_name_updated: "تم تحديث الاسم المعروض",
-    failed_update_alias_display_name: "حاول مجددًا.",
+    failed_update_alias_display_name:
+      "لم يتم تحديث الاسم المعروض. حاول مجددًا.",
     display_name_too_long: "هذا الاسم المعروض يتجاوز حد الطول. اسم أقصر سيعمل.",
     add_display_name_placeholder: "أضف اسمًا معروضًا",
     edit_display_name: "تعديل الاسم المعروض",
@@ -1818,7 +1608,6 @@ export const ar = {
     remove_alias_avatar: "إزالة الصورة الرمزية",
     alias_avatars_locked:
       "الصور الرمزية المخصصة جزء من الخطط المدفوعة. الترقية ستفعّلها.",
-    alias_avatars_feature: "صور رمزية مخصصة للأسماء المستعارة والنطاقات",
     not_now: "ليس الآن",
     scanning_mailbox: "جارٍ فحص صندوق البريد...",
     marking_as_read_count: "جارٍ تعليم {{completed}} من {{total}} كمقروء...",
@@ -1847,14 +1636,17 @@ export const ar = {
     switch_to_simple: "التبديل إلى البسيط",
     switch_to_advanced: "التبديل إلى المتقدم",
     star_selected: "تمييز بنجمة",
-    unstar_selected: "إزالة النجمة",
     all_short: "الكل",
     search_failed_try_again:
       "البحث لم يكتمل. محاولة أخرى بعد لحظة عادةً ما تحل الأمر.",
-    search_load_failed_try_again: "حاول مجددًا.",
-    failed_to_set_folder_password: "حاول مجددًا.",
-    failed_to_change_folder_password: "حاول مجددًا.",
-    failed_to_remove_folder_password: "حاول مجددًا.",
+    search_load_failed_try_again:
+      "تعذّر تحميل رسائلك للبحث. حاول مجددًا. بريدك آمن.",
+    failed_to_set_folder_password:
+      "لم تُحفظ كلمة مرور المجلد. حاول مجددًا. محتويات المجلد لم تتغير.",
+    failed_to_change_folder_password:
+      "لم تتغير كلمة مرور المجلد. حاول مجددًا. كلمة المرور القديمة لا تزال تعمل.",
+    failed_to_remove_folder_password:
+      "تعذّر إزالة كلمة مرور المجلد. حاول مجددًا. يبقى المجلد مقفلًا كما كان.",
     wkd_encrypted_description: "مشفّر بمفتاح المستلم العام المنشور.",
     sender_verified: "تم التحقق من المرسل",
     sender_verified_desc:
@@ -2180,11 +1972,6 @@ export const ar = {
     email_count_few: "{{count}} رسائل",
     email_count_many: "{{count}} رسائل",
     email_count_other: "{{count}} رسائل",
-    entry_count_one: "{{count}} إدخال",
-    entry_count_two: "{{count}} إدخالات",
-    entry_count_few: "{{count}} إدخالات",
-    entry_count_many: "{{count}} إدخالات",
-    entry_count_other: "{{count}} إدخالات",
     file_count_one: "{{count}} ملف",
     file_count_two: "{{count}} ملفات",
     file_count_few: "{{count}} ملفات",
@@ -2212,7 +1999,6 @@ export const ar = {
     app_lock_attempts_remaining_other: "بقيت {{count}} محاولات",
     sender_count: "{{count}} مُرسِلين",
     email_count: "{{count}} رسائل",
-    entry_count: "{{count}} إدخالات",
     file_count: "{{count}} ملفات",
     images_count_one: "{{count}} صورة",
     images_count_two: "{{count}} صور",
@@ -2249,8 +2035,6 @@ export const ar = {
     discard_new_contact_message:
       "لم تُحفظ جهة الاتصال التي بدأتها بعد. إذا فتحت جهة اتصال أخرى الآن، فستفقدها.",
     duplicates_found: "تم العثور على جهات اتصال مكررة",
-    empty_trash_confirm:
-      "هل تريد حذف كل جهات الاتصال الموجودة في المهملات نهائيًا؟ لا يمكن التراجع عن هذا الإجراء.",
     export_selection_csv: "التصدير بصيغة CSV",
     export_selection: "تصدير المحدد",
     group_empty_hint:
@@ -2270,12 +2054,20 @@ export const ar = {
     share_contact_via_email: "إرفاق برسالة جديدة",
     share_contact_device: "المشاركة مع تطبيق آخر",
     trash_days_left: "بقي {{count}} يوم",
+    biometry_fingerprint: "بصمة الإصبع",
+    biometry_face_recognition: "التعرف على الوجه",
+    biometry_iris: "بصمة القزحية",
+    biometry_generic: "المقاييس الحيوية",
+    share_via: "مشاركة عبر",
+    zip_archive: "أرشيف ZIP",
   },
   settings: {
     bill_thanks_title: "شكرًا لدعمك Aster",
-    bill_thanks_body: "دعمك يعني لنا كل شيء. فهو يتيح لفريق صغير مواصلة بناء Aster بعناية، كل يوم.",
+    bill_thanks_body:
+      "دعمك يعني لنا كل شيء. فهو يتيح لفريق صغير مواصلة بناء Aster بعناية، كل يوم.",
     bill_thanks_free_title: "شكرًا لاستخدامك Aster",
-    bill_thanks_free_body: "يبني فريق صغير Aster بعناية، وكل شخص يثق به في بريده يبقينا مستمرين. قم بالترقية متى احتجت إلى مساحة تخزين أو أسماء مستعارة أو نطاقات مخصصة إضافية.",
+    bill_thanks_free_body:
+      "يبني فريق صغير Aster بعناية، وكل شخص يثق به في بريده يبقينا مستمرين. قم بالترقية متى احتجت إلى مساحة تخزين أو أسماء مستعارة أو نطاقات مخصصة إضافية.",
     bill_attachments: "المرفقات",
     bill_dedicated_support: "دعم مخصص",
     bill_early_access: "وصول مبكر إلى الميزات الجديدة",
@@ -2291,7 +2083,8 @@ export const ar = {
     bill_tracker_protection: "الحماية من أدوات التتبع",
     bill_action_required: "إجراء مطلوب",
     bill_add_funds: "إضافة رصيد",
-    bill_add_funds_body: "يُستخدم الرصيد لدفع التجديدات والإضافات قبل الخصم من بطاقتك.",
+    bill_add_funds_body:
+      "يُستخدم الرصيد لدفع التجديدات والإضافات قبل الخصم من بطاقتك.",
     bill_add_more_storage: "إضافة مساحة تخزين",
     bill_aliases: "الأسماء المستعارة",
     bill_all_good: "كل شيء على ما يرام",
@@ -2436,9 +2229,9 @@ export const ar = {
       "انتقلت إعدادات بريد الاسترداد إلى الأمان > استرداد الحساب",
     phrase_wrap_save_failed:
       "تعذّر حفظ عبارة الاسترداد على الخادم. حاول مرة أخرى.",
-    smtp_tokens: "رموز SMTP",
+    smtp_tokens: "SMTP وIMAP وPOP3 وJMAP",
     smtp_tokens_description:
-      "أنشئ بيانات اعتماد SMTP للإرسال فقط حتى تتمكن التطبيقات والبرامج النصية الخارجية من إرسال البريد من عناوين نطاقك المخصص التي تم التحقق منها.",
+      "اربط أي برنامج بريد أو تطبيق. استخدم تطبيق Aster Bridge أعلاه للوصول الكامل عبر IMAP وPOP3 وSMTP وJMAP (يُفك تشفير بريدك على جهازك)، أو أنشئ أدناه بيانات اعتماد SMTP للإرسال فقط للتطبيقات والبرامج النصية التي تحتاج إلى الإرسال فقط من عناوين نطاقك المخصص التي تم التحقق منها.",
     smtp_tokens_popover_description:
       "رمز SMTP هو كلمة مرور للإرسال فقط مرتبطة بأحد عناوين نطاقك المخصص التي تم التحقق منها. استخدمه لإرسال البريد من الأنظمة المؤتمتة أو البرامج النصية أو الخدمات الخارجية عبر SMTP القياسي.",
     smtp_tokens_empty: "لا توجد رموز SMTP بعد.",
@@ -2932,7 +2725,8 @@ export const ar = {
     alias_restore_mismatch:
       "هذا العنوان لا يطابق الاسم المستعار. تحقق من ترويسة رسالة تم تسليمها.",
     alias_restore_failed: "حاول مجددًا.",
-    recently_deleted_load_failed: "حاول مجددًا.",
+    recently_deleted_load_failed:
+      "تعذّر تحميل الأسماء المستعارة المحذوفة مؤخرًا. حاول مجددًا.",
     ghost_aliases_info:
       "الأسماء المستعارة الشبحية مؤقتة وتنتهي صلاحيتها تلقائيًا. استخدمها للتسجيلات لمرة واحدة أو في أي مكان لا تريد فيه عنوانًا دائمًا. تختفي من تلقاء نفسها - دون الحاجة إلى أي تنظيف.",
     recently_deleted_aliases_title: "المحذوفة مؤخرًا",
@@ -2960,7 +2754,7 @@ export const ar = {
     recently_deleted_directories_description:
       "استعد دليلًا حذفته. الأدلة المحذوفة تتوقف عن استقبال البريد الجديد حتى تتم استعادتها.",
     directory_restored: "تمت استعادة الدليل",
-    failed_restore_directory: "حاول مجددًا.",
+    failed_restore_directory: "لم تتم استعادة هذا الدليل. حاول مجددًا.",
     purge_directory_confirm_title: "حذف الدليل نهائيًا؟",
     purge_directory_confirm_message:
       "هل تريد حذف {{ key }}@{{ domain }} نهائيًا؟ لا يمكن التراجع عن هذا الإجراء. يبقى الدليل محجوزًا لحسابك، فلا يمكن لأي شخص آخر المطالبة به أبدًا.",
@@ -3093,7 +2887,7 @@ export const ar = {
     alias_delivery_title: "التسليم",
     alias_delivery_folder: "تسليم إلى",
     alias_delivery_folder_desc:
-      "اختر أين يصل البريد المرسل إلى هذا الاسم المستعار. صندوق الوارد هو الافتراضي.",
+      "يصل البريد المرسل إلى هذا الاسم المستعار إلى المجلد الذي تختاره. صندوق الوارد هو الافتراضي.",
     alias_delivery_folder_info:
       "يصل البريد مباشرة إلى المجلد الذي تختاره دون الحاجة إلى قاعدة. وإذا طابقته قاعدة فإنها تتغلب على هذا الإعداد.",
     alias_delivery_folder_error: "حاول مجددًا.",
@@ -3370,14 +3164,14 @@ export const ar = {
     fam_org_tab_security: "الأمان",
     fam_org_tab_retention: "الاحتفاظ بالبيانات",
     fam_org_groups_name_placeholder: "اسم المجموعة",
-    fam_org_groups_prefix_placeholder: "بادئة البريد الإلكتروني (اختياري)",
+    fam_org_groups_prefix_placeholder: "البادئة",
     fam_org_groups_domain_placeholder: "اختر النطاق",
     fam_org_groups_create: "إنشاء",
     fam_org_groups_info_title: "مجموعات المؤسسة",
     fam_org_groups_info_desc:
       "تجمع المجموعة عدة أعضاء تحت عنوان مشترك واحد. يُسلَّم البريد المرسل إلى عنوان المجموعة إلى كل عضو فيها - وهو أمر عملي للصناديق المشتركة مثل family@ أو parents@. بادئة البريد الإلكتروني اختيارية.",
     fam_org_groups_prefix_hint:
-      "بادئة البريد الإلكتروني اختيارية - تُنشئ عنوان مجموعة مثل",
+      "اكتب بادئة لتعيين عنوان بريد إلكتروني للمجموعة",
     fam_org_groups_address_preview: "عنوان المجموعة: ",
     fam_org_groups_address_in_use:
       "هذا العنوان مستخدم بالفعل من قِبَل اسم مستعار أو مجموعة أخرى",
@@ -3825,9 +3619,9 @@ export const ar = {
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
     bridge_linux_pacman_link: "Arch Linux",
-    bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
-    bridge_linux_deb_arm64_link: ".deb (ARM64)",
-    bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
+    bridge_linux_appimage_arm64_link: "AppImage",
+    bridge_linux_deb_arm64_link: ".deb",
+    bridge_linux_rpm_arm64_link: ".rpm",
     bridge_other_formats: "صيغ أخرى",
     bridge_arch_x64: "x86-64",
     bridge_arch_arm64: "ARM64",
@@ -3848,13 +3642,14 @@ export const ar = {
     bridge_upgrade_benefit_platforms: "متوفر على Windows وmacOS وLinux",
     bridge_upgrade_benefit_cli: "يتضمّن إصدارًا لسطر الأوامر للخوادم",
     bridge_cli_download: "تنزيل",
-    bridge_cli_install_hint: "نزّل الأرشيف المناسب لنظامك، ثم استخرجه وانقل الملف التنفيذي إلى مسار PATH.",
-    bridge_cli_install_hint_windows: "نزّل الأرشيف، ثم استخرجه وأضف المجلد إلى مسار PATH.",
+    bridge_cli_install_hint:
+      "نزّل الأرشيف المناسب لنظامك، ثم استخرجه وانقل الملف التنفيذي إلى مسار PATH.",
+    bridge_cli_install_hint_windows:
+      "نزّل الأرشيف، ثم استخرجه وأضف المجلد إلى مسار PATH.",
     bridge_cli_copy_command: "نسخ أوامر التثبيت",
     bridge_cli_docs_link: "اقرأ دليل سطر الأوامر",
     bridge_cli_name: "سطر الأوامر",
-    bridge_cli_desc:
-      "يشغّل الخوادم نفسها بدون نافذة، على خادم أو عبر SSH.",
+    bridge_cli_desc: "يشغّل الخوادم نفسها بدون نافذة، على خادم أو عبر SSH.",
     bridge_cli_windows_link: "Windows",
     bridge_cli_macos_link: "macOS",
     bridge_cli_linux_link: "Linux (x86-64)",
@@ -3890,7 +3685,7 @@ export const ar = {
       "استخدم Aster مع Thunderbird أو Apple Mail أو Outlook أو أي عميل IMAP/JMAP. يعمل Aster Bridge محليًا ويقدم صندوق بريدك المفك تشفيره لعميلك المفضل.",
     desktop_bridge_set_up: "إعداد {{ client }}",
     desktop_bridge_install_hint:
-      "يجب تثبيت Aster Bridge وتشغيله. احصل عليه من astermail.org/bridge.",
+      "يجب تثبيت Aster Bridge وتشغيله. نزّله من الإعدادات > Bridge.",
     desktop_bridge_upgrade_title: "استخدم عميل البريد المفضل لديك",
     desktop_bridge_upgrade_description:
       "اربط Apple Mail أو Thunderbird أو Outlook بـ Aster عبر Aster Bridge. متاح في Star وما فوق.",
@@ -3964,7 +3759,8 @@ export const ar = {
     signature_custom: "مخصص",
     custom_signature: "توقيع مخصص",
     time_zone: "المنطقة الزمنية",
-    time_zone_description: "منطقتك الزمنية المحلية",
+    time_zone_description:
+      "المنطقة الزمنية المستخدمة لعرض أوقات الرسائل على جميع أجهزتك",
     time_zone_auto: "تلقائي (منطقة الجهاز الزمنية)",
     time_zone_search_placeholder: "ابحث عن مدينة أو منطقة",
     time_zone_no_results: "لا توجد مناطق زمنية مطابقة",
@@ -4062,8 +3858,7 @@ export const ar = {
     external_link_warning_disabled: "تُفتح الروابط مباشرة بدون تأكيد",
     ipfs_attachment_storage: "تخزين المرفقات على IPFS",
     ipfs_enabled_description: "تُخزَّن المرفقات في مخزن IPFS الخاص بـ Aster",
-    ipfs_disabled_description:
-      "تخزين المرفقات في مخزن IPFS الخاص بـ Aster",
+    ipfs_disabled_description: "تخزين المرفقات في مخزن IPFS الخاص بـ Aster",
     forward_secrecy: "السرية الأمامية",
     forward_secrecy_disable_title: "إيقاف السرية التامة للتوجيه؟",
     forward_secrecy_disable_message:
@@ -4132,7 +3927,8 @@ export const ar = {
     password_change_background_reencrypt_failed:
       "تم تغيير كلمة السر، لكن بعض الرسائل المرسلة والإعدادات لم تكتمل إعادة تشفيرها. تواصل مع الدعم إذا ظهرت رسائل أو إعدادات غير مقروءة.",
     previous_password: "كلمة السر السابقة",
-    password_change_sent_mail_locked: "تم تغيير كلمة السر. كانت {{count}} من الرسائل المرسلة مشفّرة بكلمة سر سابقة ولم يتم تحديثها. لفتحها، اختر استعادة البيانات في الشريط أعلى صندوق الوارد.",
+    password_change_sent_mail_locked:
+      "تم تغيير كلمة السر. كانت {{count}} من الرسائل المرسلة مشفّرة بكلمة سر سابقة ولم يتم تحديثها. لفتحها، اختر استعادة البيانات في الشريط أعلى صندوق الوارد.",
     password_changed_signing_out:
       "تم تغيير كلمة المرور بنجاح. جارٍ تسجيل خروجك...",
     password_changed_success: "تم تغيير كلمة المرور",
@@ -4187,10 +3983,10 @@ export const ar = {
     sound_new_notifications: "تشغيل صوت للإشعارات الجديدة",
     badge_count_setting: "شارة غير المقروء",
     badge_count_setting_description: "عرض عدد غير المقروء على أيقونة التطبيق",
-    push: "الدفع",
+    push: "الإشعارات الفورية",
     push_subscribe_failed:
       "الإشعارات مفعّلة، لكن تعذّر إعداد التسليم في الخلفية. ستصلك الإشعارات فقط أثناء فتح Aster Mail.",
-    push_notifications_description: "تلقي إشعارات الدفع على الجوال",
+    push_notifications_description: "تلقي الإشعارات الفورية على الجوال",
     events: "الأحداث",
     new_emails: "رسائل جديدة",
     new_email_description: "عند استلام رسالة جديدة",
@@ -4341,9 +4137,11 @@ export const ar = {
     compose_mode_fullscreen: "ملء الشاشة دائماً",
     compose_mode_minimized: "بدء مصغراً",
     default_sender_group: "الإرسال",
-    default_sender_group_description: "اختر العنوان الذي تُرسل منه الرسائل الجديدة.",
+    default_sender_group_description:
+      "اختر العنوان الذي تُرسل منه الرسائل الجديدة.",
     default_sender_title: "المرسل الافتراضي",
-    default_sender_description: "تبدأ الرسائل الجديدة من هذا العنوان. وتستخدم الردود العنوان الذي وصلت إليه الرسالة.",
+    default_sender_description:
+      "تبدأ الرسائل الجديدة من هذا العنوان. وتستخدم الردود العنوان الذي وصلت إليه الرسالة.",
     default_sender_no_addresses: "لا توجد عناوين أخرى",
     compose_defaults_title: "التنسيق الافتراضي",
     compose_defaults_description:
@@ -4360,7 +4158,8 @@ export const ar = {
     reply_defaults_title: "الردود",
     reply_defaults_description: "اختر بماذا يبدأ الرد الجديد.",
     reply_include_quoted: "تضمين النص المقتبس",
-    reply_include_quoted_description: "يبدأ كل رد بالرسالة الأصلية مقتبسة أسفل نصك.",
+    reply_include_quoted_description:
+      "يبدأ كل رد بالرسالة الأصلية مقتبسة أسفل نصك.",
     reply_prefix_subject: "إضافة رد: إلى الموضوع",
     reply_prefix_subject_description: "يضع رد: قبل الموضوع الأصلي عند الرد.",
     build_info: "معلومات البناء",
@@ -4497,12 +4296,15 @@ export const ar = {
       "تعذّر تحصيل الدفعة. حدّث طريقة الدفع من الإعدادات، الفوترة، ثم أعد المحاولة.",
     plan_not_available:
       "هذه الخطة غير متاحة للشراء حاليًا. خطة أخرى أو العودة لاحقًا ستعمل.",
-    failed_checkout: "حاول مجددًا.",
-    failed_billing_portal: "حاول مجددًا.",
+    failed_checkout:
+      "تعذّر فتح صفحة الدفع الآن. حاول مجددًا. الفوترة لم تتغير.",
+    failed_billing_portal:
+      "تعذّر فتح بوابة الفوترة. حاول مجددًا. خطتك لم تتغير.",
     subscription_cancelled: "سيتم إلغاء الاشتراك في نهاية فترة الفوترة",
-    failed_cancel_subscription: "حاول مجددًا.",
+    failed_cancel_subscription:
+      "لم يتم الإلغاء. حاول مجددًا. خطتك لا تزال نشطة.",
     subscription_reactivated: "تمت إعادة تفعيل الاشتراك",
-    failed_reactivate: "حاول مجددًا.",
+    failed_reactivate: "تعذّر إعادة تفعيل خطتك. حاول مجددًا.",
     daily: "يومي",
     weekly: "أسبوعي",
     biweekly: "كل أسبوعين",
@@ -4523,7 +4325,7 @@ export const ar = {
     auto_lock_after: "قفل تلقائي بعد {{duration}} من عدم النشاط",
     hours: "{{count}} ساعات",
     days: "{{count}} أيام",
-    failed_get_auth_data: "حاول مجددًا.",
+    failed_get_auth_data: "تعذّر تحميل معلومات تسجيل الدخول. حاول مجددًا.",
     downgrade: "تخفيض",
     upgrade_to: "الترقية إلى {{name}}",
     get_plan: "احصل على {{name}}",
@@ -4563,7 +4365,7 @@ export const ar = {
     enter_password_confirm: "أدخل كلمة المرور للتأكيد:",
     verifying_credentials: "جارٍ التحقق من بيانات الاعتماد...",
     failed_verify_credentials:
-      "كلمة المرور هذه غير مطابقة. محاولة أخرى ينبغي أن تنجح. حسابك لم يتغير.",
+      "كلمة المرور غير صحيحة. حاول مجددًا. حسابك لم يتغير.",
     deleting_account: "جارٍ حذف الحساب...",
     failed_delete_account:
       "تعذّر حذف حسابك. تحقق من كلمة المرور وحاول مجددًا. حسابك لم يتغير.",
@@ -4574,14 +4376,16 @@ export const ar = {
     "connection.title_info":
       "يدعم Aster أكثر من طريق للوصول إلى خوادمه. الطريق الذي تختاره يحدد من يمكنه رؤية عنوان IP الخاص بك وكيف تصل الطلبات إلينا. تبقى رسائلك مشفرة من طرف إلى طرف في كلتا الحالتين.",
     "connection.direct": "مباشر",
-    "connection.direct_description": "الاتصال مباشرة بخوادم Aster",
+    "connection.direct_description":
+      "يتصل جهازك مباشرةً بخوادم Aster. أسرع مسار وأقل زمن استجابة، لكن عنوان IP الخاص بك يكون مرئيًا لـ Aster.",
     "connection.tor": "Tor",
     "connection.tor_description": "توجيه حركة المرور عبر شبكة Tor",
     "connection.tor_snowflake": "Tor مع Snowflake",
     "connection.tor_snowflake_description":
       "استخدام جسور Snowflake لمقاومة الرقابة",
     "connection.cdn_relay": "CDN Relay",
-    "connection.cdn_relay_description": "التوجيه عبر خوادم CDN Relay",
+    "connection.cdn_relay_description":
+      "تمرّ الطلبات عبر شبكة CDN عالمية قبل وصولها إلى Aster. يبقى عنوان IP الخاص بك مخفيًا عن Aster، ولا تتميز حركة مرورك عن حركة CDN العادية.",
     "connection.status_connected": "متصل",
     "connection.status_connecting": "جارٍ الاتصال...",
     "connection.status_error":
@@ -4860,24 +4664,27 @@ export const ar = {
     address_change_effect_alias_body:
       "تُحذف أي قواعد وإعادة توجيه وتوقيعات وأسماء مستعارة عكسية أعددتها لهذا الاسم المستعار. تستمر الرسائل المرسلة إلى هذا العنوان في الوصول، بصفته عنوانك الأساسي الآن.",
     address_change_permanent_title: "لا يمكنك التراجع عن هذا",
-    address_change_permanent_body:
-      "لا يمكن أن يعود {{email}} عنوانك الأساسي.",
+    address_change_permanent_body: "لا يمكن أن يعود {{email}} عنوانك الأساسي.",
     address_change_pick_title: "اختر عنوانك الجديد",
     address_change_use_alias: "استخدام أحد أسمائك المستعارة",
     address_change_use_new: "اختيار عنوان جديد",
-    address_change_name_rule: "استخدم من 3 إلى 40 حرفًا أو رقمًا أو نقطة. لا يمكن أن تبدأ النقطة العنوان أو تنهيه، ولا يمكن تكرار النقاط.",
+    address_change_name_rule:
+      "استخدم من 3 إلى 40 حرفًا أو رقمًا أو نقطة. لا يمكن أن تبدأ النقطة العنوان أو تنهيه، ولا يمكن تكرار النقاط.",
     address_change_name_placeholder: "yourname",
-    primary_address_info: "تتيح لك خطة Supernova تغيير عنوانك مرة كل 30 يومًا. عنوانك القديم يبقى لك: يواصل استقبال البريد ويظل يسجّل دخولك.",
+    primary_address_info:
+      "تتيح لك خطة Supernova تغيير عنوانك مرة كل 30 يومًا. عنوانك القديم يبقى لك: يواصل استقبال البريد ويظل يسجّل دخولك.",
     address_change_checking: "جارٍ التحقق من التوفر",
     address_change_available: "{{email}} متاح",
     address_change_unavailable: "{{email}} غير متاح",
     address_change_same_as_current: "هذا عنوانك الحالي بالفعل",
-    address_change_check_failed: "تعذّر على Aster Mail التحقق من هذا العنوان. حاول مرة أخرى بعد قليل.",
+    address_change_check_failed:
+      "تعذّر على Aster Mail التحقق من هذا العنوان. حاول مرة أخرى بعد قليل.",
     address_change_review_title: "راجع التغيير",
     address_change_from: "الآن",
     address_change_to: "بعد التغيير",
     address_change_effect_sending: "تصل الرسائل التي ترسلها من {{email}}.",
-    address_change_effect_key: "يبقى مفتاح التشفير كما هو ويكتسب {{email}} كهوية ثانية.",
+    address_change_effect_key:
+      "يبقى مفتاح التشفير كما هو ويكتسب {{email}} كهوية ثانية.",
     address_change_effect_signed_in: "تبقى مسجّل الدخول في كل مكان.",
     address_change_effect_final: "التغيير نهائي. للمتابعة، اكتب عنوانك الجديد.",
     address_change_type_to_confirm: "اكتب {{email}} للتأكيد",
@@ -4939,8 +4746,9 @@ export const ar = {
     invalid_address: "أدخل عنوان بريد إلكتروني صالحًا.",
     alias_already_taken:
       "هذا الاسم المستعار مستخدَم بالفعل. اسم آخر ينبغي أن يعمل.",
-    alias_create_failed: "حاول مجددًا.",
-    alias_generate_failed: "حاول مجددًا.",
+    alias_create_failed:
+      "لم يُحفظ هذا الاسم المستعار. حاول مجددًا. أسماؤك المستعارة الأخرى لم تتغير.",
+    alias_generate_failed: "تعذّر إنشاء اسم مستعار الآن. حاول مجددًا.",
     alias_invalid:
       "هذا الاسم المستعار غير صالح. الأحرف والأرقام والنقاط والشرطات السفلية والشرطات هي الأحرف المسموحة.",
     domain_not_available: "هذا النطاق غير متاح حاليًا. نطاق آخر ينبغي أن يعمل.",
@@ -4949,7 +4757,8 @@ export const ar = {
     add_custom_domain: "إضافة نطاق مخصص",
     domain_name_label: "اسم النطاق",
     invalid_domain: "أدخل نطاقًا صالحًا.",
-    failed_add_domain: "حاول مجددًا.",
+    failed_add_domain:
+      "لم تتم إضافة هذا النطاق. حاول مجددًا. نطاقاتك الأخرى لم تتغير.",
     configure_dns_for: "تكوين DNS لـ {{domain}}",
     dns_instruction_login: "سجل الدخول إلى مسجل النطاق أو مزود DNS",
     dns_instruction_navigate: "انتقل إلى إدارة DNS لنطاقك",
@@ -4981,7 +4790,7 @@ export const ar = {
       "هذا لا يبدو بريدًا صالحًا. عنوان مثل name@example.com سيعمل.",
     incoming_server_required: "خادم البريد الوارد لازم هنا.",
     private_address_error:
-      "يلزم خادم بريد عمومي هنا، لا عنوان محلي أو خاص. اسم المضيف العام الذي قدّمه مزوّدك سيعمل.",
+      "يجب أن يكون هذا خادم بريد عامًا، وليس عنوانًا محليًا أو خاصًا. استخدم اسم المضيف العام الذي قدّمه مزودك.",
     username_required: "اسم مستخدم لازم لهذا الحساب.",
     password_required: "كلمة مرور لازمة لهذا الحساب.",
     connection_timeout_error: "أدخل مهلة بين 5 و120 ثانية.",
@@ -4995,14 +4804,17 @@ export const ar = {
     account_added: "تمت إضافة الحساب بنجاح",
     account_settings_not_saved:
       "تم حفظ الحساب، لكن لم يتم حفظ إعدادات المزامنة والإعدادات المتقدمة",
-    failed_update_account: "حاول مجددًا.",
+    failed_update_account:
+      "لم يتم تحديث هذا الحساب. حاول مجددًا. الإعدادات السابقة لا تزال سارية.",
     failed_add_account: "حاول مجددًا.",
-    switch_failed: "حاول مجددًا.",
-    unexpected_error: "حاول مجددًا.",
+    switch_failed: "تعذّر التبديل بين الحسابات. حاول مجددًا.",
+    unexpected_error: "حدث خطأ غير متوقع. حاول مجددًا.",
     failed_sync:
       "المزامنة لم تكتمل، وستُعاد المحاولة تلقائيًا. بريدك على كلا الجانبين بأمان.",
-    failed_delete_emails_external: "حاول مجددًا.",
-    failed_fetch_folders_external: "حاول مجددًا.",
+    failed_delete_emails_external:
+      "لم تتم إزالة هذه الرسائل من حسابك المرتبط. حاول مجددًا.",
+    failed_fetch_folders_external:
+      "لم يتم تحميل المجلدات من حسابك المرتبط. حاول مجددًا.",
     external_sign_in_rejected:
       "لم يقبل خادم البريد اسم المستخدم وكلمة المرور هذين. تحقق منهما مرة أخرى. إذا كان مزودك يتطلب كلمة مرور للتطبيقات، فأدخلها بدلاً من ذلك.",
     external_server_unreachable:
@@ -5019,11 +4831,11 @@ export const ar = {
     invalid_2fa_code:
       "هذا الرمز غير مطابق. الرمز الحالي من تطبيق المصادقة سيعمل.",
     incorrect_password_error:
-      "كلمة المرور هذه غير مطابقة. محاولة أخرى ينبغي أن تنجح. حسابك ليس مقفلًا.",
-    failed_retrieve_auth: "حاول مجددًا.",
-    failed_verify_password:
-      "كلمة المرور هذه غير مطابقة. محاولة أخرى ينبغي أن تنجح.",
-    failed_export_private_key: "حاول مجددًا.",
+      "كلمة المرور غير صحيحة. حاول مجددًا. حسابك ليس مقفلًا.",
+    failed_retrieve_auth: "تعذّر تحميل معلومات تسجيل الدخول. حاول مجددًا.",
+    failed_verify_password: "كلمة المرور غير صحيحة. حاول مجددًا.",
+    failed_export_private_key:
+      "تعذّر تصدير مفتاحك الآن. حاول مجددًا. مفتاحك لم يتغير.",
     type_regenerate: "اكتب regenerate",
     client_side_encryption: "التشفير من جانب العميل",
     client_side_encryption_description:
@@ -5039,10 +4851,12 @@ export const ar = {
       "البحث تلقائيًا في WKD وخوادم المفاتيح عند الكتابة",
     key_published_wkd: "تم نشر المفتاح إلى WKD",
     key_removed_wkd: "تمت إزالة المفتاح من WKD",
-    failed_publish_wkd: "حاول مجددًا.",
-    failed_remove_wkd: "حاول مجددًا.",
+    failed_publish_wkd:
+      "لم يُنشر مفتاحك العام في الدليل العام. حاول مجددًا. مفاتيحك لم تتغير.",
+    failed_remove_wkd: "لم تتم إزالة مفتاحك من الدليل العام. حاول مجددًا.",
     key_published_keyserver: "تم نشر المفتاح إلى خادم المفاتيح",
-    failed_publish_keyserver: "حاول مجددًا.",
+    failed_publish_keyserver:
+      "لم يُنشر مفتاحك العام على خادم المفاتيح. حاول مجددًا.",
     mailto_unregister_manual:
       "لإيقاف فتح روابط mailto في Aster Mail، أزل المعالج من إعدادات المتصفح.",
     failed_save_setting: "تعذر حفظ الإعداد. يرجى المحاولة مرة أخرى.",
@@ -5323,17 +5137,21 @@ export const ar = {
     bimi_adj_removed_unsupported_attributes: "تمت إزالة السمات غير المدعومة.",
     bimi_adj_set_tiny_ps_profile: "تم ضبط ملف تعريف SVG على Tiny PS.",
     bimi_adjustments_title: "عدّل Aster ملفك ليستوفي المتطلبات:",
-    bimi_auto_checking: "يتحقق Aster من السجل تلقائيًا ما دامت هذه الصفحة مفتوحة.",
+    bimi_auto_checking:
+      "يتحقق Aster من السجل تلقائيًا ما دامت هذه الصفحة مفتوحة.",
     bimi_check_again: "التحقق مرة أخرى",
     bimi_checking: "جارٍ التحقق",
     bimi_choose_file: "اختيار ملف",
     bimi_dmarc_invalid: "تتعذر قراءة سجل DMARC الخاص بك. استبدله بسجل صالح.",
     bimi_dmarc_missing: "أضف سجل DMARC يتضمن p=quarantine أو p=reject.",
-    bimi_dmarc_not_enforced: "غيّر سياسة DMARC لديك إلى p=quarantine أو p=reject.",
-    bimi_dmarc_organization_not_enforced: "يجب أن تكون سياسة DMARC للنطاق الرئيسي أيضاً quarantine أو reject.",
+    bimi_dmarc_not_enforced:
+      "غيّر سياسة DMARC لديك إلى p=quarantine أو p=reject.",
+    bimi_dmarc_organization_not_enforced:
+      "يجب أن تكون سياسة DMARC للنطاق الرئيسي أيضاً quarantine أو reject.",
     bimi_dmarc_partial: "احذف الوسم pct من سجل DMARC أو اضبطه على 100.",
     bimi_dmarc_ready: "سياسة DMARC لديك هي quarantine أو reject.",
-    bimi_dmarc_subdomain_policy_none: "غيّر الوسم sp في سجل DMARC إلى quarantine أو reject.",
+    bimi_dmarc_subdomain_policy_none:
+      "غيّر الوسم sp في سجل DMARC إلى quarantine أو reject.",
     bimi_drop_here: "اسحب شعار SVG إلى هنا.",
     bimi_err_doctype_entities: "يعرّف الملف كيانات مخصصة، وهذا غير مسموح به.",
     bimi_err_empty: "الصورة فارغة.",
@@ -5341,17 +5159,21 @@ export const ar = {
     bimi_err_invalid_reference: "يحتوي الملف على مرجع داخلي معطّل.",
     bimi_err_invalid_value: "يحتوي الملف على قيمة سمة غير مسموح بها.",
     bimi_err_malformed: "هذا الملف ليس SVG صالحاً.",
-    bimi_err_missing_view_box: "لا تحتوي الصورة على viewBox. صدّرها مع viewBox.",
+    bimi_err_missing_view_box:
+      "لا تحتوي الصورة على viewBox. صدّرها مع viewBox.",
     bimi_err_not_square: "الشعار ليس مربعاً. اجعل العرض والارتفاع متساويين.",
     bimi_err_not_svg: "هذا الملف ليس صورة SVG.",
     bimi_err_not_utf8: "هذا الملف ليس ملف SVG نصياً.",
-    bimi_err_raster_image: "يحتوي الملف على صورة نقطية مضمّنة. استخدم الأشكال المتجهة فقط.",
+    bimi_err_raster_image:
+      "يحتوي الملف على صورة نقطية مضمّنة. استخدم الأشكال المتجهة فقط.",
     bimi_err_script_content: "يحتوي الملف على نص برمجي، وهذا غير مسموح به.",
-    bimi_err_text_not_outlined: "يحتوي الشعار على نص. حوّل النص إلى مخططات قبل التصدير.",
+    bimi_err_text_not_outlined:
+      "يحتوي الشعار على نص. حوّل النص إلى مخططات قبل التصدير.",
     bimi_err_too_complex: "الصورة معقدة جداً. بسّطها ثم صدّرها مرة أخرى.",
     bimi_err_too_large: "الملف كبير جداً.",
     bimi_err_unsupported_element: "يحتوي الملف على عناصر غير مسموح بها.",
-    bimi_err_unsupported_style: "يستخدم الملف أنماطاً أو تأثيرات غير مسموح بها، مثل المرشحات أو الأقنعة أو أوراق الأنماط.",
+    bimi_err_unsupported_style:
+      "يستخدم الملف أنماطاً أو تأثيرات غير مسموح بها، مثل المرشحات أو الأقنعة أو أوراق الأنماط.",
     bimi_error_domain_not_active: "أكمل إعداد هذا النطاق قبل نشر شعار.",
     bimi_error_file_too_large: "حجم الملف أكبر من 64 KB.",
     bimi_error_logo_required: "حمّل شعارًا قبل النشر.",
@@ -5361,7 +5183,8 @@ export const ar = {
     bimi_last_checked: "آخر تحقق: {time}",
     bimi_logo_public_note: "شعارك عام. يمكن لأي شخص يتلقى رسائلك رؤيته.",
     bimi_logo_ready: "يستوفي شعارك المتطلبات.",
-    bimi_managed_note: "اشتريت نطاقك من خلال Aster، لذا تتم إضافة سجل DNS نيابةً عنك.",
+    bimi_managed_note:
+      "اشتريت نطاقك من خلال Aster، لذا تتم إضافة سجل DNS نيابةً عنك.",
     bimi_preview_alt: "معاينة شعار علامتك التجارية",
     bimi_preview_dark: "داكن",
     bimi_preview_inbox_subject: "آخر تحديثاتك",
@@ -5369,11 +5192,15 @@ export const ar = {
     bimi_preview_light: "فاتح",
     bimi_publish: "نشر الشعار",
     bimi_publishing: "جارٍ النشر",
-    bimi_record_conflict: "يوجد سجل BIMI آخر لهذا النطاق. احذفه ليبقى هذا السجل وحده.",
-    bimi_record_external: "يشير سجل BIMI الحالي إلى مضيف آخر. استبدله بهذا السجل لاستخدام استضافة Aster.",
+    bimi_record_conflict:
+      "يوجد سجل BIMI آخر لهذا النطاق. احذفه ليبقى هذا السجل وحده.",
+    bimi_record_external:
+      "يشير سجل BIMI الحالي إلى مضيف آخر. استبدله بهذا السجل لاستخدام استضافة Aster.",
     bimi_record_host: "المضيف",
-    bimi_record_missing: "السجل غير مرئي بعد. قد يستغرق تطبيق تغييرات DNS ما يصل إلى 48 ساعة.",
-    bimi_record_removed: "لم يعد Aster يعثر على هذا السجل. أضفه مرة أخرى لدى مزوّد DNS.",
+    bimi_record_missing:
+      "السجل غير مرئي بعد. قد يستغرق تطبيق تغييرات DNS ما يصل إلى 48 ساعة.",
+    bimi_record_removed:
+      "لم يعد Aster يعثر على هذا السجل. أضفه مرة أخرى لدى مزوّد DNS.",
     bimi_record_published: "تم نشر السجل.",
     bimi_record_title: "أضف هذا السجل لدى مزوّد DNS الخاص بك",
     bimi_record_type: "النوع",
@@ -5391,9 +5218,11 @@ export const ar = {
     bimi_row_external: "يحتوي هذا النطاق على سجل BIMI يشير إلى مضيف آخر.",
     bimi_row_inactive: "أكمل إعداد هذا النطاق لإضافة شعار العلامة التجارية.",
     bimi_row_live: "تم نشر شعارك.",
-    bimi_row_off: "اعرض شعارك بجانب رسائلك في صناديق الوارد التي تدعم شعارات العلامات التجارية.",
+    bimi_row_off:
+      "اعرض شعارك بجانب رسائلك في صناديق الوارد التي تدعم شعارات العلامات التجارية.",
     bimi_row_pending: "أضف سجل DNS، ثم تحقق مرة أخرى.",
-    bimi_row_pending_managed: "جارٍ نشر سجل DNS الخاص بك. قد يستغرق ذلك بضع دقائق.",
+    bimi_row_pending_managed:
+      "جارٍ نشر سجل DNS الخاص بك. قد يستغرق ذلك بضع دقائق.",
     bimi_rule_safe: "بدون نصوص برمجية أو روابط خارجية",
     bimi_rule_size: "32 كيلوبايت أو أقل بعد أن يحسّنه Aster",
     bimi_rule_square: "مربع، بعرض وارتفاع متساويين",
@@ -5411,13 +5240,16 @@ export const ar = {
     bimi_step_publish: "النشر",
     bimi_title: "شعار العلامة التجارية",
     bimi_turn_off: "إيقاف",
-    bimi_turn_off_body: "تتوقف استضافة شعارك فوراً، وتعرض صناديق الوارد رمزاً افتراضياً بدلاً منه.",
+    bimi_turn_off_body:
+      "تتوقف استضافة شعارك فوراً، وتعرض صناديق الوارد رمزاً افتراضياً بدلاً منه.",
     bimi_turn_off_confirm: "إيقاف",
     bimi_turn_off_description: "إيقاف عرض شعارك في صناديق البريد.",
-    bimi_turn_off_remove_record: "احذف سجل TXT باسم default._bimi من مزوّد DNS الخاص بك.",
+    bimi_turn_off_remove_record:
+      "احذف سجل TXT باسم default._bimi من مزوّد DNS الخاص بك.",
     bimi_turn_off_title: "هل تريد إيقاف شعار العلامة التجارية؟",
     bimi_uploading: "جارٍ الرفع",
-    bimi_verified_mark_note: "لا تعرض بعض صناديق الوارد شعارات العلامات التجارية إلا للنطاقات التي لديها شهادة علامة موثّقة.",
+    bimi_verified_mark_note:
+      "لا تعرض بعض صناديق الوارد شعارات العلامات التجارية إلا للنطاقات التي لديها شهادة علامة موثّقة.",
     catch_all_description: "استقبال الرسائل المرسلة إلى أي عنوان في هذا النطاق",
     set_host_root:
       "اضبط المضيف على @ (لا تُدخل نطاقك؛ يضيفه مزود الخدمة تلقائيًا)",
@@ -5449,7 +5281,7 @@ export const ar = {
     host_private_address:
       "يلزم خادم بريد عمومي هنا، لا عنوان محلي أو خاص. اسم المضيف العام الذي قدّمه مزوّدك سيعمل.",
     incoming_server_invalid:
-      "هذا ليس عنوان خادم صالحًا. اسم المضيف وحده، مثل imap.example.com، سيعمل.",
+      "هذا ليس عنوان خادم صالحًا. أدخل اسم المضيف وحده، مثل imap.example.com.",
     incoming_port_error: "أدخل رقم منفذ بين 1 و65535.",
     incoming_mail_server: "خادم البريد الوارد",
     smtp_server: "خادم SMTP",
@@ -5457,11 +5289,11 @@ export const ar = {
     smtp_server_invalid:
       "هذا ليس خادمًا صادرًا صالحًا. اسم المضيف وحده، مثل smtp.example.com، سيعمل.",
     smtp_private_address_error:
-      "يلزم خادم بريد عمومي هنا، لا عنوان محلي أو خاص. اسم المضيف العام الذي قدّمه مزوّدك سيعمل.",
+      "يجب أن يكون هذا خادم بريد عامًا، وليس عنوانًا محليًا أو خاصًا. استخدم اسم المضيف العام الذي قدّمه مزودك.",
     smtp_port_error: "أدخل رقم منفذ بين 1 و65535.",
     smtp_username_required: "اسم مستخدم SMTP مطلوب",
     smtp_password_required: "كلمة مرور SMTP مطلوبة",
-    label_color_invalid: "هذا اللون ليس خيارًا صالحًا. لون من اللوحة سيعمل.",
+    label_color_invalid: "لا يمكن اختيار هذا اللون. اختر لونًا من اللوحة.",
     smtp_test_failed:
       "اختبار الخادم الصادر لم ينجح. الخادم والمنفذ وكلمة المرور أدناه هي ما يستحق المراجعة.",
     deleted_emails_count: "تم حذف {{count}} رسالة",
@@ -5503,7 +5335,8 @@ export const ar = {
     syncing: "جارٍ المزامنة...",
     syncing_progress: "المزامنة ({{processed}}/{{total}})",
     fetching_emails: "جارٍ جلب الرسائل...",
-    sync_failed: "فشلت المزامنة",
+    sync_failed:
+      "لم تكتمل المزامنة، وسنعيد المحاولة تلقائيًا. بريدك على الجانبين آمن.",
     not_synced: "لم تتم المزامنة",
     sync_failed_detail:
       "آخر مزامنة في {{time}} لم تكتمل. محاولة أخرى أو مراجعة كلمة مرور حسابك غالبًا ما تحل الأمر.",
@@ -5593,7 +5426,7 @@ export const ar = {
       "تخزينك ممتلئ. ترقية خطتك أو إزالة بعض الرسائل تفسح مجالًا لاستيرادات أكثر.",
     no_emails_in_file:
       "لم يتم العثور على رسائل في الملفات المحددة. تأكد من أن كل ملف بتنسيق مدعوم (MBOX أو EML أو CSV أو PST).",
-    import_failed: "حاول مجددًا.",
+    import_failed: "لم يكتمل الاستيراد. حاول مجددًا. بياناتك الحالية لم تتغير.",
     failed_to_parse_file: "تعذّرت قراءة هذا الملف. ملف آخر سيعمل.",
     plan_storage_value: "{{value}} تخزين",
     plan_aliases_count: "{{count}} أسماء مستعارة",
@@ -5844,7 +5677,7 @@ export const ar = {
     change_plan_description: "ترقية أو تخفيض اشتراكك عبر بوابة الفوترة",
     checkout_welcome: "مرحبًا بك في Aster! اشتراكك نشط.",
     payment_failed_warning:
-      "آخر عملية تحصيل من طريقة الدفع لم تتم. تحديثها في الإعدادات، الفوترة يبقي خطتك مستمرة. بريدك غير متأثر.",
+      "لم تنجح آخر عملية تحصيل من طريقة الدفع. حدّثها من الإعدادات > الفوترة لتستمر خطتك. بريدك لم يتأثر.",
     grace_period_remaining:
       "أمامك {{days}} يومًا لتحديث طريقة الدفع قبل أن تنتقل خطتك إلى المجانية.",
     update_payment_method: "تحديث طريقة الدفع",
@@ -5894,7 +5727,8 @@ export const ar = {
     plan_change_promo_applied: "تم تطبيق {{code}}. توفر {{amount}} اليوم.",
     plan_change_promo_remove: "إزالة",
     billing_switched: "تم تبديل دورة الفوترة بنجاح",
-    failed_switch_billing: "حاول مجددًا.",
+    failed_switch_billing:
+      "لم تتغير دورة الفوترة. حاول مجددًا. دورتك الحالية لا تزال سارية.",
     current_billing_interval: "الفوترة {{interval}}",
     switching_billing: "جارٍ التبديل...",
     billing_banner_title: "افتح المزيد مع Aster",
@@ -5922,8 +5756,10 @@ export const ar = {
     confirm_cancel_addon: "إلغاء إضافة التخزين",
     confirm_cancel_addon_description:
       "هل أنت متأكد أنك تريد إلغاء إضافة التخزين هذه؟ ستظل مساحة التخزين الإضافية متاحة حتى نهاية فترة الفوترة الحالية.",
-    addon_purchase_failed: "حاول مجددًا.",
-    addon_cancel_failed: "حاول مجددًا.",
+    addon_purchase_failed:
+      "تعذّر بدء شراء الإضافة. حاول مجددًا. الفوترة لم تتغير.",
+    addon_cancel_failed:
+      "تعذّر إلغاء إضافة التخزين. حاول مجددًا. الإضافة لا تزال نشطة.",
     addon_purchase_success: "جارٍ التوجيه إلى الدفع...",
     addon_checkout_opened: "أكمل عملية الشراء في علامة التبويب الجديدة.",
     plan_recommended: "موصى به",
@@ -5971,13 +5807,12 @@ export const ar = {
     plan_tip_folder_lock:
       "أقفل المجلدات الحساسة خلف كلمة مرور منفصلة لطبقة أمان إضافية.",
     plan_tip_sender_pinning:
-      "Lock an alias to specific senders - only they can reach you through it.",
+      "اربط الاسم المستعار بمرسلين محددين، فلا يستطيع مراسلتك عبره أحد سواهم.",
     plan_tip_alias_rules:
-      "Block or trash emails per alias based on sender or subject.",
-    plan_tip_reverse_alias:
-      "Reply to any email without revealing your real address.",
+      "احظر الرسائل أو انقلها إلى المهملات لكل اسم مستعار حسب المرسل أو الموضوع.",
+    plan_tip_reverse_alias: "رُدّ على أي رسالة دون كشف عنوانك الحقيقي.",
     plan_tip_alias_directory:
-      "Mail to anything.key@astermail.org auto-creates a new alias on the fly.",
+      "يؤدي إرسال رسالة إلى anything.key@astermail.org إلى إنشاء اسم مستعار جديد تلقائيًا.",
     plan_tip_instant_alias_delete:
       "احذف الأسماء المستعارة وأنهِ الأسماء الشبحية فورًا - تتخطى Supernova مدة انتظار الحذف البالغة 30 يومًا.",
     plan_tip_zero_knowledge:
@@ -5987,11 +5822,11 @@ export const ar = {
     plan_tip_key_rotation:
       "دوّر مفاتيح التشفير تلقائياً على فترات منتظمة لأمان أقوى.",
     plan_tip_imap_smtp:
-      "Connect Apple Mail, Thunderbird, Outlook, or any IMAP client. Powered by the Aster Bridge companion app running on your device.",
+      "اربط Apple Mail أو Thunderbird أو Outlook أو أي عميل IMAP. يعمل ذلك عبر التطبيق المرافق Aster Bridge على جهازك.",
     plan_tip_external_accounts:
       "اربط وزامن البريد من مزودين خارجيين مثل Gmail أو Outlook مباشرة في Aster عبر IMAP أو POP3.",
     plan_tip_carddav:
-      "Sync your contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
+      "زامن جهات اتصالك مع تطبيق جهات الاتصال على macOS وiOS، أو DAVx5 على Android، أو أي عميل CardDAV. يعمل ذلك عبر التطبيق المرافق Aster Bridge على جهازك.",
     plan_tip_alias_avatars:
       "اضبط صور ملف فريدة لكل اسم مستعار وعنوان نطاق مخصص",
     plan_f_custom_themes: "السمات المخصصة",
@@ -6032,10 +5867,10 @@ export const ar = {
     plan_f_quiet_hours: "ساعات الهدوء",
     storage_approaching_title: "التخزين يقترب من الامتلاء.",
     storage_approaching_description:
-      "استخدمت أكثر من 75% من تخزينك. حذف بعض الرسائل القديمة أو ترقية الخطة يبقيك مغطّى قبل أن تنفد المساحة.",
+      "استخدمت أكثر من 75% من مساحة التخزين. احذف بعض الرسائل القديمة أو رقِّ خطتك قبل أن تنفد المساحة.",
     storage_warning_title: "تخزينك قارب على النفاد.",
     storage_warning_description:
-      "استخدمت أكثر من 90% من تخزينك. حذف بعض الرسائل أو ترقية الخطة يبقي البريد الجديد متدفقًا.",
+      "استخدمت أكثر من 90% من مساحة التخزين. احذف بعض الرسائل أو رقِّ خطتك لمواصلة استلام البريد الجديد.",
     storage_overview_description:
       "اطّلع على ما يشغل مساحتك واحذف ما لا تحتاج إليه.",
     storage_promo_title: "وفّر في مساحة التخزين الإضافية",
@@ -6070,7 +5905,7 @@ export const ar = {
     storage_locked_description:
       "البريد الجديد متوقف حتى تتوفر مساحة. حذف بعض الرسائل أو ترقية الخطة يعيد تدفقه. البريد الموجود بأمان.",
     storage_locked_bounce_warning:
-      "البريد الوارد سيُرَدّ خلال {{days}} يومًا ما لم تتوفر مساحة. حذف بعض الرسائل أو الترقية قريبًا يبقيها واصلة.",
+      "سيُرفض البريد الوارد خلال {{days}} يومًا ما لم تتوفر مساحة. احذف بعض الرسائل أو رقِّ خطتك قريبًا لمواصلة استلامه.",
     storage_full: "تخزينك ممتلئ. لإفساح المجال، رقِّ خطتك أو أزل بعض الرسائل.",
     plan_limit_reached:
       "وصلت إلى حد خطتك الحالية. قم بترقية خطتك أو احذف بعض العناصر لإفساح المجال.",
@@ -6250,7 +6085,8 @@ export const ar = {
     use_credits_for_renewals_description:
       "تطبيق رصيدك تلقائيًا على تجديدات الخطة والإضافات. إذا لم يغطِ رصيدك المبلغ الكامل، يُخصم الباقي من طريقة الدفع.",
     credits_toggle_updated: "تم تحديث إعدادات الأرصدة",
-    credits_toggle_failed: "حاول مجددًا.",
+    credits_toggle_failed:
+      "لم يُحفظ هذا الإعداد. حاول مجددًا. القيمة السابقة لا تزال سارية.",
     credits_earn_first: "يرجى كسب أرصدة لتفعيل هذا",
     recent_transactions: "المعاملات الأخيرة",
     view_all_transactions: "عرض الكل",
@@ -6483,7 +6319,8 @@ export const ar = {
     country: "البلد",
     save_address: "حفظ العنوان",
     address_saved: "تم حفظ عنوان الفوترة",
-    address_save_failed: "حاول مجددًا.",
+    address_save_failed:
+      "لم يُحفظ عنوان الفوترة. حاول مجددًا. العنوان السابق لا يزال محفوظًا.",
     saving: "جارٍ الحفظ...",
     redeem: "استبدال",
     redeeming: "جارٍ الاستبدال...",
@@ -6496,7 +6333,7 @@ export const ar = {
     export_ready: "تصديرك جاهز للتنزيل.",
     export_processing: "جارٍ إعداد التصدير...",
     download_export: "تنزيل",
-    export_failed: "حاول مجددًا.",
+    export_failed: "تعذّر بدء التصدير. حاول مجددًا. بريدك لم يتغير.",
     biennial: "سنتان",
     all_star_features: "كل ما في Star، بالإضافة إلى:",
     all_nova_features: "كل ما في Nova، بالإضافة إلى:",
@@ -6816,7 +6653,8 @@ export const ar = {
     app_lock_wrong_pin: "رمز غير صحيح",
     app_lock_locked_out_for: "محاولات كثيرة - حاول بعد {{s}} ثانية",
     vanguard_title: "Aster Vanguard",
-    vanguard_description: "Nova+ فقط. المزيد من الميزات قريباً.",
+    vanguard_description:
+      "حماية متقدمة للصحفيين والناشطين والحسابات عالية الخطورة. متاحة لـ Nova+ فقط.",
     vanguard_info:
       "يُتيح Aster Vanguard ميزات أمان متطورة مصممة للصحفيين والمحامين وأصحاب المخاطر العالية. يشمل قفل التطبيق بالرمز والتحكم المحسّن في الجلسات والمزيد.",
     vanguard_active: "Vanguard نشط",
@@ -7262,7 +7100,7 @@ export const ar = {
     credit_task_ios_hint_coming: "قريبًا",
     credit_task_earned: "مكتسب",
     send_referral_to_contacts: "إرسال بريد إلى جميع جهات الاتصال",
-    referral_email_subject: "جرّب Aster Mail - بريد خاص للجميع",
+    referral_email_subject: "عليك تجربة Aster Mail",
     referral_email_body:
       "مرحبًا،\n\nأستخدم Aster Mail منذ فترة وأنا معجب به كثيرًا. كل شيء مشفّر من طرف إلى طرف، فلا أحد يستطيع قراءة رسائلك سواك، ولا حتى القائمون على الخدمة.\n\nإذا أردت تجربته، هذا رابط دعوتي:\n\n{{ referral_link }}\n\nنحصل كلانا على {{ amount }} من التخزين الإضافي بمجرد أن تبدأ باستخدامه، فلك نصيب من ذلك أيضًا.\n\nتحياتي",
     referral_no_contacts:
@@ -7335,7 +7173,7 @@ export const ar = {
     connect_sign_in_yahoo: "تسجيل الدخول بـ Yahoo",
     oauth_reason_provider_denied:
       "لم يقبل المزوّد الآخر الاتصال. حاول الاتصال مجددًا أو تحقق من الحساب لدى ذلك المزوّد.",
-    oauth_reason_missing_code: "حاول مجددًا.",
+    oauth_reason_missing_code: "لم يكتمل تسجيل الدخول لدى المزود. حاول مجددًا.",
     oauth_reason_missing_state:
       "طلب الاتصال لم يتطابق مع ما توقعناه. البداية من جديد والمحاولة عادةً ما تحل الأمر.",
     oauth_reason_internal_error:
@@ -7348,17 +7186,20 @@ export const ar = {
       "هذا الموفّر غير معروف لدينا. أحد الموفرين المدعومين من القائمة سيعمل.",
     oauth_reason_provider_not_configured:
       "هذا الموفّر غير مهيأ في Aster بعد. hello@astermail.org يمكنه المساعدة إن احتجت.",
-    oauth_reason_token_exchange_failed: "حاول مجددًا.",
+    oauth_reason_token_exchange_failed:
+      "لم يكتمل الاتصال. حاول مجددًا. حساباتك الأخرى لم تتغير.",
     oauth_reason_encryption_error:
       "تعذّر تأمين الاتصال. حاول مجددًا. إذا استمرت المشكلة، تواصل مع hello@astermail.org.",
-    oauth_reason_account_creation_failed: "حاول مجددًا.",
+    oauth_reason_account_creation_failed:
+      "تعذّر إكمال إعداد حسابك المرتبط. حاول مجددًا.",
     oauth_reason_email_not_found:
       "تعذّر جلب عنوان بريدك من المزوّد. حاول مرة أخرى، وإن استمر الفشل فاستخدم خيار IMAP اليدوي.",
     oauth_reason_session_expired: "انتهت جلسة تسجيل الدخول. حاول مرة أخرى.",
-    oauth_reason_unknown: "حاول مجددًا.",
+    oauth_reason_unknown:
+      "حدث خطأ غير متوقع. حاول مجددًا. لم نتمكن من تحديد السبب.",
     oauth_setting_up_folders: "جارٍ إعداد المجلدات...",
     oauth_folders_ready: "تمت مزامنة المجلدات بنجاح",
-    oauth_folders_error: "حاول مجددًا.",
+    oauth_folders_error: "لم يكتمل إعداد مجلداتك. حاول مجددًا.",
     oauth_folders_partial:
       "{{count}} مجلدات لم تكتمل في الإعداد، والبقية جاهزة للاستخدام.",
     import_stage_setting_up_folders: "إعداد المجلدات",
@@ -7442,7 +7283,8 @@ export const ar = {
     dev_signatures_label: "التوقيعات",
     dev_password_kdf_label: "KDF كلمة المرور",
     select_color: "اختيار اللون {{name}}",
-    failed_create_import_job: "حاول مجددًا.",
+    failed_create_import_job:
+      "تعذّر بدء الاستيراد. حاول مجددًا. رسائلك الحالية آمنة.",
     alias_local_part_placeholder: "اسمي",
     username_placeholder: "user@example.com",
     smtp_host_placeholder: "smtp.example.com",
@@ -7654,8 +7496,7 @@ export const ar = {
     special_offers: "العروض الخاصة",
     special_offers_description:
       "اعرض من حين لآخر عروضًا مخفّضة على الخطط داخل التطبيق. عند إيقاف هذا الخيار، لا تظهر لك العروض ولا تُحتسب ضمن نتائج العروض.",
-    special_offers_save_failed:
-      "لم يُحفظ إعداد العروض الخاصة. حاول مرة أخرى.",
+    special_offers_save_failed: "لم يُحفظ إعداد العروض الخاصة. حاول مرة أخرى.",
     criterion_passkey: "مفتاح مرور مسجَّل",
     criterion_read_receipts_off: "إيصالات القراءة موقوفة",
     send_read_receipts_label: "إرسال إشعارات القراءة",
@@ -8145,9 +7986,6 @@ export const ar = {
     category_empty_transactions_desc:
       "تظهر هنا الطلبات والمدفوعات والإيصالات من المتاجر والخدمات.",
     category_empty_custom_desc: "ستظهر هنا الرسائل المطابقة لقواعد هذه الفئة.",
-    view_html_part: "عرض HTML",
-    view_plain_text: "عرض النص العادي",
-    html_blocked_label: "تم حظر HTML",
     block_sender_on_alias: "حظر المُرسِل على الاسم المستعار",
     block_sender_on_alias_success: "تم حظر {{sender}} على {{alias}}",
     block_sender_on_alias_failed: "تعذّر حظر المُرسِل. حاول مرة أخرى.",
@@ -8183,10 +8021,7 @@ export const ar = {
     reply: "رد",
     reply_all: "رد على الكل",
     react: "تفاعل",
-    already_reacted: "لقد تفاعلت بهذا بالفعل",
-    remove_your_reaction: "إزالة تفاعلك {emoji}",
     you_reacted_with: "لقد تفاعلت بـ {{emoji}}",
-    you_reacted_with_remove: "لقد تفاعلت بـ {{emoji}}. انقر للإزالة.",
     reacted_with: "تفاعل {{name}} بـ {{emoji}}",
     forward: "تحويل",
     to: "إلى",
@@ -8217,13 +8052,9 @@ export const ar = {
     find_emails_from: "البحث عن رسائل من {{sender}}",
     move_to: "نقل إلى",
     label: "تصنيف",
-    select_recipients: "اختر المستلمين",
     send: "إرسال",
-    send_later: "إرسال لاحقًا",
     discard: "تجاهل",
     save_draft: "حفظ المسودة",
-    attachment_add: "إضافة مرفق",
-    attachment_remove: "إزالة مرفق",
     back: "رجوع",
     archiving: "جارٍ الأرشفة...",
     mark_as_spam: "تعليم كمزعج",
@@ -8249,18 +8080,15 @@ export const ar = {
     cc_label: "Cc",
     bcc_label: "Bcc",
     encrypted: "مشفر",
-    read_receipt: "إيصال قراءة",
     snooze: "تأجيل",
     unsnooze: "إلغاء التأجيل",
     pin: "تثبيت",
     pin_to_top: "تثبيت في الأعلى",
     unpin: "إلغاء التثبيت",
     mute: "كتم",
-    unmute: "إلغاء الكتم",
     print: "طباعة",
     view_source: "عرض المصدر",
     share: "مشاركة",
-    download_eml: "تنزيل EML",
     move_to_folder: "نقل إلى مجلد",
     apply_label: "تطبيق تصنيف",
     select: "تحديد",
@@ -8297,7 +8125,6 @@ export const ar = {
     schedule: "جدولة",
     scheduling: "جارٍ الجدولة",
     saved: "تم الحفظ",
-    saving_draft: "جارٍ الحفظ...",
     write_message: "اكتب رسالتك...",
     show_quoted_text: "إظهار النص المقتبس",
     hide_quoted_text: "إخفاء النص المقتبس",
@@ -8335,9 +8162,6 @@ export const ar = {
     delete_old_confirm_title: "حذف الرسائل الأقدم من 30 يومًا؟",
     delete_old_confirm_message:
       "سيؤدي هذا إلى نقل كل رسالة أقدم من 30 يومًا إلى سلة المهملات. يمكنك التراجع عن هذا فورًا بعد ذلك.",
-    archive_newsletters_confirm_title: "أرشفة جميع النشرات البريدية؟",
-    archive_newsletters_confirm_message:
-      "سيؤدي هذا إلى أرشفة كل رسالة تم اكتشافها كنشرة بريدية في صندوق الوارد. يمكنك التراجع عن هذا فورًا بعد ذلك.",
     delete_all: "حذف الكل",
     archive_subtitle: "أرشف الرسائل للحفاظ على صندوق الوارد نظيفًا",
     trash_subtitle: "ستظهر الرسائل المحذوفة هنا",
@@ -8367,15 +8191,12 @@ export const ar = {
     confirm_bulk_action_count_description_one: "يؤثر هذا في رسالة واحدة.",
     remove_label: "إزالة التصنيف",
     confirm_bulk_action_title: "تأكيد الإجراء الجماعي",
-    confirm_bulk_action_description:
-      "سيؤثر هذا الإجراء على كل محادثة في هذا العرض.",
     bulk_action_index_not_ready:
       "لا تزال فهرسة علامة التبويب هذه جارية. حاول مرة أخرى بعد قليل.",
     bulk_action_index_building:
       "لا تزال فهرسة هذه العلامة جارية. سيبدأ الإجراء فور جاهزية الفهرس.",
     bulk_action_index_capped:
       "تحتوي هذه العلامة على محادثات أكثر من أن تُحدّث دفعة واحدة. حدّد محادثات ثم أعد المحاولة.",
-    archive_messages_title: "أرشفة الرسائل",
     archive_messages_confirmation:
       "هل أنت متأكد أنك تريد أرشفة الرسائل المحددة؟",
     spam_email_sender_message:
@@ -8398,8 +8219,6 @@ export const ar = {
     shipping_delivered: "تم التسليم",
     shipping_delivery_exception: "استثناء في التسليم",
     shipping_status_unknown: "حالة غير معروفة",
-    shipping_shipped_date: "تاريخ الشحن",
-    shipping_delivered_on: "تم التسليم في",
     bold: "غامق",
     italic: "مائل",
     underline: "تسطير",
@@ -8411,19 +8230,11 @@ export const ar = {
     insert_link: "إدراج رابط",
     insert_image: "إدراج صورة",
     attach_file: "إرفاق ملف",
-    more_formatting: "مزيد من التنسيق",
-    text_style: "نمط النص",
     text_alignment: "محاذاة النص",
     text_formatting: "تنسيق النص",
-    formatting_options: "خيارات التنسيق",
-    format_text: "تنسيق",
     align_left: "محاذاة لليسار",
     align_center: "محاذاة للوسط",
     align_right: "محاذاة لليمين",
-    heading_normal: "عادي",
-    heading_1: "عنوان 1",
-    heading_2: "عنوان 2",
-    heading_3: "عنوان 3",
     add_file: "إضافة ملف",
     attaching_original_files: "جارٍ إرفاق الملفات الأصلية",
     display_text_placeholder: "نص العرض",
@@ -8434,7 +8245,6 @@ export const ar = {
     no_signature: "بدون توقيع",
     self_destruct: "تدمير ذاتي",
     self_destruct_after: "تدمير ذاتي بعد",
-    category_promos: "عروض",
     search_history: "سجل البحث",
     search_error: "حاول مجددًا.",
     delete_draft_confirmation:
@@ -8442,8 +8252,6 @@ export const ar = {
     plain_text_warning:
       "التبديل إلى النص العادي يزيل كل التنسيق في هذه المسودّة، ولا يستطيع المحرر إعادته. مسوّداتك الأخرى لم تتأثر.",
     remove_formatting: "إزالة التنسيق",
-    encrypt_with_pgp: "تشفير بـ PGP",
-    pgp_encryption_active: "تشفير PGP نشط - سيتم استخدام المفتاح العام للمستلم",
     font_color: "لون الخط",
     highlight_color: "لون التمييز",
     write_message_placeholder: "اكتب رسالة",
@@ -8483,7 +8291,6 @@ export const ar = {
     move_to_trash_question: "نقل إلى سلة المهملات؟",
     archive_email_message: "سيتم نقل هذا البريد إلى مجلد الأرشيف.",
     trash_email_message: "سيتم نقل هذا البريد إلى سلة المهملات.",
-    view_contact_profile: "عرض ملف جهة الاتصال",
     toggle_filters: "تبديل المرشحات",
     save_search: "حفظ هذا البحث",
     clear_search_data: "مسح بيانات البحث",
@@ -8535,11 +8342,6 @@ export const ar = {
     sort_newest: "الأحدث أولاً",
     sort_oldest: "الأقدم أولاً",
     sort_sender: "اسم المرسل",
-    search_field_all: "الكل",
-    search_field_subject: "الموضوع",
-    search_field_body: "النص",
-    search_field_sender: "المرسل",
-    search_field_recipient: "المستلم",
     filter_today: "اليوم",
     filter_yesterday: "أمس",
     filter_this_week: "هذا الأسبوع",
@@ -8576,7 +8378,6 @@ export const ar = {
     search_operators: "عوامل البحث",
     search_by_sender_subject_content: "بحث حسب المرسل أو الموضوع أو المحتوى",
     has_attachments: "يحتوي على مرفقات",
-    starred_only: "المميز بنجمة فقط",
     search_in: "بحث في",
     from_date: "من تاريخ",
     to_date: "إلى تاريخ",
@@ -8588,16 +8389,12 @@ export const ar = {
     active_filters: "المرشحات النشطة:",
     quick_filters: "مرشحات سريعة:",
     larger_than_search: "أكبر من 5 ميجابايت",
-    search_privacy_note:
-      "يتم البحث من جانب العميل باستخدام رموز مشفرة. تظل رسائلك مشفرة من طرف إلى طرف.",
     navigate: "تنقل",
     load_more_results: "تحميل المزيد من النتائج ({{remaining}} متبقي)",
     contacts: "جهات الاتصال",
     scheduled_for: "مجدول لـ",
     scheduled_send_failed:
       "تعذّر إرسال هذه الرسالة. اختر وقت إرسال جديدًا لإعادة المحاولة.",
-    section_pinned: "المثبت",
-    section_primary: "أساسي",
     spam_email_message: "سيتم نقل هذا البريد إلى مجلد الرسائل المزعجة.",
     delete_permanently_question: "حذف نهائيًا؟",
     empty_spam_folder_question: "تفريغ مجلد الرسائل المزعجة؟",
@@ -8618,7 +8415,6 @@ export const ar = {
     shortcut_previous_email: "البريد السابق",
     shortcut_open_email: "فتح البريد",
     shortcut_close_back: "إغلاق / العودة للقائمة",
-    shortcut_back_to_list: "العودة للقائمة",
     shortcut_delete_trash: "حذف / سلة المهملات",
     shortcut_star_unstar: "تمييز / إلغاء التمييز بنجمة",
     shortcut_compose_new: "كتابة رسالة جديدة",
@@ -8627,7 +8423,6 @@ export const ar = {
     shortcut_show_shortcuts: "إظهار الاختصارات",
     important: "مهم",
     sent_by_me: "أرسلته أنا",
-    most_relevant: "الأكثر صلة",
     most_recent: "الأحدث",
     use_arrows_to_navigate: "استخدم الأسهم أعلاه للتنقل بين الصفحات",
     end_of_results: "نهاية النتائج",
@@ -8636,31 +8431,23 @@ export const ar = {
     require_password_to_view: "طلب كلمة مرور للعرض",
     pick_expiration: "اختر انتهاء الصلاحية",
     set_expiration: "تعيين انتهاء الصلاحية",
-    password_description:
-      "سيحتاج المستلمون الخارجيون إلى كلمة المرور هذه لعرض البريد",
+    password_description: "سيحتاج المستلمون إلى كلمة المرور هذه لعرض الرسالة",
     no_password: "بدون كلمة مرور",
     replying_to: "الرد على {{name}}",
     reply_sent_successfully: "تم إرسال الرد بنجاح",
     successfully_unsubscribed: "تم إلغاء الاشتراك بنجاح",
-    unsubscribe_success_message: "لن تتلقى رسائل من {{sender}} بعد الآن",
     unsubscribe_failed:
       "إلغاء الاشتراك لم يكتمل. الرابط داخل البريد يأخذك إلى موقع المرسل لإكمال ذلك بنفسك.",
-    unsubscribe_try_again:
-      "محاولة أخرى، أو الرابط أدناه، يتيح لك إلغاء الاشتراك بنفسك.",
     unsubscribe_manual_required:
       "هذا المرسل لا يدعم إلغاء الاشتراك التلقائي. الرابط داخل البريد يتيح لك إكمال ذلك بنفسك.",
     stop_receiving_from: "التوقف عن تلقي رسائل من",
     send_email: "إرسال بريد",
-    purchase_receipt: "إيصال الشراء",
     order_number: "طلب #{{id}}",
     items: "العناصر",
     more_items_count: "+{{count}} عناصر إضافية",
     card_ending_in: "بطاقة تنتهي بـ {{last_four}}",
-    confirmation_label: "التأكيد: {{number}}",
-    transaction_label: "المعاملة: {{id}}",
     purchase_extraction_privacy:
       "تم الاستخراج محليًا من بريدك، ولا يتم إرسال أي شيء إلى خوادمنا.",
-    ordered_from: "تم الطلب من {{merchant}}",
     receipt_is_this_correct: "هل هذا صحيح؟",
     receipt_feedback_correct: "نعم، هذا صحيح",
     receipt_feedback_incorrect: "لا، هناك خطأ",
@@ -8697,7 +8484,6 @@ export const ar = {
     exit_dark_mode: "الخروج من الوضع الداكن",
     view_all_dark_mode: "عرض الكل في الوضع الداكن",
     exit_all_dark_mode: "الخروج من الوضع الداكن للكل",
-    from_header: "من",
     sent_label: "مرسل",
     scheduled_label: "مجدول",
     trashed_label: "محذوف",
@@ -8707,7 +8493,6 @@ export const ar = {
     total_pages_label: "{{count}} صفحة",
     loading_preview: "جارٍ تحميل المعاينة…",
     preview_failed: "المعاينة لم تُحمَّل. فتح البريد سيعرضه.",
-    move_1_conversation: "نقل محادثة واحدة",
     move_n_conversations: "نقل {{ count }} محادثة",
     move_n_conversations_one: "نقل محادثة واحدة",
     move_n_conversations_other: "نقل {{count}} محادثة",
@@ -8784,7 +8569,6 @@ export const ar = {
     search_message_content: "البحث في محتوى الرسائل",
     create_filter: "إنشاء فلتر",
     search_placeholder_hint: "البحث في البريد وجهات الاتصال والمجلدات",
-    all_search_results_for: "جميع نتائج البحث عن “{{query}}”",
     try_adjusting_filters: "جرّب تعديل فلاترك أو البحث عن شيء آخر",
     no_emails_match_query: "لا توجد رسائل تطابق “{{query}}”",
     showing_results_for: "عرض نتائج “{{corrected}}”",
@@ -8803,8 +8587,6 @@ export const ar = {
     search_refine_terms: "حاول تضييق نطاق البحث باستخدام كلمات أكثر تحديدًا.",
     refine_your_search_action: "تحسين بحثك",
     turn_off_indexing_action: "إيقاف الفهرسة",
-    content_search_slower:
-      "قد يكون البحث في محتوى الرسائل بطيئًا في علب البريد الكبيرة.",
     search_message_content_help: "حول البحث في محتوى الرسائل",
     search_message_content_help_body:
       "رسائلك مشفرة من طرف إلى طرف، لذا يجب تنزيلها وفهرستها على هذا الجهاز قبل البحث في نصوصها. قد يستهلك هذا مساحة تخزين كبيرة. الفهرس لا يغادر هذا الجهاز ويُحذف عند تسجيل الخروج.",
@@ -8866,25 +8648,11 @@ export const ar = {
     op_exclude_sender: "استبعاد المرسل",
     op_without_attachments: "بدون مرفقات",
     tracking_protection: "حماية التتبع",
-    tracking_protection_description: "نحميك بنشاط من التتبع",
-    trackers_found: "تم العثور على {{count}} متتبع وحظره",
-    no_trackers_found: "لم يتم العثور على متتبعات في هذه الرسالة",
     spy_pixels_blocked: "تم حظر بكسلات التجسس",
-    spy_pixels_blocked_count: "تم حظر {{count}} بكسل تجسس",
     links_cleaned: "تم تنظيف الروابط",
-    links_cleaned_count: "تم تنظيف {{count}} رابط",
-    no_trackers_detected: "لم تُكتشف متتبعات",
     email_is_clean: "تبدو هذه الرسالة نظيفة - لم تُكتشف أي عناصر تتبع.",
     param_removed_from_n_links: "تم إزالة {{param}} من {{count}} رابط",
     n_blocked: "{{count}} محظور",
-    tracker_domain: "{{domain}}",
-    remote_content_blocked: "تم حظر المحتوى البعيد",
-    remote_images_blocked_count: "تم حظر {{count}} صورة بعيدة",
-    older_messages: "{{count}} رسائل أقدم",
-    older_message: "رسالة أقدم واحدة",
-    verification_verified: "مرسل موثَّق",
-    verification_invalid: "توقيع المرسل غير مطابق",
-    verification_no_keys: "تعذّر التحقق من هوية هذا المرسل",
     official_sender: "عنوان Aster الرسمي",
     official_sender_desc:
       "هذه الرسالة من عنوان Aster رسمي. لن يطلب منك Aster كلمة المرور أو عبارة الاسترداد عبر البريد الإلكتروني أبدًا.",
@@ -8903,7 +8671,6 @@ export const ar = {
     hide_headers: "إخفاء الترويسات",
     show_trimmed_content: "عرض المحتوى المقتطع",
     bounced: "مرفوض",
-    failed_status: "فشل",
     delivered: "تم التسليم",
     n_messages: "{{ count }} رسالة",
     attachment_singular: "مرفق",
@@ -8914,7 +8681,6 @@ export const ar = {
     notification_new_email: "رسالة جديدة من {{ sender }}",
     notification_reply: "{{ sender }} ردّ",
     notification_mention: "{{ sender }} أشار إليك",
-    forwarded_message_separator: "---------- رسالة محوّلة ---------",
     filter_not_prefix: "ليس ",
     filter_from: "من: {{ value }}",
     filter_to: "إلى: {{ value }}",
@@ -8943,7 +8709,6 @@ export const ar = {
     filter_larger: "أكبر: {{ value }}",
     filter_smaller: "أصغر: {{ value }}",
     filter_size: "الحجم: {{ value }}",
-    n_forwarded: "{{ count }} محوّل",
     font: "خط",
     fonts: "الخطوط",
     image: "صورة",
@@ -8970,31 +8735,11 @@ export const ar = {
     more_folders_count_few: "+{{count}} مجلدات أخرى",
     more_folders_count_many: "+{{count}} مجلدًا آخر",
     more_folders_count_other: "+{{count}} مجلد آخر",
-    trackers_found_one: "تم العثور على {{count}} أداة تتبع وحظرها",
-    trackers_found_two: "تم العثور على {{count}} أدوات تتبع وحظرها",
-    trackers_found_few: "تم العثور على {{count}} أدوات تتبع وحظرها",
-    trackers_found_many: "تم العثور على {{count}} أدوات تتبع وحظرها",
-    trackers_found_other: "تم العثور على {{count}} أدوات تتبع وحظرها",
-    spy_pixels_blocked_count_one: "تم حظر {{count}} بكسل تجسس",
-    spy_pixels_blocked_count_two: "تم حظر {{count}} بكسلات تجسس",
-    spy_pixels_blocked_count_few: "تم حظر {{count}} بكسلات تجسس",
-    spy_pixels_blocked_count_many: "تم حظر {{count}} بكسلات تجسس",
-    spy_pixels_blocked_count_other: "تم حظر {{count}} بكسلات تجسس",
-    links_cleaned_count_one: "تم تنظيف {{count}} رابط",
-    links_cleaned_count_two: "تم تنظيف {{count}} روابط",
-    links_cleaned_count_few: "تم تنظيف {{count}} روابط",
-    links_cleaned_count_many: "تم تنظيف {{count}} روابط",
-    links_cleaned_count_other: "تم تنظيف {{count}} روابط",
     param_removed_from_n_links_one: "تمت إزالة {{param}} من {{count}} رابط",
     param_removed_from_n_links_two: "تمت إزالة {{param}} من {{count}} روابط",
     param_removed_from_n_links_few: "تمت إزالة {{param}} من {{count}} روابط",
     param_removed_from_n_links_many: "تمت إزالة {{param}} من {{count}} روابط",
     param_removed_from_n_links_other: "تمت إزالة {{param}} من {{count}} روابط",
-    remote_images_blocked_count_one: "تم حظر {{count}} صورة خارجية",
-    remote_images_blocked_count_two: "تم حظر {{count}} صور خارجية",
-    remote_images_blocked_count_few: "تم حظر {{count}} صور خارجية",
-    remote_images_blocked_count_many: "تم حظر {{count}} صور خارجية",
-    remote_images_blocked_count_other: "تم حظر {{count}} صور خارجية",
     bulk_archive_title: "هل تريد أرشفة {{count}} رسالة؟",
     bulk_delete_title: "هل تريد حذف {{count}} رسالة نهائيًا؟",
     bulk_spam_title: "هل تريد الإبلاغ عن {{count}} رسالة كبريد غير مرغوب فيه؟",
@@ -9039,26 +8784,17 @@ export const ar = {
     greeting_comma: "،",
     greeting_night: "ليلة متأخرة",
     manage_account: "إعدادات الحساب",
-    official_account: "حساب رسمي",
     sign_out_all: "تسجيل الخروج من كل الحسابات",
     session_expired_tag: "انتهت الجلسة",
     default_account: "افتراضي",
     storage_of_used: "تم استخدام {{used}} من {{total}}",
-    hide_more_accounts: "إخفاء الحسابات الأخرى",
-    show_more_accounts: "عرض الحسابات الأخرى",
     change_photo: "تغيير الصورة",
-    active_account: "نشط",
     add_another_account: "إضافة حساب آخر",
     resubscribe_to_aster: "إعادة الاشتراك في Aster",
     switch_to_account: "التبديل إلى هذا الحساب",
     remove_account: "إزالة من هذا الجهاز",
-    remove_account_title: "إزالة الحساب؟",
-    remove_account_message:
-      "سيتم تسجيل خروج {{email}} من هذا الجهاز. بياناتك على الخادم لن تتأثر.",
-    confirm_remove_account: "إزالة",
     account_limit_for_plan:
       "تسمح خطتك بما يصل إلى {{max}} حسابات مسجلة الدخول. قم بالترقية لإضافة المزيد.",
-    signing_out_current: "جاري تسجيل الخروج...",
     email: "البريد الإلكتروني",
     password: "كلمة المرور",
     confirm_password: "تأكيد كلمة المرور",
@@ -9070,7 +8806,6 @@ export const ar = {
     dont_have_account: "ليس لديك حساب؟",
     terms_of_service: "شروط الخدمة",
     privacy_policy: "سياسة الخصوصية",
-    agree_terms: "أوافق على شروط الخدمة وسياسة الخصوصية",
     username: "اسم المستخدم",
     sign_in_to_aster: "تسجيل الدخول إلى Aster",
     enter_credentials: "أدخل بيانات اعتمادك للوصول إلى حسابك",
@@ -9112,17 +8847,10 @@ export const ar = {
     one_account_all_services: "حساب واحد لجميع خدمات Aster. مجاني وآمن وخاص.",
     create_free_account: "إنشاء حساب مجاني",
     sign_in_existing: "تسجيل الدخول إلى حساب موجود",
-    choose_email_address: "اختر عنوان بريدك الإلكتروني",
-    pick_unique_username: "اختر اسم مستخدم فريدًا لبريدك الجديد على Aster",
-    new_email_address: "عنوان بريد إلكتروني جديد",
     your_new_aster_address: "عنوان Aster Mail الجديد الخاص بك",
-    generate_random_username: "إنشاء اسم مستخدم عشوائي",
-    generate_random_display: "إنشاء اسم عرض عشوائي",
     profile_color: "لون الملف الشخصي",
-    preview_avatar: "معاينة صورة ملفك الشخصي",
     secure_your_account: "تأمين حسابك",
     create_strong_password: "أنشئ كلمة مرور قوية لحماية حسابك",
-    choose_your_plan: "اختر خطتك",
     setting_up_account: "جارٍ إعداد حسابك",
     save_recovery_codes: "احفظ رموز الاسترداد",
     store_codes_safely:
@@ -9143,15 +8871,9 @@ export const ar = {
     create_a_password: "أنشئ كلمة مرور",
     recommend_strong_password:
       "استخدم 8 أحرف على الأقل. كلمة المرور الأطول ذات الأحرف المتنوعة أقوى.",
-    password_recovery_key: "مفتاح استعادة كلمة المرور",
-    recovery_key_only_way:
-      "هذا المفتاح هو الطريقة الوحيدة لاستعادة حسابك إذا نسيت كلمة المرور. احفظه في مكان آمن.",
-    download_key_lower: "تنزيل المفتاح",
     downloading: "جارٍ التنزيل...",
-    save_key: "حفظ المفتاح",
     copy_key: "نسخ المفتاح",
     copy_codes: "نسخ الرموز",
-    recovery_key_copied: "تم نسخ مفتاح الاستعادة",
     password_recovery_email: "بريد استعادة كلمة المرور",
     recovery_email_step_desc:
       "أضف عنوان بريد إلكتروني لتتمكن من العودة إلى حسابك إذا فقدت رموز الاسترداد.",
@@ -9217,10 +8939,12 @@ export const ar = {
     continue_without_download: "المتابعة بدون تنزيل",
     please_enter_recovery_email:
       "بريد الاسترداد هو الطريق للعودة إن نسيت كلمة المرور.",
-    please_enter_valid_email: "يرجى إدخال عنوان بريد إلكتروني صالح",
+    please_enter_valid_email:
+      "لا يبدو هذا عنوان بريد إلكتروني صالحًا. استخدم عنوانًا مثل name@example.com.",
     recovery_email_conflict:
       "هذا العنوان يحمي بالفعل الحد الأقصى وهو 20 حسابات Aster. استخدم عنوانًا آخر.",
-    failed_save_recovery_email: "حاول مجددًا.",
+    failed_save_recovery_email:
+      "لم يُحفظ بريد الاسترداد. حاول مجددًا. إعدادات الاسترداد الحالية لم تتغير.",
     recovery_phrase_title: "احفظ عبارة الاسترداد الخاصة بك",
     recovery_phrase_desc:
       "هذه الكلمات الاثنتا عشرة هي الطريقة الوحيدة لاستعادة حسابك وكل بريدك المشفر بالكامل إن نسيت كلمة المرور يومًا. اكتبها بالترتيب واحتفظ بها في مكان آمن وغير متصل بالإنترنت.",
@@ -9270,15 +8994,6 @@ export const ar = {
     reset_consent_email_mismatch:
       "عنوان البريد الإلكتروني لا يطابق هذا الحساب.",
     reset_consent_continue: "إعادة تعيين كلمة المرور على أي حال",
-    plan_starter_badge: "مبتدئ",
-    plan_personal_badge: "شخصي",
-    plan_pro_badge: "احترافي",
-    perfect_personal_use: "مثالي للاستخدام الشخصي",
-    everything_to_start: "كل ما تحتاجه للبدء",
-    for_power_users: "للمستخدمين المتقدمين",
-    e2e_encrypted_inbox: "صندوق وارد مشفر من طرف إلى طرف",
-    zero_knowledge_encryption: "تشفير صفري المعرفة",
-    unlimited_emails: "رسائل غير محدودة",
     no_ads_no_tracking: "بدون إعلانات، بدون تتبع",
     use_8_characters: "استخدم 8 أحرف على الأقل",
     try_12_characters: "جرب 12 حرفًا أو أكثر لأمان أفضل",
@@ -9291,7 +9006,7 @@ export const ar = {
     please_enter_email_address: "بريدك الإلكتروني لازم هنا.",
     please_enter_recovery_code: "أحد رموز الاسترداد لديك لازم هنا.",
     invalid_recovery_code:
-      "رمز الاسترداد هذا غير مطابق. رمز آخر من قائمتك المحفوظة ينبغي أن يعمل.",
+      "هذا الرمز لا يطابق هذا الحساب. قارنه بقائمتك المحفوظة وأدخله مجددًا. المسافات وحالة الأحرف لا تهم.",
     recovery_locked_out:
       "جرت محاولات استعادة كثيرة جدًا على هذا الحساب. يمكنك المحاولة مرة أخرى بعد {{time}}. لم يُستخدم أي من رموزك، لذا ما زالت جميعها لديك.",
     invalid_backup_code:
@@ -9302,7 +9017,8 @@ export const ar = {
     recovery_failed:
       "الاسترداد لم يكتمل. البدء من جديد غالبًا ما يحل الأمر. حسابك لم يتغير.",
     add_special_characters: "أضف أحرفًا خاصة (!@#$%)",
-    recovery_codes_start_with_aster: "تبدأ رموز الاسترداد بـ 'ASTER-'",
+    recovery_codes_start_with_aster:
+      "يبدو رمز الاسترداد هكذا: ASTER-XXXX-XXXX-XXXX-XXXX. تحقق من الرمز وأدخله مجددًا.",
     verifying_recovery_code: "جارٍ التحقق من رمز الاسترداد...",
     recovery_session_expired:
       "جلسة الاسترداد هذه انتهت. بدء تدفق الاسترداد من جديد يستأنف الأمر. حسابك لم يتغير.",
@@ -9316,14 +9032,10 @@ export const ar = {
     enter_email_associated: "أدخل اسم المستخدم الخاص بك لاسترداد حسابك",
     back_to_sign_in: "العودة إلى تسجيل الدخول",
     email_me_reset_link: "أرسل لي رابط إعادة التعيين عبر البريد الإلكتروني",
-    have_recovery_code: "هل لديك رمز استرداد؟",
-    use_recovery_code: "استخدم رمز استرداد بدلاً من ذلك",
     reset_link_sent_title: "تحقق من بريد الاسترداد الخاص بك",
     reset_link_sent_desc:
       "إذا كان اسم المستخدم هذا مسجلاً ولديه بريد استرداد موثق، فقد تم إرسال رابط إعادة تعيين كلمة المرور. تنتهي صلاحية الرابط خلال 30 دقيقة.",
     sending_reset_link: "جارٍ إرسال رابط إعادة التعيين...",
-    no_recovery_email_on_account:
-      "لا يحتوي هذا الحساب على بريد إلكتروني للاسترداد مُتحقَّق منه. استخدم رمز استرداد لإعادة تعيين كلمة المرور.",
     reset_your_password: "إعادة تعيين كلمة المرور",
     reset_choose_new_password: "اختر كلمة مرور جديدة لحسابك.",
     reset_invalid_or_expired:
@@ -9346,7 +9058,6 @@ export const ar = {
     import_mail_step_title: "خذ بريدك معك",
     import_mail_step_desc:
       "انقل الرسائل من حساب آخر إلى Aster. يُشفَّر كل شيء على جهازك قبل تخزينه.",
-    import_mail_action: "استيراد البريد",
     import_mail_skip: "ابدأ بصندوق فارغ",
     import_mail_privacy_note: "يمكنك أيضًا الاستيراد لاحقًا من الإعدادات.",
     password_reset_successful: "تمت إعادة تعيين كلمة المرور بنجاح",
@@ -9366,15 +9077,6 @@ export const ar = {
     by_continuing: "بالمتابعة، أنت توافق على",
     copyright: "© {{year}} Aster Communications Inc.",
     display_name_optional: "الاسم المعروض (اختياري)",
-    "10gb_secure_storage": "10 جيجابايت تخزين آمن",
-    "5_email_aliases": "5 أسماء بريد مستعارة",
-    "2_custom_domains": "نطاقان مخصصان",
-    "50mb_attachments": "50 ميجابايت مرفقات",
-    plan_free_price: "مجاني",
-    "50gb_secure_storage": "50 جيجابايت تخزين آمن",
-    "10_email_aliases": "10 أسماء بريد مستعارة",
-    "5_custom_domains": "5 نطاقات مخصصة",
-    "100mb_attachments": "100 ميجابايت مرفقات",
     compare_all_features: "مقارنة جميع الميزات",
     encryption_keys_local:
       "مفاتيح التشفير الخاصة بك مخزنة محليًا على هذا الجهاز ولا يتم إرسالها أبدًا إلى خوادمنا.",
@@ -9388,8 +9090,6 @@ export const ar = {
     skip_verification: "تخطي التحقق",
     recovery_email_required_notice:
       "البريد الإلكتروني الاحتياطي مطلوب لمنع الرسائل المزعجة.",
-    abuse_account_limit:
-      "وضع نظام الأمان الآلي علامة على هذا التسجيل، وتعذّر إنشاء الحساب. إن بدا هذا خطأً، يمكن التواصل مع hello@astermail.org.",
     abuse_flagged_message:
       "أوقف نظام الأمان لدينا التسجيلات الجديدة من هذه الشبكة حاليًا. إن بدا هذا خطأً، يمكن التواصل مع hello@astermail.org.",
     contact_support: "التواصل مع الدعم",
@@ -9401,52 +9101,6 @@ export const ar = {
       "هذا الرابط منتهي الصلاحية أو لم يعد مطابقًا. بريد تحقق جديد من إعدادات حسابك سيعمل.",
     go_to_inbox: "الذهاب إلى صندوق الوارد",
     end_to_end_encrypted: "مشفر من طرف إلى طرف",
-    zero_knowledge: "بنية صفرية الوصول",
-    zero_knowledge_desc: "لا يمكننا أبدًا قراءة رسائلك أو بياناتك",
-    password_never_stored: "كلمة المرور لا تُخزن أبدًا",
-    password_never_stored_desc: "يُستخدم فقط تجزئة مفتاح مشتق للمصادقة",
-    recovery_codes_important: "احتفظ بها في مكان آمن",
-    recovery_codes_important_desc:
-      "هذه الرموز هي الطريقة الوحيدة لاستعادة حسابك إذا فقدت كلمة المرور. خزّنها في مكان آمن.",
-    recovery_backup_tip: "نصيحة للنسخ الاحتياطي",
-    recovery_backup_tip_desc:
-      "احفظ رموزك في مدير كلمات المرور أو اطبعها وخزّنها في مكان آمن.",
-    onboarding_appearance_title: "خصص صندوق بريدك",
-    onboarding_appearance_desc: "اختر مظهرًا يناسبك. يمكنك تغييره في أي وقت.",
-    onboarding_theme_light: "فاتح",
-    onboarding_theme_dark: "داكن",
-    onboarding_view_mode_label: "تخطيط القراءة",
-    onboarding_view_popup: "نافذة منبثقة",
-    onboarding_view_popup_desc: "تفتح الرسائل في نافذة عائمة",
-    onboarding_view_split: "عرض مقسم",
-    onboarding_view_split_desc: "قائمة الرسائل والمحتوى جنبًا إلى جنب",
-    onboarding_view_fullpage: "صفحة كاملة",
-    onboarding_view_fullpage_desc: "تخصيص الشاشة الكاملة لكل رسالة",
-    onboarding_compact_mode: "الوضع المضغوط",
-    onboarding_compact_mode_desc: "مسافات أقل لعرض رسائل أكثر على الشاشة",
-    onboarding_continue_btn: "متابعة",
-    onboarding_privacy_title: "الخصوصية والأمان",
-    onboarding_privacy_desc:
-      "صندوق بريدك، قواعدك. اضبط هذه الإعدادات حسب راحتك.",
-    onboarding_block_tracking: "حظر بكسلات التتبع",
-    onboarding_block_tracking_desc: "منع المرسلين من معرفة متى تفتح رسائلهم",
-    onboarding_block_external: "حظر المحتوى الخارجي",
-    onboarding_block_external_desc:
-      "إيقاف الصور والمحتوى عن بُعد الذي قد يتتبعك",
-    onboarding_read_receipts: "حظر إيصالات القراءة",
-    onboarding_read_receipts_desc: "لا تدع المرسلين يعرفون متى فتحت رسائلهم",
-    onboarding_warn_external: "تحذير المستلمين الخارجيين",
-    onboarding_warn_external_desc:
-      "إظهار تحذير عند الإرسال إلى عناوين غير Aster",
-    onboarding_auto_keys: "اكتشاف المفاتيح تلقائيًا",
-    onboarding_auto_keys_desc:
-      "البحث تلقائيًا عن مفاتيح التشفير لجهات الاتصال التي تراسلها",
-    onboarding_encrypt_emails: "التشفير افتراضيًا",
-    onboarding_encrypt_emails_desc:
-      "تشفير الرسائل الصادرة تلقائيًا عند توفر مفتاح المستلم",
-    onboarding_session_timeout: "مهلة الجلسة",
-    onboarding_session_timeout_desc:
-      "قفل حسابك تلقائيًا بعد فترة من عدم النشاط",
     browser_login_title: "تسجيل الدخول عبر المتصفح",
     browser_login_desc:
       "افتح Aster Mail في متصفحك، انتقل إلى الإعدادات، وأدخل هذا الرمز لربط هاتفك.",
@@ -9455,24 +9109,9 @@ export const ar = {
     browser_login_sign_in_password: "تسجيل الدخول بكلمة المرور بدلاً من ذلك",
     log_in: "تسجيل الدخول",
     welcome_subtitle: "بريد إلكتروني حديث، مشفر لك ولا يمكن لأحد غيرك قراءته.",
-    copy_email: "انقر لنسخ البريد الإلكتروني",
-    copy_failed: "تعذّر نسخ البريد الإلكتروني",
-    pair_device_title: "اقتران الجهاز",
-    pair_device_confirm: "هل تريد اقتران {{ name }} بحساب Aster Mail الخاص بك؟",
-    pair_device_warning:
-      "جهاز مقترن يمكنه فتح بريدك دون كلمة مرور، لذا الاقتران أفضل ما يكون مع الأجهزة التي تحتفظ بها معك. يمكن إزالة الجهاز في أي وقت من الإعدادات، الأجهزة الموثوقة.",
-    pair_device_confirm_button: "اقتران الجهاز",
     pair_device_cancel: "إلغاء",
-    pair_device_success: "اكتمل الاقتران. عد إلى تطبيق Aster Mail لسطح المكتب.",
-    pair_device_open_app: "فتح تطبيق سطح المكتب",
-    pair_device_invalid:
-      "رابط الاقتران هذا لم يعمل. البداية من جديد من تطبيق سطح المكتب عادةً ما تحل الأمر.",
     pair_device_failed:
       "الاقتران لم يكتمل. البداية من جديد من تطبيق سطح المكتب عادةً ما تحل الأمر. حسابك لم يتغير.",
-    pair_this_device: "اقتران هذا الجهاز",
-    pair_device_description:
-      "سجّل الدخول من متصفحك لاقتران تطبيق سطح المكتب هذا بأمان.",
-    waiting_for_pairing: "في انتظار الاقتران. تم فتح نافذة متصفح.",
     device_code_title: "ربط هذا الجهاز",
     device_code_instruction:
       "أدخل هذا الرمز على app.astermail.org/link-device لربط حسابك.",
@@ -9489,13 +9128,11 @@ export const ar = {
     link_device_enter_code: "أدخل الرمز المعروض على تطبيق سطح المكتب الخاص بك.",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "متابعة",
-    link_device_verifying: "جارٍ التحقق...",
     link_device_confirm_prompt: "هل تريد ربط هذا الجهاز بحسابك؟",
     link_device_confirm_button: "ربط الجهاز",
     link_device_confirming: "جارٍ ربط الجهاز...",
     link_device_cancel: "إلغاء",
     link_device_desktop: "تطبيق سطح المكتب",
-    link_device_signed_in_as: "تسجيل الدخول باسم",
     link_device_change_account: "تغيير الحساب",
     link_device_choose_account: "اختر حسابًا",
     link_device_choose_account_description: "لربط تطبيق سطح المكتب",
@@ -9519,32 +9156,21 @@ export const ar = {
       "الربط لم يكتمل. البداية من جديد عادةً ما تحل الأمر. حسابك لم يتغير.",
     link_device_try_again: "لم ينجح ذلك. البداية من جديد عادةً ما تحل الأمر.",
     trust_this_device_30_days: "الوثوق بهذا الجهاز لمدة 30 يومًا",
-    security_key_verification: "التحقق بمفتاح الأمان",
     passkey_sign_in: "تسجيل الدخول بمفتاح مرور",
-    tap_security_key:
-      "انقر على مفتاح أمانك أو استخدم مفتاح الوصول لتسجيل الدخول",
     use_another_method: "استخدام طريقة تحقق أخرى",
     webauthn_not_supported:
       "هذا المتصفح لا يدعم مفاتيح الأمان. متصفح مختلف أو تسجيل الدخول بكلمة المرور سيعمل.",
     account_flagged_notice:
       "نظام الأمان التلقائي لدينا وضع قيودًا على حسابك مؤقتًا، وقد تكون بعض الميزات غير متاحة. بقية حسابك يعمل بشكل طبيعي. إن بدا هذا خطأً، hello@astermail.org يمكنه المساعدة.",
-    registration_suspended:
-      "نظام الأمان لدينا أوقف التسجيلات الجديدة من هذه الشبكة مؤقتًا. إن بدا هذا خطأً، hello@astermail.org يمكنه المساعدة.",
     username_in_use: "اسم المستخدم هذا محجوز بالفعل. آخر ينبغي أن يعمل.",
     password_breach_warning:
       "ظهرت كلمة المرور هذه في خرق بيانات. يُفضل استخدام كلمة مرور مختلفة.",
     plan_selection_title: "اختر خطتك",
     plan_selection_subtitle:
       "اختر الخطة التي تناسبك. يمكنك التغيير أو الإلغاء في أي وقت.",
-    plan_continue_with_free: "المتابعة مجانًا",
     plan_continue_as_free: "المتابعة بالخطة المجانية",
-    academic_offer_title: "طالب أو صحفي؟ خصم 30٪",
-    academic_offer_desc:
-      "خصم 30٪ على الخطط الفردية لمدة 12 شهرًا. للطلاب: تحقق من بريدك الجامعي الآن وسيكون الرمز جاهزًا عند الدفع. للصحفيين: تواصل مع الدعم بعد التسجيل.",
     academic_offer_sent:
       "تم إرسال رابط التحقق إلى {{ email }}. بعد النقر سيظهر رمز الخصم في الإعدادات ضمن الفوترة.",
-    academic_offer_journalist:
-      "صحفي؟ أكمل التسجيل ثم تواصل مع الدعم مع إثبات اعتمادك الصحفي.",
     academic_offer_headline: "طالب أم صحفي؟",
     academic_offer_subline:
       "خصم 30٪ على Star وNova وSupernova لمدة عام. للطلاب: أدخل بريدك الجامعي وسنرسل لك رابط تحقق واحدًا.",
@@ -9570,30 +9196,16 @@ export const ar = {
       "مساحة تخزين وعناوين بديلة أكثر للاستخدام الشخصي اليومي.",
     plan_pro_description:
       "مساحة تخزين سخية وعناوين بديلة للمستخدمين المتقدمين.",
-    plan_free_name: "مجاني",
-    plan_free_tagline: "ابدأ بلا تكلفة",
-    plan_free_cta: "ابدأ الآن",
     plan_view_full_features: "عرض قائمة المميزات الكاملة",
     plan_footer_reassurance:
       "جميع الخطط تشمل التشفير الصفري الوصول وبلا إعلانات وضمان استرداد 30 يومًا. غيّر أو ألغِ في أي وقت.",
     plan_select: "اختيار",
-    plan_selected: "مختار",
     plan_loading: "جارٍ تحميل الخطط...",
-    plan_payment_success_continuing: "تم استلام الدفع. جارٍ الإنهاء...",
     verification_success_title: "تم التحقق من البريد",
     verification_success_desc:
       "تم التحقق من بريد الاسترداد. يمكنك إغلاق هذه التبويبة والعودة إلى نافذتك الأخرى.",
     close_this_tab: "إغلاق هذه التبويبة",
-    privacy_policy_heading: "سياسة الخصوصية",
-    terms_of_service_heading: "شروط الخدمة",
     last_updated: "آخر تحديث: {{date}}",
-    effective_date: "تاريخ النفاذ: {{date}}",
-    privacy_policy_intro:
-      "في Aster Communications Inc.، الخصوصية هي أساس كل ما نبنيه. توضح سياسة الخصوصية هذه كيفية تعاملنا مع بياناتك عند استخدام Aster Mail والخدمات ذات الصلة. مبدؤنا التوجيهي بسيط: بياناتك تخصّك، ولا ينبغي لنا أبدًا أن نتمكن من الوصول إليها.",
-    terms_of_service_intro:
-      "مرحبًا بك في Aster Mail، تشغّله Aster Communications Inc. تشكّل شروط الخدمة هذه اتفاقية ملزمة قانونيًا بينك وبين Aster Communications Inc. تحكم استخدامك لخدمة البريد الإلكتروني المشفر من طرف إلى طرف والمنتجات ذات الصلة. يرجى قراءة هذه الشروط بعناية قبل استخدام خدماتنا.",
-    view_terms_of_service: "عرض شروط الخدمة",
-    view_privacy_policy: "عرض سياسة الخصوصية",
     backup_email_placeholder: "backup@email.com",
     email_copied: "تم نسخ البريد",
     plan_recommended: "موصى به",
@@ -9609,17 +9221,12 @@ export const ar = {
     link_device_upgrade_title: "رقِّ خطتك لربط هذا الجهاز",
     link_device_upgrade_description:
       "يتطلب ربط Bridge لسطح المكتب بحسابك خطة Star أو أعلى. اختر خطة أدناه وسيُربط جهازك فور إتمام الدفع.",
-    link_device_upgrade_cta: "الترقية إلى Star",
-    link_device_upgrade_failed:
-      "تعذّر بدء الدفع. حاول مرة أخرى أو افتح الفوترة في الإعدادات.",
     link_device_already_linked:
       "هذا الجهاز مرتبط بحساب آخر. ألغِ ربطه هناك أولًا ثم حاول مرة أخرى.",
     link_device_rate_limited:
       "محاولات كثيرة جدًا. انتظر نحو دقيقة ثم حاول مرة أخرى.",
     link_device_account_suspended:
       "هذا الحساب موقوف، لذا لا يمكن ربط أجهزة جديدة الآن. تواصل مع الدعم لحل المشكلة.",
-    product_updates_notice:
-      "ستصلك أيضًا مستجدات المنتج من حين لآخر في بريدك الوارد، ويمكنك إيقافها من الإعدادات.",
     plan_academic_discount_note:
       "يُطبَّق خصم 30% تلقائيًا عند الدفع بمجرد التحقق من بريدك الإلكتروني.",
     plan_referral_discount_note: "يُطبَّق خصم الإحالة تلقائيًا عند الدفع.",
@@ -9664,7 +9271,6 @@ export const ar = {
     last_used: "آخر استخدام",
     never_used: "لم يُستخدم قط",
     remove: "إزالة",
-    confirm_remove: "إزالة",
     delete_passkey_title: "هل تريد حذف مفتاح المرور؟",
     delete_passkey_description:
       'سيتم إزالة "{{name}}" من حسابك. لن تتمكن من تسجيل الدخول به بعد الآن.',
@@ -9678,7 +9284,6 @@ export const ar = {
       'سيتم إزالة "{{name}}" من حسابك. لن يعمل بعد الآن كعامل ثانٍ.',
     removed: "تمت إزالة مفتاح المرور",
     register_success: "تم تسجيل مفتاح المرور",
-    register_failed: "فشل التسجيل. حاول مرة أخرى.",
     registering: "جارٍ التسجيل…",
     not_supported:
       "متصفحك لا يدعم مفاتيح المرور. جرّب متصفحًا حديثًا مثل Chrome أو Safari أو Firefox.",
@@ -9689,8 +9294,6 @@ export const ar = {
     unnamed_security_key: "مفتاح أمان",
     rename: "إعادة تسمية",
     rename_saved: "تم تحديث الاسم",
-    rename_placeholder: "سمِّ هذا المفتاح",
-    rename_failed: "تعذّرت إعادة تسمية المفتاح. حاول مرة أخرى.",
   },
   errors: {
     auth_salt_collision:
@@ -9711,7 +9314,7 @@ export const ar = {
     cannot_react_limit:
       "يمكنك إضافة تفاعلين كحد أقصى إلى الرسالة. لإضافة تفاعل آخر، أزل أحد تفاعلاتك.",
     cannot_react_no_recipient: "لا يوجد مرسل لهذه الرسالة لإرسال التفاعل إليه.",
-    failed_send_reaction: "حاول مجددًا.",
+    failed_send_reaction: "تعذّر إرسال التفاعل. حاول مجددًا.",
     reactions_disabled: "التفاعلات معطلة في إعداداتك.",
     pending_email_verification:
       "تحقّق من بريدك الإلكتروني وانقر على رابط التحقق لتفعيل هذا الحساب.",
@@ -9738,23 +9341,26 @@ export const ar = {
     password_too_long: "كلمة المرور هذه تتجاوز حد الطول. كلمة أقصر ستعمل.",
     account_not_found:
       "لم نعثر على حساب بهذا الاسم. تحقق من الإملاء أو أعد تعيين كلمة المرور على astermail.org/reset.",
-    login_failed: "حاول مجددًا.",
+    login_failed: "لم يكتمل تسجيل الدخول. حاول مجددًا. حسابك ليس مقفلًا.",
     decrypt_failed:
       "كلمة المرور هذه لم تفك مفاتيحك على هذا الجهاز. محاولة أخرى قد تنجح، ورمز الاسترداد على astermail.org/reset هو الخيار البديل إن استمر الخطأ. بياناتك على الخادم لم تتغير.",
     send_limit_reached:
-      "بلغت حدّك اليومي للإرسال. محاولة أخرى خلال {{time}} ستعمل. مسوّدتك محفوظة.",
+      "بلغت حدّك اليومي للإرسال. حاول مجددًا بعد {{time}}. مسوّدتك محفوظة.",
     ip_blocked:
       "محاولات تسجيل دخول فاشلة كثيرة. انتظر {{time}} ثم حاول مجددًا. حسابك ليس مقفلًا.",
     an_error_occurred: "حاول مجددًا.",
-    failed_to_block_sender: "حاول مجددًا.",
-    failed_to_snooze: "حاول مجددًا.",
+    failed_to_block_sender: "تعذّر حظر هذا المرسل. حاول مجددًا.",
+    failed_to_snooze:
+      "لم يتم تأجيل هذه الرسالة. حاول مجددًا. لا تزال في صندوق الوارد.",
     ghost_alias_not_found:
       "تعذّر العثور على العنوان الشبحي المرتبط بهذا الموضوع.",
-    failed_to_resolve_ghost_alias: "حاول مجددًا.",
+    failed_to_resolve_ghost_alias:
+      "لم يتم تحميل العنوان الشبحي لهذه المحادثة. حاول مجددًا.",
     ghost_alias_rate_limit:
-      "استخدمت كل الأسماء الشبحية لهذا الشهر. ترقية خطتك أو انتظار تجديد الشهر القادم سيمنحك المزيد.",
+      "استخدمت كل الأسماء المستعارة الشبحية لهذا الشهر. للحصول على المزيد، رقِّ خطتك أو انتظر إعادة التعيين في الشهر القادم.",
     ghost_alias_already_exists: "هذا الاسم الشبحي موجود في حسابك بالفعل.",
-    failed_to_create_ghost_alias: "حاول مجددًا.",
+    failed_to_create_ghost_alias:
+      "لم يُحفظ هذا الاسم المستعار الشبحي. حاول مجددًا. أسماؤك المستعارة الأخرى لم تتغير.",
     ghost_expiry_extend_only: "يمكنك تمديد عنوان الشبح فقط، وليس تقصيره.",
     ghost_expiry_update_failed: "لم يتم تحديث مدة الانتهاء. حاول مرة أخرى.",
     failed_to_activate_ghost_mode: "حاول مجددًا.",
@@ -9767,7 +9373,7 @@ export const ar = {
     vault_missing_key:
       "لم نعثر على مفتاح الجهاز اللازم لقراءة هذا التخزين. تسجيل الخروج ثم الدخول مجددًا يُعيد ربط هذا الجهاز عادةً. بياناتك على الخادم لم تُمَس.",
     wrong_folder_password:
-      "كلمة مرور المجلد هذه غير مطابقة. محاولة أخرى عادةً ما تكون كافية. يبقى المجلد مقفلًا.",
+      "كلمة مرور المجلد غير صحيحة. حاول مجددًا. يبقى المجلد مقفلًا.",
     wrong_external_account_password:
       "كلمة مرور الحساب الخارجي غير مطابقة. مراجعتها في الإعدادات ثم المحاولة من جديد تحلّ الأمر عادةً. اتصالك المحفوظ لم يتغير.",
     decrypt_wrong_key:
@@ -9796,13 +9402,19 @@ export const ar = {
       "فحص هوية هذا الجهاز لم يتطابق، وقد يشير ذلك إلى تلاعب. تتوفر إعادة الإقران من تطبيق سطح المكتب، وفي حال عودة التحذير يمكن التواصل مع hello@astermail.org.",
     metadata_migration_stalled:
       "لم نتمكن من إنهاء ترقية تخزينك المحلي بعد عدة محاولات. التحقق من الاتصال ثم إعادة فتح Aster يكفيان عادةً. بريدك على الخادم بأمان.",
-    failed_to_queue_email: "حاول مجددًا.",
-    failed_to_send_queued: "حاول مجددًا.",
-    failed_to_send_external_queued: "حاول مجددًا.",
-    authentication_failed: "حاول مجددًا.",
-    failed_to_snooze_email: "حاول مجددًا.",
-    failed_to_unsnooze_email: "حاول مجددًا.",
-    failed_to_list_snoozed: "حاول مجددًا.",
+    failed_to_queue_email:
+      "تعذّر حفظ هذه الرسالة لإرسالها لاحقًا. حاول مجددًا. مسوّدتك محفوظة.",
+    failed_to_send_queued: "لم تُرسل هذه الرسالة. حاول مجددًا. مسوّدتك محفوظة.",
+    failed_to_send_external_queued:
+      "لم تُرسل هذه الرسالة عبر حسابك الخارجي المرتبط. حاول مجددًا. مسوّدتك محفوظة.",
+    authentication_failed:
+      "لم يكتمل تسجيل الدخول. حاول مجددًا. حسابك ليس مقفلًا.",
+    failed_to_snooze_email:
+      "لم يتم تأجيل هذه الرسالة. حاول مجددًا. لا تزال في صندوق الوارد.",
+    failed_to_unsnooze_email:
+      "لم تعد هذه الرسالة إلى صندوق الوارد. حاول مجددًا.",
+    failed_to_list_snoozed:
+      "لم يتم تحميل الرسائل المؤجلة. حاول مجددًا. إنها آمنة على الخادم.",
     auth_required: "سجّل الدخول للمتابعة.",
     no_permission:
       "ليس لديك صلاحية للقيام بذلك. إن بدا هذا خطأً، يمكن لمسؤولك المساعدة.",
@@ -9820,8 +9432,10 @@ export const ar = {
       "مفاتيحك الخاصة مقفلة على هذا الجهاز. كلمة مرورك ستفتحها. مفاتيحك على الخادم لم تُمَس.",
     session_expired_send:
       "انتهت جلستك قبل إرسال هذه الرسالة. تسجيل الدخول مجددًا سيرسلها. مسوّدتك محفوظة.",
-    failed_encrypt_envelope: "حاول مجددًا.",
-    failed_pgp_encrypt: "حاول مجددًا.",
+    failed_encrypt_envelope:
+      "تعذّر تأمين هذه الرسالة للإرسال. حاول مجددًا. مسوّدتك محفوظة.",
+    failed_pgp_encrypt:
+      "تعذّر تشفير هذه الرسالة بمفتاح PGP الخاص بالمستلم. حاول مجددًا. مسوّدتك محفوظة.",
     no_authenticated_account:
       "لم يتم العثور على حساب مسجّل الدخول على هذا الجهاز. سجّل الدخول للمتابعة.",
     daily_limit_reached:
@@ -9835,20 +9449,24 @@ export const ar = {
       "حجم هذه المرفقات مجتمعة يتجاوز {{size}}، وهو أقصى ما تحمله رسالة واحدة في باقتك. إزالة ملف أو تصغيره سيسمح بالإرسال. مسوّدتك محفوظة.",
     too_many_attachments:
       "هذه الرسالة تحتوي على أكثر من {{max}} مرفقًا، وهو أقصى ما تحمله رسالة واحدة. إزالة بعضها ستسمح بالإرسال. مسوّدتك محفوظة.",
-    failed_send_email: "حاول مجددًا.",
+    failed_send_email: "لم تُرسل هذه الرسالة. حاول مجددًا. مسوّدتك محفوظة.",
     cannot_send_no_keys:
       "فعّلت التشفير المطلوب، ولا يوجد مفتاح لـ {{recipients}}. طلب منهم مشاركة مفتاح، أو إيقاف التشفير المطلوب في الإعدادات، سيُتيح الإرسال. مسوّدتك محفوظة.",
     cannot_send_no_recipient_keys:
       "فعّلت التشفير المطلوب، ولا يوجد مفتاح لأي من مستلميك. طلب منهم مشاركة مفتاح، أو إيقاف التشفير المطلوب في الإعدادات، سيُتيح الإرسال. مسوّدتك محفوظة.",
     cannot_send_no_recovery_key:
       "لا يستطيع Aster إرسال هذه الرسالة بعد لأن حساب المستلم يفتقد مفاتيح قراءتها. اطلب منه فتح Aster على أي جهاز أو تحديث التطبيق لتجديد المفاتيح، ثم أعد المحاولة. مسوّدتك محفوظة.",
-    failed_send_external: "حاول مجددًا.",
-    failed_queue_email: "حاول مجددًا.",
+    failed_send_external:
+      "لم تُرسل هذه الرسالة عبر حسابك الخارجي المرتبط. حاول مجددًا. مسوّدتك محفوظة.",
+    failed_queue_email:
+      "تعذّر حفظ هذه الرسالة لإرسالها لاحقًا. حاول مجددًا. مسوّدتك محفوظة.",
     no_active_account:
       "لم يتم العثور على حساب مسجّل الدخول على هذا الجهاز. سجّل الدخول للمتابعة.",
-    failed_queue_reply: "حاول مجددًا.",
-    failed_queue_forward: "حاول مجددًا.",
-    failed_send: "حاول مجددًا.",
+    failed_queue_reply:
+      "تعذّر حفظ هذا الرد لإرساله لاحقًا. حاول مجددًا. مسوّدتك محفوظة.",
+    failed_queue_forward:
+      "تعذّر حفظ إعادة التوجيه هذه لإرسالها لاحقًا. حاول مجددًا. مسوّدتك محفوظة.",
+    failed_send: "لم تُرسل هذه الرسالة. حاول مجددًا. مسوّدتك محفوظة.",
     no_keys_available:
       "مفاتيحك الخاصة مقفلة على هذا الجهاز. كلمة مرورك ستفتحها. مفاتيحك على الخادم لم تُمَس.",
     session_identity_mismatch:
@@ -9858,7 +9476,8 @@ export const ar = {
     storage_compromised:
       "البيانات المشفرة على هذا الجهاز لا تتطابق مع ما توقعناه، وقد يدل ذلك على تلاعب. تسجيل الخروج ثم الدخول عادةً يُصحّح ذلك. إن عاد التحذير، تواصل مع hello@astermail.org فورًا. بياناتك على الخادم لم تُمَس.",
     registration_cancelled: "تم إلغاء التسجيل",
-    authentication_failed_webauthn: "حاول مجددًا.",
+    authentication_failed_webauthn:
+      "لم يكتمل تسجيل الدخول بمفتاح الأمان أو تم إلغاؤه. حاول مجددًا.",
     authentication_cancelled: "تم إلغاء المصادقة",
     alias_empty: "اسم مستعار مطلوب هنا.",
     alias_too_short: "استخدم 3 أحرف على الأقل.",
@@ -9887,7 +9506,8 @@ export const ar = {
       "يمكن تشغيل {{max}} حسابات في الوقت ذاته كحد أقصى. إزالة أحدها ستتيح مكانًا لآخر.",
     account_already_added:
       "هذا الحساب مسجَّل بالفعل على هذا الجهاز. التبديل إليه من قائمة الحسابات هو الطريقة.",
-    failed_encrypt_draft: "حاول مجددًا.",
+    failed_encrypt_draft:
+      "تعذّر حفظ هذه المسوّدة بأمان على هذا الجهاز. حاول مجددًا. النص الذي كتبته لا يزال في محرر الرسالة.",
     failed_decrypt_draft:
       "تعذّر فتح هذه المسودّة على هذا الجهاز. تسجيل الخروج ثم الدخول ومحاولة أخرى عادةً ما تحل الأمر.",
     version_conflict:
@@ -9928,18 +9548,23 @@ export const ar = {
     failed_to_snooze_emails: "حاول مجددًا.",
     file_too_large:
       "هذا الملف {{size}} ميغابايت، وهو يتجاوز حد {{limit}} ميغابايت. ملف أصغر سيعمل.",
-    health_check_failed: "حاول مجددًا.",
-    incorrect_password:
-      "كلمة المرور هذه غير مطابقة. محاولة أخرى ينبغي أن تنجح. حسابك ليس مقفلًا.",
+    health_check_failed: "لم يكتمل التشخيص. حاول مجددًا.",
+    incorrect_password: "كلمة المرور غير صحيحة. حاول مجددًا. حسابك ليس مقفلًا.",
     no_recipients: "مستلم واحد على الأقل لازم قبل الإرسال.",
     registration_failed:
       "التسجيل لم يكتمل. البدء من جديد والمحاولة غالبًا ما يحل الأمر. لم يُنشأ أي حساب.",
     session_expired_login:
       "انتهت جلستك. سجّل الدخول مجددًا للمتابعة. بياناتك ومسوّداتك محفوظة على الخادم.",
-    unexpected_error: "حاول مجددًا.",
-    unknown_error: "حاول مجددًا.",
+    unexpected_error: "حدث خطأ غير متوقع. حاول مجددًا.",
+    unknown_error: "حدث خطأ غير متوقع. حاول مجددًا. لم نتمكن من تحديد السبب.",
     post_quantum_unavailable:
       "يحمي Aster الرسائل بين حسابات Aster بتشفير ما بعد الكم، ولم ينشر {{recipients}} مفاتيح ما بعد الكم بعد. اطلب منه فتح Aster أو تحديث التطبيق ثم أعد المحاولة. تم حفظ مسودتك.",
+    load_failed: "تعذّر التحميل. حاول مجددًا.",
+    data_integrity_failed:
+      "لم تجتز هذه البيانات فحص السلامة، لذا لم يتم تحميلها.",
+    note_too_large: "هذه الملاحظة طويلة جدًا. اختصرها وحاول مجددًا.",
+    number_out_of_range: "أدخل عددًا صحيحًا من {{min}} إلى {{max}}.",
+    invalid_date: "أدخل تاريخًا صالحًا.",
   },
   folder_retention: {
     title: "التنظيف التلقائي للمجلدات",
@@ -10056,10 +9681,30 @@ export const ar = {
       "جارٍ التطبيق: تم فحص {{scanned}} من {{total}}، وتحديث {{applied}}",
     apply_to_existing_done: "تم: تم فحص {{scanned}}، وتحديث {{applied}}",
     apply_to_existing_done_encrypted:
-      "تم: تم فحص {{scanned}}، وتحديث {{applied}}. تخطّت هذه القاعدة {{encrypted}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
+      "تم: تم فحص {{scanned}}، وتحديث {{applied}}. تخطّت هذه القاعدة {{count}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
+    apply_to_existing_done_encrypted_one:
+      "تم: تم فحص {{scanned}}، وتحديث {{applied}}. تخطّت هذه القاعدة رسالة مشفّرة واحدة لأن جهازك وحده يمكنه قراءتها.",
+    apply_to_existing_done_encrypted_two:
+      "تم: تم فحص {{scanned}}، وتحديث {{applied}}. تخطّت هذه القاعدة رسالتين مشفّرتين لأن جهازك وحده يمكنه قراءتهما.",
+    apply_to_existing_done_encrypted_few:
+      "تم: تم فحص {{scanned}}، وتحديث {{applied}}. تخطّت هذه القاعدة {{count}} رسائل مشفّرة لأن جهازك وحده يمكنه قراءتها.",
+    apply_to_existing_done_encrypted_many:
+      "تم: تم فحص {{scanned}}، وتحديث {{applied}}. تخطّت هذه القاعدة {{count}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
+    apply_to_existing_done_encrypted_other:
+      "تم: تم فحص {{scanned}}، وتحديث {{applied}}. تخطّت هذه القاعدة {{count}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
     apply_to_existing_canceled: "تم الإيقاف: تم تحديث {{applied}}",
     apply_to_existing_canceled_encrypted:
-      "تم الإيقاف: تم تحديث {{applied}}. تخطّت هذه القاعدة {{encrypted}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
+      "تم الإيقاف: تم تحديث {{applied}}. تخطّت هذه القاعدة {{count}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
+    apply_to_existing_canceled_encrypted_one:
+      "تم الإيقاف: تم تحديث {{applied}}. تخطّت هذه القاعدة رسالة مشفّرة واحدة لأن جهازك وحده يمكنه قراءتها.",
+    apply_to_existing_canceled_encrypted_two:
+      "تم الإيقاف: تم تحديث {{applied}}. تخطّت هذه القاعدة رسالتين مشفّرتين لأن جهازك وحده يمكنه قراءتهما.",
+    apply_to_existing_canceled_encrypted_few:
+      "تم الإيقاف: تم تحديث {{applied}}. تخطّت هذه القاعدة {{count}} رسائل مشفّرة لأن جهازك وحده يمكنه قراءتها.",
+    apply_to_existing_canceled_encrypted_many:
+      "تم الإيقاف: تم تحديث {{applied}}. تخطّت هذه القاعدة {{count}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
+    apply_to_existing_canceled_encrypted_other:
+      "تم الإيقاف: تم تحديث {{applied}}. تخطّت هذه القاعدة {{count}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
     apply_to_existing_error:
       "فشل تطبيق القاعدة على البريد الموجود. حاول مرة أخرى.",
     empty_title: "لا توجد قواعد بعد",
@@ -10153,10 +9798,13 @@ export const ar = {
     value_placeholder: "القيمة",
     pick_folder: "اختر مجلدًا",
     pick_labels: "اختر تصنيفات",
-    load_failed: "حاول مجددًا.",
-    save_failed: "حاول مجددًا.",
-    reorder_failed: "حاول مجددًا.",
-    rule_delete_failed: "حاول مجددًا.",
+    load_failed: "لم يتم تحميل قواعدك. حاول مجددًا. قواعدك المحفوظة آمنة.",
+    save_failed:
+      "لم تُحفظ هذه القاعدة. حاول مجددًا. الإصدار السابق لا يزال ساريًا.",
+    reorder_failed:
+      "لم يُحفظ الترتيب الجديد. حاول مجددًا. لا تزال قواعدك تعمل بترتيبها السابق.",
+    rule_delete_failed:
+      "لم تُحذف هذه القاعدة. حاول مجددًا. القاعدة لا تزال سارية.",
     snooze_needs_future: "اختر تاريخًا ووقتًا في المستقبل.",
     match_case: "مطابقة الحالة",
     header_name_placeholder: "اسم الترويسة",
@@ -10210,7 +9858,7 @@ export const ar = {
     tab_visual: "مرئي",
     tab_expression: "تعبير",
     expression_placeholder:
-      'from.address is "alice@example.com" and subject contains "receipt"',
+      'from.address is "alice@example.com" and subject contains "إيصال"',
     expression_parse_error:
       "هذا التعبير غير صالح. تحقق من الصياغة وحاول مجددًا.",
     cannot_render_visual:
@@ -10263,7 +9911,6 @@ export const ar = {
   badges: {
     title: "الشارات",
     description: "اللمسات الشخصية التي جمعتها.",
-    earned_label: "مكتسب",
     not_earned: "لم تكتسبه بعد",
     active_badge: "الشارة النشطة",
     none: "بدون",
@@ -10273,31 +9920,8 @@ export const ar = {
     show_in_signature_description:
       "تضمين شارتك النشطة في توقيعات الرسائل الصادرة.",
     granted_at: "مكتسب {date}",
-    find_order_label: "#{order}",
     empty_state: "لم تجد أي شارات بعد.",
-    claim_success: "اكتسبت شارة {name}.",
-    claim_already: "اكتسبت شارة اكتشاف بالفعل.",
     claim_failed: "حاول مجددًا.",
-    badge_big_bang: "الانفجار الكبير",
-    badge_big_bang_description: "أول من اكتشف الكون.",
-    badge_event_horizon: "أفق الحدث",
-    badge_event_horizon_description: "اجتاز حدود المعروف.",
-    badge_black_hole: "الثقب الأسود",
-    badge_black_hole_description: "انجذب نحو شيء أعمق.",
-    badge_singularity: "التفرد",
-    badge_singularity_description: "وجد النقطة التي ينحني عندها كل شيء.",
-    badge_supernova: "المستعر الأعظم",
-    badge_supernova_description: "رصد نجمًا في أشد لحظاته لمعانًا.",
-    badge_andromeda: "المجرة الأندروميدية",
-    badge_andromeda_description: "وصل إلى مجرة مجاورة.",
-    badge_nebula: "السديم",
-    badge_nebula_description: "تجوّل في الألوان.",
-    badge_comet: "المذنب",
-    badge_comet_description: "تقاطع مساره مع شيء نادر.",
-    badge_pulsar: "النجم النابض",
-    badge_pulsar_description: "سمع الإشارة في الضوضاء.",
-    badge_stargazer: "راصد النجوم",
-    badge_stargazer_description: "نظر إلى الأعلى في اللحظة المناسبة.",
   },
   secure_view: {
     powered_by_prefix: "أُرسِلت بأمان عبر",
@@ -10316,7 +9940,6 @@ export const ar = {
     not_found: "تعذّر العثور على هذه الرسالة الآمنة.",
     attachments: "المرفقات",
     download: "تنزيل",
-    powered_by: "أُرسلت بأمان عبر AsterMail",
     deleted: "تم حذف هذه الرسالة الآمنة ولم تعد متاحة.",
     reply_label: "إرسال رد",
     reply_placeholder: "اكتب ردك...",
@@ -10332,15 +9955,9 @@ export const ar = {
     delete_confirm_no: "إلغاء",
     delete_failed: "تعذّر حذف هذه الرسالة. يرجى المحاولة مرة أخرى.",
   },
-  compose: {
-    encrypt_external_label: "تشفير للمستلمين الخارجيين",
-    encrypt_external_desc:
-      "يفتح المستلمون رابطًا خاصًا ويُدخلون كلمة مرور لقراءة هذه الرسالة.",
-    encrypt_password_required: "عيّن كلمة مرور لتشفير هذه الرسالة.",
-  },
+  compose: {},
   shared_mailboxes: {
     tab_label: "صناديق البريد المشتركة",
-    shared_tag: "مشترك",
     create: "إنشاء",
     created: "تم إنشاء صندوق البريد المشترك",
     create_failed: "تعذر إنشاء صندوق البريد المشترك",
@@ -10388,7 +10005,6 @@ export const ar = {
     opens_in_new_tab: "يفتح Trustpilot في علامة تبويب جديدة",
   },
   survey: {
-    banner_title: "ساعدنا في تحسين Aster Mail",
     banner_message:
       "ساعد في تطوير Aster: استبيان لمرة واحدة يستغرق حوالي دقيقة. تبقى إجاباتك خاصة ولا تُشارك أبدًا.",
     banner_take: "ابدأ الاستبيان",
@@ -10505,7 +10121,6 @@ export const ar = {
   },
   settings_search: {
     two_factor: "المصادقة الثنائية",
-    api_token: "رمز واجهة البرمجة",
     account_recovery: "استعادة الحساب",
     actions: "الإجراءات",
     active_sessions: "الجلسات النشطة",
@@ -10528,13 +10143,11 @@ export const ar = {
     changelog: "الجديد",
     checkup: "الفحص",
     children: "الأطفال",
-    children_accounts: "حسابات الأطفال",
     code: "الرمز",
     composing_and_replies: "الكتابة والردود",
     configuration: "الإعداد",
     confirmations: "التأكيدات",
     connect_apple_mail: "ربط Apple Mail",
-    connect_thunderbird: "ربط Thunderbird",
     contact_support: "التواصل مع الدعم",
     content_protection: "حماية المحتوى",
     control: "التحكم",
@@ -10551,55 +10164,37 @@ export const ar = {
     device: "الجهاز",
     directories: "الأدلة",
     display: "العرض",
-    domain_verification: "التحقق من النطاق",
     domains: "النطاقات",
     download: "تنزيل",
-    download_bridge: "تنزيل Bridge",
     duration: "المدة",
     duress_pin: "رمز PIN للطوارئ",
     edit: "تحرير",
-    edit_signature: "تحرير التوقيع",
     email: "البريد",
     email_forwarding: "إعادة توجيه البريد",
     email_summary: "ملخص بالبريد",
     events: "الأحداث",
     export: "تصدير",
     external_accounts: "الحسابات الخارجية",
-    feature_request: "طلب ميزة",
     features: "الميزات",
     format: "التنسيق",
     forward: "إعادة توجيه",
     generate: "إنشاء",
     ghost_aliases: "الأسماء المستعارة الخفية",
     gmail: "Gmail",
-    html_signature: "توقيع HTML",
     hardware_keys: "مفاتيح الأمان",
     imap: "IMAP",
-    imap_settings: "إعدادات IMAP",
-    import_from_imap: "الاستيراد من IMAP",
-    import_from_proton: "الاستيراد من Proton",
-    import_key: "استيراد مفتاح",
     invite: "دعوة",
-    invite_a_friend: "دعوة صديق",
-    invite_family_member: "دعوة أحد أفراد العائلة",
     invoices: "الفواتير",
     key_rotation: "تدوير المفاتيح",
-    key_algorithm: "خوارزمية المفتاح",
     keyboard: "لوحة المفاتيح",
     keyboard_shortcuts: "اختصارات لوحة المفاتيح",
-    keyboard_navigation: "التنقل بلوحة المفاتيح",
     keys: "المفاتيح",
     language: "اللغة",
     language_and_format: "اللغة والتنسيق",
     layout: "التخطيط",
-    layout_density: "كثافة التخطيط",
-    light_mode: "الوضع الفاتح",
     links: "الروابط",
     logs: "السجلات",
     manage: "إدارة",
-    manage_family_members: "إدارة أفراد العائلة",
-    manage_templates: "إدارة القوالب",
-    masked_email: "بريد مقنّع",
     members: "الأعضاء",
     motion_and_layout: "الحركة والتخطيط",
     navigation_panel: "لوحة التنقل",
@@ -10611,7 +10206,6 @@ export const ar = {
     payment: "الدفع",
     payment_method: "طريقة الدفع",
     performance: "الأداء",
-    plain_text_signature: "توقيع بنص عادي",
     plan: "الخطة",
     position: "الموضع",
     profile: "الملف الشخصي",
@@ -10624,37 +10218,26 @@ export const ar = {
     recovery: "الاستعادة",
     referral_code: "رمز الإحالة",
     rename_hardware_key: "إعادة تسمية مفتاح الأمان",
-    rename_passkey: "إعادة تسمية مفتاح المرور",
-    report_a_bug: "الإبلاغ عن خلل",
-    request_logs: "سجلات الطلبات",
     revoke_smtp_token: "إبطال رمز SMTP",
     revoke_device: "إبطال الجهاز",
-    rotate_encryption_key: "تدوير مفتاح التشفير",
     smtp_settings: "إعدادات SMTP",
-    screen_reader: "قارئ الشاشة",
     security: "الأمان",
-    security_checkup: "فحص الأمان",
-    send_delay: "تأخير الإرسال",
     sending: "الإرسال",
     session: "الجلسة",
     sessions: "الجلسات",
     settings: "الإعدادات",
     setup: "الإعداد الأولي",
-    sign_out_device: "تسجيل الخروج من الجهاز",
     sound: "الصوت",
     spam: "البريد المزعج",
-    spam_filter: "فلتر البريد المزعج",
     stats: "الإحصائيات",
     storage: "التخزين",
     storage_add_on: "إضافة تخزين",
     subscriptions: "الاشتراكات",
     support: "الدعم",
     swipe: "التمرير",
-    system_theme: "سمة النظام",
     test: "اختبار",
     text: "النص",
     theme: "السمة",
-    thread_view: "عرض المحادثة",
     threading: "المحادثات",
     tokens: "الرموز",
     tracking_protection: "الحماية من التتبع",

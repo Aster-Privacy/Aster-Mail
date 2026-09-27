@@ -20,10 +20,14 @@
 //
 /// <reference lib="webworker" />
 import { ignore_error } from "@/lib/ignore_error";
+import { push_fallback_body } from "@/lib/push_fallback_strings";
 
 export {};
 
 declare let self: ServiceWorkerGlobalScope;
+
+const PUSH_STRINGS_CACHE = "aster_push_strings";
+const PUSH_STRINGS_URL = "/__aster_push_strings";
 
 self.addEventListener("install", (event: ExtendableEvent) => {
   void event;
@@ -38,7 +42,9 @@ self.addEventListener("activate", (event: ExtendableEvent) => {
           const keys = await caches.keys();
 
           await Promise.all(
-            keys.map((k) => caches.delete(k).catch(() => false)),
+            keys
+              .filter((k) => k !== PUSH_STRINGS_CACHE)
+              .map((k) => caches.delete(k).catch(() => false)),
           );
         }
       } catch (caught) {
@@ -72,7 +78,9 @@ self.addEventListener("message", (event: ExtendableMessageEvent) => {
             const keys = await caches.keys();
 
             await Promise.all(
-              keys.map((k) => caches.delete(k).catch(() => false)),
+              keys
+                .filter((k) => k !== PUSH_STRINGS_CACHE)
+                .map((k) => caches.delete(k).catch(() => false)),
             );
           }
         } catch (caught) {
@@ -118,23 +126,21 @@ function sanitize_notification_path(input: unknown): string {
   return "/";
 }
 
-const PUSH_STRINGS_CACHE = "aster_push_strings";
-const PUSH_STRINGS_URL = "/__aster_push_strings";
-const PUSH_FALLBACK_BODY = "You have a new message";
-
 async function push_notification_body(): Promise<string> {
+  const fallback = push_fallback_body(self.navigator.language);
+
   try {
     const cache = await caches.open(PUSH_STRINGS_CACHE);
     const stored = await cache.match(PUSH_STRINGS_URL);
 
-    if (!stored) return PUSH_FALLBACK_BODY;
+    if (!stored) return fallback;
     const parsed = (await stored.json()) as { new_message?: unknown };
 
     return typeof parsed.new_message === "string" && parsed.new_message
       ? parsed.new_message
-      : PUSH_FALLBACK_BODY;
+      : fallback;
   } catch {
-    return PUSH_FALLBACK_BODY;
+    return fallback;
   }
 }
 

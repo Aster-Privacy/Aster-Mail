@@ -29,6 +29,7 @@ import { get_contacts_encryption_key } from "./contacts";
 
 import { user_facing_error } from "@/utils/user_facing_error";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 function base64_to_array(base64: string): Uint8Array {
   const binary = atob(base64);
@@ -71,7 +72,9 @@ export async function get_contact_history(
   const response = await api_client.get<ContactHistoryResponse>(endpoint);
 
   if (response.error || !response.data) {
-    return { error: response.error || "Failed to fetch history" };
+    return {
+      error: response.error || get_active_translations().errors.load_failed,
+    };
   }
 
   try {
@@ -115,7 +118,10 @@ export async function get_contact_history(
     };
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to decrypt history"),
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }

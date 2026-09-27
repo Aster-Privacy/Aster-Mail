@@ -29,6 +29,7 @@ import { get_contacts_encryption_key } from "./contacts";
 
 import { user_facing_error } from "@/utils/user_facing_error";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -99,7 +100,9 @@ export async function get_contact_photo(
       return { data: null };
     }
 
-    return { error: response.error || "Failed to fetch photo" };
+    return {
+      error: response.error || get_active_translations().errors.load_failed,
+    };
   }
 
   try {
@@ -136,7 +139,10 @@ export async function get_contact_photo(
     };
   } catch (err) {
     return {
-      error: user_facing_error(err, "Failed to decrypt photo"),
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }

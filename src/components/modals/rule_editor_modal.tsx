@@ -580,7 +580,7 @@ export function RuleEditorModal({
         ? t("mail_rules.apply_to_existing_done_encrypted", {
             scanned: active_run.scanned,
             applied: active_run.applied,
-            encrypted,
+            count: encrypted,
           })
         : t("mail_rules.apply_to_existing_done", {
             scanned: active_run.scanned,
@@ -591,7 +591,7 @@ export function RuleEditorModal({
       return encrypted > 0
         ? t("mail_rules.apply_to_existing_canceled_encrypted", {
             applied: active_run.applied,
-            encrypted,
+            count: encrypted,
           })
         : t("mail_rules.apply_to_existing_canceled", {
             applied: active_run.applied,

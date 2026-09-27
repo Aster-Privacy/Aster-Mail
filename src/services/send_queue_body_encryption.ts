@@ -44,7 +44,6 @@ import {
   type SendReadinessResult,
 } from "./send_queue_types";
 
-import { user_facing_error } from "@/utils/user_facing_error";
 import { derive_own_public_key } from "@/utils/email_crypto";
 import { get_active_translations } from "@/lib/i18n/translations";
 
@@ -338,10 +337,10 @@ export async function encrypt_for_recipients(
     );
 
     return as_result(encrypted);
-  } catch (err) {
+  } catch {
     throw create_error(
       "encryption_failed",
-      `Encryption failed: ${user_facing_error(err, "unknown error")}. Cannot send unencrypted.`,
+      get_active_translations().errors.failed_encrypt_envelope,
     );
   }
 }

@@ -24,6 +24,7 @@ import { Share, type ShareResult } from "@capacitor/share";
 import { is_native_platform } from "./capacitor_bridge";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export interface SharedContent {
   title?: string;
@@ -209,7 +210,7 @@ export async function share_email(options: {
       title: options.subject,
       text: options.body,
       url: options.url,
-      dialogTitle: "Share via",
+      dialogTitle: get_active_translations().common.share_via,
     });
   } catch {
     return null;

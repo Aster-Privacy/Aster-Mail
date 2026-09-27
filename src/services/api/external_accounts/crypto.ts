@@ -40,6 +40,7 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 const EXTERNAL_ACCOUNTS_HMAC_KEY_ID = "external_accounts_hmac_key";
 
@@ -53,7 +54,9 @@ async function get_hmac_key(): Promise<CryptoKey> {
   const raw_key = get_derived_encryption_key();
 
   if (!raw_key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   const encoder = new TextEncoder();
@@ -85,7 +88,9 @@ async function get_external_accounts_encryption_key(): Promise<CryptoKey> {
   const key = await get_or_create_derived_encryption_crypto_key();
 
   if (!key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   return key;
@@ -170,7 +175,7 @@ export async function decrypt_account_data(
     );
 
     if (!is_valid) {
-      throw new Error("External account data integrity check failed");
+      throw new Error(get_active_translations().errors.data_integrity_failed);
     }
   }
 

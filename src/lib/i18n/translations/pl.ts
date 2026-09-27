@@ -48,7 +48,6 @@ export const pl = {
     email_group: "Napisz do grupy",
     export_selection_vcf: "Eksportuj jako vCard",
     failed_to_add_to_group: "Nie udało się dodać kontaktu do grupy.",
-    failed_to_create_group: "Nie udało się utworzyć grupy.",
     failed_to_delete_group: "Nie udało się usunąć grupy.",
     failed_to_load_groups: "Nie udało się wczytać twoich grup.",
     failed_to_move_to_trash: "Nie udało się przenieść kontaktu do kosza.",
@@ -115,7 +114,8 @@ export const pl = {
       "Sprawdź hasło i kod, a potem spróbuj ponownie.",
     qr_code: "Kod QR",
     profile_picture_removed: "Zdjęcie profilowe usunięte",
-    failed_remove_profile_picture: "Spróbuj ponownie.",
+    failed_remove_profile_picture:
+      "Nie udało się usunąć zdjęcia profilowego. Spróbuj ponownie.",
     remove_photo: "Usuń zdjęcie",
     toggle_alias: "Włącz lub wyłącz ten alias",
     enter_passphrase: "Wprowadź swoje hasło",
@@ -158,7 +158,6 @@ export const pl = {
     show_more: "Pokaż więcej",
     show_less: "Pokaż mniej",
     contacts: "Kontakty",
-    send_feedback: "Wyślij opinię",
     send_feedback_to_aster: "Wyślij opinię do Aster",
     folders: "Foldery",
     add_to_folders: "Dodaj do folderów",
@@ -176,7 +175,6 @@ export const pl = {
     page: "Strona",
     aster_mail: "Aster Mail",
     aster_account: "Moje konto Aster",
-    deck: "Tablica {{name}}",
     workspace_title: "Obszar roboczy {{name}} | Aster Mail",
     create_folder: "Utwórz folder",
     create_label: "Utwórz etykietę",
@@ -211,8 +209,6 @@ export const pl = {
       "Ze względów bezpieczeństwa potwierdź hasło, aby zmienić okres nieaktywności.",
     inactivity_window_months: "{{n}} miesięcy",
     inactivity_window_saved: "Zaktualizowano okres nieaktywności",
-    inactivity_window_save_failed:
-      "Nie udało się zapisać okresu nieaktywności. Spróbuj ponownie.",
     recovery_email: "Adres e-mail do odzyskiwania",
     recovery_email_description:
       "To jest adres e-mail używany do odzyskiwania konta",
@@ -228,7 +224,8 @@ export const pl = {
     failed_verification_email:
       "Nie udało się wysłać e-maila weryfikacyjnego w tej chwili. Kolejna próba za moment zwykle to załatwia. Konto pozostaje bez zmian.",
     profile_picture_updated: "Zdjęcie profilowe zaktualizowane",
-    failed_save_profile_picture: "Spróbuj ponownie.",
+    failed_save_profile_picture:
+      "Nowe zdjęcie profilowe nie zostało zapisane. Spróbuj ponownie. Nadal wyświetla się poprzednie zdjęcie.",
     failed_upload_image: "Spróbuj ponownie.",
     valid_image_error:
       "Ten plik nie jest obsługiwanym obrazem. JPEG, PNG lub WebP zadziała.",
@@ -310,8 +307,6 @@ export const pl = {
       "Nazwy etykiet są ograniczone do {{max}} znaków. Krótsza nazwa zostanie zapisana.",
     label_already_exists:
       "Etykieta o tej nazwie już istnieje. Inna nazwa zadziała.",
-    in_n_minutes: "Za {{ count }} minutę",
-    in_n_minutes_plural: "Za {{ count }} minut",
     saved_at_time: "Zapisano o {{ time }}",
     saved_on_date: "Zapisano {{ date }}",
     now: "Teraz",
@@ -398,10 +393,7 @@ export const pl = {
     export_private_key: "Eksportuj klucz prywatny",
     regenerate_recovery_codes: "Wygeneruj ponownie kody odzyskiwania",
     search_index: "Indeks wyszukiwania",
-    all_emails_and_conversations: "Wszystkie e-maile i rozmowy",
-    delete_imported_emails: "Usunąć zaimportowane e-maile?",
     deleting: "Usuwanie...",
-    delete_mail: "Usuń pocztę",
     search_forwarding_rules: "Szukaj reguł przekierowania...",
     search_allowlist: "Szukaj na liście dozwolonych...",
     search_blocked_senders: "Szukaj zablokowanych nadawców...",
@@ -454,7 +446,8 @@ export const pl = {
     related_person: "Powiązana osoba",
     event: "Wydarzenie",
     instant_messenger: "Komunikator",
-    contact_limit_reached: "Osiągnięto limit kontaktów. Zmień plan na wyższy, aby zaimportować resztę.",
+    contact_limit_reached:
+      "Osiągnięto limit kontaktów. Zmień plan na wyższy, aby zaimportować resztę.",
     social_networks: "Sieci społecznościowe",
     websites: "Strony internetowe",
     instant_messengers: "Komunikatory",
@@ -513,21 +506,12 @@ export const pl = {
     add_new_field_type: "Dodaj nowy typ pola",
     field_name_placeholder: "Nazwa pola...",
     skip: "Pomiń",
-    add_carddav: "Dodaj CardDAV",
-    add_carddav_server: "Dodaj serwer CardDAV",
-    carddav_name_placeholder: "Mój Nextcloud",
-    carddav_url_placeholder: "https://cloud.example.com/remote.php/dav",
-    carddav_username_placeholder: "user@example.com",
-    carddav_password_placeholder: "Hasło aplikacji lub zwykłe hasło",
     password_strength_weak: "Słabe",
     password_strength_fair: "Średnie",
     password_strength_strong: "Silne",
     password_strength_very_secure: "Bardzo bezpieczne",
-    pending_email_notifications: "Oczekujące powiadomienia e-mail",
     selected: "zaznaczono",
     are_you_sure: "Czy na pewno?",
-    remove_account_confirmation:
-      "Czy na pewno chcesz usunąć to konto? Możesz je później dodać ponownie.",
     go_back: "Wróć",
     continue_anyway: "Kontynuuj mimo to",
     set_as_default: "Ustaw jako domyślne",
@@ -642,9 +626,12 @@ export const pl = {
     failed_to_load_emails:
       "Skrzynka odbiorcza się nie załadowała. Pociągnięcie w dół, aby odświeżyć, lub kolejna próba zwykle to załatwia. Poczta na serwerze jest bezpieczna.",
     no_emails_match_criteria: "Żadne e-maile nie pasują do tych kryteriów",
-    failed_to_update_emails: "Spróbuj ponownie.",
-    failed_to_archive_emails: "Spróbuj ponownie.",
-    failed_to_unarchive_emails: "Spróbuj ponownie.",
+    failed_to_update_emails:
+      "Te zmiany nie zostały zapisane. Spróbuj ponownie. Same wiadomości są bez zmian.",
+    failed_to_archive_emails:
+      "Archiwizowanie nie zostało ukończone. Spróbuj ponownie. Wiadomości nadal są w skrzynce odbiorczej.",
+    failed_to_unarchive_emails:
+      "Przenoszenie do skrzynki odbiorczej nie zostało ukończone. Spróbuj ponownie. Wiadomości nadal są w archiwum.",
     keyboard_shortcut_label: "Skrót klawiaturowy: {shortcut}",
     something_went_wrong_try_again:
       "To nie zadziałało. Kolejna próba za moment zwykle to załatwia.",
@@ -659,15 +646,12 @@ export const pl = {
     unable_to_display_email:
       "Nie udało się wyświetlić tej wiadomości w tej chwili.",
     email_render_error:
-      "Nie udało się wyrenderować tej wiadomości na tym urządzeniu. Ponowne otwarcie lub podgląd surowego źródła zwykle to załatwia. Skrzynka odbiorcza pozostaje nienaruszona.",
+      "Nie udało się wyświetlić tej wiadomości na tym urządzeniu. Otwórz ją ponownie lub wyświetl źródło. Skrzynka odbiorcza jest bez zmian.",
     unable_to_load_composer: "Edytor się nie załadował.",
     composer_load_error:
       "Edytor się nie załadował. Zamknięcie tego okna i otwarcie ponownie zwykle to załatwia. Wersja robocza jest zapisana.",
     enter_field_value: "Wprowadź {{field}}...",
     no_matching_labels: "Brak pasujących etykiet",
-    phishing_confirm_placeholder:
-      'Wpisz "I understand the risks", aby ponownie włączyć linki.',
-    phishing_confirm_text: "rozumiem ryzyko",
     and: "i",
     emails_marked_as_read: "{{count}} e-mail(i) oznaczonych jako przeczytane",
     emails_archived: "{{count}} e-mail(i) zarchiwizowanych",
@@ -692,16 +676,10 @@ export const pl = {
       "Opublikuj tylko jeden rekord SPF. Jesli inne uslugi wysylaja poczte z tej domeny, polacz ich wpisy include: w tym jednym rekordzie.",
     dns_caveat_dmarc_add_after_spf_dkim:
       "Dodaj to na koncu, gdy SPF i DKIM sa juz zweryfikowane. Zbyt wczesna publikacja moze wyslac twoja wlasna poczte do spamu.",
-    value_points_to: "Wartość / Wskazuje na",
-    dns_records_to_add: "Rekordy DNS do dodania",
     dns_propagation_note: "Propagacja zmian DNS może potrwać do 48 godzin",
-    close_verify_later: "Zamknij i zweryfikuj później",
     post: "Opublikuj",
     link_copied: "Link skopiowany do schowka",
-    code_copied: "Kod skopiowany",
     invite_sent: "Zaproszenie wysłane!",
-    no_contacts_with_emails: "Nie znaleziono kontaktów z adresami e-mail",
-    join_aster_secure_email: "Dołącz do mnie na Aster: Bezpieczny E-mail",
     email_sent: "E-mail wysłany.",
     undo_send_too_late:
       "Ta wiadomość została już wysłana i nie można jej wycofać.",
@@ -709,13 +687,17 @@ export const pl = {
     scheduled_email_cancelled: "Zaplanowany e-mail anulowany",
     email_snoozed: "E-mail odłożony",
     email_unsnoozed: "E-mail przywrócony z odłożenia",
-    failed_to_snooze: "Spróbuj ponownie.",
-    failed_to_unsnooze: "Spróbuj ponownie.",
+    failed_to_snooze:
+      "Ta wiadomość nie została odłożona. Spróbuj ponownie. Nadal jest w skrzynce odbiorczej.",
+    failed_to_unsnooze:
+      "Ta wiadomość nie wróciła do skrzynki odbiorczej. Spróbuj ponownie.",
     conversation_moved_to_trash: "Rozmowa przeniesiona do kosza",
     conversation_archived: "Rozmowa zarchiwizowana",
     conversation_marked_as_spam: "Rozmowa oznaczona jako spam",
-    failed_to_mark_as_spam: "Spróbuj ponownie.",
-    failed_to_snooze_conversations: "Spróbuj ponownie.",
+    failed_to_mark_as_spam:
+      "Ta wiadomość nie została przeniesiona do spamu. Spróbuj ponownie.",
+    failed_to_snooze_conversations:
+      "Te wątki nie zostały odłożone. Spróbuj ponownie.",
     marked_as_read_toast: "Oznaczono jako przeczytane",
     marked_as_unread_toast: "Oznaczono jako nieprzeczytane",
     email_permanently_deleted: "E-mail trwale usunięty",
@@ -761,54 +743,51 @@ export const pl = {
     paused: "Wstrzymane",
     unnamed_contact: "Kontakt bez nazwy",
     unnamed: "Bez nazwy",
-    no_name: "Brak nazwy",
     same_email: "Ten sam e-mail",
-    similar_name: "Podobna nazwa",
     same_phone: "Ten sam telefon",
-    possible_duplicate: "Możliwy duplikat",
-    add_server: "Dodaj serwer",
     unknown: "Nieznany",
     text_type: "Tekst",
     date_type: "Data",
     number_type: "Liczba",
     phone_type: "Telefon",
     email_type: "E-mail",
-    failed_to_fetch_contacts: "Spróbuj ponownie.",
-    failed_to_delete_contact: "Spróbuj ponownie.",
+    failed_to_fetch_contacts:
+      "Kontakty się nie wczytały. Spróbuj ponownie. Zapisane kontakty są bezpieczne.",
+    failed_to_delete_contact:
+      "Ten kontakt nie został usunięty. Spróbuj ponownie.",
     contact_deleted: "Kontakt usunięty",
     contact_saved: "Kontakt zapisany",
     contact_created: "Kontakt utworzony",
     failed_to_create_contact: "Spróbuj ponownie.",
-    failed_to_save_contact: "Spróbuj ponownie.",
-    failed_to_delete_contacts: "Spróbuj ponownie.",
-    failed_to_update_favorites: "Spróbuj ponownie.",
-    contacts_import_partial:
-      "Zaimportowano tylko {{imported}} z {{total}} kontaktów. Zaimportuj plik ponownie, aby dodać pozostałe.",
-    failed_to_import_contacts: "Spróbuj ponownie.",
+    failed_to_save_contact:
+      "Zmiany w tym kontakcie nie zostały zapisane. Spróbuj ponownie. Wcześniejsza wersja nadal jest dostępna.",
+    failed_to_delete_contacts:
+      "Te kontakty nie zostały usunięte. Spróbuj ponownie.",
+    failed_to_update_favorites:
+      "Ulubione nie zostały zaktualizowane. Spróbuj ponownie.",
     failed_to_read_file: "Tego pliku nie udało się odczytać. Inny zadziała.",
-    import_failed: "Spróbuj ponownie.",
-    failed_to_load_duplicates: "Spróbuj ponownie.",
+    import_failed:
+      "Import nie został ukończony. Spróbuj ponownie. Istniejące dane są bez zmian.",
     scan_failed: "Spróbuj ponownie.",
-    dismiss_failed: "Spróbuj ponownie.",
-    failed_to_load_custom_fields: "Spróbuj ponownie.",
-    failed_to_create_field: "Spróbuj ponownie.",
-    delete_custom_field_title: "Delete custom field?",
+    failed_to_load_custom_fields:
+      "Te pola niestandardowe się nie wczytały. Spróbuj ponownie.",
+    failed_to_create_field:
+      "To pole niestandardowe nie zostało zapisane. Spróbuj ponownie.",
+    delete_custom_field_title: "Usunąć pole niestandardowe?",
     delete_custom_field_message:
-      "Deleting this field also removes its values from every contact. You cannot undo this.",
-    failed_to_delete_field: "Spróbuj ponownie.",
-    failed_to_save_value: "Spróbuj ponownie.",
-    click_scan_duplicates: 'Kliknij "Skanuj", aby sprawdzić duplikaty',
+      "Usunięcie tego pola usuwa też jego wartości ze wszystkich kontaktów. Tej operacji nie można cofnąć.",
+    failed_to_delete_field:
+      "To pole niestandardowe nie zostało usunięte. Spróbuj ponownie.",
+    failed_to_save_value:
+      "Zmiana nie została zapisana. Spróbuj ponownie. Poprzednia wartość nadal obowiązuje.",
     never_synced: "Nigdy nie zsynchronizowano",
     last_sync_successful: "Ostatnia synchronizacja udana",
     last_sync_failed:
       "Ostatnia synchronizacja nie została zakończona, a my spróbujemy ponownie automatycznie.",
-    failed_to_forward: "Spróbuj ponownie.",
-    failed_to_schedule: "Spróbuj ponownie.",
-    fill_required_fields: "Wypełnij wszystkie wymagane pola",
-    failed_to_load_sources: "Spróbuj ponownie.",
-    failed_to_add_source: "Spróbuj ponownie.",
-    failed_to_delete_source: "Spróbuj ponownie.",
-    failed_to_toggle_source: "Spróbuj ponownie.",
+    failed_to_forward:
+      "Przekazanie nie zostało wysłane. Spróbuj ponownie. Szkic jest zapisany.",
+    failed_to_schedule:
+      "Harmonogram nie został zapisany. Spróbuj ponownie. Szkic jest bezpieczny.",
     sync_failed:
       "Synchronizacja nie została zakończona, a my spróbujemy ponownie automatycznie. Poczta po obu stronach jest bezpieczna.",
     clearing: "Czyszczenie...",
@@ -829,7 +808,8 @@ export const pl = {
     conversations_marked_as_spam_bulk:
       "{{count}} rozmów(y) oznaczonych jako spam",
     conversations_restored_bulk: "{{count}} rozmów(y) przywróconych",
-    failed_to_restore_conversations: "Spróbuj ponownie.",
+    failed_to_restore_conversations:
+      "Te wątki nie zostały przywrócone. Spróbuj ponownie.",
     conversations_snoozed_bulk: "{{count}} rozmów(y) odłożonych",
     conversations_marked_as_read_bulk:
       "{{count}} rozmów(y) oznaczonych jako przeczytane",
@@ -845,8 +825,6 @@ export const pl = {
     already_in_folder: "Już w {{folder}}",
     cannot_move_from_view: "Nie możesz przenosić wiadomości z tego widoku.",
     already_has_label: "Już oznaczono etykietą {{label}}",
-    birthday_today: "Dzisiaj!",
-    birthday_tomorrow: "Jutro",
     contact_details: "Szczegóły kontaktu",
     history: "Historia",
     all_mail: "Cała poczta",
@@ -855,8 +833,6 @@ export const pl = {
       "Wybierz plik do importu kontaktów. Obsługiwane formaty: vCard (.vcf) i CSV.",
     click_to_select_file: "Kliknij, aby wybrać plik",
     or_drag_and_drop: "lub przeciągnij i upuść",
-    vcf_files: "pliki .vcf",
-    spreadsheet_export: "Eksport z arkusza kalkulacyjnego",
     map_csv_columns: "Przypisz kolumny CSV do pól kontaktów:",
     import_complete: "Import zakończony",
     contacts_imported_desc: "Twoje kontakty zostały zaimportowane",
@@ -866,12 +842,10 @@ export const pl = {
     failed: "Niepowodzenie",
     disable: "Wyłącz",
     sync: "Synchronizuj",
-    delete_mail_from: "Usuń pocztę od",
     unknown_time: "nieznany czas",
     relationship: "Relacja",
     no_contact_selected: "Nie wybrano kontaktu",
     select_contact_hint: "Wybierz kontakt z listy, aby zobaczyć szczegóły",
-    importing_contacts: "Importowanie kontaktów...",
     export_all: "Eksportuj wszystko",
     no_contacts: "Brak kontaktów",
     failed_to_load_contacts: "Nie wczytano kontaktów.",
@@ -880,10 +854,8 @@ export const pl = {
     add_contact: "Dodaj kontakt",
     file_too_large:
       "Ten plik ma {{size}} MB, co przekracza limit. Warto wybrać mniejszy.",
-    failed_to_upload_attachment: "Spróbuj ponownie.",
-    upload_failed: "Spróbuj ponownie.",
     delete_failed: "Spróbuj ponownie.",
-    download_failed: "Spróbuj ponownie.",
+    download_failed: "Pobieranie nie zostało ukończone. Spróbuj ponownie.",
     attachment_locked:
       "Nie można otworzyć tego załącznika, ponieważ jego klucz szyfrowania nie jest dostępny na tym urządzeniu.",
     scheduled_no_attachments:
@@ -892,10 +864,8 @@ export const pl = {
       "Wysyłanie zaplanowane nie jest dostępne dla połączonych kont. Wyślij tę wiadomość teraz albo wybierz adres Aster.",
     scheduled_no_expiry:
       "Zaplanowane wiadomości nie obsługują jeszcze wygasania. Wyślij teraz albo usuń wygasanie, aby zaplanować wiadomość.",
-    failed_to_merge_contacts: "Spróbuj ponownie.",
-    merge_failed: "Spróbuj ponownie.",
-    failed_to_load_history: "Spróbuj ponownie.",
-    failed_to_load_more: "Spróbuj ponownie.",
+    failed_to_merge_contacts:
+      "Scalanie nie zostało ukończone. Spróbuj ponownie. Oryginalne kontakty są bez zmian.",
     enter_valid_emails: "Wprowadź prawidłowe adresy e-mail",
     enter_contact_details: "Wprowadź dane kontaktu",
     select_valid_image: "Wybierz obraz JPEG, PNG, WebP lub GIF",
@@ -914,20 +884,30 @@ export const pl = {
       "Zarchiwizowano {{count}} wiadomości od {{senders}}",
     emails_from_senders_deleted: "Usunięto {{count}} wiadomości od {{senders}}",
     emails_added_to_folder: "{{count}} e-mail(i) dodanych do {{folder}}",
-    failed_to_snooze_emails: "Spróbuj ponownie.",
+    failed_to_snooze_emails:
+      "Te wiadomości nie zostały odłożone. Spróbuj ponownie. Nadal są w skrzynce odbiorczej.",
     failed_to_copy: "Spróbuj ponownie.",
     error_copied_to_clipboard: "Błąd skopiowany do schowka",
-    failed_to_update_contact: "Spróbuj ponownie.",
-    failed_to_block_sender: "Spróbuj ponownie.",
-    failed_to_rename_folder: "Spróbuj ponownie.",
-    failed_to_change_folder_color: "Spróbuj ponownie.",
-    failed_to_delete_folder: "Spróbuj ponownie.",
+    failed_to_update_contact:
+      "Zmiany kontaktu nie zostały zapisane. Spróbuj ponownie. Wcześniejsza wersja nadal jest dostępna.",
+    failed_to_block_sender:
+      "Nie udało się zablokować tego nadawcy. Spróbuj ponownie.",
+    failed_to_rename_folder:
+      "Nazwa tego folderu nie została zmieniona. Spróbuj ponownie. Folder i jego wiadomości są bez zmian.",
+    failed_to_change_folder_color:
+      "Kolor folderu nie został zaktualizowany. Spróbuj ponownie.",
+    failed_to_delete_folder:
+      "Ten folder nie został usunięty. Spróbuj ponownie. Wiadomości w nim są bezpieczne.",
     failed_to_move_folder: "Spróbuj ponownie.",
-    failed_to_update_folder_encryption: "Spróbuj ponownie.",
+    failed_to_update_folder_encryption:
+      "Ustawienie blokady folderu się nie zmieniło. Spróbuj ponownie. Folder pozostaje bez zmian.",
     failed_to_rename_label: "Spróbuj ponownie.",
-    failed_to_change_label_color: "Spróbuj ponownie.",
-    failed_to_change_label_icon: "Spróbuj ponownie.",
-    failed_to_delete_label: "Spróbuj ponownie.",
+    failed_to_change_label_color:
+      "Kolor etykiety nie został zaktualizowany. Spróbuj ponownie.",
+    failed_to_change_label_icon:
+      "Ikona etykiety nie została zaktualizowana. Spróbuj ponownie.",
+    failed_to_delete_label:
+      "Ta etykieta nie została usunięta. Spróbuj ponownie. Twoje wiadomości są bez zmian.",
     failed_to_create_label: "Spróbuj ponownie.",
     failed_to_create_folder_error: "Spróbuj ponownie.",
     folder_plan_limit_reached:
@@ -935,24 +915,22 @@ export const pl = {
     authenticate_to_send: "Uwierzytelnij się, aby wysłać e-mail",
     send_authentication_failed:
       "Uwierzytelnianie nie zostało ukończone, więc ta wiadomość nie została wysłana.",
-    failed_to_send_reply: "Spróbuj ponownie.",
+    failed_to_send_reply:
+      "Ta odpowiedź nie została wysłana. Spróbuj ponownie. Szkic jest zapisany.",
     failed_to_delete_draft: "Spróbuj ponownie.",
-    failed_to_update_rule: "Spróbuj ponownie.",
+    failed_to_update_rule:
+      "Ta reguła nie została zapisana. Spróbuj ponownie. Wcześniejsza wersja nadal działa.",
     failed_to_send_verification:
       "Nie udało się wysłać e-maila weryfikacyjnego. Kolejna próba za moment zwykle to załatwia.",
     failed_to_load_email:
       "Ta wiadomość się nie załadowała. Odświeżenie zwykle to załatwia. Wiadomość jest bezpieczna na serwerze.",
     failed_to_decrypt_email:
       "Nie udało się otworzyć tej wiadomości na tym urządzeniu. Odświeżenie zwykle to załatwia, a wylogowanie i ponowne zalogowanie to opcja zapasowa, jeśli problem się utrzymuje.",
-    failed_to_unsubscribe:
-      "Rezygnacja z subskrypcji nie została zakończona. Link w wiadomości przeniesie na stronę nadawcy, aby zrobić to samodzielnie.",
-    failed_to_disable_2fa: "Spróbuj ponownie.",
-    failed_to_parse_settings:
-      "Tego pliku ustawień nie udało się odczytać. Inny zadziała. Bieżące ustawienia pozostają bez zmian.",
+    failed_to_disable_2fa:
+      "Weryfikacja dwuetapowa pozostała włączona. Spróbuj ponownie. Twoje konto nadal jest chronione.",
     removed_from_contacts: "Usunięto z kontaktów",
     added_to_contacts: "Dodano do kontaktów",
     senders_emails_count: "{{senders}} ({{emails}})",
-    no_emails: "Brak wiadomości.",
     no_read_emails_to_archive: "Brak przeczytanych e-maili do zarchiwizowania",
     no_unread_emails: "Brak nieprzeczytanych e-maili",
     email_copied: "E-mail skopiowany",
@@ -967,21 +945,18 @@ export const pl = {
     session_expired_refresh:
       "Sesja się zakończyła. Odświeżenie strony umożliwi ponowne zalogowanie. Dane są bezpieczne.",
     email_in_locked_folder:
-      "Ta wiadomość znajduje się w zablokowanym folderze. Odblokowanie folderu ją otworzy.",
-    vault_not_available:
-      "Klucze prywatne nie są załadowane na tym urządzeniu. Ponowne zalogowanie je odblokuje. Klucze na serwerze pozostają nietknięte.",
+      "Ta wiadomość znajduje się w zablokowanym folderze. Aby ją otworzyć, odblokuj folder.",
     no_vault_available:
       "Klucze prywatne nie są załadowane na tym urządzeniu. Ponowne zalogowanie je odblokuje. Klucze na serwerze pozostają nietknięte.",
     offline_action_queued:
       "Jesteś teraz offline. To zostało zakolejkowane i dokończy się, gdy tylko nastąpi ponowne połączenie.",
     failed_to_update: "Spróbuj ponownie.",
-    failed_to_load_search_results: "Spróbuj ponownie.",
     failed_to_fetch_tags: "Spróbuj ponownie.",
     failed_to_fetch_folders: "Spróbuj ponownie.",
     failed_to_unlock_folder:
       "Nie udało się odblokować tego folderu. Sprawdź hasło i spróbuj ponownie. Zawartość folderu jest bezpieczna.",
     incorrect_password:
-      "To hasło nie pasuje. Kolejna próba powinna zadziałać. Konto nie jest zablokowane.",
+      "Nieprawidłowe hasło. Spróbuj ponownie. Twoje konto nie jest zablokowane.",
     folder_no_password_protection:
       "Ten folder nie ma obecnie hasła, więc nie ma czego zmieniać.",
     password_already_set:
@@ -990,17 +965,14 @@ export const pl = {
       "Odblokowanie folderu umożliwi zmianę tego ustawienia.",
     cannot_remove_vault_password:
       "Folder Sejf zawsze potrzebuje własnego hasła, a tej ochrony nie można usunąć.",
-    failed_to_load_snoozed_emails: "Spróbuj ponownie.",
-    failed_to_load_subscriptions: "Spróbuj ponownie.",
-    unexpected_error: "Spróbuj ponownie.",
-    failed_to_load_more_subscriptions: "Spróbuj ponownie.",
-    failed_to_scan_subscriptions: "Spróbuj ponownie.",
-    failed_to_load_drafts: "Spróbuj ponownie.",
-    failed_to_load_scheduled_emails: "Spróbuj ponownie.",
-    recently_archived: "Ostatnio zarchiwizowane",
-    older_items: "Starsze elementy",
-    long_term_archive: "Archiwum długoterminowe",
-    failed_to_fetch_archive_stats: "Spróbuj ponownie.",
+    failed_to_load_snoozed_emails:
+      "Odłożone wiadomości się nie wczytały. Spróbuj ponownie. Są bezpieczne na serwerze.",
+    unexpected_error:
+      "Coś nie zadziałało zgodnie z oczekiwaniami. Spróbuj ponownie.",
+    failed_to_load_drafts:
+      "Szkice się nie wczytały. Spróbuj ponownie. Zapisane szkice są bezpieczne.",
+    failed_to_load_scheduled_emails:
+      "Zaplanowane wiadomości się nie wczytały. Spróbuj ponownie. Nadal zostaną wysłane zgodnie z planem.",
     value_too_long:
       "Ta wartość przekracza limit długości. Krótsza wersja zadziała.",
     please_enter_valid_domain:
@@ -1011,28 +983,17 @@ export const pl = {
       "Część przed @ jest za długa. Krótsza wersja zadziała.",
     forwarding_rule_updated: "Reguła przekierowania zaktualizowana",
     forwarding_rule_created: "Reguła przekierowania utworzona",
-    spam_settings_saved: "Ustawienia spamu zapisane",
     email_sent_via_external: "E-mail wysłany przez konto zewnętrzne.",
     encryption_keys_rotated: "Klucze szyfrowania pomyślnie zrotowane",
     failed_to_retrieve_key: "Nie udało się pobrać bieżącego klucza z serwera",
-    failed_to_upload_keys: "Nie udało się przesłać kluczy szyfrowania",
     sending: "Wysyłanie...",
     in_one_minute: "Za 1 min",
-    user_label: "Użytkownik",
     marketing: "Wiadomości marketingowe",
-    finance_label: "Finanse",
     operation: "Operacje",
-    no_marketing_messages: "Brak wiadomości marketingowych",
-    no_finance_messages: "Brak wiadomości finansowych",
-    no_operation_messages: "Brak wiadomości operacyjnych",
     folder_label: "Folder",
-    no_email_id_provided:
-      "Nie udało się ustalić, którą wiadomość otworzyć. Powrót i wybranie jednej ze skrzynki odbiorczej zadziała.",
     please_enter_valid_url:
       "To nie jest prawidłowy adres internetowy. Pełny link, na przykład https://example.com, zadziała.",
     csv_file_empty: "Ten plik CSV nie ma żadnych wierszy. Inny plik zadziała.",
-    no_valid_contacts_csv:
-      "W tym pliku CSV nie znaleziono czytelnych kontaktów. Sprawdź nagłówki kolumn i spróbuj ponownie.",
     label_name_cannot_be_empty:
       "Ta etykieta potrzebuje nazwy przed zapisaniem.",
     folder_name_cannot_be_empty:
@@ -1063,12 +1024,6 @@ export const pl = {
       "Twoja poczta jest szyfrowana end-to-end, a klucze masz tylko Ty. Naciśnij ? w dowolnej chwili, aby zobaczyć wszystkie skróty klawiszowe.",
     skip_tour: "Pomiń przewodnik",
     get_started: "Rozpocznij",
-    setup_complete: "Konfiguracja zakończona!",
-    download_mobile_app: "Pobierz aplikację mobilną",
-    add_recovery_email: "Dodaj e-mail do odzyskiwania",
-    import_your_email: "Importuj e-maile z Gmaila lub Outlooka",
-    add_email_alias: "Dodaj alias e-mail",
-    hide_permanently: "Ukryj tę listę na stałe",
     step: "Krok",
     protected_in_transit: "Chronione w tranzycie",
     encryption_available: "Szyfrowanie dostępne",
@@ -1086,30 +1041,28 @@ export const pl = {
     only_you_and_sender: "Tylko Ty i nadawca możecie to przeczytać.",
     only_you_can_read_contacts:
       "Tylko Ty możesz czytać swoje kontakty. Aster nie ma dostępu do tych danych.",
-    tor_label: "Tor",
-    tor_snowflake_label: "Tor (Snowflake)",
-    cdn_relay_label: "Przekaźnik CDN",
-    toggle_selection: "Przełącz zaznaczenie",
-    failed_to_send_email: "Spróbuj ponownie.",
-    failed_to_send_external_email: "Spróbuj ponownie.",
+    failed_to_send_email:
+      "Ta wiadomość nie została wysłana. Spróbuj ponownie. Szkic jest zapisany.",
+    failed_to_send_external_email:
+      "Ta wiadomość nie została wysłana przez połączone konto zewnętrzne. Spróbuj ponownie. Szkic jest zapisany.",
     external_account_token_missing:
       "Połączone konto zewnętrzne wymaga ponownego połączenia przed wysyłaniem przez nie. Znajduje się to w Ustawieniach, Połączone konta.",
-    failed_to_send_via_external: "Spróbuj ponownie.",
+    failed_to_send_via_external:
+      "Wysyłanie przez połączone konto zewnętrzne nie zadziałało. Spróbuj ponownie. Szkic jest zapisany.",
     offline_change_failed:
       "Nie udało się zapisać zmiany wprowadzonej w trybie offline.",
     offline_send_failed:
       "Nie udało się wysłać wiadomości napisanej w trybie offline.",
     offline_email_queued:
       "Jesteś teraz offline. Ta wiadomość zostanie wysłana, gdy tylko nastąpi ponowne połączenie.",
-    failed_to_queue_offline: "Spróbuj ponownie.",
+    failed_to_queue_offline:
+      "Nie udało się dodać tej wiadomości do kolejki wysyłki. Spróbuj ponownie. Szkic jest zapisany.",
     cannot_mix_recipients:
-      "Użytkownicy Aster i adresy zewnętrzne nie mogą znaleźć się w tej samej wiadomości. Wysłanie ich jako dwóch oddzielnych wiadomości zadziała.",
-    failed_to_schedule_email: "Spróbuj ponownie.",
+      "Użytkownicy Aster i adresy zewnętrzne nie mogą być w tej samej wiadomości. Wyślij do nich dwie osobne wiadomości.",
+    failed_to_schedule_email:
+      "Harmonogram nie został zapisany. Spróbuj ponownie. Szkic jest zapisany.",
     failed_to_restore_draft:
       "Nie udało się przywrócić tej wersji roboczej. Otwarcie jej ponownie zwykle to załatwia. Inne wersje robocze pozostają nienaruszone.",
-    enter_url: "Wprowadź URL:",
-    enter_link_text: "Wprowadź tekst linku:",
-    conversation_marked_as_spam_toast: "Rozmowa oznaczona jako spam",
     failed_to_undo_spam:
       "Nie udało się tego cofnąć. Ręczne przeniesienie z powrotem to obejście.",
     conversation_moved_to_trash_toast: "Rozmowa przeniesiona do kosza",
@@ -1130,12 +1083,7 @@ export const pl = {
     switch_to_rich_text: "Przełącz na tekst sformatowany",
     switch_to_plain_text: "Przełącz na zwykły tekst",
     font_size_label: "Rozmiar czcionki",
-    font_small: "Mała",
-    font_normal: "Normalna",
-    font_large: "Duża",
-    font_huge: "Ogromna",
     enter_url_display_text: "Wprowadź URL i opcjonalny tekst wyświetlany",
-    select_table_size: "Wybierz rozmiar tabeli",
     emoji: "Emotikony",
     recipients: "Odbiorcy",
     encrypted_attachment: "Zaszyfrowany załącznik",
@@ -1145,10 +1093,14 @@ export const pl = {
       "Nie można dodać niektórych załączników do tej wiadomości.",
     image: "Obraz",
     system: "Systemowy",
-    failed_to_permanently_delete: "Spróbuj ponownie.",
-    failed_to_delete_emails: "Spróbuj ponownie.",
-    failed_to_mark_as_read: "Spróbuj ponownie.",
-    failed_to_mark_as_unread: "Spróbuj ponownie.",
+    failed_to_permanently_delete:
+      "Te elementy nie zostały usunięte. Spróbuj ponownie.",
+    failed_to_delete_emails:
+      "Te wiadomości nie zostały usunięte. Spróbuj ponownie.",
+    failed_to_mark_as_read:
+      "Te wiadomości są nadal oznaczone jako nieprzeczytane. Spróbuj ponownie.",
+    failed_to_mark_as_unread:
+      "Te wiadomości są nadal oznaczone jako przeczytane. Spróbuj ponownie.",
     n_conversations_archived: "{{ count }} rozmów zarchiwizowanych",
     n_conversations_archived_one: "{{count}} rozmowę zarchiwizowano",
     n_conversations_archived_other: "{{count}} rozmowy zarchiwizowano",
@@ -1159,11 +1111,10 @@ export const pl = {
     n_conversations_moved_to_trash_other:
       "{{count}} rozmowy przeniesiono do kosza",
     n_conversations_marked_as_spam: "{{ count }} rozmów oznaczonych jako spam",
-    internal_only: "Tylko wewnętrzne",
     external_only: "Tylko zewnętrzne",
     all_accounts: "Wszystkie konta",
-    all_external_accounts: "Wszystkie konta zewnętrzne",
-    failed_to_rotate_keys: "Spróbuj ponownie.",
+    failed_to_rotate_keys:
+      "Odświeżanie kluczy nie zostało ukończone. Spróbuj ponownie. Stare klucze nadal działają, a Twoje dane są bezpieczne.",
     read: "Przeczytane",
     or_conjunction: "lub",
     press_label: "Naciśnij",
@@ -1171,8 +1122,6 @@ export const pl = {
     showing_shortcuts_for: "Wyświetlanie skrótów dla",
     emoji_smileys: "Buźki",
     emoji_gestures: "Gesty",
-    emoji_hearts: "Serca",
-    emoji_celebration: "Świętowanie",
     emoji_symbols: "Symbole",
     emoji_animals: "Zwierzęta",
     emoji_food: "Jedzenie",
@@ -1193,10 +1142,13 @@ export const pl = {
     removed_count_from_allowlist: "Usunięto {{ count }} z listy dozwolonych",
     failed_to_add_label: "Spróbuj ponownie.",
     failed_to_remove_label: "Spróbuj ponownie.",
-    failed_to_move_email: "Spróbuj ponownie.",
+    failed_to_move_email:
+      "Ta wiadomość nie została przeniesiona. Spróbuj ponownie. Wiadomość jest bezpieczna w poprzednim miejscu.",
     failed_to_add_labels: "Spróbuj ponownie.",
-    failed_to_remove_labels: "Spróbuj ponownie.",
-    failed_to_copy_to_clipboard: "Spróbuj ponownie.",
+    failed_to_remove_labels:
+      "Te etykiety nie zostały usunięte. Spróbuj ponownie.",
+    failed_to_copy_to_clipboard:
+      "Nic nie zostało skopiowane do schowka. Spróbuj ponownie.",
     add_note_placeholder: "Dodaj notatkę...",
     add_private_note_placeholder: "Dodaj prywatną notatkę...",
     search_anything: "Szukaj czegokolwiek...",
@@ -1207,12 +1159,7 @@ export const pl = {
     leaving_aster_mail: "Opuszczanie Aster Mail",
     unlock_aster_mail: "Odblokuj Aster Mail",
     aster_mail_locked: "Aster Mail jest zablokowany",
-    share_aster_mail: "Udostępnij Aster Mail",
-    share_aster_description: "Udostępnij Aster Mail znajomym i rodzinie",
     merge_contacts: "Scal kontakty",
-    merged_result_preview: "Podgląd scalonego wyniku",
-    merge_all: "Scal wszystkie",
-    duplicate_contacts: "Zduplikowane kontakty",
     contact_sync: "Synchronizacja kontaktów",
     sync_confirm_title: "Synchronizuj kontakty",
     sync_confirm_message:
@@ -1228,14 +1175,10 @@ export const pl = {
     subject_label: "Temat:",
     send_at_label: "Wyślij o:",
     received: "Odebrano",
-    select_email_to_read: "Wybierz e-mail do przeczytania",
     remove_from_contacts: "Usuń z kontaktów",
     messages_from_sender: "Wiadomości od tego nadawcy",
-    powered_by: "Obsługiwane przez",
-    mobile_settings: "Ustawienia mobilne",
     app_lock: "Blokada aplikacji",
     app_locked: "Aster Mail jest zablokowany",
-    enter_pin_to_unlock: "Wprowadź PIN, aby odblokować",
     wrong_pin: "Nieprawidłowy PIN",
     app_lock_locked_out: "Zbyt wiele nieprawidłowych prób",
     app_lock_attempts_remaining: "Pozostały {{count}} próby",
@@ -1247,7 +1190,6 @@ export const pl = {
     duress_confirm_detail:
       "Twoje konto i zaszyfrowane dane pozostają bezpieczne na serwerach Aster. Możesz zalogować się ponownie w dowolnej chwili.",
     duress_confirm_proceed: "Wymaż dane lokalne",
-    secure_send: "Bezpieczne wysyłanie",
     push_notifications: "Powiadomienia push",
     enabled: "Włączone",
     haptic_feedback: "Wibracja zwrotna",
@@ -1277,7 +1219,6 @@ export const pl = {
     stylesheet: "Arkusz stylów",
     tracking_pixel: "Piksel śledzący",
     me: "ja",
-    snoozed_until_label: "Odłożone do {{time}}",
     notification_banner_message:
       "Włącz powiadomienia pulpitowe, aby być na bieżąco z nowymi e-mailami",
     notification_banner_allow: "Zezwól",
@@ -1302,15 +1243,19 @@ export const pl = {
     subject_too_long:
       "Temat przekracza limit 998 znaków. Krótsza wersja zostanie wysłana.",
     notification_banner_no_thanks: "Nie, dziękuję",
-    locked_data_banner_message: "Część Twoich starszych zaszyfrowanych danych jest zablokowana.",
+    locked_data_banner_message:
+      "Część Twoich starszych zaszyfrowanych danych jest zablokowana.",
     locked_data_banner_action: "Odzyskaj dane",
     locked_data_banner_dismiss: "Zamknij",
     recover_data_title: "Odzyskaj dane",
-    recover_data_description: "Aby odblokować dane sprzed zmiany lub zresetowania hasła, wpisz hasło używane w tamtym czasie.",
+    recover_data_description:
+      "Aby odblokować dane sprzed zmiany lub zresetowania hasła, wpisz hasło używane w tamtym czasie.",
     recover_data_button: "Odzyskaj",
     recover_data_success: "Twoje starsze dane zostały odblokowane.",
-    recover_data_no_match: "To hasło nie odblokowało żadnych danych. Spróbuj innego wcześniejszego hasła.",
-    recover_data_failed: "Nie udało się odblokować części danych. Sprawdź połączenie i spróbuj ponownie.",
+    recover_data_no_match:
+      "To hasło nie odblokowało żadnych danych. Spróbuj innego wcześniejszego hasła.",
+    recover_data_failed:
+      "Nie udało się odblokować części danych. Sprawdź połączenie i spróbuj ponownie.",
     payment_past_due_message:
       "Ostatnia płatność nie powiodła się. Zaktualizuj metodę płatności, aby zachować swój plan.",
     payment_past_due_message_days:
@@ -1329,7 +1274,6 @@ export const pl = {
     forward_label: "Przekaż dalej",
     carbon_copy: "Kopia",
     blind_carbon_copy: "Ukryta kopia",
-    end_to_end_encrypted_email: "E-mail szyfrowany end-to-end",
     terms_of_service: "Regulamin",
     privacy_policy: "Polityka prywatności",
     invite_encrypted_email:
@@ -1352,23 +1296,17 @@ export const pl = {
     storage_keys: "Klucze magazynu",
     no_contacts_found_device: "Nie znaleziono kontaktów na urządzeniu",
     no_new_contacts_imported: "Nie zaimportowano nowych kontaktów",
-    contacts_imported_count: "Zaimportowano {{count}} kontaktów",
     sender_blocked: "Nadawca zablokowany",
     snooze_label: "Odłóż",
     linkedin: "LinkedIn",
     twitter_x: "Twitter / X",
     github: "GitHub",
     social_links: "Linki społecznościowe",
-    profile_photo_label: "Zdjęcie profilowe",
     attachments_label: "Załączniki",
     custom_fields_label: "Pola niestandardowe",
-    none_label: "Brak",
     contact_1: "Kontakt 1",
     contact_2: "Kontakt 2",
-    name_colon: "Imię:",
-    emails_colon: "E-maile:",
     phone_colon: "Telefon:",
-    company_colon: "Firma:",
     address_colon: "Adres:",
     icon_label: "Ikona",
     color_label: "Kolor",
@@ -1383,9 +1321,7 @@ export const pl = {
     new_contact: "Nowy kontakt",
     at_least_one_name_required: "Wymagane jest co najmniej jedno imię",
     at_least_one_email_required: "Wymagany jest co najmniej jeden adres e-mail",
-    choose_values_to_keep: "Wybierz wartości do zachowania",
     empty: "Pusty",
-    merging: "Scalanie...",
     disabled: "Wyłączone",
     ghost_mode_title: "Tryb Ghost",
     ghost_mode_description:
@@ -1393,10 +1329,6 @@ export const pl = {
     edit_folder: "Edytuj folder",
     edit_label: "Edytuj etykietę",
     communication_history: "Historia komunikacji",
-    hide_stats: "Ukryj statystyki",
-    show_stats: "Pokaż statystyki",
-    last_colon: "Ostatnio:",
-    first_contact_colon: "Pierwszy kontakt:",
     no_email_history: "Brak historii e-maili z tym kontaktem",
     load_more: "Załaduj więcej",
     selected_count: "Zaznaczono {{ count }}",
@@ -1433,86 +1365,16 @@ export const pl = {
     check_out_aster_mail:
       "Sprawdź Aster Mail, lepszy sposób zarządzania e-mailami!",
     n_lines: "{{ count }} wierszy",
-    suspicious_email_detected: "Ta wiadomość wygląda podejrzanie.",
-    phishing_warning_message:
-      "Oznaczyliśmy tę wiadomość jako podejrzaną. Warto traktować jej zawartość ostrożnie i potwierdzić nadawcę innym kanałem przed kliknięciem linków lub podaniem danych osobowych. Skrzynka odbiorcza i konto pozostają nienaruszone.",
     hide_details: "Ukryj szczegóły",
     show_details: "Pokaż szczegóły",
     not_phishing: "To nie phishing",
-    i_understand: "Rozumiem",
-    dangerous_email_links_disabled:
-      "Niebezpieczna wiadomość, linki zostały wyłączone.",
-    phishing_danger_message:
-      "Ta wiadomość wygląda na próbę phishingu, a jej linki zostały wyłączone dla bezpieczeństwa. Jeśli nadawca jest zaufany, w banerze znajduje się opcja ponownego włączenia. Konto pozostaje nietknięte.",
-    hide_reasons: "Ukryj powody",
-    show_reasons: "Pokaż powody",
-    view_links_anyway: "Mimo to wyświetl linki",
-    enable_links: "Włącz linki",
-    links_re_enabled: "Linki zostały ponownie włączone.",
-    i_understand_the_risks: "rozumiem ryzyko",
-    signal_dkim_fail:
-      "Nie udało się zweryfikować podpisu nadawcy. Ta wiadomość mogła zostać zmieniona w trakcie przesyłania lub sfałszowana.",
-    signal_spf_fail:
-      "Serwer, z którego wysłano tę wiadomość, nie jest zwykle używany przez tę domenę. Nadawca może być podszywany.",
-    signal_dmarc_fail:
-      "Domena nadawcy odrzuca wiadomości, które nie spełniają jej reguł zabezpieczających, a ta ich nie spełniła. Warto zachować ostrożność.",
-    signal_all_auth_fail:
-      "Wszystkie kontrole nadawcy dla tej wiadomości zakończyły się niepowodzeniem. Wiadomość może być sfałszowana, a jej linkom i załącznikom nie należy ufać bez potwierdzenia nadawcy innym kanałem.",
     auth_fail_banner_title: "Nie udało się potwierdzić nadawcy.",
     auth_fail_banner_body:
       "Nie udało się potwierdzić, że ta wiadomość rzeczywiście pochodzi z widocznego adresu, i może być sfałszowana. Bezpieczniej jest potwierdzić nadawcę innym kanałem przed otwarciem linków lub załączników. Konto pozostaje nienaruszone.",
-    signal_all_auth_pass:
-      "Wszystkie testy uwierzytelniania e-mail zakończone pomyślnie",
-    signal_reply_to_mismatch:
-      "Odpowiedzi na tę wiadomość trafiałyby do innej domeny niż widoczna w polu nadawcy. To częsty schemat phishingu.",
-    signal_missing_from:
-      "Ta wiadomość nie ma pola Od, co jest niezwykłe i warto potraktować ją z rozwagą.",
-    signal_missing_message_id:
-      "W tej wiadomości brakuje unikalnego identyfikatora, który niesie zwykła poczta.",
-    signal_multiple_from:
-      "Ta wiadomość deklaruje więcej niż jednego nadawcę naraz, co jest częstym znakiem fałszerstwa.",
-    signal_future_dated:
-      "Według zegara nadawcy ta wiadomość została napisana w przyszłości, co może wskazywać na fałszerstwo lub źle skonfigurowanego nadawcę.",
-    signal_domain_reputation_high:
-      "Domena tego nadawcy ma słabą reputację w szerszej społeczności pocztowej.",
-    signal_domain_reputation_medium:
-      "Domena tego nadawcy ma mieszaną reputację. Warto uważnie się przyjrzeć przed podjęciem działania.",
-    signal_domain_new:
-      "Domena tego nadawcy została zarejestrowana niedawno, co jest częste przy kampaniach oszukańczych.",
-    signal_user_reputation_high:
-      "Zgłaszano już tego nadawcę, więc wiadomość została oznaczona.",
-    signal_rbl_spamhaus:
-      "Serwer, z którego wysłano tę wiadomość, znajduje się na znanej liście blokowania spamu.",
-    signal_rbl_barracuda:
-      "Serwer, z którego wysłano tę wiadomość, znajduje się na znanej liście blokowania spamu.",
-    signal_rbl_other:
-      "Serwer, z którego wysłano tę wiadomość, znajduje się na bieżącej liście blokowania spamu.",
-    signal_display_name_brand_spoof:
-      "Nazwa nadawcy kopiuje znaną markę, co jest częstą sztuczką phishingową.",
-    signal_display_name_email_spoof:
-      "Nazwa wyświetlana nadawcy pokazuje jeden adres e-mail, a wiadomość pochodzi z innego. To częsty schemat phishingu.",
-    signal_domain_blocklist:
-      "Domena tego nadawcy znajduje się na liście blokowania phishingu. Warto traktować wiadomość jako wrogą.",
-    signal_safe_browsing_match:
-      "Domena tego nadawcy została oznaczona za hostowanie niebezpiecznych treści.",
-    signal_url_on_blocklist:
-      "Ta wiadomość zawiera linki do stron znanych z phishingu. Lepiej ich nie klikać.",
-    signal_homoglyph_domain:
-      "Ta wiadomość zawiera linki do domen łudząco podobnych, zaprojektowanych tak, by udawać legalne strony. Lepiej ich unikać.",
-    signal_display_name_brand_spoof_client:
-      "Nazwa nadawcy kopiuje znaną markę, co jest częstą sztuczką phishingową.",
-    signal_display_name_email_mismatch:
-      "Nazwa nadawcy i jego rzeczywisty adres nie zgadzają się, co jest częstym schematem phishingu.",
-    signal_urgency_language:
-      "Ta wiadomość używa pilnego lub groźnego języka często spotykanego w oszustwach. Bezpieczniej jest zwolnić przed podjęciem działania.",
     shipment_update: "Aktualizacja przesyłki",
-    estimated_short: "Przewid. {{ date }}",
     track_package: "Śledź paczkę",
     tracking_number: "Numer śledzenia",
     estimated_delivery: "Przewidywana dostawa",
-    delivery_address: "Adres dostawy",
-    extracted_locally_message:
-      "Wyodrębniono lokalnie z Twojego e-maila, a nic nie jest wysyłane do naszych serwerów.",
     view_blocked_content_details: "Zobacz szczegóły zablokowanej zawartości",
     n_images: "{{ count }} obrazów",
     n_items: "{{ count }} elementów",
@@ -1538,19 +1400,18 @@ export const pl = {
     select_destination_folder: "Wybierz folder docelowy",
     no_folders_available: "Brak dostępnych folderów",
     submitting: "Wysyłanie...",
-    account_suspended_label: "Konto jest zawieszone.",
     suspended_alert: "To konto było używane w sposób niezgodny z {terms}.",
     suspended_alert_terms: "Warunkami korzystania z usługi Aster",
-    suspended_since_with_deletion: "To konto jest niedostępne od {date}. Od {deletion_date} może zostać zakwalifikowane do usunięcia.",
+    suspended_since_with_deletion:
+      "To konto jest niedostępne od {date}. Od {deletion_date} może zostać zakwalifikowane do usunięcia.",
     suspended_since: "To konto jest niedostępne od {date}.",
     suspended_title: "To konto jest zawieszone",
-    suspended_appeal_hint: "Jeśli uważasz, że to pomyłka, możesz złożyć odwołanie. Aster rozpatruje każde odwołanie i odpowiada e-mailem.",
-    suspended_download_hint: "Nadal możesz pobrać kopię swoich danych. Twoja poczta jest odszyfrowywana tylko na tym urządzeniu, więc nikt inny nie może odczytać eksportu.",
+    suspended_appeal_hint:
+      "Jeśli uważasz, że to pomyłka, możesz złożyć odwołanie. Aster rozpatruje każde odwołanie i odpowiada e-mailem.",
+    suspended_download_hint:
+      "Nadal możesz pobrać kopię swoich danych. Twoja poczta jest odszyfrowywana tylko na tym urządzeniu, więc nikt inny nie może odczytać eksportu.",
     suspended_download: "Pobierz swoje dane",
     suspended_start_appeal: "Złóż odwołanie",
-    account_suspended_default_reason:
-      "Konto jest zawieszone z powodu naruszenia Warunków świadczenia usług. hello@astermail.org może pomóc z odwołaniem lub szczegółami.",
-    submit_an_appeal: "Złóż odwołanie",
     settings_disabled_suspended:
       "Ustawienia są wyłączone, gdy konto jest zawieszone. hello@astermail.org może pomóc z odwołaniem lub szczegółami.",
     new_email_body: "Masz nowy e-mail",
@@ -1570,18 +1431,6 @@ export const pl = {
     sender_type_external: "Zewnętrzny",
     sender_type_ghost: "Ghost",
     recovery_email_label: "Adres do odzyskiwania",
-    vault_access_error:
-      "Nie udało się otworzyć kluczy prywatnych na tym urządzeniu. Wylogowanie i ponowne zalogowanie je załaduje. Klucze i dane na serwerze pozostają bez zmian.",
-    recovery_email_already_used:
-      "Ten adres jest już adresem odzyskiwania na innym koncie. Inny powinien zadziałać.",
-    add_recovery_email_gate_desc:
-      "Zweryfikowany adres odzyskiwania jest potrzebny do dalszego korzystania z Aster Mail. To sposób na powrót do konta, jeśli hasło zostanie zapomniane, więc adres zawsze dostępny jest bezpieczniejszym wyborem.",
-    recovery_email_encrypted_note:
-      "Ten adres będzie używany wyłącznie do odzyskiwania konta i weryfikacji tożsamości. Jest zaszyfrowany i Aster nie może go odczytać.",
-    recovery_email_verified_redirect:
-      "Twój adres do odzyskiwania został zweryfikowany. Trwa przekierowanie...",
-    verification_link_sent_to:
-      "Wysłaliśmy link weryfikacyjny na adres {{email}}. Kliknij link w e-mailu, aby potwierdzić swoją tożsamość.",
     check_spam_folder_note:
       "Nie dostałeś e-maila? Sprawdź folder Spam. Link wygasa po 24 godzinach.",
     job_title_at_company: "{{ job_title }} w {{ company }}",
@@ -1603,22 +1452,16 @@ export const pl = {
     enter_contact_group_name: "Wpisz nazwę grupy",
     manage_contact_groups: "Zarządzaj grupami",
     no_contact_groups_yet: "Nie ma jeszcze grup",
-    add_contacts_to_group_hint:
-      "Utwórz grupę, aby uporządkować osoby, do których piszesz najczęściej.",
     contact_group_name_too_long:
       "Nazwa grupy może mieć maksymalnie {{ max }} znaków.",
     contact_group_already_exists: "Grupa o tej nazwie już istnieje.",
     contact_group_limit_reached: "Możesz utworzyć maksymalnie {{ max }} grup.",
-    delete_contact_group_confirm:
-      "Usunąć tę grupę? Kontakty pozostaną w książce adresowej.",
     failed_to_fetch_contact_groups:
       "Nie udało się wczytać grup. Spróbuj ponownie.",
     failed_to_save_contact_group:
       "Nie udało się zapisać grupy. Spróbuj ponownie.",
     failed_to_create_contact_group:
       "Nie udało się utworzyć grupy. Spróbuj ponownie.",
-    failed_to_delete_contact_group:
-      "Nie udało się usunąć grupy. Spróbuj ponownie.",
     failed_to_update_contact_groups:
       "Nie udało się zaktualizować członkostwa w grupie.",
     contacts_added_to_group: "Dodano {{count}} kontaktów do grupy",
@@ -1639,29 +1482,21 @@ export const pl = {
       "Ta etykieta zostanie usunięta z każdej wiadomości, do której jest przypisana, bez możliwości cofnięcia. Same wiadomości pozostają na koncie.",
     confirm_delete_label: "Czy na pewno chcesz usunąć etykietę",
     add_another_email_count: "Dodaj kolejny e-mail ({{current}}/{{max}})",
-    drop_files_or_click: "Upuść pliki tutaj lub kliknij, aby przesłać",
-    max_size_per_file: "Maks. {{size}} na plik",
-    uploading_progress: "Przesyłanie...",
     n_messages_count: "{{count}} wiadomości",
-    view_all_messages: "Zobacz wszystkie wiadomości",
     unable_to_decrypt: "Nie udało się otworzyć tej wiadomości",
     decrypt_session_expired_message:
       "Nie udało się otworzyć tej wiadomości na tym urządzeniu, często dlatego, że sesja się zakończyła. Wiadomość i klucze na serwerze pozostają bez zmian.",
     decrypt_try_sign_out:
       "Wylogowanie i ponowne zalogowanie odświeży klucze. Jeśli wiadomość nadal się nie otworzy, hello@astermail.org może pomóc.",
-    n_files: "{{count}} plik",
-    n_files_plural: "{{count}} plików",
-    aster_user: "Użytkownik Aster",
     allow_sender: "Dodaj do listy dozwolonych",
     remove_from_allowlist_action: "Usuń z listy dozwolonych",
-    failed_to_allow_sender: "Spróbuj ponownie.",
+    failed_to_allow_sender:
+      "Ten nadawca nie został dodany do listy dozwolonych. Spróbuj ponownie.",
     press_enter: "Enter",
     press_enter_to_view_all: "Naciśnij Enter, aby wyświetlić wszystkie wyniki",
     stop: "Zatrzymaj",
     more_aliases: "{{count}} więcej aliasów",
     profile: "Profil",
-    probation_message:
-      "Twoje konto jest aktualnie weryfikowane. Niektóre funkcje mogą być ograniczone.",
     sending_in_seconds: "Wysyłanie za {{seconds}} sekund(y)...",
     sending_in_one_second: "Wysyłanie za 1 sekundę...",
     message_will_be_sent_shortly: "Twoja wiadomość zostanie wkrótce wysłana",
@@ -1672,21 +1507,21 @@ export const pl = {
       "Nieprawidłowe hasło lub kod weryfikacyjny. Spróbuj ponownie.",
     step_up_security_key_hint:
       "Po wpisaniu hasła zostaniesz poproszony o weryfikację kluczem bezpieczeństwa.",
-    remove_recovery_email_confirm:
-      "Czy na pewno chcesz usunąć adres e-mail odzyskiwania? Nie będziesz już móc odzyskać konta przy użyciu tego adresu.",
     recovery_email_removed: "E-mail odzyskiwania został usunięty",
     recovery_email_hidden: "Zapisano na tym koncie",
-    failed_remove_recovery_email: "Spróbuj ponownie.",
-    failed_save_profile_color: "Spróbuj ponownie.",
+    failed_save_profile_color:
+      "Wybrany kolor nie został zapisany. Spróbuj ponownie.",
     image_load_failed:
       "Ten obraz nie załadował się. Odświeżenie strony zwykle pomaga.",
     image_processing_failed:
       "Nie udało się przetworzyć tego obrazu. Spróbuj z innym plikiem.",
     alias_avatar_updated: "Avatar aliasu został zaktualizowany",
     alias_avatar_removed: "Avatar aliasu został usunięty",
-    failed_update_alias_avatar: "Spróbuj ponownie.",
+    failed_update_alias_avatar:
+      "Awatar aliasu nie został zaktualizowany. Spróbuj ponownie.",
     alias_display_name_updated: "Nazwa wyświetlana została zaktualizowana",
-    failed_update_alias_display_name: "Spróbuj ponownie.",
+    failed_update_alias_display_name:
+      "Nazwa wyświetlana nie została zaktualizowana. Spróbuj ponownie.",
     display_name_too_long:
       "Ta nazwa wyświetlana przekracza limit długości. Użyj krótszej.",
     add_display_name_placeholder: "Dodaj nazwę wyświetlaną",
@@ -1711,7 +1546,6 @@ export const pl = {
     remove_alias_avatar: "Usuń avatar",
     alias_avatars_locked:
       "Niestandardowe avatary są dostępne w planach płatnych. Uaktualnij plan, aby je włączyć.",
-    alias_avatars_feature: "Niestandardowe avatary aliasów i domen",
     not_now: "Nie teraz",
     scanning_mailbox: "Skanowanie skrzynki pocztowej...",
     marking_as_read_count:
@@ -1741,14 +1575,17 @@ export const pl = {
     switch_to_simple: "Przełącz na widok prosty",
     switch_to_advanced: "Przełącz na widok zaawansowany",
     star_selected: "Oznacz gwiazdką",
-    unstar_selected: "Usuń gwiazdkę",
     all_short: "Wszystkie",
     search_failed_try_again:
       "Wyszukiwanie nie zostało ukończone. Spróbuj jeszcze raz za chwilę.",
-    search_load_failed_try_again: "Spróbuj ponownie.",
-    failed_to_set_folder_password: "Spróbuj ponownie.",
-    failed_to_change_folder_password: "Spróbuj ponownie.",
-    failed_to_remove_folder_password: "Spróbuj ponownie.",
+    search_load_failed_try_again:
+      "Nie udało się wczytać wiadomości do wyszukiwania. Spróbuj ponownie. Twoja poczta jest bezpieczna.",
+    failed_to_set_folder_password:
+      "Hasło folderu nie zostało zapisane. Spróbuj ponownie. Zawartość folderu jest bez zmian.",
+    failed_to_change_folder_password:
+      "Hasło folderu się nie zmieniło. Spróbuj ponownie. Stare hasło nadal działa.",
+    failed_to_remove_folder_password:
+      "Nie udało się usunąć hasła folderu. Spróbuj ponownie. Folder pozostaje zablokowany.",
     wkd_encrypted_description:
       "Zaszyfrowano przy użyciu opublikowanego klucza publicznego odbiorcy.",
     sender_verified: "Nadawca zweryfikowany",
@@ -1769,15 +1606,12 @@ export const pl = {
       "To urządzenie zostało usunięte z Twojego konta i nastąpiło wylogowanie. Jeśli to nie Ty, zmień hasło natychmiast na astermail.org/security.",
     pending_deletion_title: "Konto zaplanowane do usunięcia",
     pending_deletion_days:
-      "Twoje konto zostanie usunięte za {{days}} dni. Baner poniżej zawiera opcję anulowania, jeśli zmienisz zdanie.",
-    pending_deletion_cancel_prompt:
-      "Czy chcesz anulować usunięcie i zachować swoje konto?",
+      "Twoje konto zostanie usunięte za {{days}} dni. Anuluj usunięcie, aby zachować konto i przywrócić dostęp do poczty.",
     pending_deletion_body:
       "Twoje konto jest zaplanowane do usunięcia. Anuluj usuwanie, aby zachować konto i odzyskać dostęp do poczty.",
     pending_deletion_sign_out: "Wyloguj się",
     pending_deletion_error: "Nie udało się przywrócić konta. Spróbuj ponownie.",
     pending_deletion_keep: "Zachowaj moje konto",
-    pending_deletion_dismiss: "Nie, kontynuuj usuwanie",
     pending_deletion_cancelling: "Anulowanie...",
     family_2fa_title: "Wymagane uwierzytelnianie dwuskładnikowe",
     family_2fa_body:
@@ -1791,19 +1625,16 @@ export const pl = {
       '"{{name}}" przekracza limit {{size}} dla pojedynczego pliku. Użyj mniejszej wersji lub udostępnij przez link.',
     file_exceeds_max_size_upgradable:
       '"{{name}}" przekracza limit {{size}} na plik w Twoim planie. Wyższy plan zwiększa go do {{max_size}}.',
-    total_attachments_exceed_limit:
-      "Twoje załączniki przekraczają łączny limit {{size}}. Usuń plik lub udostępnij go przez link.",
     adding_file_would_exceed_limit:
       'Dodanie "{{name}}" spowoduje przekroczenie limitu {{size}} dla załączników. Najpierw usuń plik lub wyślij go w oddzielnej wiadomości.',
-    unsupported_file_type:
-      '"{{name}}" jest nieobsługiwanym typem pliku. Zapisz w innym formacie lub udostępnij przez link.',
     file_already_attached:
       '"{{name}}" jest już dołączone do tej wiadomości. Nie musisz dodawać go ponownie.',
     metadata_not_removed:
       "Nie udało się usunąć ukrytych metadanych z {{names}}. Plik został załączony bez zmian.",
     failed_to_read_named_file:
       'Nie udało się odczytać "{{name}}". Spróbuj z innym plikiem.',
-    unknown_error: "Spróbuj ponownie.",
+    unknown_error:
+      "Coś nie zadziałało zgodnie z oczekiwaniami. Spróbuj ponownie. Nie udało się ustalić przyczyny.",
     unsaved_changes_title: "Odrzucić zmiany?",
     unsaved_changes_body:
       "Wprowadzone dane nie są zapisane. Zamknięcie formularza teraz je usuwa.",
@@ -1812,17 +1643,10 @@ export const pl = {
     uncategorized: "Bez kategorii",
     draft_category: "Wersja robocza",
     scheduled_category: "Zaplanowane",
-    request_timed_out:
-      "Żądanie trwało zbyt długo. Sprawdź połączenie i spróbuj ponownie.",
     account_suspended: "Twoje konto jest zawieszone.",
     account_limit_reached:
       "Osiągnięto limit kont dla tej sieci. Jeśli to wygląda na błąd, napisz na hello@astermail.org.",
-    health_check_failed: "Spróbuj ponownie.",
-    failed_to_get_key_status: "Spróbuj ponownie.",
-    unknown_rotation_error: "Spróbuj ponownie.",
-    new_email_notification: "Nowa wiadomość od {{ sender }}",
-    reply_notification: "{{ sender }} odpowiedział(-a)",
-    mention_notification: "{{ sender }} wspomniał(-a) o Tobie",
+    health_check_failed: "Diagnostyka nie została ukończona. Spróbuj ponownie.",
     print_from: "Od:",
     print_to: "Do:",
     print_cc: "DW:",
@@ -1854,7 +1678,6 @@ export const pl = {
     recovery_text_no_share: "Nie udostępniaj nikomu",
     recovery_text_unrecoverable:
       "Bez tych kodów nikt nie będzie w stanie przywrócić dostępu do konta, jeśli zapomnisz hasła.",
-    recovery_text_if_forgot: "jeśli zapomnisz hasła",
     recovery_text_your_codes: "TWOJE KODY ODZYSKIWANIA:",
     recovery_text_mark_used: "Oznacz kody jako użyte:",
     recovery_text_code_used_on: "Kod {{ number }} użyty dnia: ____________",
@@ -1862,20 +1685,13 @@ export const pl = {
     click_to_add_value: "Kliknij, aby dodać wartość...",
     no_custom_fields_yet:
       "Nie zdefiniowano jeszcze żadnych pól niestandardowych",
-    profile_photo: "Zdjęcie profilowe",
-    drop_image_or_click: "Upuść obraz lub kliknij",
-    photo_format_hint: "JPEG, PNG, WebP lub GIF. Maks. 10 MB.",
-    found_one_contact: "Znaleziono 1 kontakt",
-    found_n_contacts: "Znaleziono {{count}} kontaktów",
     and_n_more: "I {{count}} więcej...",
     import_one_contact: "Importuj 1 kontakt",
     import_n_contacts: "Importuj {{count}} kontaktów",
     one_email: "1 wiadomość",
-    n_emails: "{{count}} wiadomości",
     use_biometry_to_unlock: "Użyj {{name}}, aby odblokować",
     unlock_with_biometry: "Odblokuj za pomocą {{name}}",
     images_count: "{{count}} obrazy",
-    images_count_plural: "{{count}} obrazów",
     blocked_items_count: "{{count}} elementów",
     n_more: "+{{count}} więcej",
     x_of_y: "{{ current }} z {{ total }}",
@@ -1900,7 +1716,7 @@ export const pl = {
     auth_fail_tooltip_spf:
       "Serwer, który wysłał tę wiadomość, nie jest zatwierdzonym nadawcą dla domeny w wierszu Od.",
     auth_fail_tooltip_dkim:
-      "Podpis nadawcy jest brak lub nie pasuje; nie możemy potwierdzić, że wiadomość nie została zmieniona w drodze.",
+      "Podpisu nadawcy brakuje lub nie jest zgodny, więc nie można potwierdzić, że wiadomość nie została zmieniona w drodze.",
     auth_fail_tooltip_dmarc:
       "Polityka tej domeny nakazuje odrzucenie takich wiadomości.",
     label_system_inbox: "Skrzynka odbiorcza",
@@ -2197,10 +2013,6 @@ export const pl = {
     email_count_few: "{{count}} wiadomości",
     email_count_many: "{{count}} wiadomości",
     email_count_other: "{{count}} wiadomości",
-    entry_count_one: "{{count}} wpis",
-    entry_count_few: "{{count}} wpisy",
-    entry_count_many: "{{count}} wpisów",
-    entry_count_other: "{{count}} wpisy",
     file_count_one: "{{count}} plik",
     file_count_few: "{{count}} pliki",
     file_count_many: "{{count}} plików",
@@ -2227,7 +2039,6 @@ export const pl = {
     app_lock_attempts_remaining_other: "Pozostały {{count}} próby",
     sender_count: "{{count}} nadawców",
     email_count: "{{count}} wiadomości",
-    entry_count: "{{count}} wpisy",
     file_count: "{{count}} pliki",
     images_count_one: "{{count}} obraz",
     images_count_few: "{{count}} obrazy",
@@ -2244,7 +2055,7 @@ export const pl = {
     tray_display_reset: "Wyczyść pamięć podręczną obrazu i uruchom ponownie",
     push_new_message: "Masz nową wiadomość",
     too_many_recipients_in_field:
-      "Każde pole Do, DW i UDW mieści maksymalnie {{max}} adresów. Przenieś część do drugiej wiadomości, aby wysłać tę.",
+      "Limit adresów w każdym z pól Do, DW i UDW wynosi {{max}}. Aby wysłać tę wiadomość, przenieś część adresów do drugiej.",
     too_many_recipients_in_message:
       "Jedna wiadomość dociera maksymalnie do {{max}} adresów w polach Do, DW i UDW. Podzielenie listy na mniejsze wiadomości pozwoli ją wysłać.",
     credit_balance_changed:
@@ -2264,15 +2075,11 @@ export const pl = {
       "Usunięcie grupy „{{name}}” kasuje samą grupę. Kontakty, które do niej należą, zostają w książce adresowej.",
     discard_new_contact_message:
       "Rozpoczęty kontakt nie został jeszcze zapisany. Jeśli teraz otworzysz inny kontakt, stracisz go.",
-    empty_trash_confirm:
-      "Czy trwale usunąć wszystkie kontakty z kosza? Tej operacji nie można cofnąć.",
     export_selection_csv: "Eksportuj jako CSV",
     export_selection: "Eksportuj zaznaczenie",
     group_empty_hint:
       "Aby wypełnić tę grupę, zaznacz kontakty na karcie Kontakty i wybierz Dodaj do grupy.",
     group_modal_description: "Twórz grupy, aby pisać do wielu kontaktów naraz.",
-    import_nothing_selected:
-      "Zaznacz przynajmniej jeden kontakt do zaimportowania.",
     merge_contacts_hint:
       "Wybierz dane, które chcesz zachować. Pozostałe kontakty trafiają do kosza.",
     no_contact_changes: "Na razie brak zmian",
@@ -2281,12 +2088,20 @@ export const pl = {
     no_groups_yet: "Na razie brak grup",
     share_contact_via_email: "Dołącz do nowej wiadomości",
     share_contact_device: "Udostępnij w innej aplikacji",
+    biometry_fingerprint: "odcisku palca",
+    biometry_face_recognition: "rozpoznawania twarzy",
+    biometry_iris: "tęczówki",
+    biometry_generic: "biometrii",
+    share_via: "Udostępnij przez",
+    zip_archive: "Archiwum ZIP",
   },
   settings: {
     bill_thanks_title: "Dziękujemy za wspieranie Aster",
-    bill_thanks_body: "Twoje wsparcie znaczy dla nas wszystko. Dzięki niemu mały zespół może każdego dnia z troską rozwijać Aster.",
+    bill_thanks_body:
+      "Twoje wsparcie znaczy dla nas wszystko. Dzięki niemu mały zespół może każdego dnia z troską rozwijać Aster.",
     bill_thanks_free_title: "Dziękujemy, że korzystasz z Aster",
-    bill_thanks_free_body: "Mały zespół z troską tworzy Aster, a każda osoba, która powierza mu swoją pocztę, pozwala nam działać dalej. Przejdź na wyższy plan, gdy potrzebujesz więcej miejsca, aliasów lub własnych domen.",
+    bill_thanks_free_body:
+      "Mały zespół z troską tworzy Aster, a każda osoba, która powierza mu swoją pocztę, pozwala nam działać dalej. Przejdź na wyższy plan, gdy potrzebujesz więcej miejsca, aliasów lub własnych domen.",
     bill_attachments: "Załączniki",
     bill_dedicated_support: "Dedykowane wsparcie",
     bill_early_access: "Wczesny dostęp do nowych funkcji",
@@ -2302,7 +2117,8 @@ export const pl = {
     bill_tracker_protection: "Ochrona przed trackerami",
     bill_action_required: "Wymagane działanie",
     bill_add_funds: "Dodaj środki",
-    bill_add_funds_body: "Środki pokrywają odnowienia i dodatki, zanim obciążymy Twoją kartę.",
+    bill_add_funds_body:
+      "Środki pokrywają odnowienia i dodatki, zanim obciążymy Twoją kartę.",
     bill_add_more_storage: "Dodaj więcej miejsca",
     bill_aliases: "Aliasy",
     bill_all_good: "Wszystko w porządku",
@@ -2346,7 +2162,8 @@ export const pl = {
     bill_update_payment: "Aktualizuj",
     bill_upgrade: "Ulepsz",
     bill_use_credits_renewals: "Używaj środków do odnowień",
-    bill_use_credits_renewals_body: "Twoje saldo jest wykorzystywane, zanim obciążymy Twoją kartę.",
+    bill_use_credits_renewals_body:
+      "Twoje saldo jest wykorzystywane, zanim obciążymy Twoją kartę.",
     alias_sent_mail_label: "Wysłane wiadomości",
     alias_sent_mail_desc: "Zobacz wiadomości wysłane z tego adresu.",
     account_enabled_tooltip: "To konto się synchronizuje.",
@@ -2453,9 +2270,9 @@ export const pl = {
       "Ustawienia e-maila odzyskiwania przeniesiono do Bezpieczeństwo > Odzyskiwanie konta",
     phrase_wrap_save_failed:
       "Nie udało się zapisać frazy odzyskiwania na serwerze. Spróbuj ponownie.",
-    smtp_tokens: "Tokeny SMTP",
+    smtp_tokens: "SMTP, IMAP, POP3 i JMAP",
     smtp_tokens_description:
-      "Utwórz dane uwierzytelniające SMTP tylko do wysyłania, aby zewnętrzne aplikacje i skrypty mogły wysyłać pocztę z Twoich zweryfikowanych adresów w domenach niestandardowych.",
+      "Połącz dowolny klient poczty lub aplikację. Aby mieć pełny dostęp przez IMAP, POP3, SMTP i JMAP, użyj aplikacji Aster Bridge powyżej (poczta jest odszyfrowywana na Twoim urządzeniu) albo wygeneruj poniżej dane SMTP tylko do wysyłania dla aplikacji i skryptów, które muszą jedynie wysyłać pocztę z Twoich zweryfikowanych adresów w domenach niestandardowych.",
     smtp_tokens_popover_description:
       "Token SMTP to hasło tylko do wysyłania powiązane z jednym z Twoich zweryfikowanych adresów w domenie niestandardowej. Używaj go do wysyłania poczty z systemów zautomatyzowanych, skryptów lub usług zewnętrznych przez standardowy protokół SMTP.",
     smtp_tokens_empty: "Brak tokenów SMTP.",
@@ -2743,7 +2560,7 @@ export const pl = {
       "Przekazać uprawnienia administratora do {{name}}?",
     family_transfer_confirm_body:
       "{{name}} zostanie właścicielem grupy i będzie zarządzać rozliczeniami. Ty staniesz się zwykłym członkiem.",
-    family_transfer_confirm_action: "Przekaż uprawnienia administratora",
+    family_transfer_confirm_action: "Przekaż uprawnienia",
     family_leave: "Opuść plan rodzinny",
     family_leave_confirm_title: "Opuścić plan rodzinny?",
     family_leave_confirm_body:
@@ -2983,7 +2800,8 @@ export const pl = {
     alias_restore_mismatch:
       "Ten adres nie pasuje do tego aliasu. Sprawdź nagłówek dostarczonej wiadomości.",
     alias_restore_failed: "Spróbuj ponownie.",
-    recently_deleted_load_failed: "Spróbuj ponownie.",
+    recently_deleted_load_failed:
+      "Nie udało się wczytać ostatnio usuniętych aliasów. Spróbuj ponownie.",
     ghost_aliases_info:
       "Aliasy widmo są tymczasowe i wygasają automatycznie. Używaj ich do jednorazowych rejestracji lub wszędzie tam, gdzie nie chcesz stałego adresu. Znikają samoczynnie - bez konieczności czyszczenia.",
     recently_deleted_aliases_title: "Ostatnio usunięte",
@@ -3011,7 +2829,8 @@ export const pl = {
     recently_deleted_directories_description:
       "Przywróć usunięty katalog. Usunięte katalogi nie odbierają nowej poczty, dopóki nie zostaną przywrócone.",
     directory_restored: "Katalog przywrócony",
-    failed_restore_directory: "Spróbuj ponownie.",
+    failed_restore_directory:
+      "Ten katalog nie został przywrócony. Spróbuj ponownie.",
     purge_directory_confirm_title: "Usunąć katalog trwale?",
     purge_directory_confirm_message:
       "Trwale usunąć {{ key }}@{{ domain }}? Tej operacji nie można cofnąć. Katalog pozostaje zarezerwowany dla Twojego konta, więc nikt inny nigdy go nie przejmie.",
@@ -3151,7 +2970,7 @@ export const pl = {
     alias_delivery_title: "Dostarczanie",
     alias_delivery_folder: "Dostarczaj do",
     alias_delivery_folder_desc:
-      "Wybierz, gdzie trafia poczta z tego aliasu. Domyślnie to skrzynka odbiorcza.",
+      "Poczta wysłana na ten alias trafia do wybranego przez Ciebie folderu. Domyślnie jest to skrzynka odbiorcza.",
     alias_delivery_folder_info:
       "Poczta z tego aliasu trafia prosto do wybranego folderu, bez reguły. Pasująca reguła nadal ma pierwszeństwo.",
     alias_delivery_folder_error: "Spróbuj ponownie.",
@@ -3434,14 +3253,14 @@ export const pl = {
     fam_org_tab_security: "Bezpieczeństwo",
     fam_org_tab_retention: "Przechowywanie danych",
     fam_org_groups_name_placeholder: "Nazwa grupy",
-    fam_org_groups_prefix_placeholder: "Prefiks adresu e-mail (opcjonalnie)",
+    fam_org_groups_prefix_placeholder: "Prefiks",
     fam_org_groups_domain_placeholder: "Wybierz domenę",
     fam_org_groups_create: "Utwórz",
     fam_org_groups_info_title: "Grupy organizacji",
     fam_org_groups_info_desc:
       "Grupa łączy kilku członków pod jednym wspólnym adresem. Poczta wysłana na adres grupy jest dostarczana do każdego jej członka - przydatne dla wspólnych skrzynek, takich jak family@ czy parents@. Prefiks adresu e-mail jest opcjonalny.",
     fam_org_groups_prefix_hint:
-      "Prefiks adresu e-mail jest opcjonalny - tworzy adres grupy taki jak",
+      "Wpisz prefiks, aby przypisać grupowy adres e-mail",
     fam_org_groups_address_preview: "Adres grupy: ",
     fam_org_groups_address_in_use:
       "Ten adres jest już używany przez alias lub inną grupę",
@@ -3948,7 +3767,8 @@ export const pl = {
     signature_custom: "Niestandardowy",
     custom_signature: "Niestandardowy podpis",
     time_zone: "Strefa czasowa",
-    time_zone_description: "Twoja lokalna strefa czasowa",
+    time_zone_description:
+      "Strefa czasowa używana do wyświetlania godzin wiadomości na wszystkich Twoich urządzeniach",
     time_zone_auto: "Automatycznie (strefa urządzenia)",
     time_zone_search_placeholder: "Szukaj miasta lub regionu",
     time_zone_no_results: "Brak pasujących stref czasowych",
@@ -4013,7 +3833,7 @@ export const pl = {
     updates_never_checked: "Nigdy nie sprawdzano",
     updates_auto_label: "Automatycznie sprawdzaj aktualizacje",
     updates_auto_description:
-      "Aster Mail szuka nowych wersji i powiadamia Cię, gdy jakaś jest gotowa do zainstalowania.",
+      "Aster Mail szuka nowych wersji i informuje Cię, gdy któraś jest gotowa do instalacji.",
     updates_release_notes: "Informacje o wydaniu",
     updates_banner_title: "Aster Mail {{version}} jest dostępny",
     updates_banner_action: "Zainstaluj teraz",
@@ -4127,7 +3947,8 @@ export const pl = {
     password_change_background_reencrypt_failed:
       "Twoje hasło zostało zmienione, ale część wysłanych wiadomości i ustawień nie została ponownie zaszyfrowana. Skontaktuj się z pomocą techniczną, jeśli coś wygląda na nieczytelne.",
     previous_password: "Poprzednie hasło",
-    password_change_sent_mail_locked: "Hasło zostało zmienione. Wysłane e-maile ({{count}}) były zaszyfrowane wcześniejszym hasłem i nie zostały zaktualizowane. Aby je odblokować, wybierz Odzyskaj dane na banerze u góry skrzynki odbiorczej.",
+    password_change_sent_mail_locked:
+      "Hasło zostało zmienione. Wysłane e-maile ({{count}}) były zaszyfrowane wcześniejszym hasłem i nie zostały zaktualizowane. Aby je odblokować, wybierz Odzyskaj dane na banerze u góry skrzynki odbiorczej.",
     password_changed_signing_out: "Hasło zmienione pomyślnie. Wylogowywanie...",
     password_changed_success: "Zmieniono hasło",
     session_security: "Bezpieczeństwo sesji",
@@ -4351,9 +4172,11 @@ export const pl = {
     compose_mode_fullscreen: "Zawsze pełny ekran",
     compose_mode_minimized: "Zacznij zminimalizowany",
     default_sender_group: "Wysyłanie",
-    default_sender_group_description: "Wybierz, z którego adresu wychodzą nowe wiadomości.",
+    default_sender_group_description:
+      "Wybierz, z którego adresu wychodzą nowe wiadomości.",
     default_sender_title: "Domyślny nadawca",
-    default_sender_description: "Nowe wiadomości wychodzą z tego adresu. Odpowiedzi używają adresu, na który wiadomość przyszła.",
+    default_sender_description:
+      "Nowe wiadomości wychodzą z tego adresu. Odpowiedzi używają adresu, na który wiadomość przyszła.",
     default_sender_no_addresses: "Brak innych adresów",
     compose_defaults_title: "Domyślne formatowanie",
     compose_defaults_description:
@@ -4370,9 +4193,11 @@ export const pl = {
     reply_defaults_title: "Odpowiedzi",
     reply_defaults_description: "Wybierz, od czego zaczyna się nowa odpowiedź.",
     reply_include_quoted: "Dołącz cytowany tekst",
-    reply_include_quoted_description: "Każda odpowiedź zaczyna się od oryginalnej wiadomości cytowanej pod Twoim tekstem.",
+    reply_include_quoted_description:
+      "Każda odpowiedź zaczyna się od oryginalnej wiadomości cytowanej pod Twoim tekstem.",
     reply_prefix_subject: "Dodaj Odp: do tematu",
-    reply_prefix_subject_description: "Umieszcza Odp: przed oryginalnym tematem, gdy odpowiadasz.",
+    reply_prefix_subject_description:
+      "Umieszcza Odp: przed oryginalnym tematem, gdy odpowiadasz.",
     build_info: "Informacje o kompilacji",
     release: "Wydanie",
     build: "Kompilacja",
@@ -4517,13 +4342,17 @@ export const pl = {
       "Nie udało się pobrać płatności. Zaktualizuj metodę płatności w Ustawieniach, Rozliczenia, i spróbuj ponownie.",
     plan_not_available:
       "Ten plan nie jest obecnie dostępny do zakupu. Inny plan lub powrót później zadziała.",
-    failed_checkout: "Spróbuj ponownie.",
-    failed_billing_portal: "Spróbuj ponownie.",
+    failed_checkout:
+      "Nie udało się teraz otworzyć płatności. Spróbuj ponownie. Rozliczenia są bez zmian.",
+    failed_billing_portal:
+      "Nie udało się otworzyć portalu rozliczeń. Spróbuj ponownie. Twój plan jest bez zmian.",
     subscription_cancelled:
       "Subskrypcja zostanie anulowana na koniec okresu rozliczeniowego",
-    failed_cancel_subscription: "Spróbuj ponownie.",
+    failed_cancel_subscription:
+      "Anulowanie nie zostało przeprowadzone. Spróbuj ponownie. Twój plan jest nadal aktywny.",
     subscription_reactivated: "Subskrypcja reaktywowana",
-    failed_reactivate: "Spróbuj ponownie.",
+    failed_reactivate:
+      "Nie udało się ponownie aktywować planu. Spróbuj ponownie.",
     daily: "Codziennie",
     weekly: "Tygodniowo",
     biweekly: "Co dwa tygodnie",
@@ -4544,7 +4373,8 @@ export const pl = {
     auto_lock_after: "Automatycznie zablokuj po {{duration}} nieaktywności",
     hours: "{{count}} godzin",
     days: "{{count}} dni",
-    failed_get_auth_data: "Spróbuj ponownie.",
+    failed_get_auth_data:
+      "Nie udało się wczytać danych logowania. Spróbuj ponownie.",
     downgrade: "Obniż plan",
     upgrade_to: "Ulepsz do {{name}}",
     get_plan: "Wybierz {{name}}",
@@ -4586,7 +4416,7 @@ export const pl = {
     enter_password_confirm: "Wprowadź hasło, aby potwierdzić:",
     verifying_credentials: "Weryfikowanie poświadczeń...",
     failed_verify_credentials:
-      "To hasło nie pasuje. Kolejna próba powinna zadziałać. Konto pozostaje bez zmian.",
+      "Nieprawidłowe hasło. Spróbuj ponownie. Twoje konto jest bez zmian.",
     deleting_account: "Usuwanie konta...",
     failed_delete_account:
       "Nie udało się usunąć konta. Sprawdź hasło i spróbuj ponownie. Konto pozostaje bez zmian.",
@@ -4598,7 +4428,7 @@ export const pl = {
       "Aster obsługuje więcej niż jedną trasę do swoich serwerów. Wybrana trasa decyduje o tym, kto widzi Twój adres IP i jak żądania docierają do nas. Twoje wiadomości pozostają szyfrowane end-to-end w obu przypadkach.",
     "connection.direct": "Bezpośrednie",
     "connection.direct_description":
-      "Połącz się bezpośrednio z serwerami Aster",
+      "Twoje urządzenie łączy się bezpośrednio z serwerami Aster. Najszybsza droga i najmniejsze opóźnienie, ale Twój adres IP jest widoczny dla Aster.",
     "connection.tor": "Tor",
     "connection.tor_description": "Kieruj ruch przez sieć Tor",
     "connection.tor_snowflake": "Tor ze Snowflake",
@@ -4606,7 +4436,7 @@ export const pl = {
       "Użyj mostów Snowflake dla odporności na cenzurę",
     "connection.cdn_relay": "Przekaźnik CDN",
     "connection.cdn_relay_description":
-      "Kieruj przez serwery przekaźnikowe CDN",
+      "Żądania przechodzą przez globalną sieć CDN, zanim dotrą do Aster. Twój adres IP pozostaje ukryty przed Aster, a ruch nie odróżnia się od zwykłego ruchu CDN.",
     "connection.status_connected": "Połączono",
     "connection.status_connecting": "Łączenie...",
     "connection.status_error":
@@ -4694,7 +4524,8 @@ export const pl = {
     alias_too_new_title: "Ten alias jest za nowy, aby go usunąć",
     alias_too_new_message:
       "Nowe aliasy pozostają aktywne przez 30 dni, zanim będzie można je usunąć. Ten można usunąć od {{date}}. Przejdź na Supernova, aby natychmiast usuwać aliasy.",
-    ghost_alias_too_new_title: "Ten ghost alias jest za nowy, aby wygasł",
+    ghost_alias_too_new_title:
+      "Ten alias widmo jest za nowy, aby mógł wygasnąć",
     ghost_alias_too_new_message:
       "Nowe ghost aliasy pozostają aktywne przez 30 dni, zanim będzie można je wygasić. Ten można wygasić od {{date}}. Przejdź na Supernova, aby natychmiast wygaszać ghost aliasy.",
     delete_signature_confirmation:
@@ -4758,7 +4589,7 @@ export const pl = {
     keyserver_failed_hint:
       "Serwer kluczy odrzucił Twój klucz. Spróbuj opublikować ponownie.",
     keyserver_publish_btn: "Opublikuj klucz",
-    keyserver_republish_btn: "Ponownie opublikuj klucz",
+    keyserver_republish_btn: "Opublikuj ponownie",
     keyserver_permanent_warning:
       "Raz opublikowane klucze nie mogą być całkowicie usunięte z większości serwerów.",
     keyserver_add_custom_label: "Dodaj niestandardowy serwer",
@@ -4876,7 +4707,8 @@ export const pl = {
     primary_address_label: "Adres główny",
     change_address: "Zmień adres",
     address_change_title: "Zmień swój adres",
-    address_change_intro_lead: "Przeczytaj, co się zmieni, przed kontynuowaniem.",
+    address_change_intro_lead:
+      "Przeczytaj, co się zmieni, przed kontynuowaniem.",
     address_change_keep_old_title: "Zachowujesz {{email}}",
     address_change_keep_old_body:
       "Wiadomości wysłane na ten adres nadal trafiają do Twojej skrzynki, a Ty nadal możesz się nim logować na każdym urządzeniu.",
@@ -4884,8 +4716,7 @@ export const pl = {
     address_change_no_limit_body:
       "Nie wlicza się do limitu aliasów, nikt inny nie może go przejąć i nie można go usunąć.",
     address_change_once_title: "Jedna zmiana na 30 dni",
-    address_change_once_body:
-      "Po tej zmianie kolejną wykonasz {{date}}.",
+    address_change_once_body: "Po tej zmianie kolejną wykonasz {{date}}.",
     address_change_effect_alias_title: "{{email}} przestaje być aliasem",
     address_change_effect_alias_body:
       "Reguły, przekierowania, podpisy i aliasy odwrotne ustawione dla tego aliasu zostają usunięte. Wiadomości wysyłane na ten adres nadal docierają, teraz jako Twój adres główny.",
@@ -4895,20 +4726,24 @@ export const pl = {
     address_change_pick_title: "Wybierz nowy adres",
     address_change_use_alias: "Użyj jednego ze swoich aliasów",
     address_change_use_new: "Wybierz nowy adres",
-    address_change_name_rule: "Użyj od 3 do 40 liter, cyfr lub kropek. Kropka nie może zaczynać ani kończyć adresu, a kropki nie mogą się powtarzać.",
+    address_change_name_rule:
+      "Użyj od 3 do 40 liter, cyfr lub kropek. Kropka nie może zaczynać ani kończyć adresu, a kropki nie mogą się powtarzać.",
     address_change_name_placeholder: "twojanazwa",
-    primary_address_info: "Twój plan Supernova pozwala zmieniać adres raz na 30 dni. Twój stary adres nadal należy do Ciebie: wciąż odbiera pocztę i nadal służy do logowania.",
+    primary_address_info:
+      "Twój plan Supernova pozwala zmieniać adres raz na 30 dni. Twój stary adres nadal należy do Ciebie: wciąż odbiera pocztę i nadal służy do logowania.",
     address_change_checking: "Sprawdzanie dostępności",
     address_change_available: "{{email}} jest dostępny",
     address_change_unavailable: "{{email}} jest niedostępny",
     address_change_same_as_current: "To już jest Twój adres",
-    address_change_check_failed: "Aster Mail nie mógł sprawdzić tego adresu. Spróbuj ponownie za chwilę.",
+    address_change_check_failed:
+      "Aster Mail nie mógł sprawdzić tego adresu. Spróbuj ponownie za chwilę.",
     address_change_review_title: "Sprawdź zmianę",
     address_change_from: "Teraz",
     address_change_to: "Po zmianie",
     address_change_effect_sending:
       "Wiadomości, które wysyłasz, pochodzą z {{email}}.",
-    address_change_effect_key: "Twój klucz szyfrowania pozostaje ten sam i zyskuje {{email}} jako drugą tożsamość.",
+    address_change_effect_key:
+      "Twój klucz szyfrowania pozostaje ten sam i zyskuje {{email}} jako drugą tożsamość.",
     address_change_effect_signed_in: "Pozostajesz zalogowany wszędzie.",
     address_change_effect_final:
       "Zmiana jest ostateczna. Aby kontynuować, wpisz nowy adres.",
@@ -4938,8 +4773,7 @@ export const pl = {
     address_change_locked_cooldown: "Adres możesz zmienić ponownie {{date}}.",
     address_change_locked_cooldown_unknown:
       "Adres zmieniono w ciągu ostatnich 30 dni, więc nie możesz go jeszcze zmienić ponownie.",
-    address_change_once_unknown:
-      "Po tej zmianie kolejną wykonasz za 30 dni.",
+    address_change_once_unknown: "Po tej zmianie kolejną wykonasz za 30 dni.",
     address_change_password_wrong: "To hasło jest nieprawidłowe.",
     address_change_not_eligible: "Teraz nie możesz zmienić swojego adresu.",
     address_change_too_many_requests:
@@ -4974,8 +4808,10 @@ export const pl = {
       "Ulepsz plan, aby ponownie aktywować ten alias",
     invalid_address: "Wpisz prawidłowy adres e-mail.",
     alias_already_taken: "Ten alias jest już używany. Inny powinien zadziałać.",
-    alias_create_failed: "Spróbuj ponownie.",
-    alias_generate_failed: "Spróbuj ponownie.",
+    alias_create_failed:
+      "Ten alias nie został zapisany. Spróbuj ponownie. Pozostałe aliasy są bez zmian.",
+    alias_generate_failed:
+      "Nie udało się teraz wygenerować aliasu. Spróbuj ponownie.",
     alias_invalid:
       "Ten alias nie jest prawidłowy. Litery, cyfry, kropki, podkreślenia i myślniki to dozwolone znaki.",
     domain_not_available:
@@ -4985,7 +4821,8 @@ export const pl = {
     add_custom_domain: "Dodaj domenę niestandardową",
     domain_name_label: "Nazwa domeny",
     invalid_domain: "Wpisz prawidłową domenę.",
-    failed_add_domain: "Spróbuj ponownie.",
+    failed_add_domain:
+      "Ta domena nie została dodana. Spróbuj ponownie. Pozostałe domeny są bez zmian.",
     configure_dns_for: "Skonfiguruj DNS dla {{domain}}",
     dns_instruction_login:
       "Zaloguj się do rejestratora domeny lub dostawcy DNS",
@@ -5021,12 +4858,12 @@ export const pl = {
     incoming_server_required:
       "Serwer poczty przychodzącej jest potrzebny w tym polu.",
     private_address_error:
-      "Tu potrzebny jest publiczny serwer pocztowy, nie adres lokalny ani prywatny. Publiczna nazwa hosta podana przez dostawcę zadziała.",
+      "To musi być publiczny serwer pocztowy, a nie adres lokalny ani prywatny. Użyj publicznej nazwy hosta podanej przez dostawcę.",
     username_required: "Nazwa użytkownika jest potrzebna dla tego konta.",
     password_required: "Hasło jest potrzebne dla tego konta.",
     connection_timeout_error: "Wpisz limit czasu od 5 do 120 sekund.",
     fill_server_first:
-      "Serwer, nazwa użytkownika i hasło są potrzebne najpierw, aby można było przetestować połączenie.",
+      "Aby przetestować połączenie, najpierw wpisz serwer, nazwę użytkownika i hasło.",
     fill_smtp_first:
       "Dane serwera wychodzącego są potrzebne najpierw, aby można było je przetestować.",
     fill_connection_first:
@@ -5037,14 +4874,18 @@ export const pl = {
     account_added: "Konto dodane pomyślnie",
     account_settings_not_saved:
       "Konto zapisane, ale ustawienia synchronizacji i zaawansowane nie zostały zapisane",
-    failed_update_account: "Spróbuj ponownie.",
+    failed_update_account:
+      "To konto nie zostało zaktualizowane. Spróbuj ponownie. Wcześniejsze ustawienia nadal obowiązują.",
     failed_add_account: "Spróbuj ponownie.",
-    switch_failed: "Spróbuj ponownie.",
-    unexpected_error: "Spróbuj ponownie.",
+    switch_failed: "Nie udało się przełączyć konta. Spróbuj ponownie.",
+    unexpected_error:
+      "Coś nie zadziałało zgodnie z oczekiwaniami. Spróbuj ponownie.",
     failed_sync:
       "Synchronizacja nie została zakończona, a my spróbujemy ponownie automatycznie. Poczta po obu stronach jest bezpieczna.",
-    failed_delete_emails_external: "Spróbuj ponownie.",
-    failed_fetch_folders_external: "Spróbuj ponownie.",
+    failed_delete_emails_external:
+      "Te wiadomości nie zostały usunięte z połączonego konta. Spróbuj ponownie.",
+    failed_fetch_folders_external:
+      "Foldery z połączonego konta się nie wczytały. Spróbuj ponownie.",
     external_sign_in_rejected:
       "Serwer poczty nie zaakceptował tej nazwy użytkownika i hasła. Sprawdź je ponownie. Jeśli dostawca wymaga hasła do aplikacji, wpisz je zamiast zwykłego hasła.",
     external_server_unreachable:
@@ -5063,11 +4904,12 @@ export const pl = {
     invalid_2fa_code:
       "Ten kod nie pasuje. Aktualny kod z aplikacji uwierzytelniającej zadziała.",
     incorrect_password_error:
-      "To hasło nie pasuje. Kolejna próba powinna zadziałać. Konto nie jest zablokowane.",
-    failed_retrieve_auth: "Spróbuj ponownie.",
-    failed_verify_password:
-      "To hasło nie pasuje. Kolejna próba powinna zadziałać.",
-    failed_export_private_key: "Spróbuj ponownie.",
+      "Nieprawidłowe hasło. Spróbuj ponownie. Twoje konto nie jest zablokowane.",
+    failed_retrieve_auth:
+      "Nie udało się wczytać danych logowania. Spróbuj ponownie.",
+    failed_verify_password: "Nieprawidłowe hasło. Spróbuj ponownie.",
+    failed_export_private_key:
+      "Nie udało się teraz wyeksportować klucza. Spróbuj ponownie. Twój klucz jest bez zmian.",
     type_regenerate: "Wpisz regenerate",
     client_side_encryption: "Szyfrowanie po stronie klienta",
     client_side_encryption_description:
@@ -5083,10 +4925,13 @@ export const pl = {
       "Automatycznie wyszukuj w WKD i na serwerach kluczy podczas redagowania",
     key_published_wkd: "Klucz opublikowany w WKD",
     key_removed_wkd: "Klucz usunięty z WKD",
-    failed_publish_wkd: "Spróbuj ponownie.",
-    failed_remove_wkd: "Spróbuj ponownie.",
+    failed_publish_wkd:
+      "Klucz publiczny nie został opublikowany w publicznym katalogu. Spróbuj ponownie. Twoje klucze są bez zmian.",
+    failed_remove_wkd:
+      "Klucz nie został usunięty z publicznego katalogu. Spróbuj ponownie.",
     key_published_keyserver: "Klucz opublikowany na serwerze kluczy",
-    failed_publish_keyserver: "Spróbuj ponownie.",
+    failed_publish_keyserver:
+      "Klucz publiczny nie został opublikowany na serwerze kluczy. Spróbuj ponownie.",
     mailto_unregister_manual:
       "Aby Aster Mail przestał otwierać odnośniki mailto, usuń procedurę obsługi w ustawieniach przeglądarki.",
     failed_save_setting: "Nie udało się zapisać ustawienia. Spróbuj ponownie.",
@@ -5321,7 +5166,7 @@ export const pl = {
     special_offer_title: "Prywatna poczta o połowę taniej",
     special_offer_subtitle: "50% zniżki przez pierwsze 12 miesięcy",
     special_offer_price_period: "miesięcznie",
-    special_offer_save_badge: "Oszczędzasz {{percent}}%",
+    special_offer_save_badge: "Oszczędź {{percent}}%",
     special_offer_checkout_error:
       "Coś poszło nie tak podczas rozpoczynania płatności. Spróbuj ponownie.",
     special_offer_was_price: "Wcześniej {{price}} miesięcznie",
@@ -5367,55 +5212,73 @@ export const pl = {
     domain_without_www_note: "Wprowadź domenę bez www lub https://",
     catch_all_label: "Adres zbiorczy",
     bimi_adj_added_title: "Dodano tytuł.",
-    bimi_adj_converted_inline_styles: "Przekształcono style wbudowane w atrybuty.",
+    bimi_adj_converted_inline_styles:
+      "Przekształcono style wbudowane w atrybuty.",
     bimi_adj_derived_view_box: "Dodano viewBox.",
     bimi_adj_removed_doctype: "Usunięto deklarację typu dokumentu.",
     bimi_adj_removed_editor_data: "Usunięto dane edytora.",
     bimi_adj_removed_metadata: "Usunięto metadane.",
     bimi_adj_removed_position: "Usunięto przesunięcie pozycji.",
     bimi_adj_removed_size: "Usunięto stałą szerokość i wysokość.",
-    bimi_adj_removed_unsupported_attributes: "Usunięto nieobsługiwane atrybuty.",
+    bimi_adj_removed_unsupported_attributes:
+      "Usunięto nieobsługiwane atrybuty.",
     bimi_adj_set_tiny_ps_profile: "Ustawiono profil SVG na Tiny PS.",
     bimi_adjustments_title: "Aster dostosował plik do wymagań:",
-    bimi_auto_checking: "Aster automatycznie sprawdza rekord, dopóki ta strona jest otwarta.",
+    bimi_auto_checking:
+      "Aster automatycznie sprawdza rekord, dopóki ta strona jest otwarta.",
     bimi_check_again: "Sprawdź ponownie",
     bimi_checking: "Sprawdzanie",
     bimi_choose_file: "Wybierz plik",
-    bimi_dmarc_invalid: "Nie można odczytać rekordu DMARC. Zastąp go prawidłowym rekordem.",
+    bimi_dmarc_invalid:
+      "Nie można odczytać rekordu DMARC. Zastąp go prawidłowym rekordem.",
     bimi_dmarc_missing: "Dodaj rekord DMARC z p=quarantine lub p=reject.",
     bimi_dmarc_not_enforced: "Zmień zasadę DMARC na p=quarantine lub p=reject.",
-    bimi_dmarc_organization_not_enforced: "Zasada DMARC domeny nadrzędnej również musi mieć wartość quarantine lub reject.",
+    bimi_dmarc_organization_not_enforced:
+      "Zasada DMARC domeny nadrzędnej również musi mieć wartość quarantine lub reject.",
     bimi_dmarc_partial: "Usuń tag pct z rekordu DMARC lub ustaw go na 100.",
     bimi_dmarc_ready: "Twoja zasada DMARC to quarantine lub reject.",
-    bimi_dmarc_subdomain_policy_none: "Zmień tag sp w rekordzie DMARC na quarantine lub reject.",
+    bimi_dmarc_subdomain_policy_none:
+      "Zmień tag sp w rekordzie DMARC na quarantine lub reject.",
     bimi_drop_here: "Przeciągnij tutaj logo w formacie SVG.",
-    bimi_err_doctype_entities: "Plik deklaruje niestandardowe encje, które są niedozwolone.",
+    bimi_err_doctype_entities:
+      "Plik deklaruje niestandardowe encje, które są niedozwolone.",
     bimi_err_empty: "Obraz jest pusty.",
-    bimi_err_external_reference: "Plik odwołuje się do zasobu zewnętrznego, co jest niedozwolone.",
-    bimi_err_invalid_reference: "Plik zawiera nieprawidłowe odwołanie wewnętrzne.",
+    bimi_err_external_reference:
+      "Plik odwołuje się do zasobu zewnętrznego, co jest niedozwolone.",
+    bimi_err_invalid_reference:
+      "Plik zawiera nieprawidłowe odwołanie wewnętrzne.",
     bimi_err_invalid_value: "Plik zawiera niedozwoloną wartość atrybutu.",
     bimi_err_malformed: "Plik nie jest prawidłowym plikiem SVG.",
-    bimi_err_missing_view_box: "Obraz nie ma atrybutu viewBox. Wyeksportuj go z atrybutem viewBox.",
-    bimi_err_not_square: "Logo nie jest kwadratowe. Ustaw równą szerokość i wysokość.",
+    bimi_err_missing_view_box:
+      "Obraz nie ma atrybutu viewBox. Wyeksportuj go z atrybutem viewBox.",
+    bimi_err_not_square:
+      "Logo nie jest kwadratowe. Ustaw równą szerokość i wysokość.",
     bimi_err_not_svg: "Plik nie jest obrazem SVG.",
     bimi_err_not_utf8: "Plik nie jest tekstowym plikiem SVG.",
-    bimi_err_raster_image: "Plik zawiera osadzony obraz bitmapowy. Używaj tylko kształtów wektorowych.",
+    bimi_err_raster_image:
+      "Plik zawiera osadzony obraz bitmapowy. Używaj tylko kształtów wektorowych.",
     bimi_err_script_content: "Plik zawiera skrypt, który jest niedozwolony.",
-    bimi_err_text_not_outlined: "Logo zawiera tekst. Przed eksportem przekształć tekst w krzywe.",
-    bimi_err_too_complex: "Obraz jest zbyt złożony. Uprość go i wyeksportuj ponownie.",
+    bimi_err_text_not_outlined:
+      "Logo zawiera tekst. Przed eksportem przekształć tekst w krzywe.",
+    bimi_err_too_complex:
+      "Obraz jest zbyt złożony. Uprość go i wyeksportuj ponownie.",
     bimi_err_too_large: "Plik jest za duży.",
     bimi_err_unsupported_element: "Plik zawiera niedozwolone elementy.",
-    bimi_err_unsupported_style: "Plik używa niedozwolonych stylów lub efektów, takich jak filtry, maski lub arkusze stylów.",
-    bimi_error_domain_not_active: "Dokończ konfigurację tej domeny, zanim opublikujesz logo.",
+    bimi_err_unsupported_style:
+      "Plik używa niedozwolonych stylów lub efektów, takich jak filtry, maski lub arkusze stylów.",
+    bimi_error_domain_not_active:
+      "Dokończ konfigurację tej domeny, zanim opublikujesz logo.",
     bimi_error_file_too_large: "Plik jest większy niż 64 KB.",
     bimi_error_logo_required: "Prześlij logo przed opublikowaniem.",
     bimi_error_not_svg_file: "Wybierz plik SVG.",
     bimi_error_throttled: "Poczekaj chwilę i spróbuj ponownie.",
     bimi_errors_title: "Tego pliku nie można użyć jako logo marki:",
     bimi_last_checked: "Ostatnio sprawdzono: {time}",
-    bimi_logo_public_note: "Twoje logo jest publiczne. Każdy, kto otrzyma od Ciebie wiadomość, może je zobaczyć.",
+    bimi_logo_public_note:
+      "Twoje logo jest publiczne. Każdy, kto otrzyma od Ciebie wiadomość, może je zobaczyć.",
     bimi_logo_ready: "Twoje logo spełnia wymagania.",
-    bimi_managed_note: "Twoja domena została kupiona w Aster, więc rekord DNS zostanie dodany automatycznie.",
+    bimi_managed_note:
+      "Twoja domena została kupiona w Aster, więc rekord DNS zostanie dodany automatycznie.",
     bimi_preview_alt: "Podgląd logo marki",
     bimi_preview_dark: "Ciemny",
     bimi_preview_inbox_subject: "Najnowsze informacje",
@@ -5423,31 +5286,40 @@ export const pl = {
     bimi_preview_light: "Jasny",
     bimi_publish: "Opublikuj logo",
     bimi_publishing: "Publikowanie",
-    bimi_record_conflict: "Dla tej domeny istnieje inny rekord BIMI. Usuń go, aby pozostał tylko ten rekord.",
-    bimi_record_external: "Istniejący rekord BIMI wskazuje na inny host. Zastąp go tym rekordem, aby korzystać z hostingu Aster.",
+    bimi_record_conflict:
+      "Dla tej domeny istnieje inny rekord BIMI. Usuń go, aby pozostał tylko ten rekord.",
+    bimi_record_external:
+      "Istniejący rekord BIMI wskazuje na inny host. Zastąp go tym rekordem, aby korzystać z hostingu Aster.",
     bimi_record_host: "Host",
-    bimi_record_missing: "Rekord nie jest jeszcze widoczny. Zmiany DNS mogą potrwać do 48 godzin.",
-    bimi_record_removed: "Aster nie może już znaleźć tego rekordu. Dodaj go ponownie u swojego dostawcy DNS.",
+    bimi_record_missing:
+      "Rekord nie jest jeszcze widoczny. Zmiany DNS mogą potrwać do 48 godzin.",
+    bimi_record_removed:
+      "Aster nie może już znaleźć tego rekordu. Dodaj go ponownie u swojego dostawcy DNS.",
     bimi_record_published: "Rekord został opublikowany.",
     bimi_record_title: "Dodaj ten rekord u swojego dostawcy DNS",
     bimi_record_type: "Typ",
     bimi_copy_field: "Kopiuj {field}",
     bimi_record_value: "Wartość",
     bimi_replace_logo: "Zastąp logo",
-    bimi_req_auth_fail: "Najpierw zweryfikuj rekordy SPF i DKIM dla tej domeny.",
+    bimi_req_auth_fail:
+      "Najpierw zweryfikuj rekordy SPF i DKIM dla tej domeny.",
     bimi_req_auth_ok: "SPF i DKIM są zweryfikowane.",
     bimi_req_auth_title: "Uwierzytelnianie poczty",
     bimi_req_dmarc_title: "Egzekwowanie DMARC",
     bimi_req_not_checked: "Jeszcze nie sprawdzono.",
     bimi_requirements_title: "Wymagania",
-    bimi_row_attention: "Twoje logo zostało opublikowane, ale jedno z wymagań nie jest już spełnione.",
-    bimi_row_draft: "Twoje logo jest gotowe. Opublikuj je, aby zacząć go używać.",
+    bimi_row_attention:
+      "Twoje logo zostało opublikowane, ale jedno z wymagań nie jest już spełnione.",
+    bimi_row_draft:
+      "Twoje logo jest gotowe. Opublikuj je, aby zacząć go używać.",
     bimi_row_external: "Ta domena ma rekord BIMI, który wskazuje na inny host.",
     bimi_row_inactive: "Dokończ konfigurację tej domeny, aby dodać logo marki.",
     bimi_row_live: "Twoje logo zostało opublikowane.",
-    bimi_row_off: "Wyświetlaj swoje logo obok wiadomości w skrzynkach, które obsługują logo marek.",
+    bimi_row_off:
+      "Wyświetlaj swoje logo obok wiadomości w skrzynkach, które obsługują logo marek.",
     bimi_row_pending: "Dodaj rekord DNS, a następnie sprawdź ponownie.",
-    bimi_row_pending_managed: "Twój rekord DNS jest publikowany. Może to potrwać kilka minut.",
+    bimi_row_pending_managed:
+      "Twój rekord DNS jest publikowany. Może to potrwać kilka minut.",
     bimi_rule_safe: "Bez skryptów i linków zewnętrznych",
     bimi_rule_size: "Maksymalnie 32 KB po optymalizacji przez Aster",
     bimi_rule_square: "Kwadrat o równej szerokości i wysokości",
@@ -5465,13 +5337,17 @@ export const pl = {
     bimi_step_publish: "Publikacja",
     bimi_title: "Logo marki",
     bimi_turn_off: "Wyłącz",
-    bimi_turn_off_body: "Twoje logo od razu przestanie być hostowane, a skrzynki odbiorcze będą wyświetlać zamiast niego domyślną ikonę.",
+    bimi_turn_off_body:
+      "Twoje logo od razu przestanie być hostowane, a skrzynki odbiorcze będą wyświetlać zamiast niego domyślną ikonę.",
     bimi_turn_off_confirm: "Wyłącz",
-    bimi_turn_off_description: "Twoje logo przestanie być wyświetlane w skrzynkach odbiorczych.",
-    bimi_turn_off_remove_record: "Usuń rekord TXT default._bimi u swojego dostawcy DNS.",
+    bimi_turn_off_description:
+      "Twoje logo przestanie być wyświetlane w skrzynkach odbiorczych.",
+    bimi_turn_off_remove_record:
+      "Usuń rekord TXT default._bimi u swojego dostawcy DNS.",
     bimi_turn_off_title: "Wyłączyć logo marki?",
     bimi_uploading: "Przesyłanie",
-    bimi_verified_mark_note: "Niektóre skrzynki wyświetlają logo marek tylko dla domen z certyfikatem zweryfikowanego znaku (VMC).",
+    bimi_verified_mark_note:
+      "Niektóre skrzynki wyświetlają logo marek tylko dla domen z certyfikatem zweryfikowanego znaku (VMC).",
     catch_all_description:
       "Odbieraj e-maile wysyłane na dowolny adres w tej domenie",
     set_host_root:
@@ -5504,7 +5380,7 @@ export const pl = {
     host_private_address:
       "Tu potrzebny jest publiczny serwer pocztowy, nie adres lokalny ani prywatny. Publiczna nazwa hosta podana przez dostawcę zadziała.",
     incoming_server_invalid:
-      "To nie jest prawidłowy adres serwera. Sama nazwa hosta, na przykład imap.example.com, zadziała.",
+      "To nie jest prawidłowy adres serwera. Wpisz samą nazwę hosta, na przykład imap.example.com.",
     incoming_port_error: "Wpisz numer portu od 1 do 65535.",
     incoming_mail_server: "Serwer poczty przychodzącej",
     smtp_server: "Serwer SMTP",
@@ -5512,12 +5388,12 @@ export const pl = {
     smtp_server_invalid:
       "To nie jest prawidłowy serwer wychodzący. Sama nazwa hosta, na przykład smtp.example.com, zadziała.",
     smtp_private_address_error:
-      "Tu potrzebny jest publiczny serwer pocztowy, nie adres lokalny ani prywatny. Publiczna nazwa hosta podana przez dostawcę zadziała.",
+      "To musi być publiczny serwer pocztowy, a nie adres lokalny ani prywatny. Użyj publicznej nazwy hosta podanej przez dostawcę.",
     smtp_port_error: "Wpisz numer portu od 1 do 65535.",
     smtp_username_required: "Nazwa użytkownika SMTP jest wymagana",
     smtp_password_required: "Hasło SMTP jest wymagane",
     label_color_invalid:
-      "Ten kolor nie jest prawidłowym wyborem. Kolor z palety zadziała.",
+      "Tego koloru nie można wybrać. Wybierz kolor z palety.",
     smtp_test_failed:
       "Test serwera wychodzącego nie przeszedł. Serwer, port i hasło poniżej to elementy do sprawdzenia.",
     deleted_emails_count: "Usunięto {{count}} e-mail(i)",
@@ -5652,7 +5528,8 @@ export const pl = {
       "Pamięć jest pełna. Ulepszenie planu lub usunięcie wiadomości zrobi miejsce na kolejne importy.",
     no_emails_in_file:
       "Nie znaleziono wiadomości w wybranych plikach. Upewnij się, że każdy plik ma obsługiwany format (MBOX, EML, CSV lub PST).",
-    import_failed: "Spróbuj ponownie.",
+    import_failed:
+      "Import nie został ukończony. Spróbuj ponownie. Istniejące dane są bez zmian.",
     failed_to_parse_file: "Tego pliku nie udało się odczytać. Inny zadziała.",
     plan_storage_value: "{{value}} miejsca",
     plan_aliases_count: "{{count}} aliasów",
@@ -5875,8 +5752,7 @@ export const pl = {
       "Nie udało się załadować klucza szyfrującego. Sprawdź połączenie i spróbuj ponownie.",
     no_encryption_key_description:
       "Twój klucz szyfrowania zostanie wygenerowany automatycznie",
-    encryption_banner_title:
-      "Tylko Ty możesz odblokować swoje klucze prywatne",
+    encryption_banner_title: "Tylko Ty możesz odblokować swoje klucze prywatne",
     encryption_banner_subtitle:
       "Aster przechowuje Twoją pocztę w postaci zaszyfrowanej, więc nie możemy jej odczytać. Poczta między użytkownikami Aster jest też szyfrowana na Twoim urządzeniu przed wysłaniem.",
     encryption_banner_you: "Ty",
@@ -5927,7 +5803,7 @@ export const pl = {
       "Ulepsz lub obniż subskrypcję przez portal rozliczeniowy",
     checkout_welcome: "Witamy w Aster! Twoja subskrypcja jest aktywna.",
     payment_failed_warning:
-      "Ostatnia opłata na metodzie płatności nie przeszła. Aktualizacja w Ustawienia, Rozliczenia utrzyma plan w działaniu. Poczta pozostaje bez zmian.",
+      "Ostatnia płatność Twoją metodą płatności nie powiodła się. Zaktualizuj ją w sekcji Ustawienia > Rozliczenia, aby zachować plan. Twoja poczta jest bez zmian.",
     grace_period_remaining:
       "Pozostało {{days}} dni na aktualizację metody płatności, zanim plan przejdzie na Bezpłatny.",
     update_payment_method: "Zaktualizuj metodę płatności",
@@ -5947,7 +5823,7 @@ export const pl = {
     plan_change_confirm_title: "Potwierdzenie zmiany planu",
     plan_change_confirm_description:
       "Ulepszenie do {{plan}}. Pozostaly czas biezacego planu zostanie zaliczony jako kredyt.",
-    plan_change_credit: "Kredyt z biezacego planu",
+    plan_change_credit: "Środki z obecnego planu",
     plan_change_due_today: "Do zaplaty dzis",
     plan_change_preview_failed:
       "Nie udalo sie zaladowac podzialu ceny. Sprobuj ponownie.",
@@ -5979,7 +5855,8 @@ export const pl = {
       "Zastosowano kod {{code}}. Dziś oszczędzasz {{amount}}.",
     plan_change_promo_remove: "Usuń",
     billing_switched: "Cykl rozliczeniowy zmieniony pomyślnie",
-    failed_switch_billing: "Spróbuj ponownie.",
+    failed_switch_billing:
+      "Okres rozliczeniowy się nie zmienił. Spróbuj ponownie. Obecny okres nadal obowiązuje.",
     current_billing_interval: "Rozliczanie {{interval}}",
     switching_billing: "Przełączanie...",
     billing_banner_title: "Odblokuj więcej z Aster",
@@ -6008,8 +5885,10 @@ export const pl = {
     confirm_cancel_addon: "Anuluj dodatek miejsca",
     confirm_cancel_addon_description:
       "Czy na pewno chcesz anulować ten dodatek miejsca? Dodatkowe miejsce będzie dostępne do końca bieżącego okresu rozliczeniowego.",
-    addon_purchase_failed: "Spróbuj ponownie.",
-    addon_cancel_failed: "Spróbuj ponownie.",
+    addon_purchase_failed:
+      "Nie udało się rozpocząć zakupu dodatku. Spróbuj ponownie. Rozliczenia są bez zmian.",
+    addon_cancel_failed:
+      "Nie udało się anulować dodatku pamięci. Spróbuj ponownie. Dodatek jest nadal aktywny.",
     addon_purchase_success: "Przekierowywanie do kasy...",
     addon_checkout_opened: "Dokończ zakup w nowej karcie.",
     plan_recommended: "Rekomendowane",
@@ -6119,10 +5998,10 @@ export const pl = {
     plan_f_quiet_hours: "Godziny ciszy",
     storage_approaching_title: "Pamięć się zapełnia.",
     storage_approaching_description:
-      "Wykorzystano ponad 75% pamięci. Usunięcie starych wiadomości lub ulepszenie planu utrzyma rezerwę, zanim się skończy.",
+      "Wykorzystano ponad 75% miejsca. Usuń stare wiadomości lub zmień plan na wyższy, zanim miejsce się skończy.",
     storage_warning_title: "Mało wolnej pamięci.",
     storage_warning_description:
-      "Wykorzystano ponad 90% pamięci. Usunięcie wiadomości lub ulepszenie planu pozwoli nowej poczcie nadal płynąć.",
+      "Wykorzystano ponad 90% miejsca. Usuń część wiadomości lub zmień plan na wyższy, aby nadal otrzymywać nową pocztę.",
     storage_overview_description:
       "Sprawdź, co zajmuje miejsce, i usuń to, czego nie potrzebujesz.",
     storage_promo_title: "Oszczędzaj na dodatkowym miejscu",
@@ -6158,7 +6037,7 @@ export const pl = {
     storage_locked_description:
       "Nowa poczta jest wstrzymana do czasu zwolnienia miejsca. Usunięcie wiadomości lub ulepszenie planu pozwoli jej znów płynąć. Istniejąca poczta jest bezpieczna.",
     storage_locked_bounce_warning:
-      "Przychodząca poczta zostanie odrzucona za {{days}} dni, chyba że pojawi się miejsce. Usunięcie wiadomości lub szybkie ulepszenie planu pozwoli jej dalej przychodzić.",
+      "Poczta przychodząca będzie odrzucana za {{days}} dni, jeśli nie zwolnisz miejsca. Usuń część wiadomości lub zmień plan na wyższy, aby nadal ją otrzymywać.",
     storage_full:
       "Pamięć jest pełna. Aby zrobić miejsce, ulepsz plan lub usuń część wiadomości.",
     plan_limit_reached:
@@ -6349,7 +6228,8 @@ export const pl = {
     use_credits_for_renewals_description:
       "Automatycznie stosuj saldo kredytów do odnowień planu i dodatków. Jeśli saldo nie pokrywa pełnej kwoty, reszta zostanie pobrana z metody płatności.",
     credits_toggle_updated: "Ustawienia kredytów zaktualizowane",
-    credits_toggle_failed: "Spróbuj ponownie.",
+    credits_toggle_failed:
+      "To ustawienie nie zostało zapisane. Spróbuj ponownie. Wcześniejsza wartość nadal obowiązuje.",
     credits_earn_first: "Najpierw zdobądź kredyty, aby włączyć tę opcję",
     recent_transactions: "Ostatnie transakcje",
     view_all_transactions: "Zobacz wszystkie",
@@ -6591,7 +6471,8 @@ export const pl = {
     country: "Kraj",
     save_address: "Zapisz adres",
     address_saved: "Adres rozliczeniowy zapisany",
-    address_save_failed: "Spróbuj ponownie.",
+    address_save_failed:
+      "Adres rozliczeniowy nie został zapisany. Spróbuj ponownie. Wcześniejszy adres nadal jest zapisany.",
     saving: "Zapisywanie...",
     redeem: "Zrealizuj",
     redeeming: "Realizowanie...",
@@ -6604,7 +6485,8 @@ export const pl = {
     export_ready: "Twój eksport jest gotowy do pobrania.",
     export_processing: "Eksport jest przygotowywany...",
     download_export: "Pobierz",
-    export_failed: "Spróbuj ponownie.",
+    export_failed:
+      "Nie udało się rozpocząć eksportu. Spróbuj ponownie. Twoja poczta jest bez zmian.",
     biennial: "2-letni",
     all_star_features: "Wszystko ze Star, plus:",
     all_nova_features: "Wszystko z Nova, plus:",
@@ -6907,14 +6789,15 @@ export const pl = {
     opened_in_browser:
       "{{ count }} zarchiwizowane - może być wymagane ręczne potwierdzenie",
     could_not_unsubscribe: "{{ count }} nie udało się zrezygnować",
-    some_messages_not_archived: "Niektóre wiadomości nie zostały zarchiwizowane",
+    some_messages_not_archived:
+      "Niektóre wiadomości nie zostały zarchiwizowane",
     unsubscribing: "Rezygnowanie...",
     scanning: "Skanowanie...",
     all_clear: "Wszystko czyste",
     no_subscriptions_found: "Nie znaleziono subskrypcji",
     trusted_devices: "Zaufane urządzenia",
     trusted_devices_description:
-      "Te urządzenia mogą uzyskać dostęp do Twojej poczty bez hasła.",
+      "Aplikacje na komputer i urządzenia mobilne sparowane z Twoim kontem. Odwołanie urządzenia wylogowuje je i usuwa jego lokalny klucz sejfu.",
     trusted_devices_empty: "Brak sparowanych urządzeń.",
     trusted_devices_revoke: "Odwołaj",
     trusted_devices_never: "Nigdy",
@@ -6940,9 +6823,9 @@ export const pl = {
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
     bridge_linux_pacman_link: "Arch Linux",
-    bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
-    bridge_linux_deb_arm64_link: ".deb (ARM64)",
-    bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
+    bridge_linux_appimage_arm64_link: "AppImage",
+    bridge_linux_deb_arm64_link: ".deb",
+    bridge_linux_rpm_arm64_link: ".rpm",
     bridge_other_formats: "Inne formaty",
     bridge_arch_x64: "x86-64",
     bridge_arch_arm64: "ARM64",
@@ -6953,18 +6836,24 @@ export const pl = {
     bridge_format_pacman_desc: "Arch Linux i pochodne",
     bridge_download_started: "Pobieranie rozpoczęte",
     bridge_download_failed: "Pobieranie nie rozpoczęło się. Spróbuj ponownie.",
-    bridge_support_help_desc: "Przewodniki konfiguracji i odpowiedzi na częste pytania",
+    bridge_support_help_desc:
+      "Przewodniki konfiguracji i odpowiedzi na częste pytania",
     bridge_support_discord_desc: "Zapytaj zespół i innych użytkowników Aster",
     bridge_support_reddit_desc: "Śledź ogłoszenia i dołącz do dyskusji",
     bridge_support_github_desc: "Przejrzyj kod źródłowy i zgłoś problem",
     bridge_all_platforms: "Wszystkie platformy",
-    bridge_upgrade_benefit_clients: "Działa z Apple Mail, Thunderbird i Outlook",
-    bridge_upgrade_benefit_local: "Działa lokalnie, więc poczta pozostaje zaszyfrowana",
-    bridge_upgrade_benefit_platforms: "Dostępne w systemach Windows, macOS i Linux",
+    bridge_upgrade_benefit_clients:
+      "Działa z Apple Mail, Thunderbird i Outlook",
+    bridge_upgrade_benefit_local:
+      "Działa lokalnie, więc poczta pozostaje zaszyfrowana",
+    bridge_upgrade_benefit_platforms:
+      "Dostępne w systemach Windows, macOS i Linux",
     bridge_upgrade_benefit_cli: "Zawiera wersję wiersza poleceń dla serwerów",
     bridge_cli_download: "Pobierz",
-    bridge_cli_install_hint: "Pobierz archiwum dla swojej platformy, rozpakuj je i przenieś plik binarny do zmiennej PATH.",
-    bridge_cli_install_hint_windows: "Pobierz archiwum, rozpakuj je i dodaj folder do zmiennej PATH.",
+    bridge_cli_install_hint:
+      "Pobierz archiwum dla swojej platformy, rozpakuj je i przenieś plik binarny do zmiennej PATH.",
+    bridge_cli_install_hint_windows:
+      "Pobierz archiwum, rozpakuj je i dodaj folder do zmiennej PATH.",
     bridge_cli_copy_command: "Kopiuj polecenia instalacji",
     bridge_cli_docs_link: "Przeczytaj przewodnik wiersza poleceń",
     bridge_cli_name: "Wiersz poleceń",
@@ -7005,7 +6894,7 @@ export const pl = {
       "Używaj Astera z Thunderbirdem, Apple Mail, Outlookiem lub dowolnym klientem IMAP/JMAP. Aster Bridge działa lokalnie i udostępnia odszyfrowaną skrzynkę pocztową ulubionemu klientowi.",
     desktop_bridge_set_up: "Skonfiguruj {{ client }}",
     desktop_bridge_install_hint:
-      "Aster Bridge musi być zainstalowany i uruchomiony. Pobierz go z astermail.org/bridge.",
+      "Aster Bridge musi być zainstalowany i uruchomiony. Pobierz go w sekcji Ustawienia > Bridge.",
     desktop_bridge_upgrade_title: "Użyj ulubionego klienta pocztowego",
     desktop_bridge_upgrade_description:
       "Podłącz Apple Mail, Thunderbirda lub Outlooka do Astera za pomocą Aster Bridge. Dostępne w planie Star i wyższych.",
@@ -7037,7 +6926,8 @@ export const pl = {
     app_lock_wrong_pin: "Nieprawidłowy PIN",
     app_lock_locked_out_for: "Zbyt wiele prób - spróbuj ponownie za {{s}}s",
     vanguard_title: "Aster Vanguard",
-    vanguard_description: "Tylko Nova+. Więcej funkcji już wkrótce.",
+    vanguard_description:
+      "Zaawansowana ochrona dla dziennikarzy, aktywistów i kont wysokiego ryzyka. Tylko Nova+.",
     vanguard_info:
       "Aster Vanguard aktywuje zaawansowane funkcje bezpieczeństwa dla dziennikarzy, prawników i osób o podwyższonym ryzyku. Obejmuje blokadę PIN, lepszą kontrolę sesji i więcej zabezpieczeń.",
     vanguard_active: "Vanguard Aktywny",
@@ -7506,7 +7396,7 @@ export const pl = {
     credit_task_ios_hint_coming: "Wkrótce",
     credit_task_earned: "Zdobyte",
     send_referral_to_contacts: "Wyślij e-mail do wszystkich kontaktów",
-    referral_email_subject: "Wypróbuj Aster Mail - prywatna poczta dla każdego",
+    referral_email_subject: "Wypróbuj Aster Mail",
     referral_email_body:
       "Cześć,\n\nkorzystam z Aster Mail od jakiegoś czasu i bardzo mi się podoba. Wszystko jest szyfrowane end-to-end, więc nikt poza Tobą nie przeczyta Twojej poczty. Nawet osoby prowadzące usługę.\n\nJeśli chcesz spróbować, oto mój link z zaproszeniem:\n\n{{ referral_link }}\n\nOboje dostaniemy {{ amount }} dodatkowego miejsca, gdy zaczniesz z niego korzystać, więc Ty też na tym zyskujesz.\n\nPozdrawiam",
     referral_no_contacts: "Nie znaleziono kontaktów. Najpierw dodaj kontakty!",
@@ -7576,7 +7466,8 @@ export const pl = {
     connect_sign_in_yahoo: "Zaloguj się przez Yahoo",
     oauth_reason_provider_denied:
       "Drugi dostawca nie zaakceptował połączenia. Spróbuj połączyć się ponownie lub sprawdź konto u tego dostawcy.",
-    oauth_reason_missing_code: "Spróbuj ponownie.",
+    oauth_reason_missing_code:
+      "Logowanie po stronie dostawcy nie zostało ukończone. Spróbuj ponownie.",
     oauth_reason_missing_state:
       "Żądanie połączenia nie pasowało do oczekiwanego. Zacznij od nowa i spróbuj ponownie.",
     oauth_reason_internal_error:
@@ -7589,17 +7480,21 @@ export const pl = {
       "Nie rozpoznajemy tego dostawcy. Wybierz obsługiwanego z listy.",
     oauth_reason_provider_not_configured:
       "Ten dostawca nie jest jeszcze skonfigurowany w Asterze. Napisz na hello@astermail.org, jeśli potrzebujesz pomocy.",
-    oauth_reason_token_exchange_failed: "Spróbuj ponownie.",
+    oauth_reason_token_exchange_failed:
+      "Połączenie nie zostało ukończone. Spróbuj ponownie. Pozostałe konta są bez zmian.",
     oauth_reason_encryption_error:
       "Nie udało się zabezpieczyć połączenia. Spróbuj ponownie. Jeśli problem będzie się powtarzał, napisz na hello@astermail.org.",
-    oauth_reason_account_creation_failed: "Spróbuj ponownie.",
+    oauth_reason_account_creation_failed:
+      "Nie udało się dokończyć konfiguracji połączonego konta. Spróbuj ponownie.",
     oauth_reason_email_not_found:
       "Nie udało się pobrać Twojego adresu e-mail od dostawcy. Spróbuj ponownie, a jeśli błąd się powtarza, użyj ręcznej opcji IMAP.",
     oauth_reason_session_expired: "Sesja logowania wygasła. Spróbuj ponownie.",
-    oauth_reason_unknown: "Spróbuj ponownie.",
+    oauth_reason_unknown:
+      "Coś nie zadziałało zgodnie z oczekiwaniami. Spróbuj ponownie. Nie udało się ustalić przyczyny.",
     oauth_setting_up_folders: "Konfigurowanie folderów...",
     oauth_folders_ready: "Foldery zsynchronizowane pomyślnie",
-    oauth_folders_error: "Spróbuj ponownie.",
+    oauth_folders_error:
+      "Konfiguracja folderów nie została ukończona. Spróbuj ponownie.",
     oauth_folders_partial:
       "{{count}} folderów nie zostało skonfigurowanych; reszta jest gotowa do użycia.",
     import_stage_setting_up_folders: "Konfigurowanie folderów",
@@ -7691,7 +7586,8 @@ export const pl = {
     dev_signatures_label: "Podpisy",
     dev_password_kdf_label: "KDF hasła",
     select_color: "Wybierz kolor {{name}}",
-    failed_create_import_job: "Spróbuj ponownie.",
+    failed_create_import_job:
+      "Nie udało się rozpocząć importu. Spróbuj ponownie. Istniejące wiadomości są bezpieczne.",
     alias_local_part_placeholder: "mójalias",
     username_placeholder: "uzytkownik@przyklad.com",
     smtp_host_placeholder: "smtp.przyklad.com",
@@ -7727,7 +7623,7 @@ export const pl = {
     ghost_alias_grace_until: "Okres tolerancji do {{ date }}",
     external_accounts_tab: "Konta zewnętrzne",
     blocked_tab: "Zablokowani",
-    allowlist_tab: "Lista dozwolonych",
+    allowlist_tab: "Dozwolone",
     auto_forward_tab_label: "Automatyczne przekazywanie",
     vacation_reply_tab_label: "Odpowiedź urlopowa",
     per_two_years: "/2 lata",
@@ -8393,7 +8289,7 @@ export const pl = {
     category_empty_primary_title: "Nic w Odebranych",
     category_empty_primary_desc:
       "Twoje osobiste wiadomości i rozmowy pojawią się tutaj.",
-    category_empty_promotions_title: "Brak promocji",
+    category_empty_promotions_title: "Brak ofert",
     category_empty_promotions_desc:
       "Promocje, wyprzedaże i e-maile marketingowe pojawią się tutaj, z dala od reszty poczty.",
     category_empty_social_title: "Brak aktualności ze społeczności",
@@ -8422,9 +8318,6 @@ export const pl = {
       "Tutaj pojawiają się zamówienia, płatności i potwierdzenia ze sklepów i serwisów.",
     category_empty_custom_desc:
       "Wiadomości pasujące do reguł tej kategorii pojawią się tutaj.",
-    view_html_part: "Wyświetl HTML",
-    view_plain_text: "Wyświetl zwykły tekst",
-    html_blocked_label: "HTML zablokowany",
     block_sender_on_alias: "Blokuj nadawcę na aliasie",
     block_sender_on_alias_success: "{{sender}} zablokowany na {{alias}}",
     block_sender_on_alias_failed:
@@ -8461,10 +8354,7 @@ export const pl = {
     reply: "Odpowiedz",
     reply_all: "Odpowiedz wszystkim",
     react: "Zareaguj",
-    already_reacted: "Już zareagowałeś w ten sposób",
-    remove_your_reaction: "Usuń swoją reakcję {emoji}",
     you_reacted_with: "Zareagowałeś {{emoji}}",
-    you_reacted_with_remove: "Zareagowano: {{emoji}}. Kliknij, aby usunąć.",
     reacted_with: "{{name}} zareagował(a) {{emoji}}",
     forward: "Przekaż dalej",
     to: "Do",
@@ -8497,13 +8387,9 @@ export const pl = {
     find_emails_from: "Znajdź e-maile od {{sender}}",
     move_to: "Przenieś do",
     label: "Etykieta",
-    select_recipients: "Wybierz odbiorców",
     send: "Wyślij",
-    send_later: "Wyślij później",
     discard: "Odrzuć",
     save_draft: "Zapisz szkic",
-    attachment_add: "Dodaj załącznik",
-    attachment_remove: "Usuń załącznik",
     back: "Wstecz",
     archiving: "Archiwizowanie...",
     mark_as_spam: "Oznacz jako spam",
@@ -8529,18 +8415,15 @@ export const pl = {
     cc_label: "Cc",
     bcc_label: "Udw",
     encrypted: "Zaszyfrowane",
-    read_receipt: "Potwierdzenie odczytu",
     snooze: "Odłóż",
     unsnooze: "Przywróć z odłożenia",
     pin: "Przypnij",
     pin_to_top: "Przypnij na górze",
     unpin: "Odepnij",
     mute: "Wycisz",
-    unmute: "Wyłącz wyciszenie",
     print: "Drukuj",
     view_source: "Wyświetl źródło",
     share: "Udostępnij",
-    download_eml: "Pobierz EML",
     move_to_folder: "Przenieś do folderu",
     apply_label: "Zastosuj etykietę",
     select: "Zaznacz",
@@ -8586,7 +8469,6 @@ export const pl = {
     schedule: "Zaplanuj",
     scheduling: "Planowanie",
     saved: "Zapisano",
-    saving_draft: "Zapisywanie...",
     write_message: "Napisz swoją wiadomość...",
     show_quoted_text: "Pokaż cytowany tekst",
     hide_quoted_text: "Ukryj cytowany tekst",
@@ -8625,9 +8507,6 @@ export const pl = {
     delete_old_confirm_title: "Usunąć wiadomości starsze niż 30 dni?",
     delete_old_confirm_message:
       "Spowoduje to przeniesienie do kosza każdej wiadomości starszej niż 30 dni. Będzie można to cofnąć zaraz potem.",
-    archive_newsletters_confirm_title: "Zarchiwizować wszystkie newslettery?",
-    archive_newsletters_confirm_message:
-      "Spowoduje to zarchiwizowanie każdej wiadomości wykrytej jako newsletter w skrzynce odbiorczej. Będzie można to cofnąć zaraz potem.",
     delete_all: "Usuń wszystkie",
     archive_subtitle: "Archiwizuj e-maile, aby utrzymać porządek w skrzynce",
     trash_subtitle: "Usunięte e-maile pojawią się tutaj",
@@ -8658,15 +8537,12 @@ export const pl = {
     remove_from_folder: "Usuń z folderu",
     remove_label: "Usuń etykietę",
     confirm_bulk_action_title: "Potwierdź akcję zbiorczą",
-    confirm_bulk_action_description:
-      "Ta akcja wpłynie na każdą konwersację w tym widoku.",
     bulk_action_index_not_ready:
       "Ta karta jest nadal indeksowana. Spróbuj ponownie za chwilę.",
     bulk_action_index_building:
       "Ta karta jest wciąż indeksowana. Akcja rozpocznie się, gdy indeks będzie gotowy.",
     bulk_action_index_capped:
       "Ta karta zawiera zbyt wiele konwersacji, aby zaktualizować je naraz. Wybierz konwersacje i spróbuj ponownie.",
-    archive_messages_title: "Archiwizuj wiadomości",
     archive_messages_confirmation:
       "Czy na pewno chcesz zarchiwizować zaznaczone wiadomości?",
     spam_email_sender_message:
@@ -8690,8 +8566,6 @@ export const pl = {
     shipping_delivered: "Dostarczono",
     shipping_delivery_exception: "Wyjątek dostawy",
     shipping_status_unknown: "Status nieznany",
-    shipping_shipped_date: "Data wysyłki",
-    shipping_delivered_on: "Dostarczono dnia",
     bold: "Pogrubienie",
     italic: "Kursywa",
     underline: "Podkreślenie",
@@ -8703,19 +8577,11 @@ export const pl = {
     insert_link: "Wstaw link",
     insert_image: "Wstaw obraz",
     attach_file: "Załącz plik",
-    more_formatting: "Więcej formatowania",
-    text_style: "Styl tekstu",
     text_alignment: "Wyrównanie tekstu",
     text_formatting: "Formatowanie tekstu",
-    formatting_options: "Opcje formatowania",
-    format_text: "Formatuj",
     align_left: "Wyrównaj do lewej",
     align_center: "Wyrównaj do środka",
     align_right: "Wyrównaj do prawej",
-    heading_normal: "Normalny",
-    heading_1: "Nagłówek 1",
-    heading_2: "Nagłówek 2",
-    heading_3: "Nagłówek 3",
     add_file: "Dodaj plik",
     attaching_original_files: "Dołączanie oryginalnych plików",
     display_text_placeholder: "Tekst wyświetlany",
@@ -8728,7 +8594,6 @@ export const pl = {
     self_destruct_after: "Samozniszczenie po",
     self_destruct_tooltip:
       "Ten e-mail zostanie trwale usunięty po upływie czasu",
-    category_promos: "Promocje",
     search_history: "Historia wyszukiwania",
     search_error: "Spróbuj ponownie.",
     delete_draft_confirmation:
@@ -8736,9 +8601,6 @@ export const pl = {
     plain_text_warning:
       "Przełączenie na zwykły tekst usuwa całe formatowanie w tej wersji roboczej, a edytor nie może go przywrócić. Inne wersje robocze pozostają bez zmian.",
     remove_formatting: "Usuń formatowanie",
-    encrypt_with_pgp: "Szyfruj przez PGP",
-    pgp_encryption_active:
-      "Szyfrowanie PGP aktywne - zostanie użyty klucz publiczny odbiorcy",
     font_color: "Kolor czcionki",
     highlight_color: "Kolor podświetlenia",
     write_message_placeholder: "Napisz wiadomość",
@@ -8780,7 +8642,6 @@ export const pl = {
     archive_email_message:
       "Ten e-mail zostanie przeniesiony do folderu Archiwum.",
     trash_email_message: "Ten e-mail zostanie przeniesiony do folderu Kosz.",
-    view_contact_profile: "Wyświetl profil kontaktu",
     toggle_filters: "Przełącz filtry",
     save_search: "Zapisz to wyszukiwanie",
     clear_search_data: "Wyczyść dane wyszukiwania",
@@ -8833,11 +8694,6 @@ export const pl = {
     sort_newest: "Najnowsze",
     sort_oldest: "Najstarsze",
     sort_sender: "Nazwa nadawcy",
-    search_field_all: "Wszystko",
-    search_field_subject: "Temat",
-    search_field_body: "Treść",
-    search_field_sender: "Nadawca",
-    search_field_recipient: "Odbiorca",
     filter_today: "Dzisiaj",
     filter_yesterday: "Wczoraj",
     filter_this_week: "Ten tydzień",
@@ -8874,7 +8730,6 @@ export const pl = {
     search_operators: "Operatory wyszukiwania",
     search_by_sender_subject_content: "Szukaj po nadawcy, temacie lub treści",
     has_attachments: "Ma załączniki",
-    starred_only: "Tylko z gwiazdką",
     search_in: "Szukaj w",
     from_date: "Od daty",
     to_date: "Do daty",
@@ -8886,16 +8741,12 @@ export const pl = {
     active_filters: "Aktywne filtry:",
     quick_filters: "Szybkie filtry:",
     larger_than_search: "Większe niż 5MB",
-    search_privacy_note:
-      "Wyszukiwanie odbywa się po stronie klienta z użyciem zaszyfrowanych tokenów. Twoje wiadomości pozostają szyfrowane end-to-end.",
     navigate: "Nawiguj",
     load_more_results: "Załaduj więcej wyników ({{remaining}} pozostało)",
     contacts: "Kontakty",
     scheduled_for: "Zaplanowane na",
     scheduled_send_failed:
       "Nie udało się wysłać tej wiadomości. Wybierz nową godzinę wysyłki, aby spróbować ponownie.",
-    section_pinned: "Przypięte",
-    section_primary: "Główne",
     spam_email_message: "Ten e-mail zostanie przeniesiony do folderu Spam.",
     delete_permanently_question: "Usunąć trwale?",
     empty_spam_folder_question: "Opróżnić folder spam?",
@@ -8906,7 +8757,7 @@ export const pl = {
       "Wszystkie {{count}} wiadomości w koszu zostaną trwale usunięte i tej operacji nie można cofnąć.",
     folder_not_found_title: "Nie udało się znaleźć tego folderu.",
     folder_not_found_subtitle:
-      "Ten folder mógł zostać usunięty lub nigdy nie istniał. Inny z paska bocznego zadziała.",
+      "Ten folder mógł zostać usunięty lub nigdy nie istniał. Wybierz inny folder z paska bocznego.",
     tag_not_found_title: "Nie udało się znaleźć tej etykiety.",
     tag_not_found_subtitle:
       "Ta etykieta mogła zostać usunięta lub nigdy nie istniała. Inna z paska bocznego zadziała.",
@@ -8916,7 +8767,6 @@ export const pl = {
     shortcut_previous_email: "Poprzedni e-mail",
     shortcut_open_email: "Otwórz e-mail",
     shortcut_close_back: "Zamknij / wróć do listy",
-    shortcut_back_to_list: "Wróć do listy",
     shortcut_delete_trash: "Usuń / do kosza",
     shortcut_star_unstar: "Gwiazdka / usuń gwiazdkę",
     shortcut_compose_new: "Napisz nowy e-mail",
@@ -8925,7 +8775,6 @@ export const pl = {
     shortcut_show_shortcuts: "Pokaż skróty",
     important: "Ważne",
     sent_by_me: "Wysłane przeze mnie",
-    most_relevant: "Najbardziej trafne",
     most_recent: "Najnowsze",
     use_arrows_to_navigate:
       "Użyj strzałek powyżej, aby nawigować między stronami",
@@ -8936,31 +8785,23 @@ export const pl = {
     pick_expiration: "Wybierz wygaśnięcie",
     set_expiration: "Ustaw wygaśnięcie",
     password_description:
-      "Zewnętrzni odbiorcy będą potrzebować tego hasła, aby wyświetlić e-mail",
+      "Odbiorcy będą potrzebować tego hasła, aby wyświetlić wiadomość",
     no_password: "Brak hasła",
     replying_to: "Odpowiadanie do {{name}}",
     reply_sent_successfully: "Odpowiedź wysłana pomyślnie",
     successfully_unsubscribed: "Pomyślnie wypisano",
-    unsubscribe_success_message:
-      "Nie będziesz już otrzymywać e-maili od {{sender}}",
     unsubscribe_failed:
       "Rezygnacja z subskrypcji nie została zakończona. Link w wiadomości przeniesie na stronę nadawcy, aby zrobić to samodzielnie.",
-    unsubscribe_try_again:
-      "Kolejna próba lub link poniżej pozwoli zrezygnować z subskrypcji samodzielnie.",
     unsubscribe_manual_required:
       "Ten nadawca nie obsługuje automatycznej rezygnacji. Link w wiadomości pozwoli zrobić to samodzielnie.",
     stop_receiving_from: "Przestań otrzymywać e-maile od",
     send_email: "Wyślij e-mail",
-    purchase_receipt: "Potwierdzenie zakupu",
     order_number: "Zamówienie #{{id}}",
     items: "Produkty",
     more_items_count: "+{{count}} więcej produktów",
     card_ending_in: "Karta kończąca się na {{last_four}}",
-    confirmation_label: "Potwierdzenie: {{number}}",
-    transaction_label: "Transakcja: {{id}}",
     purchase_extraction_privacy:
       "Wyodrębnione lokalnie z Twojego e-maila, a nic nie jest wysyłane na nasze serwery.",
-    ordered_from: "Zamówiono w {{merchant}}",
     receipt_is_this_correct: "Czy to się zgadza?",
     receipt_feedback_correct: "Tak, zgadza się",
     receipt_feedback_incorrect: "Nie, coś się nie zgadza",
@@ -8998,7 +8839,6 @@ export const pl = {
     exit_dark_mode: "Wyjdź z trybu ciemnego",
     view_all_dark_mode: "Wyświetl wszystko w trybie ciemnym",
     exit_all_dark_mode: "Wyjdź z trybu ciemnego dla wszystkich",
-    from_header: "Od",
     sent_label: "Wysłane",
     scheduled_label: "Zaplanowane",
     trashed_label: "Usunięte",
@@ -9008,7 +8848,6 @@ export const pl = {
     total_pages_label: "{{count}} stron",
     loading_preview: "Ładowanie podglądu…",
     preview_failed: "Podgląd się nie załadował. Otwarcie wiadomości go pokaże.",
-    move_1_conversation: "Przenieś 1 konwersację",
     move_n_conversations: "Przenieś {{ count }} konwersacji",
     move_n_conversations_one: "Przenieś {{count}} konwersację",
     move_n_conversations_other: "Przenieś {{count}} konwersacji",
@@ -9081,7 +8920,6 @@ export const pl = {
     search_message_content: "Szukaj w treści wiadomości",
     create_filter: "Utwórz filtr",
     search_placeholder_hint: "Szukaj w poczcie, kontaktach i folderach",
-    all_search_results_for: 'Wszystkie wyniki wyszukiwania dla "{{query}}"',
     try_adjusting_filters: "Spróbuj dostosować filtry lub wyszukaj coś innego",
     no_emails_match_query: 'Brak wiadomości pasujących do "{{query}}"',
     showing_results_for: 'Wyniki dla "{{corrected}}"',
@@ -9101,8 +8939,6 @@ export const pl = {
       "Spróbuj zawęzić wyszukiwanie, używając bardziej szczegółowych słów.",
     refine_your_search_action: "Zawęź wyszukiwanie",
     turn_off_indexing_action: "Wyłącz indeksowanie",
-    content_search_slower:
-      "Przeszukiwanie treści wiadomości może być wolne przy dużych skrzynkach.",
     search_message_content_help: "O wyszukiwaniu w treści wiadomości",
     search_message_content_help_body:
       "Twoje wiadomości są szyfrowane end-to-end, dlatego muszą zostać pobrane i zaindeksowane na tym urządzeniu, zanim będzie można przeszukać ich tekst. Może to zużyć znaczną ilość miejsca. Indeks nigdy nie opuszcza tego urządzenia i jest usuwany po wylogowaniu.",
@@ -9165,26 +9001,12 @@ export const pl = {
     op_without_attachments: "Bez załączników",
     open_unsubscribe_page: "Otwórz stronę wypisania",
     tracking_protection: "Ochrona przed śledzeniem",
-    tracking_protection_description: "Aktywnie chronimy Cię przed śledzeniem",
-    trackers_found: "Znaleziono i zablokowano {{count}} tracker(ów)",
-    no_trackers_found: "Nie znaleziono trackerów w tej wiadomości",
     spy_pixels_blocked: "Piksele szpiegowskie zablokowane",
-    spy_pixels_blocked_count: "Zablokowano {{count}} piksel(i) szpiegowskich",
     links_cleaned: "Linki wyczyszczone",
-    links_cleaned_count: "Wyczyszczono {{count}} link(ów)",
-    no_trackers_detected: "Nie wykryto trackerów",
     email_is_clean:
       "Ta wiadomość wygląda na czystą - nie wykryto elementów śledzących.",
     param_removed_from_n_links: "Usunięto {{param}} z {{count}} link(ów)",
     n_blocked: "{{count}} zablokowanych",
-    tracker_domain: "{{domain}}",
-    remote_content_blocked: "Zdalna zawartość zablokowana",
-    remote_images_blocked_count: "Zablokowano {{count}} zdalnych obraz(ów)",
-    older_messages: "{{count}} starszych wiadomości",
-    older_message: "1 starsza wiadomość",
-    verification_verified: "Zweryfikowany nadawca",
-    verification_invalid: "Podpis nadawcy nie pasuje",
-    verification_no_keys: "Nie udało się zweryfikować tożsamości nadawcy",
     official_sender: "Oficjalny adres Aster",
     official_sender_desc:
       "Ta wiadomość pochodzi z oficjalnego adresu Aster. Aster nigdy nie poprosi Cię e-mailem o hasło ani frazę odzyskiwania.",
@@ -9203,7 +9025,6 @@ export const pl = {
     hide_headers: "Ukryj nagłówki",
     show_trimmed_content: "Pokaż skróconą zawartość",
     bounced: "Odrzucona",
-    failed_status: "Nieudane",
     delivered: "Dostarczona",
     n_messages: "{{ count }} wiadomości",
     attachment_singular: "Załącznik",
@@ -9214,7 +9035,6 @@ export const pl = {
     notification_new_email: "Nowa wiadomość od {{ sender }}",
     notification_reply: "{{ sender }} odpowiedział(-a)",
     notification_mention: "{{ sender }} wspomniał(-a) o Tobie",
-    forwarded_message_separator: "---------- Przekazana wiadomość ---------",
     filter_not_prefix: "Nie ",
     filter_from: "Od: {{ value }}",
     filter_to: "Do: {{ value }}",
@@ -9243,7 +9063,6 @@ export const pl = {
     filter_larger: "Większy: {{ value }}",
     filter_smaller: "Mniejszy: {{ value }}",
     filter_size: "Rozmiar: {{ value }}",
-    n_forwarded: "Przekazano {{ count }}",
     sort_by: "Sortuj według",
     newest_first: "Najpierw najnowsze",
     oldest_first: "Najpierw najstarsze",
@@ -9265,26 +9084,10 @@ export const pl = {
     more_folders_count_few: "+{{count}} foldery",
     more_folders_count_many: "+{{count}} folderów",
     more_folders_count_other: "+{{count}} folderu",
-    trackers_found_one: "Znaleziono i zablokowano {{count}} tracker",
-    trackers_found_few: "Znaleziono i zablokowano {{count}} trackery",
-    trackers_found_many: "Znaleziono i zablokowano {{count}} trackerów",
-    trackers_found_other: "Znaleziono i zablokowano {{count}} trackery",
-    spy_pixels_blocked_count_one: "Zablokowano {{count}} piksel śledzący",
-    spy_pixels_blocked_count_few: "Zablokowano {{count}} piksele śledzące",
-    spy_pixels_blocked_count_many: "Zablokowano {{count}} pikseli śledzących",
-    spy_pixels_blocked_count_other: "Zablokowano {{count}} piksele śledzące",
-    links_cleaned_count_one: "Wyczyszczono {{count}} link",
-    links_cleaned_count_few: "Wyczyszczono {{count}} linki",
-    links_cleaned_count_many: "Wyczyszczono {{count}} linków",
-    links_cleaned_count_other: "Wyczyszczono {{count}} linki",
     param_removed_from_n_links_one: "Usunięto {{param}} z {{count}} linku",
     param_removed_from_n_links_few: "Usunięto {{param}} z {{count}} linków",
     param_removed_from_n_links_many: "Usunięto {{param}} z {{count}} linków",
     param_removed_from_n_links_other: "Usunięto {{param}} z {{count}} linków",
-    remote_images_blocked_count_one: "Zablokowano {{count}} zdalny obraz",
-    remote_images_blocked_count_few: "Zablokowano {{count}} zdalne obrazy",
-    remote_images_blocked_count_many: "Zablokowano {{count}} zdalnych obrazów",
-    remote_images_blocked_count_other: "Zablokowano {{count}} zdalne obrazy",
     confirm_bulk_action_count_description:
       "Dotyczy to wszystkich wiadomości: {{count}}.",
     confirm_bulk_action_count_description_other:
@@ -9314,26 +9117,17 @@ export const pl = {
     greeting_comma: ",",
     greeting_night: "Późna pora",
     manage_account: "Ustawienia konta",
-    official_account: "Konto oficjalne",
     sign_out_all: "Wyloguj ze wszystkich kont",
     session_expired_tag: "Sesja wygasła",
     default_account: "Domyślne",
     storage_of_used: "{{used}} z {{total}} użyte",
-    hide_more_accounts: "Ukryj pozostałe konta",
-    show_more_accounts: "Pokaż pozostałe konta",
     change_photo: "Zmień zdjęcie",
-    active_account: "Aktywne",
     add_another_account: "Dodaj kolejne konto",
     resubscribe_to_aster: "Wznów subskrypcję Aster",
     switch_to_account: "Przełącz na to konto",
     remove_account: "Usuń z tego urządzenia",
-    remove_account_title: "Usunąć konto?",
-    remove_account_message:
-      "{{email}} zostanie wylogowane z tego urządzenia. Twoje dane na serwerze pozostaną nienaruszone.",
-    confirm_remove_account: "Usuń",
     account_limit_for_plan:
       "Twój plan pozwala na maksymalnie {{max}} zalogowanych kont. Zaktualizuj plan, aby dodać więcej.",
-    signing_out_current: "Wylogowywanie...",
     email: "E-mail",
     password: "Hasło",
     confirm_password: "Potwierdź hasło",
@@ -9345,7 +9139,6 @@ export const pl = {
     dont_have_account: "Nie masz konta?",
     terms_of_service: "Warunki korzystania z usługi",
     privacy_policy: "Polityka prywatności",
-    agree_terms: "Akceptuję Regulamin i Politykę prywatności",
     username: "Nazwa użytkownika",
     sign_in_to_aster: "Zaloguj się do Aster",
     enter_credentials: "Wprowadź dane logowania, aby uzyskać dostęp do konta",
@@ -9388,18 +9181,10 @@ export const pl = {
       "Jedno konto dla wszystkich usług Aster. Darmowe, bezpieczne i prywatne.",
     create_free_account: "Utwórz darmowe konto",
     sign_in_existing: "Zaloguj się na istniejące konto",
-    choose_email_address: "Wybierz adres e-mail",
-    pick_unique_username:
-      "Wybierz unikalną nazwę użytkownika dla nowego e-maila Aster",
-    new_email_address: "Nowy adres e-mail",
     your_new_aster_address: "Twój nowy adres Aster Mail",
-    generate_random_username: "Wygeneruj losową nazwę użytkownika",
-    generate_random_display: "Wygeneruj losową nazwę wyświetlaną",
     profile_color: "Kolor profilu",
-    preview_avatar: "Podgląd awatara profilu",
     secure_your_account: "Zabezpiecz swoje konto",
     create_strong_password: "Utwórz silne hasło, aby chronić konto",
-    choose_your_plan: "Wybierz swój plan",
     setting_up_account: "Konfigurowanie konta",
     save_recovery_codes: "Zapisz kody odzyskiwania",
     store_codes_safely:
@@ -9421,15 +9206,9 @@ export const pl = {
     create_a_password: "Utwórz hasło",
     recommend_strong_password:
       "Użyj co najmniej 8 znaków. Dłuższe hasło z różnymi znakami jest silniejsze.",
-    password_recovery_key: "Klucz odzyskiwania hasła",
-    recovery_key_only_way:
-      "Ten klucz to jedyny sposób na odzyskanie konta, jeśli zapomnisz hasła. Zapisz go w bezpiecznym miejscu.",
-    download_key_lower: "Pobierz klucz",
     downloading: "Pobieranie...",
-    save_key: "Zapisz klucz",
     copy_key: "Kopiuj klucz",
     copy_codes: "Kopiuj kody",
-    recovery_key_copied: "Skopiowano klucz odzyskiwania",
     password_recovery_email: "E-mail do odzyskiwania hasła",
     recovery_email_step_desc:
       "Dodaj adres e-mail, aby odzyskać dostęp do konta, jeśli zgubisz kody odzyskiwania.",
@@ -9503,7 +9282,8 @@ export const pl = {
       "To nie wygląda na prawidłowy adres e-mail. Coś w stylu nazwa@example.com zadziała.",
     recovery_email_conflict:
       "Ten adres chroni już maksymalną liczbę 20 kont Aster. Użyj innego adresu.",
-    failed_save_recovery_email: "Spróbuj ponownie.",
+    failed_save_recovery_email:
+      "Adres e-mail do odzyskiwania nie został zapisany. Spróbuj ponownie. Obecne ustawienia odzyskiwania są bez zmian.",
     recovery_phrase_title: "Zapisz swoją frazę odzyskiwania",
     recovery_phrase_desc:
       "Te 12 słów to jedyny sposób na pełne przywrócenie konta i całej zaszyfrowanej poczty, jeśli kiedykolwiek zapomnisz hasła. Zapisz je w kolejności i przechowuj w bezpiecznym miejscu offline.",
@@ -9553,15 +9333,6 @@ export const pl = {
     reset_consent_type_email: "Wpisz swój pełny adres e-mail, aby potwierdzić",
     reset_consent_email_mismatch: "Adres e-mail nie pasuje do tego konta.",
     reset_consent_continue: "Resetuj hasło mimo to",
-    plan_starter_badge: "Startowy",
-    plan_personal_badge: "Osobisty",
-    plan_pro_badge: "Pro",
-    perfect_personal_use: "Idealny do użytku osobistego",
-    everything_to_start: "Wszystko, czego potrzebujesz na start",
-    for_power_users: "Dla zaawansowanych użytkowników",
-    e2e_encrypted_inbox: "Skrzynka szyfrowana end-to-end",
-    zero_knowledge_encryption: "Szyfrowanie zero-access",
-    unlimited_emails: "Nieograniczona liczba e-maili",
     no_ads_no_tracking: "Bez reklam, bez śledzenia",
     use_8_characters: "Użyj co najmniej 8 znaków",
     try_12_characters: "Wypróbuj 12+ znaków dla lepszego bezpieczeństwa",
@@ -9575,7 +9346,7 @@ export const pl = {
     please_enter_recovery_code:
       "Jeden z kodów odzyskiwania jest potrzebny tutaj.",
     invalid_recovery_code:
-      "Ten kod odzyskiwania nie pasuje. Inny z zapisanej listy powinien zadziałać.",
+      "Ten kod nie pasuje do tego konta. Porównaj go z zapisaną listą i wpisz ponownie. Spacje i wielkość liter nie mają znaczenia.",
     recovery_locked_out:
       "To konto miało zbyt wiele prób odzyskiwania. Możesz spróbować ponownie za {{time}}. Żaden z Twoich kodów nie został użyty, więc nadal masz je wszystkie.",
     invalid_backup_code:
@@ -9587,7 +9358,7 @@ export const pl = {
       "Odzyskiwanie nie zostało zakończone. Rozpoczęcie od nowa zwykle to załatwia. Konto pozostaje bez zmian.",
     add_special_characters: "Dodaj znaki specjalne (!@#$%)",
     recovery_codes_start_with_aster:
-      "Kody odzyskiwania zaczynają się od 'ASTER-'",
+      "Kod odzyskiwania wygląda tak: ASTER-XXXX-XXXX-XXXX-XXXX. Sprawdź kod i wpisz go ponownie.",
     verifying_recovery_code: "Weryfikowanie kodu odzyskiwania...",
     recovery_session_expired:
       "Ta sesja odzyskiwania się zakończyła. Rozpoczęcie procesu odzyskiwania od nowa pozwoli ją wznowić. Konto pozostaje bez zmian.",
@@ -9603,14 +9374,10 @@ export const pl = {
       "Wprowadź nazwę użytkownika, aby odzyskać swoje konto",
     back_to_sign_in: "Powrót do logowania",
     email_me_reset_link: "Wyślij mi link resetujący e-mailem",
-    have_recovery_code: "Masz kod odzyskiwania?",
-    use_recovery_code: "Użyj kodu odzyskiwania",
     reset_link_sent_title: "Sprawdź swój e-mail odzyskiwania",
     reset_link_sent_desc:
       "Jeśli ta nazwa użytkownika jest zarejestrowana i ma zweryfikowany e-mail odzyskiwania, link do resetowania hasła został wysłany. Link wygasa za 30 minut.",
     sending_reset_link: "Wysyłanie linku resetującego...",
-    no_recovery_email_on_account:
-      "To konto nie ma zweryfikowanego e-maila odzyskiwania. Użyj kodu odzyskiwania, aby zresetować hasło.",
     reset_your_password: "Zresetuj swoje hasło",
     reset_choose_new_password: "Wybierz nowe hasło dla swojego konta.",
     reset_invalid_or_expired:
@@ -9633,7 +9400,6 @@ export const pl = {
     import_mail_step_title: "Zabierz pocztę ze sobą",
     import_mail_step_desc:
       "Przenieś wiadomości z innego konta do Aster. Wszystko jest szyfrowane na Twoim urządzeniu przed zapisaniem.",
-    import_mail_action: "Importuj pocztę",
     import_mail_skip: "Zacznij z pustą skrzynką",
     import_mail_privacy_note: "Możesz też zaimportować później w Ustawieniach.",
     password_reset_successful: "Hasło zresetowane pomyślnie",
@@ -9653,15 +9419,6 @@ export const pl = {
     by_continuing: "Kontynuując, zgadzasz się z naszymi",
     copyright: "© {{year}} Aster Communications Inc.",
     display_name_optional: "Nazwa wyświetlana (opcjonalnie)",
-    "10gb_secure_storage": "10 GB bezpiecznego miejsca",
-    "5_email_aliases": "5 aliasów e-mail",
-    "2_custom_domains": "2 domeny niestandardowe",
-    "50mb_attachments": "50 MB załączników",
-    plan_free_price: "Za darmo",
-    "50gb_secure_storage": "50 GB bezpiecznego miejsca",
-    "10_email_aliases": "10 aliasów e-mail",
-    "5_custom_domains": "5 domen niestandardowych",
-    "100mb_attachments": "100 MB załączników",
     compare_all_features: "Porównaj wszystkie funkcje",
     encryption_keys_local:
       "Twoje klucze szyfrowania są przechowywane lokalnie na tym urządzeniu i nigdy nie są wysyłane na nasze serwery.",
@@ -9674,9 +9431,7 @@ export const pl = {
     resend_in_seconds: "Wyślij ponownie za {{seconds}}s",
     skip_verification: "Pomiń weryfikację",
     recovery_email_required_notice:
-      "Zapasowy adres e-mail jest wymagany w celu ochrony przed spamem.",
-    abuse_account_limit:
-      "Nasz automatyczny system bezpieczeństwa oznaczył tę rejestrację i nie możemy utworzyć konta. Jeśli to wygląda na pomyłkę, hello@astermail.org może pomóc.",
+      "Adres e-mail do odzyskiwania jest wymagany, aby zapobiegać spamowi.",
     abuse_flagged_message:
       "Nasz system bezpieczeństwa wstrzymał nowe rejestracje z tej sieci. Jeśli to wygląda na pomyłkę, hello@astermail.org może pomóc.",
     contact_support: "skontaktować się z pomocą techniczną",
@@ -9688,57 +9443,6 @@ export const pl = {
       "Ten link wygasł lub już nie pasuje. Nowy e-mail weryfikacyjny z ustawień konta zadziała.",
     go_to_inbox: "Przejdź do skrzynki",
     end_to_end_encrypted: "Szyfrowanie end-to-end",
-    zero_knowledge: "Architektura zero-access",
-    zero_knowledge_desc: "Nigdy nie możemy odczytać Twoich e-maili ani danych",
-    password_never_stored: "Hasło nigdy nie jest przechowywane",
-    password_never_stored_desc:
-      "Do uwierzytelniania używany jest tylko pochodny hash klucza",
-    recovery_codes_important: "Przechowuj je bezpiecznie",
-    recovery_codes_important_desc:
-      "Te kody to jedyny sposób na odzyskanie konta w przypadku utraty hasła. Przechowuj je w bezpiecznym miejscu.",
-    recovery_backup_tip: "Wskazówka dotycząca kopii zapasowej",
-    recovery_backup_tip_desc:
-      "Zapisz kody w menedżerze haseł lub wydrukuj je i przechowuj w bezpiecznym miejscu.",
-    onboarding_appearance_title: "Spersonalizuj swoją skrzynkę",
-    onboarding_appearance_desc:
-      "Wybierz wygląd, który Ci odpowiada. Możesz to zmienić w dowolnym momencie.",
-    onboarding_theme_light: "Jasny",
-    onboarding_theme_dark: "Ciemny",
-    onboarding_view_mode_label: "Układ czytania",
-    onboarding_view_popup: "Wyskakujące okno",
-    onboarding_view_popup_desc: "Otwiera e-maile w oknie pływającym",
-    onboarding_view_split: "Widok podzielony",
-    onboarding_view_split_desc: "Lista e-maili i treść obok siebie",
-    onboarding_view_fullpage: "Pełna strona",
-    onboarding_view_fullpage_desc: "Przeznacza cały ekran na każdy e-mail",
-    onboarding_compact_mode: "Tryb kompaktowy",
-    onboarding_compact_mode_desc:
-      "Mniejsze odstępy, aby zmieścić więcej e-maili na ekranie",
-    onboarding_continue_btn: "Kontynuuj",
-    onboarding_privacy_title: "Prywatność i bezpieczeństwo",
-    onboarding_privacy_desc:
-      "Twoja skrzynka, Twoje zasady. Dostosuj te ustawienia do swoich potrzeb.",
-    onboarding_block_tracking: "Blokuj piksele śledzące",
-    onboarding_block_tracking_desc:
-      "Zablokuj nadawcom możliwość sprawdzenia, kiedy otwierasz ich e-maile",
-    onboarding_block_external: "Blokuj treści zewnętrzne",
-    onboarding_block_external_desc:
-      "Blokuj zdalne obrazy i treści, które mogą Cię śledzić",
-    onboarding_read_receipts: "Blokuj potwierdzenia przeczytania",
-    onboarding_read_receipts_desc:
-      "Nie pozwól nadawcom wiedzieć, kiedy otworzyłeś ich e-maile",
-    onboarding_warn_external: "Ostrzegaj o zewnętrznych odbiorcach",
-    onboarding_warn_external_desc:
-      "Pokaż ostrzeżenie przy wysyłaniu do adresów spoza Aster",
-    onboarding_auto_keys: "Automatyczne wykrywanie kluczy",
-    onboarding_auto_keys_desc:
-      "Automatycznie znajduj klucze szyfrowania dla kontaktów, do których piszesz",
-    onboarding_encrypt_emails: "Domyślne szyfrowanie",
-    onboarding_encrypt_emails_desc:
-      "Automatycznie szyfruj wychodzące e-maile, gdy klucz odbiorcy jest dostępny",
-    onboarding_session_timeout: "Limit czasu sesji",
-    onboarding_session_timeout_desc:
-      "Automatycznie blokuj konto po okresie bezczynności",
     browser_login_title: "Zaloguj się w przeglądarce",
     browser_login_desc:
       "Otwórz Aster Mail w przeglądarce, przejdź do Ustawień i wprowadź ten kod, aby połączyć telefon.",
@@ -9748,25 +9452,10 @@ export const pl = {
     log_in: "Zaloguj się",
     welcome_subtitle:
       "Nowoczesny e-mail, zaszyfrowany dla Ciebie i nieczytelny dla wszystkich innych.",
-    copy_email: "Kliknij, aby skopiować e-mail",
     email_copied: "E-mail skopiowany",
-    copy_failed: "Nie udało się skopiować e-maila",
-    pair_device_title: "Sparuj urządzenie",
-    pair_device_confirm: "Czy chcesz sparować {{name}} z kontem Aster Mail?",
-    pair_device_warning:
-      "Sparowane urządzenie może uzyskać dostęp do Twojej poczty bez hasła, dlatego parowanie najlepiej ograniczyć do urządzeń, które masz przy sobie. Urządzenie można usunąć w dowolnym momencie z Ustawień, Zaufane urządzenia.",
-    pair_device_confirm_button: "Sparuj urządzenie",
     pair_device_cancel: "Anuluj",
-    pair_device_success: "Urządzenie zostało pomyślnie sparowane",
-    pair_device_open_app: "Otwórz aplikację desktopową",
-    pair_device_invalid:
-      "Ten link parowania nie zadziałał. Zacznij od nowa z aplikacji desktopowej.",
     pair_device_failed:
       "Parowanie nie zostało ukończone. Zacznij od nowa z aplikacji desktopowej. Twoje konto nie zostało zmienione.",
-    pair_this_device: "Sparuj to urządzenie",
-    pair_device_description:
-      "Zaloguj się z przeglądarki, aby bezpiecznie sparować tę aplikację desktopową.",
-    waiting_for_pairing: "Oczekiwanie na parowanie. Otwarto okno przeglądarki.",
     device_code_title: "Połącz to urządzenie",
     device_code_instruction:
       "Wprowadź ten kod na app.astermail.org/link-device, aby połączyć konto.",
@@ -9783,13 +9472,11 @@ export const pl = {
     link_device_enter_code: "Wprowadź kod wyświetlony w aplikacji desktopowej.",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "Kontynuuj",
-    link_device_verifying: "Weryfikowanie...",
     link_device_confirm_prompt: "Czy chcesz połączyć to urządzenie z kontem?",
     link_device_confirm_button: "Połącz urządzenie",
     link_device_confirming: "Łączenie urządzenia...",
     link_device_cancel: "Anuluj",
     link_device_desktop: "Aplikacja desktopowa",
-    link_device_signed_in_as: "Zalogowano jako",
     link_device_change_account: "Zmień konto",
     link_device_choose_account: "Wybierz konto",
     link_device_choose_account_description:
@@ -9814,32 +9501,21 @@ export const pl = {
       "Połączenie nie zostało ukończone. Zacznij od nowa. Twoje konto nie zostało zmienione.",
     link_device_try_again: "To nie zadziałało. Zacznij od nowa.",
     trust_this_device_30_days: "Ufaj temu urządzeniu przez 30 dni",
-    security_key_verification: "Weryfikacja klucza bezpieczeństwa",
     passkey_sign_in: "Zaloguj się kluczem dostępu",
-    tap_security_key:
-      "Dotknij klucza bezpieczeństwa lub użyj klucza dostępu, aby się zalogować",
     use_another_method: "Użyj innej metody weryfikacji",
     webauthn_not_supported:
       "Ta przeglądarka nie obsługuje kluczy bezpieczeństwa. Spróbuj z inną przeglądarką lub zaloguj się hasłem.",
     account_flagged_notice:
       "Nasz automatyczny system bezpieczeństwa tymczasowo ograniczył Twoje konto i niektóre funkcje mogą być niedostępne. Reszta konta działa normalnie. Jeśli to wygląda na błąd, napisz na hello@astermail.org.",
-    registration_suspended:
-      "Nasz system bezpieczeństwa tymczasowo wstrzymał nowe rejestracje z tej sieci. Jeśli to wygląda na pomyłkę, napisz na hello@astermail.org.",
     username_in_use: "Ta nazwa użytkownika jest już zajęta. Spróbuj innej.",
     password_breach_warning:
       "To hasło pojawiło się w wycieku danych. Rozważ użycie innego.",
     plan_selection_title: "Wybierz plan",
     plan_selection_subtitle:
       "Wybierz plan, który Ci odpowiada. Możesz zmienić lub anulować w dowolnym momencie.",
-    plan_continue_with_free: "Kontynuuj z planem Free",
     plan_continue_as_free: "Kontynuuj jako Free",
-    academic_offer_title: "Student lub dziennikarz? 30% zniżki",
-    academic_offer_desc:
-      "30% zniżki na plany indywidualne przez 12 miesięcy. Studenci: zweryfikuj teraz swój uczelniany e-mail, a kod będzie gotowy przy płatności. Dziennikarze: po rejestracji skontaktuj się z pomocą.",
     academic_offer_sent:
       "Link weryfikacyjny wysłany na {{ email }}. Po kliknięciu kod pojawi się w Ustawieniach, w sekcji Rozliczenia.",
-    academic_offer_journalist:
-      "Dziennikarz? Dokończ rejestrację, a następnie skontaktuj się z pomocą, podając legitymację prasową.",
     academic_offer_headline: "Student lub dziennikarz?",
     academic_offer_subline:
       "30% zniżki na Star, Nova i Supernova przez rok. Studenci: podaj uczelniany e-mail, a wyślemy link weryfikacyjny.",
@@ -9868,31 +9544,17 @@ export const pl = {
       "Więcej miejsca i aliasów do codziennego użytku osobistego.",
     plan_pro_description:
       "Duża przestrzeń i aliasy dla zaawansowanych użytkowników.",
-    plan_free_name: "Free",
-    plan_free_tagline: "Zacznij bez kosztów",
-    plan_free_cta: "Zacznij",
     plan_view_full_features: "Zobacz pełną listę funkcji",
     plan_footer_reassurance:
       "Wszystkie plany obejmują szyfrowanie z zerowym dostępem, brak reklam i 30-dniową gwarancję zwrotu pieniędzy. Zmień lub anuluj w dowolnym momencie.",
     plan_recommended: "Polecany",
     plan_select: "Wybierz",
-    plan_selected: "Wybrany",
     plan_loading: "Ładowanie planów...",
-    plan_payment_success_continuing: "Płatność otrzymana. Finalizowanie...",
     verification_success_title: "E-mail zweryfikowany",
     verification_success_desc:
       "Twój e-mail odzyskiwania został zweryfikowany. Możesz zamknąć tę kartę i wrócić do innego okna.",
     close_this_tab: "Zamknij tę kartę",
-    privacy_policy_heading: "Polityka prywatności",
-    terms_of_service_heading: "Warunki korzystania z usługi",
     last_updated: "Ostatnia aktualizacja: {{date}}",
-    effective_date: "Data wejścia w życie: {{date}}",
-    privacy_policy_intro:
-      "W Aster Communications Inc. prywatność stanowi fundament wszystkiego, co tworzymy. Niniejsza Polityka prywatności wyjaśnia, w jaki sposób przetwarzamy Twoje dane podczas korzystania z Aster Mail i powiązanych usług. Nasza zasada przewodnia jest prosta: Twoje dane należą do Ciebie i nigdy nie powinniśmy mieć do nich dostępu.",
-    terms_of_service_intro:
-      "Witamy w Aster Mail, serwisie prowadzonym przez Aster Communications Inc. Niniejsze Warunki korzystania z usługi stanowią prawnie wiążącą umowę pomiędzy Tobą a Aster Communications Inc., regulującą korzystanie z naszej usługi szyfrowanej poczty e-mail end-to-end i powiązanych produktów. Prosimy o uważne przeczytanie tych warunków przed skorzystaniem z naszych usług.",
-    view_terms_of_service: "Zobacz warunki korzystania z usługi",
-    view_privacy_policy: "Zobacz politykę prywatności",
     backup_email_placeholder: "zapasowy@email.com",
     remove_photo: "Usuń zdjęcie",
     captcha_load_failed:
@@ -9906,17 +9568,12 @@ export const pl = {
     link_device_upgrade_title: "Ulepsz plan, aby powiązać to urządzenie",
     link_device_upgrade_description:
       "Połączenie Bridge na komputerze z Twoim kontem wymaga planu Star lub wyższego. Wybierz plan poniżej, a urządzenie zostanie powiązane zaraz po płatności.",
-    link_device_upgrade_cta: "Ulepsz do Star",
-    link_device_upgrade_failed:
-      "Nie udało się rozpocząć płatności. Spróbuj ponownie lub otwórz Płatności w Ustawieniach.",
     link_device_already_linked:
       "To urządzenie jest już powiązane z innym kontem. Najpierw usuń tam powiązanie i spróbuj ponownie.",
     link_device_rate_limited:
       "Zbyt wiele prób. Odczekaj około minuty i spróbuj ponownie.",
     link_device_account_suspended:
       "To konto jest zawieszone, więc nie można teraz powiązać nowych urządzeń. Skontaktuj się z pomocą techniczną.",
-    product_updates_notice:
-      "Od czasu do czasu otrzymasz też nowości o produkcie w skrzynce odbiorczej. Możesz je wyłączyć w Ustawieniach.",
     plan_academic_discount_note:
       "Zniżka 30% zostanie zastosowana automatycznie przy płatności, gdy Twój e-mail zostanie zweryfikowany.",
     plan_referral_discount_note:
@@ -9962,8 +9619,7 @@ export const pl = {
     last_used: "Ostatnio użyty",
     never_used: "Nigdy nie użyty",
     remove: "Usuń",
-    confirm_remove: "Usuń",
-    delete_passkey_title: "Usunąć passkey?",
+    delete_passkey_title: "Usunąć klucz dostępu?",
     delete_passkey_description:
       '"{{name}}" zostanie usunięty z Twojego konta. Nie będzie już można logować się za jego pomocą.',
     delete_security_key_title: "Usunąć klucz bezpieczeństwa?",
@@ -9976,7 +9632,6 @@ export const pl = {
       '"{{name}}" zostanie usunięty z Twojego konta. Nie będzie już działać jako drugi składnik.',
     removed: "Usunięto klucz dostępu",
     register_success: "Zarejestrowano klucz dostępu",
-    register_failed: "Rejestracja nie powiodła się. Spróbuj ponownie.",
     registering: "Rejestrowanie…",
     not_supported:
       "Twoja przeglądarka nie obsługuje kluczy dostępu. Użyj nowszej przeglądarki, na przykład Chrome, Safari lub Firefox.",
@@ -9988,8 +9643,6 @@ export const pl = {
     unnamed_security_key: "Klucz bezpieczeństwa",
     rename: "Zmień nazwę",
     rename_saved: "Nazwa zaktualizowana",
-    rename_placeholder: "Nazwij ten klucz",
-    rename_failed: "Nie udało się zmienić nazwy klucza. Spróbuj ponownie.",
   },
   errors: {
     auth_salt_collision:
@@ -10013,7 +9666,7 @@ export const pl = {
       "Do wiadomości możesz dodać maksymalnie dwie reakcje. Aby dodać kolejną, usuń jedną ze swoich.",
     cannot_react_no_recipient:
       "Ta wiadomość nie ma nadawcy, do którego można wysłać reakcję.",
-    failed_send_reaction: "Spróbuj ponownie.",
+    failed_send_reaction: "Nie udało się wysłać reakcji. Spróbuj ponownie.",
     reactions_disabled: "Reakcje są wyłączone w Twoich ustawieniach.",
     pending_email_verification:
       "Sprawdź swoją pocztę i kliknij link weryfikacyjny, aby aktywować to konto.",
@@ -10042,23 +9695,28 @@ export const pl = {
     password_too_long: "To hasło przekracza limit długości. Krótsze zadziała.",
     account_not_found:
       "Nie znaleziono konta o tej nazwie. Sprawdź pisownię lub zresetuj hasło na astermail.org/reset.",
-    login_failed: "Spróbuj ponownie.",
+    login_failed:
+      "Logowanie nie zostało ukończone. Spróbuj ponownie. Twoje konto nie jest zablokowane.",
     decrypt_failed:
       "To hasło nie odblokowało kluczy na tym urządzeniu. Kolejna próba zadziała, a kod odzyskiwania na astermail.org/reset jest zapasowym sposobem, jeśli próby nadal zawodzą. Dane na serwerze pozostają bez zmian.",
     send_limit_reached:
-      "Osiągnięto dzienny limit wysyłania. Kolejna próba za {{time}} zadziała. Wersja robocza jest zapisana.",
+      "Osiągnięto dzienny limit wysyłania. Spróbuj ponownie za {{time}}. Wersja robocza jest zapisana.",
     ip_blocked:
       "Zbyt wiele nieudanych prób logowania. Odczekaj {{time}} i spróbuj ponownie. Konto nie jest zablokowane.",
     an_error_occurred: "Spróbuj ponownie.",
-    failed_to_block_sender: "Spróbuj ponownie.",
-    failed_to_snooze: "Spróbuj ponownie.",
+    failed_to_block_sender:
+      "Nie udało się zablokować tego nadawcy. Spróbuj ponownie.",
+    failed_to_snooze:
+      "Ta wiadomość nie została odłożona. Spróbuj ponownie. Nadal jest w skrzynce odbiorczej.",
     ghost_alias_not_found:
       "Nie udało się znaleźć ghost adresu powiązanego z tym wątkiem.",
-    failed_to_resolve_ghost_alias: "Spróbuj ponownie.",
+    failed_to_resolve_ghost_alias:
+      "Nie udało się wczytać adresu widmo dla tego wątku. Spróbuj ponownie.",
     ghost_alias_rate_limit:
-      "Wykorzystano wszystkie ghost aliasy na ten miesiąc. Ulepszenie planu lub poczekanie na reset w kolejnym miesiącu da kolejne.",
+      "Wykorzystano wszystkie aliasy ghost na ten miesiąc. Aby utworzyć więcej, zmień plan na wyższy lub poczekaj do odnowienia limitu w przyszłym miesiącu.",
     ghost_alias_already_exists: "Ten ghost alias już istnieje na koncie.",
-    failed_to_create_ghost_alias: "Spróbuj ponownie.",
+    failed_to_create_ghost_alias:
+      "Ten alias ghost nie został zapisany. Spróbuj ponownie. Pozostałe aliasy są bez zmian.",
     ghost_expiry_extend_only:
       "Adres ghost możesz tylko przedłużyć, nie skrócić.",
     ghost_expiry_update_failed:
@@ -10073,7 +9731,7 @@ export const pl = {
     vault_missing_key:
       "Nie udało nam się znaleźć klucza urządzenia potrzebnego do odczytu tej pamięci. Wylogowanie i ponowne zalogowanie powiąże to urządzenie na nowo. Twoje dane na serwerze pozostają nietknięte.",
     wrong_folder_password:
-      "To hasło folderu nie pasuje. Kolejna próba powinna zadziałać. Folder pozostaje zablokowany.",
+      "Nieprawidłowe hasło folderu. Spróbuj ponownie. Folder pozostaje zablokowany.",
     wrong_external_account_password:
       "To hasło zewnętrznego konta nie pasuje. Sprawdzenie go w Ustawieniach i kolejna próba zwykle wystarczają. Twoje zapisane połączenie pozostaje bez zmian.",
     decrypt_wrong_key:
@@ -10102,14 +9760,21 @@ export const pl = {
       "Weryfikacja tożsamości tego urządzenia nie zgadza się, co może wskazywać na ingerencję. Sparuj urządzenie ponownie z aplikacji na komputer, a jeśli ostrzeżenie powróci, napisz na hello@astermail.org.",
     metadata_migration_stalled:
       "Nie udało nam się dokończyć aktualizacji lokalnej pamięci po kilku próbach. Sprawdzenie połączenia i ponowne otwarcie Aster zwykle to załatwia. Twoja poczta na serwerze jest bezpieczna.",
-    failed_to_queue_email: "Spróbuj ponownie.",
-    failed_to_send_queued: "Spróbuj ponownie.",
-    failed_to_send_external_queued: "Spróbuj ponownie.",
-    authentication_failed: "Spróbuj ponownie.",
-    failed_to_snooze_email: "Spróbuj ponownie.",
+    failed_to_queue_email:
+      "Nie udało się zapisać tej wiadomości do późniejszej wysyłki. Spróbuj ponownie. Szkic jest zapisany.",
+    failed_to_send_queued:
+      "Ta wiadomość nie została wysłana. Spróbuj ponownie. Szkic jest zapisany.",
+    failed_to_send_external_queued:
+      "Ta wiadomość nie została wysłana przez połączone konto zewnętrzne. Spróbuj ponownie. Szkic jest zapisany.",
+    authentication_failed:
+      "Logowanie nie zostało ukończone. Spróbuj ponownie. Twoje konto nie jest zablokowane.",
+    failed_to_snooze_email:
+      "Ta wiadomość nie została odłożona. Spróbuj ponownie. Nadal jest w skrzynce odbiorczej.",
     failed_to_snooze_emails: "Spróbuj ponownie.",
-    failed_to_unsnooze_email: "Spróbuj ponownie.",
-    failed_to_list_snoozed: "Spróbuj ponownie.",
+    failed_to_unsnooze_email:
+      "Ta wiadomość nie wróciła do skrzynki odbiorczej. Spróbuj ponownie.",
+    failed_to_list_snoozed:
+      "Odłożone wiadomości się nie wczytały. Spróbuj ponownie. Są bezpieczne na serwerze.",
     auth_required: "Zaloguj się, aby kontynuować.",
     no_permission:
       "Nie masz dostępu do tej funkcji. Jeśli to wygląda na błąd, skontaktuj się z administratorem.",
@@ -10124,7 +9789,8 @@ export const pl = {
       "Nie udało się połączyć z serwerem. Sprawdź połączenie i spróbuj ponownie.",
     request_timeout:
       "Żądanie trwało zbyt długo. Sprawdź połączenie i spróbuj ponownie.",
-    unexpected_error: "Spróbuj ponownie.",
+    unexpected_error:
+      "Coś nie zadziałało zgodnie z oczekiwaniami. Spróbuj ponownie.",
     encryption_keys_not_loaded:
       "Twoje prywatne klucze są zablokowane na tym urządzeniu. Hasło je odblokuje. Klucze na serwerze nie zostały zmienione.",
     session_expired_reenter:
@@ -10133,8 +9799,10 @@ export const pl = {
       "Twoje prywatne klucze są zablokowane na tym urządzeniu. Hasło je odblokuje. Klucze na serwerze nie zostały zmienione.",
     session_expired_send:
       "Sesja wygasła przed wysłaniem tej wiadomości. Zalogowanie ponownie ją wyśle. Wersja robocza jest zapisana.",
-    failed_encrypt_envelope: "Spróbuj ponownie.",
-    failed_pgp_encrypt: "Spróbuj ponownie.",
+    failed_encrypt_envelope:
+      "Nie udało się zabezpieczyć tej wiadomości do wysyłki. Spróbuj ponownie. Szkic jest zapisany.",
+    failed_pgp_encrypt:
+      "Nie udało się zaszyfrować tej wiadomości kluczem PGP odbiorcy. Spróbuj ponownie. Szkic jest zapisany.",
     no_authenticated_account:
       "Na tym urządzeniu nie znaleziono zalogowanego konta. Zaloguj się, aby kontynuować.",
     daily_limit_reached:
@@ -10148,23 +9816,29 @@ export const pl = {
       "Te załączniki mają łącznie ponad {{size}}, czyli więcej niż jedna wiadomość może zabrać w Twoim planie. Usuń lub zmniejsz plik, aby wysłać. Wersja robocza jest zapisana.",
     too_many_attachments:
       "Ta wiadomość ma ponad {{max}} załączników, czyli więcej niż jedna wiadomość może zabrać. Usuń kilka, aby wysłać. Wersja robocza jest zapisana.",
-    failed_send_email: "Spróbuj ponownie.",
+    failed_send_email:
+      "Ta wiadomość nie została wysłana. Spróbuj ponownie. Szkic jest zapisany.",
     cannot_send_no_keys:
       "Masz włączone obowiązkowe szyfrowanie i nie mamy klucza dla {{recipients}}. Poproś ich o udostępnienie klucza lub wyłącz obowiązkowe szyfrowanie w Ustawieniach. Wersja robocza jest zapisana.",
     cannot_send_no_recipient_keys:
       "Masz włączone obowiązkowe szyfrowanie i żaden z odbiorców nie ma klucza na pliku. Poproś ich o udostępnienie klucza lub wyłącz obowiązkowe szyfrowanie w Ustawieniach. Wersja robocza jest zapisana.",
     cannot_send_no_recovery_key:
       "Aster nie może jeszcze wysłać tej wiadomości, ponieważ konto odbiorcy nie ma kluczy do jej odczytania. Poproś go o otwarcie Aster na dowolnym urządzeniu lub o aktualizację aplikacji, aby odświeżyć klucze, a potem spróbuj ponownie. Wersja robocza jest zapisana.",
-    failed_send_external: "Spróbuj ponownie.",
-    failed_queue_email: "Spróbuj ponownie.",
+    failed_send_external:
+      "Ta wiadomość nie została wysłana przez połączone konto zewnętrzne. Spróbuj ponownie. Szkic jest zapisany.",
+    failed_queue_email:
+      "Nie udało się zapisać tej wiadomości do późniejszej wysyłki. Spróbuj ponownie. Szkic jest zapisany.",
     no_active_account:
       "Na tym urządzeniu nie znaleziono zalogowanego konta. Zaloguj się, aby kontynuować.",
-    failed_queue_reply: "Spróbuj ponownie.",
+    failed_queue_reply:
+      "Nie udało się zapisać tej odpowiedzi do późniejszej wysyłki. Spróbuj ponownie. Szkic jest zapisany.",
     no_recipients: "Przed wysłaniem wymagany jest co najmniej jeden odbiorca.",
-    failed_queue_forward: "Spróbuj ponownie.",
-    failed_send: "Spróbuj ponownie.",
+    failed_queue_forward:
+      "Nie udało się zapisać tego przekazania do późniejszej wysyłki. Spróbuj ponownie. Szkic jest zapisany.",
+    failed_send:
+      "Ta wiadomość nie została wysłana. Spróbuj ponownie. Szkic jest zapisany.",
     incorrect_password:
-      "To hasło nie pasuje. Spróbuj jeszcze raz. Twoje konto nie jest zablokowane.",
+      "Nieprawidłowe hasło. Spróbuj ponownie. Twoje konto nie jest zablokowane.",
     no_keys_available:
       "Twoje prywatne klucze są zablokowane na tym urządzeniu. Hasło je odblokuje. Klucze na serwerze nie zostały zmienione.",
     session_expired_login:
@@ -10178,7 +9852,8 @@ export const pl = {
     registration_failed:
       "Rejestracja nie została ukończona. Zacznij od nowa i spróbuj ponownie. Konto nie zostało utworzone.",
     registration_cancelled: "Rejestracja anulowana",
-    authentication_failed_webauthn: "Spróbuj ponownie.",
+    authentication_failed_webauthn:
+      "Logowanie kluczem bezpieczeństwa nie zostało ukończone lub zostało anulowane. Spróbuj ponownie.",
     authentication_cancelled: "Uwierzytelnianie anulowane",
     alias_empty: "Tutaj wymagana jest nazwa aliasu.",
     alias_too_short: "Użyj co najmniej 3 znaków.",
@@ -10208,7 +9883,8 @@ export const pl = {
       "Jednocześnie może być zalogowanych maksymalnie {{max}} kont. Usuń jedno, aby zrobić miejsce dla kolejnego.",
     account_already_added:
       "To konto jest już zalogowane na tym urządzeniu. Przełącz się na nie z menu kont.",
-    failed_encrypt_draft: "Spróbuj ponownie.",
+    failed_encrypt_draft:
+      "Nie udało się bezpiecznie zapisać szkicu na tym urządzeniu. Spróbuj ponownie. Wpisany tekst nadal jest w edytorze.",
     failed_decrypt_draft:
       "Nie udało się otworzyć tej wersji roboczej na urządzeniu. Wylogowanie, ponowne zalogowanie i kolejna próba zwykle pomaga.",
     version_conflict:
@@ -10243,13 +9919,20 @@ export const pl = {
       "Pominięto {{count}} wiadomości bez nadawcy lub treści. Pozostałe zostały zaimportowane.",
     unrecognized_format:
       "Aster nie może odczytać {{name}}. Obsługiwane formaty to MBOX, EML, CSV i PST. Zapisz plik w jednym z nich i spróbuj ponownie.",
-    unknown_error: "Spróbuj ponownie.",
-    health_check_failed: "Spróbuj ponownie.",
+    unknown_error:
+      "Coś nie zadziałało zgodnie z oczekiwaniami. Spróbuj ponownie. Nie udało się ustalić przyczyny.",
+    health_check_failed: "Diagnostyka nie została ukończona. Spróbuj ponownie.",
     unexpected_health_check_error: "Spróbuj ponownie.",
     all_emails_rejected:
       "Pominięto wszystkie e-maile ({{count}}) w tym pliku, ponieważ w każdym brakowało nadawcy lub treści, więc niczego nie zaimportowano. Sprawdź eksport źródłowy i spróbuj ponownie.",
     post_quantum_unavailable:
       "Aster chroni wiadomości między kontami Aster szyfrowaniem postkwantowym, a {{recipients}} nie opublikował jeszcze kluczy postkwantowych. Poproś tę osobę o otwarcie Aster lub zaktualizowanie aplikacji i spróbuj ponownie. Twoja wersja robocza jest zapisana.",
+    load_failed: "Nie udało się wczytać. Spróbuj ponownie.",
+    data_integrity_failed:
+      "Te dane nie przeszły kontroli integralności, więc nie zostały wczytane.",
+    note_too_large: "Ta notatka jest za długa. Skróć ją i spróbuj ponownie.",
+    number_out_of_range: "Wpisz liczbę całkowitą od {{min}} do {{max}}.",
+    invalid_date: "Wpisz prawidłową datę.",
   },
   folder_retention: {
     title: "Automatyczne czyszczenie folderów",
@@ -10377,10 +10060,26 @@ export const pl = {
     apply_to_existing_done:
       "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}",
     apply_to_existing_done_encrypted:
-      "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}. Ta reguła pominęła {{encrypted}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
+      "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
+    apply_to_existing_done_encrypted_one:
+      "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowaną wiadomość, ponieważ tylko Twoje urządzenie może ją odczytać.",
+    apply_to_existing_done_encrypted_few:
+      "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowane wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
+    apply_to_existing_done_encrypted_many:
+      "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
+    apply_to_existing_done_encrypted_other:
+      "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
     apply_to_existing_canceled: "Zatrzymano: zaktualizowano {{applied}}",
     apply_to_existing_canceled_encrypted:
-      "Zatrzymano: zaktualizowano {{applied}}. Ta reguła pominęła {{encrypted}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
+      "Zatrzymano: zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
+    apply_to_existing_canceled_encrypted_one:
+      "Zatrzymano: zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowaną wiadomość, ponieważ tylko Twoje urządzenie może ją odczytać.",
+    apply_to_existing_canceled_encrypted_few:
+      "Zatrzymano: zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowane wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
+    apply_to_existing_canceled_encrypted_many:
+      "Zatrzymano: zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
+    apply_to_existing_canceled_encrypted_other:
+      "Zatrzymano: zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
     apply_to_existing_error:
       "Zastosowanie do istniejacej poczty nie udalo sie. Spróbuj ponownie.",
     empty_title: "Brak reguł",
@@ -10477,10 +10176,14 @@ export const pl = {
     value_placeholder: "Wartość",
     pick_folder: "Wybierz folder",
     pick_labels: "Wybierz etykiety",
-    load_failed: "Spróbuj ponownie.",
-    save_failed: "Spróbuj ponownie.",
-    reorder_failed: "Spróbuj ponownie.",
-    rule_delete_failed: "Spróbuj ponownie.",
+    load_failed:
+      "Reguły się nie wczytały. Spróbuj ponownie. Zapisane reguły są bezpieczne.",
+    save_failed:
+      "Ta reguła nie została zapisana. Spróbuj ponownie. Wcześniejsza wersja nadal działa.",
+    reorder_failed:
+      "Nowa kolejność nie została zapisana. Spróbuj ponownie. Reguły nadal działają w poprzedniej kolejności.",
+    rule_delete_failed:
+      "Ta reguła nie została usunięta. Spróbuj ponownie. Reguła nadal działa.",
     snooze_needs_future: "Wybierz przyszłą datę i godzinę.",
     match_case: "Uwzględnij wielkość liter",
     header_name_placeholder: "Nazwa nagłówka",
@@ -10577,7 +10280,7 @@ export const pl = {
       "Gdy wiadomość jest generowana automatycznie (ma nagłówek Auto-Submitted, na przykład od nadawców no-reply), umieść ją w Powiadomieniach.",
     tpl_receipts_name: "Archiwizuj potwierdzenia",
     tpl_receipts_desc:
-      "Gdy temat zawiera potwierdzenie, fakturę lub potwierdzenie zamówienia, pomiń skrzynkę odbiorczą i umieść wiadomość w Powiadomieniach.",
+      "Gdy temat wspomina o paragonie, fakturze lub potwierdzeniu zamówienia, pomiń skrzynkę odbiorczą i umieść wiadomość w Powiadomieniach.",
     tpl_vip_sender_name: "Oznacz ważnego nadawcę gwiazdką",
     tpl_vip_sender_desc:
       "Gdy przyjdzie wiadomość od wybranego nadawcy, oznacz ją gwiazdką i wyślij powiadomienie. Wpisz adres nadawcy przed zapisaniem.",
@@ -10595,10 +10298,7 @@ export const pl = {
     none: "Brak",
     show_on_profile: "Pokaż w profilu",
     show_in_signature: "Pokaż w podpisie",
-    earned_label: "Zdobyte",
     empty_state: "Nie znalazłeś jeszcze żadnych odznak.",
-    claim_success: "Zdobyłeś odznakę {name}.",
-    claim_already: "Masz już odznakę odkrywcy.",
     claim_failed: "Spróbuj ponownie.",
     not_earned: "Jeszcze nie zdobyto",
     show_on_profile_description:
@@ -10606,29 +10306,6 @@ export const pl = {
     show_in_signature_description:
       "Dołącz aktywną odznakę do podpisów wychodzących wiadomości.",
     granted_at: "Zdobyto {date}",
-    find_order_label: "#{order}",
-    badge_big_bang: "Wielki Wybuch",
-    badge_big_bang_description: "Pierwszy(-a) w odkrywaniu kosmosu.",
-    badge_event_horizon: "Horyzont zdarzeń",
-    badge_event_horizon_description: "Przekroczył(-a) granicę tego, co znane.",
-    badge_black_hole: "Czarna dziura",
-    badge_black_hole_description: "Wciągnięty(-a) w coś głębszego.",
-    badge_singularity: "Osobliwość",
-    badge_singularity_description:
-      "Znalazł(-a) punkt, w którym wszystko się wygina.",
-    badge_supernova: "Supernowa",
-    badge_supernova_description:
-      "Schwytał(-a) gwiazdę w jej najjaśniejszym momencie.",
-    badge_andromeda: "Andromeda",
-    badge_andromeda_description: "Dotarł(-a) do sąsiedniej galaktyki.",
-    badge_nebula: "Mgławica",
-    badge_nebula_description: "Wędrował(-a) wśród kolorów.",
-    badge_comet: "Kometa",
-    badge_comet_description: "Skrzyżował(-a) drogi z czymś rzadkim.",
-    badge_pulsar: "Pulsar",
-    badge_pulsar_description: "Usłyszał(-a) sygnał w hałasie.",
-    badge_stargazer: "Obserwator gwiazd",
-    badge_stargazer_description: "Spojrzał(-a) w górę w odpowiednim momencie.",
   },
   secure_view: {
     powered_by_prefix: "Wysłano bezpiecznie przez",
@@ -10648,7 +10325,6 @@ export const pl = {
     not_found: "Nie można znaleźć tej bezpiecznej wiadomości.",
     attachments: "Załączniki",
     download: "Pobierz",
-    powered_by: "Wysłane bezpiecznie przez AsterMail",
     deleted:
       "Ta bezpieczna wiadomość została usunięta i nie jest już dostępna.",
     reply_label: "Wyślij odpowiedź",
@@ -10665,15 +10341,9 @@ export const pl = {
     delete_confirm_no: "Anuluj",
     delete_failed: "Nie udało się usunąć tej wiadomości. Spróbuj ponownie.",
   },
-  compose: {
-    encrypt_external_label: "Szyfruj dla odbiorców zewnętrznych",
-    encrypt_external_desc:
-      "Odbiorcy otwierają prywatny link i wprowadzają hasło, aby przeczytać tę wiadomość.",
-    encrypt_password_required: "Ustaw hasło, aby zaszyfrować tę wiadomość.",
-  },
+  compose: {},
   shared_mailboxes: {
     tab_label: "Wspólne skrzynki",
-    shared_tag: "Wspólna",
     create: "Utwórz",
     created: "Wspólna skrzynka utworzona",
     create_failed: "Nie udało się utworzyć wspólnej skrzynki",
@@ -10722,7 +10392,6 @@ export const pl = {
     opens_in_new_tab: "Otwiera Trustpilot w nowej karcie",
   },
   survey: {
-    banner_title: "Pomóż ulepszyć Aster Mail",
     banner_message:
       "Pomóż kształtować Aster: jednorazowa ankieta, około minuty. Twoje odpowiedzi pozostają prywatne i nigdy nie są udostępniane.",
     banner_take: "Wypełnij ankietę",
@@ -10840,7 +10509,6 @@ export const pl = {
   },
   settings_search: {
     two_factor: "2FA",
-    api_token: "Token API",
     account_recovery: "Odzyskiwanie konta",
     actions: "Akcje",
     active_sessions: "Aktywne sesje",
@@ -10863,13 +10531,11 @@ export const pl = {
     changelog: "Nowości",
     checkup: "Przegląd",
     children: "Dzieci",
-    children_accounts: "Konta dzieci",
     code: "Kod",
     composing_and_replies: "Pisanie i odpowiedzi",
     configuration: "Konfiguracja",
     confirmations: "Potwierdzenia",
     connect_apple_mail: "Połącz Apple Mail",
-    connect_thunderbird: "Połącz Thunderbird",
     contact_support: "Skontaktuj się z pomocą",
     content_protection: "Ochrona treści",
     control: "Sterowanie",
@@ -10886,55 +10552,37 @@ export const pl = {
     device: "Urządzenie",
     directories: "Katalogi",
     display: "Wyświetlanie",
-    domain_verification: "Weryfikacja domeny",
     domains: "Domeny",
     download: "Pobierz",
-    download_bridge: "Pobierz Bridge",
     duration: "Czas trwania",
     duress_pin: "PIN awaryjny",
     edit: "Edytuj",
-    edit_signature: "Edytuj podpis",
     email: "E-mail",
     email_forwarding: "Przekazywanie poczty",
     email_summary: "Podsumowanie e-mailem",
     events: "Zdarzenia",
     export: "Eksportuj",
     external_accounts: "Konta zewnętrzne",
-    feature_request: "Propozycja funkcji",
     features: "Funkcje",
     format: "Format",
     forward: "Przekaż",
     generate: "Wygeneruj",
     ghost_aliases: "Aliasy ghost",
     gmail: "Gmail",
-    html_signature: "Podpis HTML",
     hardware_keys: "Klucze bezpieczeństwa",
     imap: "IMAP",
-    imap_settings: "Ustawienia IMAP",
-    import_from_imap: "Importuj z IMAP",
-    import_from_proton: "Importuj z Proton",
-    import_key: "Importuj klucz",
     invite: "Zaproś",
-    invite_a_friend: "Zaproś znajomego",
-    invite_family_member: "Zaproś członka rodziny",
     invoices: "Faktury",
     key_rotation: "Rotacja kluczy",
-    key_algorithm: "Algorytm klucza",
     keyboard: "Klawiatura",
     keyboard_shortcuts: "Skróty klawiszowe",
-    keyboard_navigation: "Nawigacja klawiaturą",
     keys: "Klucze",
     language: "Język",
     language_and_format: "Język i format",
     layout: "Układ",
-    layout_density: "Gęstość układu",
-    light_mode: "Tryb jasny",
     links: "Linki",
     logs: "Dzienniki",
     manage: "Zarządzaj",
-    manage_family_members: "Zarządzaj członkami rodziny",
-    manage_templates: "Zarządzaj szablonami",
-    masked_email: "Zamaskowany adres e-mail",
     members: "Członkowie",
     motion_and_layout: "Ruch i układ",
     navigation_panel: "Panel nawigacji",
@@ -10946,12 +10594,11 @@ export const pl = {
     payment: "Płatność",
     payment_method: "Metoda płatności",
     performance: "Wydajność",
-    plain_text_signature: "Podpis zwykłym tekstem",
     plan: "Plan",
     position: "Pozycja",
     profile: "Profil",
     proton: "Proton",
-    push: "Push",
+    push: "Powiadomienia push",
     quiet_hours: "Godziny ciszy",
     reading: "Czytanie",
     reading_and_conversations: "Czytanie i rozmowy",
@@ -10959,37 +10606,26 @@ export const pl = {
     recovery: "Odzyskiwanie",
     referral_code: "Kod polecający",
     rename_hardware_key: "Zmień nazwę klucza bezpieczeństwa",
-    rename_passkey: "Zmień nazwę klucza dostępu",
-    report_a_bug: "Zgłoś błąd",
-    request_logs: "Dzienniki żądań",
     revoke_smtp_token: "Unieważnij token SMTP",
     revoke_device: "Unieważnij urządzenie",
-    rotate_encryption_key: "Wymień klucz szyfrowania",
     smtp_settings: "Ustawienia SMTP",
-    screen_reader: "Czytnik ekranu",
     security: "Bezpieczeństwo",
-    security_checkup: "Przegląd bezpieczeństwa",
-    send_delay: "Opóźnienie wysyłki",
     sending: "Wysyłanie",
     session: "Sesja",
     sessions: "Sesje",
     settings: "Ustawienia",
     setup: "Konfiguracja",
-    sign_out_device: "Wyloguj urządzenie",
     sound: "Dźwięk",
     spam: "Spam",
-    spam_filter: "Filtr spamu",
     stats: "Statystyki",
     storage: "Przestrzeń",
     storage_add_on: "Dodatek przestrzeni",
     subscriptions: "Subskrypcje",
     support: "Pomoc",
     swipe: "Przesunięcie",
-    system_theme: "Motyw systemowy",
     test: "Test",
     text: "Tekst",
     theme: "Motyw",
-    thread_view: "Widok wątku",
     threading: "Wątki",
     tokens: "Tokeny",
     tracking_protection: "Ochrona przed śledzeniem",

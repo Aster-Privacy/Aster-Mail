@@ -50,7 +50,6 @@ export const tr = {
     email_group: "Gruba yaz",
     export_selection_vcf: "vCard olarak dışa aktar",
     failed_to_add_to_group: "Kişi gruba eklenemedi.",
-    failed_to_create_group: "Grup oluşturulamadı.",
     failed_to_delete_group: "Grup silinemedi.",
     failed_to_load_groups: "Gruplarınız yüklenemedi.",
     failed_to_move_to_trash: "Kişi çöp kutusuna taşınamadı.",
@@ -66,7 +65,6 @@ export const tr = {
     import_add_to_group: "İçe aktarılan kişileri bir gruba ekle",
     import_clear_all: "Tümünü temizle",
     import_no_group: "Grup yok",
-    import_nothing_selected: "İçe aktarmak için en az bir kişi seçin.",
     import_search_placeholder: "İçe aktarılacak kişileri ara",
     import_select_all: "Tümünü seç",
     import_selected_count: "{{total}} kişiden {{selected}} tanesi seçildi",
@@ -113,7 +111,8 @@ export const tr = {
       "Parolanızı ve kodunuzu kontrol edip yeniden deneyin.",
     qr_code: "QR kodu",
     profile_picture_removed: "Profil fotoğrafı kaldırıldı",
-    failed_remove_profile_picture: "Tekrar deneyin.",
+    failed_remove_profile_picture:
+      "Profil resminiz kaldırılamadı. Tekrar deneyin.",
     remove_photo: "Fotoğrafı kaldır",
     toggle_alias: "Bu rumuzu etkinleştir veya devre dışı bırak",
     enter_passphrase: "Parolanızı girin",
@@ -156,7 +155,6 @@ export const tr = {
     show_more: "Daha fazla göster",
     show_less: "Daha az göster",
     contacts: "Kişiler",
-    send_feedback: "Geri bildirim gönder",
     send_feedback_to_aster: "Aster'a geri bildirim gönder",
     folders: "Klasörler",
     add_to_folders: "Klasörlere ekle",
@@ -174,7 +172,6 @@ export const tr = {
     page: "Sayfa",
     aster_mail: "Aster Mail",
     aster_account: "Aster hesabım",
-    deck: "{{name}} Panosu",
     workspace_title: "{{name}} Çalışma Alanı | Aster Mail",
     create_folder: "Klasör oluştur",
     create_label: "Etiket oluştur",
@@ -208,8 +205,6 @@ export const tr = {
       "Güvenliğiniz için etkinlik dışı süreyi değiştirmek üzere parolanızı doğrulayın.",
     inactivity_window_months: "{{n}} ay",
     inactivity_window_saved: "Etkinlik dışı süre güncellendi",
-    inactivity_window_save_failed:
-      "Etkinlik dışı süre kaydedilemedi. Tekrar deneyin.",
     recovery_email: "Kurtarma e-posta adresi",
     recovery_email_description:
       "Bu, hesabınızı kurtarmak için kullanılan e-posta adresidir",
@@ -225,7 +220,8 @@ export const tr = {
     failed_verification_email:
       "Doğrulama e-postasını şu anda gönderemedik. Birkaç saniye sonra tekrar denemek çoğunlukla bunu çözer. Hesabınız olduğu gibi.",
     profile_picture_updated: "Profil fotoğrafı güncellendi",
-    failed_save_profile_picture: "Tekrar deneyin.",
+    failed_save_profile_picture:
+      "Yeni profil resminiz kaydedilmedi. Tekrar deneyin. Eski resim hâlâ görünüyor.",
     failed_upload_image: "Tekrar deneyin.",
     valid_image_error:
       "Bu dosya desteklenen bir görsel değil. JPEG, PNG ya da WebP işe yarar.",
@@ -308,8 +304,6 @@ export const tr = {
       "Etiket adları {{max}} karakterle sınırlıdır. Daha kısa bir ad kaydedilebilir.",
     label_already_exists:
       "Bu adda bir etiketiniz zaten var. Başka bir ad işe yarar.",
-    in_n_minutes: "{{ count }} dakika içinde",
-    in_n_minutes_plural: "{{ count }} dakika içinde",
     saved_at_time: "{{ time }} tarihinde kaydedildi",
     saved_on_date: "{{ date }} tarihinde kaydedildi",
     now: "Şimdi",
@@ -396,10 +390,7 @@ export const tr = {
     export_private_key: "Özel Anahtarı Dışa Aktar",
     regenerate_recovery_codes: "Kurtarma Kodlarını Yeniden Oluştur",
     search_index: "Arama dizini",
-    all_emails_and_conversations: "Tüm e-postalar ve görüşmeler",
-    delete_imported_emails: "İçe aktarılan e-postalar silinsin mi?",
     deleting: "Siliniyor...",
-    delete_mail: "E-postayı sil",
     search_forwarding_rules: "Yönlendirme kurallarında ara...",
     search_allowlist: "İzin listesinde ara...",
     search_blocked_senders: "Engellenen gönderenlerde ara...",
@@ -452,7 +443,8 @@ export const tr = {
     related_person: "İlgili kişi",
     event: "Etkinlik",
     instant_messenger: "Anlık mesajlaşma",
-    contact_limit_reached: "Kişi sınırına ulaştınız. Kalanları içe aktarmak için planınızı yükseltin.",
+    contact_limit_reached:
+      "Kişi sınırına ulaştınız. Kalanları içe aktarmak için planınızı yükseltin.",
     social_networks: "Sosyal ağlar",
     websites: "Web siteleri",
     instant_messengers: "Anlık mesajlaşma",
@@ -474,7 +466,7 @@ export const tr = {
     type_assistant: "Asistan",
     type_manager: "Yönetici",
     type_spouse: "Eş",
-    type_partner: "Partner",
+    type_partner: "İş ortağı",
     type_child: "Çocuk",
     type_parent: "Ebeveyn",
     type_sibling: "Kardeş",
@@ -511,21 +503,12 @@ export const tr = {
     add_new_field_type: "Yeni alan türü ekle",
     field_name_placeholder: "Alan adı...",
     skip: "Atla",
-    add_carddav: "CardDAV Ekle",
-    add_carddav_server: "CardDAV Sunucusu Ekle",
-    carddav_name_placeholder: "Nextcloud'um",
-    carddav_url_placeholder: "https://cloud.ornek.com/remote.php/dav",
-    carddav_username_placeholder: "kullanici@ornek.com",
-    carddav_password_placeholder: "Uygulama parolası veya normal parola",
     password_strength_weak: "Zayıf",
     password_strength_fair: "Orta",
     password_strength_strong: "Güçlü",
     password_strength_very_secure: "Çok güvenli",
-    pending_email_notifications: "Bekleyen e-posta bildirimleri",
     selected: "seçili",
     are_you_sure: "Emin misiniz?",
-    remove_account_confirmation:
-      "Bu hesabı kaldırmak istediğinizden emin misiniz? Daha sonra tekrar ekleyebilirsiniz.",
     go_back: "Geri dön",
     continue_anyway: "Yine de devam et",
     set_as_default: "Varsayılan olarak ayarla",
@@ -639,12 +622,15 @@ export const tr = {
     failed_to_load_emails:
       "Gelen kutunuz yüklenmedi. Yenilemek için aşağı çekmek ya da bir kez daha denemek çoğunlukla bunu çözer. Sunucudaki postanız güvende.",
     no_emails_match_criteria: "Bu kritere uyan e-posta yok",
-    failed_to_update_emails: "Tekrar deneyin.",
-    failed_to_archive_emails: "Tekrar deneyin.",
-    failed_to_unarchive_emails: "Tekrar deneyin.",
+    failed_to_update_emails:
+      "Bu değişiklikler kaydedilmedi. Tekrar deneyin. E-postaların kendisi değişmedi.",
+    failed_to_archive_emails:
+      "Arşivleme tamamlanmadı. Tekrar deneyin. E-postalar hâlâ gelen kutunuzda.",
+    failed_to_unarchive_emails:
+      "Gelen kutusuna taşıma tamamlanmadı. Tekrar deneyin. E-postalar hâlâ arşivde.",
     keyboard_shortcut_label: "Klavye kısayolu: {shortcut}",
     something_went_wrong_try_again:
-      "Bu işe yaramadı. Birkaç saniye sonra tekrar denemek çoğunlukla bunu çözer.",
+      "Bu işe yaramadı. Birkaç saniye sonra yeniden deneyin.",
     something_went_wrong: "Bir hata oluştu.",
     unexpected_error_refresh:
       "Bir sorun oluştu, devam etmek için sayfayı yenileyin.",
@@ -655,15 +641,12 @@ export const tr = {
     error_details: "Hata ayrıntıları",
     unable_to_display_email: "Bu e-postayı şu anda gösteremiyoruz.",
     email_render_error:
-      "Bu e-postayı bu cihazda görüntüleyemedik. Tekrar açmak ya da ham kaynağı görüntülemek çoğunlukla bunu çözer. Gelen kutunuz etkilenmedi.",
+      "Bu e-posta bu cihazda görüntülenemedi. Yeniden açın veya ham kaynağı görüntüleyin. Gelen kutunuz etkilenmedi.",
     unable_to_load_composer: "Yazma penceresi yüklenmedi.",
     composer_load_error:
       "Yazma penceresi yüklenmedi. Bu pencereyi kapatıp tekrar açmak çoğunlukla bunu çözer. Taslağınız saklı.",
     enter_field_value: "{{field}} girin...",
     no_matching_labels: "Eşleşen etiket yok",
-    phishing_confirm_placeholder:
-      'Bağlantıları yeniden açmak için "Riskleri anlıyorum" yazmanız yeterli olur.',
-    phishing_confirm_text: "riskleri anlıyorum",
     and: "ve",
     emails_marked_as_read: "{{count}} e-posta okundu olarak işaretlendi",
     emails_archived: "{{count}} e-posta arşivlendi",
@@ -687,29 +670,26 @@ export const tr = {
       "Yalnizca tek bir SPF kaydi yayinlayin. Bu alan adiyla baska servisler de posta gonderiyorsa include: degerlerini bu tek kayitta birlestirin.",
     dns_caveat_dmarc_add_after_spf_dkim:
       "Bunu en son ekleyin, SPF ve DKIM dogrulandiktan sonra. Erken yayinlamak kendi postanizi spam'e dusurebilir.",
-    value_points_to: "Değer / İşaret Ediyor",
-    dns_records_to_add: "Eklenecek DNS Kayıtları",
     dns_propagation_note: "DNS değişikliklerinin yayılması 48 saati bulabilir",
-    close_verify_later: "Kapat ve Daha Sonra Doğrula",
     post: "Gönder",
     link_copied: "Bağlantı panoya kopyalandı",
-    code_copied: "Kod kopyalandı",
     invite_sent: "Davet gönderildi!",
-    no_contacts_with_emails: "E-posta adresi olan kişi bulunamadı",
-    join_aster_secure_email: "Aster'e katıl: Güvenli E-posta",
     email_sent: "E-posta gönderildi.",
     undo_send_too_late: "Bu ileti zaten gönderildi ve geri alınamaz.",
     email_sent_successfully: "E-posta başarıyla gönderildi",
     scheduled_email_cancelled: "Zamanlanmış e-posta iptal edildi",
     email_snoozed: "E-posta ertelendi",
     email_unsnoozed: "E-posta ertelemesi kaldırıldı",
-    failed_to_snooze: "Tekrar deneyin.",
-    failed_to_unsnooze: "Tekrar deneyin.",
+    failed_to_snooze:
+      "Bu e-posta ertelenmedi. Tekrar deneyin. Hâlâ gelen kutunuzda.",
+    failed_to_unsnooze:
+      "Bu e-posta gelen kutunuza geri dönmedi. Tekrar deneyin.",
     conversation_moved_to_trash: "Görüşme çöp kutusuna taşındı",
     conversation_archived: "Görüşme arşivlendi",
     conversation_marked_as_spam: "Görüşme spam olarak işaretlendi",
-    failed_to_mark_as_spam: "Tekrar deneyin.",
-    failed_to_snooze_conversations: "Tekrar deneyin.",
+    failed_to_mark_as_spam: "Bu e-posta Spam'e taşınmadı. Tekrar deneyin.",
+    failed_to_snooze_conversations:
+      "Bu ileti dizileri ertelenmedi. Tekrar deneyin.",
     marked_as_read_toast: "Okundu olarak işaretlendi",
     marked_as_unread_toast: "Okunmadı olarak işaretlendi",
     email_permanently_deleted: "E-posta kalıcı olarak silindi",
@@ -755,55 +735,45 @@ export const tr = {
     paused: "Duraklatıldı",
     unnamed_contact: "Adsız Kişi",
     unnamed: "Adsız",
-    no_name: "Ad yok",
     same_email: "Aynı e-posta",
-    similar_name: "Benzer ad",
     same_phone: "Aynı telefon",
-    possible_duplicate: "Olası kopya",
-    add_server: "Sunucu Ekle",
     unknown: "Bilinmiyor",
     text_type: "Metin",
     date_type: "Tarih",
     number_type: "Sayı",
     phone_type: "Telefon",
     email_type: "E-posta",
-    failed_to_fetch_contacts: "Tekrar deneyin.",
-    failed_to_delete_contact: "Tekrar deneyin.",
+    failed_to_fetch_contacts:
+      "Kişileriniz yüklenmedi. Tekrar deneyin. Kayıtlı kişileriniz güvende.",
+    failed_to_delete_contact: "Bu kişi kaldırılmadı. Tekrar deneyin.",
     contact_deleted: "Kişi silindi",
     contact_saved: "Kişi kaydedildi",
     contact_created: "Kişi oluşturuldu",
     failed_to_create_contact: "Tekrar deneyin.",
-    failed_to_save_contact: "Tekrar deneyin.",
-    failed_to_delete_contacts: "Tekrar deneyin.",
-    failed_to_update_favorites: "Tekrar deneyin.",
-    contacts_import_partial:
-      "{{total}} kişiden yalnızca {{imported}} tanesi içe aktarıldı. Kalanları eklemek için dosyayı yeniden içe aktarın.",
-    failed_to_import_contacts: "Tekrar deneyin.",
+    failed_to_save_contact:
+      "Bu kişide yaptığınız değişiklikler kaydedilmedi. Tekrar deneyin. Önceki sürüm hâlâ duruyor.",
+    failed_to_delete_contacts: "Bu kişiler kaldırılmadı. Tekrar deneyin.",
+    failed_to_update_favorites: "Favorileriniz güncellenmedi. Tekrar deneyin.",
     failed_to_read_file: "Bu dosya okunamadı. Farklı biri işe yarar.",
-    import_failed: "Tekrar deneyin.",
-    failed_to_load_duplicates: "Tekrar deneyin.",
+    import_failed:
+      "İçe aktarma tamamlanmadı. Tekrar deneyin. Mevcut verileriniz değişmedi.",
     scan_failed: "Tekrar deneyin.",
-    dismiss_failed: "Tekrar deneyin.",
-    failed_to_load_custom_fields: "Tekrar deneyin.",
-    failed_to_create_field: "Tekrar deneyin.",
-    delete_custom_field_title: "Delete custom field?",
+    failed_to_load_custom_fields: "Bu özel alanlar yüklenmedi. Tekrar deneyin.",
+    failed_to_create_field: "Bu özel alan kaydedilmedi. Tekrar deneyin.",
+    delete_custom_field_title: "Özel alan silinsin mi?",
     delete_custom_field_message:
-      "Deleting this field also removes its values from every contact. You cannot undo this.",
-    failed_to_delete_field: "Tekrar deneyin.",
-    failed_to_save_value: "Tekrar deneyin.",
-    click_scan_duplicates:
-      'Kopyaları kontrol etmek için "Tara" düğmesine tıklayın',
+      "Bu alanı silmek, değerlerini tüm kişilerden de kaldırır. Bu işlem geri alınamaz.",
+    failed_to_delete_field: "Bu özel alan kaldırılmadı. Tekrar deneyin.",
+    failed_to_save_value:
+      "Değişikliğiniz kaydedilmedi. Tekrar deneyin. Önceki değer hâlâ geçerli.",
     never_synced: "Hiç senkronize edilmedi",
     last_sync_successful: "Son senkronizasyon başarılı",
     last_sync_failed:
       "Son eşitleme tamamlanmadı, otomatik olarak yeniden deneyeceğiz.",
-    failed_to_forward: "Tekrar deneyin.",
-    failed_to_schedule: "Tekrar deneyin.",
-    fill_required_fields: "Lütfen tüm gerekli alanları doldurun",
-    failed_to_load_sources: "Tekrar deneyin.",
-    failed_to_add_source: "Tekrar deneyin.",
-    failed_to_delete_source: "Tekrar deneyin.",
-    failed_to_toggle_source: "Tekrar deneyin.",
+    failed_to_forward:
+      "Yönlendirme gönderilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
+    failed_to_schedule:
+      "Zamanlama kaydedilmedi. Tekrar deneyin. Taslağınız güvende.",
     sync_failed:
       "Eşitleme tamamlanmadı, otomatik olarak yeniden deneyeceğiz. Her iki taraftaki postanız güvende.",
     clearing: "Temizleniyor...",
@@ -824,7 +794,8 @@ export const tr = {
     conversations_marked_as_spam_bulk:
       "{{count}} görüşme spam olarak işaretlendi",
     conversations_restored_bulk: "{{count}} görüşme geri yüklendi",
-    failed_to_restore_conversations: "Tekrar deneyin.",
+    failed_to_restore_conversations:
+      "Bu ileti dizileri geri yüklenmedi. Tekrar deneyin.",
     conversations_snoozed_bulk: "{{count}} görüşme ertelendi",
     conversations_marked_as_read_bulk:
       "{{count}} görüşme okundu olarak işaretlendi",
@@ -840,8 +811,6 @@ export const tr = {
     already_in_folder: "Zaten {{folder}} klasöründe",
     cannot_move_from_view: "Bu görünümden ileti taşıyamazsınız.",
     already_has_label: "Zaten {{label}} etiketli",
-    birthday_today: "Bugün!",
-    birthday_tomorrow: "Yarın",
     contact_details: "Kişi Ayrıntıları",
     history: "Geçmiş",
     all_mail: "Tüm postalar",
@@ -850,8 +819,6 @@ export const tr = {
       "Kişileri içe aktarmak için bir dosya seçin. Desteklenen formatlar: vCard (.vcf) ve CSV.",
     click_to_select_file: "Dosya seçmek için tıklayın",
     or_drag_and_drop: "veya sürükleyip bırakın",
-    vcf_files: ".vcf dosyaları",
-    spreadsheet_export: "Elektronik tablo dışa aktarımı",
     map_csv_columns: "CSV sütunlarını kişi alanlarıyla eşleştirin:",
     import_complete: "İçe Aktarma Tamamlandı",
     contacts_imported_desc: "Kişileriniz içe aktarıldı",
@@ -861,13 +828,11 @@ export const tr = {
     failed: "Başarısız",
     disable: "Devre dışı bırak",
     sync: "Senkronize et",
-    delete_mail_from: "E-postaları sil:",
     unknown_time: "bilinmeyen zaman",
     relationship: "İlişki",
     no_contact_selected: "Kişi seçilmedi",
     select_contact_hint:
       "Ayrıntılarını görüntülemek için listeden bir kişi seçin",
-    importing_contacts: "Kişiler içe aktarılıyor...",
     export_all: "Tümünü dışa aktar",
     no_contacts: "Kişi yok",
     failed_to_load_contacts: "Kisiler yüklenmedi.",
@@ -876,22 +841,18 @@ export const tr = {
     add_contact: "Kişi ekle",
     file_too_large:
       "Bu dosya {{size}} MB ve boyut sınırının üzerinde. Daha küçük bir dosya seçin.",
-    failed_to_upload_attachment: "Tekrar deneyin.",
-    upload_failed: "Tekrar deneyin.",
     delete_failed: "Tekrar deneyin.",
-    download_failed: "Tekrar deneyin.",
+    download_failed: "Bu indirme tamamlanmadı. Tekrar deneyin.",
     attachment_locked:
       "Bu ek, şifreleme anahtarı bu cihazda kullanılamadığı için açılamıyor.",
     scheduled_no_attachments:
       "Zamanlanmış e-postalar henüz ek içeremez. Şimdi gönderin veya zamanlamak için dosyaları kaldırın.",
     scheduled_connected_account:
-      "Zamanlanmış gönderim bağlı hesaplar için kullanılamaz. Bu iletiyi şimdi gönder ya da bir Aster adresi seç.",
+      "Zamanlanmış gönderim bağlı hesaplar için kullanılamaz. Bu iletiyi şimdi gönderin ya da bir Aster adresi seçin.",
     scheduled_no_expiry:
       "Zamanlanmış e-postalar henüz süre sonu kullanamaz. Şimdi gönder ya da zamanlamak için süre sonunu kaldır.",
-    failed_to_merge_contacts: "Tekrar deneyin.",
-    merge_failed: "Tekrar deneyin.",
-    failed_to_load_history: "Tekrar deneyin.",
-    failed_to_load_more: "Tekrar deneyin.",
+    failed_to_merge_contacts:
+      "Birleştirme tamamlanmadı. Tekrar deneyin. Özgün kişileriniz değişmedi.",
     enter_valid_emails: "Lütfen geçerli e-posta adresleri girin",
     enter_contact_details: "Kişi bilgilerini girin",
     select_valid_image: "Lütfen bir JPEG, PNG, WebP veya GIF görsel seçin",
@@ -911,20 +872,28 @@ export const tr = {
     emails_from_senders_deleted:
       "{{senders}} kişiden {{count}} e-posta silindi",
     emails_added_to_folder: "{{count}} e-posta {{folder}} klasörüne eklendi",
-    failed_to_snooze_emails: "Tekrar deneyin.",
+    failed_to_snooze_emails:
+      "Bu e-postalar ertelenmedi. Tekrar deneyin. Hâlâ gelen kutunuzdalar.",
     failed_to_copy: "Tekrar deneyin.",
     error_copied_to_clipboard: "Hata panoya kopyalandı",
-    failed_to_update_contact: "Tekrar deneyin.",
-    failed_to_block_sender: "Tekrar deneyin.",
-    failed_to_rename_folder: "Tekrar deneyin.",
-    failed_to_change_folder_color: "Tekrar deneyin.",
-    failed_to_delete_folder: "Tekrar deneyin.",
+    failed_to_update_contact:
+      "Kişi değişiklikleriniz kaydedilmedi. Tekrar deneyin. Önceki sürüm hâlâ duruyor.",
+    failed_to_block_sender: "Bu gönderen engellenemedi. Tekrar deneyin.",
+    failed_to_rename_folder:
+      "Bu klasörün adı değiştirilmedi. Tekrar deneyin. Klasör ve e-postaları değişmedi.",
+    failed_to_change_folder_color:
+      "Klasör rengi güncellenmedi. Tekrar deneyin.",
+    failed_to_delete_folder:
+      "Bu klasör kaldırılmadı. Tekrar deneyin. İçindeki e-postalar güvende.",
     failed_to_move_folder: "Tekrar deneyin.",
-    failed_to_update_folder_encryption: "Tekrar deneyin.",
+    failed_to_update_folder_encryption:
+      "Klasör kilidi ayarı değişmedi. Tekrar deneyin. Klasör olduğu gibi kalıyor.",
     failed_to_rename_label: "Tekrar deneyin.",
-    failed_to_change_label_color: "Tekrar deneyin.",
-    failed_to_change_label_icon: "Tekrar deneyin.",
-    failed_to_delete_label: "Tekrar deneyin.",
+    failed_to_change_label_color: "Etiket rengi güncellenmedi. Tekrar deneyin.",
+    failed_to_change_label_icon:
+      "Etiket simgesi güncellenmedi. Tekrar deneyin.",
+    failed_to_delete_label:
+      "Bu etiket kaldırılmadı. Tekrar deneyin. E-postalarınız etkilenmedi.",
     failed_to_create_label: "Tekrar deneyin.",
     failed_to_create_folder_error: "Tekrar deneyin.",
     folder_plan_limit_reached:
@@ -932,24 +901,22 @@ export const tr = {
     authenticate_to_send: "E-posta göndermek için kimlik doğrulayın",
     send_authentication_failed:
       "Kimlik doğrulama tamamlanmadı, bu yüzden bu e-posta gönderilmedi.",
-    failed_to_send_reply: "Tekrar deneyin.",
+    failed_to_send_reply:
+      "Bu yanıt gönderilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
     failed_to_delete_draft: "Tekrar deneyin.",
-    failed_to_update_rule: "Tekrar deneyin.",
+    failed_to_update_rule:
+      "Bu kural kaydedilmedi. Tekrar deneyin. Önceki sürüm hâlâ etkin.",
     failed_to_send_verification:
       "Doğrulama e-postasını gönderemedik. Birkaç saniye sonra tekrar denemek çoğunlukla bunu çözer.",
     failed_to_load_email:
       "Bu e-posta yüklenmedi. Bir yenileme çoğunlukla bunu çözer. E-posta sunucuda güvende.",
     failed_to_decrypt_email:
       "Bu e-postayı bu cihazda açamadık. Bir yenileme çoğunlukla bunu çözer ve sorun sürerse çıkış yapıp tekrar giriş yapmak yedek yoldur.",
-    failed_to_unsubscribe:
-      "Abonelikten çıkma tamamlanmadı. E-postadaki bağlantı sizi göndericinin sitesine götürür, abonelikten kendiniz çıkabilirsiniz.",
-    failed_to_disable_2fa: "Tekrar deneyin.",
-    failed_to_parse_settings:
-      "Bu ayarlar dosyası okunamadı. Farklı bir dosya işe yarar. Mevcut ayarlarınız olduğu gibi.",
+    failed_to_disable_2fa:
+      "İki faktörlü kimlik doğrulama açık kaldı. Tekrar deneyin. Hesabınız hâlâ korunuyor.",
     removed_from_contacts: "Kişilerden kaldırıldı",
     added_to_contacts: "Kişilere eklendi",
     senders_emails_count: "{{senders}} ({{emails}})",
-    no_emails: "Burada e-posta yok.",
     no_read_emails_to_archive: "Arşivlenecek okunmuş e-posta yok",
     no_unread_emails: "Okunmamış e-posta yok",
     email_copied: "E-posta kopyalandı",
@@ -964,40 +931,33 @@ export const tr = {
     session_expired_refresh:
       "Oturumunuz sona erdi. Sayfayı yenilemek tekrar giriş yapmanıza olanak verir. Verileriniz güvende.",
     email_in_locked_folder:
-      "Bu e-posta, kilitlediğiniz bir klasörde duruyor. Klasörün kilidini açmak onu açar.",
-    vault_not_available:
-      "Özel anahtarlarınız bu cihazda yüklü değil. Tekrar giriş yapmak onların kilidini açar. Sunucudaki anahtarlarınız olduğu gibi.",
+      "Bu e-posta kilitlediğiniz bir klasörde. Açmak için klasörün kilidini açın.",
     no_vault_available:
       "Özel anahtarlarınız bu cihazda yüklü değil. Tekrar giriş yapmak onların kilidini açar. Sunucudaki anahtarlarınız olduğu gibi.",
     offline_action_queued:
       "Şu anda çevrimdışısınız. Bu sıraya alındı ve siz yeniden bağlanır bağlanmaz tamamlanacak.",
     failed_to_update: "Tekrar deneyin.",
-    failed_to_load_search_results: "Tekrar deneyin.",
     failed_to_fetch_tags: "Tekrar deneyin.",
     failed_to_fetch_folders: "Tekrar deneyin.",
     failed_to_unlock_folder:
       "Bu klasörün kilidini açamadık. Parolanızı kontrol edin ve tekrar deneyin. Klasör içeriği güvende.",
     incorrect_password:
-      "Bu parola örtüşmedi. Bir kez daha denemek işe yarar. Hesabınız kilitlenmedi.",
+      "Parola yanlış. Tekrar deneyin. Hesabınız kilitlenmedi.",
     folder_no_password_protection:
       "Bu klasörün şu anda bir parolası yok, dolayısıyla değiştirilecek bir şey de yok.",
     password_already_set:
-      "Bu klasörün zaten bir parolası var. Parolayı Değiştir, güncellemek için olan seçenektir.",
+      "Bu klasörün zaten bir parolası var. Güncellemek için Parolayı Değiştir'i kullanın.",
     folder_must_be_unlocked:
       "Klasörün kilidini önce açmak bu ayarın değişmesine olanak verir.",
     cannot_remove_vault_password:
       "Vault klasörünüzün her zaman kendi parolasına ihtiyacı vardır ve bu koruma kaldırılamaz.",
-    failed_to_load_snoozed_emails: "Tekrar deneyin.",
-    failed_to_load_subscriptions: "Tekrar deneyin.",
-    unexpected_error: "Tekrar deneyin.",
-    failed_to_load_more_subscriptions: "Tekrar deneyin.",
-    failed_to_scan_subscriptions: "Tekrar deneyin.",
-    failed_to_load_drafts: "Tekrar deneyin.",
-    failed_to_load_scheduled_emails: "Tekrar deneyin.",
-    recently_archived: "Son Arşivlenenler",
-    older_items: "Eski Öğeler",
-    long_term_archive: "Uzun Vadeli Arşiv",
-    failed_to_fetch_archive_stats: "Tekrar deneyin.",
+    failed_to_load_snoozed_emails:
+      "Ertelenen e-postalarınız yüklenmedi. Tekrar deneyin. Sunucuda güvendeler.",
+    unexpected_error: "Bir şey beklendiği gibi çalışmadı. Tekrar deneyin.",
+    failed_to_load_drafts:
+      "Taslaklarınız yüklenmedi. Tekrar deneyin. Kayıtlı taslaklarınız güvende.",
+    failed_to_load_scheduled_emails:
+      "Zamanlanmış e-postalarınız yüklenmedi. Tekrar deneyin. Planlandığı gibi gönderilecekler.",
     value_too_long:
       "Bu değer uzunluk sınırının üzerinde. Daha kısa bir sürüm işe yarar.",
     please_enter_valid_domain:
@@ -1008,28 +968,17 @@ export const tr = {
       "@ işaretinden önceki kısım fazla uzun. Daha kısa bir sürüm işe yarar.",
     forwarding_rule_updated: "Yönlendirme kuralı güncellendi",
     forwarding_rule_created: "Yönlendirme kuralı oluşturuldu",
-    spam_settings_saved: "Spam ayarları kaydedildi",
     email_sent_via_external: "E-posta harici hesap üzerinden gönderildi.",
     encryption_keys_rotated: "Şifreleme anahtarları başarıyla döndürüldü",
     failed_to_retrieve_key: "Sunucudan mevcut anahtar alınamadı",
-    failed_to_upload_keys: "Şifreleme anahtarları yüklenemedi",
     sending: "Gönderiliyor...",
     in_one_minute: "1 dk içinde",
-    user_label: "Kullanıcı",
     marketing: "Pazarlama",
-    finance_label: "Finans",
     operation: "İşlem",
-    no_marketing_messages: "Pazarlama mesajı yok",
-    no_finance_messages: "Finans mesajı yok",
-    no_operation_messages: "İşlem mesajı yok",
     folder_label: "Klasör",
-    no_email_id_provided:
-      "Hangi e-postanın açılacağını anlayamadık. Geri dönüp gelen kutunuzdan birini seçmek işe yarar.",
     please_enter_valid_url:
       "Bu geçerli bir web adresi değil. https://example.com gibi tam bir bağlantı işe yarar.",
     csv_file_empty: "Bu CSV'nin içinde satır yok. Başka bir dosya işe yarar.",
-    no_valid_contacts_csv:
-      "Bu CSV dosyasında okunabilir kişi bulunamadı. Sütun başlıklarını kontrol edin ve tekrar deneyin.",
     label_name_cannot_be_empty:
       "Bu etiketin kaydedilebilmesi için bir ada ihtiyacı var.",
     folder_name_cannot_be_empty:
@@ -1040,7 +989,7 @@ export const tr = {
     delete_account_error:
       "Hesabınızı şu anda silemedik. Kısa bir süre sonra tekrar deneyin. Sorun devam ederse hello@astermail.org ile iletişime geçin.",
     encryption_vault_not_available:
-      "Özel anahtarlarınız bu cihazda kilitli. Tekrar giriş yapmak onların kilidini açar. Sunucudaki anahtarlarınız olduğu gibi.",
+      "Özel anahtarlarınız bu cihazda kilitli. Kilidi açmak için yeniden giriş yapın. Sunucudaki anahtarlarınız değişmedi.",
     email_data_missing:
       "Bu e-postanın içeriğini yükleyemedik. Gelen kutunuzdan tekrar açmak onu geri getirir. Gelen kutunuz olduğu gibi.",
     later: "Daha Sonra",
@@ -1060,12 +1009,6 @@ export const tr = {
       "Postanız uçtan uca şifrelenir ve anahtarlar yalnızca sizde olur. Tüm klavye kısayollarını görmek için istediğiniz zaman ? tuşuna basın.",
     skip_tour: "Turu atla",
     get_started: "Başla",
-    setup_complete: "Kurulum tamamlandı!",
-    download_mobile_app: "Mobil uygulamayı indirin",
-    add_recovery_email: "Kurtarma e-postası ekleyin",
-    import_your_email: "Gmail veya Outlook'tan e-posta içe aktarın",
-    add_email_alias: "E-posta takma adı ekleyin",
-    hide_permanently: "Bu kontrol listesini gizle",
     step: "Adım",
     protected_in_transit: "Aktarımda Korumalı",
     encryption_available: "Şifreleme kullanılabilir",
@@ -1083,29 +1026,27 @@ export const tr = {
     only_you_and_sender: "Yalnızca siz ve gönderen bunu okuyabilir.",
     only_you_can_read_contacts:
       "Kişilerinizi yalnızca siz okuyabilirsiniz. Aster bu verileri göremez.",
-    tor_label: "Tor",
-    tor_snowflake_label: "Tor (Snowflake)",
-    cdn_relay_label: "CDN Aktarıcı",
-    toggle_selection: "Seçimi değiştir",
-    failed_to_send_email: "Tekrar deneyin.",
-    failed_to_send_external_email: "Tekrar deneyin.",
+    failed_to_send_email:
+      "Bu e-posta gönderilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
+    failed_to_send_external_email:
+      "Bu e-posta bağlı harici hesabınız üzerinden gönderilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
     external_account_token_missing:
       "Bağladığınız dış hesabın, üzerinden gönderim yapılmadan önce yeniden bağlanması gerekiyor. Ayarlar, Bağlı Hesaplar bölümünde duruyor.",
-    failed_to_send_via_external: "Tekrar deneyin.",
+    failed_to_send_via_external:
+      "Bağlı harici hesabınız üzerinden gönderim yapılamadı. Tekrar deneyin. Taslağınız kaydedildi.",
     offline_change_failed:
       "Çevrimdışıyken yaptığınız bir değişiklik kaydedilemedi.",
     offline_send_failed: "Çevrimdışıyken yazdığınız bir e-posta gönderilemedi.",
     offline_email_queued:
       "Şu anda çevrimdışısınız. Bu e-posta yeniden bağlanır bağlanmaz gönderilir.",
-    failed_to_queue_offline: "Tekrar deneyin.",
+    failed_to_queue_offline:
+      "Bu e-posta daha sonra gönderilmek üzere sıraya alınamadı. Tekrar deneyin. Taslağınız kaydedildi.",
     cannot_mix_recipients:
       "Aster kullanıcıları ile dış adresler aynı e-postaya konulamaz. Onları iki ayrı mesaj olarak göndermek işe yarar.",
-    failed_to_schedule_email: "Tekrar deneyin.",
+    failed_to_schedule_email:
+      "Zamanlama kaydedilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
     failed_to_restore_draft:
       "Bu taslağı geri getiremedik. Tekrar açmak çoğunlukla bunu çözer. Diğer taslaklarınız etkilenmedi.",
-    enter_url: "URL girin:",
-    enter_link_text: "Bağlantı metnini girin:",
-    conversation_marked_as_spam_toast: "Görüşme spam olarak işaretlendi",
     failed_to_undo_spam:
       "Bunu geri alamadık. Manuel olarak geri taşımak yedek yoldur.",
     conversation_moved_to_trash_toast: "Görüşme çöp kutusuna taşındı",
@@ -1126,12 +1067,7 @@ export const tr = {
     switch_to_rich_text: "Zengin metne geç",
     switch_to_plain_text: "Düz metne geç",
     font_size_label: "Yazı tipi boyutu",
-    font_small: "Küçük",
-    font_normal: "Normal",
-    font_large: "Büyük",
-    font_huge: "Çok Büyük",
     enter_url_display_text: "Bir URL ve isteğe bağlı görüntüleme metni girin",
-    select_table_size: "Tablo boyutunu seçin",
     emoji: "Emoji",
     recipients: "Alıcılar",
     encrypted_attachment: "Şifreli ek",
@@ -1140,10 +1076,12 @@ export const tr = {
     forward_attachments_unavailable: "Bazı ekler bu iletiye eklenemedi.",
     image: "Görsel",
     system: "Sistem",
-    failed_to_permanently_delete: "Tekrar deneyin.",
-    failed_to_delete_emails: "Tekrar deneyin.",
-    failed_to_mark_as_read: "Tekrar deneyin.",
-    failed_to_mark_as_unread: "Tekrar deneyin.",
+    failed_to_permanently_delete: "Bu öğeler kaldırılmadı. Tekrar deneyin.",
+    failed_to_delete_emails: "Bu e-postalar kaldırılmadı. Tekrar deneyin.",
+    failed_to_mark_as_read:
+      "Bu e-postalar hâlâ okunmadı olarak işaretli. Tekrar deneyin.",
+    failed_to_mark_as_unread:
+      "Bu e-postalar hâlâ okundu olarak işaretli. Tekrar deneyin.",
     n_conversations_archived: "{{ count }} görüşme arşivlendi",
     n_conversations_archived_one: "{{count}} sohbet arşivlendi",
     n_conversations_archived_other: "{{count}} sohbet arşivlendi",
@@ -1153,11 +1091,10 @@ export const tr = {
       "{{count}} sohbet çöp kutusuna taşındı",
     n_conversations_marked_as_spam:
       "{{ count }} görüşme spam olarak işaretlendi",
-    internal_only: "Yalnızca dahili",
     external_only: "Yalnızca harici",
     all_accounts: "Tüm hesaplar",
-    all_external_accounts: "Tüm harici hesaplar",
-    failed_to_rotate_keys: "Tekrar deneyin.",
+    failed_to_rotate_keys:
+      "Anahtar yenileme tamamlanmadı. Tekrar deneyin. Eski anahtarlarınız hâlâ çalışıyor ve verileriniz güvende.",
     read: "Okundu",
     or_conjunction: "veya",
     press_label: "Basın",
@@ -1165,8 +1102,6 @@ export const tr = {
     showing_shortcuts_for: "Kısayollar gösteriliyor:",
     emoji_smileys: "Suratlar",
     emoji_gestures: "Jestler",
-    emoji_hearts: "Kalpler",
-    emoji_celebration: "Kutlama",
     emoji_symbols: "Semboller",
     emoji_animals: "Hayvanlar",
     emoji_food: "Yiyecek",
@@ -1187,10 +1122,12 @@ export const tr = {
     removed_count_from_allowlist: "{{ count }} izin listesinden kaldırıldı",
     failed_to_add_label: "Tekrar deneyin.",
     failed_to_remove_label: "Tekrar deneyin.",
-    failed_to_move_email: "Tekrar deneyin.",
+    failed_to_move_email:
+      "Bu e-posta taşınmadı. Tekrar deneyin. E-posta bulunduğu yerde güvende.",
     failed_to_add_labels: "Tekrar deneyin.",
-    failed_to_remove_labels: "Tekrar deneyin.",
-    failed_to_copy_to_clipboard: "Tekrar deneyin.",
+    failed_to_remove_labels: "Bu etiketler kaldırılmadı. Tekrar deneyin.",
+    failed_to_copy_to_clipboard:
+      "Panoya hiçbir şey kopyalanmadı. Tekrar deneyin.",
     add_note_placeholder: "Not ekleyin...",
     add_private_note_placeholder: "Özel not ekleyin...",
     search_anything: "Herhangi bir şey arayın...",
@@ -1201,13 +1138,7 @@ export const tr = {
     leaving_aster_mail: "Aster Mail'den Ayrılıyorsunuz",
     unlock_aster_mail: "Aster Mail Kilidini Aç",
     aster_mail_locked: "Aster Mail kilitli",
-    share_aster_mail: "Aster Mail'i Paylaş",
-    share_aster_description:
-      "Aster Mail'i arkadaşlarınız ve ailenizle paylaşın",
     merge_contacts: "Kişileri Birleştir",
-    merged_result_preview: "Birleştirilmiş Sonuç Önizlemesi",
-    merge_all: "Tümünü Birleştir",
-    duplicate_contacts: "Yinelenen Kişiler",
     contact_sync: "Kişi Senkronizasyonu",
     sync_confirm_title: "Kişileri Senkronize Et",
     sync_confirm_message:
@@ -1223,14 +1154,10 @@ export const tr = {
     subject_label: "Konu:",
     send_at_label: "Gönderim zamanı:",
     received: "Alındı",
-    select_email_to_read: "Okumak için bir e-posta seçin",
     remove_from_contacts: "Kişilerden kaldır",
     messages_from_sender: "Bu gönderenden gelen mesajlar",
-    powered_by: "Tarafından desteklenmektedir",
-    mobile_settings: "Mobil Ayarlar",
     app_lock: "Uygulama Kilidi",
     app_locked: "Aster Mail kilitli",
-    enter_pin_to_unlock: "Kilidini açmak için PIN'inizi girin",
     wrong_pin: "Yanlış PIN",
     app_lock_locked_out: "Çok fazla yanlış deneme",
     app_lock_attempts_remaining: "{{count}} deneme hakkı kaldı",
@@ -1242,7 +1169,6 @@ export const tr = {
     duress_confirm_detail:
       "Hesabınız ve şifreli verileriniz Aster sunucularında güvende kalır. Dilediğiniz zaman yeniden oturum açabilirsiniz.",
     duress_confirm_proceed: "Yerel verileri sil",
-    secure_send: "Güvenli Gönderim",
     push_notifications: "Anlık Bildirimler",
     enabled: "Etkin",
     haptic_feedback: "Dokunsal Geri Bildirim",
@@ -1272,12 +1198,11 @@ export const tr = {
     stylesheet: "Stil sayfası",
     tracking_pixel: "İzleme pikseli",
     me: "ben",
-    snoozed_until_label: "{{time}} tarihine kadar ertelendi",
     notification_banner_message:
       "Yeni e-postalardan haberdar olmak için masaüstü bildirimlerini etkinleştirin",
     notification_banner_allow: "İzin Ver",
     subscriptions: "Abonelikler",
-    unsubscribed_count: "Aboneliksiz ({{count}})",
+    unsubscribed_count: "Abonelikten çıkılanlar ({{count}})",
     one_click_unsubscribe: "Tek tıkla abonelik iptali destekleniyor",
     no_unsubscribed_senders: "Aboneliksiz gönderen yok",
     total: "Toplam",
@@ -1299,11 +1224,14 @@ export const tr = {
     locked_data_banner_action: "Verileri kurtar",
     locked_data_banner_dismiss: "Kapat",
     recover_data_title: "Verileri kurtar",
-    recover_data_description: "Parola değişikliğinden veya sıfırlamadan önceki verilerin kilidini açmak için o sırada kullandığınız parolayı girin.",
+    recover_data_description:
+      "Parola değişikliğinden veya sıfırlamadan önceki verilerin kilidini açmak için o sırada kullandığınız parolayı girin.",
     recover_data_button: "Kurtar",
     recover_data_success: "Eski verilerinizin kilidi açıldı.",
-    recover_data_no_match: "Bu parola hiçbir verinin kilidini açmadı. Başka bir eski parola deneyin.",
-    recover_data_failed: "Bazı verilerin kilidi açılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
+    recover_data_no_match:
+      "Bu parola hiçbir verinin kilidini açmadı. Başka bir eski parola deneyin.",
+    recover_data_failed:
+      "Bazı verilerin kilidi açılamadı. Bağlantınızı kontrol edip tekrar deneyin.",
     payment_past_due_message:
       "Son ödemeniz alınamadı. Planınızı sürdürmek için ödeme yönteminizi güncelleyin.",
     payment_past_due_message_days:
@@ -1321,7 +1249,6 @@ export const tr = {
     forward_label: "İlet",
     carbon_copy: "Karbon Kopya",
     blind_carbon_copy: "Gizli Karbon Kopya",
-    end_to_end_encrypted_email: "Uçtan uca şifreli e-posta",
     terms_of_service: "Hizmet Şartları",
     privacy_policy: "Gizlilik Politikası",
     invite_encrypted_email:
@@ -1344,23 +1271,17 @@ export const tr = {
     storage_keys: "Depolama Anahtarları",
     no_contacts_found_device: "Cihazda kişi bulunamadı",
     no_new_contacts_imported: "Yeni kişi içe aktarılmadı",
-    contacts_imported_count: "{{count}} kişi içe aktarıldı",
     sender_blocked: "Gönderen engellendi",
     snooze_label: "Ertele",
     linkedin: "LinkedIn",
     twitter_x: "Twitter / X",
     github: "GitHub",
     social_links: "Sosyal Bağlantılar",
-    profile_photo_label: "Profil Fotoğrafı",
     attachments_label: "Ekler",
     custom_fields_label: "Özel Alanlar",
-    none_label: "Yok",
     contact_1: "Kişi 1",
     contact_2: "Kişi 2",
-    name_colon: "Ad:",
-    emails_colon: "E-postalar:",
     phone_colon: "Telefon:",
-    company_colon: "Şirket:",
     address_colon: "Adres:",
     icon_label: "Simge",
     color_label: "Renk",
@@ -1375,20 +1296,14 @@ export const tr = {
     new_contact: "Yeni Kişi",
     at_least_one_name_required: "En az bir ad gereklidir",
     at_least_one_email_required: "En az bir e-posta gereklidir",
-    choose_values_to_keep: "Saklanacak değerleri seçin",
     empty: "Boş",
-    merging: "Birleştiriliyor...",
     disabled: "Devre dışı",
-    ghost_mode_title: "Ghost Modu",
+    ghost_mode_title: "Hayalet Mod",
     ghost_mode_description:
       "Tek kullanımlık bir takma adresten yanıtlayın. Gerçek adresiniz gizli kalır.",
     edit_folder: "Klasörü düzenle",
     edit_label: "Etiketi düzenle",
     communication_history: "İletişim geçmişi",
-    hide_stats: "İstatistikleri gizle",
-    show_stats: "İstatistikleri göster",
-    last_colon: "Son:",
-    first_contact_colon: "İlk iletişim:",
     no_email_history: "Bu kişiyle henüz e-posta geçmişi yok",
     load_more: "Daha fazla yükle",
     selected_count: "{{ count }} seçildi",
@@ -1423,84 +1338,16 @@ export const tr = {
     check_out_aster_mail:
       "E-postalarınızı yönetmenin daha iyi yolu: Aster Mail",
     n_lines: "{{ count }} satır",
-    suspicious_email_detected: "Bu e-posta şüpheli görünüyor.",
-    phishing_warning_message:
-      "Bu e-postayı şüpheli olarak işaretledik. İçerdiği her şeye dikkatle yaklaşmak ve göndereni bağlantılara tıklamadan ya da kişisel bilgilerinizi paylaşmadan önce başka bir kanaldan doğrulamak sizi daha güvende tutar. Gelen kutunuz ve hesabınız etkilenmedi.",
     hide_details: "Ayrıntıları gizle",
     show_details: "Ayrıntıları göster",
     not_phishing: "Kimlik avı değil",
-    i_understand: "Anladım",
-    dangerous_email_links_disabled: "Tehlikeli e-posta, bağlantılar kapatıldı.",
-    phishing_danger_message:
-      "Bu e-posta bir kimlik avı girişimine benziyor ve güvenliğiniz için bağlantıları kapatıldı. Gönderene güveniyorsanız, üstteki bantta bağlantıları yeniden açma seçeneği var. Hesabınız bunun dışında etkilenmedi.",
-    hide_reasons: "Nedenleri gizle",
-    show_reasons: "Nedenleri göster",
-    view_links_anyway: "Bağlantıları yine de görüntüle",
-    enable_links: "Bağlantıları etkinleştir",
-    links_re_enabled: "Bağlantılar yeniden etkinleştirildi.",
-    i_understand_the_risks: "riskleri anlıyorum",
-    signal_dkim_fail:
-      "Gönderenin imzasını doğrulayamadık. Bu e-posta yolda değiştirilmiş ya da sahte olabilir.",
-    signal_spf_fail:
-      "Bu e-postayı gönderen sunucu, bu alan adının normalde kullandığı sunuculardan biri değil. Gönderen taklit ediliyor olabilir.",
-    signal_dmarc_fail:
-      "Bu gönderenin alan adı, sahtecilik karşıtı kurallarını geçemeyen mesajları reddediyor ve bu mesaj geçemedi. Dikkatle yaklaşmak yerinde olur.",
-    signal_all_auth_fail:
-      "Bu e-postadaki her gönderen kontrolü başarısız oldu, dolayısıyla mesaj sahte olabilir. Bağlantılarına ve eklerine, göndereni başka bir yolla doğrulamadan güvenmemek daha güvenli olur.",
     auth_fail_banner_title: "Göndereni doğrulayamadık.",
     auth_fail_banner_body:
       "Bu e-postanın gerçekten gösterilen adresten geldiğini doğrulayamadık ve sahte olabilir. Bağlantıları ya da ekleri açmadan önce göndereni başka bir kanaldan doğrulamak daha güvenli yoldur. Hesabınız etkilenmedi.",
-    signal_all_auth_pass: "Tüm e-posta kimlik doğrulama denetimleri geçti",
-    signal_reply_to_mismatch:
-      "Bu e-postaya verilecek yanıtlar, gönderen olarak görünen alan adından farklı bir alana giderdi. Bu, sıkça görülen bir kimlik avı düzenidir.",
-    signal_missing_from:
-      "Bu e-postada Kimden satırı yok. Bu olağandışı bir durum ve temkinli yaklaşmaya değer.",
-    signal_missing_message_id:
-      "Bu e-posta, gerçek postaların normalde taşıdığı benzersiz kimlikten yoksun.",
-    signal_multiple_from:
-      "Bu e-posta aynı anda birden fazla gönderen olduğunu belirtiyor. Bu, sıkça görülen bir sahtecilik işaretidir.",
-    signal_future_dated:
-      "Gönderenin saatine göre bu e-posta gelecekte yazılmış görünüyor. Bu, sahteciliğe ya da yanlış yapılandırılmış bir gönderene işaret edebilir.",
-    signal_domain_reputation_high:
-      "Bu gönderenin alan adının geniş e-posta topluluğunda kötü bir itibarı var.",
-    signal_domain_reputation_medium:
-      "Bu gönderenin alan adının karışık bir itibarı var. İçindeki bir şey üzerinde harekete geçmeden önce dikkatli bir bakış atmaya değer.",
-    signal_domain_new:
-      "Bu gönderenin alan adı yakın zamanda kaydedilmiş. Bu, dolandırıcılık kampanyalarında sıkça görülen bir durumdur.",
-    signal_user_reputation_high:
-      "Bu göndereni daha önce bildirmiştiniz, bu nedenle mesajı sizin için işaretliyoruz.",
-    signal_rbl_spamhaus:
-      "Bu e-postayı gönderen sunucu, tanınmış bir spam engelleme listesinde yer alıyor.",
-    signal_rbl_barracuda:
-      "Bu e-postayı gönderen sunucu, tanınmış bir spam engelleme listesinde yer alıyor.",
-    signal_rbl_other:
-      "Bu e-postayı gönderen sunucu, gerçek zamanlı bir spam engelleme listesinde yer alıyor.",
-    signal_display_name_brand_spoof:
-      "Gönderen adı, tanınmış bir markayı taklit ediyor. Bu, sıkça görülen bir kimlik avı yöntemidir.",
-    signal_display_name_email_spoof:
-      "Gönderenin görünen adı bir e-posta adresi gösteriyor, ancak mesaj aslında başka bir adresten geliyor. Bu, sıkça görülen bir kimlik avı düzenidir.",
-    signal_domain_blocklist:
-      "Bu gönderenin alan adı, bilinen bir kimlik avı engelleme listesinde yer alıyor. Mesaja düşmanca yaklaşmak yerinde olur.",
-    signal_safe_browsing_match:
-      "Bu gönderenin alan adı, güvensiz içerik barındırmakla işaretlenmiş.",
-    signal_url_on_blocklist:
-      "Bu e-posta, kimlik avıyla bilinen sitelere giden bağlantılar içeriyor. Bağlantılara tıklamamak daha güvenli olur.",
-    signal_homoglyph_domain:
-      "Bu e-posta, gerçek siteleri taklit etmek için tasarlanmış benzer görünümlü alan adlarına bağlantılar içeriyor. Bağlantılara tıklamaktan kaçınmak daha güvenli olur.",
-    signal_display_name_brand_spoof_client:
-      "Gönderen adı, tanınmış bir markayı taklit ediyor. Bu, sıkça görülen bir kimlik avı yöntemidir.",
-    signal_display_name_email_mismatch:
-      "Gönderenin adı ile gerçek adresi örtüşmüyor. Bu, sıkça görülen bir kimlik avı düzenidir.",
-    signal_urgency_language:
-      "Bu e-posta, dolandırıcılıklarda sıkça görülen aciliyet ya da tehdit dili kullanıyor. Harekete geçmeden önce biraz yavaşlamak daha güvenli olur.",
     shipment_update: "Kargo güncellemesi",
-    estimated_short: "Tahmini {{ date }}",
     track_package: "Kargoyu takip et",
     tracking_number: "Takip numarası",
     estimated_delivery: "Tahmini teslimat",
-    delivery_address: "Teslimat adresi",
-    extracted_locally_message:
-      "E-postanızdan yerel olarak çıkarılır, sunucularımıza hiçbir şey gönderilmez.",
     view_blocked_content_details: "Engellenen içerik ayrıntılarını görüntüle",
     n_images: "{{ count }} görsel",
     n_items: "{{ count }} öğe",
@@ -1526,21 +1373,20 @@ export const tr = {
     select_destination_folder: "Hedef klasörü seçin",
     no_folders_available: "Kullanılabilir klasör yok",
     submitting: "Gönderiliyor...",
-    account_suspended_label: "Hesabınız askıya alındı.",
     suspended_alert: "Bu hesap, {terms} ihlal edecek şekilde kullanıldı.",
     suspended_alert_terms: "Aster Hizmet Şartları'nı",
-    suspended_since_with_deletion: "Bu hesap {date} tarihinden itibaren kullanılamıyor. {deletion_date} tarihinden itibaren silinmek üzere değerlendirilebilir.",
+    suspended_since_with_deletion:
+      "Bu hesap {date} tarihinden itibaren kullanılamıyor. {deletion_date} tarihinden itibaren silinmek üzere değerlendirilebilir.",
     suspended_since: "Bu hesap {date} tarihinden itibaren kullanılamıyor.",
     suspended_title: "Bu hesap askıya alındı",
-    suspended_appeal_hint: "Bunun bir hata olduğunu düşünüyorsanız itiraz gönderebilirsiniz. Aster her itirazı inceler ve e-postayla yanıt verir.",
-    suspended_download_hint: "Verilerinizin bir kopyasını yine de indirebilirsiniz. Postanızın şifresi yalnızca bu cihazda çözülür, bu nedenle dışa aktarılan dosyayı başka kimse okuyamaz.",
+    suspended_appeal_hint:
+      "Bunun bir hata olduğunu düşünüyorsanız itiraz gönderebilirsiniz. Aster her itirazı inceler ve e-postayla yanıt verir.",
+    suspended_download_hint:
+      "Verilerinizin bir kopyasını yine de indirebilirsiniz. Postanızın şifresi yalnızca bu cihazda çözülür, bu nedenle dışa aktarılan dosyayı başka kimse okuyamaz.",
     suspended_download: "Verilerinizi indirin",
     suspended_start_appeal: "İtiraz başlat",
-    account_suspended_default_reason:
-      "Hesabınız bir Hizmet Şartları ihlali nedeniyle askıya alındı. hello@astermail.org itiraz ya da daha fazla ayrıntı için yardımcı olabilir.",
-    submit_an_appeal: "İtiraz gönder",
     settings_disabled_suspended:
-      "Hesabınız askıdayken ayarlar kapalı. hello@astermail.org itiraz ya da daha fazla ayrıntı için yardımcı olabilir.",
+      "Hesabınız askıdayken ayarlar kapalıdır. İtiraz etmek veya ayrıntı almak için hello@astermail.org adresine yazın.",
     new_email_body: "Yeni bir e-postanız var",
     new_emails_body_one: "{{count}} yeni e-postanız var",
     new_emails_body: "{{count}} yeni e-postanız var",
@@ -1557,18 +1403,6 @@ export const tr = {
     sender_type_external: "Harici",
     sender_type_ghost: "Hayalet",
     recovery_email_label: "Kurtarma e-postası",
-    vault_access_error:
-      "Bu cihazda özel anahtarlarınızı açamadık. Çıkış yapıp tekrar giriş yapmak onları yeniden yükler. Sunucudaki anahtarlarınız ve verileriniz olduğu gibi duruyor.",
-    recovery_email_already_used:
-      "Bu e-posta zaten başka bir hesapta kurtarma adresi olarak tanımlı. Farklı bir adres işe yarar.",
-    add_recovery_email_gate_desc:
-      "Aster Mail'i kullanmaya devam edebilmek için doğrulanmış bir kurtarma e-postasına ihtiyaç var. Parolanızı unutursanız hesaba bu yolla geri dönersiniz, bu yüzden her zaman ulaşabileceğiniz bir adres seçmek daha güvenli bir yoldur.",
-    recovery_email_encrypted_note:
-      "Bu e-posta yalnızca hesap kurtarma ve kimlik doğrulama için kullanılır. Şifrelidir ve Aster okuyamaz.",
-    recovery_email_verified_redirect:
-      "Kurtarma e-postanız doğrulandı. Yönlendiriliyorsunuz...",
-    verification_link_sent_to:
-      "{{email}} adresine bir doğrulama bağlantısı gönderdik. Kimliğinizi doğrulamak için e-postadaki bağlantıya tıklayın.",
     check_spam_folder_note:
       "E-posta gelmedi mi? Önemsiz klasörünüze bakın. Bağlantı 24 saat sonra geçersiz olur.",
     job_title_at_company: "{{ company }} şirketinde {{ job_title }}",
@@ -1590,18 +1424,13 @@ export const tr = {
     enter_contact_group_name: "Bir grup adı girin",
     manage_contact_groups: "Grupları yönet",
     no_contact_groups_yet: "Henüz grup yok",
-    add_contacts_to_group_hint:
-      "En çok yazıştığınız kişileri düzenlemek için bir grup oluşturun.",
     contact_group_name_too_long:
       "Grup adları en fazla {{ max }} karakter olabilir.",
     contact_group_already_exists: "Bu ada sahip bir grup zaten var.",
     contact_group_limit_reached: "En fazla {{ max }} grup oluşturabilirsiniz.",
-    delete_contact_group_confirm:
-      "Bu grup silinsin mi? Kişileriniz adres defterinizde kalır.",
     failed_to_fetch_contact_groups: "Gruplar yüklenmedi. Yeniden deneyin.",
     failed_to_save_contact_group: "Grup kaydedilmedi. Yeniden deneyin.",
     failed_to_create_contact_group: "Grup oluşturulmadı. Yeniden deneyin.",
-    failed_to_delete_contact_group: "Grup silinmedi. Yeniden deneyin.",
     failed_to_update_contact_groups: "Grup üyeliği güncellenmedi.",
     contacts_added_to_group: "{{count}} kişi gruba eklendi",
     contacts_added_to_group_one: "{{count}} kişi gruba eklendi",
@@ -1621,31 +1450,23 @@ export const tr = {
       "Bu etiket, taşıdığı her e-postadan kaldırılır ve bunu geri alamazsınız. E-postaların kendileri hesabınızda kalır.",
     confirm_delete_label: "Şu etiketi silmek istediğinizden emin misiniz",
     add_another_email_count: "Başka bir e-posta ekle ({{current}}/{{max}})",
-    drop_files_or_click: "Dosyaları buraya bırakın veya yüklemek için tıklayın",
-    max_size_per_file: "Dosya başına en fazla {{size}}",
-    uploading_progress: "Yükleniyor...",
     n_messages_count: "{{count}} mesaj",
-    view_all_messages: "Tüm mesajları görüntüle",
     unable_to_decrypt: "Bu mesajı açamadık",
     decrypt_session_expired_message:
       "Bu mesajı bu cihazda açamadık. Bu çoğunlukla oturumun sona ermesinden kaynaklanır. Mesajınız ve sunucudaki anahtarlarınız olduğu gibi duruyor.",
     decrypt_try_sign_out:
       "Çıkış yapıp tekrar giriş yapmak anahtarlarınızı yeniden yükler. Mesaj hâlâ açılmazsa, hello@astermail.org yardımcı olabilir.",
-    n_files: "{{count}} dosya",
-    n_files_plural: "{{count}} dosya",
     files_protected_in_transit:
       "Bu dosyalar aktarım sırasında korunmuş ve şifrelenmiştir.",
-    aster_user: "Aster Kullanıcısı",
     allow_sender: "İzin listesine ekle",
     remove_from_allowlist_action: "İzin listesinden kaldır",
-    failed_to_allow_sender: "Tekrar deneyin.",
+    failed_to_allow_sender:
+      "Bu gönderen izin verilenler listenize eklenmedi. Tekrar deneyin.",
     press_enter: "Enter",
     press_enter_to_view_all: "Tüm sonuçları görmek için Enter tuşuna basın",
     stop: "Durdur",
     more_aliases: "{{count}} daha fazla takma ad",
     profile: "Profil",
-    probation_message:
-      "Hesabınız şu anda inceleme altında. Bazı özellikler kısıtlı olabilir.",
     sending_in_seconds: "{{seconds}} saniye içinde gönderiliyor...",
     sending_in_one_second: "1 saniye içinde gönderiliyor...",
     message_will_be_sent_shortly: "Mesajınız kısa süre içinde gönderilecek",
@@ -1655,21 +1476,20 @@ export const tr = {
     step_up_error: "Şifre veya doğrulama kodu yanlış. Lütfen tekrar deneyin.",
     step_up_security_key_hint:
       "Şifrenizi girdikten sonra güvenlik anahtarınızla doğrulama yapmanız istenecek.",
-    remove_recovery_email_confirm:
-      "Kurtarma e-postanızı kaldırmak istediğinizden emin misiniz? Bu e-postayı kullanarak artık hesabınızı kurtaramazsınız.",
     recovery_email_removed: "Kurtarma e-postası kaldırıldı",
     recovery_email_hidden: "Bu hesapta kayıtlı",
-    failed_remove_recovery_email: "Tekrar deneyin.",
-    failed_save_profile_color: "Tekrar deneyin.",
+    failed_save_profile_color: "Renk seçiminiz kaydedilmedi. Tekrar deneyin.",
     image_load_failed:
       "Bu görsel yüklenmedi. Sayfayı yenilemek genellikle sorunu çözer.",
     image_processing_failed:
       "Bu görsel hazırlanamadı. Farklı bir dosya kullanmak işe yarayacaktır.",
     alias_avatar_updated: "Takma ad avatarı güncellendi",
     alias_avatar_removed: "Takma ad avatarı kaldırıldı",
-    failed_update_alias_avatar: "Tekrar deneyin.",
+    failed_update_alias_avatar:
+      "Takma ad avatarınız güncellenmedi. Tekrar deneyin.",
     alias_display_name_updated: "Görünen ad güncellendi",
-    failed_update_alias_display_name: "Tekrar deneyin.",
+    failed_update_alias_display_name:
+      "Görünen adınız güncellenmedi. Tekrar deneyin.",
     display_name_too_long:
       "Bu görünen ad uzunluk sınırını aşıyor. Daha kısa bir ad kullanın.",
     add_display_name_placeholder: "Görünen ad ekle",
@@ -1696,7 +1516,6 @@ export const tr = {
     remove_alias_avatar: "Avatarı kaldır",
     alias_avatars_locked:
       "Özel avatarlar ücretli planlarda mevcuttur. Yükseltme yaparak etkinleştirebilirsiniz.",
-    alias_avatars_feature: "Özel takma ad ve alan adı avatarları",
     not_now: "Şimdi değil",
     scanning_mailbox: "Posta kutusu taranıyor...",
     marking_as_read_count:
@@ -1726,14 +1545,17 @@ export const tr = {
     switch_to_simple: "Basit görünüme geç",
     switch_to_advanced: "Gelişmiş görünüme geç",
     star_selected: "Yıldızla",
-    unstar_selected: "Yıldızı kaldır",
     all_short: "Tümü",
     search_failed_try_again:
       "Arama tamamlanamadı. Kısa süre sonra tekrar denemek genellikle yeterli olur.",
-    search_load_failed_try_again: "Tekrar deneyin.",
-    failed_to_set_folder_password: "Tekrar deneyin.",
-    failed_to_change_folder_password: "Tekrar deneyin.",
-    failed_to_remove_folder_password: "Tekrar deneyin.",
+    search_load_failed_try_again:
+      "Arama için e-postalarınız yüklenemedi. Tekrar deneyin. Postanız güvende.",
+    failed_to_set_folder_password:
+      "Klasör parolası kaydedilmedi. Tekrar deneyin. Klasörün içeriği değişmedi.",
+    failed_to_change_folder_password:
+      "Klasör parolası değişmedi. Tekrar deneyin. Eski parola hâlâ geçerli.",
+    failed_to_remove_folder_password:
+      "Klasör parolası kaldırılamadı. Tekrar deneyin. Klasör önceki gibi kilitli kalıyor.",
     wkd_encrypted_description:
       "Alıcının yayımladığı genel anahtarla şifrelendi.",
     sender_verified: "Gönderen doğrulandı",
@@ -1754,15 +1576,12 @@ export const tr = {
       "Bu cihaz hesabınızdan kaldırıldı ve oturumunuz kapatıldı. Bu işlem size ait değilse, astermail.org/security adresinden hemen şifrenizi değiştirin.",
     pending_deletion_title: "Hesap silinmek üzere zamanlandı",
     pending_deletion_days:
-      "Hesabınız {{days}} gün içinde silinecek. Fikrinizi değiştirirseniz aşağıdaki bannerda iptal seçeneği bulunuyor.",
-    pending_deletion_cancel_prompt:
-      "Silme işlemini iptal edip hesabınızı korumak ister misiniz?",
+      "Hesabınız {{days}} gün içinde silinecek. Hesabınızı korumak ve postanıza erişimi geri kazanmak için silme işlemini iptal edin.",
     pending_deletion_body:
       "Hesabınız silinmek üzere zamanlandı. Hesabınızı korumak ve postanıza yeniden erişmek için silme işlemini iptal edin.",
     pending_deletion_sign_out: "Oturumu kapat",
     pending_deletion_error: "Hesabınız geri yüklenemedi. Tekrar deneyin.",
     pending_deletion_keep: "Hesabımı Koru",
-    pending_deletion_dismiss: "Hayır, Silmeye Devam Et",
     pending_deletion_cancelling: "İptal ediliyor...",
     family_2fa_title: "İki faktörlü kimlik doğrulama gerekli",
     family_2fa_body:
@@ -1776,19 +1595,16 @@ export const tr = {
       '"{{name}}" {{size}} tek dosya sınırını aşıyor. Daha küçük bir sürüm veya paylaşılan bir bağlantı kullanın.',
     file_exceeds_max_size_upgradable:
       '"{{name}}" planınızdaki {{size}} tek dosya sınırını aşıyor. Yükseltme bu sınırı {{max_size}} değerine çıkarır.',
-    total_attachments_exceed_limit:
-      "Ekleriniz {{size}} toplam sınırını aşıyor. Bir dosyayı kaldırmak veya bağlantı üzerinden paylaşmak sorunu çözer.",
     adding_file_would_exceed_limit:
       '"{{name}}" eklemek eklerinizi {{size}} sınırının üzerine çıkaracak. Önce bir dosyayı kaldırın veya ayrı bir e-postayla gönderin.',
-    unsupported_file_type:
-      '"{{name}}" ekleyebileceğimiz bir dosya türü değil. Farklı bir formatta kaydedin veya bağlantı üzerinden paylaşın.',
     file_already_attached:
       '"{{name}}" bu e-postaya zaten eklendi. Tekrar eklemenize gerek yok.',
     metadata_not_removed:
       "{{names}} dosyasındaki gizli meta veriler kaldırılamadı. Dosya değiştirilmeden eklendi.",
     failed_to_read_named_file:
       '"{{name}}" okunamadı. Farklı bir dosya deneyin.',
-    unknown_error: "Tekrar deneyin.",
+    unknown_error:
+      "Bir şey beklendiği gibi çalışmadı. Tekrar deneyin. Nedeni belirlenemedi.",
     unsaved_changes_title: "Değişiklikler atılsın mı?",
     unsaved_changes_body:
       "Girdiğin bilgiler kaydedilmedi. Bu formu şimdi kapatırsan bilgiler silinir.",
@@ -1797,17 +1613,10 @@ export const tr = {
     uncategorized: "Kategorisiz",
     draft_category: "Taslak",
     scheduled_category: "Zamanlanmış",
-    request_timed_out:
-      "İstek tamamlanmak için çok uzun sürdü. Bağlantınızı kontrol edip tekrar deneyin.",
     account_suspended: "Hesabınız askıya alındı.",
     account_limit_reached:
       "Bu ağ için hesap sınırına ulaştınız. Hatalı görünüyorsa hello@astermail.org size yardımcı olabilir.",
-    health_check_failed: "Tekrar deneyin.",
-    failed_to_get_key_status: "Tekrar deneyin.",
-    unknown_rotation_error: "Tekrar deneyin.",
-    new_email_notification: "{{ sender }} tarafından yeni e-posta",
-    reply_notification: "{{ sender }} yanıtladı",
-    mention_notification: "{{ sender }} sizi bahsetti",
+    health_check_failed: "Tanılama tamamlanmadı. Tekrar deneyin.",
     print_from: "Kimden:",
     print_to: "Kime:",
     print_cc: "Bilgi:",
@@ -1839,7 +1648,6 @@ export const tr = {
     recovery_text_no_share: "Kimseyle paylaşmayın",
     recovery_text_unrecoverable:
       "Bu kodlar olmadan, şifrenizi unuttuğunuzda kimse hesabınıza erişmenize yardımcı olamaz.",
-    recovery_text_if_forgot: "şifrenizi unutursanız",
     recovery_text_your_codes: "KURTARMA KODLARINIZ:",
     recovery_text_mark_used: "Kodları kullanıldı olarak işaretleyin:",
     recovery_text_code_used_on:
@@ -1847,20 +1655,13 @@ export const tr = {
     custom_fields: "Özel Alanlar",
     click_to_add_value: "Değer eklemek için tıklayın...",
     no_custom_fields_yet: "Henüz özel alan tanımlanmadı",
-    profile_photo: "Profil Fotoğrafı",
-    drop_image_or_click: "Görsel sürükleyin veya tıklayın",
-    photo_format_hint: "JPEG, PNG, WebP veya GIF. Maks. 10MB.",
-    found_one_contact: "1 kişi bulundu",
-    found_n_contacts: "{{count}} kişi bulundu",
     and_n_more: "Ve {{count}} daha fazla...",
     import_one_contact: "1 Kişiyi İçe Aktar",
     import_n_contacts: "{{count}} Kişiyi İçe Aktar",
     one_email: "1 e-posta",
-    n_emails: "{{count}} e-posta",
     use_biometry_to_unlock: "Kilidi açmak için {{name}} kullanın",
     unlock_with_biometry: "{{name}} ile kilidi aç",
     images_count: "{{count}} görsel",
-    images_count_plural: "{{count}} görsel",
     blocked_items_count: "{{count}} öğe",
     n_more: "+{{count}} daha",
     x_of_y: "{{ current }} / {{ total }}",
@@ -2056,8 +1857,6 @@ export const tr = {
     sender_count_other: "{{count}} gönderen",
     email_count_one: "{{count}} e-posta",
     email_count_other: "{{count}} e-posta",
-    entry_count_one: "{{count}} kayıt",
-    entry_count_other: "{{count}} kayıt",
     file_count_one: "{{count}} dosya",
     file_count_other: "{{count}} dosya",
     emails_from_senders_archived_one:
@@ -2072,7 +1871,6 @@ export const tr = {
     app_lock_attempts_remaining_other: "{{count}} deneme hakkı kaldı",
     sender_count: "{{count}} gönderen",
     email_count: "{{count}} e-posta",
-    entry_count: "{{count}} kayıt",
     file_count: "{{count}} dosya",
     images_count_one: "{{count}} görsel",
     images_count_other: "{{count}} görsel",
@@ -2103,8 +1901,6 @@ export const tr = {
     discard_new_contact_message:
       "Başladığınız kişi henüz kaydedilmedi. Şimdi başka bir kişi açarsanız bu kişiyi kaybedersiniz.",
     duplicates_found: "Yinelenen kişiler bulundu",
-    empty_trash_confirm:
-      "Çöp kutusundaki tüm kişiler kalıcı olarak silinsin mi? Bu işlem geri alınamaz.",
     export_selection_csv: "CSV olarak dışa aktar",
     export_selection: "Seçimi dışa aktar",
     group_empty_hint:
@@ -2123,12 +1919,20 @@ export const tr = {
     select_contact: "Kişi seç",
     share_contact_via_email: "Yeni e-postaya ekle",
     share_contact_device: "Başka bir uygulamayla paylaş",
+    biometry_fingerprint: "parmak izi",
+    biometry_face_recognition: "yüz tanıma",
+    biometry_iris: "iris",
+    biometry_generic: "biyometri",
+    share_via: "Paylaşma yöntemi",
+    zip_archive: "ZIP arşivi",
   },
   settings: {
     bill_thanks_title: "Aster’ı desteklediğiniz için teşekkürler",
-    bill_thanks_body: "Desteğiniz bizim için her şey demek. Küçük bir ekibin Aster’ı her gün özenle geliştirmeye devam etmesini sağlıyor.",
+    bill_thanks_body:
+      "Desteğiniz bizim için her şey demek. Küçük bir ekibin Aster’ı her gün özenle geliştirmeye devam etmesini sağlıyor.",
     bill_thanks_free_title: "Aster'ı kullandığınız için teşekkürler",
-    bill_thanks_free_body: "Küçük bir ekip Aster'ı özenle geliştiriyor ve postasını ona emanet eden herkes bizi ayakta tutuyor. Daha fazla depolama, takma ad veya özel alan adı gerektiğinde istediğiniz zaman yükseltin.",
+    bill_thanks_free_body:
+      "Küçük bir ekip Aster'ı özenle geliştiriyor ve postasını ona emanet eden herkes bizi ayakta tutuyor. Daha fazla depolama, takma ad veya özel alan adı gerektiğinde istediğiniz zaman yükseltin.",
     bill_attachments: "Ekler",
     bill_dedicated_support: "Özel destek",
     bill_early_access: "Yeni özelliklere erken erişim",
@@ -2144,13 +1948,15 @@ export const tr = {
     bill_tracker_protection: "İzleyici koruması",
     bill_action_required: "İşlem gerekli",
     bill_add_funds: "Bakiye ekle",
-    bill_add_funds_body: "Kartınızdan çekim yapılmadan önce yenilemeler ve eklentiler krediyle ödenir.",
+    bill_add_funds_body:
+      "Kartınızdan çekim yapılmadan önce yenilemeler ve eklentiler krediyle ödenir.",
     bill_add_more_storage: "Daha fazla depolama ekle",
     bill_aliases: "Takma adlar",
     bill_all_good: "Her şey yolunda",
     bill_almost_at_limit: "Sınıra yakın",
     bill_almost_full: "Neredeyse dolu",
-    bill_billed_monthly: "Her ay faturalandırılır. İstediğiniz zaman iptal edin.",
+    bill_billed_monthly:
+      "Her ay faturalandırılır. İstediğiniz zaman iptal edin.",
     bill_billed_yearly: "{{total}} yılda bir faturalandırılır",
     bill_bonus: "+{{amount}} bonus",
     bill_buy: "Satın al",
@@ -2188,7 +1994,8 @@ export const tr = {
     bill_update_payment: "Güncelle",
     bill_upgrade: "Yükselt",
     bill_use_credits_renewals: "Yenilemelerde kredi kullan",
-    bill_use_credits_renewals_body: "Kartınızdan çekim yapılmadan önce bakiyeniz kullanılır.",
+    bill_use_credits_renewals_body:
+      "Kartınızdan çekim yapılmadan önce bakiyeniz kullanılır.",
     alias_sent_mail_label: "Gönderilen postalar",
     alias_sent_mail_desc: "Bu adresten gönderdiğin iletileri gör.",
     account_enabled_tooltip: "Bu hesap eşitleniyor.",
@@ -2292,9 +2099,9 @@ export const tr = {
       "Kurtarma e-postası ayarları Güvenlik > Hesap kurtarma bölümüne taşındı",
     phrase_wrap_save_failed:
       "Kurtarma ifadeniz sunucuya kaydedilemedi. Tekrar deneyin.",
-    smtp_tokens: "SMTP jetonları",
+    smtp_tokens: "SMTP, IMAP, POP3 ve JMAP",
     smtp_tokens_description:
-      "Yalnızca gönderim yapan SMTP kimlik bilgileri oluşturun; böylece dış uygulamalar ve betikler, doğrulanmış özel alan adı adreslerinizden e-posta gönderebilir.",
+      "Herhangi bir e-posta istemcisini veya uygulamayı bağlayın. Tam IMAP, POP3, SMTP ve JMAP erişimi için yukarıdaki Aster Bridge uygulamasını kullanın (postanızın şifresi cihazınızda çözülür) ya da yalnızca doğrulanmış özel alan adı adreslerinizden gönderim yapması gereken uygulamalar ve betikler için aşağıda yalnızca gönderime yönelik bir SMTP kimlik bilgisi oluşturun.",
     smtp_tokens_popover_description:
       "SMTP jetonu, doğrulanmış özel alan adı adreslerinizden birine bağlı, yalnızca gönderim yapan bir paroladır. Otomatik sistemlerden, betiklerden veya üçüncü taraf hizmetlerden standart SMTP üzerinden e-posta göndermek için kullanın.",
     smtp_tokens_empty: "Henüz SMTP jetonu yok.",
@@ -2356,7 +2163,7 @@ export const tr = {
     fam_org_event_group_member_added: "Gruba üye eklendi",
     fam_org_event_group_member_removed: "Gruptan üye çıkarıldı",
     fam_org_captcha_required: "Davet göndermek için captcha'yı tamamlayın.",
-    fam_org_left_title: "Aile planından ayrıldın",
+    fam_org_left_title: "Aile planından ayrıldınız",
     fam_org_left_desc:
       "Hesabın hâlâ etkin. Yeni bir davetle istediğin zaman tekrar katılabilirsin.",
     fam_org_invite_summary:
@@ -2478,9 +2285,9 @@ export const tr = {
       "Bu kategori için özel kurallarınızla eşleşen e-postalar.",
     muted_categories: "Sessize alınan kategoriler",
     muted_categories_description:
-      "Bir kategorinin bildirimlerini susturmak için onu aç. Sessize alınan kategoriler posta almaya devam eder ve gelen kutunda görünür.",
+      "Bir kategorinin bildirimlerini susturmak için onu açın. Sessize alınan kategoriler posta almaya devam eder ve gelen kutunuzda görünür.",
     muted_categories_empty:
-      "Hangi kategorileri sessize alacağını seçmek için gelen kutusu kategorilerini aç.",
+      "Hangi kategorileri sessize alacağınızı seçmek için gelen kutusu kategorilerini açın.",
     custom_categories_title: "Özel Kategoriler",
     custom_categories_tutorial:
       "Kendi kategorinizi oluşturun. E-postaları gönderen alan adına veya konu anahtar kelimesine göre eşleştirin.",
@@ -2802,7 +2609,8 @@ export const tr = {
     alias_restore_mismatch:
       "Bu adres takma adla eşleşmiyor. Gelen bir iletinin başlığını kontrol edin.",
     alias_restore_failed: "Tekrar deneyin.",
-    recently_deleted_load_failed: "Tekrar deneyin.",
+    recently_deleted_load_failed:
+      "Yakın zamanda silinen takma adlarınız yüklenemedi. Tekrar deneyin.",
     ghost_aliases_info:
       "Hayalet rumuzlar geçicidir ve otomatik olarak süresi dolar. Bunları tek seferlik kayıtlar veya kalıcı bir adres istemediğiniz her yer için kullanın. Kendiliğinden kaybolurlar - temizliğe gerek yoktur.",
     recently_deleted_aliases_title: "Son silinenler",
@@ -2829,7 +2637,7 @@ export const tr = {
     recently_deleted_directories_description:
       "Sildiğiniz bir dizini geri yükleyin. Silinen dizinler geri yüklenene kadar yeni posta almaz.",
     directory_restored: "Dizin geri yüklendi",
-    failed_restore_directory: "Tekrar deneyin.",
+    failed_restore_directory: "Bu dizin geri yüklenmedi. Tekrar deneyin.",
     purge_directory_confirm_title: "Dizin kalıcı olarak silinsin mi?",
     purge_directory_confirm_message:
       "{{ key }}@{{ domain }} kalıcı olarak silinsin mi? Bu işlem geri alınamaz. Dizin hesabınıza ayrılmış kalır, böylece başka hiç kimse onu alamaz.",
@@ -2847,7 +2655,7 @@ export const tr = {
     alias_pin: "Rumuzu sabitle",
     alias_unpin: "Rumuz sabitlemesini kaldır",
     alias_pinned_toast: "Rumuz sabitlendi",
-    alias_unpinned_toast: "Rumuz sabitlemesi kaldırıldı",
+    alias_unpinned_toast: "Takma ad sabitlemesi kaldırıldı",
     alias_advanced: "Gelişmiş",
     alias_advanced_hide: "Gelişmişi gizle",
     alias_advanced_show: "Gelişmiş ayarlar",
@@ -2965,7 +2773,7 @@ export const tr = {
     alias_delivery_title: "Teslimat",
     alias_delivery_folder: "Teslim edilecek yer",
     alias_delivery_folder_desc:
-      "Bu takma ada gelen postanın nereye düşeceğini seç. Varsayılan gelen kutusudur.",
+      "Bu takma ada gönderilen postalar seçtiğiniz klasöre gider. Varsayılan klasör Gelen Kutusu'dur.",
     alias_delivery_folder_info:
       "Posta, kural gerekmeden seçtiğin klasöre doğrudan düşer. Eşleşen bir kural yine de önceliklidir.",
     alias_delivery_folder_error: "Tekrar deneyin.",
@@ -3244,14 +3052,14 @@ export const tr = {
     fam_org_tab_security: "Güvenlik",
     fam_org_tab_retention: "Veri Saklama",
     fam_org_groups_name_placeholder: "Grup adı",
-    fam_org_groups_prefix_placeholder: "E-posta ön eki (isteğe bağlı)",
+    fam_org_groups_prefix_placeholder: "Ön ek",
     fam_org_groups_domain_placeholder: "Alan adı seç",
     fam_org_groups_create: "Oluştur",
     fam_org_groups_info_title: "Kuruluş grupları",
     fam_org_groups_info_desc:
       "Bir grup, birkaç üyeyi tek bir paylaşılan adres altında bir araya getirir. Grubun adresine gönderilen e-postalar gruptaki her üyeye iletilir - family@ veya parents@ gibi paylaşılan gelen kutuları için kullanışlıdır. E-posta ön eki isteğe bağlıdır.",
     fam_org_groups_prefix_hint:
-      "E-posta ön eki isteğe bağlıdır - şuna benzer bir grup adresi oluşturur",
+      "Grup e-posta adresi atamak için bir ön ek yazın",
     fam_org_groups_address_preview: "Grup adresi: ",
     fam_org_groups_address_in_use:
       "Bu adres zaten bir takma ad veya başka bir grup tarafından kullanılıyor",
@@ -3756,7 +3564,8 @@ export const tr = {
     signature_custom: "Özel",
     custom_signature: "Özel İmza",
     time_zone: "Saat Dilimi",
-    time_zone_description: "Yerel saat diliminiz",
+    time_zone_description:
+      "Tüm cihazlarınızda e-posta saatlerini göstermek için kullanılan saat dilimi",
     time_zone_auto: "Otomatik (cihaz saat dilimi)",
     time_zone_search_placeholder: "Şehir veya bölge ara",
     time_zone_no_results: "Eşleşen saat dilimi yok",
@@ -3819,7 +3628,7 @@ export const tr = {
     updates_never_checked: "Hiç denetlenmedi",
     updates_auto_label: "Güncellemeleri otomatik denetle",
     updates_auto_description:
-      "Aster Mail yeni sürümleri arar ve biri kuruluma hazır olduğunda sana bildirir.",
+      "Aster Mail yeni sürümleri arar ve biri kuruluma hazır olduğunda size bildirir.",
     updates_release_notes: "Sürüm notları",
     updates_banner_title: "Aster Mail {{version}} kullanıma hazır",
     updates_banner_action: "Şimdi yükle",
@@ -3836,7 +3645,7 @@ export const tr = {
     accessibility: "Erişilebilirlik",
     encryption: "Şifreleme",
     aliases_and_domains: "Takma Adlar ve Alan Adları",
-    ghost_aliases: "Ghost Takma Adları",
+    ghost_aliases: "Hayalet takma adlar",
     snooze: "Ertele",
     mail_management: "E-posta Yönetimi",
     change_appearance: "Aster'in görünümünü değiştirin",
@@ -3859,8 +3668,7 @@ export const tr = {
     external_link_warning_disabled: "Bağlantılar onay olmadan doğrudan açılır",
     ipfs_attachment_storage: "IPFS Ek Depolama",
     ipfs_enabled_description: "Ekler, Aster'in özel IPFS deposunda saklanır",
-    ipfs_disabled_description:
-      "Ekleri Aster'in özel IPFS deposunda saklayın",
+    ipfs_disabled_description: "Ekleri Aster'in özel IPFS deposunda saklayın",
     forward_secrecy: "İleri Gizlilik",
     forward_secrecy_disable_title: "İleri gizliliği kapatmak istiyor musunuz?",
     forward_secrecy_disable_message:
@@ -3930,7 +3738,8 @@ export const tr = {
     password_change_background_reencrypt_failed:
       "Parolan değişti ancak gönderilen postalarının ve ayarlarının bir bölümü yeniden şifrelenmedi. Postaların veya ayarların okunamaz görünüyorsa destek ekibine ulaş.",
     previous_password: "Önceki parola",
-    password_change_sent_mail_locked: "Parolanız değişti. {{count}} gönderilmiş e-posta önceki bir parolayla şifrelenmişti ve güncellenmedi. Kilidini açmak için gelen kutunuzun üst kısmındaki bantta Verileri kurtar seçeneğini seçin.",
+    password_change_sent_mail_locked:
+      "Parolanız değişti. {{count}} gönderilmiş e-posta önceki bir parolayla şifrelenmişti ve güncellenmedi. Kilidini açmak için gelen kutunuzun üst kısmındaki bantta Verileri kurtar seçeneğini seçin.",
     password_changed_signing_out:
       "Parola başarıyla değiştirildi. Çıkış yapılıyor...",
     password_changed_success: "Parola değiştirildi",
@@ -3958,7 +3767,8 @@ export const tr = {
       "Bu oturumdan çıkış yapmak istediğinizden emin misiniz?",
     no_active_sessions: "Aktif oturum bulunamadı",
     failed_load_sessions: "Oturumlar yüklenemedi",
-    failed_load_security_status: "Güvenlik ayarların yüklenmedi. Yeniden dene.",
+    failed_load_security_status:
+      "Güvenlik ayarlarınız yüklenmedi. Yeniden deneyin.",
     load_more_sessions: "{{count}} oturum daha yükle",
     two_fa_enabled: "Etkin ({{count}} yedek kod kaldı)",
     two_fa_add_security: "2FA ile ekstra bir güvenlik katmanı ekleyin",
@@ -4158,9 +3968,11 @@ export const tr = {
     compose_mode_fullscreen: "Her zaman tam ekran",
     compose_mode_minimized: "Küçültülmüş başlat",
     default_sender_group: "Gönderme",
-    default_sender_group_description: "Yeni iletilerin hangi adresinizden gideceğini seçin.",
+    default_sender_group_description:
+      "Yeni iletilerin hangi adresinizden gideceğini seçin.",
     default_sender_title: "Varsayılan gönderen",
-    default_sender_description: "Yeni iletiler bu adresten gider. Yanıtlar, iletinin gönderildiği adresi kullanır.",
+    default_sender_description:
+      "Yeni iletiler bu adresten gider. Yanıtlar, iletinin gönderildiği adresi kullanır.",
     default_sender_no_addresses: "Başka adres yok",
     compose_defaults_title: "Varsayılan biçimlendirme",
     compose_defaults_description:
@@ -4177,9 +3989,11 @@ export const tr = {
     reply_defaults_title: "Yanıtlar",
     reply_defaults_description: "Yeni bir yanıtın neyle başlayacağını seçin.",
     reply_include_quoted: "Alıntılanan metni ekle",
-    reply_include_quoted_description: "Her yanıt, metninizin altında alıntılanan özgün iletiyle başlar.",
+    reply_include_quoted_description:
+      "Her yanıt, metninizin altında alıntılanan özgün iletiyle başlar.",
     reply_prefix_subject: "Konuya Yt: ekle",
-    reply_prefix_subject_description: "Yanıtladığınızda özgün konunun önüne Yt: ekler.",
+    reply_prefix_subject_description:
+      "Yanıtladığınızda özgün konunun önüne Yt: ekler.",
     build_info: "Yapı Bilgisi",
     release: "Sürüm",
     build: "Yapı",
@@ -4318,13 +4132,16 @@ export const tr = {
       "Ödeme tahsil edilemedi. Ayarlar, Faturalandırma bölümünden ödeme yönteminizi güncelleyin ve yeniden deneyin.",
     plan_not_available:
       "Bu plan şu anda satın alınamıyor. Başka bir plan ya da daha sonra tekrar bakmak işe yarar.",
-    failed_checkout: "Tekrar deneyin.",
-    failed_billing_portal: "Tekrar deneyin.",
+    failed_checkout:
+      "Ödeme sayfası şu anda açılamadı. Tekrar deneyin. Faturalandırmanız değişmedi.",
+    failed_billing_portal:
+      "Faturalandırma portalı açılamadı. Tekrar deneyin. Planınız değişmedi.",
     subscription_cancelled:
       "Abonelik faturalandırma döneminin sonunda iptal edilecek",
-    failed_cancel_subscription: "Tekrar deneyin.",
+    failed_cancel_subscription:
+      "İptal işlemi tamamlanmadı. Tekrar deneyin. Planınız hâlâ etkin.",
     subscription_reactivated: "Abonelik yeniden etkinleştirildi",
-    failed_reactivate: "Tekrar deneyin.",
+    failed_reactivate: "Planınız yeniden etkinleştirilemedi. Tekrar deneyin.",
     daily: "Günlük",
     weekly: "Haftalık",
     biweekly: "İki Haftada Bir",
@@ -4345,7 +4162,7 @@ export const tr = {
     auto_lock_after: "{{duration}} hareketsizlikten sonra otomatik kilitle",
     hours: "{{count}} saat",
     days: "{{count}} gün",
-    failed_get_auth_data: "Tekrar deneyin.",
+    failed_get_auth_data: "Giriş bilgileriniz yüklenemedi. Tekrar deneyin.",
     downgrade: "Düşür",
     upgrade_to: "{{name}} planına yükselt",
     get_plan: "{{name}} al",
@@ -4388,7 +4205,7 @@ export const tr = {
     enter_password_confirm: "Onaylamak için parolanızı girin:",
     verifying_credentials: "Kimlik bilgileri doğrulanıyor...",
     failed_verify_credentials:
-      "Bu parola örtüşmedi. Bir kez daha denemek işe yarar. Hesabınız olduğu gibi.",
+      "Parola yanlış. Tekrar deneyin. Hesabınız değişmedi.",
     deleting_account: "Hesap siliniyor...",
     failed_delete_account:
       "Hesabınızı silemedik. Parolanızı kontrol edin ve tekrar deneyin. Hesabınız değişmedi.",
@@ -4399,7 +4216,8 @@ export const tr = {
     "connection.title_info":
       "Aster sunucularına birden fazla yol destekler. Seçtiğiniz yol, IP adresinizi kimin görebileceğini ve isteklerin bize nasıl ulaştığını değiştirir. Mesajlarınız her durumda uçtan uca şifreli kalır.",
     "connection.direct": "Doğrudan",
-    "connection.direct_description": "Aster sunucularına doğrudan bağlan",
+    "connection.direct_description":
+      "Cihazınız doğrudan Aster sunucularına bağlanır. En hızlı yol ve en düşük gecikme, ancak IP adresiniz Aster tarafından görülebilir.",
     "connection.tor": "Tor",
     "connection.tor_description": "Trafiği Tor ağı üzerinden yönlendir",
     "connection.tor_snowflake": "Snowflake ile Tor",
@@ -4407,7 +4225,7 @@ export const tr = {
       "Sansür direnci için Snowflake köprülerini kullan",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "CDN aktarma sunucuları üzerinden yönlendir",
+      "İstekler Aster'e ulaşmadan önce küresel bir CDN üzerinden yönlendirilir. IP adresiniz Aster'den gizli kalır ve trafiğiniz sıradan CDN trafiğinden ayırt edilemez.",
     "connection.status_connected": "Bağlı",
     "connection.status_connecting": "Bağlanıyor...",
     "connection.status_error":
@@ -4560,7 +4378,7 @@ export const tr = {
     keyserver_failed_hint:
       "Anahtar sunucusu anahtarınızı reddetti. Yeniden yayımlamayı deneyin.",
     keyserver_publish_btn: "Anahtar Yayınla",
-    keyserver_republish_btn: "Anahtarı Yeniden Yayınla",
+    keyserver_republish_btn: "Yeniden yayınla",
     keyserver_permanent_warning:
       "Yayınlanan anahtarlar çoğu sunucudan tamamen silinemez.",
     keyserver_add_custom_label: "Özel Sunucu Ekle",
@@ -4678,88 +4496,94 @@ export const tr = {
     primary_badge: "Birincil",
     primary_address_label: "Birincil adres",
     change_address: "Adresi değiştir",
-    address_change_title: "Adresini değiştir",
+    address_change_title: "Adresinizi değiştirin",
     address_change_intro_lead: "Devam etmeden önce nelerin değiştiğini okuyun.",
-    address_change_keep_old_title: "{{email}} sende kalır",
+    address_change_keep_old_title: "{{email}} sizde kalır",
     address_change_keep_old_body:
-      "Bu adrese gelen postalar gelen kutuna düşmeye devam eder ve her cihazda bu adresle oturum açmayı sürdürebilirsin.",
-    address_change_no_limit_title: "Eski adresin senin kalır",
+      "Bu adrese gelen postalar gelen kutunuza düşmeye devam eder ve her cihazda bu adresle oturum açmayı sürdürebilirsiniz.",
+    address_change_no_limit_title: "Eski adresiniz sizde kalır",
     address_change_no_limit_body:
       "Takma ad sınırına dahil edilmez, başkası alamaz ve silinemez.",
     address_change_once_title: "30 günde bir değişiklik",
     address_change_once_body:
-      "Bu değişiklikten sonra {{date}} tarihinde yeniden değiştirebilirsin.",
+      "Bu değişiklikten sonra {{date}} tarihinde yeniden değiştirebilirsiniz.",
     address_change_effect_alias_title: "{{email}} artık bir takma ad olmayacak",
     address_change_effect_alias_body:
-      "Bu takma ad için ayarladığın kurallar, yönlendirmeler, imzalar ve ters rumuzlar kaldırılır. Bu adrese gönderilen iletiler, artık birincil adresin olarak gelmeye devam eder.",
-    address_change_permanent_title: "Bunu geri alamazsın",
+      "Bu takma ad için ayarladığınız kurallar, yönlendirmeler, imzalar ve ters rumuzlar kaldırılır. Bu adrese gönderilen iletiler, artık birincil adresiniz olarak gelmeye devam eder.",
+    address_change_permanent_title: "Bunu geri alamazsınız",
     address_change_permanent_body:
-      "{{email}} yeniden birincil adresin olamaz.",
-    address_change_pick_title: "Yeni adresini seç",
-    address_change_use_alias: "Takma adlarından birini kullan",
-    address_change_use_new: "Yeni bir adres seç",
-    address_change_name_rule: "3 ile 40 arasında harf, rakam veya nokta kullan. Nokta adresin başında veya sonunda olamaz ve noktalar tekrarlanamaz.",
+      "{{email}} yeniden birincil adresiniz olamaz.",
+    address_change_pick_title: "Yeni adresinizi seçin",
+    address_change_use_alias: "Takma adlarınızdan birini kullanın",
+    address_change_use_new: "Yeni bir adres seçin",
+    address_change_name_rule:
+      "3 ile 40 arasında harf, rakam veya nokta kullanın. Nokta adresin başında veya sonunda olamaz ve noktalar tekrarlanamaz.",
     address_change_name_placeholder: "adiniz",
-    primary_address_info: "Supernova planın adresini 30 günde bir değiştirmene izin verir. Eski adresin senin kalır: posta almayı sürdürür ve oturum açmanı sağlar.",
+    primary_address_info:
+      "Supernova planın adresini 30 günde bir değiştirmene izin verir. Eski adresin senin kalır: posta almayı sürdürür ve oturum açmanı sağlar.",
     address_change_checking: "Uygunluk kontrol ediliyor",
     address_change_available: "{{email}} kullanılabilir",
     address_change_unavailable: "{{email}} kullanılamaz",
-    address_change_same_as_current: "Bu zaten senin adresin",
-    address_change_check_failed: "Aster Mail bu adresi kontrol edemedi. Birazdan yeniden dene.",
-    address_change_review_title: "Değişikliği gözden geçir",
+    address_change_same_as_current: "Bu zaten sizin adresiniz",
+    address_change_check_failed:
+      "Aster Mail bu adresi kontrol edemedi. Birazdan yeniden deneyin.",
+    address_change_review_title: "Değişikliği gözden geçirin",
     address_change_from: "Şimdi",
     address_change_to: "Sonra",
     address_change_effect_sending:
-      "Gönderdiğin iletiler {{email}} adresinden çıkar.",
-    address_change_effect_key: "Şifreleme anahtarın aynı kalır ve ikinci kimlik olarak {{email}} eklenir.",
-    address_change_effect_signed_in: "Her yerde oturumun açık kalır.",
+      "Gönderdiğiniz iletiler {{email}} adresinden çıkar.",
+    address_change_effect_key:
+      "Şifreleme anahtarınız aynı kalır ve ikinci kimlik olarak {{email}} eklenir.",
+    address_change_effect_signed_in: "Her yerde oturumunuz açık kalır.",
     address_change_effect_final:
-      "Değişiklik kesindir. Devam etmek için yeni adresini yaz.",
-    address_change_type_to_confirm: "Onaylamak için {{email}} yaz",
-    address_change_password_title: "Sen olduğunu doğrula",
-    address_change_password_body: "Devam etmek için parolanı gir.",
+      "Değişiklik kesindir. Devam etmek için yeni adresinizi yazın.",
+    address_change_type_to_confirm: "Onaylamak için {{email}} yazın",
+    address_change_password_title: "Siz olduğunuzu doğrulayın",
+    address_change_password_body: "Devam etmek için parolanızı girin.",
     address_change_code_resent: "Aster Mail yeni bir kod gönderdi.",
-    address_change_code_title: "Onay kodunu gir",
+    address_change_code_title: "Onay kodunu girin",
     address_change_code_body:
       "{{email}} adresinde 6 haneli bir kod var. Kod 15 dakika içinde geçerliliğini yitirir.",
     address_change_code_label: "Onay kodu",
-    address_change_done_title: "Adresin artık {{email}}",
+    address_change_done_title: "Adresiniz artık {{email}}",
     address_change_done_body:
-      "{{email}} posta almayı ve oturum açmanı sağlamayı sürdürür.",
+      "{{email}} posta almayı ve oturum açmanızı sağlamayı sürdürür.",
     address_change_done_partial:
-      "Adresin değişti ama şifreleme anahtarın güncellenmeyi tamamlamadı. O zamana kadar yeni adresin anahtarında yer almaz.",
-    address_change_updating_key: "Şifreleme anahtarın güncelleniyor",
-    address_change_failed: "Adres değişikliği tamamlanmadı. Yeniden dene.",
+      "Adresiniz değişti ama şifreleme anahtarınız güncellenmeyi tamamlamadı. O zamana kadar yeni adresiniz anahtarınızda yer almaz.",
+    address_change_updating_key: "Şifreleme anahtarınız güncelleniyor",
+    address_change_failed: "Adres değişikliği tamamlanmadı. Yeniden deneyin.",
     address_change_code_too_many:
       "Çok fazla hatalı kod girildi. Yeni bir kod almak için değişikliği yeniden başlat.",
     address_change_code_expired:
-      "Bu kodun süresi doldu. Yenisini almak için değişikliği yeniden başlat.",
-    address_change_taken_now: "Bu adresi baska biri aldi. Baska bir adres sec.",
+      "Bu kodun süresi doldu. Yenisini almak için değişikliği yeniden başlatın.",
+    address_change_taken_now:
+      "Bu adresi başka biri aldı. Başka bir adres seçin.",
     address_change_code_invalid: "Bu kod doğru değil.",
     address_change_locked_plan: "Adres değiştirmek bir Supernova özelliğidir.",
     address_change_locked_cooldown:
-      "Adresini {{date}} tarihinde yeniden değiştirebilirsin.",
+      "Adresinizi {{date}} tarihinde yeniden değiştirebilirsiniz.",
     address_change_locked_cooldown_unknown:
-      "Adresini son 30 gün içinde değiştirdin, bu yüzden henüz yeniden değiştiremezsin.",
+      "Adresinizi son 30 gün içinde değiştirdiniz, bu yüzden henüz yeniden değiştiremezsiniz.",
     address_change_once_unknown:
-      "Bu değişiklikten sonra 30 gün içinde yeniden değiştirebilirsin.",
+      "Bu değişiklikten sonra 30 gün içinde yeniden değiştirebilirsiniz.",
     address_change_password_wrong: "Bu parola doğru değil.",
-    address_change_not_eligible: "Şu anda adresini değiştiremezsin.",
+    address_change_not_eligible: "Şu anda adresinizi değiştiremezsiniz.",
     address_change_too_many_requests:
-      "Çok fazla adres değişikliği başlattın. Bir saat sonra yeniden dene.",
-    address_change_resend_too_soon: "Yeni bir kod istemeden önce biraz bekle.",
+      "Çok fazla adres değişikliği başlattınız. Bir saat sonra yeniden deneyin.",
+    address_change_resend_too_soon:
+      "Yeni bir kod istemeden önce biraz bekleyin.",
     address_change_send_failed:
       "Aster Mail kodu gönderemedi. Birkaç dakika sonra yeniden dene.",
     address_change_invalid_address:
       "Bu adres geçerli değil. Başka bir adres seç.",
     address_change_locked_account_kind:
-      "Adresini yalnızca kişisel hesaplar değiştirebilir.",
+      "Adresi yalnızca kişisel hesaplar değiştirebilir.",
     address_change_locked_custom_domain:
-      "Kendi alan adındaki adresler buradan değiştirilemez.",
+      "Kendi alan adınızdaki adresler buradan değiştirilemez.",
     address_change_locked_unavailable:
       "Adres değiştirme şu anda kullanılamıyor.",
     address_change_eligibility_failed:
-      "Aster Mail adresini değiştirip değiştiremeyeceğini denetleyemedi.",
+      "Aster Mail adresinizi değiştirip değiştiremeyeceğinizi denetleyemedi.",
     address_change_domain_label: "Alan adı",
     primary_address_set: "Birincil adres güncellendi",
     primary_address_reset: "Varsayılan adresine sıfırla",
@@ -4778,8 +4602,9 @@ export const tr = {
     invalid_address: "Geçerli bir e-posta adresi girin.",
     alias_already_taken:
       "Bu takma ad zaten kullanılıyor. Farklı bir tane işe yarar.",
-    alias_create_failed: "Tekrar deneyin.",
-    alias_generate_failed: "Tekrar deneyin.",
+    alias_create_failed:
+      "Bu takma ad kaydedilmedi. Tekrar deneyin. Diğer takma adlarınız değişmedi.",
+    alias_generate_failed: "Şu anda takma ad oluşturulamadı. Tekrar deneyin.",
     alias_invalid:
       "Bu takma ad geçerli değil. İzin verilen karakterler harfler, rakamlar, noktalar, alt çizgiler ve tirelerdir.",
     domain_not_available:
@@ -4789,7 +4614,8 @@ export const tr = {
     add_custom_domain: "Özel Alan Adı Ekle",
     domain_name_label: "Alan Adı",
     invalid_domain: "Geçerli bir alan adı girin.",
-    failed_add_domain: "Tekrar deneyin.",
+    failed_add_domain:
+      "Bu alan adı eklenmedi. Tekrar deneyin. Diğer alan adlarınız değişmedi.",
     configure_dns_for: "{{domain}} için DNS yapılandırması",
     dns_instruction_login:
       "Alan adı kayıt firmanıza veya DNS sağlayıcınıza giriş yapın",
@@ -4827,13 +4653,13 @@ export const tr = {
       "Bu geçerli bir e-posta gibi görünmüyor. name@example.com gibi bir adres işe yarar.",
     incoming_server_required: "Burada gelen posta sunucusuna ihtiyaç var.",
     private_address_error:
-      "Bunun yerel ya da özel bir adres değil, kamuya açık bir posta sunucusu olması gerekiyor. Sağlayıcınızın size verdiği genel ana bilgisayar adı işe yarar.",
+      "Bu, yerel veya özel bir adres değil, herkese açık bir posta sunucusu olmalı. Sağlayıcınızın verdiği genel ana bilgisayar adını kullanın.",
     username_required: "Bu hesap için bir kullanıcı adına ihtiyaç var.",
     password_required: "Bu hesap için bir parolaya ihtiyaç var.",
     connection_timeout_error:
       "5 ile 120 saniye arasında bir zaman aşımı süresi girin.",
     fill_server_first:
-      "Bağlantının test edilebilmesi için önce sunucu, kullanıcı adı ve parolaya ihtiyaç var.",
+      "Bağlantıyı test etmek için önce sunucuyu, kullanıcı adını ve parolayı girin.",
     fill_smtp_first:
       "Test edilebilmesi için önce giden sunucu ayrıntılarına ihtiyaç var.",
     fill_connection_first:
@@ -4844,14 +4670,17 @@ export const tr = {
     account_added: "Hesap başarıyla eklendi",
     account_settings_not_saved:
       "Hesap kaydedildi ancak eşitleme ve gelişmiş ayarları kaydedilmedi",
-    failed_update_account: "Tekrar deneyin.",
+    failed_update_account:
+      "Bu hesap güncellenmedi. Tekrar deneyin. Önceki ayarlar hâlâ geçerli.",
     failed_add_account: "Tekrar deneyin.",
-    switch_failed: "Tekrar deneyin.",
-    unexpected_error: "Tekrar deneyin.",
+    switch_failed: "Hesaplar arasında geçiş yapılamadı. Tekrar deneyin.",
+    unexpected_error: "Bir şey beklendiği gibi çalışmadı. Tekrar deneyin.",
     failed_sync:
       "Eşitleme tamamlanmadı, otomatik olarak yeniden deneyeceğiz. Her iki taraftaki postanız güvende.",
-    failed_delete_emails_external: "Tekrar deneyin.",
-    failed_fetch_folders_external: "Tekrar deneyin.",
+    failed_delete_emails_external:
+      "Bu e-postalar bağlı hesabınızdan kaldırılmadı. Tekrar deneyin.",
+    failed_fetch_folders_external:
+      "Bağlı hesabınızdaki klasörler yüklenmedi. Tekrar deneyin.",
     external_sign_in_rejected:
       "Posta sunucusu bu kullanıcı adını ve parolayı kabul etmedi. Bilgileri yeniden kontrol edin. Sağlayıcınız uygulama parolası istiyorsa bunun yerine onu girin.",
     external_server_unreachable:
@@ -4870,11 +4699,11 @@ export const tr = {
     invalid_2fa_code:
       "Bu kod örtüşmedi. Kimlik doğrulayıcı uygulamanızdaki güncel kod işe yarar.",
     incorrect_password_error:
-      "Bu parola örtüşmedi. Bir kez daha denemek işe yarar. Hesabınız kilitlenmedi.",
-    failed_retrieve_auth: "Tekrar deneyin.",
-    failed_verify_password:
-      "Bu parola örtüşmedi. Bir kez daha denemek işe yarar.",
-    failed_export_private_key: "Tekrar deneyin.",
+      "Parola yanlış. Tekrar deneyin. Hesabınız kilitlenmedi.",
+    failed_retrieve_auth: "Giriş bilgileriniz yüklenemedi. Tekrar deneyin.",
+    failed_verify_password: "Parola yanlış. Tekrar deneyin.",
+    failed_export_private_key:
+      "Anahtarınız şu anda dışa aktarılamadı. Tekrar deneyin. Anahtarınız değişmedi.",
     type_regenerate: "regenerate yazın",
     client_side_encryption: "İstemci Tarafı Şifreleme",
     client_side_encryption_description:
@@ -4890,10 +4719,13 @@ export const tr = {
       "Oluştururken WKD ve anahtar sunucularını otomatik ara",
     key_published_wkd: "Anahtar WKD'ye yayınlandı",
     key_removed_wkd: "Anahtar WKD'den kaldırıldı",
-    failed_publish_wkd: "Tekrar deneyin.",
-    failed_remove_wkd: "Tekrar deneyin.",
+    failed_publish_wkd:
+      "Genel anahtarınız genel dizinde yayımlanmadı. Tekrar deneyin. Anahtarlarınız değişmedi.",
+    failed_remove_wkd:
+      "Anahtarınız genel dizinden kaldırılmadı. Tekrar deneyin.",
     key_published_keyserver: "Anahtar sunucuya yayınlandı",
-    failed_publish_keyserver: "Tekrar deneyin.",
+    failed_publish_keyserver:
+      "Genel anahtarınız anahtar sunucusunda yayımlanmadı. Tekrar deneyin.",
     mailto_unregister_manual:
       "Aster Mail'in mailto bağlantılarını açmasını durdurmak için işleyiciyi tarayıcı ayarlarınızdan kaldırın.",
     failed_save_setting: "Ayar kaydedilemedi. Lütfen tekrar deneyin.",
@@ -5172,55 +5004,76 @@ export const tr = {
     domain_without_www_note: "Alan adınızı www veya https:// olmadan girin",
     catch_all_label: "Tümünü yakala",
     bimi_adj_added_title: "Başlık eklendi.",
-    bimi_adj_converted_inline_styles: "Satır içi stiller özniteliklere dönüştürüldü.",
+    bimi_adj_converted_inline_styles:
+      "Satır içi stiller özniteliklere dönüştürüldü.",
     bimi_adj_derived_view_box: "viewBox eklendi.",
     bimi_adj_removed_doctype: "Belge türü bildirimi kaldırıldı.",
     bimi_adj_removed_editor_data: "Düzenleyici verileri kaldırıldı.",
     bimi_adj_removed_metadata: "Meta veriler kaldırıldı.",
     bimi_adj_removed_position: "Konum kaydırması kaldırıldı.",
     bimi_adj_removed_size: "Sabit genişlik ve yükseklik kaldırıldı.",
-    bimi_adj_removed_unsupported_attributes: "Desteklenmeyen öznitelikler kaldırıldı.",
+    bimi_adj_removed_unsupported_attributes:
+      "Desteklenmeyen öznitelikler kaldırıldı.",
     bimi_adj_set_tiny_ps_profile: "SVG profili Tiny PS olarak ayarlandı.",
-    bimi_adjustments_title: "Aster, dosyanızı gereksinimleri karşılayacak şekilde düzenledi:",
-    bimi_auto_checking: "Bu sayfa açıkken Aster kaydı otomatik olarak kontrol eder.",
+    bimi_adjustments_title:
+      "Aster, dosyanızı gereksinimleri karşılayacak şekilde düzenledi:",
+    bimi_auto_checking:
+      "Bu sayfa açıkken Aster kaydı otomatik olarak kontrol eder.",
     bimi_check_again: "Tekrar kontrol et",
     bimi_checking: "Kontrol ediliyor",
     bimi_choose_file: "Dosya seç",
-    bimi_dmarc_invalid: "DMARC kaydınız okunamıyor. Geçerli bir kayıtla değiştirin.",
-    bimi_dmarc_missing: "p=quarantine veya p=reject içeren bir DMARC kaydı ekleyin.",
-    bimi_dmarc_not_enforced: "DMARC politikanızı p=quarantine veya p=reject olarak değiştirin.",
-    bimi_dmarc_organization_not_enforced: "Üst alan adınızın DMARC politikası da quarantine veya reject olmalıdır.",
-    bimi_dmarc_partial: "DMARC kaydınızdan pct etiketini kaldırın veya 100 olarak ayarlayın.",
+    bimi_dmarc_invalid:
+      "DMARC kaydınız okunamıyor. Geçerli bir kayıtla değiştirin.",
+    bimi_dmarc_missing:
+      "p=quarantine veya p=reject içeren bir DMARC kaydı ekleyin.",
+    bimi_dmarc_not_enforced:
+      "DMARC politikanızı p=quarantine veya p=reject olarak değiştirin.",
+    bimi_dmarc_organization_not_enforced:
+      "Üst alan adınızın DMARC politikası da quarantine veya reject olmalıdır.",
+    bimi_dmarc_partial:
+      "DMARC kaydınızdan pct etiketini kaldırın veya 100 olarak ayarlayın.",
     bimi_dmarc_ready: "DMARC politikanız quarantine veya reject.",
-    bimi_dmarc_subdomain_policy_none: "DMARC kaydınızdaki sp etiketini quarantine veya reject olarak değiştirin.",
+    bimi_dmarc_subdomain_policy_none:
+      "DMARC kaydınızdaki sp etiketini quarantine veya reject olarak değiştirin.",
     bimi_drop_here: "SVG logonuzu buraya sürükleyin.",
-    bimi_err_doctype_entities: "Dosya, izin verilmeyen özel varlıklar tanımlıyor.",
+    bimi_err_doctype_entities:
+      "Dosya, izin verilmeyen özel varlıklar tanımlıyor.",
     bimi_err_empty: "Görüntü boş.",
-    bimi_err_external_reference: "Dosya, izin verilmeyen bir harici kaynağa bağlantı veriyor.",
+    bimi_err_external_reference:
+      "Dosya, izin verilmeyen bir harici kaynağa bağlantı veriyor.",
     bimi_err_invalid_reference: "Dosya bozuk bir dahili başvuru içeriyor.",
-    bimi_err_invalid_value: "Dosya, izin verilmeyen bir öznitelik değeri içeriyor.",
+    bimi_err_invalid_value:
+      "Dosya, izin verilmeyen bir öznitelik değeri içeriyor.",
     bimi_err_malformed: "Dosya geçerli bir SVG değil.",
-    bimi_err_missing_view_box: "Görüntüde viewBox yok. Görüntüyü bir viewBox ile dışa aktarın.",
+    bimi_err_missing_view_box:
+      "Görüntüde viewBox yok. Görüntüyü bir viewBox ile dışa aktarın.",
     bimi_err_not_square: "Logo kare değil. Genişliği ve yüksekliği eşit yapın.",
     bimi_err_not_svg: "Dosya bir SVG görüntüsü değil.",
     bimi_err_not_utf8: "Dosya metin tabanlı bir SVG dosyası değil.",
-    bimi_err_raster_image: "Dosya gömülü bir bitmap görüntü içeriyor. Yalnızca vektör şekiller kullanın.",
+    bimi_err_raster_image:
+      "Dosya gömülü bir bitmap görüntü içeriyor. Yalnızca vektör şekiller kullanın.",
     bimi_err_script_content: "Dosya, izin verilmeyen bir betik içeriyor.",
-    bimi_err_text_not_outlined: "Logo metin içeriyor. Dışa aktarmadan önce metni anahatlara dönüştürün.",
-    bimi_err_too_complex: "Görüntü çok karmaşık. Basitleştirip tekrar dışa aktarın.",
+    bimi_err_text_not_outlined:
+      "Logo metin içeriyor. Dışa aktarmadan önce metni anahatlara dönüştürün.",
+    bimi_err_too_complex:
+      "Görüntü çok karmaşık. Basitleştirip tekrar dışa aktarın.",
     bimi_err_too_large: "Dosya çok büyük.",
     bimi_err_unsupported_element: "Dosya, izin verilmeyen öğeler içeriyor.",
-    bimi_err_unsupported_style: "Dosya, filtreler, maskeler veya stil sayfaları gibi izin verilmeyen stiller ya da efektler kullanıyor.",
-    bimi_error_domain_not_active: "Logo yayımlamadan önce bu alan adının kurulumunu tamamlayın.",
+    bimi_err_unsupported_style:
+      "Dosya, filtreler, maskeler veya stil sayfaları gibi izin verilmeyen stiller ya da efektler kullanıyor.",
+    bimi_error_domain_not_active:
+      "Logo yayımlamadan önce bu alan adının kurulumunu tamamlayın.",
     bimi_error_file_too_large: "Dosya 64 KB'tan büyük.",
     bimi_error_logo_required: "Yayımlamadan önce bir logo yükleyin.",
     bimi_error_not_svg_file: "Bir SVG dosyası seçin.",
     bimi_error_throttled: "Biraz bekleyin, ardından tekrar deneyin.",
     bimi_errors_title: "Bu dosya marka logosu olarak kullanılamaz:",
     bimi_last_checked: "Son kontrol: {time}",
-    bimi_logo_public_note: "Logonuz herkese açıktır. Postanızı alan herkes logonuzu görebilir.",
+    bimi_logo_public_note:
+      "Logonuz herkese açıktır. Postanızı alan herkes logonuzu görebilir.",
     bimi_logo_ready: "Logonuz gereksinimleri karşılıyor.",
-    bimi_managed_note: "Alan adınız Aster üzerinden satın alındığı için DNS kaydı sizin için eklenir.",
+    bimi_managed_note:
+      "Alan adınız Aster üzerinden satın alındığı için DNS kaydı sizin için eklenir.",
     bimi_preview_alt: "Marka logonuzun önizlemesi",
     bimi_preview_dark: "Koyu",
     bimi_preview_inbox_subject: "En son güncellememiz",
@@ -5228,36 +5081,47 @@ export const tr = {
     bimi_preview_light: "Açık",
     bimi_publish: "Logoyu yayımla",
     bimi_publishing: "Yayımlanıyor",
-    bimi_record_conflict: "Bu alan adı için başka bir BIMI kaydı var. Yalnızca bu kaydın kalması için diğerini kaldırın.",
-    bimi_record_external: "Mevcut BIMI kaydı başka bir sunucuyu gösteriyor. Aster barındırmayı kullanmak için bu kayıtla değiştirin.",
+    bimi_record_conflict:
+      "Bu alan adı için başka bir BIMI kaydı var. Yalnızca bu kaydın kalması için diğerini kaldırın.",
+    bimi_record_external:
+      "Mevcut BIMI kaydı başka bir sunucuyu gösteriyor. Aster barındırmayı kullanmak için bu kayıtla değiştirin.",
     bimi_record_host: "Ana bilgisayar",
-    bimi_record_missing: "Kayıt henüz görünmüyor. DNS değişikliklerinin yayılması 48 saate kadar sürebilir.",
-    bimi_record_removed: "Aster bu kaydı artık bulamıyor. Kaydı DNS sağlayıcınızda yeniden ekleyin.",
+    bimi_record_missing:
+      "Kayıt henüz görünmüyor. DNS değişikliklerinin yayılması 48 saate kadar sürebilir.",
+    bimi_record_removed:
+      "Aster bu kaydı artık bulamıyor. Kaydı DNS sağlayıcınızda yeniden ekleyin.",
     bimi_record_published: "Kayıt yayımlandı.",
     bimi_record_title: "Bu kaydı DNS sağlayıcınıza ekleyin",
     bimi_record_type: "Tür",
     bimi_copy_field: "{field} kopyala",
     bimi_record_value: "Değer",
     bimi_replace_logo: "Logoyu değiştir",
-    bimi_req_auth_fail: "Önce bu alan adının SPF ve DKIM kayıtlarını doğrulayın.",
+    bimi_req_auth_fail:
+      "Önce bu alan adının SPF ve DKIM kayıtlarını doğrulayın.",
     bimi_req_auth_ok: "SPF ve DKIM doğrulandı.",
     bimi_req_auth_title: "Posta kimlik doğrulaması",
     bimi_req_dmarc_title: "DMARC uygulaması",
     bimi_req_not_checked: "Henüz kontrol edilmedi.",
     bimi_requirements_title: "Gereksinimler",
-    bimi_row_attention: "Logonuz yayımlandı, ancak bir gereksinim artık karşılanmıyor.",
+    bimi_row_attention:
+      "Logonuz yayımlandı, ancak bir gereksinim artık karşılanmıyor.",
     bimi_row_draft: "Logonuz hazır. Kullanmaya başlamak için yayımlayın.",
-    bimi_row_external: "Bu alan adının başka bir sunucuyu gösteren bir BIMI kaydı var.",
-    bimi_row_inactive: "Marka logosu eklemek için bu alan adının kurulumunu tamamlayın.",
+    bimi_row_external:
+      "Bu alan adının başka bir sunucuyu gösteren bir BIMI kaydı var.",
+    bimi_row_inactive:
+      "Marka logosu eklemek için bu alan adının kurulumunu tamamlayın.",
     bimi_row_live: "Logonuz yayımlandı.",
-    bimi_row_off: "Marka logolarını destekleyen gelen kutularında postalarınızın yanında logonuzu gösterin.",
+    bimi_row_off:
+      "Marka logolarını destekleyen gelen kutularında postalarınızın yanında logonuzu gösterin.",
     bimi_row_pending: "DNS kaydını ekleyin, ardından tekrar kontrol edin.",
-    bimi_row_pending_managed: "DNS kaydınız yayımlanıyor. Bu işlem birkaç dakika sürebilir.",
+    bimi_row_pending_managed:
+      "DNS kaydınız yayımlanıyor. Bu işlem birkaç dakika sürebilir.",
     bimi_rule_safe: "Komut dosyası veya harici bağlantı yok",
     bimi_rule_size: "Aster optimize ettikten sonra 32 KB veya daha küçük",
     bimi_rule_square: "Genişliği ve yüksekliği eşit bir kare",
     bimi_rule_svg: "SVG dosyası",
-    bimi_rule_vector: "Yalnızca vektör şekiller, metin anahatlara dönüştürülmüş",
+    bimi_rule_vector:
+      "Yalnızca vektör şekiller, metin anahatlara dönüştürülmüş",
     bimi_rules_title: "Dosya gereksinimleri",
     bimi_set_up: "Kur",
     bimi_state_attention: "İlgilenmeniz gerekiyor",
@@ -5270,13 +5134,16 @@ export const tr = {
     bimi_step_publish: "Yayımla",
     bimi_title: "Marka logosu",
     bimi_turn_off: "Kapat",
-    bimi_turn_off_body: "Logonuzun barındırılması hemen durur ve gelen kutuları bunun yerine varsayılan bir simge gösterir.",
+    bimi_turn_off_body:
+      "Logonuzun barındırılması hemen durur ve gelen kutuları bunun yerine varsayılan bir simge gösterir.",
     bimi_turn_off_confirm: "Kapat",
     bimi_turn_off_description: "Logonuz gelen kutularında artık gösterilmez.",
-    bimi_turn_off_remove_record: "default._bimi TXT kaydını DNS sağlayıcınızdan kaldırın.",
+    bimi_turn_off_remove_record:
+      "default._bimi TXT kaydını DNS sağlayıcınızdan kaldırın.",
     bimi_turn_off_title: "Marka logosu kapatılsın mı?",
     bimi_uploading: "Yükleniyor",
-    bimi_verified_mark_note: "Bazı gelen kutuları marka logolarını yalnızca doğrulanmış marka sertifikası (VMC) olan alan adları için gösterir.",
+    bimi_verified_mark_note:
+      "Bazı gelen kutuları marka logolarını yalnızca doğrulanmış marka sertifikası (VMC) olan alan adları için gösterir.",
     catch_all_description:
       "Bu alan adındaki herhangi bir adrese gönderilen e-postaları al",
     set_host_root:
@@ -5309,7 +5176,7 @@ export const tr = {
     host_private_address:
       "Bunun yerel ya da özel bir adres değil, kamuya açık bir posta sunucusu olması gerekiyor. Sağlayıcınızın size verdiği genel ana bilgisayar adı işe yarar.",
     incoming_server_invalid:
-      "Bu geçerli bir sunucu adresi değil. Yalnızca imap.example.com gibi ana bilgisayar adı işe yarar.",
+      "Bu geçerli bir sunucu adresi değil. Yalnızca imap.example.com gibi ana bilgisayar adını girin.",
     incoming_port_error:
       "1 ile 65535 arasında bir bağlantı noktası numarası girin.",
     incoming_mail_server: "Gelen posta sunucusu",
@@ -5318,13 +5185,12 @@ export const tr = {
     smtp_server_invalid:
       "Bu geçerli bir giden sunucu değil. Yalnızca smtp.example.com gibi ana bilgisayar adı işe yarar.",
     smtp_private_address_error:
-      "Bunun yerel ya da özel bir adres değil, kamuya açık bir posta sunucusu olması gerekiyor. Sağlayıcınızın size verdiği genel ana bilgisayar adı işe yarar.",
+      "Bu, yerel veya özel bir adres değil, herkese açık bir posta sunucusu olmalı. Sağlayıcınızın verdiği genel ana bilgisayar adını kullanın.",
     smtp_port_error:
       "1 ile 65535 arasında bir bağlantı noktası numarası girin.",
     smtp_username_required: "SMTP kullanıcı adı gerekli",
     smtp_password_required: "SMTP parolası gerekli",
-    label_color_invalid:
-      "Bu renk geçerli bir seçim değil. Paletten biri işe yarar.",
+    label_color_invalid: "Bu renk seçilemez. Paletten bir renk seçin.",
     smtp_test_failed:
       "Giden sunucu testi geçmedi. Aşağıdaki sunucu, bağlantı noktası ve parola, kontrol edilecek bölümlerdir.",
     deleted_emails_count: "{{count}} e-posta silindi",
@@ -5458,7 +5324,8 @@ export const tr = {
       "Depolama alanınız dolu. Planınızı yükseltmek ya da bir miktar e-postayı kaldırmak daha fazla içe aktarım için yer açar.",
     no_emails_in_file:
       "Seçilen dosyalarda e-posta bulunamadı. Her dosyanın desteklenen bir biçimde olduğundan emin olun (MBOX, EML, CSV veya PST).",
-    import_failed: "Tekrar deneyin.",
+    import_failed:
+      "İçe aktarma tamamlanmadı. Tekrar deneyin. Mevcut verileriniz değişmedi.",
     failed_to_parse_file: "Bu dosya okunamadı. Farklı biri işe yarar.",
     plan_storage_value: "{{value}} depolama",
     plan_aliases_count: "{{count}} takma ad",
@@ -5678,7 +5545,8 @@ export const tr = {
     no_encryption_key: "Şifreleme anahtarı yok",
     encryption_key_load_failed:
       "Şifreleme anahtarınız yüklenemedi. Bağlantınızı kontrol edip tekrar deneyin.",
-    encryption_banner_title: "Özel anahtarlarınızın kilidini yalnızca siz açabilirsiniz",
+    encryption_banner_title:
+      "Özel anahtarlarınızın kilidini yalnızca siz açabilirsiniz",
     encryption_banner_you: "Siz",
     encryption_banner_recipient: "Alıcı",
     storage_format_title: "Depolama formatı",
@@ -5721,7 +5589,8 @@ export const tr = {
     switch_to_monthly: "Aylığa Geç",
     switch_billing_confirm: "Faturalandırma Döngüsünü Değiştir",
     billing_switched: "Faturalandırma döngüsü başarıyla değiştirildi",
-    failed_switch_billing: "Tekrar deneyin.",
+    failed_switch_billing:
+      "Faturalandırma döneminiz değişmedi. Tekrar deneyin. Mevcut döneminiz hâlâ geçerli.",
     current_billing_interval: "{{interval}} faturalandırılır",
     switching_billing: "Değiştiriliyor...",
     billing_banner_title: "Aster ile Daha Fazlasını Açın",
@@ -5738,8 +5607,10 @@ export const tr = {
     active_addons: "Aktif Eklentileriniz",
     no_active_addons: "Aktif depolama eklentisi yok.",
     confirm_cancel_addon: "Depolama Eklentisini İptal Et",
-    addon_purchase_failed: "Tekrar deneyin.",
-    addon_cancel_failed: "Tekrar deneyin.",
+    addon_purchase_failed:
+      "Eklenti satın alma işlemi başlatılamadı. Tekrar deneyin. Faturalandırmanız değişmedi.",
+    addon_cancel_failed:
+      "Depolama eklentiniz iptal edilemedi. Tekrar deneyin. Eklentiniz hâlâ etkin.",
     addon_purchase_success: "Ödemeye yönlendiriliyor...",
     addon_checkout_opened: "Satın alma işleminizi yeni sekmede tamamlayın.",
     plan_recommended: "Önerilen",
@@ -5847,10 +5718,10 @@ export const tr = {
     plan_f_quiet_hours: "Sessiz saatler",
     storage_approaching_title: "Depolama alanı doluyor.",
     storage_approaching_description:
-      "Depolama alanınızın %75'inden fazlasını kullandınız. Eski e-postalardan bir kısmını temizlemek ya da planınızı yükseltmek, alanın bitmesinden önce sizi korunaklı tutar.",
+      "Depolama alanınızın %75'inden fazlasını kullandınız. Alanınız dolmadan önce bazı eski e-postaları silin veya planınızı yükseltin.",
     storage_warning_title: "Depolama alanınız azalıyor.",
     storage_warning_description:
-      "Depolama alanınızın %90'ından fazlasını kullandınız. Bir miktar e-postayı temizlemek ya da planınızı yükseltmek yeni postaların akışını sürdürür.",
+      "Depolama alanınızın %90'ından fazlasını kullandınız. Yeni postaları almaya devam etmek için bazı e-postaları silin veya planınızı yükseltin.",
     storage_overview_description:
       "Alanınızı neyin kullandığını görün ve ihtiyacınız olmayanları temizleyin.",
     storage_promo_title: "Ek depolamada tasarruf edin",
@@ -5861,7 +5732,7 @@ export const tr = {
     storage_promo_note:
       "İndirim yalnızca ilk depolama eklentinizde geçerlidir.",
     storage_select_option_first:
-      "Daha fazla depolama satın almak için önce bir seçenek belirle.",
+      "Daha fazla depolama satın almak için önce bir seçenek belirleyin.",
     storage_promo_cta: "Eklentileri gör",
     storage_used_of_total: "{{total}} alanın {{used}} kadarı kullanıldı",
     storage_free_space:
@@ -5888,7 +5759,7 @@ export const tr = {
     storage_locked_description:
       "Yer açana kadar yeni postalar duraklatıldı. Bir miktar e-postayı temizlemek ya da planınızı yükseltmek akışı geri getirir. Mevcut postalarınız güvende.",
     storage_locked_bounce_warning:
-      "Yer açılmazsa gelen postalar {{days}} gün içinde geri çevrilir. Yakında e-posta temizlemek ya da planı yükseltmek onların gelmesini sürdürür.",
+      "Yer açılmazsa gelen postalar {{days}} gün içinde geri çevrilecek. Postaları almaya devam etmek için bazı e-postaları silin veya planınızı yükseltin.",
     storage_full:
       "Depolama alanınız dolu. Yer açmak için planınızı yükseltin ya da bir miktar e-postayı kaldırın.",
     plan_limit_reached:
@@ -5901,7 +5772,7 @@ export const tr = {
     usage_domains: "Özel Alan Adları",
     usage_templates: "E-posta Şablonları",
     usage_signatures: "İmzalar",
-    usage_ghost_aliases: "Bu Ayki Ghost Takma Adları",
+    usage_ghost_aliases: "Bu ayki hayalet takma adlar",
     usage_storage: "Depolama",
     usage_linked_accounts: "Oturum açılmış hesaplar",
     upgrade_linked_accounts_note:
@@ -6071,7 +5942,8 @@ export const tr = {
     credit_balance: "Kredi Bakiyesi",
     use_credits_for_renewals: "Yenilemeler için kredi kullan",
     credits_toggle_updated: "Kredi ayarları güncellendi",
-    credits_toggle_failed: "Tekrar deneyin.",
+    credits_toggle_failed:
+      "Bu ayar kaydedilmedi. Tekrar deneyin. Önceki değer hâlâ geçerli.",
     credits_earn_first: "Bunu etkinleştirmek için lütfen kredi kazanın",
     recent_transactions: "Son İşlemler",
     view_all_transactions: "Tümünü Gör",
@@ -6308,7 +6180,8 @@ export const tr = {
     country: "Ülke",
     save_address: "Adresi Kaydet",
     address_saved: "Fatura adresi kaydedildi",
-    address_save_failed: "Tekrar deneyin.",
+    address_save_failed:
+      "Fatura adresiniz kaydedilmedi. Tekrar deneyin. Önceki adres hâlâ kayıtlı.",
     saving: "Kaydediliyor...",
     redeem: "Kullan",
     redeeming: "Kullanılıyor...",
@@ -6320,7 +6193,8 @@ export const tr = {
     export_ready: "Dışa aktarmanız indirmeye hazır.",
     export_processing: "Dışa aktarma hazırlanıyor...",
     download_export: "İndir",
-    export_failed: "Tekrar deneyin.",
+    export_failed:
+      "Dışa aktarma başlatılamadı. Tekrar deneyin. Postanız değişmedi.",
     biennial: "2 Yıllık",
     all_star_features: "Star'daki her şey, artı:",
     all_nova_features: "Nova'daki her şey, artı:",
@@ -6395,7 +6269,7 @@ export const tr = {
     save_backup_codes_description:
       "Bu yedek kodları güvenli bir yerde saklayın. Kimlik doğrulama cihazınızı kaybederseniz hesabınıza erişmek için kullanabilirsiniz.",
     two_factor_other_devices_signed_out:
-      "Aster diğer cihazlarındaki oturumunu kapattı. Bunları yeniden kullanmak için oturum aç ve kimlik doğrulama uygulamandaki kodu gir.",
+      "Aster diğer cihazlarınızdaki oturumunuzu kapattı. Bunları yeniden kullanmak için oturum açın ve kimlik doğrulama uygulamanızdaki kodu girin.",
     copy_all_codes: "Tüm Kodları Kopyala",
     backup_codes: "Yedek kodlar",
     regenerate_backup_codes: "Yedek kodları yeniden oluştur",
@@ -6561,7 +6435,7 @@ export const tr = {
     domain_purchase_renew: "Yenile",
     domain_purchase_manage: "Yönet",
     domain_purchase_manage_description:
-      "Bu kaydı gözden geçir ve süresi dolmadan yenile.",
+      "Bu kaydı gözden geçirin ve süresi dolmadan yenileyin.",
     domain_purchase_manage_status: "Durum",
     domain_purchase_manage_status_active: "Etkin",
     domain_purchase_manage_status_expiring: "Yakında sona eriyor",
@@ -6570,7 +6444,7 @@ export const tr = {
     domain_purchase_manage_term: "Süre",
     domain_purchase_manage_paid: "Ödenen",
     domain_purchase_manage_auto_renew_note:
-      "Bu alan adı otomatik olarak yenilenmez. Elinde tutmak için bitiş tarihinden önce yenile.",
+      "Bu alan adı otomatik olarak yenilenmez. Elinizde tutmak için bitiş tarihinden önce yenileyin.",
     domain_purchase_manage_dns: "Alan adı kurulumunu aç",
     domain_purchase_manage_support_note:
       "Bu alan adını başka bir kayıt kuruluşuna taşımak ya da geri ödeme sormak için destek ile iletişime geç.",
@@ -6611,7 +6485,7 @@ export const tr = {
     domain_purchase_complete_cta: "Satın almayı tamamla",
     domain_purchase_cancel_payment_title: "Bu ödeme iptal edilsin mi?",
     domain_purchase_cancel_payment_message:
-      "Özel alan adı için bu ödemeyi iptal etmek istediğinden emin misin?",
+      "Özel alan adı için bu ödemeyi iptal etmek istediğinizden emin misiniz?",
     domain_purchase_cancel_payment_confirm: "Ödemeyi iptal et",
     domain_purchase_cancel_payment_keep: "Ödemeyi koru",
     domain_purchase_purchased_lapsed: "Süresi doldu - yeniden al",
@@ -6731,7 +6605,7 @@ export const tr = {
       "Tatil yanıtları, uzaktayken otomatik yanıt göndermenizi sağlar",
     trusted_devices: "Güvenilen Cihazlar",
     trusted_devices_description:
-      "Bu cihazlar şifreniz olmadan postanıza erişebilir.",
+      "Hesabınızla eşlediğiniz masaüstü ve mobil uygulamalar. Bir cihazın erişimini iptal etmek o cihazda oturumu kapatır ve yerel kasa anahtarını siler.",
     trusted_devices_empty: "Henüz eşleştirilmiş cihaz yok.",
     trusted_devices_revoke: "İptal et",
     trusted_devices_never: "Hiçbir zaman",
@@ -6758,9 +6632,9 @@ export const tr = {
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
     bridge_linux_pacman_link: "Arch Linux",
-    bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
-    bridge_linux_deb_arm64_link: ".deb (ARM64)",
-    bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
+    bridge_linux_appimage_arm64_link: "AppImage",
+    bridge_linux_deb_arm64_link: ".deb",
+    bridge_linux_rpm_arm64_link: ".rpm",
     bridge_other_formats: "Diğer biçimler",
     bridge_arch_x64: "x86-64",
     bridge_arch_arm64: "ARM64",
@@ -6771,18 +6645,24 @@ export const tr = {
     bridge_format_pacman_desc: "Arch Linux ve türevleri",
     bridge_download_started: "İndirme başladı",
     bridge_download_failed: "İndirme başlamadı. Yeniden deneyin.",
-    bridge_support_help_desc: "Kurulum kılavuzları ve sık sorulan soruların yanıtları",
+    bridge_support_help_desc:
+      "Kurulum kılavuzları ve sık sorulan soruların yanıtları",
     bridge_support_discord_desc: "Ekibe ve Aster kullanan diğer kişilere sorun",
     bridge_support_reddit_desc: "Duyuruları takip edin ve tartışmalara katılın",
     bridge_support_github_desc: "Kaynak kodu inceleyin ve sorun bildirin",
     bridge_all_platforms: "Tüm platformlar",
-    bridge_upgrade_benefit_clients: "Apple Mail, Thunderbird ve Outlook ile çalışır",
-    bridge_upgrade_benefit_local: "Yerel olarak çalışır, böylece postanız şifreli kalır",
-    bridge_upgrade_benefit_platforms: "Windows, macOS ve Linux'ta kullanılabilir",
+    bridge_upgrade_benefit_clients:
+      "Apple Mail, Thunderbird ve Outlook ile çalışır",
+    bridge_upgrade_benefit_local:
+      "Yerel olarak çalışır, böylece postanız şifreli kalır",
+    bridge_upgrade_benefit_platforms:
+      "Windows, macOS ve Linux'ta kullanılabilir",
     bridge_upgrade_benefit_cli: "Sunucular için komut satırı sürümü içerir",
     bridge_cli_download: "İndir",
-    bridge_cli_install_hint: "Platformunuza uygun arşivi indirin, ayıklayın ve ikili dosyayı PATH dizininize taşıyın.",
-    bridge_cli_install_hint_windows: "Arşivi indirin, ayıklayın ve klasörü PATH değişkeninize ekleyin.",
+    bridge_cli_install_hint:
+      "Platformunuza uygun arşivi indirin, ayıklayın ve ikili dosyayı PATH dizininize taşıyın.",
+    bridge_cli_install_hint_windows:
+      "Arşivi indirin, ayıklayın ve klasörü PATH değişkeninize ekleyin.",
     bridge_cli_copy_command: "Kurulum komutlarını kopyala",
     bridge_cli_docs_link: "Komut satırı kılavuzunu okuyun",
     bridge_cli_name: "Komut satırı",
@@ -6823,7 +6703,7 @@ export const tr = {
       "Thunderbird, Apple Mail, Outlook veya herhangi bir IMAP/JMAP istemcisiyle Aster'i kullanın. Aster Bridge yerel olarak çalışır ve şifresi çözülmüş posta kutunuzu favori istemcinize sunar.",
     desktop_bridge_set_up: "{{ client }} kur",
     desktop_bridge_install_hint:
-      "Aster Bridge'in kurulu ve çalışıyor olması gerekiyor. astermail.org/bridge adresinden edinin.",
+      "Aster Bridge'in yüklü ve çalışıyor olması gerekir. Ayarlar > Bridge bölümünden indirin.",
     desktop_bridge_upgrade_title: "Favori posta istemcinizi kullanın",
     desktop_bridge_upgrade_description:
       "Apple Mail, Thunderbird veya Outlook'u Aster Bridge ile Aster'e bağlayın. Star ve üzeri planlarda kullanılabilir.",
@@ -6856,7 +6736,8 @@ export const tr = {
     app_lock_wrong_pin: "Yanlış PIN",
     app_lock_locked_out_for: "Çok fazla deneme - {{s}}s içinde tekrar deneyin",
     vanguard_title: "Aster Vanguard",
-    vanguard_description: "Sadece Nova+. Daha fazla özellik yakında.",
+    vanguard_description:
+      "Gazeteciler, aktivistler ve yüksek risk taşıyan hesaplar için gelişmiş koruma. Yalnızca Nova+.",
     vanguard_info:
       "Aster Vanguard, gazeteciler, avukatlar ve yüksek riskli kullanıcılar için gelişmiş güvenlik özelliklerini etkinleştirir. PIN kilit, gelişmiş oturum kontrolleri ve daha fazlasını içerir.",
     vanguard_active: "Vanguard Aktif",
@@ -6945,7 +6826,7 @@ export const tr = {
       "Gizliliğinizi korumak için e-postalara gömülü izleme öğelerini engelle",
     block_spy_pixels: "Gözetleme Piksellerini Engelle",
     block_spy_pixels_description:
-      "Bir e-posta açtığınızda göndericilere haber veren görünmez izleme piksellerini engelle",
+      "Bir e-posta açtığınızda göndericilere haber veren görünmez izleme piksellerini engeller",
     block_tracking_links: "İzleme Bağlantılarını Temizle",
     block_tracking_links_description:
       "E-postalardaki bağlantılardan izleme parametrelerini kaldır",
@@ -7318,7 +7199,7 @@ export const tr = {
     credit_task_ios_hint_coming: "Yakında",
     credit_task_earned: "Kazanıldı",
     send_referral_to_contacts: "Tüm kişilere e-posta gönder",
-    referral_email_subject: "Aster Mail'i deneyin - herkes için özel e-posta",
+    referral_email_subject: "Aster Mail'i denemelisiniz",
     referral_email_body:
       "Merhaba,\n\nbir süredir Aster Mail kullanıyorum ve gerçekten memnunum. Her şey uçtan uca şifreli, yani senden başka kimse e-postalarını okuyamıyor. Servisi işletenler bile okuyamıyor.\n\nDenemek istersen davet bağlantım şu:\n\n{{ referral_link }}\n\nSen kullanmaya başlayınca ikimiz de {{ amount }} ek depolama alanı kazanıyoruz, yani sen de kazançlı çıkıyorsun.\n\nSevgiler",
     referral_no_contacts: "Kişi bulunamadı. Önce kişi ekleyin!",
@@ -7334,7 +7215,7 @@ export const tr = {
       "Giden e-postalarda imzanın üstüne '--' ayırıcı satır ekle.",
     show_aster_branding: "Aster Mail filigranı",
     show_aster_branding_description:
-      "Giden e-postaların alt kısmında 'Aster Mail ile güvende' göster.",
+      "Giden e-postaların alt kısmında 'Aster Mail ile güvende' ifadesini gösterin.",
     show_aster_branding_free_note:
       "Filigranı kaldırmak için ücretli bir plana yükseltin.",
     spam_filter_enabled: "Spam Filtrelemeyi Etkinleştir",
@@ -7386,7 +7267,8 @@ export const tr = {
     connect_sign_in_yahoo: "Yahoo ile oturum açın",
     oauth_reason_provider_denied:
       "Diğer sağlayıcı bağlantıyı kabul etmedi. Tekrar bağlanmayı deneyin veya hesabı o sağlayıcıda kontrol edin.",
-    oauth_reason_missing_code: "Tekrar deneyin.",
+    oauth_reason_missing_code:
+      "Sağlayıcı tarafında giriş tamamlanmadı. Tekrar deneyin.",
     oauth_reason_missing_state:
       "Bağlantı isteği beklediğimizle eşleşmedi. Yeniden başlayıp tekrar deneyin.",
     oauth_reason_internal_error:
@@ -7399,17 +7281,21 @@ export const tr = {
       "Bu sağlayıcıyı tanımıyoruz. Listeden desteklenen birini seçin.",
     oauth_reason_provider_not_configured:
       "Bu sağlayıcı henüz Aster'de ayarlanmamış. Gerekirse hello@astermail.org yardımcı olabilir.",
-    oauth_reason_token_exchange_failed: "Tekrar deneyin.",
+    oauth_reason_token_exchange_failed:
+      "Bağlantı tamamlanmadı. Tekrar deneyin. Diğer hesaplarınız değişmedi.",
     oauth_reason_encryption_error:
       "Bağlantıyı güvenli hale getiremedik. Tekrar deneyin. Sorun devam ederse hello@astermail.org ile iletişime geçin.",
-    oauth_reason_account_creation_failed: "Tekrar deneyin.",
+    oauth_reason_account_creation_failed:
+      "Bağlı hesabınızın kurulumu tamamlanamadı. Tekrar deneyin.",
     oauth_reason_email_not_found:
       "E-posta adresiniz sağlayıcıdan alınamadı. Tekrar deneyin; sorun sürerse elle IMAP seçeneğini kullanın.",
     oauth_reason_session_expired: "Oturum açma süresi doldu. Tekrar deneyin.",
-    oauth_reason_unknown: "Tekrar deneyin.",
+    oauth_reason_unknown:
+      "Bir şey beklendiği gibi çalışmadı. Tekrar deneyin. Nedeni belirlenemedi.",
     oauth_setting_up_folders: "Klasörler ayarlanıyor...",
     oauth_folders_ready: "Klasörler başarıyla senkronize edildi",
-    oauth_folders_error: "Tekrar deneyin.",
+    oauth_folders_error:
+      "Klasörlerinizin kurulumu tamamlanmadı. Tekrar deneyin.",
     oauth_folders_partial:
       "{{count}} klasör kurulmayı tamamlayamadı; geri kalanlar kullanıma hazır.",
     import_stage_setting_up_folders: "Klasörler kuruluyor",
@@ -7500,7 +7386,8 @@ export const tr = {
     dev_signatures_label: "İmzalar",
     dev_password_kdf_label: "Şifre KDF",
     select_color: "{{name}} rengini seç",
-    failed_create_import_job: "Tekrar deneyin.",
+    failed_create_import_job:
+      "İçe aktarma başlatılamadı. Tekrar deneyin. Mevcut e-postalarınız güvende.",
     alias_local_part_placeholder: "takmaadım",
     username_placeholder: "kullanici@ornek.com",
     smtp_host_placeholder: "smtp.ornek.com",
@@ -8157,9 +8044,6 @@ export const tr = {
       "Mağaza ve hizmetlerden gelen siparişler, ödemeler ve makbuzlar burada görünür.",
     category_empty_custom_desc:
       "Bu kategorinin kurallarıyla eşleşen e-postalar burada görünecek.",
-    view_html_part: "HTML'yi Görüntüle",
-    view_plain_text: "Düz Metni Görüntüle",
-    html_blocked_label: "HTML engellendi",
     block_sender_on_alias: "Göndereni rumuzda engelle",
     block_sender_on_alias_success: "{{sender}}, {{alias}} üzerinde engellendi",
     block_sender_on_alias_failed: "Gönderen engellenemedi. Tekrar deneyin.",
@@ -8196,11 +8080,7 @@ export const tr = {
     reply: "Yanıtla",
     reply_all: "Tümünü Yanıtla",
     react: "Tepki Ver",
-    already_reacted: "Buna zaten tepki verdiniz",
-    remove_your_reaction: "{emoji} tepkinizi kaldır",
     you_reacted_with: "{{emoji}} ile tepki verdiniz",
-    you_reacted_with_remove:
-      "{{emoji}} ile tepki verdiniz. Kaldırmak için tıklayın.",
     reacted_with: "{{name}} {{emoji}} ile tepki verdi",
     forward: "İlet",
     to: "Kime",
@@ -8232,13 +8112,9 @@ export const tr = {
     find_emails_from: "{{sender}} gönderenli e-postaları bul",
     move_to: "Taşı:",
     label: "Etiket",
-    select_recipients: "Alıcıları seçin",
     send: "Gönder",
-    send_later: "Daha sonra gönder",
     discard: "Vazgeç",
     save_draft: "Taslak olarak kaydet",
-    attachment_add: "Ek ekle",
-    attachment_remove: "Eki kaldır",
     back: "Geri",
     archiving: "Arşivleniyor...",
     mark_as_spam: "Spam olarak işaretle",
@@ -8264,18 +8140,15 @@ export const tr = {
     cc_label: "Cc",
     bcc_label: "Bcc",
     encrypted: "Şifreli",
-    read_receipt: "Okundu bilgisi",
     snooze: "Ertele",
     unsnooze: "Ertelemeyi kaldır",
     pin: "Sabitle",
     pin_to_top: "Üste sabitle",
     unpin: "Sabitlemeyi kaldır",
     mute: "Sessize al",
-    unmute: "Sesi aç",
     print: "Yazdır",
     view_source: "Kaynağı görüntüle",
     share: "Paylaş",
-    download_eml: "EML İndir",
     move_to_folder: "Klasöre taşı",
     apply_label: "Etiket uygula",
     select: "Seç",
@@ -8313,7 +8186,6 @@ export const tr = {
     schedule: "Zamanla",
     scheduling: "Zamanlanıyor",
     saved: "Kaydedildi",
-    saving_draft: "Kaydediliyor...",
     write_message: "Mesajınızı yazın...",
     show_quoted_text: "Alıntılanan metni göster",
     hide_quoted_text: "Alıntılanan metni gizle",
@@ -8351,9 +8223,6 @@ export const tr = {
     delete_old_confirm_title: "30 günden eski e-postalar silinsin mi?",
     delete_old_confirm_message:
       "Bu, 30 günden eski her e-postayı çöp kutusuna taşır. Hemen sonrasında geri alabilirsiniz.",
-    archive_newsletters_confirm_title: "Tüm bültenler arşivlensin mi?",
-    archive_newsletters_confirm_message:
-      "Bu, gelen kutunuzda bülten olarak algılanan her e-postayı arşivler. Hemen sonrasında geri alabilirsiniz.",
     delete_all: "Tümünü sil",
     archive_subtitle: "Gelen kutunuzu temiz tutmak için e-postaları arşivleyin",
     trash_subtitle: "Silinen e-postalar burada görünecek",
@@ -8383,15 +8252,12 @@ export const tr = {
     confirm_bulk_action_count_description_one: "Bu işlem 1 e-postayı etkiler.",
     remove_label: "Etiketi kaldır",
     confirm_bulk_action_title: "Toplu işlemi onayla",
-    confirm_bulk_action_description:
-      "Bu işlem bu görünümdeki her sohbeti etkileyecektir.",
     bulk_action_index_not_ready:
       "Bu sekme hâlâ dizinleniyor. Birazdan tekrar deneyin.",
     bulk_action_index_building:
       "Bu sekme hâlâ dizinleniyor. Dizin hazır olur olmaz işlem başlar.",
     bulk_action_index_capped:
       "Bu sekmede tek seferde güncellenemeyecek kadar çok konuşma var. Konuşmaları seçip yeniden deneyin.",
-    archive_messages_title: "Mesajları Arşivle",
     archive_messages_confirmation:
       "Seçili mesajları arşivlemek istediğinizden emin misiniz?",
     spam_email_sender_message:
@@ -8415,8 +8281,6 @@ export const tr = {
     shipping_delivered: "Teslim Edildi",
     shipping_delivery_exception: "Teslimat İstisnası",
     shipping_status_unknown: "Durum Bilinmiyor",
-    shipping_shipped_date: "Gönderim Tarihi",
-    shipping_delivered_on: "Teslim Tarihi",
     bold: "Kalın",
     italic: "İtalik",
     underline: "Altı çizili",
@@ -8428,19 +8292,11 @@ export const tr = {
     insert_link: "Bağlantı ekle",
     insert_image: "Resim ekle",
     attach_file: "Dosya ekle",
-    more_formatting: "Daha fazla biçimlendirme",
-    text_style: "Metin stili",
     text_alignment: "Metin hizalama",
     text_formatting: "Metin biçimlendirme",
-    formatting_options: "Biçimlendirme seçenekleri",
-    format_text: "Biçimle",
     align_left: "Sola hizala",
     align_center: "Ortala",
     align_right: "Sağa hizala",
-    heading_normal: "Normal",
-    heading_1: "Başlık 1",
-    heading_2: "Başlık 2",
-    heading_3: "Başlık 3",
     add_file: "Dosya ekle",
     attaching_original_files: "Özgün dosyalar ekleniyor",
     display_text_placeholder: "Görüntüleme metni",
@@ -8451,7 +8307,6 @@ export const tr = {
     no_signature: "İmza yok",
     self_destruct: "Kendini imha",
     self_destruct_after: "Şu süre sonra kendini imha et:",
-    category_promos: "Promosyonlar",
     search_history: "Arama geçmişi",
     search_error: "Tekrar deneyin.",
     delete_draft_confirmation:
@@ -8459,9 +8314,6 @@ export const tr = {
     plain_text_warning:
       "Düz metne geçmek bu taslaktaki tüm biçimlendirmeyi kaldırır ve yazma penceresi onu geri getiremez. Diğer taslaklarınız etkilenmez.",
     remove_formatting: "Biçimlendirmeyi kaldır",
-    encrypt_with_pgp: "PGP ile şifrele",
-    pgp_encryption_active:
-      "PGP şifrelemesi aktif - alıcının açık anahtarı kullanılacak",
     font_color: "Yazı rengi",
     highlight_color: "Vurgu rengi",
     write_message_placeholder: "Mesaj yazın",
@@ -8502,7 +8354,6 @@ export const tr = {
     move_to_trash_question: "Çöp Kutusuna Taşınsın mı?",
     archive_email_message: "Bu e-posta Arşiv klasörünüze taşınacak.",
     trash_email_message: "Bu e-posta Çöp Kutusu klasörünüze taşınacak.",
-    view_contact_profile: "Kişi profilini görüntüle",
     toggle_filters: "Filtreleri aç/kapat",
     save_search: "Bu aramayı kaydet",
     clear_search_data: "Arama verilerini temizle",
@@ -8554,11 +8405,6 @@ export const tr = {
     sort_newest: "En yeni",
     sort_oldest: "En eski",
     sort_sender: "Gönderen adı",
-    search_field_all: "Tümü",
-    search_field_subject: "Konu",
-    search_field_body: "İçerik",
-    search_field_sender: "Gönderen",
-    search_field_recipient: "Alıcı",
     filter_today: "Bugün",
     filter_yesterday: "Dün",
     filter_this_week: "Bu hafta",
@@ -8595,7 +8441,6 @@ export const tr = {
     search_operators: "Arama operatörleri",
     search_by_sender_subject_content: "Gönderen, konu veya içeriğe göre ara",
     has_attachments: "Ek içeren",
-    starred_only: "Yalnızca yıldızlı",
     search_in: "Şurada ara:",
     from_date: "Başlangıç tarihi",
     to_date: "Bitiş tarihi",
@@ -8607,16 +8452,12 @@ export const tr = {
     active_filters: "Aktif filtreler:",
     quick_filters: "Hızlı filtreler:",
     larger_than_search: "5MB'den büyük",
-    search_privacy_note:
-      "Arama, şifreli jetonlar kullanılarak istemci tarafında gerçekleştirilir. Mesajlarınız uçtan uca şifreli olarak kalır.",
     navigate: "Git",
     load_more_results: "Daha fazla sonuç yükle ({{remaining}} kalan)",
     contacts: "Kişiler",
     scheduled_for: "Zamanlanma tarihi:",
     scheduled_send_failed:
-      "Bu ileti gönderilemedi. Yeniden denemek için yeni bir gönderim zamanı seç.",
-    section_pinned: "Sabitlenmiş",
-    section_primary: "Birincil",
+      "Bu ileti gönderilemedi. Yeniden denemek için yeni bir gönderim zamanı seçin.",
     spam_email_message: "Bu e-posta Spam klasörünüze taşınacak.",
     delete_permanently_question: "Kalıcı Olarak Silinsin mi?",
     empty_spam_folder_question: "Spam klasörü boşaltılsın mı?",
@@ -8637,7 +8478,6 @@ export const tr = {
     shortcut_previous_email: "Önceki e-posta",
     shortcut_open_email: "E-postayı aç",
     shortcut_close_back: "Kapat / listeye dön",
-    shortcut_back_to_list: "Listeye dön",
     shortcut_delete_trash: "Sil / çöpe taşı",
     shortcut_star_unstar: "Yıldızla / yıldızı kaldır",
     shortcut_compose_new: "Yeni e-posta yaz",
@@ -8646,7 +8486,6 @@ export const tr = {
     shortcut_show_shortcuts: "Kısayolları göster",
     important: "Önemli",
     sent_by_me: "Benim gönderdiğim",
-    most_relevant: "En ilgili",
     most_recent: "En yeni",
     use_arrows_to_navigate:
       "Sayfalar arasında gezinmek için yukarıdaki okları kullanın",
@@ -8657,31 +8496,23 @@ export const tr = {
     pick_expiration: "Son kullanma tarihi seç",
     set_expiration: "Son kullanma tarihi belirle",
     password_description:
-      "Harici alıcıların e-postayı görüntülemek için bu parolaya ihtiyacı olacak",
+      "Alıcıların e-postayı görüntülemek için bu parolaya ihtiyacı olacak",
     no_password: "Parola yok",
     replying_to: "{{name}} kişisine yanıt veriliyor",
     reply_sent_successfully: "Yanıt başarıyla gönderildi",
     successfully_unsubscribed: "Abonelik başarıyla iptal edildi",
-    unsubscribe_success_message:
-      "{{sender}} göndericisinden artık e-posta almayacaksınız",
     unsubscribe_failed:
       "Abonelikten çıkma tamamlanmadı. E-postadaki bağlantı sizi göndericinin sitesine götürür, abonelikten kendiniz çıkabilirsiniz.",
-    unsubscribe_try_again:
-      "Bir kez daha denemek ya da aşağıdaki bağlantı abonelikten kendiniz çıkmanıza olanak verir.",
     unsubscribe_manual_required:
       "Bu gönderici otomatik abonelikten çıkmayı desteklemiyor. E-postadaki bağlantı bunu kendiniz yapmanıza olanak verir.",
     stop_receiving_from: "E-posta almayı durdurun:",
     send_email: "E-posta Gönder",
-    purchase_receipt: "Satın Alma Makbuzu",
     order_number: "Sipariş #{{id}}",
     items: "Ürünler",
     more_items_count: "+{{count}} ürün daha",
     card_ending_in: "Sonu {{last_four}} olan kart",
-    confirmation_label: "Onay: {{number}}",
-    transaction_label: "İşlem: {{id}}",
     purchase_extraction_privacy:
       "E-postanızdan yerel olarak çıkarılır, sunucularımıza hiçbir şey gönderilmez.",
-    ordered_from: "{{merchant}} üzerinden sipariş",
     receipt_is_this_correct: "Bu doğru mu?",
     receipt_feedback_correct: "Evet, doğru",
     receipt_feedback_incorrect: "Hayır, bir hata var",
@@ -8719,7 +8550,6 @@ export const tr = {
     exit_dark_mode: "Karanlık moddan çık",
     view_all_dark_mode: "Tümünü karanlık modda görüntüle",
     exit_all_dark_mode: "Tümünü karanlık moddan çıkar",
-    from_header: "Kimden",
     sent_label: "Gönderildi",
     scheduled_label: "Zamanlandı",
     trashed_label: "Çöpe atıldı",
@@ -8729,7 +8559,6 @@ export const tr = {
     total_pages_label: "{{count}} sayfa",
     loading_preview: "Önizleme yükleniyor…",
     preview_failed: "Önizleme yüklenmedi. E-postayı açmak onu gösterir.",
-    move_1_conversation: "1 görüşmeyi taşı",
     move_n_conversations: "{{ count }} görüşmeyi taşı",
     move_n_conversations_one: "{{count}} görüşmeyi taşı",
     move_n_conversations_other: "{{count}} görüşmeyi taşı",
@@ -8813,7 +8642,6 @@ export const tr = {
     search_message_content: "Mesaj içeriğinde ara",
     create_filter: "Filtre oluştur",
     search_placeholder_hint: "Posta, kişi ve klasörlerde ara",
-    all_search_results_for: '"{{query}}" için tüm arama sonuçları',
     try_adjusting_filters:
       "Filtrelerinizi ayarlamayı veya başka bir şey aramayı deneyin",
     no_emails_match_query: '"{{query}}" ile eşleşen e-posta yok',
@@ -8835,8 +8663,6 @@ export const tr = {
       "Aramanızı daha belirgin terimlerle daraltmayı deneyin.",
     refine_your_search_action: "Aramanızı daraltın",
     turn_off_indexing_action: "Dizinlemeyi kapat",
-    content_search_slower:
-      "Mesaj içeriğinde arama, büyük posta kutularında yavaş olabilir.",
     search_message_content_help: "Mesaj içeriği araması hakkında",
     search_message_content_help_body:
       "Mesajlarınız uçtan uca şifrelidir, bu nedenle metinleri aranabilmesi için bu cihaza indirilip dizinlenmesi gerekir. Bu önemli miktarda depolama kullanabilir. Dizin bu cihazdan asla çıkmaz ve oturumu kapattığınızda silinir.",
@@ -8899,27 +8725,13 @@ export const tr = {
     op_without_attachments: "Eksiz",
     open_unsubscribe_page: "Abonelik iptal sayfasını aç",
     tracking_protection: "İzleme Koruması",
-    tracking_protection_description: "Sizi izlemeden aktif olarak koruyoruz",
-    trackers_found: "{{count}} izleyici bulundu ve engellendi",
-    no_trackers_found: "Bu e-postada izleyici bulunamadı",
     spy_pixels_blocked: "Gözetleme pikselleri engellendi",
-    spy_pixels_blocked_count: "{{count}} gözetleme pikseli engellendi",
     links_cleaned: "Bağlantılar temizlendi",
-    links_cleaned_count: "{{count}} bağlantı temizlendi",
-    no_trackers_detected: "İzleyici tespit edilmedi",
     email_is_clean:
       "Bu e-posta temiz görünüyor - izleme öğesi tespit edilmedi.",
     param_removed_from_n_links:
       "{{param}} parametresi {{count}} bağlantıdan kaldırıldı",
     n_blocked: "{{count}} engellendi",
-    tracker_domain: "{{domain}}",
-    remote_content_blocked: "Uzak içerik engellendi",
-    remote_images_blocked_count: "{{count}} uzak görsel engellendi",
-    older_messages: "{{count}} daha eski mesaj",
-    older_message: "1 daha eski mesaj",
-    verification_verified: "Doğrulanmış gönderici",
-    verification_invalid: "Gönderen imzası eşleşmedi",
-    verification_no_keys: "Bu gönderenin kimliğini doğrulayamadık",
     official_sender: "Resmi Aster adresi",
     official_sender_desc:
       "Bu mesaj resmi bir Aster adresinden gönderildi. Aster parolanızı veya kurtarma ifadenizi asla e-posta ile istemez.",
@@ -8938,7 +8750,6 @@ export const tr = {
     hide_headers: "Başlıkları gizle",
     show_trimmed_content: "Kırpılan içeriği göster",
     bounced: "Geri döndü",
-    failed_status: "Başarısız",
     delivered: "Teslim edildi",
     n_messages: "{{ count }} mesaj",
     attachment_singular: "Ek",
@@ -8949,7 +8760,6 @@ export const tr = {
     notification_new_email: "{{ sender }} tarafından yeni e-posta",
     notification_reply: "{{ sender }} yanıtladı",
     notification_mention: "{{ sender }} sizi bahsetti",
-    forwarded_message_separator: "---------- Yönlendirilen mesaj ---------",
     filter_not_prefix: "Değil ",
     filter_from: "Kimden: {{ value }}",
     filter_to: "Kime: {{ value }}",
@@ -8978,7 +8788,6 @@ export const tr = {
     filter_larger: "Daha büyük: {{ value }}",
     filter_smaller: "Daha küçük: {{ value }}",
     filter_size: "Boyut: {{ value }}",
-    n_forwarded: "{{ count }} yönlendirildi",
     sort_by: "Sıralama ölçütü",
     newest_first: "Önce en yeni",
     oldest_first: "Önce en eski",
@@ -8996,18 +8805,10 @@ export const tr = {
       "Cihazdaki çevirmen bu iletiyi tamamlayamadı. Bu genellikle dil paketinin hâlâ indiriliyor olduğu, iletinin birkaç dili karıştırdığı ya da çoğunlukla adlardan, sayılardan ve bağlantılardan oluştuğu anlamına gelir. Sunucuya hiçbir şey gönderilmedi.",
     more_folders_count_one: "+{{count}} klasör daha",
     more_folders_count_other: "+{{count}} klasör daha",
-    trackers_found_one: "{{count}} izleyici bulundu ve engellendi",
-    trackers_found_other: "{{count}} izleyici bulundu ve engellendi",
-    spy_pixels_blocked_count_one: "{{count}} casus piksel engellendi",
-    spy_pixels_blocked_count_other: "{{count}} casus piksel engellendi",
-    links_cleaned_count_one: "{{count}} bağlantı temizlendi",
-    links_cleaned_count_other: "{{count}} bağlantı temizlendi",
     param_removed_from_n_links_one:
       "{{param}}, {{count}} bağlantıdan kaldırıldı",
     param_removed_from_n_links_other:
       "{{param}}, {{count}} bağlantıdan kaldırıldı",
-    remote_images_blocked_count_one: "{{count}} uzak görsel engellendi",
-    remote_images_blocked_count_other: "{{count}} uzak görsel engellendi",
     confirm_bulk_action_count_description:
       "Bu işlem {{count}} e-postanın tümünü etkiler.",
     confirm_bulk_action_count_description_other:
@@ -9039,26 +8840,17 @@ export const tr = {
     greeting_comma: ",",
     greeting_night: "Geç saatler",
     manage_account: "Hesap ayarları",
-    official_account: "Resmi hesap",
     sign_out_all: "Tüm hesaplardan çıkış yap",
     session_expired_tag: "Oturum sona erdi",
     default_account: "Varsayılan",
     storage_of_used: "{{total}} alanın {{used}} kadarı kullanıldı",
-    hide_more_accounts: "Diğer hesapları gizle",
-    show_more_accounts: "Diğer hesapları göster",
     change_photo: "Fotoğrafı değiştir",
-    active_account: "Aktif",
     add_another_account: "Başka bir hesap ekle",
     resubscribe_to_aster: "Aster'a yeniden abone ol",
     switch_to_account: "Bu hesaba geç",
     remove_account: "Bu cihazdan kaldır",
-    remove_account_title: "Hesap kaldırılsın mı?",
-    remove_account_message:
-      "{{email}} bu cihazda oturumu kapatılacak. Sunucudaki verileriniz etkilenmez.",
-    confirm_remove_account: "Kaldır",
     account_limit_for_plan:
       "Planınız en fazla {{max}} oturum açık hesaba izin verir. Daha fazlasını eklemek için yükseltin.",
-    signing_out_current: "Çıkış yapılıyor...",
     email: "E-posta",
     password: "Parola",
     confirm_password: "Parolayı Onayla",
@@ -9070,7 +8862,6 @@ export const tr = {
     dont_have_account: "Hesabınız yok mu?",
     terms_of_service: "Hizmet Şartları",
     privacy_policy: "Gizlilik Politikası",
-    agree_terms: "Hizmet Şartları ve Gizlilik Politikasını kabul ediyorum",
     username: "Kullanıcı adı",
     sign_in_to_aster: "Aster'e giriş yapın",
     enter_credentials: "Hesabınıza erişmek için kimlik bilgilerinizi girin",
@@ -9114,19 +8905,11 @@ export const tr = {
       "Tüm Aster hizmetleri için tek hesap. Ücretsiz, güvenli ve gizli.",
     create_free_account: "Ücretsiz hesap oluştur",
     sign_in_existing: "Mevcut hesaba giriş yap",
-    choose_email_address: "E-posta adresinizi seçin",
-    pick_unique_username:
-      "Yeni Aster e-postanız için benzersiz bir kullanıcı adı seçin",
-    new_email_address: "Yeni e-posta adresi",
     your_new_aster_address: "Yeni Aster Mail adresiniz",
-    generate_random_username: "Rastgele kullanıcı adı oluştur",
-    generate_random_display: "Rastgele görünen ad oluştur",
     profile_color: "Profil rengi",
-    preview_avatar: "Profil avatarınızın önizlemesi",
     secure_your_account: "Hesabınızı güvence altına alın",
     create_strong_password:
       "Hesabınızı korumak için güçlü bir parola oluşturun",
-    choose_your_plan: "Planınızı seçin",
     setting_up_account: "Hesabınız kuruluyor",
     save_recovery_codes: "Kurtarma kodlarınızı kaydedin",
     store_codes_safely:
@@ -9136,7 +8919,7 @@ export const tr = {
     recovery_download_failed: "İndirme başarısız oldu. Lütfen tekrar deneyin.",
     add_backup_email: "Yedek e-posta ekle",
     skip_for_now: "Şimdilik atla",
-    create_your_account: "Hesabını oluştur",
+    create_your_account: "Hesabınızı oluşturun",
     welcome_workspace_subtitle:
       "Aster'e hoş geldin. Başlamak için bir kullanıcı adı seç.",
     username_placeholder: "Kullaniciadi",
@@ -9148,18 +8931,12 @@ export const tr = {
     create_a_password: "Bir parola oluştur",
     recommend_strong_password:
       "En az 8 karakter kullan. Karışık karakterler içeren daha uzun bir parola daha güçlüdür.",
-    password_recovery_key: "Parola kurtarma anahtarı",
-    recovery_key_only_way:
-      "Parolanı unutursan hesabını kurtarmanın tek yolu bu anahtardır. Güvenli bir yerde sakla.",
-    download_key_lower: "Anahtarı indir",
     downloading: "İndiriliyor...",
-    save_key: "Anahtarı kaydet",
     copy_key: "Anahtarı kopyala",
     copy_codes: "Kodları kopyala",
-    recovery_key_copied: "Kurtarma anahtarı kopyalandı",
     password_recovery_email: "Parola kurtarma e-postası",
     recovery_email_step_desc:
-      "Kurtarma kodlarını kaybedersen hesabına geri dönebilmek için bir e-posta adresi ekle.",
+      "Kurtarma kodlarınızı kaybederseniz hesabınıza geri dönebilmek için bir e-posta adresi ekleyin.",
     download_apps_title: "Mobil ve masaüstü uygulamalarını indir",
     download_apps_desc: "Gelen kutunu her cihazda yanında taşı.",
     mail_mobile: "Mail Mobile",
@@ -9175,23 +8952,23 @@ export const tr = {
     notifications_sample_body:
       "Yeni e-posta geldiğinde bunun gibi bir bildirim alırsın.",
     notification_preview_title: "Yeni mesaj",
-    notification_preview_body: "Gelen kutunda yeni bir mesaj var.",
+    notification_preview_body: "Gelen kutunuzda yeni bir mesaj var.",
     turn_on: "Aç",
-    addresses_step_title: "Farklı amaçlar için adresler oluştur",
+    addresses_step_title: "Farklı amaçlar için adresler oluşturun",
     addresses_step_desc:
-      "İş, bültenler veya alışveriş için ek adresler ekle. Hepsi aynı gelen kutusuna düşer.",
+      "İş, bültenler veya alışveriş için ek adresler ekleyin. Hepsi aynı gelen kutusuna düşer.",
     address_n: "Adres {{n}}",
     address_must_begin_end_alphanumeric:
       "E-posta adresi bir harf veya rakamla başlamalı ve bitmelidir.",
-    custom_domain_step_title: "Adresini özel bir alan adıyla kişiselleştir",
+    custom_domain_step_title: "Adresinizi özel bir alan adıyla kişiselleştirin",
     custom_domain_step_desc:
-      "Sana ait bir alan adındaki adresten e-posta gönder ve al.",
-    custom_domain_own: "Zaten sahip olduğun bir alan adını kur",
+      "Size ait bir alan adındaki adresten e-posta gönderin ve alın.",
+    custom_domain_own: "Zaten sahip olduğunuz bir alan adını kurun",
     custom_domain_own_desc:
-      "Herhangi bir kayıt şirketinden bir alan adını birkaç dakikada bağla.",
-    custom_domain_new: "Yeni bir alan adı al",
+      "Herhangi bir kayıt şirketinden bir alan adını birkaç dakikada bağlayın.",
+    custom_domain_new: "Yeni bir alan adı alın",
     custom_domain_new_desc:
-      "Aster'den ayrılmadan bir alan adı ara ve satın al.",
+      "Aster'den ayrılmadan bir alan adı arayın ve satın alın.",
     recovery_email_required_gate_title: "Kurtarma e-postası gerekli",
     recovery_email_required_gate_desc:
       "Ek hesap oluşturmak için bir kurtarma e-postası gereklidir. Bu, tüm hesaplarınızı korumaya yardımcı olur.",
@@ -9209,9 +8986,9 @@ export const tr = {
     password_invalid_chars: "Standart klavye karakterleri izin verilen settir.",
     password_error_length: "Parolan için en az 8 karakter kullan.",
     complete_captcha_first: "Devam etmek için güvenlik denetimini tamamla.",
-    password_error_uppercase: "En az bir büyük harf ekle.",
-    password_error_lowercase: "En az bir küçük harf ekle.",
-    password_error_number: "En az bir rakam ekle.",
+    password_error_uppercase: "En az bir büyük harf ekleyin.",
+    password_error_lowercase: "En az bir küçük harf ekleyin.",
+    password_error_number: "En az bir rakam ekleyin.",
     password_rule_length: "En az 8 karakter",
     password_rule_case: "Büyük ve küçük harfler",
     password_rule_number: "En az bir rakam",
@@ -9231,7 +9008,8 @@ export const tr = {
       "Bu geçerli bir e-posta gibi görünmüyor. name@example.com gibi bir adres işe yarar.",
     recovery_email_conflict:
       "Bu adres zaten en fazla 20 Aster hesabını koruyor. Farklı bir adres kullanın.",
-    failed_save_recovery_email: "Tekrar deneyin.",
+    failed_save_recovery_email:
+      "Kurtarma e-postanız kaydedilmedi. Tekrar deneyin. Mevcut kurtarma ayarlarınız değişmedi.",
     recovery_phrase_title: "Kurtarma ifadenizi kaydedin",
     recovery_phrase_desc:
       "Parolanızı unutursanız hesabınızı ve tüm şifreli postalarınızı eksiksiz geri yüklemenin tek yolu bu 12 kelimedir. Kelimeleri sırasıyla yazın ve güvenli, çevrimdışı bir yerde saklayın.",
@@ -9282,15 +9060,6 @@ export const tr = {
       "Onaylamak için e-posta adresinizin tamamını yazın",
     reset_consent_email_mismatch: "E-posta adresi bu hesapla eşleşmiyor.",
     reset_consent_continue: "Yine de parolayı sıfırla",
-    plan_starter_badge: "Başlangıç",
-    plan_personal_badge: "Kişisel",
-    plan_pro_badge: "Profesyonel",
-    perfect_personal_use: "Kişisel kullanım için mükemmel",
-    everything_to_start: "Başlamak için ihtiyacınız olan her şey",
-    for_power_users: "İleri düzey kullanıcılar için",
-    e2e_encrypted_inbox: "Uçtan uca şifreli gelen kutusu",
-    zero_knowledge_encryption: "Sıfır bilgi şifreleme",
-    unlimited_emails: "Sınırsız e-posta",
     no_ads_no_tracking: "Reklam yok, izleme yok",
     use_8_characters: "En az 8 karakter kullanın",
     try_12_characters: "Daha iyi güvenlik için 12+ karakter deneyin",
@@ -9304,7 +9073,7 @@ export const tr = {
     please_enter_recovery_code:
       "Burada kurtarma kodlarınızdan birine ihtiyaç var.",
     invalid_recovery_code:
-      "Bu kurtarma kodu örtüşmedi. Kayıtlı listenizdeki başka biri işe yarar.",
+      "Bu kod bu hesapla eşleşmiyor. Kayıtlı listenizle karşılaştırıp yeniden girin. Boşluklar ve büyük harfler önemli değildir.",
     recovery_locked_out:
       "Bu hesapta çok fazla kurtarma denemesi yapıldı. {{time}} sonra yeniden deneyebilirsiniz. Kodlarınızdan hiçbiri kullanılmadı, bu yüzden hepsi hâlâ sizde.",
     invalid_backup_code:
@@ -9315,7 +9084,8 @@ export const tr = {
     recovery_failed:
       "Kurtarma tamamlanmadı. Baştan başlamak çoğunlukla bunu çözer. Hesabınız olduğu gibi.",
     add_special_characters: "Özel karakterler ekleyin (!@#$%)",
-    recovery_codes_start_with_aster: "Kurtarma kodları 'ASTER-' ile başlar",
+    recovery_codes_start_with_aster:
+      "Kurtarma kodları ASTER-XXXX-XXXX-XXXX-XXXX biçimindedir. Kodu kontrol edip yeniden girin.",
     verifying_recovery_code: "Kurtarma kodu doğrulanıyor...",
     recovery_session_expired:
       "Bu kurtarma oturumu sona erdi. Kurtarma akışını tekrar başlatmak onu sürdürür. Hesabınız olduğu gibi.",
@@ -9330,14 +9100,10 @@ export const tr = {
     enter_email_associated: "Hesabınızı kurtarmak için kullanıcı adınızı girin",
     back_to_sign_in: "Giriş sayfasına dön",
     email_me_reset_link: "Bana e-posta ile sıfırlama bağlantısı gönder",
-    have_recovery_code: "Kurtarma kodunuz var mı?",
-    use_recovery_code: "Bunun yerine kurtarma kodu kullan",
     reset_link_sent_title: "Kurtarma e-postanızı kontrol edin",
     reset_link_sent_desc:
       "Bu kullanıcı adı kayıtlıysa ve doğrulanmış bir kurtarma e-postası varsa, parola sıfırlama bağlantısı gönderildi. Bağlantının süresi 30 dakika içinde dolar.",
     sending_reset_link: "Sıfırlama bağlantısı gönderiliyor...",
-    no_recovery_email_on_account:
-      "Bu hesabın doğrulanmış bir kurtarma e-postası yok. Şifrenizi sıfırlamak için bir kurtarma kodu kullanın.",
     reset_your_password: "Parolanızı sıfırlayın",
     reset_choose_new_password: "Hesabınız için yeni bir parola seçin.",
     reset_invalid_or_expired:
@@ -9357,12 +9123,11 @@ export const tr = {
     old_codes_invalidated:
       "Eski kurtarma kodlarınız artık çalışmıyor. Bu yeni seti pencereyi kapatmadan önce güvenli bir yere kaydetmek sizi korunaklı tutar.",
     n_recovery_codes: "{{count}} kurtarma kodu",
-    import_mail_step_title: "Postanı yanında getir",
+    import_mail_step_title: "Postanızı yanınızda getirin",
     import_mail_step_desc:
-      "Başka bir hesaptaki iletileri Aster'a taşı. Her şey kaydedilmeden önce cihazında şifrelenir.",
-    import_mail_action: "Postayı içe aktar",
-    import_mail_skip: "Boş gelen kutusuyla başla",
-    import_mail_privacy_note: "Daha sonra Ayarlar'dan da içe aktarabilirsin.",
+      "Başka bir hesaptaki iletileri Aster'a taşıyın. Her şey kaydedilmeden önce cihazınızda şifrelenir.",
+    import_mail_skip: "Boş gelen kutusuyla başlayın",
+    import_mail_privacy_note: "Daha sonra Ayarlar'dan da içe aktarabilirsiniz.",
     password_reset_successful: "Parola sıfırlama başarılı",
     account_recovered_sign_in:
       "Hesabınız kurtarıldı. Artık yeni parolanızla giriş yapabilirsiniz.",
@@ -9380,15 +9145,6 @@ export const tr = {
     by_continuing: "Devam ederek şunları kabul etmiş olursunuz:",
     copyright: "© {{year}} Aster Communications Inc.",
     display_name_optional: "Görünen ad (isteğe bağlı)",
-    "10gb_secure_storage": "10 GB güvenli depolama",
-    "5_email_aliases": "5 e-posta takma adı",
-    "2_custom_domains": "2 özel alan adı",
-    "50mb_attachments": "50 MB ek",
-    plan_free_price: "Ücretsiz",
-    "50gb_secure_storage": "50 GB güvenli depolama",
-    "10_email_aliases": "10 e-posta takma adı",
-    "5_custom_domains": "5 özel alan adı",
-    "100mb_attachments": "100 MB ek",
     compare_all_features: "Tüm özellikleri karşılaştır",
     encryption_keys_local:
       "Şifreleme anahtarlarınız bu cihazda yerel olarak saklanır ve asla sunucularımıza gönderilmez.",
@@ -9402,8 +9158,6 @@ export const tr = {
     skip_verification: "Doğrulamayı atla",
     recovery_email_required_notice:
       "Spam'i önlemek için yedek e-posta gereklidir.",
-    abuse_account_limit:
-      "Otomatik güvenlik sistemimiz bu kaydı işaretledi ve hesabı oluşturamıyoruz. Bu bir hata gibi görünüyorsa, hello@astermail.org yardımcı olabilir.",
     abuse_flagged_message:
       "Güvenlik sistemimiz, bu ağdan gelen yeni kayıtları şimdilik durdurdu. Bu bir hata gibi görünüyorsa, hello@astermail.org yardımcı olabilir.",
     contact_support: "destek ile iletişime geçin",
@@ -9411,51 +9165,6 @@ export const tr = {
     verification_failed: "Doğrulama tamamlanmadı.",
     go_to_inbox: "Gelen kutusuna git",
     end_to_end_encrypted: "Uçtan Uca Şifreli",
-    zero_knowledge: "Sıfır Erişim Mimarisi",
-    zero_knowledge_desc: "E-postalarınızı veya verilerinizi asla okuyamayız",
-    password_never_stored: "Parola Asla Saklanmaz",
-    password_never_stored_desc:
-      "Kimlik doğrulama için yalnızca türetilmiş anahtar özeti kullanılır",
-    recovery_codes_important: "Bunları Güvende Tutun",
-    recovery_backup_tip: "Yedekleme İpucu",
-    onboarding_appearance_title: "Gelen Kutunuzu Kişiselleştirin",
-    onboarding_theme_light: "Açık",
-    onboarding_theme_dark: "Koyu",
-    onboarding_view_mode_label: "Okuma Düzeni",
-    onboarding_view_popup: "Açılır Pencere",
-    onboarding_view_popup_desc: "E-postaları yüzen bir pencerede açar",
-    onboarding_view_split: "Bölünmüş Görünüm",
-    onboarding_view_split_desc: "E-posta listesi ve içerik yan yana",
-    onboarding_view_fullpage: "Tam Sayfa",
-    onboarding_view_fullpage_desc: "Her e-postaya tam ekranı ayırır",
-    onboarding_compact_mode: "Sıkışık Mod",
-    onboarding_compact_mode_desc:
-      "Ekranda daha fazla e-posta için daha dar aralık",
-    onboarding_continue_btn: "Devam Et",
-    onboarding_privacy_title: "Gizlilik ve Güvenlik",
-    onboarding_block_tracking: "İzleme Piksellerini Engelle",
-    onboarding_block_external: "Harici İçeriği Engelle",
-    onboarding_read_receipts: "Okundu Bilgilerini Engelle",
-    onboarding_warn_external: "Harici Alıcıları Uyar",
-    onboarding_auto_keys: "Anahtarları Otomatik Bul",
-    onboarding_encrypt_emails: "Varsayılan Olarak Şifrele",
-    onboarding_session_timeout: "Oturum Zaman Aşımı",
-    onboarding_appearance_desc:
-      "Size uygun bir görünüm seçin. Bunları istediğiniz zaman değiştirebilirsiniz.",
-    onboarding_auto_keys_desc:
-      "E-posta gönderdiğiniz kişilerin şifreleme anahtarlarını otomatik bul",
-    onboarding_block_external_desc:
-      "Sizi izleyebilecek uzak görsel ve içerikleri durdurun",
-    onboarding_block_tracking_desc:
-      "Gönderenlerin e-postalarını ne zaman açtığınızı bilmesini engelleyin",
-    onboarding_encrypt_emails_desc:
-      "Alıcının anahtarı mevcut olduğunda giden e-postaları otomatik şifreleyin",
-    onboarding_privacy_desc:
-      "Gelen kutunuz, kurallarınız. Bunları rahatlık düzeyinize göre ayarlayın.",
-    onboarding_read_receipts_desc:
-      "Gönderenlerin e-postalarını açtığınızı bilmesini engelleyin",
-    onboarding_session_timeout_desc:
-      "Belirli bir süre hareketsizlikten sonra hesabınızı otomatik kilitle",
     browser_login_title: "Tarayıcı ile giriş yap",
     browser_login_desc:
       "Tarayıcınızda Aster Mail’i açın, Ayarlar’a gidin ve telefonunuzu bağlamak için bu kodu girin.",
@@ -9465,37 +9174,14 @@ export const tr = {
     log_in: "Giriş yap",
     welcome_subtitle:
       "Modern e-posta: sizin için şifreli, herkes için okunamaz.",
-    onboarding_warn_external_desc:
-      "Aster dışı adreslere gönderim yaparken uyarı göster",
-    recovery_backup_tip_desc:
-      "Kodlarınızı bir parola yöneticisine kaydedin veya yazdırıp güvenli bir yerde saklayın.",
-    recovery_codes_important_desc:
-      "Bu kodlar, parolanızı kaybettiğinizde hesabınızı kurtarmanın TEK yoludur. Güvenli bir yerde saklayın.",
     recovery_email_verified_desc:
       "Kurtarma e-postanız başarıyla doğrulandı ve hesabınıza bağlandı.",
     verification_failed_desc:
       "Bu bağlantının süresi dolmuş ya da artık örtüşmüyor. Hesap ayarlarınızdan yeni bir doğrulama e-postası işe yarar.",
-    copy_email: "E-postayı kopyalamak için tıklayın",
     email_copied: "E-posta kopyalandı",
-    copy_failed: "E-posta kopyalanamadı",
-    pair_device_title: "Cihaz eşleştir",
-    pair_device_confirm:
-      "{{name}} adlı cihazı Aster Mail hesabınızla eşleştirmek istiyor musunuz?",
-    pair_device_warning:
-      "Eşleştirilmiş bir cihaz şifreniz olmadan postanıza erişebilir; bu nedenle eşleştirmeyi yalnızca yanınızda taşıdığınız cihazlarla yapmanız önerilir. Bir cihaz her zaman Ayarlar, Güvenilen Cihazlar bölümünden kaldırılabilir.",
-    pair_device_confirm_button: "Cihazı eşleştir",
     pair_device_cancel: "İptal",
-    pair_device_success: "Cihaz başarıyla eşleştirildi",
-    pair_device_open_app: "Masaüstü uygulamasını aç",
-    pair_device_invalid:
-      "Bu eşleştirme bağlantısı çalışmadı. Masaüstü uygulamanızdan yeniden başlamak genellikle sorunu çözer.",
     pair_device_failed:
       "Eşleştirme tamamlanamadı. Masaüstü uygulamanızdan yeniden başlamak genellikle sorunu çözer. Hesabınız değişmedi.",
-    pair_this_device: "Bu cihazı eşleştir",
-    pair_device_description:
-      "Bu masaüstü uygulamasını güvenli şekilde eşleştirmek için tarayıcınızdan oturum açın.",
-    waiting_for_pairing:
-      "Eşleştirme bekleniyor. Bir tarayıcı penceresi açıldı.",
     device_code_title: "Bu cihazı bağla",
     device_code_instruction:
       "Hesabınızı bağlamak için app.astermail.org/link-device adresine bu kodu girin.",
@@ -9512,14 +9198,12 @@ export const tr = {
     link_device_enter_code: "Masaüstü uygulamanızda gösterilen kodu girin.",
     link_device_code_placeholder: "XXXX-XXXX",
     link_device_verify_button: "Devam",
-    link_device_verifying: "Doğrulanıyor...",
     link_device_confirm_prompt:
       "Bu cihazı hesabınıza bağlamak istiyor musunuz?",
     link_device_confirm_button: "Cihazı bağla",
     link_device_confirming: "Cihaz bağlanıyor...",
     link_device_cancel: "İptal",
     link_device_desktop: "Masaüstü uygulaması",
-    link_device_signed_in_as: "Oturum açan hesap",
     link_device_change_account: "Hesap değiştir",
     link_device_choose_account: "Bir hesap seçin",
     link_device_choose_account_description:
@@ -9531,7 +9215,7 @@ export const tr = {
     link_device_other_accounts: "Başka bir hesaba geç",
     hub_accounts_or_password: "Veya şifrenle giriş yap",
     hub_account_password_required: "Şifre gerekli",
-    hub_account_link_failed: "Bu hesapla devam etmek için şifresini gir.",
+    hub_account_link_failed: "Bu hesapla devam etmek için parolasını girin.",
     link_device_success: "Cihaz bağlandı",
     link_device_success_description:
       "Masaüstü uygulamanız artık bağlandı. Bu sekmeyi kapatabilirsiniz.",
@@ -9544,32 +9228,21 @@ export const tr = {
     link_device_try_again:
       "Bu çalışmadı. Yeniden başlamak genellikle yeterli olur.",
     trust_this_device_30_days: "Bu cihaza 30 gün güven",
-    security_key_verification: "Güvenlik Anahtarı Doğrulaması",
     passkey_sign_in: "Geçiş anahtarıyla oturum aç",
-    tap_security_key:
-      "Güvenlik anahtarınıza dokunun veya oturum açmak için şifre anahtarınızı kullanın",
     use_another_method: "Başka bir doğrulama yöntemi kullanın",
     webauthn_not_supported:
       "Bu tarayıcı güvenlik anahtarlarını desteklemiyor. Farklı bir tarayıcı veya şifrenizle oturum açmak işe yarayacaktır.",
     account_flagged_notice:
       "Otomatik güvenlik sistemimiz hesabınıza şimdilik kısıtlamalar uyguladı ve birkaç özellik kullanılamayabilir. Hesabınızın geri kalanı normal çalışıyor. Hatalı görünüyorsa hello@astermail.org yardımcı olabilir.",
-    registration_suspended:
-      "Güvenlik sistemimiz bu ağdan gelen yeni kayıtları şimdilik durdurdu. Hata gibi görünüyorsa hello@astermail.org yardımcı olabilir.",
     username_in_use: "Bu kullanıcı adı zaten alınmış. Başka bir ad deneyin.",
     password_breach_warning:
       "Bu şifre bir veri ihlalinde ortaya çıktı. Başka bir şifre kullanmanız önerilir.",
     plan_selection_title: "Planınızı seçin",
     plan_selection_subtitle:
       "Size uygun planı seçin. İstediğiniz zaman değiştirebilir veya iptal edebilirsiniz.",
-    plan_continue_with_free: "Ücretsiz ile devam et",
     plan_continue_as_free: "Ücretsiz olarak devam et",
-    academic_offer_title: "Öğrenci veya gazeteci misiniz? %30 indirim",
-    academic_offer_desc:
-      "Bireysel planlarda 12 ay boyunca %30 indirim. Öğrenciler: üniversite e-postanızı şimdi doğrulayın, kodunuz ödemede hazır olsun. Gazeteciler: kayıttan sonra destek ile iletişime geçin.",
     academic_offer_sent:
       "Doğrulama bağlantısı {{ email }} adresine gönderildi. Tıkladıktan sonra kodunuz Ayarlar'da Faturalama bölümünde görünecek.",
-    academic_offer_journalist:
-      "Gazeteci misiniz? Kaydı tamamlayın, ardından basın kartınızla destek ekibine ulaşın.",
     academic_offer_headline: "Öğrenci veya gazeteci misiniz?",
     academic_offer_subline:
       "Star, Nova ve Supernova'da bir yıl %30 indirim. Öğrenciler: üniversite e-postanızı girin, doğrulama bağlantısı gönderelim.",
@@ -9579,7 +9252,7 @@ export const tr = {
     academic_offer_student_link: "Öğrenciyim",
     academic_offer_sent_title: "Gelen kutunu kontrol et",
     academic_offer_continue: "Devam",
-    academic_offer_j_step1: "Hesabını oluşturmayı bitir",
+    academic_offer_j_step1: "Hesabınızı oluşturmayı bitirin",
     academic_offer_j_step2:
       "Basın kartı, kadro sayfası veya haber bağlantılarıyla hello@astermail.org adresine e-posta gönder",
     academic_offer_j_step3:
@@ -9598,31 +9271,17 @@ export const tr = {
       "Günlük kişisel kullanım için daha fazla depolama ve takma ad.",
     plan_pro_description:
       "İleri düzey kullanıcılar için bol depolama ve takma ad.",
-    plan_free_name: "Ücretsiz",
-    plan_free_tagline: "Ücretsiz başlayın",
-    plan_free_cta: "Başlayın",
     plan_view_full_features: "Tüm özellik listesini görüntüle",
     plan_footer_reassurance:
       "Tüm planlar sıfır erişim şifreleme, reklamsız deneyim ve 30 günlük para iade garantisi içerir. İstediğiniz zaman değiştirin veya iptal edin.",
     plan_recommended: "Önerilen",
     plan_select: "Seç",
-    plan_selected: "Seçildi",
     plan_loading: "Planlar yükleniyor...",
-    plan_payment_success_continuing: "Ödeme alındı. Tamamlanıyor...",
     verification_success_title: "E-posta doğrulandı",
     verification_success_desc:
       "Kurtarma e-postanız doğrulandı. Bu sekmeyi kapatabilir ve diğer pencerenize dönebilirsiniz.",
     close_this_tab: "Bu sekmeyi kapat",
-    privacy_policy_heading: "Gizlilik Politikası",
-    terms_of_service_heading: "Hizmet Şartları",
     last_updated: "Son güncelleme: {{date}}",
-    effective_date: "Yürürlük tarihi: {{date}}",
-    privacy_policy_intro:
-      "Aster Communications Inc. olarak, gizlilik inşa ettiğimiz her şeyin temelidir. Bu Gizlilik Politikası, Aster Mail ve ilgili hizmetleri kullandığınızda verilerinizi nasıl ele aldığımızı açıklar. Yol gösterici ilkemiz basittir: verileriniz size aittir ve biz asla erişemeyiz.",
-    terms_of_service_intro:
-      "Aster Communications Inc. tarafından işletilen Aster Mail'e hoş geldiniz. Bu Hizmet Şartları, uçtan uca şifreli e-posta hizmetimizi ve ilgili ürünleri kullanımınızı düzenleyen, siz ile Aster Communications Inc. arasında yasal olarak bağlayıcı bir anlaşma oluşturur. Hizmetlerimizi kullanmadan önce lütfen bu şartları dikkatlice okuyun.",
-    view_terms_of_service: "Hizmet Şartlarını Görüntüle",
-    view_privacy_policy: "Gizlilik Politikasını Görüntüle",
     backup_email_placeholder: "yedek@email.com",
     remove_photo: "Fotoğrafı kaldır",
     captcha_load_failed:
@@ -9636,17 +9295,12 @@ export const tr = {
     link_device_upgrade_title: "Bu cihazı bağlamak için planınızı yükseltin",
     link_device_upgrade_description:
       "Masaüstü Bridge’i hesabınıza bağlamak için Star veya üstü bir plan gerekir. Aşağıdan bir plan seçin, cihazınız ödemeden hemen sonra bağlanır.",
-    link_device_upgrade_cta: "Star’a yükselt",
-    link_device_upgrade_failed:
-      "Ödeme başlatılamadı. Tekrar deneyin veya Ayarlar’da Faturalandırma’yı açın.",
     link_device_already_linked:
       "Bu cihaz başka bir hesaba bağlı. Önce oradan bağlantısını kaldırıp tekrar deneyin.",
     link_device_rate_limited:
       "Çok fazla deneme yapıldı. Yaklaşık bir dakika bekleyip tekrar deneyin.",
     link_device_account_suspended:
       "Bu hesap askıya alındı, bu yüzden şu anda yeni cihaz bağlanamıyor. Çözmek için destek ekibiyle iletişime geçin.",
-    product_updates_notice:
-      "Ayrıca zaman zaman gelen kutunuza ürün güncellemeleri gelir; bunları Ayarlar’dan kapatabilirsiniz.",
     plan_academic_discount_note:
       "E-postanız doğrulandığında %30 indiriminiz ödeme sırasında otomatik uygulanır.",
     plan_referral_discount_note:
@@ -9692,21 +9346,19 @@ export const tr = {
     last_used: "Son kullanım",
     never_used: "Hiç kullanılmadı",
     remove: "Kaldır",
-    confirm_remove: "Kaldır",
     delete_passkey_title: "Passkey silinsin mi?",
     delete_passkey_description:
       '"{{name}}" hesabınızdan kaldırılacak. Artık onunla oturum açamazsınız.',
     delete_security_key_title: "Güvenlik anahtarı silinsin mi?",
     other_devices_signed_out:
       "Aster diğer cihazlarındaki oturumunu kapattı. Bunları yeniden kullanmak için oturum aç ve güvenlik anahtarınla onayla.",
-    remove_last_key_step_up_title: "Son güvenlik anahtarın kaldırılsın mı?",
+    remove_last_key_step_up_title: "Son güvenlik anahtarınız kaldırılsın mı?",
     remove_last_key_step_up_description:
-      "Bu, hesabındaki son ikinci doğrulama adımı. Kaldırmak için parolanı gir.",
+      "Bu, hesabınızdaki son ikinci doğrulama adımı. Kaldırmak için parolanızı girin.",
     delete_security_key_description:
       '"{{name}}" hesabınızdan kaldırılacak. Artık ikinci faktör olarak çalışmayacak.',
     removed: "Geçiş anahtarı kaldırıldı",
     register_success: "Geçiş anahtarı kaydedildi",
-    register_failed: "Kayıt başarısız oldu. Tekrar deneyin.",
     registering: "Kaydediliyor…",
     not_supported:
       "Tarayıcınız geçiş anahtarlarını desteklemiyor. Chrome, Safari veya Firefox gibi güncel bir tarayıcı deneyin.",
@@ -9718,8 +9370,6 @@ export const tr = {
     unnamed_security_key: "Güvenlik anahtarı",
     rename: "Yeniden adlandır",
     rename_saved: "Ad güncellendi",
-    rename_placeholder: "Bu anahtara ad verin",
-    rename_failed: "Anahtar yeniden adlandırılamadı. Tekrar deneyin.",
   },
   errors: {
     auth_salt_collision:
@@ -9741,7 +9391,7 @@ export const tr = {
       "Bir mesaja en fazla iki tepki ekleyebilirsiniz. Başka bir tepki eklemek için tepkilerinizden birini kaldırın.",
     cannot_react_no_recipient:
       "Bu mesajın tepki gönderilecek bir göndereni yok.",
-    failed_send_reaction: "Tekrar deneyin.",
+    failed_send_reaction: "Tepki gönderilemedi. Tekrar deneyin.",
     reactions_disabled: "Tepkiler ayarlarınızda kapalı.",
     pending_email_verification:
       "Bu hesabı etkinleştirmek için e-postanızı kontrol edin ve doğrulama bağlantısına tıklayın.",
@@ -9770,25 +9420,29 @@ export const tr = {
       "Bu parola uzunluk sınırının üzerinde. Daha kısa biri işe yarar.",
     account_not_found:
       "Bu ada sahip bir hesap bulamadık. Yazımı kontrol edin veya astermail.org/reset adresinden parolanızı sıfırlayın.",
-    login_failed: "Tekrar deneyin.",
+    login_failed: "Giriş tamamlanmadı. Tekrar deneyin. Hesabınız kilitlenmedi.",
     decrypt_failed:
       "Bu parola, bu cihazdaki anahtarlarınızı açmadı. Tekrar denemek genellikle yeterli olur ve astermail.org/reset adresinden bir kurtarma kodu yedek yoldur. Sunucudaki verileriniz olduğu gibi duruyor.",
     send_limit_reached:
-      "Günlük gönderim sınırınıza ulaştınız. {{time}} sonra bir kez daha denemek işe yarar. Taslağınız saklı.",
+      "Günlük gönderim sınırınıza ulaştınız. {{time}} sonra yeniden deneyin. Taslağınız kaydedildi.",
     ip_blocked:
       "Çok fazla başarısız giriş denemesi. {{time}} bekleyin ve tekrar deneyin. Hesabınız kilitlenmedi.",
     an_error_occurred: "Tekrar deneyin.",
-    failed_to_block_sender: "Tekrar deneyin.",
-    failed_to_snooze: "Tekrar deneyin.",
+    failed_to_block_sender: "Bu gönderen engellenemedi. Tekrar deneyin.",
+    failed_to_snooze:
+      "Bu e-posta ertelenmedi. Tekrar deneyin. Hâlâ gelen kutunuzda.",
     ghost_alias_not_found: "Bu konuşmaya bağlı ghost adresi bulamadık.",
-    failed_to_resolve_ghost_alias: "Tekrar deneyin.",
+    failed_to_resolve_ghost_alias:
+      "Bu ileti dizisinin ghost adresi yüklenmedi. Tekrar deneyin.",
     ghost_alias_rate_limit:
-      "Bu ay için tüm ghost takma adlarınızı kullandınız. Planınızı yükseltmek ya da bir sonraki ayın sıfırlanmasını beklemek daha fazla olanak verir.",
+      "Bu ayki tüm ghost takma adlarınızı kullandınız. Daha fazlası için planınızı yükseltin veya gelecek ayki sıfırlamayı bekleyin.",
     ghost_alias_already_exists: "Bu ghost takma ad hesabınızda zaten var.",
-    failed_to_create_ghost_alias: "Tekrar deneyin.",
+    failed_to_create_ghost_alias:
+      "Bu ghost takma ad kaydedilmedi. Tekrar deneyin. Diğer takma adlarınız değişmedi.",
     ghost_expiry_extend_only:
-      "Bir ghost adresini yalnızca uzatabilirsin, kısaltamazsın.",
-    ghost_expiry_update_failed: "Sona erme süresi güncellenmedi. Yeniden dene.",
+      "Bir hayalet adresin süresini yalnızca uzatabilirsiniz, kısaltamazsınız.",
+    ghost_expiry_update_failed:
+      "Sona erme süresi güncellenmedi. Yeniden deneyin.",
     failed_to_activate_ghost_mode: "Tekrar deneyin.",
     wrong_vault_password:
       "Bu parola, bu cihazdaki anahtarlarınızın kilidini açmadı. Tekrar deneyin. Başarısız olmaya devam ederse astermail.org/reset adresinden bir kurtarma kodu kullanın. Sunucudaki verileriniz değişmedi.",
@@ -9799,7 +9453,7 @@ export const tr = {
     vault_missing_key:
       "Bu depolamayı okumak için gereken cihaz anahtarını bulamadık. Oturumu kapatıp yeniden açmak bu cihazı yeniden bağlar. Sunucudaki verileriniz olduğu gibi.",
     wrong_folder_password:
-      "Bu klasör parolası eşleşmedi. Bir kez daha denemek genellikle yeterli olur. Klasör kilitli kalıyor.",
+      "Klasör parolası yanlış. Tekrar deneyin. Klasör kilitli kalıyor.",
     wrong_external_account_password:
       "Bu dış hesap parolası eşleşmedi. Ayarlar'da kontrol edip bir kez daha denemek genellikle yeterli olur. Kayıtlı bağlantınız olduğu gibi.",
     decrypt_wrong_key:
@@ -9828,14 +9482,21 @@ export const tr = {
       "Bu cihazın kimlik denetimi eşleşmedi, bu da kurcalamaya işaret edebilir. Masaüstü uygulamanızdan yeniden eşleştirin ve uyarı tekrarlarsa hello@astermail.org ile iletişime geçin.",
     metadata_migration_stalled:
       "Birkaç denemeden sonra yerel depolamanızı yükseltmeyi tamamlayamadık. Bağlantınızı kontrol edip Aster'i yeniden açmak genellikle yeterli olur. Sunucudaki postanız güvende.",
-    failed_to_queue_email: "Tekrar deneyin.",
-    failed_to_send_queued: "Tekrar deneyin.",
-    failed_to_send_external_queued: "Tekrar deneyin.",
-    authentication_failed: "Tekrar deneyin.",
-    failed_to_snooze_email: "Tekrar deneyin.",
+    failed_to_queue_email:
+      "Bu e-posta daha sonra gönderilmek üzere kaydedilemedi. Tekrar deneyin. Taslağınız kaydedildi.",
+    failed_to_send_queued:
+      "Bu e-posta gönderilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
+    failed_to_send_external_queued:
+      "Bu e-posta bağlı harici hesabınız üzerinden gönderilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
+    authentication_failed:
+      "Giriş tamamlanmadı. Tekrar deneyin. Hesabınız kilitlenmedi.",
+    failed_to_snooze_email:
+      "Bu e-posta ertelenmedi. Tekrar deneyin. Hâlâ gelen kutunuzda.",
     failed_to_snooze_emails: "Tekrar deneyin.",
-    failed_to_unsnooze_email: "Tekrar deneyin.",
-    failed_to_list_snoozed: "Tekrar deneyin.",
+    failed_to_unsnooze_email:
+      "Bu e-posta gelen kutunuza geri dönmedi. Tekrar deneyin.",
+    failed_to_list_snoozed:
+      "Ertelenen e-postalarınız yüklenmedi. Tekrar deneyin. Sunucuda güvendeler.",
     auth_required: "Devam etmek için giriş yapın.",
     no_permission:
       "Bunu yapmaya erişiminiz yok. Hatalı görünüyorsa yöneticiniz yardımcı olabilir.",
@@ -9850,7 +9511,7 @@ export const tr = {
       "Sunucuya ulaşamadık. Bağlantınızı kontrol edip tekrar deneyin.",
     request_timeout:
       "İstek tamamlanmak için çok uzun sürdü. Bağlantınızı kontrol edip tekrar deneyin.",
-    unexpected_error: "Tekrar deneyin.",
+    unexpected_error: "Bir şey beklendiği gibi çalışmadı. Tekrar deneyin.",
     encryption_keys_not_loaded:
       "Özel anahtarlarınız bu cihazda kilitli. Şifreniz onları açacaktır. Sunucudaki anahtarlarınız değişmedi.",
     session_expired_reenter:
@@ -9859,8 +9520,10 @@ export const tr = {
       "Özel anahtarlarınız bu cihazda kilitli. Şifreniz onları açacaktır. Sunucudaki anahtarlarınız değişmedi.",
     session_expired_send:
       "Bu e-posta gönderilmeden önce oturumunuz sona erdi. Yeniden oturum açmak onu gönderir. Taslağınız kaydedildi.",
-    failed_encrypt_envelope: "Tekrar deneyin.",
-    failed_pgp_encrypt: "Tekrar deneyin.",
+    failed_encrypt_envelope:
+      "Bu e-posta gönderim için güvenli hale getirilemedi. Tekrar deneyin. Taslağınız kaydedildi.",
+    failed_pgp_encrypt:
+      "Bu e-posta alıcının PGP anahtarıyla şifrelenemedi. Tekrar deneyin. Taslağınız kaydedildi.",
     no_authenticated_account:
       "Bu cihazda giriş yapılmış bir hesap bulunamadı. Devam etmek için giriş yapın.",
     daily_limit_reached:
@@ -9874,23 +9537,29 @@ export const tr = {
       "Bu ekler toplamda {{size}} sınırını aşıyor. Bu, planınızda bir e-postanın taşıyabileceği en fazla boyuttur. Bir dosyayı kaldırmak veya küçültmek göndermenizi sağlar. Taslağınız kaydedildi.",
     too_many_attachments:
       "Bu e-postada {{max}} sınırından fazla ek var. Bu, bir e-postanın taşıyabileceği en fazla sayıdır. Birkaçını kaldırmak göndermenizi sağlar. Taslağınız kaydedildi.",
-    failed_send_email: "Tekrar deneyin.",
+    failed_send_email:
+      "Bu e-posta gönderilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
     cannot_send_no_keys:
       "Zorunlu şifreleme açık ve {{recipients}} için bir anahtarımız yok. Onlardan anahtar paylaşmalarını isteyin veya Ayarlar'dan zorunlu şifrelemeyi kapatın. Taslağınız kaydedildi.",
     cannot_send_no_recipient_keys:
       "Zorunlu şifreleme açık ve hiçbir alıcınızın kayıtlı anahtarı yok. Onlardan anahtar paylaşmalarını isteyin veya Ayarlar'dan zorunlu şifrelemeyi kapatın. Taslağınız kaydedildi.",
     cannot_send_no_recovery_key:
       "Aster bu iletiyi henüz gönderemiyor çünkü alıcının hesabında onu okumak için gereken anahtarlar yok. Ondan Aster'ı herhangi bir cihazda açmasını veya uygulamasını güncellemesini isteyin, sonra yeniden deneyin. Taslağınız kaydedildi.",
-    failed_send_external: "Tekrar deneyin.",
-    failed_queue_email: "Tekrar deneyin.",
+    failed_send_external:
+      "Bu e-posta bağlı harici hesabınız üzerinden gönderilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
+    failed_queue_email:
+      "Bu e-posta daha sonra gönderilmek üzere kaydedilemedi. Tekrar deneyin. Taslağınız kaydedildi.",
     no_active_account:
       "Bu cihazda giriş yapılmış bir hesap bulunamadı. Devam etmek için giriş yapın.",
-    failed_queue_reply: "Tekrar deneyin.",
+    failed_queue_reply:
+      "Bu yanıt daha sonra gönderilmek üzere kaydedilemedi. Tekrar deneyin. Taslağınız kaydedildi.",
     no_recipients: "Göndermeden önce en az bir alıcı gerekiyor.",
-    failed_queue_forward: "Tekrar deneyin.",
-    failed_send: "Tekrar deneyin.",
+    failed_queue_forward:
+      "Bu yönlendirme daha sonra gönderilmek üzere kaydedilemedi. Tekrar deneyin. Taslağınız kaydedildi.",
+    failed_send:
+      "Bu e-posta gönderilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
     incorrect_password:
-      "Bu şifre eşleşmedi. Bir kez daha denemek genellikle yeterli olur. Hesabınız kilitlenmedi.",
+      "Parola yanlış. Tekrar deneyin. Hesabınız kilitlenmedi.",
     no_keys_available:
       "Özel anahtarlarınız bu cihazda kilitli. Şifreniz onları açacaktır. Sunucudaki anahtarlarınız değişmedi.",
     session_expired_login:
@@ -9904,7 +9573,8 @@ export const tr = {
     registration_failed:
       "Kayıt tamamlanamadı. Yeniden başlayıp tekrar denemek genellikle yeterli olur. Hesap oluşturulmadı.",
     registration_cancelled: "Kayıt iptal edildi",
-    authentication_failed_webauthn: "Tekrar deneyin.",
+    authentication_failed_webauthn:
+      "Güvenlik anahtarıyla giriş tamamlanmadı veya iptal edildi. Tekrar deneyin.",
     authentication_cancelled: "Kimlik doğrulama iptal edildi",
     alias_empty: "Burada bir takma ad adı gerekiyor.",
     alias_too_short: "En az 3 karakter kullanın.",
@@ -9934,7 +9604,8 @@ export const tr = {
       "Aynı anda en fazla {{max}} hesap açık olabilir. Birini kaldırmak diğeri için yer açar.",
     account_already_added:
       "Bu hesap zaten bu cihazda oturum açmış. Hesap menüsünden ona geçin.",
-    failed_encrypt_draft: "Tekrar deneyin.",
+    failed_encrypt_draft:
+      "Bu taslak bu cihaza güvenli şekilde kaydedilemedi. Tekrar deneyin. Yazdığınız metin hâlâ düzenleyicide.",
     failed_decrypt_draft:
       "Bu taslak bu cihazda açılamadı. Çıkış yapıp yeniden giriş yaptıktan sonra tekrar denemek genellikle yeterli olur.",
     version_conflict:
@@ -9969,13 +9640,20 @@ export const tr = {
       "Göndereni veya gövdesi olmayan {{count}} e-posta atlandı. Geri kalanlar içe aktarıldı.",
     unrecognized_format:
       "Aster {{name}} dosyasını okuyamıyor. Desteklenen biçimler MBOX, EML, CSV ve PST. Dosyayı bunlardan biri olarak kaydedip tekrar deneyin.",
-    unknown_error: "Tekrar deneyin.",
-    health_check_failed: "Tekrar deneyin.",
+    unknown_error:
+      "Bir şey beklendiği gibi çalışmadı. Tekrar deneyin. Nedeni belirlenemedi.",
+    health_check_failed: "Tanılama tamamlanmadı. Tekrar deneyin.",
     unexpected_health_check_error: "Tekrar deneyin.",
     all_emails_rejected:
       "Bu dosyadaki {{count}} e-postanın tamamı, her birinde gönderen veya içerik eksik olduğu için atlandı ve hiçbir şey içe aktarılmadı. Kaynak dışa aktarma dosyasını kontrol edin ve tekrar deneyin.",
     post_quantum_unavailable:
       "Aster, Aster hesapları arasındaki iletileri kuantum sonrası şifrelemeyle korur ve {{recipients}} henüz kuantum sonrası anahtar yayımlamadı. Aster’ı açmasını veya uygulamasını güncellemesini isteyip tekrar deneyin. Taslağınız kaydedildi.",
+    load_failed: "Yüklenemedi. Tekrar deneyin.",
+    data_integrity_failed:
+      "Bu veriler bütünlük denetiminden geçemediği için yüklenmedi.",
+    note_too_large: "Bu not çok uzun. Kısaltıp tekrar deneyin.",
+    number_out_of_range: "{{min}} ile {{max}} arasında bir tam sayı girin.",
+    invalid_date: "Geçerli bir tarih girin.",
   },
   folder_retention: {
     title: "Klasörleri otomatik temizleme",
@@ -10099,10 +9777,18 @@ export const tr = {
     apply_to_existing_done:
       "Tamamlandı: {{scanned}} tarandı, {{applied}} güncellendi",
     apply_to_existing_done_encrypted:
-      "Bitti: {{scanned}} tarandı, {{applied}} güncellendi. Bu kural {{encrypted}} şifreli iletiyi atladı, çünkü bunları yalnızca cihazınız okuyabilir.",
+      "Bitti: {{scanned}} tarandı, {{applied}} güncellendi. Bu kural {{count}} şifreli iletiyi atladı, çünkü bunları yalnızca cihazınız okuyabilir.",
+    apply_to_existing_done_encrypted_one:
+      "Bitti: {{scanned}} tarandı, {{applied}} güncellendi. Bu kural {{count}} şifreli iletiyi atladı, çünkü onu yalnızca cihazınız okuyabilir.",
+    apply_to_existing_done_encrypted_other:
+      "Bitti: {{scanned}} tarandı, {{applied}} güncellendi. Bu kural {{count}} şifreli iletiyi atladı, çünkü bunları yalnızca cihazınız okuyabilir.",
     apply_to_existing_canceled: "Durduruldu: {{applied}} güncellendi",
     apply_to_existing_canceled_encrypted:
-      "Durduruldu: {{applied}} güncellendi. Bu kural {{encrypted}} şifreli iletiyi atladı, çünkü bunları yalnızca cihazınız okuyabilir.",
+      "Durduruldu: {{applied}} güncellendi. Bu kural {{count}} şifreli iletiyi atladı, çünkü bunları yalnızca cihazınız okuyabilir.",
+    apply_to_existing_canceled_encrypted_one:
+      "Durduruldu: {{applied}} güncellendi. Bu kural {{count}} şifreli iletiyi atladı, çünkü onu yalnızca cihazınız okuyabilir.",
+    apply_to_existing_canceled_encrypted_other:
+      "Durduruldu: {{applied}} güncellendi. Bu kural {{count}} şifreli iletiyi atladı, çünkü bunları yalnızca cihazınız okuyabilir.",
     apply_to_existing_error:
       "Mevcut postaya uygulama basarisiz oldu. Tekrar deneyin.",
     empty_title: "Henüz kural yok",
@@ -10128,7 +9814,7 @@ export const tr = {
       "{{ alias }} takma adı {{ alias_target }} klasörüne teslim ediyor, bu yüzden {{ rule_target }} klasörüne gönderen bu kural üstün gelir.",
     alias_label_conflict:
       "{{ alias }} takma adı postasını {{ alias_target }} ile etiketliyor, bu kural ayrıca {{ rule_target }} ekler.",
-    action_mark_as: "Şu şekilde işaretle",
+    action_mark_as: "İşaretle",
     action_star: "Yıldızla",
     action_skip_inbox: "Gelen kutusunu atla",
     action_delete: "Sil",
@@ -10196,10 +9882,13 @@ export const tr = {
     value_placeholder: "Değer",
     pick_folder: "Klasör seçin",
     pick_labels: "Etiket seçin",
-    load_failed: "Tekrar deneyin.",
-    save_failed: "Tekrar deneyin.",
-    reorder_failed: "Tekrar deneyin.",
-    rule_delete_failed: "Tekrar deneyin.",
+    load_failed:
+      "Kurallarınız yüklenmedi. Tekrar deneyin. Kayıtlı kurallarınız güvende.",
+    save_failed:
+      "Bu kural kaydedilmedi. Tekrar deneyin. Önceki sürüm hâlâ etkin.",
+    reorder_failed:
+      "Yeni sıralama kaydedilmedi. Tekrar deneyin. Kurallarınız önceki sırayla çalışmaya devam ediyor.",
+    rule_delete_failed: "Bu kural silinmedi. Tekrar deneyin. Kural hâlâ etkin.",
     snooze_needs_future: "Gelecekte bir tarih ve saat seçin.",
     match_case: "Büyük/küçük harf eşleştir",
     header_name_placeholder: "Başlık adı",
@@ -10314,10 +10003,7 @@ export const tr = {
     none: "Yok",
     show_on_profile: "Profilde göster",
     show_in_signature: "İmzada göster",
-    earned_label: "Kazanılan",
-    empty_state: "Henüz rozet bulamadın.",
-    claim_success: "{name} rozetini kazandın.",
-    claim_already: "Zaten bir keşif rozetin var.",
+    empty_state: "Henüz rozet bulmadınız.",
     claim_failed: "Tekrar deneyin.",
     not_earned: "Henüz kazanılmadı",
     show_on_profile_description:
@@ -10325,27 +10011,6 @@ export const tr = {
     show_in_signature_description:
       "Aktif rozetinizi giden e-posta imzalarına ekleyin.",
     granted_at: "{date} tarihinde kazanıldı",
-    find_order_label: "#{order}",
-    badge_big_bang: "Büyük Patlama",
-    badge_big_bang_description: "Evreni keşfeden ilk kişi.",
-    badge_event_horizon: "Olay Ufku",
-    badge_event_horizon_description: "Bilinenin sınırını geçti.",
-    badge_black_hole: "Kara Delik",
-    badge_black_hole_description: "Daha derine çekildi.",
-    badge_singularity: "Tekillik",
-    badge_singularity_description: "Her şeyin büküldüğü noktayı buldu.",
-    badge_supernova: "Süpernova",
-    badge_supernova_description: "En parlak anında bir yıldızı yakaladı.",
-    badge_andromeda: "Andromeda",
-    badge_andromeda_description: "Komşu bir galaksiye ulaştı.",
-    badge_nebula: "Nebula",
-    badge_nebula_description: "Renklerin içinde gezindi.",
-    badge_comet: "Kuyruklu Yıldız",
-    badge_comet_description: "Nadir bir şeyle yolunu kesiştirdi.",
-    badge_pulsar: "Pulsar",
-    badge_pulsar_description: "Gürültüdeki sinyali duydu.",
-    badge_stargazer: "Yıldız Gözlemcisi",
-    badge_stargazer_description: "Tam doğru anda yukarı baktı.",
   },
   secure_view: {
     powered_by_prefix: "Şu aracılığıyla güvenli bir şekilde gönderildi:",
@@ -10364,7 +10029,6 @@ export const tr = {
     not_found: "Bu güvenli mesaj bulunamadı.",
     attachments: "Ekler",
     download: "İndir",
-    powered_by: "AsterMail ile güvenli şekilde gönderildi",
     deleted: "Bu güvenli mesaj silindi ve artık kullanılamıyor.",
     reply_label: "Yanıt gönder",
     reply_placeholder: "Yanıtınızı yazın...",
@@ -10379,16 +10043,9 @@ export const tr = {
     delete_confirm_no: "İptal",
     delete_failed: "Bu mesaj silinemedi. Lütfen tekrar deneyin.",
   },
-  compose: {
-    encrypt_external_label: "Harici alıcılar için şifrele",
-    encrypt_external_desc:
-      "Alıcılar bu mesajı okumak için özel bir bağlantı açar ve bir parola girer.",
-    encrypt_password_required:
-      "Bu mesajı şifrelemek için bir parola belirleyin.",
-  },
+  compose: {},
   shared_mailboxes: {
     tab_label: "Ortak Posta Kutuları",
-    shared_tag: "Ortak",
     create: "Oluştur",
     created: "Ortak posta kutusu oluşturuldu",
     create_failed: "Ortak posta kutusu oluşturulamadı",
@@ -10437,7 +10094,6 @@ export const tr = {
     opens_in_new_tab: "Trustpilot'u yeni sekmede açar",
   },
   survey: {
-    banner_title: "Aster Mail'i geliştirmemize yardım edin",
     banner_message:
       "Aster'ı şekillendirmeye yardım edin: tek seferlik, yaklaşık bir dakikalık anket. Yanıtlarınız gizli kalır ve asla paylaşılmaz.",
     banner_take: "Ankete katıl",
@@ -10555,7 +10211,6 @@ export const tr = {
   },
   settings_search: {
     two_factor: "2FA",
-    api_token: "API belirteci",
     account_recovery: "Hesap kurtarma",
     actions: "Eylemler",
     active_sessions: "Etkin oturumlar",
@@ -10578,13 +10233,11 @@ export const tr = {
     changelog: "Yenilikler",
     checkup: "Kontrol",
     children: "Çocuklar",
-    children_accounts: "Çocuk hesapları",
     code: "Kod",
     composing_and_replies: "Yazma ve yanıtlar",
     configuration: "Yapılandırma",
     confirmations: "Onaylar",
     connect_apple_mail: "Apple Mail bağla",
-    connect_thunderbird: "Thunderbird bağla",
     contact_support: "Destekle iletişime geç",
     content_protection: "İçerik koruması",
     control: "Denetim",
@@ -10601,55 +10254,37 @@ export const tr = {
     device: "Cihaz",
     directories: "Dizinler",
     display: "Görünüm",
-    domain_verification: "Alan adı doğrulaması",
     domains: "Alan adları",
     download: "İndir",
-    download_bridge: "Bridge indir",
     duration: "Süre",
     duress_pin: "Acil durum PIN kodu",
     edit: "Düzenle",
-    edit_signature: "İmzayı düzenle",
     email: "E-posta",
     email_forwarding: "E-posta iletme",
     email_summary: "E-posta özeti",
     events: "Olaylar",
     export: "Dışa aktar",
     external_accounts: "Dış hesaplar",
-    feature_request: "Özellik isteği",
     features: "Özellikler",
     format: "Biçim",
     forward: "İlet",
     generate: "Oluştur",
     ghost_aliases: "Hayalet takma adlar",
     gmail: "Gmail",
-    html_signature: "HTML imza",
     hardware_keys: "Güvenlik anahtarları",
     imap: "IMAP",
-    imap_settings: "IMAP ayarları",
-    import_from_imap: "IMAP üzerinden içe aktar",
-    import_from_proton: "Proton üzerinden içe aktar",
-    import_key: "Anahtar içe aktar",
     invite: "Davet et",
-    invite_a_friend: "Bir arkadaşını davet et",
-    invite_family_member: "Aile üyesi davet et",
     invoices: "Faturalar",
     key_rotation: "Anahtar değişimi",
-    key_algorithm: "Anahtar algoritması",
     keyboard: "Klavye",
     keyboard_shortcuts: "Klavye kısayolları",
-    keyboard_navigation: "Klavyeyle gezinme",
     keys: "Anahtarlar",
     language: "Dil",
     language_and_format: "Dil ve biçim",
     layout: "Yerleşim",
-    layout_density: "Yerleşim yoğunluğu",
-    light_mode: "Açık mod",
     links: "Bağlantılar",
     logs: "Günlükler",
     manage: "Yönet",
-    manage_family_members: "Aile üyelerini yönet",
-    manage_templates: "Şablonları yönet",
-    masked_email: "Maskeli e-posta",
     members: "Üyeler",
     motion_and_layout: "Hareket ve yerleşim",
     navigation_panel: "Gezinme paneli",
@@ -10661,7 +10296,6 @@ export const tr = {
     payment: "Ödeme",
     payment_method: "Ödeme yöntemi",
     performance: "Performans",
-    plain_text_signature: "Düz metin imza",
     plan: "Plan",
     position: "Konum",
     profile: "Profil",
@@ -10674,37 +10308,26 @@ export const tr = {
     recovery: "Kurtarma",
     referral_code: "Davet kodu",
     rename_hardware_key: "Güvenlik anahtarını yeniden adlandır",
-    rename_passkey: "Geçiş anahtarını yeniden adlandır",
-    report_a_bug: "Hata bildir",
-    request_logs: "İstek günlükleri",
     revoke_smtp_token: "SMTP belirtecini iptal et",
     revoke_device: "Cihazı iptal et",
-    rotate_encryption_key: "Şifreleme anahtarını değiştir",
     smtp_settings: "SMTP ayarları",
-    screen_reader: "Ekran okuyucu",
     security: "Güvenlik",
-    security_checkup: "Güvenlik kontrolü",
-    send_delay: "Gönderme gecikmesi",
     sending: "Gönderme",
     session: "Oturum",
     sessions: "Oturumlar",
     settings: "Ayarlar",
     setup: "Kurulum",
-    sign_out_device: "Cihazda oturumu kapat",
     sound: "Ses",
     spam: "İstenmeyen",
-    spam_filter: "İstenmeyen filtresi",
     stats: "İstatistikler",
     storage: "Depolama",
     storage_add_on: "Depolama eklentisi",
     subscriptions: "Abonelikler",
     support: "Destek",
     swipe: "Kaydırma",
-    system_theme: "Sistem teması",
     test: "Test",
     text: "Metin",
     theme: "Tema",
-    thread_view: "Konuşma görünümü",
     threading: "Konuşmalar",
     tokens: "Belirteçler",
     tracking_protection: "İzleme koruması",
