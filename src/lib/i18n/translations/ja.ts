@@ -6020,7 +6020,7 @@ export const ja = {
     usage_domains: "カスタムドメイン",
     usage_templates: "メールテンプレート",
     usage_signatures: "署名",
-    usage_ghost_aliases: "今月のGhostエイリアス",
+    usage_ghost_aliases: "今月のゴーストエイリアス",
     usage_storage: "ストレージ",
     usage_linked_accounts: "サインイン中のアカウント",
     upgrade_linked_accounts_note:
@@ -9034,7 +9034,7 @@ export const ja = {
     greeting_night: "夜更けに",
     manage_account: "アカウント設定",
     official_account: "公式アカウント",
-    sign_out_all: "すべてのアカウントからログアウト",
+    sign_out_all: "すべてのアカウントからサインアウト",
     session_expired_tag: "セッション期限切れ",
     default_account: "既定",
     storage_of_used: "{{total}} 中 {{used}} を使用",
@@ -9186,7 +9186,7 @@ export const ja = {
     custom_domain_own_desc: "任意のレジストラのドメインを数分で接続できます。",
     custom_domain_new: "新しいドメインを取得",
     custom_domain_new_desc: "Asterを離れずにドメインを検索して購入できます。",
-    recovery_email_required_gate_title: "回復用メールアドレスが必要です",
+    recovery_email_required_gate_title: "復旧用メールアドレスが必要です",
     recovery_email_required_gate_desc:
       "追加アカウントを作成するには回復用メールアドレスが必要です。これによりすべてのアカウントが保護されます。",
     username_min_length: "3 文字以上で入力してください。",
@@ -9400,7 +9400,7 @@ export const ja = {
     resend_in_seconds: "{{seconds}}秒後に再送信",
     skip_verification: "確認をスキップ",
     recovery_email_required_notice:
-      "スパム防止のためバックアップメールが必要です。",
+      "スパム防止のため復旧用メールアドレスが必要です。",
     abuse_account_limit:
       "自動セキュリティシステムにより、この登録はフラグされ、アカウントを作成できません。心当たりがない場合は、hello@astermail.org がお力になれます。",
     abuse_flagged_message:
@@ -9790,7 +9790,7 @@ export const ja = {
       "ゴーストアドレスは延長のみでき、短縮はできません。",
     ghost_expiry_update_failed:
       "有効期限を更新できませんでした。もう一度お試しください。",
-    failed_to_activate_ghost_mode: "もう一度お試しください。",
+    failed_to_activate_ghost_mode: "ゴーストモードをオンにできませんでした。もう一度お試しください。",
     wrong_vault_password:
       "そのパスワードではこのデバイスの鍵を解除できませんでした。もう一度お試しください。それでも失敗する場合は、astermail.org/reset でリカバリーコードを使用してください。サーバー上のデータに変更はありません。",
     vault_tampered:
@@ -10602,7 +10602,7 @@ export const ja = {
     credits: "クレジット",
     crypto: "暗号資産",
     custom: "カスタム",
-    custom_domain: "独自ドメイン",
+    custom_domain: "カスタムドメイン",
     dns_records: "DNSレコード",
     danger_zone: "危険な操作",
     dark_mode: "ダークモード",

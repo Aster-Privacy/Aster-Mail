@@ -175,8 +175,8 @@ export const hi = {
     failed_remove_recovery_email: "फिर से कोशिश करें।",
     profile_picture_updated: "प्रोफ़ाइल तस्वीर अपडेट हो गई",
     profile_picture_removed: "प्रोफ़ाइल तस्वीर हटा दी गई",
-    failed_save_profile_picture: "फिर से कोशिश करें।",
-    failed_remove_profile_picture: "फिर से कोशिश करें।",
+    failed_save_profile_picture: "आपकी नई प्रोफ़ाइल तस्वीर सहेजी नहीं गई। फिर से कोशिश करें। पुरानी तस्वीर अभी भी दिख रही है।",
+    failed_remove_profile_picture: "आपकी प्रोफ़ाइल तस्वीर हटाई नहीं जा सकी। फिर से कोशिश करें।",
     remove_photo: "फ़ोटो निकालें",
     failed_save_profile_color: "फिर से कोशिश करें।",
     failed_upload_image: "फिर से कोशिश करें।",
@@ -9171,7 +9171,7 @@ export const hi = {
     address_n: "पता {{n}}",
     address_must_begin_end_alphanumeric:
       "ईमेल पता किसी अक्षर या अंक से शुरू और खत्म होना चाहिए।",
-    custom_domain_step_title: "अपने पते को कस्टम डोमेन से निजी बनाएं",
+    custom_domain_step_title: "अपने पते को कस्टम डोमेन से पर्सनलाइज़ करें",
     custom_domain_step_desc:
       "ऐसे डोमेन के पते से मेल भेजें और पाएं जो आपका अपना है।",
     custom_domain_own: "पहले से मौजूद डोमेन सेट करें",
