@@ -9886,10 +9886,18 @@ export const es = {
     apply_to_existing_done:
       "Listo. Revisados: {{scanned}}, actualizados: {{applied}}",
     apply_to_existing_done_encrypted:
-      "Listo. Analizados: {{scanned}}, actualizados: {{applied}}. Esta regla omitió {{encrypted}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
+      "Listo. Analizados: {{scanned}}, actualizados: {{applied}}. Esta regla omitió {{count}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
+    apply_to_existing_done_encrypted_one:
+      "Listo. Analizados: {{scanned}}, actualizados: {{applied}}. Esta regla omitió {{count}} mensaje cifrado porque solo tu dispositivo puede leerlo.",
+    apply_to_existing_done_encrypted_other:
+      "Listo. Analizados: {{scanned}}, actualizados: {{applied}}. Esta regla omitió {{count}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
     apply_to_existing_canceled: "Detenido: {{applied}} actualizados",
     apply_to_existing_canceled_encrypted:
-      "Detenido: {{applied}} actualizados. Esta regla omitió {{encrypted}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
+      "Detenido: {{applied}} actualizados. Esta regla omitió {{count}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
+    apply_to_existing_canceled_encrypted_one:
+      "Detenido: {{applied}} actualizados. Esta regla omitió {{count}} mensaje cifrado porque solo tu dispositivo puede leerlo.",
+    apply_to_existing_canceled_encrypted_other:
+      "Detenido: {{applied}} actualizados. Esta regla omitió {{count}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
     apply_to_existing_error:
       "No se pudo aplicar al correo existente. Intentalo de nuevo.",
     at_limit_upgrade:

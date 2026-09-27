@@ -10060,10 +10060,26 @@ export const pl = {
     apply_to_existing_done:
       "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}",
     apply_to_existing_done_encrypted:
-      "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}. Ta reguła pominęła {{encrypted}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
+      "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
+    apply_to_existing_done_encrypted_one:
+      "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowaną wiadomość, ponieważ tylko Twoje urządzenie może ją odczytać.",
+    apply_to_existing_done_encrypted_few:
+      "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowane wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
+    apply_to_existing_done_encrypted_many:
+      "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
+    apply_to_existing_done_encrypted_other:
+      "Gotowe: przeskanowano {{scanned}}, zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
     apply_to_existing_canceled: "Zatrzymano: zaktualizowano {{applied}}",
     apply_to_existing_canceled_encrypted:
-      "Zatrzymano: zaktualizowano {{applied}}. Ta reguła pominęła {{encrypted}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
+      "Zatrzymano: zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
+    apply_to_existing_canceled_encrypted_one:
+      "Zatrzymano: zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowaną wiadomość, ponieważ tylko Twoje urządzenie może ją odczytać.",
+    apply_to_existing_canceled_encrypted_few:
+      "Zatrzymano: zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowane wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
+    apply_to_existing_canceled_encrypted_many:
+      "Zatrzymano: zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
+    apply_to_existing_canceled_encrypted_other:
+      "Zatrzymano: zaktualizowano {{applied}}. Ta reguła pominęła {{count}} zaszyfrowanych wiadomości, ponieważ tylko Twoje urządzenie może je odczytać.",
     apply_to_existing_error:
       "Zastosowanie do istniejacej poczty nie udalo sie. Spróbuj ponownie.",
     empty_title: "Brak reguł",

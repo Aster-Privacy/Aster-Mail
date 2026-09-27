@@ -9681,10 +9681,30 @@ export const ar = {
       "جارٍ التطبيق: تم فحص {{scanned}} من {{total}}، وتحديث {{applied}}",
     apply_to_existing_done: "تم: تم فحص {{scanned}}، وتحديث {{applied}}",
     apply_to_existing_done_encrypted:
-      "تم: تم فحص {{scanned}}، وتحديث {{applied}}. تخطّت هذه القاعدة {{encrypted}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
+      "تم: تم فحص {{scanned}}، وتحديث {{applied}}. تخطّت هذه القاعدة {{count}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
+    apply_to_existing_done_encrypted_one:
+      "تم: تم فحص {{scanned}}، وتحديث {{applied}}. تخطّت هذه القاعدة رسالة مشفّرة واحدة لأن جهازك وحده يمكنه قراءتها.",
+    apply_to_existing_done_encrypted_two:
+      "تم: تم فحص {{scanned}}، وتحديث {{applied}}. تخطّت هذه القاعدة رسالتين مشفّرتين لأن جهازك وحده يمكنه قراءتهما.",
+    apply_to_existing_done_encrypted_few:
+      "تم: تم فحص {{scanned}}، وتحديث {{applied}}. تخطّت هذه القاعدة {{count}} رسائل مشفّرة لأن جهازك وحده يمكنه قراءتها.",
+    apply_to_existing_done_encrypted_many:
+      "تم: تم فحص {{scanned}}، وتحديث {{applied}}. تخطّت هذه القاعدة {{count}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
+    apply_to_existing_done_encrypted_other:
+      "تم: تم فحص {{scanned}}، وتحديث {{applied}}. تخطّت هذه القاعدة {{count}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
     apply_to_existing_canceled: "تم الإيقاف: تم تحديث {{applied}}",
     apply_to_existing_canceled_encrypted:
-      "تم الإيقاف: تم تحديث {{applied}}. تخطّت هذه القاعدة {{encrypted}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
+      "تم الإيقاف: تم تحديث {{applied}}. تخطّت هذه القاعدة {{count}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
+    apply_to_existing_canceled_encrypted_one:
+      "تم الإيقاف: تم تحديث {{applied}}. تخطّت هذه القاعدة رسالة مشفّرة واحدة لأن جهازك وحده يمكنه قراءتها.",
+    apply_to_existing_canceled_encrypted_two:
+      "تم الإيقاف: تم تحديث {{applied}}. تخطّت هذه القاعدة رسالتين مشفّرتين لأن جهازك وحده يمكنه قراءتهما.",
+    apply_to_existing_canceled_encrypted_few:
+      "تم الإيقاف: تم تحديث {{applied}}. تخطّت هذه القاعدة {{count}} رسائل مشفّرة لأن جهازك وحده يمكنه قراءتها.",
+    apply_to_existing_canceled_encrypted_many:
+      "تم الإيقاف: تم تحديث {{applied}}. تخطّت هذه القاعدة {{count}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
+    apply_to_existing_canceled_encrypted_other:
+      "تم الإيقاف: تم تحديث {{applied}}. تخطّت هذه القاعدة {{count}} رسالة مشفّرة لأن جهازك وحده يمكنه قراءتها.",
     apply_to_existing_error:
       "فشل تطبيق القاعدة على البريد الموجود. حاول مرة أخرى.",
     empty_title: "لا توجد قواعد بعد",

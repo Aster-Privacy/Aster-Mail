@@ -9945,10 +9945,18 @@ export const it = {
     apply_to_existing_done:
       "Completato. Esaminati: {{scanned}}, aggiornati: {{applied}}",
     apply_to_existing_done_encrypted:
-      "Fatto. Analizzati: {{scanned}}, aggiornati: {{applied}}. Questa regola ha ignorato {{encrypted}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",
+      "Fatto. Analizzati: {{scanned}}, aggiornati: {{applied}}. Questa regola ha ignorato {{count}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",
+    apply_to_existing_done_encrypted_one:
+      "Fatto. Analizzati: {{scanned}}, aggiornati: {{applied}}. Questa regola ha ignorato {{count}} messaggio cifrato perché solo il tuo dispositivo può leggerlo.",
+    apply_to_existing_done_encrypted_other:
+      "Fatto. Analizzati: {{scanned}}, aggiornati: {{applied}}. Questa regola ha ignorato {{count}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",
     apply_to_existing_canceled: "Interrotto: {{applied}} aggiornati",
     apply_to_existing_canceled_encrypted:
-      "Interrotto: {{applied}} aggiornati. Questa regola ha ignorato {{encrypted}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",
+      "Interrotto: {{applied}} aggiornati. Questa regola ha ignorato {{count}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",
+    apply_to_existing_canceled_encrypted_one:
+      "Interrotto: {{applied}} aggiornati. Questa regola ha ignorato {{count}} messaggio cifrato perché solo il tuo dispositivo può leggerlo.",
+    apply_to_existing_canceled_encrypted_other:
+      "Interrotto: {{applied}} aggiornati. Questa regola ha ignorato {{count}} messaggi cifrati perché solo il tuo dispositivo può leggerli.",
     apply_to_existing_error:
       "Applicazione alla posta esistente non riuscita. Riprova.",
     empty_title: "Nessuna regola ancora",

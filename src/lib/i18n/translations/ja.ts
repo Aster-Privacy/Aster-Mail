@@ -9770,10 +9770,18 @@ export const ja = {
       "適用中: {{total}} 件中 {{scanned}} 件確認、{{applied}} 件更新",
     apply_to_existing_done: "完了: {{scanned}} 件確認、{{applied}} 件更新",
     apply_to_existing_done_encrypted:
-      "完了: {{scanned}} 件確認、{{applied}} 件更新。暗号化された {{encrypted}} 件はお使いのデバイスでしか読めないため、このルールではスキップされました。",
+      "完了: {{scanned}} 件確認、{{applied}} 件更新。暗号化された {{count}} 件はお使いのデバイスでしか読めないため、このルールではスキップされました。",
+    apply_to_existing_done_encrypted_one:
+      "完了: {{scanned}} 件確認、{{applied}} 件更新。暗号化された {{count}} 件はお使いのデバイスでしか読めないため、このルールではスキップされました。",
+    apply_to_existing_done_encrypted_other:
+      "完了: {{scanned}} 件確認、{{applied}} 件更新。暗号化された {{count}} 件はお使いのデバイスでしか読めないため、このルールではスキップされました。",
     apply_to_existing_canceled: "停止しました: {{applied}} 件更新",
     apply_to_existing_canceled_encrypted:
-      "停止しました: {{applied}} 件更新。暗号化された {{encrypted}} 件はお使いのデバイスでしか読めないため、このルールではスキップされました。",
+      "停止しました: {{applied}} 件更新。暗号化された {{count}} 件はお使いのデバイスでしか読めないため、このルールではスキップされました。",
+    apply_to_existing_canceled_encrypted_one:
+      "停止しました: {{applied}} 件更新。暗号化された {{count}} 件はお使いのデバイスでしか読めないため、このルールではスキップされました。",
+    apply_to_existing_canceled_encrypted_other:
+      "停止しました: {{applied}} 件更新。暗号化された {{count}} 件はお使いのデバイスでしか読めないため、このルールではスキップされました。",
     apply_to_existing_error:
       "既存のメールへの適用に失敗しました。もう一度お試しください。",
     empty_title: "ルールはまだありません",

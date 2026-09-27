@@ -9772,10 +9772,18 @@ export const tr = {
     apply_to_existing_done:
       "Tamamlandı: {{scanned}} tarandı, {{applied}} güncellendi",
     apply_to_existing_done_encrypted:
-      "Bitti: {{scanned}} tarandı, {{applied}} güncellendi. Bu kural {{encrypted}} şifreli iletiyi atladı, çünkü bunları yalnızca cihazınız okuyabilir.",
+      "Bitti: {{scanned}} tarandı, {{applied}} güncellendi. Bu kural {{count}} şifreli iletiyi atladı, çünkü bunları yalnızca cihazınız okuyabilir.",
+    apply_to_existing_done_encrypted_one:
+      "Bitti: {{scanned}} tarandı, {{applied}} güncellendi. Bu kural {{count}} şifreli iletiyi atladı, çünkü onu yalnızca cihazınız okuyabilir.",
+    apply_to_existing_done_encrypted_other:
+      "Bitti: {{scanned}} tarandı, {{applied}} güncellendi. Bu kural {{count}} şifreli iletiyi atladı, çünkü bunları yalnızca cihazınız okuyabilir.",
     apply_to_existing_canceled: "Durduruldu: {{applied}} güncellendi",
     apply_to_existing_canceled_encrypted:
-      "Durduruldu: {{applied}} güncellendi. Bu kural {{encrypted}} şifreli iletiyi atladı, çünkü bunları yalnızca cihazınız okuyabilir.",
+      "Durduruldu: {{applied}} güncellendi. Bu kural {{count}} şifreli iletiyi atladı, çünkü bunları yalnızca cihazınız okuyabilir.",
+    apply_to_existing_canceled_encrypted_one:
+      "Durduruldu: {{applied}} güncellendi. Bu kural {{count}} şifreli iletiyi atladı, çünkü onu yalnızca cihazınız okuyabilir.",
+    apply_to_existing_canceled_encrypted_other:
+      "Durduruldu: {{applied}} güncellendi. Bu kural {{count}} şifreli iletiyi atladı, çünkü bunları yalnızca cihazınız okuyabilir.",
     apply_to_existing_error:
       "Mevcut postaya uygulama basarisiz oldu. Tekrar deneyin.",
     empty_title: "Henüz kural yok",

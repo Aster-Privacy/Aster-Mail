@@ -9869,10 +9869,18 @@ export const nl = {
     apply_to_existing_done:
       "Klaar: {{scanned}} gescand, {{applied}} bijgewerkt",
     apply_to_existing_done_encrypted:
-      "Klaar: {{scanned}} gescand, {{applied}} bijgewerkt. Deze regel heeft {{encrypted}} versleutelde berichten overgeslagen omdat alleen jouw apparaat ze kan lezen.",
+      "Klaar: {{scanned}} gescand, {{applied}} bijgewerkt. Deze regel heeft {{count}} versleutelde berichten overgeslagen omdat alleen jouw apparaat ze kan lezen.",
+    apply_to_existing_done_encrypted_one:
+      "Klaar: {{scanned}} gescand, {{applied}} bijgewerkt. Deze regel heeft {{count}} versleuteld bericht overgeslagen omdat alleen jouw apparaat het kan lezen.",
+    apply_to_existing_done_encrypted_other:
+      "Klaar: {{scanned}} gescand, {{applied}} bijgewerkt. Deze regel heeft {{count}} versleutelde berichten overgeslagen omdat alleen jouw apparaat ze kan lezen.",
     apply_to_existing_canceled: "Gestopt: {{applied}} bijgewerkt",
     apply_to_existing_canceled_encrypted:
-      "Gestopt: {{applied}} bijgewerkt. Deze regel heeft {{encrypted}} versleutelde berichten overgeslagen omdat alleen jouw apparaat ze kan lezen.",
+      "Gestopt: {{applied}} bijgewerkt. Deze regel heeft {{count}} versleutelde berichten overgeslagen omdat alleen jouw apparaat ze kan lezen.",
+    apply_to_existing_canceled_encrypted_one:
+      "Gestopt: {{applied}} bijgewerkt. Deze regel heeft {{count}} versleuteld bericht overgeslagen omdat alleen jouw apparaat het kan lezen.",
+    apply_to_existing_canceled_encrypted_other:
+      "Gestopt: {{applied}} bijgewerkt. Deze regel heeft {{count}} versleutelde berichten overgeslagen omdat alleen jouw apparaat ze kan lezen.",
     apply_to_existing_error:
       "Toepassen op bestaande mail is mislukt. Probeer het opnieuw.",
     empty_title: "Nog geen regels",

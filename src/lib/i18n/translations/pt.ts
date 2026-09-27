@@ -9125,8 +9125,7 @@ export const pt = {
     mail_mobile: "Mail Mobile",
     mail_mobile_desc: "Leia e envie e-mails encriptados no seu telemóvel.",
     mail_desktop: "Mail Desktop",
-    mail_desktop_desc:
-      "A aplicação para computador para Windows, macOS e Linux.",
+    mail_desktop_desc: "A aplicação de computador para Windows, macOS e Linux.",
     notifications_step_title: "Ative as notificações do navegador",
     notifications_step_desc:
       "Receba uma notificação quando chegar um novo e-mail, mesmo com este separador em segundo plano.",
@@ -9994,10 +9993,18 @@ export const pt = {
     apply_to_existing_done:
       "Concluído. Verificados: {{scanned}}, atualizados: {{applied}}",
     apply_to_existing_done_encrypted:
-      "Concluído. Verificados: {{scanned}}, atualizados: {{applied}}. Esta regra ignorou {{encrypted}} mensagens encriptadas porque só o seu dispositivo consegue lê-las.",
+      "Concluído. Verificados: {{scanned}}, atualizados: {{applied}}. Esta regra ignorou {{count}} mensagens encriptadas porque só o seu dispositivo consegue lê-las.",
+    apply_to_existing_done_encrypted_one:
+      "Concluído. Verificados: {{scanned}}, atualizados: {{applied}}. Esta regra ignorou {{count}} mensagem encriptada porque só o seu dispositivo consegue lê-la.",
+    apply_to_existing_done_encrypted_other:
+      "Concluído. Verificados: {{scanned}}, atualizados: {{applied}}. Esta regra ignorou {{count}} mensagens encriptadas porque só o seu dispositivo consegue lê-las.",
     apply_to_existing_canceled: "Parado: {{applied}} atualizados",
     apply_to_existing_canceled_encrypted:
-      "Parado: {{applied}} atualizados. Esta regra ignorou {{encrypted}} mensagens encriptadas porque só o seu dispositivo consegue lê-las.",
+      "Parado: {{applied}} atualizados. Esta regra ignorou {{count}} mensagens encriptadas porque só o seu dispositivo consegue lê-las.",
+    apply_to_existing_canceled_encrypted_one:
+      "Parado: {{applied}} atualizados. Esta regra ignorou {{count}} mensagem encriptada porque só o seu dispositivo consegue lê-la.",
+    apply_to_existing_canceled_encrypted_other:
+      "Parado: {{applied}} atualizados. Esta regra ignorou {{count}} mensagens encriptadas porque só o seu dispositivo consegue lê-las.",
     apply_to_existing_error:
       "Não foi possível aplicar ao e-mail existente. Tente novamente.",
     empty_title: "Nenhuma regra ainda",

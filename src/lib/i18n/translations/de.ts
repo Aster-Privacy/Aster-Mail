@@ -10031,10 +10031,18 @@ export const de = {
     apply_to_existing_done:
       "Fertig: {{scanned}} geprüft, {{applied}} aktualisiert",
     apply_to_existing_done_encrypted:
-      "Fertig: {{scanned}} geprüft, {{applied}} aktualisiert. Diese Regel hat {{encrypted}} verschlüsselte Nachrichten übersprungen, weil nur Ihr Gerät sie lesen kann.",
+      "Fertig: {{scanned}} geprüft, {{applied}} aktualisiert. Diese Regel hat {{count}} verschlüsselte Nachrichten übersprungen, weil nur Ihr Gerät sie lesen kann.",
+    apply_to_existing_done_encrypted_one:
+      "Fertig: {{scanned}} geprüft, {{applied}} aktualisiert. Diese Regel hat {{count}} verschlüsselte Nachricht übersprungen, weil nur Ihr Gerät sie lesen kann.",
+    apply_to_existing_done_encrypted_other:
+      "Fertig: {{scanned}} geprüft, {{applied}} aktualisiert. Diese Regel hat {{count}} verschlüsselte Nachrichten übersprungen, weil nur Ihr Gerät sie lesen kann.",
     apply_to_existing_canceled: "Gestoppt: {{applied}} aktualisiert",
     apply_to_existing_canceled_encrypted:
-      "Gestoppt: {{applied}} aktualisiert. Diese Regel hat {{encrypted}} verschlüsselte Nachrichten übersprungen, weil nur Ihr Gerät sie lesen kann.",
+      "Gestoppt: {{applied}} aktualisiert. Diese Regel hat {{count}} verschlüsselte Nachrichten übersprungen, weil nur Ihr Gerät sie lesen kann.",
+    apply_to_existing_canceled_encrypted_one:
+      "Gestoppt: {{applied}} aktualisiert. Diese Regel hat {{count}} verschlüsselte Nachricht übersprungen, weil nur Ihr Gerät sie lesen kann.",
+    apply_to_existing_canceled_encrypted_other:
+      "Gestoppt: {{applied}} aktualisiert. Diese Regel hat {{count}} verschlüsselte Nachrichten übersprungen, weil nur Ihr Gerät sie lesen kann.",
     apply_to_existing_error:
       "Anwenden auf vorhandene Mail fehlgeschlagen. Bitte erneut versuchen.",
     at_limit_upgrade:

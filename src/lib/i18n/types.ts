@@ -437,9 +437,17 @@ export interface MailRulesTranslations {
 
   apply_to_existing_done_encrypted: string;
 
+  apply_to_existing_done_encrypted_one: string;
+
+  apply_to_existing_done_encrypted_other: string;
+
   apply_to_existing_canceled: string;
 
   apply_to_existing_canceled_encrypted: string;
+
+  apply_to_existing_canceled_encrypted_one: string;
+
+  apply_to_existing_canceled_encrypted_other: string;
 
   apply_to_existing_error: string;
   empty_title: string;

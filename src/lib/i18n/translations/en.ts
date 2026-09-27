@@ -9604,10 +9604,18 @@ export const en: Translations = {
       "Applying: {{scanned}} of {{total}} scanned, {{applied}} updated",
     apply_to_existing_done: "Done: {{scanned}} scanned, {{applied}} updated",
     apply_to_existing_done_encrypted:
-      "Done: {{scanned}} scanned, {{applied}} updated. This rule skipped {{encrypted}} encrypted messages because only your device can read them.",
+      "Done: {{scanned}} scanned, {{applied}} updated. This rule skipped {{count}} encrypted messages because only your device can read them.",
+    apply_to_existing_done_encrypted_one:
+      "Done: {{scanned}} scanned, {{applied}} updated. This rule skipped {{count}} encrypted message because only your device can read it.",
+    apply_to_existing_done_encrypted_other:
+      "Done: {{scanned}} scanned, {{applied}} updated. This rule skipped {{count}} encrypted messages because only your device can read them.",
     apply_to_existing_canceled: "Stopped: {{applied}} updated",
     apply_to_existing_canceled_encrypted:
-      "Stopped: {{applied}} updated. This rule skipped {{encrypted}} encrypted messages because only your device can read them.",
+      "Stopped: {{applied}} updated. This rule skipped {{count}} encrypted messages because only your device can read them.",
+    apply_to_existing_canceled_encrypted_one:
+      "Stopped: {{applied}} updated. This rule skipped {{count}} encrypted message because only your device can read it.",
+    apply_to_existing_canceled_encrypted_other:
+      "Stopped: {{applied}} updated. This rule skipped {{count}} encrypted messages because only your device can read them.",
     apply_to_existing_error: "Applying to existing mail failed. Try again.",
     empty_title: "No rules yet",
     empty_description:

@@ -9575,10 +9575,18 @@ export const ko = {
       "적용 중: {{total}}개 중 {{scanned}}개 확인, {{applied}}개 업데이트",
     apply_to_existing_done: "완료: {{scanned}}개 확인, {{applied}}개 업데이트",
     apply_to_existing_done_encrypted:
-      "완료: {{scanned}}개 확인, {{applied}}개 업데이트. 암호화된 {{encrypted}}개는 사용자의 기기에서만 읽을 수 있어 이 규칙에서 건너뛰었습니다.",
+      "완료: {{scanned}}개 확인, {{applied}}개 업데이트. 암호화된 {{count}}개는 사용자의 기기에서만 읽을 수 있어 이 규칙에서 건너뛰었습니다.",
+    apply_to_existing_done_encrypted_one:
+      "완료: {{scanned}}개 확인, {{applied}}개 업데이트. 암호화된 {{count}}개는 사용자의 기기에서만 읽을 수 있어 이 규칙에서 건너뛰었습니다.",
+    apply_to_existing_done_encrypted_other:
+      "완료: {{scanned}}개 확인, {{applied}}개 업데이트. 암호화된 {{count}}개는 사용자의 기기에서만 읽을 수 있어 이 규칙에서 건너뛰었습니다.",
     apply_to_existing_canceled: "중지됨: {{applied}}개 업데이트",
     apply_to_existing_canceled_encrypted:
-      "중지됨: {{applied}}개 업데이트. 암호화된 {{encrypted}}개는 사용자의 기기에서만 읽을 수 있어 이 규칙에서 건너뛰었습니다.",
+      "중지됨: {{applied}}개 업데이트. 암호화된 {{count}}개는 사용자의 기기에서만 읽을 수 있어 이 규칙에서 건너뛰었습니다.",
+    apply_to_existing_canceled_encrypted_one:
+      "중지됨: {{applied}}개 업데이트. 암호화된 {{count}}개는 사용자의 기기에서만 읽을 수 있어 이 규칙에서 건너뛰었습니다.",
+    apply_to_existing_canceled_encrypted_other:
+      "중지됨: {{applied}}개 업데이트. 암호화된 {{count}}개는 사용자의 기기에서만 읽을 수 있어 이 규칙에서 건너뛰었습니다.",
     apply_to_existing_error:
       "기존 메일에 적용하지 못했습니다. 다시 시도하세요.",
     empty_title: "아직 규칙이 없습니다",

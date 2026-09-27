@@ -10009,10 +10009,18 @@ export const fr = {
     apply_to_existing_done:
       "Terminé. Analysés : {{scanned}}, mis à jour : {{applied}}",
     apply_to_existing_done_encrypted:
-      "Terminé. Analysés : {{scanned}}, mis à jour : {{applied}}. Cette règle a ignoré {{encrypted}} messages chiffrés, car seul votre appareil peut les lire.",
+      "Terminé. Analysés : {{scanned}}, mis à jour : {{applied}}. Cette règle a ignoré {{count}} messages chiffrés, car seul votre appareil peut les lire.",
+    apply_to_existing_done_encrypted_one:
+      "Terminé. Analysés : {{scanned}}, mis à jour : {{applied}}. Cette règle a ignoré {{count}} message chiffré, car seul votre appareil peut le lire.",
+    apply_to_existing_done_encrypted_other:
+      "Terminé. Analysés : {{scanned}}, mis à jour : {{applied}}. Cette règle a ignoré {{count}} messages chiffrés, car seul votre appareil peut les lire.",
     apply_to_existing_canceled: "Arrêté : {{applied}} mis à jour",
     apply_to_existing_canceled_encrypted:
-      "Arrêté : {{applied}} mis à jour. Cette règle a ignoré {{encrypted}} messages chiffrés, car seul votre appareil peut les lire.",
+      "Arrêté : {{applied}} mis à jour. Cette règle a ignoré {{count}} messages chiffrés, car seul votre appareil peut les lire.",
+    apply_to_existing_canceled_encrypted_one:
+      "Arrêté : {{applied}} mis à jour. Cette règle a ignoré {{count}} message chiffré, car seul votre appareil peut le lire.",
+    apply_to_existing_canceled_encrypted_other:
+      "Arrêté : {{applied}} mis à jour. Cette règle a ignoré {{count}} messages chiffrés, car seul votre appareil peut les lire.",
     apply_to_existing_error:
       "L'application au courrier existant a echoue. Reessayez.",
     at_limit_upgrade:
