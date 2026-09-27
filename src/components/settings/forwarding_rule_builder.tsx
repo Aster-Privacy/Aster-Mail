@@ -247,7 +247,10 @@ export function ForwardingRuleBuilder({
                       update_condition(index, "operator", value)
                     }
                   >
-                    <SelectTrigger className="h-9 w-auto min-w-[8rem]">
+                    <SelectTrigger
+                      aria-label={t("settings.alias_rule_operator_label")}
+                      className="h-9 w-auto min-w-[8rem]"
+                    >
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
