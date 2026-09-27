@@ -222,7 +222,19 @@ export function BillingHeroCard({
 
   return (
     <Island padding="none">
-      <div className="flex flex-col gap-5 px-5 pb-5 pt-5">
+      <div className="mx-2 mt-2 flex h-[88px] items-center justify-between gap-4 rounded-[var(--aster-radius-field)] bg-[var(--aster-field-bg)] px-5">
+        <img
+          alt={t("common.aster_mail")}
+          className="h-8 w-auto select-none"
+          decoding="async"
+          draggable={false}
+          src="/text_logo.png"
+        />
+        <span className="aster_badge aster_badge_blue">
+          {t("settings.current_plan")}
+        </span>
+      </div>
+      <div className="flex flex-col gap-5 px-5 pb-5 pt-4">
         <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
           <div className="flex min-w-0 flex-col gap-1">
             <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-0.5">
