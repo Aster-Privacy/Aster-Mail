@@ -58,6 +58,7 @@ import {
 import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { ThreadMessageBlock } from "@/components/email/thread_message_block";
+import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
 import { resolve_reply_references } from "@/lib/reply_references";
 
@@ -968,6 +969,23 @@ export const ThreadMessagesList = forwardRef<
     return ids;
   }, [display_messages, hidden_count]);
 
+  const hidden_senders = useMemo(() => {
+    if (!hidden_ids) return [];
+
+    const seen = new Map<string, { email: string; name: string }>();
+
+    display_messages.forEach((msg) => {
+      if (!hidden_ids.has(msg.id)) return;
+      const email = (msg.sender_email || "").toLowerCase();
+
+      if (!seen.has(email)) {
+        seen.set(email, { email: msg.sender_email, name: msg.sender_name });
+      }
+    });
+
+    return Array.from(seen.values()).slice(0, 3);
+  }, [display_messages, hidden_ids]);
+
   const render_message = (msg: DecryptedThreadMessage, display_idx: number) => {
     const is_last =
       msg.id === regular_messages[regular_messages.length - 1]?.id;
@@ -1003,6 +1021,7 @@ export const ThreadMessagesList = forwardRef<
         }
         is_single_message={regular_messages.length === 1}
         is_starred={starred_ids.has(msg.id)}
+        island_ref={msg.id === scroll_target_id ? first_unread_ref : undefined}
         loaded_content_types={loaded_content_types}
         message={msg}
         message_folder_tokens={applied_folders.get(msg.id)}
@@ -1031,39 +1050,41 @@ export const ThreadMessagesList = forwardRef<
         preloaded_sanitized={preloaded_sanitized?.get(msg.id)}
         show_inline_reply={inline_reply_msg?.id === msg.id}
         size_bytes={size_bytes}
-        island_ref={msg.id === scroll_target_id ? first_unread_ref : undefined}
         unsubscribe_url={is_last ? unsubscribe_url : undefined}
       />
     );
   };
 
   const rows: React.ReactNode[] = [];
-  let hidden_row_index = -1;
 
   display_messages.forEach((msg, idx) => {
     if (hidden_ids?.has(msg.id)) {
       if (idx === 1) {
-        hidden_row_index = rows.length;
         rows.push(
           <button
             key="hidden_group"
             aria-expanded={false}
             aria-label={t("mail.more_messages_count", { count: hidden_count })}
-            className="group/hidden relative flex w-full cursor-pointer items-center px-4 py-2.5 focus:outline-none"
-            title={t("mail.more_messages_count", { count: hidden_count })}
+            className="group/hidden flex w-full cursor-pointer select-none items-center gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--aster-island-hover)] focus:outline-none focus-visible:bg-[var(--aster-island-hover)]"
             type="button"
             onClick={() => set_hidden_group_revealed(true)}
           >
-            <span
-              aria-hidden="true"
-              className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-[var(--aster-island-divider)]"
-            />
-            <span className="relative inline-flex h-9 items-center gap-1.5 rounded-full bg-[var(--aster-field-bg)] px-3.5 text-txt-primary transition-colors group-hover/hidden:bg-[var(--aster-island-hover)] group-focus-visible/hidden:outline group-focus-visible/hidden:outline-2 group-focus-visible/hidden:outline-offset-2 group-focus-visible/hidden:outline-[var(--accent-color)]">
-              <span className="text-[14px] font-semibold tabular-nums leading-none">
-                {hidden_count}
-              </span>
-              <ChevronDownIcon className="h-4 w-4 text-txt-muted" />
+            <span className="flex flex-shrink-0 -space-x-2">
+              {hidden_senders.map((sender) => (
+                <ProfileAvatar
+                  key={sender.email}
+                  use_domain_logo
+                  className="rounded-full ring-2 ring-[var(--aster-island-fill)]"
+                  email={sender.email}
+                  name={sender.name}
+                  size="sm"
+                />
+              ))}
             </span>
+            <span className="min-w-0 flex-1 truncate text-sm font-medium text-txt-secondary transition-colors group-hover/hidden:text-txt-primary">
+              {t("mail.more_messages_count", { count: hidden_count })}
+            </span>
+            <ChevronDownIcon className="h-4 w-4 flex-shrink-0 text-txt-muted transition-colors group-hover/hidden:text-txt-primary" />
           </button>,
         );
       }
@@ -1092,9 +1113,7 @@ export const ThreadMessagesList = forwardRef<
       <Island className="overflow-hidden">
         {rows.map((row, idx) => (
           <Fragment key={idx}>
-            {idx > 0 &&
-              idx !== hidden_row_index &&
-              idx - 1 !== hidden_row_index && <IslandDivider />}
+            {idx > 0 && <IslandDivider />}
             {row}
           </Fragment>
         ))}
