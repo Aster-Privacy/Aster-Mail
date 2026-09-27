@@ -260,16 +260,16 @@ describe("PlanPaymentMethodModal special offer pricing", () => {
     );
   });
 
-  it("discounts only crypto on yearly billing and prices the summary for it", () => {
+  it("discounts both methods on yearly billing and prices the summary for it", () => {
     const on_choose_crypto = render(true, "yearly");
 
-    expect(
-      document.body.querySelector('[data-special-offer-price="card"]'),
-    ).toBeNull();
-    expect(
-      document.body.querySelector("[data-special-offer-summary]"),
-    ).toBeNull();
-    expect(document.body.textContent).toContain("$86.99");
+    const card = offer_price('[data-special-offer-price="card"]');
+
+    expect(struck_text(card)).toBe("settings.checkout_term_per_month($7.25)");
+    expect(card.textContent).toContain(
+      "settings.checkout_term_per_month($3.62)",
+    );
+    expect(document.body.textContent).toContain("$43.49");
 
     const crypto = offer_price('[data-special-offer-price="crypto"]');
 
@@ -403,7 +403,7 @@ describe("PlanPaymentMethodModal special offer pricing", () => {
   });
 
   it("keeps the credits note when the card offer does not apply", () => {
-    render_with_credits(true, "yearly");
+    render_with_credits(true, "biennial");
 
     expect(document.body.textContent).toContain(
       "settings.credits_will_be_applied($5.00)",
