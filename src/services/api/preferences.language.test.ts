@@ -27,6 +27,7 @@ import {
 } from "./preferences";
 
 import { label_to_language_code } from "@/contexts/preferences_context/helpers";
+import { get_display_name, get_native_label } from "@/lib/i18n/languages";
 
 describe("explicit_language_preference", () => {
   it.each(["en", "pt", "pt-BR", "zh-CN", "ar"] as const)(
@@ -50,5 +51,18 @@ describe("explicit_language_preference", () => {
 
     expect(merged.language_explicit).toBe(true);
     expect(merged.language).toBe("Deutsch");
+  });
+});
+
+describe("get_native_label", () => {
+  it("names the region in the language itself", () => {
+    expect(get_native_label("pt-BR")).toBe("Português (Brasil)");
+    expect(get_native_label("pt")).toBe("Português (Portugal)");
+    expect(get_native_label("de")).toBe("Deutsch");
+  });
+
+  it("leaves the stored preference label unchanged", () => {
+    expect(get_display_name("pt-BR")).toBe("Português (Brazil)");
+    expect(label_to_language_code(get_display_name("pt-BR"))).toBe("pt-BR");
   });
 });

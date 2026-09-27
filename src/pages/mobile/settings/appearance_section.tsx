@@ -42,14 +42,13 @@ import {
 } from "@/lib/theme_sync";
 import { use_i18n } from "@/lib/i18n/context";
 import {
-  get_display_name as _get_display_name,
+  get_native_label,
   get_supported_languages,
 } from "@/lib/i18n/languages";
 import { useTheme } from "@/contexts/theme_context";
 import { explicit_language_preference } from "@/services/api/preferences";
 
 type LanguageCode = _LanguageCode;
-const get_display_name = _get_display_name;
 
 export function AppearanceSection({
   on_back,
@@ -106,7 +105,7 @@ export function AppearanceSection({
   const language_entries: { code: LanguageCode; display: string }[] =
     get_supported_languages().map((lang) => ({
       code: lang.code as LanguageCode,
-      display: get_display_name(lang.code as LanguageCode),
+      display: get_native_label(lang.code as LanguageCode),
     }));
 
   const language_options = language_entries.map((l) => ({
@@ -118,7 +117,7 @@ export function AppearanceSection({
     preferences.language ?? "",
   );
   const current_language_display = current_language_code
-    ? get_display_name(current_language_code)
+    ? get_native_label(current_language_code)
     : preferences.language;
 
   return (
@@ -166,7 +165,10 @@ export function AppearanceSection({
               const entry = language_entries.find((l) => l.display === v);
 
               if (!entry) return;
-              update_preferences(explicit_language_preference(entry.code), true);
+              update_preferences(
+                explicit_language_preference(entry.code),
+                true,
+              );
               set_language(entry.code);
             }}
             options={language_options}

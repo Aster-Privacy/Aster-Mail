@@ -42,6 +42,7 @@ export interface Language {
   native_name: string;
   direction: "ltr" | "rtl";
   region?: string;
+  native_region?: string;
 }
 
 export interface TranslationNamespace {

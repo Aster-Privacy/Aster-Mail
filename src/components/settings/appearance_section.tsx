@@ -47,7 +47,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { use_i18n } from "@/lib/i18n/context";
-import { get_supported_languages } from "@/lib/i18n/languages";
+import {
+  get_native_label,
+  get_supported_languages,
+} from "@/lib/i18n/languages";
 import { explicit_language_preference } from "@/services/api/preferences";
 import { ThemeCard } from "@/components/settings/appearance/theme_card";
 import { ViewModeCard } from "@/components/settings/appearance/view_mode_card";
@@ -224,7 +227,10 @@ export function AppearanceSection() {
   };
 
   const handle_language_change = (code: string) => {
-    update_preferences(explicit_language_preference(code as LanguageCode), true);
+    update_preferences(
+      explicit_language_preference(code as LanguageCode),
+      true,
+    );
     set_language(code as LanguageCode);
   };
 
@@ -616,8 +622,7 @@ export function AppearanceSection() {
             <SelectContent>
               {LANGUAGES.map((lang) => (
                 <SelectItem key={lang.code} value={lang.code}>
-                  {lang.native_name}
-                  {lang.region ? ` (${lang.region})` : ""}
+                  {get_native_label(lang.code as LanguageCode)}
                 </SelectItem>
               ))}
             </SelectContent>
