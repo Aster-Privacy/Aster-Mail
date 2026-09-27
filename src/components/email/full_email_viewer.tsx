@@ -430,7 +430,7 @@ export function FullEmailViewer({
       <div className="flex flex-col h-full bg-surf-primary">
         <div className="flex items-center gap-3 px-4 sm:px-6 lg:px-8 py-3 border-b border-edge-primary flex-shrink-0">
           <button
-            className="flex items-center gap-2 px-3 py-1.5 -ms-3 rounded-[12px] text-sm font-medium transition-all hover:bg-surf-hover text-txt-secondary"
+            className="flex items-center gap-2 px-3 py-1.5 -ms-3 rounded-[var(--aster-radius-control)] text-sm font-medium transition-all hover:bg-surf-hover text-txt-secondary"
             onClick={on_back}
           >
             <ArrowLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
@@ -458,7 +458,7 @@ export function FullEmailViewer({
     <div className="flex flex-col h-full bg-surf-primary">
       <div className="flex items-center gap-1 px-2 sm:px-3 py-2 border-b border-edge-primary flex-shrink-0">
         <button
-          className="flex items-center gap-1.5 px-2 py-1.5 me-1 rounded-[12px] text-sm font-medium transition-all hover:bg-surf-hover text-txt-secondary"
+          className="flex items-center gap-1.5 px-2 py-1.5 me-1 rounded-[var(--aster-radius-control)] text-sm font-medium transition-all hover:bg-surf-hover text-txt-secondary"
           onClick={on_back}
         >
           <ArrowLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
@@ -544,7 +544,7 @@ export function FullEmailViewer({
           style={{ scrollbarGutter: "stable" }}
         >
           {email && (
-            <div className="py-4 sm:py-5">
+            <div className="mx-auto w-full max-w-[1120px] py-4 sm:py-5">
               <div className="px-4 sm:px-5 flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-3">
                 <h1 className="text-[22px] sm:text-2xl font-bold leading-[1.3] text-txt-primary break-words">
                   <span

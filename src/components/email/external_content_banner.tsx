@@ -343,7 +343,7 @@ export function ExternalContentBanner({
               </span>
             ) : (
               <button
-                className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
+                className="rounded-[var(--aster-radius-control)] px-3 py-1 text-sm font-medium transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
                 type="button"
                 onClick={on_load}
               >

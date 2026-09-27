@@ -286,7 +286,7 @@ export const InlineReplyComposer = forwardRef<
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
-              className="flex items-center gap-1 p-1.5 rounded hover:bg-surf-hover transition-colors"
+              className="flex items-center gap-1 p-1.5 rounded-full hover:bg-surf-hover transition-colors"
               type="button"
             >
               {render_mode_icon(

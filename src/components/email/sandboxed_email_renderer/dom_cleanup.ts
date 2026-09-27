@@ -101,6 +101,48 @@ function reveal_hidden_quote_blocks(el: Element): void {
   });
 }
 
+const QUOTE_TOGGLE_ICON_NS = "http://www.w3.org/2000/svg";
+
+function fill_quote_toggle(
+  doc: Document,
+  toggle_btn: HTMLButtonElement,
+  t: translate_fn,
+  expanded: boolean,
+): void {
+  const label = expanded
+    ? t("mail.hide_quoted_text")
+    : t("mail.show_quoted_text");
+
+  toggle_btn.textContent = "";
+  toggle_btn.title = label;
+  toggle_btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+
+  const icon = doc.createElementNS(QUOTE_TOGGLE_ICON_NS, "svg");
+
+  icon.setAttribute("viewBox", "0 0 20 20");
+  icon.setAttribute("fill", "currentColor");
+  icon.setAttribute("aria-hidden", "true");
+  icon.setAttribute("class", "aster-quote-toggle-icon");
+
+  const path = doc.createElementNS(QUOTE_TOGGLE_ICON_NS, "path");
+
+  path.setAttribute("fill-rule", "evenodd");
+  path.setAttribute("clip-rule", "evenodd");
+  path.setAttribute(
+    "d",
+    "M5.23 7.21a.75.75 0 0 1 1.06.02L10 11.17l3.71-3.94a.75.75 0 1 1 1.08 1.04l-4.25 4.5a.75.75 0 0 1-1.08 0l-4.25-4.5a.75.75 0 0 1 .02-1.06Z",
+  );
+  icon.appendChild(path);
+
+  const text = doc.createElement("span");
+
+  text.className = "aster-quote-toggle-label";
+  text.textContent = label;
+
+  toggle_btn.appendChild(icon);
+  toggle_btn.appendChild(text);
+}
+
 export function collapse_forwarded_content(
   doc: Document,
   t: translate_fn,
@@ -177,8 +219,7 @@ export function collapse_forwarded_content(
 
     toggle_btn.className = "aster-quote-toggle";
     toggle_btn.type = "button";
-    toggle_btn.textContent = "\u2022\u2022\u2022";
-    toggle_btn.title = t("mail.show_trimmed_content");
+    fill_quote_toggle(doc, toggle_btn, t, false);
 
     const content_div = doc.createElement("div");
 
@@ -205,6 +246,7 @@ export function collapse_forwarded_content(
 
       content_div.style.display = is_hidden ? "" : "none";
       toggle_btn.classList.toggle("aster-quote-expanded", is_hidden);
+      fill_quote_toggle(doc, toggle_btn, t, is_hidden);
     });
 
     wrapper.appendChild(toggle_btn);
@@ -564,8 +606,7 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
 
   toggle_btn.className = "aster-quote-toggle";
   toggle_btn.type = "button";
-  toggle_btn.textContent = "\u2022\u2022\u2022";
-  toggle_btn.title = t("mail.show_trimmed_content");
+  fill_quote_toggle(doc, toggle_btn, t, false);
 
   const content_div = doc.createElement("div");
 
@@ -599,6 +640,7 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
 
     content_div.style.display = is_hidden ? "" : "none";
     toggle_btn.classList.toggle("aster-quote-expanded", is_hidden);
+    fill_quote_toggle(doc, toggle_btn, t, is_hidden);
   });
 
   wrapper.appendChild(toggle_btn);

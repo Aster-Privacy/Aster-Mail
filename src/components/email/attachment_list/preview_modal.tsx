@@ -134,14 +134,14 @@ export function ImagePreviewModal({
             </span>
           )}
           <button
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium text-white/90 bg-white/10"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--aster-radius-control)] text-xs font-medium text-white/90 bg-white/10"
             onClick={on_download}
           >
             <DownloadIcon className="w-3.5 h-3.5" />
             {t("common.download")}
           </button>
           <button
-            className="px-3 py-1.5 rounded-[12px] text-xs font-medium text-white/90 bg-white/10"
+            className="px-3 py-1.5 rounded-[var(--aster-radius-control)] text-xs font-medium text-white/90 bg-white/10"
             onClick={on_close}
           >
             {t("common.close")}

@@ -130,7 +130,7 @@ export function BottomPagination({
           <button
             key={item}
             aria-current={item === current_page ? "page" : undefined}
-            className={`flex items-center justify-center min-w-[32px] h-8 px-1 rounded-[12px] text-sm font-medium transition-colors ${item === current_page ? "bg-[rgba(128,128,128,0.1)] text-txt-primary" : "text-txt-muted hover:text-txt-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"}`}
+            className={`flex items-center justify-center min-w-[32px] h-8 px-1 rounded-[var(--aster-radius-control)] text-sm font-medium transition-colors ${item === current_page ? "bg-[rgba(128,128,128,0.1)] text-txt-primary" : "text-txt-muted hover:text-txt-primary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"}`}
             type="button"
             onClick={() => {
               if (item !== current_page) on_page_change(item);
