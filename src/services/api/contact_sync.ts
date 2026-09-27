@@ -1391,13 +1391,29 @@ function slot_for(map: Map<string, CsvSlot>, key: string): CsvSlot {
   return slot;
 }
 
-function social_host_of(url: string): keyof SocialLinks | null {
-  const lower = url.toLowerCase();
+const social_hosts: Record<string, keyof SocialLinks> = {
+  "linkedin.com": "linkedin",
+  "twitter.com": "twitter",
+  "x.com": "twitter",
+  "github.com": "github",
+};
 
-  if (lower.includes("linkedin.com")) return "linkedin";
-  if (lower.includes("twitter.com") || lower.includes("x.com/"))
-    return "twitter";
-  if (lower.includes("github.com")) return "github";
+function social_host_of(url: string): keyof SocialLinks | null {
+  const trimmed = url.trim();
+  const with_scheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(trimmed)
+    ? trimmed
+    : `https://${trimmed}`;
+  let host: string;
+
+  try {
+    host = new URL(with_scheme).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+
+  for (const [domain, network] of Object.entries(social_hosts)) {
+    if (host === domain || host.endsWith(`.${domain}`)) return network;
+  }
 
   return null;
 }
