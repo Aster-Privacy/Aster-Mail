@@ -222,6 +222,9 @@ export function use_billing_section() {
     useState<StorageAddonItem | null>(null);
   const [crypto_resume, set_crypto_resume] =
     useState<CryptoResumeSelection | null>(null);
+  const [crypto_initial_term, set_crypto_initial_term] = useState<
+    number | undefined
+  >(undefined);
 
   useEffect(() => {
     if (plans.length === 0) return;
@@ -1027,13 +1030,17 @@ export function use_billing_section() {
     return options;
   };
 
-  const handle_pay_with_crypto = (plan: AvailablePlan) => {
+  const handle_pay_with_crypto = (
+    plan: AvailablePlan,
+    term_months?: number,
+  ) => {
     if (!crypto_term_prices_for(plan.code)) {
       show_toast(t("settings.crypto_price_unavailable"), "error");
 
       return;
     }
     set_crypto_resume(null);
+    set_crypto_initial_term(term_months);
     set_crypto_plan(plan);
     set_show_crypto_modal(true);
   };
@@ -1295,6 +1302,7 @@ export function use_billing_section() {
     set_crypto_back_addon,
     crypto_resume,
     set_crypto_resume,
+    crypto_initial_term,
     show_addon_method_modal,
     set_show_addon_method_modal,
     addon_method_target,

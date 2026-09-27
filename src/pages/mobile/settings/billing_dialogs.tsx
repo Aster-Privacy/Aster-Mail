@@ -27,6 +27,7 @@ import { clamp_password } from "@/services/sanitize";
 import {
   PLAN_TIERS,
   convert_cents,
+  crypto_term_months,
   is_crypto_provider,
 } from "@/components/settings/billing/billing_constants";
 import { format_price } from "@/services/api/billing";
@@ -106,6 +107,7 @@ export function render_billing_dialogs(
     set_crypto_back_addon,
     crypto_resume,
     set_crypto_resume,
+    crypto_initial_term,
     show_addon_method_modal,
     set_show_addon_method_modal,
     addon_method_target,
@@ -432,13 +434,15 @@ export function render_billing_dialogs(
             set_method_modal_plan(null);
             if (plan) handle_pay_with_card(plan);
           }}
-          on_choose_crypto={() => {
+          on_choose_crypto={(term_id) => {
             const plan = method_modal_plan;
 
             set_show_method_modal(false);
             set_method_modal_plan(null);
             set_crypto_back_plan(plan);
-            if (plan) handle_pay_with_crypto(plan);
+            if (plan) {
+              handle_pay_with_crypto(plan, crypto_term_months(term_id));
+            }
           }}
           on_close={() => {
             set_show_method_modal(false);
@@ -479,7 +483,9 @@ export function render_billing_dialogs(
                   : undefined
               }
               initial_invoice_id={crypto_resume?.invoice_id}
-              initial_term_months={crypto_resume?.term_months}
+              initial_term_months={
+                crypto_resume?.term_months ?? crypto_initial_term
+              }
               is_open={show_crypto_modal}
               monthly_price_cents={tier.monthly_cents}
               on_close={() => {
