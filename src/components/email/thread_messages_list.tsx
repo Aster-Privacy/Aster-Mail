@@ -58,7 +58,6 @@ import {
 import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { ThreadMessageBlock } from "@/components/email/thread_message_block";
-import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
 import { resolve_reply_references } from "@/lib/reply_references";
 
@@ -969,23 +968,6 @@ export const ThreadMessagesList = forwardRef<
     return ids;
   }, [display_messages, hidden_count]);
 
-  const hidden_senders = useMemo(() => {
-    if (!hidden_ids) return [];
-
-    const seen = new Map<string, { email: string; name: string }>();
-
-    display_messages.forEach((msg) => {
-      if (!hidden_ids.has(msg.id)) return;
-      const email = (msg.sender_email || "").toLowerCase();
-
-      if (!seen.has(email)) {
-        seen.set(email, { email: msg.sender_email, name: msg.sender_name });
-      }
-    });
-
-    return Array.from(seen.values()).slice(0, 3);
-  }, [display_messages, hidden_ids]);
-
   const render_message = (msg: DecryptedThreadMessage, display_idx: number) => {
     const is_last =
       msg.id === regular_messages[regular_messages.length - 1]?.id;
@@ -1072,22 +1054,12 @@ export const ThreadMessagesList = forwardRef<
               type="button"
               onClick={() => set_hidden_group_revealed(true)}
             >
-              <span className="flex flex-shrink-0 -space-x-2">
-                {hidden_senders.map((sender) => (
-                  <ProfileAvatar
-                    key={sender.email}
-                    use_domain_logo
-                    className="rounded-full ring-2 ring-[var(--aster-island-fill)]"
-                    email={sender.email}
-                    name={sender.name}
-                    size="sm"
-                  />
-                ))}
+              <span className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full bg-[var(--aster-field-bg)] text-txt-secondary transition-colors group-hover/hidden:bg-[var(--aster-field-hover)] group-hover/hidden:text-txt-primary">
+                <ChevronDownIcon className="h-5 w-5" />
               </span>
               <span className="min-w-0 flex-1 truncate text-sm font-medium text-txt-secondary transition-colors group-hover/hidden:text-txt-primary">
                 {t("mail.more_messages_count", { count: hidden_count })}
               </span>
-              <ChevronDownIcon className="h-4 w-4 flex-shrink-0 text-txt-muted transition-colors group-hover/hidden:text-txt-primary" />
             </button>
           ),
         });
