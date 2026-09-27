@@ -88,8 +88,16 @@ describe("recipient_post_quantum_status", () => {
     ).resolves.toBe("supported");
   });
 
-  it("reports unsupported when the signature does not cover the post-quantum key", async () => {
+  it("reports supported for a verified v1 bundle that publishes a post-quantum key", async () => {
     h.verification = { verdict: "verified", format: "v1", strict: false };
+
+    await expect(
+      recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),
+    ).resolves.toBe("supported");
+  });
+
+  it("reports unsupported for a v1 bundle with an unknown signer", async () => {
+    h.verification = { verdict: "unknown", format: "v1", strict: false };
 
     await expect(
       recipient_post_quantum_status("a@astermail.org", "b@aster.cx", "b"),

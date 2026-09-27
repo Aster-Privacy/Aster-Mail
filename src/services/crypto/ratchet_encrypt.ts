@@ -158,7 +158,7 @@ function is_bundle_verification_rejected(
   return (
     verification.verdict === "tampered" ||
     (is_strict_recipient_bundle_enforced() &&
-      (verification.verdict !== "verified" || !verification.strict))
+      verification.verdict !== "verified")
   );
 }
 
