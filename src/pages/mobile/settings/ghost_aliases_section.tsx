@@ -285,7 +285,7 @@ export function GhostAliasesSection({
                     </div>
                     <div className="flex shrink-0 items-center gap-1.5">
                       <button
-                        className="rounded-[12px] bg-[var(--mobile-bg-card-hover)] px-3 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] disabled:opacity-50"
+                        className="rounded-[var(--aster-radius-control)] bg-[var(--mobile-bg-card-hover)] px-3 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] disabled:opacity-50"
                         disabled={
                           action_loading === alias.id ||
                           is_at_max_extension(alias)
@@ -296,7 +296,7 @@ export function GhostAliasesSection({
                         {t("settings.ghost_alias_extend")}
                       </button>
                       <button
-                        className="rounded-[12px] px-3 py-1.5 text-[13px] font-medium text-white disabled:opacity-60"
+                        className="rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium text-white disabled:opacity-60"
                         disabled={action_loading === alias.id}
                         style={{
                           background:

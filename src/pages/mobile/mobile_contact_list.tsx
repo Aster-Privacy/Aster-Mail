@@ -136,7 +136,7 @@ export function MobileContactList({
             {t("common.selected_count", { count: selected_ids.size })}
           </span>
           <button
-            className="rounded-[12px] px-3 py-1.5 text-[13px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
+            className="rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
             type="button"
             onClick={
               filtered_contacts.length > 0 &&
@@ -158,7 +158,7 @@ export function MobileContactList({
             <div className="flex items-center gap-2">
               {contacts.length > 0 && (
                 <button
-                  className="rounded-[12px] px-3 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] active:opacity-70"
+                  className="rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] active:opacity-70"
                   disabled={filtered_contacts.length === 0}
                   type="button"
                   onClick={() => {
@@ -342,7 +342,7 @@ export function MobileContactList({
               {t("common.failed_to_load_contacts")}
             </p>
             <button
-              className="rounded-[12px] bg-[var(--bg-tertiary)] px-4 py-2 text-[14px] font-medium text-[var(--text-primary)] active:opacity-70"
+              className="rounded-[var(--aster-radius-control)] bg-[var(--bg-tertiary)] px-4 py-2 text-[14px] font-medium text-[var(--text-primary)] active:opacity-70"
               type="button"
               onClick={on_retry_load}
             >

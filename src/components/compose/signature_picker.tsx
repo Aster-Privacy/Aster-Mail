@@ -81,7 +81,7 @@ export function SignaturePicker({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-auto p-0 bg-surf-primary border-edge-primary"
+        className="w-auto p-1.5"
         side="top"
       >
         <div className="p-2 min-w-[260px]">
@@ -93,7 +93,7 @@ export function SignaturePicker({
           {signatures.map((signature) => (
             <button
               key={signature.id}
-              className="w-full flex items-start gap-3 px-2 py-2 rounded-[14px] transition-colors hover:bg-surf-hover"
+              className="w-full flex items-start gap-3 px-2 py-2 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
               type="button"
               onClick={() => {
                 const formatted = get_formatted_signature(signature);
@@ -107,16 +107,7 @@ export function SignaturePicker({
                     {signature.name}
                   </span>
                   {default_signature?.id === signature.id && (
-                    <span
-                      className="text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider flex-shrink-0"
-                      style={{
-                        color: "white",
-                        background:
-                          "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                        boxShadow:
-                          "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                      }}
-                    >
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full flex-shrink-0 bg-[var(--aster-selected)] text-txt-secondary">
                       {t("settings.default_badge")}
                     </span>
                   )}
@@ -130,9 +121,9 @@ export function SignaturePicker({
               </div>
             </button>
           ))}
-          <div className="my-1 h-px bg-edge-secondary" />
+          <div className="aster_floating_divider my-1" />
           <button
-            className="w-full flex items-center gap-3 px-2 py-2 rounded-[14px] transition-colors hover:bg-surf-hover"
+            className="w-full flex items-center gap-3 px-2 py-2 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
             type="button"
             onClick={() => handle_select("", false)}
           >

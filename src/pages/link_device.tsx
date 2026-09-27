@@ -441,7 +441,7 @@ function AccountChooser({
       </p>
 
       <button
-        className="mt-4 rounded-full px-4 py-2 text-[13px] font-medium text-txt-tertiary transition-colors hover:text-txt-primary"
+        className="mt-4 rounded-[var(--aster-radius-control)] px-4 py-2 text-[13px] font-medium text-txt-tertiary transition-colors hover:text-txt-primary"
         type="button"
         onClick={on_cancel}
       >
@@ -759,7 +759,7 @@ export default function LinkDevice() {
           {t("auth.link_device_confirm_button")}
         </Button>
         <button
-          className="mt-4 rounded-full px-4 py-2 text-[13px] font-medium text-txt-tertiary transition-colors hover:text-txt-primary"
+          className="mt-4 rounded-[var(--aster-radius-control)] px-4 py-2 text-[13px] font-medium text-txt-tertiary transition-colors hover:text-txt-primary"
           type="button"
           onClick={handle_restart}
         >
@@ -807,7 +807,7 @@ export default function LinkDevice() {
         {t("auth.link_device_verify_button")}
       </Button>
       <button
-        className="mt-4 rounded-full px-4 py-2 text-[13px] font-medium text-txt-tertiary transition-colors hover:text-txt-primary"
+        className="mt-4 rounded-[var(--aster-radius-control)] px-4 py-2 text-[13px] font-medium text-txt-tertiary transition-colors hover:text-txt-primary"
         type="button"
         onClick={() => navigate("/")}
       >

@@ -962,7 +962,7 @@ function MobileInbox({
             {t("common.selected_count", { count: selected_ids.size })}
           </span>
           <button
-            className="rounded-full px-3 py-1.5 text-[13px] font-medium text-[var(--accent-color,#3b82f6)]"
+            className="rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium text-[var(--accent-color,#3b82f6)]"
             type="button"
             onClick={handle_select_all}
           >
@@ -1093,7 +1093,7 @@ function MobileInbox({
             {scheduled_state.error}
           </p>
           <button
-            className="mt-3 rounded-full bg-[var(--accent-color,#3b82f6)] px-5 py-2 text-[13px] font-medium text-[var(--accent-fg,#ffffff)]"
+            className="mt-3 rounded-[var(--aster-radius-control)] bg-[var(--accent-color,#3b82f6)] px-5 py-2 text-[13px] font-medium text-[var(--accent-fg,#ffffff)]"
             type="button"
             onClick={refresh_scheduled}
           >
@@ -1112,7 +1112,7 @@ function MobileInbox({
             {drafts_state.error}
           </p>
           <button
-            className="mt-3 rounded-full bg-[var(--accent-color,#3b82f6)] px-5 py-2 text-[13px] font-medium text-[var(--accent-fg,#ffffff)]"
+            className="mt-3 rounded-[var(--aster-radius-control)] bg-[var(--accent-color,#3b82f6)] px-5 py-2 text-[13px] font-medium text-[var(--accent-fg,#ffffff)]"
             type="button"
             onClick={refresh_drafts}
           >

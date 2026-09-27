@@ -108,7 +108,7 @@ export function FontSizeSelect({
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-label={t("common.font_size_label")}
-        className="h-7 px-2 text-xs rounded-md cursor-pointer flex items-center gap-1 transition-colors hover:bg-black/5 dark:hover:bg-white/10 whitespace-nowrap bg-transparent text-txt-muted"
+        className="h-7 px-2 text-xs rounded-[var(--aster-radius-item)] cursor-pointer flex items-center gap-1 transition-colors hover:bg-[var(--aster-hover)] whitespace-nowrap bg-transparent text-txt-muted"
         type="button"
         onClick={() => {
           if (!open) on_before_open?.();
@@ -131,7 +131,7 @@ export function FontSizeSelect({
         open && (
           <div
             ref={dropdown_ref}
-            className="fixed rounded-xl border shadow-lg py-1 min-w-[110px] bg-modal-bg border-edge-primary"
+            className="aster_floating fixed p-1.5 min-w-[120px]"
             id={list_id}
             style={{
               zIndex: 9999,
@@ -142,7 +142,7 @@ export function FontSizeSelect({
             {FONT_SIZE_OPTIONS.map((option) => (
               <button
                 key={option.value}
-                className="w-full text-start px-3 py-1.5 text-xs transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-txt-primary"
+                className="w-full text-start px-2.5 py-1.5 text-[13px] text-txt-primary rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
                 style={{
                   fontWeight: current_size === option.value ? 600 : 400,
                 }}

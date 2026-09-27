@@ -541,7 +541,7 @@ export function SnoozeSimilarModal({
                         return (
                           <button
                             key={option.label}
-                            className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-[12px] text-[13px] transition-colors ${is_selected ? "" : "text-txt-primary"}`}
+                            className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-[var(--aster-radius-control)] text-[13px] transition-colors ${is_selected ? "" : "text-txt-primary"}`}
                             style={
                               is_selected
                                 ? { color: "var(--accent-color)" }
@@ -571,7 +571,7 @@ export function SnoozeSimilarModal({
                         );
                       })}
                       <button
-                        className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-[12px] text-[13px] transition-colors ${snooze_label && !snooze_options.some((o) => o.label === snooze_label) ? "" : "text-txt-primary"}`}
+                        className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-[var(--aster-radius-control)] text-[13px] transition-colors ${snooze_label && !snooze_options.some((o) => o.label === snooze_label) ? "" : "text-txt-primary"}`}
                         style={
                           snooze_label &&
                           !snooze_options.some((o) => o.label === snooze_label)

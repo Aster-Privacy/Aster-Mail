@@ -396,7 +396,7 @@ export function ModalContactDetail({
                       return (
                         <button
                           key={kind}
-                          className="text-[13px] px-2.5 py-1 rounded-[12px] transition-colors bg-surf-primary text-[var(--accent-color,#3b82f6)] hover:bg-surf-tertiary"
+                          className="text-[13px] px-2.5 py-1 rounded-[var(--aster-radius-control)] transition-colors bg-surf-primary text-[var(--accent-color,#3b82f6)] hover:bg-surf-tertiary"
                           title={url}
                           type="button"
                           onClick={() => handle_external_link(url)}

@@ -334,7 +334,7 @@ export function ExpirationPicker({
         </div>
         <PopoverContent
           align="end"
-          className="w-auto p-0 bg-surf-primary border-edge-primary"
+          className="w-auto p-1.5"
           side="top"
         >
           {!show_custom ? (
@@ -347,7 +347,7 @@ export function ExpirationPicker({
               {quick_options.map((option) => (
                 <button
                   key={option.label}
-                  className="w-full flex items-center gap-3 px-2 py-2 rounded-[14px] transition-colors hover:bg-surf-hover"
+                  className="w-full flex items-center gap-3 px-2 py-2 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
                   type="button"
                   onClick={() => handle_quick_select(option)}
                 >
@@ -362,9 +362,9 @@ export function ExpirationPicker({
                   </div>
                 </button>
               ))}
-              <div className="my-2 h-px bg-edge-secondary" />
+              <div className="aster_floating_divider my-2" />
               <button
-                className="w-full flex items-center gap-3 px-2 py-2 rounded-[14px] transition-colors hover:bg-surf-hover"
+                className="w-full flex items-center gap-3 px-2 py-2 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
                 type="button"
                 onClick={() => set_show_custom(true)}
               >
@@ -382,9 +382,9 @@ export function ExpirationPicker({
               </button>
               {show_password_option && !password_locked && (
                 <>
-                  <div className="my-2 h-px bg-edge-secondary" />
+                  <div className="aster_floating_divider my-2" />
                   <button
-                    className="w-full flex items-center gap-3 px-2 py-2 rounded-[14px] transition-colors hover:bg-surf-hover"
+                    className="w-full flex items-center gap-3 px-2 py-2 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
                     type="button"
                     onClick={() => {
                       set_is_open(false);
@@ -438,7 +438,7 @@ export function ExpirationPicker({
                 selected={selected_date}
                 onSelect={set_selected_date}
               />
-              <div className="my-3 h-px bg-edge-secondary" />
+              <div className="aster_floating_divider my-3" />
               <div className="flex items-center gap-2">
                 <span className="text-xs font-medium text-txt-muted">
                   {t("common.time_label")}
@@ -449,7 +449,7 @@ export function ExpirationPicker({
                       {format_hour(selected_hour)}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="max-h-60 overflow-y-auto bg-surf-primary border-edge-primary">
+                  <DropdownMenuContent className="max-h-60 overflow-y-auto">
                     {hours.map((hour) => (
                       <DropdownMenuItem
                         key={hour}
@@ -467,7 +467,7 @@ export function ExpirationPicker({
                       {selected_minute.toString().padStart(2, "0")}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="max-h-60 overflow-y-auto bg-surf-primary border-edge-primary">
+                  <DropdownMenuContent className="max-h-60 overflow-y-auto">
                     {minutes.map((minute) => (
                       <DropdownMenuItem
                         key={minute}

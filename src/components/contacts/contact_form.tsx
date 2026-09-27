@@ -431,7 +431,7 @@ export function ContactForm({
               <button
                 key={tab.id}
                 className={cn(
-                  "relative z-10 flex-1 px-2 py-1.5 text-[11px] font-medium rounded-[12px] whitespace-nowrap",
+                  "relative z-10 flex-1 px-2 py-1.5 text-[11px] font-medium rounded-[var(--aster-radius-control)] whitespace-nowrap",
                   active_tab === tab.id
                     ? "bg-surf-primary text-txt-primary"
                     : "text-txt-muted",

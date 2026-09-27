@@ -816,7 +816,7 @@ export function SecuritySection({
                 {timeout_options.map((opt) => (
                   <button
                     key={opt.value}
-                    className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                    className={`rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium ${
                       preferences.session_timeout_minutes === opt.value
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
@@ -858,7 +858,7 @@ export function SecuritySection({
                 {rotation_options.map((opt) => (
                   <button
                     key={opt.value}
-                    className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                    className={`rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium ${
                       preferences.key_rotation_hours === opt.value
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
@@ -886,7 +886,7 @@ export function SecuritySection({
                 {key_history_options.map((opt) => (
                   <button
                     key={opt.value}
-                    className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                    className={`rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium ${
                       preferences.key_history_limit === opt.value
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"

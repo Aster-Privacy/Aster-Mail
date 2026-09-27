@@ -150,7 +150,7 @@ export function ColorPickerPopover({
         open && (
           <div
             ref={dropdown_ref}
-            className="fixed -translate-x-1/2 rounded-2xl shadow-lg border w-[280px] bg-modal-bg border-edge-primary"
+            className="aster_floating fixed -translate-x-1/2 w-[280px]"
             id={panel_id}
             style={{
               zIndex: 9999,
@@ -162,9 +162,10 @@ export function ColorPickerPopover({
             }}
           >
             <div className="p-2 pb-0">
-              <div className="flex gap-1 p-1 rounded-full bg-black/5 dark:bg-white/5">
+              <div className="aster_segmented" role="group">
                 <button
-                  className={`flex-1 flex items-center justify-center gap-1.5 h-7 text-xs whitespace-nowrap cursor-pointer rounded-full transition-colors duration-150 ${mode === "text" ? "bg-modal-bg shadow-sm font-medium text-txt-primary" : "text-txt-muted hover:text-txt-primary"}`}
+                  aria-pressed={mode === "text"}
+                  className="aster_segmented_option !min-h-8 gap-1.5 !text-xs"
                   type="button"
                   onClick={() => set_mode("text")}
                   onMouseDown={(e) => e.preventDefault()}
@@ -179,7 +180,8 @@ export function ColorPickerPopover({
                   {t("mail.font_color")}
                 </button>
                 <button
-                  className={`flex-1 flex items-center justify-center gap-1.5 h-7 text-xs whitespace-nowrap cursor-pointer rounded-full transition-colors duration-150 ${mode === "highlight" ? "bg-modal-bg shadow-sm font-medium text-txt-primary" : "text-txt-muted hover:text-txt-primary"}`}
+                  aria-pressed={mode === "highlight"}
+                  className="aster_segmented_option !min-h-8 gap-1.5 !text-xs"
                   type="button"
                   onClick={() => set_mode("highlight")}
                   onMouseDown={(e) => e.preventDefault()}
@@ -222,7 +224,7 @@ export function ColorPickerPopover({
                   );
                 })}
               </div>
-              <div className="mt-2.5 pt-2.5 border-t flex items-center gap-2 border-edge-secondary">
+              <div className="mt-2.5 pt-2.5 flex items-center gap-2 border-t border-[var(--aster-floating-divider)]">
                 <div
                   className="w-6 h-6 rounded-full flex-shrink-0"
                   style={{

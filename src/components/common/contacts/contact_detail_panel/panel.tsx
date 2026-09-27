@@ -447,7 +447,7 @@ export function ContactDetailPanel({
           <div className="flex flex-wrap items-center gap-2 mb-6">
             {!is_editing && (
               <button
-                className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+                className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
                 type="button"
                 onClick={() => {
                   set_show_history(false);
@@ -460,7 +460,7 @@ export function ContactDetailPanel({
             )}
             {selected_contact.emails[0] && (
               <button
-                className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+                className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
                 type="button"
                 onClick={() => on_compose_email(selected_contact.emails[0])}
               >
@@ -478,7 +478,7 @@ export function ContactDetailPanel({
             </button>
             {contact_mail_query && (
               <button
-                className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+                className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
                 type="button"
                 onClick={handle_search_mail}
               >
@@ -487,7 +487,7 @@ export function ContactDetailPanel({
               </button>
             )}
             <button
-              className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+              className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
               type="button"
               onClick={() => on_toggle_favorite?.(selected_contact)}
             >
@@ -504,7 +504,7 @@ export function ContactDetailPanel({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+                    className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
                     type="button"
                   >
                     <ArrowUpOnSquareIcon className="w-4 h-4" />
@@ -537,7 +537,7 @@ export function ContactDetailPanel({
             )}
             {!is_editing && (
               <button
-                className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+                className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
                 type="button"
                 onClick={() => on_delete_request(selected_contact)}
               >

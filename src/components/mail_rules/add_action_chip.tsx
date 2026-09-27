@@ -54,7 +54,7 @@ export function AddActionChip({ options, on_pick }: AddActionChipProps) {
     <DropdownMenu open={open} onOpenChange={set_open}>
       <DropdownMenuTrigger asChild>
         <button
-          className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-[12px] border border-dashed border-neutral-300 dark:border-neutral-700 text-[12.5px] text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
+          className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-[var(--aster-radius-control)] border border-dashed border-neutral-300 dark:border-neutral-700 text-[12.5px] text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
           type="button"
         >
           <PlusIcon className="w-3.5 h-3.5" />

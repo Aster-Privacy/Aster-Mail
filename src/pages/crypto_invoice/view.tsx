@@ -1063,7 +1063,7 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
                   </span>
                   <button
                     aria-label={t("settings.crypto_native_copy_tx_hash")}
-                    className="group mt-1.5 flex w-full items-center justify-between gap-3 rounded-[12px] border border-edge-secondary px-3.5 py-2.5 text-start transition-colors hover:border-edge-primary hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+                    className="group mt-1.5 flex w-full items-center justify-between gap-3 rounded-[var(--aster-radius-control)] border border-edge-secondary px-3.5 py-2.5 text-start transition-colors hover:border-edge-primary hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
                     type="button"
                     onClick={() => handle_copy(invoice.txids[0])}
                   >

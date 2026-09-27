@@ -634,7 +634,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
 
   return (
     <div
-      className="flex w-[360px] max-w-[calc(100vw-16px)] flex-col overflow-hidden rounded-2xl border border-edge-primary bg-modal-bg shadow-[0_16px_40px_-12px_rgba(0,0,0,0.28),0_2px_6px_-2px_rgba(0,0,0,0.12)]"
+      className="aster_floating flex w-[360px] max-w-[calc(100vw-16px)] flex-col overflow-hidden"
       onMouseDown={(e) => e.preventDefault()}
     >
       <div className="flex px-2 pt-1" role="tablist">

@@ -894,7 +894,7 @@ export function ContactList({
                     else contact_refs.current?.delete(contact.id);
                   }}
                   className={cn(
-                    "contact_row group/contact w-full flex items-center gap-3 px-3 my-0.5 rounded-[12px] text-start",
+                    "contact_row group/contact w-full flex items-center gap-3 px-3 my-0.5 rounded-[var(--aster-radius-control)] text-start",
                     is_compact ? "py-1" : "py-1.5",
                   )}
                   style={{

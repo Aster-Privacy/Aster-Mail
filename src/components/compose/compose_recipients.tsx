@@ -795,7 +795,7 @@ export function RecipientField({
         <div className="flex items-center gap-1 flex-shrink-0 py-1">
           {!show_cc && (
             <button
-              className="text-xs px-2 py-1 rounded transition-colors hover_bg text-txt-tertiary"
+              className="text-xs px-2.5 py-1 rounded-full transition-colors hover_bg text-txt-tertiary"
               title={t("common.carbon_copy")}
               onClick={on_show_cc}
             >
@@ -804,7 +804,7 @@ export function RecipientField({
           )}
           {!show_bcc && (
             <button
-              className="text-xs px-2 py-1 rounded transition-colors hover_bg text-txt-tertiary"
+              className="text-xs px-2.5 py-1 rounded-full transition-colors hover_bg text-txt-tertiary"
               title={t("common.blind_carbon_copy")}
               onClick={on_show_bcc}
             >

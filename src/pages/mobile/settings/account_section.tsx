@@ -563,7 +563,7 @@ export function AccountSection({
                   <button
                     key={badge.slug}
                     className={cn(
-                      "inline-flex select-none items-center gap-1.5 rounded-[12px] px-3 py-1.5 text-xs font-medium",
+                      "inline-flex select-none items-center gap-1.5 rounded-[var(--aster-radius-control)] px-3 py-1.5 text-xs font-medium",
                       is_active
                         ? "bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)]"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]",

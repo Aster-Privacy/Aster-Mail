@@ -478,7 +478,7 @@ export function AliasesSection({
               {t("common.something_went_wrong_try_again")}
             </p>
             <button
-              className="rounded-[12px] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
+              className="rounded-[var(--aster-radius-control)] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
               type="button"
               onClick={() => void hook.load_aliases()}
             >
@@ -769,7 +769,7 @@ export function AliasesSection({
                           <div className="flex items-center gap-2">
                             {domain.status !== "active" && (
                               <button
-                                className="rounded-[12px] px-3 py-1.5 text-[12px] font-medium text-white"
+                                className="rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[12px] font-medium text-white"
                                 style={{
                                   background:
                                     "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
@@ -942,7 +942,7 @@ export function AliasesSection({
                 {t("common.something_went_wrong_try_again")}
               </p>
               <button
-                className="rounded-[12px] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
+                className="rounded-[var(--aster-radius-control)] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
                 type="button"
                 onClick={() => load_purchased_orders()}
               >

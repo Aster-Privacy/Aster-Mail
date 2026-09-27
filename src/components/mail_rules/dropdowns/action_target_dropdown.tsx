@@ -413,7 +413,7 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
             </div>
             <button
               disabled
-              className="w-full text-start px-2.5 py-1.5 rounded-[12px] text-[12.5px] text-neutral-400 cursor-not-allowed"
+              className="w-full text-start px-2.5 py-1.5 rounded-[var(--aster-radius-control)] text-[12.5px] text-neutral-400 cursor-not-allowed"
               type="button"
             >
               {t("mail_rules.coming_soon")}

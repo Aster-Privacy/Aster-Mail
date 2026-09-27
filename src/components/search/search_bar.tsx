@@ -626,7 +626,7 @@ export function SearchBar({
                   {search_state.error}
                 </p>
                 <button
-                  className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium transition-colors bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)] hover:opacity-90"
+                  className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--aster-radius-control)] text-xs font-medium transition-colors bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)] hover:opacity-90"
                   type="button"
                   onClick={() => {
                     clear_index();

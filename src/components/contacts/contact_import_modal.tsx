@@ -692,7 +692,7 @@ export function ContactImportModal({
                 >
                   <SelectTrigger
                     aria-label={t("common.import_add_to_group")}
-                    className="h-9 w-auto min-w-[176px] rounded-full px-3 text-[13px]"
+                    className="h-9 w-auto min-w-[176px] rounded-[var(--aster-radius-control)] px-3 text-[13px]"
                   >
                     <span className="flex min-w-0 items-center gap-2">
                       <UserGroupIcon className="h-4 w-4 flex-shrink-0 text-txt-muted" />

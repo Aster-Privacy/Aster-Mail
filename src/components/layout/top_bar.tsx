@@ -358,7 +358,7 @@ function top_bar_base({
         {is_free_plan && has_special_offer && (
           <Tooltip tip={t("settings.special_offer_subtitle")}>
             <Button
-              className="special_offer_pill hidden sm:inline-flex !h-9 !rounded-full !text-[14px] !font-medium !px-5 ms-1 gap-1.5"
+              className="special_offer_pill hidden sm:inline-flex !h-9 !rounded-[var(--aster-radius-control)] !text-[14px] !font-medium !px-5 ms-1 gap-1.5"
               size="sm"
               variant="depth"
               onClick={open_special_offer}
@@ -372,7 +372,7 @@ function top_bar_base({
         {is_free_plan && !has_special_offer && (
           <Tooltip tip={t("common.upgrade_tooltip")}>
             <Button
-              className="hidden sm:inline-flex !h-9 !rounded-full !text-[14px] !font-medium !px-5 ms-1"
+              className="hidden sm:inline-flex !h-9 !rounded-[var(--aster-radius-control)] !text-[14px] !font-medium !px-5 ms-1"
               size="sm"
               variant="depth"
               onClick={() => show_upgrade_plans()}

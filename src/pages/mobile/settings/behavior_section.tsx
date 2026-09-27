@@ -373,7 +373,7 @@ export function BehaviorSection({
                   onChange={commit_compose_font_color}
                 />
                 <button
-                  className="rounded-[12px] border border-[var(--border-primary)] px-3 py-1.5 text-[13px] text-[var(--text-primary)] disabled:opacity-50"
+                  className="rounded-[var(--aster-radius-control)] border border-[var(--border-primary)] px-3 py-1.5 text-[13px] text-[var(--text-primary)] disabled:opacity-50"
                   disabled={!has_compose_font_color}
                   type="button"
                   onClick={() =>
@@ -562,7 +562,7 @@ export function BehaviorSection({
                 {image_loading_options.map((opt) => (
                   <button
                     key={opt.value}
-                    className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                    className={`rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium ${
                       preferences.load_remote_images === opt.value
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
@@ -711,7 +711,7 @@ export function BehaviorSection({
                 {undo_presets.map((sec) => (
                   <button
                     key={sec}
-                    className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                    className={`rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium ${
                       undo_current_seconds === sec
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
@@ -890,7 +890,7 @@ export function BehaviorSection({
                       {spam_sensitivity_options.map((opt) => (
                         <button
                           key={opt.value}
-                          className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                          className={`rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium ${
                             spam_settings.spam_sensitivity === opt.value
                               ? "text-white"
                               : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
@@ -942,7 +942,7 @@ export function BehaviorSection({
                               (opt) => (
                                 <button
                                   key={opt.value}
-                                  className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                                  className={`rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium ${
                                     effective_value === opt.value
                                       ? "text-white"
                                       : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
@@ -1012,7 +1012,7 @@ export function BehaviorSection({
                       {build_retention_options(effective_value).map((opt) => (
                         <button
                           key={opt.value}
-                          className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                          className={`rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium ${
                             effective_value === opt.value
                               ? "text-white"
                               : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"

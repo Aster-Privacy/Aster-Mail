@@ -176,7 +176,7 @@ export function TrustedDevicesSection({
                     </p>
                   </div>
                   <button
-                    className="flex shrink-0 items-center gap-1 rounded-[12px] px-3 py-1.5 text-[13px] font-medium text-[var(--color-danger,#ef4444)]"
+                    className="flex shrink-0 items-center gap-1 rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium text-[var(--color-danger,#ef4444)]"
                     disabled={revoking_id === device.id}
                     style={{ border: "1px solid var(--border-primary)" }}
                     type="button"

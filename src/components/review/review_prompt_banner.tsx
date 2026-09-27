@@ -71,7 +71,7 @@ export function ReviewPromptBanner() {
     title?: string,
   ) => (
     <button
-      className="px-2.5 py-0.5 text-xs font-medium rounded-[12px] transition-colors"
+      className="px-2.5 py-0.5 text-xs font-medium rounded-[var(--aster-radius-control)] transition-colors"
       style={{
         backgroundColor: emphasis
           ? "rgba(255, 255, 255, 0.2)"
