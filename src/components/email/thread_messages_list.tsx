@@ -1050,15 +1050,11 @@ export const ThreadMessagesList = forwardRef<
               aria-label={t("mail.more_messages_count", {
                 count: hidden_count,
               })}
-              className="group/hidden relative flex w-full cursor-pointer select-none items-center justify-center px-4 py-2.5 focus:outline-none"
+              className="group/hidden flex w-full cursor-pointer select-none items-center justify-start px-4 py-2 focus:outline-none"
               type="button"
               onClick={() => set_hidden_group_revealed(true)}
             >
-              <span
-                aria-hidden="true"
-                className="absolute inset-x-4 top-1/2 h-px -translate-y-1/2 bg-[var(--aster-island-divider)]"
-              />
-              <span className="relative inline-flex h-8 items-center gap-1.5 rounded-full bg-[var(--aster-field-bg)] pe-3 ps-4 text-[13px] font-medium text-txt-secondary transition-colors group-hover/hidden:bg-[var(--aster-field-hover)] group-hover/hidden:text-txt-primary group-focus-visible/hidden:ring-2 group-focus-visible/hidden:ring-[var(--accent-color)]">
+              <span className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[var(--aster-field-bg)] pe-3 ps-3.5 text-[13px] font-medium text-txt-secondary transition-colors group-hover/hidden:bg-[var(--aster-field-hover)] group-hover/hidden:text-txt-primary group-focus-visible/hidden:ring-2 group-focus-visible/hidden:ring-[var(--accent-color)]">
                 {t("mail.more_messages_count", { count: hidden_count })}
                 <ChevronDownIcon className="h-4 w-4" />
               </span>
