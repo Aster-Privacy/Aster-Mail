@@ -81,7 +81,7 @@ function FormInput({
   return (
     <Input
       autoFocus={autoFocus}
-      className="w-full rounded-lg border border-[var(--border-primary)] bg-transparent px-3 py-2.5 text-[14px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+      className="w-full"
       placeholder={placeholder}
       type={type}
       value={value}
@@ -341,7 +341,7 @@ export function ContactFormView({
                 label={t("common.notes_section")}
               >
                 <textarea
-                  className="w-full rounded-lg border border-[var(--border-primary)] bg-transparent px-3 py-2.5 text-[14px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+                  className="aster_input w-full resize-none px-3 py-2.5 text-[14px]"
                   placeholder={t("common.notes")}
                   rows={3}
                   value={form_data.notes ?? ""}

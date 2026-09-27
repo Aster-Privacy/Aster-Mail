@@ -45,7 +45,6 @@ import { use_should_reduce_motion } from "@/provider";
 import { MobileHeader } from "@/components/mobile/mobile_header";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
 
 interface MobileContactListProps {
   contacts: DecryptedContact[];
@@ -206,10 +205,11 @@ export function MobileContactList({
       )}
 
       <div className="px-4 py-2">
-        <div className="flex items-center gap-2 rounded-xl bg-[var(--bg-tertiary)] px-3 py-2">
+        <div className="flex h-11 items-center gap-2 rounded-[var(--aster-radius-field)] bg-[var(--bg-tertiary)] px-3.5">
           <MagnifyingGlassIcon className="h-4.5 w-4.5 shrink-0 text-[var(--text-muted)]" />
-          <Input
-            className="min-w-0 flex-1 bg-transparent"
+          <input
+            aria-label={t("common.search_contacts")}
+            className="h-full min-w-0 flex-1 bg-transparent text-[15px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
             placeholder={t("common.search_contacts")}
             type="text"
             value={search_query}
@@ -231,20 +231,9 @@ export function MobileContactList({
         <button
           className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
             filter === "all"
-              ? "text-white"
+              ? "bg-[var(--accent-color)] text-white"
               : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]"
           }`}
-          style={
-            filter === "all"
-              ? {
-                  background:
-                    "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                  border: "1px solid rgba(255, 255, 255, 0.15)",
-                  borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
-                  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
-                }
-              : undefined
-          }
           type="button"
           onClick={() => {
             set_filter("all");
@@ -257,20 +246,9 @@ export function MobileContactList({
           <button
             className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
               filter === "favorites"
-                ? "text-white"
+                ? "bg-[var(--accent-color)] text-white"
                 : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]"
             }`}
-            style={
-              filter === "favorites"
-                ? {
-                    background:
-                      "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                    border: "1px solid rgba(255, 255, 255, 0.15)",
-                    borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
-                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
-                  }
-                : undefined
-            }
             type="button"
             onClick={() => {
               set_group_filter(null);
@@ -297,7 +275,7 @@ export function MobileContactList({
               group_filter === group.id
                 ? {
                     backgroundColor: `${group.color}33`,
-                    border: `1px solid ${group.color}`,
+                    boxShadow: `inset 0 0 0 1px ${group.color}`,
                   }
                 : undefined
             }
