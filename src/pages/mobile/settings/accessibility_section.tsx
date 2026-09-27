@@ -89,7 +89,7 @@ export function AccessibilitySection({
               />
               <input
                 aria-label={t("settings.font_size")}
-                className="w-16 h-9 px-2 rounded-md border bg-surf-secondary border-edge-secondary text-sm text-txt-primary text-center focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
+                className="aster_input w-16 h-9 px-2 text-sm text-center"
                 inputMode="numeric"
                 maxLength={3}
                 type="text"
