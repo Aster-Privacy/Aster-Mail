@@ -792,9 +792,9 @@ export const pl = {
     dismiss_failed: "Spróbuj ponownie.",
     failed_to_load_custom_fields: "Te pola niestandardowe się nie wczytały. Spróbuj ponownie.",
     failed_to_create_field: "To pole niestandardowe nie zostało zapisane. Spróbuj ponownie.",
-    delete_custom_field_title: "Delete custom field?",
+    delete_custom_field_title: "Usunąć pole niestandardowe?",
     delete_custom_field_message:
-      "Deleting this field also removes its values from every contact. You cannot undo this.",
+      "Usunięcie tego pola usuwa też jego wartości ze wszystkich kontaktów. Tej operacji nie można cofnąć.",
     failed_to_delete_field: "To pole niestandardowe nie zostało usunięte. Spróbuj ponownie.",
     failed_to_save_value: "Zmiana nie została zapisana. Spróbuj ponownie. Poprzednia wartość nadal obowiązuje.",
     click_scan_duplicates: 'Kliknij "Skanuj", aby sprawdzić duplikaty',
@@ -9915,8 +9915,6 @@ export const pl = {
       "Zbyt wiele prób. Odczekaj około minuty i spróbuj ponownie.",
     link_device_account_suspended:
       "To konto jest zawieszone, więc nie można teraz powiązać nowych urządzeń. Skontaktuj się z pomocą techniczną.",
-    product_updates_notice:
-      "Od czasu do czasu otrzymasz też nowości o produkcie w skrzynce odbiorczej. Możesz je wyłączyć w Ustawieniach.",
     plan_academic_discount_note:
       "Zniżka 30% zostanie zastosowana automatycznie przy płatności, gdy Twój e-mail zostanie zweryfikowany.",
     plan_referral_discount_note:
@@ -10951,7 +10949,7 @@ export const pl = {
     position: "Pozycja",
     profile: "Profil",
     proton: "Proton",
-    push: "Push",
+    push: "Powiadomienia push",
     quiet_hours: "Godziny ciszy",
     reading: "Czytanie",
     reading_and_conversations: "Czytanie i rozmowy",

@@ -780,9 +780,9 @@ export const ar = {
     dismiss_failed: "حاول مجددًا.",
     failed_to_load_custom_fields: "لم يتم تحميل هذه الحقول المخصصة. حاول مجددًا.",
     failed_to_create_field: "لم يُحفظ هذا الحقل المخصص. حاول مجددًا.",
-    delete_custom_field_title: "Delete custom field?",
+    delete_custom_field_title: "هل تريد حذف الحقل المخصص؟",
     delete_custom_field_message:
-      "Deleting this field also removes its values from every contact. You cannot undo this.",
+      "يؤدي حذف هذا الحقل أيضًا إلى إزالة قيمه من جميع جهات الاتصال. لا يمكن التراجع عن هذا الإجراء.",
     failed_to_delete_field: "لم تتم إزالة هذا الحقل المخصص. حاول مجددًا.",
     failed_to_save_value: "لم يُحفظ التغيير. حاول مجددًا. القيمة السابقة لا تزال موجودة.",
     click_scan_duplicates: 'انقر على "فحص" للبحث عن التكرارات',
@@ -5971,13 +5971,13 @@ export const ar = {
     plan_tip_folder_lock:
       "أقفل المجلدات الحساسة خلف كلمة مرور منفصلة لطبقة أمان إضافية.",
     plan_tip_sender_pinning:
-      "Lock an alias to specific senders - only they can reach you through it.",
+      "اربط الاسم المستعار بمرسلين محددين، فلا يستطيع مراسلتك عبره أحد سواهم.",
     plan_tip_alias_rules:
-      "Block or trash emails per alias based on sender or subject.",
+      "احظر الرسائل أو انقلها إلى المهملات لكل اسم مستعار حسب المرسل أو الموضوع.",
     plan_tip_reverse_alias:
-      "Reply to any email without revealing your real address.",
+      "رُدّ على أي رسالة دون كشف عنوانك الحقيقي.",
     plan_tip_alias_directory:
-      "Mail to anything.key@astermail.org auto-creates a new alias on the fly.",
+      "يؤدي إرسال رسالة إلى anything.key@astermail.org إلى إنشاء اسم مستعار جديد تلقائيًا.",
     plan_tip_instant_alias_delete:
       "احذف الأسماء المستعارة وأنهِ الأسماء الشبحية فورًا - تتخطى Supernova مدة انتظار الحذف البالغة 30 يومًا.",
     plan_tip_zero_knowledge:
@@ -5987,11 +5987,11 @@ export const ar = {
     plan_tip_key_rotation:
       "دوّر مفاتيح التشفير تلقائياً على فترات منتظمة لأمان أقوى.",
     plan_tip_imap_smtp:
-      "Connect Apple Mail, Thunderbird, Outlook, or any IMAP client. Powered by the Aster Bridge companion app running on your device.",
+      "اربط Apple Mail أو Thunderbird أو Outlook أو أي عميل IMAP. يعمل ذلك عبر التطبيق المرافق Aster Bridge على جهازك.",
     plan_tip_external_accounts:
       "اربط وزامن البريد من مزودين خارجيين مثل Gmail أو Outlook مباشرة في Aster عبر IMAP أو POP3.",
     plan_tip_carddav:
-      "Sync your contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
+      "زامن جهات اتصالك مع تطبيق جهات الاتصال على macOS وiOS، أو DAVx5 على Android، أو أي عميل CardDAV. يعمل ذلك عبر التطبيق المرافق Aster Bridge على جهازك.",
     plan_tip_alias_avatars:
       "اضبط صور ملف فريدة لكل اسم مستعار وعنوان نطاق مخصص",
     plan_f_custom_themes: "السمات المخصصة",
@@ -9618,8 +9618,6 @@ export const ar = {
       "محاولات كثيرة جدًا. انتظر نحو دقيقة ثم حاول مرة أخرى.",
     link_device_account_suspended:
       "هذا الحساب موقوف، لذا لا يمكن ربط أجهزة جديدة الآن. تواصل مع الدعم لحل المشكلة.",
-    product_updates_notice:
-      "ستصلك أيضًا مستجدات المنتج من حين لآخر في بريدك الوارد، ويمكنك إيقافها من الإعدادات.",
     plan_academic_discount_note:
       "يُطبَّق خصم 30% تلقائيًا عند الدفع بمجرد التحقق من بريدك الإلكتروني.",
     plan_referral_discount_note: "يُطبَّق خصم الإحالة تلقائيًا عند الدفع.",
@@ -10210,7 +10208,7 @@ export const ar = {
     tab_visual: "مرئي",
     tab_expression: "تعبير",
     expression_placeholder:
-      'from.address is "alice@example.com" and subject contains "receipt"',
+      "from.address is \"alice@example.com\" and subject contains \"إيصال\"",
     expression_parse_error:
       "هذا التعبير غير صالح. تحقق من الصياغة وحاول مجددًا.",
     cannot_render_visual:

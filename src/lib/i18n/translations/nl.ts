@@ -47,7 +47,7 @@ export const nl = {
     failed_to_create_group: "De groep kon niet worden aangemaakt.",
     failed_to_delete_group: "De groep kon niet worden verwijderd.",
     failed_to_load_groups: "Je groepen konden niet worden geladen.",
-    frequent_contacts: "Frequent",
+    frequent_contacts: "Vaak gebruikt",
     frequent_contacts_hint:
       "De contacten die je het vaakst mailt, verschijnen hier.",
     group_contact_count: "{{count}} contacten",
@@ -654,7 +654,7 @@ export const nl = {
     no_matching_labels: "Geen overeenkomende labels",
     phishing_confirm_placeholder:
       'Typ "Ik begrijp de risico\'s" om de links weer in te schakelen.',
-    phishing_confirm_text: "i understand the risks",
+    phishing_confirm_text: "ik begrijp de risico's",
     and: "en",
     emails_marked_as_read: "{{count}} e-mail(s) als gelezen gemarkeerd",
     emails_archived: "{{count}} e-mail(s) gearchiveerd",
@@ -777,9 +777,9 @@ export const nl = {
     dismiss_failed: "Probeer het opnieuw.",
     failed_to_load_custom_fields: "Probeer het opnieuw.",
     failed_to_create_field: "Probeer het opnieuw.",
-    delete_custom_field_title: "Delete custom field?",
+    delete_custom_field_title: "Aangepast veld verwijderen?",
     delete_custom_field_message:
-      "Deleting this field also removes its values from every contact. You cannot undo this.",
+      "Als je dit veld verwijdert, worden ook de waarden ervan bij alle contacten verwijderd. Dit kun je niet ongedaan maken.",
     failed_to_delete_field: "Dit aangepaste veld is niet verwijderd. Probeer het opnieuw.",
     failed_to_save_value: "Je wijziging is niet opgeslagen. Probeer het opnieuw. De vorige waarde is er nog.",
     click_scan_duplicates: 'Klik op "Scannen" om op duplicaten te controleren',
@@ -9692,8 +9692,6 @@ export const nl = {
       "Te veel pogingen. Wacht ongeveer een minuut en probeer het opnieuw.",
     link_device_account_suspended:
       "Dit account is geschorst, dus er kunnen nu geen nieuwe apparaten worden gekoppeld. Neem contact op met support.",
-    product_updates_notice:
-      "Je krijgt ook af en toe productnieuws in je inbox, en je kunt dat uitzetten in Instellingen.",
     plan_academic_discount_note:
       "Je korting van 30% wordt bij het afrekenen automatisch toegepast zodra je e-mailadres is geverifieerd.",
     plan_referral_discount_note:
@@ -10317,7 +10315,7 @@ export const nl = {
     tab_visual: "Visueel",
     tab_expression: "Expressie",
     expression_placeholder:
-      'from.address is "alice@example.com" and subject contains "receipt"',
+      "from.address is \"alice@voorbeeld.nl\" and subject contains \"bon\"",
     expression_parse_error:
       "Deze expressie is niet geldig. Controleer de syntaxis en probeer het opnieuw.",
     cannot_render_visual:

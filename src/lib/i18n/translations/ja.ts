@@ -719,8 +719,8 @@ export const ja = {
     enter_field_value: "{{field}}を入力...",
     no_matching_labels: "一致するラベルがありません",
     phishing_confirm_placeholder:
-      "リンクを再有効化するには「I understand the risks」と入力します。",
-    phishing_confirm_text: "i understand the risks",
+      "リンクを再度有効にするには「リスクを理解しました」と入力してください。",
+    phishing_confirm_text: "リスクを理解しました",
     and: "と",
     emails_marked_as_read: "{{count}}件のメールを既読にしました",
     emails_archived: "{{count}}件のメールをアーカイブしました",
@@ -846,9 +846,9 @@ export const ja = {
     dismiss_failed: "もう一度お試しください。",
     failed_to_load_custom_fields: "もう一度お試しください。",
     failed_to_create_field: "もう一度お試しください。",
-    delete_custom_field_title: "Delete custom field?",
+    delete_custom_field_title: "カスタムフィールドを削除しますか？",
     delete_custom_field_message:
-      "Deleting this field also removes its values from every contact. You cannot undo this.",
+      "このフィールドを削除すると、すべての連絡先からその値も削除されます。この操作は元に戻せません。",
     failed_to_delete_field: "もう一度お試しください。",
     failed_to_save_value: "変更を保存できませんでした。もう一度お試しください。以前の値が残っています。",
     click_scan_duplicates: "「スキャン」をクリックして重複を確認してください",
@@ -1496,7 +1496,7 @@ export const ja = {
     view_links_anyway: "リンクをそれでも表示",
     enable_links: "リンクを有効化",
     links_re_enabled: "リンクを再び有効にしました。",
-    i_understand_the_risks: "i understand the risks",
+    i_understand_the_risks: "リスクを理解しました",
     signal_dkim_fail:
       "送信者の署名を確認できませんでした。このメールは配送中に改変されたか、偽造された可能性があります。",
     signal_spf_fail:
@@ -2566,7 +2566,7 @@ export const ja = {
     category_match_domains_help:
       "送信者ドメインをカンマ区切りで入力してください。これらのドメインからのメールはこのカテゴリに分類されます。",
     category_match_keywords: "件名のキーワードを一致させる",
-    category_match_keywords_placeholder: "newsletter, digest",
+    category_match_keywords_placeholder: "ニュースレター, ダイジェスト",
     category_match_keywords_help:
       "カンマ区切りの単語を入力してください。件名にいずれかが含まれる場合、そのメールはこのカテゴリに分類されます。",
     category_tutorial_text:
@@ -5906,13 +5906,13 @@ export const ja = {
     plan_tip_folder_lock:
       "機密のフォルダを別パスワードでロックして、もう一段のセキュリティを追加します。",
     plan_tip_sender_pinning:
-      "Lock an alias to specific senders - only they can reach you through it.",
+      "エイリアスを特定の送信者専用にします。そのエイリアス宛てに送信できるのは、指定した送信者だけです。",
     plan_tip_alias_rules:
-      "Block or trash emails per alias based on sender or subject.",
+      "エイリアスごとに、送信者や件名に応じてメールをブロックしたりゴミ箱に移動したりできます。",
     plan_tip_reverse_alias:
-      "Reply to any email without revealing your real address.",
+      "本当のアドレスを明かさずに、どのメールにも返信できます。",
     plan_tip_alias_directory:
-      "Mail to anything.key@astermail.org auto-creates a new alias on the fly.",
+      "anything.key@astermail.org 宛てのメールで、新しいエイリアスが自動的に作成されます。",
     plan_tip_instant_alias_delete:
       "エイリアスの削除とゴーストエイリアスの失効をすぐに実行できます。Supernova では30日間の削除待機がありません。",
     plan_tip_zero_knowledge:
@@ -5922,11 +5922,11 @@ export const ja = {
     plan_tip_key_rotation:
       "暗号鍵を定期的に自動でローテーションし、セキュリティを強化します。",
     plan_tip_imap_smtp:
-      "Connect Apple Mail, Thunderbird, Outlook, or any IMAP client. Powered by the Aster Bridge companion app running on your device.",
+      "Apple Mail、Thunderbird、Outlook など、任意の IMAP クライアントを接続できます。お使いのデバイスで動作するコンパニオンアプリ Aster Bridge を使用します。",
     plan_tip_external_accounts:
       "Gmail や Outlook などの外部プロバイダーのメールを、IMAP または POP3 経由で Aster 内で直接連携・同期します。",
     plan_tip_carddav:
-      "Sync your contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
+      "連絡先を macOS と iOS の連絡先アプリ、Android の DAVx5、または任意の CardDAV クライアントと同期できます。お使いのデバイスで動作するコンパニオンアプリ Aster Bridge を使用します。",
     plan_tip_alias_avatars:
       "各エイリアスとカスタムドメインのアドレスに固有のプロフィール画像を設定できます",
     plan_f_custom_themes: "カスタムテーマ",
@@ -9641,8 +9641,6 @@ export const ja = {
       "試行回数が多すぎます。1 分ほど待ってから、もう一度お試しください。",
     link_device_account_suspended:
       "このアカウントは停止中のため、現在は新しいデバイスを連携できません。サポートにお問い合わせください。",
-    product_updates_notice:
-      "製品のお知らせが受信トレイに時折届きます。設定でオフにできます。",
     plan_academic_discount_note:
       "メールアドレスの確認が済むと、お支払い時に 30% の割引が自動で適用されます。",
     plan_referral_discount_note: "紹介割引はお支払い時に自動で適用されます。",
@@ -10260,7 +10258,7 @@ export const ja = {
     tab_visual: "ビジュアル",
     tab_expression: "式",
     expression_placeholder:
-      'from.address is "alice@example.com" and subject contains "receipt"',
+      "from.address is \"alice@example.com\" and subject contains \"領収書\"",
     expression_parse_error:
       "この式は有効ではありません。構文を確認して、もう一度お試しください。",
     cannot_render_visual:

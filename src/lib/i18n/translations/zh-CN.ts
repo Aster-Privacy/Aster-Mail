@@ -714,9 +714,9 @@ export const zh_CN = {
     dismiss_failed: "请重试。",
     failed_to_load_custom_fields: "这些自定义字段未能加载。请重试。",
     failed_to_create_field: "此自定义字段未能保存。请重试。",
-    delete_custom_field_title: "Delete custom field?",
+    delete_custom_field_title: "删除自定义字段？",
     delete_custom_field_message:
-      "Deleting this field also removes its values from every contact. You cannot undo this.",
+      "删除此字段后，所有联系人中的对应值也会一并移除。此操作无法撤销。",
     failed_to_delete_field: "未能移除此自定义字段。请重试。",
     failed_to_save_value: "您的更改未能保存。请重试。之前的值仍然保留。",
     click_scan_duplicates: '点击"扫描"检查重复项',
@@ -2387,7 +2387,7 @@ export const zh_CN = {
     category_match_domains_help:
       "以逗号分隔的发件人域名列表。来自这些域名的邮件将归入此分类。",
     category_match_keywords: "匹配主题关键词",
-    category_match_keywords_placeholder: "newsletter, digest",
+    category_match_keywords_placeholder: "简报, 摘要",
     category_match_keywords_help:
       "以逗号分隔的词语。若主题中出现任意一个，该邮件将归入此分类。",
     category_tutorial_text:
@@ -5412,13 +5412,13 @@ export const zh_CN = {
     plan_tip_smart_folders: "根据您定义的规则自动将邮件归入文件夹。",
     plan_tip_folder_lock: "将敏感文件夹锁定在独立密码之后，增加一层安全保护。",
     plan_tip_sender_pinning:
-      "Lock an alias to specific senders - only they can reach you through it.",
+      "将别名锁定给指定发件人，只有他们才能通过该别名联系您。",
     plan_tip_alias_rules:
-      "Block or trash emails per alias based on sender or subject.",
+      "按发件人或主题，为每个别名拦截邮件或将其移至废纸篓。",
     plan_tip_reverse_alias:
-      "Reply to any email without revealing your real address.",
+      "回复任何邮件，而不暴露您的真实地址。",
     plan_tip_alias_directory:
-      "Mail to anything.key@astermail.org auto-creates a new alias on the fly.",
+      "发往 anything.key@astermail.org 的邮件会自动创建新别名。",
     plan_tip_instant_alias_delete:
       "随时删除别名并停用隐身别名 - Supernova 可跳过 30 天删除等待。",
     plan_tip_zero_knowledge:
@@ -5427,11 +5427,11 @@ export const zh_CN = {
       "在邮件到达您的收件箱之前剥离不可见的追踪像素。",
     plan_tip_key_rotation: "定期自动轮换您的加密密钥以获得更强的安全性。",
     plan_tip_imap_smtp:
-      "Connect Apple Mail, Thunderbird, Outlook, or any IMAP client. Powered by the Aster Bridge companion app running on your device.",
+      "连接 Apple Mail、Thunderbird、Outlook 或任何 IMAP 客户端。由您设备上运行的 Aster Bridge 配套应用提供支持。",
     plan_tip_external_accounts:
       "通过 IMAP 或 POP3 直接在 Aster 中链接并同步 Gmail 或 Outlook 等外部提供商的邮件。",
     plan_tip_carddav:
-      "Sync your contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
+      "将联系人同步到 macOS 和 iOS 上的“通讯录”、Android 上的 DAVx5 或任何 CardDAV 客户端。由您设备上运行的 Aster Bridge 配套应用提供支持。",
     plan_tip_alias_avatars: "为每个别名和自定义域名地址设置独特的头像",
     plan_f_custom_themes: "自定义主题",
     plan_f_smart_folders: "智能文件夹",
@@ -8793,8 +8793,6 @@ export const zh_CN = {
     link_device_rate_limited: "尝试次数过多。请等待约一分钟后重试。",
     link_device_account_suspended:
       "此账户已被暂停，目前无法关联新设备。请联系支持人员处理。",
-    product_updates_notice:
-      "您还会偶尔在收件箱中收到产品更新，可以在“设置”中关闭。",
     plan_academic_discount_note: "验证邮箱后，30% 折扣会在结账时自动应用。",
     plan_referral_discount_note: "结算时会自动应用您的推荐折扣。",
     plan_referral_discount_percent_note:
@@ -9348,7 +9346,7 @@ export const zh_CN = {
     tab_visual: "可视化",
     tab_expression: "表达式",
     expression_placeholder:
-      'from.address is "alice@example.com" and subject contains "receipt"',
+      "from.address is \"alice@example.com\" and subject contains \"收据\"",
     expression_parse_error: "此表达式无效。请检查语法后重试。",
     cannot_render_visual:
       "此规则包含可视化编辑器无法显示的嵌套条件。可以在表达式视图中编辑。",

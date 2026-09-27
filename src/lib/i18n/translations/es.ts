@@ -802,9 +802,9 @@ export const es = {
     dismiss_failed: "Inténtalo de nuevo.",
     failed_to_load_custom_fields: "Estos campos personalizados no se cargaron. Inténtalo de nuevo.",
     failed_to_create_field: "Este campo personalizado no se guardó. Inténtalo de nuevo.",
-    delete_custom_field_title: "Delete custom field?",
+    delete_custom_field_title: "¿Eliminar el campo personalizado?",
     delete_custom_field_message:
-      "Deleting this field also removes its values from every contact. You cannot undo this.",
+      "Al eliminar este campo, también se borran sus valores de todos los contactos. No puedes deshacer esta acción.",
     failed_to_delete_field: "Este campo personalizado no se eliminó. Inténtalo de nuevo.",
     failed_to_save_value: "Tu cambio no se guardó. Inténtalo de nuevo. El valor anterior sigue ahí.",
     click_scan_duplicates: 'Haz clic en "Escanear" para buscar duplicados',
@@ -5852,13 +5852,13 @@ export const es = {
     plan_tip_folder_lock:
       "Bloquea carpetas sensibles tras una contraseña independiente para añadir una capa extra de seguridad.",
     plan_tip_sender_pinning:
-      "Lock an alias to specific senders - only they can reach you through it.",
+      "Vincula un alias a remitentes concretos: solo ellos podrán escribirte a través de él.",
     plan_tip_alias_rules:
-      "Block or trash emails per alias based on sender or subject.",
+      "Bloquea o envía a la papelera los correos de cada alias según el remitente o el asunto.",
     plan_tip_reverse_alias:
-      "Reply to any email without revealing your real address.",
+      "Responde a cualquier correo sin revelar tu dirección real.",
     plan_tip_alias_directory:
-      "Mail to anything.key@astermail.org auto-creates a new alias on the fly.",
+      "El correo enviado a cualquiercosa.clave@astermail.org crea un alias nuevo al instante.",
     plan_tip_instant_alias_delete:
       "Elimina alias y caduca alias fantasma de inmediato: Supernova se salta la espera de eliminación de 30 días.",
     plan_tip_zero_knowledge:
@@ -5868,11 +5868,11 @@ export const es = {
     plan_tip_key_rotation:
       "Rota tus claves de cifrado automáticamente a intervalos regulares para una seguridad mayor.",
     plan_tip_imap_smtp:
-      "Connect Apple Mail, Thunderbird, Outlook, or any IMAP client. Powered by the Aster Bridge companion app running on your device.",
+      "Conecta Apple Mail, Thunderbird, Outlook o cualquier cliente IMAP. Funciona con la app complementaria Aster Bridge en tu dispositivo.",
     plan_tip_external_accounts:
       "Vincula y sincroniza correos de proveedores externos como Gmail u Outlook directamente en Aster por IMAP o POP3.",
     plan_tip_carddav:
-      "Sync your contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
+      "Sincroniza tus contactos con Contactos en macOS e iOS, DAVx5 en Android o cualquier cliente CardDAV. Funciona con la app complementaria Aster Bridge en tu dispositivo.",
     plan_tip_alias_avatars:
       "Pon fotos de perfil únicas para cada alias y dirección de dominio personalizado",
     plan_f_custom_themes: "Temas personalizados",
@@ -9676,8 +9676,6 @@ export const es = {
       "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
     link_device_account_suspended:
       "Esta cuenta está suspendida, así que ahora no se pueden vincular dispositivos nuevos. Escribe al soporte para resolverlo.",
-    product_updates_notice:
-      "También recibirás novedades del producto de vez en cuando en tu bandeja de entrada, y puedes desactivarlas en Ajustes.",
     plan_academic_discount_note:
       "Tu descuento del 30 % se aplica automáticamente al pagar en cuanto se verifique tu correo.",
     plan_referral_discount_note:
@@ -10154,7 +10152,7 @@ export const es = {
     expression_parse_error:
       "Esta expresión no es válida. Comprueba la sintaxis e inténtalo de nuevo.",
     expression_placeholder:
-      'from.address es "alice@ejemplo.com" y subject contiene "recibo"',
+      "from.address is \"alice@ejemplo.com\" and subject contains \"recibo\"",
     field_any_recipient: "Cualquier destinatario",
     field_attachment_name: "Nombre del adjunto",
     field_attachment_size: "Tamaño del adjunto",

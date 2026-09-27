@@ -474,7 +474,7 @@ export const tr = {
     type_assistant: "Asistan",
     type_manager: "Yönetici",
     type_spouse: "Eş",
-    type_partner: "Partner",
+    type_partner: "İş ortağı",
     type_child: "Çocuk",
     type_parent: "Ebeveyn",
     type_sibling: "Kardeş",
@@ -786,9 +786,9 @@ export const tr = {
     dismiss_failed: "Tekrar deneyin.",
     failed_to_load_custom_fields: "Bu özel alanlar yüklenmedi. Tekrar deneyin.",
     failed_to_create_field: "Bu özel alan kaydedilmedi. Tekrar deneyin.",
-    delete_custom_field_title: "Delete custom field?",
+    delete_custom_field_title: "Özel alan silinsin mi?",
     delete_custom_field_message:
-      "Deleting this field also removes its values from every contact. You cannot undo this.",
+      "Bu alanı silmek, değerlerini tüm kişilerden de kaldırır. Bu işlem geri alınamaz.",
     failed_to_delete_field: "Bu özel alan kaldırılmadı. Tekrar deneyin.",
     failed_to_save_value: "Değişikliğiniz kaydedilmedi. Tekrar deneyin. Önceki değer hâlâ geçerli.",
     click_scan_duplicates:
@@ -9645,8 +9645,6 @@ export const tr = {
       "Çok fazla deneme yapıldı. Yaklaşık bir dakika bekleyip tekrar deneyin.",
     link_device_account_suspended:
       "Bu hesap askıya alındı, bu yüzden şu anda yeni cihaz bağlanamıyor. Çözmek için destek ekibiyle iletişime geçin.",
-    product_updates_notice:
-      "Ayrıca zaman zaman gelen kutunuza ürün güncellemeleri gelir; bunları Ayarlar’dan kapatabilirsiniz.",
     plan_academic_discount_note:
       "E-postanız doğrulandığında %30 indiriminiz ödeme sırasında otomatik uygulanır.",
     plan_referral_discount_note:

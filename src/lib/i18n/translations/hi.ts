@@ -3078,7 +3078,7 @@ export const hi = {
     category_match_domains_help:
       "कॉमा से अलग किए गए प्रेषक डोमेन की सूची। इन डोमेन से आए ईमेल इस श्रेणी में जाते हैं।",
     category_match_keywords: "विषय के कीवर्ड से मिलान करें",
-    category_match_keywords_placeholder: "newsletter, digest",
+    category_match_keywords_placeholder: "न्यूज़लेटर, सारांश",
     category_match_keywords_help:
       "कॉमा से अलग किए गए शब्द। इनमें से कोई भी विषय पंक्ति में दिखे तो ईमेल इस श्रेणी में जाता है।",
     category_tutorial_text:
@@ -10046,7 +10046,7 @@ export const hi = {
     menu_duplicate: "प्रतिलिपि बनाएं",
     menu_delete: "हटाएं",
     menu_run_on_existing: "मौजूदा मेल पर चलाएं",
-    and_label: "AND",
+    and_label: "और",
     or_label: "OR",
     value_placeholder: "मान",
     pick_folder: "एक फ़ोल्डर चुनें",
@@ -10108,7 +10108,7 @@ export const hi = {
     tab_visual: "विज़ुअल",
     tab_expression: "एक्सप्रेशन",
     expression_placeholder:
-      'from.address is "alice@example.com" and subject contains "receipt"',
+      "from.address is \"alice@example.com\" and subject contains \"रसीद\"",
     expression_parse_error:
       "यह एक्सप्रेशन मान्य नहीं है। सिंटैक्स जांचें और फिर से कोशिश करें।",
     expr_empty_expression: "सहेजने से पहले एक एक्सप्रेशन डालें।",

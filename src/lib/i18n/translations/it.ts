@@ -795,9 +795,9 @@ export const it = {
     dismiss_failed: "Riprova.",
     failed_to_load_custom_fields: "Questi campi personalizzati non sono stati caricati. Riprova.",
     failed_to_create_field: "Questo campo personalizzato non è stato salvato. Riprova.",
-    delete_custom_field_title: "Delete custom field?",
+    delete_custom_field_title: "Eliminare il campo personalizzato?",
     delete_custom_field_message:
-      "Deleting this field also removes its values from every contact. You cannot undo this.",
+      "Eliminando questo campo, i suoi valori vengono rimossi anche da tutti i contatti. Non puoi annullare questa azione.",
     failed_to_delete_field: "Questo campo personalizzato non è stato rimosso. Riprova.",
     failed_to_save_value: "La modifica non è stata salvata. Riprova. Il valore precedente è ancora lì.",
     click_scan_duplicates: 'Clicca "Scansiona" per cercare duplicati',
@@ -2563,7 +2563,7 @@ export const it = {
     category_match_domains_help:
       "Elenco di domini del mittente separati da virgola. Le email da questi domini finiscono in questa categoria.",
     category_match_keywords: "Abbina parole chiave nell'oggetto",
-    category_match_keywords_placeholder: "newsletter, digest",
+    category_match_keywords_placeholder: "newsletter, riepilogo",
     category_match_keywords_help:
       "Parole separate da virgola. Se una di esse compare nell'oggetto, l'email finisce in questa categoria.",
     category_tutorial_text:
@@ -9787,8 +9787,6 @@ export const it = {
       "Troppi tentativi. Attendi circa un minuto e riprova.",
     link_device_account_suspended:
       "Questo account è sospeso, quindi al momento non è possibile collegare nuovi dispositivi. Contatta l’assistenza per risolvere.",
-    product_updates_notice:
-      "Riceverai anche novità sul prodotto di tanto in tanto nella posta in arrivo e puoi disattivarle nelle impostazioni.",
     plan_academic_discount_note:
       "Lo sconto del 30% viene applicato automaticamente al pagamento appena la tua e-mail è verificata.",
     plan_referral_discount_note:

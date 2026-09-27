@@ -804,9 +804,9 @@ export const fr = {
     dismiss_failed: "Réessayez.",
     failed_to_load_custom_fields: "Ces champs personnalisés ne se sont pas chargés. Réessayez.",
     failed_to_create_field: "Ce champ personnalisé n'a pas été enregistré. Réessayez.",
-    delete_custom_field_title: "Delete custom field?",
+    delete_custom_field_title: "Supprimer le champ personnalisé ?",
     delete_custom_field_message:
-      "Deleting this field also removes its values from every contact. You cannot undo this.",
+      "La suppression de ce champ efface aussi ses valeurs de tous les contacts. Cette action est irréversible.",
     failed_to_delete_field: "Ce champ personnalisé n'a pas été supprimé. Réessayez.",
     failed_to_save_value: "Votre modification n'a pas été enregistrée. Réessayez. La valeur précédente est toujours là.",
     click_scan_duplicates: 'Cliquez sur "Analyser" pour vérifier les doublons',
@@ -5900,13 +5900,13 @@ export const fr = {
     plan_tip_folder_lock:
       "Verrouille les dossiers sensibles derrière un mot de passe séparé pour une couche de sécurité supplémentaire.",
     plan_tip_sender_pinning:
-      "Lock an alias to specific senders - only they can reach you through it.",
+      "Réservez un alias à des expéditeurs précis : eux seuls peuvent vous écrire par son intermédiaire.",
     plan_tip_alias_rules:
-      "Block or trash emails per alias based on sender or subject.",
+      "Bloquez les e-mails ou placez-les dans la corbeille pour chaque alias, selon l'expéditeur ou l'objet.",
     plan_tip_reverse_alias:
-      "Reply to any email without revealing your real address.",
+      "Répondez à n'importe quel e-mail sans révéler votre véritable adresse.",
     plan_tip_alias_directory:
-      "Mail to anything.key@astermail.org auto-creates a new alias on the fly.",
+      "Un e-mail adressé à nimportequoi.clé@astermail.org crée automatiquement un nouvel alias.",
     plan_tip_instant_alias_delete:
       "Supprimez des alias et faites expirer des alias fantômes tout de suite - Supernova ignore le délai de suppression de 30 jours.",
     plan_tip_zero_knowledge:
@@ -5916,11 +5916,11 @@ export const fr = {
     plan_tip_key_rotation:
       "Fais tourner automatiquement tes clés de chiffrement à intervalles réguliers pour une sécurité accrue.",
     plan_tip_imap_smtp:
-      "Connect Apple Mail, Thunderbird, Outlook, or any IMAP client. Powered by the Aster Bridge companion app running on your device.",
+      "Connectez Apple Mail, Thunderbird, Outlook ou tout client IMAP. Fonctionne avec l'application compagnon Aster Bridge sur votre appareil.",
     plan_tip_external_accounts:
       "Lie et synchronise les e-mails de fournisseurs externes comme Gmail ou Outlook directement dans Aster via IMAP ou POP3.",
     plan_tip_carddav:
-      "Sync your contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
+      "Synchronisez vos contacts avec Contacts sur macOS et iOS, DAVx5 sur Android ou tout client CardDAV. Fonctionne avec l'application compagnon Aster Bridge sur votre appareil.",
     plan_tip_alias_avatars:
       "Définis des photos de profil uniques pour chaque alias et adresse de domaine personnalisé",
     plan_f_custom_themes: "Thèmes personnalisés",
@@ -9795,8 +9795,6 @@ export const fr = {
       "Trop de tentatives. Patientez environ une minute, puis réessayez.",
     link_device_account_suspended:
       "Ce compte est suspendu, il n’est donc pas possible d’associer de nouveaux appareils pour l’instant. Contactez l’assistance pour régler la situation.",
-    product_updates_notice:
-      "Vous recevrez aussi de temps en temps des nouveautés produit dans votre boîte de réception, et vous pouvez les désactiver dans les réglages.",
     plan_academic_discount_note:
       "Votre remise de 30 % s’applique automatiquement au paiement dès que votre e-mail est vérifié.",
     plan_referral_discount_note:
@@ -10279,7 +10277,7 @@ export const fr = {
     expression_parse_error:
       "Cette expression n'est pas valide. Vérifiez la syntaxe et réessayez.",
     expression_placeholder:
-      'from.address est "alice@exemple.com" et subject contient "reçu"',
+      "from.address is \"alice@exemple.com\" and subject contains \"reçu\"",
     field_any_recipient: "N'importe quel destinataire",
     field_attachment_name: "Nom de la pièce jointe",
     field_attachment_size: "Taille de la pièce jointe",

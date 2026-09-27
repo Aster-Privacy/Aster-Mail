@@ -9741,8 +9741,6 @@ export const pt_br = {
       "Muitas tentativas. Espere cerca de um minuto e tente de novo.",
     link_device_account_suspended:
       "Esta conta está suspensa, então não é possível vincular novos dispositivos agora. Fale com o suporte para resolver.",
-    product_updates_notice:
-      "Você também recebe novidades do produto de vez em quando na caixa de entrada, e pode desativá-las nos ajustes.",
     plan_academic_discount_note:
       "Seu desconto de 30% é aplicado automaticamente na finalização da compra assim que seu e-mail for verificado.",
     plan_referral_discount_note:

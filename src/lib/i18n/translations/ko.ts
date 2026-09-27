@@ -852,9 +852,9 @@ export const ko = {
     dismiss_failed: "다시 시도하세요.",
     failed_to_load_custom_fields: "사용자 지정 필드를 불러오지 못했습니다. 다시 시도하세요.",
     failed_to_create_field: "이 사용자 지정 필드를 저장하지 못했습니다. 다시 시도하세요.",
-    delete_custom_field_title: "Delete custom field?",
+    delete_custom_field_title: "사용자 정의 필드를 삭제하시겠습니까?",
     delete_custom_field_message:
-      "Deleting this field also removes its values from every contact. You cannot undo this.",
+      "이 필드를 삭제하면 모든 연락처에서 해당 값도 함께 삭제됩니다. 이 작업은 실행 취소할 수 없습니다.",
     failed_to_delete_field: "이 사용자 지정 필드를 삭제하지 못했습니다. 다시 시도하세요.",
     failed_to_save_value: "변경 사항을 저장하지 못했습니다. 다시 시도하세요. 이전 값이 그대로 있습니다.",
     click_scan_duplicates: '"스캔"을 클릭하여 중복 항목을 확인하세요',
@@ -4469,7 +4469,7 @@ export const ko = {
     "connection.direct_description": "기기가 Aster 서버에 직접 연결됩니다. 가장 빠른 경로이며 지연 시간이 가장 짧지만, IP 주소가 Aster에 표시됩니다.",
     "connection.tor": "Tor",
     "connection.tor_description": "Tor 네트워크를 통해 트래픽을 라우팅합니다",
-    "connection.tor_snowflake": "Tor with Snowflake",
+    "connection.tor_snowflake": "Snowflake를 사용하는 Tor",
     "connection.tor_snowflake_description":
       "검열 저항을 위해 Snowflake 브리지를 사용합니다",
     "connection.cdn_relay": "CDN Relay",
@@ -5890,13 +5890,13 @@ export const ko = {
     plan_tip_folder_lock:
       "민감한 폴더를 별도의 비밀번호로 잠궈 추가 보안 계층을 제공하십시오.",
     plan_tip_sender_pinning:
-      "Lock an alias to specific senders - only they can reach you through it.",
+      "별칭을 특정 발신자에게만 허용하세요. 해당 발신자만 이 별칭으로 연락할 수 있습니다.",
     plan_tip_alias_rules:
-      "Block or trash emails per alias based on sender or subject.",
+      "별칭별로 발신자나 제목에 따라 이메일을 차단하거나 휴지통으로 보내세요.",
     plan_tip_reverse_alias:
-      "Reply to any email without revealing your real address.",
+      "실제 주소를 드러내지 않고 어떤 이메일에든 답장하세요.",
     plan_tip_alias_directory:
-      "Mail to anything.key@astermail.org auto-creates a new alias on the fly.",
+      "anything.key@astermail.org로 온 메일은 새 별칭을 자동으로 만듭니다.",
     plan_tip_instant_alias_delete:
       "별칭을 삭제하고 고스트 별칭을 바로 만료시키세요. Supernova는 30일 삭제 대기를 건너뜁니다.",
     plan_tip_zero_knowledge:
@@ -5906,11 +5906,11 @@ export const ko = {
     plan_tip_key_rotation:
       "강력한 보안을 위해 정기적인 간격으로 암호화 키를 자동 회전하십시오.",
     plan_tip_imap_smtp:
-      "Connect Apple Mail, Thunderbird, Outlook, or any IMAP client. Powered by the Aster Bridge companion app running on your device.",
+      "Apple Mail, Thunderbird, Outlook 또는 모든 IMAP 클라이언트를 연결하세요. 기기에서 실행되는 Aster Bridge 보조 앱으로 작동합니다.",
     plan_tip_external_accounts:
       "Gmail이나 Outlook과 같은 외부 제공자의 이메일을 IMAP 또는 POP3를 통해 Aster에 직접 연결하고 동기화하십시오.",
     plan_tip_carddav:
-      "Sync your contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
+      "연락처를 macOS 및 iOS의 연락처, Android의 DAVx5 또는 모든 CardDAV 클라이언트와 동기화하세요. 기기에서 실행되는 Aster Bridge 보조 앱으로 작동합니다.",
     plan_tip_alias_avatars:
       "각 별칭 및 맞춤 도메인 주소에 고유한 프로필 사진을 설정하십시오",
     plan_f_custom_themes: "커스텀 테마",
@@ -9409,8 +9409,6 @@ export const ko = {
       "시도 횟수가 너무 많습니다. 1분 정도 기다린 뒤 다시 시도하세요.",
     link_device_account_suspended:
       "이 계정은 정지된 상태여서 지금은 새 기기를 연결할 수 없습니다. 지원팀에 문의해 해결하세요.",
-    product_updates_notice:
-      "제품 소식도 가끔 받은편지함으로 받게 되며, 설정에서 끌 수 있습니다.",
     plan_academic_discount_note:
       "이메일 인증이 끝나면 결제 시 30% 할인이 자동으로 적용됩니다.",
     plan_referral_discount_note: "추천 할인은 결제 시 자동으로 적용됩니다.",
@@ -10010,7 +10008,7 @@ export const ko = {
     tab_visual: "시각적",
     tab_expression: "표현식",
     expression_placeholder:
-      'from.address is "alice@example.com" and subject contains "receipt"',
+      "from.address is \"alice@example.com\" and subject contains \"영수증\"",
     expression_parse_error:
       "이 표현식은 유효하지 않습니다. 구문을 확인하고 다시 시도하세요.",
     cannot_render_visual:

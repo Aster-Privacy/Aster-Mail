@@ -703,9 +703,9 @@ export const de = {
     scan_failed: "Versuchen Sie es erneut.",
     dismiss_failed: "Versuchen Sie es erneut.",
     failed_to_create_field: "Versuchen Sie es erneut.",
-    delete_custom_field_title: "Delete custom field?",
+    delete_custom_field_title: "Benutzerdefiniertes Feld löschen?",
     delete_custom_field_message:
-      "Deleting this field also removes its values from every contact. You cannot undo this.",
+      "Wenn Sie dieses Feld löschen, werden auch seine Werte bei allen Kontakten entfernt. Dies lässt sich nicht rückgängig machen.",
     failed_to_delete_field: "Versuchen Sie es erneut.",
     failed_to_save_value: "Ihre Änderung wurde nicht gespeichert. Versuchen Sie es erneut. Der vorherige Wert ist weiterhin vorhanden.",
     never_synced: "Nie synchronisiert",
@@ -5903,13 +5903,13 @@ export const de = {
     plan_tip_folder_lock:
       "Sperren Sie sensible Ordner mit einem separaten Passwort für eine zusätzliche Sicherheitsebene.",
     plan_tip_sender_pinning:
-      "Lock an alias to specific senders - only they can reach you through it.",
+      "Binden Sie einen Alias an bestimmte Absender: Nur diese erreichen Sie darüber.",
     plan_tip_alias_rules:
-      "Block or trash emails per alias based on sender or subject.",
+      "Blockieren Sie E-Mails pro Alias nach Absender oder Betreff, oder verschieben Sie sie in den Papierkorb.",
     plan_tip_reverse_alias:
-      "Reply to any email without revealing your real address.",
+      "Antworten Sie auf jede E-Mail, ohne Ihre echte Adresse preiszugeben.",
     plan_tip_alias_directory:
-      "Mail to anything.key@astermail.org auto-creates a new alias on the fly.",
+      "E-Mails an beliebig.schlüssel@astermail.org erstellen automatisch einen neuen Alias.",
     plan_tip_instant_alias_delete:
       "Aliase sofort löschen und Ghost-Aliase sofort auslaufen lassen - Supernova überspringt die 30-tägige Löschwartezeit.",
     plan_tip_zero_knowledge:
@@ -5919,11 +5919,11 @@ export const de = {
     plan_tip_key_rotation:
       "Rotieren Sie Ihre Verschlüsselungsschlüssel automatisch in regelmäßigen Abständen für stärkere Sicherheit.",
     plan_tip_imap_smtp:
-      "Connect Apple Mail, Thunderbird, Outlook, or any IMAP client. Powered by the Aster Bridge companion app running on your device.",
+      "Verbinden Sie Apple Mail, Thunderbird, Outlook oder einen anderen IMAP-Client. Möglich mit der Begleit-App Aster Bridge auf Ihrem Gerät.",
     plan_tip_external_accounts:
       "Verknüpfen und synchronisieren Sie E-Mails von externen Anbietern wie Gmail oder Outlook direkt in Aster per IMAP oder POP3.",
     plan_tip_carddav:
-      "Sync your contacts to Contacts on macOS and iOS, DAVx5 on Android, or any CardDAV client. Powered by the Aster Bridge companion app running on your device.",
+      "Synchronisieren Sie Ihre Kontakte mit Kontakte unter macOS und iOS, DAVx5 unter Android oder einem anderen CardDAV-Client. Möglich mit der Begleit-App Aster Bridge auf Ihrem Gerät.",
     plan_tip_alias_avatars:
       "Legen Sie einzigartige Profilbilder für jeden Alias und jede benutzerdefinierte Domain-Adresse fest",
     plan_f_custom_themes: "Eigene Designs",
@@ -9878,8 +9878,6 @@ export const de = {
       "Zu viele Versuche. Warten Sie etwa eine Minute und versuchen Sie es erneut.",
     link_device_account_suspended:
       "Dieses Konto ist gesperrt, daher lassen sich derzeit keine neuen Geräte verknüpfen. Wenden Sie sich an den Support.",
-    product_updates_notice:
-      "Sie erhalten außerdem gelegentlich Produktneuigkeiten in Ihrem Posteingang und können sie in den Einstellungen deaktivieren.",
     plan_academic_discount_note:
       "Ihr Rabatt von 30 % wird beim Bezahlen automatisch angewendet, sobald Ihre E-Mail bestätigt ist.",
     plan_referral_discount_note:
