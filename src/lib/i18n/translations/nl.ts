@@ -199,7 +199,7 @@ export const nl = {
       "Gratis accounts die dit aantal maanden inactief zijn, worden definitief verwijderd. Waarschuwingen gaan naar je Aster-inbox en je herstel-e-mailadres.",
     inactivity_window_info_title: "Hoe het inactiviteitsbeleid werkt",
     inactivity_window_info_description:
-      "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails after {{first}}, {{second}}, and {{final}} of inactivity.",
+      "Als je account gedurende de ingestelde periode geen activiteit heeft, wordt het samen met al je gegevens definitief verwijderd. Activiteit omvat inloggen vanaf elke client: web, desktop, mobiel of de bridge. Je ontvangt waarschuwingsmails na {{first}}, {{second}} en {{final}} zonder activiteit, zowel in je Aster-inbox als op je herstel-e-mailadres. Betalende abonnees zijn uitgezonderd van dit beleid.",
     inactivity_window_step_up_description:
       "Bevestig voor je veiligheid je wachtwoord om de inactiviteitsperiode te wijzigen.",
     inactivity_window_months: "{{n}} maanden",
@@ -634,8 +634,8 @@ export const nl = {
       "Uw inbox is niet geladen. Naar beneden trekken om te vernieuwen of een nieuwe poging lost dit meestal op. Uw post op de server is veilig.",
     no_emails_match_criteria: "Geen e-mails voldoen aan dit criterium",
     failed_to_update_emails: "Probeer het opnieuw.",
-    failed_to_archive_emails: "Probeer het opnieuw.",
-    failed_to_unarchive_emails: "Probeer het opnieuw.",
+    failed_to_archive_emails: "Archiveren is niet voltooid. Probeer het opnieuw. De e-mails staan nog in je Postvak IN.",
+    failed_to_unarchive_emails: "Verplaatsen naar Postvak IN is niet voltooid. Probeer het opnieuw. De e-mails staan nog in het archief.",
     something_went_wrong: "Er is een fout opgetreden.",
     unexpected_error_refresh:
       "Er ging iets mis, vernieuw de pagina om verder te gaan.",
@@ -693,8 +693,8 @@ export const nl = {
     scheduled_email_cancelled: "Geplande e-mail geannuleerd",
     email_snoozed: "E-mail uitgesteld",
     email_unsnoozed: "E-mail uitstel opgeheven",
-    failed_to_snooze: "Probeer het opnieuw.",
-    failed_to_unsnooze: "Probeer het opnieuw.",
+    failed_to_snooze: "Deze e-mail is niet uitgesteld. Probeer het opnieuw. Hij staat nog in je Postvak IN.",
+    failed_to_unsnooze: "Deze e-mail is niet teruggezet in je Postvak IN. Probeer het opnieuw.",
     conversation_moved_to_trash: "Gesprek naar prullenbak verplaatst",
     conversation_archived: "Gesprek gearchiveerd",
     conversation_marked_as_spam: "Gesprek als spam gemarkeerd",
@@ -898,7 +898,7 @@ export const nl = {
       "{{count}} e-mails van {{senders}} gearchiveerd",
     emails_from_senders_deleted: "{{count}} e-mails van {{senders}} verwijderd",
     emails_added_to_folder: "{{count}} e-mail(s) toegevoegd aan {{folder}}",
-    failed_to_snooze_emails: "Probeer het opnieuw.",
+    failed_to_snooze_emails: "Deze e-mails zijn niet uitgesteld. Probeer het opnieuw. Ze staan nog in je Postvak IN.",
     failed_to_copy: "Probeer het opnieuw.",
     error_copied_to_clipboard: "Fout naar klembord gekopieerd",
     failed_to_update_contact: "Probeer het opnieuw.",
@@ -1651,7 +1651,7 @@ export const nl = {
     aster_user: "Aster-gebruiker",
     allow_sender: "Toevoegen aan toelatingslijst",
     remove_from_allowlist_action: "Verwijderen uit toelatingslijst",
-    failed_to_allow_sender: "Probeer het opnieuw.",
+    failed_to_allow_sender: "Deze afzender is niet toegevoegd aan je toelatingslijst. Probeer het opnieuw.",
     account_limit_reached:
       "U heeft de accountlimiet voor dit netwerk bereikt. Als dit niet klopt, kan hello@astermail.org helpen.",
     account_suspended: "Uw account is opgeschort.",
@@ -1696,7 +1696,7 @@ export const nl = {
     bulk_action_continues_in_background:
       "De overige berichten worden nog op de achtergrond bijgewerkt.",
     custom_fields: "Aangepaste velden",
-    device_revoked: "Apparaat ingetrokken",
+    device_revoked: "Dit apparaat is uit je account verwijderd en je bent uitgelogd. Was jij dit niet, wijzig dan meteen je wachtwoord via astermail.org/security.",
     display_name_too_long: "Weergavenaam is te lang",
     draft_category: "Concepten",
     drop_image_or_click: "Sleep een afbeelding hierheen of klik om te uploaden",
@@ -2505,7 +2505,7 @@ export const nl = {
     category_color_teal: "Turkoois",
     category_color_cyan: "Cyaan",
     category_color_rose: "Roze",
-    category_color_pink: "Fuchsia",
+    category_color_pink: "Roze",
     category_color_slate: "Leisteen",
     category_match_domains: "Match afzenderdomeinen",
     category_match_domains_placeholder: "example.com, news.example.org",
@@ -3872,7 +3872,7 @@ export const nl = {
     accessibility: "Toegankelijkheid",
     encryption: "Versleuteling",
     aliases_and_domains: "Aliassen & domeinen",
-    ghost_aliases: "Ghost Aliases",
+    ghost_aliases: "Ghost-aliassen",
     snooze: "Uitstellen",
     mail_management: "E-mailbeheer",
     change_appearance: "Verander het uiterlijk van Aster",
@@ -6725,7 +6725,7 @@ export const nl = {
     encrypted_export_locked:
       "Je gegevens exporteren met end-to-end-versleuteling",
     vacation_reply_locked:
-      "Automatische antwoorden stellen je in staat automatische reacties te versturen wanneer je afwezig bent",
+      "Met afwezigheidsantwoorden kun je automatisch reageren wanneer je afwezig bent",
     catch_all_locked:
       "Catch-all ontvangt e-mails die naar elk adres op je domein worden gestuurd",
     auto_forward_locked:
@@ -6798,7 +6798,7 @@ export const nl = {
     block_remote_css_label: "Externe CSS blokkeren",
     strip_exif_on_compose_label: "Afbeeldingsmetadata verwijderen",
     strip_exif_on_compose_description:
-      "Verwijder EXIF- en andere metadata uit afbeeldingen voor het verzenden om uw locatie en apparaatinformatie te beschermen",
+      "Verwijder EXIF- en andere metadata uit afbeeldingen voor het verzenden om je locatie en apparaatinformatie te beschermen",
     account_protection_title: "Accountbeveiliging",
     account_protection_weak: "Zwak",
     account_protection_fair: "Matig",
@@ -6882,7 +6882,7 @@ export const nl = {
     confirm_remove_key:
       "Weet u zeker dat u deze beveiligingssleutel wilt verwijderen?",
     connect_modal_description:
-      "Verbind {{provider}} om e-mails te synchroniseren",
+      "Log in bij {{provider}} om je mail in Aster te importeren. Je berichten worden op dit apparaat versleuteld voordat er iets op onze servers wordt opgeslagen.",
     connect_modal_privacy_note:
       "Uw inloggegevens worden versleuteld opgeslagen en worden nooit gedeeld",
     connect_modal_title: "{{provider}} verbinden",
@@ -7198,7 +7198,7 @@ export const nl = {
     dev_unsupported: "Niet ondersteund",
     disconnect_button: "Verbinding verbreken",
     disconnect_confirm:
-      "Weet u zeker dat u de verbinding met dit account wilt verbreken?",
+      "Weet je zeker dat je de verbinding met dit account wilt verbreken? Alle gesynchroniseerde e-mails van dit account blijven in je inbox, tenzij je ervoor kiest ze te verwijderen.",
     disconnect_delete_messages_label:
       "Alle gesynchroniseerde berichten verwijderen",
     disconnect_delete_messages_label_count:
@@ -7246,7 +7246,7 @@ export const nl = {
     export_destination_pick_folder: "Map kiezen",
     export_error_no_messages_match:
       "Geen berichten komen overeen met uw exportcriteria",
-    export_error_no_vault: "Geen versleutelde opslag gevonden",
+    export_error_no_vault: "Je versleutelingskluis is vergrendeld. Log opnieuw in om te exporteren.",
     export_error_write_partial:
       "De export is vroegtijdig gestopt. Je bestand bevat de berichten die tot nu toe zijn geëxporteerd.",
     export_error_write_fatal: "Schrijffout - export mislukt",
@@ -7330,7 +7330,7 @@ export const nl = {
     f_tracker_protection_long: "Geavanceerde trackerbeveiliging",
     f_zero_knowledge: "Zero-access architectuur",
     failed_create_import_job: "Probeer het opnieuw.",
-    failed_to_load_allowlist: "Probeer het opnieuw.",
+    failed_to_load_allowlist: "Je toelatingslijst kon niet worden geladen. Probeer het opnieuw.",
     failed_to_load_blocklist: "Probeer het opnieuw.",
     feature_tracker_protection: "Trackerbeveiliging",
     ghost_alias_active: "Actief",
@@ -7357,7 +7357,7 @@ export const nl = {
     ghost_alias_grace_until: "Respijtperiode tot {{date}}",
     ghost_aliases_description:
       "Tijdelijke e-mailadressen die automatisch verlopen",
-    ghost_aliases_empty: "Geen tijdelijke aliassen",
+    ghost_aliases_empty: "Nog geen ghost-aliassen. Gebruik Ghost-modus tijdens het opstellen om er een te maken.",
     ghost_aliases_compose_cta: "Opstellen met Ghost-modus",
     ghost_aliases_this_month: "Deze maand: {{count}}",
     ghost_aliases_title: "Tijdelijke aliassen",
@@ -7614,7 +7614,7 @@ export const nl = {
     security_key_removed: "Beveiligingssleutel verwijderd",
     security_keys: "Beveiligingssleutels",
     security_keys_description:
-      "Gebruik een fysieke beveiligingssleutel als tweede factor",
+      "Gebruik fysieke beveiligingssleutels of toegangssleutels om in te loggen",
     select_color: "Kleur {{name}} selecteren",
     send_referral_to_contacts: "Alle contacten mailen",
     show_signature_separator: "Handtekeningscheider",
@@ -7671,7 +7671,7 @@ export const nl = {
       "Geavanceerde bescherming tegen e-mailtracking",
     tracking_protection_title: "Trackerbeveiliging",
     trusted_2fa_description:
-      "Beheer apparaten waarop tweefactorauthenticatie is vertrouwd",
+      "Apparaten die je als vertrouwd hebt gemarkeerd, slaan de 2FA-vraag 30 dagen over. Een wachtwoordwijziging maakt elk vertrouwd apparaat direct ongeldig.",
     trusted_2fa_empty: "Geen vertrouwde 2FA-apparaten",
     trusted_2fa_expires: "Verloopt {{when}}",
     trusted_2fa_last_used: "Laatst gebruikt {{when}}",
@@ -7686,7 +7686,7 @@ export const nl = {
     trusted_2fa_title: "Vertrouwde 2FA-apparaten",
     trusted_devices: "Vertrouwde apparaten",
     trusted_devices_created: "Gekoppeld",
-    trusted_devices_description: "Apparaten die zijn aangemeld bij uw account",
+    trusted_devices_description: "Desktop- en mobiele apps die je aan je account hebt gekoppeld. Als je een apparaat intrekt, wordt het uitgelogd en wordt de lokale kluissleutel verwijderd.",
     trusted_devices_empty: "Geen vertrouwde apparaten",
     trusted_devices_last_seen: "Laatst gezien",
     trusted_devices_never: "Nooit",
@@ -7708,7 +7708,7 @@ export const nl = {
     upgrade_modal_title: "Upgrade vereist",
     upgrade_perk_aliases: "Meer e-mailaliassen",
     upgrade_perk_domains: "Meer aangepaste domeinen",
-    upgrade_perk_features: "Geavanceerde functies",
+    upgrade_perk_features: "Afwezigheidsantwoorden, gepland verzenden en meer",
     upgrade_perk_storage: "Meer opslag",
     upgrade_view_plans: "Abonnementen bekijken",
     usage_contacts: "Contacten",
@@ -9593,7 +9593,7 @@ export const nl = {
     security_key_verification: "Beveiligingssleutelverificatie",
     passkey_sign_in: "Aanmelden met toegangssleutel",
     tap_security_key:
-      "Tik op je beveiligingssleutel of gebruik je wachtwoordsleutel om in te loggen",
+      "Tik op je beveiligingssleutel of gebruik je toegangssleutel om in te loggen",
     use_another_method: "Een andere verificatiemethode gebruiken",
     webauthn_not_supported:
       "Deze browser ondersteunt geen beveiligingssleutels. Een andere browser, of inloggen met je wachtwoord, werkt.",
@@ -9844,7 +9844,7 @@ export const nl = {
       "Je kunt een ghost-adres alleen verlengen, niet verkorten.",
     ghost_expiry_update_failed:
       "De vervaldatum is niet bijgewerkt. Probeer het opnieuw.",
-    failed_to_activate_ghost_mode: "Probeer het opnieuw.",
+    failed_to_activate_ghost_mode: "Ghost-modus is niet ingeschakeld. Probeer het opnieuw.",
     wrong_vault_password:
       "Dat wachtwoord heeft uw sleutels op dit apparaat niet ontgrendeld. Probeer het opnieuw. Als het blijft mislukken, gebruik dan een herstelcode op astermail.org/reset. Uw gegevens op de server zijn ongewijzigd.",
     vault_tampered:

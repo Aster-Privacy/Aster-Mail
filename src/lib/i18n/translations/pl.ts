@@ -946,7 +946,7 @@ export const pl = {
       "Nie udało się otworzyć tej wiadomości na tym urządzeniu. Odświeżenie zwykle to załatwia, a wylogowanie i ponowne zalogowanie to opcja zapasowa, jeśli problem się utrzymuje.",
     failed_to_unsubscribe:
       "Rezygnacja z subskrypcji nie została zakończona. Link w wiadomości przeniesie na stronę nadawcy, aby zrobić to samodzielnie.",
-    failed_to_disable_2fa: "Spróbuj ponownie.",
+    failed_to_disable_2fa: "Weryfikacja dwuetapowa pozostała włączona. Spróbuj ponownie. Twoje konto nadal jest chronione.",
     failed_to_parse_settings:
       "Tego pliku ustawień nie udało się odczytać. Inny zadziała. Bieżące ustawienia pozostają bez zmian.",
     removed_from_contacts: "Usunięto z kontaktów",
@@ -1900,7 +1900,7 @@ export const pl = {
     auth_fail_tooltip_spf:
       "Serwer, który wysłał tę wiadomość, nie jest zatwierdzonym nadawcą dla domeny w wierszu Od.",
     auth_fail_tooltip_dkim:
-      "Podpis nadawcy jest brak lub nie pasuje; nie możemy potwierdzić, że wiadomość nie została zmieniona w drodze.",
+      "Podpisu nadawcy brakuje lub nie jest zgodny, więc nie można potwierdzić, że wiadomość nie została zmieniona w drodze.",
     auth_fail_tooltip_dmarc:
       "Polityka tej domeny nakazuje odrzucenie takich wiadomości.",
     label_system_inbox: "Skrzynka odbiorcza",
@@ -4694,7 +4694,7 @@ export const pl = {
     alias_too_new_title: "Ten alias jest za nowy, aby go usunąć",
     alias_too_new_message:
       "Nowe aliasy pozostają aktywne przez 30 dni, zanim będzie można je usunąć. Ten można usunąć od {{date}}. Przejdź na Supernova, aby natychmiast usuwać aliasy.",
-    ghost_alias_too_new_title: "Ten ghost alias jest za nowy, aby wygasł",
+    ghost_alias_too_new_title: "Ten alias widmo jest za nowy, aby mógł wygasnąć",
     ghost_alias_too_new_message:
       "Nowe ghost aliasy pozostają aktywne przez 30 dni, zanim będzie można je wygasić. Ten można wygasić od {{date}}. Przejdź na Supernova, aby natychmiast wygaszać ghost aliasy.",
     delete_signature_confirmation:
@@ -5947,7 +5947,7 @@ export const pl = {
     plan_change_confirm_title: "Potwierdzenie zmiany planu",
     plan_change_confirm_description:
       "Ulepszenie do {{plan}}. Pozostaly czas biezacego planu zostanie zaliczony jako kredyt.",
-    plan_change_credit: "Kredyt z biezacego planu",
+    plan_change_credit: "Środki z obecnego planu",
     plan_change_due_today: "Do zaplaty dzis",
     plan_change_preview_failed:
       "Nie udalo sie zaladowac podzialu ceny. Sprobuj ponownie.",
@@ -6914,7 +6914,7 @@ export const pl = {
     no_subscriptions_found: "Nie znaleziono subskrypcji",
     trusted_devices: "Zaufane urządzenia",
     trusted_devices_description:
-      "Te urządzenia mogą uzyskać dostęp do Twojej poczty bez hasła.",
+      "Aplikacje na komputer i urządzenia mobilne sparowane z Twoim kontem. Odwołanie urządzenia wylogowuje je i usuwa jego lokalny klucz sejfu.",
     trusted_devices_empty: "Brak sparowanych urządzeń.",
     trusted_devices_revoke: "Odwołaj",
     trusted_devices_never: "Nigdy",
@@ -9268,7 +9268,7 @@ export const pl = {
     trackers_found_one: "Znaleziono i zablokowano {{count}} tracker",
     trackers_found_few: "Znaleziono i zablokowano {{count}} trackery",
     trackers_found_many: "Znaleziono i zablokowano {{count}} trackerów",
-    trackers_found_other: "Znaleziono i zablokowano {{count}} trackery",
+    trackers_found_other: "Znaleziono i zablokowano {{count}} elementu śledzącego",
     spy_pixels_blocked_count_one: "Zablokowano {{count}} piksel śledzący",
     spy_pixels_blocked_count_few: "Zablokowano {{count}} piksele śledzące",
     spy_pixels_blocked_count_many: "Zablokowano {{count}} pikseli śledzących",
@@ -9757,7 +9757,7 @@ export const pl = {
       "Sparowane urządzenie może uzyskać dostęp do Twojej poczty bez hasła, dlatego parowanie najlepiej ograniczyć do urządzeń, które masz przy sobie. Urządzenie można usunąć w dowolnym momencie z Ustawień, Zaufane urządzenia.",
     pair_device_confirm_button: "Sparuj urządzenie",
     pair_device_cancel: "Anuluj",
-    pair_device_success: "Urządzenie zostało pomyślnie sparowane",
+    pair_device_success: "Parowanie zakończone. Wróć do aplikacji Aster Mail na komputer.",
     pair_device_open_app: "Otwórz aplikację desktopową",
     pair_device_invalid:
       "Ten link parowania nie zadziałał. Zacznij od nowa z aplikacji desktopowej.",
@@ -9963,7 +9963,7 @@ export const pl = {
     never_used: "Nigdy nie użyty",
     remove: "Usuń",
     confirm_remove: "Usuń",
-    delete_passkey_title: "Usunąć passkey?",
+    delete_passkey_title: "Usunąć klucz dostępu?",
     delete_passkey_description:
       '"{{name}}" zostanie usunięty z Twojego konta. Nie będzie już można logować się za jego pomocą.',
     delete_security_key_title: "Usunąć klucz bezpieczeństwa?",
@@ -10054,7 +10054,7 @@ export const pl = {
     failed_to_snooze: "Spróbuj ponownie.",
     ghost_alias_not_found:
       "Nie udało się znaleźć ghost adresu powiązanego z tym wątkiem.",
-    failed_to_resolve_ghost_alias: "Spróbuj ponownie.",
+    failed_to_resolve_ghost_alias: "Nie udało się wczytać adresu widmo dla tego wątku. Spróbuj ponownie.",
     ghost_alias_rate_limit:
       "Wykorzystano wszystkie ghost aliasy na ten miesiąc. Ulepszenie planu lub poczekanie na reset w kolejnym miesiącu da kolejne.",
     ghost_alias_already_exists: "Ten ghost alias już istnieje na koncie.",
