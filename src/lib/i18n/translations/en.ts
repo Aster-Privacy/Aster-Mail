@@ -284,7 +284,7 @@ export const en: Translations = {
     change_folder_color: "Change Folder Color",
     select_a_color: "Select a color",
     delete_folder_warning:
-      "This folder will be removed, and you cannot undo it. The emails inside stay in your account, they will just no longer be filed under this folder.",
+      "This folder will be removed, and you cannot undo it. The emails inside stay in your account but are no longer filed under this folder.",
     delete_folder_subfolders: " Subfolders will be moved to the top level.",
     delete_folder_confirm: "Are you sure you want to delete the folder",
     collapse_all: "Collapse all",
@@ -4950,7 +4950,7 @@ export const en: Translations = {
     cancel_reason_switched_provider: "Switched to another provider",
     cancel_reason_bugs: "Too many bugs or problems",
     cancel_reason_privacy_trust: "Privacy or trust concerns",
-    cancel_reason_just_testing: "I was just testing it out",
+    cancel_reason_just_testing: "I was only testing it out",
     cancel_reason_other: "Something else",
     cancel_reason_text_placeholder: "Anything you want to add? (optional)",
     cancel_reason_placeholder_too_expensive: "What price would have felt fair?",
@@ -5139,7 +5139,7 @@ export const en: Translations = {
     credit_task_ios_title: "Download the Aster app for iOS",
     credit_task_ios_hint_coming: "Coming soon",
     credit_task_earned: "Earned",
-    referral_not_eligible: "Referrals are not available at this time.",
+    referral_not_eligible: "Referrals are not available right now.",
     referral_not_eligible_description: "Please try again later.",
     referral_loading: "Loading referral info...",
     referral_history: "Referral History",
@@ -5234,7 +5234,7 @@ export const en: Translations = {
       "Your current unpaid commission balance. This is the amount available to request as your next payout, and it accumulates until you request one.",
     affiliate_info_title: "Program Terms",
     affiliate_info_step_commission:
-      "Commission is earned at a rate of {{ percent }}% on the subscriber's payment amount, before applicable taxes and fees. This is recurring: you earn commission on every renewal payment made by a referred subscriber for as long as they remain subscribed, not just their first payment.",
+      "Commission is earned at a rate of {{ percent }}% on the subscriber's payment amount, before applicable taxes and fees. This is recurring: you earn commission on every renewal payment made by a referred subscriber for as long as they remain subscribed, not only their first payment.",
     affiliate_info_step_cap:
       "Total earnings are capped at {{ value }} per calendar month per brand affiliate. The cap resets automatically at the start of each month, and no additional commission accrues once the monthly limit is reached.",
     affiliate_info_step_payout:
@@ -5551,7 +5551,7 @@ export const en: Translations = {
       "Aster Server keeps your encrypted emails in Aster's standard storage. Private IPFS keeps them in a content-addressed store that also runs on Aster's servers. Either way, only your keys can decrypt them.",
     info_block_fonts_title: "Why Block Remote Fonts?",
     info_block_fonts_description:
-      "Emails can load fonts from outside servers. When they load, the sender's server sees your IP and knows you opened the message. Same trick as a tracking pixel, just via fonts.",
+      "Emails can load fonts from outside servers. When they load, the sender's server sees your IP and knows you opened the message. It works like a tracking pixel, but with fonts.",
     info_block_css_title: "Why Block Remote Stylesheets?",
     info_block_css_description:
       "Stylesheets in emails work like hidden trackers. Loading one tells the sender's server your IP, when you opened it, and what device you're on.",
@@ -6236,12 +6236,12 @@ export const en: Translations = {
     domain_purchase_intro_sub:
       "Answer two quick questions and we'll show you what's available.",
     domain_purchase_intro_name_q:
-      "What name do you want? Your business, your project, or just you.",
+      "What name do you want? Your business, your project, or your own name.",
     domain_purchase_intro_name_ph:
       "Type a name, like harborcoffee or alexcarter",
     domain_purchase_intro_tld_q: "Any favorite ending?",
     domain_purchase_intro_cta: "Show me what's available",
-    domain_purchase_intro_skip: "Skip, I'll just search",
+    domain_purchase_intro_skip: "Skip, I'll search",
     domain_purchase_intro_replay: "Show the guided start again",
     domain_purchase_intro_examples: "Or start from an example",
     domain_purchase_intro_tld_title: "Now pick an ending",
@@ -7129,7 +7129,7 @@ export const en: Translations = {
     error_tip_dkim:
       "The signing record is long. Pasting the whole value without it getting cut off is the bit to double-check.",
     error_tip_dmarc:
-      "Some DNS providers add your domain on their own. Just _dmarc as the host, not _dmarc.yourdomain.com, will work.",
+      "Some DNS providers add your domain on their own. Enter _dmarc as the host, not _dmarc.yourdomain.com.",
     verify_all_records: "Verify All Records",
     need_help_link: "Need help?",
     catch_all_enabled_toast: "Catch-all enabled",
