@@ -132,6 +132,7 @@ export function refresh_resolved_accent(): ResolvedAccent {
 }
 
 export function get_resolved_accent(): ResolvedAccent {
+  observe_root_appearance();
   if (!initialized) refresh_resolved_accent();
 
   return current;
@@ -140,6 +141,7 @@ export function get_resolved_accent(): ResolvedAccent {
 function subscribe_resolved_accent(listener: () => void): () => void {
   observe_root_appearance();
   listeners.add(listener);
+  refresh_resolved_accent();
 
   return () => {
     listeners.delete(listener);
