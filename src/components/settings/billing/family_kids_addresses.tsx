@@ -151,6 +151,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
       set_seats_used(r.data.seats_used);
       set_max_members(r.data.max_members);
       set_seat_breakdown(r.data.seats ?? null);
+      loaded_once_ref.current = true;
     } else {
       set_load_failed(true);
       show_toast(t("settings.fam_kids_load_failed"), "error");
@@ -290,7 +291,6 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
         show_toast(t("settings.fam_org_action_failed"), "error");
       }
     } finally {
-      loaded_once_ref.current = true;
       set_regenerating_id(null);
     }
   };
