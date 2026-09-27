@@ -142,6 +142,7 @@ export interface ListMailItemsParams {
   order?: "asc" | "desc";
   skip_total?: boolean;
   include_envelope?: boolean;
+  pinned_first?: boolean;
   folder_unlock_token?: string;
 }
 
@@ -291,6 +292,7 @@ export async function list_mail_items(
   if (params.skip_total) query_params.set("skip_total", "true");
   if (params.include_envelope === false)
     query_params.set("include_envelope", "false");
+  if (params.pinned_first) query_params.set("pinned_first", "true");
 
   const query_string = query_params.toString();
   const endpoint = `/mail/v1/messages${query_string ? `?${query_string}` : ""}`;

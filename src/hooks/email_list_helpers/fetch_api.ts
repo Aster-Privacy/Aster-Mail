@@ -87,6 +87,7 @@ export async function fetch_mail_from_api(
     ...build_view_list_params(view),
     limit,
     order,
+    pinned_first: true,
     ...(offset !== undefined ? { offset } : cursor ? { cursor } : {}),
     ...(offset !== undefined ? { group_by_thread: should_group } : {}),
     ...((offset !== undefined && offset > 0) || cursor
@@ -237,6 +238,7 @@ export async function fetch_mail_from_api(
                   metadata?.category_pinned === true &&
                   !!metadata?.category &&
                   !is_locked_to_primary(envelope!, item),
+                is_pinned: item.is_pinned ?? metadata?.is_pinned ?? false,
               },
             ];
           } catch {
