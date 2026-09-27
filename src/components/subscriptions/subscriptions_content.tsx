@@ -27,6 +27,7 @@ import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 import { Button, Checkbox } from "@aster/ui";
 
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
+import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmailTag } from "@/components/ui/email_tag";
@@ -284,38 +285,29 @@ export function SubscriptionsContent({
       </div>
 
       <div className="flex items-center gap-2 px-4 py-2 flex-shrink-0 border-b border-edge-primary">
-        <div className="flex rounded-lg overflow-hidden border border-edge-primary">
-          <button
-            className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-              active_tab === "active"
-                ? "bg-blue-500 text-white"
-                : "text-txt-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
-            }`}
-            onClick={() => {
-              set_active_tab("active");
-              set_selected_ids(new Set());
-            }}
-          >
-            {t("settings.active_count", {
-              count: active_subscriptions.length,
-            })}
-          </button>
-          <button
-            className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-              active_tab === "unsubscribed"
-                ? "bg-blue-500 text-white"
-                : "text-txt-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
-            }`}
-            onClick={() => {
-              set_active_tab("unsubscribed");
-              set_selected_ids(new Set());
-            }}
-          >
-            {t("common.unsubscribed_count", {
-              count: unsubscribed_subscriptions.length,
-            })}
-          </button>
-        </div>
+        <SettingsTabBar
+          active={active_tab}
+          class_name="mb-0"
+          layout_id="subscriptions_tabs"
+          on_change={(key) => {
+            set_active_tab(key);
+            set_selected_ids(new Set());
+          }}
+          tabs={[
+            {
+              key: "active",
+              label: t("settings.active_count", {
+                count: active_subscriptions.length,
+              }),
+            },
+            {
+              key: "unsubscribed",
+              label: t("common.unsubscribed_count", {
+                count: unsubscribed_subscriptions.length,
+              }),
+            },
+          ]}
+        />
         <div className="flex-1" />
       </div>
 
@@ -439,11 +431,7 @@ function SubscriptionRow({
 }: SubscriptionRowProps) {
   const { t } = use_i18n();
   const tag_variant = (CATEGORY_TAG_VARIANT[sub.category] || "neutral") as
-    | "blue"
-    | "purple"
-    | "green"
-    | "amber"
-    | "neutral";
+    "blue" | "purple" | "green" | "amber" | "neutral";
 
   return (
     <div

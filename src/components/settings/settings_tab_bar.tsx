@@ -39,6 +39,7 @@ interface SettingsTabBarProps<T extends string> {
   active: T;
   on_change: (key: T) => void;
   layout_id: string;
+  class_name?: string;
 }
 
 interface Rect {
@@ -52,6 +53,7 @@ export function SettingsTabBar<T extends string>({
   tabs,
   active,
   on_change,
+  class_name = "mb-7",
 }: SettingsTabBarProps<T>) {
   const scroller_ref = useRef<HTMLDivElement | null>(null);
   const row_ref = useRef<HTMLDivElement | null>(null);
@@ -197,7 +199,7 @@ export function SettingsTabBar<T extends string>({
     : "opacity 140ms ease";
 
   return (
-    <div className="mb-7">
+    <div className={class_name}>
       <div
         ref={scroller_ref}
         className="max-w-full overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
