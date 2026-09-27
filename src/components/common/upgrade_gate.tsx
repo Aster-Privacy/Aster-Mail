@@ -20,7 +20,8 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { Badge, UpgradeBtn } from "@aster/ui";
+import { LockClosedIcon } from "@heroicons/react/24/outline";
+import { Island, UpgradeBtn } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 
@@ -53,41 +54,58 @@ export function UpgradeGate({
     return <>{children}</>;
   }
 
-  if (variant === "centered") {
-    return (
-      <div className="flex flex-col items-center justify-center text-center min-h-[60vh] gap-3 px-6">
-        <Badge color="blue">
-          {t("settings.alias_feature_locked_upgrade_plan" as TranslationKey)}
-        </Badge>
-        <h3 className="text-lg font-semibold text-txt-primary">
-          {feature_name}
-        </h3>
-        <p className="text-sm text-txt-secondary max-w-md">{description}</p>
-        <p className="text-sm text-txt-muted">
-          {t("settings.available_on_plan" as TranslationKey, {
-            plan: min_plan,
-          })}
-        </p>
-        <UpgradeBtn size="lg" onClick={navigate_to_billing}>
-          {t("settings.upgrade_to_unlock" as TranslationKey)}
-        </UpgradeBtn>
-      </div>
-    );
-  }
+  const centered = variant === "centered";
 
   return (
-    <div className="flex flex-col items-center justify-center text-center py-6 gap-3 px-6">
-      <Badge color="blue">
-        {t("settings.alias_feature_locked_upgrade_plan" as TranslationKey)}
-      </Badge>
-      <h3 className="text-sm font-semibold text-txt-primary">{feature_name}</h3>
-      <p className="text-xs text-txt-secondary max-w-md">{description}</p>
-      <p className="text-xs text-txt-muted">
-        {t("settings.available_on_plan" as TranslationKey, { plan: min_plan })}
-      </p>
-      <UpgradeBtn onClick={navigate_to_billing}>
-        {t("settings.upgrade_to_unlock" as TranslationKey)}
-      </UpgradeBtn>
+    <div
+      className={
+        centered ? "flex min-h-[60vh] items-center justify-center px-4" : ""
+      }
+    >
+      <Island
+        className={centered ? "w-full max-w-[440px]" : "w-full"}
+        padding="none"
+      >
+        <div
+          className={`flex flex-col items-center text-center ${
+            centered ? "px-8 py-10" : "px-6 py-8"
+          }`}
+        >
+          <span
+            aria-hidden="true"
+            className="mb-4 flex h-12 w-12 items-center justify-center rounded-full"
+            style={{
+              backgroundColor:
+                "color-mix(in srgb, var(--accent-color) 12%, transparent)",
+              color: "var(--accent-color)",
+            }}
+          >
+            <LockClosedIcon className="h-6 w-6" strokeWidth={1.8} />
+          </span>
+          <h3
+            className={`font-semibold tracking-tight text-txt-primary ${
+              centered ? "text-[19px] leading-6" : "text-[16px] leading-[22px]"
+            }`}
+          >
+            {feature_name}
+          </h3>
+          <p className="mt-1.5 max-w-[380px] text-[14px] leading-5 text-txt-secondary">
+            {description}
+          </p>
+          <UpgradeBtn
+            className="mt-5 min-w-[180px]"
+            size={centered ? "lg" : "md"}
+            onClick={navigate_to_billing}
+          >
+            {t("settings.upgrade_to_unlock" as TranslationKey)}
+          </UpgradeBtn>
+          <p className="mt-2.5 text-[12.5px] text-txt-muted">
+            {t("settings.available_on_plan" as TranslationKey, {
+              plan: min_plan,
+            })}
+          </p>
+        </div>
+      </Island>
     </div>
   );
 }
