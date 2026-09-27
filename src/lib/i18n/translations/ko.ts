@@ -1002,7 +1002,7 @@ export const ko = {
       "이 기기에서 이 이메일을 열 수 없었습니다. 새로고침하면 보통 해결되며, 계속 실패하면 로그아웃 후 다시 로그인하는 것이 대안입니다.",
     failed_to_unsubscribe:
       "구독 해지가 완료되지 않았습니다. 이메일의 링크를 누르면 발신자 사이트에서 직접 해지할 수 있습니다.",
-    failed_to_disable_2fa: "다시 시도하세요.",
+    failed_to_disable_2fa: "2단계 인증이 계속 켜져 있습니다. 다시 시도하세요. 계정은 여전히 보호됩니다.",
     failed_to_parse_settings:
       "이 설정 파일을 읽을 수 없었습니다. 다른 파일이면 됩니다. 현재 설정은 그대로입니다.",
     removed_from_contacts: "연락처에서 제거됨",
@@ -4638,7 +4638,7 @@ export const ko = {
       "이메일의 CSS 파일은 숨겨진 추적기처럼 작동합니다. 로드 시 발신자 서버에 IP, 열람 시간, 기기 정보가 전달됩니다.",
     info_strip_exif_title: "이미지 메타데이터란?",
     info_strip_exif_description:
-      "스마트폰과 카메라로 찍은 사진에는 GPS 좌표, 기기 모델, 타임스탬프, 렌즈 정보 등 숨겨진 데이터가 포함됩니다. Aster는 업로드 전에 이를 제거해 수신자가 픽셀만 볼 수 있도록 합니다.",
+      "스마트폰과 카메라로 찍은 사진에는 GPS 좌표, 기기 모델, 타임스탬프, 렌즈 정보 등 숨겨진 데이터가 포함됩니다. 이미지를 보내면 이 데이터도 함께 전송됩니다. Aster는 업로드 전에 이를 제거해 수신자가 픽셀만 볼 수 있도록 합니다.",
     info_spy_pixels_title: "스파이 픽셀이란?",
     info_spy_pixels_description:
       "이메일에 숨겨진 1x1 크기의 보이지 않는 이미지입니다. 로드 시 발신자가 IP, 열람 시간, 기기 유형을 확인합니다. Aster는 로드 전에 제거합니다.",
@@ -8722,7 +8722,7 @@ export const ko = {
     size_label: "크기",
     encryption_label: "암호화",
     location_label: "위치",
-    zero_access_encrypted: "무접근 암호화됨",
+    zero_access_encrypted: "종단간 암호화됨",
     download_headers: "헤더 다운로드",
     copy_headers: "헤더 복사",
     headers_copied: "헤더가 복사되었습니다",
@@ -9368,7 +9368,7 @@ export const ko = {
     plan_view_full_features: "모든 기능 보기",
     plan_recommended: "추천",
     plan_footer_reassurance:
-      "모든 플랜은 종단간 암호화 및 무접근 아키텍처를 포함합니다.",
+      "모든 요금제에는 무접근 암호화가 포함되며 광고가 없고 30일 환불 보장이 제공됩니다. 언제든지 변경하거나 취소할 수 있습니다.",
     plan_select: "선택",
     plan_selected: "선택됨",
     plan_loading: "플랜 불러오는 중...",
