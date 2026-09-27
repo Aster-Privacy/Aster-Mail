@@ -157,6 +157,28 @@ export function BillingSection({
                 <LoadFailedNotice on_retry={() => void load_data()} />
               )}
 
+              <div className="space-y-3 empty:hidden">
+                <CurrentPlanNotices
+                  grace_days_remaining={grace_days_remaining}
+                  has_payment_failed={has_payment_failed}
+                  is_action_loading={is_action_loading}
+                  is_over_limit={is_storage_over_limit}
+                  on_add_storage={scroll_to_storage_addons}
+                  on_manage_billing={handle_manage_billing}
+                  on_reactivate={handle_reactivate}
+                  on_renew_with_crypto={handle_crypto_renew}
+                  subscription={subscription}
+                />
+                <CryptoResumeBanner />
+                <ResumeCheckoutCard
+                  current_plan_code={subscription?.plan.code ?? null}
+                />
+                <WinBackOfferCard
+                  offer={subscription?.pending_offer}
+                  on_choose_plan={open_plans}
+                />
+              </div>
+
               {subscription && (
                 <CurrentPlanCard
                   current_billing_interval={current_billing_interval}
@@ -672,28 +694,6 @@ export function BillingSection({
                   storage_limit_bytes={storage_limit_bytes}
                   storage_percentage={storage_percentage}
                   storage_used_bytes={storage_used_bytes}
-                />
-              </div>
-
-              <div className="space-y-3 empty:hidden">
-                <CurrentPlanNotices
-                  grace_days_remaining={grace_days_remaining}
-                  has_payment_failed={has_payment_failed}
-                  is_action_loading={is_action_loading}
-                  is_over_limit={is_storage_over_limit}
-                  on_add_storage={scroll_to_storage_addons}
-                  on_manage_billing={handle_manage_billing}
-                  on_reactivate={handle_reactivate}
-                  on_renew_with_crypto={handle_crypto_renew}
-                  subscription={subscription}
-                />
-                <CryptoResumeBanner />
-                <ResumeCheckoutCard
-                  current_plan_code={subscription?.plan.code ?? null}
-                />
-                <WinBackOfferCard
-                  offer={subscription?.pending_offer}
-                  on_choose_plan={open_plans}
                 />
               </div>
 
