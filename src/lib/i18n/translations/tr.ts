@@ -848,7 +848,7 @@ export const tr = {
     scheduled_no_attachments:
       "Zamanlanmış e-postalar henüz ek içeremez. Şimdi gönderin veya zamanlamak için dosyaları kaldırın.",
     scheduled_connected_account:
-      "Zamanlanmış gönderim bağlı hesaplar için kullanılamaz. Bu iletiyi şimdi gönder ya da bir Aster adresi seç.",
+      "Zamanlanmış gönderim bağlı hesaplar için kullanılamaz. Bu iletiyi şimdi gönderin ya da bir Aster adresi seçin.",
     scheduled_no_expiry:
       "Zamanlanmış e-postalar henüz süre sonu kullanamaz. Şimdi gönder ya da zamanlamak için süre sonunu kaldır.",
     failed_to_merge_contacts:
@@ -2163,7 +2163,7 @@ export const tr = {
     fam_org_event_group_member_added: "Gruba üye eklendi",
     fam_org_event_group_member_removed: "Gruptan üye çıkarıldı",
     fam_org_captcha_required: "Davet göndermek için captcha'yı tamamlayın.",
-    fam_org_left_title: "Aile planından ayrıldın",
+    fam_org_left_title: "Aile planından ayrıldınız",
     fam_org_left_desc:
       "Hesabın hâlâ etkin. Yeni bir davetle istediğin zaman tekrar katılabilirsin.",
     fam_org_invite_summary:
@@ -2285,9 +2285,9 @@ export const tr = {
       "Bu kategori için özel kurallarınızla eşleşen e-postalar.",
     muted_categories: "Sessize alınan kategoriler",
     muted_categories_description:
-      "Bir kategorinin bildirimlerini susturmak için onu aç. Sessize alınan kategoriler posta almaya devam eder ve gelen kutunda görünür.",
+      "Bir kategorinin bildirimlerini susturmak için onu açın. Sessize alınan kategoriler posta almaya devam eder ve gelen kutunuzda görünür.",
     muted_categories_empty:
-      "Hangi kategorileri sessize alacağını seçmek için gelen kutusu kategorilerini aç.",
+      "Hangi kategorileri sessize alacağınızı seçmek için gelen kutusu kategorilerini açın.",
     custom_categories_title: "Özel Kategoriler",
     custom_categories_tutorial:
       "Kendi kategorinizi oluşturun. E-postaları gönderen alan adına veya konu anahtar kelimesine göre eşleştirin.",
@@ -3767,7 +3767,8 @@ export const tr = {
       "Bu oturumdan çıkış yapmak istediğinizden emin misiniz?",
     no_active_sessions: "Aktif oturum bulunamadı",
     failed_load_sessions: "Oturumlar yüklenemedi",
-    failed_load_security_status: "Güvenlik ayarların yüklenmedi. Yeniden dene.",
+    failed_load_security_status:
+      "Güvenlik ayarlarınız yüklenmedi. Yeniden deneyin.",
     load_more_sessions: "{{count}} oturum daha yükle",
     two_fa_enabled: "Etkin ({{count}} yedek kod kaldı)",
     two_fa_add_security: "2FA ile ekstra bir güvenlik katmanı ekleyin",
@@ -4495,91 +4496,94 @@ export const tr = {
     primary_badge: "Birincil",
     primary_address_label: "Birincil adres",
     change_address: "Adresi değiştir",
-    address_change_title: "Adresini değiştir",
+    address_change_title: "Adresinizi değiştirin",
     address_change_intro_lead: "Devam etmeden önce nelerin değiştiğini okuyun.",
-    address_change_keep_old_title: "{{email}} sende kalır",
+    address_change_keep_old_title: "{{email}} sizde kalır",
     address_change_keep_old_body:
-      "Bu adrese gelen postalar gelen kutuna düşmeye devam eder ve her cihazda bu adresle oturum açmayı sürdürebilirsin.",
-    address_change_no_limit_title: "Eski adresin senin kalır",
+      "Bu adrese gelen postalar gelen kutunuza düşmeye devam eder ve her cihazda bu adresle oturum açmayı sürdürebilirsiniz.",
+    address_change_no_limit_title: "Eski adresiniz sizde kalır",
     address_change_no_limit_body:
       "Takma ad sınırına dahil edilmez, başkası alamaz ve silinemez.",
     address_change_once_title: "30 günde bir değişiklik",
     address_change_once_body:
-      "Bu değişiklikten sonra {{date}} tarihinde yeniden değiştirebilirsin.",
+      "Bu değişiklikten sonra {{date}} tarihinde yeniden değiştirebilirsiniz.",
     address_change_effect_alias_title: "{{email}} artık bir takma ad olmayacak",
     address_change_effect_alias_body:
-      "Bu takma ad için ayarladığın kurallar, yönlendirmeler, imzalar ve ters rumuzlar kaldırılır. Bu adrese gönderilen iletiler, artık birincil adresin olarak gelmeye devam eder.",
-    address_change_permanent_title: "Bunu geri alamazsın",
-    address_change_permanent_body: "{{email}} yeniden birincil adresin olamaz.",
-    address_change_pick_title: "Yeni adresini seç",
-    address_change_use_alias: "Takma adlarından birini kullan",
-    address_change_use_new: "Yeni bir adres seç",
+      "Bu takma ad için ayarladığınız kurallar, yönlendirmeler, imzalar ve ters rumuzlar kaldırılır. Bu adrese gönderilen iletiler, artık birincil adresiniz olarak gelmeye devam eder.",
+    address_change_permanent_title: "Bunu geri alamazsınız",
+    address_change_permanent_body:
+      "{{email}} yeniden birincil adresiniz olamaz.",
+    address_change_pick_title: "Yeni adresinizi seçin",
+    address_change_use_alias: "Takma adlarınızdan birini kullanın",
+    address_change_use_new: "Yeni bir adres seçin",
     address_change_name_rule:
-      "3 ile 40 arasında harf, rakam veya nokta kullan. Nokta adresin başında veya sonunda olamaz ve noktalar tekrarlanamaz.",
+      "3 ile 40 arasında harf, rakam veya nokta kullanın. Nokta adresin başında veya sonunda olamaz ve noktalar tekrarlanamaz.",
     address_change_name_placeholder: "adiniz",
     primary_address_info:
       "Supernova planın adresini 30 günde bir değiştirmene izin verir. Eski adresin senin kalır: posta almayı sürdürür ve oturum açmanı sağlar.",
     address_change_checking: "Uygunluk kontrol ediliyor",
     address_change_available: "{{email}} kullanılabilir",
     address_change_unavailable: "{{email}} kullanılamaz",
-    address_change_same_as_current: "Bu zaten senin adresin",
+    address_change_same_as_current: "Bu zaten sizin adresiniz",
     address_change_check_failed:
-      "Aster Mail bu adresi kontrol edemedi. Birazdan yeniden dene.",
-    address_change_review_title: "Değişikliği gözden geçir",
+      "Aster Mail bu adresi kontrol edemedi. Birazdan yeniden deneyin.",
+    address_change_review_title: "Değişikliği gözden geçirin",
     address_change_from: "Şimdi",
     address_change_to: "Sonra",
     address_change_effect_sending:
-      "Gönderdiğin iletiler {{email}} adresinden çıkar.",
+      "Gönderdiğiniz iletiler {{email}} adresinden çıkar.",
     address_change_effect_key:
-      "Şifreleme anahtarın aynı kalır ve ikinci kimlik olarak {{email}} eklenir.",
-    address_change_effect_signed_in: "Her yerde oturumun açık kalır.",
+      "Şifreleme anahtarınız aynı kalır ve ikinci kimlik olarak {{email}} eklenir.",
+    address_change_effect_signed_in: "Her yerde oturumunuz açık kalır.",
     address_change_effect_final:
-      "Değişiklik kesindir. Devam etmek için yeni adresini yaz.",
-    address_change_type_to_confirm: "Onaylamak için {{email}} yaz",
-    address_change_password_title: "Sen olduğunu doğrula",
-    address_change_password_body: "Devam etmek için parolanı gir.",
+      "Değişiklik kesindir. Devam etmek için yeni adresinizi yazın.",
+    address_change_type_to_confirm: "Onaylamak için {{email}} yazın",
+    address_change_password_title: "Siz olduğunuzu doğrulayın",
+    address_change_password_body: "Devam etmek için parolanızı girin.",
     address_change_code_resent: "Aster Mail yeni bir kod gönderdi.",
-    address_change_code_title: "Onay kodunu gir",
+    address_change_code_title: "Onay kodunu girin",
     address_change_code_body:
       "{{email}} adresinde 6 haneli bir kod var. Kod 15 dakika içinde geçerliliğini yitirir.",
     address_change_code_label: "Onay kodu",
-    address_change_done_title: "Adresin artık {{email}}",
+    address_change_done_title: "Adresiniz artık {{email}}",
     address_change_done_body:
-      "{{email}} posta almayı ve oturum açmanı sağlamayı sürdürür.",
+      "{{email}} posta almayı ve oturum açmanızı sağlamayı sürdürür.",
     address_change_done_partial:
-      "Adresin değişti ama şifreleme anahtarın güncellenmeyi tamamlamadı. O zamana kadar yeni adresin anahtarında yer almaz.",
-    address_change_updating_key: "Şifreleme anahtarın güncelleniyor",
-    address_change_failed: "Adres değişikliği tamamlanmadı. Yeniden dene.",
+      "Adresiniz değişti ama şifreleme anahtarınız güncellenmeyi tamamlamadı. O zamana kadar yeni adresiniz anahtarınızda yer almaz.",
+    address_change_updating_key: "Şifreleme anahtarınız güncelleniyor",
+    address_change_failed: "Adres değişikliği tamamlanmadı. Yeniden deneyin.",
     address_change_code_too_many:
       "Çok fazla hatalı kod girildi. Yeni bir kod almak için değişikliği yeniden başlat.",
     address_change_code_expired:
-      "Bu kodun süresi doldu. Yenisini almak için değişikliği yeniden başlat.",
-    address_change_taken_now: "Bu adresi baska biri aldi. Baska bir adres sec.",
+      "Bu kodun süresi doldu. Yenisini almak için değişikliği yeniden başlatın.",
+    address_change_taken_now:
+      "Bu adresi başka biri aldı. Başka bir adres seçin.",
     address_change_code_invalid: "Bu kod doğru değil.",
     address_change_locked_plan: "Adres değiştirmek bir Supernova özelliğidir.",
     address_change_locked_cooldown:
-      "Adresini {{date}} tarihinde yeniden değiştirebilirsin.",
+      "Adresinizi {{date}} tarihinde yeniden değiştirebilirsiniz.",
     address_change_locked_cooldown_unknown:
-      "Adresini son 30 gün içinde değiştirdin, bu yüzden henüz yeniden değiştiremezsin.",
+      "Adresinizi son 30 gün içinde değiştirdiniz, bu yüzden henüz yeniden değiştiremezsiniz.",
     address_change_once_unknown:
-      "Bu değişiklikten sonra 30 gün içinde yeniden değiştirebilirsin.",
+      "Bu değişiklikten sonra 30 gün içinde yeniden değiştirebilirsiniz.",
     address_change_password_wrong: "Bu parola doğru değil.",
-    address_change_not_eligible: "Şu anda adresini değiştiremezsin.",
+    address_change_not_eligible: "Şu anda adresinizi değiştiremezsiniz.",
     address_change_too_many_requests:
-      "Çok fazla adres değişikliği başlattın. Bir saat sonra yeniden dene.",
-    address_change_resend_too_soon: "Yeni bir kod istemeden önce biraz bekle.",
+      "Çok fazla adres değişikliği başlattınız. Bir saat sonra yeniden deneyin.",
+    address_change_resend_too_soon:
+      "Yeni bir kod istemeden önce biraz bekleyin.",
     address_change_send_failed:
       "Aster Mail kodu gönderemedi. Birkaç dakika sonra yeniden dene.",
     address_change_invalid_address:
       "Bu adres geçerli değil. Başka bir adres seç.",
     address_change_locked_account_kind:
-      "Adresini yalnızca kişisel hesaplar değiştirebilir.",
+      "Adresi yalnızca kişisel hesaplar değiştirebilir.",
     address_change_locked_custom_domain:
-      "Kendi alan adındaki adresler buradan değiştirilemez.",
+      "Kendi alan adınızdaki adresler buradan değiştirilemez.",
     address_change_locked_unavailable:
       "Adres değiştirme şu anda kullanılamıyor.",
     address_change_eligibility_failed:
-      "Aster Mail adresini değiştirip değiştiremeyeceğini denetleyemedi.",
+      "Aster Mail adresinizi değiştirip değiştiremeyeceğinizi denetleyemedi.",
     address_change_domain_label: "Alan adı",
     primary_address_set: "Birincil adres güncellendi",
     primary_address_reset: "Varsayılan adresine sıfırla",
@@ -5728,7 +5732,7 @@ export const tr = {
     storage_promo_note:
       "İndirim yalnızca ilk depolama eklentinizde geçerlidir.",
     storage_select_option_first:
-      "Daha fazla depolama satın almak için önce bir seçenek belirle.",
+      "Daha fazla depolama satın almak için önce bir seçenek belirleyin.",
     storage_promo_cta: "Eklentileri gör",
     storage_used_of_total: "{{total}} alanın {{used}} kadarı kullanıldı",
     storage_free_space:
@@ -6265,7 +6269,7 @@ export const tr = {
     save_backup_codes_description:
       "Bu yedek kodları güvenli bir yerde saklayın. Kimlik doğrulama cihazınızı kaybederseniz hesabınıza erişmek için kullanabilirsiniz.",
     two_factor_other_devices_signed_out:
-      "Aster diğer cihazlarındaki oturumunu kapattı. Bunları yeniden kullanmak için oturum aç ve kimlik doğrulama uygulamandaki kodu gir.",
+      "Aster diğer cihazlarınızdaki oturumunuzu kapattı. Bunları yeniden kullanmak için oturum açın ve kimlik doğrulama uygulamanızdaki kodu girin.",
     copy_all_codes: "Tüm Kodları Kopyala",
     backup_codes: "Yedek kodlar",
     regenerate_backup_codes: "Yedek kodları yeniden oluştur",
@@ -6440,7 +6444,7 @@ export const tr = {
     domain_purchase_manage_term: "Süre",
     domain_purchase_manage_paid: "Ödenen",
     domain_purchase_manage_auto_renew_note:
-      "Bu alan adı otomatik olarak yenilenmez. Elinde tutmak için bitiş tarihinden önce yenile.",
+      "Bu alan adı otomatik olarak yenilenmez. Elinizde tutmak için bitiş tarihinden önce yenileyin.",
     domain_purchase_manage_dns: "Alan adı kurulumunu aç",
     domain_purchase_manage_support_note:
       "Bu alan adını başka bir kayıt kuruluşuna taşımak ya da geri ödeme sormak için destek ile iletişime geç.",
@@ -6481,7 +6485,7 @@ export const tr = {
     domain_purchase_complete_cta: "Satın almayı tamamla",
     domain_purchase_cancel_payment_title: "Bu ödeme iptal edilsin mi?",
     domain_purchase_cancel_payment_message:
-      "Özel alan adı için bu ödemeyi iptal etmek istediğinden emin misin?",
+      "Özel alan adı için bu ödemeyi iptal etmek istediğinizden emin misiniz?",
     domain_purchase_cancel_payment_confirm: "Ödemeyi iptal et",
     domain_purchase_cancel_payment_keep: "Ödemeyi koru",
     domain_purchase_purchased_lapsed: "Süresi doldu - yeniden al",
@@ -7211,7 +7215,7 @@ export const tr = {
       "Giden e-postalarda imzanın üstüne '--' ayırıcı satır ekle.",
     show_aster_branding: "Aster Mail filigranı",
     show_aster_branding_description:
-      "Giden e-postaların alt kısmında 'Aster Mail ile güvende' göster.",
+      "Giden e-postaların alt kısmında 'Aster Mail ile güvende' ifadesini gösterin.",
     show_aster_branding_free_note:
       "Filigranı kaldırmak için ücretli bir plana yükseltin.",
     spam_filter_enabled: "Spam Filtrelemeyi Etkinleştir",
@@ -8453,7 +8457,7 @@ export const tr = {
     contacts: "Kişiler",
     scheduled_for: "Zamanlanma tarihi:",
     scheduled_send_failed:
-      "Bu ileti gönderilemedi. Yeniden denemek için yeni bir gönderim zamanı seç.",
+      "Bu ileti gönderilemedi. Yeniden denemek için yeni bir gönderim zamanı seçin.",
     spam_email_message: "Bu e-posta Spam klasörünüze taşınacak.",
     delete_permanently_question: "Kalıcı Olarak Silinsin mi?",
     empty_spam_folder_question: "Spam klasörü boşaltılsın mı?",
@@ -8915,7 +8919,7 @@ export const tr = {
     recovery_download_failed: "İndirme başarısız oldu. Lütfen tekrar deneyin.",
     add_backup_email: "Yedek e-posta ekle",
     skip_for_now: "Şimdilik atla",
-    create_your_account: "Hesabını oluştur",
+    create_your_account: "Hesabınızı oluşturun",
     welcome_workspace_subtitle:
       "Aster'e hoş geldin. Başlamak için bir kullanıcı adı seç.",
     username_placeholder: "Kullaniciadi",
@@ -8932,7 +8936,7 @@ export const tr = {
     copy_codes: "Kodları kopyala",
     password_recovery_email: "Parola kurtarma e-postası",
     recovery_email_step_desc:
-      "Kurtarma kodlarını kaybedersen hesabına geri dönebilmek için bir e-posta adresi ekle.",
+      "Kurtarma kodlarınızı kaybederseniz hesabınıza geri dönebilmek için bir e-posta adresi ekleyin.",
     download_apps_title: "Mobil ve masaüstü uygulamalarını indir",
     download_apps_desc: "Gelen kutunu her cihazda yanında taşı.",
     mail_mobile: "Mail Mobile",
@@ -8948,23 +8952,23 @@ export const tr = {
     notifications_sample_body:
       "Yeni e-posta geldiğinde bunun gibi bir bildirim alırsın.",
     notification_preview_title: "Yeni mesaj",
-    notification_preview_body: "Gelen kutunda yeni bir mesaj var.",
+    notification_preview_body: "Gelen kutunuzda yeni bir mesaj var.",
     turn_on: "Aç",
-    addresses_step_title: "Farklı amaçlar için adresler oluştur",
+    addresses_step_title: "Farklı amaçlar için adresler oluşturun",
     addresses_step_desc:
-      "İş, bültenler veya alışveriş için ek adresler ekle. Hepsi aynı gelen kutusuna düşer.",
+      "İş, bültenler veya alışveriş için ek adresler ekleyin. Hepsi aynı gelen kutusuna düşer.",
     address_n: "Adres {{n}}",
     address_must_begin_end_alphanumeric:
       "E-posta adresi bir harf veya rakamla başlamalı ve bitmelidir.",
-    custom_domain_step_title: "Adresini özel bir alan adıyla kişiselleştir",
+    custom_domain_step_title: "Adresinizi özel bir alan adıyla kişiselleştirin",
     custom_domain_step_desc:
-      "Sana ait bir alan adındaki adresten e-posta gönder ve al.",
-    custom_domain_own: "Zaten sahip olduğun bir alan adını kur",
+      "Size ait bir alan adındaki adresten e-posta gönderin ve alın.",
+    custom_domain_own: "Zaten sahip olduğunuz bir alan adını kurun",
     custom_domain_own_desc:
-      "Herhangi bir kayıt şirketinden bir alan adını birkaç dakikada bağla.",
-    custom_domain_new: "Yeni bir alan adı al",
+      "Herhangi bir kayıt şirketinden bir alan adını birkaç dakikada bağlayın.",
+    custom_domain_new: "Yeni bir alan adı alın",
     custom_domain_new_desc:
-      "Aster'den ayrılmadan bir alan adı ara ve satın al.",
+      "Aster'den ayrılmadan bir alan adı arayın ve satın alın.",
     recovery_email_required_gate_title: "Kurtarma e-postası gerekli",
     recovery_email_required_gate_desc:
       "Ek hesap oluşturmak için bir kurtarma e-postası gereklidir. Bu, tüm hesaplarınızı korumaya yardımcı olur.",
@@ -8982,9 +8986,9 @@ export const tr = {
     password_invalid_chars: "Standart klavye karakterleri izin verilen settir.",
     password_error_length: "Parolan için en az 8 karakter kullan.",
     complete_captcha_first: "Devam etmek için güvenlik denetimini tamamla.",
-    password_error_uppercase: "En az bir büyük harf ekle.",
-    password_error_lowercase: "En az bir küçük harf ekle.",
-    password_error_number: "En az bir rakam ekle.",
+    password_error_uppercase: "En az bir büyük harf ekleyin.",
+    password_error_lowercase: "En az bir küçük harf ekleyin.",
+    password_error_number: "En az bir rakam ekleyin.",
     password_rule_length: "En az 8 karakter",
     password_rule_case: "Büyük ve küçük harfler",
     password_rule_number: "En az bir rakam",
@@ -9119,11 +9123,11 @@ export const tr = {
     old_codes_invalidated:
       "Eski kurtarma kodlarınız artık çalışmıyor. Bu yeni seti pencereyi kapatmadan önce güvenli bir yere kaydetmek sizi korunaklı tutar.",
     n_recovery_codes: "{{count}} kurtarma kodu",
-    import_mail_step_title: "Postanı yanında getir",
+    import_mail_step_title: "Postanızı yanınızda getirin",
     import_mail_step_desc:
-      "Başka bir hesaptaki iletileri Aster'a taşı. Her şey kaydedilmeden önce cihazında şifrelenir.",
-    import_mail_skip: "Boş gelen kutusuyla başla",
-    import_mail_privacy_note: "Daha sonra Ayarlar'dan da içe aktarabilirsin.",
+      "Başka bir hesaptaki iletileri Aster'a taşıyın. Her şey kaydedilmeden önce cihazınızda şifrelenir.",
+    import_mail_skip: "Boş gelen kutusuyla başlayın",
+    import_mail_privacy_note: "Daha sonra Ayarlar'dan da içe aktarabilirsiniz.",
     password_reset_successful: "Parola sıfırlama başarılı",
     account_recovered_sign_in:
       "Hesabınız kurtarıldı. Artık yeni parolanızla giriş yapabilirsiniz.",
@@ -9211,7 +9215,7 @@ export const tr = {
     link_device_other_accounts: "Başka bir hesaba geç",
     hub_accounts_or_password: "Veya şifrenle giriş yap",
     hub_account_password_required: "Şifre gerekli",
-    hub_account_link_failed: "Bu hesapla devam etmek için şifresini gir.",
+    hub_account_link_failed: "Bu hesapla devam etmek için parolasını girin.",
     link_device_success: "Cihaz bağlandı",
     link_device_success_description:
       "Masaüstü uygulamanız artık bağlandı. Bu sekmeyi kapatabilirsiniz.",
@@ -9248,7 +9252,7 @@ export const tr = {
     academic_offer_student_link: "Öğrenciyim",
     academic_offer_sent_title: "Gelen kutunu kontrol et",
     academic_offer_continue: "Devam",
-    academic_offer_j_step1: "Hesabını oluşturmayı bitir",
+    academic_offer_j_step1: "Hesabınızı oluşturmayı bitirin",
     academic_offer_j_step2:
       "Basın kartı, kadro sayfası veya haber bağlantılarıyla hello@astermail.org adresine e-posta gönder",
     academic_offer_j_step3:
@@ -9348,9 +9352,9 @@ export const tr = {
     delete_security_key_title: "Güvenlik anahtarı silinsin mi?",
     other_devices_signed_out:
       "Aster diğer cihazlarındaki oturumunu kapattı. Bunları yeniden kullanmak için oturum aç ve güvenlik anahtarınla onayla.",
-    remove_last_key_step_up_title: "Son güvenlik anahtarın kaldırılsın mı?",
+    remove_last_key_step_up_title: "Son güvenlik anahtarınız kaldırılsın mı?",
     remove_last_key_step_up_description:
-      "Bu, hesabındaki son ikinci doğrulama adımı. Kaldırmak için parolanı gir.",
+      "Bu, hesabınızdaki son ikinci doğrulama adımı. Kaldırmak için parolanızı girin.",
     delete_security_key_description:
       '"{{name}}" hesabınızdan kaldırılacak. Artık ikinci faktör olarak çalışmayacak.',
     removed: "Geçiş anahtarı kaldırıldı",
@@ -9437,7 +9441,8 @@ export const tr = {
       "Bu ghost takma ad kaydedilmedi. Tekrar deneyin. Diğer takma adlarınız değişmedi.",
     ghost_expiry_extend_only:
       "Bir hayalet adresin süresini yalnızca uzatabilirsiniz, kısaltamazsınız.",
-    ghost_expiry_update_failed: "Sona erme süresi güncellenmedi. Yeniden dene.",
+    ghost_expiry_update_failed:
+      "Sona erme süresi güncellenmedi. Yeniden deneyin.",
     failed_to_activate_ghost_mode: "Tekrar deneyin.",
     wrong_vault_password:
       "Bu parola, bu cihazdaki anahtarlarınızın kilidini açmadı. Tekrar deneyin. Başarısız olmaya devam ederse astermail.org/reset adresinden bir kurtarma kodu kullanın. Sunucudaki verileriniz değişmedi.",
@@ -9998,7 +10003,7 @@ export const tr = {
     none: "Yok",
     show_on_profile: "Profilde göster",
     show_in_signature: "İmzada göster",
-    empty_state: "Henüz rozet bulamadın.",
+    empty_state: "Henüz rozet bulmadınız.",
     claim_failed: "Tekrar deneyin.",
     not_earned: "Henüz kazanılmadı",
     show_on_profile_description:
