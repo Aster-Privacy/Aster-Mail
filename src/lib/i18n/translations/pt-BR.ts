@@ -124,7 +124,7 @@ export const pt_br = {
     search: "Pesquisar",
     close: "Fechar",
     confirm: "Confirmar",
-    contact_support: "Contactar o suporte",
+    contact_support: "Falar com o suporte",
     back: "Voltar",
     next: "Próximo",
     previous: "Anterior",
@@ -3484,7 +3484,7 @@ export const pt_br = {
     fam_org_2fa_summary: "{{withCount}} de {{total}} membros têm a 2FA ativada",
     fam_org_sec_require_2fa: "Exigir autenticação de dois fatores",
     fam_org_sec_require_2fa_desc:
-      "Todos os membros têm de ativar a 2FA para aceder às suas contas",
+      "Todos os membros precisam ativar a 2FA para acessar suas contas",
     fam_org_sec_require_2fa_info_title: "Exigir autenticação de dois fatores",
     fam_org_sec_require_2fa_info_desc:
       "Os membros serão solicitados a configurar a autenticação de dois fatores e não poderão aceder à sua caixa de correio até o fazerem. Fortemente recomendado para todos os planos de família.",
@@ -3656,7 +3656,7 @@ export const pt_br = {
       "Convide alguém para partilhar este plano de família",
     fam_org_members_info_title: "Membros",
     fam_org_members_info_desc:
-      "Todos no seu plano de família. Cada membro tem a sua própria conta separada e encriptada. Como proprietário, pode convidar pessoas, definir a alocação de armazenamento de cada membro, transferir a propriedade ou remover membros.",
+      "Todos no seu plano família. Cada membro tem sua própria conta separada e criptografada. Como proprietário, você pode convidar pessoas, definir o armazenamento de cada membro, transferir a propriedade ou remover membros.",
     fam_org_add_member: "Adicionar membro",
     fam_org_gb: "GB",
     fam_org_revoke_link_first: "Revogue primeiro a ligação existente",
@@ -3725,7 +3725,7 @@ export const pt_br = {
       "Veja cada ação administrativa: convites, remoções, alterações de política",
     fam_org_wizard_done: "Concluído",
     fam_org_plan_upgraded: "Plano atualizado com sucesso",
-    fam_org_invalid_email: "Introduza um endereço de email válido",
+    fam_org_invalid_email: "Digite um endereço de e-mail válido",
     fam_org_invalid_storage: "Introduza um armazenamento de pelo menos 1 GB",
     fam_org_invite_revoked_toast: "Convite revogado",
     fam_org_member_removed_toast: "Membro removido",
@@ -4224,7 +4224,7 @@ export const pt_br = {
     compose_default_font_color_picker_label:
       "Escolha uma cor de texto predefinida",
     compose_default_font_color_theme: "Predefinição do tema",
-    compose_default_font_color_reset: "Usar a predefinição do tema",
+    compose_default_font_color_reset: "Usar o padrão do tema",
     reply_defaults_title: "Respostas",
     reply_defaults_description: "Escolha como começa uma nova resposta.",
     reply_include_quoted: "Incluir o texto citado",
@@ -4797,7 +4797,7 @@ export const pt_br = {
       "Alguem ficou com esse endereco primeiro. Escolhe outro.",
     address_change_code_invalid: "Esse código não está correto.",
     address_change_locked_plan:
-      "Alterar o seu endereço é um recurso do Supernova.",
+      "Alterar seu endereço é um recurso do Supernova.",
     address_change_locked_cooldown:
       "Você pode alterar o seu endereço novamente em {{date}}.",
     address_change_locked_cooldown_unknown:
@@ -5150,7 +5150,7 @@ export const pt_br = {
       "Exibido como o nome do remetente quando você responde deste alias.",
     aliases_description:
       "Crie endereços de e-mail alternativos que encaminham parsua caixa de entrada principal. Use-os para proteger sua privacidade ou organizar e-mails recebidos.",
-    twin_address_title: "O seu endereço correspondente",
+    twin_address_title: "Seu endereço correspondente",
     twin_address_reserved_description:
       "{{ address }} está reservado para a sua conta, por isso mais ninguém o pode registar. Crie-o como alias quando quiser enviar e receber a partir dele.",
     twin_address_available_description:
@@ -8156,7 +8156,7 @@ export const pt_br = {
     gmail_wizard_step_5_body:
       "Cole a senha de app abaixo, com ou sem espaços. O Aster a guarda criptografada e a usa apenas para sincronizar esta caixa de correio.",
     gmail_wizard_import_note:
-      "O Aster importa todos os seus e-mails, incluindo os arquivados, os enviados e os marcadores. Caixas de correio grandes podem levar alguns dias, e você pode continuar usando o Aster durante a importação.",
+      "O Aster importa todos os seus e-mails, incluindo os arquivados, os enviados e as etiquetas. Caixas de correio grandes podem levar alguns dias, e você pode continuar usando o Aster durante a importação.",
     gmail_wizard_title: "Conecte sua caixa de correio",
     protocol_desc_imap:
       "Sincroniza as pastas e mantém tudo em dia em todos os seus dispositivos.",
