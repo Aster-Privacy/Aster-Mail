@@ -456,7 +456,7 @@ export function PlanUpgradeSelection({
         </p>
 
         <div className="flex flex-col items-center gap-3 mt-6">
-          <div className="inline-flex rounded-full p-[5px] gap-1 bg-surf-secondary border border-edge-secondary">
+          <div className="inline-flex rounded-full p-[5px] gap-1 bg-surf-secondary">
             {(["individual", "family"] as const).map((type) => {
               const active = plan_type === type;
 
@@ -483,7 +483,7 @@ export function PlanUpgradeSelection({
           </div>
 
           <div
-            className="inline-flex items-center rounded-full p-[5px] gap-1 bg-surf-secondary border border-edge-secondary"
+            className="inline-flex items-center rounded-full p-[5px] gap-1 bg-surf-secondary"
             role="tablist"
           >
             {(["yearly", "monthly"] as const).map((p) => {

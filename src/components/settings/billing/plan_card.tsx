@@ -264,7 +264,7 @@ export function Segmented<T extends string>({
 }: SegmentedProps<T>) {
   return (
     <div
-      className="grid w-full max-w-xs gap-1 rounded-full border border-edge-secondary bg-transparent p-1"
+      className="grid w-full max-w-xs gap-1 rounded-full bg-surf-secondary p-1"
       style={{
         gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,
       }}

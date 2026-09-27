@@ -51,7 +51,7 @@ const chip_base =
 const chip_active = "bg-brand border-brand text-[var(--accent-fg,#ffffff)]";
 
 const chip_inactive =
-  "bg-surf-secondary border-edge-primary text-txt-secondary hover:bg-surf-hover";
+  "bg-surf-secondary border-transparent text-txt-secondary hover:bg-surf-hover";
 
 export function ContactGroupChips({
   filter_by,
@@ -205,7 +205,7 @@ export function ContactGroupChips({
         <button
           className={cn(
             chip_base,
-            "bg-surf-secondary border-dashed border-edge-primary text-txt-muted hover:bg-surf-hover",
+            "bg-transparent border-transparent text-txt-muted hover:bg-surf-hover hover:text-txt-primary",
           )}
           type="button"
           onClick={() => set_is_create_open(true)}

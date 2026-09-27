@@ -185,7 +185,7 @@ export function RecipientBadge({
   return (
     <div
       className={cn(
-        "flex items-center gap-1.5 bg-default-100 rounded-full px-2 py-1 border border-edge-secondary",
+        "flex items-center gap-1.5 bg-surf-tertiary rounded-full px-2 py-1 border border-transparent",
         class_name,
       )}
     >
@@ -720,7 +720,9 @@ export function RecipientField({
         <div
           className={cn(
             "flex flex-wrap items-center gap-1.5",
-            is_expanded && overflow_count > 0 && "max-h-[160px] overflow-y-auto pe-1",
+            is_expanded &&
+              overflow_count > 0 &&
+              "max-h-[160px] overflow-y-auto pe-1",
             list_class_name,
           )}
           role="presentation"
@@ -742,7 +744,7 @@ export function RecipientField({
           ))}
           {hidden_count > 0 && (
             <button
-              className="flex items-center px-2.5 py-1 rounded-full text-xs font-medium transition-colors border cursor-pointer bg-surf-tertiary border-edge-secondary text-txt-secondary"
+              className="flex items-center px-2.5 py-1 rounded-full text-xs font-medium transition-colors border cursor-pointer bg-surf-tertiary border-transparent text-txt-secondary"
               type="button"
               onClick={() => set_is_expanded(true)}
               onMouseEnter={(e) => {
