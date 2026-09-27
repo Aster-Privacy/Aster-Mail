@@ -44,6 +44,8 @@ import {
 import {
   PLAN_TIERS,
   FAMILY_PLAN_TIERS,
+  FAMILY_PLAN_DUO_FEATURES,
+  FAMILY_PLAN_FAMILY_FEATURES,
   SUPPORTED_CURRENCIES,
   convert_cents,
   is_crypto_provider,
@@ -229,7 +231,12 @@ export function AvailablePlansSection({
   };
 
   const card_interval: "month" | "year" =
-    billing_period === "yearly" ? "year" : "month";
+    billing_period === "monthly" ? "month" : "year";
+  const family_features = (tier: FamilyPlanTier) =>
+    (tier.max_members === 2
+      ? FAMILY_PLAN_DUO_FEATURES
+      : FAMILY_PLAN_FAMILY_FEATURES
+    ).map((feature) => ({ label: t(feature.label_key), on: feature.on }));
   const recommendation = compute_plan_recommendation({
     current_plan_code: subscription?.plan.code,
     storage_used_bytes: subscription?.storage?.used_bytes,
@@ -460,7 +467,11 @@ export function AvailablePlansSection({
             const per_month = is_yearly
               ? Math.round(tier.yearly_cents / 12)
               : tier.monthly_cents;
-            const features = (plan_features[tier.id] ?? [])
+            const features = (
+              is_family_view
+                ? family_features(tier as FamilyPlanTier)
+                : (plan_features[tier.id] ?? [])
+            )
               .filter((feature) => feature.on)
               .slice(0, 5);
 
