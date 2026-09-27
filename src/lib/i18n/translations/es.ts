@@ -5049,6 +5049,8 @@ export const es = {
     special_offer_subtitle: "50 % de descuento en los primeros 12 meses",
     special_offer_price_period: "al mes",
     special_offer_save_badge: "Ahorra un {{percent}} %",
+    special_offer_unavailable:
+      "Esta oferta ya no está disponible. Aún puedes mejorar tu plan al precio normal.",
     special_offer_checkout_error:
       "Se ha producido un error al iniciar el pago. Inténtalo de nuevo.",
     special_offer_was_price: "Antes {{price}} al mes",
@@ -6590,7 +6592,7 @@ export const es = {
     domain_purchase_intro_sub:
       "Responde dos preguntas rápidas y te mostraremos qué está disponible.",
     domain_purchase_intro_name_q:
-      "¿Qué nombre quieres? Tu negocio, tu proyecto o simplemente tú.",
+      "¿Qué nombre quieres? Tu negocio, tu proyecto o tu propio nombre.",
     domain_purchase_intro_name_ph:
       "Escribe un nombre, como cafedelpuerto o alexcarter",
     domain_purchase_intro_tld_q: "¿Alguna terminación favorita?",

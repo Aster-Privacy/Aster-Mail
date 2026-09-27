@@ -4968,6 +4968,8 @@ export const tr = {
     special_offer_subtitle: "İlk 12 ayda %50 indirim",
     special_offer_price_period: "aylık",
     special_offer_save_badge: "%{{percent}} tasarruf edin",
+    special_offer_unavailable:
+      "Bu teklif artık geçerli değil. Normal fiyatla yükseltme yapmaya devam edebilirsiniz.",
     special_offer_checkout_error:
       "Ödeme başlatılırken bir sorun oluştu. Tekrar deneyin.",
     special_offer_was_price: "Önceki fiyat: aylık {{price}}",

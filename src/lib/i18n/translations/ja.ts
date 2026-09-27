@@ -5006,6 +5006,8 @@ export const ja = {
     special_offer_subtitle: "最初の12か月が50%オフ",
     special_offer_price_period: "月額",
     special_offer_save_badge: "{{percent}}%オフ",
+    special_offer_unavailable:
+      "このオファーは終了しました。通常価格でアップグレードできます。",
     special_offer_checkout_error:
       "決済を開始できませんでした。もう一度お試しください。",
     special_offer_was_price: "以前は月額{{price}}",

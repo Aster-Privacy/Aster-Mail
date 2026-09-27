@@ -5174,6 +5174,8 @@ export const pl = {
     special_offer_subtitle: "50% zniżki przez pierwsze 12 miesięcy",
     special_offer_price_period: "miesięcznie",
     special_offer_save_badge: "Oszczędź {{percent}}%",
+    special_offer_unavailable:
+      "Ta oferta nie jest już dostępna. Nadal możesz przejść na wyższy plan w standardowej cenie.",
     special_offer_checkout_error:
       "Coś poszło nie tak podczas rozpoczynania płatności. Spróbuj ponownie.",
     special_offer_was_price: "Wcześniej {{price}} miesięcznie",

@@ -5092,6 +5092,8 @@ export const ar = {
     special_offer_subtitle: "خصم 50% على أول 12 شهرًا",
     special_offer_price_period: "شهريًا",
     special_offer_save_badge: "وفّر {{percent}}%",
+    special_offer_unavailable:
+      "لم يعد هذا العرض متاحًا. لا يزال بإمكانك الترقية بالسعر العادي.",
     special_offer_checkout_error: "تعذّر بدء الدفع. حاول مرة أخرى.",
     special_offer_was_price: "كان {{price}} شهريًا",
     special_offer_original_price: "السعر الأصلي: {{price}}",
@@ -7253,7 +7255,7 @@ export const ar = {
     error_tip_dkim:
       "سجل التوقيع طويل. التأكد من لصق القيمة الكاملة دون اقتطاع هو النقطة الجوهرية.",
     error_tip_dmarc:
-      "بعض موفري DNS يضيفون نطاقك تلقائيًا. _dmarc فقط كاسم المضيف، وليس _dmarc.yourdomain.com، هو الصحيح.",
+      "بعض موفري DNS يضيفون نطاقك تلقائيًا. أدخل _dmarc فقط كاسم المضيف، وليس _dmarc.yourdomain.com.",
     verify_all_records: "التحقق من جميع السجلات",
     need_help_link: "تحتاج مساعدة؟",
     catch_all_enabled_toast: "تم تفعيل استيعاب الكل",

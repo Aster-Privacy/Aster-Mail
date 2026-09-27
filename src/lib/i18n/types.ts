@@ -5230,6 +5230,7 @@ export interface SettingsTranslations {
   special_offer_subtitle: string;
   special_offer_price_period: string;
   special_offer_save_badge: string;
+  special_offer_unavailable: string;
   special_offer_checkout_error: string;
   special_offer_was_price: string;
   special_offer_original_price: string;

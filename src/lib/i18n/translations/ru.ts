@@ -5144,6 +5144,8 @@ export const ru = {
     special_offer_subtitle: "Скидка 50% на первые 12 месяцев",
     special_offer_price_period: "в месяц",
     special_offer_save_badge: "Экономия {{percent}}%",
+    special_offer_unavailable:
+      "Это предложение больше не действует. Вы можете перейти на план по обычной цене.",
     special_offer_checkout_error:
       "Не удалось начать оплату. Попробуйте ещё раз.",
     special_offer_was_price: "Было {{price}} в месяц",
@@ -6667,7 +6669,7 @@ export const ru = {
     domain_purchase_intro_sub:
       "Ответьте на два коротких вопроса, и мы покажем, что доступно.",
     domain_purchase_intro_name_q:
-      "Какое имя вы хотите? Ваш бизнес, ваш проект или просто вы.",
+      "Какое имя вы хотите? Ваш бизнес, ваш проект или ваше собственное имя.",
     domain_purchase_intro_name_ph:
       "Введите название, например harborcoffee или alexcarter",
     domain_purchase_intro_tld_q: "Есть любимое окончание?",
@@ -7268,7 +7270,7 @@ export const ru = {
     error_tip_dkim:
       "Запись подписи длинная. Убедитесь, что всё значение вставлено без обрезки.",
     error_tip_dmarc:
-      "Некоторые DNS-провайдеры автоматически добавляют домен. Только _dmarc как хост, не _dmarc.вашдомен.com.",
+      "Некоторые DNS-провайдеры автоматически добавляют домен. Укажите в качестве хоста только _dmarc, а не _dmarc.вашдомен.com.",
     error_tip_mx:
       "Запись MX должна иметь приоритет 10 и указывать на показанный выше сервер.",
     error_tip_spf:
@@ -8277,9 +8279,9 @@ export const ru = {
     alias_direction_received: "Полученные",
     alias_direction_sent: "Отправленные",
     alias_sent_indexing: "Ранее отправленные письма ещё индексируются.",
-    bulk_archive_title_one: "Архивировать 1 письмо?",
-    bulk_delete_title_one: "Удалить 1 письмо безвозвратно?",
-    bulk_trash_title_one: "Переместить 1 письмо в корзину?",
+    bulk_archive_title_one: "Архивировать {{count}} письмо?",
+    bulk_delete_title_one: "Удалить {{count}} письмо безвозвратно?",
+    bulk_trash_title_one: "Переместить {{count}} письмо в корзину?",
     sender_rule_confirm: "Создать правило",
     sender_rule_name: "{{sender}} в {{category}}",
     sender_identity_rotated:
@@ -8534,8 +8536,8 @@ export const ru = {
     delete_messages_confirmation:
       "Выбранные сообщения будут удалены окончательно, и отменить это нельзя.",
     confirm_bulk_action_scope_description_one:
-      "Это затронет письмо в {{scope}}.",
-    confirm_bulk_action_count_description_one: "Это затронет 1 письмо.",
+      "Это затронет {{count}} письмо в {{scope}}.",
+    confirm_bulk_action_count_description_one: "Это затронет {{count}} письмо.",
     remove_from_folder: "Убрать из папки",
     confirm_bulk_action_title: "Подтвердите массовое действие",
     bulk_action_index_not_ready:
@@ -9102,7 +9104,7 @@ export const ru = {
     bulk_delete_title: "Удалить безвозвратно писем: {{count}}?",
     bulk_delete_title_other: "Удалить безвозвратно писем: {{count}}?",
     bulk_spam_title: "Пожаловаться на спам, писем: {{count}}?",
-    bulk_spam_title_one: "Пожаловаться на спам в 1 письме?",
+    bulk_spam_title_one: "Пожаловаться на спам в {{count}} письме?",
     bulk_spam_title_other: "Пожаловаться на спам, писем: {{count}}?",
     bulk_trash_title: "Переместить в корзину писем: {{count}}?",
     bulk_trash_title_other: "Переместить в корзину писем: {{count}}?",

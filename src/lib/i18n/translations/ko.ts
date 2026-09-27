@@ -5026,6 +5026,8 @@ export const ko = {
     special_offer_subtitle: "첫 12개월 50% 할인",
     special_offer_price_period: "월",
     special_offer_save_badge: "{{percent}}% 할인",
+    special_offer_unavailable:
+      "이 혜택은 더 이상 제공되지 않습니다. 일반 가격으로 업그레이드할 수 있습니다.",
     special_offer_checkout_error:
       "결제를 시작하는 중 문제가 발생했습니다. 다시 시도하세요.",
     special_offer_was_price: "이전 가격 월 {{price}}",

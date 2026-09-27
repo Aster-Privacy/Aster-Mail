@@ -945,7 +945,7 @@ export const pt = {
     end_to_end_encrypted_label: "Encriptado de ponta a ponta",
     encrypted_in_transit_stored:
       "Encriptado em trânsito e armazenado encriptado.",
-    only_you_and_sender: "Apenas você e o remetente podem ler isto.",
+    only_you_and_sender: "Apenas o próprio e o remetente podem ler isto.",
     only_you_can_read_contacts:
       "Só você pode ler os seus contactos. A Aster não consegue ver estes dados.",
     failed_to_send_email:
@@ -5092,6 +5092,8 @@ export const pt = {
     special_offer_subtitle: "50% de desconto nos primeiros 12 meses",
     special_offer_price_period: "por mês",
     special_offer_save_badge: "Poupe {{percent}}%",
+    special_offer_unavailable:
+      "Esta oferta já não está disponível. Ainda pode fazer o upgrade pelo preço normal.",
     special_offer_checkout_error:
       "Ocorreu um erro ao iniciar o pagamento. Tente novamente.",
     special_offer_was_price: "Antes {{price}} por mês",
@@ -6256,7 +6258,7 @@ export const pt = {
     pending_referrals: "Pendentes",
     completed_referrals: "Concluídas",
     credits_earned: "Créditos ganhos",
-    referral_not_eligible: "As indicações não estão disponíveis no momento.",
+    referral_not_eligible: "As indicações não estão disponíveis de momento.",
     referral_loading: "A carregar informações de indicação...",
     referral_history: "Histórico de indicações",
     no_referrals_yet:
@@ -6610,7 +6612,7 @@ export const pt = {
     domain_purchase_intro_sub:
       "Responda a duas perguntas rápidas e mostraremos o que está disponível.",
     domain_purchase_intro_name_q:
-      "Que nome pretende? A sua empresa, o seu projeto ou simplesmente o seu nome.",
+      "Que nome pretende? A sua empresa, o seu projeto ou o seu próprio nome.",
     domain_purchase_intro_name_ph:
       "Introduza um nome, como cafedoporto ou alexcarter",
     domain_purchase_intro_tld_q: "Alguma terminação favorita?",
@@ -7510,7 +7512,7 @@ export const pt = {
     error_tip_dkim:
       "O registo de assinatura é longo. Confirme que colou o valor completo sem que tenha sido cortado.",
     error_tip_dmarc:
-      "Alguns fornecedores de DNS adicionam o seu domínio automaticamente. Usar apenas _dmarc como host, e não _dmarc.seudominio.com, vai funcionar.",
+      "Alguns fornecedores de DNS adicionam o seu domínio automaticamente. Introduza apenas _dmarc como host, e não _dmarc.seudominio.com.",
     error_tip_mx:
       "O registo MX tem de ter prioridade 10 e apontar para o servidor de e-mail mostrado acima.",
     error_tip_spf:

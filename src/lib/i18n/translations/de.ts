@@ -4934,6 +4934,8 @@ export const de = {
     special_offer_subtitle: "50 % Rabatt auf die ersten 12 Monate",
     special_offer_price_period: "pro Monat",
     special_offer_save_badge: "{{percent}} % sparen",
+    special_offer_unavailable:
+      "Dieses Angebot ist nicht mehr verfügbar. Sie können weiterhin zum regulären Preis upgraden.",
     special_offer_checkout_error:
       "Beim Start des Bezahlvorgangs ist ein Fehler aufgetreten. Versuchen Sie es erneut.",
     special_offer_was_price: "Vorher {{price}} pro Monat",
@@ -6388,7 +6390,7 @@ export const de = {
     domain_purchase_intro_sub:
       "Beantworten Sie zwei kurze Fragen und wir zeigen Ihnen, was verfügbar ist.",
     domain_purchase_intro_name_q:
-      "Welchen Namen möchten Sie? Ihr Unternehmen, Ihr Projekt oder einfach Sie selbst.",
+      "Welchen Namen möchten Sie? Ihr Unternehmen, Ihr Projekt oder Ihr eigener Name.",
     domain_purchase_intro_name_ph:
       "Geben Sie einen Namen ein, z. B. hafenkaffee oder alexcarter",
     domain_purchase_intro_tld_q: "Haben Sie eine Lieblingsendung?",
@@ -7110,7 +7112,7 @@ export const de = {
     error_tip_dkim:
       "Der Signatureintrag ist lang. Überprüfen Sie, ob der gesamte Wert ohne Kürzung eingefügt wurde.",
     error_tip_dmarc:
-      "Einige DNS-Anbieter fügen Ihre Domain automatisch hinzu. Nur _dmarc als Host, nicht _dmarc.ihredomain.de, funktioniert.",
+      "Einige DNS-Anbieter fügen Ihre Domain automatisch hinzu. Geben Sie als Host nur _dmarc ein, nicht _dmarc.ihredomain.de.",
     error_tip_mx:
       "Der MX-Eintrag benötigt Priorität 10 und sollte auf den oben angezeigten Mailserver zeigen.",
     error_tip_spf:

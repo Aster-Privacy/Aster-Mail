@@ -5928,6 +5928,8 @@ export const en: Translations = {
     special_offer_subtitle: "50% off your first 12 months",
     special_offer_price_period: "per month",
     special_offer_save_badge: "Save {{percent}}%",
+    special_offer_unavailable:
+      "This offer is no longer available. You can still upgrade at the regular price.",
     special_offer_checkout_error:
       "Something went wrong starting checkout. Try again.",
     special_offer_was_price: "Was {{price}} per month",
@@ -8709,25 +8711,25 @@ export const en: Translations = {
     param_removed_from_n_links_one: "{{param}} removed from {{count}} link",
     param_removed_from_n_links_other: "{{param}} removed from {{count}} links",
     bulk_archive_title: "Archive {{count}} emails?",
-    bulk_archive_title_one: "Archive 1 email?",
+    bulk_archive_title_one: "Archive {{count}} email?",
     bulk_archive_title_other: "Archive {{count}} emails?",
     bulk_delete_title: "Delete {{count}} emails permanently?",
-    bulk_delete_title_one: "Delete 1 email permanently?",
+    bulk_delete_title_one: "Delete {{count}} email permanently?",
     bulk_delete_title_other: "Delete {{count}} emails permanently?",
     bulk_spam_title: "Report {{count}} emails as spam?",
-    bulk_spam_title_one: "Report 1 email as spam?",
+    bulk_spam_title_one: "Report {{count}} email as spam?",
     bulk_spam_title_other: "Report {{count}} emails as spam?",
     bulk_trash_title: "Move {{count}} emails to Trash?",
-    bulk_trash_title_one: "Move 1 email to Trash?",
+    bulk_trash_title_one: "Move {{count}} email to Trash?",
     bulk_trash_title_other: "Move {{count}} emails to Trash?",
     confirm_bulk_action_count_description: "This affects all {{count}} emails.",
-    confirm_bulk_action_count_description_one: "This affects 1 email.",
+    confirm_bulk_action_count_description_one: "This affects {{count}} email.",
     confirm_bulk_action_count_description_other:
       "This affects all {{count}} emails.",
     confirm_bulk_action_scope_description:
       "This affects all {{count}} emails in {{scope}}.",
     confirm_bulk_action_scope_description_one:
-      "This affects the 1 email in {{scope}}.",
+      "This affects the {{count}} email in {{scope}}.",
     confirm_bulk_action_scope_description_other:
       "This affects all {{count}} emails in {{scope}}.",
     remove_from_folder: "Remove from folder",

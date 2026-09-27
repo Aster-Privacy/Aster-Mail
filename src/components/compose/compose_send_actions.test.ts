@@ -30,6 +30,7 @@ const execute_external_send = vi.fn();
 let undo_send_delay_ms = 0;
 const undo_send_add = vi.fn();
 const store_pending_send_payload = vi.fn();
+const dispatch_undo_send_event = vi.fn();
 
 vi.mock("@/services/send_queue", () => ({
   queue_email_to_server: (...args: unknown[]) => queue_email_to_server(...args),
@@ -45,6 +46,8 @@ vi.mock("@/hooks/use_undo_send", () => ({
   },
   store_pending_send_payload: (...args: unknown[]) =>
     store_pending_send_payload(...args),
+  dispatch_undo_send_event: (...args: unknown[]) =>
+    dispatch_undo_send_event(...args),
 }));
 
 vi.mock("@/services/api/external_accounts", () => ({
@@ -127,6 +130,27 @@ describe("send actions report whether the message was handed off", () => {
 
     expect(ctx.on_close).toHaveBeenCalledTimes(1);
     expect(confirm_draft_deleted).not.toHaveBeenCalled();
+  });
+
+  it("reopens the message when an immediate external send throws", async () => {
+    execute_external_send.mockRejectedValue(new Error("smtp refused"));
+
+    await execute_external_email_send(make_ctx(), email_data);
+
+    expect(dispatch_undo_send_event).toHaveBeenCalledTimes(1);
+    const [, pending, payload] = dispatch_undo_send_event.mock.calls[0];
+
+    expect(pending.to).toEqual(email_data.to);
+    expect(payload.subject).toBe("hello");
+    expect(payload.body).toBe("body");
+  });
+
+  it("does not reopen the message when an immediate external send succeeds", async () => {
+    execute_external_send.mockResolvedValue(undefined);
+
+    await execute_external_email_send(make_ctx(), email_data);
+
+    expect(dispatch_undo_send_event).not.toHaveBeenCalled();
   });
 
   it("closes the window before an immediate external send finishes", async () => {

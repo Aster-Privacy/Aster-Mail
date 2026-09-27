@@ -4945,6 +4945,8 @@ export const nl = {
     special_offer_subtitle: "50% korting op je eerste 12 maanden",
     special_offer_price_period: "per maand",
     special_offer_save_badge: "Bespaar {{percent}}%",
+    special_offer_unavailable:
+      "Deze aanbieding is niet meer beschikbaar. Je kunt nog steeds upgraden tegen de normale prijs.",
     special_offer_checkout_error:
       "Er is iets misgegaan bij het starten van het afrekenen. Probeer het opnieuw.",
     special_offer_was_price: "Was {{price}} per maand",

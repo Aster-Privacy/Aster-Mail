@@ -4558,6 +4558,8 @@ export const zh_CN = {
     special_offer_subtitle: "前 12 个月五折",
     special_offer_price_period: "每月",
     special_offer_save_badge: "省 {{percent}}%",
+    special_offer_unavailable:
+      "此优惠已结束。你仍可以按常规价格升级。",
     special_offer_checkout_error: "启动结账时出错。请重试。",
     special_offer_was_price: "原价每月 {{price}}",
     special_offer_original_price: "原价：{{price}}",

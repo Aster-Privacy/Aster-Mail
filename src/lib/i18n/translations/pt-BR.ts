@@ -5054,6 +5054,8 @@ export const pt_br = {
     special_offer_subtitle: "50% de desconto nos primeiros 12 meses",
     special_offer_price_period: "por mês",
     special_offer_save_badge: "Economize {{percent}}%",
+    special_offer_unavailable:
+      "Esta oferta não está mais disponível. Você ainda pode fazer o upgrade pelo preço normal.",
     special_offer_checkout_error:
       "Algo deu errado ao iniciar o pagamento. Tente novamente.",
     special_offer_was_price: "Antes {{price}} por mês",
@@ -6567,7 +6569,7 @@ export const pt_br = {
     domain_purchase_intro_sub:
       "Responda a duas perguntas rápidas e mostraremos o que está disponível.",
     domain_purchase_intro_name_q:
-      "Que nome você quer? Sua empresa, seu projeto ou simplesmente você.",
+      "Que nome você quer? Sua empresa, seu projeto ou seu próprio nome.",
     domain_purchase_intro_name_ph:
       "Digite um nome, como cafedoporto ou alexcarter",
     domain_purchase_intro_tld_q: "Alguma terminação favorita?",
@@ -7053,7 +7055,7 @@ export const pt_br = {
     crypto_native_recommended: "Recomendado",
     crypto_native_resume_selected: "Selecionado",
     crypto_native_status_underpaid: "Pago parcialmente",
-    crypto_native_what_happens: "O que acontece a seguir",
+    crypto_native_what_happens: "Progresso do pagamento",
     crypto_native_stripe_option: "Pagar com stablecoin",
     crypto_native_stripe_desc:
       "USDC e outras stablecoins através do nosso processador de pagamentos",
@@ -7097,7 +7099,7 @@ export const pt_br = {
       "Seu pagamento precisa de uma verificação manual rápida. Vamos creditar sua conta em breve.",
     crypto_native_transaction: "Transação",
     crypto_native_refund_notice:
-      "Se você enviar mais do que o valor devido, a diferença vai para o saldo da sua conta Aster em dólares americanos. Se preferir, você pode pedir o reembolso.",
+      "Se você enviar mais do que o valor devido, a diferença vai para o saldo da sua conta Aster em dólares americanos.",
     crypto_native_cancel_invoice: "Cancelar esta fatura",
     crypto_native_cancel_failed: "Não foi possível cancelar esta fatura.",
     crypto_native_cancel_has_payment:
@@ -7462,7 +7464,7 @@ export const pt_br = {
     error_tip_dkim:
       "O registro de assinatura é longo. Confira se colou o valor inteiro sem que ele fosse cortado.",
     error_tip_dmarc:
-      "Alguns provedores de DNS adicionam o seu domínio automaticamente. Usar só _dmarc como host, e não _dmarc.seudominio.com, vai funcionar.",
+      "Alguns provedores de DNS adicionam o seu domínio automaticamente. Digite só _dmarc como host, e não _dmarc.seudominio.com.",
     error_tip_mx:
       "O registro MX precisa ter prioridade 10 e apontar para o servidor de e-mail mostrado acima.",
     error_tip_spf:

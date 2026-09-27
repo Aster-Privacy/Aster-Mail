@@ -27,6 +27,7 @@ import type {
 import {
   undo_send_manager,
   store_pending_send_payload,
+  dispatch_undo_send_event,
 } from "@/hooks/use_undo_send";
 import {
   queue_email,
@@ -434,6 +435,8 @@ export async function execute_external_email_send(
       BACKGROUND_SEND_TOAST_MS,
     );
 
+    const restore_message = ctx.message;
+
     ctx.reset_form();
     ctx.on_close();
     if (ctx.edit_draft && ctx.on_draft_cleared) {
@@ -466,10 +469,82 @@ export async function execute_external_email_send(
           : msg || ctx.t("common.failed_to_send_external_email"),
         "error",
       );
+      reopen_failed_send(ctx, email_data, restore_message);
     }
 
     return false;
   }
+}
+
+const MOBILE_COMPOSE_STORAGE_KEY = "astermail_mobile_compose";
+
+function reopen_failed_send(
+  ctx: SendActionContext,
+  email_data: {
+    to: string[];
+    cc?: string[];
+    bcc?: string[];
+    subject: string;
+    body: string;
+    sender_email?: string;
+    expires_at?: string;
+    expiry_password?: string;
+    attachments?: Attachment[];
+  },
+  message: string,
+) {
+  const failed_id = `failed_${Date.now()}`;
+  const body = email_data.body || message;
+
+  if (ctx.session_storage_key === MOBILE_COMPOSE_STORAGE_KEY) {
+    try {
+      sessionStorage.setItem(
+        MOBILE_COMPOSE_STORAGE_KEY,
+        JSON.stringify({
+          to_recipients: email_data.to,
+          cc_recipients: email_data.cc || [],
+          bcc_recipients: email_data.bcc || [],
+          subject: email_data.subject,
+          message: body,
+        }),
+      );
+    } catch {
+      return;
+    }
+  }
+
+  dispatch_undo_send_event(
+    failed_id,
+    {
+      id: failed_id,
+      to: email_data.to,
+      cc: email_data.cc,
+      bcc: email_data.bcc,
+      subject: email_data.subject,
+      body,
+      sender_email: email_data.sender_email,
+      thread_token: ctx.edit_draft?.thread_token,
+      scheduled_time: Date.now(),
+      total_seconds: 0,
+      is_external: true,
+    },
+    {
+      to: email_data.to,
+      cc: email_data.cc,
+      bcc: email_data.bcc,
+      subject: email_data.subject,
+      body,
+      sender_email: email_data.sender_email,
+      thread_token: ctx.edit_draft?.thread_token,
+      draft_type: ctx.edit_draft?.draft_type,
+      reply_to_id: ctx.edit_draft?.reply_to_id,
+      rfc_message_id: ctx.edit_draft?.rfc_message_id,
+      forward_from_id: ctx.edit_draft?.forward_from_id,
+      expires_at: email_data.expires_at,
+      expiry_password: email_data.expiry_password,
+      attachments: email_data.attachments,
+    },
+  );
 }
 
 export async function execute_external_account_email_send(

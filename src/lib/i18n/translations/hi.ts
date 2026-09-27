@@ -5993,6 +5993,8 @@ export const hi = {
     special_offer_subtitle: "पहले 12 महीनों पर 50% की छूट",
     special_offer_price_period: "प्रति माह",
     special_offer_save_badge: "{{percent}}% बचाएँ",
+    special_offer_unavailable:
+      "यह ऑफ़र अब उपलब्ध नहीं है। आप अब भी सामान्य कीमत पर अपग्रेड कर सकते हैं।",
     special_offer_checkout_error:
       "चेकआउट शुरू करने में कुछ गड़बड़ हुई। फिर से कोशिश करें।",
     special_offer_was_price: "पहले {{price}} प्रति माह",
