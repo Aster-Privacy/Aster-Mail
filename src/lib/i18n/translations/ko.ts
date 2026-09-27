@@ -4311,6 +4311,8 @@ export const ko = {
       "작은 팀이 정성껏 Aster를 만들고 있으며, 메일을 맡겨 주시는 한 분 한 분이 저희의 원동력입니다. 더 많은 저장 공간, 별칭, 사용자 지정 도메인이 필요하면 언제든 업그레이드하세요.",
     billing_addons_subtitle: "공간 추가, 플랜은 그대로",
     billing_support_subtitle: "팀에 메시지 보내기",
+    billing_upsell_title: "{{name}}로 더 많은 기능 이용",
+    billing_upsell_price: "월 {{price}}부터, 연간 청구",
     billing_advantages_title_paid: "내 요금제에 포함된 항목",
     billing_advantages_title_free: "{{name}}에서 제공하는 항목",
     billing_see_all_features: "{{name}}의 모든 기능 보기",

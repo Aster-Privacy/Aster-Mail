@@ -4280,6 +4280,8 @@ export const ja = {
       "小さなチームが丁寧に Aster を作っており、メールを託してくださる一人ひとりが私たちの支えです。容量やエイリアス、独自ドメインが必要になったら、いつでもアップグレードできます。",
     billing_addons_subtitle: "容量を追加、プランはそのまま",
     billing_support_subtitle: "チームにメッセージを送る",
+    billing_upsell_title: "{{name}} でさらに便利に",
+    billing_upsell_price: "月額 {{price}} から（年払い）",
     billing_advantages_title_paid: "プランに含まれるもの",
     billing_advantages_title_free: "{{name}} で利用できるもの",
     billing_see_all_features: "{{name}} のすべての機能を見る",

@@ -3948,6 +3948,8 @@ export const zh_CN = {
       "一个小团队用心打造 Aster，每一位信任并把邮件交给它的人都是我们前进的动力。需要更多存储空间、别名或自定义域名时，随时可以升级。",
     billing_addons_subtitle: "扩充空间，套餐不变",
     billing_support_subtitle: "给团队发消息",
+    billing_upsell_title: "升级到 {{name}}，获得更多",
+    billing_upsell_price: "低至每月 {{price}}，按年计费",
     billing_advantages_title_paid: "你的套餐包含的内容",
     billing_advantages_title_free: "{{name}} 为你提供的内容",
     billing_see_all_features: "查看 {{name}} 的全部功能",

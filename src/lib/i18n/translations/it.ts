@@ -5054,6 +5054,8 @@ export const it = {
       "Un piccolo team costruisce Aster con cura, e ogni persona che gli affida la propria posta ci fa andare avanti. Passa a un piano superiore quando ti servono più spazio, alias o domini personalizzati.",
     billing_addons_subtitle: "Più spazio, stesso piano",
     billing_support_subtitle: "Invia un messaggio al team",
+    billing_upsell_title: "Ottieni di più con {{name}}",
+    billing_upsell_price: "Da {{price}} al mese, fatturato annualmente",
     billing_advantages_title_paid: "Cosa include il tuo piano",
     billing_advantages_title_free: "Cosa ottieni con {{name}}",
     billing_see_all_features: "Vedi tutte le funzioni di {{name}}",

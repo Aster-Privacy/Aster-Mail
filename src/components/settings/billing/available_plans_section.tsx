@@ -348,6 +348,11 @@ export function AvailablePlansSection({
     </div>
   );
 
+  const max_yearly_save = Math.max(
+    0,
+    ...tiers.map((tier) => yearly_save_percent(tier)),
+  );
+
   const period_switch = (
     <div
       aria-label={t("settings.billing_term_heading")}
@@ -365,6 +370,18 @@ export function AvailablePlansSection({
           {period === "yearly"
             ? t("settings.billing_yearly")
             : t("settings.billing_monthly")}
+          {period === "yearly" && max_yearly_save > 0 && (
+            <span
+              className="ms-1.5 text-[11.5px] font-semibold"
+              style={{
+                color: is_yearly ? "inherit" : "var(--color-success)",
+              }}
+            >
+              {t("settings.billing_save_percent", {
+                percent: max_yearly_save,
+              })}
+            </span>
+          )}
         </button>
       ))}
     </div>

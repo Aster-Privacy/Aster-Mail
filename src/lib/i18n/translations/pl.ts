@@ -4426,6 +4426,8 @@ export const pl = {
       "Mały zespół z troską tworzy Aster, a każda osoba, która powierza mu swoją pocztę, pozwala nam działać dalej. Ulepsz plan, gdy potrzebujesz więcej miejsca, aliasów lub własnych domen.",
     billing_addons_subtitle: "Więcej miejsca, ten sam plan",
     billing_support_subtitle: "Wyślij wiadomość do zespołu",
+    billing_upsell_title: "Więcej z planem {{name}}",
+    billing_upsell_price: "Od {{price}} miesięcznie, płatne rocznie",
     billing_advantages_title_paid: "Co zawiera Twój plan",
     billing_advantages_title_free: "Co otrzymujesz z {{name}}",
     billing_see_all_features: "Zobacz wszystkie funkcje {{name}}",

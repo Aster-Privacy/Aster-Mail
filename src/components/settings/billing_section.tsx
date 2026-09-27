@@ -142,7 +142,11 @@ interface BillingCache {
   plan_limits: PlanLimitsResponse | null;
   available_addons: StorageAddonItem[];
   active_addons: UserActiveAddon[];
-  addon_promo: { eligible: boolean; percent_off: number; duration_months: number };
+  addon_promo: {
+    eligible: boolean;
+    percent_off: number;
+    duration_months: number;
+  };
   credit_balance: CreditBalanceResponse | null;
 }
 
@@ -162,9 +166,7 @@ export function BillingSection() {
   const cached =
     billing_cache && billing_cache.user_id === user_id ? billing_cache : null;
   const [subscription, set_subscription] =
-    useState<SubscriptionResponse | null>(
-      () => cached?.subscription ?? null,
-    );
+    useState<SubscriptionResponse | null>(() => cached?.subscription ?? null);
   const [plans, set_plans] = useState<AvailablePlan[]>(
     () => cached?.plans ?? [],
   );
@@ -204,7 +206,7 @@ export function BillingSection() {
     useState<StorageAddonItem | null>(null);
   const [billing_period, set_billing_period] = useState<
     "monthly" | "yearly" | "biennial"
-  >("monthly");
+  >("yearly");
   const [plan_limits, set_plan_limits] = useState<PlanLimitsResponse | null>(
     () => cached?.plan_limits ?? null,
   );
@@ -468,8 +470,7 @@ export function BillingSection() {
       }
 
       const percent_off = addons_response.data?.promo_percent_off ?? 0;
-      const duration_months =
-        addons_response.data?.promo_duration_months ?? 0;
+      const duration_months = addons_response.data?.promo_duration_months ?? 0;
 
       billing_cache = {
         user_id,
@@ -1137,6 +1138,34 @@ export function BillingSection() {
 
   const has_payment_failed = Boolean(subscription?.payment_failed_at);
   const is_paid_plan = !!subscription && subscription.plan.code !== "free";
+  const current_tier_index = PLAN_TIERS.findIndex(
+    (entry) => entry.id === subscription?.plan.code,
+  );
+  const next_tier =
+    has_payment_failed ||
+    subscription?.cancel_at_period_end ||
+    (is_paid_plan && current_tier_index === -1)
+      ? null
+      : (PLAN_TIERS[current_tier_index + 1] ?? null);
+  const next_tier_highlights = next_tier
+    ? (plan_features[next_tier.id] ?? [])
+        .filter((feature) => feature.on)
+        .slice(0, 3)
+        .map((feature) => feature.label)
+    : [];
+  const handle_upgrade_next = () => {
+    const target = next_tier
+      ? plans.find((plan) => plan.code === next_tier.id)
+      : undefined;
+
+    if (!target) {
+      scroll_to_plans();
+
+      return;
+    }
+    set_billing_period("yearly");
+    handle_select_plan(target);
+  };
   const advantages_plan_code = is_paid_plan
     ? subscription.plan.code
     : FREE_ADVANTAGES_PLAN;
@@ -1191,6 +1220,8 @@ export function BillingSection() {
         has_payment_failed={has_payment_failed}
         is_action_loading={is_action_loading}
         is_over_limit={is_storage_over_limit}
+        next_tier={next_tier}
+        next_tier_highlights={next_tier_highlights}
         on_add_storage={scroll_to_storage_addons}
         on_cancel_plan={() => {
           set_cancel_password("");
@@ -1216,6 +1247,7 @@ export function BillingSection() {
         storage_percentage={storage_percentage}
         storage_used_bytes={storage_used_bytes}
         subscription={subscription}
+        on_upgrade_next={handle_upgrade_next}
       />
 
       <BillingAdvantagesCard
@@ -1326,7 +1358,6 @@ export function BillingSection() {
           {t("settings.failed_checkout")}
         </p>
       )}
-
 
       {crypto_plan &&
         (() => {

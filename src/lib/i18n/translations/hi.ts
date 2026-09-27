@@ -3370,6 +3370,8 @@ export const hi = {
       "एक छोटी टीम Aster को सावधानी से बनाती है, और जो भी व्यक्ति अपने मेल के लिए इस पर भरोसा करता है, वह हमें आगे बढ़ाता है। जब भी आपको ज़्यादा स्टोरेज, उपनाम या कस्टम डोमेन चाहिए, अपग्रेड करें।",
     billing_addons_subtitle: "ज़्यादा जगह, वही प्लान",
     billing_support_subtitle: "टीम को संदेश भेजें",
+    billing_upsell_title: "{{name}} के साथ और पाएँ",
+    billing_upsell_price: "{{price}} प्रति माह से, वार्षिक बिलिंग",
     billing_advantages_title_paid: "आपके प्लान में क्या शामिल है",
     billing_advantages_title_free: "{{name}} के साथ आपको क्या मिलता है",
     billing_see_all_features: "{{name}} की सभी सुविधाएँ देखें",

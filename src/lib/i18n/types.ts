@@ -3468,6 +3468,8 @@ export interface SettingsTranslations {
   billing_history: string;
   billing_addons_subtitle: string;
   billing_support_subtitle: string;
+  billing_upsell_title: string;
+  billing_upsell_price: string;
   billing_advantages_title_paid: string;
   billing_advantages_title_free: string;
   billing_see_all_features: string;

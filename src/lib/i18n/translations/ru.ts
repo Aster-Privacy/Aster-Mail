@@ -4403,6 +4403,8 @@ export const ru = {
       "Небольшая команда с заботой создаёт Aster, и каждый, кто доверяет ему свою почту, помогает нам двигаться дальше. Переходите на платный тариф, когда понадобится больше места, псевдонимов или собственных доменов.",
     billing_addons_subtitle: "Больше места, тот же тариф",
     billing_support_subtitle: "Написать команде",
+    billing_upsell_title: "Больше возможностей с {{name}}",
+    billing_upsell_price: "От {{price}} в месяц при оплате за год",
     billing_advantages_title_paid: "Что входит в ваш тариф",
     billing_advantages_title_free: "Что вы получаете с {{name}}",
     billing_see_all_features: "Все возможности {{name}}",

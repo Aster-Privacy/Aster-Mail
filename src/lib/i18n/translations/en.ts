@@ -3334,6 +3334,8 @@ export const en: Translations = {
     billing_history: "Billing History",
     billing_addons_subtitle: "Add space, keep your plan",
     billing_support_subtitle: "Send the team a message",
+    billing_upsell_title: "Get more with {{name}}",
+    billing_upsell_price: "From {{price}} a month, billed yearly",
     billing_advantages_title_paid: "What your plan includes",
     billing_advantages_title_free: "What you get with {{name}}",
     billing_see_all_features: "See all {{name}} features",
