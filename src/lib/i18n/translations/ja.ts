@@ -6941,7 +6941,7 @@ export const ja = {
     crypto_modal_title: "仮想通貨で支払う",
     crypto_no_renew_notice: "仮想通貨での購入は自動更新されません。",
     special_offer_crypto_one_payment:
-      "{{percent}}%オフはこのお支払いにのみ適用され、以降の仮想通貨でのお支払いは通常価格になります。1年間割引を受けるには、12か月を選択してください。",
+      "{{percent}}%オフはこのお支払いにのみ適用され、以降の暗号資産でのお支払いは通常価格になります。1年間割引を受けるには、12か月を選択してください。",
     crypto_paid_until: "{{date}}まで有効（仮想通貨）",
     card_declined_title: "前回のカード決済が完了しませんでした",
     card_declined_insufficient_funds:

@@ -4060,9 +4060,9 @@ export const de = {
     billing_history: "Abrechnungsverlauf",
     billing_plan_heading: "Tarif",
     billing_hide_plans: "Tarife ausblenden",
-    billing_cancel_notice_title: "Dein Tarif wird gekündigt",
+    billing_cancel_notice_title: "Ihr Tarif wird gekündigt",
     billing_cancel_notice_body:
-      "Dein Tarif endet am {{date}}. Danach wechselt dein Konto zum kostenlosen Tarif.",
+      "Ihr Tarif endet am {{date}}. Danach wechselt Ihr Konto zum kostenlosen Tarif.",
     billing_renewals_heading: "Verlängerungen",
     billing_amount: "Betrag",
     billing_desc_payment_failed: "Zahlung fehlgeschlagen",
@@ -4940,7 +4940,7 @@ export const de = {
     special_offer_original_price: "Ursprünglicher Preis: {{price}}",
     special_offer_cta: "{{percent}} % Rabatt sichern",
     special_offer_feature_aliases: "Unbegrenzte Aliase",
-    special_offer_feature_vanguard: "Mehr Sicherheit mit Vanguard",
+    special_offer_feature_vanguard: "Erweiterte Sicherheit mit Vanguard",
     special_offer_feature_storage: "500 GB verschlüsselter Speicher",
     special_offer_why_body:
       "Aster ist ein unabhängiges Unternehmen mit einem kleinen Team, und Ihre Unterstützung bedeutet uns viel. Abonnements halten den Dienst am Laufen und ermöglichen es uns, Aster jeden Tag mit Sorgfalt weiterzuentwickeln. Mit diesem Angebot fällt Ihnen der Einstieg leichter.",
@@ -6875,13 +6875,14 @@ export const de = {
       "Vergleichen Sie die Adresse auf dem Bildschirm Ihrer Wallet vor dem Senden mit der hier angezeigten. Nur diese Adresse wird für Ihre Bestellung überwacht.",
     crypto_native_fee_headroom:
       "Wenn Ihre Wallet die Netzwerkgebühr vom eingegebenen Betrag abzieht, geben Sie etwas mehr an, damit der volle Betrag ankommt.",
-    crypto_native_network_only: "Sende nur {{coin}} im {{chain}}-Netzwerk",
+    crypto_native_network_only:
+      "Senden Sie nur {{coin}} über das {{chain}}-Netzwerk",
     crypto_native_tip_unrecoverable:
-      "Guthaben, das über ein anderes Netzwerk gesendet wird, ist verloren.",
+      "Über ein anderes Netzwerk gesendete Gelder können nicht wiederhergestellt werden.",
     crypto_native_tip_check_address:
-      "Prüfe die Adresse in deiner Wallet, bevor du sendest.",
+      "Prüfen Sie die Adresse in Ihrer Wallet, bevor Sie senden.",
     crypto_native_tip_fee:
-      "Wenn deine Wallet die Gebühr vom Betrag abzieht, sende etwas mehr.",
+      "Wenn Ihre Wallet die Gebühr vom Betrag abzieht, senden Sie etwas mehr.",
     crypto_native_expired_do_not_send:
       "Senden Sie nichts an die Adresse dieser Rechnung. Jetzt gesendete Gelder müssen manuell geprüft werden, bevor sie gutgeschrieben werden können.",
     crypto_native_not_found: "Wir konnten diese Rechnung nicht finden",

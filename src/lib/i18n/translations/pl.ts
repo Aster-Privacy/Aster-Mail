@@ -5180,7 +5180,7 @@ export const pl = {
     special_offer_original_price: "Cena regularna: {{price}}",
     special_offer_cta: "Odbierz {{percent}}% zniżki",
     special_offer_feature_aliases: "Nieograniczone aliasy",
-    special_offer_feature_vanguard: "Lepsza ochrona z Vanguard",
+    special_offer_feature_vanguard: "Zaawansowane zabezpieczenia z Vanguard",
     special_offer_feature_storage: "500 GB zaszyfrowanej przestrzeni",
     special_offer_why_body:
       "Aster to niezależna firma z małym zespołem, a Twoje wsparcie wiele dla nas znaczy. Subskrypcje utrzymują działanie usługi i pozwalają nam każdego dnia starannie rozwijać Aster. Dzięki tej ofercie łatwiej zacząć.",
@@ -5197,7 +5197,7 @@ export const pl = {
       "Przez pierwsze {{months}} miesięcy płacisz {{offer_price}} miesięcznie. Potem plan odnawia się za {{price}} miesięcznie, dopóki nie anulujesz go w Ustawieniach.",
     special_offer_dismiss: "Nie pokazuj więcej tej oferty",
     special_offer_dismissed_toast: "Nie pokażemy tego ponownie.",
-    special_offer_success_title: "Dziękujemy. Masz teraz Nova.",
+    special_offer_success_title: "Dziękujemy. Masz teraz plan Nova.",
     special_offer_success_body:
       "Dziękujemy za subskrypcję. Twoje wsparcie wiele dla nas znaczy.",
     special_offer_hero_duration: "przez {{months}} miesięcy",

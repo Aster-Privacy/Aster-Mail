@@ -4161,9 +4161,9 @@ export const pt = {
     billing_history: "Histórico de faturação",
     billing_plan_heading: "Plano",
     billing_hide_plans: "Ocultar planos",
-    billing_cancel_notice_title: "Seu plano será cancelado",
+    billing_cancel_notice_title: "O seu plano vai ser cancelado",
     billing_cancel_notice_body:
-      "Seu plano termina em {{date}}. Depois disso, sua conta passa para o plano gratuito.",
+      "O seu plano termina a {{date}}. Depois disso, a sua conta passa para o plano gratuito.",
     billing_renewals_heading: "Renovações",
     billing_amount: "Valor",
     billing_desc_payment_failed: "Pagamento recusado",
@@ -5103,29 +5103,29 @@ export const pt = {
       "Bloqueio da aplicação Aster Vanguard, modo de bloqueio e monitorização de segurança",
     special_offer_feature_storage: "500 GB de armazenamento encriptado",
     special_offer_why_body:
-      "O Aster é uma empresa independente com uma equipe pequena, e o seu apoio significa muito para nós. As assinaturas mantêm o serviço funcionando e nos permitem continuar desenvolvendo o Aster com cuidado todos os dias. Esta oferta torna mais fácil começar.",
-    special_offer_why_label: "Por que esta oferta?",
+      "O Aster é uma empresa independente com uma equipa pequena, e o seu apoio significa muito para nós. As subscrições mantêm o serviço a funcionar e permitem-nos continuar a desenvolver o Aster com cuidado todos os dias. Esta oferta torna mais fácil começar.",
+    special_offer_why_label: "Porquê esta oferta?",
     special_offer_feature_vanguard_body:
-      "Bloqueio do app e proteção avançada da privacidade.",
+      "Bloqueio da aplicação e proteção avançada da privacidade.",
     special_offer_feature_domains_body:
-      "Envie de endereços nos seus próprios domínios.",
+      "Envie a partir de endereços nos seus próprios domínios.",
     special_offer_feature_domains: "Até 30 domínios personalizados",
     special_offer_feature_storage_body:
-      "Espaço para anos de e-mails e arquivos.",
+      "Espaço para anos de e-mails e ficheiros.",
     special_offer_feature_aliases_body: "Dê a cada site um endereço próprio.",
     special_offer_fine_print:
       "Paga {{offer_price}} por mês durante os primeiros {{months}} meses. Depois, o seu plano é renovado a {{price}} por mês até o cancelar em Definições.",
     special_offer_dismiss: "Não mostrar esta oferta novamente",
     special_offer_dismissed_toast: "Não voltaremos a mostrar isto.",
-    special_offer_success_title: "Obrigado. Agora você tem o Nova.",
+    special_offer_success_title: "Obrigado. Já tem o Nova.",
     special_offer_success_body:
-      "Obrigado por assinar. Seu apoio significa muito para nós.",
+      "Obrigado pela sua subscrição. O seu apoio significa muito para nós.",
     special_offer_hero_duration: "por {{months}} meses",
     special_offer_price_period_year: "por ano",
     special_offer_hero_duration_year: "no primeiro ano",
     special_offer_fine_print_year:
-      "Você paga {{offer_price}} pelo primeiro ano. Depois, seu plano é renovado por {{price}} por ano até você cancelar em Configurações.",
-    special_offer_billing_period: "Período de cobrança",
+      "Paga {{offer_price}} pelo primeiro ano. Depois, o seu plano é renovado a {{price}} por ano até o cancelar em Definições.",
+    special_offer_billing_period: "Período de faturação",
     plan_billing_terms:
       "As subscrições são renovadas automaticamente ao preço normal até as cancelar. Cancele a qualquer momento em Definições.",
     upgrade_offer_note:
@@ -6126,11 +6126,11 @@ export const pt = {
     checkout_add_promo: "Adicionar um código promocional",
     checkout_amount_due: "Valor a pagar",
     checkout_offer_switch_term:
-      "Mude para {{term}} e ganhe {{percent}}% de desconto",
+      "Mude para {{term}} e obtenha {{percent}}% de desconto",
     checkout_offer_switch_crypto:
-      "Pague com cripto e ganhe {{percent}}% de desconto",
+      "Pague com cripto e obtenha {{percent}}% de desconto",
     checkout_offer_switch_card:
-      "Pague com cartão e ganhe {{percent}}% de desconto",
+      "Pague com cartão e obtenha {{percent}}% de desconto",
     checkout_offer_renewal:
       "{{offer_price}} por mês durante {{months}} meses, depois {{price}} por mês",
     checkout_card_details: "Dados do cartão",
@@ -7180,9 +7180,9 @@ export const pt = {
       "Se a sua carteira descontar a taxa de rede do valor introduzido, adicione um pouco mais para que chegue o valor completo.",
     crypto_native_network_only: "Envie apenas {{coin}} na rede {{chain}}",
     crypto_native_tip_unrecoverable:
-      "Fundos enviados por outra rede não podem ser recuperados.",
+      "Os fundos enviados por outra rede não podem ser recuperados.",
     crypto_native_tip_check_address:
-      "Confira o endereço na sua carteira antes de enviar.",
+      "Verifique o endereço na sua carteira antes de enviar.",
     crypto_native_tip_fee:
       "Se a sua carteira descontar a taxa do valor, envie um pouco a mais.",
     crypto_native_expired_do_not_send:
@@ -7239,7 +7239,7 @@ export const pt = {
     crypto_no_renew_notice: "Pagamentos cripto não renovam automaticamente.",
     crypto_renew_link: "Renovar com cripto",
     special_offer_crypto_one_payment:
-      "O desconto de {{percent}}% vale apenas para este pagamento. Os próximos pagamentos em cripto são cobrados pelo preço normal. Para ter o desconto por um ano inteiro, escolha 12 meses.",
+      "O desconto de {{percent}}% aplica-se apenas a este pagamento. Os pagamentos seguintes em cripto são cobrados ao preço normal. Para ter o desconto durante um ano inteiro, escolha 12 meses.",
     crypto_success_toast:
       "Pagamento em cripto recebido. O seu plano está ativo.",
     crypto_cancelled_toast: "Pagamento cripto cancelado.",

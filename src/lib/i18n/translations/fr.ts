@@ -5128,7 +5128,7 @@ export const fr = {
       "Vous payez {{offer_price}} par mois pendant les {{months}} premiers mois. Votre forfait est ensuite renouvelé à {{price}} par mois jusqu'à ce que vous l'annuliez dans Réglages.",
     special_offer_dismiss: "Ne plus afficher cette offre",
     special_offer_dismissed_toast: "Nous ne vous le montrerons plus.",
-    special_offer_success_title: "Merci. Vous êtes passé à Nova.",
+    special_offer_success_title: "Merci. Vous profitez maintenant de Nova.",
     special_offer_success_body:
       "Merci pour votre abonnement. Votre soutien compte beaucoup pour nous.",
     special_offer_hero_duration: "pendant {{months}} mois",

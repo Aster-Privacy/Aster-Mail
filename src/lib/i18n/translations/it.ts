@@ -6153,7 +6153,7 @@ export const it = {
     special_offer_dismissed_toast: "Non te lo mostreremo più.",
     special_offer_success_title: "Grazie. Ora hai Nova.",
     special_offer_success_body:
-      "Grazie per esserti abbonato. Il tuo supporto significa molto per noi.",
+      "Grazie per l'abbonamento. Il tuo supporto significa molto per noi.",
     special_offer_hero_duration: "per {{months}} mesi",
     special_offer_price_period_year: "all'anno",
     special_offer_hero_duration_year: "per il primo anno",

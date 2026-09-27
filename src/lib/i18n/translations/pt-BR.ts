@@ -4133,6 +4133,13 @@ export const pt_br = {
       "Você mantém as funcionalidades premium até o fim deste período de cobrança, e depois seu plano passa para o Gratuito. Seu correio, contatos e configurações permanecem com você.",
     cancel_plan: "Cancelar plano",
     billing_history: "Histórico de cobrança",
+    billing_plan_heading: "Plano",
+    billing_hide_plans: "Ocultar planos",
+    billing_cancel_notice_title: "Seu plano será cancelado",
+    billing_cancel_notice_body:
+      "Seu plano termina em {{date}}. Depois disso, sua conta passa para o plano gratuito.",
+    billing_renewals_heading: "Renovações",
+    billing_amount: "Valor",
     billing_desc_payment_failed: "Pagamento recusado",
     billing_desc_refund_processed: "Reembolso processado",
     billing_desc_payment_disputed: "Pagamento contestado: {{reason}}",
@@ -5057,11 +5064,30 @@ export const pt_br = {
     special_offer_feature_vanguard:
       "Bloqueio do app Aster Vanguard, modo de bloqueio e monitoramento de segurança",
     special_offer_feature_storage: "500 GB de armazenamento criptografado",
+    special_offer_why_body:
+      "O Aster é uma empresa independente com uma equipe pequena, e o seu apoio significa muito para nós. As assinaturas mantêm o serviço funcionando e nos permitem continuar desenvolvendo o Aster com cuidado todos os dias. Esta oferta torna mais fácil começar.",
+    special_offer_why_label: "Por que esta oferta?",
+    special_offer_feature_vanguard_body:
+      "Bloqueio do app e proteção avançada da privacidade.",
+    special_offer_feature_domains_body:
+      "Envie de endereços nos seus próprios domínios.",
+    special_offer_feature_domains: "Até 30 domínios personalizados",
+    special_offer_feature_storage_body:
+      "Espaço para anos de e-mails e arquivos.",
+    special_offer_feature_aliases_body: "Dê a cada site um endereço próprio.",
     special_offer_fine_print:
       "Você paga {{offer_price}} por mês nos primeiros {{months}} meses. Depois, seu plano é renovado por {{price}} por mês até você cancelar em Configurações.",
     special_offer_dismiss: "Não mostrar esta oferta novamente",
     special_offer_dismissed_toast: "Não mostraremos isto novamente.",
+    special_offer_success_title: "Obrigado. Agora você tem o Nova.",
+    special_offer_success_body:
+      "Obrigado por assinar. Seu apoio significa muito para nós.",
     special_offer_hero_duration: "por {{months}} meses",
+    special_offer_price_period_year: "por ano",
+    special_offer_hero_duration_year: "no primeiro ano",
+    special_offer_fine_print_year:
+      "Você paga {{offer_price}} pelo primeiro ano. Depois, seu plano é renovado por {{price}} por ano até você cancelar em Configurações.",
+    special_offer_billing_period: "Período de cobrança",
     plan_billing_terms:
       "As assinaturas são renovadas automaticamente pelo preço padrão até você cancelar. Cancele quando quiser em Configurações.",
     upgrade_offer_note: "Seu desconto de {{percent}}% é aplicado no pagamento.",
@@ -6056,6 +6082,14 @@ export const pt_br = {
     checkout_abandon_title: "Cancelar este pagamento?",
     checkout_add_promo: "Adicionar um código promocional",
     checkout_amount_due: "Valor a pagar",
+    checkout_offer_switch_term:
+      "Mude para {{term}} e ganhe {{percent}}% de desconto",
+    checkout_offer_switch_crypto:
+      "Pague com cripto e ganhe {{percent}}% de desconto",
+    checkout_offer_switch_card:
+      "Pague com cartão e ganhe {{percent}}% de desconto",
+    checkout_offer_renewal:
+      "{{offer_price}} por mês durante {{months}} meses, depois {{price}} por mês",
     checkout_card_details: "Dados do cartão",
     checkout_full_features_title: "Recursos do {{plan}}",
     checkout_leave_warning:
@@ -7097,6 +7131,13 @@ export const pt_br = {
       "Antes de enviar, compare o endereço na tela da sua carteira com o que aparece aqui. Só este endereço é monitorado para o seu pedido.",
     crypto_native_fee_headroom:
       "Se sua carteira descontar a taxa de rede do valor digitado, adicione um pouco a mais para que o valor completo chegue.",
+    crypto_native_network_only: "Envie apenas {{coin}} na rede {{chain}}",
+    crypto_native_tip_unrecoverable:
+      "Fundos enviados por outra rede não podem ser recuperados.",
+    crypto_native_tip_check_address:
+      "Confira o endereço na sua carteira antes de enviar.",
+    crypto_native_tip_fee:
+      "Se a sua carteira descontar a taxa do valor, envie um pouco a mais.",
     crypto_native_expired_do_not_send:
       "Não envie nada para o endereço desta fatura. Os fundos enviados agora precisam de uma verificação manual antes de serem creditados.",
     crypto_native_not_found: "Não encontramos esta fatura",
@@ -7151,6 +7192,8 @@ export const pt_br = {
     crypto_paid_until: "Pago até {{date}} (cripto)",
     crypto_no_renew_notice: "Pagamentos cripto não renovam automaticamente.",
     crypto_renew_link: "Renovar com cripto",
+    special_offer_crypto_one_payment:
+      "O desconto de {{percent}}% vale apenas para este pagamento, e os próximos pagamentos em cripto são cobrados pelo preço normal. Para ter o desconto por um ano inteiro, escolha 12 meses.",
     crypto_success_toast: "Pagamento em cripto recebido. Seu plano está ativo.",
     crypto_cancelled_toast: "Pagamento cripto cancelado.",
     switch_billing_loss:
@@ -7876,6 +7919,8 @@ export const pt_br = {
       "Monero: prova de trabalho, minerada em processadores de uso geral. Não encontramos um número atual que sustentaríamos, então não publicamos nenhum.",
     crypto_energy_caveat:
       "São estimativas de terceiros e não medições nossas, e os valores por transação são contestados. Não fazemos qualquer alegação ambiental sobre nenhum método de pagamento.",
+    crypto_native_rate_label: "Taxa de câmbio",
+    crypto_native_last_checked_label: "Última verificação",
     crypto_native_rate_value: "Taxa usada: 1 {{coin}} = {{rate}}",
     crypto_native_commit_notice:
       "Escolha uma moeda para fixar a sua taxa de câmbio. Depois envia o pagamento a partir da sua própria carteira.",

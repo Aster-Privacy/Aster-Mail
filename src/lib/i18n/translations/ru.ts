@@ -5163,7 +5163,7 @@ export const ru = {
     special_offer_feature_storage_body: "Места хватит на годы писем и файлов.",
     special_offer_feature_aliases_body: "Отдельный адрес для каждого сайта.",
     special_offer_fine_print:
-      "Первые {{months}} месяцев вы платите {{offer_price}} в месяц. Затем план продлевается за {{price}} в месяц, пока вы не отмените его в Настройках.",
+      "Первые {{months}} месяцев вы платите {{offer_price}} в месяц. Затем тариф продлевается за {{price}} в месяц, пока вы не отмените его в Настройках.",
     special_offer_dismiss: "Больше не показывать это предложение",
     special_offer_dismissed_toast: "Мы больше это не покажем.",
     special_offer_success_title: "Спасибо. Теперь у вас Nova.",
@@ -5173,7 +5173,7 @@ export const ru = {
     special_offer_price_period_year: "в год",
     special_offer_hero_duration_year: "на первый год",
     special_offer_fine_print_year:
-      "За первый год вы платите {{offer_price}}. Затем план продлевается за {{price}} в год, пока вы не отмените его в Настройках.",
+      "За первый год вы платите {{offer_price}}. Затем тариф продлевается за {{price}} в год, пока вы не отмените его в Настройках.",
     special_offer_billing_period: "Период оплаты",
     plan_billing_terms:
       "Подписки продлеваются автоматически по стандартной цене, пока вы их не отмените. Отменить можно в любой момент в Настройках.",
