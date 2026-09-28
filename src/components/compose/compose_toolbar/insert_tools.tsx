@@ -128,7 +128,7 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
         <div>
           <button
             ref={link_btn_ref}
-            className={`press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 ${show_link_dialog ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"}`}
+            className={`press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 ${show_link_dialog ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary"}`}
             title={t("mail.insert_link")}
             type="button"
             onClick={handle_open_link_dialog}
@@ -157,7 +157,7 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
             aria-controls={show_emoji ? emoji_panel_id : undefined}
             aria-expanded={show_emoji}
             aria-haspopup="dialog"
-            className={`press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 ${show_emoji ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"}`}
+            className={`press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 ${show_emoji ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary"}`}
             title={t("common.emoji")}
             type="button"
             onClick={() => {

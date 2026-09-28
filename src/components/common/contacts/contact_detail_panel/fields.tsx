@@ -318,7 +318,7 @@ export function TypedList<T extends string>({
           {!disabled && (
             <button
               aria-label={t("common.remove")}
-              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center transition-colors"
+              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-[var(--aster-hover)] flex items-center justify-center transition-colors"
               type="button"
               onClick={() => on_remove(idx)}
             >
@@ -388,7 +388,7 @@ export function AddressList({
             {!disabled && (
               <button
                 aria-label={t("common.remove")}
-                className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center transition-colors"
+                className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-[var(--aster-hover)] flex items-center justify-center transition-colors"
                 type="button"
                 onClick={() => on_remove(idx)}
               >

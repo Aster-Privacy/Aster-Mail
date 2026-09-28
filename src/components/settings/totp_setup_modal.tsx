@@ -241,7 +241,7 @@ export function TotpSetupModal({
                 </code>
                 <button
                   aria-label={t("common.copy")}
-                  className="p-2 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                  className="p-2 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)]"
                   type="button"
                   onClick={copy_secret}
                 >

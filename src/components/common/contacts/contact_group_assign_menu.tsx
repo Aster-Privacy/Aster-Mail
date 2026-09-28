@@ -61,7 +61,7 @@ export function ContactGroupAssignMenu({
       <DropdownMenuTrigger asChild>
         <button
           aria-label={t("common.add_to_group")}
-          className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+          className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors"
           type="button"
         >
           <UserGroupIcon className="w-4 h-4" />

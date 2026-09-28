@@ -65,7 +65,7 @@ export function ContactGroupsField({
           </span>
           <button
             aria-label={t("common.remove")}
-            className="w-5 h-5 inline-flex items-center justify-center rounded-full text-txt-muted hover:bg-black/10 dark:hover:bg-white/10"
+            className="w-5 h-5 inline-flex items-center justify-center rounded-full text-txt-muted hover:bg-[var(--aster-hover)]"
             type="button"
             onClick={() => on_toggle_group(group.id, false)}
           >

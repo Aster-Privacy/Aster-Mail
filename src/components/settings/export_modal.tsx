@@ -626,10 +626,10 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
       icon: typeof EnvelopeIcon;
     }) => (
       <label
-        className={`flex items-start gap-3 px-4 py-3 rounded-[var(--aster-radius-control)] border cursor-pointer transition-colors ${
+        className={`flex items-start gap-3 px-4 py-3 rounded-[var(--aster-radius-control)] cursor-pointer transition-colors ${
           checked
-            ? "border-brand"
-            : "border-edge-secondary hover:bg-surf-secondary/50"
+            ? "bg-[var(--aster-field-hover)] ring-2 ring-inset ring-brand"
+            : "bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)]"
         }`}
       >
         <Icon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
@@ -757,14 +757,14 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     title = t("settings.export_step_destination_title");
     body = (
       <div className="space-y-4">
-        <div className="flex flex-col items-center justify-center gap-3 p-6 rounded-xl border border-dashed border-edge-secondary bg-surf-secondary/40">
+        <div className="flex flex-col items-center justify-center gap-3 p-6 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)]">
           <ArchiveBoxArrowDownIcon className="w-10 h-10 text-txt-secondary" />
           <p className="text-xs text-txt-secondary text-center">
             {suggested_zip_filename()}
           </p>
         </div>
         {!fsa && (
-          <div className="flex items-start gap-2 px-3 py-2 rounded-xl bg-surf-secondary/60 border border-edge-secondary">
+          <div className="flex items-start gap-2 px-3 py-2 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)]">
             <InformationCircleIcon className="w-4 h-4 mt-0.5 text-txt-muted flex-shrink-0" />
             <p className="text-xs text-txt-muted leading-relaxed">
               {t("settings.export_destination_fallback_notice")}

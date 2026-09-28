@@ -243,7 +243,7 @@ export function SchedulePicker({
           {trigger ?? (
             <button
               aria-label={t(tooltip_key)}
-              className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
+              className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
               disabled={disabled}
               type="button"
             >
@@ -252,11 +252,7 @@ export function SchedulePicker({
           )}
         </PopoverTrigger>
       </Tooltip>
-      <PopoverContent
-        align="end"
-        className="w-auto p-1.5"
-        side="top"
-      >
+      <PopoverContent align="end" className="w-auto p-1.5" side="top">
         {!show_custom ? (
           <div className="p-2 min-w-[280px]">
             <div className="px-2 py-1.5 mb-1">

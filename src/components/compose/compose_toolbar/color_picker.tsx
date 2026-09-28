@@ -125,7 +125,7 @@ export function ColorPickerPopover({
           aria-expanded={open}
           aria-haspopup="dialog"
           aria-label={t("mail.font_color")}
-          className="press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"
+          className="press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary"
           type="button"
           onClick={() => {
             if (!open) {

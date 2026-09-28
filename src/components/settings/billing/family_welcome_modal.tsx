@@ -125,7 +125,7 @@ export function FamilyWelcomeModal({
     >
       <div className="relative flex flex-col overflow-hidden">
         <button
-          className="absolute end-4 top-4 z-20 w-7 h-7 flex items-center justify-center rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-txt-secondary"
+          className="absolute end-4 top-4 z-20 w-7 h-7 flex items-center justify-center rounded-[14px] transition-colors hover:bg-[var(--aster-hover)] text-txt-secondary"
           onClick={handle_close}
         >
           <XMarkIcon className="w-4 h-4" />

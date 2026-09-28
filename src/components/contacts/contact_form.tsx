@@ -417,7 +417,7 @@ export function ContactForm({
           </div>
           <button
             aria-label={t("common.close")}
-            className="p-2 -me-2 -mt-2 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+            className="p-2 -me-2 -mt-2 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)]"
             type="button"
             onClick={handle_close}
           >

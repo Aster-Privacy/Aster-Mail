@@ -67,7 +67,7 @@ export function SignaturePicker({
     <Popover open={is_open} onOpenChange={set_is_open}>
       <PopoverTrigger asChild>
         <button
-          className={`press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 disabled:opacity-50 ${is_open ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"}`}
+          className={`press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 disabled:opacity-50 ${is_open ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary"}`}
           disabled={disabled}
           style={is_open ? { color: "var(--color-info)" } : undefined}
           title={t("mail.insert_signature")}
@@ -79,11 +79,7 @@ export function SignaturePicker({
           </svg>
         </button>
       </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className="w-auto p-1.5"
-        side="top"
-      >
+      <PopoverContent align="start" className="w-auto p-1.5" side="top">
         <div className="p-2 min-w-[260px]">
           <div className="px-2 py-1.5 mb-1">
             <span className="text-xs font-medium text-txt-muted">

@@ -107,7 +107,7 @@ export function AttachmentCard({
           </div>
         </div>
         <button
-          className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-[9px] text-txt-muted hover:bg-black/5 dark:hover:bg-white/10 transition-colors"
+          className="flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-[9px] text-txt-muted hover:bg-[var(--aster-hover)] transition-colors"
           title={t("mail.download_file_named", { filename: att.filename })}
           onClick={on_download}
         >

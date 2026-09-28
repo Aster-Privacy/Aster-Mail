@@ -206,7 +206,7 @@ export function KeyRotationModal({
                 {state !== "rotating" && (
                   <button
                     aria-label={t("common.close")}
-                    className="p-1.5 rounded-[14px] hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                    className="p-1.5 rounded-[14px] hover:bg-[var(--aster-hover)] transition-colors"
                     style={{ color: "var(--text-muted)" }}
                     type="button"
                     onClick={handle_close}

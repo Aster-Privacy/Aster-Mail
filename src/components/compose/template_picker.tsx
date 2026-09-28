@@ -83,7 +83,7 @@ export function TemplatePicker({
         aria-controls={is_open ? menu_id : undefined}
         aria-expanded={is_open}
         aria-haspopup="menu"
-        className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
+        className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
         disabled={disabled}
         title={t("mail.insert_template")}
         type="button"

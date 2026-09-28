@@ -222,7 +222,7 @@ export function UnsubscribeBanner({
               {t("mail.unsubscribe")}
             </button>
             <button
-              className="p-1.5 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/5 text-txt-muted"
+              className="p-1.5 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)] text-txt-muted"
               type="button"
               onClick={() => set_is_dismissed(true)}
             >

@@ -97,7 +97,10 @@ export const RegisterStepAddresses = ({ reg }: RegisterStepAddressesProps) => {
 
       if (!value || added[index]) continue;
       const since_last = Date.now() - last_created_at_ref.current;
-      if (last_created_at_ref.current > 0 && since_last < ALIAS_CREATE_COOLDOWN_MS) {
+      if (
+        last_created_at_ref.current > 0 &&
+        since_last < ALIAS_CREATE_COOLDOWN_MS
+      ) {
         await new Promise((resolve) =>
           window.setTimeout(resolve, ALIAS_CREATE_COOLDOWN_MS - since_last),
         );
@@ -179,7 +182,7 @@ export const RegisterStepAddresses = ({ reg }: RegisterStepAddressesProps) => {
                     <DropdownMenuTrigger asChild>
                       <button
                         aria-label={reg.t("auth.switch_domain")}
-                        className="inline-flex items-center gap-1 rounded-md px-1.5 py-1 text-sm text-txt-secondary transition-colors hover:bg-black/5 hover:text-txt-primary disabled:pointer-events-none dark:hover:bg-white/5 notranslate"
+                        className="inline-flex items-center gap-1 rounded-[var(--aster-radius-item,8px)] px-1.5 py-1 text-sm text-txt-secondary transition-colors hover:bg-[var(--aster-hover)] hover:text-txt-primary disabled:pointer-events-none notranslate"
                         disabled={done || is_adding}
                         tabIndex={-1}
                         translate="no"

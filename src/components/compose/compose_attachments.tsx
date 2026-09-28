@@ -103,7 +103,7 @@ function AttachmentRow({
   const color = get_file_icon_color(attachment.mime_type);
 
   return (
-    <div className="flex items-center gap-2 px-2 py-1 rounded group hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+    <div className="flex items-center gap-2 px-2 py-1 rounded group hover:bg-[var(--aster-hover)] transition-colors">
       <span className="flex-shrink-0" style={{ color: color.text }}>
         {get_file_type_icon(attachment.mime_type)}
       </span>
@@ -165,7 +165,7 @@ export function ComposeAttachments({
       )}
       {show_add_button && (
         <button
-          className="flex items-center gap-2 px-2 py-1 text-[11px] text-txt-tertiary hover:text-txt-primary border border-dashed border-edge-primary rounded hover:border-edge-secondary transition-colors mt-0.5"
+          className="flex items-center gap-2 px-2 py-1 text-[11px] text-txt-tertiary hover:text-txt-primary rounded-[var(--aster-radius-item,8px)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] transition-colors mt-0.5"
           type="button"
           onClick={compose.trigger_file_select}
         >
@@ -209,7 +209,7 @@ export function AttachmentListSimple({
         />
       ))}
       <button
-        className="flex items-center gap-2 px-2 py-1 text-[11px] text-txt-tertiary hover:text-txt-primary border border-dashed border-edge-primary rounded hover:border-edge-secondary transition-colors mt-0.5"
+        className="flex items-center gap-2 px-2 py-1 text-[11px] text-txt-tertiary hover:text-txt-primary rounded-[var(--aster-radius-item,8px)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] transition-colors mt-0.5"
         type="button"
         onClick={trigger_file_select}
       >

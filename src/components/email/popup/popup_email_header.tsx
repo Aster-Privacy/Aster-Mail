@@ -212,7 +212,7 @@ export function PopupEmailHeader({
         {is_fullscreen && (
           <button
             aria-label={t("common.close")}
-            className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex-shrink-0"
+            className="p-1 rounded hover:bg-[var(--aster-hover)] transition-colors flex-shrink-0"
             onClick={on_close}
           >
             <XMarkIcon className="w-5 h-5 text-txt-muted" />

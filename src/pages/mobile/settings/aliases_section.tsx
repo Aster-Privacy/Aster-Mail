@@ -937,7 +937,7 @@ export function AliasesSection({
               <Spinner size="md" />
             </div>
           ) : purchased_load_failed && purchased_orders.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-[var(--border-primary)] py-8 px-4">
+            <div className="flex flex-col items-center gap-3 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] py-8 px-4">
               <p className="text-center text-[13px] text-[var(--mobile-text-muted)]">
                 {t("common.something_went_wrong_try_again")}
               </p>
@@ -950,7 +950,7 @@ export function AliasesSection({
               </button>
             </div>
           ) : purchased_orders.length === 0 ? (
-            <div className="flex flex-col items-center rounded-xl border border-dashed border-[var(--border-primary)] py-8 px-4">
+            <div className="flex flex-col items-center rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] py-8 px-4">
               <ShoppingBagIcon className="h-12 w-12 text-[var(--mobile-text-muted)] opacity-40 mb-2" />
               <p className="text-center text-[13px] text-[var(--mobile-text-muted)]">
                 {t("settings.domain_purchase_purchased_empty")}

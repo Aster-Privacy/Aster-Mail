@@ -117,7 +117,7 @@ export const RegisterStepAccount = ({ reg }: RegisterStepAccountProps) => {
           <DropdownMenuTrigger asChild>
             <button
               aria-label={reg.t("auth.switch_domain")}
-              className="absolute end-2 top-1/2 inline-flex -translate-y-1/2 items-center gap-1 rounded-md px-1.5 py-1 text-sm text-txt-secondary transition-colors hover:bg-black/5 hover:text-txt-primary dark:hover:bg-white/5 notranslate"
+              className="absolute end-2 top-1/2 inline-flex -translate-y-1/2 items-center gap-1 rounded-[var(--aster-radius-item,8px)] px-1.5 py-1 text-sm text-txt-secondary transition-colors hover:bg-[var(--aster-hover)] hover:text-txt-primary notranslate"
               tabIndex={-1}
               translate="no"
               type="button"

@@ -178,7 +178,7 @@ export function AliasWebsitesEditor({
 
   const empty_add_class = is_mobile
     ? "mt-1 flex w-full min-w-0 cursor-pointer items-center gap-1.5 text-start text-[13px] leading-5 text-[var(--mobile-text-muted)] opacity-70 hover:opacity-100 focus:outline-none focus:ring-0"
-    : "flex h-9 w-full min-w-0 cursor-pointer items-center gap-2 rounded-[12px] border border-dashed border-edge-primary px-3 text-start text-[13px] text-txt-muted transition-colors hover:border-edge-secondary hover:text-txt-secondary focus:outline-none focus:ring-0";
+    : "flex h-9 w-full min-w-0 cursor-pointer items-center gap-2 rounded-[12px] bg-[var(--aster-field-bg)] px-3 text-start text-[13px] text-txt-muted transition-colors hover:bg-[var(--aster-field-hover)] hover:text-txt-secondary focus:outline-none focus:ring-0";
 
   if (current.length === 0 && !is_adding) {
     return (

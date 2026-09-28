@@ -905,9 +905,9 @@ export function AliasImportModal({
                     <tr
                       key={i}
                       className={[
-                        "border-b border-edge-secondary last:border-0",
+                        "border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))] last:border-0",
                         row.status !== "invalid"
-                          ? "cursor-pointer hover:bg-surf-secondary/50"
+                          ? "cursor-pointer hover:bg-[var(--aster-hover)]"
                           : "opacity-50",
                       ].join(" ")}
                       onClick={() => row.status !== "invalid" && toggle_row(i)}
