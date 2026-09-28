@@ -269,7 +269,7 @@ export function PopupEmailHeader({
                 </PopoverTrigger>
                 <PopoverContent
                   align="start"
-                  className="w-max min-w-[20rem] max-w-[90vw] p-3 text-xs space-y-2 bg-surf-primary border-edge-primary"
+                  className="w-max min-w-[20rem] max-w-[90vw] p-3 text-xs space-y-2"
                   side="bottom"
                 >
                   <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">

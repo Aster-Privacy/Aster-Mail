@@ -49,6 +49,7 @@ import {
   remove_spam_sender,
 } from "@/services/api/mail";
 import { bulk_add_tag, bulk_remove_tag } from "@/services/api/tags";
+import { open_email_in_new_window } from "@/utils/open_email_window";
 import {
   update_item_metadata,
   bulk_update_metadata_by_ids,
@@ -113,30 +114,7 @@ export function build_context_menu_actions(
   };
 
   const handle_open_in_new_window = (email: InboxEmail) => {
-    const width = Math.min(
-      1180,
-      Math.max(760, Math.round(window.screen.availWidth * 0.62)),
-    );
-    const height = Math.min(
-      960,
-      Math.max(560, Math.round(window.screen.availHeight * 0.86)),
-    );
-    const left = Math.max(
-      0,
-      Math.round(window.screenX + (window.outerWidth - width) / 2),
-    );
-    const top = Math.max(
-      0,
-      Math.round(window.screenY + (window.outerHeight - height) / 2),
-    );
-
-    const opened = window.open(
-      `/email/${encodeURIComponent(email.id)}?popup=1`,
-      "_blank",
-      `popup=yes,width=${width},height=${height},left=${left},top=${top}`,
-    );
-
-    if (!opened) {
+    if (!open_email_in_new_window(email.id)) {
       show_toast(t("common.something_went_wrong"), "error");
     }
   };

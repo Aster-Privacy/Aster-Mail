@@ -223,7 +223,7 @@ export function ReplyBody({
 
       {!is_minimized && original_body && include_quoted && (
         <div className="px-4 pb-2">
-          <div className="flex items-center gap-1.5">
+          <div className="inline-flex h-6 items-center rounded-full bg-[var(--aster-hover)] text-txt-secondary">
             <button
               aria-expanded={show_quoted}
               aria-label={
@@ -231,12 +231,7 @@ export function ReplyBody({
                   ? t("mail.hide_quoted_text")
                   : t("mail.show_quoted_text")
               }
-              className="inline-flex h-6 min-w-10 items-center justify-center rounded-full px-3 text-txt-secondary transition-colors hover:bg-[var(--aster-island-hover)] hover:text-txt-primary aria-expanded:bg-[var(--aster-island-hover)]"
-              style={{
-                backgroundColor: show_quoted
-                  ? undefined
-                  : "var(--aster-field-bg)",
-              }}
+              className="inline-flex h-6 min-w-10 items-center justify-center rounded-full px-3 hover:bg-[var(--aster-hover)] hover:text-txt-primary aria-expanded:text-txt-primary"
               title={
                 show_quoted
                   ? t("mail.hide_quoted_text")
@@ -256,7 +251,7 @@ export function ReplyBody({
             </button>
             <button
               aria-label={t("mail.remove_quoted_text")}
-              className="inline-flex h-6 w-6 items-center justify-center rounded-full text-txt-muted transition-colors hover:bg-[var(--aster-island-hover)] hover:text-txt-primary"
+              className="inline-flex h-6 w-6 items-center justify-center rounded-full text-txt-muted hover:bg-[var(--aster-hover)] hover:text-txt-primary"
               title={t("mail.remove_quoted_text")}
               type="button"
               onClick={() => {
@@ -285,10 +280,9 @@ export function ReplyBody({
 
       {!is_minimized && error_message && (
         <div
-          className="mx-3 mb-2 p-3 rounded-lg border flex items-center gap-2 flex-shrink-0"
+          className="mx-3 mb-2 p-3 rounded-[12px] flex items-center gap-2 flex-shrink-0"
           style={{
             backgroundColor: "#dc2626",
-            borderColor: "#dc2626",
           }}
         >
           <svg

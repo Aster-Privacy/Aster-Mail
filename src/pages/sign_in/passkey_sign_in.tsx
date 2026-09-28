@@ -26,6 +26,7 @@ import { motion } from "framer-motion";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
+import { Spinner } from "@/components/ui/spinner";
 import {
   passkey_login_initiate,
   perform_passkey_login,
@@ -98,7 +99,7 @@ export function PasskeySignInButton({
       onClick={handle_click}
     >
       {is_loading ? (
-        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        <Spinner size="sm" />
       ) : (
         <FingerPrintIcon className="w-4 h-4" />
       )}

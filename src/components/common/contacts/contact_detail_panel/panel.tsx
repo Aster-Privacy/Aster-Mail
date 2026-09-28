@@ -422,7 +422,7 @@ export function ContactDetailPanel({
                 />
               </div>
             </div>
-            <div className="absolute end-4 -bottom-6 flex items-center gap-2 px-2.5 py-2 rounded-full bg-surf-primary border border-edge-primary shadow-lg">
+            <div className="absolute end-4 -bottom-6 flex items-center gap-2 px-2.5 py-2 rounded-full bg-[var(--aster-floating-bg,var(--bg-primary))] shadow-[var(--aster-floating-shadow)]">
               {COLOR_SWATCHES.map((c) => {
                 const active = c.value === banner;
 

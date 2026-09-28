@@ -29,6 +29,7 @@ import {
 } from "@/lib/image_load_retry";
 import { connection_store } from "@/services/routing/connection_store";
 import { ignore_error } from "@/lib/ignore_error";
+import { remove_aster_footers } from "@/lib/aster_footer_strip";
 
 type translate_fn = ReturnType<typeof use_i18n>["t"];
 
@@ -429,6 +430,7 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
   const body = doc.body;
 
   if (!body) return;
+  remove_aster_footers(body, true);
   if (body.querySelector("details.aster-forwarded-collapse")) return;
   if (body.querySelector(".aster-quote-toggle")) return;
 

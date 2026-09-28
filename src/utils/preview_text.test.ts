@@ -84,6 +84,26 @@ describe("build_list_preview", () => {
   it("passes through preview text that fits", () => {
     expect(build_list_preview("a short preview")).toBe("a short preview");
   });
+
+  it("drops the footer and quoted history from a reply preview", () => {
+    expect(
+      build_list_preview(
+        "8 is perfect. I will bring snacks. Secured by Aster Mail On Fri, Sep 25, 2026, 11:30 AM, sam <sam@example.org> wrote: Dinner at 7?",
+      ),
+    ).toBe("8 is perfect. I will bring snacks.");
+  });
+
+  it("drops a trailing footer", () => {
+    expect(build_list_preview("See you soon Secured by Aster Mail")).toBe(
+      "See you soon",
+    );
+  });
+
+  it("keeps text that mentions the product name in a sentence", () => {
+    expect(build_list_preview("I moved to Aster Mail last week")).toBe(
+      "I moved to Aster Mail last week",
+    );
+  });
 });
 
 describe("strip_preview_filler", () => {

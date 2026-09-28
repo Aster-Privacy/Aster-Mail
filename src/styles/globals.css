@@ -4314,3 +4314,10 @@ input:-webkit-autofill:active {
     transition: none;
   }
 }
+
+.aster_title_tip {
+  max-width: 320px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  animation: aster_tip_fade_in 120ms ease-out;
+}

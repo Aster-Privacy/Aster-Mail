@@ -146,7 +146,7 @@ export function FamilyWelcomeModal({
             variants={variants}
           >
             <div className="flex flex-col items-center gap-1 mb-6 w-full">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-accent-blue/10 text-accent-blue border border-accent-blue/20">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-accent-blue/10 text-accent-blue">
                 {plan_name}
               </span>
               <span className="text-xs text-txt-muted">

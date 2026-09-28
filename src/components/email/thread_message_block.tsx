@@ -203,8 +203,8 @@ export function ThreadMessageBlock(
     return (
       <div
         key="inline_reply"
-        role="presentation"
         className="overflow-hidden"
+        role="presentation"
         onClick={(e) => e.stopPropagation()}
       >
         <IslandDivider />
@@ -477,6 +477,9 @@ export function ThreadMessageBlock(
                   cc_recipients={message.cc_recipients}
                   date_label={format_email_detail(new Date(message.timestamp))}
                   delivered_to_address={delivered_to_address}
+                  sender_authenticated={is_system_email(
+                    trust_source_for_display(message, show_sender_email),
+                  )}
                   sender_email={show_sender_email}
                   sender_name={show_sender_name}
                   subject={message.subject || t("mail.no_subject")}

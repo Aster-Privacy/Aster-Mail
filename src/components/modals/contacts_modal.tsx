@@ -58,19 +58,13 @@ export function ContactsModal({
         if (e["key"] === "Escape") dismiss_from_backdrop();
       }}
     >
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 bg-black/70"
-      />
+      <div aria-hidden="true" className="absolute inset-0 bg-black/70" />
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events */}
       <div
         aria-label={modal.t("common.contacts")}
         aria-modal="true"
-        className="relative w-full max-w-[580px] rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
+        className="relative w-full max-w-[580px] overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
         role="dialog"
-        style={{
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-        }}
         onClick={(e) => e.stopPropagation()}
       >
         {!modal.has_keys ? (

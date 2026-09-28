@@ -821,7 +821,7 @@ function Chip({
 }) {
   return (
     <button
-      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full border text-xs text-[var(--text-secondary)] border-[var(--border-secondary)] bg-[var(--bg-tertiary)] hover:bg-[var(--bg-hover)] transition-colors"
+      className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs text-[var(--text-secondary)] bg-[var(--aster-hover)] hover:bg-[var(--aster-selected)] hover:text-[var(--text-primary)] transition-colors"
       type="button"
       onClick={on_click}
     >

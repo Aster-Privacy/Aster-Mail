@@ -34,7 +34,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-import { Skeleton } from "@/components/ui/skeleton";
+import { EmailOpenSkeleton } from "@/components/email/viewer_shared/email_open_skeleton";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { UnsubscribeBanner } from "@/components/email/unsubscribe_banner";
@@ -72,49 +72,6 @@ interface EmailDetailBodyProps {
   handle_edit_thread_draft: (draft: DraftWithContent) => void;
   handle_thread_draft_deleted: () => void;
   on_external_content_detected?: (report: ExternalContentReport) => void;
-}
-
-function EmailDetailSkeleton(): React.ReactElement {
-  return (
-    <div className="max-w-4xl mx-auto flex flex-col h-full">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <Skeleton className="w-5 h-5 sm:w-6 sm:h-6" />
-          <Skeleton className="h-6 sm:h-8 w-48 sm:w-72" />
-        </div>
-        <div className="hidden sm:flex items-center gap-2">
-          <Skeleton className="w-8 h-8" />
-          <Skeleton className="w-8 h-8" />
-          <Skeleton className="h-4 w-16" />
-        </div>
-      </div>
-
-      <div className="mb-4 mt-2 flex items-start gap-2 sm:gap-3">
-        <Skeleton className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex-shrink-0" />
-        <div className="flex-1">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-            <Skeleton className="h-4 sm:h-5 w-28 sm:w-36" />
-            <Skeleton className="h-3 sm:h-4 w-36 sm:w-44" />
-          </div>
-          <Skeleton className="h-3 sm:h-4 w-16 sm:w-24" />
-        </div>
-      </div>
-
-      <div className="flex-1 rounded-lg p-3 sm:p-4 mt-4">
-        <div className="space-y-2 sm:space-y-3">
-          <Skeleton className="h-3 sm:h-4 w-full" />
-          <Skeleton className="h-3 sm:h-4 w-[95%]" />
-          <Skeleton className="h-3 sm:h-4 w-[88%]" />
-          <Skeleton className="h-3 sm:h-4 w-[92%]" />
-          <Skeleton className="h-3 sm:h-4 w-[70%]" />
-          <div className="h-3 sm:h-4" />
-          <Skeleton className="h-3 sm:h-4 w-[85%]" />
-          <Skeleton className="h-3 sm:h-4 w-[90%]" />
-          <Skeleton className="h-3 sm:h-4 w-[60%]" />
-        </div>
-      </div>
-    </div>
-  );
 }
 
 export function EmailDetailBody({
@@ -193,7 +150,9 @@ export function EmailDetailBody({
   return (
     <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 pb-20 sm:pb-6">
       {is_loading && !email ? (
-        <EmailDetailSkeleton />
+        <div className="relative h-full min-h-[320px]">
+          <EmailOpenSkeleton />
+        </div>
       ) : error ? (
         <div className="flex flex-col items-center justify-center h-full gap-4 px-4">
           <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
@@ -308,6 +267,17 @@ export function EmailDetailBody({
               hide_counter
               current_user_email={current_user_email}
               default_expanded_id={email.id}
+              footer={
+                thread_draft ? (
+                  <ThreadDraftBadge
+                    current_user_email={current_user_email}
+                    current_user_name={user?.display_name}
+                    draft={thread_draft}
+                    on_deleted={handle_thread_draft_deleted}
+                    on_edit={handle_edit_thread_draft}
+                  />
+                ) : null
+              }
               force_all_dark_mode={preferences.force_dark_mode_emails}
               inline_mode={inline_mode}
               inline_reply_is_external={mail_item?.is_external ?? false}
@@ -372,17 +342,6 @@ export function EmailDetailBody({
               size_bytes={mail_item?.metadata?.size_bytes}
               subject={email.subject}
               thread_token={mail_item?.thread_token}
-              footer={
-                thread_draft ? (
-                  <ThreadDraftBadge
-                    current_user_email={current_user_email}
-                    current_user_name={user?.display_name}
-                    draft={thread_draft}
-                    on_deleted={handle_thread_draft_deleted}
-                    on_edit={handle_edit_thread_draft}
-                  />
-                ) : null
-              }
             />
           </div>
 

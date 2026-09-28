@@ -140,7 +140,7 @@ export function GmailSetupWizard({
       show_close_button={false}
       size="md"
     >
-      <div className="px-6 pt-6 pb-4 border-b rounded-t-xl bg-modal-bg border-edge-primary">
+      <div className="px-6 pt-6 pb-4 border-b rounded-t-[var(--aster-radius-floating,16px)] bg-modal-bg border-[var(--aster-floating-divider)]">
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-surf-secondary flex-shrink-0">
             <img

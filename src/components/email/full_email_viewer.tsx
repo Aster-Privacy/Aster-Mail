@@ -31,6 +31,7 @@ import {
   CONTENT_READY_FALLBACK_MS,
 } from "@/components/email/sandboxed_email_renderer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmailOpenSkeleton } from "@/components/email/viewer_shared/email_open_skeleton";
 import { use_i18n } from "@/lib/i18n/context";
 import { type DraftWithContent } from "@/services/api/multi_drafts";
 import { is_system_email } from "@/lib/utils";
@@ -511,34 +512,15 @@ export function FullEmailViewer({
           </>
         ) : (
           <div className="flex items-center gap-1 flex-shrink-0">
-            <Skeleton className="w-8 h-8 rounded-md" />
-            <Skeleton className="w-8 h-8 rounded-md" />
-            <Skeleton className="w-8 h-8 rounded-md" />
+            <Skeleton className="w-8 h-8 rounded-full" />
+            <Skeleton className="w-8 h-8 rounded-full" />
+            <Skeleton className="w-8 h-8 rounded-full" />
           </div>
         )}
       </div>
 
       <div className="relative flex-1 min-h-0">
-        {show_content_skeleton && (
-          <div className="absolute inset-0 z-10 overflow-hidden bg-surf-primary px-2 py-3 sm:px-3 sm:py-4">
-            <Skeleton className="h-7 mb-6 w-full max-w-[66%]" />
-            <div className="flex items-start gap-3 sm:gap-4 mb-6 min-w-0">
-              <Skeleton className="w-10 h-10 rounded-full flex-shrink-0" />
-              <div className="flex-1 space-y-2 min-w-0">
-                <Skeleton className="h-4 w-full max-w-[120px]" />
-                <Skeleton className="h-3 w-full max-w-[90px]" />
-              </div>
-              <Skeleton className="h-3 w-24 flex-shrink-0 hidden sm:block" />
-            </div>
-            <div className="space-y-3 pt-4">
-              <Skeleton className="w-full h-4" />
-              <Skeleton className="w-full h-4" />
-              <Skeleton className="h-4 w-full max-w-[75%]" />
-              <Skeleton className="w-full h-4" />
-              <Skeleton className="h-4 w-full max-w-[50%]" />
-            </div>
-          </div>
-        )}
+        {show_content_skeleton && <EmailOpenSkeleton />}
         <div
           className="h-full overflow-y-auto"
           style={{ scrollbarGutter: "stable" }}

@@ -60,7 +60,7 @@ import {
 } from "@/services/api/passkeys";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { is_composing } from "@/utils/ime";
-import { ButtonSpinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 
 function format_date(iso: string): string {
   try {
@@ -384,7 +384,7 @@ export function PasskeySection() {
 
         {loading ? (
           <Island className="flex justify-center" padding="lg">
-            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <Spinner className="text-txt-muted" size="md" />
           </Island>
         ) : (
           <AnimatePresence mode="popLayout">

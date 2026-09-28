@@ -45,6 +45,7 @@ import { checkout_highlights } from "@/components/settings/billing/checkout_high
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { Spinner } from "@/components/ui/spinner";
 import { useTheme } from "@/contexts/theme_context";
 import {
   use_stripe_theme_tokens,
@@ -53,11 +54,7 @@ import {
 import { stripe_locale } from "@/lib/stripe_locale";
 
 export type checkout_phase =
-  | "loading"
-  | "ready"
-  | "processing"
-  | "success"
-  | "error";
+  "loading" | "ready" | "processing" | "success" | "error";
 
 export interface theme_colors {
   text_primary: string;
@@ -357,13 +354,7 @@ export function CheckoutModal({
     if (phase === "loading") {
       return (
         <div className="flex flex-col items-center justify-center py-12 gap-4">
-          <div
-            className="w-6 h-6 rounded-full animate-spin"
-            style={{
-              border: `2.5px solid ${colors.border_rest}`,
-              borderTopColor: colors.text_tertiary,
-            }}
-          />
+          <Spinner className="text-txt-muted" size="md" />
           <p className="text-sm" style={{ color: colors.text_tertiary }}>
             {t("settings.preparing_checkout")}
           </p>

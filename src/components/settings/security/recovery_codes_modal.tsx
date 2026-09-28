@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { Checkbox } from "@aster/ui";
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   ArrowDownTrayIcon,
@@ -26,8 +27,8 @@ import {
   EyeSlashIcon,
   PrinterIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { apply_input_transform } from "@/utils/input_transform";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -560,10 +561,9 @@ export function RecoveryCodesModal({
                 </div>
                 {is_regenerate && (
                   <label className="w-full flex items-start gap-2 cursor-pointer text-txt-tertiary">
-                    <input
+                    <Checkbox
                       checked={saved_checkbox}
-                      className="mt-0.5 accent-current"
-                      type="checkbox"
+                      className="mt-0.5 shrink-0"
                       onChange={(e) => set_saved_checkbox(e.target.checked)}
                     />
                     <span className="text-sm leading-relaxed">

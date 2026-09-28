@@ -79,12 +79,9 @@ export function PurchaseSuccessModal({
           />
           <motion.div
             animate={{ opacity: 1, scale: 1 }}
-            className="relative w-full max-w-sm rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
+            className="relative w-full max-w-sm overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
             exit={{ opacity: 0, scale: 0.96 }}
             initial={reduce_motion ? false : { opacity: 0, scale: 0.96 }}
-            style={{
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-            }}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
             onClick={(e) => e.stopPropagation()}
           >

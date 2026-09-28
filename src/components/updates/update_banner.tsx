@@ -37,6 +37,7 @@ import {
 } from "@/services/updates/updater";
 
 const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
+
 export const FIRST_CHECK_DELAY_MS = 8000;
 
 export function UpdateBanner() {
@@ -101,10 +102,10 @@ export function UpdateBanner() {
 
   return (
     <div
-      className="fixed bottom-4 end-4 z-[9999] max-w-sm rounded-xl border shadow-2xl p-3"
+      className="fixed bottom-4 end-4 z-[9999] max-w-sm rounded-[var(--aster-radius-floating,16px)] p-3"
       style={{
-        backgroundColor: "var(--bg-primary, #111)",
-        borderColor: "var(--border-primary, #444)",
+        backgroundColor: "var(--aster-floating-bg, var(--bg-primary, #111))",
+        boxShadow: "var(--aster-floating-shadow)",
         color: "var(--text-primary, #fff)",
       }}
     >
@@ -129,7 +130,7 @@ export function UpdateBanner() {
                     })}
             </button>
             <button
-              className="h-7 px-3 rounded-lg border border-edge-secondary bg-surf-tertiary text-xs font-medium text-txt-primary transition-colors hover:opacity-80"
+              className="h-7 px-3 rounded-lg bg-[var(--aster-hover)] text-xs font-medium text-txt-primary transition-colors hover:opacity-80"
               onClick={handle_dismiss}
             >
               {t("settings.updates_dismiss")}

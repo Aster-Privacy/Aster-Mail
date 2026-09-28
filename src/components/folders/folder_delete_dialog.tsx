@@ -20,13 +20,14 @@
 //
 import type { KeyboardEvent } from "react";
 
+import { Checkbox } from "@aster/ui";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ExclamationTriangleIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import {
   Modal,
   ModalHeader,
@@ -368,11 +369,10 @@ export function FolderDeleteDialog({
             className={option_row_class}
             htmlFor={`folder-delete-purge-${variant}`}
           >
-            <input
+            <Checkbox
               checked={purge_contents}
               className={checkbox_class}
               id={`folder-delete-purge-${variant}`}
-              type="checkbox"
               onChange={(e) => {
                 set_purge_contents(e.target.checked);
                 if (!e.target.checked) set_purge_acknowledged(false);
@@ -394,11 +394,10 @@ export function FolderDeleteDialog({
                 }
                 htmlFor={`folder-delete-purge-ack-${variant}`}
               >
-                <input
+                <Checkbox
                   checked={purge_acknowledged}
                   className={checkbox_class}
                   id={`folder-delete-purge-ack-${variant}`}
-                  type="checkbox"
                   onChange={(e) => set_purge_acknowledged(e.target.checked)}
                 />
                 <span>{t("common.delete_folder_purge_acknowledge")}</span>

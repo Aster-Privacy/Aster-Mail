@@ -152,12 +152,12 @@ export function PlanPrompt({
       {is_open && (
         <motion.div
           animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-5 end-5 z-30 w-[320px] max-w-[calc(100vw-2.5rem)] overflow-hidden rounded-xl border p-4 shadow-lg"
+          className="fixed bottom-5 end-5 z-30 w-[320px] max-w-[calc(100vw-2.5rem)] overflow-hidden rounded-[var(--aster-radius-floating,16px)] p-4"
           exit={{ opacity: 0, y: 8 }}
           initial={{ opacity: 0, y: 8 }}
           style={{
-            backgroundColor: "var(--bg-card)",
-            borderColor: "var(--border-primary)",
+            backgroundColor: "var(--aster-floating-bg, var(--bg-card))",
+            boxShadow: "var(--aster-floating-shadow)",
           }}
           transition={transition}
         >

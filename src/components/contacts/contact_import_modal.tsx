@@ -41,8 +41,8 @@ import {
   UserGroupIcon,
 } from "@heroicons/react/24/outline";
 import { CheckIcon } from "@heroicons/react/24/solid";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { TAG_COLOR_PRESETS } from "@/components/ui/email_tag";
 import {
@@ -540,11 +540,8 @@ export function ContactImportModal({
         ref={dialog_ref}
         aria-labelledby={title_id}
         aria-modal="true"
-        className="relative mx-4 flex max-h-[86vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border bg-modal-bg border-edge-primary outline-none"
+        className="relative mx-4 flex max-h-[86vh] w-full max-w-2xl flex-col overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] outline-none"
         role="dialog"
-        style={{
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-        }}
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
       >

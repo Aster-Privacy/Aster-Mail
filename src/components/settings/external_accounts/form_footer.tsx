@@ -52,7 +52,7 @@ export function FormFooter({
   t,
 }: FormFooterProps) {
   return (
-    <div className="sticky bottom-0 z-10 px-6 py-4 border-t rounded-b-xl flex items-center justify-between bg-modal-bg border-edge-primary">
+    <div className="sticky bottom-0 z-10 px-6 py-4 border-t rounded-b-[var(--aster-radius-floating,16px)] flex items-center justify-between bg-modal-bg border-[var(--aster-floating-divider)]">
       <div className="flex items-center gap-2">
         {!is_oauth_account && (
           <>

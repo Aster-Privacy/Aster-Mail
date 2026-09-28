@@ -20,6 +20,7 @@
 //
 import type { NewCodesStepProps } from "./types";
 
+import { Checkbox } from "@aster/ui";
 import { motion } from "framer-motion";
 
 import { use_i18n } from "@/lib/i18n/context";
@@ -160,10 +161,9 @@ export function NewCodesStep({
         }
       >
         <label className="flex cursor-pointer items-start gap-3 text-start">
-          <input
+          <Checkbox
             checked={codes_saved}
-            className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--accent-color)]"
-            type="checkbox"
+            className="mt-0.5 shrink-0"
             onChange={(e) => set_codes_saved(e.target.checked)}
           />
           <span className="text-sm text-[var(--text-secondary)]">

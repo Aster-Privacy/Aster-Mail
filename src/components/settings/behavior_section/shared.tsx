@@ -201,7 +201,7 @@ export function LanguagePicker({
 
           {available.length > 0 && (
             <Select value="" onValueChange={(v) => v && on_add(v)}>
-              <SelectTrigger className="h-auto w-auto gap-1.5 rounded-full border-dashed bg-transparent px-3 py-1 text-txt-secondary hover:text-txt-primary">
+              <SelectTrigger className="h-auto w-auto gap-1.5 rounded-full border-0 bg-[var(--aster-hover)] px-3 py-1 text-txt-secondary hover:text-txt-primary">
                 <span className="inline-flex items-center gap-1.5">
                   <PlusIcon className="w-3.5 h-3.5" />
                   {add_label}

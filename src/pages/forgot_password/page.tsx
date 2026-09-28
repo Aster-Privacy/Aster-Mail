@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@aster/ui";
+import { Button, Checkbox } from "@aster/ui";
 
 import {
   AddressIcon,
@@ -140,54 +140,56 @@ export default function ForgotPasswordPage() {
                 {t("auth.recovery_email_label")}
               </label>
               <div className="relative">
-              <Input
-                // eslint-disable-next-line jsx-a11y/no-autofocus
-                autoFocus
-                autoCapitalize="none"
-                autoComplete="username"
-                autoCorrect="off"
-                className="notranslate pe-32"
-                id="recovery_address"
-                maxLength={55}
-                placeholder={t("common.yourname_placeholder")}
-                spellCheck={false}
-                status={error ? "error" : "default"}
-                translate="no"
-                type="text"
-                value={username}
-                onChange={(e) => {
-                  const raw = e.target.value;
-                  const at_index = raw.indexOf("@");
+                <Input
+                  // eslint-disable-next-line jsx-a11y/no-autofocus
+                  autoFocus
+                  autoCapitalize="none"
+                  autoComplete="username"
+                  autoCorrect="off"
+                  className="notranslate pe-32"
+                  id="recovery_address"
+                  maxLength={55}
+                  placeholder={t("common.yourname_placeholder")}
+                  spellCheck={false}
+                  status={error ? "error" : "default"}
+                  translate="no"
+                  type="text"
+                  value={username}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    const at_index = raw.indexOf("@");
 
-                  if (at_index !== -1) {
-                    const local = sanitize_username(raw.substring(0, at_index));
-                    const domain_part = raw
-                      .substring(at_index + 1)
-                      .toLowerCase();
-
-                    if (
-                      domain_part === "astermail.org" ||
-                      domain_part === "astermail.org."
-                    ) {
-                      set_username(local);
-                      set_email_domain("astermail.org");
-                    } else if (
-                      domain_part === "aster.cx" ||
-                      domain_part === "aster.cx."
-                    ) {
-                      set_username(local);
-                      set_email_domain("aster.cx");
-                    } else {
-                      set_username(
-                        `${local}@${domain_part.replace(/[^a-z0-9.-]/g, "")}`,
+                    if (at_index !== -1) {
+                      const local = sanitize_username(
+                        raw.substring(0, at_index),
                       );
+                      const domain_part = raw
+                        .substring(at_index + 1)
+                        .toLowerCase();
+
+                      if (
+                        domain_part === "astermail.org" ||
+                        domain_part === "astermail.org."
+                      ) {
+                        set_username(local);
+                        set_email_domain("astermail.org");
+                      } else if (
+                        domain_part === "aster.cx" ||
+                        domain_part === "aster.cx."
+                      ) {
+                        set_username(local);
+                        set_email_domain("aster.cx");
+                      } else {
+                        set_username(
+                          `${local}@${domain_part.replace(/[^a-z0-9.-]/g, "")}`,
+                        );
+                      }
+                    } else {
+                      set_username(sanitize_username(raw));
                     }
-                  } else {
-                    set_username(sanitize_username(raw));
-                  }
-                }}
-                onKeyDown={(e) => e["key"] === "Enter" && handle_email_next()}
-              />
+                  }}
+                  onKeyDown={(e) => e["key"] === "Enter" && handle_email_next()}
+                />
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button
@@ -466,9 +468,6 @@ export default function ForgotPasswordPage() {
                 {t("auth.recovery_code_label")}
               </label>
               <Input
-                id="recovery_code"
-                // eslint-disable-next-line jsx-a11y/no-autofocus
-                autoFocus
                 autoComplete="off"
                 className="font-mono tracking-wider"
                 placeholder="ASTER-XXXX-XXXX-XXXX-XXXX"
@@ -481,6 +480,9 @@ export default function ForgotPasswordPage() {
                   )
                 }
                 onKeyDown={(e) => e["key"] === "Enter" && handle_code_submit()}
+                id="recovery_code"
+                // eslint-disable-next-line jsx-a11y/no-autofocus
+                autoFocus
               />
               <p className="mt-2 text-xs text-txt-tertiary">
                 {t("auth.recovery_code_hint")}
@@ -718,7 +720,11 @@ export default function ForgotPasswordPage() {
               >
                 {t("common.download")}
               </Button>
-              <Button size="lg" variant="secondary" onClick={handle_print_codes}>
+              <Button
+                size="lg"
+                variant="secondary"
+                onClick={handle_print_codes}
+              >
                 {t("auth.print_codes")}
               </Button>
               <Button size="lg" variant="secondary" onClick={handle_copy_codes}>
@@ -727,10 +733,9 @@ export default function ForgotPasswordPage() {
             </div>
 
             <label className="w-full mt-6 flex items-start gap-3 text-start cursor-pointer">
-              <input
+              <Checkbox
                 checked={codes_saved}
-                className="mt-0.5 h-4 w-4 shrink-0 accent-[var(--accent-color)]"
-                type="checkbox"
+                className="mt-0.5 shrink-0"
                 onChange={(e) => set_codes_saved(e.target.checked)}
               />
               <span className="text-sm text-txt-secondary">

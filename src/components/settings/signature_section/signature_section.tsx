@@ -68,6 +68,7 @@ import { ColorPickerPopover } from "@/components/compose/compose_toolbar/color_p
 import { use_frozen_selection } from "@/components/compose/compose_toolbar/shared";
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { Spinner } from "@/components/ui/spinner";
 
 export function SignatureSection() {
   const {
@@ -694,13 +695,7 @@ export function SignatureSection() {
                           onClick={() => set_confirm_delete_id(signature.id)}
                         >
                           {deleting_id === signature.id ? (
-                            <div
-                              className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin"
-                              style={{
-                                borderColor: "currentColor",
-                                borderTopColor: "transparent",
-                              }}
-                            />
+                            <Spinner size="sm" />
                           ) : (
                             <TrashIcon className="w-4 h-4" />
                           )}

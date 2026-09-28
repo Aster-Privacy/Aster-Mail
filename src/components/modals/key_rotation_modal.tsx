@@ -167,14 +167,9 @@ export function KeyRotationModal({
           <motion.div
             ref={dialog_ref}
             animate={{ opacity: 1 }}
-            className="relative w-full max-w-[420px] rounded-xl border overflow-hidden"
+            className="relative w-full max-w-[420px] overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
             exit={{ opacity: 0 }}
             initial={reduce_motion ? false : { opacity: 0 }}
-            style={{
-              backgroundColor: "var(--modal-bg)",
-              borderColor: "var(--border-primary)",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-            }}
             tabIndex={-1}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
             onClick={(e) => e.stopPropagation()}

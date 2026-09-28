@@ -277,7 +277,7 @@ export default function EmailDetailPage() {
             <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm z-50 px-4 sm:px-0">
               <motion.div
                 animate={{ opacity: 1, scale: 1 }}
-                className="rounded-xl border p-4 sm:p-6 shadow-xl bg-[var(--bg-primary)] border-[var(--border-secondary)]"
+                className="rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] p-4 sm:p-6"
                 exit={{ opacity: 0, scale: 0.95 }}
                 initial={reduce_motion ? false : { opacity: 0, scale: 0.95 }}
                 transition={{ duration: reduce_motion ? 0 : 0.15 }}
@@ -356,7 +356,7 @@ export default function EmailDetailPage() {
             <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm z-50 px-4 sm:px-0">
               <motion.div
                 animate={{ opacity: 1, scale: 1 }}
-                className="rounded-xl border p-4 sm:p-6 shadow-xl bg-[var(--bg-primary)] border-[var(--border-secondary)]"
+                className="rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] p-4 sm:p-6"
                 exit={{ opacity: 0, scale: 0.95 }}
                 initial={reduce_motion ? false : { opacity: 0, scale: 0.95 }}
                 transition={{ duration: reduce_motion ? 0 : 0.15 }}

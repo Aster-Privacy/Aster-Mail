@@ -35,6 +35,7 @@ interface DetailRecipient {
 interface MessageDetailCardProps {
   sender_name: string;
   sender_email: string;
+  sender_authenticated?: boolean;
   delivered_to_address?: string | null;
   to_recipients?: DetailRecipient[];
   cc_recipients?: DetailRecipient[];
@@ -65,6 +66,7 @@ function DetailRow({
 export function MessageDetailCard({
   sender_name,
   sender_email,
+  sender_authenticated = false,
   delivered_to_address,
   to_recipients,
   cc_recipients,
@@ -125,6 +127,7 @@ export function MessageDetailCard({
             use_domain_logo
             email={sender_email}
             name={sender_name}
+            sender_authenticated={sender_authenticated}
             size="xs"
           />
           <button

@@ -46,12 +46,12 @@ const attribute_filters: { option: FilterOption; label_key: TranslationKey }[] =
   ];
 
 const chip_base =
-  "inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-[12px] whitespace-nowrap border transition-colors";
+  "inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-[12px] whitespace-nowrap transition-colors";
 
-const chip_active = "bg-brand border-brand text-[var(--accent-fg,#ffffff)]";
+const chip_active = "bg-brand text-[var(--accent-fg,#ffffff)]";
 
 const chip_inactive =
-  "bg-surf-secondary border-transparent text-txt-secondary hover:bg-surf-hover";
+  "bg-[var(--aster-hover)] text-txt-secondary hover:bg-[var(--aster-selected)]";
 
 export function ContactGroupChips({
   filter_by,

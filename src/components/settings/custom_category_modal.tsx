@@ -164,8 +164,7 @@ export function CustomCategoryModal({
   };
 
   const Icon = category_icon(icon);
-  const textarea_class =
-    "w-full resize-none rounded-lg border border-edge-primary bg-transparent px-3 py-2 text-[14px] text-txt-primary placeholder:text-txt-muted outline-none transition-colors focus:border-[var(--accent-blue)]";
+  const textarea_class = "aster_input w-full resize-none text-[14px]";
 
   const { dialog_ref, handle_backdrop_pointer_down } =
     use_dialog_shell<HTMLDivElement>(
@@ -192,12 +191,11 @@ export function CustomCategoryModal({
           <motion.div
             ref={dialog_ref}
             animate={{ opacity: 1, scale: 1 }}
-            className={`relative w-full rounded-xl border overflow-hidden bg-modal-bg border-edge-primary max-h-[90vh] overflow-y-auto transition-[max-width] duration-200 ${
+            className={`relative w-full overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] max-h-[90vh] overflow-y-auto transition-[max-width] duration-200 ${
               expanded ? "max-w-2xl" : "max-w-md"
             }`}
             exit={{ opacity: 0, scale: 0.96 }}
             initial={reduce_motion ? false : { opacity: 0, scale: 0.96 }}
-            style={{ boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)" }}
             tabIndex={-1}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
             onClick={(e) => e.stopPropagation()}
@@ -396,7 +394,7 @@ export function CustomCategoryModal({
                   <span className="block text-[13px] font-medium mb-2 text-txt-secondary">
                     {t("common.preview")}
                   </span>
-                  <div className="flex items-center gap-2.5 rounded-lg border border-edge-primary bg-surf-primary px-4 py-3.5">
+                  <div className="flex items-center gap-2.5 rounded-[var(--aster-radius-control,16px)] bg-[var(--aster-field-bg)] px-4 py-3.5">
                     <Icon className="h-5 w-5 shrink-0 text-txt-muted" />
                     <span className="text-[13.5px] font-medium text-txt-secondary">
                       {trimmed_name || t("settings.category_name_placeholder")}

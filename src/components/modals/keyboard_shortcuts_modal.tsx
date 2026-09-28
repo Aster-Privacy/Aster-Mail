@@ -254,20 +254,16 @@ export function KeyboardShortcutsModal({
           <motion.div
             ref={modal_ref}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="relative w-full max-w-4xl max-h-[85vh] rounded-xl border overflow-hidden"
+            className="relative w-full max-w-4xl max-h-[85vh] rounded-[var(--aster-radius-floating,16px)] overflow-hidden"
             exit={{ opacity: 0, scale: 0.96, y: 0 }}
             initial={reduce_motion ? false : { opacity: 0, scale: 0.96, y: 0 }}
             style={{
-              backgroundColor: "var(--modal-bg)",
-              borderColor: "var(--border-primary)",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
+              backgroundColor: "var(--aster-floating-bg, var(--modal-bg))",
+              boxShadow: "var(--aster-floating-shadow)",
             }}
             transition={{ duration: reduce_motion ? 0 : 0.15, ease: "easeOut" }}
           >
-            <div
-              className="flex items-center justify-between px-6 py-4"
-              style={{ borderBottom: "1px solid var(--border-secondary)" }}
-            >
+            <div className="flex items-center justify-between px-6 pt-5 pb-3">
               <h2
                 className="text-[16px] font-semibold"
                 id="keyboard-shortcuts-title"
@@ -292,7 +288,7 @@ export function KeyboardShortcutsModal({
                 <button
                   ref={close_button_ref}
                   aria-label={t("common.close")}
-                  className="p-1.5 rounded-[14px] transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.05]"
+                  className="p-1.5 rounded-full hover:bg-[var(--aster-hover)]"
                   style={{ color: "var(--text-muted)" }}
                   onClick={on_close}
                 >
@@ -309,13 +305,19 @@ export function KeyboardShortcutsModal({
               }}
             >
               {!preferences.keyboard_shortcuts_enabled && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm rounded-b-xl">
+                <div
+                  className="absolute inset-0 z-10 flex items-center justify-center"
+                  style={{
+                    backgroundColor:
+                      "var(--aster-floating-bg, var(--modal-bg))",
+                    opacity: 0.94,
+                  }}
+                >
                   <span
-                    className="text-[13px] font-medium px-4 py-2 rounded-lg"
+                    className="text-[13px] font-medium px-4 py-2 rounded-[var(--aster-radius-control)]"
                     style={{
                       color: "var(--text-secondary)",
-                      backgroundColor: "var(--bg-tertiary)",
-                      border: "1px solid var(--border-secondary)",
+                      backgroundColor: "var(--aster-hover)",
                     }}
                   >
                     {t("common.shortcuts_disabled_message")}
@@ -326,11 +328,8 @@ export function KeyboardShortcutsModal({
                 {shortcut_sections.map((section) => (
                   <div key={section.title}>
                     <h3
-                      className="text-[11px] font-semibold uppercase tracking-wider mb-3 pb-2"
-                      style={{
-                        color: "var(--text-muted)",
-                        borderBottom: "1px solid var(--border-secondary)",
-                      }}
+                      className="text-[11px] font-semibold uppercase tracking-wider mb-2"
+                      style={{ color: "var(--text-muted)" }}
                     >
                       {section.title}
                     </h3>
@@ -360,14 +359,10 @@ export function KeyboardShortcutsModal({
                                 {keys.map((key, kidx) => (
                                   <kbd
                                     key={kidx}
-                                    className="min-w-[22px] h-[22px] px-1.5 rounded flex items-center justify-center text-[11px] font-medium"
+                                    className="min-w-[22px] h-[22px] px-1.5 rounded-[6px] flex items-center justify-center text-[11px] font-medium"
                                     style={{
-                                      backgroundColor: "var(--bg-tertiary)",
+                                      backgroundColor: "var(--aster-hover)",
                                       color: "var(--text-secondary)",
-                                      border:
-                                        "1px solid var(--border-secondary)",
-                                      boxShadow:
-                                        "0 1px 0 var(--border-secondary)",
                                     }}
                                   >
                                     {key}
@@ -396,15 +391,11 @@ export function KeyboardShortcutsModal({
                                         {alt_keys.map((key, kidx) => (
                                           <kbd
                                             key={kidx}
-                                            className="min-w-[22px] h-[22px] px-1.5 rounded flex items-center justify-center text-[11px] font-medium"
+                                            className="min-w-[22px] h-[22px] px-1.5 rounded-[6px] flex items-center justify-center text-[11px] font-medium"
                                             style={{
                                               backgroundColor:
-                                                "var(--bg-tertiary)",
+                                                "var(--aster-hover)",
                                               color: "var(--text-secondary)",
-                                              border:
-                                                "1px solid var(--border-secondary)",
-                                              boxShadow:
-                                                "0 1px 0 var(--border-secondary)",
                                             }}
                                           >
                                             {key}
@@ -429,19 +420,16 @@ export function KeyboardShortcutsModal({
               className="px-6 py-3 flex items-center justify-between text-[12px]"
               style={{
                 color: "var(--text-muted)",
-                borderTop: "1px solid var(--border-secondary)",
-                backgroundColor: "var(--bg-secondary)",
               }}
             >
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-2">
                   {t("common.press_label")}
                   <kbd
-                    className="min-w-[20px] h-[18px] px-1.5 rounded flex items-center justify-center text-[10px] font-medium"
+                    className="min-w-[20px] h-[18px] px-1.5 rounded-[6px] flex items-center justify-center text-[10px] font-medium"
                     style={{
-                      backgroundColor: "var(--bg-tertiary)",
+                      backgroundColor: "var(--aster-hover)",
                       color: "var(--text-secondary)",
-                      border: "1px solid var(--border-secondary)",
                     }}
                   >
                     ?
@@ -452,8 +440,8 @@ export function KeyboardShortcutsModal({
               <div className="flex items-center gap-2">
                 <span>{t("common.showing_shortcuts_for")}</span>
                 <span
-                  className="px-2 py-0.5 rounded font-medium"
-                  style={{ backgroundColor: "var(--bg-tertiary)" }}
+                  className="px-2 py-0.5 rounded-full font-medium"
+                  style={{ backgroundColor: "var(--aster-hover)" }}
                 >
                   {is_mac ? t("settings.macos") : t("settings.windows_linux")}
                 </span>

@@ -40,6 +40,7 @@ import {
   type PlanChangePreviewResponse,
 } from "@/services/api/billing";
 import { use_i18n } from "@/lib/i18n/context";
+import { Spinner } from "@/components/ui/spinner";
 
 interface plan_change_confirm_modal_props {
   open: boolean;
@@ -162,7 +163,7 @@ export function PlanChangeConfirmModal({
       <ModalBody>
         {loading ? (
           <div className="flex justify-center py-6">
-            <div className="w-5 h-5 rounded-full animate-spin border-2 border-edge-secondary border-t-txt-muted" />
+            <Spinner className="text-txt-muted" size="md" />
           </div>
         ) : preview_failed ? (
           <div className="flex flex-col items-start gap-3 py-2">

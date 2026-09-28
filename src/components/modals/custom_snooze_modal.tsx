@@ -150,13 +150,7 @@ export function CustomSnoozeModal({
                 {format_hour(selected_hour)}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className="max-h-60 overflow-y-auto"
-              style={{
-                backgroundColor: "var(--bg-primary)",
-                borderColor: "var(--border-primary)",
-              }}
-            >
+            <DropdownMenuContent className="max-h-60 overflow-y-auto">
               {hours.map((hour) => (
                 <DropdownMenuItem
                   key={hour}
@@ -174,12 +168,7 @@ export function CustomSnoozeModal({
                 {selected_minute.toString().padStart(2, "0")}
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent
-              style={{
-                backgroundColor: "var(--bg-primary)",
-                borderColor: "var(--border-primary)",
-              }}
-            >
+            <DropdownMenuContent>
               {minutes.map((minute) => (
                 <DropdownMenuItem
                   key={minute}

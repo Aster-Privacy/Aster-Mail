@@ -967,13 +967,10 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             aria-labelledby={title_id}
             aria-modal="true"
-            className="relative w-full max-w-md rounded-xl border overflow-hidden bg-modal-bg border-edge-primary outline-none"
+            className="relative w-full max-w-md overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] outline-none"
             exit={{ opacity: 0, scale: 0.97, y: 4 }}
             initial={reduce_motion ? false : { opacity: 0, scale: 0.97, y: 4 }}
             role="dialog"
-            style={{
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-            }}
             tabIndex={-1}
             transition={{
               duration: reduce_motion ? 0 : 0.2,

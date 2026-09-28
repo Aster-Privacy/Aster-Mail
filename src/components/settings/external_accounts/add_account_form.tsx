@@ -123,7 +123,7 @@ export function AddAccountForm({
       show_close_button={false}
       size="xl"
     >
-      <div className="sticky top-0 z-10 px-6 pt-6 pb-4 border-b rounded-t-xl bg-modal-bg border-edge-primary">
+      <div className="sticky top-0 z-10 px-6 pt-6 pb-4 border-b rounded-t-[var(--aster-radius-floating,16px)] bg-modal-bg border-[var(--aster-floating-divider)]">
         <ModalTitle className="text-[15px]">
           {editing_account
             ? t("settings.edit_account")

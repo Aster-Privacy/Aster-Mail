@@ -301,14 +301,14 @@ export function ComposeWindow({
         )}
       </AnimatePresence>
       <div
-        className={`flex flex-col shadow-2xl border overflow-hidden bg-modal-bg border-edge-primary ${
+        className={`flex flex-col shadow-[var(--aster-floating-shadow)] overflow-hidden bg-[var(--aster-dialog-bg,var(--modal-bg))] ${
           shell_mode === "minimized"
-            ? "rounded-t-lg"
+            ? "rounded-t-[var(--aster-radius-floating,16px)]"
             : shell_mode === "expanded"
-              ? "fixed inset-4 z-50 rounded-lg"
+              ? "fixed inset-4 z-50 rounded-[var(--aster-radius-floating,16px)]"
               : has_been_moved || resize_state
-                ? "fixed inset-0 z-50 sm:relative sm:inset-auto sm:z-auto rounded-none sm:rounded-lg"
-                : "fixed inset-0 z-50 sm:relative sm:inset-auto sm:z-auto rounded-none sm:rounded-t-lg"
+                ? "fixed inset-0 z-50 sm:relative sm:inset-auto sm:z-auto rounded-none sm:rounded-[var(--aster-radius-floating,16px)]"
+                : "fixed inset-0 z-50 sm:relative sm:inset-auto sm:z-auto rounded-none sm:rounded-t-[var(--aster-radius-floating,16px)]"
         } ${(has_been_moved || resize_state) && shell_mode === "docked" ? "sm:!fixed sm:!z-50" : ""}`}
         style={{
           ...(shell_mode === "minimized"
@@ -360,7 +360,7 @@ export function ComposeWindow({
       >
         <ErrorBoundary fallback={<ComposeErrorFallback />}>
           <div
-            className={`flex items-center justify-between px-4 py-3 border-b border-edge-primary select-none flex-shrink-0 ${
+            className={`flex items-center justify-between px-4 py-3 border-b border-[var(--aster-floating-divider)] select-none flex-shrink-0 ${
               is_minimized ? "cursor-pointer" : "cursor-move"
             }`}
             role="presentation"

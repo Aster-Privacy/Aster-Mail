@@ -75,6 +75,14 @@ import { CorrectionNotice } from "@/components/search/correction_notice";
 import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
 import { resolve_list_density } from "@/lib/list_density";
 import { show_toast } from "@/components/toast/simple_toast";
+import { use_open_reply_compose } from "@/components/email/inbox/use_open_reply_compose";
+import { use_auth } from "@/contexts/auth_context";
+import { use_folders } from "@/hooks/use_folders";
+import { snooze_email } from "@/services/api/snooze";
+import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
+import { use_tags } from "@/hooks/use_tags";
+import { bulk_add_tag, bulk_remove_tag } from "@/services/api/tags";
+import { open_email_in_new_window } from "@/utils/open_email_window";
 
 export function SearchResultsPage(props: SearchResultsPageProps) {
   const {
@@ -86,6 +94,8 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     on_split_close,
     on_settings_click,
     on_quick_settings_click,
+    on_reply,
+    on_forward,
   } = props;
   const {
     t,
@@ -218,6 +228,99 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
       if (removes) emit_mail_items_removed({ ids: emails.map((e) => e.id) });
     },
     [fetch_as_minimal_emails, t],
+  );
+
+  const { user } = use_auth();
+  const open_reply_compose = use_open_reply_compose(
+    on_reply,
+    on_forward,
+    user?.email,
+  );
+  const { state: tags_state } = use_tags();
+  const menu_tags = useMemo(
+    () =>
+      tags_state.tags.map((tag) => ({
+        tag_token: tag.tag_token,
+        name: tag.name,
+        color: tag.color || "#6366f1",
+        is_assigned: (menu_email?.tags ?? []).some(
+          (assigned) => assigned.id === tag.tag_token,
+        ),
+      })),
+    [tags_state.tags, menu_email],
+  );
+
+  const handle_menu_tag_toggle = useCallback(
+    (tag_token: string) =>
+      void run_single(async (emails) => {
+        const ids = emails.map((email) => email.id);
+        const tag = menu_tags.find((entry) => entry.tag_token === tag_token);
+        const result = tag?.is_assigned
+          ? await bulk_remove_tag(ids, tag_token)
+          : await bulk_add_tag(ids, tag_token);
+
+        if (result.error) {
+          show_toast(t("common.failed_to_update"), "error");
+
+          return;
+        }
+
+        const label = tag?.name || t("common.label_fallback");
+
+        show_toast(
+          tag?.is_assigned
+            ? t("common.removed_label", { label })
+            : t("common.added_label", { label }),
+          "success",
+        );
+        perform_search(props.query);
+      }, false),
+    [run_single, menu_tags, perform_search, props.query, t],
+  );
+
+  const { state: folders_state } = use_folders();
+  const menu_folders = useMemo(
+    () =>
+      folders_state.folders
+        .filter((folder) => !folder.is_system)
+        .map((folder) => ({
+          id: folder.folder_token,
+          name: folder.name,
+          color: folder.color || "#6366f1",
+        })),
+    [folders_state.folders],
+  );
+
+  const handle_menu_folder_toggle = useCallback(
+    (folder_token: string) =>
+      void run_single(async (emails) => {
+        const ids = emails.map((email) => email.id);
+        const assigned = (menu_email_ref.current?.folders ?? []).some(
+          (folder) => folder.folder_token === folder_token,
+        );
+        const result = assigned
+          ? await bulk_remove_folder(ids, folder_token)
+          : await bulk_add_folder(ids, folder_token);
+
+        if (result.error) {
+          show_toast(t("common.failed_to_update"), "error");
+
+          return;
+        }
+
+        const folder_name =
+          menu_folders.find((folder) => folder.id === folder_token)?.name ||
+          t("common.folder_fallback");
+
+        show_toast(
+          assigned
+            ? t("common.removed_from_folder", { folder: folder_name })
+            : t("common.moved_to_folder", { folder: folder_name }),
+          "success",
+        );
+        perform_search(props.query);
+      }, false),
+    [run_single, menu_folders, perform_search, props.query, t],
   );
 
   const overflow_menu = (
@@ -499,6 +602,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           key={menu_email.id}
           current_view="search"
           email={menu_email}
+          folders={menu_folders}
           on_archive={() =>
             menu_selection
               ? void handle_bulk_archive()
@@ -516,11 +620,38 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
                 )
           }
           on_find_from_sender={() => handle_find_from_sender(menu_email)}
+          on_folder_toggle={
+            menu_selection ? undefined : handle_menu_folder_toggle
+          }
+          on_forward={() => open_reply_compose("forward", menu_email)}
           on_mark_read={
             menu_selection ? () => void handle_bulk_mark_read() : undefined
           }
           on_mark_unread={
             menu_selection ? () => void handle_bulk_mark_unread() : undefined
+          }
+          on_open_in_new_window={() => {
+            if (!open_email_in_new_window(menu_email.id)) {
+              show_toast(t("common.something_went_wrong"), "error");
+            }
+          }}
+          on_reply={() => open_reply_compose("reply", menu_email)}
+          on_reply_all={() => open_reply_compose("reply_all", menu_email)}
+          on_snooze={
+            menu_selection
+              ? undefined
+              : (snooze_until: Date) =>
+                  run_single(async (emails) => {
+                    const results = await Promise.all(
+                      emails.map((email) =>
+                        snooze_email(email.id, snooze_until),
+                      ),
+                    );
+
+                    if (results.some((result) => result.error)) {
+                      show_toast(t("common.failed_to_update"), "error");
+                    }
+                  }, true)
           }
           on_spam={() =>
             menu_selection
@@ -530,6 +661,16 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
                   true,
                 )
           }
+          on_tag_toggle={menu_selection ? undefined : handle_menu_tag_toggle}
+          on_toggle_pin={() =>
+            void run_single(
+              (emails) =>
+                Promise.all(
+                  emails.map((email) => email_actions.toggle_pin(email)),
+                ),
+              false,
+            )
+          }
           on_toggle_read={() =>
             void run_single(
               (emails) =>
@@ -538,6 +679,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             )
           }
           selection={menu_selection ?? undefined}
+          tags={menu_tags}
         />
       )}
     </ContextMenu>

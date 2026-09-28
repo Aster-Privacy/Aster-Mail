@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { CheckBadgeIcon } from "@heroicons/react/24/solid";
+
 import { use_i18n } from "@/lib/i18n/context";
 import {
   Popover,
@@ -59,7 +60,7 @@ export function VerifiedSenderBadge({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-72 p-3 bg-surf-primary border-edge-primary"
+        className="w-72 p-3"
         side="bottom"
         onClick={(e) => e.stopPropagation()}
       >

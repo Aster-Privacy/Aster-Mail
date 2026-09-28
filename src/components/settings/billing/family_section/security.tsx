@@ -560,7 +560,7 @@ export function SecurityContent({
         >
           <div className="absolute inset-0 bg-black/70" />
           <div
-            className="relative w-full max-w-sm rounded-xl border border-edge-primary bg-modal-bg p-6 shadow-2xl"
+            className="relative w-full max-w-sm rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] p-6 shadow-[var(--aster-floating-shadow)]"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-base font-semibold text-txt-primary mb-2">

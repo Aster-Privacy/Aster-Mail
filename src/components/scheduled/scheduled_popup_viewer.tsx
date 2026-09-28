@@ -33,8 +33,8 @@ import {
   EllipsisHorizontalIcon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import { EmailTag } from "@/components/ui/email_tag";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
@@ -386,7 +386,7 @@ export function ScheduledPopupViewer({
     <motion.div
       ref={popup_ref}
       animate={{ opacity: 1 }}
-      className="fixed z-50 flex flex-col shadow-2xl bg-modal-bg border border-edge-primary"
+      className="fixed z-50 flex flex-col shadow-2xl bg-modal-bg"
       exit={{ opacity: 0 }}
       initial={reduce_motion ? false : { opacity: 0 }}
       style={{
@@ -406,7 +406,7 @@ export function ScheduledPopupViewer({
       onClick={(e) => e.stopPropagation()}
     >
       <div
-        className="flex items-center gap-1 px-3 py-2 flex-shrink-0 select-none border-b border-edge-primary"
+        className="flex items-center gap-1 px-3 py-2 flex-shrink-0 select-none"
         role="presentation"
         style={{
           cursor: is_fullscreen ? "default" : is_dragging ? "grabbing" : "grab",
@@ -735,7 +735,7 @@ export function ScheduledPopupViewer({
       </div>
 
       <div
-        className="flex-shrink-0 border-t border-edge-primary bg-modal-bg"
+        className="flex-shrink-0 bg-modal-bg"
         style={{
           borderBottomLeftRadius: is_fullscreen ? "16px" : "12px",
           borderBottomRightRadius: is_fullscreen ? "16px" : "12px",
@@ -759,7 +759,7 @@ export function ScheduledPopupViewer({
             tooltip_key="common.reschedule"
             trigger={
               <button
-                className="flex-1 h-10 flex items-center justify-center gap-2 rounded-[14px] text-sm font-medium transition-all duration-150 hover:bg-surf-hover disabled:opacity-50 disabled:cursor-not-allowed bg-surf-secondary text-txt-primary shadow-[0_1px_2px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_var(--border-primary)]"
+                className="flex-1 h-10 flex items-center justify-center gap-2 rounded-[var(--aster-radius-control)] text-sm font-medium transition-colors duration-150 hover:bg-[var(--aster-selected)] disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--aster-hover)] text-txt-primary"
                 disabled={is_rescheduling}
                 type="button"
               >
@@ -770,7 +770,7 @@ export function ScheduledPopupViewer({
           />
           {on_edit && (
             <button
-              className="flex-1 h-10 flex items-center justify-center gap-2 rounded-[14px] text-sm font-medium transition-all duration-150 hover:bg-surf-hover disabled:opacity-50 disabled:cursor-not-allowed bg-surf-secondary text-txt-primary shadow-[0_1px_2px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_var(--border-primary)]"
+              className="flex-1 h-10 flex items-center justify-center gap-2 rounded-[var(--aster-radius-control)] text-sm font-medium transition-colors duration-150 hover:bg-[var(--aster-selected)] disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--aster-hover)] text-txt-primary"
               disabled={is_loading_content}
               onClick={handle_edit}
             >

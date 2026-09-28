@@ -20,6 +20,7 @@
 //
 import { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { MotionConfig } from "framer-motion";
+import { UiStringsProvider, type AsterUiStrings } from "@aster/ui";
 
 import { ThemeProvider } from "@/contexts/theme_context";
 import { AuthProvider } from "@/contexts/auth_context";
@@ -30,8 +31,7 @@ import {
 import { ExternalLinkProvider } from "@/contexts/external_link_context";
 import { SignaturesProvider } from "@/contexts/signatures_context";
 import { TemplatesProvider } from "@/contexts/templates_context";
-import { UiStringsProvider, type AsterUiStrings } from "@aster/ui";
-
+import { TitleTipLayer } from "@/components/ui/title_tip_layer";
 import { I18nProvider, use_i18n } from "@/lib/i18n/context";
 
 const ReducedMotionContext = createContext(false);
@@ -120,7 +120,10 @@ export function Provider({ children }: { children: React.ReactNode }) {
               <ExternalLinkProvider>
                 <MotionWrapper>
                   <SignaturesProvider>
-                    <TemplatesProvider>{children}</TemplatesProvider>
+                    <TemplatesProvider>
+                      {children}
+                      <TitleTipLayer />
+                    </TemplatesProvider>
                   </SignaturesProvider>
                 </MotionWrapper>
               </ExternalLinkProvider>

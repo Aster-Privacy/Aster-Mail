@@ -29,6 +29,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { use_search } from "@/hooks/use_search";
 import { normalize_contact_addresses } from "@/utils/contact_mail_search";
@@ -156,7 +157,7 @@ export function ContactHistoryPanel({
   if (is_loading && activities.length === 0) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="w-5 h-5 border-2 border-edge-primary border-t-txt-primary rounded-full animate-spin" />
+        <Spinner className="text-txt-muted" size="md" />
       </div>
     );
   }

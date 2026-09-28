@@ -40,6 +40,7 @@ import { ThreadMessagesList } from "@/components/email/thread_message_block";
 import { get_latest_expanded_id } from "@/services/thread_service";
 import { use_preferences } from "@/contexts/preferences_context";
 import { PopupEmailHeader } from "@/components/email/popup/popup_email_header";
+import { EmailOpenSkeleton } from "@/components/email/viewer_shared/email_open_skeleton";
 import { is_system_email } from "@/lib/utils";
 import {
   execute_unsubscribe,
@@ -255,15 +256,8 @@ export function PopupEmailBody({
 
   if (!email) {
     return (
-      <div className="flex-1 overflow-y-auto">
-        <div className="flex items-center justify-center h-full">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-xs text-txt-muted">
-              {t("common.decrypting")}
-            </span>
-          </div>
-        </div>
+      <div className="relative flex-1 min-h-0">
+        <EmailOpenSkeleton compact />
       </div>
     );
   }

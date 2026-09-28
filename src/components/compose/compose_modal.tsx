@@ -131,12 +131,12 @@ export function ComposeModal({
           <motion.div
             key="compose-modal"
             animate={{ opacity: 1, y: 0 }}
-            className={`fixed z-50 flex flex-col shadow-2xl sm:border bg-modal-bg border-edge-primary ${
+            className={`fixed z-50 flex flex-col shadow-[var(--aster-floating-shadow)] bg-[var(--aster-dialog-bg,var(--modal-bg))] ${
               compose_shell_mode(is_minimized, is_expanded) === "minimized"
-                ? "sm:w-[320px] sm:h-auto sm:rounded-t-lg"
+                ? "sm:w-[320px] sm:h-auto sm:rounded-t-[var(--aster-radius-floating,16px)]"
                 : compose_shell_mode(is_minimized, is_expanded) === "expanded"
-                  ? "inset-0 sm:inset-4 sm:w-auto sm:h-auto sm:rounded-lg"
-                  : "inset-0 sm:inset-auto sm:bottom-auto sm:start-auto sm:end-auto sm:h-[600px] sm:w-[700px] sm:max-w-[90vw] sm:max-h-[85vh] sm:rounded-lg"
+                  ? "inset-0 sm:inset-4 sm:w-auto sm:h-auto sm:rounded-[var(--aster-radius-floating,16px)]"
+                  : "inset-0 sm:inset-auto sm:bottom-auto sm:start-auto sm:end-auto sm:h-[600px] sm:w-[700px] sm:max-w-[90vw] sm:max-h-[85vh] sm:rounded-[var(--aster-radius-floating,16px)]"
             }`}
             exit={{ opacity: 0, y: is_mobile ? 100 : 0 }}
             initial={
@@ -171,7 +171,7 @@ export function ComposeModal({
           >
             <ErrorBoundary fallback={<ComposeErrorFallback />}>
               <div
-                className="flex items-center justify-between px-4 py-2 sm:py-3 border-b border-edge-primary sm:cursor-move select-none"
+                className="flex items-center justify-between px-4 py-2 sm:py-3 border-b border-[var(--aster-floating-divider)] sm:cursor-move select-none"
                 role="presentation"
                 onMouseDown={handle_drag_start}
               >

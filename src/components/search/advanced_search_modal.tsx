@@ -108,7 +108,7 @@ export function AdvancedSearchModal({
           <motion.div
             ref={dialog_ref}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            className="rounded-none sm:rounded-2xl w-full h-full sm:h-auto sm:max-w-6xl overflow-hidden transition-colors duration-200 flex flex-col bg-modal-bg border border-edge-secondary"
+            className="rounded-none sm:rounded-2xl w-full h-full sm:h-auto sm:max-w-6xl overflow-hidden transition-colors duration-200 flex flex-col bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
             exit={{ scale: 0.96, opacity: 0, y: -10 }}
             initial={
               reduce_motion ? false : { scale: 0.96, opacity: 0, y: -10 }

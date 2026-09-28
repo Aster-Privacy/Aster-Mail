@@ -26,6 +26,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import { swipe_nav_state } from "./mobile_mail_detail_swipe";
 
+import { strip_aster_footers_html } from "@/lib/aster_footer_strip";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { use_email_detail } from "@/components/email/hooks/use_email_detail";
@@ -550,10 +551,7 @@ export function use_mobile_mail_detail() {
       const subject = msg.subject || "";
       const body = msg.body || "";
       const escape_html = (text: string): string =>
-        text
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;");
+        text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const quote_header =
         mode === "forward"
           ? escape_html(t("common.forwarded_message_header"))
@@ -566,7 +564,7 @@ export function use_mobile_mail_detail() {
       const include_quoted =
         mode === "forward" || reply_includes_quoted_by_default();
       const quoted = include_quoted
-        ? `<br><br><div class="aster_quote"><div class="aster_quote_attr">${quote_header}</div><blockquote class="aster_quote_body" style="margin:0 0 0 0.8ex;border-left:1px solid #ccc;padding-left:1ex">${sanitize_outgoing_html(inline_email_css(body))}</blockquote></div>`
+        ? `<br><br><div class="aster_quote"><div class="aster_quote_attr">${quote_header}</div><blockquote class="aster_quote_body" style="margin:0 0 0 0.8ex;border-left:1px solid #ccc;padding-left:1ex">${sanitize_outgoing_html(inline_email_css(strip_aster_footers_html(body)))}</blockquote></div>`
         : "";
       const rfc_message_id = resolve_reply_references(
         msg,

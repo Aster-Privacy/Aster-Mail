@@ -18,13 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+import type { SettingsTarget } from "@/lib/settings_links";
+
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { KeyIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
-
-import type { TranslationKey } from "@/lib/i18n/types";
-import type { SettingsTarget } from "@/lib/settings_links";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
@@ -154,13 +154,9 @@ export function RecoveryReminder(): JSX.Element | null {
         >
           <motion.div
             animate={{ opacity: 1, y: 0 }}
-            className="w-full max-w-[400px] rounded-2xl border p-6 shadow-xl"
+            className="w-full max-w-[400px] rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] p-6"
             exit={{ opacity: 0, y: reduce_motion ? 0 : 8 }}
             initial={{ opacity: 0, y: reduce_motion ? 0 : 12 }}
-            style={{
-              backgroundColor: "var(--bg-card)",
-              borderColor: "var(--border-primary)",
-            }}
             transition={{ duration, ease: "easeOut" }}
           >
             <div className="flex items-center gap-2.5">
@@ -182,9 +178,7 @@ export function RecoveryReminder(): JSX.Element | null {
               <Button variant="ghost" onClick={dismiss}>
                 {t("common.recovery_reminder_later")}
               </Button>
-              <Button onClick={handle_setup}>
-                {t(copy.action_key)}
-              </Button>
+              <Button onClick={handle_setup}>{t(copy.action_key)}</Button>
             </div>
           </motion.div>
         </motion.div>

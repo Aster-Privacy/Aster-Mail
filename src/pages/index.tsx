@@ -501,7 +501,9 @@ export default function IndexPage() {
                           <Suspense fallback={<FullPageLoader />}>
                             <SearchResultsPage
                               on_close={state.handle_close_search_results}
+                              on_forward={state.handle_forward}
                               on_quick_settings_click={toggle_quick_settings}
+                              on_reply={state.handle_reply}
                               on_result_click={state.handle_search_result_click}
                               on_search_click={() =>
                                 state.set_is_search_open(true)
@@ -739,9 +741,7 @@ export default function IndexPage() {
         on_draft_cleared={state.handle_draft_cleared}
         on_toggle_minimize={state.toggle_minimize}
       />
-      {!state.is_settings_route && !is_mobile && (
-        <OnboardingTour />
-      )}
+      {!state.is_settings_route && !is_mobile && <OnboardingTour />}
       {!state.is_settings_route && (
         <>
           <OnboardingChecklist

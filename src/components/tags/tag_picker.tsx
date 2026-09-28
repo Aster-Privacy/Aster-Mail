@@ -90,13 +90,12 @@ export function TagPicker({
       <AnimatePresence>
         <motion.div
           animate={{ opacity: 1, y: 0 }}
-          className="fixed z-50 w-64 rounded-lg border overflow-hidden bg-modal-bg border-edge-primary"
+          className="fixed z-50 w-64 rounded-[var(--aster-radius-floating,16px)] overflow-hidden bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
           exit={{ opacity: 0, y: -4 }}
           initial={reduce_motion ? false : { opacity: 0, y: -4 }}
           style={{
             top: computed_position.top,
             left: computed_position.left,
-            boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.2)",
           }}
           transition={{ duration: reduce_motion ? 0 : 0.12 }}
         >

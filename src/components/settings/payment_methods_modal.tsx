@@ -631,13 +631,7 @@ export function PaymentMethodsModal({
     if (is_loading) {
       return (
         <div className="flex flex-col items-center justify-center py-12 gap-4">
-          <div
-            className="w-6 h-6 rounded-full animate-spin"
-            style={{
-              border: "2.5px solid var(--border-secondary)",
-              borderTopColor: "var(--text-tertiary)",
-            }}
-          />
+          <Spinner className="text-txt-muted" size="md" />
         </div>
       );
     }

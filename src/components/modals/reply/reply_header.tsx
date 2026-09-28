@@ -97,7 +97,7 @@ export function ReplyHeader({
         style={{ opacity: 0.5 }}
       />
       <div
-        className="flex items-center justify-between px-4 py-2 sm:py-3 border-b border-edge-primary sm:cursor-move select-none"
+        className="flex items-center justify-between px-4 py-2 sm:py-3 border-b border-[var(--aster-floating-divider)] sm:cursor-move select-none"
         role="presentation"
         onMouseDown={handle_drag_start}
       >

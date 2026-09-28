@@ -73,22 +73,24 @@ function MuteToggle({
   const title = `${label} - ${is_muted ? t("common.unmute_notifications") : t("common.mute_notifications")}`;
 
   return (
-    <Button
+    <button
       aria-label={title}
       aria-pressed={is_muted}
-      className={is_muted ? "text-txt-primary" : "text-txt-muted"}
+      className={`inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full hover:bg-[var(--aster-hover)] disabled:pointer-events-none disabled:opacity-40 ${is_muted ? "text-txt-primary" : "text-txt-muted hover:text-txt-primary"}`}
       disabled={!is_enabled}
-      size="icon"
       title={title}
-      variant="ghost"
-      onClick={() => on_toggle(id)}
+      type="button"
+      onClick={(event) => {
+        event.stopPropagation();
+        on_toggle(id);
+      }}
     >
       {is_muted ? (
         <BellSlashIcon className="w-4 h-4" />
       ) : (
         <BellIcon className="w-4 h-4" />
       )}
-    </Button>
+    </button>
   );
 }
 
@@ -227,7 +229,7 @@ export function CategorySettingsSection() {
           />
         </Island>
 
-        <Island className="aster_scrollbar_thin max-h-[420px] overflow-y-auto">
+        <Island>
           {BUILTIN_CATEGORIES.filter((cat) => cat.removable).map((cat) => {
             const Icon = category_icon(cat.icon);
             const is_enabled = enabled_ids.has(cat.id);

@@ -28,8 +28,8 @@ import {
   ExclamationTriangleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { use_protected_folder } from "@/hooks/use_protected_folder";
 import { use_should_reduce_motion } from "@/provider";
@@ -595,12 +595,9 @@ export function FolderPasswordModal({
           <motion.div
             ref={dialog_ref}
             animate={{ opacity: 1 }}
-            className="relative w-full max-w-[400px] rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
+            className="relative w-full max-w-[400px] overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
             exit={{ opacity: 0 }}
             initial={reduce_motion ? false : { opacity: 0 }}
-            style={{
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-            }}
             tabIndex={-1}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >

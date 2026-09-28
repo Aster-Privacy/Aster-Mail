@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { Checkbox } from "@aster/ui";
 import { useMemo, useRef, useState } from "react";
 import {
   ArrowUpTrayIcon,
@@ -884,13 +885,10 @@ export function AliasImportModal({
                 <thead>
                   <tr className="border-b border-edge-secondary bg-surf-secondary">
                     <th className="px-3 py-2 w-8">
-                      <input
-                        ref={(el) => {
-                          if (el) el.indeterminate = some_rows_selected;
-                        }}
+                      <Checkbox
                         checked={all_rows_selected}
-                        className="accent-blue-500 cursor-pointer"
-                        type="checkbox"
+                        className="cursor-pointer"
+                        indeterminate={some_rows_selected}
                         onChange={toggle_all_rows}
                       />
                     </th>
@@ -918,11 +916,10 @@ export function AliasImportModal({
                         className="px-3 py-2 w-8"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <input
+                        <Checkbox
                           checked={selected_indices.has(i)}
-                          className="accent-blue-500 cursor-pointer disabled:cursor-not-allowed"
+                          className="cursor-pointer"
                           disabled={row.status === "invalid"}
-                          type="checkbox"
                           onChange={() => toggle_row(i)}
                         />
                       </td>

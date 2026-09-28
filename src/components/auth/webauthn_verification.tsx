@@ -22,6 +22,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { Spinner } from "@/components/ui/spinner";
 import { TotpVerifyResponse } from "@/services/api/totp";
 import {
   initiate_webauthn_assertion,
@@ -163,7 +164,7 @@ export function WebauthnVerification({
       <div className="space-y-4">
         {is_loading && (
           <div className="flex justify-center py-4">
-            <div className="w-6 h-6 border-2 rounded-full animate-spin border-edge-secondary border-t-brand" />
+            <Spinner className="text-txt-muted" size="md" />
           </div>
         )}
 

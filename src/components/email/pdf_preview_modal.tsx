@@ -24,6 +24,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
 import { use_dialog_shell } from "@/lib/use_dialog_shell";
@@ -126,9 +127,8 @@ export function PdfPreviewModal({
           content_type: meta.content_type,
         };
 
-        const { load_pdf_document, render_pdf_page } = await import(
-          "@/lib/pdf_utils"
-        );
+        const { load_pdf_document, render_pdf_page } =
+          await import("@/lib/pdf_utils");
         const timeout = new Promise<never>((_, reject) => {
           timeout_handle = setTimeout(
             () => reject(new Error("timeout")),
@@ -271,7 +271,7 @@ export function PdfPreviewModal({
         {is_loading && page_canvases.length === 0 && (
           <div className="flex items-center justify-center w-[400px] h-[300px]">
             <div className="flex flex-col items-center gap-2">
-              <div className="w-8 h-8 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
+              <Spinner className="text-white/80" size="lg" />
               <span className="text-white/60 text-sm">
                 {t("mail.loading_preview")}
               </span>
@@ -311,7 +311,7 @@ export function PdfPreviewModal({
             ))}
             {is_loading && (
               <div className="flex items-center gap-2 py-2">
-                <div className="w-5 h-5 border-2 border-white/20 border-t-white/80 rounded-full animate-spin" />
+                <Spinner className="text-white/80" size="md" />
                 <span className="text-white/50 text-xs">
                   {t("mail.loading_preview")}
                 </span>

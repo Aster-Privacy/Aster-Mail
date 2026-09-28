@@ -26,27 +26,12 @@ import type { MemberRetentionPolicy } from "@/services/api/family_org";
 import { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 
-import { build_reply_recipient } from "@/components/email/build_reply_recipient";
-import {
-  build_reply_from_address,
-  resolve_received_on_alias,
-} from "@/components/email/build_reply_from_address";
-import { get_cached_aliases } from "@/components/settings/hooks/use_aliases";
-import {
-  get_cached_alias_for_routing_token,
-  get_cached_ghost_for_routing_token,
-} from "@/hooks/use_sender_aliases";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { resolve_effective_page_size } from "@/lib/inbox_page_size";
 import { use_email_list } from "@/hooks/use_email_list";
-import {
-  RATCHET_UNDECRYPTABLE_SENTINEL,
-  PGP_UNDECRYPTABLE_SENTINEL,
-  is_password_protected_body,
-} from "@/utils/email_crypto";
 import { use_drafts_list } from "@/hooks/use_drafts_list";
 import { use_scheduled_emails } from "@/hooks/use_scheduled_emails";
 import { use_snoozed_emails } from "@/hooks/use_snoozed_emails";
@@ -75,20 +60,14 @@ import {
   patch_all_view_caches,
   remove_ids_from_all_view_caches,
 } from "@/hooks/email_list_cache";
-import {
-  await_preloaded_email,
-  get_preloaded_email,
-  preload_email_detail,
-} from "@/components/email/hooks/preload_cache";
 import { thread_imported_emails } from "@/services/import/repair_threads";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_context_menu_actions } from "@/components/email/inbox/inbox_context_menu_handler";
+import { use_open_reply_compose } from "@/components/email/inbox/use_open_reply_compose";
 import { get_spam_settings } from "@/services/api/preferences";
 import { get_member_retention_policy } from "@/services/api/family_org";
 import { use_inbox_toolbar_actions } from "@/components/email/inbox/use_inbox_toolbar_actions";
-import { set_forward_mail_id } from "@/services/forward_store";
 import { prewarm_search_index } from "@/hooks/use_search";
-import mail_logo_url from "@/assets/mail_logo.webp";
 import { ignore_error } from "@/lib/ignore_error";
 
 export type {
@@ -579,128 +558,10 @@ export function use_inbox_view_state(props: EmailInboxProps) {
 
   const email_state = raw_email_state;
 
-  const open_compose = useCallback(
-    (
-      mode: "reply" | "reply_all" | "forward",
-      email: InboxEmail,
-      safe_body: string,
-      cc_emails?: string[],
-    ) => {
-      if (mode !== "forward" && on_reply) {
-        const is_own_message = email.item_type === "sent";
-        const is_forwarded = !is_own_message && !!email.display_sender_email;
-        const first_recipient = email.recipient_addresses?.[0];
-        const { recipient_name, recipient_email } = build_reply_recipient(
-          {
-            sender_name: email.sender_name,
-            sender_email: email.sender_email,
-            first_to: first_recipient
-              ? { name: "", email: first_recipient }
-              : undefined,
-            reply_to: email.reply_to
-              ? { name: email.reply_to.name ?? "", email: email.reply_to.email }
-              : undefined,
-            reply_alias: is_forwarded
-              ? { name: email.sender_name, email: email.sender_email }
-              : undefined,
-          },
-          is_own_message,
-        );
-
-        const reply_from_address = build_reply_from_address(
-          {
-            sender_email: email.sender_email,
-            received_on_alias:
-              resolve_received_on_alias(
-                email.routing_token,
-                get_cached_aliases(),
-              ) ??
-              get_cached_alias_for_routing_token(email.routing_token) ??
-              get_cached_ghost_for_routing_token(email.routing_token),
-          },
-          is_own_message,
-        );
-
-        on_reply({
-          recipient_name,
-          recipient_email,
-          recipient_avatar: email.avatar_url,
-          original_subject: email.subject,
-          original_body: safe_body,
-          original_timestamp: email.timestamp,
-          thread_token: email.thread_token,
-          original_email_id: email.id,
-          original_to: email.recipient_addresses ?? [],
-          reply_from_address,
-          ...(mode === "reply_all"
-            ? {
-                reply_all: true,
-                original_cc: cc_emails ?? [],
-              }
-            : {}),
-        });
-      } else if (mode === "forward" && on_forward) {
-        set_forward_mail_id(email.id);
-        on_forward({
-          sender_name: email.sender_name,
-          sender_email: email.sender_email,
-          sender_avatar: email.avatar_url || mail_logo_url,
-          email_subject: email.subject,
-          email_body: safe_body,
-          email_timestamp: email.timestamp,
-          original_mail_id: email.id,
-        });
-      }
-    },
-    [on_reply, on_forward],
-  );
-
-  const handle_open_compose = useCallback(
-    (mode: "reply" | "reply_all" | "forward", email: InboxEmail) => {
-      const is_sentinel = (value: string | undefined): boolean =>
-        value === RATCHET_UNDECRYPTABLE_SENTINEL ||
-        value === PGP_UNDECRYPTABLE_SENTINEL ||
-        is_password_protected_body(value ?? "");
-      const fallback_body =
-        (is_sentinel(email.body_html) ? "" : email.body_html) ||
-        (is_sentinel(email.preview) ? "" : email.preview) ||
-        "";
-      const cached = get_preloaded_email(email.id)?.email;
-      const cached_body = cached?.body ?? "";
-
-      if (!cached_body) {
-        void (async () => {
-          let resolved = fallback_body;
-          let resolved_cc: string[] | undefined;
-
-          try {
-            await preload_email_detail(email.id, user?.email);
-
-            const preloaded = await await_preloaded_email(email.id);
-            const body = preloaded?.email.body ?? "";
-
-            if (body && !is_sentinel(body)) resolved = body;
-            resolved_cc = preloaded?.email.cc?.flatMap((r) =>
-              r.email ? [r.email] : [],
-            );
-          } catch {
-            resolved = fallback_body;
-          }
-
-          open_compose(mode, email, resolved, resolved_cc);
-        })();
-
-        return;
-      }
-
-      open_compose(
-        mode,
-        email,
-        is_sentinel(cached_body) ? fallback_body : cached_body,
-        cached?.cc?.flatMap((r) => (r.email ? [r.email] : [])),
-      );
-    },
-    [open_compose, user?.email],
+  const handle_open_compose = use_open_reply_compose(
+    on_reply,
+    on_forward,
+    user?.email,
   );
 
   const handle_edit_thread_draft = useCallback(

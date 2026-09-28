@@ -34,7 +34,7 @@ import {
   Bars2Icon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Checkbox } from "@aster/ui";
 
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -196,7 +196,7 @@ export function ContactMergeModal({
     >
       <div
         aria-hidden="true"
-        className="absolute inset-0 backdrop-blur-md"
+        className="absolute inset-0"
         style={{ backgroundColor: "var(--modal-overlay)" }}
       />
 
@@ -204,9 +204,8 @@ export function ContactMergeModal({
         ref={dialog_ref}
         aria-labelledby={title_id}
         aria-modal="true"
-        className="relative mx-4 flex max-h-[86vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border bg-modal-bg border-edge-primary outline-none"
+        className="relative mx-4 flex max-h-[86vh] w-full max-w-2xl flex-col overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] outline-none"
         role="dialog"
-        style={{ boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)" }}
         tabIndex={-1}
       >
         <div className="flex flex-shrink-0 items-start justify-between gap-4 px-6 pb-4 pt-5">
@@ -234,7 +233,7 @@ export function ContactMergeModal({
 
         <div
           className="h-px flex-shrink-0"
-          style={{ backgroundColor: "var(--border-secondary)" }}
+          style={{ backgroundColor: "var(--aster-floating-divider)" }}
         />
 
         <div className="min-h-0 flex-1 overflow-y-auto px-3 py-2">
@@ -254,11 +253,10 @@ export function ContactMergeModal({
                 onDrop={() => drop_on(contact.id)}
               >
                 <Bars2Icon className="h-4 w-4 flex-shrink-0 cursor-grab text-txt-muted" />
-                <input
+                <Checkbox
                   aria-label={contact_display_name(contact)}
                   checked={is_included}
-                  className="h-4 w-4 flex-shrink-0 accent-[var(--accent-color)]"
-                  type="checkbox"
+                  className="flex-shrink-0"
                   onChange={() => toggle(contact.id)}
                 />
                 <ContactAvatar
@@ -327,7 +325,7 @@ export function ContactMergeModal({
 
         <div
           className="h-px flex-shrink-0"
-          style={{ backgroundColor: "var(--border-secondary)" }}
+          style={{ backgroundColor: "var(--aster-floating-divider)" }}
         />
 
         <div className="flex flex-shrink-0 items-center justify-between gap-2 px-6 py-4">

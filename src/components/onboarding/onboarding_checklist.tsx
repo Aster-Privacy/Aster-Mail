@@ -132,12 +132,12 @@ export function OnboardingChecklist({
     <AnimatePresence>
       <motion.div
         animate={{ opacity: 1, y: 0 }}
-        className="fixed bottom-24 start-4 end-4 z-30 flex flex-col overflow-hidden rounded-xl border shadow-lg md:bottom-5 md:start-auto md:end-5 md:w-[320px]"
+        className="fixed bottom-24 start-4 end-4 z-30 flex flex-col overflow-hidden rounded-[var(--aster-radius-floating,16px)] md:bottom-5 md:start-auto md:end-5 md:w-[320px]"
         exit={{ opacity: 0, y: 8 }}
         initial={{ opacity: 0, y: 8 }}
         style={{
-          backgroundColor: "var(--bg-card)",
-          borderColor: "var(--border-primary)",
+          backgroundColor: "var(--aster-floating-bg, var(--bg-card))",
+          boxShadow: "var(--aster-floating-shadow)",
         }}
         transition={transition}
       >

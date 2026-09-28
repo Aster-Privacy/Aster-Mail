@@ -828,7 +828,7 @@ export function ReferralTab() {
             t("settings.affiliate_info_step_account_binding"),
           ].map((step, index) => (
             <li key={index} className="flex items-start gap-3">
-              <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-edge-secondary text-[11px] font-semibold text-txt-secondary">
+              <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[var(--aster-hover)] text-[11px] font-semibold text-txt-secondary">
                 {index + 1}
               </span>
               <span className="text-[14px] leading-5 text-txt-secondary">
@@ -985,52 +985,54 @@ export function ReferralTab() {
           padding="none"
           title={t("settings.referral_program")}
         >
-          <div
-            className="relative m-2 mb-0 overflow-hidden rounded-[var(--aster-radius-field)] px-5 pb-5 pt-5 sm:min-h-[140px] sm:pe-[42%]"
-            style={{ backgroundColor: "var(--accent-mix-b85, #326fd1)" }}
-          >
-            <img
-              alt=""
-              className="pointer-events-none absolute end-0 top-0 h-full w-1/2 object-cover opacity-60 mix-blend-screen"
-              draggable={false}
-              src="/settings/decentralized.webp"
-              style={{
-                maskImage:
-                  "linear-gradient(to right, transparent, black 35%, black 90%, transparent)",
-                WebkitMaskImage:
-                  "linear-gradient(to right, transparent, black 35%, black 90%, transparent)",
-              }}
-            />
-            <h4
-              className="relative z-10 text-[18px] font-bold leading-6 tracking-tight text-white"
-              style={{ textShadow: "0 1px 3px rgba(0, 0, 0, 0.15)" }}
+          <div className="px-2 pt-2">
+            <div
+              className="relative overflow-hidden rounded-[var(--aster-radius-field)] px-5 pb-5 pt-5 sm:min-h-[140px] sm:pe-[42%]"
+              style={{ backgroundColor: "var(--accent-mix-b85, #326fd1)" }}
             >
-              {storage_bonus
-                ? t("settings.referral_storage_headline", {
-                    amount: bonus_amount,
-                  })
-                : t("settings.referral_commission_headline", {
-                    percent: commission_percent,
-                  })}
-            </h4>
-            <p
-              className="relative z-10 mt-1 text-[14px] leading-5 text-white/75"
-              style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
-            >
-              {storage_bonus
-                ? t("settings.referral_storage_subhead", {
-                    amount: bonus_amount,
-                    max: bonus_max,
-                  })
-                : t("settings.referral_commission_subhead")}
-            </p>
-            {referral_info.bonus_bytes_earned > 0 && (
-              <p className="relative z-10 mt-3 inline-flex rounded-full bg-white/15 px-2.5 py-1 text-[12px] font-semibold tabular-nums text-white">
-                {t("settings.referral_storage_earned_badge", {
-                  amount: bonus_earned,
-                })}
+              <img
+                alt=""
+                className="pointer-events-none absolute end-0 top-0 h-full w-1/2 object-cover opacity-60 mix-blend-screen"
+                draggable={false}
+                src="/settings/decentralized.webp"
+                style={{
+                  maskImage:
+                    "linear-gradient(to right, transparent, black 35%, black 90%, transparent)",
+                  WebkitMaskImage:
+                    "linear-gradient(to right, transparent, black 35%, black 90%, transparent)",
+                }}
+              />
+              <h4
+                className="relative z-10 text-[18px] font-bold leading-6 tracking-tight text-white"
+                style={{ textShadow: "0 1px 3px rgba(0, 0, 0, 0.15)" }}
+              >
+                {storage_bonus
+                  ? t("settings.referral_storage_headline", {
+                      amount: bonus_amount,
+                    })
+                  : t("settings.referral_commission_headline", {
+                      percent: commission_percent,
+                    })}
+              </h4>
+              <p
+                className="relative z-10 mt-1 text-[14px] leading-5 text-white/75"
+                style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
+              >
+                {storage_bonus
+                  ? t("settings.referral_storage_subhead", {
+                      amount: bonus_amount,
+                      max: bonus_max,
+                    })
+                  : t("settings.referral_commission_subhead")}
               </p>
-            )}
+              {referral_info.bonus_bytes_earned > 0 && (
+                <p className="relative z-10 mt-3 inline-flex rounded-full bg-white/15 px-2.5 py-1 text-[12px] font-semibold tabular-nums text-white">
+                  {t("settings.referral_storage_earned_badge", {
+                    amount: bonus_earned,
+                  })}
+                </p>
+              )}
+            </div>
           </div>
           <div className="px-5 pb-5 pt-4">
             <p className="mb-2 text-[13px] font-medium text-txt-secondary">
@@ -1168,7 +1170,7 @@ export function ReferralTab() {
         <ol className="space-y-2.5">
           {how_it_works_steps.map((step, index) => (
             <li key={index} className="flex items-start gap-3">
-              <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-edge-secondary text-[11px] font-semibold text-txt-secondary">
+              <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-[var(--aster-hover)] text-[11px] font-semibold text-txt-secondary">
                 {index + 1}
               </span>
               <span className="text-[14px] leading-5 text-txt-secondary">
