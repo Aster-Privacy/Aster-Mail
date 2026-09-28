@@ -1963,6 +1963,21 @@ export const pt_br = {
     biometry_generic: "a biometria",
     share_via: "Compartilhar via",
     zip_archive: "Arquivo ZIP",
+    sort_a_to_z: "Ordenar de A a Z",
+    folders_sorted_a_to_z: "Pastas ordenadas de A a Z",
+    recovery_codes_reminder_title: "Salve seus códigos de recuperação",
+    recovery_codes_reminder_body:
+      "O Aster criptografa seu e-mail com sua senha, então ninguém pode redefini-la por você. Os códigos de recuperação são a única forma de voltar ao seu e-mail criptografado.",
+    recovery_codes_reminder_action: "Obter códigos de recuperação",
+    recovery_codes_low_reminder_title:
+      "Seus códigos de recuperação estão acabando",
+    recovery_codes_low_reminder_body:
+      "Cada código funciona uma vez, e restam {{count}}. Obtenha novos códigos para não perder o acesso.",
+    recovery_codes_low_reminder_action: "Obter novos códigos",
+    recovery_phrase_migrate_title: "Mude para códigos de recuperação",
+    recovery_phrase_migrate_body:
+      "As frases de recuperação vão deixar de existir. Obtenha códigos de recuperação agora para continuar podendo recuperar sua conta.",
+    recovery_phrase_migrate_action: "Obter códigos",
   },
   settings: {
     bill_thanks_title: "Obrigado por apoiar o Aster",
@@ -8141,6 +8156,100 @@ export const pt_br = {
       "O POP3 baixa as mensagens para um único dispositivo e não devolve as alterações.",
     show_side_panel_description:
       "Deixe seus contatos e outras ferramentas rápidas em um painel ao lado das mensagens.",
+    recovery_codes_show: "Mostrar códigos",
+    recovery_codes_get_new_title: "Obter novos códigos de recuperação?",
+    recovery_codes_confirm_title: "Confirme que é você",
+    recovery_codes_confirm_desc:
+      "Digite sua senha para ver seus códigos de recuperação.",
+    recovery_codes_title: "Seus códigos de recuperação",
+    recovery_codes_status:
+      "Criados em {{date}}. Restam {{remaining}} de {{total}}.",
+    recovery_codes_low:
+      "Seus códigos de recuperação estão acabando. Obtenha novos códigos para não perder o acesso.",
+    recovery_codes_used: "Usado",
+    recovery_codes_unavailable:
+      "Seus códigos não estão salvos neste dispositivo. Obtenha novos códigos para vê-los.",
+    criterion_recovery_codes: "Códigos de recuperação salvos",
+    billing_addons_subtitle: "Mais espaço, mesmo plano",
+    billing_support_subtitle: "Envie uma mensagem para a equipe",
+    billing_upsell_title: "Tenha mais com o {{name}}",
+    billing_upsell_price: "A partir de {{price}} por mês, cobrado anualmente",
+    billing_advantages_title_paid: "O que o seu plano inclui",
+    billing_advantages_title_free: "O que você recebe com {{name}}",
+    billing_see_all_features: "Ver todos os recursos do {{name}}",
+    billing_compare_all_plans_subtitle:
+      "Planos individuais e familiares, mensais ou anuais",
+    billing_usage_upgrade_hint: "Faça upgrade para ter mais espaço",
+    usage_in_use: "{{current}} em uso",
+    billing_credits_subtitle: "Saldo e recargas",
+    billing_academic_subtitle: "Economize com um e-mail acadêmico",
+    billing_history_empty:
+      "Ainda não há faturas. Seus pagamentos aparecerão aqui após a primeira cobrança.",
+    billing_invoice_count: "{{count}} faturas",
+    billing_invoice_count_one: "{{count}} fatura",
+    billing_invoice_count_other: "{{count}} faturas",
+    billing_addons_active_count: "{{count}} ativos",
+    billing_addons_active_count_one: "{{count}} ativo",
+    billing_addons_active_count_other: "{{count}} ativos",
+    academic_status_none: "Não solicitado",
+    academic_status_pending: "Aguardando verificação",
+    academic_status_verified: "Verificado",
+    billing_status_active: "Ativo",
+    billing_status_renews: "Renova em {{date}}",
+    billing_status_ending: "Termina em {{date}}",
+    billing_status_attention: "O pagamento precisa de atenção",
+    billing_member_since: "Membro desde {{date}}",
+    billing_keep_title: "Manter seu plano",
+    billing_payment_method: "Método de pagamento",
+    billing_switch_yearly_subtitle:
+      "{{monthly}}/mês, cobrado {{yearly}} por ano",
+    billing_save_amount: "Economize {{amount}}",
+    billing_term_heading: "Período de cobrança",
+    billing_pay_yearly: "Pagar anualmente",
+    billing_pay_monthly: "Pagar mensalmente",
+    billing_billed_yearly_total: "Cobrado {{amount}} por ano",
+    billing_billed_monthly: "Cobrado todo mês",
+    billing_save_percent: "Economize {{percent}}%",
+    billing_select_plan_hint: "Selecione um plano para continuar",
+    billing_addon_active: "Ativo",
+    billing_addon_ending: "Terminando",
+    billing_addon_ends: "Termina em {{date}}",
+    billing_add_storage_summary: "Adicionar {{size}} de armazenamento",
+    billing_storage_status_ok: "Tudo certo",
+    billing_storage_status_near: "Quase cheio",
+    billing_storage_status_full: "Ação necessária",
+    billing_upgrade_note:
+      "Cancele quando quiser. Seu e-mail continua sendo seu.",
+    billing_thanks_title: "Obrigado por apoiar o Aster",
+    billing_thanks_body:
+      "Seu apoio significa tudo para nós. Ele permite que uma equipe pequena continue construindo o Aster com cuidado, todos os dias.",
+    billing_thanks_free_title: "Obrigado por usar o Aster",
+    billing_thanks_free_body:
+      "Uma equipe pequena constrói o Aster com cuidado, e cada pessoa que confia seu e-mail a ele nos mantém em frente. Faça upgrade sempre que precisar de mais armazenamento, aliases ou domínios personalizados.",
+    promo_error_card_only:
+      "Esse código promocional só funciona com pagamentos com cartão.",
+    promo_error_with_credits:
+      "Você não pode usar um código promocional e crédito da conta no mesmo pagamento.",
+    promo_error_not_for_addon:
+      "Códigos promocionais não podem ser usados em complementos.",
+    plan_every_plan_includes:
+      "Todos os planos incluem criptografia de ponta a ponta, armazenamento de conhecimento zero e apps de código aberto.",
+    export_private_key_warning:
+      "Guarde o arquivo em um lugar seguro e nunca o compartilhe. Qualquer pessoa com ele pode ler seu e-mail.",
+    export_two_factor_hint:
+      "Sua conta usa autenticação de dois fatores. Digite o código atual do seu app autenticador para continuar.",
+    domain_purchase_open_checkout: "Abrir o pagamento novamente",
+    signature_too_large:
+      "Sua assinatura é grande demais para ser salva. Remova uma imagem ou encurte o texto.",
+    auto_delete_trash_after: "Excluir a lixeira automaticamente após",
+    auto_delete_trash_description:
+      "Os e-mails na Lixeira mais antigos que este período são excluídos permanentemente.",
+    retention_days_count: "{{ days }} dias",
+    retention_180_days: "180 dias",
+    retention_365_days: "365 dias",
+    oauth_reason_wrong_account:
+      "A conexão foi iniciada a partir de outra conta do Aster Mail. Faça login com essa conta e tente de novo.",
+    plan_f_sort_folders: "Ordenar pastas de A a Z",
   },
   mail: {
     alias_view_sent: "Ver mensagens enviadas",
@@ -8996,6 +9105,21 @@ export const pt_br = {
       "As novas mensagens deste remetente passam a chegar em {{category}}.",
     sender_rule_offer:
       "Você move mensagens de {{sender}} para {{category}} com frequência. Quer fazer isso automaticamente?",
+    pdf_preview_failed:
+      "Este PDF não pode ser exibido aqui. Para abri-lo, faça o download.",
+    pdf_password_title: "Este PDF está protegido por senha",
+    pdf_password_description:
+      "Para ver este PDF, digite a senha dele. A senha fica neste dispositivo.",
+    pdf_password_label: "Senha do PDF",
+    pdf_password_incorrect: "A senha está incorreta. Tente novamente.",
+    pdf_password_submit: "Abrir",
+    pdf_password_protected: "Protegido por senha",
+    more_messages_count: "Mais {{count}} mensagens",
+    more_messages_count_one: "Mais {{count}} mensagem",
+    more_messages_count_other: "Mais {{count}} mensagens",
+    reply_to_name: "Responder a {{name}}",
+    reply_all_to_name: "Responder a {{name}} e a todos",
+    forward_message_heading: "Encaminhar mensagem",
   },
   auth: {
     passkey_verification: "Verificar com passkey",
@@ -9065,10 +9189,12 @@ export const pt_br = {
     backup_code_single_use: "Cada código de backup só pode ser usado uma vez",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Usar aplicativo autenticador",
-    recovery_code_in_backup_field: "Este é um código de recuperação, não um código de backup. Para usá-lo, redefina sua senha com seu código de recuperação.",
+    recovery_code_in_backup_field:
+      "Este é um código de recuperação, não um código de backup. Para usá-lo, redefina sua senha com seu código de recuperação.",
     reset_with_recovery_code: "Redefinir com código de recuperação",
     no_backup_codes_title: "Entrar sem sua chave de acesso",
-    no_backup_codes_description: "Os códigos de backup vêm com um aplicativo autenticador, e esta conta não usa um. Para entrar sem sua chave de acesso, redefina sua senha com um dos seus códigos de recuperação. Seus e-mails, contatos e configurações continuam como estão, e depois você pode adicionar uma nova chave de acesso.",
+    no_backup_codes_description:
+      "Os códigos de backup vêm com um aplicativo autenticador, e esta conta não usa um. Para entrar sem sua chave de acesso, redefina sua senha com um dos seus códigos de recuperação. Seus e-mails, contatos e configurações continuam como estão, e depois você pode adicionar uma nova chave de acesso.",
     try_passkey_again: "Tentar a chave de acesso novamente",
     two_factor_auth_title: "Autenticação de dois fatores",
     enter_2fa_code:
@@ -9506,6 +9632,59 @@ export const pt_br = {
       "Crie sua conta gratuita e verifique seu e-mail de estudante para ter 30% de desconto em qualquer plano pago por 12 meses.",
     offer_welcome_subline_journalist:
       "Crie sua conta gratuita e verifique suas credenciais de imprensa para ter 30% de desconto em qualquer plano pago por 12 meses.",
+    reset_second_factor_title: "Confirme que é você",
+    reset_second_factor_description:
+      "Esta conta usa a autenticação de dois fatores. Verifique um segundo fator antes de redefinir a senha.",
+    reset_second_factor_backup_description:
+      "Digite um dos seus códigos de backup para continuar.",
+    reset_second_factor_key_description:
+      "Use a chave de segurança ou a chave de acesso registrada nesta conta para continuar.",
+    reset_second_factor_use_key: "Usar uma chave de segurança em vez disso",
+    reset_second_factor_use_key_button: "Continuar com a chave de segurança",
+    recovery_code_already_used:
+      "Este código já foi usado. Cada código funciona uma vez, então digite outro da sua lista salva.",
+    try_another_way: "Tentar de outra forma",
+    recovery_email_label: "Endereço do Aster Mail",
+    recovery_domain_hint: "Escolha o domínio da sua conta.",
+    recovery_code_label: "Código de recuperação",
+    recovery_code_hint:
+      "Cada código funciona uma vez. Os códigos têm este formato: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "Usar outro endereço",
+    change_account_desc: "Recupere outra conta do Aster Mail.",
+    support_step_title: "Falar com o suporte",
+    support_step_desc:
+      "O Aster Mail não consegue ler seus dados criptografados, então ninguém consegue desbloqueá-los sem um código de recuperação ou seu e-mail de recuperação. O suporte pode verificar sua conta e ajudar com os próximos passos.",
+    support_email_action: "Enviar e-mail ao suporte",
+    support_help_center: "Abrir o centro de ajuda",
+    other_ways_title: "Tentar de outra forma",
+    other_ways_desc: "Escolha como quer voltar a acessar sua conta.",
+    other_way_code_title: "Usar um código de recuperação",
+    other_way_code_desc: "Digite um dos códigos que você salvou.",
+    other_way_email_title: "Redefinir com seu e-mail de recuperação",
+    other_way_email_desc:
+      "O Aster Mail envia um link para seu e-mail de recuperação. Você perde o acesso aos e-mails anteriores à redefinição.",
+    other_way_none_title: "Não tenho nenhuma dessas opções",
+    other_way_none_desc:
+      "Fale com o suporte para receber ajuda com os próximos passos.",
+    reset_account_title: "Redefinir sua conta?",
+    reset_account_desc:
+      "Seus e-mails, contatos e arquivos criptografados anteriores à redefinição ficam bloqueados até você recuperá-los com sua senha antiga. Você recebe uma nova chave de criptografia vazia.",
+    send_reset_link: "Enviar link de redefinição",
+    print_codes: "Imprimir",
+    codes_copied: "Códigos copiados.",
+    i_saved_these_codes: "Salvei estes códigos",
+    review_security_title: "Revise sua segurança",
+    review_security_desc: "Sua senha foi alterada e sua conta foi recuperada.",
+    review_devices_signed_out: "Os outros dispositivos foram desconectados.",
+    review_two_step_off: "A verificação em duas etapas está desativada.",
+    review_turn_on: "Ativar",
+    review_recovery_email_kept:
+      "Seu e-mail de recuperação continua configurado.",
+    review_no_recovery_email: "Sem e-mail de recuperação.",
+    review_add: "Adicionar",
+    review_codes_left: "Restam {{count}} códigos de recuperação.",
+    review_codes_left_one: "Resta {{count}} código de recuperação.",
+    review_codes_left_other: "Restam {{count}} códigos de recuperação.",
   },
   passkeys: {
     passkey_setup_cancelled: "Configuração da passkey cancelada.",
