@@ -8007,6 +8007,8 @@ export const pl = {
       "Tematy zwykle podróżują niezaszyfrowane, więc może je odczytać każdy, przez kogo przechodzi wiadomość. Po włączeniu tej opcji zaszyfrowana wiadomość wychodzi z trzema kropkami zamiast tematu, a prawdziwy temat jest chroniony w zaszyfrowanej części. Odbiorcy, których program pocztowy obsługuje chronione nagłówki, zobaczą prawdziwy temat. Pozostali zobaczą trzy kropki na liście i znajdą temat na górze wiadomości, więc włącz to tylko wtedy, gdy akceptujesz ten kompromis.",
     browse_folder: "Wybierz folder",
     money_back_guarantee: "30-dniowa gwarancja zwrotu pieniędzy",
+    plan_every_plan_includes:
+      "Każdy plan obejmuje szyfrowanie end-to-end, przechowywanie z zerową wiedzą i aplikacje open source.",
     cancel_anytime: "Anuluj w dowolnym momencie",
     billed_annually: "rozliczane rocznie",
     save_annually_hint: "Oszczędź 20% przy planie rocznym",
@@ -8135,7 +8137,7 @@ export const pl = {
     domain_provider_detected: "Twoim DNS zarządza {{provider}}",
     domain_provider_open: "Otwórz {{provider}}",
     crypto_rate_notice:
-      "Gdy wybierzesz walutę, blokujemy kurs wymiany i pokazujemy dokładną kwotę do wysłania. Kurs obowiązuje 60 minut w sieci Bitcoin oraz 30 minut w sieciach Ethereum. Nic nie zostanie pobrane, dopóki sam nie wyślesz płatności.",
+      "Gdy wybierzesz walutę, blokujemy kurs wymiany i pokazujemy dokładną kwotę do wysłania. Kurs obowiązuje przez 60 minut we wszystkich sieciach. Nic nie zostanie pobrane, dopóki sam nie wyślesz płatności.",
     crypto_exchange_warning:
       "Płać z portfela, który kontrolujesz. Jeśli wyślesz środki z giełdy lub serwisu wymiany, płatność przyjdzie z adresu, który nie należy do Ciebie, a operator nie powiąże jej z Twoim zamówieniem. Dokończ płatność w czasie podanym na stronie płatności.",
     crypto_energy_toggle: "Zużycie energii przez te sieci",

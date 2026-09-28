@@ -7886,6 +7886,8 @@ export const es = {
       "Los asuntos suelen viajar sin cifrar, así que cualquiera que maneje el mensaje puede leerlos. Con esta opción activada, un mensaje cifrado sale con tres puntos en lugar del asunto, y el asunto real queda protegido dentro de la parte cifrada. Los destinatarios cuya app de correo admite cabeceras protegidas ven el asunto real. El resto ve tres puntos en la lista y encuentra el asunto al principio del mensaje, así que actívalo solo si aceptas esa contrapartida.",
     browse_folder: "Elegir carpeta",
     money_back_guarantee: "Garantía de devolución de 30 días",
+    plan_every_plan_includes:
+      "Todos los planes incluyen cifrado de extremo a extremo, almacenamiento de conocimiento cero y apps de código abierto.",
     cancel_anytime: "Cancela cuando quieras",
     billed_annually: "con facturación anual",
     save_annually_hint: "Ahorra un 20 % con el plan anual",
@@ -8015,7 +8017,7 @@ export const es = {
     domain_provider_detected: "Tu DNS lo gestiona {{provider}}",
     domain_provider_open: "Abrir {{provider}}",
     crypto_rate_notice:
-      "Cuando eliges una moneda, fijamos un tipo de cambio y te mostramos el importe exacto que debes enviar. El tipo se mantiene 60 minutos en Bitcoin y 30 minutos en las redes de Ethereum. No se te cobra nada hasta que envías el pago tú mismo.",
+      "Cuando eliges una moneda, fijamos un tipo de cambio y te mostramos el importe exacto que debes enviar. El tipo se mantiene 60 minutos en todas las redes. No se te cobra nada hasta que envías el pago tú mismo.",
     crypto_exchange_warning:
       "Paga desde una cartera que controles. Si envías fondos desde un exchange o un servicio de intercambio, el pago llega desde una dirección que no es tuya y el procesador no puede asociarlo a tu pedido. Completa el pago dentro del tiempo que indica la página de pago.",
     crypto_energy_toggle: "Consumo energético de estas redes",

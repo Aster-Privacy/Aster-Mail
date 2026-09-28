@@ -4330,6 +4330,7 @@ export interface SettingsTranslations {
   plan_current_note: string;
   plan_storage_tight_note: string;
   money_back_guarantee: string;
+  plan_every_plan_includes: string;
   cancel_anytime: string;
   billed_annually: string;
   save_annually_hint: string;

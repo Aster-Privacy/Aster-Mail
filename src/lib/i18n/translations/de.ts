@@ -7834,6 +7834,8 @@ export const de = {
       "Betreffzeilen werden normalerweise unverschlüsselt übertragen, sodass jeder, der die Nachricht weiterleitet, sie lesen kann. Ist diese Option aktiv, verlässt eine verschlüsselte Nachricht Ihr Postfach mit drei Punkten anstelle des Betreffs, und der echte Betreff ist im verschlüsselten Teil geschützt. Empfänger, deren Mailprogramm geschützte Kopfzeilen unterstützt, sehen den echten Betreff. Alle anderen sehen drei Punkte in der Liste und finden den Betreff oben in der Nachricht. Aktivieren Sie die Option nur, wenn Sie diesen Kompromiss akzeptieren.",
     browse_folder: "Ordner auswählen",
     money_back_guarantee: "30 Tage Geld-zurück-Garantie",
+    plan_every_plan_includes:
+      "Jeder Tarif enthält Ende-zu-Ende-Verschlüsselung, Zero-Knowledge-Speicher und Open-Source-Apps.",
     cancel_anytime: "Jederzeit kündbar",
     billed_annually: "jährliche Abrechnung",
     save_annually_hint: "Sparen Sie 20 % im Jahresabo",
@@ -7966,7 +7968,7 @@ export const de = {
     domain_provider_detected: "Ihr DNS wird von {{provider}} verwaltet",
     domain_provider_open: "{{provider}} öffnen",
     crypto_rate_notice:
-      "Wenn Sie eine Währung wählen, sichern wir einen Wechselkurs und zeigen Ihnen den genauen Betrag, den Sie senden müssen. Der Kurs gilt 60 Minuten bei Bitcoin und 30 Minuten in den Ethereum-Netzwerken. Es wird nichts abgebucht, bevor Sie die Zahlung selbst senden.",
+      "Wenn Sie eine Währung wählen, sichern wir einen Wechselkurs und zeigen Ihnen den genauen Betrag, den Sie senden müssen. Der Kurs gilt in allen Netzwerken 60 Minuten. Es wird nichts abgebucht, bevor Sie die Zahlung selbst senden.",
     crypto_exchange_warning:
       "Zahlen Sie aus einer Wallet, die Ihnen gehört. Wenn Sie Geld von einer Börse oder einem Tauschdienst senden, kommt die Zahlung von einer Adresse, die nicht Ihre ist, und der Zahlungsdienstleister kann sie Ihrer Bestellung nicht zuordnen. Schließen Sie die Zahlung innerhalb der auf der Checkout-Seite angezeigten Zeit ab.",
     crypto_energy_toggle: "Energieverbrauch dieser Netzwerke",

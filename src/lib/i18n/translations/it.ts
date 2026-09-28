@@ -7922,6 +7922,8 @@ export const it = {
       "Gli oggetti viaggiano normalmente in chiaro, quindi chiunque gestisca il messaggio può leggerli. Con questa opzione attiva, un messaggio cifrato parte con tre puntini al posto dell’oggetto e l’oggetto reale è protetto nella parte cifrata. I destinatari la cui app di posta supporta le intestazioni protette vedono l’oggetto reale. Tutti gli altri vedono tre puntini nell’elenco e trovano l’oggetto in cima al messaggio: attivala solo se accetti questo compromesso.",
     browse_folder: "Seleziona cartella",
     money_back_guarantee: "Garanzia di rimborso di 30 giorni",
+    plan_every_plan_includes:
+      "Ogni piano include crittografia end-to-end, archiviazione a conoscenza zero e app open source.",
     cancel_anytime: "Disdici quando vuoi",
     billed_annually: "con fatturazione annuale",
     save_annually_hint: "Risparmia il 20% con il piano annuale",
@@ -8048,7 +8050,7 @@ export const it = {
     domain_provider_detected: "Il tuo DNS è gestito da {{provider}}",
     domain_provider_open: "Apri {{provider}}",
     crypto_rate_notice:
-      "Quando scegli una moneta, blocchiamo un tasso di cambio e ti mostriamo l’importo esatto da inviare. Il tasso resta valido 60 minuti su Bitcoin e 30 minuti sulle reti Ethereum. Non ti viene addebitato nulla finché non invii tu il pagamento.",
+      "Quando scegli una moneta, blocchiamo un tasso di cambio e ti mostriamo l’importo esatto da inviare. Il tasso resta valido 60 minuti su tutte le reti. Non ti viene addebitato nulla finché non invii tu il pagamento.",
     crypto_exchange_warning:
       "Paga da un wallet che controlli. Se invii fondi da un exchange o da un servizio di scambio, il pagamento arriva da un indirizzo che non è tuo e il processore non può associarlo al tuo ordine. Completa il pagamento entro il tempo indicato nella pagina di pagamento.",
     crypto_energy_toggle: "Consumo energetico di queste reti",

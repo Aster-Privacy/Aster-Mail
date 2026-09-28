@@ -7801,6 +7801,8 @@ export const tr = {
       "Konular normalde şifresiz iletilir, bu yüzden iletiyi taşıyan herkes okuyabilir. Bu ayar açıkken şifreli ileti konu yerine üç noktayla gönderilir ve gerçek konu şifreli bölümde korunur. Posta uygulaması korumalı başlıkları destekleyen alıcılar gerçek konuyu görür. Diğerleri listede üç nokta görür ve konuyu iletinin en üstünde bulur; bu dengeyi kabul ediyorsanız açın.",
     browse_folder: "Klasör seç",
     money_back_guarantee: "30 gün para iade garantisi",
+    plan_every_plan_includes:
+      "Her plan uçtan uca şifreleme, sıfır bilgi depolama ve açık kaynaklı uygulamalar içerir.",
     cancel_anytime: "İstediğiniz zaman iptal edin",
     billed_annually: "yıllık faturalandırılır",
     save_annually_hint: "Yıllık planla %20 tasarruf edin",
@@ -7929,7 +7931,7 @@ export const tr = {
     domain_provider_detected: "DNS kayıtlarınızı {{provider}} yönetiyor",
     domain_provider_open: "{{provider}} aç",
     crypto_rate_notice:
-      "Bir coin seçtiğinizde bir kur sabitler ve göndermeniz gereken tam tutarı gösteririz. Kur, Bitcoin’de 60 dakika, Ethereum ağlarında 30 dakika geçerlidir. Ödemeyi kendiniz göndermeden sizden hiçbir tutar alınmaz.",
+      "Bir coin seçtiğinizde bir kur sabitler ve göndermeniz gereken tam tutarı gösteririz. Kur, tüm ağlarda 60 dakika geçerlidir. Ödemeyi kendiniz göndermeden sizden hiçbir tutar alınmaz.",
     crypto_exchange_warning:
       "Kendi kontrolündeki bir cüzdandan öde. Parayı bir borsadan veya takas hizmetinden gönderirsen ödeme sana ait olmayan bir adresten gelir ve ödeme sağlayıcı bunu siparişinle eşleştiremez. Ödemeyi, ödeme sayfasında gösterilen süre içinde tamamla.",
     crypto_energy_toggle: "Bu ağların enerji kullanımı",

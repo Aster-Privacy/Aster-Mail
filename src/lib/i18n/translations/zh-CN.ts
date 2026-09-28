@@ -7076,6 +7076,8 @@ export const zh_CN = {
       "邮件主题通常以明文传输，因此经手邮件的任何一方都能读到。开启后，加密邮件发出时主题会显示为三个点，真实主题受保护地放在加密部分中。邮件应用支持受保护标头的收件人能看到真实主题，其他人在列表中只看到三个点，并在邮件顶部找到主题。请在接受这一取舍后再开启。",
     browse_folder: "选择文件夹",
     money_back_guarantee: "30 天退款保证",
+    plan_every_plan_includes:
+      "每个方案都包含端到端加密、零知识存储和开源应用。",
     cancel_anytime: "随时可取消",
     billed_annually: "按年计费",
     save_annually_hint: "选择年付可省 20%",
@@ -7191,7 +7193,7 @@ export const zh_CN = {
     domain_provider_detected: "您的 DNS 由 {{provider}} 管理",
     domain_provider_open: "打开 {{provider}}",
     crypto_rate_notice:
-      "当您选择币种时，我们会锁定汇率并显示需要发送的确切金额。该汇率在比特币上保持 60 分钟，在以太坊网络上保持 30 分钟。在您亲自发送付款之前，不会扣取任何费用。",
+      "当您选择币种时，我们会锁定汇率并显示需要发送的确切金额。该汇率在所有网络上均保持 60 分钟。在您亲自发送付款之前，不会扣取任何费用。",
     crypto_exchange_warning:
       "请使用您自己掌控的钱包付款。如果从交易所或兑换服务转账，付款将来自并非您本人的地址，支付处理方无法将其与您的订单匹配。请在结账页面显示的时间内完成付款。",
     crypto_energy_toggle: "这些网络的能源消耗",

@@ -232,8 +232,22 @@ export function PlanUpgradeSelection({
     "individual",
   );
   const [billing_period, set_billing_period] = useState<"monthly" | "yearly">(
-    "yearly",
+    "monthly",
   );
+
+  const yearly_save_percent = Math.max(
+    0,
+    ...(plan_type === "family" ? FAMILY_PLAN_TIERS : PLAN_TIERS)
+      .filter((tier) => tier.monthly_cents > 0)
+      .map((tier) =>
+        Math.round(
+          ((tier.monthly_cents * 12 - tier.yearly_cents) /
+            (tier.monthly_cents * 12)) *
+            100,
+        ),
+      ),
+  );
+
   const [currency, set_currency] = useState<string>("usd");
   const [plans, set_plans] = useState<AvailablePlan[]>([]);
   const [is_loading, set_is_loading] = useState(true);
@@ -247,7 +261,7 @@ export function PlanUpgradeSelection({
     tier: PlanTier;
     plan: AvailablePlan;
   } | null>(null);
-  const [crypto_term_months, set_crypto_term_months] = useState(12);
+  const [crypto_term_months, set_crypto_term_months] = useState(1);
   const [pending_family_tier, set_pending_family_tier] =
     useState<FamilyPlanTier | null>(null);
   const [crypto_family_tier, set_crypto_family_tier] =
@@ -486,14 +500,14 @@ export function PlanUpgradeSelection({
             className="inline-flex items-center rounded-full p-[5px] gap-1 bg-surf-secondary"
             role="tablist"
           >
-            {(["yearly", "monthly"] as const).map((p) => {
+            {(["monthly", "yearly"] as const).map((p) => {
               const active = billing_period === p;
 
               return (
                 <button
                   key={p}
                   aria-selected={active}
-                  className="px-[18px] py-[8px] rounded-full text-[13px] font-medium transition-colors"
+                  className="inline-flex items-center px-[18px] py-[8px] rounded-full text-[13px] font-medium transition-colors"
                   role="tab"
                   style={{
                     backgroundColor: active
@@ -507,6 +521,21 @@ export function PlanUpgradeSelection({
                   {p === "yearly"
                     ? t("settings.billing_yearly")
                     : t("settings.billing_monthly")}
+                  {p === "yearly" && yearly_save_percent > 0 && (
+                    <span
+                      className="ms-1.5 inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide"
+                      style={{
+                        backgroundColor: active
+                          ? "rgba(255,255,255,0.22)"
+                          : "var(--accent-blue)",
+                        color: "var(--accent-fg, #ffffff)",
+                      }}
+                    >
+                      {t("settings.save_percent", {
+                        percent: yearly_save_percent,
+                      })}
+                    </span>
+                  )}
                 </button>
               );
             })}

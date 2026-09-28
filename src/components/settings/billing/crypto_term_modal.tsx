@@ -87,7 +87,7 @@ interface CryptoTermModalProps {
   special_offer?: boolean;
 }
 
-const TERM_OPTIONS: TermMonths[] = [1, 3, 6, 12, 24];
+const TERM_OPTIONS: TermMonths[] = [1, 3, 6, 12];
 const CHARGE_CURRENCY = "usd";
 
 function pretty_chain(chain: string): string {
@@ -138,7 +138,7 @@ export function crypto_term_modal({
   const card_checkout_available = !on_onion;
 
   const [step, set_step] = useState<Step>("term");
-  const [selected_term, set_selected_term] = useState<TermMonths>(12);
+  const [selected_term, set_selected_term] = useState<TermMonths>(1);
   const [is_loading, set_is_loading] = useState(false);
   const [creating_key, set_creating_key] = useState<string | null>(null);
   const [coins, set_coins] = useState<CryptoNativeCoin[]>([]);

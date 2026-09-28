@@ -25,7 +25,7 @@ import type { UserPreferences } from "@/services/api/preferences";
 import type { EncryptedVault } from "@/services/crypto/key_manager_core";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useNavigationType } from "react-router-dom";
 
 import { current_source } from "@/lib/acquisition_source";
 import { mark_first_run } from "@/lib/first_run";
@@ -156,7 +156,28 @@ const RESUMABLE_STEPS: ReadonlySet<RegistrationStep> = new Set([
   "addresses",
   "custom_domain",
   "import_mail",
+  "plan_selection",
 ]);
+
+const BACK_NAVIGABLE_STEPS: ReadonlySet<RegistrationStep> = new Set([
+  "download_apps",
+  "notifications",
+  "addresses",
+  "custom_domain",
+  "import_mail",
+  "plan_selection",
+]);
+
+const FINISH_PATHS: ReadonlySet<string> = new Set([
+  "/",
+  "/settings/domains",
+  "/settings/import",
+]);
+
+interface RegistrationHistoryState {
+  reg_step?: RegistrationStep;
+  [key: string]: unknown;
+}
 
 interface RegistrationResumeState {
   step: RegistrationStep;
@@ -167,6 +188,8 @@ interface RegistrationResumeState {
   recovery_email: string;
   recovery_email_required: boolean;
   plan_step_shown: boolean;
+  finish_path: string;
+  open_domain_purchase: boolean;
 }
 
 function read_resume_state(): RegistrationResumeState | null {
@@ -193,6 +216,12 @@ function read_resume_state(): RegistrationResumeState | null {
         typeof parsed.recovery_email === "string" ? parsed.recovery_email : "",
       recovery_email_required: parsed.recovery_email_required === true,
       plan_step_shown: parsed.plan_step_shown === true,
+      finish_path:
+        typeof parsed.finish_path === "string" &&
+        FINISH_PATHS.has(parsed.finish_path)
+          ? parsed.finish_path
+          : "/",
+      open_domain_purchase: parsed.open_domain_purchase === true,
     };
   } catch {
     return null;
@@ -203,9 +232,7 @@ function resolve_resume_step(step: RegistrationStep): RegistrationStep {
   if (step === "password" || step === "generating") return "password";
   if (PRE_CREATION_STEPS.has(step)) return "email";
   if (RESUMABLE_STEPS.has(step)) return step;
-  if (step === "academic_offer" || step === "plan_selection") {
-    return "download_apps";
-  }
+  if (step === "academic_offer") return "download_apps";
 
   return "recovery_email";
 }
@@ -219,6 +246,7 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const { t } = use_i18n();
   const navigate = useNavigate();
   const location = useLocation();
+  const navigation_type = useNavigationType();
   const { theme } = useTheme();
   const is_dark = theme === "dark";
   const {
@@ -330,6 +358,15 @@ export function use_registration(options?: RegistrationClaimOptions) {
   );
   const complete_registration_ref = useRef<() => Promise<void>>();
   const plan_step_shown_ref = useRef(false);
+  const finish_path_ref = useRef(
+    resume_state_ref.current?.finish_path ?? "/",
+  );
+  const open_domain_purchase_ref = useRef(
+    resume_state_ref.current?.open_domain_purchase ?? false,
+  );
+  const step_ref = useRef(step);
+
+  step_ref.current = step;
   const persist_state_promise_ref = useRef<Promise<void> | null>(null);
   const saving_recovery_email_ref = useRef(false);
   const handoff_ref = useRef(false);
@@ -357,6 +394,8 @@ export function use_registration(options?: RegistrationClaimOptions) {
       recovery_email,
       recovery_email_required,
       plan_step_shown: plan_step_shown_ref.current,
+      finish_path: finish_path_ref.current,
+      open_domain_purchase: open_domain_purchase_ref.current,
     };
 
     safe_session_set(REGISTRATION_RESUME_KEY, JSON.stringify(state));
@@ -372,6 +411,39 @@ export function use_registration(options?: RegistrationClaimOptions) {
     recovery_email,
     recovery_email_required,
   ]);
+
+  useEffect(() => {
+    if (is_restoring || PRE_CREATION_STEPS.has(step)) return;
+    const current_state = (location.state ?? {}) as RegistrationHistoryState;
+
+    if (current_state.reg_step === step) return;
+    navigate(`${location.pathname}${location.search}${location.hash}`, {
+      state: { ...current_state, reg_step: step },
+    });
+  }, [step, is_restoring]);
+
+  useEffect(() => {
+    if (navigation_type !== "POP" || is_restoring) return;
+    const current = step_ref.current;
+
+    if (PRE_CREATION_STEPS.has(current)) return;
+    const history_state = (location.state ?? {}) as RegistrationHistoryState;
+    const target = history_state.reg_step;
+
+    if (target === current) return;
+    if (
+      target &&
+      BACK_NAVIGABLE_STEPS.has(target) &&
+      BACK_NAVIGABLE_STEPS.has(current)
+    ) {
+      set_step(target);
+
+      return;
+    }
+    navigate(`${location.pathname}${location.search}${location.hash}`, {
+      state: { ...history_state, reg_step: current },
+    });
+  }, [location.key]);
 
   const handle_cancel_add_account = () => {
     safe_session_remove(REGISTRATION_RESUME_KEY);
@@ -865,11 +937,30 @@ export function use_registration(options?: RegistrationClaimOptions) {
   const finalize_registration = async (target_path?: string) => {
     await persist_registration_state();
 
+    const destination = target_path ?? finish_path_ref.current;
+
+    if (open_domain_purchase_ref.current) {
+      safe_session_set("alias_domains_purchase_open", "1");
+    }
     safe_session_remove(REGISTRATION_RESUME_KEY);
     handoff_ref.current = true;
     set_is_completing_registration(false);
 
-    navigate(target_path ?? "/", { replace: true });
+    navigate(destination, { replace: true });
+  };
+
+  const go_to_plan_step = async (
+    finish_path: string,
+    open_domain_purchase = false,
+  ) => {
+    finish_path_ref.current = finish_path;
+    open_domain_purchase_ref.current = open_domain_purchase;
+    if (is_claim) {
+      await finalize_registration();
+
+      return;
+    }
+    set_step("plan_selection");
   };
 
   const complete_registration = async () => {
@@ -969,12 +1060,11 @@ export function use_registration(options?: RegistrationClaimOptions) {
   };
 
   const handle_custom_domain_own = async () => {
-    await finalize_registration("/settings/domains");
+    await go_to_plan_step("/settings/domains");
   };
 
   const handle_custom_domain_new = async () => {
-    safe_session_set("alias_domains_purchase_open", "1");
-    await finalize_registration("/settings/domains");
+    await go_to_plan_step("/settings/domains", true);
   };
 
   const handle_custom_domain_skip = () => {
@@ -982,11 +1072,11 @@ export function use_registration(options?: RegistrationClaimOptions) {
   };
 
   const handle_import_mail = async () => {
-    await finalize_registration("/settings/import");
+    await go_to_plan_step("/settings/import");
   };
 
   const handle_import_mail_skip = async () => {
-    await finalize_registration();
+    await go_to_plan_step("/");
   };
 
   complete_registration_ref.current = complete_registration;

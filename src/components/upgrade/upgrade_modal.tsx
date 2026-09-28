@@ -108,6 +108,7 @@ type HighlightKind = "storage" | "aliases" | "domains" | "extra";
 interface PlanHighlight {
   kind: HighlightKind;
   label_key: string;
+  params?: Record<string, string>;
   info_key?: string;
 }
 
@@ -127,8 +128,8 @@ const PLAN_HIGHLIGHTS: Record<string, PlanHighlight[]> = {
     { kind: "domains", label_key: "settings.plan_feat_domains_5" },
     {
       kind: "extra",
-      label_key: "settings.plan_feat_advanced_aliases",
-      info_key: "settings.plan_desc_advanced_aliases",
+      label_key: "settings.plan_feat_imap_smtp",
+      info_key: "settings.plan_desc_apps",
     },
   ],
   nova: [
@@ -137,15 +138,35 @@ const PLAN_HIGHLIGHTS: Record<string, PlanHighlight[]> = {
     { kind: "domains", label_key: "settings.plan_feat_domains_30" },
     {
       kind: "extra",
+      label_key: "settings.plan_f_multi_accounts",
+      params: { value: "5" },
+      info_key: "settings.plan_desc_multi_accounts",
+    },
+    {
+      kind: "extra",
       label_key: "settings.plan_feat_smart_folders",
       info_key: "settings.plan_tip_smart_folders",
     },
   ],
   supernova: [
     { kind: "storage", label_key: "settings.plan_feat_storage_5tb" },
-    { kind: "aliases", label_key: "settings.plan_feat_aliases_unlimited" },
     { kind: "domains", label_key: "settings.plan_feat_domains_unlimited" },
-    { kind: "extra", label_key: "settings.plan_feat_priority_support" },
+    {
+      kind: "extra",
+      label_key: "settings.plan_f_multi_accounts",
+      params: { value: "20" },
+      info_key: "settings.plan_desc_multi_accounts",
+    },
+    {
+      kind: "extra",
+      label_key: "settings.plan_f_support_dedicated",
+      info_key: "settings.plan_desc_support_dedicated",
+    },
+    {
+      kind: "extra",
+      label_key: "settings.plan_f_early_access",
+      info_key: "settings.plan_desc_early_access",
+    },
   ],
 };
 
@@ -186,10 +207,10 @@ function checkout_interval_for(term_id: string): string {
 }
 
 function term_id_for_interval(interval: UpgradeInterval | null): string {
-  if (interval === "month") return "monthly";
+  if (interval === "year") return "yearly";
   if (interval === "biennial") return "biennial";
 
-  return "yearly";
+  return "monthly";
 }
 
 function is_desktop(): boolean {
@@ -210,16 +231,19 @@ export function UpgradeModal() {
   } = use_plan_limits();
   const [currency, set_currency] = useState("usd");
   const [audience, set_audience] = useState<PlanAudience>("individual");
-  const [interval, set_interval] = useState<"month" | "year">("year");
-  const [term_id, set_term_id] = useState("yearly");
+  const [interval, set_interval] = useState<"month" | "year">("month");
+  const [term_id, set_term_id] = useState("monthly");
   const [crypto_tier, set_crypto_tier] = useState<PlanTier | null>(null);
-  const [crypto_term_months, set_crypto_term_months] = useState(12);
+  const [crypto_term_months, set_crypto_term_months] = useState(1);
   const [pending_tier, set_pending_tier] = useState<PlanTier | null>(null);
   const [plan_change_target, set_plan_change_target] = useState<{
     tier: PlanTier;
     billing: string;
   } | null>(null);
   const [compare_open, set_compare_open] = useState(false);
+  const [selected_tier_id, set_selected_tier_id] = useState<string | null>(
+    null,
+  );
   const [is_starting, set_is_starting] = useState(false);
   const pending_desktop_checkout_ref = useRef(false);
   const seeded_open_seq_ref = useRef(0);
@@ -388,6 +412,7 @@ export function UpgradeModal() {
 
     set_is_starting(false);
     set_compare_open(false);
+    set_selected_tier_id(null);
     set_crypto_tier(null);
     set_plan_change_target(null);
 
@@ -451,7 +476,7 @@ export function UpgradeModal() {
           highlight.info_key ?? HIGHLIGHT_INFO_KEY[highlight.kind];
 
         return {
-          label: t(highlight.label_key as never),
+          label: t(highlight.label_key as never, highlight.params),
           on: true,
           info: info_key ? t(info_key as never) : undefined,
         };
@@ -516,10 +541,14 @@ export function UpgradeModal() {
   };
 
   const trust_points = [
-    t("settings.end_to_end_encrypted"),
-    t("auth.no_ads_no_tracking"),
+    t("settings.money_back_guarantee"),
     t("settings.cancel_anytime"),
   ];
+
+  const selected_tier =
+    tiers.find((tier) => tier.id === selected_tier_id) ?? default_tier;
+
+  const row_summary = (tier: PlanTier) => tier_features(tier)[0]?.label ?? "";
 
   const start_plan_change = async (
     tier: PlanTier,
@@ -909,7 +938,7 @@ export function UpgradeModal() {
               </div>
 
               <div
-                className={`grid gap-4 pt-3 ${GRID_COLUMNS[tiers.length] ?? "sm:grid-cols-3"}`}
+                className={`hidden gap-4 pt-3 sm:grid ${GRID_COLUMNS[tiers.length] ?? "sm:grid-cols-3"}`}
               >
                 {tiers.map((tier) => {
                   const is_featured = default_tier?.id === tier.id;
@@ -949,11 +978,123 @@ export function UpgradeModal() {
                 })}
               </div>
 
-              {currency !== "usd" && (
-                <p className="pt-3 text-xs text-txt-muted text-center">
-                  {t("settings.prices_converted_note")}
-                </p>
-              )}
+              <div
+                aria-label={t("settings.select_your_plan")}
+                className="space-y-2 pt-1 sm:hidden"
+                role="radiogroup"
+              >
+                {tiers.map((tier) => {
+                  const is_selected = selected_tier?.id === tier.id;
+                  const badge =
+                    required_tier?.id === tier.id
+                      ? t("common.unlock")
+                      : tier.is_recommended
+                        ? t("settings.plan_recommended")
+                        : null;
+
+                  return (
+                    <button
+                      key={tier.id}
+                      aria-checked={is_selected}
+                      className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-start transition-colors ${
+                        is_selected
+                          ? "bg-surf-tertiary"
+                          : "border-edge-secondary"
+                      }`}
+                      role="radio"
+                      style={
+                        is_selected
+                          ? { borderColor: "var(--accent-blue)" }
+                          : undefined
+                      }
+                      type="button"
+                      onClick={() => set_selected_tier_id(tier.id)}
+                    >
+                      <span
+                        className="flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-full border-2"
+                        style={{
+                          borderColor: is_selected
+                            ? "var(--accent-blue)"
+                            : "var(--border-primary)",
+                        }}
+                      >
+                        {is_selected && (
+                          <span
+                            className="h-2 w-2 rounded-full"
+                            style={{ backgroundColor: "var(--accent-blue)" }}
+                          />
+                        )}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-txt-primary">
+                            {tier.name}
+                          </span>
+                          {badge && (
+                            <span
+                              className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                              style={{
+                                backgroundColor: "var(--accent-blue)",
+                                color: "var(--accent-fg, #ffffff)",
+                              }}
+                            >
+                              {badge}
+                            </span>
+                          )}
+                        </span>
+                        <span className="mt-0.5 block truncate text-xs text-txt-muted">
+                          {row_summary(tier)}
+                        </span>
+                      </span>
+                      <span className="flex-shrink-0 text-end tabular-nums">
+                        {interval === "year" && (
+                          <span className="block text-[11px] text-txt-muted line-through">
+                            {format_price(
+                              convert_cents(tier.monthly_cents, currency),
+                              currency,
+                            )}
+                          </span>
+                        )}
+                        <span className="block text-sm font-semibold text-txt-primary">
+                          {price_label(tier)}
+                          <span className="text-xs font-normal text-txt-muted">
+                            {t("settings.per_month_short")}
+                          </span>
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+
+                {selected_tier && (
+                  <div className="rounded-2xl border border-edge-secondary px-4 py-3.5">
+                    {lead_in_for(selected_tier) && (
+                      <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-txt-muted">
+                        {lead_in_for(selected_tier)}
+                      </p>
+                    )}
+                    <ul className="space-y-2">
+                      {tier_features(selected_tier).map((feature) => (
+                        <li
+                          key={feature.label}
+                          className="flex items-start gap-2.5 text-[13px] text-txt-secondary"
+                        >
+                          <CheckIcon
+                            className="mt-0.5 h-4 w-4 flex-shrink-0"
+                            style={{ color: "var(--accent-blue)" }}
+                          />
+                          <span>{feature.label}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {interval === "year" && (
+                      <p className="mt-3 text-xs text-txt-muted">
+                        {yearly_total_label(selected_tier)}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             </>
           )}
 
@@ -976,7 +1117,10 @@ export function UpgradeModal() {
             </ul>
           )}
 
-          <div className="flex flex-col items-center gap-2.5 pt-1">
+          <div className="flex flex-col items-center gap-2 pt-1 text-center">
+            <p className="text-xs text-txt-secondary">
+              {t("settings.plan_every_plan_includes")}
+            </p>
             <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5">
               {trust_points.map((point) => (
                 <li
@@ -990,44 +1134,80 @@ export function UpgradeModal() {
                   <span>{point}</span>
                 </li>
               ))}
+              {tiers.length > 0 && (
+                <li className="flex items-center">
+                  <select
+                    aria-label={t("settings.select_currency")}
+                    className="cursor-pointer rounded-md bg-transparent py-0.5 text-xs font-medium text-txt-secondary underline decoration-dotted underline-offset-4 outline-none transition-colors hover:text-txt-primary focus-visible:ring-2 focus-visible:ring-blue-500"
+                    value={currency}
+                    onChange={handle_currency_change}
+                  >
+                    {SUPPORTED_CURRENCIES.map((entry) => (
+                      <option key={entry.code} value={entry.code}>
+                        {entry.label}
+                      </option>
+                    ))}
+                  </select>
+                </li>
+              )}
             </ul>
-            <p className="text-center text-[12px] leading-relaxed text-txt-tertiary">
+            <p className="text-[12px] leading-relaxed text-txt-tertiary">
+              {currency !== "usd" && tiers.length > 0
+                ? `${t("settings.prices_converted_note")} `
+                : ""}
               {t("settings.plan_billing_terms")}
             </p>
           </div>
         </ModalBody>
 
-        <ModalFooter className="justify-between gap-3">
-          {is_storage ? (
-            <Button
-              disabled={is_starting}
-              variant="outline"
-              onClick={handle_buy_storage}
-            >
-              {t("settings.upgrade_buy_storage")}
-            </Button>
-          ) : (
-            <Button
-              disabled={is_starting}
-              variant="ghost"
-              onClick={handle_compare_plans}
-            >
-              {t("settings.compare_all_features")}
-            </Button>
+        <ModalFooter className="sticky bottom-0 z-10 flex-col gap-2 border-t border-edge-secondary bg-[var(--modal-bg)] pt-3 sm:static sm:flex-row sm:border-t-0 sm:pt-2">
+          {selected_tier && !is_first_load && !limits_failed && (
+            <div className="w-full sm:hidden">
+              <Button
+                className="w-full"
+                disabled={is_starting}
+                variant="primary"
+                onClick={() => handle_select_tier(selected_tier)}
+              >
+                {t("settings.continue_with_plan", {
+                  plan: selected_tier.name,
+                })}
+              </Button>
+            </div>
           )}
-          <Button
-            className="text-txt-muted"
-            disabled={is_starting}
-            variant="ghost"
-            onClick={close_upgrade_modal}
-          >
-            {t("common.not_now")}
-          </Button>
-          {is_starting && (
-            <span className="flex items-center px-2">
-              <Spinner size="xs" />
+          <div className="flex w-full items-center justify-between gap-3">
+            {is_storage ? (
+              <Button
+                disabled={is_starting}
+                size="sm"
+                variant="outline"
+                onClick={handle_buy_storage}
+              >
+                {t("settings.upgrade_buy_storage")}
+              </Button>
+            ) : (
+              <Button
+                disabled={is_starting}
+                size="sm"
+                variant="ghost"
+                onClick={handle_compare_plans}
+              >
+                {t("settings.compare_all_features")}
+              </Button>
+            )}
+            <span className="flex items-center gap-1">
+              {is_starting && <Spinner size="xs" />}
+              <Button
+                className="text-txt-muted"
+                disabled={is_starting}
+                size="sm"
+                variant="ghost"
+                onClick={close_upgrade_modal}
+              >
+                {t("common.not_now")}
+              </Button>
             </span>
-          )}
+          </div>
         </ModalFooter>
       </Modal>
 

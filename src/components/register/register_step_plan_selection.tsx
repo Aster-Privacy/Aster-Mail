@@ -286,7 +286,7 @@ export const RegisterStepPlanSelection = ({
     "individual",
   );
   const [billing_period, set_billing_period] = useState<"monthly" | "yearly">(
-    "yearly",
+    "monthly",
   );
   const [currency, set_currency] = useState<string>("usd");
   const [plans, set_plans] = useState<AvailablePlan[]>([]);

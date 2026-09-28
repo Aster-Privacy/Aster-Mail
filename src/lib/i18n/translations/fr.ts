@@ -7969,6 +7969,8 @@ export const fr = {
       "Les objets circulent normalement en clair : toute personne qui achemine le message peut les lire. Lorsque cette option est activée, un message chiffré part avec trois points à la place de l’objet, et l’objet réel est protégé dans la partie chiffrée. Les destinataires dont l’app de messagerie prend en charge les en-têtes protégés voient l’objet réel. Les autres voient trois points dans leur liste et retrouvent l’objet en haut du message : activez cette option seulement si ce compromis vous convient.",
     browse_folder: "Choisir un dossier",
     money_back_guarantee: "Garantie satisfait ou remboursé de 30 jours",
+    plan_every_plan_includes:
+      "Chaque forfait inclut le chiffrement de bout en bout, un stockage à connaissance nulle et des apps open source.",
     cancel_anytime: "Annulez à tout moment",
     billed_annually: "facturé chaque année",
     save_annually_hint: "Économisez 20 % avec l’offre annuelle",
@@ -8099,7 +8101,7 @@ export const fr = {
     domain_provider_detected: "Votre DNS est géré par {{provider}}",
     domain_provider_open: "Ouvrir {{provider}}",
     crypto_rate_notice:
-      "Lorsque vous choisissez une cryptomonnaie, nous bloquons un taux de change et vous indiquons le montant exact à envoyer. Le taux tient 60 minutes sur Bitcoin et 30 minutes sur les réseaux Ethereum. Rien ne vous est prélevé tant que vous n’envoyez pas le paiement vous-même.",
+      "Lorsque vous choisissez une cryptomonnaie, nous bloquons un taux de change et vous indiquons le montant exact à envoyer. Le taux tient 60 minutes sur tous les réseaux. Rien ne vous est prélevé tant que vous n’envoyez pas le paiement vous-même.",
     crypto_exchange_warning:
       "Payez depuis un portefeuille que vous contrôlez. Si vous envoyez des fonds depuis une plateforme d'échange ou un service de conversion, le paiement provient d'une adresse qui n'est pas la vôtre et le prestataire ne peut pas le rattacher à votre commande. Effectuez le paiement dans le délai indiqué sur la page de paiement.",
     crypto_energy_toggle: "Consommation d’énergie de ces réseaux",

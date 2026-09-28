@@ -7852,6 +7852,8 @@ export const nl = {
       "Onderwerpen reizen normaal gesproken onversleuteld mee, dus iedereen die het bericht verwerkt kan ze lezen. Staat dit aan, dan vertrekt een versleuteld bericht met drie puntjes in plaats van het onderwerp en is het echte onderwerp beschermd in het versleutelde deel. Ontvangers met een mailclient die beschermde headers ondersteunt, zien het echte onderwerp. Alle anderen zien drie puntjes in hun lijst en vinden het onderwerp boven aan het bericht. Zet dit dus alleen aan als je die afweging accepteert.",
     browse_folder: "Map selecteren",
     money_back_guarantee: "30 dagen niet-goed-geldterug",
+    plan_every_plan_includes:
+      "Elk abonnement bevat end-to-end-versleuteling, zero-knowledge-opslag en opensource-apps.",
     cancel_anytime: "Altijd opzegbaar",
     billed_annually: "jaarlijks gefactureerd",
     save_annually_hint: "Bespaar 20% met een jaarabonnement",
@@ -7979,7 +7981,7 @@ export const nl = {
     domain_provider_detected: "Je DNS wordt beheerd door {{provider}}",
     domain_provider_open: "{{provider}} openen",
     crypto_rate_notice:
-      "Als je een munt kiest, zetten we een wisselkoers vast en tonen we het exacte bedrag dat je moet sturen. De koers geldt 60 minuten op Bitcoin en 30 minuten op Ethereum-netwerken. Er wordt niets afgeschreven totdat je de betaling zelf verstuurt.",
+      "Als je een munt kiest, zetten we een wisselkoers vast en tonen we het exacte bedrag dat je moet sturen. De koers geldt 60 minuten op elk netwerk. Er wordt niets afgeschreven totdat je de betaling zelf verstuurt.",
     crypto_exchange_warning:
       "Betaal vanuit een wallet die je zelf beheert. Als je geld verstuurt vanaf een exchange of een wisseldienst, komt de betaling van een adres dat niet van jou is en kan de verwerker deze niet aan je bestelling koppelen. Rond de betaling af binnen de tijd die de afrekenpagina toont.",
     crypto_energy_toggle: "Energieverbruik van deze netwerken",

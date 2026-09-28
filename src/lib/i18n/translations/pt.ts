@@ -7967,6 +7967,8 @@ export const pt = {
       "Os assuntos dos e-mails normalmente circulam sem encriptação, por isso qualquer pessoa que manuseie a mensagem os pode ler. Com esta opção ativada, uma mensagem encriptada sai com três pontos no lugar do assunto, e o assunto real fica protegido dentro da parte encriptada. Os destinatários cuja aplicação de e-mail suporta cabeçalhos protegidos veem o assunto real. Os restantes veem três pontos na lista da caixa de entrada e encontram o assunto no topo da mensagem, por isso ative esta opção apenas se aceitar essa contrapartida.",
     browse_folder: "Selecionar pasta",
     money_back_guarantee: "Garantia de reembolso de 30 dias",
+    plan_every_plan_includes:
+      "Todos os planos incluem criptografia de ponta a ponta, armazenamento de conhecimento zero e apps de código aberto.",
     cancel_anytime: "Cancele quando quiser",
     billed_annually: "cobrado anualmente",
     save_annually_hint: "Poupe 20% no plano anual",
@@ -8094,7 +8096,7 @@ export const pt = {
     domain_provider_detected: "O seu DNS é gerido por {{provider}}",
     domain_provider_open: "Abrir {{provider}}",
     crypto_rate_notice:
-      "Quando escolhe uma moeda, fixamos uma taxa de câmbio e mostramos o valor exato a enviar. A taxa mantém-se durante 60 minutos no Bitcoin e 30 minutos nas redes Ethereum. Nada é cobrado até ser o próprio a enviar o pagamento.",
+      "Quando escolhe uma moeda, fixamos uma taxa de câmbio e mostramos o valor exato a enviar. A taxa mantém-se durante 60 minutos em todas as redes. Nada é cobrado até ser o próprio a enviar o pagamento.",
     crypto_exchange_warning:
       "Pague a partir de uma carteira que controla. Se enviar fundos de uma corretora ou de um serviço de troca, o pagamento chega de um endereço que não é o seu e o processador não consegue associá-lo ao seu pedido. Conclua o pagamento dentro do tempo indicado na página de pagamento.",
     crypto_energy_toggle: "Consumo de energia dessas redes",
