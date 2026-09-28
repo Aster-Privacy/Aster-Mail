@@ -481,7 +481,6 @@ export function ArchiveNewslettersModal({
                 <div className="mt-6" />
                 <div className="flex gap-2">
                   <Button
-                    size="xl"
                     variant="outline"
                     onClick={() => {
                       set_show_success(false);
@@ -490,7 +489,7 @@ export function ArchiveNewslettersModal({
                   >
                     {t("common.continue_label")}
                   </Button>
-                  <Button size="xl" variant="depth" onClick={handle_done}>
+                  <Button variant="depth" onClick={handle_done}>
                     {t("common.done")}
                   </Button>
                 </div>
@@ -657,7 +656,6 @@ export function ArchiveNewslettersModal({
                   </button>
                   <Button
                     disabled={selected_ids.size === 0}
-                    size="xl"
                     variant="depth"
                     onClick={handle_archive}
                   >

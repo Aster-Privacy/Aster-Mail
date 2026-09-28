@@ -282,7 +282,7 @@ export function ComposeWindow({
     <>
       {is_mobile_fullscreen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 sm:hidden"
+          className="fixed inset-0 z-40 aster_scrim sm:hidden"
           role="presentation"
           onClick={compose.handle_close}
         />
@@ -292,7 +292,7 @@ export function ComposeWindow({
           <motion.div
             key="compose-backdrop"
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-40 bg-black/55"
+            className="fixed inset-0 z-40 aster_scrim"
             exit={{ opacity: 0 }}
             initial={reduce_motion ? false : { opacity: 0 }}
             transition={{ duration: reduce_motion ? 0 : 0.2 }}

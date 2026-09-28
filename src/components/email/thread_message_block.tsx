@@ -582,7 +582,9 @@ export function ThreadMessageBlock(
                   {t("mail.forward")}
                 </DropdownMenuItem>
               )}
-              <DropdownMenuSeparator />
+              {(on_reply_all && !is_system) || on_forward ? (
+                <DropdownMenuSeparator />
+              ) : null}
               {message.item_type !== "sent" && (
                 <DropdownMenuItem
                   onClick={(e) => {
@@ -598,7 +600,6 @@ export function ThreadMessageBlock(
                   {is_read ? t("mail.mark_unread") : t("mail.mark_read")}
                 </DropdownMenuItem>
               )}
-              <DropdownMenuSeparator />
               {on_archive && (
                 <DropdownMenuItem
                   onClick={(e) => {

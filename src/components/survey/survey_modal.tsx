@@ -337,7 +337,7 @@ export function SurveyModal({
       </ModalBody>
       <ModalFooter>
         <button
-          className="aster_btn aster_btn_outline aster_btn_md"
+          className="aster_btn aster_btn_outline aster_btn_lg"
           disabled={is_submitting}
           type="button"
           onClick={on_close}
@@ -345,7 +345,7 @@ export function SurveyModal({
           {t("common.cancel")}
         </button>
         <button
-          className="aster_btn aster_btn_primary aster_btn_md"
+          className="aster_btn aster_btn_primary aster_btn_lg"
           disabled={is_submitting}
           type="button"
           onClick={handle_submit}

@@ -63,7 +63,7 @@ export function BillingAdvantagesCard({
 
           return (
             <div key={`${feature.label}-${index}`}>
-              {index > 0 && <IslandDivider inset={52} />}
+              {index > 0 && <IslandDivider />}
               <IslandRow
                 description={feature.description}
                 icon={Icon ? <Icon className="h-[22px] w-[22px]" /> : undefined}
@@ -72,7 +72,7 @@ export function BillingAdvantagesCard({
             </div>
           );
         })}
-        <IslandDivider inset={52} />
+        <IslandDivider />
         <IslandRow
           chevron
           icon={<ListBulletIcon className="h-[22px] w-[22px]" />}

@@ -243,7 +243,6 @@ export function TagManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="outline"
                 onClick={on_close}
               >
@@ -252,7 +251,6 @@ export function TagManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading || !can_rename}
-                size="xl"
                 variant="depth"
                 onClick={handle_rename}
               >
@@ -319,7 +317,6 @@ export function TagManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="outline"
                 onClick={on_close}
               >
@@ -328,7 +325,6 @@ export function TagManagementModal({
               <Button
                 className="flex-1 text-white"
                 disabled={is_loading}
-                size="xl"
                 style={{ backgroundColor: new_color }}
                 variant="depth"
                 onClick={handle_recolor}
@@ -377,7 +373,6 @@ export function TagManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="outline"
                 onClick={on_close}
               >
@@ -386,7 +381,6 @@ export function TagManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="depth"
                 onClick={handle_reicon}
               >
@@ -441,7 +435,6 @@ export function TagManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="outline"
                 onClick={on_close}
               >
@@ -451,7 +444,6 @@ export function TagManagementModal({
                 className="flex-1"
                 disabled={is_loading}
                 is_loading={is_loading}
-                size="xl"
                 variant="destructive"
                 onClick={handle_delete}
               >

@@ -770,7 +770,7 @@ export function CreditsSection({
       <IslandSection bare title={t("settings.credits")}>
         <Island className="overflow-hidden" padding="none">
           {payment_cell}
-          {payment_cell && <IslandDivider inset={52} />}
+          {payment_cell && <IslandDivider />}
           {balance_row}
         </Island>
       </IslandSection>

@@ -620,7 +620,7 @@ export function EncryptionSection({
 
       {enc.show_export_prompt && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50"
+          className="fixed inset-0 z-50 flex items-end justify-center aster_scrim"
           onClick={enc.close_export_prompt}
         >
           <motion.div

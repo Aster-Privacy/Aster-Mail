@@ -409,12 +409,11 @@ export function CustomCategoryModal({
             </div>
 
             <div className="flex justify-end gap-3 px-6 pb-6 pt-2">
-              <Button size="xl" variant="outline" onClick={on_close}>
+              <Button variant="outline" onClick={on_close}>
                 {t("common.cancel")}
               </Button>
               <Button
                 disabled={!trimmed_name}
-                size="xl"
                 variant="depth"
                 onClick={handle_save}
               >

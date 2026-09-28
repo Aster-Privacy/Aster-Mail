@@ -58,7 +58,7 @@ export function ContactsModal({
         if (e["key"] === "Escape") dismiss_from_backdrop();
       }}
     >
-      <div aria-hidden="true" className="absolute inset-0 bg-black/70" />
+      <div aria-hidden="true" className="absolute inset-0 aster_scrim" />
       {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events */}
       <div
         aria-label={modal.t("common.contacts")}

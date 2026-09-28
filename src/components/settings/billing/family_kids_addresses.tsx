@@ -626,14 +626,14 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
         </ModalHeader>
         <ModalFooter>
           <button
-            className="aster_btn aster_btn_ghost aster_btn_sm"
+            className="aster_btn aster_btn_ghost aster_btn_lg"
             disabled={releasing}
             onClick={() => set_release_target(null)}
           >
             {t("settings.fam_kids_cancel")}
           </button>
           <button
-            className="aster_btn aster_btn_destructive aster_btn_sm flex items-center gap-1.5 disabled:opacity-50"
+            className="aster_btn aster_btn_destructive aster_btn_lg flex items-center gap-1.5 disabled:opacity-50"
             disabled={releasing}
             onClick={confirm_release}
           >

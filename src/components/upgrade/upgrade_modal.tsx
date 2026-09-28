@@ -1004,7 +1004,6 @@ export function UpgradeModal() {
           {is_storage ? (
             <Button
               disabled={is_starting}
-              size="sm"
               variant="outline"
               onClick={handle_buy_storage}
             >
@@ -1013,7 +1012,6 @@ export function UpgradeModal() {
           ) : (
             <Button
               disabled={is_starting}
-              size="sm"
               variant="ghost"
               onClick={handle_compare_plans}
             >
@@ -1023,7 +1021,6 @@ export function UpgradeModal() {
           <Button
             className="text-txt-muted"
             disabled={is_starting}
-            size="sm"
             variant="ghost"
             onClick={close_upgrade_modal}
           >

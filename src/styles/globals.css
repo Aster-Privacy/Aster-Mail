@@ -114,7 +114,7 @@
   --sidebar-bg: #f5f5f5;
   --sidebar-hover: #e0e0e0;
   --modal-bg: #ffffff;
-  --modal-overlay: rgba(0, 0, 0, 0.5);
+  --modal-overlay: rgba(0, 0, 0, 0.32);
   --dropdown-bg: #ffffff;
   --dropdown-hover: #f3f4f6;
   --input-bg: #ffffff;
@@ -208,7 +208,7 @@
   --sidebar-bg: #0a0a0a;
   --sidebar-hover: #0f0f0f;
   --modal-bg: #121212;
-  --modal-overlay: rgba(0, 0, 0, 0.85);
+  --modal-overlay: rgba(0, 0, 0, 0.6);
   --dropdown-bg: #121212;
   --dropdown-hover: #252525;
   --input-bg: #1a1a1a;
@@ -293,7 +293,7 @@
   --sidebar-bg: #120e1a;
   --sidebar-hover: #1c1526;
   --modal-bg: #1b1526;
-  --modal-overlay: rgba(10, 6, 16, 0.85);
+  --modal-overlay: rgba(10, 6, 16, 0.6);
   --dropdown-bg: #1b1526;
   --dropdown-hover: #251d33;
   --input-bg: #1f1829;
@@ -368,7 +368,7 @@
   --sidebar-bg: #0a1712;
   --sidebar-hover: #12251c;
   --modal-bg: #10201a;
-  --modal-overlay: rgba(6, 16, 12, 0.85);
+  --modal-overlay: rgba(6, 16, 12, 0.6);
   --dropdown-bg: #10201a;
   --dropdown-hover: #183327;
   --input-bg: #142a21;
@@ -443,7 +443,7 @@
   --sidebar-bg: #1a0d10;
   --sidebar-hover: #26141a;
   --modal-bg: #241318;
-  --modal-overlay: rgba(16, 6, 9, 0.85);
+  --modal-overlay: rgba(16, 6, 9, 0.6);
   --dropdown-bg: #241318;
   --dropdown-hover: #351c26;
   --input-bg: #2c1720;
@@ -518,7 +518,7 @@
   --sidebar-bg: #1a120a;
   --sidebar-hover: #261b10;
   --modal-bg: #241a10;
-  --modal-overlay: rgba(16, 11, 6, 0.85);
+  --modal-overlay: rgba(16, 11, 6, 0.6);
   --dropdown-bg: #241a10;
   --dropdown-hover: #352718;
   --input-bg: #2c2014;
@@ -593,7 +593,7 @@
   --sidebar-bg: #0a1717;
   --sidebar-hover: #122525;
   --modal-bg: #0f2020;
-  --modal-overlay: rgba(6, 16, 16, 0.85);
+  --modal-overlay: rgba(6, 16, 16, 0.6);
   --dropdown-bg: #0f2020;
   --dropdown-hover: #183232;
   --input-bg: #142a2a;
@@ -668,7 +668,7 @@
   --sidebar-bg: #131325;
   --sidebar-hover: #1c1d34;
   --modal-bg: #191a2e;
-  --modal-overlay: rgba(10, 10, 20, 0.85);
+  --modal-overlay: rgba(10, 10, 20, 0.6);
   --dropdown-bg: #191a2e;
   --dropdown-hover: #262848;
   --input-bg: #21223c;
@@ -743,7 +743,7 @@
   --sidebar-bg: #171207;
   --sidebar-hover: #211a0c;
   --modal-bg: #201a0a;
-  --modal-overlay: rgba(14, 11, 5, 0.85);
+  --modal-overlay: rgba(14, 11, 5, 0.6);
   --dropdown-bg: #201a0a;
   --dropdown-hover: #332813;
   --input-bg: #2b2210;
@@ -818,7 +818,7 @@
   --sidebar-bg: #07161a;
   --sidebar-hover: #0d1f24;
   --modal-bg: #0a1e24;
-  --modal-overlay: rgba(4, 12, 15, 0.85);
+  --modal-overlay: rgba(4, 12, 15, 0.6);
   --dropdown-bg: #0a1e24;
   --dropdown-hover: #123138;
   --input-bg: #0f2830;
@@ -893,7 +893,7 @@
   --sidebar-bg: #101114;
   --sidebar-hover: #191b1f;
   --modal-bg: #16181c;
-  --modal-overlay: rgba(8, 9, 11, 0.85);
+  --modal-overlay: rgba(8, 9, 11, 0.6);
   --dropdown-bg: #16181c;
   --dropdown-hover: #262a31;
   --input-bg: #202329;
@@ -968,7 +968,7 @@
   --sidebar-bg: #0a1420;
   --sidebar-hover: #13233a;
   --modal-bg: #0f1b2e;
-  --modal-overlay: rgba(6, 12, 22, 0.85);
+  --modal-overlay: rgba(6, 12, 22, 0.6);
   --dropdown-bg: #0f1b2e;
   --dropdown-hover: #1b3050;
   --input-bg: #16273f;
@@ -1043,7 +1043,7 @@
   --sidebar-bg: #121607;
   --sidebar-hover: #1a200c;
   --modal-bg: #191f0a;
-  --modal-overlay: rgba(10, 14, 5, 0.85);
+  --modal-overlay: rgba(10, 14, 5, 0.6);
   --dropdown-bg: #191f0a;
   --dropdown-hover: #283213;
   --input-bg: #212910;
@@ -1118,7 +1118,7 @@
   --sidebar-bg: #1a0c1a;
   --sidebar-hover: #261329;
   --modal-bg: #241123;
-  --modal-overlay: rgba(16, 5, 15, 0.85);
+  --modal-overlay: rgba(16, 5, 15, 0.6);
   --dropdown-bg: #241123;
   --dropdown-hover: #351a32;
   --input-bg: #2c1529;
@@ -1193,7 +1193,7 @@
   --sidebar-bg: #071510;
   --sidebar-hover: #0d2015;
   --modal-bg: #0a1f13;
-  --modal-overlay: rgba(5, 15, 10, 0.85);
+  --modal-overlay: rgba(5, 15, 10, 0.6);
   --dropdown-bg: #0a1f13;
   --dropdown-hover: #143322;
   --input-bg: #10291a;
@@ -1268,7 +1268,7 @@
   --sidebar-bg: #1a0a14;
   --sidebar-hover: #241020;
   --modal-bg: #24101c;
-  --modal-overlay: rgba(16, 6, 13, 0.85);
+  --modal-overlay: rgba(16, 6, 13, 0.6);
   --dropdown-bg: #24101c;
   --dropdown-hover: #38192c;
   --input-bg: #2e1524;

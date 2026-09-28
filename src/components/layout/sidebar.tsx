@@ -771,9 +771,7 @@ const sidebar_base = ({
                 navigate={navigate}
                 on_drop_emails={on_drop_to_folder}
                 reorder_folders={reorder_folders}
-                set_create_folder_parent_token={
-                  set_create_folder_parent_token
-                }
+                set_create_folder_parent_token={set_create_folder_parent_token}
                 set_folders_expanded={set_folders_expanded}
                 set_is_create_folder_open={set_is_create_folder_open}
                 set_password_modal_folder={set_password_modal_folder}
@@ -914,7 +912,7 @@ const sidebar_base = ({
             <>
               <motion.div
                 animate={{ opacity: 1 }}
-                className="fixed inset-0 bg-black/60 z-40"
+                className="fixed inset-0 aster_scrim z-40"
                 exit={{ opacity: 0 }}
                 initial={reduce_motion ? false : { opacity: 0 }}
                 transition={{ duration: reduce_motion ? 0 : 0.2 }}

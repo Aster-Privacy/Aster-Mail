@@ -491,12 +491,7 @@ export function FolderDeleteDialog({
 
       <ModalFooter>
         {delete_outcome ? (
-          <Button
-            className="flex-1"
-            size="xl"
-            variant="depth"
-            onClick={on_close}
-          >
+          <Button className="flex-1" variant="depth" onClick={on_close}>
             {t("common.done")}
           </Button>
         ) : (
@@ -504,7 +499,6 @@ export function FolderDeleteDialog({
             <Button
               className="flex-1"
               disabled={is_loading}
-              size="xl"
               variant="outline"
               onClick={on_close}
             >
@@ -514,7 +508,6 @@ export function FolderDeleteDialog({
               className="flex-1"
               disabled={confirm_disabled}
               is_loading={is_loading}
-              size="xl"
               variant="destructive"
               onClick={handle_delete}
             >

@@ -118,17 +118,11 @@ export function PurchaseSuccessModal({
             </div>
 
             <div className="flex flex-col gap-3 px-6 pb-6">
-              <Button
-                className="w-full"
-                size="xl"
-                variant="depth"
-                onClick={on_close}
-              >
+              <Button className="w-full" variant="depth" onClick={on_close}>
                 {t("common.go_to_inbox")}
               </Button>
               <Button
                 className="w-full"
-                size="xl"
                 variant="secondary"
                 onClick={() => {
                   on_close();

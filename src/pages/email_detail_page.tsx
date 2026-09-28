@@ -263,7 +263,7 @@ export default function EmailDetailPage() {
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >
             <div
-              className="fixed inset-0 bg-black/50 z-50"
+              className="fixed inset-0 aster_scrim z-50"
               role="button"
               tabIndex={0}
               onClick={() => detail.set_is_block_sender_modal_open(false)}
@@ -342,7 +342,7 @@ export default function EmailDetailPage() {
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >
             <div
-              className="fixed inset-0 bg-black/50 z-50"
+              className="fixed inset-0 aster_scrim z-50"
               role="button"
               tabIndex={0}
               onClick={() => detail.set_is_unsubscribe_modal_open(false)}

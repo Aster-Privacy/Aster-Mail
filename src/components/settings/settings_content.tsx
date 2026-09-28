@@ -60,6 +60,8 @@ import { AccountSection } from "@/components/settings/account_section";
 import { AppearanceGroupSection } from "@/components/settings/appearance_group_section";
 import { SecurityGroupSection } from "@/components/settings/security_group_section";
 import { BillingGroupSection } from "@/components/settings/billing_group_section";
+import { prefetch_billing_data } from "@/components/settings/billing_section";
+import { use_auth } from "@/contexts/auth_context";
 import { NotificationsSection } from "@/components/settings/notifications_section";
 import { ReadingGroupSection } from "@/components/settings/reading_group_section";
 import { ComposeGroupSection } from "@/components/settings/compose_group_section";
@@ -291,6 +293,13 @@ function SettingsContentInner(props: SettingsContentProps) {
   const [active_result_index, set_active_result_index] = useState(0);
   const [results_dismissed, set_results_dismissed] = useState(false);
   const search_field_ref = useRef<HTMLDivElement>(null);
+
+  const { user } = use_auth();
+  const user_id = user?.id ?? null;
+
+  useEffect(() => {
+    prefetch_billing_data(user_id);
+  }, [user_id]);
 
   useEffect(() => {
     set_search_slot(document.getElementById("settings_search_slot"));

@@ -656,7 +656,7 @@ export const InlineReplyComposer = forwardRef<
     return (
       <>
         <div
-          className="fixed inset-0 z-40 bg-black/60"
+          className="fixed inset-0 z-40 aster_scrim"
           onClick={toggle_fullscreen}
         />
         <div

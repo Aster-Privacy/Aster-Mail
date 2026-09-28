@@ -233,7 +233,6 @@ export function DeleteAccountModal({
         <Button
           className="flex-1"
           disabled={is_deleting}
-          size="xl"
           variant="outline"
           onClick={handle_close}
         >
@@ -243,7 +242,6 @@ export function DeleteAccountModal({
           className="flex-1"
           disabled={!is_confirmed || is_deleting}
           is_loading={is_deleting}
-          size="xl"
           variant="destructive"
           onClick={handle_delete}
         >

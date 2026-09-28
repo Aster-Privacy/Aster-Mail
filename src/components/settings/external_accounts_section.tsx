@@ -290,7 +290,6 @@ export function ExternalAccountsSection() {
               <Button
                 className="mt-0 max-sm:flex-1"
                 disabled={state.is_purging}
-                size="xl"
                 variant="outline"
               >
                 {state.t("common.cancel")}
@@ -300,7 +299,6 @@ export function ExternalAccountsSection() {
               className="max-sm:flex-1"
               disabled={state.is_purging}
               is_loading={state.is_purging}
-              size="xl"
               variant="destructive"
               onClick={state.handle_purge_confirm}
             >

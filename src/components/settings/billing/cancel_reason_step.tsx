@@ -131,7 +131,7 @@ export function CancelReasonStep({
         {keep_plan_slot}
         <div className="ms-auto flex flex-row items-center gap-3">
           <button
-            className={button_variants({ variant: "primary", size: "sm" })}
+            className={button_variants({ variant: "primary" })}
             disabled={!can_continue}
             type="button"
             onClick={on_continue}

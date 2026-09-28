@@ -63,7 +63,7 @@ export function CancelEarlyStep({
       </p>
 
       <a
-        className={`${button_variants({ variant: "secondary", size: "sm" })} mt-4`}
+        className="mt-3 inline-flex text-sm font-medium text-[var(--accent-color)] hover:underline"
         href={CANCEL_HELP_URL}
         rel="noopener noreferrer"
         target="_blank"
@@ -75,7 +75,7 @@ export function CancelEarlyStep({
         {keep_plan_slot}
         <div className="ms-auto flex flex-row items-center gap-2">
           <button
-            className={button_variants({ variant: "primary", size: "sm" })}
+            className={button_variants({ variant: "primary" })}
             type="button"
             onClick={on_continue}
           >

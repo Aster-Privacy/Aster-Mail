@@ -931,12 +931,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 )}
               </div>
             )}
-            <Button
-              className="mt-6"
-              size="xl"
-              variant="depth"
-              onClick={handle_close}
-            >
+            <Button className="mt-6" variant="depth" onClick={handle_close}>
               {t("common.done")}
             </Button>
           </div>

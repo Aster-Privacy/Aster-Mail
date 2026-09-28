@@ -318,11 +318,7 @@ export function ShareModal({
       </div>
 
       <ModalFooter>
-        <Button
-          className="h-10 px-5 text-[14px] font-normal"
-          variant="ghost"
-          onClick={handle_close}
-        >
+        <Button variant="ghost" onClick={handle_close}>
           {t("common.close")}
         </Button>
       </ModalFooter>

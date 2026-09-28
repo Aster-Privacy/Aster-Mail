@@ -73,7 +73,7 @@ export function BillingMoreRow({
       />
       {expandable && open && (
         <>
-          <IslandDivider inset={52} />
+          <IslandDivider />
           <div className={flush ? "" : "px-4 pb-4 pt-3"}>{children}</div>
         </>
       )}

@@ -805,7 +805,7 @@ export function ScheduledPopupViewer({
         transition={{ duration: reduce_motion ? 0 : 0.2 }}
       >
         <div
-          className="absolute inset-0 bg-black/55"
+          className="absolute inset-0 aster_scrim"
           role="button"
           tabIndex={0}
           onClick={on_close}

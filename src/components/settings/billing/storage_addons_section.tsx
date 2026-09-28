@@ -209,7 +209,7 @@ export function StorageAddonsSection({
 
     return (
       <Fragment key={addon.user_addon_id}>
-        {index > 0 && <IslandDivider inset={52} />}
+        {index > 0 && <IslandDivider />}
         <IslandRow
           description={
             ending

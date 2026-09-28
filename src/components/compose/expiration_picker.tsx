@@ -332,11 +332,7 @@ export function ExpirationPicker({
             </button>
           )}
         </div>
-        <PopoverContent
-          align="end"
-          className="w-auto p-1.5"
-          side="top"
-        >
+        <PopoverContent align="end" className="w-auto p-1.5" side="top">
           {!show_custom ? (
             <div className="p-2 min-w-[280px]">
               <div className="px-2 py-1.5 mb-1">
@@ -547,7 +543,6 @@ export function ExpirationPicker({
           <AlertDialogFooter className="flex-row gap-3 px-4 pb-4 sm:justify-end">
             <Button
               className="max-sm:flex-1"
-              size="md"
               variant="ghost"
               onClick={() => {
                 set_password_input(password || "");
@@ -556,11 +551,7 @@ export function ExpirationPicker({
             >
               {t("common.cancel")}
             </Button>
-            <Button
-              className="max-sm:flex-1"
-              size="md"
-              onClick={handle_password_save}
-            >
+            <Button className="max-sm:flex-1" onClick={handle_password_save}>
               {password_input.trim()
                 ? t("settings.set_password")
                 : t("mail.no_password")}

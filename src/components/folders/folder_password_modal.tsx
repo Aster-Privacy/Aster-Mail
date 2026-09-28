@@ -691,7 +691,6 @@ export function FolderPasswordModal({
               <div className="flex justify-end gap-3 px-6 pb-6">
                 <Button
                   disabled={is_loading}
-                  size="xl"
                   variant="outline"
                   onClick={handle_close}
                 >
@@ -700,7 +699,6 @@ export function FolderPasswordModal({
                 <Button
                   disabled={is_loading}
                   is_loading={is_loading}
-                  size="xl"
                   variant={
                     internal_mode === "remove" ? "destructive" : "primary"
                   }

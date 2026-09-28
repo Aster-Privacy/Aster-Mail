@@ -158,6 +158,93 @@ export function invalidate_billing_cache() {
   billing_cache = null;
 }
 
+function request_billing_bundle() {
+  return Promise.all([
+    get_subscription(),
+    get_available_plans(),
+    get_billing_history(1, 10),
+    get_plan_limits(),
+    get_storage_addons(),
+    get_credits(),
+  ]);
+}
+
+type BillingBundle = Awaited<ReturnType<typeof request_billing_bundle>>;
+
+let pending_billing_request: Promise<BillingBundle> | null = null;
+
+function take_billing_request(): Promise<BillingBundle> {
+  const pending = pending_billing_request;
+
+  pending_billing_request = null;
+
+  return pending ?? request_billing_bundle();
+}
+
+function store_billing_cache(user_id: string | null, bundle: BillingBundle) {
+  const [
+    sub_response,
+    plans_response,
+    history_response,
+    limits_response,
+    addons_response,
+    credits_response,
+  ] = bundle;
+  const percent_off = addons_response.data?.promo_percent_off ?? 0;
+  const duration_months = addons_response.data?.promo_duration_months ?? 0;
+
+  billing_cache = {
+    user_id,
+    subscription: sub_response.data ?? billing_cache?.subscription ?? null,
+    plans: plans_response.data?.plans ?? billing_cache?.plans ?? [],
+    history: history_response.data?.items ?? billing_cache?.history ?? [],
+    plan_limits: limits_response.data ?? billing_cache?.plan_limits ?? null,
+    available_addons:
+      addons_response.data?.available_addons ??
+      billing_cache?.available_addons ??
+      [],
+    active_addons:
+      addons_response.data?.active_addons ?? billing_cache?.active_addons ?? [],
+    addon_promo: addons_response.data
+      ? {
+          eligible:
+            addons_response.data.promo_eligible === true &&
+            percent_off > 0 &&
+            duration_months > 0,
+          percent_off,
+          duration_months,
+        }
+      : (billing_cache?.addon_promo ?? {
+          eligible: false,
+          percent_off: 0,
+          duration_months: 0,
+        }),
+    credit_balance:
+      credits_response.data ?? billing_cache?.credit_balance ?? null,
+  };
+}
+
+export function prefetch_billing_data(user_id: string | null) {
+  if (!user_id || pending_billing_request) return;
+  if (billing_cache && billing_cache.user_id === user_id) return;
+
+  const request = request_billing_bundle();
+
+  pending_billing_request = request;
+  request
+    .then((bundle) => {
+      if (pending_billing_request === request) {
+        pending_billing_request = null;
+      }
+      if (bundle[0].data) store_billing_cache(user_id, bundle);
+    })
+    .catch(() => {
+      if (pending_billing_request === request) {
+        pending_billing_request = null;
+      }
+    });
+}
+
 export function BillingSection() {
   const { t } = use_i18n();
   const { stats } = use_mail_stats();
@@ -412,6 +499,7 @@ export function BillingSection() {
         })
         .catch(() => set_stripe_load_failed(true));
 
+      const responses = await take_billing_request();
       const [
         sub_response,
         plans_response,
@@ -419,14 +507,7 @@ export function BillingSection() {
         limits_response,
         addons_response,
         credits_response,
-      ] = await Promise.all([
-        get_subscription(),
-        get_available_plans(),
-        get_billing_history(1, 10),
-        get_plan_limits(),
-        get_storage_addons(),
-        get_credits(),
-      ]);
+      ] = responses;
 
       if (sub_response.data) {
         set_subscription(sub_response.data);
@@ -469,40 +550,7 @@ export function BillingSection() {
         set_credit_balance(credits_response.data);
       }
 
-      const percent_off = addons_response.data?.promo_percent_off ?? 0;
-      const duration_months = addons_response.data?.promo_duration_months ?? 0;
-
-      billing_cache = {
-        user_id,
-        subscription: sub_response.data ?? billing_cache?.subscription ?? null,
-        plans: plans_response.data?.plans ?? billing_cache?.plans ?? [],
-        history: history_response.data?.items ?? billing_cache?.history ?? [],
-        plan_limits: limits_response.data ?? billing_cache?.plan_limits ?? null,
-        available_addons:
-          addons_response.data?.available_addons ??
-          billing_cache?.available_addons ??
-          [],
-        active_addons:
-          addons_response.data?.active_addons ??
-          billing_cache?.active_addons ??
-          [],
-        addon_promo: addons_response.data
-          ? {
-              eligible:
-                addons_response.data.promo_eligible === true &&
-                percent_off > 0 &&
-                duration_months > 0,
-              percent_off,
-              duration_months,
-            }
-          : (billing_cache?.addon_promo ?? {
-              eligible: false,
-              percent_off: 0,
-              duration_months: 0,
-            }),
-        credit_balance:
-          credits_response.data ?? billing_cache?.credit_balance ?? null,
-      };
+      store_billing_cache(user_id, responses);
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
       set_subscription_load_failed(true);
@@ -1320,27 +1368,27 @@ export function BillingSection() {
             selected_storage={selected_storage}
             set_selected_storage={set_selected_storage}
           />
-          <IslandDivider inset={52} />
+          <IslandDivider />
           <BillingHistorySection
             embedded
             history={history}
             load_failed={history_load_failed}
             on_retry={() => void load_data()}
           />
-          <IslandDivider inset={52} />
+          <IslandDivider />
           <CreditsSection
             embedded
             credit_balance={credit_balance}
             preferred_currency={preferred_currency}
             set_credit_balance={set_credit_balance}
           />
-          <IslandDivider inset={52} />
+          <IslandDivider />
           <AcademicDiscountSection
             embedded
             academic_status={academic_status}
             refresh_academic_status={refresh_academic_status}
           />
-          <IslandDivider inset={52} />
+          <IslandDivider />
           <BillingMoreRow
             description={t("settings.billing_support_subtitle")}
             icon={billing_row_icon(ChatBubbleLeftRightIcon)}

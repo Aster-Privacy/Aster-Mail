@@ -205,7 +205,6 @@ export function PurchasedDomainManageModal({
       <ModalFooter className="flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
         <Button
           className="w-full sm:w-auto"
-          size="sm"
           variant="ghost"
           onClick={contact_support}
         >

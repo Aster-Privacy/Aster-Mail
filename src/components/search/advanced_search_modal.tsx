@@ -99,7 +99,7 @@ export function AdvancedSearchModal({
       {is_open && (
         <motion.div
           animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black/40 flex items-start sm:items-start justify-center pt-0 sm:pt-12 z-[60] p-0 sm:p-4"
+          className="fixed inset-0 aster_scrim flex items-start sm:items-start justify-center pt-0 sm:pt-12 z-[60] p-0 sm:p-4"
           exit={{ opacity: 0 }}
           initial={reduce_motion ? false : { opacity: 0 }}
           transition={{ duration: reduce_motion ? 0 : 0.15 }}

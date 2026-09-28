@@ -169,7 +169,6 @@ export function ExternalLinkWarningModal({
           <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end max-sm:pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]">
             <Button
               className="mt-0 max-sm:flex-1"
-              size="xl"
               variant="outline"
               onClick={handle_cancel}
             >
@@ -178,7 +177,6 @@ export function ExternalLinkWarningModal({
             {!lockdown_active && (
               <Button
                 className="max-sm:flex-1"
-                size="xl"
                 variant="depth"
                 onClick={handle_confirm}
               >

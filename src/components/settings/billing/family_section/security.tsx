@@ -558,7 +558,7 @@ export function SecurityContent({
           className="fixed inset-0 z-[70] flex items-center justify-center"
           onClick={() => set_confirm_open(false)}
         >
-          <div className="absolute inset-0 bg-black/70" />
+          <div className="absolute inset-0 aster_scrim" />
           <div
             className="relative w-full max-w-sm rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] p-6 shadow-[var(--aster-floating-shadow)]"
             onClick={(e) => e.stopPropagation()}

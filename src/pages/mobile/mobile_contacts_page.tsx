@@ -86,7 +86,7 @@ function MobileContactsPage({
             transition={{ duration: 0.15 }}
           >
             <div
-              className="absolute inset-0 bg-black/60"
+              className="absolute inset-0 aster_scrim"
               onClick={s.cancel_delete_confirm}
             />
             <motion.div
@@ -196,7 +196,7 @@ function MobileContactsPage({
             transition={{ duration: 0.15 }}
           >
             <div
-              className="absolute inset-0 bg-black/60"
+              className="absolute inset-0 aster_scrim"
               onClick={() => s.set_show_sync_confirm(false)}
             />
             <motion.div

@@ -408,7 +408,7 @@ export function SaveSearchDialog({
   return (
     <motion.div
       animate={{ opacity: 1 }}
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]"
+      className="fixed inset-0 aster_scrim flex items-center justify-center z-[60]"
       exit={{ opacity: 0 }}
       initial={reduce_motion ? false : { opacity: 0 }}
       onClick={on_close}

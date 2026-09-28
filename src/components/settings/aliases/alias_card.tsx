@@ -144,7 +144,7 @@ function AliasAvatar({
         </div>
       )}
       {uploading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full">
+        <div className="absolute inset-0 flex items-center justify-center aster_scrim rounded-full">
           <Spinner className="text-white" size="xs" />
         </div>
       )}
@@ -154,7 +154,7 @@ function AliasAvatar({
             ? t("common.alias_avatars_locked" as TranslationKey)
             : t("common.change_alias_avatar" as TranslationKey)
         }
-        className="absolute inset-0 flex items-center justify-center rounded-full bg-black/55 text-white opacity-0 transition-opacity hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed"
+        className="absolute inset-0 flex items-center justify-center rounded-full aster_scrim text-white opacity-0 transition-opacity hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed"
         disabled={uploading}
         title={
           is_locked

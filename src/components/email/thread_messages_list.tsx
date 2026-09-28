@@ -1050,14 +1050,12 @@ export const ThreadMessagesList = forwardRef<
               aria-label={t("mail.more_messages_count", {
                 count: hidden_count,
               })}
-              className="group/hidden flex w-full cursor-pointer select-none items-center justify-start px-4 py-2 focus:outline-none"
+              className="flex w-full cursor-pointer select-none items-center gap-1.5 px-4 py-3 text-[13px] font-medium text-txt-secondary transition-colors hover:bg-[var(--aster-island-hover)] hover:text-txt-primary focus:outline-none focus-visible:bg-[var(--aster-island-hover)]"
               type="button"
               onClick={() => set_hidden_group_revealed(true)}
             >
-              <span className="-ms-3 inline-flex h-8 items-center gap-1.5 rounded-full bg-transparent pe-2.5 ps-3 text-[13px] font-medium text-txt-secondary transition-colors group-hover/hidden:bg-[var(--aster-field-hover)] group-hover/hidden:text-txt-primary group-focus-visible/hidden:ring-2 group-focus-visible/hidden:ring-[var(--accent-color)]">
-                {t("mail.more_messages_count", { count: hidden_count })}
-                <ChevronDownIcon className="h-4 w-4" />
-              </span>
+              {t("mail.more_messages_count", { count: hidden_count })}
+              <ChevronDownIcon className="h-4 w-4" />
             </button>
           ),
         });

@@ -156,7 +156,6 @@ export function ModalContactDetail({
           <div className="flex gap-2 mt-5">
             {selected_contact.emails[0] && (
               <Button
-                size="xl"
                 variant="depth"
                 onClick={() => on_compose_email(selected_contact.emails[0])}
               >

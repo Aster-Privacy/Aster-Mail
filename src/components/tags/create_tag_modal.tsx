@@ -235,7 +235,6 @@ export function CreateTagModal({ is_open, on_close }: CreateTagModalProps) {
             <div className="flex justify-end gap-3 px-6 pb-6 pt-2">
               <Button
                 disabled={is_creating}
-                size="xl"
                 variant="outline"
                 onClick={handle_close}
               >
@@ -245,7 +244,6 @@ export function CreateTagModal({ is_open, on_close }: CreateTagModalProps) {
                 className="text-white"
                 disabled={!trimmed_name || is_creating || !!validation_error}
                 is_loading={is_creating}
-                size="xl"
                 style={{ backgroundColor: selected_color }}
                 variant="depth"
                 onClick={handle_create}

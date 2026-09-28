@@ -226,9 +226,13 @@ export function BillingHeroCard({
         <img
           alt={t("common.aster_mail")}
           className="h-8 w-auto select-none"
-          decoding="async"
+          decoding="sync"
           draggable={false}
+          fetchPriority="high"
+          height={199}
+          loading="eager"
           src="/text_logo.png"
+          width={800}
         />
         <span className="aster_badge aster_badge_blue">
           {t("settings.current_plan")}

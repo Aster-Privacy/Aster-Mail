@@ -611,7 +611,7 @@ export function AccountSection() {
                 </div>
               )}
               {uploading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full">
+                <div className="absolute inset-0 flex items-center justify-center aster_scrim rounded-full">
                   <Spinner className="text-white" size="md" />
                 </div>
               )}

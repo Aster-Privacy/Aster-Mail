@@ -79,7 +79,7 @@ export function ForwardModal({
           <motion.div
             key="forward-backdrop-mobile"
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-40 bg-black/50 sm:hidden"
+            className="fixed inset-0 z-40 aster_scrim sm:hidden"
             exit={{ opacity: 0 }}
             initial={modal.reduce_motion ? false : { opacity: 0 }}
             transition={{ duration: modal.reduce_motion ? 0 : 0.2 }}
@@ -90,7 +90,7 @@ export function ForwardModal({
               <motion.div
                 key="forward-backdrop"
                 animate={{ opacity: 1 }}
-                className="fixed inset-0 z-40 bg-black/55 hidden sm:block"
+                className="fixed inset-0 z-40 aster_scrim hidden sm:block"
                 exit={{ opacity: 0 }}
                 initial={modal.reduce_motion ? false : { opacity: 0 }}
                 transition={{ duration: modal.reduce_motion ? 0 : 0.2 }}

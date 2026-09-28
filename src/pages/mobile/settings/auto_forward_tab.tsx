@@ -514,7 +514,7 @@ export function AutoForwardTab() {
 
       {show_rule_builder && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50"
+          className="fixed inset-0 z-50 flex items-end justify-center aster_scrim"
           onClick={() => {
             set_show_rule_builder(false);
             set_editing_rule(null);

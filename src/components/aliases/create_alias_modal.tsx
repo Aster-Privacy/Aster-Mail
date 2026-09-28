@@ -186,7 +186,6 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
             <div className="flex justify-end gap-3 px-6 pb-6 pt-2">
               <Button
                 disabled={is_creating}
-                size="xl"
                 variant="outline"
                 onClick={handle_close}
               >
@@ -194,7 +193,6 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
               </Button>
               <Button
                 disabled={!local_part.trim() || is_creating}
-                size="xl"
                 variant="depth"
                 onClick={handle_create}
               >

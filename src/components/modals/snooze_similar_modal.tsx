@@ -405,7 +405,7 @@ export function SnoozeSimilarModal({
                         time: (snooze_label ?? t("common.later")).toLowerCase(),
                       })}
                     </p>
-                    <Button size="xl" variant="depth" onClick={on_close}>
+                    <Button variant="depth" onClick={on_close}>
                       {t("common.done")}
                     </Button>
                   </motion.div>
@@ -625,7 +625,6 @@ export function SnoozeSimilarModal({
                       </button>
                       <Button
                         disabled={!can_execute}
-                        size="xl"
                         variant="depth"
                         onClick={handle_snooze}
                       >

@@ -487,7 +487,7 @@ export function SearchModal({
     return createPortal(
       <motion.div
         animate={{ opacity: 1 }}
-        className="fixed inset-0 bg-black/40 flex items-start justify-center z-[60]"
+        className="fixed inset-0 aster_scrim flex items-start justify-center z-[60]"
         exit={{ opacity: 0 }}
         initial={reduce_motion ? false : { opacity: 0 }}
         transition={{ duration: reduce_motion ? 0 : 0.15 }}

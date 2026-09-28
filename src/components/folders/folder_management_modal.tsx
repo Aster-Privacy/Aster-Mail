@@ -360,7 +360,6 @@ export function FolderManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="outline"
                 onClick={on_close}
               >
@@ -370,7 +369,6 @@ export function FolderManagementModal({
                 className="flex-1"
                 disabled={is_loading}
                 is_loading={is_loading}
-                size="xl"
                 variant={is_locked ? "destructive" : "primary"}
                 onClick={handle_encrypt}
               >
@@ -430,7 +428,6 @@ export function FolderManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="outline"
                 onClick={on_close}
               >
@@ -439,7 +436,6 @@ export function FolderManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading || !can_rename}
-                size="xl"
                 variant="depth"
                 onClick={handle_rename}
               >
@@ -504,7 +500,6 @@ export function FolderManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="outline"
                 onClick={on_close}
               >
@@ -513,7 +508,6 @@ export function FolderManagementModal({
               <Button
                 className="flex-1 text-white"
                 disabled={is_loading}
-                size="xl"
                 style={{ backgroundColor: new_color }}
                 variant="depth"
                 onClick={handle_recolor}
@@ -585,7 +579,6 @@ export function FolderManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="outline"
                 onClick={on_close}
               >
@@ -594,7 +587,6 @@ export function FolderManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading || selected_parent_token === null}
-                size="xl"
                 variant="depth"
                 onClick={handle_move}
               >

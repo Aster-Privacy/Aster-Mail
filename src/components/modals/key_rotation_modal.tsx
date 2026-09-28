@@ -358,7 +358,6 @@ export function KeyRotationModal({
               <div className="flex justify-end gap-3 px-6 pb-6">
                 <Button
                   disabled={state === "rotating"}
-                  size="xl"
                   variant="outline"
                   onClick={handle_close}
                 >
@@ -366,7 +365,6 @@ export function KeyRotationModal({
                 </Button>
                 <Button
                   disabled={state === "rotating" || !password}
-                  size="xl"
                   variant="depth"
                   onClick={handle_submit}
                 >

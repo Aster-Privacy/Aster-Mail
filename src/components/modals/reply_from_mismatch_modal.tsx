@@ -112,7 +112,6 @@ export function ReplyFromMismatchModal({
         <AlertDialogFooter className="flex-row flex-wrap justify-end gap-1 px-4 pb-4 pt-0">
           <Button
             className="mt-0"
-            size="lg"
             variant="ghost"
             onClick={() => close_with_animation(on_cancel)}
           >
@@ -120,7 +119,6 @@ export function ReplyFromMismatchModal({
           </Button>
           <Button
             className="mt-0"
-            size="lg"
             variant="ghost"
             onClick={() => close_with_animation(on_send_anyway)}
           >
@@ -129,7 +127,6 @@ export function ReplyFromMismatchModal({
           {can_use_received && (
             <Button
               className="mt-0 font-semibold"
-              size="lg"
               style={{ color: "var(--accent-color)" }}
               variant="ghost"
               onClick={() => close_with_animation(on_use_received)}

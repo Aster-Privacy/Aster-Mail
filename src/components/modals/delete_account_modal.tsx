@@ -280,16 +280,10 @@ export function DeleteAccountModal({
       </ModalBody>
 
       <ModalFooter>
-        <Button
-          className="h-10 px-5 text-[14px] font-normal"
-          disabled={is_deleting}
-          variant="ghost"
-          onClick={handle_close}
-        >
+        <Button disabled={is_deleting} variant="ghost" onClick={handle_close}>
           {t("common.cancel")}
         </Button>
         <Button
-          className="h-10 px-5 text-[14px] font-normal"
           disabled={!can_submit || is_deleting}
           variant="destructive"
           onClick={handle_delete_account}

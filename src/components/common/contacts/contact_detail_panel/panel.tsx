@@ -399,7 +399,7 @@ export function ContactDetailPanel({
                 />
                 <button
                   aria-label={t("common.upload")}
-                  className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 bg-black/40 flex items-center justify-center transition-opacity"
+                  className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 aster_scrim flex items-center justify-center transition-opacity"
                   onClick={() => file_input_ref.current?.click()}
                 >
                   <CameraIcon className="w-7 h-7 text-white" />
