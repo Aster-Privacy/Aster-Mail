@@ -440,7 +440,7 @@ export function SearchModal({
               !state.is_searching &&
               !state.is_loading_more && (
                 <button
-                  className="w-full py-3 text-xs font-medium text-center transition-colors duration-150 rounded-[14px] mt-2 text-txt-secondary bg-surf-tertiary hover:bg-surf-hover"
+                  className="w-full py-3 text-xs font-medium text-center transition-colors duration-150 rounded-[var(--aster-radius-control)] mt-2 text-txt-secondary bg-surf-tertiary hover:bg-surf-hover"
                   onClick={load_more}
                 >
                   {t("common.load_more")}
@@ -522,14 +522,10 @@ export function SearchModal({
     <motion.div
       ref={dropdown_ref}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-[18px] overflow-hidden flex flex-col bg-modal-bg"
+      className="rounded-[var(--aster-radius-floating,16px)] overflow-hidden flex flex-col bg-modal-bg shadow-[var(--aster-floating-shadow)]"
       exit={{ opacity: 0, y: -4 }}
       initial={reduce_motion ? false : { opacity: 0, y: -4 }}
-      style={{
-        ...(desktop_style ?? fallback_style),
-        boxShadow:
-          "0 24px 48px -12px rgba(0, 0, 0, 0.32), 0 0 0 1px var(--border-secondary)",
-      }}
+      style={desktop_style ?? fallback_style}
       transition={{ duration: reduce_motion ? 0 : 0.14, ease: "easeOut" }}
     >
       {content}

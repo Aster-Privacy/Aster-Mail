@@ -472,7 +472,7 @@ export function ForwardSecrecyGroup({
       />
       {forward_secrecy_enabled && (
         <>
-          <div className="mx-4 h-px bg-[var(--aster-island-divider)]" />
+          <div className="h-px bg-[var(--aster-island-divider)]" />
           <div className="px-4 pt-4 pb-4 space-y-6">
             <div>
               <div className="flex items-center gap-2 mb-2">

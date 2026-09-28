@@ -202,7 +202,7 @@ export function EmailPopupViewer({
     <motion.div
       ref={viewer.popup_ref}
       animate={{ opacity: 1 }}
-      className="fixed z-50 flex flex-col shadow-2xl bg-modal-bg"
+      className="fixed z-50 flex flex-col shadow-[var(--aster-floating-shadow)] bg-modal-bg"
       exit={{ opacity: 0 }}
       initial={reduce_motion ? false : { opacity: 0 }}
       style={{
@@ -215,8 +215,7 @@ export function EmailPopupViewer({
           : viewer.is_dragging
             ? "grabbing"
             : "default",
-        borderRadius: viewer.is_fullscreen ? "16px" : "12px",
-        border: "1px solid var(--border-primary)",
+        borderRadius: "var(--aster-radius-floating, 16px)",
         willChange: "opacity",
       }}
       transition={{ duration: reduce_motion ? 0 : 0.15, ease: "easeOut" }}

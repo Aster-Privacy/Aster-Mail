@@ -3201,11 +3201,11 @@ html {
 }
 
 .search_filter_btn {
-  background-color: var(--bg-card);
+  background-color: var(--aster-field-bg);
 }
 
 .search_filter_btn:hover {
-  background-color: var(--bg-hover);
+  background-color: var(--aster-island-hover);
 }
 
 .full-page-loader-content img,

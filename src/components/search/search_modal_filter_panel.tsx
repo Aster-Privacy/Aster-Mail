@@ -315,7 +315,7 @@ function Section({
   return (
     <div className="space-y-1.5">
       <p className="px-1 text-[11px] font-semibold text-txt-muted">{title}</p>
-      <div className="rounded-[14px] border border-edge-secondary bg-surf-primary">
+      <div className="rounded-[var(--aster-radius-control,16px)] overflow-hidden bg-surf-primary">
         {children}
       </div>
     </div>
@@ -323,7 +323,7 @@ function Section({
 }
 
 function RowDivider() {
-  return <div className="h-px ms-3 bg-edge-secondary" />;
+  return <div className="h-px bg-[var(--aster-island-divider)]" />;
 }
 
 function FieldRow({

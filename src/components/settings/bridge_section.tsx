@@ -595,7 +595,7 @@ function BridgeCliCard({ is_locked }: BridgeCliCardProps) {
       <div className="mt-3 ps-10">
         <div
           aria-label={t("settings.bridge_all_platforms")}
-          className="flex items-center gap-5 border-b border-edge-secondary"
+          className="flex items-center gap-5"
           role="tablist"
         >
           {CLI_VARIANTS.map((item) => (

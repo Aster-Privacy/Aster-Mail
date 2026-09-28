@@ -133,7 +133,7 @@ export function AccountProtectionScore({
         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
           <div className="flex items-center gap-2">
             <button
-              className="px-3 py-1.5 rounded-[var(--aster-radius-control)] text-sm font-medium text-txt-primary bg-surf-primary border border-edge-secondary hover:bg-surf-tertiary transition-colors"
+              className="px-3 py-1.5 rounded-[var(--aster-radius-control)] text-sm font-medium text-txt-primary bg-[var(--aster-field-bg)] hover:bg-[var(--aster-island-hover)] transition-colors"
               type="button"
               onClick={() => set_dismissed(true)}
             >
