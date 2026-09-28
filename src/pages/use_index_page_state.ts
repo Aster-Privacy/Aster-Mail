@@ -721,7 +721,7 @@ export function use_index_page_state() {
       }
       set_popup_email_id(null);
       set_split_email_id(null);
-      if (preferences.email_view_mode === "popup") {
+      if (use_popup_mode) {
         set_popup_scheduled(data);
       } else if (preferences.email_view_mode === "split") {
         set_split_scheduled_data(data);
@@ -729,7 +729,13 @@ export function use_index_page_state() {
         set_popup_scheduled(data);
       }
     },
-    [is_mobile, location.hash, close_hash_entry, preferences.email_view_mode],
+    [
+      is_mobile,
+      location.hash,
+      close_hash_entry,
+      use_popup_mode,
+      preferences.email_view_mode,
+    ],
   );
 
   const handle_scheduled_popup_close = useCallback(() => {
@@ -797,11 +803,20 @@ export function use_index_page_state() {
   }, [vault, current_account_id, is_mobile, location.hash, use_popup_mode]);
 
   useEffect(() => {
-    if (preferences.email_view_mode === "popup") {
-      set_split_email_id(null);
+    if (use_popup_mode) {
       set_split_scheduled_data(null);
+      if (split_email_id) {
+        set_popup_email_id(split_email_id);
+        set_split_email_id(null);
+      }
+
+      return;
     }
-  }, [preferences.email_view_mode]);
+    if (popup_email_id) {
+      set_split_email_id(popup_email_id);
+      set_popup_email_id(null);
+    }
+  }, [use_popup_mode, popup_email_id, split_email_id]);
 
   const get_current_view = () => {
     const path = location.pathname;
