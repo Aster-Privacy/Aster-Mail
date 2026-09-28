@@ -781,6 +781,20 @@ export async function get_account_tokens(
   };
 }
 
+export async function read_stored_refresh_token(
+  account_id: string,
+): Promise<string | null> {
+  return serialize_account_write(async () => {
+    if (load_failure === "none") {
+      cached_data = null;
+    }
+
+    const tokens = await get_account_tokens(account_id);
+
+    return tokens.refresh_token;
+  });
+}
+
 export async function update_account_user(
   account_id: string,
   updated_user: User,
