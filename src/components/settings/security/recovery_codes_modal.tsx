@@ -63,6 +63,7 @@ import {
   generate_all_recovery_shares,
   clear_recovery_key,
   hash_recovery_code,
+  stored_recovery_verifier,
 } from "@/services/crypto/recovery_key";
 import {
   save_recovery_backup,
@@ -205,9 +206,13 @@ export function RecoveryCodesModal({
     const entries: DisplayCode[] = [];
 
     for (const code of stored) {
+      const code_hash = await hash_recovery_code(code);
+
       entries.push({
         code,
-        used: used_hashes.has(await hash_recovery_code(code)),
+        used:
+          used_hashes.has(code_hash) ||
+          used_hashes.has(await stored_recovery_verifier(code_hash)),
       });
     }
 

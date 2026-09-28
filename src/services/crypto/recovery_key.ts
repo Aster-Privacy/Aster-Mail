@@ -273,6 +273,30 @@ export async function hash_recovery_code(code: string): Promise<string> {
   return array_to_base64(new Uint8Array(hash));
 }
 
+const STORED_VERIFIER_TAG = new TextEncoder().encode("ARV2");
+const STORED_VERIFIER_DOMAIN = new TextEncoder().encode(
+  "aster-recovery-verifier-v2",
+);
+
+export async function stored_recovery_verifier(
+  code_hash: string,
+): Promise<string> {
+  const hash_bytes = base64_to_array(code_hash);
+  const input = new Uint8Array(
+    STORED_VERIFIER_DOMAIN.length + hash_bytes.length,
+  );
+
+  input.set(STORED_VERIFIER_DOMAIN, 0);
+  input.set(hash_bytes, STORED_VERIFIER_DOMAIN.length);
+  const digest = new Uint8Array(await crypto.subtle.digest(HASH_ALG, input));
+  const out = new Uint8Array(STORED_VERIFIER_TAG.length + digest.length);
+
+  out.set(STORED_VERIFIER_TAG, 0);
+  out.set(digest, STORED_VERIFIER_TAG.length);
+
+  return array_to_base64(out);
+}
+
 export async function generate_recovery_share_data(
   code: string,
   recovery_key: Uint8Array,

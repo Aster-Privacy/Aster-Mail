@@ -8426,6 +8426,8 @@ export const zh_CN = {
     n_recovery_codes: "{{count}}个恢复代码",
     recovery_code_already_used:
       "该代码已使用。每个代码只能使用一次，请从保存的列表中输入其他代码。",
+    recovery_code_replaced:
+      "该代码属于已被替换的旧代码集。请从最新保存的列表中输入代码。",
     try_another_way: "尝试其他方式",
     recovery_email_label: "Aster Mail 地址",
     recovery_domain_hint: "选择与你的账户匹配的域名。",

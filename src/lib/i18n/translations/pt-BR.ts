@@ -9643,6 +9643,8 @@ export const pt_br = {
     reset_second_factor_use_key_button: "Continuar com a chave de segurança",
     recovery_code_already_used:
       "Este código já foi usado. Cada código funciona uma vez, então digite outro da sua lista salva.",
+    recovery_code_replaced:
+      "Este código é de um conjunto antigo que você substituiu. Digite um código da sua lista salva mais recente.",
     try_another_way: "Tentar de outra forma",
     recovery_email_label: "Endereço do Aster Mail",
     recovery_domain_hint: "Escolha o domínio da sua conta.",

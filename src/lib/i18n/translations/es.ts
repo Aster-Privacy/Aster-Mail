@@ -9400,6 +9400,8 @@ export const es = {
     n_recovery_codes: "{{count}} códigos de recuperación",
     recovery_code_already_used:
       "Ese código ya se usó. Cada código funciona una sola vez, así que introduce otro de tu lista guardada.",
+    recovery_code_replaced:
+      "Ese código pertenece a un conjunto anterior que reemplazaste. Introduce un código de tu lista guardada más reciente.",
     try_another_way: "Probar de otra forma",
     recovery_email_label: "Dirección de Aster Mail",
     recovery_domain_hint: "Elige el dominio que corresponde a tu cuenta.",

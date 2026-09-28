@@ -9281,6 +9281,8 @@ export const ja = {
     n_recovery_codes: "{{count}}個のリカバリーコード",
     recovery_code_already_used:
       "このコードはすでに使用されています。各コードは1回だけ使えるため、保存したリストから別のコードを入力してください。",
+    recovery_code_replaced:
+      "このコードは置き換え済みの古いセットのものです。最新の保存したリストからコードを入力してください。",
     try_another_way: "別の方法を試す",
     recovery_email_label: "Aster Mail のアドレス",
     recovery_domain_hint: "アカウントのドメインを選択してください。",

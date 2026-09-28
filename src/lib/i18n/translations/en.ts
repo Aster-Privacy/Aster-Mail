@@ -9236,6 +9236,8 @@ export const en: Translations = {
     n_recovery_codes: "{{count}} recovery codes",
     recovery_code_already_used:
       "That code was already used. Each code works once, so enter a different one from your saved list.",
+    recovery_code_replaced:
+      "That code is from an older set that you replaced. Enter a code from your newest saved list.",
     try_another_way: "Try another way",
     recovery_email_label: "Aster Mail address",
     recovery_domain_hint: "Pick the domain that matches your account.",

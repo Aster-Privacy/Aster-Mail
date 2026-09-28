@@ -9272,6 +9272,8 @@ export const hi = {
     n_recovery_codes: "{{count}} रिकवरी कोड",
     recovery_code_already_used:
       "यह कोड पहले ही इस्तेमाल हो चुका है। हर कोड एक बार काम करता है, इसलिए अपनी सेव की गई सूची से कोई दूसरा कोड डालें।",
+    recovery_code_replaced:
+      "यह कोड एक पुराने सेट का है जिसे आपने बदल दिया है। अपनी सबसे नई सेव की गई सूची से कोई कोड डालें।",
     try_another_way: "दूसरा तरीका आज़माएं",
     recovery_email_label: "Aster Mail पता",
     recovery_domain_hint: "वह डोमेन चुनें जो आपके खाते से मेल खाता है।",

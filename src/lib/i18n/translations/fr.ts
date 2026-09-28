@@ -9516,6 +9516,8 @@ export const fr = {
     n_recovery_codes: "{{count}} codes de récupération",
     recovery_code_already_used:
       "Ce code a déjà été utilisé. Chaque code ne fonctionne qu'une fois, saisissez donc un autre code de votre liste enregistrée.",
+    recovery_code_replaced:
+      "Ce code provient d'un ancien ensemble que vous avez remplacé. Saisissez un code de votre liste enregistrée la plus récente.",
     try_another_way: "Essayer autrement",
     recovery_email_label: "Adresse Aster Mail",
     recovery_domain_hint:

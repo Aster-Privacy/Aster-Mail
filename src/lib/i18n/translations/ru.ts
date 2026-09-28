@@ -9551,6 +9551,8 @@ export const ru = {
     n_recovery_codes: "{{count}} кодов восстановления",
     recovery_code_already_used:
       "Этот код уже использован. Каждый код работает один раз, поэтому введите другой код из сохраненного списка.",
+    recovery_code_replaced:
+      "Этот код из старого набора, который вы заменили. Введите код из последнего сохраненного списка.",
     try_another_way: "Другой способ",
     recovery_email_label: "Адрес Aster Mail",
     recovery_domain_hint: "Выберите домен вашего аккаунта.",

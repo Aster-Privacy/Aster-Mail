@@ -8225,6 +8225,7 @@ export interface AuthTranslations {
   old_codes_invalidated: string;
   n_recovery_codes: string;
   recovery_code_already_used: string;
+  recovery_code_replaced: string;
   try_another_way: string;
   recovery_domain_hint: string;
   recovery_email_label: string;

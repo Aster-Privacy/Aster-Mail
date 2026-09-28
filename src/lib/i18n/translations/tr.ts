@@ -9297,6 +9297,8 @@ export const tr = {
     import_mail_privacy_note: "Daha sonra Ayarlar'dan da içe aktarabilirsiniz.",
     recovery_code_already_used:
       "Bu kod zaten kullanıldı. Her kod bir kez çalışır, bu yüzden kayıtlı listenizden başka bir kod girin.",
+    recovery_code_replaced:
+      "Bu kod, değiştirdiğiniz eski bir kümeye ait. En yeni kayıtlı listenizden bir kod girin.",
     try_another_way: "Başka bir yol deneyin",
     recovery_email_label: "Aster Mail adresi",
     recovery_domain_hint: "Hesabınıza ait alan adını seçin.",

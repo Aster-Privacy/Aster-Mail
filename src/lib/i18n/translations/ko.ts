@@ -9103,6 +9103,8 @@ export const ko = {
     n_recovery_codes: "{{count}}개의 복구 코드",
     recovery_code_already_used:
       "이 코드는 이미 사용되었습니다. 각 코드는 한 번만 사용할 수 있으므로 저장한 목록에서 다른 코드를 입력하세요.",
+    recovery_code_replaced:
+      "이 코드는 교체한 이전 세트의 코드입니다. 가장 최근에 저장한 목록에서 코드를 입력하세요.",
     try_another_way: "다른 방법 사용",
     recovery_email_label: "Aster Mail 주소",
     recovery_domain_hint: "계정에 해당하는 도메인을 선택하세요.",

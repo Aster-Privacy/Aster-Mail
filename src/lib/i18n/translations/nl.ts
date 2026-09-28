@@ -9371,6 +9371,8 @@ export const nl = {
     n_recovery_codes: "{{count}} herstelcodes",
     recovery_code_already_used:
       "Deze code is al gebruikt. Elke code werkt één keer, dus voer een andere code uit je opgeslagen lijst in.",
+    recovery_code_replaced:
+      "Deze code hoort bij een oudere set die je hebt vervangen. Voer een code in uit je nieuwste opgeslagen lijst.",
     try_another_way: "Probeer het anders",
     recovery_email_label: "Aster Mail-adres",
     recovery_domain_hint: "Kies het domein dat bij je account hoort.",

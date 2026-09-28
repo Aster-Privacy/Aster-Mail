@@ -9224,6 +9224,8 @@ export const ar = {
     n_recovery_codes: "{{count}} رمز استرداد",
     recovery_code_already_used:
       "تم استخدام هذا الرمز من قبل. يعمل كل رمز مرة واحدة، لذا أدخل رمزًا آخر من قائمتك المحفوظة.",
+    recovery_code_replaced:
+      "هذا الرمز من مجموعة أقدم استبدلتها. أدخل رمزًا من أحدث قائمة محفوظة لديك.",
     try_another_way: "جرب طريقة أخرى",
     recovery_email_label: "عنوان Aster Mail",
     recovery_domain_hint: "اختر النطاق الذي يطابق حسابك.",

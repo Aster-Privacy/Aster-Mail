@@ -9501,6 +9501,8 @@ export const pt = {
       "Mova mensagens de outra conta para o Aster. Tudo é encriptado no seu dispositivo antes de ser guardado.",
     recovery_code_already_used:
       "Este código já foi usado. Cada código funciona uma vez, por isso introduza outro da sua lista guardada.",
+    recovery_code_replaced:
+      "Este código pertence a um conjunto antigo que substituiu. Introduza um código da sua lista guardada mais recente.",
     try_another_way: "Tentar de outra forma",
     recovery_email_label: "Endereço do Aster Mail",
     recovery_domain_hint: "Escolha o domínio da sua conta.",

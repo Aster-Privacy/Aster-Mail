@@ -9420,6 +9420,8 @@ export const de = {
       "Sie können auch später in den Einstellungen importieren.",
     recovery_code_already_used:
       "Dieser Code wurde bereits verwendet. Jeder Code funktioniert einmal, geben Sie daher einen anderen aus Ihrer gespeicherten Liste ein.",
+    recovery_code_replaced:
+      "Dieser Code stammt aus einem älteren Satz, den Sie ersetzt haben. Geben Sie einen Code aus Ihrer neuesten gespeicherten Liste ein.",
     try_another_way: "Anders versuchen",
     recovery_email_label: "Aster Mail-Adresse",
     recovery_domain_hint: "Wähle die Domain, die zu deinem Konto passt.",

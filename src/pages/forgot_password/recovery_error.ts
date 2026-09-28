@@ -42,6 +42,10 @@ export function recovery_error_message(
     return t("auth.recovery_code_already_used");
   }
 
+  if (response.server_code === "RECOVERY_CODE_REPLACED") {
+    return t("auth.recovery_code_replaced");
+  }
+
   if (response.server_code === "INVALID_RECOVERY_CODE") {
     return t("auth.invalid_recovery_code");
   }

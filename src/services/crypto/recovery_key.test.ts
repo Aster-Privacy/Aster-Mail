@@ -36,6 +36,7 @@ import {
   clear_recovery_key,
   VaultBackup,
   EncryptedRecoveryKey,
+  stored_recovery_verifier,
 } from "./recovery_key";
 
 const create_mock_vault = (): EncryptedVault => ({
@@ -476,5 +477,15 @@ describe("canonicalize_recovery_code", () => {
     expect(is_valid_recovery_code("ASTER-ABCD-EFGH")).toBe(false);
     expect(is_valid_recovery_code("NOTACODE")).toBe(false);
     expect(is_valid_recovery_code("")).toBe(false);
+  });
+});
+
+describe("stored_recovery_verifier", () => {
+  it("matches the server's stored verifier format", async () => {
+    expect(
+      await stored_recovery_verifier(
+        "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8=",
+      ),
+    ).toBe("QVJWMua5pgIges7PvwnleXFBpHXDN9Z9aIA+kICkCXIqOBQF");
   });
 });
