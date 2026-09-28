@@ -26,7 +26,7 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 import { BUTTON_COLORS } from "@/constants/modal";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
-import { dispatch_undo_send_preview } from "@/components/toast/undo_send_preview_modal";
+import { open_pending_send_preview } from "@/components/toast/toast_action_router";
 import { clip_with_ellipsis } from "@/utils/preview_text";
 
 interface UndoSendToastProps {
@@ -126,7 +126,7 @@ export const UndoSendToast = forwardRef<HTMLDivElement, UndoSendToastProps>(
     const handle_view_message = useCallback(() => {
       if (!body) return;
 
-      dispatch_undo_send_preview({
+      open_pending_send_preview({
         subject,
         body,
         to: to_list || [recipient],

@@ -50,11 +50,18 @@ import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { resolve_settings_section } from "@/components/settings/settings_content_helpers";
 import { set_pending_settings_anchor } from "@/lib/settings_anchor";
 import { read_settings_navigation } from "@/lib/settings_links";
+import { use_compose_host } from "@/components/toast/use_toast_action_hosts";
 
 export default function EmailDetailPage() {
   const reduce_motion = use_should_reduce_motion();
   const { request_spam, spam_confirm_dialog } = use_spam_confirm();
   const detail = use_email_detail();
+
+  use_compose_host({
+    restores_undone_sends: false,
+    open_draft: (draft) => detail.open_compose(draft),
+  });
+
   const navigate = useNavigate();
   const is_popup =
     typeof window !== "undefined" &&
