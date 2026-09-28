@@ -374,17 +374,17 @@ describe("send actions stop before closing when the plan lacks the feature", () 
     undo_send_delay_ms = 0;
     execute_external_send.mockResolvedValue(undefined);
 
-    await expect(
-      execute_external_email_send(
-        make_ctx({ limits_loaded: true, is_feature_locked: () => false }),
-        {
-          ...email_data,
-          expires_at: "2030-01-01T00:00:00.000Z",
-          expiry_password: "hunter22",
-          secure_external: true,
-        },
-      ),
-    ).resolves.toBe(true);
+    await execute_external_email_send(
+      make_ctx({ limits_loaded: true, is_feature_locked: () => false }),
+      {
+        ...email_data,
+        expires_at: "2030-01-01T00:00:00.000Z",
+        expiry_password: "hunter22",
+        secure_external: true,
+      },
+    );
+
+    expect(execute_external_send).toHaveBeenCalledTimes(1);
   });
 });
 
