@@ -521,14 +521,10 @@ export async function execute_external_send(
     );
   }
 
-  if (
-    result.data.mail_item_id &&
-    email.attachments &&
-    email.attachments.length > 0
-  ) {
+  if (result.data.mail_item_id && smtp_attachments.length > 0) {
     void store_sent_copy_attachments(
       result.data.mail_item_id,
-      email.attachments,
+      smtp_attachments,
     );
   }
 

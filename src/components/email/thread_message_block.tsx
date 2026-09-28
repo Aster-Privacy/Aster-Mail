@@ -158,8 +158,6 @@ export function ThreadMessageBlock(
     effective_html,
     html_blocked,
     plain_text_html,
-    inline_cids,
-    inline_filenames,
     name,
     can_collapse,
   } = state;
@@ -1010,8 +1008,6 @@ export function ThreadMessageBlock(
           <AttachmentList
             has_recipient_key={message.has_recipient_key}
             hint_attachment_count={message.attachments?.length ?? 0}
-            inline_cids={inline_cids}
-            inline_filenames={inline_filenames}
             is_external={message.is_external}
             is_local={message.is_sending === true}
             mail_item_id={message.id}

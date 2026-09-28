@@ -8468,6 +8468,7 @@ export const pt_br = {
     align_right: "Alinhar à direita",
     add_file: "Adicionar arquivo",
     attaching_original_files: "Anexando os arquivos originais",
+    compose_total_size: "Tamanho total",
     display_text_placeholder: "Texto de exibição",
     url_placeholder: "https://exemplo.com",
     schedule_send: "Agendar envio",

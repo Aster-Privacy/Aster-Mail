@@ -8331,6 +8331,7 @@ export const ja = {
     align_right: "右揃え",
     add_file: "ファイルを追加",
     attaching_original_files: "元のファイルを添付しています",
+    compose_total_size: "合計サイズ",
     display_text_placeholder: "表示テキスト",
     url_placeholder: "https://example.com",
     schedule_send: "送信を予約",

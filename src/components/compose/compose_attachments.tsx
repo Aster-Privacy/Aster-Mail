@@ -21,7 +21,7 @@
 import type { UseComposeReturn } from "@/components/compose/use_compose";
 import type { Attachment } from "@/components/compose/compose_shared";
 
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 
 import { apply_input_transform } from "@/utils/input_transform";
 import { CloseIcon } from "@/components/common/icons";
@@ -30,6 +30,9 @@ import { get_compose_sanitize_options } from "@/lib/compose_image_sources";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_file_icon_color } from "@/components/compose/compose_shared";
 import { is_composing } from "@/utils/ime";
+import { format_bytes } from "@/lib/utils";
+import { inline_image_bytes } from "@/lib/inline_image_bytes";
+import { get_max_total_attachments_size } from "@/services/attachment_limits";
 
 function get_file_type_icon(mime_type: string): React.ReactNode {
   const cls = "w-3.5 h-3.5";
@@ -128,9 +131,64 @@ function AttachmentRow({
   );
 }
 
+function compose_total_bytes(attachments: Attachment[], html?: string): number {
+  return (
+    attachments.reduce((total, att) => total + (att.size_bytes || 0), 0) +
+    inline_image_bytes(html ?? "")
+  );
+}
+
+function ComposeTotalSize({ total_bytes }: { total_bytes: number }) {
+  const { t } = use_i18n();
+  const max_bytes = get_max_total_attachments_size();
+  const over_limit = max_bytes > 0 && total_bytes > max_bytes;
+
+  return (
+    <div
+      className="flex items-center justify-between gap-2 px-2 pt-1 text-[11px] text-txt-tertiary"
+      data-testid="compose_total_size"
+    >
+      <span>{t("mail.compose_total_size")}</span>
+      <span
+        className={`tabular-nums ${over_limit ? "text-red-500" : ""}`}
+      >
+        {max_bytes > 0
+          ? t("settings.usage_of", {
+              current: format_bytes(total_bytes),
+              limit: format_bytes(max_bytes),
+            })
+          : format_bytes(total_bytes)}
+      </span>
+    </div>
+  );
+}
+
 interface ComposeAttachmentsProps {
   compose: UseComposeReturn;
   show_add_button?: boolean;
+}
+
+export function ComposeTotalSizeRow({
+  attachments,
+  message_html,
+  className,
+}: {
+  attachments: Attachment[];
+  message_html?: string;
+  className?: string;
+}) {
+  const total_bytes = useMemo(
+    () => compose_total_bytes(attachments, message_html),
+    [attachments, message_html],
+  );
+
+  if (total_bytes === 0) return null;
+
+  return (
+    <div className={className}>
+      <ComposeTotalSize total_bytes={total_bytes} />
+    </div>
+  );
 }
 
 export function ComposeAttachments({
@@ -138,10 +196,15 @@ export function ComposeAttachments({
   show_add_button = false,
 }: ComposeAttachmentsProps) {
   const { t } = use_i18n();
+  const total_bytes = useMemo(
+    () => compose_total_bytes(compose.attachments, compose.message),
+    [compose.attachments, compose.message],
+  );
 
   if (
     compose.attachments.length === 0 &&
-    !compose.is_loading_forward_attachments
+    !compose.is_loading_forward_attachments &&
+    total_bytes === 0
   ) {
     return null;
   }
@@ -175,6 +238,7 @@ export function ComposeAttachments({
           <span>{t("mail.add_file")}</span>
         </button>
       )}
+      {total_bytes > 0 && <ComposeTotalSize total_bytes={total_bytes} />}
     </div>
   );
 }
@@ -185,6 +249,7 @@ interface AttachmentListSimpleProps {
   remove_attachment: (id: string) => void;
   trigger_file_select: () => void;
   add_label: string;
+  message_html?: string;
 }
 
 export function AttachmentListSimple({
@@ -193,8 +258,14 @@ export function AttachmentListSimple({
   remove_attachment,
   trigger_file_select,
   add_label,
+  message_html,
 }: AttachmentListSimpleProps) {
-  if (attachments.length === 0) return null;
+  const total_bytes = useMemo(
+    () => compose_total_bytes(attachments, message_html),
+    [attachments, message_html],
+  );
+
+  if (attachments.length === 0 && total_bytes === 0) return null;
 
   return (
     <div
@@ -218,6 +289,7 @@ export function AttachmentListSimple({
         </svg>
         <span>{add_label}</span>
       </button>
+      {total_bytes > 0 && <ComposeTotalSize total_bytes={total_bytes} />}
     </div>
   );
 }

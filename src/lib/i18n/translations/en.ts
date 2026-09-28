@@ -8230,6 +8230,7 @@ export const en: Translations = {
     align_right: "Align right",
     add_file: "Add file",
     attaching_original_files: "Attaching original files",
+    compose_total_size: "Total size",
     display_text_placeholder: "Display text",
     url_placeholder: "https://example.com",
     insert_link_title: "Insert Link",

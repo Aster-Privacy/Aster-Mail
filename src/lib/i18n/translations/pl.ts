@@ -8629,6 +8629,7 @@ export const pl = {
     align_right: "Wyrównaj do prawej",
     add_file: "Dodaj plik",
     attaching_original_files: "Dołączanie oryginalnych plików",
+    compose_total_size: "Rozmiar całkowity",
     display_text_placeholder: "Tekst wyświetlany",
     url_placeholder: "https://example.com",
     schedule_send: "Zaplanuj wysłanie",

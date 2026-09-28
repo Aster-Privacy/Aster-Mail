@@ -50,6 +50,7 @@ import {
 import { use_mobile_compose_images } from "./use_mobile_compose_images";
 
 import { is_valid_email } from "@/components/compose/compose_shared";
+import { ComposeTotalSizeRow } from "@/components/compose/compose_attachments";
 import { split_recipient_list } from "@/utils/recipient_list";
 import { format_datetime_hint } from "@/utils/date_format";
 import { use_compose } from "@/components/compose/use_compose";
@@ -535,6 +536,11 @@ function MobileComposePage({
             ))}
           </div>
         )}
+        <ComposeTotalSizeRow
+          attachments={compose.attachments}
+          className="px-2 pb-2"
+          message_html={compose.message}
+        />
       </div>
 
       <div className="flex items-center gap-1 border-t border-[var(--border-primary)] px-3 py-2 safe-area-pb">

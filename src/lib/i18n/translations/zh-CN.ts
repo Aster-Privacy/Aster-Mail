@@ -7536,6 +7536,7 @@ export const zh_CN = {
     align_right: "右对齐",
     add_file: "添加文件",
     attaching_original_files: "正在附加原始文件",
+    compose_total_size: "总大小",
     display_text_placeholder: "显示文本",
     url_placeholder: "https://example.com",
     schedule_send: "定时发送",

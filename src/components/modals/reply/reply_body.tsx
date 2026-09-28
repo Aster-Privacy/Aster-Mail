@@ -281,6 +281,7 @@ export function ReplyBody({
           add_label={t("mail.add_file")}
           attachments={attachments}
           attachments_scroll_ref={attachments_scroll_ref}
+          message_html={message_content}
           remove_attachment={remove_attachment}
           trigger_file_select={trigger_file_select}
         />
