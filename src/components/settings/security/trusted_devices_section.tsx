@@ -33,16 +33,30 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
-import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { format_date_short, format_timestamp_smart } from "@/utils/date_format";
 
-function format_date(iso: string): string {
-  try {
-    return new Date(iso).toLocaleString(app_locale(), {
-      timeZone: get_display_time_zone(),
-    });
-  } catch {
-    return iso;
-  }
+type Translate = ReturnType<typeof use_i18n>["t"];
+
+function parse_date(iso: string): Date | null {
+  const date = new Date(iso);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function format_last_used(t: Translate, iso: string): string {
+  const date = parse_date(iso);
+
+  if (!date) return iso;
+
+  return format_timestamp_smart(date, undefined, t);
+}
+
+function format_expiry(iso: string): string {
+  const date = parse_date(iso);
+
+  if (!date) return iso;
+
+  return format_date_short(date, undefined, true);
 }
 
 export function TrustedDevicesSection() {
@@ -135,11 +149,11 @@ export function TrustedDevicesSection() {
                     <>
                       <span className="block">
                         {t("settings.trusted_2fa_last_used", {
-                          when: format_date(d.last_used_at),
+                          when: format_last_used(t, d.last_used_at),
                         })}
-                        {" - "}
+                        {" · "}
                         {t("settings.trusted_2fa_expires", {
-                          when: format_date(d.expires_at),
+                          when: format_expiry(d.expires_at),
                         })}
                       </span>
                       {d.ip_snippet ? (

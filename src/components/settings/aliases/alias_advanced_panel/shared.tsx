@@ -22,7 +22,9 @@ import type {} from "@/services/api/aliases";
 import type {} from "@/lib/i18n/types";
 
 import { useEffect, useState } from "react";
+import { SettingControlRow } from "@aster/ui";
 
+import { label_toggle_children_with_text } from "@/lib/labeled_control";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
@@ -44,32 +46,31 @@ export function PanelRow({
   label,
   description,
   info,
-  align_top,
+  note,
+  control_width = "auto",
   children,
 }: {
   label: string;
   description?: string;
   info?: string;
-  align_top?: boolean;
+  note?: React.ReactNode;
+  control_width?: number | "auto";
   children: React.ReactNode;
 }) {
   return (
-    <div
-      className={`flex justify-between gap-6 py-4 ${align_top ? "items-start" : "items-center"}`}
-    >
-      <div className="min-w-0 flex-1">
-        <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
-          {label}
-          {info && <InfoHint tip={info} title={label} />}
-        </p>
-        {description && (
-          <p className="mt-0.5 text-sm text-txt-muted">{description}</p>
-        )}
-      </div>
-      <div className="flex shrink-0 items-center justify-end">{children}</div>
-    </div>
+    <SettingControlRow
+      control={label_toggle_children_with_text(children, label)}
+      control_width={control_width}
+      description={description}
+      info={info ? <InfoHint tip={info} title={label} /> : undefined}
+      label={label}
+      note={note}
+    />
   );
 }
+
+export const ROW_DELETE_BUTTON_CLASS =
+  "h-8 w-8 text-red-500 hover:text-red-500 hover:bg-red-500/10";
 
 export function TextFieldRow({
   label,
@@ -140,8 +141,8 @@ export function TextFieldRow({
   };
 
   return (
-    <PanelRow description={description} label={label}>
-      <div className="relative w-64">
+    <PanelRow control_width={256} description={description} label={label}>
+      <div className="relative w-full">
         <Input
           className={`w-full pe-8${is_locked ? " pointer-events-none" : ""}`}
           disabled={saving}

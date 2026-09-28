@@ -21,11 +21,25 @@
 import type { ApiResponse } from "@/services/api/client";
 
 import { useState } from "react";
-import { TrashIcon } from "@heroicons/react/24/outline";
-import { Button, UpgradeBtn } from "@aster/ui";
+import {
+  ComputerDesktopIcon,
+  EnvelopeIcon,
+  ShieldCheckIcon,
+  TrashIcon,
+} from "@heroicons/react/24/outline";
+import {
+  Button,
+  Island,
+  IslandEmpty,
+  IslandRow,
+  IslandSection,
+  IslandSections,
+  UpgradeBtn,
+} from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
   revoke_device,
   type Device,
@@ -35,12 +49,15 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_settings_panel_data } from "@/components/settings/hooks/use_settings_prefetch";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { ignore_error } from "@/lib/ignore_error";
-import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import {
   clear_plan_cache,
   get_current_plan_code,
 } from "@/services/plan_limits";
-import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import {
+  app_locale,
+  app_relative_dates,
+  get_display_time_zone,
+} from "@/utils/date_format";
 
 function open_billing_settings() {
   window.dispatchEvent(
@@ -48,15 +65,40 @@ function open_billing_settings() {
   );
 }
 
-function format_date(value: string | null): string {
+type Translate = ReturnType<typeof use_i18n>["t"];
+
+function format_paired_date(value: string | null): string {
   if (!value) return "";
   try {
-    return new Date(value).toLocaleString(app_locale(), {
+    return new Date(value).toLocaleDateString(app_locale(), {
       timeZone: get_display_time_zone(),
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   } catch {
     return value;
   }
+}
+
+function format_last_seen(t: Translate, value: string | null): string {
+  if (!value) return t("settings.trusted_devices_never");
+  if (!app_relative_dates()) return format_paired_date(value);
+  const diff_ms = Date.now() - new Date(value).getTime();
+
+  if (Number.isNaN(diff_ms)) return value;
+  const mins = Math.floor(diff_ms / 60000);
+
+  if (mins < 5) return t("settings.bridge_active_now");
+  if (mins < 60) return t("settings.minutes_ago", { count: mins });
+  const hours = Math.floor(diff_ms / 3600000);
+
+  if (hours < 24) return t("settings.hours_ago", { count: hours });
+  const days = Math.floor(diff_ms / 86400000);
+
+  if (days < 7) return t("settings.days_ago", { count: days });
+
+  return format_paired_date(value);
 }
 
 export function TrustedDevicesPanel() {
@@ -83,12 +125,6 @@ export function TrustedDevicesPanel() {
   const [is_revoking_all, set_is_revoking_all] = useState(false);
   const [bridge_upgrade_modal_open, set_bridge_upgrade_modal_open] =
     useState(false);
-
-  use_escape_layer(bridge_upgrade_modal_open, () =>
-    set_bridge_upgrade_modal_open(false),
-  );
-  use_escape_layer(pending_revoke !== null, () => set_pending_revoke(null));
-  use_escape_layer(pending_revoke_all, () => set_pending_revoke_all(false));
 
   const handle_set_up = async (client: string) => {
     clear_plan_cache();
@@ -156,262 +192,161 @@ export function TrustedDevicesPanel() {
     window.location.href = url;
   };
 
+  const confirm_device_name = pending_revoke?.name ?? "";
+
   return (
-    <div className="w-full">
+    <IslandSections>
       {is_free_plan ? (
-        <div
-          className="mb-6 p-4 rounded-lg"
-          style={{
-            backgroundColor: "var(--bg-tertiary)",
-            border: "1px solid var(--border-secondary)",
-          }}
+        <IslandSection
+          description={t("settings.desktop_bridge_upgrade_description")}
+          icon={<EnvelopeIcon />}
+          padding="md"
+          title={t("settings.desktop_bridge_upgrade_title")}
         >
-          <h3 className="text-sm font-semibold text-txt-primary">
-            {t("settings.desktop_bridge_upgrade_title")}
-          </h3>
-          <p className="text-xs mt-1 text-txt-tertiary">
-            {t("settings.desktop_bridge_upgrade_description")}
-          </p>
-          <div className="mt-3">
-            <UpgradeBtn size="sm" onClick={open_billing_settings}>
-              {t("settings.desktop_bridge_upgrade_cta")}
-            </UpgradeBtn>
-          </div>
-        </div>
+          <UpgradeBtn size="sm" onClick={open_billing_settings}>
+            {t("settings.desktop_bridge_upgrade_cta")}
+          </UpgradeBtn>
+        </IslandSection>
       ) : (
-        <div
-          className="mb-6 p-4 rounded-lg"
-          style={{
-            backgroundColor: "var(--bg-tertiary)",
-            border: "1px solid var(--border-secondary)",
-          }}
+        <IslandSection
+          divided
+          description={t("settings.desktop_bridge_description")}
+          footer={t("settings.desktop_bridge_install_hint")}
+          icon={<EnvelopeIcon />}
+          title={t("settings.desktop_bridge_title")}
         >
-          <h3 className="text-sm font-semibold text-txt-primary">
-            {t("settings.desktop_bridge_title")}
-          </h3>
-          <p className="text-xs mt-1 text-txt-tertiary">
-            {t("settings.desktop_bridge_description")}
-          </p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {["Thunderbird", "Apple Mail", "Outlook", "Generic IMAP"].map(
-              (client) => (
-                <Button
-                  key={client}
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => handle_set_up(client)}
-                >
-                  {t("settings.desktop_bridge_set_up", { client })}
-                </Button>
-              ),
-            )}
-          </div>
-          <p className="text-[11px] mt-3 text-txt-muted">
-            {t("settings.desktop_bridge_install_hint")}
-          </p>
-        </div>
+          {["Thunderbird", "Apple Mail", "Outlook", "Generic IMAP"].map(
+            (client) => (
+              <IslandRow
+                key={client}
+                label={t("settings.desktop_bridge_set_up", { client })}
+                on_press={() => handle_set_up(client)}
+              />
+            ),
+          )}
+        </IslandSection>
       )}
 
-      {bridge_upgrade_modal_open && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0"
-            style={{ backgroundColor: "var(--modal-overlay)" }}
-            onClick={() => set_bridge_upgrade_modal_open(false)}
-          />
-          <div
-            className="relative w-full max-w-sm p-6 rounded-xl bg-surf-primary"
-            style={{ border: "1px solid var(--border-secondary)" }}
-          >
-            <h3 className="text-base font-semibold text-txt-primary">
-              {t("settings.desktop_bridge_upgrade_title")}
-            </h3>
-            <p className="text-sm mt-2 text-txt-tertiary">
-              {t("settings.desktop_bridge_upgrade_description")}
-            </p>
-            <div className="flex gap-2 mt-6">
-              <Button
-                className="flex-1"
-                variant="secondary"
-                onClick={() => set_bridge_upgrade_modal_open(false)}
-              >
-                {t("auth.pair_device_cancel")}
-              </Button>
-              <Button
-                className="flex-1"
-                variant="primary"
-                onClick={() => {
-                  set_bridge_upgrade_modal_open(false);
-                  open_billing_settings();
-                }}
-              >
-                {t("settings.desktop_bridge_upgrade_cta")}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-semibold text-txt-primary">
-            {t("settings.trusted_devices")}
-          </h2>
-          <p className="text-sm mt-2 text-txt-tertiary">
-            {t("settings.trusted_devices_description")}
-          </p>
-        </div>
-        {devices.length > 1 && (
-          <Button
-            className="whitespace-nowrap flex-shrink-0"
-            disabled={is_revoking_all}
-            variant="depth_destructive"
-            onClick={() => set_pending_revoke_all(true)}
-          >
-            <TrashIcon className="w-4 h-4 me-1" />
-            {t("settings.trusted_devices_revoke_all")}
-          </Button>
-        )}
-      </div>
-
-      <div className="mt-6">
+      <IslandSection
+        bare
+        description={t("settings.trusted_devices_description")}
+        icon={<ShieldCheckIcon />}
+        title={t("settings.trusted_devices")}
+        trailing={
+          devices.length > 1 ? (
+            <Button
+              className="whitespace-nowrap flex-shrink-0 text-red-500 hover:text-red-600"
+              disabled={is_revoking_all}
+              variant="outline"
+              onClick={() => set_pending_revoke_all(true)}
+            >
+              <TrashIcon className="w-3.5 h-3.5 me-1.5" />
+              {t("settings.trusted_devices_revoke_all")}
+              {is_revoking_all && <ButtonSpinner />}
+            </Button>
+          ) : undefined
+        }
+      >
         {is_loading && devices.length === 0 ? (
-          <div className="flex justify-center py-8">
+          <Island className="flex justify-center" padding="lg">
             <Spinner size="md" />
-          </div>
+          </Island>
         ) : devices.length === 0 ? (
-          <div
-            className="text-sm text-txt-tertiary text-center py-8 rounded-lg"
-            style={{
-              backgroundColor: "var(--bg-tertiary)",
-              border: "1px solid var(--border-secondary)",
-            }}
-          >
-            {devices_unavailable ? (
-              <div className="flex flex-col items-center gap-3">
-                <span>{t("settings.failed_load_security_status")}</span>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => void revalidate()}
-                >
-                  {t("settings.try_again")}
-                </Button>
-              </div>
-            ) : (
-              t("settings.trusted_devices_empty")
-            )}
-          </div>
+          devices_unavailable ? (
+            <Island
+              className="flex flex-wrap items-center justify-between gap-2"
+              padding="sm"
+            >
+              <p className="text-[13px] text-txt-muted">
+                {t("settings.failed_load_security_status")}
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => void revalidate()}
+              >
+                {t("settings.try_again")}
+              </Button>
+            </Island>
+          ) : (
+            <IslandEmpty
+              icon={<ComputerDesktopIcon />}
+              title={t("settings.trusted_devices_empty")}
+            />
+          )
         ) : (
-          <div className="space-y-2">
+          <Island divided>
             {devices.map((device) => (
-              <div
+              <IslandRow
                 key={device.id}
-                className="flex items-center justify-between p-4 rounded-lg"
-                style={{
-                  backgroundColor: "var(--bg-tertiary)",
-                  border: "1px solid var(--border-secondary)",
-                }}
-              >
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium text-txt-primary truncate">
-                    {device.name}
-                  </div>
-                  <div className="text-xs mt-1 text-txt-tertiary">
-                    {t("settings.trusted_devices_created")}:{" "}
-                    {format_date(device.created_at)}
-                  </div>
-                  <div className="text-xs text-txt-tertiary">
-                    {t("settings.trusted_devices_last_seen")}:{" "}
-                    {device.last_seen_at
-                      ? format_date(device.last_seen_at)
-                      : t("settings.trusted_devices_never")}
-                  </div>
-                </div>
-                <Button
-                  disabled={revoking_id === device.id}
-                  variant="destructive"
-                  onClick={() => set_pending_revoke(device)}
-                >
-                  <TrashIcon className="w-4 h-4 me-1" />
-                  {t("settings.trusted_devices_revoke")}
-                </Button>
-              </div>
+                description={
+                  <>
+                    {t("settings.trusted_devices_created")}{" "}
+                    {format_paired_date(device.created_at)}
+                    {" · "}
+                    {t("settings.trusted_devices_last_seen")}{" "}
+                    {format_last_seen(t, device.last_seen_at)}
+                  </>
+                }
+                icon={<ComputerDesktopIcon />}
+                label={<span className="block truncate">{device.name}</span>}
+                trailing={
+                  <Button
+                    className="flex-shrink-0"
+                    disabled={revoking_id === device.id}
+                    style={{ color: "var(--color-danger)" }}
+                    variant="secondary"
+                    onClick={() => set_pending_revoke(device)}
+                  >
+                    {t("settings.trusted_devices_revoke")}
+                    {revoking_id === device.id && <ButtonSpinner />}
+                  </Button>
+                }
+              />
             ))}
-          </div>
+          </Island>
         )}
-      </div>
+      </IslandSection>
 
-      {pending_revoke && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0"
-            style={{ backgroundColor: "var(--modal-overlay)" }}
-            onClick={() => set_pending_revoke(null)}
-          />
-          <div
-            className="relative w-full max-w-sm p-6 rounded-xl bg-surf-primary"
-            style={{ border: "1px solid var(--border-secondary)" }}
-          >
-            <h3 className="text-base font-semibold text-txt-primary">
-              {t("settings.trusted_devices_revoke_confirm", {
-                name: pending_revoke.name,
-              })}
-            </h3>
-            <div className="flex gap-2 mt-6">
-              <Button
-                className="flex-1"
-                variant="secondary"
-                onClick={() => set_pending_revoke(null)}
-              >
-                {t("auth.pair_device_cancel")}
-              </Button>
-              <Button
-                className="flex-1"
-                disabled={revoking_id === pending_revoke.id}
-                variant="destructive"
-                onClick={() => handle_revoke(pending_revoke)}
-              >
-                {t("settings.trusted_devices_revoke")}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmationModal
+        cancel_text={t("auth.pair_device_cancel")}
+        confirm_text={t("settings.desktop_bridge_upgrade_cta")}
+        is_open={bridge_upgrade_modal_open}
+        message={t("settings.desktop_bridge_upgrade_description")}
+        on_cancel={() => set_bridge_upgrade_modal_open(false)}
+        on_confirm={() => {
+          set_bridge_upgrade_modal_open(false);
+          open_billing_settings();
+        }}
+        title={t("settings.desktop_bridge_upgrade_title")}
+        variant="info"
+      />
 
-      {pending_revoke_all && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0"
-            style={{ backgroundColor: "var(--modal-overlay)" }}
-            onClick={() => set_pending_revoke_all(false)}
-          />
-          <div
-            className="relative w-full max-w-sm p-6 rounded-xl bg-surf-primary"
-            style={{ border: "1px solid var(--border-secondary)" }}
-          >
-            <h3 className="text-base font-semibold text-txt-primary">
-              {t("settings.trusted_devices_revoke_all_confirm")}
-            </h3>
-            <div className="flex gap-2 mt-6">
-              <Button
-                className="flex-1"
-                variant="secondary"
-                onClick={() => set_pending_revoke_all(false)}
-              >
-                {t("auth.pair_device_cancel")}
-              </Button>
-              <Button
-                className="flex-1"
-                disabled={is_revoking_all}
-                variant="destructive"
-                onClick={handle_revoke_all}
-              >
-                {t("settings.trusted_devices_revoke_all")}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      <ConfirmationModal
+        cancel_text={t("auth.pair_device_cancel")}
+        confirm_text={t("settings.trusted_devices_revoke")}
+        is_open={pending_revoke !== null}
+        message={t("settings.trusted_devices_revoke_confirm", {
+          name: confirm_device_name,
+        })}
+        on_cancel={() => set_pending_revoke(null)}
+        on_confirm={() => {
+          if (pending_revoke) void handle_revoke(pending_revoke);
+        }}
+        title={t("settings.trusted_devices")}
+        variant="danger"
+      />
+
+      <ConfirmationModal
+        cancel_text={t("auth.pair_device_cancel")}
+        confirm_text={t("settings.trusted_devices_revoke_all")}
+        is_open={pending_revoke_all}
+        message={t("settings.trusted_devices_revoke_all_confirm")}
+        on_cancel={() => set_pending_revoke_all(false)}
+        on_confirm={() => void handle_revoke_all()}
+        title={t("settings.trusted_devices")}
+        variant="danger"
+      />
+    </IslandSections>
   );
 }

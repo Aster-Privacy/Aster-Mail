@@ -33,7 +33,14 @@ import {
   UserGroupIcon,
   WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
-import { Switch } from "@aster/ui";
+import {
+  Island,
+  IslandSection,
+  IslandSections,
+  IslandStack,
+  SettingControlRow,
+  Switch,
+} from "@aster/ui";
 
 import { format_created_at } from "./alias_stats_format";
 
@@ -80,27 +87,6 @@ interface AliasEditorPageProps {
   on_delivery_saved?: (alias_id: string, value: AliasDeliveryState) => void;
 }
 
-function SectionHeading({
-  icon: Icon,
-  title,
-  action,
-}: {
-  icon: typeof IdentificationIcon;
-  title: string;
-  action?: React.ReactNode;
-}) {
-  return (
-    <div className="mb-4">
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-          <Icon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-          {title}
-        </h3>
-        {action}
-      </div>
-    </div>
-  );
-}
 
 export function AliasEditorPage({
   alias,
@@ -322,9 +308,9 @@ export function AliasEditorPage({
   }
 
   return (
-    <div className="space-y-4">
+    <IslandSections>
       <div>
-        <div className="mb-4">
+        <div className="mb-3">
           <div className="flex items-center gap-2 -ms-2">
             <button
               aria-label={t("common.back")}
@@ -349,50 +335,62 @@ export function AliasEditorPage({
         </div>
 
         {alias && on_toggle_enabled && (
-          <div className="flex items-center justify-between py-4">
-            <div className="flex-1 pe-4">
-              <p className="text-sm font-medium text-txt-primary">
-                {alias.is_enabled ? t("common.active") : t("common.inactive")}
-              </p>
-              {created_label && (
-                <p className="text-sm mt-0.5 text-txt-muted">
-                  {t("settings.alias_stats_created", { date: created_label })}
-                </p>
-              )}
-            </div>
-            <Switch
-              aria-label={heading}
-              checked={alias.is_enabled}
-              disabled={toggling}
-              size="lg"
-              onCheckedChange={(next) => on_toggle_enabled(alias.id, next)}
+          <Island>
+            <SettingControlRow
+              control={
+                <Switch
+                  aria-label={heading}
+                  checked={alias.is_enabled}
+                  disabled={toggling}
+                  size="lg"
+                  onCheckedChange={(next) => on_toggle_enabled(alias.id, next)}
+                />
+              }
+              control_width="auto"
+              description={
+                created_label
+                  ? t("settings.alias_stats_created", { date: created_label })
+                  : undefined
+              }
+              label={
+                alias.is_enabled ? t("common.active") : t("common.inactive")
+              }
+              layout="inline"
             />
-          </div>
+          </Island>
         )}
       </div>
 
       {open_sections.map((section) => (
-        <div key={section.key}>
-          <SectionHeading icon={section.icon} title={section.label} />
+        <IslandSection
+          key={section.key}
+          bare
+          icon={<section.icon />}
+          title={section.label}
+        >
           {section.render()}
-        </div>
+        </IslandSection>
       ))}
 
       {locked_sections.length > 0 && (
         <div className="relative min-h-[196px]">
-          <div
+          <IslandSections
             aria-hidden="true"
-            className="pointer-events-none select-none space-y-4 opacity-40 blur-[1px]"
+            className="pointer-events-none select-none opacity-40 blur-[1px]"
           >
             {locked_sections.map((section) => (
-              <div key={section.key}>
-                <SectionHeading icon={section.icon} title={section.label} />
+              <IslandSection
+                key={section.key}
+                bare
+                icon={<section.icon />}
+                title={section.label}
+              >
                 <fieldset disabled className="min-w-0 border-0 p-0 m-0">
-                  {section.render()}
+                  <IslandStack>{section.render()}</IslandStack>
                 </fieldset>
-              </div>
+              </IslandSection>
             ))}
-          </div>
+          </IslandSections>
 
           <div className="pointer-events-none absolute inset-0 flex items-start justify-center p-4">
             <div className="sticky top-6">
@@ -407,6 +405,6 @@ export function AliasEditorPage({
           </div>
         </div>
       )}
-    </div>
+    </IslandSections>
   );
 }

@@ -29,7 +29,7 @@ import {
   ArrowPathIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Switch } from "@aster/ui";
+import { Button, Island, Switch } from "@aster/ui";
 
 import { DnsRecordCard } from "./dns_record_card";
 import { BimiRow } from "./bimi/bimi_row";
@@ -228,8 +228,8 @@ export function DomainCardV2({
   };
 
   return (
-    <div className="rounded-lg overflow-hidden bg-surf-tertiary border border-edge-secondary">
-      <div className="flex items-center justify-between p-4">
+    <Island className="overflow-hidden">
+      <div className="flex flex-wrap items-center justify-between gap-3 p-4">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <Button
             aria-expanded={expanded}
@@ -307,7 +307,11 @@ export function DomainCardV2({
 
         <div className="flex items-center gap-2">
           {!is_shared && domain.status !== "active" && (
-            <Button size="md" variant="depth" onClick={() => on_setup(domain)}>
+            <Button
+              size="md"
+              variant="primary"
+              onClick={() => on_setup(domain)}
+            >
               <ArrowRightIcon className="w-3.5 h-3.5 rtl:-scale-x-100" />
               {t("settings.continue_setup")}
             </Button>
@@ -317,7 +321,7 @@ export function DomainCardV2({
             <Button
               disabled={verifying}
               size="md"
-              variant="depth"
+              variant="primary"
               onClick={handle_verify}
             >
               <ArrowPathIcon
@@ -347,7 +351,7 @@ export function DomainCardV2({
       </div>
 
       {expanded && (
-        <div className="px-4 pb-4 pt-2 border-t border-edge-secondary">
+        <div className="px-4 pb-4 pt-4 border-t border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
           <div className="flex items-center gap-4 mb-4">
             {[
               { label: "TXT", verified: domain.txt_verified },
@@ -422,12 +426,12 @@ export function DomainCardV2({
 
                 {show_advanced && (
                   <div className="space-y-4 ps-6">
-                    <div className="flex items-center justify-between py-4">
-                      <div className="flex-1 pe-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-txt-primary">
                           {t("settings.catch_all_label")}
                         </p>
-                        <p className="text-sm mt-0.5 text-txt-muted">
+                        <p className="text-xs mt-0.5 text-txt-muted">
                           {t("settings.catch_all_description")}
                         </p>
                       </div>
@@ -440,12 +444,12 @@ export function DomainCardV2({
                       />
                     </div>
 
-                    <div className="flex items-center justify-between">
-                      <div>
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-txt-primary">
                           {t("settings.rotate_dkim_key")}
                         </p>
-                        <p className="text-xs text-txt-muted">
+                        <p className="text-xs mt-0.5 text-txt-muted">
                           {t("settings.rotate_dkim_description")}
                         </p>
                       </div>
@@ -481,6 +485,6 @@ export function DomainCardV2({
           </div>
         </div>
       )}
-    </div>
+    </Island>
   );
 }

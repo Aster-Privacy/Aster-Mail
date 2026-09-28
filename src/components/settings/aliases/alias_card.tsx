@@ -113,6 +113,16 @@ function AliasAvatar({
 }) {
   const { t } = use_i18n();
   const file_ref = useRef<HTMLInputElement>(null);
+  const [image_failed, set_image_failed] = useState(false);
+
+  useEffect(() => {
+    set_image_failed(false);
+  }, [profile_picture]);
+
+  const has_picture =
+    typeof profile_picture === "string" &&
+    profile_picture.trim().length > 0 &&
+    !image_failed;
 
   const handle_file_change = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -122,13 +132,14 @@ function AliasAvatar({
   };
 
   return (
-    <div className="relative group flex-shrink-0">
-      {profile_picture ? (
+    <div className="relative group/avatar flex-shrink-0">
+      {has_picture ? (
         <div className="w-10 h-10 rounded-full overflow-hidden flex-shrink-0">
           <img
             alt=""
             className="w-full h-full object-cover"
             src={profile_picture}
+            onError={() => set_image_failed(true)}
           />
         </div>
       ) : (
@@ -144,8 +155,8 @@ function AliasAvatar({
         </div>
       )}
       {uploading && (
-        <div className="absolute inset-0 flex items-center justify-center aster_scrim rounded-full">
-          <Spinner className="text-white" size="xs" />
+        <div className="absolute inset-0 flex items-center justify-center rounded-full bg-[var(--aster-field-hover)] text-txt-primary">
+          <Spinner size="xs" />
         </div>
       )}
       <button
@@ -154,7 +165,7 @@ function AliasAvatar({
             ? t("common.alias_avatars_locked" as TranslationKey)
             : t("common.change_alias_avatar" as TranslationKey)
         }
-        className="absolute inset-0 flex items-center justify-center rounded-full aster_scrim text-white opacity-0 transition-opacity hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed"
+        className="absolute inset-0 flex items-center justify-center rounded-full bg-[var(--aster-field-hover)] text-txt-primary opacity-0 transition-opacity group-hover/avatar:opacity-100 focus-visible:opacity-100 disabled:invisible disabled:cursor-not-allowed"
         disabled={uploading}
         title={
           is_locked
@@ -181,16 +192,16 @@ function AliasAvatar({
           <CameraIcon className="h-4 w-4" />
         )}
       </button>
-      {!is_locked && profile_picture && (
+      {!is_locked && has_picture && (
         <button
           aria-label={t("common.remove_alias_avatar" as TranslationKey)}
-          className="absolute -bottom-1 -end-1 rounded-full bg-surf-card p-1 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-50"
+          className="absolute -top-1 -end-1 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--aster-field-bg)] text-txt-muted opacity-0 ring-2 ring-[var(--aster-island-fill,var(--bg-primary))] transition hover:bg-[var(--aster-field-hover)] hover:text-[var(--color-danger)] group-hover/avatar:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-50 [@media(hover:none)]:opacity-100"
           disabled={uploading}
           title={t("common.remove_alias_avatar" as TranslationKey)}
           type="button"
           onClick={on_remove}
         >
-          <XMarkIcon className="h-2.5 w-2.5 text-red-500" />
+          <XMarkIcon className="h-3 w-3" />
         </button>
       )}
       <input

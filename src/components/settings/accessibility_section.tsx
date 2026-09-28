@@ -38,21 +38,30 @@ import {
 
 import { InfoPopover } from "@/components/ui/info_popover";
 import { Slider } from "@/components/ui/slider";
+import { Skeleton } from "@/components/ui/skeleton";
 import { KeyboardShortcutsModal } from "@/components/modals/keyboard_shortcuts_modal";
 import {
   use_preferences,
   FONT_SIZE_MIN,
   FONT_SIZE_MAX,
   FONT_SIZE_DEFAULT,
+  normalize_font_size_scale,
 } from "@/contexts/preferences_context";
+import { get_cached_preferences } from "@/services/api/preferences";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_composing } from "@/utils/ime";
 
 export function AccessibilitySection() {
   const { t } = use_i18n();
-  const { preferences, update_preference } = use_preferences();
+  const { preferences, update_preference, is_loading, has_loaded_from_server } =
+    use_preferences();
+  const [has_cached_preferences] = useState(
+    () => get_cached_preferences() !== null,
+  );
+  const font_size_ready =
+    has_loaded_from_server || !is_loading || has_cached_preferences;
 
-  const font_size = preferences.font_size_scale;
+  const font_size = normalize_font_size_scale(preferences.font_size_scale);
   const [font_size_input, set_font_size_input] = useState<string>(
     String(font_size),
   );
@@ -81,7 +90,19 @@ export function AccessibilitySection() {
         padding="md"
         title={t("settings.font_size")}
       >
-        <div className="flex items-center gap-4">
+        {!font_size_ready && (
+          <div
+            aria-busy="true"
+            className="flex items-center gap-4"
+            data-testid="font_size_loading"
+          >
+            <Skeleton className="h-1.5 flex-1 rounded-full" />
+            <Skeleton className="h-9 w-16 rounded-[var(--aster-radius-control)]" />
+          </div>
+        )}
+        <div
+          className={font_size_ready ? "flex items-center gap-4" : "hidden"}
+        >
           <Slider
             ariaLabel={t("settings.font_size")}
             className="flex-1"
