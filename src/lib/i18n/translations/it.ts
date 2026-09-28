@@ -8488,6 +8488,7 @@ export const it = {
     align_right: "Allinea a destra",
     add_file: "Aggiungi file",
     attaching_original_files: "Allegando i file originali",
+    compose_total_size: "Dimensione totale",
     display_text_placeholder: "Testo visualizzato",
     url_placeholder: "https://esempio.com",
     schedule_send: "Programma invio",

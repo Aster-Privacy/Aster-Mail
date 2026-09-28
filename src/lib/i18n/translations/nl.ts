@@ -8427,6 +8427,7 @@ export const nl = {
     align_right: "Rechts uitlijnen",
     add_file: "Bestand toevoegen",
     attaching_original_files: "Oorspronkelijke bestanden worden toegevoegd",
+    compose_total_size: "Totale grootte",
     display_text_placeholder: "Weergavetekst",
     url_placeholder: "https://voorbeeld.nl",
     schedule_send: "Gepland verzenden",

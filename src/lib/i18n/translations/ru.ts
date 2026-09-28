@@ -8587,6 +8587,7 @@ export const ru = {
     align_right: "По правому краю",
     add_file: "Добавить файл",
     attaching_original_files: "Прикрепление исходных файлов",
+    compose_total_size: "Общий размер",
     display_text_placeholder: "Отображаемый текст",
     url_placeholder: "https://example.com",
     schedule_send: "Запланировать отправку",

@@ -8535,6 +8535,7 @@ export const fr = {
     align_right: "Aligner à droite",
     add_file: "Ajouter un fichier",
     attaching_original_files: "Pièces jointes d'origine en cours d'ajout",
+    compose_total_size: "Taille totale",
     display_text_placeholder: "Texte d'affichage",
     url_placeholder: "https://exemple.com",
     schedule_send: "Programmer l'envoi",

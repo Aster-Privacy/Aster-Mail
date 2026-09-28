@@ -8342,6 +8342,7 @@ export const tr = {
     align_right: "Sağa hizala",
     add_file: "Dosya ekle",
     attaching_original_files: "Özgün dosyalar ekleniyor",
+    compose_total_size: "Toplam boyut",
     display_text_placeholder: "Görüntüleme metni",
     url_placeholder: "https://ornek.com",
     schedule_send: "Zamanlanmış gönderim",

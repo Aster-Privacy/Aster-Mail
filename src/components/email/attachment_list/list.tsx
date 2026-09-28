@@ -20,7 +20,7 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { AnimatePresence } from "framer-motion";
 
 import { AttachmentCard } from "./card";
@@ -31,7 +31,6 @@ import {
   DecryptedAttachmentInfo,
   PREVIEW_READY_TIMEOUT_MS,
   build_cards_from_cached_meta,
-  is_inline_attachment,
 } from "./types";
 
 import { use_preferences } from "@/contexts/preferences_context";
@@ -65,6 +64,7 @@ import {
 import { PdfPreviewModal } from "@/components/email/pdf_preview_modal";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { ignore_error } from "@/lib/ignore_error";
+import { format_bytes } from "@/lib/utils";
 
 function attachment_error_key(error: unknown): TranslationKey {
   return error instanceof AttachmentKeyUnavailableError
@@ -76,8 +76,6 @@ export function AttachmentList({
   mail_item_id,
   is_external = false,
   has_recipient_key = false,
-  inline_cids,
-  inline_filenames,
   is_local = false,
   hint_attachment_count = 0,
 }: AttachmentListProps): React.ReactElement | null {
@@ -93,7 +91,6 @@ export function AttachmentList({
       return cached
         ? build_cards_from_cached_meta(
             cached,
-            { inline_cids, inline_filenames },
             t("common.encrypted_attachment"),
           )
         : [];
@@ -122,21 +119,6 @@ export function AttachmentList({
     Map<string, { encrypted_data: string; data_nonce: string }>
   > | null>(null);
   const pdf_attempted_ref = useRef<Set<string>>(new Set());
-  const inline_cids_ref = useRef(inline_cids);
-  const inline_filenames_ref = useRef(inline_filenames);
-
-  inline_cids_ref.current = inline_cids;
-  inline_filenames_ref.current = inline_filenames;
-
-  const inline_key = useMemo(() => {
-    const cids = inline_cids ? Array.from(inline_cids).sort().join(",") : "";
-    const names = inline_filenames
-      ? Array.from(inline_filenames).sort().join(",")
-      : "";
-
-    return `${cids}|${names}`;
-  }, [inline_cids, inline_filenames]);
-
   const decrypt_image_previews = useCallback(
     async (
       infos: DecryptedAttachmentInfo[],
@@ -319,8 +301,6 @@ export function AttachmentList({
     const mark_load_failed = () => {
       if (hint_attachment_count > 0) set_load_failed(true);
     };
-    const inline_cids = inline_cids_ref.current;
-    const inline_filenames = inline_filenames_ref.current;
 
     bytes_fetch_ref.current = null;
     pdf_attempted_ref.current = new Set();
@@ -345,10 +325,6 @@ export function AttachmentList({
           att.mail_item_id,
           att.seq_num,
         );
-
-        if (is_inline_attachment(meta, { inline_cids, inline_filenames })) {
-          return null;
-        }
 
         return {
           id: att.id,
@@ -438,7 +414,6 @@ export function AttachmentList({
       if (cached_meta && cached_meta_is_trustworthy) {
         const cards = build_cards_from_cached_meta(
           cached_meta,
-          { inline_cids, inline_filenames },
           t("common.encrypted_attachment"),
         );
 
@@ -556,7 +531,6 @@ export function AttachmentList({
     };
   }, [
     mail_item_id,
-    inline_key,
     t,
     preferences.low_network_mode,
     user_expanded,
@@ -786,6 +760,11 @@ export function AttachmentList({
     );
   }
 
+  const total_size_bytes = attachments.reduce(
+    (total, att) => total + Math.max(0, att.size_bytes || 0),
+    0,
+  );
+
   if (attachments.length === 0) {
     if (!load_failed) return null;
 
@@ -836,6 +815,14 @@ export function AttachmentList({
           {attachments.length === 1
             ? t("mail.attachment_singular")
             : t("mail.attachments")}
+          {total_size_bytes > 0 && (
+            <>
+              <span className="text-txt-muted/40">·</span>
+              <span className="tabular-nums" data-testid="attachments_total_size">
+                {format_bytes(total_size_bytes)}
+              </span>
+            </>
+          )}
           <span className="text-txt-muted/40">·</span>
           <EncryptionInfoDropdown
             context="attachments"

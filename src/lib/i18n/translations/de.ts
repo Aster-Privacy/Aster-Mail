@@ -8531,6 +8531,7 @@ export const de = {
     align_right: "Rechtsbündig",
     add_file: "Datei hinzufügen",
     attaching_original_files: "Originaldateien werden angehängt",
+    compose_total_size: "Gesamtgröße",
     display_text_placeholder: "Anzeigetext",
     url_placeholder: "https://beispiel.de",
     schedule_send: "Senden planen",

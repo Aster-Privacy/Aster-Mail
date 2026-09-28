@@ -8273,6 +8273,7 @@ export const hi = {
     align_right: "दाएं लगाएं",
     add_file: "फ़ाइल जोड़ें",
     attaching_original_files: "मूल फ़ाइलें अटैच की जा रही हैं",
+    compose_total_size: "कुल आकार",
     display_text_placeholder: "दिखने वाला पाठ",
     url_placeholder: "https://example.com",
     insert_link_title: "लिंक डालें",

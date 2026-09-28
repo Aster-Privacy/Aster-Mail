@@ -52,7 +52,6 @@ import { use_email_translation } from "@/components/email/hooks/use_email_transl
 import { analyze_email_content } from "@/lib/phishing_analyzer";
 import {
   extract_cid_references,
-  extract_cid_inline_filenames,
   resolve_cid_references,
   revoke_cid_blob_urls,
 } from "@/lib/cid_resolver";
@@ -567,20 +566,6 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     );
   }, [html_blocked, clean_body]);
 
-  const inline_cids = useMemo(() => {
-    const refs = extract_cid_references(sanitized_content.html);
-
-    return refs.length > 0
-      ? new Set(refs.map((r) => r.toLowerCase()))
-      : undefined;
-  }, [sanitized_content.html]);
-
-  const inline_filenames = useMemo(() => {
-    const names = extract_cid_inline_filenames(sanitized_content.html);
-
-    return names.size > 0 ? names : undefined;
-  }, [sanitized_content.html]);
-
   const name = is_own_message ? t("common.me") : show_sender_name;
   const can_collapse = !is_single_message && !is_last_in_thread;
 
@@ -616,8 +601,6 @@ export function use_thread_message_block(props: ThreadMessageBlockProps) {
     effective_html,
     html_blocked,
     plain_text_html,
-    inline_cids,
-    inline_filenames,
     name,
     can_collapse,
   };

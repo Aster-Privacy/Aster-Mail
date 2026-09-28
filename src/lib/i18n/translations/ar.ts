@@ -8277,6 +8277,7 @@ export const ar = {
     align_right: "محاذاة لليمين",
     add_file: "إضافة ملف",
     attaching_original_files: "جارٍ إرفاق الملفات الأصلية",
+    compose_total_size: "الحجم الإجمالي",
     display_text_placeholder: "نص العرض",
     url_placeholder: "https://example.com",
     schedule_send: "جدولة الإرسال",

@@ -8171,6 +8171,7 @@ export const ko = {
     align_right: "오른쪽 정렬",
     add_file: "파일 추가",
     attaching_original_files: "원본 파일을 첨부하는 중",
+    compose_total_size: "전체 크기",
     display_text_placeholder: "표시 텍스트",
     url_placeholder: "https://example.com",
     schedule_send: "예약 전송",

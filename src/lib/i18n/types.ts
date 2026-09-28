@@ -7373,6 +7373,7 @@ export interface MailTranslations {
   align_right: string;
   add_file: string;
   attaching_original_files: string;
+  compose_total_size: string;
   display_text_placeholder: string;
   url_placeholder: string;
   insert_link_title: string;
