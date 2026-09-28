@@ -44,7 +44,6 @@ import {
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
 import { IslandDivider, IslandIconButton, Tooltip } from "@aster/ui";
-import { AnimatePresence, motion } from "framer-motion";
 
 import { render_collapsed_thread_message } from "./thread_message_collapsed";
 import { use_thread_message_block } from "./use_thread_message_block";
@@ -80,7 +79,6 @@ import { TranslationBanner } from "@/components/email/banners/translation_banner
 import { ThreadMessageActions } from "@/components/email/thread_message_actions";
 import { MessageDetailsModal } from "@/components/email/message_details_modal";
 import { MessageDetailCard } from "@/components/email/message_detail_card";
-import { use_should_reduce_motion } from "@/provider";
 import { SenderProfileTrigger } from "@/components/profile/sender_profile_trigger";
 import { PgpPasswordProtectedMessage } from "@/components/email/pgp_password_prompt";
 import { open_external } from "@/utils/open_link";
@@ -131,7 +129,6 @@ export function ThreadMessageBlock(
     island_ref,
   } = props;
   const state = use_thread_message_block(props);
-  const reduce_motion = use_should_reduce_motion();
   const {
     t,
     auth,
@@ -179,7 +176,7 @@ export function ThreadMessageBlock(
   ) => (
     <div ref={island_ref} className="overflow-hidden">
       {content}
-      <AnimatePresence initial={false}>{reply}</AnimatePresence>
+      {reply}
     </div>
   );
 
@@ -204,17 +201,10 @@ export function ThreadMessageBlock(
       : delivered_to_address;
 
     return (
-      <motion.div
+      <div
         key="inline_reply"
-        animate={{ height: "auto", opacity: 1 }}
+        role="presentation"
         className="overflow-hidden"
-        exit={{ height: 0, opacity: 0 }}
-        initial={{ height: 0, opacity: 0 }}
-        transition={
-          reduce_motion
-            ? { duration: 0 }
-            : { duration: 0.24, ease: [0.32, 0.72, 0, 1] }
-        }
         onClick={(e) => e.stopPropagation()}
       >
         <IslandDivider />
@@ -247,7 +237,7 @@ export function ThreadMessageBlock(
           sender_name={message.sender_name}
           thread_token={inline_reply_thread_token}
         />
-      </motion.div>
+      </div>
     );
   };
 
@@ -562,18 +552,11 @@ export function ThreadMessageBlock(
                 <EllipsisVerticalIcon />
               </IslandIconButton>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-52">
-              {on_reply && !is_system && (
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    on_reply(message);
-                  }}
-                >
-                  <ArrowUturnLeftIcon className="w-4 h-4 me-2 rtl:-scale-x-100" />
-                  {t("mail.reply")}
-                </DropdownMenuItem>
-              )}
+            <DropdownMenuContent
+              align="end"
+              className="w-52"
+              collisionPadding={12}
+            >
               {on_reply_all && !is_system && (
                 <DropdownMenuItem
                   onClick={(e) => {
@@ -612,19 +595,6 @@ export function ThreadMessageBlock(
                   {is_read ? t("mail.mark_unread") : t("mail.mark_read")}
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  on_star_toggle?.();
-                }}
-              >
-                {is_starred ? (
-                  <StarIconSolid className="w-4 h-4 me-2 text-amber-400" />
-                ) : (
-                  <StarIcon className="w-4 h-4 me-2" />
-                )}
-                {is_starred ? t("mail.unstar") : t("mail.star")}
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
               {on_archive && (
                 <DropdownMenuItem
