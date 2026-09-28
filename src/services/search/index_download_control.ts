@@ -26,6 +26,7 @@ export interface IndexDownloadState {
 }
 
 const STORAGE_KEY = "aster_search_index_download_v1";
+const CHECKPOINT_INTERVAL_MS = 1000;
 
 function default_state(): IndexDownloadState {
   return { paused: false, done: 0, total: 0 };
@@ -66,22 +67,55 @@ function emit_download_state(next: Partial<IndexDownloadState>): void {
   download_listeners.forEach((cb) => cb());
 }
 
+let pending_checkpoint: { done: number; total: number } | null = null;
+let last_checkpoint_ms = 0;
+
 export function is_index_download_paused(): boolean {
   return download_state.paused;
 }
 
 export function set_index_download_paused(paused: boolean): void {
-  emit_download_state({ paused });
+  const checkpoint = pending_checkpoint;
+
+  pending_checkpoint = null;
+  emit_download_state({ ...(checkpoint ?? {}), paused });
 }
 
 export function record_index_download_checkpoint(
   done: number,
   total: number,
 ): void {
-  emit_download_state({ done, total: Math.max(total, done) });
+  const next = { done, total: total > 0 ? Math.max(total, done) : 0 };
+  const current = pending_checkpoint ?? download_state;
+
+  if (current.done === next.done && current.total === next.total) return;
+
+  const now = Date.now();
+
+  if (now - last_checkpoint_ms < CHECKPOINT_INTERVAL_MS) {
+    pending_checkpoint = next;
+
+    return;
+  }
+
+  last_checkpoint_ms = now;
+  pending_checkpoint = null;
+  emit_download_state(next);
+}
+
+export function flush_index_download_checkpoint(): void {
+  const checkpoint = pending_checkpoint;
+
+  if (!checkpoint) return;
+
+  pending_checkpoint = null;
+  last_checkpoint_ms = Date.now();
+  emit_download_state(checkpoint);
 }
 
 export function reset_index_download_state(): void {
+  pending_checkpoint = null;
+  last_checkpoint_ms = 0;
   emit_download_state(default_state());
   try {
     localStorage.removeItem(STORAGE_KEY);

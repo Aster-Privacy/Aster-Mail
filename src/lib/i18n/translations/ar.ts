@@ -8729,6 +8729,7 @@ export const ar = {
     folder_item_count_singular: "{{count}} عنصر",
     indexing_messages: "جارٍ فهرسة الرسائل...",
     message_download_status: "حالة تنزيل الرسائل: {{done}} من {{total}}",
+    message_download_count: "الرسائل التي تم تنزيلها: {{done}}",
     estimated_time_remaining: "الوقت المتبقي المقدر: {{duration}}",
     download_paused: "تم إيقاف التنزيل مؤقتًا",
     pause_download_action: "إيقاف مؤقت",

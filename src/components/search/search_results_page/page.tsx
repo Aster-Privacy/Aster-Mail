@@ -459,10 +459,17 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             className="text-xs text-center max-w-[280px]"
             style={{ color: "var(--text-muted)" }}
           >
-            {t("mail.message_download_status", {
-              done: state.indexed_count,
-              total: Math.max(indexing.total, state.indexed_count),
-            })}
+            {indexing.total > 0
+              ? t("mail.message_download_status", {
+                  done: Math.min(
+                    Math.max(state.indexed_count, indexing.current),
+                    indexing.total,
+                  ),
+                  total: indexing.total,
+                })
+              : t("mail.message_download_count", {
+                  done: Math.max(state.indexed_count, indexing.current),
+                })}
           </p>
         </div>
       ) : filtered_results.length === 0 ? (

@@ -8575,6 +8575,7 @@ export const en: Translations = {
     indexing_messages: "Indexing messages...",
     message_download_status:
       "Message download status: {{done}} out of {{total}}",
+    message_download_count: "Messages downloaded: {{done}}",
     estimated_time_remaining: "Estimated time remaining: {{duration}}",
     download_paused: "Downloading paused",
     pause_download_action: "Pause",

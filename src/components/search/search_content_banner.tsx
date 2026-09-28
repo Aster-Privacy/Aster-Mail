@@ -31,6 +31,10 @@ import {
   use_index_download_state,
   use_indexing_progress,
 } from "@/hooks/use_search";
+import {
+  advance_counts,
+  progress_percent,
+} from "@/hooks/use_search/progress_math";
 
 interface SearchContentBannerProps {
   enabled: boolean;
@@ -140,37 +144,63 @@ export function SearchContentBanner({
   const indexing_active = is_downloading || is_paused;
   const reported_done = is_paused ? download.done : progress.current;
   const reported_total = is_paused ? download.total : progress.total;
-  const [counts, set_counts] = useState({ done: 0, total: 0 });
+  const session = progress.session ?? 0;
+  const [counts, set_counts] = useState({ done: 0, total: 0, session: 0 });
 
   useEffect(() => {
     if (!indexing_active) {
+      set_counts((prev) => {
+        const finished =
+          prev.session === session &&
+          prev.total > 0 &&
+          reported_total > 0 &&
+          reported_done >= reported_total;
+
+        if (!finished) return prev;
+
+        if (prev.done === reported_total && prev.total === reported_total) {
+          return prev;
+        }
+
+        return { done: reported_total, total: reported_total, session };
+      });
+
       const timer = setTimeout(
-        () => set_counts({ done: 0, total: 0 }),
+        () => set_counts((prev) => ({ ...prev, done: 0, total: 0 })),
         INDEXING_ROW_LINGER_MS,
       );
 
       return () => clearTimeout(timer);
     }
 
-    if (reported_total <= 0) return;
+    if (reported_done <= 0 && reported_total <= 0) return;
 
     set_counts((prev) => {
-      if (reported_total !== prev.total) {
-        return { done: reported_done, total: reported_total };
+      const reported = { done: reported_done, total: reported_total };
+
+      if (prev.session !== session) {
+        return { ...advance_counts({ done: 0, total: 0 }, reported), session };
       }
 
-      return reported_done > prev.done
-        ? { ...prev, done: reported_done }
-        : prev;
-    });
-  }, [indexing_active, reported_done, reported_total]);
+      const next = advance_counts(prev, reported);
 
-  const done = counts.done;
+      if (next.done === prev.done && next.total === prev.total) return prev;
+
+      return { ...next, session };
+    });
+  }, [indexing_active, reported_done, reported_total, session]);
+
+  const has_total = counts.total > 0;
   const total = counts.total;
-  const show_bar = total > 0;
-  const is_active_download = is_downloading && show_bar && done < total;
-  const pct = total > 0 ? Math.min(100, Math.round((done / total) * 100)) : 0;
-  const eta_seconds = use_download_eta(done, total, is_active_download);
+  const done = has_total ? Math.min(counts.done, total) : counts.done;
+  const show_bar = has_total || done > 0;
+  const can_pause = is_downloading && show_bar;
+  const pct = progress_percent({ done, total }, indexing_active);
+  const eta_seconds = use_download_eta(
+    done,
+    total,
+    is_downloading && has_total && done < total,
+  );
 
   const handle_pause = () => {
     pause_index_download();
@@ -216,16 +246,30 @@ export function SearchContentBanner({
           <div className="mt-2 h-[38px]">
             <div className="flex h-4 items-center gap-3">
               <div className="h-1 flex-1 rounded-full bg-surf-secondary overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-300"
-                  style={{
-                    width: `${pct}%`,
-                    backgroundColor: "var(--accent-color)",
-                    opacity: is_paused ? 0.4 : 1,
-                  }}
-                />
+                {has_total ? (
+                  <div
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${pct}%`,
+                      backgroundColor: "var(--accent-color)",
+                      opacity: is_paused ? 0.4 : 1,
+                    }}
+                  />
+                ) : (
+                  is_downloading && (
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: "40%",
+                        backgroundColor: "var(--accent-color)",
+                        animation:
+                          "sync_bar_indeterminate 1.5s ease-in-out infinite",
+                      }}
+                    />
+                  )
+                )}
               </div>
-              {is_active_download && (
+              {can_pause && (
                 <button
                   className="text-[11px] font-medium text-txt-muted hover:text-txt-primary transition-colors flex-shrink-0"
                   type="button"
@@ -245,8 +289,10 @@ export function SearchContentBanner({
               )}
             </div>
             <p className="mt-1.5 h-4 text-[11px] leading-4 text-txt-muted tabular-nums">
-              {t("mail.message_download_status", { done, total })}
-              {is_active_download && eta_seconds !== null
+              {has_total
+                ? t("mail.message_download_status", { done, total })
+                : t("mail.message_download_count", { done })}
+              {eta_seconds !== null
                 ? ` · ${t("mail.estimated_time_remaining", {
                     duration: format_remaining_duration(eta_seconds, language),
                   })}`

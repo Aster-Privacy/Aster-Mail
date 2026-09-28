@@ -7695,6 +7695,7 @@ export interface MailTranslations {
   indexing: string;
   indexing_messages: string;
   message_download_status: string;
+  message_download_count: string;
   estimated_time_remaining: string;
   download_paused: string;
   pause_download_action: string;

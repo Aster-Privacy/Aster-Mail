@@ -180,6 +180,7 @@ export interface IndexingProgress {
   building: boolean;
   current: number;
   total: number;
+  session: number;
 }
 
 export interface ScanOptions {

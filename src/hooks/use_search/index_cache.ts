@@ -29,11 +29,13 @@ import {
 import { build_search_haystack } from "./matching";
 import { run_index_pipeline } from "./pipeline";
 import {
+  begin_indexing_run,
   emit_index_refreshed,
-  emit_indexing,
-  indexing_progress,
+  end_indexing_run,
+  report_indexing_counts,
+  reset_indexing_progress,
 } from "./progress";
-import { CachedIndex, DecryptedIndexEntry } from "./types";
+import { CachedIndex } from "./types";
 
 import { ignore_error } from "@/lib/ignore_error";
 import {
@@ -51,10 +53,14 @@ import {
 } from "@/services/search_index_store";
 import {
   is_index_download_paused,
-  record_index_download_checkpoint,
   reset_index_download_state,
 } from "@/services/search/index_download_control";
+import {
+  fetch_mailbox_index_total,
+  settle_within,
+} from "@/services/search/index_total";
 const PARTIAL_PUBLISH_MS = 750;
+const TOTAL_WAIT_MS = 1500;
 
 let partial_ready_resolve: (() => void) | null = null;
 let partial_ready_promise: Promise<void> | null = null;
@@ -81,6 +87,12 @@ export let cached_index: CachedIndex | null = null;
 export let index_build_promise: Promise<CachedIndex> | null = null;
 export let build_generation = 0;
 export let deep_index_active = false;
+let deep_index_generation = -1;
+
+export function is_deep_index_running(): boolean {
+  return deep_index_active && deep_index_generation === build_generation;
+}
+
 export function empty_index(
   user_email: string,
   include_body: boolean,
@@ -119,7 +131,7 @@ export function apply_meta(index: CachedIndex, meta: SnapshotMeta): void {
 export async function build_index_full(
   user_email: string,
   include_body: boolean,
-  prior?: Map<string, DecryptedIndexEntry>,
+  stale?: CachedIndex | null,
 ): Promise<CachedIndex> {
   const my_gen = build_generation;
 
@@ -132,11 +144,25 @@ export async function build_index_full(
   }
 
   const index = empty_index(user_email, include_body);
+  const prior_index = stale ?? null;
+  const prior = prior_index?.decrypted;
+  const reusable =
+    index_is_body_compatible(prior_index, user_email, include_body) &&
+    prior_index.decrypted.size > 0;
+  const counted = !(reusable && prior_index?.complete);
+  const floor =
+    counted && reusable
+      ? Math.min(prior_index?.total_indexed ?? 0, MAX_RAM_INDEX_ITEMS)
+      : 0;
+  const run_id = begin_indexing_run();
+  const total_request = counted
+    ? fetch_mailbox_index_total(MAX_INDEX_ITEMS)
+    : Promise.resolve(0);
 
-  emit_indexing({ building: true, current: 0, total: 0 });
+  void total_request.then((total) => {
+    report_indexing_counts(run_id, floor, total);
+  });
   reset_vocabulary();
-
-  const writer = await open_snapshot_writer(user_email);
 
   let last_publish_ms = 0;
 
@@ -165,6 +191,15 @@ export async function build_index_full(
   };
 
   try {
+    const [writer] = await Promise.all([
+      open_snapshot_writer(user_email),
+      settle_within(total_request, TOTAL_WAIT_MS),
+    ]);
+
+    if (my_gen !== build_generation) {
+      throw new Error("search_index_cancelled");
+    }
+
     const result = await run_index_pipeline({
       user_email,
       include_body,
@@ -173,9 +208,8 @@ export async function build_index_full(
       max_items: MAX_RAM_INDEX_ITEMS,
       hot: index,
       writer,
-      report_progress: true,
+      progress_run: counted ? run_id : undefined,
       pausable: true,
-      checkpoint: true,
       on_page: publish_partial,
     });
 
@@ -199,18 +233,22 @@ export async function build_index_full(
     }
 
     cached_index = index;
-    emit_indexing({ building: false });
 
     if (index.meta && !index.meta.complete && !is_index_download_paused()) {
       schedule_deep_index(user_email, include_body, index.meta);
     }
+
+    end_indexing_run(
+      run_id,
+      counted && index.complete ? index.total_indexed : undefined,
+    );
 
     return index;
   } catch (error) {
     if (cached_index === index) cached_index = null;
     index.items.length = 0;
     index.decrypted.clear();
-    emit_indexing({ building: false });
+    end_indexing_run(run_id);
     throw error;
   }
 }
@@ -220,23 +258,28 @@ export async function build_index_front_refresh(
   include_body: boolean,
   stale: CachedIndex,
 ): Promise<CachedIndex> {
+  if (is_index_download_paused()) return stale;
+
   const my_gen = build_generation;
   const prior = stale.decrypted;
   const base = stale.meta as SnapshotMeta;
-  const reader = await open_snapshot_reader(user_email);
-  const keep_ids = base.chunk_ids.slice(front_chunk_count(stale));
-  const boundary_chunk = reader ? await reader.read(keep_ids[0]) : null;
-  const boundary_id = boundary_chunk?.items[0]?.id;
-
-  if (!boundary_id) {
-    return build_index_full(user_email, include_body, prior);
-  }
-
   const index = empty_index(user_email, include_body);
-
-  emit_indexing({ building: true, current: 0, total: 0 });
+  const run_id = begin_indexing_run();
 
   try {
+    const reader = await open_snapshot_reader(user_email);
+    const keep_ids = base.chunk_ids.slice(front_chunk_count(stale));
+    const boundary_chunk = reader ? await reader.read(keep_ids[0]) : null;
+    const boundary_id = boundary_chunk?.items[0]?.id;
+
+    if (my_gen !== build_generation) {
+      throw new Error("search_index_cancelled");
+    }
+
+    if (!boundary_id) {
+      return build_index_full(user_email, include_body, stale);
+    }
+
     const result = await run_index_pipeline({
       user_email,
       include_body,
@@ -246,14 +289,12 @@ export async function build_index_front_refresh(
       max_items: MAX_RAM_INDEX_ITEMS,
       hot: index,
       writer: null,
-      report_progress: true,
       pausable: true,
     });
 
     if (result.paused) {
       index.items.length = 0;
       index.decrypted.clear();
-      emit_indexing({ building: false });
 
       return stale;
     }
@@ -261,9 +302,8 @@ export async function build_index_front_refresh(
     if (!result.reached_boundary) {
       index.items.length = 0;
       index.decrypted.clear();
-      emit_indexing({ building: false });
 
-      return build_index_full(user_email, include_body, prior);
+      return build_index_full(user_email, include_body, stale);
     }
 
     index.built_at = Date.now();
@@ -302,7 +342,6 @@ export async function build_index_front_refresh(
     }
 
     cached_index = index;
-    emit_indexing({ building: false });
 
     if (index.meta && !index.meta.complete) {
       schedule_deep_index(user_email, include_body, index.meta);
@@ -312,8 +351,9 @@ export async function build_index_front_refresh(
   } catch (error) {
     index.items.length = 0;
     index.decrypted.clear();
-    emit_indexing({ building: false });
     throw error;
+  } finally {
+    end_indexing_run(run_id);
   }
 }
 
@@ -322,12 +362,20 @@ export function schedule_deep_index(
   include_body: boolean,
   base: SnapshotMeta,
 ): void {
-  if (deep_index_active) return;
+  if (is_deep_index_running()) return;
   if (is_index_download_paused()) return;
+  if (base.complete || !base.next_cursor) return;
+  if (base.total >= MAX_INDEX_ITEMS) return;
+
+  const my_gen = build_generation;
+  const run_id = begin_indexing_run();
 
   deep_index_active = true;
-  void run_deep_index(user_email, include_body, base).finally(() => {
-    deep_index_active = false;
+  deep_index_generation = my_gen;
+  void run_deep_index(user_email, include_body, base, run_id).finally(() => {
+    if (deep_index_generation === my_gen) {
+      deep_index_active = false;
+    }
   });
 }
 
@@ -335,10 +383,10 @@ export async function run_deep_index(
   user_email: string,
   include_body: boolean,
   base: SnapshotMeta,
+  run_id: number,
 ): Promise<void> {
   const my_gen = build_generation;
   let meta = base;
-  let emitted = false;
 
   try {
     while (
@@ -348,7 +396,17 @@ export async function run_deep_index(
       my_gen === build_generation &&
       !is_index_download_paused()
     ) {
-      await new Promise<void>((r) => setTimeout(r, DEEP_SEGMENT_PAUSE_MS));
+      const segment_base = meta.total;
+      const total_request = fetch_mailbox_index_total(MAX_INDEX_ITEMS);
+
+      void total_request.then((total) => {
+        report_indexing_counts(run_id, segment_base, total);
+      });
+
+      await Promise.all([
+        new Promise<void>((r) => setTimeout(r, DEEP_SEGMENT_PAUSE_MS)),
+        settle_within(total_request, DEEP_SEGMENT_PAUSE_MS),
+      ]);
 
       if (my_gen !== build_generation) return;
       if (is_index_download_paused()) return;
@@ -358,13 +416,6 @@ export async function run_deep_index(
 
       if (!writer) return;
 
-      emitted = true;
-      emit_indexing({
-        building: true,
-        current: meta.total,
-        total: Math.max(indexing_progress.total, meta.total),
-      });
-
       const result = await run_index_pipeline({
         user_email,
         include_body,
@@ -373,9 +424,8 @@ export async function run_deep_index(
         max_items: Math.min(DEEP_SEGMENT_ITEMS, MAX_INDEX_ITEMS - meta.total),
         hot: null,
         writer,
-        report_progress: true,
+        progress_run: run_id,
         pausable: true,
-        checkpoint: true,
         progress_base: meta.total,
       });
 
@@ -406,16 +456,13 @@ export async function run_deep_index(
       if (result.paused) return;
       if (result.processed === 0) return;
     }
-
-    if (meta.complete) {
-      record_index_download_checkpoint(meta.total, meta.total);
-    }
-  } catch {
-    return;
+  } catch (caught) {
+    ignore_error("hooks/use_search/index_cache:run_deep_index", caught);
   } finally {
-    if (emitted) {
-      emit_indexing({ building: false });
-    }
+    end_indexing_run(
+      run_id,
+      meta.complete && my_gen === build_generation ? meta.total : undefined,
+    );
   }
 }
 
@@ -432,7 +479,7 @@ export function clear_search_index(): void {
   index_build_promise = null;
   reset_vocabulary();
   reset_index_download_state();
-  emit_indexing({ building: false, current: 0, total: 0 });
+  reset_indexing_progress();
   void clear_search_snapshots();
 }
 
@@ -462,6 +509,16 @@ export function start_background_rebuild(
     return index_build_promise;
   }
 
+  if (is_deep_index_running()) {
+    const running_for = stale ?? null;
+
+    if (index_is_body_compatible(running_for, user_email, include_body)) {
+      return Promise.resolve(running_for);
+    }
+
+    build_generation++;
+  }
+
   const can_refresh_front =
     !!stale &&
     stale.items.length > 0 &&
@@ -472,7 +529,7 @@ export function start_background_rebuild(
   const promise = (
     can_refresh_front && stale
       ? build_index_front_refresh(user_email, include_body, stale)
-      : build_index_full(user_email, include_body, stale?.decrypted)
+      : build_index_full(user_email, include_body, stale)
   )
     .then((index) => {
       emit_index_refreshed();
@@ -515,6 +572,7 @@ function drop_index_for_other_user(user_email: string): void {
     cached_index = null;
     build_generation++;
     index_build_promise = null;
+    reset_indexing_progress();
   }
 }
 

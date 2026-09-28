@@ -8969,6 +8969,7 @@ export const pt = {
     indexing_messages: "A indexar mensagens...",
     message_download_status:
       "Estado da transferência de mensagens: {{done}} de {{total}}",
+    message_download_count: "Mensagens transferidas: {{done}}",
     estimated_time_remaining: "Tempo restante estimado: {{duration}}",
     download_paused: "Transferência em pausa",
     pause_download_action: "Pausar",

@@ -8950,6 +8950,7 @@ export const nl = {
     indexing_messages: "Berichten indexeren...",
     message_download_status:
       "Downloadstatus van berichten: {{done}} van {{total}}",
+    message_download_count: "Gedownloade berichten: {{done}}",
     estimated_time_remaining: "Geschatte resterende tijd: {{duration}}",
     download_paused: "Download gepauzeerd",
     pause_download_action: "Pauzeren",

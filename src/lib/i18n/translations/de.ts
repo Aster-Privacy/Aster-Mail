@@ -8981,6 +8981,7 @@ export const de = {
     indexing_messages: "Nachrichten werden indiziert...",
     message_download_status:
       "Status des Nachrichten-Downloads: {{done}} von {{total}}",
+    message_download_count: "Heruntergeladene Nachrichten: {{done}}",
     estimated_time_remaining: "Geschätzte verbleibende Zeit: {{duration}}",
     download_paused: "Download pausiert",
     pause_download_action: "Pausieren",

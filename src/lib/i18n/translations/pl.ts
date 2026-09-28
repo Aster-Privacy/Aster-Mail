@@ -9087,6 +9087,7 @@ export const pl = {
     folder_item_count_singular: "{{count}} element",
     indexing_messages: "Indeksowanie wiadomości...",
     message_download_status: "Stan pobierania wiadomości: {{done}} z {{total}}",
+    message_download_count: "Pobrane wiadomości: {{done}}",
     estimated_time_remaining: "Szacowany pozostały czas: {{duration}}",
     download_paused: "Pobieranie wstrzymane",
     pause_download_action: "Wstrzymaj",

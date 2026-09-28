@@ -8808,6 +8808,7 @@ export const tr = {
     indexing_messages: "Mesajlar dizinleniyor...",
     message_download_status:
       "Mesaj indirme durumu: {{total}} mesajdan {{done}} tanesi",
+    message_download_count: "İndirilen mesajlar: {{done}}",
     estimated_time_remaining: "Tahmini kalan süre: {{duration}}",
     download_paused: "İndirme duraklatıldı",
     pause_download_action: "Duraklat",

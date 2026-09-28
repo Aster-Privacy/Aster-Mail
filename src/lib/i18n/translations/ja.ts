@@ -8855,6 +8855,7 @@ export const ja = {
     indexing_messages: "メッセージをインデックス中...",
     message_download_status:
       "メッセージのダウンロード状況: {{total}}件中{{done}}件",
+    message_download_count: "ダウンロード済みのメッセージ: {{done}}件",
     estimated_time_remaining: "推定残り時間: {{duration}}",
     download_paused: "ダウンロードを一時停止中",
     pause_download_action: "一時停止",

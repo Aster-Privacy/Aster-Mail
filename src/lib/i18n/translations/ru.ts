@@ -9038,6 +9038,7 @@ export const ru = {
     images: "изображения",
     indexing_messages: "Индексирование сообщений...",
     message_download_status: "Статус загрузки сообщений: {{done}} из {{total}}",
+    message_download_count: "Загружено сообщений: {{done}}",
     estimated_time_remaining: "Осталось примерно: {{duration}}",
     download_paused: "Загрузка приостановлена",
     pause_download_action: "Приостановить",

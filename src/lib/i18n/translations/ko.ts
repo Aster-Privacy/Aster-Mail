@@ -8631,6 +8631,7 @@ export const ko = {
     folder_item_count_singular: "{{count}}개 항목",
     indexing_messages: "메시지 인덱싱 중...",
     message_download_status: "메시지 다운로드 상태: {{total}}개 중 {{done}}개",
+    message_download_count: "다운로드한 메시지: {{done}}개",
     estimated_time_remaining: "예상 남은 시간: {{duration}}",
     download_paused: "다운로드 일시중지됨",
     pause_download_action: "일시중지",

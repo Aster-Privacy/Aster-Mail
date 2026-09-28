@@ -8890,6 +8890,7 @@ export const es = {
     indexing_messages: "Indexando mensajes...",
     message_download_status:
       "Estado de descarga de mensajes: {{done}} de {{total}}",
+    message_download_count: "Mensajes descargados: {{done}}",
     estimated_time_remaining: "Tiempo restante estimado: {{duration}}",
     download_paused: "Descarga en pausa",
     pause_download_action: "Pausar",

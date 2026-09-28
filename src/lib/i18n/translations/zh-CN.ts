@@ -8040,6 +8040,7 @@ export const zh_CN = {
     indexing_messages: "正在索引消息...",
     message_download_status:
       "邮件下载状态：共 {{total}} 封，已下载 {{done}} 封",
+    message_download_count: "已下载邮件：{{done}} 封",
     estimated_time_remaining: "预计剩余时间：{{duration}}",
     download_paused: "下载已暂停",
     pause_download_action: "暂停",

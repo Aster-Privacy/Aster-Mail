@@ -8614,6 +8614,7 @@ export const hi = {
     indexing_messages: "संदेश इंडेक्स किए जा रहे हैं...",
     message_download_status:
       "संदेश डाउनलोड की स्थिति: {{total}} में से {{done}}",
+    message_download_count: "डाउनलोड किए गए संदेश: {{done}}",
     estimated_time_remaining: "अनुमानित बचा हुआ समय: {{duration}}",
     download_paused: "डाउनलोड रोका गया",
     pause_download_action: "रोकें",

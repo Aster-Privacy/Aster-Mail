@@ -8912,6 +8912,7 @@ export const pt_br = {
     indexing_messages: "Indexando mensagens...",
     message_download_status:
       "Status do download de mensagens: {{done}} de {{total}}",
+    message_download_count: "Mensagens baixadas: {{done}}",
     estimated_time_remaining: "Tempo restante estimado: {{duration}}",
     download_paused: "Download pausado",
     pause_download_action: "Pausar",
