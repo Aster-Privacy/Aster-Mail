@@ -156,10 +156,11 @@ class SendQueue {
       }
 
       try {
-        await execute_send(current_email);
+        const sent_id = await execute_send(current_email);
+
         invalidate_mail_stats();
         emit_email_sent();
-        current_email.callbacks.on_complete();
+        current_email.callbacks.on_complete(sent_id);
       } catch (err) {
         const error = this.normalize_error(err);
 
@@ -249,10 +250,11 @@ class SendQueue {
 
     await this.with_send_lock(async () => {
       try {
-        await execute_send(current_email);
+        const sent_id = await execute_send(current_email);
+
         invalidate_mail_stats();
         emit_email_sent();
-        current_email.callbacks.on_complete();
+        current_email.callbacks.on_complete(sent_id);
       } catch (err) {
         const error = this.normalize_error(err);
 
@@ -328,7 +330,7 @@ export function check_send_readiness(): { ready: boolean; error?: string } {
 
 export function queue_email(
   email: EmailParams & {
-    on_complete: () => void;
+    on_complete: (sent_id?: string) => void;
     on_cancel: () => void;
     on_error?: (error: string) => void;
   },
@@ -637,9 +639,9 @@ export async function queue_email_to_server(
     prepared.request.delay_seconds = delay_seconds;
 
     const options: QueueEmailOptions = {
-      on_sent: () => {
+      on_sent: (sent_id?: string) => {
         invalidate_mail_stats();
-        callbacks.on_sent?.();
+        callbacks.on_sent?.(sent_id);
       },
       on_cancelled: callbacks.on_cancelled,
       on_error: callbacks.on_error,
@@ -841,11 +843,11 @@ export async function send_email_with_undo(
   queue_id = queue_email(
     {
       ...email,
-      on_complete: () => {
+      on_complete: (sent_id?: string) => {
         if (queue_id) {
           void remove_fallback_send(queue_id);
         }
-        email.on_sent?.();
+        email.on_sent?.(sent_id);
       },
       on_cancel: () => {
         if (queue_id) {

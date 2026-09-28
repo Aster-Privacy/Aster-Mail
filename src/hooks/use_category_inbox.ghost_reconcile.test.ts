@@ -88,6 +88,7 @@ vi.mock("@/contexts/preferences_context", () => ({
 }));
 
 vi.mock("@/services/category_index", () => ({
+  batch_index_updates: (run: () => void) => run(),
   init_category_index: vi.fn(async () => {}),
   get_page_ids: () => ["gone1", "gone2"],
   get_category_total: () => 2,

@@ -147,10 +147,10 @@ export function use_email_inbox_state(props: EmailInboxProps) {
   useEffect(() => {
     if (prev_category_ref.current !== categories.active_category) {
       prev_category_ref.current = categories.active_category;
-      set_current_page(0);
+      if (current_page !== 0) set_current_page(0);
     }
     page_category_ref.current = categories.active_category;
-  }, [categories.active_category, set_current_page]);
+  }, [categories.active_category, current_page, set_current_page]);
 
   const prev_initial_load_ref = useRef(false);
 
@@ -283,6 +283,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
 
   const skeleton_pending =
     is_paginating ||
+    (categories.enabled && email_state.is_loading) ||
     (filtered_emails.length === 0 &&
       (folders_loading_for_view ||
         !email_state.has_initial_load ||

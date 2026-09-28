@@ -114,6 +114,11 @@ import {
 } from "@/lib/first_run";
 import { use_is_mobile } from "@/hooks/use_platform";
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  NAVIGATE_TO_SENT_EVENT,
+  open_sent_message_or_folder,
+  type NavigateToSentDetail,
+} from "@/components/toast/email_sent_toast";
 
 function use_mount_latch(is_open: boolean): boolean {
   const [was_open, set_was_open] = useState(false);
@@ -318,7 +323,12 @@ export default function IndexPage() {
       state_ref.current.open_settings(resolve_settings_section(requested));
     };
 
-    const handle_navigate_sent = () => navigate("/sent");
+    const handle_navigate_sent = (e: Event) => {
+      const email_id = (e as CustomEvent<NavigateToSentDetail>).detail
+        ?.email_id;
+
+      void open_sent_message_or_folder(email_id, navigate);
+    };
 
     try {
       const pending_domain_order = sessionStorage.getItem(
@@ -338,14 +348,11 @@ export default function IndexPage() {
     }
 
     window.addEventListener("navigate-settings", handle_navigate);
-    window.addEventListener("astermail:navigate-to-sent", handle_navigate_sent);
+    window.addEventListener(NAVIGATE_TO_SENT_EVENT, handle_navigate_sent);
 
     return () => {
       window.removeEventListener("navigate-settings", handle_navigate);
-      window.removeEventListener(
-        "astermail:navigate-to-sent",
-        handle_navigate_sent,
-      );
+      window.removeEventListener(NAVIGATE_TO_SENT_EVENT, handle_navigate_sent);
     };
   }, [navigate]);
 

@@ -94,7 +94,7 @@ export interface MailActionResult {
 }
 
 export interface MailActionCallbacks {
-  on_complete: () => void;
+  on_complete: (sent_id?: string) => void;
   on_cancel: () => void;
   on_error?: (error: string) => void;
 }

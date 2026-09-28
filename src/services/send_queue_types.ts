@@ -110,7 +110,7 @@ export interface EmailParams {
 }
 
 export interface QueueCallbacks {
-  on_complete: () => void;
+  on_complete: (sent_id?: string) => void;
   on_cancel: () => void;
   on_error?: (error: SendError) => void;
 }
@@ -126,7 +126,7 @@ export interface QueuedEmail extends EmailParams {
   id: string;
   scheduled_time: number;
   timeout_id: number;
-  on_complete: () => void;
+  on_complete: (sent_id?: string) => void;
   on_cancel: () => void;
   on_error?: (error: string) => void;
 }
@@ -158,8 +158,7 @@ export interface EnvelopeData {
 }
 
 export type SendReadinessResult =
-  | { ready: true }
-  | { ready: false; error: SendError };
+  { ready: true } | { ready: false; error: SendError };
 
 export interface ServerQueueEmailParams extends EmailParams {
   thread_id?: string;
@@ -172,7 +171,7 @@ export interface ServerQueueEmailParams extends EmailParams {
 }
 
 export interface ServerQueueCallbacks {
-  on_sent?: () => void;
+  on_sent?: (sent_id?: string) => void;
   on_cancelled?: () => void;
   on_error?: (error: string) => void;
 }

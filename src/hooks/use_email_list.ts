@@ -93,7 +93,10 @@ export function resolve_refresh_offset(
   return page_offsets.get(active_page) ?? active_page * window_size;
 }
 
-export function use_email_list(current_view: string): UseEmailListReturn {
+export function use_email_list(
+  current_view: string,
+  enabled = true,
+): UseEmailListReturn {
   const {
     has_keys,
     is_loading: auth_loading,
@@ -213,7 +216,10 @@ export function use_email_list(current_view: string): UseEmailListReturn {
   has_data_ref.current = state.has_initial_load && !state.is_loading;
   const main_effect_fetched_ref = useRef(false);
 
-  const is_mail_view = useMemo(() => current_view !== "drafts", [current_view]);
+  const is_mail_view = useMemo(
+    () => enabled && current_view !== "drafts",
+    [current_view, enabled],
+  );
 
   const format_options: FormatOptions = useMemo(
     () => ({

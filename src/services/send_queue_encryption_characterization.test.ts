@@ -795,7 +795,7 @@ describe("execute_external_send", () => {
           },
         ],
       } as never),
-    ).resolves.toBeUndefined();
+    ).resolves.toBe("mail-2");
   });
 
   it("retries a sent copy attachment upload that fails once", async () => {

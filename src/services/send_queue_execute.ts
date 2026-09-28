@@ -61,7 +61,9 @@ import {
 } from "@/components/compose/compose_shared";
 import { ignore_error } from "@/lib/ignore_error";
 
-export async function execute_send(email: QueuedEmailInternal): Promise<void> {
+export async function execute_send(
+  email: QueuedEmailInternal,
+): Promise<string | undefined> {
   const readiness = check_send_readiness_internal();
 
   if (readiness.ready === false) {
@@ -193,6 +195,8 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
       ignore_error("services/send_queue_execute:execute_send", caught),
     );
   }
+
+  return result.data.mail_item_id;
 }
 
 const SENT_COPY_ATTACHMENT_ATTEMPTS = 3;
@@ -253,7 +257,7 @@ async function store_sent_copy_attachments(
 export async function execute_external_send(
   email: EmailParams,
   acknowledge_server_readable: boolean = true,
-): Promise<void> {
+): Promise<string | undefined> {
   const readiness = check_send_readiness_internal();
 
   if (readiness.ready === false) {
@@ -535,4 +539,6 @@ export async function execute_external_send(
       ignore_error("services/send_queue_execute:execute_external_send", caught),
     );
   }
+
+  return result.data.mail_item_id;
 }
