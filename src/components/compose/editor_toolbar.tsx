@@ -62,7 +62,7 @@ function ToolbarButton({
 }
 
 function Divider() {
-  return <div className="w-px h-5 mx-1 bg-edge-secondary" />;
+  return <div className="w-px h-5 mx-1 bg-[var(--aster-floating-divider)]" />;
 }
 
 export function EditorToolbar({ editor_ref, on_change }: EditorToolbarProps) {

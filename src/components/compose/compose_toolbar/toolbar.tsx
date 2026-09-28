@@ -64,7 +64,7 @@ export function ComposeToolbar({
   };
 
   return (
-    <div className="relative flex-shrink-0">
+    <div className="relative flex-shrink-0 border-t border-[var(--aster-floating-divider)]">
       {show_format_bar && !compose.is_plain_text_mode && (
         <div
           aria-label={t("mail.text_formatting")}

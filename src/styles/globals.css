@@ -1388,7 +1388,7 @@
 .dark.theme-black .aster_btn_secondary {
   color: var(--text-primary);
   background: #1a1a1a;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 0 0 1px var(--border-primary);
 }
 
 .dark.theme-black .aster_btn_secondary:hover {
@@ -1396,7 +1396,7 @@
 }
 
 .dark.theme-black .aster_btn_outline {
-  border-color: rgba(255, 255, 255, 0.18);
+  border-color: var(--border-primary);
 }
 
 .dark.theme-black .aster_btn_ghost {
@@ -1407,7 +1407,7 @@
 .dark.theme-black .aster_badge_gray {
   color: var(--text-primary);
   background: #262626;
-  border-color: #2e2e2e;
+  border-color: var(--border-primary);
 }
 
 .dark.theme-black .aster_skeleton {
@@ -1436,6 +1436,81 @@
     var(--text-muted)
   );
   --icon-active: var(--text-primary);
+}
+
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  :root {
+    --border-primary: color-mix(in srgb, var(--text-primary) 15%, transparent);
+    --border-secondary: color-mix(
+      in srgb,
+      var(--text-primary) 13%,
+      transparent
+    );
+    --border-thread-divider: var(--border-secondary);
+    --border: var(--border-primary);
+    --sidebar-border: var(--border-primary);
+    --indicator-border: var(--border-secondary);
+    --thread-card-border: var(--border-primary);
+    --input-border: color-mix(in srgb, var(--text-primary) 50%, transparent);
+    --input-border-hover: color-mix(
+      in srgb,
+      var(--text-primary) 64%,
+      transparent
+    );
+    --input: var(--input-border);
+    --aster-floating-divider: var(--border-secondary);
+    --island-divider: var(--border-secondary);
+  }
+
+  .dark {
+    --border-primary: color-mix(in srgb, var(--text-primary) 16%, transparent);
+    --input-border: color-mix(in srgb, var(--text-primary) 38%, transparent);
+    --input-border-hover: color-mix(
+      in srgb,
+      var(--text-primary) 50%,
+      transparent
+    );
+  }
+
+  .aster_input:where(
+    :not(
+      .aster_input_error,
+      .aster_input_success,
+      .aster_input_tonal,
+      .aster_island *
+    )
+  ),
+  .dark
+    .aster_input:where(
+      :not(
+        .aster_input_error,
+        .aster_input_success,
+        .aster_input_tonal,
+        .aster_island *
+      )
+    ) {
+    border-color: var(--input-border);
+  }
+
+  .aster_input:where(
+      :not(
+        .aster_input_error,
+        .aster_input_success,
+        .aster_input_tonal,
+        .aster_island *
+      )
+    ):hover:not(:disabled):not(:focus),
+  .dark
+    .aster_input:where(
+      :not(
+        .aster_input_error,
+        .aster_input_success,
+        .aster_input_tonal,
+        .aster_island *
+      )
+    ):hover:not(:disabled):not(:focus) {
+    border-color: var(--input-border-hover);
+  }
 }
 
 :root {
@@ -3659,11 +3734,7 @@ input:-webkit-autofill:active {
 }
 
 .plan_galaxy_divider {
-  border-top-color: color-mix(
-    in srgb,
-    var(--text-primary) 8%,
-    transparent
-  ) !important;
+  border-top-color: var(--border-secondary) !important;
 }
 
 .plan_galaxy_cta {

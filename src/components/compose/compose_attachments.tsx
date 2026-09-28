@@ -212,7 +212,7 @@ export function ComposeAttachments({
   return (
     <div
       ref={compose.attachments_scroll_ref}
-      className="border-t flex-shrink-0 border-edge-primary flex flex-col px-2 py-1.5 max-h-[140px] overflow-y-auto overscroll-contain"
+      className="border-t flex-shrink-0 border-[var(--aster-floating-divider)] flex flex-col px-2 py-1.5 max-h-[140px] overflow-y-auto overscroll-contain"
     >
       {compose.attachments.map((attachment) => (
         <AttachmentRow
@@ -270,7 +270,7 @@ export function AttachmentListSimple({
   return (
     <div
       ref={attachments_scroll_ref}
-      className="border-t border-edge-primary flex flex-col px-2 py-1.5 max-h-[140px] overflow-y-auto overscroll-contain"
+      className="border-t border-[var(--aster-floating-divider)] flex flex-col px-2 py-1.5 max-h-[140px] overflow-y-auto overscroll-contain"
     >
       {attachments.map((attachment) => (
         <AttachmentRow

@@ -849,7 +849,7 @@ export function ComposeFormFields({
 
   return (
     <>
-      <div className="px-4 py-2 border-b border-edge-secondary">
+      <div className="px-4 py-2 border-b border-[var(--aster-floating-divider)]">
         <RecipientField
           show_cc_bcc_buttons
           all_recipients={compose_all_recipients}
@@ -873,7 +873,7 @@ export function ComposeFormFields({
       </div>
 
       {compose.visibility.cc && (
-        <div className="px-4 py-2 border-b border-edge-secondary">
+        <div className="px-4 py-2 border-b border-[var(--aster-floating-divider)]">
           <RecipientField
             all_recipients={compose_all_recipients}
             contacts={compose.contacts}
@@ -895,7 +895,7 @@ export function ComposeFormFields({
       )}
 
       {compose.visibility.bcc && (
-        <div className="px-4 py-2 border-b border-edge-secondary">
+        <div className="px-4 py-2 border-b border-[var(--aster-floating-divider)]">
           <RecipientField
             all_recipients={compose_all_recipients}
             contacts={compose.contacts}
@@ -917,11 +917,11 @@ export function ComposeFormFields({
       )}
 
       <RecipientIdentityNotice
-        class_name="px-4 py-2 border-b border-edge-secondary"
+        class_name="px-4 py-2 border-b border-[var(--aster-floating-divider)]"
         recipients={compose_all_recipients}
       />
 
-      <div className="flex items-start gap-2 px-4 py-2 border-b border-edge-secondary">
+      <div className="flex items-start gap-2 px-4 py-2 border-b border-[var(--aster-floating-divider)]">
         <button
           className="text-sm flex-shrink-0 py-1.5 text-txt-tertiary cursor-text"
           type="button"

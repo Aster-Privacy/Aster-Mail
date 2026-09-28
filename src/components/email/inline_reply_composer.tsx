@@ -281,7 +281,7 @@ export const InlineReplyComposer = forwardRef<
   };
 
   const header = (
-    <div className="flex items-center justify-between px-4 py-2 flex-shrink-0">
+    <div className="flex items-center justify-between px-4 py-2 flex-shrink-0 border-b border-[var(--aster-floating-divider)]">
       <div className="flex items-center gap-2 text-sm text-txt-secondary min-w-0">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -366,7 +366,7 @@ export const InlineReplyComposer = forwardRef<
   );
 
   const reply_sender_field = is_reply_mode ? (
-    <div className="px-4 pb-1 flex-shrink-0 relative z-20">
+    <div className="px-4 py-1 flex-shrink-0 relative z-20 border-b border-[var(--aster-floating-divider)]">
       <div className={field_row_class}>
         <button
           className={field_label_class}
@@ -481,7 +481,7 @@ export const InlineReplyComposer = forwardRef<
 
   const forward_fields =
     inline_mode === "forward" ? (
-      <div className="px-4 pb-1 min-h-0 overflow-y-auto relative z-20">
+      <div className="px-4 py-1 min-h-0 overflow-y-auto relative z-20 border-b border-[var(--aster-floating-divider)]">
         <div className={field_row_class}>
           <button
             className={field_label_class}

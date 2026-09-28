@@ -170,7 +170,7 @@ export function ForwardHeader({
 
       {!is_minimized && (
         <div className="pt-3 pb-1 flex-shrink-0 overflow-visible relative z-20">
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-edge-secondary">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--aster-floating-divider)]">
             <button
               className="text-sm flex-shrink-0 text-txt-tertiary"
               type="button"
@@ -196,7 +196,7 @@ export function ForwardHeader({
             />
           </div>
 
-          <div className="px-4 py-2 border-b border-edge-secondary">
+          <div className="px-4 py-2 border-b border-[var(--aster-floating-divider)]">
             <RecipientField
               auto_focus
               show_cc_bcc_buttons
@@ -239,7 +239,7 @@ export function ForwardHeader({
           </div>
 
           {visibility.cc && (
-            <div className="px-4 py-2 border-b border-edge-secondary">
+            <div className="px-4 py-2 border-b border-[var(--aster-floating-divider)]">
               <RecipientField
                 contacts={contacts}
                 input_value={inputs.cc}
@@ -276,7 +276,7 @@ export function ForwardHeader({
           )}
 
           {visibility.bcc && (
-            <div className="px-4 py-2 border-b border-edge-secondary">
+            <div className="px-4 py-2 border-b border-[var(--aster-floating-divider)]">
               <RecipientField
                 contacts={contacts}
                 input_value={inputs.bcc}
@@ -313,11 +313,11 @@ export function ForwardHeader({
           )}
 
           <RecipientIdentityNotice
-            class_name="px-4 py-2 border-b border-edge-secondary"
+            class_name="px-4 py-2 border-b border-[var(--aster-floating-divider)]"
             recipients={[...recipients.to, ...recipients.cc, ...recipients.bcc]}
           />
 
-          <div className="flex items-center gap-2 px-4 py-2 border-b border-edge-secondary">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-[var(--aster-floating-divider)]">
             <span className="text-sm flex-shrink-0 text-txt-tertiary">
               {t("common.subject_label")}
             </span>
