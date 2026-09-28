@@ -68,9 +68,9 @@ export const ChipSegment = React.forwardRef<
         }}
         className={cn(
           "h-full flex items-center gap-1.5 px-2.5 text-[12.5px] font-medium transition-colors",
-          "text-neutral-700 dark:text-neutral-200",
-          "hover:bg-neutral-100 dark:hover:bg-neutral-800",
-          is_active && "bg-neutral-100 dark:bg-neutral-800",
+          "text-txt-primary",
+          "hover:bg-[var(--aster-field-hover)]",
+          is_active && "bg-[var(--aster-field-hover)]",
           is_first && "rounded-s-[11px]",
           is_last && "rounded-e-[11px]",
           className,
@@ -102,9 +102,8 @@ export const ChipPill = React.forwardRef<HTMLDivElement, ChipPillProps>(
       <div
         ref={ref}
         className={cn(
-          "inline-flex items-stretch h-7 rounded-[12px] border bg-transparent",
-          "border-neutral-200 dark:border-neutral-700",
-          "overflow-hidden divide-x divide-neutral-200 dark:divide-neutral-700",
+          "inline-flex items-stretch h-7 rounded-[12px] bg-[var(--aster-field-bg)]",
+          "overflow-hidden divide-x divide-[var(--aster-floating-divider,var(--border-secondary))]",
           className,
         )}
       >
@@ -115,8 +114,7 @@ export const ChipPill = React.forwardRef<HTMLDivElement, ChipPillProps>(
               aria-label={t("common.remove")}
               className={cn(
                 "h-5 w-5 flex items-center justify-center rounded-full transition-colors",
-                "text-neutral-400 hover:bg-neutral-200 hover:text-neutral-700",
-                "dark:hover:bg-neutral-700 dark:hover:text-neutral-200",
+                "text-txt-muted hover:bg-[var(--aster-field-hover)] hover:text-txt-primary",
               )}
               type="button"
               onClick={on_remove}

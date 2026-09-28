@@ -575,7 +575,7 @@ export function SearchBar({
               on_disable={handle_disable_content_search}
               on_enable={handle_enable_content_search}
             />
-            <div className="px-3 py-2 flex flex-wrap items-center gap-2">
+            <div className="px-4 py-2 flex flex-wrap items-center gap-2">
               <Chip
                 icon={<PaperClipIcon className="w-3.5 h-3.5" />}
                 label={t("mail.has_attachments")}
@@ -597,7 +597,7 @@ export function SearchBar({
                 on_click={() => handle_chip("from:")}
               />
               <button
-                className="ms-auto inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
+                className="ms-auto -me-2.5 inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
                 type="button"
                 onClick={() => {
                   close();
@@ -667,14 +667,14 @@ export function SearchBar({
               preview_results.length > 0 && (
                 <div
                   aria-busy={is_preview_stale}
-                  className="border-t border-[var(--border-secondary)] transition-opacity duration-150 motion-reduce:transition-none"
+                  className="border-t border-[var(--aster-floating-divider,var(--border-secondary))] transition-opacity duration-150 motion-reduce:transition-none"
                   style={{ opacity: is_preview_stale ? 0.55 : 1 }}
                 >
                   <CorrectionNotice
                     correction={active_correction}
                     on_dismiss={dismiss_correction}
                   />
-                  <div className="py-1 max-h-[420px] overflow-y-auto">
+                  <div className="p-1.5 max-h-[420px] overflow-y-auto">
                     {preview_results.map((result) => (
                       <PreviewRow
                         key={result.id}
@@ -685,19 +685,21 @@ export function SearchBar({
                       />
                     ))}
                   </div>
-                  <button
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-start text-[13px] border-t border-[var(--border-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)] hover:text-[var(--text-primary)] transition-colors"
-                    type="button"
-                    onClick={() => submit_full(preview_query)}
-                  >
-                    <MagnifyingGlassIcon className="w-4 h-4 flex-shrink-0 text-[var(--icon-secondary)]" />
-                    <span className="flex-1 min-w-0 truncate">
-                      {t("mail.view_all_results", { query: effective_query })}
-                    </span>
-                    <span className="flex-shrink-0 text-[11px] text-[var(--text-muted)]">
-                      {t("common.press_enter_to_view_all")}
-                    </span>
-                  </button>
+                  <div className="border-t border-[var(--aster-floating-divider,var(--border-secondary))] p-1.5">
+                    <button
+                      className="w-full flex items-center gap-3 px-2.5 py-2 rounded-[var(--aster-radius-item,8px)] text-start text-[13px] text-[var(--text-secondary)] hover:bg-[var(--aster-floating-hover,var(--bg-hover))] hover:text-[var(--text-primary)] transition-colors"
+                      type="button"
+                      onClick={() => submit_full(preview_query)}
+                    >
+                      <MagnifyingGlassIcon className="w-4 h-4 flex-shrink-0 text-[var(--icon-secondary)]" />
+                      <span className="flex-1 min-w-0 truncate">
+                        {t("mail.view_all_results", { query: effective_query })}
+                      </span>
+                      <span className="flex-shrink-0 text-[11px] text-[var(--text-muted)]">
+                        {t("common.press_enter_to_view_all")}
+                      </span>
+                    </button>
+                  </div>
                 </div>
               )}
           </div>,
@@ -773,7 +775,7 @@ const PreviewRow = memo(function PreviewRow({
 
   return (
     <button
-      className="w-full flex items-center gap-3 px-4 py-2 text-start hover:bg-[var(--bg-hover)] transition-colors"
+      className="w-full flex items-center gap-3 px-2.5 py-2 rounded-[var(--aster-radius-item,8px)] text-start hover:bg-[var(--aster-floating-hover,var(--bg-hover))] transition-colors"
       type="button"
       onClick={on_click}
     >

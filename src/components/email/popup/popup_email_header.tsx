@@ -449,7 +449,7 @@ export function PopupEmailHeader({
                   </div>
                   {email.raw_headers && email.raw_headers.length > 0 && (
                     <>
-                      <div className="border-t border-edge-primary pt-2 mt-1">
+                      <div className="border-t border-[var(--aster-floating-divider,var(--border-secondary))] pt-2 mt-1">
                         <button
                           className="text-xs text-brand hover:text-brand-hover transition-colors"
                           onClick={() => set_show_headers(!show_headers)}

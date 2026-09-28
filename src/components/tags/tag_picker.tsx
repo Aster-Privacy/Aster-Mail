@@ -99,8 +99,8 @@ export function TagPicker({
           }}
           transition={{ duration: reduce_motion ? 0 : 0.12 }}
         >
-          <div className="p-2">
-            <div className="flex items-center gap-2 px-2 h-8 rounded-md bg-surf-secondary border border-edge-secondary">
+          <div className="p-1.5">
+            <div className="flex items-center gap-2 px-2.5 h-8 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)]">
               <MagnifyingGlassIcon className="w-3.5 h-3.5 flex-shrink-0 text-txt-muted" />
               <Input
                 autoFocus
@@ -114,7 +114,7 @@ export function TagPicker({
             </div>
           </div>
 
-          <div className="max-h-56 overflow-y-auto px-1">
+          <div className="max-h-56 overflow-y-auto px-1.5">
             {filtered_tags.length === 0 && (
               <p className="text-[12px] px-3 py-3 text-center text-txt-muted">
                 {search_query
@@ -128,7 +128,7 @@ export function TagPicker({
               return (
                 <button
                   key={tag.id}
-                  className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[var(--aster-radius-control)] text-[13px] transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-txt-primary"
+                  className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-[var(--aster-radius-item,8px)] text-[13px] transition-colors hover:bg-[var(--aster-floating-hover,var(--bg-hover))] text-txt-primary"
                   onClick={() => on_toggle_tag(tag.tag_token, !assigned)}
                 >
                   <div
@@ -147,9 +147,9 @@ export function TagPicker({
             })}
           </div>
 
-          <div className="border-t px-1 py-1 border-edge-primary">
+          <div className="mt-1.5 border-t p-1.5 border-[var(--aster-floating-divider,var(--border-secondary))]">
             <button
-              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[var(--aster-radius-control)] text-[12px] transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06] text-txt-muted"
+              className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-[var(--aster-radius-item,8px)] text-[12px] transition-colors hover:bg-[var(--aster-floating-hover,var(--bg-hover))] text-txt-muted"
               onClick={() => set_is_create_open(true)}
             >
               <PlusIcon className="w-3.5 h-3.5" />

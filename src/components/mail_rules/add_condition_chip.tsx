@@ -59,7 +59,7 @@ export function AddConditionChip({
       trigger={
         <button
           ref={trigger_ref}
-          className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-[var(--aster-radius-control)] border border-dashed border-neutral-300 dark:border-neutral-700 text-[12.5px] text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors"
+          className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] text-[12.5px] text-txt-secondary hover:bg-[var(--aster-field-hover)] hover:text-txt-primary transition-colors"
           type="button"
           onClick={() => set_open(true)}
         >

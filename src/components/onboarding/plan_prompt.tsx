@@ -167,7 +167,7 @@ export function PlanPrompt({
             </div>
             <button
               aria-label={t("common.plan_prompt_dismiss")}
-              className="-me-1 -mt-1 rounded-md p-1 text-txt-muted transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"
+              className="-me-1 -mt-1 rounded-md p-1 text-txt-muted transition-colors hover:bg-[var(--aster-hover)]"
               type="button"
               onClick={close}
             >

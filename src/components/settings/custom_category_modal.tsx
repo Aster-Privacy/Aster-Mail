@@ -273,7 +273,7 @@ export function CustomCategoryModal({
                       return (
                         <button
                           key={key}
-                          className="flex h-9 w-9 items-center justify-center rounded-full bg-black/[0.04] transition-colors hover:bg-black/[0.07] dark:bg-white/[0.06] dark:hover:bg-white/[0.1]"
+                          className="flex h-9 w-9 items-center justify-center rounded-full bg-black/[0.04] transition-colors hover:bg-[var(--aster-hover)] dark:bg-white/[0.06] dark:hover:bg-white/[0.1]"
                           style={{
                             boxShadow: is_selected
                               ? "0 0 0 2px var(--modal-bg), 0 0 0 4px var(--accent-blue)"

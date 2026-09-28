@@ -243,7 +243,7 @@ function PersonChip({
             }}
           />
         </div>
-        <div className="max-h-[320px] overflow-y-auto py-1.5">
+        <div className="max-h-[320px] overflow-y-auto p-1.5">
           {visible.length === 0 ? (
             <p
               className="px-3 py-3 text-xs text-center"
@@ -255,7 +255,7 @@ function PersonChip({
             visible.map((person) => (
               <button
                 key={person.email}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-start hover:bg-[var(--aster-hover)]"
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--aster-radius-item,8px)] text-start hover:bg-[var(--aster-floating-hover,var(--bg-hover))]"
                 type="button"
                 onClick={() => apply(person.email)}
               >
@@ -594,7 +594,7 @@ export function SearchChipRow({
         ).map(([preset, label]) => (
           <button
             key={preset}
-            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-[10px] text-[13px] text-start hover:bg-[var(--aster-hover)]"
+            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-[var(--aster-radius-item,8px)] text-[13px] text-start hover:bg-[var(--aster-floating-hover,var(--bg-hover))]"
             style={{
               color:
                 date_preset === preset

@@ -239,14 +239,11 @@ export function RuleEditorModal({
     (a) => a.type === "apply_labels" && a.label_tokens.length === 0,
   );
   const forward_action = actions.find((a) => a.type === "forward") as
-    | Extract<Action, { type: "forward" }>
-    | undefined;
+    Extract<Action, { type: "forward" }> | undefined;
   const snooze_action = actions.find((a) => a.type === "snooze") as
-    | Extract<Action, { type: "snooze" }>
-    | undefined;
+    Extract<Action, { type: "snooze" }> | undefined;
   const categorize_action = actions.find((a) => a.type === "categorize") as
-    | Extract<Action, { type: "categorize" }>
-    | undefined;
+    Extract<Action, { type: "categorize" }> | undefined;
 
   const action_present: Record<AddableActionType, boolean> = {
     move_to: actions.some((a) => a.type === "move_to"),
@@ -752,10 +749,10 @@ export function RuleEditorModal({
         <div>
           <div className="flex items-center gap-1 mb-3">
             <button
-              className={`px-3 py-1 text-xs font-semibold rounded cursor-pointer ${
+              className={`px-3 py-1 text-xs font-semibold rounded-[var(--aster-radius-item,8px)] cursor-pointer transition-colors ${
                 tab === "visual"
-                  ? "bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
-                  : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+                  ? "bg-[var(--aster-field-hover)] text-txt-primary"
+                  : "text-txt-muted hover:text-txt-primary"
               }`}
               type="button"
               onClick={() => {
@@ -781,10 +778,10 @@ export function RuleEditorModal({
               {t("mail_rules.tab_visual")}
             </button>
             <button
-              className={`px-3 py-1 text-xs font-semibold rounded cursor-pointer ${
+              className={`px-3 py-1 text-xs font-semibold rounded-[var(--aster-radius-item,8px)] cursor-pointer transition-colors ${
                 tab === "expression"
-                  ? "bg-neutral-200 dark:bg-neutral-700 text-neutral-900 dark:text-neutral-100"
-                  : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+                  ? "bg-[var(--aster-field-hover)] text-txt-primary"
+                  : "text-txt-muted hover:text-txt-primary"
               }`}
               type="button"
               onClick={() => {
@@ -824,7 +821,7 @@ export function RuleEditorModal({
           </div>
           {tab === "visual" ? (
             <>
-              <div className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500 mb-2">
+              <div className="text-[11px] font-semibold uppercase tracking-wide text-txt-muted mb-2">
                 {t("mail_rules.when_mail_matches")}{" "}
                 <span className="lowercase font-normal">
                   {match_mode === "all"
@@ -901,10 +898,10 @@ export function RuleEditorModal({
           )}
         </div>
 
-        <div className="border-t border-neutral-200 dark:border-neutral-700" />
+        <div className="border-t border-[var(--aster-floating-divider,var(--border-secondary))]" />
 
         <div>
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-neutral-500 mb-2">
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-txt-muted mb-2">
             {t("mail_rules.do_this")}
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -992,7 +989,7 @@ export function RuleEditorModal({
             )}
           </div>
           {is_edit && active_run && (
-            <span className="text-[11.5px] text-neutral-500">
+            <span className="text-[11.5px] text-txt-muted">
               {run_status_label()}
             </span>
           )}
@@ -1011,7 +1008,7 @@ export function RuleEditorModal({
             </Button>
           </div>
           {disabled_hint && (
-            <span className="text-[11.5px] text-neutral-500">
+            <span className="text-[11.5px] text-txt-muted">
               {disabled_hint}
             </span>
           )}

@@ -353,7 +353,7 @@ export function ConditionChip({
         is_active={false}
         on_click={read_only ? undefined : () => set_open_segment("value")}
       >
-        <span className={!condition.name ? "text-neutral-400" : undefined}>
+        <span className={!condition.name ? "text-txt-muted" : undefined}>
           {condition.name || t("mail_rules.header_name_placeholder")}
         </span>
       </ChipSegment>
@@ -401,7 +401,7 @@ export function ConditionChip({
           <span
             className={
               !(condition as { value?: unknown }).value
-                ? "text-neutral-400"
+                ? "text-txt-muted"
                 : undefined
             }
           >

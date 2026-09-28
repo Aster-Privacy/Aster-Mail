@@ -43,7 +43,7 @@ export function AndOrPill({ mode, on_change, read_only }: AndOrPillProps) {
     mode === "all" ? t("mail_rules.and_label") : t("mail_rules.or_label");
 
   const pill = (
-    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 text-[11px] font-medium uppercase tracking-wide select-none">
+    <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[var(--aster-field-bg)] text-txt-muted text-[11px] font-medium uppercase tracking-wide select-none">
       {label}
     </span>
   );

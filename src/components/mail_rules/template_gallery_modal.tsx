@@ -137,7 +137,7 @@ export function TemplateGalleryModal({
                 {items.map((tpl) => (
                   <button
                     key={tpl.id}
-                    className="group text-start rounded-xl border border-neutral-200 dark:border-neutral-700 bg-surf-primary p-3 transition-colors hover:bg-surf-secondary hover:border-neutral-300 dark:hover:border-neutral-600 cursor-pointer"
+                    className="group text-start rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] p-3 transition-colors hover:bg-[var(--aster-field-hover)] cursor-pointer"
                     type="button"
                     onClick={() => on_select(tpl)}
                   >

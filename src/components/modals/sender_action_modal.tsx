@@ -603,7 +603,7 @@ export function SenderActionModal({
                 </div>
                 <button
                   aria-label={t("common.close")}
-                  className="p-1.5 rounded-[14px] transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.05] text-txt-muted"
+                  className="p-1.5 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)] text-txt-muted"
                   onClick={on_close}
                 >
                   <XMarkIcon className="w-4 h-4" />

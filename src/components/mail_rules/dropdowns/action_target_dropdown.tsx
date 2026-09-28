@@ -193,7 +193,7 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
           {folder_options.length === 0 && !!folders_state.error && (
             <DropdownMenuItem
               disabled
-              className="justify-center text-[12.5px] text-neutral-500"
+              className="justify-center text-[12.5px] text-txt-muted"
             >
               {t("common.something_went_wrong_try_again")}
             </DropdownMenuItem>
@@ -241,7 +241,7 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
           {label_options.length === 0 && tags_state.is_loading && (
             <DropdownMenuItem
               disabled
-              className="justify-center text-[12.5px] text-neutral-500"
+              className="justify-center text-[12.5px] text-txt-muted"
             >
               {t("common.loading")}
             </DropdownMenuItem>
@@ -251,7 +251,7 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
             !!tags_state.error && (
               <DropdownMenuItem
                 disabled
-                className="justify-center text-[12.5px] text-neutral-500"
+                className="justify-center text-[12.5px] text-txt-muted"
               >
                 {t("common.something_went_wrong_try_again")}
               </DropdownMenuItem>
@@ -261,7 +261,7 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
             !tags_state.error && (
               <DropdownMenuItem
                 disabled
-                className="justify-center text-[12.5px] text-neutral-500"
+                className="justify-center text-[12.5px] text-txt-muted"
               >
                 {t("mail_rules.no_labels_create_hint")}
               </DropdownMenuItem>
@@ -408,12 +408,12 @@ export function ActionTargetDropdown(props: ActionTargetDropdownProps) {
 
         {props.action_type === "auto_reply" && (
           <div className="p-1.5">
-            <div className="text-[11.5px] text-neutral-500 mb-1">
+            <div className="text-[11.5px] text-txt-muted mb-1">
               {t("mail_rules.template_placeholder")}
             </div>
             <button
               disabled
-              className="w-full text-start px-2.5 py-1.5 rounded-[var(--aster-radius-control)] text-[12.5px] text-neutral-400 cursor-not-allowed"
+              className="w-full text-start px-2.5 py-1.5 rounded-[var(--aster-radius-control)] text-[12.5px] text-txt-muted cursor-not-allowed"
               type="button"
             >
               {t("mail_rules.coming_soon")}
@@ -504,15 +504,15 @@ function SnoozePicker({
       {options.map((o) => (
         <button
           key={o.key}
-          className="w-full flex items-center px-2.5 py-1.5 rounded-sm text-[12.5px] hover:bg-[var(--dropdown-hover)] text-start transition-colors"
+          className="w-full flex items-center px-2.5 py-1.5 rounded-[var(--aster-radius-item,8px)] text-[12.5px] hover:bg-[var(--aster-floating-hover,var(--bg-hover))] text-start transition-colors"
           type="button"
           onClick={() => on_commit({ type: "snooze", until_iso8601: o.iso() })}
         >
           {t(o.label_key as "mail_rules.snooze_1_hour")}
         </button>
       ))}
-      <div className="px-1.5 pt-1.5 mt-1 border-t border-neutral-100 dark:border-neutral-800">
-        <div className="text-[11px] text-neutral-500 px-1 mb-1">
+      <div className="px-1.5 pt-1.5 mt-1 border-t border-[var(--aster-floating-divider,var(--border-secondary))]">
+        <div className="text-[11px] text-txt-muted px-1 mb-1">
           {t("mail_rules.snooze_custom")}
         </div>
         <Input
@@ -552,7 +552,7 @@ function SnoozePicker({
         )}
       </div>
       {value && (
-        <div className="px-2.5 py-1 text-[11px] text-neutral-500">
+        <div className="px-2.5 py-1 text-[11px] text-txt-muted">
           {new Date(value).toLocaleString(app_locale(), {
             timeZone: get_display_time_zone(),
           })}

@@ -274,7 +274,7 @@ export function SubscriptionsContent({
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 px-4 h-14 flex-shrink-0 border-b border-edge-primary">
         <button
-          className="md:hidden flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-primary"
+          className="md:hidden flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-[var(--aster-hover)] text-txt-primary"
           onClick={on_mobile_menu_toggle}
         >
           <Bars3Icon className="w-5 h-5" />

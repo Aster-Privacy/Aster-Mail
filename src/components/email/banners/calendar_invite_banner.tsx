@@ -207,7 +207,7 @@ export function CalendarInviteBanner({
               {t("calendar.invite_yes")}
             </button>
             <button
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-[var(--aster-radius-control)] border border-edge-primary text-txt-secondary transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-60"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-[var(--aster-radius-control)] border border-edge-primary text-txt-secondary transition-colors hover:bg-[var(--aster-hover)] disabled:opacity-60"
               disabled={is_busy}
               type="button"
               onClick={() => handle_respond("tentative")}
@@ -216,7 +216,7 @@ export function CalendarInviteBanner({
               {t("calendar.invite_maybe")}
             </button>
             <button
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-[var(--aster-radius-control)] border border-edge-primary text-txt-secondary transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.04] disabled:opacity-60"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-[var(--aster-radius-control)] border border-edge-primary text-txt-secondary transition-colors hover:bg-[var(--aster-hover)] disabled:opacity-60"
               disabled={is_busy}
               type="button"
               onClick={() => handle_respond("declined")}

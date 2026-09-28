@@ -187,7 +187,7 @@ export function ContactHistoryPanel({
           {activities.map((activity) => (
             <button
               key={activity.id}
-              className="w-full flex items-center gap-3 px-2 py-2.5 text-start hover:bg-black/[0.04] dark:hover:bg-white/[0.04] rounded-[14px] transition-colors cursor-pointer"
+              className="w-full flex items-center gap-3 px-2 py-2.5 text-start hover:bg-[var(--aster-hover)] rounded-[14px] transition-colors cursor-pointer"
               type="button"
               onClick={() => {
                 navigate(`/email/${activity.id}`);

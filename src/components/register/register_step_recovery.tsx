@@ -102,7 +102,7 @@ export const RegisterStepRecoveryCodes = ({
           {reg.recovery_codes.map((code, index) => (
             <button
               key={index}
-              className="relative flex w-full items-center gap-3 overflow-hidden rounded-xl border border-transparent bg-black/[0.05] px-4 py-2.5 text-start transition-colors hover:bg-black/[0.08] dark:bg-white/[0.08] dark:hover:bg-white/[0.12]"
+              className="relative flex w-full items-center gap-3 overflow-hidden rounded-xl border border-transparent bg-black/[0.05] px-4 py-2.5 text-start transition-colors hover:bg-[var(--aster-hover)] dark:bg-white/[0.08] dark:hover:bg-white/[0.12]"
               type="button"
               onClick={() => {
                 if (reg.is_key_visible) {
