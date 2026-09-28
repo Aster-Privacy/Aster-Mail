@@ -182,7 +182,9 @@ function Harness() {
 }
 
 function shell(): HTMLElement {
-  const node = document.querySelector<HTMLElement>("div.shadow-2xl");
+  const node = document.querySelector<HTMLElement>(
+    'div[class*="shadow-[var(--aster-floating-shadow)]"]',
+  );
 
   if (!node) {
     throw new Error("compose shell not found");
@@ -245,7 +247,7 @@ describe("compose window minimize while full window", () => {
     click(minimize_button());
 
     expect(shell().className).not.toContain("inset-4");
-    expect(shell().className).toContain("rounded-t-lg");
+    expect(shell().className).toContain("rounded-t-[var(--aster-radius-floating,16px)]");
     expect(shell().style.width).toBe("320px");
   });
 
