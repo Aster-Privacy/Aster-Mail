@@ -20,7 +20,7 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { IconType } from "react-icons";
-import type { KeyboardEvent, MouseEvent } from "react";
+import type { KeyboardEvent, MouseEvent, RefObject } from "react";
 
 import {
   memo,
@@ -30,6 +30,7 @@ import {
   useLayoutEffect,
   useMemo,
   useId,
+  useCallback,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -49,6 +50,7 @@ import {
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import {
   emoji_categories,
   search_emojis,
@@ -281,7 +283,7 @@ function vertical_neighbor(
 
 function SectionLabel({ children }: { children: string }) {
   return (
-    <p className="sticky top-0 z-[1] bg-modal-bg px-1 pt-2.5 pb-1.5 text-[13px] font-medium leading-5 text-txt-secondary">
+    <p className="sticky top-0 z-[1] bg-[var(--aster-floating-bg)] px-1 pt-2.5 pb-1.5 text-[13px] font-medium leading-5 text-txt-secondary">
       {children}
     </p>
   );
@@ -315,7 +317,13 @@ const EmojiGrid = memo(function EmojiGrid({
   );
 });
 
-function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
+interface EmojiPickerProps {
+  on_select: (emoji: string) => void;
+  on_dismiss?: () => void;
+  anchor_ref?: RefObject<HTMLElement | null>;
+}
+
+function EmojiPicker({ on_select, on_dismiss, anchor_ref }: EmojiPickerProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const indicator_id = useId();
@@ -327,6 +335,9 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
   const grid_ref = useRef<HTMLDivElement>(null);
   const input_ref = useRef<HTMLInputElement>(null);
   const tones_ref = useRef<HTMLDivElement>(null);
+  const root_ref = useRef<HTMLDivElement>(null);
+  const dismiss_ref = useRef(on_dismiss);
+  const has_dismiss = on_dismiss !== undefined;
   const tab_refs = useRef<(HTMLButtonElement | null)[]>([]);
   const spy_frame_ref = useRef(0);
   const pending_jump_ref = useRef<string | null>(null);
@@ -611,6 +622,49 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
       document.removeEventListener("pointerdown", handle_pointer, true);
   }, [show_tones]);
 
+  useEffect(() => {
+    dismiss_ref.current = on_dismiss;
+  }, [on_dismiss]);
+
+  const dismiss = useCallback(() => dismiss_ref.current?.(), []);
+
+  use_escape_layer(has_dismiss, dismiss, "emoji_picker");
+
+  useEffect(() => {
+    if (!has_dismiss) return;
+
+    const handle_outside = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+
+      if (target && root_ref.current?.contains(target)) return;
+      if (target && anchor_ref?.current?.contains(target)) return;
+      dismiss();
+    };
+
+    document.addEventListener("pointerdown", handle_outside, true);
+
+    return () =>
+      document.removeEventListener("pointerdown", handle_outside, true);
+  }, [has_dismiss, anchor_ref, dismiss]);
+
+  useEffect(() => {
+    if (!has_dismiss) return;
+
+    const anchor = anchor_ref?.current;
+
+    if (!anchor || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver((entries) => {
+      const latest = entries[entries.length - 1];
+
+      if (latest && !latest.isIntersecting) dismiss();
+    });
+
+    observer.observe(anchor);
+
+    return () => observer.disconnect();
+  }, [has_dismiss, anchor_ref, dismiss]);
+
   const fade = reduce_motion
     ? { duration: 0 }
     : { duration: 0.16, ease: [0.2, 0, 0, 1] as const };
@@ -619,7 +673,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
     <button
       aria-expanded={show_tones}
       aria-label={t("common.skin_tone")}
-      className={`flex h-10 w-10 flex-shrink-0 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-blue-500/70 sm:h-9 sm:w-9 ${show_tones ? "bg-black/[0.08] dark:bg-white/[0.12]" : "hover:bg-[var(--aster-hover)]"}`}
+      className={`flex h-10 w-10 flex-shrink-0 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-blue-500/70 sm:h-9 sm:w-9 ${show_tones ? "bg-[var(--aster-selected)]" : "hover:bg-[var(--aster-hover)]"}`}
       title={t("common.skin_tone")}
       type="button"
       onClick={() => set_show_tones(!show_tones)}
@@ -634,6 +688,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
 
   return (
     <div
+      ref={root_ref}
       className="aster_floating aster_floating_anim flex w-[360px] max-w-[calc(100vw-16px)] flex-col overflow-hidden"
       data-state="open"
       onMouseDown={(e) => e.preventDefault()}
@@ -692,7 +747,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
               key="tones"
               animate={{ opacity: 1 }}
               aria-label={t("common.skin_tone")}
-              className="flex h-10 min-w-0 flex-1 items-center justify-between rounded-full bg-black/[0.05] px-1 sm:h-9 dark:bg-white/[0.07]"
+              className="flex h-10 min-w-0 flex-1 items-center justify-between rounded-full bg-[var(--aster-hover)] px-1 sm:h-9"
               exit={{ opacity: 0 }}
               initial={reduce_motion ? false : { opacity: 0 }}
               role="group"
@@ -703,7 +758,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
                   key={tone}
                   aria-label={t("common.skin_tone")}
                   aria-pressed={skin_tone === tone}
-                  className={`flex h-8 w-8 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-blue-500/70 sm:h-7 sm:w-7 sm:text-[18px] ${skin_tone === tone ? "bg-black/[0.1] dark:bg-white/[0.16]" : "hover:bg-[var(--aster-hover)]"}`}
+                  className={`flex h-8 w-8 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-blue-500/70 sm:h-7 sm:w-7 sm:text-[18px] ${skin_tone === tone ? "bg-[var(--aster-selected)]" : "hover:bg-[var(--aster-hover)]"}`}
                   type="button"
                   onClick={() => select_skin_tone(tone)}
                 >
@@ -720,7 +775,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
               initial={reduce_motion ? false : { opacity: 0 }}
               transition={fade}
             >
-              <div className="relative flex h-10 min-w-0 flex-1 items-center rounded-full bg-black/[0.05] transition-[background-color,box-shadow] duration-150 focus-within:ring-1 focus-within:ring-inset focus-within:ring-blue-500 sm:h-9 dark:bg-white/[0.07]">
+              <div className="relative flex h-10 min-w-0 flex-1 items-center rounded-full bg-[var(--aster-hover)] transition-[background-color,box-shadow] duration-150 focus-within:ring-1 focus-within:ring-inset focus-within:ring-[var(--aster-floating-divider)] sm:h-9">
                 <LuSearch className="pointer-events-none absolute start-3 h-4 w-4 text-txt-muted" />
                 <input
                   ref={input_ref}

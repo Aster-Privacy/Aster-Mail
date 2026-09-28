@@ -20,7 +20,7 @@
 //
 import type { DecryptedThreadMessage } from "@/types/thread";
 
-import { Fragment, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowUturnLeftIcon,
@@ -157,6 +157,7 @@ export function ThreadMessageActions({
   const auth = use_auth_safe();
   const reactions_enabled = preferences.reactions_enabled !== false;
   const [is_picker_open, set_is_picker_open] = useState(false);
+  const picker_anchor_ref = useRef<HTMLButtonElement>(null);
   const reduce_motion = use_should_reduce_motion();
   const [pending_reactions, set_pending_reactions] = useState<
     PendingReaction[]
@@ -365,6 +366,7 @@ export function ThreadMessageActions({
             <Popover open={is_picker_open} onOpenChange={set_is_picker_open}>
               <PopoverTrigger asChild>
                 <button
+                  ref={picker_anchor_ref}
                   aria-label={t("mail.react")}
                   className="aster_pill aster_pill_tonal h-10 w-10 flex-shrink-0 !rounded-full !px-0"
                   title={t("mail.react")}
@@ -377,7 +379,11 @@ export function ThreadMessageActions({
                 align="start"
                 className="w-auto border-none bg-transparent p-0 shadow-none"
               >
-                <EmojiPicker on_select={handle_reaction_select} />
+                <EmojiPicker
+                  anchor_ref={picker_anchor_ref}
+                  on_dismiss={() => set_is_picker_open(false)}
+                  on_select={handle_reaction_select}
+                />
               </PopoverContent>
             </Popover>
           ) : (

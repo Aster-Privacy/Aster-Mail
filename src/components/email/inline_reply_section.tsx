@@ -131,6 +131,7 @@ export const InlineReplySection = forwardRef<
     matching_draft?.content.message ?? "",
   );
   const [show_emoji_picker, set_show_emoji_picker] = useState(false);
+  const emoji_anchor_ref = useRef<HTMLDivElement>(null);
   const [send_state, set_send_state] = useState<SendState>("idle");
   const [error_message, set_error_message] = useState<string | null>(null);
   const [queued_id, set_queued_id] = useState<string | null>(null);
@@ -710,7 +711,7 @@ export const InlineReplySection = forwardRef<
               />
 
               <div className="flex items-center gap-2">
-                <div className="relative">
+                <div ref={emoji_anchor_ref} className="relative">
                   <button
                     className="p-2 rounded-[14px] transition-colors disabled:opacity-50"
                     disabled={is_disabled}
@@ -731,7 +732,11 @@ export const InlineReplySection = forwardRef<
                   </button>
                   {show_emoji_picker && !is_disabled && (
                     <div className="absolute bottom-full start-0 z-50 mb-2">
-                      <EmojiPicker on_select={handle_emoji_select} />
+                      <EmojiPicker
+                        anchor_ref={emoji_anchor_ref}
+                        on_dismiss={() => set_show_emoji_picker(false)}
+                        on_select={handle_emoji_select}
+                      />
                     </div>
                   )}
                 </div>
