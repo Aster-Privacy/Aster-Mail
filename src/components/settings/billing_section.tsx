@@ -1212,13 +1212,13 @@ export function BillingSection() {
   };
 
   const scroll_to_plans = () => {
-    const target = document.getElementById("available-plans");
-
-    if (!target) return;
+    set_show_plans(true);
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        document
+          .getElementById("available-plans")
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     });
   };
@@ -1278,6 +1278,7 @@ export function BillingSection() {
     return (
       <LoadFailedNotice
         on_retry={() => {
+          set_is_initial_load(true);
           load_data();
         }}
       />
@@ -1318,7 +1319,6 @@ export function BillingSection() {
           set_show_cancel_dialog(true);
         }}
         on_manage_payment={() => set_show_payment_methods(true)}
-        on_reactivate={handle_reactivate}
         on_renew_with_crypto={handle_crypto_renew}
         on_show_plans={scroll_to_plans}
         on_switch_billing={() => set_show_switch_billing_dialog(true)}
@@ -1437,7 +1437,6 @@ export function BillingSection() {
           />
         </Island>
       </IslandSection>
-
 
       {stripe_load_failed && (
         <p

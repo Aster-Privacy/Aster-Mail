@@ -21,6 +21,7 @@
 import { Fragment, useEffect, useState } from "react";
 import { CircleStackIcon } from "@heroicons/react/24/outline";
 import {
+  Badge,
   Island,
   IslandDivider,
   IslandRow,
@@ -147,18 +148,11 @@ export function StorageAddonsSection({
                   {addon.name}
                 </span>
                 {badge && (
-                  <span
-                    className="flex-shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-semibold leading-4"
-                    style={{
-                      color: "var(--accent-color)",
-                      backgroundColor:
-                        "color-mix(in srgb, var(--accent-color) 14%, transparent)",
-                    }}
-                  >
+                  <Badge className="flex-shrink-0" color="blue">
                     {badge === "popular"
                       ? t("settings.popular")
                       : t("settings.best_value")}
-                  </span>
+                  </Badge>
                 )}
               </span>
               <span className="text-[13px] tabular-nums text-txt-muted">
