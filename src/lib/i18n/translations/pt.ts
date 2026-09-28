@@ -8897,6 +8897,13 @@ export const pt = {
     loading_preview: "A carregar pré-visualização…",
     preview_failed:
       "A pré-visualização não carregou. Abra o e-mail para o ver.",
+    pdf_preview_failed: "Este PDF não pode ser exibido aqui. Para abri-lo, faça o download.",
+    pdf_password_title: "Este PDF está protegido por senha",
+    pdf_password_description: "Para ver este PDF, digite a senha dele. A senha fica neste dispositivo.",
+    pdf_password_label: "Senha do PDF",
+    pdf_password_incorrect: "A senha está incorreta. Tente novamente.",
+    pdf_password_submit: "Abrir",
+    pdf_password_protected: "Protegido por senha",
     move_n_conversations: "Mover {{ count }} conversas",
     move_n_conversations_one: "Mover {{count}} conversa",
     move_n_conversations_other: "Mover {{count}} conversas",
