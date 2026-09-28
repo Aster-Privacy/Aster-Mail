@@ -83,9 +83,12 @@ import {
 } from "@/components/toast/simple_toast";
 import { addon_return_url } from "@/lib/addon_return_url";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_auth } from "@/contexts/auth/use_auth_hook";
+import { safe_local_set } from "@/lib/safe_storage";
 import {
   PLAN_TIERS,
   FAMILY_PLAN_TIERS,
+  CURRENCY_STORAGE_KEY,
   detect_currency_from_locale,
   convert_cents,
   is_crypto_provider,
@@ -309,7 +312,9 @@ export function BillingSection() {
   );
   const [show_switch_billing_dialog, set_show_switch_billing_dialog] =
     useState(false);
-  const [preferred_currency] = useState(detect_currency_from_locale);
+  const [preferred_currency, set_preferred_currency] = useState(
+    detect_currency_from_locale,
+  );
   const [cancel_password, set_cancel_password] = useState("");
   const [cancel_password_error, set_cancel_password_error] = useState("");
   const [show_cancel_password, set_show_cancel_password] = useState(false);
@@ -487,6 +492,10 @@ export function BillingSection() {
     subscription?.storage.total_limit_bytes ||
     1024 * 1024 * 1024;
   const storage_used_bytes = stats.storage_used_bytes;
+  const storage_percentage = Math.min(
+    100,
+    (storage_used_bytes / storage_limit_bytes) * 100,
+  );
   const is_storage_over_limit = storage_used_bytes > storage_limit_bytes;
 
   const load_data = useCallback(async () => {
