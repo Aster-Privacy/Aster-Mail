@@ -303,7 +303,7 @@ const EmojiGrid = memo(function EmojiGrid({
           <button
             key={`${entry.emoji}-${index}`}
             aria-label={entry.keywords[0] ?? toned}
-            className="flex aspect-square cursor-pointer touch-manipulation items-center justify-center rounded-full text-[28px] leading-none outline-none transition-[transform,background-color] duration-100 hover:bg-black/[0.06] focus-visible:bg-black/[0.06] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/70 active:scale-90 sm:text-[26px] dark:hover:bg-white/[0.08] dark:focus-visible:bg-white/[0.08]"
+            className="flex aspect-square cursor-pointer touch-manipulation items-center justify-center rounded-full text-[28px] leading-none outline-none transition-[transform,background-color] duration-100 hover:bg-[var(--aster-hover)] focus-visible:bg-[var(--aster-hover)] focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500/70 sm:text-[26px]"
             data-emoji={entry.emoji}
             type="button"
           >
@@ -619,7 +619,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
     <button
       aria-expanded={show_tones}
       aria-label={t("common.skin_tone")}
-      className={`flex h-10 w-10 flex-shrink-0 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-blue-500/70 active:scale-90 sm:h-9 sm:w-9 ${show_tones ? "bg-black/[0.08] dark:bg-white/[0.12]" : "hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"}`}
+      className={`flex h-10 w-10 flex-shrink-0 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-blue-500/70 sm:h-9 sm:w-9 ${show_tones ? "bg-black/[0.08] dark:bg-white/[0.12]" : "hover:bg-[var(--aster-hover)]"}`}
       title={t("common.skin_tone")}
       type="button"
       onClick={() => set_show_tones(!show_tones)}
@@ -634,7 +634,8 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
 
   return (
     <div
-      className="flex w-[360px] max-w-[calc(100vw-16px)] flex-col overflow-hidden rounded-2xl border border-edge-primary bg-modal-bg shadow-[0_16px_40px_-12px_rgba(0,0,0,0.28),0_2px_6px_-2px_rgba(0,0,0,0.12)]"
+      className="aster_floating aster_floating_anim flex w-[360px] max-w-[calc(100vw-16px)] flex-col overflow-hidden"
+      data-state="open"
       onMouseDown={(e) => e.preventDefault()}
     >
       <div className="flex px-2 pt-1" role="tablist">
@@ -702,7 +703,7 @@ function EmojiPicker({ on_select }: { on_select: (emoji: string) => void }) {
                   key={tone}
                   aria-label={t("common.skin_tone")}
                   aria-pressed={skin_tone === tone}
-                  className={`flex h-8 w-8 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-blue-500/70 active:scale-90 sm:h-7 sm:w-7 sm:text-[18px] ${skin_tone === tone ? "bg-black/[0.1] dark:bg-white/[0.16]" : "hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"}`}
+                  className={`flex h-8 w-8 cursor-pointer touch-manipulation items-center justify-center rounded-full text-[20px] leading-none outline-none transition-[transform,background-color] duration-150 focus-visible:ring-2 focus-visible:ring-blue-500/70 sm:h-7 sm:w-7 sm:text-[18px] ${skin_tone === tone ? "bg-black/[0.1] dark:bg-white/[0.16]" : "hover:bg-[var(--aster-hover)]"}`}
                   type="button"
                   onClick={() => select_skin_tone(tone)}
                 >

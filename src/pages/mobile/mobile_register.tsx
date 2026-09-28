@@ -36,8 +36,6 @@ import { StepEmail } from "@/pages/mobile/mobile_register/step_email";
 import { StepPassword } from "@/pages/mobile/mobile_register/step_password";
 import { StepGenerating } from "@/pages/mobile/mobile_register/step_generating";
 import { StepRecoveryKey } from "@/pages/mobile/mobile_register/step_recovery_key";
-import { StepRecoveryPhrase } from "@/pages/mobile/mobile_register/step_recovery_phrase";
-import { StepPhraseConfirm } from "@/pages/mobile/mobile_register/step_phrase_confirm";
 import { StepRecoveryEmail } from "@/pages/mobile/mobile_register/step_recovery_email";
 import { StepRecoveryEmailVerification } from "@/pages/mobile/mobile_register/step_recovery_email_verification";
 import { RegisterStepPlanSelection } from "@/components/register/register_step_plan_selection";
@@ -91,7 +89,7 @@ export default function MobileRegisterPage() {
   }
 
   const handle_back = () => {
-    if (reg.step === "recovery_key" || reg.step === "recovery_phrase") {
+    if (reg.step === "recovery_key") {
       set_show_leave_confirmation(true);
 
       return;
@@ -160,20 +158,6 @@ export default function MobileRegisterPage() {
           />
         );
 
-      case "recovery_phrase":
-        return (
-          <StepRecoveryPhrase
-            navigate={navigate}
-            reduce_motion={reduce_motion}
-            reg={reg}
-            set_show_leave_confirmation={set_show_leave_confirmation}
-            show_leave_confirmation={show_leave_confirmation}
-          />
-        );
-
-      case "phrase_confirm":
-        return <StepPhraseConfirm reduce_motion={reduce_motion} reg={reg} />;
-
       case "recovery_email":
         return <StepRecoveryEmail reduce_motion={reduce_motion} reg={reg} />;
 
@@ -215,7 +199,7 @@ export default function MobileRegisterPage() {
                 className={BACK_BUTTON_CLASS}
                 style={BACK_BUTTON_STYLE}
                 type="button"
-                whileTap={{ scale: 0.9 }}
+                whileTap={{ opacity: 0.7 }}
                 onClick={handle_back}
               >
                 <svg
@@ -237,7 +221,7 @@ export default function MobileRegisterPage() {
                 className={BACK_BUTTON_CLASS}
                 style={BACK_BUTTON_STYLE}
                 type="button"
-                whileTap={{ scale: 0.9 }}
+                whileTap={{ opacity: 0.7 }}
                 onClick={() => navigate("/welcome")}
               >
                 <svg

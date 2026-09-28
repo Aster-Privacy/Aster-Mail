@@ -27,12 +27,14 @@ const DEFAULTS = {
   spam_retention_days: 30,
   spam_sensitivity: "medium",
   spam_filter_enabled: true,
+  trash_retention_days: 30,
 };
 
 const SAVED = {
   spam_retention_days: 7,
   spam_sensitivity: "high",
   spam_filter_enabled: true,
+  trash_retention_days: 365,
 };
 
 describe("apply_spam_settings_patch", () => {
@@ -53,6 +55,7 @@ describe("apply_spam_settings_patch", () => {
       spam_retention_days: 7,
       spam_sensitivity: "high",
       spam_filter_enabled: false,
+      trash_retention_days: 365,
     });
     expect(result.next.spam_retention_days).toBe(7);
     expect(result.loaded).toBe(true);
@@ -109,6 +112,7 @@ describe("apply_spam_settings_patch", () => {
       spam_retention_days: 7,
       spam_sensitivity: "low",
       spam_filter_enabled: true,
+      trash_retention_days: 365,
     });
     expect(result.saved).toBe(true);
   });
@@ -143,5 +147,46 @@ describe("apply_spam_settings_patch", () => {
 
     expect(result.saved).toBe(false);
     expect(result.next).toEqual(SAVED);
+  });
+
+  it("keeps the saved trash retention when only spam changes", async () => {
+    const save = vi.fn(async () => ({ data: { success: true } }));
+
+    const result = await apply_spam_settings_patch({
+      loaded: true,
+      current: SAVED,
+      patch: { spam_retention_days: 180 },
+      load: async () => ({ data: SAVED }),
+      save,
+    });
+
+    expect(save).toHaveBeenCalledWith({
+      spam_retention_days: 180,
+      spam_sensitivity: "high",
+      spam_filter_enabled: true,
+      trash_retention_days: 365,
+    });
+    expect(result.next.trash_retention_days).toBe(365);
+  });
+
+  it("saves a trash retention change without touching spam", async () => {
+    const save = vi.fn(async () => ({ data: { success: true } }));
+
+    const result = await apply_spam_settings_patch({
+      loaded: true,
+      current: SAVED,
+      patch: { trash_retention_days: 0 },
+      load: async () => ({ data: SAVED }),
+      save,
+    });
+
+    expect(save).toHaveBeenCalledWith({
+      spam_retention_days: 7,
+      spam_sensitivity: "high",
+      spam_filter_enabled: true,
+      trash_retention_days: 0,
+    });
+    expect(result.next.spam_retention_days).toBe(7);
+    expect(result.saved).toBe(true);
   });
 });

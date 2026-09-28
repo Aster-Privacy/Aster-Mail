@@ -20,6 +20,10 @@
 //
 import type {} from "@/types/email";
 import type {} from "@/services/api/mail";
+import type {
+  ForwardData,
+  ReplyData,
+} from "@/components/email/inbox/inbox_types";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { strip_html_tags } from "@/lib/html_sanitizer";
@@ -76,6 +80,8 @@ export interface SearchResultsPageProps {
   on_split_close?: () => void;
   on_settings_click?: () => void;
   on_quick_settings_click?: () => void;
+  on_reply?: (data: ReplyData) => void;
+  on_forward?: (data: ForwardData) => void;
 }
 
 export function SearchResultSkeleton() {

@@ -20,7 +20,7 @@
 //
 import { XCircleIcon } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
-import { Button } from "@aster/ui";
+import { Button, Island } from "@aster/ui";
 
 import {
   PLAN_FEATURE_ICONS,
@@ -36,20 +36,14 @@ export interface PlanFeature {
   info?: string;
 }
 
-function render_feature_label(label: string, galaxy = false) {
+function render_feature_label(label: string) {
   const match = label.match(/^(Unlimited|\d[\d.,]*(?:\s?[GMT]B)?)\s+(.*)$/i);
 
   if (!match) return label;
 
   return (
     <>
-      <strong
-        className={`font-semibold ${
-          galaxy ? "plan_galaxy_text_primary" : "text-txt-primary"
-        }`}
-      >
-        {match[1]}
-      </strong>{" "}
+      <strong className="font-semibold text-txt-primary">{match[1]}</strong>{" "}
       {match[2]}
     </>
   );
@@ -92,109 +86,94 @@ export function PlanCard({
   lead_in,
   compact = false,
 }: PlanCardProps) {
-  const galaxy = featured && !is_current;
-  const heading_cls = galaxy ? "plan_galaxy_text_primary" : "text-txt-primary";
-  const muted_cls = galaxy ? "plan_galaxy_text_muted" : "text-txt-muted";
-  const body_cls = galaxy ? "plan_galaxy_text_body" : "text-txt-secondary";
+  const highlighted = featured && !is_current;
 
   return (
-    <div
-      className={`relative flex h-full flex-col rounded-2xl border transition-colors ${
-        compact ? "p-4" : "p-6"
-      } ${
-        galaxy
-          ? "plan_galaxy z-10"
-          : is_current
-            ? "border-edge-primary bg-surf-tertiary"
-            : "border-edge-secondary bg-surf-tertiary"
-      }`}
+    <Island
+      className={`flex h-full flex-col ${compact ? "p-5" : "p-6"}`}
+      selected={is_current}
+      tone={highlighted ? "accent" : "default"}
     >
-      {badge && (
-        <span
-          className={`absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider whitespace-nowrap ${
-            is_current ? "plan_current_badge" : "plan_galaxy_badge"
-          }`}
-        >
-          {badge}
-        </span>
-      )}
-
-      <div className="text-center">
-        <h4 className={`text-base font-semibold ${heading_cls}`}>{name}</h4>
-
-        <div className="mt-2 flex items-baseline justify-center gap-1.5 flex-wrap">
-          {anchor_label && (
-            <span
-              className={`font-semibold line-through ${muted_cls} ${
-                compact ? "text-base" : "text-lg"
-              }`}
-            >
-              {anchor_label}
-            </span>
-          )}
+      <div className="flex min-h-6 items-center justify-between gap-2">
+        <h4 className="text-[15px] font-semibold text-txt-primary">{name}</h4>
+        {badge && (
           <span
-            className={`font-bold tracking-tight ${heading_cls} ${
-              compact ? "text-2xl" : "text-3xl"
-            }`}
+            className="inline-flex flex-shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+            style={{
+              backgroundColor: "var(--accent-color)",
+              color: "var(--accent-fg, #ffffff)",
+            }}
           >
-            {price_label}
+            {badge}
           </span>
-          <span className={`text-sm ${muted_cls}`}>{period_label}</span>
-          {save_label && (
-            <span
-              className={`ms-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                galaxy ? "plan_galaxy_badge" : ""
-              }`}
-              style={
-                galaxy
-                  ? undefined
-                  : {
-                      backgroundColor: "var(--accent-blue)",
-                      color: "var(--accent-fg, #ffffff)",
-                    }
-              }
-            >
-              {save_label}
-            </span>
-          )}
-        </div>
-
-        <p className={`mt-1 h-4 text-xs ${muted_cls}`}>{billed_note || ""}</p>
-
-        {description && (
-          <p className={`mt-1.5 text-sm leading-snug ${muted_cls}`}>
-            {description}
-          </p>
         )}
       </div>
 
+      <div className="mt-3 flex flex-wrap items-baseline gap-x-1.5">
+        {anchor_label && (
+          <span className="text-base font-medium text-txt-muted line-through">
+            {anchor_label}
+          </span>
+        )}
+        <span
+          className={`font-bold tracking-tight tabular-nums text-txt-primary ${
+            compact ? "text-[28px] leading-9" : "text-3xl"
+          }`}
+        >
+          {price_label}
+        </span>
+        <span className="text-sm text-txt-muted">{period_label}</span>
+        {save_label && (
+          <span
+            className="ms-1 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold"
+            style={{
+              backgroundColor:
+                "color-mix(in srgb, var(--accent-color) 14%, transparent)",
+              color: "var(--accent-color)",
+            }}
+          >
+            {save_label}
+          </span>
+        )}
+      </div>
+
+      {billed_note != null && (
+        <p className="mt-1 min-h-4 text-xs text-txt-muted">
+          {billed_note || "\u00a0"}
+        </p>
+      )}
+
+      {description && (
+        <p className="mt-2 text-sm leading-snug text-txt-muted">
+          {description}
+        </p>
+      )}
+
       <Button
-        className={`w-full ${compact ? "mt-4" : "mt-5"} ${
-          galaxy ? "plan_galaxy_cta" : ""
-        }`}
+        className={`w-full ${compact ? "mt-4" : "mt-5"}`}
         disabled={cta_disabled}
-        variant={galaxy ? "primary" : "outline"}
+        variant={highlighted ? "primary" : "secondary"}
         onClick={on_cta}
       >
         {cta_label}
       </Button>
 
       <div
-        className={`flex-1 border-t ${compact ? "mt-4 pt-4" : "mt-5 pt-5"} ${
-          galaxy ? "plan_galaxy_divider" : ""
-        }`}
-        style={
-          galaxy ? undefined : { borderTopColor: "var(--border-secondary)" }
-        }
-      >
-        {lead_in && (
+        aria-hidden="true"
+        className={`h-px ${compact ? "my-4" : "my-5"}`}
+        style={{ backgroundColor: "var(--aster-island-divider)" }}
+      />
+
+      <div className="flex-1">
+        {lead_in != null && (
           <p
-            className={`mb-3 text-[11px] font-semibold uppercase tracking-wide ${muted_cls}`}
+            aria-hidden={lead_in ? undefined : true}
+            className="mb-3 min-h-4 text-xs font-medium text-txt-muted"
           >
-            {lead_in}
+            {lead_in || "\u00a0"}
           </p>
         )}
-        <ul className="space-y-3 list-none">
+        <ul className="list-none space-y-2.5">
           {features.map((feature, i) => {
             const Icon = feature.on
               ? feature.icon
@@ -203,18 +182,18 @@ export function PlanCard({
               : XCircleIcon;
 
             return (
-              <li key={i} className="flex items-start gap-3 text-sm">
+              <li key={i} className="flex items-start gap-2.5 text-[13px]">
                 <Icon
-                  className="w-[17px] h-[17px] flex-shrink-0 mt-[3px]"
+                  className="mt-px h-4 w-4 flex-shrink-0"
                   style={{
                     color: feature.on
-                      ? "var(--accent-blue)"
+                      ? "var(--accent-color)"
                       : "var(--color-danger)",
                   }}
                 />
                 <span className="min-w-0 flex-1">
-                  <span className={`block leading-snug ${body_cls}`}>
-                    {render_feature_label(feature.label, galaxy)}
+                  <span className="block leading-snug text-txt-secondary">
+                    {render_feature_label(feature.label)}
                     {feature.info && (
                       <span className="ms-1.5 inline-flex align-middle">
                         <InfoPopover
@@ -226,9 +205,7 @@ export function PlanCard({
                     )}
                   </span>
                   {feature.description && (
-                    <span
-                      className={`mt-1 block text-xs leading-snug ${muted_cls}`}
-                    >
+                    <span className="mt-1 block text-xs leading-snug text-txt-muted">
                       {feature.description}
                     </span>
                   )}
@@ -238,7 +215,7 @@ export function PlanCard({
           })}
         </ul>
       </div>
-    </div>
+    </Island>
   );
 }
 
@@ -255,7 +232,7 @@ export function Segmented<T extends string>({
 }: SegmentedProps<T>) {
   return (
     <div
-      className="grid w-full max-w-xs gap-1 rounded-full border border-edge-secondary bg-transparent p-1"
+      className="grid w-full max-w-xs gap-1 rounded-full bg-surf-secondary p-1"
       style={{
         gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,
       }}

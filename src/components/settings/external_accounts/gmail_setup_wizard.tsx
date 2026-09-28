@@ -35,7 +35,6 @@ import { Button } from "@aster/ui";
 
 import { Modal, ModalTitle } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
-import { ButtonSpinner } from "@/components/ui/spinner";
 import { TestResultBanner } from "@/components/settings/external_accounts/test_result_banner";
 import { is_app_password_error } from "@/lib/external_account_errors";
 
@@ -141,7 +140,7 @@ export function GmailSetupWizard({
       show_close_button={false}
       size="md"
     >
-      <div className="px-6 pt-6 pb-4 border-b rounded-t-xl bg-modal-bg border-edge-primary">
+      <div className="px-6 pt-6 pb-4 border-b rounded-t-[var(--aster-radius-floating,16px)] bg-modal-bg border-[var(--aster-floating-divider)]">
         <div className="flex items-center gap-3">
           <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-surf-secondary flex-shrink-0">
             <img
@@ -302,7 +301,7 @@ export function GmailSetupWizard({
               is_app_password_error(test_result.message, {
                 email: form_email,
               }) && (
-                <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2.5 space-y-1.5">
+                <div className="aster_island aster_island_tone_warning aster_island_pad_sm space-y-1.5">
                   <p className="text-[13px] font-medium text-txt-primary">
                     {t("settings.gmail_wizard_app_password_error_title")}
                   </p>
@@ -334,21 +333,22 @@ export function GmailSetupWizard({
             <Button
               className="gap-1.5"
               disabled={!password_is_filled || is_form_busy}
+              is_loading={is_testing}
               size="sm"
               variant="outline"
               onClick={handle_test_connection}
             >
-              {is_testing && <ButtonSpinner />}
               {t("settings.test_connection")}
             </Button>
           )}
           <Button
             className="gap-1.5"
             disabled={!can_advance || is_form_busy}
+            is_loading={is_submitting}
             size="sm"
+            variant="depth"
             onClick={go_forward}
           >
-            {is_submitting && <ButtonSpinner />}
             {step === TOTAL_STEPS
               ? t("settings.gmail_wizard_connect")
               : t("common.next")}

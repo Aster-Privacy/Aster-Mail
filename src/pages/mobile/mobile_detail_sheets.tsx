@@ -450,7 +450,7 @@ export function MobileViewSourceSheet({
             {t("mail.view_source")}
           </h3>
           <button
-            className="rounded-[12px] px-2.5 py-1 text-[13px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
+            className="rounded-[var(--aster-radius-control)] px-2.5 py-1 text-[13px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
             type="button"
             onClick={() => {
               if (message) {
@@ -879,7 +879,7 @@ export function MobileMessageDetailsSheet({
             </h4>
             <div className="flex items-center gap-1">
               <button
-                className="inline-flex items-center gap-1 rounded-[12px] px-2 py-1 text-[12px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
+                className="inline-flex items-center gap-1 rounded-[var(--aster-radius-control)] px-2 py-1 text-[12px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
                 type="button"
                 onClick={handle_copy_headers}
               >
@@ -887,7 +887,7 @@ export function MobileMessageDetailsSheet({
                 {t("mail.copy_headers")}
               </button>
               <button
-                className="inline-flex items-center gap-1 rounded-[12px] px-2 py-1 text-[12px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
+                className="inline-flex items-center gap-1 rounded-[var(--aster-radius-control)] px-2 py-1 text-[12px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
                 type="button"
                 onClick={handle_download_headers}
               >

@@ -97,7 +97,7 @@ export function ContactTrashPane({
           {t("common.contacts_in_trash_notice")}
         </p>
         <button
-          className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-[8px] px-2 py-1 text-[12px] font-medium text-txt-secondary transition-colors hover:bg-black/5 hover:text-danger dark:hover:bg-white/5"
+          className="inline-flex flex-shrink-0 items-center gap-1.5 rounded-[8px] px-2 py-1 text-[12px] font-medium text-txt-secondary transition-colors hover:bg-[var(--aster-hover)] hover:text-danger"
           type="button"
           onClick={on_empty_trash}
         >
@@ -110,7 +110,7 @@ export function ContactTrashPane({
         {visible_contacts.map((contact) => (
           <div
             key={contact.id}
-            className="group/trash my-0.5 flex w-full items-center gap-3 rounded-[12px] px-3 py-2 transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+            className="group/trash my-0.5 flex w-full items-center gap-3 rounded-[12px] px-3 py-2 transition-colors hover:bg-[var(--aster-hover)]"
           >
             <div className="min-w-0 flex-1">
               <p className="truncate text-[14px] font-medium text-txt-primary">

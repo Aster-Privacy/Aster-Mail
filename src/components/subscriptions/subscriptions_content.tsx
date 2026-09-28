@@ -27,6 +27,7 @@ import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 import { Button, Checkbox } from "@aster/ui";
 
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
+import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmailTag } from "@/components/ui/email_tag";
@@ -273,7 +274,7 @@ export function SubscriptionsContent({
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 px-4 h-14 flex-shrink-0 border-b border-edge-primary">
         <button
-          className="md:hidden flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-primary"
+          className="md:hidden flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-[var(--aster-hover)] text-txt-primary"
           onClick={on_mobile_menu_toggle}
         >
           <Bars3Icon className="w-5 h-5" />
@@ -284,38 +285,29 @@ export function SubscriptionsContent({
       </div>
 
       <div className="flex items-center gap-2 px-4 py-2 flex-shrink-0 border-b border-edge-primary">
-        <div className="flex rounded-lg overflow-hidden border border-edge-primary">
-          <button
-            className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-              active_tab === "active"
-                ? "bg-blue-500 text-white"
-                : "text-txt-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
-            }`}
-            onClick={() => {
-              set_active_tab("active");
-              set_selected_ids(new Set());
-            }}
-          >
-            {t("settings.active_count", {
-              count: active_subscriptions.length,
-            })}
-          </button>
-          <button
-            className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-              active_tab === "unsubscribed"
-                ? "bg-blue-500 text-white"
-                : "text-txt-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
-            }`}
-            onClick={() => {
-              set_active_tab("unsubscribed");
-              set_selected_ids(new Set());
-            }}
-          >
-            {t("common.unsubscribed_count", {
-              count: unsubscribed_subscriptions.length,
-            })}
-          </button>
-        </div>
+        <SettingsTabBar
+          active={active_tab}
+          class_name="mb-0"
+          layout_id="subscriptions_tabs"
+          on_change={(key) => {
+            set_active_tab(key);
+            set_selected_ids(new Set());
+          }}
+          tabs={[
+            {
+              key: "active",
+              label: t("settings.active_count", {
+                count: active_subscriptions.length,
+              }),
+            },
+            {
+              key: "unsubscribed",
+              label: t("common.unsubscribed_count", {
+                count: unsubscribed_subscriptions.length,
+              }),
+            },
+          ]}
+        />
         <div className="flex-1" />
       </div>
 
@@ -377,7 +369,7 @@ export function SubscriptionsContent({
             {selected_ids.size} {t("common.selected")}
           </span>
           <button
-            className="px-4 py-1.5 rounded-[12px] text-white text-sm font-medium transition-all duration-150 bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d]"
+            className="px-4 py-1.5 rounded-[var(--aster-radius-control)] text-white text-sm font-medium transition-all duration-150 bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d]"
             onClick={handle_bulk_unsubscribe}
           >
             {t("mail.unsubscribe")} ({selected_ids.size})
@@ -439,11 +431,7 @@ function SubscriptionRow({
 }: SubscriptionRowProps) {
   const { t } = use_i18n();
   const tag_variant = (CATEGORY_TAG_VARIANT[sub.category] || "neutral") as
-    | "blue"
-    | "purple"
-    | "green"
-    | "amber"
-    | "neutral";
+    "blue" | "purple" | "green" | "amber" | "neutral";
 
   return (
     <div
@@ -512,7 +500,7 @@ function SubscriptionRow({
       {active_tab === "active" ? (
         unsub_failed && get_manual_unsubscribe_url(sub) ? (
           <button
-            className="px-3 py-1 rounded-[12px] text-xs font-medium transition-all duration-150 flex-shrink-0 hover:brightness-110"
+            className="px-3 py-1 rounded-[var(--aster-radius-control)] text-xs font-medium transition-all duration-150 flex-shrink-0 hover:brightness-110"
             style={{
               background:
                 "linear-gradient(to bottom, #fbbf24 0%, #f59e0b 50%, #d97706 100%)",
@@ -524,7 +512,7 @@ function SubscriptionRow({
           </button>
         ) : (
           <button
-            className="px-3 py-1 rounded-[12px] text-xs font-medium transition-all duration-150 flex-shrink-0 text-white bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d]"
+            className="px-3 py-1 rounded-[var(--aster-radius-control)] text-xs font-medium transition-all duration-150 flex-shrink-0 text-white bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d]"
             onClick={(e) => on_unsubscribe(e, sub.sender_email)}
           >
             {t("mail.unsubscribe")}

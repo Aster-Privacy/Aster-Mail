@@ -69,7 +69,8 @@ vi.mock("@/components/toast/simple_toast", () => ({
   show_toast: vi.fn(),
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({
     children,
     onClick,

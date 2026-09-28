@@ -223,7 +223,6 @@ export function TemplatesSection({
             style={{
               backgroundColor: "rgba(239, 68, 68, 0.1)",
               color: "var(--color-danger)",
-              border: "1px solid rgba(239, 68, 68, 0.2)",
             }}
           >
             <span>{error}</span>

@@ -269,7 +269,7 @@ export function ExternalContentBanner({
                     <motion.div
                       ref={popover_ref}
                       animate={{ opacity: 1, y: 0 }}
-                      className="fixed z-50 rounded-lg shadow-lg bg-surf-card border border-edge-primary"
+                      className="aster_floating fixed z-50"
                       exit={{ opacity: 0, y: -4 }}
                       id={popover_id}
                       initial={reduce_motion ? false : { opacity: 0, y: -4 }}
@@ -343,7 +343,7 @@ export function ExternalContentBanner({
               </span>
             ) : (
               <button
-                className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
+                className="rounded-[var(--aster-radius-control)] px-3 py-1 text-sm font-medium transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
                 type="button"
                 onClick={on_load}
               >

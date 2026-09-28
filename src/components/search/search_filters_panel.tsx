@@ -89,10 +89,10 @@ export function QuickFilterButton({
 }) {
   return (
     <button
-      className={`px-3 py-1.5 text-xs rounded-full border transition-all duration-150 font-medium ${
+      className={`px-3 py-1.5 text-xs rounded-full transition-colors duration-150 font-medium ${
         is_active
-          ? "bg-brand text-[var(--accent-fg,#ffffff)] border-brand"
-          : "bg-surf-card text-txt-secondary border-edge-secondary"
+          ? "bg-brand text-[var(--accent-fg,#ffffff)]"
+          : "bg-[var(--aster-hover)] text-txt-secondary hover:text-txt-primary"
       }`}
       onClick={on_click}
     >
@@ -207,7 +207,7 @@ export function OperatorSuggestions({
       {suggestions.map((suggestion) => (
         <button
           key={suggestion.operator}
-          className="px-2 py-1 text-[11px] rounded border transition-all duration-150 hover:bg-surf-hover bg-surf-card border-edge-secondary text-txt-muted"
+          className="px-2 py-1 text-[11px] rounded-[var(--aster-radius-item)] transition-colors duration-150 bg-[var(--aster-hover)] text-txt-muted hover:text-txt-primary"
           onClick={() => on_select(suggestion.operator)}
         >
           <span className="font-mono">{suggestion.operator}</span>
@@ -310,7 +310,7 @@ export function SavedSearchesSection({
   if (saved_searches.length === 0) return null;
 
   return (
-    <div className="p-2 border-t border-edge-secondary">
+    <div className="p-2 border-t border-[var(--aster-floating-divider)]">
       <div className="px-3.5 py-1.5">
         <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-txt-muted">
           {t("mail.saved_searches")}
@@ -408,14 +408,14 @@ export function SaveSearchDialog({
   return (
     <motion.div
       animate={{ opacity: 1 }}
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]"
+      className="fixed inset-0 aster_scrim flex items-center justify-center z-[60]"
       exit={{ opacity: 0 }}
       initial={reduce_motion ? false : { opacity: 0 }}
       onClick={on_close}
     >
       <motion.div
         animate={{ scale: 1, opacity: 1 }}
-        className="rounded-xl p-5 w-full max-w-sm mx-4 shadow-md bg-modal-bg border border-edge-secondary"
+        className="rounded-[var(--aster-radius-floating,16px)] p-5 w-full max-w-sm mx-4 bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
         exit={{ scale: 0.95, opacity: 0 }}
         initial={reduce_motion ? false : { scale: 0.95, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
@@ -461,7 +461,7 @@ export function SaveSearchDialog({
             {error}
           </p>
         )}
-        <div className="flex justify-end gap-2 pt-3 border-t border-edge-secondary">
+        <div className="flex justify-end gap-2 pt-3">
           <button
             className="px-4 py-2 text-sm rounded-[14px] transition-all hover:opacity-80 text-txt-muted bg-surf-hover"
             onClick={on_close}
@@ -516,7 +516,7 @@ export function ClearDataMenu({
   return (
     <motion.div
       animate={{ opacity: 1, y: 0 }}
-      className="absolute end-0 top-full mt-1 py-2 px-3 rounded-lg border shadow-sm z-50 w-56 bg-modal-bg border-edge-secondary"
+      className="aster_floating absolute end-0 top-full mt-1 py-2 px-3 z-50 w-56"
       exit={{ opacity: 0, y: -4 }}
       initial={reduce_motion ? false : { opacity: 0, y: -4 }}
       onClick={(e) => e.stopPropagation()}
@@ -541,7 +541,7 @@ export function ClearDataMenu({
           onChange={() => set_clear_cache(!clear_cache)}
         />
       </div>
-      <div className="flex justify-end gap-2 mt-3 pt-2 border-t border-edge-secondary">
+      <div className="flex justify-end gap-2 mt-3 pt-2">
         <button
           className="px-2 py-1 text-xs rounded transition-colors text-txt-muted"
           onClick={on_close}

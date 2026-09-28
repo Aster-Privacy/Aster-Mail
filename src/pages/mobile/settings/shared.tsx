@@ -205,7 +205,7 @@ export function SettingsHeader({
 
   return (
     <header
-      className="sticky top-0 z-40 flex h-12 shrink-0 items-center border-b border-[var(--border-primary)] bg-[var(--bg-primary)]/95 px-2 backdrop-blur-lg"
+      className="sticky top-0 z-40 flex h-12 shrink-0 items-center bg-[var(--bg-primary)] px-2"
       style={{
         paddingTop: safe_area_insets.top,
         height: 48 + safe_area_insets.top,
@@ -214,9 +214,9 @@ export function SettingsHeader({
       <div className="flex w-8 items-center justify-center">
         {on_back && (
           <motion.button
+            aria-label={t("common.back")}
             className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)]"
             type="button"
-            aria-label={t("common.back")}
             onClick={on_back}
           >
             <ChevronLeftIcon className="h-4 w-4 rtl:-scale-x-100" />
@@ -227,9 +227,9 @@ export function SettingsHeader({
         {title}
       </h1>
       <motion.button
+        aria-label={t("common.close")}
         className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)]"
         type="button"
-        aria-label={t("common.close")}
         onClick={on_close}
       >
         <XMarkIcon className="h-4 w-4" strokeWidth={2.5} />
@@ -248,7 +248,7 @@ export function OptionList<T extends string>({
   on_change: (v: T) => void;
 }) {
   return (
-    <div className="divide-y divide-[var(--border-primary)]">
+    <div>
       {options.map((opt) => (
         <button
           key={opt.value}

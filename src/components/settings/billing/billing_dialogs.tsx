@@ -19,24 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useRef, useState } from "react";
-import {
-  EyeIcon,
-  EyeSlashIcon,
-  CreditCardIcon,
-  ArrowsRightLeftIcon,
-  XCircleIcon,
-} from "@heroicons/react/24/outline";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 import { Input } from "@/components/ui/input";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { clamp_password } from "@/services/sanitize";
-import {
-  Modal,
-  ModalHeader,
-  ModalTitle,
-  ModalDescription,
-  ModalBody,
-} from "@/components/ui/modal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -127,8 +114,6 @@ interface BillingDialogsProps {
   show_payment_methods: boolean;
   set_show_payment_methods: React.Dispatch<React.SetStateAction<boolean>>;
   auto_add_card: boolean;
-  show_manage_plan: boolean;
-  set_show_manage_plan: React.Dispatch<React.SetStateAction<boolean>>;
   show_switch_billing_dialog: boolean;
   set_show_switch_billing_dialog: React.Dispatch<React.SetStateAction<boolean>>;
   target_billing_interval: "month" | "year";
@@ -179,8 +164,6 @@ export function BillingDialogs({
   show_payment_methods,
   set_show_payment_methods,
   auto_add_card,
-  show_manage_plan,
-  set_show_manage_plan,
   show_switch_billing_dialog,
   set_show_switch_billing_dialog,
   target_billing_interval,
@@ -749,134 +732,6 @@ export function BillingDialogs({
         on_close={() => set_show_payment_methods(false)}
         open={show_payment_methods}
       />
-
-      <Modal
-        show_close_button
-        is_open={show_manage_plan}
-        on_close={() => set_show_manage_plan(false)}
-        size="md"
-      >
-        <ModalHeader>
-          <ModalTitle>{t("settings.manage_plan")}</ModalTitle>
-          <ModalDescription>
-            {t("settings.manage_plan_description")}
-          </ModalDescription>
-        </ModalHeader>
-        <ModalBody>
-          <div className="space-y-2">
-            <button
-              className="w-full flex items-center gap-3 rounded-[14px] border p-3.5 text-start transition-colors hover:opacity-80"
-              style={{
-                backgroundColor: "var(--bg-tertiary)",
-                borderColor: "var(--border-secondary)",
-              }}
-              onClick={() => {
-                set_show_manage_plan(false);
-                setTimeout(() => set_show_payment_methods(true), 200);
-              }}
-            >
-              <CreditCardIcon
-                className="w-5 h-5 flex-shrink-0"
-                style={{ color: "var(--text-tertiary)" }}
-              />
-              <div>
-                <div
-                  className="text-sm font-medium"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  {t("settings.manage_payment_methods")}
-                </div>
-                <div
-                  className="text-xs mt-0.5"
-                  style={{ color: "var(--text-tertiary)" }}
-                >
-                  {t("settings.manage_payment")}
-                </div>
-              </div>
-            </button>
-
-            {subscription && !subscription.cancel_at_period_end && (
-              <button
-                className="w-full flex items-center gap-3 rounded-[14px] border p-3.5 text-start transition-colors hover:opacity-80"
-                style={{
-                  backgroundColor: "var(--bg-tertiary)",
-                  borderColor: "var(--border-secondary)",
-                }}
-                onClick={() => {
-                  set_show_manage_plan(false);
-                  setTimeout(() => set_show_switch_billing_dialog(true), 200);
-                }}
-              >
-                <ArrowsRightLeftIcon
-                  className="w-5 h-5 flex-shrink-0"
-                  style={{ color: "var(--text-tertiary)" }}
-                />
-                <div>
-                  <div
-                    className="text-sm font-medium"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    {target_billing_interval === "year"
-                      ? t("settings.switch_to_yearly")
-                      : t("settings.switch_to_monthly")}
-                  </div>
-                  {yearly_savings && (
-                    <div
-                      className="text-xs mt-0.5"
-                      style={{
-                        color:
-                          target_billing_interval === "year"
-                            ? "var(--color-success)"
-                            : "var(--color-warning)",
-                      }}
-                    >
-                      {target_billing_interval === "year"
-                        ? t("settings.switch_billing_savings", {
-                            amount: yearly_savings,
-                          })
-                        : t("settings.switch_billing_loss", {
-                            amount: yearly_savings,
-                          })}
-                    </div>
-                  )}
-                </div>
-              </button>
-            )}
-
-            <button
-              className="w-full flex items-center gap-3 rounded-[14px] p-3.5 text-start transition-colors hover:opacity-80"
-              onClick={() => {
-                set_show_manage_plan(false);
-                setTimeout(() => {
-                  set_cancel_password("");
-                  set_cancel_password_error("");
-                  set_show_cancel_password(false);
-                  set_show_cancel_dialog(true);
-                }, 200);
-              }}
-            >
-              <XCircleIcon
-                className="w-5 h-5 flex-shrink-0"
-                style={{ color: "var(--text-tertiary)" }}
-              />
-              <div>
-                <div
-                  className="text-sm font-medium"
-                  style={{ color: "var(--text-tertiary)" }}
-                >
-                  {t("settings.cancel_plan")}
-                </div>
-                <div
-                  className="text-xs mt-0.5"
-                  style={{ color: "var(--text-tertiary)" }}
-                >
-                  {t("settings.cancel_plan_warning")}
-                </div>
-              </div>
-            </button>
-          </div>
-        </ModalBody>
-      </Modal>
 
       {checkout_addon && (
         <CheckoutModal

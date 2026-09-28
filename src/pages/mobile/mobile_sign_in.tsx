@@ -158,7 +158,7 @@ export default function MobileSignInPage() {
           <motion.button
             className="flex items-center justify-center text-[var(--text-secondary)]"
             type="button"
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ opacity: 0.7 }}
             onClick={handle_totp_cancel}
           >
             <svg
@@ -302,7 +302,7 @@ export default function MobileSignInPage() {
                 className={BACK_BUTTON_CLASS}
                 style={BACK_BUTTON_STYLE}
                 type="button"
-                whileTap={{ scale: 0.9 }}
+                whileTap={{ opacity: 0.7 }}
                 onClick={() => navigate("/welcome")}
               >
                 <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
@@ -528,6 +528,7 @@ export default function MobileSignInPage() {
                 </label>
                 <Link
                   className="text-xs font-semibold text-[var(--mobile-accent)]"
+                  state={{ email_domain, username }}
                   to="/forgot-password"
                 >
                   {t("auth.forgot_password")}

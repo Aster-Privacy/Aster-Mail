@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useCallback, useEffect, useState } from "react";
+import { IslandSections } from "@aster/ui";
 
 import { use_plan_features } from "@/components/settings/billing/use_plan_features";
 import { CurrentPlanCard } from "@/components/settings/billing/current_plan_card";
@@ -35,6 +36,7 @@ import {
   detect_currency_from_locale,
 } from "@/components/settings/billing/billing_constants";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import {
   get_subscription,
@@ -68,6 +70,7 @@ export function OnionBillingSection() {
   const [subscription_load_failed, set_subscription_load_failed] =
     useState(false);
   const [is_initial_load, set_is_initial_load] = useState(true);
+  const skeleton_visible = use_delayed_flag(is_initial_load);
   const [is_action_loading, set_is_action_loading] = useState(false);
   const [billing_period, set_billing_period] = useState<
     "monthly" | "yearly" | "biennial"
@@ -96,9 +99,7 @@ export function OnionBillingSection() {
     void load_data();
   }, [load_data]);
 
-  const handle_currency_change = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const new_currency = e.target.value;
-
+  const handle_currency_change = (new_currency: string) => {
     set_preferred_currency(new_currency);
     safe_local_set(CURRENCY_STORAGE_KEY, new_currency);
   };
@@ -191,7 +192,7 @@ export function OnionBillingSection() {
     : null;
 
   if (is_initial_load) {
-    return <SettingsSkeleton variant="billing" />;
+    return skeleton_visible ? <SettingsSkeleton variant="billing" /> : null;
   }
 
   if (subscription_load_failed && !subscription) {
@@ -206,7 +207,7 @@ export function OnionBillingSection() {
   }
 
   return (
-    <div className="space-y-6">
+    <IslandSections>
       <CryptoResumeBanner />
 
       <p className="text-sm leading-relaxed text-txt-muted">
@@ -261,6 +262,6 @@ export function OnionBillingSection() {
           yearly_price_cents={crypto_tier.yearly_cents}
         />
       )}
-    </div>
+    </IslandSections>
   );
 }

@@ -152,7 +152,7 @@ export function FieldDropdown({
         {SECTIONS.map((section, i) => (
           <React.Fragment key={i}>
             {i > 0 && <DropdownMenuSeparator />}
-            <DropdownMenuLabel className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-wide text-neutral-500">
+            <DropdownMenuLabel className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-wide text-txt-muted">
               <section.icon className="w-3 h-3" />
               <span>{t(section.title_key)}</span>
             </DropdownMenuLabel>

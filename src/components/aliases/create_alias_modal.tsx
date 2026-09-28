@@ -125,12 +125,9 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
           <motion.div
             ref={dialog_ref}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative w-full max-w-md rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
+            className="relative w-full max-w-md overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
             exit={{ opacity: 0, scale: 0.96 }}
             initial={reduce_motion ? false : { opacity: 0, scale: 0.96 }}
-            style={{
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-            }}
             tabIndex={-1}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
             onClick={(e) => e.stopPropagation()}
@@ -189,7 +186,6 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
             <div className="flex justify-end gap-3 px-6 pb-6 pt-2">
               <Button
                 disabled={is_creating}
-                size="xl"
                 variant="outline"
                 onClick={handle_close}
               >
@@ -197,7 +193,6 @@ export function CreateAliasModal({ is_open, on_close }: CreateAliasModalProps) {
               </Button>
               <Button
                 disabled={!local_part.trim() || is_creating}
-                size="xl"
                 variant="depth"
                 onClick={handle_create}
               >

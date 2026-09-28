@@ -107,7 +107,7 @@ export function CancelReasonStep({
       </RadioGroup>
 
       <textarea
-        className="mt-3 w-full rounded-md border border-edge-secondary bg-transparent px-3 py-2 text-sm text-txt-primary placeholder:text-txt-muted focus:outline-none focus:border-brand resize-none"
+        className="aster_input mt-3 w-full px-3.5 py-2.5 text-sm resize-none"
         maxLength={MAX_CANCEL_REASON_TEXT}
         placeholder={
           reason
@@ -131,7 +131,7 @@ export function CancelReasonStep({
         {keep_plan_slot}
         <div className="ms-auto flex flex-row items-center gap-3">
           <button
-            className={button_variants({ variant: "primary", size: "sm" })}
+            className={button_variants({ variant: "primary" })}
             disabled={!can_continue}
             type="button"
             onClick={on_continue}

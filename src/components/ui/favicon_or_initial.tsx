@@ -18,45 +18,4 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { CSSProperties } from "react";
-
-import { useEffect, useState } from "react";
-
-interface FaviconOrInitialProps {
-  src: string;
-  initial: string;
-  image_class_name?: string;
-  initial_class_name?: string;
-  initial_style?: CSSProperties;
-}
-
-export function FaviconOrInitial({
-  src,
-  initial,
-  image_class_name = "w-4 h-4 object-contain",
-  initial_class_name = "text-[11px] font-medium text-txt-muted",
-  initial_style,
-}: FaviconOrInitialProps) {
-  const [failed, set_failed] = useState(false);
-
-  useEffect(() => {
-    set_failed(false);
-  }, [src]);
-
-  if (!src || failed) {
-    return (
-      <span className={initial_class_name} style={initial_style}>
-        {initial}
-      </span>
-    );
-  }
-
-  return (
-    <img
-      alt=""
-      className={image_class_name}
-      src={src}
-      onError={() => set_failed(true)}
-    />
-  );
-}
+export { FaviconOrInitial } from "@aster/ui";

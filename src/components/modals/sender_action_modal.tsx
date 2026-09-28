@@ -584,14 +584,11 @@ export function SenderActionModal({
             />
             <motion.div
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              className="relative w-full max-w-md rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
+              className="relative w-full max-w-md overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
               exit={{ opacity: 0, scale: 0.96, y: 0 }}
               initial={
                 reduce_motion ? false : { opacity: 0, scale: 0.96, y: 0 }
               }
-              style={{
-                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-              }}
               transition={{
                 duration: reduce_motion ? 0 : 0.15,
                 ease: "easeOut",
@@ -606,7 +603,7 @@ export function SenderActionModal({
                 </div>
                 <button
                   aria-label={t("common.close")}
-                  className="p-1.5 rounded-[14px] transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.05] text-txt-muted"
+                  className="p-1.5 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)] text-txt-muted"
                   onClick={on_close}
                 >
                   <XMarkIcon className="w-4 h-4" />

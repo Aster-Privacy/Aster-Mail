@@ -318,7 +318,7 @@ export function TypedList<T extends string>({
           {!disabled && (
             <button
               aria-label={t("common.remove")}
-              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center transition-colors"
+              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-[var(--aster-hover)] flex items-center justify-center transition-colors"
               type="button"
               onClick={() => on_remove(idx)}
             >
@@ -329,7 +329,7 @@ export function TypedList<T extends string>({
       ))}
       {!disabled && (
         <button
-          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-[12px] bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-black/[0.08] dark:hover:bg-white/[0.08] transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-[var(--aster-radius-control)] bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-[var(--aster-hover)] transition-colors"
           type="button"
           onClick={on_add}
         >
@@ -388,7 +388,7 @@ export function AddressList({
             {!disabled && (
               <button
                 aria-label={t("common.remove")}
-                className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center transition-colors"
+                className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-[var(--aster-hover)] flex items-center justify-center transition-colors"
                 type="button"
                 onClick={() => on_remove(idx)}
               >
@@ -437,7 +437,7 @@ export function AddressList({
       ))}
       {!disabled && (
         <button
-          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-[12px] bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-black/[0.08] dark:hover:bg-white/[0.08] transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-[var(--aster-radius-control)] bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-[var(--aster-hover)] transition-colors"
           type="button"
           onClick={on_add}
         >

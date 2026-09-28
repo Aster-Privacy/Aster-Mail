@@ -832,6 +832,17 @@ export const ja = {
       "転送を送信できませんでした。もう一度お試しください。下書きは保存されています。",
     failed_to_schedule:
       "予約を保存できませんでした。もう一度お試しください。下書きは安全です。",
+    contacts_import_partial:
+      "{{total}} 件中 {{imported}} 件の連絡先のみインポートされました。残りを追加するには、ファイルをもう一度インポートしてください。",
+    failed_to_import_contacts: "もう一度お試しください。",
+    failed_to_load_duplicates: "もう一度お試しください。",
+    dismiss_failed: "もう一度お試しください。",
+    click_scan_duplicates: "「スキャン」をクリックして重複を確認してください",
+    fill_required_fields: "必須項目をすべて入力してください",
+    failed_to_load_sources: "もう一度お試しください。",
+    failed_to_add_source: "もう一度お試しください。",
+    failed_to_delete_source: "もう一度お試しください。",
+    failed_to_toggle_source: "もう一度お試しください。",
     sync_failed:
       "同期は完了せず、自動的に再試行されます。両側のメールは安全です。",
     clearing: "クリア中...",
@@ -896,6 +907,8 @@ export const ja = {
     add_contacts_hint: "連絡先を追加して開始してください",
     add_contact: "連絡先を追加",
     file_too_large: "ファイルは{{size}}未満である必要があります",
+    failed_to_upload_attachment: "もう一度お試しください。",
+    upload_failed: "もう一度お試しください。",
     delete_failed: "もう一度お試しください。",
     download_failed: "もう一度お試しください。",
     attachment_locked:
@@ -908,6 +921,9 @@ export const ja = {
       "予約送信のメールはまだ有効期限を設定できません。すぐに送信するか、有効期限を削除して予約してください。",
     failed_to_merge_contacts:
       "統合を完了できませんでした。もう一度お試しください。元の連絡先は変更されていません。",
+    merge_failed: "もう一度お試しください。",
+    failed_to_load_history: "もう一度お試しください。",
+    failed_to_load_more: "もう一度お試しください。",
     enter_valid_emails: "有効なメールアドレスを入力してください",
     enter_contact_details: "連絡先の詳細を入力",
     select_valid_image: "JPEG、PNG、WebP、またはGIF画像を選択してください",
@@ -968,6 +984,10 @@ export const ja = {
       "このデバイスでこのメールを開けませんでした。更新すると解決することが多く、繰り返し失敗する場合はサインアウトしてから再度サインインするのが回避策です。",
     failed_to_disable_2fa:
       "2 段階認証はオンのままです。もう一度お試しください。アカウントは引き続き保護されています。",
+    failed_to_unsubscribe:
+      "購読解除が完了しませんでした。メール内のリンクから送信者のサイトに移動して、ご自身で購読解除できます。",
+    failed_to_parse_settings:
+      "この設定ファイルは読み取れませんでした。別のファイルでしたら使えます。現在の設定には変更ありません。",
     removed_from_contacts: "連絡先から削除しました",
     added_to_contacts: "連絡先に追加しました",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -991,6 +1011,7 @@ export const ja = {
     offline_action_queued:
       "現在オフラインです。接続が戻り次第、この操作はキューから実行されます。",
     failed_to_update: "もう一度お試しください。",
+    failed_to_load_search_results: "もう一度お試しください。",
     failed_to_fetch_tags: "もう一度お試しください。",
     failed_to_fetch_folders: "もう一度お試しください。",
     failed_to_unlock_folder:
@@ -1012,6 +1033,13 @@ export const ja = {
       "下書きを読み込めませんでした。もう一度お試しください。保存済みの下書きは安全です。",
     failed_to_load_scheduled_emails:
       "予約済みのメールを読み込めませんでした。もう一度お試しください。予定どおりに送信されます。",
+    failed_to_load_subscriptions: "もう一度お試しください。",
+    failed_to_load_more_subscriptions: "もう一度お試しください。",
+    failed_to_scan_subscriptions: "もう一度お試しください。",
+    recently_archived: "最近アーカイブしたもの",
+    older_items: "古いアイテム",
+    long_term_archive: "長期アーカイブ",
+    failed_to_fetch_archive_stats: "もう一度お試しください。",
     value_too_long: "この値は長さの上限を超えています。短くすると使えます。",
     please_enter_valid_domain:
       "有効なドメインではありません。example.com のような形式でしたら使えます。",
@@ -1087,6 +1115,10 @@ export const ja = {
       "送信に使うには、連携している外部アカウントの再接続が必要です。設定の連携アカウントから行えます。",
     failed_to_send_via_external:
       "リンクした外部アカウントからの送信がうまくいきませんでした。もう一度お試しください。下書きは保存されています。",
+    tor_label: "Tor",
+    tor_snowflake_label: "Tor（Snowflake）",
+    cdn_relay_label: "CDNリレー",
+    toggle_selection: "選択を切り替え",
     offline_change_failed: "オフライン中に行った変更を保存できませんでした。",
     offline_send_failed: "オフライン中に作成したメールを送信できませんでした。",
     offline_email_queued:
@@ -1144,6 +1176,7 @@ export const ja = {
     all_accounts: "すべてのアカウント",
     failed_to_rotate_keys:
       "鍵の更新を完了できませんでした。もう一度お試しください。以前の鍵は引き続き使え、データは安全です。",
+    all_external_accounts: "すべての外部アカウント",
     read: "既読",
     or_conjunction: "または",
     press_label: "押す",
@@ -1538,6 +1571,7 @@ export const ja = {
       "パスワードを入力すると、セキュリティキーによる確認を求められます。",
     recovery_email_removed: "復旧用メールアドレスを削除しました",
     recovery_email_hidden: "このアカウントに保存済み",
+    failed_remove_recovery_email: "もう一度お試しください。",
     failed_save_profile_color: "もう一度お試しください。",
     alias_avatar_updated: "エイリアスのアバターを更新しました",
     alias_avatar_removed: "エイリアスのアバターを削除しました",
@@ -1624,6 +1658,8 @@ export const ja = {
       "フォルダーのパスワードを削除できませんでした。もう一度お試しください。フォルダーは以前どおりロックされています。",
     failed_to_set_folder_password:
       "フォルダーのパスワードを保存できませんでした。もう一度お試しください。フォルダーの内容は変更されていません。",
+    drop_image_or_click: "画像をドロップするかクリック",
+    failed_to_get_key_status: "もう一度お試しください。",
     file_already_attached:
       '"{{name}}" はすでにこのメールに添付されています。再度添付する必要はありません。',
     metadata_not_removed:
@@ -1633,6 +1669,8 @@ export const ja = {
     file_exceeds_max_size_upgradable:
       '"{{name}}" は現在のプランの上限 {{size}} を超えています。プランをアップグレードすると {{max_size}} まで送れます。',
     folder_fallback: "フォルダ",
+    found_n_contacts: "{{count}}件の連絡先が見つかりました",
+    found_one_contact: "1件の連絡先が見つかりました",
     health_check_failed: "もう一度お試しください。",
     images_count: "{{count}} 件の画像",
     import_n_contacts: "{{count}}件の連絡先をインポート",
@@ -1656,6 +1694,18 @@ export const ja = {
       "Aster はパスワードでメールを暗号化するため、誰もパスワードを再設定できません。アクセスを保つために復旧用メールアドレスを追加してください。",
     recovery_reminder_action: "復旧用メールを追加",
     recovery_reminder_later: "あとで",
+    recovery_codes_reminder_title: "リカバリーコードを保存",
+    recovery_codes_reminder_body:
+      "Aster はパスワードでメールを暗号化するため、誰もパスワードを再設定できません。暗号化されたメールに戻る手段はリカバリーコードだけです。",
+    recovery_codes_reminder_action: "リカバリーコードを取得",
+    recovery_codes_low_reminder_title: "リカバリーコードが残りわずかです",
+    recovery_codes_low_reminder_body:
+      "各コードは一度だけ使えます。残りは {{count}} 個です。ロックアウトされないよう新しいコードを取得してください。",
+    recovery_codes_low_reminder_action: "新しいコードを取得",
+    recovery_phrase_migrate_title: "リカバリーコードに切り替え",
+    recovery_phrase_migrate_body:
+      "リカバリーフレーズは廃止されます。今のうちにリカバリーコードを取得して、アカウントを復旧できるようにしてください。",
+    recovery_phrase_migrate_action: "コードを取得",
     plan_prompt_title: "無料プランをご利用中です",
     plan_prompt_body:
       "有料プランでは、容量が増え、独自ドメインと無制限のエイリアスを使えます。",
@@ -1755,6 +1805,7 @@ export const ja = {
     unknown_error:
       "想定どおりに動作しませんでした。もう一度お試しください。原因を特定できませんでした。",
     unknown_merchant: "不明な販売者",
+    unknown_rotation_error: "もう一度お試しください。",
     unsaved_changes_title: "変更を破棄しますか？",
     unsaved_changes_body:
       "入力した内容は保存されていません。ここでフォームを閉じると削除されます。",
@@ -2108,11 +2159,24 @@ export const ja = {
       "リカバリーコードがない状態でパスワードを忘れると、暗号化されたメールは永久にロックされます。",
     recovery_codes_row: "リカバリーコード",
     recovery_codes_row_desc:
-      "アカウントとすべての暗号化されたデータを復元できる6個の使い切りコードです。",
-    recovery_codes_generate: "コードを生成",
-    recovery_codes_regenerate: "コードを再生成",
+      "アカウントと暗号化されたデータをすべて復元する一回限りのコードです。",
+    recovery_codes_generate: "コードを取得",
+    recovery_codes_regenerate: "新しいコードを取得",
     recovery_codes_regenerate_warning:
-      "再生成すると新しいコードが作成され、以前のコードは永久に無効になります。",
+      "新しいコードを取得すると、現在のコードは使えなくなります。",
+    recovery_codes_show: "コードを表示",
+    recovery_codes_get_new_title: "新しいリカバリーコードを取得しますか？",
+    recovery_codes_confirm_title: "本人確認",
+    recovery_codes_confirm_desc:
+      "リカバリーコードを表示するにはパスワードを入力してください。",
+    recovery_codes_title: "リカバリーコード",
+    recovery_codes_status:
+      "{{date}} に作成。{{total}} 個中 {{remaining}} 個が残っています。",
+    recovery_codes_low:
+      "リカバリーコードが残りわずかです。ロックアウトされないよう新しいコードを取得してください。",
+    recovery_codes_used: "使用済み",
+    recovery_codes_unavailable:
+      "このデバイスにはコードが保存されていません。表示するには新しいコードを取得してください。",
     recovery_method_active: "有効",
     recovery_method_not_set: "未設定",
     recovery_codes_saved_confirm:
@@ -4096,6 +4160,59 @@ export const ja = {
       "今回の請求期間の終わりまでプレミアム機能を引き続き使え、その後プランは無料に戻ります。メール、連絡先、設定はそのまま残ります。",
     cancel_plan: "プランをキャンセル",
     billing_history: "請求履歴",
+    billing_status_active: "有効",
+    billing_status_renews: "{{date}} に更新",
+    billing_status_ending: "{{date}} に終了",
+    billing_status_attention: "お支払いに確認が必要です",
+    billing_member_since: "{{date}} からのメンバー",
+    billing_keep_title: "プランを継続する",
+    billing_payment_method: "お支払い方法",
+    billing_switch_yearly_subtitle: "月額 {{monthly}}、年額 {{yearly}} で請求",
+    billing_save_amount: "{{amount}} お得",
+    billing_term_heading: "請求期間",
+    billing_pay_yearly: "年払い",
+    billing_pay_monthly: "月払い",
+    billing_billed_yearly_total: "年額 {{amount}} で請求",
+    billing_billed_monthly: "毎月請求",
+    billing_save_percent: "{{percent}}% お得",
+    billing_select_plan_hint: "続けるにはプランを選択してください",
+    billing_addon_active: "有効",
+    billing_addon_ending: "終了予定",
+    billing_addon_ends: "{{date}} に終了",
+    billing_add_storage_summary: "{{size}} の容量を追加",
+    billing_storage_status_ok: "問題ありません",
+    billing_storage_status_near: "ほぼ満杯",
+    billing_storage_status_full: "対応が必要",
+    billing_upgrade_note: "いつでも解約できます。メールはあなたのものです。",
+    billing_thanks_title: "Aster をご支援いただきありがとうございます",
+    billing_thanks_body:
+      "皆さまのご支援がすべてです。小さなチームが毎日丁寧に Aster を作り続けられるのは、そのおかげです。",
+    billing_thanks_free_title: "Aster をご利用いただきありがとうございます",
+    billing_thanks_free_body:
+      "小さなチームが丁寧に Aster を作っており、メールを託してくださる一人ひとりが私たちの支えです。容量やエイリアス、独自ドメインが必要になったら、いつでもアップグレードできます。",
+    billing_addons_subtitle: "容量を追加、プランはそのまま",
+    billing_support_subtitle: "チームにメッセージを送る",
+    billing_upsell_title: "{{name}} でさらに便利に",
+    billing_upsell_price: "月額 {{price}} から（年払い）",
+    billing_advantages_title_paid: "プランに含まれるもの",
+    billing_advantages_title_free: "{{name}} で利用できるもの",
+    billing_see_all_features: "{{name}} のすべての機能を見る",
+    billing_compare_all_plans_subtitle: "個人向けと家族向け、月払いまたは年払い",
+    billing_usage_upgrade_hint: "アップグレードして枠を増やす",
+    usage_in_use: "{{current}} 件使用中",
+    billing_credits_subtitle: "残高とチャージ",
+    billing_academic_subtitle: "学校のメールで割引",
+    billing_history_empty:
+      "請求書はまだありません。初回の請求後にここに表示されます。",
+    billing_invoice_count: "{{count}} 件の請求書",
+    billing_invoice_count_one: "{{count}} 件の請求書",
+    billing_invoice_count_other: "{{count}} 件の請求書",
+    billing_addons_active_count: "{{count}} 件有効",
+    billing_addons_active_count_one: "{{count}} 件有効",
+    billing_addons_active_count_other: "{{count}} 件有効",
+    academic_status_none: "未申請",
+    academic_status_pending: "確認待ち",
+    academic_status_verified: "確認済み",
     billing_plan_heading: "プラン",
     billing_hide_plans: "プランを非表示",
     billing_cancel_notice_title: "プランは解約予定です",
@@ -4936,6 +5053,10 @@ export const ja = {
     created_date: "作成日 {{date}}",
     export_public_key_label: "公開鍵をエクスポート",
     export_private_key_label: "秘密鍵をエクスポート",
+    export_private_key_warning:
+      "ファイルは安全な場所に保管し、絶対に共有しないでください。ファイルを持つ人は誰でもあなたのメールを読めます。",
+    export_two_factor_hint:
+      "このアカウントは二要素認証を使用しています。続けるには、認証アプリに表示されている現在のコードを入力してください。",
     verify_identity_export:
       "秘密鍵をエクスポートするには本人確認を行ってください",
     two_fa_code_label: "2FAコード",
@@ -5473,7 +5594,10 @@ export const ja = {
       "よろしくお願いいたします\nお名前\nyour@email.com",
     signature_name_required: "この署名の名前を入力してください。",
     signature_content_required: "この署名の内容を入力してください。",
-    signature_image_too_large: "画像は 2 MB 未満にしてください。",
+    signature_image_too_large:
+      "この画像は署名に追加するには大きすぎます。小さい画像を選択してください。",
+    signature_too_large:
+      "署名が大きすぎるため保存できません。画像を削除するか、テキストを短くしてください。",
     signature_image_invalid:
       "追加できるのは PNG、JPEG、GIF、WebP の画像のみです。",
     signature_image_failed:
@@ -5523,6 +5647,9 @@ export const ja = {
     spam_filtering_description: "スパムの検出と管理方法を設定します。",
     spam_sensitivity: "スパム感度",
     auto_delete_spam_after: "スパムの自動削除期間",
+    auto_delete_trash_after: "ゴミ箱の自動削除期間",
+    auto_delete_trash_description:
+      "この期間より古いゴミ箱のメールは完全に削除されます。",
     spam_delete_hint: "この期間を過ぎたスパムメールは完全に削除されます",
     save_changes: "変更を保存",
     spam_low: "低",
@@ -5537,6 +5664,9 @@ export const ja = {
     retention_30_days: "30日",
     retention_60_days: "60日",
     retention_90_days: "90日",
+    retention_days_count: "{{ days }}日",
+    retention_180_days: "180日",
+    retention_365_days: "365日",
     retention_never: "なし（永久保存）",
     import_emails_title: "メールをインポート",
     import_add_another: "別のアカウントを追加",
@@ -5703,6 +5833,12 @@ export const ja = {
       "すでにこのプランをご利用中です。プロモーションコードは別のプランに変更するときに適用されます。",
     promo_error_not_upgrade:
       "プロモーションコードは上位プランにアップグレードするときに適用されます。",
+    promo_error_card_only:
+      "このプロモーションコードはカード払いでのみ使用できます。",
+    promo_error_with_credits:
+      "同じ支払いでプロモーションコードとアカウントクレジットを併用することはできません。",
+    promo_error_not_for_addon:
+      "プロモーションコードはアドオンには使用できません。",
     promo_error_generic:
       "プロモーションコードを確認できませんでした。しばらくしてからもう一度お試しください。",
     plan_change_discount_amount: "{{amount}}オフ",
@@ -6525,6 +6661,7 @@ export const ja = {
     domain_purchase_progress_note:
       "ドメインの登録とメールボックスの設定を行っています。通常は1分ほどで完了します。",
     domain_purchase_complete_cta: "購入を完了",
+    domain_purchase_open_checkout: "決済ページを再度開く",
     domain_purchase_cancel_payment_title: "この支払いをキャンセルしますか？",
     domain_purchase_cancel_payment_message:
       "カスタムドメインのこの支払いを本当にキャンセルしますか？",
@@ -7665,6 +7802,7 @@ export const ja = {
     special_offers_save_failed:
       "特別オファーの設定を保存できませんでした。もう一度お試しください。",
     criterion_passkey: "パスキー登録済み",
+    criterion_recovery_codes: "リカバリーコードを保存済み",
     criterion_read_receipts_off: "開封確認オフ",
     send_read_receipts_label: "開封確認を送信",
     send_read_receipts_description:
@@ -8108,6 +8246,8 @@ export const ja = {
     reply_all: "全員に返信",
     react: "リアクション",
     you_reacted_with: "{{emoji}} でリアクションしました",
+    you_reacted_with_remove:
+      "{{emoji}} でリアクションしました。クリックすると削除されます。",
     reacted_with: "{{name}} が {{emoji}} でリアクションしました",
     forward: "転送",
     to: "宛先",
@@ -8829,6 +8969,16 @@ export const ja = {
     translation_unavailable_info_body:
       "端末内の翻訳エンジンがこのメールを処理しきれませんでした。多くの場合、言語パックのダウンロード中か、複数の言語が混在しているか、名前・数字・リンクが大半を占めています。サーバーには何も送信されていません。",
     more_folders_count_other: "他 {{count}} 件のフォルダ",
+    more_messages_count: "他 {{count}} 件のメッセージ",
+    more_messages_count_one: "他 {{count}} 件のメッセージ",
+    more_messages_count_other: "他 {{count}} 件のメッセージ",
+    reply_to_name: "{{name}} さんに返信",
+    reply_all_to_name: "{{name}} さんと全員に返信",
+    forward_message_heading: "メッセージを転送",
+    trackers_found_other: "{{count}} 件のトラッカーを検出してブロックしました",
+    spy_pixels_blocked_count_other:
+      "{{count}} 件のスパイピクセルをブロックしました",
+    links_cleaned_count_other: "{{count}} 件のリンクをクリーンアップしました",
     param_removed_from_n_links_other:
       "{{count}} 件のリンクから {{param}} を削除しました",
     bulk_archive_title: "{{count}} 件のメールをアーカイブしますか。",
@@ -8963,6 +9113,10 @@ export const ja = {
     create_a_password: "パスワードを作成",
     recommend_strong_password:
       "8文字以上にしてください。さまざまな文字を含む長いパスワードほど強力です。",
+    password_recovery_key: "パスワード復旧キー",
+    recovery_key_only_way:
+      "パスワードを忘れた場合、このキーがアカウントを復旧する唯一の方法です。安全な場所に保管してください。",
+    download_key_lower: "キーをダウンロード",
     downloading: "ダウンロード中...",
     copy_key: "キーをコピー",
     copy_codes: "コードをコピー",
@@ -9058,9 +9212,6 @@ export const ja = {
     recovery_phrase_confirm_error:
       "一致しない単語があります。保存したフレーズを確認して、もう一度お試しください。",
     recovery_phrase_skip_check: "保存済みなので、この確認をスキップする",
-    forgot_method_title: "どの方法でアカウントを復旧しますか？",
-    forgot_method_desc:
-      "選択する方法によって、暗号化されたデータを復元できるかどうかが決まります。",
     forgot_method_full_restore: "完全復元",
     forgot_method_access_only: "アクセスのみ",
     forgot_method_phrase_title: "リカバリーフレーズを使用する",
@@ -9072,11 +9223,6 @@ export const ja = {
     forgot_method_email_title: "リセットリンクをメールで受け取る",
     forgot_method_email_desc:
       "アカウントへのアクセスを取り戻します。リセット前の暗号化されたメールは、後でフレーズまたはコードが見つからない限り、再び読むことはできません。",
-    phrase_entry_title: "リカバリーフレーズを入力",
-    phrase_entry_desc:
-      "12個の単語を順番どおりに入力するか、貼り付けてください。",
-    phrase_entry_invalid:
-      "有効なリカバリーフレーズではありません。単語と順番を確認してください。",
     phrase_recovery_failed:
       "このフレーズはこのアカウントと一致しません。単語とメールアドレスを確認してください。",
     reset_consent_title: "このリセットでは以前のデータを復号できません",
@@ -9130,7 +9276,7 @@ export const ja = {
     saving_new_credentials: "新しい認証情報を保存中...",
     recover_your_account: "アカウントの復旧",
     enter_email_associated:
-      "アカウントを復元するにはユーザー名を入力してください",
+      "復旧したいアカウントのアドレスを入力してください。",
     back_to_sign_in: "サインインに戻る",
     email_me_reset_link: "リセットリンクをメールで送信",
     reset_link_sent_title: "リカバリーメールを確認してください",
@@ -9147,8 +9293,7 @@ export const ja = {
     resetting_password: "パスワードをリセット中...",
     enter_recovery_code: "リカバリーコードを入力",
     enter_recovery_code_desc:
-      "アカウント作成時に保存したリカバリーコードの1つを入力してください",
-    verify_code: "コードを確認",
+      "アカウント作成時に保存したリカバリーコードのいずれかを入力してください。",
     create_new_password: "新しいパスワードを作成",
     choose_strong_password: "アカウントの強力なパスワードを選択してください",
     recovering_your_account: "アカウントを復旧中",
@@ -9158,9 +9303,52 @@ export const ja = {
     old_codes_invalidated:
       "以前のリカバリーコードは使えなくなりました。このウィンドウを閉じる前に、新しいセットを安全な場所に保存しておくと安心です。",
     n_recovery_codes: "{{count}}個のリカバリーコード",
+    recovery_code_already_used:
+      "このコードはすでに使用されています。各コードは1回だけ使えるため、保存したリストから別のコードを入力してください。",
+    try_another_way: "別の方法を試す",
+    recovery_email_label: "Aster Mail のアドレス",
+    recovery_domain_hint: "アカウントのドメインを選択してください。",
+    recovery_code_label: "リカバリーコード",
+    recovery_code_hint:
+      "各コードは 1 回だけ使えます。コードの形式は ASTER-XXXX-XXXX-XXXX-XXXX です。",
+    change_account: "別のアドレスを使う",
+    change_account_desc: "別の Aster Mail アカウントを復元します。",
+    support_step_title: "サポートに問い合わせる",
+    support_step_desc:
+      "Aster Mail は暗号化されたデータを読み取れないため、リカバリーコードまたは復旧用メールなしで解除できる人はいません。サポートがアカウントを確認し、次の手順を案内します。",
+    support_email_action: "サポートにメールする",
+    support_help_center: "ヘルプセンターを開く",
+    other_ways_title: "別の方法を試す",
+    other_ways_desc: "アカウントに戻る方法を選択してください。",
+    other_way_code_title: "リカバリーコードを使う",
+    other_way_code_desc: "保存したコードのいずれかを入力します。",
+    other_way_email_title: "リカバリーメールでリセットする",
+    other_way_email_desc:
+      "Aster Mail がリカバリーメールにリンクを送信します。リセット前のメールにはアクセスできなくなります。",
+    other_way_none_title: "どれも持っていない",
+    other_way_none_desc:
+      "サポートにお問い合わせください。次の手順をご案内します。",
+    reset_account_title: "アカウントをリセットしますか?",
+    reset_account_desc:
+      "リセット前の暗号化されたメール、連絡先、ファイルは、以前のパスワードで復元するまでロックされたままです。新しい空の暗号鍵が発行されます。",
+    send_reset_link: "リセットリンクを送信",
+    print_codes: "印刷",
+    codes_copied: "コードをコピーしました。",
+    i_saved_these_codes: "これらのコードを保存しました",
+    review_security_title: "セキュリティを確認する",
+    review_security_desc: "パスワードが変更され、アカウントが復元されました。",
+    review_devices_signed_out: "他のデバイスからログアウトしました。",
+    review_two_step_off: "2 段階認証はオフです。",
+    review_turn_on: "オンにする",
+    review_recovery_email_kept: "リカバリーメールは設定されたままです。",
+    review_no_recovery_email: "リカバリーメールはありません。",
+    review_add: "追加",
+    review_codes_left: "リカバリーコードは残り {{count}} 個です。",
+    review_codes_left_other: "リカバリーコードは残り {{count}} 個です。",
     import_mail_step_title: "メールを一緒に持ってくる",
     import_mail_step_desc:
       "別のアカウントのメッセージを Aster に移行します。すべて保存前にお使いのデバイスで暗号化されます。",
+    import_mail_action: "メールを取り込む",
     import_mail_skip: "空の受信トレイで始める",
     import_mail_privacy_note: "後から設定で取り込むこともできます。",
     password_reset_successful: "パスワードのリセットに成功しました",
@@ -10056,6 +10244,28 @@ export const ja = {
     granted_at: "{date} に獲得",
     empty_state: "まだバッジを見つけていません。",
     claim_failed: "もう一度お試しください。",
+    claim_success: "{name} バッジを獲得しました。",
+    claim_already: "すでに発見バッジを獲得しています。",
+    badge_big_bang: "ビッグバン",
+    badge_big_bang_description: "宇宙を最初に発見した者。",
+    badge_event_horizon: "事象の地平線",
+    badge_event_horizon_description: "既知の境界を越えた者。",
+    badge_black_hole: "ブラックホール",
+    badge_black_hole_description: "より深いものに引き込まれた者。",
+    badge_singularity: "特異点",
+    badge_singularity_description: "すべてが曲がる点を見つけた者。",
+    badge_supernova: "超新星",
+    badge_supernova_description: "最も輝く瞬間に星を捉えた者。",
+    badge_andromeda: "アンドロメダ",
+    badge_andromeda_description: "隣の銀河に到達した者。",
+    badge_nebula: "星雲",
+    badge_nebula_description: "色の中に迷い込んだ者。",
+    badge_comet: "彗星",
+    badge_comet_description: "珍しいものと交差した者。",
+    badge_pulsar: "パルサー",
+    badge_pulsar_description: "雑音の中に信号を聞いた者。",
+    badge_stargazer: "星空観測者",
+    badge_stargazer_description: "適切な瞬間に空を見上げた者。",
   },
   secure_view: {
     powered_by_prefix: "安全に送信",

@@ -52,6 +52,7 @@ import {
   activate_subscription,
   create_crypto_checkout_session,
   format_price,
+  open_payment_url,
   type PromoValidateResponse,
 } from "@/services/api/billing";
 import {
@@ -78,6 +79,13 @@ import {
   build_stripe_element_style,
 } from "@/lib/stripe_appearance";
 import { is_composing } from "@/utils/ime";
+import { is_tauri_env } from "@/services/api/client/helpers";
+
+const WEB_APP_ORIGIN = "https://app.astermail.org";
+
+function return_origin(): string {
+  return is_tauri_env() ? WEB_APP_ORIGIN : window.location.origin;
+}
 
 interface payment_form_props {
   plan_name: string;
@@ -408,7 +416,7 @@ export function PaymentForm({
             clientSecret: secret,
             confirmParams: {
               payment_method: ev.paymentMethod.id,
-              return_url: `${window.location.origin}${window.location.pathname}`,
+              return_url: `${return_origin()}${window.location.pathname}`,
             },
             redirect: "if_required",
           });
@@ -526,7 +534,7 @@ export function PaymentForm({
       set_phase("processing");
       set_error_message("");
       try {
-        const origin = window.location.origin;
+        const origin = return_origin();
         const response = await create_crypto_checkout_session(
           plan_code,
           active_term,
@@ -540,6 +548,12 @@ export function PaymentForm({
 
             if (parsed.protocol !== "https:")
               throw new Error("invalid_protocol");
+            if (is_tauri_env()) {
+              await open_payment_url(parsed.toString());
+              set_phase("ready");
+
+              return;
+            }
             window.location.href = parsed.toString();
           } catch {
             set_error_message(t("settings.failed_checkout"));
@@ -608,7 +622,7 @@ export function PaymentForm({
               name: cardholder_name || "Aster User",
             },
           },
-          return_url: `${window.location.origin}${window.location.pathname}?stripe_redirect=1`,
+          return_url: `${return_origin()}${window.location.pathname}?stripe_redirect=1`,
         });
 
         error = result.error;
@@ -741,9 +755,13 @@ export function PaymentForm({
           height: "44px",
           borderRadius: "14px",
           border: `1px solid ${get_field_border(key, has_error)}`,
+          boxShadow:
+            focused_field === key && !has_error
+              ? `inset 0 0 0 1px ${colors.accent}`
+              : "none",
           background: colors.bg_input,
           padding: "0 16px",
-          transition: "border-color 0.15s ease",
+          transition: "border-color 0.15s ease, box-shadow 0.15s ease",
           cursor: "text",
         }}
         onClick={focus_this_field}
@@ -784,6 +802,8 @@ export function PaymentForm({
           ? colors.border_hover
           : colors.border_rest
     }`,
+    boxShadow:
+      focused_field === key ? `inset 0 0 0 1px ${colors.accent}` : "none",
     background: colors.bg_input,
     color: colors.text_primary,
     fontFamily: "'Google Sans Flex', system-ui, sans-serif",
@@ -794,7 +814,7 @@ export function PaymentForm({
     padding: "0 16px",
     width: "100%",
     outline: "none",
-    transition: "border-color 0.15s ease",
+    transition: "border-color 0.15s ease, box-shadow 0.15s ease",
   });
 
   const money = (cents: number) =>

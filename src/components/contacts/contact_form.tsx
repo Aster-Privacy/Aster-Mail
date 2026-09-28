@@ -333,7 +333,7 @@ export function ContactForm({
         ref={dialog_ref}
         aria-labelledby="contact_form_title"
         aria-modal="true"
-        className="relative w-full max-w-lg rounded-xl border shadow-2xl overflow-hidden bg-modal-bg border-edge-primary"
+        className="relative w-full max-w-lg rounded-[var(--aster-radius-floating,16px)] overflow-hidden bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
         role="dialog"
         tabIndex={-1}
       >
@@ -417,7 +417,7 @@ export function ContactForm({
           </div>
           <button
             aria-label={t("common.close")}
-            className="p-2 -me-2 -mt-2 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+            className="p-2 -me-2 -mt-2 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)]"
             type="button"
             onClick={handle_close}
           >
@@ -431,7 +431,7 @@ export function ContactForm({
               <button
                 key={tab.id}
                 className={cn(
-                  "relative z-10 flex-1 px-2 py-1.5 text-[11px] font-medium rounded-[12px] whitespace-nowrap",
+                  "relative z-10 flex-1 px-2 py-1.5 text-[11px] font-medium rounded-[var(--aster-radius-control)] whitespace-nowrap",
                   active_tab === tab.id
                     ? "bg-surf-primary text-txt-primary"
                     : "text-txt-muted",
@@ -496,7 +496,7 @@ export function ContactForm({
           )}
         </div>
 
-        <div className="px-6 py-5 flex items-center justify-center gap-3 border-t border-edge-primary">
+        <div className="px-6 py-5 flex items-center justify-center gap-3">
           <Button
             className="flex-1 h-12 text-[15px]"
             disabled={is_loading}

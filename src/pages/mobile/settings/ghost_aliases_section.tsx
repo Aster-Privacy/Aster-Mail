@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { EyeSlashIcon } from "@heroicons/react/24/outline";
 
 import { SettingsGroup, SettingsHeader } from "./shared";
@@ -65,8 +65,10 @@ export function GhostAliasesSection({
     eligible_date: string | null;
   }>({ is_open: false, eligible_date: null });
 
+  const loaded_once_ref = useRef(false);
+
   const load_aliases = useCallback(async () => {
-    set_loading(true);
+    if (!loaded_once_ref.current) set_loading(true);
     set_load_error(false);
     try {
       const response = await list_ghost_aliases();
@@ -82,6 +84,7 @@ export function GhostAliasesSection({
     } catch {
       set_load_error(true);
     } finally {
+      loaded_once_ref.current = true;
       set_loading(false);
     }
   }, []);
@@ -282,7 +285,7 @@ export function GhostAliasesSection({
                     </div>
                     <div className="flex shrink-0 items-center gap-1.5">
                       <button
-                        className="rounded-[12px] bg-[var(--mobile-bg-card-hover)] px-3 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] disabled:opacity-50"
+                        className="rounded-[var(--aster-radius-control)] bg-[var(--mobile-bg-card-hover)] px-3 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] disabled:opacity-50"
                         disabled={
                           action_loading === alias.id ||
                           is_at_max_extension(alias)
@@ -293,7 +296,7 @@ export function GhostAliasesSection({
                         {t("settings.ghost_alias_extend")}
                       </button>
                       <button
-                        className="rounded-[12px] px-3 py-1.5 text-[13px] font-medium text-white disabled:opacity-60"
+                        className="rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium text-white disabled:opacity-60"
                         disabled={action_loading === alias.id}
                         style={{
                           background:

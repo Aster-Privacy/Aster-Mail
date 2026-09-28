@@ -19,6 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import {
+  IslandRow,
+  IslandSection,
+  IslandSections,
+  PillButton,
+} from "@aster/ui";
+import {
   ArrowUturnLeftIcon,
   AtSymbolIcon,
   PaintBrushIcon,
@@ -116,32 +122,20 @@ export function ComposeSection() {
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <AtSymbolIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.default_sender_group")}
-          </h3>
-        </div>
-        <p className="text-sm mb-1 text-txt-muted">
-          {t("settings.default_sender_group_description")}
-        </p>
-
+    <IslandSections>
+      <IslandSection
+        description={t("settings.default_sender_group_description")}
+        icon={<AtSymbolIcon />}
+        title={t("settings.default_sender_group")}
+      >
         <DefaultSenderSetting />
-      </div>
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <PaintBrushIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.compose_defaults_title")}
-          </h3>
-        </div>
-        <p className="text-sm mb-1 text-txt-muted">
-          {t("settings.compose_defaults_description")}
-        </p>
-
+      <IslandSection
+        description={t("settings.compose_defaults_description")}
+        icon={<PaintBrushIcon />}
+        title={t("settings.compose_defaults_title")}
+      >
         <SelectSetting
           description={t("settings.compose_default_font_size_description")}
           on_change={(value) =>
@@ -159,50 +153,41 @@ export function ComposeSection() {
           value={font_size}
         />
 
-        <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.compose_default_font_color")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.compose_default_font_color_description")}
-            </p>
-          </div>
-          <div className="flex flex-shrink-0 items-center gap-3">
-            <span className="text-xs font-mono text-txt-muted">
-              {has_font_color
-                ? font_color
-                : t("settings.compose_default_font_color_theme")}
-            </span>
-            <ColorSwatchPicker
-              label={t("settings.compose_default_font_color_picker_label")}
-              size="sm"
-              value={has_font_color ? font_color : COLOR_SWATCH_PLACEHOLDER}
-              onChange={commit_font_color}
-            />
-            <button
-              className="px-3 py-1.5 rounded-[12px] text-sm font-medium border border-edge-secondary text-txt-primary transition-colors hover:bg-surf-hover disabled:opacity-50"
-              disabled={!has_font_color}
-              type="button"
-              onClick={() => commit_font_color(DEFAULT_COMPOSE_FONT_COLOR)}
-            >
-              {t("settings.compose_default_font_color_reset")}
-            </button>
-          </div>
-        </div>
-      </div>
+        <IslandRow
+          description={t("settings.compose_default_font_color_description")}
+          label={t("settings.compose_default_font_color")}
+          layout="stacked"
+          trailing={
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-xs font-mono text-txt-muted">
+                {has_font_color
+                  ? font_color
+                  : t("settings.compose_default_font_color_theme")}
+              </span>
+              <ColorSwatchPicker
+                label={t("settings.compose_default_font_color_picker_label")}
+                size="sm"
+                value={has_font_color ? font_color : COLOR_SWATCH_PLACEHOLDER}
+                onChange={commit_font_color}
+              />
+              <PillButton
+                disabled={!has_font_color}
+                size="sm"
+                variant="neutral"
+                onClick={() => commit_font_color(DEFAULT_COMPOSE_FONT_COLOR)}
+              >
+                {t("settings.compose_default_font_color_reset")}
+              </PillButton>
+            </div>
+          }
+        />
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <ArrowUturnLeftIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.reply_defaults_title")}
-          </h3>
-        </div>
-        <p className="text-sm mb-1 text-txt-muted">
-          {t("settings.reply_defaults_description")}
-        </p>
-
+      <IslandSection
+        description={t("settings.reply_defaults_description")}
+        icon={<ArrowUturnLeftIcon />}
+        title={t("settings.reply_defaults_title")}
+      >
         <ToggleSetting
           description={t("settings.reply_include_quoted_description")}
           enabled={preferences.reply_include_quoted}
@@ -228,7 +213,7 @@ export function ComposeSection() {
           }
           title={t("settings.reply_prefix_subject")}
         />
-      </div>
-    </div>
+      </IslandSection>
+    </IslandSections>
   );
 }

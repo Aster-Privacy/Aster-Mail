@@ -169,7 +169,10 @@ export function ViewerEmailHeader({
                 <span className="text-txt-primary">{display_sender}</span>
               </EmailProfileTrigger>
               <OfficialBadge sender={email} size="md" />
-              <VerifiedSenderBadge domain={email.sender_verified_domain} size="md" />
+              <VerifiedSenderBadge
+                domain={email.sender_verified_domain}
+                size="md"
+              />
               {show_sender_badge && peer_badge && (
                 <BadgeChip
                   badge={peer_badge}
@@ -214,7 +217,7 @@ export function ViewerEmailHeader({
               </PopoverTrigger>
               <PopoverContent
                 align="start"
-                className="w-80 p-3 text-xs space-y-2 bg-surf-primary border-edge-primary"
+                className="w-80 p-3 text-xs space-y-2"
                 side="bottom"
               >
                 <div className="flex">

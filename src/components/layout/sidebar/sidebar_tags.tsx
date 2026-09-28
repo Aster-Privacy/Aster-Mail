@@ -22,13 +22,15 @@ import type { MutableRefObject } from "react";
 import type { DecryptedTag } from "@/hooks/use_tags";
 
 import { memo, useState, useEffect } from "react";
+import { TagIcon } from "@heroicons/react/24/outline";
 import {
-  PlusIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ChevronRightIcon,
-  TagIcon,
-} from "@heroicons/react/24/outline";
+  SidebarEmptyText,
+  SidebarMoreToggle,
+  SidebarRailSectionButton,
+  SidebarSectionAddButton,
+  SidebarSectionToggle,
+  SidebarTagRow,
+} from "@aster/ui";
 
 import { EMAIL_DRAG_MIME } from "@/components/email/inbox/category_drag";
 import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
@@ -36,6 +38,7 @@ import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { TagContextMenu } from "@/components/tags/tag_context_menu";
 import { tag_icon_map } from "@/components/ui/email_tag";
 import { use_i18n } from "@/lib/i18n/context";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 
 export interface TagModalData {
   tag_id: string;
@@ -92,6 +95,7 @@ export const SidebarTags = memo(function SidebarTags({
   on_retry,
 }: SidebarTagsProps) {
   const { t } = use_i18n();
+  const skeleton_visible = use_delayed_flag(is_loading);
 
   const [drag_over_token, set_drag_over_token] = useState<string | null>(null);
 
@@ -113,46 +117,25 @@ export const SidebarTags = memo(function SidebarTags({
 
   return (
     <>
-      {!is_collapsed && (
-        <div className="mt-5 mb-1 px-2.5">
-          <div className="w-full flex items-center justify-between">
-            <button
-              className="flex-1 flex items-center gap-1 py-1 text-txt-muted opacity-70 hover:opacity-100"
-              type="button"
-              onClick={on_toggle_section}
-            >
-              {section_collapsed ? (
-                <ChevronRightIcon className="w-3 h-3 rtl:-scale-x-100" />
-              ) : (
-                <ChevronDownIcon className="w-3 h-3" />
-              )}
-              <span className="text-[10px] font-semibold uppercase tracking-[0.05em]">
-                {t("common.labels")}
-              </span>
-            </button>
-            <button
-              aria-label={t("common.create_label")}
-              className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-icon-muted"
-              type="button"
-              onClick={() => set_is_create_tag_open(true)}
-            >
-              <PlusIcon aria-hidden="true" className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
+      <SidebarSectionToggle
+        is_collapsed={is_collapsed}
+        label={t("common.labels")}
+        on_toggle={on_toggle_section ?? (() => {})}
+        right_slot={
+          <SidebarSectionAddButton
+            label={t("common.create_label")}
+            on_click={() => set_is_create_tag_open(true)}
+          />
+        }
+        section_collapsed={section_collapsed}
+      />
 
       {is_collapsed && (
-        <div className="mt-3">
-          <button
-            className="sidebar-rail-btn"
-            data-rail-tip={t("common.create_label")}
-            type="button"
-            onClick={() => set_is_create_tag_open(true)}
-          >
-            <TagIcon className="w-5 h-5" />
-          </button>
-        </div>
+        <SidebarRailSectionButton
+          icon={TagIcon}
+          label={t("common.create_label")}
+          on_click={() => set_is_create_tag_open(true)}
+        />
       )}
 
       <div>
@@ -177,42 +160,31 @@ export const SidebarTags = memo(function SidebarTags({
                 on_rename={() => handle_tag_modal(tag_data, "rename")}
                 tag_color={tag_color}
               >
-                <button
-                  ref={(el) => {
+                <SidebarTagRow
+                  rail_tip
+                  button_ref={(el: HTMLButtonElement | null) => {
                     tag_refs.current[tag.tag_token] = el;
                   }}
-                  className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === tag_item_id ? "sidebar-active" : ""} ${is_collapsed && effective_selected === tag_item_id ? "sidebar-selected" : ""} ${drag_over_token === tag.tag_token ? "ring-2 ring-brand/60 bg-brand/10" : ""}`}
-                  data-rail-tip={is_collapsed ? tag.name : undefined}
-                  style={{
-                    zIndex: 1,
-                    color:
-                      effective_selected === tag_item_id
-                        ? "var(--text-primary)"
-                        : "var(--text-secondary)",
-                    backgroundColor:
-                      drag_over_token === tag.tag_token
-                        ? undefined
-                        : is_collapsed && effective_selected === tag_item_id
-                          ? "var(--indicator-bg)"
-                          : undefined,
-                  }}
-                  type="button"
-                  onClick={() =>
+                  color={tag_color}
+                  drag_over={drag_over_token === tag.tag_token}
+                  is_collapsed={is_collapsed}
+                  label={tag.name}
+                  on_click={() =>
                     handle_nav_click(() => {
                       set_selected_item(tag_item_id);
                       navigate(`/tag/${encodeURIComponent(tag.tag_token)}`);
                     })
                   }
-                  onDragEnter={(e) => {
+                  on_drag_enter={(e) => {
                     if (!e.dataTransfer.types.includes(EMAIL_DRAG_MIME)) return;
                     set_drag_over_token(tag.tag_token);
                   }}
-                  onDragLeave={(e) => {
+                  on_drag_leave={(e) => {
                     if (e.currentTarget.contains(e.relatedTarget as Node))
                       return;
                     set_drag_over_token(null);
                   }}
-                  onDragOver={(e) => {
+                  on_drag_over={(e) => {
                     e.preventDefault();
                     e.dataTransfer.dropEffect = e.dataTransfer.types.includes(
                       EMAIL_DRAG_MIME,
@@ -220,7 +192,7 @@ export const SidebarTags = memo(function SidebarTags({
                       ? "move"
                       : "none";
                   }}
-                  onDrop={(e) => {
+                  on_drop={(e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     set_drag_over_token(null);
@@ -248,57 +220,23 @@ export const SidebarTags = memo(function SidebarTags({
                       return;
                     }
                   }}
-                >
-                  {(() => {
-                    const TagItemIcon = tag.icon
-                      ? tag_icon_map[tag.icon]
-                      : null;
-
-                    if (TagItemIcon) {
-                      return (
-                        <TagItemIcon
-                          className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} flex-shrink-0 `}
-                          style={{ color: tag_color }}
-                        />
-                      );
-                    }
-
-                    return (
-                      <div
-                        className={`${is_collapsed ? "w-3 h-3" : "w-2.5 h-2.5"} rounded-full flex-shrink-0`}
-                        style={{ backgroundColor: tag_color }}
-                      />
-                    );
-                  })()}
-                  {!is_collapsed && (
-                    <span className="flex-1 text-start truncate leading-5">
-                      {tag.name}
-                    </span>
-                  )}
-                </button>
+                  selected={effective_selected === tag_item_id}
+                  tag_icon={tag.icon ? (tag_icon_map[tag.icon] ?? null) : null}
+                />
               </TagContextMenu>
             );
           })}
         {has_more && !is_collapsed && !section_collapsed && (
-          <button
-            className="w-full flex items-center gap-2 px-2.5 h-7 text-[12px]  rounded-[12px] hover:bg-black/[0.03] dark:hover:bg-white/[0.04] text-txt-muted"
-            type="button"
-            onClick={() => set_labels_expanded(!labels_expanded)}
-          >
-            {labels_expanded ? (
-              <ChevronUpIcon className="w-3.5 h-3.5" />
-            ) : (
-              <ChevronDownIcon className="w-3.5 h-3.5" />
-            )}
-            <span>
-              {labels_expanded
-                ? t("common.show_less")
-                : t("common.more_labels", { count: hidden_count })}
-            </span>
-          </button>
+          <SidebarMoreToggle
+            expanded={labels_expanded}
+            hidden_count={hidden_count}
+            less_label={t("common.show_less")}
+            more_label={t("common.more_labels", { count: hidden_count })}
+            on_toggle={() => set_labels_expanded(!labels_expanded)}
+          />
         )}
         {all_tags.length === 0 &&
-          is_loading &&
+          skeleton_visible &&
           !is_collapsed &&
           !section_collapsed && <NavSectionSkeleton rows={2} />}
         {all_tags.length === 0 &&
@@ -308,9 +246,7 @@ export const SidebarTags = memo(function SidebarTags({
           (load_failed && on_retry ? (
             <LoadFailedNotice on_retry={on_retry} />
           ) : (
-            <p className="text-[11px] px-2.5 py-2 text-txt-muted">
-              {t("common.no_labels_yet")}
-            </p>
+            <SidebarEmptyText>{t("common.no_labels_yet")}</SidebarEmptyText>
           ))}
       </div>
     </>

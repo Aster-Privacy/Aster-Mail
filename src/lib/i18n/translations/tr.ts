@@ -766,6 +766,13 @@ export const tr = {
     failed_to_delete_field: "Bu özel alan kaldırılmadı. Tekrar deneyin.",
     failed_to_save_value:
       "Değişikliğiniz kaydedilmedi. Tekrar deneyin. Önceki değer hâlâ geçerli.",
+    contacts_import_partial:
+      "{{total}} kişiden yalnızca {{imported}} tanesi içe aktarıldı. Kalanları eklemek için dosyayı yeniden içe aktarın.",
+    failed_to_import_contacts: "Tekrar deneyin.",
+    failed_to_load_duplicates: "Tekrar deneyin.",
+    dismiss_failed: "Tekrar deneyin.",
+    click_scan_duplicates:
+      'Kopyaları kontrol etmek için "Tara" düğmesine tıklayın',
     never_synced: "Hiç senkronize edilmedi",
     last_sync_successful: "Son senkronizasyon başarılı",
     last_sync_failed:
@@ -774,6 +781,11 @@ export const tr = {
       "Yönlendirme gönderilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
     failed_to_schedule:
       "Zamanlama kaydedilmedi. Tekrar deneyin. Taslağınız güvende.",
+    fill_required_fields: "Lütfen tüm gerekli alanları doldurun",
+    failed_to_load_sources: "Tekrar deneyin.",
+    failed_to_add_source: "Tekrar deneyin.",
+    failed_to_delete_source: "Tekrar deneyin.",
+    failed_to_toggle_source: "Tekrar deneyin.",
     sync_failed:
       "Eşitleme tamamlanmadı, otomatik olarak yeniden deneyeceğiz. Her iki taraftaki postanız güvende.",
     clearing: "Temizleniyor...",
@@ -843,6 +855,8 @@ export const tr = {
       "Bu dosya {{size}} MB ve boyut sınırının üzerinde. Daha küçük bir dosya seçin.",
     delete_failed: "Tekrar deneyin.",
     download_failed: "Bu indirme tamamlanmadı. Tekrar deneyin.",
+    failed_to_upload_attachment: "Tekrar deneyin.",
+    upload_failed: "Tekrar deneyin.",
     attachment_locked:
       "Bu ek, şifreleme anahtarı bu cihazda kullanılamadığı için açılamıyor.",
     scheduled_no_attachments:
@@ -853,6 +867,9 @@ export const tr = {
       "Zamanlanmış e-postalar henüz süre sonu kullanamaz. Şimdi gönder ya da zamanlamak için süre sonunu kaldır.",
     failed_to_merge_contacts:
       "Birleştirme tamamlanmadı. Tekrar deneyin. Özgün kişileriniz değişmedi.",
+    merge_failed: "Tekrar deneyin.",
+    failed_to_load_history: "Tekrar deneyin.",
+    failed_to_load_more: "Tekrar deneyin.",
     enter_valid_emails: "Lütfen geçerli e-posta adresleri girin",
     enter_contact_details: "Kişi bilgilerini girin",
     select_valid_image: "Lütfen bir JPEG, PNG, WebP veya GIF görsel seçin",
@@ -914,6 +931,10 @@ export const tr = {
       "Bu e-postayı bu cihazda açamadık. Bir yenileme çoğunlukla bunu çözer ve sorun sürerse çıkış yapıp tekrar giriş yapmak yedek yoldur.",
     failed_to_disable_2fa:
       "İki faktörlü kimlik doğrulama açık kaldı. Tekrar deneyin. Hesabınız hâlâ korunuyor.",
+    failed_to_unsubscribe:
+      "Abonelikten çıkma tamamlanmadı. E-postadaki bağlantı sizi göndericinin sitesine götürür, abonelikten kendiniz çıkabilirsiniz.",
+    failed_to_parse_settings:
+      "Bu ayarlar dosyası okunamadı. Farklı bir dosya işe yarar. Mevcut ayarlarınız olduğu gibi.",
     removed_from_contacts: "Kişilerden kaldırıldı",
     added_to_contacts: "Kişilere eklendi",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -937,6 +958,7 @@ export const tr = {
     offline_action_queued:
       "Şu anda çevrimdışısınız. Bu sıraya alındı ve siz yeniden bağlanır bağlanmaz tamamlanacak.",
     failed_to_update: "Tekrar deneyin.",
+    failed_to_load_search_results: "Tekrar deneyin.",
     failed_to_fetch_tags: "Tekrar deneyin.",
     failed_to_fetch_folders: "Tekrar deneyin.",
     failed_to_unlock_folder:
@@ -958,6 +980,13 @@ export const tr = {
       "Taslaklarınız yüklenmedi. Tekrar deneyin. Kayıtlı taslaklarınız güvende.",
     failed_to_load_scheduled_emails:
       "Zamanlanmış e-postalarınız yüklenmedi. Tekrar deneyin. Planlandığı gibi gönderilecekler.",
+    failed_to_load_subscriptions: "Tekrar deneyin.",
+    failed_to_load_more_subscriptions: "Tekrar deneyin.",
+    failed_to_scan_subscriptions: "Tekrar deneyin.",
+    recently_archived: "Son Arşivlenenler",
+    older_items: "Eski Öğeler",
+    long_term_archive: "Uzun Vadeli Arşiv",
+    failed_to_fetch_archive_stats: "Tekrar deneyin.",
     value_too_long:
       "Bu değer uzunluk sınırının üzerinde. Daha kısa bir sürüm işe yarar.",
     please_enter_valid_domain:
@@ -1034,6 +1063,10 @@ export const tr = {
       "Bağladığınız dış hesabın, üzerinden gönderim yapılmadan önce yeniden bağlanması gerekiyor. Ayarlar, Bağlı Hesaplar bölümünde duruyor.",
     failed_to_send_via_external:
       "Bağlı harici hesabınız üzerinden gönderim yapılamadı. Tekrar deneyin. Taslağınız kaydedildi.",
+    tor_label: "Tor",
+    tor_snowflake_label: "Tor (Snowflake)",
+    cdn_relay_label: "CDN Aktarıcı",
+    toggle_selection: "Seçimi değiştir",
     offline_change_failed:
       "Çevrimdışıyken yaptığınız bir değişiklik kaydedilemedi.",
     offline_send_failed: "Çevrimdışıyken yazdığınız bir e-posta gönderilemedi.",
@@ -1095,6 +1128,7 @@ export const tr = {
     all_accounts: "Tüm hesaplar",
     failed_to_rotate_keys:
       "Anahtar yenileme tamamlanmadı. Tekrar deneyin. Eski anahtarlarınız hâlâ çalışıyor ve verileriniz güvende.",
+    all_external_accounts: "Tüm harici hesaplar",
     read: "Okundu",
     or_conjunction: "veya",
     press_label: "Basın",
@@ -1479,6 +1513,7 @@ export const tr = {
     recovery_email_removed: "Kurtarma e-postası kaldırıldı",
     recovery_email_hidden: "Bu hesapta kayıtlı",
     failed_save_profile_color: "Renk seçiminiz kaydedilmedi. Tekrar deneyin.",
+    failed_remove_recovery_email: "Tekrar deneyin.",
     image_load_failed:
       "Bu görsel yüklenmedi. Sayfayı yenilemek genellikle sorunu çözer.",
     image_processing_failed:
@@ -1617,6 +1652,11 @@ export const tr = {
     account_limit_reached:
       "Bu ağ için hesap sınırına ulaştınız. Hatalı görünüyorsa hello@astermail.org size yardımcı olabilir.",
     health_check_failed: "Tanılama tamamlanmadı. Tekrar deneyin.",
+    failed_to_get_key_status: "Tekrar deneyin.",
+    unknown_rotation_error: "Tekrar deneyin.",
+    new_email_notification: "{{ sender }} tarafından yeni e-posta",
+    reply_notification: "{{ sender }} yanıtladı",
+    mention_notification: "{{ sender }} sizi bahsetti",
     print_from: "Kimden:",
     print_to: "Kime:",
     print_cc: "Bilgi:",
@@ -1706,6 +1746,18 @@ export const tr = {
       "Aster postanızı parolanızla şifreler, bu yüzden kimse onu sizin için sıfırlayamaz. Erişiminizi korumak için bir kurtarma e-postası ekleyin.",
     recovery_reminder_action: "Kurtarma e-postası ekle",
     recovery_reminder_later: "Daha sonra",
+    recovery_codes_reminder_title: "Kurtarma kodlarınızı kaydedin",
+    recovery_codes_reminder_body:
+      "Aster postanızı parolanızla şifreler, bu yüzden kimse onu sizin için sıfırlayamaz. Şifreli postanıza dönmenin tek yolu kurtarma kodlarıdır.",
+    recovery_codes_reminder_action: "Kurtarma kodu al",
+    recovery_codes_low_reminder_title: "Kurtarma kodlarınız azalıyor",
+    recovery_codes_low_reminder_body:
+      "Her kod bir kez çalışır ve {{count}} kodunuz kaldı. Hesabınızdan kilitlenmemek için yeni kod alın.",
+    recovery_codes_low_reminder_action: "Yeni kod al",
+    recovery_phrase_migrate_title: "Kurtarma kodlarına geçin",
+    recovery_phrase_migrate_body:
+      "Kurtarma ifadeleri kaldırılıyor. Hesabınızı hâlâ kurtarabilmek için şimdi kurtarma kodu alın.",
+    recovery_phrase_migrate_action: "Kod al",
     plan_prompt_title: "Ücretsiz plandasınız",
     plan_prompt_body:
       "Ücretli planlar daha fazla depolama, özel alan adları ve sınırsız takma ad sunar.",
@@ -2079,11 +2131,24 @@ export const tr = {
       "Kurtarma kodlarınız yoksa, parolanızı unutmanız şifreli postalarınızı kalıcı olarak kilitler.",
     recovery_codes_row: "Kurtarma kodları",
     recovery_codes_row_desc:
-      "Hesabınızı ve tüm şifreli verilerinizi geri yükleyen altı tek kullanımlık kod.",
-    recovery_codes_generate: "Kodları oluştur",
-    recovery_codes_regenerate: "Kodları yeniden oluştur",
+      "Hesabınızı ve şifrelenmiş tüm verilerinizi geri getiren tek kullanımlık kodlar.",
+    recovery_codes_generate: "Kod al",
+    recovery_codes_regenerate: "Yeni kod al",
     recovery_codes_regenerate_warning:
-      "Yeniden oluşturmak yeni kodlar üretir ve eskilerini kalıcı olarak geçersiz kılar.",
+      "Yeni kod aldığınız anda mevcut kodlarınız çalışmaz.",
+    recovery_codes_show: "Kodları göster",
+    recovery_codes_get_new_title: "Yeni kurtarma kodları alınsın mı?",
+    recovery_codes_confirm_title: "Kimliğinizi doğrulayın",
+    recovery_codes_confirm_desc:
+      "Kurtarma kodlarınızı görmek için parolanızı girin.",
+    recovery_codes_title: "Kurtarma kodlarınız",
+    recovery_codes_status:
+      "{{date}} tarihinde oluşturuldu. {{total}} kodun {{remaining}} tanesi kaldı.",
+    recovery_codes_low:
+      "Kurtarma kodlarınız azalıyor. Hesabınızdan kilitlenmemek için yeni kod alın.",
+    recovery_codes_used: "Kullanıldı",
+    recovery_codes_unavailable:
+      "Kodlarınız bu cihazda saklanmıyor. Görmek için yeni kod alın.",
     recovery_method_active: "Etkin",
     recovery_method_not_set: "Ayarlanmadı",
     recovery_codes_saved_confirm:
@@ -4052,6 +4117,60 @@ export const tr = {
     reactivate: "Yeniden Etkinleştir",
     cancel_plan: "Planı İptal Et",
     billing_history: "Faturalandırma Geçmişi",
+    billing_status_active: "Etkin",
+    billing_status_renews: "{{date}} tarihinde yenilenir",
+    billing_status_ending: "{{date}} tarihinde sona erer",
+    billing_status_attention: "Ödeme dikkat gerektiriyor",
+    billing_member_since: "{{date}} tarihinden beri üye",
+    billing_keep_title: "Planınızı koruyun",
+    billing_payment_method: "Ödeme yöntemi",
+    billing_switch_yearly_subtitle:
+      "{{monthly}}/ay, yıllık {{yearly}} olarak faturalandırılır",
+    billing_save_amount: "{{amount}} tasarruf edin",
+    billing_term_heading: "Fatura dönemi",
+    billing_pay_yearly: "Yıllık öde",
+    billing_pay_monthly: "Aylık öde",
+    billing_billed_yearly_total: "Yıllık {{amount}} olarak faturalandırılır",
+    billing_billed_monthly: "Her ay faturalandırılır",
+    billing_save_percent: "%{{percent}} tasarruf edin",
+    billing_select_plan_hint: "Devam etmek için bir plan seçin",
+    billing_addon_active: "Etkin",
+    billing_addon_ending: "Sona eriyor",
+    billing_addon_ends: "{{date}} tarihinde sona erer",
+    billing_add_storage_summary: "{{size}} depolama ekle",
+    billing_storage_status_ok: "Her şey yolunda",
+    billing_storage_status_near: "Neredeyse dolu",
+    billing_storage_status_full: "İşlem gerekli",
+    billing_upgrade_note: "İstediğiniz zaman iptal edin. Postanız sizde kalır.",
+    billing_thanks_title: "Aster'ı desteklediğiniz için teşekkürler",
+    billing_thanks_body:
+      "Desteğiniz bizim için her şey demek. Küçük bir ekibin Aster'ı her gün özenle geliştirmeye devam etmesini sağlıyor.",
+    billing_thanks_free_title: "Aster'ı kullandığınız için teşekkürler",
+    billing_thanks_free_body:
+      "Küçük bir ekip Aster'ı özenle geliştiriyor ve postasını ona emanet eden herkes bizi ayakta tutuyor. Daha fazla depolama, takma ad veya özel alan adına ihtiyaç duyduğunuzda planınızı yükseltin.",
+    billing_addons_subtitle: "Daha fazla alan, aynı plan",
+    billing_support_subtitle: "Ekibe mesaj gönderin",
+    billing_upsell_title: "{{name}} ile daha fazlasını alın",
+    billing_upsell_price: "Aylık {{price}} başlayan fiyatlarla, yıllık faturalandırılır",
+    billing_advantages_title_paid: "Planınıza dahil olanlar",
+    billing_advantages_title_free: "{{name}} ile neler elde edersiniz",
+    billing_see_all_features: "Tüm {{name}} özelliklerini gör",
+    billing_compare_all_plans_subtitle: "Bireysel ve aile planları, aylık veya yıllık",
+    billing_usage_upgrade_hint: "Daha fazla alan için yükseltin",
+    usage_in_use: "{{current}} kullanımda",
+    billing_credits_subtitle: "Bakiye ve yüklemeler",
+    billing_academic_subtitle: "Okul e-postasıyla tasarruf edin",
+    billing_history_empty:
+      "Henüz fatura yok. Ödemeleriniz ilk tahsilattan sonra burada görünür.",
+    billing_invoice_count: "{{count}} fatura",
+    billing_invoice_count_one: "{{count}} fatura",
+    billing_invoice_count_other: "{{count}} fatura",
+    billing_addons_active_count: "{{count}} etkin",
+    billing_addons_active_count_one: "{{count}} etkin",
+    billing_addons_active_count_other: "{{count}} etkin",
+    academic_status_none: "Başvurulmadı",
+    academic_status_pending: "Doğrulama bekleniyor",
+    academic_status_verified: "Doğrulandı",
     billing_plan_heading: "Plan",
     billing_hide_plans: "Planları gizle",
     billing_cancel_notice_title: "Planınız iptal edilecek",
@@ -4895,6 +5014,10 @@ export const tr = {
     created_date: "Oluşturulma tarihi: {{date}}",
     export_public_key_label: "Genel Anahtarı Dışa Aktar",
     export_private_key_label: "Özel Anahtarı Dışa Aktar",
+    export_private_key_warning:
+      "Dosyayı güvenli bir yerde saklayın ve asla paylaşmayın. Dosyaya sahip olan herkes postanızı okuyabilir.",
+    export_two_factor_hint:
+      "Hesabınız iki adımlı doğrulama kullanıyor. Devam etmek için kimlik doğrulama uygulamanızdaki güncel kodu girin.",
     verify_identity_export:
       "Özel anahtarınızı dışa aktarmak için kimliğinizi doğrulayın",
     two_fa_code_label: "2FA Kodu",
@@ -5426,7 +5549,10 @@ export const tr = {
       "Saygılarımla,\nAdınız\neposta@adresiniz.com",
     signature_name_required: "Bu imza için bir ad girin.",
     signature_content_required: "Bu imzaya içerik ekleyin.",
-    signature_image_too_large: "Görseller 2 MB'tan küçük olmalıdır.",
+    signature_image_too_large:
+      "Bu görsel imzanıza eklemek için çok büyük. Daha küçük bir görsel seçin.",
+    signature_too_large:
+      "İmzanız kaydedilemeyecek kadar büyük. Bir görseli kaldırın veya metni kısaltın.",
     signature_image_invalid:
       "Yalnızca PNG, JPEG, GIF ve WebP görselleri eklenebilir.",
     signature_image_failed: "Bu görsel eklenemedi. Başka bir dosya deneyin.",
@@ -5477,6 +5603,9 @@ export const tr = {
       "Spam'in nasıl algılanacağını ve yönetileceğini yapılandırın.",
     spam_sensitivity: "Spam Hassasiyeti",
     auto_delete_spam_after: "Spam'i şu süre sonra otomatik sil:",
+    auto_delete_trash_after: "Çöp kutusunu şu süre sonra otomatik sil:",
+    auto_delete_trash_description:
+      "Bu süreden eski Çöp Kutusu e-postaları kalıcı olarak silinir.",
     spam_delete_hint: "Bu süreden eski spam e-postalar kalıcı olarak silinecek",
     save_changes: "Değişiklikleri Kaydet",
     spam_low: "Düşük",
@@ -5491,6 +5620,9 @@ export const tr = {
     retention_30_days: "30 gün",
     retention_60_days: "60 gün",
     retention_90_days: "90 gün",
+    retention_days_count: "{{ days }} gün",
+    retention_180_days: "180 gün",
+    retention_365_days: "365 gün",
     retention_never: "Asla (süresiz sakla)",
     import_emails_title: "E-postaları İçe Aktar",
     import_add_another: "Başka bir hesap ekle",
@@ -6515,6 +6647,7 @@ export const tr = {
     domain_purchase_progress_note:
       "Alan adınızı kaydedip posta kutularınızı kurarken lütfen bekleyin. Bu genellikle yaklaşık bir dakika sürer.",
     domain_purchase_complete_cta: "Satın almayı tamamla",
+    domain_purchase_open_checkout: "Ödemeyi yeniden aç",
     domain_purchase_cancel_payment_title: "Bu ödeme iptal edilsin mi?",
     domain_purchase_cancel_payment_message:
       "Özel alan adı için bu ödemeyi iptal etmek istediğinizden emin misiniz?",
@@ -6618,6 +6751,11 @@ export const tr = {
       "Zaten bu plandasınız. Promosyon kodları farklı bir plana geçtiğinizde geçerlidir.",
     promo_error_not_upgrade:
       "Promosyon kodları daha yüksek bir plana yükselttiğinizde geçerlidir.",
+    promo_error_card_only:
+      "Bu promosyon kodu yalnızca kartla ödemelerde geçerlidir.",
+    promo_error_with_credits:
+      "Aynı ödemede promosyon kodu ve hesap kredisini birlikte kullanamazsınız.",
+    promo_error_not_for_addon: "Promosyon kodları eklentilerde kullanılamaz.",
     promo_error_generic:
       "Promosyon kodunuz kontrol edilemedi. Birazdan tekrar deneyin.",
     plan_change_discount_amount: "{{amount}} indirim",
@@ -7648,6 +7786,7 @@ export const tr = {
     special_offers_save_failed:
       "Özel teklifler ayarınız kaydedilmedi. Tekrar deneyin.",
     criterion_passkey: "Geçiş anahtarı kayıtlı",
+    criterion_recovery_codes: "Kurtarma kodları kaydedildi",
     criterion_read_receipts_off: "Okundu bilgisi kapalı",
     send_read_receipts_label: "Okundu bilgisi gönder",
     send_read_receipts_description:
@@ -8849,6 +8988,18 @@ export const tr = {
       "Cihazdaki çevirmen bu iletiyi tamamlayamadı. Bu genellikle dil paketinin hâlâ indiriliyor olduğu, iletinin birkaç dili karıştırdığı ya da çoğunlukla adlardan, sayılardan ve bağlantılardan oluştuğu anlamına gelir. Sunucuya hiçbir şey gönderilmedi.",
     more_folders_count_one: "+{{count}} klasör daha",
     more_folders_count_other: "+{{count}} klasör daha",
+    more_messages_count: "{{count}} ileti daha",
+    more_messages_count_one: "{{count}} ileti daha",
+    more_messages_count_other: "{{count}} ileti daha",
+    reply_to_name: "{{name}} kişisine yanıt",
+    reply_all_to_name: "{{name}} ve herkese yanıt",
+    forward_message_heading: "İletiyi ilet",
+    trackers_found_one: "{{count}} izleyici bulundu ve engellendi",
+    trackers_found_other: "{{count}} izleyici bulundu ve engellendi",
+    spy_pixels_blocked_count_one: "{{count}} casus piksel engellendi",
+    spy_pixels_blocked_count_other: "{{count}} casus piksel engellendi",
+    links_cleaned_count_one: "{{count}} bağlantı temizlendi",
+    links_cleaned_count_other: "{{count}} bağlantı temizlendi",
     param_removed_from_n_links_one:
       "{{param}}, {{count}} bağlantıdan kaldırıldı",
     param_removed_from_n_links_other:
@@ -8975,6 +9126,10 @@ export const tr = {
     create_a_password: "Bir parola oluştur",
     recommend_strong_password:
       "En az 8 karakter kullan. Karışık karakterler içeren daha uzun bir parola daha güçlüdür.",
+    password_recovery_key: "Parola kurtarma anahtarı",
+    recovery_key_only_way:
+      "Parolanı unutursan hesabını kurtarmanın tek yolu bu anahtardır. Güvenli bir yerde sakla.",
+    download_key_lower: "Anahtarı indir",
     downloading: "İndiriliyor...",
     copy_key: "Anahtarı kopyala",
     copy_codes: "Kodları kopyala",
@@ -9070,9 +9225,6 @@ export const tr = {
     recovery_phrase_confirm_error:
       "Bir veya daha fazla kelime eşleşmiyor. Kaydettiğiniz ifadeyi kontrol edip tekrar deneyin.",
     recovery_phrase_skip_check: "Kaydettim, bu kontrolü atla",
-    forgot_method_title: "Hesabınızı nasıl kurtarmak istiyorsunuz?",
-    forgot_method_desc:
-      "Seçtiğiniz yöntem, şifreli verilerinizin geri yüklenip yüklenemeyeceğini belirler.",
     forgot_method_full_restore: "Tam geri yükleme",
     forgot_method_access_only: "Yalnızca erişim",
     forgot_method_phrase_title: "Kurtarma ifademi kullan",
@@ -9084,10 +9236,6 @@ export const tr = {
     forgot_method_email_title: "Bana sıfırlama bağlantısı gönder",
     forgot_method_email_desc:
       "Hesabınıza yeniden erişim kazanırsınız. Sıfırlamadan önceki şifreli postalar, ifadenizi veya bir kodu daha sonra bulmadıkça bir daha okunamaz.",
-    phrase_entry_title: "Kurtarma ifadenizi girin",
-    phrase_entry_desc: "12 kelimeyi sırasıyla yazın veya yapıştırın.",
-    phrase_entry_invalid:
-      "Bu geçerli bir kurtarma ifadesi değil. Kelimeleri ve sıralarını kontrol edin.",
     phrase_recovery_failed:
       "Bu ifade bu hesapla eşleşmiyor. Kelimeleri ve e-posta adresini kontrol edin.",
     reset_consent_title: "Bu sıfırlama eski verilerinizin şifresini çözemez",
@@ -9141,7 +9289,7 @@ export const tr = {
     creating_new_recovery_backup: "Yeni kurtarma yedeği oluşturuluyor...",
     saving_new_credentials: "Yeni kimlik bilgileri kaydediliyor...",
     recover_your_account: "Hesabınızı kurtarın",
-    enter_email_associated: "Hesabınızı kurtarmak için kullanıcı adınızı girin",
+    enter_email_associated: "Kurtarmak istediğiniz hesabın adresini girin.",
     back_to_sign_in: "Giriş sayfasına dön",
     email_me_reset_link: "Bana e-posta ile sıfırlama bağlantısı gönder",
     reset_link_sent_title: "Kurtarma e-postanızı kontrol edin",
@@ -9157,8 +9305,7 @@ export const tr = {
     resetting_password: "Parola sıfırlanıyor...",
     enter_recovery_code: "Kurtarma kodunu girin",
     enter_recovery_code_desc:
-      "Hesabınızı oluştururken kaydettiğiniz kurtarma kodlarından birini girin",
-    verify_code: "Kodu Doğrula",
+      "Hesabınızı oluştururken kaydettiğiniz kurtarma kodlarından birini girin.",
     create_new_password: "Yeni parola oluşturun",
     choose_strong_password: "Hesabınız için güçlü bir parola seçin",
     recovering_your_account: "Hesabınız kurtarılıyor",
@@ -9172,6 +9319,50 @@ export const tr = {
       "Başka bir hesaptaki iletileri Aster'a taşıyın. Her şey kaydedilmeden önce cihazınızda şifrelenir.",
     import_mail_skip: "Boş gelen kutusuyla başlayın",
     import_mail_privacy_note: "Daha sonra Ayarlar'dan da içe aktarabilirsiniz.",
+    recovery_code_already_used:
+      "Bu kod zaten kullanıldı. Her kod bir kez çalışır, bu yüzden kayıtlı listenizden başka bir kod girin.",
+    try_another_way: "Başka bir yol deneyin",
+    recovery_email_label: "Aster Mail adresi",
+    recovery_domain_hint: "Hesabınıza ait alan adını seçin.",
+    recovery_code_label: "Kurtarma kodu",
+    recovery_code_hint:
+      "Her kod bir kez çalışır. Kodlar şöyle görünür: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "Başka bir adres kullan",
+    change_account_desc: "Başka bir Aster Mail hesabını kurtarın.",
+    support_step_title: "Destek ile iletişime geçin",
+    support_step_desc:
+      "Aster Mail şifreli verilerinizi okuyamaz, bu yüzden kurtarma kodu veya kurtarma e-postanız olmadan kimse bunları açamaz. Destek ekibi hesabınızı kontrol edip sonraki adımlarda yardımcı olabilir.",
+    support_email_action: "Desteğe e-posta gönder",
+    support_help_center: "Yardım merkezini aç",
+    other_ways_title: "Başka bir yol deneyin",
+    other_ways_desc: "Hesabınıza nasıl geri dönmek istediğinizi seçin.",
+    other_way_code_title: "Kurtarma kodu kullanın",
+    other_way_code_desc: "Kaydettiğiniz kodlardan birini girin.",
+    other_way_email_title: "Kurtarma e-postanızla sıfırlayın",
+    other_way_email_desc:
+      "Aster Mail kurtarma e-postanıza bir bağlantı gönderir. Sıfırlamadan önceki postalara erişiminizi kaybedersiniz.",
+    other_way_none_title: "Bunların hiçbiri bende yok",
+    other_way_none_desc:
+      "Destek ile iletişime geçin, sonraki adımlarda yardımcı olalım.",
+    reset_account_title: "Hesabınız sıfırlansın mı?",
+    reset_account_desc:
+      "Sıfırlamadan önceki şifrelenmiş postanız, kişileriniz ve dosyalarınız, eski parolanızla kurtarana kadar kilitli kalır. Yeni ve boş bir şifreleme anahtarı alırsınız.",
+    send_reset_link: "Sıfırlama bağlantısı gönder",
+    print_codes: "Yazdır",
+    codes_copied: "Kodlar kopyalandı.",
+    i_saved_these_codes: "Bu kodları kaydettim",
+    review_security_title: "Güvenliğinizi gözden geçirin",
+    review_security_desc: "Parolanız değiştirildi ve hesabınız kurtarıldı.",
+    review_devices_signed_out: "Diğer cihazların oturumu kapatıldı.",
+    review_two_step_off: "İki adımlı doğrulama kapalı.",
+    review_turn_on: "Aç",
+    review_recovery_email_kept: "Kurtarma e-postanız hâlâ ayarlı.",
+    review_no_recovery_email: "Kurtarma e-postası yok.",
+    review_add: "Ekle",
+    review_codes_left: "{{count}} kurtarma kodu kaldı.",
+    review_codes_left_one: "{{count}} kurtarma kodu kaldı.",
+    review_codes_left_other: "{{count}} kurtarma kodu kaldı.",
+    import_mail_action: "Postayı içe aktar",
     password_reset_successful: "Parola sıfırlama başarılı",
     account_recovered_sign_in:
       "Hesabınız kurtarıldı. Artık yeni parolanızla giriş yapabilirsiniz.",

@@ -95,7 +95,13 @@ export function AccountCard({
   t,
 }: AccountCardProps) {
   return (
-    <div className={index > 0 ? "border-t border-edge-secondary" : ""}>
+    <div
+      className={
+        index > 0
+          ? "border-t border-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]"
+          : ""
+      }
+    >
       <div className="flex items-center gap-3 px-4 py-3">
         {(() => {
           const domain = account.email.split("@")[1];
@@ -108,7 +114,7 @@ export function AccountCard({
                 style={{
                   backgroundColor: account.is_enabled
                     ? `${account.label_color}20`
-                    : "var(--bg-tertiary)",
+                    : "color-mix(in srgb, var(--text-primary) 7%, transparent)",
                 }}
               >
                 <img
@@ -129,7 +135,7 @@ export function AccountCard({
               style={{
                 backgroundColor: account.is_enabled
                   ? `${account.label_color}26`
-                  : "var(--bg-tertiary)",
+                  : "color-mix(in srgb, var(--text-primary) 7%, transparent)",
               }}
             >
               <EnvelopeIcon
@@ -177,7 +183,6 @@ export function AccountCard({
             </Tooltip>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Only show display_name for non-OAuth accounts (for OAuth it's just the provider label) */}
             {account.display_name && account.protocol !== "oauth_imap" && (
               <>
                 <span
@@ -290,12 +295,8 @@ export function AccountCard({
             style={{ paddingInlineStart: "3.75rem" }}
           >
             <div
-              className="px-3 py-2 rounded-lg text-xs leading-relaxed"
+              className="px-3 py-2 rounded-xl text-xs leading-relaxed bg-[color-mix(in_srgb,#dc2626_10%,transparent)] text-red-700 dark:text-red-400"
               role="alert"
-              style={{
-                backgroundColor: "rgba(220,38,38,0.08)",
-                color: "rgb(220,38,38)",
-              }}
             >
               {account.last_sync_error
                 ? account.last_sync_error.replace(

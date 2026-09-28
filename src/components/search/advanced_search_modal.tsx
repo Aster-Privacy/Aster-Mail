@@ -99,7 +99,7 @@ export function AdvancedSearchModal({
       {is_open && (
         <motion.div
           animate={{ opacity: 1 }}
-          className="fixed inset-0 bg-black/40 flex items-start sm:items-start justify-center pt-0 sm:pt-12 z-[60] p-0 sm:p-4"
+          className="fixed inset-0 aster_scrim flex items-start sm:items-start justify-center pt-0 sm:pt-12 z-[60] p-0 sm:p-4"
           exit={{ opacity: 0 }}
           initial={reduce_motion ? false : { opacity: 0 }}
           transition={{ duration: reduce_motion ? 0 : 0.15 }}
@@ -108,7 +108,7 @@ export function AdvancedSearchModal({
           <motion.div
             ref={dialog_ref}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            className="rounded-none sm:rounded-2xl w-full h-full sm:h-auto sm:max-w-6xl overflow-hidden transition-colors duration-200 flex flex-col bg-modal-bg border border-edge-secondary"
+            className="rounded-none sm:rounded-2xl w-full h-full sm:h-auto sm:max-w-6xl overflow-hidden transition-colors duration-200 flex flex-col bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
             exit={{ scale: 0.96, opacity: 0, y: -10 }}
             initial={
               reduce_motion ? false : { scale: 0.96, opacity: 0, y: -10 }
@@ -117,7 +117,7 @@ export function AdvancedSearchModal({
             transition={{ duration: reduce_motion ? 0 : 0.2, ease: "easeOut" }}
           >
             <ErrorBoundary>
-              <div className="p-4 border-b transition-colors duration-200 flex-shrink-0 border-edge-secondary">
+              <div className="p-4 border-b transition-colors duration-200 flex-shrink-0 border-[var(--aster-floating-divider)]">
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     {state.is_loading || state.is_searching ? (
@@ -175,7 +175,7 @@ export function AdvancedSearchModal({
               </div>
 
               {state.active_filters.length > 0 && (
-                <div className="px-4 py-2 border-b flex items-center gap-2 flex-wrap border-edge-secondary">
+                <div className="px-4 py-2 border-b flex items-center gap-2 flex-wrap border-[var(--aster-floating-divider)]">
                   <span className="text-xs text-txt-muted">
                     {t("mail.active_filters")}
                   </span>
@@ -189,7 +189,7 @@ export function AdvancedSearchModal({
                 </div>
               )}
 
-              <div className="px-3 sm:px-4 py-2 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-2 flex-shrink-0 border-edge-secondary bg-surf-tertiary">
+              <div className="px-3 sm:px-4 py-2 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-2 flex-shrink-0 border-[var(--aster-floating-divider)]">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs font-medium hidden sm:inline text-txt-muted">
                     {t("mail.quick_filters")}
@@ -328,7 +328,7 @@ export function AdvancedSearchModal({
                 )}
 
                 {!state.raw_query && (
-                  <div className="p-4 border-t border-edge-secondary">
+                  <div className="p-4 border-t border-[var(--aster-floating-divider)]">
                     <div className="text-xs font-semibold uppercase tracking-wider mb-3 text-txt-muted">
                       {t("mail.search_operators")}
                     </div>
@@ -384,11 +384,11 @@ export function AdvancedSearchModal({
                 )}
               </div>
 
-              <div className="p-3 border-t flex items-center justify-between text-xs flex-shrink-0 border-edge-secondary bg-surf-tertiary text-txt-muted">
+              <div className="p-3 border-t flex items-center justify-between text-xs flex-shrink-0 border-[var(--aster-floating-divider)] text-txt-muted">
                 <div className="hidden sm:flex items-center gap-4">
                   <div className="flex items-center gap-1.5">
                     <span>{t("mail.navigate")}</span>
-                    <kbd className="px-1.5 py-0.5 border rounded flex items-center justify-center bg-surf-card border-edge-secondary">
+                    <kbd className="px-1.5 py-0.5 rounded-[6px] flex items-center justify-center bg-[var(--aster-field-bg)]">
                       <svg
                         className="w-3 h-3"
                         fill="currentColor"
@@ -397,7 +397,7 @@ export function AdvancedSearchModal({
                         <path d="M7 14l5-5 5 5z" />
                       </svg>
                     </kbd>
-                    <kbd className="px-1.5 py-0.5 border rounded flex items-center justify-center bg-surf-card border-edge-secondary">
+                    <kbd className="px-1.5 py-0.5 rounded-[6px] flex items-center justify-center bg-[var(--aster-field-bg)]">
                       <svg
                         className="w-3 h-3"
                         fill="currentColor"
@@ -409,14 +409,14 @@ export function AdvancedSearchModal({
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span>{t("mail.select")}</span>
-                    <kbd className="px-1.5 py-0.5 border rounded bg-surf-card border-edge-secondary">
+                    <kbd className="px-1.5 py-0.5 rounded-[6px] bg-[var(--aster-field-bg)]">
                       Enter
                     </kbd>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                   <button
-                    className="px-2 py-1 rounded transition-colors hover:bg-white/5 text-txt-muted"
+                    className="px-2 py-1 rounded-[var(--aster-radius-control)] transition-colors hover:bg-[var(--aster-island-hover)] text-txt-muted"
                     onClick={() => {
                       set_raw_query("");
                       clear_results();
@@ -425,12 +425,12 @@ export function AdvancedSearchModal({
                     {t("common.clear")}
                   </button>
                   <button
-                    className="sm:hidden px-3 py-1 rounded transition-colors text-txt-muted bg-surf-card"
+                    className="sm:hidden px-3 py-1 rounded-[var(--aster-radius-control)] transition-colors text-txt-muted bg-[var(--aster-field-bg)]"
                     onClick={handle_close}
                   >
                     {t("common.close")}
                   </button>
-                  <kbd className="hidden sm:inline-block px-1.5 py-0.5 border rounded bg-surf-card border-edge-secondary">
+                  <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded-[6px] bg-[var(--aster-field-bg)]">
                     ESC
                   </kbd>
                 </div>

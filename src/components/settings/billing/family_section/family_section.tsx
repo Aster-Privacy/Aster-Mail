@@ -39,7 +39,7 @@ import {
   UserIcon,
   InboxStackIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Island, IslandSection } from "@aster/ui";
 
 import { family_seat_usage } from "../family_seats";
 import { KidsContent } from "../family_kids_addresses";
@@ -696,11 +696,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
 
   if (left) {
     return (
-      <div className="space-y-3">
-        <h2 className="text-base font-semibold text-txt-primary">
-          {t("settings.fam_org_heading")}
-        </h2>
-        <div className="flex flex-col items-center gap-2 py-10 text-center">
+      <IslandSection padding="lg" title={t("settings.fam_org_heading")}>
+        <div className="flex flex-col items-center gap-2 py-6 text-center">
           <CheckCircleIcon className="w-10 h-10 text-green-500" />
           <p className="text-sm font-medium text-txt-primary">
             {t("settings.fam_org_left_title")}
@@ -709,38 +706,37 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             {t("settings.fam_org_left_desc")}
           </p>
         </div>
-      </div>
+      </IslandSection>
     );
   }
 
   if (!group) {
     return (
-      <div className="space-y-3">
-        <h2 className="text-base font-semibold text-txt-primary">
-          {t("settings.fam_org_heading")}
-        </h2>
+      <IslandSection padding="lg" title={t("settings.fam_org_heading")}>
         {group_load_failed ? (
-          <p className="py-8 text-center text-sm text-txt-muted">
+          <p className="py-4 text-center text-sm text-txt-muted">
             {t("common.something_went_wrong_try_again")}
           </p>
         ) : (
-          <div className="flex justify-center items-center gap-2 py-8">
+          <div className="flex justify-center items-center gap-2 py-4">
             <Spinner size="sm" />
             <span className="text-sm text-txt-muted">
               {t("settings.fam_org_setting_up")}
             </span>
           </div>
         )}
-        <button
-          className="aster_btn aster_btn_secondary aster_btn_sm"
-          onClick={() => {
-            set_group_load_failed(false);
-            void load_group();
-          }}
-        >
-          {t("settings.fam_org_refresh")}
-        </button>
-      </div>
+        <div className="flex justify-center">
+          <button
+            className="aster_btn aster_btn_secondary aster_btn_sm"
+            onClick={() => {
+              set_group_load_failed(false);
+              void load_group();
+            }}
+          >
+            {t("settings.fam_org_refresh")}
+          </button>
+        </div>
+      </IslandSection>
     );
   }
 
@@ -826,20 +822,22 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
     new Date(group.grace_period_end).getTime() <= Date.now();
 
   return (
-    <div className="space-y-4 w-full min-w-0">
+    <div className="flex w-full min-w-0 flex-col gap-4">
       {group.status !== "active" && (
-        <div
-          className="flex items-center gap-3 px-4 py-3 rounded-xl"
-          style={{
-            background:
-              group.status === "grace" && !grace_has_lapsed
-                ? "#f59e0b"
-                : "#ef4444",
-            border: "none",
-          }}
+        <Island
+          className="flex flex-wrap items-center gap-3 px-4 py-3"
+          tone={
+            group.status === "grace" && !grace_has_lapsed ? "warning" : "danger"
+          }
         >
-          <ExclamationTriangleIcon className="w-4 h-4 flex-shrink-0 text-white" />
-          <p className="text-sm font-medium flex-1 min-w-0 text-white">
+          <ExclamationTriangleIcon
+            className={`w-4 h-4 flex-shrink-0 ${
+              group.status === "grace" && !grace_has_lapsed
+                ? "text-amber-500"
+                : "text-aster-danger"
+            }`}
+          />
+          <p className="text-sm font-medium flex-1 min-w-0 text-txt-primary">
             {group.status === "grace"
               ? group.grace_period_end
                 ? t(
@@ -857,7 +855,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               : t("settings.fam_org_cancelled_banner")}
           </p>
           <button
-            className="text-xs font-semibold hover:underline flex-shrink-0 text-white"
+            className="text-xs font-semibold hover:underline flex-shrink-0 text-txt-primary"
             onClick={() =>
               window.dispatchEvent(
                 new CustomEvent("navigate-settings", { detail: "billing" }),
@@ -866,10 +864,10 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           >
             {t("settings.fam_org_manage_billing")}
           </button>
-        </div>
+        </Island>
       )}
       <div>
-        <h2 className="text-base font-semibold text-txt-primary flex items-center gap-2">
+        <h2 className="text-base font-semibold text-txt-primary flex flex-wrap items-center gap-2">
           {t("settings.fam_org_heading")}
           <span className="aster_badge aster_badge_blue">
             {group.plan_name}
@@ -974,7 +972,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                 return null;
 
               return (
-                <div className="rounded-xl border border-edge-secondary bg-surf-secondary p-4 mb-4">
+                <Island padding="md">
                   <div className="flex items-center justify-between mb-2">
                     <p className="text-sm font-semibold text-txt-primary">
                       {t("settings.fam_org_checklist_title")}
@@ -1035,10 +1033,10 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                       </div>
                     ))}
                   </div>
-                </div>
+                </Island>
               );
             })()}
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2">
             <StatRing
               color_class="text-txt-secondary"
               display_value={`${seats_used} / ${group.max_members}`}
@@ -1092,7 +1090,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
             />
           </div>
 
-          <div className="space-y-1.5 py-1">
+          <Island className="space-y-2" padding="md">
             {active_members.slice(0, 4).map((m) => (
               <div key={m.user_id} className="flex items-center gap-2.5">
                 <ProfileAvatar
@@ -1134,11 +1132,11 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                 {t("settings.fam_org_preview_manage")}
               </button>
             )}
-          </div>
+          </Island>
 
           {is_owner && (
             <button
-              className="w-full text-start rounded-xl border border-edge-secondary px-4 py-3 hover:bg-surf-secondary transition-colors group"
+              className="aster_island aster_island_interactive w-full text-start px-4 py-3.5 group"
               onClick={() => set_tab("security")}
             >
               <div className="flex items-center justify-between">
@@ -1200,7 +1198,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
           )}
 
           {is_owner && seats_full && group.plan_name === "Duo" && (
-            <div className="flex items-center gap-3 py-3 px-4 rounded-xl border border-edge-secondary">
+            <Island className="flex flex-wrap items-center gap-3 py-3 px-4">
               <InformationCircleIcon className="w-4 h-4 flex-shrink-0 text-txt-muted" />
               <p className="text-sm text-txt-secondary flex-1">
                 {t("settings.fam_org_seats_full_notice")}
@@ -1212,7 +1210,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
               >
                 {t("settings.fam_org_upgrade")}
               </button>
-            </div>
+            </Island>
           )}
 
           {is_owner && (
@@ -1242,21 +1240,23 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
 
       {tab === "members" && is_owner && (
         <>
-          <div>
-            <div className="mb-3">
-              <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-                <UserGroupIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-                {t("settings.family_members")}
-                <InfoPopover
-                  description={t("settings.fam_org_members_info_desc")}
-                  title={t("settings.fam_org_members_info_title")}
-                />
-                <span className="ms-auto text-xs font-normal text-txt-muted">
-                  {seats_used} / {group.max_members}
-                </span>
-              </h3>
-            </div>
-            <div className="divide-y divide-edge-secondary">
+          <IslandSection
+            icon={<UserGroupIcon className="flex-shrink-0" />}
+            island_class_name="overflow-hidden"
+            title={t("settings.family_members")}
+            title_info={
+              <InfoPopover
+                description={t("settings.fam_org_members_info_desc")}
+                title={t("settings.fam_org_members_info_title")}
+              />
+            }
+            trailing={
+              <span className="text-xs font-normal text-txt-muted">
+                {seats_used} / {group.max_members}
+              </span>
+            }
+          >
+            <div>
               {(() => {
                 const used_alloc = active_members.reduce(
                   (s, m) => s + m.allocated_storage_bytes,
@@ -1323,13 +1323,12 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                 );
               })()}
             </div>
-          </div>
+          </IslandSection>
 
           {!seats_full &&
             (show_invite_form ||
               active_members.filter((m) => m.role !== "owner").length > 0) && (
               <div>
-                <div className="mt-1 h-px bg-edge-secondary mb-3" />
                 {!show_invite_form ? (
                   <button
                     className="aster_btn aster_btn_secondary aster_btn_sm flex items-center gap-1.5"
@@ -1339,8 +1338,8 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                     {t("settings.fam_org_add_member")}
                   </button>
                 ) : (
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
+                  <Island className="space-y-3" padding="md">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-txt-muted mb-1 block">
                           {t("settings.family_invite_email_placeholder")}
@@ -1424,7 +1423,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                         on_verify={set_invite_captcha}
                       />
                     )}
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <button
                         className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5 disabled:opacity-50"
                         disabled={
@@ -1460,23 +1459,21 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                         {t("settings.fam_org_invite_cancel")}
                       </button>
                     </div>
-                  </div>
+                  </Island>
                 )}
               </div>
             )}
 
           {group.pending_invites.length > 0 && (
-            <div>
-              <div className="mb-3">
-                <h3 className="text-xs font-semibold text-txt-muted uppercase tracking-wide">
-                  {t("settings.family_invite_pending")}
-                </h3>
-              </div>
-              <div className="divide-y divide-edge-secondary">
+            <IslandSection
+              island_class_name="overflow-hidden"
+              title={t("settings.family_invite_pending")}
+            >
+              <div>
                 {group.pending_invites.map((inv) => (
                   <div
                     key={inv.id}
-                    className="flex items-center justify-between py-3"
+                    className="flex min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3"
                   >
                     <div className="flex items-start gap-2 flex-1 min-w-0">
                       {inv.link_only ? (
@@ -1550,7 +1547,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                   </div>
                 ))}
               </div>
-            </div>
+            </IslandSection>
           )}
         </>
       )}
@@ -1626,7 +1623,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                     })}
                   </p>
                 </div>
-                <div className="rounded-xl border border-edge-secondary divide-y divide-edge-secondary">
+                <div className="rounded-xl border border-edge-secondary divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
                   {(
                     [
                       {

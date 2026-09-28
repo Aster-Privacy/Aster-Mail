@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { Island } from "@aster/ui";
 import { useState, useEffect } from "react";
 import { GlobeAltIcon } from "@heroicons/react/24/outline";
 
@@ -148,7 +149,7 @@ export function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
         {t("settings.fam_org_domains_subtitle")}
       </p>
       {domains.length === 0 ? (
-        <div className="flex flex-col items-center py-10 gap-3">
+        <Island className="flex flex-col items-center gap-3 py-8" padding="lg">
           <GlobeAltIcon className="w-8 h-8 text-txt-muted" />
           <p className="text-sm font-medium text-txt-primary">
             {t("settings.fam_org_domains_empty_title")}
@@ -162,14 +163,14 @@ export function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
           >
             {t("settings.fam_org_domains_add_domain")}
           </button>
-        </div>
+        </Island>
       ) : (
-        <div className="divide-y divide-edge-secondary">
+        <Island className="overflow-hidden">
           {domains.map((d) => {
             return (
               <div
                 key={d.domain_name}
-                className="py-3 hover:bg-surf-secondary transition-colors rounded-lg px-2 -mx-2"
+                className="px-4 py-3 hover:bg-surf-hover transition-colors"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
@@ -249,7 +250,7 @@ export function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
                   </button>
                 </div>
                 {sharing === d.domain_name && (
-                  <div className="mt-3 ms-10 space-y-2">
+                  <div className="mt-3 space-y-2 sm:ms-10">
                     <div className="flex gap-2">
                       <Select
                         value={share_uid || "_none"}
@@ -326,7 +327,7 @@ export function DomainsContent({ members }: { members: FamilyMemberInfo[] }) {
               </div>
             );
           })}
-        </div>
+        </Island>
       )}
     </div>
   );

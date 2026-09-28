@@ -49,7 +49,7 @@ export function BimiRecordRows({ record }: BimiRecordRowsProps) {
   ];
 
   return (
-    <dl className="divide-y divide-edge-secondary rounded-lg border border-edge-secondary">
+    <dl className="divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))] rounded-lg border border-edge-secondary">
       {rows.map((row) => (
         <div key={row.label} className="flex items-center gap-3 px-3 py-2.5">
           <dt className="w-14 flex-shrink-0 text-xs text-txt-muted">
@@ -60,7 +60,7 @@ export function BimiRecordRows({ record }: BimiRecordRowsProps) {
           </dd>
           <button
             aria-label={t("settings.bimi_copy_field", { field: row.label })}
-            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-md text-txt-muted transition-colors hover:text-txt-primary"
+            className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[var(--aster-radius-control)] text-txt-muted transition-colors hover:text-txt-primary"
             type="button"
             onClick={() => copy(row.value)}
           >

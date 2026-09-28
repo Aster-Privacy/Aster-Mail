@@ -81,7 +81,7 @@ function FormInput({
   return (
     <Input
       autoFocus={autoFocus}
-      className="w-full rounded-lg border border-[var(--border-primary)] bg-transparent px-3 py-2.5 text-[14px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+      className="w-full"
       placeholder={placeholder}
       type={type}
       value={value}
@@ -146,7 +146,7 @@ export function ContactFormView({
           {contact ? t("common.edit") : t("common.add_contact")}
         </span>
         <button
-          className="rounded-[12px] px-4 py-1.5 text-[14px] font-semibold text-white disabled:opacity-40"
+          className="rounded-[var(--aster-radius-control)] px-4 py-1.5 text-[14px] font-semibold text-white disabled:opacity-40"
           disabled={
             form_data.emails.filter((e) => e.trim()).length === 0 || is_saving
           }
@@ -193,7 +193,7 @@ export function ContactFormView({
           {create_tabs.map((tab) => (
             <button
               key={tab.id}
-              className={`relative z-10 flex-1 rounded-[12px] py-1.5 text-[13px] font-medium transition-colors ${
+              className={`relative z-10 flex-1 rounded-[var(--aster-radius-control)] py-1.5 text-[13px] font-medium transition-colors ${
                 create_tab === tab.id
                   ? "text-[var(--text-primary)]"
                   : "text-[var(--text-muted)]"
@@ -339,7 +339,7 @@ export function ContactFormView({
                 label={t("common.notes_section")}
               >
                 <textarea
-                  className="w-full rounded-lg border border-[var(--border-primary)] bg-transparent px-3 py-2.5 text-[14px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
+                  className="aster_input w-full resize-none px-3 py-2.5 text-[14px]"
                   placeholder={t("common.notes")}
                   rows={3}
                   value={form_data.notes ?? ""}

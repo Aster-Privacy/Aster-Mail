@@ -20,36 +20,38 @@
 //
 import type { ComponentType, ReactNode, SVGProps } from "react";
 
+import { Island, type IslandTone } from "@aster/ui";
 import { ExclamationCircleIcon } from "@heroicons/react/24/outline";
 
 type NoticeTone = "warning" | "danger" | "neutral";
 
 const notice_tone_styles: Record<
   NoticeTone,
-  { border: string; background: string; icon: string }
+  { tone: IslandTone; icon: string }
 > = {
   warning: {
-    border: "color-mix(in srgb, var(--color-warning) 40%, transparent)",
-    background: "color-mix(in srgb, var(--color-warning) 8%, transparent)",
+    tone: "warning",
     icon: "var(--color-warning)",
   },
   danger: {
-    border: "color-mix(in srgb, var(--color-danger) 40%, transparent)",
-    background: "color-mix(in srgb, var(--color-danger) 7%, transparent)",
+    tone: "danger",
     icon: "var(--color-danger)",
   },
   neutral: {
-    border: "var(--border-secondary)",
-    background: "transparent",
+    tone: "default",
     icon: "var(--text-muted)",
   },
 };
 
 export function BillingSectionLabel({ children }: { children: ReactNode }) {
   return (
-    <h3 className="mb-2.5 text-sm font-medium text-txt-secondary">
-      {children}
-    </h3>
+    <div className="aster_island_section_header">
+      <div className="aster_island_section_heading">
+        <h3 className="aster_island_section_title">
+          <span>{children}</span>
+        </h3>
+      </div>
+    </div>
   );
 }
 
@@ -61,11 +63,7 @@ export function BillingGroup({
   class_name?: string;
 }) {
   return (
-    <div
-      className={`overflow-hidden rounded-xl border border-edge-secondary divide-y divide-edge-secondary ${class_name}`}
-    >
-      {children}
-    </div>
+    <Island className={`overflow-hidden ${class_name}`}>{children}</Island>
   );
 }
 
@@ -81,12 +79,16 @@ export function BillingRow({
   children?: ReactNode;
 }) {
   return (
-    <div className="px-4 py-3.5 sm:px-5">
-      <div className="flex items-center justify-between gap-4">
-        <div className="min-w-0">
-          <p className="text-sm font-medium text-txt-primary">{title}</p>
+    <div className="px-4 py-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+        <div className="min-w-0 flex-1">
+          <p className="text-[14.5px] font-medium leading-5 text-txt-primary">
+            {title}
+          </p>
           {description && (
-            <div className="mt-0.5 text-xs text-txt-muted">{description}</div>
+            <div className="mt-0.5 text-[12.5px] leading-[17px] text-txt-muted">
+              {description}
+            </div>
           )}
         </div>
         {action && <div className="flex-shrink-0">{action}</div>}
@@ -104,7 +106,11 @@ export function BillingIconBox({
   return (
     <span
       aria-hidden="true"
-      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-edge-secondary text-txt-secondary"
+      className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-txt-secondary"
+      style={{
+        backgroundColor:
+          "color-mix(in srgb, var(--text-primary) 7%, transparent)",
+      }}
     >
       <Icon className="h-[18px] w-[18px]" />
     </span>
@@ -131,11 +137,7 @@ export function BillingNotice({
   const styles = notice_tone_styles[tone];
 
   return (
-    <div
-      className={`rounded-xl border px-4 py-4 sm:px-5 ${class_name}`}
-      role={role}
-      style={{ borderColor: styles.border, backgroundColor: styles.background }}
-    >
+    <Island className={class_name} padding="md" role={role} tone={styles.tone}>
       <div className="flex items-start gap-3">
         <Icon
           aria-hidden="true"
@@ -156,6 +158,6 @@ export function BillingNotice({
           )}
         </div>
       </div>
-    </div>
+    </Island>
   );
 }

@@ -115,7 +115,7 @@ export function ReplyModal({
           <motion.div
             key="reply-backdrop-mobile"
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-40 bg-black/50 sm:hidden"
+            className="fixed inset-0 z-40 aster_scrim sm:hidden"
             exit={{ opacity: 0 }}
             initial={modal.reduce_motion ? false : { opacity: 0 }}
             transition={{ duration: modal.reduce_motion ? 0 : 0.2 }}
@@ -126,7 +126,7 @@ export function ReplyModal({
               <motion.div
                 key="reply-backdrop"
                 animate={{ opacity: 1 }}
-                className="fixed inset-0 z-40 bg-black/55 hidden sm:block"
+                className="fixed inset-0 z-40 aster_scrim hidden sm:block"
                 exit={{ opacity: 0 }}
                 initial={modal.reduce_motion ? false : { opacity: 0 }}
                 transition={{ duration: modal.reduce_motion ? 0 : 0.2 }}
@@ -136,14 +136,14 @@ export function ReplyModal({
           <motion.div
             key="reply-modal"
             animate={{ opacity: 1, y: 0 }}
-            className={`fixed z-50 flex flex-col shadow-2xl sm:border bg-modal-bg border-edge-primary ${
+            className={`fixed z-50 flex flex-col shadow-[var(--aster-floating-shadow)] bg-[var(--aster-dialog-bg,var(--modal-bg))] ${
               compose_shell_mode(modal.is_minimized, modal.is_expanded) ===
               "minimized"
-                ? "sm:w-[320px] sm:h-auto sm:rounded-t-lg"
+                ? "sm:w-[320px] sm:h-auto sm:rounded-t-[var(--aster-radius-floating,16px)]"
                 : compose_shell_mode(modal.is_minimized, modal.is_expanded) ===
                     "expanded"
-                  ? "inset-0 sm:inset-4 sm:w-auto sm:h-auto sm:rounded-lg"
-                  : "inset-0 sm:inset-auto sm:bottom-auto sm:start-auto sm:end-auto sm:h-[600px] sm:w-[700px] sm:max-w-[90vw] sm:max-h-[85vh] sm:rounded-lg"
+                  ? "inset-0 sm:inset-4 sm:w-auto sm:h-auto sm:rounded-[var(--aster-radius-floating,16px)]"
+                  : "inset-0 sm:inset-auto sm:bottom-auto sm:start-auto sm:end-auto sm:h-[600px] sm:w-[700px] sm:max-w-[90vw] sm:max-h-[85vh] sm:rounded-[var(--aster-radius-floating,16px)]"
             }`}
             exit={{ opacity: 0, y: modal.is_mobile ? 100 : 0 }}
             initial={

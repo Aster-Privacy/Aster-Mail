@@ -15,29 +15,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n/types";
+import type { PlanBadgeTier } from "@aster/ui";
+
+import { PlanBadgeView, plan_badge_tier } from "@aster/ui";
 
 import { use_translation } from "@/lib/i18n";
-import { cn } from "@/lib/utils";
 
-export type PlanBadgeTier = "star" | "nova" | "supernova";
+export type { PlanBadgeTier };
+export { plan_badge_tier };
 
 const TIER_LABEL_KEYS: Record<PlanBadgeTier, TranslationKey> = {
   star: "settings.plan_badge_star",
   nova: "settings.plan_badge_nova",
   supernova: "settings.plan_badge_supernova",
 };
-
-export function plan_badge_tier(
-  plan_code: string | null | undefined,
-): PlanBadgeTier | null {
-  const normalized = (plan_code ?? "").trim().toLowerCase();
-
-  if (normalized === "star") return "star";
-  if (normalized === "nova") return "nova";
-  if (normalized === "supernova") return "supernova";
-
-  return null;
-}
 
 interface PlanBadgeProps {
   plan_code: string | null | undefined;
@@ -53,12 +44,12 @@ export function PlanBadge({ plan_code, className }: PlanBadgeProps) {
   const label = t(TIER_LABEL_KEYS[tier]);
 
   return (
-    <span
-      aria-label={t("settings.plan_badge_aria", { plan: label })}
-      className={cn("plan_badge", `plan_badge_tier_${tier}`, className)}
+    <PlanBadgeView
+      aria_label={t("settings.plan_badge_aria", { plan: label })}
+      className={className}
+      label={label}
+      tier={tier}
       title={t("settings.plan_badge_thanks", { plan: label })}
-    >
-      {label}
-    </span>
+    />
   );
 }

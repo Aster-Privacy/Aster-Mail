@@ -119,7 +119,7 @@ export function SenderDetailHeader({
         (unsub_failed &&
         (sub.unsubscribe_link || sub.list_unsubscribe_header) ? (
           <button
-            className="px-3 py-1.5 rounded-[12px] text-xs font-medium transition-all duration-150 flex-shrink-0 hover:brightness-110"
+            className="px-3 py-1.5 rounded-[var(--aster-radius-control)] text-xs font-medium transition-all duration-150 flex-shrink-0 hover:brightness-110"
             style={{
               background:
                 "linear-gradient(to bottom, #fbbf24 0%, #f59e0b 50%, #d97706 100%)",
@@ -131,7 +131,7 @@ export function SenderDetailHeader({
           </button>
         ) : (
           <button
-            className="px-3 py-1.5 rounded-[12px] text-xs font-medium transition-all duration-150 flex-shrink-0 text-white bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d] disabled:opacity-60 disabled:cursor-not-allowed"
+            className="px-3 py-1.5 rounded-[var(--aster-radius-control)] text-xs font-medium transition-all duration-150 flex-shrink-0 text-white bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d] disabled:opacity-60 disabled:cursor-not-allowed"
             disabled={is_unsubscribing}
             onClick={handle_unsubscribe}
           >

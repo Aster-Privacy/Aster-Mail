@@ -230,7 +230,6 @@ export function OfferModal() {
 
         <Button
           className="plan_galaxy_cta w-full"
-          size="xl"
           variant="primary"
           onClick={handle_accept}
         >

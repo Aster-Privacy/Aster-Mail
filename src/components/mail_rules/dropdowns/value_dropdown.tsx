@@ -201,7 +201,7 @@ export function ValueDropdown(props: ValueDropdownProps) {
       <PopoverTrigger asChild>{trigger}</PopoverTrigger>
       <PopoverContent
         align="start"
-        className="z-[200] p-2 bg-[var(--dropdown-bg)] border border-[var(--border-secondary)] rounded-md shadow-md"
+        className="z-[200] p-1.5"
         sideOffset={6}
         onCloseAutoFocus={(e) => e.preventDefault()}
         onFocusOutside={(e) => {
@@ -278,10 +278,10 @@ export function ValueDropdown(props: ValueDropdownProps) {
               kind === "header" ||
               kind === "attachment_name") && (
               <div
-                className="flex items-center justify-between gap-2 pt-1.5 border-t border-neutral-100 dark:border-neutral-800"
+                className="flex items-center justify-between gap-2 pt-1.5 border-t border-[var(--aster-floating-divider,var(--border-secondary))]"
                 onMouseDown={(e) => e.preventDefault()}
               >
-                <span className="text-[11.5px] text-neutral-500">
+                <span className="text-[11.5px] text-txt-muted">
                   {t("mail_rules.match_case")}
                 </span>
                 <Switch
@@ -442,11 +442,11 @@ function UnitDropdown({
     <DropdownMenu open={open} onOpenChange={set_open}>
       <DropdownMenuTrigger asChild>
         <button
-          className="inline-flex items-center justify-between gap-1.5 h-8 min-w-[60px] rounded-[12px] border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-[12.5px] px-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          className="inline-flex items-center justify-between gap-1.5 h-8 min-w-[60px] rounded-[var(--aster-radius-control)] border-0 bg-[var(--aster-field-bg)] text-[12.5px] text-txt-primary px-2.5 hover:bg-[var(--aster-field-hover)] transition-colors"
           type="button"
         >
           <span>{unit_label[unit]}</span>
-          <span className="text-neutral-400">▾</span>
+          <span className="text-txt-muted">▾</span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -517,7 +517,7 @@ function DateDaysInput({
           }
         }}
       />
-      <span className="text-[12.5px] text-neutral-500">
+      <span className="text-[12.5px] text-txt-muted">
         {t("mail_rules.value_unit_days")}
       </span>
     </div>

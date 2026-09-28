@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useRef, useState } from "react";
+import { Input } from "@aster/ui";
 
 import {
   Popover,
@@ -248,16 +249,12 @@ export function ColorSwatchPicker({
       <PopoverTrigger asChild>
         <button
           aria-label={label}
-          className={`${swatch_size} rounded-lg border border-edge-secondary cursor-pointer flex-shrink-0 transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand`}
+          className={`${swatch_size} rounded-[var(--aster-radius-control)] border border-edge-secondary cursor-pointer flex-shrink-0 transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand`}
           style={{ backgroundColor: safe_value }}
           type="button"
         />
       </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className="w-64 border border-edge-primary bg-modal-bg shadow-lg rounded-xl p-4 z-[200]"
-        sideOffset={8}
-      >
+      <PopoverContent align="start" className="w-64 p-4 z-[200]" sideOffset={8}>
         <div
           ref={sv_ref}
           className="relative h-36 w-full rounded-lg cursor-crosshair select-none"
@@ -312,12 +309,12 @@ export function ColorSwatchPicker({
             className="h-8 w-8 flex-shrink-0 rounded-md border border-edge-secondary"
             style={{ backgroundColor: safe_value }}
           />
-          <input
+          <Input
             aria-invalid={hex_error}
-            className={`flex-1 min-w-0 rounded-md border bg-transparent px-2 py-1.5 text-sm text-txt-primary font-mono focus:outline-none focus-visible:ring-2 focus-visible:ring-brand ${
-              hex_error ? "border-danger" : "border-edge-secondary"
-            }`}
+            className="w-auto flex-1 min-w-0 font-mono"
+            size="sm"
             spellCheck={false}
+            status={hex_error ? "error" : "default"}
             type="text"
             value={hex_draft}
             onBlur={commit_hex_draft}

@@ -837,6 +837,12 @@ export const ko = {
       "이 사용자 지정 필드를 삭제하지 못했습니다. 다시 시도하세요.",
     failed_to_save_value:
       "변경 사항을 저장하지 못했습니다. 다시 시도하세요. 이전 값이 그대로 있습니다.",
+    contacts_import_partial:
+      "연락처 {{total}}개 중 {{imported}}개만 가져왔습니다. 나머지를 추가하려면 파일을 다시 가져오세요.",
+    failed_to_import_contacts: "다시 시도하세요.",
+    failed_to_load_duplicates: "다시 시도하세요.",
+    dismiss_failed: "다시 시도하세요.",
+    click_scan_duplicates: '"스캔"을 클릭하여 중복 항목을 확인하세요',
     never_synced: "동기화된 적 없음",
     last_sync_successful: "마지막 동기화 성공",
     last_sync_failed:
@@ -845,6 +851,11 @@ export const ko = {
       "전달 메일을 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     failed_to_schedule:
       "예약을 저장하지 못했습니다. 다시 시도하세요. 임시 보관함의 메일은 안전합니다.",
+    fill_required_fields: "모든 필수 필드를 입력해 주세요",
+    failed_to_load_sources: "다시 시도하세요.",
+    failed_to_add_source: "다시 시도하세요.",
+    failed_to_delete_source: "다시 시도하세요.",
+    failed_to_toggle_source: "다시 시도하세요.",
     sync_failed:
       "동기화가 완료되지 않았습니다. 자동으로 다시 시도합니다. 양쪽의 메일은 안전합니다.",
     clearing: "지우는 중...",
@@ -905,6 +916,8 @@ export const ko = {
     add_contacts_hint: "시작하려면 연락처를 추가하세요",
     add_contact: "연락처 추가",
     file_too_large: "파일은 {{size}}보다 작아야 합니다.",
+    failed_to_upload_attachment: "다시 시도하세요.",
+    upload_failed: "다시 시도하세요.",
     delete_failed: "다시 시도하세요.",
     download_failed: "다운로드가 완료되지 않았습니다. 다시 시도하세요.",
     attachment_locked:
@@ -917,6 +930,9 @@ export const ko = {
       "예약 메일은 아직 만료를 사용할 수 없습니다. 지금 보내거나 만료를 지우고 예약하세요.",
     failed_to_merge_contacts:
       "병합이 완료되지 않았습니다. 다시 시도하세요. 원래 연락처는 변경되지 않았습니다.",
+    merge_failed: "다시 시도하세요.",
+    failed_to_load_history: "다시 시도하세요.",
+    failed_to_load_more: "다시 시도하세요.",
     enter_valid_emails: "유효한 이메일 주소를 입력하세요",
     enter_contact_details: "연락처 세부 정보 입력",
     select_valid_image: "JPEG, PNG, WebP 또는 GIF 이미지를 선택하세요",
@@ -980,6 +996,10 @@ export const ko = {
       "이 기기에서 이 이메일을 열 수 없었습니다. 새로고침하면 보통 해결되며, 계속 실패하면 로그아웃 후 다시 로그인하는 것이 대안입니다.",
     failed_to_disable_2fa:
       "2단계 인증이 계속 켜져 있습니다. 다시 시도하세요. 계정은 여전히 보호됩니다.",
+    failed_to_unsubscribe:
+      "구독 해지가 완료되지 않았습니다. 이메일의 링크를 누르면 발신자 사이트에서 직접 해지할 수 있습니다.",
+    failed_to_parse_settings:
+      "이 설정 파일을 읽을 수 없었습니다. 다른 파일이면 됩니다. 현재 설정은 그대로입니다.",
     removed_from_contacts: "연락처에서 제거됨",
     added_to_contacts: "연락처에 추가됨",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -1002,6 +1022,7 @@ export const ko = {
     offline_action_queued:
       "지금은 오프라인 상태입니다. 이 작업은 대기 중이며 다시 연결되는 즉시 완료됩니다.",
     failed_to_update: "다시 시도하세요.",
+    failed_to_load_search_results: "다시 시도하세요.",
     failed_to_fetch_tags: "다시 시도하세요.",
     failed_to_fetch_folders: "다시 시도하세요.",
     failed_to_unlock_folder:
@@ -1023,6 +1044,13 @@ export const ko = {
       "임시 보관함을 불러오지 못했습니다. 다시 시도하세요. 저장된 임시 메일은 안전합니다.",
     failed_to_load_scheduled_emails:
       "예약된 이메일을 불러오지 못했습니다. 다시 시도하세요. 예정대로 전송됩니다.",
+    failed_to_load_subscriptions: "다시 시도하세요.",
+    failed_to_load_more_subscriptions: "다시 시도하세요.",
+    failed_to_scan_subscriptions: "다시 시도하세요.",
+    recently_archived: "최근 보관됨",
+    older_items: "이전 항목",
+    long_term_archive: "장기 보관",
+    failed_to_fetch_archive_stats: "다시 시도하세요.",
     value_too_long: "이 값은 길이 제한을 넘습니다. 더 짧은 형태면 됩니다.",
     please_enter_valid_domain:
       "이 주소는 유효한 도메인이 아닙니다. example.com 같은 형식이면 됩니다.",
@@ -1092,6 +1120,10 @@ export const ko = {
       "연결한 외부 계정은 이 계정으로 발송하기 전에 다시 연결해야 합니다. 설정의 연결된 계정에서 찾을 수 있습니다.",
     failed_to_send_via_external:
       "연결된 외부 계정으로 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
+    tor_label: "Tor",
+    tor_snowflake_label: "Tor (Snowflake)",
+    cdn_relay_label: "CDN 릴레이",
+    toggle_selection: "선택 전환",
     offline_change_failed:
       "오프라인 상태에서 변경한 내용을 저장하지 못했습니다.",
     offline_send_failed: "오프라인 상태에서 작성한 이메일을 보내지 못했습니다.",
@@ -1152,6 +1184,7 @@ export const ko = {
     all_accounts: "모든 계정",
     failed_to_rotate_keys:
       "키 갱신이 완료되지 않았습니다. 다시 시도하세요. 기존 키는 계속 작동하며 데이터는 안전합니다.",
+    all_external_accounts: "모든 외부 계정",
     read: "읽음",
     or_conjunction: "또는",
     press_label: "누르기",
@@ -1547,6 +1580,10 @@ export const ko = {
     draft_category: "임시 저장",
     scheduled_category: "예약됨",
     health_check_failed: "진단이 완료되지 않았습니다. 다시 시도하세요.",
+    request_timed_out:
+      "요청이 완료되기까지 시간이 너무 오래 걸렸습니다. 연결을 확인하고 다시 시도하면 보통 해결됩니다.",
+    failed_to_get_key_status: "다시 시도하세요.",
+    unknown_rotation_error: "다시 시도하세요.",
     print_from: "보낸 사람:",
     print_to: "받는 사람:",
     print_cc: "참조:",
@@ -1627,6 +1664,18 @@ export const ko = {
       "Aster는 비밀번호로 메일을 암호화하므로 누구도 대신 재설정할 수 없습니다. 접근을 유지하려면 복구 이메일을 추가하세요.",
     recovery_reminder_action: "복구 이메일 추가",
     recovery_reminder_later: "나중에",
+    recovery_codes_reminder_title: "복구 코드 저장",
+    recovery_codes_reminder_body:
+      "Aster는 비밀번호로 메일을 암호화하므로 누구도 대신 재설정할 수 없습니다. 암호화된 메일로 돌아가는 유일한 방법은 복구 코드입니다.",
+    recovery_codes_reminder_action: "복구 코드 받기",
+    recovery_codes_low_reminder_title: "복구 코드가 얼마 남지 않았습니다",
+    recovery_codes_low_reminder_body:
+      "각 코드는 한 번만 사용할 수 있으며 {{count}}개가 남았습니다. 계정이 잠기지 않도록 새 코드를 받으세요.",
+    recovery_codes_low_reminder_action: "새 코드 받기",
+    recovery_phrase_migrate_title: "복구 코드로 전환",
+    recovery_phrase_migrate_body:
+      "복구 문구는 곧 사라집니다. 계정을 계속 복구할 수 있도록 지금 복구 코드를 받으세요.",
+    recovery_phrase_migrate_action: "코드 받기",
     plan_prompt_title: "무료 요금제를 사용 중입니다",
     plan_prompt_body:
       "유료 요금제에서는 저장 공간이 늘어나고 맞춤 도메인과 무제한 별칭을 사용할 수 있습니다.",
@@ -1656,6 +1705,7 @@ export const ko = {
     recovery_email_hidden: "이 계정에 저장됨",
     failed_save_profile_color:
       "색상 선택을 저장하지 못했습니다. 다시 시도하세요.",
+    failed_remove_recovery_email: "다시 시도하세요.",
     image_load_failed:
       "이 이미지가 불러와지지 않았습니다. 새로고침하면 보통 해결됩니다.",
     image_processing_failed:
@@ -3485,11 +3535,23 @@ export const ko = {
       "복구 코드가 없으면, 비밀번호를 잊는 순간 암호화된 메일이 영구적으로 잠깁니다.",
     recovery_codes_row: "복구 코드",
     recovery_codes_row_desc:
-      "계정과 모든 암호화된 데이터를 복원하는 6개의 일회용 코드입니다.",
-    recovery_codes_generate: "코드 생성",
-    recovery_codes_regenerate: "코드 재생성",
+      "계정과 암호화된 모든 데이터를 복구하는 일회용 코드입니다.",
+    recovery_codes_generate: "코드 받기",
+    recovery_codes_regenerate: "새 코드 받기",
     recovery_codes_regenerate_warning:
-      "재생성하면 새 코드가 만들어지고 이전 코드는 영구적으로 무효화됩니다.",
+      "새 코드를 받으면 현재 코드는 바로 사용할 수 없습니다.",
+    recovery_codes_show: "코드 보기",
+    recovery_codes_get_new_title: "새 복구 코드를 받으시겠습니까?",
+    recovery_codes_confirm_title: "본인 확인",
+    recovery_codes_confirm_desc: "복구 코드를 보려면 비밀번호를 입력하세요.",
+    recovery_codes_title: "복구 코드",
+    recovery_codes_status:
+      "{{date}}에 생성됨. {{total}}개 중 {{remaining}}개 남음.",
+    recovery_codes_low:
+      "복구 코드가 얼마 남지 않았습니다. 계정이 잠기지 않도록 새 코드를 받으세요.",
+    recovery_codes_used: "사용됨",
+    recovery_codes_unavailable:
+      "이 기기에는 코드가 저장되어 있지 않습니다. 보려면 새 코드를 받으세요.",
     recovery_method_active: "활성",
     recovery_method_not_set: "설정 안 됨",
     recovery_codes_saved_confirm:
@@ -4153,6 +4215,60 @@ export const ko = {
     billing_cancel_notice_title: "요금제가 해지될 예정입니다",
     billing_cancel_notice_body:
       "요금제가 {{date}}에 종료됩니다. 이후 계정은 무료 요금제로 전환됩니다.",
+    billing_status_active: "활성",
+    billing_status_renews: "{{date}}에 갱신",
+    billing_status_ending: "{{date}}에 종료",
+    billing_status_attention: "결제 확인이 필요합니다",
+    billing_member_since: "{{date}}부터 회원",
+    billing_keep_title: "플랜 유지하기",
+    billing_payment_method: "결제 수단",
+    billing_switch_yearly_subtitle: "월 {{monthly}}, 연 {{yearly}} 청구",
+    billing_save_amount: "{{amount}} 절약",
+    billing_term_heading: "결제 주기",
+    billing_pay_yearly: "연간 결제",
+    billing_pay_monthly: "월간 결제",
+    billing_billed_yearly_total: "연 {{amount}} 청구",
+    billing_billed_monthly: "매월 청구",
+    billing_save_percent: "{{percent}}% 절약",
+    billing_select_plan_hint: "계속하려면 플랜을 선택하세요",
+    billing_addon_active: "활성",
+    billing_addon_ending: "종료 예정",
+    billing_addon_ends: "{{date}}에 종료",
+    billing_add_storage_summary: "{{size}} 저장 공간 추가",
+    billing_storage_status_ok: "모두 정상",
+    billing_storage_status_near: "거의 가득 참",
+    billing_storage_status_full: "조치 필요",
+    billing_upgrade_note:
+      "언제든 해지할 수 있습니다. 메일은 계속 여러분의 것입니다.",
+    billing_thanks_title: "Aster를 후원해 주셔서 감사합니다",
+    billing_thanks_body:
+      "여러분의 후원은 저희에게 전부입니다. 덕분에 작은 팀이 매일 정성껏 Aster를 만들어 갈 수 있습니다.",
+    billing_thanks_free_title: "Aster를 사용해 주셔서 감사합니다",
+    billing_thanks_free_body:
+      "작은 팀이 정성껏 Aster를 만들고 있으며, 메일을 맡겨 주시는 한 분 한 분이 저희의 원동력입니다. 더 많은 저장 공간, 별칭, 사용자 지정 도메인이 필요하면 언제든 업그레이드하세요.",
+    billing_addons_subtitle: "공간 추가, 플랜은 그대로",
+    billing_support_subtitle: "팀에 메시지 보내기",
+    billing_upsell_title: "{{name}}로 더 많은 기능 이용",
+    billing_upsell_price: "월 {{price}}부터, 연간 청구",
+    billing_advantages_title_paid: "내 요금제에 포함된 항목",
+    billing_advantages_title_free: "{{name}}에서 제공하는 항목",
+    billing_see_all_features: "{{name}}의 모든 기능 보기",
+    billing_compare_all_plans_subtitle: "개인 및 가족 요금제, 월간 또는 연간",
+    billing_usage_upgrade_hint: "업그레이드하여 여유 공간 확보",
+    usage_in_use: "{{current}}개 사용 중",
+    billing_credits_subtitle: "잔액 및 충전",
+    billing_academic_subtitle: "학교 이메일로 할인 받기",
+    billing_history_empty:
+      "아직 청구서가 없습니다. 첫 결제 후 여기에 표시됩니다.",
+    billing_invoice_count: "청구서 {{count}}건",
+    billing_invoice_count_one: "청구서 {{count}}건",
+    billing_invoice_count_other: "청구서 {{count}}건",
+    billing_addons_active_count: "{{count}}개 사용 중",
+    billing_addons_active_count_one: "{{count}}개 사용 중",
+    billing_addons_active_count_other: "{{count}}개 사용 중",
+    academic_status_none: "신청 안 함",
+    academic_status_pending: "확인 대기 중",
+    academic_status_verified: "확인됨",
     billing_renewals_heading: "갱신",
     billing_amount: "금액",
     billing_desc_payment_failed: "결제에 실패했습니다",
@@ -4957,6 +5073,10 @@ export const ko = {
     created_date: "{{date}} 생성됨",
     export_public_key_label: "공개 키 내보내기",
     export_private_key_label: "개인 키 내보내기",
+    export_private_key_warning:
+      "파일을 안전한 곳에 보관하고 절대 공유하지 마세요. 파일을 가진 사람은 누구나 메일을 읽을 수 있습니다.",
+    export_two_factor_hint:
+      "계정에 2단계 인증이 설정되어 있습니다. 계속하려면 인증 앱의 현재 코드를 입력하세요.",
     verify_identity_export: "개인 키를 내보내려면 본인 확인이 필요합니다",
     two_fa_code_label: "2FA 코드",
     codes_remaining_count: "{{total}}개 중 {{remaining}}개 남음",
@@ -5477,7 +5597,10 @@ export const ko = {
     signature_content_placeholder: "감사합니다,\n이름\nyour@email.com",
     signature_name_required: "이 서명의 이름을 입력하세요.",
     signature_content_required: "이 서명의 내용을 입력하세요.",
-    signature_image_too_large: "이미지는 2 MB 미만이어야 합니다.",
+    signature_image_too_large:
+      "이 이미지는 서명에 추가하기에 너무 큽니다. 더 작은 이미지를 선택하세요.",
+    signature_too_large:
+      "서명이 너무 커서 저장할 수 없습니다. 이미지를 제거하거나 텍스트를 줄이세요.",
     signature_image_invalid:
       "PNG, JPEG, GIF, WebP 이미지만 추가할 수 있습니다.",
     signature_image_failed:
@@ -5529,6 +5652,9 @@ export const ko = {
     spam_filtering_description: "스팸 감지 및 관리 방법을 설정합니다.",
     spam_sensitivity: "스팸 감도",
     auto_delete_spam_after: "일정 기간 후 스팸 자동 삭제",
+    auto_delete_trash_after: "일정 기간 후 휴지통 자동 삭제",
+    auto_delete_trash_description:
+      "이 기간보다 오래된 휴지통의 이메일은 영구적으로 삭제됩니다.",
     spam_delete_hint: "이 기간보다 오래된 스팸 이메일은 영구적으로 삭제됩니다",
     save_changes: "변경 사항 저장",
     spam_low: "낮음",
@@ -5543,6 +5669,9 @@ export const ko = {
     retention_30_days: "30일",
     retention_60_days: "60일",
     retention_90_days: "90일",
+    retention_days_count: "{{ days }}일",
+    retention_180_days: "180일",
+    retention_365_days: "365일",
     retention_never: "삭제 안 함 (영구 보관)",
     import_emails_title: "이메일 가져오기",
     import_add_another: "다른 계정 추가",
@@ -5709,6 +5838,12 @@ export const ko = {
       "이미 이 플랜을 사용 중입니다. 프로모션 코드는 다른 플랜으로 변경할 때 적용됩니다.",
     promo_error_not_upgrade:
       "프로모션 코드는 상위 플랜으로 업그레이드할 때 적용됩니다.",
+    promo_error_card_only:
+      "이 프로모션 코드는 카드 결제에서만 사용할 수 있습니다.",
+    promo_error_with_credits:
+      "같은 결제에 프로모션 코드와 계정 크레딧을 함께 사용할 수 없습니다.",
+    promo_error_not_for_addon:
+      "프로모션 코드는 부가 기능에 사용할 수 없습니다.",
     promo_error_generic:
       "프로모션 코드를 확인할 수 없습니다. 잠시 후 다시 시도하세요.",
     plan_change_discount_amount: "{{amount}} 할인",
@@ -6512,6 +6647,7 @@ export const ko = {
     domain_purchase_progress_note:
       "도메인을 등록하고 메일함을 설정하는 동안 잠시 기다려 주세요. 보통 1분 정도 걸립니다.",
     domain_purchase_complete_cta: "구매 완료하기",
+    domain_purchase_open_checkout: "결제 페이지 다시 열기",
     domain_purchase_cancel_payment_title: "이 결제를 취소할까요?",
     domain_purchase_cancel_payment_message:
       "맞춤 도메인에 대한 이 결제를 정말 취소하시겠어요?",
@@ -7525,6 +7661,7 @@ export const ko = {
     special_offers_save_failed:
       "특별 혜택 설정을 저장하지 못했습니다. 다시 시도하세요.",
     criterion_passkey: "패스키 등록됨",
+    criterion_recovery_codes: "복구 코드 저장됨",
     criterion_read_receipts_off: "읽음 확인 꺼짐",
     send_read_receipts_label: "읽음 확인 보내기",
     send_read_receipts_description:
@@ -7957,6 +8094,8 @@ export const ko = {
     reply_all: "전체 답장",
     react: "반응하기",
     you_reacted_with: "{{emoji}} 반응을 남겼습니다",
+    you_reacted_with_remove:
+      "{{emoji}}(으)로 반응했습니다. 삭제하려면 클릭하세요.",
     reacted_with: "{{name}}님이 {{emoji}} 반응을 남겼습니다",
     forward: "전달",
     to: "받는 사람",
@@ -8666,6 +8805,15 @@ export const ko = {
     translation_unavailable_info_body:
       "기기 내 번역기가 이 메일을 끝까지 처리하지 못했습니다. 보통은 언어 팩을 아직 내려받는 중이거나, 메일에 여러 언어가 섞여 있거나, 대부분 이름과 숫자, 링크로 이뤄진 경우입니다. 서버로 전송된 내용은 없습니다.",
     more_folders_count_other: "폴더 {{count}}개 더",
+    more_messages_count: "메시지 {{count}}개 더",
+    more_messages_count_one: "메시지 {{count}}개 더",
+    more_messages_count_other: "메시지 {{count}}개 더",
+    reply_to_name: "{{name}}님에게 답장",
+    reply_all_to_name: "{{name}}님 및 전체에게 답장",
+    forward_message_heading: "메시지 전달",
+    trackers_found_other: "추적기 {{count}}개를 발견하여 차단했습니다",
+    spy_pixels_blocked_count_other: "스파이 픽셀 {{count}}개를 차단했습니다",
+    links_cleaned_count_other: "링크 {{count}}개를 정리했습니다",
     param_removed_from_n_links_other:
       "링크 {{count}}개에서 {{param}}을(를) 제거했습니다",
     bulk_archive_title: "메일 {{count}}개를 보관할까요?",
@@ -8794,6 +8942,10 @@ export const ko = {
     create_a_password: "비밀번호 만들기",
     recommend_strong_password:
       "8자 이상을 사용하세요. 다양한 문자를 포함한 긴 비밀번호가 더 안전합니다.",
+    password_recovery_key: "비밀번호 복구 키",
+    recovery_key_only_way:
+      "비밀번호를 잊어버린 경우 이 키가 계정을 복구할 수 있는 유일한 방법입니다. 안전한 곳에 보관하세요.",
+    download_key_lower: "키 다운로드",
     downloading: "다운로드 중...",
     copy_key: "키 복사",
     copy_codes: "코드 복사",
@@ -8886,9 +9038,6 @@ export const ko = {
     recovery_phrase_confirm_error:
       "일치하지 않는 단어가 있습니다. 저장한 문구를 확인하고 다시 시도하세요.",
     recovery_phrase_skip_check: "저장했습니다. 이 확인 건너뛰기",
-    forgot_method_title: "계정을 어떻게 복구하시겠습니까?",
-    forgot_method_desc:
-      "선택하는 방법에 따라 암호화된 데이터의 복원 가능 여부가 결정됩니다.",
     forgot_method_full_restore: "전체 복원",
     forgot_method_access_only: "접근만 가능",
     forgot_method_phrase_title: "복구 문구 사용",
@@ -8900,10 +9049,6 @@ export const ko = {
     forgot_method_email_title: "재설정 링크 이메일로 받기",
     forgot_method_email_desc:
       "계정에 다시 접근할 수 있습니다. 재설정 이전의 암호화된 메일은 나중에 문구나 코드를 찾지 못하는 한 다시 읽을 수 없습니다.",
-    phrase_entry_title: "복구 문구 입력",
-    phrase_entry_desc: "12개 단어를 순서대로 입력하거나 붙여넣으세요.",
-    phrase_entry_invalid:
-      "유효한 복구 문구가 아닙니다. 단어와 순서를 확인하세요.",
     phrase_recovery_failed:
       "이 문구는 이 계정과 일치하지 않습니다. 단어와 이메일 주소를 확인하세요.",
     reset_consent_title: "이 재설정으로는 이전 데이터를 복호화할 수 없습니다",
@@ -8954,7 +9099,7 @@ export const ko = {
     creating_new_recovery_backup: "새 복구 백업 생성 중...",
     saving_new_credentials: "새 자격 증명 저장 중...",
     recover_your_account: "계정 복구",
-    enter_email_associated: "계정을 복구하려면 사용자 이름을 입력하세요",
+    enter_email_associated: "복구하려는 계정의 주소를 입력하세요.",
     back_to_sign_in: "로그인으로 돌아가기",
     email_me_reset_link: "재설정 링크를 이메일로 보내기",
     reset_link_sent_title: "복구 이메일을 확인하세요",
@@ -8970,8 +9115,7 @@ export const ko = {
     resetting_password: "비밀번호 재설정 중...",
     enter_recovery_code: "복구 코드 입력",
     enter_recovery_code_desc:
-      "계정을 만들 때 저장한 복구 코드 중 하나를 입력하세요",
-    verify_code: "코드 확인",
+      "계정을 만들 때 저장한 복구 코드 중 하나를 입력하세요.",
     create_new_password: "새 비밀번호 만들기",
     choose_strong_password: "계정을 위한 강력한 비밀번호를 선택하세요",
     recovering_your_account: "계정 복구 중",
@@ -8980,9 +9124,51 @@ export const ko = {
     old_codes_invalidated:
       "기존 복구 코드는 더 이상 작동하지 않습니다. 이 창을 닫기 전에 새 코드를 안전한 곳에 저장해두면 계속 안전하게 사용할 수 있습니다.",
     n_recovery_codes: "{{count}}개의 복구 코드",
+    recovery_code_already_used:
+      "이 코드는 이미 사용되었습니다. 각 코드는 한 번만 사용할 수 있으므로 저장한 목록에서 다른 코드를 입력하세요.",
+    try_another_way: "다른 방법 사용",
+    recovery_email_label: "Aster Mail 주소",
+    recovery_domain_hint: "계정에 해당하는 도메인을 선택하세요.",
+    recovery_code_label: "복구 코드",
+    recovery_code_hint:
+      "각 코드는 한 번만 사용할 수 있습니다. 코드 형식은 ASTER-XXXX-XXXX-XXXX-XXXX입니다.",
+    change_account: "다른 주소 사용",
+    change_account_desc: "다른 Aster Mail 계정을 복구합니다.",
+    support_step_title: "고객 지원에 문의",
+    support_step_desc:
+      "Aster Mail은 암호화된 데이터를 읽을 수 없으므로 복구 코드나 복구 이메일 없이는 누구도 잠금을 해제할 수 없습니다. 고객 지원이 계정을 확인하고 다음 단계를 안내합니다.",
+    support_email_action: "고객 지원에 이메일 보내기",
+    support_help_center: "도움말 센터 열기",
+    other_ways_title: "다른 방법 사용",
+    other_ways_desc: "계정에 다시 로그인할 방법을 선택하세요.",
+    other_way_code_title: "복구 코드 사용",
+    other_way_code_desc: "저장한 코드 중 하나를 입력하세요.",
+    other_way_email_title: "복구 이메일로 재설정",
+    other_way_email_desc:
+      "Aster Mail이 복구 이메일로 링크를 보냅니다. 재설정 전에 받은 메일에는 접근할 수 없습니다.",
+    other_way_none_title: "해당하는 항목이 없음",
+    other_way_none_desc: "고객 지원에 문의하면 다음 단계를 안내해 드립니다.",
+    reset_account_title: "계정을 재설정할까요?",
+    reset_account_desc:
+      "재설정 전의 암호화된 메일, 연락처, 파일은 이전 비밀번호로 복구할 때까지 잠긴 상태로 유지됩니다. 새로운 빈 암호화 키가 발급됩니다.",
+    send_reset_link: "재설정 링크 보내기",
+    print_codes: "인쇄",
+    codes_copied: "코드를 복사했습니다.",
+    i_saved_these_codes: "이 코드를 저장했습니다",
+    review_security_title: "보안 검토",
+    review_security_desc: "비밀번호가 변경되었고 계정이 복구되었습니다.",
+    review_devices_signed_out: "다른 기기에서 로그아웃되었습니다.",
+    review_two_step_off: "2단계 인증이 꺼져 있습니다.",
+    review_turn_on: "사용 설정",
+    review_recovery_email_kept: "복구 이메일이 그대로 설정되어 있습니다.",
+    review_no_recovery_email: "복구 이메일이 없습니다.",
+    review_add: "추가",
+    review_codes_left: "복구 코드가 {{count}}개 남았습니다.",
+    review_codes_left_other: "복구 코드가 {{count}}개 남았습니다.",
     import_mail_step_title: "메일을 함께 가져오세요",
     import_mail_step_desc:
       "다른 계정의 메시지를 Aster로 옮깁니다. 모든 내용은 저장 전에 기기에서 암호화됩니다.",
+    import_mail_action: "메일 가져오기",
     import_mail_skip: "빈 받은편지함으로 시작",
     import_mail_privacy_note: "나중에 설정에서 가져올 수도 있습니다.",
     password_reset_successful: "비밀번호 재설정 성공",

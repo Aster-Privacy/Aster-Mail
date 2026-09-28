@@ -399,6 +399,7 @@ export function MobileExpirationSheet({
   has_expires_at,
   has_external_recipients,
   expiry_password,
+  password_locked = false,
   t,
 }: {
   is_open: boolean;
@@ -409,6 +410,7 @@ export function MobileExpirationSheet({
   has_expires_at: boolean;
   has_external_recipients: boolean;
   expiry_password: string | null;
+  password_locked?: boolean;
   t: (key: TranslationKey) => string;
 }) {
   const [show_custom, set_show_custom] = useState(false);
@@ -517,7 +519,7 @@ export function MobileExpirationSheet({
                 {t("mail.pick_date_time")}
               </p>
             </button>
-            {has_external_recipients && (
+            {has_external_recipients && !password_locked && (
               <button
                 className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start active:bg-[var(--bg-tertiary)]"
                 type="button"

@@ -31,6 +31,7 @@ export {
   find_unlockable_private_key,
   generate_identity_keypair,
   generate_recovery_codes,
+  RECOVERY_CODE_SET_SIZE,
   generate_signed_prekey,
   hash_email,
   hash_recovery_email,

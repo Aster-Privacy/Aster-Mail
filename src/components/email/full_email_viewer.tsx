@@ -31,6 +31,7 @@ import {
   CONTENT_READY_FALLBACK_MS,
 } from "@/components/email/sandboxed_email_renderer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmailOpenSkeleton } from "@/components/email/viewer_shared/email_open_skeleton";
 import { use_i18n } from "@/lib/i18n/context";
 import { type DraftWithContent } from "@/services/api/multi_drafts";
 import { is_system_email } from "@/lib/utils";
@@ -430,7 +431,7 @@ export function FullEmailViewer({
       <div className="flex flex-col h-full bg-surf-primary">
         <div className="flex items-center gap-3 px-4 sm:px-6 lg:px-8 py-3 border-b border-edge-primary flex-shrink-0">
           <button
-            className="flex items-center gap-2 px-3 py-1.5 -ms-3 rounded-[12px] text-sm font-medium transition-all hover:bg-surf-hover text-txt-secondary"
+            className="flex items-center gap-2 px-3 py-1.5 -ms-3 rounded-[var(--aster-radius-control)] text-sm font-medium transition-all hover:bg-surf-hover text-txt-secondary"
             onClick={on_back}
           >
             <ArrowLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
@@ -458,7 +459,7 @@ export function FullEmailViewer({
     <div className="flex flex-col h-full bg-surf-primary">
       <div className="flex items-center gap-1 px-2 sm:px-3 py-2 border-b border-edge-primary flex-shrink-0">
         <button
-          className="flex items-center gap-1.5 px-2 py-1.5 me-1 rounded-[12px] text-sm font-medium transition-all hover:bg-surf-hover text-txt-secondary"
+          className="flex items-center gap-1.5 px-2 py-1.5 me-1 rounded-[var(--aster-radius-control)] text-sm font-medium transition-all hover:bg-surf-hover text-txt-secondary"
           onClick={on_back}
         >
           <ArrowLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
@@ -511,42 +512,23 @@ export function FullEmailViewer({
           </>
         ) : (
           <div className="flex items-center gap-1 flex-shrink-0">
-            <Skeleton className="w-8 h-8 rounded-md" />
-            <Skeleton className="w-8 h-8 rounded-md" />
-            <Skeleton className="w-8 h-8 rounded-md" />
+            <Skeleton className="w-8 h-8 rounded-full" />
+            <Skeleton className="w-8 h-8 rounded-full" />
+            <Skeleton className="w-8 h-8 rounded-full" />
           </div>
         )}
       </div>
 
       <div className="relative flex-1 min-h-0">
-        {show_content_skeleton && (
-          <div className="absolute inset-0 z-10 overflow-hidden bg-surf-primary px-2 py-3 sm:px-3 sm:py-4">
-            <Skeleton className="h-7 mb-6 w-full max-w-[66%]" />
-            <div className="flex items-start gap-3 sm:gap-4 mb-6 min-w-0">
-              <Skeleton className="w-10 h-10 rounded-full flex-shrink-0" />
-              <div className="flex-1 space-y-2 min-w-0">
-                <Skeleton className="h-4 w-full max-w-[120px]" />
-                <Skeleton className="h-3 w-full max-w-[90px]" />
-              </div>
-              <Skeleton className="h-3 w-24 flex-shrink-0 hidden sm:block" />
-            </div>
-            <div className="space-y-3 pt-4">
-              <Skeleton className="w-full h-4" />
-              <Skeleton className="w-full h-4" />
-              <Skeleton className="h-4 w-full max-w-[75%]" />
-              <Skeleton className="w-full h-4" />
-              <Skeleton className="h-4 w-full max-w-[50%]" />
-            </div>
-          </div>
-        )}
+        {show_content_skeleton && <EmailOpenSkeleton />}
         <div
           className="h-full overflow-y-auto"
           style={{ scrollbarGutter: "stable" }}
         >
           {email && (
-            <div className="py-4 sm:py-5">
-              <div className="px-4 sm:px-6 flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-4">
-                <h1 className="text-xl sm:text-2xl font-semibold text-txt-primary break-words">
+            <div className="w-full py-4 sm:py-5">
+              <div className="px-4 sm:px-5 flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-3">
+                <h1 className="text-[22px] sm:text-2xl font-bold leading-[1.3] text-txt-primary break-words">
                   <span
                     className="inline-flex items-center gap-1 me-2"
                     style={{ verticalAlign: "-0.15em" }}

@@ -25,7 +25,14 @@ import {
   KeyIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Badge } from "@aster/ui";
+import {
+  Badge,
+  Button,
+  Input,
+  Island,
+  IslandRow,
+  IslandSection,
+} from "@aster/ui";
 
 import {
   RecommendationBox,
@@ -53,7 +60,7 @@ import {
 } from "@/services/api/passkeys";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { is_composing } from "@/utils/ime";
-import { ButtonSpinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 
 function format_date(iso: string): string {
   try {
@@ -118,70 +125,73 @@ function KeyRow({
   };
 
   return (
-    <div className="py-3 border-b border-edge-secondary last:border-0">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3 min-w-0">
-          {display_type === "passkey" ? (
-            <FingerPrintIcon className="w-5 h-5 text-primary flex-shrink-0" />
-          ) : (
-            <KeyIcon className="w-5 h-5 text-txt-muted flex-shrink-0" />
-          )}
-          <div className="min-w-0">
-            {editing ? (
-              <div className="flex items-center gap-2">
-                <input
-                  autoFocus
-                  className="text-sm font-medium bg-surf-secondary border border-edge-secondary rounded px-2 py-0.5 text-txt-primary outline-none focus:ring-1 focus:ring-primary w-40"
-                  maxLength={100}
-                  type="text"
-                  value={draft}
-                  onChange={(e) => set_draft(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !is_composing(e)) save_name();
-                    if (e.key === "Escape") cancel_edit();
-                  }}
-                />
-                <Button
-                  disabled={saving}
-                  size="sm"
-                  variant="primary"
-                  onClick={save_name}
-                >
-                  {t("common.save")}
-                  {saving && <ButtonSpinner size="xs" />}
-                </Button>
-                <Button size="sm" variant="outline" onClick={cancel_edit}>
-                  {t("common.cancel")}
-                </Button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm font-medium text-txt-primary truncate">
-                  {key_info.name_encrypted ||
-                    (display_type === "passkey"
-                      ? t("passkeys.unnamed_passkey")
-                      : t("passkeys.unnamed_security_key"))}
-                </span>
-                <Badge className="flex-shrink-0" color="gray">
-                  {display_type === "passkey"
-                    ? t("passkeys.passkey_badge")
-                    : t("passkeys.security_key_badge")}
-                </Badge>
-              </div>
-            )}
-            {!editing && (
-              <p className="text-xs text-txt-muted mt-0.5">
-                {t("passkeys.registered")} {format_date(key_info.registered_at)}
-                {key_info.last_used
-                  ? ` · ${t("passkeys.last_used")} ${format_date(key_info.last_used)}`
-                  : ` · ${t("passkeys.never_used")}`}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {!editing && (
-          <div className="flex items-center gap-2 flex-shrink-0 ms-2">
+    <IslandRow
+      description={
+        editing ? undefined : (
+          <>
+            {t("passkeys.registered")} {format_date(key_info.registered_at)}
+            {key_info.last_used
+              ? ` · ${t("passkeys.last_used")} ${format_date(key_info.last_used)}`
+              : ` · ${t("passkeys.never_used")}`}
+          </>
+        )
+      }
+      icon={
+        display_type === "passkey" ? (
+          <FingerPrintIcon className="text-primary" />
+        ) : (
+          <KeyIcon className="text-txt-muted" />
+        )
+      }
+      label={
+        editing ? (
+          <span className="flex flex-wrap items-center gap-2">
+            <Input
+              autoFocus
+              className="!w-40 max-w-full font-medium"
+              maxLength={100}
+              size="sm"
+              type="text"
+              value={draft}
+              onChange={(e) => set_draft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !is_composing(e)) save_name();
+                if (e.key === "Escape") cancel_edit();
+              }}
+            />
+            <Button
+              disabled={saving}
+              size="sm"
+              variant="primary"
+              onClick={save_name}
+            >
+              {t("common.save")}
+              {saving && <ButtonSpinner size="xs" />}
+            </Button>
+            <Button size="sm" variant="outline" onClick={cancel_edit}>
+              {t("common.cancel")}
+            </Button>
+          </span>
+        ) : (
+          <span className="flex items-center gap-2 flex-wrap min-w-0">
+            <span className="truncate">
+              {key_info.name_encrypted ||
+                (display_type === "passkey"
+                  ? t("passkeys.unnamed_passkey")
+                  : t("passkeys.unnamed_security_key"))}
+            </span>
+            <Badge className="flex-shrink-0" color="gray">
+              {display_type === "passkey"
+                ? t("passkeys.passkey_badge")
+                : t("passkeys.security_key_badge")}
+            </Badge>
+          </span>
+        )
+      }
+      layout="stacked"
+      trailing={
+        editing ? undefined : (
+          <>
             <Button size="sm" variant="outline" onClick={start_edit}>
               {t("passkeys.rename")}
             </Button>
@@ -194,10 +204,10 @@ function KeyRow({
               {t("common.delete")}
               {removing && <ButtonSpinner size="xs" />}
             </Button>
-          </div>
-        )}
-      </div>
-    </div>
+          </>
+        )
+      }
+    />
   );
 }
 
@@ -345,130 +355,136 @@ export function PasskeySection() {
   }, [load_keys, t]);
 
   return (
-    <div>
-      <div className="mb-4">
-        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-          <FingerPrintIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-          {t("passkeys.section_title")}
-          <InfoPopover
-            description={`${t("passkeys.passkey_hint")} ${t("passkeys.security_key_hint")}`}
-            title={t("passkeys.section_title")}
-          />
-          {webauthn_supported &&
-            !loading &&
-            !load_error &&
-            keys.length === 0 && (
-              <ActionRecommendedBadge
-                tip={t("settings.no_passkeys_recommendation")}
-              />
-            )}
-        </h3>
-      </div>
-
-      <p className="text-sm text-txt-muted mb-4">
-        {t("passkeys.section_description")}
-      </p>
-
-      {!webauthn_supported && (
-        <RecommendationBox>{t("passkeys.not_supported")}</RecommendationBox>
-      )}
-
-      {loading ? (
-        <div className="flex justify-center py-6">
-          <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : (
-        <AnimatePresence mode="popLayout">
-          {load_error && keys.length === 0 ? (
-            <motion.div
-              animate={{ opacity: 1 }}
-              className="py-6 text-center"
-              exit={{ opacity: 0 }}
-              initial={{ opacity: 0 }}
-            >
-              <p className="text-sm text-txt-muted mb-3">
-                {t("settings.failed_load_security_status")}
-              </p>
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => {
-                  set_loading(true);
-                  void load_keys();
-                }}
-              >
-                {t("settings.try_again")}
-              </Button>
-            </motion.div>
-          ) : keys.length === 0 ? (
-            <motion.div
-              animate={{ opacity: 1 }}
-              className="py-6 text-center"
-              exit={{ opacity: 0 }}
-              initial={{ opacity: 0 }}
-            >
-              <FingerPrintIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
-              <p className="text-sm text-txt-muted">
-                {t("passkeys.no_passkeys")}
-              </p>
-            </motion.div>
-          ) : (
-            <motion.div
-              animate={{ opacity: 1 }}
-              className="mb-4"
-              exit={{ opacity: 0 }}
-              initial={{ opacity: 0 }}
-            >
-              {keys.map((key) => (
-                <KeyRow
-                  key={key.id}
-                  key_info={key}
-                  on_delete_click={set_pending_delete}
-                  on_rename={handle_rename}
-                  removing={removing_id === key.id}
+    <>
+      <IslandSection
+        bare
+        description={t("passkeys.section_description")}
+        icon={<FingerPrintIcon />}
+        title={
+          <span className="inline-flex flex-wrap items-center gap-1.5">
+            {t("passkeys.section_title")}
+            <InfoPopover
+              description={`${t("passkeys.passkey_hint")} ${t("passkeys.security_key_hint")}`}
+              title={t("passkeys.section_title")}
+            />
+            {webauthn_supported &&
+              !loading &&
+              !load_error &&
+              keys.length === 0 && (
+                <ActionRecommendedBadge
+                  tip={t("settings.no_passkeys_recommendation")}
                 />
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      )}
+              )}
+          </span>
+        }
+      >
+        {!webauthn_supported && (
+          <RecommendationBox>{t("passkeys.not_supported")}</RecommendationBox>
+        )}
 
-      {webauthn_supported && is_desktop() && (
-        <p className="text-sm text-txt-muted mt-2">
-          {t("settings.passkeys_desktop_note")}
-        </p>
-      )}
+        {loading ? (
+          <Island className="flex justify-center" padding="lg">
+            <Spinner className="text-txt-muted" size="md" />
+          </Island>
+        ) : (
+          <AnimatePresence mode="popLayout">
+            {load_error && keys.length === 0 ? (
+              <motion.div
+                key="error"
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                initial={{ opacity: 0 }}
+              >
+                <Island className="text-center" padding="lg">
+                  <p className="text-sm text-txt-muted mb-3">
+                    {t("settings.failed_load_security_status")}
+                  </p>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => {
+                      set_loading(true);
+                      void load_keys();
+                    }}
+                  >
+                    {t("settings.try_again")}
+                  </Button>
+                </Island>
+              </motion.div>
+            ) : keys.length === 0 ? (
+              <motion.div
+                key="empty"
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                initial={{ opacity: 0 }}
+              >
+                <Island className="text-center" padding="lg">
+                  <FingerPrintIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
+                  <p className="text-sm text-txt-muted">
+                    {t("passkeys.no_passkeys")}
+                  </p>
+                </Island>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="list"
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                initial={{ opacity: 0 }}
+              >
+                <Island>
+                  {keys.map((key) => (
+                    <KeyRow
+                      key={key.id}
+                      key_info={key}
+                      on_delete_click={set_pending_delete}
+                      on_rename={handle_rename}
+                      removing={removing_id === key.id}
+                    />
+                  ))}
+                </Island>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
 
-      {webauthn_supported && !is_desktop() && (
-        <div className="flex items-center gap-2 mt-2">
-          {platform_available !== false && (
+        {webauthn_supported && is_desktop() && (
+          <p className="px-1 text-sm text-txt-muted">
+            {t("settings.passkeys_desktop_note")}
+          </p>
+        )}
+
+        {webauthn_supported && !is_desktop() && (
+          <div className="flex flex-wrap items-center gap-2">
+            {platform_available !== false && (
+              <Button
+                disabled={registering !== null}
+                size="sm"
+                variant="outline"
+                onClick={handle_add_passkey}
+              >
+                <FingerPrintIcon className="w-4 h-4 me-2" />
+                {registering === "passkey" && <ButtonSpinner size="xs" />}
+                {registering === "passkey"
+                  ? t("passkeys.registering")
+                  : t("passkeys.add_passkey")}
+              </Button>
+            )}
             <Button
               disabled={registering !== null}
               size="sm"
               variant="outline"
-              onClick={handle_add_passkey}
+              onClick={handle_add_security_key}
             >
-              <FingerPrintIcon className="w-4 h-4 me-2" />
-              {registering === "passkey" && <ButtonSpinner size="xs" />}
-              {registering === "passkey"
+              <PlusIcon className="w-4 h-4 me-2" />
+              {registering === "security_key" && <ButtonSpinner size="xs" />}
+              {registering === "security_key"
                 ? t("passkeys.registering")
-                : t("passkeys.add_passkey")}
+                : t("passkeys.add_security_key")}
             </Button>
-          )}
-          <Button
-            disabled={registering !== null}
-            size="sm"
-            variant="outline"
-            onClick={handle_add_security_key}
-          >
-            <PlusIcon className="w-4 h-4 me-2" />
-            {registering === "security_key" && <ButtonSpinner size="xs" />}
-            {registering === "security_key"
-              ? t("passkeys.registering")
-              : t("passkeys.add_security_key")}
-          </Button>
-        </div>
-      )}
+          </div>
+        )}
+      </IslandSection>
 
       <ConfirmModal
         hide_dont_ask
@@ -517,6 +533,6 @@ export function PasskeySection() {
         }}
         title={t("passkeys.remove_last_key_step_up_title")}
       />
-    </div>
+    </>
   );
 }

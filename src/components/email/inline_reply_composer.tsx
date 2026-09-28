@@ -28,6 +28,8 @@ import {
   ArrowsPointingInIcon,
 } from "@heroicons/react/24/outline";
 
+import { IslandIconButton } from "@aster/ui";
+
 import { use_reply_modal } from "@/components/modals/hooks/use_reply_modal";
 import { use_forward_modal } from "@/components/modals/hooks/use_forward_modal";
 import { ReplyBody } from "@/components/modals/reply/reply_body";
@@ -222,6 +224,11 @@ export const InlineReplyComposer = forwardRef<
       : inline_mode === "reply_all"
         ? t("mail.reply_all")
         : t("mail.forward");
+  const field_row_class = "flex min-h-9 items-center gap-2";
+  const field_label_class =
+    "flex h-9 w-12 flex-shrink-0 items-center py-0 text-start text-sm text-txt-muted";
+  const field_chip_class =
+    "h-7 py-0 border-transparent bg-[color-mix(in_srgb,var(--text-primary)_7%,transparent)]";
 
   const reply_icon_path = "M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3";
   const forward_icon_path = "M15 15L21 9m0 0l-6-6M21 9H9a6 6 0 000 12h3";
@@ -278,7 +285,10 @@ export const InlineReplyComposer = forwardRef<
       <div className="flex items-center gap-2 text-sm text-txt-secondary min-w-0">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex items-center gap-1 p-1.5 rounded hover:bg-surf-hover transition-colors">
+            <button
+              className="flex items-center gap-1 p-1.5 rounded-full hover:bg-surf-hover transition-colors"
+              type="button"
+            >
               {render_mode_icon(
                 inline_mode,
                 "w-4 h-4 flex-shrink-0 text-txt-muted",
@@ -324,9 +334,18 @@ export const InlineReplyComposer = forwardRef<
           </span>
         )}
       </div>
-      <div className="flex items-center gap-1 flex-shrink-0">
-        <button
-          className="p-1.5 rounded-[14px] text-txt-muted hover:bg-surf-hover transition-colors"
+      <div className="flex items-center gap-0.5 flex-shrink-0">
+        <IslandIconButton
+          label={
+            is_fullscreen
+              ? t("mail.exit_fullscreen")
+              : t("mail.enter_fullscreen")
+          }
+          title={
+            is_fullscreen
+              ? t("mail.exit_fullscreen")
+              : t("mail.enter_fullscreen")
+          }
           onClick={toggle_fullscreen}
         >
           {is_fullscreen ? (
@@ -334,23 +353,23 @@ export const InlineReplyComposer = forwardRef<
           ) : (
             <ArrowsPointingOutIcon className="w-4 h-4" />
           )}
-        </button>
-        <button
-          aria-label={t("common.close")}
-          className="p-1.5 rounded-[14px] text-txt-muted hover:bg-surf-hover transition-colors"
+        </IslandIconButton>
+        <IslandIconButton
+          label={t("common.close")}
+          title={t("common.close")}
           onClick={on_close}
         >
-          <XMarkIcon className="w-5 h-5" strokeWidth={2.5} />
-        </button>
+          <XMarkIcon className="w-5 h-5" />
+        </IslandIconButton>
       </div>
     </div>
   );
 
   const reply_sender_field = is_reply_mode ? (
-    <div className="px-4 pt-1 pb-1 flex-shrink-0 relative z-20">
-      <div className="flex items-center gap-2 py-1.5">
+    <div className="px-4 pb-1 flex-shrink-0 relative z-20">
+      <div className={field_row_class}>
         <button
-          className="text-sm flex-shrink-0 text-txt-tertiary"
+          className={field_label_class}
           type="button"
           onClick={(e) =>
             e.currentTarget.parentElement
@@ -358,7 +377,7 @@ export const InlineReplyComposer = forwardRef<
               ?.click()
           }
         >
-          {t("common.from_label")}
+          {t("mail.from")}
         </button>
         <SenderSelector
           on_select={reply_modal.set_selected_sender}
@@ -368,11 +387,16 @@ export const InlineReplyComposer = forwardRef<
           selected={reply_modal.selected_sender}
         />
       </div>
-      <div className="py-1.5">
+      <div className="py-0.5">
         <RecipientField
           show_bcc
           show_cc_bcc_buttons
           all_recipients={reply_all_recipients}
+          chip_class_name={field_chip_class}
+          class_name="items-start"
+          input_class_name="min-w-[80px]"
+          list_class_name="min-h-9"
+          label_class_name={field_label_class}
           contacts={reply_modal.contacts}
           input_value={reply_modal.inputs.to}
           label={t("mail.to")}
@@ -401,9 +425,14 @@ export const InlineReplyComposer = forwardRef<
         />
       </div>
       {reply_modal.show_cc && (
-        <div className="py-1.5">
+        <div className="py-0.5">
           <RecipientField
             all_recipients={reply_all_recipients}
+            chip_class_name={field_chip_class}
+            class_name="items-start"
+            input_class_name="min-w-[80px]"
+            list_class_name="min-h-9"
+            label_class_name={field_label_class}
             contacts={reply_modal.contacts}
             input_value={reply_modal.inputs.cc}
             label={t("mail.cc")}
@@ -452,10 +481,10 @@ export const InlineReplyComposer = forwardRef<
 
   const forward_fields =
     inline_mode === "forward" ? (
-      <div className="px-4 pt-1 pb-1 min-h-0 overflow-y-auto relative z-20">
-        <div className="flex items-center gap-2 py-1.5">
+      <div className="px-4 pb-1 min-h-0 overflow-y-auto relative z-20">
+        <div className={field_row_class}>
           <button
-            className="text-sm flex-shrink-0 text-txt-tertiary"
+            className={field_label_class}
             type="button"
             onClick={(e) =>
               e.currentTarget.parentElement
@@ -463,7 +492,7 @@ export const InlineReplyComposer = forwardRef<
                 ?.click()
             }
           >
-            {t("common.from_label")}
+            {t("mail.from")}
           </button>
           <SenderSelector
             on_select={forward_modal.set_selected_sender}
@@ -473,10 +502,15 @@ export const InlineReplyComposer = forwardRef<
             selected={forward_modal.selected_sender}
           />
         </div>
-        <div className="py-1.5">
+        <div className="py-0.5">
           <RecipientField
             auto_focus
+            chip_class_name={field_chip_class}
+            class_name="items-start"
+            input_class_name="min-w-[80px]"
+            list_class_name="min-h-9"
             contacts={forward_modal.contacts}
+            label_class_name={field_label_class}
             input_value={forward_modal.inputs.to}
             label={t("mail.to")}
             on_add_recipient={(email) => {
@@ -622,11 +656,11 @@ export const InlineReplyComposer = forwardRef<
     return (
       <>
         <div
-          className="fixed inset-0 z-40 bg-black/60"
+          className="fixed inset-0 z-40 aster_scrim"
           onClick={toggle_fullscreen}
         />
         <div
-          className="fixed inset-4 sm:inset-8 md:inset-12 z-50 flex flex-col rounded-xl border border-edge-primary bg-surf-primary shadow-2xl overflow-hidden"
+          className="aster_floating aster_dialog_surface fixed inset-4 sm:inset-8 md:inset-12 z-50 flex flex-col overflow-hidden"
           onDragOver={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -657,7 +691,7 @@ export const InlineReplyComposer = forwardRef<
   return (
     <div
       ref={set_refs}
-      className="mx-3 mb-3 mt-1 border border-edge-primary rounded-xl bg-surf-primary overflow-hidden"
+      className="overflow-hidden [&_[contenteditable]]:!min-h-[120px]"
       onDragOver={(e) => {
         e.preventDefault();
         e.stopPropagation();

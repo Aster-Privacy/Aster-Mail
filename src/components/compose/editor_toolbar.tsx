@@ -49,7 +49,7 @@ function ToolbarButton({
       aria-label={aria_label || title}
       className={`
         p-1.5 rounded-[14px] transition-all duration-150
-        ${active ? "bg-blue-500/15 text-blue-500" : "hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted"}
+        ${active ? "bg-blue-500/15 text-blue-500" : "hover:bg-[var(--aster-hover)] text-txt-muted"}
       `}
       title={title}
       type="button"

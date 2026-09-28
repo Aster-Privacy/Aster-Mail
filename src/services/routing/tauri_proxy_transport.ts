@@ -80,7 +80,10 @@ export async function tauri_proxy_fetch(
     return new Response(null, { status: 500 });
   }
 
-  return new Response(bytes, {
+  const body_forbidden =
+    result.status === 204 || result.status === 205 || result.status === 304;
+
+  return new Response(body_forbidden ? null : bytes, {
     status: result.status,
     headers: result.headers,
   });

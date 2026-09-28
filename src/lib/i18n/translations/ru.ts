@@ -769,6 +769,13 @@ export const ru = {
       "Это настраиваемое поле не удалено. Попробуйте снова.",
     failed_to_save_value:
       "Изменение не сохранилось. Попробуйте снова. Прежнее значение осталось.",
+    contacts_import_partial:
+      "Импортировано только {{imported}} из {{total}} контактов. Импортируйте файл ещё раз, чтобы добавить остальные.",
+    failed_to_import_contacts: "Попробуйте снова.",
+    failed_to_load_duplicates: "Попробуйте снова.",
+    dismiss_failed: "Попробуйте снова.",
+    click_scan_duplicates:
+      'Нажмите "Сканировать", чтобы проверить наличие дубликатов',
     never_synced: "Никогда не синхронизировалось",
     last_sync_successful: "Последняя синхронизация успешна",
     last_sync_failed:
@@ -777,6 +784,11 @@ export const ru = {
       "Пересылка не отправлена. Попробуйте снова. Черновик сохранён.",
     failed_to_schedule:
       "Расписание не сохранилось. Попробуйте снова. Черновик в безопасности.",
+    fill_required_fields: "Пожалуйста, заполните все обязательные поля",
+    failed_to_load_sources: "Попробуйте снова.",
+    failed_to_add_source: "Попробуйте снова.",
+    failed_to_delete_source: "Попробуйте снова.",
+    failed_to_toggle_source: "Попробуйте снова.",
     sync_failed:
       "Синхронизация не завершилась, и повтор будет автоматическим. Почта по обеим сторонам в безопасности.",
     clearing: "Очистка...",
@@ -847,6 +859,8 @@ export const ru = {
       "Этот файл занимает {{size}} МБ, что превышает допустимый размер. Меньший обычно подходит.",
     delete_failed: "Попробуйте снова.",
     download_failed: "Загрузка не завершилась. Попробуйте снова.",
+    failed_to_upload_attachment: "Попробуйте снова.",
+    upload_failed: "Попробуйте снова.",
     attachment_locked:
       "Это вложение нельзя открыть, потому что ключ шифрования недоступен на этом устройстве.",
     scheduled_no_attachments:
@@ -857,6 +871,9 @@ export const ru = {
       "Запланированные письма пока не поддерживают срок действия. Отправьте сейчас или уберите срок, чтобы запланировать отправку.",
     failed_to_merge_contacts:
       "Объединение не завершилось. Попробуйте снова. Исходные контакты не изменились.",
+    merge_failed: "Попробуйте снова.",
+    failed_to_load_history: "Попробуйте снова.",
+    failed_to_load_more: "Попробуйте снова.",
     enter_valid_emails: "Введите корректные адреса электронной почты",
     enter_contact_details: "Введите данные контакта",
     select_valid_image:
@@ -918,6 +935,10 @@ export const ru = {
       "Открыть это письмо на этом устройстве не удалось. Обновление обычно помогает, а повторный вход остаётся запасным вариантом, если ошибки продолжатся.",
     failed_to_disable_2fa:
       "Двухфакторная аутентификация осталась включённой. Попробуйте снова. Ваш аккаунт по-прежнему защищён.",
+    failed_to_unsubscribe:
+      "Отписка не завершилась. Ссылка в письме ведёт на сайт отправителя для отписки вручную.",
+    failed_to_parse_settings:
+      "Этот файл настроек прочитать не удалось. Другой файл обычно подходит. Текущие настройки остаются без изменений.",
     removed_from_contacts: "Удалено из контактов",
     added_to_contacts: "Добавлено в контакты",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -941,6 +962,7 @@ export const ru = {
     offline_action_queued:
       "Сейчас нет соединения. Действие поставлено в очередь и выполнится сразу после восстановления связи.",
     failed_to_update: "Попробуйте снова.",
+    failed_to_load_search_results: "Попробуйте снова.",
     failed_to_fetch_tags: "Попробуйте снова.",
     failed_to_fetch_folders: "Попробуйте снова.",
     failed_to_unlock_folder:
@@ -962,6 +984,13 @@ export const ru = {
       "Черновики не загрузились. Попробуйте снова. Сохранённые черновики в безопасности.",
     failed_to_load_scheduled_emails:
       "Запланированные письма не загрузились. Попробуйте снова. Они всё равно будут отправлены вовремя.",
+    failed_to_load_subscriptions: "Попробуйте снова.",
+    failed_to_load_more_subscriptions: "Попробуйте снова.",
+    failed_to_scan_subscriptions: "Попробуйте снова.",
+    recently_archived: "Недавно архивированные",
+    older_items: "Более старые элементы",
+    long_term_archive: "Долгосрочный архив",
+    failed_to_fetch_archive_stats: "Попробуйте снова.",
     value_too_long:
       "Это значение превышает лимит длины. Более короткая версия обычно подходит.",
     please_enter_valid_domain:
@@ -1036,6 +1065,10 @@ export const ru = {
       "Связанную внешнюю учётную запись стоит подключить заново перед отправкой через неё. Этот раздел находится в Настройках, Подключённые аккаунты.",
     failed_to_send_via_external:
       "Отправка через связанный внешний аккаунт не удалась. Попробуйте снова. Черновик сохранён.",
+    tor_label: "Tor",
+    tor_snowflake_label: "Tor (Snowflake)",
+    cdn_relay_label: "CDN-ретранслятор",
+    toggle_selection: "Переключить выделение",
     offline_change_failed:
       "Не удалось сохранить изменение, сделанное без соединения.",
     offline_send_failed:
@@ -1099,6 +1132,7 @@ export const ru = {
     all_accounts: "Все аккаунты",
     failed_to_rotate_keys:
       "Обновление ключей не завершилось. Попробуйте снова. Старые ключи по-прежнему работают, а ваши данные в безопасности.",
+    all_external_accounts: "Все внешние аккаунты",
     read: "Прочитано",
     or_conjunction: "или",
     press_label: "Нажмите",
@@ -1475,6 +1509,7 @@ export const ru = {
     remove_from_allowlist_action: "Убрать из списка разрешённых",
     failed_to_allow_sender:
       "Не удалось добавить отправителя в список разрешённых. Попробуйте снова.",
+    aster_user: "Пользователь Aster",
     account_limit_reached:
       "Вы достигли лимита аккаунтов для этой сети. Если это ошибка, напишите на hello@astermail.org.",
     account_suspended: "Ваш аккаунт заблокирован.",
@@ -1556,6 +1591,8 @@ export const ru = {
       "Аватар псевдонима не обновился. Попробуйте снова.",
     failed_update_alias_display_name:
       "Отображаемое имя не обновилось. Попробуйте снова.",
+    failed_remove_recovery_email: "Попробуйте снова.",
+    failed_to_get_key_status: "Попробуйте снова.",
     file_already_attached:
       "«{{name}}» уже прикреплён к этому письму. Не нужно прикреплять повторно.",
     metadata_not_removed:
@@ -1598,6 +1635,19 @@ export const ru = {
       "Aster шифрует вашу почту вашим паролем, поэтому никто не сможет сбросить его за вас. Добавьте резервный адрес, чтобы сохранить доступ.",
     recovery_reminder_action: "Добавить резервный адрес",
     recovery_reminder_later: "Позже",
+    recovery_codes_reminder_title: "Сохраните коды восстановления",
+    recovery_codes_reminder_body:
+      "Aster шифрует вашу почту вашим паролем, поэтому никто не сможет сбросить его за вас. Коды восстановления остаются единственным способом вернуться к зашифрованной почте.",
+    recovery_codes_reminder_action: "Получить коды восстановления",
+    recovery_codes_low_reminder_title:
+      "У вас заканчиваются коды восстановления",
+    recovery_codes_low_reminder_body:
+      "Каждый код работает один раз, у вас осталось {{count}}. Получите новые коды, чтобы не потерять доступ.",
+    recovery_codes_low_reminder_action: "Получить новые коды",
+    recovery_phrase_migrate_title: "Перейдите на коды восстановления",
+    recovery_phrase_migrate_body:
+      "Фразы восстановления скоро перестанут работать. Получите коды восстановления сейчас, чтобы сохранить возможность восстановить аккаунт.",
+    recovery_phrase_migrate_action: "Получить коды",
     plan_prompt_title: "У вас бесплатный тариф",
     plan_prompt_body:
       "Платные тарифы дают больше места, собственные домены и неограниченные псевдонимы.",
@@ -1715,6 +1765,7 @@ export const ru = {
     unknown_error:
       "Что-то пошло не так. Попробуйте снова. Нам не удалось установить причину.",
     unknown_merchant: "Неизвестный продавец",
+    unknown_rotation_error: "Попробуйте снова.",
     unsaved_changes_title: "Отменить изменения?",
     unsaved_changes_body:
       "Введённые данные не сохранены. Если закрыть форму сейчас, они будут удалены.",
@@ -2223,11 +2274,24 @@ export const ru = {
       "Без кодов восстановления забытый пароль навсегда заблокирует вашу зашифрованную почту.",
     recovery_codes_row: "Коды восстановления",
     recovery_codes_row_desc:
-      "Шесть одноразовых кодов, которые восстанавливают ваш аккаунт и все зашифрованные данные.",
-    recovery_codes_generate: "Создать коды",
-    recovery_codes_regenerate: "Создать коды заново",
+      "Одноразовые коды, которые восстанавливают аккаунт и все зашифрованные данные.",
+    recovery_codes_generate: "Получить коды",
+    recovery_codes_regenerate: "Получить новые коды",
     recovery_codes_regenerate_warning:
-      "При повторном создании появятся новые коды, а старые навсегда перестанут действовать.",
+      "Текущие коды перестают работать, как только вы получите новые.",
+    recovery_codes_show: "Показать коды",
+    recovery_codes_get_new_title: "Получить новые коды восстановления?",
+    recovery_codes_confirm_title: "Подтвердите, что это вы",
+    recovery_codes_confirm_desc:
+      "Введите пароль, чтобы увидеть коды восстановления.",
+    recovery_codes_title: "Ваши коды восстановления",
+    recovery_codes_status:
+      "Созданы {{date}}. Осталось {{remaining}} из {{total}}.",
+    recovery_codes_low:
+      "У вас заканчиваются коды восстановления. Получите новые коды, чтобы не потерять доступ.",
+    recovery_codes_used: "Использован",
+    recovery_codes_unavailable:
+      "Ваши коды не сохранены на этом устройстве. Получите новые коды, чтобы увидеть их.",
     recovery_method_active: "Активно",
     recovery_method_not_set: "Не задано",
     recovery_codes_saved_confirm:
@@ -4229,6 +4293,59 @@ export const ru = {
       "Премиум-функции остаются доступны до конца этого расчётного периода, после чего тариф переходит на Free. Почта, контакты и настройки остаются с вами.",
     cancel_plan: "Отменить тариф",
     billing_history: "История оплат",
+    billing_status_active: "Активна",
+    billing_status_renews: "Продлевается {{date}}",
+    billing_status_ending: "Заканчивается {{date}}",
+    billing_status_attention: "Платёж требует внимания",
+    billing_member_since: "Участник с {{date}}",
+    billing_keep_title: "Сохранить тариф",
+    billing_payment_method: "Способ оплаты",
+    billing_switch_yearly_subtitle: "{{monthly}}/мес., {{yearly}} в год",
+    billing_save_amount: "Экономия {{amount}}",
+    billing_term_heading: "Период оплаты",
+    billing_pay_yearly: "Платить раз в год",
+    billing_pay_monthly: "Платить ежемесячно",
+    billing_billed_yearly_total: "{{amount}} в год",
+    billing_billed_monthly: "Списание каждый месяц",
+    billing_save_percent: "Экономия {{percent}}%",
+    billing_select_plan_hint: "Выберите тариф, чтобы продолжить",
+    billing_addon_active: "Активно",
+    billing_addon_ending: "Заканчивается",
+    billing_addon_ends: "Заканчивается {{date}}",
+    billing_add_storage_summary: "Добавить {{size}} хранилища",
+    billing_storage_status_ok: "Всё в порядке",
+    billing_storage_status_near: "Почти заполнено",
+    billing_storage_status_full: "Требуется действие",
+    billing_upgrade_note: "Отмена в любой момент. Ваша почта остаётся с вами.",
+    billing_thanks_title: "Спасибо за поддержку Aster",
+    billing_thanks_body:
+      "Ваша поддержка значит для нас всё. Благодаря ей небольшая команда каждый день с заботой развивает Aster.",
+    billing_thanks_free_title: "Спасибо, что пользуетесь Aster",
+    billing_thanks_free_body:
+      "Небольшая команда с заботой создаёт Aster, и каждый, кто доверяет ему свою почту, помогает нам двигаться дальше. Переходите на платный тариф, когда понадобится больше места, псевдонимов или собственных доменов.",
+    billing_addons_subtitle: "Больше места, тот же тариф",
+    billing_support_subtitle: "Написать команде",
+    billing_upsell_title: "Больше возможностей с {{name}}",
+    billing_upsell_price: "От {{price}} в месяц при оплате за год",
+    billing_advantages_title_paid: "Что входит в ваш тариф",
+    billing_advantages_title_free: "Что вы получаете с {{name}}",
+    billing_see_all_features: "Все возможности {{name}}",
+    billing_compare_all_plans_subtitle: "Личные и семейные тарифы, помесячно или на год",
+    billing_usage_upgrade_hint: "Перейдите на тариф выше, чтобы получить больше места",
+    usage_in_use: "Используется: {{current}}",
+    billing_credits_subtitle: "Баланс и пополнения",
+    billing_academic_subtitle: "Скидка по учебной почте",
+    billing_history_empty:
+      "Счетов пока нет. Платежи появятся здесь после первого списания.",
+    billing_invoice_count: "{{count}} счетов",
+    billing_invoice_count_one: "{{count}} счёт",
+    billing_invoice_count_other: "{{count}} счетов",
+    billing_addons_active_count: "{{count}} активно",
+    billing_addons_active_count_one: "{{count}} активен",
+    billing_addons_active_count_other: "{{count}} активно",
+    academic_status_none: "Не запрошена",
+    academic_status_pending: "Ожидает проверки",
+    academic_status_verified: "Подтверждена",
     billing_plan_heading: "Тариф",
     billing_hide_plans: "Скрыть тарифы",
     billing_cancel_notice_title: "Ваш тариф будет отменён",
@@ -5070,6 +5187,10 @@ export const ru = {
     created_date: "Создано {{date}}",
     export_public_key_label: "Экспортировать открытый ключ",
     export_private_key_label: "Экспортировать закрытый ключ",
+    export_private_key_warning:
+      "Храните файл в надёжном месте и никому его не передавайте. Любой, у кого он есть, сможет читать вашу почту.",
+    export_two_factor_hint:
+      "В вашем аккаунте включена двухфакторная аутентификация. Введите текущий код из приложения-аутентификатора, чтобы продолжить.",
     verify_identity_export:
       "Подтвердите свою личность для экспорта закрытого ключа",
     two_fa_code_label: "Код 2FA",
@@ -5602,7 +5723,10 @@ export const ru = {
     signature_content_placeholder: "С уважением,\nВаше имя\nyour@email.com",
     signature_name_required: "Введите название подписи.",
     signature_content_required: "Добавьте содержимое подписи.",
-    signature_image_too_large: "Размер изображения не должен превышать 2 МБ.",
+    signature_image_too_large:
+      "Это изображение слишком велико для подписи. Выберите изображение меньшего размера.",
+    signature_too_large:
+      "Подпись слишком большая, чтобы её сохранить. Удалите изображение или сократите текст.",
     signature_image_invalid:
       "Можно добавлять только изображения PNG, JPEG, GIF и WebP.",
     signature_image_failed:
@@ -5654,6 +5778,9 @@ export const ru = {
     spam_filtering_description: "Настройте обнаружение и управление спамом.",
     spam_sensitivity: "Чувствительность к спаму",
     auto_delete_spam_after: "Автоматическое удаление спама через",
+    auto_delete_trash_after: "Автоматическое удаление корзины через",
+    auto_delete_trash_description:
+      "Письма в Корзине старше указанного срока удаляются навсегда.",
     spam_delete_hint:
       "Спам-письма старше этого срока будут безвозвратно удалены",
     save_changes: "Сохранить изменения",
@@ -5669,6 +5796,9 @@ export const ru = {
     retention_30_days: "30 дней",
     retention_60_days: "60 дней",
     retention_90_days: "90 дней",
+    retention_days_count: "{{ days }} дней",
+    retention_180_days: "180 дней",
+    retention_365_days: "365 дней",
     retention_never: "Никогда (хранить всегда)",
     import_emails_title: "Импорт писем",
     import_add_another: "Добавить другой аккаунт",
@@ -6561,6 +6691,10 @@ export const ru = {
       "У вас уже этот тариф. Промокоды действуют при переходе на другой тариф.",
     promo_error_not_upgrade:
       "Промокоды действуют при переходе на более высокий тариф.",
+    promo_error_card_only: "Этот промокод действует только при оплате картой.",
+    promo_error_with_credits:
+      "Нельзя использовать промокод и средства на счёте в одном платеже.",
+    promo_error_not_for_addon: "Промокоды нельзя применять к дополнениям.",
     promo_error_generic:
       "Не удалось проверить промокод. Повторите попытку чуть позже.",
     plan_change_discount_amount: "Скидка {{amount}}",
@@ -6753,6 +6887,7 @@ export const ru = {
     domain_purchase_progress_note:
       "Подождите, пока мы регистрируем ваш домен и настраиваем почтовые ящики. Обычно это занимает около минуты.",
     domain_purchase_complete_cta: "Завершить покупку",
+    domain_purchase_open_checkout: "Открыть оплату снова",
     domain_purchase_cancel_payment_title: "Отменить этот платёж?",
     domain_purchase_cancel_payment_message:
       "Вы действительно хотите отменить этот платёж за пользовательский домен?",
@@ -7830,6 +7965,7 @@ export const ru = {
     special_offers_save_failed:
       "Настройка спецпредложений не сохранена. Повторите попытку.",
     criterion_passkey: "Ключ доступа добавлен",
+    criterion_recovery_codes: "Коды восстановления сохранены",
     criterion_read_receipts_off: "Уведомления о прочтении отключены",
     send_read_receipts_label: "Отправлять уведомления о прочтении",
     send_read_receipts_description:
@@ -9096,6 +9232,26 @@ export const ru = {
     more_folders_count_few: "ещё {{count}} папки",
     more_folders_count_many: "ещё {{count}} папок",
     more_folders_count_other: "ещё {{count}} папки",
+    more_messages_count: "ещё {{count}} сообщений",
+    more_messages_count_one: "ещё {{count}} сообщение",
+    more_messages_count_few: "ещё {{count}} сообщения",
+    more_messages_count_many: "ещё {{count}} сообщений",
+    more_messages_count_other: "ещё {{count}} сообщения",
+    reply_to_name: "Ответ для {{name}}",
+    reply_all_to_name: "Ответ для {{name}} и всех",
+    forward_message_heading: "Переслать сообщение",
+    trackers_found_one: "Найден и заблокирован {{count}} трекер",
+    trackers_found_few: "Найдено и заблокировано {{count}} трекера",
+    trackers_found_many: "Найдено и заблокировано {{count}} трекеров",
+    trackers_found_other: "Найдено и заблокировано {{count}} трекера",
+    spy_pixels_blocked_count_one: "Заблокирован {{count}} шпионский пиксель",
+    spy_pixels_blocked_count_few: "Заблокировано {{count}} шпионских пикселя",
+    spy_pixels_blocked_count_many: "Заблокировано {{count}} шпионских пикселей",
+    spy_pixels_blocked_count_other: "Заблокировано {{count}} шпионских пикселя",
+    links_cleaned_count_one: "Очищена {{count}} ссылка",
+    links_cleaned_count_few: "Очищено {{count}} ссылки",
+    links_cleaned_count_many: "Очищено {{count}} ссылок",
+    links_cleaned_count_other: "Очищено {{count}} ссылки",
     param_removed_from_n_links_one: "{{param}} удалён из {{count}} ссылки",
     param_removed_from_n_links_few: "{{param}} удалён из {{count}} ссылок",
     param_removed_from_n_links_many: "{{param}} удалён из {{count}} ссылок",
@@ -9228,6 +9384,10 @@ export const ru = {
     create_a_password: "Создайте пароль",
     recommend_strong_password:
       "Используйте не менее 8 символов. Более длинный пароль с разными символами надежнее.",
+    password_recovery_key: "Ключ восстановления пароля",
+    recovery_key_only_way:
+      "Этот ключ - единственный способ восстановить аккаунт, если вы забудете пароль. Сохраните его в надежном месте.",
+    download_key_lower: "Скачать ключ",
     downloading: "Скачивание...",
     copy_key: "Копировать ключ",
     copy_codes: "Копировать коды",
@@ -9324,9 +9484,6 @@ export const ru = {
     recovery_phrase_confirm_error:
       "Одно или несколько слов не совпадают. Сверьтесь с сохранённой фразой и попробуйте ещё раз.",
     recovery_phrase_skip_check: "Я сохранил(а) фразу, пропустить проверку",
-    forgot_method_title: "Как вы хотите восстановить аккаунт?",
-    forgot_method_desc:
-      "От выбранного способа зависит, удастся ли восстановить ваши зашифрованные данные.",
     forgot_method_full_restore: "Полное восстановление",
     forgot_method_access_only: "Только доступ",
     forgot_method_phrase_title: "Использовать фразу восстановления",
@@ -9338,10 +9495,6 @@ export const ru = {
     forgot_method_email_title: "Отправить мне ссылку для сброса",
     forgot_method_email_desc:
       "Вы вернёте доступ к аккаунту. Зашифрованную почту, полученную до сброса, снова прочитать не получится, если только позже вы не найдёте фразу или код.",
-    phrase_entry_title: "Введите вашу фразу восстановления",
-    phrase_entry_desc: "Введите или вставьте 12 слов по порядку.",
-    phrase_entry_invalid:
-      "Это не похоже на действительную фразу восстановления. Проверьте слова и их порядок.",
     phrase_recovery_failed:
       "Эта фраза не подходит к этому аккаунту. Проверьте слова и адрес электронной почты.",
     reset_consent_title: "Этот сброс не расшифрует ваши старые данные",
@@ -9398,7 +9551,7 @@ export const ru = {
     saving_new_credentials: "Сохранение новых учётных данных...",
     recover_your_account: "Восстановить ваш аккаунт",
     enter_email_associated:
-      "Введите имя пользователя для восстановления аккаунта",
+      "Введите адрес аккаунта, который нужно восстановить.",
     back_to_sign_in: "Вернуться ко входу",
     email_me_reset_link: "Отправить ссылку для сброса на почту",
     reset_link_sent_title: "Проверьте вашу почту восстановления",
@@ -9414,8 +9567,7 @@ export const ru = {
     resetting_password: "Сброс пароля...",
     enter_recovery_code: "Введите код восстановления",
     enter_recovery_code_desc:
-      "Введите один из кодов восстановления, которые вы сохранили при создании аккаунта",
-    verify_code: "Проверить код",
+      "Введите один из кодов восстановления, сохранённых при создании аккаунта.",
     create_new_password: "Создать новый пароль",
     choose_strong_password: "Выберите надёжный пароль для вашего аккаунта",
     recovering_your_account: "Восстановление вашего аккаунта",
@@ -9425,9 +9577,55 @@ export const ru = {
     old_codes_invalidated:
       "Старые коды восстановления больше не работают. Сохранение нового набора в надёжном месте перед закрытием этого окна обычно лучший способ остаться под защитой.",
     n_recovery_codes: "{{count}} кодов восстановления",
+    recovery_code_already_used:
+      "Этот код уже использован. Каждый код работает один раз, поэтому введите другой код из сохраненного списка.",
+    try_another_way: "Другой способ",
+    recovery_email_label: "Адрес Aster Mail",
+    recovery_domain_hint: "Выберите домен вашего аккаунта.",
+    recovery_code_label: "Код восстановления",
+    recovery_code_hint:
+      "Каждый код работает один раз. Коды выглядят так: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "Указать другой адрес",
+    change_account_desc: "Восстановите другой аккаунт Aster Mail.",
+    support_step_title: "Связаться с поддержкой",
+    support_step_desc:
+      "Aster Mail не может прочитать ваши зашифрованные данные, поэтому никто не откроет их без кода восстановления или резервного адреса. Поддержка проверит аккаунт и подскажет, что делать дальше.",
+    support_email_action: "Написать в поддержку",
+    support_help_center: "Открыть центр помощи",
+    other_ways_title: "Другой способ",
+    other_ways_desc: "Выберите, как вернуть доступ к аккаунту.",
+    other_way_code_title: "Использовать код восстановления",
+    other_way_code_desc: "Введите один из сохраненных кодов.",
+    other_way_email_title: "Сбросить через резервный адрес",
+    other_way_email_desc:
+      "Aster Mail отправляет ссылку на ваш резервный адрес. Вы теряете доступ к письмам, полученным до сброса.",
+    other_way_none_title: "У меня нет ничего из этого",
+    other_way_none_desc:
+      "Свяжитесь с поддержкой, и мы подскажем, что делать дальше.",
+    reset_account_title: "Сбросить аккаунт?",
+    reset_account_desc:
+      "Зашифрованные письма, контакты и файлы, созданные до сброса, останутся заблокированными, пока вы не восстановите их старым паролем. Вы получите новый пустой ключ шифрования.",
+    send_reset_link: "Отправить ссылку для сброса",
+    print_codes: "Печать",
+    codes_copied: "Коды скопированы.",
+    i_saved_these_codes: "Я сохранил эти коды",
+    review_security_title: "Проверьте безопасность",
+    review_security_desc: "Пароль изменен, аккаунт восстановлен.",
+    review_devices_signed_out: "Другие устройства вышли из аккаунта.",
+    review_two_step_off: "Двухэтапная аутентификация отключена.",
+    review_turn_on: "Включить",
+    review_recovery_email_kept: "Резервный адрес по-прежнему указан.",
+    review_no_recovery_email: "Резервный адрес не указан.",
+    review_add: "Добавить",
+    review_codes_left: "Осталось кодов восстановления: {{count}}.",
+    review_codes_left_one: "Остался {{count}} код восстановления.",
+    review_codes_left_few: "Осталось {{count}} кода восстановления.",
+    review_codes_left_many: "Осталось {{count}} кодов восстановления.",
+    review_codes_left_other: "Осталось {{count}} кода восстановления.",
     import_mail_step_title: "Возьмите почту с собой",
     import_mail_step_desc:
       "Перенесите письма из другого аккаунта в Aster. Всё шифруется на вашем устройстве перед сохранением.",
+    import_mail_action: "Импортировать почту",
     import_mail_skip: "Начать с пустого ящика",
     import_mail_privacy_note: "Импортировать можно и позже в настройках.",
     password_reset_successful: "Пароль успешно сброшен",
@@ -10326,6 +10524,29 @@ export const ru = {
     show_in_signature: "Показывать в подписи",
     empty_state: "Вы ещё не нашли ни одного значка.",
     claim_failed: "Попробуйте снова.",
+    claim_success: "Вы получили значок {name}.",
+    claim_already: "У вас уже есть значок первооткрывателя.",
+    badge_andromeda: "Андромеда",
+    badge_andromeda_description: "Достигли соседней галактики.",
+    badge_big_bang: "Большой Взрыв",
+    badge_big_bang_description: "Первым открыли космос.",
+    badge_black_hole: "Чёрная Дыра",
+    badge_black_hole_description: "Притянуты чем-то более глубоким.",
+    badge_comet: "Комета",
+    badge_comet_description: "Пересеклись с чем-то редким.",
+    badge_event_horizon: "Горизонт Событий",
+    badge_event_horizon_description: "Пересекли границу известного.",
+    badge_nebula: "Туманность",
+    badge_nebula_description: "Блуждали среди красок.",
+    badge_pulsar: "Пульсар",
+    badge_pulsar_description: "Услышали сигнал в шуме.",
+    badge_singularity: "Сингулярность",
+    badge_singularity_description: "Нашли точку, где всё изгибается.",
+    badge_stargazer: "Звездочёт",
+    badge_stargazer_description: "Посмотрели вверх в нужный момент.",
+    badge_supernova: "Сверхновая",
+    badge_supernova_description: "Поймали звезду в её самый яркий момент.",
+    find_order_label: "#{order}",
     granted_at: "Получено {date}",
     not_earned: "Ещё не получено",
     show_in_signature_description:

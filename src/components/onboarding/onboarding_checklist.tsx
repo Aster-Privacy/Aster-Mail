@@ -132,12 +132,12 @@ export function OnboardingChecklist({
     <AnimatePresence>
       <motion.div
         animate={{ opacity: 1, y: 0 }}
-        className="fixed bottom-24 start-4 end-4 z-30 flex flex-col overflow-hidden rounded-xl border shadow-lg md:bottom-5 md:start-auto md:end-5 md:w-[320px]"
+        className="fixed bottom-24 start-4 end-4 z-30 flex flex-col overflow-hidden rounded-[var(--aster-radius-floating,16px)] md:bottom-5 md:start-auto md:end-5 md:w-[320px]"
         exit={{ opacity: 0, y: 8 }}
         initial={{ opacity: 0, y: 8 }}
         style={{
-          backgroundColor: "var(--bg-card)",
-          borderColor: "var(--border-primary)",
+          backgroundColor: "var(--aster-floating-bg, var(--bg-card))",
+          boxShadow: "var(--aster-floating-shadow)",
         }}
         transition={transition}
       >
@@ -152,7 +152,7 @@ export function OnboardingChecklist({
           </div>
           <button
             aria-label={t("common.onboarding_checklist_dismiss")}
-            className="-me-1 -mt-1 p-1 rounded-md hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-muted transition-colors"
+            className="-me-1 -mt-1 p-1 rounded-md hover:bg-[var(--aster-hover)] text-txt-muted transition-colors"
             type="button"
             onClick={() => {
               void dismiss();
@@ -162,14 +162,14 @@ export function OnboardingChecklist({
           </button>
         </div>
 
-        <ul className="flex flex-col pb-2">
+        <ul className="flex flex-col px-1.5 pb-2">
           {rows.map((row) => {
             const done = state.tasks[row.key];
 
             return (
               <li key={row.key}>
                 <button
-                  className="w-full flex items-center gap-3 px-4 py-2 text-start hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors"
+                  className="w-full flex items-center gap-3 px-2.5 py-2 rounded-[var(--aster-radius-item,8px)] text-start hover:bg-[var(--aster-floating-hover,var(--bg-hover))] transition-colors"
                   type="button"
                   onClick={row.on_click}
                 >

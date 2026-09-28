@@ -63,7 +63,7 @@ export function CancelOfferStep({
           })}
         </p>
         <button
-          className={`${button_variants({ variant: "primary", size: "sm" })} mt-3 w-full`}
+          className={`${button_variants({ variant: "primary" })} mt-3 w-full`}
           disabled={is_busy}
           type="button"
           onClick={on_switch}
@@ -80,14 +80,14 @@ export function CancelOfferStep({
         {keep_plan_slot}
         <div className="ml-auto flex flex-row items-center gap-2">
           <button
-            className={button_variants({ variant: "ghost", size: "sm" })}
+            className={button_variants({ variant: "ghost" })}
             type="button"
             onClick={on_back}
           >
             {t("common.back")}
           </button>
           <button
-            className={button_variants({ variant: "ghost", size: "sm" })}
+            className={button_variants({ variant: "ghost" })}
             disabled={is_busy}
             type="button"
             onClick={on_continue}

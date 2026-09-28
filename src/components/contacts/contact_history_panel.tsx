@@ -29,6 +29,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { use_search } from "@/hooks/use_search";
 import { normalize_contact_addresses } from "@/utils/contact_mail_search";
@@ -156,7 +157,7 @@ export function ContactHistoryPanel({
   if (is_loading && activities.length === 0) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="w-5 h-5 border-2 border-edge-primary border-t-txt-primary rounded-full animate-spin" />
+        <Spinner className="text-txt-muted" size="md" />
       </div>
     );
   }
@@ -182,11 +183,11 @@ export function ContactHistoryPanel({
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-edge-secondary/60">
+        <div className="divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
           {activities.map((activity) => (
             <button
               key={activity.id}
-              className="w-full flex items-center gap-3 px-2 py-2.5 text-start hover:bg-black/[0.04] dark:hover:bg-white/[0.04] rounded-[14px] transition-colors cursor-pointer"
+              className="w-full flex items-center gap-3 px-2 py-2.5 text-start hover:bg-[var(--aster-hover)] rounded-[14px] transition-colors cursor-pointer"
               type="button"
               onClick={() => {
                 navigate(`/email/${activity.id}`);

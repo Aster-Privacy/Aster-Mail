@@ -29,6 +29,7 @@ import {
 } from "@/lib/image_load_retry";
 import { connection_store } from "@/services/routing/connection_store";
 import { ignore_error } from "@/lib/ignore_error";
+import { remove_aster_footers } from "@/lib/aster_footer_strip";
 
 type translate_fn = ReturnType<typeof use_i18n>["t"];
 
@@ -99,6 +100,28 @@ function reveal_hidden_quote_blocks(el: Element): void {
   el.querySelectorAll(HIDDEN_QUOTE_SELECTOR).forEach((child) => {
     (child as HTMLElement).style.display = "block";
   });
+}
+
+function fill_quote_toggle(
+  doc: Document,
+  toggle_btn: HTMLButtonElement,
+  t: translate_fn,
+  expanded: boolean,
+): void {
+  const label = expanded
+    ? t("mail.hide_quoted_text")
+    : t("mail.show_quoted_text");
+
+  toggle_btn.textContent = "";
+  toggle_btn.title = label;
+  toggle_btn.setAttribute("aria-label", label);
+  toggle_btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+
+  const dots = doc.createElement("span");
+
+  dots.className = "aster-quote-toggle-dots";
+  dots.setAttribute("aria-hidden", "true");
+  toggle_btn.appendChild(dots);
 }
 
 export function collapse_forwarded_content(
@@ -177,8 +200,7 @@ export function collapse_forwarded_content(
 
     toggle_btn.className = "aster-quote-toggle";
     toggle_btn.type = "button";
-    toggle_btn.textContent = "\u2022\u2022\u2022";
-    toggle_btn.title = t("mail.show_trimmed_content");
+    fill_quote_toggle(doc, toggle_btn, t, false);
 
     const content_div = doc.createElement("div");
 
@@ -205,6 +227,7 @@ export function collapse_forwarded_content(
 
       content_div.style.display = is_hidden ? "" : "none";
       toggle_btn.classList.toggle("aster-quote-expanded", is_hidden);
+      fill_quote_toggle(doc, toggle_btn, t, is_hidden);
     });
 
     wrapper.appendChild(toggle_btn);
@@ -407,6 +430,7 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
   const body = doc.body;
 
   if (!body) return;
+  remove_aster_footers(body, true);
   if (body.querySelector("details.aster-forwarded-collapse")) return;
   if (body.querySelector(".aster-quote-toggle")) return;
 
@@ -564,8 +588,7 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
 
   toggle_btn.className = "aster-quote-toggle";
   toggle_btn.type = "button";
-  toggle_btn.textContent = "\u2022\u2022\u2022";
-  toggle_btn.title = t("mail.show_trimmed_content");
+  fill_quote_toggle(doc, toggle_btn, t, false);
 
   const content_div = doc.createElement("div");
 
@@ -599,6 +622,7 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
 
     content_div.style.display = is_hidden ? "" : "none";
     toggle_btn.classList.toggle("aster-quote-expanded", is_hidden);
+    fill_quote_toggle(doc, toggle_btn, t, is_hidden);
   });
 
   wrapper.appendChild(toggle_btn);

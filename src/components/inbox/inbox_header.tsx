@@ -430,7 +430,7 @@ export function InboxHeader({
           {!has_selection && !hide_view_switcher && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-1.5 px-1.5 py-1 rounded-[12px] hover:bg-[var(--bg-hover)] transition-colors min-w-0 select-none focus:outline-none focus-visible:outline-none">
+                <button className="flex items-center gap-1.5 px-1.5 py-1 rounded-[var(--aster-radius-control)] hover:bg-[var(--bg-hover)] transition-colors min-w-0 select-none focus:outline-none focus-visible:outline-none">
                   <span className="text-base leading-tight font-semibold text-[var(--text-primary)] truncate max-w-[140px] sm:max-w-[280px] lg:max-w-[420px]">
                     {view_title}
                   </span>

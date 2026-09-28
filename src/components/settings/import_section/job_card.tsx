@@ -21,6 +21,7 @@
 import type {} from "@/lib/i18n/types";
 
 import { ClockIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { Island, IslandIconButton, IslandRow } from "@aster/ui";
 
 import {
   format_relative_time,
@@ -50,37 +51,43 @@ export function ImportJobCard({
   const is_failed = job.status === "failed" || job.status === "cancelled";
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 rounded-xl border bg-surf-secondary border-edge-secondary">
-      <div className="flex-shrink-0">{get_status_icon(job.status)}</div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-txt-primary truncate">
-          {t("settings.source_import", { source: source_label })}
-        </p>
-        <p
-          className={`text-xs ${is_failed ? "text-red-500" : "text-txt-muted"}`}
-        >
-          {job.status === "completed"
-            ? t("settings.imported_skipped", {
-                imported: job.processed_emails.toLocaleString(app_locale()),
-                skipped: skipped_text,
-              })
-            : get_status_label(job.status, t)}
-        </p>
-      </div>
-      <div className="flex items-center gap-2 flex-shrink-0 text-xs text-txt-muted">
-        <ClockIcon className="w-3 h-3" />
-        <span>{format_relative_time(job.created_at, t)}</span>
-        {can_delete && (
-          <button
-            aria-label={t("common.delete")}
-            className="p-1 rounded hover:bg-surf-tertiary text-txt-muted ms-1"
-            type="button"
-            onClick={() => on_delete(job.id)}
-          >
-            <TrashIcon className="w-4 h-4" />
-          </button>
-        )}
-      </div>
-    </div>
+    <Island>
+      <IslandRow
+        description={
+          <span className={is_failed ? "text-red-500" : undefined}>
+            {job.status === "completed"
+              ? t("settings.imported_skipped", {
+                  imported: job.processed_emails.toLocaleString(app_locale()),
+                  skipped: skipped_text,
+                })
+              : get_status_label(job.status, t)}
+          </span>
+        }
+        icon={get_status_icon(job.status)}
+        label={
+          <span className="block truncate">
+            {t("settings.source_import", { source: source_label })}
+          </span>
+        }
+        trailing={
+          <span className="flex items-center gap-1.5 text-xs text-txt-muted">
+            <ClockIcon className="w-3 h-3" />
+            <span className="tabular-nums">
+              {format_relative_time(job.created_at, t)}
+            </span>
+            {can_delete && (
+              <IslandIconButton
+                className="ms-1"
+                label={t("common.delete")}
+                size="sm"
+                onClick={() => on_delete(job.id)}
+              >
+                <TrashIcon className="w-4 h-4" />
+              </IslandIconButton>
+            )}
+          </span>
+        }
+      />
+    </Island>
   );
 }

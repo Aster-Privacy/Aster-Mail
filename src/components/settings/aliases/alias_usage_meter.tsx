@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { UpgradeBtn } from "@aster/ui";
+import { Island, UpgradeBtn, type IslandTone } from "@aster/ui";
 
 import { Progress } from "@/components/ui/progress";
 import { use_i18n } from "@/lib/i18n/context";
@@ -39,10 +39,10 @@ const BAR_CLASS: Record<AliasUsageLevel, string> = {
   at_limit: "[&>div]:bg-red-500",
 };
 
-const BORDER_COLOR: Record<AliasUsageLevel, string> = {
-  normal: "var(--border-secondary)",
-  approaching: "color-mix(in srgb, var(--color-warning) 45%, transparent)",
-  at_limit: "color-mix(in srgb, var(--destructive) 45%, transparent)",
+const ISLAND_TONE: Record<AliasUsageLevel, IslandTone> = {
+  normal: "default",
+  approaching: "warning",
+  at_limit: "danger",
 };
 
 export function AliasUsageMeter({
@@ -62,10 +62,7 @@ export function AliasUsageMeter({
     (() => show_alias_cap_upsell({ used: usage.used, limit: usage.limit }));
 
   return (
-    <div
-      className={`rounded-xl border bg-surf-tertiary px-3.5 py-3 ${className ?? ""}`}
-      style={{ borderColor: BORDER_COLOR[usage.level] }}
-    >
+    <Island className={className} padding="md" tone={ISLAND_TONE[usage.level]}>
       <div className="mb-1.5 flex items-center justify-between gap-2">
         <span className="text-sm font-medium text-txt-primary">
           {t("settings.usage_aliases")}
@@ -110,6 +107,6 @@ export function AliasUsageMeter({
           )}
         </div>
       )}
-    </div>
+    </Island>
   );
 }

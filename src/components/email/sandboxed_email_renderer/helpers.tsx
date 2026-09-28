@@ -160,7 +160,7 @@ export async function resolve_native_images(doc: Document): Promise<void> {
   );
 }
 
-export const BODY_PADDING = "8px 16px 16px 16px";
+export const BODY_PADDING = "8px 16px 8px 16px";
 
 export const HEX_COLOR_PATTERN = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
 export const FALLBACK_ACCENT = DEFAULT_ACCENT_COLOR;
@@ -336,6 +336,8 @@ export const CONTENT_READY_FALLBACK_MS = 1500;
 export const SETTLE_REMEASURE_DELAYS_MS = [250, 700, 1400];
 
 export const SKELETON_DELAY_MS = 180;
+
+export const UNMEASURED_PLACEHOLDER_HEIGHT = "96px";
 
 export const SKELETON_DELAY_MEASURED_MS = 90;
 

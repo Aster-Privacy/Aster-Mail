@@ -337,7 +337,6 @@ export function ConnectProviderModal({
           <Button
             className="mt-8 w-full"
             disabled={is_loading}
-            size="xl"
             variant="depth"
             onClick={handle_connect}
           >
@@ -348,7 +347,6 @@ export function ConnectProviderModal({
           <Button
             className="mt-3 w-full"
             disabled={is_loading}
-            size="xl"
             variant="outline"
             onClick={on_close}
           >

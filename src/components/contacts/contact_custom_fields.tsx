@@ -57,7 +57,7 @@ import {
 import { is_composing } from "@/utils/ime";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
-import { ButtonSpinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 
 interface ContactCustomFieldsProps {
   contact_id: string;
@@ -350,7 +350,7 @@ export function ContactCustomFields({
   if (is_loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <Spinner className="text-txt-muted" size="md" />
       </div>
     );
   }
@@ -417,7 +417,7 @@ export function ContactCustomFields({
                     }
                   >
                     {is_deleting ? (
-                      <div className="w-3 h-3 border-2 border-danger border-t-transparent rounded-full animate-spin" />
+                      <Spinner size="xs" />
                     ) : (
                       <TrashIcon className="w-3 h-3" />
                     )}
@@ -452,7 +452,7 @@ export function ContactCustomFields({
                       onClick={handle_save_value}
                     >
                       {is_saving ? (
-                        <div className="w-4 h-4 border-2 border-aster-success border-t-transparent rounded-full animate-spin" />
+                        <Spinner size="sm" />
                       ) : (
                         <CheckIcon className="w-4 h-4" />
                       )}

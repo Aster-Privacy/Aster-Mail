@@ -67,6 +67,7 @@ import { yield_to_browser } from "@/lib/scheduling";
 import {
   clear_all_read_intents,
   get_read_intent,
+  scope_read_applies,
   settle_flag_intents,
 } from "@/services/read_intent";
 import {
@@ -778,7 +779,9 @@ function apply_upsert(
     if (!existing && is_recently_removed(raw.id)) continue;
 
     let entry = raw;
-    const intended = get_read_intent(raw.id, fetched_at);
+    const intended =
+      get_read_intent(raw.id, fetched_at) ??
+      (scope_read_applies(raw.message_ts) ? true : undefined);
 
     if (intended !== undefined && entry.is_read !== intended) {
       entry = { ...entry, is_read: intended };

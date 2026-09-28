@@ -18,8 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { AnimatePresence, motion } from "framer-motion";
 import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { StatusBanner } from "@aster/ui";
 
 import { use_should_reduce_motion } from "@/provider";
 import { show_storage_full_upgrade } from "@/stores/upgrade_store";
@@ -45,36 +45,22 @@ export function MobileStorageBanner() {
   const is_visible = is_locked || is_warning;
 
   return (
-    <AnimatePresence>
-      {is_visible && (
-        <motion.div
-          animate={{ opacity: 1, height: "auto" }}
-          className="w-full flex-shrink-0 overflow-hidden text-white"
-          exit={{ opacity: 0, height: 0, overflow: "hidden" }}
-          initial={reduce_motion ? false : { opacity: 0, height: 0 }}
-          style={{ backgroundColor: is_locked ? "#dc2626" : "#d97706" }}
-          transition={{ duration: reduce_motion ? 0 : 0.2 }}
-        >
-          <div className="flex items-center justify-between gap-2 px-4 py-1.5">
-            <div className="flex min-w-0 items-center gap-1.5">
-              <ExclamationTriangleIcon className="h-3.5 w-3.5 flex-shrink-0 opacity-90" />
-              <span className="truncate text-xs font-medium opacity-95">
-                {is_locked
-                  ? t("settings.storage_locked_title")
-                  : t("settings.storage_warning_title")}
-              </span>
-            </div>
-            <button
-              className="flex-shrink-0 rounded-[12px] px-2.5 py-0.5 text-xs font-medium transition-colors"
-              style={{ backgroundColor: "rgba(255, 255, 255, 0.2)" }}
-              type="button"
-              onClick={() => show_storage_full_upgrade({})}
-            >
-              {t("common.upgrade")}
-            </button>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <StatusBanner
+      actions={[
+        {
+          label: t("common.upgrade"),
+          on_click: () => show_storage_full_upgrade({}),
+        },
+      ]}
+      icon={ExclamationTriangleIcon}
+      is_visible={is_visible}
+      message={
+        is_locked
+          ? t("settings.storage_locked_title")
+          : t("settings.storage_warning_title")
+      }
+      reduce_motion={reduce_motion}
+      tone={is_locked ? "danger" : "warning"}
+    />
   );
 }

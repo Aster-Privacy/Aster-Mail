@@ -81,7 +81,7 @@ export function use_folders(): UseFoldersReturn {
   const user = auth?.user ?? null;
   const [state, set_state] = useState<FoldersState>({
     folders: cached_folders.data,
-    is_loading: cached_folders.data.length === 0,
+    is_loading: cached_folders.data.length === 0 && !cached_folders.has_loaded,
     error: null,
     total: cached_folders.total,
   });
@@ -100,7 +100,7 @@ export function use_folders(): UseFoldersReturn {
         !get_vault_from_memory()?.identity_key
       ) {
         set_state((prev) =>
-          prev.is_loading && prev.error === null
+          prev.folders.length > 0 || (prev.is_loading && prev.error === null)
             ? prev
             : { ...prev, is_loading: true, error: null },
         );
@@ -114,7 +114,7 @@ export function use_folders(): UseFoldersReturn {
       const this_generation = ++fetch_generation_ref.current;
 
       set_state((prev) => {
-        if (prev.folders.length === 0) {
+        if (prev.folders.length === 0 && !cached_folders.has_loaded) {
           return { ...prev, is_loading: true, error: null };
         }
 
@@ -170,6 +170,7 @@ export function use_folders(): UseFoldersReturn {
 
           cached_folders.data = visible_folders;
           cached_folders.total = visible_folders.length;
+          cached_folders.has_loaded = true;
 
           set_state({
             folders: visible_folders,
@@ -724,6 +725,7 @@ export function use_folders(): UseFoldersReturn {
       counts_generation_ref.current += 1;
       cached_folders.data = [];
       cached_folders.total = 0;
+      cached_folders.has_loaded = false;
       set_state({
         folders: [],
         is_loading: true,

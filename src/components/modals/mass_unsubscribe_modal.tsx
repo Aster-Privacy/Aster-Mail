@@ -478,7 +478,7 @@ export function MassUnsubscribeModal({
           </div>
           <button
             aria-label={t("common.close")}
-            className="p-1.5 rounded-[14px] transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.05]"
+            className="p-1.5 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)]"
             style={{ color: "var(--text-muted)" }}
             onClick={on_close}
           >
@@ -534,7 +534,6 @@ export function MassUnsubscribeModal({
                 <div className="mt-6" />
                 <div className="flex gap-2">
                   <Button
-                    size="xl"
                     variant="outline"
                     onClick={() => {
                       set_show_success(false);
@@ -543,7 +542,7 @@ export function MassUnsubscribeModal({
                   >
                     {t("common.continue_label")}
                   </Button>
-                  <Button size="xl" variant="depth" onClick={on_close}>
+                  <Button variant="depth" onClick={on_close}>
                     {t("common.done")}
                   </Button>
                 </div>
@@ -721,7 +720,6 @@ export function MassUnsubscribeModal({
                   </button>
                   <Button
                     disabled={selected_ids.size === 0}
-                    size="xl"
                     variant="depth"
                     onClick={handle_unsubscribe}
                   >

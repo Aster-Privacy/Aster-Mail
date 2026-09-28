@@ -22,7 +22,15 @@ import type { ApiResponse } from "@/services/api/client";
 import type { HardwareKeysListResponse } from "@/services/api/webauthn";
 
 import { useState } from "react";
-import { Badge, Button, Switch } from "@aster/ui";
+import {
+  Badge,
+  Button,
+  IslandRow,
+  IslandSection,
+  IslandSections,
+  SettingControlRow,
+  SettingToggleRow,
+} from "@aster/ui";
 import {
   ShieldCheckIcon,
   PhotoIcon,
@@ -53,6 +61,7 @@ import { TrustedDevicesSection } from "@/components/settings/security/trusted_de
 import { AccountRecoverySection } from "@/components/settings/security/account_recovery_section";
 import { AccountProtectionScore } from "@/components/settings/security/account_protection_score";
 import { use_security } from "@/components/settings/hooks/use_security";
+import { use_recovery_status } from "@/hooks/use_recovery_status";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -83,6 +92,7 @@ export function SecuritySection({
   set_show_inline_totp_setup: set_show_inline_totp_setup_prop,
 }: SecuritySectionProps) {
   const security = use_security();
+  const recovery = use_recovery_status(true);
   const { t } = use_i18n();
   const { preferences, update_preference, update_preferences } =
     use_preferences();
@@ -161,7 +171,7 @@ export function SecuritySection({
   };
 
   return (
-    <div className="space-y-4">
+    <IslandSections>
       {passkey_error && (
         <LoadFailedNotice on_retry={() => void revalidate_passkeys()} />
       )}
@@ -174,9 +184,11 @@ export function SecuritySection({
             (id) => () => open_settings_target(SECURITY_CRITERION_TARGETS[id]),
           )}
           passkey_registered={passkey_registered}
+          recovery_codes_saved={recovery.has_codes}
           recovery_email_verified={security.recovery_email_verified}
           security_loaded={
             security.security_score_loaded &&
+            recovery.is_loaded &&
             passkey_loaded &&
             !security.totp_status_failed
           }
@@ -298,332 +310,256 @@ export function SecuritySection({
         on_rotate_keys_now={security.show_manual_rotation_modal}
       />
 
-      <AccountRecoverySection />
+      <AccountRecoverySection on_changed={recovery.reload} />
 
-      <div id={SETTINGS_ANCHORS.tracking}>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.tracking_protection_title")}
-          </h3>
-        </div>
+      <IslandSection
+        icon={<ShieldCheckIcon />}
+        id={SETTINGS_ANCHORS.tracking}
+        title={t("settings.tracking_protection_title")}
+      >
+        <SettingToggleRow
+          checked={preferences.block_external_content}
+          description={t("settings.tracking_protection_enabled_description")}
+          label={t("settings.tracking_protection_enabled")}
+          on_change={() => {
+            const new_value = !preferences.block_external_content;
 
-        <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.tracking_protection_enabled")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.tracking_protection_enabled_description")}
-            </p>
-          </div>
-          <Switch
-            aria-label={t("settings.tracking_protection_enabled")}
-            checked={preferences.block_external_content}
-            size="lg"
-            onCheckedChange={() => {
-              const new_value = !preferences.block_external_content;
-
-              if (new_value) {
-                update_preferences(
-                  {
-                    block_external_content: true,
-                    block_tracking_pixels: true,
-                  },
-                  true,
-                );
-              } else {
-                update_preferences(
-                  {
-                    block_external_content: false,
-                    block_tracking_pixels: false,
-                  },
-                  true,
-                );
-              }
-            }}
-          />
-        </div>
-
-        {preferences.block_external_content && (
-          <>
-            <div className="flex items-center justify-between py-4">
-              <div className="flex-1 pe-4">
-                <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-                  {t("settings.block_spy_pixels")}
-                  <InfoPopover
-                    description={t("settings.info_spy_pixels_description")}
-                    title={t("settings.info_spy_pixels_title")}
-                  />
-                </p>
-                <p className="text-sm mt-0.5 text-txt-muted">
-                  {t("settings.block_spy_pixels_description")}
-                </p>
-              </div>
-              <Switch
-                aria-label={t("settings.block_spy_pixels")}
-                checked={preferences.block_tracking_pixels}
-                size="lg"
-                onCheckedChange={() =>
-                  update_preference(
-                    "block_tracking_pixels",
-                    !preferences.block_tracking_pixels,
-                    true,
-                  )
-                }
-              />
-            </div>
-
-            <div className="flex items-center justify-between py-4">
-              <div className="flex-1 pe-4">
-                <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-                  {t("settings.block_tracking_links")}
-                  <InfoPopover
-                    description={t(
-                      "settings.info_block_tracking_links_description",
-                    )}
-                    title={t("settings.info_block_tracking_links_title")}
-                  />
-                </p>
-                <p className="text-sm mt-0.5 text-txt-muted">
-                  {t("settings.block_tracking_links_description")}
-                </p>
-              </div>
-              {preferences.block_external_content ? (
-                <Badge color="green">{t("common.active")}</Badge>
-              ) : (
-                <Badge color="gray">{t("common.inactive")}</Badge>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-
-      <div id={SETTINGS_ANCHORS.images}>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <PhotoIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.images_section_title")}
-          </h3>
-        </div>
-
-        <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.block_remote_images_label")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.block_remote_images_description")}
-            </p>
-          </div>
-          <Switch
-            aria-label={t("settings.block_remote_images_label")}
-            checked={preferences.block_remote_images}
-            size="lg"
-            onCheckedChange={() => {
-              const new_value = !preferences.block_remote_images;
-
+            if (new_value) {
               update_preferences(
                 {
-                  block_remote_images: new_value,
-                  load_remote_images: new_value ? "never" : "always",
+                  block_external_content: true,
+                  block_tracking_pixels: true,
                 },
                 true,
               );
-            }}
-          />
-        </div>
+            } else {
+              update_preferences(
+                {
+                  block_external_content: false,
+                  block_tracking_pixels: false,
+                },
+                true,
+              );
+            }
+          }}
+        />
 
-        {preferences.block_remote_images && (
-          <div className="flex items-center justify-between py-4">
-            <div className="flex-1 pe-4">
-              <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-                {t("settings.remote_image_loading")}
+        {preferences.block_external_content && (
+          <>
+            <SettingToggleRow
+              checked={preferences.block_tracking_pixels}
+              description={t("settings.block_spy_pixels_description")}
+              info={
+                <InfoPopover
+                  description={t("settings.info_spy_pixels_description")}
+                  title={t("settings.info_spy_pixels_title")}
+                />
+              }
+              label={t("settings.block_spy_pixels")}
+              on_change={() =>
+                update_preference(
+                  "block_tracking_pixels",
+                  !preferences.block_tracking_pixels,
+                  true,
+                )
+              }
+            />
+
+            <SettingControlRow
+              control={
+                preferences.block_external_content ? (
+                  <Badge color="green">{t("common.active")}</Badge>
+                ) : (
+                  <Badge color="gray">{t("common.inactive")}</Badge>
+                )
+              }
+              control_width="auto"
+              description={t("settings.block_tracking_links_description")}
+              info={
                 <InfoPopover
                   description={t(
-                    "settings.info_remote_image_loading_description",
+                    "settings.info_block_tracking_links_description",
                   )}
-                  title={t("settings.info_remote_image_loading_title")}
+                  title={t("settings.info_block_tracking_links_title")}
                 />
-              </p>
-              <p className="text-sm mt-0.5 text-txt-muted">
-                {t("settings.remote_image_loading_description")}
-              </p>
-            </div>
-            <Select
-              value={preferences.load_remote_images || "never"}
-              onValueChange={(v) => {
-                update_preference(
-                  "load_remote_images",
-                  v as "always" | "ask" | "never",
-                  true,
-                );
-              }}
-            >
-              <SelectTrigger className="w-[200px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="never">
-                  {t("settings.remote_images_never")}
-                </SelectItem>
-                <SelectItem value="ask">
-                  {t("settings.remote_images_ask")}
-                </SelectItem>
-                <SelectItem value="always">
-                  {t("settings.remote_images_always")}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+              }
+              label={t("settings.block_tracking_links")}
+              layout="inline"
+            />
+          </>
+        )}
+      </IslandSection>
+
+      <IslandSection
+        icon={<PhotoIcon />}
+        id={SETTINGS_ANCHORS.images}
+        title={t("settings.images_section_title")}
+      >
+        <SettingToggleRow
+          checked={preferences.block_remote_images}
+          description={t("settings.block_remote_images_description")}
+          label={t("settings.block_remote_images_label")}
+          on_change={() => {
+            const new_value = !preferences.block_remote_images;
+
+            update_preferences(
+              {
+                block_remote_images: new_value,
+                load_remote_images: new_value ? "never" : "always",
+              },
+              true,
+            );
+          }}
+        />
+
+        {preferences.block_remote_images && (
+          <SettingControlRow
+            control={
+              <Select
+                value={preferences.load_remote_images || "never"}
+                onValueChange={(v) => {
+                  update_preference(
+                    "load_remote_images",
+                    v as "always" | "ask" | "never",
+                    true,
+                  );
+                }}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="never">
+                    {t("settings.remote_images_never")}
+                  </SelectItem>
+                  <SelectItem value="ask">
+                    {t("settings.remote_images_ask")}
+                  </SelectItem>
+                  <SelectItem value="always">
+                    {t("settings.remote_images_always")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            }
+            description={t("settings.remote_image_loading_description")}
+            info={
+              <InfoPopover
+                description={t(
+                  "settings.info_remote_image_loading_description",
+                )}
+                title={t("settings.info_remote_image_loading_title")}
+              />
+            }
+            label={t("settings.remote_image_loading")}
+          />
         )}
 
-        <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-              {t("settings.block_remote_fonts_label")}
-              <InfoPopover
-                description={t("settings.info_block_fonts_description")}
-                title={t("settings.info_block_fonts_title")}
-              />
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.block_remote_fonts_description")}
-            </p>
-          </div>
-          <Switch
-            aria-label={t("settings.block_remote_fonts_label")}
-            checked={preferences.block_remote_fonts}
-            size="lg"
-            onCheckedChange={() =>
-              update_preference(
-                "block_remote_fonts",
-                !preferences.block_remote_fonts,
-                true,
-              )
-            }
-          />
-        </div>
+        <SettingToggleRow
+          checked={preferences.block_remote_fonts}
+          description={t("settings.block_remote_fonts_description")}
+          info={
+            <InfoPopover
+              description={t("settings.info_block_fonts_description")}
+              title={t("settings.info_block_fonts_title")}
+            />
+          }
+          label={t("settings.block_remote_fonts_label")}
+          on_change={() =>
+            update_preference(
+              "block_remote_fonts",
+              !preferences.block_remote_fonts,
+              true,
+            )
+          }
+        />
 
-        <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-              {t("settings.block_remote_css_label")}
-              <InfoPopover
-                description={t("settings.info_block_css_description")}
-                title={t("settings.info_block_css_title")}
-              />
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.block_remote_css_description")}
-            </p>
-          </div>
-          <Switch
-            aria-label={t("settings.block_remote_css_label")}
-            checked={preferences.block_remote_css}
-            size="lg"
-            onCheckedChange={() =>
-              update_preference(
-                "block_remote_css",
-                !preferences.block_remote_css,
-                true,
-              )
-            }
-          />
-        </div>
+        <SettingToggleRow
+          checked={preferences.block_remote_css}
+          description={t("settings.block_remote_css_description")}
+          info={
+            <InfoPopover
+              description={t("settings.info_block_css_description")}
+              title={t("settings.info_block_css_title")}
+            />
+          }
+          label={t("settings.block_remote_css_label")}
+          on_change={() =>
+            update_preference(
+              "block_remote_css",
+              !preferences.block_remote_css,
+              true,
+            )
+          }
+        />
 
-        <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-              {t("settings.strip_exif_on_compose_label")}
-              <InfoPopover
-                description={t("settings.info_strip_exif_description")}
-                title={t("settings.info_strip_exif_title")}
-              />
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.strip_exif_on_compose_description")}
-            </p>
-          </div>
-          <Switch
-            aria-label={t("settings.strip_exif_on_compose_label")}
-            checked={preferences.strip_exif_on_compose}
-            size="lg"
-            onCheckedChange={() =>
-              update_preference(
-                "strip_exif_on_compose",
-                !preferences.strip_exif_on_compose,
-                true,
-              )
-            }
-          />
-        </div>
-      </div>
+        <SettingToggleRow
+          checked={preferences.strip_exif_on_compose}
+          description={t("settings.strip_exif_on_compose_description")}
+          info={
+            <InfoPopover
+              description={t("settings.info_strip_exif_description")}
+              title={t("settings.info_strip_exif_title")}
+            />
+          }
+          label={t("settings.strip_exif_on_compose_label")}
+          on_change={() =>
+            update_preference(
+              "strip_exif_on_compose",
+              !preferences.strip_exif_on_compose,
+              true,
+            )
+          }
+        />
+      </IslandSection>
+
+      <IslandSection
+        icon={<CodeBracketIcon />}
+        title={t("settings.html_content_section_title")}
+      >
+        <SettingToggleRow
+          checked={preferences.html_rendering_mode === "plain_text"}
+          description={t("settings.html_rendering_mode_description")}
+          label={t("settings.html_rendering_mode_label")}
+          on_change={() =>
+            update_preference(
+              "html_rendering_mode",
+              preferences.html_rendering_mode === "plain_text"
+                ? "html"
+                : "plain_text",
+              true,
+            )
+          }
+        />
+      </IslandSection>
+
+      <IslandSection
+        icon={<CpuChipIcon />}
+        id={SETTINGS_ANCHORS.vanguard}
+        title={t("settings.vanguard_title")}
+      >
+        <VanguardSection />
+      </IslandSection>
 
       <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <CodeBracketIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.html_content_section_title")}
-          </h3>
-        </div>
-
-        <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.html_rendering_mode_label")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.html_rendering_mode_description")}
-            </p>
-          </div>
-          <Switch
-            aria-label={t("settings.html_rendering_mode_label")}
-            checked={preferences.html_rendering_mode === "plain_text"}
-            size="lg"
-            onCheckedChange={() =>
-              update_preference(
-                "html_rendering_mode",
-                preferences.html_rendering_mode === "plain_text"
-                  ? "html"
-                  : "plain_text",
-                true,
-              )
-            }
-          />
-        </div>
-      </div>
-
-      <div id={SETTINGS_ANCHORS.vanguard}>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <CpuChipIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.vanguard_title")}
-          </h3>
-        </div>
-        <VanguardSection />
-      </div>
-
-      <div className="pt-3">
         <ConnectionSection />
       </div>
 
-      <div className="flex items-center justify-between py-4 px-1 mt-4 border-t border-edge-secondary">
-        <div>
-          <p className="text-sm font-medium text-red-500">
-            {t("common.delete_account")}
-          </p>
-          <p className="text-sm mt-0.5 text-txt-muted">
-            {t("common.erase_all_data")}
-          </p>
-        </div>
-        <Button
-          variant="destructive"
-          onClick={() => set_show_delete_modal(true)}
-        >
-          {t("common.delete")}
-        </Button>
-      </div>
+      <IslandSection tone="danger">
+        <IslandRow
+          destructive
+          description={t("common.erase_all_data")}
+          label={t("common.delete_account")}
+          layout="stacked"
+          trailing={
+            <Button
+              variant="destructive"
+              onClick={() => set_show_delete_modal(true)}
+            >
+              {t("common.delete")}
+            </Button>
+          }
+        />
+      </IslandSection>
 
       <TotpDisableModal
         is_open={security.show_totp_disable_modal}
@@ -669,6 +605,6 @@ export function SecuritySection({
         }
         variant="danger"
       />
-    </div>
+    </IslandSections>
   );
 }

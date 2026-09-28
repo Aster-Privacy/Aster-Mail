@@ -20,7 +20,7 @@
 //
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Button, Switch } from "@aster/ui";
+import { Button, Input, IslandRow } from "@aster/ui";
 import {
   ArrowLeftIcon,
   BackspaceIcon,
@@ -133,7 +133,9 @@ function PinPad({
   const btn = (active: boolean) =>
     cn(
       "h-12 w-12 mx-auto rounded-full flex items-center justify-center transition-all duration-75 focus:outline-none focus-visible:outline-none",
-      disabled ? "opacity-40 cursor-not-allowed" : "bg-muted hover:bg-muted/70",
+      disabled
+        ? "bg-muted/40 text-txt-muted cursor-not-allowed"
+        : "bg-muted hover:bg-muted/70",
       active && !disabled && "scale-90 bg-muted/50",
     );
 
@@ -368,13 +370,14 @@ function VerifyPinModal({
               transition={{ duration: 0.35 }}
             >
               <div className="relative">
-                <input
+                <Input
                   ref={text_input_ref}
                   autoComplete="off"
-                  className="w-full px-3 py-2.5 pe-10 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
+                  className="pe-10"
                   data-form-type="other"
                   disabled={verifying || locked_out}
                   placeholder={t("settings.app_lock_text_placeholder")}
+                  size="md"
                   type={show_passphrase ? "text" : "password"}
                   value={input}
                   onChange={(e) => {
@@ -723,7 +726,7 @@ function SetupPinModal({
         <div className="flex items-center gap-2">
           {!is_first_step && (
             <button
-              className="p-1 -ms-1 rounded-lg hover:bg-muted transition-colors"
+              className="p-1 -ms-1 rounded-[var(--aster-radius-control)] hover:bg-muted transition-colors"
               type="button"
               onClick={handle_back}
             >
@@ -749,7 +752,7 @@ function SetupPinModal({
           <div className="flex flex-col gap-2">
             <button
               className={cn(
-                "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-start",
+                "w-full py-3 px-4 rounded-[var(--aster-radius-control)] text-sm font-medium transition-colors text-start",
                 chosen_mode === "numeric"
                   ? "bg-brand text-[var(--accent-fg,#ffffff)] border border-brand"
                   : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
@@ -773,7 +776,7 @@ function SetupPinModal({
             </button>
             <button
               className={cn(
-                "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-start",
+                "w-full py-3 px-4 rounded-[var(--aster-radius-control)] text-sm font-medium transition-colors text-start",
                 chosen_mode === "text"
                   ? "bg-brand text-[var(--accent-fg,#ffffff)] border border-brand"
                   : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
@@ -801,7 +804,7 @@ function SetupPinModal({
               <button
                 key={n}
                 className={cn(
-                  "w-full py-3 px-4 rounded-xl text-sm font-medium transition-colors text-start",
+                  "w-full py-3 px-4 rounded-[var(--aster-radius-control)] text-sm font-medium transition-colors text-start",
                   chosen_digits === n
                     ? "bg-brand text-[var(--accent-fg,#ffffff)] border border-brand"
                     : "bg-surf-secondary text-txt-primary hover:bg-surf-tertiary border border-edge-secondary",
@@ -865,12 +868,13 @@ function SetupPinModal({
               className="relative"
               transition={{ duration: 0.35 }}
             >
-              <input
+              <Input
                 autoFocus
                 autoComplete="off"
-                className="w-full px-3 py-2.5 pe-10 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
+                className="pe-10"
                 data-form-type="other"
                 placeholder={t("settings.app_lock_text_placeholder")}
+                size="md"
                 type={show_passphrase ? "text" : "password"}
                 value={text_input}
                 onChange={(e) => set_text_input(e.target.value)}
@@ -985,33 +989,29 @@ export function AppLockSection() {
 
   return (
     <>
-      <div className="py-4 px-1">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.app_lock_pin")}
-            </p>
-            <p className="text-xs mt-0.5 text-txt-muted">
-              {t("settings.app_lock_pin_description")}
-            </p>
-          </div>
-          <Switch
-            aria-label={t("settings.app_lock_pin")}
-            checked={enabled}
-            size="lg"
-            onCheckedChange={handle_toggle}
-          />
-        </div>
-        {enabled && (
-          <button
-            className="mt-3 text-xs text-brand underline underline-offset-2 hover:opacity-80"
-            type="button"
-            onClick={() => set_modal("verify_to_change")}
-          >
-            {t("settings.app_lock_change_pin")}
-          </button>
-        )}
-      </div>
+      <IslandRow
+        description={
+          <>
+            {t("settings.app_lock_pin_description")}
+            {enabled && (
+              <button
+                className="block mt-2 text-xs text-brand underline underline-offset-2 hover:opacity-80"
+                type="button"
+                onClick={() => set_modal("verify_to_change")}
+              >
+                {t("settings.app_lock_change_pin")}
+              </button>
+            )}
+          </>
+        }
+        label={t("settings.app_lock_pin")}
+        toggle={{
+          checked: enabled,
+          on_change: handle_toggle,
+          size: "lg",
+          aria_label: t("settings.app_lock_pin"),
+        }}
+      />
 
       {enabled && <DuressPinSection />}
 

@@ -60,13 +60,7 @@ export function SendingMessageBlock({
   const lockdown = is_any_lockdown_active();
 
   return (
-    <div
-      className="relative overflow-hidden rounded-xl animate-pulse"
-      style={{
-        backgroundColor: "var(--thread-card-bg)",
-        border: "1px solid var(--thread-card-border)",
-      }}
-    >
+    <div className="relative overflow-hidden animate-pulse">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
           <ProfileAvatar

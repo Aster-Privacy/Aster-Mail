@@ -30,7 +30,12 @@ import {
   SwatchIcon,
   ViewColumnsIcon,
 } from "@heroicons/react/24/outline";
-import { Switch } from "@aster/ui";
+import {
+  Island,
+  IslandSection,
+  IslandSections,
+  SettingToggleRow,
+} from "@aster/ui";
 
 import { SettingsSaveIndicatorInline } from "./settings_save_indicator";
 
@@ -272,18 +277,14 @@ export function AppearanceSection() {
   };
 
   return (
-    <div className="space-y-4">
+    <IslandSections>
       <SettingsSaveIndicatorInline />
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <PaintBrushIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.theme")}
-          </h3>
-        </div>
-        <p className="text-sm mb-4 text-txt-muted">
-          {t("settings.change_appearance")}
-        </p>
+      <IslandSection
+        bare
+        description={t("settings.change_appearance")}
+        icon={<PaintBrushIcon />}
+        title={t("settings.theme")}
+      >
         <div
           className={
             show_more_themes
@@ -408,7 +409,7 @@ export function AppearanceSection() {
             </>
           )}
         </div>
-        <div className="mt-3 flex items-center gap-4">
+        <div className="flex items-center gap-4 px-1">
           <button
             className="flex items-center gap-1 text-sm font-medium text-txt-secondary hover:text-txt-primary transition-colors cursor-pointer"
             type="button"
@@ -443,83 +444,79 @@ export function AppearanceSection() {
             </button>
           )}
         </div>
-        <SettingRow
-          description={t("settings.theme_sync_across_devices_description")}
-          label={t("settings.theme_sync_across_devices")}
-        >
-          <Switch
+        <Island>
+          <SettingToggleRow
             checked={theme_sync_enabled}
-            size="lg"
-            onCheckedChange={handle_theme_sync_change}
+            description={t("settings.theme_sync_across_devices_description")}
+            label={t("settings.theme_sync_across_devices")}
+            on_change={handle_theme_sync_change}
           />
-        </SettingRow>
-      </div>
+        </Island>
+      </IslandSection>
 
-      <div className="pt-3">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <SwatchIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.custom_theme_title")}
-          </h3>
-        </div>
-        <p className="text-sm mb-4 text-txt-muted">
-          {t("settings.custom_theme_description")}
-        </p>
-        <SettingRow
-          description={t("settings.font_choice_description")}
-          label={t("settings.font_choice_title")}
-        >
-          <Select
-            value={preferences.font_choice ?? DEFAULT_FONT_ID}
-            onValueChange={handle_font_change}
+      <IslandSection
+        bare
+        description={t("settings.custom_theme_description")}
+        icon={<SwatchIcon />}
+        title={t("settings.custom_theme_title")}
+      >
+        <Island>
+          <SettingRow
+            description={t("settings.font_choice_description")}
+            label={t("settings.font_choice_title")}
           >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {FONT_OPTIONS.map((font) => (
-                <SelectItem key={font.id} value={font.id}>
-                  {font.id === "default"
-                    ? t("settings.font_option_default")
-                    : font.id === "system"
-                      ? t("settings.font_option_system")
-                      : font.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </SettingRow>
+            <Select
+              value={preferences.font_choice ?? DEFAULT_FONT_ID}
+              onValueChange={handle_font_change}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {FONT_OPTIONS.map((font) => (
+                  <SelectItem key={font.id} value={font.id}>
+                    {font.id === "default"
+                      ? t("settings.font_option_default")
+                      : font.id === "system"
+                        ? t("settings.font_option_system")
+                        : font.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </SettingRow>
 
-        <SettingRow
-          description={t("settings.email_font_choice_description")}
-          label={t("settings.email_font_choice_title")}
-        >
-          <Select
-            value={preferences.email_font_choice ?? EMAIL_FONT_MATCH_APP_ID}
-            onValueChange={handle_email_font_change}
+          <SettingRow
+            description={t("settings.email_font_choice_description")}
+            label={t("settings.email_font_choice_title")}
           >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={EMAIL_FONT_MATCH_APP_ID}>
-                {t("settings.email_font_option_match_app")}
-              </SelectItem>
-              {FONT_OPTIONS.map((font) => (
-                <SelectItem key={font.id} value={font.id}>
-                  {font.id === "default"
-                    ? t("settings.font_option_default")
-                    : font.id === "system"
-                      ? t("settings.font_option_system")
-                      : font.label}
+            <Select
+              value={preferences.email_font_choice ?? EMAIL_FONT_MATCH_APP_ID}
+              onValueChange={handle_email_font_change}
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={EMAIL_FONT_MATCH_APP_ID}>
+                  {t("settings.email_font_option_match_app")}
                 </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </SettingRow>
+                {FONT_OPTIONS.map((font) => (
+                  <SelectItem key={font.id} value={font.id}>
+                    {font.id === "default"
+                      ? t("settings.font_option_default")
+                      : font.id === "system"
+                        ? t("settings.font_option_system")
+                        : font.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </SettingRow>
+        </Island>
 
         {is_paid_plan && (
-          <div className="mt-6">
+          <Island padding="md">
             <p className="text-sm font-semibold text-txt-primary mb-4">
               {t("settings.custom_theme_colors_title")}
             </p>
@@ -597,17 +594,14 @@ export function AppearanceSection() {
                 );
               })}
             </div>
-          </div>
+          </Island>
         )}
-      </div>
+      </IslandSection>
 
-      <div className="pt-3">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <GlobeAltIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.language_format_title")}
-          </h3>
-        </div>
+      <IslandSection
+        icon={<GlobeAltIcon />}
+        title={t("settings.language_format_title")}
+      >
         <SettingRow
           description={t("settings.language_description")}
           label={t("settings.language")}
@@ -637,7 +631,7 @@ export function AppearanceSection() {
             value={preferences.time_format}
             onValueChange={handle_time_format_change}
           >
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[200px]">
               <SelectValue>{time_format_display}</SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -659,7 +653,7 @@ export function AppearanceSection() {
             value={preferences.date_format}
             onValueChange={handle_date_format_change}
           >
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-[200px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -680,18 +674,14 @@ export function AppearanceSection() {
             value={time_zone_value}
           />
         </SettingRow>
-      </div>
+      </IslandSection>
 
-      <div className="pt-3">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <ViewColumnsIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.email_view_mode")}
-          </h3>
-        </div>
-        <p className="text-sm mb-2 text-txt-muted">
-          {t("settings.email_view_description")}
-        </p>
+      <IslandSection
+        bare
+        description={t("settings.email_view_description")}
+        icon={<ViewColumnsIcon />}
+        title={t("settings.email_view_mode")}
+      >
         <div className="flex gap-4">
           <ViewModeCard
             is_selected={preferences.email_view_mode === "popup"}
@@ -722,41 +712,39 @@ export function AppearanceSection() {
           />
         </div>
 
-        <SettingRow
-          description={t("settings.density_description")}
-          label={t("settings.density")}
-        >
-          <Select
-            value={resolve_list_density(preferences.mail_list_density)}
-            onValueChange={(value) =>
-              update_preference("mail_list_density", value, true)
-            }
+        <Island>
+          <SettingRow
+            description={t("settings.density_description")}
+            label={t("settings.density")}
           >
-            <SelectTrigger className="w-[200px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="comfortable">
-                {t("settings.density_comfortable")}
-              </SelectItem>
-              <SelectItem value="compact">
-                {t("settings.density_compact")}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </SettingRow>
-      </div>
+            <Select
+              value={resolve_list_density(preferences.mail_list_density)}
+              onValueChange={(value) =>
+                update_preference("mail_list_density", value, true)
+              }
+            >
+              <SelectTrigger className="w-[200px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="comfortable">
+                  {t("settings.density_comfortable")}
+                </SelectItem>
+                <SelectItem value="compact">
+                  {t("settings.density_compact")}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </SettingRow>
+        </Island>
+      </IslandSection>
 
-      <div className="pt-3">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <PencilSquareIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.compose_window_mode")}
-          </h3>
-        </div>
-        <p className="text-sm mb-2 text-txt-muted">
-          {t("settings.compose_window_mode_description")}
-        </p>
+      <IslandSection
+        bare
+        description={t("settings.compose_window_mode_description")}
+        icon={<PencilSquareIcon />}
+        title={t("settings.compose_window_mode")}
+      >
         <div className="flex gap-4">
           <ComposeModeCard
             is_selected={
@@ -792,7 +780,7 @@ export function AppearanceSection() {
             theme={mockup_theme}
           />
         </div>
-      </div>
-    </div>
+      </IslandSection>
+    </IslandSections>
   );
 }

@@ -29,12 +29,7 @@ import {
 } from "@/services/api/billing";
 
 export type CancelStep =
-  | "early"
-  | "reason"
-  | "offer"
-  | "impact"
-  | "password"
-  | "confirm";
+  "early" | "reason" | "offer" | "impact" | "password" | "confirm";
 
 interface ImpactLine {
   key: string;
@@ -167,7 +162,7 @@ export function CancelImpactStep({
           {t("settings.cancel_impact_unavailable")}
         </p>
       ) : (
-        <ul className="max-h-[40vh] divide-y divide-edge-secondary overflow-y-auto rounded-lg border border-edge-secondary">
+        <ul className="max-h-[40vh] divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))] overflow-y-auto rounded-lg border border-edge-secondary">
           {lines.map((line) => (
             <li
               key={line.key}
@@ -190,14 +185,14 @@ export function CancelImpactStep({
         {keep_plan_slot}
         <div className="ms-auto flex flex-row items-center gap-2">
           <button
-            className={button_variants({ variant: "ghost", size: "sm" })}
+            className={button_variants({ variant: "ghost" })}
             type="button"
             onClick={on_back}
           >
             {t("common.back")}
           </button>
           <button
-            className={button_variants({ variant: "primary", size: "sm" })}
+            className={button_variants({ variant: "primary" })}
             disabled={is_loading}
             type="button"
             onClick={on_continue}

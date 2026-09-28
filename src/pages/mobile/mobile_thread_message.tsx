@@ -39,9 +39,13 @@ import {
   is_html_content,
   has_rich_html,
   plain_text_to_html,
-  strip_html_tags,
+  strip_html_tags_bounded,
   type ExternalContentReport,
 } from "@/lib/html_sanitizer";
+import {
+  extract_preview_html,
+  move_leading_footer_to_end,
+} from "@/components/email/message_body_parts";
 import { is_system_email } from "@/lib/utils";
 import { get_image_proxy_url } from "@/lib/image_proxy";
 import { MobileAttachmentRow } from "@/components/mobile/mobile_attachment_row";
@@ -52,6 +56,7 @@ import {
 } from "@/utils/attachment_download";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_preferences } from "@/contexts/preferences_context";
+import { clip_with_ellipsis } from "@/utils/preview_text";
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
   PGP_UNDECRYPTABLE_SENTINEL,
@@ -149,7 +154,7 @@ export function MobileThreadMessage({
     }
 
     if (message.html_content && !is_ratchet_envelope(message.html_content)) {
-      return message.html_content;
+      return move_leading_footer_to_end(message.html_content);
     }
 
     return strip_reply_quotes(message.body);
@@ -179,9 +184,11 @@ export function MobileThreadMessage({
     ) {
       return t("mail.encrypted_message_unavailable");
     }
-    const plain = strip_html_tags(clean_body);
+    const plain = strip_html_tags_bounded(extract_preview_html(clean_body), 600)
+      .replace(/\s+/g, " ")
+      .trim();
 
-    return plain.length > 60 ? plain.substring(0, 60) + "..." : plain;
+    return clip_with_ellipsis(plain, 60);
   }, [clean_body, password_protected, t]);
 
   const is_system = is_system_email(message);
@@ -352,7 +359,7 @@ export function MobileThreadMessage({
   if (!is_expanded) {
     return (
       <div
-        className="border border-[var(--border-primary)] rounded-xl mx-3 my-1.5 overflow-hidden bg-[var(--thread-header-bg)] cursor-pointer"
+        className="cursor-pointer transition-colors active:bg-[color:var(--aster-island-press)]"
         role="button"
         tabIndex={0}
         onClick={on_toggle}
@@ -394,12 +401,11 @@ export function MobileThreadMessage({
           </div>
           <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
             <button
-              className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[var(--text-secondary)] active:opacity-70"
+              aria-label={t("common.more")}
+              className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-secondary)] active:opacity-70"
               style={{
-                background: "var(--bg-tertiary)",
-                boxShadow:
-                  "0 1px 2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.06)",
-                border: "1px solid var(--border-primary)",
+                background:
+                  "color-mix(in srgb, var(--text-primary) 7%, transparent)",
               }}
               type="button"
               onClick={() => on_open_menu(message)}
@@ -413,9 +419,9 @@ export function MobileThreadMessage({
   }
 
   return (
-    <div className="border border-[var(--border-primary)] rounded-xl mx-3 my-1.5 overflow-hidden bg-[var(--bg-primary)]">
+    <div>
       <div
-        className="flex items-start gap-3 px-4 py-3 bg-[var(--thread-header-bg)] cursor-pointer"
+        className="flex items-start gap-3 px-4 py-3 cursor-pointer"
         role="button"
         tabIndex={0}
         onClick={on_toggle}
@@ -445,38 +451,11 @@ export function MobileThreadMessage({
               onClick={(e) => e.stopPropagation()}
             >
               <button
-                className="flex h-8 items-center gap-1 rounded-[12px] px-2.5 text-[var(--text-secondary)] active:opacity-70"
+                aria-label={t("common.more")}
+                className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--text-secondary)] active:opacity-70"
                 style={{
-                  background: "var(--bg-tertiary)",
-                  boxShadow:
-                    "0 1px 2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.06)",
-                  border: "1px solid var(--border-primary)",
-                }}
-                type="button"
-                onClick={() => on_reply(message)}
-              >
-                <ArrowUturnLeftIcon className="h-4 w-4 rtl:-scale-x-100" />
-              </button>
-              <button
-                className="flex h-8 items-center gap-1 rounded-[12px] px-2.5 text-[var(--text-secondary)] active:opacity-70"
-                style={{
-                  background: "var(--bg-tertiary)",
-                  boxShadow:
-                    "0 1px 2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.06)",
-                  border: "1px solid var(--border-primary)",
-                }}
-                type="button"
-                onClick={() => on_forward(message)}
-              >
-                <ArrowUturnRightIcon className="h-4 w-4 rtl:-scale-x-100" />
-              </button>
-              <button
-                className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[var(--text-secondary)] active:opacity-70"
-                style={{
-                  background: "var(--bg-tertiary)",
-                  boxShadow:
-                    "0 1px 2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.06)",
-                  border: "1px solid var(--border-primary)",
+                  background:
+                    "color-mix(in srgb, var(--text-primary) 7%, transparent)",
                 }}
                 type="button"
                 onClick={() => on_open_menu(message)}
@@ -592,35 +571,24 @@ export function MobileThreadMessage({
         </div>
       )}
 
-      <div className="flex items-center gap-2 border-t border-[var(--border-primary)] px-4 py-2">
+      <div className="flex items-center gap-2 px-4 pb-4">
         <button
-          className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-[14px] text-[13px] font-medium text-[var(--accent-fg,#ffffff)] active:opacity-70"
-          style={{
-            background:
-              "linear-gradient(180deg, var(--accent-color, #3b82f6) 0%, var(--accent-color-hover, #2563eb) 100%)",
-            boxShadow:
-              "0 1px 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-            border: "none",
-          }}
+          className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-[var(--aster-radius-control)] text-[15px] font-medium text-[var(--accent-fg,#ffffff)] transition-opacity active:opacity-80"
+          style={{ background: "var(--accent-color, #3b82f6)" }}
           type="button"
           onClick={() => on_reply(message)}
         >
-          <ArrowUturnLeftIcon className="h-4 w-4 rtl:-scale-x-100" />
-          {t("mail.reply")}
+          <ArrowUturnLeftIcon className="h-[18px] w-[18px] shrink-0 rtl:-scale-x-100" />
+          <span className="truncate">{t("mail.reply")}</span>
         </button>
         <button
-          className="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-[14px] text-[13px] font-medium text-[var(--text-secondary)] active:opacity-70"
-          style={{
-            background: "var(--bg-tertiary)",
-            boxShadow:
-              "0 1px 2px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.06)",
-            border: "1px solid var(--border-primary)",
-          }}
+          className="flex h-12 min-w-0 flex-1 items-center justify-center gap-2 rounded-[var(--aster-radius-control)] text-[15px] font-medium text-[var(--text-primary)] transition-opacity active:opacity-80"
+          style={{ background: "var(--aster-field-bg)" }}
           type="button"
           onClick={() => on_forward(message)}
         >
-          <ArrowUturnRightIcon className="h-4 w-4 rtl:-scale-x-100" />
-          {t("mail.forward")}
+          <ArrowUturnRightIcon className="h-[18px] w-[18px] shrink-0 rtl:-scale-x-100" />
+          <span className="truncate">{t("mail.forward")}</span>
         </button>
       </div>
     </div>

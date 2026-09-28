@@ -404,7 +404,11 @@ export function AliasesSection({
           <p className="text-[13px] text-[var(--text-muted)] mb-3">
             {t("settings.aliases_description")}
           </p>
-          <AliasUsageMeter limit={max_count} used={total_count} />
+          <AliasUsageMeter
+            className="mb-3"
+            limit={max_count}
+            used={total_count}
+          />
         </div>
 
         <div className="px-4">
@@ -474,7 +478,7 @@ export function AliasesSection({
               {t("common.something_went_wrong_try_again")}
             </p>
             <button
-              className="rounded-[12px] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
+              className="rounded-[var(--aster-radius-control)] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
               type="button"
               onClick={() => void hook.load_aliases()}
             >
@@ -765,7 +769,7 @@ export function AliasesSection({
                           <div className="flex items-center gap-2">
                             {domain.status !== "active" && (
                               <button
-                                className="rounded-[12px] px-3 py-1.5 text-[12px] font-medium text-white"
+                                className="rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[12px] font-medium text-white"
                                 style={{
                                   background:
                                     "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
@@ -933,12 +937,12 @@ export function AliasesSection({
               <Spinner size="md" />
             </div>
           ) : purchased_load_failed && purchased_orders.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-[var(--border-primary)] py-8 px-4">
+            <div className="flex flex-col items-center gap-3 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] py-8 px-4">
               <p className="text-center text-[13px] text-[var(--mobile-text-muted)]">
                 {t("common.something_went_wrong_try_again")}
               </p>
               <button
-                className="rounded-[12px] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
+                className="rounded-[var(--aster-radius-control)] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
                 type="button"
                 onClick={() => load_purchased_orders()}
               >
@@ -946,7 +950,7 @@ export function AliasesSection({
               </button>
             </div>
           ) : purchased_orders.length === 0 ? (
-            <div className="flex flex-col items-center rounded-xl border border-dashed border-[var(--border-primary)] py-8 px-4">
+            <div className="flex flex-col items-center rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] py-8 px-4">
               <ShoppingBagIcon className="h-12 w-12 text-[var(--mobile-text-muted)] opacity-40 mb-2" />
               <p className="text-center text-[13px] text-[var(--mobile-text-muted)]">
                 {t("settings.domain_purchase_purchased_empty")}

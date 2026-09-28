@@ -167,6 +167,7 @@ function transform_draft(
       new Date(draft.updated_at),
       format_options,
     ),
+    raw_timestamp: draft.updated_at,
     is_pinned: false,
     is_starred: false,
     is_selected: false,

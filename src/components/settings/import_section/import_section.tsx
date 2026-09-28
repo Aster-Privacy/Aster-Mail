@@ -25,7 +25,14 @@ import {
   ArrowDownTrayIcon,
   InformationCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Checkbox } from "@aster/ui";
+import {
+  Button,
+  Checkbox,
+  Island,
+  IslandRow,
+  IslandSection,
+  IslandSections,
+} from "@aster/ui";
 
 import { ImportModal } from "../import_modal";
 import {
@@ -50,7 +57,6 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert_dialog";
-import { ButtonSpinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
@@ -810,41 +816,31 @@ export function ImportSection() {
   }, [trigger_post_oauth_setup]);
 
   return (
-    <div className="space-y-5">
-      {/* Page header */}
-      <div>
-        <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-          <ArrowDownTrayIcon className="w-[18px] h-[18px] flex-shrink-0" />
-          {t("settings.import_emails_title")}
-        </h3>
-        <p className="text-sm text-txt-muted mt-2">
-          {t("settings.import_emails_description")}
-        </p>
-      </div>
+    <IslandSections>
+      <IslandSection
+        bare
+        description={t("settings.import_emails_description")}
+        icon={<ArrowDownTrayIcon />}
+        title={t("settings.import_emails_title")}
+      >
+        {accounts_load_failed && !is_loading_accounts && (
+          <LoadFailedNotice
+            on_retry={() => {
+              set_is_loading_accounts(true);
+              load_connected_accounts();
+            }}
+          />
+        )}
 
-      {/* Connected accounts - shown at top when present */}
-      {accounts_load_failed && !is_loading_accounts && (
-        <LoadFailedNotice
-          on_retry={() => {
-            set_is_loading_accounts(true);
-            load_connected_accounts();
-          }}
-        />
-      )}
+        {is_loading_accounts && (
+          <div aria-hidden="true">
+            <div className="mb-2 h-3 w-40 animate-pulse rounded bg-surf-secondary" />
+            <Island className="h-16 animate-pulse" />
+          </div>
+        )}
 
-      {is_loading_accounts && (
-        <div aria-hidden="true">
-          <div className="mb-2 h-3 w-40 animate-pulse rounded bg-surf-secondary" />
-          <div className="h-16 animate-pulse rounded-xl border border-edge-secondary bg-surf-secondary" />
-        </div>
-      )}
-
-      {!is_loading_accounts && connected_accounts.length > 0 && (
-        <div>
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-txt-muted mb-2">
-            {t("settings.connected_accounts_title")}
-          </h4>
-          <div className="space-y-2">
+        {!is_loading_accounts && connected_accounts.length > 0 && (
+          <IslandSection bare title={t("settings.connected_accounts_title")}>
             {connected_accounts.map((account) => (
               <ConnectedAccountCard
                 key={account.id}
@@ -885,14 +881,13 @@ export function ImportSection() {
                 }}
               />
             ))}
-          </div>
-        </div>
-      )}
+          </IslandSection>
+        )}
+      </IslandSection>
 
-      {/* Import options */}
-      <div>
-        <h4 className="text-xs font-semibold uppercase tracking-wide text-txt-muted mb-2">
-          {is_loading_accounts ? (
+      <IslandSection
+        title={
+          is_loading_accounts ? (
             <span
               aria-hidden="true"
               className="block h-3 w-32 animate-pulse rounded bg-surf-secondary"
@@ -901,136 +896,118 @@ export function ImportSection() {
             t("settings.import_add_another")
           ) : (
             t("settings.import_choose_source")
-          )}
-        </h4>
-        <div className="space-y-2">
-          {PROVIDERS.map((provider) => {
-            const is_oauth = OAUTH_PROVIDERS.has(provider.id);
-            const is_loading = oauth_loading === provider.id;
-            const any_loading =
-              oauth_loading !== null || connect_provider !== null;
+          )
+        }
+      >
+        {PROVIDERS.map((provider) => {
+          const is_oauth = OAUTH_PROVIDERS.has(provider.id);
+          const is_loading = oauth_loading === provider.id;
+          const any_loading =
+            oauth_loading !== null || connect_provider !== null;
 
-            return (
-              <div
-                key={provider.id}
-                className="flex flex-col gap-2 px-4 py-3 rounded-xl border bg-surf-secondary border-edge-secondary"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 w-6 flex items-center justify-center">
-                    {provider.icon}
-                  </div>
-                  <span className="flex-1 min-w-0 truncate text-sm font-medium text-txt-primary">
-                    {t(provider.label_key)}
-                  </span>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {is_oauth && (
-                      <Button
-                        disabled={any_loading}
-                        size="sm"
-                        variant="depth"
-                        onClick={() => {
-                          const mapped = PROVIDER_TO_OAUTH[provider.id];
-
-                          if (mapped) {
-                            set_oauth_loading(provider.id);
-                            set_connect_provider(mapped);
-                          }
-                        }}
-                      >
-                        {is_loading ? (
-                          <>
-                            {t("settings.import_oauth_button")}
-                            <ButtonSpinner />
-                          </>
-                        ) : (
-                          t("settings.import_oauth_button")
-                        )}
-                      </Button>
-                    )}
-                    {provider.id === "gmail" && (
-                      <Button
-                        disabled={any_loading}
-                        size="sm"
-                        variant="depth"
-                        onClick={() => set_gmail_sync_open(true)}
-                      >
-                        {t("settings.gmail_sync_setup_button")}
-                      </Button>
-                    )}
+          return (
+            <IslandRow
+              key={provider.id}
+              description={
+                provider.id === "gmail"
+                  ? t("settings.gmail_app_password_notice")
+                  : undefined
+              }
+              icon={provider.icon}
+              label={
+                <span className="block truncate">{t(provider.label_key)}</span>
+              }
+              layout="stacked"
+              trailing={
+                <span className="flex flex-wrap items-center gap-2">
+                  {is_oauth && (
                     <Button
+                      disabled={any_loading}
+                      is_loading={is_loading}
                       size="sm"
-                      variant="outline"
-                      onClick={() => set_selected_provider(provider.id)}
-                    >
-                      {t("settings.import_manual_button")}
-                    </Button>
-                  </div>
-                </div>
-                {provider.id === "gmail" && (
-                  <p className="text-xs text-txt-muted">
-                    {t("settings.gmail_app_password_notice")}
-                  </p>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
+                      variant="depth"
+                      onClick={() => {
+                        const mapped = PROVIDER_TO_OAUTH[provider.id];
 
-      {/* Recent one-time imports */}
+                        if (mapped) {
+                          set_oauth_loading(provider.id);
+                          set_connect_provider(mapped);
+                        }
+                      }}
+                    >
+                      {t("settings.import_oauth_button")}
+                    </Button>
+                  )}
+                  {provider.id === "gmail" && (
+                    <Button
+                      disabled={any_loading}
+                      size="sm"
+                      variant="depth"
+                      onClick={() => set_gmail_sync_open(true)}
+                    >
+                      {t("settings.gmail_sync_setup_button")}
+                    </Button>
+                  )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => set_selected_provider(provider.id)}
+                  >
+                    {t("settings.import_manual_button")}
+                  </Button>
+                </span>
+              }
+            />
+          );
+        })}
+      </IslandSection>
+
       {!is_loading_jobs && jobs_load_failed && (
         <LoadFailedNotice on_retry={() => load_jobs()} />
       )}
 
       {!is_loading_jobs && recent_jobs.length > 0 && (
-        <div>
-          <h4 className="text-xs font-semibold uppercase tracking-wide text-txt-muted mb-2">
-            {t("settings.recent_imports")}
-          </h4>
-          <div className="space-y-2">
-            {recent_jobs.map((job) => (
-              <ImportJobCard
-                key={job.id}
-                job={job}
-                on_delete={set_pending_delete_job_id}
-              />
-            ))}
-          </div>
-        </div>
+        <IslandSection bare title={t("settings.recent_imports")}>
+          {recent_jobs.map((job) => (
+            <ImportJobCard
+              key={job.id}
+              job={job}
+              on_delete={set_pending_delete_job_id}
+            />
+          ))}
+        </IslandSection>
       )}
 
-      {/* "How it works" - always expanded */}
-      <div className="rounded-xl border border-edge-secondary overflow-hidden bg-surf-secondary/30">
-        <div className="flex items-center gap-2 px-4 py-3 text-sm font-medium text-txt-secondary border-b border-edge-secondary">
-          <InformationCircleIcon className="w-4 h-4 text-txt-muted flex-shrink-0" />
-          {t("settings.import_how_it_works")}
+      <IslandSection
+        icon={<InformationCircleIcon />}
+        island_class_name="space-y-3"
+        padding="md"
+        title={t("settings.import_how_it_works")}
+      >
+        <div className="space-y-1">
+          <p className="text-xs font-medium text-txt-secondary">
+            {t("settings.import_oauth_title")}
+          </p>
+          <p className="text-xs text-txt-muted leading-relaxed">
+            {t("settings.import_oauth_description")}
+          </p>
         </div>
-        <div className="px-4 py-4 space-y-3">
-          <div className="space-y-1">
-            <p className="text-xs font-medium text-txt-secondary">
-              {t("settings.import_oauth_title")}
-            </p>
-            <p className="text-xs text-txt-muted leading-relaxed">
-              {t("settings.import_oauth_description")}
-            </p>
-          </div>
-          <div className="space-y-2">
-            <p className="text-xs font-medium text-txt-secondary">
-              {t("settings.import_manual_title")}
-            </p>
-            <ol className="list-none space-y-1.5 text-xs text-txt-muted leading-relaxed">
-              {[1, 2, 3, 4].map((n) => (
-                <li key={n} className="flex gap-2">
-                  <span className="font-medium text-txt-secondary flex-shrink-0 tabular-nums">
-                    {n}.
-                  </span>
-                  {t(("settings.import_manual_step_" + n) as TranslationKey)}
-                </li>
-              ))}
-            </ol>
-          </div>
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-txt-secondary">
+            {t("settings.import_manual_title")}
+          </p>
+          <ol className="list-none space-y-1.5 text-xs text-txt-muted leading-relaxed">
+            {[1, 2, 3, 4].map((n) => (
+              <li key={n} className="flex gap-2">
+                <span className="font-medium text-txt-secondary flex-shrink-0 tabular-nums">
+                  {n}.
+                </span>
+                {t(("settings.import_manual_step_" + n) as TranslationKey)}
+              </li>
+            ))}
+          </ol>
         </div>
-      </div>
+      </IslandSection>
 
       <GmailSyncModal
         is_open={gmail_sync_open}
@@ -1109,18 +1086,13 @@ export function ImportSection() {
           </div>
           <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end">
             <AlertDialogCancel asChild>
-              <Button
-                className="mt-0 max-sm:flex-1"
-                size="xl"
-                variant="outline"
-              >
+              <Button className="mt-0 max-sm:flex-1" variant="outline">
                 {t("common.cancel")}
               </Button>
             </AlertDialogCancel>
             <AlertDialogAction asChild>
               <Button
                 className="max-sm:flex-1"
-                size="xl"
                 variant="destructive"
                 onClick={handle_disconnect_confirm}
               >
@@ -1148,6 +1120,6 @@ export function ImportSection() {
         show={pending_delete_job_id !== null}
         title={t("settings.delete_imported_emails_confirm")}
       />
-    </div>
+    </IslandSections>
   );
 }

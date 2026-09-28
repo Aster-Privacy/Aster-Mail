@@ -116,7 +116,7 @@ export function FeedbackSection({
                 <button
                   key={option.value}
                   aria-pressed={category === option.value}
-                  className="rounded-full px-3 py-1.5 text-[13px] font-medium"
+                  className="rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium"
                   style={{
                     background:
                       category === option.value

@@ -39,6 +39,7 @@ interface SettingsTabBarProps<T extends string> {
   active: T;
   on_change: (key: T) => void;
   layout_id: string;
+  class_name?: string;
 }
 
 interface Rect {
@@ -52,6 +53,7 @@ export function SettingsTabBar<T extends string>({
   tabs,
   active,
   on_change,
+  class_name = "mb-7",
 }: SettingsTabBarProps<T>) {
   const scroller_ref = useRef<HTMLDivElement | null>(null);
   const row_ref = useRef<HTMLDivElement | null>(null);
@@ -197,14 +199,14 @@ export function SettingsTabBar<T extends string>({
     : "opacity 140ms ease";
 
   return (
-    <div className="mb-7 border-b border-edge-secondary">
+    <div className={class_name}>
       <div
         ref={scroller_ref}
-        className="-ms-4 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="max-w-full overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         <div
           ref={row_ref}
-          className="relative inline-flex items-center"
+          className="relative inline-flex items-center gap-0.5 rounded-full p-1 bg-[color-mix(in_srgb,var(--text-primary)_6%,var(--bg-primary))]"
           role="tablist"
           onPointerCancel={() => {
             pointer_inside_ref.current = false;
@@ -217,7 +219,7 @@ export function SettingsTabBar<T extends string>({
         >
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute top-1 bottom-1 start-0 rounded-md bg-black/[0.05] dark:bg-white/[0.07]"
+            className="pointer-events-none absolute top-1 bottom-1 start-0 rounded-full bg-[color-mix(in_srgb,var(--text-primary)_5%,transparent)]"
             style={{
               width: hover_rect.width,
               transform: `translateX(${hover_rect.left}px)`,
@@ -235,7 +237,7 @@ export function SettingsTabBar<T extends string>({
                   button_refs.current[index] = node;
                 }}
                 aria-selected={selected}
-                className={`relative z-[1] flex h-10 md:h-8 items-center gap-2 rounded-md px-4 my-1 text-[14px] font-medium whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${
+                className={`relative z-[1] flex h-9 md:h-8 items-center gap-2 rounded-full px-4 text-[14px] font-medium whitespace-nowrap transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 ${
                   selected ? "text-txt-primary" : "text-txt-muted"
                 }`}
                 role="tab"
@@ -264,10 +266,10 @@ export function SettingsTabBar<T extends string>({
           })}
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute bottom-0 start-0 h-0.5 rounded-full bg-txt-primary"
+            className="pointer-events-none absolute top-1 bottom-1 start-0 rounded-full bg-[var(--bg-primary)] shadow-[0_1px_3px_rgba(0,0,0,0.12)] dark:bg-[color-mix(in_srgb,var(--text-primary)_15%,var(--bg-primary))] dark:shadow-none"
             style={{
-              width: active_rect.width * 0.8,
-              transform: `translateX(${active_rect.left + active_rect.width * 0.1}px)`,
+              width: active_rect.width,
+              transform: `translateX(${active_rect.left}px)`,
               opacity: active_rect.width > 0 ? 1 : 0,
               transition: motion,
             }}

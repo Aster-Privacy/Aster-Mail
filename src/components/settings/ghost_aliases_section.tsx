@@ -18,9 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { EyeSlashIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandEmpty,
+  IslandRow,
+  IslandSection,
+  IslandSections,
+  PillButton,
+} from "@aster/ui";
 
 import {
   list_ghost_aliases,
@@ -85,8 +93,10 @@ export function GhostAliasesSection() {
     ? aliases.find((a) => a.id === confirm_expire_info.alias_id)?.full_address
     : undefined;
 
+  const loaded_once_ref = useRef(false);
+
   const load_aliases = useCallback(async () => {
-    set_loading(true);
+    if (!loaded_once_ref.current) set_loading(true);
     set_load_error(false);
     try {
       const response = await list_ghost_aliases();
@@ -102,6 +112,7 @@ export function GhostAliasesSection() {
     } catch {
       set_load_error(true);
     } finally {
+      loaded_once_ref.current = true;
       set_loading(false);
     }
   }, []);
@@ -245,152 +256,129 @@ export function GhostAliasesSection() {
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-2">
-          <div className="flex items-center justify-between">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-              <EyeSlashIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-              {t("settings.ghost_aliases_title")}
-              <InfoHint
-                learn_more_url="https://astermail.org/blog/what-ghost-aliases-are-and-how-they-work"
-                tip={t("settings.ghost_aliases_info")}
-                title={t("settings.ghost_aliases_title")}
-              />
-            </h3>
+    <div>
+      <IslandSections>
+        <IslandSection
+          bare
+          description={t("settings.ghost_aliases_description")}
+          icon={<EyeSlashIcon />}
+          title={t("settings.ghost_aliases_title")}
+          title_info={
+            <InfoHint
+              learn_more_url="https://astermail.org/blog/what-ghost-aliases-are-and-how-they-work"
+              tip={t("settings.ghost_aliases_info")}
+              title={t("settings.ghost_aliases_title")}
+            />
+          }
+          trailing={
             <span className="text-xs text-txt-muted">
               {t("settings.ghost_aliases_this_month", {
                 count: this_month_count,
               })}
             </span>
-          </div>
-        </div>
-        <p className="text-sm mb-3 text-txt-muted">
-          {t("settings.ghost_aliases_description")}
-        </p>
-      </div>
+          }
+        >
+          {load_error ? (
+            <Island
+              className="flex flex-wrap items-center justify-between gap-2"
+              padding="sm"
+            >
+              <p className="text-xs text-txt-muted">
+                {t("settings.aliases_load_failed")}
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => load_aliases()}
+              >
+                {t("common.retry")}
+              </Button>
+            </Island>
+          ) : aliases.length === 0 ? (
+            <IslandEmpty
+              action={
+                <PillButton
+                  leading={<PencilSquareIcon className="w-4 h-4" />}
+                  variant="filled"
+                  onClick={() =>
+                    window.dispatchEvent(
+                      new CustomEvent("astermail:open-compose-ghost"),
+                    )
+                  }
+                >
+                  {t("settings.ghost_aliases_compose_cta")}
+                </PillButton>
+              }
+              icon={<EyeSlashIcon className="w-6 h-6" />}
+              title={t("settings.ghost_aliases_empty")}
+            />
+          ) : null}
+        </IslandSection>
 
-      {load_error ? (
-        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 rounded-lg bg-surf-tertiary border border-edge-secondary">
-          <p className="text-xs text-txt-muted">
-            {t("settings.aliases_load_failed")}
-          </p>
-          <Button size="sm" variant="outline" onClick={() => load_aliases()}>
-            {t("common.retry")}
-          </Button>
-        </div>
-      ) : aliases.length === 0 ? (
-        <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-          <EyeSlashIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
-          <p className="text-sm mb-4 text-txt-muted">
-            {t("settings.ghost_aliases_empty")}
-          </p>
-          <Button
-            variant="depth"
-            onClick={() =>
-              window.dispatchEvent(
-                new CustomEvent("astermail:open-compose-ghost"),
-              )
-            }
+        {!load_error && active_aliases.length > 0 && (
+          <IslandSection divided title={t("settings.ghost_alias_active")}>
+            {active_aliases.map((alias) => (
+              <IslandRow
+                key={alias.id}
+                description={
+                  <>
+                    {t("settings.ghost_alias_expires_in", {
+                      days: days_until(alias.expires_at) ?? 0,
+                    })}{" "}
+                    ({format_date(alias.expires_at)})
+                  </>
+                }
+                icon={<EyeSlashIcon />}
+                label={
+                  <span className="block truncate">{alias.full_address}</span>
+                }
+                layout="stacked"
+                trailing={
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <Button
+                      disabled={action_loading === alias.id}
+                      size="sm"
+                      variant="depth"
+                      onClick={() => handle_extend(alias)}
+                    >
+                      {t("settings.ghost_alias_extend")}
+                    </Button>
+                    <Button
+                      disabled={action_loading === alias.id}
+                      size="sm"
+                      variant="depth_destructive"
+                      onClick={() => handle_expire(alias.id)}
+                    >
+                      {t("settings.ghost_alias_expire_now")}
+                    </Button>
+                  </div>
+                }
+              />
+            ))}
+          </IslandSection>
+        )}
+
+        {!load_error && expired_aliases.length > 0 && (
+          <IslandSection
+            divided
+            title={t("settings.ghost_alias_expired_grace")}
           >
-            <PencilSquareIcon className="w-4 h-4" />
-            {t("settings.ghost_aliases_compose_cta")}
-          </Button>
-        </div>
-      ) : (
-        <>
-          {active_aliases.length > 0 && (
-            <div>
-              <h3 className="text-xs font-medium uppercase tracking-wider text-txt-muted mb-2">
-                {t("settings.ghost_alias_active")}
-              </h3>
-              <div className="space-y-2">
-                {active_aliases.map((alias) => (
-                  <div
-                    key={alias.id}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg bg-surf-tertiary border border-edge-secondary"
-                  >
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{
-                        background:
-                          "linear-gradient(135deg, #a855f7 0%, #7c3aed 100%)",
-                      }}
-                    >
-                      <EyeSlashIcon className="w-4 h-4 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate text-txt-primary">
-                        {alias.full_address}
-                      </p>
-                      <p className="text-xs text-txt-muted">
-                        {t("settings.ghost_alias_expires_in", {
-                          days: days_until(alias.expires_at) ?? 0,
-                        })}{" "}
-                        ({format_date(alias.expires_at)})
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                      <Button
-                        disabled={action_loading === alias.id}
-                        size="sm"
-                        variant="depth"
-                        onClick={() => handle_extend(alias)}
-                      >
-                        {t("settings.ghost_alias_extend")}
-                      </Button>
-                      <Button
-                        disabled={action_loading === alias.id}
-                        size="sm"
-                        variant="depth_destructive"
-                        onClick={() => handle_expire(alias.id)}
-                      >
-                        {t("settings.ghost_alias_expire_now")}
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {expired_aliases.length > 0 && (
-            <div>
-              <h3 className="text-xs font-medium uppercase tracking-wider text-txt-muted mb-2">
-                {t("settings.ghost_alias_expired_grace")}
-              </h3>
-              <div className="space-y-2">
-                {expired_aliases.map((alias) => (
-                  <div
-                    key={alias.id}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg bg-surf-tertiary border border-edge-secondary opacity-60"
-                  >
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                      style={{
-                        background:
-                          "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)",
-                      }}
-                    >
-                      <EyeSlashIcon className="w-4 h-4 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate text-txt-primary">
-                        {alias.full_address}
-                      </p>
-                      <p className="text-xs text-txt-muted">
-                        {t("settings.ghost_alias_grace_until", {
-                          date: format_date(alias.grace_expires_at),
-                        })}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </>
-      )}
+            {expired_aliases.map((alias) => (
+              <IslandRow
+                key={alias.id}
+                disabled
+                description={t("settings.ghost_alias_grace_until", {
+                  date: format_date(alias.grace_expires_at),
+                })}
+                icon={<EyeSlashIcon />}
+                label={
+                  <span className="block truncate">{alias.full_address}</span>
+                }
+              />
+            ))}
+          </IslandSection>
+        )}
+      </IslandSections>
       <ConfirmationModal
         confirm_text={null}
         is_open={too_new_info.is_open}

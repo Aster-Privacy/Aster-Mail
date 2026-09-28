@@ -18,37 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect } from "react";
-
-let lock_count = 0;
-let restored_overflow = "";
-
-export function lock_body_scroll(): void {
-  if (lock_count === 0) {
-    restored_overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-  }
-
-  lock_count += 1;
-}
-
-export function unlock_body_scroll(): void {
-  if (lock_count === 0) return;
-
-  lock_count -= 1;
-
-  if (lock_count === 0) {
-    document.body.style.overflow = restored_overflow;
-    restored_overflow = "";
-  }
-}
-
-export function use_body_scroll_lock(is_locked: boolean): void {
-  useEffect(() => {
-    if (!is_locked) return;
-
-    lock_body_scroll();
-
-    return unlock_body_scroll;
-  }, [is_locked]);
-}
+export {
+  lock_body_scroll,
+  unlock_body_scroll,
+  use_body_scroll_lock,
+} from "@aster/ui";

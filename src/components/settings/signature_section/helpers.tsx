@@ -50,8 +50,6 @@ export function validate_image_magic_bytes(
   return expected.every((b, i) => bytes[i] === b);
 }
 
-export const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
-
 export function has_editor_content(html: string): boolean {
   const temp = document.createElement("div");
 
@@ -78,7 +76,7 @@ export function FmtButton({
   return (
     <button
       aria-label={title}
-      className={`p-1.5 rounded-[14px] transition-all duration-150 ${active ? "bg-blue-500/15 text-blue-500" : "hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted"}`}
+      className={`p-1.5 rounded-[14px] transition-all duration-150 ${active ? "bg-blue-500/15 text-blue-500" : "hover:bg-[var(--aster-hover)] text-txt-muted"}`}
       title={title}
       type="button"
       onClick={onClick}

@@ -19,8 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useCallback, useEffect } from "react";
-import { AnimatePresence, motion } from "framer-motion";
 import { BellIcon } from "@heroicons/react/24/outline";
+import { StatusBanner } from "@aster/ui";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_accent_contrast_text } from "@/hooks/use_accent_contrast_text";
@@ -53,17 +53,6 @@ function cache_dismissed() {
 export function NotificationBanner() {
   const reduce_motion = use_should_reduce_motion();
   const contrast_text = use_accent_contrast_text();
-  const is_dark_text = contrast_text === "#111827";
-  const button_bg = is_dark_text
-    ? "rgba(0, 0, 0, 0.12)"
-    : "rgba(255, 255, 255, 0.2)";
-  const button_bg_hover = is_dark_text
-    ? "rgba(0, 0, 0, 0.2)"
-    : "rgba(255, 255, 255, 0.3)";
-  const dismiss_bg = is_dark_text
-    ? "rgba(0, 0, 0, 0.06)"
-    : "rgba(255, 255, 255, 0.1)";
-  const dismiss_bg_hover = button_bg;
   const { t } = use_i18n();
   const { preferences, update_preference, is_loading, has_loaded_from_server } =
     use_preferences();
@@ -174,65 +163,22 @@ export function NotificationBanner() {
   }, [update_preference]);
 
   return (
-    <AnimatePresence>
-      {!should_hide && (
-        <motion.div
-          animate={{ opacity: 1, height: "auto" }}
-          className="w-full flex-shrink-0 overflow-hidden"
-          exit={{ opacity: 0, height: 0, overflow: "hidden" }}
-          initial={reduce_motion ? false : { opacity: 0, height: 0 }}
-          style={{
-            backgroundColor: "var(--accent-color)",
-            color: contrast_text,
-          }}
-          transition={{ duration: reduce_motion ? 0 : 0.2 }}
-        >
-          <div className="flex items-center justify-between px-4 py-1.5">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <BellIcon className="h-3.5 w-3.5 flex-shrink-0 opacity-90" />
-              <span className="text-xs font-medium line-clamp-2 sm:truncate">
-                {t("common.notification_banner_message")}
-              </span>
-            </div>
-            <div className="flex items-center gap-1.5 flex-shrink-0 ms-4">
-              <button
-                className="px-2.5 py-0.5 text-xs font-medium rounded-[12px] transition-colors"
-                style={{
-                  backgroundColor: button_bg,
-                  color: "inherit",
-                }}
-                type="button"
-                onClick={handle_allow}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = button_bg_hover)
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = button_bg)
-                }
-              >
-                {t("common.notification_banner_allow")}
-              </button>
-              <button
-                className="px-2.5 py-0.5 text-xs font-medium rounded-[12px] transition-colors"
-                style={{
-                  backgroundColor: dismiss_bg,
-                  color: "inherit",
-                }}
-                type="button"
-                onClick={handle_dismiss}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = dismiss_bg_hover)
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = dismiss_bg)
-                }
-              >
-                {t("common.notification_banner_no_thanks")}
-              </button>
-            </div>
-          </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <StatusBanner
+      actions={[
+        { label: t("common.notification_banner_allow"), on_click: handle_allow },
+        {
+          label: t("common.notification_banner_no_thanks"),
+          on_click: handle_dismiss,
+          emphasis: "secondary",
+        },
+      ]}
+      icon={BellIcon}
+      is_visible={!should_hide}
+      message={t("common.notification_banner_message")}
+      reduce_motion={reduce_motion}
+      text_color={contrast_text}
+      tone="accent"
+      variant="prompt"
+    />
   );
 }

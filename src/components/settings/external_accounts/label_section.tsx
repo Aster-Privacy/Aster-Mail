@@ -104,7 +104,7 @@ export function LabelSection({
             </PopoverTrigger>
             <PopoverContent
               align="start"
-              className="w-auto p-3 z-[70] bg-modal-bg border-edge-primary"
+              className="w-auto p-3 z-[70]"
               sideOffset={6}
             >
               <div className="space-y-3">

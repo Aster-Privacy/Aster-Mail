@@ -399,7 +399,7 @@ export function ContactDetailPanel({
                 />
                 <button
                   aria-label={t("common.upload")}
-                  className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 bg-black/40 flex items-center justify-center transition-opacity"
+                  className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 aster_scrim flex items-center justify-center transition-opacity"
                   onClick={() => file_input_ref.current?.click()}
                 >
                   <CameraIcon className="w-7 h-7 text-white" />
@@ -422,7 +422,7 @@ export function ContactDetailPanel({
                 />
               </div>
             </div>
-            <div className="absolute end-4 -bottom-6 flex items-center gap-2 px-2.5 py-2 rounded-full bg-surf-primary border border-edge-primary shadow-lg">
+            <div className="absolute end-4 -bottom-6 flex items-center gap-2 px-2.5 py-2 rounded-full bg-[var(--aster-floating-bg,var(--bg-primary))] shadow-[var(--aster-floating-shadow)]">
               {COLOR_SWATCHES.map((c) => {
                 const active = c.value === banner;
 
@@ -447,7 +447,7 @@ export function ContactDetailPanel({
           <div className="flex flex-wrap items-center gap-2 mb-6">
             {!is_editing && (
               <button
-                className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+                className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
                 type="button"
                 onClick={() => {
                   set_show_history(false);
@@ -460,7 +460,7 @@ export function ContactDetailPanel({
             )}
             {selected_contact.emails[0] && (
               <button
-                className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+                className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
                 type="button"
                 onClick={() => on_compose_email(selected_contact.emails[0])}
               >
@@ -469,7 +469,7 @@ export function ContactDetailPanel({
               </button>
             )}
             <button
-              className={`flex items-center gap-2 h-9 px-3.5 rounded-full text-[13px] font-medium transition-colors ${show_history ? "bg-black/15 dark:bg-white/15 text-txt-primary" : "bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-txt-primary"}`}
+              className={`flex items-center gap-2 h-9 px-3.5 rounded-full text-[13px] font-medium transition-colors ${show_history ? "bg-black/15 dark:bg-white/15 text-txt-primary" : "bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-txt-primary"}`}
               type="button"
               onClick={() => set_show_history(!show_history)}
             >
@@ -478,7 +478,7 @@ export function ContactDetailPanel({
             </button>
             {contact_mail_query && (
               <button
-                className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+                className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
                 type="button"
                 onClick={handle_search_mail}
               >
@@ -487,7 +487,7 @@ export function ContactDetailPanel({
               </button>
             )}
             <button
-              className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+              className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
               type="button"
               onClick={() => on_toggle_favorite?.(selected_contact)}
             >
@@ -504,7 +504,7 @@ export function ContactDetailPanel({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
-                    className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+                    className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
                     type="button"
                   >
                     <ArrowUpOnSquareIcon className="w-4 h-4" />
@@ -537,7 +537,7 @@ export function ContactDetailPanel({
             )}
             {!is_editing && (
               <button
-                className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+                className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
                 type="button"
                 onClick={() => on_delete_request(selected_contact)}
               >
@@ -563,7 +563,7 @@ export function ContactDetailPanel({
                   {(selected_contact.revisions ?? []).map((revision) => (
                     <li
                       key={revision.changed_at}
-                      className="flex items-center justify-between gap-3 rounded-[10px] px-3 py-2 hover:bg-black/5 dark:hover:bg-white/5"
+                      className="flex items-center justify-between gap-3 rounded-[10px] px-3 py-2 hover:bg-[var(--aster-hover)]"
                     >
                       <span className="min-w-0 flex-1 truncate text-[13px] text-txt-secondary">
                         {format_full_datetime(new Date(revision.changed_at))}
@@ -916,7 +916,7 @@ export function ContactDetailPanel({
                   {is_editing && draft.birthday && (
                     <button
                       aria-label={t("common.clear")}
-                      className="absolute end-9 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-txt-secondary transition-colors hover:bg-black/10 hover:text-txt-primary dark:hover:bg-white/10"
+                      className="absolute end-9 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-txt-secondary transition-colors hover:bg-[var(--aster-hover)] hover:text-txt-primary"
                       type="button"
                       onClick={() => handle_field_change("birthday", "")}
                     >

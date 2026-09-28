@@ -25,8 +25,15 @@ import {
   PlusIcon,
   PencilIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
+import {
+  Island,
+  IslandEmpty,
+  IslandIconButton,
+  IslandRow,
+  IslandSection,
+} from "@aster/ui";
 
+import { Button } from "@/components/ui/button";
 import { StepUpModal } from "@/components/settings/step_up_modal";
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -52,7 +59,6 @@ import {
 } from "@/services/api/webauthn";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { is_composing } from "@/utils/ime";
-import { ButtonSpinner } from "@/components/ui/spinner";
 
 export function HardwareKeysSection() {
   const { t } = use_i18n();
@@ -71,8 +77,8 @@ export function HardwareKeysSection() {
   );
   const [step_up_key_id, set_step_up_key_id] = useState<string | null>(null);
 
-  const fetch_keys = useCallback(async () => {
-    set_is_loading(true);
+  const fetch_keys = useCallback(async (silent = false) => {
+    if (!silent) set_is_loading(true);
     const response = await list_hardware_keys();
 
     if (response.data) {
@@ -139,7 +145,7 @@ export function HardwareKeysSection() {
     set_is_registering(false);
     set_show_add_modal(false);
     set_key_name("");
-    fetch_keys();
+    fetch_keys(true);
   };
 
   const handle_remove = async (
@@ -220,17 +226,12 @@ export function HardwareKeysSection() {
 
   return (
     <>
-      <div className="py-4 px-1">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.security_keys")}
-            </p>
-            <p className="text-xs mt-0.5 text-txt-muted">
-              {t("settings.security_keys_description")}
-            </p>
-          </div>
-          {webauthn_supported && !is_desktop() && (
+      <IslandSection
+        bare
+        description={t("settings.security_keys_description")}
+        title={t("settings.security_keys")}
+        trailing={
+          webauthn_supported && !is_desktop() ? (
             <Button
               disabled={is_registering}
               variant="secondary"
@@ -239,132 +240,122 @@ export function HardwareKeysSection() {
               <PlusIcon className="w-4 h-4 me-1.5" />
               {t("settings.add_security_key")}
             </Button>
-          )}
-        </div>
-
+          ) : undefined
+        }
+      >
         {is_desktop() && (
-          <p className="text-xs mb-3 text-txt-muted">
+          <p className="text-xs text-txt-muted">
             {t("settings.security_keys_desktop_note")}
           </p>
         )}
 
         {is_loading ? (
-          <div className="flex justify-center py-4">
-            <div className="w-5 h-5 border-2 rounded-full animate-spin border-edge-secondary border-t-brand" />
-          </div>
+          <Island aria-hidden="true" className="h-16 animate-pulse" />
+        ) : keys.length === 0 ? (
+          load_failed ? (
+            <IslandEmpty
+              action={
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => fetch_keys()}
+                >
+                  {t("common.retry")}
+                </Button>
+              }
+              title={t("common.something_went_wrong_try_again")}
+            />
+          ) : (
+            <IslandEmpty
+              icon={<KeyIcon />}
+              title={t("settings.no_security_keys")}
+            />
+          )
         ) : (
-          <div className="space-y-2">
-            {keys.length === 0 &&
-              (load_failed ? (
-                <div className="py-6 text-center">
-                  <p className="text-sm text-txt-muted">
-                    {t("common.something_went_wrong_try_again")}
-                  </p>
-                  <Button
-                    className="mt-3"
-                    size="sm"
-                    variant="secondary"
-                    onClick={fetch_keys}
-                  >
-                    {t("common.retry")}
-                  </Button>
-                </div>
+          <Island divided>
+            {keys.map((key) =>
+              editing_key_id === key.id ? (
+                <IslandRow
+                  key={key.id}
+                  icon={<KeyIcon />}
+                  label={
+                    <span className="flex flex-wrap items-center gap-2">
+                      <Input
+                        autoFocus
+                        className="!w-44 font-medium"
+                        maxLength={100}
+                        size="sm"
+                        type="text"
+                        value={rename_draft}
+                        onChange={(e) => set_rename_draft(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !is_composing(e))
+                            save_rename(key.id);
+                          if (e.key === "Escape") cancel_rename();
+                        }}
+                      />
+                      <Button
+                        disabled={is_saving_rename}
+                        is_loading={is_saving_rename}
+                        size="sm"
+                        variant="depth"
+                        onClick={() => save_rename(key.id)}
+                      >
+                        {t("common.save")}
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={cancel_rename}>
+                        {t("common.cancel")}
+                      </Button>
+                    </span>
+                  }
+                />
               ) : (
-                <div className="py-6 text-center">
-                  <KeyIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
-                  <p className="text-sm text-txt-muted">
-                    {t("settings.no_security_keys")}
-                  </p>
-                </div>
-              ))}
-
-            {keys.map((key) => (
-              <div
-                key={key.id}
-                className="flex items-center justify-between p-3 rounded-lg bg-surf-secondary"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <KeyIcon className="w-5 h-5 text-txt-muted flex-shrink-0" />
-                  <div className="min-w-0">
-                    {editing_key_id === key.id ? (
-                      <div className="flex items-center gap-2">
-                        <input
-                          autoFocus
-                          className="text-sm font-medium bg-surf-primary border border-edge-secondary rounded px-2 py-0.5 text-txt-primary outline-none focus:ring-1 focus:ring-primary w-40"
-                          maxLength={100}
-                          type="text"
-                          value={rename_draft}
-                          onChange={(e) => set_rename_draft(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && !is_composing(e))
-                              save_rename(key.id);
-                            if (e.key === "Escape") cancel_rename();
-                          }}
-                        />
-                        <Button
-                          disabled={is_saving_rename}
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => save_rename(key.id)}
-                        >
-                          {t("common.save")}
-                          {is_saving_rename && <ButtonSpinner size="xs" />}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={cancel_rename}
-                        >
-                          {t("common.cancel")}
-                        </Button>
-                      </div>
-                    ) : (
-                      <p className="text-sm font-medium text-txt-primary">
-                        {key.name_encrypted || key.type}
-                      </p>
-                    )}
-                    {editing_key_id !== key.id && (
-                      <p className="text-xs text-txt-muted">
-                        {t("settings.registered")}:{" "}
-                        {format_date(key.registered_at)}
-                        {key.last_used
-                          ? ` · ${t("settings.last_used")}: ${format_date(key.last_used)}`
-                          : ` · ${t("settings.never_used")}`}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                {editing_key_id !== key.id && (
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    <button
-                      className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-tertiary"
-                      title={t("passkeys.rename")}
-                      type="button"
-                      onClick={() => start_rename(key)}
-                    >
-                      <PencilIcon className="w-4 h-4 text-txt-muted" />
-                    </button>
-                    <button
-                      className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-tertiary"
-                      disabled={removing_key_id === key.id}
-                      type="button"
-                      onClick={() => set_pending_delete(key)}
-                    >
-                      <TrashIcon className="w-4 h-4 text-red-500" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))}
-
-            {!webauthn_supported && (
-              <p className="text-sm text-txt-muted py-2">
-                {t("auth.webauthn_not_supported")}
-              </p>
+                <IslandRow
+                  key={key.id}
+                  description={
+                    <>
+                      {t("settings.registered")}:{" "}
+                      {format_date(key.registered_at)}
+                      {key.last_used
+                        ? ` · ${t("settings.last_used")}: ${format_date(key.last_used)}`
+                        : ` · ${t("settings.never_used")}`}
+                    </>
+                  }
+                  icon={<KeyIcon />}
+                  label={key.name_encrypted || key.type}
+                  trailing={
+                    <span className="flex items-center gap-1">
+                      <IslandIconButton
+                        label={t("passkeys.rename")}
+                        size="sm"
+                        title={t("passkeys.rename")}
+                        onClick={() => start_rename(key)}
+                      >
+                        <PencilIcon className="w-4 h-4" />
+                      </IslandIconButton>
+                      <IslandIconButton
+                        className="text-red-500 hover:text-red-500"
+                        disabled={removing_key_id === key.id}
+                        label={t("common.delete")}
+                        size="sm"
+                        onClick={() => set_pending_delete(key)}
+                      >
+                        <TrashIcon className="w-4 h-4" />
+                      </IslandIconButton>
+                    </span>
+                  }
+                />
+              ),
             )}
-          </div>
+          </Island>
         )}
-      </div>
+
+        {!is_loading && !webauthn_supported && (
+          <p className="text-sm text-txt-muted">
+            {t("auth.webauthn_not_supported")}
+          </p>
+        )}
+      </IslandSection>
 
       <Modal
         close_on_overlay={!is_registering}

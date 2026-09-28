@@ -46,6 +46,7 @@ import {
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { use_settled_empty_state } from "@/components/email/inbox/use_settled_empty_state";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { Spinner } from "@/components/ui/spinner";
 import { MobileEmailRow } from "@/components/mobile/mobile_email_row";
 import { use_i18n } from "@/lib/i18n/context";
@@ -148,12 +149,12 @@ function get_empty_text(
       subtitle: t("mail.empty_starred_subtitle"),
     },
     scheduled: {
-      title: t("mail.empty_sent_title"),
+      title: t("mail.no_messages"),
       subtitle: t("mail.empty_default_subtitle"),
     },
     snoozed: {
-      title: t("mail.empty_sent_title"),
-      subtitle: t("mail.empty_default_subtitle"),
+      title: t("mail.empty_snoozed_title"),
+      subtitle: t("mail.empty_snoozed_subtitle"),
     },
     archive: {
       title: t("mail.empty_archive_title"),
@@ -273,6 +274,18 @@ export const MobileEmailList = memo(function MobileEmailList({
     row_heights_ref.current = [];
   }, [current_view]);
 
+  const all_emails_empty =
+    emails.length === 0 && (!pinned_emails || pinned_emails.length === 0);
+  const empty_state_visible = use_settled_empty_state({
+    view_key: current_view,
+    is_empty: all_emails_empty,
+    is_settled:
+      has_initial_load && !is_loading && !is_loading_more && !is_refreshing,
+  });
+  const skeleton_visible = use_delayed_flag(
+    all_emails_empty && !empty_state_visible,
+  );
+
   useEffect(() => {
     const el = scroll_ref.current;
 
@@ -285,7 +298,7 @@ export const MobileEmailList = memo(function MobileEmailList({
     el.addEventListener("scroll", handle_window_scroll, { passive: true });
 
     return () => el.removeEventListener("scroll", handle_window_scroll);
-  }, [recompute_window, is_loading]);
+  }, [recompute_window, is_loading, skeleton_visible, empty_state_visible]);
 
   useEffect(() => {
     if (!windowing_enabled) return;
@@ -531,16 +544,7 @@ export const MobileEmailList = memo(function MobileEmailList({
     };
   }, [selection_mode]);
 
-  const all_emails_empty =
-    emails.length === 0 && (!pinned_emails || pinned_emails.length === 0);
-  const empty_state_visible = use_settled_empty_state({
-    view_key: current_view,
-    is_empty: all_emails_empty,
-    is_settled:
-      has_initial_load && !is_loading && !is_loading_more && !is_refreshing,
-  });
-
-  if ((is_loading || all_emails_empty) && !empty_state_visible) {
+  if (skeleton_visible) {
     return (
       <div className="flex-1 space-y-1 px-0 pt-1">
         {Array.from({ length: 8 }).map((_, i) => (

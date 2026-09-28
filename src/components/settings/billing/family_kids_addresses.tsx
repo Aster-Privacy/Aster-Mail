@@ -28,7 +28,7 @@ import {
   ArrowPathIcon,
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
-import { Switch } from "@aster/ui";
+import { Island, Switch } from "@aster/ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import {
@@ -139,8 +139,10 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
     set_alloc((prev) => Math.min(prev, pool_remaining));
   }, [pool_remaining]);
 
+  const loaded_once_ref = useRef(false);
+
   const load = useCallback(async () => {
-    set_loading(true);
+    if (!loaded_once_ref.current) set_loading(true);
     set_load_failed(false);
     const r = await list_reservations();
 
@@ -149,6 +151,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
       set_seats_used(r.data.seats_used);
       set_max_members(r.data.max_members);
       set_seat_breakdown(r.data.seats ?? null);
+      loaded_once_ref.current = true;
     } else {
       set_load_failed(true);
       show_toast(t("settings.fam_kids_load_failed"), "error");
@@ -311,12 +314,12 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
     }
   };
 
-  const address_border =
+  const address_status =
     availability.state === "ok"
-      ? "border-green-500"
+      ? "success"
       : availability.state === "bad"
-        ? "border-red-500"
-        : "border-edge-secondary";
+        ? "error"
+        : "default";
 
   const max_gib = Math.max(1, Math.floor(pool_remaining / GIB));
   const visible = reservations.filter(
@@ -325,8 +328,8 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
           <h3 className="text-sm font-semibold text-txt-primary flex items-center gap-1.5">
             <UserIcon className="w-4 h-4" /> {t("settings.fam_kids_title")}
           </h3>
@@ -363,7 +366,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
       </div>
 
       {show_form && (
-        <div className="rounded-xl border border-edge-secondary p-4 space-y-5">
+        <Island className="space-y-5" padding="md">
           <div>
             <div className="flex items-center gap-1.5 mb-2">
               <label
@@ -378,15 +381,17 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
               />
             </div>
             <div className="flex items-center gap-2">
-              <input
+              <Input
                 autoFocus
                 autoCapitalize="none"
                 autoCorrect="off"
-                className={`flex-1 min-w-0 h-10 px-3 rounded-lg bg-transparent border text-sm text-txt-primary placeholder:text-txt-muted outline-none ${address_border}`}
+                className="w-auto flex-1 min-w-0"
                 id="kid-address"
                 maxLength={40}
                 placeholder={t("settings.fam_kids_username_ph")}
+                size="lg"
                 spellCheck={false}
+                status={address_status}
                 value={username}
                 onChange={(e) =>
                   set_username(
@@ -397,7 +402,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
                 }
               />
               <Select value={domain} onValueChange={set_domain}>
-                <SelectTrigger className="h-10 w-auto shrink-0 rounded-lg border border-edge-secondary bg-transparent text-sm px-3 focus:ring-0 focus:ring-offset-0">
+                <SelectTrigger className="h-10 w-auto shrink-0 text-sm px-3">
                   <span className="text-txt-muted me-0.5">@</span>
                   <SelectValue />
                 </SelectTrigger>
@@ -518,7 +523,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
               {t("settings.fam_kids_cancel")}
             </button>
           </div>
-        </div>
+        </Island>
       )}
 
       {loading ? (
@@ -528,24 +533,21 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
       ) : load_failed && reservations.length === 0 ? (
         <LoadFailedNotice on_retry={() => void load()} />
       ) : visible.length === 0 ? (
-        <div className="py-6 text-center">
+        <Island className="text-center" padding="lg">
           <UserIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
           <p className="text-sm text-txt-muted">
             {t("settings.fam_kids_empty")}
           </p>
-        </div>
+        </Island>
       ) : (
         <div className="space-y-2">
           {visible.map((r) => {
             const token = claim_token_from_url(r.claim_url);
 
             return (
-              <div
-                key={r.id}
-                className="rounded-xl border border-edge-secondary px-4 py-3"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-txt-primary truncate">
+              <Island key={r.id} className="px-4 py-3">
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  <span className="min-w-0 text-sm font-medium text-txt-primary truncate">
                     {r.username}@{r.email_domain}
                   </span>
                   {r.status === "reserved" ? (
@@ -600,7 +602,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
                     </button>
                   </div>
                 )}
-              </div>
+              </Island>
             );
           })}
         </div>
@@ -624,14 +626,14 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
         </ModalHeader>
         <ModalFooter>
           <button
-            className="aster_btn aster_btn_ghost aster_btn_sm"
+            className="aster_btn aster_btn_ghost aster_btn_lg"
             disabled={releasing}
             onClick={() => set_release_target(null)}
           >
             {t("settings.fam_kids_cancel")}
           </button>
           <button
-            className="aster_btn aster_btn_destructive aster_btn_sm flex items-center gap-1.5 disabled:opacity-50"
+            className="aster_btn aster_btn_destructive aster_btn_lg flex items-center gap-1.5 disabled:opacity-50"
             disabled={releasing}
             onClick={confirm_release}
           >

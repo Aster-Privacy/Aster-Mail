@@ -26,6 +26,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import { swipe_nav_state } from "./mobile_mail_detail_swipe";
 
+import { strip_aster_footers_html } from "@/lib/aster_footer_strip";
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { use_email_detail } from "@/components/email/hooks/use_email_detail";
@@ -43,6 +44,8 @@ import { show_action_toast } from "@/components/toast/action_toast";
 import { get_aster_footer } from "@/components/compose/compose_shared";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { emit_mail_item_updated } from "@/hooks/mail_events";
+import { get_read_intent } from "@/services/read_intent";
+import { current_opened_mail_scope } from "@/services/user_opened_mail";
 import { preload_email_detail } from "@/components/email/hooks/use_email_detail";
 import { haptic_impact } from "@/native/haptic_feedback";
 import { block_sender } from "@/services/api/blocked_senders";
@@ -60,6 +63,8 @@ import {
 import { use_auth_safe } from "@/contexts/auth_context";
 import { app_locale } from "@/utils/date_format";
 import { resolve_reply_references } from "@/lib/reply_references";
+import { sanitize_outgoing_html } from "@/lib/html_sanitizer_compose";
+import { inline_email_css } from "@/lib/forward_css_inliner";
 
 export function use_mobile_mail_detail() {
   const navigate = useNavigate();
@@ -273,6 +278,13 @@ export function use_mobile_mail_detail() {
         return next;
       });
 
+      const owned = get_read_intent(msg.id) !== true;
+      const scope = current_opened_mail_scope();
+
+      if (owned) {
+        emit_mail_item_updated({ id: msg.id, is_read: true });
+      }
+
       update_item_metadata(
         msg.id,
         {
@@ -281,6 +293,7 @@ export function use_mobile_mail_detail() {
         },
         { is_read: true },
       ).then((result) => {
+        if (scope !== current_opened_mail_scope()) return;
         if (!result.success) {
           set_read_ids((prev) => {
             const next = new Set(prev);
@@ -289,7 +302,11 @@ export function use_mobile_mail_detail() {
 
             return next;
           });
+          if (owned) {
+            emit_mail_item_updated({ id: msg.id, is_read: false });
+          }
         } else {
+          if (!owned) return;
           emit_mail_item_updated({
             id: msg.id,
             is_read: true,
@@ -533,20 +550,21 @@ export function use_mobile_mail_detail() {
     (msg: DecryptedThreadMessage, mode: "reply" | "reply_all" | "forward") => {
       const subject = msg.subject || "";
       const body = msg.body || "";
+      const escape_html = (text: string): string =>
+        text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const quote_header =
         mode === "forward"
-          ? t("common.forwarded_message_header")
+          ? escape_html(t("common.forwarded_message_header"))
           : t("mail.reply_quote_header", {
               date: new Date(msg.timestamp).toLocaleString(app_locale()),
-              name: msg.display_sender_name || msg.sender_name,
+              name: `${escape_html(
+                msg.display_sender_name || msg.sender_name,
+              )} &lt;${escape_html(msg.sender_email)}&gt;`,
             });
       const include_quoted =
         mode === "forward" || reply_includes_quoted_by_default();
       const quoted = include_quoted
-        ? `\n\n${quote_header}\n${body
-            .split("\n")
-            .map((l) => "> " + l)
-            .join("\n")}`
+        ? `<br><br><div class="aster_quote"><div class="aster_quote_attr">${quote_header}</div><blockquote class="aster_quote_body" style="margin:0 0 0 0.8ex;border-left:1px solid #ccc;padding-left:1ex">${sanitize_outgoing_html(inline_email_css(strip_aster_footers_html(body)))}</blockquote></div>`
         : "";
       const rfc_message_id = resolve_reply_references(
         msg,

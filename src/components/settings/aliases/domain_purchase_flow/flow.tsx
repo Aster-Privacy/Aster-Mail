@@ -31,7 +31,7 @@ import {
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon as CheckCircleSolid } from "@heroicons/react/24/solid";
-import { Button } from "@aster/ui";
+import { Button, Input } from "@aster/ui";
 
 import {
   filter_results,
@@ -79,6 +79,9 @@ import {
 } from "@/services/api/domains";
 import type {} from "@/services/api/client";
 import { is_https_payment_url } from "@/lib/payment_url";
+import { open_payment_url } from "@/services/api/billing";
+import { open_external } from "@/utils/open_link";
+import { is_tauri_env } from "@/services/api/client/helpers";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -144,7 +147,10 @@ export function DomainPurchaseFlow({
   );
   const [buying, set_buying] = useState(false);
   const [order, set_order] = useState<DomainOrder | null>(null);
-  const order_id = initial_order_id ?? null;
+  const [order_id, set_order_id] = useState<string | null>(
+    initial_order_id ?? null,
+  );
+  const [checkout_url, set_checkout_url] = useState<string | null>(null);
   const [poll_count, set_poll_count] = useState(0);
   const [captcha_token, set_captcha_token] = useState<string | null>(null);
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
@@ -162,7 +168,10 @@ export function DomainPurchaseFlow({
   const turnstile_required = !!TURNSTILE_SITE_KEY;
 
   useEffect(() => {
-    if (initial_order_id) set_view("progress");
+    if (initial_order_id) {
+      set_order_id(initial_order_id);
+      set_view("progress");
+    }
   }, [initial_order_id]);
 
   useEffect(() => {
@@ -414,6 +423,16 @@ export function DomainPurchaseFlow({
             caught,
           );
         }
+        if (is_tauri_env()) {
+          await open_payment_url(response.data.checkout_url);
+          set_checkout_url(response.data.checkout_url);
+          set_order_id(response.data.order_id);
+          set_order(null);
+          set_view("progress");
+          set_buying(false);
+
+          return;
+        }
         window.location.href = response.data.checkout_url;
       } else {
         set_error(t(checkout_error_key(response.code, response.server_code)));
@@ -554,7 +573,7 @@ export function DomainPurchaseFlow({
       })}
       on_cancel={() => set_leave_url(null)}
       on_confirm={() => {
-        if (leave_url) window.open(leave_url, "_blank", "noopener,noreferrer");
+        if (leave_url) open_external(leave_url);
         set_leave_url(null);
       }}
       title={t("settings.domain_purchase_leave_title")}
@@ -631,12 +650,22 @@ export function DomainPurchaseFlow({
               {t("settings.domain_purchase_awaiting_note")}
             </p>
             <div className="flex flex-col items-center gap-2 w-full max-w-[280px]">
+              {checkout_url && (
+                <Button
+                  className="w-full"
+                  variant="depth"
+                  onClick={() => void open_payment_url(checkout_url)}
+                >
+                  {t("settings.domain_purchase_open_checkout")}
+                </Button>
+              )}
               <Button
                 className="w-full"
-                variant="depth"
+                variant={checkout_url ? "outline" : "depth"}
                 onClick={() => {
                   set_query(order.domain);
                   set_order(null);
+                  set_checkout_url(null);
                   set_view("search");
                 }}
               >
@@ -680,11 +709,11 @@ export function DomainPurchaseFlow({
                       <span className="w-6 h-6 rounded-full border-2 border-edge-secondary flex-shrink-0" />
                     )}
                     <span
-                      className={`text-sm ${
+                      className={`text-sm font-medium ${
                         done
                           ? "text-txt-secondary"
                           : active
-                            ? "font-semibold text-txt-primary"
+                            ? "text-txt-primary"
                             : "text-txt-muted"
                       }`}
                     >
@@ -709,7 +738,7 @@ export function DomainPurchaseFlow({
     return (
       <div>
         <button
-          className="flex items-center gap-1.5 mb-4 -ms-1.5 px-1.5 py-1 rounded-lg text-[13px] font-medium text-txt-secondary hover:text-txt-primary hover:bg-surf-secondary transition-colors"
+          className="flex items-center gap-1.5 mb-4 -ms-1.5 px-1.5 py-1 rounded-[var(--aster-radius-control)] text-[13px] font-medium text-txt-secondary hover:text-txt-primary hover:bg-surf-secondary transition-colors"
           type="button"
           onClick={() => {
             set_view("search");
@@ -729,9 +758,9 @@ export function DomainPurchaseFlow({
                 {[1, 2, 3].map((y) => (
                   <button
                     key={y}
-                    className={`flex-1 h-10 rounded-full border text-sm transition-colors ${
+                    className={`flex-1 h-10 rounded-full border text-sm font-medium transition-colors ${
                       years === y
-                        ? "border-transparent text-[var(--accent-fg,#ffffff)] font-semibold bg-[var(--accent-color)]"
+                        ? "border-transparent text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)]"
                         : "border-edge-secondary text-txt-secondary hover:bg-surf-secondary"
                     }`}
                     onClick={() => set_years(y)}
@@ -765,9 +794,9 @@ export function DomainPurchaseFlow({
                 ).map(([method, Icon, label]) => (
                   <button
                     key={method}
-                    className={`flex-1 h-10 rounded-full border text-sm flex items-center justify-center gap-2 transition-colors ${
+                    className={`flex-1 h-10 rounded-full border text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
                       payment_method === method
-                        ? "border-transparent text-[var(--accent-fg,#ffffff)] font-semibold bg-[var(--accent-color)]"
+                        ? "border-transparent text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)]"
                         : "border-edge-secondary text-txt-secondary hover:bg-surf-secondary"
                     }`}
                     onClick={() => set_payment_method(method)}
@@ -930,10 +959,11 @@ export function DomainPurchaseFlow({
       <div>
         <div className="relative">
           <MagnifyingGlassIcon className="w-[18px] h-[18px] absolute start-4 top-1/2 -translate-y-1/2 text-txt-muted" />
-          <input
+          <Input
             autoFocus
-            className="w-full h-12 ps-11 pe-11 rounded-xl bg-surf-secondary border border-edge-secondary text-[15px] text-txt-primary placeholder:text-txt-muted outline-none focus:border-[var(--accent-color)]/70 transition-colors"
+            className="ps-11 pe-11"
             placeholder={t("settings.domain_purchase_search_placeholder")}
+            size="xl"
             value={query}
             onChange={(e) =>
               set_query(apply_input_transform(e.target, (v) => v.toLowerCase()))
@@ -1001,7 +1031,7 @@ export function DomainPurchaseFlow({
                 </div>
               )}
               <div
-                className={`transition-opacity divide-y divide-edge-secondary/60 ${
+                className={`transition-opacity divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))] ${
                   showing_stale ? "opacity-40" : "opacity-100"
                 }`}
               >

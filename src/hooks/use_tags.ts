@@ -75,14 +75,20 @@ function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const cached_tags: { data: DecryptedTag[]; total: number } = {
+const cached_tags: {
+  data: DecryptedTag[];
+  total: number;
+  has_loaded: boolean;
+} = {
   data: [],
   total: 0,
+  has_loaded: false,
 };
 
 export function clear_tags_cache(): void {
   cached_tags.data = [];
   cached_tags.total = 0;
+  cached_tags.has_loaded = false;
 }
 
 interface UseTagsReturn {
@@ -253,7 +259,7 @@ export function use_tags(): UseTagsReturn {
   const user = auth?.user ?? null;
   const [state, set_state] = useState<TagsState>({
     tags: cached_tags.data,
-    is_loading: cached_tags.data.length === 0,
+    is_loading: cached_tags.data.length === 0 && !cached_tags.has_loaded,
     error: null,
     total: cached_tags.total,
   });
@@ -285,7 +291,7 @@ export function use_tags(): UseTagsReturn {
       const this_generation = ++fetch_generation_ref.current;
 
       set_state((prev) => {
-        if (prev.tags.length === 0) {
+        if (prev.tags.length === 0 && !cached_tags.has_loaded) {
           return { ...prev, is_loading: true, error: null };
         }
 
@@ -329,6 +335,7 @@ export function use_tags(): UseTagsReturn {
 
           cached_tags.data = decrypted_tags;
           cached_tags.total = decrypted_tags.length;
+          cached_tags.has_loaded = true;
 
           set_state({
             tags: decrypted_tags,
@@ -725,6 +732,7 @@ export function use_tags(): UseTagsReturn {
       counts_generation_ref.current += 1;
       cached_tags.data = [];
       cached_tags.total = 0;
+      cached_tags.has_loaded = false;
       set_state({
         tags: [],
         is_loading: true,

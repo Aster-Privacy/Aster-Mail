@@ -121,8 +121,7 @@ describe("CreditsSection top-up bfcache restore", () => {
     });
 
     let resolve_purchase:
-      | ((value: { data: { url: string } }) => void)
-      | undefined;
+      ((value: { data: { url: string } }) => void) | undefined;
 
     mocked_purchase.mockReturnValue(
       new Promise((resolve) => {

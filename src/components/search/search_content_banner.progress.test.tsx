@@ -46,7 +46,8 @@ vi.mock("@/components/ui/info_popover", () => ({
   InfoPopover: () => null,
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Switch: () => null,
 }));
 

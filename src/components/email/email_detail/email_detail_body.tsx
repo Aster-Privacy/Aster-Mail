@@ -26,7 +26,7 @@ import type { DecryptedEmail } from "@/components/email/hooks/use_email_detail";
 import type { MailItem } from "@/services/api/mail";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ExclamationCircleIcon,
   LockClosedIcon,
@@ -34,7 +34,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-import { Skeleton } from "@/components/ui/skeleton";
+import { EmailOpenSkeleton } from "@/components/email/viewer_shared/email_open_skeleton";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { UnsubscribeBanner } from "@/components/email/unsubscribe_banner";
@@ -62,9 +62,6 @@ interface EmailDetailBodyProps {
   thread_draft: DraftWithContent | null;
   current_user_email: string;
   set_is_block_sender_modal_open: (open: boolean) => void;
-  handle_per_message_reply: (msg: DecryptedThreadMessage) => void;
-  handle_per_message_reply_all: (msg: DecryptedThreadMessage) => void;
-  handle_per_message_forward: (msg: DecryptedThreadMessage) => void;
   handle_per_message_archive: (msg: DecryptedThreadMessage) => void;
   handle_per_message_trash: (msg: DecryptedThreadMessage) => void;
   handle_per_message_print: (msg: DecryptedThreadMessage) => void;
@@ -75,49 +72,6 @@ interface EmailDetailBodyProps {
   handle_edit_thread_draft: (draft: DraftWithContent) => void;
   handle_thread_draft_deleted: () => void;
   on_external_content_detected?: (report: ExternalContentReport) => void;
-}
-
-function EmailDetailSkeleton(): React.ReactElement {
-  return (
-    <div className="max-w-4xl mx-auto flex flex-col h-full">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-3 gap-2">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <Skeleton className="w-5 h-5 sm:w-6 sm:h-6" />
-          <Skeleton className="h-6 sm:h-8 w-48 sm:w-72" />
-        </div>
-        <div className="hidden sm:flex items-center gap-2">
-          <Skeleton className="w-8 h-8" />
-          <Skeleton className="w-8 h-8" />
-          <Skeleton className="h-4 w-16" />
-        </div>
-      </div>
-
-      <div className="mb-4 mt-2 flex items-start gap-2 sm:gap-3">
-        <Skeleton className="w-8 h-8 sm:w-12 sm:h-12 rounded-full flex-shrink-0" />
-        <div className="flex-1">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-1">
-            <Skeleton className="h-4 sm:h-5 w-28 sm:w-36" />
-            <Skeleton className="h-3 sm:h-4 w-36 sm:w-44" />
-          </div>
-          <Skeleton className="h-3 sm:h-4 w-16 sm:w-24" />
-        </div>
-      </div>
-
-      <div className="flex-1 rounded-lg p-3 sm:p-4 mt-4">
-        <div className="space-y-2 sm:space-y-3">
-          <Skeleton className="h-3 sm:h-4 w-full" />
-          <Skeleton className="h-3 sm:h-4 w-[95%]" />
-          <Skeleton className="h-3 sm:h-4 w-[88%]" />
-          <Skeleton className="h-3 sm:h-4 w-[92%]" />
-          <Skeleton className="h-3 sm:h-4 w-[70%]" />
-          <div className="h-3 sm:h-4" />
-          <Skeleton className="h-3 sm:h-4 w-[85%]" />
-          <Skeleton className="h-3 sm:h-4 w-[90%]" />
-          <Skeleton className="h-3 sm:h-4 w-[60%]" />
-        </div>
-      </div>
-    </div>
-  );
 }
 
 export function EmailDetailBody({
@@ -134,9 +88,6 @@ export function EmailDetailBody({
   thread_draft,
   current_user_email,
   set_is_block_sender_modal_open,
-  handle_per_message_reply,
-  handle_per_message_reply_all,
-  handle_per_message_forward,
   handle_per_message_archive,
   handle_per_message_trash,
   handle_per_message_print,
@@ -149,6 +100,31 @@ export function EmailDetailBody({
   on_external_content_detected,
 }: EmailDetailBodyProps) {
   const { preferences } = use_preferences();
+  const [inline_reply_msg, set_inline_reply_msg] =
+    useState<DecryptedThreadMessage | null>(null);
+  const [inline_mode, set_inline_mode] = useState<
+    "reply" | "reply_all" | "forward"
+  >("reply");
+
+  const handle_inline_reply = useCallback((msg: DecryptedThreadMessage) => {
+    set_inline_reply_msg(msg);
+    set_inline_mode("reply");
+  }, []);
+
+  const handle_inline_reply_all = useCallback((msg: DecryptedThreadMessage) => {
+    set_inline_reply_msg(msg);
+    set_inline_mode("reply_all");
+  }, []);
+
+  const handle_inline_forward = useCallback((msg: DecryptedThreadMessage) => {
+    set_inline_reply_msg(msg);
+    set_inline_mode("forward");
+  }, []);
+
+  const handle_close_inline_reply = useCallback(() => {
+    set_inline_reply_msg(null);
+  }, []);
+
   const show_sender_name = email?.display_sender_name ?? email?.sender ?? "";
   const show_sender_email =
     email?.display_sender_email ?? email?.sender_email ?? "";
@@ -174,7 +150,9 @@ export function EmailDetailBody({
   return (
     <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 pb-20 sm:pb-6">
       {is_loading && !email ? (
-        <EmailDetailSkeleton />
+        <div className="relative h-full min-h-[320px]">
+          <EmailOpenSkeleton />
+        </div>
       ) : error ? (
         <div className="flex flex-col items-center justify-center h-full gap-4 px-4">
           <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
@@ -289,7 +267,22 @@ export function EmailDetailBody({
               hide_counter
               current_user_email={current_user_email}
               default_expanded_id={email.id}
+              footer={
+                thread_draft ? (
+                  <ThreadDraftBadge
+                    current_user_email={current_user_email}
+                    current_user_name={user?.display_name}
+                    draft={thread_draft}
+                    on_deleted={handle_thread_draft_deleted}
+                    on_edit={handle_edit_thread_draft}
+                  />
+                ) : null
+              }
               force_all_dark_mode={preferences.force_dark_mode_emails}
+              inline_mode={inline_mode}
+              inline_reply_is_external={mail_item?.is_external ?? false}
+              inline_reply_msg={inline_reply_msg}
+              inline_reply_thread_token={mail_item?.thread_token}
               main_email_id={email.id}
               messages={
                 thread_messages.length > 0
@@ -332,15 +325,17 @@ export function EmailDetailBody({
               }
               on_archive={handle_per_message_archive}
               on_block_sender={() => set_is_block_sender_modal_open(true)}
+              on_close_inline_reply={handle_close_inline_reply}
               on_external_content_detected={on_external_content_detected}
-              on_forward={handle_per_message_forward}
+              on_forward={handle_inline_forward}
               on_not_spam={
                 mail_item?.is_spam ? handle_per_message_not_spam : undefined
               }
               on_print={handle_per_message_print}
-              on_reply={handle_per_message_reply}
-              on_reply_all={handle_per_message_reply_all}
+              on_reply={handle_inline_reply}
+              on_reply_all={handle_inline_reply_all}
               on_report_phishing={handle_per_message_report_phishing}
+              on_set_inline_mode={set_inline_mode}
               on_toggle_message_read={handle_toggle_message_read}
               on_trash={handle_per_message_trash}
               on_view_source={handle_per_message_view_source}
@@ -348,16 +343,6 @@ export function EmailDetailBody({
               subject={email.subject}
               thread_token={mail_item?.thread_token}
             />
-
-            {thread_draft && (
-              <ThreadDraftBadge
-                current_user_email={current_user_email}
-                current_user_name={user?.display_name}
-                draft={thread_draft}
-                on_deleted={handle_thread_draft_deleted}
-                on_edit={handle_edit_thread_draft}
-              />
-            )}
           </div>
 
           {email.attachments.length > 0 && (

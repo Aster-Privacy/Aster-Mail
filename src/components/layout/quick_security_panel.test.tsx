@@ -30,6 +30,8 @@ const totp_status = vi.fn();
 const hardware_keys = vi.fn();
 const login_alerts = vi.fn();
 const recovery_email = vi.fn();
+const recovery_methods = vi.fn();
+const codes_status = vi.fn();
 
 let preferences = {
   block_tracking_pixels: false,
@@ -59,6 +61,11 @@ vi.mock("@/services/api/webauthn", () => ({
 
 vi.mock("@/services/api/auth", () => ({
   get_login_alerts_status: () => login_alerts(),
+}));
+
+vi.mock("@/services/api/recovery", () => ({
+  get_recovery_methods: () => recovery_methods(),
+  get_codes_status: () => codes_status(),
 }));
 
 vi.mock("@/services/api/recovery_email", () => ({
@@ -136,6 +143,17 @@ describe("quick security panel", () => {
     hardware_keys.mockResolvedValue({ data: { keys: [] } });
     login_alerts.mockResolvedValue({ data: { enabled: false } });
     recovery_email.mockResolvedValue({ data: { verified: false } });
+    recovery_methods.mockResolvedValue({
+      data: {
+        has_phrase: false,
+        has_codes: false,
+        codes_remaining: 0,
+        recovery_email_set: false,
+        recovery_email_verified: false,
+        inactive_key_sets: 0,
+      },
+    });
+    codes_status.mockResolvedValue({ data: null });
     alias_cache = [];
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -165,7 +183,7 @@ describe("quick security panel", () => {
       "ul:first-of-type > li > button",
     );
 
-    expect(pending).toHaveLength(7);
+    expect(pending).toHaveLength(8);
     expect(container.textContent).toContain(
       "settings.security_center_recommended",
     );
@@ -186,7 +204,7 @@ describe("quick security panel", () => {
     const lists = container.querySelectorAll("ul");
 
     expect(lists).toHaveLength(2);
-    expect(lists[0].querySelectorAll("li")).toHaveLength(3);
+    expect(lists[0].querySelectorAll("li")).toHaveLength(4);
     expect(lists[1].querySelectorAll("li")).toHaveLength(4);
   });
 
@@ -229,6 +247,24 @@ describe("quick security panel", () => {
     hardware_keys.mockResolvedValue({ data: { keys: [{ id: "key" }] } });
     login_alerts.mockResolvedValue({ data: { enabled: true } });
     recovery_email.mockResolvedValue({ data: { verified: true } });
+    recovery_methods.mockResolvedValue({
+      data: {
+        has_phrase: false,
+        has_codes: true,
+        codes_remaining: 10,
+        recovery_email_set: true,
+        recovery_email_verified: true,
+        inactive_key_sets: 0,
+      },
+    });
+    codes_status.mockResolvedValue({
+      data: {
+        created_at: "2026-09-01T00:00:00Z",
+        total: 10,
+        remaining: 10,
+        used: [],
+      },
+    });
     preferences = {
       block_tracking_pixels: true,
       block_remote_images: true,

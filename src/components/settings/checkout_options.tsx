@@ -202,7 +202,7 @@ export function CheckoutMethodList({
             <button
               key={method}
               aria-checked={is_selected}
-              className="flex w-full items-center gap-3 rounded-[12px] px-3 py-2.5 text-start transition-colors"
+              className="flex w-full items-center gap-3 rounded-[var(--aster-radius-control)] px-3 py-2.5 text-start transition-colors"
               disabled={disabled}
               role="radio"
               style={{

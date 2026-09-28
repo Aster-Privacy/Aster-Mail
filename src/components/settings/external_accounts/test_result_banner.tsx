@@ -28,12 +28,12 @@ interface TestResultBannerProps {
 export function TestResultBanner({ label, result }: TestResultBannerProps) {
   return (
     <div
-      className="flex items-start gap-2 px-3 py-2 rounded-lg text-sm"
+      className={`flex items-start gap-2 px-3.5 py-2.5 rounded-2xl text-sm ${
+        result.success
+          ? "bg-[color-mix(in_srgb,#16a34a_12%,transparent)] text-green-700 dark:text-green-400"
+          : "bg-[color-mix(in_srgb,#dc2626_12%,transparent)] text-red-700 dark:text-red-400"
+      }`}
       role="status"
-      style={{
-        backgroundColor: result.success ? "#16a34a" : "#dc2626",
-        color: "#fff",
-      }}
     >
       {result.success ? (
         <CheckCircleIcon className="w-4 h-4 flex-shrink-0 mt-0.5" />

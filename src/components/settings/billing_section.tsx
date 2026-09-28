@@ -20,6 +20,16 @@
 //
 import { useEffect, useRef, useState, useCallback } from "react";
 import { loadStripe } from "@stripe/stripe-js/pure";
+import {
+  ChatBubbleLeftRightIcon,
+  Squares2X2Icon,
+} from "@heroicons/react/24/outline";
+import {
+  Island,
+  IslandDivider,
+  IslandSection,
+  IslandSections,
+} from "@aster/ui";
 
 import { checkout_error_text } from "./billing/checkout_error_text";
 
@@ -85,28 +95,25 @@ import {
 import { DEFAULT_RECOMMENDED_PLAN } from "@/components/settings/billing/plan_recommendation";
 import { server_error_text } from "@/components/settings/billing/server_error_text";
 import { BillingHeroCard } from "@/components/settings/billing/billing_hero_card";
-import { BillingUsageMeters } from "@/components/settings/billing/billing_usage_meters";
-import { BillingAccountRows } from "@/components/settings/billing/billing_account_rows";
-import { BillingPlanPicker } from "@/components/settings/billing/billing_plan_picker";
-import { BillingStorageAddons } from "@/components/settings/billing/billing_storage_addons";
-import { AddFundsModal } from "@/components/settings/billing/add_funds_modal";
-import {
-  BillingHeroSkeleton,
-  BillingMetersSkeleton,
-} from "@/components/settings/billing/billing_skeleton";
 import {
   read_billing_cache,
   write_billing_cache,
 } from "@/components/settings/billing/billing_cache";
-import { use_auth } from "@/contexts/auth/use_auth_hook";
-import { CardDeclineNotice } from "@/components/settings/billing/card_decline_notice";
-import { CryptoResumeBanner } from "@/components/settings/billing/crypto_resume_banner";
-import { ResumeCheckoutCard } from "@/components/settings/billing/resume_checkout_card";
-import { WinBackOfferCard } from "@/components/settings/billing/win_back_offer_card";
 import { SpecialOfferBillingCard } from "@/components/settings/billing/special_offer_billing_card";
-import { YearlySwitchCard } from "@/components/settings/billing/yearly_switch_card";
+import { BillingAdvantagesCard } from "@/components/settings/billing/billing_advantages_card";
+import { BillingNoticeStack } from "@/components/settings/billing/billing_notice_stack";
+import { scroll_to_storage_addons } from "@/components/layout/storage_meter";
+import { AvailablePlansSection } from "@/components/settings/billing/available_plans_section";
+import { PlanComparisonSection } from "@/components/settings/billing/plan_comparison_section";
+import { StorageAddonsSection } from "@/components/settings/billing/storage_addons_section";
+import { CreditsSection } from "@/components/settings/billing/credits_section";
 import { AcademicDiscountSection } from "@/components/settings/billing/academic_discount_section";
 import { BillingHistorySection } from "@/components/settings/billing/billing_history_section";
+import {
+  BillingMoreRow,
+  billing_row_icon,
+} from "@/components/settings/billing/billing_more_section";
+import { open_settings_target } from "@/lib/settings_links";
 import { BillingDialogs } from "@/components/settings/billing/billing_dialogs";
 import { type CancelReason } from "@/components/settings/billing/cancel_reason_step";
 import {
@@ -118,12 +125,128 @@ import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_chang
 import { is_promo_code_rejection } from "@/components/settings/billing/plan_change_discount_text";
 import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
+import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import {
+  SKELETON_MIN_VISIBLE_MS,
+  use_delayed_flag,
+} from "@/hooks/use_delayed_flag";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import {
   clear_cancel_password_cache,
   get_cancel_password_hash,
 } from "@/components/settings/billing/cancel_password";
 import { use_plan_features } from "@/components/settings/billing/use_plan_features";
+
+interface BillingCache {
+  user_id: string | null;
+  subscription: SubscriptionResponse | null;
+  plans: AvailablePlan[];
+  history: BillingHistoryItem[];
+  plan_limits: PlanLimitsResponse | null;
+  available_addons: StorageAddonItem[];
+  active_addons: UserActiveAddon[];
+  addon_promo: {
+    eligible: boolean;
+    percent_off: number;
+    duration_months: number;
+  };
+  credit_balance: CreditBalanceResponse | null;
+}
+
+const FREE_ADVANTAGES_PLAN = "star";
+
+let billing_cache: BillingCache | null = null;
+
+export function invalidate_billing_cache() {
+  billing_cache = null;
+}
+
+function request_billing_bundle() {
+  return Promise.all([
+    get_subscription(),
+    get_available_plans(),
+    get_billing_history(1, 10),
+    get_plan_limits(),
+    get_storage_addons(),
+    get_credits(),
+  ]);
+}
+
+type BillingBundle = Awaited<ReturnType<typeof request_billing_bundle>>;
+
+let pending_billing_request: Promise<BillingBundle> | null = null;
+
+function take_billing_request(): Promise<BillingBundle> {
+  const pending = pending_billing_request;
+
+  pending_billing_request = null;
+
+  return pending ?? request_billing_bundle();
+}
+
+function store_billing_cache(user_id: string | null, bundle: BillingBundle) {
+  const [
+    sub_response,
+    plans_response,
+    history_response,
+    limits_response,
+    addons_response,
+    credits_response,
+  ] = bundle;
+  const percent_off = addons_response.data?.promo_percent_off ?? 0;
+  const duration_months = addons_response.data?.promo_duration_months ?? 0;
+
+  billing_cache = {
+    user_id,
+    subscription: sub_response.data ?? billing_cache?.subscription ?? null,
+    plans: plans_response.data?.plans ?? billing_cache?.plans ?? [],
+    history: history_response.data?.items ?? billing_cache?.history ?? [],
+    plan_limits: limits_response.data ?? billing_cache?.plan_limits ?? null,
+    available_addons:
+      addons_response.data?.available_addons ??
+      billing_cache?.available_addons ??
+      [],
+    active_addons:
+      addons_response.data?.active_addons ?? billing_cache?.active_addons ?? [],
+    addon_promo: addons_response.data
+      ? {
+          eligible:
+            addons_response.data.promo_eligible === true &&
+            percent_off > 0 &&
+            duration_months > 0,
+          percent_off,
+          duration_months,
+        }
+      : (billing_cache?.addon_promo ?? {
+          eligible: false,
+          percent_off: 0,
+          duration_months: 0,
+        }),
+    credit_balance:
+      credits_response.data ?? billing_cache?.credit_balance ?? null,
+  };
+}
+
+export function prefetch_billing_data(user_id: string | null) {
+  if (!user_id || pending_billing_request) return;
+  if (billing_cache && billing_cache.user_id === user_id) return;
+
+  const request = request_billing_bundle();
+
+  pending_billing_request = request;
+  request
+    .then((bundle) => {
+      if (pending_billing_request === request) {
+        pending_billing_request = null;
+      }
+      if (bundle[0].data) store_billing_cache(user_id, bundle);
+    })
+    .catch(() => {
+      if (pending_billing_request === request) {
+        pending_billing_request = null;
+      }
+    });
+}
 
 export function BillingSection() {
   const { t } = use_i18n();
@@ -133,13 +256,19 @@ export function BillingSection() {
   const user_id_ref = useRef(user_id);
 
   user_id_ref.current = user_id;
-  const [cached] = useState(() => read_billing_cache(user_id));
+  const [cached] = useState(() =>
+    billing_cache && billing_cache.user_id === user_id
+      ? billing_cache
+      : read_billing_cache(user_id),
+  );
   const [subscription, set_subscription] =
-    useState<SubscriptionResponse | null>(cached?.subscription ?? null);
+    useState<SubscriptionResponse | null>(() => cached?.subscription ?? null);
   const offer_checkout = use_special_offer_checkout(subscription?.plan.code);
-  const [plans, set_plans] = useState<AvailablePlan[]>(cached?.plans ?? []);
+  const [plans, set_plans] = useState<AvailablePlan[]>(
+    () => cached?.plans ?? [],
+  );
   const [history, set_history] = useState<BillingHistoryItem[]>(
-    cached?.history ?? [],
+    () => cached?.history ?? [],
   );
   const [history_load_failed, set_history_load_failed] = useState(false);
   const [is_action_loading, set_is_action_loading] = useState(false);
@@ -152,19 +281,19 @@ export function BillingSection() {
     null,
   );
   const [available_addons, set_available_addons] = useState<StorageAddonItem[]>(
-    cached?.available_addons ?? [],
+    () => cached?.available_addons ?? [],
   );
   const [active_addons, set_active_addons] = useState<UserActiveAddon[]>(
-    cached?.active_addons ?? [],
+    () => cached?.active_addons ?? [],
   );
   const [addon_promo, set_addon_promo] = useState(
-    cached?.addon_promo ?? {
-      eligible: false,
-      percent_off: 0,
-      duration_months: 0,
-    },
+    () =>
+      cached?.addon_promo ?? {
+        eligible: false,
+        percent_off: 0,
+        duration_months: 0,
+      },
   );
-  const [show_add_funds, set_show_add_funds] = useState(false);
   const [show_cancel_addon_dialog, set_show_cancel_addon_dialog] =
     useState(false);
   const [addon_to_cancel, set_addon_to_cancel] =
@@ -174,9 +303,9 @@ export function BillingSection() {
     useState<StorageAddonItem | null>(null);
   const [billing_period, set_billing_period] = useState<
     "monthly" | "yearly" | "biennial"
-  >("monthly");
+  >("yearly");
   const [plan_limits, set_plan_limits] = useState<PlanLimitsResponse | null>(
-    cached?.plan_limits ?? null,
+    () => cached?.plan_limits ?? null,
   );
   const [show_switch_billing_dialog, set_show_switch_billing_dialog] =
     useState(false);
@@ -190,12 +319,21 @@ export function BillingSection() {
   const [cancel_reason_text, set_cancel_reason_text] = useState("");
   const [show_payment_methods, set_show_payment_methods] = useState(false);
   const [auto_add_card, set_auto_add_card] = useState(false);
-  const [show_manage_plan, set_show_manage_plan] = useState(false);
+  const [show_plans, set_show_plans] = useState(false);
   const [credit_balance, set_credit_balance] =
-    useState<CreditBalanceResponse | null>(cached?.credit_balance ?? null);
+    useState<CreditBalanceResponse | null>(
+      () => cached?.credit_balance ?? null,
+    );
   const [academic_status, set_academic_status] =
     useState<AcademicDiscountStatusResponse | null>(null);
-  const [is_fetching, set_is_fetching] = useState(true);
+  const [is_initial_load, set_is_initial_load] = useState(
+    () => cached === null,
+  );
+  const skeleton_visible = use_delayed_flag(
+    is_initial_load,
+    0,
+    SKELETON_MIN_VISIBLE_MS,
+  );
   const [plans_load_failed, set_plans_load_failed] = useState(false);
   const [stripe_load_failed, set_stripe_load_failed] = useState(false);
   const [subscription_load_failed, set_subscription_load_failed] =
@@ -327,6 +465,11 @@ export function BillingSection() {
   const pending_tauri_checkout_ref = useRef(false);
   const plan_before_checkout_ref = useRef<string | null>(null);
 
+  const handle_currency_change = useCallback((new_currency: string) => {
+    set_preferred_currency(new_currency);
+    safe_local_set(CURRENCY_STORAGE_KEY, new_currency);
+  }, []);
+
   const refresh_academic_status = useCallback(async () => {
     const res = await get_academic_discount_status();
 
@@ -347,7 +490,6 @@ export function BillingSection() {
   const is_storage_over_limit = storage_used_bytes > storage_limit_bytes;
 
   const load_data = useCallback(async () => {
-    set_is_fetching(true);
     try {
       set_stripe_load_failed(false);
       get_stripe_config()
@@ -360,6 +502,7 @@ export function BillingSection() {
         })
         .catch(() => set_stripe_load_failed(true));
 
+      const responses = await take_billing_request();
       const [
         sub_response,
         plans_response,
@@ -367,14 +510,7 @@ export function BillingSection() {
         limits_response,
         addons_response,
         credits_response,
-      ] = await Promise.all([
-        get_subscription(),
-        get_available_plans(),
-        get_billing_history(1, 10),
-        get_plan_limits(),
-        get_storage_addons(),
-        get_credits(),
-      ]);
+      ] = responses;
 
       const snapshot = read_billing_cache(user_id_ref.current);
       const next = {
@@ -441,6 +577,7 @@ export function BillingSection() {
         set_credit_balance(credits_response.data);
       }
       write_billing_cache(user_id_ref.current, next);
+      store_billing_cache(user_id, responses);
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
       set_subscription_load_failed(true);
@@ -448,7 +585,7 @@ export function BillingSection() {
 
       return;
     } finally {
-      set_is_fetching(false);
+      set_is_initial_load(false);
     }
   }, []);
 
@@ -1078,6 +1215,42 @@ export function BillingSection() {
   };
 
   const has_payment_failed = Boolean(subscription?.payment_failed_at);
+  const is_paid_plan = !!subscription && subscription.plan.code !== "free";
+  const current_tier_index = PLAN_TIERS.findIndex(
+    (entry) => entry.id === subscription?.plan.code,
+  );
+  const next_tier =
+    has_payment_failed ||
+    subscription?.cancel_at_period_end ||
+    (is_paid_plan && current_tier_index === -1)
+      ? null
+      : (PLAN_TIERS[current_tier_index + 1] ?? null);
+  const next_tier_highlights = next_tier
+    ? (plan_features[next_tier.id] ?? [])
+        .filter((feature) => feature.on)
+        .slice(0, 3)
+        .map((feature) => feature.label)
+    : [];
+  const handle_upgrade_next = () => {
+    const target = next_tier
+      ? plans.find((plan) => plan.code === next_tier.id)
+      : undefined;
+
+    if (!target) {
+      scroll_to_plans();
+
+      return;
+    }
+    set_billing_period("yearly");
+    handle_select_plan(target);
+  };
+  const advantages_plan_code = is_paid_plan
+    ? subscription.plan.code
+    : FREE_ADVANTAGES_PLAN;
+  const advantages_plan_name = is_paid_plan
+    ? subscription.plan.name
+    : (PLAN_TIERS.find((entry) => entry.id === FREE_ADVANTAGES_PLAN)?.name ??
+      FREE_ADVANTAGES_PLAN);
   const grace_days_remaining = subscription?.grace_period_end
     ? Math.max(
         0,
@@ -1088,7 +1261,11 @@ export function BillingSection() {
       )
     : 0;
 
-  if (subscription_load_failed && !subscription && !is_fetching) {
+  if (is_initial_load || skeleton_visible) {
+    return <SettingsSkeleton variant="billing" />;
+  }
+
+  if (subscription_load_failed && !subscription) {
     return (
       <LoadFailedNotice
         on_retry={() => {
@@ -1098,68 +1275,160 @@ export function BillingSection() {
     );
   }
 
-  const has_card_subscription =
-    !!subscription &&
-    subscription.plan.code !== "free" &&
-    !is_crypto_provider(subscription.payment_provider) &&
-    subscription.has_stripe_subscription !== false;
-
   return (
-    <div className="space-y-6">
-      <CryptoResumeBanner />
-
-      <CardDeclineNotice decline={subscription?.last_card_decline} />
-
-      <ResumeCheckoutCard current_plan_code={subscription?.plan.code ?? null} />
-
-      <WinBackOfferCard
-        offer={subscription?.pending_offer}
+    <IslandSections>
+      <BillingNoticeStack
+        grace_days_remaining={grace_days_remaining}
+        has_payment_failed={has_payment_failed}
+        is_action_loading={is_action_loading}
+        is_over_limit={is_storage_over_limit}
+        on_add_storage={scroll_to_storage_addons}
         on_choose_plan={scroll_to_plans}
+        on_manage_billing={() => set_show_payment_methods(true)}
+        on_reactivate={handle_reactivate}
+        on_renew_with_crypto={handle_crypto_renew}
+        on_switch_to_yearly={handle_switch_to_yearly}
+        preferred_currency={preferred_currency}
+        subscription={subscription}
       />
 
       <SpecialOfferBillingCard plan_code={subscription?.plan.code ?? null} />
 
-      <YearlySwitchCard
-        currency={preferred_currency}
-        offer={subscription?.yearly_switch_offer}
-        on_switch={handle_switch_to_yearly}
+      <BillingHeroCard
+        current_billing_interval={current_billing_interval}
+        has_payment_failed={has_payment_failed}
+        is_action_loading={is_action_loading}
+        is_over_limit={is_storage_over_limit}
+        next_tier={next_tier}
+        next_tier_highlights={next_tier_highlights}
+        on_add_storage={scroll_to_storage_addons}
+        on_cancel_plan={() => {
+          set_cancel_password("");
+          set_cancel_password_error("");
+          set_show_cancel_password(false);
+          set_show_cancel_dialog(true);
+        }}
+        on_manage_payment={() => set_show_payment_methods(true)}
+        on_reactivate={handle_reactivate}
+        on_renew_with_crypto={handle_crypto_renew}
+        on_show_plans={scroll_to_plans}
+        on_switch_billing={() => set_show_switch_billing_dialog(true)}
+        on_toggle_plans={() => {
+          if (show_plans) {
+            set_show_plans(false);
+          } else {
+            scroll_to_plans();
+          }
+        }}
+        plan_limits={plan_limits}
+        plans_open={show_plans}
+        preferred_currency={preferred_currency}
+        storage_limit_bytes={storage_limit_bytes}
+        storage_percentage={storage_percentage}
+        storage_used_bytes={storage_used_bytes}
+        subscription={subscription}
+        on_upgrade_next={handle_upgrade_next}
       />
 
-      {subscription ? (
-        <BillingHeroCard
-          current_billing_interval={current_billing_interval}
-          grace_days_remaining={grace_days_remaining}
-          has_payment_failed={has_payment_failed}
-          is_action_loading={is_action_loading}
-          is_over_limit={is_storage_over_limit}
-          on_manage_billing={() => set_show_payment_methods(true)}
-          on_manage_plan={() => set_show_manage_plan(true)}
-          on_reactivate={handle_reactivate}
-          on_renew_with_crypto={handle_crypto_renew}
-          on_scroll_to_plans={scroll_to_plans}
-          preferred_currency={preferred_currency}
-          subscription={subscription}
-        />
-      ) : (
-        <BillingHeroSkeleton />
-      )}
-
-      {plan_limits || !is_fetching ? (
-        <BillingUsageMeters
-          plan_limits={plan_limits}
-          storage_limit_bytes={storage_limit_bytes}
-          storage_used_bytes={storage_used_bytes}
-        />
-      ) : (
-        <BillingMetersSkeleton />
-      )}
-
-      <BillingAccountRows
-        credit_balance={credit_balance}
-        on_top_up={() => set_show_add_funds(true)}
-        on_update_payment={() => set_show_payment_methods(true)}
-        show_payment_row={has_card_subscription}
+      <BillingAdvantagesCard
+        features={plan_features[advantages_plan_code] ?? []}
+        is_paid_plan={is_paid_plan}
+        plan_code={advantages_plan_code}
+        plan_name={advantages_plan_name}
       />
+
+      <IslandSection bare title={t("settings.available_plans")}>
+        <Island padding="none">
+          <BillingMoreRow
+            description={t("settings.billing_compare_all_plans_subtitle")}
+            icon={billing_row_icon(Squares2X2Icon)}
+            label={t("settings.compare_plans")}
+            on_toggle={() => set_show_plans((value) => !value)}
+            open={show_plans}
+          >
+            <IslandSections>
+              <AvailablePlansSection
+                embedded
+                billing_period={billing_period}
+                current_billing_interval={current_billing_interval}
+                handle_currency_change={handle_currency_change}
+                is_action_loading={is_action_loading}
+                on_family_plan_change={handle_family_plan_change}
+                on_reload_plans={() => {
+                  void load_data();
+                }}
+                on_tauri_checkout_opened={() => {
+                  plan_before_checkout_ref.current =
+                    subscription?.plan.code ?? null;
+                  pending_tauri_checkout_ref.current = true;
+                }}
+                on_upgrade={handle_select_plan}
+                plan_features={plan_features}
+                plans={plans}
+                plans_load_failed={plans_load_failed}
+                preferred_currency={preferred_currency}
+                set_billing_period={set_billing_period}
+                subscription={subscription}
+              />
+
+              <PlanComparisonSection
+                current_plan_code={subscription?.plan.code}
+              />
+            </IslandSections>
+          </BillingMoreRow>
+        </Island>
+      </IslandSection>
+
+      <IslandSection bare title={t("common.more")}>
+        <Island padding="none">
+          <StorageAddonsSection
+            embedded
+            active_addons={active_addons}
+            available_addons={available_addons}
+            is_action_loading={is_action_loading}
+            is_over_limit={is_storage_over_limit}
+            on_cancel_addon={(addon) => {
+              set_addon_to_cancel(addon);
+              set_show_cancel_addon_dialog(true);
+            }}
+            on_purchase_addon={(addon) => {
+              set_addon_method_target(addon);
+              set_show_addon_method_modal(true);
+            }}
+            preferred_currency={preferred_currency}
+            selected_storage={selected_storage}
+            set_selected_storage={set_selected_storage}
+          />
+          <IslandDivider />
+          <BillingHistorySection
+            embedded
+            history={history}
+            load_failed={history_load_failed}
+            on_retry={() => void load_data()}
+          />
+          <IslandDivider />
+          <CreditsSection
+            embedded
+            credit_balance={credit_balance}
+            preferred_currency={preferred_currency}
+            set_credit_balance={set_credit_balance}
+          />
+          <IslandDivider />
+          <AcademicDiscountSection
+            embedded
+            academic_status={academic_status}
+            refresh_academic_status={refresh_academic_status}
+          />
+          <IslandDivider />
+          <BillingMoreRow
+            description={t("settings.billing_support_subtitle")}
+            icon={billing_row_icon(ChatBubbleLeftRightIcon)}
+            label={t("common.contact_support")}
+            on_press={() => open_settings_target({ section: "feedback" })}
+          />
+        </Island>
+      </IslandSection>
+
 
       {stripe_load_failed && (
         <p
@@ -1170,64 +1439,6 @@ export function BillingSection() {
           {t("settings.failed_checkout")}
         </p>
       )}
-
-      <BillingPlanPicker
-        billing_period={billing_period}
-        is_action_loading={is_action_loading}
-        on_family_plan_change={handle_family_plan_change}
-        on_reload_plans={() => {
-          void load_data();
-        }}
-        on_tauri_checkout_opened={() => {
-          plan_before_checkout_ref.current = subscription?.plan.code ?? null;
-          pending_tauri_checkout_ref.current = true;
-        }}
-        on_upgrade={handle_select_plan}
-        plans={plans}
-        plans_load_failed={plans_load_failed}
-        preferred_currency={preferred_currency}
-        set_billing_period={set_billing_period}
-        subscription={subscription}
-      />
-
-      <BillingStorageAddons
-        active_addons={active_addons}
-        available_addons={available_addons}
-        is_action_loading={is_action_loading}
-        is_loading={is_fetching}
-        on_cancel_addon={(addon) => {
-          set_addon_to_cancel(addon);
-          set_show_cancel_addon_dialog(true);
-        }}
-        on_purchase_addon={(addon) => {
-          set_addon_method_target(addon);
-          set_show_addon_method_modal(true);
-        }}
-        preferred_currency={preferred_currency}
-        selected_storage={selected_storage}
-        set_selected_storage={set_selected_storage}
-      />
-
-      <BillingHistorySection
-        credit_transactions={credit_balance?.recent_transactions ?? []}
-        history={history}
-        is_loading={is_fetching}
-        load_failed={history_load_failed}
-        on_retry={() => void load_data()}
-      />
-
-      <AddFundsModal
-        credit_balance={credit_balance}
-        on_balance_change={(update) => set_credit_balance(update)}
-        on_close={() => set_show_add_funds(false)}
-        open={show_add_funds}
-        preferred_currency={preferred_currency}
-      />
-
-      <AcademicDiscountSection
-        academic_status={academic_status}
-        refresh_academic_status={refresh_academic_status}
-      />
 
       {crypto_plan &&
         (() => {
@@ -1473,7 +1684,6 @@ export function BillingSection() {
         set_show_cancel_dialog={set_show_cancel_dialog}
         set_show_cancel_password={set_show_cancel_password}
         set_show_checkout_modal={set_show_checkout_modal}
-        set_show_manage_plan={set_show_manage_plan}
         set_show_payment_methods={set_show_payment_methods}
         set_show_switch_billing_dialog={set_show_switch_billing_dialog}
         set_subscription={set_subscription}
@@ -1482,13 +1692,12 @@ export function BillingSection() {
         show_cancel_dialog={show_cancel_dialog}
         show_cancel_password={show_cancel_password}
         show_checkout_modal={show_checkout_modal}
-        show_manage_plan={show_manage_plan}
         show_payment_methods={show_payment_methods}
         show_switch_billing_dialog={show_switch_billing_dialog}
         subscription={subscription}
         target_billing_interval={target_billing_interval}
         yearly_savings={yearly_savings}
       />
-    </div>
+    </IslandSections>
   );
 }

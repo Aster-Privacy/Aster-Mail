@@ -19,7 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect } from "react";
-import { Badge, Switch, UpgradeBtn } from "@aster/ui";
+import { Badge, IslandRow, UpgradeBtn } from "@aster/ui";
 import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
@@ -192,34 +192,28 @@ function LockdownSection({ account_id }: { account_id: string }) {
 
   return (
     <>
-      <div className="py-3">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 pe-4">
-            <div className="flex items-center gap-1.5">
-              <p className="text-sm font-medium text-txt-primary">
-                {t("settings.lockdown_enable")}
-              </p>
-              <InfoPopover
-                description={t("settings.lockdown_info")}
-                title={t("settings.lockdown_title")}
-              />
-              {enabled && (
-                <Badge color="red">{t("settings.lockdown_active")}</Badge>
-              )}
-            </div>
-            <p className="text-xs mt-0.5 text-txt-muted">
-              {t("settings.lockdown_description")}
-            </p>
-          </div>
-          <Switch
-            aria-label={t("settings.lockdown_enable")}
-            checked={enabled}
-            disabled={enabling}
-            size="lg"
-            onCheckedChange={handle_toggle}
-          />
-        </div>
-      </div>
+      <IslandRow
+        description={t("settings.lockdown_description")}
+        label={
+          <span className="inline-flex flex-wrap items-center gap-1.5">
+            {t("settings.lockdown_enable")}
+            <InfoPopover
+              description={t("settings.lockdown_info")}
+              title={t("settings.lockdown_title")}
+            />
+            {enabled && (
+              <Badge color="red">{t("settings.lockdown_active")}</Badge>
+            )}
+          </span>
+        }
+        toggle={{
+          checked: enabled,
+          on_change: handle_toggle,
+          disabled: enabling,
+          size: "lg",
+          aria_label: t("settings.lockdown_enable"),
+        }}
+      />
 
       <Modal
         is_open={show_disable_modal}
@@ -407,40 +401,40 @@ export function VanguardSection() {
   };
 
   if (is_loading) {
-    return <div className="h-14 rounded-xl bg-muted/50 animate-pulse mx-1" />;
+    return <div className="h-14 rounded-[inherit] bg-muted/50 animate-pulse" />;
   }
+
+  const vanguard_label = (
+    <span className="inline-flex flex-wrap items-center gap-1.5">
+      {t("settings.vanguard_enable")}
+      <InfoPopover
+        description={t("settings.vanguard_info")}
+        title={t("settings.vanguard_title")}
+      />
+      {enabled && <Badge color="green">{t("settings.vanguard_active")}</Badge>}
+    </span>
+  );
 
   return (
     <>
-      <div className="py-4 px-1">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 pe-4">
-            <div className="flex items-center gap-1.5">
-              <p className="text-sm font-medium text-txt-primary">
-                {t("settings.vanguard_enable")}
-              </p>
-              <InfoPopover
-                description={t("settings.vanguard_info")}
-                title={t("settings.vanguard_title")}
-              />
-              {enabled && (
-                <Badge color="green">{t("settings.vanguard_active")}</Badge>
-              )}
-            </div>
-            <p className="text-xs mt-0.5 text-txt-muted">
-              {t("settings.vanguard_description")}
-            </p>
-          </div>
-
-          {is_nova_plus ? (
-            <Switch
-              aria-label={t("settings.vanguard_title")}
-              checked={enabled}
-              disabled={is_disabling}
-              size="lg"
-              onCheckedChange={handle_toggle}
-            />
-          ) : (
+      {is_nova_plus ? (
+        <IslandRow
+          description={t("settings.vanguard_description")}
+          label={vanguard_label}
+          toggle={{
+            checked: enabled,
+            on_change: handle_toggle,
+            disabled: is_disabling,
+            size: "lg",
+            aria_label: t("settings.vanguard_title"),
+          }}
+        />
+      ) : (
+        <IslandRow
+          description={t("settings.vanguard_description")}
+          label={vanguard_label}
+          layout="stacked"
+          trailing={
             <UpgradeBtn
               size="sm"
               onClick={() =>
@@ -453,16 +447,16 @@ export function VanguardSection() {
             >
               {t("settings.vanguard_upgrade_cta")}
             </UpgradeBtn>
-          )}
-        </div>
+          }
+        />
+      )}
 
-        {enabled && (
-          <div className="mt-4 border-s-2 border-primary/25 ps-4 space-y-0">
-            <AppLockSection />
-            <LockdownSection account_id={account_id} />
-          </div>
-        )}
-      </div>
+      {enabled && (
+        <>
+          <AppLockSection />
+          <LockdownSection account_id={account_id} />
+        </>
+      )}
 
       <Modal
         is_open={show_disable_confirm}

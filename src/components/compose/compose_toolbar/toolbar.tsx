@@ -22,6 +22,7 @@ import type {} from "@/lib/i18n/types";
 import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
 import { useState } from "react";
+import { TrashIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import { DraftStatusIndicator } from "./draft_status";
@@ -77,19 +78,20 @@ export function ComposeToolbar({
       <div className="px-4 pt-1 pb-2.5 flex items-center gap-2">
         {compose.scheduled_time ? (
           <Button
-            className="h-9 px-5 rounded-full"
-            disabled={!compose.has_recipients || compose.is_scheduling}
-            size="md"
+            className="px-5 rounded-[var(--aster-radius-control)]"
+            disabled={!compose.has_recipients}
+            is_loading={compose.is_scheduling}
+            size="lg"
             variant="depth"
             onClick={compose.handle_scheduled_send}
           >
-            {compose.is_scheduling ? t("mail.scheduling") : t("mail.schedule")}
+            {t("mail.schedule")}
           </Button>
         ) : (
           <Button
-            className="h-9 px-6 rounded-full"
+            className="px-6 rounded-[var(--aster-radius-control)]"
             disabled={!compose.has_recipients || compose.is_sending}
-            size="md"
+            size="lg"
             title={compose.is_mac ? "⌘+Enter" : "Ctrl+Enter"}
             variant="depth"
             onClick={compose.handle_send}
@@ -149,9 +151,7 @@ export function ComposeToolbar({
               title={t("common.delete_draft")}
               onClick={compose.handle_show_delete_confirm}
             >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-              </svg>
+              <TrashIcon className="w-4 h-4" />
             </ToolbarButton>
           )}
         </div>

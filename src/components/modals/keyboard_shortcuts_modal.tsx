@@ -232,6 +232,19 @@ export function KeyboardShortcutsModal({
     );
   };
 
+  const render_keys = (keys: string[]) => (
+    <span className="flex items-center gap-1">
+      {keys.map((key, kidx) => (
+        <kbd
+          key={kidx}
+          className="inline-flex h-6 min-w-6 items-center justify-center rounded-[7px] bg-[var(--aster-dialog-bg,var(--modal-bg))] px-1.5 font-sans text-[12px] font-semibold text-txt-primary shadow-[inset_0_-1px_0_var(--aster-floating-divider),0_0_0_1px_var(--aster-floating-divider)]"
+        >
+          {key}
+        </kbd>
+      ))}
+    </span>
+  );
+
   return (
     <AnimatePresence>
       {is_open && (
@@ -245,101 +258,66 @@ export function KeyboardShortcutsModal({
           role="dialog"
           transition={{ duration: reduce_motion ? 0 : 0.15 }}
         >
-          <motion.div
+          <div
             aria-hidden="true"
-            className="absolute inset-0"
-            style={{ backgroundColor: "var(--modal-overlay)" }}
+            className="aster_scrim absolute inset-0"
             onClick={on_close}
           />
           <motion.div
             ref={modal_ref}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            className="relative w-full max-w-4xl max-h-[85vh] rounded-xl border overflow-hidden"
-            exit={{ opacity: 0, scale: 0.96, y: 0 }}
-            initial={reduce_motion ? false : { opacity: 0, scale: 0.96, y: 0 }}
-            style={{
-              backgroundColor: "var(--modal-bg)",
-              borderColor: "var(--border-primary)",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-            }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="relative flex max-h-[85vh] w-full max-w-4xl flex-col overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-dialog-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
+            exit={{ opacity: 0, scale: 0.97 }}
+            initial={reduce_motion ? false : { opacity: 0, scale: 0.97 }}
             transition={{ duration: reduce_motion ? 0 : 0.15, ease: "easeOut" }}
           >
-            <div
-              className="flex items-center justify-between px-6 py-4"
-              style={{ borderBottom: "1px solid var(--border-secondary)" }}
-            >
+            <div className="flex items-center justify-between gap-4 px-6 pb-4 pt-5">
               <h2
-                className="text-[16px] font-semibold"
+                className="text-[17px] font-semibold text-txt-primary"
                 id="keyboard-shortcuts-title"
-                style={{ color: "var(--text-primary)" }}
               >
                 {t("common.keyboard_shortcuts")}
               </h2>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  <span
-                    className="text-[13px]"
-                    style={{ color: "var(--text-secondary)" }}
-                  >
-                    {t("common.enable_shortcuts")}
-                  </span>
+              <div className="flex items-center gap-3">
+                <label className="flex cursor-pointer items-center gap-2.5 text-[13px] text-txt-secondary">
+                  {t("common.enable_shortcuts")}
                   <ShortcutToggle
                     enabled={preferences.keyboard_shortcuts_enabled}
                     label={t("common.enable_shortcuts")}
                     on_toggle={handle_toggle_shortcuts}
                   />
-                </div>
+                </label>
                 <button
                   ref={close_button_ref}
                   aria-label={t("common.close")}
-                  className="p-1.5 rounded-[14px] transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.05]"
-                  style={{ color: "var(--text-muted)" }}
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-txt-muted transition-colors hover:bg-[var(--aster-hover)] hover:text-txt-primary"
+                  type="button"
                   onClick={on_close}
                 >
-                  <XMarkIcon aria-hidden="true" className="w-5 h-5" />
+                  <XMarkIcon aria-hidden="true" className="h-5 w-5" />
                 </button>
               </div>
             </div>
 
             <div
-              className="relative overflow-y-auto px-6 py-5"
-              style={{
-                maxHeight: "calc(85vh - 130px)",
-                scrollbarWidth: "thin",
-              }}
+              className="relative min-h-0 flex-1 overflow-y-auto px-6 pb-2"
+              style={{ scrollbarWidth: "thin" }}
             >
               {!preferences.keyboard_shortcuts_enabled && (
-                <div className="absolute inset-0 z-10 flex items-center justify-center backdrop-blur-sm rounded-b-xl">
-                  <span
-                    className="text-[13px] font-medium px-4 py-2 rounded-lg"
-                    style={{
-                      color: "var(--text-secondary)",
-                      backgroundColor: "var(--bg-tertiary)",
-                      border: "1px solid var(--border-secondary)",
-                    }}
-                  >
+                <div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--aster-dialog-bg,var(--modal-bg))]/90">
+                  <span className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-4 py-2 text-[13px] font-medium text-txt-secondary">
                     {t("common.shortcuts_disabled_message")}
                   </span>
                 </div>
               )}
-              <div className="grid grid-cols-2 gap-x-10 gap-y-6">
+              <div className="grid grid-cols-1 gap-x-4 gap-y-5 md:grid-cols-2">
                 {shortcut_sections.map((section) => (
-                  <div key={section.title}>
-                    <h3
-                      className="text-[11px] font-semibold uppercase tracking-wider mb-3 pb-2"
-                      style={{
-                        color: "var(--text-muted)",
-                        borderBottom: "1px solid var(--border-secondary)",
-                      }}
-                    >
+                  <section key={section.title}>
+                    <h3 className="mb-2 px-1 text-[12px] font-semibold uppercase tracking-wider text-txt-muted">
                       {section.title}
                     </h3>
-                    <div className="space-y-1">
-                      {section.shortcuts.map((shortcut) => {
-                        const keys = format_key(
-                          shortcut.key,
-                          shortcut.modifier,
-                        );
+                    <div className="overflow-hidden rounded-[var(--aster-radius-control,16px)] bg-[var(--aster-field-bg)]">
+                      {section.shortcuts.map((shortcut, sidx) => {
                         const alternatives = get_alternative_shortcuts(
                           shortcut.action_id,
                         );
@@ -347,117 +325,50 @@ export function KeyboardShortcutsModal({
                         return (
                           <div
                             key={shortcut.action_id}
-                            className="flex items-center justify-between py-1.5"
+                            className={`flex h-11 items-center justify-between gap-4 px-4 ${sidx > 0 ? "border-t border-[var(--aster-floating-divider)]" : ""}`}
                           >
-                            <span
-                              className="text-[13px]"
-                              style={{ color: "var(--text-secondary)" }}
-                            >
+                            <span className="truncate text-[14px] text-txt-primary">
                               {t(shortcut_description_keys[shortcut.action_id])}
                             </span>
-                            <div className="flex items-center gap-2 ms-4">
-                              <div className="flex items-center gap-0.5">
-                                {keys.map((key, kidx) => (
-                                  <kbd
-                                    key={kidx}
-                                    className="min-w-[22px] h-[22px] px-1.5 rounded flex items-center justify-center text-[11px] font-medium"
-                                    style={{
-                                      backgroundColor: "var(--bg-tertiary)",
-                                      color: "var(--text-secondary)",
-                                      border:
-                                        "1px solid var(--border-secondary)",
-                                      boxShadow:
-                                        "0 1px 0 var(--border-secondary)",
-                                    }}
-                                  >
-                                    {key}
-                                  </kbd>
-                                ))}
-                              </div>
-                              {alternatives.length > 0 && (
-                                <>
-                                  <span
-                                    className="text-[10px] px-1"
-                                    style={{ color: "var(--text-muted)" }}
-                                  >
+                            <span className="flex flex-shrink-0 items-center gap-2">
+                              {render_keys(
+                                format_key(shortcut.key, shortcut.modifier),
+                              )}
+                              {alternatives.map((alt) => (
+                                <span
+                                  key={`${alt.action_id}-${alt.key}`}
+                                  className="flex items-center gap-2"
+                                >
+                                  <span className="text-[12px] text-txt-muted">
                                     {t("common.or_conjunction")}
                                   </span>
-                                  {alternatives.map((alt) => {
-                                    const alt_keys = format_key(
-                                      alt.key,
-                                      alt.modifier,
-                                    );
-
-                                    return (
-                                      <div
-                                        key={`${alt.action_id}-${alt.key}`}
-                                        className="flex items-center gap-0.5"
-                                      >
-                                        {alt_keys.map((key, kidx) => (
-                                          <kbd
-                                            key={kidx}
-                                            className="min-w-[22px] h-[22px] px-1.5 rounded flex items-center justify-center text-[11px] font-medium"
-                                            style={{
-                                              backgroundColor:
-                                                "var(--bg-tertiary)",
-                                              color: "var(--text-secondary)",
-                                              border:
-                                                "1px solid var(--border-secondary)",
-                                              boxShadow:
-                                                "0 1px 0 var(--border-secondary)",
-                                            }}
-                                          >
-                                            {key}
-                                          </kbd>
-                                        ))}
-                                      </div>
-                                    );
-                                  })}
-                                </>
-                              )}
-                            </div>
+                                  {render_keys(
+                                    format_key(alt.key, alt.modifier),
+                                  )}
+                                </span>
+                              ))}
+                            </span>
                           </div>
                         );
                       })}
                     </div>
-                  </div>
+                  </section>
                 ))}
               </div>
             </div>
 
-            <div
-              className="px-6 py-3 flex items-center justify-between text-[12px]"
-              style={{
-                color: "var(--text-muted)",
-                borderTop: "1px solid var(--border-secondary)",
-                backgroundColor: "var(--bg-secondary)",
-              }}
-            >
-              <div className="flex items-center gap-4">
-                <span className="flex items-center gap-2">
-                  {t("common.press_label")}
-                  <kbd
-                    className="min-w-[20px] h-[18px] px-1.5 rounded flex items-center justify-center text-[10px] font-medium"
-                    style={{
-                      backgroundColor: "var(--bg-tertiary)",
-                      color: "var(--text-secondary)",
-                      border: "1px solid var(--border-secondary)",
-                    }}
-                  >
-                    ?
-                  </kbd>
-                  {t("common.anywhere_to_open_shortcuts")}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span>{t("common.showing_shortcuts_for")}</span>
-                <span
-                  className="px-2 py-0.5 rounded font-medium"
-                  style={{ backgroundColor: "var(--bg-tertiary)" }}
-                >
+            <div className="flex items-center justify-between gap-4 px-6 py-4 text-[13px] text-txt-muted">
+              <span className="flex items-center gap-2">
+                {t("common.press_label")}
+                {render_keys(["?"])}
+                {t("common.anywhere_to_open_shortcuts")}
+              </span>
+              <span className="flex items-center gap-2">
+                {t("common.showing_shortcuts_for")}
+                <span className="rounded-full bg-[var(--aster-field-bg)] px-2.5 py-1 font-medium text-txt-secondary">
                   {is_mac ? t("settings.macos") : t("settings.windows_linux")}
                 </span>
-              </div>
+              </span>
             </div>
           </motion.div>
         </motion.div>

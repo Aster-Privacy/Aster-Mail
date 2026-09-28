@@ -782,6 +782,12 @@ export const it = {
       "Questo campo personalizzato non è stato rimosso. Riprova.",
     failed_to_save_value:
       "La modifica non è stata salvata. Riprova. Il valore precedente è ancora lì.",
+    contacts_import_partial:
+      "Sono stati importati solo {{imported}} contatti su {{total}}. Importi di nuovo il file per aggiungere gli altri.",
+    failed_to_import_contacts: "Riprova.",
+    failed_to_load_duplicates: "Riprova.",
+    dismiss_failed: "Riprova.",
+    click_scan_duplicates: 'Clicca "Scansiona" per cercare duplicati',
     never_synced: "Mai sincronizzato",
     last_sync_successful: "Ultima sincronizzazione riuscita",
     last_sync_failed:
@@ -790,6 +796,11 @@ export const it = {
       "L'inoltro non è stato inviato. Riprova. La bozza è salvata.",
     failed_to_schedule:
       "La programmazione non è stata salvata. Riprova. La bozza è al sicuro.",
+    fill_required_fields: "Compila tutti i campi obbligatori",
+    failed_to_load_sources: "Riprova.",
+    failed_to_add_source: "Riprova.",
+    failed_to_delete_source: "Riprova.",
+    failed_to_toggle_source: "Riprova.",
     sync_failed:
       "La sincronizzazione non si è completata, e riproveremo automaticamente. La sua posta da entrambi i lati è al sicuro.",
     clearing: "Pulizia...",
@@ -859,6 +870,8 @@ export const it = {
     file_too_large: "Il file deve essere inferiore a {{size}}",
     delete_failed: "Riprova.",
     download_failed: "Questo download non è stato completato. Riprova.",
+    failed_to_upload_attachment: "Riprova.",
+    upload_failed: "Riprova.",
     attachment_locked:
       "Questo allegato non può essere aperto perché la sua chiave di crittografia non è disponibile su questo dispositivo.",
     scheduled_no_attachments:
@@ -869,6 +882,9 @@ export const it = {
       "Le email programmate non supportano ancora la scadenza. Invia ora oppure rimuovi la scadenza per programmarla.",
     failed_to_merge_contacts:
       "L'unione non è stata completata. Riprova. I contatti originali non sono cambiati.",
+    merge_failed: "Riprova.",
+    failed_to_load_history: "Riprova.",
+    failed_to_load_more: "Riprova.",
     enter_valid_emails: "Inserisci indirizzi email validi",
     enter_contact_details: "Inserisci i dettagli del contatto",
     select_valid_image: "Seleziona un'immagine JPEG, PNG, WebP o GIF",
@@ -929,6 +945,10 @@ export const it = {
       "Non siamo riusciti ad aprire questa email su questo dispositivo. Un aggiornamento di solito risolve la cosa, e disconnettersi e riconnettersi è la riserva se continua a non riuscire.",
     failed_to_disable_2fa:
       "La verifica in due passaggi è rimasta attiva. Riprova. Il tuo account è ancora protetto.",
+    failed_to_unsubscribe:
+      "L'annullamento dell'iscrizione non si è completato. Il link nell'email la porterà al sito del mittente per farlo da sola.",
+    failed_to_parse_settings:
+      "Questo file di impostazioni non è stato letto. Uno diverso funzionerà. Le sue impostazioni attuali sono invariate.",
     removed_from_contacts: "Rimosso dai contatti",
     added_to_contacts: "Aggiunto ai contatti",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -952,6 +972,7 @@ export const it = {
     offline_action_queued:
       "Lei è offline in questo momento. Questa azione è in coda e si completerà appena si riconnetterà.",
     failed_to_update: "Riprova.",
+    failed_to_load_search_results: "Riprova.",
     failed_to_fetch_tags: "Riprova.",
     failed_to_fetch_folders: "Riprova.",
     failed_to_unlock_folder:
@@ -973,6 +994,13 @@ export const it = {
       "Le tue bozze non sono state caricate. Riprova. Le bozze salvate sono al sicuro.",
     failed_to_load_scheduled_emails:
       "Le email programmate non sono state caricate. Riprova. Verranno comunque inviate come previsto.",
+    failed_to_load_subscriptions: "Riprova.",
+    failed_to_load_more_subscriptions: "Riprova.",
+    failed_to_scan_subscriptions: "Riprova.",
+    recently_archived: "Archiviate di recente",
+    older_items: "Elementi più vecchi",
+    long_term_archive: "Archivio a lungo termine",
+    failed_to_fetch_archive_stats: "Riprova.",
     value_too_long:
       "Questo valore supera il limite di lunghezza. Una versione più corta funzionerà.",
     please_enter_valid_domain:
@@ -1050,6 +1078,10 @@ export const it = {
       "Il suo account esterno collegato deve essere ricollegato prima di poter inviare attraverso di esso. Si trova in Impostazioni, Account collegati.",
     failed_to_send_via_external:
       "L'invio tramite il tuo account esterno collegato non ha funzionato. Riprova. La bozza è salvata.",
+    tor_label: "Tor",
+    tor_snowflake_label: "Tor (Snowflake)",
+    cdn_relay_label: "Relay CDN",
+    toggle_selection: "Attiva/disattiva selezione",
     offline_change_failed:
       "Non è stato possibile salvare una modifica che ha fatto offline.",
     offline_send_failed:
@@ -1117,6 +1149,7 @@ export const it = {
     all_accounts: "Tutti gli account",
     failed_to_rotate_keys:
       "Il rinnovo delle chiavi non è stato completato. Riprova. Le chiavi precedenti funzionano ancora e i tuoi dati sono al sicuro.",
+    all_external_accounts: "Tutti gli account esterni",
     read: "Letta",
     or_conjunction: "o",
     press_label: "Premi",
@@ -1504,6 +1537,7 @@ export const it = {
     recovery_email_removed: "Email di recupero rimossa",
     recovery_email_hidden: "Salvato in questo account",
     failed_save_profile_color: "Il colore scelto non è stato salvato. Riprova.",
+    failed_remove_recovery_email: "Riprova.",
     image_load_failed:
       "Questa immagine non si è caricata. Un aggiornamento di solito risolve la cosa.",
     image_processing_failed:
@@ -1646,6 +1680,11 @@ export const it = {
     account_limit_reached:
       "Ha raggiunto il limite di account per questa rete. Se le sembra un errore, hello@astermail.org può aiutarla.",
     health_check_failed: "La diagnostica non è stata completata. Riprova.",
+    failed_to_get_key_status: "Riprova.",
+    unknown_rotation_error: "Riprova.",
+    new_email_notification: "Nuova email da {{ sender }}",
+    reply_notification: "{{ sender }} ha risposto",
+    mention_notification: "{{ sender }} ti ha menzionato",
     print_from: "Da:",
     print_to: "A:",
     print_cc: "Cc:",
@@ -1734,6 +1773,18 @@ export const it = {
       "Aster cifra la tua posta con la tua password, quindi nessuno può reimpostarla per te. Aggiungi un'email di recupero per mantenere l'accesso.",
     recovery_reminder_action: "Aggiungi email di recupero",
     recovery_reminder_later: "Più tardi",
+    recovery_codes_reminder_title: "Salva i tuoi codici di recupero",
+    recovery_codes_reminder_body:
+      "Aster cifra la tua posta con la tua password, quindi nessuno può reimpostarla per te. I codici di recupero sono l'unico modo per tornare alla tua posta cifrata.",
+    recovery_codes_reminder_action: "Ottieni codici di recupero",
+    recovery_codes_low_reminder_title: "Ti restano pochi codici di recupero",
+    recovery_codes_low_reminder_body:
+      "Ogni codice funziona una volta e te ne restano {{count}}. Ottieni nuovi codici per non perdere l'accesso.",
+    recovery_codes_low_reminder_action: "Ottieni nuovi codici",
+    recovery_phrase_migrate_title: "Passa ai codici di recupero",
+    recovery_phrase_migrate_body:
+      "Le frasi di recupero stanno per essere rimosse. Ottieni ora i codici di recupero per poter ancora recuperare il tuo account.",
+    recovery_phrase_migrate_action: "Ottieni codici",
     plan_prompt_title: "Sei sul piano gratuito",
     plan_prompt_body:
       "I piani a pagamento aggiungono più spazio, domini personalizzati e alias illimitati.",
@@ -2117,11 +2168,24 @@ export const it = {
       "Senza codici di recupero, dimenticare la password blocca per sempre la sua posta crittografata.",
     recovery_codes_row: "Codici di recupero",
     recovery_codes_row_desc:
-      "Sei codici monouso che ripristinano il suo account e tutti i dati crittografati.",
-    recovery_codes_generate: "Genera codici",
-    recovery_codes_regenerate: "Rigenera codici",
+      "Codici monouso che ripristinano il tuo account e tutti i dati cifrati.",
+    recovery_codes_generate: "Ottieni codici",
+    recovery_codes_regenerate: "Ottieni nuovi codici",
     recovery_codes_regenerate_warning:
-      "La rigenerazione crea nuovi codici e invalida definitivamente quelli precedenti.",
+      "I codici attuali smettono di funzionare non appena ne ottieni di nuovi.",
+    recovery_codes_show: "Mostra codici",
+    recovery_codes_get_new_title: "Vuoi ottenere nuovi codici di recupero?",
+    recovery_codes_confirm_title: "Conferma la tua identità",
+    recovery_codes_confirm_desc:
+      "Inserisci la password per vedere i codici di recupero.",
+    recovery_codes_title: "I tuoi codici di recupero",
+    recovery_codes_status:
+      "Creati il {{date}}. Ne restano {{remaining}} su {{total}}.",
+    recovery_codes_low:
+      "Ti restano pochi codici di recupero. Ottieni nuovi codici per non perdere l'accesso.",
+    recovery_codes_used: "Usato",
+    recovery_codes_unavailable:
+      "I tuoi codici non sono salvati su questo dispositivo. Ottieni nuovi codici per vederli.",
     recovery_method_active: "Attivo",
     recovery_method_not_set: "Non impostato",
     recovery_codes_saved_confirm:
@@ -4227,6 +4291,12 @@ export const it = {
       "Hai già questo piano. I codici promozionali si applicano quando passi a un piano diverso.",
     promo_error_not_upgrade:
       "I codici promozionali si applicano quando passi a un piano superiore.",
+    promo_error_card_only:
+      "Questo codice promozionale funziona solo con i pagamenti con carta.",
+    promo_error_with_credits:
+      "Non puoi usare un codice promozionale e il credito dell'account nello stesso pagamento.",
+    promo_error_not_for_addon:
+      "I codici promozionali non si possono usare per i componenti aggiuntivi.",
     promo_error_generic:
       "Impossibile verificare il codice promozionale. Riprova tra un momento.",
     plan_change_discount_amount: "{{amount}} di sconto",
@@ -4898,6 +4968,60 @@ export const it = {
     reactivate: "Riattiva",
     cancel_plan: "Annulla piano",
     billing_history: "Cronologia fatturazione",
+    billing_status_active: "Attivo",
+    billing_status_renews: "Si rinnova il {{date}}",
+    billing_status_ending: "Termina il {{date}}",
+    billing_status_attention: "Il pagamento richiede attenzione",
+    billing_member_since: "Membro dal {{date}}",
+    billing_keep_title: "Mantieni il tuo piano",
+    billing_payment_method: "Metodo di pagamento",
+    billing_switch_yearly_subtitle:
+      "{{monthly}}/mese, fatturato {{yearly}} all'anno",
+    billing_save_amount: "Risparmia {{amount}}",
+    billing_term_heading: "Periodo di fatturazione",
+    billing_pay_yearly: "Paga annualmente",
+    billing_pay_monthly: "Paga mensilmente",
+    billing_billed_yearly_total: "Fatturato {{amount}} all'anno",
+    billing_billed_monthly: "Fatturato ogni mese",
+    billing_save_percent: "Risparmia il {{percent}}%",
+    billing_select_plan_hint: "Seleziona un piano per continuare",
+    billing_addon_active: "Attivo",
+    billing_addon_ending: "In scadenza",
+    billing_addon_ends: "Termina il {{date}}",
+    billing_add_storage_summary: "Aggiungi {{size}} di spazio",
+    billing_storage_status_ok: "Tutto a posto",
+    billing_storage_status_near: "Quasi pieno",
+    billing_storage_status_full: "Azione richiesta",
+    billing_upgrade_note: "Annulla quando vuoi. La tua posta resta tua.",
+    billing_thanks_title: "Grazie per sostenere Aster",
+    billing_thanks_body:
+      "Il tuo sostegno significa tutto per noi. Permette a un piccolo team di continuare a costruire Aster con cura, ogni giorno.",
+    billing_thanks_free_title: "Grazie per usare Aster",
+    billing_thanks_free_body:
+      "Un piccolo team costruisce Aster con cura, e ogni persona che gli affida la propria posta ci fa andare avanti. Passa a un piano superiore quando ti servono più spazio, alias o domini personalizzati.",
+    billing_addons_subtitle: "Più spazio, stesso piano",
+    billing_support_subtitle: "Invia un messaggio al team",
+    billing_upsell_title: "Ottieni di più con {{name}}",
+    billing_upsell_price: "Da {{price}} al mese, fatturato annualmente",
+    billing_advantages_title_paid: "Cosa include il tuo piano",
+    billing_advantages_title_free: "Cosa ottieni con {{name}}",
+    billing_see_all_features: "Vedi tutte le funzioni di {{name}}",
+    billing_compare_all_plans_subtitle: "Piani individuali e famiglia, mensili o annuali",
+    billing_usage_upgrade_hint: "Passa a un piano superiore per più spazio",
+    usage_in_use: "{{current}} in uso",
+    billing_credits_subtitle: "Saldo e ricariche",
+    billing_academic_subtitle: "Risparmia con un'email universitaria",
+    billing_history_empty:
+      "Nessuna fattura ancora. I tuoi pagamenti compariranno qui dopo il primo addebito.",
+    billing_invoice_count: "{{count}} fatture",
+    billing_invoice_count_one: "{{count}} fattura",
+    billing_invoice_count_other: "{{count}} fatture",
+    billing_addons_active_count: "{{count}} attivi",
+    billing_addons_active_count_one: "{{count}} attivo",
+    billing_addons_active_count_other: "{{count}} attivi",
+    academic_status_none: "Non richiesto",
+    academic_status_pending: "In attesa di verifica",
+    academic_status_verified: "Verificato",
     billing_plan_heading: "Piano",
     billing_hide_plans: "Nascondi piani",
     billing_cancel_notice_title: "Il tuo piano verrà annullato",
@@ -5233,6 +5357,7 @@ export const it = {
     domain_purchase_progress_note:
       "Attendi mentre registriamo il tuo dominio e configuriamo le tue caselle. Di solito ci vuole circa un minuto.",
     domain_purchase_complete_cta: "Completa l'acquisto",
+    domain_purchase_open_checkout: "Riapri il pagamento",
     domain_purchase_cancel_payment_title: "Annullare questo pagamento?",
     domain_purchase_cancel_payment_message:
       "Vuoi davvero annullare questo pagamento per il dominio personalizzato?",
@@ -6056,6 +6181,10 @@ export const it = {
     created_date: "Creata il {{date}}",
     export_public_key_label: "Esporta chiave pubblica",
     export_private_key_label: "Esporta chiave privata",
+    export_private_key_warning:
+      "Conserva il file in un posto sicuro e non condividerlo mai. Chiunque lo possieda può leggere la tua posta.",
+    export_two_factor_hint:
+      "Il tuo account usa l'autenticazione a due fattori. Inserisci il codice attuale della tua app di autenticazione per continuare.",
     verify_identity_export:
       "Verifica la tua identità per esportare la tua chiave privata",
     two_fa_code_label: "Codice 2FA",
@@ -6595,7 +6724,10 @@ export const it = {
       "Cordiali saluti,\nIl tuo nome\ntua@email.com",
     signature_name_required: "Inserisci un nome per questa firma.",
     signature_content_required: "Aggiungi del contenuto a questa firma.",
-    signature_image_too_large: "Le immagini devono essere inferiori a 2 MB.",
+    signature_image_too_large:
+      "Questa immagine è troppo grande per la tua firma. Scegli un'immagine più piccola.",
+    signature_too_large:
+      "La tua firma è troppo grande per essere salvata. Rimuovi un'immagine o accorcia il testo.",
     signature_image_invalid:
       "Si possono aggiungere solo immagini PNG, JPEG, GIF e WebP.",
     signature_image_failed:
@@ -6641,6 +6773,9 @@ export const it = {
       "Configura come viene rilevato e gestito lo spam.",
     spam_sensitivity: "Sensibilità antispam",
     auto_delete_spam_after: "Elimina automaticamente lo spam dopo",
+    auto_delete_trash_after: "Elimina automaticamente il cestino dopo",
+    auto_delete_trash_description:
+      "Le email nel Cestino più vecchie di questo periodo vengono eliminate definitivamente.",
     spam_delete_hint:
       "Le email spam più vecchie di questo periodo verranno eliminate definitivamente",
     save_changes: "Salva modifiche",
@@ -6656,6 +6791,9 @@ export const it = {
     retention_30_days: "30 giorni",
     retention_60_days: "60 giorni",
     retention_90_days: "90 giorni",
+    retention_days_count: "{{ days }} giorni",
+    retention_180_days: "180 giorni",
+    retention_365_days: "365 giorni",
     retention_never: "Mai (conserva per sempre)",
     import_emails_title: "Importa email",
     import_add_another: "Aggiungi un altro account",
@@ -7770,6 +7908,7 @@ export const it = {
     special_offers_save_failed:
       "La tua preferenza sulle offerte speciali non è stata salvata. Riprova.",
     criterion_passkey: "Passkey registrata",
+    criterion_recovery_codes: "Codici di recupero salvati",
     criterion_read_receipts_off: "Conferme di lettura disattivate",
     send_read_receipts_label: "Invia conferme di lettura",
     send_read_receipts_description:
@@ -8991,6 +9130,18 @@ export const it = {
       "Il traduttore sul dispositivo non è riuscito a completare questo messaggio. Di solito il pacchetto lingua è ancora in download, il messaggio mescola più lingue oppure è fatto soprattutto di nomi, numeri e link. Non è stato inviato nulla a un server.",
     more_folders_count_one: "+{{count}} altra cartella",
     more_folders_count_other: "+{{count}} altre cartelle",
+    more_messages_count: "{{count}} altri messaggi",
+    more_messages_count_one: "{{count}} altro messaggio",
+    more_messages_count_other: "{{count}} altri messaggi",
+    reply_to_name: "Rispondi a {{name}}",
+    reply_all_to_name: "Rispondi a {{name}} e a tutti",
+    forward_message_heading: "Inoltra messaggio",
+    trackers_found_one: "{{count}} tracker rilevato e bloccato",
+    trackers_found_other: "{{count}} tracker rilevati e bloccati",
+    spy_pixels_blocked_count_one: "{{count}} pixel spia bloccato",
+    spy_pixels_blocked_count_other: "{{count}} pixel spia bloccati",
+    links_cleaned_count_one: "{{count}} link ripulito",
+    links_cleaned_count_other: "{{count}} link ripuliti",
     param_removed_from_n_links_one: "{{param}} rimosso da {{count}} link",
     param_removed_from_n_links_other: "{{param}} rimosso da {{count}} link",
     confirm_bulk_action_count_description:
@@ -9116,6 +9267,10 @@ export const it = {
     create_a_password: "Crea una password",
     recommend_strong_password:
       "Usa almeno 8 caratteri. Una password più lunga con caratteri misti è più sicura.",
+    password_recovery_key: "Chiave di recupero della password",
+    recovery_key_only_way:
+      "Questa chiave è l'unico modo per recuperare il tuo account se dimentichi la password. Conservala in un luogo sicuro.",
+    download_key_lower: "Scarica la chiave",
     downloading: "Download in corso...",
     copy_key: "Copia la chiave",
     copy_codes: "Copia i codici",
@@ -9217,9 +9372,6 @@ export const it = {
     recovery_phrase_confirm_error:
       "Una o più parole non corrispondono. Controlli la frase salvata e riprovi.",
     recovery_phrase_skip_check: "L'ho salvata, salta questa verifica",
-    forgot_method_title: "Come vuole recuperare il suo account?",
-    forgot_method_desc:
-      "Il metodo scelto determina se i suoi dati crittografati potranno essere ripristinati.",
     forgot_method_full_restore: "Ripristino completo",
     forgot_method_access_only: "Solo accesso",
     forgot_method_phrase_title: "Usa la mia frase di recupero",
@@ -9231,10 +9383,6 @@ export const it = {
     forgot_method_email_title: "Inviami un link di reimpostazione via email",
     forgot_method_email_desc:
       "Riottiene l'accesso al suo account. La posta crittografata precedente al ripristino non potrà più essere letta, a meno che in seguito non ritrovi la sua frase o un codice.",
-    phrase_entry_title: "Inserisca la sua frase di recupero",
-    phrase_entry_desc: "Digiti o incolli le 12 parole in ordine.",
-    phrase_entry_invalid:
-      "Questa non è una frase di recupero valida. Controlli le parole e il loro ordine.",
     phrase_recovery_failed:
       "Questa frase non corrisponde a questo account. Controlli le parole e l'indirizzo email.",
     reset_consent_title:
@@ -9291,7 +9439,7 @@ export const it = {
     saving_new_credentials: "Salvataggio nuove credenziali...",
     recover_your_account: "Recupera il tuo account",
     enter_email_associated:
-      "Inserisci il tuo nome utente per recuperare il tuo account",
+      "Inserisci l'indirizzo dell'account che vuoi recuperare.",
     back_to_sign_in: "Torna all'accesso",
     email_me_reset_link: "Inviami un link di reimpostazione via email",
     reset_link_sent_title: "Controlla la tua email di recupero",
@@ -9307,8 +9455,7 @@ export const it = {
     resetting_password: "Reimpostazione della password...",
     enter_recovery_code: "Inserisci codice di recupero",
     enter_recovery_code_desc:
-      "Inserisci uno dei codici di recupero che hai salvato quando hai creato il tuo account",
-    verify_code: "Verifica codice",
+      "Inserisci uno dei codici di recupero salvati quando hai creato l'account.",
     create_new_password: "Crea nuova password",
     choose_strong_password: "Scegli una password forte per il tuo account",
     recovering_your_account: "Recupero del tuo account",
@@ -9318,9 +9465,54 @@ export const it = {
     old_codes_invalidated:
       "I suoi vecchi codici di recupero non funzionano più. Salvare questo nuovo set in un luogo sicuro prima di chiudere questa finestra la terrà protetta.",
     n_recovery_codes: "{{count}} codici di recupero",
+    recovery_code_already_used:
+      "Questo codice è già stato usato. Ogni codice funziona una sola volta, quindi inserisci un altro codice dall'elenco salvato.",
+    try_another_way: "Prova in un altro modo",
+    recovery_email_label: "Indirizzo Aster Mail",
+    recovery_domain_hint: "Scegli il dominio del tuo account.",
+    recovery_code_label: "Codice di recupero",
+    recovery_code_hint:
+      "Ogni codice funziona una volta sola. I codici hanno questo formato: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "Usa un altro indirizzo",
+    change_account_desc: "Recupera un altro account Aster Mail.",
+    support_step_title: "Contatta l'assistenza",
+    support_step_desc:
+      "Aster Mail non può leggere i tuoi dati cifrati, quindi nessuno può sbloccarli senza un codice di recupero o la tua email di recupero. L'assistenza può controllare il tuo account e aiutarti con i passaggi successivi.",
+    support_email_action: "Scrivi all'assistenza",
+    support_help_center: "Vai al centro assistenza",
+    other_ways_title: "Prova in un altro modo",
+    other_ways_desc: "Scegli come vuoi tornare nel tuo account.",
+    other_way_code_title: "Usa un codice di recupero",
+    other_way_code_desc: "Inserisci uno dei codici che hai salvato.",
+    other_way_email_title: "Reimposta con la tua email di recupero",
+    other_way_email_desc:
+      "Aster Mail invia un link alla tua email di recupero. Perdi l'accesso alla posta precedente alla reimpostazione.",
+    other_way_none_title: "Non ho nessuna di queste opzioni",
+    other_way_none_desc:
+      "Contatta l'assistenza e ti aiutiamo con i passaggi successivi.",
+    reset_account_title: "Reimpostare il tuo account?",
+    reset_account_desc:
+      "La posta, i contatti e i file cifrati precedenti alla reimpostazione restano bloccati finché non li recuperi con la tua vecchia password. Ricevi una nuova chiave di cifratura vuota.",
+    send_reset_link: "Invia link di reimpostazione",
+    print_codes: "Stampa",
+    codes_copied: "Codici copiati.",
+    i_saved_these_codes: "Ho salvato questi codici",
+    review_security_title: "Controlla la tua sicurezza",
+    review_security_desc:
+      "La tua password è stata cambiata e il tuo account è stato recuperato.",
+    review_devices_signed_out: "Gli altri dispositivi sono stati disconnessi.",
+    review_two_step_off: "La verifica in due passaggi è disattivata.",
+    review_turn_on: "Attiva",
+    review_recovery_email_kept: "La tua email di recupero è ancora impostata.",
+    review_no_recovery_email: "Nessuna email di recupero.",
+    review_add: "Aggiungi",
+    review_codes_left: "Restano {{count}} codici di recupero.",
+    review_codes_left_one: "Resta {{count}} codice di recupero.",
+    review_codes_left_other: "Restano {{count}} codici di recupero.",
     import_mail_step_title: "Porta la tua posta con te",
     import_mail_step_desc:
       "Sposta i messaggi da un altro account in Aster. Tutto viene cifrato sul tuo dispositivo prima di essere salvato.",
+    import_mail_action: "Importa la posta",
     import_mail_skip: "Inizia con una casella vuota",
     import_mail_privacy_note:
       "Puoi importare anche più tardi dalle Impostazioni.",
@@ -10232,6 +10424,30 @@ export const it = {
     granted_at: "Ottenuto {date}",
     empty_state: "Non hai ancora trovato nessun badge.",
     claim_failed: "Riprova.",
+    claim_success: "Hai ottenuto il badge {name}.",
+    claim_already: "Hai già ottenuto un badge di scoperta.",
+    badge_big_bang: "Big Bang",
+    badge_big_bang_description: "Il primo a scoprire il cosmo.",
+    badge_event_horizon: "Orizzonte degli eventi",
+    badge_event_horizon_description:
+      "Ha attraversato il confine del conosciuto.",
+    badge_black_hole: "Buco nero",
+    badge_black_hole_description: "Attratto da qualcosa di più profondo.",
+    badge_singularity: "Singolarità",
+    badge_singularity_description: "Ha trovato il punto dove tutto si piega.",
+    badge_supernova: "Supernova",
+    badge_supernova_description:
+      "Ha colto una stella nel suo momento più luminoso.",
+    badge_andromeda: "Andromeda",
+    badge_andromeda_description: "Ha raggiunto una galassia vicina.",
+    badge_nebula: "Nebulosa",
+    badge_nebula_description: "Si è avventurato tra i colori.",
+    badge_comet: "Cometa",
+    badge_comet_description: "Ha incrociato qualcosa di raro.",
+    badge_pulsar: "Pulsar",
+    badge_pulsar_description: "Ha sentito il segnale nel rumore.",
+    badge_stargazer: "Osservatore di stelle",
+    badge_stargazer_description: "Ha alzato lo sguardo al momento giusto.",
   },
   secure_view: {
     powered_by_prefix: "Inviato in modo sicuro tramite",

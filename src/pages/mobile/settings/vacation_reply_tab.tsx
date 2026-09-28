@@ -194,7 +194,7 @@ export function VacationReplyTab() {
             {t("common.something_went_wrong_try_again")}
           </p>
           <button
-            className="mt-3 rounded-[12px] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
+            className="mt-3 rounded-[var(--aster-radius-control)] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
             type="button"
             onClick={() => set_reload_token((prev) => prev + 1)}
           >
@@ -221,7 +221,7 @@ export function VacationReplyTab() {
                 </span>
               </div>
               <button
-                className="rounded-[12px] px-3 py-1.5 text-[13px] font-medium bg-[var(--mobile-bg-card-hover)] text-[var(--mobile-text-secondary)]"
+                className="rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium bg-[var(--mobile-bg-card-hover)] text-[var(--mobile-text-secondary)]"
                 type="button"
                 onClick={handle_toggle_vacation}
               >

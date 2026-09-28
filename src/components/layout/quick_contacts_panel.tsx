@@ -1155,7 +1155,7 @@ export function QuickContactsPanel({
                 {detail_contact.emails[0] && (
                   <div className="mt-3 flex items-center gap-1.5">
                     <button
-                      className="quick_contacts_cta flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12.5px] font-medium"
+                      className="quick_contacts_cta flex items-center gap-1.5 rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[12.5px] font-medium"
                       type="button"
                       onClick={() => compose_to(detail_contact.emails[0])}
                     >
@@ -1255,7 +1255,7 @@ export function QuickContactsPanel({
               </span>
               <p className="contact_empty_state_title">{error}</p>
               <button
-                className="quick_contacts_cta contact_empty_state_action rounded-full px-4 py-1.5 text-[13px] font-medium"
+                className="quick_contacts_cta contact_empty_state_action rounded-[var(--aster-radius-control)] px-4 py-1.5 text-[13px] font-medium"
                 type="button"
                 onClick={load}
               >

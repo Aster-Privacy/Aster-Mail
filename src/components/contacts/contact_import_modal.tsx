@@ -581,11 +581,8 @@ export function ContactImportModal({
         ref={dialog_ref}
         aria-labelledby={title_id}
         aria-modal="true"
-        className="relative mx-4 flex max-h-[86vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border bg-modal-bg border-edge-primary outline-none"
+        className="relative mx-4 flex max-h-[86vh] w-full max-w-2xl flex-col overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] outline-none"
         role="dialog"
-        style={{
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-        }}
         tabIndex={-1}
         onClick={(e) => e.stopPropagation()}
       >
@@ -664,7 +661,7 @@ export function ContactImportModal({
                     </span>
                     <ArrowRightIcon className="w-4 h-4 text-txt-muted rtl:-scale-x-100" />
                     <select
-                      className="h-8 px-2 rounded border text-sm min-w-32 bg-modal-bg border-edge-secondary text-txt-primary"
+                      className="h-8 px-2 rounded-[var(--aster-radius-item)] border-0 text-sm min-w-32 bg-[var(--aster-field-bg)] text-txt-primary outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
                       value={csv_mapping[header] || ""}
                       onChange={(e) =>
                         set_csv_mapping((prev) => ({
@@ -733,7 +730,7 @@ export function ContactImportModal({
                 >
                   <SelectTrigger
                     aria-label={t("common.import_add_to_group")}
-                    className="h-9 w-auto min-w-[176px] rounded-full px-3 text-[13px]"
+                    className="h-9 w-auto min-w-[176px] rounded-[var(--aster-radius-control)] px-3 text-[13px]"
                   >
                     <span className="flex min-w-0 items-center gap-2">
                       <UserGroupIcon className="h-4 w-4 flex-shrink-0 text-txt-muted" />

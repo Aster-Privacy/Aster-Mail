@@ -123,7 +123,7 @@ export function AddAccountForm({
       show_close_button={false}
       size="xl"
     >
-      <div className="sticky top-0 z-10 px-6 pt-6 pb-4 border-b rounded-t-xl bg-modal-bg border-edge-primary">
+      <div className="sticky top-0 z-10 px-6 pt-6 pb-4 border-b rounded-t-[var(--aster-radius-floating,16px)] bg-modal-bg border-[var(--aster-floating-divider)]">
         <ModalTitle className="text-[15px]">
           {editing_account
             ? t("settings.edit_account")
@@ -138,7 +138,7 @@ export function AddAccountForm({
 
       <div className="p-6 space-y-6">
         {prefill_failed && (
-          <div className="flex items-center justify-between gap-3 p-3 rounded-lg bg-surf-tertiary border border-edge-secondary">
+          <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-[color-mix(in_srgb,var(--text-primary)_7%,transparent)]">
             <p className="text-[13px] text-txt-secondary">
               {t("common.something_went_wrong_try_again")}
             </p>

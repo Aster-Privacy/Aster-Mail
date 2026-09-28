@@ -97,7 +97,7 @@ export function ReplyHeader({
         style={{ opacity: 0.5 }}
       />
       <div
-        className="flex items-center justify-between px-4 py-2 sm:py-3 border-b border-edge-primary sm:cursor-move select-none"
+        className="flex items-center justify-between px-4 py-2 sm:py-3 border-b border-[var(--aster-floating-divider)] sm:cursor-move select-none"
         role="presentation"
         onMouseDown={handle_drag_start}
       >
@@ -171,8 +171,8 @@ export function ReplyHeader({
       </div>
 
       {!is_minimized && (
-        <div className="px-4 pt-3 pb-1 flex-shrink-0">
-          <div className="flex items-center gap-2 py-2 border-b border-edge-secondary">
+        <div className="pt-3 pb-1 flex-shrink-0">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-edge-secondary">
             <button
               className="text-sm flex-shrink-0 text-txt-tertiary"
               type="button"
@@ -198,7 +198,7 @@ export function ReplyHeader({
               selected={selected_sender}
             />
           </div>
-          <div className="py-2 border-b border-edge-secondary">
+          <div className="px-4 py-2 border-b border-edge-secondary">
             <RecipientField
               show_bcc
               show_cc_bcc_buttons
@@ -224,7 +224,7 @@ export function ReplyHeader({
           </div>
 
           {show_cc && (
-            <div className="py-2 border-b border-edge-secondary">
+            <div className="px-4 py-2 border-b border-edge-secondary">
               <RecipientField
                 contacts={contacts}
                 input_value={inputs.cc}
@@ -251,7 +251,7 @@ export function ReplyHeader({
             </div>
           )}
 
-          <div className="flex items-center gap-2 py-2 border-b border-edge-secondary">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-edge-secondary">
             <span className="text-sm flex-shrink-0 text-txt-tertiary">
               {t("mail.subject")}
             </span>

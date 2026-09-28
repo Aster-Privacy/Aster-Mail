@@ -30,7 +30,16 @@ import {
   PencilSquareIcon,
   Bars3BottomLeftIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Switch, UpgradeBtn } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandRow,
+  IslandSection,
+  IslandSections,
+  SettingControlRow,
+  SettingToggleRow,
+  UpgradeBtn,
+} from "@aster/ui";
 
 import { FmtButton, FmtDivider, SignatureMode, escape_html } from "./helpers";
 import { use_signature_section } from "./use_signature_section";
@@ -59,6 +68,7 @@ import { ColorPickerPopover } from "@/components/compose/compose_toolbar/color_p
 import { use_frozen_selection } from "@/components/compose/compose_toolbar/shared";
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
+import { Spinner } from "@/components/ui/spinner";
 
 export function SignatureSection() {
   const {
@@ -115,85 +125,72 @@ export function SignatureSection() {
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <PencilSquareIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.email_signature_title")}
-          </h3>
-        </div>
-        <p className="text-sm mb-3 text-txt-muted">
-          {t("settings.email_signature_description")}
-        </p>
-
-        <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.signature_mode")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {local_mode === "disabled" &&
-                t("settings.signature_off_description")}
-              {local_mode === "auto" &&
-                t("settings.signature_auto_description")}
-              {local_mode === "manual" &&
-                t("settings.signature_manual_description")}
-            </p>
-          </div>
-          <Select
-            value={local_mode}
-            onValueChange={(value) =>
-              handle_mode_change(value as SignatureMode)
+    <IslandSections>
+      <IslandSection
+        bare
+        description={t("settings.email_signature_description")}
+        icon={<PencilSquareIcon />}
+        title={t("settings.email_signature_title")}
+      >
+        <Island>
+          <SettingControlRow
+            control={
+              <Select
+                value={local_mode}
+                onValueChange={(value) =>
+                  handle_mode_change(value as SignatureMode)
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="disabled">
+                    {t("settings.signature_off")}
+                  </SelectItem>
+                  <SelectItem value="auto">
+                    {t("settings.signature_auto")}
+                  </SelectItem>
+                  <SelectItem value="manual">
+                    {t("settings.signature_manual")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             }
-          >
-            <SelectTrigger className="w-[160px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="disabled">
-                {t("settings.signature_off")}
-              </SelectItem>
-              <SelectItem value="auto">
-                {t("settings.signature_auto")}
-              </SelectItem>
-              <SelectItem value="manual">
-                {t("settings.signature_manual")}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+            description={
+              <>
+                {local_mode === "disabled" &&
+                  t("settings.signature_off_description")}
+                {local_mode === "auto" &&
+                  t("settings.signature_auto_description")}
+                {local_mode === "manual" &&
+                  t("settings.signature_manual_description")}
+              </>
+            }
+            label={t("settings.signature_mode")}
+          />
 
-        {has_badges && (
-          <div className="flex items-center justify-between py-4">
-            <div className="flex-1 pe-4">
-              <p className="text-sm font-medium text-txt-primary">
-                {t("settings.show_badges_in_signature")}
-              </p>
-              <p className="text-sm mt-0.5 text-txt-muted">
-                {t("settings.show_badges_in_signature_description")}
-              </p>
-            </div>
-            <Switch
-              aria-label={t("settings.show_badges_in_signature")}
+          {has_badges && (
+            <SettingToggleRow
               checked={preferences.show_badges_in_signature}
-              size="lg"
-              onCheckedChange={(checked) =>
+              description={t("settings.show_badges_in_signature_description")}
+              label={t("settings.show_badges_in_signature")}
+              on_change={(checked) =>
                 update_preference("show_badges_in_signature", checked, true)
               }
             />
-          </div>
-        )}
+          )}
+        </Island>
 
         {has_unreadable && (
-          <p className="mb-4 text-[12px] text-txt-muted">
+          <p className="px-1 text-[12px] text-txt-muted">
             {t("settings.unreadable_entries_notice")}
           </p>
         )}
 
         {error && (
           <div
-            className="mb-4 p-3 rounded-lg text-sm flex items-center justify-between"
+            className="p-3 rounded-lg text-sm flex items-center justify-between"
             style={{
               backgroundColor: "#dc2626",
               color: "#fff",
@@ -213,13 +210,12 @@ export function SignatureSection() {
           </div>
         )}
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-medium text-txt-primary">
-              {t("settings.your_signatures", {
-                count: is_loading ? "..." : String(signatures.length),
-              })}
-            </h4>
+        <IslandSection
+          bare
+          title={t("settings.your_signatures", {
+            count: is_loading ? "..." : String(signatures.length),
+          })}
+          trailing={
             <Button
               disabled={editor.is_open}
               variant="depth"
@@ -228,8 +224,8 @@ export function SignatureSection() {
               <PlusIcon className="w-4 h-4" />
               {t("settings.add_signature")}
             </Button>
-          </div>
-
+          }
+        >
           <Modal
             is_open={editor.is_open}
             on_close={request_close_editor}
@@ -619,25 +615,25 @@ export function SignatureSection() {
           </Modal>
 
           {signatures.length === 0 && !editor.is_open ? (
-            <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
+            <Island className="text-center" padding="lg">
               <PencilIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
               <p className="text-sm text-txt-muted">
                 {t("settings.no_signatures_yet")}
               </p>
-            </div>
+            </Island>
           ) : (
-            <div className="space-y-3">
+            <div className="flex flex-col gap-2">
               <AnimatePresence>
                 {signatures.map((signature) => (
                   <motion.div
                     key={signature.id}
                     animate={{ opacity: 1 }}
-                    className="p-4 rounded-lg bg-surf-secondary border border-edge-primary"
+                    className="aster_island aster_island_pad_md"
                     exit={{ opacity: 0 }}
                     initial={reduce_motion ? false : { opacity: 0 }}
                   >
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex flex-col gap-1">
+                    <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
+                      <div className="flex min-w-0 flex-col gap-1">
                         <div className="flex items-center gap-2">
                           <h5 className="text-sm font-semibold text-txt-primary">
                             {signature.name}
@@ -699,13 +695,7 @@ export function SignatureSection() {
                           onClick={() => set_confirm_delete_id(signature.id)}
                         >
                           {deleting_id === signature.id ? (
-                            <div
-                              className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin"
-                              style={{
-                                borderColor: "currentColor",
-                                borderTopColor: "transparent",
-                              }}
-                            />
+                            <Spinner size="sm" />
                           ) : (
                             <TrashIcon className="w-4 h-4" />
                           )}
@@ -722,7 +712,7 @@ export function SignatureSection() {
                             ),
                       }}
                       data-selectable-region
-                      className="p-3 rounded-md text-xs leading-relaxed bg-surf-primary text-txt-secondary border border-edge-primary [&_img]:max-w-full"
+                      className="p-3 rounded-md text-xs leading-relaxed bg-surf-primary text-txt-secondary [&_img]:max-w-full"
                       tabIndex={-1}
                     />
                   </motion.div>
@@ -730,8 +720,8 @@ export function SignatureSection() {
               </AnimatePresence>
             </div>
           )}
-        </div>
-      </div>
+        </IslandSection>
+      </IslandSection>
 
       <ConfirmationModal
         confirm_text={t("mail.discard")}
@@ -758,142 +748,98 @@ export function SignatureSection() {
         variant="danger"
       />
 
-      <div className="pt-2">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <Bars3BottomLeftIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.signature_placement")}
-          </h3>
-        </div>
-
-        <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.signature_placement_description")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {local_placement === "below"
-                ? t("settings.below_quoted_description")
-                : t("settings.above_quoted_description")}
-            </p>
-          </div>
-          <Select
-            value={local_placement}
-            onValueChange={(value) =>
-              handle_placement_change(value as "below" | "above")
-            }
-          >
-            <SelectTrigger className="w-[220px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="below">
-                {t("settings.below_quoted_text")}
-              </SelectItem>
-              <SelectItem value="above">
-                {t("settings.above_quoted_text")}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="pt-2">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary">
-            {t("settings.show_signature_separator")}
-          </h3>
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <p className="text-sm text-txt-muted">
-              {t("settings.show_signature_separator_description")}
-            </p>
-          </div>
-          <button
-            className={`relative inline-flex h-5 w-9 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
-              preferences.show_signature_separator !== false
-                ? "bg-blue-500"
-                : "bg-zinc-600"
-            }`}
-            type="button"
-            role="switch"
-            aria-checked={preferences.show_signature_separator !== false}
-            aria-label={t("settings.show_signature_separator")}
-            onClick={() =>
-              update_preference(
-                "show_signature_separator",
-                preferences.show_signature_separator === false,
-                true,
-              )
-            }
-          >
-            <span
-              className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                preferences.show_signature_separator !== false
-                  ? "translate-x-4"
-                  : "translate-x-0"
-              }`}
-            />
-          </button>
-        </div>
-      </div>
-
-      <div className="pt-2">
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary">
-            {t("settings.show_aster_branding")}
-          </h3>
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex-1">
-            <p className="text-sm text-txt-muted">
-              {t("settings.show_aster_branding_description")}
-            </p>
-            {!is_paid_plan && (
-              <p className="text-xs text-txt-muted mt-1">
-                {t("settings.show_aster_branding_free_note")}
-              </p>
-            )}
-          </div>
-          {is_paid_plan ? (
-            <button
-              className={`relative inline-flex h-5 w-9 flex-shrink-0 rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none cursor-pointer ${
-                preferences.show_aster_branding ? "bg-blue-500" : "bg-zinc-600"
-              }`}
-              type="button"
-              onClick={() => {
-                update_preference(
-                  "show_aster_branding",
-                  !preferences.show_aster_branding,
-                  true,
-                );
-              }}
-            >
-              <span
-                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
-                  preferences.show_aster_branding
-                    ? "translate-x-4"
-                    : "translate-x-0"
-                }`}
-              />
-            </button>
-          ) : (
-            <UpgradeBtn
-              size="sm"
-              onClick={() =>
-                prompt_upgrade(
-                  t("settings.feature_requires_upgrade"),
-                  undefined,
-                  "has_remove_branding",
-                )
+      <IslandSection
+        icon={<Bars3BottomLeftIcon />}
+        title={t("settings.signature_placement")}
+      >
+        <SettingControlRow
+          control={
+            <Select
+              value={local_placement}
+              onValueChange={(value) =>
+                handle_placement_change(value as "below" | "above")
               }
             >
-              {t("settings.upgrade_to_unlock")}
-            </UpgradeBtn>
-          )}
-        </div>
-      </div>
-    </div>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="below">
+                  {t("settings.below_quoted_text")}
+                </SelectItem>
+                <SelectItem value="above">
+                  {t("settings.above_quoted_text")}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          }
+          control_width={220}
+          description={
+            local_placement === "below"
+              ? t("settings.below_quoted_description")
+              : t("settings.above_quoted_description")
+          }
+          label={t("settings.signature_placement_description")}
+        />
+      </IslandSection>
+
+      <IslandSection>
+        <SettingToggleRow
+          checked={preferences.show_signature_separator !== false}
+          description={t("settings.show_signature_separator_description")}
+          label={t("settings.show_signature_separator")}
+          on_change={() =>
+            update_preference(
+              "show_signature_separator",
+              preferences.show_signature_separator === false,
+              true,
+            )
+          }
+        />
+        <IslandRow
+          description={
+            <>
+              {t("settings.show_aster_branding_description")}
+              {!is_paid_plan && (
+                <span className="block text-xs text-txt-muted mt-1">
+                  {t("settings.show_aster_branding_free_note")}
+                </span>
+              )}
+            </>
+          }
+          label={t("settings.show_aster_branding")}
+          toggle={
+            is_paid_plan
+              ? {
+                  checked: preferences.show_aster_branding,
+                  on_change: () =>
+                    update_preference(
+                      "show_aster_branding",
+                      !preferences.show_aster_branding,
+                      true,
+                    ),
+                  size: "lg",
+                }
+              : undefined
+          }
+          trailing={
+            is_paid_plan ? undefined : (
+              <UpgradeBtn
+                size="sm"
+                onClick={() =>
+                  prompt_upgrade(
+                    t("settings.feature_requires_upgrade"),
+                    undefined,
+                    "has_remove_branding",
+                  )
+                }
+              >
+                {t("settings.upgrade_to_unlock")}
+              </UpgradeBtn>
+            )
+          }
+        />
+      </IslandSection>
+    </IslandSections>
   );
 }

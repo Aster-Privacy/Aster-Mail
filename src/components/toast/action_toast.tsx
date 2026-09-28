@@ -283,7 +283,7 @@ export function ActionToast({ position }: ActionToastProps) {
           transition={{ duration: reduce_motion ? 0 : 0.15 }}
         >
           <div
-            className={`rounded-xl shadow-lg flex flex-col bg-modal-bg border border-edge-secondary ${
+            className={`rounded-[var(--aster-radius-floating,16px)] shadow-[var(--aster-floating-shadow)] flex flex-col bg-[var(--aster-floating-bg,var(--modal-bg))] ${
               toast.progress ? "gap-2.5 px-4 py-3" : "gap-2 px-4 py-2.5"
             }`}
             style={{

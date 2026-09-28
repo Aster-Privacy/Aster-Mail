@@ -21,7 +21,7 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@aster/ui";
+import { Button, Checkbox } from "@aster/ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -31,6 +31,7 @@ import { use_should_reduce_motion } from "@/provider";
 import {
   derive_password_hash,
   generate_recovery_codes,
+  RECOVERY_CODE_SET_SIZE,
   encrypt_vault,
   generate_identity_keypair,
   generate_signed_prekey,
@@ -70,12 +71,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { user_facing_error } from "@/utils/user_facing_error";
 
 type ResetStep =
-  | "consent"
-  | "password"
-  | "processing"
-  | "new_codes"
-  | "success"
-  | "invalid";
+  "consent" | "password" | "processing" | "new_codes" | "success" | "invalid";
 
 const page_variants = {
   initial: { opacity: 0, y: 12 },
@@ -337,7 +333,7 @@ export default function ResetPasswordPage() {
       );
 
       set_processing_status(t("auth.creating_new_recovery_codes"));
-      const new_codes = generate_recovery_codes(6);
+      const new_codes = generate_recovery_codes(RECOVERY_CODE_SET_SIZE);
 
       set_new_recovery_codes(new_codes);
 
@@ -521,10 +517,9 @@ export default function ResetPasswordPage() {
               </div>
 
               <label className="flex items-start gap-2.5 cursor-pointer pt-1">
-                <input
+                <Checkbox
                   checked={consent_checked}
-                  className="mt-0.5 h-4 w-4 shrink-0 accent-current"
-                  type="checkbox"
+                  className="mt-0.5 shrink-0"
                   onChange={(e) => set_consent_checked(e.target.checked)}
                 />
                 <span className="text-sm leading-relaxed text-txt-secondary">

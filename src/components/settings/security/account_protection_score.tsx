@@ -22,6 +22,7 @@
 //
 import { useState } from "react";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
+import { Island } from "@aster/ui";
 
 import {
   Modal,
@@ -51,6 +52,7 @@ const STATUS_BUTTON_STYLES: Record<SecurityStatus, string> = {
 interface AccountProtectionScoreProps {
   totp_enabled: boolean;
   passkey_registered: boolean;
+  recovery_codes_saved: boolean;
   recovery_email_verified: boolean;
   login_alerts_enabled: boolean;
   block_tracking_pixels: boolean;
@@ -60,11 +62,12 @@ interface AccountProtectionScoreProps {
   on_criterion_click?: Array<(() => void) | undefined>;
 }
 
-const WEIGHTS = [1, 1, 1, 1, 1, 1, 1] as const;
+const WEIGHTS = [1, 1, 1, 1, 1, 1, 1, 1] as const;
 
 export function AccountProtectionScore({
   totp_enabled,
   passkey_registered,
+  recovery_codes_saved,
   recovery_email_verified,
   login_alerts_enabled,
   block_tracking_pixels,
@@ -81,6 +84,7 @@ export function AccountProtectionScore({
   const criteria = build_security_criteria({
     totp_enabled,
     passkey_registered,
+    recovery_codes_saved,
     recovery_email_verified,
     login_alerts_enabled,
     block_tracking_pixels,
@@ -93,24 +97,24 @@ export function AccountProtectionScore({
 
   if (!security_loaded) {
     return (
-      <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5 animate-pulse">
+      <Island className="animate-pulse" padding="md">
         <div className="flex items-start gap-2.5">
           <div className="h-5 w-5 rounded-full bg-surf-tertiary flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <div className="h-4 w-56 rounded bg-surf-tertiary mb-2" />
-            <div className="h-3.5 w-72 rounded bg-surf-tertiary" />
+          <div className="flex-1 min-w-0">
+            <div className="h-4 w-56 max-w-full rounded bg-surf-tertiary mb-2" />
+            <div className="h-3.5 w-72 max-w-full rounded bg-surf-tertiary" />
           </div>
         </div>
-      </div>
+      </Island>
     );
   }
 
   if (dismissed || preferences.account_security_banner_dismissed) return null;
 
   return (
-    <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5">
-      <div className="flex items-center gap-3">
-        <div className="flex-1 min-w-0">
+    <Island padding="md">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex-1 min-w-[12rem]">
           <div className="flex items-center gap-2">
             <SecurityLockIcon
               className="h-5 w-5 flex-shrink-0"
@@ -129,14 +133,14 @@ export function AccountProtectionScore({
         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
           <div className="flex items-center gap-2">
             <button
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-txt-primary bg-surf-primary border border-edge-secondary hover:bg-surf-tertiary transition-colors"
+              className="px-3 py-1.5 rounded-[var(--aster-radius-control)] text-sm font-medium text-txt-primary bg-[var(--aster-field-bg)] hover:bg-[var(--aster-island-hover)] transition-colors"
               type="button"
               onClick={() => set_dismissed(true)}
             >
               {t("settings.account_security_dismiss")}
             </button>
             <button
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${STATUS_BUTTON_STYLES[status]}`}
+              className={`px-3 py-1.5 rounded-[var(--aster-radius-control)] text-sm font-medium transition-colors ${STATUS_BUTTON_STYLES[status]}`}
               type="button"
               onClick={() => set_popover_open(true)}
             >
@@ -173,7 +177,7 @@ export function AccountProtectionScore({
                 return (
                   <li key={criterion.id}>
                     <button
-                      className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-colors text-start ${is_clickable ? "hover:bg-edge-secondary/60 cursor-pointer" : "cursor-default"}`}
+                      className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-[var(--aster-radius-control)] transition-colors text-start ${is_clickable ? "hover:bg-edge-secondary/60 cursor-pointer" : "cursor-default"}`}
                       disabled={!is_clickable}
                       type="button"
                       onClick={() => {
@@ -207,6 +211,6 @@ export function AccountProtectionScore({
           </ModalBody>
         </Modal>
       </div>
-    </div>
+    </Island>
   );
 }

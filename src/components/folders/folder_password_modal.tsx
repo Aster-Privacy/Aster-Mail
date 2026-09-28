@@ -28,8 +28,8 @@ import {
   ExclamationTriangleIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { use_protected_folder } from "@/hooks/use_protected_folder";
 import { use_should_reduce_motion } from "@/provider";
@@ -595,12 +595,9 @@ export function FolderPasswordModal({
           <motion.div
             ref={dialog_ref}
             animate={{ opacity: 1 }}
-            className="relative w-full max-w-[400px] rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
+            className="relative w-full max-w-[400px] overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
             exit={{ opacity: 0 }}
             initial={reduce_motion ? false : { opacity: 0 }}
-            style={{
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-            }}
             tabIndex={-1}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >
@@ -613,7 +610,7 @@ export function FolderPasswordModal({
                   <p className="text-[13px] text-txt-muted">{folder_name}</p>
                 </div>
                 <button
-                  className="p-1.5 rounded-[14px] hover:bg-black/5 dark:hover:bg-white/5 transition-colors text-txt-muted"
+                  className="p-1.5 rounded-[14px] hover:bg-[var(--aster-hover)] transition-colors text-txt-muted"
                   onClick={handle_close}
                 >
                   <XMarkIcon className="w-4 h-4" />
@@ -694,7 +691,6 @@ export function FolderPasswordModal({
               <div className="flex justify-end gap-3 px-6 pb-6">
                 <Button
                   disabled={is_loading}
-                  size="xl"
                   variant="outline"
                   onClick={handle_close}
                 >
@@ -703,7 +699,6 @@ export function FolderPasswordModal({
                 <Button
                   disabled={is_loading}
                   is_loading={is_loading}
-                  size="xl"
                   variant={
                     internal_mode === "remove" ? "destructive" : "primary"
                   }

@@ -42,12 +42,7 @@ interface ImportSourceRow {
 }
 
 const provider_logo = (src: string) => (
-  <img
-    alt=""
-    aria-hidden="true"
-    className="h-6 w-6 object-contain"
-    src={src}
-  />
+  <img alt="" aria-hidden="true" className="h-6 w-6 object-contain" src={src} />
 );
 
 const IMPORT_SOURCES: ImportSourceRow[] = [
@@ -119,7 +114,7 @@ export const RegisterStepImportMail = ({
           <button
             key={source.id}
             className={cn(
-              "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-black/[0.04] disabled:cursor-default disabled:opacity-50 dark:hover:bg-white/[0.05]",
+              "flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--aster-hover)] disabled:cursor-default disabled:opacity-50",
               index > 0 && "border-t border-edge-secondary",
             )}
             disabled={is_busy}

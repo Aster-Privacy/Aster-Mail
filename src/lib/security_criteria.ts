@@ -28,6 +28,7 @@ import { SETTINGS_ANCHORS } from "@/lib/settings_links";
 export type SecurityCriterionId =
   | "two_factor"
   | "passkey"
+  | "recovery_codes"
   | "recovery_email"
   | "login_alerts"
   | "tracking_pixels"
@@ -37,6 +38,7 @@ export type SecurityCriterionId =
 export interface SecurityCriterionSource {
   totp_enabled: boolean;
   passkey_registered: boolean;
+  recovery_codes_saved: boolean;
   recovery_email_verified: boolean;
   login_alerts_enabled: boolean;
   block_tracking_pixels: boolean;
@@ -54,6 +56,7 @@ export interface SecurityCriterion {
 export const SECURITY_CRITERION_IDS: readonly SecurityCriterionId[] = [
   "two_factor",
   "passkey",
+  "recovery_codes",
   "recovery_email",
   "login_alerts",
   "tracking_pixels",
@@ -67,6 +70,10 @@ export const SECURITY_CRITERION_TARGETS: Record<
 > = {
   two_factor: { section: "security", anchor: SETTINGS_ANCHORS.two_factor },
   passkey: { section: "security", anchor: SETTINGS_ANCHORS.passkeys },
+  recovery_codes: {
+    section: "security",
+    anchor: SETTINGS_ANCHORS.account_recovery,
+  },
   recovery_email: {
     section: "account",
     anchor: SETTINGS_ANCHORS.recovery_email,
@@ -80,6 +87,7 @@ export const SECURITY_CRITERION_TARGETS: Record<
 const CRITERION_LABELS: Record<SecurityCriterionId, TranslationKey> = {
   two_factor: "settings.criterion_two_factor",
   passkey: "settings.criterion_passkey",
+  recovery_codes: "settings.criterion_recovery_codes",
   recovery_email: "settings.criterion_recovery_email",
   login_alerts: "settings.criterion_login_alerts",
   tracking_pixels: "settings.block_spy_pixels",
@@ -93,6 +101,7 @@ export function build_security_criteria(
   const met: Record<SecurityCriterionId, boolean> = {
     two_factor: source.totp_enabled,
     passkey: source.passkey_registered,
+    recovery_codes: source.recovery_codes_saved,
     recovery_email: source.recovery_email_verified,
     login_alerts: source.login_alerts_enabled,
     tracking_pixels: source.block_tracking_pixels,

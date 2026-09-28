@@ -73,7 +73,8 @@ vi.mock("@/components/ui/select", () => ({
   SelectValue: () => null,
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({
     children,
     onClick,
@@ -160,6 +161,7 @@ vi.mock("@/components/modals/confirmation_modal", () => ({
 
 vi.mock("@/components/ui/spinner", () => ({
   Spinner: () => null,
+  ButtonSpinner: () => null,
 }));
 
 vi.mock("@/services/api/domains", () => ({

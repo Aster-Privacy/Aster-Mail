@@ -163,7 +163,7 @@ export function PurchasedDomainManageModal({
         </ModalDescription>
       </ModalHeader>
       <ModalBody className="px-6 space-y-4">
-        <div className="overflow-hidden rounded-xl border border-edge-secondary bg-surf-primary divide-y divide-edge-secondary">
+        <div className="overflow-hidden rounded-xl border border-edge-secondary bg-surf-primary divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
           {rows.map((row) => (
             <div
               key={row.label}
@@ -205,7 +205,6 @@ export function PurchasedDomainManageModal({
       <ModalFooter className="flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
         <Button
           className="w-full sm:w-auto"
-          size="sm"
           variant="ghost"
           onClick={contact_support}
         >

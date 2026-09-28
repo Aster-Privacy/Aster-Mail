@@ -35,7 +35,12 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 
-import { load_family_section } from "./settings_lazy_sections";
+import {
+  load_billing_section,
+  load_family_section,
+  load_onion_billing_section,
+  load_storage_section,
+} from "./settings_lazy_sections";
 import {
   flatten_nav_items,
   get_nav_items,
@@ -162,6 +167,45 @@ export function use_settings_content(props: SettingsContentProps) {
     if (is_popup || section_prop) return;
     on_section_change_ref.current(section, true);
   }, [section_prop, is_popup]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const preload = () => {
+      if (is_onion_host()) {
+        void load_onion_billing_section().catch((caught) =>
+          ignore_error(
+            "components/settings/use_settings_content:load_onion_billing_section",
+            caught,
+          ),
+        );
+
+        return;
+      }
+
+      void load_billing_section().catch((caught) =>
+        ignore_error(
+          "components/settings/use_settings_content:load_billing_section",
+          caught,
+        ),
+      );
+      void load_storage_section().catch((caught) =>
+        ignore_error(
+          "components/settings/use_settings_content:load_storage_section",
+          caught,
+        ),
+      );
+    };
+    const idle = (
+      window as Window & {
+        requestIdleCallback?: (callback: () => void) => number;
+      }
+    ).requestIdleCallback;
+
+    if (typeof idle === "function") {
+      idle(preload);
+    } else {
+      setTimeout(preload, 800);
+    }
+  }, []);
 
   useEffect(() => {
     if (is_family_plan) {

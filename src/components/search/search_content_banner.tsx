@@ -196,7 +196,7 @@ export function SearchContentBanner({
         : t("mail.searching_message_content");
 
     return (
-      <div className="px-4 pt-3 pb-2.5 border-b border-edge-secondary">
+      <div className="px-4 pt-3 pb-2.5 border-b border-[var(--aster-floating-divider,var(--border-secondary))]">
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1.5 min-w-0 flex-1">
             <span className="truncate text-[13px] font-medium text-txt-primary">
@@ -259,7 +259,7 @@ export function SearchContentBanner({
   }
 
   return (
-    <div className="px-4 pt-3 pb-2.5 border-b border-edge-secondary">
+    <div className="px-4 pt-3 pb-2.5 border-b border-[var(--aster-floating-divider,var(--border-secondary))]">
       <div className="flex items-center gap-2">
         <span className="flex items-center gap-1.5 min-w-0 flex-1">
           <span className="truncate text-[13px] font-medium text-txt-primary">

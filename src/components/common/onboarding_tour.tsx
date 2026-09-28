@@ -524,7 +524,7 @@ export function OnboardingTour() {
                   <motion.div
                     animate={{ opacity: 1, scale: 1 }}
                     className={cn(
-                      "relative rounded-2xl border shadow-2xl pointer-events-auto bg-surf-card border-edge-primary",
+                      "relative rounded-[var(--aster-radius-floating,16px)] shadow-[var(--aster-floating-shadow)] pointer-events-auto bg-[var(--aster-floating-bg,var(--modal-bg))]",
                       !is_positioned && "w-[560px] max-w-full",
                     )}
                     initial={
@@ -544,7 +544,7 @@ export function OnboardingTour() {
                     )}
                     <button
                       aria-label={t("common.skip_tour")}
-                      className="absolute top-4 end-4 z-10 p-2 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10 disabled:opacity-50 text-txt-muted"
+                      className="absolute top-4 end-4 z-10 p-2 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)] disabled:opacity-50 text-txt-muted"
                       disabled={is_transitioning}
                       onClick={handle_skip}
                     >

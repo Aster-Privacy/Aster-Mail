@@ -27,6 +27,8 @@ import {
   ExclamationTriangleIcon,
   KeyIcon,
 } from "@heroicons/react/24/outline";
+import { IslandRow, IslandSection, SettingNote } from "@aster/ui";
+
 import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
@@ -155,29 +157,11 @@ export function PasswordSection({
       })
     : null;
 
-  return (
-    <div className={show_header ? "pt-3" : undefined}>
-      {show_header && (
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <KeyIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.password")}
-            {is_weak_password && (
-              <ActionRecommendedBadge
-                tip={t("settings.password_weak_recommendation")}
-              />
-            )}
-          </h3>
-        </div>
-      )}
-      {!show_header && (
-        <p className="text-sm font-medium text-txt-primary mb-2">
-          {t("settings.password")}
-        </p>
-      )}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
+  const password_row = (
+    <IslandRow
+      description={
+        <>
+          <span className="flex flex-wrap items-center gap-2">
             <span className="text-sm tracking-widest text-txt-primary">
               ••••••••••••
             </span>
@@ -193,27 +177,50 @@ export function PasswordSection({
                 {strength_badge.label}
               </span>
             )}
-          </div>
-          {last_updated_label ? (
-            <p className="text-xs text-txt-muted mt-1">{last_updated_label}</p>
-          ) : (
-            <p className="text-sm text-txt-muted mt-1">
-              {t("settings.change_password_description")}
-            </p>
+          </span>
+          <span className="block mt-1">
+            {last_updated_label ?? t("settings.change_password_description")}
+          </span>
+          {password_unreadable_notice && (
+            <SettingNote tone="warning">
+              {password_unreadable_notice}
+            </SettingNote>
           )}
-        </div>
+        </>
+      }
+      label={t("settings.password")}
+      layout="stacked"
+      trailing={
         <Button
           variant="secondary"
           onClick={() => set_show_password_section(true)}
         >
           {t("settings.change_password")}
         </Button>
-      </div>
+      }
+    />
+  );
 
-      {password_unreadable_notice && (
-        <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-txt-primary">
-          {password_unreadable_notice}
-        </div>
+  return (
+    <>
+      {show_header ? (
+        <IslandSection
+          icon={<KeyIcon />}
+          title={
+            <span className="inline-flex items-center gap-1.5">
+              {t("settings.password")}
+              {is_weak_password && (
+                <ActionRecommendedBadge
+                  tip={t("settings.password_weak_recommendation")}
+                />
+              )}
+            </span>
+          }
+        >
+          {password_row}
+        </IslandSection>
+      ) : (
+        password_row
       )}
 
       <Modal
@@ -414,6 +421,6 @@ export function PasswordSection({
           </Button>
         </ModalFooter>
       </Modal>
-    </div>
+    </>
   );
 }

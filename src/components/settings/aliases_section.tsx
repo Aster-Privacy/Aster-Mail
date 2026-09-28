@@ -20,7 +20,7 @@
 //
 import { useEffect, useState } from "react";
 import { PlusIcon, AtSymbolIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, IslandSection, IslandSections, PillButton } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -200,47 +200,42 @@ export function AliasesSection() {
       )}
 
       {active_tab === "aliases" && !is_editing && (
-        <div className="space-y-4">
-          <div>
-            <div className="mb-2">
-              <div className="flex items-center justify-between">
-                <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-                  <AtSymbolIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-                  {t("settings.email_aliases")}
-                </h3>
-                <div className="flex items-center gap-3">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={
-                      alias_csv_locked
-                        ? () =>
-                            prompt_upgrade(
-                              t("settings.feature_requires_upgrade"),
-                              undefined,
-                              "has_advanced_aliases",
-                            )
-                        : () => set_show_export_modal(true)
-                    }
-                  >
-                    {t("settings.alias_export_csv")}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => set_show_import_modal(true)}
-                  >
-                    {t("settings.alias_import_csv")}
-                  </Button>
-                </div>
+        <IslandSections>
+          <IslandSection
+            bare
+            description={t("settings.aliases_description")}
+            icon={<AtSymbolIcon />}
+            title={t("settings.email_aliases")}
+            trailing={
+              <div className="flex items-center gap-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={
+                    alias_csv_locked
+                      ? () =>
+                          prompt_upgrade(
+                            t("settings.feature_requires_upgrade"),
+                            undefined,
+                            "has_advanced_aliases",
+                          )
+                      : () => set_show_export_modal(true)
+                  }
+                >
+                  {t("settings.alias_export_csv")}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => set_show_import_modal(true)}
+                >
+                  {t("settings.alias_import_csv")}
+                </Button>
               </div>
-            </div>
-            <p className="text-sm mb-3 text-txt-muted">
-              {t("settings.aliases_description")}
-            </p>
-
+            }
+          >
             <AliasUsageMeter
-              className="mb-3"
+              className="mb-2"
               limit={alias_limit}
               used={alias_used}
             />
@@ -254,10 +249,11 @@ export function AliasesSection() {
             />
 
             <div className="flex gap-2 mb-2">
-              <Button
-                className="flex-1"
-                size="xl"
-                variant="depth"
+              <PillButton
+                block
+                leading={<PlusIcon className="w-4 h-4" />}
+                size="lg"
+                variant="filled"
                 onClick={() => {
                   set_twin_prefill(null);
 
@@ -281,9 +277,8 @@ export function AliasesSection() {
                   }
                 }}
               >
-                <PlusIcon className="w-4 h-4" />
                 {t("settings.create_alias")}
-              </Button>
+              </PillButton>
             </div>
 
             <AliasList
@@ -311,8 +306,8 @@ export function AliasesSection() {
               on_reload={hook.load_aliases}
               toggling_id={hook.toggling_id}
             />
-          </div>
-        </div>
+          </IslandSection>
+        </IslandSections>
       )}
 
       {active_tab === "directories" && <AliasDirectoriesSection />}

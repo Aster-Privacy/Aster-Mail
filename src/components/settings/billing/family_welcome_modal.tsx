@@ -125,7 +125,7 @@ export function FamilyWelcomeModal({
     >
       <div className="relative flex flex-col overflow-hidden">
         <button
-          className="absolute end-4 top-4 z-20 w-7 h-7 flex items-center justify-center rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-txt-secondary"
+          className="absolute end-4 top-4 z-20 w-7 h-7 flex items-center justify-center rounded-[14px] transition-colors hover:bg-[var(--aster-hover)] text-txt-secondary"
           onClick={handle_close}
         >
           <XMarkIcon className="w-4 h-4" />
@@ -146,7 +146,7 @@ export function FamilyWelcomeModal({
             variants={variants}
           >
             <div className="flex flex-col items-center gap-1 mb-6 w-full">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-accent-blue/10 text-accent-blue border border-accent-blue/20">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-accent-blue/10 text-accent-blue">
                 {plan_name}
               </span>
               <span className="text-xs text-txt-muted">

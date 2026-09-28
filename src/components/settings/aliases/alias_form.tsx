@@ -25,6 +25,7 @@ import {
   LockClosedIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
+import { Input } from "@aster/ui";
 
 import { Button } from "@/components/ui/button";
 import { generate_ghost_local_part } from "@/services/api/ghost_aliases";
@@ -440,7 +441,7 @@ export function CreateAliasModal({
                       set_alias_format(v as "words" | "uuid")
                     }
                   >
-                    <SelectTrigger className="h-10 w-24 shrink-0 bg-transparent">
+                    <SelectTrigger className="h-10 w-24 shrink-0">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -453,7 +454,7 @@ export function CreateAliasModal({
                     </SelectContent>
                   </Select>
                   <button
-                    className="h-10 w-10 shrink-0 flex items-center justify-center rounded-lg border border-edge-secondary text-txt-muted hover:text-txt-primary hover:bg-surf-hover transition-colors"
+                    className="h-10 w-10 shrink-0 flex items-center justify-center rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] text-txt-muted hover:text-txt-primary hover:bg-[var(--aster-field-hover)] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
                     title={t("settings.alias_generate_random")}
                     type="button"
                     onClick={() => {
@@ -467,22 +468,23 @@ export function CreateAliasModal({
                   >
                     <ArrowPathIcon className="w-4 h-4" />
                   </button>
-                  <input
+                  <Input
                     autoFocus
                     autoCapitalize="none"
                     autoCorrect="off"
-                    className={`flex-1 min-w-0 h-10 px-3 rounded-lg bg-transparent border text-sm text-txt-primary placeholder:text-txt-muted outline-none ${
-                      local_part && !current_validation.valid
-                        ? "border-red-500"
-                        : is_available === true
-                          ? "border-green-500"
-                          : is_available === false
-                            ? "border-red-500"
-                            : "border-edge-secondary"
-                    }`}
+                    className="w-auto flex-1 min-w-0"
                     id="alias-address"
                     placeholder={t("settings.alias_local_part_placeholder")}
                     spellCheck={false}
+                    status={
+                      local_part && !current_validation.valid
+                        ? "error"
+                        : is_available === true
+                          ? "success"
+                          : is_available === false
+                            ? "error"
+                            : "default"
+                    }
                     value={local_part}
                     onChange={(e) =>
                       set_local_part(
@@ -499,7 +501,7 @@ export function CreateAliasModal({
                     }}
                   />
                   <Select value={domain} onValueChange={handle_domain_change}>
-                    <SelectTrigger className="h-10 w-auto shrink-0 rounded-lg border border-edge-secondary bg-transparent text-sm px-3 focus:ring-0 focus:ring-offset-0">
+                    <SelectTrigger className="h-10 w-auto shrink-0 text-sm px-3">
                       <span className="text-txt-muted me-0.5">@</span>
                       <span className="truncate">{domain}</span>
                     </SelectTrigger>
@@ -526,8 +528,14 @@ export function CreateAliasModal({
                               <span className="inline-flex items-center gap-2 align-middle">
                                 {d}
                                 {!premium_domains_allowed && (
-                                  <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-edge-secondary bg-surf-tertiary px-1.5 py-0.5 text-[11px] font-medium text-txt-muted">
-                                    <LockClosedIcon className="h-3 w-3" />
+                                  <span
+                                    className="inline-flex shrink-0 items-center gap-1 rounded-[14px] border px-2 py-0.5 text-[12px] font-medium text-txt-secondary"
+                                    style={{
+                                      borderColor:
+                                        "color-mix(in srgb, var(--text-primary) 14%, transparent)",
+                                    }}
+                                  >
+                                    <LockClosedIcon className="h-3.5 w-3.5" />
                                     {t("settings.requires_plan", {
                                       plan:
                                         premium_domain_min_plan?.name ?? "Star",
@@ -618,16 +626,15 @@ export function CreateAliasModal({
                   {t("settings.create_alias_display_name_label")}
                 </label>
                 {display_name_locked ? (
-                  <div className="flex items-center justify-between w-full h-10 px-3 rounded-lg border border-edge-secondary opacity-60 cursor-not-allowed">
+                  <div className="flex items-center justify-between w-full h-10 px-3 rounded-[var(--aster-radius-control)] bg-surf-tertiary cursor-not-allowed">
                     <span className="text-sm text-txt-muted">
                       {t("settings.create_alias_display_name_placeholder")}
                     </span>
                     <button
-                      className="inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-opacity hover:opacity-80"
+                      className="inline-flex shrink-0 items-center gap-1 rounded-[14px] border px-2 py-0.5 text-[12px] font-medium text-txt-secondary transition-opacity hover:opacity-80"
                       style={{
-                        backgroundColor:
-                          "color-mix(in srgb, var(--accent-color) 14%, transparent)",
-                        color: "var(--accent-color)",
+                        borderColor:
+                          "color-mix(in srgb, var(--text-primary) 14%, transparent)",
                       }}
                       type="button"
                       onClick={() =>
@@ -638,7 +645,7 @@ export function CreateAliasModal({
                         )
                       }
                     >
-                      <LockClosedIcon className="h-3 w-3" />
+                      <LockClosedIcon className="h-3.5 w-3.5" />
                       {display_name_min_plan
                         ? t("settings.requires_plan", {
                             plan: display_name_min_plan.name,
@@ -647,8 +654,7 @@ export function CreateAliasModal({
                     </button>
                   </div>
                 ) : (
-                  <input
-                    className="w-full h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none"
+                  <Input
                     id="alias-display-name"
                     maxLength={128}
                     placeholder={t(
@@ -667,8 +673,7 @@ export function CreateAliasModal({
                   >
                     {t("settings.create_alias_note_label")}
                   </label>
-                  <input
-                    className="w-full h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none"
+                  <Input
                     id="alias-note"
                     maxLength={500}
                     placeholder={t("settings.create_alias_note_placeholder")}

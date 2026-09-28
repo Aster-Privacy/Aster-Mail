@@ -18,6 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { Checkbox } from "@aster/ui";
 import { useMemo, useRef, useState } from "react";
 import {
   ArrowUpTrayIcon,
@@ -25,7 +26,14 @@ import {
   ExclamationTriangleIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import {
+  Button,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -770,7 +778,7 @@ export function AliasImportModal({
             <div
               ref={drop_ref}
               className={[
-                "flex flex-col items-center justify-center gap-2.5 rounded-xl border-2 border-dashed p-6 transition-colors cursor-pointer",
+                "flex flex-col items-center justify-center gap-2.5 rounded-[var(--aster-radius-control)] border-2 border-dashed p-6 transition-colors cursor-pointer",
                 drag_over
                   ? "border-blue-500 bg-blue-500/5"
                   : "border-edge-secondary hover:border-blue-400 hover:bg-surf-secondary",
@@ -823,17 +831,24 @@ export function AliasImportModal({
                     <span className="text-sm text-txt-muted shrink-0">
                       {t("settings.alias_import_target_domain")}
                     </span>
-                    <select
-                      className="text-sm rounded-lg border border-edge-secondary bg-surf-primary text-txt-primary px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500/40 cursor-pointer"
+                    <Select
                       value={target_domain}
-                      onChange={(e) => handle_domain_change(e.target.value)}
+                      onValueChange={handle_domain_change}
                     >
-                      {selectable_domains.map((d) => (
-                        <option key={d} value={d}>
-                          {d}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger
+                        aria-label={t("settings.alias_import_target_domain")}
+                        className="h-9 w-auto"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {selectable_domains.map((d) => (
+                          <SelectItem key={d} value={d}>
+                            {d}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </>
                 )}
                 {selectable_domains.length === 1 && (
@@ -870,13 +885,10 @@ export function AliasImportModal({
                 <thead>
                   <tr className="border-b border-edge-secondary bg-surf-secondary">
                     <th className="px-3 py-2 w-8">
-                      <input
-                        ref={(el) => {
-                          if (el) el.indeterminate = some_rows_selected;
-                        }}
+                      <Checkbox
                         checked={all_rows_selected}
-                        className="accent-blue-500 cursor-pointer"
-                        type="checkbox"
+                        className="cursor-pointer"
+                        indeterminate={some_rows_selected}
                         onChange={toggle_all_rows}
                       />
                     </th>
@@ -893,9 +905,9 @@ export function AliasImportModal({
                     <tr
                       key={i}
                       className={[
-                        "border-b border-edge-secondary last:border-0",
+                        "border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))] last:border-0",
                         row.status !== "invalid"
-                          ? "cursor-pointer hover:bg-surf-secondary/50"
+                          ? "cursor-pointer hover:bg-[var(--aster-hover)]"
                           : "opacity-50",
                       ].join(" ")}
                       onClick={() => row.status !== "invalid" && toggle_row(i)}
@@ -904,11 +916,10 @@ export function AliasImportModal({
                         className="px-3 py-2 w-8"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <input
+                        <Checkbox
                           checked={selected_indices.has(i)}
-                          className="accent-blue-500 cursor-pointer disabled:cursor-not-allowed"
+                          className="cursor-pointer"
                           disabled={row.status === "invalid"}
-                          type="checkbox"
                           onChange={() => toggle_row(i)}
                         />
                       </td>
@@ -917,23 +928,30 @@ export function AliasImportModal({
                       </td>
                       <td className="px-3 py-2">
                         {row.status === "will_import" && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-600">
-                            <CheckCircleIcon className="w-3 h-3" />
+                          <span
+                            className="inline-flex items-center gap-1 text-[12px] font-semibold"
+                            style={{ color: "var(--color-success)" }}
+                          >
+                            <CheckCircleIcon className="h-[15px] w-[15px]" />
                             {t("settings.alias_import_will_import")}
                           </span>
                         )}
                         {row.status === "exists" && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-amber-500/10 text-amber-600">
-                            <ExclamationTriangleIcon className="w-3 h-3" />
+                          <span
+                            className="inline-flex items-center gap-1 text-[12px] font-semibold"
+                            style={{ color: "var(--color-warning)" }}
+                          >
+                            <ExclamationTriangleIcon className="h-[15px] w-[15px]" />
                             {t("settings.alias_import_already_exists")}
                           </span>
                         )}
                         {row.status === "invalid" && (
                           <span
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-red-500/10 text-red-500"
+                            className="inline-flex items-center gap-1 text-[12px] font-semibold"
+                            style={{ color: "var(--color-danger)" }}
                             title={row.invalid_reason}
                           >
-                            <XCircleIcon className="w-3 h-3" />
+                            <XCircleIcon className="h-[15px] w-[15px]" />
                             {t("settings.alias_import_invalid")}
                           </span>
                         )}

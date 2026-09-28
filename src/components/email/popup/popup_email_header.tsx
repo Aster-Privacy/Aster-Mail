@@ -25,7 +25,7 @@ import type { DecryptedEmail } from "@/components/email/hooks/use_popup_viewer";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 
 import { useState, useMemo } from "react";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -212,7 +212,7 @@ export function PopupEmailHeader({
         {is_fullscreen && (
           <button
             aria-label={t("common.close")}
-            className="p-1 rounded hover:bg-black/5 dark:hover:bg-white/10 transition-colors flex-shrink-0"
+            className="p-1 rounded hover:bg-[var(--aster-hover)] transition-colors flex-shrink-0"
             onClick={on_close}
           >
             <XMarkIcon className="w-5 h-5 text-txt-muted" />
@@ -253,18 +253,23 @@ export function PopupEmailHeader({
             <div className="flex items-center gap-2">
               <Popover>
                 <PopoverTrigger asChild>
-                  <button className="text-xs text-txt-muted hover:text-txt-secondary transition-colors text-start max-w-[32ch] truncate">
-                    {email.to.length > 0
-                      ? `${t("common.to_label")} ${email.to
-                          .map((r) => r.name || r.email)
-                          .join(", ")}`
-                      : t("common.to_me")}{" "}
-                    &#x25BC;
+                  <button
+                    className="group -ms-1.5 flex min-w-0 max-w-[36ch] items-center gap-1 rounded-[var(--aster-radius-control)] px-1.5 py-0.5 text-start text-xs text-txt-muted transition-colors hover:bg-[var(--aster-island-hover)] hover:text-txt-primary data-[state=open]:bg-[var(--aster-island-hover)] data-[state=open]:text-txt-primary"
+                    type="button"
+                  >
+                    <span className="truncate">
+                      {email.to.length > 0
+                        ? `${t("common.to_label")} ${email.to
+                            .map((r) => r.name || r.email)
+                            .join(", ")}`
+                        : t("common.to_me")}
+                    </span>
+                    <ChevronDownIcon className="h-3.5 w-3.5 flex-shrink-0 stroke-[2.25] transition-transform duration-150 group-data-[state=open]:rotate-180" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent
                   align="start"
-                  className="w-max min-w-[20rem] max-w-[90vw] p-3 text-xs space-y-2 bg-surf-primary border-edge-primary"
+                  className="w-max min-w-[20rem] max-w-[90vw] p-3 text-xs space-y-2"
                   side="bottom"
                 >
                   <div className="grid grid-cols-[3.5rem_1fr] gap-x-2 items-start">
@@ -444,7 +449,7 @@ export function PopupEmailHeader({
                   </div>
                   {email.raw_headers && email.raw_headers.length > 0 && (
                     <>
-                      <div className="border-t border-edge-primary pt-2 mt-1">
+                      <div className="border-t border-[var(--aster-floating-divider,var(--border-secondary))] pt-2 mt-1">
                         <button
                           className="text-xs text-brand hover:text-brand-hover transition-colors"
                           onClick={() => set_show_headers(!show_headers)}

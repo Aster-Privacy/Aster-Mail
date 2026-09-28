@@ -20,13 +20,17 @@
 //
 import { lazy_with_retry } from "@/utils/lazy_with_retry";
 
+export const load_billing_section = () =>
+  import("@/components/settings/billing_section");
 export const BillingSection = lazy_with_retry(() =>
-  import("@/components/settings/billing_section").then((m) => ({
+  load_billing_section().then((m) => ({
     default: m.BillingSection,
   })),
 );
+export const load_onion_billing_section = () =>
+  import("@/components/settings/billing/onion_billing_section");
 export const OnionBillingSection = lazy_with_retry(() =>
-  import("@/components/settings/billing/onion_billing_section").then((m) => ({
+  load_onion_billing_section().then((m) => ({
     default: m.OnionBillingSection,
   })),
 );
@@ -37,8 +41,10 @@ export const FamilySection = lazy_with_retry(() =>
     default: m.FamilySection,
   })),
 );
+export const load_storage_section = () =>
+  import("@/components/settings/storage_section");
 export const StorageSection = lazy_with_retry(() =>
-  import("@/components/settings/storage_section").then((m) => ({
+  load_storage_section().then((m) => ({
     default: m.StorageSection,
   })),
 );

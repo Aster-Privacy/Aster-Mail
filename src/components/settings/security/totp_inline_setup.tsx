@@ -37,6 +37,7 @@ import {
   TotpSetupInitiateResponse,
 } from "@/services/api/totp";
 import { use_i18n } from "@/lib/i18n/context";
+import { Spinner } from "@/components/ui/spinner";
 import mail_logo_url from "@/assets/mail_logo.webp";
 import { copy_text } from "@/utils/copy_text";
 
@@ -153,8 +154,8 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
 
   return (
     <>
-      <div className="mt-3 min-w-0 rounded-2xl border border-edge-secondary bg-surf-secondary p-3.5">
-        <div className="flex items-center justify-between gap-3 mb-2.5">
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-2.5">
           <p className="text-sm font-semibold text-txt-primary">
             {t("settings.enable_2fa")}
           </p>
@@ -171,10 +172,7 @@ export function TotpInlineSetup({ on_success }: TotpInlineSetupProps) {
 
         {is_loading && !setup_data ? (
           <div className="flex items-center justify-center py-10">
-            <div
-              className="w-8 h-8 border-2 rounded-full animate-spin border-edge-secondary"
-              style={{ borderTopColor: "var(--color-info)" }}
-            />
+            <Spinner className="text-txt-muted" size="lg" />
           </div>
         ) : error && !setup_data && !is_loading ? (
           <div className="flex flex-col items-center justify-center py-8 space-y-4">

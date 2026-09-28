@@ -24,7 +24,7 @@ import {
   ExclamationTriangleIcon,
   ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Island } from "@aster/ui";
 
 import { trigger_download } from "@/utils/download_blob";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -91,12 +91,12 @@ export function TotpBackupCodesModal({
       </ModalHeader>
       <ModalBody>
         <div className="space-y-4">
-          <div className="p-4 rounded-lg border bg-surf-tertiary border-edge-secondary">
+          <Island padding="md">
             <div className="grid grid-cols-2 gap-2">
               {backup_codes.map((code, index) => (
                 <button
                   key={index}
-                  className="px-3 py-2 text-sm font-mono text-center rounded cursor-pointer transition-colors hover:opacity-80 bg-surf-secondary text-txt-primary"
+                  className="px-3 py-2 text-sm font-mono text-center rounded cursor-pointer select-text transition-colors hover:opacity-80 bg-surf-secondary text-txt-primary"
                   type="button"
                   onClick={() => copy_single_code(code)}
                 >
@@ -104,8 +104,8 @@ export function TotpBackupCodesModal({
                 </button>
               ))}
             </div>
-          </div>
-          <div className="flex justify-center gap-2">
+          </Island>
+          <div className="flex flex-wrap justify-center gap-2">
             <Button variant="secondary" onClick={copy_backup_codes}>
               <ClipboardDocumentIcon className="w-4 h-4 me-2" />
               {t("settings.copy_all_codes")}

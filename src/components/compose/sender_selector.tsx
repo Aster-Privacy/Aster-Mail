@@ -196,16 +196,8 @@ function render_option(
   return (
     <div
       key={option.id}
-      className={`group w-full px-3 py-2 flex items-center gap-2 transition-colors ${is_selected || is_active ? "bg-surf-secondary" : ""}`}
+      className={`group w-full px-2.5 py-2 flex items-center gap-2 rounded-[var(--aster-radius-item)] transition-colors ${is_selected || is_active ? "bg-[var(--aster-selected)]" : "hover:bg-[var(--aster-floating-hover)]"}`}
       data-sender-active={is_active || undefined}
-      onMouseEnter={(e) => {
-        if (!is_selected && !is_active) {
-          e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-        }
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.backgroundColor = "transparent";
-      }}
     >
       <button
         className="flex items-center gap-2 text-start flex-1 min-w-0"
@@ -513,18 +505,10 @@ export function SenderSelector({
         aria-controls={is_open ? panel_id : undefined}
         aria-expanded={is_open}
         aria-haspopup="listbox"
-        className="flex items-center gap-1.5 py-0.5 px-1 -ms-1 rounded transition-colors disabled:opacity-50"
+        className="flex items-center gap-1.5 py-1 px-1.5 -ms-1.5 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-hover)] disabled:opacity-50 disabled:hover:bg-transparent"
         disabled={disabled}
         type="button"
         onClick={() => set_is_open(!is_open)}
-        onMouseEnter={(e) => {
-          if (!disabled) {
-            e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-          }
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = "transparent";
-        }}
       >
         <SenderOptionIcon option={display_option} size="xs" />
         <span className="text-sm text-txt-primary">{display_option.email}</span>
@@ -537,7 +521,7 @@ export function SenderSelector({
             <motion.div
               ref={panel_ref}
               animate={{ opacity: 1, y: 0 }}
-              className="z-[70] rounded-lg shadow-lg overflow-y-auto bg-surf-card border border-edge-secondary scrollbar-hide"
+              className="aster_floating z-[70] overflow-y-auto p-1.5 scrollbar-hide"
               exit={{ opacity: 0, y: -8 }}
               id={panel_id}
               initial={reduce_motion ? false : { opacity: 0, y: -8 }}
@@ -545,12 +529,12 @@ export function SenderSelector({
               transition={{ duration: reduce_motion ? 0 : 0.15 }}
             >
               {show_search && (
-                <div className="sticky top-0 z-10 px-2 pt-2 pb-1.5 bg-surf-card border-b border-edge-secondary">
+                <div className="sticky -top-1.5 z-10 -mx-1.5 -mt-1.5 mb-1 px-2 pt-2 pb-2 bg-[var(--aster-floating-bg)]">
                   <div className="relative">
-                    <MagnifyingGlassIcon className="w-3.5 h-3.5 absolute start-2 top-1/2 -translate-y-1/2 pointer-events-none text-txt-muted" />
+                    <MagnifyingGlassIcon className="w-4 h-4 absolute start-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-txt-muted" />
                     <input
                       ref={search_input_ref}
-                      className="w-full ps-7 pe-2 py-1.5 text-sm rounded-md bg-surf-secondary text-txt-primary placeholder:text-txt-muted focus:outline-none"
+                      className="w-full h-9 ps-8 pe-3 text-sm rounded-[var(--aster-radius-field)] bg-[var(--aster-field-bg)] text-txt-primary placeholder:text-txt-muted outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
                       placeholder={t("settings.alias_search_placeholder")}
                       type="text"
                       value={search_query}
@@ -572,7 +556,7 @@ export function SenderSelector({
                 {primary_options.length > 0 && (
                   <>
                     {has_multiple_groups && (
-                      <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
+                      <div className="px-2.5 pt-2 pb-1 text-[11px] font-medium text-txt-muted">
                         {t("common.sender_group_primary")}
                       </div>
                     )}
@@ -592,7 +576,7 @@ export function SenderSelector({
                 {alias_options.length > 0 && (
                   <>
                     {has_multiple_groups && (
-                      <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
+                      <div className="px-2.5 pt-2 pb-1 text-[11px] font-medium text-txt-muted">
                         {t("common.sender_group_aliases")}
                       </div>
                     )}
@@ -612,7 +596,7 @@ export function SenderSelector({
                 {domain_options.length > 0 && (
                   <>
                     {has_multiple_groups && (
-                      <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
+                      <div className="px-2.5 pt-2 pb-1 text-[11px] font-medium text-txt-muted">
                         {t("common.sender_group_custom_domains")}
                       </div>
                     )}
@@ -632,7 +616,7 @@ export function SenderSelector({
                 {external_options.length > 0 && (
                   <>
                     {has_multiple_groups && (
-                      <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
+                      <div className="px-2.5 pt-2 pb-1 text-[11px] font-medium text-txt-muted">
                         {t("common.sender_group_external")}
                       </div>
                     )}
@@ -651,7 +635,7 @@ export function SenderSelector({
                 )}
                 {ghost_options.length > 0 && (
                   <>
-                    <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
+                    <div className="px-2.5 pt-2 pb-1 text-[11px] font-medium text-txt-muted">
                       {t("common.sender_group_ghost")}
                     </div>
                     {ghost_options.map((option) =>
@@ -672,24 +656,17 @@ export function SenderSelector({
                   !ghost_options.some((g) => g.id === selected?.id) && (
                     <>
                       {ghost_options.length === 0 && (
-                        <div className="px-3 pt-1.5 pb-1 text-[10px] font-medium uppercase tracking-wider text-txt-muted">
+                        <div className="px-2.5 pt-2 pb-1 text-[11px] font-medium text-txt-muted">
                           {t("common.sender_group_ghost")}
                         </div>
                       )}
                       <button
-                        className="w-full px-3 py-2 flex items-center gap-2 text-start transition-colors disabled:opacity-50"
+                        className="w-full px-2.5 py-2 flex items-center gap-2 text-start rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)] disabled:opacity-50"
                         disabled={is_creating_ghost}
                         type="button"
                         onClick={() => {
                           awaiting_created_ghost_ref.current = true;
                           on_create_ghost();
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.backgroundColor =
-                            "var(--bg-hover)";
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.backgroundColor = "transparent";
                         }}
                       >
                         <div
@@ -728,7 +705,7 @@ export function SenderSelector({
                         </div>
                         {on_set_ghost_expiry && (
                           <select
-                            className="text-[10px] px-1 py-0.5 rounded border bg-transparent appearance-none cursor-pointer border-edge-secondary text-txt-muted"
+                            className="text-[11px] h-7 px-2 rounded-[var(--aster-radius-item)] bg-[var(--aster-field-bg)] border-0 appearance-none cursor-pointer text-txt-secondary outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
                             value={ghost_expiry_days}
                             onChange={(e) => {
                               e.stopPropagation();

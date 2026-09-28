@@ -38,6 +38,7 @@ import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { get_undo_send_delay_ms } from "@/services/send_queue";
 
 interface UnsubscribeBannerProps {
   unsubscribe_info: UnsubscribeInfo;
@@ -95,23 +96,28 @@ export function UnsubscribeBanner({
     cancelled_ref.current = false;
     set_is_dismissed(true);
 
-    const delay_seconds = preferences.undo_send_seconds ?? 10;
-    const delay_ms = delay_seconds * 1000;
+    const delay_ms = get_undo_send_delay_ms(
+      preferences.undo_send_enabled,
+      preferences.undo_send_seconds,
+      preferences.undo_send_period,
+    );
 
-    show_action_toast({
-      message: t("settings.unsubscribing"),
-      action_type: "not_spam",
-      email_ids: [],
-      duration_ms: delay_ms,
-      on_undo: async () => {
-        cancelled_ref.current = true;
-        if (pending_timeout_ref.current) {
-          clearTimeout(pending_timeout_ref.current);
-          pending_timeout_ref.current = null;
-        }
-        if (mounted_ref.current) set_is_dismissed(false);
-      },
-    });
+    if (delay_ms > 0) {
+      show_action_toast({
+        message: t("settings.unsubscribing"),
+        action_type: "not_spam",
+        email_ids: [],
+        duration_ms: delay_ms,
+        on_undo: async () => {
+          cancelled_ref.current = true;
+          if (pending_timeout_ref.current) {
+            clearTimeout(pending_timeout_ref.current);
+            pending_timeout_ref.current = null;
+          }
+          if (mounted_ref.current) set_is_dismissed(false);
+        },
+      });
+    }
 
     pending_timeout_ref.current = setTimeout(async () => {
       pending_timeout_ref.current = null;
@@ -163,7 +169,14 @@ export function UnsubscribeBanner({
         });
       }
     }, delay_ms);
-  }, [unsubscribe_info, preferences.undo_send_seconds, on_unsubscribed, t]);
+  }, [
+    unsubscribe_info,
+    preferences.undo_send_enabled,
+    preferences.undo_send_seconds,
+    preferences.undo_send_period,
+    on_unsubscribed,
+    t,
+  ]);
 
   if (!unsubscribe_info.has_unsubscribe || is_dismissed) {
     return null;
@@ -202,14 +215,14 @@ export function UnsubscribeBanner({
 
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
-              className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
+              className="rounded-[var(--aster-radius-control)] px-3 py-1 text-sm font-medium transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
               type="button"
               onClick={handle_unsubscribe}
             >
               {t("mail.unsubscribe")}
             </button>
             <button
-              className="p-1.5 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/5 text-txt-muted"
+              className="p-1.5 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)] text-txt-muted"
               type="button"
               onClick={() => set_is_dismissed(true)}
             >

@@ -953,7 +953,7 @@ export default function SignInPage() {
                       <DropdownMenuTrigger asChild>
                         <button
                           aria-label={t("auth.switch_domain")}
-                          className="notranslate absolute end-2 top-1/2 inline-flex -translate-y-1/2 items-center gap-1 rounded-md px-1.5 py-1 text-sm text-txt-secondary transition-colors hover:bg-black/5 hover:text-txt-primary dark:hover:bg-white/5"
+                          className="notranslate absolute end-2 top-1/2 inline-flex -translate-y-1/2 items-center gap-1 rounded-[var(--aster-radius-item,8px)] px-1.5 py-1 text-sm text-txt-secondary transition-colors hover:bg-[var(--aster-hover)] hover:text-txt-primary"
                           disabled={is_loading}
                           tabIndex={-1}
                           translate="no"
@@ -1011,6 +1011,7 @@ export default function SignInPage() {
                     </label>
                     <Link
                       className="text-xs transition-colors hover:opacity-80 text-txt-tertiary"
+                      state={{ email_domain, username }}
                       to="/forgot-password"
                     >
                       {t("auth.forgot_password")}

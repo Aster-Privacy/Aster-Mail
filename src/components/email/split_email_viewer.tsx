@@ -37,6 +37,7 @@ import {
   CONTENT_READY_FALLBACK_MS,
 } from "@/components/email/sandboxed_email_renderer";
 import { Skeleton } from "@/components/ui/skeleton";
+import { EmailOpenSkeleton } from "@/components/email/viewer_shared/email_open_skeleton";
 import { use_preferences } from "@/contexts/preferences_context";
 import { is_system_email } from "@/lib/utils";
 import {
@@ -408,6 +409,20 @@ export function SplitEmailViewer({
     }
   }, [email_id, viewer.email?.thread_token]);
 
+  const handle_toolbar_reply = useCallback(() => {
+    if (viewer.thread_messages.length === 0) {
+      viewer.handle_reply();
+
+      return;
+    }
+
+    window.dispatchEvent(
+      new CustomEvent("astermail:keyboard-reply", {
+        detail: { reply_all: false },
+      }),
+    );
+  }, [viewer]);
+
   useEffect(() => {
     const handle_keyboard_forward = () => {
       if (!on_forward || !viewer.email) return;
@@ -488,8 +503,8 @@ export function SplitEmailViewer({
           <ViewerToolbarActions
             show_nav
             show_read_toggle
-            button_px={32}
-            button_size="h-8 w-8"
+            button_px={36}
+            button_size="h-9 w-9"
             can_go_next={can_go_next}
             can_go_prev={can_go_prev}
             current_index={current_index}
@@ -497,7 +512,7 @@ export function SplitEmailViewer({
             email={email}
             folders={folders}
             hide_class="hidden @lg:flex"
-            icon_size="w-4 h-4"
+            icon_size="w-[18px] h-[18px]"
             is_archive_loading={viewer.is_archive_loading}
             is_archived={email.is_archived === true}
             is_pin_loading={viewer.is_pin_loading}
@@ -521,7 +536,7 @@ export function SplitEmailViewer({
             on_pin_toggle={viewer.handle_pin_toggle}
             on_print={viewer.handle_print}
             on_read_toggle={viewer.handle_read_toggle}
-            on_reply={on_reply ? viewer.handle_reply : undefined}
+            on_reply={on_reply ? handle_toolbar_reply : undefined}
             on_snooze={on_snooze}
             on_spam={() => request_spam(viewer.handle_spam)}
             on_trash={viewer.handle_trash}
@@ -536,9 +551,9 @@ export function SplitEmailViewer({
           />
         ) : (
           <div className="flex items-center gap-1 flex-shrink-0">
-            <Skeleton className="w-7 h-7 rounded-md" />
-            <Skeleton className="w-7 h-7 rounded-md" />
-            <Skeleton className="w-7 h-7 rounded-md" />
+            <Skeleton className="w-7 h-7 rounded-full" />
+            <Skeleton className="w-7 h-7 rounded-full" />
+            <Skeleton className="w-7 h-7 rounded-full" />
           </div>
         )}
 
@@ -546,7 +561,7 @@ export function SplitEmailViewer({
 
         <button
           aria-label={t("common.close")}
-          className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-hover flex-shrink-0 text-txt-muted"
+          className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-txt-muted transition-colors hover:bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] hover:text-txt-primary"
           onClick={on_close}
         >
           <XMarkIcon className="w-5 h-5" />
@@ -554,33 +569,15 @@ export function SplitEmailViewer({
       </div>
 
       <div className="relative flex-1 min-h-0">
-        {show_content_skeleton && (
-          <div className="absolute inset-0 z-10 overflow-hidden bg-surf-primary p-4">
-            <Skeleton className="h-6 mb-4 w-full max-w-[60%]" />
-            <div className="flex items-start gap-3 mb-4">
-              <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
-              <div className="flex-1 space-y-2">
-                <Skeleton className="h-4 w-full max-w-[100px]" />
-                <Skeleton className="h-3 w-full max-w-[80px]" />
-              </div>
-            </div>
-            <div className="space-y-3 pt-3">
-              <Skeleton className="w-full h-4" />
-              <Skeleton className="w-full h-4" />
-              <Skeleton className="h-4 w-[75%]" />
-              <Skeleton className="w-full h-4" />
-              <Skeleton className="h-4 w-[50%]" />
-            </div>
-          </div>
-        )}
+        {show_content_skeleton && <EmailOpenSkeleton compact />}
         <div
           className="h-full overflow-y-auto"
           style={{ scrollbarGutter: "stable" }}
         >
           {email && (
-            <div className="py-2 @md:py-3">
+            <div className="mx-auto w-full max-w-[1120px] py-2 @md:py-3">
               <div className="px-3 @md:px-4 flex flex-wrap items-center gap-x-2 gap-y-1.5 mb-3">
-                <h1 className="text-base @md:text-lg @2xl:text-xl font-semibold text-txt-primary break-words">
+                <h1 className="text-lg @md:text-xl @2xl:text-2xl font-bold leading-[1.3] text-txt-primary break-words">
                   <span
                     className="inline-flex items-center gap-1 me-1.5"
                     style={{ verticalAlign: "-0.15em" }}

@@ -52,7 +52,7 @@ export function render_toggle_button(
     <button
       key={key}
       aria-checked={is_active}
-      className={`px-4 py-1.5 text-sm font-medium rounded-[12px] transition-all duration-200 outline-none ${is_active ? "bg-surf-primary text-txt-primary" : "bg-transparent text-txt-muted"}`}
+      className={`h-8 px-4 text-sm font-medium rounded-full transition-colors duration-150 outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]/50 ${is_active ? "bg-[var(--bg-primary)] text-txt-primary" : "bg-transparent text-txt-muted hover:text-txt-secondary"}`}
       role="radio"
       style={{
         boxShadow: is_active

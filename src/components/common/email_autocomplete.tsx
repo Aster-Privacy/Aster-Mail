@@ -355,7 +355,7 @@ export function EmailAutocomplete({
 
       <PopoverContent
         align="start"
-        className="w-[280px] p-1 border-edge-primary bg-surf-primary"
+        className="w-[280px] p-1.5"
         sideOffset={8}
         onOpenAutoFocus={(e) => e.preventDefault()}
       >

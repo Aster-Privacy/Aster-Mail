@@ -25,7 +25,6 @@ import { ArrowPathIcon, FolderIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 import { Checkbox } from "@aster/ui";
 
-import { ButtonSpinner } from "@/components/ui/spinner";
 import { get_folder_depth } from "@/components/settings/hooks/use_external_accounts";
 
 interface FolderSelectionSectionProps {
@@ -60,18 +59,18 @@ export function FolderSelectionSection({
           aria-label={t("settings.fetch_imap_folders")}
           className="gap-1.5"
           disabled={is_fetching_folders}
+          is_loading={is_fetching_folders}
           variant="outline"
           onClick={handle_fetch_folders}
         >
           <ArrowPathIcon className="w-3.5 h-3.5" />
-          {is_fetching_folders && <ButtonSpinner />}
           {t("settings.fetch_folders")}
         </Button>
       </div>
       {truncated_folders.length > 0 && (
         <div
           aria-label={t("settings.imap_folder_selection")}
-          className="rounded-lg border max-h-48 overflow-y-auto border-edge-primary bg-surf-secondary"
+          className="rounded-2xl max-h-48 overflow-y-auto bg-[color-mix(in_srgb,var(--text-primary)_7%,transparent)]"
           role="group"
         >
           {truncated_folders.map((folder) => {

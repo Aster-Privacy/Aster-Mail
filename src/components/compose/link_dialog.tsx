@@ -203,7 +203,6 @@ export function LinkDialog({
         <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end">
           <Button
             className="mt-0 max-sm:flex-1"
-            size="xl"
             variant="outline"
             onClick={handle_cancel}
           >
@@ -211,7 +210,6 @@ export function LinkDialog({
           </Button>
           <Button
             className="max-sm:flex-1"
-            size="xl"
             variant="depth"
             onClick={handle_submit}
           >

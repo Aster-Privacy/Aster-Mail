@@ -38,7 +38,22 @@ vi.mock("@/hooks/use_plan_limits", () => ({
 
 vi.mock("@/services/api/recovery", () => ({
   get_recovery_methods: async () => ({
-    data: { recovery_email_set: recovery.recovery_email_set },
+    data: {
+      has_phrase: false,
+      has_codes: true,
+      codes_remaining: 10,
+      recovery_email_set: recovery.recovery_email_set,
+      recovery_email_verified: recovery.recovery_email_set,
+      inactive_key_sets: 0,
+    },
+  }),
+  get_codes_status: async () => ({
+    data: {
+      created_at: "2026-09-01T00:00:00Z",
+      total: 10,
+      remaining: 10,
+      used: [],
+    },
   }),
 }));
 
@@ -50,7 +65,8 @@ vi.mock("@/provider", () => ({
   use_should_reduce_motion: () => true,
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({ children }: { children?: unknown }) => children,
 }));
 

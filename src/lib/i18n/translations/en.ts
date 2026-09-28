@@ -750,10 +750,15 @@ export const en: Translations = {
       "Your changes to this contact did not save. Try again. The earlier version is still there.",
     failed_to_delete_contacts: "These contacts were not removed. Try again.",
     failed_to_update_favorites: "Your favorites did not update. Try again.",
+    contacts_import_partial:
+      "Only {{imported}} of {{total}} contacts imported. Import the file again to add the rest.",
+    failed_to_import_contacts:
+      "The contact import did not finish. Try again. Your existing contacts are unchanged.",
     failed_to_read_file:
       "This file could not be read. A different one will work.",
     import_failed:
       "The import did not finish. Try again. Your existing data is unchanged.",
+    failed_to_load_duplicates: "The duplicate list did not load. Try again.",
     scan_failed: "The scan did not finish. Try again.",
     failed_to_load_custom_fields:
       "These custom fields did not load. Try again.",
@@ -772,6 +777,12 @@ export const en: Translations = {
       "The forward did not send. Try again. Your draft is saved.",
     failed_to_schedule:
       "The schedule did not save. Try again. Your draft is safe.",
+    fill_required_fields: "Please fill in all required fields",
+    failed_to_load_sources:
+      "Your synced accounts did not load. Try again. The accounts themselves are unaffected.",
+    failed_to_add_source: "This account was not added. Try again.",
+    failed_to_delete_source: "This account was not removed. Try again.",
+    failed_to_toggle_source: "We could not change that setting. Try again.",
     sync_failed:
       "The sync did not finish, and we will retry automatically. Your mail on each side is safe.",
     clearing: "Clearing...",
@@ -876,6 +887,10 @@ export const en: Translations = {
       "Scheduled emails can't use an expiry yet. Send now, or remove the expiry to schedule it.",
     failed_to_merge_contacts:
       "The merge did not complete. Try again. Your original contacts are unchanged.",
+    merge_failed:
+      "The merge did not complete. Try again. Your original contacts are unchanged.",
+    failed_to_load_history: "The history did not load. Try again.",
+    failed_to_load_more: "We could not load more items. Try again.",
     enter_valid_emails: "Please enter valid email addresses",
     enter_contact_details: "Enter contact details",
     select_valid_image: "Please select a JPEG, PNG, WebP, or GIF image",
@@ -957,6 +972,7 @@ export const en: Translations = {
     offline_action_queued:
       "You are offline right now. This is queued and will finish as soon as you reconnect.",
     failed_to_update: "This change did not save. Try again.",
+    failed_to_load_search_results: "Your search did not finish. Try again.",
     search_failed_try_again:
       "Search did not finish. Another attempt in a moment usually does it.",
     search_load_failed_try_again:
@@ -984,10 +1000,19 @@ export const en: Translations = {
     failed_to_load_snoozed_emails:
       "Your snoozed emails did not load. Try again. They are safe on the server.",
     unexpected_error: "Something did not work as expected. Try again.",
+    failed_to_load_subscriptions: "Your subscriptions did not load. Try again.",
+    failed_to_load_more_subscriptions:
+      "We could not load more subscriptions. Try again.",
+    failed_to_scan_subscriptions:
+      "The subscription scan did not finish. Try again.",
     failed_to_load_drafts:
       "Your drafts did not load. Try again. Your saved drafts are safe.",
     failed_to_load_scheduled_emails:
       "Your scheduled emails did not load. Try again. They are still on track to send.",
+    recently_archived: "Recently Archived",
+    older_items: "Older Items",
+    long_term_archive: "Long-term Archive",
+    failed_to_fetch_archive_stats: "Archive stats did not load. Try again.",
     value_too_long:
       "This value is over the length limit. A shorter version will work.",
     please_enter_valid_domain:
@@ -1548,6 +1573,13 @@ export const en: Translations = {
     account_limit_reached:
       "You have reached the account limit for this network. If this looks wrong, hello@astermail.org can help.",
     health_check_failed: "The diagnostic did not finish. Try again.",
+    failed_to_get_key_status:
+      "We could not check your key status. Try again. Your keys are unchanged.",
+    unknown_rotation_error:
+      "The key refresh did not finish. Try again. Your old keys still work and your data is safe.",
+    new_email_notification: "New email from {{ sender }}",
+    reply_notification: "{{ sender }} replied",
+    mention_notification: "{{ sender }} mentioned you",
     print_from: "From:",
     print_to: "To:",
     print_cc: "Cc:",
@@ -1650,6 +1682,18 @@ export const en: Translations = {
       "Aster encrypts your mail with your password, so no one can reset it for you. Add a recovery email to keep a way in.",
     recovery_reminder_action: "Add recovery email",
     recovery_reminder_later: "Later",
+    recovery_codes_reminder_title: "Save your recovery codes",
+    recovery_codes_reminder_body:
+      "Aster encrypts your mail with your password, so no one can reset it for you. Recovery codes are the only way back into your encrypted mail.",
+    recovery_codes_reminder_action: "Get recovery codes",
+    recovery_codes_low_reminder_title: "You are running low on recovery codes",
+    recovery_codes_low_reminder_body:
+      "Each code works once, and you have {{count}} left. Get new codes so you do not get locked out.",
+    recovery_codes_low_reminder_action: "Get new codes",
+    recovery_phrase_migrate_title: "Switch to recovery codes",
+    recovery_phrase_migrate_body:
+      "Recovery phrases are going away. Get recovery codes now so you can still recover your account.",
+    recovery_phrase_migrate_action: "Get codes",
     plan_prompt_title: "You're on the free plan",
     plan_prompt_body:
       "Paid plans add more storage, custom domains, and unlimited aliases.",
@@ -2032,11 +2076,23 @@ export const en: Translations = {
       "Without recovery codes, forgetting your password permanently locks your encrypted mail.",
     recovery_codes_row: "Recovery codes",
     recovery_codes_row_desc:
-      "Six one-time codes that restore your account and all encrypted data.",
-    recovery_codes_generate: "Generate codes",
-    recovery_codes_regenerate: "Regenerate codes",
+      "One-time codes that restore your account and all encrypted data.",
+    recovery_codes_generate: "Get codes",
+    recovery_codes_regenerate: "Get new codes",
     recovery_codes_regenerate_warning:
-      "Regenerating creates new codes and permanently invalidates the old ones.",
+      "Your current codes stop working as soon as you get new ones.",
+    recovery_codes_show: "Show codes",
+    recovery_codes_get_new_title: "Get new recovery codes?",
+    recovery_codes_confirm_title: "Confirm it's you",
+    recovery_codes_confirm_desc:
+      "Enter your password to see your recovery codes.",
+    recovery_codes_title: "Your recovery codes",
+    recovery_codes_status: "Created {{date}}. {{remaining}} of {{total}} left.",
+    recovery_codes_low:
+      "You are running low on recovery codes. Get new codes so you do not get locked out.",
+    recovery_codes_used: "Used",
+    recovery_codes_unavailable:
+      "Your codes are not stored on this device. Get new codes to see them.",
     recovery_method_active: "Active",
     recovery_method_not_set: "Not set",
     recovery_codes_saved_confirm:
@@ -2536,18 +2592,18 @@ export const en: Translations = {
       "Automatically rotate encryption keys for enhanced security",
     forward_secrecy_setup_failed:
       "Couldn't turn on forward secrecy. Check your connection and try again.",
-    current_key_status: "Current Key Status",
+    current_key_status: "Current key status",
     age: "Age",
     fingerprint: "Fingerprint",
     pgp_key_checking: "Checking for a PGP key...",
     pgp_key_found: "PGP key found",
     pgp_key_not_found: "No PGP key on file",
     pgp_key_discovered_via: "Discovered via {source}",
-    key_rotation_interval: "Key Rotation Interval",
-    key_history_limit: "Key History Limit",
+    key_rotation_interval: "Key rotation interval",
+    key_history_limit: "Key history limit",
     key_history_description:
       "Old keys are kept to decrypt older emails. Set to unlimited for full history.",
-    rotate_keys_now: "Rotate Keys Now",
+    rotate_keys_now: "Rotate keys now",
     rotate_keys_description:
       "Manually rotate your encryption keys. Old emails will remain readable.",
     password: "Password",
@@ -2955,6 +3011,7 @@ export const en: Translations = {
     security_center_identity_key: "Identity key",
     criterion_two_factor: "Two-factor authentication",
     criterion_passkey: "Passkey registered",
+    criterion_recovery_codes: "Recovery codes saved",
     criterion_recovery_email: "Verified recovery email",
     criterion_auto_lock: "Auto-lock",
     criterion_login_alerts: "Login alerts",
@@ -3133,7 +3190,60 @@ export const en: Translations = {
     cancel_plan_warning:
       "You will keep premium features until the end of this billing period, and then your plan moves to Free. Your mail, contacts, and settings stay with you.",
     billing_history: "Billing History",
+    billing_addons_subtitle: "Add space, keep your plan",
+    billing_support_subtitle: "Send the team a message",
+    billing_upsell_title: "Get more with {{name}}",
+    billing_upsell_price: "From {{price}} a month, billed yearly",
+    billing_advantages_title_paid: "What your plan includes",
+    billing_advantages_title_free: "What you get with {{name}}",
+    billing_see_all_features: "See all {{name}} features",
+    billing_compare_all_plans_subtitle: "Individual and family plans, monthly or yearly",
+    billing_usage_upgrade_hint: "Upgrade for more room",
+    usage_in_use: "{{current}} in use",
+    billing_credits_subtitle: "Balance and top-ups",
+    billing_academic_subtitle: "Save with a school email",
+    billing_history_empty:
+      "No invoices yet. Your payments appear here after your first charge.",
+    billing_invoice_count: "{{count}} invoices",
+    billing_invoice_count_one: "{{count}} invoice",
+    billing_invoice_count_other: "{{count}} invoices",
+    billing_addons_active_count: "{{count}} active",
+    billing_addons_active_count_one: "{{count}} active",
+    billing_addons_active_count_other: "{{count}} active",
+    academic_status_none: "Not applied",
+    academic_status_pending: "Waiting for verification",
+    academic_status_verified: "Verified",
     billing_plan_heading: "Plan",
+    billing_status_active: "Active",
+    billing_status_renews: "Renews {{date}}",
+    billing_status_ending: "Ends {{date}}",
+    billing_status_attention: "Payment needs attention",
+    billing_member_since: "Member since {{date}}",
+    billing_keep_title: "Keep your plan",
+    billing_payment_method: "Payment method",
+    billing_switch_yearly_subtitle: "{{monthly}}/mo, billed {{yearly}} a year",
+    billing_save_amount: "Save {{amount}}",
+    billing_term_heading: "Billing period",
+    billing_pay_yearly: "Pay yearly",
+    billing_pay_monthly: "Pay monthly",
+    billing_billed_yearly_total: "Billed {{amount}} a year",
+    billing_billed_monthly: "Billed every month",
+    billing_save_percent: "Save {{percent}}%",
+    billing_select_plan_hint: "Select a plan to continue",
+    billing_addon_active: "Active",
+    billing_addon_ending: "Ending",
+    billing_addon_ends: "Ends {{date}}",
+    billing_add_storage_summary: "Add {{size}} of storage",
+    billing_storage_status_ok: "All good",
+    billing_storage_status_near: "Almost full",
+    billing_storage_status_full: "Action required",
+    billing_upgrade_note: "Cancel anytime. Your mail stays with you.",
+    billing_thanks_title: "Thanks for supporting Aster",
+    billing_thanks_body:
+      "Your support means everything to us. It lets a small team keep building Aster with care, every single day.",
+    billing_thanks_free_title: "Thanks for using Aster",
+    billing_thanks_free_body:
+      "A small team builds Aster with care, and every person who trusts it with their mail keeps us going. Upgrade whenever you need more storage, aliases, or custom domains.",
     billing_hide_plans: "Hide plans",
     billing_cancel_notice_title: "Your plan is set to cancel",
     billing_cancel_notice_body:
@@ -3461,6 +3571,10 @@ export const en: Translations = {
       "You're already on this plan. Promo codes apply when you move to a different plan.",
     promo_error_not_upgrade:
       "Promo codes apply when you upgrade to a higher plan.",
+    promo_error_card_only: "That promo code works only with card payments.",
+    promo_error_with_credits:
+      "You can't use a promo code and account credit on the same payment.",
+    promo_error_not_for_addon: "Promo codes can't be used on add-ons.",
     promo_error_generic:
       "Your promo code couldn't be checked. Try again in a moment.",
     plan_change_discount_amount: "{{amount}} off",
@@ -5281,10 +5395,10 @@ export const en: Translations = {
     info_forward_secrecy_title: "What is Forward Secrecy?",
     info_forward_secrecy_description:
       "Your session keys rotate automatically on a schedule. Even if someone got your private key today, they couldn't read past messages because each session used a different key that no longer exists.",
-    info_key_rotation_interval_title: "Key Rotation Interval",
+    info_key_rotation_interval_title: "Key rotation interval",
     info_key_rotation_interval_description:
       "How often your encryption key gets swapped out. More frequent means more secure, but slightly more overhead. A week is a good default for most people.",
-    info_key_history_limit_title: "Key History Limit",
+    info_key_history_limit_title: "Key history limit",
     info_key_history_limit_description:
       "How many old keys Aster keeps so you can still decrypt older emails. Set it too low and messages from before the last rotation might become unreadable.",
     info_wkd_title: "What is WKD?",
@@ -5852,8 +5966,13 @@ export const en: Translations = {
     created_date: "Created {{date}}",
     export_public_key_label: "Export Public Key",
     export_private_key_label: "Export Private Key",
-    verify_identity_export: "Verify your identity to export your private key",
-    two_fa_code_label: "2FA Code",
+    verify_identity_export:
+      "Your private key unlocks every message sent to you. Enter your password to download it as a file.",
+    export_private_key_warning:
+      "Keep the file somewhere safe and never share it. Anyone who has it can read your mail.",
+    export_two_factor_hint:
+      "Your account uses two-factor authentication. Enter the current code from your authenticator app to continue.",
+    two_fa_code_label: "Verification code",
     codes_remaining_count: "{{remaining}} of {{total}} remaining",
     codes_used_count: "{{used}} used",
     running_low_warning:
@@ -6120,6 +6239,7 @@ export const en: Translations = {
     domain_purchase_progress_note:
       "Please wait while we register your domain and set up your mailboxes. This usually takes about a minute.",
     domain_purchase_complete_cta: "Complete purchase",
+    domain_purchase_open_checkout: "Open checkout again",
     domain_purchase_cancel_payment_title: "Cancel this payment?",
     domain_purchase_cancel_payment_message:
       "Are you sure you want to cancel this payment for the custom domain?",
@@ -6630,7 +6750,10 @@ export const en: Translations = {
     signature_content_placeholder: "Best regards,\nYour Name\nyour@email.com",
     signature_name_required: "Enter a name for this signature.",
     signature_content_required: "Add some content for this signature.",
-    signature_image_too_large: "Images must be under 2 MB.",
+    signature_image_too_large:
+      "This image is too large to add to your signature. Choose a smaller image.",
+    signature_too_large:
+      "Your signature is too large to save. Remove an image or shorten the text.",
     signature_image_invalid:
       "Only PNG, JPEG, GIF, and WebP images can be added.",
     signature_image_failed:
@@ -6690,6 +6813,9 @@ export const en: Translations = {
     spam_sensitivity_description:
       "Control how aggressively the spam filter catches suspicious emails.",
     auto_delete_spam_after: "Auto-delete spam after",
+    auto_delete_trash_after: "Auto-delete trash after",
+    auto_delete_trash_description:
+      "Emails in Trash older than this are permanently deleted.",
     auto_delete_spam_description:
       "Spam emails older than this will be permanently deleted.",
     spam_delete_hint: "Spam emails older than this will be permanently deleted",
@@ -6706,6 +6832,9 @@ export const en: Translations = {
     retention_30_days: "30 days",
     retention_60_days: "60 days",
     retention_90_days: "90 days",
+    retention_days_count: "{{ days }} days",
+    retention_180_days: "180 days",
+    retention_365_days: "365 days",
     retention_never: "Never (keep forever)",
     import_emails_title: "Import Emails",
     import_add_another: "Add another account",
@@ -8709,6 +8838,18 @@ export const en: Translations = {
     block_sender_on_alias_tooltip: "Block this sender from reaching {{alias}}",
     more_folders_count_one: "+{{count}} more folder",
     more_folders_count_other: "+{{count}} more folders",
+    more_messages_count: "{{count}} more messages",
+    more_messages_count_one: "{{count}} more message",
+    more_messages_count_other: "{{count}} more messages",
+    reply_to_name: "Reply to {{name}}",
+    reply_all_to_name: "Reply all to {{name}}",
+    forward_message_heading: "Forward message",
+    trackers_found_one: "{{count}} tracker found and blocked",
+    trackers_found_other: "{{count}} trackers found and blocked",
+    spy_pixels_blocked_count_one: "{{count}} spy pixel blocked",
+    spy_pixels_blocked_count_other: "{{count}} spy pixels blocked",
+    links_cleaned_count_one: "{{count}} link cleaned",
+    links_cleaned_count_other: "{{count}} links cleaned",
     param_removed_from_n_links_one: "{{param}} removed from {{count}} link",
     param_removed_from_n_links_other: "{{param}} removed from {{count}} links",
     bulk_archive_title: "Archive {{count}} emails?",
@@ -8915,6 +9056,10 @@ export const en: Translations = {
     create_a_password: "Create a password",
     recommend_strong_password:
       "Use at least 8 characters. A longer password with mixed characters is stronger.",
+    password_recovery_key: "Password recovery key",
+    recovery_key_only_way:
+      "This key is the only way to recover your account if you forget your password. Save it somewhere safe.",
+    download_key_lower: "Download key",
     downloading: "Downloading...",
     copy_key: "Copy key",
     copy_codes: "Copy codes",
@@ -9016,9 +9161,6 @@ export const en: Translations = {
     recovery_phrase_confirm_error:
       "One or more words do not match. Check your saved phrase and try again.",
     recovery_phrase_skip_check: "I saved it, skip this check",
-    forgot_method_title: "How do you want to recover your account?",
-    forgot_method_desc:
-      "The method you choose decides whether your encrypted data can be restored.",
     forgot_method_full_restore: "Full restore",
     forgot_method_access_only: "Access only",
     forgot_method_phrase_title: "Use my recovery phrase",
@@ -9030,10 +9172,6 @@ export const en: Translations = {
     forgot_method_email_title: "Email me a reset link",
     forgot_method_email_desc:
       "Regain access to your account. Encrypted mail from before the reset cannot be read again unless you later find your phrase or a code.",
-    phrase_entry_title: "Enter your recovery phrase",
-    phrase_entry_desc: "Type or paste the 12 words in order.",
-    phrase_entry_invalid:
-      "This is not a valid recovery phrase. Check the words and their order.",
     phrase_recovery_failed:
       "This phrase does not match this account. Check the words and the email address.",
     reset_consent_title: "This reset cannot decrypt your old data",
@@ -9085,7 +9223,8 @@ export const en: Translations = {
     creating_new_recovery_backup: "Creating new recovery backup...",
     saving_new_credentials: "Saving new credentials...",
     recover_your_account: "Recover your account",
-    enter_email_associated: "Enter your username to recover your account",
+    enter_email_associated:
+      "Enter the address of the account you want to recover.",
     back_to_sign_in: "Back to sign in",
     email_me_reset_link: "Email me a reset link",
     reset_link_sent_title: "Check your recovery email",
@@ -9101,8 +9240,7 @@ export const en: Translations = {
     resetting_password: "Resetting password...",
     enter_recovery_code: "Enter recovery code",
     enter_recovery_code_desc:
-      "Enter one of the recovery codes you saved when creating your account",
-    verify_code: "Verify Code",
+      "Enter one of the recovery codes you saved when you created your account.",
     create_new_password: "Create new password",
     choose_strong_password: "Choose a strong password for your account",
     recovering_your_account: "Recovering your account",
@@ -9112,9 +9250,53 @@ export const en: Translations = {
     old_codes_invalidated:
       "Your old recovery codes no longer work. Saving this new set somewhere safe before closing this window will keep you covered.",
     n_recovery_codes: "{{count}} recovery codes",
+    recovery_code_already_used:
+      "That code was already used. Each code works once, so enter a different one from your saved list.",
+    try_another_way: "Try another way",
+    recovery_email_label: "Aster Mail address",
+    recovery_domain_hint: "Pick the domain that matches your account.",
+    recovery_code_label: "Recovery code",
+    recovery_code_hint:
+      "Each code works once. Codes look like ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "Use a different address",
+    change_account_desc: "Recover a different Aster Mail account.",
+    support_step_title: "Contact support",
+    support_step_desc:
+      "Aster Mail cannot read your encrypted data, so no one can unlock it without a recovery code or your recovery email. Support can check your account and help you with what comes next.",
+    support_email_action: "Email support",
+    support_help_center: "Visit the help center",
+    other_ways_title: "Try another way",
+    other_ways_desc: "Choose how you want to get back into your account.",
+    other_way_code_title: "Use a recovery code",
+    other_way_code_desc: "Enter one of the codes you saved.",
+    other_way_email_title: "Reset with your recovery email",
+    other_way_email_desc:
+      "Aster Mail sends a link to your recovery email. You lose access to mail from before the reset.",
+    other_way_none_title: "I do not have any of these",
+    other_way_none_desc: "Contact support for help with what comes next.",
+    reset_account_title: "Reset your account?",
+    reset_account_desc:
+      "Your encrypted mail, contacts, and files from before the reset stay locked until you recover them with your old password. You get a new, empty encryption key.",
+    send_reset_link: "Send reset link",
+    print_codes: "Print",
+    codes_copied: "Codes copied.",
+    i_saved_these_codes: "I saved these codes",
+    review_security_title: "Review your security",
+    review_security_desc:
+      "Your password was changed and your account was recovered.",
+    review_devices_signed_out: "Other devices were signed out.",
+    review_two_step_off: "2-step verification is off.",
+    review_turn_on: "Turn on",
+    review_recovery_email_kept: "Your recovery email is still set.",
+    review_no_recovery_email: "No recovery email.",
+    review_add: "Add",
+    review_codes_left: "{{count}} recovery codes left.",
+    review_codes_left_one: "{{count}} recovery code left.",
+    review_codes_left_other: "{{count}} recovery codes left.",
     import_mail_step_title: "Bring your mail with you",
     import_mail_step_desc:
       "Move messages from another account into Aster. Everything is encrypted on your device before it is stored.",
+    import_mail_action: "Import mail",
     import_mail_skip: "Start with an empty inbox",
     import_mail_privacy_note: "You can also import later from Settings.",
     password_reset_successful: "Password reset successful",

@@ -23,7 +23,7 @@ import type {} from "@/lib/i18n/types";
 
 import { useCallback, useEffect, useState } from "react";
 import { TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Input } from "@aster/ui";
 
 import { INPUT_CLASS, PanelRow } from "./shared";
 
@@ -193,7 +193,7 @@ export function SenderPinningPanel({
   const active_mode_hint = modes.find((m) => m.value === mode)?.hint ?? "";
 
   return (
-    <div className="divide-y divide-edge-secondary">
+    <div className="divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
       <PanelRow
         description={active_mode_hint}
         info={t("settings.alias_sender_pinning_info")}
@@ -203,7 +203,7 @@ export function SenderPinningPanel({
           value={String(mode)}
           onValueChange={(v) => change_mode(Number(v) as SenderPinMode)}
         >
-          <SelectTrigger className="h-9 w-64 shrink-0 bg-transparent">
+          <SelectTrigger className="h-9 w-64 shrink-0">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -219,9 +219,10 @@ export function SenderPinningPanel({
       {mode === SENDER_PIN_MODE_ALLOWLIST && (
         <div className="space-y-2 pt-4">
           <div className="flex items-center gap-2">
-            <input
+            <Input
               className={INPUT_CLASS}
               placeholder={t("settings.alias_sender_email_placeholder")}
+              size="md"
               type="email"
               value={email}
               onChange={(e) => set_email(e.target.value)}

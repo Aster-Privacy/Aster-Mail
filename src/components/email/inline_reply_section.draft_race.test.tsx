@@ -63,7 +63,8 @@ vi.mock("framer-motion", () => ({
   ),
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({ children, ...rest }: { children?: unknown }) => (
     <button {...(rest as object)}>{children as never}</button>
   ),

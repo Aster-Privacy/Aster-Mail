@@ -41,7 +41,7 @@ import {
   MagnifyingGlassIcon,
   ChevronRightIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Input } from "@aster/ui";
 
 import { StorageSection } from "./settings_lazy_sections";
 import {
@@ -60,6 +60,8 @@ import { AccountSection } from "@/components/settings/account_section";
 import { AppearanceGroupSection } from "@/components/settings/appearance_group_section";
 import { SecurityGroupSection } from "@/components/settings/security_group_section";
 import { BillingGroupSection } from "@/components/settings/billing_group_section";
+import { prefetch_billing_data } from "@/components/settings/billing_section";
+import { use_auth } from "@/contexts/auth_context";
 import { NotificationsSection } from "@/components/settings/notifications_section";
 import { ReadingGroupSection } from "@/components/settings/reading_group_section";
 import { ComposeGroupSection } from "@/components/settings/compose_group_section";
@@ -219,7 +221,7 @@ function SettingsContentInner(props: SettingsContentProps) {
         ref={(el) => {
           nav_item_refs.current[item.id] = el;
         }}
-        className={`w-full flex items-center gap-2.5 px-2.5 h-[34px] rounded-[10px] text-[13px] transition-colors duration-150 relative z-[1] outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 ${is_selected ? "font-medium" : "hover:bg-black/[0.04] dark:hover:bg-white/[0.04]"}`}
+        className={`w-full flex items-center gap-2.5 px-2.5 h-[34px] rounded-[10px] text-[13px] transition-colors duration-150 relative z-[1] outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 font-medium ${is_selected ? "" : "hover:bg-[var(--aster-hover)]"}`}
         style={{
           color: is_selected ? "var(--text-primary)" : "var(--text-secondary)",
         }}
@@ -291,6 +293,13 @@ function SettingsContentInner(props: SettingsContentProps) {
   const [active_result_index, set_active_result_index] = useState(0);
   const [results_dismissed, set_results_dismissed] = useState(false);
   const search_field_ref = useRef<HTMLDivElement>(null);
+
+  const { user } = use_auth();
+  const user_id = user?.id ?? null;
+
+  useEffect(() => {
+    prefetch_billing_data(user_id);
+  }, [user_id]);
 
   useEffect(() => {
     set_search_slot(document.getElementById("settings_search_slot"));
@@ -477,7 +486,7 @@ function SettingsContentInner(props: SettingsContentProps) {
           </div>
         )}
         <nav
-          className={`flex-1 px-3 pb-4 overflow-y-auto ${is_popup ? "pt-4" : "pt-1"}`}
+          className={`min-h-0 flex-1 px-3 pb-6 overflow-y-auto [mask-image:linear-gradient(to_bottom,black_calc(100%-28px),transparent)] ${is_popup ? "pt-4" : "pt-2"}`}
         >
           <div ref={nav_container_ref} className="relative">
             <div
@@ -486,8 +495,7 @@ function SettingsContentInner(props: SettingsContentProps) {
                 top: indicator_style.top,
                 height: indicator_style.height,
                 opacity: is_searching ? 0 : indicator_style.opacity,
-                backgroundColor: "var(--indicator-bg)",
-                border: "1px solid var(--border-primary)",
+                backgroundColor: "var(--aster-selected)",
                 zIndex: 0,
                 transition: should_animate_indicator
                   ? "top 200ms ease, height 200ms ease, opacity 200ms ease"
@@ -503,7 +511,7 @@ function SettingsContentInner(props: SettingsContentProps) {
             )}
           </div>
         </nav>
-        <div className="flex-shrink-0 px-3 pb-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="flex-shrink-0 px-3 pt-2 pb-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <StorageMeter
             on_buy_more={
               is_onion_host()
@@ -577,16 +585,12 @@ function SettingsContentInner(props: SettingsContentProps) {
                     className="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4"
                     style={{ color: "var(--text-muted)" }}
                   />
-                  <input
+                  <Input
                     autoComplete="off"
-                    className="w-full h-9 ps-9 pe-3 rounded-[10px] text-[14px] outline-none"
+                    className="ps-9"
                     placeholder={t("settings.search_placeholder")}
+                    size="md"
                     spellCheck={false}
-                    style={{
-                      backgroundColor: "var(--input-bg, var(--bg-secondary))",
-                      border: "1px solid var(--border-primary)",
-                      color: "var(--text-primary)",
-                    }}
                     type="search"
                     value={search_query}
                     onChange={(e) => set_search_query(e.target.value)}

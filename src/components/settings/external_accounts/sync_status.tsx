@@ -131,7 +131,7 @@ export function SyncStatusIndicator({
             <span className="flex-shrink-0 tabular-nums">{percent}%</span>
           )}
         </span>
-        <div className="w-full h-1 rounded-full overflow-hidden bg-edge-secondary">
+        <div className="w-full h-1 rounded-full overflow-hidden bg-[color-mix(in_srgb,var(--text-primary)_10%,transparent)]">
           {has_progress ? (
             <div
               className="h-full rounded-full"

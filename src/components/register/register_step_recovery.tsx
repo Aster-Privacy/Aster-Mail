@@ -82,7 +82,7 @@ export const RegisterStepRecoveryCodes = ({
                   ? reg.t("common.hide")
                   : reg.t("settings.show_password_toggle")
               }
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-black/5 hover:text-txt-primary dark:hover:bg-white/10"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-[var(--aster-hover)] hover:text-txt-primary"
               type="button"
               onClick={() => reg.set_is_key_visible(!reg.is_key_visible)}
             >
@@ -90,7 +90,7 @@ export const RegisterStepRecoveryCodes = ({
             </button>
             <button
               aria-label={reg.t("auth.copy_codes")}
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-black/5 hover:text-txt-primary dark:hover:bg-white/10"
+              className="flex h-8 w-8 items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-[var(--aster-hover)] hover:text-txt-primary"
               type="button"
               onClick={() => void reg.handle_copy_codes()}
             >
@@ -102,7 +102,7 @@ export const RegisterStepRecoveryCodes = ({
           {reg.recovery_codes.map((code, index) => (
             <button
               key={index}
-              className="relative flex w-full items-center gap-3 overflow-hidden rounded-xl border border-transparent bg-black/[0.05] px-4 py-2.5 text-start transition-colors hover:bg-black/[0.08] dark:bg-white/[0.08] dark:hover:bg-white/[0.12]"
+              className="relative flex w-full items-center gap-3 overflow-hidden rounded-xl border border-transparent bg-[var(--aster-field-bg)] px-4 py-2.5 text-start transition-colors hover:bg-[var(--aster-field-hover)]"
               type="button"
               onClick={() => {
                 if (reg.is_key_visible) {

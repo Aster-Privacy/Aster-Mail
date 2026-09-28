@@ -18,23 +18,4 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-interface NavSectionSkeletonProps {
-  rows?: number;
-  row_height?: string;
-}
-
-export function NavSectionSkeleton({
-  rows = 3,
-  row_height = "h-7",
-}: NavSectionSkeletonProps) {
-  return (
-    <div className="space-y-1 px-2.5 py-1">
-      {Array.from({ length: rows }).map((_, index) => (
-        <div
-          key={index}
-          className={`${row_height} w-full animate-pulse rounded-[12px] bg-black/[0.04] dark:bg-white/[0.06]`}
-        />
-      ))}
-    </div>
-  );
-}
+export { NavSectionSkeleton } from "@aster/ui";

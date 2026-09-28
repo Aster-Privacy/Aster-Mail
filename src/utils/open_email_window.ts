@@ -18,18 +18,30 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export function SelectedBadge() {
-  return (
-    <span className="absolute -top-1.5 -end-1.5 flex items-center justify-center w-5 h-5 rounded-full bg-brand shadow-sm ring-2 ring-surf-primary">
-      <svg fill="none" height="10" viewBox="0 0 16 16" width="10">
-        <path
-          d="M3.5 8.5L6.3 11.3L12.5 4.7"
-          stroke="white"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth="2.1"
-        />
-      </svg>
-    </span>
+
+export function open_email_in_new_window(email_id: string): boolean {
+  const width = Math.min(
+    1180,
+    Math.max(760, Math.round(window.screen.availWidth * 0.62)),
   );
+  const height = Math.min(
+    960,
+    Math.max(560, Math.round(window.screen.availHeight * 0.86)),
+  );
+  const left = Math.max(
+    0,
+    Math.round(window.screenX + (window.outerWidth - width) / 2),
+  );
+  const top = Math.max(
+    0,
+    Math.round(window.screenY + (window.outerHeight - height) / 2),
+  );
+
+  const opened = window.open(
+    `/email/${encodeURIComponent(email_id)}?popup=1`,
+    "_blank",
+    `popup=yes,width=${width},height=${height},left=${left},top=${top}`,
+  );
+
+  return !!opened;
 }

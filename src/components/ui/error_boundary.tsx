@@ -19,8 +19,12 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { Component, ReactNode } from "react";
-import { ClipboardDocumentIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import {
+  ChunkRecoveryFallbackView,
+  ComposeErrorFallbackView,
+  EmailErrorFallbackView,
+  ErrorBoundaryView,
+} from "@aster/ui";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -104,48 +108,7 @@ function ErrorBoundaryFallback({
 }) {
   const { t } = use_i18n();
 
-  return (
-    <div
-      className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center"
-      style={{ color: "var(--text-secondary)" }}
-    >
-      <img
-        alt="Aster"
-        className="h-10 mb-4"
-        draggable={false}
-        src="/text_logo.png"
-      />
-      <div
-        className="text-[15px] font-semibold mb-1.5"
-        style={{ color: "var(--text-primary)" }}
-      >
-        {t("common.something_went_wrong")}
-      </div>
-      <div className="text-[13px] leading-relaxed max-w-[420px] mb-5">
-        {t("common.unexpected_error_refresh")}
-      </div>
-      <div className="flex gap-2">
-        <Button size="md" variant="depth" onClick={on_retry}>
-          {t("common.try_again")}
-        </Button>
-        <Button
-          size="md"
-          variant="secondary"
-          onClick={() => open_external("https://status.astermail.org/")}
-        >
-          {t("common.view_status")}
-        </Button>
-      </div>
-      {error && <ErrorDetails error={error} />}
-    </div>
-  );
-}
-
-function ErrorDetails({ error }: { error: Error }) {
-  const { t } = use_i18n();
-  const handle_copy = async () => {
-    const error_text = `${error.message}${error.stack ? `\n\n${error.stack}` : ""}`;
-
+  const handle_copy = async (error_text: string) => {
     try {
       await copy_text_or_throw(error_text);
       show_toast(t("common.error_copied_to_clipboard"), "success");
@@ -156,45 +119,18 @@ function ErrorDetails({ error }: { error: Error }) {
   };
 
   return (
-    <div
-      className="mt-6 max-w-lg w-full rounded-lg overflow-hidden"
-      style={{
-        backgroundColor: "var(--bg-tertiary)",
-        border: "1px solid var(--border-secondary)",
-      }}
-    >
-      <div
-        className="px-3 py-2 flex items-center justify-between"
-        style={{ borderBottom: "1px solid var(--border-secondary)" }}
-      >
-        <span
-          className="text-xs font-medium"
-          style={{ color: "var(--text-muted)" }}
-        >
-          {t("common.error_details")}
-        </span>
-        <div className="flex items-center gap-1">
-          <button
-            className="flex items-center gap-1.5 px-2 py-1 rounded-[12px] text-xs transition-colors hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
-            style={{ color: "var(--text-muted)" }}
-            type="button"
-            onClick={handle_copy}
-          >
-            <ClipboardDocumentIcon className="w-3.5 h-3.5" />
-            <span>{t("common.copy")}</span>
-          </button>
-        </div>
-      </div>
-      <div className="p-3 overflow-auto max-h-40">
-        <pre
-          className="text-xs whitespace-pre-wrap break-words font-mono"
-          style={{ color: "var(--text-secondary)" }}
-        >
-          {error.message}
-          {error.stack && `\n\n${error.stack}`}
-        </pre>
-      </div>
-    </div>
+    <ErrorBoundaryView
+      copy_label={t("common.copy")}
+      description={t("common.unexpected_error_refresh")}
+      details_title={t("common.error_details")}
+      error={error}
+      retry_label={t("common.try_again")}
+      status_label={t("common.view_status")}
+      title={t("common.something_went_wrong")}
+      on_copy_error={handle_copy}
+      on_retry={on_retry}
+      on_view_status={() => open_external("https://status.astermail.org/")}
+    />
   );
 }
 
@@ -206,32 +142,12 @@ export function EmailErrorFallback({ on_retry }: EmailErrorFallbackProps) {
   const { t } = use_i18n();
 
   return (
-    <div
-      className="flex flex-col items-center justify-center h-full p-8 text-center"
-      style={{ color: "var(--text-secondary)" }}
-    >
-      <div
-        className="text-base font-medium mb-2"
-        style={{ color: "var(--text-primary)" }}
-      >
-        {t("common.unable_to_display_email")}
-      </div>
-      <div className="text-sm mb-4 max-w-md">
-        {t("common.email_render_error")}
-      </div>
-      {on_retry && (
-        <button
-          className="px-4 py-2 text-sm rounded-[14px] transition-colors"
-          style={{
-            backgroundColor: "var(--accent-color)",
-            color: "white",
-          }}
-          onClick={on_retry}
-        >
-          {t("common.try_again")}
-        </button>
-      )}
-    </div>
+    <EmailErrorFallbackView
+      description={t("common.email_render_error")}
+      retry_label={t("common.try_again")}
+      title={t("common.unable_to_display_email")}
+      on_retry={on_retry}
+    />
   );
 }
 
@@ -239,41 +155,15 @@ export function ComposeErrorFallback() {
   const { t } = use_i18n();
 
   return (
-    <div
-      className="flex flex-col items-center justify-center h-64 p-8 text-center"
-      style={{ color: "var(--text-secondary)" }}
-    >
-      <div
-        className="text-base font-medium mb-2"
-        style={{ color: "var(--text-primary)" }}
-      >
-        {t("common.unable_to_load_composer")}
-      </div>
-      <div className="text-sm mb-4 max-w-md">
-        {t("common.composer_load_error")}
-      </div>
-    </div>
+    <ComposeErrorFallbackView
+      description={t("common.composer_load_error")}
+      title={t("common.unable_to_load_composer")}
+    />
   );
 }
 
 function ChunkRecoveryFallback() {
   const { t } = use_i18n();
 
-  return (
-    <div
-      className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center"
-      style={{ color: "var(--text-secondary)" }}
-    >
-      <span
-        className="rounded-full border-2 border-t-transparent animate-spin motion-reduce:animate-none"
-        style={{
-          width: "22px",
-          height: "22px",
-          borderColor: "var(--accent-color, #3b82f6)",
-          borderTopColor: "transparent",
-        }}
-      />
-      <div className="text-[13px]">{t("common.loading")}</div>
-    </div>
-  );
+  return <ChunkRecoveryFallbackView label={t("common.loading")} />;
 }

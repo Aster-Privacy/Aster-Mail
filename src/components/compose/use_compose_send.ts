@@ -67,10 +67,17 @@ import {
   execute_internal_send,
   execute_external_email_send,
   execute_external_account_email_send,
+  type FailedSendData,
   type SendActionContext,
 } from "@/components/compose/compose_send_actions";
 import { ensure_external_key_trust } from "@/services/key_trust_consent";
+import { save_failed_send_as_draft } from "@/components/compose/compose_failed_send_draft";
 import { ensure_post_quantum_consent } from "@/services/post_quantum_consent";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  find_locked_expiry_feature,
+  prompt_expiry_upgrade,
+} from "@/components/compose/expiry_plan_gate";
 
 export interface UseComposeSendOptions {
   recipients: RecipientsState;
@@ -134,6 +141,7 @@ export function use_compose_send({
   const { t } = use_i18n();
   const { vault, user } = use_auth();
   const { preferences } = use_preferences();
+  const { limits, is_feature_locked } = use_plan_limits();
 
   const [queued_email_id, set_queued_email_id] = useState<string | null>(null);
   const [is_sending, set_is_sending] = useState(false);
@@ -175,6 +183,28 @@ export function use_compose_send({
     [contacts],
   );
 
+  const restore_failed_send_to_drafts = useCallback(
+    async (
+      failed: FailedSendData,
+      kept_draft: { id: string; version: number } | null,
+    ) => {
+      if (!vault) return;
+
+      const saved = await save_failed_send_as_draft(
+        draft_manager,
+        vault,
+        failed,
+        kept_draft,
+        edit_draft,
+      );
+
+      if (!saved) {
+        show_toast(t("common.failed_to_save"), "error");
+      }
+    },
+    [vault, edit_draft, t],
+  );
+
   const build_send_context = useCallback(
     (): SendActionContext => ({
       undo_send_enabled: preferences.undo_send_enabled ?? true,
@@ -189,6 +219,8 @@ export function use_compose_send({
       set_queued_email_id,
       log_activities,
       t,
+      limits_loaded: limits !== null,
+      is_feature_locked,
     }),
     [
       preferences.undo_send_enabled,
@@ -202,6 +234,8 @@ export function use_compose_send({
       reset_form,
       log_activities,
       t,
+      limits,
+      is_feature_locked,
     ],
   );
 
@@ -266,6 +300,22 @@ export function use_compose_send({
               max: MAX_RECIPIENTS_PER_SEND,
             }),
         "error",
+      );
+
+      return;
+    }
+
+    const locked_expiry_feature = find_locked_expiry_feature({
+      expires_at,
+      expiry_password,
+      limits_loaded: limits !== null,
+      is_feature_locked,
+    });
+
+    if (locked_expiry_feature) {
+      prompt_expiry_upgrade(
+        locked_expiry_feature,
+        t("settings.feature_requires_upgrade"),
       );
 
       return;
@@ -388,7 +438,16 @@ export function use_compose_send({
         draft_manager.drop_queued_saves(pending_draft_id);
       }
 
+      const pending_context = pending_draft_id
+        ? draft_manager.get_context(pending_draft_id)
+        : undefined;
+      const kept_draft = pending_context?.id
+        ? { id: pending_context.id, version: pending_context.version }
+        : null;
+      let draft_deleted = false;
+
       const confirm_draft_deleted = async () => {
+        draft_deleted = true;
         if (pending_draft_id) {
           await draft_manager.delete_draft(pending_draft_id);
           draft_manager.clear_context(pending_draft_id);
@@ -462,7 +521,14 @@ export function use_compose_send({
         });
       }
 
-      const ctx = build_send_context();
+      const ctx: SendActionContext = {
+        ...build_send_context(),
+        on_send_failed: (failed: FailedSendData) =>
+          restore_failed_send_to_drafts(
+            failed,
+            draft_deleted ? null : kept_draft,
+          ),
+      };
 
       if (selected_sender?.type === "external") {
         const sent = await execute_external_account_email_send(
@@ -556,6 +622,7 @@ export function use_compose_send({
     contacts,
     clear_all_errors,
     build_send_context,
+    restore_failed_send_to_drafts,
     reset_form,
     on_close,
     edit_draft,
@@ -572,6 +639,8 @@ export function use_compose_send({
     preferences.obscure_subject_when_encrypted,
     pgp_enabled,
     pgp_override,
+    limits,
+    is_feature_locked,
     t,
   ]);
 

@@ -60,7 +60,8 @@ vi.mock("@/components/ui/badge_chip", () => ({
   BadgeChip: () => null,
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Tooltip: ({ children }: { children?: unknown }) => <>{children as never}</>,
   Checkbox: () => <span />,
 }));

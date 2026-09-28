@@ -322,12 +322,12 @@ export function SmtpTokenCreateModal({
           </ModalDescription>
         </ModalHeader>
         <ModalBody className="space-y-4">
-          <div className="overflow-hidden rounded-xl border border-edge-secondary bg-surf-primary divide-y divide-edge-secondary">
+          <div className="overflow-hidden rounded-xl border border-edge-secondary bg-surf-primary divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
             {rows.map((row) => (
               <button
                 key={row.label}
                 aria-label={`${t("common.copy")} ${row.label}`}
-                className="group w-full grid grid-cols-[5.5rem_minmax(0,1fr)_1.25rem] items-center gap-3 px-4 py-3 text-start transition-colors hover:bg-black/[0.04] focus-visible:bg-black/[0.04] focus-visible:outline-none dark:hover:bg-white/[0.06] dark:focus-visible:bg-white/[0.06]"
+                className="group w-full grid grid-cols-[5.5rem_minmax(0,1fr)_1.25rem] items-center gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--aster-hover)] focus-visible:bg-black/[0.04] focus-visible:outline-none"
                 type="button"
                 onClick={() => copy_value(row.value)}
               >

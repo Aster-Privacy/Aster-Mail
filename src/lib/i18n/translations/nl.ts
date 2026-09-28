@@ -758,6 +758,12 @@ export const nl = {
       "Dit aangepaste veld is niet verwijderd. Probeer het opnieuw.",
     failed_to_save_value:
       "Je wijziging is niet opgeslagen. Probeer het opnieuw. De vorige waarde is er nog.",
+    contacts_import_partial:
+      "Slechts {{imported}} van {{total}} contacten zijn geïmporteerd. Importeer het bestand opnieuw om de rest toe te voegen.",
+    failed_to_import_contacts: "Probeer het opnieuw.",
+    failed_to_load_duplicates: "Probeer het opnieuw.",
+    dismiss_failed: "Probeer het opnieuw.",
+    click_scan_duplicates: 'Klik op "Scannen" om op duplicaten te controleren',
     never_synced: "Nooit gesynchroniseerd",
     last_sync_successful: "Laatste synchronisatie succesvol",
     last_sync_failed:
@@ -766,6 +772,11 @@ export const nl = {
       "Het doorsturen is niet gelukt. Probeer het opnieuw. Je concept is opgeslagen.",
     failed_to_schedule:
       "De planning is niet opgeslagen. Probeer het opnieuw. Je concept is veilig.",
+    fill_required_fields: "Vul alle verplichte velden in",
+    failed_to_load_sources: "Probeer het opnieuw.",
+    failed_to_add_source: "Probeer het opnieuw.",
+    failed_to_delete_source: "Probeer het opnieuw.",
+    failed_to_toggle_source: "Probeer het opnieuw.",
     sync_failed:
       "De synchronisatie is niet voltooid, en we proberen automatisch opnieuw. Je post aan elke kant is veilig.",
     clearing: "Wissen...",
@@ -832,6 +843,8 @@ export const nl = {
     add_contacts_hint: "Voeg contacten toe om te beginnen",
     add_contact: "Contact toevoegen",
     file_too_large: "Bestand moet kleiner zijn dan {{size}}",
+    failed_to_upload_attachment: "Probeer het opnieuw.",
+    upload_failed: "Probeer het opnieuw.",
     delete_failed: "Probeer het opnieuw.",
     download_failed: "Probeer het opnieuw.",
     attachment_locked:
@@ -844,6 +857,9 @@ export const nl = {
       "Geplande e-mails kunnen nog geen vervaldatum hebben. Verstuur nu of verwijder de vervaldatum om te plannen.",
     failed_to_merge_contacts:
       "Het samenvoegen is niet voltooid. Probeer het opnieuw. Je oorspronkelijke contacten zijn ongewijzigd.",
+    merge_failed: "Probeer het opnieuw.",
+    failed_to_load_history: "Probeer het opnieuw.",
+    failed_to_load_more: "Probeer het opnieuw.",
     enter_valid_emails: "Voer geldige e-mailadressen in",
     enter_contact_details: "Voer contactgegevens in",
     select_valid_image: "Selecteer een JPEG-, PNG-, WebP- of GIF-afbeelding",
@@ -901,6 +917,10 @@ export const nl = {
       "We konden deze e-mail op dit apparaat niet openen. Een vernieuwing lost dit meestal op, en afmelden en weer aanmelden is de reserveroute als het blijft mislukken.",
     failed_to_disable_2fa:
       "Tweestapsverificatie is nog ingeschakeld. Probeer het opnieuw. Je account is nog steeds beschermd.",
+    failed_to_unsubscribe:
+      "Het uitschrijven is niet voltooid. De link in de e-mail brengt u naar de site van de afzender om dit zelf te doen.",
+    failed_to_parse_settings:
+      "Dit instellingenbestand kon niet worden gelezen. Een ander werkt. Uw huidige instellingen zijn ongewijzigd.",
     removed_from_contacts: "Verwijderd uit contacten",
     added_to_contacts: "Toegevoegd aan contacten",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -924,6 +944,7 @@ export const nl = {
     offline_action_queued:
       "Je bent op dit moment offline. Dit staat in de wachtrij en wordt voltooid zodra je weer verbinding hebt.",
     failed_to_update: "Probeer het opnieuw.",
+    failed_to_load_search_results: "Probeer het opnieuw.",
     failed_to_fetch_tags: "Probeer het opnieuw.",
     failed_to_fetch_folders: "Probeer het opnieuw.",
     failed_to_unlock_folder:
@@ -943,6 +964,13 @@ export const nl = {
       "Je concepten zijn niet geladen. Probeer het opnieuw. Je opgeslagen concepten zijn veilig.",
     failed_to_load_scheduled_emails:
       "Je geplande e-mails zijn niet geladen. Probeer het opnieuw. Ze worden nog steeds volgens planning verzonden.",
+    failed_to_load_subscriptions: "Probeer het opnieuw.",
+    failed_to_load_more_subscriptions: "Probeer het opnieuw.",
+    failed_to_scan_subscriptions: "Probeer het opnieuw.",
+    recently_archived: "Recent gearchiveerd",
+    older_items: "Oudere items",
+    long_term_archive: "Langetermijnarchief",
+    failed_to_fetch_archive_stats: "Probeer het opnieuw.",
     value_too_long:
       "Deze waarde overschrijdt de lengtelimiet. Een kortere versie werkt.",
     please_enter_valid_domain:
@@ -1015,6 +1043,10 @@ export const nl = {
       "Je gekoppelde externe account moet opnieuw worden verbonden voordat erdoor kan worden verzonden. Instellingen, Verbonden Accounts is de plek.",
     failed_to_send_via_external:
       "Verzenden via je gekoppelde externe account is niet gelukt. Probeer het opnieuw. Je concept is opgeslagen.",
+    tor_label: "Tor",
+    tor_snowflake_label: "Tor (Snowflake)",
+    cdn_relay_label: "CDN-relay",
+    toggle_selection: "Selectie omschakelen",
     offline_change_failed:
       "Een wijziging die je offline hebt gemaakt, kon niet worden opgeslagen.",
     offline_send_failed:
@@ -1070,6 +1102,7 @@ export const nl = {
     all_accounts: "Alle accounts",
     failed_to_rotate_keys:
       "Het vernieuwen van de sleutels is niet voltooid. Probeer het opnieuw. Je oude sleutels werken nog en je gegevens zijn veilig.",
+    all_external_accounts: "Alle externe accounts",
     read: "Gelezen",
     or_conjunction: "of",
     press_label: "Druk op",
@@ -1544,6 +1577,7 @@ export const nl = {
     alias_note_too_long: "Deze notitie is te lang. Een kortere werkt wel.",
     add_alias_note_placeholder: "Notitie toevoegen",
     edit_alias_note: "Notitie bewerken",
+    failed_remove_recovery_email: "Probeer het opnieuw.",
     failed_save_profile_color: "Probeer het opnieuw.",
     failed_to_change_folder_password:
       "Het mapwachtwoord is niet gewijzigd. Probeer het opnieuw. Het oude wachtwoord werkt nog.",
@@ -1594,6 +1628,18 @@ export const nl = {
       "Aster versleutelt je mail met je wachtwoord, dus niemand kan het voor je herstellen. Voeg een herstel-e-mailadres toe om toegang te houden.",
     recovery_reminder_action: "Herstel-e-mailadres toevoegen",
     recovery_reminder_later: "Later",
+    recovery_codes_reminder_title: "Bewaar je herstelcodes",
+    recovery_codes_reminder_body:
+      "Aster versleutelt je mail met je wachtwoord, dus niemand kan het voor je herstellen. Herstelcodes zijn de enige weg terug naar je versleutelde mail.",
+    recovery_codes_reminder_action: "Herstelcodes ophalen",
+    recovery_codes_low_reminder_title: "Je hebt nog maar weinig herstelcodes",
+    recovery_codes_low_reminder_body:
+      "Elke code werkt één keer en je hebt er nog {{count}}. Haal nieuwe codes op zodat je niet buitengesloten raakt.",
+    recovery_codes_low_reminder_action: "Nieuwe codes ophalen",
+    recovery_phrase_migrate_title: "Overstappen op herstelcodes",
+    recovery_phrase_migrate_body:
+      "Herstelzinnen verdwijnen. Haal nu herstelcodes op zodat je je account nog kunt herstellen.",
+    recovery_phrase_migrate_action: "Codes ophalen",
     plan_prompt_title: "Je gebruikt het gratis abonnement",
     plan_prompt_body:
       "Betaalde abonnementen geven meer opslag, eigen domeinen en onbeperkte aliassen.",
@@ -3521,7 +3567,20 @@ export const nl = {
     recovery_codes_generate: "Codes genereren",
     recovery_codes_regenerate: "Codes opnieuw genereren",
     recovery_codes_regenerate_warning:
-      "Opnieuw genereren maakt nieuwe codes aan en maakt de oude permanent ongeldig.",
+      "Je huidige codes werken niet meer zodra je nieuwe ophaalt.",
+    recovery_codes_show: "Codes tonen",
+    recovery_codes_get_new_title: "Nieuwe herstelcodes ophalen?",
+    recovery_codes_confirm_title: "Bevestig dat jij het bent",
+    recovery_codes_confirm_desc:
+      "Voer je wachtwoord in om je herstelcodes te zien.",
+    recovery_codes_title: "Je herstelcodes",
+    recovery_codes_status:
+      "Aangemaakt op {{date}}. Nog {{remaining}} van {{total}} over.",
+    recovery_codes_low:
+      "Je hebt nog maar weinig herstelcodes. Haal nieuwe codes op zodat je niet buitengesloten raakt.",
+    recovery_codes_used: "Gebruikt",
+    recovery_codes_unavailable:
+      "Je codes staan niet op dit apparaat. Haal nieuwe codes op om ze te zien.",
     recovery_method_active: "Actief",
     recovery_method_not_set: "Niet ingesteld",
     recovery_codes_saved_confirm:
@@ -4045,6 +4104,60 @@ export const nl = {
       "Je behoudt de premiumfuncties tot het einde van deze factureringsperiode, en daarna gaat je abonnement over op Gratis. Je post, contacten en instellingen blijven bij jou.",
     cancel_plan: "Abonnement annuleren",
     billing_history: "Factureringsgeschiedenis",
+    billing_status_active: "Actief",
+    billing_status_renews: "Verlengt op {{date}}",
+    billing_status_ending: "Eindigt op {{date}}",
+    billing_status_attention: "Betaling vereist aandacht",
+    billing_member_since: "Lid sinds {{date}}",
+    billing_keep_title: "Je abonnement behouden",
+    billing_payment_method: "Betaalmethode",
+    billing_switch_yearly_subtitle:
+      "{{monthly}}/maand, {{yearly}} per jaar gefactureerd",
+    billing_save_amount: "Bespaar {{amount}}",
+    billing_term_heading: "Factureringsperiode",
+    billing_pay_yearly: "Jaarlijks betalen",
+    billing_pay_monthly: "Maandelijks betalen",
+    billing_billed_yearly_total: "{{amount}} per jaar gefactureerd",
+    billing_billed_monthly: "Elke maand gefactureerd",
+    billing_save_percent: "Bespaar {{percent}}%",
+    billing_select_plan_hint: "Kies een abonnement om door te gaan",
+    billing_addon_active: "Actief",
+    billing_addon_ending: "Loopt af",
+    billing_addon_ends: "Eindigt op {{date}}",
+    billing_add_storage_summary: "{{size}} opslag toevoegen",
+    billing_storage_status_ok: "Alles in orde",
+    billing_storage_status_near: "Bijna vol",
+    billing_storage_status_full: "Actie vereist",
+    billing_upgrade_note: "Altijd opzegbaar. Je e-mail blijft van jou.",
+    billing_thanks_title: "Bedankt dat je Aster steunt",
+    billing_thanks_body:
+      "Je steun betekent alles voor ons. Zo kan een klein team Aster elke dag met zorg blijven bouwen.",
+    billing_thanks_free_title: "Bedankt dat je Aster gebruikt",
+    billing_thanks_free_body:
+      "Een klein team bouwt Aster met zorg, en iedereen die ons zijn e-mail toevertrouwt houdt ons op de been. Upgrade wanneer je meer opslag, aliassen of eigen domeinen nodig hebt.",
+    billing_addons_subtitle: "Meer ruimte, zelfde abonnement",
+    billing_support_subtitle: "Stuur het team een bericht",
+    billing_upsell_title: "Haal meer uit {{name}}",
+    billing_upsell_price: "Vanaf {{price}} per maand, jaarlijks gefactureerd",
+    billing_advantages_title_paid: "Wat je abonnement bevat",
+    billing_advantages_title_free: "Wat je krijgt met {{name}}",
+    billing_see_all_features: "Alle functies van {{name}} bekijken",
+    billing_compare_all_plans_subtitle: "Individuele en gezinsabonnementen, maandelijks of jaarlijks",
+    billing_usage_upgrade_hint: "Upgrade voor meer ruimte",
+    usage_in_use: "{{current}} in gebruik",
+    billing_credits_subtitle: "Saldo en opwaarderingen",
+    billing_academic_subtitle: "Bespaar met een school-e-mailadres",
+    billing_history_empty:
+      "Nog geen facturen. Je betalingen verschijnen hier na de eerste afschrijving.",
+    billing_invoice_count: "{{count}} facturen",
+    billing_invoice_count_one: "{{count}} factuur",
+    billing_invoice_count_other: "{{count}} facturen",
+    billing_addons_active_count: "{{count}} actief",
+    billing_addons_active_count_one: "{{count}} actief",
+    billing_addons_active_count_other: "{{count}} actief",
+    academic_status_none: "Niet aangevraagd",
+    academic_status_pending: "Wacht op verificatie",
+    academic_status_verified: "Geverifieerd",
     billing_plan_heading: "Abonnement",
     billing_hide_plans: "Abonnementen verbergen",
     billing_cancel_notice_title: "Je abonnement wordt opgezegd",
@@ -4875,6 +4988,10 @@ export const nl = {
     created_date: "Aangemaakt {{date}}",
     export_public_key_label: "Publieke sleutel exporteren",
     export_private_key_label: "Privésleutel exporteren",
+    export_private_key_warning:
+      "Bewaar het bestand op een veilige plek en deel het nooit. Iedereen die het heeft, kan je e-mail lezen.",
+    export_two_factor_hint:
+      "Je account gebruikt tweestapsverificatie. Voer de huidige code uit je authenticator-app in om door te gaan.",
     two_fa_code_label: "2FA-code",
     codes_remaining_count: "{{remaining}} van {{total}} resterend",
     codes_used_count: "{{used}} gebruikt",
@@ -5437,6 +5554,9 @@ export const nl = {
     spam_filtering_title: "Spamfiltering",
     spam_sensitivity: "Spamgevoeligheid",
     auto_delete_spam_after: "Spam automatisch verwijderen na",
+    auto_delete_trash_after: "Prullenbak automatisch legen na",
+    auto_delete_trash_description:
+      "E-mails in de Prullenbak die ouder zijn dan dit worden definitief verwijderd.",
     spam_delete_hint: "Spam-e-mails ouder dan dit worden permanent verwijderd",
     save_changes: "Wijzigingen opslaan",
     spam_low: "Laag",
@@ -5451,6 +5571,9 @@ export const nl = {
     retention_30_days: "30 dagen",
     retention_60_days: "60 dagen",
     retention_90_days: "90 dagen",
+    retention_days_count: "{{ days }} dagen",
+    retention_180_days: "180 dagen",
+    retention_365_days: "365 dagen",
     retention_never: "Nooit (voor altijd bewaren)",
     import_emails_title: "E-mails importeren",
     import_add_another: "Nog een account toevoegen",
@@ -5681,6 +5804,11 @@ export const nl = {
       "Je hebt dit plan al. Promotiecodes gelden als je naar een ander plan overstapt.",
     promo_error_not_upgrade:
       "Promotiecodes gelden als je upgradet naar een hoger plan.",
+    promo_error_card_only:
+      "Deze promotiecode werkt alleen bij betalingen met een kaart.",
+    promo_error_with_credits:
+      "Je kunt een promotiecode en accounttegoed niet voor dezelfde betaling gebruiken.",
+    promo_error_not_for_addon: "Promotiecodes gelden niet voor add-ons.",
     promo_error_generic:
       "Je promotiecode kon niet worden gecontroleerd. Probeer het zo opnieuw.",
     plan_change_discount_amount: "{{amount}} korting",
@@ -6532,6 +6660,7 @@ export const nl = {
     domain_purchase_progress_note:
       "Even geduld terwijl we je domein registreren en je mailboxen instellen. Dit duurt meestal ongeveer een minuut.",
     domain_purchase_complete_cta: "Aankoop voltooien",
+    domain_purchase_open_checkout: "Betaalpagina opnieuw openen",
     domain_purchase_cancel_payment_title: "Deze betaling annuleren?",
     domain_purchase_cancel_payment_message:
       "Weet je zeker dat je deze betaling voor het eigen domein wilt annuleren?",
@@ -6573,7 +6702,10 @@ export const nl = {
       "Met vriendelijke groet,\nJe Naam\nje@email.com",
     signature_name_required: "Voer een naam in voor deze ondertekening.",
     signature_content_required: "Voeg inhoud toe aan deze ondertekening.",
-    signature_image_too_large: "Afbeeldingen moeten kleiner zijn dan 2 MB.",
+    signature_image_too_large:
+      "Deze afbeelding is te groot voor je handtekening. Kies een kleinere afbeelding.",
+    signature_too_large:
+      "Je handtekening is te groot om op te slaan. Verwijder een afbeelding of maak de tekst korter.",
     signature_image_invalid:
       "Alleen PNG-, JPEG-, GIF- en WebP-afbeeldingen kunnen worden toegevoegd.",
     signature_image_failed:
@@ -7706,6 +7838,7 @@ export const nl = {
     special_offers_save_failed:
       "Je instelling voor speciale aanbiedingen is niet opgeslagen. Probeer het opnieuw.",
     criterion_passkey: "Toegangssleutel geregistreerd",
+    criterion_recovery_codes: "Herstelcodes opgeslagen",
     criterion_read_receipts_off: "Leesbevestigingen uit",
     send_read_receipts_label: "Leesbevestigingen verzenden",
     send_read_receipts_description:
@@ -8927,6 +9060,18 @@ export const nl = {
       "De vertaler op het apparaat kon dit bericht niet afmaken. Meestal wordt het taalpakket nog gedownload, mengt het bericht meerdere talen, of bestaat het vooral uit namen, cijfers en links. Er is niets naar een server gestuurd.",
     more_folders_count_one: "+{{count}} map",
     more_folders_count_other: "+{{count}} mappen",
+    more_messages_count: "{{count}} berichten meer",
+    more_messages_count_one: "{{count}} bericht meer",
+    more_messages_count_other: "{{count}} berichten meer",
+    reply_to_name: "Antwoord aan {{name}}",
+    reply_all_to_name: "Antwoord aan {{name}} en iedereen",
+    forward_message_heading: "Bericht doorsturen",
+    trackers_found_one: "{{count}} tracker gevonden en geblokkeerd",
+    trackers_found_other: "{{count}} trackers gevonden en geblokkeerd",
+    spy_pixels_blocked_count_one: "{{count}} spionagepixel geblokkeerd",
+    spy_pixels_blocked_count_other: "{{count}} spionagepixels geblokkeerd",
+    links_cleaned_count_one: "{{count}} link opgeschoond",
+    links_cleaned_count_other: "{{count}} links opgeschoond",
     param_removed_from_n_links_one: "{{param}} verwijderd uit {{count}} link",
     param_removed_from_n_links_other:
       "{{param}} verwijderd uit {{count}} links",
@@ -9048,6 +9193,10 @@ export const nl = {
     create_a_password: "Maak een wachtwoord aan",
     recommend_strong_password:
       "Gebruik minstens 8 tekens. Een langer wachtwoord met gemengde tekens is sterker.",
+    password_recovery_key: "Herstelsleutel voor wachtwoord",
+    recovery_key_only_way:
+      "Deze sleutel is de enige manier om je account te herstellen als je je wachtwoord vergeet. Bewaar hem op een veilige plek.",
+    download_key_lower: "Sleutel downloaden",
     downloading: "Downloaden...",
     copy_key: "Sleutel kopiëren",
     copy_codes: "Codes kopiëren",
@@ -9211,7 +9360,7 @@ export const nl = {
     saving_new_credentials: "Nieuwe inloggegevens opslaan...",
     recover_your_account: "Herstel je account",
     enter_email_associated:
-      "Voer je gebruikersnaam in om je account te herstellen",
+      "Voer het adres in van het account dat je wilt herstellen.",
     back_to_sign_in: "Terug naar inloggen",
     email_me_reset_link: "Stuur me een resetlink per e-mail",
     reset_link_sent_title: "Controleer je herstel-e-mail",
@@ -9227,8 +9376,7 @@ export const nl = {
     resetting_password: "Wachtwoord opnieuw instellen...",
     enter_recovery_code: "Voer herstelcode in",
     enter_recovery_code_desc:
-      "Voer een van de herstelcodes in die je hebt opgeslagen bij het aanmaken van je account",
-    verify_code: "Code verifiëren",
+      "Voer een van de herstelcodes in die je hebt opgeslagen toen je je account aanmaakte.",
     create_new_password: "Nieuw wachtwoord aanmaken",
     choose_strong_password: "Kies een sterk wachtwoord voor je account",
     recovering_your_account: "Je account herstellen",
@@ -9238,9 +9386,54 @@ export const nl = {
     old_codes_invalidated:
       "Je oude herstelcodes werken niet meer. Deze nieuwe set op een veilige plek bewaren voordat je dit venster sluit, houdt je gedekt.",
     n_recovery_codes: "{{count}} herstelcodes",
+    recovery_code_already_used:
+      "Deze code is al gebruikt. Elke code werkt één keer, dus voer een andere code uit je opgeslagen lijst in.",
+    try_another_way: "Probeer het anders",
+    recovery_email_label: "Aster Mail-adres",
+    recovery_domain_hint: "Kies het domein dat bij je account hoort.",
+    recovery_code_label: "Herstelcode",
+    recovery_code_hint:
+      "Elke code werkt één keer. Codes zien er zo uit: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "Een ander adres gebruiken",
+    change_account_desc: "Herstel een ander Aster Mail-account.",
+    support_step_title: "Contact opnemen met support",
+    support_step_desc:
+      "Aster Mail kan je versleutelde gegevens niet lezen, dus niemand kan ze ontgrendelen zonder een herstelcode of je herstel-e-mail. Support kan je account controleren en je helpen met de volgende stappen.",
+    support_email_action: "Support mailen",
+    support_help_center: "Naar het helpcentrum",
+    other_ways_title: "Probeer het anders",
+    other_ways_desc: "Kies hoe je weer toegang tot je account wilt krijgen.",
+    other_way_code_title: "Een herstelcode gebruiken",
+    other_way_code_desc: "Voer een van de codes in die je hebt opgeslagen.",
+    other_way_email_title: "Opnieuw instellen met je herstel-e-mail",
+    other_way_email_desc:
+      "Aster Mail stuurt een link naar je herstel-e-mail. Je verliest toegang tot e-mail van voor het opnieuw instellen.",
+    other_way_none_title: "Ik heb hier niets van",
+    other_way_none_desc:
+      "Neem contact op met support, dan helpen we je met de volgende stappen.",
+    reset_account_title: "Je account opnieuw instellen?",
+    reset_account_desc:
+      "Je versleutelde e-mail, contacten en bestanden van voor het opnieuw instellen blijven vergrendeld tot je ze herstelt met je oude wachtwoord. Je krijgt een nieuwe, lege versleutelingssleutel.",
+    send_reset_link: "Herstellink sturen",
+    print_codes: "Afdrukken",
+    codes_copied: "Codes gekopieerd.",
+    i_saved_these_codes: "Ik heb deze codes opgeslagen",
+    review_security_title: "Controleer je beveiliging",
+    review_security_desc:
+      "Je wachtwoord is gewijzigd en je account is hersteld.",
+    review_devices_signed_out: "Andere apparaten zijn afgemeld.",
+    review_two_step_off: "Verificatie in twee stappen staat uit.",
+    review_turn_on: "Inschakelen",
+    review_recovery_email_kept: "Je herstel-e-mail is nog ingesteld.",
+    review_no_recovery_email: "Geen herstel-e-mail.",
+    review_add: "Toevoegen",
+    review_codes_left: "Nog {{count}} herstelcodes over.",
+    review_codes_left_one: "Nog {{count}} herstelcode over.",
+    review_codes_left_other: "Nog {{count}} herstelcodes over.",
     import_mail_step_title: "Neem je mail mee",
     import_mail_step_desc:
       "Verplaats berichten uit een ander account naar Aster. Alles wordt op je apparaat versleuteld voordat het wordt opgeslagen.",
+    import_mail_action: "Mail importeren",
     import_mail_skip: "Beginnen met een lege inbox",
     import_mail_privacy_note: "Je kunt ook later importeren via Instellingen.",
     password_reset_successful: "Wachtwoord succesvol gereset",
@@ -10153,6 +10346,28 @@ export const nl = {
     granted_at: "Verdiend {date}",
     empty_state: "Je hebt nog geen badges gevonden.",
     claim_failed: "Probeer het opnieuw.",
+    claim_success: "Je hebt de {name}-badge verdiend.",
+    claim_already: "Je hebt al een ontdekkingsbadge.",
+    badge_big_bang: "Oerknal",
+    badge_big_bang_description: "De eerste die de kosmos ontdekte.",
+    badge_event_horizon: "Gebeurtenishorizon",
+    badge_event_horizon_description: "De grens van het bekende overgestoken.",
+    badge_black_hole: "Zwart gat",
+    badge_black_hole_description: "Aangetrokken door iets diepers.",
+    badge_singularity: "Singulariteit",
+    badge_singularity_description: "Het punt gevonden waar alles buigt.",
+    badge_supernova: "Supernova",
+    badge_supernova_description: "Een ster op zijn helderste moment gevangen.",
+    badge_andromeda: "Andromeda",
+    badge_andromeda_description: "Een naburig sterrenstelsel bereikt.",
+    badge_nebula: "Nevel",
+    badge_nebula_description: "Verdwaald in de kleuren.",
+    badge_comet: "Komeet",
+    badge_comet_description: "Gekruist met iets zeldzaams.",
+    badge_pulsar: "Pulsar",
+    badge_pulsar_description: "Het signaal gehoord in het ruisen.",
+    badge_stargazer: "Sterrenwaarnemer",
+    badge_stargazer_description: "Op het juiste moment omhoog gekeken.",
   },
   secure_view: {
     powered_by_prefix: "Veilig verzonden via",

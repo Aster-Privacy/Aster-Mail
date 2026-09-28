@@ -214,6 +214,7 @@ dependencies = [
  "webpki-roots",
  "webview2-com",
  "whoami",
+ "windows",
  "windows-core",
  "x25519-dalek",
  "x509-parser",

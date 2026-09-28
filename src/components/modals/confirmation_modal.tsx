@@ -194,7 +194,6 @@ export function ConfirmationModal({
           <Button
             className="mt-0 whitespace-nowrap max-sm:flex-1"
             disabled={is_busy}
-            size="xl"
             variant="outline"
             onClick={handle_cancel}
           >
@@ -204,7 +203,6 @@ export function ConfirmationModal({
             className="whitespace-nowrap max-sm:flex-1"
             disabled={is_busy}
             is_loading={is_busy}
-            size="xl"
             variant={button_variant}
             onClick={handle_confirm}
           >

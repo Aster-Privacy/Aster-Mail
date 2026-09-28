@@ -74,7 +74,7 @@ export function OfficialBadge({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-72 p-3 bg-surf-primary border-edge-primary"
+        className="w-72 p-3"
         side="bottom"
         onClick={(e) => e.stopPropagation()}
       >

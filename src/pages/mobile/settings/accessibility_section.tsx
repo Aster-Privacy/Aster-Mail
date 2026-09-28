@@ -89,7 +89,7 @@ export function AccessibilitySection({
               />
               <input
                 aria-label={t("settings.font_size")}
-                className="w-16 h-9 px-2 rounded-md border bg-surf-secondary border-edge-secondary text-sm text-txt-primary text-center focus:outline-none focus:ring-2 focus:ring-[var(--accent-color)]"
+                className="aster_input w-16 h-9 px-2 text-sm text-center"
                 inputMode="numeric"
                 maxLength={3}
                 type="text"
@@ -126,7 +126,7 @@ export function AccessibilitySection({
             </div>
             <div className="mt-3 flex">
               <button
-                className="px-3 py-1.5 rounded-[12px] text-sm font-medium text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] transition-colors"
+                className="px-3 py-1.5 rounded-[var(--aster-radius-control)] text-sm font-medium text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)] hover:bg-[var(--accent-color-hover)] transition-colors"
                 type="button"
                 onClick={() => commit_font_size(FONT_SIZE_DEFAULT)}
               >

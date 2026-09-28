@@ -26,7 +26,7 @@ import {
   ArrowPathIcon,
   CheckIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { IslandIconButton } from "@aster/ui";
 
 import {
   DropdownMenu,
@@ -61,13 +61,9 @@ export function MobileOverflowMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          className="md:hidden h-9 w-9 rounded-[10px] text-[var(--icon-secondary)] hover:text-[var(--icon-active)] hover:bg-[var(--bg-hover)]"
-          size="icon"
-          variant="ghost"
-        >
-          <EllipsisVerticalIcon className="w-[18px] h-[18px]" />
-        </Button>
+        <IslandIconButton className="md:hidden" label={t("common.more")}>
+          <EllipsisVerticalIcon />
+        </IslandIconButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuItem onClick={handle_refresh}>

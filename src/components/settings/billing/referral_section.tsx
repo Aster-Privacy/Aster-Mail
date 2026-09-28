@@ -22,7 +22,7 @@ import {
   UserGroupIcon,
   ClipboardDocumentIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Input, Island, IslandSection } from "@aster/ui";
 
 import {
   format_price,
@@ -48,28 +48,31 @@ export function ReferralSection({
   const { t } = use_i18n();
 
   return (
-    <div className="border-t border-edge-secondary pt-8" id="referral_section">
-      <div className="mb-2">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-          <UserGroupIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
-          {t("settings.referral_program")}
-        </h3>
-        <p className="text-xs text-txt-muted mt-1">
-          {t("settings.referral_program_description")}
-        </p>
-      </div>
-
+    <IslandSection
+      bare
+      description={
+        referral_info
+          ? t("settings.referral_program_description", {
+              amount: format_bytes(referral_info.bonus_bytes_per_referral),
+            })
+          : undefined
+      }
+      icon={<UserGroupIcon className="flex-shrink-0" />}
+      id="referral_section"
+      title={t("settings.referral_program")}
+    >
       {referral_info && referral_info.referral_code ? (
         <>
-          <div className="mb-3">
+          <Island className="mb-2" padding="md">
             <p className="text-xs text-txt-muted mb-1.5">
               {t("settings.your_referral_link")}
             </p>
-            <div className="flex gap-2">
-              <input
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Input
                 readOnly
                 aria-label={t("settings.your_referral_link")}
-                className="flex-1 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary outline-none"
+                className="min-w-0 flex-1"
+                size="md"
                 value={build_referral_invite_url(referral_info.referral_code)}
               />
               <Button
@@ -110,34 +113,34 @@ export function ReferralSection({
                 </p>
               </>
             )}
-          </div>
+          </Island>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-            <div className="px-3 py-2.5 rounded-lg border border-edge-secondary text-center">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-2">
+            <Island className="px-3 py-3 text-center">
               <p className="text-lg font-bold text-txt-primary">
                 {referral_info.total_referrals}
               </p>
               <p className="text-xs text-txt-muted">
                 {t("settings.total_referrals")}
               </p>
-            </div>
-            <div className="px-3 py-2.5 rounded-lg border border-edge-secondary text-center">
+            </Island>
+            <Island className="px-3 py-3 text-center">
               <p className="text-lg font-bold text-yellow-500">
                 {referral_info.pending_referrals}
               </p>
               <p className="text-xs text-txt-muted">
                 {t("settings.pending_referrals")}
               </p>
-            </div>
-            <div className="px-3 py-2.5 rounded-lg border border-edge-secondary text-center">
+            </Island>
+            <Island className="px-3 py-3 text-center">
               <p className="text-lg font-bold text-green-500">
                 {referral_info.completed_referrals}
               </p>
               <p className="text-xs text-txt-muted">
                 {t("settings.completed_referrals")}
               </p>
-            </div>
-            <div className="px-3 py-2.5 rounded-lg border border-edge-secondary text-center">
+            </Island>
+            <Island className="px-3 py-3 text-center">
               <p className="text-lg font-bold text-txt-primary">
                 {format_price(
                   (referral_info.credits_earned_cents || 0) +
@@ -147,24 +150,26 @@ export function ReferralSection({
               <p className="text-xs text-txt-muted">
                 {t("settings.total_earned")}
               </p>
-            </div>
+            </Island>
           </div>
-
-          <div className="mb-3" />
 
           {referral_history_list.length > 0 && (
             <div>
-              <p className="text-xs font-medium text-txt-secondary mb-2">
-                {t("settings.referral_history")}
-              </p>
-              <div className="rounded-lg border overflow-hidden border-edge-secondary">
+              <div className="aster_island_section_header">
+                <div className="aster_island_section_heading">
+                  <h3 className="aster_island_section_title">
+                    <span>{t("settings.referral_history")}</span>
+                  </h3>
+                </div>
+              </div>
+              <Island className="overflow-hidden">
                 {referral_history_list.map((ref_item) => (
                   <div
                     key={ref_item.id}
-                    className="flex items-center justify-between px-4 py-2.5 hover:bg-surf-hover transition-colors"
+                    className="flex min-h-14 flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-4 py-2.5 hover:bg-surf-hover transition-colors"
                   >
-                    <div>
-                      <p className="text-sm text-txt-primary">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm text-txt-primary">
                         {ref_item.referee_email_masked}
                       </p>
                       <p className="text-xs mt-0.5 text-txt-muted">
@@ -191,23 +196,25 @@ export function ReferralSection({
                     </div>
                   </div>
                 ))}
-              </div>
+              </Island>
             </div>
           )}
 
           {referral_history_list.length === 0 && (
-            <p className="text-xs text-txt-muted text-center py-3">
-              {t("settings.no_referrals_yet")}
-            </p>
+            <Island className="text-center" padding="lg">
+              <p className="text-xs text-txt-muted">
+                {t("settings.no_referrals_yet")}
+              </p>
+            </Island>
           )}
         </>
       ) : (
-        <div className="text-center py-4">
+        <Island className="text-center" padding="lg">
           <p className="text-sm text-txt-secondary">
             {t("settings.referral_loading")}
           </p>
-        </div>
+        </Island>
       )}
-    </div>
+    </IslandSection>
   );
 }

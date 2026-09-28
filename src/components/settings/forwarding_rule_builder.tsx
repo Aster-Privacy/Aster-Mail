@@ -27,8 +27,15 @@ import type {
 
 import { useState } from "react";
 import { PlusIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
-import { Checkbox } from "@aster/ui";
+import {
+  Button,
+  Checkbox,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@aster/ui";
 
 import { Input } from "@/components/ui/input";
 import { ButtonSpinner } from "@/components/ui/spinner";
@@ -206,40 +213,54 @@ export function ForwardingRuleBuilder({
               key={index}
               className="flex items-center gap-2 p-2.5 rounded-lg bg-surf-tertiary"
             >
-              <select
-                className={`px-2.5 py-1.5 rounded-md text-[13px] border bg-transparent text-txt-primary ${
-                  incomplete_condition_indexes.includes(index) &&
-                  condition.field === "all"
-                    ? "border-danger"
-                    : "border-edge-secondary"
-                }`}
+              <Select
                 value={condition.field}
-                onChange={(e) =>
-                  update_condition(index, "field", e.target.value)
+                onValueChange={(value) =>
+                  update_condition(index, "field", value)
                 }
               >
-                {FIELD_KEYS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {t(opt.key)}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger
+                  aria-label={t("settings.conditions")}
+                  className={`h-9 w-auto min-w-[9rem] ${
+                    incomplete_condition_indexes.includes(index) &&
+                    condition.field === "all"
+                      ? "ring-2 ring-danger"
+                      : ""
+                  }`}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {FIELD_KEYS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {t(opt.key)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
 
               {condition.field !== "all" && (
                 <>
-                  <select
-                    className="px-2.5 py-1.5 rounded-md text-[13px] border bg-transparent border-edge-secondary text-txt-primary"
+                  <Select
                     value={condition.operator}
-                    onChange={(e) =>
-                      update_condition(index, "operator", e.target.value)
+                    onValueChange={(value) =>
+                      update_condition(index, "operator", value)
                     }
                   >
-                    {OPERATOR_KEYS.map((opt) => (
-                      <option key={opt.value} value={opt.value}>
-                        {t(opt.key)}
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger
+                      aria-label={t("settings.alias_rule_operator_label")}
+                      className="h-9 w-auto min-w-[8rem]"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {OPERATOR_KEYS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {t(opt.key)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
                   <Input
                     className="flex-1"

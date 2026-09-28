@@ -61,6 +61,32 @@ type hidden_selectors = {
   ids: Set<string>;
 };
 
+const ASTER_FOOTER_PHRASE = new RegExp(
+  "\\s*(?:" +
+    [
+      "مؤمَّن بواسطة",
+      "Gesichert durch",
+      "Secured by",
+      "Asegurado por",
+      "Sécurisé par",
+      "इसके द्वारा सुरक्षित",
+      "Protetto da",
+      "保護元",
+      "보안 제공:",
+      "Beveiligd door",
+      "Zabezpieczone przez",
+      "Protegido por",
+      "Защищено",
+      "Güvence altında:",
+      "安全保护由",
+    ].join("|") +
+    ")\\s*Aster Mail(?=\\s|$)",
+  "gu",
+);
+
+const QUOTED_REPLY_HEADER =
+  /\s+On [A-Z][a-z]{2,8},? [^<>]{4,80}?(?:<[^<>]{3,254}>)?\s*wrote:.*$/su;
+
 export function strip_preview_filler(value: string): string {
   if (!value) return "";
 
@@ -334,7 +360,10 @@ export function clip_with_ellipsis(value: string, cap: number): string {
 export function truncate_with_ellipsis(value: string, cap: number): string {
   if (!value) return "";
 
-  const normalized = strip_preview_filler(value);
+  const normalized = strip_preview_filler(value)
+    .replace(QUOTED_REPLY_HEADER, "")
+    .replace(ASTER_FOOTER_PHRASE, "")
+    .trimEnd();
 
   if (cap <= 0) return "";
   if (normalized.length <= cap) return normalized;

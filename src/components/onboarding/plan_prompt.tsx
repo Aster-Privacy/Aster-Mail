@@ -26,7 +26,10 @@ import { Button } from "@aster/ui";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { get_recovery_methods } from "@/services/api/recovery";
+import {
+  load_recovery_status,
+  recovery_nudge,
+} from "@/hooks/use_recovery_status";
 import {
   clear_first_run_plan,
   first_run_age_ms,
@@ -95,16 +98,13 @@ export function PlanPrompt({
     };
 
     const reveal_when_recovery_done = async (delay: number) => {
-      const response = await get_recovery_methods();
+      const values = await load_recovery_status();
 
       if (cancelled) return;
 
-      const recovery_pending =
-        !!response.data &&
-        !response.data.recovery_email_set &&
-        !is_recovery_snoozed();
+      const kind = values ? recovery_nudge(values) : null;
 
-      if (recovery_pending) return;
+      if (kind && !is_recovery_snoozed(kind)) return;
 
       reveal(delay);
     };
@@ -152,12 +152,12 @@ export function PlanPrompt({
       {is_open && (
         <motion.div
           animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-5 end-5 z-30 w-[320px] max-w-[calc(100vw-2.5rem)] overflow-hidden rounded-xl border p-4 shadow-lg"
+          className="fixed bottom-5 end-5 z-30 w-[320px] max-w-[calc(100vw-2.5rem)] overflow-hidden rounded-[var(--aster-radius-floating,16px)] p-4"
           exit={{ opacity: 0, y: 8 }}
           initial={{ opacity: 0, y: 8 }}
           style={{
-            backgroundColor: "var(--bg-card)",
-            borderColor: "var(--border-primary)",
+            backgroundColor: "var(--aster-floating-bg, var(--bg-card))",
+            boxShadow: "var(--aster-floating-shadow)",
           }}
           transition={transition}
         >
@@ -167,7 +167,7 @@ export function PlanPrompt({
             </div>
             <button
               aria-label={t("common.plan_prompt_dismiss")}
-              className="-me-1 -mt-1 rounded-md p-1 text-txt-muted transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08]"
+              className="-me-1 -mt-1 rounded-md p-1 text-txt-muted transition-colors hover:bg-[var(--aster-hover)]"
               type="button"
               onClick={close}
             >

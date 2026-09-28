@@ -183,6 +183,11 @@ export function AccountSection({
   const { user, update_user, vault } = use_auth();
   const { preferences, update_preference, reset_to_defaults } =
     use_preferences();
+  const [pending_profile_color, set_pending_profile_color] = useState<
+    string | null
+  >(null);
+  const active_profile_color =
+    pending_profile_color ?? (user?.profile_color || preferences.profile_color);
   const { limits } = use_plan_limits();
   const is_paid_plan = !!limits && limits.plan_code !== "free";
   const {
@@ -527,7 +532,7 @@ export function AccountSection({
                 email={user?.email ?? ""}
                 image_url={preview || user?.profile_picture}
                 name={user?.display_name ?? user?.username ?? ""}
-                profile_color={preferences.profile_color}
+                profile_color={active_profile_color}
                 size="xl"
               />
             </span>
@@ -595,41 +600,49 @@ export function AccountSection({
               <button
                 key={color}
                 role="radio"
-                aria-checked={preferences.profile_color === color}
+                aria-checked={active_profile_color === color}
                 aria-label={color}
                 className="flex h-10 w-10 items-center justify-center rounded-full"
                 style={{
                   backgroundColor: color,
                   boxShadow:
-                    preferences.profile_color === color
+                    active_profile_color === color
                       ? `0 0 0 2px var(--bg-primary), 0 0 0 4px ${color}`
                       : "none",
                 }}
                 type="button"
                 onClick={async () => {
-                  const prev = preferences.profile_color;
+                  const prev = active_profile_color;
 
-                  update_preference("profile_color", color, true);
-                  if (user) {
-                    await update_user({ ...user, profile_color: color });
-                  }
-                  const { update_profile_color } =
-                    await import("@/services/api/user");
-                  const response = await update_profile_color(color);
-
-                  if (response.error) {
-                    update_preference("profile_color", prev, true);
+                  set_pending_profile_color(color);
+                  try {
+                    update_preference("profile_color", color, true);
                     if (user) {
-                      await update_user({
-                        ...user,
-                        profile_color: prev || undefined,
-                      });
+                      await update_user({ ...user, profile_color: color });
                     }
-                    show_toast(t("common.failed_save_profile_color"), "error");
+                    const { update_profile_color } =
+                      await import("@/services/api/user");
+                    const response = await update_profile_color(color);
+
+                    if (response.error) {
+                      update_preference("profile_color", prev, true);
+                      if (user) {
+                        await update_user({
+                          ...user,
+                          profile_color: prev || undefined,
+                        });
+                      }
+                      show_toast(
+                        t("common.failed_save_profile_color"),
+                        "error",
+                      );
+                    }
+                  } finally {
+                    set_pending_profile_color(null);
                   }
                 }}
               >
-                {preferences.profile_color === color && (
+                {active_profile_color === color && (
                   <CheckIcon
                     className="h-4.5 w-4.5 text-white"
                     strokeWidth={2.5}
@@ -652,7 +665,7 @@ export function AccountSection({
                   <button
                     key={badge.slug}
                     className={cn(
-                      "inline-flex select-none items-center gap-1.5 rounded-[12px] px-3 py-1.5 text-xs font-medium",
+                      "inline-flex select-none items-center gap-1.5 rounded-[var(--aster-radius-control)] px-3 py-1.5 text-xs font-medium",
                       is_active
                         ? "bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)]"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]",

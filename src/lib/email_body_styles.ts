@@ -228,37 +228,35 @@ details.aster-forwarded-collapse > .aster-forwarded-content {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  width: 20px;
-  height: 16px;
-  padding: 0;
-  border-radius: 3px;
-  border: 1px solid rgba(128, 128, 128, 0.25);
-  background: rgba(128, 128, 128, 0.08);
-  color: rgba(100, 100, 100, 0.7);
+  height: 24px;
+  min-width: 40px;
+  margin: 8px 0;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(128, 128, 128, 0.12);
+  color: rgba(80, 80, 80, 0.9);
   cursor: pointer;
   font-size: 0;
-  line-height: 1;
+  line-height: 0;
   vertical-align: middle;
   user-select: none;
 }
 
-.aster-quote-toggle::before {
-  content: "";
-  width: 2px;
-  height: 2px;
+.aster-quote-toggle-dots {
+  display: block;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: currentColor;
-  box-shadow: -4px 0 0 currentColor, 4px 0 0 currentColor;
+  box-shadow:
+    -6.5px 0 0 currentColor,
+    6.5px 0 0 currentColor;
 }
 
-.aster-quote-toggle:hover {
-  background: rgba(128, 128, 128, 0.2);
-  border-color: rgba(128, 128, 128, 0.45);
-}
-
+.aster-quote-toggle:hover,
 .aster-quote-toggle.aster-quote-expanded {
   background: rgba(128, 128, 128, 0.2);
-  border-color: rgba(128, 128, 128, 0.45);
 }
 
 .aster-quoted-content {
@@ -383,11 +381,12 @@ export function build_forced_dark_mode_css(
   rail_color = "#3b82f6",
   link_color = "#60a5fa",
   link_visited_color = derive_visited_ink(link_color, DARK_BODY_SURFACE),
+  text_color = DARK_INHERITED_INK,
 ) {
   return `
 html, body {
   background-color: transparent !important;
-  color: ${DARK_INHERITED_INK};
+  color: ${text_color};
   color-scheme: dark !important;
 }
 
@@ -431,13 +430,11 @@ blockquote blockquote blockquote {
 
 .aster-quote-toggle {
   background: rgba(180, 180, 180, 0.15) !important;
-  border-color: rgba(180, 180, 180, 0.3) !important;
-  color: rgba(180, 180, 180, 0.8) !important;
+  color: rgba(210, 210, 210, 0.9) !important;
 }
 
 .aster-quote-toggle:hover {
   background: rgba(180, 180, 180, 0.25) !important;
-  border-color: rgba(180, 180, 180, 0.45) !important;
 }
 
 .aster-quoted-content {

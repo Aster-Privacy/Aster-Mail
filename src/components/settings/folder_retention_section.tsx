@@ -20,7 +20,15 @@
 //
 import * as React from "react";
 import { PlusIcon, ClockIcon } from "@heroicons/react/24/outline";
-import { Button, Switch } from "@aster/ui";
+import {
+  Button,
+  Input,
+  Island,
+  IslandEmpty,
+  IslandSection,
+  IslandStack,
+  Switch,
+} from "@aster/ui";
 
 import { commit_on_enter } from "@/lib/commit_on_enter";
 import {
@@ -250,18 +258,19 @@ export function RetentionPolicyCard({
   })} · ${mode_summary}`;
 
   return (
-    <div
-      className={`group relative rounded-xl border bg-surf-primary p-4 transition-colors border-neutral-200 dark:border-neutral-700 ${
+    <Island
+      className={`group relative transition-opacity ${
         policy.enabled ? "" : "opacity-60"
       }`}
+      padding="md"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button
           className="flex-1 text-start min-w-0 cursor-pointer"
           type="button"
           onClick={on_edit}
         >
-          <div className="flex items-center gap-2 mb-0.5">
+          <div className="flex flex-wrap items-center gap-2 mb-0.5">
             <ClockIcon className="w-4 h-4 text-txt-tertiary flex-shrink-0" />
             <span className="text-[13px] font-medium text-txt-primary truncate">
               {folder_name}
@@ -289,7 +298,7 @@ export function RetentionPolicyCard({
           </Button>
         </div>
       </div>
-    </div>
+    </Island>
   );
 }
 
@@ -351,66 +360,54 @@ export function FolderRetentionSection() {
   ]);
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-4">
-          <div className="flex items-center justify-between">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-              <ClockIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-              {t("folder_retention.title")}
-            </h3>
-            <Button variant="depth" onClick={r.open_new}>
-              <PlusIcon className="w-4 h-4" />
-              {t("folder_retention.add")}
-            </Button>
-          </div>
-        </div>
-        <p className="text-sm mb-4 text-txt-muted">
-          {t("folder_retention.subtitle")}
-        </p>
-      </div>
+    <div>
+      <IslandSection
+        bare
+        description={t("folder_retention.subtitle")}
+        icon={<ClockIcon />}
+        title={t("folder_retention.title")}
+        trailing={
+          <Button variant="depth" onClick={r.open_new}>
+            <PlusIcon className="w-4 h-4" />
+            {t("folder_retention.add")}
+          </Button>
+        }
+      >
+        {r.loading && r.policies.length === 0 && (
+          <IslandStack>
+            {[0, 1].map((i) => (
+              <Island key={i} className="h-16 animate-pulse" />
+            ))}
+          </IslandStack>
+        )}
 
-      {r.loading && r.policies.length === 0 && (
-        <div className="space-y-3">
-          {[0, 1].map((i) => (
-            <div
-              key={i}
-              className="h-16 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse"
-            />
-          ))}
-        </div>
-      )}
+        {!r.loading && r.load_failed && r.policies.length === 0 && (
+          <LoadFailedNotice on_retry={r.reload} />
+        )}
 
-      {!r.loading && r.load_failed && r.policies.length === 0 && (
-        <LoadFailedNotice on_retry={r.reload} />
-      )}
+        {!r.loading && !r.load_failed && r.policies.length === 0 && (
+          <IslandEmpty
+            description={t("folder_retention.empty_description")}
+            icon={<ClockIcon />}
+            title={t("folder_retention.empty_title")}
+          />
+        )}
 
-      {!r.loading && !r.load_failed && r.policies.length === 0 && (
-        <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-          <ClockIcon className="w-12 h-12 mx-auto mb-2 text-txt-tertiary" />
-          <p className="text-sm text-txt-muted mb-1">
-            {t("folder_retention.empty_title")}
-          </p>
-          <p className="text-xs text-txt-muted">
-            {t("folder_retention.empty_description")}
-          </p>
-        </div>
-      )}
-
-      {r.policies.length > 0 && (
-        <div className="space-y-2">
-          {r.policies.map((policy) => (
-            <RetentionPolicyCard
-              key={policy.id}
-              folder_name={r.get_folder_name(policy.folder_token)}
-              on_delete={() => set_confirm_delete_policy(policy)}
-              on_edit={() => r.open_edit(policy)}
-              on_toggle={() => r.handle_toggle(policy)}
-              policy={policy}
-            />
-          ))}
-        </div>
-      )}
+        {r.policies.length > 0 && (
+          <IslandStack>
+            {r.policies.map((policy) => (
+              <RetentionPolicyCard
+                key={policy.id}
+                folder_name={r.get_folder_name(policy.folder_token)}
+                on_delete={() => set_confirm_delete_policy(policy)}
+                on_edit={() => r.open_edit(policy)}
+                on_toggle={() => r.handle_toggle(policy)}
+                policy={policy}
+              />
+            ))}
+          </IslandStack>
+        )}
+      </IslandSection>
 
       {r.editor_open && (
         <RetentionEditorModal
@@ -597,10 +594,10 @@ export function RetentionEditorModal({
                 {DAY_PRESETS.map((preset) => (
                   <button
                     key={preset}
-                    className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
+                    className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
                       days === preset
-                        ? "border-blue-600 bg-blue-600 text-white"
-                        : "border-edge-secondary text-txt-muted hover:bg-surf-secondary"
+                        ? "bg-[var(--accent-color)] text-[var(--accent-fg,#ffffff)]"
+                        : "bg-surf-secondary text-txt-muted hover:bg-surf-tertiary"
                     }`}
                     type="button"
                     onClick={() => {
@@ -611,10 +608,11 @@ export function RetentionEditorModal({
                     {preset}
                   </button>
                 ))}
-                <input
-                  className="w-20 rounded-lg border border-edge-secondary bg-surf-primary px-2 py-1.5 text-sm text-txt-primary"
+                <Input
+                  className="!w-20"
                   max={3650}
                   min={1}
+                  size="sm"
                   type="number"
                   value={days_input ?? days}
                   onBlur={(e) => {
@@ -669,7 +667,7 @@ export function RetentionEditorModal({
               </div>
             </div>
 
-            <div className="rounded-lg bg-surf-secondary px-3 py-2.5 text-xs text-txt-muted">
+            <div className="rounded-xl bg-surf-secondary px-3 py-2.5 text-xs text-txt-muted">
               {preview_count === null
                 ? t("folder_retention.keeps_note")
                 : preview_count === 0
@@ -738,12 +736,12 @@ function ModeOption({
 }: ModeOptionProps) {
   return (
     <button
-      className={`w-full text-start rounded-lg border px-3 py-2.5 transition-colors ${
+      className={`w-full text-start rounded-[var(--aster-radius-control)] px-3 py-2.5 transition-colors ${
         active
           ? danger
-            ? "border-red-600 bg-red-600"
-            : "border-blue-600 bg-blue-600"
-          : "border-edge-secondary hover:bg-surf-secondary"
+            ? "bg-[var(--color-danger)]"
+            : "bg-[var(--accent-color)]"
+          : "bg-surf-secondary hover:bg-surf-tertiary"
       }`}
       type="button"
       onClick={on_click}

@@ -1037,7 +1037,7 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
             <TicketDivider />
 
             <div className="shrink-0 px-5 pt-4 sm:px-6">
-              <div className="flex flex-col gap-0.5 rounded-xl bg-surf-primary px-3.5 py-2">
+              <div className="flex flex-col gap-0.5 rounded-[var(--aster-radius-control)] bg-surf-primary px-3.5 py-2">
                 <DetailRow
                   label={t("settings.crypto_native_paying_with_label")}
                 >
@@ -1100,7 +1100,7 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
                   </span>
                   <button
                     aria-label={t("settings.crypto_native_copy_tx_hash")}
-                    className="group mt-1.5 flex w-full items-center justify-between gap-3 rounded-xl bg-surf-primary px-3.5 py-2.5 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+                    className="group mt-1.5 flex w-full items-center justify-between gap-3 rounded-[var(--aster-radius-control)] bg-surf-primary px-3.5 py-2.5 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
                     type="button"
                     onClick={() => handle_copy(invoice.txids[0])}
                   >

@@ -71,7 +71,7 @@ export function SearchInputBar({
   const { t } = use_i18n();
 
   return (
-    <div className="p-4 border-b transition-colors duration-200 relative flex-shrink-0 border-edge-secondary">
+    <div className="p-4 border-b transition-colors duration-200 relative flex-shrink-0 border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
       <div className="flex items-center gap-3">
         <button
           aria-label={t("common.close")}

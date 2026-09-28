@@ -377,7 +377,7 @@ export const SETTINGS_SEARCH_REGISTRY: SearchEntry[] = [
     ],
   },
   {
-    label: "Rotate Keys Now",
+    label: "Rotate keys now",
     label_key: "settings.rotate_keys_now",
     section: "security",
     breadcrumb: "Security > Key Rotation",

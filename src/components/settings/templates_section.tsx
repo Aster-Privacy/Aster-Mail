@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   PlusIcon,
   TrashIcon,
@@ -27,7 +26,15 @@ import {
   XMarkIcon,
   DocumentDuplicateIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandEmpty,
+  IslandIconButton,
+  IslandRow,
+  IslandSection,
+  IslandSections,
+} from "@aster/ui";
 
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
@@ -42,7 +49,6 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { use_i18n } from "@/lib/i18n/context";
-import { use_should_reduce_motion } from "@/provider";
 import { use_templates } from "@/contexts/templates_context";
 import {
   list_templates,
@@ -79,10 +85,8 @@ const initial_editor_state: EditorState = {
 
 export function TemplatesSection() {
   const { t } = use_i18n();
-  const reduce_motion = use_should_reduce_motion();
   const { reload_templates: reload_context_templates } = use_templates();
   const [templates, set_templates] = useState<DecryptedTemplate[]>([]);
-  const [is_loading, set_is_loading] = useState(true);
   const [is_initial_load, set_is_initial_load] = useState(true);
   const [error, set_error] = useState<string | null>(null);
   const [has_unreadable, set_has_unreadable] = useState(false);
@@ -97,7 +101,6 @@ export function TemplatesSection() {
   const [editor_error, set_editor_error] = useState<string | null>(null);
 
   const load_templates = useCallback(async () => {
-    set_is_loading(true);
     set_error(null);
 
     const response = await list_templates();
@@ -114,7 +117,6 @@ export function TemplatesSection() {
       );
     }
 
-    set_is_loading(false);
     set_is_initial_load(false);
   }, []);
 
@@ -273,281 +275,252 @@ export function TemplatesSection() {
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-4">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <DocumentDuplicateIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.email_templates_title")}
-          </h3>
-        </div>
-        <p className="text-sm mb-4 text-txt-muted">
-          {t("settings.email_templates_description")}
-        </p>
-
+    <IslandSections>
+      <IslandSection
+        bare
+        description={t("settings.email_templates_description")}
+        icon={<DocumentDuplicateIcon />}
+        title={t("settings.email_templates_title")}
+      >
         {has_unreadable && (
-          <p className="mb-4 text-[12px] text-txt-muted">
+          <p className="text-[12px] text-txt-muted">
             {t("settings.unreadable_entries_notice")}
           </p>
         )}
 
         {error && (
-          <div
-            className="mb-4 p-3 rounded-lg text-sm flex items-center justify-between"
-            style={{
-              backgroundColor: "#dc2626",
-              color: "#fff",
-              border: "none",
-            }}
-          >
-            <span>{error}</span>
-            <button
-              aria-label={t("common.close")}
-              className="p-1 rounded hover:bg-red-500/20"
-              type="button"
-              onClick={() => set_error(null)}
-            >
-              <XMarkIcon className="w-4 h-4" />
-            </button>
-          </div>
+          <Island padding="sm" tone="danger">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-sm text-txt-primary">{error}</span>
+              <IslandIconButton
+                label={t("common.close")}
+                size="sm"
+                onClick={() => set_error(null)}
+              >
+                <XMarkIcon className="w-4 h-4" />
+              </IslandIconButton>
+            </div>
+          </Island>
         )}
+      </IslandSection>
 
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h4 className="text-sm font-medium text-txt-primary">
-              {t("settings.your_templates", {
-                count: is_loading ? "..." : String(templates.length),
-              })}
-            </h4>
-            <Button
-              disabled={editor.is_open}
-              variant="depth"
-              onClick={open_create_editor}
-            >
-              <PlusIcon className="w-4 h-4" />
-              {t("settings.add_template")}
-            </Button>
-          </div>
-
-          <Modal
-            is_open={editor.is_open}
-            on_close={request_close_editor}
-            show_close_button={!editor.is_saving}
-            size="lg"
+      <IslandSection
+        bare
+        title={t("settings.your_templates", {
+          count: templates.length,
+        })}
+        trailing={
+          <Button
+            disabled={editor.is_open}
+            variant="depth"
+            onClick={open_create_editor}
           >
-            <ModalHeader>
-              <ModalTitle>
-                {editor.editing_id
-                  ? t("settings.update_template")
-                  : t("settings.add_template")}
-              </ModalTitle>
-            </ModalHeader>
-            <ModalBody className="space-y-4">
-              {editor_error && (
+            <PlusIcon className="w-4 h-4" />
+            {t("settings.add_template")}
+          </Button>
+        }
+      >
+        {templates.length === 0 && !editor.is_open && load_failed ? (
+          <LoadFailedNotice on_retry={() => void load_templates()} />
+        ) : templates.length === 0 && !editor.is_open ? (
+          <IslandEmpty
+            icon={<PencilIcon />}
+            title={t("settings.no_templates_yet")}
+          />
+        ) : (
+          <Island divided>
+            {templates.map((template) => (
+              <IslandRow
+                key={template.id}
+                description={
+                  <span className="line-clamp-1" dir="auto">
+                    {template.content}
+                  </span>
+                }
+                label={
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className="truncate" dir="auto">
+                      {template.name}
+                    </span>
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-[color-mix(in_srgb,var(--text-primary)_7%,transparent)] text-txt-muted flex-shrink-0">
+                      {template.category || t("common.general")}
+                    </span>
+                  </span>
+                }
+                trailing={
+                  <span className="flex items-center gap-1">
+                    <IslandIconButton
+                      label={t("common.edit")}
+                      size="sm"
+                      title={t("common.edit")}
+                      onClick={() => open_edit_editor(template)}
+                    >
+                      <PencilIcon className="w-4 h-4" />
+                    </IslandIconButton>
+                    <IslandIconButton
+                      className="text-red-500 hover:text-red-500"
+                      disabled={deleting_id === template.id}
+                      label={t("common.delete")}
+                      size="sm"
+                      title={t("common.delete")}
+                      onClick={() => set_confirm_delete_id(template.id)}
+                    >
+                      {deleting_id === template.id ? (
+                        <ButtonSpinner />
+                      ) : (
+                        <TrashIcon className="w-4 h-4" />
+                      )}
+                    </IslandIconButton>
+                  </span>
+                }
+              />
+            ))}
+          </Island>
+        )}
+      </IslandSection>
+
+      <Modal
+        is_open={editor.is_open}
+        on_close={request_close_editor}
+        show_close_button={!editor.is_saving}
+        size="lg"
+      >
+        <ModalHeader>
+          <ModalTitle>
+            {editor.editing_id
+              ? t("settings.update_template")
+              : t("settings.add_template")}
+          </ModalTitle>
+        </ModalHeader>
+        <ModalBody className="space-y-4">
+          {editor_error && (
+            <p
+              className="p-3 rounded-lg text-sm bg-red-500/10 text-red-500"
+              role="alert"
+            >
+              {editor_error}
+            </p>
+          )}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                className="text-sm font-medium block mb-2 text-txt-primary"
+                htmlFor="template-name"
+              >
+                {t("settings.template_name")}
+              </label>
+              <Input
+                autoFocus
+                aria-describedby={
+                  name_invalid ? "template-name-error" : undefined
+                }
+                aria-invalid={name_invalid}
+                className="w-full"
+                id="template-name"
+                maxLength={MAX_TEMPLATE_NAME_LENGTH}
+                placeholder={t("settings.template_name_placeholder")}
+                status={name_invalid ? "error" : "default"}
+                value={editor.name}
+                onChange={(e) =>
+                  set_editor((prev) => ({
+                    ...prev,
+                    name: e.target.value,
+                  }))
+                }
+              />
+              {name_invalid && (
                 <p
-                  className="p-3 rounded-lg text-sm bg-red-500/10 text-red-500"
-                  role="alert"
+                  className="text-xs mt-1.5 text-red-500"
+                  id="template-name-error"
                 >
-                  {editor_error}
+                  {t("settings.template_name_required")}
                 </p>
               )}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label
-                    className="text-sm font-medium block mb-2 text-txt-primary"
-                    htmlFor="template-name"
-                  >
-                    {t("settings.template_name")}
-                  </label>
-                  <Input
-                    autoFocus
-                    aria-describedby={
-                      name_invalid ? "template-name-error" : undefined
-                    }
-                    aria-invalid={name_invalid}
-                    className="w-full"
-                    id="template-name"
-                    maxLength={MAX_TEMPLATE_NAME_LENGTH}
-                    placeholder={t("settings.template_name_placeholder")}
-                    status={name_invalid ? "error" : "default"}
-                    value={editor.name}
-                    onChange={(e) =>
-                      set_editor((prev) => ({
-                        ...prev,
-                        name: e.target.value,
-                      }))
-                    }
-                  />
-                  {name_invalid && (
-                    <p
-                      className="text-xs mt-1.5 text-red-500"
-                      id="template-name-error"
-                    >
-                      {t("settings.template_name_required")}
-                    </p>
-                  )}
-                </div>
+            </div>
 
-                <div>
-                  <label
-                    className="text-sm font-medium block mb-2 text-txt-primary"
-                    htmlFor="template-category"
-                  >
-                    {t("settings.category")}
-                  </label>
-                  <Input
-                    className="w-full"
-                    id="template-category"
-                    maxLength={MAX_TEMPLATE_CATEGORY_LENGTH}
-                    placeholder={t("settings.category_placeholder")}
-                    value={editor.category}
-                    onChange={(e) =>
-                      set_editor((prev) => ({
-                        ...prev,
-                        category: e.target.value,
-                      }))
-                    }
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label
-                  className="text-sm font-medium block mb-2 text-txt-primary"
-                  htmlFor="template-content"
-                >
-                  {t("settings.template_content")}
-                </label>
-                <textarea
-                  aria-describedby={
-                    content_invalid ? "template-content-error" : undefined
-                  }
-                  aria-invalid={content_invalid}
-                  className={`aster_input resize-none !py-3 font-mono ${
-                    content_invalid ? "aster_input_error" : ""
-                  }`}
-                  id="template-content"
-                  maxLength={MAX_TEMPLATE_CONTENT_LENGTH}
-                  placeholder={t("settings.template_content_placeholder")}
-                  rows={8}
-                  value={editor.content}
-                  onChange={(e) =>
-                    set_editor((prev) => ({
-                      ...prev,
-                      content: e.target.value,
-                    }))
-                  }
-                />
-                {content_invalid && (
-                  <p
-                    className="text-xs mt-1.5 text-red-500"
-                    id="template-content-error"
-                  >
-                    {t("settings.template_content_required")}
-                  </p>
-                )}
-                <p className="text-xs mt-1.5 text-txt-muted">
-                  {t("settings.placeholders_hint")}
-                </p>
-              </div>
-            </ModalBody>
-            <ModalFooter>
-              <Button
-                disabled={editor.is_saving}
-                variant="ghost"
-                onClick={request_close_editor}
+            <div>
+              <label
+                className="text-sm font-medium block mb-2 text-txt-primary"
+                htmlFor="template-category"
               >
-                {t("common.cancel")}
-              </Button>
-              <Button
-                disabled={editor.is_saving}
-                variant="depth"
-                onClick={handle_save}
-              >
-                {editor.editing_id
-                  ? t("settings.update_template")
-                  : t("settings.create_template")}
-                {editor.is_saving && <ButtonSpinner />}
-              </Button>
-            </ModalFooter>
-          </Modal>
+                {t("settings.category")}
+              </label>
+              <Input
+                className="w-full"
+                id="template-category"
+                maxLength={MAX_TEMPLATE_CATEGORY_LENGTH}
+                placeholder={t("settings.category_placeholder")}
+                value={editor.category}
+                onChange={(e) =>
+                  set_editor((prev) => ({
+                    ...prev,
+                    category: e.target.value,
+                  }))
+                }
+              />
+            </div>
+          </div>
 
-          {templates.length === 0 && !editor.is_open && load_failed ? (
-            <LoadFailedNotice on_retry={() => void load_templates()} />
-          ) : templates.length === 0 && !editor.is_open ? (
-            <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-              <PencilIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
-              <p className="text-sm text-txt-muted">
-                {t("settings.no_templates_yet")}
+          <div>
+            <label
+              className="text-sm font-medium block mb-2 text-txt-primary"
+              htmlFor="template-content"
+            >
+              {t("settings.template_content")}
+            </label>
+            <textarea
+              aria-describedby={
+                content_invalid ? "template-content-error" : undefined
+              }
+              aria-invalid={content_invalid}
+              className={`aster_input resize-none !py-3 font-mono ${
+                content_invalid ? "aster_input_error" : ""
+              }`}
+              id="template-content"
+              maxLength={MAX_TEMPLATE_CONTENT_LENGTH}
+              placeholder={t("settings.template_content_placeholder")}
+              rows={8}
+              value={editor.content}
+              onChange={(e) =>
+                set_editor((prev) => ({
+                  ...prev,
+                  content: e.target.value,
+                }))
+              }
+            />
+            {content_invalid && (
+              <p
+                className="text-xs mt-1.5 text-red-500"
+                id="template-content-error"
+              >
+                {t("settings.template_content_required")}
               </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <AnimatePresence>
-                {templates.map((template) => (
-                  <motion.div
-                    key={template.id}
-                    animate={{ opacity: 1 }}
-                    className="flex items-center gap-3 p-3 rounded-lg bg-surf-secondary border border-edge-primary group"
-                    exit={{ opacity: 0 }}
-                    initial={reduce_motion ? false : { opacity: 0 }}
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className="text-sm font-medium text-txt-primary truncate"
-                          dir="auto"
-                        >
-                          {template.name}
-                        </span>
-                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-surf-tertiary text-txt-muted flex-shrink-0">
-                          {template.category || t("common.general")}
-                        </span>
-                      </div>
-                      <p
-                        className="text-xs text-txt-muted mt-0.5 line-clamp-1"
-                        dir="auto"
-                      >
-                        {template.content}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <Button
-                        size="icon"
-                        title={t("common.edit")}
-                        variant="ghost"
-                        onClick={() => open_edit_editor(template)}
-                      >
-                        <PencilIcon className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        className="text-red-500 hover:text-red-500 hover:bg-red-500/10"
-                        disabled={deleting_id === template.id}
-                        size="icon"
-                        title={t("common.delete")}
-                        variant="ghost"
-                        onClick={() => set_confirm_delete_id(template.id)}
-                      >
-                        {deleting_id === template.id ? (
-                          <div
-                            className="w-4 h-4 border-2 border-t-transparent rounded-full animate-spin"
-                            style={{
-                              borderColor: "currentColor",
-                              borderTopColor: "transparent",
-                            }}
-                          />
-                        ) : (
-                          <TrashIcon className="w-4 h-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </div>
-          )}
-        </div>
-      </div>
+            )}
+            <p className="text-xs mt-1.5 text-txt-muted">
+              {t("settings.placeholders_hint")}
+            </p>
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            disabled={editor.is_saving}
+            variant="ghost"
+            onClick={request_close_editor}
+          >
+            {t("common.cancel")}
+          </Button>
+          <Button
+            disabled={editor.is_saving}
+            is_loading={editor.is_saving}
+            variant="depth"
+            onClick={handle_save}
+          >
+            {editor.editing_id
+              ? t("settings.update_template")
+              : t("settings.create_template")}
+          </Button>
+        </ModalFooter>
+      </Modal>
 
       <ConfirmationModal
         confirm_text={t("mail.discard")}
@@ -573,6 +546,6 @@ export function TemplatesSection() {
         title={t("settings.delete_template_title")}
         variant="danger"
       />
-    </div>
+    </IslandSections>
   );
 }

@@ -33,7 +33,7 @@ import {
   DocumentTextIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Tooltip } from "@aster/ui";
+import { Button, IslandIconButton, Tooltip } from "@aster/ui";
 
 import { MobileMenuButton } from "@/components/layout/sidebar";
 import {
@@ -103,7 +103,7 @@ export function EmailDetailHeader({
       )}
       {is_popup ? (
         <button
-          className="flex items-center gap-1.5 h-9 px-3 rounded-[14px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer border-none bg-transparent"
+          className="flex items-center gap-1.5 h-9 px-3 rounded-[14px] text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors cursor-pointer border-none bg-transparent"
           onClick={() => window.close()}
         >
           <XMarkIcon className="w-5 h-5 flex-shrink-0" />
@@ -111,7 +111,7 @@ export function EmailDetailHeader({
         </button>
       ) : (
         <button
-          className="flex items-center gap-1.5 h-9 px-3 rounded-[14px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/10 transition-colors cursor-pointer border-none bg-transparent"
+          className="flex items-center gap-1.5 h-9 px-3 rounded-[14px] text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors cursor-pointer border-none bg-transparent"
           onClick={() => {
             const history_index = (
               window.history.state as { idx?: number } | null
@@ -212,14 +212,13 @@ export function EmailDetailHeader({
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button
-            className="lg:hidden h-8 w-8"
-            size="icon"
+          <IslandIconButton
+            className="lg:hidden"
+            label={t("common.more")}
             title={t("common.more")}
-            variant="ghost"
           >
-            <EllipsisVerticalIcon className="w-4 h-4 text-txt-secondary" />
-          </Button>
+            <EllipsisVerticalIcon />
+          </IslandIconButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <div className="sm:hidden">

@@ -87,7 +87,7 @@ export function ThreadDraftBadge({
     "flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors";
 
   return (
-    <div className="mt-2 px-4 flex items-center gap-3">
+    <div className="flex items-center gap-3 px-4 py-3">
       <ProfileAvatar
         email={current_user_email}
         name={current_user_name || t("common.me")}

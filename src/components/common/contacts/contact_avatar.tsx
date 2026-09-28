@@ -18,7 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import { ContactAvatarView } from "@aster/ui";
 
 import {
   is_icon_failed,
@@ -90,121 +91,37 @@ export function ContactAvatar({
     : avatar_url ||
       (is_aster ? (peer_profile?.profile_picture ?? undefined) : undefined);
 
-  const [avatar_failed, set_avatar_failed] = useState(false);
-  const [avatar_loaded, set_avatar_loaded] = useState(false);
-  const [favicon_loaded, set_favicon_loaded] = useState(false);
-  const [favicon_failed, set_favicon_failed] = useState<boolean>(
-    domain ? is_icon_failed(domain) : false,
-  );
-  const [prev_domain, set_prev_domain] = useState(domain);
-  const [prev_avatar_url, set_prev_avatar_url] = useState(effective_avatar_url);
-
-  if (domain !== prev_domain) {
-    set_prev_domain(domain);
-    set_favicon_failed(domain ? is_icon_failed(domain) : false);
-    set_favicon_loaded(false);
-  }
-
-  if (effective_avatar_url !== prev_avatar_url) {
-    set_prev_avatar_url(effective_avatar_url);
-    set_avatar_failed(false);
-    set_avatar_loaded(false);
-  }
-
   const cached_favicon_src = use_favicon_src(domain);
-
-  const base_style = {
-    width: size_px,
-    height: size_px,
-    minWidth: size_px,
-    minHeight: size_px,
-  } as const;
-
-  if (!low_network && effective_avatar_url && !avatar_failed) {
-    return (
-      <div
-        className={`${rounded} overflow-hidden flex items-center justify-center ${
-          avatar_loaded ? "" : "aster_skeleton"
-        } ${className}`}
-        style={base_style}
-      >
-        <img
-          alt=""
-          className="w-full h-full object-cover transition-opacity duration-200"
-          draggable={false}
-          src={effective_avatar_url}
-          style={{ opacity: avatar_loaded ? 1 : 0 }}
-          onError={() => set_avatar_failed(true)}
-          onLoad={() => set_avatar_loaded(true)}
-        />
-      </div>
-    );
-  }
-
-  if (!low_network && favicon_eligible && !favicon_failed) {
-    return (
-      <div
-        className={`${rounded} overflow-hidden flex items-center justify-center ${
-          favicon_loaded ? "" : "aster_skeleton"
-        } ${className}`}
-        style={base_style}
-      >
-        <img
-          alt=""
-          className="w-full h-full object-cover transition-opacity duration-200"
-          draggable={false}
-          referrerPolicy="no-referrer"
-          src={cached_favicon_src || get_favicon_url(domain)}
-          style={{
-            userSelect: "none",
-            opacity: favicon_loaded ? 1 : 0,
-          }}
-          onError={() => {
-            mark_icon_failed(domain);
-            set_favicon_failed(true);
-          }}
-          onLoad={(e) => {
-            const img = e.currentTarget;
-
-            if (img.naturalWidth <= 1 || img.naturalHeight <= 1) {
-              mark_icon_failed(domain);
-              set_favicon_failed(true);
-            } else {
-              set_favicon_loaded(true);
-              mark_icon_ok(domain);
-              if (!preferences.low_network_mode) {
-                store_favicon_if_api_url(domain, img.src);
-              }
-            }
-          }}
-        />
-      </div>
-    );
-  }
+  const favicon_src =
+    !low_network && favicon_eligible
+      ? cached_favicon_src || get_favicon_url(domain)
+      : undefined;
 
   const initials = get_initials(name, email, get_active_locale());
-  const font_size = Math.round(size_px * (initials.length > 1 ? 0.36 : 0.44));
   const avatar_bg =
     profile_color || get_avatar_color(get_avatar_key(email, name));
   const text_color = get_contrast_text(avatar_bg);
 
   return (
-    <div
-      aria-label={name || email || undefined}
-      className={`${rounded} overflow-hidden flex items-center justify-center ${className}`}
-      role="img"
-      style={{
-        ...base_style,
-        backgroundColor: avatar_bg,
+    <ContactAvatarView
+      aria_label={name || email || undefined}
+      avatar_url={effective_avatar_url}
+      background_color={avatar_bg}
+      className={className}
+      favicon_initially_failed={domain ? is_icon_failed(domain) : false}
+      favicon_key={domain}
+      favicon_src={favicon_src}
+      initials={initials}
+      rounded={rounded}
+      size_px={size_px}
+      text_color={text_color}
+      on_favicon_failed={() => mark_icon_failed(domain)}
+      on_favicon_loaded={(src) => {
+        mark_icon_ok(domain);
+        if (!preferences.low_network_mode) {
+          store_favicon_if_api_url(domain, src);
+        }
       }}
-    >
-      <span
-        aria-hidden="true"
-        className="font-semibold tracking-wide select-none"
-        style={{ fontSize: font_size, lineHeight: 1, color: text_color }}
-      >
-        {initials}
-      </span>
-    </div>
+    />
   );
 }

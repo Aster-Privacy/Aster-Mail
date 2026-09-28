@@ -183,7 +183,7 @@ pub fn build_pinned_client(timeout: Duration) -> Result<reqwest::Client, String>
     reqwest::Client::builder()
         .no_proxy()
         .timeout(timeout)
-        .cookie_store(true)
+        .cookie_store(false)
         .redirect(reqwest::redirect::Policy::none())
         .use_preconfigured_tls(tls)
         .build()

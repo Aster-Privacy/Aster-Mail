@@ -23,6 +23,7 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import { Fragment, useMemo } from "react";
 import { XCircleIcon } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
+import { Island } from "@aster/ui";
 
 import { InfoPopover } from "@/components/ui/info_popover";
 import { use_i18n } from "@/lib/i18n/context";
@@ -748,15 +749,15 @@ export function PlanComparisonTable({
     COLUMNS.find((key) => key === highlight_plan_code) ?? null;
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[640px] table-fixed border-separate border-spacing-0 overflow-hidden rounded-2xl border border-edge-secondary bg-surf-primary">
+    <Island className="overflow-x-auto">
+      <table className="w-full min-w-[640px] table-fixed border-separate border-spacing-0">
         <thead>
           <tr>
-            <th className="w-[200px] border-b border-e border-edge-secondary" />
+            <th className="w-[200px] border-b border-[color:var(--aster-island-divider)]" />
             {COLUMNS.map((key) => (
               <th
                 key={key}
-                className="border-b border-e border-edge-secondary px-4 py-4 text-center align-top last:border-e-0"
+                className="border-b border-[color:var(--aster-island-divider)] px-4 py-4 text-center align-top"
                 scope="col"
               >
                 <span
@@ -779,10 +780,7 @@ export function PlanComparisonTable({
             <Fragment key={row.label}>
               {(index === 0 || rows[index - 1].category !== row.category) && (
                 <tr>
-                  <td
-                    className="border-b border-edge-secondary px-5 py-4"
-                    colSpan={COLUMNS.length + 1}
-                  >
+                  <td className="px-5 pb-2 pt-5" colSpan={COLUMNS.length + 1}>
                     <span className="flex items-center gap-2.5 text-[15px] font-semibold text-txt-primary">
                       <img
                         alt=""
@@ -797,7 +795,7 @@ export function PlanComparisonTable({
               )}
               <tr>
                 <th
-                  className="w-[200px] border-b border-e border-edge-secondary px-5 py-3 text-start text-sm font-normal text-txt-muted"
+                  className="w-[200px] px-5 py-3 text-start text-sm font-normal text-txt-muted"
                   scope="row"
                 >
                   <FeatureLabel label={row.label} tip={row.tip} />
@@ -805,7 +803,7 @@ export function PlanComparisonTable({
                 {COLUMNS.map((key) => (
                   <td
                     key={key}
-                    className="border-b border-e border-edge-secondary px-4 py-3 text-center align-middle tabular-nums last:border-e-0"
+                    className="px-4 py-3 text-center align-middle tabular-nums"
                   >
                     {render_cell(row[key])}
                   </td>
@@ -815,6 +813,6 @@ export function PlanComparisonTable({
           ))}
         </tbody>
       </table>
-    </div>
+    </Island>
   );
 }

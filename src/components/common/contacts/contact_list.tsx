@@ -696,7 +696,7 @@ export function ContactList({
             <Tooltip tip={t("common.favorite")}>
               <button
                 aria-label={t("common.favorite")}
-                className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors"
                 type="button"
                 onClick={on_toggle_favorite_selected}
               >
@@ -714,7 +714,7 @@ export function ContactList({
             <Tooltip tip={t("common.send_email")}>
               <button
                 aria-label={t("common.send_email")}
-                className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors"
                 type="button"
                 onClick={on_compose_to_selected}
               >
@@ -724,7 +724,7 @@ export function ContactList({
             <Tooltip tip={t("common.copy")}>
               <button
                 aria-label={t("common.copy")}
-                className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors"
                 type="button"
                 onClick={on_copy_emails}
               >
@@ -736,7 +736,7 @@ export function ContactList({
                 <DropdownMenuTrigger asChild>
                   <button
                     aria-label={t("common.export_selection")}
-                    className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                    className="h-8 w-8 inline-flex items-center justify-center rounded-[8px] text-txt-secondary hover:bg-[var(--aster-hover)] transition-colors"
                     type="button"
                   >
                     <ArrowDownTrayIcon className="w-4 h-4" />
@@ -894,7 +894,7 @@ export function ContactList({
                     else contact_refs.current?.delete(contact.id);
                   }}
                   className={cn(
-                    "contact_row group/contact w-full flex items-center gap-3 px-3 my-0.5 rounded-[12px] text-start",
+                    "contact_row group/contact w-full flex items-center gap-3 px-3 my-0.5 rounded-[var(--aster-radius-control)] text-start",
                     is_compact ? "py-1" : "py-1.5",
                   )}
                   style={{

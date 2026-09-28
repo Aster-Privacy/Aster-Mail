@@ -30,6 +30,7 @@ import {
   is_review_prompt_due,
   mark_review_prompt_done,
 } from "@/lib/review_prompt";
+import { open_external } from "@/utils/open_link";
 
 export function ReviewPromptBanner() {
   const reduce_motion = use_should_reduce_motion();
@@ -70,7 +71,7 @@ export function ReviewPromptBanner() {
     title?: string,
   ) => (
     <button
-      className="px-2.5 py-0.5 text-xs font-medium rounded-[12px] transition-colors"
+      className="px-2.5 py-0.5 text-xs font-medium rounded-[var(--aster-radius-control)] transition-colors"
       style={{
         backgroundColor: emphasis
           ? "rgba(255, 255, 255, 0.2)"
@@ -117,11 +118,7 @@ export function ReviewPromptBanner() {
               {pill_button(
                 t("review_prompt.banner_open"),
                 () => {
-                  window.open(
-                    REVIEW_PROMPT_URL,
-                    "_blank",
-                    "noopener,noreferrer",
-                  );
+                  open_external(REVIEW_PROMPT_URL);
                   close();
                 },
                 true,

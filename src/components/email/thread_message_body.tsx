@@ -76,8 +76,8 @@ export function ThreadMessageBody({
     <div
       className={
         viewing_source
-          ? "px-3 @md:px-4 pt-4 pb-2 bg-[var(--thread-content-bg)]"
-          : "bg-[var(--thread-content-bg)]"
+          ? "px-3 @md:px-4 pt-4 pb-2 bg-transparent"
+          : "bg-transparent"
       }
     >
       {viewing_source ? (

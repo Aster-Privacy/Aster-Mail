@@ -375,7 +375,7 @@ export function crypto_addon_term_modal({
                         term_button_refs.current[index] = element;
                       }}
                       aria-checked={is_selected}
-                      className={`w-full flex items-center justify-between gap-3 rounded-xl px-3.5 py-3 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 disabled:cursor-not-allowed ${
+                      className={`w-full flex items-center justify-between gap-3 rounded-[var(--aster-radius-control)] px-3.5 py-3 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 disabled:cursor-not-allowed ${
                         is_selected
                           ? "bg-surf-hover"
                           : "bg-surf-secondary hover:bg-surf-hover"
@@ -521,7 +521,7 @@ export function crypto_addon_term_modal({
                       <button
                         key={key}
                         aria-busy={is_creating}
-                        className="w-full flex items-center justify-between gap-3 rounded-xl bg-surf-secondary px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
+                        className="w-full flex items-center justify-between gap-3 rounded-[var(--aster-radius-control)] bg-surf-secondary px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
                         disabled={busy}
                         type="button"
                         onClick={() => handle_native(coin)}
@@ -559,7 +559,7 @@ export function crypto_addon_term_modal({
 
                   <button
                     aria-busy={is_loading}
-                    className="w-full flex items-center justify-between gap-3 rounded-xl bg-surf-secondary px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
+                    className="w-full flex items-center justify-between gap-3 rounded-[var(--aster-radius-control)] bg-surf-secondary px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
                     disabled={busy}
                     type="button"
                     onClick={handle_stripe}

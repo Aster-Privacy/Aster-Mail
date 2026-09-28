@@ -23,7 +23,7 @@ import type {} from "@/lib/i18n/types";
 
 import { useCallback, useEffect, useState } from "react";
 import { TrashIcon, PlusIcon, NoSymbolIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Input } from "@aster/ui";
 
 import { INPUT_CLASS } from "./shared";
 
@@ -192,9 +192,10 @@ export function ContactsPanel({
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <input
+        <Input
           className={INPUT_CLASS}
           placeholder={t("settings.alias_contact_email_placeholder")}
+          size="md"
           type="email"
           value={email}
           onChange={(e) => set_email(e.target.value)}
@@ -233,7 +234,10 @@ export function ContactsPanel({
               </span>
               <div className="flex items-center gap-1 shrink-0">
                 {contact.is_blocked && (
-                  <span className="inline-flex items-center text-[11px] px-2 py-0.5 rounded-md bg-red-100 text-red-700 border border-red-200 dark:bg-red-500/15 dark:text-red-400 dark:border-red-500/30">
+                  <span
+                    className="inline-flex items-center gap-1 text-[12px] font-semibold"
+                    style={{ color: "var(--color-danger)" }}
+                  >
                     {t("settings.alias_contact_blocked")}
                   </span>
                 )}

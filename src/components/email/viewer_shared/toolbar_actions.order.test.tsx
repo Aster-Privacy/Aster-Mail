@@ -26,7 +26,8 @@ import { ViewerToolbarActions } from "./toolbar_actions";
 
 let toolbar_mode: "simple" | "advanced" = "advanced";
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: React.forwardRef<HTMLButtonElement, Record<string, unknown>>(
     function Button({ children, ...rest }, ref) {
       return React.createElement(

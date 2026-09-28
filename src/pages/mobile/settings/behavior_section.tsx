@@ -40,7 +40,6 @@ import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
-import { Input } from "@/components/ui/input";
 import {
   get_spam_settings,
   save_spam_settings,
@@ -48,6 +47,7 @@ import {
 import { get_member_retention_policy } from "@/services/api/family_org";
 import { ignore_error } from "@/lib/ignore_error";
 import {
+  UNDO_DEFAULT_SECONDS,
   UNDO_PRESET_SECONDS,
   clamp_undo_seconds,
   undo_send_is_active,
@@ -85,6 +85,7 @@ export function BehaviorSection({
     spam_retention_days: 30,
     spam_sensitivity: "medium",
     spam_filter_enabled: true,
+    trash_retention_days: 30,
   });
   const spam_loaded_ref = useRef(false);
   const [spam_load_failed, set_spam_load_failed] = useState(false);
@@ -205,8 +206,23 @@ export function BehaviorSection({
     { value: "7", label: t("settings.retention_7_days") },
     { value: "14", label: t("settings.retention_14_days") },
     { value: "30", label: t("settings.retention_30_days") },
+    { value: "60", label: t("settings.retention_60_days") },
+    { value: "90", label: t("settings.retention_90_days") },
+    { value: "180", label: t("settings.retention_180_days") },
+    { value: "365", label: t("settings.retention_365_days") },
     { value: "never", label: t("settings.retention_never") },
   ];
+
+  const build_retention_options = (current: string) =>
+    spam_retention_options.some((option) => option.value === current)
+      ? spam_retention_options
+      : [
+          ...spam_retention_options,
+          {
+            value: current,
+            label: t("settings.retention_days_count", { days: current }),
+          },
+        ];
 
   const compose_font_size_options = FONT_SIZE_OPTIONS.map((option) => ({
     value: option.value,
@@ -273,8 +289,11 @@ export function BehaviorSection({
     preferences.undo_send_enabled,
     preferences.undo_send_seconds,
   );
+  const undo_current_seconds = clamp_undo_seconds(
+    preferences.undo_send_seconds ?? UNDO_DEFAULT_SECONDS,
+  );
   const undo_custom_matches_preset = undo_presets.includes(
-    preferences.undo_send_seconds as (typeof undo_presets)[number],
+    undo_current_seconds as (typeof undo_presets)[number],
   );
 
   const signature_mode_options: {
@@ -353,7 +372,7 @@ export function BehaviorSection({
                   onChange={commit_compose_font_color}
                 />
                 <button
-                  className="rounded-[12px] border border-[var(--border-primary)] px-3 py-1.5 text-[13px] text-[var(--text-primary)] disabled:opacity-50"
+                  className="rounded-[var(--aster-radius-control)] border border-[var(--border-primary)] px-3 py-1.5 text-[13px] text-[var(--text-primary)] disabled:opacity-50"
                   disabled={!has_compose_font_color}
                   type="button"
                   onClick={() =>
@@ -542,7 +561,7 @@ export function BehaviorSection({
                 {image_loading_options.map((opt) => (
                   <button
                     key={opt.value}
-                    className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                    className={`rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium ${
                       preferences.load_remote_images === opt.value
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
@@ -691,13 +710,13 @@ export function BehaviorSection({
                 {undo_presets.map((sec) => (
                   <button
                     key={sec}
-                    className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
-                      preferences.undo_send_seconds === sec
+                    className={`rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium ${
+                      undo_current_seconds === sec
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
                     }`}
                     style={
-                      preferences.undo_send_seconds === sec
+                      undo_current_seconds === sec
                         ? chip_selected_style
                         : undefined
                     }
@@ -717,8 +736,9 @@ export function BehaviorSection({
                   </button>
                 ))}
                 <div className="flex items-center gap-1">
-                  <Input
-                    className={`w-14 text-center font-medium ${
+                  <input
+                    aria-label={t("common.custom")}
+                    className={`h-[30px] w-[4.5rem] rounded-[var(--aster-radius-control)] px-2 text-center text-[13px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] placeholder:text-[var(--text-muted)] ${
                       !undo_custom_matches_preset
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
@@ -735,9 +755,7 @@ export function BehaviorSection({
                     type="number"
                     value={
                       undo_custom_input ??
-                      (undo_custom_matches_preset
-                        ? ""
-                        : preferences.undo_send_seconds)
+                      (undo_custom_matches_preset ? "" : undo_current_seconds)
                     }
                     onBlur={(e) => {
                       const parsed = parse_bounded_int(e.target.value, 1, 30);
@@ -870,7 +888,7 @@ export function BehaviorSection({
                       {spam_sensitivity_options.map((opt) => (
                         <button
                           key={opt.value}
-                          className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                          className={`rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium ${
                             spam_settings.spam_sensitivity === opt.value
                               ? "text-white"
                               : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
@@ -918,34 +936,36 @@ export function BehaviorSection({
                             </p>
                           )}
                           <div className="flex flex-wrap gap-2">
-                            {spam_retention_options.map((opt) => (
-                              <button
-                                key={opt.value}
-                                className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
-                                  effective_value === opt.value
-                                    ? "text-white"
-                                    : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
-                                } ${spam_enforced ? "opacity-60 cursor-not-allowed" : ""}`}
-                                disabled={spam_enforced}
-                                style={
-                                  effective_value === opt.value
-                                    ? chip_selected_style
-                                    : undefined
-                                }
-                                type="button"
-                                onClick={() => {
-                                  if (spam_enforced) return;
-                                  update_spam_settings({
-                                    spam_retention_days:
-                                      opt.value === "never"
-                                        ? 0
-                                        : parseInt(opt.value, 10),
-                                  });
-                                }}
-                              >
-                                {opt.label}
-                              </button>
-                            ))}
+                            {build_retention_options(effective_value).map(
+                              (opt) => (
+                                <button
+                                  key={opt.value}
+                                  className={`rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium ${
+                                    effective_value === opt.value
+                                      ? "text-white"
+                                      : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
+                                  } ${spam_enforced ? "opacity-60 cursor-not-allowed" : ""}`}
+                                  disabled={spam_enforced}
+                                  style={
+                                    effective_value === opt.value
+                                      ? chip_selected_style
+                                      : undefined
+                                  }
+                                  type="button"
+                                  onClick={() => {
+                                    if (spam_enforced) return;
+                                    update_spam_settings({
+                                      spam_retention_days:
+                                        opt.value === "never"
+                                          ? 0
+                                          : parseInt(opt.value, 10),
+                                    });
+                                  }}
+                                >
+                                  {opt.label}
+                                </button>
+                              ),
+                            )}
                           </div>
                         </>
                       );
@@ -954,6 +974,72 @@ export function BehaviorSection({
                 </>
               )}
             </>
+          )}
+        </SettingsGroup>
+
+        <SettingsGroup title={t("mail.trash")}>
+          {!spam_load_failed && (
+            <div className="px-4 py-2">
+              <p className="text-[13px] text-[var(--text-muted)]">
+                {t("settings.auto_delete_trash_after")}
+              </p>
+              <p className="mb-2 text-[12px] text-[var(--text-muted)]">
+                {t("settings.auto_delete_trash_description")}
+              </p>
+              {(() => {
+                const trash_locked =
+                  !!family_policy?.enforce_on_members &&
+                  family_policy.trash_retention_days != null;
+                const effective_value = trash_locked
+                  ? family_policy!.trash_retention_days === 0
+                    ? "never"
+                    : String(family_policy!.trash_retention_days)
+                  : spam_settings.trash_retention_days === 0
+                    ? "never"
+                    : String(spam_settings.trash_retention_days);
+
+                return (
+                  <>
+                    {trash_locked && (
+                      <p className="mb-2 flex items-center gap-1 text-[12px] text-amber-500">
+                        <LockClosedIcon className="h-3 w-3 flex-shrink-0" />
+                        {t("settings.controlled_by_family_admin")}
+                      </p>
+                    )}
+                    <div className="flex flex-wrap gap-2">
+                      {build_retention_options(effective_value).map((opt) => (
+                        <button
+                          key={opt.value}
+                          className={`rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium ${
+                            effective_value === opt.value
+                              ? "text-white"
+                              : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
+                          } ${trash_locked ? "opacity-60 cursor-not-allowed" : ""}`}
+                          disabled={trash_locked}
+                          style={
+                            effective_value === opt.value
+                              ? chip_selected_style
+                              : undefined
+                          }
+                          type="button"
+                          onClick={() => {
+                            if (trash_locked) return;
+                            update_spam_settings({
+                              trash_retention_days:
+                                opt.value === "never"
+                                  ? 0
+                                  : parseInt(opt.value, 10),
+                            });
+                          }}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
           )}
         </SettingsGroup>
 
@@ -989,7 +1075,7 @@ export function BehaviorSection({
             <p className="mb-2 text-[13px] font-medium text-[var(--text-primary)]">
               {t("settings.swipe_left")}
             </p>
-            <div className="mb-3 divide-y divide-[var(--border-primary)] overflow-hidden rounded-xl bg-[var(--mobile-bg-card-hover)]">
+            <div className="mb-3 overflow-hidden rounded-xl bg-[var(--mobile-bg-card-hover)]">
               {SWIPE_ACTION_OPTIONS.map((id) => {
                 const def = get_swipe_action(id);
 
@@ -1023,7 +1109,7 @@ export function BehaviorSection({
             <p className="mb-2 text-[13px] font-medium text-[var(--text-primary)]">
               {t("settings.swipe_right")}
             </p>
-            <div className="mb-1 divide-y divide-[var(--border-primary)] overflow-hidden rounded-xl bg-[var(--mobile-bg-card-hover)]">
+            <div className="mb-1 overflow-hidden rounded-xl bg-[var(--mobile-bg-card-hover)]">
               {SWIPE_ACTION_OPTIONS.map((id) => {
                 const def = get_swipe_action(id);
 

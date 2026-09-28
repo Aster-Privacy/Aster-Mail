@@ -114,16 +114,10 @@ function section_heading(text: string) {
 }
 
 const tile_base =
-  "relative rounded-xl border text-start transition-colors focus:outline-none disabled:pointer-events-none disabled:opacity-50";
+  "relative rounded-[var(--aster-radius-control)] border-0 text-start transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:pointer-events-none disabled:opacity-50";
 
 function tile_style(active: boolean) {
-  return active
-    ? {
-        borderColor: "var(--accent-color)",
-        backgroundColor: selected_tint,
-        boxShadow: "0 0 0 1px var(--accent-color)",
-      }
-    : undefined;
+  return active ? { backgroundColor: selected_tint } : undefined;
 }
 
 function tile_check(active: boolean) {
@@ -424,7 +418,7 @@ export function PlanPaymentMethodModal({
                       className={`${tile_base} flex flex-col px-3 pb-3 pt-3 ${
                         active
                           ? ""
-                          : "border-edge-secondary hover:bg-surf-tertiary"
+                          : "bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)]"
                       }`}
                       disabled={busy}
                       role="radio"
@@ -474,7 +468,7 @@ export function PlanPaymentMethodModal({
                       className={`${tile_base} flex w-full items-center gap-3 py-3 pe-9 ps-4 ${
                         active
                           ? ""
-                          : "border-edge-secondary hover:bg-surf-tertiary"
+                          : "bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)]"
                       }`}
                       disabled={busy}
                       role="radio"
@@ -584,7 +578,7 @@ export function PlanPaymentMethodModal({
                     className={`${tile_base} flex w-full items-start gap-3 py-3.5 pe-9 ps-4 ${
                       active
                         ? ""
-                        : "border-edge-secondary hover:bg-surf-tertiary"
+                        : "bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)]"
                     }`}
                     disabled={busy || entry.disabled}
                     role="radio"
@@ -687,7 +681,7 @@ export function PlanPaymentMethodModal({
         </div>
 
         <aside className="min-w-0">
-          <div className="plan_galaxy rounded-2xl border border-edge-secondary p-4">
+          <div className="plan_galaxy rounded-[var(--aster-radius-control)] p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-[11px] font-semibold uppercase tracking-wider plan_galaxy_text_muted">
                 {t("settings.domain_purchase_order_summary")}

@@ -97,7 +97,7 @@ export function RecipientIdentityNotice({
       {visible.map((email) => (
         <div
           key={email}
-          className="flex items-start gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-txt-primary"
+          className="flex items-start gap-2 rounded-[var(--aster-radius-control)] bg-amber-500/10 px-3 py-2 text-xs text-txt-primary"
         >
           <ShieldExclamationIcon
             aria-hidden="true"

@@ -23,16 +23,22 @@ import type { TranslationKey } from "@/lib/i18n";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   ArrowDownTrayIcon,
-  ArrowRightIcon,
   ArrowTopRightOnSquareIcon,
   CheckIcon,
   ChevronDownIcon,
   ClipboardDocumentIcon,
   ComputerDesktopIcon,
+  LockClosedIcon,
   QuestionMarkCircleIcon,
   LinkSlashIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandRow,
+  IslandSection,
+  IslandSections,
+} from "@aster/ui";
 
 import {
   DropdownMenu,
@@ -53,6 +59,7 @@ import {
 import { InfoPopover } from "@/components/ui/info_popover";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -305,39 +312,46 @@ async function start_bridge_download(
 interface BridgeDownloadLinkProps {
   platform: string;
   is_locked: boolean;
-  className: string;
-  children: React.ReactNode;
+  is_primary?: boolean;
+  label: string;
 }
+
+const DOWNLOAD_BTN_BASE =
+  "aster_btn aster_btn_md inline-flex flex-shrink-0 items-center justify-center gap-1.5 whitespace-nowrap";
 
 function BridgeDownloadLink({
   platform,
   is_locked,
-  className,
-  children,
+  is_primary = false,
+  label,
 }: BridgeDownloadLinkProps) {
   const { t } = use_i18n();
-  const classes = [
-    className,
-    is_locked ? "opacity-40 cursor-not-allowed" : "",
-  ].join(" ");
 
   if (is_locked) {
     return (
-      <button disabled className={classes} type="button">
-        {children}
+      <button
+        disabled
+        className={`${DOWNLOAD_BTN_BASE} aster_btn_outline cursor-not-allowed text-txt-muted`}
+        type="button"
+      >
+        <LockClosedIcon className="w-3.5 h-3.5 flex-shrink-0" />
+        {label}
       </button>
     );
   }
 
   return (
     <a
-      className={classes}
+      className={`${DOWNLOAD_BTN_BASE} ${
+        is_primary ? "aster_btn_depth" : "aster_btn_outline"
+      }`}
       href={`${DL}/${platform}`}
       onClick={(event) =>
         void start_bridge_download(platform, is_locked, t, event)
       }
     >
-      {children}
+      <ArrowDownTrayIcon className="w-3.5 h-3.5 flex-shrink-0" />
+      {label}
     </a>
   );
 }
@@ -359,11 +373,9 @@ function DownloadFormatMenu({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild disabled={is_locked}>
+      <DropdownMenuTrigger asChild>
         <button
-          className={`aster_btn aster_btn_outline aster_btn_md inline-flex items-center justify-center gap-1.5 whitespace-nowrap ${
-            is_locked ? "opacity-40 cursor-not-allowed" : ""
-          }`}
+          className="aster_btn aster_btn_outline aster_btn_md inline-flex items-center justify-center gap-1.5 whitespace-nowrap"
           type="button"
         >
           {children ?? label}
@@ -442,7 +454,7 @@ function CommandBlock({ commands, copy_label }: CommandBlockProps) {
       </div>
       <button
         aria-label={copy_label}
-        className="absolute end-2 top-2 flex h-7 w-7 items-center justify-center rounded-md text-txt-muted transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+        className="absolute end-2 top-2 flex h-7 w-7 items-center justify-center rounded-[var(--aster-radius-control)] text-txt-muted transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
         title={t("common.copy")}
         type="button"
         onClick={copy_command}
@@ -468,37 +480,42 @@ function BridgeUpgradeCard({ on_upgrade }: BridgeUpgradeCardProps) {
   const { t } = use_i18n();
 
   return (
-    <div className="rounded-2xl border border-edge-secondary bg-surf-primary p-5 sm:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h3 className="text-base font-semibold text-txt-primary">
+    <Island padding="lg">
+      <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-8">
+        <div className="min-w-0 flex-1">
+          <h3 className="text-[17px] font-semibold leading-6 text-txt-primary">
             {t("settings.desktop_bridge_upgrade_title")}
           </h3>
-          <p className="mt-1 text-sm text-txt-muted">
+          <p className="mt-1 max-w-[52ch] text-sm leading-5 text-txt-secondary">
             {t("settings.desktop_bridge_upgrade_description")}
           </p>
+          <ul className="mt-4 grid grid-cols-1 gap-x-6 gap-y-2 md:grid-cols-2">
+            {UPGRADE_BENEFIT_KEYS.map((key) => (
+              <li
+                key={key}
+                className="flex items-start gap-2.5 text-sm leading-5 text-txt-primary"
+              >
+                <CheckIcon
+                  className="mt-0.5 h-4 w-4 flex-shrink-0 text-brand"
+                  strokeWidth={2.5}
+                />
+                {t(key)}
+              </li>
+            ))}
+          </ul>
         </div>
-        <button
-          className="aster_btn aster_btn_upgrade aster_btn_md inline-flex flex-shrink-0 items-center gap-2"
-          type="button"
-          onClick={on_upgrade}
-        >
-          {t("settings.desktop_bridge_upgrade_cta")}
-          <ArrowRightIcon className="w-4 h-4 rtl:-scale-x-100" />
-        </button>
-      </div>
-      <ul className="mt-5 grid grid-cols-1 gap-x-8 gap-y-2 sm:grid-cols-2">
-        {UPGRADE_BENEFIT_KEYS.map((key) => (
-          <li
-            key={key}
-            className="flex items-start gap-2 text-sm text-txt-secondary"
+        <div className="flex-shrink-0 sm:pt-0.5">
+          <Button
+            className="w-full sm:w-auto"
+            size="md"
+            variant="depth"
+            onClick={on_upgrade}
           >
-            <CheckIcon className="mt-0.5 w-4 h-4 flex-shrink-0 text-brand" />
-            {t(key)}
-          </li>
-        ))}
-      </ul>
-    </div>
+            {t("settings.desktop_bridge_upgrade_cta")}
+          </Button>
+        </div>
+      </div>
+    </Island>
   );
 }
 
@@ -512,7 +529,7 @@ function PlatformRow({ card, is_locked, is_primary }: PlatformRowProps) {
   const { t } = use_i18n();
 
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-3 border-b border-edge-secondary py-4 last:border-b-0">
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-4">
       <span className="flex w-6 flex-shrink-0 justify-center text-txt-secondary">
         {card.icon}
       </span>
@@ -524,16 +541,12 @@ function PlatformRow({ card, is_locked, is_primary }: PlatformRowProps) {
       </div>
       <div className="flex flex-shrink-0 items-center gap-1.5">
         <BridgeDownloadLink
-          className={`aster_btn ${
-            is_primary ? "aster_btn_depth" : "aster_btn_outline"
-          } aster_btn_md inline-flex items-center justify-center gap-1.5 whitespace-nowrap`}
           is_locked={is_locked}
+          is_primary={is_primary}
+          label={t(card.cta_key)}
           platform={card.platform}
-        >
-          <ArrowDownTrayIcon className="w-3.5 h-3.5 flex-shrink-0" />
-          {t(card.cta_key)}
-        </BridgeDownloadLink>
-        {card.format_groups && (
+        />
+        {card.format_groups && !is_locked && (
           <DownloadFormatMenu
             groups={card.format_groups}
             is_locked={is_locked}
@@ -559,7 +572,7 @@ function BridgeCliCard({ is_locked }: BridgeCliCardProps) {
     CLI_VARIANTS.find((item) => item.id === active_id) ?? CLI_VARIANTS[0];
 
   return (
-    <div className="border-b border-edge-secondary py-4 last:border-b-0">
+    <div className="px-4 py-4">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
         <span className="flex w-6 flex-shrink-0 justify-center text-txt-secondary">
           {terminal_icon}
@@ -573,19 +586,16 @@ function BridgeCliCard({ is_locked }: BridgeCliCardProps) {
           </p>
         </div>
         <BridgeDownloadLink
-          className="aster_btn aster_btn_outline aster_btn_md inline-flex flex-shrink-0 items-center justify-center gap-1.5 whitespace-nowrap"
           is_locked={is_locked}
+          label={t("settings.bridge_cli_download")}
           platform={variant.download_platform}
-        >
-          <ArrowDownTrayIcon className="w-3.5 h-3.5 flex-shrink-0" />
-          {t("settings.bridge_cli_download")}
-        </BridgeDownloadLink>
+        />
       </div>
 
       <div className="mt-3 ps-10">
         <div
           aria-label={t("settings.bridge_all_platforms")}
-          className="flex items-center gap-5 border-b border-edge-secondary"
+          className="flex items-center gap-5"
           role="tablist"
         >
           {CLI_VARIANTS.map((item) => (
@@ -722,7 +732,7 @@ function BridgeSupportLinks() {
       {SUPPORT_LINKS.map(({ label_key, desc_key, href, icon }) => (
         <a
           key={href}
-          className="group flex items-start gap-3 rounded-xl border border-edge-secondary p-4 transition-colors hover:border-edge-primary hover:bg-surf-hover"
+          className="aster_island aster_island_interactive aster_island_pad_md group flex items-start gap-3"
           href={href}
           rel="noopener noreferrer"
           target="_blank"
@@ -821,7 +831,11 @@ export function BridgeSection() {
     load_devices();
   }, [load_devices]);
 
-  if (plan_loading && !limits) return <SettingsSkeleton variant="list" />;
+  const plan_skeleton_visible = use_delayed_flag(plan_loading && !limits);
+
+  if (plan_loading && !limits) {
+    return plan_skeleton_visible ? <SettingsSkeleton variant="list" /> : null;
+  }
   const is_locked = !limits || limits.plan_code === "free";
 
   const handle_revoke = async (id: string) => {
@@ -869,7 +883,7 @@ export function BridgeSection() {
   const confirm_device = devices.find((d) => d.id === confirm_revoke_id);
 
   return (
-    <div className="space-y-6">
+    <IslandSections>
       {plan_load_failed && !limits && (
         <LoadFailedNotice on_retry={() => void refresh_plan_limits(true)} />
       )}
@@ -883,61 +897,52 @@ export function BridgeSection() {
         />
       )}
 
-      <div>
-        <div className="mb-1 flex items-center gap-1.5">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <ArrowDownTrayIcon className="w-[18px] h-[18px] flex-shrink-0 text-txt-primary" />
+      <IslandSection
+        description={t("settings.desktop_bridge_description")}
+        icon={<ArrowDownTrayIcon />}
+        title={
+          <span className="inline-flex items-center gap-1.5">
             {t("settings.bridge_app_name")}
-          </h3>
-          <InfoPopover
-            description={t("settings.bridge_popover_description")}
-            learn_more_label={t("settings.bridge_info_link")}
-            learn_more_url="https://astermail.org/bridge"
-            title={t("settings.bridge_app_name")}
-          />
-        </div>
-        <p className="text-sm text-txt-muted">
-          {t("settings.desktop_bridge_description")}
-        </p>
-
-        <div className="mt-2">
-          {ordered_cards.map((card) => (
-            <PlatformRow
-              key={card.id}
-              card={card}
-              is_locked={is_locked}
-              is_primary={card.id === primary_id}
+            <InfoPopover
+              description={t("settings.bridge_popover_description")}
+              learn_more_label={t("settings.bridge_info_link")}
+              learn_more_url="https://astermail.org/bridge"
+              title={t("settings.bridge_app_name")}
             />
-          ))}
-          <BridgeCliCard is_locked={is_locked} />
-        </div>
-      </div>
+          </span>
+        }
+      >
+        {ordered_cards.map((card) => (
+          <PlatformRow
+            key={card.id}
+            card={card}
+            is_locked={is_locked}
+            is_primary={card.id === primary_id}
+          />
+        ))}
+        <BridgeCliCard is_locked={is_locked} />
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <div className="flex items-center justify-between">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-              <LinkSlashIcon className="w-[18px] h-[18px] flex-shrink-0 text-txt-primary" />
-              {t("settings.bridge_installations")}
-            </h3>
-            {devices.length > 1 && (
-              <Button
-                disabled={revoking_all || revoking_id !== null}
-                variant="destructive"
-                onClick={() => set_confirm_revoke_all(true)}
-              >
-                {t("settings.trusted_devices_revoke_all")}
-                {revoking_all && <ButtonSpinner />}
-              </Button>
-            )}
-          </div>
-          <p className="mt-2 text-sm text-txt-muted">
-            {t("settings.bridge_installations_description")}
-          </p>
-        </div>
-
+      <IslandSection
+        bare
+        description={t("settings.bridge_installations_description")}
+        icon={<LinkSlashIcon />}
+        title={t("settings.bridge_installations")}
+        trailing={
+          devices.length > 1 ? (
+            <Button
+              disabled={revoking_all || revoking_id !== null}
+              variant="destructive"
+              onClick={() => set_confirm_revoke_all(true)}
+            >
+              {t("settings.trusted_devices_revoke_all")}
+              {revoking_all && <ButtonSpinner />}
+            </Button>
+          ) : undefined
+        }
+      >
         {devices_loading ? (
-          <div className="space-y-3">
+          <Island className="space-y-3" padding="md">
             {[1, 2].map((i) => (
               <div key={i} className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
@@ -950,54 +955,51 @@ export function BridgeSection() {
                 <Skeleton className="h-8 w-20 rounded-lg" />
               </div>
             ))}
-          </div>
+          </Island>
         ) : devices_load_failed ? (
-          <div className="py-6">
+          <Island padding="lg">
             <LoadFailedNotice on_retry={load_devices} />
-          </div>
+          </Island>
         ) : devices.length === 0 ? (
-          <div className="rounded-2xl border border-edge-secondary px-6 py-8 text-center">
+          <Island className="text-center" padding="lg">
             <ComputerDesktopIcon className="mx-auto mb-2 w-8 h-8 text-txt-muted" />
             <p className="text-sm text-txt-muted">
               {t("settings.bridge_installations_empty")}
             </p>
-          </div>
+          </Island>
         ) : (
-          <div className="space-y-1">
+          <Island>
             {devices.map((device) => (
-              <div
+              <IslandRow
                 key={device.id}
-                className="flex items-center justify-between border-b border-edge-secondary py-3 last:border-b-0"
-              >
-                <div className="flex min-w-0 items-center gap-3">
-                  <ComputerDesktopIcon className="w-5 h-5 flex-shrink-0 text-txt-muted" />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-txt-primary">
-                      {device.name}
-                    </p>
-                    <p className="mt-0.5 text-xs text-txt-muted">
-                      {t("settings.trusted_devices_created")}{" "}
-                      {format_date_short(device.created_at)}
-                      {" · "}
-                      {t("settings.trusted_devices_last_seen")}{" "}
-                      {format_last_seen(t, device.last_seen_at)}
-                    </p>
-                  </div>
-                </div>
-                <Button
-                  className="ms-3 flex-shrink-0"
-                  disabled={revoking_id === device.id || revoking_all}
-                  variant="destructive"
-                  onClick={() => set_confirm_revoke_id(device.id)}
-                >
-                  {t("settings.trusted_devices_revoke")}
-                  {revoking_id === device.id && <ButtonSpinner />}
-                </Button>
-              </div>
+                description={
+                  <>
+                    {t("settings.trusted_devices_created")}{" "}
+                    {format_date_short(device.created_at)}
+                    {" · "}
+                    {t("settings.trusted_devices_last_seen")}{" "}
+                    {format_last_seen(t, device.last_seen_at)}
+                  </>
+                }
+                icon={<ComputerDesktopIcon />}
+                label={<span className="block truncate">{device.name}</span>}
+                trailing={
+                  <Button
+                    className="flex-shrink-0"
+                    disabled={revoking_id === device.id || revoking_all}
+                    style={{ color: "var(--color-danger)" }}
+                    variant="secondary"
+                    onClick={() => set_confirm_revoke_id(device.id)}
+                  >
+                    {t("settings.trusted_devices_revoke")}
+                    {revoking_id === device.id && <ButtonSpinner />}
+                  </Button>
+                }
+              />
             ))}
-          </div>
+          </Island>
         )}
-      </div>
+      </IslandSection>
 
       <ConfirmationModal
         cancel_text={t("common.cancel")}
@@ -1026,18 +1028,14 @@ export function BridgeSection() {
 
       {!is_locked && <SmtpTokensSection />}
 
-      <div>
-        <div className="mb-3">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <QuestionMarkCircleIcon className="w-[18px] h-[18px] flex-shrink-0 text-txt-primary" />
-            {t("settings.bridge_support_title")}
-          </h3>
-          <p className="mt-1 text-sm text-txt-muted">
-            {t("settings.bridge_support_description")}
-          </p>
-        </div>
+      <IslandSection
+        bare
+        description={t("settings.bridge_support_description")}
+        icon={<QuestionMarkCircleIcon />}
+        title={t("settings.bridge_support_title")}
+      >
         <BridgeSupportLinks />
-      </div>
-    </div>
+      </IslandSection>
+    </IslandSections>
   );
 }

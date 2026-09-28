@@ -21,8 +21,8 @@
 import { useState, useMemo } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { TagIcon } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   EmailTag,
@@ -131,12 +131,9 @@ export function CreateTagModal({ is_open, on_close }: CreateTagModalProps) {
           <motion.div
             ref={dialog_ref}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative w-full max-w-md rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
+            className="relative w-full max-w-md overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
             exit={{ opacity: 0, scale: 0.96 }}
             initial={reduce_motion ? false : { opacity: 0, scale: 0.96 }}
-            style={{
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-            }}
             tabIndex={-1}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
             onClick={(e) => e.stopPropagation()}
@@ -238,7 +235,6 @@ export function CreateTagModal({ is_open, on_close }: CreateTagModalProps) {
             <div className="flex justify-end gap-3 px-6 pb-6 pt-2">
               <Button
                 disabled={is_creating}
-                size="xl"
                 variant="outline"
                 onClick={handle_close}
               >
@@ -248,7 +244,6 @@ export function CreateTagModal({ is_open, on_close }: CreateTagModalProps) {
                 className="text-white"
                 disabled={!trimmed_name || is_creating || !!validation_error}
                 is_loading={is_creating}
-                size="xl"
                 style={{ backgroundColor: selected_color }}
                 variant="depth"
                 onClick={handle_create}

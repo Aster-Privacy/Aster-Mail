@@ -69,10 +69,10 @@ function ProtocolCard({
   return (
     <button
       aria-checked={is_active}
-      className={`flex items-baseline gap-2 rounded-lg border px-3 py-2 text-start transition-colors outline-none ${
+      className={`flex items-baseline gap-2 rounded-2xl border px-3 py-2 text-start transition-colors outline-none ${
         is_active
           ? "border-transparent"
-          : "border-edge-secondary bg-surf-secondary hover:border-edge-primary"
+          : "border-transparent bg-[color-mix(in_srgb,var(--text-primary)_7%,transparent)] hover:bg-[color-mix(in_srgb,var(--text-primary)_10%,transparent)]"
       }`}
       role="radio"
       style={

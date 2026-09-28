@@ -19,8 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useMemo, useState, useCallback, memo, Suspense } from "react";
-
-import { Skeleton } from "./skeleton";
+import { ProfileAvatarView } from "@aster/ui";
 
 import {
   is_icon_failed,
@@ -66,15 +65,6 @@ interface ProfileAvatarProps {
   profile_color?: string;
   sender_authenticated?: boolean;
 }
-
-const SIZE_MAP: Record<string, number> = {
-  xs: 24,
-  sm_compact: 28,
-  sm: 32,
-  md: 40,
-  lg: 48,
-  xl: 96,
-};
 
 const ASTER_SYSTEM_EMAILS = new Set([
   "noreply@astermail.org",
@@ -151,7 +141,6 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   const [img_loaded, set_img_loaded] = useState(false);
   const [prev_email, set_prev_email] = useState(email);
   const [prev_image_url, set_prev_image_url] = useState(resolved_image_url);
-  const pixel_size = SIZE_MAP[size];
   const domain = useMemo(() => (email ? extract_domain(email) : ""), [email]);
   const normalized_email = (email || "").trim().toLowerCase();
   const is_aster_mail =
@@ -284,139 +273,55 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   );
 
   const show_placeholder = !img_loaded && !loaded_sources.has(actual_src ?? "");
+  const show_letter = !actual_src && !profile_pending;
+  const initials = show_letter
+    ? get_initials(name, email, get_active_locale())
+    : "";
+  const avatar_bg = show_letter
+    ? profile_hex || get_avatar_color(get_avatar_key(email, name))
+    : undefined;
+  const text_color = avatar_bg ? get_contrast_text(avatar_bg) : undefined;
 
-  if (!actual_src) {
-    if (profile_pending) {
-      return (
-        <Skeleton
-          className={`rounded-full flex-shrink-0 ${className}`}
-          style={{
-            width: pixel_size,
-            height: pixel_size,
-            minWidth: pixel_size,
-            minHeight: pixel_size,
-          }}
-        />
-      );
-    }
-
-    const initials = get_initials(name, email, get_active_locale());
-    const font_size = Math.round(
-      pixel_size * (initials.length > 1 ? 0.36 : 0.44),
-    );
-    const avatar_bg =
-      profile_hex || get_avatar_color(get_avatar_key(email, name));
-    const text_color = get_contrast_text(avatar_bg);
-
-    const letter_element = (
-      <div
-        aria-label={name || email || undefined}
-        className={`rounded-full flex-shrink-0 flex items-center justify-center ${className}`}
-        role="img"
-        style={{
-          width: pixel_size,
-          height: pixel_size,
-          minWidth: pixel_size,
-          minHeight: pixel_size,
-          backgroundColor: avatar_bg,
-          userSelect: "none",
-        }}
-      >
-        <svg
-          aria-hidden="true"
-          height={pixel_size}
-          style={{ display: "block", pointerEvents: "none" }}
-          viewBox={`0 0 ${pixel_size} ${pixel_size}`}
-          width={pixel_size}
-        >
-          <text
-            dominantBaseline="central"
-            fill={text_color}
-            fontSize={font_size}
-            fontWeight={600}
-            style={{
-              fontFamily: "inherit",
-              letterSpacing: initials.length > 1 ? "-0.02em" : undefined,
-            }}
-            textAnchor="middle"
-            x="50%"
-            y="50%"
-          >
-            {initials}
-          </text>
-        </svg>
-      </div>
-    );
-
-    if (clickable && email) {
-      return (
-        <Suspense fallback={letter_element}>
-          <SenderProfileTrigger
-            className="rounded-full flex-shrink-0 hover:opacity-80 transition-opacity"
-            email={email}
-            name={name}
-            on_compose={on_compose}
-          >
-            {letter_element}
-          </SenderProfileTrigger>
-        </Suspense>
-      );
-    }
-
-    return letter_element;
-  }
-
-  const img_element = (
-    <div
-      className={`rounded-full flex-shrink-0 flex items-center justify-center overflow-hidden relative ${className}`}
-      style={{
-        width: pixel_size,
-        height: pixel_size,
-        minWidth: pixel_size,
-        minHeight: pixel_size,
-        backgroundColor: is_favicon_source ? "transparent" : "var(--avatar-bg)",
-        userSelect: "none",
-      }}
-    >
-      {show_placeholder && (
-        <Skeleton className="absolute inset-0 rounded-full" />
+  const avatar_element = (
+    <ProfileAvatarView
+      background_color={avatar_bg}
+      className={className}
+      email={email}
+      image_attributes={fetch_priority_attr(
+        is_local_logo_source ? "high" : "low",
       )}
-      <img
-        alt={name}
-        className={`w-full h-full ${is_favicon_source ? "object-contain" : "object-cover"}`}
-        crossOrigin={
-          is_favicon_source || is_local_logo_source ? undefined : "anonymous"
-        }
-        decoding="async"
-        draggable={false}
-        {...fetch_priority_attr(is_local_logo_source ? "high" : "low")}
-        referrerPolicy="no-referrer"
-        src={actual_src}
-        style={{
-          position: "absolute",
-          inset: 0,
-          opacity: show_placeholder ? 0 : 1,
-        }}
-        onError={error_handler}
-        onLoad={handle_load}
-      />
-    </div>
+      initials={initials}
+      is_favicon_source={is_favicon_source}
+      is_local_logo_source={is_local_logo_source}
+      name={name}
+      pending={!actual_src && profile_pending}
+      show_placeholder={show_placeholder}
+      size={size}
+      src={actual_src}
+      text_color={text_color}
+      on_image_error={error_handler}
+      on_image_load={handle_load}
+    />
   );
+
+  if (!actual_src && profile_pending) {
+    return avatar_element;
+  }
 
   if (clickable && email) {
     return (
-      <Suspense fallback={img_element}>
+      <Suspense fallback={avatar_element}>
         <SenderProfileTrigger
           className="rounded-full flex-shrink-0 hover:opacity-80 transition-opacity"
           email={email}
           name={name}
           on_compose={on_compose}
         >
-          {img_element}
+          {avatar_element}
         </SenderProfileTrigger>
       </Suspense>
     );
   }
 
-  return img_element;
+  return avatar_element;
 });

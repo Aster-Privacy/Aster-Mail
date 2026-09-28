@@ -102,7 +102,7 @@ export function TranslationPacks() {
 
       {supported && packs.length > 0 && (
         <>
-          <ul className="mt-3 divide-y divide-edge-secondary rounded-lg border border-edge-primary">
+          <ul className="mt-3 divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))] rounded-lg border border-edge-primary">
             {packs.map((pack) => (
               <li
                 key={pack.pair}
@@ -115,7 +115,7 @@ export function TranslationPacks() {
                   </span>
                   <button
                     aria-label={t("settings.translation_packs_remove")}
-                    className="rounded-md p-1 text-txt-muted hover:text-txt-primary hover:bg-white/10 transition-colors"
+                    className="rounded-[var(--aster-radius-control)] p-1 text-txt-muted hover:text-txt-primary hover:bg-[var(--aster-island-hover)] transition-colors"
                     type="button"
                     onClick={() => remove_one(pack.pair)}
                   >

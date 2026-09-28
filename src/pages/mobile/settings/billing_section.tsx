@@ -158,6 +158,31 @@ export function BillingSection({
                 <LoadFailedNotice on_retry={() => void load_data()} />
               )}
 
+              <div className="space-y-3 empty:hidden">
+                <CurrentPlanNotices
+                  grace_days_remaining={grace_days_remaining}
+                  has_payment_failed={has_payment_failed}
+                  is_action_loading={is_action_loading}
+                  is_over_limit={is_storage_over_limit}
+                  on_add_storage={scroll_to_storage_addons}
+                  on_manage_billing={handle_manage_billing}
+                  on_reactivate={handle_reactivate}
+                  on_renew_with_crypto={handle_crypto_renew}
+                  subscription={subscription}
+                />
+                <CryptoResumeBanner />
+                <ResumeCheckoutCard
+                  current_plan_code={subscription?.plan.code ?? null}
+                />
+                <WinBackOfferCard
+                  offer={subscription?.pending_offer}
+                  on_choose_plan={open_plans}
+                />
+                <SpecialOfferBillingCard
+                  plan_code={subscription?.plan.code ?? null}
+                />
+              </div>
+
               {subscription && (
                 <CurrentPlanCard
                   current_billing_interval={current_billing_interval}
@@ -337,11 +362,11 @@ export function BillingSection({
                                     className="flex w-full items-center justify-center rounded-xl py-2.5 mt-3 text-[14px] font-semibold disabled:opacity-50"
                                     disabled={is_action_loading || is_current}
                                     style={{
-                                      background: "var(--mobile-bg-card)",
+                                      background:
+                                        "color-mix(in srgb, var(--text-primary) 6%, transparent)",
                                       color: is_current
                                         ? "var(--text-muted)"
                                         : "var(--text-primary)",
-                                      border: "1px solid var(--border-primary)",
                                     }}
                                     type="button"
                                     onClick={() => {
@@ -676,31 +701,6 @@ export function BillingSection({
                 />
               </div>
 
-              <div className="space-y-3 empty:hidden">
-                <CurrentPlanNotices
-                  grace_days_remaining={grace_days_remaining}
-                  has_payment_failed={has_payment_failed}
-                  is_action_loading={is_action_loading}
-                  is_over_limit={is_storage_over_limit}
-                  on_add_storage={scroll_to_storage_addons}
-                  on_manage_billing={handle_manage_billing}
-                  on_reactivate={handle_reactivate}
-                  on_renew_with_crypto={handle_crypto_renew}
-                  subscription={subscription}
-                />
-                <CryptoResumeBanner />
-                <ResumeCheckoutCard
-                  current_plan_code={subscription?.plan.code ?? null}
-                />
-                <WinBackOfferCard
-                  offer={subscription?.pending_offer}
-                  on_choose_plan={open_plans}
-                />
-                <SpecialOfferBillingCard
-                  plan_code={subscription?.plan.code ?? null}
-                />
-              </div>
-
               <BillingHistorySection
                 history={history}
                 load_failed={history_load_failed}
@@ -722,9 +722,15 @@ export function BillingSection({
               }
             >
               <div className="px-4 py-3">
-                <p className="text-xs text-txt-muted mb-3">
-                  {t("settings.referral_program_description")}
-                </p>
+                {referral_info && (
+                  <p className="text-xs text-txt-muted mb-3">
+                    {t("settings.referral_program_description", {
+                      amount: format_bytes(
+                        referral_info.bonus_bytes_per_referral,
+                      ),
+                    })}
+                  </p>
+                )}
 
                 {referral_info && referral_info.referral_code ? (
                   <>
@@ -736,13 +742,17 @@ export function BillingSection({
                         <input
                           readOnly
                           aria-label={t("settings.your_referral_link")}
-                          className="flex-1 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary outline-none"
+                          className="aster_input min-w-0 flex-1 h-9 px-3 text-sm"
                           value={build_referral_invite_url(
                             referral_info.referral_code,
                           )}
                         />
                         <button
-                          className="h-9 px-3 text-sm rounded-[14px] border border-edge-secondary text-txt-primary flex items-center gap-1.5 active:scale-95 transition-transform"
+                          className="h-9 px-4 text-sm font-medium rounded-[var(--aster-radius-control)] shrink-0 whitespace-nowrap text-txt-primary flex items-center gap-1.5 transition-transform"
+                          style={{
+                            background:
+                              "color-mix(in srgb, var(--text-primary) 7%, transparent)",
+                          }}
                           onClick={async () => {
                             if (
                               await copy_text(
@@ -762,7 +772,11 @@ export function BillingSection({
                         </button>
                       </div>
                       <button
-                        className="w-full mt-2 h-9 px-3 text-sm rounded-[14px] border border-edge-secondary text-txt-primary flex items-center justify-center gap-1.5 active:scale-95 transition-transform"
+                        className="w-full mt-2 h-10 px-4 text-sm font-medium rounded-[var(--aster-radius-control)] text-txt-primary flex items-center justify-center gap-1.5 transition-transform"
+                        style={{
+                          background:
+                            "color-mix(in srgb, var(--text-primary) 7%, transparent)",
+                        }}
                         disabled={is_sending_referral}
                         onClick={handle_send_referral}
                       >
@@ -799,7 +813,13 @@ export function BillingSection({
                     </div>
 
                     <div className="grid grid-cols-2 gap-3 mb-3">
-                      <div className="px-3 py-2.5 rounded-lg border border-edge-secondary text-center">
+                      <div
+                        className="px-3 py-3 rounded-xl text-center"
+                        style={{
+                          background:
+                            "color-mix(in srgb, var(--text-primary) 7%, transparent)",
+                        }}
+                      >
                         <p className="text-lg font-bold text-txt-primary">
                           {referral_info.total_referrals}
                         </p>
@@ -807,7 +827,13 @@ export function BillingSection({
                           {t("settings.total_referrals")}
                         </p>
                       </div>
-                      <div className="px-3 py-2.5 rounded-lg border border-edge-secondary text-center">
+                      <div
+                        className="px-3 py-3 rounded-xl text-center"
+                        style={{
+                          background:
+                            "color-mix(in srgb, var(--text-primary) 7%, transparent)",
+                        }}
+                      >
                         <p className="text-lg font-bold text-yellow-500">
                           {referral_info.pending_referrals}
                         </p>
@@ -815,7 +841,13 @@ export function BillingSection({
                           {t("settings.pending_referrals")}
                         </p>
                       </div>
-                      <div className="px-3 py-2.5 rounded-lg border border-edge-secondary text-center">
+                      <div
+                        className="px-3 py-3 rounded-xl text-center"
+                        style={{
+                          background:
+                            "color-mix(in srgb, var(--text-primary) 7%, transparent)",
+                        }}
+                      >
                         <p className="text-lg font-bold text-green-500">
                           {referral_info.completed_referrals}
                         </p>
@@ -823,7 +855,13 @@ export function BillingSection({
                           {t("settings.completed_referrals")}
                         </p>
                       </div>
-                      <div className="px-3 py-2.5 rounded-lg border border-edge-secondary text-center">
+                      <div
+                        className="px-3 py-3 rounded-xl text-center"
+                        style={{
+                          background:
+                            "color-mix(in srgb, var(--text-primary) 7%, transparent)",
+                        }}
+                      >
                         <p className="text-lg font-bold text-txt-primary">
                           {format_price(
                             (referral_info.credits_earned_cents || 0) +
@@ -841,7 +879,13 @@ export function BillingSection({
                         <p className="text-xs font-medium text-txt-secondary mb-2">
                           {t("settings.referral_history")}
                         </p>
-                        <div className="rounded-lg border overflow-hidden border-edge-secondary">
+                        <div
+                          className="rounded-xl overflow-hidden"
+                          style={{
+                            background:
+                              "color-mix(in srgb, var(--text-primary) 7%, transparent)",
+                          }}
+                        >
                           {referral_history_list.map((ref_item) => (
                             <div
                               key={ref_item.id}

@@ -348,7 +348,7 @@ export function ImportSection({
                 {t("common.something_went_wrong_try_again")}
               </p>
               <button
-                className="mt-3 rounded-[12px] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
+                className="mt-3 rounded-[var(--aster-radius-control)] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
                 type="button"
                 onClick={() => void load_jobs()}
               >

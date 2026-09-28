@@ -464,7 +464,7 @@ export function BimiModal({ is_open, domain, on_close }: BimiModalProps) {
       {inactive_alert}
       <section>
         <SectionTitle>{t("settings.bimi_requirements_title")}</SectionTitle>
-        <ul className="divide-y divide-edge-secondary">
+        <ul className="divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
           <RequirementRow
             message={
               auth_ready

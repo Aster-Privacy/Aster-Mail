@@ -79,13 +79,13 @@ export function SendToast({
       {is_visible && (
         <motion.div
           animate={{ opacity: 1, y: 0 }}
-          className={`fixed ${layout.anchor} z-[100] shadow-2xl bg-modal-bg border-edge-primary`}
+          className={`fixed ${layout.anchor} z-[100] rounded-[var(--aster-radius-floating,16px)] shadow-[var(--aster-floating-shadow)] bg-[var(--aster-floating-bg,var(--modal-bg))]`}
           exit={{ opacity: 0, y: y_offset }}
           initial={reduce_motion ? false : { opacity: 0, y: y_offset }}
           style={layout.style}
           transition={{ duration: reduce_motion ? 0 : 0.2 }}
         >
-          <div className="border rounded-lg overflow-hidden min-w-[320px] border-edge-secondary">
+          <div className="rounded-[var(--aster-radius-floating,16px)] overflow-hidden min-w-[320px]">
             <div className="px-4 py-3 flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div>

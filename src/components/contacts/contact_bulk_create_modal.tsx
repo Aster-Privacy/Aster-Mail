@@ -141,12 +141,11 @@ export function ContactBulkCreateModal({
       </ModalBody>
 
       <ModalFooter>
-        <Button size="md" variant="ghost" onClick={on_close}>
+        <Button variant="ghost" onClick={on_close}>
           {t("common.cancel")}
         </Button>
         <Button
           disabled={entries.length === 0 || is_saving}
-          size="md"
           onClick={() => void submit()}
         >
           {t("common.create_contact")}

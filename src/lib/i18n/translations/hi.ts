@@ -173,6 +173,7 @@ export const hi = {
     remove_photo: "फ़ोटो निकालें",
     failed_save_profile_color:
       "आपका चुना हुआ रंग सहेजा नहीं गया। फिर से कोशिश करें।",
+    failed_remove_recovery_email: "फिर से कोशिश करें।",
     failed_upload_image: "फिर से कोशिश करें।",
     image_load_failed:
       "यह छवि लोड नहीं हुई। रीफ़्रेश करने से आमतौर पर काम बन जाता है।",
@@ -768,6 +769,12 @@ export const hi = {
       "यह कस्टम फ़ील्ड हटाया नहीं गया। फिर से कोशिश करें।",
     failed_to_save_value:
       "आपका बदलाव सहेजा नहीं गया। फिर से कोशिश करें। पिछला मान अब भी मौजूद है।",
+    contacts_import_partial:
+      "{{total}} में से सिर्फ़ {{imported}} संपर्क इंपोर्ट हुए। बाकी जोड़ने के लिए फ़ाइल दोबारा इंपोर्ट करें।",
+    failed_to_import_contacts: "फिर से कोशिश करें।",
+    failed_to_load_duplicates: "फिर से कोशिश करें।",
+    dismiss_failed: "फिर से कोशिश करें।",
+    click_scan_duplicates: 'डुप्लिकेट जांचने के लिए "स्कैन" पर क्लिक करें',
     never_synced: "कभी सिंक नहीं हुआ",
     last_sync_successful: "पिछला सिंक सफल रहा",
     last_sync_failed:
@@ -776,6 +783,11 @@ export const hi = {
       "फ़ॉरवर्ड नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
     failed_to_schedule:
       "शेड्यूल सहेजा नहीं गया। फिर से कोशिश करें। आपका ड्राफ़्ट सुरक्षित है।",
+    fill_required_fields: "सभी ज़रूरी फ़ील्ड भरें",
+    failed_to_load_sources: "फिर से कोशिश करें।",
+    failed_to_add_source: "फिर से कोशिश करें।",
+    failed_to_delete_source: "फिर से कोशिश करें।",
+    failed_to_toggle_source: "फिर से कोशिश करें।",
     sync_failed:
       "सिंक पूरा नहीं हुआ, और हम अपने आप फिर से कोशिश करेंगे। दोनों तरफ़ आपका मेल सुरक्षित है।",
     clearing: "साफ़ किया जा रहा है...",
@@ -865,6 +877,8 @@ export const hi = {
     add_contacts_hint: "शुरू करने के लिए संपर्क जोड़ें",
     add_contact: "संपर्क जोड़ें",
     file_too_large: "फ़ाइल {{size}} से छोटी होनी चाहिए",
+    failed_to_upload_attachment: "फिर से कोशिश करें।",
+    upload_failed: "फिर से कोशिश करें।",
     delete_failed: "फिर से कोशिश करें।",
     download_failed: "फिर से कोशिश करें।",
     attachment_locked:
@@ -877,6 +891,9 @@ export const hi = {
       "शेड्यूल किए गए ईमेल में अभी समाप्ति नहीं लगाई जा सकती। अभी भेजें, या शेड्यूल करने के लिए समाप्ति हटा दें।",
     failed_to_merge_contacts:
       "मर्ज पूरा नहीं हुआ। फिर से कोशिश करें। आपके मूल संपर्कों में कोई बदलाव नहीं हुआ है।",
+    merge_failed: "फिर से कोशिश करें।",
+    failed_to_load_history: "फिर से कोशिश करें।",
+    failed_to_load_more: "फिर से कोशिश करें।",
     enter_valid_emails: "मान्य ईमेल पते डालें",
     enter_contact_details: "संपर्क विवरण डालें",
     select_valid_image: "JPEG, PNG, WebP या GIF छवि चुनें",
@@ -939,6 +956,10 @@ export const hi = {
       "हम इस डिवाइस पर यह ईमेल नहीं खोल सके। रीफ़्रेश करने से आमतौर पर काम बन जाता है, और बार-बार विफल होने पर साइन आउट करके फिर से साइन इन करना दूसरा उपाय है।",
     failed_to_disable_2fa:
       "दो-चरणीय सत्यापन चालू ही रहा। फिर से कोशिश करें। आपका खाता अब भी सुरक्षित है।",
+    failed_to_unsubscribe:
+      "सदस्यता रद्द करना पूरा नहीं हुआ। ईमेल में मौजूद लिंक आपको प्रेषक की साइट पर ले जाएगा, जहां आप यह खुद कर सकते हैं।",
+    failed_to_parse_settings:
+      "यह सेटिंग फ़ाइल पढ़ी नहीं जा सकी। कोई दूसरी फ़ाइल काम करेगी। आपकी मौजूदा सेटिंग जस की तस हैं।",
     removed_from_contacts: "संपर्कों से निकाल दिया गया",
     added_to_contacts: "संपर्कों में जुड़ गया",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -966,6 +987,7 @@ export const hi = {
       "खोज पूरी नहीं हुई। थोड़ी देर बाद एक और कोशिश आमतौर पर काम कर जाती है।",
     search_load_failed_try_again:
       "हम खोज के लिए आपके ईमेल लोड नहीं कर सके। फिर से कोशिश करें। आपका मेल सुरक्षित है।",
+    failed_to_load_search_results: "फिर से कोशिश करें।",
     failed_to_fetch_tags: "फिर से कोशिश करें।",
     failed_to_fetch_folders: "फिर से कोशिश करें।",
     failed_to_unlock_folder:
@@ -993,6 +1015,13 @@ export const hi = {
       "आपके ड्राफ़्ट लोड नहीं हुए। फिर से कोशिश करें। आपके सहेजे गए ड्राफ़्ट सुरक्षित हैं।",
     failed_to_load_scheduled_emails:
       "आपके शेड्यूल किए गए ईमेल लोड नहीं हुए। फिर से कोशिश करें। वे अब भी तय समय पर भेजे जाएंगे।",
+    failed_to_load_subscriptions: "फिर से कोशिश करें।",
+    failed_to_load_more_subscriptions: "फिर से कोशिश करें।",
+    failed_to_scan_subscriptions: "फिर से कोशिश करें।",
+    recently_archived: "हाल में आर्काइव किए गए",
+    older_items: "पुराने आइटम",
+    long_term_archive: "दीर्घकालिक आर्काइव",
+    failed_to_fetch_archive_stats: "फिर से कोशिश करें।",
     value_too_long: "यह मान लंबाई की सीमा से बड़ा है। छोटा संस्करण काम करेगा।",
     please_enter_valid_domain:
       "यह मान्य डोमेन नहीं है। example.com जैसा कुछ काम करेगा।",
@@ -1090,6 +1119,10 @@ export const hi = {
       "आपके लिंक किए गए बाहरी खाते से भेजने से पहले उसे फिर से जोड़ना होगा। यह सेटिंग, जुड़े हुए खाते में मिलेगा।",
     failed_to_send_via_external:
       "आपके लिंक किए गए बाहरी खाते से भेजना काम नहीं किया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
+    tor_label: "Tor",
+    tor_snowflake_label: "Tor (Snowflake)",
+    cdn_relay_label: "CDN रिले",
+    toggle_selection: "चयन बदलें",
     offline_change_failed:
       "ऑफ़लाइन रहते हुए आपने जो बदलाव किया, वह सहेजा नहीं जा सका।",
     offline_send_failed:
@@ -1172,6 +1205,7 @@ export const hi = {
     all_accounts: "सभी खाते",
     failed_to_rotate_keys:
       "कुंजी रीफ़्रेश पूरा नहीं हुआ। फिर से कोशिश करें। आपकी पुरानी कुंजियां अब भी काम करती हैं और आपका डेटा सुरक्षित है।",
+    all_external_accounts: "सभी बाहरी खाते",
     read: "पढ़े गए",
     or_conjunction: "या",
     press_label: "दबाएं",
@@ -1537,6 +1571,11 @@ export const hi = {
     account_limit_reached:
       "आप इस नेटवर्क के लिए खाता सीमा तक पहुंच चुके हैं। अगर यह गलत लगता है, तो hello@astermail.org मदद कर सकता है।",
     health_check_failed: "जांच पूरी नहीं हुई। फिर से कोशिश करें।",
+    failed_to_get_key_status: "फिर से कोशिश करें।",
+    unknown_rotation_error: "फिर से कोशिश करें।",
+    new_email_notification: "{{ sender }} से नया ईमेल",
+    reply_notification: "{{ sender }} ने जवाब दिया",
+    mention_notification: "{{ sender }} ने आपका उल्लेख किया",
     print_from: "प्रेषक:",
     print_to: "To:",
     print_cc: "Cc:",
@@ -1641,6 +1680,18 @@ export const hi = {
       "Aster आपका मेल आपके पासवर्ड से एन्क्रिप्ट करता है, इसलिए कोई भी इसे आपके लिए रीसेट नहीं कर सकता। अंदर आने का रास्ता बनाए रखने के लिए रिकवरी ईमेल जोड़ें।",
     recovery_reminder_action: "रिकवरी ईमेल जोड़ें",
     recovery_reminder_later: "बाद में",
+    recovery_codes_reminder_title: "अपने रिकवरी कोड सहेजें",
+    recovery_codes_reminder_body:
+      "Aster आपका मेल आपके पासवर्ड से एन्क्रिप्ट करता है, इसलिए कोई भी इसे आपके लिए रीसेट नहीं कर सकता। एन्क्रिप्टेड मेल तक वापस पहुंचने का एकमात्र रास्ता रिकवरी कोड हैं।",
+    recovery_codes_reminder_action: "रिकवरी कोड पाएं",
+    recovery_codes_low_reminder_title: "आपके रिकवरी कोड कम रह गए हैं",
+    recovery_codes_low_reminder_body:
+      "हर कोड एक बार काम करता है और आपके पास {{count}} बचे हैं। खाते से बाहर होने से बचने के लिए नए कोड पाएं।",
+    recovery_codes_low_reminder_action: "नए कोड पाएं",
+    recovery_phrase_migrate_title: "रिकवरी कोड पर जाएं",
+    recovery_phrase_migrate_body:
+      "रिकवरी फ़्रेज़ हटाए जा रहे हैं। अभी रिकवरी कोड पाएं ताकि आप आगे भी अपना खाता रिकवर कर सकें।",
+    recovery_phrase_migrate_action: "कोड पाएं",
     plan_prompt_title: "आप मुफ़्त प्लान पर हैं",
     plan_prompt_body:
       "सशुल्क प्लान में ज़्यादा स्टोरेज, कस्टम डोमेन और असीमित एलियास मिलते हैं।",
@@ -2116,11 +2167,23 @@ export const hi = {
       "रिकवरी कोड के बिना, पासवर्ड भूलने पर आपकी एन्क्रिप्टेड मेल हमेशा के लिए बंद हो जाती है।",
     recovery_codes_row: "रिकवरी कोड",
     recovery_codes_row_desc:
-      "छह एक-बार इस्तेमाल होने वाले कोड, जो आपका खाता और सारा एन्क्रिप्टेड डेटा वापस लाते हैं।",
-    recovery_codes_generate: "कोड बनाएं",
-    recovery_codes_regenerate: "कोड दोबारा बनाएं",
+      "एक बार इस्तेमाल होने वाले कोड जो आपका खाता और सभी एन्क्रिप्टेड डेटा वापस लाते हैं।",
+    recovery_codes_generate: "कोड पाएं",
+    recovery_codes_regenerate: "नए कोड पाएं",
     recovery_codes_regenerate_warning:
-      "दोबारा बनाने पर नए कोड बनते हैं और पुराने कोड हमेशा के लिए बेकार हो जाते हैं।",
+      "नए कोड पाते ही आपके मौजूदा कोड काम करना बंद कर देते हैं।",
+    recovery_codes_show: "कोड दिखाएं",
+    recovery_codes_get_new_title: "नए रिकवरी कोड पाएं?",
+    recovery_codes_confirm_title: "पुष्टि करें कि यह आप हैं",
+    recovery_codes_confirm_desc: "अपने रिकवरी कोड देखने के लिए पासवर्ड डालें।",
+    recovery_codes_title: "आपके रिकवरी कोड",
+    recovery_codes_status:
+      "{{date}} को बनाए गए। {{total}} में से {{remaining}} बचे हैं।",
+    recovery_codes_low:
+      "आपके रिकवरी कोड कम रह गए हैं। खाते से बाहर होने से बचने के लिए नए कोड पाएं।",
+    recovery_codes_used: "इस्तेमाल किया गया",
+    recovery_codes_unavailable:
+      "आपके कोड इस डिवाइस पर सेव नहीं हैं। उन्हें देखने के लिए नए कोड पाएं।",
     recovery_method_active: "सक्रिय",
     recovery_method_not_set: "सेट नहीं है",
     recovery_codes_saved_confirm:
@@ -3029,6 +3092,7 @@ export const hi = {
     security_center_identity_key: "पहचान कुंजी",
     criterion_two_factor: "दो-चरणीय प्रमाणीकरण",
     criterion_passkey: "पासकी दर्ज हो गई",
+    criterion_recovery_codes: "रिकवरी कोड सहेजे गए",
     criterion_recovery_email: "पुष्ट रिकवरी ईमेल",
     criterion_auto_lock: "अपने आप लॉक",
     criterion_login_alerts: "साइन इन अलर्ट",
@@ -3209,6 +3273,60 @@ export const hi = {
     cancel_plan_warning:
       "इस बिलिंग अवधि के अंत तक आपके पास प्रीमियम सुविधाएं रहेंगी, और उसके बाद आपका प्लान मुफ़्त हो जाएगा। आपका मेल, संपर्क और सेटिंग आपके पास ही रहेंगे।",
     billing_history: "बिलिंग इतिहास",
+    billing_status_active: "सक्रिय",
+    billing_status_renews: "{{date}} को नवीनीकृत होगा",
+    billing_status_ending: "{{date}} को समाप्त होगा",
+    billing_status_attention: "भुगतान पर ध्यान देने की ज़रूरत है",
+    billing_member_since: "{{date}} से सदस्य",
+    billing_keep_title: "अपना प्लान रखें",
+    billing_payment_method: "भुगतान का तरीका",
+    billing_switch_yearly_subtitle:
+      "{{monthly}}/माह, सालाना {{yearly}} बिल किया जाता है",
+    billing_save_amount: "{{amount}} बचाएँ",
+    billing_term_heading: "बिलिंग अवधि",
+    billing_pay_yearly: "सालाना भुगतान करें",
+    billing_pay_monthly: "मासिक भुगतान करें",
+    billing_billed_yearly_total: "सालाना {{amount}} बिल किया जाता है",
+    billing_billed_monthly: "हर महीने बिल किया जाता है",
+    billing_save_percent: "{{percent}}% बचाएँ",
+    billing_select_plan_hint: "जारी रखने के लिए एक प्लान चुनें",
+    billing_addon_active: "सक्रिय",
+    billing_addon_ending: "समाप्त हो रहा है",
+    billing_addon_ends: "{{date}} को समाप्त होगा",
+    billing_add_storage_summary: "{{size}} स्टोरेज जोड़ें",
+    billing_storage_status_ok: "सब ठीक है",
+    billing_storage_status_near: "लगभग भर गया",
+    billing_storage_status_full: "कार्रवाई ज़रूरी",
+    billing_upgrade_note: "कभी भी रद्द करें। आपका मेल आपके पास रहता है।",
+    billing_thanks_title: "Aster का समर्थन करने के लिए धन्यवाद",
+    billing_thanks_body:
+      "आपका समर्थन हमारे लिए सब कुछ है। इससे एक छोटी टीम हर दिन Aster को सावधानी से बनाती रहती है।",
+    billing_thanks_free_title: "Aster इस्तेमाल करने के लिए धन्यवाद",
+    billing_thanks_free_body:
+      "एक छोटी टीम Aster को सावधानी से बनाती है, और जो भी व्यक्ति अपने मेल के लिए इस पर भरोसा करता है, वह हमें आगे बढ़ाता है। जब भी आपको ज़्यादा स्टोरेज, उपनाम या कस्टम डोमेन चाहिए, अपग्रेड करें।",
+    billing_addons_subtitle: "ज़्यादा जगह, वही प्लान",
+    billing_support_subtitle: "टीम को संदेश भेजें",
+    billing_upsell_title: "{{name}} के साथ और पाएँ",
+    billing_upsell_price: "{{price}} प्रति माह से, वार्षिक बिलिंग",
+    billing_advantages_title_paid: "आपके प्लान में क्या शामिल है",
+    billing_advantages_title_free: "{{name}} के साथ आपको क्या मिलता है",
+    billing_see_all_features: "{{name}} की सभी सुविधाएँ देखें",
+    billing_compare_all_plans_subtitle: "व्यक्तिगत और पारिवारिक प्लान, मासिक या वार्षिक",
+    billing_usage_upgrade_hint: "अधिक जगह के लिए अपग्रेड करें",
+    usage_in_use: "{{current}} उपयोग में",
+    billing_credits_subtitle: "बैलेंस और टॉप-अप",
+    billing_academic_subtitle: "स्कूल ईमेल से बचत करें",
+    billing_history_empty:
+      "अभी कोई इनवॉइस नहीं है। पहले भुगतान के बाद आपके भुगतान यहाँ दिखेंगे।",
+    billing_invoice_count: "{{count}} इनवॉइस",
+    billing_invoice_count_one: "{{count}} इनवॉइस",
+    billing_invoice_count_other: "{{count}} इनवॉइस",
+    billing_addons_active_count: "{{count}} सक्रिय",
+    billing_addons_active_count_one: "{{count}} सक्रिय",
+    billing_addons_active_count_other: "{{count}} सक्रिय",
+    academic_status_none: "आवेदन नहीं किया",
+    academic_status_pending: "सत्यापन की प्रतीक्षा में",
+    academic_status_verified: "सत्यापित",
     billing_plan_heading: "प्लान",
     billing_hide_plans: "प्लान छिपाएं",
     billing_cancel_notice_title: "आपका प्लान रद्द होने वाला है",
@@ -3536,6 +3654,12 @@ export const hi = {
       "आप पहले से इस प्लान पर हैं। प्रोमो कोड किसी दूसरे प्लान पर जाने पर लागू होते हैं।",
     promo_error_not_upgrade:
       "प्रोमो कोड ऊंचे प्लान पर अपग्रेड करने पर लागू होते हैं।",
+    promo_error_card_only:
+      "यह प्रोमो कोड केवल कार्ड भुगतान के साथ काम करता है।",
+    promo_error_with_credits:
+      "आप एक ही भुगतान पर प्रोमो कोड और खाता क्रेडिट का उपयोग नहीं कर सकते।",
+    promo_error_not_for_addon:
+      "ऐड-ऑन पर प्रोमो कोड का उपयोग नहीं किया जा सकता।",
     promo_error_generic:
       "आपका प्रोमो कोड जांचा नहीं जा सका। थोड़ी देर बाद फिर से कोशिश करें।",
     plan_change_discount_amount: "{{amount}} की छूट",
@@ -5915,6 +6039,10 @@ export const hi = {
     created_date: "{{date}} को बनाया गया",
     export_public_key_label: "सार्वजनिक कुंजी एक्सपोर्ट करें",
     export_private_key_label: "निजी कुंजी एक्सपोर्ट करें",
+    export_private_key_warning:
+      "फ़ाइल को सुरक्षित जगह रखें और कभी साझा न करें। जिसके पास यह होगी, वह आपका मेल पढ़ सकता है।",
+    export_two_factor_hint:
+      "आपका खाता दो-चरणीय प्रमाणीकरण इस्तेमाल करता है। जारी रखने के लिए अपने प्रमाणक ऐप का मौजूदा कोड दर्ज करें।",
     verify_identity_export:
       "अपनी निजी कुंजी एक्सपोर्ट करने के लिए अपनी पहचान सत्यापित करें",
     two_fa_code_label: "2FA कोड",
@@ -6181,6 +6309,7 @@ export const hi = {
     domain_purchase_progress_note:
       "जब तक हम आपका डोमेन पंजीकृत करके आपके मेलबॉक्स सेट करते हैं, थोड़ा इंतज़ार करें। इसमें आमतौर पर करीब एक मिनट लगता है।",
     domain_purchase_complete_cta: "खरीद पूरी करें",
+    domain_purchase_open_checkout: "चेकआउट फिर से खोलें",
     domain_purchase_cancel_payment_title: "यह भुगतान रद्द करें?",
     domain_purchase_cancel_payment_message:
       "क्या आप वाकई कस्टम डोमेन के लिए यह भुगतान रद्द करना चाहते हैं?",
@@ -6690,7 +6819,10 @@ export const hi = {
     signature_content_placeholder: "सादर,\nआपका नाम\nyour@email.com",
     signature_name_required: "इस हस्ताक्षर के लिए नाम डालें।",
     signature_content_required: "इस हस्ताक्षर के लिए कुछ सामग्री जोड़ें।",
-    signature_image_too_large: "तस्वीरें 2 MB से कम की होनी चाहिए।",
+    signature_image_too_large:
+      "यह तस्वीर आपके हस्ताक्षर में जोड़ने के लिए बहुत बड़ी है। कोई छोटी तस्वीर चुनें।",
+    signature_too_large:
+      "आपका हस्ताक्षर सहेजने के लिए बहुत बड़ा है। कोई तस्वीर हटाएं या टेक्स्ट छोटा करें।",
     signature_image_invalid:
       "सिर्फ़ PNG, JPEG, GIF और WebP तस्वीरें जोड़ी जा सकती हैं।",
     signature_image_failed:
@@ -6751,6 +6883,9 @@ export const hi = {
     spam_sensitivity_description:
       "तय करें कि स्पैम फ़िल्टर संदिग्ध ईमेल को कितनी सख़्ती से पकड़े।",
     auto_delete_spam_after: "इतने समय बाद स्पैम अपने आप हटाएं",
+    auto_delete_trash_after: "इतने समय बाद ट्रैश अपने आप हटाएं",
+    auto_delete_trash_description:
+      "ट्रैश में इससे पुराने ईमेल हमेशा के लिए हटा दिए जाते हैं।",
     auto_delete_spam_description:
       "इससे पुराने स्पैम ईमेल हमेशा के लिए हटा दिए जाएंगे।",
     spam_delete_hint: "इससे पुरानी स्पैम ईमेल हमेशा के लिए हटा दी जाएंगी",
@@ -6767,6 +6902,9 @@ export const hi = {
     retention_30_days: "30 दिन",
     retention_60_days: "60 दिन",
     retention_90_days: "90 दिन",
+    retention_days_count: "{{ days }} दिन",
+    retention_180_days: "180 दिन",
+    retention_365_days: "365 दिन",
     retention_never: "कभी नहीं (हमेशा रखें)",
     import_emails_title: "ईमेल इंपोर्ट करें",
     import_add_another: "दूसरा खाता जोड़ें",
@@ -8748,6 +8886,18 @@ export const hi = {
     block_sender_on_alias_tooltip: "इस प्रेषक को {{alias}} तक पहुंचने से रोकें",
     more_folders_count_one: "+{{count}} और फ़ोल्डर",
     more_folders_count_other: "+{{count}} और फ़ोल्डर",
+    more_messages_count: "{{count}} और संदेश",
+    more_messages_count_one: "{{count}} और संदेश",
+    more_messages_count_other: "{{count}} और संदेश",
+    reply_to_name: "{{name}} को जवाब दें",
+    reply_all_to_name: "{{name}} और सभी को जवाब दें",
+    forward_message_heading: "संदेश अग्रेषित करें",
+    trackers_found_one: "{{count}} ट्रैकर मिला और रोका गया",
+    trackers_found_other: "{{count}} ट्रैकर मिले और रोके गए",
+    spy_pixels_blocked_count_one: "{{count}} जासूसी पिक्सल रोका गया",
+    spy_pixels_blocked_count_other: "{{count}} जासूसी पिक्सल रोके गए",
+    links_cleaned_count_one: "{{count}} लिंक साफ़ किया गया",
+    links_cleaned_count_other: "{{count}} लिंक साफ़ किए गए",
     param_removed_from_n_links_one: "{{count}} लिंक से {{param}} हटाया गया",
     param_removed_from_n_links_other: "{{count}} लिंक से {{param}} हटाया गया",
     empty_all_title: "यहाँ अभी कोई मेल नहीं",
@@ -8949,6 +9099,10 @@ export const hi = {
     create_a_password: "पासवर्ड बनाएं",
     recommend_strong_password:
       "कम से कम 8 अक्षर इस्तेमाल करें। मिश्रित अक्षरों वाला लंबा पासवर्ड ज़्यादा मज़बूत होता है।",
+    password_recovery_key: "पासवर्ड रिकवरी कुंजी",
+    recovery_key_only_way:
+      "अगर आप पासवर्ड भूल जाते हैं तो यह कुंजी आपके खाते को वापस पाने का एकमात्र तरीका है। इसे किसी सुरक्षित जगह सहेजें।",
+    download_key_lower: "कुंजी डाउनलोड करें",
     downloading: "डाउनलोड हो रहा है...",
     copy_key: "कुंजी कॉपी करें",
     copy_codes: "कोड कॉपी करें",
@@ -9049,9 +9203,6 @@ export const hi = {
     recovery_phrase_confirm_error:
       "एक या ज़्यादा शब्द मेल नहीं खाते। अपना सहेजा गया फ़्रेज़ जांचें और फिर से कोशिश करें।",
     recovery_phrase_skip_check: "मैंने इसे सहेज लिया, यह जांच छोड़ें",
-    forgot_method_title: "आप अपना खाता कैसे रिकवर करना चाहते हैं?",
-    forgot_method_desc:
-      "आप जो तरीका चुनते हैं, वही तय करता है कि आपका एन्क्रिप्टेड डेटा बहाल हो सकता है या नहीं।",
     forgot_method_full_restore: "पूरी बहाली",
     forgot_method_access_only: "सिर्फ़ पहुंच",
     forgot_method_phrase_title: "मेरा रिकवरी फ़्रेज़ इस्तेमाल करें",
@@ -9063,10 +9214,6 @@ export const hi = {
     forgot_method_email_title: "मुझे रीसेट लिंक ईमेल करें",
     forgot_method_email_desc:
       "अपने खाते तक फिर से पहुंच पाएं। रीसेट से पहले का एन्क्रिप्टेड मेल दोबारा तभी पढ़ा जा सकता है, जब आपको बाद में अपना फ़्रेज़ या कोई कोड मिल जाए।",
-    phrase_entry_title: "अपना रिकवरी फ़्रेज़ डालें",
-    phrase_entry_desc: "12 शब्द क्रम से टाइप करें या पेस्ट करें।",
-    phrase_entry_invalid:
-      "यह मान्य रिकवरी फ़्रेज़ नहीं है। शब्द और उनका क्रम जांचें।",
     phrase_recovery_failed:
       "यह फ़्रेज़ इस खाते से मेल नहीं खाता। शब्द और ईमेल पता जांचें।",
     reset_consent_title: "यह रीसेट आपका पुराना डेटा डिक्रिप्ट नहीं कर सकता",
@@ -9120,8 +9267,7 @@ export const hi = {
     creating_new_recovery_backup: "नया रिकवरी बैकअप बनाया जा रहा है...",
     saving_new_credentials: "नए क्रेडेंशियल सहेजे जा रहे हैं...",
     recover_your_account: "अपना खाता रिकवर करें",
-    enter_email_associated:
-      "अपना खाता रिकवर करने के लिए अपना उपयोगकर्ता नाम डालें",
+    enter_email_associated: "जिस खाते को रिकवर करना है उसका पता दर्ज करें।",
     back_to_sign_in: "साइन इन पर वापस जाएं",
     email_me_reset_link: "मुझे रीसेट लिंक ईमेल करें",
     reset_link_sent_title: "अपना रिकवरी ईमेल देखें",
@@ -9137,8 +9283,7 @@ export const hi = {
     resetting_password: "पासवर्ड रीसेट किया जा रहा है...",
     enter_recovery_code: "रिकवरी कोड डालें",
     enter_recovery_code_desc:
-      "खाता बनाते समय सहेजे गए रिकवरी कोड में से कोई एक डालें",
-    verify_code: "कोड सत्यापित करें",
+      "खाता बनाते समय सहेजे गए रिकवरी कोड में से कोई एक दर्ज करें।",
     create_new_password: "नया पासवर्ड बनाएं",
     choose_strong_password: "अपने खाते के लिए एक मज़बूत पासवर्ड चुनें",
     recovering_your_account: "आपका खाता रिकवर किया जा रहा है",
@@ -9148,9 +9293,54 @@ export const hi = {
     old_codes_invalidated:
       "आपके पुराने रिकवरी कोड अब काम नहीं करते। यह विंडो बंद करने से पहले इस नए सेट को कहीं सुरक्षित सहेज लेने पर आप सुरक्षित रहेंगे।",
     n_recovery_codes: "{{count}} रिकवरी कोड",
+    recovery_code_already_used:
+      "यह कोड पहले ही इस्तेमाल हो चुका है। हर कोड एक बार काम करता है, इसलिए अपनी सेव की गई सूची से कोई दूसरा कोड डालें।",
+    try_another_way: "दूसरा तरीका आज़माएं",
+    recovery_email_label: "Aster Mail पता",
+    recovery_domain_hint: "वह डोमेन चुनें जो आपके खाते से मेल खाता है।",
+    recovery_code_label: "रिकवरी कोड",
+    recovery_code_hint:
+      "हर कोड एक बार काम करता है। कोड ऐसे दिखते हैं: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "दूसरा पता इस्तेमाल करें",
+    change_account_desc: "कोई दूसरा Aster Mail खाता पुनर्प्राप्त करें।",
+    support_step_title: "सहायता से संपर्क करें",
+    support_step_desc:
+      "Aster Mail आपका एन्क्रिप्टेड डेटा नहीं पढ़ सकता, इसलिए रिकवरी कोड या रिकवरी ईमेल के बिना कोई उसे नहीं खोल सकता। सहायता टीम आपका खाता देख सकती है और आगे के कदमों में मदद कर सकती है।",
+    support_email_action: "सहायता को ईमेल करें",
+    support_help_center: "सहायता केंद्र खोलें",
+    other_ways_title: "दूसरा तरीका आज़माएं",
+    other_ways_desc: "चुनें कि आप अपने खाते में वापस कैसे आना चाहते हैं।",
+    other_way_code_title: "रिकवरी कोड इस्तेमाल करें",
+    other_way_code_desc: "सेव किए गए कोड में से कोई एक डालें।",
+    other_way_email_title: "रिकवरी ईमेल से रीसेट करें",
+    other_way_email_desc:
+      "Aster Mail आपके रिकवरी ईमेल पर एक लिंक भेजता है। रीसेट से पहले के मेल तक आपकी पहुंच खत्म हो जाती है।",
+    other_way_none_title: "मेरे पास इनमें से कुछ नहीं है",
+    other_way_none_desc:
+      "सहायता से संपर्क करें, हम आगे के कदमों में मदद करेंगे।",
+    reset_account_title: "क्या खाता रीसेट करना है?",
+    reset_account_desc:
+      "रीसेट से पहले के एन्क्रिप्ट किए गए मेल, संपर्क और फ़ाइलें तब तक लॉक रहती हैं जब तक आप उन्हें अपने पुराने पासवर्ड से रिकवर नहीं करते। आपको एक नई, खाली एन्क्रिप्शन कुंजी मिलती है।",
+    send_reset_link: "रीसेट लिंक भेजें",
+    print_codes: "प्रिंट करें",
+    codes_copied: "कोड कॉपी हो गए।",
+    i_saved_these_codes: "मैंने ये कोड सेव कर लिए हैं",
+    review_security_title: "अपनी सुरक्षा जांचें",
+    review_security_desc:
+      "आपका पासवर्ड बदल दिया गया और आपका खाता रिकवर हो गया।",
+    review_devices_signed_out: "दूसरे डिवाइस से साइन आउट कर दिया गया।",
+    review_two_step_off: "2-चरणीय सत्यापन बंद है।",
+    review_turn_on: "चालू करें",
+    review_recovery_email_kept: "आपका रिकवरी ईमेल अब भी सेट है।",
+    review_no_recovery_email: "कोई रिकवरी ईमेल नहीं।",
+    review_add: "जोड़ें",
+    review_codes_left: "{{count}} रिकवरी कोड बचे हैं।",
+    review_codes_left_one: "{{count}} रिकवरी कोड बचा है।",
+    review_codes_left_other: "{{count}} रिकवरी कोड बचे हैं।",
     import_mail_step_title: "अपना मेल साथ लाएँ",
     import_mail_step_desc:
       "दूसरे खाते के संदेश Aster में लाएँ। सब कुछ सहेजे जाने से पहले आपके डिवाइस पर एन्क्रिप्ट होता है।",
+    import_mail_action: "मेल इंपोर्ट करें",
     import_mail_skip: "खाली इनबॉक्स से शुरू करें",
     import_mail_privacy_note: "आप बाद में सेटिंग्स से भी इंपोर्ट कर सकते हैं।",
     password_reset_successful: "पासवर्ड रीसेट सफल रहा",

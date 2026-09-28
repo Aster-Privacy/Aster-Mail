@@ -18,7 +18,7 @@
 //
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Button } from "@aster/ui";
+import { Button, Input, Island, IslandRow } from "@aster/ui";
 import {
   ArrowLeftIcon,
   BackspaceIcon,
@@ -143,7 +143,9 @@ function PinPad({
   const btn = (active: boolean) =>
     cn(
       "h-12 w-12 mx-auto rounded-full flex items-center justify-center transition-all duration-75 focus:outline-none focus-visible:outline-none",
-      disabled ? "opacity-40 cursor-not-allowed" : "bg-muted hover:bg-muted/70",
+      disabled
+        ? "bg-muted/40 text-txt-muted cursor-not-allowed"
+        : "bg-muted hover:bg-muted/70",
       active && !disabled && "scale-90 bg-muted/50",
     );
 
@@ -496,7 +498,7 @@ function SetupDuressPinModal({
         <div className="flex items-center gap-2">
           {step !== "verify_credentials" && (
             <button
-              className="p-1 -ms-1 rounded-lg hover:bg-muted transition-colors"
+              className="p-1 -ms-1 rounded-[var(--aster-radius-control)] hover:bg-muted transition-colors"
               type="button"
               onClick={() => {
                 if (step === "set_pin" || step === "set_text") {
@@ -560,12 +562,13 @@ function SetupDuressPinModal({
                 {t("settings.duress_pin_password_label")}
               </label>
               <div className="relative">
-                <input
+                <Input
                   ref={password_ref}
                   autoComplete="current-password"
-                  className="w-full px-3 py-2.5 pe-10 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
+                  className="pe-10"
                   disabled={verifying_creds}
                   maxLength={128}
+                  size="md"
                   type={show_password ? "text" : "password"}
                   value={password}
                   onChange={(e) => set_password(clamp_password(e.target.value))}
@@ -593,12 +596,13 @@ function SetupDuressPinModal({
                 <label className="text-xs font-medium text-txt-secondary">
                   {t("settings.duress_pin_totp_label")}
                 </label>
-                <input
+                <Input
                   autoComplete="one-time-code"
-                  className="w-full px-3 py-2.5 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors tracking-widest"
+                  className="tracking-widest"
                   disabled={verifying_creds}
                   inputMode="numeric"
                   maxLength={6}
+                  size="md"
                   type="text"
                   value={totp_code}
                   onChange={(e) =>
@@ -651,11 +655,11 @@ function SetupDuressPinModal({
         )}
         {step === "confirm_setup" && (
           <div className="flex flex-col gap-3 pt-1">
-            <div className="rounded-2xl bg-surf-secondary border border-edge-secondary px-4 py-3.5 flex flex-col gap-2">
+            <Island className="flex flex-col gap-2" padding="md">
               <p className="text-sm text-txt-primary leading-relaxed">
                 {t("settings.duress_pin_how_it_works_body")}
               </p>
-            </div>
+            </Island>
             {error_msg && <p className="text-sm text-red-500">{error_msg}</p>}
           </div>
         )}
@@ -669,12 +673,13 @@ function SetupDuressPinModal({
               className="relative"
               transition={{ duration: 0.35 }}
             >
-              <input
+              <Input
                 autoFocus
                 autoComplete="off"
-                className="w-full px-3 py-2.5 pe-10 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
+                className="pe-10"
                 data-form-type="other"
                 placeholder={t("settings.app_lock_text_placeholder")}
+                size="md"
                 type={show_passphrase ? "text" : "password"}
                 value={text_input}
                 onChange={(e) => set_text_input(e.target.value)}
@@ -920,12 +925,13 @@ function RemoveDuressPinModal({
               transition={{ duration: 0.35 }}
             >
               <div className="relative">
-                <input
+                <Input
                   ref={text_ref}
                   autoComplete="off"
-                  className="w-full px-3 py-2.5 pe-10 rounded-xl text-sm text-txt-primary bg-surf-secondary border border-edge-secondary focus:border-brand focus:outline-none transition-colors"
+                  className="pe-10"
                   disabled={verifying}
                   placeholder={t("settings.app_lock_text_placeholder")}
+                  size="md"
                   type={show_passphrase ? "text" : "password"}
                   value={input}
                   onChange={(e) => {
@@ -1005,16 +1011,24 @@ export function DuressPinSection() {
 
   return (
     <>
-      <div className="py-4 px-1">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 pe-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.duress_pin")}
-            </p>
-            <p className="text-xs mt-0.5 text-txt-muted">
-              {t("settings.duress_pin_description")}
-            </p>
-          </div>
+      <IslandRow
+        description={
+          <>
+            {t("settings.duress_pin_description")}
+            {enabled && (
+              <button
+                className="block mt-2 text-xs text-brand underline underline-offset-2 hover:opacity-80"
+                type="button"
+                onClick={() => set_modal("change")}
+              >
+                {t("settings.duress_pin_change")}
+              </button>
+            )}
+          </>
+        }
+        label={t("settings.duress_pin")}
+        layout="stacked"
+        trailing={
           <Button
             variant={enabled ? "outline" : "depth"}
             onClick={() => set_modal(enabled ? "remove" : "setup")}
@@ -1023,17 +1037,8 @@ export function DuressPinSection() {
               ? t("settings.duress_pin_remove")
               : t("settings.duress_pin_setup")}
           </Button>
-        </div>
-        {enabled && (
-          <button
-            className="mt-3 text-xs text-brand underline underline-offset-2 hover:opacity-80"
-            type="button"
-            onClick={() => set_modal("change")}
-          >
-            {t("settings.duress_pin_change")}
-          </button>
-        )}
-      </div>
+        }
+      />
 
       <SetupDuressPinModal
         account_id={account_id}

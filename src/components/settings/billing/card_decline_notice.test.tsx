@@ -26,9 +26,8 @@ vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key, language: "en" }),
 }));
 
-const { CardDeclineNotice, card_decline_message_key } = await import(
-  "./card_decline_notice"
-);
+const { CardDeclineNotice, card_decline_message_key } =
+  await import("./card_decline_notice");
 
 declare global {
   var IS_REACT_ACT_ENVIRONMENT: boolean;

@@ -351,7 +351,7 @@ export function AutoForwardTab() {
             {t("common.something_went_wrong_try_again")}
           </p>
           <button
-            className="rounded-[12px] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
+            className="rounded-[var(--aster-radius-control)] bg-[var(--mobile-bg-card-hover)] px-4 py-2 text-[13px] font-medium text-[var(--mobile-text-primary)]"
             type="button"
             onClick={() => set_rules_reload_token((prev) => prev + 1)}
           >
@@ -514,7 +514,7 @@ export function AutoForwardTab() {
 
       {show_rule_builder && (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50"
+          className="fixed inset-0 z-50 flex items-end justify-center aster_scrim"
           onClick={() => {
             set_show_rule_builder(false);
             set_editing_rule(null);

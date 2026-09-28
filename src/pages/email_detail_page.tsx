@@ -22,8 +22,8 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { EnvelopeIcon, NoSymbolIcon } from "@heroicons/react/24/outline";
-import { Button } from "@/components/ui/button";
 
+import { Button } from "@/components/ui/button";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Sidebar } from "@/components/layout/sidebar";
 import { ComposeManager } from "@/components/compose/compose_manager";
@@ -214,15 +214,12 @@ export default function EmailDetailPage() {
               error={detail.error}
               handle_edit_thread_draft={detail.handle_edit_thread_draft}
               handle_per_message_archive={detail.handle_per_message_archive}
-              handle_per_message_forward={detail.handle_per_message_forward}
               handle_per_message_not_spam={
                 detail.mail_item?.is_spam
                   ? detail.handle_per_message_not_spam
                   : undefined
               }
               handle_per_message_print={detail.handle_per_message_print}
-              handle_per_message_reply={detail.handle_per_message_reply}
-              handle_per_message_reply_all={detail.handle_per_message_reply_all}
               handle_per_message_report_phishing={(msg) =>
                 request_spam(() =>
                   detail.handle_per_message_report_phishing(msg),
@@ -266,7 +263,7 @@ export default function EmailDetailPage() {
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >
             <div
-              className="fixed inset-0 bg-black/50 z-50"
+              className="fixed inset-0 aster_scrim z-50"
               role="button"
               tabIndex={0}
               onClick={() => detail.set_is_block_sender_modal_open(false)}
@@ -280,7 +277,7 @@ export default function EmailDetailPage() {
             <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm z-50 px-4 sm:px-0">
               <motion.div
                 animate={{ opacity: 1, scale: 1 }}
-                className="rounded-xl border p-4 sm:p-6 shadow-xl bg-[var(--bg-primary)] border-[var(--border-secondary)]"
+                className="rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] p-4 sm:p-6"
                 exit={{ opacity: 0, scale: 0.95 }}
                 initial={reduce_motion ? false : { opacity: 0, scale: 0.95 }}
                 transition={{ duration: reduce_motion ? 0 : 0.15 }}
@@ -345,7 +342,7 @@ export default function EmailDetailPage() {
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >
             <div
-              className="fixed inset-0 bg-black/50 z-50"
+              className="fixed inset-0 aster_scrim z-50"
               role="button"
               tabIndex={0}
               onClick={() => detail.set_is_unsubscribe_modal_open(false)}
@@ -359,7 +356,7 @@ export default function EmailDetailPage() {
             <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm z-50 px-4 sm:px-0">
               <motion.div
                 animate={{ opacity: 1, scale: 1 }}
-                className="rounded-xl border p-4 sm:p-6 shadow-xl bg-[var(--bg-primary)] border-[var(--border-secondary)]"
+                className="rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] p-4 sm:p-6"
                 exit={{ opacity: 0, scale: 0.95 }}
                 initial={reduce_motion ? false : { opacity: 0, scale: 0.95 }}
                 transition={{ duration: reduce_motion ? 0 : 0.15 }}

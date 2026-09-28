@@ -19,11 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { memo, type ReactNode } from "react";
-import {
-  ChevronLeftIcon,
-  Bars3Icon,
-  MagnifyingGlassIcon,
-} from "@heroicons/react/24/outline";
+import { MobileHeader as MobileHeaderView } from "@aster/ui";
 
 import { use_platform } from "@/hooks/use_platform";
 import { use_i18n } from "@/lib/i18n/context";
@@ -47,66 +43,16 @@ export const MobileHeader = memo(function MobileHeader({
   const { t } = use_i18n();
 
   return (
-    <header
-      className="sticky top-0 z-40 shrink-0 bg-[var(--bg-primary)] px-3 relative flex items-center isolate"
-      style={{
-        paddingTop: safe_area_insets.top,
-        height: 56 + safe_area_insets.top,
-      }}
-    >
-      <div className="flex items-center gap-1">
-        {on_back && (
-          <button
-            aria-label={t("common.back")}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)]"
-            type="button"
-            onClick={on_back}
-          >
-            <ChevronLeftIcon className="h-6 w-6 rtl:-scale-x-100" />
-          </button>
-        )}
-
-        {on_menu && !on_back && (
-          <button
-            aria-label={t("common.open_menu_label")}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)]"
-            type="button"
-            onClick={on_menu}
-          >
-            <Bars3Icon className="h-6 w-6" />
-          </button>
-        )}
-      </div>
-
-      <div className="flex-1 min-w-0 flex items-center justify-center px-2">
-        {on_menu && !on_back ? (
-          <button
-            className="max-w-full truncate text-lg font-semibold text-[var(--text-primary)]"
-            type="button"
-            onClick={on_menu}
-          >
-            {title}
-          </button>
-        ) : (
-          <h1 className="max-w-full truncate text-lg font-semibold text-[var(--text-primary)]">
-            {title}
-          </h1>
-        )}
-      </div>
-
-      <div className="flex shrink-0 items-center gap-1">
-        {right_actions}
-        {on_search && (
-          <button
-            aria-label={t("common.search")}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)]"
-            type="button"
-            onClick={on_search}
-          >
-            <MagnifyingGlassIcon className="h-6 w-6" />
-          </button>
-        )}
-      </div>
-    </header>
+    <MobileHeaderView
+      back_label={t("common.back")}
+      menu_label={t("common.open_menu_label")}
+      right_actions={right_actions}
+      safe_area_top={safe_area_insets.top}
+      search_label={t("common.search")}
+      title={title}
+      on_back={on_back}
+      on_menu={on_menu}
+      on_search={on_search}
+    />
   );
 });

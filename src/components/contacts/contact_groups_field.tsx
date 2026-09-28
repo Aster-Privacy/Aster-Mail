@@ -50,10 +50,9 @@ export function ContactGroupsField({
       {contact_groups.map((group) => (
         <span
           key={group.id}
-          className="inline-flex items-center gap-1.5 h-7 ps-2.5 pe-1 rounded-full text-[12px] border"
+          className="inline-flex items-center gap-1.5 h-7 ps-2.5 pe-1 rounded-full text-[12px]"
           style={{
-            backgroundColor: `${group.color}1f`,
-            borderColor: `${group.color}66`,
+            backgroundColor: `${group.color}26`,
           }}
         >
           <span
@@ -66,7 +65,7 @@ export function ContactGroupsField({
           </span>
           <button
             aria-label={t("common.remove")}
-            className="w-5 h-5 inline-flex items-center justify-center rounded-full text-txt-muted hover:bg-black/10 dark:hover:bg-white/10"
+            className="w-5 h-5 inline-flex items-center justify-center rounded-full text-txt-muted hover:bg-[var(--aster-hover)]"
             type="button"
             onClick={() => on_toggle_group(group.id, false)}
           >

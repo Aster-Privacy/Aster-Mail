@@ -867,7 +867,7 @@ export function CommandPalette({
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >
             <motion.div
-              className="absolute inset-0 bg-black/40"
+              className="absolute inset-0 aster_scrim"
               onClick={on_close}
             />
             <motion.div
@@ -899,7 +899,7 @@ export function CommandPalette({
               <div className="overflow-hidden aster_search_open aster_search_open_panel rounded-b-[22px]">
                 <div
                   ref={list_ref}
-                  className="max-h-[420px] overflow-y-auto border-t border-[var(--border-secondary)] py-1"
+                  className="max-h-[420px] overflow-y-auto border-t border-[var(--aster-floating-divider,var(--border-secondary))] p-1.5"
                   style={{ scrollbarWidth: "thin" }}
                 >
                   {flat_commands.length === 0 ? (
@@ -918,7 +918,7 @@ export function CommandPalette({
 
                       return (
                         <div key={category} className="pb-1">
-                          <div className="px-4 pt-2 pb-1 text-[11px] font-medium text-[var(--text-muted)]">
+                          <div className="px-2.5 pt-2 pb-1 text-[11px] font-medium text-[var(--text-muted)]">
                             {category_labels[category]}
                           </div>
                           {cmds.map((cmd, idx) => {
@@ -930,7 +930,7 @@ export function CommandPalette({
                             return (
                               <button
                                 key={cmd.id}
-                                className={`w-full flex items-center gap-3 px-4 py-2 text-start ${is_selected ? "bg-[var(--bg-hover)]" : "bg-transparent"}`}
+                                className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-[var(--aster-radius-item,8px)] text-start ${is_selected ? "bg-[var(--aster-floating-hover,var(--bg-hover))]" : "bg-transparent"}`}
                                 data-index={global_index}
                                 disabled={!!loading_action}
                                 onClick={() => !loading_action && cmd.action()}
@@ -976,7 +976,7 @@ export function CommandPalette({
                   )}
                 </div>
 
-                <div className="flex items-center gap-4 px-4 py-2.5 text-[11px] border-t border-[var(--border-secondary)] text-[var(--text-muted)]">
+                <div className="flex items-center gap-4 px-4 py-2.5 text-[11px] border-t border-[var(--aster-floating-divider,var(--border-secondary))] text-[var(--text-muted)]">
                   <span>↑↓ {t("common.navigate")}</span>
                   <span>↵ {t("mail.select")}</span>
                   <span className="ms-auto">

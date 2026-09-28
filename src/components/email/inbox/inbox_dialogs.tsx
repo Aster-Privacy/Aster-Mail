@@ -250,7 +250,6 @@ export function InboxDialogs({
               <Button
                 className="mt-0 max-sm:flex-1"
                 disabled={is_emptying_spam}
-                size="xl"
                 variant="outline"
               >
                 {t("common.cancel")}
@@ -261,7 +260,6 @@ export function InboxDialogs({
                 className="max-sm:flex-1"
                 disabled={is_emptying_spam}
                 is_loading={is_emptying_spam}
-                size="xl"
                 variant="destructive"
                 onClick={confirm_empty_spam}
               >

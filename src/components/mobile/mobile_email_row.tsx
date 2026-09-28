@@ -334,6 +334,9 @@ export const MobileEmailRow = memo(function MobileEmailRow(
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
+          {!email.is_read && (
+            <span className="sr-only">{t("mail.unread")}</span>
+          )}
           <span
             className={`min-w-0 flex-1 truncate text-[15px] leading-tight ${
               !email.is_read
@@ -373,7 +376,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
           )}
 
           {thread_count > 1 && (
-            <span className="shrink-0 rounded border border-[var(--border-primary)] px-1 text-[11px] tabular-nums text-[var(--text-muted)]">
+            <span className="shrink-0 rounded-[5px] bg-[color-mix(in_srgb,currentColor_12%,transparent)] px-1.5 text-[11px] tabular-nums text-[var(--text-muted)]">
               {thread_count}
             </span>
           )}

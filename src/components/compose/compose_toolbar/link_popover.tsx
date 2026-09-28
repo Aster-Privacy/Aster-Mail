@@ -105,7 +105,8 @@ export function LinkPopover({
   return createPortal(
     <div
       ref={card_ref}
-      className="fixed w-[300px] rounded-xl border shadow-lg p-3 flex flex-col gap-2 bg-modal-bg border-edge-primary"
+      className="aster_floating aster_floating_anim fixed w-[300px] p-3 flex flex-col gap-2"
+      data-state="open"
       style={{
         zIndex: 9999,
         left: pos.left,

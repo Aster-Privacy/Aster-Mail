@@ -83,7 +83,7 @@ const ACCOUNTS_KEY = "astermail_accounts_v6";
 const LEGACY_ACCOUNTS_KEY = "astermail_accounts_v5";
 const SWITCH_TOKEN_KEY_PREFIX = "astermail_switch_token_";
 const SWITCH_TOKEN_EXPIRY_KEY_PREFIX = "astermail_switch_token_exp_";
-const DEFAULT_MAX_ACCOUNTS = 6;
+const UNLIMITED_ACCOUNTS = -1;
 const PLAN_FLAG_REPAIR_KEY = "astermail_plan_flags_repaired_v1";
 
 type RosterLoadFailure = "none" | "unavailable" | "undecryptable";
@@ -426,10 +426,25 @@ export async function get_personal_account_count(): Promise<number> {
   return data.accounts.filter((a) => a.kind !== "shared").length;
 }
 
+async function load_plan_account_limit(): Promise<number | null> {
+  try {
+    const { resolve_known_max_accounts } = await import(
+      "@/services/plan_limits"
+    );
+
+    return await resolve_known_max_accounts();
+  } catch {
+    return null;
+  }
+}
+
 export async function can_add_account(max_accounts?: number): Promise<boolean> {
   const count = await get_personal_account_count();
+  const limit = max_accounts ?? (await load_plan_account_limit());
 
-  return count < (max_accounts ?? DEFAULT_MAX_ACCOUNTS);
+  if (limit === null || limit === UNLIMITED_ACCOUNTS) return true;
+
+  return count < limit;
 }
 
 export async function account_exists(user_id: string): Promise<boolean> {
@@ -523,12 +538,18 @@ export async function add_account(
     (a) => a.kind !== "shared",
   ).length;
 
-  if (personal_count >= DEFAULT_MAX_ACCOUNTS) {
+  const max_accounts = await load_plan_account_limit();
+
+  if (
+    max_accounts !== null &&
+    max_accounts !== UNLIMITED_ACCOUNTS &&
+    personal_count >= max_accounts
+  ) {
     return {
       success: false,
       error: get_active_translations().errors.max_accounts.replace(
         "{{ max }}",
-        String(DEFAULT_MAX_ACCOUNTS),
+        String(max_accounts),
       ),
     };
   }

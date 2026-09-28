@@ -25,7 +25,7 @@ import {
   ArrowRightIcon,
   ArrowTopRightOnSquareIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Island } from "@aster/ui";
 
 import { Modal, ModalBody } from "@/components/ui/modal";
 import { use_i18n } from "@/lib/i18n/context";
@@ -94,18 +94,20 @@ export function GmailSyncModal({ is_open, on_close }: GmailSyncModalProps) {
             {t("settings.gmail_sync_intro")}
           </p>
 
-          <ol className="mt-7 space-y-4">
-            {STEP_KEYS.map((step_key, index) => (
-              <li key={step_key} className="flex gap-3">
-                <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-surf-secondary text-xs font-semibold text-txt-secondary tabular-nums">
-                  {index + 1}
-                </span>
-                <p className="flex-1 text-sm text-txt-secondary leading-relaxed">
-                  {t(step_key)}
-                </p>
-              </li>
-            ))}
-          </ol>
+          <Island className="mt-7" padding="md">
+            <ol className="space-y-4">
+              {STEP_KEYS.map((step_key, index) => (
+                <li key={step_key} className="flex gap-3">
+                  <span className="flex-shrink-0 flex items-center justify-center w-6 h-6 rounded-full bg-[color-mix(in_srgb,var(--text-primary)_8%,transparent)] text-xs font-semibold text-txt-secondary tabular-nums">
+                    {index + 1}
+                  </span>
+                  <p className="flex-1 text-sm text-txt-secondary leading-relaxed">
+                    {t(step_key)}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </Island>
 
           <a
             className="mt-6 inline-flex items-center justify-center gap-1.5 text-sm text-txt-secondary underline hover:text-txt-primary"

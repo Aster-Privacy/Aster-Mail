@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { ReactNode, RefObject } from "react";
+import type { ElementType, ReactNode, RefObject } from "react";
 
-import { memo } from "react";
+import { Fragment, memo } from "react";
 import {
   InboxIcon,
   StarIcon,
@@ -33,9 +33,12 @@ import {
   TrashIcon,
   UsersIcon,
   EnvelopeOpenIcon,
-  ChevronDownIcon,
-  ChevronRightIcon,
 } from "@heroicons/react/24/outline";
+import {
+  SidebarNavRow,
+  SidebarSectionHeader,
+  SidebarSectionToggle,
+} from "@aster/ui";
 
 import { AllMailIcon } from "@/components/common/icons";
 import { CountBadge } from "@/components/common/count_badge";
@@ -78,6 +81,17 @@ interface SidebarNavSectionProps {
   inbox_children_slot?: ReactNode;
 }
 
+interface NavItem {
+  id: string;
+  label: string;
+  icon: ElementType;
+  path: string;
+  button_ref: RefObject<HTMLButtonElement>;
+  count?: number;
+  on_after_navigate?: () => void;
+  after?: ReactNode;
+}
+
 export const SidebarNavSection = memo(function SidebarNavSection({
   is_collapsed,
   effective_selected,
@@ -104,533 +118,163 @@ export const SidebarNavSection = memo(function SidebarNavSection({
 }: SidebarNavSectionProps) {
   const { t } = use_i18n();
 
+  const primary_items: NavItem[] = [
+    {
+      id: "inbox",
+      label: t("mail.inbox"),
+      icon: InboxIcon,
+      path: "/",
+      button_ref: inbox_ref,
+      count: stats.unread,
+      on_after_navigate: () =>
+        window.dispatchEvent(new CustomEvent("astermail:inbox-home")),
+      after: inbox_children_slot,
+    },
+    {
+      id: "sent",
+      label: t("mail.sent"),
+      icon: PaperAirplaneIcon,
+      path: "/sent",
+      button_ref: sent_ref,
+    },
+    {
+      id: "scheduled",
+      label: t("mail.scheduled"),
+      icon: ClockIcon,
+      path: "/scheduled",
+      button_ref: scheduled_ref,
+      count: stats.scheduled,
+    },
+    {
+      id: "snoozed",
+      label: t("mail.snoozed"),
+      icon: BellSnoozeIcon,
+      path: "/snoozed",
+      button_ref: snoozed_ref,
+      count: stats.snoozed,
+    },
+    {
+      id: "drafts",
+      label: t("mail.drafts"),
+      icon: DocumentTextIcon,
+      path: "/drafts",
+      button_ref: drafts_ref,
+      count: stats.drafts,
+    },
+    {
+      id: "contacts",
+      label: t("common.contacts"),
+      icon: UsersIcon,
+      path: "/contacts",
+      button_ref: contacts_ref,
+    },
+  ];
+
+  const more_items: NavItem[] = [
+    {
+      id: "starred",
+      label: t("mail.starred"),
+      icon: StarIcon,
+      path: "/starred",
+      button_ref: starred_ref,
+    },
+    {
+      id: "all",
+      label: t("mail.all_mail"),
+      icon: AllMailIcon,
+      path: "/all",
+      button_ref: all_mail_ref,
+    },
+    {
+      id: "archive",
+      label: t("mail.archive"),
+      icon: ArchiveBoxIcon,
+      path: "/archive",
+      button_ref: archive_ref,
+    },
+    {
+      id: "spam",
+      label: t("mail.spam"),
+      icon: ExclamationTriangleIcon,
+      path: "/spam",
+      button_ref: spam_ref,
+      count: stats.spam,
+    },
+    {
+      id: "trash",
+      label: t("mail.trash"),
+      icon: TrashIcon,
+      path: "/trash",
+      button_ref: trash_ref,
+      count: stats.trash,
+    },
+    {
+      id: "subscriptions",
+      label: t("common.subscriptions"),
+      icon: EnvelopeOpenIcon,
+      path: "/subscriptions",
+      button_ref: subscriptions_ref,
+    },
+  ];
+
+  const render_item = (item: NavItem) => {
+    const selected = effective_selected === item.id;
+
+    return (
+      <Fragment key={item.id}>
+        <SidebarNavRow
+          ref={item.button_ref}
+          rail_tip
+          collapsed_slot={
+            item.id === "inbox" ? (
+              <RailUnreadDot count={stats.unread} label={item.label} />
+            ) : undefined
+          }
+          icon={item.icon}
+          is_collapsed={is_collapsed}
+          label={item.label}
+          on_click={() =>
+            handle_nav_click(() => {
+              set_selected_item(item.id);
+              navigate(item.path);
+              item.on_after_navigate?.();
+            })
+          }
+          selected={selected}
+          trailing={
+            item.count !== undefined ? (
+              <CountBadge
+                count={item.count}
+                is_active={selected}
+                is_loading={stats_loading}
+              />
+            ) : undefined
+          }
+        />
+        {item.after}
+      </Fragment>
+    );
+  };
+
   return (
     <>
-      {!is_collapsed && (
-        <div className="mb-1 px-2.5">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-txt-muted opacity-70">
-            {t("common.mail")}
-          </span>
-        </div>
-      )}
+      <SidebarSectionHeader
+        is_collapsed={is_collapsed}
+        label={t("common.mail")}
+      />
 
-      <button
-        ref={inbox_ref}
-        className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "inbox" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "inbox" ? "sidebar-selected" : ""}`}
-        data-rail-tip={is_collapsed ? t("mail.inbox") : undefined}
-        style={{
-          zIndex: 1,
-          color:
-            effective_selected === "inbox"
-              ? "var(--text-primary)"
-              : "var(--text-secondary)",
-          backgroundColor:
-            is_collapsed && effective_selected === "inbox"
-              ? "var(--indicator-bg)"
-              : undefined,
-        }}
-        type="button"
-        onClick={() =>
-          handle_nav_click(() => {
-            set_selected_item("inbox");
-            navigate("/");
-            window.dispatchEvent(new CustomEvent("astermail:inbox-home"));
-          })
-        }
-      >
-        <InboxIcon
-          className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
-          style={{
-            color:
-              effective_selected === "inbox"
-                ? "var(--icon-active)"
-                : "var(--icon-muted)",
-          }}
-        />
-        {is_collapsed ? (
-          <RailUnreadDot count={stats.unread} label={t("mail.inbox")} />
-        ) : (
-          <>
-            <span className="flex-1 text-start">{t("mail.inbox")}</span>
-            <CountBadge
-              count={stats.unread}
-              is_active={effective_selected === "inbox"}
-              is_loading={stats_loading}
-            />
-          </>
-        )}
-      </button>
+      {primary_items.map(render_item)}
 
-      {inbox_children_slot}
-
-      <button
-        ref={sent_ref}
-        className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "sent" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "sent" ? "sidebar-selected" : ""}`}
-        data-rail-tip={is_collapsed ? t("mail.sent") : undefined}
-        style={{
-          zIndex: 1,
-          color:
-            effective_selected === "sent"
-              ? "var(--text-primary)"
-              : "var(--text-secondary)",
-          backgroundColor:
-            is_collapsed && effective_selected === "sent"
-              ? "var(--indicator-bg)"
-              : undefined,
-        }}
-        type="button"
-        onClick={() =>
-          handle_nav_click(() => {
-            set_selected_item("sent");
-            navigate("/sent");
-          })
-        }
-      >
-        <PaperAirplaneIcon
-          className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
-          style={{
-            color:
-              effective_selected === "sent"
-                ? "var(--icon-active)"
-                : "var(--icon-muted)",
-          }}
-        />
-        {!is_collapsed && (
-          <span className="flex-1 text-start">{t("mail.sent")}</span>
-        )}
-      </button>
-
-      <button
-        ref={scheduled_ref}
-        className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "scheduled" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "scheduled" ? "sidebar-selected" : ""}`}
-        data-rail-tip={is_collapsed ? t("mail.scheduled") : undefined}
-        style={{
-          zIndex: 1,
-          color:
-            effective_selected === "scheduled"
-              ? "var(--text-primary)"
-              : "var(--text-secondary)",
-          backgroundColor:
-            is_collapsed && effective_selected === "scheduled"
-              ? "var(--indicator-bg)"
-              : undefined,
-        }}
-        type="button"
-        onClick={() =>
-          handle_nav_click(() => {
-            set_selected_item("scheduled");
-            navigate("/scheduled");
-          })
-        }
-      >
-        <ClockIcon
-          className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
-          style={{
-            color:
-              effective_selected === "scheduled"
-                ? "var(--icon-active)"
-                : "var(--icon-muted)",
-          }}
-        />
-        {!is_collapsed && (
-          <>
-            <span className="flex-1 text-start">{t("mail.scheduled")}</span>
-            <CountBadge
-              count={stats.scheduled}
-              is_active={effective_selected === "scheduled"}
-              is_loading={stats_loading}
-            />
-          </>
-        )}
-      </button>
-
-      <button
-        ref={snoozed_ref}
-        className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "snoozed" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "snoozed" ? "sidebar-selected" : ""}`}
-        data-rail-tip={is_collapsed ? t("mail.snoozed") : undefined}
-        style={{
-          zIndex: 1,
-          color:
-            effective_selected === "snoozed"
-              ? "var(--text-primary)"
-              : "var(--text-secondary)",
-          backgroundColor:
-            is_collapsed && effective_selected === "snoozed"
-              ? "var(--indicator-bg)"
-              : undefined,
-        }}
-        type="button"
-        onClick={() =>
-          handle_nav_click(() => {
-            set_selected_item("snoozed");
-            navigate("/snoozed");
-          })
-        }
-      >
-        <BellSnoozeIcon
-          className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
-          style={{
-            color:
-              effective_selected === "snoozed"
-                ? "var(--icon-active)"
-                : "var(--icon-muted)",
-          }}
-        />
-        {!is_collapsed && (
-          <>
-            <span className="flex-1 text-start">{t("mail.snoozed")}</span>
-            <CountBadge
-              count={stats.snoozed}
-              is_active={effective_selected === "snoozed"}
-              is_loading={stats_loading}
-            />
-          </>
-        )}
-      </button>
-
-      <button
-        ref={drafts_ref}
-        className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "drafts" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "drafts" ? "sidebar-selected" : ""}`}
-        data-rail-tip={is_collapsed ? t("mail.drafts") : undefined}
-        style={{
-          zIndex: 1,
-          color:
-            effective_selected === "drafts"
-              ? "var(--text-primary)"
-              : "var(--text-secondary)",
-          backgroundColor:
-            is_collapsed && effective_selected === "drafts"
-              ? "var(--indicator-bg)"
-              : undefined,
-        }}
-        type="button"
-        onClick={() =>
-          handle_nav_click(() => {
-            set_selected_item("drafts");
-            navigate("/drafts");
-          })
-        }
-      >
-        <DocumentTextIcon
-          className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
-          style={{
-            color:
-              effective_selected === "drafts"
-                ? "var(--icon-active)"
-                : "var(--icon-muted)",
-          }}
-        />
-        {!is_collapsed && (
-          <>
-            <span className="flex-1 text-start">{t("mail.drafts")}</span>
-            <CountBadge
-              count={stats.drafts}
-              is_active={effective_selected === "drafts"}
-              is_loading={stats_loading}
-            />
-          </>
-        )}
-      </button>
-
-      <button
-        ref={contacts_ref}
-        className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "contacts" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "contacts" ? "sidebar-selected" : ""}`}
-        data-rail-tip={is_collapsed ? t("common.contacts") : undefined}
-        style={{
-          zIndex: 1,
-          color:
-            effective_selected === "contacts"
-              ? "var(--text-primary)"
-              : "var(--text-secondary)",
-          backgroundColor:
-            is_collapsed && effective_selected === "contacts"
-              ? "var(--indicator-bg)"
-              : undefined,
-        }}
-        type="button"
-        onClick={() =>
-          handle_nav_click(() => {
-            set_selected_item("contacts");
-            navigate("/contacts");
-          })
-        }
-      >
-        <UsersIcon
-          className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
-          style={{
-            color:
-              effective_selected === "contacts"
-                ? "var(--icon-active)"
-                : "var(--icon-muted)",
-          }}
-        />
-        {!is_collapsed && (
-          <span className="flex-1 text-start">{t("common.contacts")}</span>
-        )}
-      </button>
-
-      {!is_collapsed && (
-        <div className="mt-5 mb-1 px-2.5">
-          <button
-            className="w-full flex items-center gap-1 py-1 text-txt-muted opacity-70 hover:opacity-100"
-            type="button"
-            onClick={on_toggle_section}
-          >
-            {section_collapsed ? (
-              <ChevronRightIcon className="w-3 h-3 rtl:-scale-x-100" />
-            ) : (
-              <ChevronDownIcon className="w-3 h-3" />
-            )}
-            <span className="text-[10px] font-semibold uppercase tracking-[0.05em]">
-              {t("common.more")}
-            </span>
-          </button>
-        </div>
-      )}
+      <SidebarSectionToggle
+        is_collapsed={is_collapsed}
+        label={t("common.more")}
+        on_toggle={on_toggle_section}
+        section_collapsed={section_collapsed}
+      />
 
       {is_collapsed && <div className="mt-3" />}
 
-      {(!section_collapsed || is_collapsed) && (
-        <>
-          <button
-            ref={starred_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "starred" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "starred" ? "sidebar-selected" : ""}`}
-            data-rail-tip={is_collapsed ? t("mail.starred") : undefined}
-            style={{
-              zIndex: 1,
-              color:
-                effective_selected === "starred"
-                  ? "var(--text-primary)"
-                  : "var(--text-secondary)",
-              backgroundColor:
-                is_collapsed && effective_selected === "starred"
-                  ? "var(--indicator-bg)"
-                  : undefined,
-            }}
-            type="button"
-            onClick={() =>
-              handle_nav_click(() => {
-                set_selected_item("starred");
-                navigate("/starred");
-              })
-            }
-          >
-            <StarIcon
-              className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
-              style={{
-                color:
-                  effective_selected === "starred"
-                    ? "var(--icon-active)"
-                    : "var(--icon-muted)",
-              }}
-            />
-            {!is_collapsed && (
-              <span className="flex-1 text-start">{t("mail.starred")}</span>
-            )}
-          </button>
-
-          <button
-            ref={all_mail_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "all" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "all" ? "sidebar-selected" : ""}`}
-            data-rail-tip={is_collapsed ? t("mail.all_mail") : undefined}
-            style={{
-              zIndex: 1,
-              color:
-                effective_selected === "all"
-                  ? "var(--text-primary)"
-                  : "var(--text-secondary)",
-              backgroundColor:
-                is_collapsed && effective_selected === "all"
-                  ? "var(--indicator-bg)"
-                  : undefined,
-            }}
-            type="button"
-            onClick={() =>
-              handle_nav_click(() => {
-                set_selected_item("all");
-                navigate("/all");
-              })
-            }
-          >
-            <AllMailIcon
-              className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
-              style={{
-                color:
-                  effective_selected === "all"
-                    ? "var(--icon-active)"
-                    : "var(--icon-muted)",
-              }}
-            />
-            {!is_collapsed && (
-              <span className="flex-1 text-start">{t("mail.all_mail")}</span>
-            )}
-          </button>
-
-          <button
-            ref={archive_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "archive" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "archive" ? "sidebar-selected" : ""}`}
-            data-rail-tip={is_collapsed ? t("mail.archive") : undefined}
-            style={{
-              zIndex: 1,
-              color:
-                effective_selected === "archive"
-                  ? "var(--text-primary)"
-                  : "var(--text-secondary)",
-              backgroundColor:
-                is_collapsed && effective_selected === "archive"
-                  ? "var(--indicator-bg)"
-                  : undefined,
-            }}
-            type="button"
-            onClick={() =>
-              handle_nav_click(() => {
-                set_selected_item("archive");
-                navigate("/archive");
-              })
-            }
-          >
-            <ArchiveBoxIcon
-              className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
-              style={{
-                color:
-                  effective_selected === "archive"
-                    ? "var(--icon-active)"
-                    : "var(--icon-muted)",
-              }}
-            />
-            {!is_collapsed && (
-              <span className="flex-1 text-start">{t("mail.archive")}</span>
-            )}
-          </button>
-
-          <button
-            ref={spam_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "spam" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "spam" ? "sidebar-selected" : ""}`}
-            data-rail-tip={is_collapsed ? t("mail.spam") : undefined}
-            style={{
-              zIndex: 1,
-              color:
-                effective_selected === "spam"
-                  ? "var(--text-primary)"
-                  : "var(--text-secondary)",
-              backgroundColor:
-                is_collapsed && effective_selected === "spam"
-                  ? "var(--indicator-bg)"
-                  : undefined,
-            }}
-            type="button"
-            onClick={() =>
-              handle_nav_click(() => {
-                set_selected_item("spam");
-                navigate("/spam");
-              })
-            }
-          >
-            <ExclamationTriangleIcon
-              className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
-              style={{
-                color:
-                  effective_selected === "spam"
-                    ? "var(--icon-active)"
-                    : "var(--icon-muted)",
-              }}
-            />
-            {!is_collapsed && (
-              <>
-                <span className="flex-1 text-start">{t("mail.spam")}</span>
-                <CountBadge
-                  count={stats.spam}
-                  is_active={effective_selected === "spam"}
-                  is_loading={stats_loading}
-                />
-              </>
-            )}
-          </button>
-
-          <button
-            ref={trash_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "trash" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "trash" ? "sidebar-selected" : ""}`}
-            data-rail-tip={is_collapsed ? t("mail.trash") : undefined}
-            style={{
-              zIndex: 1,
-              color:
-                effective_selected === "trash"
-                  ? "var(--text-primary)"
-                  : "var(--text-secondary)",
-              backgroundColor:
-                is_collapsed && effective_selected === "trash"
-                  ? "var(--indicator-bg)"
-                  : undefined,
-            }}
-            type="button"
-            onClick={() =>
-              handle_nav_click(() => {
-                set_selected_item("trash");
-                navigate("/trash");
-              })
-            }
-          >
-            <TrashIcon
-              className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
-              style={{
-                color:
-                  effective_selected === "trash"
-                    ? "var(--icon-active)"
-                    : "var(--icon-muted)",
-              }}
-            />
-            {!is_collapsed && (
-              <>
-                <span className="flex-1 text-start">{t("mail.trash")}</span>
-                <CountBadge
-                  count={stats.trash}
-                  is_active={effective_selected === "trash"}
-                  is_loading={stats_loading}
-                />
-              </>
-            )}
-          </button>
-
-          <button
-            ref={subscriptions_ref}
-            className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === "subscriptions" ? "sidebar-active" : ""} ${is_collapsed && effective_selected === "subscriptions" ? "sidebar-selected" : ""}`}
-            data-rail-tip={is_collapsed ? t("common.subscriptions") : undefined}
-            style={{
-              zIndex: 1,
-              color:
-                effective_selected === "subscriptions"
-                  ? "var(--text-primary)"
-                  : "var(--text-secondary)",
-              backgroundColor:
-                is_collapsed && effective_selected === "subscriptions"
-                  ? "var(--indicator-bg)"
-                  : undefined,
-            }}
-            type="button"
-            onClick={() =>
-              handle_nav_click(() => {
-                set_selected_item("subscriptions");
-                navigate("/subscriptions");
-              })
-            }
-          >
-            <EnvelopeOpenIcon
-              className={`${is_collapsed ? "w-5 h-5" : "w-4 h-4"} `}
-              style={{
-                color:
-                  effective_selected === "subscriptions"
-                    ? "var(--icon-active)"
-                    : "var(--icon-muted)",
-              }}
-            />
-            {!is_collapsed && (
-              <span className="flex-1 text-start">
-                {t("common.subscriptions")}
-              </span>
-            )}
-          </button>
-        </>
-      )}
+      {(!section_collapsed || is_collapsed) && <>{more_items.map(render_item)}</>}
     </>
   );
 });

@@ -195,15 +195,13 @@ export function ActionChip({
   })();
 
   const target_text_class = is_target_placeholder
-    ? "text-neutral-400"
+    ? "text-txt-muted"
     : undefined;
 
   const action_segment = (
     <ChipSegment
       is_first
-      icon={
-        <Icon className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
-      }
+      icon={<Icon className="w-3.5 h-3.5 text-txt-muted" />}
     >
       {label_for_action()}
     </ChipSegment>

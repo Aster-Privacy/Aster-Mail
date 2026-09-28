@@ -29,6 +29,7 @@ import {
   SETTLE_REMEASURE_DELAYS_MS,
   SKELETON_DELAY_MEASURED_MS,
   SKELETON_DELAY_MS,
+  UNMEASURED_PLACEHOLDER_HEIGHT,
   get_cached_iframe_height,
   link_hover_ink_for,
   link_ink_for,
@@ -72,7 +73,6 @@ import {
   strip_unresolved_cid_references,
 } from "@/lib/cid_resolver";
 import { use_attachment_keys_version } from "@/hooks/use_attachment_keys_version";
-import { useTheme } from "@/contexts/theme_context";
 import {
   use_preferences,
   FONT_SIZE_DEFAULT,
@@ -264,9 +264,11 @@ export function SandboxedEmailRenderer({
         ? strip_unresolved_cid_references(sanitized_html, true)
         : sanitized_html);
 
-  const { theme } = useTheme();
   const resolved_accent = use_resolved_accent();
-  const app_is_dark = theme === "dark";
+  const app_is_dark = resolved_accent.is_dark;
+  const theme_text = normalize_hex(resolved_accent.text);
+  const dark_ink = app_is_dark && theme_text ? theme_text : "#e5e5e5";
+  const light_ink = !app_is_dark && theme_text ? theme_text : "#111827";
   const is_dark_theme = app_is_dark && !disable_auto_dark_mode;
   const is_html_email = !is_plain_text;
   const layout_flags = useMemo(() => {
@@ -332,11 +334,8 @@ export function SandboxedEmailRenderer({
   const forced_dark_canvas =
     force_dark_mode && !app_is_dark ? FORCED_DARK_CANVAS : "transparent";
   const plain_bg = force_dark_mode ? forced_dark_canvas : light_override_bg;
-  const plain_text_color = force_dark_mode
-    ? "#e5e5e5"
-    : is_dark_theme
-      ? "#e5e5e5"
-      : "#111827";
+  const plain_text_color =
+    force_dark_mode || is_dark_theme ? dark_ink : light_ink;
   const simple_dark_html =
     is_dark_theme &&
     !force_dark_mode &&
@@ -346,7 +345,7 @@ export function SandboxedEmailRenderer({
   const auto_dark_active =
     is_dark_theme && !force_dark_mode && (!is_html_email || simple_dark_html);
   const html_text_color =
-    force_dark_mode || simple_dark_html ? "#e5e5e5" : "#111827";
+    force_dark_mode || simple_dark_html ? dark_ink : light_ink;
   const html_bg = force_dark_mode
     ? forced_dark_canvas
     : simple_dark_html
@@ -441,15 +440,32 @@ a:focus-visible {
   outline-offset: 1px;
 }`;
 
-  const quote_toggle_css = `.aster-quote-toggle { display: inline-block !important; padding: 0 3px !important; font-size: 6px !important; line-height: 12px !important; letter-spacing: 1px !important; background: rgba(128, 128, 128, 0.1) !important; border: 1px solid rgba(128, 128, 128, 0.15) !important; border-radius: 99px !important; color: rgba(100, 100, 100, 0.55) !important; cursor: pointer !important; vertical-align: middle !important; }
-.aster-quote-toggle:hover { background: rgba(128, 128, 128, 0.2) !important; border-color: rgba(128, 128, 128, 0.3) !important; }
+  const quote_toggle_dark = force_dark_mode || auto_dark_active;
+  const quote_toggle_ink = quote_toggle_dark
+    ? "rgba(255, 255, 255, 0.78)"
+    : "rgba(60, 64, 67, 0.92)";
+  const quote_toggle_bg = quote_toggle_dark
+    ? "rgba(255, 255, 255, 0.08)"
+    : "rgba(60, 64, 67, 0.07)";
+  const quote_toggle_hover_bg = quote_toggle_dark
+    ? "rgba(255, 255, 255, 0.14)"
+    : "rgba(60, 64, 67, 0.12)";
+  const quote_toggle_css = `.aster-quote-toggle { display: inline-flex !important; align-items: center !important; justify-content: center !important; height: 24px !important; min-width: 40px !important; margin: 8px 0 !important; padding: 0 12px !important; font-size: 0 !important; line-height: 0 !important; background: ${quote_toggle_bg} !important; border: 0 !important; border-radius: 12px !important; color: ${quote_toggle_ink} !important; cursor: pointer !important; vertical-align: middle !important; transition: background-color 0.16s ease !important; }
+.aster-quote-toggle:hover, .aster-quote-toggle.aster-quote-expanded { background: ${quote_toggle_hover_bg} !important; }
+.aster-quote-toggle:focus-visible { outline: 2px solid ${link_ink} !important; outline-offset: 1px !important; }
+.aster-quote-toggle-dots { display: block !important; width: 4px !important; height: 4px !important; border-radius: 50% !important; background: currentColor !important; box-shadow: -6.5px 0 0 currentColor, 6.5px 0 0 currentColor !important; }
 .aster-quoted-content { border-left-color: ${quote_rail_ink} !important; }`;
 
   const plain_dark_css = auto_dark_active
     ? build_auto_dark_mode_css(plain_text_color, link_ink, link_visited_ink)
     : "";
   const dark_mode_css = force_dark_mode
-    ? build_forced_dark_mode_css(quote_rail_ink, link_ink, link_visited_ink)
+    ? build_forced_dark_mode_css(
+        quote_rail_ink,
+        link_ink,
+        link_visited_ink,
+        dark_ink,
+      )
     : plain_dark_css;
 
   const force_light_scheme =
@@ -667,6 +683,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
       set_iframe_height,
     });
 
+    reveal_content();
     reveal_cleanup_ref.current?.();
     reveal_cleanup_ref.current = reveal_on_fonts_ready(
       iframe.contentDocument.fonts,
@@ -767,6 +784,10 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
   }, [zoomed_image]);
 
   const effective_bg = is_html_email ? html_bg : plain_bg;
+  const frame_bg =
+    force_light_scheme && (!effective_bg || effective_bg === "transparent")
+      ? "#ffffff"
+      : effective_bg;
 
   useEffect(() => {
     let cancelled = false;
@@ -806,7 +827,9 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
 
         return;
       }
-      set_iframe_height((height) => (height === "0px" ? "480px" : height));
+      set_iframe_height((height) =>
+        height === "0px" ? UNMEASURED_PLACEHOLDER_HEIGHT : height,
+      );
       set_height_ready(true);
     };
 
@@ -910,7 +933,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
         </div>
       )}
       <div
-        className={`email-frame-container ${class_name || ""}`}
+        className={`email-frame-container ${frame_bg && frame_bg !== "transparent" ? "email-frame-canvas" : ""} ${class_name || ""}`}
         style={{
           backgroundColor: effective_bg,
           position: "relative",
@@ -985,13 +1008,14 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
           style={{
             border: "none",
             width: "100%",
-            height: height_ready ? iframe_height : "0px",
+            height: height_ready
+              ? iframe_height
+              : UNMEASURED_PLACEHOLDER_HEIGHT,
             maxHeight: "12000px",
             overflow: "hidden",
             display: "block",
             opacity: height_ready && contrast_ready ? 1 : 0,
-            transition: "opacity 110ms ease-out",
-            backgroundColor: effective_bg,
+            backgroundColor: frame_bg,
             touchAction: "pan-y",
           }}
           title={t("mail.email_content")}

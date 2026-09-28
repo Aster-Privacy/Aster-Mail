@@ -29,7 +29,13 @@ import {
   Squares2X2Icon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandEmpty,
+  IslandSection,
+  IslandSections,
+} from "@aster/ui";
 
 import {
   Modal,
@@ -208,80 +214,75 @@ export function MailRulesSection() {
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-4">
-          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary whitespace-nowrap">
-              <BoltIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-              {t("mail_rules.title")}
-              <span className="text-xs font-normal text-txt-muted">
-                {loading
-                  ? ELLIPSIS
-                  : `${format_number(rules.length)}/${rules_limit_label}`}
-              </span>
-            </h3>
-            <div className="flex flex-wrap items-center gap-2">
-              <Button
-                className="shrink-0 whitespace-nowrap"
-                size="md"
-                variant="outline"
-                onClick={open_templates}
-              >
-                <Squares2X2Icon className="w-4 h-4" />
-                {t("mail_rules.templates_button")}
-              </Button>
-              <Button
-                className="shrink-0 whitespace-nowrap"
-                size="md"
-                variant="outline"
-                onClick={retention.open_new}
-              >
-                <ClockIcon className="w-4 h-4" />
-                {t("folder_retention.add")}
-              </Button>
-              <Button
-                className="shrink-0 whitespace-nowrap"
-                size="md"
-                title={at_limit ? t("mail_rules.at_limit_upgrade") : undefined}
-                variant="depth"
-                onClick={
-                  at_limit ? () => set_show_upgrade_modal(true) : open_new
-                }
-              >
-                <PlusIcon className="w-4 h-4" />
-                {t("mail_rules.new_rule")}
-              </Button>
-            </div>
-          </div>
+    <IslandSections>
+      <IslandSection
+        bare
+        description={t("mail_rules.subtitle")}
+        icon={<BoltIcon />}
+        title={t("mail_rules.title")}
+        title_info={
+          <span className="tabular-nums">
+            {loading
+              ? ELLIPSIS
+              : `${format_number(rules.length)}/${rules_limit_label}`}
+          </span>
+        }
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            className="shrink-0 whitespace-nowrap"
+            size="md"
+            variant="outline"
+            onClick={open_templates}
+          >
+            <Squares2X2Icon className="w-4 h-4" />
+            {t("mail_rules.templates_button")}
+          </Button>
+          <Button
+            className="shrink-0 whitespace-nowrap"
+            size="md"
+            variant="outline"
+            onClick={retention.open_new}
+          >
+            <ClockIcon className="w-4 h-4" />
+            {t("folder_retention.add")}
+          </Button>
+          <Button
+            className="shrink-0 whitespace-nowrap"
+            size="md"
+            title={at_limit ? t("mail_rules.at_limit_upgrade") : undefined}
+            variant="depth"
+            onClick={at_limit ? () => set_show_upgrade_modal(true) : open_new}
+          >
+            <PlusIcon className="w-4 h-4" />
+            {t("mail_rules.new_rule")}
+          </Button>
         </div>
-        <p className="text-sm mb-4 text-txt-muted">
-          {t("mail_rules.subtitle")}
-        </p>
-      </div>
+      </IslandSection>
 
       {(loading || retention.loading) &&
         rules.length === 0 &&
         retention.policies.length === 0 && (
-          <div className="space-y-3">
+          <div className="flex flex-col gap-2">
             {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="h-20 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse"
-              />
+              <Island key={i} className="h-20 animate-pulse" />
             ))}
           </div>
         )}
 
       {!loading && error && rules.length === 0 && (
-        <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-          <p className="text-sm text-txt-secondary mb-3">
-            {t("common.something_went_wrong_try_again")}
-          </p>
-          <Button size="sm" variant="outline" onClick={() => void load_rules()}>
-            {t("common.retry")}
-          </Button>
-        </div>
+        <IslandEmpty
+          action={
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void load_rules()}
+            >
+              {t("common.retry")}
+            </Button>
+          }
+          title={t("common.something_went_wrong_try_again")}
+        />
       )}
 
       {!retention.loading &&
@@ -296,19 +297,15 @@ export function MailRulesSection() {
         !retention.load_failed &&
         rules.length === 0 &&
         retention.policies.length === 0 && (
-          <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-            <BoltIcon className="w-12 h-12 mx-auto mb-2 text-txt-tertiary" />
-            <p className="text-sm text-txt-muted mb-1">
-              {t("mail_rules.empty_title")}
-            </p>
-            <p className="text-xs text-txt-muted">
-              {t("mail_rules.empty_description")}
-            </p>
-          </div>
+          <IslandEmpty
+            description={t("mail_rules.empty_description")}
+            icon={<BoltIcon />}
+            title={t("mail_rules.empty_title")}
+          />
         )}
 
       {rules.length > 0 && (
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           {rules.map((rule, idx) => (
             <RuleCard
               key={rule.id}
@@ -329,7 +326,7 @@ export function MailRulesSection() {
       )}
 
       {retention.policies.length > 0 && (
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           {retention.policies.map((policy) => (
             <RetentionPolicyCard
               key={policy.id}
@@ -416,7 +413,7 @@ export function MailRulesSection() {
         title={t("folder_retention.delete")}
         variant="danger"
       />
-    </div>
+    </IslandSections>
   );
 }
 
@@ -462,12 +459,13 @@ function RuleCard({
           : null;
 
   return (
-    <div
-      className={`group relative rounded-xl border bg-surf-primary p-4 transition-colors cursor-pointer [&_*]:cursor-pointer hover:bg-surf-secondary ${
-        is_drag_over
-          ? "border-blue-500 ring-2 ring-blue-500/40"
-          : "border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600"
+    <Island
+      interactive
+      className={`group relative cursor-pointer [&_*]:cursor-pointer ${
+        is_drag_over ? "ring-2 ring-[var(--accent-color)]/40" : ""
       } ${!rule.enabled ? "opacity-60" : ""}`}
+      padding="md"
+      selected={is_drag_over}
       draggable={draggable_on}
       onClick={on_edit}
       onDragEnd={() => {
@@ -524,7 +522,7 @@ function RuleCard({
                   />
                 </React.Fragment>
               ))}
-            <span className="text-neutral-400 text-[12px] px-0.5">→</span>
+            <span className="text-txt-muted text-[12px] px-0.5">→</span>
             {rule.actions.map((a, i) => (
               <ActionChip
                 key={`a-${i}`}
@@ -539,7 +537,7 @@ function RuleCard({
         <div className="flex items-center gap-1 flex-shrink-0">
           <span
             aria-label={t("mail_rules.drag_handle")}
-            className="text-neutral-400 cursor-grab transition-opacity opacity-0 group-hover:opacity-100"
+            className="text-txt-muted cursor-grab transition-opacity opacity-0 group-hover:opacity-100"
             onMouseDown={() => set_draggable_on(true)}
             onMouseUp={() => set_draggable_on(false)}
           >
@@ -547,6 +545,6 @@ function RuleCard({
           </span>
         </div>
       </div>
-    </div>
+    </Island>
   );
 }

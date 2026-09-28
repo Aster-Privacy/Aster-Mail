@@ -36,6 +36,7 @@ import { use_draggable_modal } from "@/hooks/use_draggable_modal";
 import { use_editor } from "@/hooks/use_editor";
 import { MODAL_SIZES } from "@/constants/modal";
 import { build_reply_recipients } from "@/services/mail_actions";
+import { strip_aster_footers_html } from "@/lib/aster_footer_strip";
 import { build_reply_subject } from "@/lib/reply_subject";
 import {
   reply_includes_quoted_by_default,
@@ -572,7 +573,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
         return `<div>${header}<br><br>${quoted_body}</div>`;
       }
 
-      return `<br><br><div class="aster_quote"><div class="aster_quote_attr">${header}</div><blockquote class="aster_quote_body" style="margin:0 0 0 0.8ex;border-left:1px solid #ccc;padding-left:1ex">${sanitize_outgoing_html(inline_email_css(original_body))}</blockquote></div>`;
+      return `<br><br><div class="aster_quote"><div class="aster_quote_attr">${header}</div><blockquote class="aster_quote_body" style="margin:0 0 0 0.8ex;border-left:1px solid #ccc;padding-left:1ex">${sanitize_outgoing_html(inline_email_css(strip_aster_footers_html(original_body)))}</blockquote></div>`;
     },
     [
       t,

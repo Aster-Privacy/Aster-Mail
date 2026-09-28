@@ -355,14 +355,11 @@ export function SnoozeSimilarModal({
             />
             <motion.div
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              className="relative w-full max-w-md rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
+              className="relative w-full max-w-md overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
               exit={{ opacity: 0, scale: 0.96, y: 0 }}
               initial={
                 reduce_motion ? false : { opacity: 0, scale: 0.96, y: 0 }
               }
-              style={{
-                boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-              }}
               transition={{
                 duration: reduce_motion ? 0 : 0.15,
                 ease: "easeOut",
@@ -377,7 +374,7 @@ export function SnoozeSimilarModal({
                 </div>
                 <button
                   aria-label={t("common.close")}
-                  className="p-1.5 rounded-[14px] transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.05] text-txt-muted"
+                  className="p-1.5 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)] text-txt-muted"
                   onClick={on_close}
                 >
                   <XMarkIcon className="w-4 h-4" />
@@ -408,7 +405,7 @@ export function SnoozeSimilarModal({
                         time: (snooze_label ?? t("common.later")).toLowerCase(),
                       })}
                     </p>
-                    <Button size="xl" variant="depth" onClick={on_close}>
+                    <Button variant="depth" onClick={on_close}>
                       {t("common.done")}
                     </Button>
                   </motion.div>
@@ -541,7 +538,7 @@ export function SnoozeSimilarModal({
                         return (
                           <button
                             key={option.label}
-                            className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-[12px] text-[13px] transition-colors ${is_selected ? "" : "text-txt-primary"}`}
+                            className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-[var(--aster-radius-control)] text-[13px] transition-colors ${is_selected ? "" : "text-txt-primary"}`}
                             style={
                               is_selected
                                 ? { color: "var(--accent-color)" }
@@ -571,7 +568,7 @@ export function SnoozeSimilarModal({
                         );
                       })}
                       <button
-                        className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-[12px] text-[13px] transition-colors ${snooze_label && !snooze_options.some((o) => o.label === snooze_label) ? "" : "text-txt-primary"}`}
+                        className={`w-full flex items-center gap-2.5 px-3 py-1.5 rounded-[var(--aster-radius-control)] text-[13px] transition-colors ${snooze_label && !snooze_options.some((o) => o.label === snooze_label) ? "" : "text-txt-primary"}`}
                         style={
                           snooze_label &&
                           !snooze_options.some((o) => o.label === snooze_label)
@@ -628,7 +625,6 @@ export function SnoozeSimilarModal({
                       </button>
                       <Button
                         disabled={!can_execute}
-                        size="xl"
                         variant="depth"
                         onClick={handle_snooze}
                       >

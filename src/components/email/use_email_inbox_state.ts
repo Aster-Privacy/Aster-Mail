@@ -31,9 +31,9 @@ import {
 } from "react";
 
 import { use_inbox_view_state } from "./use_inbox_view_state";
+
 import { get_alias_hash_by_address } from "@/hooks/use_sidebar_aliases";
 import { alias_address_of } from "@/hooks/email_list_helpers/alias_view";
-
 import {
   is_fully_built as is_category_index_built,
   is_index_reconciled,
@@ -41,6 +41,7 @@ import {
 } from "@/services/category_index";
 import { use_category_drop } from "@/components/email/inbox/use_category_drop";
 import { use_settled_empty_state } from "@/components/email/inbox/use_settled_empty_state";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { builtin_category_def } from "@/data/category_catalog";
 import { type BulkScopeFilter } from "@/services/api/mail";
 import {
@@ -96,6 +97,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     is_snoozed_view,
     is_archive_view,
     spam_retention_days,
+    trash_retention_days,
     family_policy,
     is_folder_view,
     folder_view_token,
@@ -301,8 +303,9 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     is_empty: filtered_emails.length === 0,
     is_settled: empty_state_settled,
   });
-  const skeleton_visible =
-    !empty_state_visible && (skeleton_pending || filtered_emails.length === 0);
+  const skeleton_visible = use_delayed_flag(
+    !empty_state_visible && (skeleton_pending || filtered_emails.length === 0),
+  );
 
   const is_client_filtered = active_filter !== "all";
   const stats_total_for_view = useMemo(() => {
@@ -739,6 +742,7 @@ export function use_email_inbox_state(props: EmailInboxProps) {
     is_scheduled_view,
     is_archive_view,
     spam_retention_days,
+    trash_retention_days,
     family_policy,
     folder_not_found,
     tag_not_found,

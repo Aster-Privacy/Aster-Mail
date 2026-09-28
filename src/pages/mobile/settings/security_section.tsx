@@ -816,7 +816,7 @@ export function SecuritySection({
                 {timeout_options.map((opt) => (
                   <button
                     key={opt.value}
-                    className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                    className={`rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium ${
                       preferences.session_timeout_minutes === opt.value
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
@@ -858,7 +858,7 @@ export function SecuritySection({
                 {rotation_options.map((opt) => (
                   <button
                     key={opt.value}
-                    className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                    className={`rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium ${
                       preferences.key_rotation_hours === opt.value
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
@@ -886,7 +886,7 @@ export function SecuritySection({
                 {key_history_options.map((opt) => (
                   <button
                     key={opt.value}
-                    className={`rounded-[12px] px-3 py-1.5 text-[13px] font-medium ${
+                    className={`rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium ${
                       preferences.key_history_limit === opt.value
                         ? "text-white"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]"
@@ -1070,7 +1070,10 @@ export function SecuritySection({
             <motion.button
               className="flex w-full items-center justify-center rounded-xl py-3 text-[15px] font-medium text-[var(--color-danger,#ef4444)] disabled:opacity-50"
               disabled={logout_others_loading}
-              style={{ border: "1px solid var(--border-primary)" }}
+              style={{
+                background:
+                  "color-mix(in srgb, var(--text-primary) 6%, transparent)",
+              }}
               type="button"
               onClick={handle_logout_others}
             >

@@ -27,7 +27,7 @@ import {
   PlusIcon,
   FunnelIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Island } from "@aster/ui";
 
 import { TFn } from "./helpers";
 
@@ -126,8 +126,8 @@ export function FilterCard({ filter, on_toggle, on_delete }: FilterCardProps) {
   const field_label = filter_field_labels(t)[filter.field] ?? filter.field;
 
   return (
-    <div
-      className={`group relative rounded-xl border bg-surf-primary p-4 transition-colors border-neutral-200 dark:border-neutral-700 hover:bg-surf-secondary hover:border-neutral-300 dark:hover:border-neutral-600${!filter.is_enabled ? " opacity-60" : ""}`}
+    <Island
+      className={`group relative p-4 transition-opacity${!filter.is_enabled ? " opacity-60" : ""}`}
     >
       <div className="flex items-start gap-3">
         <div className="flex-1 min-w-0">
@@ -141,15 +141,15 @@ export function FilterCard({ filter, on_toggle, on_delete }: FilterCardProps) {
             </span>
           </div>
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="inline-flex items-stretch h-7 rounded-[12px] border bg-transparent border-neutral-200 dark:border-neutral-700 overflow-hidden">
-              <span className="h-full flex items-center gap-1.5 px-2.5 text-[12.5px] font-medium text-neutral-700 dark:text-neutral-200 rounded-s-[11px]">
+            <span className="inline-flex items-stretch h-7 rounded-[12px] border bg-transparent border-edge-secondary overflow-hidden">
+              <span className="h-full flex items-center gap-1.5 px-2.5 text-[12.5px] font-medium text-txt-secondary rounded-s-[11px]">
                 {field_label}
               </span>
-              <span className="h-full flex items-center gap-1.5 px-2.5 text-[12.5px] font-medium text-neutral-700 dark:text-neutral-200 border-s border-neutral-200 dark:border-neutral-700">
+              <span className="h-full flex items-center gap-1.5 px-2.5 text-[12.5px] font-medium text-txt-secondary border-s border-edge-secondary">
                 <span className="truncate max-w-[200px]">{filter.value}</span>
               </span>
             </span>
-            <span className="text-neutral-400 text-[12px] px-0.5">→</span>
+            <span className="text-txt-muted text-[12px] px-0.5">→</span>
             <span
               className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-[12px] text-[12.5px] font-medium text-white"
               style={{ backgroundColor: action_color }}
@@ -194,7 +194,7 @@ export function FilterCard({ filter, on_toggle, on_delete }: FilterCardProps) {
           </button>
         </div>
       </div>
-    </div>
+    </Island>
   );
 }
 
@@ -252,7 +252,7 @@ export function ConsentGateDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <div className="px-1 pb-2">
-          <div className="rounded-lg bg-surf-secondary border border-edge-secondary px-3 py-2 text-sm text-txt-secondary">
+          <div className="rounded-xl bg-surf-secondary px-3 py-2 text-sm text-txt-secondary">
             {description}
           </div>
         </div>
@@ -326,7 +326,7 @@ export function MemberConsentPanel() {
   }
 
   return (
-    <div className="rounded-xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/30 p-4 space-y-3">
+    <Island className="space-y-3" padding="md" tone="warning">
       <div className="flex items-center gap-2">
         <ExclamationTriangleIcon className="w-4 h-4 text-amber-500 flex-shrink-0" />
         <p className="text-sm font-semibold text-txt-primary">
@@ -335,17 +335,14 @@ export function MemberConsentPanel() {
       </div>
       <div className="space-y-2">
         {requests.map((req) => (
-          <div
-            key={req.id}
-            className="rounded-lg bg-surf-primary border border-edge-secondary p-3"
-          >
+          <div key={req.id} className="rounded-xl bg-surf-primary p-3">
             <p className="text-xs text-txt-muted mb-1">
               {t("settings.fam_consent_member_from", {
                 name: req.admin_username,
               })}
             </p>
             <p className="text-sm text-txt-primary mb-3">{req.description}</p>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 disabled={responding === req.id}
                 size="sm"
@@ -367,7 +364,7 @@ export function MemberConsentPanel() {
           </div>
         ))}
       </div>
-    </div>
+    </Island>
   );
 }
 
@@ -500,7 +497,7 @@ export function FiltersContent({
     <div className="space-y-4">
       <div>
         <div className="mb-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
               <FunnelIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
               {t("settings.fam_org_filters_heading")}
@@ -509,7 +506,7 @@ export function FiltersContent({
                 title={t("settings.fam_org_filters_info_title")}
               />
               <span className="text-xs font-normal text-txt-muted">
-                {loading ? "..." : filters.length}
+                {loading ? null : filters.length}
               </span>
             </h3>
             <Button variant="depth" onClick={() => set_show_form(true)}>
@@ -524,12 +521,9 @@ export function FiltersContent({
       </div>
 
       {loading && filters.length === 0 && (
-        <div className="space-y-3">
+        <div className="flex flex-col gap-2">
           {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="h-20 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse"
-            />
+            <div key={i} className="aster_island h-20 animate-pulse" />
           ))}
         </div>
       )}
@@ -564,7 +558,7 @@ export function FiltersContent({
               onKeyDown={submit_filter_form}
             />
           </div>
-          <div className="border-t border-neutral-200 dark:border-neutral-700" />
+          <div className="border-t border-edge-secondary" />
           <div className="space-y-1">
             <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-txt-muted">
               {t("settings.fam_org_filters_condition_label")}
@@ -611,7 +605,7 @@ export function FiltersContent({
               />
             </div>
           </div>
-          <div className="border-t border-neutral-200 dark:border-neutral-700" />
+          <div className="border-t border-edge-secondary" />
           <div className="space-y-1">
             <label className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-txt-muted">
               {t("settings.fam_org_filters_action_label")}
@@ -673,7 +667,7 @@ export function FiltersContent({
       )}
 
       {!loading && filters.length === 0 && !filters_load_failed && (
-        <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
+        <Island className="text-center py-8" padding="lg">
           <FunnelIcon className="w-12 h-12 mx-auto mb-2 text-txt-tertiary" />
           <p className="text-sm text-txt-muted mb-1">
             {t("settings.fam_org_filters_empty_title")}
@@ -681,7 +675,7 @@ export function FiltersContent({
           <p className="text-xs text-txt-muted">
             {t("settings.fam_org_filters_empty_desc")}
           </p>
-        </div>
+        </Island>
       )}
 
       {filters.length > 0 && (

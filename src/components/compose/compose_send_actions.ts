@@ -46,6 +46,10 @@ import {
   clear_pending_send_stash,
   set_pending_send_stash,
 } from "@/components/compose/pending_send_stash";
+import {
+  find_locked_expiry_feature,
+  prompt_expiry_upgrade,
+} from "@/components/compose/expiry_plan_gate";
 
 export interface SendActionContext {
   undo_send_enabled: boolean;
@@ -64,6 +68,47 @@ export interface SendActionContext {
   ) => void | Promise<void>;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   confirm_draft_deleted?: () => Promise<void>;
+  limits_loaded?: boolean;
+  is_feature_locked?: (feature_key: string) => boolean;
+  on_send_failed?: (email_data: FailedSendData) => void | Promise<void>;
+}
+
+function blocked_by_plan(
+  ctx: SendActionContext,
+  email_data: { expires_at?: string; expiry_password?: string },
+): boolean {
+  if (!ctx.is_feature_locked) return false;
+
+  const feature = find_locked_expiry_feature({
+    expires_at: email_data.expires_at,
+    expiry_password: email_data.expiry_password,
+    limits_loaded: ctx.limits_loaded === true,
+    is_feature_locked: ctx.is_feature_locked,
+  });
+
+  if (!feature) return false;
+
+  prompt_expiry_upgrade(feature, ctx.t("settings.feature_requires_upgrade"));
+
+  return true;
+}
+
+export interface FailedSendData {
+  to: string[];
+  cc?: string[];
+  bcc?: string[];
+  subject: string;
+  body: string;
+  sender_email?: string;
+  attachments?: Attachment[];
+}
+
+function restore_failed_send(
+  ctx: SendActionContext,
+  email_data: FailedSendData,
+) {
+  if (!ctx.on_send_failed) return;
+  void Promise.resolve(ctx.on_send_failed(email_data)).catch(() => undefined);
 }
 
 const BACKGROUND_SEND_TOAST_MS = 15 * 60_000;
@@ -167,7 +212,10 @@ export async function execute_internal_send(
     allow_non_post_quantum?: boolean;
   },
 ): Promise<boolean> {
+  if (blocked_by_plan(ctx, email_data)) return false;
+
   const { delay_ms, delay_seconds } = compute_delay(ctx);
+  let handed_off = false;
 
   if (delay_seconds > 0) {
     const result = await queue_email_to_server(
@@ -202,6 +250,7 @@ export async function execute_internal_send(
         on_error: (error: string) => {
           ctx.set_queued_email_id(null);
           show_toast(error, "error");
+          if (handed_off) restore_failed_send(ctx, email_data);
         },
       },
     );
@@ -225,6 +274,7 @@ export async function execute_internal_send(
       server_queue_id: result.queue_id,
     });
 
+    handed_off = true;
     save_and_close(ctx, result.queue_id, email_data);
 
     return true;
@@ -256,6 +306,7 @@ export async function execute_internal_send(
         on_error: (error: string) => {
           ctx.set_queued_email_id(null);
           show_toast(error, "error");
+          if (handed_off) restore_failed_send(ctx, email_data);
         },
       },
       0,
@@ -265,6 +316,7 @@ export async function execute_internal_send(
       return false;
     }
 
+    handed_off = true;
     save_and_close(ctx, email_id, email_data);
 
     return true;
@@ -290,9 +342,12 @@ export async function execute_external_email_send(
   require_encryption = false,
   obscure_subject = false,
 ): Promise<boolean> {
+  if (blocked_by_plan(ctx, email_data)) return false;
+
   const { delay_ms, delay_seconds } = compute_delay(ctx);
 
   const use_pgp = pgp_enabled && !email_data.secure_external;
+  let handed_off = false;
   const needs_encryption = require_encryption && !email_data.secure_external;
 
   const external_email_data = {
@@ -330,6 +385,7 @@ export async function execute_external_email_send(
             error || ctx.t("common.failed_to_send_external_email"),
             "error",
           );
+          if (handed_off) restore_failed_send(ctx, email_data);
         },
       },
     );
@@ -354,6 +410,7 @@ export async function execute_external_email_send(
       server_queue_id: result.queue_id,
     });
 
+    handed_off = true;
     save_and_close(ctx, result.queue_id, email_data);
 
     return true;
@@ -388,6 +445,7 @@ export async function execute_external_email_send(
             ctx.t("common.failed_to_send_external_email"),
           "error",
         );
+        restore_failed_send(ctx, email_data);
       }
     }, delay_ms);
 
@@ -421,6 +479,7 @@ export async function execute_external_email_send(
               ctx.t("common.failed_to_send_external_email"),
             "error",
           );
+          restore_failed_send(ctx, email_data);
         }
       },
     });
@@ -608,6 +667,7 @@ export async function execute_external_account_email_send(
             result.error || ctx.t("common.failed_to_send_email"),
             "error",
           );
+          restore_failed_send(ctx, email_data);
         }
       } catch (err) {
         undo_send_manager.remove(email_id);
@@ -616,6 +676,7 @@ export async function execute_external_account_email_send(
           (err as Error).message || ctx.t("common.failed_to_send_via_external"),
           "error",
         );
+        restore_failed_send(ctx, email_data);
       }
     }, delay_ms);
 
@@ -661,6 +722,7 @@ export async function execute_external_account_email_send(
               result.error || ctx.t("common.failed_to_send_email"),
               "error",
             );
+            restore_failed_send(ctx, email_data);
           }
         } catch (err) {
           ctx.set_queued_email_id(null);
@@ -669,6 +731,7 @@ export async function execute_external_account_email_send(
               ctx.t("common.failed_to_send_via_external"),
             "error",
           );
+          restore_failed_send(ctx, email_data);
         }
       },
     });
