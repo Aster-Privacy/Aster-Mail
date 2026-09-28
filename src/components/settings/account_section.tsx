@@ -80,7 +80,6 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
-import { use_primary_identity } from "@/lib/primary_identity";
 import {
   update_display_name,
   update_profile_color,
@@ -253,7 +252,6 @@ export function AccountSection() {
   const { t } = use_i18n();
   const { user, update_user, vault } = use_auth();
   const account_email = user?.email ?? "";
-  const primary_identity = use_primary_identity(account_email);
   const { preferences, update_preference, reset_to_defaults } =
     use_preferences();
   const {
@@ -859,26 +857,16 @@ export function AccountSection() {
       <IslandSection divided>
         <IslandRow
           description={
-            (primary_identity.is_custom && account_email) ||
             address_eligibility_failed ? (
               <>
-                {primary_identity.is_custom && account_email && (
-                  <span className="block">
-                    {t("settings.also_receives_at", { email: account_email })}
-                  </span>
-                )}
-                {address_eligibility_failed && (
-                  <span className="block">
-                    {t("settings.address_change_eligibility_failed")}{" "}
-                    <button
-                      className="underline hover:text-txt-primary transition-colors"
-                      type="button"
-                      onClick={() => void retry_address_eligibility()}
-                    >
-                      {t("common.retry")}
-                    </button>
-                  </span>
-                )}
+                {t("settings.address_change_eligibility_failed")}{" "}
+                <button
+                  className="underline hover:text-txt-primary transition-colors"
+                  type="button"
+                  onClick={() => void retry_address_eligibility()}
+                >
+                  {t("common.retry")}
+                </button>
               </>
             ) : undefined
           }
@@ -901,7 +889,7 @@ export function AccountSection() {
                   type="button"
                 >
                   <span className="block text-sm font-medium text-txt-secondary truncate max-w-[16rem]">
-                    {primary_identity.email || account_email}
+                    {account_email}
                   </span>
                   <ChevronDownIcon className="w-4 h-4 shrink-0 text-txt-muted" />
                 </button>
@@ -909,9 +897,7 @@ export function AccountSection() {
               <DropdownMenuContent align="end" className="min-w-[13rem]">
                 <DropdownMenuItem
                   onClick={() =>
-                    copy_primary_address(
-                      primary_identity.email || account_email,
-                    )
+                    copy_primary_address(account_email)
                   }
                 >
                   <ClipboardIcon className="w-4 h-4" />
