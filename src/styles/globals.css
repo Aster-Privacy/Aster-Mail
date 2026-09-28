@@ -3418,20 +3418,16 @@ input:-webkit-autofill:active {
 .account_menu_manage {
   align-self: center;
   padding: 0 18px;
-  background-color: transparent;
+  background-color: color-mix(in srgb, var(--text-primary) 8%, transparent);
   color: var(--text-primary);
-  box-shadow: inset 0 0 0 1px
-    color-mix(in srgb, var(--text-primary) 22%, transparent);
 }
 
 .account_menu_manage:hover {
-  background-color: color-mix(in srgb, var(--text-primary) 8%, transparent);
-  box-shadow: inset 0 0 0 1px
-    color-mix(in srgb, var(--text-primary) 32%, transparent);
+  background-color: color-mix(in srgb, var(--text-primary) 13%, transparent);
 }
 
 .account_menu_manage:active {
-  background-color: color-mix(in srgb, var(--text-primary) 13%, transparent);
+  background-color: color-mix(in srgb, var(--text-primary) 17%, transparent);
 }
 
 .account_menu_row {
