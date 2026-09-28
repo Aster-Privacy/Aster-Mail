@@ -684,11 +684,6 @@ export const de = {
     failed_to_delete_field: "Versuchen Sie es erneut.",
     failed_to_save_value:
       "Ihre Änderung wurde nicht gespeichert. Versuchen Sie es erneut. Der vorherige Wert ist weiterhin vorhanden.",
-    contacts_import_partial:
-      "Nur {{imported}} von {{total}} Kontakten wurden importiert. Importieren Sie die Datei erneut, um die übrigen hinzuzufügen.",
-    failed_to_import_contacts: "Versuchen Sie es erneut.",
-    failed_to_load_duplicates: "Versuchen Sie es erneut.",
-    dismiss_failed: "Versuchen Sie es erneut.",
     never_synced: "Nie synchronisiert",
     last_sync_successful: "Letzte Synchronisierung erfolgreich",
     last_sync_failed:
@@ -697,9 +692,6 @@ export const de = {
       "Die Weiterleitung wurde nicht gesendet. Versuchen Sie es erneut. Ihr Entwurf ist gespeichert.",
     failed_to_schedule:
       "Die Planung wurde nicht gespeichert. Versuchen Sie es erneut. Ihr Entwurf ist sicher.",
-    fill_required_fields: "Bitte füllen Sie alle erforderlichen Felder aus",
-    failed_to_delete_source: "Versuchen Sie es erneut.",
-    failed_to_toggle_source: "Versuchen Sie es erneut.",
     sync_failed:
       "Der Sync wurde nicht abgeschlossen, ein erneuter Versuch erfolgt automatisch. Ihre Mails auf beiden Seiten sind sicher.",
     clearing: "Leeren...",
@@ -765,8 +757,6 @@ export const de = {
     add_contacts_hint: "Fügen Sie Kontakte hinzu, um loszulegen",
     add_contact: "Kontakt hinzufügen",
     file_too_large: "Datei muss kleiner als {{size}} sein",
-    failed_to_upload_attachment: "Versuchen Sie es erneut.",
-    upload_failed: "Versuchen Sie es erneut.",
     delete_failed: "Versuchen Sie es erneut.",
     download_failed: "Versuchen Sie es erneut.",
     attachment_locked:
@@ -779,9 +769,6 @@ export const de = {
       "Geplante E-Mails können noch kein Ablaufdatum haben. Senden Sie jetzt oder entfernen Sie das Ablaufdatum, um sie zu planen.",
     failed_to_merge_contacts:
       "Das Zusammenführen wurde nicht abgeschlossen. Versuchen Sie es erneut. Ihre ursprünglichen Kontakte sind unverändert.",
-    merge_failed: "Versuchen Sie es erneut.",
-    failed_to_load_history: "Versuchen Sie es erneut.",
-    failed_to_load_more: "Versuchen Sie es erneut.",
     enter_valid_emails: "Bitte geben Sie gültige E-Mail-Adressen ein",
     enter_contact_details: "Kontaktdetails eingeben",
     select_valid_image: "Bitte wählen Sie ein JPEG-, PNG-, WebP- oder GIF-Bild",
@@ -831,10 +818,6 @@ export const de = {
       "Diese E-Mail ließ sich auf diesem Gerät nicht öffnen. Ein Aktualisieren klärt das meist, und ein Abmelden und erneutes Anmelden ist der Rückweg, falls es weiter scheitert.",
     failed_to_disable_2fa:
       "Die Zwei-Faktor-Authentifizierung bleibt aktiviert. Versuchen Sie es erneut. Ihr Konto ist weiterhin geschützt.",
-    failed_to_unsubscribe:
-      "Das Abbestellen wurde nicht abgeschlossen. Der Link in der E-Mail bringt Sie zur Seite des Absenders, um sich dort selbst abzumelden.",
-    failed_to_parse_settings:
-      "Diese Einstellungsdatei ließ sich nicht lesen. Eine andere funktioniert. Ihre aktuellen Einstellungen bleiben unverändert.",
     removed_from_contacts: "Aus Kontakten entfernt",
     added_to_contacts: "Zu Kontakten hinzugefügt",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -867,11 +850,6 @@ export const de = {
     unexpected_error: "Versuchen Sie es erneut.",
     failed_to_load_drafts:
       "Ihre Entwürfe wurden nicht geladen. Versuchen Sie es erneut. Ihre gespeicherten Entwürfe sind sicher.",
-    failed_to_load_subscriptions: "Versuchen Sie es erneut.",
-    failed_to_scan_subscriptions: "Versuchen Sie es erneut.",
-    recently_archived: "Kürzlich archiviert",
-    older_items: "Ältere Elemente",
-    long_term_archive: "Langzeitarchiv",
     value_too_long:
       "Dieser Wert liegt über der Längengrenze. Eine kürzere Version funktioniert.",
     please_enter_valid_domain:
@@ -943,10 +921,6 @@ export const de = {
       "Ihr verknüpftes externes Konto braucht eine neue Verbindung, bevor darüber gesendet werden kann. Unter Einstellungen, Verbundene Konten ist der Ort dafür.",
     failed_to_send_via_external:
       "Das Senden über Ihr verknüpftes externes Konto hat nicht funktioniert. Versuchen Sie es erneut. Ihr Entwurf ist gespeichert.",
-    tor_label: "Tor",
-    tor_snowflake_label: "Tor (Snowflake)",
-    cdn_relay_label: "CDN-Relay",
-    toggle_selection: "Auswahl umschalten",
     offline_change_failed:
       "Eine Änderung, die Sie offline vorgenommen haben, konnte nicht gespeichert werden.",
     offline_send_failed:
@@ -993,7 +967,6 @@ export const de = {
     all_accounts: "Alle Konten",
     failed_to_rotate_keys:
       "Die Schlüsselerneuerung wurde nicht abgeschlossen. Versuchen Sie es erneut. Ihre alten Schlüssel funktionieren weiterhin, und Ihre Daten sind sicher.",
-    all_external_accounts: "Alle externen Konten",
     read: "Gelesen",
     or_conjunction: "oder",
     press_label: "Drücken Sie",
@@ -1125,10 +1098,6 @@ export const de = {
     dns_propagation_note: "DNS-Änderungen können bis zu 48 Stunden dauern",
     failed_to_snooze_conversations: "Versuchen Sie es erneut.",
     failed_to_load_custom_fields: "Versuchen Sie es erneut.",
-    click_scan_duplicates:
-      'Klicken Sie auf „Scannen", um nach Duplikaten zu suchen',
-    failed_to_load_sources: "Versuchen Sie es erneut.",
-    failed_to_add_source: "Versuchen Sie es erneut.",
     select_contact_hint:
       "Wählen Sie einen Kontakt aus der Liste, um Details anzuzeigen",
     failed_to_delete_account:
@@ -1153,9 +1122,6 @@ export const de = {
       "Ihre zurückgestellten E-Mails wurden nicht geladen. Versuchen Sie es erneut. Sie sind auf dem Server sicher.",
     failed_to_load_scheduled_emails:
       "Ihre geplanten E-Mails wurden nicht geladen. Versuchen Sie es erneut. Sie werden weiterhin wie geplant gesendet.",
-    failed_to_load_search_results: "Versuchen Sie es erneut.",
-    failed_to_load_more_subscriptions: "Versuchen Sie es erneut.",
-    failed_to_fetch_archive_stats: "Versuchen Sie es erneut.",
     failed_to_retrieve_key:
       "Aktueller Schlüssel konnte nicht vom Server abgerufen werden",
     delete_account_error:
@@ -1526,8 +1492,6 @@ export const de = {
       "Das Ordnerpasswort konnte nicht entfernt werden. Versuchen Sie es erneut. Der Ordner bleibt wie zuvor gesperrt.",
     failed_to_set_folder_password:
       "Das Ordnerpasswort wurde nicht gespeichert. Versuchen Sie es erneut. Der Ordnerinhalt ist unverändert.",
-    failed_remove_recovery_email: "Versuchen Sie es erneut.",
-    failed_to_get_key_status: "Versuchen Sie es erneut.",
     failed_update_alias_avatar: "Versuchen Sie es erneut.",
     failed_update_alias_display_name: "Versuchen Sie es erneut.",
     file_already_attached:
@@ -1539,8 +1503,6 @@ export const de = {
     file_exceeds_max_size_upgradable:
       '"{{name}}" überschreitet das Limit von {{size}} pro Datei in Ihrem Tarif. Ein Upgrade erhöht es auf {{max_size}}.',
     folder_fallback: "Ordner",
-    found_n_contacts: "{{count}} Kontakte gefunden",
-    found_one_contact: "1 Kontakt gefunden",
     health_check_failed: "Versuchen Sie es erneut.",
     image_load_failed:
       "Dieses Bild wurde nicht geladen. Ein Aktualisieren löst das Problem in der Regel.",
@@ -1705,7 +1667,6 @@ export const de = {
     unknown_error:
       "Etwas hat nicht wie erwartet funktioniert. Versuchen Sie es erneut. Die Ursache ließ sich nicht genau ermitteln.",
     unknown_merchant: "Unbekannter Händler",
-    unknown_rotation_error: "Versuchen Sie es erneut.",
     unsaved_changes_title: "Änderungen verwerfen?",
     unsaved_changes_body:
       "Die eingegebenen Angaben sind nicht gespeichert. Wenn Sie das Formular jetzt schließen, werden sie entfernt.",
@@ -9195,12 +9156,6 @@ export const de = {
     reply_to_name: "Antwort an {{name}}",
     reply_all_to_name: "Antwort an {{name}} und alle",
     forward_message_heading: "Nachricht weiterleiten",
-    trackers_found_one: "{{count}} Tracker gefunden und blockiert",
-    trackers_found_other: "{{count}} Tracker gefunden und blockiert",
-    spy_pixels_blocked_count_one: "{{count}} Spionage-Pixel blockiert",
-    spy_pixels_blocked_count_other: "{{count}} Spionage-Pixel blockiert",
-    links_cleaned_count_one: "{{count}} Link bereinigt",
-    links_cleaned_count_other: "{{count}} Links bereinigt",
     param_removed_from_n_links_one: "{{param}} aus {{count}} Link entfernt",
     param_removed_from_n_links_other: "{{param}} aus {{count}} Links entfernt",
     bulk_archive_title: "{{count}} E-Mails archivieren?",
@@ -9340,10 +9295,6 @@ export const de = {
     create_a_password: "Passwort erstellen",
     recommend_strong_password:
       "Verwenden Sie mindestens 8 Zeichen. Ein längeres Passwort mit gemischten Zeichen ist sicherer.",
-    password_recovery_key: "Passwort-Wiederherstellungsschlüssel",
-    recovery_key_only_way:
-      "Dieser Schlüssel ist die einzige Möglichkeit, dein Konto wiederherzustellen, wenn du dein Passwort vergisst. Bewahre ihn sicher auf.",
-    download_key_lower: "Schlüssel herunterladen",
     downloading: "Wird heruntergeladen...",
     copy_key: "Schlüssel kopieren",
     copy_codes: "Codes kopieren",
@@ -9513,7 +9464,6 @@ export const de = {
     review_codes_left: "Noch {{count}} Wiederherstellungscodes übrig.",
     review_codes_left_one: "Noch {{count}} Wiederherstellungscode übrig.",
     review_codes_left_other: "Noch {{count}} Wiederherstellungscodes übrig.",
-    import_mail_action: "E-Mails importieren",
     password_reset_successful: "Passwort erfolgreich zurückgesetzt",
     account_recovered_sign_in:
       "Ihr Konto wurde wiederhergestellt. Sie können sich jetzt mit Ihrem neuen Passwort anmelden.",
@@ -10531,32 +10481,6 @@ export const de = {
     show_in_signature: "In der Signatur anzeigen",
     empty_state: "Sie haben noch keine Abzeichen gefunden.",
     claim_failed: "Versuchen Sie es erneut.",
-    earned_label: "Erhalten",
-    claim_success: "Du hast das Abzeichen {name} erhalten.",
-    claim_already: "Du hast bereits ein Entdeckungs-Abzeichen.",
-    badge_andromeda: "Andromeda",
-    badge_andromeda_description: "Eine Nachbargalaxie erreicht.",
-    badge_big_bang: "Big Bang",
-    badge_big_bang_description: "Als Erste/r den Kosmos entdeckt.",
-    badge_black_hole: "Schwarzes Loch",
-    badge_black_hole_description: "Von etwas Tieferem angezogen.",
-    badge_comet: "Komet",
-    badge_comet_description: "Dem Weg von etwas Seltenen gekreuzt.",
-    badge_event_horizon: "Ereignishorizont",
-    badge_event_horizon_description: "Die Grenze des Bekannten überschritten.",
-    badge_nebula: "Nebel",
-    badge_nebula_description: "In die Farben gewandert.",
-    badge_pulsar: "Pulsar",
-    badge_pulsar_description: "Das Signal im Rauschen gehört.",
-    badge_singularity: "Singularität",
-    badge_singularity_description:
-      "Den Punkt gefunden, an dem sich alles biegt.",
-    badge_stargazer: "Sternengucker",
-    badge_stargazer_description: "Im richtigen Moment aufgeschaut.",
-    badge_supernova: "Supernova",
-    badge_supernova_description:
-      "Einen Stern in seinem hellsten Moment erwischt.",
-    find_order_label: "#{order}",
     granted_at: "Erhalten {date}",
     not_earned: "Noch nicht erhalten",
     show_in_signature_description:

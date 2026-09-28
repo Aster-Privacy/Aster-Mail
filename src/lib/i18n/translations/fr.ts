@@ -791,12 +791,6 @@ export const fr = {
       "Ce champ personnalisé n'a pas été supprimé. Réessayez.",
     failed_to_save_value:
       "Votre modification n'a pas été enregistrée. Réessayez. La valeur précédente est toujours là.",
-    contacts_import_partial:
-      "Seuls {{imported}} contacts sur {{total}} ont été importés. Importez de nouveau le fichier pour ajouter les autres.",
-    failed_to_import_contacts: "Réessayez.",
-    failed_to_load_duplicates: "Réessayez.",
-    dismiss_failed: "Réessayez.",
-    click_scan_duplicates: 'Cliquez sur "Analyser" pour vérifier les doublons',
     never_synced: "Jamais synchronisé",
     last_sync_successful: "Dernière synchronisation réussie",
     last_sync_failed:
@@ -805,11 +799,6 @@ export const fr = {
       "Le transfert n'a pas été envoyé. Réessayez. Votre brouillon est enregistré.",
     failed_to_schedule:
       "La programmation n'a pas été enregistrée. Réessayez. Votre brouillon est en sécurité.",
-    fill_required_fields: "Veuillez remplir tous les champs obligatoires",
-    failed_to_load_sources: "Réessayez.",
-    failed_to_add_source: "Réessayez.",
-    failed_to_delete_source: "Réessayez.",
-    failed_to_toggle_source: "Réessayez.",
     sync_failed:
       "La synchronisation ne s'est pas terminée, et nous réessaierons automatiquement. Votre courrier de chaque côté est en sécurité.",
     clearing: "Effacement...",
@@ -881,8 +870,6 @@ export const fr = {
     file_too_large: "Le fichier doit être inférieur à {{size}}",
     delete_failed: "Réessayez.",
     download_failed: "Ce téléchargement n'a pas abouti. Réessayez.",
-    failed_to_upload_attachment: "Réessayez.",
-    upload_failed: "Réessayez.",
     attachment_locked:
       "Cette pièce jointe ne peut pas être ouverte, car sa clé de chiffrement n'est pas disponible sur cet appareil.",
     scheduled_no_attachments:
@@ -893,9 +880,6 @@ export const fr = {
       "Les messages programmés ne prennent pas encore en charge l’expiration. Envoyez-le maintenant ou retirez l’expiration pour le programmer.",
     failed_to_merge_contacts:
       "La fusion n'a pas abouti. Réessayez. Vos contacts d'origine sont inchangés.",
-    merge_failed: "Réessayez.",
-    failed_to_load_history: "Réessayez.",
-    failed_to_load_more: "Réessayez.",
     enter_valid_emails: "Veuillez saisir des adresses e-mail valides",
     enter_contact_details: "Saisir les détails du contact",
     select_valid_image:
@@ -958,10 +942,6 @@ export const fr = {
       "Nous n'avons pas pu ouvrir ce message sur cet appareil. Actualiser suffit en général, et se déconnecter puis se reconnecter est la solution de repli si cela continue d'échouer.",
     failed_to_disable_2fa:
       "La validation en deux étapes est restée activée. Réessayez. Votre compte est toujours protégé.",
-    failed_to_unsubscribe:
-      "Le désabonnement ne s'est pas terminé. Le lien dans le message vous emmènera sur le site de l'expéditeur pour le faire vous-même.",
-    failed_to_parse_settings:
-      "Ce fichier de paramètres n'a pas pu être lu. Un autre fichier fonctionnera. Vos paramètres actuels sont inchangés.",
     removed_from_contacts: "Retiré des contacts",
     added_to_contacts: "Ajouté aux contacts",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -985,7 +965,6 @@ export const fr = {
     offline_action_queued:
       "Vous êtes hors ligne pour l'instant. Ceci est en file d'attente et se terminera dès que vous serez reconnecté.",
     failed_to_update: "Réessayez.",
-    failed_to_load_search_results: "Réessayez.",
     failed_to_fetch_tags: "Réessayez.",
     failed_to_fetch_folders: "Réessayez.",
     failed_to_unlock_folder:
@@ -1007,13 +986,6 @@ export const fr = {
       "Vos brouillons ne se sont pas chargés. Réessayez. Vos brouillons enregistrés sont en sécurité.",
     failed_to_load_scheduled_emails:
       "Vos e-mails programmés ne se sont pas chargés. Réessayez. Ils seront toujours envoyés comme prévu.",
-    failed_to_load_subscriptions: "Réessayez.",
-    failed_to_load_more_subscriptions: "Réessayez.",
-    failed_to_scan_subscriptions: "Réessayez.",
-    recently_archived: "Archivé récemment",
-    older_items: "Éléments plus anciens",
-    long_term_archive: "Archive à long terme",
-    failed_to_fetch_archive_stats: "Réessayez.",
     value_too_long:
       "Cette valeur dépasse la limite de longueur. Une version plus courte fonctionnera.",
     please_enter_valid_domain:
@@ -1092,10 +1064,6 @@ export const fr = {
       "Votre compte externe lié doit être reconnecté avant l'envoi. Paramètres, Comptes connectés est l'endroit où il se trouve.",
     failed_to_send_via_external:
       "L'envoi via votre compte externe associé n'a pas fonctionné. Réessayez. Votre brouillon est enregistré.",
-    tor_label: "Tor",
-    tor_snowflake_label: "Tor (Snowflake)",
-    cdn_relay_label: "Relais CDN",
-    toggle_selection: "Basculer la sélection",
     offline_change_failed:
       "Une modification que vous avez faite hors ligne n’a pas pu être enregistrée.",
     offline_send_failed:
@@ -1163,7 +1131,6 @@ export const fr = {
     all_accounts: "Tous les comptes",
     failed_to_rotate_keys:
       "Le renouvellement des clés n'a pas abouti. Réessayez. Vos anciennes clés fonctionnent toujours et vos données sont en sécurité.",
-    all_external_accounts: "Tous les comptes externes",
     read: "Lu",
     or_conjunction: "ou",
     press_label: "Appuyez sur",
@@ -1617,8 +1584,6 @@ export const fr = {
       "L'avatar de votre alias n'a pas été mis à jour. Réessayez.",
     failed_update_alias_display_name:
       "Votre nom d'affichage n'a pas été mis à jour. Réessayez.",
-    failed_remove_recovery_email: "Réessayez.",
-    failed_to_get_key_status: "Réessayez.",
     file_already_attached: "{{name}} est déjà joint à cet e-mail.",
     metadata_not_removed:
       "Impossible de supprimer les métadonnées masquées de {{names}}. Le fichier a été joint tel quel.",
@@ -9204,12 +9169,6 @@ export const fr = {
     reply_to_name: "Répondre à {{name}}",
     reply_all_to_name: "Répondre à {{name}} et à tous",
     forward_message_heading: "Transférer le message",
-    trackers_found_one: "{{count}} traqueur détecté et bloqué",
-    trackers_found_other: "{{count}} traqueurs détectés et bloqués",
-    spy_pixels_blocked_count_one: "{{count}} pixel espion bloqué",
-    spy_pixels_blocked_count_other: "{{count}} pixels espions bloqués",
-    links_cleaned_count_one: "{{count}} lien nettoyé",
-    links_cleaned_count_other: "{{count}} liens nettoyés",
     param_removed_from_n_links_one: "{{param}} retiré de {{count}} lien",
     param_removed_from_n_links_other: "{{param}} retiré de {{count}} liens",
     bulk_spam_title: "Signaler {{count}} e-mails comme indésirables ?",
@@ -9343,10 +9302,6 @@ export const fr = {
     create_a_password: "Créez un mot de passe",
     recommend_strong_password:
       "Utilisez au moins 8 caractères. Un mot de passe plus long avec des caractères variés est plus sûr.",
-    password_recovery_key: "Clé de récupération du mot de passe",
-    recovery_key_only_way:
-      "Cette clé est le seul moyen de récupérer votre compte si vous oubliez votre mot de passe. Conservez-la en lieu sûr.",
-    download_key_lower: "Télécharger la clé",
     downloading: "Téléchargement...",
     copy_key: "Copier la clé",
     copy_codes: "Copier les codes",
@@ -9608,7 +9563,6 @@ export const fr = {
     import_mail_step_title: "Emportez votre courrier avec vous",
     import_mail_step_desc:
       "Transférez les messages d'un autre compte vers Aster. Tout est chiffré sur votre appareil avant d'être stocké.",
-    import_mail_action: "Importer le courrier",
     import_mail_skip: "Commencer avec une boîte vide",
     import_mail_privacy_note:
       "Vous pouvez aussi importer plus tard depuis les Réglages.",
@@ -10502,29 +10456,6 @@ export const fr = {
   badges: {
     active_badge: "Badge actif",
     claim_failed: "Réessayez.",
-    badge_andromeda: "Andromède",
-    badge_andromeda_description: "A atteint une galaxie voisine.",
-    badge_big_bang: "Big Bang",
-    badge_big_bang_description: "Premier à découvrir le cosmos.",
-    badge_black_hole: "Trou noir",
-    badge_black_hole_description: "Attiré par quelque chose de plus profond.",
-    badge_comet: "Comète",
-    badge_comet_description: "A croisé quelque chose de rare.",
-    badge_event_horizon: "Horizon des événements",
-    badge_event_horizon_description: "A franchi la frontière du connu.",
-    badge_nebula: "Nébuleuse",
-    badge_nebula_description: "S'est perdu dans les couleurs.",
-    badge_pulsar: "Pulsar",
-    badge_pulsar_description: "A entendu le signal dans le bruit.",
-    badge_singularity: "Singularité",
-    badge_singularity_description: "A trouvé le point où tout se courbe.",
-    badge_stargazer: "Observateur d'étoiles",
-    badge_stargazer_description: "A regardé au bon moment.",
-    badge_supernova: "Supernova",
-    badge_supernova_description:
-      "A capturé une étoile à son moment le plus brillant.",
-    claim_already: "Vous avez déjà obtenu un badge de découverte.",
-    claim_success: "Vous avez obtenu le badge {name}.",
     description: "Des touches personnelles que vous avez collectées.",
     empty_state: "Vous n'avez pas encore trouvé de badges.",
     granted_at: "Obtenu le {date}",

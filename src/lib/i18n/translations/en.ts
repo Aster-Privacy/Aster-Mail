@@ -752,15 +752,10 @@ export const en: Translations = {
       "Your changes to this contact did not save. Try again. The earlier version is still there.",
     failed_to_delete_contacts: "These contacts were not removed. Try again.",
     failed_to_update_favorites: "Your favorites did not update. Try again.",
-    contacts_import_partial:
-      "Only {{imported}} of {{total}} contacts imported. Import the file again to add the rest.",
-    failed_to_import_contacts:
-      "The contact import did not finish. Try again. Your existing contacts are unchanged.",
     failed_to_read_file:
       "This file could not be read. A different one will work.",
     import_failed:
       "The import did not finish. Try again. Your existing data is unchanged.",
-    failed_to_load_duplicates: "The duplicate list did not load. Try again.",
     scan_failed: "The scan did not finish. Try again.",
     failed_to_load_custom_fields:
       "These custom fields did not load. Try again.",
@@ -779,12 +774,6 @@ export const en: Translations = {
       "The forward did not send. Try again. Your draft is saved.",
     failed_to_schedule:
       "The schedule did not save. Try again. Your draft is safe.",
-    fill_required_fields: "Please fill in all required fields",
-    failed_to_load_sources:
-      "Your synced accounts did not load. Try again. The accounts themselves are unaffected.",
-    failed_to_add_source: "This account was not added. Try again.",
-    failed_to_delete_source: "This account was not removed. Try again.",
-    failed_to_toggle_source: "We could not change that setting. Try again.",
     sync_failed:
       "The sync did not finish, and we will retry automatically. Your mail on each side is safe.",
     clearing: "Clearing...",
@@ -889,10 +878,6 @@ export const en: Translations = {
       "Scheduled emails can't use an expiry yet. Send now, or remove the expiry to schedule it.",
     failed_to_merge_contacts:
       "The merge did not complete. Try again. Your original contacts are unchanged.",
-    merge_failed:
-      "The merge did not complete. Try again. Your original contacts are unchanged.",
-    failed_to_load_history: "The history did not load. Try again.",
-    failed_to_load_more: "We could not load more items. Try again.",
     enter_valid_emails: "Please enter valid email addresses",
     enter_contact_details: "Enter contact details",
     select_valid_image: "Please select a JPEG, PNG, WebP, or GIF image",
@@ -974,7 +959,6 @@ export const en: Translations = {
     offline_action_queued:
       "You are offline right now. This is queued and will finish as soon as you reconnect.",
     failed_to_update: "This change did not save. Try again.",
-    failed_to_load_search_results: "Your search did not finish. Try again.",
     search_failed_try_again:
       "Search did not finish. Another attempt in a moment usually does it.",
     search_load_failed_try_again:
@@ -1002,19 +986,10 @@ export const en: Translations = {
     failed_to_load_snoozed_emails:
       "Your snoozed emails did not load. Try again. They are safe on the server.",
     unexpected_error: "Something did not work as expected. Try again.",
-    failed_to_load_subscriptions: "Your subscriptions did not load. Try again.",
-    failed_to_load_more_subscriptions:
-      "We could not load more subscriptions. Try again.",
-    failed_to_scan_subscriptions:
-      "The subscription scan did not finish. Try again.",
     failed_to_load_drafts:
       "Your drafts did not load. Try again. Your saved drafts are safe.",
     failed_to_load_scheduled_emails:
       "Your scheduled emails did not load. Try again. They are still on track to send.",
-    recently_archived: "Recently Archived",
-    older_items: "Older Items",
-    long_term_archive: "Long-term Archive",
-    failed_to_fetch_archive_stats: "Archive stats did not load. Try again.",
     value_too_long:
       "This value is over the length limit. A shorter version will work.",
     please_enter_valid_domain:
@@ -1575,13 +1550,6 @@ export const en: Translations = {
     account_limit_reached:
       "You have reached the account limit for this network. If this looks wrong, hello@astermail.org can help.",
     health_check_failed: "The diagnostic did not finish. Try again.",
-    failed_to_get_key_status:
-      "We could not check your key status. Try again. Your keys are unchanged.",
-    unknown_rotation_error:
-      "The key refresh did not finish. Try again. Your old keys still work and your data is safe.",
-    new_email_notification: "New email from {{ sender }}",
-    reply_notification: "{{ sender }} replied",
-    mention_notification: "{{ sender }} mentioned you",
     print_from: "From:",
     print_to: "To:",
     print_cc: "Cc:",
@@ -8856,12 +8824,6 @@ export const en: Translations = {
     reply_to_name: "Reply to {{name}}",
     reply_all_to_name: "Reply all to {{name}}",
     forward_message_heading: "Forward message",
-    trackers_found_one: "{{count}} tracker found and blocked",
-    trackers_found_other: "{{count}} trackers found and blocked",
-    spy_pixels_blocked_count_one: "{{count}} spy pixel blocked",
-    spy_pixels_blocked_count_other: "{{count}} spy pixels blocked",
-    links_cleaned_count_one: "{{count}} link cleaned",
-    links_cleaned_count_other: "{{count}} links cleaned",
     param_removed_from_n_links_one: "{{param}} removed from {{count}} link",
     param_removed_from_n_links_other: "{{param}} removed from {{count}} links",
     bulk_archive_title: "Archive {{count}} emails?",
@@ -9073,10 +9035,6 @@ export const en: Translations = {
     create_a_password: "Create a password",
     recommend_strong_password:
       "Use at least 8 characters. A longer password with mixed characters is stronger.",
-    password_recovery_key: "Password recovery key",
-    recovery_key_only_way:
-      "This key is the only way to recover your account if you forget your password. Save it somewhere safe.",
-    download_key_lower: "Download key",
     downloading: "Downloading...",
     copy_key: "Copy key",
     copy_codes: "Copy codes",
@@ -9322,7 +9280,6 @@ export const en: Translations = {
     import_mail_step_title: "Bring your mail with you",
     import_mail_step_desc:
       "Move messages from another account into Aster. Everything is encrypted on your device before it is stored.",
-    import_mail_action: "Import mail",
     import_mail_skip: "Start with an empty inbox",
     import_mail_privacy_note: "You can also import later from Settings.",
     password_reset_successful: "Password reset successful",

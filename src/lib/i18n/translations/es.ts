@@ -788,12 +788,6 @@ export const es = {
       "Este campo personalizado no se eliminó. Inténtalo de nuevo.",
     failed_to_save_value:
       "Tu cambio no se guardó. Inténtalo de nuevo. El valor anterior sigue ahí.",
-    contacts_import_partial:
-      "Solo se importaron {{imported}} de {{total}} contactos. Importa el archivo de nuevo para añadir el resto.",
-    failed_to_import_contacts: "Inténtalo de nuevo.",
-    failed_to_load_duplicates: "Inténtalo de nuevo.",
-    dismiss_failed: "Inténtalo de nuevo.",
-    click_scan_duplicates: 'Haz clic en "Escanear" para buscar duplicados',
     never_synced: "Nunca sincronizado",
     last_sync_successful: "Última sincronización exitosa",
     last_sync_failed:
@@ -802,11 +796,6 @@ export const es = {
       "El reenvío no se envió. Inténtalo de nuevo. Tu borrador está guardado.",
     failed_to_schedule:
       "La programación no se guardó. Inténtalo de nuevo. Tu borrador está a salvo.",
-    fill_required_fields: "Por favor completa todos los campos requeridos",
-    failed_to_load_sources: "Inténtalo de nuevo.",
-    failed_to_add_source: "Inténtalo de nuevo.",
-    failed_to_delete_source: "Inténtalo de nuevo.",
-    failed_to_toggle_source: "Inténtalo de nuevo.",
     sync_failed:
       "La sincronización no se completó, y la reintentaremos automáticamente. Tu correo en cada lado está a salvo.",
     clearing: "Limpiando...",
@@ -874,8 +863,6 @@ export const es = {
     add_contacts_hint: "Añade contactos para comenzar",
     add_contact: "Añadir contacto",
     file_too_large: "El archivo debe ser más pequeño que {{size}}",
-    failed_to_upload_attachment: "Inténtalo de nuevo.",
-    upload_failed: "Inténtalo de nuevo.",
     delete_failed: "Inténtalo de nuevo.",
     download_failed: "Inténtalo de nuevo.",
     attachment_locked:
@@ -888,9 +875,6 @@ export const es = {
       "Los correos programados aún no admiten caducidad. Envíalo ahora o quita la caducidad para programarlo.",
     failed_to_merge_contacts:
       "La combinación no se completó. Inténtalo de nuevo. Tus contactos originales no han cambiado.",
-    merge_failed: "Inténtalo de nuevo.",
-    failed_to_load_history: "Inténtalo de nuevo.",
-    failed_to_load_more: "Inténtalo de nuevo.",
     enter_valid_emails: "Por favor ingresa direcciones de correo válidas",
     enter_contact_details: "Ingresa los detalles del contacto",
     select_valid_image: "Por favor selecciona una imagen JPEG, PNG, WebP o GIF",
@@ -952,10 +936,6 @@ export const es = {
       "No pudimos abrir este correo en este dispositivo. Actualizar suele resolverlo. Si sigue fallando, cierra sesión y vuelve a iniciarla.",
     failed_to_disable_2fa:
       "La verificación en dos pasos sigue activada. Inténtalo de nuevo. Tu cuenta sigue protegida.",
-    failed_to_unsubscribe:
-      "La baja no se completó. El enlace en el correo te llevará al sitio del remitente para darte de baja tú mismo.",
-    failed_to_parse_settings:
-      "Este archivo de ajustes no se pudo leer. Otro archivo funcionará. Tus ajustes actuales no han cambiado.",
     removed_from_contacts: "Eliminado de contactos",
     added_to_contacts: "Añadido a contactos",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -979,7 +959,6 @@ export const es = {
     offline_action_queued:
       "Estás sin conexión ahora mismo. Esto está en cola y se completará cuando vuelvas a conectarte.",
     failed_to_update: "Inténtalo de nuevo.",
-    failed_to_load_search_results: "Inténtalo de nuevo.",
     failed_to_fetch_tags: "Inténtalo de nuevo.",
     failed_to_fetch_folders: "Inténtalo de nuevo.",
     failed_to_unlock_folder:
@@ -1001,13 +980,6 @@ export const es = {
       "Tus borradores no se cargaron. Inténtalo de nuevo. Tus borradores guardados están a salvo.",
     failed_to_load_scheduled_emails:
       "Tus correos programados no se cargaron. Inténtalo de nuevo. Se siguen enviando según lo previsto.",
-    failed_to_load_subscriptions: "Inténtalo de nuevo.",
-    failed_to_load_more_subscriptions: "Inténtalo de nuevo.",
-    failed_to_scan_subscriptions: "Inténtalo de nuevo.",
-    recently_archived: "Archivados recientemente",
-    older_items: "Elementos antiguos",
-    long_term_archive: "Archivo a largo plazo",
-    failed_to_fetch_archive_stats: "Inténtalo de nuevo.",
     value_too_long:
       "Este valor supera el límite de longitud. Una versión más corta funcionará.",
     please_enter_valid_domain:
@@ -1082,10 +1054,6 @@ export const es = {
       "Tu cuenta externa vinculada necesita volver a conectarse antes de enviar a través de ella. Ajustes, Cuentas conectadas es donde se encuentra.",
     failed_to_send_via_external:
       "El envío a través de tu cuenta externa vinculada no funcionó. Inténtalo de nuevo. Tu borrador está guardado.",
-    tor_label: "Tor",
-    tor_snowflake_label: "Tor (Snowflake)",
-    cdn_relay_label: "Relé CDN",
-    toggle_selection: "Alternar selección",
     offline_change_failed:
       "No se pudo guardar un cambio que hiciste sin conexión.",
     offline_send_failed:
@@ -1151,7 +1119,6 @@ export const es = {
     all_accounts: "Todas las cuentas",
     failed_to_rotate_keys:
       "La renovación de claves no terminó. Inténtalo de nuevo. Tus claves anteriores siguen funcionando y tus datos están a salvo.",
-    all_external_accounts: "Todas las cuentas externas",
     read: "Leído",
     or_conjunction: "o",
     press_label: "Presiona",
@@ -1605,7 +1572,6 @@ export const es = {
       "El avatar de tu alias no se actualizó. Inténtalo de nuevo.",
     failed_update_alias_display_name:
       "Tu nombre visible no se actualizó. Inténtalo de nuevo.",
-    failed_to_get_key_status: "Inténtalo de nuevo.",
     file_already_attached:
       '"{{name}}" ya está adjunto en este correo. No hace falta adjuntarlo de nuevo.',
     metadata_not_removed:
@@ -9097,12 +9063,6 @@ export const es = {
     reply_to_name: "Responder a {{name}}",
     reply_all_to_name: "Responder a {{name}} y a todos",
     forward_message_heading: "Reenviar mensaje",
-    trackers_found_one: "{{count}} rastreador detectado y bloqueado",
-    trackers_found_other: "{{count}} rastreadores detectados y bloqueados",
-    spy_pixels_blocked_count_one: "{{count}} píxel espía bloqueado",
-    spy_pixels_blocked_count_other: "{{count}} píxeles espía bloqueados",
-    links_cleaned_count_one: "{{count}} enlace limpiado",
-    links_cleaned_count_other: "{{count}} enlaces limpiados",
     param_removed_from_n_links_one: "{{param}} eliminado de {{count}} enlace",
     param_removed_from_n_links_other:
       "{{param}} eliminado de {{count}} enlaces",
@@ -9238,10 +9198,6 @@ export const es = {
     create_a_password: "Crea una contraseña",
     recommend_strong_password:
       "Usa al menos 8 caracteres. Una contraseña más larga con caracteres variados es más segura.",
-    password_recovery_key: "Clave de recuperación de contraseña",
-    recovery_key_only_way:
-      "Esta clave es la única forma de recuperar tu cuenta si olvidas la contraseña. Guárdala en un lugar seguro.",
-    download_key_lower: "Descargar clave",
     downloading: "Descargando...",
     copy_key: "Copiar clave",
     copy_codes: "Copiar códigos",
@@ -9488,7 +9444,6 @@ export const es = {
     import_mail_step_title: "Trae tu correo contigo",
     import_mail_step_desc:
       "Mueve los mensajes de otra cuenta a Aster. Todo se cifra en tu dispositivo antes de guardarse.",
-    import_mail_action: "Importar correo",
     import_mail_skip: "Empezar con la bandeja vacía",
     import_mail_privacy_note:
       "También puedes importar más tarde desde Ajustes.",
@@ -10374,29 +10329,6 @@ export const es = {
   badges: {
     active_badge: "Insignia activa",
     claim_failed: "Inténtalo de nuevo.",
-    badge_andromeda: "Andrómeda",
-    badge_andromeda_description: "Llegó a una galaxia vecina.",
-    badge_big_bang: "Big Bang",
-    badge_big_bang_description: "Primero en descubrir el cosmos.",
-    badge_black_hole: "Agujero negro",
-    badge_black_hole_description: "Atraído por algo más profundo.",
-    badge_comet: "Cometa",
-    badge_comet_description: "Se cruzó con algo raro.",
-    badge_event_horizon: "Horizonte de eventos",
-    badge_event_horizon_description: "Cruzó la frontera de lo conocido.",
-    badge_nebula: "Nebulosa",
-    badge_nebula_description: "Se perdió entre los colores.",
-    badge_pulsar: "Pulsar",
-    badge_pulsar_description: "Escuchó la señal en el ruido.",
-    badge_singularity: "Singularidad",
-    badge_singularity_description: "Encontró el punto donde todo se curva.",
-    badge_stargazer: "Observador de estrellas",
-    badge_stargazer_description: "Miró en el momento justo.",
-    badge_supernova: "Supernova",
-    badge_supernova_description:
-      "Capturó una estrella en su momento más brillante.",
-    claim_already: "Ya tienes una insignia de descubrimiento.",
-    claim_success: "Has conseguido la insignia {name}.",
     description: "Detalles personales que has coleccionado.",
     empty_state: "Aún no has encontrado ninguna insignia.",
     granted_at: "Obtenida el {date}",

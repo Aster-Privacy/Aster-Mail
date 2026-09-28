@@ -173,7 +173,6 @@ export const hi = {
     remove_photo: "फ़ोटो निकालें",
     failed_save_profile_color:
       "आपका चुना हुआ रंग सहेजा नहीं गया। फिर से कोशिश करें।",
-    failed_remove_recovery_email: "फिर से कोशिश करें।",
     failed_upload_image: "फिर से कोशिश करें।",
     image_load_failed:
       "यह छवि लोड नहीं हुई। रीफ़्रेश करने से आमतौर पर काम बन जाता है।",
@@ -771,12 +770,6 @@ export const hi = {
       "यह कस्टम फ़ील्ड हटाया नहीं गया। फिर से कोशिश करें।",
     failed_to_save_value:
       "आपका बदलाव सहेजा नहीं गया। फिर से कोशिश करें। पिछला मान अब भी मौजूद है।",
-    contacts_import_partial:
-      "{{total}} में से सिर्फ़ {{imported}} संपर्क इंपोर्ट हुए। बाकी जोड़ने के लिए फ़ाइल दोबारा इंपोर्ट करें।",
-    failed_to_import_contacts: "फिर से कोशिश करें।",
-    failed_to_load_duplicates: "फिर से कोशिश करें।",
-    dismiss_failed: "फिर से कोशिश करें।",
-    click_scan_duplicates: 'डुप्लिकेट जांचने के लिए "स्कैन" पर क्लिक करें',
     never_synced: "कभी सिंक नहीं हुआ",
     last_sync_successful: "पिछला सिंक सफल रहा",
     last_sync_failed:
@@ -785,11 +778,6 @@ export const hi = {
       "फ़ॉरवर्ड नहीं भेजा गया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
     failed_to_schedule:
       "शेड्यूल सहेजा नहीं गया। फिर से कोशिश करें। आपका ड्राफ़्ट सुरक्षित है।",
-    fill_required_fields: "सभी ज़रूरी फ़ील्ड भरें",
-    failed_to_load_sources: "फिर से कोशिश करें।",
-    failed_to_add_source: "फिर से कोशिश करें।",
-    failed_to_delete_source: "फिर से कोशिश करें।",
-    failed_to_toggle_source: "फिर से कोशिश करें।",
     sync_failed:
       "सिंक पूरा नहीं हुआ, और हम अपने आप फिर से कोशिश करेंगे। दोनों तरफ़ आपका मेल सुरक्षित है।",
     clearing: "साफ़ किया जा रहा है...",
@@ -879,8 +867,6 @@ export const hi = {
     add_contacts_hint: "शुरू करने के लिए संपर्क जोड़ें",
     add_contact: "संपर्क जोड़ें",
     file_too_large: "फ़ाइल {{size}} से छोटी होनी चाहिए",
-    failed_to_upload_attachment: "फिर से कोशिश करें।",
-    upload_failed: "फिर से कोशिश करें।",
     delete_failed: "फिर से कोशिश करें।",
     download_failed: "फिर से कोशिश करें।",
     attachment_locked:
@@ -893,9 +879,6 @@ export const hi = {
       "शेड्यूल किए गए ईमेल में अभी समाप्ति नहीं लगाई जा सकती। अभी भेजें, या शेड्यूल करने के लिए समाप्ति हटा दें।",
     failed_to_merge_contacts:
       "मर्ज पूरा नहीं हुआ। फिर से कोशिश करें। आपके मूल संपर्कों में कोई बदलाव नहीं हुआ है।",
-    merge_failed: "फिर से कोशिश करें।",
-    failed_to_load_history: "फिर से कोशिश करें।",
-    failed_to_load_more: "फिर से कोशिश करें।",
     enter_valid_emails: "मान्य ईमेल पते डालें",
     enter_contact_details: "संपर्क विवरण डालें",
     select_valid_image: "JPEG, PNG, WebP या GIF छवि चुनें",
@@ -958,10 +941,6 @@ export const hi = {
       "हम इस डिवाइस पर यह ईमेल नहीं खोल सके। रीफ़्रेश करने से आमतौर पर काम बन जाता है, और बार-बार विफल होने पर साइन आउट करके फिर से साइन इन करना दूसरा उपाय है।",
     failed_to_disable_2fa:
       "दो-चरणीय सत्यापन चालू ही रहा। फिर से कोशिश करें। आपका खाता अब भी सुरक्षित है।",
-    failed_to_unsubscribe:
-      "सदस्यता रद्द करना पूरा नहीं हुआ। ईमेल में मौजूद लिंक आपको प्रेषक की साइट पर ले जाएगा, जहां आप यह खुद कर सकते हैं।",
-    failed_to_parse_settings:
-      "यह सेटिंग फ़ाइल पढ़ी नहीं जा सकी। कोई दूसरी फ़ाइल काम करेगी। आपकी मौजूदा सेटिंग जस की तस हैं।",
     removed_from_contacts: "संपर्कों से निकाल दिया गया",
     added_to_contacts: "संपर्कों में जुड़ गया",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -989,7 +968,6 @@ export const hi = {
       "खोज पूरी नहीं हुई। थोड़ी देर बाद एक और कोशिश आमतौर पर काम कर जाती है।",
     search_load_failed_try_again:
       "हम खोज के लिए आपके ईमेल लोड नहीं कर सके। फिर से कोशिश करें। आपका मेल सुरक्षित है।",
-    failed_to_load_search_results: "फिर से कोशिश करें।",
     failed_to_fetch_tags: "फिर से कोशिश करें।",
     failed_to_fetch_folders: "फिर से कोशिश करें।",
     failed_to_unlock_folder:
@@ -1017,13 +995,6 @@ export const hi = {
       "आपके ड्राफ़्ट लोड नहीं हुए। फिर से कोशिश करें। आपके सहेजे गए ड्राफ़्ट सुरक्षित हैं।",
     failed_to_load_scheduled_emails:
       "आपके शेड्यूल किए गए ईमेल लोड नहीं हुए। फिर से कोशिश करें। वे अब भी तय समय पर भेजे जाएंगे।",
-    failed_to_load_subscriptions: "फिर से कोशिश करें।",
-    failed_to_load_more_subscriptions: "फिर से कोशिश करें।",
-    failed_to_scan_subscriptions: "फिर से कोशिश करें।",
-    recently_archived: "हाल में आर्काइव किए गए",
-    older_items: "पुराने आइटम",
-    long_term_archive: "दीर्घकालिक आर्काइव",
-    failed_to_fetch_archive_stats: "फिर से कोशिश करें।",
     value_too_long: "यह मान लंबाई की सीमा से बड़ा है। छोटा संस्करण काम करेगा।",
     please_enter_valid_domain:
       "यह मान्य डोमेन नहीं है। example.com जैसा कुछ काम करेगा।",
@@ -1121,10 +1092,6 @@ export const hi = {
       "आपके लिंक किए गए बाहरी खाते से भेजने से पहले उसे फिर से जोड़ना होगा। यह सेटिंग, जुड़े हुए खाते में मिलेगा।",
     failed_to_send_via_external:
       "आपके लिंक किए गए बाहरी खाते से भेजना काम नहीं किया। फिर से कोशिश करें। आपका ड्राफ़्ट सहेजा गया है।",
-    tor_label: "Tor",
-    tor_snowflake_label: "Tor (Snowflake)",
-    cdn_relay_label: "CDN रिले",
-    toggle_selection: "चयन बदलें",
     offline_change_failed:
       "ऑफ़लाइन रहते हुए आपने जो बदलाव किया, वह सहेजा नहीं जा सका।",
     offline_send_failed:
@@ -1207,7 +1174,6 @@ export const hi = {
     all_accounts: "सभी खाते",
     failed_to_rotate_keys:
       "कुंजी रीफ़्रेश पूरा नहीं हुआ। फिर से कोशिश करें। आपकी पुरानी कुंजियां अब भी काम करती हैं और आपका डेटा सुरक्षित है।",
-    all_external_accounts: "सभी बाहरी खाते",
     read: "पढ़े गए",
     or_conjunction: "या",
     press_label: "दबाएं",
@@ -1573,11 +1539,6 @@ export const hi = {
     account_limit_reached:
       "आप इस नेटवर्क के लिए खाता सीमा तक पहुंच चुके हैं। अगर यह गलत लगता है, तो hello@astermail.org मदद कर सकता है।",
     health_check_failed: "जांच पूरी नहीं हुई। फिर से कोशिश करें।",
-    failed_to_get_key_status: "फिर से कोशिश करें।",
-    unknown_rotation_error: "फिर से कोशिश करें।",
-    new_email_notification: "{{ sender }} से नया ईमेल",
-    reply_notification: "{{ sender }} ने जवाब दिया",
-    mention_notification: "{{ sender }} ने आपका उल्लेख किया",
     print_from: "प्रेषक:",
     print_to: "To:",
     print_cc: "Cc:",
@@ -8904,12 +8865,6 @@ export const hi = {
     reply_to_name: "{{name}} को जवाब दें",
     reply_all_to_name: "{{name}} और सभी को जवाब दें",
     forward_message_heading: "संदेश अग्रेषित करें",
-    trackers_found_one: "{{count}} ट्रैकर मिला और रोका गया",
-    trackers_found_other: "{{count}} ट्रैकर मिले और रोके गए",
-    spy_pixels_blocked_count_one: "{{count}} जासूसी पिक्सल रोका गया",
-    spy_pixels_blocked_count_other: "{{count}} जासूसी पिक्सल रोके गए",
-    links_cleaned_count_one: "{{count}} लिंक साफ़ किया गया",
-    links_cleaned_count_other: "{{count}} लिंक साफ़ किए गए",
     param_removed_from_n_links_one: "{{count}} लिंक से {{param}} हटाया गया",
     param_removed_from_n_links_other: "{{count}} लिंक से {{param}} हटाया गया",
     empty_all_title: "यहाँ अभी कोई मेल नहीं",
@@ -9116,10 +9071,6 @@ export const hi = {
     create_a_password: "पासवर्ड बनाएं",
     recommend_strong_password:
       "कम से कम 8 अक्षर इस्तेमाल करें। मिश्रित अक्षरों वाला लंबा पासवर्ड ज़्यादा मज़बूत होता है।",
-    password_recovery_key: "पासवर्ड रिकवरी कुंजी",
-    recovery_key_only_way:
-      "अगर आप पासवर्ड भूल जाते हैं तो यह कुंजी आपके खाते को वापस पाने का एकमात्र तरीका है। इसे किसी सुरक्षित जगह सहेजें।",
-    download_key_lower: "कुंजी डाउनलोड करें",
     downloading: "डाउनलोड हो रहा है...",
     copy_key: "कुंजी कॉपी करें",
     copy_codes: "कोड कॉपी करें",
@@ -9366,7 +9317,6 @@ export const hi = {
     import_mail_step_title: "अपना मेल साथ लाएँ",
     import_mail_step_desc:
       "दूसरे खाते के संदेश Aster में लाएँ। सब कुछ सहेजे जाने से पहले आपके डिवाइस पर एन्क्रिप्ट होता है।",
-    import_mail_action: "मेल इंपोर्ट करें",
     import_mail_skip: "खाली इनबॉक्स से शुरू करें",
     import_mail_privacy_note: "आप बाद में सेटिंग्स से भी इंपोर्ट कर सकते हैं।",
     password_reset_successful: "पासवर्ड रीसेट सफल रहा",

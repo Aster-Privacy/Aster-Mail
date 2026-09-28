@@ -784,12 +784,6 @@ export const it = {
       "Questo campo personalizzato non è stato rimosso. Riprova.",
     failed_to_save_value:
       "La modifica non è stata salvata. Riprova. Il valore precedente è ancora lì.",
-    contacts_import_partial:
-      "Sono stati importati solo {{imported}} contatti su {{total}}. Importi di nuovo il file per aggiungere gli altri.",
-    failed_to_import_contacts: "Riprova.",
-    failed_to_load_duplicates: "Riprova.",
-    dismiss_failed: "Riprova.",
-    click_scan_duplicates: 'Clicca "Scansiona" per cercare duplicati',
     never_synced: "Mai sincronizzato",
     last_sync_successful: "Ultima sincronizzazione riuscita",
     last_sync_failed:
@@ -798,11 +792,6 @@ export const it = {
       "L'inoltro non è stato inviato. Riprova. La bozza è salvata.",
     failed_to_schedule:
       "La programmazione non è stata salvata. Riprova. La bozza è al sicuro.",
-    fill_required_fields: "Compila tutti i campi obbligatori",
-    failed_to_load_sources: "Riprova.",
-    failed_to_add_source: "Riprova.",
-    failed_to_delete_source: "Riprova.",
-    failed_to_toggle_source: "Riprova.",
     sync_failed:
       "La sincronizzazione non si è completata, e riproveremo automaticamente. La sua posta da entrambi i lati è al sicuro.",
     clearing: "Pulizia...",
@@ -872,8 +861,6 @@ export const it = {
     file_too_large: "Il file deve essere inferiore a {{size}}",
     delete_failed: "Riprova.",
     download_failed: "Questo download non è stato completato. Riprova.",
-    failed_to_upload_attachment: "Riprova.",
-    upload_failed: "Riprova.",
     attachment_locked:
       "Questo allegato non può essere aperto perché la sua chiave di crittografia non è disponibile su questo dispositivo.",
     scheduled_no_attachments:
@@ -884,9 +871,6 @@ export const it = {
       "Le email programmate non supportano ancora la scadenza. Invia ora oppure rimuovi la scadenza per programmarla.",
     failed_to_merge_contacts:
       "L'unione non è stata completata. Riprova. I contatti originali non sono cambiati.",
-    merge_failed: "Riprova.",
-    failed_to_load_history: "Riprova.",
-    failed_to_load_more: "Riprova.",
     enter_valid_emails: "Inserisci indirizzi email validi",
     enter_contact_details: "Inserisci i dettagli del contatto",
     select_valid_image: "Seleziona un'immagine JPEG, PNG, WebP o GIF",
@@ -947,10 +931,6 @@ export const it = {
       "Non siamo riusciti ad aprire questa email su questo dispositivo. Un aggiornamento di solito risolve la cosa, e disconnettersi e riconnettersi è la riserva se continua a non riuscire.",
     failed_to_disable_2fa:
       "La verifica in due passaggi è rimasta attiva. Riprova. Il tuo account è ancora protetto.",
-    failed_to_unsubscribe:
-      "L'annullamento dell'iscrizione non si è completato. Il link nell'email la porterà al sito del mittente per farlo da sola.",
-    failed_to_parse_settings:
-      "Questo file di impostazioni non è stato letto. Uno diverso funzionerà. Le sue impostazioni attuali sono invariate.",
     removed_from_contacts: "Rimosso dai contatti",
     added_to_contacts: "Aggiunto ai contatti",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -974,7 +954,6 @@ export const it = {
     offline_action_queued:
       "Lei è offline in questo momento. Questa azione è in coda e si completerà appena si riconnetterà.",
     failed_to_update: "Riprova.",
-    failed_to_load_search_results: "Riprova.",
     failed_to_fetch_tags: "Riprova.",
     failed_to_fetch_folders: "Riprova.",
     failed_to_unlock_folder:
@@ -996,13 +975,6 @@ export const it = {
       "Le tue bozze non sono state caricate. Riprova. Le bozze salvate sono al sicuro.",
     failed_to_load_scheduled_emails:
       "Le email programmate non sono state caricate. Riprova. Verranno comunque inviate come previsto.",
-    failed_to_load_subscriptions: "Riprova.",
-    failed_to_load_more_subscriptions: "Riprova.",
-    failed_to_scan_subscriptions: "Riprova.",
-    recently_archived: "Archiviate di recente",
-    older_items: "Elementi più vecchi",
-    long_term_archive: "Archivio a lungo termine",
-    failed_to_fetch_archive_stats: "Riprova.",
     value_too_long:
       "Questo valore supera il limite di lunghezza. Una versione più corta funzionerà.",
     please_enter_valid_domain:
@@ -1080,10 +1052,6 @@ export const it = {
       "Il suo account esterno collegato deve essere ricollegato prima di poter inviare attraverso di esso. Si trova in Impostazioni, Account collegati.",
     failed_to_send_via_external:
       "L'invio tramite il tuo account esterno collegato non ha funzionato. Riprova. La bozza è salvata.",
-    tor_label: "Tor",
-    tor_snowflake_label: "Tor (Snowflake)",
-    cdn_relay_label: "Relay CDN",
-    toggle_selection: "Attiva/disattiva selezione",
     offline_change_failed:
       "Non è stato possibile salvare una modifica che ha fatto offline.",
     offline_send_failed:
@@ -1151,7 +1119,6 @@ export const it = {
     all_accounts: "Tutti gli account",
     failed_to_rotate_keys:
       "Il rinnovo delle chiavi non è stato completato. Riprova. Le chiavi precedenti funzionano ancora e i tuoi dati sono al sicuro.",
-    all_external_accounts: "Tutti gli account esterni",
     read: "Letta",
     or_conjunction: "o",
     press_label: "Premi",
@@ -1539,7 +1506,6 @@ export const it = {
     recovery_email_removed: "Email di recupero rimossa",
     recovery_email_hidden: "Salvato in questo account",
     failed_save_profile_color: "Il colore scelto non è stato salvato. Riprova.",
-    failed_remove_recovery_email: "Riprova.",
     image_load_failed:
       "Questa immagine non si è caricata. Un aggiornamento di solito risolve la cosa.",
     image_processing_failed:
@@ -1682,11 +1648,6 @@ export const it = {
     account_limit_reached:
       "Ha raggiunto il limite di account per questa rete. Se le sembra un errore, hello@astermail.org può aiutarla.",
     health_check_failed: "La diagnostica non è stata completata. Riprova.",
-    failed_to_get_key_status: "Riprova.",
-    unknown_rotation_error: "Riprova.",
-    new_email_notification: "Nuova email da {{ sender }}",
-    reply_notification: "{{ sender }} ha risposto",
-    mention_notification: "{{ sender }} ti ha menzionato",
     print_from: "Da:",
     print_to: "A:",
     print_cc: "Cc:",
@@ -9148,12 +9109,6 @@ export const it = {
     reply_to_name: "Rispondi a {{name}}",
     reply_all_to_name: "Rispondi a {{name}} e a tutti",
     forward_message_heading: "Inoltra messaggio",
-    trackers_found_one: "{{count}} tracker rilevato e bloccato",
-    trackers_found_other: "{{count}} tracker rilevati e bloccati",
-    spy_pixels_blocked_count_one: "{{count}} pixel spia bloccato",
-    spy_pixels_blocked_count_other: "{{count}} pixel spia bloccati",
-    links_cleaned_count_one: "{{count}} link ripulito",
-    links_cleaned_count_other: "{{count}} link ripuliti",
     param_removed_from_n_links_one: "{{param}} rimosso da {{count}} link",
     param_removed_from_n_links_other: "{{param}} rimosso da {{count}} link",
     confirm_bulk_action_count_description:
@@ -9284,10 +9239,6 @@ export const it = {
     create_a_password: "Crea una password",
     recommend_strong_password:
       "Usa almeno 8 caratteri. Una password più lunga con caratteri misti è più sicura.",
-    password_recovery_key: "Chiave di recupero della password",
-    recovery_key_only_way:
-      "Questa chiave è l'unico modo per recuperare il tuo account se dimentichi la password. Conservala in un luogo sicuro.",
-    download_key_lower: "Scarica la chiave",
     downloading: "Download in corso...",
     copy_key: "Copia la chiave",
     copy_codes: "Copia i codici",
@@ -9538,7 +9489,6 @@ export const it = {
     import_mail_step_title: "Porta la tua posta con te",
     import_mail_step_desc:
       "Sposta i messaggi da un altro account in Aster. Tutto viene cifrato sul tuo dispositivo prima di essere salvato.",
-    import_mail_action: "Importa la posta",
     import_mail_skip: "Inizia con una casella vuota",
     import_mail_privacy_note:
       "Puoi importare anche più tardi dalle Impostazioni.",
@@ -10450,30 +10400,6 @@ export const it = {
     granted_at: "Ottenuto {date}",
     empty_state: "Non hai ancora trovato nessun badge.",
     claim_failed: "Riprova.",
-    claim_success: "Hai ottenuto il badge {name}.",
-    claim_already: "Hai già ottenuto un badge di scoperta.",
-    badge_big_bang: "Big Bang",
-    badge_big_bang_description: "Il primo a scoprire il cosmo.",
-    badge_event_horizon: "Orizzonte degli eventi",
-    badge_event_horizon_description:
-      "Ha attraversato il confine del conosciuto.",
-    badge_black_hole: "Buco nero",
-    badge_black_hole_description: "Attratto da qualcosa di più profondo.",
-    badge_singularity: "Singolarità",
-    badge_singularity_description: "Ha trovato il punto dove tutto si piega.",
-    badge_supernova: "Supernova",
-    badge_supernova_description:
-      "Ha colto una stella nel suo momento più luminoso.",
-    badge_andromeda: "Andromeda",
-    badge_andromeda_description: "Ha raggiunto una galassia vicina.",
-    badge_nebula: "Nebulosa",
-    badge_nebula_description: "Si è avventurato tra i colori.",
-    badge_comet: "Cometa",
-    badge_comet_description: "Ha incrociato qualcosa di raro.",
-    badge_pulsar: "Pulsar",
-    badge_pulsar_description: "Ha sentito il segnale nel rumore.",
-    badge_stargazer: "Osservatore di stelle",
-    badge_stargazer_description: "Ha alzato lo sguardo al momento giusto.",
   },
   secure_view: {
     powered_by_prefix: "Inviato in modo sicuro tramite",

@@ -768,13 +768,6 @@ export const tr = {
     failed_to_delete_field: "Bu özel alan kaldırılmadı. Tekrar deneyin.",
     failed_to_save_value:
       "Değişikliğiniz kaydedilmedi. Tekrar deneyin. Önceki değer hâlâ geçerli.",
-    contacts_import_partial:
-      "{{total}} kişiden yalnızca {{imported}} tanesi içe aktarıldı. Kalanları eklemek için dosyayı yeniden içe aktarın.",
-    failed_to_import_contacts: "Tekrar deneyin.",
-    failed_to_load_duplicates: "Tekrar deneyin.",
-    dismiss_failed: "Tekrar deneyin.",
-    click_scan_duplicates:
-      'Kopyaları kontrol etmek için "Tara" düğmesine tıklayın',
     never_synced: "Hiç senkronize edilmedi",
     last_sync_successful: "Son senkronizasyon başarılı",
     last_sync_failed:
@@ -783,11 +776,6 @@ export const tr = {
       "Yönlendirme gönderilmedi. Tekrar deneyin. Taslağınız kaydedildi.",
     failed_to_schedule:
       "Zamanlama kaydedilmedi. Tekrar deneyin. Taslağınız güvende.",
-    fill_required_fields: "Lütfen tüm gerekli alanları doldurun",
-    failed_to_load_sources: "Tekrar deneyin.",
-    failed_to_add_source: "Tekrar deneyin.",
-    failed_to_delete_source: "Tekrar deneyin.",
-    failed_to_toggle_source: "Tekrar deneyin.",
     sync_failed:
       "Eşitleme tamamlanmadı, otomatik olarak yeniden deneyeceğiz. Her iki taraftaki postanız güvende.",
     clearing: "Temizleniyor...",
@@ -857,8 +845,6 @@ export const tr = {
       "Bu dosya {{size}} MB ve boyut sınırının üzerinde. Daha küçük bir dosya seçin.",
     delete_failed: "Tekrar deneyin.",
     download_failed: "Bu indirme tamamlanmadı. Tekrar deneyin.",
-    failed_to_upload_attachment: "Tekrar deneyin.",
-    upload_failed: "Tekrar deneyin.",
     attachment_locked:
       "Bu ek, şifreleme anahtarı bu cihazda kullanılamadığı için açılamıyor.",
     scheduled_no_attachments:
@@ -869,9 +855,6 @@ export const tr = {
       "Zamanlanmış e-postalar henüz süre sonu kullanamaz. Şimdi gönder ya da zamanlamak için süre sonunu kaldır.",
     failed_to_merge_contacts:
       "Birleştirme tamamlanmadı. Tekrar deneyin. Özgün kişileriniz değişmedi.",
-    merge_failed: "Tekrar deneyin.",
-    failed_to_load_history: "Tekrar deneyin.",
-    failed_to_load_more: "Tekrar deneyin.",
     enter_valid_emails: "Lütfen geçerli e-posta adresleri girin",
     enter_contact_details: "Kişi bilgilerini girin",
     select_valid_image: "Lütfen bir JPEG, PNG, WebP veya GIF görsel seçin",
@@ -933,10 +916,6 @@ export const tr = {
       "Bu e-postayı bu cihazda açamadık. Bir yenileme çoğunlukla bunu çözer ve sorun sürerse çıkış yapıp tekrar giriş yapmak yedek yoldur.",
     failed_to_disable_2fa:
       "İki faktörlü kimlik doğrulama açık kaldı. Tekrar deneyin. Hesabınız hâlâ korunuyor.",
-    failed_to_unsubscribe:
-      "Abonelikten çıkma tamamlanmadı. E-postadaki bağlantı sizi göndericinin sitesine götürür, abonelikten kendiniz çıkabilirsiniz.",
-    failed_to_parse_settings:
-      "Bu ayarlar dosyası okunamadı. Farklı bir dosya işe yarar. Mevcut ayarlarınız olduğu gibi.",
     removed_from_contacts: "Kişilerden kaldırıldı",
     added_to_contacts: "Kişilere eklendi",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -960,7 +939,6 @@ export const tr = {
     offline_action_queued:
       "Şu anda çevrimdışısınız. Bu sıraya alındı ve siz yeniden bağlanır bağlanmaz tamamlanacak.",
     failed_to_update: "Tekrar deneyin.",
-    failed_to_load_search_results: "Tekrar deneyin.",
     failed_to_fetch_tags: "Tekrar deneyin.",
     failed_to_fetch_folders: "Tekrar deneyin.",
     failed_to_unlock_folder:
@@ -982,13 +960,6 @@ export const tr = {
       "Taslaklarınız yüklenmedi. Tekrar deneyin. Kayıtlı taslaklarınız güvende.",
     failed_to_load_scheduled_emails:
       "Zamanlanmış e-postalarınız yüklenmedi. Tekrar deneyin. Planlandığı gibi gönderilecekler.",
-    failed_to_load_subscriptions: "Tekrar deneyin.",
-    failed_to_load_more_subscriptions: "Tekrar deneyin.",
-    failed_to_scan_subscriptions: "Tekrar deneyin.",
-    recently_archived: "Son Arşivlenenler",
-    older_items: "Eski Öğeler",
-    long_term_archive: "Uzun Vadeli Arşiv",
-    failed_to_fetch_archive_stats: "Tekrar deneyin.",
     value_too_long:
       "Bu değer uzunluk sınırının üzerinde. Daha kısa bir sürüm işe yarar.",
     please_enter_valid_domain:
@@ -1065,10 +1036,6 @@ export const tr = {
       "Bağladığınız dış hesabın, üzerinden gönderim yapılmadan önce yeniden bağlanması gerekiyor. Ayarlar, Bağlı Hesaplar bölümünde duruyor.",
     failed_to_send_via_external:
       "Bağlı harici hesabınız üzerinden gönderim yapılamadı. Tekrar deneyin. Taslağınız kaydedildi.",
-    tor_label: "Tor",
-    tor_snowflake_label: "Tor (Snowflake)",
-    cdn_relay_label: "CDN Aktarıcı",
-    toggle_selection: "Seçimi değiştir",
     offline_change_failed:
       "Çevrimdışıyken yaptığınız bir değişiklik kaydedilemedi.",
     offline_send_failed: "Çevrimdışıyken yazdığınız bir e-posta gönderilemedi.",
@@ -1130,7 +1097,6 @@ export const tr = {
     all_accounts: "Tüm hesaplar",
     failed_to_rotate_keys:
       "Anahtar yenileme tamamlanmadı. Tekrar deneyin. Eski anahtarlarınız hâlâ çalışıyor ve verileriniz güvende.",
-    all_external_accounts: "Tüm harici hesaplar",
     read: "Okundu",
     or_conjunction: "veya",
     press_label: "Basın",
@@ -1515,7 +1481,6 @@ export const tr = {
     recovery_email_removed: "Kurtarma e-postası kaldırıldı",
     recovery_email_hidden: "Bu hesapta kayıtlı",
     failed_save_profile_color: "Renk seçiminiz kaydedilmedi. Tekrar deneyin.",
-    failed_remove_recovery_email: "Tekrar deneyin.",
     image_load_failed:
       "Bu görsel yüklenmedi. Sayfayı yenilemek genellikle sorunu çözer.",
     image_processing_failed:
@@ -1654,11 +1619,6 @@ export const tr = {
     account_limit_reached:
       "Bu ağ için hesap sınırına ulaştınız. Hatalı görünüyorsa hello@astermail.org size yardımcı olabilir.",
     health_check_failed: "Tanılama tamamlanmadı. Tekrar deneyin.",
-    failed_to_get_key_status: "Tekrar deneyin.",
-    unknown_rotation_error: "Tekrar deneyin.",
-    new_email_notification: "{{ sender }} tarafından yeni e-posta",
-    reply_notification: "{{ sender }} yanıtladı",
-    mention_notification: "{{ sender }} sizi bahsetti",
     print_from: "Kimden:",
     print_to: "Kime:",
     print_cc: "Bilgi:",
@@ -9006,12 +8966,6 @@ export const tr = {
     reply_to_name: "{{name}} kişisine yanıt",
     reply_all_to_name: "{{name}} ve herkese yanıt",
     forward_message_heading: "İletiyi ilet",
-    trackers_found_one: "{{count}} izleyici bulundu ve engellendi",
-    trackers_found_other: "{{count}} izleyici bulundu ve engellendi",
-    spy_pixels_blocked_count_one: "{{count}} casus piksel engellendi",
-    spy_pixels_blocked_count_other: "{{count}} casus piksel engellendi",
-    links_cleaned_count_one: "{{count}} bağlantı temizlendi",
-    links_cleaned_count_other: "{{count}} bağlantı temizlendi",
     param_removed_from_n_links_one:
       "{{param}}, {{count}} bağlantıdan kaldırıldı",
     param_removed_from_n_links_other:
@@ -9143,10 +9097,6 @@ export const tr = {
     create_a_password: "Bir parola oluştur",
     recommend_strong_password:
       "En az 8 karakter kullan. Karışık karakterler içeren daha uzun bir parola daha güçlüdür.",
-    password_recovery_key: "Parola kurtarma anahtarı",
-    recovery_key_only_way:
-      "Parolanı unutursan hesabını kurtarmanın tek yolu bu anahtardır. Güvenli bir yerde sakla.",
-    download_key_lower: "Anahtarı indir",
     downloading: "İndiriliyor...",
     copy_key: "Anahtarı kopyala",
     copy_codes: "Kodları kopyala",
@@ -9388,7 +9338,6 @@ export const tr = {
     review_codes_left: "{{count}} kurtarma kodu kaldı.",
     review_codes_left_one: "{{count}} kurtarma kodu kaldı.",
     review_codes_left_other: "{{count}} kurtarma kodu kaldı.",
-    import_mail_action: "Postayı içe aktar",
     password_reset_successful: "Parola sıfırlama başarılı",
     account_recovered_sign_in:
       "Hesabınız kurtarıldı. Artık yeni parolanızla giriş yapabilirsiniz.",

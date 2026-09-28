@@ -834,17 +834,6 @@ export const ja = {
       "転送を送信できませんでした。もう一度お試しください。下書きは保存されています。",
     failed_to_schedule:
       "予約を保存できませんでした。もう一度お試しください。下書きは安全です。",
-    contacts_import_partial:
-      "{{total}} 件中 {{imported}} 件の連絡先のみインポートされました。残りを追加するには、ファイルをもう一度インポートしてください。",
-    failed_to_import_contacts: "もう一度お試しください。",
-    failed_to_load_duplicates: "もう一度お試しください。",
-    dismiss_failed: "もう一度お試しください。",
-    click_scan_duplicates: "「スキャン」をクリックして重複を確認してください",
-    fill_required_fields: "必須項目をすべて入力してください",
-    failed_to_load_sources: "もう一度お試しください。",
-    failed_to_add_source: "もう一度お試しください。",
-    failed_to_delete_source: "もう一度お試しください。",
-    failed_to_toggle_source: "もう一度お試しください。",
     sync_failed:
       "同期は完了せず、自動的に再試行されます。両側のメールは安全です。",
     clearing: "クリア中...",
@@ -909,8 +898,6 @@ export const ja = {
     add_contacts_hint: "連絡先を追加して開始してください",
     add_contact: "連絡先を追加",
     file_too_large: "ファイルは{{size}}未満である必要があります",
-    failed_to_upload_attachment: "もう一度お試しください。",
-    upload_failed: "もう一度お試しください。",
     delete_failed: "もう一度お試しください。",
     download_failed: "もう一度お試しください。",
     attachment_locked:
@@ -923,9 +910,6 @@ export const ja = {
       "予約送信のメールはまだ有効期限を設定できません。すぐに送信するか、有効期限を削除して予約してください。",
     failed_to_merge_contacts:
       "統合を完了できませんでした。もう一度お試しください。元の連絡先は変更されていません。",
-    merge_failed: "もう一度お試しください。",
-    failed_to_load_history: "もう一度お試しください。",
-    failed_to_load_more: "もう一度お試しください。",
     enter_valid_emails: "有効なメールアドレスを入力してください",
     enter_contact_details: "連絡先の詳細を入力",
     select_valid_image: "JPEG、PNG、WebP、またはGIF画像を選択してください",
@@ -986,10 +970,6 @@ export const ja = {
       "このデバイスでこのメールを開けませんでした。更新すると解決することが多く、繰り返し失敗する場合はサインアウトしてから再度サインインするのが回避策です。",
     failed_to_disable_2fa:
       "2 段階認証はオンのままです。もう一度お試しください。アカウントは引き続き保護されています。",
-    failed_to_unsubscribe:
-      "購読解除が完了しませんでした。メール内のリンクから送信者のサイトに移動して、ご自身で購読解除できます。",
-    failed_to_parse_settings:
-      "この設定ファイルは読み取れませんでした。別のファイルでしたら使えます。現在の設定には変更ありません。",
     removed_from_contacts: "連絡先から削除しました",
     added_to_contacts: "連絡先に追加しました",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -1013,7 +993,6 @@ export const ja = {
     offline_action_queued:
       "現在オフラインです。接続が戻り次第、この操作はキューから実行されます。",
     failed_to_update: "もう一度お試しください。",
-    failed_to_load_search_results: "もう一度お試しください。",
     failed_to_fetch_tags: "もう一度お試しください。",
     failed_to_fetch_folders: "もう一度お試しください。",
     failed_to_unlock_folder:
@@ -1035,13 +1014,6 @@ export const ja = {
       "下書きを読み込めませんでした。もう一度お試しください。保存済みの下書きは安全です。",
     failed_to_load_scheduled_emails:
       "予約済みのメールを読み込めませんでした。もう一度お試しください。予定どおりに送信されます。",
-    failed_to_load_subscriptions: "もう一度お試しください。",
-    failed_to_load_more_subscriptions: "もう一度お試しください。",
-    failed_to_scan_subscriptions: "もう一度お試しください。",
-    recently_archived: "最近アーカイブしたもの",
-    older_items: "古いアイテム",
-    long_term_archive: "長期アーカイブ",
-    failed_to_fetch_archive_stats: "もう一度お試しください。",
     value_too_long: "この値は長さの上限を超えています。短くすると使えます。",
     please_enter_valid_domain:
       "有効なドメインではありません。example.com のような形式でしたら使えます。",
@@ -1117,10 +1089,6 @@ export const ja = {
       "送信に使うには、連携している外部アカウントの再接続が必要です。設定の連携アカウントから行えます。",
     failed_to_send_via_external:
       "リンクした外部アカウントからの送信がうまくいきませんでした。もう一度お試しください。下書きは保存されています。",
-    tor_label: "Tor",
-    tor_snowflake_label: "Tor（Snowflake）",
-    cdn_relay_label: "CDNリレー",
-    toggle_selection: "選択を切り替え",
     offline_change_failed: "オフライン中に行った変更を保存できませんでした。",
     offline_send_failed: "オフライン中に作成したメールを送信できませんでした。",
     offline_email_queued:
@@ -1178,7 +1146,6 @@ export const ja = {
     all_accounts: "すべてのアカウント",
     failed_to_rotate_keys:
       "鍵の更新を完了できませんでした。もう一度お試しください。以前の鍵は引き続き使え、データは安全です。",
-    all_external_accounts: "すべての外部アカウント",
     read: "既読",
     or_conjunction: "または",
     press_label: "押す",
@@ -1573,7 +1540,6 @@ export const ja = {
       "パスワードを入力すると、セキュリティキーによる確認を求められます。",
     recovery_email_removed: "復旧用メールアドレスを削除しました",
     recovery_email_hidden: "このアカウントに保存済み",
-    failed_remove_recovery_email: "もう一度お試しください。",
     failed_save_profile_color: "もう一度お試しください。",
     alias_avatar_updated: "エイリアスのアバターを更新しました",
     alias_avatar_removed: "エイリアスのアバターを削除しました",
@@ -1660,8 +1626,6 @@ export const ja = {
       "フォルダーのパスワードを削除できませんでした。もう一度お試しください。フォルダーは以前どおりロックされています。",
     failed_to_set_folder_password:
       "フォルダーのパスワードを保存できませんでした。もう一度お試しください。フォルダーの内容は変更されていません。",
-    drop_image_or_click: "画像をドロップするかクリック",
-    failed_to_get_key_status: "もう一度お試しください。",
     file_already_attached:
       '"{{name}}" はすでにこのメールに添付されています。再度添付する必要はありません。',
     metadata_not_removed:
@@ -1671,8 +1635,6 @@ export const ja = {
     file_exceeds_max_size_upgradable:
       '"{{name}}" は現在のプランの上限 {{size}} を超えています。プランをアップグレードすると {{max_size}} まで送れます。',
     folder_fallback: "フォルダ",
-    found_n_contacts: "{{count}}件の連絡先が見つかりました",
-    found_one_contact: "1件の連絡先が見つかりました",
     health_check_failed: "もう一度お試しください。",
     images_count: "{{count}} 件の画像",
     import_n_contacts: "{{count}}件の連絡先をインポート",
@@ -1807,7 +1769,6 @@ export const ja = {
     unknown_error:
       "想定どおりに動作しませんでした。もう一度お試しください。原因を特定できませんでした。",
     unknown_merchant: "不明な販売者",
-    unknown_rotation_error: "もう一度お試しください。",
     unsaved_changes_title: "変更を破棄しますか？",
     unsaved_changes_body:
       "入力した内容は保存されていません。ここでフォームを閉じると削除されます。",
@@ -8251,8 +8212,6 @@ export const ja = {
     reply_all: "全員に返信",
     react: "リアクション",
     you_reacted_with: "{{emoji}} でリアクションしました",
-    you_reacted_with_remove:
-      "{{emoji}} でリアクションしました。クリックすると削除されます。",
     reacted_with: "{{name}} が {{emoji}} でリアクションしました",
     forward: "転送",
     to: "宛先",
@@ -8987,10 +8946,6 @@ export const ja = {
     reply_to_name: "{{name}} さんに返信",
     reply_all_to_name: "{{name}} さんと全員に返信",
     forward_message_heading: "メッセージを転送",
-    trackers_found_other: "{{count}} 件のトラッカーを検出してブロックしました",
-    spy_pixels_blocked_count_other:
-      "{{count}} 件のスパイピクセルをブロックしました",
-    links_cleaned_count_other: "{{count}} 件のリンクをクリーンアップしました",
     param_removed_from_n_links_other:
       "{{count}} 件のリンクから {{param}} を削除しました",
     bulk_archive_title: "{{count}} 件のメールをアーカイブしますか。",
@@ -9130,10 +9085,6 @@ export const ja = {
     create_a_password: "パスワードを作成",
     recommend_strong_password:
       "8文字以上にしてください。さまざまな文字を含む長いパスワードほど強力です。",
-    password_recovery_key: "パスワード復旧キー",
-    recovery_key_only_way:
-      "パスワードを忘れた場合、このキーがアカウントを復旧する唯一の方法です。安全な場所に保管してください。",
-    download_key_lower: "キーをダウンロード",
     downloading: "ダウンロード中...",
     copy_key: "キーをコピー",
     copy_codes: "コードをコピー",
@@ -9373,7 +9324,6 @@ export const ja = {
     import_mail_step_title: "メールを一緒に持ってくる",
     import_mail_step_desc:
       "別のアカウントのメッセージを Aster に移行します。すべて保存前にお使いのデバイスで暗号化されます。",
-    import_mail_action: "メールを取り込む",
     import_mail_skip: "空の受信トレイで始める",
     import_mail_privacy_note: "後から設定で取り込むこともできます。",
     password_reset_successful: "パスワードのリセットに成功しました",
@@ -10269,28 +10219,6 @@ export const ja = {
     granted_at: "{date} に獲得",
     empty_state: "まだバッジを見つけていません。",
     claim_failed: "もう一度お試しください。",
-    claim_success: "{name} バッジを獲得しました。",
-    claim_already: "すでに発見バッジを獲得しています。",
-    badge_big_bang: "ビッグバン",
-    badge_big_bang_description: "宇宙を最初に発見した者。",
-    badge_event_horizon: "事象の地平線",
-    badge_event_horizon_description: "既知の境界を越えた者。",
-    badge_black_hole: "ブラックホール",
-    badge_black_hole_description: "より深いものに引き込まれた者。",
-    badge_singularity: "特異点",
-    badge_singularity_description: "すべてが曲がる点を見つけた者。",
-    badge_supernova: "超新星",
-    badge_supernova_description: "最も輝く瞬間に星を捉えた者。",
-    badge_andromeda: "アンドロメダ",
-    badge_andromeda_description: "隣の銀河に到達した者。",
-    badge_nebula: "星雲",
-    badge_nebula_description: "色の中に迷い込んだ者。",
-    badge_comet: "彗星",
-    badge_comet_description: "珍しいものと交差した者。",
-    badge_pulsar: "パルサー",
-    badge_pulsar_description: "雑音の中に信号を聞いた者。",
-    badge_stargazer: "星空観測者",
-    badge_stargazer_description: "適切な瞬間に空を見上げた者。",
   },
   secure_view: {
     powered_by_prefix: "安全に送信",

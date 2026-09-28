@@ -681,9 +681,6 @@ export const zh_CN = {
       "对此联系人的更改未能保存。请重试。之前的版本仍然保留。",
     failed_to_delete_contacts: "未能移除这些联系人。请重试。",
     failed_to_update_favorites: "收藏未能更新。请重试。",
-    contacts_import_partial:
-      "{{total}} 个联系人中只导入了 {{imported}} 个。再次导入该文件以添加其余联系人。",
-    failed_to_import_contacts: "请重试。",
     failed_to_read_file: "这个文件无法读取，换一个可以。",
     import_failed: "导入未能完成。请重试。您现有的数据未受影响。",
     scan_failed: "请重试。",
@@ -699,11 +696,6 @@ export const zh_CN = {
     last_sync_failed: "上一次同步未能完成，我们会自动重试。",
     failed_to_forward: "转发未能发送。请重试。您的草稿已保存。",
     failed_to_schedule: "定时设置未能保存。请重试。您的草稿安全无虞。",
-    fill_required_fields: "请填写所有必填字段",
-    failed_to_load_sources: "请重试。",
-    failed_to_add_source: "请重试。",
-    failed_to_delete_source: "请重试。",
-    failed_to_toggle_source: "请重试。",
     sync_failed: "同步未能完成，我们会自动重试。两侧的邮件都是安全的。",
     clearing: "清除中...",
     clear: "清除",
@@ -761,8 +753,6 @@ export const zh_CN = {
     add_contact: "添加联系人",
     file_too_large:
       "这个文件有 {{size}} MB，超过了大小限制，换一个较小的就可以。",
-    failed_to_upload_attachment: "请重试。",
-    upload_failed: "请重试。",
     delete_failed: "请重试。",
     download_failed: "此下载未能完成。请重试。",
     attachment_locked: "此附件的加密密钥在此设备上不可用，因此无法打开。",
@@ -773,9 +763,6 @@ export const zh_CN = {
     scheduled_no_expiry:
       "定时邮件暂时不支持设置有效期。请立即发送，或删除有效期后再定时发送。",
     failed_to_merge_contacts: "合并未能完成。请重试。您原有的联系人未受影响。",
-    merge_failed: "请重试。",
-    failed_to_load_history: "请重试。",
-    failed_to_load_more: "请重试。",
     enter_valid_emails: "请输入有效的邮箱地址",
     enter_contact_details: "输入联系人详情",
     select_valid_image: "请选择 JPEG、PNG、WebP 或 GIF 图片",
@@ -825,10 +812,6 @@ export const zh_CN = {
     failed_to_decrypt_email:
       "我们无法在这台设备上打开这封邮件，刷新一下通常可以；如果一直失败，退出后重新登录可以作为替代。",
     failed_to_disable_2fa: "双重验证仍处于开启状态。请重试。您的账户仍受保护。",
-    failed_to_unsubscribe:
-      "退订未能完成，邮件中的链接会带您前往发件人的网站自行退订。",
-    failed_to_parse_settings:
-      "这个设置文件无法读取，换一个文件可以。您当前的设置没有变化。",
     removed_from_contacts: "已从联系人中移除",
     added_to_contacts: "已添加到联系人",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -866,13 +849,6 @@ export const zh_CN = {
     failed_to_load_drafts: "您的草稿未能加载。请重试。已保存的草稿安全无虞。",
     failed_to_load_scheduled_emails:
       "定时邮件未能加载。请重试。它们仍会按计划发送。",
-    failed_to_load_subscriptions: "请重试。",
-    failed_to_load_more_subscriptions: "请重试。",
-    failed_to_scan_subscriptions: "请重试。",
-    recently_archived: "最近归档",
-    older_items: "较早的项目",
-    long_term_archive: "长期归档",
-    failed_to_fetch_archive_stats: "请重试。",
     value_too_long: "这个值超过了长度限制，缩短一些就可以。",
     please_enter_valid_domain:
       "这不是有效的域名，类似 example.com 这样的格式可以使用。",
@@ -948,10 +924,6 @@ export const zh_CN = {
     cannot_mix_recipients:
       "Aster 用户和外部地址不能放在同一封邮件中，分两封发送就可以。",
     failed_to_schedule_email: "定时设置未能保存。请重试。您的草稿已保存。",
-    tor_label: "Tor",
-    tor_snowflake_label: "Tor（Snowflake）",
-    cdn_relay_label: "CDN 中继",
-    toggle_selection: "切换选择",
     failed_to_restore_draft:
       "我们无法找回这份草稿，重新打开一次通常可以。您的其他草稿不受影响。",
     failed_to_undo_spam: "我们无法撤销这项操作，手动移回可以作为替代。",
@@ -993,7 +965,6 @@ export const zh_CN = {
     all_accounts: "所有账户",
     failed_to_rotate_keys:
       "密钥更新未能完成。请重试。您的旧密钥仍然有效，数据安全无虞。",
-    all_external_accounts: "所有外部账户",
     read: "已读",
     or_conjunction: "或",
     press_label: "按下",
@@ -1482,7 +1453,6 @@ export const zh_CN = {
     recovery_email_removed: "恢复邮箱已移除",
     recovery_email_hidden: "已保存在此账户",
     failed_save_profile_color: "您选择的颜色未能保存。请重试。",
-    failed_remove_recovery_email: "请重试。",
     image_load_failed: "这张图片没有加载，刷新一下通常可以。",
     image_processing_failed: "我们无法处理这张图片，换一个文件就可以。",
     trash_empty_failed:
@@ -1520,7 +1490,6 @@ export const zh_CN = {
       "文件夹密码未能更改。请重试。旧密码仍然有效。",
     failed_to_remove_folder_password:
       "我们无法移除文件夹密码。请重试。文件夹仍像之前一样保持锁定。",
-    failed_to_get_key_status: "请重试。",
     failed_to_read_named_file: '我们无法读取"{{name}}"，换一个文件就可以。',
     file_already_attached: '"{{name}}"已在这封邮件上，无需再次添加。',
     metadata_not_removed:
@@ -1543,10 +1512,6 @@ export const zh_CN = {
     account_limit_reached:
       "您已达到此网络的账户限制。如果这看起来有误，可以联系 hello@astermail.org。",
     health_check_failed: "诊断未能完成。请重试。",
-    unknown_rotation_error: "请重试。",
-    new_email_notification: "来自 {{ sender }} 的新邮件",
-    reply_notification: "{{ sender }} 已回复",
-    mention_notification: "{{ sender }} 提到了您",
     print_from: "发件人：",
     print_to: "收件人：",
     print_cc: "抄送：",
@@ -8166,9 +8131,6 @@ export const zh_CN = {
     reply_to_name: "回复 {{name}}",
     reply_all_to_name: "回复 {{name}} 及所有人",
     forward_message_heading: "转发邮件",
-    trackers_found_other: "已发现并拦截 {{count}} 个跟踪器",
-    spy_pixels_blocked_count_other: "已拦截 {{count}} 个间谍像素",
-    links_cleaned_count_other: "已清理 {{count}} 个链接",
     param_removed_from_n_links_other: "已从 {{count}} 个链接中移除 {{param}}",
     bulk_spam_title: "要把 {{count}} 封邮件举报为垃圾邮件吗？",
     bulk_spam_title_other: "要把 {{count}} 封邮件举报为垃圾邮件吗？",
@@ -8290,10 +8252,6 @@ export const zh_CN = {
     create_a_password: "创建密码",
     recommend_strong_password:
       "至少使用 8 个字符。包含多种字符的较长密码更安全。",
-    password_recovery_key: "密码恢复密钥",
-    recovery_key_only_way:
-      "如果你忘记密码，此密钥是恢复账户的唯一方式。请妥善保存。",
-    download_key_lower: "下载密钥",
     downloading: "正在下载...",
     copy_key: "复制密钥",
     copy_codes: "复制代码",
@@ -8510,7 +8468,6 @@ export const zh_CN = {
     import_mail_step_title: "把邮件一起带过来",
     import_mail_step_desc:
       "将其他账户中的邮件迁移到 Aster。所有内容都会先在您的设备上加密，再进行存储。",
-    import_mail_action: "导入邮件",
     import_mail_skip: "从空收件箱开始",
     import_mail_privacy_note: "您也可以稍后在设置中导入。",
     password_reset_successful: "密码重置成功",

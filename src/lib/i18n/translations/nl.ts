@@ -760,12 +760,6 @@ export const nl = {
       "Dit aangepaste veld is niet verwijderd. Probeer het opnieuw.",
     failed_to_save_value:
       "Je wijziging is niet opgeslagen. Probeer het opnieuw. De vorige waarde is er nog.",
-    contacts_import_partial:
-      "Slechts {{imported}} van {{total}} contacten zijn geïmporteerd. Importeer het bestand opnieuw om de rest toe te voegen.",
-    failed_to_import_contacts: "Probeer het opnieuw.",
-    failed_to_load_duplicates: "Probeer het opnieuw.",
-    dismiss_failed: "Probeer het opnieuw.",
-    click_scan_duplicates: 'Klik op "Scannen" om op duplicaten te controleren',
     never_synced: "Nooit gesynchroniseerd",
     last_sync_successful: "Laatste synchronisatie succesvol",
     last_sync_failed:
@@ -774,11 +768,6 @@ export const nl = {
       "Het doorsturen is niet gelukt. Probeer het opnieuw. Je concept is opgeslagen.",
     failed_to_schedule:
       "De planning is niet opgeslagen. Probeer het opnieuw. Je concept is veilig.",
-    fill_required_fields: "Vul alle verplichte velden in",
-    failed_to_load_sources: "Probeer het opnieuw.",
-    failed_to_add_source: "Probeer het opnieuw.",
-    failed_to_delete_source: "Probeer het opnieuw.",
-    failed_to_toggle_source: "Probeer het opnieuw.",
     sync_failed:
       "De synchronisatie is niet voltooid, en we proberen automatisch opnieuw. Je post aan elke kant is veilig.",
     clearing: "Wissen...",
@@ -845,8 +834,6 @@ export const nl = {
     add_contacts_hint: "Voeg contacten toe om te beginnen",
     add_contact: "Contact toevoegen",
     file_too_large: "Bestand moet kleiner zijn dan {{size}}",
-    failed_to_upload_attachment: "Probeer het opnieuw.",
-    upload_failed: "Probeer het opnieuw.",
     delete_failed: "Probeer het opnieuw.",
     download_failed: "Probeer het opnieuw.",
     attachment_locked:
@@ -859,9 +846,6 @@ export const nl = {
       "Geplande e-mails kunnen nog geen vervaldatum hebben. Verstuur nu of verwijder de vervaldatum om te plannen.",
     failed_to_merge_contacts:
       "Het samenvoegen is niet voltooid. Probeer het opnieuw. Je oorspronkelijke contacten zijn ongewijzigd.",
-    merge_failed: "Probeer het opnieuw.",
-    failed_to_load_history: "Probeer het opnieuw.",
-    failed_to_load_more: "Probeer het opnieuw.",
     enter_valid_emails: "Voer geldige e-mailadressen in",
     enter_contact_details: "Voer contactgegevens in",
     select_valid_image: "Selecteer een JPEG-, PNG-, WebP- of GIF-afbeelding",
@@ -919,10 +903,6 @@ export const nl = {
       "We konden deze e-mail op dit apparaat niet openen. Een vernieuwing lost dit meestal op, en afmelden en weer aanmelden is de reserveroute als het blijft mislukken.",
     failed_to_disable_2fa:
       "Tweestapsverificatie is nog ingeschakeld. Probeer het opnieuw. Je account is nog steeds beschermd.",
-    failed_to_unsubscribe:
-      "Het uitschrijven is niet voltooid. De link in de e-mail brengt u naar de site van de afzender om dit zelf te doen.",
-    failed_to_parse_settings:
-      "Dit instellingenbestand kon niet worden gelezen. Een ander werkt. Uw huidige instellingen zijn ongewijzigd.",
     removed_from_contacts: "Verwijderd uit contacten",
     added_to_contacts: "Toegevoegd aan contacten",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -946,7 +926,6 @@ export const nl = {
     offline_action_queued:
       "Je bent op dit moment offline. Dit staat in de wachtrij en wordt voltooid zodra je weer verbinding hebt.",
     failed_to_update: "Probeer het opnieuw.",
-    failed_to_load_search_results: "Probeer het opnieuw.",
     failed_to_fetch_tags: "Probeer het opnieuw.",
     failed_to_fetch_folders: "Probeer het opnieuw.",
     failed_to_unlock_folder:
@@ -966,13 +945,6 @@ export const nl = {
       "Je concepten zijn niet geladen. Probeer het opnieuw. Je opgeslagen concepten zijn veilig.",
     failed_to_load_scheduled_emails:
       "Je geplande e-mails zijn niet geladen. Probeer het opnieuw. Ze worden nog steeds volgens planning verzonden.",
-    failed_to_load_subscriptions: "Probeer het opnieuw.",
-    failed_to_load_more_subscriptions: "Probeer het opnieuw.",
-    failed_to_scan_subscriptions: "Probeer het opnieuw.",
-    recently_archived: "Recent gearchiveerd",
-    older_items: "Oudere items",
-    long_term_archive: "Langetermijnarchief",
-    failed_to_fetch_archive_stats: "Probeer het opnieuw.",
     value_too_long:
       "Deze waarde overschrijdt de lengtelimiet. Een kortere versie werkt.",
     please_enter_valid_domain:
@@ -1045,10 +1017,6 @@ export const nl = {
       "Je gekoppelde externe account moet opnieuw worden verbonden voordat erdoor kan worden verzonden. Instellingen, Verbonden Accounts is de plek.",
     failed_to_send_via_external:
       "Verzenden via je gekoppelde externe account is niet gelukt. Probeer het opnieuw. Je concept is opgeslagen.",
-    tor_label: "Tor",
-    tor_snowflake_label: "Tor (Snowflake)",
-    cdn_relay_label: "CDN-relay",
-    toggle_selection: "Selectie omschakelen",
     offline_change_failed:
       "Een wijziging die je offline hebt gemaakt, kon niet worden opgeslagen.",
     offline_send_failed:
@@ -1104,7 +1072,6 @@ export const nl = {
     all_accounts: "Alle accounts",
     failed_to_rotate_keys:
       "Het vernieuwen van de sleutels is niet voltooid. Probeer het opnieuw. Je oude sleutels werken nog en je gegevens zijn veilig.",
-    all_external_accounts: "Alle externe accounts",
     read: "Gelezen",
     or_conjunction: "of",
     press_label: "Druk op",
@@ -1579,7 +1546,6 @@ export const nl = {
     alias_note_too_long: "Deze notitie is te lang. Een kortere werkt wel.",
     add_alias_note_placeholder: "Notitie toevoegen",
     edit_alias_note: "Notitie bewerken",
-    failed_remove_recovery_email: "Probeer het opnieuw.",
     failed_save_profile_color: "Probeer het opnieuw.",
     failed_to_change_folder_password:
       "Het mapwachtwoord is niet gewijzigd. Probeer het opnieuw. Het oude wachtwoord werkt nog.",
@@ -9078,12 +9044,6 @@ export const nl = {
     reply_to_name: "Antwoord aan {{name}}",
     reply_all_to_name: "Antwoord aan {{name}} en iedereen",
     forward_message_heading: "Bericht doorsturen",
-    trackers_found_one: "{{count}} tracker gevonden en geblokkeerd",
-    trackers_found_other: "{{count}} trackers gevonden en geblokkeerd",
-    spy_pixels_blocked_count_one: "{{count}} spionagepixel geblokkeerd",
-    spy_pixels_blocked_count_other: "{{count}} spionagepixels geblokkeerd",
-    links_cleaned_count_one: "{{count}} link opgeschoond",
-    links_cleaned_count_other: "{{count}} links opgeschoond",
     param_removed_from_n_links_one: "{{param}} verwijderd uit {{count}} link",
     param_removed_from_n_links_other:
       "{{param}} verwijderd uit {{count}} links",
@@ -9210,10 +9170,6 @@ export const nl = {
     create_a_password: "Maak een wachtwoord aan",
     recommend_strong_password:
       "Gebruik minstens 8 tekens. Een langer wachtwoord met gemengde tekens is sterker.",
-    password_recovery_key: "Herstelsleutel voor wachtwoord",
-    recovery_key_only_way:
-      "Deze sleutel is de enige manier om je account te herstellen als je je wachtwoord vergeet. Bewaar hem op een veilige plek.",
-    download_key_lower: "Sleutel downloaden",
     downloading: "Downloaden...",
     copy_key: "Sleutel kopiëren",
     copy_codes: "Codes kopiëren",
@@ -9460,7 +9416,6 @@ export const nl = {
     import_mail_step_title: "Neem je mail mee",
     import_mail_step_desc:
       "Verplaats berichten uit een ander account naar Aster. Alles wordt op je apparaat versleuteld voordat het wordt opgeslagen.",
-    import_mail_action: "Mail importeren",
     import_mail_skip: "Beginnen met een lege inbox",
     import_mail_privacy_note: "Je kunt ook later importeren via Instellingen.",
     password_reset_successful: "Wachtwoord succesvol gereset",
@@ -10373,28 +10328,6 @@ export const nl = {
     granted_at: "Verdiend {date}",
     empty_state: "Je hebt nog geen badges gevonden.",
     claim_failed: "Probeer het opnieuw.",
-    claim_success: "Je hebt de {name}-badge verdiend.",
-    claim_already: "Je hebt al een ontdekkingsbadge.",
-    badge_big_bang: "Oerknal",
-    badge_big_bang_description: "De eerste die de kosmos ontdekte.",
-    badge_event_horizon: "Gebeurtenishorizon",
-    badge_event_horizon_description: "De grens van het bekende overgestoken.",
-    badge_black_hole: "Zwart gat",
-    badge_black_hole_description: "Aangetrokken door iets diepers.",
-    badge_singularity: "Singulariteit",
-    badge_singularity_description: "Het punt gevonden waar alles buigt.",
-    badge_supernova: "Supernova",
-    badge_supernova_description: "Een ster op zijn helderste moment gevangen.",
-    badge_andromeda: "Andromeda",
-    badge_andromeda_description: "Een naburig sterrenstelsel bereikt.",
-    badge_nebula: "Nevel",
-    badge_nebula_description: "Verdwaald in de kleuren.",
-    badge_comet: "Komeet",
-    badge_comet_description: "Gekruist met iets zeldzaams.",
-    badge_pulsar: "Pulsar",
-    badge_pulsar_description: "Het signaal gehoord in het ruisen.",
-    badge_stargazer: "Sterrenwaarnemer",
-    badge_stargazer_description: "Op het juiste moment omhoog gekeken.",
   },
   secure_view: {
     powered_by_prefix: "Veilig verzonden via",

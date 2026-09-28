@@ -692,17 +692,6 @@ export const pt = {
       "O encaminhamento não foi enviado. Tente novamente. O seu rascunho está guardado.",
     failed_to_schedule:
       "O agendamento não foi guardado. Tente novamente. O seu rascunho está seguro.",
-    contacts_import_partial:
-      "Apenas {{imported}} de {{total}} contatos foram importados. Importe o arquivo novamente para adicionar os restantes.",
-    failed_to_import_contacts: "Tente novamente.",
-    failed_to_load_duplicates: "Tente novamente.",
-    dismiss_failed: "Tente novamente.",
-    click_scan_duplicates: 'Clique em "Verificar" para procurar duplicatas',
-    fill_required_fields: "Por favor, preencha todos os campos obrigatórios",
-    failed_to_load_sources: "Tente novamente.",
-    failed_to_add_source: "Tente novamente.",
-    failed_to_delete_source: "Tente novamente.",
-    failed_to_toggle_source: "Tente novamente.",
     sync_failed:
       "A sincronização não foi concluída. Será feita uma nova tentativa automaticamente. O seu correio em ambos os lados está seguro.",
     clearing: "A limpar...",
@@ -774,8 +763,6 @@ export const pt = {
     file_too_large: "O ficheiro tem de ter menos de {{size}}",
     delete_failed: "Este item não foi removido. Tente novamente.",
     download_failed: "Esta transferência não foi concluída. Tente novamente.",
-    failed_to_upload_attachment: "Tente novamente.",
-    upload_failed: "Tente novamente.",
     attachment_locked:
       "Não é possível abrir este anexo porque a respetiva chave de encriptação não está disponível neste dispositivo.",
     scheduled_no_attachments:
@@ -793,9 +780,6 @@ export const pt = {
       "Esta imagem excede o limite de 10 MB. Utilize uma imagem mais pequena ou uma versão comprimida.",
     failed_to_upload_photo: "Esta foto não foi carregada. Tente novamente.",
     contact_photo: "Foto do contacto",
-    merge_failed: "Tente novamente.",
-    failed_to_load_history: "Tente novamente.",
-    failed_to_load_more: "Tente novamente.",
     failed_to_delete_account:
       "Não foi possível eliminar a conta. Tente novamente.",
     no_emails_older_than_30_days: "Nenhum e-mail com mais de 30 dias",
@@ -854,10 +838,6 @@ export const pt = {
       "A autenticação de dois fatores continua ativada. Tente novamente. A sua conta continua protegida.",
     removed_from_contacts: "Removido dos contactos",
     added_to_contacts: "Adicionado aos contactos",
-    failed_to_unsubscribe:
-      "O cancelamento de inscrição não terminou. O link no e-mail levará você ao site do remetente para fazer manualmente.",
-    failed_to_parse_settings:
-      "Este arquivo de configurações não pôde ser lido. Outro arquivo vai funcionar. Suas configurações atuais permanecem inalteradas.",
     senders_emails_count: "{{senders}} ({{emails}})",
     no_read_emails_to_archive: "Nenhum e-mail lido para arquivar",
     no_unread_emails: "Nenhum e-mail não lido",
@@ -881,7 +861,6 @@ export const pt = {
       "As suas etiquetas não foram carregadas. Tente novamente.",
     failed_to_fetch_folders:
       "As suas pastas não foram carregadas. Tente novamente.",
-    failed_to_load_search_results: "Tente novamente.",
     failed_to_unlock_folder:
       "Não foi possível desbloquear esta pasta. Verifique a sua palavra-passe e tente novamente. O conteúdo da pasta está seguro.",
     incorrect_password:
@@ -901,13 +880,6 @@ export const pt = {
       "Os seus rascunhos não foram carregados. Tente novamente. Os seus rascunhos guardados estão seguros.",
     failed_to_load_scheduled_emails:
       "Os seus e-mails agendados não foram carregados. Tente novamente. Continuam agendados para envio.",
-    failed_to_load_subscriptions: "Tente novamente.",
-    failed_to_load_more_subscriptions: "Tente novamente.",
-    failed_to_scan_subscriptions: "Tente novamente.",
-    recently_archived: "Arquivado Recentemente",
-    older_items: "Itens Antigos",
-    long_term_archive: "Arquivo de Longo Prazo",
-    failed_to_fetch_archive_stats: "Tente novamente.",
     value_too_long:
       "Este valor excede o limite de comprimento. Utilize uma versão mais curta.",
     please_enter_valid_domain:
@@ -984,10 +956,6 @@ export const pt = {
       "A sua conta externa associada tem de ser ligada novamente antes de enviar através dela. Pode fazê-lo em Definições > Contas ligadas.",
     failed_to_send_via_external:
       "O envio através da sua conta externa associada não funcionou. Tente novamente. O seu rascunho está guardado.",
-    tor_label: "Tor",
-    tor_snowflake_label: "Tor (Ponte Snowflake)",
-    cdn_relay_label: "Retransmissão CDN",
-    toggle_selection: "Alternar seleção",
     offline_change_failed:
       "Não foi possível guardar uma alteração feita offline.",
     offline_send_failed: "Não foi possível enviar um e-mail escrito offline.",
@@ -1052,7 +1020,6 @@ export const pt = {
     all_accounts: "Todas as contas",
     failed_to_rotate_keys:
       "A atualização das chaves não foi concluída. Tente novamente. As suas chaves antigas continuam a funcionar e os seus dados estão seguros.",
-    all_external_accounts: "Todas as contas externas",
     read: "Lido",
     or_conjunction: "ou",
     press_label: "Prima",
@@ -1504,8 +1471,6 @@ export const pt = {
       "O avatar do alias não foi atualizado. Tente novamente.",
     failed_update_alias_display_name:
       "O seu nome apresentado não foi atualizado. Tente novamente.",
-    failed_remove_recovery_email: "Tente novamente.",
-    failed_to_get_key_status: "Tente novamente.",
     file_already_attached:
       '"{{name}}" já está neste e-mail. Não é necessário anexá-lo novamente.',
     metadata_not_removed:
@@ -1518,8 +1483,6 @@ export const pt = {
     folder_preview: "Pré-visualização da pasta",
     ghost_mode_title: "Modo Fantasma",
     health_check_failed: "O diagnóstico não foi concluído. Tente novamente.",
-    found_n_contacts: "Encontrado(s) {{count}} contato(s)",
-    found_one_contact: "Encontrado 1 contato",
     hide_details: "Ocultar detalhes",
     hide_real_address_expiry:
       "Ocultar seu endereço real ({{days}}d de validade)",
@@ -1781,7 +1744,6 @@ export const pt = {
       "Algo não funcionou como esperado. Tente novamente. Não foi possível identificar a causa.",
     unknown_label: "Desconhecido",
     unknown_merchant: "Comerciante desconhecido",
-    unknown_rotation_error: "Tente novamente.",
     unsaved_changes_title: "Descartar as alterações?",
     unsaved_changes_body:
       "Os dados que introduziu não estão guardados. Se fechar este formulário agora, são removidos.",
@@ -9188,12 +9150,6 @@ export const pt = {
     reply_to_name: "Responder a {{name}}",
     reply_all_to_name: "Responder a {{name}} e a todos",
     forward_message_heading: "Encaminhar mensagem",
-    trackers_found_one: "{{count}} rastreador detectado e bloqueado",
-    trackers_found_other: "{{count}} rastreadores detectados e bloqueados",
-    spy_pixels_blocked_count_one: "{{count}} pixel espião bloqueado",
-    spy_pixels_blocked_count_other: "{{count}} pixels espiões bloqueados",
-    links_cleaned_count_one: "{{count}} link limpo",
-    links_cleaned_count_other: "{{count}} links limpos",
     param_removed_from_n_links_one: "{{param}} removido de {{count}} link",
     param_removed_from_n_links_other: "{{param}} removido de {{count}} links",
     bulk_delete_title: "Eliminar definitivamente {{count}} e-mails?",
@@ -9337,12 +9293,6 @@ export const pt = {
     download_apps_title: "Transfira as aplicações para telemóvel e computador",
     download_apps_desc:
       "Leve a sua caixa de entrada consigo em todos os dispositivos.",
-    password_recovery_key: "Chave de recuperação de senha",
-    recovery_key_only_way:
-      "Esta chave é a única forma de recuperar a sua conta se você esquecer a senha. Guarde-a em um lugar seguro.",
-    download_key_lower: "Baixar chave",
-    save_key: "Salvar chave",
-    recovery_key_copied: "Chave de recuperação copiada",
     mail_mobile: "Mail Mobile",
     mail_mobile_desc: "Leia e envie e-mails encriptados no seu telemóvel.",
     mail_desktop: "Mail Desktop",
@@ -9594,7 +9544,6 @@ export const pt = {
     review_codes_left: "Restam {{count}} códigos de recuperação.",
     review_codes_left_one: "Resta {{count}} código de recuperação.",
     review_codes_left_other: "Restam {{count}} códigos de recuperação.",
-    import_mail_action: "Importar e-mail",
     import_mail_skip: "Começar com a caixa vazia",
     import_mail_privacy_note: "Também pode importar mais tarde em Definições.",
     password_reset_successful: "Palavra-passe reposta com sucesso",
@@ -10506,8 +10455,6 @@ export const pt = {
     not_earned: "Ainda não conquistado",
     empty_state: "Ainda não encontrou nenhuma medalha.",
     claim_failed: "Esta medalha não foi guardada. Tente novamente.",
-    claim_success: "Você conquistou o distintivo {name}.",
-    claim_already: "Você já tem um distintivo de descoberta.",
     granted_at: "Conquistado em {date}",
   },
   secure_view: {

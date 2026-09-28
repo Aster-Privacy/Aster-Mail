@@ -782,12 +782,6 @@ export const pl = {
       "To pole niestandardowe nie zostało usunięte. Spróbuj ponownie.",
     failed_to_save_value:
       "Zmiana nie została zapisana. Spróbuj ponownie. Poprzednia wartość nadal obowiązuje.",
-    contacts_import_partial:
-      "Zaimportowano tylko {{imported}} z {{total}} kontaktów. Zaimportuj plik ponownie, aby dodać pozostałe.",
-    failed_to_import_contacts: "Spróbuj ponownie.",
-    failed_to_load_duplicates: "Spróbuj ponownie.",
-    dismiss_failed: "Spróbuj ponownie.",
-    click_scan_duplicates: 'Kliknij "Skanuj", aby sprawdzić duplikaty',
     never_synced: "Nigdy nie zsynchronizowano",
     last_sync_successful: "Ostatnia synchronizacja udana",
     last_sync_failed:
@@ -796,11 +790,6 @@ export const pl = {
       "Przekazanie nie zostało wysłane. Spróbuj ponownie. Szkic jest zapisany.",
     failed_to_schedule:
       "Harmonogram nie został zapisany. Spróbuj ponownie. Szkic jest bezpieczny.",
-    fill_required_fields: "Wypełnij wszystkie wymagane pola",
-    failed_to_load_sources: "Spróbuj ponownie.",
-    failed_to_add_source: "Spróbuj ponownie.",
-    failed_to_delete_source: "Spróbuj ponownie.",
-    failed_to_toggle_source: "Spróbuj ponownie.",
     sync_failed:
       "Synchronizacja nie została zakończona, a my spróbujemy ponownie automatycznie. Poczta po obu stronach jest bezpieczna.",
     clearing: "Czyszczenie...",
@@ -869,8 +858,6 @@ export const pl = {
       "Ten plik ma {{size}} MB, co przekracza limit. Warto wybrać mniejszy.",
     delete_failed: "Spróbuj ponownie.",
     download_failed: "Pobieranie nie zostało ukończone. Spróbuj ponownie.",
-    failed_to_upload_attachment: "Spróbuj ponownie.",
-    upload_failed: "Spróbuj ponownie.",
     attachment_locked:
       "Nie można otworzyć tego załącznika, ponieważ jego klucz szyfrowania nie jest dostępny na tym urządzeniu.",
     scheduled_no_attachments:
@@ -881,9 +868,6 @@ export const pl = {
       "Zaplanowane wiadomości nie obsługują jeszcze wygasania. Wyślij teraz albo usuń wygasanie, aby zaplanować wiadomość.",
     failed_to_merge_contacts:
       "Scalanie nie zostało ukończone. Spróbuj ponownie. Oryginalne kontakty są bez zmian.",
-    merge_failed: "Spróbuj ponownie.",
-    failed_to_load_history: "Spróbuj ponownie.",
-    failed_to_load_more: "Spróbuj ponownie.",
     enter_valid_emails: "Wprowadź prawidłowe adresy e-mail",
     enter_contact_details: "Wprowadź dane kontaktu",
     select_valid_image: "Wybierz obraz JPEG, PNG, WebP lub GIF",
@@ -946,10 +930,6 @@ export const pl = {
       "Nie udało się otworzyć tej wiadomości na tym urządzeniu. Odświeżenie zwykle to załatwia, a wylogowanie i ponowne zalogowanie to opcja zapasowa, jeśli problem się utrzymuje.",
     failed_to_disable_2fa:
       "Weryfikacja dwuetapowa pozostała włączona. Spróbuj ponownie. Twoje konto nadal jest chronione.",
-    failed_to_unsubscribe:
-      "Rezygnacja z subskrypcji nie została zakończona. Link w wiadomości przeniesie na stronę nadawcy, aby zrobić to samodzielnie.",
-    failed_to_parse_settings:
-      "Tego pliku ustawień nie udało się odczytać. Inny zadziała. Bieżące ustawienia pozostają bez zmian.",
     removed_from_contacts: "Usunięto z kontaktów",
     added_to_contacts: "Dodano do kontaktów",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -973,7 +953,6 @@ export const pl = {
     offline_action_queued:
       "Jesteś teraz offline. To zostało zakolejkowane i dokończy się, gdy tylko nastąpi ponowne połączenie.",
     failed_to_update: "Spróbuj ponownie.",
-    failed_to_load_search_results: "Spróbuj ponownie.",
     failed_to_fetch_tags: "Spróbuj ponownie.",
     failed_to_fetch_folders: "Spróbuj ponownie.",
     failed_to_unlock_folder:
@@ -996,13 +975,6 @@ export const pl = {
       "Szkice się nie wczytały. Spróbuj ponownie. Zapisane szkice są bezpieczne.",
     failed_to_load_scheduled_emails:
       "Zaplanowane wiadomości się nie wczytały. Spróbuj ponownie. Nadal zostaną wysłane zgodnie z planem.",
-    failed_to_load_subscriptions: "Spróbuj ponownie.",
-    failed_to_load_more_subscriptions: "Spróbuj ponownie.",
-    failed_to_scan_subscriptions: "Spróbuj ponownie.",
-    recently_archived: "Ostatnio zarchiwizowane",
-    older_items: "Starsze elementy",
-    long_term_archive: "Archiwum długoterminowe",
-    failed_to_fetch_archive_stats: "Spróbuj ponownie.",
     value_too_long:
       "Ta wartość przekracza limit długości. Krótsza wersja zadziała.",
     please_enter_valid_domain:
@@ -1079,10 +1051,6 @@ export const pl = {
       "Połączone konto zewnętrzne wymaga ponownego połączenia przed wysyłaniem przez nie. Znajduje się to w Ustawieniach, Połączone konta.",
     failed_to_send_via_external:
       "Wysyłanie przez połączone konto zewnętrzne nie zadziałało. Spróbuj ponownie. Szkic jest zapisany.",
-    tor_label: "Tor",
-    tor_snowflake_label: "Tor (Snowflake)",
-    cdn_relay_label: "Przekaźnik CDN",
-    toggle_selection: "Przełącz zaznaczenie",
     offline_change_failed:
       "Nie udało się zapisać zmiany wprowadzonej w trybie offline.",
     offline_send_failed:
@@ -1149,7 +1117,6 @@ export const pl = {
     all_accounts: "Wszystkie konta",
     failed_to_rotate_keys:
       "Odświeżanie kluczy nie zostało ukończone. Spróbuj ponownie. Stare klucze nadal działają, a Twoje dane są bezpieczne.",
-    all_external_accounts: "Wszystkie konta zewnętrzne",
     read: "Przeczytane",
     or_conjunction: "lub",
     press_label: "Naciśnij",
@@ -1546,7 +1513,6 @@ export const pl = {
     recovery_email_hidden: "Zapisano na tym koncie",
     failed_save_profile_color:
       "Wybrany kolor nie został zapisany. Spróbuj ponownie.",
-    failed_remove_recovery_email: "Spróbuj ponownie.",
     image_load_failed:
       "Ten obraz nie załadował się. Odświeżenie strony zwykle pomaga.",
     image_processing_failed:
@@ -1683,11 +1649,6 @@ export const pl = {
     account_limit_reached:
       "Osiągnięto limit kont dla tej sieci. Jeśli to wygląda na błąd, napisz na hello@astermail.org.",
     health_check_failed: "Diagnostyka nie została ukończona. Spróbuj ponownie.",
-    failed_to_get_key_status: "Spróbuj ponownie.",
-    unknown_rotation_error: "Spróbuj ponownie.",
-    new_email_notification: "Nowa wiadomość od {{ sender }}",
-    reply_notification: "{{ sender }} odpowiedział(-a)",
-    mention_notification: "{{ sender }} wspomniał(-a) o Tobie",
     print_from: "Od:",
     print_to: "Do:",
     print_cc: "DW:",
@@ -9289,18 +9250,6 @@ export const pl = {
     reply_to_name: "Odpowiedź do {{name}}",
     reply_all_to_name: "Odpowiedź do {{name}} i wszystkich",
     forward_message_heading: "Przekaż wiadomość",
-    trackers_found_one: "Znaleziono i zablokowano {{count}} tracker",
-    trackers_found_few: "Znaleziono i zablokowano {{count}} trackery",
-    trackers_found_many: "Znaleziono i zablokowano {{count}} trackerów",
-    trackers_found_other: "Znaleziono i zablokowano {{count}} trackery",
-    spy_pixels_blocked_count_one: "Zablokowano {{count}} piksel śledzący",
-    spy_pixels_blocked_count_few: "Zablokowano {{count}} piksele śledzące",
-    spy_pixels_blocked_count_many: "Zablokowano {{count}} pikseli śledzących",
-    spy_pixels_blocked_count_other: "Zablokowano {{count}} piksele śledzące",
-    links_cleaned_count_one: "Wyczyszczono {{count}} link",
-    links_cleaned_count_few: "Wyczyszczono {{count}} linki",
-    links_cleaned_count_many: "Wyczyszczono {{count}} linków",
-    links_cleaned_count_other: "Wyczyszczono {{count}} linki",
     param_removed_from_n_links_one: "Usunięto {{param}} z {{count}} linku",
     param_removed_from_n_links_few: "Usunięto {{param}} z {{count}} linków",
     param_removed_from_n_links_many: "Usunięto {{param}} z {{count}} linków",
@@ -9428,10 +9377,6 @@ export const pl = {
     create_a_password: "Utwórz hasło",
     recommend_strong_password:
       "Użyj co najmniej 8 znaków. Dłuższe hasło z różnymi znakami jest silniejsze.",
-    password_recovery_key: "Klucz odzyskiwania hasła",
-    recovery_key_only_way:
-      "Ten klucz to jedyny sposób na odzyskanie konta, jeśli zapomnisz hasła. Zapisz go w bezpiecznym miejscu.",
-    download_key_lower: "Pobierz klucz",
     downloading: "Pobieranie...",
     copy_key: "Kopiuj klucz",
     copy_codes: "Kopiuj kody",
@@ -9670,7 +9615,6 @@ export const pl = {
     import_mail_step_title: "Zabierz pocztę ze sobą",
     import_mail_step_desc:
       "Przenieś wiadomości z innego konta do Aster. Wszystko jest szyfrowane na Twoim urządzeniu przed zapisaniem.",
-    import_mail_action: "Importuj pocztę",
     import_mail_skip: "Zacznij z pustą skrzynką",
     import_mail_privacy_note: "Możesz też zaimportować później w Ustawieniach.",
     password_reset_successful: "Hasło zresetowane pomyślnie",
@@ -10570,8 +10514,6 @@ export const pl = {
     show_on_profile: "Pokaż w profilu",
     show_in_signature: "Pokaż w podpisie",
     empty_state: "Nie znalazłeś jeszcze żadnych odznak.",
-    claim_success: "Zdobyłeś odznakę {name}.",
-    claim_already: "Masz już odznakę odkrywcy.",
     claim_failed: "Spróbuj ponownie.",
     not_earned: "Jeszcze nie zdobyto",
     show_on_profile_description:

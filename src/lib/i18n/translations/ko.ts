@@ -839,12 +839,6 @@ export const ko = {
       "이 사용자 지정 필드를 삭제하지 못했습니다. 다시 시도하세요.",
     failed_to_save_value:
       "변경 사항을 저장하지 못했습니다. 다시 시도하세요. 이전 값이 그대로 있습니다.",
-    contacts_import_partial:
-      "연락처 {{total}}개 중 {{imported}}개만 가져왔습니다. 나머지를 추가하려면 파일을 다시 가져오세요.",
-    failed_to_import_contacts: "다시 시도하세요.",
-    failed_to_load_duplicates: "다시 시도하세요.",
-    dismiss_failed: "다시 시도하세요.",
-    click_scan_duplicates: '"스캔"을 클릭하여 중복 항목을 확인하세요',
     never_synced: "동기화된 적 없음",
     last_sync_successful: "마지막 동기화 성공",
     last_sync_failed:
@@ -853,11 +847,6 @@ export const ko = {
       "전달 메일을 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
     failed_to_schedule:
       "예약을 저장하지 못했습니다. 다시 시도하세요. 임시 보관함의 메일은 안전합니다.",
-    fill_required_fields: "모든 필수 필드를 입력해 주세요",
-    failed_to_load_sources: "다시 시도하세요.",
-    failed_to_add_source: "다시 시도하세요.",
-    failed_to_delete_source: "다시 시도하세요.",
-    failed_to_toggle_source: "다시 시도하세요.",
     sync_failed:
       "동기화가 완료되지 않았습니다. 자동으로 다시 시도합니다. 양쪽의 메일은 안전합니다.",
     clearing: "지우는 중...",
@@ -918,8 +907,6 @@ export const ko = {
     add_contacts_hint: "시작하려면 연락처를 추가하세요",
     add_contact: "연락처 추가",
     file_too_large: "파일은 {{size}}보다 작아야 합니다.",
-    failed_to_upload_attachment: "다시 시도하세요.",
-    upload_failed: "다시 시도하세요.",
     delete_failed: "다시 시도하세요.",
     download_failed: "다운로드가 완료되지 않았습니다. 다시 시도하세요.",
     attachment_locked:
@@ -932,9 +919,6 @@ export const ko = {
       "예약 메일은 아직 만료를 사용할 수 없습니다. 지금 보내거나 만료를 지우고 예약하세요.",
     failed_to_merge_contacts:
       "병합이 완료되지 않았습니다. 다시 시도하세요. 원래 연락처는 변경되지 않았습니다.",
-    merge_failed: "다시 시도하세요.",
-    failed_to_load_history: "다시 시도하세요.",
-    failed_to_load_more: "다시 시도하세요.",
     enter_valid_emails: "유효한 이메일 주소를 입력하세요",
     enter_contact_details: "연락처 세부 정보 입력",
     select_valid_image: "JPEG, PNG, WebP 또는 GIF 이미지를 선택하세요",
@@ -998,10 +982,6 @@ export const ko = {
       "이 기기에서 이 이메일을 열 수 없었습니다. 새로고침하면 보통 해결되며, 계속 실패하면 로그아웃 후 다시 로그인하는 것이 대안입니다.",
     failed_to_disable_2fa:
       "2단계 인증이 계속 켜져 있습니다. 다시 시도하세요. 계정은 여전히 보호됩니다.",
-    failed_to_unsubscribe:
-      "구독 해지가 완료되지 않았습니다. 이메일의 링크를 누르면 발신자 사이트에서 직접 해지할 수 있습니다.",
-    failed_to_parse_settings:
-      "이 설정 파일을 읽을 수 없었습니다. 다른 파일이면 됩니다. 현재 설정은 그대로입니다.",
     removed_from_contacts: "연락처에서 제거됨",
     added_to_contacts: "연락처에 추가됨",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -1024,7 +1004,6 @@ export const ko = {
     offline_action_queued:
       "지금은 오프라인 상태입니다. 이 작업은 대기 중이며 다시 연결되는 즉시 완료됩니다.",
     failed_to_update: "다시 시도하세요.",
-    failed_to_load_search_results: "다시 시도하세요.",
     failed_to_fetch_tags: "다시 시도하세요.",
     failed_to_fetch_folders: "다시 시도하세요.",
     failed_to_unlock_folder:
@@ -1046,13 +1025,6 @@ export const ko = {
       "임시 보관함을 불러오지 못했습니다. 다시 시도하세요. 저장된 임시 메일은 안전합니다.",
     failed_to_load_scheduled_emails:
       "예약된 이메일을 불러오지 못했습니다. 다시 시도하세요. 예정대로 전송됩니다.",
-    failed_to_load_subscriptions: "다시 시도하세요.",
-    failed_to_load_more_subscriptions: "다시 시도하세요.",
-    failed_to_scan_subscriptions: "다시 시도하세요.",
-    recently_archived: "최근 보관됨",
-    older_items: "이전 항목",
-    long_term_archive: "장기 보관",
-    failed_to_fetch_archive_stats: "다시 시도하세요.",
     value_too_long: "이 값은 길이 제한을 넘습니다. 더 짧은 형태면 됩니다.",
     please_enter_valid_domain:
       "이 주소는 유효한 도메인이 아닙니다. example.com 같은 형식이면 됩니다.",
@@ -1122,10 +1094,6 @@ export const ko = {
       "연결한 외부 계정은 이 계정으로 발송하기 전에 다시 연결해야 합니다. 설정의 연결된 계정에서 찾을 수 있습니다.",
     failed_to_send_via_external:
       "연결된 외부 계정으로 보내지 못했습니다. 다시 시도하세요. 임시 보관함에 저장되었습니다.",
-    tor_label: "Tor",
-    tor_snowflake_label: "Tor (Snowflake)",
-    cdn_relay_label: "CDN 릴레이",
-    toggle_selection: "선택 전환",
     offline_change_failed:
       "오프라인 상태에서 변경한 내용을 저장하지 못했습니다.",
     offline_send_failed: "오프라인 상태에서 작성한 이메일을 보내지 못했습니다.",
@@ -1186,7 +1154,6 @@ export const ko = {
     all_accounts: "모든 계정",
     failed_to_rotate_keys:
       "키 갱신이 완료되지 않았습니다. 다시 시도하세요. 기존 키는 계속 작동하며 데이터는 안전합니다.",
-    all_external_accounts: "모든 외부 계정",
     read: "읽음",
     or_conjunction: "또는",
     press_label: "누르기",
@@ -1582,10 +1549,6 @@ export const ko = {
     draft_category: "임시 저장",
     scheduled_category: "예약됨",
     health_check_failed: "진단이 완료되지 않았습니다. 다시 시도하세요.",
-    request_timed_out:
-      "요청이 완료되기까지 시간이 너무 오래 걸렸습니다. 연결을 확인하고 다시 시도하면 보통 해결됩니다.",
-    failed_to_get_key_status: "다시 시도하세요.",
-    unknown_rotation_error: "다시 시도하세요.",
     print_from: "보낸 사람:",
     print_to: "받는 사람:",
     print_cc: "참조:",
@@ -1707,7 +1670,6 @@ export const ko = {
     recovery_email_hidden: "이 계정에 저장됨",
     failed_save_profile_color:
       "색상 선택을 저장하지 못했습니다. 다시 시도하세요.",
-    failed_remove_recovery_email: "다시 시도하세요.",
     image_load_failed:
       "이 이미지가 불러와지지 않았습니다. 새로고침하면 보통 해결됩니다.",
     image_processing_failed:
@@ -8099,8 +8061,6 @@ export const ko = {
     reply_all: "전체 답장",
     react: "반응하기",
     you_reacted_with: "{{emoji}} 반응을 남겼습니다",
-    you_reacted_with_remove:
-      "{{emoji}}(으)로 반응했습니다. 삭제하려면 클릭하세요.",
     reacted_with: "{{name}}님이 {{emoji}} 반응을 남겼습니다",
     forward: "전달",
     to: "받는 사람",
@@ -8823,9 +8783,6 @@ export const ko = {
     reply_to_name: "{{name}}님에게 답장",
     reply_all_to_name: "{{name}}님 및 전체에게 답장",
     forward_message_heading: "메시지 전달",
-    trackers_found_other: "추적기 {{count}}개를 발견하여 차단했습니다",
-    spy_pixels_blocked_count_other: "스파이 픽셀 {{count}}개를 차단했습니다",
-    links_cleaned_count_other: "링크 {{count}}개를 정리했습니다",
     param_removed_from_n_links_other:
       "링크 {{count}}개에서 {{param}}을(를) 제거했습니다",
     bulk_archive_title: "메일 {{count}}개를 보관할까요?",
@@ -8959,10 +8916,6 @@ export const ko = {
     create_a_password: "비밀번호 만들기",
     recommend_strong_password:
       "8자 이상을 사용하세요. 다양한 문자를 포함한 긴 비밀번호가 더 안전합니다.",
-    password_recovery_key: "비밀번호 복구 키",
-    recovery_key_only_way:
-      "비밀번호를 잊어버린 경우 이 키가 계정을 복구할 수 있는 유일한 방법입니다. 안전한 곳에 보관하세요.",
-    download_key_lower: "키 다운로드",
     downloading: "다운로드 중...",
     copy_key: "키 복사",
     copy_codes: "코드 복사",
@@ -9192,7 +9145,6 @@ export const ko = {
     import_mail_step_title: "메일을 함께 가져오세요",
     import_mail_step_desc:
       "다른 계정의 메시지를 Aster로 옮깁니다. 모든 내용은 저장 전에 기기에서 암호화됩니다.",
-    import_mail_action: "메일 가져오기",
     import_mail_skip: "빈 받은편지함으로 시작",
     import_mail_privacy_note: "나중에 설정에서 가져올 수도 있습니다.",
     password_reset_successful: "비밀번호 재설정 성공",

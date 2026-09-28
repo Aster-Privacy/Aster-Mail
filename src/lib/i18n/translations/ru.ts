@@ -771,13 +771,6 @@ export const ru = {
       "Это настраиваемое поле не удалено. Попробуйте снова.",
     failed_to_save_value:
       "Изменение не сохранилось. Попробуйте снова. Прежнее значение осталось.",
-    contacts_import_partial:
-      "Импортировано только {{imported}} из {{total}} контактов. Импортируйте файл ещё раз, чтобы добавить остальные.",
-    failed_to_import_contacts: "Попробуйте снова.",
-    failed_to_load_duplicates: "Попробуйте снова.",
-    dismiss_failed: "Попробуйте снова.",
-    click_scan_duplicates:
-      'Нажмите "Сканировать", чтобы проверить наличие дубликатов',
     never_synced: "Никогда не синхронизировалось",
     last_sync_successful: "Последняя синхронизация успешна",
     last_sync_failed:
@@ -786,11 +779,6 @@ export const ru = {
       "Пересылка не отправлена. Попробуйте снова. Черновик сохранён.",
     failed_to_schedule:
       "Расписание не сохранилось. Попробуйте снова. Черновик в безопасности.",
-    fill_required_fields: "Пожалуйста, заполните все обязательные поля",
-    failed_to_load_sources: "Попробуйте снова.",
-    failed_to_add_source: "Попробуйте снова.",
-    failed_to_delete_source: "Попробуйте снова.",
-    failed_to_toggle_source: "Попробуйте снова.",
     sync_failed:
       "Синхронизация не завершилась, и повтор будет автоматическим. Почта по обеим сторонам в безопасности.",
     clearing: "Очистка...",
@@ -861,8 +849,6 @@ export const ru = {
       "Этот файл занимает {{size}} МБ, что превышает допустимый размер. Меньший обычно подходит.",
     delete_failed: "Попробуйте снова.",
     download_failed: "Загрузка не завершилась. Попробуйте снова.",
-    failed_to_upload_attachment: "Попробуйте снова.",
-    upload_failed: "Попробуйте снова.",
     attachment_locked:
       "Это вложение нельзя открыть, потому что ключ шифрования недоступен на этом устройстве.",
     scheduled_no_attachments:
@@ -873,9 +859,6 @@ export const ru = {
       "Запланированные письма пока не поддерживают срок действия. Отправьте сейчас или уберите срок, чтобы запланировать отправку.",
     failed_to_merge_contacts:
       "Объединение не завершилось. Попробуйте снова. Исходные контакты не изменились.",
-    merge_failed: "Попробуйте снова.",
-    failed_to_load_history: "Попробуйте снова.",
-    failed_to_load_more: "Попробуйте снова.",
     enter_valid_emails: "Введите корректные адреса электронной почты",
     enter_contact_details: "Введите данные контакта",
     select_valid_image:
@@ -937,10 +920,6 @@ export const ru = {
       "Открыть это письмо на этом устройстве не удалось. Обновление обычно помогает, а повторный вход остаётся запасным вариантом, если ошибки продолжатся.",
     failed_to_disable_2fa:
       "Двухфакторная аутентификация осталась включённой. Попробуйте снова. Ваш аккаунт по-прежнему защищён.",
-    failed_to_unsubscribe:
-      "Отписка не завершилась. Ссылка в письме ведёт на сайт отправителя для отписки вручную.",
-    failed_to_parse_settings:
-      "Этот файл настроек прочитать не удалось. Другой файл обычно подходит. Текущие настройки остаются без изменений.",
     removed_from_contacts: "Удалено из контактов",
     added_to_contacts: "Добавлено в контакты",
     senders_emails_count: "{{senders}} ({{emails}})",
@@ -964,7 +943,6 @@ export const ru = {
     offline_action_queued:
       "Сейчас нет соединения. Действие поставлено в очередь и выполнится сразу после восстановления связи.",
     failed_to_update: "Попробуйте снова.",
-    failed_to_load_search_results: "Попробуйте снова.",
     failed_to_fetch_tags: "Попробуйте снова.",
     failed_to_fetch_folders: "Попробуйте снова.",
     failed_to_unlock_folder:
@@ -986,13 +964,6 @@ export const ru = {
       "Черновики не загрузились. Попробуйте снова. Сохранённые черновики в безопасности.",
     failed_to_load_scheduled_emails:
       "Запланированные письма не загрузились. Попробуйте снова. Они всё равно будут отправлены вовремя.",
-    failed_to_load_subscriptions: "Попробуйте снова.",
-    failed_to_load_more_subscriptions: "Попробуйте снова.",
-    failed_to_scan_subscriptions: "Попробуйте снова.",
-    recently_archived: "Недавно архивированные",
-    older_items: "Более старые элементы",
-    long_term_archive: "Долгосрочный архив",
-    failed_to_fetch_archive_stats: "Попробуйте снова.",
     value_too_long:
       "Это значение превышает лимит длины. Более короткая версия обычно подходит.",
     please_enter_valid_domain:
@@ -1067,10 +1038,6 @@ export const ru = {
       "Связанную внешнюю учётную запись стоит подключить заново перед отправкой через неё. Этот раздел находится в Настройках, Подключённые аккаунты.",
     failed_to_send_via_external:
       "Отправка через связанный внешний аккаунт не удалась. Попробуйте снова. Черновик сохранён.",
-    tor_label: "Tor",
-    tor_snowflake_label: "Tor (Snowflake)",
-    cdn_relay_label: "CDN-ретранслятор",
-    toggle_selection: "Переключить выделение",
     offline_change_failed:
       "Не удалось сохранить изменение, сделанное без соединения.",
     offline_send_failed:
@@ -1134,7 +1101,6 @@ export const ru = {
     all_accounts: "Все аккаунты",
     failed_to_rotate_keys:
       "Обновление ключей не завершилось. Попробуйте снова. Старые ключи по-прежнему работают, а ваши данные в безопасности.",
-    all_external_accounts: "Все внешние аккаунты",
     read: "Прочитано",
     or_conjunction: "или",
     press_label: "Нажмите",
@@ -1511,7 +1477,6 @@ export const ru = {
     remove_from_allowlist_action: "Убрать из списка разрешённых",
     failed_to_allow_sender:
       "Не удалось добавить отправителя в список разрешённых. Попробуйте снова.",
-    aster_user: "Пользователь Aster",
     account_limit_reached:
       "Вы достигли лимита аккаунтов для этой сети. Если это ошибка, напишите на hello@astermail.org.",
     account_suspended: "Ваш аккаунт заблокирован.",
@@ -1593,8 +1558,6 @@ export const ru = {
       "Аватар псевдонима не обновился. Попробуйте снова.",
     failed_update_alias_display_name:
       "Отображаемое имя не обновилось. Попробуйте снова.",
-    failed_remove_recovery_email: "Попробуйте снова.",
-    failed_to_get_key_status: "Попробуйте снова.",
     file_already_attached:
       "«{{name}}» уже прикреплён к этому письму. Не нужно прикреплять повторно.",
     metadata_not_removed:
@@ -1767,7 +1730,6 @@ export const ru = {
     unknown_error:
       "Что-то пошло не так. Попробуйте снова. Нам не удалось установить причину.",
     unknown_merchant: "Неизвестный продавец",
-    unknown_rotation_error: "Попробуйте снова.",
     unsaved_changes_title: "Отменить изменения?",
     unsaved_changes_body:
       "Введённые данные не сохранены. Если закрыть форму сейчас, они будут удалены.",
@@ -9252,18 +9214,6 @@ export const ru = {
     reply_to_name: "Ответ для {{name}}",
     reply_all_to_name: "Ответ для {{name}} и всех",
     forward_message_heading: "Переслать сообщение",
-    trackers_found_one: "Найден и заблокирован {{count}} трекер",
-    trackers_found_few: "Найдено и заблокировано {{count}} трекера",
-    trackers_found_many: "Найдено и заблокировано {{count}} трекеров",
-    trackers_found_other: "Найдено и заблокировано {{count}} трекера",
-    spy_pixels_blocked_count_one: "Заблокирован {{count}} шпионский пиксель",
-    spy_pixels_blocked_count_few: "Заблокировано {{count}} шпионских пикселя",
-    spy_pixels_blocked_count_many: "Заблокировано {{count}} шпионских пикселей",
-    spy_pixels_blocked_count_other: "Заблокировано {{count}} шпионских пикселя",
-    links_cleaned_count_one: "Очищена {{count}} ссылка",
-    links_cleaned_count_few: "Очищено {{count}} ссылки",
-    links_cleaned_count_many: "Очищено {{count}} ссылок",
-    links_cleaned_count_other: "Очищено {{count}} ссылки",
     param_removed_from_n_links_one: "{{param}} удалён из {{count}} ссылки",
     param_removed_from_n_links_few: "{{param}} удалён из {{count}} ссылок",
     param_removed_from_n_links_many: "{{param}} удалён из {{count}} ссылок",
@@ -9401,10 +9351,6 @@ export const ru = {
     create_a_password: "Создайте пароль",
     recommend_strong_password:
       "Используйте не менее 8 символов. Более длинный пароль с разными символами надежнее.",
-    password_recovery_key: "Ключ восстановления пароля",
-    recovery_key_only_way:
-      "Этот ключ - единственный способ восстановить аккаунт, если вы забудете пароль. Сохраните его в надежном месте.",
-    download_key_lower: "Скачать ключ",
     downloading: "Скачивание...",
     copy_key: "Копировать ключ",
     copy_codes: "Копировать коды",
@@ -9651,7 +9597,6 @@ export const ru = {
     import_mail_step_title: "Возьмите почту с собой",
     import_mail_step_desc:
       "Перенесите письма из другого аккаунта в Aster. Всё шифруется на вашем устройстве перед сохранением.",
-    import_mail_action: "Импортировать почту",
     import_mail_skip: "Начать с пустого ящика",
     import_mail_privacy_note: "Импортировать можно и позже в настройках.",
     password_reset_successful: "Пароль успешно сброшен",
@@ -10550,29 +10495,6 @@ export const ru = {
     show_in_signature: "Показывать в подписи",
     empty_state: "Вы ещё не нашли ни одного значка.",
     claim_failed: "Попробуйте снова.",
-    claim_success: "Вы получили значок {name}.",
-    claim_already: "У вас уже есть значок первооткрывателя.",
-    badge_andromeda: "Андромеда",
-    badge_andromeda_description: "Достигли соседней галактики.",
-    badge_big_bang: "Большой Взрыв",
-    badge_big_bang_description: "Первым открыли космос.",
-    badge_black_hole: "Чёрная Дыра",
-    badge_black_hole_description: "Притянуты чем-то более глубоким.",
-    badge_comet: "Комета",
-    badge_comet_description: "Пересеклись с чем-то редким.",
-    badge_event_horizon: "Горизонт Событий",
-    badge_event_horizon_description: "Пересекли границу известного.",
-    badge_nebula: "Туманность",
-    badge_nebula_description: "Блуждали среди красок.",
-    badge_pulsar: "Пульсар",
-    badge_pulsar_description: "Услышали сигнал в шуме.",
-    badge_singularity: "Сингулярность",
-    badge_singularity_description: "Нашли точку, где всё изгибается.",
-    badge_stargazer: "Звездочёт",
-    badge_stargazer_description: "Посмотрели вверх в нужный момент.",
-    badge_supernova: "Сверхновая",
-    badge_supernova_description: "Поймали звезду в её самый яркий момент.",
-    find_order_label: "#{order}",
     granted_at: "Получено {date}",
     not_earned: "Ещё не получено",
     show_in_signature_description:
