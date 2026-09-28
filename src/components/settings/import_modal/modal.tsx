@@ -370,7 +370,12 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             continue;
           }
 
-          const result = await create_new_folder(folder_name);
+          const result = await create_new_folder(
+            folder_name,
+            undefined,
+            undefined,
+            { append: true },
+          );
 
           if (result.folder) {
             folder_token_map.set(folder_name, result.folder.folder_token);

@@ -33,6 +33,8 @@ import {
   ExclamationTriangleIcon,
   TrashIcon,
   EnvelopeIcon,
+  BarsArrowDownIcon,
+  PlusIcon,
   UsersIcon,
   NewspaperIcon,
 } from "@heroicons/react/24/outline";
@@ -51,6 +53,7 @@ import {
   build_folder_tree,
   build_tree_guides,
   flatten_folder_tree,
+  is_folder_tree_sorted_a_z,
 } from "@/hooks/use_folders";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { get_gradient_background } from "@/constants/profile";
@@ -127,6 +130,7 @@ interface DrawerNavContentProps {
     trash: number;
   };
   on_open_create_folder: () => void;
+  on_sort_folders?: () => void;
   on_open_create_label: () => void;
   on_open_create_alias: () => void;
   on_open_edit_folder: (folder: DecryptedFolder) => void;
@@ -162,6 +166,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
   alias_unread_counts = {},
   stats,
   on_open_create_folder,
+  on_sort_folders,
   on_open_create_label,
   on_open_create_alias,
   on_open_edit_folder,
@@ -175,6 +180,8 @@ export const DrawerNavContent = memo(function DrawerNavContent({
 
   const folder_tree = build_folder_tree(folders);
   const folder_nodes = flatten_folder_tree(folder_tree);
+  const can_sort_folders =
+    folders.length > 1 && !is_folder_tree_sorted_a_z(folders);
   const folder_guides = build_tree_guides(folder_tree);
 
   const is_active = (path: string) => {
@@ -307,11 +314,40 @@ export const DrawerNavContent = memo(function DrawerNavContent({
         on_click={() => handle_nav("/subscriptions")}
       />
 
-      <MobileDrawerSectionHeader
-        add_label={t("common.create_folder")}
-        label={t("common.folders")}
-        on_add={on_open_create_folder}
-      />
+      {on_sort_folders && can_sort_folders ? (
+        <div className="mb-1 mt-5 px-2.5">
+          <div className="flex w-full items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[var(--text-muted)] opacity-70">
+              {t("common.folders")}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                aria-label={t("common.sort_a_to_z")}
+                className="-m-1 flex min-h-6 min-w-6 items-center justify-center rounded p-1.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
+                data-testid="mobile-folders-sort-a-to-z"
+                type="button"
+                onClick={on_sort_folders}
+              >
+                <BarsArrowDownIcon className="h-3.5 w-3.5" />
+              </button>
+              <button
+                aria-label={t("common.create_folder")}
+                className="-m-1 flex min-h-6 min-w-6 items-center justify-center rounded p-1.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
+                type="button"
+                onClick={on_open_create_folder}
+              >
+                <PlusIcon className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <MobileDrawerSectionHeader
+          add_label={t("common.create_folder")}
+          label={t("common.folders")}
+          on_add={on_open_create_folder}
+        />
+      )}
       {folders.length === 0 && (
         <MobileDrawerSectionPlaceholder
           empty_text={t("common.no_folders_yet")}

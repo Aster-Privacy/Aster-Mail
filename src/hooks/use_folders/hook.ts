@@ -32,8 +32,16 @@ import {
   encrypt_folder_field,
   generate_folder_token,
 } from "./crypto";
+import {
+  append_sort_order,
+  get_child_folders,
+  place_folder_among_siblings,
+  resort_after_rename,
+  sort_folder_tree_a_z,
+  type FolderOrderEntry,
+} from "./sort";
 import { DecryptedFolder, FolderCounts, FoldersState } from "./tree";
-import { UseFoldersReturn } from "./types";
+import { CreateFolderOptions, UseFoldersReturn } from "./types";
 
 import {
   list_folders,
@@ -73,6 +81,36 @@ const FOLDER_RETRY_DELAYS_MS = [400, 1_200, 3_000];
 
 function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const PENDING_FOLDER_ID = "pending_folder";
+
+function placement_after_update(
+  snapshot: DecryptedFolder[],
+  current: DecryptedFolder | undefined,
+  name: string | undefined,
+  sort_order: number | undefined,
+  parent_token: string | undefined,
+): FolderOrderEntry[] {
+  if (!current || sort_order !== undefined) return [];
+
+  const next_name = name ?? current.name;
+
+  if (
+    parent_token !== undefined &&
+    (parent_token || undefined) !== (current.parent_token || undefined)
+  ) {
+    return place_folder_among_siblings(
+      get_child_folders(snapshot, parent_token || undefined),
+      { ...current, name: next_name, parent_token },
+    );
+  }
+
+  if (name !== undefined && name.trim() !== current.name.trim()) {
+    return resort_after_rename(snapshot, current.id, name.trim());
+  }
+
+  return [];
 }
 
 export function use_folders(): UseFoldersReturn {
@@ -269,11 +307,75 @@ export function use_folders(): UseFoldersReturn {
     }
   }, []);
 
+  const reorder_folders = useCallback(
+    async (entries: FolderOrderEntry[]): Promise<boolean> => {
+      if (entries.length === 0) return true;
+
+      const order_map = new Map(entries.map((e) => [e.id, e.sort_order]));
+      const previous_orders = new Map(
+        cached_folders.data
+          .filter((folder) => order_map.has(folder.id))
+          .map((folder) => [folder.id, folder.sort_order]),
+      );
+
+      const apply_orders = (orders: Map<string, number>) => {
+        const with_orders = (folders: DecryptedFolder[]) =>
+          folders.map((folder) => {
+            const next_order = orders.get(folder.id);
+
+            return next_order === undefined
+              ? folder
+              : { ...folder, sort_order: next_order };
+          });
+
+        cached_folders.data = with_orders(cached_folders.data);
+
+        set_state((prev) => {
+          const updated_folders = with_orders(prev.folders);
+
+          cached_folders.data = updated_folders;
+
+          return {
+            ...prev,
+            folders: updated_folders,
+          };
+        });
+      };
+
+      apply_orders(order_map);
+
+      let saved = false;
+
+      try {
+        const response = await bulk_reorder_folders(entries);
+
+        saved = !response.error;
+      } catch {
+        saved = false;
+      }
+
+      if (!saved) {
+        apply_orders(previous_orders);
+      }
+
+      emit_folders_changed();
+      broadcast_folders_changed();
+
+      return saved;
+    },
+    [],
+  );
+
+  const sort_folders_a_z = useCallback(async (): Promise<boolean> => {
+    return reorder_folders(sort_folder_tree_a_z(cached_folders.data));
+  }, [reorder_folders]);
+
   const create_new_folder = useCallback(
     async (
       name: string,
       color?: string,
       parent_token?: string,
+      options?: CreateFolderOptions,
     ): Promise<{
       folder: DecryptedFolder | null;
       error?: string;
@@ -326,6 +428,33 @@ export function use_folders(): UseFoldersReturn {
           request.parent_token = parent_token;
         }
 
+        const created_at = new Date().toISOString();
+        const siblings = get_child_folders(cached_folders.data, parent_token);
+        const placement = options?.append
+          ? []
+          : place_folder_among_siblings(siblings, {
+              id: PENDING_FOLDER_ID,
+              folder_token,
+              name: trimmed_name,
+              is_system: false,
+              is_locked: false,
+              folder_type: "custom",
+              is_password_protected: false,
+              password_set: false,
+              sort_order: 0,
+              parent_token,
+              created_at,
+              updated_at: created_at,
+            });
+        const sort_order =
+          placement.find((entry) => entry.id === PENDING_FOLDER_ID)
+            ?.sort_order ?? append_sort_order(siblings);
+        const sibling_entries = placement.filter(
+          (entry) => entry.id !== PENDING_FOLDER_ID,
+        );
+
+        request.sort_order = sort_order;
+
         const response = await create_folder(request);
 
         if (response.error || !response.data) {
@@ -346,12 +475,15 @@ export function use_folders(): UseFoldersReturn {
           folder_type: "custom",
           is_password_protected: false,
           password_set: false,
-          sort_order: 0,
+          sort_order,
           parent_token,
           item_count: 0,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          created_at,
+          updated_at: created_at,
         };
+
+        cached_folders.data = [...cached_folders.data, new_folder];
+        cached_folders.total = cached_folders.data.length;
 
         set_state((prev) => {
           const updated_folders = [...prev.folders, new_folder];
@@ -369,12 +501,16 @@ export function use_folders(): UseFoldersReturn {
         emit_folders_changed();
         broadcast_folders_changed();
 
+        if (sibling_entries.length > 0) {
+          void reorder_folders(sibling_entries);
+        }
+
         return { folder: new_folder };
       } catch {
         return { folder: null, code: "ENCRYPTION_ERROR" };
       }
     },
-    [],
+    [reorder_folders],
   );
 
   const update_existing_folder = useCallback(
@@ -390,6 +526,9 @@ export function use_folders(): UseFoldersReturn {
       if (!vault?.identity_key) {
         return false;
       }
+
+      const snapshot = cached_folders.data;
+      const current = snapshot.find((folder) => folder.id === folder_id);
 
       try {
         const request: UpdateFolderRequest = {};
@@ -428,8 +567,9 @@ export function use_folders(): UseFoldersReturn {
           return false;
         }
 
-        set_state((prev) => {
-          const updated_folders = prev.folders.map((folder) =>
+        const updated_at = new Date().toISOString();
+        const with_update = (folders: DecryptedFolder[]) =>
+          folders.map((folder) =>
             folder.id === folder_id
               ? {
                   ...folder,
@@ -437,10 +577,15 @@ export function use_folders(): UseFoldersReturn {
                   ...(color !== undefined && { color }),
                   ...(sort_order !== undefined && { sort_order }),
                   ...(parent_token !== undefined && { parent_token }),
-                  updated_at: new Date().toISOString(),
+                  updated_at,
                 }
               : folder,
           );
+
+        cached_folders.data = with_update(cached_folders.data);
+
+        set_state((prev) => {
+          const updated_folders = with_update(prev.folders);
 
           cached_folders.data = updated_folders;
           cached_folders.total = updated_folders.length;
@@ -454,70 +599,24 @@ export function use_folders(): UseFoldersReturn {
         emit_folders_changed();
         broadcast_folders_changed();
 
-        return true;
-      } catch {
-        return false;
-      }
-    },
-    [],
-  );
+        const placement = placement_after_update(
+          snapshot,
+          current,
+          name,
+          sort_order,
+          parent_token,
+        );
 
-  const reorder_folders = useCallback(
-    async (entries: { id: string; sort_order: number }[]): Promise<boolean> => {
-      if (entries.length === 0) return true;
-
-      const previous = cached_folders.data;
-      const order_map = new Map(entries.map((e) => [e.id, e.sort_order]));
-
-      set_state((prev) => {
-        const updated_folders = prev.folders.map((folder) => {
-          const next_order = order_map.get(folder.id);
-
-          return next_order === undefined
-            ? folder
-            : { ...folder, sort_order: next_order };
-        });
-
-        cached_folders.data = updated_folders;
-
-        return {
-          ...prev,
-          folders: updated_folders,
-        };
-      });
-
-      try {
-        const response = await bulk_reorder_folders(entries);
-
-        if (response.error) {
-          set_state((prev) => {
-            cached_folders.data = previous;
-
-            return { ...prev, folders: previous };
-          });
-          emit_folders_changed();
-          broadcast_folders_changed();
-
-          return false;
+        if (placement.length > 0) {
+          void reorder_folders(placement);
         }
 
-        emit_folders_changed();
-        broadcast_folders_changed();
-
         return true;
       } catch {
-        set_state((prev) => {
-          cached_folders.data = previous;
-
-          return { ...prev, folders: previous };
-        });
-        emit_folders_changed();
-        broadcast_folders_changed();
-
         return false;
       }
     },
-    [],
+    [reorder_folders],
   );
 
   const delete_existing_folder = useCallback(
@@ -868,6 +967,7 @@ export function use_folders(): UseFoldersReturn {
     create_new_folder,
     update_existing_folder,
     reorder_folders,
+    sort_folders_a_z,
     delete_existing_folder,
     toggle_folder_lock,
     add_folder_to_email,

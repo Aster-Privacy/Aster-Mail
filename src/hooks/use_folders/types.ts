@@ -27,6 +27,10 @@ import {
   type DeleteFolderRequest,
 } from "@/services/api/folders";
 
+export interface CreateFolderOptions {
+  append?: boolean;
+}
+
 export interface UseFoldersReturn {
   state: FoldersState;
   counts: FolderCounts;
@@ -37,6 +41,7 @@ export interface UseFoldersReturn {
     name: string,
     color?: string,
     parent_token?: string,
+    options?: CreateFolderOptions,
   ) => Promise<{
     folder: DecryptedFolder | null;
     error?: string;
@@ -52,6 +57,7 @@ export interface UseFoldersReturn {
   reorder_folders: (
     entries: { id: string; sort_order: number }[],
   ) => Promise<boolean>;
+  sort_folders_a_z: () => Promise<boolean>;
   delete_existing_folder: (
     folder_id: string,
     options?: DeleteFolderRequest,

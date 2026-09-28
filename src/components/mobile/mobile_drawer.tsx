@@ -108,6 +108,7 @@ export const MobileDrawer = memo(function MobileDrawer({
     create_new_folder,
     update_existing_folder,
     toggle_folder_lock,
+    sort_folders_a_z,
     refresh: refresh_folders,
   } = use_folders();
   const {
@@ -313,6 +314,14 @@ export const MobileDrawer = memo(function MobileDrawer({
     },
     [on_navigate, on_close],
   );
+
+  const handle_sort_folders = useCallback(async () => {
+    if (await sort_folders_a_z()) {
+      show_toast(t("common.folders_sorted_a_to_z"), "success");
+    } else {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    }
+  }, [sort_folders_a_z, t]);
 
   const handle_create_folder = useCallback(async () => {
     const name = new_folder_name.trim();
@@ -609,6 +618,7 @@ export const MobileDrawer = memo(function MobileDrawer({
             on_open_edit_folder={handle_open_edit_folder}
             on_open_edit_tag={handle_open_edit_tag}
             on_password_modal={set_password_modal_folder}
+            on_sort_folders={() => void handle_sort_folders()}
             on_retry_aliases={() => void refresh_aliases()}
             on_retry_folders={() => void refresh_folders()}
             on_retry_tags={() => void refresh_tags()}

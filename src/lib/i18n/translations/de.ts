@@ -210,6 +210,8 @@ export const de = {
     parent_folder: "Übergeordneter Ordner",
     move_up: "Nach oben",
     move_down: "Nach unten",
+    sort_a_to_z: "Von A bis Z sortieren",
+    folders_sorted_a_to_z: "Ordner von A bis Z sortiert",
     move_to: "Verschieben nach",
     lock_extra_security:
       "Das Sperren bietet zusätzliche Sicherheit über die bestehende Verschlüsselung hinaus. Sie können jederzeit entsperren.",
@@ -8282,6 +8284,7 @@ export const de = {
     plan_f_expiration: "Ablaufende E-Mails",
     plan_f_folder_auto_clean: "Automatische Ordnerbereinigung",
     plan_f_folders: "Ordner und Labels",
+    plan_f_sort_folders: "Ordner von A bis Z sortieren",
     plan_f_key_management: "Schlüsselverwaltung",
     plan_f_link_warnings: "Warnungen bei verdächtigen Links",
     plan_f_one_click_unsub: "Abmelden mit einem Klick",
