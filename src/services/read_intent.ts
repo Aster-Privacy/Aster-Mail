@@ -322,6 +322,67 @@ export function scope_read_applies(timestamp: string | undefined): boolean {
   return !Number.isNaN(message_ms) && message_ms <= at;
 }
 
+const read_tickets = new Map<string, number>();
+let read_ticket_seq = 0;
+
+export function begin_read_change(ids: readonly string[]): number {
+  read_ticket_seq += 1;
+  const ticket = read_ticket_seq;
+
+  for (const id of ids) {
+    if (!id) continue;
+    read_tickets.delete(id);
+    read_tickets.set(id, ticket);
+  }
+
+  while (read_tickets.size > MAX_INTENTS) {
+    const oldest = read_tickets.keys().next().value;
+
+    if (oldest === undefined) break;
+    read_tickets.delete(oldest);
+  }
+
+  return ticket;
+}
+
+export function peek_read_ticket(id: string): number {
+  return read_tickets.get(id) ?? 0;
+}
+
+export function is_read_ticket_current(id: string, ticket: number): boolean {
+  return peek_read_ticket(id) === ticket;
+}
+
+export function claim_auto_read(
+  id: string,
+  armed_ticket: number,
+): number | null {
+  if (!is_read_ticket_current(id, armed_ticket)) return null;
+
+  return begin_read_change([id]);
+}
+
+export function capture_read_tickets(
+  ids: readonly string[],
+): Map<string, number> {
+  const captured = new Map<string, number>();
+
+  for (const id of ids) captured.set(id, peek_read_ticket(id));
+
+  return captured;
+}
+
+export function current_read_ids(
+  ids: readonly string[],
+  captured: ReadonlyMap<string, number> | number,
+): string[] {
+  return ids.filter((id) =>
+    typeof captured === "number"
+      ? peek_read_ticket(id) === captured
+      : peek_read_ticket(id) === (captured.get(id) ?? 0),
+  );
+}
+
 export function has_any_read_intent(): boolean {
   return intents.size > 0 || active_scope_read_at() !== null;
 }

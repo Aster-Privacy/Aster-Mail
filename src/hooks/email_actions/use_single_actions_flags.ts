@@ -45,7 +45,12 @@ import {
 } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
-import { clear_flag_intents, note_flag_intents } from "@/services/read_intent";
+import {
+  begin_read_change,
+  clear_flag_intents,
+  is_read_ticket_current,
+  note_flag_intents,
+} from "@/services/read_intent";
 import {
   compute_trash_deltas,
   compute_archive_deltas,
@@ -171,6 +176,8 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         return true;
       }
 
+      const read_ticket = begin_read_change([email.id]);
+
       if (should_adjust_unread) adjust_stats_unread(new_read ? -1 : 1);
       emit_mail_item_updated({ id: email.id, is_read: new_read });
 
@@ -181,16 +188,18 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         () => update_with_metadata(email, { is_read: new_read }),
       );
 
-      if (!success) {
+      const still_current = is_read_ticket_current(email.id, read_ticket);
+
+      if (!success && still_current) {
         emit_mail_item_updated({ id: email.id, is_read: !new_read });
         if (should_adjust_unread) adjust_stats_unread(new_read ? 1 : -1);
       }
 
-      if (success && is_received && new_read) {
+      if (success && still_current && is_received && new_read) {
         mark_conversation_read(conversation_options);
       }
 
-      return success;
+      return success || !still_current;
     },
     [
       execute_single_action,
@@ -232,6 +241,8 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         return true;
       }
 
+      const read_ticket = begin_read_change([email.id]);
+
       if (should_adjust_unread) adjust_stats_unread(-1);
       emit_mail_item_updated({ id: email.id, is_read: true });
 
@@ -242,16 +253,18 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         () => update_with_metadata(email, { is_read: true }),
       );
 
-      if (!success) {
+      const still_current = is_read_ticket_current(email.id, read_ticket);
+
+      if (!success && still_current) {
         emit_mail_item_updated({ id: email.id, is_read: false });
         if (should_adjust_unread) adjust_stats_unread(1);
       }
 
-      if (success && is_received) {
+      if (success && still_current && is_received) {
         mark_conversation_read(conversation_options);
       }
 
-      return success;
+      return success || !still_current;
     },
     [
       execute_single_action,
@@ -290,6 +303,8 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         return true;
       }
 
+      const read_ticket = begin_read_change([email.id]);
+
       if (should_adjust_unread) adjust_stats_unread(1);
       emit_mail_item_updated({ id: email.id, is_read: false });
 
@@ -300,12 +315,14 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         () => update_with_metadata(email, { is_read: false }),
       );
 
-      if (!success) {
+      const unread_current = is_read_ticket_current(email.id, read_ticket);
+
+      if (!success && unread_current) {
         emit_mail_item_updated({ id: email.id, is_read: true });
         if (should_adjust_unread) adjust_stats_unread(-1);
       }
 
-      return success;
+      return success || !unread_current;
     },
     [
       execute_single_action,

@@ -73,6 +73,10 @@ import {
   get_display_time_zone,
 } from "@/utils/date_format";
 import { resolve_reply_references } from "@/lib/reply_references";
+import {
+  begin_read_change,
+  is_read_ticket_current,
+} from "@/services/read_intent";
 
 export interface PopupActionsDeps {
   email_id: string | null;
@@ -141,8 +145,10 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
       adjust_stats_unread(new_state ? -1 : 1);
     }
 
+    const acted_id = deps.email_id;
+    const read_ticket = begin_read_change([acted_id]);
     const result = await update_item_metadata(
-      deps.email_id,
+      acted_id,
       {
         encrypted_metadata: deps.mail_item.encrypted_metadata,
         metadata_nonce: deps.mail_item.metadata_nonce,
@@ -152,6 +158,8 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
     ).finally(() => {
       read_toggle_in_flight.current = false;
     });
+
+    if (!is_read_ticket_current(acted_id, read_ticket)) return;
 
     if (!result.success) {
       deps.set_is_read(!new_state);
@@ -969,6 +977,8 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         deps.on_close();
       }
 
+      const read_ticket = begin_read_change([message_id]);
+
       update_item_metadata(
         message_id,
         {
@@ -977,6 +987,7 @@ export function use_popup_viewer_actions(deps: PopupActionsDeps) {
         },
         { is_read: new_read },
       ).then((result) => {
+        if (!is_read_ticket_current(message_id, read_ticket)) return;
         if (!result.success) {
           deps.set_thread_messages((prev) =>
             prev.map((m) =>

@@ -70,7 +70,12 @@ import {
   bulk_update_metadata_by_ids,
 } from "@/services/crypto/mail_metadata";
 import { batch_archive, batch_unarchive } from "@/services/api/archive";
-import { clear_flag_intents, note_flag_intents } from "@/services/read_intent";
+import {
+  begin_read_change,
+  clear_flag_intents,
+  is_read_ticket_current,
+  note_flag_intents,
+} from "@/services/read_intent";
 import { ignore_error } from "@/lib/ignore_error";
 
 export function build_core_context_menu_actions(
@@ -446,6 +451,8 @@ export function build_core_context_menu_actions(
         ? read_clears_conversation(conversation_options)
         : !conversation_has_unread_sibling(conversation_options));
 
+    const read_ticket = begin_read_change([email.id]);
+
     update_email(email.id, { is_read: new_state });
     if (should_adjust_unread) {
       adjust_stats_unread(new_state ? -1 : 1);
@@ -459,6 +466,8 @@ export function build_core_context_menu_actions(
       },
       { is_read: new_state },
     );
+
+    if (!is_read_ticket_current(email.id, read_ticket)) return;
 
     if (result.success) {
       emit_mail_item_updated({
@@ -478,6 +487,8 @@ export function build_core_context_menu_actions(
         action_type: "read",
         email_ids: [email.id],
         on_undo: async () => {
+          const undo_ticket = begin_read_change([email.id]);
+
           if (should_adjust_unread) {
             adjust_stats_unread(new_state ? 1 : -1);
           }
@@ -489,6 +500,8 @@ export function build_core_context_menu_actions(
             },
             { is_read: !new_state },
           );
+
+          if (!is_read_ticket_current(email.id, undo_ticket)) return;
 
           if (!undo_result.success) {
             if (should_adjust_unread) {

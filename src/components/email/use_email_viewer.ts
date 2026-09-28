@@ -85,6 +85,11 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
 import { viewer_still_showing } from "@/components/email/thread_reply_target";
 import { use_thread_draft_removal } from "@/components/email/hooks/use_thread_draft_removal";
+import {
+  claim_auto_read,
+  is_read_ticket_current,
+  peek_read_ticket,
+} from "@/services/read_intent";
 
 const ARRIVAL_REFRESH_DEBOUNCE_MS = 800;
 
@@ -469,8 +474,12 @@ export function use_email_viewer({
 
         if (!pe.is_read && preferences.mark_as_read_delay !== "never") {
           const is_received = preloaded.mail_item.item_type === "received";
+          const armed_read_ticket = peek_read_ticket(preloaded.mail_item.id);
           const mark_read = async () => {
             const item = preloaded.mail_item;
+            const read_ticket = claim_auto_read(item.id, armed_read_ticket);
+
+            if (read_ticket === null) return;
             const conversation_options = {
               thread_token: item.thread_token,
               thread_message_count: item.thread_message_count,
@@ -500,6 +509,8 @@ export function use_email_viewer({
               },
               { is_read: true },
             );
+
+            if (!is_read_ticket_current(item.id, read_ticket)) return;
 
             if (result.success && !cancelled) {
               set_is_read(true);
@@ -698,7 +709,11 @@ export function use_email_viewer({
         preferences.mark_as_read_delay !== "never"
       ) {
         const is_received_item = item.item_type === "received";
+        const armed_read_ticket = peek_read_ticket(item.id);
         const mark_read = async () => {
+          const read_ticket = claim_auto_read(item.id, armed_read_ticket);
+
+          if (read_ticket === null) return;
           const conversation_options = {
             thread_token: item.thread_token,
             thread_message_count: item.thread_message_count,
@@ -728,6 +743,8 @@ export function use_email_viewer({
             },
             { is_read: true },
           );
+
+          if (!is_read_ticket_current(item.id, read_ticket)) return;
 
           if (result.success) {
             if (!cancelled) {

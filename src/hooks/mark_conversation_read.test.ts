@@ -173,7 +173,7 @@ describe("mark_conversation_read", () => {
 
     await flush();
 
-    expect(mock_mark_thread_read_entries).toHaveBeenCalledWith("t1");
+    expect(mock_mark_thread_read_entries).toHaveBeenCalledWith("t1", new Set());
   });
 
   it("never clears indexed siblings when grouping is off", () => {

@@ -77,6 +77,10 @@ import { set_forward_mail_id } from "@/services/forward_store";
 import { ignore_error } from "@/lib/ignore_error";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { resolve_reply_references } from "@/lib/reply_references";
+import {
+  begin_read_change,
+  is_read_ticket_current,
+} from "@/services/read_intent";
 
 export interface EmailDetailActionsDeps {
   email_id: string | undefined;
@@ -577,6 +581,8 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         adjust_stats_unread(new_read ? -1 : 1);
       }
 
+      const read_ticket = begin_read_change([message_id]);
+
       update_item_metadata(
         message_id,
         {
@@ -585,6 +591,7 @@ export function use_email_detail_actions(deps: EmailDetailActionsDeps) {
         },
         { is_read: new_read },
       ).then((result) => {
+        if (!is_read_ticket_current(message_id, read_ticket)) return;
         if (!result.success) {
           deps.set_thread_messages((prev) =>
             prev.map((m) =>

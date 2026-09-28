@@ -60,6 +60,10 @@ import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { ThreadMessageBlock } from "@/components/email/thread_message_block";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
 import { resolve_reply_references } from "@/lib/reply_references";
+import {
+  begin_read_change,
+  is_read_ticket_current,
+} from "@/services/read_intent";
 
 const LOCAL_FLAG_OVERRIDE_TTL_MS = 30_000;
 
@@ -507,6 +511,8 @@ export const ThreadMessagesList = forwardRef<
         adjust_stats_unread(-1);
       }
 
+      const read_ticket = begin_read_change([msg.id]);
+
       update_item_metadata(
         msg.id,
         {
@@ -515,6 +521,7 @@ export const ThreadMessagesList = forwardRef<
         },
         { is_read: true },
       ).then((result) => {
+        if (!is_read_ticket_current(msg.id, read_ticket)) return;
         if (!result.success) {
           local_read_overrides.current.delete(msg.id);
           set_read_ids((prev) => {
@@ -719,6 +726,7 @@ export const ThreadMessagesList = forwardRef<
       const final_read_state = new_read;
       const timeout = setTimeout(() => {
         pending_read_updates.current.delete(msg.id);
+        const read_ticket = begin_read_change([msg.id]);
 
         update_item_metadata(
           msg.id,
@@ -728,6 +736,7 @@ export const ThreadMessagesList = forwardRef<
           },
           { is_read: final_read_state },
         ).then((result) => {
+          if (!is_read_ticket_current(msg.id, read_ticket)) return;
           if (!result.success) {
             local_read_overrides.current.delete(msg.id);
             set_read_ids((prev) => {

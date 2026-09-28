@@ -1001,7 +1001,10 @@ export function set_all_indexed_read(is_read: boolean): string[] {
   return changed;
 }
 
-export function mark_thread_read_entries(thread_token: string): void {
+export function mark_thread_read_entries(
+  thread_token: string,
+  skip_ids?: ReadonlySet<string>,
+): void {
   if (!thread_token) return;
 
   let changed = false;
@@ -1009,6 +1012,7 @@ export function mark_thread_read_entries(thread_token: string): void {
   const read_ids: string[] = [];
 
   for (const [id, entry] of entries_map) {
+    if (skip_ids?.has(id)) continue;
     if (entry.thread_token === thread_token && !entry.is_read) {
       entries_map.set(id, { ...entry, is_read: true });
       mark_dirty(id);

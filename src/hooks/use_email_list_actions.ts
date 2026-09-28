@@ -67,6 +67,11 @@ import {
   set_ids_read,
 } from "@/services/category_index";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
+import { update_item_metadata } from "@/services/crypto/mail_metadata_writer";
+import {
+  begin_read_change,
+  is_read_ticket_current,
+} from "@/services/read_intent";
 import { ignore_error } from "@/lib/ignore_error";
 import { compare_timestamps_desc } from "@/utils/email_timestamp";
 
@@ -217,13 +222,28 @@ export function use_email_list_actions({
           adjust_stats_unread(new_read_state ? -1 : 1);
         }
 
+        const read_ticket = begin_read_change([id]);
         let success = false;
+        let encrypted: { encrypted_metadata: string; metadata_nonce: string } | undefined;
 
         try {
-          success = await api_update(id, { is_read: new_read_state });
+          const result = await update_item_metadata(
+            id,
+            {
+              encrypted_metadata: email.encrypted_metadata,
+              metadata_nonce: email.metadata_nonce,
+              metadata_version: email.metadata_version,
+            },
+            { is_read: new_read_state },
+          );
+
+          success = result.success;
+          encrypted = result.encrypted;
         } catch {
           success = false;
         }
+
+        if (!is_read_ticket_current(id, read_ticket)) return;
 
         if (!success) {
           if (should_adjust_unread) {
@@ -233,13 +253,24 @@ export function use_email_list_actions({
           return;
         }
 
+        update_email(id, {
+          is_read: new_read_state,
+          ...(encrypted && {
+            encrypted_metadata: encrypted.encrypted_metadata,
+            metadata_nonce: encrypted.metadata_nonce,
+          }),
+        } as Partial<InboxEmail>);
+        emit_mail_item_updated({
+          id,
+          is_read: new_read_state,
+        } as MailItemUpdatedEventDetail);
         set_ids_read([id], new_read_state);
         if (new_read_state && email.item_type === "received") {
           mark_conversation_read(conversation_options);
         }
       }
     },
-    [state.emails, api_update],
+    [state.emails, update_email],
   );
 
   const delete_email = useCallback(
