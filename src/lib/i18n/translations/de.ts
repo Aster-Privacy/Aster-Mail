@@ -5382,8 +5382,6 @@ export const de = {
       "Warten auf die Bestätigung von {{ addresses }}. Dorthin wird noch nicht weitergeleitet.",
     forwarding_verification_sent:
       "Bestätigungs-E-Mail an {{ address }} gesendet. Die Weiterleitung startet nach der Bestätigung.",
-    forwarding_internal_active:
-      "Weiterleitung ist aktiv. Ziele von Aster zu Aster benötigen keine Bestätigung.",
     forwarding_verification_resent:
       "Bestätigungs-E-Mail erneut an {{ address }} gesendet",
     forwarding_confirmed_success:
@@ -7529,6 +7527,8 @@ export const de = {
       "Ihre E-Mail-Adresse konnte beim Anbieter nicht abgerufen werden. Versuchen Sie es erneut; wenn es weiterhin fehlschlägt, verwenden Sie die manuelle IMAP-Option.",
     oauth_reason_session_expired:
       "Die Anmeldesitzung ist abgelaufen. Versuchen Sie es erneut.",
+    oauth_reason_wrong_account:
+      "Die Verbindung wurde von einem anderen Aster Mail-Konto gestartet. Melden Sie sich mit diesem Konto an und versuchen Sie es erneut.",
     oauth_reason_encryption_error:
       "Die Verbindung konnte nicht gesichert werden. Versuchen Sie es erneut. Wenn das Problem weiterhin besteht, wenden Sie sich an hello@astermail.org.",
     oauth_reason_expired_state:
@@ -9619,6 +9619,16 @@ export const de = {
     reset_consent_email_mismatch:
       "Die E-Mail-Adresse passt nicht zu diesem Konto.",
     reset_consent_continue: "Passwort trotzdem zurücksetzen",
+    reset_second_factor_title: "Bestätige, dass du es bist",
+    reset_second_factor_description:
+      "Dieses Konto verwendet die Zwei-Faktor-Authentifizierung. Bestätige einen zweiten Faktor, bevor du das Passwort zurücksetzt.",
+    reset_second_factor_backup_description:
+      "Gib einen deiner Backup-Codes ein, um fortzufahren.",
+    reset_second_factor_key_description:
+      "Verwende den Sicherheitsschlüssel oder Passkey, der für dieses Konto registriert ist, um fortzufahren.",
+    reset_second_factor_use_key:
+      "Stattdessen einen Sicherheitsschlüssel verwenden",
+    reset_second_factor_use_key_button: "Mit Sicherheitsschlüssel fortfahren",
     please_enter_recovery_code:
       "Einer Ihrer Wiederherstellungscodes wird hier benötigt.",
     recovery_codes_start_with_aster:

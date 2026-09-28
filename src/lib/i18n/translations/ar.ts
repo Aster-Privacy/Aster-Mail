@@ -5511,8 +5511,6 @@ export const ar = {
       "في انتظار تأكيد {{ addresses }}. لا تتم إعادة التوجيه إلى هناك بعد.",
     forwarding_verification_sent:
       "تم إرسال بريد التحقق إلى {{ address }}. تبدأ إعادة التوجيه بعد التأكيد.",
-    forwarding_internal_active:
-      "إعادة التوجيه نشطة. الوجهات من Aster إلى Aster لا تحتاج إلى تحقق.",
     forwarding_verification_resent:
       "تمت إعادة إرسال بريد التحقق إلى {{ address }}",
     forwarding_confirmed_success:
@@ -7368,6 +7366,8 @@ export const ar = {
     oauth_reason_email_not_found:
       "تعذّر جلب عنوان بريدك من المزوّد. حاول مرة أخرى، وإن استمر الفشل فاستخدم خيار IMAP اليدوي.",
     oauth_reason_session_expired: "انتهت جلسة تسجيل الدخول. حاول مرة أخرى.",
+    oauth_reason_wrong_account:
+      "بدأ الاتصال من حساب Aster Mail مختلف. سجّل الدخول بذلك الحساب وحاول مرة أخرى.",
     oauth_reason_unknown:
       "حدث خطأ غير متوقع. حاول مجددًا. لم نتمكن من تحديد السبب.",
     oauth_setting_up_folders: "جارٍ إعداد المجلدات...",
@@ -9200,6 +9200,15 @@ export const ar = {
     reset_consent_email_mismatch:
       "عنوان البريد الإلكتروني لا يطابق هذا الحساب.",
     reset_consent_continue: "إعادة تعيين كلمة المرور على أي حال",
+    reset_second_factor_title: "أكّد أنك أنت",
+    reset_second_factor_description:
+      "يستخدم هذا الحساب المصادقة الثنائية. تحقّق من عامل ثانٍ قبل إعادة تعيين كلمة المرور.",
+    reset_second_factor_backup_description:
+      "أدخل أحد رموز النسخ الاحتياطي للمتابعة.",
+    reset_second_factor_key_description:
+      "استخدم مفتاح الأمان أو مفتاح المرور المسجّل في هذا الحساب للمتابعة.",
+    reset_second_factor_use_key: "استخدام مفتاح أمان بدلاً من ذلك",
+    reset_second_factor_use_key_button: "المتابعة باستخدام مفتاح الأمان",
     no_ads_no_tracking: "بدون إعلانات، بدون تتبع",
     use_8_characters: "استخدم 8 أحرف على الأقل",
     try_12_characters: "جرب 12 حرفًا أو أكثر لأمان أفضل",

@@ -5554,8 +5554,6 @@ export const fr = {
       "En attente de confirmation de {{ addresses }}. Aucun message n'y est encore transféré.",
     forwarding_verification_sent:
       "E-mail de vérification envoyé à {{ address }}. Le transfert démarrera après confirmation.",
-    forwarding_internal_active:
-      "Le transfert est actif. Les destinations Aster vers Aster ne nécessitent aucune vérification.",
     forwarding_verification_resent:
       "E-mail de vérification renvoyé à {{ address }}",
     forwarding_confirmed_success:
@@ -7693,6 +7691,8 @@ export const fr = {
       "La connexion n'a pas abouti. Réessayez. Vos autres comptes sont inchangés.",
     oauth_reason_unknown:
       "Un problème inattendu s'est produit. Réessayez. Nous n'avons pas pu en déterminer la cause.",
+    oauth_reason_wrong_account:
+      "La connexion a été lancée depuis un autre compte Aster Mail. Connectez-vous avec ce compte et réessayez.",
     oauth_setting_up_folders: "Configuration des dossiers...",
     oldest_first: "Plus anciens en premier",
     or_pay_with_card: "Ou payer par carte",
@@ -9472,6 +9472,15 @@ export const fr = {
     reset_consent_email_mismatch:
       "L'adresse de courriel ne correspond pas à ce compte.",
     reset_consent_continue: "Réinitialiser le mot de passe malgré tout",
+    reset_second_factor_title: "Confirmez que c'est bien vous",
+    reset_second_factor_description:
+      "Ce compte utilise l'authentification à deux facteurs. Vérifiez un second facteur avant de réinitialiser le mot de passe.",
+    reset_second_factor_backup_description:
+      "Saisissez l'un de vos codes de secours pour continuer.",
+    reset_second_factor_key_description:
+      "Utilisez la clé de sécurité ou la clé d'accès enregistrée sur ce compte pour continuer.",
+    reset_second_factor_use_key: "Utiliser plutôt une clé de sécurité",
+    reset_second_factor_use_key_button: "Continuer avec la clé de sécurité",
     no_ads_no_tracking: "Pas de publicité, pas de suivi",
     use_8_characters: "Utilisez au moins 8 caractères",
     try_12_characters: "Essayez 12+ caractères pour une meilleure sécurité",

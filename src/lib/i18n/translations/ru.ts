@@ -5588,8 +5588,6 @@ export const ru = {
       "Ожидается подтверждение от {{ addresses }}. Пересылка туда пока не выполняется.",
     forwarding_verification_sent:
       "Письмо для подтверждения отправлено на {{ address }}. Пересылка начнётся после подтверждения.",
-    forwarding_internal_active:
-      "Пересылка активна. Адреса Aster на Aster не требуют подтверждения.",
     forwarding_verification_resent:
       "Письмо для подтверждения повторно отправлено на {{ address }}",
     forwarding_confirmed_success:
@@ -7680,6 +7678,8 @@ export const ru = {
     oauth_reason_email_not_found:
       "Не удалось получить ваш адрес у провайдера. Повторите попытку; если ошибка сохраняется, используйте ручную настройку IMAP.",
     oauth_reason_session_expired: "Сессия входа истекла. Повторите попытку.",
+    oauth_reason_wrong_account:
+      "Подключение было начато из другой учётной записи Aster Mail. Войдите в эту учётную запись и повторите попытку.",
     oauth_reason_encryption_error:
       "Не удалось защитить подключение. Попробуйте снова. Если проблема сохраняется, напишите на hello@astermail.org.",
     oauth_reason_expired_state:
@@ -9520,6 +9520,15 @@ export const ru = {
     reset_consent_email_mismatch:
       "Адрес электронной почты не совпадает с этим аккаунтом.",
     reset_consent_continue: "Всё равно сбросить пароль",
+    reset_second_factor_title: "Подтвердите, что это вы",
+    reset_second_factor_description:
+      "В этом аккаунте включена двухфакторная аутентификация. Подтвердите второй фактор, прежде чем сбрасывать пароль.",
+    reset_second_factor_backup_description:
+      "Введите один из резервных кодов, чтобы продолжить.",
+    reset_second_factor_key_description:
+      "Используйте ключ безопасности или ключ доступа, зарегистрированный в этом аккаунте, чтобы продолжить.",
+    reset_second_factor_use_key: "Использовать ключ безопасности",
+    reset_second_factor_use_key_button: "Продолжить с ключом безопасности",
     no_ads_no_tracking: "Без рекламы, без отслеживания",
     use_8_characters: "Используйте не менее 8 символов",
     try_12_characters: "Попробуйте 12+ символов для лучшей безопасности",

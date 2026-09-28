@@ -4952,7 +4952,6 @@ export const zh_CN = {
       "正在等待 {{ addresses }} 确认，暂不会转发到该地址。",
     forwarding_verification_sent:
       "验证邮件已发送至 {{ address }}，确认后即开始转发。",
-    forwarding_internal_active: "转发已启用。Aster 到 Aster 的地址无需验证。",
     forwarding_verification_resent: "验证邮件已重新发送至 {{ address }}",
     forwarding_confirmed_success: "地址已验证，转发现已启用。",
     forwarding_confirmed_failed:
@@ -6616,6 +6615,8 @@ export const zh_CN = {
       "无法保护此连接。请重试。如果问题仍然存在，请联系 hello@astermail.org。",
     oauth_reason_internal_error: "服务器遇到了问题。稍后再试一次通常即可解决。",
     oauth_reason_unknown: "出现了意外问题。请重试。我们无法确定具体原因。",
+    oauth_reason_wrong_account:
+      "此连接是从另一个 Aster Mail 账户发起的。请使用该账户登录后重试。",
     connect_modal_title: "连接 {{provider}}",
     connect_modal_description:
       "登录 {{ provider }} 以将邮件导入 Aster。在我们的服务器存储任何内容之前，您的邮件会先在此设备上加密。",
@@ -8392,6 +8393,12 @@ export const zh_CN = {
     reset_consent_type_email: "输入您完整的邮箱地址以确认",
     reset_consent_email_mismatch: "该邮箱地址与此账户不匹配。",
     reset_consent_continue: "仍然重置密码",
+    reset_second_factor_title: "确认是你本人",
+    reset_second_factor_description: "此账户使用双重验证。请先验证第二重验证方式，再重置密码。",
+    reset_second_factor_backup_description: "输入你的任一备用码以继续。",
+    reset_second_factor_key_description: "使用此账户上注册的安全密钥或通行密钥以继续。",
+    reset_second_factor_use_key: "改用安全密钥",
+    reset_second_factor_use_key_button: "使用安全密钥继续",
     no_ads_no_tracking: "无广告、无跟踪",
     use_8_characters: "至少使用8个字符",
     try_12_characters: "建议12个以上字符以提高安全性",

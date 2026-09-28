@@ -48,7 +48,19 @@ import {
   array_to_base64,
 } from "@/services/crypto/key_manager_core";
 import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
-import { reset_password_with_token } from "@/services/api/recovery";
+import {
+  get_reset_hardware_key_options,
+  get_reset_second_factor_status,
+  reset_password_with_token,
+  ResetSecondFactorStatus,
+  verify_reset_hardware_key,
+  verify_reset_second_factor,
+} from "@/services/api/recovery";
+import { classify_totp_error } from "@/services/api/totp";
+import {
+  is_webauthn_supported,
+  perform_webauthn_assertion_with_options,
+} from "@/services/api/webauthn";
 import {
   generate_recovery_pdf,
   download_recovery_text,
@@ -71,7 +83,38 @@ import { use_i18n } from "@/lib/i18n/context";
 import { user_facing_error } from "@/utils/user_facing_error";
 
 type ResetStep =
-  "consent" | "password" | "processing" | "new_codes" | "success" | "invalid";
+  | "consent"
+  | "second_factor"
+  | "password"
+  | "processing"
+  | "new_codes"
+  | "success"
+  | "invalid";
+
+type SecondFactorMode = "totp" | "backup_code" | "hardware_key";
+
+const TOTP_CODE_LENGTH = 6;
+const BACKUP_CODE_MAX_LENGTH = 14;
+const BACKUP_CODE_MIN_LENGTH = 8;
+
+function initial_second_factor_mode(
+  status: ResetSecondFactorStatus,
+): SecondFactorMode {
+  if (status.totp) return "totp";
+  if (status.hardware_key && is_webauthn_supported()) return "hardware_key";
+  if (status.backup_codes) return "backup_code";
+
+  return "hardware_key";
+}
+
+function second_factor_code_ready(mode: SecondFactorMode, code: string) {
+  if (mode === "totp") return /^\d{6}$/.test(code);
+  if (mode === "backup_code") {
+    return code.replace(/[-\s]/g, "").length >= BACKUP_CODE_MIN_LENGTH;
+  }
+
+  return true;
+}
 
 const page_variants = {
   initial: { opacity: 0, y: 12 },
@@ -253,6 +296,147 @@ export default function ResetPasswordPage() {
   const [is_key_visible, set_is_key_visible] = useState(false);
   const [copy_success, set_copy_success] = useState(false);
   const [codes_downloaded, set_codes_downloaded] = useState(false);
+  const [second_factor, set_second_factor] =
+    useState<ResetSecondFactorStatus | null>(null);
+  const [second_factor_mode, set_second_factor_mode] =
+    useState<SecondFactorMode>("totp");
+  const [second_factor_code, set_second_factor_code] = useState("");
+  const [second_factor_loading, set_second_factor_loading] = useState(false);
+
+  useEffect(() => {
+    if (!token) return;
+
+    let cancelled = false;
+
+    get_reset_second_factor_status(token).then((response) => {
+      if (cancelled) return;
+
+      if (response.code === "UNAUTHORIZED" || response.code === "FORBIDDEN") {
+        set_step("invalid");
+
+        return;
+      }
+
+      if (response.data) {
+        set_second_factor(response.data);
+        set_second_factor_mode(initial_second_factor_mode(response.data));
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  const enter_second_factor_step = () => {
+    set_error("");
+    set_second_factor_code("");
+    set_step("second_factor");
+  };
+
+  const finish_second_factor = () => {
+    set_second_factor((current) =>
+      current ? { ...current, required: false, verified: true } : current,
+    );
+    set_second_factor_code("");
+    set_error("");
+    set_step("password");
+  };
+
+  const switch_second_factor_mode = (mode: SecondFactorMode) => {
+    set_error("");
+    set_second_factor_code("");
+    set_second_factor_mode(mode);
+  };
+
+  const handle_verify_second_factor = async () => {
+    if (second_factor_loading) return;
+
+    const method = second_factor_mode === "totp" ? "totp" : "backup_code";
+
+    if (!second_factor_code_ready(second_factor_mode, second_factor_code)) {
+      return;
+    }
+
+    set_error("");
+    set_second_factor_loading(true);
+
+    const response = await verify_reset_second_factor(
+      token,
+      method,
+      second_factor_code.trim(),
+    );
+
+    set_second_factor_loading(false);
+
+    if (response.error || !response.data?.success) {
+      if (response.code === "UNAUTHORIZED" || response.code === "FORBIDDEN") {
+        set_step("invalid");
+
+        return;
+      }
+
+      const kind = classify_totp_error(response);
+
+      if (kind === "locked") {
+        set_error(t("auth.two_fa_temporarily_locked"));
+      } else if (kind === "replayed") {
+        set_error(t("auth.two_fa_code_already_used"));
+      } else if (kind === "rate_limited") {
+        set_error(t("auth.too_many_2fa_attempts"));
+      } else if (kind === "invalid_backup_code") {
+        set_error(t("auth.invalid_backup_code"));
+      } else if (kind === "invalid_code") {
+        set_error(t("settings.invalid_2fa_code"));
+      } else {
+        set_error(response.error || t("auth.recovery_failed"));
+      }
+
+      return;
+    }
+
+    finish_second_factor();
+  };
+
+  const handle_security_key = async () => {
+    if (second_factor_loading) return;
+
+    set_error("");
+    set_second_factor_loading(true);
+
+    try {
+      const options = await get_reset_hardware_key_options(token);
+
+      if (options.error || !options.data) {
+        if (options.code === "UNAUTHORIZED" || options.code === "FORBIDDEN") {
+          set_step("invalid");
+
+          return;
+        }
+        throw new Error(options.error || t("auth.recovery_failed"));
+      }
+
+      const assertion = await perform_webauthn_assertion_with_options(
+        options.data,
+      );
+      const response = await verify_reset_hardware_key(token, assertion);
+
+      if (response.error || !response.data?.success) {
+        if (response.code === "UNAUTHORIZED" || response.code === "FORBIDDEN") {
+          set_step("invalid");
+
+          return;
+        }
+        throw new Error(response.error || t("auth.recovery_failed"));
+      }
+
+      finish_second_factor();
+    } catch (err) {
+      set_error(user_facing_error(err, t("auth.recovery_failed")));
+    } finally {
+      set_second_factor_loading(false);
+    }
+  };
 
   const handle_consent_continue = () => {
     set_error("");
@@ -265,6 +449,12 @@ export default function ResetPasswordPage() {
 
     if (!matches) {
       set_error(t("auth.reset_consent_email_mismatch"));
+
+      return;
+    }
+
+    if (second_factor?.required) {
+      enter_second_factor_step();
 
       return;
     }
@@ -397,6 +587,23 @@ export default function ResetPasswordPage() {
           response.code === "NOT_FOUND"
         ) {
           set_step("invalid");
+
+          return;
+        }
+        if (response.server_code === "SECOND_FACTOR_REQUIRED") {
+          set_second_factor((current) =>
+            current
+              ? { ...current, required: true, verified: false }
+              : {
+                  required: true,
+                  verified: false,
+                  totp: true,
+                  backup_codes: true,
+                  hardware_key: is_webauthn_supported(),
+                },
+          );
+          enter_second_factor_step();
+          set_error(t("auth.reset_second_factor_description"));
 
           return;
         }
@@ -566,6 +773,161 @@ export default function ResetPasswordPage() {
             </Button>
           </motion.div>
         );
+
+      case "second_factor": {
+        const is_hardware_key = second_factor_mode === "hardware_key";
+        const code_ready = second_factor_code_ready(
+          second_factor_mode,
+          second_factor_code,
+        );
+        const can_use_key =
+          !!second_factor?.hardware_key && is_webauthn_supported();
+        const description = is_hardware_key
+          ? t("auth.reset_second_factor_key_description")
+          : second_factor_mode === "backup_code"
+            ? t("auth.reset_second_factor_backup_description")
+            : t("auth.enter_2fa_code");
+
+        return (
+          <motion.div
+            key="second_factor"
+            animate="animate"
+            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
+            exit="exit"
+            initial={reduce_motion ? false : "initial"}
+            transition={{
+              ...page_transition,
+              duration: reduce_motion ? 0 : page_transition.duration,
+            }}
+            variants={page_variants}
+          >
+            <Logo />
+
+            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
+              {t("auth.reset_second_factor_title")}
+            </h1>
+            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
+              {description}
+            </p>
+
+            <AnimatePresence>
+              {error && <Alert is_dark={is_dark} message={error} />}
+            </AnimatePresence>
+
+            {!is_hardware_key && (
+              <div className={`w-full ${error ? "mt-4" : "mt-6"}`}>
+                <Input
+                  autoComplete="one-time-code"
+                  className={
+                    second_factor_mode === "totp"
+                      ? "text-center text-2xl font-semibold tracking-[0.5em]"
+                      : "text-center font-mono tracking-widest uppercase"
+                  }
+                  disabled={second_factor_loading}
+                  inputMode={second_factor_mode === "totp" ? "numeric" : "text"}
+                  maxLength={
+                    second_factor_mode === "totp"
+                      ? TOTP_CODE_LENGTH
+                      : BACKUP_CODE_MAX_LENGTH
+                  }
+                  placeholder={
+                    second_factor_mode === "totp"
+                      ? "000000"
+                      : t("auth.backup_code_placeholder")
+                  }
+                  status={error ? "error" : "default"}
+                  type="text"
+                  value={second_factor_code}
+                  onChange={(e) =>
+                    set_second_factor_code(
+                      second_factor_mode === "totp"
+                        ? e.target.value.replace(/\D/g, "")
+                        : e.target.value,
+                    )
+                  }
+                  onKeyDown={(e) =>
+                    e.key === "Enter" &&
+                    code_ready &&
+                    handle_verify_second_factor()
+                  }
+                />
+              </div>
+            )}
+
+            <Button
+              className="w-full mt-6"
+              disabled={second_factor_loading || !code_ready}
+              size="xl"
+              variant="depth"
+              onClick={
+                is_hardware_key
+                  ? handle_security_key
+                  : handle_verify_second_factor
+              }
+            >
+              {second_factor_loading
+                ? t("common.verifying")
+                : is_hardware_key
+                  ? t("auth.reset_second_factor_use_key_button")
+                  : t("common.verify")}
+            </Button>
+
+            <div className="w-full mt-4 space-y-2">
+              {second_factor_mode === "totp" && second_factor?.backup_codes && (
+                <button
+                  className="w-full text-sm text-center transition-colors hover:opacity-80 text-txt-muted disabled:opacity-50"
+                  disabled={second_factor_loading}
+                  type="button"
+                  onClick={() => switch_second_factor_mode("backup_code")}
+                >
+                  {t("auth.use_backup_code_instead")}
+                </button>
+              )}
+              {second_factor_mode !== "totp" && second_factor?.totp && (
+                <button
+                  className="w-full text-sm text-center transition-colors hover:opacity-80 text-txt-muted disabled:opacity-50"
+                  disabled={second_factor_loading}
+                  type="button"
+                  onClick={() => switch_second_factor_mode("totp")}
+                >
+                  {t("auth.use_authenticator_instead")}
+                </button>
+              )}
+              {is_hardware_key &&
+                !second_factor?.totp &&
+                second_factor?.backup_codes && (
+                  <button
+                    className="w-full text-sm text-center transition-colors hover:opacity-80 text-txt-muted disabled:opacity-50"
+                    disabled={second_factor_loading}
+                    type="button"
+                    onClick={() => switch_second_factor_mode("backup_code")}
+                  >
+                    {t("auth.use_backup_code_instead")}
+                  </button>
+                )}
+              {!is_hardware_key && can_use_key && (
+                <button
+                  className="w-full text-sm text-center transition-colors hover:opacity-80 text-txt-muted disabled:opacity-50"
+                  disabled={second_factor_loading}
+                  type="button"
+                  onClick={() => switch_second_factor_mode("hardware_key")}
+                >
+                  {t("auth.reset_second_factor_use_key")}
+                </button>
+              )}
+            </div>
+
+            <Button
+              className="w-full mt-3"
+              size="xl"
+              variant="secondary"
+              onClick={() => navigate("/sign-in")}
+            >
+              {t("auth.back_to_sign_in")}
+            </Button>
+          </motion.div>
+        );
+      }
 
       case "password":
         return (

@@ -5385,8 +5385,6 @@ export const nl = {
       "Wachten op bevestiging van {{ addresses }}. Er wordt daar nog niets doorgestuurd.",
     forwarding_verification_sent:
       "Verificatiemail verzonden naar {{ address }}. Doorsturen begint na bevestiging.",
-    forwarding_internal_active:
-      "Doorsturen is actief. Bestemmingen van Aster naar Aster hoeven niet geverifieerd te worden.",
     forwarding_verification_resent:
       "Verificatiemail opnieuw verzonden naar {{ address }}",
     forwarding_confirmed_success:
@@ -7567,6 +7565,8 @@ export const nl = {
       "We konden je e-mailadres niet ophalen bij de provider. Probeer het opnieuw; blijft het misgaan, gebruik dan de handmatige IMAP-optie.",
     oauth_reason_session_expired:
       "De aanmeldsessie is verlopen. Probeer het opnieuw.",
+    oauth_reason_wrong_account:
+      "De verbinding is gestart vanuit een ander Aster Mail-account. Meld u aan met dat account en probeer het opnieuw.",
     oauth_reason_encryption_error:
       "We konden de verbinding niet beveiligen. Probeer het opnieuw. Als het probleem aanhoudt, neem dan contact op met hello@astermail.org.",
     oauth_reason_expired_state:
@@ -9332,6 +9332,16 @@ export const nl = {
     reset_consent_email_mismatch:
       "Het e-mailadres komt niet overeen met dit account.",
     reset_consent_continue: "Wachtwoord toch resetten",
+    reset_second_factor_title: "Bevestig dat jij het bent",
+    reset_second_factor_description:
+      "Dit account gebruikt tweestapsverificatie. Verifieer een tweede factor voordat je het wachtwoord opnieuw instelt.",
+    reset_second_factor_backup_description:
+      "Voer een van je back-upcodes in om door te gaan.",
+    reset_second_factor_key_description:
+      "Gebruik de beveiligingssleutel of passkey die voor dit account is geregistreerd om door te gaan.",
+    reset_second_factor_use_key:
+      "In plaats daarvan een beveiligingssleutel gebruiken",
+    reset_second_factor_use_key_button: "Doorgaan met beveiligingssleutel",
     no_ads_no_tracking: "Geen advertenties, geen tracking",
     use_8_characters: "Gebruik minimaal 8 tekens",
     try_12_characters: "Probeer 12+ tekens voor betere beveiliging",

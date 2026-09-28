@@ -6665,8 +6665,6 @@ export const hi = {
       "{{ addresses }} की पुष्टि का इंतज़ार है। मेल वहां अभी फ़ॉरवर्ड नहीं हो रही।",
     forwarding_verification_sent:
       "पुष्टि ईमेल {{ address }} पर भेज दी गई। पुष्टि होते ही फ़ॉरवर्डिंग शुरू हो जाएगी।",
-    forwarding_internal_active:
-      "फ़ॉरवर्डिंग चालू है। Aster से Aster गंतव्यों के लिए पुष्टि ज़रूरी नहीं है।",
     forwarding_verification_resent:
       "पुष्टि ईमेल {{ address }} पर फिर से भेज दी गई",
     forwarding_confirmed_success:
@@ -7013,6 +7011,8 @@ export const hi = {
       "हम प्रदाता से आपका ईमेल पता नहीं ला सके। फिर से कोशिश करें, और अगर यह बार-बार विफल हो तो इसके बजाय मैन्युअल IMAP विकल्प इस्तेमाल करें।",
     oauth_reason_session_expired:
       "साइन इन सत्र खत्म हो गया। फिर से कोशिश करें।",
+    oauth_reason_wrong_account:
+      "यह कनेक्शन किसी दूसरे Aster Mail खाते से शुरू किया गया था। उस खाते से साइन इन करें और फिर से कोशिश करें।",
     oauth_reason_unknown:
       "कुछ उम्मीद के मुताबिक काम नहीं किया। फिर से कोशिश करें। हम इसकी वजह का पता नहीं लगा सके।",
     oauth_import_loading: "{{ provider }} से जोड़ा जा रहा है...",
@@ -9237,6 +9237,15 @@ export const hi = {
     reset_consent_type_email: "पुष्टि के लिए अपना पूरा ईमेल पता टाइप करें",
     reset_consent_email_mismatch: "ईमेल पता इस खाते से मेल नहीं खाता।",
     reset_consent_continue: "फिर भी पासवर्ड रीसेट करें",
+    reset_second_factor_title: "पुष्टि करें कि यह आप ही हैं",
+    reset_second_factor_description:
+      "यह खाता दो-चरणीय प्रमाणीकरण का उपयोग करता है। पासवर्ड रीसेट करने से पहले दूसरे चरण की पुष्टि करें।",
+    reset_second_factor_backup_description:
+      "जारी रखने के लिए अपना कोई एक बैकअप कोड दर्ज करें।",
+    reset_second_factor_key_description:
+      "जारी रखने के लिए इस खाते में पंजीकृत सुरक्षा कुंजी या पासकी का उपयोग करें।",
+    reset_second_factor_use_key: "इसके बजाय सुरक्षा कुंजी का उपयोग करें",
+    reset_second_factor_use_key_button: "सुरक्षा कुंजी के साथ जारी रखें",
     no_ads_no_tracking: "कोई विज्ञापन नहीं, कोई ट्रैकिंग नहीं",
     use_8_characters: "कम से कम 8 वर्ण इस्तेमाल करें",
     try_12_characters: "बेहतर सुरक्षा के लिए 12 या ज़्यादा वर्ण आज़माएं",

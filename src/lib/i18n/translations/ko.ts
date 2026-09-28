@@ -5464,8 +5464,6 @@ export const ko = {
       "{{ addresses }}의 확인을 기다리는 중입니다. 아직 그곳으로 전달되지 않습니다.",
     forwarding_verification_sent:
       "확인 이메일을 {{ address }}(으)로 보냈습니다. 확인 후 전달이 시작됩니다.",
-    forwarding_internal_active:
-      "전달이 활성화되어 있습니다. Aster에서 Aster로 향하는 주소는 확인이 필요 없습니다.",
     forwarding_verification_resent:
       "확인 이메일을 {{ address }}(으)로 다시 보냈습니다",
     forwarding_confirmed_success:
@@ -7354,6 +7352,8 @@ export const ko = {
       "로그인 세션이 만료되었습니다. 다시 시도하세요.",
     oauth_reason_unknown:
       "예상대로 작동하지 않았습니다. 다시 시도하세요. 원인을 파악하지 못했습니다.",
+    oauth_reason_wrong_account:
+      "이 연결은 다른 Aster Mail 계정에서 시작되었습니다. 해당 계정으로 로그인한 후 다시 시도하세요.",
     oauth_setting_up_folders: "폴더 설정 중...",
     oauth_folders_ready: "폴더가 준비되었습니다",
     oauth_folders_error: "폴더 설정을 완료하지 못했습니다. 다시 시도하세요.",
@@ -9071,6 +9071,13 @@ export const ko = {
     reset_consent_type_email: "확인을 위해 전체 이메일 주소를 입력하세요",
     reset_consent_email_mismatch: "이메일 주소가 이 계정과 일치하지 않습니다.",
     reset_consent_continue: "그래도 비밀번호 재설정",
+    reset_second_factor_title: "본인 확인",
+    reset_second_factor_description:
+      "이 계정은 2단계 인증을 사용합니다. 비밀번호를 재설정하기 전에 두 번째 인증 수단을 확인하세요.",
+    reset_second_factor_backup_description: "계속하려면 백업 코드 중 하나를 입력하세요.",
+    reset_second_factor_key_description: "계속하려면 이 계정에 등록된 보안 키 또는 패스키를 사용하세요.",
+    reset_second_factor_use_key: "대신 보안 키 사용",
+    reset_second_factor_use_key_button: "보안 키로 계속",
     no_ads_no_tracking: "광고 없음, 추적 없음",
     use_8_characters: "최소 8자를 사용하세요",
     try_12_characters: "보안 강화를 위해 12자 이상을 사용해 보세요",

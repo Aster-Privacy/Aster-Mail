@@ -5415,8 +5415,6 @@ export const tr = {
       "{{ addresses }} adresinin onayı bekleniyor. Oraya henüz iletim yapılmıyor.",
     forwarding_verification_sent:
       "Doğrulama e-postası {{ address }} adresine gönderildi. İletim onaydan sonra başlar.",
-    forwarding_internal_active:
-      "İletim etkin. Aster'dan Aster'a hedefler doğrulama gerektirmez.",
     forwarding_verification_resent:
       "Doğrulama e-postası {{ address }} adresine yeniden gönderildi",
     forwarding_confirmed_success: "Hedef doğrulandı. İletim artık etkin.",
@@ -7469,6 +7467,8 @@ export const tr = {
     oauth_reason_email_not_found:
       "E-posta adresiniz sağlayıcıdan alınamadı. Tekrar deneyin; sorun sürerse elle IMAP seçeneğini kullanın.",
     oauth_reason_session_expired: "Oturum açma süresi doldu. Tekrar deneyin.",
+    oauth_reason_wrong_account:
+      "Bağlantı farklı bir Aster Mail hesabından başlatıldı. O hesapla oturum açıp tekrar deneyin.",
     oauth_reason_unknown:
       "Bir şey beklendiği gibi çalışmadı. Tekrar deneyin. Nedeni belirlenemedi.",
     oauth_setting_up_folders: "Klasörler ayarlanıyor...",
@@ -9259,6 +9259,15 @@ export const tr = {
       "Onaylamak için e-posta adresinizin tamamını yazın",
     reset_consent_email_mismatch: "E-posta adresi bu hesapla eşleşmiyor.",
     reset_consent_continue: "Yine de parolayı sıfırla",
+    reset_second_factor_title: "Sen olduğunu doğrula",
+    reset_second_factor_description:
+      "Bu hesap iki adımlı doğrulama kullanıyor. Parolayı sıfırlamadan önce ikinci bir adımı doğrula.",
+    reset_second_factor_backup_description:
+      "Devam etmek için yedek kodlarından birini gir.",
+    reset_second_factor_key_description:
+      "Devam etmek için bu hesapta kayıtlı güvenlik anahtarını veya geçiş anahtarını kullan.",
+    reset_second_factor_use_key: "Bunun yerine güvenlik anahtarı kullan",
+    reset_second_factor_use_key_button: "Güvenlik anahtarıyla devam et",
     no_ads_no_tracking: "Reklam yok, izleme yok",
     use_8_characters: "En az 8 karakter kullanın",
     try_12_characters: "Daha iyi güvenlik için 12+ karakter deneyin",

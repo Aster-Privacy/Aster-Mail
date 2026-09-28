@@ -5455,8 +5455,6 @@ export const ja = {
       "{{ addresses }} の確認を待っています。まだそこへは転送されません。",
     forwarding_verification_sent:
       "確認メールを {{ address }} に送信しました。確認後に転送が始まります。",
-    forwarding_internal_active:
-      "転送は有効です。Aster から Aster への宛先は確認が不要です。",
     forwarding_verification_resent:
       "確認メールを {{ address }} に再送信しました",
     forwarding_confirmed_success:
@@ -7418,6 +7416,8 @@ export const ja = {
       "プロバイダからメールアドレスを取得できませんでした。もう一度お試しください。解決しない場合は手動の IMAP 設定をご利用ください。",
     oauth_reason_session_expired:
       "サインインのセッションが期限切れになりました。もう一度お試しください。",
+    oauth_reason_wrong_account:
+      "この接続は別の Aster Mail アカウントから開始されました。そのアカウントでサインインして、もう一度お試しください。",
     oauth_reason_encryption_error:
       "接続を保護できませんでした。もう一度お試しください。問題が続く場合は、hello@astermail.org までご連絡ください。",
     oauth_reason_expired_state:
@@ -9247,6 +9247,14 @@ export const ja = {
     reset_consent_email_mismatch:
       "メールアドレスがこのアカウントと一致しません。",
     reset_consent_continue: "それでもパスワードをリセットする",
+    reset_second_factor_title: "本人確認",
+    reset_second_factor_description:
+      "このアカウントは 2 段階認証を使用しています。パスワードをリセットする前に、2 つ目の認証要素を確認してください。",
+    reset_second_factor_backup_description: "続行するには、バックアップコードのいずれかを入力してください。",
+    reset_second_factor_key_description:
+      "続行するには、このアカウントに登録されているセキュリティキーまたはパスキーを使用してください。",
+    reset_second_factor_use_key: "代わりにセキュリティキーを使用する",
+    reset_second_factor_use_key_button: "セキュリティキーで続行",
     no_ads_no_tracking: "広告なし、トラッキングなし",
     use_8_characters: "8文字以上を使用してください",
     try_12_characters: "より良いセキュリティのために12文字以上をお試しください",

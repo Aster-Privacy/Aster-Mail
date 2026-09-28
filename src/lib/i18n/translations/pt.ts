@@ -5546,8 +5546,6 @@ export const pt = {
       "A aguardar a confirmação de {{ addresses }}. Os e-mails ainda não são encaminhados para lá.",
     forwarding_verification_sent:
       "E-mail de verificação enviado para {{ address }}. O encaminhamento começa após a confirmação.",
-    forwarding_internal_active:
-      "O encaminhamento está ativo. Destinos de Aster para Aster não precisam de verificação.",
     forwarding_verification_resent:
       "E-mail de verificação reenviado para {{ address }}",
     forwarding_confirmed_success:
@@ -7614,6 +7612,8 @@ export const pt = {
       "Não conseguimos obter o seu endereço de e-mail do fornecedor. Tente de novo; se continuar a falhar, use a opção IMAP manual.",
     oauth_reason_session_expired:
       "O início de sessão expirou. Tente novamente.",
+    oauth_reason_wrong_account:
+      "A conexão foi iniciada a partir de outra conta do Aster Mail. Faça login com essa conta e tente de novo.",
     oauth_reason_encryption_error:
       "Não foi possível proteger a ligação. Tente novamente. Se o problema continuar, entre em contacto com hello@astermail.org.",
     oauth_reason_expired_state:
@@ -9460,6 +9460,15 @@ export const pt = {
     reset_consent_email_mismatch:
       "O endereço de e-mail não corresponde a esta conta.",
     reset_consent_continue: "Repor a palavra-passe mesmo assim",
+    reset_second_factor_title: "Confirme que é você",
+    reset_second_factor_description:
+      "Esta conta usa a autenticação de dois fatores. Verifique um segundo fator antes de redefinir a senha.",
+    reset_second_factor_backup_description:
+      "Digite um dos seus códigos de backup para continuar.",
+    reset_second_factor_key_description:
+      "Use a chave de segurança ou a chave de acesso registrada nesta conta para continuar.",
+    reset_second_factor_use_key: "Usar uma chave de segurança em vez disso",
+    reset_second_factor_use_key_button: "Continuar com a chave de segurança",
     no_ads_no_tracking: "Sem anúncios, sem rastreamento",
     use_8_characters: "Utilize pelo menos 8 caracteres",
     try_12_characters: "Experimente 12 ou mais caracteres para maior segurança",

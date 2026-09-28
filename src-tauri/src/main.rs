@@ -42,8 +42,6 @@ const APP_NAVIGATION_HOSTS: &[&str] = &[
     "tauri.localhost",
     "asset.localhost",
     "ipc.localhost",
-    "localhost",
-    "127.0.0.1",
     "challenges.cloudflare.com",
     "js.stripe.com",
     "hooks.stripe.com",
@@ -52,6 +50,8 @@ const APP_NAVIGATION_HOSTS: &[&str] = &[
     "r.stripe.com",
     "q.stripe.com",
 ];
+
+const DEV_NAVIGATION_HOSTS: &[&str] = &["localhost", "127.0.0.1"];
 
 const APP_NAVIGATION_SUFFIXES: &[&str] = &[
     ".astermail.org",
@@ -70,6 +70,10 @@ const INTERNAL_SCHEMES: &[&str] = &["about", "blob", "tauri", "asset", "ipc"];
 const FORWARDED_SCHEMES: &[&str] = &["http", "https", "mailto", "aster"];
 
 fn is_app_navigation(url: &Url) -> bool {
+    is_app_navigation_for_build(url, cfg!(debug_assertions))
+}
+
+fn is_app_navigation_for_build(url: &Url, allow_dev_hosts: bool) -> bool {
     if INTERNAL_SCHEMES.contains(&url.scheme()) {
         return true;
     }
@@ -84,6 +88,7 @@ fn is_app_navigation(url: &Url) -> bool {
     let host = host.to_ascii_lowercase();
 
     APP_NAVIGATION_HOSTS.iter().any(|entry| host == *entry)
+        || (allow_dev_hosts && DEV_NAVIGATION_HOSTS.iter().any(|entry| host == *entry))
         || APP_ONION_HOSTS.iter().any(|entry| host == *entry)
         || APP_NAVIGATION_SUFFIXES
             .iter()
@@ -420,6 +425,7 @@ fn main() {
                 let _ = window.set_focus();
             }
         }))
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_notification::init())
@@ -460,6 +466,15 @@ fn main() {
             device::crypto::crypto_hmac_sign,
         ])
         .setup(|app| {
+            #[cfg(any(windows, target_os = "linux"))]
+            {
+                use tauri_plugin_deep_link::DeepLinkExt;
+
+                if let Err(error) = app.deep_link().register_all() {
+                    tracing::warn!(%error, "deep link scheme registration failed");
+                }
+            }
+
             let window_config = app
                 .config()
                 .app
@@ -697,5 +712,31 @@ mod navigation_tests {
         assert!(!allowed("http://exampleexampleexampleexampleexampleexampleexampleexam.onion/"));
         assert!(!allowed("https://astermail.org.example.com/"));
         assert!(!allowed("https://example.com/"));
+    }
+
+    #[test]
+    fn loopback_hosts_are_only_allowed_in_debug_builds() {
+        for url in [
+            "http://127.0.0.1:1420/",
+            "http://localhost:5173/bridge.html",
+        ] {
+            let parsed = Url::parse(url).expect("valid url");
+            assert!(is_app_navigation_for_build(&parsed, true), "{url}");
+            assert!(!is_app_navigation_for_build(&parsed, false), "{url}");
+        }
+    }
+
+    #[test]
+    fn release_builds_keep_app_origins() {
+        for url in [
+            "tauri://localhost/inbox",
+            "http://tauri.localhost/inbox",
+            "http://ipc.localhost/plugin",
+            "https://app.astermail.org/",
+            "https://js.stripe.com/v3",
+        ] {
+            let parsed = Url::parse(url).expect("valid url");
+            assert!(is_app_navigation_for_build(&parsed, false), "{url}");
+        }
     }
 }

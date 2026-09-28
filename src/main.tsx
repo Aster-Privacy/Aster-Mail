@@ -49,6 +49,7 @@ import { install_global_error_reporting } from "@/services/error_reporter";
 import { connection_store } from "@/services/routing/connection_store";
 import { apply_desktop_content_protection } from "@/native/desktop_content_protection";
 import { start_desktop_link_bridge } from "@/native/desktop_link_bridge";
+import { start_desktop_oauth_bridge } from "@/native/desktop_oauth_bridge";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_mobile_experience } from "@/hooks/use_mobile_experience";
 import {
@@ -129,6 +130,7 @@ if (is_tauri_runtime) {
     .catch((caught) => ignore_error("main", caught));
   void apply_desktop_content_protection(is_any_lockdown_active());
   void start_desktop_link_bridge();
+  void start_desktop_oauth_bridge();
   void import("@/native/tauri_tray")
     .then(({ sync_close_to_tray }) => sync_close_to_tray())
     .catch((caught) => ignore_error("main", caught));

@@ -5606,7 +5606,6 @@ export interface SettingsTranslations {
   resend_verification_email: string;
   forwarding_awaiting_verification: string;
   forwarding_verification_sent: string;
-  forwarding_internal_active: string;
   forwarding_verification_resent: string;
   forwarding_confirmed_success: string;
   forwarding_confirmed_failed: string;
@@ -5913,6 +5912,7 @@ export interface SettingsTranslations {
   oauth_reason_account_creation_failed: string;
   oauth_reason_email_not_found: string;
   oauth_reason_session_expired: string;
+  oauth_reason_wrong_account: string;
   oauth_reason_unknown: string;
   oauth_import_loading: string;
   oauth_setting_up_folders: string;
@@ -7951,6 +7951,12 @@ export interface AuthTranslations {
   reset_consent_type_email: string;
   reset_consent_email_mismatch: string;
   reset_consent_continue: string;
+  reset_second_factor_title: string;
+  reset_second_factor_description: string;
+  reset_second_factor_backup_description: string;
+  reset_second_factor_key_description: string;
+  reset_second_factor_use_key: string;
+  reset_second_factor_use_key_button: string;
   your_accounts: string;
   greeting: string;
   greeting_morning: string;

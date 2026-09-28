@@ -5498,8 +5498,6 @@ export const es = {
       "Esperando la confirmación de {{ addresses }}. Todavía no se reenvía allí.",
     forwarding_verification_sent:
       "Correo de verificación enviado a {{ address }}. El reenvío empezará cuando se confirme.",
-    forwarding_internal_active:
-      "El reenvío está activo. Los destinos de Aster a Aster no necesitan verificación.",
     forwarding_verification_resent:
       "Correo de verificación reenviado a {{ address }}",
     forwarding_confirmed_success:
@@ -7618,6 +7616,8 @@ export const es = {
       "La conexión no terminó. Inténtalo de nuevo. Tus otras cuentas no han cambiado.",
     oauth_reason_unknown:
       "Algo no funcionó como se esperaba. Inténtalo de nuevo. No pudimos determinar la causa.",
+    oauth_reason_wrong_account:
+      "La conexión se inició desde otra cuenta de Aster Mail. Inicia sesión con esa cuenta e inténtalo de nuevo.",
     oauth_setting_up_folders: "Configurando carpetas...",
     oldest_first: "Más antiguos primero",
     or_pay_with_card: "O pagar con tarjeta",
@@ -9360,6 +9360,15 @@ export const es = {
     reset_consent_email_mismatch:
       "La dirección de correo no coincide con esta cuenta.",
     reset_consent_continue: "Restablecer la contraseña de todos modos",
+    reset_second_factor_title: "Confirma que eres tú",
+    reset_second_factor_description:
+      "Esta cuenta usa la autenticación de dos factores. Verifica un segundo factor antes de restablecer la contraseña.",
+    reset_second_factor_backup_description:
+      "Introduce uno de tus códigos de respaldo para continuar.",
+    reset_second_factor_key_description:
+      "Usa la llave de seguridad o la clave de acceso registrada en esta cuenta para continuar.",
+    reset_second_factor_use_key: "Usar una llave de seguridad en su lugar",
+    reset_second_factor_use_key_button: "Continuar con la llave de seguridad",
     no_ads_no_tracking: "Sin anuncios, sin rastreo",
     use_8_characters: "Usa al menos 8 caracteres",
     try_12_characters: "Prueba con más de 12 caracteres para mayor seguridad",

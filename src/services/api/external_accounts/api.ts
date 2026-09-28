@@ -910,9 +910,14 @@ export async function test_smtp_connection(credentials: {
   }
 }
 
+export interface StartOAuthOptions {
+  return_to?: string;
+}
+
 export async function start_oauth_authorize(
   provider: "google" | "microsoft" | "yahoo",
   tag_token?: Uint8Array,
+  options?: StartOAuthOptions,
 ): Promise<ApiResponse<{ authorize_url: string }>> {
   try {
     const provider_labels: Record<string, string> = {
@@ -946,6 +951,10 @@ export async function start_oauth_authorize(
       body.tag_token = array_to_base64(tag_token);
     }
 
+    if (options?.return_to) {
+      body.return_to = options.return_to;
+    }
+
     const response = await api_client.post<{ authorize_url: string }>(
       "/mail/v1/external_accounts/oauth/authorize",
       body,
@@ -961,6 +970,28 @@ export async function start_oauth_authorize(
   } catch (err) {
     return {
       error: user_facing_error(err, get_active_translations().errors.generic),
+    };
+  }
+}
+
+export interface OAuthCompleteResult {
+  success: boolean;
+  provider?: string;
+  reason?: string;
+}
+
+export async function complete_oauth_authorize(
+  state: string,
+  code: string,
+): Promise<ApiResponse<OAuthCompleteResult>> {
+  try {
+    return await api_client.post<OAuthCompleteResult>(
+      "/mail/v1/external_accounts/oauth/complete",
+      { state, code },
+    );
+  } catch (err) {
+    return {
+      error: user_facing_error(err, "Failed to finish OAuth"),
     };
   }
 }

@@ -6583,8 +6583,6 @@ export const it = {
       "In attesa della conferma di {{ addresses }}. La posta non viene ancora inoltrata lì.",
     forwarding_verification_sent:
       "Email di verifica inviata a {{ address }}. L'inoltro inizierà dopo la conferma.",
-    forwarding_internal_active:
-      "L'inoltro è attivo. Le destinazioni da Aster a Aster non richiedono verifica.",
     forwarding_verification_resent:
       "Email di verifica inviata di nuovo a {{ address }}",
     forwarding_confirmed_success:
@@ -7588,6 +7586,8 @@ export const it = {
     oauth_reason_email_not_found:
       "Non siamo riusciti a recuperare il tuo indirizzo e-mail dal provider. Riprova; se continua a non funzionare, usa l’opzione IMAP manuale.",
     oauth_reason_session_expired: "La sessione di accesso è scaduta. Riprova.",
+    oauth_reason_wrong_account:
+      "La connessione è stata avviata da un altro account Aster Mail. Accedi con quell'account e riprova.",
     oauth_reason_unknown:
       "Qualcosa non ha funzionato come previsto. Riprova. Non è stato possibile individuare la causa.",
     oauth_setting_up_folders: "Configurazione cartelle...",
@@ -9408,6 +9408,15 @@ export const it = {
     reset_consent_email_mismatch:
       "L'indirizzo email non corrisponde a questo account.",
     reset_consent_continue: "Reimposta comunque la password",
+    reset_second_factor_title: "Conferma la tua identità",
+    reset_second_factor_description:
+      "Questo account usa l'autenticazione a due fattori. Verifica un secondo fattore prima di reimpostare la password.",
+    reset_second_factor_backup_description:
+      "Inserisci uno dei tuoi codici di backup per continuare.",
+    reset_second_factor_key_description:
+      "Usa la chiave di sicurezza o la passkey registrata su questo account per continuare.",
+    reset_second_factor_use_key: "Usa invece una chiave di sicurezza",
+    reset_second_factor_use_key_button: "Continua con la chiave di sicurezza",
     no_ads_no_tracking: "Nessuna pubblicità, nessun tracciamento",
     use_8_characters: "Usa almeno 8 caratteri",
     try_12_characters: "Prova con 12+ caratteri per una maggiore sicurezza",

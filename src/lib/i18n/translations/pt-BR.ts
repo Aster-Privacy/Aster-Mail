@@ -5384,8 +5384,6 @@ export const pt_br = {
       "Aguardando a confirmação de {{ addresses }}. Os e-mails ainda não são encaminhados para lá.",
     forwarding_verification_sent:
       "E-mail de verificação enviado para {{ address }}. O encaminhamento começa após a confirmação.",
-    forwarding_internal_active:
-      "O encaminhamento está ativo. Destinos de Aster para Aster não precisam de verificação.",
     forwarding_verification_resent:
       "E-mail de verificação reenviado para {{ address }}",
     forwarding_confirmed_success:

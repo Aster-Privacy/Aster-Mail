@@ -5618,8 +5618,6 @@ export const pl = {
       "Oczekiwanie na potwierdzenie od {{ addresses }}. Poczta nie jest jeszcze tam przekazywana.",
     forwarding_verification_sent:
       "E-mail weryfikacyjny wysłany na {{ address }}. Przekazywanie ruszy po potwierdzeniu.",
-    forwarding_internal_active:
-      "Przekazywanie jest aktywne. Adresy Aster do Aster nie wymagają weryfikacji.",
     forwarding_verification_resent:
       "E-mail weryfikacyjny wysłany ponownie na {{ address }}",
     forwarding_confirmed_success:
@@ -7670,6 +7668,8 @@ export const pl = {
     oauth_reason_email_not_found:
       "Nie udało się pobrać Twojego adresu e-mail od dostawcy. Spróbuj ponownie, a jeśli błąd się powtarza, użyj ręcznej opcji IMAP.",
     oauth_reason_session_expired: "Sesja logowania wygasła. Spróbuj ponownie.",
+    oauth_reason_wrong_account:
+      "Połączenie zostało rozpoczęte z innego konta Aster Mail. Zaloguj się na to konto i spróbuj ponownie.",
     oauth_reason_unknown:
       "Coś nie zadziałało zgodnie z oczekiwaniami. Spróbuj ponownie. Nie udało się ustalić przyczyny.",
     oauth_setting_up_folders: "Konfigurowanie folderów...",
@@ -9542,6 +9542,15 @@ export const pl = {
     reset_consent_type_email: "Wpisz swój pełny adres e-mail, aby potwierdzić",
     reset_consent_email_mismatch: "Adres e-mail nie pasuje do tego konta.",
     reset_consent_continue: "Resetuj hasło mimo to",
+    reset_second_factor_title: "Potwierdź, że to Ty",
+    reset_second_factor_description:
+      "To konto używa uwierzytelniania dwuskładnikowego. Zweryfikuj drugi składnik przed zresetowaniem hasła.",
+    reset_second_factor_backup_description:
+      "Wpisz jeden ze swoich kodów zapasowych, aby kontynuować.",
+    reset_second_factor_key_description:
+      "Użyj klucza bezpieczeństwa lub klucza dostępu zarejestrowanego na tym koncie, aby kontynuować.",
+    reset_second_factor_use_key: "Użyj zamiast tego klucza bezpieczeństwa",
+    reset_second_factor_use_key_button: "Kontynuuj z kluczem bezpieczeństwa",
     no_ads_no_tracking: "Bez reklam, bez śledzenia",
     use_8_characters: "Użyj co najmniej 8 znaków",
     try_12_characters: "Wypróbuj 12+ znaków dla lepszego bezpieczeństwa",

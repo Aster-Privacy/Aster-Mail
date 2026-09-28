@@ -6594,8 +6594,6 @@ export const en: Translations = {
       "Waiting for {{ addresses }} to confirm. Mail is not forwarded there yet.",
     forwarding_verification_sent:
       "Verification email sent to {{ address }}. Forwarding starts once it is confirmed.",
-    forwarding_internal_active:
-      "Forwarding is active. Aster to Aster destinations do not need verification.",
     forwarding_verification_resent:
       "Verification email resent to {{ address }}",
     forwarding_confirmed_success:
@@ -6942,6 +6940,8 @@ export const en: Translations = {
       "We could not retrieve your email address from the provider. Try again - if it keeps failing, use the manual IMAP option instead.",
     oauth_reason_session_expired:
       "The sign-in session expired. Please try again.",
+    oauth_reason_wrong_account:
+      "The connection was started from a different Aster Mail account. Sign in with that account and try again.",
     oauth_reason_unknown:
       "Something did not work as expected. Try again. We could not pinpoint the cause.",
     oauth_import_loading: "Connecting to {{ provider }}...",
@@ -9195,6 +9195,15 @@ export const en: Translations = {
     reset_consent_email_mismatch:
       "The email address does not match this account.",
     reset_consent_continue: "Reset password anyway",
+    reset_second_factor_title: "Confirm it's you",
+    reset_second_factor_description:
+      "This account uses two-factor authentication. Verify a second factor before you reset the password.",
+    reset_second_factor_backup_description:
+      "Enter one of your backup codes to continue.",
+    reset_second_factor_key_description:
+      "Use the security key or passkey registered on this account to continue.",
+    reset_second_factor_use_key: "Use a security key instead",
+    reset_second_factor_use_key_button: "Continue with security key",
     no_ads_no_tracking: "No ads, no tracking",
     use_8_characters: "Use at least 8 characters",
     try_12_characters: "Try 12+ characters for better security",
