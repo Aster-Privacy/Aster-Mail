@@ -9077,6 +9077,11 @@ export const it = {
       "Ogni codice di backup può essere usato una sola volta",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Usa l'app di autenticazione invece",
+    recovery_code_in_backup_field: "Questo è un codice di recupero, non un codice di backup. Per usarlo, reimposta la password con il tuo codice di recupero.",
+    reset_with_recovery_code: "Reimposta con il codice di recupero",
+    no_backup_codes_title: "Accedi senza passkey",
+    no_backup_codes_description: "I codici di backup vengono forniti con un'app di autenticazione, e questo account non ne usa una. Per accedere senza passkey, reimposta la password con uno dei tuoi codici di recupero. Email, contatti e impostazioni restano invariati, e dopo potrai aggiungere una nuova passkey.",
+    try_passkey_again: "Riprova con la passkey",
     two_factor_auth_title: "Autenticazione a due fattori",
     enter_2fa_code:
       "Inserisci il codice a 6 cifre dalla tua app di autenticazione",

@@ -7968,6 +7968,11 @@ export interface AuthTranslations {
   backup_code_single_use: string;
   backup_code_placeholder: string;
   use_authenticator_instead: string;
+  recovery_code_in_backup_field: string;
+  reset_with_recovery_code: string;
+  no_backup_codes_title: string;
+  no_backup_codes_description: string;
+  try_passkey_again: string;
   two_factor_auth_title: string;
   enter_2fa_code: string;
   use_backup_code_instead: string;

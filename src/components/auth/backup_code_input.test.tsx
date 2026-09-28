@@ -82,6 +82,7 @@ describe("BackupCodeInput", () => {
     on_success: vi.fn(),
     on_use_authenticator: vi.fn(),
     on_cancel: vi.fn(),
+    on_reset_with_recovery_code: vi.fn(),
   });
 
   const text_input = () => container.querySelector("input") as HTMLInputElement;
@@ -138,6 +139,53 @@ describe("BackupCodeInput", () => {
 
     await type_code("ABCD-EFGH-JKMN");
     expect(submit_button().disabled).toBe(false);
+  });
+
+  it("sends a pasted ASTER recovery code to the reset flow instead of verifying it", async () => {
+    const p = await render();
+
+    await type_code("ASTER-7KQ2-M9XD-4HPT-WN3C");
+
+    expect(text_input().value).toBe("ASTER-7KQ2-M9XD-4HPT-WN3C");
+    expect(container.textContent).toContain(
+      "auth.recovery_code_in_backup_field",
+    );
+
+    const reset_button = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("auth.reset_with_recovery_code"),
+    ) as HTMLButtonElement;
+
+    await act(async () => {
+      reset_button.click();
+    });
+
+    expect(p.on_reset_with_recovery_code).toHaveBeenCalledTimes(1);
+    expect(mocked_verify).not.toHaveBeenCalled();
+  });
+
+  it("offers recovery code reset and passkey retry when the account has no backup codes", async () => {
+    const p = await render({ has_backup_codes: false });
+
+    expect(text_input()).toBeNull();
+    expect(container.textContent).toContain("auth.no_backup_codes_title");
+    expect(container.textContent).not.toContain(
+      "auth.use_authenticator_instead",
+    );
+
+    const find_button = (key: string) =>
+      Array.from(container.querySelectorAll("button")).find((b) =>
+        b.textContent?.includes(key),
+      ) as HTMLButtonElement;
+
+    await act(async () => {
+      find_button("auth.reset_with_recovery_code").click();
+    });
+    await act(async () => {
+      find_button("auth.try_passkey_again").click();
+    });
+
+    expect(p.on_reset_with_recovery_code).toHaveBeenCalledTimes(1);
+    expect(p.on_use_authenticator).toHaveBeenCalledTimes(1);
   });
 
   it("accepts an 8-character legacy code and dash-formats it", async () => {

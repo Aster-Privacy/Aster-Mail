@@ -9034,6 +9034,11 @@ export const es = {
       "Cada código de respaldo solo se puede usar una vez",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Usar aplicación de autenticación en su lugar",
+    recovery_code_in_backup_field: "Este es un código de recuperación, no un código de respaldo. Para usarlo, restablece tu contraseña con tu código de recuperación.",
+    reset_with_recovery_code: "Restablecer con código de recuperación",
+    no_backup_codes_title: "Iniciar sesión sin tu llave de acceso",
+    no_backup_codes_description: "Los códigos de respaldo se generan con una aplicación de autenticación, y esta cuenta no usa ninguna. Para iniciar sesión sin tu llave de acceso, restablece tu contraseña con uno de tus códigos de recuperación. Tus correos, contactos y ajustes se conservan, y después puedes añadir una nueva llave de acceso.",
+    try_passkey_again: "Volver a intentar con la llave de acceso",
     two_factor_auth_title: "Autenticación de dos factores",
     enter_2fa_code:
       "Ingresa el código de 6 dígitos de tu aplicación de autenticación",

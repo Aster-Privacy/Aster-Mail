@@ -9066,6 +9066,11 @@ export const pt_br = {
     backup_code_single_use: "Cada código de backup só pode ser usado uma vez",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Usar aplicativo autenticador",
+    recovery_code_in_backup_field: "Este é um código de recuperação, não um código de backup. Para usá-lo, redefina sua senha com seu código de recuperação.",
+    reset_with_recovery_code: "Redefinir com código de recuperação",
+    no_backup_codes_title: "Entrar sem sua chave de acesso",
+    no_backup_codes_description: "Os códigos de backup vêm com um aplicativo autenticador, e esta conta não usa um. Para entrar sem sua chave de acesso, redefina sua senha com um dos seus códigos de recuperação. Seus e-mails, contatos e configurações continuam como estão, e depois você pode adicionar uma nova chave de acesso.",
+    try_passkey_again: "Tentar a chave de acesso novamente",
     two_factor_auth_title: "Autenticação de dois fatores",
     enter_2fa_code:
       "Digite o código de 6 dígitos do seu aplicativo autenticador",

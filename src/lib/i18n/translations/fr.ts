@@ -9139,6 +9139,11 @@ export const fr = {
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead:
       "Utiliser l'application d'authentification à la place",
+    recovery_code_in_backup_field: "Il s'agit d'un code de récupération, pas d'un code de secours. Pour l'utiliser, réinitialisez votre mot de passe avec votre code de récupération.",
+    reset_with_recovery_code: "Réinitialiser avec un code de récupération",
+    no_backup_codes_title: "Se connecter sans votre clé d'accès",
+    no_backup_codes_description: "Les codes de secours sont fournis avec une application d'authentification, et ce compte n'en utilise pas. Pour vous connecter sans votre clé d'accès, réinitialisez votre mot de passe avec l'un de vos codes de récupération. Vos e-mails, contacts et réglages sont conservés, et vous pourrez ajouter une nouvelle clé d'accès ensuite.",
+    try_passkey_again: "Réessayer avec la clé d'accès",
     two_factor_auth_title: "Authentification à deux facteurs",
     enter_2fa_code:
       "Saisissez le code à 6 chiffres de votre application d'authentification",

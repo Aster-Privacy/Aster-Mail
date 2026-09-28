@@ -188,7 +188,9 @@ export default function MobileSignInPage() {
               </div>
             ) : active_2fa_method === "backup" ? (
               <BackupCodeInput
+                has_backup_codes={available_2fa_methods.includes("totp")}
                 on_cancel={handle_totp_cancel}
+                on_reset_with_recovery_code={() => navigate("/forgot-password")}
                 on_success={handle_totp_success}
                 on_use_authenticator={() =>
                   set_active_2fa_method(

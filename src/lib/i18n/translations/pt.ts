@@ -9120,6 +9120,11 @@ export const pt = {
       "Cada código de cópia de segurança só pode ser utilizado uma vez",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Utilizar a aplicação de autenticação",
+    recovery_code_in_backup_field: "Este é um código de recuperação, não um código de cópia de segurança. Para o utilizar, reponha a palavra-passe com o seu código de recuperação.",
+    reset_with_recovery_code: "Repor com código de recuperação",
+    no_backup_codes_title: "Iniciar sessão sem a chave de acesso",
+    no_backup_codes_description: "Os códigos de cópia de segurança vêm com uma aplicação de autenticação, e esta conta não utiliza nenhuma. Para iniciar sessão sem a chave de acesso, reponha a palavra-passe com um dos seus códigos de recuperação. Os seus e-mails, contactos e definições mantêm-se, e depois pode adicionar uma nova chave de acesso.",
+    try_passkey_again: "Tentar novamente com a chave de acesso",
     two_factor_auth_title: "Autenticação de dois fatores",
     enter_2fa_code:
       "Introduza o código de 6 dígitos da sua aplicação de autenticação",

@@ -664,6 +664,8 @@ export default function SignInPage() {
                   available_2fa_methods,
                   on_success: handle_totp_success,
                   on_cancel: handle_totp_cancel,
+                  on_reset_with_recovery_code: () =>
+                    navigate("/forgot-password"),
                   set_active_2fa_method,
                   remember_me,
                 })
