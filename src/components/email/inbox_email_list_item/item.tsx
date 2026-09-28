@@ -189,14 +189,25 @@ export const InboxEmailListItem = memo(
         on_move_to_inbox ||
         on_mark_not_spam;
 
+      const current_folder_token = (current_view ?? "").startsWith("folder-")
+        ? (current_view ?? "").slice("folder-".length)
+        : null;
+      const current_tag_token = (current_view ?? "").startsWith("tag-")
+        ? (current_view ?? "").slice("tag-".length)
+        : null;
+
       const named_folders = useMemo(
-        () => email.folders?.filter((f) => f.name) ?? [],
-        [email.folders],
+        () =>
+          email.folders?.filter(
+            (f) => f.name && f.folder_token !== current_folder_token,
+          ) ?? [],
+        [email.folders, current_folder_token],
       );
 
       const named_tags = useMemo(
-        () => email.tags?.filter((t) => t.name) ?? [],
-        [email.tags],
+        () =>
+          email.tags?.filter((t) => t.name && t.id !== current_tag_token) ?? [],
+        [email.tags, current_tag_token],
       );
 
       const [is_dragging, set_is_dragging] = useState(false);
