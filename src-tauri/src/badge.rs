@@ -102,8 +102,9 @@ mod taskbar_icon {
         .map_err(|e| e.to_string())
     }
 
-    pub fn apply(hwnd: HWND, count: u32) -> Result<(), String> {
+    pub fn apply(raw_hwnd: isize, count: u32) -> Result<(), String> {
         let icon = cached_icon(count.min(100))?;
+        let hwnd = HWND(raw_hwnd as *mut core::ffi::c_void);
 
         unsafe {
             SendMessageW(
@@ -130,7 +131,7 @@ pub fn set_unread_badge(window: tauri::WebviewWindow, count: u32) -> std::result
     {
         let hwnd = window.hwnd().map_err(|e| e.to_string())?;
         let _ = window.set_overlay_icon(None);
-        taskbar_icon::apply(hwnd, count)
+        taskbar_icon::apply(hwnd.0 as isize, count)
     }
     #[cfg(not(windows))]
     {
