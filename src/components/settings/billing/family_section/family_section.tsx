@@ -1623,7 +1623,7 @@ export function FamilySection({ is_family_plan }: FamilySectionProps) {
                     })}
                   </p>
                 </div>
-                <div className="rounded-xl border border-edge-secondary divide-y divide-edge-secondary">
+                <div className="rounded-xl border border-edge-secondary divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
                   {(
                     [
                       {

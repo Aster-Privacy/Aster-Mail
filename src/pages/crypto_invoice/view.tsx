@@ -1016,7 +1016,7 @@ export function CryptoInvoiceView({ id }: { id?: string }) {
             <TicketDivider />
 
             <div className="shrink-0 px-5 py-2 sm:px-6">
-              <div className="divide-y divide-edge-secondary">
+              <div className="divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
                 <DetailRow
                   label={t("settings.crypto_native_paying_with_label")}
                 >

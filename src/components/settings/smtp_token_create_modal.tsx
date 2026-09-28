@@ -322,7 +322,7 @@ export function SmtpTokenCreateModal({
           </ModalDescription>
         </ModalHeader>
         <ModalBody className="space-y-4">
-          <div className="overflow-hidden rounded-xl border border-edge-secondary bg-surf-primary divide-y divide-edge-secondary">
+          <div className="overflow-hidden rounded-xl border border-edge-secondary bg-surf-primary divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
             {rows.map((row) => (
               <button
                 key={row.label}

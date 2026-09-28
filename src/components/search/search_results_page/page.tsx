@@ -380,7 +380,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
   );
 
   const slow_notice = (
-    <div className="flex flex-col items-center justify-center text-center gap-1.5 px-4 py-8 border-b border-edge-secondary">
+    <div className="flex flex-col items-center justify-center text-center gap-1.5 px-4 py-8 border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
       <p
         className="text-sm font-medium"
         style={{ color: "var(--text-primary)" }}
@@ -521,7 +521,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
       ) : (
         <>
           <CorrectionNotice
-            className="border-b border-edge-secondary"
+            className="border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]"
             correction={state.correction}
             on_dismiss={dismiss_correction}
           />
@@ -540,7 +540,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
                   email,
                   preferences.conversation_grouping !== false,
                 )}
-                className="border-b border-edge-secondary"
+                className="border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]"
                 current_view="search"
                 density={resolve_list_density(preferences.mail_list_density)}
                 email={email as InboxEmail}

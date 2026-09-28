@@ -183,7 +183,7 @@ export function ContactHistoryPanel({
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-edge-secondary/60">
+        <div className="divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
           {activities.map((activity) => (
             <button
               key={activity.id}

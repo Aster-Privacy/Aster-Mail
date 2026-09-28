@@ -408,7 +408,7 @@ export function DeliveryPanel({
   const apply_status = apply_status_label();
 
   return (
-    <div className="divide-y divide-edge-secondary">
+    <div className="divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
       <PanelRow
         description={t("settings.alias_delivery_folder_desc")}
         info={t("settings.alias_delivery_folder_info")}

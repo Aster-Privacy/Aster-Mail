@@ -102,7 +102,7 @@ export function TranslationPacks() {
 
       {supported && packs.length > 0 && (
         <>
-          <ul className="mt-3 divide-y divide-edge-secondary rounded-lg border border-edge-primary">
+          <ul className="mt-3 divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))] rounded-lg border border-edge-primary">
             {packs.map((pack) => (
               <li
                 key={pack.pair}

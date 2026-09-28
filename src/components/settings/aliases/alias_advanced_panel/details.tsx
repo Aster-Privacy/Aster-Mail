@@ -64,7 +64,7 @@ export function AliasDetailsPanel({
   const { t } = use_i18n();
 
   return (
-    <div className="divide-y divide-edge-secondary">
+    <div className="divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
       <TextFieldRow
         description={t("settings.alias_display_name_desc")}
         error_message={t("common.failed_update_alias_display_name")}

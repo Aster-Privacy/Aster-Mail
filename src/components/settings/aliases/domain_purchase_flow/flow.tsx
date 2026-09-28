@@ -1031,7 +1031,7 @@ export function DomainPurchaseFlow({
                 </div>
               )}
               <div
-                className={`transition-opacity divide-y divide-edge-secondary/60 ${
+                className={`transition-opacity divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))] ${
                   showing_stale ? "opacity-40" : "opacity-100"
                 }`}
               >

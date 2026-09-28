@@ -193,7 +193,7 @@ export function SenderPinningPanel({
   const active_mode_hint = modes.find((m) => m.value === mode)?.hint ?? "";
 
   return (
-    <div className="divide-y divide-edge-secondary">
+    <div className="divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
       <PanelRow
         description={active_mode_hint}
         info={t("settings.alias_sender_pinning_info")}

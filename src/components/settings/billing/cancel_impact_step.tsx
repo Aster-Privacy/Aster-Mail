@@ -162,7 +162,7 @@ export function CancelImpactStep({
           {t("settings.cancel_impact_unavailable")}
         </p>
       ) : (
-        <ul className="max-h-[40vh] divide-y divide-edge-secondary overflow-y-auto rounded-lg border border-edge-secondary">
+        <ul className="max-h-[40vh] divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))] overflow-y-auto rounded-lg border border-edge-secondary">
           {lines.map((line) => (
             <li
               key={line.key}
