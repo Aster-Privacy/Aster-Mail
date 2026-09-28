@@ -150,7 +150,8 @@ export function ColorPickerPopover({
         open && (
           <div
             ref={dropdown_ref}
-            className="aster_floating fixed -translate-x-1/2 w-[280px]"
+            className="aster_floating aster_floating_anim fixed -translate-x-1/2 w-[280px]"
+            data-state="open"
             id={panel_id}
             style={{
               zIndex: 9999,

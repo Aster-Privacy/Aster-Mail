@@ -229,7 +229,8 @@ export function RecipientBadge({
                 }}
               />
               <div
-                className="aster_floating absolute start-0 top-full mt-1 z-50 w-60 p-2.5"
+                className="aster_floating aster_floating_anim absolute start-0 top-full mt-1 z-50 w-60 p-2.5"
+                data-state="open"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center gap-1.5">

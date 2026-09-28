@@ -131,7 +131,8 @@ export function FontSizeSelect({
         open && (
           <div
             ref={dropdown_ref}
-            className="aster_floating fixed p-1.5 min-w-[120px]"
+            className="aster_floating aster_floating_anim fixed p-1.5 min-w-[120px]"
+            data-state="open"
             id={list_id}
             style={{
               zIndex: 9999,
