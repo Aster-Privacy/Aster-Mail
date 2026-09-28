@@ -3637,25 +3637,13 @@ input:-webkit-autofill:active {
   position: relative;
   isolation: isolate;
   border-color: transparent !important;
-  background-color: transparent;
-  background-image:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--plan_galaxy_accent) 8%, transparent) 0%,
-      color-mix(in srgb, var(--plan_galaxy_accent) 2%, transparent) 22%,
-      transparent 46%
-    ),
-    linear-gradient(var(--bg-tertiary), var(--bg-tertiary)),
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--plan_galaxy_accent) 70%, #ffffff) 0%,
-      var(--plan_galaxy_accent) 14%,
-      color-mix(in srgb, var(--plan_galaxy_accent) 40%, transparent) 38%,
-      color-mix(in srgb, var(--plan_galaxy_accent) 10%, transparent) 66%,
-      color-mix(in srgb, var(--text-primary) 10%, transparent) 100%
-    );
-  background-origin: border-box;
-  background-clip: padding-box, padding-box, border-box;
+  background-color: color-mix(
+    in srgb,
+    var(--plan_galaxy_accent) 9%,
+    var(--bg-primary)
+  );
+  background-image: none;
+  box-shadow: none !important;
 }
 
 .plan_galaxy_text_primary {
@@ -3673,7 +3661,7 @@ input:-webkit-autofill:active {
 .plan_galaxy_divider {
   border-top-color: color-mix(
     in srgb,
-    var(--text-primary) 14%,
+    var(--text-primary) 8%,
     transparent
   ) !important;
 }
@@ -3790,26 +3778,11 @@ input:-webkit-autofill:active {
 .plan_galaxy_badge,
 .plan_current_badge {
   color: var(--accent-fg, #ffffff);
-  background-image:
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--plan_galaxy_accent, #3b82f6) 78%, #ffffff) 0%,
-      var(--plan_galaxy_accent, #3b82f6) 46%,
-      color-mix(in srgb, var(--plan_galaxy_accent, #3b82f6) 88%, #000000) 100%
-    ),
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, #ffffff 55%, transparent) 0%,
-      color-mix(in srgb, var(--plan_galaxy_accent, #3b82f6) 55%, transparent)
-        60%,
-      color-mix(in srgb, #ffffff 14%, transparent) 100%
-    );
-  background-origin: border-box;
-  background-clip: padding-box, border-box;
-  border: 1px solid transparent;
-  text-shadow: 0 1px 1px
-    color-mix(in srgb, var(--plan_galaxy_accent, #3b82f6) 70%, #000000);
-  box-shadow: 0 1px 0 color-mix(in srgb, #ffffff 30%, transparent) inset;
+  background-color: var(--plan_galaxy_accent, var(--accent-color, #3b82f6));
+  background-image: none;
+  border: 0;
+  text-shadow: none;
+  box-shadow: none;
 }
 
 .offer_banner {

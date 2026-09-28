@@ -592,7 +592,7 @@ export function CreditsSection({
         </div>
 
         <aside className="min-w-0">
-          <div className="plan_galaxy rounded-2xl border border-edge-secondary p-4">
+          <div className="plan_galaxy rounded-[var(--aster-radius-control)] p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-[11px] font-semibold uppercase tracking-wider plan_galaxy_text_muted">
                 {t("settings.domain_purchase_order_summary")}

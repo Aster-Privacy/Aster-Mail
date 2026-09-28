@@ -509,10 +509,9 @@ export function UpgradeModal() {
     const index = PLAN_TIERS.findIndex((entry) => entry.id === tier.id);
     const previous = index > 0 ? PLAN_TIERS[index - 1] : null;
 
-    if (!previous || previous.id === "free") return null;
-    if (!tiers.some((entry) => entry.id === previous.id)) return null;
-
-    return t("settings.plan_everything_in", { plan: previous.name });
+    return t("settings.plan_everything_in", {
+      plan: previous ? previous.name : t("settings.plan_free"),
+    });
   };
 
   const trust_points = [
@@ -718,7 +717,7 @@ export function UpgradeModal() {
 
         <ModalBody className="space-y-4">
           {state.offer_percent_off ? (
-            <div className="rounded-2xl border border-edge-secondary bg-surf-tertiary px-3.5 py-2.5">
+            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-3.5 py-2.5">
               <p className="text-[13px] text-txt-secondary">
                 {t("settings.upgrade_offer_note", {
                   percent: String(state.offer_percent_off),
@@ -728,7 +727,7 @@ export function UpgradeModal() {
           ) : null}
 
           {state.limit_key === "max_external_accounts" ? (
-            <div className="rounded-2xl border border-edge-secondary bg-surf-tertiary px-3.5 py-2.5">
+            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-3.5 py-2.5">
               <p className="text-[13px] text-txt-secondary">
                 {t("settings.upgrade_external_accounts_note")}
               </p>
@@ -736,7 +735,7 @@ export function UpgradeModal() {
           ) : null}
 
           {state.limit_key === "max_linked_accounts" ? (
-            <div className="rounded-2xl border border-edge-secondary bg-surf-tertiary px-3.5 py-2.5">
+            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-3.5 py-2.5">
               <p className="text-[13px] text-txt-secondary">
                 {t("settings.upgrade_linked_accounts_note")}
               </p>
@@ -754,7 +753,7 @@ export function UpgradeModal() {
 
           {required_tier ? (
             <div
-              className="flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5"
+              className="flex items-center gap-2.5 rounded-[var(--aster-radius-control)] px-3.5 py-2.5"
               style={{
                 backgroundColor:
                   "color-mix(in srgb, var(--accent-color) 10%, transparent)",
@@ -773,7 +772,7 @@ export function UpgradeModal() {
           ) : null}
 
           {is_storage && storage ? (
-            <div className="p-3 rounded-lg bg-surf-tertiary border border-edge-secondary">
+            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] p-3">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-sm font-medium text-txt-primary">
                   {t("settings.usage_storage")}
@@ -809,7 +808,7 @@ export function UpgradeModal() {
           ) : null}
 
           {!is_storage && limit_info ? (
-            <div className="p-3 rounded-lg bg-surf-tertiary border border-edge-secondary">
+            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] p-3">
               <div className="flex items-center justify-between mb-1.5">
                 <span className="text-sm font-medium text-txt-primary">
                   {resource_label}
@@ -908,7 +907,7 @@ export function UpgradeModal() {
                 className={`grid gap-4 pt-3 ${GRID_COLUMNS[tiers.length] ?? "sm:grid-cols-3"}`}
               >
                 {tiers.map((tier) => {
-                  const is_required = required_tier?.id === tier.id;
+                  const is_featured = default_tier?.id === tier.id;
 
                   return (
                     <PlanCard
@@ -923,11 +922,7 @@ export function UpgradeModal() {
                           : null
                       }
                       badge={
-                        is_required
-                          ? t("common.unlock")
-                          : tier.is_recommended
-                            ? t("settings.plan_recommended")
-                            : null
+                        is_featured ? t("settings.plan_recommended") : null
                       }
                       billed_note={
                         interval === "year" ? yearly_total_label(tier) : null
@@ -935,10 +930,7 @@ export function UpgradeModal() {
                       cta_disabled={is_starting}
                       cta_label={t("settings.get_plan", { name: tier.name })}
                       description={null}
-                      featured={
-                        is_required ||
-                        (!required_tier && default_tier?.id === tier.id)
-                      }
+                      featured={is_featured}
                       features={tier_features(tier)}
                       is_current={false}
                       lead_in={lead_in_for(tier)}
