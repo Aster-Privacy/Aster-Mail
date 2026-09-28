@@ -784,6 +784,10 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
   }, [zoomed_image]);
 
   const effective_bg = is_html_email ? html_bg : plain_bg;
+  const frame_bg =
+    force_light_scheme && (!effective_bg || effective_bg === "transparent")
+      ? "#ffffff"
+      : effective_bg;
 
   useEffect(() => {
     let cancelled = false;
@@ -929,7 +933,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
         </div>
       )}
       <div
-        className={`email-frame-container ${class_name || ""}`}
+        className={`email-frame-container ${frame_bg && frame_bg !== "transparent" ? "email-frame-canvas" : ""} ${class_name || ""}`}
         style={{
           backgroundColor: effective_bg,
           position: "relative",
@@ -1011,7 +1015,7 @@ ${link_underline_css ? `<style>${link_underline_css}</style>` : ""}
             overflow: "hidden",
             display: "block",
             opacity: height_ready && contrast_ready ? 1 : 0,
-            backgroundColor: effective_bg,
+            backgroundColor: frame_bg,
             touchAction: "pan-y",
           }}
           title={t("mail.email_content")}

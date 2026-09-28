@@ -2259,13 +2259,13 @@ button.press_scale:active {
 
 .app_rail_btn:hover,
 .app_rail_toggle:hover {
-  background-color: var(--sidebar-hover);
+  background-color: var(--aster-hover);
   color: var(--text-primary);
 }
 
 .app_rail_btn[data-selected="true"] {
   color: var(--text-primary);
-  background-color: var(--indicator-bg);
+  background-color: var(--aster-selected);
 }
 
 .app_rail_column {
@@ -2885,6 +2885,12 @@ button.press_scale:active {
   display: block;
 }
 
+.aster_island .email-frame-canvas {
+  width: auto;
+  margin: 4px 12px 12px;
+  border-radius: 12px;
+}
+
 .reduce-motion,
 .reduce-motion *,
 .reduce-motion *::before,
@@ -3202,16 +3208,11 @@ html {
   background-color: var(--bg-hover);
 }
 
-
-
 .full-page-loader-content img,
 img[draggable="false"] {
   user-select: none;
   -webkit-user-drag: none;
 }
-
-
-
 
 .loader-stack {
   display: flex;
