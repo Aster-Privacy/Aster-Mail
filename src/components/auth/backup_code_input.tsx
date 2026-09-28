@@ -32,6 +32,17 @@ import {
 
 const BACKUP_CODE_LENGTH = 12;
 const LEGACY_BACKUP_CODE_LENGTH = 8;
+const RECOVERY_CODE_PREFIX = "ASTER";
+const MAX_CODE_INPUT_LENGTH = 32;
+
+export function looks_like_recovery_code(value: string): boolean {
+  const normalized = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+  return (
+    normalized.startsWith(RECOVERY_CODE_PREFIX) &&
+    normalized.length > BACKUP_CODE_LENGTH
+  );
+}
 
 function is_valid_backup_code_length(length: number): boolean {
   return length === BACKUP_CODE_LENGTH || length === LEGACY_BACKUP_CODE_LENGTH;
@@ -50,6 +61,8 @@ interface BackupCodeInputProps {
   on_success: (response: TotpVerifyResponse) => void;
   on_use_authenticator: () => void;
   on_cancel: () => void;
+  on_reset_with_recovery_code: () => void;
+  has_backup_codes?: boolean;
   remember_me?: boolean;
 }
 
@@ -58,6 +71,8 @@ export function BackupCodeInput({
   on_success,
   on_use_authenticator,
   on_cancel,
+  on_reset_with_recovery_code,
+  has_backup_codes = true,
   remember_me = true,
 }: BackupCodeInputProps) {
   const { t } = use_i18n();
@@ -68,6 +83,8 @@ export function BackupCodeInput({
   const input_ref = useRef<HTMLInputElement>(null);
   const verifying_ref = useRef(false);
 
+  const is_recovery_code = looks_like_recovery_code(code);
+
   useEffect(() => {
     input_ref.current?.focus();
   }, []);
@@ -76,6 +93,12 @@ export function BackupCodeInput({
     if (verifying_ref.current) return;
 
     const normalized = code.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+    if (looks_like_recovery_code(normalized)) {
+      set_error(t("auth.recovery_code_in_backup_field"));
+
+      return;
+    }
 
     if (!is_valid_backup_code_length(normalized.length)) {
       set_error(t("auth.backup_code_length_error"));
@@ -135,10 +158,14 @@ export function BackupCodeInput({
     const cleaned = value
       .toUpperCase()
       .replace(/[^A-Z0-9-]/g, "")
-      .slice(0, 20);
+      .slice(0, MAX_CODE_INPUT_LENGTH);
 
     set_code(cleaned);
-    set_error("");
+    set_error(
+      looks_like_recovery_code(cleaned)
+        ? t("auth.recovery_code_in_backup_field")
+        : "",
+    );
   };
 
   const handle_key_down = (e: React.KeyboardEvent) => {
@@ -146,6 +173,50 @@ export function BackupCodeInput({
       handle_verify();
     }
   };
+
+  if (!has_backup_codes) {
+    return (
+      <div className="w-full max-w-sm mx-auto">
+        <div className="text-center mb-6">
+          <div className="flex justify-center mb-4">
+            <img
+              alt="Aster"
+              className="h-10"
+              decoding="async"
+              draggable={false}
+              src="/text_logo.png"
+            />
+          </div>
+          <h2 className="text-xl font-semibold mb-2 text-txt-primary">
+            {t("auth.no_backup_codes_title")}
+          </h2>
+          <p className="text-sm text-txt-muted">
+            {t("auth.no_backup_codes_description")}
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <Button
+            className="w-full"
+            variant="depth"
+            onClick={on_reset_with_recovery_code}
+          >
+            {t("auth.reset_with_recovery_code")}
+          </Button>
+          <Button className="w-full" variant="outline" onClick={on_cancel}>
+            {t("common.cancel")}
+          </Button>
+          <button
+            className="w-full text-sm text-center transition-colors hover:opacity-80 text-txt-muted"
+            type="button"
+            onClick={on_use_authenticator}
+          >
+            {t("auth.try_passkey_again")}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-sm mx-auto">
@@ -201,6 +272,16 @@ export function BackupCodeInput({
         </label>
 
         {error && <p className="text-sm text-center text-red-500">{error}</p>}
+
+        {is_recovery_code && (
+          <Button
+            className="w-full"
+            variant="depth"
+            onClick={on_reset_with_recovery_code}
+          >
+            {t("auth.reset_with_recovery_code")}
+          </Button>
+        )}
 
         <div className="flex gap-3">
           <Button

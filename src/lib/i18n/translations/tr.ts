@@ -9089,6 +9089,11 @@ export const tr = {
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead:
       "Bunun yerine kimlik doğrulama uygulamasını kullan",
+    recovery_code_in_backup_field: "Bu bir yedek kod değil, kurtarma kodudur. Kullanmak için parolanızı kurtarma kodunuzla sıfırlayın.",
+    reset_with_recovery_code: "Kurtarma koduyla sıfırla",
+    no_backup_codes_title: "Geçiş anahtarı olmadan oturum aç",
+    no_backup_codes_description: "Yedek kodlar bir kimlik doğrulama uygulamasıyla birlikte verilir ve bu hesap böyle bir uygulama kullanmıyor. Geçiş anahtarınız olmadan oturum açmak için parolanızı kurtarma kodlarınızdan biriyle sıfırlayın. E-postalarınız, kişileriniz ve ayarlarınız olduğu gibi kalır ve ardından yeni bir geçiş anahtarı ekleyebilirsiniz.",
+    try_passkey_again: "Geçiş anahtarını yeniden dene",
     two_factor_auth_title: "İki Faktörlü Kimlik Doğrulama",
     enter_2fa_code: "Kimlik doğrulama uygulamanızdaki 6 haneli kodu girin",
     use_backup_code_instead: "Bunun yerine yedek kod kullan",

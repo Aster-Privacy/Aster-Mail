@@ -9288,6 +9288,11 @@ export const de = {
     backup_codes_remaining_after_login: "{{count}} Backup-Codes übrig",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Stattdessen Authentifizierungs-App verwenden",
+    recovery_code_in_backup_field: "Das ist ein Wiederherstellungscode, kein Backup-Code. Um ihn zu verwenden, setzen Sie Ihr Passwort mit Ihrem Wiederherstellungscode zurück.",
+    reset_with_recovery_code: "Mit Wiederherstellungscode zurücksetzen",
+    no_backup_codes_title: "Ohne Passkey anmelden",
+    no_backup_codes_description: "Backup-Codes gibt es nur zusammen mit einer Authentifizierungs-App, und dieses Konto verwendet keine. Um sich ohne Passkey anzumelden, setzen Sie Ihr Passwort mit einem Ihrer Wiederherstellungscodes zurück. Ihre E-Mails, Kontakte und Einstellungen bleiben erhalten, und Sie können danach einen neuen Passkey hinzufügen.",
+    try_passkey_again: "Passkey erneut versuchen",
     two_factor_auth_title: "Zwei-Faktor-Authentifizierung",
     use_backup_code_instead: "Stattdessen einen Backup-Code verwenden",
     recovery_codes_warning:
