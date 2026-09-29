@@ -61,7 +61,11 @@ import { fetch_my_badges } from "@/services/api/user";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_signatures } from "@/contexts/signatures_context";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
-import { is_internal_email } from "@/services/api/keys";
+import {
+  begin_recipient_classification_session,
+  is_internal_recipient,
+  use_recipient_classification,
+} from "@/services/recipient_classification";
 import { draft_manager } from "@/services/crypto/encrypted_drafts";
 import { sanitize_html } from "@/lib/html_sanitizer";
 import {
@@ -250,6 +254,13 @@ export function use_compose({
     recipients_reducer,
     INITIAL_RECIPIENTS,
   );
+
+  useState(() => {
+    begin_recipient_classification_session();
+
+    return null;
+  });
+
   const [inputs, set_inputs] = useState<InputsState>(INITIAL_INPUTS);
   const [visibility, set_visibility] =
     useState<VisibilityState>(INITIAL_VISIBILITY);
@@ -403,15 +414,16 @@ export function use_compose({
     draft_context_id_ref,
   });
 
-  const has_external_recipients = useMemo(() => {
-    const all_recipients = [
-      ...recipients.to,
-      ...recipients.cc,
-      ...recipients.bcc,
-    ];
+  const classified_recipients = useMemo(
+    () => [...recipients.to, ...recipients.cc, ...recipients.bcc],
+    [recipients],
+  );
 
-    return all_recipients.some((r) => !is_internal_email(r));
-  }, [recipients]);
+  use_recipient_classification(classified_recipients);
+
+  const has_external_recipients = classified_recipients.some(
+    (r) => !is_internal_recipient(r),
+  );
 
   const attachment_count = attachment_hook.attachments.length;
 

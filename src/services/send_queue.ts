@@ -54,6 +54,7 @@ import {
   should_attach_signed_mime,
 } from "./send_queue_signed_mime";
 import { resolve_current_user } from "./current_identity";
+import { classify_recipients } from "./recipient_classification";
 
 import {
   enqueue_action,
@@ -475,6 +476,8 @@ async function prepare_email_for_server_queue(
     ...(email.cc || []),
     ...(email.bcc || []),
   ];
+
+  await classify_recipients(all_recipients);
 
   const { processed_html: recipient_body, images: inline_images } =
     extract_inline_images(email.body);

@@ -36,6 +36,11 @@ import {
 import { create_sent_envelope } from "./send_queue_envelope";
 import { encrypt_with_ephemeral_key } from "./send_queue_ephemeral";
 import { fetch_internal_public_keys } from "./send_queue_recipients";
+import {
+  classify_recipients,
+  is_internal_recipient,
+} from "./recipient_classification";
+import { is_internal_email } from "./api/keys";
 import { OBSCURED_SUBJECT_PLACEHOLDER } from "./pgp_protected_mime";
 import {
   build_signed_mime_payload,
@@ -84,6 +89,13 @@ export async function execute_send(
     ...(email.cc || []),
     ...(email.bcc || []),
   ];
+
+  await classify_recipients(all_recipients);
+
+  const hosted_recipients = all_recipients.filter(
+    (recipient) =>
+      !is_internal_email(recipient) && is_internal_recipient(recipient),
+  );
 
   const { processed_html: recipient_body, images: inline_images } =
     extract_inline_images(email.body);
@@ -160,6 +172,9 @@ export async function execute_send(
     body: final_recipient_body,
     is_e2e_encrypted: is_encrypted,
     internal_encrypted_body,
+    ...(internal_copy_is_encrypted && hosted_recipients.length > 0
+      ? { hosted_recipients }
+      : {}),
     encrypted_envelope: envelope_data.encrypted_envelope,
     envelope_nonce: envelope_data.envelope_nonce,
     folder_token: envelope_data.folder_token,

@@ -18,11 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ShieldExclamationIcon } from "@heroicons/react/24/solid";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { is_internal_email } from "@/services/api/keys";
+import {
+  is_internal_recipient,
+  use_recipient_classification,
+} from "@/services/recipient_classification";
 import { acknowledge_identity_change } from "@/services/crypto/ratchet_identity_pin";
 import { has_recipient_identity_changed } from "@/services/crypto/recipient_identity_check";
 import { subscribe_peer_identity_events } from "@/services/crypto/ratchet_verification_status";
@@ -43,15 +46,19 @@ export function RecipientIdentityNotice({
   const [dismissed, set_dismissed] = useState<Set<string>>(() => new Set());
   const [event_tick, set_event_tick] = useState(0);
 
-  const recipients_key = useMemo(() => {
-    const unique = new Set(
+  use_recipient_classification(recipients);
+
+  const recipients_key = [
+    ...new Set(
       recipients
         .map((email) => email.trim().toLowerCase())
-        .filter((email) => EMAIL_SHAPE.test(email) && is_internal_email(email)),
-    );
-
-    return [...unique].sort().join(",");
-  }, [recipients]);
+        .filter(
+          (email) => EMAIL_SHAPE.test(email) && is_internal_recipient(email),
+        ),
+    ),
+  ]
+    .sort()
+    .join(",");
 
   useEffect(
     () => subscribe_peer_identity_events(() => set_event_tick((v) => v + 1)),

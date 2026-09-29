@@ -26,6 +26,7 @@ import { GHOST_DOMAIN } from "./ghost_aliases";
 interface PublicKeyResponse {
   username: string;
   public_key: string;
+  internal?: boolean;
 }
 
 export interface ExternalKeyFingerprintChange {
