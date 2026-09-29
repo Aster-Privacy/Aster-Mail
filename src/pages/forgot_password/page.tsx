@@ -626,7 +626,7 @@ export default function ForgotPasswordPage() {
             }}
             variants={page_variants}
           >
-            <Spinner className="h-10 w-10 text-blue-500" size="lg" />
+            <Spinner className="h-10 w-10 text-brand" size="lg" />
 
             <h2 className="text-xl font-semibold mt-8 text-txt-primary">
               {t("auth.recovering_your_account")}

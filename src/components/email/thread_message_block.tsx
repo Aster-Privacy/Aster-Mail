@@ -346,7 +346,7 @@ export function ThreadMessageBlock(
             )}
             {on_unsubscribe && unsub_state === "idle" && (
               <button
-                className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+                className="flex-shrink-0 text-xs font-medium text-brand rounded px-1.5 py-0.5 hover:bg-brand/10 transition-colors"
                 onClick={async (e) => {
                   e.stopPropagation();
                   set_unsub_state("loading");
@@ -362,7 +362,7 @@ export function ThreadMessageBlock(
               unsubscribe_url &&
               !lockdown_active && (
                 <button
-                  className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+                  className="flex-shrink-0 text-xs font-medium text-brand rounded px-1.5 py-0.5 hover:bg-brand/10 transition-colors"
                   onClick={(e) => {
                     e.stopPropagation();
                     open_external(unsubscribe_url);
@@ -392,7 +392,7 @@ export function ThreadMessageBlock(
                   (i) => i.type === "css",
                 ).length;
                 const btn_class =
-                  "flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors";
+                  "flex-shrink-0 text-xs font-medium text-brand rounded px-1.5 py-0.5 hover:bg-brand/10 transition-colors";
 
                 return (
                   <>

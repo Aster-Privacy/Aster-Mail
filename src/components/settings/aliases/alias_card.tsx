@@ -444,7 +444,7 @@ export function AliasItem({
             <Button
               className={
                 alias.is_pinned
-                  ? "h-8 w-8 text-blue-500 hover:text-blue-500 hover:bg-blue-500/10"
+                  ? "h-8 w-8 text-brand hover:text-brand hover:bg-brand/10"
                   : "hidden group-hover:inline-flex h-8 w-8"
               }
               size="icon"
@@ -481,7 +481,9 @@ export function AliasItem({
           <Switch
             aria-label={t("common.toggle_alias")}
             checked={alias.is_enabled}
-            disabled={toggling || in_grace_period || !!alias.is_retained_primary}
+            disabled={
+              toggling || in_grace_period || !!alias.is_retained_primary
+            }
             size="lg"
             onCheckedChange={(checked) => on_toggle(alias.id, checked)}
           />

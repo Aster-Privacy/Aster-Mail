@@ -276,7 +276,7 @@ export function ThreadMessageActions({
                   aria-pressed={group.includes_self}
                   className={`group/chip inline-flex items-center gap-1 h-7 ps-2.5 pe-2 rounded-full select-none transition-colors duration-150 ${
                     group.includes_self
-                      ? "cursor-default bg-[#d3e3fd] dark:bg-[#004a77]"
+                      ? "cursor-default bg-[color-mix(in_srgb,var(--accent-color)_18%,transparent)]"
                       : is_locked
                         ? "cursor-default bg-[#eceef1] dark:bg-[#282a2c]"
                         : "bg-[#eceef1] dark:bg-[#282a2c] hover:bg-[#e1e4e8] dark:hover:bg-[#333537]"
@@ -297,7 +297,7 @@ export function ThreadMessageActions({
                       animate={{ opacity: 1, y: 0 }}
                       className={`text-[13px] font-normal tabular-nums leading-4 ${
                         group.includes_self
-                          ? "text-[#0842a0] dark:text-[#c2e7ff]"
+                          ? "text-[color-mix(in_srgb,var(--accent-color)_70%,var(--text-primary))]"
                           : "text-[var(--text-secondary)]"
                       }`}
                       exit={{ opacity: 0, y: reduce_motion ? 0 : -6 }}

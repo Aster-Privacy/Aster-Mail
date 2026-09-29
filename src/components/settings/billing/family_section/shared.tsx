@@ -20,7 +20,7 @@
 //
 import type {} from "@/lib/i18n/types";
 
-import { Island } from "@aster/ui";
+import { Island, Skeleton } from "@aster/ui";
 
 import { storage_pct } from "./helpers";
 export function StorageBar({ used, total }: { used: number; total: number }) {
@@ -50,19 +50,19 @@ export function SkeletonRows({
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="flex min-h-14 items-center gap-3 px-4 py-3">
           {has_icon && (
-            <div className="w-8 h-8 rounded-full bg-edge-secondary animate-pulse flex-shrink-0" />
+            <Skeleton className="w-8 h-8 rounded-full flex-shrink-0" />
           )}
           <div className="flex-1 space-y-2">
-            <div
-              className="h-3 bg-edge-secondary rounded-full animate-pulse"
+            <Skeleton
+              className="h-3 rounded-full"
               style={{ width: `${60 + (i % 3) * 10}%` }}
             />
-            <div
-              className="h-2 bg-edge-secondary rounded-full animate-pulse"
+            <Skeleton
+              className="h-2 rounded-full"
               style={{ width: `${35 + (i % 2) * 15}%` }}
             />
           </div>
-          <div className="h-2 bg-edge-secondary rounded-full animate-pulse w-16 flex-shrink-0" />
+          <Skeleton className="h-2 rounded-full w-16 flex-shrink-0" />
         </div>
       ))}
     </Island>

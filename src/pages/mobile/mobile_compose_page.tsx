@@ -506,7 +506,7 @@ function MobileComposePage({
         {(compose.scheduled_time || compose.expires_at) && (
           <div className="flex flex-wrap gap-2 border-b border-[var(--border-primary)] px-4 py-2">
             {compose.scheduled_time && (
-              <span className="flex items-center gap-1.5 rounded-full bg-blue-500/10 px-2.5 py-1 text-[12px] font-medium text-blue-500">
+              <span className="flex items-center gap-1.5 rounded-full bg-brand/10 px-2.5 py-1 text-[12px] font-medium text-brand">
                 <ClockIcon className="h-3.5 w-3.5" />
                 {format_datetime_hint(compose.scheduled_time)}
                 <button
@@ -626,7 +626,7 @@ function MobileComposePage({
         <button
           className={`flex h-9 w-9 items-center justify-center rounded-full active:bg-[var(--bg-tertiary)] ${
             compose.scheduled_time
-              ? "text-blue-500"
+              ? "text-brand"
               : "text-[var(--text-secondary)]"
           }`}
           type="button"

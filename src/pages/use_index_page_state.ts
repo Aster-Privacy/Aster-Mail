@@ -616,20 +616,6 @@ export function use_index_page_state() {
   );
 
   useEffect(() => {
-    const handle_open_email = (e: Event) => {
-      const email_id = (e as CustomEvent<{ email_id?: string }>).detail
-        ?.email_id;
-
-      if (email_id) handle_email_click(email_id);
-    };
-
-    window.addEventListener("astermail:open-email", handle_open_email);
-
-    return () =>
-      window.removeEventListener("astermail:open-email", handle_open_email);
-  }, [handle_email_click]);
-
-  useEffect(() => {
     email_is_open.current = !!(popup_email_id || split_email_id);
     popup_email_id_ref.current = popup_email_id;
   }, [popup_email_id, split_email_id]);
@@ -1143,10 +1129,6 @@ export function use_index_page_state() {
       set_active_search_query(query);
     };
 
-    const handle_open_shortcuts_modal = () => {
-      set_is_shortcuts_open(true);
-    };
-
     const handle_internal_link = (e: Event) => {
       const custom_event = e as CustomEvent<{ path: string }>;
       const path = custom_event.detail?.path || "";
@@ -1167,10 +1149,6 @@ export function use_index_page_state() {
       "astermail:open-search-with-query",
       handle_open_search_with_query,
     );
-    window.addEventListener(
-      "open-shortcuts-modal",
-      handle_open_shortcuts_modal,
-    );
     window.addEventListener("aster-internal-link", handle_internal_link);
     window.addEventListener(
       "astermail:open-compose-ghost",
@@ -1181,10 +1159,6 @@ export function use_index_page_state() {
       window.removeEventListener(
         "astermail:open-search-with-query",
         handle_open_search_with_query,
-      );
-      window.removeEventListener(
-        "open-shortcuts-modal",
-        handle_open_shortcuts_modal,
       );
       window.removeEventListener("aster-internal-link", handle_internal_link);
       window.removeEventListener(

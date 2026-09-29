@@ -92,6 +92,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
   const navigate = useNavigate();
   const [reservations, set_reservations] = useState<ReservedAddress[]>([]);
   const [seats_used, set_seats_used] = useState(0);
+  const [seats_loaded, set_seats_loaded] = useState(false);
   const [max_members, set_max_members] = useState(group.max_members);
   const [seat_breakdown, set_seat_breakdown] = useState<SeatBreakdown | null>(
     null,
@@ -133,7 +134,8 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
     0,
     group.storage_pool_bytes - group.storage_used_bytes - allocated_in_pool,
   );
-  const seats_full = seats_used >= max_members;
+  const seats_at_capacity = seats_used >= max_members;
+  const seats_full = !seats_loaded || seats_at_capacity;
 
   useEffect(() => {
     set_alloc((prev) => Math.min(prev, pool_remaining));
@@ -151,6 +153,7 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
       set_seats_used(r.data.seats_used);
       set_max_members(r.data.max_members);
       set_seat_breakdown(r.data.seats ?? null);
+      set_seats_loaded(true);
       loaded_once_ref.current = true;
     } else {
       set_load_failed(true);
@@ -336,12 +339,14 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
           <p className="text-sm text-txt-secondary mt-0.5">
             {t("settings.fam_kids_subtitle")}
           </p>
-          <p className="text-xs text-txt-muted mt-1">
-            {t("settings.fam_kids_seats_used", {
-              used: seats_used,
-              max: max_members,
-            })}
-          </p>
+          {seats_loaded && (
+            <p className="text-xs text-txt-muted mt-1">
+              {t("settings.fam_kids_seats_used", {
+                used: seats_used,
+                max: max_members,
+              })}
+            </p>
+          )}
           {seat_breakdown && (
             <p className="text-xs text-txt-muted mt-0.5">
               {t("settings.fam_seats_breakdown", {
@@ -356,7 +361,11 @@ export function KidsContent({ group }: { group: FamilyGroupResponse }) {
           <button
             className="aster_btn aster_btn_primary aster_btn_sm flex items-center gap-1.5 disabled:opacity-50 flex-shrink-0"
             disabled={seats_full}
-            title={seats_full ? t("settings.fam_kids_seats_full") : undefined}
+            title={
+              seats_loaded && seats_at_capacity
+                ? t("settings.fam_kids_seats_full")
+                : undefined
+            }
             onClick={() => set_show_form(true)}
           >
             <PlusIcon className="w-4 h-4" />{" "}

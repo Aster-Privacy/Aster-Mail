@@ -70,6 +70,10 @@ import {
   is_lockdown_enabled,
   LOCKDOWN_CHANGED_EVENT,
 } from "@/services/lockdown_store";
+import {
+  dispatch_auto_open_create_alias,
+  request_auto_open_create_alias,
+} from "@/components/settings/aliases/create_alias_request";
 
 function LockdownBanner({
   on_settings_click,
@@ -857,6 +861,7 @@ const sidebar_base = ({
           load_failed={aliases_load_failed}
           navigate={navigate}
           on_create_alias={() => {
+            request_auto_open_create_alias();
             on_settings_click("aliases");
 
             if (create_alias_timer_ref.current !== null) {
@@ -865,9 +870,7 @@ const sidebar_base = ({
 
             create_alias_timer_ref.current = setTimeout(() => {
               create_alias_timer_ref.current = null;
-              window.dispatchEvent(
-                new CustomEvent("astermail:auto-open-create-alias"),
-              );
+              dispatch_auto_open_create_alias();
             }, 100);
           }}
           on_retry={() => void refresh_aliases()}

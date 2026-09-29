@@ -168,7 +168,8 @@ export default function SignInPage() {
             <div
               className="h-8 w-8 mx-auto animate-spin rounded-full border-2 mb-4"
               style={{
-                borderColor: is_dark ? "#374151" : "#bfdbfe",
+                borderColor:
+                  "color-mix(in srgb, var(--text-primary) 15%, transparent)",
                 borderTopColor: is_dark
                   ? "var(--accent-color-hover)"
                   : "var(--accent-color)",
@@ -650,7 +651,8 @@ export default function SignInPage() {
                   <div
                     className="h-8 w-8 mx-auto animate-spin rounded-full border-2 mb-4"
                     style={{
-                      borderColor: is_dark ? "#374151" : "#bfdbfe",
+                      borderColor:
+                        "color-mix(in srgb, var(--text-primary) 15%, transparent)",
                       borderTopColor: is_dark
                         ? "var(--accent-color-hover)"
                         : "var(--accent-color)",

@@ -28,10 +28,10 @@ import {
 import {
   Button,
   Checkbox,
-  Island,
   IslandRow,
   IslandSection,
   IslandSections,
+  Skeleton,
 } from "@aster/ui";
 
 import { ImportModal } from "../import_modal";
@@ -834,8 +834,8 @@ export function ImportSection() {
 
         {is_loading_accounts && (
           <div aria-hidden="true">
-            <div className="mb-2 h-3 w-40 animate-pulse rounded bg-surf-secondary" />
-            <Island className="h-16 animate-pulse" />
+            <Skeleton className="mb-2 h-3 w-40 rounded" />
+            <Skeleton className="h-16 rounded-[var(--aster-island-radius,16px)]" />
           </div>
         )}
 
@@ -888,10 +888,7 @@ export function ImportSection() {
       <IslandSection
         title={
           is_loading_accounts ? (
-            <span
-              aria-hidden="true"
-              className="block h-3 w-32 animate-pulse rounded bg-surf-secondary"
-            />
+            <Skeleton aria-hidden="true" className="block h-3 w-32 rounded" />
           ) : connected_accounts.length > 0 ? (
             t("settings.import_add_another")
           ) : (

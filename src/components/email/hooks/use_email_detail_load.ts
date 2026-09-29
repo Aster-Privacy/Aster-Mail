@@ -125,8 +125,6 @@ export function use_email_detail_load() {
   >(null);
   const [is_loading, set_is_loading] = useState(true);
   const [error, set_error] = useState<string | null>(null);
-  const [is_unsubscribe_modal_open, set_is_unsubscribe_modal_open] =
-    useState(false);
   const [is_sender_dropdown_open, set_is_sender_dropdown_open] =
     useState(false);
   const [is_block_sender_modal_open, set_is_block_sender_modal_open] =
@@ -947,8 +945,6 @@ export function use_email_detail_load() {
     email,
     is_loading,
     error,
-    is_unsubscribe_modal_open,
-    set_is_unsubscribe_modal_open,
     is_sender_dropdown_open,
     set_is_sender_dropdown_open,
     is_block_sender_modal_open,

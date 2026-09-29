@@ -21,7 +21,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { EnvelopeIcon, NoSymbolIcon } from "@heroicons/react/24/outline";
+import { NoSymbolIcon } from "@heroicons/react/24/outline";
 
 import { Button } from "@/components/ui/button";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -39,14 +39,6 @@ import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { app_locale, get_display_time_zone } from "@/utils/date_format";
 import { show_toast } from "@/components/toast/simple_toast";
 import { block_sender } from "@/services/api/blocked_senders";
-import {
-  get_manual_unsubscribe_url,
-  perform_unsubscribe,
-  UnsubscribeError,
-} from "@/utils/unsubscribe_detector";
-import { show_action_toast } from "@/components/toast/action_toast";
-import { open_external } from "@/utils/open_link";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { resolve_settings_section } from "@/components/settings/settings_content_helpers";
 import { set_pending_settings_anchor } from "@/lib/settings_anchor";
 import { read_settings_navigation } from "@/lib/settings_links";
@@ -84,55 +76,6 @@ export default function EmailDetailPage() {
       show_toast(detail.t("common.sender_blocked"), "success");
     } else {
       show_toast(detail.t("errors.failed_to_block_sender"), "error");
-    }
-  };
-
-  const handle_unsubscribe_confirm = async () => {
-    detail.set_is_unsubscribe_modal_open(false);
-
-    const info = detail.email?.unsubscribe_info;
-
-    if (!detail.email || !info) return;
-
-    try {
-      const result = await perform_unsubscribe(
-        detail.email.sender_email,
-        detail.email.sender,
-        info,
-        { skip_confirm: true },
-      );
-
-      if (result === "api") {
-        show_toast(detail.t("mail.successfully_unsubscribed"), "success");
-      } else {
-        const url = get_manual_unsubscribe_url(info);
-        const lockdown = is_any_lockdown_active();
-
-        show_action_toast({
-          message: detail.t("mail.unsubscribe_manual_required"),
-          action_type: "not_spam",
-          email_ids: [],
-          duration_ms: 15000,
-          ...(!lockdown &&
-            url && {
-              action_label: detail.t("mail.open_unsubscribe_page"),
-              on_undo: async () => {
-                open_external(url);
-              },
-            }),
-        });
-      }
-    } catch (caught) {
-      if (caught instanceof UnsubscribeError && caught.code === "cancelled") {
-        return;
-      }
-
-      show_toast(
-        caught instanceof UnsubscribeError
-          ? detail.t(caught.i18n_key)
-          : detail.t("mail.unsubscribe_failed"),
-        "error",
-      );
     }
   };
 
@@ -333,83 +276,6 @@ export default function EmailDetailPage() {
                     onClick={handle_block_sender_confirm}
                   >
                     {detail.t("mail.block_sender")}
-                  </Button>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        )}
-
-        {detail.is_unsubscribe_modal_open && (
-          <motion.div
-            key="unsubscribe-modal"
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            initial={reduce_motion ? false : { opacity: 0 }}
-            transition={{ duration: reduce_motion ? 0 : 0.15 }}
-          >
-            <div
-              className="fixed inset-0 aster_scrim z-50"
-              role="button"
-              tabIndex={0}
-              onClick={() => detail.set_is_unsubscribe_modal_open(false)}
-              onKeyDown={(e) => {
-                if (e["key"] === "Enter" || e["key"] === " ") {
-                  e.preventDefault();
-                  detail.set_is_unsubscribe_modal_open(false);
-                }
-              }}
-            />
-            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm z-50 px-4 sm:px-0">
-              <motion.div
-                animate={{ opacity: 1, scale: 1 }}
-                className="rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] p-4 sm:p-6"
-                exit={{ opacity: 0, scale: 0.95 }}
-                initial={reduce_motion ? false : { opacity: 0, scale: 0.95 }}
-                transition={{ duration: reduce_motion ? 0 : 0.15 }}
-              >
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                    <EnvelopeIcon className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />
-                  </div>
-                  <h2 className="text-base sm:text-lg font-semibold text-[var(--text-primary)]">
-                    {detail.t("mail.unsubscribe_title")}
-                  </h2>
-                </div>
-
-                <p className="text-xs sm:text-sm text-[var(--text-secondary)] mb-4">
-                  {detail.t("mail.unsubscribe_confirm_message")}
-                </p>
-
-                <div className="p-2 sm:p-3 rounded-lg mb-4 sm:mb-6 bg-[var(--bg-secondary)]">
-                  <p className="text-xs text-[var(--text-muted)] mb-2">
-                    {detail.t("mail.manual_unsubscribe_link")}
-                  </p>
-                  <a
-                    className="text-xs text-blue-500 hover:text-blue-600 break-all transition-colors"
-                    href={
-                      detail.email?.unsubscribe_info?.unsubscribe_link ?? "#"
-                    }
-                    rel="noopener noreferrer"
-                    target="_blank"
-                  >
-                    {detail.email?.unsubscribe_info?.unsubscribe_link ?? "#"}
-                  </a>
-                </div>
-
-                <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 sm:justify-end">
-                  <Button
-                    className="w-full sm:w-auto"
-                    variant="outline"
-                    onClick={() => detail.set_is_unsubscribe_modal_open(false)}
-                  >
-                    {detail.t("common.cancel")}
-                  </Button>
-                  <Button
-                    className="w-full sm:w-auto"
-                    onClick={handle_unsubscribe_confirm}
-                  >
-                    {detail.t("mail.unsubscribe")}
                   </Button>
                 </div>
               </motion.div>

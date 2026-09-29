@@ -74,6 +74,7 @@ import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal
 import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_change_confirm_modal";
 import { is_payment_navigation } from "@/lib/payment_navigation";
 import { format_bytes } from "@/lib/utils";
+import { scroll_to_storage_addons } from "@/components/layout/storage_meter";
 import {
   close_upgrade_modal,
   is_on_auth_route,
@@ -714,10 +715,9 @@ export function UpgradeModal() {
     close_upgrade_modal();
     requestAnimationFrame(() => {
       window.dispatchEvent(
-        new CustomEvent("navigate-settings", {
-          detail: { section: "billing", anchor: "additional_storage_section" },
-        }),
+        new CustomEvent("navigate-settings", { detail: "billing" }),
       );
+      scroll_to_storage_addons();
     });
   };
 
