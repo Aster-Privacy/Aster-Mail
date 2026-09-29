@@ -226,6 +226,9 @@ vi.mock("@/lib/overlay_layer_stack", () => ({
 }));
 
 vi.mock("@/lib/contact_trash", () => ({ is_contact_trashed: () => false }));
+vi.mock("@/hooks/use_suggestion_contacts", () => ({
+  use_suggestion_contacts: () => [],
+}));
 
 vi.mock("@/components/compose/compose_shared", () => ({
   EVENT_DISPATCH_DELAY_MS: 100,

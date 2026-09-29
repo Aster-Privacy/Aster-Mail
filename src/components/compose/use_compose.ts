@@ -33,8 +33,7 @@ import {
   useMemo,
 } from "react";
 
-import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
-import { is_contact_trashed } from "@/lib/contact_trash";
+import { use_suggestion_contacts } from "@/hooks/use_suggestion_contacts";
 import {
   list_recent_recipients,
   decrypt_recent_recipients,
@@ -299,7 +298,7 @@ export function use_compose({
   const plan_gate_ref = useRef({ plan_limits, is_feature_locked });
 
   plan_gate_ref.current = { plan_limits, is_feature_locked };
-  const [contacts, set_contacts] = useState<DecryptedContact[]>([]);
+  const contacts = use_suggestion_contacts(true, load_contacts_trigger);
   const [recent_recipients_list, set_recent_recipients_list] = useState<
     DecryptedRecentRecipient[]
   >([]);
@@ -634,23 +633,6 @@ export function use_compose({
   }, []);
 
   useEffect(() => {
-    const load_contacts_fn = async () => {
-      try {
-        const response = await list_contacts({ limit: 100 });
-
-        if (response.data?.items) {
-          const decrypted = await decrypt_contacts(response.data.items);
-
-          set_contacts(
-            decrypted.filter((contact) => !is_contact_trashed(contact)),
-          );
-        }
-      } catch (error) {
-        if (import.meta.env.DEV) console.error(error);
-        set_contacts([]);
-      }
-    };
-
     const load_recent_recipients_fn = async () => {
       if (!preferences.auto_save_recent_recipients) {
         set_recent_recipients_list([]);
@@ -673,7 +655,6 @@ export function use_compose({
       }
     };
 
-    load_contacts_fn();
     load_recent_recipients_fn();
   }, [load_contacts_trigger, preferences.auto_save_recent_recipients]);
 

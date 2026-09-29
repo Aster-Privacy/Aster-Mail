@@ -37,6 +37,7 @@ import {
   MAIL_EVENTS,
   emit_reactions_changed,
   emit_mail_items_removed,
+  emit_contacts_changed,
 } from "@/hooks/mail_events";
 import { mark_view_stale } from "@/hooks/email_list_cache";
 import { is_low_network } from "@/services/low_network_state";
@@ -55,6 +56,7 @@ type ServerMessageType =
   | "new_reaction"
   | "prekey_low"
   | "session_revoked"
+  | "contacts_changed"
   | "mail_mutation"
   | "ping"
   | "pong";
@@ -495,6 +497,12 @@ class SyncClient {
       this.should_reconnect = false;
       this.disconnect();
       window.dispatchEvent(new CustomEvent("astermail:session-revoked"));
+
+      return;
+    }
+
+    if (data.type === "contacts_changed") {
+      emit_contacts_changed();
 
       return;
     }
