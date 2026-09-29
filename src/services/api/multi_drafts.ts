@@ -22,6 +22,7 @@ import type { EncryptedVault } from "@/services/crypto/key_manager";
 
 import { api_client, type ApiResponse, type ApiErrorCode } from "./client";
 import { upload_timeout_ms } from "./upload_timeout";
+import { with_session_recovery } from "./session_recovery";
 
 import { HASH_ALG } from "@/services/crypto/constants";
 import {
@@ -641,10 +642,10 @@ export async function create_draft(
     attachment_count: att_count,
   };
 
-  const response = await api_client.post<CreateDraftApiResponse>(
-    "/mail/v1/drafts",
-    request,
-    { timeout: upload_timeout_ms(payload.encrypted.length) },
+  const response = await with_session_recovery(() =>
+    api_client.post<CreateDraftApiResponse>("/mail/v1/drafts", request, {
+      timeout: upload_timeout_ms(payload.encrypted.length),
+    }),
   );
 
   if (response.error || !response.data) {
@@ -708,10 +709,12 @@ export async function update_draft(
     attachment_count: update_att_count,
   };
 
-  const response = await api_client.put<UpdateDraftApiResponse>(
-    `/mail/v1/drafts/${draft_id}`,
-    request,
-    { timeout: upload_timeout_ms(payload.encrypted.length) },
+  const response = await with_session_recovery(() =>
+    api_client.put<UpdateDraftApiResponse>(
+      `/mail/v1/drafts/${draft_id}`,
+      request,
+      { timeout: upload_timeout_ms(payload.encrypted.length) },
+    ),
   );
 
   if (response.error) {

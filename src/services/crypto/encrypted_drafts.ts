@@ -31,6 +31,7 @@ import {
   type DraftType,
 } from "@/services/api/multi_drafts";
 import { emit_drafts_changed, emit_draft_updated } from "@/hooks/mail_events";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export interface DraftData {
   to_recipients: string[];
@@ -253,8 +254,11 @@ class DraftManager {
           return;
         }
 
-        if (response.code === "CONFLICT") {
-          if (response.data?.version !== undefined) {
+        if (response.code === "CONFLICT" || response.code === "NOT_FOUND") {
+          if (
+            response.code === "CONFLICT" &&
+            response.data?.version !== undefined
+          ) {
             context.version = response.data.version;
 
             if (context.is_deleted) {
@@ -275,19 +279,24 @@ class DraftManager {
               return;
             }
 
-            if (retry_response.data) {
-              context.version = retry_response.data.version;
-              context.last_content_hash = content_hash;
-              emit_draft_updated({
-                id: context.id,
-                version: retry_response.data.version,
-                to_recipients: content.to_recipients,
-                cc_recipients: content.cc_recipients,
-                bcc_recipients: content.bcc_recipients,
-                subject: content.subject,
-                message: content.message,
-              });
+            if (!retry_response.data) {
+              throw new DraftServiceError(
+                retry_response.error ??
+                  get_active_translations().common.save_failed,
+              );
             }
+
+            context.version = retry_response.data.version;
+            context.last_content_hash = content_hash;
+            emit_draft_updated({
+              id: context.id,
+              version: retry_response.data.version,
+              to_recipients: content.to_recipients,
+              cc_recipients: content.cc_recipients,
+              bcc_recipients: content.bcc_recipients,
+              subject: content.subject,
+              message: content.message,
+            });
 
             return;
           }
@@ -310,12 +319,16 @@ class DraftManager {
             return;
           }
 
-          if (new_response.data) {
-            context.id = new_response.data.id;
-            context.version = new_response.data.version;
-            context.last_content_hash = content_hash;
-            emit_drafts_changed();
+          if (!new_response.data) {
+            throw new DraftServiceError(
+              new_response.error ?? get_active_translations().common.save_failed,
+            );
           }
+
+          context.id = new_response.data.id;
+          context.version = new_response.data.version;
+          context.last_content_hash = content_hash;
+          emit_drafts_changed();
 
           return;
         }

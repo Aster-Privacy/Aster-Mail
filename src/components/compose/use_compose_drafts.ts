@@ -43,6 +43,8 @@ const AUTOSAVE_DELAY_MS = 1000;
 const LOW_NETWORK_AUTOSAVE_DELAY_MS = 5000;
 const HEAVY_DRAFT_AUTOSAVE_DELAY_MS = 20_000;
 const HEAVY_DRAFT_ATTACHMENT_BYTES = 2 * 1024 * 1024;
+const AUTOSAVE_RETRY_DELAY_MS = 15_000;
+const AUTOSAVE_MAX_RETRIES = 4;
 
 export function pick_autosave_delay(
   attachments: Attachment[],
@@ -122,6 +124,12 @@ export function use_compose_drafts({
   });
   const just_loaded_draft_ref = useRef(false);
   const user_modified_ref = useRef(false);
+  const save_failure_notified_ref = useRef(false);
+  const t_ref = useRef(t);
+
+  useEffect(() => {
+    t_ref.current = t;
+  }, [t]);
 
   useEffect(() => {
     draft_data_ref.current = { recipients, subject, message, from_email };
@@ -167,7 +175,7 @@ export function use_compose_drafts({
       preferences.low_network_mode,
     );
 
-    save_timer_ref.current = setTimeout(async () => {
+    const run_save = async (attempt: number): Promise<void> => {
       save_timer_ref.current = null;
 
       if (is_sending_ref.current || !context_id) {
@@ -189,6 +197,8 @@ export function use_compose_drafts({
         attachments: att_data,
       };
 
+      let saved = false;
+
       try {
         if (!has_csrf_token()) {
           await api_client.refresh_session();
@@ -200,15 +210,47 @@ export function use_compose_drafts({
           vault,
         );
 
-        if (result.success) {
-          set_draft_status("saved");
-          set_last_saved_time(new Date());
-        } else {
-          set_draft_status("error");
-        }
+        saved = result.success;
       } catch {
-        set_draft_status("error");
+        saved = false;
       }
+
+      if (saved) {
+        save_failure_notified_ref.current = false;
+        set_draft_status("saved");
+        set_last_saved_time(new Date());
+
+        return;
+      }
+
+      const live_context = draft_manager.get_context(context_id);
+
+      if (
+        draft_context_id_ref.current !== context_id ||
+        !live_context ||
+        live_context.is_deleted
+      ) {
+        set_draft_status("idle");
+
+        return;
+      }
+
+      set_draft_status("error");
+
+      if (!save_failure_notified_ref.current) {
+        save_failure_notified_ref.current = true;
+        show_toast(t_ref.current("common.save_failed"), "error");
+      }
+
+      if (attempt < AUTOSAVE_MAX_RETRIES && !save_timer_ref.current) {
+        save_timer_ref.current = setTimeout(() => {
+          void run_save(attempt + 1);
+        }, AUTOSAVE_RETRY_DELAY_MS);
+      }
+    };
+
+    save_timer_ref.current = setTimeout(() => {
+      void run_save(0);
     }, autosave_delay);
 
     return () => {
