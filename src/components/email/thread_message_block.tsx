@@ -261,6 +261,7 @@ export function ThreadMessageBlock(
           can_collapse
             ? (e) => {
                 e.stopPropagation();
+                if (!e.currentTarget.contains(e.target as Node)) return;
                 on_toggle();
               }
             : undefined
@@ -268,6 +269,7 @@ export function ThreadMessageBlock(
         onKeyDown={
           can_collapse
             ? (e) => {
+                if (!e.currentTarget.contains(e.target as Node)) return;
                 if (e["key"] === "Enter" || e["key"] === " ") {
                   e.preventDefault();
                   e.stopPropagation();

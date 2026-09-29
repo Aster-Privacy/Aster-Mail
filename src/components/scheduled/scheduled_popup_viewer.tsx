@@ -211,6 +211,7 @@ export function ScheduledPopupViewer({
   const handle_drag_start = useCallback(
     (e: React.MouseEvent) => {
       if (is_fullscreen) return;
+      if (!e.currentTarget.contains(e.target as Node)) return;
       if ((e.target as HTMLElement).closest("button")) return;
       if ((e.target as HTMLElement).closest("[data-no-drag]")) return;
       set_is_dragging(true);

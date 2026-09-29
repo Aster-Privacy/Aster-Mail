@@ -171,6 +171,67 @@ function category_sections(): EmojiSection[] {
   return renderable_sections;
 }
 
+const PREWARM_START_DELAY_MS = 1500;
+const PREWARM_BATCH_SIZE = 60;
+const PREWARM_IDLE_TIMEOUT_MS = 2000;
+const INITIAL_SECTION_COUNT = 2;
+
+type IdleCallback = (deadline?: { timeRemaining: () => number }) => void;
+
+function schedule_idle(callback: IdleCallback): void {
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(callback, { timeout: PREWARM_IDLE_TIMEOUT_MS });
+
+    return;
+  }
+
+  window.setTimeout(() => callback(), 16);
+}
+
+let prewarm_started = false;
+
+export function prewarm_emoji_picker(): void {
+  if (prewarm_started || renderable_sections) return;
+  if (typeof window === "undefined" || typeof document === "undefined") return;
+
+  prewarm_started = true;
+
+  const pending = Array.from(ENTRY_BY_EMOJI.keys()).filter(
+    (emoji) => !emoji_support_cache.has(emoji),
+  );
+  let cursor = 0;
+
+  const run_batch: IdleCallback = (deadline) => {
+    let processed = 0;
+
+    while (cursor < pending.length) {
+      is_emoji_renderable(pending[cursor]);
+      cursor += 1;
+      processed += 1;
+
+      const out_of_time = deadline
+        ? deadline.timeRemaining() <= 1
+        : processed >= PREWARM_BATCH_SIZE;
+
+      if (out_of_time) break;
+    }
+
+    if (cursor < pending.length) {
+      schedule_idle(run_batch);
+
+      return;
+    }
+
+    category_sections();
+  };
+
+  schedule_idle(run_batch);
+}
+
+if (typeof window !== "undefined" && import.meta.env.MODE !== "test") {
+  window.setTimeout(prewarm_emoji_picker, PREWARM_START_DELAY_MS);
+}
+
 function prefers_touch(): boolean {
   try {
     return window.matchMedia("(pointer: coarse)").matches;
@@ -365,6 +426,8 @@ function EmojiPicker({ on_select, on_dismiss, anchor_ref }: EmojiPickerProps) {
   );
 
   const [active_section, set_active_section] = useState(section_keys[0]);
+  const [rendered_count, set_rendered_count] = useState(INITIAL_SECTION_COUNT);
+  const is_fully_rendered = rendered_count >= sections.length;
 
   const search_results = useMemo(
     () =>
@@ -390,13 +453,13 @@ function EmojiPicker({ on_select, on_dismiss, anchor_ref }: EmojiPickerProps) {
       );
     }
 
-    return sections.map((section) => (
+    return sections.slice(0, rendered_count).map((section) => (
       <section key={section.key} data-section={section.key}>
         <SectionLabel>{category_label(section.key, t)}</SectionLabel>
         <EmojiGrid entries={section.entries} skin_tone={skin_tone} />
       </section>
     ));
-  }, [is_searching, search_results, sections, skin_tone, t]);
+  }, [is_searching, search_results, sections, rendered_count, skin_tone, t]);
 
   const select_entry = (entry: EmojiEntry) => {
     remember_recent(entry.emoji);
@@ -428,7 +491,15 @@ function EmojiPicker({ on_select, on_dismiss, anchor_ref }: EmojiPickerProps) {
 
     if (is_searching) {
       pending_jump_ref.current = key;
+      set_rendered_count(sections.length);
       set_search_query("");
+
+      return;
+    }
+
+    if (!is_fully_rendered) {
+      pending_jump_ref.current = key;
+      set_rendered_count(sections.length);
 
       return;
     }
@@ -600,6 +671,31 @@ function EmojiPicker({ on_select, on_dismiss, anchor_ref }: EmojiPickerProps) {
       set_active_section(section_keys[0]);
     }
   }, [is_searching, trimmed_query, section_keys]);
+
+  useLayoutEffect(() => {
+    const jump = pending_jump_ref.current;
+
+    if (!jump || is_searching || !is_fully_rendered) return;
+
+    pending_jump_ref.current = null;
+    scroll_to_section(jump);
+  }, [is_fully_rendered, is_searching]);
+
+  useEffect(() => {
+    if (is_fully_rendered) return;
+
+    let canceled = false;
+    const frame = window.requestAnimationFrame(() => {
+      window.setTimeout(() => {
+        if (!canceled) set_rendered_count(sections.length);
+      }, 0);
+    });
+
+    return () => {
+      canceled = true;
+      window.cancelAnimationFrame(frame);
+    };
+  }, [is_fully_rendered, sections.length]);
 
   useEffect(() => {
     if (!is_touch) input_ref.current?.focus({ preventScroll: true });

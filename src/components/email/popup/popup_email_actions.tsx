@@ -285,7 +285,7 @@ export function PopupEmailActions({
               className={`w-4 h-4 me-2 ${is_pinned ? "-rotate-[38deg] text-[var(--accent-color)]" : ""}`}
               filled={is_pinned}
             />
-            {is_pinned ? t("mail.unpin") : t("common.pinned_to_top")}
+            {is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           {is_archived && on_unarchive ? (
