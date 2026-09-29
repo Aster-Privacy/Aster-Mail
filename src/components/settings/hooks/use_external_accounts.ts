@@ -24,6 +24,8 @@ import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { use_tags } from "@/hooks/use_tags";
+import { use_folders } from "@/hooks/use_folders";
+import { mirror_external_account_folders } from "@/services/external_folder_mirror";
 import {
   list_external_accounts,
   create_external_account,
@@ -81,6 +83,37 @@ export function use_external_accounts() {
   );
   const tls_method_options = useMemo(() => get_tls_method_options(t), [t]);
   const { create_new_tag, update_existing_tag, state: tags_state } = use_tags();
+  const { state: folders_state } = use_folders();
+  const folders_ref = useRef(folders_state.folders);
+
+  const mirrored_accounts_ref = useRef(new Set<string>());
+
+  folders_ref.current = folders_state.folders;
+
+  const mirror_folders = useCallback(
+    async (account_token: string) => {
+      try {
+        const outcome = await mirror_external_account_folders(
+          account_token,
+          folders_ref.current,
+          t,
+        );
+
+        if (outcome.status === "error") {
+          show_toast(t("settings.oauth_folders_error"), "error");
+        } else if (outcome.status === "ok" && outcome.failures > 0) {
+          show_toast(
+            t("settings.oauth_folders_partial", { count: outcome.failures }),
+            "warning",
+          );
+        }
+      } catch (error) {
+        if (import.meta.env.DEV) console.error(error);
+        show_toast(t("settings.oauth_folders_error"), "error");
+      }
+    },
+    [t],
+  );
 
   const form = use_external_accounts_form(t);
 
@@ -313,6 +346,10 @@ export function use_external_accounts() {
 
           const account_id = result.data.id;
 
+          if (form.form_protocol === "imap") {
+            await mirror_folders(account_token);
+          }
+
           trigger_sync(account_token).then((sync_result) => {
             if (sync_result.data?.success) {
               global_start_sync_polling(account_id, account_token);
@@ -361,6 +398,7 @@ export function use_external_accounts() {
     tags_state.tags,
     fetch_accounts,
     save_account_settings,
+    mirror_folders,
     t,
   ]);
 
@@ -416,6 +454,15 @@ export function use_external_accounts() {
       if (check_is_syncing(account.id)) return;
 
       try {
+        if (
+          account.has_folder_mapping === false &&
+          !mirrored_accounts_ref.current.has(account.id) &&
+          (account.protocol === "imap" || account.protocol === "oauth_imap")
+        ) {
+          mirrored_accounts_ref.current.add(account.id);
+          await mirror_folders(account.account_token);
+        }
+
         const result = await trigger_sync(account.account_token);
 
         if (result.data?.success) {
@@ -431,7 +478,7 @@ export function use_external_accounts() {
         show_toast(t("settings.failed_sync"), "error");
       }
     },
-    [t],
+    [t, mirror_folders],
   );
 
   const handle_purge_confirm = useCallback(async () => {
