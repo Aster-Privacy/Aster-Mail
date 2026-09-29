@@ -229,16 +229,16 @@ export function ContactView({
 
   return (
     <div className="w-full">
-      <div className="mb-7 flex items-start gap-5">
+      <div className="mb-6 flex items-center gap-4">
         <ContactAvatar
           avatar_url={draft.avatar_url}
           email={draft.email_entries[0]?.value}
           name={`${draft.first_name || ""} ${draft.last_name || ""}`.trim()}
           profile_color={draft.profile_color}
-          size_px={104}
+          size_px={72}
         />
-        <div className="min-w-0 flex-1 pt-2">
-          <h2 className="truncate text-[26px] font-normal leading-tight text-txt-primary">
+        <div className="min-w-0 flex-1">
+          <h2 className="truncate text-[22px] font-semibold leading-tight text-txt-primary">
             {display_name}
           </h2>
           {draft.nickname.trim() && (
@@ -270,64 +270,60 @@ export function ContactView({
         </div>
       )}
 
+      <h3 className="aster_island_section_title mb-2 px-1">
+        {t("common.contact_details")}
+      </h3>
       {rows.length === 0 ? (
-        <div className="contact_view_card">
+        <div className="aster_island aster_island_pad_sm">
           <p className="text-[13px] text-txt-muted">
             {t("common.no_contact_details")}
           </p>
         </div>
       ) : (
-        <div className="contact_view_card">
-          <h3 className="mb-4 text-[15px] font-medium text-txt-primary">
-            {t("common.contact_details")}
-          </h3>
-          <div className="flex flex-col gap-4">
-            {rows.map((row) => (
-              <div key={row.key} className="flex items-start gap-4">
-                <span className="mt-[3px] flex-shrink-0 text-txt-muted">
-                  {row.icon}
-                </span>
-                <div className="min-w-0 flex-1 flex flex-col gap-1.5">
-                  {row.lines.map((line) => (
-                    <div
-                      key={line.key}
-                      className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5"
-                    >
-                      {line.href ? (
-                        <a
-                          className="contact_view_link min-w-0 break-words"
-                          href={line.href}
-                          rel={
-                            /^https?:/i.test(line.href)
-                              ? "noopener noreferrer"
-                              : undefined
-                          }
-                          target={
-                            /^https?:/i.test(line.href) ? "_blank" : undefined
-                          }
-                        >
-                          {line.text}
-                        </a>
-                      ) : (
-                        <button
-                          className="min-w-0 whitespace-pre-wrap break-words text-start text-[13.5px] text-txt-primary"
-                          type="button"
-                          onClick={() => void on_copy(line.text, line.key)}
-                        >
-                          {line.text}
-                        </button>
-                      )}
-                      {line.label && (
-                        <span className="flex-shrink-0 text-[12.5px] text-txt-muted">
-                          {"•"} {line.label}
-                        </span>
-                      )}
-                    </div>
-                  ))}
-                </div>
+        <div className="aster_island aster_island_divided">
+          {rows.map((row) => (
+            <div key={row.key} className="aster_island_row items-start">
+              <span className="aster_island_row_icon">{row.icon}</span>
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                {row.lines.map((line) => (
+                  <div
+                    key={line.key}
+                    className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5"
+                  >
+                    {line.href ? (
+                      <a
+                        className="contact_view_link min-w-0 break-words"
+                        href={line.href}
+                        rel={
+                          /^https?:/i.test(line.href)
+                            ? "noopener noreferrer"
+                            : undefined
+                        }
+                        target={
+                          /^https?:/i.test(line.href) ? "_blank" : undefined
+                        }
+                      >
+                        {line.text}
+                      </a>
+                    ) : (
+                      <button
+                        className="min-w-0 whitespace-pre-wrap break-words text-start text-[13.5px] text-txt-primary"
+                        type="button"
+                        onClick={() => void on_copy(line.text, line.key)}
+                      >
+                        {line.text}
+                      </button>
+                    )}
+                    {line.label && (
+                      <span className="flex-shrink-0 text-[12.5px] text-txt-muted">
+                        {"\u2022"} {line.label}
+                      </span>
+                    )}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

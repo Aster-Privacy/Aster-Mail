@@ -92,7 +92,7 @@ export function ContactFormBasic({
         </div>
       </div>
       {errors.first_name && (
-        <p className="text-[11px] text-red-500">{errors.first_name}</p>
+        <p className="text-[11px] text-[var(--color-danger)]">{errors.first_name}</p>
       )}
 
       <ContactFormSection
@@ -125,7 +125,7 @@ export function ContactFormBasic({
         ))}
       </div>
       {errors.emails && (
-        <p className="text-[11px] text-red-500">{errors.emails}</p>
+        <p className="text-[11px] text-[var(--color-danger)]">{errors.emails}</p>
       )}
       {form_data.emails.length < max_emails && (
         <button

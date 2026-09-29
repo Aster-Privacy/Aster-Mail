@@ -319,7 +319,7 @@ export function ContactMergeModal({
           )}
 
           {error && (
-            <p className="mt-2 px-2 text-[12.5px] text-red-400">{error}</p>
+            <p className="mt-2 px-2 text-[12.5px] text-[var(--color-danger)]">{error}</p>
           )}
         </div>
 

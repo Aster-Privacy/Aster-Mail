@@ -304,11 +304,11 @@ export function ContactGroupsPane({
     return (
       <>
         <div className="flex min-h-0 flex-1 flex-col">
-          <div className="flex flex-shrink-0 items-center gap-3 border-b border-edge-primary px-4 py-3">
+          <div className="flex flex-shrink-0 items-center gap-3 px-4 py-3">
             <Tooltip tip={t("common.back")}>
               <button
                 aria-label={t("common.back")}
-                className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] text-[var(--icon-secondary)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--icon-active)]"
+                className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[var(--icon-secondary)] transition-colors hover:bg-[var(--aster-hover)] hover:text-[var(--icon-active)]"
                 type="button"
                 onClick={() => {
                   set_open_group(null);
@@ -338,7 +338,7 @@ export function ContactGroupsPane({
               <Tooltip tip={t("common.email_group")}>
                 <button
                   aria-label={t("common.email_group")}
-                  className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] text-[var(--icon-secondary)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--icon-active)]"
+                  className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[var(--icon-secondary)] transition-colors hover:bg-[var(--aster-hover)] hover:text-[var(--icon-active)]"
                   type="button"
                   onClick={() => on_compose_to(member_emails)}
                 >
@@ -349,7 +349,7 @@ export function ContactGroupsPane({
             <Tooltip tip={t("common.delete_group")}>
               <button
                 aria-label={t("common.delete_group")}
-                className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] text-[var(--icon-secondary)] transition-colors hover:bg-[var(--bg-hover)] hover:text-[var(--color-danger)]"
+                className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-[var(--icon-secondary)] transition-colors hover:bg-[var(--aster-hover)] hover:text-[var(--color-danger)]"
                 type="button"
                 onClick={() => set_group_to_delete(open_group)}
               >
@@ -405,7 +405,7 @@ export function ContactGroupsPane({
                   <Tooltip tip={t("common.remove_from_group")}>
                     <button
                       aria-label={t("common.remove_from_group")}
-                      className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] text-txt-muted opacity-0 transition-opacity hover:text-[var(--color-danger)] focus-visible:opacity-100 group-hover/member:opacity-100"
+                      className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-txt-muted opacity-0 transition-opacity hover:text-[var(--color-danger)] focus-visible:opacity-100 group-hover/member:opacity-100"
                       type="button"
                       onClick={() => void remove_member(contact)}
                     >
@@ -476,7 +476,7 @@ export function ContactGroupsPane({
           visible_groups.map((group) => (
             <div
               key={group.id}
-              className="contact_group_row group/group my-0.5 flex w-full items-center gap-3 px-3 py-2"
+              className="contact_group_row group/group my-0.5 flex w-full items-center gap-3 rounded-[var(--aster-radius-control)] px-3 py-2"
             >
               <button
                 className="flex min-w-0 flex-1 items-center gap-3 text-start"
@@ -500,7 +500,7 @@ export function ContactGroupsPane({
               <Tooltip tip={t("common.delete_group")}>
                 <button
                   aria-label={t("common.delete_group")}
-                  className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[8px] text-txt-muted opacity-0 transition-opacity hover:text-[var(--color-danger)] focus-visible:opacity-100 group-hover/group:opacity-100"
+                  className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-txt-muted opacity-0 transition-opacity hover:text-[var(--color-danger)] focus-visible:opacity-100 group-hover/group:opacity-100"
                   type="button"
                   onClick={() => set_group_to_delete(group)}
                 >
