@@ -19,8 +19,43 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+#[cfg(not(target_os = "macos"))]
+use std::sync::atomic::{AtomicBool, Ordering};
+
+#[cfg(not(target_os = "macos"))]
+use tauri::Manager;
+
+#[cfg(not(target_os = "macos"))]
+static TRAY_SHOWS_UNREAD: AtomicBool = AtomicBool::new(false);
+
+#[cfg(not(target_os = "macos"))]
+fn update_tray_icon(window: &tauri::WebviewWindow, has_unread: bool) {
+    if TRAY_SHOWS_UNREAD.load(Ordering::Relaxed) == has_unread {
+        return;
+    }
+    let bytes = if has_unread {
+        crate::TRAY_ICON_UNREAD
+    } else {
+        crate::TRAY_ICON
+    };
+    let Ok(image) = tauri::image::Image::from_bytes(bytes) else {
+        return;
+    };
+    let state = window.state::<crate::TrayState>();
+    let Ok(guard) = state.0.lock() else {
+        return;
+    };
+    if let Some(tray) = guard.as_ref() {
+        if tray.set_icon(Some(image)).is_ok() {
+            TRAY_SHOWS_UNREAD.store(has_unread, Ordering::Relaxed);
+        }
+    }
+}
+
 #[tauri::command]
 pub fn set_unread_badge(window: tauri::WebviewWindow, count: u32) -> std::result::Result<(), String> {
+    #[cfg(not(target_os = "macos"))]
+    update_tray_icon(&window, count > 0);
     #[cfg(windows)]
     {
         if count == 0 {
