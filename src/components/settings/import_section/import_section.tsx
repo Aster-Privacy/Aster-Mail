@@ -75,18 +75,9 @@ import {
   type DecryptedExternalAccount,
 } from "@/services/api/external_accounts";
 import { stop_sync_polling } from "@/services/sync_manager";
-import {
-  list_oauth_folders,
-  save_folder_mapping,
-} from "@/services/api/external_accounts/api";
-import {
-  generate_folder_token,
-  encrypt_folder_field,
-  use_folders,
-} from "@/hooks/use_folders";
-import { create_folder } from "@/services/api/folders";
+import { use_folders } from "@/hooks/use_folders";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
-import { ensure_default_labels } from "@/services/labels/ensure_defaults";
+import { mirror_external_account_folders } from "@/services/external_folder_mirror";
 import { ignore_error } from "@/lib/ignore_error";
 import {
   emit_folders_changed,
@@ -259,157 +250,22 @@ export function ImportSection() {
       set_syncing_accounts((prev) => new Set(prev).add(account_token));
 
       try {
-        await ensure_default_labels(vault, t);
+        const outcome = await mirror_external_account_folders(
+          account_token,
+          folders_state.folders,
+          t,
+          () => oauth_cancelled_ref.current,
+        );
 
-        const folders_result = await list_oauth_folders(account_token);
+        if (outcome.status === "cancelled") return;
 
-        if (!folders_result.data?.folders?.length) {
-          set_folder_setup_status("idle");
-          await run_sync(account_token);
-          load_connected_accounts();
-
-          return;
-        }
-
-        const normalize_name = (name: string) => {
-          if (name.toUpperCase() === "INBOX") return t("mail.inbox");
-
-          return name;
-        };
-
-        // Reuse an existing folder with the same name instead of creating a
-        // duplicate (e.g. when setup runs again after a reload, or the user
-        // already has a folder by that name).
-        const find_existing_token = (name: string) =>
-          folders_state.folders.find(
-            (f) => f.name.toLowerCase() === name.toLowerCase(),
-          )?.folder_token;
-
-        const included_folders = folders_result.data.folders
-          .filter((f) => !f.excluded && f.name.toUpperCase() !== "INBOX")
-          .sort((a, b) => {
-            const depth_a = a.delimiter ? a.name.split(a.delimiter).length : 1;
-            const depth_b = b.delimiter ? b.name.split(b.delimiter).length : 1;
-
-            return depth_a - depth_b;
-          });
-
-        const mapping: Record<string, string> = {};
-        const parent_tokens: Record<string, string> = {};
-        let folder_failures = 0;
-
-        for (const folder of included_folders) {
-          if (oauth_cancelled_ref.current) break;
-
-          const parts = folder.delimiter
-            ? folder.name.split(folder.delimiter)
-            : [folder.name];
-
-          let parent_token: string | undefined;
-          let aborted_branch = false;
-
-          for (let i = 0; i < parts.length; i++) {
-            if (aborted_branch) break;
-
-            const full_path = parts
-              .slice(0, i + 1)
-              .join(folder.delimiter || "/");
-            const display_name = normalize_name(parts[i]);
-            const is_leaf = i === parts.length - 1;
-
-            if (!is_leaf) {
-              if (!parent_tokens[full_path]) {
-                const existing = find_existing_token(display_name);
-
-                if (existing) {
-                  parent_tokens[full_path] = existing;
-                } else {
-                  try {
-                    const token = generate_folder_token();
-                    const { encrypted, nonce } = await encrypt_folder_field(
-                      display_name,
-                      vault.identity_key,
-                    );
-
-                    const created = await create_folder({
-                      folder_token: token,
-                      encrypted_name: encrypted,
-                      name_nonce: nonce,
-                      parent_token: parent_token,
-                    });
-
-                    if (created.error) {
-                      folder_failures++;
-                      aborted_branch = true;
-                      continue;
-                    }
-                    parent_tokens[full_path] = token;
-                  } catch {
-                    folder_failures++;
-                    aborted_branch = true;
-                    continue;
-                  }
-                }
-              }
-
-              parent_token = parent_tokens[full_path];
-            } else {
-              if (parent_tokens[folder.name]) {
-                mapping[folder.name] = parent_tokens[folder.name];
-                continue;
-              }
-
-              const existing = find_existing_token(display_name);
-
-              if (existing) {
-                mapping[folder.name] = existing;
-                parent_tokens[folder.name] = existing;
-                continue;
-              }
-
-              try {
-                const token = generate_folder_token();
-                const { encrypted, nonce } = await encrypt_folder_field(
-                  display_name,
-                  vault.identity_key,
-                );
-
-                const created = await create_folder({
-                  folder_token: token,
-                  encrypted_name: encrypted,
-                  name_nonce: nonce,
-                  parent_token: parent_token,
-                });
-
-                if (created.error) {
-                  folder_failures++;
-                  continue;
-                }
-                mapping[folder.name] = token;
-                parent_tokens[folder.name] = token;
-              } catch {
-                folder_failures++;
-                continue;
-              }
-            }
-          }
-        }
-
-        if (folder_failures > 0) {
+        if (outcome.status === "error") {
+          show_toast(t("settings.oauth_folders_error"), "error");
+        } else if (outcome.status === "ok" && outcome.failures > 0) {
           show_toast(
-            t("settings.oauth_folders_partial", { count: folder_failures }),
+            t("settings.oauth_folders_partial", { count: outcome.failures }),
             "warning",
           );
-        }
-
-        if (oauth_cancelled_ref.current) return;
-
-        if (Object.keys(mapping).length > 0) {
-          const saved = await save_folder_mapping(account_token, mapping);
-
-          if (saved.error) {
-            show_toast(t("settings.oauth_folders_error"), "error");
-          }
         }
 
         set_folder_setup_status("idle");
