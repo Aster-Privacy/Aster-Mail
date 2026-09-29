@@ -250,7 +250,7 @@ export const SidebarFolders = memo(function SidebarFolders({
               {handle_sort_a_to_z && can_sort_a_to_z && (
                 <button
                   aria-label={t("common.sort_a_to_z")}
-                  className="p-1 rounded-[var(--aster-radius-item)] hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-icon-muted"
+                  className="p-1 rounded-[var(--aster-radius-item)] hover:bg-[var(--aster-hover)] text-icon-muted"
                   data-rail-tip={t("common.sort_a_to_z")}
                   data-testid="folders-sort-a-to-z"
                   type="button"

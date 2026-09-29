@@ -968,7 +968,7 @@ export function AliasImportModal({
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       checked={conflict_mode === "skip"}
-                      className="accent-blue-500"
+                      className="accent-[var(--accent-color)]"
                       name="conflict_mode"
                       type="radio"
                       onChange={() => set_conflict_mode("skip")}
@@ -980,7 +980,7 @@ export function AliasImportModal({
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input
                       checked={conflict_mode === "update"}
-                      className="accent-blue-500"
+                      className="accent-[var(--accent-color)]"
                       name="conflict_mode"
                       type="radio"
                       onChange={() => set_conflict_mode("update")}

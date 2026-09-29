@@ -959,7 +959,7 @@ export function InboxHeader({
                 })}
               </span>
               <button
-                className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+                className="flex-shrink-0 text-xs font-medium text-[var(--accent-color)] rounded px-1.5 py-0.5 hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-colors"
                 onClick={on_activate_select_all_mode}
               >
                 {t("mail.select_all_in_folder", {
@@ -976,7 +976,7 @@ export function InboxHeader({
                 })}
               </span>
               <button
-                className="flex-shrink-0 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+                className="flex-shrink-0 text-xs font-medium text-[var(--accent-color)] rounded px-1.5 py-0.5 hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-colors"
                 onClick={on_clear_selection}
               >
                 {t("mail.clear_selection")}

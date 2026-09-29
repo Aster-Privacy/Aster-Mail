@@ -285,7 +285,7 @@ function PersonChip({
         {is_active && (
           <div className="p-2">
             <button
-              className="text-xs font-medium text-blue-500 hover:underline"
+              className="text-xs font-medium text-[var(--accent-color)] hover:underline"
               type="button"
               onClick={() => {
                 set_is_open(false);

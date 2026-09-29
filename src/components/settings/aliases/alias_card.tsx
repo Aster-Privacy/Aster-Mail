@@ -422,7 +422,7 @@ export function AliasItem({
               websites={alias.websites}
             />
             {in_grace_period && (
-              <p className="text-xs mt-0.5 text-amber-600 dark:text-amber-400">
+              <p className="text-xs mt-0.5 text-[var(--color-warning)]">
                 {t("settings.alias_grace_upgrade_hint" as TranslationKey)}
               </p>
             )}
@@ -491,7 +491,7 @@ export function AliasItem({
           {!alias.is_retained_primary && (
             <Button
               aria-label={t("common.delete")}
-              className="h-8 w-8 hover:text-red-500 hover:bg-red-500/10"
+              className="h-8 w-8 hover:text-[var(--color-danger)] hover:bg-[color-mix(in_srgb,var(--color-danger)_10%,transparent)]"
               disabled={deleting}
               size="icon"
               variant="ghost"
@@ -692,16 +692,12 @@ export function DomainAddressItem({
             >
               {full_address}
             </button>
-            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-surf-tertiary text-txt-muted">
+            <Badge className="flex-shrink-0" color="gray">
               {t("common.custom")}
-            </span>
+            </Badge>
             {is_primary && (
               <span
-                className="inline-flex shrink-0 items-center gap-1 rounded-[14px] border px-2 py-0.5 text-[12px] font-medium text-txt-secondary"
-                style={{
-                  borderColor:
-                    "color-mix(in srgb, var(--text-primary) 14%, transparent)",
-                }}
+                className="inline-flex shrink-0 items-center gap-1 rounded-[14px] border border-edge-secondary px-2 py-0.5 text-[12px] font-medium text-txt-secondary"
               >
                 {t("settings.primary_badge")}
               </span>
@@ -794,7 +790,7 @@ export function DomainAddressItem({
 
           <Button
             aria-label={t("common.delete")}
-            className="h-8 w-8 hover:text-red-500 hover:bg-red-500/10"
+            className="h-8 w-8 hover:text-[var(--color-danger)] hover:bg-[color-mix(in_srgb,var(--color-danger)_10%,transparent)]"
             disabled={deleting}
             size="icon"
             variant="ghost"

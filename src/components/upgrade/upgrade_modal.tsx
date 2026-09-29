@@ -1138,7 +1138,7 @@ export function UpgradeModal() {
                 <li className="flex items-center">
                   <select
                     aria-label={t("settings.select_currency")}
-                    className="cursor-pointer rounded-md bg-transparent py-0.5 text-xs font-medium text-txt-secondary underline decoration-dotted underline-offset-4 outline-none transition-colors hover:text-txt-primary focus-visible:ring-2 focus-visible:ring-blue-500"
+                    className="cursor-pointer rounded-md bg-transparent py-0.5 text-xs font-medium text-txt-secondary underline decoration-dotted underline-offset-4 outline-none transition-colors hover:text-txt-primary focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
                     value={currency}
                     onChange={handle_currency_change}
                   >

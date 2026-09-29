@@ -440,9 +440,7 @@ export const InboxEmailListItem = memo(
                     className={cn(
                       "transition-opacity duration-150",
                       avatar_size_class,
-                      email.is_selected
-                        ? "opacity-0"
-                        : "group-hover/avatar:opacity-0",
+                      email.is_selected && "opacity-0",
                     )}
                   >
                     {is_system_email(email) ? (
@@ -477,7 +475,7 @@ export const InboxEmailListItem = memo(
                       "absolute inset-0 rounded-full flex items-center justify-center transition-opacity duration-150",
                       email.is_selected
                         ? "opacity-100 bg-[var(--accent-color,#3b82f6)]"
-                        : "opacity-0 group-hover/avatar:opacity-100 bg-black/20 dark:bg-white/20",
+                        : "opacity-0 group-hover/avatar:opacity-100 bg-[color-mix(in_srgb,var(--accent-color,#3b82f6)_75%,transparent)]",
                     )}
                   >
                     <CheckIcon className="w-4 h-4 text-[var(--accent-fg,#ffffff)]" />

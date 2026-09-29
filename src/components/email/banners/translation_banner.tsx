@@ -269,7 +269,7 @@ export function TranslationBanner({
               {action && (
                 <button
                   key={action.kind}
-                  className="flex flex-shrink-0 rounded px-1.5 py-0.5 text-xs font-medium text-blue-500 outline-none transition-colors hover:bg-blue-500/10 focus-visible:ring-2 focus-visible:ring-blue-500/60"
+                  className="flex flex-shrink-0 rounded px-1.5 py-0.5 text-xs font-medium text-[var(--accent-color)] outline-none transition-colors hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--accent-color)_60%,transparent)]"
                   type="button"
                   onClick={action.on_click}
                 >

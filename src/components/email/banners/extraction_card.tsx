@@ -180,7 +180,7 @@ export function ExtractionCardAction({
 }: ExtractionCardActionProps) {
   return (
     <button
-      className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-500/10 transition-colors"
+      className="inline-flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-[var(--accent-color)] hover:bg-[color-mix(in_srgb,var(--accent-color)_10%,transparent)] transition-colors"
       data-testid={test_id}
       type="button"
       onClick={on_click}

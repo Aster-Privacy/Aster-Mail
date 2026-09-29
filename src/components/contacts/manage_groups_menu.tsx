@@ -117,7 +117,7 @@ export function ManageGroupsMenu({
                 >
                   <span
                     aria-hidden="true"
-                    className="w-4 h-4 rounded-[4px] border border-edge-primary flex items-center justify-center flex-shrink-0"
+                    className="w-4 h-4 rounded-[4px] border-[1.25px] border-[var(--checkbox-border)] flex items-center justify-center flex-shrink-0"
                     style={{
                       backgroundColor:
                         state === "none" ? "transparent" : group.color,

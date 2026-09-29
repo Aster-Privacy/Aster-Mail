@@ -1410,13 +1410,52 @@ export function get_inbox_unread_total(): number | null {
 }
 
 let published_unread_total: number | null = null;
+let published_unread_account: string | null = null;
+let unread_hold_started_at = 0;
+let unread_hold_timer: ReturnType<typeof setTimeout> | null = null;
+
+const UNREAD_HOLD_MAX_MS = 60_000;
+
+function should_hold_published_unread(total: number | null): boolean {
+  if (total !== null || published_unread_total === null) return false;
+  if (loaded_for_account === null || build_capped) return false;
+  if (loaded_for_account !== published_unread_account) return false;
+  if (!build_in_progress && fully_built && session_reconciled) return false;
+
+  const now = Date.now();
+
+  if (unread_hold_started_at === 0) unread_hold_started_at = now;
+  if (now - unread_hold_started_at >= UNREAD_HOLD_MAX_MS) return false;
+
+  if (unread_hold_timer === null) {
+    unread_hold_timer = setTimeout(
+      () => {
+        unread_hold_timer = null;
+        publish_inbox_unread();
+      },
+      UNREAD_HOLD_MAX_MS - (now - unread_hold_started_at),
+    );
+  }
+
+  return true;
+}
 
 function publish_inbox_unread(): void {
   const total = get_inbox_unread_total();
 
+  if (should_hold_published_unread(total)) return;
+
+  unread_hold_started_at = 0;
+
+  if (unread_hold_timer !== null) {
+    clearTimeout(unread_hold_timer);
+    unread_hold_timer = null;
+  }
+
   if (total === published_unread_total) return;
 
   published_unread_total = total;
+  published_unread_account = total === null ? null : loaded_for_account;
 
   if (typeof window === "undefined") return;
 

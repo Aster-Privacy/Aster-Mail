@@ -107,7 +107,7 @@ function LockdownBanner({
 
   return (
     <button
-      className="mx-3 mb-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 text-red-500 text-xs font-medium hover:bg-red-500/15 transition-colors"
+      className="mx-3 mb-2 flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--aster-radius-item)] bg-[color-mix(in_srgb,var(--color-danger)_10%,transparent)] text-[var(--color-danger)] text-xs font-medium hover:bg-[color-mix(in_srgb,var(--color-danger)_15%,transparent)] transition-colors"
       type="button"
       onClick={() => on_settings_click("security")}
     >

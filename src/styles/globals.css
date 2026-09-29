@@ -2464,17 +2464,17 @@ button.press_scale:active {
 }
 
 .quick_contacts_error {
-  color: #b42318;
-  background-color: color-mix(in srgb, #b42318 12%, transparent);
+  color: var(--color-danger);
+  background-color: color-mix(in srgb, var(--color-danger) 12%, transparent);
 }
 
 .quick_contacts_danger {
-  color: #b42318;
+  color: var(--color-danger);
   transition: background-color 0.15s ease;
 }
 
 .quick_contacts_danger:hover:not(:disabled) {
-  background-color: color-mix(in srgb, #b42318 12%, transparent);
+  background-color: color-mix(in srgb, var(--color-danger) 12%, transparent);
 }
 
 .quick_contacts_search_clear {
@@ -3647,7 +3647,7 @@ input:-webkit-autofill:active {
 .account_avatar_ring.plan_ring::after {
   content: "";
   position: absolute;
-  inset: -8px;
+  inset: -5px;
   z-index: -2;
   border-radius: 9999px;
   background-color: transparent;

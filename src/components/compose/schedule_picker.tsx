@@ -224,7 +224,7 @@ export function SchedulePicker({
           <span>{format_datetime_hint(scheduled_time, false)}</span>
           <button
             aria-label={t("common.clear")}
-            className="ms-0.5 hover:bg-blue-500/20 rounded p-0.5 transition-colors disabled:opacity-50"
+            className="ms-0.5 hover:bg-[color-mix(in_srgb,var(--color-info)_20%,transparent)] rounded p-0.5 transition-colors disabled:opacity-50"
             disabled={disabled}
             type="button"
             onClick={handle_clear}

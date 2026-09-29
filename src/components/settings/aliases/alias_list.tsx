@@ -167,7 +167,7 @@ function UndecryptableAliasCard({
         {orphaned ? (
           <InformationCircleIcon className="w-5 h-5 text-brand" />
         ) : (
-          <ExclamationTriangleIcon className="w-5 h-5 text-amber-500" />
+          <ExclamationTriangleIcon className="w-5 h-5 text-[var(--color-warning)]" />
         )}
       </div>
       <div className="flex-1 min-w-0">
@@ -229,7 +229,7 @@ function UndecryptableAliasCard({
               </Button>
             </div>
             {restore_error && (
-              <p className="text-xs text-red-500">{restore_error}</p>
+              <p className="text-xs text-[var(--color-danger)]">{restore_error}</p>
             )}
           </div>
         )}
@@ -237,8 +237,8 @@ function UndecryptableAliasCard({
       <Button
         className={`h-8 w-8 flex-shrink-0 ${
           orphaned
-            ? "text-txt-muted hover:text-red-500 hover:bg-red-500/10"
-            : "text-red-500 hover:text-red-500 hover:bg-red-500/10"
+            ? "text-txt-muted hover:text-[var(--color-danger)] hover:bg-[color-mix(in_srgb,var(--color-danger)_10%,transparent)]"
+            : "text-[var(--color-danger)] hover:text-[var(--color-danger)] hover:bg-[color-mix(in_srgb,var(--color-danger)_10%,transparent)]"
         }`}
         disabled={deleting}
         size="icon"
@@ -735,7 +735,7 @@ export function AliasList({
               {t("settings.alias_bulk_disable")}
             </Button>
             <Button
-              className="text-red-500 hover:text-red-500"
+              className="text-[var(--color-danger)] hover:text-[var(--color-danger)]"
               disabled={selected_ids.size === 0}
               size="sm"
               variant="outline"

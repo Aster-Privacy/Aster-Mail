@@ -184,7 +184,9 @@ export async function build_index_full(
       if (better) return;
     }
 
-    index.total_indexed = index.items.length;
+    index.total_indexed = reusable
+      ? Math.max(index.items.length, prior_index?.total_indexed ?? 0)
+      : index.items.length;
     cached_index = index;
     signal_partial_ready();
     emit_index_refreshed();
@@ -307,7 +309,7 @@ export async function build_index_front_refresh(
     }
 
     index.built_at = Date.now();
-    index.total_indexed = index.items.length;
+    index.total_indexed = Math.max(index.items.length, base.total);
     index.complete = base.complete;
     index.disk_chunk_ids = keep_ids;
     index.meta = base;

@@ -235,7 +235,7 @@ export function TrustedDevicesPanel() {
         trailing={
           devices.length > 1 ? (
             <Button
-              className="whitespace-nowrap flex-shrink-0 text-red-500 hover:text-red-600"
+              className="whitespace-nowrap flex-shrink-0 text-[var(--color-danger)] hover:text-[var(--color-danger)]"
               disabled={is_revoking_all}
               variant="outline"
               onClick={() => set_pending_revoke_all(true)}

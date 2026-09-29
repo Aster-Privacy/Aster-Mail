@@ -224,7 +224,7 @@ function render_option(
           }
           className={`flex-shrink-0 p-1.5 rounded transition-opacity ${
             is_preferred
-              ? "opacity-100 text-blue-500 hover:text-blue-500"
+              ? "opacity-100 text-[var(--accent-color)] hover:text-[var(--accent-color)]"
               : "sm:opacity-0 opacity-60 sm:group-hover:opacity-60 text-txt-muted hover:opacity-100"
           }`}
           title={

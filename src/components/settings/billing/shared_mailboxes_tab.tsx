@@ -559,7 +559,7 @@ export function SharedMailboxesTab({
     <div className="space-y-4">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
         <div
-          className={`flex items-center h-9 rounded-[var(--aster-radius-control)] border bg-white dark:bg-white/[0.04] overflow-hidden min-w-0 sm:flex-1 transition-[border-color,box-shadow] duration-150 ${address_available === true ? "border-green-500" : address_available === false ? "border-red-500" : "border-black/10 dark:border-white/10 hover:border-black/[0.18] dark:hover:border-white/[0.18] focus-within:border-[var(--accent-color)] focus-within:shadow-[inset_0_0_0_1px_var(--accent-color)] dark:focus-within:border-[var(--accent-color)] hover:focus-within:border-[var(--accent-color)] dark:hover:focus-within:border-[var(--accent-color)]"}`}
+          className={`flex items-center h-9 rounded-[var(--aster-radius-control)] border bg-white dark:bg-white/[0.04] overflow-hidden min-w-0 sm:flex-1 transition-[border-color,box-shadow] duration-150 ${address_available === true ? "border-green-500" : address_available === false ? "border-red-500" : "border-[var(--input-border)] hover:border-[var(--input-border-hover)] focus-within:border-[var(--accent-color)] focus-within:shadow-[inset_0_0_0_1px_var(--accent-color)] dark:focus-within:border-[var(--accent-color)] hover:focus-within:border-[var(--accent-color)] dark:hover:focus-within:border-[var(--accent-color)]"}`}
         >
           <input
             className="bg-transparent text-sm text-txt-primary outline-none px-3 h-full flex-1 min-w-0 placeholder:text-txt-muted"
@@ -581,7 +581,7 @@ export function SharedMailboxesTab({
             @
           </span>
           <Select value={new_domain} onValueChange={set_new_domain}>
-            <SelectTrigger className="border-0 border-s border-black/10 dark:border-white/10 rounded-none bg-transparent h-full shadow-none text-sm min-w-0 max-w-[160px] px-2">
+            <SelectTrigger className="border-0 border-s border-edge-primary rounded-none bg-transparent h-full shadow-none text-sm min-w-0 max-w-[160px] px-2">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

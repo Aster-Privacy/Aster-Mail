@@ -525,7 +525,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
               {email_list_content}
             </div>
             <div
-              className={`${is_bottom_pane ? "h-px cursor-row-resize" : "w-px cursor-col-resize"} relative hover:bg-blue-500 shrink-0 ${split_pane.is_dragging ? "bg-blue-500" : "bg-edge-primary"}`}
+              className={`${is_bottom_pane ? "h-px cursor-row-resize" : "w-px cursor-col-resize"} relative hover:bg-[var(--accent-color)] shrink-0 ${split_pane.is_dragging ? "bg-[var(--accent-color)]" : "bg-edge-primary"}`}
               role="presentation"
               onMouseDown={split_pane.handle_drag_start}
             >

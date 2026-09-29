@@ -30,8 +30,34 @@
     var cached = localStorage.getItem("aster_preferences_cache");
     var color_theme = null;
 
-    if (cached) {
-      color_theme = JSON.parse(cached).color_theme;
+    var cached_prefs = cached ? JSON.parse(cached) : null;
+
+    if (cached_prefs) {
+      color_theme = cached_prefs.color_theme;
+    }
+
+    var text_size = cached_prefs;
+    if (!text_size) {
+      var text_size_raw = localStorage.getItem("aster_text_size");
+      text_size = text_size_raw ? JSON.parse(text_size_raw) : null;
+    }
+
+    if (text_size) {
+      var legacy_sizes = { small: 14, default: 15, large: 17, extra_large: 19 };
+      var raw_size = text_size.font_size_scale;
+      var font_px = 15;
+      if (typeof raw_size === "number" && isFinite(raw_size)) {
+        font_px = Math.min(22, Math.max(12, Math.round(raw_size)));
+      } else if (typeof raw_size === "string" && legacy_sizes[raw_size]) {
+        font_px = legacy_sizes[raw_size];
+      }
+      document.documentElement.style.setProperty(
+        "--font-scale",
+        String(font_px / 15),
+      );
+      if (text_size.compact_mode === true) {
+        document.documentElement.classList.add("compact-mode");
+      }
     }
 
     if (color_theme && THEME_COLORS[color_theme]) {
