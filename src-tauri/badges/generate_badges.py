@@ -1,20 +1,18 @@
-from PIL import Image, ImageDraw, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageFont
 import os
 
-SIZE = 128
-SS = 8
+SIZE = 32
+SS = 16
 CANVAS = SIZE * SS
-FILL = (232, 33, 61, 255)
-RING = (255, 255, 255, 255)
-SHADOW = (0, 0, 0, 110)
+FILL = (225, 29, 72, 255)
+RING = (10, 10, 14, 235)
 TEXT = (255, 255, 255, 255)
 FONT_PATH = "C:/Windows/Fonts/segoeuib.ttf"
 
-HEIGHT_PX = 62.0
-MARGIN_PX = 1.0
-RING_PX = 3.5
-SHADOW_BLUR_PX = 2.5
-SHADOW_OFFSET_PX = 1.5
+DIAM_PX = 22.0
+MARGIN_PX = 0.5
+RING_PX = 1.1
+SCALE = DIAM_PX / SIZE
 
 
 def label_for(count):
@@ -23,19 +21,18 @@ def label_for(count):
     return str(count)
 
 
-def fitted_font(draw, label, inner_w, inner_h):
-    target_w = inner_w * 0.78
-    target_h = inner_h * 0.56
+def fitted_font(draw, label):
+    target_w = {1: 17.5, 2: 22.0, 3: 27.5}[len(label)] * SCALE
+    target_h = {1: 19.0, 2: 17.0, 3: 15.5}[len(label)] * SCALE
     lo, hi = 8, CANVAS
     best = None
     while lo <= hi:
         mid = (lo + hi) // 2
         font = ImageFont.truetype(FONT_PATH, mid)
-        box = draw.textbbox((0, 0), "0", font=font)
-        digit_h = box[3] - box[1]
         box = draw.textbbox((0, 0), label, font=font)
         w = box[2] - box[0]
-        if w <= target_w and digit_h <= target_h:
+        h = box[3] - box[1]
+        if w <= target_w * SS and h <= target_h * SS:
             best = (font, box)
             lo = mid + 1
         else:
@@ -43,43 +40,27 @@ def fitted_font(draw, label, inner_w, inner_h):
     return best
 
 
-def pill_width(label):
-    extra = {1: 0.0, 2: 0.32, 3: 0.72}[len(label)]
-    return HEIGHT_PX * (1.0 + extra)
-
-
 def render(count):
-    label = label_for(count)
-    height = HEIGHT_PX * SS
-    width = pill_width(label) * SS
-    right = CANVAS - 1 - MARGIN_PX * SS
-    bottom = right
-    left = right - width
-    top = bottom - height
-    radius = height / 2
-
-    shadow = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
-    sd = ImageDraw.Draw(shadow)
-    off = SHADOW_OFFSET_PX * SS
-    sd.rounded_rectangle([left, top + off, right, bottom + off], radius=radius, fill=SHADOW)
-    shadow = shadow.filter(ImageFilter.GaussianBlur(SHADOW_BLUR_PX * SS))
-
     im = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
     d = ImageDraw.Draw(im)
-    d.rounded_rectangle([left, top, right, bottom], radius=radius, fill=RING)
-    ring = RING_PX * SS
-    d.rounded_rectangle([left + ring, top + ring, right - ring, bottom - ring], radius=radius - ring, fill=FILL)
 
-    font, box = fitted_font(d, label, width - 2 * ring, height - 2 * ring)
+    right = CANVAS - 1 - MARGIN_PX * SS
+    bottom = right
+    left = right - DIAM_PX * SS
+    top = bottom - DIAM_PX * SS
+    d.ellipse([left, top, right, bottom], fill=RING)
+    ring = RING_PX * SS
+    d.ellipse([left + ring, top + ring, right - ring, bottom - ring], fill=FILL)
+
+    label = label_for(count)
+    font, box = fitted_font(d, label)
     w = box[2] - box[0]
-    digit_box = d.textbbox((0, 0), "0", font=font)
-    h = digit_box[3] - digit_box[1]
+    h = box[3] - box[1]
     x = (left + right - w) / 2 - box[0]
-    y = (top + bottom - h) / 2 - digit_box[1]
+    y = (top + bottom - h) / 2 - box[1]
     d.text((x, y), label, font=font, fill=TEXT)
 
-    out = Image.alpha_composite(shadow, im)
-    return out.resize((SIZE, SIZE), Image.LANCZOS)
+    return im.resize((SIZE, SIZE), Image.LANCZOS)
 
 
 def main():

@@ -1,6 +1,6 @@
 [package]
 name = "aster-mail-desktop"
-version = "1.4.67"
+version = "1.4.68"
 edition = "2021"
 license = "AGPL-3.0-or-later"
 
@@ -56,7 +56,6 @@ objc2-foundation = { version = "0.3", features = ["NSString", "NSURL"] }
 [target.'cfg(windows)'.dependencies]
 webview2-com = "0.38"
 windows-core = "0.61"
-windows = { version = "0.61", features = ["Win32_Foundation", "Win32_UI_WindowsAndMessaging"] }
 rfd = "0.15"
 
 [patch.crates-io]

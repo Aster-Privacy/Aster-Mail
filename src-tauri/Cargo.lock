@@ -175,7 +175,7 @@ dependencies = [
 
 [[package]]
 name = "aster-mail-desktop"
-version = "1.4.67"
+version = "1.4.68"
 dependencies = [
  "aes-gcm",
  "base64 0.22.1",
@@ -215,7 +215,6 @@ dependencies = [
  "webpki-roots",
  "webview2-com 0.38.2",
  "whoami",
- "windows 0.61.3",
  "windows-core 0.61.2",
  "x25519-dalek",
  "x509-parser",

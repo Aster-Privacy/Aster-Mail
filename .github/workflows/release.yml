@@ -419,6 +419,22 @@ jobs:
             echo "Release stays as prerelease; releases/latest keeps pointing at the last complete release."
             exit 1
           fi
+          MANIFEST_DIR=$(mktemp -d)
+          gh release download "$TAG" --pattern latest.json --dir "$MANIFEST_DIR" --clobber
+          V="$V" node -e '
+            const manifest = require(process.argv[1]);
+            const platforms = Object.keys(manifest.platforms || {});
+            const required = ["windows-x86_64", "darwin-aarch64", "darwin-x86_64", "linux-x86_64"];
+            const absent = required.filter((key) => !platforms.includes(key));
+            if (manifest.version !== process.env.V) {
+              console.log(`::error::latest.json reports ${manifest.version}, expected ${process.env.V}`);
+              process.exit(1);
+            }
+            if (absent.length > 0) {
+              console.log(`::error::Refusing to promote: latest.json has no ${absent.join(", ")} build, so those installs cannot update and their download would be a carried-forward older version`);
+              process.exit(1);
+            }
+          ' "$MANIFEST_DIR/latest.json"
           echo "All required assets present. Promoting $TAG to Latest."
           gh release edit "$TAG" --draft=false --prerelease=false --latest
 
