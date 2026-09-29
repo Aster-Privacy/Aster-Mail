@@ -22,7 +22,6 @@ import type { AdvancedSearchModalProps } from "@/components/search/search_modal_
 
 import { motion, AnimatePresence } from "framer-motion";
 
-import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { use_should_reduce_motion } from "@/provider";
@@ -108,7 +107,7 @@ export function AdvancedSearchModal({
           <motion.div
             ref={dialog_ref}
             animate={{ scale: 1, opacity: 1, y: 0 }}
-            className="rounded-none sm:rounded-2xl w-full h-full sm:h-auto sm:max-w-6xl overflow-hidden transition-colors duration-200 flex flex-col bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
+            className="rounded-none sm:rounded-2xl w-full h-full sm:h-auto sm:max-w-6xl overflow-hidden transition-colors duration-200 flex flex-col bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] outline-none"
             exit={{ scale: 0.96, opacity: 0, y: -10 }}
             initial={
               reduce_motion ? false : { scale: 0.96, opacity: 0, y: -10 }
@@ -117,7 +116,7 @@ export function AdvancedSearchModal({
             transition={{ duration: reduce_motion ? 0 : 0.2, ease: "easeOut" }}
           >
             <ErrorBoundary>
-              <div className="p-4 border-b transition-colors duration-200 flex-shrink-0 border-[var(--aster-floating-divider)]">
+              <div className="search_divider_b p-4 flex-shrink-0">
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     {state.is_loading || state.is_searching ? (
@@ -135,11 +134,12 @@ export function AdvancedSearchModal({
                       </svg>
                     )}
                   </div>
-                  <Input
+                  <input
                     ref={input_ref}
                     // eslint-disable-next-line jsx-a11y/no-autofocus
                     autoFocus
-                    className="w-full bg-transparent border-none"
+                    aria-label={t("mail.search_messages")}
+                    className="search_field_input flex-1 min-w-0"
                     placeholder={t("mail.search_messages")}
                     type="text"
                     value={state.raw_query}
@@ -148,7 +148,8 @@ export function AdvancedSearchModal({
                   />
                   {state.raw_query && (
                     <button
-                      className="p-1.5 rounded-full text-txt-muted hover:bg-surf-hover transition-colors"
+                      aria-label={t("common.clear")}
+                      className="search_icon_btn p-1.5 rounded-full"
                       onClick={() => {
                         set_raw_query("");
                         clear_results();
@@ -175,7 +176,7 @@ export function AdvancedSearchModal({
               </div>
 
               {state.active_filters.length > 0 && (
-                <div className="px-4 py-2 border-b flex items-center gap-2 flex-wrap border-[var(--aster-floating-divider)]">
+                <div className="search_divider_b px-4 py-2 flex items-center gap-2 flex-wrap">
                   <span className="text-xs text-txt-muted">
                     {t("mail.active_filters")}
                   </span>
@@ -189,7 +190,7 @@ export function AdvancedSearchModal({
                 </div>
               )}
 
-              <div className="px-3 sm:px-4 py-2 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-2 flex-shrink-0 border-[var(--aster-floating-divider)]">
+              <div className="search_divider_b px-3 sm:px-4 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-2 flex-shrink-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs font-medium hidden sm:inline text-txt-muted">
                     {t("mail.quick_filters")}
@@ -261,12 +262,7 @@ export function AdvancedSearchModal({
                           {t("mail.showing_results", {
                             shown: filtered_results.length,
                             total: state.total_results,
-                          })}{" "}
-                          {state.search_time_ms > 0 && (
-                            <span className="opacity-60">
-                              ({state.search_time_ms.toFixed(0)}ms)
-                            </span>
-                          )}
+                          })}
                         </span>
                         <FolderResultsBadges
                           folder_counts={state.result_folders}
@@ -310,7 +306,7 @@ export function AdvancedSearchModal({
                       !state.is_searching &&
                       !state.is_loading && (
                         <button
-                          className="w-full py-3 text-xs text-center rounded-[16px] mt-2 text-txt-muted bg-surf-tertiary hover:bg-surf-hover transition-colors"
+                          className="search_load_more w-full py-3 text-xs text-center rounded-[16px] mt-2"
                           onClick={load_more}
                         >
                           {t("common.load_more")}
@@ -328,7 +324,7 @@ export function AdvancedSearchModal({
                 )}
 
                 {!state.raw_query && (
-                  <div className="p-4 border-t border-[var(--aster-floating-divider)]">
+                  <div className="search_divider_t p-4">
                     <div className="text-xs font-semibold uppercase tracking-wider mb-3 text-txt-muted">
                       {t("mail.search_operators")}
                     </div>
@@ -364,14 +360,14 @@ export function AdvancedSearchModal({
                       ].map((item) => (
                         <button
                           key={item.op}
-                          className="flex items-start gap-2 p-2 rounded-[14px] text-start transition-colors hover_bg text-txt-secondary"
+                          className="search_operator_row flex items-start gap-2 p-2 rounded-[14px] text-start"
                           onClick={() => {
                             set_raw_query(item.op);
                             search(item.op);
                             input_ref.current?.focus();
                           }}
                         >
-                          <code className="px-1.5 py-0.5 rounded text-[11px] font-mono bg-surf-tertiary text-brand">
+                          <code className="search_operator_code">
                             {item.op}
                           </code>
                           <span className="text-xs text-txt-muted">
@@ -384,11 +380,11 @@ export function AdvancedSearchModal({
                 )}
               </div>
 
-              <div className="p-3 border-t flex items-center justify-between text-xs flex-shrink-0 border-[var(--aster-floating-divider)] text-txt-muted">
+              <div className="search_divider_t p-3 flex items-center justify-between text-xs flex-shrink-0 text-txt-muted">
                 <div className="hidden sm:flex items-center gap-4">
                   <div className="flex items-center gap-1.5">
                     <span>{t("mail.navigate")}</span>
-                    <kbd className="px-1.5 py-0.5 rounded-[6px] flex items-center justify-center bg-[var(--aster-field-bg)]">
+                    <kbd className="search_keycap">
                       <svg
                         className="w-3 h-3"
                         fill="currentColor"
@@ -397,7 +393,7 @@ export function AdvancedSearchModal({
                         <path d="M7 14l5-5 5 5z" />
                       </svg>
                     </kbd>
-                    <kbd className="px-1.5 py-0.5 rounded-[6px] flex items-center justify-center bg-[var(--aster-field-bg)]">
+                    <kbd className="search_keycap">
                       <svg
                         className="w-3 h-3"
                         fill="currentColor"
@@ -409,14 +405,14 @@ export function AdvancedSearchModal({
                   </div>
                   <div className="flex items-center gap-1.5">
                     <span>{t("mail.select")}</span>
-                    <kbd className="px-1.5 py-0.5 rounded-[6px] bg-[var(--aster-field-bg)]">
+                    <kbd className="search_keycap">
                       Enter
                     </kbd>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                   <button
-                    className="px-2 py-1 rounded-[var(--aster-radius-control)] transition-colors hover:bg-[var(--aster-island-hover)] text-txt-muted"
+                    className="search_ghost_btn px-2 py-1 rounded-[var(--aster-radius-control)]"
                     onClick={() => {
                       set_raw_query("");
                       clear_results();
@@ -425,12 +421,12 @@ export function AdvancedSearchModal({
                     {t("common.clear")}
                   </button>
                   <button
-                    className="sm:hidden px-3 py-1 rounded-[var(--aster-radius-control)] transition-colors text-txt-muted bg-[var(--aster-field-bg)]"
+                    className="search_pill sm:hidden px-3 py-1 rounded-[var(--aster-radius-control)]"
                     onClick={handle_close}
                   >
                     {t("common.close")}
                   </button>
-                  <kbd className="hidden sm:inline-block px-1.5 py-0.5 rounded-[6px] bg-[var(--aster-field-bg)]">
+                  <kbd className="search_keycap hidden sm:inline-flex">
                     ESC
                   </kbd>
                 </div>

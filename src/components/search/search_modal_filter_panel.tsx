@@ -94,7 +94,7 @@ export function SearchModalFilterPanel({
       {show_filters && (
         <motion.div
           animate={{ height: "auto", opacity: 1 }}
-          className="border-b overflow-hidden border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))] bg-surf-tertiary"
+          className="search_divider_b overflow-hidden bg-surf-tertiary"
           exit={{ height: 0, opacity: 0 }}
           initial={reduce_motion ? false : { height: 0, opacity: 0 }}
           transition={{ duration: reduce_motion ? 0 : 0.18 }}

@@ -75,12 +75,7 @@ export function EmptySearchState({ query }: { query: string }) {
           {t("mail.try_search_operators")}
         </p>
       </div>
-      <div
-        className="rounded-[var(--aster-radius-control)] px-3.5 pb-3.5 pt-3"
-        style={{
-          backgroundColor: "var(--aster-field-bg)",
-        }}
-      >
+      <div className="search_well rounded-[var(--aster-radius-control)] px-3.5 pb-3.5 pt-3">
         <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-txt-muted">
           {t("mail.search_operators")}
         </p>
@@ -90,7 +85,7 @@ export function EmptySearchState({ query }: { query: string }) {
               key={op.operator}
               className="flex items-center justify-between gap-3 text-[11.5px]"
             >
-              <code className="px-1.5 py-0.5 rounded-[6px] font-mono bg-surf-tertiary text-txt-secondary">
+              <code className="search_operator_code">
                 {op.example}
               </code>
               <span className="truncate text-txt-muted">{op.desc}</span>
@@ -179,7 +174,7 @@ export function FirstTimeSearchState({
           {quick_actions.map((action) => (
             <button
               key={action.query}
-              className="search_filter_btn flex items-center gap-2 px-3 py-2 rounded-[var(--aster-radius-control)] transition-colors duration-150 text-txt-secondary"
+              className="search_pill flex items-center gap-2 px-3 py-2 rounded-[var(--aster-radius-control)]"
               onClick={() => on_quick_action(action.query)}
             >
               <span className="text-txt-muted">{action.icon}</span>

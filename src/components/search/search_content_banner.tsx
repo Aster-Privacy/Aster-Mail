@@ -226,7 +226,7 @@ export function SearchContentBanner({
         : t("mail.searching_message_content");
 
     return (
-      <div className="px-4 pt-3 pb-2.5 border-b border-[var(--aster-floating-divider,var(--border-secondary))]">
+      <div className="search_divider_b px-4 pt-3 pb-2.5">
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1.5 min-w-0 flex-1">
             <span className="truncate text-[13px] font-medium text-txt-primary">
@@ -245,7 +245,7 @@ export function SearchContentBanner({
         {show_bar && (
           <div className="mt-2 h-[38px]">
             <div className="flex h-4 items-center gap-3">
-              <div className="h-1 flex-1 rounded-full bg-surf-secondary overflow-hidden">
+              <div className="search_progress_track h-1 flex-1 rounded-full bg-surf-secondary overflow-hidden">
                 {has_total ? (
                   <div
                     className="h-full rounded-full transition-all duration-300"
@@ -305,7 +305,7 @@ export function SearchContentBanner({
   }
 
   return (
-    <div className="px-4 pt-3 pb-2.5 border-b border-[var(--aster-floating-divider,var(--border-secondary))]">
+    <div className="search_divider_b px-4 pt-3 pb-2.5">
       <div className="flex items-center gap-2">
         <span className="flex items-center gap-1.5 min-w-0 flex-1">
           <span className="truncate text-[13px] font-medium text-txt-primary">
