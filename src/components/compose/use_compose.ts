@@ -73,6 +73,7 @@ import { get_max_total_attachments_size } from "@/services/attachment_limits";
 import { build_compose_default_block } from "@/lib/compose_defaults";
 import {
   COMPOSE_CARET_BLOCK,
+  SIGNATURE_GAP_BLOCK,
   insert_signature_node,
 } from "@/lib/signature_html";
 import {
@@ -909,7 +910,9 @@ export function use_compose({
         resolve_signature(initial_sender_alias_id) ?? default_signature;
       const signature_block =
         preferences.signature_mode === "auto" && initial_signature
-          ? get_formatted_signature(initial_signature) + badge_html
+          ? SIGNATURE_GAP_BLOCK +
+            get_formatted_signature(initial_signature) +
+            badge_html
           : badge_html;
 
       const default_block = build_compose_default_block(
