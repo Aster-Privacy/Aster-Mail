@@ -219,7 +219,7 @@ export const UndoSendToast = forwardRef<HTMLDivElement, UndoSendToastProps>(
             </div>
           </div>
 
-          <div className="flex items-center justify-between px-3.5 py-1.5 border-t border-edge-secondary">
+          <div className="flex items-center justify-between px-3.5 py-1.5 border-t border-[var(--aster-floating-divider)]">
             <span className="text-[10px] text-txt-muted">
               {is_mobile ? (
                 t("mail.tap_undo_to_cancel")

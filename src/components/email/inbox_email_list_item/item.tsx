@@ -490,7 +490,7 @@ export const InboxEmailListItem = memo(
           {email.is_pinned && (
             <PinIcon
               filled
-              className="w-4 h-4 text-blue-500 flex-shrink-0 -rotate-[38deg] hidden sm:block"
+              className="w-4 h-4 text-[var(--accent-color)] flex-shrink-0 -rotate-[38deg] hidden sm:block"
             />
           )}
 

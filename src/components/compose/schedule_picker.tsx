@@ -278,7 +278,7 @@ export function SchedulePicker({
                 </div>
               </button>
             ))}
-            <div className="aster_floating_divider my-2" />
+            <div className="aster_floating_divider -mx-3.5" />
             <button
               className="w-full flex items-center gap-3 px-2 py-2 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
               type="button"
@@ -321,7 +321,7 @@ export function SchedulePicker({
               selected={selected_date}
               onSelect={set_selected_date}
             />
-            <div className="aster_floating_divider my-3" />
+            <div className="aster_floating_divider -mx-[18px]" />
             <div className="flex items-center gap-2">
               <span className="text-xs font-medium text-txt-muted">
                 {t("common.time_label")}

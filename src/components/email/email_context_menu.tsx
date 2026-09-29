@@ -353,7 +353,7 @@ function EmailContextMenuContentInner({
           onClick={() => handle_action("pin", on_toggle_pin)}
         >
           <PinIcon
-            className={`me-2 h-4 w-4 ${email.is_pinned ? "-rotate-[38deg] text-blue-500" : ""}`}
+            className={`me-2 h-4 w-4 ${email.is_pinned ? "-rotate-[38deg] text-[var(--accent-color)]" : ""}`}
             filled={!!email.is_pinned}
           />
           {email.is_pinned ? t("mail.unpin") : t("mail.pin_to_top")}

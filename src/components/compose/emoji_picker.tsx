@@ -718,7 +718,7 @@ function EmojiPicker({ on_select, on_dismiss, anchor_ref }: EmojiPickerProps) {
               <Icon className="h-5 w-5" strokeWidth={1.9} />
               {is_active && (
                 <motion.span
-                  className="absolute bottom-0.5 left-1/2 h-[3px] w-6 -translate-x-1/2 rounded-full bg-blue-500"
+                  className="absolute bottom-0.5 left-1/2 h-[3px] w-6 -translate-x-1/2 rounded-full bg-[var(--accent-color)]"
                   layoutId={`${indicator_id}_emoji_tab`}
                   transition={
                     reduce_motion

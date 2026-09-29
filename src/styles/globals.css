@@ -1458,7 +1458,7 @@
       transparent
     );
     --input: var(--input-border);
-    --aster-floating-divider: var(--border-secondary);
+    --aster-floating-divider: color-mix(in srgb, var(--text-primary) 16%, transparent);
     --island-divider: var(--border-secondary);
   }
 
@@ -4549,4 +4549,23 @@ input:-webkit-autofill:active {
 .contact_view_chip {
   border: 0;
   background-color: var(--aster-hover);
+}
+
+@supports (color: color-mix(in srgb, red 50%, blue)) {
+  .dark {
+    --aster-floating-divider: color-mix(in srgb, var(--text-primary) 13%, transparent);
+  }
+
+  .high-contrast,
+  .dark.high-contrast {
+    --aster-floating-divider: color-mix(in srgb, var(--text-primary) 45%, transparent);
+  }
+}
+
+.aster_floating_divider {
+  margin-block: 6px;
+}
+
+[role="menu"] > .border-edge-secondary {
+  border-color: var(--aster-floating-divider);
 }
