@@ -96,7 +96,7 @@ export async function get_contact_photo(
   );
 
   if (response.error || !response.data) {
-    if (response.error?.includes("not found")) {
+    if (response.status === 404 || response.error?.includes("not found")) {
       return { data: null };
     }
 

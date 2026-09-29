@@ -42,6 +42,7 @@ import { get_root_domain, is_official_address } from "@/lib/utils";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_peer_profile } from "@/hooks/use_peer_profile";
+import { use_contact_photo } from "@/hooks/use_contact_photo";
 import { is_aster_email } from "@/services/api/profiles";
 import { GHOST_DOMAIN } from "@/services/api/ghost_aliases";
 import mail_logo_url from "@/assets/mail_logo.webp";
@@ -137,6 +138,7 @@ export const ProfileAvatar = memo(function ProfileAvatar({
         : (peer_profile?.profile_picture ?? undefined));
 
   const [image_error, set_image_error] = useState(false);
+  const [contact_photo_error, set_contact_photo_error] = useState(false);
   const [ddg_logo_error, set_ddg_logo_error] = useState(false);
   const [img_loaded, set_img_loaded] = useState(false);
   const [prev_email, set_prev_email] = useState(email);
@@ -149,11 +151,22 @@ export const ProfileAvatar = memo(function ProfileAvatar({
       (SYSTEM_LOCAL_PARTS.has(normalized_email.split("@")[0]) &&
         ASTER_DOMAINS.has(domain)) ||
       is_official_address(normalized_email));
+  const contact_photo = use_contact_photo(
+    low_network || is_aster_mail ? null : email,
+  );
+  const [prev_contact_photo, set_prev_contact_photo] = useState(contact_photo);
+  const use_contact_photo_src = !!contact_photo && !contact_photo_error;
 
-  if (email !== prev_email || resolved_image_url !== prev_image_url) {
+  if (
+    email !== prev_email ||
+    resolved_image_url !== prev_image_url ||
+    contact_photo !== prev_contact_photo
+  ) {
     set_prev_email(email);
     set_prev_image_url(resolved_image_url);
+    set_prev_contact_photo(contact_photo);
     set_image_error(false);
+    set_contact_photo_error(false);
     set_img_loaded(false);
     set_ddg_logo_error(domain ? is_icon_failed(domain) : false);
   }
@@ -197,8 +210,13 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     set_image_error(true);
   }, []);
 
+  const handle_contact_photo_error = useCallback(() => {
+    set_contact_photo_error(true);
+  }, []);
+
   const actual_src = useMemo(() => {
     if (low_network) return null;
+    if (use_contact_photo_src) return contact_photo;
     if (resolved_image_url && !image_error) return resolved_image_url;
     if (is_aster_mail) return mail_logo_url;
     if (ddg_logo_url && !ddg_logo_error) return ddg_logo_url;
@@ -206,6 +224,8 @@ export const ProfileAvatar = memo(function ProfileAvatar({
     return null;
   }, [
     low_network,
+    use_contact_photo_src,
+    contact_photo,
     is_aster_mail,
     resolved_image_url,
     ddg_logo_url,
@@ -215,12 +235,15 @@ export const ProfileAvatar = memo(function ProfileAvatar({
 
   const error_handler = useMemo(() => {
     if (is_aster_mail) return undefined;
+    if (use_contact_photo_src) return handle_contact_photo_error;
     if (resolved_image_url && !image_error) return handle_image_error;
     if (ddg_logo_url && !ddg_logo_error) return handle_ddg_logo_error;
 
     return undefined;
   }, [
     is_aster_mail,
+    use_contact_photo_src,
+    handle_contact_photo_error,
     resolved_image_url,
     ddg_logo_url,
     image_error,
@@ -230,9 +253,10 @@ export const ProfileAvatar = memo(function ProfileAvatar({
   ]);
 
   const is_favicon_source =
-    (actual_src?.startsWith("blob:") ||
+    (!use_contact_photo_src &&
+      (actual_src?.startsWith("blob:") ||
       actual_src?.includes("/api/images/v1/favicon/") ||
-      actual_src?.includes("/proxy?url=")) ??
+        actual_src?.includes("/proxy?url="))) ??
     false;
 
   const is_local_logo_source = actual_src === mail_logo_url;
