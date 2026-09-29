@@ -6899,6 +6899,7 @@ export interface SettingsTranslations {
   key_source_dane: string;
   key_source_cached: string;
   key_source_unknown: string;
+  key_source_aster: string;
   invoice_status_paid: string;
   invoice_status_failed: string;
   invoice_status_open: string;

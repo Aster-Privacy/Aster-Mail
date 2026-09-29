@@ -7762,6 +7762,7 @@ export const pt = {
     key_source_dane: "DANE",
     key_source_keyserver: "Servidor de chaves público",
     key_source_unknown: "Desconhecido",
+    key_source_aster: "Aster Mail",
     key_source_wkd: "Web Key Directory",
     invoice_status_disputed: "Contestado",
     invoice_status_draft: "Rascunho",

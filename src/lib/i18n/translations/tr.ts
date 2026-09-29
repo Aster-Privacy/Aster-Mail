@@ -7595,6 +7595,7 @@ export const tr = {
     key_source_dane: "DANE",
     key_source_cached: "Önbellekten",
     key_source_unknown: "Bilinmeyen",
+    key_source_aster: "Aster Mail",
     invoice_status_disputed: "İtiraz edildi",
     invoice_status_draft: "Taslak",
     invoice_status_failed: "Başarısız",

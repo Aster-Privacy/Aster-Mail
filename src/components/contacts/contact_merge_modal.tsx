@@ -222,7 +222,7 @@ export function ContactMergeModal({
           </div>
           <button
             aria-label={t("common.close")}
-            className="rounded-[14px] p-1 transition-colors hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
+            className="rounded-[14px] p-1 transition-colors hover:bg-[var(--aster-floating-hover)] disabled:cursor-not-allowed disabled:opacity-40"
             disabled={is_merging}
             type="button"
             onClick={on_close}

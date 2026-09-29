@@ -7553,6 +7553,7 @@ export const hi = {
     key_source_dane: "DANE",
     key_source_cached: "कैश में",
     key_source_unknown: "अज्ञात",
+    key_source_aster: "Aster Mail",
     invoice_status_paid: "भुगतान हो गया",
     invoice_status_failed: "विफल",
     invoice_status_open: "खोलें",

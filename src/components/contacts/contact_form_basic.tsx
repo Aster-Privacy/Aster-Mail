@@ -67,6 +67,7 @@ export function ContactFormBasic({
           <Input
             // eslint-disable-next-line jsx-a11y/no-autofocus
             autoFocus
+            className="aster_input_tonal"
             id="contact-first-name"
             placeholder={t("common.first_name_placeholder")}
             size="md"
@@ -83,6 +84,7 @@ export function ContactFormBasic({
             {t("common.last_name")}
           </label>
           <Input
+            className="aster_input_tonal"
             id="contact-last-name"
             placeholder={t("common.last_name_placeholder")}
             size="md"
@@ -104,7 +106,7 @@ export function ContactFormBasic({
         {form_data.emails.map((email, index) => (
           <div key={index} className="flex items-center gap-2">
             <Input
-              className="flex-1"
+              className="aster_input_tonal flex-1"
               placeholder={t("common.email_placeholder")}
               size="md"
               status={errors.emails ? "error" : "default"}

@@ -46,7 +46,7 @@ import {
   ModalTitle,
 } from "@/components/ui/modal";
 import {
-  discover_external_key,
+  discover_contact_key,
   format_fingerprint,
   get_key_source_label_key,
   type ExternalKeyInfo,
@@ -118,7 +118,7 @@ export function ContactPgpKeyRow({
     set_lookup_failed(false);
     set_key_info(null);
 
-    discover_external_key(email)
+    discover_contact_key(email)
       .then((response) => {
         if (cancelled) return;
 
@@ -178,7 +178,7 @@ export function ContactPgpKeyRow({
               </p>
               {key_info.fingerprint && (
                 <p className="text-[11px] text-txt-muted font-mono truncate">
-                  {key_info.fingerprint}
+                  {format_fingerprint(key_info.fingerprint)}
                 </p>
               )}
               {key_info.source && (

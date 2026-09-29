@@ -7297,6 +7297,7 @@ export const ja = {
     key_source_dane: "DANE",
     key_source_keyserver: "公開キーサーバー",
     key_source_unknown: "不明",
+    key_source_aster: "Aster Mail",
     key_source_wkd: "Web Key Directory",
     last_used: "最終使用",
     mail_rules_suffix: "メールルール",

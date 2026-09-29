@@ -7478,6 +7478,7 @@ export const en: Translations = {
     key_source_dane: "DANE",
     key_source_cached: "Cached",
     key_source_unknown: "Unknown",
+    key_source_aster: "Aster Mail",
     invoice_status_paid: "Paid",
     invoice_status_failed: "Failed",
     invoice_status_open: "Open",

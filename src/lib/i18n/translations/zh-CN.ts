@@ -6987,6 +6987,7 @@ export const zh_CN = {
     key_source_cached: "已缓存",
     key_source_dane: "DANE",
     key_source_unknown: "未知",
+    key_source_aster: "Aster Mail",
     storage_format_ipfs_hint:
       "私有IPFS按内容哈希将您的加密文件存储在Aster自己的服务器上。它不连接公共IPFS网络，只有您的密钥才能解密您的文件。",
     need_help_link: "需要帮助？",

@@ -7489,6 +7489,7 @@ export const ar = {
     key_source_dane: "DANE",
     key_source_cached: "مخزَّن مؤقتًا",
     key_source_unknown: "غير معروف",
+    key_source_aster: "Aster Mail",
     invoice_status_disputed: "متنازع عليه",
     invoice_status_draft: "مسودة",
     invoice_status_failed: "فشل",

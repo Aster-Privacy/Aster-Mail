@@ -7476,6 +7476,7 @@ export const es = {
     key_source_dane: "DANE",
     key_source_keyserver: "Servidor de claves",
     key_source_unknown: "Desconocido",
+    key_source_aster: "Aster Mail",
     key_source_wkd: "WKD",
     last_used: "Último uso",
     mail_rules_suffix: "regla(s) de correo",

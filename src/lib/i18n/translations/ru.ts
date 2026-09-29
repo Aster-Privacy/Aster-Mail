@@ -7559,6 +7559,7 @@ export const ru = {
     key_source_dane: "DANE",
     key_source_keyserver: "Публичный сервер ключей",
     key_source_unknown: "Неизвестно",
+    key_source_aster: "Aster Mail",
     key_source_wkd: "Веб-каталог ключей",
     last_used: "Последнее использование",
     mail_rules_suffix: "правил почты",

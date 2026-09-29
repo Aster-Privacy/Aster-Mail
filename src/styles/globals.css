@@ -2003,6 +2003,20 @@ textarea.aster_input {
   box-shadow: inset 0 0 0 2px var(--accent-color, #3b82f6);
 }
 
+.aster_input.aster_input_tonal.aster_input_error,
+.aster_input.aster_input_tonal.aster_input_error:focus {
+  border-color: transparent;
+  box-shadow: inset 0 0 0 2px var(--color-danger, #ef4444);
+}
+
+.contact_form_select.aster_select_trigger {
+  border-radius: var(--aster-radius-field, 10px);
+}
+
+.contact_form_select.aster_select_trigger:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--accent-color, #3b82f6);
+}
+
 input[type="password"]::-ms-reveal,
 input[type="password"]::-ms-clear {
   display: none;

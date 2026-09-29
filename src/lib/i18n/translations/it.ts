@@ -7716,6 +7716,7 @@ export const it = {
     key_source_dane: "DANE",
     key_source_cached: "Cache",
     key_source_unknown: "Sconosciuto",
+    key_source_aster: "Aster Mail",
     invoice_status_disputed: "Contestato",
     invoice_status_draft: "Bozza",
     invoice_status_failed: "Non riuscita",

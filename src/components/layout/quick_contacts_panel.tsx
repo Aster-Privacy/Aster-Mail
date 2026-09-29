@@ -89,7 +89,7 @@ import { apply_server_group_membership } from "@/utils/contact_group_membership"
 import { export_contacts_vcard } from "@/utils/contact_export";
 import { print_contacts } from "@/utils/contact_print";
 import {
-  discover_external_keys_batch,
+  discover_contact_keys_batch,
   format_fingerprint,
   get_key_source_label_key,
   has_pgp_key,
@@ -472,7 +472,7 @@ export function QuickContactsPanel({
     set_detail_keys({});
     set_is_keys_loading(true);
 
-    void discover_external_keys_batch(detail_contact.emails).then(
+    void discover_contact_keys_batch(detail_contact.emails).then(
       (response) => {
         if (cancelled) return;
 

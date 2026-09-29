@@ -7475,6 +7475,7 @@ export const ko = {
     key_source_dane: "DANE",
     key_source_cached: "캐시됨",
     key_source_unknown: "알 수 없음",
+    key_source_aster: "Aster Mail",
     invoice_status_disputed: "이의 제기됨",
     invoice_status_draft: "초안",
     invoice_status_failed: "실패",

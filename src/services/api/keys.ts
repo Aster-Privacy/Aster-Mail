@@ -190,6 +190,121 @@ export async function discover_external_keys_batch(
   };
 }
 
+const ASTER_KEY_SOURCE = "aster";
+
+const aster_key_cache = new Map<
+  string,
+  { key: ExternalKeyInfo | null; timestamp: number }
+>();
+
+async function fingerprint_of_public_key(
+  armored_key: string,
+): Promise<string | null> {
+  try {
+    const openpgp = await import("openpgp");
+    const key = await openpgp.readKey({ armoredKey: armored_key });
+
+    return key.getFingerprint().toUpperCase();
+  } catch {
+    return null;
+  }
+}
+
+async function lookup_aster_key(
+  email: string,
+): Promise<ExternalKeyInfo | null> {
+  const normalized = email.trim().toLowerCase();
+  const cached = aster_key_cache.get(normalized);
+
+  if (cached && Date.now() - cached.timestamp <= CACHE_TTL_MS) {
+    return cached.key;
+  }
+
+  const username = extract_username_from_email(normalized);
+
+  if (!username) return null;
+
+  const response = await get_recipient_public_key(username, normalized);
+  const public_key = response.data?.public_key ?? null;
+
+  if (!public_key) {
+    if (response.status === 404) {
+      aster_key_cache.set(normalized, { key: null, timestamp: Date.now() });
+    }
+
+    return null;
+  }
+
+  const key_info: ExternalKeyInfo = {
+    email: normalized,
+    found: true,
+    public_key,
+    fingerprint: await fingerprint_of_public_key(public_key),
+    source: ASTER_KEY_SOURCE,
+    expires_at: null,
+    will_encrypt: true,
+    fingerprint_change: null,
+  };
+
+  aster_key_cache.set(normalized, { key: key_info, timestamp: Date.now() });
+
+  return key_info;
+}
+
+async function lookup_aster_key_safely(
+  email: string,
+): Promise<ExternalKeyInfo | null> {
+  try {
+    return await lookup_aster_key(email);
+  } catch {
+    return null;
+  }
+}
+
+export async function discover_contact_key(
+  email: string,
+): Promise<ApiResponse<ExternalKeyInfo>> {
+  if (is_internal_email(email)) {
+    const aster_key = await lookup_aster_key_safely(email);
+
+    if (aster_key) {
+      return { data: aster_key };
+    }
+  }
+
+  return discover_external_key(email);
+}
+
+export async function discover_contact_keys_batch(
+  emails: string[],
+): Promise<ApiResponse<ExternalKeyInfo[]>> {
+  const internal = emails.filter((email) => is_internal_email(email));
+  const aster_keys = await Promise.all(internal.map(lookup_aster_key_safely));
+  const found = aster_keys.filter(
+    (key): key is ExternalKeyInfo => key !== null,
+  );
+  const found_emails = new Set(found.map((key) => key.email));
+  const remaining = emails.filter(
+    (email) => !found_emails.has(email.trim().toLowerCase()),
+  );
+
+  if (remaining.length === 0) {
+    return { data: found };
+  }
+
+  const external = await discover_external_keys_batch(remaining);
+
+  if (external.data) {
+    return { data: [...found, ...external.data] };
+  }
+
+  if (found.length > 0) {
+    return { data: found, error: external.error };
+  }
+
+  return external;
+}
+
 export function has_pgp_key(key_info: ExternalKeyInfo | null): boolean {
   if (key_info === null || !key_info.found || key_info.public_key === null) {
     return false;
@@ -234,6 +349,8 @@ export function get_key_source_label_key(
       return "settings.key_source_dane";
     case "database":
       return "settings.key_source_cached";
+    case ASTER_KEY_SOURCE:
+      return "settings.key_source_aster";
     default:
       return "settings.key_source_unknown";
   }
@@ -241,6 +358,7 @@ export function get_key_source_label_key(
 
 export function clear_external_key_cache(): void {
   external_key_cache.clear();
+  aster_key_cache.clear();
 }
 
 export async function acknowledge_external_key_fingerprint_change(

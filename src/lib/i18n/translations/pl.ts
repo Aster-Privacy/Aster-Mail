@@ -7798,6 +7798,7 @@ export const pl = {
     key_source_dane: "DANE",
     key_source_cached: "Z pamięci podręcznej",
     key_source_unknown: "Nieznany",
+    key_source_aster: "Aster Mail",
     invoice_status_disputed: "Zakwestionowano",
     invoice_status_draft: "Wersja robocza",
     invoice_status_failed: "Nieudana",
