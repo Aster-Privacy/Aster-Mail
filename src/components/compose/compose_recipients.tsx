@@ -149,7 +149,7 @@ export function RecipientBadge({
 
   const lock_color =
     effective_status === "encrypted"
-      ? "rgb(59, 130, 246)"
+      ? "var(--accent-color)"
       : effective_status === "key_invalid" || effective_status === "unknown"
         ? "rgb(245, 158, 11)"
         : "var(--text-muted)";
