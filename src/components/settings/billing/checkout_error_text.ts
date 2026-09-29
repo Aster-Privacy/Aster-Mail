@@ -58,3 +58,15 @@ export function checkout_error_text(
 
   return t(key ?? "settings.failed_checkout");
 }
+
+const PAYMENT_METHOD_CODES = new Set([
+  "CARD_DECLINED",
+  "COLLECTION_FAILED",
+  "UNPAID_SUBSCRIPTION",
+]);
+
+export function needs_payment_method_update(
+  server_code?: string | null,
+): boolean {
+  return !!server_code && PAYMENT_METHOD_CODES.has(server_code);
+}

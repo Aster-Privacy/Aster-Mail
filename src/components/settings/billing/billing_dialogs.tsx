@@ -45,7 +45,6 @@ import {
   activate_subscription,
   type CancelImpactResponse,
   type SubscriptionResponse,
-  type AvailablePlan,
   type StorageAddonItem,
   type UserActiveAddon,
 } from "@/services/api/billing";
@@ -56,7 +55,6 @@ import {
   TOAST_DURATION_BILLING_MS,
 } from "@/components/toast/simple_toast";
 import {
-  PLAN_TIERS,
   convert_cents,
   is_crypto_provider,
 } from "@/components/settings/billing/billing_constants";
@@ -85,7 +83,6 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 
 interface BillingDialogsProps {
-  academic_promo_code: string | null;
   subscription: SubscriptionResponse | null;
   set_subscription: React.Dispatch<
     React.SetStateAction<SubscriptionResponse | null>
@@ -105,11 +102,6 @@ interface BillingDialogsProps {
   cancel_reason_text: string;
   set_cancel_reason_text: React.Dispatch<React.SetStateAction<string>>;
   handle_cancel: () => void;
-  show_checkout_modal: boolean;
-  set_show_checkout_modal: React.Dispatch<React.SetStateAction<boolean>>;
-  selected_plan: AvailablePlan | null;
-  set_selected_plan: React.Dispatch<React.SetStateAction<AvailablePlan | null>>;
-  billing_period: "monthly" | "yearly" | "biennial";
   preferred_currency: string;
   show_payment_methods: boolean;
   set_show_payment_methods: React.Dispatch<React.SetStateAction<boolean>>;
@@ -133,11 +125,9 @@ interface BillingDialogsProps {
   >;
   load_data: () => Promise<void>;
   on_switch_plan?: (offer: DowngradeOffer) => void;
-  on_plan_choose_crypto?: (plan: AvailablePlan, term_months: number) => void;
 }
 
 export function BillingDialogs({
-  academic_promo_code,
   subscription,
   set_subscription,
   is_action_loading,
@@ -155,11 +145,6 @@ export function BillingDialogs({
   cancel_reason_text,
   set_cancel_reason_text,
   handle_cancel,
-  show_checkout_modal,
-  set_show_checkout_modal,
-  selected_plan,
-  set_selected_plan,
-  billing_period,
   preferred_currency,
   show_payment_methods,
   set_show_payment_methods,
@@ -179,7 +164,6 @@ export function BillingDialogs({
   set_addon_to_cancel,
   load_data,
   on_switch_plan,
-  on_plan_choose_crypto,
 }: BillingDialogsProps) {
   const { t } = use_i18n();
   const redirect_handled = useRef(false);
@@ -639,93 +623,6 @@ export function BillingDialogs({
           )}
         </AlertDialogContent>
       </AlertDialog>
-
-      {selected_plan && (
-        <CheckoutModal
-          billing_interval={
-            billing_period === "yearly"
-              ? "year"
-              : billing_period === "biennial"
-                ? "biennial"
-                : "month"
-          }
-          currency={preferred_currency}
-          initial_promo_code={academic_promo_code ?? undefined}
-          on_choose_crypto={
-            on_plan_choose_crypto
-              ? (term_months) => {
-                  const plan = selected_plan;
-
-                  set_show_checkout_modal(false);
-                  set_selected_plan(null);
-                  if (plan) on_plan_choose_crypto(plan, term_months);
-                }
-              : undefined
-          }
-          on_close={() => {
-            set_show_checkout_modal(false);
-            set_selected_plan(null);
-          }}
-          on_success={async () => {
-            set_show_checkout_modal(false);
-            const upgraded_plan_code = selected_plan?.code;
-
-            set_selected_plan(null);
-            request_cache.invalidate("/payments/v1");
-            invalidate_mail_stats();
-            for (let attempt = 0; attempt < 6; attempt++) {
-              await new Promise((r) =>
-                setTimeout(r, attempt === 0 ? 1000 : 2000),
-              );
-              request_cache.invalidate("/payments/v1");
-              const sub_response = await get_subscription();
-
-              if (sub_response.data) {
-                set_subscription(sub_response.data);
-                if (
-                  upgraded_plan_code &&
-                  sub_response.data.plan.code === upgraded_plan_code
-                ) {
-                  invalidate_mail_stats();
-                  load_data();
-                  break;
-                }
-              }
-              if (attempt === 5) {
-                invalidate_mail_stats();
-                load_data();
-              }
-            }
-          }}
-          open={show_checkout_modal}
-          plan_code={selected_plan.code}
-          plan_name={selected_plan.name}
-          price_cents={
-            billing_period === "yearly"
-              ? PLAN_TIERS.find((t) => t.id === selected_plan.code)
-                  ?.yearly_cents || selected_plan.price_cents
-              : billing_period === "biennial"
-                ? PLAN_TIERS.find((t) => t.id === selected_plan.code)
-                    ?.biennial_cents || selected_plan.price_cents
-                : PLAN_TIERS.find((t) => t.id === selected_plan.code)
-                    ?.monthly_cents || selected_plan.price_cents
-          }
-          price_display={format_price(
-            convert_cents(
-              billing_period === "yearly"
-                ? PLAN_TIERS.find((t) => t.id === selected_plan.code)
-                    ?.yearly_cents || selected_plan.price_cents
-                : billing_period === "biennial"
-                  ? PLAN_TIERS.find((t) => t.id === selected_plan.code)
-                      ?.biennial_cents || selected_plan.price_cents
-                  : PLAN_TIERS.find((t) => t.id === selected_plan.code)
-                      ?.monthly_cents || selected_plan.price_cents,
-              preferred_currency,
-            ),
-            preferred_currency,
-          )}
-        />
-      )}
 
       <PaymentMethodsModal
         auto_add_card={auto_add_card}

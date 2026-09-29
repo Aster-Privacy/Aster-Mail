@@ -31,7 +31,10 @@ import {
   IslandSections,
 } from "@aster/ui";
 
-import { checkout_error_text } from "./billing/checkout_error_text";
+import {
+  checkout_error_text,
+  needs_payment_method_update,
+} from "./billing/checkout_error_text";
 
 import { read_billing_interval } from "@/components/settings/billing/cancel_offer";
 import {
@@ -125,7 +128,6 @@ import {
   type plan_term_option,
 } from "@/components/settings/billing/plan_payment_method_modal";
 import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_change_confirm_modal";
-import { is_promo_code_rejection } from "@/components/settings/billing/plan_change_discount_text";
 import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
@@ -276,10 +278,6 @@ export function BillingSection() {
   const [history_load_failed, set_history_load_failed] = useState(false);
   const [is_action_loading, set_is_action_loading] = useState(false);
   const [show_cancel_dialog, set_show_cancel_dialog] = useState(false);
-  const [show_checkout_modal, set_show_checkout_modal] = useState(false);
-  const [selected_plan, set_selected_plan] = useState<AvailablePlan | null>(
-    null,
-  );
   const [selected_storage, set_selected_storage] = useState<string | null>(
     null,
   );
@@ -749,14 +747,22 @@ export function BillingSection() {
     set_show_crypto_modal(true);
   };
 
+  const has_card_subscription =
+    !!subscription &&
+    subscription.plan.code !== "free" &&
+    !is_crypto_provider(subscription.payment_provider) &&
+    subscription.has_stripe_subscription !== false;
+
   const handle_family_plan_change = async (
     plan_code: string,
     interval: "month" | "year" | "biennial",
   ) => {
+    if (is_action_loading) return;
+
     const is_tauri =
       typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
-    if (is_tauri) {
+    if (is_tauri && !has_card_subscription) {
       set_is_action_loading(true);
       try {
         const result = await start_hosted_checkout(
@@ -821,13 +827,7 @@ export function BillingSection() {
     const is_tauri =
       typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 
-    const has_card_sub =
-      !!subscription &&
-      subscription.plan.code !== "free" &&
-      !is_crypto_provider(subscription.payment_provider) &&
-      subscription.has_stripe_subscription !== false;
-
-    if (has_card_sub && !is_tauri) {
+    if (has_card_subscription) {
       set_plan_change_confirm_target({ plan, interval: checkout_interval });
       set_show_plan_change_confirm(true);
 
@@ -986,7 +986,7 @@ export function BillingSection() {
           "error",
           TOAST_DURATION_BILLING_MS,
         );
-        if (!is_promo_code_rejection(result.server_code)) {
+        if (needs_payment_method_update(result.server_code)) {
           set_show_payment_methods(true);
         }
 
@@ -1641,10 +1641,8 @@ export function BillingSection() {
       )}
 
       <BillingDialogs
-        academic_promo_code={academic_status?.promo_code ?? null}
         addon_to_cancel={addon_to_cancel}
         auto_add_card={auto_add_card}
-        billing_period={billing_period}
         cancel_password={cancel_password}
         cancel_password_error={cancel_password_error}
         cancel_reason={cancel_reason}
@@ -1654,7 +1652,6 @@ export function BillingSection() {
         handle_switch_billing={handle_switch_billing}
         is_action_loading={is_action_loading}
         load_data={load_data}
-        on_plan_choose_crypto={handle_pay_with_crypto}
         on_switch_plan={(offer) => {
           if (offer.is_family) {
             handle_family_plan_change(
@@ -1678,7 +1675,6 @@ export function BillingSection() {
           }
         }}
         preferred_currency={preferred_currency}
-        selected_plan={selected_plan}
         set_addon_to_cancel={set_addon_to_cancel}
         set_cancel_password={set_cancel_password}
         set_cancel_password_error={set_cancel_password_error}
@@ -1686,12 +1682,10 @@ export function BillingSection() {
         set_cancel_reason_text={set_cancel_reason_text}
         set_checkout_addon={set_checkout_addon}
         set_is_action_loading={set_is_action_loading}
-        set_selected_plan={set_selected_plan}
         set_show_addon_checkout={set_show_addon_checkout}
         set_show_cancel_addon_dialog={set_show_cancel_addon_dialog}
         set_show_cancel_dialog={set_show_cancel_dialog}
         set_show_cancel_password={set_show_cancel_password}
-        set_show_checkout_modal={set_show_checkout_modal}
         set_show_payment_methods={set_show_payment_methods}
         set_show_switch_billing_dialog={set_show_switch_billing_dialog}
         set_subscription={set_subscription}
@@ -1699,7 +1693,6 @@ export function BillingSection() {
         show_cancel_addon_dialog={show_cancel_addon_dialog}
         show_cancel_dialog={show_cancel_dialog}
         show_cancel_password={show_cancel_password}
-        show_checkout_modal={show_checkout_modal}
         show_payment_methods={show_payment_methods}
         show_switch_billing_dialog={show_switch_billing_dialog}
         subscription={subscription}

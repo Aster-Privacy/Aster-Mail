@@ -303,8 +303,8 @@ function BillingSuccessHandler() {
           } else if (checkout_target?.special_offer) {
             set_offer_welcome(true);
           } else {
-            const billing = (res.data.plan.billing_period || "").startsWith(
-              "year",
+            const billing = /^(year|bien|two)/.test(
+              res.data.plan.billing_period || "",
             )
               ? "year"
               : "month";
