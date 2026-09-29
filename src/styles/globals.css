@@ -4361,3 +4361,37 @@ input:-webkit-autofill:active {
   overflow-wrap: anywhere;
   animation: aster_tip_fade_in 120ms ease-out;
 }
+
+:root {
+  --aster-skeleton-fill: color-mix(
+    in srgb,
+    var(--text-primary) 17%,
+    transparent
+  );
+}
+
+.aster_skeleton,
+.dark .aster_skeleton,
+.dark.theme-black .aster_skeleton {
+  background: var(--aster-skeleton-fill);
+  animation: aster_skeleton_fill_pulse 1.6s ease-in-out infinite;
+}
+
+.aster_skeleton_bar {
+  --aster-skeleton-fill: color-mix(
+    in srgb,
+    var(--aster-skeleton-ink, var(--text-primary)) 17%,
+    transparent
+  );
+  background: var(--aster-skeleton-fill);
+}
+
+@keyframes aster_skeleton_fill_pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}

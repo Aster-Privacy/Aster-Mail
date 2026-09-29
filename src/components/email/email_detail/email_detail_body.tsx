@@ -151,7 +151,7 @@ export function EmailDetailBody({
     <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 pt-3 sm:pt-4 pb-20 sm:pb-6">
       {is_loading && !email ? (
         <div className="relative h-full min-h-[320px]">
-          <EmailOpenSkeleton />
+          <EmailOpenSkeleton variant="detail" />
         </div>
       ) : error ? (
         <div className="flex flex-col items-center justify-center h-full gap-4 px-4">

@@ -29,7 +29,7 @@ export function AttachmentCardSkeleton() {
     >
       <div
         className="w-full h-[128px]"
-        style={{ backgroundColor: "var(--thread-card-border)" }}
+        style={{ backgroundColor: "var(--aster-skeleton-fill)" }}
       />
       <div
         className="px-3 py-2.5 border-t"
@@ -40,11 +40,11 @@ export function AttachmentCardSkeleton() {
       >
         <div
           className="h-3 rounded w-3/4 mb-1.5"
-          style={{ backgroundColor: "var(--thread-card-border)" }}
+          style={{ backgroundColor: "var(--aster-skeleton-fill)" }}
         />
         <div
           className="h-2.5 rounded w-1/3"
-          style={{ backgroundColor: "var(--thread-card-border)" }}
+          style={{ backgroundColor: "var(--aster-skeleton-fill)" }}
         />
       </div>
     </div>

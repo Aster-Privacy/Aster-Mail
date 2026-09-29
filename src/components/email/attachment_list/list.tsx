@@ -760,7 +760,7 @@ export function AttachmentList({
       >
         <div
           className="h-3 w-20 rounded mb-2.5 animate-pulse"
-          style={{ backgroundColor: "var(--thread-card-border)" }}
+          style={{ backgroundColor: "var(--aster-skeleton-fill)" }}
         />
         <div className="flex flex-wrap gap-2.5">
           {Array.from({ length: skeleton_count }, (_, i) => (

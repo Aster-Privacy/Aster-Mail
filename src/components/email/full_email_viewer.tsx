@@ -522,7 +522,7 @@ export function FullEmailViewer({
       <div className="relative flex-1 min-h-0">
         {show_content_skeleton && <EmailOpenSkeleton />}
         <div
-          className="h-full overflow-y-auto"
+          className="isolate h-full overflow-y-auto"
           style={{ scrollbarGutter: "stable" }}
         >
           {email && (
