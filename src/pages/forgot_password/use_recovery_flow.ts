@@ -22,7 +22,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
 import { RecoveryStep } from "./shared";
-import { recovery_error_message } from "./recovery_error";
+import {
+  is_recovery_session_expired,
+  recovery_error_message,
+  RecoverySessionExpiredError,
+} from "./recovery_error";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -480,6 +484,10 @@ export function use_recovery_flow() {
       new_recovery_email,
     );
 
+    if (is_recovery_session_expired(complete_response)) {
+      throw new RecoverySessionExpiredError();
+    }
+
     if (complete_response.error || !complete_response.data?.success) {
       throw new Error(
         recovery_error_message(complete_response, t) || t("auth.recovery_failed"),
@@ -561,6 +569,15 @@ export function use_recovery_flow() {
       }
 
       await timing_safe_delay();
+
+      if (err instanceof RecoverySessionExpiredError) {
+        set_recovery_token("");
+        set_error(t("auth.recovery_session_expired"));
+        set_step("code");
+
+        return;
+      }
+
       set_error(user_facing_error(err, t("auth.recovery_failed")));
       set_step("password");
     }

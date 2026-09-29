@@ -52,3 +52,11 @@ export function recovery_error_message(
 
   return response.error || t("auth.invalid_recovery_code");
 }
+
+export class RecoverySessionExpiredError extends Error {}
+
+export function is_recovery_session_expired(
+  response: ApiResponse<unknown>,
+): boolean {
+  return response.status === 401 || response.server_code === "UNAUTHORIZED";
+}
