@@ -70,19 +70,14 @@ export interface DecryptedExternalAccount {
   last_sync_status: string | null;
   last_sync_error: string | null;
   needs_reauth: boolean;
+  has_folder_mapping?: boolean;
   email_count: number;
   created_at: string;
   updated_at: string;
 }
 
 export type SyncFrequency =
-  | "5m"
-  | "15m"
-  | "30m"
-  | "1h"
-  | "2h"
-  | "6h"
-  | "manual";
+  "5m" | "15m" | "30m" | "1h" | "2h" | "6h" | "manual";
 
 export interface ExternalAccountSyncSettings {
   sync_frequency: SyncFrequency;

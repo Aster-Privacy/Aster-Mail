@@ -112,6 +112,7 @@ export async function list_external_accounts(
             (item as { oauth_provider?: string | null }).oauth_provider ?? null;
           const raw = item as {
             needs_reauth?: boolean;
+            has_folder_mapping?: boolean;
             last_sync_error?: string | null;
           };
 
@@ -130,6 +131,7 @@ export async function list_external_accounts(
             last_sync_status: item.last_sync_status,
             last_sync_error: raw.last_sync_error ?? null,
             needs_reauth: raw.needs_reauth ?? false,
+            has_folder_mapping: raw.has_folder_mapping,
             email_count: item.email_count,
             created_at: item.created_at,
             updated_at: item.updated_at,
@@ -141,6 +143,7 @@ export async function list_external_accounts(
             (item as { oauth_provider?: string | null }).oauth_provider ?? null;
           const raw = item as {
             needs_reauth?: boolean;
+            has_folder_mapping?: boolean;
             last_sync_error?: string | null;
           };
 
@@ -159,6 +162,7 @@ export async function list_external_accounts(
             last_sync_status: item.last_sync_status,
             last_sync_error: raw.last_sync_error ?? null,
             needs_reauth: raw.needs_reauth ?? false,
+            has_folder_mapping: raw.has_folder_mapping,
             email_count: item.email_count,
             created_at: item.created_at,
             updated_at: item.updated_at,
