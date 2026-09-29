@@ -24,6 +24,7 @@ import "@/services/crypto/openpgp_limits";
 
 import { type EncryptedKeyHandle } from "./key_manager_core";
 import { unlock_private_key } from "./key_manager_pgp_unlocked_cache";
+import { order_keys_for_message } from "./pgp_key_selection";
 import { with_decrypted_key } from "./key_manager_pgp_usage";
 import { with_aes_kw_fallback } from "./webcrypto_aes_kw";
 
@@ -345,11 +346,13 @@ export async function decrypt_message_verified_with_any_key(
   passphrase: string,
   verification_keys?: string[],
 ): Promise<decrypted_message_result> {
-  const keys = secret_keys.filter((k): k is string => !!k);
+  const available = secret_keys.filter((k): k is string => !!k);
 
-  if (keys.length === 0) {
+  if (available.length === 0) {
     throw new Error("no decryption key available");
   }
+
+  const keys = await order_keys_for_message(ciphertext, available);
 
   let last_error: unknown;
 
