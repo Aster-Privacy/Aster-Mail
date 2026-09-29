@@ -4395,3 +4395,92 @@ input:-webkit-autofill:active {
     opacity: 0.7;
   }
 }
+
+.message_attachment_card {
+  background-color: color-mix(
+    in srgb,
+    var(--text-primary) 6%,
+    var(--aster-island-fill, var(--bg-primary))
+  );
+  transition: background-color 0.14s ease;
+}
+
+.message_attachment_card:not(.animate-pulse):hover {
+  background-color: color-mix(
+    in srgb,
+    var(--text-primary) 9%,
+    var(--aster-island-fill, var(--bg-primary))
+  );
+}
+
+.message_attachment_well {
+  background-color: color-mix(
+    in srgb,
+    var(--text-primary) 10%,
+    var(--aster-island-fill, var(--bg-primary))
+  );
+}
+
+.message_attachment_badge {
+  background-color: var(--aster-island-fill, var(--bg-primary));
+}
+
+.message_attachment_download:hover {
+  background-color: color-mix(in srgb, var(--text-primary) 8%, transparent);
+}
+
+.message_attachments_encryption[data-encrypted="true"]
+  button[aria-haspopup="dialog"] {
+  color: var(--accent-color) !important;
+}
+
+.thread_message_actions .aster_pill_tonal {
+  background: color-mix(
+    in srgb,
+    var(--text-primary) 10%,
+    var(--aster-island-fill, var(--bg-primary))
+  );
+  color: var(--text-primary);
+}
+
+.thread_message_actions .aster_pill_tonal:hover:not(:disabled) {
+  background: color-mix(
+    in srgb,
+    var(--text-primary) 15%,
+    var(--aster-island-fill, var(--bg-primary))
+  );
+}
+
+.high-contrast .message_attachment_card {
+  border: 1px solid var(--border-secondary);
+}
+
+.high-contrast .thread_message_actions .aster_pill_tonal {
+  border-color: var(--border-secondary);
+}
+
+@supports not (color: color-mix(in srgb, red 50%, blue)) {
+  .message_attachment_card,
+  .message_attachment_card:not(.animate-pulse):hover,
+  .thread_message_actions .aster_pill_tonal,
+  .thread_message_actions .aster_pill_tonal:hover:not(:disabled) {
+    background: var(--bg-tertiary);
+  }
+
+  .message_attachment_well,
+  .message_attachment_download:hover {
+    background-color: var(--bg-hover);
+  }
+}
+
+@media (forced-colors: active) {
+  .message_attachment_card {
+    border: 1px solid CanvasText;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .message_attachment_card {
+    transition: none;
+  }
+}

@@ -23,21 +23,12 @@ import type {} from "@/lib/i18n/types";
 
 export function AttachmentCardSkeleton() {
   return (
-    <div
-      className="w-[200px] rounded-[14px] overflow-hidden animate-pulse"
-      style={{ border: "1px solid var(--thread-card-border)" }}
-    >
+    <div className="message_attachment_card w-[200px] rounded-[14px] overflow-hidden animate-pulse">
       <div
         className="w-full h-[128px]"
         style={{ backgroundColor: "var(--aster-skeleton-fill)" }}
       />
-      <div
-        className="px-3 py-2.5 border-t"
-        style={{
-          backgroundColor: "var(--thread-content-bg)",
-          borderColor: "var(--thread-card-border)",
-        }}
-      >
+      <div className="px-3 py-2.5">
         <div
           className="h-3 rounded w-3/4 mb-1.5"
           style={{ backgroundColor: "var(--aster-skeleton-fill)" }}

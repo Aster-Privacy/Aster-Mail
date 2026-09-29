@@ -711,13 +711,7 @@ export function AttachmentList({
     if (!hint_attachment_count) return null;
 
     return (
-      <div
-        className="border-t px-3 @md:px-4 py-2.5"
-        style={{
-          borderColor: "var(--thread-card-border)",
-          backgroundColor: "var(--thread-content-bg)",
-        }}
-      >
+      <div className="px-3 @md:px-4 py-2.5">
         <button
           className="text-xs text-txt-muted hover:text-txt-primary transition-colors flex items-center gap-1.5"
           onClick={() => {
@@ -751,13 +745,7 @@ export function AttachmentList({
     if (!skeleton_count) return null;
 
     return (
-      <div
-        className="border-t px-3 @md:px-4 py-3"
-        style={{
-          borderColor: "var(--thread-card-border)",
-          backgroundColor: "var(--thread-content-bg)",
-        }}
-      >
+      <div className="px-3 @md:px-4 py-3">
         <div
           className="h-3 w-20 rounded mb-2.5 animate-pulse"
           style={{ backgroundColor: "var(--aster-skeleton-fill)" }}
@@ -780,13 +768,7 @@ export function AttachmentList({
     if (!load_failed) return null;
 
     return (
-      <div
-        className="border-t px-3 @md:px-4 py-3"
-        style={{
-          borderColor: "var(--thread-card-border)",
-          backgroundColor: "var(--thread-content-bg)",
-        }}
-      >
+      <div className="px-3 @md:px-4 py-3">
         <LoadFailedNotice
           on_retry={() => {
             set_load_failed(false);
@@ -801,13 +783,7 @@ export function AttachmentList({
 
   return (
     <>
-      <div
-        className="border-t px-3 @md:px-4 py-3"
-        style={{
-          borderColor: "var(--thread-card-border)",
-          backgroundColor: "var(--thread-content-bg)",
-        }}
-      >
+      <div className="px-3 @md:px-4 py-3">
         <div className="text-xs text-txt-muted mb-2.5 font-medium flex items-center gap-1.5">
           <svg
             className="w-3.5 h-3.5"
@@ -835,18 +811,23 @@ export function AttachmentList({
             </>
           )}
           <span className="text-txt-muted/40">·</span>
-          <EncryptionInfoDropdown
-            context="attachments"
-            has_pq_protection={false}
-            has_recipient_key={has_recipient_key}
-            is_external={is_external}
-            label={
-              is_external && !has_recipient_key
-                ? t("common.protected_in_transit")
-                : t("common.end_to_end_encrypted_label")
-            }
-            size={13}
-          />
+          <span
+            className="message_attachments_encryption inline-flex"
+            data-encrypted={!is_external || has_recipient_key}
+          >
+            <EncryptionInfoDropdown
+              context="attachments"
+              has_pq_protection={false}
+              has_recipient_key={has_recipient_key}
+              is_external={is_external}
+              label={
+                is_external && !has_recipient_key
+                  ? t("common.protected_in_transit")
+                  : t("common.end_to_end_encrypted_label")
+              }
+              size={13}
+            />
+          </span>
         </div>
         <div className="flex flex-wrap gap-2.5">
           {attachments.map((att) => (
