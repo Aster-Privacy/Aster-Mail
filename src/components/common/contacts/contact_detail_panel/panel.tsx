@@ -52,7 +52,8 @@ import {
   XMarkIcon,
   ArrowUpOnSquareIcon,
   ArrowDownTrayIcon,
-  ClipboardIcon,
+  ChatBubbleBottomCenterTextIcon,
+  IdentificationIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
@@ -79,10 +80,12 @@ import {
   SOCIAL_TYPE_OPTIONS,
   WEBSITE_TYPE_OPTIONS,
   empty_edit_state,
+  next_address_type,
   to_edit_state,
 } from "./helpers";
 import { ContactView } from "./contact_view";
 
+import { sync_legacy_fields } from "@/components/common/hooks/contacts_state_helpers";
 import { build_contact_mail_query } from "@/utils/contact_mail_search";
 import { list_contact_groups } from "@/services/api/contacts";
 import { app_date_format, format_iso_date } from "@/utils/date_format";
@@ -93,18 +96,20 @@ import { ContactGroupsField } from "@/components/contacts/contact_groups_field";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   can_share_contact_file,
-  contact_to_share_text,
   contact_vcard_file,
   export_contact_vcard,
-  share_contact_vcard,
 } from "@/utils/contact_export";
+import {
+  run_share_contact_text,
+  run_share_contact_vcard,
+} from "@/components/common/contacts/contact_share_actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
-import { strip_image_metadata_data_url } from "@/lib/strip_image_metadata";
+import { compress_contact_avatar_file } from "@/utils/contact_avatar_image";
 import { format_full_datetime } from "@/utils/date_format";
 
 export function ContactDetailPanel({
@@ -141,9 +146,14 @@ export function ContactDetailPanel({
     ? can_share_contact_file(selected_contact, group_names)
     : false;
 
-  const handle_share_native = () => {
+  const handle_share_text = () => {
     if (!selected_contact) return;
-    void share_contact_vcard(selected_contact, group_names);
+    void run_share_contact_text(t, selected_contact);
+  };
+
+  const handle_share_vcard = () => {
+    if (!selected_contact) return;
+    void run_share_contact_vcard(selected_contact, group_names);
   };
 
   const handle_share_via_email = () => {
@@ -153,17 +163,6 @@ export function ContactDetailPanel({
 
     if (!file) return;
     on_share_via_email(file);
-  };
-
-  const handle_copy_details = () => {
-    if (!selected_contact) return;
-
-    void Promise.resolve(
-      on_copy(contact_to_share_text(selected_contact), "contact"),
-    ).then((result) => {
-      if (result === false) return;
-      show_toast(t("common.copied_to_clipboard"), "success");
-    });
   };
 
   const handle_download_vcard = () => {
@@ -223,8 +222,6 @@ export function ContactDetailPanel({
   const banner = draft.profile_color || DEFAULT_BANNER;
 
   const handle_save = async () => {
-    const email_entries = draft.email_entries.filter((e) => e.value.trim());
-    const phone_entries = draft.phone_entries.filter((p) => p.value.trim());
     const date_entries = draft.date_entries.filter((d) => d.value.trim());
     const related_people = draft.related_people.filter((r) => r.value.trim());
     const social_networks = draft.social_networks.filter((s) => s.value.trim());
@@ -232,20 +229,11 @@ export function ContactDetailPanel({
     const instant_messengers = draft.instant_messengers.filter((m) =>
       m.value.trim(),
     );
-    const address_entries = draft.address_entries.filter(
-      (a) =>
-        (a.street || "").trim() ||
-        (a.city || "").trim() ||
-        (a.state || "").trim() ||
-        (a.postal_code || "").trim() ||
-        (a.country || "").trim(),
-    );
 
-    const base: ContactFormData = {
+    const base: ContactFormData = sync_legacy_fields({
       first_name: draft.first_name.trim(),
       last_name: draft.last_name.trim(),
-      emails: email_entries.map((e) => e.value.trim()),
-      phone: phone_entries[0]?.value.trim() || undefined,
+      emails: [],
       birthday: draft.birthday.trim() || undefined,
       notes: draft.notes.trim() || undefined,
       profile_color: draft.profile_color,
@@ -253,7 +241,6 @@ export function ContactDetailPanel({
       is_favorite: selected_contact?.is_favorite ?? false,
       company: draft.company.trim() || undefined,
       job_title: draft.role.trim() || undefined,
-      address: address_entries[0],
       social_links: selected_contact?.social_links,
       relationship: selected_contact?.relationship,
       groups: selected_contact?.groups,
@@ -268,15 +255,16 @@ export function ContactDetailPanel({
       department: draft.department.trim() || undefined,
       comment: draft.comment.trim() || undefined,
       pronouns: draft.pronouns.trim() || undefined,
-      email_entries,
-      phone_entries,
-      address_entries,
+      email_entries: draft.email_entries,
+      phone_entries: draft.phone_entries,
+      address_entries: draft.address_entries,
       date_entries,
       related_people,
       social_networks,
       websites,
       instant_messengers,
-    };
+      extra_fields: selected_contact?.extra_fields,
+    });
 
     if (is_creating_new) {
       if (!on_inline_create) return;
@@ -318,7 +306,7 @@ export function ContactDetailPanel({
     if (file_input_ref.current) file_input_ref.current.value = "";
     if (!file) return;
 
-    const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+    const MAX_AVATAR_BYTES = 10 * 1024 * 1024;
     const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
     if (!ALLOWED_TYPES.includes(file.type)) {
@@ -332,16 +320,14 @@ export function ContactDetailPanel({
       return;
     }
 
-    const reader = new FileReader();
-
-    reader.onload = async () => {
-      const raw_url = reader.result as string;
-      const url = await strip_image_metadata_data_url(raw_url);
+    try {
+      const url = await compress_contact_avatar_file(file);
 
       set_draft((d) => (d ? { ...d, avatar_url: url } : d));
       if (!is_editing) set_is_editing(true);
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      show_toast(t("common.failed_to_upload_photo"), "error");
+    }
   };
 
   const handle_avatar_clear = () => {
@@ -518,18 +504,18 @@ export function ContactDetailPanel({
                       {t("common.share_contact_via_email")}
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem onSelect={handle_copy_details}>
-                    <ClipboardIcon className="w-4 h-4" />
-                    {t("common.copy")}
+                  <DropdownMenuItem onSelect={handle_share_text}>
+                    <ChatBubbleBottomCenterTextIcon className="w-4 h-4" />
+                    {t("common.share_as_text")}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={handle_download_vcard}>
-                    <ArrowDownTrayIcon className="w-4 h-4" />
-                    {t("common.export_selection_vcf")}
+                  <DropdownMenuItem onSelect={handle_share_vcard}>
+                    <IdentificationIcon className="w-4 h-4" />
+                    {t("common.share_as_vcard")}
                   </DropdownMenuItem>
                   {can_share_native && (
-                    <DropdownMenuItem onSelect={handle_share_native}>
-                      <ArrowUpOnSquareIcon className="w-4 h-4" />
-                      {t("common.share_contact_device")}
+                    <DropdownMenuItem onSelect={handle_download_vcard}>
+                      <ArrowDownTrayIcon className="w-4 h-4" />
+                      {t("common.export_selection_vcf")}
                     </DropdownMenuItem>
                   )}
                 </DropdownMenuContent>
@@ -728,6 +714,12 @@ export function ContactDetailPanel({
                       l.filter((_, i) => i !== idx),
                     )
                   }
+                  allow_custom
+                  on_label_change={(idx, label) =>
+                    update_list("email_entries", (l) =>
+                      l.map((e, i) => (i === idx ? { ...e, label } : e)),
+                    )
+                  }
                   on_type_change={(idx, type) =>
                     update_list("email_entries", (l) =>
                       l.map((e, i) =>
@@ -760,6 +752,12 @@ export function ContactDetailPanel({
                   on_remove={(idx) =>
                     update_list("phone_entries", (l) =>
                       l.filter((_, i) => i !== idx),
+                    )
+                  }
+                  allow_custom
+                  on_label_change={(idx, label) =>
+                    update_list("phone_entries", (l) =>
+                      l.map((p, i) => (i === idx ? { ...p, label } : p)),
                     )
                   }
                   on_type_change={(idx, type) =>
@@ -1006,7 +1004,7 @@ export function ContactDetailPanel({
                   on_add={() =>
                     update_list("address_entries", (l) => [
                       ...l,
-                      { type: "home" },
+                      { type: next_address_type(l) },
                     ])
                   }
                   on_change={(idx, patch) =>

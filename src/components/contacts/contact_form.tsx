@@ -45,10 +45,8 @@ import { use_unsaved_changes_guard } from "@/hooks/use_unsaved_changes_guard";
 import { cn, EMAIL_REGEX } from "@/lib/utils";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
-import {
-  compress_image,
-  PROFILE_PICTURE_ACCEPT,
-} from "@/hooks/use_profile_picture_upload";
+import { PROFILE_PICTURE_ACCEPT } from "@/hooks/use_profile_picture_upload";
+import { compress_contact_avatar_file } from "@/utils/contact_avatar_image";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_dialog_shell } from "@/lib/use_dialog_shell";
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
@@ -316,7 +314,7 @@ export function ContactForm({
     }
 
     try {
-      const data_url = await compress_image(file);
+      const data_url = await compress_contact_avatar_file(file);
 
       handle_change("avatar_url", data_url);
     } catch {
