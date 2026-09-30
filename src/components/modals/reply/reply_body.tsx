@@ -22,6 +22,7 @@ import type { TranslationKey } from "@/lib/i18n";
 import type { UseEditorReturn } from "@/hooks/use_editor";
 
 import { useEffect } from "react";
+import { Tooltip } from "@aster/ui";
 
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import { QuotedHtmlPreview } from "@/components/compose/quoted_html_preview";
@@ -224,43 +225,47 @@ export function ReplyBody({
       {!is_minimized && original_body && include_quoted && (
         <div className="px-4 pb-2">
           <div className="inline-flex h-6 items-center rounded-full bg-[var(--aster-hover)] text-txt-secondary">
-            <button
-              aria-expanded={show_quoted}
-              aria-label={
+            <Tooltip
+              tip={
                 show_quoted
                   ? t("mail.hide_quoted_text")
                   : t("mail.show_quoted_text")
               }
-              className="inline-flex h-6 min-w-10 items-center justify-center rounded-full px-3 hover:bg-[var(--aster-hover)] hover:text-txt-primary aria-expanded:text-txt-primary"
-              title={
-                show_quoted
-                  ? t("mail.hide_quoted_text")
-                  : t("mail.show_quoted_text")
-              }
-              type="button"
-              onClick={() => set_show_quoted(!show_quoted)}
             >
-              <span
-                aria-hidden="true"
-                className="flex items-center gap-[2.5px]"
+              <button
+                aria-expanded={show_quoted}
+                aria-label={
+                  show_quoted
+                    ? t("mail.hide_quoted_text")
+                    : t("mail.show_quoted_text")
+                }
+                className="inline-flex h-6 min-w-10 items-center justify-center rounded-full px-3 hover:bg-[var(--aster-hover)] hover:text-txt-primary aria-expanded:text-txt-primary"
+                type="button"
+                onClick={() => set_show_quoted(!show_quoted)}
               >
-                <span className="h-1 w-1 rounded-full bg-current" />
-                <span className="h-1 w-1 rounded-full bg-current" />
-                <span className="h-1 w-1 rounded-full bg-current" />
-              </span>
-            </button>
-            <button
-              aria-label={t("mail.remove_quoted_text")}
-              className="inline-flex h-6 w-6 items-center justify-center rounded-full text-txt-muted hover:bg-[var(--aster-hover)] hover:text-txt-primary"
-              title={t("mail.remove_quoted_text")}
-              type="button"
-              onClick={() => {
-                set_include_quoted(false);
-                set_show_quoted(false);
-              }}
-            >
-              <CloseIcon className="h-3 w-3" />
-            </button>
+                <span
+                  aria-hidden="true"
+                  className="flex items-center gap-[2.5px]"
+                >
+                  <span className="h-1 w-1 rounded-full bg-current" />
+                  <span className="h-1 w-1 rounded-full bg-current" />
+                  <span className="h-1 w-1 rounded-full bg-current" />
+                </span>
+              </button>
+            </Tooltip>
+            <Tooltip tip={t("mail.remove_quoted_text")}>
+              <button
+                aria-label={t("mail.remove_quoted_text")}
+                className="inline-flex h-6 w-6 items-center justify-center rounded-full text-txt-muted hover:bg-[var(--aster-hover)] hover:text-txt-primary"
+                type="button"
+                onClick={() => {
+                  set_include_quoted(false);
+                  set_show_quoted(false);
+                }}
+              >
+                <CloseIcon className="h-3 w-3" />
+              </button>
+            </Tooltip>
           </div>
           {show_quoted && (
             <QuotedHtmlPreview html={build_quoted_content(true)} />
