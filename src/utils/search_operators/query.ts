@@ -53,6 +53,42 @@ export function format_date_for_operator(date: Date): string {
   return `${parts.year}-${month}-${day}`;
 }
 
+function day_after(date: string): string {
+  if (!DATE_REGEX.test(date)) return date;
+
+  const [year, month, day] = date.split("-").map(Number);
+  const picked = new Date(Date.UTC(year, month - 1, day));
+
+  if (
+    picked.getUTCFullYear() !== year ||
+    picked.getUTCMonth() !== month - 1 ||
+    picked.getUTCDate() !== day
+  ) {
+    return date;
+  }
+
+  const next = new Date(Date.UTC(year, month - 1, day + 1))
+    .toISOString()
+    .slice(0, 10);
+
+  return DATE_REGEX.test(next) ? next : date;
+}
+
+/**
+ * Operators for a date range picked in the UI, where both ends are
+ * included. `before:` stops at the start of its own day, so the end date
+ * becomes `before:` the following day. An empty end is left out, and a
+ * value that is not a real YYYY-MM-DD date is passed through.
+ */
+export function date_range_operators(from: string, to: string): string[] {
+  const operators: string[] = [];
+
+  if (from) operators.push(`after:${from}`);
+  if (to) operators.push(`before:${day_after(to)}`);
+
+  return operators;
+}
+
 export function parse_operator_date(date_string: string): Date | null {
   if (!DATE_REGEX.test(date_string)) {
     return null;

@@ -30,6 +30,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import {
+  date_range_operators,
   parse_search_query,
   format_date_for_operator,
 } from "@/utils/search_operators";
@@ -482,8 +483,9 @@ export function SearchChipRow({
         !operator.negated,
     );
 
-    if (custom_after) next = append_token(next, `after:${custom_after}`);
-    if (custom_before) next = append_token(next, `before:${custom_before}`);
+    for (const operator of date_range_operators(custom_after, custom_before)) {
+      next = append_token(next, operator);
+    }
 
     set_date_open(false);
     set_show_custom_range(false);
