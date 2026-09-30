@@ -35,11 +35,20 @@ import {
   MapPinIcon,
   PhoneIcon,
   UsersIcon,
+  DocumentDuplicateIcon,
 } from "@heroicons/react/24/outline";
 
-import { format_address_lines, type_label_key } from "./helpers";
+import {
+  ADDRESS_TYPE_OPTIONS,
+  EMAIL_TYPE_OPTIONS,
+  PHONE_TYPE_OPTIONS,
+  entry_type_text,
+  format_address_lines,
+  type_label_key,
+} from "./helpers";
 
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
+import { show_toast } from "@/components/toast/simple_toast";
 import { format_contact_date } from "@/utils/date_utils";
 
 interface ContactViewProps {
@@ -96,7 +105,7 @@ export function ContactView({
         key: `email_${index}`,
         text: entry.value,
         href: `mailto:${entry.value}`,
-        label: t(type_label_key(entry.type)),
+        label: entry_type_text(t, entry, EMAIL_TYPE_OPTIONS),
       })),
     });
   }
@@ -111,7 +120,7 @@ export function ContactView({
         key: `phone_${index}`,
         text: entry.value,
         href: `tel:${entry.value.replace(/\s+/g, "")}`,
-        label: t(type_label_key(entry.type)),
+        label: entry_type_text(t, entry, PHONE_TYPE_OPTIONS),
       })),
     });
   }
@@ -127,7 +136,7 @@ export function ContactView({
       lines: addresses.map((entry, index) => ({
         key: `address_${index}`,
         text: format_address_lines(entry).join(", "),
-        label: t(type_label_key(entry.type)),
+        label: entry_type_text(t, entry, ADDRESS_TYPE_OPTIONS),
       })),
     });
   }
@@ -295,7 +304,8 @@ export function ContactView({
                     >
                       {line.href ? (
                         <a
-                          className="contact_view_link min-w-0 break-words"
+                          className="contact_view_link min-w-0 break-words select-text"
+                          draggable={false}
                           href={line.href}
                           rel={
                             /^https?:/i.test(line.href)
@@ -309,14 +319,26 @@ export function ContactView({
                           {line.text}
                         </a>
                       ) : (
-                        <button
-                          className="min-w-0 whitespace-pre-wrap break-words text-start text-[13.5px] text-txt-primary"
-                          type="button"
-                          onClick={() => void on_copy(line.text, line.key)}
-                        >
+                        <span className="min-w-0 whitespace-pre-wrap break-words text-start text-[13.5px] text-txt-primary select-text">
                           {line.text}
-                        </button>
+                        </span>
                       )}
+                      <button
+                        aria-label={t("common.copy_value")}
+                        className="flex-shrink-0 self-center inline-flex h-6 w-6 items-center justify-center rounded-md text-txt-muted opacity-60 transition-opacity hover:bg-[var(--aster-hover)] hover:opacity-100 focus-visible:opacity-100"
+                        title={t("common.copy_value")}
+                        type="button"
+                        onClick={() =>
+                          void Promise.resolve(
+                            on_copy(line.text, line.key),
+                          ).then((result) => {
+                            if (result === false) return;
+                            show_toast(t("common.copied_to_clipboard"), "success");
+                          })
+                        }
+                      >
+                        <DocumentDuplicateIcon className="h-3.5 w-3.5" />
+                      </button>
                       {line.label && (
                         <span className="flex-shrink-0 text-[12.5px] text-txt-muted">
                           {"•"} {line.label}

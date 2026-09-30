@@ -70,6 +70,7 @@ import {
 } from "@/services/api/contacts";
 import { parse_csv_records } from "@/utils/contact_utils";
 import { user_facing_error } from "@/utils/user_facing_error";
+import { prepare_imported_avatar } from "@/utils/contact_avatar_image";
 
 const PREVIEW_PAGE_SIZE = 60;
 const IMPORT_BATCH_SIZE = 25;
@@ -144,6 +145,10 @@ export function ContactImportModal({
     Record<string, CsvFieldTarget | null>
   >({});
   const [is_importing, set_is_importing] = useState(false);
+  const [import_progress, set_import_progress] = useState<{
+    current: number;
+    total: number;
+  } | null>(null);
   const [import_result, set_import_result] = useState<{
     imported: number;
     updated: number;
@@ -410,6 +415,7 @@ export function ContactImportModal({
 
     set_is_importing(true);
     set_error(null);
+    set_import_progress({ current: 0, total: selected_contacts.length });
 
     try {
       const batch_size = IMPORT_BATCH_SIZE;
@@ -427,6 +433,7 @@ export function ContactImportModal({
 
         return { ...contact, groups: unique.length > 0 ? unique : undefined };
       });
+      const total = payload.length;
       let imported = 0;
       let updated = 0;
       let skipped = 0;
@@ -435,7 +442,15 @@ export function ContactImportModal({
       let last_error: string | null = null;
 
       for (let i = 0; i < payload.length; i += batch_size) {
-        const batch = payload.slice(i, i + batch_size);
+        const batch: typeof payload = [];
+
+        for (const contact of payload.slice(i, i + batch_size)) {
+          batch.push({
+            ...contact,
+            avatar_url: await prepare_imported_avatar(contact.avatar_url),
+          });
+        }
+        const processed = Math.min(i + batch.length, total);
         let response = await import_csv(batch);
         let attempt = 0;
 
@@ -453,6 +468,7 @@ export function ContactImportModal({
         if (response.error || !response.data) {
           last_error = response.error || t("common.import_failed");
           failed += batch.length;
+          set_import_progress({ current: processed, total });
           continue;
         }
 
@@ -460,6 +476,7 @@ export function ContactImportModal({
         updated += response.data.updated ?? 0;
         skipped += response.data.skipped ?? 0;
         failed += response.data.failed ?? 0;
+        set_import_progress({ current: processed, total });
 
         const errors = response.data.errors ?? [];
 
@@ -491,6 +508,7 @@ export function ContactImportModal({
       set_error(user_facing_error(err, t("common.import_failed")));
     } finally {
       set_is_importing(false);
+      set_import_progress(null);
     }
   }, [
     assign_imported_groups,
@@ -859,9 +877,41 @@ export function ContactImportModal({
                 )}
               </div>
 
+              {import_progress && (
+                <div aria-live="polite" className="flex-shrink-0 space-y-1.5">
+                  <p className="text-xs text-txt-secondary">
+                    {t("common.importing_progress", {
+                      current: format_number(import_progress.current),
+                      total: format_number(import_progress.total),
+                    })}
+                  </p>
+                  <div
+                    aria-valuemax={import_progress.total}
+                    aria-valuemin={0}
+                    aria-valuenow={import_progress.current}
+                    className="h-1.5 w-full overflow-hidden rounded-full bg-surf-tertiary"
+                    role="progressbar"
+                  >
+                    <div
+                      className="h-full rounded-full bg-[var(--accent-color,#3b82f6)] transition-[width] duration-300"
+                      style={{
+                        width: `${
+                          import_progress.total > 0
+                            ? (import_progress.current /
+                                import_progress.total) *
+                              100
+                            : 0
+                        }%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
+
               <div className="flex flex-shrink-0 items-center justify-between gap-2 pt-1">
                 <Button
                   className="border border-edge-secondary"
+                  disabled={is_importing}
                   variant="ghost"
                   onClick={() =>
                     set_step(file_type === "csv" ? "mapping" : "select")

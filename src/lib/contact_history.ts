@@ -35,10 +35,16 @@ export function strip_contact_revisions(
 export function contact_revision_snapshot(
   data: ContactFormData,
 ): ContactFormData {
-  const { revisions: _revisions, avatar_url: _avatar_url, ...rest } = data;
+  const {
+    revisions: _revisions,
+    avatar_url: _avatar_url,
+    extra_fields: _extra_fields,
+    ...rest
+  } = data;
 
   void _revisions;
   void _avatar_url;
+  void _extra_fields;
 
   return rest;
 }
@@ -57,7 +63,12 @@ export function with_contact_revision(
   next: ContactFormData,
   previous: ContactFormData,
 ): ContactFormData {
-  if (!contact_fields_changed(previous, next)) return next;
+  const extra_fields = next.extra_fields ?? previous.extra_fields;
+  const merged: ContactFormData = extra_fields
+    ? { ...next, extra_fields }
+    : next;
+
+  if (!contact_fields_changed(previous, merged)) return merged;
 
   const entry: ContactRevision = {
     changed_at: new Date().toISOString(),
@@ -65,7 +76,7 @@ export function with_contact_revision(
   };
 
   return {
-    ...next,
+    ...merged,
     revisions: [entry, ...(previous.revisions ?? [])].slice(
       0,
       CONTACT_REVISION_LIMIT,

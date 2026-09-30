@@ -27,7 +27,11 @@ import type {
 
 import { useCallback, useEffect, useRef } from "react";
 
-import { BATCH_SIZE, contact_to_form_data } from "./contacts_state_helpers";
+import {
+  BATCH_SIZE,
+  contact_to_form_data,
+  reconcile_entry_fields,
+} from "./contacts_state_helpers";
 import { use_contacts_data } from "./use_contacts_data";
 
 import { copy_text_or_throw } from "@/utils/copy_text";
@@ -396,7 +400,12 @@ export function use_contacts_state() {
   }, [trashed_contacts, fetch_contacts, t]);
 
   const handle_form_submit = useCallback(
-    async (data: ContactFormData) => {
+    async (submitted: ContactFormData) => {
+      const data = reconcile_entry_fields(
+        submitted,
+        editing_contact ? contact_to_form_data(editing_contact) : undefined,
+      );
+
       set_is_submitting(true);
       set_error(null);
 

@@ -20,7 +20,10 @@
 //
 import { describe, it, expect } from "vitest";
 
-import { reconcile_entry_fields } from "@/components/common/hooks/contacts_state_helpers";
+import {
+  reconcile_entry_fields,
+  sync_legacy_fields,
+} from "@/components/common/hooks/contacts_state_helpers";
 
 describe("reconcile_entry_fields", () => {
   it("rewrites email entries from the edited flat emails", () => {
@@ -86,7 +89,7 @@ describe("reconcile_entry_fields", () => {
     ]);
   });
 
-  it("leaves contacts without typed entries untouched", () => {
+  it("builds typed entries for contacts that have none", () => {
     const result = reconcile_entry_fields({
       first_name: "Ada",
       last_name: "Lovelace",
@@ -94,8 +97,154 @@ describe("reconcile_entry_fields", () => {
       phone: "999",
     });
 
-    expect(result.email_entries).toBeUndefined();
-    expect(result.phone_entries).toBeUndefined();
-    expect(result.address_entries).toBeUndefined();
+    expect(result.email_entries).toEqual([
+      { value: "ada@astermail.org", type: "other" },
+    ]);
+    expect(result.phone_entries).toEqual([{ value: "999", type: "mobile" }]);
+    expect(result.address_entries).toEqual([]);
+    expect(result.address).toBeUndefined();
+  });
+
+  it("keeps custom labels and extra entries when the flat fields change", () => {
+    const result = reconcile_entry_fields({
+      first_name: "Ada",
+      last_name: "",
+      emails: ["ada@astermail.org", "new@astermail.org"],
+      phone: "111",
+      address: { city: "Paris" },
+      email_entries: [
+        { value: "ada@astermail.org", type: "other", label: "Club" },
+      ],
+      phone_entries: [
+        { value: "000", type: "personal" },
+        { value: "222", type: "other", label: "Boat" },
+      ],
+      address_entries: [
+        { type: "work", city: "Berlin" },
+        { type: "home", city: "London" },
+      ],
+    });
+
+    expect(result.email_entries).toEqual([
+      { value: "ada@astermail.org", type: "other", label: "Club" },
+      { value: "new@astermail.org", type: "other" },
+    ]);
+    expect(result.phone_entries).toEqual([
+      { value: "111", type: "personal" },
+      { value: "222", type: "other", label: "Boat" },
+    ]);
+    expect(result.address_entries).toEqual([
+      { type: "work", city: "Berlin" },
+      { type: "home", city: "Paris" },
+    ]);
+    expect(result.address).toEqual({ city: "Paris" });
+  });
+});
+
+describe("reconcile_entry_fields with the original contact", () => {
+  const original = {
+    first_name: "Ada",
+    last_name: "Lovelace",
+    emails: ["ada@astermail.org"],
+    phone: "222",
+    address: { street: "Work street", city: "Berlin" },
+    phone_entries: [
+      { value: "111", type: "mobile" as const },
+      { value: "222", type: "work" as const },
+    ],
+    address_entries: [
+      { street: "Work street", city: "Berlin", type: "work" as const },
+      { street: "Home street", city: "London", type: "home" as const },
+    ],
+  };
+
+  it("leaves typed phones and addresses alone when they were not edited", () => {
+    const result = reconcile_entry_fields(
+      { ...original, first_name: "Augusta" },
+      original,
+    );
+
+    expect(result.phone_entries).toEqual(original.phone_entries);
+    expect(result.address_entries).toEqual(original.address_entries);
+  });
+
+  it("edits the entry that matched the shown phone and address", () => {
+    const result = reconcile_entry_fields(
+      {
+        ...original,
+        phone: "333",
+        address: { street: "New work street", city: "Berlin" },
+      },
+      original,
+    );
+
+    expect(result.phone_entries).toEqual([
+      { value: "111", type: "mobile" },
+      { value: "333", type: "work" },
+    ]);
+    expect(result.address_entries).toEqual([
+      { street: "New work street", city: "Berlin", type: "work" },
+      { street: "Home street", city: "London", type: "home" },
+    ]);
+  });
+
+  it("removes only the cleared entry", () => {
+    const result = reconcile_entry_fields(
+      { ...original, phone: "", address: {} },
+      original,
+    );
+
+    expect(result.phone_entries).toEqual([{ value: "111", type: "mobile" }]);
+    expect(result.address_entries).toEqual([
+      { street: "Home street", city: "London", type: "home" },
+    ]);
+  });
+});
+
+describe("sync_legacy_fields", () => {
+  it("derives the legacy fields from typed entries", () => {
+    const result = sync_legacy_fields({
+      first_name: "Ada",
+      last_name: "",
+      emails: [],
+      email_entries: [
+        { value: " a@astermail.org ", type: "work" },
+        { value: "", type: "home" },
+        { value: "b@astermail.org", type: "other", label: "  " },
+      ],
+      phone_entries: [
+        { value: "555", type: "other", label: "Studio" },
+        { value: "666", type: "mobile", label: "stale" },
+      ],
+      address_entries: [
+        { type: "work", street: "1 Main St" },
+        { type: "home", city: "Lisbon" },
+        { type: "other" },
+      ],
+    });
+
+    expect(result.emails).toEqual(["a@astermail.org", "b@astermail.org"]);
+    expect(result.email_entries).toEqual([
+      { value: "a@astermail.org", type: "work" },
+      { value: "b@astermail.org", type: "other" },
+    ]);
+    expect(result.phone).toBe("555");
+    expect(result.phone_entries).toEqual([
+      { value: "555", type: "other", label: "Studio" },
+      { value: "666", type: "mobile" },
+    ]);
+    expect(result.address_entries).toHaveLength(2);
+    expect(result.address).toEqual({ city: "Lisbon" });
+  });
+
+  it("falls back to the first address when none is home", () => {
+    const result = sync_legacy_fields({
+      first_name: "",
+      last_name: "",
+      emails: [],
+      address_entries: [{ type: "work", city: "Oslo" }],
+    });
+
+    expect(result.address).toEqual({ city: "Oslo" });
   });
 });

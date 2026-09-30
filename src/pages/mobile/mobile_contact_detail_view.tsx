@@ -20,6 +20,7 @@
 //
 import type { DecryptedContact } from "@/types/contacts";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -37,6 +38,9 @@ import {
   TrashIcon,
   LinkIcon,
   MagnifyingGlassIcon,
+  ArrowUpOnSquareIcon,
+  ChatBubbleBottomCenterTextIcon,
+  IdentificationIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
 
@@ -46,6 +50,27 @@ import { use_external_link } from "@/contexts/external_link_context";
 import { build_contact_social_url } from "@/utils/contact_links";
 import { format_contact_date } from "@/utils/date_utils";
 import { build_contact_mail_query } from "@/utils/contact_mail_search";
+import { list_contact_groups } from "@/services/api/contacts";
+import {
+  ADDRESS_TYPE_OPTIONS,
+  EMAIL_TYPE_OPTIONS,
+  PHONE_TYPE_OPTIONS,
+  entry_type_text,
+  format_address_lines,
+  to_address_entries,
+  to_email_entries,
+  to_phone_entries,
+} from "@/components/common/contacts/contact_detail_panel/helpers";
+import {
+  run_share_contact_text,
+  run_share_contact_vcard,
+} from "@/components/common/contacts/contact_share_actions";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
 
 function DetailCard({ children }: { children: React.ReactNode }) {
   return (
@@ -94,7 +119,10 @@ function DetailRow({
       className={`flex items-center gap-2 px-4 py-2.5 ${!is_last ? "border-b border-[var(--border-primary)]" : ""}`}
     >
       <div className="min-w-0 flex-1">
-        <p className="truncate text-[14px] text-[var(--text-primary)]">
+        <p
+          className="select-text whitespace-pre-line break-words text-[14px] text-[var(--text-primary)]"
+          dir="auto"
+        >
           {label}
         </p>
         {sublabel && (
@@ -103,7 +131,7 @@ function DetailRow({
       </div>
       {on_copy && (
         <button
-          aria-label={t("common.copy")}
+          aria-label={t("common.copy_value")}
           className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-muted)] active:bg-[var(--bg-tertiary)]"
           type="button"
           onClick={on_copy}
@@ -152,23 +180,36 @@ export function ContactDetailView({
   const primary_email = contact.emails[0] ?? "";
   const navigate = useNavigate();
   const contact_mail_query = build_contact_mail_query(contact.emails);
-  const has_address =
-    contact.address &&
-    Object.values(contact.address).some((v) => v && v.trim());
+  const email_entries = to_email_entries(contact);
+  const phone_entries = to_phone_entries(contact);
+  const address_entries = to_address_entries(contact);
+  const primary_phone = phone_entries[0]?.value ?? "";
+  const assigned_group_ids = (contact.groups ?? []).join(",");
+  const [group_names, set_group_names] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!assigned_group_ids) return;
+
+    let cancelled = false;
+
+    list_contact_groups()
+      .then((response) => {
+        if (cancelled || !response.data) return;
+
+        const names: Record<string, string> = {};
+
+        for (const group of response.data.groups) names[group.id] = group.name;
+        set_group_names(names);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, [assigned_group_ids]);
   const has_social =
     contact.social_links &&
     Object.values(contact.social_links).some((v) => v && v.trim());
-  const address_string = contact.address
-    ? [
-        contact.address.street,
-        contact.address.city,
-        contact.address.state,
-        contact.address.postal_code,
-        contact.address.country,
-      ]
-        .filter(Boolean)
-        .join(", ")
-    : "";
 
   return (
     <motion.div
@@ -191,6 +232,33 @@ export function ContactDetailView({
           <ChevronLeftIcon className="h-4 w-4 rtl:-scale-x-100" />
         </motion.button>
         <span className="flex-1" />
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <motion.button
+              aria-label={t("common.share_contact")}
+              className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)]"
+              type="button"
+            >
+              <ArrowUpOnSquareIcon className="h-4 w-4" />
+            </motion.button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem
+              onSelect={() => void run_share_contact_text(t, contact)}
+            >
+              <ChatBubbleBottomCenterTextIcon className="h-4 w-4" />
+              {t("common.share_as_text")}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() =>
+                void run_share_contact_vcard(contact, group_names)
+              }
+            >
+              <IdentificationIcon className="h-4 w-4" />
+              {t("common.share_as_vcard")}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <motion.button
           className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)]"
           type="button"
@@ -250,12 +318,12 @@ export function ContactDetailView({
               </span>
             </motion.button>
           )}
-          {contact.phone && (
+          {primary_phone && (
             <motion.button
               className="flex flex-col items-center gap-1.5"
               type="button"
               onClick={() => {
-                window.open(`tel:${contact.phone}`, "_self");
+                window.open(`tel:${primary_phone}`, "_self");
               }}
             >
               <div
@@ -305,34 +373,41 @@ export function ContactDetailView({
         </div>
 
         <div className="space-y-3 px-4 pb-8">
-          {contact.emails.length > 0 && (
+          {email_entries.length > 0 && (
             <DetailCard>
               <DetailCardHeader
                 icon={<EnvelopeIcon className="h-4 w-4" />}
                 label={t("common.email_section")}
               />
-              {contact.emails.map((email, i) => (
+              {email_entries.map((entry, i) => (
                 <DetailRow
-                  key={email}
-                  is_last={i === contact.emails.length - 1}
-                  label={email}
-                  on_copy={() => on_copy(email)}
+                  key={`${entry.value}-${i}`}
+                  is_last={i === email_entries.length - 1}
+                  label={entry.value}
+                  on_copy={() => on_copy(entry.value)}
+                  sublabel={entry_type_text(t, entry, EMAIL_TYPE_OPTIONS)}
                 />
               ))}
             </DetailCard>
           )}
 
-          {contact.phone && (
+          {phone_entries.length > 0 && (
             <DetailCard>
               <DetailCardHeader
                 icon={<PhoneIcon className="h-4 w-4" />}
                 label={t("common.phone_section")}
               />
-              <DetailRow
-                is_last
-                label={contact.phone}
-                on_copy={() => on_copy(contact.phone!)}
-              />
+              {phone_entries.map((entry, i) => (
+                <DetailRow
+                  key={`${entry.value}-${i}`}
+                  action_icon={<PhoneIcon className="h-4 w-4" />}
+                  is_last={i === phone_entries.length - 1}
+                  label={entry.value}
+                  on_action={() => window.open(`tel:${entry.value}`, "_self")}
+                  on_copy={() => on_copy(entry.value)}
+                  sublabel={entry_type_text(t, entry, PHONE_TYPE_OPTIONS)}
+                />
+              ))}
             </DetailCard>
           )}
 
@@ -375,17 +450,27 @@ export function ContactDetailView({
             </DetailCard>
           )}
 
-          {has_address && (
+          {address_entries.length > 0 && (
             <DetailCard>
               <DetailCardHeader
                 icon={<MapPinIcon className="h-4 w-4" />}
                 label={t("common.address_section")}
               />
-              <DetailRow
-                is_last
-                label={address_string}
-                on_copy={() => on_copy(address_string)}
-              />
+              {address_entries.map((entry, i) => {
+                const text = format_address_lines(entry).join("\n");
+
+                if (!text) return null;
+
+                return (
+                  <DetailRow
+                    key={`${text}-${i}`}
+                    is_last={i === address_entries.length - 1}
+                    label={text}
+                    on_copy={() => on_copy(text)}
+                    sublabel={entry_type_text(t, entry, ADDRESS_TYPE_OPTIONS)}
+                  />
+                );
+              })}
             </DetailCard>
           )}
 
@@ -438,7 +523,7 @@ export function ContactDetailView({
               />
               <div className="px-4 pb-3">
                 <p
-                  className="whitespace-pre-wrap text-[14px] leading-relaxed text-[var(--text-secondary)]"
+                  className="select-text whitespace-pre-wrap text-[14px] leading-relaxed text-[var(--text-secondary)]"
                   dir="auto"
                 >
                   {contact.notes}

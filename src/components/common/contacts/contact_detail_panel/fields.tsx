@@ -32,6 +32,8 @@ import { Button } from "@aster/ui";
 
 import {
   ADDRESS_TYPE_OPTIONS,
+  CUSTOM_TYPE,
+  entry_select_value,
   FIELD_CLASS,
   SELECT_CLASS,
   type_label_key,
@@ -262,17 +264,77 @@ export function ContactPgpKeyRow({
 }
 
 export interface TypedListProps<T extends string> {
-  entries: { value: string; type: T }[];
+  entries: { value: string; type: T; label?: string }[];
   options: T[];
   placeholder: string;
   input_type?: string;
   type_default: T;
   disabled: boolean;
+  allow_custom?: boolean;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   on_add: () => void;
   on_change: (idx: number, value: string) => void;
   on_remove: (idx: number) => void;
   on_type_change: (idx: number, type: string) => void;
+  on_label_change?: (idx: number, label: string | undefined) => void;
+}
+
+function TypeSelect({
+  value,
+  options,
+  disabled,
+  allow_custom,
+  t,
+  on_change,
+}: {
+  value: string;
+  options: string[];
+  disabled: boolean;
+  allow_custom: boolean;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
+  on_change: (value: string) => void;
+}) {
+  return (
+    <Select disabled={disabled} value={value} onValueChange={on_change}>
+      <SelectTrigger className="w-[120px] h-11 rounded-xl bg-black/[0.04] dark:bg-white/[0.04] border border-edge-secondary/60 dark:border-transparent text-[13px] text-txt-primary">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((opt) => (
+          <SelectItem key={opt} value={opt}>
+            {t(type_label_key(opt))}
+          </SelectItem>
+        ))}
+        {allow_custom && (
+          <SelectItem value={CUSTOM_TYPE}>{t("common.type_custom")}</SelectItem>
+        )}
+      </SelectContent>
+    </Select>
+  );
+}
+
+function CustomLabelInput({
+  value,
+  disabled,
+  t,
+  on_change,
+}: {
+  value: string;
+  disabled: boolean;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
+  on_change: (value: string) => void;
+}) {
+  return (
+    <input
+      aria-label={t("common.custom_label")}
+      className={`${FIELD_CLASS} w-[140px] flex-shrink-0`}
+      maxLength={64}
+      placeholder={t("common.custom_label")}
+      readOnly={disabled}
+      value={value}
+      onChange={(e) => on_change(e.target.value)}
+    />
+  );
 }
 
 export function TypedList<T extends string>({
@@ -281,52 +343,72 @@ export function TypedList<T extends string>({
   placeholder,
   input_type,
   disabled,
+  allow_custom = false,
   t,
   on_add,
   on_change,
   on_remove,
   on_type_change,
+  on_label_change,
 }: TypedListProps<T>) {
+  const custom_enabled = allow_custom && Boolean(on_label_change);
+
   return (
     <div className="space-y-2">
-      {entries.map((entry, idx) => (
-        <div key={idx} className="flex items-center gap-2">
-          <input
-            className={`${FIELD_CLASS} flex-1 min-w-0`}
-            placeholder={placeholder}
-            readOnly={disabled}
-            type={input_type || "text"}
-            value={entry.value}
-            onChange={(e) => on_change(idx, e.target.value)}
-          />
-          <Select
-            disabled={disabled}
-            value={entry.type}
-            onValueChange={(v) => on_type_change(idx, v)}
-          >
-            <SelectTrigger className="w-[120px] h-11 rounded-xl bg-black/[0.04] dark:bg-white/[0.04] border border-edge-secondary/60 dark:border-transparent text-[13px] text-txt-primary">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {options.map((opt) => (
-                <SelectItem key={opt} value={opt}>
-                  {t(type_label_key(opt))}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {!disabled && (
-            <button
-              aria-label={t("common.remove")}
-              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-[var(--aster-hover)] flex items-center justify-center transition-colors"
-              type="button"
-              onClick={() => on_remove(idx)}
-            >
-              <XMarkIcon className="w-4 h-4 text-txt-muted" />
-            </button>
-          )}
-        </div>
-      ))}
+      {entries.map((entry, idx) => {
+        const select_value = custom_enabled
+          ? entry_select_value(entry, options)
+          : entry.type;
+        const is_custom = select_value === CUSTOM_TYPE;
+
+        return (
+          <div key={idx} className="flex flex-wrap items-center gap-2">
+            <input
+              className={`${FIELD_CLASS} flex-1 min-w-[160px]`}
+              placeholder={placeholder}
+              readOnly={disabled}
+              type={input_type || "text"}
+              value={entry.value}
+              onChange={(e) => on_change(idx, e.target.value)}
+            />
+            <TypeSelect
+              allow_custom={custom_enabled}
+              disabled={disabled}
+              options={options}
+              t={t}
+              value={select_value}
+              on_change={(v) => {
+                if (v === CUSTOM_TYPE) {
+                  on_type_change(idx, "other");
+                  on_label_change?.(idx, entry.label ?? "");
+
+                  return;
+                }
+                on_type_change(idx, v);
+                if (custom_enabled) on_label_change?.(idx, undefined);
+              }}
+            />
+            {is_custom && (
+              <CustomLabelInput
+                disabled={disabled}
+                t={t}
+                value={entry.label ?? ""}
+                on_change={(v) => on_label_change?.(idx, v)}
+              />
+            )}
+            {!disabled && (
+              <button
+                aria-label={t("common.remove")}
+                className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-[var(--aster-hover)] flex items-center justify-center transition-colors"
+                type="button"
+                onClick={() => on_remove(idx)}
+              >
+                <XMarkIcon className="w-4 h-4 text-txt-muted" />
+              </button>
+            )}
+          </div>
+        );
+      })}
       {!disabled && (
         <button
           className="inline-flex items-center gap-1.5 px-3 h-8 rounded-[var(--aster-radius-control)] bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-[var(--aster-hover)] transition-colors"
@@ -370,21 +452,38 @@ export function AddressList({
               <select
                 className={`${SELECT_CLASS} pe-7 w-full`}
                 disabled={disabled}
-                value={entry.type}
-                onChange={(e) =>
+                value={entry_select_value(entry, ADDRESS_TYPE_OPTIONS)}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  if (value === CUSTOM_TYPE) {
+                    on_change(idx, { type: "other", label: entry.label ?? "" });
+
+                    return;
+                  }
                   on_change(idx, {
-                    type: e.target.value as AddressEntryType,
-                  })
-                }
+                    type: value as AddressEntryType,
+                    label: undefined,
+                  });
+                }}
               >
                 {ADDRESS_TYPE_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>
                     {t(type_label_key(opt))}
                   </option>
                 ))}
+                <option value={CUSTOM_TYPE}>{t("common.type_custom")}</option>
               </select>
               <ChevronDownIcon className="w-3.5 h-3.5 absolute end-2 top-1/2 -translate-y-1/2 pointer-events-none text-txt-muted" />
             </div>
+            {entry_select_value(entry, ADDRESS_TYPE_OPTIONS) === CUSTOM_TYPE && (
+              <CustomLabelInput
+                disabled={disabled}
+                t={t}
+                value={entry.label ?? ""}
+                on_change={(v) => on_change(idx, { label: v })}
+              />
+            )}
             {!disabled && (
               <button
                 aria-label={t("common.remove")}

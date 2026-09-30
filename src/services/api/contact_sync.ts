@@ -58,6 +58,11 @@ import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { get_derived_encryption_key } from "@/services/crypto/memory_key_store";
 import { parse_csv_records } from "@/utils/contact_utils";
+import {
+  collect_vcard_group_labels,
+  resolve_vcard_entry_type,
+  vcard_group_of,
+} from "@/utils/vcard_labels";
 import { get_active_translations } from "@/lib/i18n/translations";
 
 function array_to_base64(array: Uint8Array): string {
@@ -429,7 +434,12 @@ function photo_source_from(key: string, value: string): string | undefined {
   const trimmed = value.trim();
 
   if (!trimmed) return undefined;
-  if (/^(https?:|data:)/i.test(trimmed)) return trimmed;
+  if (/^data:/i.test(trimmed)) {
+    return /^data:image\/[a-z0-9.+-]+;base64,/i.test(trimmed)
+      ? trimmed.replace(/\s+/g, "")
+      : undefined;
+  }
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return undefined;
 
   const raw_params = key.split(";").slice(1);
   const is_base64 = raw_params.some((param) =>
@@ -539,6 +549,29 @@ function messenger_from(key: string, value: string): InstantMessengerEntry {
   return { value: handle.trim() || value.trim(), type };
 }
 
+const VCARD_EMAIL_ENTRY_TYPES: readonly EmailEntryType[] = [
+  "home",
+  "personal",
+  "work",
+  "other",
+];
+
+const VCARD_PHONE_ENTRY_TYPES: readonly PhoneEntryType[] = [
+  "mobile",
+  "home",
+  "personal",
+  "work",
+  "fax",
+  "pager",
+  "other",
+];
+
+const VCARD_ADDRESS_ENTRY_TYPES: readonly AddressEntryType[] = [
+  "home",
+  "work",
+  "other",
+];
+
 function place_type_from(params: string[]): "home" | "work" | "other" {
   if (params.includes("home")) return "home";
   if (params.includes("work")) return "work";
@@ -578,6 +611,7 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
     const instant_messengers: InstantMessengerEntry[] = [];
     const groups: string[] = [];
     const seen_emails = new Set<string>();
+    const group_labels = collect_vcard_group_labels(lines, unescape_vcard);
 
     for (const line of lines) {
       const separator = line.indexOf(":");
@@ -591,6 +625,8 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
       const key_upper = key.toUpperCase().split(";")[0].split(".").pop() || "";
       const params = vcard_params(key);
       const text = unescape_vcard(value);
+      const group = vcard_group_of(key);
+      const group_label = group ? group_labels.get(group) : undefined;
 
       switch (key_upper) {
         case "FN": {
@@ -623,7 +659,15 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
           if (!address || seen_emails.has(normalized)) break;
           seen_emails.add(normalized);
           contact.emails.push(address);
-          email_entries.push({ value: address, type: place_type_from(params) });
+          email_entries.push({
+            value: address,
+            ...resolve_vcard_entry_type<EmailEntryType>(
+              key,
+              group_label,
+              VCARD_EMAIL_ENTRY_TYPES,
+              "other",
+            ),
+          });
           break;
         }
         case "TEL": {
@@ -631,7 +675,15 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
 
           if (!number) break;
           if (!contact.phone) contact.phone = number;
-          phone_entries.push({ value: number, type: phone_type_from(params) });
+          phone_entries.push({
+            value: number,
+            ...resolve_vcard_entry_type<PhoneEntryType>(
+              key,
+              group_label,
+              VCARD_PHONE_ENTRY_TYPES,
+              phone_type_from(params),
+            ),
+          });
           break;
         }
         case "ADR": {
@@ -642,7 +694,12 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
             state: parts[4] || undefined,
             postal_code: parts[5] || undefined,
             country: parts[6] || undefined,
-            type: place_type_from(params),
+            ...resolve_vcard_entry_type<AddressEntryType>(
+              key,
+              group_label,
+              VCARD_ADDRESS_ENTRY_TYPES,
+              place_type_from(params),
+            ),
           };
 
           if (!entry.street) entry.street = undefined;
@@ -654,15 +711,6 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
             entry.country
           ) {
             address_entries.push(entry);
-            if (!contact.address) {
-              contact.address = {
-                street: entry.street,
-                city: entry.city,
-                state: entry.state,
-                postal_code: entry.postal_code,
-                country: entry.country,
-              };
-            }
           }
           break;
         }
@@ -803,7 +851,20 @@ export function parse_vcard(vcard_data: string): ContactFormData[] {
 
     if (email_entries.length) contact.email_entries = email_entries;
     if (phone_entries.length) contact.phone_entries = phone_entries;
-    if (address_entries.length) contact.address_entries = address_entries;
+    if (address_entries.length) {
+      contact.address_entries = address_entries;
+      const primary =
+        address_entries.find((entry) => entry.type === "home") ??
+        address_entries[0];
+
+      contact.address = {
+        street: primary.street,
+        city: primary.city,
+        state: primary.state,
+        postal_code: primary.postal_code,
+        country: primary.country,
+      };
+    }
     if (date_entries.length) contact.date_entries = date_entries;
     if (related_people.length) contact.related_people = related_people;
     if (social_networks.length) contact.social_networks = social_networks;
