@@ -46,10 +46,11 @@ export interface Address {
   country?: string;
 }
 
-export type EmailEntryType = "home" | "work" | "other";
+export type EmailEntryType = "home" | "personal" | "work" | "other";
 export type PhoneEntryType =
   | "mobile"
   | "home"
+  | "personal"
   | "work"
   | "fax"
   | "pager"
@@ -87,15 +88,18 @@ export type InstantMessengerType =
 export interface EmailEntry {
   value: string;
   type: EmailEntryType;
+  label?: string;
 }
 
 export interface PhoneEntry {
   value: string;
   type: PhoneEntryType;
+  label?: string;
 }
 
 export interface AddressEntry extends Address {
   type: AddressEntryType;
+  label?: string;
 }
 
 export interface DateEntry {
@@ -149,6 +153,7 @@ export interface ExtendedContactFields {
   instant_messengers?: InstantMessengerEntry[];
   deleted_at?: string;
   revisions?: ContactRevision[];
+  extra_fields?: Record<string, unknown>;
 }
 
 export interface DecryptedContact extends ExtendedContactFields {

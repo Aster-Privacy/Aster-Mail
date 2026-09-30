@@ -221,6 +221,70 @@ async function verify_integrity_hash(
   return crypto.subtle.verify("HMAC", hmac_key, expected_hash, data);
 }
 
+const KNOWN_CONTACT_KEYS = new Set<string>([
+  "id",
+  "first_name",
+  "last_name",
+  "emails",
+  "phone",
+  "company",
+  "job_title",
+  "address",
+  "birthday",
+  "social_links",
+  "relationship",
+  "notes",
+  "avatar_url",
+  "profile_color",
+  "is_favorite",
+  "groups",
+  "middle_name",
+  "title",
+  "name_suffix",
+  "phonetic_first_name",
+  "phonetic_middle_name",
+  "phonetic_last_name",
+  "nickname",
+  "role",
+  "department",
+  "comment",
+  "pronouns",
+  "email_entries",
+  "phone_entries",
+  "address_entries",
+  "date_entries",
+  "related_people",
+  "social_networks",
+  "websites",
+  "instant_messengers",
+  "deleted_at",
+  "revisions",
+  "extra_fields",
+  "created_at",
+  "updated_at",
+  "last_contacted",
+  "email_count",
+  "_version",
+  "_encrypted_at",
+]);
+
+export function strip_known_contact_keys(
+  source: Record<string, unknown> | undefined | null,
+): Record<string, unknown> {
+  const extra: Record<string, unknown> = {};
+
+  if (!source || typeof source !== "object") return extra;
+
+  for (const [key, value] of Object.entries(source)) {
+    if (KNOWN_CONTACT_KEYS.has(key)) continue;
+    if (key === "__proto__" || key === "constructor" || key === "prototype")
+      continue;
+    extra[key] = value;
+  }
+
+  return extra;
+}
+
 export async function encrypt_contact_data(data: ContactFormData): Promise<{
   encrypted_data: string;
   data_nonce: string;
@@ -228,8 +292,10 @@ export async function encrypt_contact_data(data: ContactFormData): Promise<{
 }> {
   const key = await get_contacts_encryption_key();
   const encoder = new TextEncoder();
+  const { extra_fields, ...known } = data;
   const payload = {
-    ...data,
+    ...strip_known_contact_keys(extra_fields),
+    ...known,
     _version: CONTACT_DATA_VERSION,
     _encrypted_at: new Date().toISOString(),
   };
@@ -289,6 +355,17 @@ export async function decrypt_contact_data(
   return parsed as ContactFormData;
 }
 
+function collect_extra_fields(
+  data: ContactFormData,
+): Record<string, unknown> | undefined {
+  const extra = {
+    ...strip_known_contact_keys(data.extra_fields),
+    ...strip_known_contact_keys(data as unknown as Record<string, unknown>),
+  };
+
+  return Object.keys(extra).length > 0 ? extra : undefined;
+}
+
 export async function decrypt_contact(
   contact: Contact,
 ): Promise<DecryptedContact> {
@@ -337,6 +414,7 @@ export async function decrypt_contact(
     instant_messengers: data.instant_messengers,
     deleted_at: data.deleted_at,
     revisions: data.revisions,
+    extra_fields: collect_extra_fields(data),
     created_at: contact.created_at,
     updated_at: contact.updated_at,
   };
@@ -828,6 +906,7 @@ export async function reencrypt_all_contacts(): Promise<void> {
           encrypted_data,
           data_nonce,
           integrity_hash,
+          data_version: CONTACT_DATA_VERSION,
           name_search_token: search_tokens.name_token,
           email_search_token: search_tokens.email_token,
           company_search_token: search_tokens.company_token,
