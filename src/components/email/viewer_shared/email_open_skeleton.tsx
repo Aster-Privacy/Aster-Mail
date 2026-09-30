@@ -45,7 +45,7 @@ export function EmailOpenSkeleton({
       className="absolute inset-0 z-10 overflow-hidden bg-surf-primary"
     >
       <div
-        className="mx-auto w-full max-w-[1120px] py-2 transition-opacity duration-200 ease-out"
+        className="w-full py-2 transition-opacity duration-200 ease-out"
         style={{ opacity: revealed ? 1 : 0 }}
       >
         <div className={compact ? "px-3 mb-3" : "px-3 sm:px-4 mb-3"}>
