@@ -65,6 +65,11 @@ vi.mock("@/services/api/tags", () => ({
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: () => ({ identity_key: "identity" }),
   has_passphrase_in_memory: () => true,
+  on_keys_ready: (callback: () => void) => {
+    callback();
+
+    return () => {};
+  },
 }));
 
 vi.mock("@/services/crypto/legacy_keks", () => ({
@@ -96,17 +101,49 @@ async function flush(): Promise<void> {
   });
 }
 
+async function flush_until(is_done: () => boolean): Promise<void> {
+  for (let attempt = 0; attempt < 20; attempt++) {
+    await flush();
+
+    if (is_done()) return;
+  }
+}
+
+async function flush_times(count: number): Promise<void> {
+  for (let attempt = 0; attempt < count; attempt++) {
+    await flush();
+  }
+}
+
 describe("use_tags stale fetch", () => {
   let container: HTMLDivElement;
   let root: Root;
   let names: string[];
   let fetch_tags: () => Promise<void>;
 
+  async function settle(value: string[]): Promise<void> {
+    for (let attempt = 0; attempt < 8; attempt++) {
+      const pending = mocks.resolvers.splice(0);
+
+      if (pending.length > 0) {
+        await act(async () => {
+          pending.forEach((resolve) => resolve(value));
+        });
+      }
+
+      await flush();
+
+      if (pending.length === 0 && mocks.resolvers.length === 0) return;
+    }
+  }
+
   beforeEach(async () => {
-    (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean })
-      .IS_REACT_ACT_ENVIRONMENT = true;
+    (
+      globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
     mocks.list_tags.mockClear();
     mocks.resolvers.length = 0;
+    clear_tags_cache();
     names = [];
 
     function Probe() {
@@ -150,14 +187,14 @@ describe("use_tags stale fetch", () => {
     await act(async () => {
       resolve_new(["fresh"]);
     });
-    await flush();
+    await flush_until(() => names.length > 0);
 
     expect(names).toEqual(["fresh"]);
 
     await act(async () => {
       resolve_old(["stale"]);
     });
-    await flush();
+    await flush_times(8);
 
     expect(names).toEqual(["fresh"]);
   });
@@ -169,10 +206,7 @@ describe("use_tags stale fetch", () => {
       void fetch_tags();
     });
 
-    await act(async () => {
-      mocks.resolvers[0](["private_label"]);
-    });
-    await flush();
+    await settle(["private_label"]);
 
     expect(names).toEqual(["private_label"]);
 

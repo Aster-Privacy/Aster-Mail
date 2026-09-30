@@ -61,7 +61,7 @@ export function EmailStep({
           whileTap={button_tap}
           onClick={on_navigate_sign_in}
         >
-          <ChevronLeftIcon className="h-5 w-5" />
+          <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
         </motion.button>
       </div>
 
@@ -75,6 +75,7 @@ export function EmailStep({
           alt="Aster"
           className="h-8"
           decoding="async"
+          draggable={false}
           src="/text_logo.png"
           variants={reduce_motion ? undefined : fade_up_item}
         />
@@ -111,12 +112,22 @@ export function EmailStep({
           className={`w-full ${error ? "mt-4" : "mt-6"}`}
           variants={reduce_motion ? undefined : fade_up_item}
         >
+          <label
+            className="mb-2 block text-sm font-medium text-[var(--text-primary)]"
+            htmlFor="mobile_recovery_address"
+          >
+            {t("auth.recovery_email_label")}
+          </label>
           <div className={DEPTH_INPUT_WRAPPER_CLASS}>
             <Input
+              autoCapitalize="none"
+              id="mobile_recovery_address"
               autoComplete="username"
+              autoCorrect="off"
               className={INNER_INPUT_CLASS}
               maxLength={55}
               placeholder={t("common.yourname_placeholder")}
+              spellCheck={false}
               status={error ? "error" : "default"}
               type="text"
               value={username}
@@ -126,9 +137,7 @@ export function EmailStep({
 
                 if (at_index !== -1) {
                   const local = sanitize_username(raw.substring(0, at_index));
-                  const domain_part = raw
-                    .substring(at_index + 1)
-                    .toLowerCase();
+                  const domain_part = raw.substring(at_index + 1).toLowerCase();
 
                   set_username(local);
                   if (
@@ -148,7 +157,14 @@ export function EmailStep({
               onKeyDown={(e) => e["key"] === "Enter" && on_next()}
             />
           </div>
-          <div className="relative flex mt-2" style={{ background: "var(--bg-secondary)", borderRadius: 12, padding: 4 }}>
+          <div
+            className="relative flex mt-2"
+            style={{
+              background: "var(--bg-secondary)",
+              borderRadius: 12,
+              padding: 4,
+            }}
+          >
             <div
               className="absolute top-1 bottom-1 rounded-[8px] transition-all duration-200 ease-out"
               style={{
@@ -172,6 +188,9 @@ export function EmailStep({
               @aster.cx
             </button>
           </div>
+          <p className="mt-2 text-xs text-[var(--text-tertiary)]">
+            {t("auth.recovery_domain_hint")}
+          </p>
         </motion.div>
       </motion.div>
 

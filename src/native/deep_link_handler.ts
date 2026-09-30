@@ -243,7 +243,7 @@ register_deep_link_route("/spam", () => {
 });
 
 register_deep_link_route("/settings", () => {
-  navigate_to_path("/", { settings: "true" });
+  navigate_to_path("/settings", {});
 });
 
 register_deep_link_route("/contacts", () => {

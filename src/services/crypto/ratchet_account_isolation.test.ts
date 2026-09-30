@@ -22,7 +22,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 
 const h = vi.hoisted(() => ({
   store: new Map<string, unknown>(),
-  state: { uid: "acct-a" as string | null },
+  state: { uid: "acct-a" as string | null, unreadable: false },
 }));
 
 vi.mock("./encrypted_storage", () => ({
@@ -43,6 +43,7 @@ vi.mock("./memory_key_store", () => ({
 }));
 
 vi.mock("@/services/account_manager", () => ({
+  accounts_storage_unreadable: vi.fn(() => h.state.unreadable),
   get_current_account_id: vi.fn(async () => h.state.uid),
 }));
 
@@ -53,9 +54,7 @@ import {
   list_ratchet_conversations,
   clear_all_ratchet_states,
 } from "./ratchet_state_store";
-import {
-  DoubleRatchet,
-} from "./double_ratchet";
+import { DoubleRatchet } from "./double_ratchet";
 
 function fake_ratchet(conversation_id: string, marker: number): DoubleRatchet {
   return {
@@ -67,6 +66,25 @@ describe("ratchet storage account isolation", () => {
   beforeEach(() => {
     h.store.clear();
     h.state.uid = "acct-a";
+    h.state.unreadable = false;
+  });
+
+  it("refuses to fall back to the global key space when account storage is unreadable", async () => {
+    await save_ratchet_state(fake_ratchet("cid1", 1));
+
+    h.state.uid = null;
+    h.state.unreadable = true;
+
+    await expect(save_ratchet_state(fake_ratchet("cid1", 2))).rejects.toThrow();
+    await expect(load_ratchet_state("cid1")).rejects.toThrow();
+
+    expect(h.store.has("ratchet_state_cid1")).toBe(false);
+
+    const kept = h.store.get("ratchet_state_acct-a_cid1") as {
+      state: { marker: number };
+    };
+
+    expect(kept.state.marker).toBe(1);
   });
 
   it("writes ratchet state under the account namespace, not the global key", async () => {

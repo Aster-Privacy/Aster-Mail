@@ -18,17 +18,20 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@aster/ui";
+import { Button, Checkbox } from "@aster/ui";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
+import { show_toast } from "@/components/toast/simple_toast";
 import { COPY_FEEDBACK_MS } from "@/constants/timings";
 import { useTheme } from "@/contexts/theme_context";
 import { use_should_reduce_motion } from "@/provider";
 import {
   derive_password_hash,
   generate_recovery_codes,
+  RECOVERY_CODE_SET_SIZE,
   encrypt_vault,
   generate_identity_keypair,
   generate_signed_prekey,
@@ -45,15 +48,28 @@ import {
   array_to_base64,
 } from "@/services/crypto/key_manager_core";
 import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
-import { reset_password_with_token } from "@/services/api/recovery";
+import {
+  get_reset_hardware_key_options,
+  get_reset_second_factor_status,
+  reset_password_with_token,
+  ResetSecondFactorStatus,
+  verify_reset_hardware_key,
+  verify_reset_second_factor,
+} from "@/services/api/recovery";
+import { classify_totp_error } from "@/services/api/totp";
+import {
+  is_webauthn_supported,
+  perform_webauthn_assertion_with_options,
+} from "@/services/api/webauthn";
 import {
   generate_recovery_pdf,
   download_recovery_text,
 } from "@/services/crypto/recovery_pdf";
 import {
-  validate_password_strength,
-  timing_safe_delay,
   clamp_password,
+  PASSWORD_RULE_MESSAGE_KEYS,
+  timing_safe_delay,
+  validate_password_strength,
 } from "@/services/sanitize";
 import {
   EyeIcon,
@@ -64,16 +80,41 @@ import {
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
-
-import { ignore_error } from "@/lib/ignore_error";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 type ResetStep =
   | "consent"
+  | "second_factor"
   | "password"
   | "processing"
   | "new_codes"
   | "success"
   | "invalid";
+
+type SecondFactorMode = "totp" | "backup_code" | "hardware_key";
+
+const TOTP_CODE_LENGTH = 6;
+const BACKUP_CODE_MAX_LENGTH = 14;
+const BACKUP_CODE_MIN_LENGTH = 8;
+
+function initial_second_factor_mode(
+  status: ResetSecondFactorStatus,
+): SecondFactorMode {
+  if (status.totp) return "totp";
+  if (status.hardware_key && is_webauthn_supported()) return "hardware_key";
+  if (status.backup_codes) return "backup_code";
+
+  return "hardware_key";
+}
+
+function second_factor_code_ready(mode: SecondFactorMode, code: string) {
+  if (mode === "totp") return /^\d{6}$/.test(code);
+  if (mode === "backup_code") {
+    return code.replace(/[-\s]/g, "").length >= BACKUP_CODE_MIN_LENGTH;
+  }
+
+  return true;
+}
 
 const page_variants = {
   initial: { opacity: 0, y: 12 },
@@ -206,7 +247,7 @@ const PasswordStrengthIndicator = ({ password }: { password: string }) => {
         </span>
       </div>
       {strength.suggestions.length > 0 && strength.level < 3 && (
-        <p className="text-xs mt-1.5 text-left text-txt-muted">
+        <p className="text-xs mt-1.5 text-start text-txt-muted">
           {strength.suggestions[0]}
         </p>
       )}
@@ -220,22 +261,29 @@ export default function ResetPasswordPage() {
   const navigate = useNavigate();
   const { theme } = useTheme();
   const is_dark = theme === "dark";
-  const [search_params] = useSearchParams();
-
-  const token = useMemo(
-    () => (search_params.get("token") || "").trim(),
-    [search_params],
+  const [initial_params] = useState(
+    () => new URLSearchParams(window.location.search),
   );
 
-  const account_email = useMemo(
-    () =>
-      (search_params.get("email") || "")
-        .trim()
-        .toLowerCase(),
-    [search_params],
+  const [token] = useState(() => (initial_params.get("token") || "").trim());
+
+  const [account_email] = useState(() =>
+    (initial_params.get("email") || "").trim().toLowerCase(),
   );
 
   const [step, set_step] = useState<ResetStep>(token ? "consent" : "invalid");
+
+  useEffect(() => {
+    if (step !== "success" && step !== "invalid") return;
+
+    if (!token && !account_email) return;
+
+    const clean_url = new URL(window.location.href);
+
+    clean_url.searchParams.delete("token");
+    clean_url.searchParams.delete("email");
+    window.history.replaceState({}, "", clean_url.toString());
+  }, [step, token, account_email]);
   const [consent_checked, set_consent_checked] = useState(false);
   const [consent_email, set_consent_email] = useState("");
   const [password, set_password] = useState("");
@@ -247,6 +295,148 @@ export default function ResetPasswordPage() {
   const [new_recovery_codes, set_new_recovery_codes] = useState<string[]>([]);
   const [is_key_visible, set_is_key_visible] = useState(false);
   const [copy_success, set_copy_success] = useState(false);
+  const [codes_downloaded, set_codes_downloaded] = useState(false);
+  const [second_factor, set_second_factor] =
+    useState<ResetSecondFactorStatus | null>(null);
+  const [second_factor_mode, set_second_factor_mode] =
+    useState<SecondFactorMode>("totp");
+  const [second_factor_code, set_second_factor_code] = useState("");
+  const [second_factor_loading, set_second_factor_loading] = useState(false);
+
+  useEffect(() => {
+    if (!token) return;
+
+    let cancelled = false;
+
+    get_reset_second_factor_status(token).then((response) => {
+      if (cancelled) return;
+
+      if (response.code === "UNAUTHORIZED" || response.code === "FORBIDDEN") {
+        set_step("invalid");
+
+        return;
+      }
+
+      if (response.data) {
+        set_second_factor(response.data);
+        set_second_factor_mode(initial_second_factor_mode(response.data));
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [token]);
+
+  const enter_second_factor_step = () => {
+    set_error("");
+    set_second_factor_code("");
+    set_step("second_factor");
+  };
+
+  const finish_second_factor = () => {
+    set_second_factor((current) =>
+      current ? { ...current, required: false, verified: true } : current,
+    );
+    set_second_factor_code("");
+    set_error("");
+    set_step("password");
+  };
+
+  const switch_second_factor_mode = (mode: SecondFactorMode) => {
+    set_error("");
+    set_second_factor_code("");
+    set_second_factor_mode(mode);
+  };
+
+  const handle_verify_second_factor = async () => {
+    if (second_factor_loading) return;
+
+    const method = second_factor_mode === "totp" ? "totp" : "backup_code";
+
+    if (!second_factor_code_ready(second_factor_mode, second_factor_code)) {
+      return;
+    }
+
+    set_error("");
+    set_second_factor_loading(true);
+
+    const response = await verify_reset_second_factor(
+      token,
+      method,
+      second_factor_code.trim(),
+    );
+
+    set_second_factor_loading(false);
+
+    if (response.error || !response.data?.success) {
+      if (response.code === "UNAUTHORIZED" || response.code === "FORBIDDEN") {
+        set_step("invalid");
+
+        return;
+      }
+
+      const kind = classify_totp_error(response);
+
+      if (kind === "locked") {
+        set_error(t("auth.two_fa_temporarily_locked"));
+      } else if (kind === "replayed") {
+        set_error(t("auth.two_fa_code_already_used"));
+      } else if (kind === "rate_limited") {
+        set_error(t("auth.too_many_2fa_attempts"));
+      } else if (kind === "invalid_backup_code") {
+        set_error(t("auth.invalid_backup_code"));
+      } else if (kind === "invalid_code") {
+        set_error(t("settings.invalid_2fa_code"));
+      } else {
+        set_error(response.error || t("auth.recovery_failed"));
+      }
+
+      return;
+    }
+
+    finish_second_factor();
+  };
+
+  const handle_security_key = async () => {
+    if (second_factor_loading) return;
+
+    set_error("");
+    set_second_factor_loading(true);
+
+    try {
+      const options = await get_reset_hardware_key_options(token);
+
+      if (options.error || !options.data) {
+        if (options.code === "UNAUTHORIZED" || options.code === "FORBIDDEN") {
+          set_step("invalid");
+
+          return;
+        }
+        throw new Error(options.error || t("auth.recovery_failed"));
+      }
+
+      const assertion = await perform_webauthn_assertion_with_options(
+        options.data,
+      );
+      const response = await verify_reset_hardware_key(token, assertion);
+
+      if (response.error || !response.data?.success) {
+        if (response.code === "UNAUTHORIZED" || response.code === "FORBIDDEN") {
+          set_step("invalid");
+
+          return;
+        }
+        throw new Error(response.error || t("auth.recovery_failed"));
+      }
+
+      finish_second_factor();
+    } catch (err) {
+      set_error(user_facing_error(err, t("auth.recovery_failed")));
+    } finally {
+      set_second_factor_loading(false);
+    }
+  };
 
   const handle_consent_continue = () => {
     set_error("");
@@ -259,6 +449,12 @@ export default function ResetPasswordPage() {
 
     if (!matches) {
       set_error(t("auth.reset_consent_email_mismatch"));
+
+      return;
+    }
+
+    if (second_factor?.required) {
+      enter_second_factor_step();
 
       return;
     }
@@ -278,7 +474,7 @@ export default function ResetPasswordPage() {
     const password_validation = validate_password_strength(password);
 
     if (!password_validation.valid) {
-      set_error(password_validation.errors[0]);
+      set_error(t(PASSWORD_RULE_MESSAGE_KEYS[password_validation.errors[0]]));
 
       return;
     }
@@ -327,7 +523,7 @@ export default function ResetPasswordPage() {
       );
 
       set_processing_status(t("auth.creating_new_recovery_codes"));
-      const new_codes = generate_recovery_codes(6);
+      const new_codes = generate_recovery_codes(RECOVERY_CODE_SET_SIZE);
 
       set_new_recovery_codes(new_codes);
 
@@ -394,13 +590,30 @@ export default function ResetPasswordPage() {
 
           return;
         }
+        if (response.server_code === "SECOND_FACTOR_REQUIRED") {
+          set_second_factor((current) =>
+            current
+              ? { ...current, required: true, verified: false }
+              : {
+                  required: true,
+                  verified: false,
+                  totp: true,
+                  backup_codes: true,
+                  hardware_key: is_webauthn_supported(),
+                },
+          );
+          enter_second_factor_step();
+          set_error(t("auth.reset_second_factor_description"));
+
+          return;
+        }
         throw new Error(response.error || t("auth.recovery_failed"));
       }
 
       set_step("new_codes");
     } catch (err) {
       await timing_safe_delay();
-      set_error(err instanceof Error ? err.message : t("auth.recovery_failed"));
+      set_error(user_facing_error(err, t("auth.recovery_failed")));
       set_step("password");
     }
   };
@@ -409,20 +622,33 @@ export default function ResetPasswordPage() {
     const codes_text = new_recovery_codes.join("\n");
 
     try {
-      await navigator.clipboard.writeText(codes_text);
+      await copy_text_or_throw(codes_text);
       set_copy_success(true);
       setTimeout(() => set_copy_success(false), COPY_FEEDBACK_MS);
-    } catch (caught) {
-      ignore_error("pages/reset_password:handle_copy_codes", caught);
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
+  const recovery_doc_email =
+    account_email || consent_email.trim().toLowerCase() || "user@local";
+
   const handle_download_pdf = async () => {
-    await generate_recovery_pdf("reset", new_recovery_codes, t);
+    try {
+      await generate_recovery_pdf(recovery_doc_email, new_recovery_codes, t);
+      set_codes_downloaded(true);
+    } catch {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    }
   };
 
   const handle_download_txt = async () => {
-    await download_recovery_text("reset", new_recovery_codes, t);
+    try {
+      await download_recovery_text(recovery_doc_email, new_recovery_codes, t);
+      set_codes_downloaded(true);
+    } catch {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    }
   };
 
   const render_step_content = () => {
@@ -452,7 +678,7 @@ export default function ResetPasswordPage() {
             </AnimatePresence>
 
             <div
-              className={`w-full ${error ? "mt-4" : "mt-6"} space-y-3 text-left`}
+              className={`w-full ${error ? "mt-4" : "mt-6"} space-y-3 text-start`}
             >
               <div
                 className="rounded-lg border p-3"
@@ -498,10 +724,9 @@ export default function ResetPasswordPage() {
               </div>
 
               <label className="flex items-start gap-2.5 cursor-pointer pt-1">
-                <input
+                <Checkbox
                   checked={consent_checked}
-                  className="mt-0.5 h-4 w-4 shrink-0 accent-current"
-                  type="checkbox"
+                  className="mt-0.5 shrink-0"
                   onChange={(e) => set_consent_checked(e.target.checked)}
                 />
                 <span className="text-sm leading-relaxed text-txt-secondary">
@@ -548,6 +773,161 @@ export default function ResetPasswordPage() {
             </Button>
           </motion.div>
         );
+
+      case "second_factor": {
+        const is_hardware_key = second_factor_mode === "hardware_key";
+        const code_ready = second_factor_code_ready(
+          second_factor_mode,
+          second_factor_code,
+        );
+        const can_use_key =
+          !!second_factor?.hardware_key && is_webauthn_supported();
+        const description = is_hardware_key
+          ? t("auth.reset_second_factor_key_description")
+          : second_factor_mode === "backup_code"
+            ? t("auth.reset_second_factor_backup_description")
+            : t("auth.enter_2fa_code");
+
+        return (
+          <motion.div
+            key="second_factor"
+            animate="animate"
+            className="flex flex-col items-center w-full max-w-sm px-4 text-center"
+            exit="exit"
+            initial={reduce_motion ? false : "initial"}
+            transition={{
+              ...page_transition,
+              duration: reduce_motion ? 0 : page_transition.duration,
+            }}
+            variants={page_variants}
+          >
+            <Logo />
+
+            <h1 className="text-xl font-semibold mt-6 text-txt-primary">
+              {t("auth.reset_second_factor_title")}
+            </h1>
+            <p className="text-sm mt-2 leading-relaxed text-txt-tertiary">
+              {description}
+            </p>
+
+            <AnimatePresence>
+              {error && <Alert is_dark={is_dark} message={error} />}
+            </AnimatePresence>
+
+            {!is_hardware_key && (
+              <div className={`w-full ${error ? "mt-4" : "mt-6"}`}>
+                <Input
+                  autoComplete="one-time-code"
+                  className={
+                    second_factor_mode === "totp"
+                      ? "text-center text-2xl font-semibold tracking-[0.5em]"
+                      : "text-center font-mono tracking-widest uppercase"
+                  }
+                  disabled={second_factor_loading}
+                  inputMode={second_factor_mode === "totp" ? "numeric" : "text"}
+                  maxLength={
+                    second_factor_mode === "totp"
+                      ? TOTP_CODE_LENGTH
+                      : BACKUP_CODE_MAX_LENGTH
+                  }
+                  placeholder={
+                    second_factor_mode === "totp"
+                      ? "000000"
+                      : t("auth.backup_code_placeholder")
+                  }
+                  status={error ? "error" : "default"}
+                  type="text"
+                  value={second_factor_code}
+                  onChange={(e) =>
+                    set_second_factor_code(
+                      second_factor_mode === "totp"
+                        ? e.target.value.replace(/\D/g, "")
+                        : e.target.value,
+                    )
+                  }
+                  onKeyDown={(e) =>
+                    e.key === "Enter" &&
+                    code_ready &&
+                    handle_verify_second_factor()
+                  }
+                />
+              </div>
+            )}
+
+            <Button
+              className="w-full mt-6"
+              disabled={second_factor_loading || !code_ready}
+              size="xl"
+              variant="depth"
+              onClick={
+                is_hardware_key
+                  ? handle_security_key
+                  : handle_verify_second_factor
+              }
+            >
+              {second_factor_loading
+                ? t("common.verifying")
+                : is_hardware_key
+                  ? t("auth.reset_second_factor_use_key_button")
+                  : t("common.verify")}
+            </Button>
+
+            <div className="w-full mt-4 space-y-2">
+              {second_factor_mode === "totp" && second_factor?.backup_codes && (
+                <button
+                  className="w-full text-sm text-center transition-colors hover:opacity-80 text-txt-muted disabled:opacity-50"
+                  disabled={second_factor_loading}
+                  type="button"
+                  onClick={() => switch_second_factor_mode("backup_code")}
+                >
+                  {t("auth.use_backup_code_instead")}
+                </button>
+              )}
+              {second_factor_mode !== "totp" && second_factor?.totp && (
+                <button
+                  className="w-full text-sm text-center transition-colors hover:opacity-80 text-txt-muted disabled:opacity-50"
+                  disabled={second_factor_loading}
+                  type="button"
+                  onClick={() => switch_second_factor_mode("totp")}
+                >
+                  {t("auth.use_authenticator_instead")}
+                </button>
+              )}
+              {is_hardware_key &&
+                !second_factor?.totp &&
+                second_factor?.backup_codes && (
+                  <button
+                    className="w-full text-sm text-center transition-colors hover:opacity-80 text-txt-muted disabled:opacity-50"
+                    disabled={second_factor_loading}
+                    type="button"
+                    onClick={() => switch_second_factor_mode("backup_code")}
+                  >
+                    {t("auth.use_backup_code_instead")}
+                  </button>
+                )}
+              {!is_hardware_key && can_use_key && (
+                <button
+                  className="w-full text-sm text-center transition-colors hover:opacity-80 text-txt-muted disabled:opacity-50"
+                  disabled={second_factor_loading}
+                  type="button"
+                  onClick={() => switch_second_factor_mode("hardware_key")}
+                >
+                  {t("auth.reset_second_factor_use_key")}
+                </button>
+              )}
+            </div>
+
+            <Button
+              className="w-full mt-3"
+              size="xl"
+              variant="secondary"
+              onClick={() => navigate("/sign-in")}
+            >
+              {t("auth.back_to_sign_in")}
+            </Button>
+          </motion.div>
+        );
+      }
 
       case "password":
         return (
@@ -619,7 +999,9 @@ export default function ResetPasswordPage() {
                 status={error ? "error" : "default"}
                 type={is_confirm_visible ? "text" : "password"}
                 value={confirm_password}
-                onChange={(e) => set_confirm_password(clamp_password(e.target.value))}
+                onChange={(e) =>
+                  set_confirm_password(clamp_password(e.target.value))
+                }
                 onKeyDown={(e) => e["key"] === "Enter" && handle_submit()}
               />
             </div>
@@ -769,7 +1151,9 @@ export default function ResetPasswordPage() {
                 set_step("success");
               }}
             >
-              {t("auth.continue_without_download")}
+              {codes_downloaded
+                ? t("common.continue")
+                : t("auth.continue_without_download")}
             </button>
           </motion.div>
         );

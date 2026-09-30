@@ -4,6 +4,7 @@ import {
   normalize_address_ignoring_dots,
   same_address_ignoring_dots,
 } from "./address_dots";
+
 import { sanitize_username_input } from "@/services/sanitize";
 
 const USERNAME_PATTERN = /^[a-z0-9]+(\.[a-z0-9]+)*$/;

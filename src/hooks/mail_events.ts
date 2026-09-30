@@ -18,6 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { DraftWithContent } from "@/services/api/multi_drafts";
+
+import {
+  forget_removed_ids,
+  note_removed_ids,
+} from "@/services/removed_items";
+
 export const MAIL_EVENTS = {
   MAIL_CHANGED: "astermail:mail-changed",
   MAIL_ITEM_UPDATED: "astermail:mail-item-updated",
@@ -26,6 +33,7 @@ export const MAIL_EVENTS = {
   EMAIL_RECEIVED: "astermail:email-received",
   DRAFTS_CHANGED: "astermail:drafts-changed",
   DRAFT_UPDATED: "astermail:draft-updated",
+  THREAD_DRAFT_CHANGED: "astermail:thread-draft-changed",
   FOLDERS_CHANGED: "astermail:folders-changed",
   UNDO_SEND: "astermail:undo-send",
   MAIL_ACTION: "astermail:mail-action",
@@ -49,8 +57,21 @@ export const MAIL_EVENTS = {
 
 export type MailEventType = (typeof MAIL_EVENTS)[keyof typeof MAIL_EVENTS];
 
+export type MailActionName =
+  | "star"
+  | "pin"
+  | "archive"
+  | "delete"
+  | "spam"
+  | "read"
+  | "unread"
+  | "label"
+  | "move"
+  | "restore"
+  | "permanent_delete";
+
 export interface MailActionEventDetail {
-  action: "delete" | "archive" | "spam" | "star" | "read";
+  action: MailActionName;
   ids: string[];
   success: boolean;
 }
@@ -63,6 +84,11 @@ export interface DraftUpdatedEventDetail {
   bcc_recipients: string[];
   subject: string;
   message: string;
+}
+
+export interface ThreadDraftChangedEventDetail {
+  thread_token: string;
+  draft: DraftWithContent | null;
 }
 
 export interface UndoSendEventDetail {
@@ -120,6 +146,7 @@ export interface MailItemUpdatedEventDetail {
   is_archived?: boolean;
   is_trashed?: boolean;
   is_spam?: boolean;
+  snoozed_until?: string | null;
   folders?: { folder_token: string; name: string; color?: string }[];
   tags?: { id: string; name: string; color?: string; icon?: string }[];
   encrypted_metadata?: string;
@@ -146,6 +173,7 @@ type EventDetailMap = {
   [MAIL_EVENTS.EMAIL_RECEIVED]: EmailReceivedEventDetail;
   [MAIL_EVENTS.DRAFTS_CHANGED]: undefined;
   [MAIL_EVENTS.DRAFT_UPDATED]: DraftUpdatedEventDetail;
+  [MAIL_EVENTS.THREAD_DRAFT_CHANGED]: ThreadDraftChangedEventDetail;
   [MAIL_EVENTS.FOLDERS_CHANGED]: undefined;
   [MAIL_EVENTS.MAIL_ACTION]: MailActionEventDetail;
   [MAIL_EVENTS.UNDO_SEND]: UndoSendEventDetail;
@@ -275,11 +303,21 @@ export function emit_folders_changed(): void {
 }
 
 export function emit_mail_action(detail: MailActionEventDetail): void {
+  if (detail.action === "restore") {
+    forget_removed_ids(detail.ids);
+  }
+
   mail_event_bus.emit(MAIL_EVENTS.MAIL_ACTION, detail);
 }
 
 export function emit_draft_updated(detail: DraftUpdatedEventDetail): void {
   mail_event_bus.emit(MAIL_EVENTS.DRAFT_UPDATED, detail);
+}
+
+export function emit_thread_draft_changed(
+  detail: ThreadDraftChangedEventDetail,
+): void {
+  mail_event_bus.emit(MAIL_EVENTS.THREAD_DRAFT_CHANGED, detail);
 }
 
 export function emit_scheduled_changed(
@@ -319,6 +357,7 @@ export function emit_thread_reply_sent(
 export function emit_mail_items_removed(
   detail: MailItemsRemovedEventDetail,
 ): void {
+  note_removed_ids(detail.ids);
   mail_event_bus.emit(MAIL_EVENTS.MAIL_ITEMS_REMOVED, detail);
 }
 
@@ -332,6 +371,10 @@ export function emit_protected_folders_ready(): void {
 
 export function emit_mail_soft_refresh(): void {
   mail_event_bus.emit(MAIL_EVENTS.MAIL_SOFT_REFRESH);
+}
+
+export function emit_refresh_requested(): void {
+  mail_event_bus.emit(MAIL_EVENTS.REFRESH_REQUESTED);
 }
 
 export function emit_mail_stats_stale(): void {

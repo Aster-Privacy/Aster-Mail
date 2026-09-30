@@ -24,7 +24,7 @@ import type { CategoryIndexEntry } from "@/services/category_index";
 
 import { useCallback, useRef } from "react";
 
-import { category_for_tab } from "@/services/mail_categorizer";
+import { effective_category } from "@/services/effective_category";
 import {
   clear_recent_pin,
   get_index_entries,
@@ -37,6 +37,11 @@ import {
   show_bulk_result_toast,
 } from "@/hooks/bulk_action_result";
 import { show_toast } from "@/components/toast/simple_toast";
+import {
+  category_display_name,
+  type CustomCategoryRule,
+} from "@/data/category_catalog";
+import { maybe_offer_sender_rule } from "@/components/email/inbox/category_sender_rule";
 
 const CATEGORY_MOVE_CONCURRENCY = 6;
 
@@ -52,6 +57,7 @@ interface UseCategoryDropOptions {
   emails: InboxEmail[];
   update_email: UpdateEmail;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
+  custom_categories?: readonly CustomCategoryRule[];
 }
 
 function index_entry_for(
@@ -66,7 +72,9 @@ function index_entry_for(
     is_read: previous?.is_read ?? email.is_read,
     category,
     category_pinned: true,
-    ...(previous?.snoozed_until ? { snoozed_until: previous.snoozed_until } : {}),
+    ...(previous?.snoozed_until
+      ? { snoozed_until: previous.snoozed_until }
+      : {}),
   };
 }
 
@@ -144,7 +152,10 @@ async function move_to_category(
   };
 
   await Promise.all(
-    Array.from({ length: Math.min(CATEGORY_MOVE_CONCURRENCY, emails.length) }, worker),
+    Array.from(
+      { length: Math.min(CATEGORY_MOVE_CONCURRENCY, emails.length) },
+      worker,
+    ),
   );
 
   return { failed_ids, undecryptable_ids };
@@ -154,6 +165,7 @@ export function use_category_drop({
   emails,
   update_email,
   t,
+  custom_categories,
 }: UseCategoryDropOptions): (
   category: EmailCategory,
   email_ids: string[],
@@ -171,7 +183,7 @@ export function use_category_drop({
       const by_category = new Map<EmailCategory, CategorySnapshot[]>();
 
       for (const snapshot of snapshots) {
-        const target = category_for_tab(snapshot.mail_category);
+        const target = snapshot.mail_category ?? "primary";
         const group = by_category.get(target);
 
         if (group) {
@@ -189,8 +201,9 @@ export function use_category_drop({
       for (const [target, group] of by_category) {
         const current = group.map(
           (snapshot) =>
-            emails_ref.current.find((email) => email.id === snapshot.email.id) ??
-            snapshot.email,
+            emails_ref.current.find(
+              (email) => email.id === snapshot.email.id,
+            ) ?? snapshot.email,
         );
 
         const outcome = await move_to_category(current, target);
@@ -223,8 +236,7 @@ export function use_category_drop({
       const id_set = new Set(email_ids);
       const targets = emails_ref.current.filter(
         (email) =>
-          id_set.has(email.id) &&
-          category_for_tab(email.mail_category) !== category,
+          id_set.has(email.id) && effective_category(email) !== category,
       );
 
       if (targets.length === 0) return Promise.resolve();
@@ -237,7 +249,7 @@ export function use_category_drop({
       );
       const snapshots: CategorySnapshot[] = targets.map((email) => ({
         email,
-        mail_category: email.mail_category,
+        mail_category: effective_category(email),
         entry: entries.get(email.id),
       }));
 
@@ -275,12 +287,21 @@ export function use_category_drop({
           email_ids: moved.map((snapshot) => snapshot.email.id),
           on_undo: () => run_undo(moved, category),
         });
+
+        if (moved.length > 0) {
+          maybe_offer_sender_rule(
+            moved.map((snapshot) => snapshot.email),
+            category,
+            category_display_name(category, custom_categories, t),
+            t,
+          );
+        }
       };
 
       queue_ref.current = queue_ref.current.then(run, run);
 
       return queue_ref.current;
     },
-    [update_email, run_undo, t],
+    [update_email, run_undo, t, custom_categories],
   );
 }

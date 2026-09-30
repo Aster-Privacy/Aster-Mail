@@ -51,7 +51,6 @@ vi.mock("@/lib/favicon_cache_db", () => ({
 const { use_favicon_src } = await import("./use_favicon_src");
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;

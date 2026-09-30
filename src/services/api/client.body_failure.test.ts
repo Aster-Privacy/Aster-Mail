@@ -101,6 +101,26 @@ describe("api client body download failure", () => {
     expect(vi.mocked(routed_fetch)).toHaveBeenCalledTimes(2);
   });
 
+  it("never replays a send when the response body fails to parse", async () => {
+    const truncated = {
+      ok: true,
+      status: 200,
+      headers: { get: () => null },
+      text: () => Promise.resolve('{"success":tr'),
+    } as unknown as Response;
+
+    vi.mocked(routed_fetch).mockResolvedValue(truncated);
+
+    const result = await api_client.post(
+      "/mail/v1/send",
+      { to: ["someone@example.com"] },
+      { retry: 2, retry_delay: 1 },
+    );
+
+    expect(result.code).toBe("SERVER_ERROR");
+    expect(vi.mocked(routed_fetch)).toHaveBeenCalledTimes(1);
+  });
+
   it("recovers when a retry succeeds after an interrupted body", async () => {
     vi.mocked(routed_fetch)
       .mockResolvedValueOnce(response_with_failing_body())

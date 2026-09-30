@@ -46,6 +46,7 @@ describe("get_device_id", () => {
 
   it("adopts a valid legacy id so existing links survive", async () => {
     const legacy = "a".repeat(64);
+
     localStorage.setItem(LEGACY_KEY, legacy);
 
     const get_device_id = await fresh_get_device_id();
@@ -55,6 +56,7 @@ describe("get_device_id", () => {
 
   it("rejects a base64 legacy id written by secure storage", async () => {
     const base64_id = "kQ+Vz/9m1nJ0aB3cD4eF5gH6iJ7kL8mN9oP0qR1sT2u=";
+
     localStorage.setItem(LEGACY_KEY, base64_id);
 
     const get_device_id = await fresh_get_device_id();
@@ -66,6 +68,7 @@ describe("get_device_id", () => {
 
   it("does not write to the secure storage key", async () => {
     const get_device_id = await fresh_get_device_id();
+
     get_device_id();
 
     expect(localStorage.getItem(LEGACY_KEY)).toBeNull();
@@ -73,6 +76,7 @@ describe("get_device_id", () => {
 
   it("stays stable once stored", async () => {
     const stored = "b".repeat(32);
+
     localStorage.setItem(KEY, stored);
 
     const get_device_id = await fresh_get_device_id();

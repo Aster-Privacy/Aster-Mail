@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type {
+  ContactRevision,
   DecryptedContact,
   ContactFormData,
   EmailEntry,
@@ -40,9 +41,6 @@ import type {
 } from "@/types/contacts";
 import type { TranslationKey } from "@/lib/i18n";
 
-
-
-
 export const COLOR_SWATCHES: { key: string; value: string }[] = [
   { key: "red", value: "#e5484d" },
   { key: "orange", value: "#f5683a" },
@@ -63,15 +61,26 @@ export interface ContactDetailPanelProps {
   on_edit: (contact: DecryptedContact) => void;
   on_delete_request: (contact: DecryptedContact) => void;
   on_compose_email: (email: string) => void;
-  on_copy: (text: string, field: string) => void;
+  on_search_mail?: (query: string) => void;
+  on_copy: (text: string, field: string) => void | Promise<boolean | void>;
   on_inline_save?: (
     contact: DecryptedContact,
     data: ContactFormData,
-  ) => Promise<void> | void;
+  ) => Promise<boolean | void> | boolean | void;
   on_inline_create?: (data: ContactFormData) => Promise<void> | void;
   on_cancel_create?: () => void;
   on_dismiss?: () => void;
+  on_share_via_email?: (file: File) => void;
   on_toggle_favorite?: (contact: DecryptedContact) => Promise<void> | void;
+  on_undo_change?: (
+    contact: DecryptedContact,
+    revision: ContactRevision,
+  ) => Promise<void> | void;
+  on_toggle_group?: (
+    contact: DecryptedContact,
+    group_id: string,
+    should_add: boolean,
+  ) => Promise<void> | void;
   is_creating_new?: boolean;
   is_submitting?: boolean;
 }
@@ -107,7 +116,7 @@ export interface EditState {
 
 export function to_email_entries(contact: DecryptedContact): EmailEntry[] {
   if (contact.email_entries && contact.email_entries.length > 0)
-    return contact.email_entries;
+    return normalize_typed_entries(contact.email_entries, EMAIL_TYPE_OPTIONS);
 
   return (contact.emails || [])
     .filter(Boolean)
@@ -116,9 +125,35 @@ export function to_email_entries(contact: DecryptedContact): EmailEntry[] {
 
 export function to_phone_entries(contact: DecryptedContact): PhoneEntry[] {
   if (contact.phone_entries && contact.phone_entries.length > 0)
-    return contact.phone_entries;
+    return normalize_typed_entries(contact.phone_entries, PHONE_TYPE_OPTIONS);
   if (contact.phone)
     return [{ value: contact.phone, type: "mobile" as PhoneEntryType }];
+
+  return [];
+}
+
+export function to_address_entries(contact: DecryptedContact): AddressEntry[] {
+  if (contact.address_entries && contact.address_entries.length > 0) {
+    return normalize_typed_entries(
+      contact.address_entries,
+      ADDRESS_TYPE_OPTIONS,
+    );
+  }
+  const address = contact.address;
+
+  if (
+    address &&
+    typeof address === "object" &&
+    [
+      address.street,
+      address.city,
+      address.state,
+      address.postal_code,
+      address.country,
+    ].some((part) => (part || "").trim())
+  ) {
+    return [{ ...address, type: "home" }];
+  }
 
   return [];
 }
@@ -134,7 +169,7 @@ export function to_edit_state(contact: DecryptedContact): EditState {
     phonetic_middle_name: contact.phonetic_middle_name || "",
     phonetic_last_name: contact.phonetic_last_name || "",
     nickname: contact.nickname || "",
-    role: contact.role || "",
+    role: contact.role || contact.job_title || "",
     department: contact.department || "",
     company: contact.company || "",
     comment: contact.comment || "",
@@ -145,7 +180,7 @@ export function to_edit_state(contact: DecryptedContact): EditState {
     avatar_url: contact.avatar_url,
     email_entries: to_email_entries(contact),
     phone_entries: to_phone_entries(contact),
-    address_entries: contact.address_entries || [],
+    address_entries: to_address_entries(contact),
     date_entries: contact.date_entries || [],
     related_people: contact.related_people || [],
     social_networks: contact.social_networks || [],
@@ -191,16 +226,26 @@ export const FIELD_CLASS =
 export const SELECT_CLASS =
   "h-11 rounded-xl bg-black/[0.04] dark:bg-white/[0.04] border border-edge-secondary/60 dark:border-transparent px-2.5 text-[13px] text-txt-primary focus:outline-none focus:border-blue-500/60 transition-colors disabled:cursor-default appearance-none";
 
-export const EMAIL_TYPE_OPTIONS: EmailEntryType[] = ["home", "work", "other"];
+export const EMAIL_TYPE_OPTIONS: EmailEntryType[] = [
+  "home",
+  "personal",
+  "work",
+  "other",
+];
 export const PHONE_TYPE_OPTIONS: PhoneEntryType[] = [
   "mobile",
   "home",
+  "personal",
   "work",
   "fax",
   "pager",
   "other",
 ];
-export const ADDRESS_TYPE_OPTIONS: AddressEntryType[] = ["home", "work", "other"];
+export const ADDRESS_TYPE_OPTIONS: AddressEntryType[] = [
+  "home",
+  "work",
+  "other",
+];
 export const DATE_TYPE_OPTIONS: DateEntryType[] = [
   "anniversary",
   "graduation",
@@ -228,7 +273,12 @@ export const SOCIAL_TYPE_OPTIONS: SocialNetworkType[] = [
   "bluesky",
   "other",
 ];
-export const WEBSITE_TYPE_OPTIONS: WebsiteType[] = ["private", "work", "blog", "other"];
+export const WEBSITE_TYPE_OPTIONS: WebsiteType[] = [
+  "private",
+  "work",
+  "blog",
+  "other",
+];
 export const IM_TYPE_OPTIONS: InstantMessengerType[] = [
   "signal",
   "matrix",
@@ -238,7 +288,70 @@ export const IM_TYPE_OPTIONS: InstantMessengerType[] = [
   "other",
 ];
 
+export function format_address_lines(entry: AddressEntry): string[] {
+  return [
+    entry.street,
+    [entry.city, entry.state].filter(Boolean).join(" "),
+    entry.postal_code,
+    entry.country,
+  ]
+    .map((part) => (part || "").trim())
+    .filter(Boolean);
+}
+
 export function type_label_key(type: string): TranslationKey {
   return `common.type_${type}` as TranslationKey;
 }
 
+export const CUSTOM_TYPE = "custom";
+
+export function next_address_type(
+  entries: { type: string }[],
+): AddressEntryType {
+  if (!entries.some((entry) => entry.type === "home")) return "home";
+  if (!entries.some((entry) => entry.type === "work")) return "work";
+
+  return "other";
+}
+
+export function entry_select_value(
+  entry: { type: string; label?: string },
+  options: readonly string[],
+): string {
+  if (entry.type === "other" && entry.label !== undefined) return CUSTOM_TYPE;
+  if (!options.includes(entry.type)) {
+    return entry.label !== undefined ? CUSTOM_TYPE : "other";
+  }
+
+  return entry.type;
+}
+
+export function entry_type_text(
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+  entry: { type?: string; label?: string },
+  options: readonly string[],
+): string {
+  const label = (entry.label ?? "").trim();
+
+  if (label) return label;
+  const type =
+    entry.type && options.includes(entry.type) ? entry.type : "other";
+
+  return t(type_label_key(type));
+}
+
+export function normalize_typed_entries<
+  E extends { type: string; label?: string },
+>(entries: E[], options: readonly string[]): E[] {
+  return entries.map((entry) => {
+    if (options.includes(entry.type)) return entry;
+    const kept = (entry.label ?? "").trim();
+    const raw = (entry.type ?? "").trim().toLowerCase();
+    const label =
+      kept || (raw ? raw.charAt(0).toUpperCase() + raw.slice(1) : "");
+
+    return (
+      label ? { ...entry, type: "other", label } : { ...entry, type: "other" }
+    ) as E;
+  });
+}

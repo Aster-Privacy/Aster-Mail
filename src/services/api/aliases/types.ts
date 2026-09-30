@@ -18,10 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
-
-
-
+import type {} from "@/lib/i18n/types";
 
 export interface EmailAlias {
   id: string;
@@ -38,6 +35,9 @@ export interface EmailAlias {
   never_inbox?: boolean;
   delivery_folder_token?: string | null;
   delivery_label_token?: string | null;
+  orphaned_by_key_rotation?: boolean;
+  is_retained_primary?: boolean;
+  retained_local_part?: string | null;
   profile_picture?: string;
   encrypted_note?: string;
   note_nonce?: string;
@@ -55,6 +55,7 @@ export interface DecryptedEmailAlias {
   note?: string;
   websites?: string[];
   alias_address_hash: string;
+  routing_address_hash?: string;
   domain: string;
   full_address: string;
   is_enabled: boolean;
@@ -64,6 +65,8 @@ export interface DecryptedEmailAlias {
   delivery_folder_token?: string | null;
   delivery_label_token?: string | null;
   decryption_failed?: boolean;
+  orphaned_by_key_rotation?: boolean;
+  is_retained_primary?: boolean;
   profile_picture?: string;
   downgrade_grace_expires_at?: string;
   created_at: string;
@@ -75,6 +78,7 @@ export interface AliasListResponse {
   total: number;
   has_more: boolean;
   max_aliases: number;
+  short_aliases_allowed?: boolean;
 }
 
 export interface CreateAliasRequest {
@@ -122,6 +126,28 @@ export interface AliasLimitResponse {
 
 export interface CheckAvailabilityResponse {
   available: boolean;
+}
+
+export type TwinAddressState =
+  | "reserved"
+  | "available"
+  | "claimed"
+  | "taken"
+  | "unsupported";
+
+export interface TwinSibling {
+  address: string;
+  domain: string;
+  local_part: string;
+  state: TwinAddressState;
+}
+
+export interface TwinAddressResponse {
+  address: string;
+  domain: string;
+  local_part: string;
+  state: TwinAddressState;
+  siblings?: TwinSibling[];
 }
 
 export interface AliasCountsResponse {
@@ -245,4 +271,3 @@ export interface AliasDeliveryLogResponse {
   events: DeliveryEvent[];
   total: number;
 }
-

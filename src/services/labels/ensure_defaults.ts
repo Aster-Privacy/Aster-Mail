@@ -102,13 +102,18 @@ export async function ensure_default_labels(
 
       if (existing.error || !existing.data) return;
 
-      const has_inbox = existing.data.folders.some(
-        (f) => f.folder_type === "inbox",
+      const present_types = new Set(
+        existing.data.folders
+          .filter((f) => !!f.folder_token)
+          .map((f) => f.folder_type),
+      );
+      const missing_specs = SYSTEM_LABEL_SPECS.filter(
+        (spec) => !present_types.has(spec.folder_type),
       );
 
-      if (has_inbox) return;
+      if (missing_specs.length === 0) return;
 
-      const creations = SYSTEM_LABEL_SPECS.map(async (spec) => {
+      const creations = missing_specs.map(async (spec) => {
         const localized_name =
           (t ? t(spec.i18n_key) : spec.fallback) || spec.fallback;
         const display_name =

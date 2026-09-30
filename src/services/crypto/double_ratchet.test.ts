@@ -126,9 +126,7 @@ describe("DoubleRatchet end-to-end send/receive (resend readability)", () => {
 
     const msg = await sender.encrypt("you should be able to read this");
 
-    expect(await receiver.decrypt(msg)).toBe(
-      "you should be able to read this",
-    );
+    expect(await receiver.decrypt(msg)).toBe("you should be able to read this");
   });
 
   it("a fresh receiver decrypts message_number 1 without having seen message 0 (bruno's case)", async () => {
@@ -142,6 +140,7 @@ describe("DoubleRatchet end-to-end send/receive (resend readability)", () => {
 
     await sender.encrypt("first");
     const second = await sender.encrypt("second");
+
     expect(second.header.message_number).toBe(1);
 
     const fresh_receiver = await DoubleRatchet.init_receiver(
@@ -242,7 +241,8 @@ describe("DoubleRatchet sync-safety (dirty tracking)", () => {
     sender.mark_synced();
     const serialized = await sender.serialize();
 
-    delete (serialized.state as { dirty_since_sync?: boolean }).dirty_since_sync;
+    delete (serialized.state as { dirty_since_sync?: boolean })
+      .dirty_since_sync;
 
     expect(DoubleRatchet.deserialize(serialized).is_dirty_since_sync()).toBe(
       true,

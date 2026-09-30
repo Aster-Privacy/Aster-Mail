@@ -20,12 +20,12 @@
 //
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { MailItem } from "@/services/api/mail";
-import type { } from "@/services/api/multi_drafts";
+import type {} from "@/services/api/multi_drafts";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 import type { DecryptedEmail } from "@/components/email/use_email_viewer";
-import type { } from "@/components/email/hooks/preload_cache";
+import type {} from "@/components/email/hooks/preload_cache";
 
-import React, {    } from "react";
+import React from "react";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
@@ -38,9 +38,9 @@ import {
 } from "@/components/ui/popover";
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { TrackingProtectionShield } from "@/components/email/tracking_protection_shield";
-import { is_system_email } from "@/lib/utils";
-
+import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { OfficialBadge } from "@/components/email/official_badge";
+import { VerifiedSenderBadge } from "@/components/email/verified_sender_badge";
 import {
   EmailTag,
   hex_to_variant,
@@ -94,7 +94,7 @@ export function ViewerEmailHeader({
 }: ViewerEmailHeaderProps): React.ReactElement {
   const { t } = use_i18n();
   const peer_profile = use_peer_profile(
-    is_system_email(email.sender_email) ? null : email.sender_email,
+    is_system_email(email) ? null : email.sender_email,
   );
   const peer_badge = peer_profile?.active_badge ?? null;
   const show_sender_badge =
@@ -122,7 +122,7 @@ export function ViewerEmailHeader({
               />
             )}
           </div>
-          <h1 className={`${subject_class} text-txt-primary`}>
+          <h1 className={`${subject_class} text-txt-primary`} dir="auto">
             {email.subject || t("mail.no_subject")}
           </h1>
           {mail_item?.labels
@@ -151,6 +151,9 @@ export function ViewerEmailHeader({
           email={show_sender_email}
           image_url={peer_profile?.profile_picture ?? undefined}
           name={display_sender}
+          sender_authenticated={is_system_email(
+            trust_source_for_display(email, show_sender_email),
+          )}
           size={avatar_size}
         />
         <div className="flex-1 min-w-0">
@@ -165,7 +168,11 @@ export function ViewerEmailHeader({
               >
                 <span className="text-txt-primary">{display_sender}</span>
               </EmailProfileTrigger>
-              <OfficialBadge email={email.sender_email} size="md" />
+              <OfficialBadge sender={email} size="md" />
+              <VerifiedSenderBadge
+                domain={email.sender_verified_domain}
+                size="md"
+              />
               {show_sender_badge && peer_badge && (
                 <BadgeChip
                   badge={peer_badge}
@@ -182,7 +189,7 @@ export function ViewerEmailHeader({
               >
                 &lt;{show_sender_email}&gt;
               </button>
-              {is_system_email(email.sender_email) && (
+              {is_system_email(email) && (
                 <EmailTag
                   className="flex-shrink-0"
                   icon="info"
@@ -204,17 +211,17 @@ export function ViewerEmailHeader({
           <div className="flex items-center gap-2 mt-0.5">
             <Popover>
               <PopoverTrigger asChild>
-                <button className="text-xs hover:text-[var(--text-secondary)] transition-colors text-left text-txt-muted">
+                <button className="text-xs hover:text-[var(--text-secondary)] transition-colors text-start text-txt-muted">
                   {t("common.to_recipient")} {t("common.me")} &#9660;
                 </button>
               </PopoverTrigger>
               <PopoverContent
                 align="start"
-                className="w-80 p-3 text-xs space-y-2 bg-surf-primary border-edge-primary"
+                className="w-80 p-3 text-xs space-y-2"
                 side="bottom"
               >
                 <div className="flex">
-                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
                     {t("common.from_label")}
                   </span>
                   <span className="text-txt-secondary">
@@ -230,7 +237,7 @@ export function ViewerEmailHeader({
                   </span>
                 </div>
                 <div className="flex items-start">
-                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
+                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium pt-0.5 text-txt-muted">
                     {t("common.to_label")}
                   </span>
                   <span className="flex-1 flex flex-wrap items-center gap-1 text-txt-secondary">
@@ -257,7 +264,7 @@ export function ViewerEmailHeader({
                 </div>
                 {email.cc.length > 0 && (
                   <div className="flex items-start">
-                    <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
+                    <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium pt-0.5 text-txt-muted">
                       {t("common.cc_label")}
                     </span>
                     <span className="flex-1 flex flex-wrap items-center gap-1 text-txt-secondary">
@@ -283,7 +290,7 @@ export function ViewerEmailHeader({
                 )}
                 {email.bcc.length > 0 && (
                   <div className="flex items-start">
-                    <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium pt-0.5 text-txt-muted">
+                    <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium pt-0.5 text-txt-muted">
                       {t("common.bcc_label")}
                     </span>
                     <span className="flex-1 flex flex-wrap items-center gap-1 text-txt-secondary">
@@ -308,7 +315,7 @@ export function ViewerEmailHeader({
                   </div>
                 )}
                 <div className="flex">
-                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
                     {t("common.date_label")}
                   </span>
                   <span className="text-txt-secondary">
@@ -316,10 +323,13 @@ export function ViewerEmailHeader({
                   </span>
                 </div>
                 <div className="flex">
-                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 font-medium text-txt-muted">
+                  <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 font-medium text-txt-muted">
                     {t("common.subject_label")}
                   </span>
-                  <span className="min-w-0 text-txt-secondary break-words">
+                  <span
+                    className="min-w-0 text-txt-secondary break-words"
+                    dir="auto"
+                  >
                     {email.subject || t("mail.no_subject")}
                   </span>
                 </div>
@@ -340,4 +350,3 @@ export function ViewerEmailHeader({
     </>
   );
 }
-

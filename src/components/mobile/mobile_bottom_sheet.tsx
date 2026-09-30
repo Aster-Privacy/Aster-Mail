@@ -19,91 +19,36 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { memo, type ReactNode } from "react";
-import {
-  motion,
-  AnimatePresence,
-  useDragControls,
-  type PanInfo,
-} from "framer-motion";
+import { MobileBottomSheet as MobileBottomSheetView } from "@aster/ui";
 
 import { use_platform } from "@/hooks/use_platform";
-import { use_dialog_shell } from "@/lib/use_dialog_shell";
 import { use_should_reduce_motion } from "@/provider";
 
 interface MobileBottomSheetProps {
   is_open: boolean;
   on_close: () => void;
   children: ReactNode;
+  aria_label?: string;
 }
 
 export const MobileBottomSheet = memo(function MobileBottomSheet({
   is_open,
   on_close,
   children,
+  aria_label,
 }: MobileBottomSheetProps) {
   const { safe_area_insets } = use_platform();
   const reduce_motion = use_should_reduce_motion();
-  const drag_controls = useDragControls();
-  const { dialog_ref, handle_backdrop_pointer_down } =
-    use_dialog_shell<HTMLDivElement>(is_open, on_close, "bottom_sheet");
-
-  const handle_drag_end = (_: unknown, info: PanInfo) => {
-    if (info.offset.y > 100 || info.velocity.y > 300) {
-      on_close();
-    }
-  };
 
   return (
-    <AnimatePresence>
-      {is_open && (
-        <>
-          <motion.div
-            animate={{ opacity: 1 }}
-            className="fixed inset-0 z-[60] bg-black/40"
-            exit={{ opacity: 0 }}
-            initial={reduce_motion ? false : { opacity: 0 }}
-            transition={{ duration: reduce_motion ? 0 : 0.2 }}
-            onPointerDown={handle_backdrop_pointer_down}
-          />
-
-          <motion.div
-            ref={dialog_ref}
-            animate={{ y: 0 }}
-            aria-modal="true"
-            className="fixed inset-x-0 bottom-0 z-[61] flex max-h-[85vh] flex-col rounded-t-2xl bg-[var(--bg-primary)] outline-none"
-            role="dialog"
-            tabIndex={-1}
-            drag="y"
-            dragConstraints={{ top: 0 }}
-            dragControls={drag_controls}
-            dragElastic={0.2}
-            dragListener={false}
-            exit={{ y: "100%" }}
-            initial={reduce_motion ? false : { y: "100%" }}
-            style={{ paddingBottom: safe_area_insets.bottom }}
-            transition={
-              reduce_motion
-                ? { duration: 0 }
-                : { type: "tween", duration: 0.25, ease: "easeOut" }
-            }
-            onDragEnd={handle_drag_end}
-          >
-            <div
-              className="flex shrink-0 cursor-grab justify-center py-2 active:cursor-grabbing"
-              style={{ touchAction: "none" }}
-              onPointerDown={(e) => drag_controls.start(e)}
-            >
-              <div className="h-1 w-10 rounded-full bg-[var(--text-muted)] opacity-30" />
-            </div>
-            <div
-              className="flex-1 overflow-y-auto overscroll-contain"
-              style={{ WebkitOverflowScrolling: "touch" }}
-            >
-              {children}
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
+    <MobileBottomSheetView
+      aria_label={aria_label}
+      is_open={is_open}
+      reduce_motion={reduce_motion}
+      safe_area_bottom={safe_area_insets.bottom}
+      on_close={on_close}
+    >
+      {children}
+    </MobileBottomSheetView>
   );
 });

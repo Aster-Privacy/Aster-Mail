@@ -18,21 +18,25 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect } from "react";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import type { ApiResponse } from "@/services/api/client";
+import type {
+  KeyserverPublicationState,
+  KeyserverPublicationStatus,
+} from "@/services/api/keys";
 
+import { useState, useEffect } from "react";
+
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { api_client } from "@/services/api/client";
-import type { ApiResponse } from "@/services/api/client";
 import { ensure_pgp_key_published } from "@/services/crypto/ensure_pgp_key_published";
-import { get_user_info } from "@/services/api/auth";
 import {
   derive_password_hash,
   base64_to_array,
 } from "@/services/crypto/key_manager";
-import { generate_recovery_pdf } from "@/services/crypto/recovery_pdf";
-import { trigger_download } from "@/services/export/destination";
+import { DEFAULT_KEYSERVERS } from "@/components/settings/encryption/encryption_settings_form";
+import { trigger_download } from "@/utils/download_blob";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
   publish_key_to_wkd,
@@ -41,19 +45,12 @@ import {
   get_keyserver_publication_status,
   clear_external_key_cache,
 } from "@/services/api/keys";
-import type {
-  KeyserverPublicationState,
-  KeyserverPublicationStatus,
-} from "@/services/api/keys";
-import { generate_recovery_codes } from "@/services/crypto/key_manager_pgp";
-import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import {
-  generate_recovery_key,
-  encrypt_vault_backup,
-  generate_all_recovery_shares,
-  clear_recovery_key,
-} from "@/services/crypto/recovery_key";
-import { save_recovery_backup } from "@/services/api/recovery";
+  armored_private_key_matches,
+  find_unlockable_private_key,
+} from "@/services/crypto/key_manager_pgp";
+import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 export interface PgpKeyInfo {
   fingerprint: string;
@@ -67,19 +64,8 @@ export interface PgpKeyInfo {
   last_used_decrypt_at: string | null;
 }
 
-export interface RecoveryCodesInfo {
-  total_codes: number;
-  available_codes: number;
-  created_at: string | null;
-}
-
 interface SaltResponse {
   salt: string;
-  totp_required: boolean;
-}
-
-interface VerifyPasswordResponse {
-  verified: boolean;
   totp_required: boolean;
 }
 
@@ -97,13 +83,17 @@ export function use_encryption() {
   const [pgp_key, set_pgp_key] = useState<PgpKeyInfo | null>(null);
   const [pgp_key_load_failed, set_pgp_key_load_failed] = useState(false);
   const [keyserver_urls, set_keyserver_urls] = useState<string[]>([]);
+  const [keyservers_loaded, set_keyservers_loaded] = useState(false);
   const [keyserver_input, set_keyserver_input] = useState("");
   const [is_saving_keyservers, set_is_saving_keyservers] = useState(false);
-  const [keyserver_published, set_keyserver_published] = useState<boolean | null>(null);
+  const [keyserver_published, set_keyserver_published] = useState<
+    boolean | null
+  >(null);
   const [keyserver_state, set_keyserver_state] =
     useState<KeyserverPublicationState | null>(null);
   const [keyserver_error, set_keyserver_error] = useState<string | null>(null);
-  const [is_publishing_keyserver, set_is_publishing_keyserver] = useState(false);
+  const [is_publishing_keyserver, set_is_publishing_keyserver] =
+    useState(false);
 
   const apply_keyserver_status = (status: KeyserverPublicationStatus) => {
     set_keyserver_published(status.published);
@@ -118,33 +108,18 @@ export function use_encryption() {
       data: null,
       error: "network_error",
     }));
+
     if (result.data) {
       apply_keyserver_status(result.data);
     }
   };
-  const [recovery_info, set_recovery_info] = useState<RecoveryCodesInfo | null>(
-    null,
-  );
-  const [recovery_codes, set_recovery_codes] = useState<string[] | null>(null);
-  const [show_recovery_codes, set_show_recovery_codes] = useState(false);
-  const [show_regenerate_confirm, set_show_regenerate_confirm] =
-    useState(false);
-  const [regenerate_confirm_text, set_regenerate_confirm_text] = useState("");
-  const [is_regenerating, set_is_regenerating] = useState(false);
-  const [regenerate_password, set_regenerate_password] = useState("");
-  const [regenerate_totp_code, set_regenerate_totp_code] = useState("");
-  const [regenerate_totp_required, set_regenerate_totp_required] =
-    useState(false);
-  const [regenerate_error, set_regenerate_error] = useState("");
-  const [user_email, set_user_email] = useState<string>("");
-  const [codes_key, set_codes_key] = useState(0);
-
   const format_fingerprint = (fp: string): string => {
     return fp.match(/.{1,4}/g)?.join(" ") || fp;
   };
 
   const format_date = (date_string: string): string => {
-    return new Date(date_string).toLocaleDateString(undefined, {
+    return new Date(date_string).toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -154,43 +129,35 @@ export function use_encryption() {
   const load_encryption_data = async () => {
     set_pgp_key_load_failed(false);
     try {
-      const [
-        key_response,
-        recovery_response,
-        user_response,
-        enc_response,
-        keyserver_status,
-        wkd_status,
-      ] = await Promise.all([
-        api_client
-          .get<PgpKeyInfo>("/crypto/v1/encryption/pgp-key")
-          .catch(
+      const [key_response, enc_response, keyserver_status, wkd_status] =
+        await Promise.all([
+          api_client.get<PgpKeyInfo>("/crypto/v1/encryption/pgp-key").catch(
             () =>
               ({
                 data: undefined,
                 error: "network_error",
               }) as ApiResponse<PgpKeyInfo>,
           ),
-        api_client
-          .get<RecoveryCodesInfo>("/crypto/v1/encryption/recovery-status")
-          .catch(() => ({ data: null, error: null })),
-        get_user_info().catch(() => ({ data: null, error: null })),
-        api_client
-          .get<{
-            auto_discover_keys: boolean;
-            encrypt_by_default: boolean;
-            ipfs_storage_enabled: boolean;
-            keyserver_urls: string[];
-          }>("/settings/v1/encryption")
-          .catch(() => ({ data: null, error: null })),
-        get_keyserver_publication_status()
-          .catch(() => ({ data: null, error: null })),
-        api_client
-          .get<{ published: boolean; url: string | null }>(
-            "/crypto/v1/keys/publish/wkd/status",
-          )
-          .catch(() => ({ data: null, error: null })),
-      ]);
+          api_client
+            .get<{
+              auto_discover_keys: boolean;
+              encrypt_by_default: boolean;
+              require_encryption: boolean;
+              ipfs_storage_enabled: boolean;
+              keyserver_urls: string[];
+            }>("/settings/v1/encryption")
+            .catch(() => ({ data: null, error: null })),
+          get_keyserver_publication_status().catch(() => ({
+            data: null,
+            error: null,
+          })),
+          api_client
+            .get<{
+              published: boolean;
+              url: string | null;
+            }>("/crypto/v1/keys/publish/wkd/status")
+            .catch(() => ({ data: null, error: null })),
+        ]);
 
       if (key_response.data) {
         set_pgp_key(key_response.data);
@@ -203,30 +170,49 @@ export function use_encryption() {
             .catch(() => ({ data: undefined }) as ApiResponse<PgpKeyInfo>);
 
           if (refetched.data) set_pgp_key(refetched.data);
+          else set_pgp_key_load_failed(true);
+        } else if (heal_result !== "no_local_key") {
+          set_pgp_key_load_failed(true);
         }
-      } else if (key_response.error) {
+      } else {
         set_pgp_key_load_failed(true);
       }
-      if (recovery_response.data) {
-        set_recovery_info(recovery_response.data);
-      }
-      if (user_response.data?.email) {
-        set_user_email(user_response.data.email);
-      }
-
       if (enc_response.data) {
-        if (enc_response.data.auto_discover_keys !== preferences.auto_discover_keys) {
-          update_preference("auto_discover_keys", enc_response.data.auto_discover_keys, true);
+        set_keyservers_loaded(true);
+        if (
+          enc_response.data.auto_discover_keys !==
+          preferences.auto_discover_keys
+        ) {
+          update_preference(
+            "auto_discover_keys",
+            enc_response.data.auto_discover_keys,
+            true,
+          );
         }
-        if (enc_response.data.encrypt_by_default !== preferences.encrypt_emails) {
-          update_preference("encrypt_emails", enc_response.data.encrypt_by_default, true);
+        if (
+          enc_response.data.encrypt_by_default !== preferences.encrypt_emails
+        ) {
+          update_preference(
+            "encrypt_emails",
+            enc_response.data.encrypt_by_default,
+            true,
+          );
         }
-        if (enc_response.data.keyserver_urls) {
-          set_keyserver_urls(enc_response.data.keyserver_urls);
+        if (
+          enc_response.data.require_encryption !==
+          preferences.require_encryption
+        ) {
+          update_preference(
+            "require_encryption",
+            enc_response.data.require_encryption,
+            true,
+          );
         }
+        set_keyserver_urls(enc_response.data.keyserver_urls ?? []);
         const server_storage_format = enc_response.data.ipfs_storage_enabled
           ? "ipfs"
           : "aster";
+
         if (server_storage_format !== preferences.storage_format) {
           update_preference("storage_format", server_storage_format, true);
         }
@@ -253,12 +239,10 @@ export function use_encryption() {
     if (!pgp_key) return;
 
     try {
-      await navigator.clipboard.writeText(pgp_key.fingerprint);
+      await copy_text_or_throw(pgp_key.fingerprint);
       show_toast(t("settings.copied_to_clipboard"), "success");
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-
-      return;
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
@@ -271,10 +255,8 @@ export function use_encryption() {
       });
 
       trigger_download(blob, `aster-public-key-${pgp_key.key_id}.asc`);
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-
-      return;
+    } catch {
+      show_toast(t("common.download_failed"), "error");
     }
   };
 
@@ -352,9 +334,16 @@ export function use_encryption() {
         return;
       }
 
-      let armored_key: string | undefined;
+      const vault = get_vault_from_memory();
+      let armored_key: string | undefined =
+        (await find_unlockable_private_key(
+          [vault?.identity_key, ...(vault?.previous_keys ?? [])],
+          response.data?.fingerprint ?? "",
+          export_password,
+        )) ?? undefined;
 
       if (
+        !armored_key &&
         response.data?.client_side_decryption &&
         response.data.encrypted_private_key_blob &&
         response.data.private_key_nonce
@@ -389,11 +378,20 @@ export function use_encryption() {
           ["decrypt"],
         );
 
-        const decrypted = await decrypt_aes_gcm_with_fallback(decryption_key, ciphertext, nonce);
+        const decrypted = await crypto.subtle.decrypt(
+          { name: "AES-GCM", iv: nonce },
+          decryption_key,
+          ciphertext,
+        );
 
-        armored_key = new TextDecoder().decode(decrypted);
-      } else {
-        armored_key = response.data?.private_key_encrypted;
+        const opened = new TextDecoder().decode(decrypted);
+
+        armored_key = (await armored_private_key_matches(
+          opened,
+          response.data.fingerprint ?? "",
+        ))
+          ? opened
+          : undefined;
       }
 
       if (!armored_key) {
@@ -424,172 +422,15 @@ export function use_encryption() {
     if (!pgp_key) return;
 
     try {
-      await navigator.clipboard.writeText(pgp_key.public_key_armored);
+      await copy_text_or_throw(pgp_key.public_key_armored);
       show_toast(t("settings.copied_to_clipboard"), "success");
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-
-      return;
-    }
-  };
-
-  const handle_download_codes = async () => {
-    if (!recovery_codes || recovery_codes.length === 0) return;
-
-    try {
-      await generate_recovery_pdf(
-        user_email || "your-account@astermail.org",
-        recovery_codes,
-        t,
-      );
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-      show_toast(t("settings.failed_download_codes"), "error");
-    }
-  };
-
-  const handle_copy_all_codes = async () => {
-    if (!recovery_codes) return;
-
-    try {
-      const codes_text = recovery_codes.join("\n");
-
-      await navigator.clipboard.writeText(codes_text);
-      show_toast(t("common.copied_successfully"), "success");
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-
-      return;
-    }
-  };
-
-  const handle_regenerate_codes = async () => {
-    if (regenerate_confirm_text.toLowerCase() !== "regenerate") {
-      return;
-    }
-
-    if (!regenerate_password.trim()) {
-      set_regenerate_error(t("settings.please_enter_password"));
-
-      return;
-    }
-
-    if (regenerate_totp_required && !regenerate_totp_code.trim()) {
-      set_regenerate_error(t("settings.please_enter_2fa_code"));
-
-      return;
-    }
-
-    set_is_regenerating(true);
-    set_regenerate_error("");
-
-    try {
-      const salt_response = await api_client.get<SaltResponse>(
-        "/crypto/v1/encryption/salt",
-        { skip_cache: true },
-      );
-
-      if (salt_response.error || !salt_response.data?.salt) {
-        set_regenerate_error(t("settings.failed_retrieve_auth"));
-
-        return;
-      }
-
-      if (salt_response.data.totp_required && !regenerate_totp_required) {
-        set_regenerate_totp_required(true);
-        set_regenerate_totp_code("");
-        set_is_regenerating(false);
-
-        return;
-      }
-
-      const salt = base64_to_array(salt_response.data.salt);
-      const { hash } = await derive_password_hash(regenerate_password, salt);
-
-      const body: { password_hash: string; totp_code?: string } = {
-        password_hash: hash,
-      };
-
-      if (regenerate_totp_required && regenerate_totp_code.trim()) {
-        body.totp_code = regenerate_totp_code.trim();
-      }
-
-      const verify_response = await api_client.post<VerifyPasswordResponse>(
-        "/crypto/v1/encryption/verify-password",
-        body,
-      );
-
-      if (verify_response.error) {
-        set_regenerate_error(verify_response.error);
-
-        return;
-      }
-
-      if (!verify_response.data?.verified) {
-        set_regenerate_error(t("settings.incorrect_password_error"));
-
-        return;
-      }
-
-      const vault = get_vault_from_memory();
-
-      if (!vault) {
-        set_regenerate_error(t("settings.failed_verify_password"));
-
-        return;
-      }
-
-      const new_codes = generate_recovery_codes(6);
-      const recovery_key = generate_recovery_key();
-
-      try {
-        const new_backup = await encrypt_vault_backup(vault, recovery_key);
-        const new_shares = await generate_all_recovery_shares(
-          new_codes,
-          recovery_key,
-        );
-
-        const backup_response = await save_recovery_backup(
-          new_backup.encrypted_data,
-          new_backup.nonce,
-          new_backup.salt,
-          new_shares,
-        );
-
-        if (backup_response.error || !backup_response.data?.success) {
-          set_regenerate_error(
-            backup_response.error || t("settings.failed_verify_password"),
-          );
-
-          return;
-        }
-
-        set_codes_key((prev) => prev + 1);
-        set_recovery_codes(new_codes);
-        set_recovery_info({
-          total_codes: new_codes.length,
-          available_codes: new_codes.length,
-          created_at: new Date().toISOString(),
-        });
-        set_show_recovery_codes(true);
-        set_show_regenerate_confirm(false);
-        set_regenerate_confirm_text("");
-        set_regenerate_password("");
-        set_regenerate_totp_code("");
-        set_regenerate_error("");
-      } finally {
-        clear_recovery_key(recovery_key);
-      }
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-      set_regenerate_error(t("settings.failed_verify_password"));
-    } finally {
-      set_is_regenerating(false);
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
   const sync_server_encryption_flag = async (
-    field: "auto_discover_keys" | "encrypt_by_default",
+    field: "auto_discover_keys" | "encrypt_by_default" | "require_encryption",
     value: boolean,
   ): Promise<boolean> => {
     try {
@@ -664,6 +505,21 @@ export function use_encryption() {
     }
   };
 
+  const handle_require_encryption_toggle = async () => {
+    const new_value = !preferences.require_encryption;
+
+    update_preference("require_encryption", new_value, true);
+    const ok = await sync_server_encryption_flag(
+      "require_encryption",
+      new_value,
+    );
+
+    if (!ok) {
+      update_preference("require_encryption", !new_value, true);
+      show_toast(t("settings.failed_save_setting"), "error");
+    }
+  };
+
   const handle_wkd_toggle = async () => {
     const new_value = !preferences.publish_to_wkd;
 
@@ -672,7 +528,7 @@ export function use_encryption() {
     if (new_value) {
       const result = await publish_key_to_wkd();
 
-      if (result.error) {
+      if (result.error || result.data?.success === false) {
         update_preference("publish_to_wkd", false, true);
         show_toast(t("settings.failed_publish_wkd"), "error");
       } else {
@@ -681,7 +537,7 @@ export function use_encryption() {
     } else {
       const result = await unpublish_key_from_wkd();
 
-      if (result.error) {
+      if (result.error || result.data?.success === false) {
         update_preference("publish_to_wkd", true, true);
         show_toast(t("settings.failed_remove_wkd"), "error");
       } else {
@@ -716,7 +572,7 @@ export function use_encryption() {
 
     const result = await publish_key_to_keyserver();
 
-    if (result.error) {
+    if (result.error || result.data?.success === false) {
       show_toast(t("settings.failed_publish_keyserver"), "error");
     } else {
       update_preference("publish_to_keyservers", true, true);
@@ -727,12 +583,25 @@ export function use_encryption() {
     set_is_publishing_keyserver(false);
   };
 
-  const save_keyserver_urls = async (urls: string[]) => {
+  const save_keyserver_urls = async (
+    urls: string[],
+    previous: string[],
+  ): Promise<void> => {
     set_is_saving_keyservers(true);
     try {
-      await api_client.put("/settings/v1/encryption", { keyserver_urls: urls });
+      const response = await api_client.put("/settings/v1/encryption", {
+        keyserver_urls: urls,
+      });
+
+      if (response.error) {
+        set_keyserver_urls(previous);
+        show_toast(t("settings.failed_publish_keyserver"), "error");
+
+        return;
+      }
       show_toast(t("settings.keyserver_saved"), "success");
     } catch {
+      set_keyserver_urls(previous);
       show_toast(t("settings.failed_publish_keyserver"), "error");
     } finally {
       set_is_saving_keyservers(false);
@@ -740,32 +609,56 @@ export function use_encryption() {
   };
 
   const handle_add_keyserver = () => {
+    if (!keyservers_loaded) {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+
+      return;
+    }
+
     const trimmed = keyserver_input.trim().replace(/\/$/, "");
+
     if (!trimmed) return;
     try {
       const parsed = new URL(trimmed);
+
       if (parsed.protocol !== "https:" && parsed.protocol !== "hkps:") {
         show_toast(t("settings.keyserver_invalid_url"), "error");
+
         return;
       }
     } catch {
       show_toast(t("settings.keyserver_invalid_url"), "error");
+
       return;
     }
-    if (keyserver_urls.includes(trimmed)) {
+    if (
+      keyserver_urls.includes(trimmed) ||
+      DEFAULT_KEYSERVERS.includes(trimmed)
+    ) {
       set_keyserver_input("");
+
       return;
     }
+    const previous = keyserver_urls;
     const updated = [...keyserver_urls, trimmed];
+
     set_keyserver_urls(updated);
     set_keyserver_input("");
-    void save_keyserver_urls(updated);
+    void save_keyserver_urls(updated, previous);
   };
 
   const handle_remove_keyserver = (url: string) => {
+    if (!keyservers_loaded) {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+
+      return;
+    }
+
+    const previous = keyserver_urls;
     const updated = keyserver_urls.filter((u) => u !== url);
+
     set_keyserver_urls(updated);
-    void save_keyserver_urls(updated);
+    void save_keyserver_urls(updated, previous);
   };
 
   const close_export_prompt = () => {
@@ -780,31 +673,14 @@ export function use_encryption() {
     set_export_error("");
   };
 
-  const close_regenerate_confirm = () => {
-    set_show_regenerate_confirm(false);
-    set_regenerate_confirm_text("");
-    set_regenerate_password("");
-    set_regenerate_totp_code("");
-    set_regenerate_error("");
-  };
-
-  const open_regenerate_confirm = () => {
-    set_show_regenerate_confirm(true);
-  };
-
   useEffect(() => {
     load_encryption_data();
 
     return () => {
-      set_recovery_codes(null);
       set_export_password("");
       set_export_totp_code("");
     };
   }, []);
-
-  const codes_remaining = recovery_info?.available_codes ?? 0;
-  const codes_total = recovery_info?.total_codes ?? 6;
-  const codes_used = recovery_info ? codes_total - codes_remaining : 0;
 
   return {
     is_initial_load,
@@ -819,23 +695,6 @@ export function use_encryption() {
     pgp_key,
     pgp_key_load_failed,
     retry_load_encryption_data: load_encryption_data,
-    recovery_info,
-    recovery_codes,
-    show_recovery_codes,
-    show_regenerate_confirm,
-    regenerate_confirm_text,
-    set_regenerate_confirm_text,
-    is_regenerating,
-    regenerate_password,
-    set_regenerate_password,
-    regenerate_totp_code,
-    set_regenerate_totp_code,
-    regenerate_totp_required,
-    regenerate_error,
-    codes_key,
-    codes_remaining,
-    codes_total,
-    codes_used,
     preferences,
     update_preference,
     format_fingerprint,
@@ -844,18 +703,14 @@ export function use_encryption() {
     handle_export_public_key,
     handle_export_secret_key,
     handle_copy_public_key,
-    handle_download_codes,
-    handle_copy_all_codes,
-    handle_regenerate_codes,
     handle_wkd_toggle,
     handle_keyserver_toggle,
     handle_auto_discover_keys_toggle,
     handle_encrypt_emails_toggle,
+    handle_require_encryption_toggle,
     handle_storage_format_change,
     close_export_prompt,
     open_export_prompt,
-    close_regenerate_confirm,
-    open_regenerate_confirm,
     keyserver_urls,
     keyserver_input,
     set_keyserver_input,

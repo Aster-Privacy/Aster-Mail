@@ -19,6 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 const DEFAULT_BATCH_DELAY_MS = 0;
+const DEFAULT_MAX_ATTEMPTS = 4;
+const DEFAULT_RETRY_BASE_DELAY_MS = 1_000;
+const MAX_RETRY_DELAY_MS = 65_000;
 
 export interface BatchResult {
   total: number;
@@ -28,11 +31,30 @@ export interface BatchResult {
   was_cancelled: boolean;
 }
 
+export interface BatchAttemptOutcome {
+  ok: boolean;
+  retry_after_ms?: number;
+}
+
+export type BatchOutcome = boolean | BatchAttemptOutcome;
+
+export const RATE_LIMIT_RETRY_MS = 60_000;
+
+export function batch_retry_after_ms(response: {
+  code?: string;
+}): number | undefined {
+  return response.code === "RATE_LIMIT_EXCEEDED"
+    ? RATE_LIMIT_RETRY_MS
+    : undefined;
+}
+
 export interface BatchProcessorConfig {
   ids: string[];
   batch_size: number;
   delay_ms?: number;
-  process_batch: (batch_ids: string[]) => Promise<boolean>;
+  max_attempts?: number;
+  retry_base_delay_ms?: number;
+  process_batch: (batch_ids: string[]) => Promise<BatchOutcome>;
   on_progress?: (completed: number, total: number) => void;
   signal?: AbortSignal;
 }
@@ -50,8 +72,41 @@ function chunk_array<T>(items: T[], size: number): T[][] {
   return chunks;
 }
 
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function delay(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve) => {
+    if (signal?.aborted) {
+      resolve();
+
+      return;
+    }
+
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const on_abort = (): void => {
+      if (timer !== null) clearTimeout(timer);
+      resolve();
+    };
+
+    timer = setTimeout(() => {
+      signal?.removeEventListener("abort", on_abort);
+      resolve();
+    }, ms);
+
+    signal?.addEventListener("abort", on_abort, { once: true });
+  });
+}
+
+function normalize_outcome(outcome: BatchOutcome): BatchAttemptOutcome {
+  return typeof outcome === "boolean" ? { ok: outcome } : outcome;
+}
+
+function retry_delay_ms(
+  attempt: number,
+  base_delay_ms: number,
+  retry_after_ms?: number,
+): number {
+  const backoff = base_delay_ms * 2 ** (attempt - 1);
+
+  return Math.min(Math.max(retry_after_ms ?? backoff, 0), MAX_RETRY_DELAY_MS);
 }
 
 export async function process_batches(
@@ -61,6 +116,8 @@ export async function process_batches(
     ids,
     batch_size,
     delay_ms = DEFAULT_BATCH_DELAY_MS,
+    max_attempts = DEFAULT_MAX_ATTEMPTS,
+    retry_base_delay_ms = DEFAULT_RETRY_BASE_DELAY_MS,
     process_batch,
     on_progress,
     signal,
@@ -77,6 +134,7 @@ export async function process_batches(
   }
 
   const chunks = chunk_array(ids, batch_size);
+  const attempts_allowed = Math.max(1, max_attempts);
   const result: BatchResult = {
     total: ids.length,
     succeeded: 0,
@@ -92,17 +150,33 @@ export async function process_batches(
     }
 
     const batch = chunks[i];
+    let settled = false;
 
-    try {
-      const success = await process_batch(batch);
+    for (let attempt = 1; attempt <= attempts_allowed; attempt++) {
+      let outcome: BatchAttemptOutcome;
 
-      if (success) {
-        result.succeeded += batch.length;
-      } else {
-        result.failed += batch.length;
-        result.failed_ids.push(...batch);
+      try {
+        outcome = normalize_outcome(await process_batch(batch));
+      } catch {
+        outcome = { ok: false };
       }
-    } catch {
+
+      if (outcome.ok) {
+        result.succeeded += batch.length;
+        settled = true;
+        break;
+      }
+
+      if (attempt === attempts_allowed || signal?.aborted) break;
+
+      await delay(
+        retry_delay_ms(attempt, retry_base_delay_ms, outcome.retry_after_ms),
+        signal,
+      );
+    }
+
+    if (!settled) {
+      if (signal?.aborted) result.was_cancelled = true;
       result.failed += batch.length;
       result.failed_ids.push(...batch);
     }
@@ -112,7 +186,7 @@ export async function process_batches(
     const is_last_batch = i === chunks.length - 1;
 
     if (!is_last_batch && delay_ms > 0 && !signal?.aborted) {
-      await delay(delay_ms);
+      await delay(delay_ms, signal);
     }
   }
 

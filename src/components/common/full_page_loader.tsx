@@ -22,6 +22,11 @@ import { useEffect, useState } from "react";
 import { Button } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  safe_session_get,
+  safe_session_remove,
+  safe_session_set,
+} from "@/lib/safe_storage";
 
 async function clear_cache_and_reload(): Promise<void> {
   try {
@@ -51,7 +56,7 @@ const CLEAR_CACHE_CLICK_THRESHOLD = 3;
 function dismiss_loader() {
   const el = document.getElementById("initial-loader");
 
-  sessionStorage.removeItem(RELOAD_CLICK_COUNT_KEY);
+  safe_session_remove(RELOAD_CLICK_COUNT_KEY);
 
   if (!el) return;
 
@@ -61,17 +66,16 @@ function dismiss_loader() {
 }
 
 function handle_reload_click(): void {
-  const count =
-    Number(sessionStorage.getItem(RELOAD_CLICK_COUNT_KEY) || "0") + 1;
+  const count = Number(safe_session_get(RELOAD_CLICK_COUNT_KEY) || "0") + 1;
 
   if (count >= CLEAR_CACHE_CLICK_THRESHOLD) {
-    sessionStorage.removeItem(RELOAD_CLICK_COUNT_KEY);
+    safe_session_remove(RELOAD_CLICK_COUNT_KEY);
     clear_cache_and_reload();
 
     return;
   }
 
-  sessionStorage.setItem(RELOAD_CLICK_COUNT_KEY, String(count));
+  safe_session_set(RELOAD_CLICK_COUNT_KEY, String(count));
   window.location.reload();
 }
 
@@ -128,9 +132,11 @@ export function FullPageLoader() {
       <div className="full-page-loader-content">
         <img
           alt="Aster"
-          className="h-7"
+          className="full-page-loader-logo"
           draggable={false}
+          height={199}
           src="/text_logo.png"
+          width={800}
         />
         <div className="loader-stack">
           <div className="loader-spinner" />
@@ -148,7 +154,11 @@ export function FullPageLoader() {
                 {t("common.loading_stuck")}
               </span>
               <div className="flex items-center gap-2">
-                <Button onClick={handle_reload_click} size="sm" variant="outline">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handle_reload_click}
+                >
                   {t("common.reload_page")}
                 </Button>
               </div>

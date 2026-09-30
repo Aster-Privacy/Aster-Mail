@@ -94,7 +94,7 @@ export function SearchModalFilterPanel({
       {show_filters && (
         <motion.div
           animate={{ height: "auto", opacity: 1 }}
-          className="border-b overflow-hidden border-edge-secondary bg-surf-tertiary"
+          className="border-b overflow-hidden border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))] bg-surf-tertiary"
           exit={{ height: 0, opacity: 0 }}
           initial={reduce_motion ? false : { height: 0, opacity: 0 }}
           transition={{ duration: reduce_motion ? 0 : 0.18 }}
@@ -212,6 +212,7 @@ export function SearchModalFilterPanel({
                 <FieldRow label={t("mail.from_date")}>
                   <input
                     className={`${FIELD_CLASS} w-full`}
+                    max={filters.date_to || undefined}
                     type="date"
                     value={filters.date_from}
                     onChange={(e) => update("date_from", e.target.value)}
@@ -221,6 +222,7 @@ export function SearchModalFilterPanel({
                 <FieldRow label={t("mail.to_date")}>
                   <input
                     className={`${FIELD_CLASS} w-full`}
+                    min={filters.date_from || undefined}
                     type="date"
                     value={filters.date_to}
                     onChange={(e) => update("date_to", e.target.value)}
@@ -276,7 +278,7 @@ export function SearchModalFilterPanel({
               </Section>
             </div>
 
-            <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-edge-secondary">
+            <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
               {on_create_filter ? (
                 <button
                   className="text-xs font-medium text-[var(--accent-color,#3b82f6)] hover:underline"
@@ -289,7 +291,7 @@ export function SearchModalFilterPanel({
                 <span />
               )}
               <button
-                className="inline-flex items-center gap-1.5 h-9 px-5 rounded-[12px] bg-[var(--accent-color,#3b82f6)] text-[var(--accent-fg,#ffffff)] text-[13px] font-medium hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[var(--accent-color,#3b82f6)]"
+                className="inline-flex items-center gap-1.5 h-9 px-5 rounded-[var(--aster-radius-control)] bg-[var(--accent-color,#3b82f6)] text-[var(--accent-fg,#ffffff)] text-[13px] font-medium hover:opacity-90 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-[var(--accent-color,#3b82f6)]"
                 type="submit"
               >
                 <MagnifyingGlassIcon className="w-4 h-4" />
@@ -313,7 +315,7 @@ function Section({
   return (
     <div className="space-y-1.5">
       <p className="px-1 text-[11px] font-semibold text-txt-muted">{title}</p>
-      <div className="rounded-[14px] border border-edge-secondary bg-surf-primary">
+      <div className="rounded-[var(--aster-radius-control,16px)] overflow-hidden bg-surf-primary">
         {children}
       </div>
     </div>
@@ -321,7 +323,7 @@ function Section({
 }
 
 function RowDivider() {
-  return <div className="h-px ml-3 bg-edge-secondary" />;
+  return <div className="h-px bg-[var(--aster-island-divider)]" />;
 }
 
 function FieldRow({

@@ -20,6 +20,7 @@
 //
 import type { EmailCategory } from "@/types/email";
 import type { CategoryCounts } from "@/services/category_index";
+import type { UserPreferences } from "@/services/api/preferences";
 
 import {
   useCallback,
@@ -31,10 +32,11 @@ import {
 } from "react";
 
 import { use_preferences } from "@/contexts/preferences_context";
-import type { UserPreferences } from "@/services/api/preferences";
 import {
+  are_counts_partial,
   get_counts,
   mark_category_seen,
+  mark_categories_seen,
   is_index_loaded,
   subscribe as subscribe_index,
   get_version as get_index_version,
@@ -51,7 +53,6 @@ import {
   secure_retrieve,
 } from "@/services/crypto/secure_storage";
 import { on_keys_ready } from "@/services/crypto/memory_key_store";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 function compute_active_tabs(
@@ -82,6 +83,10 @@ function compute_active_tabs(
 
 const ACTIVE_CATEGORY_KEY = "astermail_active_category";
 const CATEGORIES_ENABLED_FLAG = "astermail_inbox_categories_enabled";
+
+// Long enough to clear the tab's tap transition, short enough that the "new"
+// badge settles while the user is still looking at the tab they opened.
+const SEEN_FLUSH_DELAY_MS = 200;
 
 // Holds the last-resolved tab for the lifetime of the page session so remounts
 // (navigating away and back) initialize synchronously with the correct tab
@@ -127,6 +132,7 @@ export interface UseInboxCategoriesReturn {
   active_category: EmailCategory;
   set_active_category: (category: EmailCategory) => void;
   counts: CategoryCounts;
+  counts_pending: boolean;
   restored: boolean;
 }
 
@@ -177,6 +183,7 @@ export function use_inbox_categories(
   );
 
   const counts = useMemo(() => get_counts(), [index_version]);
+  const counts_pending = useMemo(() => are_counts_partial(), [index_version]);
 
   const custom_categories_key = JSON.stringify(
     preferences.custom_categories ?? [],
@@ -245,17 +252,71 @@ export function use_inbox_categories(
     };
   }, []);
 
+  const prev_marked_category_ref = useRef<EmailCategory | null>(null);
+  const pending_seen_ref = useRef<Set<EmailCategory>>(new Set());
+  const pending_seen_at_ref = useRef(0);
+  const seen_flush_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+
+  const flush_seen_categories = useCallback(() => {
+    if (seen_flush_timer_ref.current !== null) {
+      clearTimeout(seen_flush_timer_ref.current);
+      seen_flush_timer_ref.current = null;
+    }
+
+    const pending = pending_seen_ref.current;
+
+    if (pending.size === 0) return;
+
+    const categories = Array.from(pending);
+    const at_ms = pending_seen_at_ref.current;
+
+    pending.clear();
+    pending_seen_at_ref.current = 0;
+    mark_categories_seen(categories, at_ms);
+  }, []);
+
+  // Stamping a category seen walks the whole index and then runs a synchronous
+  // notify() that re-derives counts for every subscriber. A tab switch used to
+  // pay that twice inline, once for the outgoing category and once for the
+  // incoming one, on the very frame the tap animation needed. Collect the
+  // categories here and stamp them once the animation is over, carrying the
+  // wall clock from the moment of the switch so the later stamp absorbs
+  // exactly the mail an immediate one would have. Rapid switching coalesces
+  // into a single pass rather than one per tab.
   useEffect(() => {
     if (!enabled) return;
     if (!stored_tab_loaded_ref.current) return;
-    mark_category_seen(active_category);
 
+    const prev = prev_marked_category_ref.current;
+    const pending = pending_seen_ref.current;
+
+    pending.add(active_category);
+
+    if (prev && prev !== active_category && is_index_loaded()) {
+      pending.add(prev);
+    }
+
+    if (pending_seen_at_ref.current === 0) {
+      pending_seen_at_ref.current = Date.now();
+    }
+
+    prev_marked_category_ref.current = active_category;
+
+    if (seen_flush_timer_ref.current === null) {
+      seen_flush_timer_ref.current = setTimeout(
+        flush_seen_categories,
+        SEEN_FLUSH_DELAY_MS,
+      );
+    }
+  }, [enabled, active_category, flush_seen_categories]);
+
+  useEffect(() => {
     return () => {
-      if (is_index_loaded()) {
-        mark_category_seen(active_category);
-      }
+      flush_seen_categories();
     };
-  }, [enabled, active_category]);
+  }, [flush_seen_categories]);
 
   const set_active_category = useCallback((category: EmailCategory) => {
     session_active_category = category;
@@ -266,6 +327,26 @@ export function use_inbox_categories(
       );
     }, 0);
   }, []);
+
+  useEffect(() => {
+    if (!has_loaded_from_server) return;
+    if (!stored_tab_loaded_ref.current) return;
+    if (active_category === "primary") return;
+
+    const tabs = compute_active_tabs(preferences, category_limit);
+
+    if (!tabs.includes(active_category)) {
+      set_active_category("primary");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    has_loaded_from_server,
+    enabled_categories_key,
+    custom_categories_key,
+    category_limit,
+    active_category,
+    set_active_category,
+  ]);
 
   useEffect(() => {
     const handle_inbox_home = () => {
@@ -284,6 +365,7 @@ export function use_inbox_categories(
     active_category,
     set_active_category,
     counts,
+    counts_pending,
     restored,
   };
 }

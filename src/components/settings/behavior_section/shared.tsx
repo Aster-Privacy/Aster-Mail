@@ -18,16 +18,20 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/services/api/preferences";
-import type { } from "@/services/api/family_org";
+import type {} from "@/services/api/preferences";
+import type {} from "@/services/api/family_org";
 
-import {  Switch } from "@aster/ui";
+import {
+  IslandRow,
+  SettingControlRow,
+  SettingNote,
+  SettingToggleRow,
+} from "@aster/ui";
 import {
   LockClosedIcon,
   XMarkIcon,
   PlusIcon,
 } from "@heroicons/react/24/outline";
-
 
 import {
   Select,
@@ -40,11 +44,8 @@ import {
   SUPPORTED_LANGUAGES,
   type LanguageCode,
 } from "@/services/translation/engine_types";
-import {
-  language_display_name,
-} from "@/services/translation/accepted_languages";
+import { language_display_name } from "@/services/translation/accepted_languages";
 import { InfoPopover } from "@/components/ui/info_popover";
-
 
 export interface ToggleSettingProps {
   title: string;
@@ -71,19 +72,20 @@ export function ToggleSetting({
   on_toggle,
   info,
 }: ToggleSettingProps) {
+  const show_info = !is_redundant_info(info, title, description) && info;
+
   return (
-    <div className="flex items-center justify-between py-4">
-      <div className="flex-1 pr-4">
-        <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
-          {title}
-          {!is_redundant_info(info, title, description) && info && (
-            <InfoPopover description={info.description} title={info.title} />
-          )}
-        </p>
-        <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
-      </div>
-      <Switch size="lg" checked={enabled} onCheckedChange={on_toggle} />
-    </div>
+    <SettingToggleRow
+      checked={enabled}
+      description={description}
+      info={
+        show_info ? (
+          <InfoPopover description={info.description} title={info.title} />
+        ) : undefined
+      }
+      label={title}
+      on_change={() => on_toggle()}
+    />
   );
 }
 
@@ -108,38 +110,39 @@ export function SelectSetting({
   disabled,
   disabled_note,
 }: SelectSettingProps) {
+  const show_info = !is_redundant_info(info, title, description) && info;
+
   return (
-    <div className="flex items-center justify-between py-4">
-      <div className="flex-1 pr-4">
-        <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-          {title}
-          {!is_redundant_info(info, title, description) && info && (
-            <InfoPopover description={info.description} title={info.title} />
-          )}
-        </p>
-        <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
-        {disabled && disabled_note && (
-          <p className="text-xs mt-1 text-amber-500 dark:text-amber-400 flex items-center gap-1">
-            <LockClosedIcon className="w-3 h-3 flex-shrink-0" />
+    <SettingControlRow
+      control={
+        <Select disabled={disabled} value={value} onValueChange={on_change}>
+          <SelectTrigger aria-label={title} className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((opt) => (
+              <SelectItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      }
+      description={description}
+      info={
+        show_info ? (
+          <InfoPopover description={info.description} title={info.title} />
+        ) : undefined
+      }
+      label={title}
+      note={
+        disabled && disabled_note ? (
+          <SettingNote icon={<LockClosedIcon />} tone="warning">
             {disabled_note}
-          </p>
-        )}
-      </div>
-      <Select disabled={disabled} value={value} onValueChange={on_change}>
-        <SelectTrigger className="w-[200px]">
-          <SelectValue>
-            {disabled && disabled_note ? disabled_note : undefined}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
+          </SettingNote>
+        ) : undefined
+      }
+    />
   );
 }
 
@@ -173,54 +176,57 @@ export function LanguagePicker({
     language_display_name(code as LanguageCode, ui_locale);
 
   return (
-    <div className="py-4">
-      <p className="text-sm font-medium text-txt-primary">{title}</p>
-      <p className="text-sm mt-0.5 text-txt-muted">{description}</p>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        {selected.map((code) => (
-          <span
-            key={code}
-            className="inline-flex items-center gap-1.5 rounded-full border border-edge-primary bg-surf-tertiary pl-3 pr-1.5 py-1 text-sm font-medium text-txt-primary"
-          >
-            {display(code)}
-            <button
-              type="button"
-              onClick={() => on_remove(code)}
-              className="rounded-full p-0.5 text-txt-muted hover:text-txt-primary hover:bg-white/10 transition-colors"
-              aria-label={display(code)}
+    <IslandRow
+      description={description}
+      label={title}
+      layout="block"
+      trailing={
+        <div className="flex flex-wrap items-center gap-2">
+          {selected.map((code) => (
+            <span
+              key={code}
+              className="inline-flex items-center gap-1.5 rounded-full bg-surf-primary ps-3 pe-1.5 py-1 text-sm font-medium text-txt-primary"
             >
-              <XMarkIcon className="w-3.5 h-3.5" />
-            </button>
-          </span>
-        ))}
+              {display(code)}
+              <button
+                aria-label={display(code)}
+                className="rounded-full p-0.5 text-txt-muted hover:text-txt-primary hover:bg-[var(--aster-island-hover)] transition-colors"
+                type="button"
+                onClick={() => on_remove(code)}
+              >
+                <XMarkIcon className="w-3.5 h-3.5" />
+              </button>
+            </span>
+          ))}
 
-        {available.length > 0 && (
-          <Select value="" onValueChange={(v) => v && on_add(v)}>
-            <SelectTrigger className="h-auto w-auto gap-1.5 rounded-full border-dashed bg-transparent px-3 py-1 text-txt-secondary hover:text-txt-primary">
-              <span className="inline-flex items-center gap-1.5">
-                <PlusIcon className="w-3.5 h-3.5" />
-                {add_label}
-              </span>
-            </SelectTrigger>
-            <SelectContent>
-              {available.map((code) => (
-                <SelectItem key={code} value={code}>
-                  {display(code)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+          {available.length > 0 && (
+            <Select value="" onValueChange={(v) => v && on_add(v)}>
+              <SelectTrigger className="h-auto w-auto gap-1.5 rounded-full border-0 bg-[var(--aster-hover)] px-3 py-1 text-txt-secondary hover:text-txt-primary">
+                <span className="inline-flex items-center gap-1.5">
+                  <PlusIcon className="w-3.5 h-3.5" />
+                  {add_label}
+                </span>
+              </SelectTrigger>
+              <SelectContent>
+                {available.map((code) => (
+                  <SelectItem key={code} value={code}>
+                    {display(code)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
 
-        {is_auto && selected.length > 0 && (
-          <span className="text-xs text-txt-muted">{auto_label}</span>
-        )}
-      </div>
-    </div>
+          {is_auto && selected.length > 0 && (
+            <span className="text-xs text-txt-muted">{auto_label}</span>
+          )}
+        </div>
+      }
+    />
   );
 }
 
-export const UNDO_PRESET_SECONDS = [3, 5, 10, 15, 30] as const;
+export const UNDO_PRESET_SECONDS = [3, 5, 10, 15, 20, 30] as const;
 export const UNDO_MIN_SECONDS = 1;
 export const UNDO_MAX_SECONDS = 30;
 export const UNDO_DEFAULT_SECONDS = 10;
@@ -239,11 +245,28 @@ export function clamp_sidebar_width(value: number): number {
   );
 }
 
+export function undo_send_is_active(
+  enabled: boolean | undefined,
+  seconds: number | undefined,
+): boolean {
+  if (enabled === false) {
+    return false;
+  }
+
+  if (typeof seconds === "number" && Number.isFinite(seconds) && seconds <= 0) {
+    return false;
+  }
+
+  return true;
+}
+
 export function clamp_undo_seconds(value: number): number {
-  if (!Number.isFinite(value) || value < UNDO_MIN_SECONDS) {
+  if (!Number.isFinite(value) || value <= 0) {
     return UNDO_DEFAULT_SECONDS;
   }
 
-  return Math.min(value, UNDO_MAX_SECONDS);
+  return Math.min(
+    Math.max(Math.round(value), UNDO_MIN_SECONDS),
+    UNDO_MAX_SECONDS,
+  );
 }
-

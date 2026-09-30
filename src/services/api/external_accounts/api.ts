@@ -47,8 +47,31 @@ import {
   validate_advanced_settings,
 } from "./validators";
 
+import { user_facing_error } from "@/utils/user_facing_error";
+import { get_active_translations } from "@/lib/i18n/translations";
+
+export function external_account_error_message(
+  server_code: string | undefined,
+): string | undefined {
+  const settings = get_active_translations().settings;
+
+  switch (server_code) {
+    case "EXTERNAL_ACCOUNT_SIGN_IN_REJECTED":
+      return settings.external_sign_in_rejected;
+    case "EXTERNAL_ACCOUNT_SERVER_UNREACHABLE":
+      return settings.external_server_unreachable;
+    case "EXTERNAL_ACCOUNT_RECONNECT_REQUIRED":
+      return settings.external_reconnect_required;
+    case "EXTERNAL_ACCOUNT_MESSAGE_REJECTED":
+      return settings.external_message_rejected;
+    default:
+      return undefined;
+  }
+}
+
 export async function list_external_accounts(
-  fallback_name = "Connected account",
+  fallback_name = get_active_translations().settings
+    .connected_accounts_fallback_name,
 ): Promise<ApiResponse<DecryptedExternalAccount[]>> {
   try {
     const response = await api_client.get<{
@@ -75,7 +98,9 @@ export async function list_external_accounts(
 
           const oauth_email_field = (item as { oauth_email?: string })
             .oauth_email;
-          const looks_like_placeholder = /^oauth-[^@]+@import$/.test(data.email);
+          const looks_like_placeholder = /^oauth-[^@]+@import$/.test(
+            data.email,
+          );
           const effective_email =
             looks_like_placeholder && oauth_email_field
               ? oauth_email_field
@@ -87,6 +112,7 @@ export async function list_external_accounts(
             (item as { oauth_provider?: string | null }).oauth_provider ?? null;
           const raw = item as {
             needs_reauth?: boolean;
+            has_folder_mapping?: boolean;
             last_sync_error?: string | null;
           };
 
@@ -105,6 +131,7 @@ export async function list_external_accounts(
             last_sync_status: item.last_sync_status,
             last_sync_error: raw.last_sync_error ?? null,
             needs_reauth: raw.needs_reauth ?? false,
+            has_folder_mapping: raw.has_folder_mapping,
             email_count: item.email_count,
             created_at: item.created_at,
             updated_at: item.updated_at,
@@ -116,6 +143,7 @@ export async function list_external_accounts(
             (item as { oauth_provider?: string | null }).oauth_provider ?? null;
           const raw = item as {
             needs_reauth?: boolean;
+            has_folder_mapping?: boolean;
             last_sync_error?: string | null;
           };
 
@@ -134,6 +162,7 @@ export async function list_external_accounts(
             last_sync_status: item.last_sync_status,
             last_sync_error: raw.last_sync_error ?? null,
             needs_reauth: raw.needs_reauth ?? false,
+            has_folder_mapping: raw.has_folder_mapping,
             email_count: item.email_count,
             created_at: item.created_at,
             updated_at: item.updated_at,
@@ -145,8 +174,10 @@ export async function list_external_accounts(
     return { data: decrypted };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to list external accounts",
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -188,16 +219,18 @@ export async function create_external_account(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to create external account" };
+      return {
+        error: response.error || get_active_translations().common.save_failed,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error:
-        err instanceof Error
-          ? err.message
-          : "Failed to create external account",
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }
@@ -246,16 +279,18 @@ export async function update_external_account(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to update external account" };
+      return {
+        error: response.error || get_active_translations().common.save_failed,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error:
-        err instanceof Error
-          ? err.message
-          : "Failed to update external account",
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }
@@ -277,16 +312,18 @@ export async function toggle_external_account(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to toggle external account" };
+      return {
+        error: response.error || get_active_translations().common.save_failed,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error:
-        err instanceof Error
-          ? err.message
-          : "Failed to toggle external account",
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }
@@ -308,10 +345,7 @@ export async function delete_external_account(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error
-          ? err.message
-          : "Failed to delete external account",
+      error: user_facing_error(err, get_active_translations().errors.generic),
     };
   }
 }
@@ -320,7 +354,7 @@ export async function bulk_delete_external_accounts(
   account_tokens: string[],
 ): Promise<ApiResponse<{ success: boolean; deleted_count: number }>> {
   if (!Array.isArray(account_tokens) || account_tokens.length === 0) {
-    return { error: "At least one account token is required" };
+    return { error: get_active_translations().errors.invalid_request };
   }
 
   for (const token of account_tokens) {
@@ -342,10 +376,7 @@ export async function bulk_delete_external_accounts(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error
-          ? err.message
-          : "Failed to bulk delete external accounts",
+      error: user_facing_error(err, get_active_translations().errors.generic),
     };
   }
 }
@@ -370,10 +401,7 @@ export async function purge_external_account_mail(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error
-          ? err.message
-          : "Failed to purge external account mail",
+      error: user_facing_error(err, get_active_translations().errors.generic),
     };
   }
 }
@@ -381,25 +409,31 @@ export async function purge_external_account_mail(
 export async function test_external_connection(
   credentials: ExternalAccountCredentials & { protocol: string },
 ): Promise<ApiResponse<{ success: boolean; message: string }>> {
-  const host_error = validate_hostname(credentials.host, "IMAP host");
+  const host_error = validate_hostname(
+    credentials.host,
+    get_active_translations().settings.incoming_server_required,
+  );
 
   if (host_error) {
     return { error: host_error };
   }
 
-  const port_error = validate_port(credentials.port, "IMAP port");
+  const port_error = validate_port(credentials.port);
 
   if (port_error) {
     return { error: port_error };
   }
 
-  const smtp_host_error = validate_hostname(credentials.smtp_host, "SMTP host");
+  const smtp_host_error = validate_hostname(
+    credentials.smtp_host,
+    get_active_translations().settings.smtp_server_required,
+  );
 
   if (smtp_host_error) {
     return { error: smtp_host_error };
   }
 
-  const smtp_port_error = validate_port(credentials.smtp_port, "SMTP port");
+  const smtp_port_error = validate_port(credentials.smtp_port);
 
   if (smtp_port_error) {
     return { error: smtp_port_error };
@@ -412,12 +446,16 @@ export async function test_external_connection(
     }>("/mail/v1/external_accounts/test", credentials);
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to test external connection" };
+      return {
+        error:
+          response.error ||
+          get_active_translations().settings.connection_test_failed,
+      };
     }
 
     return { data: response.data };
   } catch {
-    return { error: "Failed to test external connection" };
+    return { error: get_active_translations().settings.connection_test_failed };
   }
 }
 
@@ -445,13 +483,15 @@ export async function trigger_sync(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to trigger sync" };
+      return {
+        error: response.error || get_active_translations().errors.generic,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to trigger sync",
+      error: user_facing_error(err, get_active_translations().errors.generic),
     };
   }
 }
@@ -472,16 +512,20 @@ export async function cancel_sync(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to cancel sync" };
+      return {
+        error: response.error || get_active_translations().errors.generic,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to cancel sync",
+      error: user_facing_error(err, get_active_translations().errors.generic),
     };
   }
 }
+
+const EXTERNAL_SEND_TIMEOUT_MS = 15 * 60_000;
 
 export async function send_via_external_account(
   account_token: string,
@@ -496,6 +540,7 @@ export async function send_via_external_account(
     content_type: string;
     size_bytes: number;
   }[],
+  in_reply_to?: string,
 ): Promise<ApiResponse<{ success: boolean; message: string }>> {
   const token_error = validate_account_token(account_token);
 
@@ -504,7 +549,7 @@ export async function send_via_external_account(
   }
 
   if (to.length === 0 && cc.length === 0 && bcc.length === 0) {
-    return { error: "At least one recipient is required" };
+    return { error: get_active_translations().errors.no_recipients };
   }
 
   try {
@@ -521,22 +566,34 @@ export async function send_via_external_account(
       payload.attachments = attachments;
     }
 
+    if (in_reply_to) {
+      payload.in_reply_to = in_reply_to;
+    }
+
     const response = await api_client.post<{
       success: boolean;
       message: string;
-    }>("/mail/v1/external_accounts/send", payload);
+    }>("/mail/v1/external_accounts/send", payload, {
+      timeout: EXTERNAL_SEND_TIMEOUT_MS,
+    });
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to send via external account" };
+      return {
+        error:
+          external_account_error_message(response.server_code) ||
+          response.error ||
+          get_active_translations().errors.failed_send_external,
+        server_code: response.server_code,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error:
-        err instanceof Error
-          ? err.message
-          : "Failed to send via external account",
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.failed_send_external,
+      ),
     };
   }
 }
@@ -549,7 +606,10 @@ export async function list_account_folders(credentials: {
   protocol: string;
   use_tls: boolean;
 }): Promise<ApiResponse<{ folders: ExternalAccountFolder[] }>> {
-  const host_error = validate_hostname(credentials.host, "Host");
+  const host_error = validate_hostname(
+    credentials.host,
+    get_active_translations().settings.incoming_server_required,
+  );
 
   if (host_error) {
     return { error: host_error };
@@ -561,14 +621,22 @@ export async function list_account_folders(credentials: {
     }>("/mail/v1/external_accounts/folders", credentials);
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to list account folders" };
+      return {
+        error:
+          external_account_error_message(response.server_code) ||
+          response.error ||
+          get_active_translations().errors.load_failed,
+        server_code: response.server_code,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to list account folders",
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -596,14 +664,18 @@ export async function update_sync_settings(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to update sync settings" };
+      return {
+        error: response.error || get_active_translations().common.save_failed,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to update sync settings",
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }
@@ -623,13 +695,18 @@ export async function get_sync_settings(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to get sync settings" };
+      return {
+        error: response.error || get_active_translations().errors.load_failed,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to get sync settings",
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -650,14 +727,15 @@ export async function check_account_health(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to check account health" };
+      return {
+        error: response.error || get_active_translations().errors.generic,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to check account health",
+      error: user_facing_error(err, get_active_translations().errors.generic),
     };
   }
 }
@@ -674,16 +752,22 @@ export async function get_sync_progress(
   try {
     const response = await api_client.get<SyncProgressEvent>(
       `/mail/v1/external_accounts/sync_progress?account_token=${encodeURIComponent(account_token)}`,
+      { cache_ttl: 0 },
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to get sync progress" };
+      return {
+        error: response.error || get_active_translations().errors.load_failed,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to get sync progress",
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -711,16 +795,18 @@ export async function update_advanced_settings(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to update advanced settings" };
+      return {
+        error: response.error || get_active_translations().common.save_failed,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error:
-        err instanceof Error
-          ? err.message
-          : "Failed to update advanced settings",
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }
@@ -740,14 +826,18 @@ export async function get_advanced_settings(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to get advanced settings" };
+      return {
+        error: response.error || get_active_translations().errors.load_failed,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to get advanced settings",
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -767,14 +857,18 @@ export async function get_connection_settings(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to get connection settings" };
+      return {
+        error: response.error || get_active_translations().errors.load_failed,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to get connection settings",
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -786,13 +880,16 @@ export async function test_smtp_connection(credentials: {
   smtp_password: string;
   use_tls: boolean;
 }): Promise<ApiResponse<{ success: boolean; message: string }>> {
-  const host_error = validate_hostname(credentials.smtp_host, "SMTP host");
+  const host_error = validate_hostname(
+    credentials.smtp_host,
+    get_active_translations().settings.smtp_server_required,
+  );
 
   if (host_error) {
     return { error: host_error };
   }
 
-  const port_error = validate_port(credentials.smtp_port, "SMTP port");
+  const port_error = validate_port(credentials.smtp_port);
 
   if (port_error) {
     return { error: port_error };
@@ -805,18 +902,26 @@ export async function test_smtp_connection(credentials: {
     }>("/mail/v1/external_accounts/test_smtp", credentials);
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to test SMTP connection" };
+      return {
+        error:
+          response.error || get_active_translations().settings.smtp_test_failed,
+      };
     }
 
     return { data: response.data };
   } catch {
-    return { error: "Failed to test SMTP connection" };
+    return { error: get_active_translations().settings.smtp_test_failed };
   }
+}
+
+export interface StartOAuthOptions {
+  return_to?: string;
 }
 
 export async function start_oauth_authorize(
   provider: "google" | "microsoft" | "yahoo",
   tag_token?: Uint8Array,
+  options?: StartOAuthOptions,
 ): Promise<ApiResponse<{ authorize_url: string }>> {
   try {
     const provider_labels: Record<string, string> = {
@@ -850,19 +955,47 @@ export async function start_oauth_authorize(
       body.tag_token = array_to_base64(tag_token);
     }
 
+    if (options?.return_to) {
+      body.return_to = options.return_to;
+    }
+
     const response = await api_client.post<{ authorize_url: string }>(
       "/mail/v1/external_accounts/oauth/authorize",
       body,
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to start OAuth" };
+      return {
+        error: response.error || get_active_translations().errors.generic,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to start OAuth",
+      error: user_facing_error(err, get_active_translations().errors.generic),
+    };
+  }
+}
+
+export interface OAuthCompleteResult {
+  success: boolean;
+  provider?: string;
+  reason?: string;
+}
+
+export async function complete_oauth_authorize(
+  state: string,
+  code: string,
+): Promise<ApiResponse<OAuthCompleteResult>> {
+  try {
+    return await api_client.post<OAuthCompleteResult>(
+      "/mail/v1/external_accounts/oauth/complete",
+      { state, code },
+    );
+  } catch (err) {
+    return {
+      error: user_facing_error(err, "Failed to finish OAuth"),
     };
   }
 }
@@ -890,16 +1023,18 @@ export async function get_dedup_stats(account_token: string): Promise<
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to get deduplication stats" };
+      return {
+        error: response.error || get_active_translations().errors.load_failed,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error:
-        err instanceof Error
-          ? err.message
-          : "Failed to get deduplication stats",
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -927,13 +1062,22 @@ export async function list_oauth_folders(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to list folders" };
+      return {
+        error:
+          external_account_error_message(response.server_code) ||
+          response.error ||
+          get_active_translations().errors.load_failed,
+        server_code: response.server_code,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to list folders",
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -955,14 +1099,18 @@ export async function save_folder_mapping(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to save folder mapping" };
+      return {
+        error: response.error || get_active_translations().common.save_failed,
+      };
     }
 
     return { data: response.data };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to save folder mapping",
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }

@@ -32,6 +32,7 @@ const SUPPORTED_LANGUAGES: Language[] = [
     native_name: "Português",
     direction: "ltr",
     region: "Portugal",
+    native_region: "Portugal",
   },
   {
     code: "pt-BR",
@@ -39,6 +40,7 @@ const SUPPORTED_LANGUAGES: Language[] = [
     native_name: "Português",
     direction: "ltr",
     region: "Brazil",
+    native_region: "Brasil",
   },
   { code: "nl", name: "Dutch", native_name: "Nederlands", direction: "ltr" },
   { code: "pl", name: "Polish", native_name: "Polski", direction: "ltr" },
@@ -54,6 +56,7 @@ const SUPPORTED_LANGUAGES: Language[] = [
   { code: "ja", name: "Japanese", native_name: "日本語", direction: "ltr" },
   { code: "ko", name: "Korean", native_name: "한국어", direction: "ltr" },
   { code: "ar", name: "Arabic", native_name: "العربية", direction: "rtl" },
+  { code: "hi", name: "Hindi", native_name: "हिन्दी", direction: "ltr" },
 ];
 
 const LANGUAGE_MAP = new Map<LanguageCode, Language>(
@@ -81,6 +84,16 @@ export function get_display_name(code: LanguageCode): string {
 
   return lang.region
     ? `${lang.native_name} (${lang.region})`
+    : lang.native_name;
+}
+
+export function get_native_label(code: LanguageCode): string {
+  const lang = LANGUAGE_MAP.get(code);
+
+  if (!lang) return code;
+
+  return lang.native_region
+    ? `${lang.native_name} (${lang.native_region})`
     : lang.native_name;
 }
 

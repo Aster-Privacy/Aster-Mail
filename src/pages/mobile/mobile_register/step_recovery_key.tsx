@@ -80,7 +80,10 @@ export function StepRecoveryKey({
               <span className="text-xs text-[var(--text-muted)]">
                 {reg.t("auth.your_new_aster_address")}
               </span>
-              <span className="text-sm font-semibold text-[var(--text-primary)] notranslate" translate="no">
+              <span
+                className="text-sm font-semibold text-[var(--text-primary)] notranslate"
+                translate="no"
+              >
                 {reg.generated_email}
               </span>
             </motion.div>
@@ -208,7 +211,7 @@ export function StepRecoveryKey({
             transition={{ duration: 0.15 }}
           >
             <div
-              className="absolute inset-0 bg-black/50"
+              className="absolute inset-0 aster_scrim"
               onClick={() => reg.set_show_skip_confirmation(false)}
             />
             <motion.div
@@ -260,7 +263,7 @@ export function StepRecoveryKey({
             transition={{ duration: 0.15 }}
           >
             <div
-              className="absolute inset-0 bg-black/50"
+              className="absolute inset-0 aster_scrim"
               onClick={() => set_show_leave_confirmation(false)}
             />
             <motion.div

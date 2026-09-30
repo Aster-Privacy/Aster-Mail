@@ -182,52 +182,15 @@ export const DNS_PROVIDERS: DnsProvider[] = [
   },
 ];
 
-interface DohAnswer {
-  name: string;
-  type: number;
-  data: string;
-}
-
-interface DohResponse {
-  Status: number;
-  Answer?: DohAnswer[];
-}
-
 export async function detect_dns_provider(
-  domain: string,
+  domain_id: string | null,
 ): Promise<DnsProvider | null> {
+  if (!domain_id) return null;
+
   try {
-    const { connection_store } = await import(
-      "@/services/routing/connection_store"
-    );
-    const method = connection_store.get_method();
-
-    if (method === "tor" || method === "tor_snowflake") {
-      return null;
-    }
-
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 2000);
-
-    const response = await fetch(
-      `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(domain)}&type=NS`,
-      {
-        headers: { Accept: "application/dns-json" },
-        signal: controller.signal,
-      },
-    );
-
-    clearTimeout(timeout);
-
-    if (!response.ok) return null;
-
-    const data: DohResponse = await response.json();
-
-    if (!data.Answer || data.Answer.length === 0) return null;
-
-    const ns_records = data.Answer.filter((a) => a.type === 2).map((a) =>
-      a.data.replace(/\.$/, ""),
-    );
+    const { get_domain_nameservers } = await import("@/services/api/domains");
+    const response = await get_domain_nameservers(domain_id);
+    const ns_records = response.data?.nameservers ?? [];
 
     for (const provider of DNS_PROVIDERS) {
       for (const ns of ns_records) {

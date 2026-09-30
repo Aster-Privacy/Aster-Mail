@@ -32,7 +32,7 @@ import {
   reset_legacy_migration_state,
 } from "./envelope";
 import { build_generation } from "./index_cache";
-import { searchable_body_source } from "./matching";
+import { build_search_haystack, searchable_body_source } from "./matching";
 import { emit_indexing } from "./progress";
 import { CachedIndex, DecryptedIndexEntry } from "./types";
 
@@ -46,10 +46,11 @@ import {
   extract_metadata_from_server,
 } from "@/services/crypto/mail_metadata";
 import { filter_locked_mail_items } from "@/services/locked_folders";
-import { strip_html_tags } from "@/lib/html_sanitizer";
+import { strip_html_tags_bounded } from "@/lib/html_sanitizer";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
 import {
   bound_index_body,
+  MAX_INDEX_BODY_CHARS,
   metadata_fingerprint,
   slim_envelope_for_index,
   trim_item_for_index,
@@ -75,6 +76,7 @@ export interface PipelineOptions {
   pausable?: boolean;
   checkpoint?: boolean;
   progress_base?: number;
+  on_page?: () => void;
 }
 
 export interface PipelineResult {
@@ -267,7 +269,12 @@ export async function run_index_pipeline(
     const metadata = await index_metadata(item);
 
     const bounded_body = bound_index_body(
-      envelope ? strip_html_tags(searchable_body_source(envelope)) : "",
+      envelope
+        ? strip_html_tags_bounded(
+            searchable_body_source(envelope),
+            MAX_INDEX_BODY_CHARS,
+          )
+        : "",
     );
 
     if (envelope) {
@@ -282,6 +289,7 @@ export async function run_index_pipeline(
         search_body_text: bounded_body.search_text,
         meta_fp,
         has_body: include_body,
+        haystack: envelope ? build_search_haystack(envelope) : undefined,
       },
       fresh: envelope !== null,
     };
@@ -429,6 +437,7 @@ export async function run_index_pipeline(
     }
 
     page_entries.clear();
+    options.on_page?.();
 
     if (!hot && writer?.storage_exhausted()) break;
   } while (cursor && !reached_boundary && processed < options.max_items);

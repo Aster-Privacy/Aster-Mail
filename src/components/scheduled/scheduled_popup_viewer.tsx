@@ -31,9 +31,10 @@ import {
   PencilIcon,
   TrashIcon,
   EllipsisHorizontalIcon,
+  ClockIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
 
+import { Button } from "@/components/ui/button";
 import { EmailTag } from "@/components/ui/email_tag";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import {
@@ -49,8 +50,10 @@ import {
   cancel_scheduled_email,
   send_scheduled_now,
   get_scheduled_email,
+  reschedule_email,
   type ScheduledEmailWithContent,
 } from "@/services/api/scheduled";
+import { SchedulePicker } from "@/components/compose/schedule_picker";
 import { use_auth } from "@/contexts/auth_context";
 import { use_should_reduce_motion } from "@/provider";
 import { show_action_toast } from "@/components/toast/action_toast";
@@ -66,6 +69,17 @@ import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { get_email_username } from "@/lib/utils";
 import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
 import { DdgFavicon } from "@/components/compose/compose_shared";
+import {
+  emit_email_sent,
+  emit_mail_changed,
+  emit_scheduled_changed,
+} from "@/hooks/mail_events";
+import {
+  app_hour12,
+  app_locale,
+  get_display_time_zone,
+} from "@/utils/date_format";
+import { ButtonSpinner } from "@/components/ui/spinner";
 
 interface ScheduledData {
   id: string;
@@ -75,6 +89,7 @@ interface ScheduledData {
   subject: string;
   body: string;
   scheduled_at: string;
+  status?: string;
 }
 
 interface ScheduledPopupViewerProps {
@@ -99,23 +114,25 @@ function format_scheduled_time(
   if (diff_hours < 1) {
     const mins = Math.round(diff_hours * 60);
 
-    return mins !== 1
-      ? t("common.in_n_minutes_plural", { count: mins })
-      : t("common.in_n_minutes", { count: mins });
+    return t("common.in_x_minutes", { count: mins });
   }
 
   if (diff_hours < 24) {
-    return date.toLocaleTimeString([], {
+    return date.toLocaleTimeString(app_locale(), {
+      timeZone: get_display_time_zone(),
       hour: "2-digit",
+      hour12: app_hour12(),
       minute: "2-digit",
     });
   }
 
-  return date.toLocaleDateString([], {
+  return date.toLocaleDateString(app_locale(), {
+    timeZone: get_display_time_zone(),
     weekday: "short",
     month: "short",
     day: "numeric",
     hour: "2-digit",
+    hour12: app_hour12(),
     minute: "2-digit",
   });
 }
@@ -123,12 +140,14 @@ function format_scheduled_time(
 function format_full_date(iso_string: string): string {
   const date = new Date(iso_string);
 
-  return date.toLocaleDateString([], {
+  return date.toLocaleDateString(app_locale(), {
+    timeZone: get_display_time_zone(),
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
     hour: "2-digit",
+    hour12: app_hour12(),
     minute: "2-digit",
   });
 }
@@ -155,6 +174,14 @@ export function ScheduledPopupViewer({
   const [is_sending_now, set_is_sending_now] = useState(false);
   const [is_loading_content, set_is_loading_content] = useState(false);
   const [is_exiting_fullscreen, set_is_exiting_fullscreen] = useState(false);
+  const [is_rescheduling, set_is_rescheduling] = useState(false);
+  const [current_scheduled_at, set_current_scheduled_at] = useState(
+    scheduled_data.scheduled_at,
+  );
+
+  useEffect(() => {
+    set_current_scheduled_at(scheduled_data.scheduled_at);
+  }, [scheduled_data.scheduled_at]);
   const drag_start_ref = useRef({ x: 0, y: 0, pos_x: 0, pos_y: 0 });
   const popup_ref = useRef<HTMLDivElement>(null);
 
@@ -266,10 +293,16 @@ export function ScheduledPopupViewer({
         action_type: "trash",
         email_ids: [scheduled_data.id],
       });
-      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+      emit_scheduled_changed({
+        action: "cancelled",
+        email_id: scheduled_data.id,
+      });
+      emit_mail_changed();
       on_close();
+    } else {
+      show_toast(response.error || t("common.something_went_wrong"), "error");
     }
-  }, [scheduled_data.id, on_close]);
+  }, [scheduled_data.id, on_close, t]);
 
   const handle_send_now = useCallback(async () => {
     set_is_sending_now(true);
@@ -280,10 +313,45 @@ export function ScheduledPopupViewer({
 
     if (!response.error) {
       show_toast(t("common.email_sent_successfully"), "success");
-      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+      emit_scheduled_changed({
+        action: "sent",
+        email_id: scheduled_data.id,
+      });
+      emit_email_sent();
+      emit_mail_changed();
       on_close();
+    } else {
+      show_toast(response.error || t("common.something_went_wrong"), "error");
     }
-  }, [scheduled_data.id, on_close]);
+  }, [scheduled_data.id, on_close, t]);
+
+  const handle_reschedule = useCallback(
+    async (date: Date | null) => {
+      if (!date) return;
+
+      set_is_rescheduling(true);
+
+      const response = await reschedule_email(
+        scheduled_data.id,
+        date.toISOString(),
+      );
+
+      set_is_rescheduling(false);
+
+      if (!response.error) {
+        set_current_scheduled_at(date.toISOString());
+        show_toast(t("common.send_time_updated"), "success");
+        emit_scheduled_changed({
+          action: "updated",
+          email_id: scheduled_data.id,
+        });
+        emit_mail_changed();
+      } else {
+        show_toast(response.error || t("common.something_went_wrong"), "error");
+      }
+    },
+    [scheduled_data.id, t],
+  );
 
   const handle_edit = useCallback(async () => {
     if (!vault || !on_edit) return;
@@ -297,8 +365,10 @@ export function ScheduledPopupViewer({
     if (!response.error && response.data) {
       on_edit(response.data);
       on_close();
+    } else {
+      show_toast(response.error || t("common.something_went_wrong"), "error");
     }
-  }, [scheduled_data.id, vault, on_edit, on_close]);
+  }, [scheduled_data.id, vault, on_edit, on_close, t]);
 
   const primary_recipient = scheduled_data.to_recipients[0] || "";
   const recipient_name =
@@ -316,7 +386,7 @@ export function ScheduledPopupViewer({
     <motion.div
       ref={popup_ref}
       animate={{ opacity: 1 }}
-      className="fixed z-50 flex flex-col shadow-2xl bg-modal-bg border border-edge-primary"
+      className="fixed z-50 flex flex-col shadow-2xl bg-modal-bg"
       exit={{ opacity: 0 }}
       initial={reduce_motion ? false : { opacity: 0 }}
       style={{
@@ -336,7 +406,7 @@ export function ScheduledPopupViewer({
       onClick={(e) => e.stopPropagation()}
     >
       <div
-        className="flex items-center gap-1 px-3 py-2 flex-shrink-0 select-none border-b border-edge-primary"
+        className="flex items-center gap-1 px-3 py-2 flex-shrink-0 select-none"
         role="presentation"
         style={{
           cursor: is_fullscreen ? "default" : is_dragging ? "grabbing" : "grab",
@@ -347,41 +417,50 @@ export function ScheduledPopupViewer({
       >
         <Button
           data-no-drag
+          aria-label={t("common.close")}
           className="h-7 w-7 text-txt-muted hover:text-txt-primary"
           size="icon"
           variant="ghost"
           onClick={on_close}
         >
-          <XMarkIcon className="w-4 h-4" />
+          <XMarkIcon aria-hidden="true" className="w-4 h-4" />
         </Button>
 
         {!is_fullscreen && (
           <Button
             data-no-drag
+            aria-label={
+              popup_size === "default"
+                ? t("common.expand")
+                : t("common.minimize")
+            }
             className="h-7 w-7 text-txt-muted hover:text-txt-primary"
             size="icon"
             variant="ghost"
             onClick={toggle_size}
           >
             {popup_size === "default" ? (
-              <ArrowsPointingOutIcon className="w-4 h-4" />
+              <ArrowsPointingOutIcon aria-hidden="true" className="w-4 h-4" />
             ) : (
-              <ArrowsPointingInIcon className="w-4 h-4" />
+              <ArrowsPointingInIcon aria-hidden="true" className="w-4 h-4" />
             )}
           </Button>
         )}
 
         <Button
           data-no-drag
+          aria-label={
+            is_fullscreen ? t("common.exit_fullscreen") : t("common.fullscreen")
+          }
           className="h-7 w-7 text-txt-muted hover:text-txt-primary"
           size="icon"
           variant="ghost"
           onClick={handle_fullscreen}
         >
           {is_fullscreen ? (
-            <ArrowsPointingInIcon className="w-4 h-4" />
+            <ArrowsPointingInIcon aria-hidden="true" className="w-4 h-4" />
           ) : (
-            <ArrowTopRightOnSquareIcon className="w-4 h-4" />
+            <ArrowTopRightOnSquareIcon aria-hidden="true" className="w-4 h-4" />
           )}
         </Button>
 
@@ -391,39 +470,61 @@ export function ScheduledPopupViewer({
 
         <div className="flex-1" />
 
+        <SchedulePicker
+          force_picker
+          on_schedule={handle_reschedule}
+          scheduled_time={new Date(current_scheduled_at)}
+          tooltip_key="common.reschedule"
+          trigger={
+            <Button
+              data-no-drag
+              aria-label={t("common.reschedule")}
+              className="h-7 w-7 text-txt-muted hover:text-txt-primary"
+              disabled={is_rescheduling}
+              size="icon"
+              variant="ghost"
+            >
+              <ClockIcon aria-hidden="true" className="w-4 h-4" />
+            </Button>
+          }
+        />
+
         {on_edit && (
           <Button
             data-no-drag
+            aria-label={t("common.edit")}
             className="h-7 w-7 text-txt-muted hover:text-txt-primary"
             disabled={is_loading_content}
             size="icon"
             variant="ghost"
             onClick={handle_edit}
           >
-            <PencilIcon className="w-4 h-4" />
+            <PencilIcon aria-hidden="true" className="w-4 h-4" />
           </Button>
         )}
 
         <Button
           data-no-drag
+          aria-label={t("mail.cancel_scheduled_email")}
           className="h-7 w-7 text-txt-muted hover:text-red-500"
           disabled={is_cancelling}
           size="icon"
           variant="ghost"
           onClick={() => set_show_cancel_confirm(true)}
         >
-          <TrashIcon className="w-4 h-4" />
+          <TrashIcon aria-hidden="true" className="w-4 h-4" />
         </Button>
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               data-no-drag
+              aria-label={t("common.more")}
               className="h-7 w-7 text-txt-muted hover:text-txt-primary"
               size="icon"
               variant="ghost"
             >
-              <EllipsisHorizontalIcon className="w-4 h-4" />
+              <EllipsisHorizontalIcon aria-hidden="true" className="w-4 h-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
@@ -431,7 +532,7 @@ export function ScheduledPopupViewer({
               disabled={is_sending_now}
               onClick={handle_send_now}
             >
-              <PaperAirplaneIcon className="w-4 h-4 mr-2" />
+              <PaperAirplaneIcon className="w-4 h-4 me-2" />
               {is_sending_now ? t("common.sending") : t("common.send_now")}
             </DropdownMenuItem>
             {on_edit && (
@@ -439,7 +540,7 @@ export function ScheduledPopupViewer({
                 disabled={is_loading_content}
                 onClick={handle_edit}
               >
-                <PencilIcon className="w-4 h-4 mr-2" />
+                <PencilIcon className="w-4 h-4 me-2" />
                 {is_loading_content
                   ? t("common.loading")
                   : t("common.edit_reschedule")}
@@ -450,7 +551,7 @@ export function ScheduledPopupViewer({
               className="text-red-500 focus:text-red-500"
               onClick={() => set_show_cancel_confirm(true)}
             >
-              <TrashIcon className="w-4 h-4 mr-2" />
+              <TrashIcon className="w-4 h-4 me-2" />
               {t("common.cancel_scheduled")}
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -459,7 +560,10 @@ export function ScheduledPopupViewer({
 
       <div className="flex-1 overflow-y-auto">
         <div className="p-4">
-          <h1 className="text-lg font-semibold leading-snug mb-4 break-words text-txt-primary">
+          <h1
+            className="text-lg font-semibold leading-snug mb-4 break-words text-txt-primary"
+            dir="auto"
+          >
             {scheduled_data.subject || t("mail.no_subject")}
           </h1>
 
@@ -491,10 +595,12 @@ export function ScheduledPopupViewer({
               </div>
 
               <button
-                className="text-xs text-txt-muted hover:text-txt-secondary transition-colors text-left"
+                className="text-xs text-txt-muted hover:text-txt-secondary transition-colors text-start"
                 onClick={() => set_show_details(!show_details)}
               >
-                {show_details ? t("common.hide_details") + " ▲" : t("common.show_details") + " ▼"}
+                {show_details
+                  ? t("common.hide_details") + " ▲"
+                  : t("common.show_details") + " ▼"}
               </button>
 
               <AnimatePresence>
@@ -508,7 +614,7 @@ export function ScheduledPopupViewer({
                   >
                     <div className="mt-2 p-2 rounded-md text-xs space-y-1 bg-surf-secondary">
                       <div className="flex items-start">
-                        <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 pt-0.5 text-txt-muted">
+                        <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 pt-0.5 text-txt-muted">
                           {t("common.to_label")}
                         </span>
                         <span className="flex-1 flex flex-wrap items-center gap-1 text-txt-secondary">
@@ -528,7 +634,7 @@ export function ScheduledPopupViewer({
                       </div>
                       {scheduled_data.cc_recipients.length > 0 && (
                         <div className="flex items-start">
-                          <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 pt-0.5 text-txt-muted">
+                          <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 pt-0.5 text-txt-muted">
                             {t("common.cc_label")}
                           </span>
                           <span className="flex-1 flex flex-wrap items-center gap-1 text-txt-secondary">
@@ -550,7 +656,7 @@ export function ScheduledPopupViewer({
                       )}
                       {scheduled_data.bcc_recipients.length > 0 && (
                         <div className="flex items-start">
-                          <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 pt-0.5 text-txt-muted">
+                          <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 pt-0.5 text-txt-muted">
                             {t("common.bcc_label")}
                           </span>
                           <span className="flex-1 flex flex-wrap items-center gap-1 text-txt-secondary">
@@ -571,19 +677,19 @@ export function ScheduledPopupViewer({
                         </div>
                       )}
                       <div className="flex">
-                        <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 text-txt-muted">
+                        <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 text-txt-muted">
                           {t("common.subject_label")}
                         </span>
-                        <span className="text-txt-secondary">
+                        <span className="text-txt-secondary" dir="auto">
                           {scheduled_data.subject || t("mail.no_subject")}
                         </span>
                       </div>
                       <div className="flex">
-                        <span className="min-w-14 flex-shrink-0 whitespace-nowrap pr-2 text-txt-muted">
+                        <span className="min-w-14 flex-shrink-0 whitespace-nowrap pe-2 text-txt-muted">
                           {t("common.send_at_label")}
                         </span>
                         <span className="text-txt-secondary">
-                          {format_full_date(scheduled_data.scheduled_at)}
+                          {format_full_date(current_scheduled_at)}
                         </span>
                       </div>
                     </div>
@@ -595,7 +701,7 @@ export function ScheduledPopupViewer({
             <div className="flex items-center gap-1 flex-shrink-0">
               <EmailTag
                 icon="clock"
-                label={format_scheduled_time(scheduled_data.scheduled_at, t)}
+                label={format_scheduled_time(current_scheduled_at, t)}
                 variant="scheduled"
               />
             </div>
@@ -603,15 +709,24 @@ export function ScheduledPopupViewer({
         </div>
 
         <div className="px-4 pb-4">
+          {scheduled_data.status === "failed" && (
+            <div className="mx-4 mb-3 rounded-lg border border-danger/40 bg-danger/10 px-3 py-2 text-sm text-danger">
+              {t("mail.scheduled_send_failed")}
+            </div>
+          )}
           <SandboxedEmailRenderer
             is_plain_text={!has_rich_html(scheduled_data.body)}
             sanitized_html={
               is_html_content(scheduled_data.body)
                 ? sanitize_html(scheduled_data.body, {
-                    image_proxy_url: is_any_lockdown_active() ? undefined : get_image_proxy_url(),
+                    image_proxy_url: is_any_lockdown_active()
+                      ? undefined
+                      : get_image_proxy_url(),
                     sandbox_mode: true,
                     lockdown_mode: is_any_lockdown_active(),
-                    external_content_mode: is_any_lockdown_active() ? "never" : undefined,
+                    external_content_mode: is_any_lockdown_active()
+                      ? "never"
+                      : undefined,
                   }).html
                 : plain_text_to_html(scheduled_data.body)
             }
@@ -620,7 +735,7 @@ export function ScheduledPopupViewer({
       </div>
 
       <div
-        className="flex-shrink-0 border-t border-edge-primary bg-modal-bg"
+        className="flex-shrink-0 bg-modal-bg"
         style={{
           borderBottomLeftRadius: is_fullscreen ? "16px" : "12px",
           borderBottomRightRadius: is_fullscreen ? "16px" : "12px",
@@ -630,20 +745,38 @@ export function ScheduledPopupViewer({
           <Button
             className="flex-1"
             disabled={is_sending_now}
+            is_loading={is_sending_now}
             variant="depth"
             onClick={handle_send_now}
           >
             <PaperAirplaneIcon className="w-4 h-4" />
-            {is_sending_now ? t("common.sending") : t("common.send_now")}
+            {t("common.send_now")}
           </Button>
+          <SchedulePicker
+            force_picker
+            on_schedule={handle_reschedule}
+            scheduled_time={new Date(current_scheduled_at)}
+            tooltip_key="common.reschedule"
+            trigger={
+              <button
+                className="flex-1 h-10 flex items-center justify-center gap-2 rounded-[var(--aster-radius-control)] text-sm font-medium transition-colors duration-150 hover:bg-[var(--aster-selected)] disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--aster-hover)] text-txt-primary"
+                disabled={is_rescheduling}
+                type="button"
+              >
+                <ClockIcon className="w-4 h-4" />
+                {t("common.reschedule")}
+              </button>
+            }
+          />
           {on_edit && (
             <button
-              className="flex-1 h-10 flex items-center justify-center gap-2 rounded-[14px] text-sm font-medium transition-all duration-150 hover:bg-surf-hover disabled:opacity-50 disabled:cursor-not-allowed bg-surf-secondary text-txt-primary shadow-[0_1px_2px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,0.06),inset_0_0_0_1px_var(--border-primary)]"
+              className="flex-1 h-10 flex items-center justify-center gap-2 rounded-[var(--aster-radius-control)] text-sm font-medium transition-colors duration-150 hover:bg-[var(--aster-selected)] disabled:opacity-50 disabled:cursor-not-allowed bg-[var(--aster-hover)] text-txt-primary"
               disabled={is_loading_content}
               onClick={handle_edit}
             >
               <PencilIcon className="w-4 h-4" />
-              {is_loading_content ? t("common.loading") : t("common.edit")}
+              {t("common.edit")}
+              {is_loading_content && <ButtonSpinner />}
             </button>
           )}
         </div>
@@ -651,9 +784,8 @@ export function ScheduledPopupViewer({
 
       <ConfirmationModal
         cancel_text={t("mail.keep_scheduled")}
-        confirm_text={
-          is_cancelling ? t("mail.cancelling") : t("mail.cancel_email")
-        }
+        confirm_text={t("mail.cancel_email")}
+        is_loading={is_cancelling}
         is_open={show_cancel_confirm}
         message={t("mail.cancel_scheduled_confirmation")}
         on_cancel={() => set_show_cancel_confirm(false)}
@@ -673,7 +805,7 @@ export function ScheduledPopupViewer({
         transition={{ duration: reduce_motion ? 0 : 0.2 }}
       >
         <div
-          className="absolute inset-0 bg-black/40 backdrop-blur-md"
+          className="absolute inset-0 aster_scrim"
           role="button"
           tabIndex={0}
           onClick={on_close}

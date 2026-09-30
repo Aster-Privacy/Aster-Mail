@@ -23,6 +23,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { TotpVerification } from "./totp_verification";
+
 import { verify_totp_login } from "@/services/api/totp";
 
 vi.mock("@/services/api/totp", () => ({
@@ -41,7 +42,8 @@ vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({
     children,
     disabled,
@@ -63,7 +65,6 @@ vi.mock("@aster/ui", () => ({
 const mocked_verify = vi.mocked(verify_totp_login);
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -85,9 +86,7 @@ describe("TotpVerification", () => {
   });
 
   const code_input = () =>
-    container.querySelector(
-      'input[inputmode="numeric"]',
-    ) as HTMLInputElement;
+    container.querySelector('input[inputmode="numeric"]') as HTMLInputElement;
 
   const verify_button = () =>
     Array.from(container.querySelectorAll("button")).find((b) =>
@@ -175,10 +174,8 @@ describe("TotpVerification", () => {
     const cancel = Array.from(container.querySelectorAll("button")).find((b) =>
       b.textContent?.includes("common.cancel"),
     ) as HTMLButtonElement;
-    const backup_switch = Array.from(
-      container.querySelectorAll("button"),
-    ).find((b) =>
-      b.textContent?.includes("auth.use_backup_code_instead"),
+    const backup_switch = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("auth.use_backup_code_instead"),
     ) as HTMLButtonElement;
 
     expect(cancel.disabled).toBe(true);
@@ -191,9 +188,9 @@ describe("TotpVerification", () => {
 
     expect(input).toBeTruthy();
     expect(input.getAttribute("type")).toBe("text");
-    expect(container.querySelectorAll('input[inputmode="numeric"]').length).toBe(
-      1,
-    );
+    expect(
+      container.querySelectorAll('input[inputmode="numeric"]').length,
+    ).toBe(1);
   });
 
   it("strips non-digits and caps the code at 6 characters", async () => {
@@ -225,7 +222,10 @@ describe("TotpVerification", () => {
     });
     expect(mocked_verify).toHaveBeenCalledTimes(1);
     expect(mocked_verify).toHaveBeenCalledWith(
-      expect.objectContaining({ code: "123456", pending_login_token: "pending-token" }),
+      expect.objectContaining({
+        code: "123456",
+        pending_login_token: "pending-token",
+      }),
     );
   });
 

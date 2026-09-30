@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EncryptedVault } from "@/services/crypto/key_manager";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 import { useEffect, useMemo, useCallback, useRef } from "react";
 import { useLocation } from "react-router-dom";
@@ -30,8 +31,15 @@ import {
   clear_session_passphrase,
 } from "./session_passphrase";
 import { purge_all_local_data } from "./purge_local_data";
+import {
+  clear_account_scoped_caches,
+  safe_log_error,
+  with_timeout,
+} from "./auth_helpers";
+import { use_auth_account_state } from "./use_auth_account_state";
 
-
+import { user_facing_error } from "@/utils/user_facing_error";
+import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
 import {
   api_client,
   type SessionReestablishResult,
@@ -50,16 +58,20 @@ import {
   switch_account as storage_switch_account,
   update_account_user,
   get_account_kind,
+  get_current_account_id,
   accounts_storage_unreadable,
+  ACCOUNTS_CHANGED_EVENT,
 } from "@/services/account_manager";
 import {
-  perform_shared_mailbox_login,
-  clear_shared_mailbox_session,
-} from "@/services/shared_mailbox_session";
-import {
-  get_account_limit,
-  link_account_device,
-} from "@/services/api/switch";
+  type hub_account,
+  on_hub_accounts_changed,
+  read_hub_accounts,
+  set_hub_current_account,
+  sign_out_hub_accounts,
+  uses_account_hub,
+} from "@/services/account_hub_link";
+import { perform_shared_mailbox_login } from "@/services/shared_mailbox_session";
+import { get_account_limit, link_account_device } from "@/services/api/switch";
 import { sync_client } from "@/services/sync_client";
 import {
   start_session_timeout,
@@ -69,12 +81,21 @@ import {
 import {
   get_current_plan_code,
   max_accounts_for_plan,
+  resolve_max_accounts,
   UNLIMITED_ACCOUNTS,
 } from "@/services/plan_limits";
 import { ensure_default_labels } from "@/services/labels/ensure_defaults";
+import { ensure_pgp_key_published } from "@/services/crypto/ensure_pgp_key_published";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect } from "@/lib/hard_redirect";
-import { clear_device_session } from "@/native/desktop_device_auth";
+import { take_post_switch_path } from "@/lib/post_switch_path";
+import {
+  clear_device_session,
+  forget_device_account,
+  is_tauri,
+  read_device_passphrase,
+} from "@/native/desktop_device_auth";
+import { process_offline_queue } from "@/native/offline_queue";
 import {
   account_index_routing_enabled,
   app_pathname,
@@ -83,20 +104,11 @@ import {
   redirect_to_account_index,
   take_url_account_request,
 } from "@/lib/account_index_url";
-import { clear_app_lock_config, clear_session_unlock } from "@/services/app_lock_store";
 import {
-  delete_category_index_for_account,
-} from "@/services/category_index";
-import type { TranslationKey } from "@/lib/i18n/types";
-
-import {
-  clear_account_scoped_caches,
-  safe_log_error,
-  with_timeout,
-} from "./auth_helpers";
-
-import { use_auth_account_state } from "./use_auth_account_state";
-
+  clear_app_lock_config,
+  clear_session_unlock,
+} from "@/services/app_lock_store";
+import { delete_category_index_for_account } from "@/services/category_index";
 import { ignore_error } from "@/lib/ignore_error";
 
 export function use_auth_provider_state() {
@@ -135,6 +147,10 @@ export function use_auth_provider_state() {
         params.set("from", previous_account_id);
       }
 
+      const return_path = take_post_switch_path();
+
+      if (return_path) params.set("next", return_path);
+
       navigate(`/sign-in?${params.toString()}`);
     },
     [navigate, set_is_adding_account],
@@ -159,6 +175,8 @@ export function use_auth_provider_state() {
         let stored_passphrase: string | null = null;
         let stored_vault: ReturnType<typeof get_stored_encrypted_vault> = null;
 
+        let device_passphrase_used = false;
+
         if (target_kind !== "shared") {
           try {
             stored_passphrase = await get_session_passphrase(target.id);
@@ -166,6 +184,11 @@ export function use_auth_provider_state() {
             stored_passphrase = null;
           }
           stored_vault = get_stored_encrypted_vault(target.id);
+
+          if (!stored_passphrase && stored_vault && is_tauri()) {
+            stored_passphrase = await read_device_passphrase(target.device_id);
+            device_passphrase_used = !!stored_passphrase;
+          }
 
           if (!stored_passphrase || !stored_vault) {
             begin_account_reauth(target, previous_account_id);
@@ -216,27 +239,26 @@ export function use_auth_provider_state() {
               result.encrypted_vault,
               result.vault_nonce,
             );
-            hard_redirect("/");
+            hard_redirect(take_post_switch_path() ?? "/");
 
             return;
           } catch (e) {
             safe_log_error(e);
 
-            const message = e instanceof Error ? e.message : "";
-            const access_gone = /unavailable|no longer|not found/i.test(message);
-
-            if (access_gone) {
-              await clear_shared_mailbox_session(target.id);
-              await storage_remove_account(target.id);
-            }
+            const message = user_facing_error(e, "");
+            const access_gone = /unavailable|no longer|not found/i.test(
+              message,
+            );
 
             const remaining = await get_all_accounts();
             const fallback = remaining.find((a) => a.kind !== "shared");
 
             show_toast(
-              access_gone
-                ? t("shared_mailboxes.access_unavailable")
-                : t("settings.switch_failed"),
+              is_auth_salt_collision(e)
+                ? t("errors.auth_salt_collision")
+                : access_gone
+                  ? t("shared_mailboxes.access_unavailable")
+                  : t("settings.switch_failed"),
               "error",
             );
             set_state((prev) => ({
@@ -284,8 +306,18 @@ export function use_auth_provider_state() {
             session_result = await attempt();
           }
 
-          if (session_result === "ok" || session_result === "unavailable") {
-            hard_redirect("/");
+          if (
+            session_result === "ok" ||
+            session_result === "unavailable" ||
+            device_passphrase_used
+          ) {
+            if (uses_account_hub()) {
+              await with_timeout(
+                set_hub_current_account(target.id),
+                2500,
+              ).catch(safe_log_error);
+            }
+            hard_redirect(take_post_switch_path() ?? "/");
 
             return;
           }
@@ -342,7 +374,10 @@ export function use_auth_provider_state() {
         if ("__TAURI_INTERNALS__" in window) return;
         hard_redirect(nav_target);
       } catch (caught) {
-        ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught);
+        ignore_error(
+          "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+          caught,
+        );
       }
     }, 6000);
 
@@ -354,12 +389,39 @@ export function use_auth_provider_state() {
         safe_log_error(e);
       }
 
-      await with_timeout(clear_device_session(), 2000).catch((caught) => ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught));
+      if (other && current_id) {
+        await with_timeout(
+          forget_device_account(
+            (await get_all_accounts()).find((a) => a.id === current_id)
+              ?.device_id,
+          ),
+          2000,
+        ).catch((caught) =>
+          ignore_error(
+            "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+            caught,
+          ),
+        );
+      } else {
+        await with_timeout(clear_device_session(), 2000).catch((caught) =>
+          ignore_error(
+            "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+            caught,
+          ),
+        );
+      }
 
-      await with_timeout(
-        api_client.post("/core/v1/auth/logout", {}),
-        3000,
-      );
+      if (current_id && uses_account_hub()) {
+        await with_timeout(sign_out_hub_accounts([current_id]), 2500).catch(
+          (caught) =>
+            ignore_error(
+              "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+              caught,
+            ),
+        );
+      }
+
+      await with_timeout(api_client.post("/core/v1/auth/logout", {}), 3000);
 
       if (other && current_id) {
         stop_session_timeout();
@@ -406,10 +468,18 @@ export function use_auth_provider_state() {
           navigate(nav_target);
         }
       } catch (caught) {
-        ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught);
+        ignore_error(
+          "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+          caught,
+        );
       }
     }
-  }, [clear_local_auth_data, navigate, state.accounts, state.current_account_id]);
+  }, [
+    clear_local_auth_data,
+    navigate,
+    state.accounts,
+    state.current_account_id,
+  ]);
 
   const logout_all_handler = useCallback(async () => {
     const fallback_timer = window.setTimeout(() => {
@@ -417,7 +487,10 @@ export function use_auth_provider_state() {
         if ("__TAURI_INTERNALS__" in window) return;
         hard_redirect("/sign-in");
       } catch (caught) {
-        ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught);
+        ignore_error(
+          "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+          caught,
+        );
       }
     }, 6000);
 
@@ -429,12 +502,23 @@ export function use_auth_provider_state() {
         safe_log_error(e);
       }
 
-      await with_timeout(clear_device_session(), 2000).catch((caught) => ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught));
-
-      await with_timeout(
-        api_client.post("/core/v1/auth/logout-all", {}),
-        3000,
+      await with_timeout(clear_device_session(), 2000).catch((caught) =>
+        ignore_error(
+          "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+          caught,
+        ),
       );
+
+      if (uses_account_hub()) {
+        await with_timeout(sign_out_hub_accounts("all"), 2500).catch((caught) =>
+          ignore_error(
+            "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+            caught,
+          ),
+        );
+      }
+
+      await with_timeout(api_client.post("/core/v1/auth/logout-all", {}), 3000);
 
       await with_timeout(clear_local_auth_data(), 4000);
     } catch (e) {
@@ -446,7 +530,10 @@ export function use_auth_provider_state() {
           navigate("/sign-in");
         }
       } catch (caught) {
-        ignore_error("contexts/auth/use_auth_provider_state:use_auth_provider_state", caught);
+        ignore_error(
+          "contexts/auth/use_auth_provider_state:use_auth_provider_state",
+          caught,
+        );
       }
     }
   }, [clear_local_auth_data, navigate]);
@@ -456,8 +543,6 @@ export function use_auth_provider_state() {
       message_key: TranslationKey,
       reason?: string,
     ) => {
-      await clear_device_session().catch((caught) => ignore_error("contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts", caught));
-
       const path = app_pathname();
       const current_id = state.current_account_id;
       const all_accounts = await get_all_accounts();
@@ -465,13 +550,31 @@ export function use_auth_provider_state() {
       const keep_accounts =
         all_accounts.length > 1 || accounts_storage_unreadable();
 
+      await (
+        keep_accounts
+          ? forget_device_account(target?.device_id)
+          : clear_device_session()
+      ).catch((caught) =>
+        ignore_error(
+          "contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts",
+          caught,
+        ),
+      );
+
       if (!keep_accounts) {
         await clear_local_auth_data();
 
         if (path === "/sign-in") return;
 
         show_toast(t(message_key), "info");
-        await api_client.clear_session_cookies().catch((caught) => ignore_error("contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts", caught));
+        await api_client
+          .clear_session_cookies()
+          .catch((caught) =>
+            ignore_error(
+              "contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts",
+              caught,
+            ),
+          );
         navigate("/sign-in");
 
         return;
@@ -483,7 +586,12 @@ export function use_auth_provider_state() {
       if (current_id) {
         clear_session_timeout_data(current_id);
         clear_session_unlock(current_id);
-        await clear_session_passphrase(current_id).catch((caught) => ignore_error("contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts", caught));
+        await clear_session_passphrase(current_id).catch((caught) =>
+          ignore_error(
+            "contexts/auth/use_auth_provider_state:sign_out_keeping_other_accounts",
+            caught,
+          ),
+        );
       }
 
       set_is_adding_account(true);
@@ -517,9 +625,11 @@ export function use_auth_provider_state() {
 
       if (Date.now() < session_expired_muted_until.current) return;
       const still_valid = await api_client.check_auth_status();
+
       if (still_valid) {
         api_client.set_authenticated(true);
         re_trigger_keys_ready();
+
         return;
       }
 
@@ -536,10 +646,12 @@ export function use_auth_provider_state() {
     const handle_session_timeout = async () => {
       sync_client.disconnect();
 
-      try {
-        await api_client.post("/core/v1/auth/logout", {});
-      } catch {
-        api_client.clear_session_cookies();
+      const logout_result = await api_client
+        .post("/core/v1/auth/logout", {})
+        .catch(() => null);
+
+      if (!logout_result || logout_result.error) {
+        await api_client.clear_session_cookies();
       }
 
       await sign_out_keeping_other_accounts("common.signed_out_inactivity");
@@ -549,8 +661,15 @@ export function use_auth_provider_state() {
       await sign_out_keeping_other_accounts("common.device_revoked");
     };
 
-    const handle_identity_mismatch_event = () => {
-      handle_identity_mismatch().catch((e) => {
+    const handle_identity_mismatch_event = (event: Event) => {
+      const detail = (event as CustomEvent<{ actual_user_id?: unknown }>)
+        .detail;
+      const actual_user_id =
+        typeof detail?.actual_user_id === "string"
+          ? detail.actual_user_id
+          : undefined;
+
+      handle_identity_mismatch(actual_user_id).catch((e) => {
         safe_log_error(e);
       });
     };
@@ -628,6 +747,12 @@ export function use_auth_provider_state() {
 
   useEffect(() => {
     if (!state.is_authenticated) return;
+
+    process_offline_queue().catch(safe_log_error);
+  }, [state.is_authenticated, state.current_account_id]);
+
+  useEffect(() => {
+    if (!state.is_authenticated) return;
     let cancelled = false;
 
     const resolve_account_limit = async () => {
@@ -640,6 +765,7 @@ export function use_auth_provider_state() {
       if (cancelled) return;
 
       let limit = link_result?.data?.max_accounts;
+      let lookup_failed = !link_result?.data;
 
       if (limit === undefined) {
         const limit_result = await get_account_limit().catch((e) => {
@@ -650,6 +776,7 @@ export function use_auth_provider_state() {
 
         if (cancelled) return;
         limit = limit_result?.data?.max_accounts;
+        lookup_failed = !limit_result?.data;
       }
 
       if (limit !== undefined && limit !== 0) {
@@ -657,6 +784,8 @@ export function use_auth_provider_state() {
 
         return;
       }
+
+      if (lookup_failed) return;
 
       const plan_code = await get_current_plan_code().catch((e) => {
         safe_log_error(e);
@@ -740,6 +869,123 @@ export function use_auth_provider_state() {
     switch_to_account,
   ]);
 
+  useEffect(() => {
+    if (!state.is_authenticated || !state.current_account_id) return;
+
+    const current_id = state.current_account_id;
+
+    const handle_accounts_changed = async () => {
+      if (switch_in_flight.current || logout_in_flight.current) return;
+
+      const stored = await get_all_accounts().catch(() => null);
+
+      if (!stored || accounts_storage_unreadable()) return;
+
+      const stored_current = await get_current_account_id().catch(() => null);
+
+      if (!stored.some((acc) => acc.id === current_id)) {
+        hard_redirect(stored_current ? "/" : "/sign-in");
+
+        return;
+      }
+
+      if (
+        stored_current &&
+        stored_current !== current_id &&
+        !account_index_routing_enabled()
+      ) {
+        hard_redirect("/");
+
+        return;
+      }
+
+      set_state((prev) => ({ ...prev, accounts: stored }));
+    };
+
+    const listener = () => {
+      void handle_accounts_changed();
+    };
+
+    window.addEventListener(ACCOUNTS_CHANGED_EVENT, listener);
+
+    return () => window.removeEventListener(ACCOUNTS_CHANGED_EVENT, listener);
+  }, [state.is_authenticated, state.current_account_id, set_state]);
+
+  const hub_snapshot = useRef<{
+    ids: Set<string>;
+    current: string | null;
+  } | null>(null);
+
+  useEffect(() => {
+    if (!uses_account_hub()) return;
+    if (!state.is_authenticated || !state.current_account_id) return;
+
+    const current_id = state.current_account_id;
+    let cancelled = false;
+
+    const follow_hub = async () => {
+      const list: hub_account[] | null = await read_hub_accounts();
+
+      if (cancelled || !list) return;
+      if (switch_in_flight.current || logout_in_flight.current) return;
+
+      const previous = hub_snapshot.current;
+      const hub_current = list.find((acc) => acc.is_current)?.id ?? null;
+
+      const next_ids = new Set(list.map((acc) => acc.id));
+
+      hub_snapshot.current = { ids: next_ids, current: hub_current };
+
+      if (!previous) return;
+
+      const removed = [...previous.ids].filter((id) => !next_ids.has(id));
+      const local_ids = new Set(state.accounts.map((acc) => acc.id));
+
+      for (const id of removed) {
+        if (!local_ids.has(id) || id === current_id) continue;
+        await remove_account_handler(id).catch(safe_log_error);
+      }
+
+      if (removed.includes(current_id)) {
+        await logout();
+
+        return;
+      }
+
+      if (
+        hub_current &&
+        hub_current !== previous.current &&
+        hub_current !== current_id &&
+        local_ids.has(hub_current)
+      ) {
+        const passphrase = await get_session_passphrase(hub_current).catch(
+          () => null,
+        );
+
+        if (passphrase && !cancelled) {
+          await switch_to_account(hub_current);
+        }
+      }
+    };
+
+    void follow_hub();
+    const unsubscribe = on_hub_accounts_changed(() => {
+      void follow_hub();
+    });
+
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [
+    state.is_authenticated,
+    state.current_account_id,
+    state.accounts,
+    remove_account_handler,
+    logout,
+    switch_to_account,
+  ]);
+
   const set_vault = useCallback(
     async (vault: EncryptedVault, passphrase: string) => {
       await store_vault_in_memory(
@@ -752,6 +998,9 @@ export function use_auth_provider_state() {
         start_session_timeout(state.current_account_id);
       }
 
+      ensure_pgp_key_published().catch((caught) =>
+        ignore_error("contexts/auth/use_auth_provider_state:set_vault", caught),
+      );
       ensure_default_labels(vault, t).catch(console.error);
 
       set_state((prev) => ({ ...prev, has_keys: true }));
@@ -764,29 +1013,7 @@ export function use_auth_provider_state() {
       (a) => a.kind !== "shared",
     ).length;
 
-    const plan_fallback_limit = async () => {
-      try {
-        return max_accounts_for_plan(await get_current_plan_code());
-      } catch (e) {
-        safe_log_error(e);
-
-        return max_accounts_for_plan(null);
-      }
-    };
-
-    let limit: number;
-
-    try {
-      const limit_response = await get_account_limit();
-
-      limit =
-        limit_response.data && limit_response.data.max_accounts !== 0
-          ? limit_response.data.max_accounts
-          : await plan_fallback_limit();
-    } catch (e) {
-      safe_log_error(e);
-      limit = await plan_fallback_limit();
-    }
+    const limit = await resolve_max_accounts();
 
     if (limit === UNLIMITED_ACCOUNTS) return true;
 

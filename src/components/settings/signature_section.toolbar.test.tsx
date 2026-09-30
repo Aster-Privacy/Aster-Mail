@@ -23,7 +23,6 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -85,7 +84,8 @@ vi.mock("framer-motion", () => ({
   ),
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({
     children,
     onClick,
@@ -128,7 +128,9 @@ vi.mock("@/components/ui/modal", () => ({
 }));
 
 vi.mock("@/components/ui/select", () => ({
-  Select: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  Select: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
   SelectTrigger: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),
@@ -266,6 +268,7 @@ async function open_editor() {
   const add = Array.from(container.querySelectorAll("button")).find((b) =>
     (b.textContent ?? "").includes("settings.add_signature"),
   ) as HTMLButtonElement;
+
   act(() => add.click());
   await flush();
   act(() => {});
@@ -331,6 +334,7 @@ describe("SignatureSection toolbar (compose parity)", () => {
     const confirm = container.querySelector(
       '[data-testid="do-insert-link"]',
     ) as HTMLButtonElement;
+
     expect(confirm).toBeTruthy();
     act(() => confirm.click());
 

@@ -21,13 +21,18 @@
 import type { UseComposeReturn } from "@/components/compose/use_compose";
 import type { Attachment } from "@/components/compose/compose_shared";
 
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useRef, useState, useCallback, useEffect, useMemo } from "react";
 
+import { apply_input_transform } from "@/utils/input_transform";
 import { CloseIcon } from "@/components/common/icons";
 import { sanitize_html } from "@/lib/html_sanitizer";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
+import { get_compose_sanitize_options } from "@/lib/compose_image_sources";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_file_icon_color } from "@/components/compose/compose_shared";
+import { is_composing } from "@/utils/ime";
+import { format_bytes } from "@/lib/utils";
+import { inline_image_bytes } from "@/lib/inline_image_bytes";
+import { get_max_total_attachments_size } from "@/services/attachment_limits";
 
 function get_file_type_icon(mime_type: string): React.ReactNode {
   const cls = "w-3.5 h-3.5";
@@ -60,20 +65,29 @@ function get_file_type_icon(mime_type: string): React.ReactNode {
       </svg>
     );
   }
-  if (mime_type.includes("spreadsheet") || mime_type.includes("excel") || mime_type === "text/csv") {
+  if (
+    mime_type.includes("spreadsheet") ||
+    mime_type.includes("excel") ||
+    mime_type === "text/csv"
+  ) {
     return (
       <svg className={cls} fill="currentColor" viewBox="0 0 24 24">
         <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z" />
       </svg>
     );
   }
-  if (mime_type.includes("zip") || mime_type.includes("compressed") || mime_type.includes("rar")) {
+  if (
+    mime_type.includes("zip") ||
+    mime_type.includes("compressed") ||
+    mime_type.includes("rar")
+  ) {
     return (
       <svg className={cls} fill="currentColor" viewBox="0 0 24 24">
         <path d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-2 6h-2v2h2v2h-2v2h-2v-2h2v-2h-2v-2h2v-2h-2V8h2v2h2v2z" />
       </svg>
     );
   }
+
   return (
     <svg className={cls} fill="currentColor" viewBox="0 0 24 24">
       <path d="M14 2H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z" />
@@ -88,14 +102,12 @@ function AttachmentRow({
   attachment: Attachment;
   on_remove: (id: string) => void;
 }) {
+  const { t } = use_i18n();
   const color = get_file_icon_color(attachment.mime_type);
 
   return (
-    <div className="flex items-center gap-2 px-2 py-1 rounded group hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-      <span
-        className="flex-shrink-0"
-        style={{ color: color.text }}
-      >
+    <div className="flex items-center gap-2 px-2 py-1 rounded group hover:bg-[var(--aster-hover)] transition-colors">
+      <span className="flex-shrink-0" style={{ color: color.text }}>
         {get_file_type_icon(attachment.mime_type)}
       </span>
       <span
@@ -108,7 +120,8 @@ function AttachmentRow({
         {attachment.size}
       </span>
       <button
-        className="text-txt-tertiary hover:text-txt-primary transition-colors duration-150 flex-shrink-0 opacity-0 group-hover:opacity-100"
+        aria-label={t("mail.remove_attachment")}
+        className="text-txt-tertiary hover:text-txt-primary transition-colors duration-150 flex-shrink-0 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100"
         type="button"
         onClick={() => on_remove(attachment.id)}
       >
@@ -118,9 +131,64 @@ function AttachmentRow({
   );
 }
 
+function compose_total_bytes(attachments: Attachment[], html?: string): number {
+  return (
+    attachments.reduce((total, att) => total + (att.size_bytes || 0), 0) +
+    inline_image_bytes(html ?? "")
+  );
+}
+
+function ComposeTotalSize({ total_bytes }: { total_bytes: number }) {
+  const { t } = use_i18n();
+  const max_bytes = get_max_total_attachments_size();
+  const over_limit = max_bytes > 0 && total_bytes > max_bytes;
+
+  return (
+    <div
+      className="flex items-center justify-between gap-2 px-2 pt-1 text-[11px] text-txt-tertiary"
+      data-testid="compose_total_size"
+    >
+      <span>{t("mail.compose_total_size")}</span>
+      <span
+        className={`tabular-nums ${over_limit ? "text-red-500" : ""}`}
+      >
+        {max_bytes > 0
+          ? t("settings.usage_of", {
+              current: format_bytes(total_bytes),
+              limit: format_bytes(max_bytes),
+            })
+          : format_bytes(total_bytes)}
+      </span>
+    </div>
+  );
+}
+
 interface ComposeAttachmentsProps {
   compose: UseComposeReturn;
   show_add_button?: boolean;
+}
+
+export function ComposeTotalSizeRow({
+  attachments,
+  message_html,
+  className,
+}: {
+  attachments: Attachment[];
+  message_html?: string;
+  className?: string;
+}) {
+  const total_bytes = useMemo(
+    () => compose_total_bytes(attachments, message_html),
+    [attachments, message_html],
+  );
+
+  if (total_bytes === 0) return null;
+
+  return (
+    <div className={className}>
+      <ComposeTotalSize total_bytes={total_bytes} />
+    </div>
+  );
 }
 
 export function ComposeAttachments({
@@ -128,10 +196,15 @@ export function ComposeAttachments({
   show_add_button = false,
 }: ComposeAttachmentsProps) {
   const { t } = use_i18n();
+  const total_bytes = useMemo(
+    () => compose_total_bytes(compose.attachments, compose.message),
+    [compose.attachments, compose.message],
+  );
 
   if (
     compose.attachments.length === 0 &&
-    !compose.is_loading_forward_attachments
+    !compose.is_loading_forward_attachments &&
+    total_bytes === 0
   ) {
     return null;
   }
@@ -155,20 +228,17 @@ export function ComposeAttachments({
       )}
       {show_add_button && (
         <button
-          className="flex items-center gap-2 px-2 py-1 text-[11px] text-txt-tertiary hover:text-txt-primary border border-dashed border-edge-primary rounded hover:border-edge-secondary transition-colors mt-0.5"
+          className="flex items-center gap-2 px-2 py-1 text-[11px] text-txt-tertiary hover:text-txt-primary rounded-[var(--aster-radius-item,8px)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] transition-colors mt-0.5"
           type="button"
           onClick={compose.trigger_file_select}
         >
-          <svg
-            className="w-3.5 h-3.5"
-            fill="currentColor"
-            viewBox="0 0 24 24"
-          >
+          <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
             <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
           </svg>
           <span>{t("mail.add_file")}</span>
         </button>
       )}
+      {total_bytes > 0 && <ComposeTotalSize total_bytes={total_bytes} />}
     </div>
   );
 }
@@ -179,6 +249,7 @@ interface AttachmentListSimpleProps {
   remove_attachment: (id: string) => void;
   trigger_file_select: () => void;
   add_label: string;
+  message_html?: string;
 }
 
 export function AttachmentListSimple({
@@ -187,8 +258,14 @@ export function AttachmentListSimple({
   remove_attachment,
   trigger_file_select,
   add_label,
+  message_html,
 }: AttachmentListSimpleProps) {
-  if (attachments.length === 0) return null;
+  const total_bytes = useMemo(
+    () => compose_total_bytes(attachments, message_html),
+    [attachments, message_html],
+  );
+
+  if (attachments.length === 0 && total_bytes === 0) return null;
 
   return (
     <div
@@ -203,19 +280,16 @@ export function AttachmentListSimple({
         />
       ))}
       <button
-        className="flex items-center gap-2 px-2 py-1 text-[11px] text-txt-tertiary hover:text-txt-primary border border-dashed border-edge-primary rounded hover:border-edge-secondary transition-colors mt-0.5"
+        className="flex items-center gap-2 px-2 py-1 text-[11px] text-txt-tertiary hover:text-txt-primary rounded-[var(--aster-radius-item,8px)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] transition-colors mt-0.5"
         type="button"
         onClick={trigger_file_select}
       >
-        <svg
-          className="w-3.5 h-3.5"
-          fill="currentColor"
-          viewBox="0 0 24 24"
-        >
+        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
           <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z" />
         </svg>
         <span>{add_label}</span>
       </button>
+      {total_bytes > 0 && <ComposeTotalSize total_bytes={total_bytes} />}
     </div>
   );
 }
@@ -225,6 +299,8 @@ interface ComposeErrorsProps {
 }
 
 export function ComposeErrors({ compose }: ComposeErrorsProps) {
+  const { t } = use_i18n();
+
   return (
     <>
       {compose.attachment_error && (
@@ -232,6 +308,7 @@ export function ComposeErrors({ compose }: ComposeErrorsProps) {
           className="mx-3 mb-2 p-3 rounded-lg border flex items-center gap-2 flex-shrink-0"
           style={{
             backgroundColor: "#d97706",
+            borderColor: "#d97706",
             color: "#fff",
           }}
         >
@@ -247,8 +324,9 @@ export function ComposeErrors({ compose }: ComposeErrorsProps) {
             {compose.attachment_error}
           </span>
           <button
+            aria-label={t("common.dismiss")}
             className="flex-shrink-0"
-            style={{ color: "rgba(255, 255, 255, 0.8)" }}
+            style={{ color: "#fff" }}
             type="button"
             onClick={() => compose.set_attachment_error(null)}
           >
@@ -388,6 +466,8 @@ function SizeInput({
 
   const handle_key = useCallback(
     (e: React.KeyboardEvent) => {
+      if (is_composing(e)) return;
+
       if (e.key === "Enter") {
         e.preventDefault();
         commit();
@@ -435,7 +515,11 @@ function SizeInput({
           type="text"
           value={value}
           onBlur={commit}
-          onChange={(e) => set_value(e.target.value.replace(/\D/g, ""))}
+          onChange={(e) =>
+            set_value(
+              apply_input_transform(e.target, (v) => v.replace(/\D/g, "")),
+            )
+          }
           onKeyDown={handle_key}
         />
         <span style={{ opacity: 0.5 }}>×</span>
@@ -596,7 +680,11 @@ export function ComposeEditor({ compose, placeholder }: ComposeEditorProps) {
     const el = compose.message_textarea_ref.current;
 
     if (el && compose.message && !el.innerHTML) {
-      const safe = sanitize_html(compose.message, { external_content_mode: is_any_lockdown_active() ? "never" : "always", lockdown_mode: is_any_lockdown_active() });
+      const safe = sanitize_html(
+        compose.message,
+        get_compose_sanitize_options(),
+      );
+
       el.innerHTML = safe.html;
     }
   });

@@ -29,6 +29,7 @@ import {
   decrypt_calendar_payload,
   encrypt_calendar_payload,
 } from "@/services/calendar/calendar_crypto";
+import { safe_local_set } from "@/lib/safe_storage";
 
 const EVENTS_STORAGE_KEY = "aster_calendar_events_v1";
 const CALENDARS_STORAGE_KEY = "aster_calendar_calendars_v1";
@@ -86,7 +87,10 @@ export function subscribe_calendar_changes(on_change: () => void): () => void {
   };
 
   const handle_storage = (event: StorageEvent) => {
-    if (event.key === EVENTS_STORAGE_KEY || event.key === CALENDARS_STORAGE_KEY) {
+    if (
+      event.key === EVENTS_STORAGE_KEY ||
+      event.key === CALENDARS_STORAGE_KEY
+    ) {
       on_change();
     }
   };
@@ -274,7 +278,11 @@ function build_seed_events(): DecryptedCalendarEvent[] {
   ];
 
   return seeds.map((seed, index) => {
-    const starts_at = iso_at(seed.day_offset, seed.start_hour, seed.start_minute);
+    const starts_at = iso_at(
+      seed.day_offset,
+      seed.start_hour,
+      seed.start_minute,
+    );
     const ends_at = new Date(
       new Date(starts_at).getTime() + seed.duration_minutes * 60_000,
     ).toISOString();
@@ -303,7 +311,7 @@ async function ensure_seeded(vault: EncryptedVault): Promise<void> {
       DEFAULT_CALENDARS.map((calendar) => encrypt_row(calendar, vault)),
     );
 
-    localStorage.setItem(CALENDARS_STORAGE_KEY, JSON.stringify(rows));
+    safe_local_set(CALENDARS_STORAGE_KEY, JSON.stringify(rows));
   }
 
   if (localStorage.getItem(EVENTS_STORAGE_KEY) === null) {
@@ -311,7 +319,7 @@ async function ensure_seeded(vault: EncryptedVault): Promise<void> {
       build_seed_events().map((event) => encrypt_row(event, vault)),
     );
 
-    localStorage.setItem(EVENTS_STORAGE_KEY, JSON.stringify(rows));
+    safe_local_set(EVENTS_STORAGE_KEY, JSON.stringify(rows));
   }
 }
 

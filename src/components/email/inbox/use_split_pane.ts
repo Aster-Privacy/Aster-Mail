@@ -147,11 +147,9 @@ export function use_split_pane({
         timeout_id = null;
         const viewport_width = window.innerWidth;
 
-        if (viewport_width < 900 && on_split_close) {
-          on_split_close();
-        } else if (viewport_width < 900 && on_split_scheduled_close) {
-          on_split_scheduled_close();
-        }
+        if (viewport_width >= 900) return;
+        on_split_close?.();
+        on_split_scheduled_close?.();
       }, 300);
     };
 

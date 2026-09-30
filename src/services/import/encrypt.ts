@@ -18,9 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import type { ParsedEmail } from "./parser";
+
+import { HASH_ALG } from "@/services/crypto/constants";
 
 const IMPORT_KEY_VERSION = "astermail-import-v1";
 const NONCE_LENGTH = 12;
@@ -99,6 +100,11 @@ export interface EncryptedImportEmail {
   thread_token?: string;
   item_type?: string;
   folder_token?: string;
+  is_read?: boolean;
+  is_starred?: boolean;
+  is_archived?: boolean;
+  is_spam?: boolean;
+  is_trashed?: boolean;
 }
 
 // Deterministic hash of the message content so re-importing the same email

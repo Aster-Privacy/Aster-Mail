@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
 import { undo_send_manager } from "./undo_send_manager";
 import { undo_send_api } from "./api/undo_send";
 
@@ -41,6 +42,10 @@ describe("undo_send_manager conditional polling", () => {
       data: { emails: [] },
       error: null,
     } as never);
+    mocked_api.get_status.mockResolvedValue({
+      data: { status: "sent" },
+      error: null,
+    } as never);
   });
 
   afterEach(() => {
@@ -59,6 +64,7 @@ describe("undo_send_manager conditional polling", () => {
   it("starts polling after queue_email and stops when the queue empties", async () => {
     const scheduled = new Date(Date.now() + 30_000);
     const deadline = new Date(Date.now() + 29_000);
+
     mocked_api.queue_email.mockResolvedValue({
       data: {
         queue_id: "q1",
@@ -110,6 +116,7 @@ describe("undo_send_manager conditional polling", () => {
   it("sync_with_server resumes polling when the server reports a pending send", async () => {
     const scheduled = new Date(Date.now() + 30_000);
     const deadline = new Date(Date.now() + 29_000);
+
     mocked_api.get_pending.mockResolvedValue({
       data: {
         emails: [
@@ -130,5 +137,258 @@ describe("undo_send_manager conditional polling", () => {
 
     await vi.advanceTimersByTimeAsync(5_100);
     expect(mocked_api.get_pending).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("undo_send_manager send finalization", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    mocked_api.get_pending.mockResolvedValue({
+      data: { emails: [] },
+      error: null,
+    } as never);
+  });
+
+  afterEach(() => {
+    undo_send_manager.destroy();
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  async function queue_one(options: {
+    on_sent?: () => void;
+    on_error?: (error: string) => void;
+  }) {
+    const scheduled = new Date(Date.now() + 1_000);
+    const deadline = new Date(Date.now() + 900);
+
+    mocked_api.queue_email.mockResolvedValue({
+      data: {
+        queue_id: "q1",
+        scheduled_send_time: scheduled.toISOString(),
+        can_cancel_until: deadline.toISOString(),
+        delay_seconds: 1,
+      },
+      error: null,
+    } as never);
+
+    await undo_send_manager.queue_email(
+      {
+        to: ["ghost@realiased.me"],
+        cc: [],
+        bcc: [],
+        subject: "hi",
+        body: "b",
+        delay_seconds: 1,
+      } as never,
+      options,
+    );
+  }
+
+  it("waits for a terminal status instead of assuming the send succeeded", async () => {
+    const on_sent = vi.fn();
+    const on_error = vi.fn();
+
+    mocked_api.get_status
+      .mockResolvedValueOnce({
+        data: { status: "sending" },
+        error: null,
+      } as never)
+      .mockResolvedValue({
+        data: { status: "failed", error_message: "encryption required" },
+        error: null,
+      } as never);
+
+    await queue_one({ on_sent, on_error });
+
+    await vi.advanceTimersByTimeAsync(5_000);
+
+    expect(on_sent).not.toHaveBeenCalled();
+    expect(on_error).toHaveBeenCalledWith("encryption required");
+    expect(undo_send_manager.get_send("q1")).toBeUndefined();
+  });
+
+  it("does not report send now as sent until the server confirms", async () => {
+    const on_sent = vi.fn();
+
+    mocked_api.send_now.mockResolvedValue({
+      data: { success: true },
+      error: null,
+    } as never);
+    mocked_api.get_status.mockResolvedValue({
+      data: { status: "sending" },
+      error: null,
+    } as never);
+
+    await queue_one({ on_sent });
+
+    const settled = undo_send_manager.send_immediately("q1");
+
+    await vi.advanceTimersByTimeAsync(31_000);
+    await settled;
+
+    expect(on_sent).not.toHaveBeenCalled();
+    expect(undo_send_manager.get_send("q1")).toBeDefined();
+  });
+
+  it("reports send now as sent once the server reports a terminal status", async () => {
+    const on_sent = vi.fn();
+
+    mocked_api.send_now.mockResolvedValue({
+      data: { success: true },
+      error: null,
+    } as never);
+    mocked_api.get_status.mockResolvedValue({
+      data: { status: "sent" },
+      error: null,
+    } as never);
+
+    await queue_one({ on_sent });
+
+    const settled = undo_send_manager.send_immediately("q1");
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    await settled;
+
+    expect(on_sent).toHaveBeenCalledTimes(1);
+  });
+
+  it("never reports sent while the server still reports a non-terminal status", async () => {
+    const on_sent = vi.fn();
+    const on_error = vi.fn();
+
+    mocked_api.get_status.mockResolvedValue({
+      data: { status: "sending" },
+      error: null,
+    } as never);
+
+    await queue_one({ on_sent, on_error });
+
+    await vi.advanceTimersByTimeAsync(120_000);
+
+    expect(on_sent).not.toHaveBeenCalled();
+    expect(on_error).not.toHaveBeenCalled();
+    expect(undo_send_manager.get_send("q1")).toBeDefined();
+
+    mocked_api.get_status.mockResolvedValue({
+      data: {
+        status: "failed",
+        error_message: "sender address not authorized",
+      },
+      error: null,
+    } as never);
+
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    expect(on_sent).not.toHaveBeenCalled();
+    expect(on_error).toHaveBeenCalledWith("sender address not authorized");
+  });
+
+  it("removes the entry and stops polling when send now fails", async () => {
+    const on_sent = vi.fn();
+    const on_error = vi.fn();
+
+    mocked_api.send_now.mockResolvedValue({
+      data: null,
+      error: "relay rejected",
+    } as never);
+
+    await queue_one({ on_sent, on_error });
+    expect(undo_send_manager.get_send("q1")).toBeDefined();
+
+    const sent = await undo_send_manager.send_immediately("q1");
+
+    expect(sent).toBe(false);
+    expect(on_sent).not.toHaveBeenCalled();
+    expect(on_error).toHaveBeenCalledWith("relay rejected");
+    expect(undo_send_manager.get_send("q1")).toBeUndefined();
+    expect(undo_send_manager.get_all_sends()).toHaveLength(0);
+
+    const polls_before = mocked_api.get_pending.mock.calls.length;
+
+    await vi.advanceTimersByTimeAsync(5_100);
+    expect(mocked_api.get_pending.mock.calls.length).toBeLessThanOrEqual(
+      polls_before + 1,
+    );
+
+    await vi.advanceTimersByTimeAsync(30_000);
+    expect(mocked_api.get_pending.mock.calls.length).toBeLessThanOrEqual(
+      polls_before + 1,
+    );
+    expect(mocked_api.get_status).not.toHaveBeenCalled();
+  });
+
+  it("reports a failure when the server drops the send from the pending list", async () => {
+    const on_sent = vi.fn();
+    const on_error = vi.fn();
+
+    mocked_api.get_status.mockResolvedValue({
+      data: { status: "failed", error_message: "delivery rejected" },
+      error: null,
+    } as never);
+
+    await queue_one({ on_sent, on_error });
+    await undo_send_manager.sync_with_server();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(on_sent).not.toHaveBeenCalled();
+    expect(on_error).toHaveBeenCalledWith("delivery rejected");
+  });
+});
+
+describe("undo_send_manager restored sends", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    undo_send_manager.destroy();
+    vi.runOnlyPendingTimers();
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  it("reports a send restored from the server once it goes out", async () => {
+    const scheduled = new Date(Date.now() + 10_000);
+    const deadline = new Date(Date.now() + 9_000);
+    const settled = vi.fn();
+    const stop = undo_send_manager.on_restored_send_settled(settled);
+
+    mocked_api.get_pending.mockResolvedValue({
+      data: {
+        emails: [
+          {
+            queue_id: "q_restored",
+            status: "pending",
+            scheduled_send_time: scheduled.toISOString(),
+            can_cancel_until: deadline.toISOString(),
+            subject_preview: "after reload",
+          },
+        ],
+      },
+      error: null,
+    } as never);
+    mocked_api.get_status.mockResolvedValue({
+      data: { status: "sent" },
+      error: null,
+    } as never);
+
+    expect(await undo_send_manager.sync_with_server()).toBe(true);
+    expect(settled).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(10_500);
+
+    expect(settled).toHaveBeenCalledWith("q_restored", "sent");
+    stop();
+  });
+
+  it("reports a failed sync so restored sends are not settled blindly", async () => {
+    mocked_api.get_pending.mockResolvedValue({
+      data: null,
+      error: "offline",
+    } as never);
+
+    expect(await undo_send_manager.sync_with_server()).toBe(false);
   });
 });

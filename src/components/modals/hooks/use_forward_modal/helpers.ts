@@ -18,18 +18,18 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/types/contacts";
-import type { } from "@/services/api/user";
-
+import type {} from "@/types/contacts";
+import type {} from "@/services/api/user";
 
 import {
   type Attachment,
+  type RecipientsState,
+  type InputsState,
   MAX_INLINE_IMAGES,
   MAX_INLINE_IMAGE_SIZE,
   MAX_TOTAL_INLINE_SIZE,
 } from "@/components/compose/compose_shared";
 import { array_to_base64 } from "@/services/crypto/envelope";
-
 
 export const escape_regexp = (value: string): string =>
   value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -138,6 +138,28 @@ export function apply_inline_image_substitutions(
   return { content, embedded_attachment_ids };
 }
 
+export function merge_pending_recipients(
+  recipients: RecipientsState,
+  inputs: InputsState,
+): RecipientsState {
+  const merge = (existing: string[], value: string) => {
+    const pending = value.trim();
+
+    if (!pending) return existing;
+    if (existing.some((e) => e.toLowerCase() === pending.toLowerCase())) {
+      return existing;
+    }
+
+    return [...existing, pending];
+  };
+
+  return {
+    to: merge(recipients.to, inputs.to),
+    cc: merge(recipients.cc, inputs.cc),
+    bcc: merge(recipients.bcc, inputs.bcc),
+  };
+}
+
 export interface UseForwardModalProps {
   is_open: boolean;
   on_close: () => void;
@@ -151,4 +173,3 @@ export interface UseForwardModalProps {
   thread_token?: string;
   thread_ghost_email?: string;
 }
-

@@ -19,19 +19,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedThreadMessage } from "@/types/thread";
-import type { } from "@/services/api/mail";
-import type { } from "@/services/api/multi_drafts";
-import type { } from "@/lib/html_sanitizer";
-import type { } from "@/components/email/use_email_viewer";
-import type { } from "@/components/email/hooks/preload_cache";
+import type {} from "@/services/api/mail";
+import type {} from "@/services/api/multi_drafts";
+import type {} from "@/lib/html_sanitizer";
+import type {} from "@/components/email/use_email_viewer";
+import type {} from "@/components/email/hooks/preload_cache";
 
-import React, {    } from "react";
-import {
-  NoSymbolIcon,
-} from "@heroicons/react/24/outline";
+import React from "react";
+import { NoSymbolIcon } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
-
 import { ViewSourceModal } from "@/components/modals/view_source_modal";
 
 export interface ViewerViewSourceProps {

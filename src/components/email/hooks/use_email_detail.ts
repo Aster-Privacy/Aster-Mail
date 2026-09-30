@@ -22,23 +22,23 @@ import type { PrintThreadData } from "@/utils/print_email";
 
 import { useRef, useEffect, useCallback } from "react";
 
+import { use_email_detail_load } from "./use_email_detail_load";
+import { use_thread_draft_removal } from "./use_thread_draft_removal";
+
 import { is_system_email } from "@/lib/utils";
-import {
-  fetch_and_decrypt_thread_messages,
-} from "@/services/thread_service";
+import { fetch_and_decrypt_thread_messages } from "@/services/thread_service";
+import { show_toast } from "@/components/toast/simple_toast";
 import {
   type DraftWithContent,
   type DraftContent,
 } from "@/services/api/multi_drafts";
-import {
-  get_preferences,
-} from "@/services/api/preferences";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 import {
   print_thread,
   setup_thread_print_intercept,
 } from "@/utils/print_email";
 import { set_forward_mail_id } from "@/services/forward_store";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 export type {
   DecryptedEmail,
@@ -55,14 +55,12 @@ export {
   delete_preloaded_email,
   is_preload_busy,
 } from "@/components/email/hooks/preload_cache";
-import { use_email_detail_load } from "./use_email_detail_load";
 
 export function use_email_detail() {
   const {
     t,
     email_id,
     navigate,
-    vault,
     user,
     preferences,
     update_preference,
@@ -91,7 +89,6 @@ export function use_email_detail() {
     open_compose,
     close_compose,
     toggle_minimize,
-    set_auto_advance,
     email_list,
     is_archive_loading,
     is_trash_loading,
@@ -125,6 +122,8 @@ export function use_email_detail() {
     fetch_email,
   } = use_email_detail_load();
 
+  use_thread_draft_removal(mail_item?.thread_token, set_thread_draft);
+
   useEffect(() => {
     fetch_email();
   }, [fetch_email]);
@@ -139,10 +138,15 @@ export function use_email_detail() {
     };
 
     const handle_reply_optimistic = (event: Event) => {
-      const detail = (event as CustomEvent<{ thread_token: string; original_email_id?: string }>)
-        .detail;
+      const detail = (
+        event as CustomEvent<{
+          thread_token: string;
+          original_email_id?: string;
+        }>
+      ).detail;
       const current_token = mail_item?.thread_token;
-      const matches_thread = current_token && detail.thread_token === current_token;
+      const matches_thread =
+        current_token && detail.thread_token === current_token;
       const matches_email =
         detail.original_email_id && detail.original_email_id === email_id;
 
@@ -174,30 +178,18 @@ export function use_email_detail() {
   }, [fetch_email, mail_item?.thread_token, email_id]);
 
   useEffect(() => {
-    const load_preferences = async () => {
-      if (!vault) return;
-      const response = await get_preferences(vault);
-
-      if (response.data) {
-        set_auto_advance(response.data.auto_advance);
-      }
-    };
-
-    load_preferences();
-  }, [vault]);
-
-  useEffect(() => {
-    const handle_keyboard_reply = () => {
+    const handle_keyboard_reply = (e: Event) => {
       const last_msg =
         thread_messages.length > 0
           ? thread_messages[thread_messages.length - 1]
           : null;
 
-      if (last_msg && !is_system_email(last_msg.sender_email)) {
+      if (last_msg && !is_system_email(last_msg)) {
         set_reply_modal_data(
           actions.build_reply_modal_data(
             last_msg,
-            preferences.default_reply_behavior === "reply_all",
+            (e as CustomEvent<{ reply_all?: boolean }>).detail?.reply_all ===
+              true || preferences.default_reply_behavior === "reply_all",
           ),
         );
         set_is_reply_modal_open(true);
@@ -247,7 +239,9 @@ export function use_email_detail() {
       messages: thread_messages.map((msg) => ({
         sender: msg.display_sender_name || msg.sender_name,
         sender_email: msg.display_sender_email || msg.sender_email,
-        timestamp: new Date(msg.timestamp).toLocaleString(),
+        timestamp: new Date(msg.timestamp).toLocaleString(app_locale(), {
+          timeZone: get_display_time_zone(),
+        }),
         body: msg.html_content || msg.body,
         to_recipients: msg.to_recipients,
         cc_recipients: msg.cc_recipients,
@@ -261,19 +255,20 @@ export function use_email_detail() {
   thread_data_ref.current = build_thread_print_data;
 
   useEffect(() => {
-    const teardown = setup_thread_print_intercept(() =>
-      thread_data_ref.current(),
+    const teardown = setup_thread_print_intercept(
+      () => thread_data_ref.current(),
+      t,
     );
 
     return teardown;
-  }, []);
+  }, [t]);
 
   const handle_print = useCallback(() => {
     const data = build_thread_print_data();
 
     if (!data) return;
-    print_thread(data);
-  }, [build_thread_print_data]);
+    print_thread(data, t);
+  }, [build_thread_print_data, t]);
 
   const handle_draft_saved = useCallback(
     (draft: { id: string; version: number; content: DraftContent }) => {
@@ -312,6 +307,7 @@ export function use_email_detail() {
         bcc_recipients: draft.content.bcc_recipients,
         subject: draft.content.subject,
         message: draft.content.message,
+        from_email: draft.content.from_email,
         updated_at: draft.updated_at,
       });
     },
@@ -337,8 +333,16 @@ export function use_email_detail() {
     if (thread_result.messages.length > 0) {
       set_thread_messages(thread_result.messages);
       set_thread_truncated(false);
+    } else if (!thread_result.thread_data) {
+      show_toast(t("common.failed_to_load_email"), "error");
     }
-  }, [mail_item?.thread_token, mail_item?.is_trashed, mail_item?.is_spam, user?.email]);
+  }, [
+    t,
+    mail_item?.thread_token,
+    mail_item?.is_trashed,
+    mail_item?.is_spam,
+    user?.email,
+  ]);
 
   return {
     t,
@@ -398,6 +402,9 @@ export function use_email_detail() {
     get_next_email_destination,
     handle_archive: actions.handle_archive,
     handle_trash: actions.handle_trash,
+    pending_permanent_delete_id: actions.pending_permanent_delete_id,
+    set_pending_permanent_delete_id: actions.set_pending_permanent_delete_id,
+    confirm_permanent_delete: actions.confirm_permanent_delete,
     handle_print,
     handle_copy_text: actions.handle_copy_text,
     handle_draft_saved,

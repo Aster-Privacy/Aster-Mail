@@ -18,31 +18,30 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "./crypto/key_manager";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { api_client } from "./api/client";
 import { check_and_replenish_prekeys } from "./crypto/prekey_service";
 import { refresh_session_activity } from "./session_timeout_service";
 import { connection_store } from "./routing/connection_store";
 import { TorUnavailableError } from "./routing/tor_unavailable_error";
+
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { HASH_ALG } from "@/services/crypto/constants";
 import { is_onion_host } from "@/lib/onion_host";
 import {
   is_any_lockdown_active,
   LOCKDOWN_CHANGED_EVENT,
 } from "@/services/lockdown_store";
-
 import {
   MAIL_EVENTS,
   emit_reactions_changed,
   emit_mail_items_removed,
+  emit_contacts_changed,
 } from "@/hooks/mail_events";
 import { mark_view_stale } from "@/hooks/email_list_cache";
 import { is_low_network } from "@/services/low_network_state";
 import { sync_recent } from "@/services/category_index";
-
-
 import { ignore_error } from "@/lib/ignore_error";
 
 type ServerMessageType =
@@ -57,6 +56,7 @@ type ServerMessageType =
   | "new_reaction"
   | "prekey_low"
   | "session_revoked"
+  | "contacts_changed"
   | "mail_mutation"
   | "ping"
   | "pong";
@@ -75,6 +75,9 @@ interface ServerMessage {
 
 const HEARTBEAT_INTERVAL_MS = 30000;
 const LIVENESS_TIMEOUT_MS = 75000;
+const CATCH_UP_TICK_MS = 60000;
+export const PUSH_ARRIVED_MESSAGE = "aster_push_arrived";
+const CATCH_UP_WHILE_LIVE_MS = 180000;
 const MUTATION_REFRESH_DEBOUNCE_MS = 600;
 const REMOVAL_ACTIONS = new Set([
   "trash",
@@ -103,6 +106,9 @@ class SyncClient {
   private auth_error_count = 0;
   private last_auth_error = false;
   private reconnect_attempt = 0;
+  private has_authenticated_before = false;
+  private last_catch_up_at = 0;
+  private catch_up_timer: ReturnType<typeof setInterval> | null = null;
   private pending_connect_reject: ((err: Error) => void) | null = null;
   private heartbeat_timer: ReturnType<typeof setInterval> | null = null;
   private last_message_at = 0;
@@ -228,15 +234,19 @@ class SyncClient {
         this.handle_message(data);
 
         if (data.type === "auth_success") {
-          const is_reconnect = this.reconnect_attempt > 0;
+          const is_reconnect =
+            this.reconnect_attempt > 0 || this.has_authenticated_before;
+
           this.authenticated = true;
+          this.has_authenticated_before = true;
           this.auth_error_count = 0;
           this.last_auth_error = false;
           this.reconnect_attempt = 0;
           this.start_heartbeat();
+          this.start_catch_up_timer();
           void check_and_replenish_prekeys();
           if (is_reconnect) {
-            void sync_recent(true);
+            this.catch_up_now();
             window.dispatchEvent(
               new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
             );
@@ -287,6 +297,63 @@ class SyncClient {
     }
   }
 
+  catch_up_now(): void {
+    if (!this.should_reconnect) return;
+    if (
+      typeof document !== "undefined" &&
+      document.visibilityState === "hidden"
+    ) {
+      return;
+    }
+    this.last_catch_up_at = Date.now();
+    sync_recent(true).catch((caught) =>
+      ignore_error("services/sync_client:catch_up", caught),
+    );
+  }
+
+  private start_catch_up_timer(): void {
+    if (this.catch_up_timer) return;
+
+    this.catch_up_timer = setInterval(() => {
+      if (!this.should_reconnect) return;
+      if (
+        typeof document !== "undefined" &&
+        document.visibilityState === "hidden"
+      ) {
+        return;
+      }
+      const socket_live =
+        this.authenticated && this.socket?.readyState === WebSocket.OPEN;
+      const since_last = Date.now() - this.last_catch_up_at;
+      const due = socket_live
+        ? since_last >= CATCH_UP_WHILE_LIVE_MS
+        : since_last >= CATCH_UP_TICK_MS;
+
+      if (due) this.catch_up_now();
+    }, CATCH_UP_TICK_MS);
+  }
+
+  private stop_catch_up_timer(): void {
+    if (this.catch_up_timer) {
+      clearInterval(this.catch_up_timer);
+      this.catch_up_timer = null;
+    }
+  }
+
+  on_wake(): void {
+    this.reconnect_now();
+
+    const socket_live =
+      this.authenticated && this.socket?.readyState === WebSocket.OPEN;
+
+    if (
+      socket_live &&
+      Date.now() - this.last_catch_up_at >= CATCH_UP_TICK_MS
+    ) {
+      this.catch_up_now();
+    }
+  }
+
   reconnect_now(): void {
     if (!this.should_reconnect) return;
 
@@ -311,7 +378,9 @@ class SyncClient {
     }
 
     this.reconnect_attempt = 0;
-    this.connect().catch((caught) => ignore_error("services/sync_client:reconnect_now", caught));
+    this.connect().catch((caught) =>
+      ignore_error("services/sync_client:reconnect_now", caught),
+    );
   }
 
   private schedule_reconnect(): void {
@@ -405,6 +474,7 @@ class SyncClient {
     }
 
     if (data.type === "new_mail") {
+      this.last_catch_up_at = Date.now();
       mark_view_stale();
       if (!is_low_network()) {
         window.dispatchEvent(
@@ -427,6 +497,12 @@ class SyncClient {
       this.should_reconnect = false;
       this.disconnect();
       window.dispatchEvent(new CustomEvent("astermail:session-revoked"));
+
+      return;
+    }
+
+    if (data.type === "contacts_changed") {
+      emit_contacts_changed();
 
       return;
     }
@@ -559,11 +635,13 @@ class SyncClient {
     this.last_auth_error = false;
     this.auth_error_count = 0;
     this.reconnect_attempt = 0;
+    this.has_authenticated_before = false;
     if (this.reconnect_timeout) {
       clearTimeout(this.reconnect_timeout);
       this.reconnect_timeout = null;
     }
     this.stop_heartbeat();
+    this.stop_catch_up_timer();
     if (this.mutation_refresh_timer) {
       clearTimeout(this.mutation_refresh_timer);
       this.mutation_refresh_timer = null;
@@ -657,21 +735,34 @@ if (typeof window !== "undefined") {
   });
   window.addEventListener(LOCKDOWN_CHANGED_EVENT, (e) => {
     const detail = (e as CustomEvent).detail;
+
     if (detail?.enabled) {
       sync_client.disconnect();
     }
   });
   window.addEventListener("online", () => {
-    sync_client.reconnect_now();
+    sync_client.on_wake();
   });
   document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
-      sync_client.reconnect_now();
+      sync_client.on_wake();
     }
   });
   window.addEventListener("focus", () => {
-    sync_client.reconnect_now();
+    sync_client.on_wake();
   });
+  if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+    navigator.serviceWorker.addEventListener("message", (event) => {
+      const data = (event as MessageEvent).data as
+        | { type?: string }
+        | null
+        | undefined;
+
+      if (data?.type === PUSH_ARRIVED_MESSAGE) {
+        sync_client.catch_up_now();
+      }
+    });
+  }
 }
 
 async function derive_key(

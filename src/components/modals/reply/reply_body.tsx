@@ -22,6 +22,7 @@ import type { TranslationKey } from "@/lib/i18n";
 import type { UseEditorReturn } from "@/hooks/use_editor";
 
 import { useEffect } from "react";
+import { Tooltip } from "@aster/ui";
 
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import { QuotedHtmlPreview } from "@/components/compose/quoted_html_preview";
@@ -80,7 +81,6 @@ interface ReplyBodyProps {
   set_expiry_password: (val: string | null) => void;
   active_formats: Set<string>;
   exec_format_command: (command: string) => void;
-  handle_insert_link: () => void;
   draft_status: DraftStatus;
   last_saved_time: Date | null;
   draft_id: string | null;
@@ -131,7 +131,6 @@ export function ReplyBody({
   set_expiry_password,
   active_formats,
   exec_format_command,
-  handle_insert_link,
   draft_status,
   last_saved_time,
   draft_id,
@@ -225,52 +224,48 @@ export function ReplyBody({
 
       {!is_minimized && original_body && include_quoted && (
         <div className="px-4 pb-2">
-          <div className="flex items-center gap-3">
-            <button
-              className="flex items-center gap-1.5 text-xs transition-colors"
-              style={{ color: "var(--text-tertiary)" }}
-              type="button"
-              onClick={() => set_show_quoted(!show_quoted)}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.color = "var(--text-secondary)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.color = "var(--text-tertiary)")
-              }
-            >
-              <svg
-                className={`w-3 h-3 transition-transform ${show_quoted ? "rotate-90" : ""}`}
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M6 6L14 10L6 14V6Z" />
-              </svg>
-              <span>
-                {show_quoted
+          <div className="inline-flex h-6 items-center rounded-full bg-[var(--aster-hover)] text-txt-secondary">
+            <Tooltip
+              tip={
+                show_quoted
                   ? t("mail.hide_quoted_text")
-                  : t("mail.show_quoted_text")}
-              </span>
-            </button>
-            <button
-              aria-label={t("mail.remove_quoted_text")}
-              className="flex items-center gap-1 text-xs transition-colors"
-              style={{ color: "var(--text-tertiary)" }}
-              title={t("mail.remove_quoted_text")}
-              type="button"
-              onClick={() => {
-                set_include_quoted(false);
-                set_show_quoted(false);
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.color = "var(--text-secondary)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.color = "var(--text-tertiary)")
+                  : t("mail.show_quoted_text")
               }
             >
-              <CloseIcon className="w-3 h-3" />
-              <span>{t("mail.remove_quoted_text")}</span>
-            </button>
+              <button
+                aria-expanded={show_quoted}
+                aria-label={
+                  show_quoted
+                    ? t("mail.hide_quoted_text")
+                    : t("mail.show_quoted_text")
+                }
+                className="inline-flex h-6 min-w-10 items-center justify-center rounded-full px-3 hover:bg-[var(--aster-hover)] hover:text-txt-primary aria-expanded:text-txt-primary"
+                type="button"
+                onClick={() => set_show_quoted(!show_quoted)}
+              >
+                <span
+                  aria-hidden="true"
+                  className="flex items-center gap-[2.5px]"
+                >
+                  <span className="h-1 w-1 rounded-full bg-current" />
+                  <span className="h-1 w-1 rounded-full bg-current" />
+                  <span className="h-1 w-1 rounded-full bg-current" />
+                </span>
+              </button>
+            </Tooltip>
+            <Tooltip tip={t("mail.remove_quoted_text")}>
+              <button
+                aria-label={t("mail.remove_quoted_text")}
+                className="inline-flex h-6 w-6 items-center justify-center rounded-full text-txt-muted hover:bg-[var(--aster-hover)] hover:text-txt-primary"
+                type="button"
+                onClick={() => {
+                  set_include_quoted(false);
+                  set_show_quoted(false);
+                }}
+              >
+                <CloseIcon className="h-3 w-3" />
+              </button>
+            </Tooltip>
           </div>
           {show_quoted && (
             <QuotedHtmlPreview html={build_quoted_content(true)} />
@@ -283,6 +278,7 @@ export function ReplyBody({
           add_label={t("mail.add_file")}
           attachments={attachments}
           attachments_scroll_ref={attachments_scroll_ref}
+          message_html={message_content}
           remove_attachment={remove_attachment}
           trigger_file_select={trigger_file_select}
         />
@@ -290,24 +286,21 @@ export function ReplyBody({
 
       {!is_minimized && error_message && (
         <div
-          className="mx-3 mb-2 p-3 rounded-lg border flex items-center gap-2 flex-shrink-0"
+          className="mx-3 mb-2 p-3 rounded-[12px] flex items-center gap-2 flex-shrink-0"
           style={{
-            backgroundColor: "rgba(239, 68, 68, 0.1)",
-            borderColor: "rgba(239, 68, 68, 0.3)",
+            backgroundColor: "#dc2626",
           }}
         >
           <svg
-            className="w-5 h-5 text-red-500 flex-shrink-0"
+            className="w-5 h-5 text-white flex-shrink-0"
             fill="currentColor"
             viewBox="0 0 24 24"
           >
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z" />
           </svg>
-          <span className="text-xs text-red-600 dark:text-red-400 flex-1">
-            {error_message}
-          </span>
+          <span className="text-xs text-white flex-1">{error_message}</span>
           <button
-            className="text-red-500 hover:text-red-700 flex-shrink-0"
+            className="text-white flex-shrink-0"
             onClick={() => set_error_message(null)}
           >
             <CloseIcon className="w-4 h-4" />
@@ -319,22 +312,20 @@ export function ReplyBody({
         <div
           className="mx-3 mb-2 p-3 rounded-lg border flex items-center gap-2 flex-shrink-0"
           style={{
-            backgroundColor: "rgba(234, 179, 8, 0.1)",
-            borderColor: "rgba(234, 179, 8, 0.3)",
+            backgroundColor: "#d97706",
+            borderColor: "#d97706",
           }}
         >
           <svg
-            className="w-5 h-5 text-yellow-500 flex-shrink-0"
+            className="w-5 h-5 text-white flex-shrink-0"
             fill="currentColor"
             viewBox="0 0 24 24"
           >
             <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z" />
           </svg>
-          <span className="text-xs text-yellow-600 dark:text-yellow-400 flex-1">
-            {attachment_error}
-          </span>
+          <span className="text-xs text-white flex-1">{attachment_error}</span>
           <button
-            className="text-yellow-500 hover:text-yellow-700 flex-shrink-0"
+            className="text-white flex-shrink-0"
             type="button"
             onClick={() => set_attachment_error(null)}
           >
@@ -385,13 +376,22 @@ export function ReplyBody({
             ),
             active_formats,
             exec_format_command,
-            handle_insert_link,
             trigger_file_select,
             draft_status,
             last_saved_time,
-            handle_show_delete_confirm: draft_id
-              ? () => set_show_delete_confirm(true)
-              : () => handle_delete_draft(),
+            handle_show_delete_confirm: () => {
+              const has_content =
+                !!draft_id ||
+                attachments.length > 0 ||
+                (message_editor_ref.current?.innerText.trim().length ?? 0) > 0;
+
+              if (has_content) {
+                set_show_delete_confirm(true);
+
+                return;
+              }
+              handle_delete_draft();
+            },
             editor,
             is_plain_text_mode,
             toggle_plain_text_mode,
@@ -400,9 +400,7 @@ export function ReplyBody({
             <SignaturePicker
               disabled={is_scheduling}
               on_select={(content) => {
-                if (content) {
-                  editor.insert_html(content);
-                }
+                editor.apply_signature(content || null);
               }}
               open_direction="up"
             />

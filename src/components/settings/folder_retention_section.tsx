@@ -20,8 +20,17 @@
 //
 import * as React from "react";
 import { PlusIcon, ClockIcon } from "@heroicons/react/24/outline";
-import { Button, Switch } from "@aster/ui";
+import {
+  Button,
+  Input,
+  Island,
+  IslandEmpty,
+  IslandSection,
+  IslandStack,
+  Switch,
+} from "@aster/ui";
 
+import { commit_on_enter } from "@/lib/commit_on_enter";
 import {
   Modal,
   ModalHeader,
@@ -42,6 +51,8 @@ import { use_folders } from "@/hooks/use_folders";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_register_search_items } from "@/components/settings/search_context";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import {
   list_retention_policies,
   create_retention_policy,
@@ -57,6 +68,8 @@ const DAY_PRESETS = [7, 30, 90, 180, 365];
 export interface UseFolderRetention {
   policies: RetentionPolicy[];
   loading: boolean;
+  load_failed: boolean;
+  reload: () => void;
   entitled: boolean;
   plan_loading: boolean;
   custom_folders: { folder_token: string; name: string }[];
@@ -76,13 +89,23 @@ export interface UseFolderRetention {
 
 export function use_folder_retention(): UseFolderRetention {
   const { t } = use_i18n();
-  const { state: folders_state, fetch_folders, get_folder_by_token } =
-    use_folders();
-  const { limits, is_loading: plan_loading } = use_plan_limits();
-  const entitled = (limits?.limits["has_folder_retention"]?.limit ?? 0) >= 1;
+  const {
+    state: folders_state,
+    fetch_folders,
+    get_folder_by_token,
+  } = use_folders();
+  const {
+    limits,
+    is_loading: plan_loading,
+    load_failed: plan_load_failed,
+  } = use_plan_limits();
+  const entitled =
+    plan_load_failed ||
+    (limits?.limits["has_folder_retention"]?.limit ?? 0) >= 1;
 
   const [policies, set_policies] = React.useState<RetentionPolicy[]>([]);
   const [loading, set_loading] = React.useState(true);
+  const [load_failed, set_load_failed] = React.useState(false);
   const [editor_open, set_editor_open] = React.useState(false);
   const [editing, set_editing] = React.useState<RetentionPolicy | null>(null);
   const [show_upgrade, set_show_upgrade] = React.useState(false);
@@ -90,9 +113,12 @@ export function use_folder_retention(): UseFolderRetention {
   const load = React.useCallback(async () => {
     set_loading(true);
     const res = await list_retention_policies();
+
     if (res.data) {
       set_policies(res.data);
-    } else if (res.error) {
+      set_load_failed(false);
+    } else {
+      set_load_failed(true);
       show_toast(t("folder_retention.load_failed"), "error");
     }
     set_loading(false);
@@ -116,6 +142,7 @@ export function use_folder_retention(): UseFolderRetention {
   const open_new = () => {
     if (!plan_loading && !entitled) {
       set_show_upgrade(true);
+
       return;
     }
     set_editing(null);
@@ -125,6 +152,7 @@ export function use_folder_retention(): UseFolderRetention {
   const open_edit = (policy: RetentionPolicy) => {
     if (!plan_loading && !entitled) {
       set_show_upgrade(true);
+
       return;
     }
     set_editing(policy);
@@ -132,11 +160,18 @@ export function use_folder_retention(): UseFolderRetention {
   };
 
   const handle_delete = async (policy: RetentionPolicy) => {
-    set_policies((prev) => prev.filter((p) => p.id !== policy.id));
+    let previous: RetentionPolicy[] = [];
+
+    set_policies((prev) => {
+      previous = prev;
+
+      return prev.filter((p) => p.id !== policy.id);
+    });
     const res = await delete_retention_policy(policy.id);
+
     if (res.error) {
       show_toast(t("folder_retention.save_failed"), "error");
-      load();
+      set_policies(previous);
     } else {
       show_toast(t("folder_retention.deleted_toast"), "success");
     }
@@ -144,19 +179,27 @@ export function use_folder_retention(): UseFolderRetention {
 
   const handle_toggle = async (policy: RetentionPolicy) => {
     const next = !policy.enabled;
-    set_policies((prev) =>
-      prev.map((p) => (p.id === policy.id ? { ...p, enabled: next } : p)),
-    );
+    let previous: RetentionPolicy[] = [];
+
+    set_policies((prev) => {
+      previous = prev;
+
+      return prev.map((p) =>
+        p.id === policy.id ? { ...p, enabled: next } : p,
+      );
+    });
     const res = await update_retention_policy(policy.id, { enabled: next });
+
     if (res.error) {
       show_toast(t("folder_retention.save_failed"), "error");
-      load();
+      set_policies(previous);
     }
   };
 
   const handle_saved = (saved: RetentionPolicy) => {
     set_policies((prev) => {
       const exists = prev.some((p) => p.id === saved.id);
+
       return exists
         ? prev.map((p) => (p.id === saved.id ? saved : p))
         : [...prev, saved];
@@ -170,6 +213,8 @@ export function use_folder_retention(): UseFolderRetention {
   return {
     policies,
     loading,
+    load_failed,
+    reload: load,
     entitled,
     plan_loading,
     custom_folders,
@@ -211,19 +256,21 @@ export function RetentionPolicyCard({
   const summary = `${t("folder_retention.summary_older_than", {
     days: policy.retention_days,
   })} · ${mode_summary}`;
+
   return (
-    <div
-      className={`group relative rounded-xl border bg-surf-primary p-4 transition-colors border-neutral-200 dark:border-neutral-700 ${
+    <Island
+      className={`group relative transition-opacity ${
         policy.enabled ? "" : "opacity-60"
       }`}
+      padding="md"
     >
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <button
+          className="flex-1 text-start min-w-0 cursor-pointer"
           type="button"
           onClick={on_edit}
-          className="flex-1 text-left min-w-0 cursor-pointer"
         >
-          <div className="flex items-center gap-2 mb-0.5">
+          <div className="flex flex-wrap items-center gap-2 mb-0.5">
             <ClockIcon className="w-4 h-4 text-txt-tertiary flex-shrink-0" />
             <span className="text-[13px] font-medium text-txt-primary truncate">
               {folder_name}
@@ -240,13 +287,18 @@ export function RetentionPolicyCard({
           <div className="text-xs text-txt-muted">{summary}</div>
         </button>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <Switch size="lg" checked={policy.enabled} onCheckedChange={on_toggle} />
+          <Switch
+            aria-label={folder_name}
+            checked={policy.enabled}
+            size="lg"
+            onCheckedChange={on_toggle}
+          />
           <Button variant="ghost" onClick={on_delete}>
             {t("folder_retention.remove")}
           </Button>
         </div>
       </div>
-    </div>
+    </Island>
   );
 }
 
@@ -258,11 +310,14 @@ export function RetentionUpgradeModal({
   on_close: () => void;
 }) {
   const { t } = use_i18n();
+
   return (
     <Modal is_open={is_open} on_close={on_close} size="md">
       <ModalHeader>
         <ModalTitle>{t("folder_retention.upgrade_title")}</ModalTitle>
-        <ModalDescription>{t("folder_retention.upgrade_body")}</ModalDescription>
+        <ModalDescription>
+          {t("folder_retention.upgrade_body")}
+        </ModalDescription>
       </ModalHeader>
       <ModalFooter>
         <Button variant="outline" onClick={on_close}>
@@ -287,88 +342,103 @@ export function RetentionUpgradeModal({
 export function FolderRetentionSection() {
   const { t } = use_i18n();
   const r = use_folder_retention();
+  const [confirm_delete_policy, set_confirm_delete_policy] =
+    React.useState<RetentionPolicy | null>(null);
 
   use_register_search_items("mail_rules", [
     {
       label: t("folder_retention.title"),
-      breadcrumb: "Mail Rules > Folder auto-clean",
-      keywords: ["auto delete", "retention", "expire", "clean folder", "older than"],
+      breadcrumb: `${t("mail_rules.title")} > ${t("folder_retention.title")}`,
+      keywords: [
+        "auto delete",
+        "retention",
+        "expire",
+        "clean folder",
+        "older than",
+      ],
     },
   ]);
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-4">
-          <div className="flex items-center justify-between">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-              <ClockIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-              {t("folder_retention.title")}
-            </h3>
-            <Button variant="depth" onClick={r.open_new}>
-              <PlusIcon className="w-4 h-4" />
-              {t("folder_retention.add")}
-            </Button>
-          </div>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-        <p className="text-sm mb-4 text-txt-muted">
-          {t("folder_retention.subtitle")}
-        </p>
-      </div>
+    <div>
+      <IslandSection
+        bare
+        description={t("folder_retention.subtitle")}
+        icon={<ClockIcon />}
+        title={t("folder_retention.title")}
+        trailing={
+          <Button variant="depth" onClick={r.open_new}>
+            <PlusIcon className="w-4 h-4" />
+            {t("folder_retention.add")}
+          </Button>
+        }
+      >
+        {r.loading && r.policies.length === 0 && (
+          <IslandStack>
+            {[0, 1].map((i) => (
+              <Island key={i} className="h-16 animate-pulse" />
+            ))}
+          </IslandStack>
+        )}
 
-      {r.loading && r.policies.length === 0 && (
-        <div className="space-y-3">
-          {[0, 1].map((i) => (
-            <div
-              key={i}
-              className="h-16 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse"
-            />
-          ))}
-        </div>
-      )}
+        {!r.loading && r.load_failed && r.policies.length === 0 && (
+          <LoadFailedNotice on_retry={r.reload} />
+        )}
 
-      {!r.loading && r.policies.length === 0 && (
-        <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-          <ClockIcon className="w-12 h-12 mx-auto mb-2 text-txt-tertiary" />
-          <p className="text-sm text-txt-muted mb-1">
-            {t("folder_retention.empty_title")}
-          </p>
-          <p className="text-xs text-txt-muted">
-            {t("folder_retention.empty_description")}
-          </p>
-        </div>
-      )}
+        {!r.loading && !r.load_failed && r.policies.length === 0 && (
+          <IslandEmpty
+            description={t("folder_retention.empty_description")}
+            icon={<ClockIcon />}
+            title={t("folder_retention.empty_title")}
+          />
+        )}
 
-      {r.policies.length > 0 && (
-        <div className="space-y-2">
-          {r.policies.map((policy) => (
-            <RetentionPolicyCard
-              key={policy.id}
-              policy={policy}
-              folder_name={r.get_folder_name(policy.folder_token)}
-              on_edit={() => r.open_edit(policy)}
-              on_toggle={() => r.handle_toggle(policy)}
-              on_delete={() => r.handle_delete(policy)}
-            />
-          ))}
-        </div>
-      )}
+        {r.policies.length > 0 && (
+          <IslandStack>
+            {r.policies.map((policy) => (
+              <RetentionPolicyCard
+                key={policy.id}
+                folder_name={r.get_folder_name(policy.folder_token)}
+                on_delete={() => set_confirm_delete_policy(policy)}
+                on_edit={() => r.open_edit(policy)}
+                on_toggle={() => r.handle_toggle(policy)}
+                policy={policy}
+              />
+            ))}
+          </IslandStack>
+        )}
+      </IslandSection>
 
       {r.editor_open && (
         <RetentionEditorModal
-          is_open={r.editor_open}
-          on_close={() => r.set_editor_open(false)}
-          policy={r.editing}
           custom_folders={r.custom_folders}
           existing_tokens={r.existing_tokens}
+          is_open={r.editor_open}
+          on_close={() => r.set_editor_open(false)}
           on_saved={r.handle_saved}
+          policy={r.editing}
         />
       )}
 
       <RetentionUpgradeModal
         is_open={r.show_upgrade}
         on_close={() => r.set_show_upgrade(false)}
+      />
+
+      <ConfirmationModal
+        confirm_text={t("folder_retention.remove")}
+        is_open={confirm_delete_policy !== null}
+        message={t("common.action_cannot_be_undone")}
+        on_cancel={() => set_confirm_delete_policy(null)}
+        on_confirm={() => {
+          const target = confirm_delete_policy;
+
+          set_confirm_delete_policy(null);
+
+          if (target) void r.handle_delete(target);
+        }}
+        title={t("folder_retention.delete")}
+        variant="danger"
       />
     </div>
   );
@@ -396,11 +466,14 @@ export function RetentionEditorModal({
     policy?.folder_token ?? "",
   );
   const [days, set_days] = React.useState(policy?.retention_days ?? 30);
+  const [days_input, set_days_input] = React.useState<string | null>(null);
   const [mode, set_mode] = React.useState<DeleteMode>(
     policy?.delete_mode ?? "trash",
   );
   const [enabled] = React.useState(policy?.enabled ?? true);
-  const [preview_count, set_preview_count] = React.useState<number | null>(null);
+  const [preview_count, set_preview_count] = React.useState<number | null>(
+    null,
+  );
   const [saving, set_saving] = React.useState(false);
   const [confirm_permanent, set_confirm_permanent] = React.useState(false);
 
@@ -409,21 +482,25 @@ export function RetentionEditorModal({
   const available_folders = React.useMemo(() => {
     if (is_edit) return custom_folders;
     const taken = new Set(existing_tokens);
+
     return custom_folders.filter((f) => !taken.has(f.folder_token));
   }, [custom_folders, existing_tokens, is_edit]);
 
   React.useEffect(() => {
     if (!folder_token || days < 1) {
       set_preview_count(null);
+
       return;
     }
     let cancelled = false;
     const handle = setTimeout(async () => {
       const res = await preview_retention_policy(folder_token, days);
+
       if (!cancelled) {
         set_preview_count(res.data ?? null);
       }
     }, 400);
+
     return () => {
       cancelled = true;
       clearTimeout(handle);
@@ -432,6 +509,7 @@ export function RetentionEditorModal({
 
   const clamp_days = (raw: number) => {
     if (Number.isNaN(raw)) return 1;
+
     return Math.min(3650, Math.max(1, Math.floor(raw)));
   };
 
@@ -450,6 +528,7 @@ export function RetentionEditorModal({
           delete_mode: mode,
           enabled,
         });
+
     set_saving(false);
     if (res.data) {
       show_toast(t("folder_retention.saved_toast"), "success");
@@ -463,6 +542,7 @@ export function RetentionEditorModal({
     if (!folder_token) return;
     if (mode === "permanent") {
       set_confirm_permanent(true);
+
       return;
     }
     do_save();
@@ -470,145 +550,171 @@ export function RetentionEditorModal({
 
   return (
     <>
-    <Modal is_open={is_open} on_close={on_close} size="md">
-      <ModalHeader>
-        <ModalTitle>{t("folder_retention.edit_title")}</ModalTitle>
-      </ModalHeader>
-      <ModalBody>
-        <div className="space-y-5">
-          <div>
-            <label className="block text-sm font-medium text-txt-primary mb-1.5">
-              {t("folder_retention.folder")}
-            </label>
-            {available_folders.length === 0 ? (
-              <p className="text-xs text-txt-muted">
-                {t("folder_retention.no_folders")}
-              </p>
-            ) : (
-              <Select
-                value={folder_token}
-                onValueChange={set_folder_token}
-                disabled={is_edit}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue
-                    placeholder={t("folder_retention.select_folder")}
-                  />
-                </SelectTrigger>
-                <SelectContent>
-                  {available_folders.map((f) => (
-                    <SelectItem key={f.folder_token} value={f.folder_token}>
-                      {f.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-txt-primary mb-1.5">
-              {t("folder_retention.retention_period")}
-            </label>
-            <div className="flex flex-wrap items-center gap-2">
-              {DAY_PRESETS.map((preset) => (
-                <button
-                  key={preset}
-                  type="button"
-                  onClick={() => set_days(preset)}
-                  className={`px-3 py-1.5 rounded-lg text-sm border transition-colors ${
-                    days === preset
-                      ? "border-blue-600 bg-blue-600 text-white"
-                      : "border-edge-secondary text-txt-muted hover:bg-surf-secondary"
-                  }`}
+      <Modal is_open={is_open} on_close={on_close} size="md">
+        <ModalHeader>
+          <ModalTitle>{t("folder_retention.edit_title")}</ModalTitle>
+        </ModalHeader>
+        <ModalBody>
+          <div className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-txt-primary mb-1.5">
+                {t("folder_retention.folder")}
+              </label>
+              {available_folders.length === 0 ? (
+                <p className="text-xs text-txt-muted">
+                  {t("folder_retention.no_folders")}
+                </p>
+              ) : (
+                <Select
+                  disabled={is_edit}
+                  value={folder_token}
+                  onValueChange={set_folder_token}
                 >
-                  {preset}
-                </button>
-              ))}
-              <input
-                type="number"
-                min={1}
-                max={3650}
-                value={days}
-                onChange={(e) => set_days(clamp_days(Number(e.target.value)))}
-                className="w-20 rounded-lg border border-edge-secondary bg-surf-primary px-2 py-1.5 text-sm text-txt-primary"
-              />
-              <span className="text-sm text-txt-muted">
-                {t("folder_retention.days_suffix")}
-              </span>
+                  <SelectTrigger className="w-full">
+                    <SelectValue
+                      placeholder={t("folder_retention.select_folder")}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {available_folders.map((f) => (
+                      <SelectItem key={f.folder_token} value={f.folder_token}>
+                        {f.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-txt-primary mb-1.5">
+                {t("folder_retention.retention_period")}
+              </label>
+              <div className="flex flex-wrap items-center gap-2">
+                {DAY_PRESETS.map((preset) => (
+                  <button
+                    key={preset}
+                    className={`px-3 py-1.5 rounded-full text-sm transition-colors ${
+                      days === preset
+                        ? "bg-[var(--accent-color)] text-[var(--accent-fg,#ffffff)]"
+                        : "bg-surf-secondary text-txt-muted hover:bg-surf-tertiary"
+                    }`}
+                    type="button"
+                    onClick={() => {
+                      set_days(preset);
+                      set_days_input(null);
+                    }}
+                  >
+                    {preset}
+                  </button>
+                ))}
+                <Input
+                  className="!w-20"
+                  max={3650}
+                  min={1}
+                  size="sm"
+                  type="number"
+                  value={days_input ?? days}
+                  onBlur={(e) => {
+                    const raw = e.target.value.trim();
+
+                    if (raw !== "") set_days(clamp_days(Number(raw)));
+                    set_days_input(null);
+                  }}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+
+                    set_days_input(raw);
+
+                    const parsed = Number(raw.trim());
+
+                    if (raw.trim() !== "" && Number.isFinite(parsed)) {
+                      set_days(clamp_days(parsed));
+                    }
+                  }}
+                  onKeyDown={commit_on_enter}
+                />
+                <span className="text-sm text-txt-muted">
+                  {t("folder_retention.days_suffix")}
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-txt-primary mb-1.5">
+                {t("folder_retention.mode")}
+              </label>
+              <div className="space-y-2">
+                <ModeOption
+                  active={mode === "archive"}
+                  hint={t("folder_retention.mode_archive_hint")}
+                  on_click={() => set_mode("archive")}
+                  title={t("folder_retention.mode_archive")}
+                />
+                <ModeOption
+                  active={mode === "trash"}
+                  hint={t("folder_retention.mode_trash_hint")}
+                  on_click={() => set_mode("trash")}
+                  title={t("folder_retention.mode_trash")}
+                />
+                <ModeOption
+                  danger
+                  active={mode === "permanent"}
+                  hint={t("folder_retention.mode_permanent_hint")}
+                  on_click={() => set_mode("permanent")}
+                  title={t("folder_retention.mode_permanent")}
+                />
+              </div>
+            </div>
+
+            <div className="rounded-xl bg-surf-secondary px-3 py-2.5 text-xs text-txt-muted">
+              {preview_count === null
+                ? t("folder_retention.keeps_note")
+                : preview_count === 0
+                  ? t("folder_retention.preview_none")
+                  : t("folder_retention.preview_some", {
+                      count: preview_count,
+                    })}
             </div>
           </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="outline" onClick={on_close}>
+            {t("folder_retention.cancel")}
+          </Button>
+          <Button
+            disabled={!folder_token || saving}
+            variant="depth"
+            onClick={handle_save}
+          >
+            {t("folder_retention.save")}
+          </Button>
+        </ModalFooter>
+      </Modal>
 
-          <div>
-            <label className="block text-sm font-medium text-txt-primary mb-1.5">
-              {t("folder_retention.mode")}
-            </label>
-            <div className="space-y-2">
-              <ModeOption
-                active={mode === "archive"}
-                title={t("folder_retention.mode_archive")}
-                hint={t("folder_retention.mode_archive_hint")}
-                on_click={() => set_mode("archive")}
-              />
-              <ModeOption
-                active={mode === "trash"}
-                title={t("folder_retention.mode_trash")}
-                hint={t("folder_retention.mode_trash_hint")}
-                on_click={() => set_mode("trash")}
-              />
-              <ModeOption
-                active={mode === "permanent"}
-                title={t("folder_retention.mode_permanent")}
-                hint={t("folder_retention.mode_permanent_hint")}
-                danger
-                on_click={() => set_mode("permanent")}
-              />
-            </div>
-          </div>
-
-          <div className="rounded-lg bg-surf-secondary px-3 py-2.5 text-xs text-txt-muted">
-            {preview_count === null
-              ? t("folder_retention.keeps_note")
-              : preview_count === 0
-                ? t("folder_retention.preview_none")
-                : t("folder_retention.preview_some", { count: preview_count })}
-          </div>
-        </div>
-      </ModalBody>
-      <ModalFooter>
-        <Button variant="outline" onClick={on_close}>
-          {t("folder_retention.cancel")}
-        </Button>
-        <Button
-          variant="depth"
-          disabled={!folder_token || saving}
-          onClick={handle_save}
-        >
-          {t("folder_retention.save")}
-        </Button>
-      </ModalFooter>
-    </Modal>
-
-    <Modal
-      is_open={confirm_permanent}
-      on_close={() => set_confirm_permanent(false)}
-      size="md"
-    >
-      <ModalHeader>
-        <ModalTitle>{t("folder_retention.mode_permanent")}</ModalTitle>
-        <ModalDescription>
-          {t("folder_retention.permanent_confirm", { days })}
-        </ModalDescription>
-      </ModalHeader>
-      <ModalFooter>
-        <Button variant="outline" onClick={() => set_confirm_permanent(false)}>
-          {t("folder_retention.cancel")}
-        </Button>
-        <Button variant="depth" disabled={saving} onClick={do_save}>
-          {t("folder_retention.delete")}
-        </Button>
-      </ModalFooter>
-    </Modal>
+      <Modal
+        is_open={confirm_permanent}
+        on_close={() => set_confirm_permanent(false)}
+        size="md"
+      >
+        <ModalHeader>
+          <ModalTitle>{t("folder_retention.mode_permanent")}</ModalTitle>
+          <ModalDescription>
+            {t("folder_retention.permanent_confirm", { days })}
+          </ModalDescription>
+        </ModalHeader>
+        <ModalFooter>
+          <Button
+            variant="outline"
+            onClick={() => set_confirm_permanent(false)}
+          >
+            {t("folder_retention.cancel")}
+          </Button>
+          <Button disabled={saving} variant="depth" onClick={do_save}>
+            {t("folder_retention.delete")}
+          </Button>
+        </ModalFooter>
+      </Modal>
     </>
   );
 }
@@ -621,18 +727,24 @@ interface ModeOptionProps {
   on_click: () => void;
 }
 
-function ModeOption({ active, title, hint, danger, on_click }: ModeOptionProps) {
+function ModeOption({
+  active,
+  title,
+  hint,
+  danger,
+  on_click,
+}: ModeOptionProps) {
   return (
     <button
-      type="button"
-      onClick={on_click}
-      className={`w-full text-left rounded-lg border px-3 py-2.5 transition-colors ${
+      className={`w-full text-start rounded-[var(--aster-radius-control)] px-3 py-2.5 transition-colors ${
         active
           ? danger
-            ? "border-red-600 bg-red-600"
-            : "border-blue-600 bg-blue-600"
-          : "border-edge-secondary hover:bg-surf-secondary"
+            ? "bg-[var(--color-danger)]"
+            : "bg-[var(--accent-color)]"
+          : "bg-surf-secondary hover:bg-surf-tertiary"
       }`}
+      type="button"
+      onClick={on_click}
     >
       <div
         className={`text-sm font-medium ${active ? "text-white" : "text-txt-primary"}`}

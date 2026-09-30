@@ -19,7 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useRef, useEffect } from "react";
-import { Button, Checkbox } from "@aster/ui";
+import { Checkbox } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
@@ -31,6 +32,17 @@ import {
 
 const BACKUP_CODE_LENGTH = 12;
 const LEGACY_BACKUP_CODE_LENGTH = 8;
+const RECOVERY_CODE_PREFIX = "ASTER";
+const MAX_CODE_INPUT_LENGTH = 32;
+
+export function looks_like_recovery_code(value: string): boolean {
+  const normalized = value.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+  return (
+    normalized.startsWith(RECOVERY_CODE_PREFIX) &&
+    normalized.length > BACKUP_CODE_LENGTH
+  );
+}
 
 function is_valid_backup_code_length(length: number): boolean {
   return length === BACKUP_CODE_LENGTH || length === LEGACY_BACKUP_CODE_LENGTH;
@@ -49,6 +61,8 @@ interface BackupCodeInputProps {
   on_success: (response: TotpVerifyResponse) => void;
   on_use_authenticator: () => void;
   on_cancel: () => void;
+  on_reset_with_recovery_code: () => void;
+  has_backup_codes?: boolean;
   remember_me?: boolean;
 }
 
@@ -57,6 +71,8 @@ export function BackupCodeInput({
   on_success,
   on_use_authenticator,
   on_cancel,
+  on_reset_with_recovery_code,
+  has_backup_codes = true,
   remember_me = true,
 }: BackupCodeInputProps) {
   const { t } = use_i18n();
@@ -67,6 +83,8 @@ export function BackupCodeInput({
   const input_ref = useRef<HTMLInputElement>(null);
   const verifying_ref = useRef(false);
 
+  const is_recovery_code = looks_like_recovery_code(code);
+
   useEffect(() => {
     input_ref.current?.focus();
   }, []);
@@ -75,6 +93,12 @@ export function BackupCodeInput({
     if (verifying_ref.current) return;
 
     const normalized = code.toUpperCase().replace(/[^A-Z0-9]/g, "");
+
+    if (looks_like_recovery_code(normalized)) {
+      set_error(t("auth.recovery_code_in_backup_field"));
+
+      return;
+    }
 
     if (!is_valid_backup_code_length(normalized.length)) {
       set_error(t("auth.backup_code_length_error"));
@@ -102,6 +126,10 @@ export function BackupCodeInput({
         set_error(t("auth.too_many_2fa_attempts"));
       } else if (kind === "pending_expired") {
         set_error(t("auth.sign_in_session_expired"));
+      } else if (kind === "invalid_backup_code") {
+        set_error(t("auth.invalid_backup_code"));
+      } else if (kind === "invalid_code") {
+        set_error(t("settings.invalid_2fa_code"));
       } else {
         set_error(response.error);
       }
@@ -120,18 +148,24 @@ export function BackupCodeInput({
       return;
     }
 
+    set_error(t("common.something_went_wrong_try_again"));
     verifying_ref.current = false;
     set_is_loading(false);
+    input_ref.current?.focus();
   };
 
   const handle_input_change = (value: string) => {
     const cleaned = value
       .toUpperCase()
       .replace(/[^A-Z0-9-]/g, "")
-      .slice(0, 20);
+      .slice(0, MAX_CODE_INPUT_LENGTH);
 
     set_code(cleaned);
-    set_error("");
+    set_error(
+      looks_like_recovery_code(cleaned)
+        ? t("auth.recovery_code_in_backup_field")
+        : "",
+    );
   };
 
   const handle_key_down = (e: React.KeyboardEvent) => {
@@ -139,6 +173,50 @@ export function BackupCodeInput({
       handle_verify();
     }
   };
+
+  if (!has_backup_codes) {
+    return (
+      <div className="w-full max-w-sm mx-auto">
+        <div className="text-center mb-6">
+          <div className="flex justify-center mb-4">
+            <img
+              alt="Aster"
+              className="h-10"
+              decoding="async"
+              draggable={false}
+              src="/text_logo.png"
+            />
+          </div>
+          <h2 className="text-xl font-semibold mb-2 text-txt-primary">
+            {t("auth.no_backup_codes_title")}
+          </h2>
+          <p className="text-sm text-txt-muted">
+            {t("auth.no_backup_codes_description")}
+          </p>
+        </div>
+
+        <div className="space-y-4">
+          <Button
+            className="w-full"
+            variant="depth"
+            onClick={on_reset_with_recovery_code}
+          >
+            {t("auth.reset_with_recovery_code")}
+          </Button>
+          <Button className="w-full" variant="outline" onClick={on_cancel}>
+            {t("common.cancel")}
+          </Button>
+          <button
+            className="w-full text-sm text-center transition-colors hover:opacity-80 text-txt-muted"
+            type="button"
+            onClick={on_use_authenticator}
+          >
+            {t("auth.try_passkey_again")}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-sm mx-auto">
@@ -148,6 +226,7 @@ export function BackupCodeInput({
             alt="Aster"
             className="h-10"
             decoding="async"
+            draggable={false}
             src="/text_logo.png"
           />
         </div>
@@ -163,9 +242,13 @@ export function BackupCodeInput({
         <div>
           <Input
             ref={input_ref}
+            autoCapitalize="none"
+            autoComplete="one-time-code"
+            autoCorrect="off"
             className="text-center text-lg font-mono tracking-wider uppercase"
             disabled={is_loading}
             placeholder={t("auth.backup_code_placeholder")}
+            spellCheck={false}
             status={error ? "error" : "default"}
             type="text"
             value={code}
@@ -190,6 +273,16 @@ export function BackupCodeInput({
 
         {error && <p className="text-sm text-center text-red-500">{error}</p>}
 
+        {is_recovery_code && (
+          <Button
+            className="w-full"
+            variant="depth"
+            onClick={on_reset_with_recovery_code}
+          >
+            {t("auth.reset_with_recovery_code")}
+          </Button>
+        )}
+
         <div className="flex gap-3">
           <Button
             className="flex-1"
@@ -207,10 +300,11 @@ export function BackupCodeInput({
                 code.replace(/[^A-Z0-9]/gi, "").length,
               )
             }
+            is_loading={is_loading}
             variant="depth"
             onClick={handle_verify}
           >
-            {is_loading ? t("common.verifying") : t("common.continue")}
+            {t("common.continue")}
           </Button>
         </div>
 

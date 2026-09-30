@@ -19,17 +19,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedThreadMessage } from "@/types/thread";
-import type { } from "@/services/api/mail";
+import type {} from "@/services/api/mail";
 import type { DraftWithContent } from "@/services/api/multi_drafts";
 import type { ExternalContentReport } from "@/lib/html_sanitizer";
 import type { DecryptedEmail } from "@/components/email/use_email_viewer";
 import type { PreloadedSanitizedContent } from "@/components/email/hooks/preload_cache";
 
 import React, { useState, useCallback, useEffect, useMemo } from "react";
+import { IslandDivider } from "@aster/ui";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { is_system_email } from "@/lib/utils";
-
 import {
   ThreadMessagesList,
   type ThreadMessagesListRef,
@@ -39,6 +39,7 @@ import { ThreadDraftBadge } from "@/components/email/thread_draft_badge";
 import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_details_banner";
 import { ShippingDetailsBanner } from "@/components/email/banners/shipping_details_banner";
 import { CalendarInviteBanner } from "@/components/email/banners/calendar_invite_banner";
+import { SendFailureBanner } from "@/components/email/banners/send_failure_banner";
 import { extract_email_details } from "@/services/extraction/extractor";
 
 export interface ViewerThreadContentProps {
@@ -58,7 +59,7 @@ export interface ViewerThreadContentProps {
   on_view_source: (msg: DecryptedThreadMessage) => void;
   on_report_phishing: (msg: DecryptedThreadMessage) => void;
   on_not_spam?: (msg: DecryptedThreadMessage) => void;
-  on_toggle_message_read: (message_id: string) => void;
+  on_toggle_message_read: (message_id: string, next_read: boolean) => void;
   on_edit_thread_draft?: (draft: DraftWithContent) => void;
   on_thread_draft_deleted?: () => void;
   on_draft_saved?: (draft: {
@@ -144,12 +145,17 @@ export function ViewerThreadContent({
   const is_external_thread = thread_messages.some((m) => m.is_external);
 
   useEffect(() => {
-    const handle_kb_reply = () => {
+    const handle_kb_reply = (e: Event) => {
       if (thread_messages.length === 0) return;
       const last = thread_messages[thread_messages.length - 1];
 
-      if (!is_system_email(last.sender_email)) {
+      if (!is_system_email(last)) {
+        const wants_reply_all =
+          (e as CustomEvent<{ reply_all?: boolean }>).detail?.reply_all ===
+            true || preferences.default_reply_behavior === "reply_all";
+
         set_inline_reply_msg(last);
+        set_inline_mode(wants_reply_all ? "reply_all" : "reply");
       }
     };
 
@@ -157,7 +163,7 @@ export function ViewerThreadContent({
 
     return () =>
       window.removeEventListener("astermail:keyboard-reply", handle_kb_reply);
-  }, [thread_messages]);
+  }, [thread_messages, preferences.default_reply_behavior]);
 
   const memoized_draft = useMemo(
     () =>
@@ -197,6 +203,11 @@ export function ViewerThreadContent({
 
   return (
     <div className="mt-4">
+      <SendFailureBanner
+        className="mx-3 @md:mx-4 mb-3"
+        send_error={email.send_error}
+        send_status={email.send_status}
+      />
       {extraction.has_purchase_details && extraction.purchase && (
         <PurchaseDetailsBanner
           className="mx-3 @md:mx-4 mb-3"
@@ -213,78 +224,88 @@ export function ViewerThreadContent({
         />
       )}
       <CalendarInviteBanner
-        className="mx-3 @md:mx-4 mb-3"
         body={email.body}
+        className="mx-3 @md:mx-4 mb-3"
         html_content={email.html_content}
       />
-      <ThreadMessagesList
-        key={email.id}
-        ref={thread_list_ref as React.Ref<ThreadMessagesListRef>}
-        hide_counter
-        hide_expand_collapse
-        current_user_email={current_user_email}
-        default_expanded_id={email.id}
-        existing_draft={memoized_draft}
-        external_content_mode={external_content_mode}
-        force_all_dark_mode={preferences.force_dark_mode_emails}
-        inline_mode={inline_mode}
-        inline_reply_is_external={is_external_thread}
-        inline_reply_msg={inline_reply_msg}
-        inline_reply_thread_token={email.thread_token}
-        messages={thread_messages}
-        on_archive={on_archive}
-        on_close_inline_reply={handle_close_inline_reply}
-        on_draft_saved={on_draft_saved}
-        on_external_content_detected={on_external_content_detected}
-        on_forward={handle_inline_forward}
-        on_not_spam={on_not_spam}
-        on_print={on_print}
-        on_reply={handle_inline_reply}
-        on_reply_all={handle_inline_reply_all}
-        on_report_phishing={on_report_phishing}
-        on_set_inline_mode={handle_set_inline_mode}
-        on_toggle_message_read={on_toggle_message_read}
-        on_trash={on_trash}
-        on_view_source={on_view_source}
-        on_unsubscribe={on_unsubscribe}
-        on_manual_unsubscribed={on_manual_unsubscribed}
-        unsubscribe_url={unsubscribe_url}
-        loaded_content_types={loaded_content_types}
-        on_load_external_content={on_load_external_content}
-        preloaded_sanitized={thread_sanitized}
-        size_bytes={size_bytes}
-        subject={email.subject}
-      />
-
-      {thread_draft && !inline_reply_msg && (
-        <ThreadDraftBadge
+      <div className="px-2.5 pb-4">
+        <ThreadMessagesList
+          key={email.id}
+          ref={thread_list_ref as React.Ref<ThreadMessagesListRef>}
+          hide_counter
+          hide_expand_collapse
           current_user_email={current_user_email}
-          current_user_name={current_user_name}
-          draft={thread_draft}
+          default_expanded_id={email.id}
+          existing_draft={memoized_draft}
+          external_content_mode={external_content_mode}
+          force_all_dark_mode={preferences.force_dark_mode_emails}
+          inline_mode={inline_mode}
+          inline_reply_is_external={is_external_thread}
+          inline_reply_msg={inline_reply_msg}
+          inline_reply_thread_token={email.thread_token}
+          loaded_content_types={loaded_content_types}
+          main_email_id={email.id}
+          messages={thread_messages}
+          on_archive={on_archive}
+          on_close_inline_reply={handle_close_inline_reply}
+          on_draft_saved={on_draft_saved}
+          on_external_content_detected={on_external_content_detected}
+          on_forward={handle_inline_forward}
+          on_load_external_content={on_load_external_content}
+          on_manual_unsubscribed={on_manual_unsubscribed}
+          on_not_spam={on_not_spam}
+          on_print={on_print}
+          on_reply={handle_inline_reply}
+          on_reply_all={handle_inline_reply_all}
+          on_report_phishing={on_report_phishing}
+          on_set_inline_mode={handle_set_inline_mode}
+          on_toggle_message_read={on_toggle_message_read}
+          on_trash={on_trash}
+          on_unsubscribe={on_unsubscribe}
+          on_view_source={on_view_source}
+          preloaded_sanitized={thread_sanitized}
+          size_bytes={size_bytes}
+          subject={email.subject}
           thread_token={email.thread_token}
-          on_deleted={() => on_thread_draft_deleted?.()}
-          on_edit={(draft) => {
-            const target =
-              thread_messages.find((m) => m.id === draft.reply_to_id) ??
-              thread_messages[thread_messages.length - 1];
-            if (!target) return;
-            set_inline_reply_msg(target);
-            set_inline_mode(
-              draft.draft_type === "forward" ? "forward" : "reply",
-            );
-          }}
-        />
-      )}
+          unsubscribe_url={unsubscribe_url}
+          footer={
+            (thread_draft && !inline_reply_msg) || sending_message ? (
+              <>
+                {thread_draft && !inline_reply_msg && (
+                  <ThreadDraftBadge
+                    current_user_email={current_user_email}
+                    current_user_name={current_user_name}
+                    draft={thread_draft}
+                    on_deleted={() => on_thread_draft_deleted?.()}
+                    on_edit={(draft) => {
+                      const target =
+                        thread_messages.find(
+                          (m) => m.id === draft.reply_to_id,
+                        ) ?? thread_messages[thread_messages.length - 1];
 
-      {sending_message && (
-        <div className="mt-4">
-          <SendingMessageBlock
-            current_user_name={current_user_name ?? ""}
-            message={sending_message}
-          />
-        </div>
-      )}
+                      if (!target) return;
+                      set_inline_reply_msg(target);
+                      set_inline_mode(
+                        draft.draft_type === "forward" ? "forward" : "reply",
+                      );
+                    }}
+                    thread_token={email.thread_token}
+                  />
+                )}
+                {thread_draft && !inline_reply_msg && sending_message && (
+                  <IslandDivider />
+                )}
+                {sending_message && (
+                  <SendingMessageBlock
+                    current_user_name={current_user_name ?? ""}
+                    message={sending_message}
+                  />
+                )}
+              </>
+            ) : null
+          }
+        />
+      </div>
     </div>
   );
 }
-

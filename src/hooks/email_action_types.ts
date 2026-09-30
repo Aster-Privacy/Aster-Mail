@@ -21,6 +21,11 @@
 import type { InboxEmail } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n/types";
 
+import {
+  emit_mail_action as bus_emit_mail_action,
+  emit_mail_changed as bus_emit_mail_changed,
+  emit_mail_soft_refresh as bus_emit_mail_soft_refresh,
+} from "@/hooks/mail_events";
 import { show_toast } from "@/components/toast/simple_toast";
 import { get_network_status } from "@/native/capacitor_bridge";
 import { enqueue_action, type OfflineActionType } from "@/native/offline_queue";
@@ -84,6 +89,7 @@ export interface UseEmailActionsReturn {
   bulk_delete: (emails: InboxEmail[]) => Promise<boolean>;
   bulk_mark_read: (emails: InboxEmail[], is_read: boolean) => Promise<boolean>;
   bulk_mark_spam: (emails: InboxEmail[]) => Promise<boolean>;
+  bulk_unmark_spam: (emails: InboxEmail[]) => Promise<boolean>;
   bulk_add_folder: (
     emails: InboxEmail[],
     folder_token: string,
@@ -116,19 +122,15 @@ export const INITIAL_ACTION_STATES: ActionStates = {
 };
 
 export function emit_mail_changed(): void {
-  window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+  bus_emit_mail_changed();
 }
 
 export function emit_mail_soft_refresh(): void {
-  window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
+  bus_emit_mail_soft_refresh();
 }
 
 export function emit_mail_action(action: ActionType, ids: string[]): void {
-  window.dispatchEvent(
-    new CustomEvent("astermail:mail-action", {
-      detail: { action, ids },
-    }),
-  );
+  bus_emit_mail_action({ action, ids, success: true });
 }
 
 const VIEW_CHANGING_ACTIONS: ActionType[] = [

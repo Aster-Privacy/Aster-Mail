@@ -18,16 +18,35 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { Fragment, useEffect, useState } from "react";
 import { CircleStackIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import {
+  Island,
+  IslandDivider,
+  IslandRow,
+  IslandSection,
+  PillButton,
+} from "@aster/ui";
 
 import {
+  format_date,
   format_price,
   type StorageAddonItem,
   type UserActiveAddon,
 } from "@/services/api/billing";
-import { ADDON_BADGES, convert_cents } from "@/components/settings/billing/billing_constants";
+import {
+  ADDON_BADGES,
+  convert_cents,
+} from "@/components/settings/billing/billing_constants";
+import { BillingMeter } from "@/components/settings/billing/billing_meter";
+import {
+  BillingMoreRow,
+  billing_row_icon,
+} from "@/components/settings/billing/billing_more_section";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+
+export const OPEN_STORAGE_ADDONS_EVENT = "aster:open-storage-addons";
 
 interface StorageAddonsSectionProps {
   available_addons: StorageAddonItem[];
@@ -38,6 +57,11 @@ interface StorageAddonsSectionProps {
   on_cancel_addon: (addon: UserActiveAddon) => void;
   on_purchase_addon: (addon: StorageAddonItem) => void;
   preferred_currency: string;
+  storage_used_bytes?: number;
+  storage_limit_bytes?: number;
+  storage_percentage?: number;
+  is_over_limit?: boolean;
+  embedded?: boolean;
 }
 
 export function StorageAddonsSection({
@@ -49,131 +73,256 @@ export function StorageAddonsSection({
   on_cancel_addon,
   on_purchase_addon,
   preferred_currency,
+  storage_used_bytes,
+  storage_limit_bytes,
+  storage_percentage,
+  is_over_limit = false,
+  embedded = false,
 }: StorageAddonsSectionProps) {
   const { t } = use_i18n();
+  const [is_picker_open, set_is_picker_open] = useState(false);
+  const has_usage =
+    storage_used_bytes !== undefined && storage_limit_bytes !== undefined;
 
-  return (
-    <div className="pt-4" id="additional_storage_section">
-      <div className="mb-2">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-          <CircleStackIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
-          {t("settings.storage_addons")}
-        </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
-      </div>
-      <p className="text-sm mb-3 text-txt-muted">
-        {t("settings.storage_addons_description")}
-      </p>
+  useEffect(() => {
+    const open_picker = () => set_is_picker_open(true);
 
-      {active_addons.length > 0 && (
-        <div className="mb-4">
-          <h4 className="text-sm font-medium text-txt-secondary mb-2">
-            {t("settings.active_addons")}
-          </h4>
-          <div className="space-y-2">
-            {active_addons.map((addon) => (
-              <div
-                key={addon.user_addon_id}
-                className="flex items-center justify-between p-3 rounded-lg bg-surf-tertiary border border-edge-secondary"
-              >
-                <div>
-                  <p className="text-sm font-medium text-txt-primary">
-                    {addon.size_label}
-                  </p>
-                  <p className="text-xs text-txt-muted">
-                    {format_price(convert_cents(addon.price_cents, preferred_currency), preferred_currency)}
-                    {t("settings.per_month_short")}
-                  </p>
-                  {addon.cancel_at_period_end && addon.current_period_end && (
-                    <p className="text-xs text-amber-500 mt-0.5">
-                      {t("settings.cancels")}{" "}
-                      {new Date(addon.current_period_end).toLocaleDateString()}
-                    </p>
-                  )}
-                </div>
-                {!addon.cancel_at_period_end && (
-                  <Button
-                    disabled={is_action_loading}
-                    variant="ghost"
-                    onClick={() => on_cancel_addon(addon)}
-                  >
-                    {t("settings.cancel_addon")}
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+    window.addEventListener(OPEN_STORAGE_ADDONS_EVENT, open_picker);
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        {available_addons.map((addon) => {
+    return () =>
+      window.removeEventListener(OPEN_STORAGE_ADDONS_EVENT, open_picker);
+  }, []);
+
+  const purchasable_addons = available_addons.filter(
+    (addon) => addon.storage_bytes > 0 && addon.price_cents > 0,
+  );
+  const selected_addon =
+    purchasable_addons.find((addon) => addon.id === selected_storage) ?? null;
+
+  const handle_buy = () => {
+    if (!selected_addon) {
+      show_toast(t("settings.storage_select_option_first"), "info");
+
+      return;
+    }
+
+    on_purchase_addon(selected_addon);
+  };
+
+  const money = (cents: number) =>
+    format_price(convert_cents(cents, preferred_currency), preferred_currency);
+
+  const picker = (
+    <div className="flex flex-col gap-3">
+      <div
+        aria-label={t("settings.add_storage")}
+        className="grid grid-cols-2 gap-2 sm:grid-cols-3"
+        role="radiogroup"
+      >
+        {purchasable_addons.map((addon) => {
           const badge = ADDON_BADGES[addon.name];
+          const is_selected = selected_storage === addon.id;
 
           return (
             <button
               key={addon.id}
-              className="relative p-3 rounded-[14px] border text-left transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-checked={is_selected}
+              className="flex min-h-[68px] flex-col items-start justify-between gap-1 rounded-[var(--aster-radius-control)] px-3.5 py-3 text-start outline-none transition-[background-color,box-shadow] duration-150 focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+              role="radio"
               style={{
-                backgroundColor:
-                  selected_storage === addon.id
-                    ? "color-mix(in srgb, var(--accent-color) 6%, transparent)"
-                    : "var(--bg-tertiary)",
-                borderColor:
-                  selected_storage === addon.id
-                    ? "var(--color-info)"
-                    : "var(--border-secondary)",
-                boxShadow:
-                  selected_storage === addon.id
-                    ? "0 0 0 1px color-mix(in srgb, var(--accent-color) 30%, transparent)"
-                    : "none",
+                backgroundColor: is_selected
+                  ? "color-mix(in srgb, var(--accent-color) 10%, var(--aster-field-bg))"
+                  : "var(--aster-field-bg)",
+                boxShadow: is_selected
+                  ? "inset 0 0 0 2px var(--accent-color)"
+                  : "none",
               }}
+              type="button"
               onClick={() =>
-                set_selected_storage(
-                  selected_storage === addon.id ? null : addon.id,
-                )
+                set_selected_storage(is_selected ? null : addon.id)
               }
             >
-              {badge && (
-                <span
-                  className="absolute -top-2 right-2 text-[10px] font-semibold px-2 py-0.5 rounded-full text-[var(--accent-fg,#ffffff)]"
-                  style={{
-                    backgroundColor: "var(--accent-color-hover)",
-                  }}
-                >
-                  {badge === "popular"
-                    ? t("settings.popular")
-                    : t("settings.best_value")}
+              <span className="flex w-full items-center justify-between gap-2">
+                <span className="text-[15px] font-semibold tabular-nums text-txt-primary">
+                  {addon.name}
                 </span>
-              )}
-              <p className="text-base font-bold text-txt-primary">
-                {addon.name}
-              </p>
-              <p className="text-xs text-txt-muted mt-0.5">
-                {format_price(convert_cents(addon.price_cents, preferred_currency), preferred_currency)}
+                {badge && (
+                  <span
+                    className="flex-shrink-0 rounded-full px-2 py-0.5 text-[10.5px] font-semibold leading-4"
+                    style={{
+                      color: "var(--accent-color)",
+                      backgroundColor:
+                        "color-mix(in srgb, var(--accent-color) 14%, transparent)",
+                    }}
+                  >
+                    {badge === "popular"
+                      ? t("settings.popular")
+                      : t("settings.best_value")}
+                  </span>
+                )}
+              </span>
+              <span className="text-[13px] tabular-nums text-txt-muted">
+                {money(addon.price_cents)}
                 {t("settings.per_month_short")}
-              </p>
+              </span>
             </button>
           );
         })}
       </div>
 
-      <Button
-        className="w-full mt-3"
-        disabled={!selected_storage || is_action_loading}
-        size="xl"
-        variant="depth"
-        onClick={() => {
-          if (!selected_storage) return;
-          const addon = available_addons.find((a) => a.id === selected_storage);
-
-          if (addon) {
-            on_purchase_addon(addon);
-          }
-        }}
-      >
-        {t("common.buy_more_storage")}
-      </Button>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <p className="text-[15px] font-medium text-txt-primary">
+            {selected_addon
+              ? t("settings.billing_add_storage_summary", {
+                  size: selected_addon.name,
+                })
+              : t("settings.storage_select_option_first")}
+          </p>
+          <p className="mt-0.5 text-[13px] text-txt-muted">
+            {selected_addon
+              ? `${money(selected_addon.price_cents)}${t("settings.per_month_short")}`
+              : t("settings.storage_addons_monthly_note")}
+          </p>
+        </div>
+        <PillButton
+          className="flex-shrink-0 self-start sm:self-auto"
+          disabled={is_action_loading || !selected_addon}
+          size="md"
+          type="button"
+          variant="filled"
+          onClick={handle_buy}
+        >
+          {t("common.buy_more_storage")}
+        </PillButton>
+      </div>
+      {selected_addon && (
+        <p className="text-[12px] text-txt-muted">
+          {t("settings.storage_addons_monthly_note")}
+        </p>
+      )}
     </div>
+  );
+
+  const active_rows = active_addons.map((addon, index) => {
+    const ending = addon.cancel_at_period_end && !!addon.current_period_end;
+
+    return (
+      <Fragment key={addon.user_addon_id}>
+        {index > 0 && <IslandDivider />}
+        <IslandRow
+          description={
+            ending
+              ? t("settings.billing_addon_ends", {
+                  date: format_date(addon.current_period_end!),
+                })
+              : `${money(addon.price_cents)}${t("settings.per_month_short")}`
+          }
+          icon={<CircleStackIcon className="h-[22px] w-[22px]" />}
+          label={addon.size_label}
+          trailing={
+            <span className="flex items-center gap-2">
+              <span
+                className="text-[12px] font-medium"
+                style={{
+                  color: ending
+                    ? "var(--color-warning)"
+                    : "var(--color-success)",
+                }}
+              >
+                {ending
+                  ? t("settings.billing_addon_ending")
+                  : t("settings.billing_addon_active")}
+              </span>
+              {!addon.cancel_at_period_end && (
+                <PillButton
+                  disabled={is_action_loading}
+                  size="sm"
+                  type="button"
+                  variant="neutral"
+                  onClick={() => on_cancel_addon(addon)}
+                >
+                  {t("settings.cancel_addon")}
+                </PillButton>
+              )}
+            </span>
+          }
+        />
+      </Fragment>
+    );
+  });
+
+  if (embedded) {
+    return (
+      <BillingMoreRow
+        flush
+        description={t("settings.billing_addons_subtitle")}
+        icon={billing_row_icon(CircleStackIcon)}
+        id="additional_storage_section"
+        label={t("settings.add_storage")}
+        on_toggle={() => set_is_picker_open((open) => !open)}
+        open={is_picker_open}
+        value={
+          active_addons.length > 0
+            ? t("settings.billing_addons_active_count", {
+                count: active_addons.length,
+              })
+            : undefined
+        }
+      >
+        <div className="px-4 pb-4 pt-3">{picker}</div>
+        {active_addons.length > 0 && (
+          <>
+            <IslandDivider />
+            {active_rows}
+          </>
+        )}
+      </BillingMoreRow>
+    );
+  }
+
+  return (
+    <IslandSection
+      bare
+      id="additional_storage_section"
+      title={t("settings.storage")}
+      trailing={
+        <PillButton
+          aria-expanded={is_picker_open}
+          size="sm"
+          type="button"
+          variant={is_picker_open ? "neutral" : "tonal"}
+          onClick={() => set_is_picker_open((open) => !open)}
+        >
+          {is_picker_open ? t("common.close") : t("settings.add_storage")}
+        </PillButton>
+      }
+    >
+      <div className="flex flex-col gap-3">
+        <Island padding="md">
+          {has_usage ? (
+            <BillingMeter
+              label={t("settings.storage_addons")}
+              limit_bytes={storage_limit_bytes}
+              over_limit={is_over_limit}
+              percent={storage_percentage ?? 0}
+              used_bytes={storage_used_bytes}
+            />
+          ) : (
+            <p className="text-[13px] leading-5 text-txt-muted">
+              {t("settings.storage_addons_description")}
+            </p>
+          )}
+
+          {is_picker_open && <div className="mt-4">{picker}</div>}
+        </Island>
+
+        {active_addons.length > 0 && (
+          <Island className="overflow-hidden" padding="none">
+            {active_rows}
+          </Island>
+        )}
+      </div>
+    </IslandSection>
   );
 }

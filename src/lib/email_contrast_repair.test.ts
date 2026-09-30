@@ -32,13 +32,7 @@ import {
   rgba_to_hex,
 } from "@/lib/email_contrast_repair";
 
-const THEME_SURFACES = [
-  "#121212",
-  "#0b1120",
-  "#1a1625",
-  "#141d14",
-  "#ffffff",
-];
+const THEME_SURFACES = ["#121212", "#0b1120", "#1a1625", "#141d14", "#ffffff"];
 
 interface fake_style_input {
   color?: string;
@@ -265,7 +259,7 @@ describe("repair_email_contrast", () => {
   it("repairs an inheriting element that has no explicit color", () => {
     const doc = build_document();
 
-    doc.body.innerHTML = "<div><p id=\"inherit\">inherited body ink</p></div>";
+    doc.body.innerHTML = '<div><p id="inherit">inherited body ink</p></div>';
 
     const target = doc.getElementById("inherit")!;
 
@@ -503,7 +497,9 @@ describe("repair_email_contrast", () => {
     expect(Math.abs(danger_hsl.h - hex_to_hsl("#c53030").h)).toBeLessThan(1);
     expect(Math.abs(danger_hsl.s - hex_to_hsl("#c53030").s)).toBeLessThan(0.02);
     expect(Math.abs(success_hsl.h - hex_to_hsl("#15803d").h)).toBeLessThan(1);
-    expect(Math.abs(success_hsl.s - hex_to_hsl("#15803d").s)).toBeLessThan(0.02);
+    expect(Math.abs(success_hsl.s - hex_to_hsl("#15803d").s)).toBeLessThan(
+      0.02,
+    );
   });
 
   it("repairs against every theme surface", () => {

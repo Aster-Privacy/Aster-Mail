@@ -19,63 +19,85 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { useEffect, useCallback, useMemo, useRef } from "react";
 
 import {
-  useEffect,
-  useCallback,
-  useMemo,
-} from "react";
+  UseReplyModalProps,
+  normalize_html_newlines,
+} from "./reply_modal_types";
+import { use_reply_modal_state } from "./use_reply_modal_state";
 
 import { undo_send_manager } from "@/hooks/use_undo_send";
-import {
-  send_reply,
-  type OriginalEmail,
-} from "@/services/mail_actions";
+import { send_reply, type OriginalEmail } from "@/services/mail_actions";
 import { build_reply_subject } from "@/lib/reply_subject";
+import { resolve_reply_prefix } from "@/lib/reply_defaults";
+import {
+  MAX_RECIPIENTS_PER_FIELD,
+  MAX_RECIPIENTS_PER_SEND,
+  recipient_limit_violation,
+} from "@/lib/recipient_limits";
+import {
+  assemble_reply_with_placement,
+  resolve_signature_placement,
+} from "@/lib/signature_placement";
+import { use_signatures } from "@/contexts/signatures_context";
 import {
   is_reply_from_mismatch,
   resolve_own_recipient_address,
 } from "@/components/email/build_reply_from_address";
 import { get_undo_send_delay_ms } from "@/services/send_queue";
 import {
+  build_send_fingerprint,
   can_acquire_send_lock,
+  forget_send,
+  is_duplicate_send,
   is_repeat_send,
+  record_send,
 } from "@/components/compose/send_lock";
 import { auto_save_recipients_to_contacts } from "@/services/contacts_auto_save";
 import { show_toast } from "@/components/toast/simple_toast";
-import { show_action_toast } from "@/components/toast/action_toast";
+import { show_email_sent_toast } from "@/components/toast/email_sent_toast";
 import { format_bytes } from "@/lib/utils";
 import {
-  emit_thread_reply_sent,
-  emit_thread_reply_optimistic,
+  emit_email_sent,
   emit_thread_reply_cancelled,
+  emit_thread_reply_optimistic,
+  emit_thread_reply_sent,
 } from "@/hooks/mail_events";
 import {
   create_scheduled_email,
   type ScheduledEmailContent,
 } from "@/services/api/scheduled";
 import { emit_scheduled_changed } from "@/hooks/mail_events";
-import {
-  delete_draft,
-} from "@/services/api/multi_drafts";
+import { delete_thread_draft } from "@/services/api/multi_drafts";
 import {
   type Attachment,
   generate_attachment_id,
-  MAX_ATTACHMENT_SIZE,
-  MAX_TOTAL_ATTACHMENTS_SIZE,
   EVENT_DISPATCH_DELAY_MS,
 } from "@/components/compose/compose_shared";
+import {
+  MAX_ATTACHMENTS_PER_SEND,
+  ensure_attachment_limits,
+  get_max_attachment_size,
+  get_max_total_attachments_size,
+} from "@/services/attachment_limits";
+import {
+  describe_oversized_file,
+  describe_too_many_attachments,
+  describe_would_exceed_total,
+  prompt_attachment_upgrade,
+} from "@/services/attachment_rejection";
 import { send_via_external_account } from "@/services/api/external_accounts";
 import { prepare_external_attachments } from "@/services/crypto/attachment_crypto";
 import { escape_html as escape_plain_text } from "@/hooks/editor_utils";
-
-import {
-  UseReplyModalProps,
-  normalize_html_newlines,
-} from "./reply_modal_types";
-
-import { use_reply_modal_state } from "./use_reply_modal_state";
 import { ignore_error } from "@/lib/ignore_error";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { user_facing_error } from "@/utils/user_facing_error";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  find_locked_expiry_feature,
+  prompt_expiry_upgrade,
+} from "@/components/compose/expiry_plan_gate";
 
 export function use_reply_modal(props: UseReplyModalProps) {
   const {
@@ -95,6 +117,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     reply_from_address,
     original_rfc_message_id,
   } = props;
+  const { limits: plan_limits, is_feature_locked } = use_plan_limits();
   const {
     t,
     reduce_motion,
@@ -114,6 +137,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     set_show_cc,
     contacts,
     reply_message,
+    set_reply_message,
     is_sending,
     set_is_sending,
     error_message,
@@ -163,6 +187,9 @@ export function use_reply_modal(props: UseReplyModalProps) {
     save_draft_timeout,
     last_saved_text,
     is_sending_ref,
+    has_sent_ref,
+    draft_id_ref,
+    pending_save_ref,
     send_lock_started_at_ref,
     last_send_time_ref,
     files_drop_ref,
@@ -177,8 +204,28 @@ export function use_reply_modal(props: UseReplyModalProps) {
     is_mobile,
     build_quoted_content,
     exec_format_command,
-    handle_insert_link,
   } = use_reply_modal_state(props);
+
+  const { signatures } = use_signatures();
+  const placement_inputs_ref = useRef({
+    signatures,
+    signature_placement: preferences.signature_placement,
+  });
+
+  placement_inputs_ref.current = {
+    signatures,
+    signature_placement: preferences.signature_placement,
+  };
+
+  const resolve_placement = useCallback((signature_id: string | null) => {
+    const { signatures: current, signature_placement } =
+      placement_inputs_ref.current;
+
+    return resolve_signature_placement(
+      current.find((s) => s.id === signature_id)?.placement,
+      signature_placement,
+    );
+  }, []);
 
   const toggle_plain_text_mode = useCallback(() => {
     set_is_plain_text_mode((prev) => !prev);
@@ -187,7 +234,12 @@ export function use_reply_modal(props: UseReplyModalProps) {
   const handle_template_select = useCallback(
     (content: string) => {
       const substituted = content
-        .replace(/\[Date\]/g, new Date().toLocaleDateString())
+        .replace(
+          /\[Date\]/g,
+          new Date().toLocaleDateString(app_locale(), {
+            timeZone: get_display_time_zone(),
+          }),
+        )
         .replace(/\[Name\]/g, recipient_name ?? "");
 
       editor.insert_text(substituted);
@@ -211,6 +263,42 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
     return is_reply_from_mismatch(received_on_address, selected_sender?.email);
   }, [received_on_address, selected_sender]);
+
+  const discard_sent_draft = useCallback(
+    async (sent_thread_token?: string) => {
+      has_sent_ref.current = true;
+
+      if (save_draft_timeout.current) {
+        clearTimeout(save_draft_timeout.current);
+        save_draft_timeout.current = null;
+      }
+
+      const in_flight = pending_save_ref.current;
+
+      if (in_flight) {
+        await in_flight.catch(() => undefined);
+      }
+
+      const sent_draft_id = draft_id_ref.current;
+
+      set_draft_id(null);
+      set_draft_version(1);
+      last_saved_text.current = "";
+
+      if (!sent_draft_id) return;
+
+      await delete_thread_draft(
+        sent_draft_id,
+        sent_thread_token ?? thread_token,
+      ).catch((caught) =>
+        ignore_error(
+          "components/modals/hooks/use_reply_modal:discard_sent_draft",
+          caught,
+        ),
+      );
+    },
+    [thread_token, set_draft_id, set_draft_version],
+  );
 
   const handle_send = useCallback(async () => {
     const now = Date.now();
@@ -255,9 +343,57 @@ export function use_reply_modal(props: UseReplyModalProps) {
       return;
     }
 
+    const recipient_violation = recipient_limit_violation(
+      send_recipients.to,
+      send_recipients.cc,
+      [],
+    );
+
+    if (recipient_violation) {
+      set_error_message(
+        recipient_violation === "field"
+          ? t("common.too_many_recipients_in_field", {
+              max: MAX_RECIPIENTS_PER_FIELD,
+            })
+          : t("common.too_many_recipients_in_message", {
+              max: MAX_RECIPIENTS_PER_SEND,
+            }),
+      );
+
+      return;
+    }
+
+    const locked_expiry_feature = find_locked_expiry_feature({
+      expires_at,
+      limits_loaded: plan_limits !== null,
+      is_feature_locked,
+    });
+
+    if (locked_expiry_feature) {
+      prompt_expiry_upgrade(
+        locked_expiry_feature,
+        t("settings.feature_requires_upgrade"),
+      );
+
+      return;
+    }
+
+    const send_fingerprint = build_send_fingerprint(
+      [...send_recipients.to, ...send_recipients.cc],
+      original_subject,
+      reply_message,
+    );
+
+    if (is_duplicate_send(send_fingerprint, now)) {
+      set_error_message(t("common.duplicate_send_blocked"));
+
+      return;
+    }
+
     is_sending_ref.current = true;
     send_lock_started_at_ref.current = now;
     last_send_time_ref.current = now;
+    record_send(send_fingerprint, now);
     set_error_message(null);
     set_is_sending(true);
 
@@ -283,12 +419,16 @@ export function use_reply_modal(props: UseReplyModalProps) {
     const reply_body = is_plain_text_mode
       ? escape_plain_text(trimmed_reply).replace(/\n/g, "<br>")
       : normalize_html_newlines(trimmed_reply);
-    const message_with_signature = reply_body + quoted_content;
+    const message_with_signature = assemble_reply_with_placement(
+      reply_body,
+      quoted_content,
+      resolve_placement,
+    );
 
     if (selected_sender?.type === "external" && selected_sender.address_hash) {
       const subject = build_reply_subject(
         original_subject,
-        t("mail.reply_subject_prefix"),
+        resolve_reply_prefix(t("mail.reply_subject_prefix")),
       );
       const external_attachments =
         attachments.length > 0
@@ -313,6 +453,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         is_sending_ref.current = false;
         send_lock_started_at_ref.current = 0;
         last_send_time_ref.current = 0;
+        forget_send(send_fingerprint);
         set_error_message(ext_result.error);
         set_is_sending(false);
 
@@ -322,16 +463,9 @@ export function use_reply_modal(props: UseReplyModalProps) {
       is_sending_ref.current = false;
       send_lock_started_at_ref.current = 0;
       show_toast(t("common.email_sent_via_external"), "success");
-      window.dispatchEvent(new CustomEvent("astermail:email-sent"));
+      emit_email_sent();
 
-      if (draft_id) {
-        const captured_draft_id = draft_id;
-
-        set_draft_id(null);
-        set_draft_version(1);
-        last_saved_text.current = "";
-        await delete_draft(captured_draft_id).catch((caught) => ignore_error("components/modals/hooks/use_reply_modal:use_reply_modal", caught));
-      }
+      await discard_sent_draft();
 
       on_close();
 
@@ -376,22 +510,12 @@ export function use_reply_modal(props: UseReplyModalProps) {
         attachments: attachments.length > 0 ? attachments : undefined,
       },
       {
-        on_complete: () => {
+        on_complete: (sent_id?: string) => {
           is_sending_ref.current = false;
           send_lock_started_at_ref.current = 0;
           set_is_sending(false);
-          window.dispatchEvent(new CustomEvent("astermail:email-sent"));
-          show_action_toast({
-            message: t("common.email_sent"),
-            action_type: "read",
-            email_ids: [],
-            duration_ms: 5000,
-            on_view_message: () => {
-              window.dispatchEvent(
-                new CustomEvent("astermail:navigate-to-sent"),
-              );
-            },
-          });
+          emit_email_sent();
+          show_email_sent_toast(t("common.email_sent"), sent_id);
 
           if (pending_thread_token_ref.current) {
             emit_thread_reply_sent({
@@ -408,6 +532,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
           send_lock_started_at_ref.current = 0;
           set_is_sending(false);
           last_send_time_ref.current = 0;
+          forget_send(send_fingerprint);
           if (optimistic_id_ref.current && pending_thread_token_ref.current) {
             emit_thread_reply_cancelled({
               optimistic_id: optimistic_id_ref.current,
@@ -428,12 +553,14 @@ export function use_reply_modal(props: UseReplyModalProps) {
           }
           optimistic_id_ref.current = null;
           set_error_message(error);
+          show_toast(error || t("common.failed_to_send_reply"), "error", 10000);
           set_is_sending(false);
           last_send_time_ref.current = 0;
+          forget_send(send_fingerprint);
           pending_thread_token_ref.current = null;
         },
       },
-      preferences.undo_send_period,
+      delay_ms,
     ).catch((error: unknown) => ({
       success: false as const,
       error:
@@ -473,7 +600,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
           sender_email: sender_email_addr,
           subject: build_reply_subject(
             original_subject,
-            t("mail.reply_subject_prefix"),
+            resolve_reply_prefix(t("mail.reply_subject_prefix")),
           ),
           body: message_with_signature,
           display_body: reply_body,
@@ -488,14 +615,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         });
       }
 
-      if (draft_id) {
-        const captured_draft_id = draft_id;
-
-        set_draft_id(null);
-        set_draft_version(1);
-        last_saved_text.current = "";
-        delete_draft(captured_draft_id).catch((caught) => ignore_error("components/modals/hooks/use_reply_modal:use_reply_modal", caught));
-      }
+      void discard_sent_draft(reply_thread_token);
 
       if (delay_seconds > 0) {
         undo_send_manager.add({
@@ -503,7 +623,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
           to: send_recipients.to,
           subject: build_reply_subject(
             original_subject,
-            t("mail.reply_subject_prefix"),
+            resolve_reply_prefix(t("mail.reply_subject_prefix")),
           ),
           body: message_with_signature,
           sender_email: sender_email_value,
@@ -525,6 +645,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
       set_error_message(result.error || t("common.failed_to_send_reply"));
       set_is_sending(false);
       last_send_time_ref.current = 0;
+      forget_send(send_fingerprint);
     }
   }, [
     t,
@@ -549,8 +670,10 @@ export function use_reply_modal(props: UseReplyModalProps) {
     preferences.auto_save_recent_recipients,
 
     on_close,
-    draft_id,
+    discard_sent_draft,
     expires_at,
+    plan_limits,
+    is_feature_locked,
     build_quoted_content,
     include_quoted,
     user,
@@ -584,6 +707,26 @@ export function use_reply_modal(props: UseReplyModalProps) {
       return;
     }
 
+    const recipient_violation = recipient_limit_violation(
+      send_recipients.to,
+      send_recipients.cc,
+      [],
+    );
+
+    if (recipient_violation) {
+      set_error_message(
+        recipient_violation === "field"
+          ? t("common.too_many_recipients_in_field", {
+              max: MAX_RECIPIENTS_PER_FIELD,
+            })
+          : t("common.too_many_recipients_in_message", {
+              max: MAX_RECIPIENTS_PER_SEND,
+            }),
+      );
+
+      return;
+    }
+
     if (save_draft_timeout.current) {
       clearTimeout(save_draft_timeout.current);
       save_draft_timeout.current = null;
@@ -598,7 +741,11 @@ export function use_reply_modal(props: UseReplyModalProps) {
     const sched_reply_body = is_plain_text_mode
       ? escape_plain_text(sched_trimmed).replace(/\n/g, "<br>")
       : normalize_html_newlines(sched_trimmed);
-    const message_with_signature = sched_reply_body + quoted_content;
+    const message_with_signature = assemble_reply_with_placement(
+      sched_reply_body,
+      quoted_content,
+      resolve_placement,
+    );
 
     const content: ScheduledEmailContent = {
       to_recipients: send_recipients.to,
@@ -606,7 +753,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
       bcc_recipients: [],
       subject: build_reply_subject(
         original_subject,
-        t("mail.reply_subject_prefix"),
+        resolve_reply_prefix(t("mail.reply_subject_prefix")),
       ),
       body: message_with_signature,
       scheduled_at: scheduled_time.toISOString(),
@@ -624,14 +771,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
         return;
       }
 
-      if (draft_id) {
-        const captured_draft_id = draft_id;
-
-        set_draft_id(null);
-        set_draft_version(1);
-        last_saved_text.current = "";
-        await delete_draft(captured_draft_id).catch((caught) => ignore_error("components/modals/hooks/use_reply_modal:use_reply_modal", caught));
-      }
+      await discard_sent_draft();
 
       on_close();
 
@@ -640,7 +780,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
       }, EVENT_DISPATCH_DELAY_MS);
     } catch (error) {
       set_error_message(
-        error instanceof Error ? error.message : t("common.failed_to_schedule"),
+        user_facing_error(error, t("common.failed_to_schedule")),
       );
     } finally {
       set_is_scheduling(false);
@@ -659,7 +799,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
     build_quoted_content,
     include_quoted,
     on_close,
-    draft_id,
+    discard_sent_draft,
     is_plain_text_mode,
     attachments,
     reply_from_mismatch,
@@ -686,7 +826,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
 
     return (
       sender_options.find(
-        (s) => s.is_enabled && s.email?.toLowerCase() === normalized,
+        (s) => s.is_enabled && s.email?.trim().toLowerCase() === normalized,
       ) ?? null
     );
   }, [received_on_address, sender_options]);
@@ -743,16 +883,56 @@ export function use_reply_modal(props: UseReplyModalProps) {
   }, [on_close]);
 
   const handle_delete_draft = useCallback(async () => {
-    if (draft_id) {
-      await delete_draft(draft_id);
+    if (save_draft_timeout.current) {
+      clearTimeout(save_draft_timeout.current);
+      save_draft_timeout.current = null;
+    }
+
+    has_sent_ref.current = true;
+
+    const in_flight = pending_save_ref.current;
+
+    if (in_flight) {
+      await in_flight.catch(() => undefined);
+    }
+
+    const current_draft_id = draft_id_ref.current;
+
+    if (current_draft_id) {
+      const result = await delete_thread_draft(current_draft_id, thread_token);
+
+      if (result.error) {
+        has_sent_ref.current = false;
+        set_show_delete_confirm(false);
+        show_toast(t("common.failed_to_delete_draft"), "error");
+
+        return;
+      }
+
       set_draft_id(null);
       set_draft_version(1);
       last_saved_text.current = "";
     }
 
+    if (message_editor_ref.current) {
+      message_editor_ref.current.innerHTML = "";
+    }
+    set_reply_message("");
+    set_attachments([]);
     set_show_delete_confirm(false);
     on_close();
-  }, [draft_id, on_close]);
+  }, [
+    t,
+    thread_token,
+    on_close,
+    message_editor_ref,
+    set_reply_message,
+    set_attachments,
+    set_draft_id,
+    set_draft_version,
+    last_saved_text,
+    set_show_delete_confirm,
+  ]);
 
   const get_total_attachments_size = useCallback(() => {
     return attachments.reduce((total, att) => total + att.size_bytes, 0);
@@ -765,6 +945,7 @@ export function use_reply_modal(props: UseReplyModalProps) {
       if (!files || files.length === 0) return;
 
       set_attachment_error(null);
+      await ensure_attachment_limits();
       const new_attachments: Attachment[] = [];
       const current_total = get_total_attachments_size();
       let running_total = current_total;
@@ -772,17 +953,29 @@ export function use_reply_modal(props: UseReplyModalProps) {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
-        if (file.size > MAX_ATTACHMENT_SIZE) {
-          set_attachment_error(
-            t("common.file_exceeds_max_size", { name: file.name }),
-          );
+        if (
+          attachments.length + new_attachments.length >=
+          MAX_ATTACHMENTS_PER_SEND
+        ) {
+          set_attachment_error(describe_too_many_attachments(t));
+          break;
+        }
+
+        if (file.size > get_max_attachment_size()) {
+          const rejection = describe_oversized_file(t, file.name, file.size);
+
+          set_attachment_error(rejection.message);
+
+          if (rejection.can_upgrade)
+            prompt_attachment_upgrade(
+              rejection.message,
+              rejection.upgrade_plan_code,
+            );
           continue;
         }
 
-        if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
-          set_attachment_error(
-            t("common.adding_file_would_exceed_limit", { name: file.name }),
-          );
+        if (running_total + file.size > get_max_total_attachments_size()) {
+          set_attachment_error(describe_would_exceed_total(t, file.name));
           continue;
         }
 
@@ -831,22 +1024,35 @@ export function use_reply_modal(props: UseReplyModalProps) {
   const handle_files_drop = useCallback(
     async (files: File[]) => {
       set_attachment_error(null);
+      await ensure_attachment_limits();
       const new_attachments: Attachment[] = [];
       const current_total = get_total_attachments_size();
       let running_total = current_total;
 
       for (const file of files) {
-        if (file.size > MAX_ATTACHMENT_SIZE) {
-          set_attachment_error(
-            t("common.file_exceeds_max_size", { name: file.name }),
-          );
+        if (
+          attachments.length + new_attachments.length >=
+          MAX_ATTACHMENTS_PER_SEND
+        ) {
+          set_attachment_error(describe_too_many_attachments(t));
+          break;
+        }
+
+        if (file.size > get_max_attachment_size()) {
+          const rejection = describe_oversized_file(t, file.name, file.size);
+
+          set_attachment_error(rejection.message);
+
+          if (rejection.can_upgrade)
+            prompt_attachment_upgrade(
+              rejection.message,
+              rejection.upgrade_plan_code,
+            );
           continue;
         }
 
-        if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
-          set_attachment_error(
-            t("common.adding_file_would_exceed_limit", { name: file.name }),
-          );
+        if (running_total + file.size > get_max_total_attachments_size()) {
+          set_attachment_error(describe_would_exceed_total(t, file.name));
           continue;
         }
 
@@ -955,7 +1161,6 @@ export function use_reply_modal(props: UseReplyModalProps) {
     is_mobile,
     build_quoted_content,
     exec_format_command,
-    handle_insert_link,
     toggle_plain_text_mode,
     handle_template_select,
     handle_send,

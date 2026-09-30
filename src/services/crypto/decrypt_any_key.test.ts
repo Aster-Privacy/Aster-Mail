@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import * as openpgp from "openpgp";
+
 import {
   decrypt_message_with_any_key,
   decrypt_message_verified_with_any_key,
@@ -36,6 +37,7 @@ describe("decrypt_message_with_any_key", () => {
       [a.privateKey, b.privateKey],
       pass,
     );
+
     expect(out).toBe("hi");
   });
 
@@ -65,6 +67,7 @@ describe("decrypt_message_with_any_key", () => {
       [a.privateKey, b.privateKey],
       pass,
     );
+
     expect(res.plaintext).toBe("verified");
   });
 });

@@ -18,16 +18,38 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+const BASE64_CHUNK = 8192;
+
 export function array_to_base64(array: Uint8Array | ArrayBuffer): string {
   const bytes = array instanceof Uint8Array ? array : new Uint8Array(array);
 
   let binary = "";
 
-  for (let i = 0; i < bytes.length; i++) {
-    binary += String.fromCharCode(bytes[i]);
+  for (let offset = 0; offset < bytes.length; offset += BASE64_CHUNK) {
+    binary += String.fromCharCode(
+      ...bytes.subarray(offset, offset + BASE64_CHUNK),
+    );
   }
 
   return btoa(binary);
+}
+
+export function first_base64_byte(base64: string): number {
+  if (!base64) return -1;
+
+  const head = base64.slice(0, 4);
+
+  try {
+    const decoded = atob(head.length % 4 === 0 ? head : head.padEnd(4, "="));
+
+    return decoded.length > 0 ? decoded.charCodeAt(0) : -1;
+  } catch {
+    try {
+      return base64_to_array(base64)[0] ?? -1;
+    } catch {
+      return -1;
+    }
+  }
 }
 
 export function base64_to_array(base64: string): Uint8Array {

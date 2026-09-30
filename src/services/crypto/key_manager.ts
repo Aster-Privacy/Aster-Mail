@@ -66,6 +66,7 @@ export {
   verify_prekey_signature,
   verify_key_binding,
   generate_recovery_codes,
+  RECOVERY_CODE_SET_SIZE,
   prepare_pgp_key_data,
   encrypt_vault,
   decrypt_vault_to_handles,

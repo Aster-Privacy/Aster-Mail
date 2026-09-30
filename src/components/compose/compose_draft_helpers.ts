@@ -27,6 +27,20 @@ import {
   base64_to_array_buffer,
 } from "@/components/compose/compose_base64";
 
+const base64_by_buffer = new WeakMap<ArrayBuffer, string>();
+
+function cached_base64(buffer: ArrayBuffer): string {
+  const cached = base64_by_buffer.get(buffer);
+
+  if (cached !== undefined) return cached;
+
+  const encoded = array_buffer_to_base64(buffer);
+
+  base64_by_buffer.set(buffer, encoded);
+
+  return encoded;
+}
+
 export function attachments_to_draft_data(
   attachments: Attachment[],
 ): DraftAttachmentData[] {
@@ -36,7 +50,7 @@ export function attachments_to_draft_data(
     size: att.size,
     size_bytes: att.size_bytes,
     mime_type: att.mime_type,
-    data_base64: array_buffer_to_base64(att.data),
+    data_base64: cached_base64(att.data),
     content_id: att.content_id,
   }));
 }
@@ -73,6 +87,7 @@ export function build_badge_html(badges: Badge[]): string {
     .map((b) => {
       const safe_color = HEX_COLOR_RE.test(b.color) ? b.color : "#6366f1";
       const safe_name = escape_html_attr(b.display_name);
+
       return `<span style="display:inline-block;color:${safe_color};border:1px solid ${safe_color}40;background-color:${safe_color}15;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:500;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;line-height:1.4;">&#9733; ${safe_name}</span>`;
     })
     .join(" ");

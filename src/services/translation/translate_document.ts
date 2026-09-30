@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { LanguageCode, TranslationEngine } from "./engine_types";
+
 import {
   apply_translations,
   collect_translatable_nodes,
@@ -31,7 +33,6 @@ import {
 } from "./engine_bergamot";
 import { load_engine } from "./engine_registry";
 import { SUPPORTED_LANGUAGES } from "./engine_types";
-import type { LanguageCode, TranslationEngine } from "./engine_types";
 import {
   flatten_segments,
   protect_entities,
@@ -39,10 +40,7 @@ import {
   restore_entities,
   segment_nodes,
 } from "./text_prepare";
-import {
-  read_translation,
-  write_translation,
-} from "./translation_cache";
+import { read_translation, write_translation } from "./translation_cache";
 
 export interface TranslateBodyOptions {
   root: HTMLElement;
@@ -108,12 +106,30 @@ export async function available_source_languages(
   return checks.filter((entry) => entry.ok).map((entry) => entry.code);
 }
 
+export async function pending_download_bytes(
+  from: LanguageCode,
+  to: LanguageCode,
+): Promise<number> {
+  if (from === to) return 0;
+
+  const engine = await get_engine();
+
+  if (!engine) return 0;
+
+  try {
+    return await engine.requires_download(from, to);
+  } catch {
+    return 0;
+  }
+}
+
 function unmasked_acceptable(
   original: string,
   translated: string | undefined,
   entities: readonly string[],
 ): boolean {
-  if (!translated || !translated.trim() || translated === original) return false;
+  if (!translated || !translated.trim() || translated === original)
+    return false;
 
   return entities.every((entity) => translated.includes(entity));
 }
@@ -287,7 +303,13 @@ export async function translate_plain_text(
   if (!engine || signal.aborted) return null;
 
   const { masked, entities } = protect_entities(text);
-  const translated = await translate_segments(engine, [masked], from, to, signal);
+  const translated = await translate_segments(
+    engine,
+    [masked],
+    from,
+    to,
+    signal,
+  );
 
   if (!translated || translated.length !== 1) return null;
 

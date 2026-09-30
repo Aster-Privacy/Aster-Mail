@@ -26,9 +26,14 @@ import {
   read_clipboard_uri,
 } from "@/native/clipboard_image";
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
+import {
+  MAX_PASTE_IMAGE_SIZE,
+  validate_image_magic_bytes,
+} from "@/hooks/editor_utils";
+import { show_toast } from "@/components/toast/simple_toast";
+import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { strip_image_metadata_data_url } from "@/lib/strip_image_metadata";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 interface ComposeHandle {
@@ -36,6 +41,7 @@ interface ComposeHandle {
   handle_editor_input: () => void;
   handle_editor_paste: (e: React.ClipboardEvent<HTMLDivElement>) => void;
   handle_file_select: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handle_files_drop: (files: File[]) => Promise<void>;
 }
 
 function style_inline_image(img: HTMLImageElement) {
@@ -68,15 +74,33 @@ function insert_at_cursor_or_append(editor: HTMLElement, node: Node) {
 export function use_mobile_compose_images(compose: ComposeHandle) {
   const image_input_ref = useRef<HTMLInputElement>(null);
   const { preferences } = use_preferences();
+  const { t } = use_i18n();
 
   const insert_image_file = useCallback(
     (file: File) => {
+      if (file.size > MAX_PASTE_IMAGE_SIZE) {
+        void compose.handle_files_drop([file]);
+
+        return;
+      }
+
       const reader = new FileReader();
 
       reader.onload = async (evt) => {
         let data_url = evt.target?.result as string;
 
         if (!data_url) return;
+
+        const arr_buf = Uint8Array.from(
+          atob(data_url.split(",")[1] || ""),
+          (c) => c.charCodeAt(0),
+        ).buffer;
+
+        if (!validate_image_magic_bytes(arr_buf, file.type)) {
+          show_toast(t("common.valid_image_error"), "error");
+
+          return;
+        }
 
         if (preferences.strip_exif_on_compose) {
           data_url = await strip_image_metadata_data_url(data_url);
@@ -94,17 +118,27 @@ export function use_mobile_compose_images(compose: ComposeHandle) {
         }
         compose.handle_editor_input();
       };
+      reader.onerror = () => {
+        show_toast(t("common.image_processing_failed"), "error");
+      };
       reader.readAsDataURL(file);
     },
-    [compose, preferences.strip_exif_on_compose],
+    [compose, preferences.strip_exif_on_compose, t],
   );
 
   const insert_data_url_image = useCallback(
     async (data_url: string) => {
-      const processed =
-        preferences.strip_exif_on_compose
-          ? await strip_image_metadata_data_url(data_url)
-          : data_url;
+      const base64 = data_url.slice(data_url.indexOf(",") + 1);
+
+      if (Math.floor(base64.length * 0.75) > MAX_PASTE_IMAGE_SIZE) {
+        show_toast(t("common.image_size_error"), "error");
+
+        return;
+      }
+
+      const processed = preferences.strip_exif_on_compose
+        ? await strip_image_metadata_data_url(data_url)
+        : data_url;
       const img = document.createElement("img");
 
       img.src = processed;
@@ -116,7 +150,7 @@ export function use_mobile_compose_images(compose: ComposeHandle) {
       insert_at_cursor_or_append(editor, img);
       compose.handle_editor_input();
     },
-    [compose, preferences.strip_exif_on_compose],
+    [compose, preferences.strip_exif_on_compose, t],
   );
 
   const process_pasted_image_node = useCallback(
@@ -141,7 +175,12 @@ export function use_mobile_compose_images(compose: ComposeHandle) {
             };
             reader.readAsDataURL(blob);
           })
-          .catch((caught) => ignore_error("pages/mobile/use_mobile_compose_images:use_mobile_compose_images", caught));
+          .catch((caught) =>
+            ignore_error(
+              "pages/mobile/use_mobile_compose_images:use_mobile_compose_images",
+              caught,
+            ),
+          );
 
         return;
       }
@@ -185,13 +224,19 @@ export function use_mobile_compose_images(compose: ComposeHandle) {
 
       if (!files || files.length === 0) return;
 
+      const other_files: File[] = [];
+
       for (let i = 0; i < files.length; i++) {
         if (files[i].type.startsWith("image/")) {
           insert_image_file(files[i]);
+        } else {
+          other_files.push(files[i]);
         }
       }
 
-      compose.handle_file_select(event);
+      if (other_files.length > 0) {
+        await compose.handle_files_drop(other_files);
+      }
 
       if (image_input_ref.current) {
         image_input_ref.current.value = "";

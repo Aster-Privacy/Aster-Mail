@@ -71,6 +71,7 @@ vi.mock("@/services/lockdown_store", () => ({
 }));
 
 import { sync_client } from "./sync_client";
+
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 
 function deliver_new_mail(mail_item_id: string): void {

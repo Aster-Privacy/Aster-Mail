@@ -18,6 +18,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { repair_comment_markup } from "./html_sanitizer_utils";
+
 const MAX_CSS_LENGTH = 400_000;
 const MAX_STYLE_RULES = 4_000;
 const INLINE_STYLE_RANK = Number.MAX_SAFE_INTEGER;
@@ -246,7 +248,10 @@ export function inline_email_css(html: string): string {
   let doc: Document;
 
   try {
-    doc = new DOMParser().parseFromString(html, "text/html");
+    doc = new DOMParser().parseFromString(
+      repair_comment_markup(html),
+      "text/html",
+    );
   } catch {
     return "";
   }
@@ -258,7 +263,9 @@ export function inline_email_css(html: string): string {
     .join("\n");
 
   doc
-    .querySelectorAll("script, style, link, meta, title, base, noscript, template")
+    .querySelectorAll(
+      "script, style, link, meta, title, base, noscript, template",
+    )
     .forEach((el) => el.remove());
 
   if (css_text.trim().length > 0 && css_text.length <= MAX_CSS_LENGTH) {

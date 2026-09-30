@@ -33,6 +33,7 @@ export function MobileRecipientRow({
   on_remove,
   on_input_change,
   on_key_down,
+  on_paste,
   on_blur,
   on_expand,
   placeholder,
@@ -45,6 +46,7 @@ export function MobileRecipientRow({
   on_remove: (email: string) => void;
   on_input_change: (value: string) => void;
   on_key_down: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  on_paste: (e: React.ClipboardEvent<HTMLInputElement>) => void;
   on_blur: () => void;
   on_expand: () => void;
   placeholder?: string;
@@ -63,7 +65,7 @@ export function MobileRecipientRow({
           {recipients.map((email) => (
             <span
               key={email}
-              className="flex shrink-0 items-center gap-1 rounded-full bg-[var(--bg-tertiary)] pl-0.5 pr-2 py-0.5 text-[13px] text-[var(--text-primary)]"
+              className="flex shrink-0 items-center gap-1 rounded-full bg-[var(--bg-tertiary)] ps-0.5 pe-2 py-0.5 text-[13px] text-[var(--text-primary)]"
             >
               <ProfileAvatar
                 use_domain_logo
@@ -90,6 +92,7 @@ export function MobileRecipientRow({
             onBlur={on_blur}
             onChange={(e) => on_input_change(e.target.value)}
             onKeyDown={on_key_down}
+            onPaste={on_paste}
           />
         </div>
       ) : (
@@ -97,7 +100,7 @@ export function MobileRecipientRow({
           className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden cursor-pointer"
           onClick={on_expand}
         >
-          <span className="flex shrink-0 items-center gap-1 rounded-full bg-[var(--bg-tertiary)] pl-0.5 pr-2 py-0.5 text-[13px] text-[var(--text-primary)]">
+          <span className="flex shrink-0 items-center gap-1 rounded-full bg-[var(--bg-tertiary)] ps-0.5 pe-2 py-0.5 text-[13px] text-[var(--text-primary)]">
             <ProfileAvatar
               use_domain_logo
               email={recipients[0]}

@@ -23,10 +23,13 @@ function is_desktop(): boolean {
   return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
 
-export async function apply_desktop_content_protection(enabled: boolean): Promise<void> {
+export async function apply_desktop_content_protection(
+  enabled: boolean,
+): Promise<void> {
   if (!is_desktop()) return;
   try {
     const { invoke } = await import("@tauri-apps/api/core");
+
     await invoke("set_content_protection", { enabled });
   } catch {
     // best effort: command unavailable on this build or platform

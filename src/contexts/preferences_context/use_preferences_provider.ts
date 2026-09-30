@@ -1,4 +1,4 @@
-//
+﻿//
 // Aster Communications Inc.
 //
 // Copyright (c) 2026 Aster Communications Inc.
@@ -18,12 +18,22 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
+import type { UserPreferences } from "@/services/api/preferences";
+
+import { useEffect, useCallback } from "react";
 
 import {
-  useEffect,
-  useCallback,
-} from "react";
+  CROSS_DEVICE_REFRESH_MIN_INTERVAL_MS,
+  CROSS_DEVICE_REFRESH_POLL_MS,
+  FONT_SIZE_DEFAULT,
+  apply_color_theme_class,
+  apply_pending_preferences,
+  normalize_font_size_scale,
+  normalize_preferences,
+  reconcile_low_network_mode,
+} from "./helpers";
+import { use_preferences_core } from "./use_preferences_core";
 
 import {
   get_preferences,
@@ -34,16 +44,28 @@ import {
   DEFAULT_PREFERENCES,
 } from "@/services/api/preferences";
 import { get_csrf_token_from_cookie } from "@/services/api/csrf";
+import { request_cache } from "@/services/api/request_cache";
 import { get_effective_base_url } from "@/services/routing/routing_provider";
 import { connection_store } from "@/services/routing/connection_store";
 import { sync_haptic_state } from "@/native/haptic_feedback";
+import { write_support_theme_cookie } from "@/lib/support_theme_cookie";
 import { set_toast_min_duration } from "@/components/toast/simple_toast";
-import { set_display_time_zone } from "@/utils/date_format";
+import {
+  set_display_date_format,
+  set_display_relative_dates,
+  set_display_time_format,
+  set_display_time_zone,
+} from "@/utils/date_format";
 import {
   load_notification_preferences,
   request_notification_permission,
 } from "@/services/notification_service";
 import { set_low_network_mode } from "@/services/low_network_state";
+import {
+  set_reply_include_quoted,
+  set_reply_prefix_subject,
+} from "@/lib/reply_defaults";
+import { take_onboarding_preferences } from "@/lib/onboarding_preferences";
 import { stop_version_check } from "@/lib/version_check";
 import { get_font_stack } from "@/lib/font_options";
 import {
@@ -51,10 +73,12 @@ import {
   is_font_family_loaded,
 } from "@/lib/loaded_fonts";
 import { get_effective_theme_fields } from "@/lib/theme_sync";
-import { CROSS_DEVICE_REFRESH_MIN_INTERVAL_MS, CROSS_DEVICE_REFRESH_POLL_MS, FONT_SIZE_DEFAULT, apply_color_theme_class, apply_pending_preferences, normalize_font_size_scale, normalize_preferences, reconcile_low_network_mode } from "./helpers";
-import { use_preferences_core } from "./use_preferences_core";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { set_badge_count_enabled } from "@/native/badge_preference";
+import {
+  get_vault_from_memory,
+  on_vault_cleared,
+} from "@/services/crypto/memory_key_store";
 
 export function use_preferences_provider() {
   const {
@@ -77,10 +101,14 @@ export function use_preferences_provider() {
     server_base_ref,
     debounce_timer,
     saved_indicator_timer,
+    save_retry_timer,
     latest_prefs_ref,
     is_saving_ref,
     beacon_payload_ref,
     do_save,
+    push_muted_folders,
+    synced_muted_folders_ref,
+    flush_save,
     schedule_save,
     update_preference,
     update_preferences,
@@ -89,96 +117,112 @@ export function use_preferences_provider() {
     apply_visual_preferences,
   } = use_preferences_core();
 
-  const reload_preferences = useCallback(async (background = false) => {
-    const v = vault_ref.current;
+  const reload_preferences = useCallback(
+    async (background = false) => {
+      const v = vault_ref.current;
 
-    if (!v) return;
+      if (!v) return;
 
-    let response = await get_preferences(v);
-    let attempt = 0;
+      let response = await get_preferences(v);
+      let attempt = 0;
 
-    if (background && !response.loaded_from_server) return;
+      if (background && !response.loaded_from_server) return;
 
-    while (!response.loaded_from_server && attempt < 6) {
-      attempt += 1;
-      const delay_ms = Math.min(500 * 2 ** (attempt - 1), 8000);
+      while (!response.loaded_from_server && attempt < 6) {
+        attempt += 1;
+        const delay_ms = Math.min(500 * 2 ** (attempt - 1), 8000);
 
-      await new Promise((resolve) => setTimeout(resolve, delay_ms));
-      response = await get_preferences(v);
-    }
-
-    if (response.loaded_from_server && response.data) {
-      fallback_base_ref.current = null;
-      let merged = normalize_preferences({
-        ...DEFAULT_PREFERENCES,
-        ...response.data,
-      });
-
-      const reconciled = reconcile_low_network_mode(merged);
-
-      if (reconciled !== merged) {
-        merged = reconciled;
-        cache_preferences_locally(merged);
-        do_save(merged).catch((caught) => ignore_error("contexts/preferences_context/use_preferences_provider:use_preferences_provider", caught));
+        await new Promise((resolve) => setTimeout(resolve, delay_ms));
+        response = await get_preferences(v);
       }
 
-      const url_low_bandwidth = new URLSearchParams(window.location.search).get(
-        "low_bandwidth",
-      );
-      const is_same_origin_nav =
-        !document.referrer ||
-        new URL(document.referrer).origin === window.location.origin;
-      if (url_low_bandwidth !== null && is_same_origin_nav) {
-        const want_enabled =
-          url_low_bandwidth === "1" || url_low_bandwidth === "true";
-        const want_disabled =
-          url_low_bandwidth === "0" || url_low_bandwidth === "false";
-        if (want_enabled || want_disabled) {
-          merged = {
-            ...merged,
-            low_network_mode: want_enabled,
-            low_network_mode_user_set: true,
-          };
+      if (response.loaded_from_server && response.data) {
+        fallback_base_ref.current = null;
+        let merged = normalize_preferences({
+          ...DEFAULT_PREFERENCES,
+          ...response.data,
+        });
+
+        const reconciled = reconcile_low_network_mode(merged);
+
+        if (reconciled !== merged) {
+          merged = reconciled;
           cache_preferences_locally(merged);
-          do_save(merged).catch((caught) => ignore_error("contexts/preferences_context/use_preferences_provider:use_preferences_provider", caught));
+          do_save(merged).catch((caught) =>
+            ignore_error(
+              "contexts/preferences_context/use_preferences_provider:use_preferences_provider",
+              caught,
+            ),
+          );
         }
-      }
 
-      has_loaded_ref.current = true;
-      server_base_ref.current = merged;
+        const url_low_bandwidth = new URLSearchParams(
+          window.location.search,
+        ).get("low_bandwidth");
+        const is_same_origin_nav =
+          !document.referrer ||
+          new URL(document.referrer).origin === window.location.origin;
 
-      const applied = apply_pending_preferences(
-        merged,
-        preferences_ref.current,
-        pending_keys_ref.current,
-      );
+        if (url_low_bandwidth !== null && is_same_origin_nav) {
+          const want_enabled =
+            url_low_bandwidth === "1" || url_low_bandwidth === "true";
+          const want_disabled =
+            url_low_bandwidth === "0" || url_low_bandwidth === "false";
 
-      cache_preferences_locally(applied);
-      preferences_ref.current = applied;
-      set_preferences(applied);
-      set_low_network_mode(applied.low_network_mode);
-      apply_visual_preferences(applied);
-    } else {
-      const cached = get_cached_preferences();
+          if (want_enabled || want_disabled) {
+            merged = {
+              ...merged,
+              low_network_mode: want_enabled,
+              low_network_mode_user_set: true,
+            };
+            cache_preferences_locally(merged);
+            do_save(merged).catch((caught) =>
+              ignore_error(
+                "contexts/preferences_context/use_preferences_provider:use_preferences_provider",
+                caught,
+              ),
+            );
+          }
+        }
 
-      if (cached) {
+        has_loaded_ref.current = true;
+        server_base_ref.current = merged;
+        push_muted_folders(merged);
+
         const applied = apply_pending_preferences(
-          cached,
+          merged,
           preferences_ref.current,
           pending_keys_ref.current,
         );
 
+        cache_preferences_locally(applied);
         preferences_ref.current = applied;
         set_preferences(applied);
         set_low_network_mode(applied.low_network_mode);
         apply_visual_preferences(applied);
-        has_loaded_ref.current = true;
-        fallback_base_ref.current = applied;
-      }
-    }
+      } else {
+        const cached = get_cached_preferences();
 
-    set_has_loaded_from_server(response.loaded_from_server);
-  }, [apply_visual_preferences]);
+        if (cached) {
+          const applied = apply_pending_preferences(
+            cached,
+            preferences_ref.current,
+            pending_keys_ref.current,
+          );
+
+          preferences_ref.current = applied;
+          set_preferences(applied);
+          set_low_network_mode(applied.low_network_mode);
+          apply_visual_preferences(applied);
+          has_loaded_ref.current = true;
+          fallback_base_ref.current = applied;
+        }
+      }
+
+      set_has_loaded_from_server(response.loaded_from_server);
+    },
+    [apply_visual_preferences, push_muted_folders],
+  );
 
   const save_now = useCallback(async () => {
     if (!vault_ref.current) return;
@@ -188,11 +232,13 @@ export function use_preferences_provider() {
       debounce_timer.current = null;
     }
 
-    if (latest_prefs_ref.current) {
-      await do_save(latest_prefs_ref.current);
-      latest_prefs_ref.current = null;
+    if (save_retry_timer.current) {
+      clearTimeout(save_retry_timer.current);
+      save_retry_timer.current = null;
     }
-  }, [do_save]);
+
+    await flush_save();
+  }, [flush_save, vault_ref, debounce_timer, save_retry_timer]);
 
   const vault_identity = vault?.identity_key ?? null;
 
@@ -223,11 +269,39 @@ export function use_preferences_provider() {
     has_loaded_ref.current = false;
     fallback_base_ref.current = null;
     server_base_ref.current = null;
+    synced_muted_folders_ref.current = null;
 
     (async () => {
       try {
         let response = await get_preferences(v);
         let attempt = 0;
+        let cached_applied = false;
+
+        const apply_cached_fallback = () => {
+          if (cached_applied) return;
+
+          const cached = get_cached_preferences();
+
+          if (!cached) return;
+
+          const applied = apply_pending_preferences(
+            cached,
+            preferences_ref.current,
+            pending_keys_ref.current,
+          );
+
+          preferences_ref.current = applied;
+          set_preferences(applied);
+          apply_visual_preferences(applied);
+          has_loaded_ref.current = true;
+          fallback_base_ref.current = applied;
+          cached_applied = true;
+          set_is_loading(false);
+        };
+
+        if (!response.loaded_from_server) {
+          apply_cached_fallback();
+        }
 
         while (!response.loaded_from_server && attempt < 6) {
           if (cancelled) return;
@@ -241,21 +315,13 @@ export function use_preferences_provider() {
         if (cancelled) return;
 
         if (!response.loaded_from_server) {
-          const cached = get_cached_preferences();
+          apply_cached_fallback();
 
-          if (cached) {
-            const applied = apply_pending_preferences(
-              cached,
-              preferences_ref.current,
-              pending_keys_ref.current,
-            );
-
-            response = { data: applied, loaded_from_server: false };
-            preferences_ref.current = applied;
-            set_preferences(applied);
-            apply_visual_preferences(applied);
-            has_loaded_ref.current = true;
-            fallback_base_ref.current = applied;
+          if (cached_applied) {
+            response = {
+              data: preferences_ref.current,
+              loaded_from_server: false,
+            };
           }
         }
 
@@ -270,6 +336,17 @@ export function use_preferences_provider() {
           const merged = reconcile_low_network_mode(normalized);
 
           server_base_ref.current = merged;
+          push_muted_folders(merged);
+
+          const queued = take_onboarding_preferences();
+
+          for (const key of Object.keys(queued) as (keyof UserPreferences)[]) {
+            preferences_ref.current = {
+              ...preferences_ref.current,
+              [key]: queued[key],
+            };
+            pending_keys_ref.current.add(key);
+          }
 
           const applied = apply_pending_preferences(
             merged,
@@ -340,6 +417,49 @@ export function use_preferences_provider() {
   }, [preferences.time_zone]);
 
   useEffect(() => {
+    set_badge_count_enabled(preferences.badge_count !== false);
+  }, [preferences.badge_count]);
+
+  useEffect(() => {
+    set_reply_include_quoted(preferences.reply_include_quoted);
+  }, [preferences.reply_include_quoted]);
+
+  useEffect(() => {
+    set_reply_prefix_subject(preferences.reply_prefix_subject);
+  }, [preferences.reply_prefix_subject]);
+
+  useEffect(() => {
+    set_display_time_format(preferences.time_format);
+    try {
+      if (preferences.time_format)
+        localStorage.setItem("astermail_time_format", preferences.time_format);
+    } catch {
+      return;
+    }
+  }, [preferences.time_format]);
+
+  useEffect(() => {
+    set_display_date_format(preferences.date_format);
+    try {
+      if (preferences.date_format)
+        localStorage.setItem("astermail_date_format", preferences.date_format);
+    } catch {
+      return;
+    }
+  }, [preferences.date_format]);
+
+  useEffect(() => {
+    const enabled = preferences.relative_dates !== false;
+
+    set_display_relative_dates(enabled);
+    try {
+      localStorage.setItem("astermail_relative_dates", String(enabled));
+    } catch {
+      return;
+    }
+  }, [preferences.relative_dates]);
+
+  useEffect(() => {
     document.documentElement.classList.toggle(
       "reduce-motion",
       preferences.reduce_motion,
@@ -384,8 +504,29 @@ export function use_preferences_provider() {
   ]);
 
   useEffect(() => {
+    if (is_loading) return;
+    if (!has_loaded_ref.current) return;
+
     set_theme_ref.current(effective_theme_fields.theme);
-  }, [effective_theme_fields.theme]);
+  }, [effective_theme_fields.theme, is_loading]);
+
+  useEffect(() => {
+    if (is_loading) return;
+    if (!has_loaded_ref.current) return;
+
+    write_support_theme_cookie(
+      effective_theme_fields.theme,
+      effective_theme_fields.color_theme,
+      preferences.accent_color,
+      effective_theme_fields.custom_theme_seed,
+    );
+  }, [
+    is_loading,
+    effective_theme_fields.theme,
+    effective_theme_fields.color_theme,
+    preferences.accent_color,
+    effective_theme_fields.custom_theme_seed,
+  ]);
 
   useEffect(() => {
     document.documentElement.style.setProperty(
@@ -515,6 +656,7 @@ export function use_preferences_provider() {
     };
 
     nav_conn.addEventListener("change", handle_connection_change);
+
     return () =>
       nav_conn.removeEventListener("change", handle_connection_change);
   }, [
@@ -544,7 +686,12 @@ export function use_preferences_provider() {
       in_flight = true;
 
       reload_preferences(true)
-        .catch((caught) => ignore_error("contexts/preferences_context/use_preferences_provider:refresh_from_other_devices", caught))
+        .catch((caught) =>
+          ignore_error(
+            "contexts/preferences_context/use_preferences_provider:refresh_from_other_devices",
+            caught,
+          ),
+        )
         .finally(() => {
           in_flight = false;
         });
@@ -573,21 +720,46 @@ export function use_preferences_provider() {
     const flush_via_beacon = () => {
       if (!latest_prefs_ref.current || !beacon_payload_ref.current) return;
 
+      if (!has_loaded_ref.current) {
+        beacon_payload_ref.current = null;
+        latest_prefs_ref.current = null;
+
+        return;
+      }
+
+      const live_vault = get_vault_from_memory();
+
+      if (
+        live_vault &&
+        live_vault.identity_key !== beacon_payload_ref.current.identity
+      ) {
+        beacon_payload_ref.current = null;
+        latest_prefs_ref.current = null;
+
+        return;
+      }
+
+      cache_preferences_locally(latest_prefs_ref.current);
+
       const method = connection_store.get_method();
 
       if (method === "tor" || method === "tor_snowflake") {
         beacon_payload_ref.current = null;
         latest_prefs_ref.current = null;
+
         return;
       }
 
       let url: string;
+
       try {
         const api_base = import.meta.env.VITE_API_URL || "/api";
+
         url = `${get_effective_base_url(api_base)}/settings/v1/preferences`;
       } catch {
         beacon_payload_ref.current = null;
         latest_prefs_ref.current = null;
+
         return;
       }
 
@@ -600,6 +772,7 @@ export function use_preferences_provider() {
         headers["X-CSRF-Token"] = csrf;
       }
 
+      request_cache.invalidate("/settings/v1/preferences");
       fetch(url, {
         method: "PUT",
         headers,
@@ -609,16 +782,37 @@ export function use_preferences_provider() {
           encrypted_preferences: beacon_payload_ref.current.encrypted,
           preferences_nonce: beacon_payload_ref.current.nonce,
         }),
-      }).catch((caught) => ignore_error("contexts/preferences_context/use_preferences_provider:flush_via_beacon", caught));
+      }).catch((caught) =>
+        ignore_error(
+          "contexts/preferences_context/use_preferences_provider:flush_via_beacon",
+          caught,
+        ),
+      );
 
       beacon_payload_ref.current = null;
       latest_prefs_ref.current = null;
     };
 
+    const flush_on_hide = () => {
+      if (document.visibilityState !== "hidden") return;
+
+      flush_via_beacon();
+    };
+
+    const drop_beacon_on_vault_clear = on_vault_cleared(() => {
+      beacon_payload_ref.current = null;
+      latest_prefs_ref.current = null;
+    });
+
     window.addEventListener("beforeunload", flush_via_beacon);
+    window.addEventListener("pagehide", flush_via_beacon);
+    document.addEventListener("visibilitychange", flush_on_hide);
 
     return () => {
+      drop_beacon_on_vault_clear();
       window.removeEventListener("beforeunload", flush_via_beacon);
+      window.removeEventListener("pagehide", flush_via_beacon);
+      document.removeEventListener("visibilitychange", flush_on_hide);
 
       if (latest_prefs_ref.current) {
         do_save(latest_prefs_ref.current);
@@ -630,6 +824,11 @@ export function use_preferences_provider() {
 
       if (saved_indicator_timer.current) {
         clearTimeout(saved_indicator_timer.current);
+      }
+
+      if (save_retry_timer.current) {
+        clearTimeout(save_retry_timer.current);
+        save_retry_timer.current = null;
       }
     };
   }, [do_save]);

@@ -27,6 +27,7 @@ import { BUTTON_COLORS } from "@/constants/modal";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { dispatch_undo_send_preview } from "@/components/toast/undo_send_preview_modal";
+import { clip_with_ellipsis } from "@/utils/preview_text";
 
 interface UndoSendToastProps {
   queue_id: string;
@@ -45,12 +46,6 @@ interface UndoSendToastProps {
   on_undo: () => void;
   on_send_now: () => void;
   on_dismiss: () => void;
-}
-
-function truncate_text(text: string, max_length: number): string {
-  if (text.length <= max_length) return text;
-
-  return text.slice(0, max_length).trimEnd() + "\u2026";
 }
 
 export const UndoSendToast = forwardRef<HTMLDivElement, UndoSendToastProps>(
@@ -186,9 +181,10 @@ export const UndoSendToast = forwardRef<HTMLDivElement, UndoSendToastProps>(
                   </p>
                   <p
                     className="text-[11px] truncate text-txt-muted"
+                    dir="auto"
                     title={subject || t("mail.no_subject")}
                   >
-                    {truncate_text(display_subject, 40)}
+                    {clip_with_ellipsis(display_subject, 40)}
                   </p>
                 </div>
               </div>

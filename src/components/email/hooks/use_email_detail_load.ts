@@ -51,9 +51,6 @@ import {
 } from "@/components/email/shared/build_email_from_envelope";
 import { use_auth } from "@/contexts/auth_context";
 import {
-  DEFAULT_PREFERENCES,
-} from "@/services/api/preferences";
-import {
   get_vault_from_memory,
   wait_for_keys_ready,
   are_keys_ready,
@@ -65,6 +62,12 @@ import {
   request_folder_unlock,
 } from "@/services/locked_folders";
 import { adjust_stats_unread } from "@/hooks/use_mail_stats";
+import { get_read_intent } from "@/services/read_intent";
+import {
+  current_opened_mail_scope,
+  on_user_opened_mail,
+  revert_user_opened_mail,
+} from "@/services/user_opened_mail";
 import { read_clears_conversation } from "@/hooks/unread_read_delta";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { use_document_title } from "@/hooks/use_document_title";
@@ -83,8 +86,12 @@ import {
 import { use_email_detail_actions } from "@/components/email/hooks/email_detail_actions";
 import { prefetch_attachment_meta } from "@/services/attachment_meta_cache";
 import { prefetch_attachment_previews } from "@/services/attachment_preview_cache";
-
 import { ignore_error } from "@/lib/ignore_error";
+import {
+  claim_auto_read,
+  is_read_ticket_current,
+  peek_read_ticket,
+} from "@/services/read_intent";
 
 export function use_email_detail_load() {
   const { t } = use_i18n();
@@ -95,8 +102,10 @@ export function use_email_detail_load() {
   const { format_email_popup } = use_date_format();
   const { preferences, update_preference, save_now } = use_preferences();
   const mark_as_read_delay_ref = useRef(preferences.mark_as_read_delay);
+
   mark_as_read_delay_ref.current = preferences.mark_as_read_delay;
   const mark_as_read_timeout = useRef<number | null>(null);
+
   useEffect(() => {
     return () => {
       if (mark_as_read_timeout.current !== null) {
@@ -106,6 +115,7 @@ export function use_email_detail_load() {
     };
   }, [email_id]);
   const has_loaded_once = useRef(false);
+  const tracked_email_id = useRef<string | undefined>(undefined);
   const load_seq_ref = useRef(0);
   const [mail_item, set_mail_item] = useState<
     import("@/services/api/mail").MailItem | null
@@ -135,9 +145,7 @@ export function use_email_detail_load() {
     close_compose,
     toggle_minimize,
   } = use_compose_manager();
-  const [auto_advance, set_auto_advance] = useState(
-    DEFAULT_PREFERENCES.auto_advance,
-  );
+  const auto_advance = preferences.auto_advance;
   const [email_list] = useState<string[]>(() => {
     try {
       const stored = sessionStorage.getItem("astermail_email_nav");
@@ -148,7 +156,10 @@ export function use_email_detail_load() {
         return parsed.email_ids || [];
       }
     } catch (caught) {
-      ignore_error("components/email/hooks/use_email_detail_load:use_email_detail_load", caught);
+      ignore_error(
+        "components/email/hooks/use_email_detail_load:use_email_detail_load",
+        caught,
+      );
     }
 
     return [];
@@ -163,7 +174,10 @@ export function use_email_detail_load() {
         return parsed.grouped_email_ids;
       }
     } catch (caught) {
-      ignore_error("components/email/hooks/use_email_detail_load:use_email_detail_load", caught);
+      ignore_error(
+        "components/email/hooks/use_email_detail_load:use_email_detail_load",
+        caught,
+      );
     }
 
     return undefined;
@@ -380,6 +394,23 @@ export function use_email_detail_load() {
     const my_seq = ++load_seq_ref.current;
     const is_stale = () => load_seq_ref.current !== my_seq;
 
+    set_error(null);
+
+    const is_new_open = tracked_email_id.current !== email_id;
+
+    if (is_new_open) {
+      tracked_email_id.current = email_id;
+      on_user_opened_mail(email_id, {
+        delay: mark_as_read_delay_ref.current,
+        conversation_grouping: preferences.conversation_grouping,
+      });
+      set_email(null);
+      set_thread_messages([]);
+      set_tracking_report(null);
+      set_thread_truncated(false);
+      set_is_loading(true);
+    }
+
     const preload_in_flight = get_preload_in_flight();
     const preload_cache = get_preload_cache();
     const in_flight = preload_in_flight.get(email_id);
@@ -412,7 +443,11 @@ export function use_email_detail_load() {
 
       if (should_auto_mark_read) {
         const is_received = item.item_type === "received";
+        const armed_read_ticket = peek_read_ticket(email_id);
         const mark_read = () => {
+          const read_ticket = claim_auto_read(email_id, armed_read_ticket);
+
+          if (read_ticket === null) return;
           const conversation_options = {
             thread_token: item.thread_token,
             thread_message_count: item.thread_message_count,
@@ -420,8 +455,10 @@ export function use_email_detail_load() {
             conversation_grouping: preferences.conversation_grouping,
             acted_id: email_id,
           };
+          const owned = get_read_intent(email_id) !== true;
+          const scope = current_opened_mail_scope();
           const clears_conversation =
-            read_clears_conversation(conversation_options);
+            owned && read_clears_conversation(conversation_options);
 
           if (is_received && item.thread_token) {
             swept_threads_ref.current.add(item.thread_token);
@@ -429,7 +466,9 @@ export function use_email_detail_load() {
           if (is_received && clears_conversation) {
             adjust_stats_unread(-1);
           }
-          emit_mail_item_updated({ id: email_id, is_read: true });
+          if (owned) {
+            emit_mail_item_updated({ id: email_id, is_read: true });
+          }
           update_item_metadata(
             email_id,
             {
@@ -439,7 +478,10 @@ export function use_email_detail_load() {
             },
             { is_read: true },
           ).then((result) => {
+            if (scope !== current_opened_mail_scope()) return;
+            if (!is_read_ticket_current(email_id, read_ticket)) return;
             if (result.success) {
+              if (!owned) return;
               emit_mail_item_updated({
                 id: email_id,
                 is_read: true,
@@ -450,7 +492,9 @@ export function use_email_detail_load() {
                 mark_conversation_read(conversation_options);
               }
             } else {
-              emit_mail_item_updated({ id: email_id, is_read: false });
+              if (owned) {
+                emit_mail_item_updated({ id: email_id, is_read: false });
+              }
               if (is_received && item.thread_token) {
                 swept_threads_ref.current.delete(item.thread_token);
               }
@@ -467,6 +511,9 @@ export function use_email_detail_load() {
           const delay_ms =
             mark_as_read_delay_ref.current === "1_second" ? 1000 : 3000;
 
+          if (mark_as_read_timeout.current !== null) {
+            window.clearTimeout(mark_as_read_timeout.current);
+          }
           mark_as_read_timeout.current = window.setTimeout(mark_read, delay_ms);
         }
       }
@@ -481,6 +528,8 @@ export function use_email_detail_load() {
           preferences.conversation_grouping,
         )
           .then(() => {
+            if (is_stale()) return;
+
             const fresh = get_preload_cache().get(revalidate_id);
 
             if (fresh) {
@@ -490,24 +539,18 @@ export function use_email_detail_load() {
               set_thread_draft(fresh.thread_draft);
             }
           })
-          .catch((caught) => ignore_error("components/email/hooks/use_email_detail_load:mark_read", caught));
+          .catch((caught) =>
+            ignore_error(
+              "components/email/hooks/use_email_detail_load:mark_read",
+              caught,
+            ),
+          );
       }
 
       return;
     }
 
     const is_first_load = !has_loaded_once.current;
-    const start_time = Date.now();
-    const min_duration = 500;
-
-    const ensure_min_duration = async () => {
-      if (!is_first_load) return;
-      const elapsed = Date.now() - start_time;
-
-      if (elapsed < min_duration) {
-        await new Promise((r) => setTimeout(r, min_duration - elapsed));
-      }
-    };
 
     if (is_first_load) {
       set_is_loading(true);
@@ -564,7 +607,9 @@ export function use_email_detail_load() {
 
           set_email(decrypted);
           has_loaded_once.current = true;
-          await ensure_min_duration();
+
+          if (is_stale()) return;
+
           set_is_loading(false);
 
           return;
@@ -576,14 +621,20 @@ export function use_email_detail_load() {
         has_protected_folders()
       ) {
         request_folder_unlock();
-        await ensure_min_duration();
+
+        if (is_stale()) return;
+
+        if (is_new_open) revert_user_opened_mail(email_id);
+
         set_error(t("common.email_in_locked_folder"));
         set_is_loading(false);
 
         return;
       }
 
-      await ensure_min_duration();
+      if (is_stale()) return;
+
+      if (is_new_open) revert_user_opened_mail(email_id);
       set_error(response.error);
       set_is_loading(false);
 
@@ -604,7 +655,11 @@ export function use_email_detail_load() {
             !is_folder_unlocked(folder.id)
           ) {
             request_folder_unlock(mail_folder.token);
-            await ensure_min_duration();
+
+            if (is_stale()) return;
+
+            if (is_new_open) revert_user_opened_mail(email_id);
+
             set_error(t("common.email_in_locked_folder"));
             set_is_loading(false);
 
@@ -633,7 +688,7 @@ export function use_email_detail_load() {
         response.data.item_type === "sent" ||
         response.data.item_type === "draft";
       const is_read_on_server =
-        response.data.is_read === true || (decrypted_metadata?.is_read ?? false);
+        response.data.is_read ?? decrypted_metadata?.is_read ?? false;
       const should_auto_mark_read =
         !is_read_on_server &&
         (is_sent_type ||
@@ -643,7 +698,11 @@ export function use_email_detail_load() {
       if (should_auto_mark_read) {
         const mail_data = response.data;
         const is_received = response.data.item_type === "received";
+        const armed_read_ticket = peek_read_ticket(email_id);
         const mark_read = () => {
+          const read_ticket = claim_auto_read(email_id, armed_read_ticket);
+
+          if (read_ticket === null) return;
           const conversation_options = {
             thread_token: mail_data.thread_token,
             thread_message_count: mail_data.thread_message_count,
@@ -651,8 +710,10 @@ export function use_email_detail_load() {
             conversation_grouping: preferences.conversation_grouping,
             acted_id: email_id,
           };
+          const owned = get_read_intent(email_id) !== true;
+          const scope = current_opened_mail_scope();
           const clears_conversation =
-            read_clears_conversation(conversation_options);
+            owned && read_clears_conversation(conversation_options);
 
           if (is_received && mail_data.thread_token) {
             swept_threads_ref.current.add(mail_data.thread_token);
@@ -660,7 +721,9 @@ export function use_email_detail_load() {
           if (is_received && clears_conversation) {
             adjust_stats_unread(-1);
           }
-          emit_mail_item_updated({ id: email_id, is_read: true });
+          if (owned) {
+            emit_mail_item_updated({ id: email_id, is_read: true });
+          }
           update_item_metadata(
             email_id,
             {
@@ -670,7 +733,10 @@ export function use_email_detail_load() {
             },
             { is_read: true },
           ).then((result) => {
+            if (scope !== current_opened_mail_scope()) return;
+            if (!is_read_ticket_current(email_id, read_ticket)) return;
             if (result.success) {
+              if (!owned) return;
               emit_mail_item_updated({
                 id: email_id,
                 is_read: true,
@@ -681,7 +747,9 @@ export function use_email_detail_load() {
                 mark_conversation_read(conversation_options);
               }
             } else {
-              emit_mail_item_updated({ id: email_id, is_read: false });
+              if (owned) {
+                emit_mail_item_updated({ id: email_id, is_read: false });
+              }
               if (is_received && mail_data.thread_token) {
                 swept_threads_ref.current.delete(mail_data.thread_token);
               }
@@ -698,6 +766,9 @@ export function use_email_detail_load() {
           const delay_ms =
             mark_as_read_delay_ref.current === "1_second" ? 1000 : 3000;
 
+          if (mark_as_read_timeout.current !== null) {
+            window.clearTimeout(mark_as_read_timeout.current);
+          }
           mark_as_read_timeout.current = window.setTimeout(mark_read, delay_ms);
         }
       }
@@ -752,6 +823,7 @@ export function use_email_detail_load() {
             unsubscribe_info,
             reply_to: (() => {
               const parsed = extract_reply_to(envelope.raw_headers);
+
               return parsed
                 ? { name: parsed.name, email: parsed.email }
                 : undefined;
@@ -841,14 +913,26 @@ export function use_email_detail_load() {
       if (is_stale()) return;
 
       has_loaded_once.current = true;
-      await ensure_min_duration();
+
+      if (is_stale()) return;
+
       set_is_loading(false);
     } else {
       has_loaded_once.current = true;
-      await ensure_min_duration();
+
+      if (is_stale()) return;
+
       set_is_loading(false);
     }
-  }, [email_id, folders_state.folders, user?.id, user?.email, preferences.low_network_mode, preferences.conversation_grouping]);
+  }, [
+    email_id,
+    folders_state.folders,
+    user?.id,
+    user?.email,
+    preferences.low_network_mode,
+    preferences.conversation_grouping,
+    t,
+  ]);
 
   return {
     t,
@@ -884,7 +968,6 @@ export function use_email_detail_load() {
     close_compose,
     toggle_minimize,
     auto_advance,
-    set_auto_advance,
     email_list,
     is_archive_loading,
     is_trash_loading,

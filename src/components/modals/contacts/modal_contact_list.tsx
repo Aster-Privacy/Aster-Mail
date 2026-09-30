@@ -52,9 +52,13 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
 import { use_should_reduce_motion } from "@/provider";
+import { format_number } from "@/lib/utils";
 
 interface ModalContactListProps {
   contacts: DecryptedContact[];
@@ -63,7 +67,6 @@ interface ModalContactListProps {
   set_search_query: (query: string) => void;
   search_input_ref: RefObject<HTMLInputElement>;
   selected_ids: Set<string>;
-  set_selected_ids: React.Dispatch<React.SetStateAction<Set<string>>>;
   selection_state: {
     selected_count: number;
     all_selected: boolean;
@@ -91,7 +94,11 @@ interface ModalContactListProps {
   on_compose_to_selected: () => void;
   on_toggle_favorite_selected: () => void;
   on_copy_emails: () => void;
-  on_export_contacts: (export_selected: boolean) => void;
+  on_export_contacts: (
+    export_selected: boolean,
+    format: "csv" | "vcard",
+    ids?: Set<string>,
+  ) => void;
   on_delete_selected: () => void;
 }
 
@@ -102,7 +109,6 @@ export function ModalContactList({
   set_search_query,
   search_input_ref,
   selected_ids,
-  set_selected_ids,
   selection_state,
   has_selection,
   selected_all_favorited,
@@ -146,7 +152,7 @@ export function ModalContactList({
             </h2>
             {contacts.length > 0 && (
               <span className="text-[13px] px-2 py-0.5 rounded-full bg-surf-secondary text-txt-muted">
-                {contacts.length}
+                {format_number(contacts.length)}
               </span>
             )}
           </div>
@@ -168,19 +174,19 @@ export function ModalContactList({
         </div>
 
         <div className="relative">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-[16px] h-[16px] pointer-events-none text-txt-muted" />
+          <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-[16px] h-[16px] pointer-events-none text-txt-muted" />
           <Input
             ref={search_input_ref}
             className="w-full"
             placeholder={t("common.search_contacts")}
-            style={{ paddingLeft: "38px", paddingRight: "36px" }}
+            style={{ paddingInlineStart: "38px", paddingInlineEnd: "36px" }}
             value={search_query}
             onChange={(e) => set_search_query(e.target.value)}
           />
           {search_query && (
             <motion.button
               animate={{ opacity: 1, scale: 1 }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md"
+              className="absolute end-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md"
               initial={reduce_motion ? false : { opacity: 0, scale: 0.8 }}
               whileHover={{ backgroundColor: "rgba(0,0,0,0.05)" }}
               onClick={() => set_search_query("")}
@@ -202,8 +208,8 @@ export function ModalContactList({
           </div>
 
           {has_selection ? (
-            <div className="flex items-center gap-1 ml-1 flex-1">
-              <span className="text-[13px] font-medium mr-2 text-txt-primary">
+            <div className="flex items-center gap-1 ms-1 flex-1">
+              <span className="text-[13px] font-medium me-2 text-txt-primary">
                 {t("common.selected_count", {
                   count: selection_state.selected_count,
                 })}
@@ -244,14 +250,30 @@ export function ModalContactList({
                 )}
               </Button>
 
-              <Button
-                className="h-7 w-7"
-                size="icon"
-                variant="ghost"
-                onClick={() => on_export_contacts(true)}
-              >
-                <ArrowDownTrayIcon className="h-3.5 w-3.5 text-txt-secondary" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    aria-label={t("common.export_selection")}
+                    className="h-7 w-7"
+                    size="icon"
+                    variant="ghost"
+                  >
+                    <ArrowDownTrayIcon className="h-3.5 w-3.5 text-txt-secondary" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuItem
+                    onClick={() => on_export_contacts(true, "vcard")}
+                  >
+                    {t("common.export_selection_vcf")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => on_export_contacts(true, "csv")}
+                  >
+                    {t("common.export_selection_csv")}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <Button
                 className="h-7 w-7 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10"
@@ -264,15 +286,11 @@ export function ModalContactList({
             </div>
           ) : (
             <div className="flex items-center justify-between flex-1">
-              <span className="text-[13px] ml-1 text-txt-muted">
+              <span className="text-[13px] ms-1 text-txt-muted">
                 {filtered_contacts.length === contacts.length
-                  ? contacts.length === 1
-                    ? t("common.contact_count_one", {
-                        count: contacts.length,
-                      })
-                    : t("common.contact_count_other", {
-                        count: contacts.length,
-                      })
+                  ? t("common.contact_count", {
+                      count: contacts.length,
+                    })
                   : t("common.n_of_n_contacts", {
                       filtered: filtered_contacts.length,
                       total: contacts.length,
@@ -311,40 +329,40 @@ export function ModalContactList({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-40">
                     <DropdownMenuItem
-                      className={filter_by === "all" ? "font-medium" : ""}
+                      className={filter_by === "all" ? "text-txt-primary" : ""}
                       onClick={() => set_filter_by("all")}
                     >
                       {t("mail.all")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className={filter_by === "favorites" ? "font-medium" : ""}
+                      className={filter_by === "favorites" ? "text-txt-primary" : ""}
                       onClick={() => set_filter_by("favorites")}
                     >
-                      <StarIconSolid className="h-3.5 w-3.5 mr-2 text-amber-400" />
+                      <StarIconSolid className="h-3.5 w-3.5 me-2 text-amber-400" />
                       {t("common.favorites")}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      className={filter_by === "has_email" ? "font-medium" : ""}
+                      className={filter_by === "has_email" ? "text-txt-primary" : ""}
                       onClick={() => set_filter_by("has_email")}
                     >
-                      <EnvelopeIcon className="h-3.5 w-3.5 mr-2" />
+                      <EnvelopeIcon className="h-3.5 w-3.5 me-2" />
                       {t("common.has_email")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className={filter_by === "has_phone" ? "font-medium" : ""}
+                      className={filter_by === "has_phone" ? "text-txt-primary" : ""}
                       onClick={() => set_filter_by("has_phone")}
                     >
-                      <PhoneIcon className="h-3.5 w-3.5 mr-2" />
+                      <PhoneIcon className="h-3.5 w-3.5 me-2" />
                       {t("common.has_phone")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       className={
-                        filter_by === "has_company" ? "font-medium" : ""
+                        filter_by === "has_company" ? "text-txt-primary" : ""
                       }
                       onClick={() => set_filter_by("has_company")}
                     >
-                      <BuildingOffice2Icon className="h-3.5 w-3.5 mr-2" />
+                      <BuildingOffice2Icon className="h-3.5 w-3.5 me-2" />
                       {t("common.has_company")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -369,25 +387,25 @@ export function ModalContactList({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-40">
                     <DropdownMenuItem
-                      className={sort_by === "name_asc" ? "font-medium" : ""}
+                      className={sort_by === "name_asc" ? "text-txt-primary" : ""}
                       onClick={() => set_sort_by("name_asc")}
                     >
                       {t("common.name")} A-Z
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className={sort_by === "name_desc" ? "font-medium" : ""}
+                      className={sort_by === "name_desc" ? "text-txt-primary" : ""}
                       onClick={() => set_sort_by("name_desc")}
                     >
                       {t("common.name")} Z-A
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className={sort_by === "company" ? "font-medium" : ""}
+                      className={sort_by === "company" ? "text-txt-primary" : ""}
                       onClick={() => set_sort_by("company")}
                     >
                       {t("common.company")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
-                      className={sort_by === "recent" ? "font-medium" : ""}
+                      className={sort_by === "recent" ? "text-txt-primary" : ""}
                       onClick={() => set_sort_by("recent")}
                     >
                       {t("common.recently_added")}
@@ -402,24 +420,56 @@ export function ModalContactList({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-44">
-                    <DropdownMenuItem onClick={() => on_export_contacts(false)}>
-                      {t("common.export_all_contacts")}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      disabled={filtered_contacts.length === contacts.length}
-                      onClick={() => {
-                        const filtered_ids = new Set(
-                          filtered_contacts.map((c) => c.id),
-                        );
-
-                        set_selected_ids(filtered_ids);
-                        on_export_contacts(true);
-                      }}
-                    >
-                      {t("common.export_filtered_count", {
-                        count: filtered_contacts.length,
-                      })}
-                    </DropdownMenuItem>
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        {t("common.export_all_contacts")}
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        <DropdownMenuItem
+                          onClick={() => on_export_contacts(false, "vcard")}
+                        >
+                          {t("common.export_selection_vcf")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => on_export_contacts(false, "csv")}
+                        >
+                          {t("common.export_selection_csv")}
+                        </DropdownMenuItem>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger
+                        disabled={filtered_contacts.length === contacts.length}
+                      >
+                        {t("common.export_filtered_count", {
+                          count: filtered_contacts.length,
+                        })}
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            on_export_contacts(
+                              true,
+                              "vcard",
+                              new Set(filtered_contacts.map((c) => c.id)),
+                            )
+                          }
+                        >
+                          {t("common.export_selection_vcf")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            on_export_contacts(
+                              true,
+                              "csv",
+                              new Set(filtered_contacts.map((c) => c.id)),
+                            )
+                          }
+                        >
+                          {t("common.export_selection_csv")}
+                        </DropdownMenuItem>
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -449,33 +499,41 @@ export function ModalContactList({
                 borderTopColor: "var(--text-muted)",
               }}
               transition={{
-                duration: reduce_motion ? 0 : 1,
+                duration: 1,
                 repeat: Infinity,
                 ease: "linear",
               }}
             />
           </div>
-        ) : contacts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 px-8">
-            <UserPlusIcon className="w-10 h-10 mb-4 text-txt-muted" />
-            <h3 className="text-[15px] font-medium mb-1 text-txt-primary">
+        ) : error && contacts.length === 0 ? null : contacts.length === 0 ? (
+          <div className="contact_empty_state">
+            <span className="contact_empty_state_glyph">
+              <UserPlusIcon strokeWidth={1.25} />
+            </span>
+            <p className="contact_empty_state_title">
               {t("common.no_contacts_yet")}
-            </h3>
-            <p className="text-[13px] text-center mb-5 max-w-[240px] text-txt-muted">
+            </p>
+            <p className="contact_empty_state_text">
               {t("common.add_contacts_quick_email_hint")}
             </p>
-            <Button className="h-10" variant="depth" onClick={on_add}>
+            <Button
+              className="contact_empty_state_action h-10"
+              variant="depth"
+              onClick={on_add}
+            >
               <PlusIcon className="w-3.5 h-3.5" />
               {t("common.add_contact")}
             </Button>
           </div>
         ) : filtered_contacts.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16">
-            <MagnifyingGlassIcon className="w-8 h-8 mb-3 text-txt-muted" />
-            <p className="text-[14px] font-medium mb-0.5 text-txt-primary">
+          <div className="contact_empty_state">
+            <span className="contact_empty_state_glyph">
+              <MagnifyingGlassIcon strokeWidth={1.25} />
+            </span>
+            <p className="contact_empty_state_title">
               {t("common.no_results")}
             </p>
-            <p className="text-[13px] text-txt-muted">
+            <p className="contact_empty_state_text">
               {t("common.no_contacts_match", { query: search_query })}
             </p>
           </div>
@@ -556,7 +614,7 @@ export function ModalContactList({
                   <span className="text-[13px] truncate max-w-[100px] hidden sm:block text-txt-secondary">
                     {contact.company}
                   </span>
-                  <ChevronRightIcon className="w-4 h-4 flex-shrink-0 opacity-40 text-txt-muted" />
+                  <ChevronRightIcon className="w-4 h-4 flex-shrink-0 opacity-40 text-txt-muted rtl:-scale-x-100" />
                 </div>
               );
             })}

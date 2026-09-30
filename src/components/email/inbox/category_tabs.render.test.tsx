@@ -28,7 +28,8 @@ vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Tooltip: ({ children }: { children?: unknown }) => children as never,
 }));
 
@@ -55,7 +56,6 @@ vi.mock("@/hooks/use_category_previews", () => ({
 const { CategoryTabs } = await import("./category_tabs");
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -150,7 +150,7 @@ describe("CategoryTabs", () => {
     );
   });
 
-  it("shows the preview line only for a tab with new mail", () => {
+  it("previews the newest message on a tab with new mail", () => {
     const el = render(
       <CategoryTabs
         active_category="primary"
@@ -160,12 +160,26 @@ describe("CategoryTabs", () => {
     );
 
     expect(tab_of(el, "category_promotions").textContent).toContain(
-      "Paybis Team",
+      "Paybis Team - Get 20% off this week",
     );
     expect(tab_of(el, "category_social").textContent).not.toContain("Paybis");
   });
 
-  it("hides the preview and the new wording on the tab you are viewing", () => {
+  it("drops the preview from the tab you are viewing", () => {
+    const el = render(
+      <CategoryTabs
+        active_category="promotions"
+        counts={counts}
+        on_change={() => {}}
+      />,
+    );
+
+    expect(tab_of(el, "category_promotions").textContent).not.toContain(
+      "Paybis",
+    );
+  });
+
+  it("hides the new wording on the tab you are viewing", () => {
     const el = render(
       <CategoryTabs
         active_category="promotions"
@@ -194,7 +208,7 @@ describe("CategoryTabs", () => {
     expect(badge?.textContent).toBe("42");
   });
 
-  it("counts unread mail on a tab whose new mail has already been seen", () => {
+  it("leaves the inbox tab unbadged because the view header already counts it", () => {
     const el = render(
       <CategoryTabs
         active_category="promotions"
@@ -202,12 +216,10 @@ describe("CategoryTabs", () => {
         on_change={() => {}}
       />,
     );
-    const badge = tab_of(el, "category_primary").querySelector(
-      ".aster_cat_badge_muted",
-    );
 
-    expect(badge?.textContent).toBe("1");
-    expect(badge?.getAttribute("aria-label")).toBe("mail.tab_unread_count");
+    expect(
+      tab_of(el, "category_primary").querySelector(".aster_cat_badge"),
+    ).toBeNull();
   });
 
   it("shows no badge on a tab with nothing unread", () => {
@@ -252,19 +264,19 @@ describe("CategoryTabs", () => {
       />,
     );
 
-    for (const label of [
-      "category_primary",
-      "category_promotions",
-      "category_social",
-    ]) {
+    for (const label of ["category_promotions", "category_social"]) {
       expect(
         tab_of(el, label).querySelector(".aster_cat_badge_muted")?.textContent,
         `no unread badge on ${label}`,
       ).toBe("1");
     }
+
+    expect(
+      tab_of(el, "category_primary").querySelector(".aster_cat_badge"),
+    ).toBeNull();
   });
 
-  it("keeps every tab the same height whether or not it has a preview", () => {
+  it("keeps every tab on a single row of the same height", () => {
     const el = render(
       <CategoryTabs
         active_category="primary"
@@ -287,5 +299,53 @@ describe("CategoryTabs", () => {
       expect(classes_of(tab)).toContain("overflow-hidden");
       expect(tab.querySelector("span.w-\\[124px\\]")).toBeNull();
     }
+  });
+  it("swaps the count for a dot while the first index build is counting", () => {
+    const el = render(
+      <CategoryTabs
+        counts_pending
+        active_category="primary"
+        counts={counts}
+        on_change={() => {}}
+      />,
+    );
+    const promotions = tab_of(el, "category_promotions");
+    const dot = promotions.querySelector(".aster_cat_badge_counting");
+
+    expect(dot).toBeTruthy();
+    expect(dot?.textContent).toBe("");
+    expect(promotions.querySelector(".aster_cat_badge_muted")).toBeNull();
+    expect(promotions.textContent).not.toContain("42");
+  });
+
+  it("shows no dot on a category with nothing unread", () => {
+    const el = render(
+      <CategoryTabs
+        counts_pending
+        active_category="primary"
+        counts={counts}
+        on_change={() => {}}
+      />,
+    );
+
+    expect(
+      tab_of(el, "category_social").querySelector(".aster_cat_badge_counting"),
+    ).toBeNull();
+  });
+
+  it("shows the real count once the index has finished counting", () => {
+    const el = render(
+      <CategoryTabs
+        active_category="primary"
+        counts={counts}
+        on_change={() => {}}
+      />,
+    );
+    const promotions = tab_of(el, "category_promotions");
+
+    expect(promotions.querySelector(".aster_cat_badge_counting")).toBeNull();
+    expect(promotions.querySelector(".aster_cat_badge")?.textContent).toContain(
+      "42",
+    );
   });
 });

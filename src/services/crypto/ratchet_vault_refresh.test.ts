@@ -18,9 +18,20 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EncryptedVault } from "@/services/crypto/key_manager";
+
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import type { EncryptedVault } from "@/services/crypto/key_manager";
+vi.mock("@/services/crypto/key_manager_pgp", async (import_original) => ({
+  ...(await import_original<
+    typeof import("@/services/crypto/key_manager_pgp")
+  >()),
+  verify_ratchet_prekey_bundle_detailed: async () => ({
+    verdict: "verified" as const,
+    format: "v2" as const,
+    strict: true,
+  }),
+}));
 
 const h = vi.hoisted(() => ({
   vault: null as unknown,
@@ -195,9 +206,9 @@ describe("stale-vault self-heal on ratchet bootstrap decrypt failure", () => {
 
     expect(await receive(envelope, stale_vault)).toBe("hello after rotation");
     expect(h.vault_fetches).toBe(1);
-    expect(
-      (h.vault as EncryptedVault).ratchet_identity_public,
-    ).toBe(rotated_vault.ratchet_identity_public);
+    expect((h.vault as EncryptedVault).ratchet_identity_public).toBe(
+      rotated_vault.ratchet_identity_public,
+    );
     expect(localStorage.getItem("astermail_encrypted_vault_user-1")).toBe(
       "server_vault",
     );

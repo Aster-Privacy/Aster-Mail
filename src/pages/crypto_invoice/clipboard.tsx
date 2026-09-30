@@ -19,8 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-
-
 export async function write_to_clipboard(value: string): Promise<boolean> {
   if (navigator.clipboard?.writeText) {
     try {
@@ -64,4 +62,3 @@ export function measure_clock_skew(server_time?: string): number {
 
   return Date.now() - server_ms;
 }
-

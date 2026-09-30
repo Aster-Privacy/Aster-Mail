@@ -19,17 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { TranslationKey } from "@/lib/i18n/types";
-import type {  FontSizeLabel } from "@/hooks/use_editor";
+import type { FontSizeLabel } from "@/hooks/use_editor";
 import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
-import {
-  useRef,
-  useEffect,
-  useLayoutEffect,
-  useCallback,
-} from "react";
-
-
+import { useRef, useEffect, useLayoutEffect, useCallback } from "react";
 
 export const FORMAT_BAR_STORAGE_KEY = "aster_compose_format_bar_open";
 
@@ -71,13 +64,20 @@ export function use_anchored_layer(
       reposition_ref.current(rect);
     };
 
+    let frame = 0;
+    const schedule = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(update);
+    };
+
     update();
-    window.addEventListener("scroll", update, true);
-    window.addEventListener("resize", update);
+    window.addEventListener("scroll", schedule, true);
+    window.addEventListener("resize", schedule);
 
     return () => {
-      window.removeEventListener("scroll", update, true);
-      window.removeEventListener("resize", update);
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", schedule, true);
+      window.removeEventListener("resize", schedule);
     };
   }, [open, anchor_ref]);
 }
@@ -141,13 +141,15 @@ export const PRESET_COLORS = [
   "#c27ba0",
 ];
 
-export const FONT_SIZE_OPTIONS: { value: FontSizeLabel; label_key: TranslationKey }[] =
-  [
-    { value: "small", label_key: "settings.font_size_small" },
-    { value: "normal", label_key: "settings.font_size_default" },
-    { value: "large", label_key: "settings.font_size_large" },
-    { value: "huge", label_key: "settings.font_size_extra_large" },
-  ];
+export const FONT_SIZE_OPTIONS: {
+  value: FontSizeLabel;
+  label_key: TranslationKey;
+}[] = [
+  { value: "small", label_key: "settings.font_size_small" },
+  { value: "normal", label_key: "settings.font_size_default" },
+  { value: "large", label_key: "settings.font_size_large" },
+  { value: "huge", label_key: "settings.font_size_extra_large" },
+];
 
 export interface ToolbarButtonProps {
   onClick?: () => void;
@@ -166,7 +168,7 @@ export function ToolbarButton({
 }: ToolbarButtonProps) {
   return (
     <button
-      className={`press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 disabled:opacity-50 ${active ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"}`}
+      className={`press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 disabled:opacity-50 ${active ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary"}`}
       disabled={disabled}
       title={title}
       type="button"
@@ -218,4 +220,3 @@ export function use_frozen_selection(
 
   return { freeze_selection, apply_with_frozen_selection };
 }
-

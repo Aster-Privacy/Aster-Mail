@@ -24,6 +24,8 @@ import { Capacitor } from "@capacitor/core";
 import { BanknotesIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
+import { checkout_error_text } from "./checkout_error_text";
+
 import {
   Modal,
   ModalHeader,
@@ -40,16 +42,23 @@ import {
   type CryptoNativeCoin,
 } from "@/services/api/billing";
 import { payment_url_or_throw } from "@/lib/payment_url";
+import { mark_payment_navigation } from "@/lib/payment_navigation";
 import { Spinner } from "@/components/ui/spinner";
 import { CoinIcon } from "@/components/ui/coin_icon";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { prefetch_crypto_invoice_page } from "@/pages/crypto_invoice/prefetch";
+import { Notice, TicketDivider } from "@/pages/crypto_invoice/ui";
 import {
   FAMILY_PLAN_TIERS,
   PLAN_TIERS,
   notify_crypto_invoice_changed,
   remember_crypto_selection,
 } from "@/components/settings/billing/billing_constants";
+import { is_onion_host } from "@/lib/onion_host";
 
 type TermMonths = 1 | 3 | 6 | 12 | 24;
 type Step = "term" | "method";
@@ -59,6 +68,7 @@ interface CryptoTermModalProps {
   is_open: boolean;
   on_close: () => void;
   on_checkout_opened?: () => void;
+  on_finished?: () => void;
   plan_code: string;
   plan_name: string;
   monthly_price_cents: number;
@@ -68,9 +78,16 @@ interface CryptoTermModalProps {
   initial_term_months?: number;
   initial_coin_key?: string;
   initial_invoice_id?: string;
+  promo_code?: string | null;
+  discounted_price_cents?: (
+    term_months: number,
+    list_price_cents: number,
+  ) => number | null;
+  discount_percent_off?: number;
+  special_offer?: boolean;
 }
 
-const TERM_OPTIONS: TermMonths[] = [1, 3, 6, 12, 24];
+const TERM_OPTIONS: TermMonths[] = [1, 3, 6, 12];
 const CHARGE_CURRENCY = "usd";
 
 function pretty_chain(chain: string): string {
@@ -99,6 +116,7 @@ export function crypto_term_modal({
   is_open,
   on_close,
   on_checkout_opened,
+  on_finished,
   plan_code,
   plan_name,
   monthly_price_cents,
@@ -107,29 +125,42 @@ export function crypto_term_modal({
   initial_term_months,
   initial_coin_key,
   initial_invoice_id,
+  promo_code,
+  discounted_price_cents,
+  discount_percent_off,
+  special_offer = false,
 }: CryptoTermModalProps) {
   const { t } = use_i18n();
   const navigate = useNavigate();
   const is_ios = Capacitor.getPlatform() === "ios";
-  const native_supported = enable_native && !is_ios;
+  const on_onion = is_onion_host();
+  const native_supported = (enable_native && !is_ios) || on_onion;
+  const card_checkout_available = !on_onion;
 
   const [step, set_step] = useState<Step>("term");
-  const [selected_term, set_selected_term] = useState<TermMonths>(12);
+  const [selected_term, set_selected_term] = useState<TermMonths>(1);
   const [is_loading, set_is_loading] = useState(false);
   const [creating_key, set_creating_key] = useState<string | null>(null);
   const [coins, set_coins] = useState<CryptoNativeCoin[]>([]);
   const [coins_status, set_coins_status] = useState<CoinsStatus>("loading");
   const [coins_reload_token, set_coins_reload_token] = useState(0);
+  const [show_energy, set_show_energy] = useState(false);
   const term_button_refs = useRef<(HTMLButtonElement | null)[]>([]);
 
   useEffect(() => {
     if (!is_open) return;
 
+    prefetch_crypto_invoice_page();
+
     const restored_term = TERM_OPTIONS.find(
       (term) => term === initial_term_months,
     );
 
-    set_step(initial_coin_key && native_supported ? "method" : "term");
+    set_step(
+      (initial_coin_key || restored_term) && native_supported
+        ? "method"
+        : "term",
+    );
     set_creating_key(null);
 
     if (restored_term) set_selected_term(restored_term);
@@ -197,11 +228,57 @@ export function crypto_term_modal({
     return tier?.biennial_cents ?? yearly_price_cents * 2;
   }, [plan_code, yearly_price_cents]);
 
-  const compute_price_cents = (term: TermMonths): number => {
+  const list_price_cents = (term: TermMonths): number => {
     if (term === 12) return yearly_price_cents;
     if (term === 24) return biennial_price_cents;
 
     return monthly_price_cents * term;
+  };
+
+  const compute_price_cents = (term: TermMonths): number => {
+    const list = list_price_cents(term);
+
+    return discounted_price_cents?.(term, list) ?? list;
+  };
+
+  const is_discounted = (term: TermMonths): boolean =>
+    compute_price_cents(term) < list_price_cents(term);
+
+  const checkout_promo_code = (): string | undefined =>
+    special_offer && !is_discounted(selected_term)
+      ? undefined
+      : (promo_code ?? undefined);
+
+  const original_price = (term: TermMonths) => {
+    if (!is_discounted(term)) return null;
+
+    const label = format_price(list_price_cents(term), CHARGE_CURRENCY);
+
+    return (
+      <>
+        <span className="sr-only">
+          {t("settings.special_offer_original_price", { price: label })}
+        </span>
+        <span
+          aria-hidden="true"
+          className="text-xs font-medium text-txt-muted line-through"
+        >
+          {label}
+        </span>
+      </>
+    );
+  };
+
+  const save_badge = (term: TermMonths) => {
+    if (!discount_percent_off || !is_discounted(term)) return null;
+
+    return (
+      <span className="plan_galaxy_badge inline-flex flex-shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
+        {t("settings.special_offer_save_badge", {
+          percent: String(discount_percent_off),
+        })}
+      </span>
+    );
   };
 
   const term_label = (term: TermMonths): string => {
@@ -254,35 +331,55 @@ export function crypto_term_modal({
     }
   };
 
+  const finish_checkout = () => {
+    on_checkout_opened?.();
+    (on_finished ?? on_close)();
+  };
+
   const handle_stripe = async () => {
     set_is_loading(true);
     try {
-      const is_tauri = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
-      const origin = is_tauri ? "https://app.astermail.org" : window.location.origin;
+      const is_tauri =
+        typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+      const origin = is_tauri
+        ? "https://app.astermail.org"
+        : window.location.origin;
       const response = await create_crypto_checkout_session(
         plan_code,
         selected_term,
         `${origin}/?crypto=success`,
         `${origin}/?crypto=cancelled`,
+        checkout_promo_code(),
+        special_offer && is_discounted(selected_term),
       );
 
       if (response.data?.url) {
         if (is_tauri) {
           const safe_url = payment_url_or_throw(response.data.url);
           const core = await import("@tauri-apps/api/core");
+
           await core.invoke("open_external_url", { url: safe_url });
-          on_checkout_opened?.();
-          on_close();
+          finish_checkout();
         } else {
+          mark_payment_navigation();
           window.location.href = payment_url_or_throw(response.data.url);
         }
+
         return;
       }
-      show_toast(t("settings.failed_checkout"), "error");
+      show_toast(
+        checkout_error_text(t, response.server_code),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
+      set_is_loading(false);
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
-      show_toast(t("settings.failed_checkout"), "error");
-    } finally {
+      show_toast(
+        t("settings.failed_checkout"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
       set_is_loading(false);
     }
   };
@@ -291,7 +388,7 @@ export function crypto_term_modal({
     const key = `${coin.currency}:${coin.chain}`;
 
     if (initial_invoice_id && initial_coin_key === key) {
-      on_close();
+      finish_checkout();
       navigate(`/crypto-invoice/${initial_invoice_id}`);
 
       return;
@@ -304,6 +401,8 @@ export function crypto_term_modal({
         selected_term,
         coin.currency,
         coin.chain,
+        checkout_promo_code(),
+        special_offer && is_discounted(selected_term),
       );
 
       if (response.data?.id) {
@@ -315,22 +414,32 @@ export function crypto_term_modal({
           chain: coin.chain,
         });
         notify_crypto_invoice_changed();
-        on_close();
+        finish_checkout();
         navigate(`/crypto-invoice/${response.data.id}`);
+
         return;
       }
-      if (response.code === "CONFLICT") {
-        show_toast(t("settings.crypto_native_too_many_open"), "error");
+      if (response.code === "RATE_LIMIT_EXCEEDED" && response.resets_at) {
+        show_toast(
+          t("settings.crypto_native_daily_limit"),
+          "error",
+          TOAST_DURATION_BILLING_MS,
+        );
+
         return;
       }
-      if (response.code === "RATE_LIMIT_EXCEEDED") {
-        show_toast(t("settings.crypto_native_daily_limit"), "error");
-        return;
-      }
-      show_toast(t("settings.failed_checkout"), "error");
+      show_toast(
+        checkout_error_text(t, response.server_code),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
-      show_toast(t("settings.failed_checkout"), "error");
+      show_toast(
+        t("settings.failed_checkout"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
     } finally {
       set_creating_key(null);
     }
@@ -345,234 +454,324 @@ export function crypto_term_modal({
   };
 
   const busy = is_loading || creating_key !== null;
+  const has_restored_coin = sorted_coins.some(
+    (coin) => `${coin.currency}:${coin.chain}` === initial_coin_key,
+  );
 
   return (
-    <Modal is_open={is_open} on_close={on_close} show_close_button size="md">
-      {step === "term" ? (
-        <>
-          <ModalHeader>
-            <ModalTitle>{t("settings.crypto_modal_title")}</ModalTitle>
-            <ModalDescription>{plan_name}</ModalDescription>
-          </ModalHeader>
-          <ModalBody>
-            <div
-              aria-label={t("settings.crypto_modal_title")}
-              className="space-y-2"
-              role="radiogroup"
-            >
-              {TERM_OPTIONS.map((term, index) => {
-                const is_selected = selected_term === term;
-                const price = compute_price_cents(term);
-
-                return (
-                  <button
-                    key={term}
-                    ref={(element) => {
-                      term_button_refs.current[index] = element;
-                    }}
-                    aria-checked={is_selected}
-                    className={`w-full flex items-center justify-between gap-3 rounded-[14px] border p-3.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 disabled:cursor-not-allowed ${
-                      is_selected
-                        ? "bg-brand border-brand"
-                        : "bg-surf-tertiary border-edge-secondary hover:bg-surf-hover hover:border-edge-primary"
-                    }`}
-                    disabled={is_loading}
-                    role="radio"
-                    tabIndex={is_selected ? 0 : -1}
-                    type="button"
-                    onClick={() => set_selected_term(term)}
-                    onKeyDown={(event) => handle_term_keydown(event, index)}
-                  >
-                    <span
-                      className="text-sm font-medium"
-                      style={{ color: is_selected ? "var(--accent-fg, #ffffff)" : "var(--text-primary)" }}
-                    >
-                      {term_label(term)}
-                    </span>
-                    <span
-                      className="text-sm font-semibold"
-                      style={{ color: is_selected ? "var(--accent-fg, #ffffff)" : "var(--text-primary)" }}
-                    >
-                      {t("settings.crypto_modal_price", {
-                        amount: format_price(price, CHARGE_CURRENCY),
-                      })}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            <p className="mt-3 text-xs text-txt-muted">
-              {t("settings.crypto_charged_in_usd")}
-            </p>
-            <p className="mt-2 text-xs leading-relaxed text-txt-muted">
-              {t("settings.crypto_rate_notice")}
-            </p>
-          </ModalBody>
-          <ModalFooter>
-            <Button disabled={is_loading} variant="outline" onClick={on_close}>
-              {t("common.cancel")}
-            </Button>
-            <Button disabled={is_loading} variant="primary" onClick={advance_to_method}>
-              {native_supported
-                ? t("settings.crypto_native_continue")
-                : t("settings.crypto_modal_confirm")}
-            </Button>
-          </ModalFooter>
-        </>
-      ) : (
-        <>
-          <ModalHeader>
-            <ModalTitle>{t("settings.crypto_native_choose_method")}</ModalTitle>
-            <ModalDescription>
-              {`${plan_name} · ${term_label(selected_term)} · ${selected_price_label}`}
-            </ModalDescription>
-          </ModalHeader>
-          <ModalBody>
-            {coins_status === "loading" ? (
-              <div className="flex items-center justify-center gap-3 py-8 text-txt-secondary">
-                <Spinner size="md" />
-                <span className="text-sm">{t("settings.crypto_native_loading_coins")}</span>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {coins_status === "failed" && (
-                  <div
-                    className="flex flex-col gap-3 rounded-[14px] border border-edge-secondary bg-surf-tertiary p-3.5"
-                    role="alert"
-                  >
-                    <span className="text-sm text-txt-secondary">
-                      {t("settings.crypto_native_coins_unavailable")}
-                    </span>
-                    <div className="flex">
-                      <Button
-                        disabled={busy}
-                        size="sm"
-                        variant="outline"
-                        onClick={retry_coins}
-                      >
-                        {t("common.retry")}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                <p className="pb-1 text-xs leading-relaxed text-txt-muted">
-                  {t("settings.crypto_native_commit_notice")}
-                </p>
-
-                {sorted_coins.map((coin) => {
-                  const key = `${coin.currency}:${coin.chain}`;
-                  const is_creating = creating_key === key;
-                  const is_restored = initial_coin_key === key;
+    <>
+      <Modal
+        show_close_button
+        close_on_escape={false}
+        close_on_overlay={false}
+        is_open={is_open}
+        on_close={on_close}
+        size="md"
+      >
+        {step === "term" ? (
+          <>
+            <ModalHeader>
+              <ModalTitle>{t("settings.crypto_modal_title")}</ModalTitle>
+              <ModalDescription>{plan_name}</ModalDescription>
+            </ModalHeader>
+            <ModalBody>
+              <div
+                aria-label={t("settings.crypto_modal_title")}
+                className="space-y-2"
+                role="radiogroup"
+              >
+                {TERM_OPTIONS.map((term, index) => {
+                  const is_selected = selected_term === term;
+                  const price = compute_price_cents(term);
 
                   return (
                     <button
-                      key={key}
-                      className={`w-full flex items-center justify-between gap-3 rounded-[14px] border p-3.5 text-left transition-colors bg-surf-tertiary hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 ${
-                        is_restored || coin.recommended
-                          ? "border-brand"
-                          : "border-edge-secondary hover:border-edge-primary"
+                      key={term}
+                      ref={(element) => {
+                        term_button_refs.current[index] = element;
+                      }}
+                      aria-checked={is_selected}
+                      className={`w-full flex items-center justify-between gap-3 rounded-[var(--aster-radius-control)] px-3.5 py-3 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60 disabled:cursor-not-allowed ${
+                        is_selected
+                          ? "bg-surf-hover"
+                          : "bg-surf-secondary hover:bg-surf-hover"
                       }`}
-                      disabled={busy}
+                      disabled={is_loading}
+                      role="radio"
+                      tabIndex={is_selected ? 0 : -1}
                       type="button"
-                      onClick={() => handle_native(coin)}
+                      onClick={() => set_selected_term(term)}
+                      onKeyDown={(event) => handle_term_keydown(event, index)}
                     >
-                      <span className="flex items-center gap-3 min-w-0">
-                        <CoinIcon
-                          chain={coin.chain}
-                          currency={coin.currency}
-                          size={32}
+                      <span className="flex min-w-0 items-center gap-3">
+                        <span
+                          aria-hidden="true"
+                          className="flex h-[18px] w-[18px] shrink-0 items-center justify-center rounded-full"
+                          style={{
+                            border: is_selected
+                              ? "5px solid var(--accent-color)"
+                              : "1.5px solid var(--border-secondary)",
+                          }}
                         />
-                        <span className="flex flex-col min-w-0">
-                          <span className="text-sm font-medium text-txt-primary truncate">
-                            {coin_title(coin.display_name, coin.chain)} (
-                            {coin.currency})
+                        <span className="flex min-w-0 flex-wrap items-center gap-2">
+                          <span className="text-sm font-medium text-txt-primary">
+                            {term_label(term)}
                           </span>
-                          <span className="text-xs text-txt-muted truncate">
-                            {t("settings.crypto_native_on_chain", {
-                              chain: pretty_chain(coin.chain),
-                            })}
-                          </span>
+                          {save_badge(term)}
                         </span>
                       </span>
-                      {is_creating ? (
-                        <Spinner size="sm" />
-                      ) : is_restored ? (
-                        <span
-                          className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                          style={{
-                            backgroundColor: "var(--accent-color)",
-                            color: "var(--accent-fg, #ffffff)",
-                          }}
-                        >
-                          {t("settings.crypto_native_resume_selected")}
+                      <span className="flex flex-shrink-0 items-baseline gap-2">
+                        {original_price(term)}
+                        <span className="text-sm font-semibold text-txt-primary">
+                          {t("settings.crypto_modal_price", {
+                            amount: format_price(price, CHARGE_CURRENCY),
+                          })}
                         </span>
-                      ) : coin.recommended ? (
-                        <span
-                          className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                          style={{
-                            backgroundColor: "var(--accent-color)",
-                            color: "var(--accent-fg, #ffffff)",
-                          }}
-                        >
-                          {t("settings.crypto_native_recommended")}
-                        </span>
-                      ) : null}
+                      </span>
                     </button>
                   );
                 })}
-
-                <details className="rounded-[14px] border border-edge-secondary bg-surf-tertiary px-3.5 py-2.5">
-                  <summary className="cursor-pointer text-xs font-medium text-txt-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]">
-                    {t("settings.crypto_energy_toggle")}
-                  </summary>
-                  <div className="mt-2 space-y-1.5 text-xs leading-relaxed text-txt-muted">
-                    <p>{t("settings.crypto_energy_btc")}</p>
-                    <p>{t("settings.crypto_energy_eth")}</p>
-                    <p>{t("settings.crypto_energy_l2")}</p>
-                    <p>{t("settings.crypto_energy_xmr")}</p>
-                    <p>{t("settings.crypto_energy_caveat")}</p>
-                  </div>
-                </details>
-
-                <button
-                  className="w-full flex items-center justify-between gap-3 rounded-[14px] border border-edge-secondary p-3.5 text-left transition-colors bg-surf-tertiary hover:bg-surf-hover hover:border-edge-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:opacity-60"
-                  disabled={busy}
-                  type="button"
-                  onClick={handle_stripe}
-                >
-                  <span className="flex items-center gap-3 min-w-0">
-                    <CoinIcon
-                      chain="generic"
-                      currency="stable"
-                      size={32}
-                    />
-                    <span className="flex flex-col min-w-0">
-                      <span className="text-sm font-medium text-txt-primary truncate">
-                        {t("settings.crypto_native_stripe_option")}
-                      </span>
-                      <span className="text-xs text-txt-muted line-clamp-2">
-                        {t("settings.crypto_native_stripe_desc")}
-                      </span>
-                    </span>
-                  </span>
-                  {is_loading ? (
-                    <Spinner size="sm" />
-                  ) : (
-                    <BanknotesIcon className="w-5 h-5 shrink-0 text-txt-muted" />
-                  )}
-                </button>
               </div>
-            )}
-          </ModalBody>
-          <ModalFooter>
-            <Button disabled={busy} variant="outline" onClick={() => set_step("term")}>
-              {t("common.back")}
-            </Button>
-          </ModalFooter>
-        </>
-      )}
-    </Modal>
+              <p className="mt-3 text-xs text-txt-muted">
+                {t("settings.crypto_charged_in_usd")}{" "}
+                {t("settings.crypto_no_renew_notice")}
+              </p>
+              <p className="mt-2 text-xs leading-relaxed text-txt-muted">
+                {t("settings.crypto_rate_notice")}
+              </p>
+              {special_offer &&
+                discount_percent_off &&
+                selected_term < 12 &&
+                is_discounted(selected_term) && (
+                  <div className="mt-3">
+                    <Notice role="note">
+                      {t("settings.special_offer_crypto_one_payment", {
+                        percent: String(discount_percent_off),
+                      })}
+                    </Notice>
+                  </div>
+                )}
+              <div className="mt-3">
+                <Notice role="note">
+                  {t("settings.crypto_exchange_warning")}
+                </Notice>
+              </div>
+            </ModalBody>
+            <ModalFooter>
+              <Button
+                disabled={is_loading}
+                variant="outline"
+                onClick={on_close}
+              >
+                {t("common.back")}
+              </Button>
+              <Button
+                disabled={is_loading}
+                variant="primary"
+                onClick={advance_to_method}
+              >
+                {native_supported
+                  ? t("settings.crypto_native_continue")
+                  : t("settings.crypto_modal_confirm")}
+              </Button>
+            </ModalFooter>
+          </>
+        ) : (
+          <>
+            <ModalHeader>
+              <ModalTitle>
+                {t("settings.crypto_native_choose_method")}
+              </ModalTitle>
+            </ModalHeader>
+            <ModalBody>
+              <div className="relative mb-4 rounded-xl bg-surf-secondary">
+                <dl className="space-y-2 p-3.5">
+                  <div className="flex items-baseline justify-between gap-3">
+                    <dt className="text-xs text-txt-muted">
+                      {t("settings.crypto_summary_plan")}
+                    </dt>
+                    <dd className="text-sm font-medium text-txt-primary">
+                      {plan_name}
+                    </dd>
+                  </div>
+                  <div className="flex items-baseline justify-between gap-3">
+                    <dt className="text-xs text-txt-muted">
+                      {t("settings.crypto_summary_length")}
+                    </dt>
+                    <dd className="text-sm font-medium text-txt-primary">
+                      {term_label(selected_term)}
+                    </dd>
+                  </div>
+                </dl>
+                <TicketDivider notch_color="var(--modal-bg)" />
+                <dl className="flex items-baseline justify-between gap-3 p-3.5">
+                  <dt className="text-xs text-txt-muted">
+                    {t("common.total")}
+                  </dt>
+                  <dd className="flex items-baseline gap-2 text-base font-semibold text-txt-primary">
+                    {original_price(selected_term)}
+                    <span>{selected_price_label}</span>
+                  </dd>
+                </dl>
+              </div>
+              {coins_status === "loading" ? (
+                <div className="flex items-center justify-center gap-3 py-8 text-txt-secondary">
+                  <Spinner size="md" />
+                  <span className="text-sm">
+                    {t("settings.crypto_native_loading_coins")}
+                  </span>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {coins_status === "failed" && (
+                    <div
+                      className="flex flex-col gap-3 rounded-xl bg-surf-secondary p-3.5"
+                      role="alert"
+                    >
+                      <span className="text-sm text-txt-secondary">
+                        {t("settings.crypto_native_coins_unavailable")}
+                      </span>
+                      <div className="flex">
+                        <Button
+                          disabled={busy}
+                          size="sm"
+                          variant="outline"
+                          onClick={retry_coins}
+                        >
+                          {t("common.retry")}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  <p className="pb-1 text-xs leading-relaxed text-txt-muted">
+                    {t("settings.crypto_native_commit_notice")}
+                  </p>
+
+                  {sorted_coins.map((coin) => {
+                    const key = `${coin.currency}:${coin.chain}`;
+                    const is_creating = creating_key === key;
+                    const is_restored = initial_coin_key === key;
+                    const is_highlighted = has_restored_coin
+                      ? is_restored
+                      : coin.recommended;
+
+                    return (
+                      <button
+                        key={key}
+                        aria-busy={is_creating}
+                        className="w-full flex items-center justify-between gap-3 rounded-[var(--aster-radius-control)] bg-surf-secondary px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
+                        disabled={busy}
+                        type="button"
+                        onClick={() => handle_native(coin)}
+                      >
+                        <span className="flex items-center gap-3 min-w-0">
+                          <CoinIcon
+                            chain={coin.chain}
+                            currency={coin.currency}
+                            size={32}
+                          />
+                          <span className="flex flex-col min-w-0">
+                            <span className="text-sm font-medium text-txt-primary truncate">
+                              {coin_title(coin.display_name, coin.chain)} (
+                              {coin.currency})
+                            </span>
+                            <span className="text-xs text-txt-muted truncate">
+                              {t("settings.crypto_native_on_chain", {
+                                chain: pretty_chain(coin.chain),
+                              })}
+                            </span>
+                          </span>
+                        </span>
+                        <span className="flex h-6 shrink-0 items-center justify-end">
+                          {is_creating ? (
+                            <Spinner size="sm" />
+                          ) : is_highlighted ? (
+                            <span className="plan_galaxy_badge inline-flex flex-shrink-0 items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide">
+                              {is_restored
+                                ? t("settings.crypto_native_resume_selected")
+                                : t("settings.crypto_native_recommended")}
+                            </span>
+                          ) : null}
+                        </span>
+                      </button>
+                    );
+                  })}
+
+                  {card_checkout_available && (
+                    <button
+                      aria-busy={is_loading}
+                      className="w-full flex items-center justify-between gap-3 rounded-[var(--aster-radius-control)] bg-surf-secondary px-3.5 py-3 text-start transition-colors hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)] disabled:cursor-not-allowed"
+                      disabled={busy}
+                      type="button"
+                      onClick={handle_stripe}
+                    >
+                      <span className="flex items-center gap-3 min-w-0">
+                        <CoinIcon chain="generic" currency="stable" size={32} />
+                        <span className="flex flex-col min-w-0">
+                          <span className="text-sm font-medium text-txt-primary truncate">
+                            {t("settings.crypto_native_stripe_option")}
+                          </span>
+                          <span className="text-xs text-txt-muted line-clamp-2">
+                            {t("settings.crypto_native_stripe_desc")}
+                          </span>
+                        </span>
+                      </span>
+                      <span className="flex h-6 w-6 shrink-0 items-center justify-center">
+                        {is_loading ? (
+                          <Spinner size="sm" />
+                        ) : (
+                          <BanknotesIcon className="w-5 h-5 text-txt-muted" />
+                        )}
+                      </span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </ModalBody>
+            <ModalFooter className="justify-between">
+              <button
+                className="text-xs font-medium text-txt-muted underline underline-offset-2 transition-colors hover:text-txt-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+                type="button"
+                onClick={() => set_show_energy(true)}
+              >
+                {t("settings.crypto_energy_toggle")}
+              </button>
+              <Button
+                disabled={busy}
+                variant="outline"
+                onClick={() => set_step("term")}
+              >
+                {t("common.back")}
+              </Button>
+            </ModalFooter>
+          </>
+        )}
+      </Modal>
+
+      <Modal
+        show_close_button
+        is_open={show_energy}
+        on_close={() => set_show_energy(false)}
+        size="sm"
+      >
+        <ModalHeader>
+          <ModalTitle>{t("settings.crypto_energy_toggle")}</ModalTitle>
+        </ModalHeader>
+        <ModalBody>
+          <div className="space-y-2 text-sm leading-relaxed text-txt-secondary">
+            <p>{t("settings.crypto_energy_btc")}</p>
+            <p>{t("settings.crypto_energy_eth")}</p>
+            <p>{t("settings.crypto_energy_caveat")}</p>
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button variant="outline" onClick={() => set_show_energy(false)}>
+            {t("common.close")}
+          </Button>
+        </ModalFooter>
+      </Modal>
+    </>
   );
 }
 

@@ -27,19 +27,23 @@ export type {
 } from "./types";
 
 export { parse_eml, parse_eml_file } from "./eml_parser";
-export { parse_mbox_file } from "./mbox_parser";
+export {
+  parse_mbox_file,
+  iterate_mbox_segments,
+  parse_mbox_header_summary,
+} from "./mbox_parser";
 export { parse_csv_file } from "./csv_parser";
 export { parse_pst_file } from "./pst_parser";
 export { extract_email_address } from "./mime_utils";
 
-import { HASH_ALG } from "@/services/crypto/constants";
 import type { ParsedEmail, ParseResult, ParseProgressCallback } from "./types";
 
 import { parse_mbox_file } from "./mbox_parser";
 import { parse_eml_file } from "./eml_parser";
 import { parse_csv_file } from "./csv_parser";
 import { parse_pst_file } from "./pst_parser";
-import { en } from "@/lib/i18n/translations/en";
+
+import { HASH_ALG } from "@/services/crypto/constants";
 import { get_active_translations } from "@/lib/i18n/translations";
 
 const REJECTED_EXTENSIONS = new Set([
@@ -85,13 +89,23 @@ async function read_file_start(file: File, bytes: number): Promise<string> {
   }
 }
 
+function file_extension(file: File): string {
+  return file.name.toLowerCase().replace(/^.*(\.[^.]+)$/, "$1");
+}
+
+export async function is_mbox_import_file(file: File): Promise<boolean> {
+  if (REJECTED_EXTENSIONS.has(file_extension(file))) return false;
+
+  return (await detect_file_format(file)) === "mbox";
+}
+
 async function detect_file_format(
   file: File,
 ): Promise<"mbox" | "eml" | "csv" | "pst" | "unknown"> {
   const filename = file.name.toLowerCase();
 
   if (filename.endsWith(".mbox") || filename.endsWith(".mbx")) return "mbox";
-  if (filename.endsWith(".eml")) return "eml";
+  if (filename.endsWith(".eml") || filename.endsWith(".emlx")) return "eml";
   if (filename.endsWith(".csv") || filename.endsWith(".tsv")) return "csv";
   if (filename.endsWith(".pst") || filename.endsWith(".ost")) return "pst";
 
@@ -158,7 +172,7 @@ async function detect_file_format(
   return "unknown";
 }
 
-function is_valid_email(email: ParsedEmail): boolean {
+export function is_valid_email(email: ParsedEmail): boolean {
   const has_from = email.from.trim().length > 0;
   const has_text = (email.text_body ?? "").trim().length > 0;
   const has_html = (email.html_body ?? "").trim().length > 0;
@@ -188,10 +202,18 @@ function filter_valid_emails(result: ParseResult): ParseResult {
 
   if (skipped > 0 && valid.length === 0 && result.emails.length > 0) {
     warnings.push(
-      en.errors.all_emails_rejected.replace("{{count}}", String(skipped)),
+      get_active_translations().errors.all_emails_rejected.replace(
+        "{{count}}",
+        String(skipped),
+      ),
     );
   } else if (skipped > 0) {
-    warnings.push(en.errors.emails_skipped_invalid.replace("{{count}}", String(skipped)));
+    warnings.push(
+      get_active_translations().errors.emails_skipped_invalid.replace(
+        "{{count}}",
+        String(skipped),
+      ),
+    );
   }
 
   return { emails: valid, errors: result.errors, warnings };
@@ -201,9 +223,7 @@ export async function parse_import_file(
   file: File,
   on_progress?: ParseProgressCallback,
 ): Promise<ParseResult> {
-  const ext = file.name.toLowerCase().replace(/^.*(\.[^.]+)$/, "$1");
-
-  if (REJECTED_EXTENSIONS.has(ext)) {
+  if (REJECTED_EXTENSIONS.has(file_extension(file))) {
     return {
       emails: [],
       errors: [

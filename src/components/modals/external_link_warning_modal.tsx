@@ -105,7 +105,7 @@ export function ExternalLinkWarningModal({
       }}
     >
       <AlertDialogContent
-        className="gap-0 p-0 overflow-hidden max-w-[420px] max-sm:max-w-none max-sm:w-full max-sm:h-full max-sm:rounded-none max-sm:left-0 max-sm:top-0 max-sm:translate-x-0 max-sm:translate-y-0"
+        className="gap-0 p-0 overflow-hidden max-w-[420px] max-sm:max-w-none max-sm:w-full max-sm:h-full max-sm:rounded-none max-sm:start-0 max-sm:top-0 max-sm:translate-x-0 max-sm:translate-y-0"
         on_overlay_click={handle_cancel}
       >
         <div className="flex h-full flex-col">
@@ -169,7 +169,6 @@ export function ExternalLinkWarningModal({
           <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end max-sm:pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)]">
             <Button
               className="mt-0 max-sm:flex-1"
-              size="xl"
               variant="outline"
               onClick={handle_cancel}
             >
@@ -178,7 +177,6 @@ export function ExternalLinkWarningModal({
             {!lockdown_active && (
               <Button
                 className="max-sm:flex-1"
-                size="xl"
                 variant="depth"
                 onClick={handle_confirm}
               >

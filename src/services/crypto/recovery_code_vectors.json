@@ -1,0 +1,75 @@
+{
+  "description": "Shared recovery code canonicalization and hashing vectors. code_hash is base64(SHA-256(canonical)).",
+  "set_size": 10,
+  "alphabet": "ABCDEFGHJKLMNPQRSTUVWXYZ23456789",
+  "vectors": [
+    {
+      "input": "ASTER-ABCD-EFGH-JKLM-NPQR",
+      "canonical": "ASTER-ABCD-EFGH-JKLM-NPQR",
+      "is_valid": true,
+      "code_hash": "kU7265UcIR9wKSef/fHN0fqYGQHVYj8dawnMtqIhdzU="
+    },
+    {
+      "input": "aster-abcd-efgh-jklm-npqr",
+      "canonical": "ASTER-ABCD-EFGH-JKLM-NPQR",
+      "is_valid": true,
+      "code_hash": "kU7265UcIR9wKSef/fHN0fqYGQHVYj8dawnMtqIhdzU="
+    },
+    {
+      "input": "  ASTER-ABCD-EFGH-JKLM-NPQR  ",
+      "canonical": "ASTER-ABCD-EFGH-JKLM-NPQR",
+      "is_valid": true,
+      "code_hash": "kU7265UcIR9wKSef/fHN0fqYGQHVYj8dawnMtqIhdzU="
+    },
+    {
+      "input": "ASTERABCDEFGHJKLMNPQR",
+      "canonical": "ASTER-ABCD-EFGH-JKLM-NPQR",
+      "is_valid": true,
+      "code_hash": "kU7265UcIR9wKSef/fHN0fqYGQHVYj8dawnMtqIhdzU="
+    },
+    {
+      "input": "aster abcd efgh jklm npqr",
+      "canonical": "ASTER-ABCD-EFGH-JKLM-NPQR",
+      "is_valid": true,
+      "code_hash": "kU7265UcIR9wKSef/fHN0fqYGQHVYj8dawnMtqIhdzU="
+    },
+    {
+      "input": "ASTER_ABCD_EFGH_JKLM_NPQR",
+      "canonical": "ASTER-ABCD-EFGH-JKLM-NPQR",
+      "is_valid": true,
+      "code_hash": "kU7265UcIR9wKSef/fHN0fqYGQHVYj8dawnMtqIhdzU="
+    },
+    {
+      "input": "ASTER-2345-6789-ABCD",
+      "canonical": "ASTER-2345-6789-ABCD",
+      "is_valid": true,
+      "code_hash": "zl7QxL54SjJA36jeaBu55MWdaYHBQCVoLHzcZ/a4zfM="
+    },
+    {
+      "input": "aster23456789abcd",
+      "canonical": "ASTER-2345-6789-ABCD",
+      "is_valid": true,
+      "code_hash": "zl7QxL54SjJA36jeaBu55MWdaYHBQCVoLHzcZ/a4zfM="
+    },
+    {
+      "input": "ASTER-ABCD-EFGH",
+      "canonical": "ASTER-ABCD-EFGH",
+      "is_valid": false
+    },
+    {
+      "input": "ASTER-ABCD-EFGH-JKLM-NPQR-STUV",
+      "canonical": "ASTER-ABCD-EFGH-JKLM-NPQR-STUV",
+      "is_valid": false
+    },
+    {
+      "input": "NOTACODE",
+      "canonical": "NOTACODE",
+      "is_valid": false
+    },
+    {
+      "input": "",
+      "canonical": "",
+      "is_valid": false
+    }
+  ]
+}

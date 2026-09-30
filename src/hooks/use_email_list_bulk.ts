@@ -20,6 +20,7 @@
 //
 import type { EmailListState, InboxEmail } from "@/types/email";
 import type { BulkActionResult } from "@/hooks/bulk_action_result";
+import type { FetchPageOptions } from "@/hooks/email_list_types";
 
 import { useCallback, type MutableRefObject } from "react";
 
@@ -36,8 +37,12 @@ import {
   adjust_stats_sent as adjust_sent_count,
   adjust_stats_archived,
 } from "@/hooks/use_mail_stats";
-import { stale_all_view_caches, remove_email_from_view_cache } from "@/hooks/email_list_cache";
+import {
+  stale_all_view_caches,
+  remove_email_from_view_cache,
+} from "@/hooks/email_list_cache";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
+import { compare_timestamps_desc } from "@/utils/email_timestamp";
 import {
   remove_ids as remove_index_ids,
   remove_thread_entries,
@@ -48,7 +53,12 @@ interface UseEmailListBulkParams {
   state: EmailListState;
   set_state: React.Dispatch<React.SetStateAction<EmailListState>>;
   fetch_page_ref: MutableRefObject<
-    ((page: number, limit: number, force?: boolean) => Promise<void>) | null
+    | ((
+        page: number,
+        limit: number,
+        options?: FetchPageOptions,
+      ) => Promise<void>)
+    | null
   >;
   page_size?: number;
 }
@@ -86,8 +96,11 @@ function count_deltas(emails: InboxEmail[]): CountDeltas {
 }
 
 function sort_by_timestamp_desc(emails: InboxEmail[]): InboxEmail[] {
-  return [...emails].sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+  return [...emails].sort((a, b) =>
+    compare_timestamps_desc(
+      a.raw_timestamp || a.timestamp,
+      b.raw_timestamp || b.timestamp,
+    ),
   );
 }
 
@@ -133,7 +146,9 @@ export function use_email_list_bulk({
       const id_set = new Set(ids);
       const selected_emails = state.emails.filter((e) => id_set.has(e.id));
       const threaded_emails = selected_emails.filter((e) => e.thread_token);
-      const non_threaded_emails = selected_emails.filter((e) => !e.thread_token);
+      const non_threaded_emails = selected_emails.filter(
+        (e) => !e.thread_token,
+      );
       const non_threaded_ids = non_threaded_emails.flatMap(expand_email_ids);
       const deltas = count_deltas(selected_emails);
 
@@ -197,7 +212,7 @@ export function use_email_list_bulk({
       }
 
       if (non_threaded_ids.length > 0) {
-        let failed_message_ids = non_threaded_ids;
+        let failed_message_ids: string[];
 
         try {
           const result = await bulk_update_metadata_by_ids(non_threaded_ids, {
@@ -212,7 +227,9 @@ export function use_email_list_bulk({
         const failed_message_set = new Set(failed_message_ids);
 
         for (const email of non_threaded_emails) {
-          if (expand_email_ids(email).some((id) => failed_message_set.has(id))) {
+          if (
+            expand_email_ids(email).some((id) => failed_message_set.has(id))
+          ) {
             failed_email_ids.add(email.id);
           }
         }
@@ -289,7 +306,7 @@ export function use_email_list_bulk({
       adjust_stats_archived(expanded_ids.length);
       stale_all_view_caches();
 
-      let failed_message_ids = expanded_ids;
+      let failed_message_ids: string[];
 
       try {
         const result = await batched_archive(expanded_ids, "hot");
@@ -376,7 +393,7 @@ export function use_email_list_bulk({
       adjust_stats_archived(-expanded_ids.length);
       stale_all_view_caches();
 
-      let failed_message_ids = expanded_ids;
+      let failed_message_ids: string[];
 
       try {
         const result = await batched_unarchive(expanded_ids);

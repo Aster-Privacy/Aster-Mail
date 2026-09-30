@@ -24,10 +24,17 @@ import type {
   SkippedMessageKey,
 } from "./double_ratchet";
 
-const MAX_MERGED_SKIPPED_KEYS = 1000;
+const MAX_MERGED_SKIPPED_KEYS = 2000;
 
 function skipped_key_id(key: SkippedMessageKey): string {
   return `${key.dh_public}:${key.message_number}`;
+}
+
+export function merge_skipped_message_keys(
+  a: SkippedMessageKey[],
+  b: SkippedMessageKey[],
+): SkippedMessageKey[] {
+  return merge_skipped_keys(a, b);
 }
 
 function merge_skipped_keys(
@@ -74,6 +81,17 @@ function pick_newer_epoch(
   }
 
   return local.root_key > remote.root_key ? local : remote;
+}
+
+export function merge_discards_local_epoch(
+  local: SerializedState,
+  remote: SerializedState,
+): boolean {
+  if (local.conversation_id !== remote.conversation_id) return false;
+
+  if (same_epoch(local.state, remote.state)) return false;
+
+  return pick_newer_epoch(local.state, remote.state) !== local.state;
 }
 
 export function merge_ratchet_states(

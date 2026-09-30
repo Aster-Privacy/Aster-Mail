@@ -23,7 +23,14 @@ import {
   ChatBubbleBottomCenterTextIcon,
   EnvelopeIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import {
+  IslandRow,
+  IslandSection,
+  IslandSections,
+  PillButton,
+} from "@aster/ui";
+
+import { Button } from "@/components/ui/button";
 
 import { is_desktop } from "@/native/invoke_bridge";
 import { api_client } from "@/services/api/client";
@@ -33,10 +40,19 @@ import { use_i18n } from "@/lib/i18n/context";
 
 const MAX_FEEDBACK_LENGTH = 2000;
 
+const FEEDBACK_CATEGORIES = [
+  { value: "general", label_key: "settings.feedback_category_general" },
+  { value: "feature", label_key: "settings.feedback_category_idea" },
+  { value: "bug", label_key: "settings.feedback_category_bug" },
+] as const;
+
+type FeedbackCategory = (typeof FEEDBACK_CATEGORIES)[number]["value"];
+
 export function FeedbackSection() {
   const { t } = use_i18n();
   const [feedback_text, set_feedback_text] = useState("");
   const [is_sending, set_is_sending] = useState(false);
+  const [category, set_category] = useState<FeedbackCategory>("general");
 
   const handle_send = useCallback(async () => {
     if (!feedback_text.trim()) return;
@@ -46,21 +62,26 @@ export function FeedbackSection() {
     try {
       const response = await api_client.post<{ success: boolean }>(
         API_ENDPOINTS.core.feedback.base,
-        { message: feedback_text.trim(), platform: is_desktop() ? "desktop" : "web" },
+        {
+          message: feedback_text.trim(),
+          category,
+          platform: is_desktop() ? "desktop" : "web",
+        },
       );
 
       if (response.data?.success) {
         show_toast(t("settings.thank_you_feedback"), "success");
         set_feedback_text("");
-      } else if (response.code === "FORBIDDEN") {
+        set_category("general");
+      } else if (
+        response.code === "RATE_LIMIT_EXCEEDED" ||
+        response.code === "FORBIDDEN"
+      ) {
         show_toast(t("settings.too_many_requests"), "warning");
       } else if (response.code === "UNAUTHORIZED") {
         show_toast(t("settings.please_log_in_feedback"), "warning");
       } else {
-        show_toast(
-          response.error || t("settings.failed_send_feedback"),
-          "error",
-        );
+        show_toast(t("settings.failed_send_feedback"), "error");
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
@@ -68,17 +89,28 @@ export function FeedbackSection() {
     } finally {
       set_is_sending(false);
     }
-  }, [feedback_text]);
+  }, [feedback_text, category, t]);
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-4">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <ChatBubbleBottomCenterTextIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.your_feedback")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
+    <IslandSections>
+      <IslandSection
+        icon={<ChatBubbleBottomCenterTextIcon />}
+        island_class_name="space-y-3"
+        padding="md"
+        title={t("settings.your_feedback")}
+      >
+        <div className="flex flex-wrap gap-2">
+          {FEEDBACK_CATEGORIES.map((option) => (
+            <PillButton
+              key={option.value}
+              aria-pressed={category === option.value}
+              size="sm"
+              variant={category === option.value ? "filled" : "neutral"}
+              onClick={() => set_category(option.value)}
+            >
+              {t(option.label_key)}
+            </PillButton>
+          ))}
         </div>
         <textarea
           className="aster_input resize-none"
@@ -90,44 +122,35 @@ export function FeedbackSection() {
           value={feedback_text}
           onChange={(e) => set_feedback_text(e.target.value)}
         />
-        <p className="text-xs mt-2 text-txt-muted">
+        <p className="text-xs text-txt-muted">
           {t("settings.feedback_not_encrypted")}
         </p>
-        <div className="flex items-center justify-between mt-4">
-          <span className="text-xs text-txt-muted">
+        <div className="flex items-center justify-between">
+          <span className="text-xs tabular-nums text-txt-muted">
             {feedback_text.length}/{MAX_FEEDBACK_LENGTH}
           </span>
           <Button
             className="h-9 px-4"
             disabled={!feedback_text.trim() || is_sending}
+            is_loading={is_sending}
             variant="depth"
             onClick={handle_send}
           >
-            {is_sending
-              ? t("settings.sending")
-              : t("settings.send_feedback_button")}
+            {t("settings.send_feedback_button")}
           </Button>
         </div>
-      </div>
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <EnvelopeIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.other_ways_to_reach")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-        <p className="text-xs text-txt-muted">
-          {t("settings.email_label")}{" "}
-          <a
-            className="text-[var(--accent-color)] hover:underline cursor-pointer"
-            href="mailto:hello@astermail.org"
-          >
-            hello@astermail.org
-          </a>
-        </p>
-      </div>
-    </div>
+      <IslandSection
+        icon={<EnvelopeIcon />}
+        title={t("settings.other_ways_to_reach")}
+      >
+        <IslandRow
+          description={t("settings.email_label").replace(/[:：]\s*$/, "")}
+          href="mailto:hello@astermail.org"
+          label="hello@astermail.org"
+        />
+      </IslandSection>
+    </IslandSections>
   );
 }

@@ -21,19 +21,10 @@
 
 import type { DecryptedEnvelope, MailItemMetadata } from "@/types/email";
 
-
-import {
-  type MailItem,
-} from "@/services/api/mail";
-import {
-  type ParsedOperator,
-} from "@/utils/search_operators";
-import {
-  type SnapshotMeta,
-} from "@/services/search_index_store";
-import {
-  type ChunkSkipPlan,
-} from "@/services/search_chunk_filter";
+import { type MailItem } from "@/services/api/mail";
+import { type ParsedOperator } from "@/utils/search_operators";
+import { type SnapshotMeta } from "@/services/search_index_store";
+import { type ChunkSkipPlan } from "@/services/search_chunk_filter";
 
 export interface ActiveFilter {
   id: string;
@@ -76,6 +67,9 @@ export interface SearchResultItem {
   avatar_url?: string;
   item_type?: string;
   folders?: { folder_token: string; name: string }[];
+  thread_token?: string;
+  thread_message_count?: number;
+  grouped_email_ids?: string[];
 }
 
 export interface TextHighlight {
@@ -109,6 +103,9 @@ export interface SearchState {
   error: string | null;
   index_building: boolean;
   hidden_spam_trash: number;
+  index_incomplete: boolean;
+  index_pending: boolean;
+  indexed_count: number;
 }
 
 export interface AutocompleteState {
@@ -150,12 +147,21 @@ export interface SearchOptions {
   search_body?: boolean;
 }
 
+export interface SearchHaystack {
+  subject: string;
+  sender_name: string;
+  sender_email: string;
+  contact: string;
+  recipients: string;
+}
+
 export interface DecryptedIndexEntry {
   envelope: DecryptedEnvelope | null;
   metadata: MailItemMetadata | null;
   search_body_text: string;
   meta_fp: string;
   has_body: boolean;
+  haystack?: SearchHaystack;
 }
 
 export interface CachedIndex {
@@ -179,6 +185,7 @@ export interface IndexingProgress {
 export interface ScanOptions {
   skip?: ChunkSkipPlan | null;
   on_chunk?: () => void;
+  on_unreadable_chunk?: () => void;
 }
 
 export interface IndexPerson {
@@ -207,4 +214,3 @@ export interface ScanCacheEntry {
   saved_at: number;
   candidates: ScanCandidate[];
 }
-

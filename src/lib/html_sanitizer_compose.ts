@@ -20,7 +20,11 @@
 //
 import DOMPurify from "dompurify";
 
-import { sanitize_compose_style, is_transparent_color_value } from "./html_sanitizer_css";
+import {
+  sanitize_compose_style,
+  is_transparent_color_value,
+} from "./html_sanitizer_css";
+import { repair_comment_markup } from "./html_sanitizer_utils";
 
 const BACKGROUND_DECLARATION_RE = /background(?:-color)?\s*:\s*[^;]+;?/gi;
 
@@ -72,11 +76,15 @@ function is_removable_trailing_node(node: Node): boolean {
   if (el.tagName === "BR") return true;
   if (!["DIV", "P", "SECTION", "SPAN"].includes(el.tagName)) return false;
   if ((el.textContent || "").trim()) return false;
-  if (el.querySelector("img,hr,table,iframe,svg,video,object,embed,input,button")) {
+  if (
+    el.querySelector("img,hr,table,iframe,svg,video,object,embed,input,button")
+  ) {
     return false;
   }
 
-  return !/background|height|border|padding/i.test(el.getAttribute("style") || "");
+  return !/background|height|border|padding/i.test(
+    el.getAttribute("style") || "",
+  );
 }
 
 export function trim_trailing_empty_nodes(body: HTMLElement): void {
@@ -109,7 +117,7 @@ export function trim_trailing_empty_nodes(body: HTMLElement): void {
 export function sanitize_outgoing_html(html: string): string {
   if (!html || typeof html !== "string") return "";
 
-  const purified = DOMPurify.sanitize(html, {
+  const purified = DOMPurify.sanitize(repair_comment_markup(html), {
     ADD_ATTR: ["target"],
     ALLOW_DATA_ATTR: true,
     ALLOWED_URI_REGEXP: OUTGOING_URI_REGEXP,

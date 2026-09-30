@@ -18,15 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
-import { array_to_base64, base64_to_array } from "./base64";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
+import { array_to_base64, base64_to_array } from "./base64";
 import {
   import_ke_public_key,
   import_ke_private_key,
   compute_agreement_bits,
 } from "./key_manager";
+
+import { HASH_ALG } from "@/services/crypto/constants";
 
 export const RECOVERY_LANE_VERSION = 1;
 
@@ -259,7 +260,10 @@ export async function open_recovery_lane(
       base64_to_array(data.epk),
     );
 
-    dh_secret = await compute_agreement_bits(identity_private, ephemeral_public);
+    dh_secret = await compute_agreement_bits(
+      identity_private,
+      ephemeral_public,
+    );
 
     if (data.kem_ct) {
       if (!own_keys.pq_identity_secret) return null;

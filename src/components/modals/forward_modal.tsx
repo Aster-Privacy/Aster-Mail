@@ -27,6 +27,8 @@ import {
 import { use_forward_modal } from "@/components/modals/hooks/use_forward_modal";
 import { ForwardHeader } from "@/components/modals/forward/forward_header";
 import { ForwardBody } from "@/components/modals/forward/forward_body";
+import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
+import { is_valid_email } from "@/components/compose/compose_shared";
 
 interface ForwardModalProps {
   is_open: boolean;
@@ -77,18 +79,18 @@ export function ForwardModal({
           <motion.div
             key="forward-backdrop-mobile"
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-40 bg-black/50 sm:hidden"
+            className="fixed inset-0 z-40 aster_scrim sm:hidden"
             exit={{ opacity: 0 }}
             initial={modal.reduce_motion ? false : { opacity: 0 }}
             transition={{ duration: modal.reduce_motion ? 0 : 0.2 }}
-            onClick={on_close}
+            onClick={modal.handle_close}
           />
           <AnimatePresence>
             {shows_expanded_backdrop(modal.is_minimized, modal.is_expanded) && (
               <motion.div
                 key="forward-backdrop"
                 animate={{ opacity: 1 }}
-                className="fixed inset-0 z-40 bg-black/40 backdrop-blur-md hidden sm:block"
+                className="fixed inset-0 z-40 aster_scrim hidden sm:block"
                 exit={{ opacity: 0 }}
                 initial={modal.reduce_motion ? false : { opacity: 0 }}
                 transition={{ duration: modal.reduce_motion ? 0 : 0.2 }}
@@ -98,14 +100,14 @@ export function ForwardModal({
           <motion.div
             key="forward-modal"
             animate={{ opacity: 1, y: 0 }}
-            className={`fixed z-50 flex flex-col shadow-2xl sm:border bg-modal-bg border-edge-primary ${
+            className={`fixed z-50 flex flex-col shadow-[var(--aster-floating-shadow)] bg-[var(--aster-dialog-bg,var(--modal-bg))] ${
               compose_shell_mode(modal.is_minimized, modal.is_expanded) ===
               "minimized"
-                ? "sm:w-[320px] sm:h-auto sm:rounded-t-lg"
+                ? "sm:w-[320px] sm:h-auto sm:rounded-t-[var(--aster-radius-floating,16px)]"
                 : compose_shell_mode(modal.is_minimized, modal.is_expanded) ===
                     "expanded"
-                  ? "inset-0 sm:inset-4 sm:w-auto sm:h-auto sm:rounded-lg"
-                  : "inset-0 sm:inset-auto sm:bottom-auto sm:left-auto sm:right-auto sm:h-[600px] sm:w-[700px] sm:max-w-[90vw] sm:max-h-[85vh] sm:rounded-lg"
+                  ? "inset-0 sm:inset-4 sm:w-auto sm:h-auto sm:rounded-[var(--aster-radius-floating,16px)]"
+                  : "inset-0 sm:inset-auto sm:bottom-auto sm:start-auto sm:end-auto sm:h-[600px] sm:w-[700px] sm:max-w-[90vw] sm:max-h-[85vh] sm:rounded-[var(--aster-radius-floating,16px)]"
             }`}
             exit={{ opacity: 0, y: modal.is_mobile ? 100 : 0 }}
             initial={
@@ -136,6 +138,7 @@ export function ForwardModal({
               e.preventDefault();
               e.stopPropagation();
               const files = Array.from(e.dataTransfer?.files || []);
+
               if (files.length > 0) {
                 modal.handle_files_drop(files);
               }
@@ -195,7 +198,11 @@ export function ForwardModal({
               last_saved_time={modal.last_saved_time}
               message_content={modal.forward_message}
               message_editor_ref={modal.message_editor_ref}
-              recipients_count={modal.recipients.to.length}
+              on_discard={modal.request_discard}
+              recipients_count={
+                modal.recipients.to.length +
+                (is_valid_email(modal.inputs.to.trim()) ? 1 : 0)
+              }
               reduce_motion={modal.reduce_motion}
               remove_attachment={modal.remove_attachment}
               scheduled_time={modal.scheduled_time}
@@ -210,6 +217,18 @@ export function ForwardModal({
               trigger_file_select={modal.trigger_file_select}
             />
           </motion.div>
+          <ConfirmModal
+            hide_dont_ask
+            confirm_text={modal.t("mail.discard")}
+            confirm_variant="destructive"
+            description={modal.t("common.unsaved_changes_body")}
+            dont_ask={false}
+            on_cancel={modal.cancel_discard}
+            on_confirm={modal.confirm_discard}
+            on_dont_ask_change={() => {}}
+            show={modal.is_discard_open}
+            title={modal.t("common.unsaved_changes_title")}
+          />
         </>
       )}
     </AnimatePresence>

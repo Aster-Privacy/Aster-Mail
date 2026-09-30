@@ -18,9 +18,20 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EncryptedVault } from "@/services/crypto/key_manager";
+
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import type { EncryptedVault } from "@/services/crypto/key_manager";
+vi.mock("@/services/crypto/key_manager_pgp", async (import_original) => ({
+  ...(await import_original<
+    typeof import("@/services/crypto/key_manager_pgp")
+  >()),
+  verify_ratchet_prekey_bundle_detailed: async () => ({
+    verdict: "verified" as const,
+    format: "v2" as const,
+    strict: true,
+  }),
+}));
 
 interface ServerStateRecord {
   encrypted_state: string;
@@ -155,10 +166,7 @@ function bundle_for(vault: EncryptedVault) {
 
 function snapshot_store(): Map<string, unknown> {
   return new Map(
-    [...h.store.entries()].map(([k, v]) => [
-      k,
-      JSON.parse(JSON.stringify(v)),
-    ]),
+    [...h.store.entries()].map(([k, v]) => [k, JSON.parse(JSON.stringify(v))]),
   );
 }
 

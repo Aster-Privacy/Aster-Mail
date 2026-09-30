@@ -18,10 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
 
 import type { MailItem } from "@/services/api/mail";
 import type { SubscriptionCacheData } from "@/services/subscription_cache";
+
+import { describe, it, expect } from "vitest";
+
 import {
   select_fresh_scan_items,
   should_run_full_scan,

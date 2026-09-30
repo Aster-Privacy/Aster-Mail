@@ -33,38 +33,34 @@ import {
   ExclamationTriangleIcon,
   TrashIcon,
   EnvelopeIcon,
+  BarsArrowDownIcon,
   PlusIcon,
-  LockClosedIcon,
-  LockOpenIcon,
   UsersIcon,
-  FolderIcon,
   NewspaperIcon,
-  AtSymbolIcon,
-  BoltIcon,
-  ChevronLeftIcon,
 } from "@heroicons/react/24/outline";
+import {
+  AliasIconView,
+  MobileDrawerBackButton,
+  MobileDrawerFolderRow,
+  MobileDrawerNavIndicator,
+  MobileDrawerSectionHeader,
+  MobileDrawerSectionPlaceholder,
+  MobileDrawerTagIcon,
+} from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import {
   build_folder_tree,
   build_tree_guides,
   flatten_folder_tree,
+  is_folder_tree_sorted_a_z,
 } from "@/hooks/use_folders";
-import { tag_icon_map } from "@/components/ui/email_tag";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
-import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
+import { get_gradient_background } from "@/constants/profile";
+import { get_alias_color } from "@/lib/avatar_color";
 import { SidebarNavButton } from "@/components/mobile/sidebar_nav_button";
-import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
-
-function get_alias_color(address: string): string {
-  let hash = 0;
-
-  for (let i = 0; i < address.length; i++) {
-    hash = (hash * 31 + address.charCodeAt(i)) | 0;
-  }
-
-  return PROFILE_COLORS[Math.abs(hash) % PROFILE_COLORS.length];
-}
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
+import { app_locale } from "@/utils/date_format";
 
 function MobileAliasIcon({
   address,
@@ -79,22 +75,12 @@ function MobileAliasIcon({
   );
 
   return (
-    <div
-      className="rounded-full flex items-center justify-center"
-      style={{
-        width: 20,
-        height: 20,
-        background: gradient,
-        boxShadow:
-          "inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 1px rgba(0,0,0,0.15)",
-      }}
-    >
-      {is_random ? (
-        <BoltIcon className="w-3 h-3 text-white" />
-      ) : (
-        <AtSymbolIcon className="w-3 h-3 text-white" />
-      )}
-    </div>
+    <AliasIconView
+      background={gradient}
+      icon_class_name="w-3 h-3"
+      is_random={is_random}
+      size={20}
+    />
   );
 }
 
@@ -118,12 +104,18 @@ interface DrawerNavContentProps {
   handle_nav: (path: string) => void;
   folders: DecryptedFolder[];
   folders_loading: boolean;
+  folders_load_failed?: boolean;
+  on_retry_folders?: () => void;
   folder_unread_counts: Record<string, number>;
   tags: DecryptedTag[];
   tags_loading: boolean;
+  tags_load_failed?: boolean;
+  on_retry_tags?: () => void;
   tag_counts: Record<string, number>;
   aliases: SidebarAlias[];
   aliases_loading: boolean;
+  aliases_load_failed?: boolean;
+  on_retry_aliases?: () => void;
   alias_unread_counts?: Record<string, number>;
   stats: {
     inbox: number;
@@ -138,6 +130,7 @@ interface DrawerNavContentProps {
     trash: number;
   };
   on_open_create_folder: () => void;
+  on_sort_folders?: () => void;
   on_open_create_label: () => void;
   on_open_create_alias: () => void;
   on_open_edit_folder: (folder: DecryptedFolder) => void;
@@ -158,15 +151,22 @@ export const DrawerNavContent = memo(function DrawerNavContent({
   handle_nav,
   folders,
   folders_loading,
+  folders_load_failed = false,
+  on_retry_folders,
   folder_unread_counts,
   tags,
   tags_loading,
+  tags_load_failed = false,
+  on_retry_tags,
   tag_counts,
   aliases,
   aliases_loading,
+  aliases_load_failed = false,
+  on_retry_aliases,
   alias_unread_counts = {},
   stats,
   on_open_create_folder,
+  on_sort_folders,
   on_open_create_label,
   on_open_create_alias,
   on_open_edit_folder,
@@ -180,6 +180,8 @@ export const DrawerNavContent = memo(function DrawerNavContent({
 
   const folder_tree = build_folder_tree(folders);
   const folder_nodes = flatten_folder_tree(folder_tree);
+  const can_sort_folders =
+    folders.length > 1 && !is_folder_tree_sorted_a_z(folders);
   const folder_guides = build_tree_guides(folder_tree);
 
   const is_active = (path: string) => {
@@ -260,41 +262,22 @@ export const DrawerNavContent = memo(function DrawerNavContent({
     },
   ];
 
+  const locale = app_locale();
+
   return (
     <div ref={nav_container_ref} className="relative">
-      <div
-        className="pointer-events-none absolute left-0 w-full rounded-lg"
-        style={{
-          top: 0,
-          transform: `translateY(${indicator_style.y}px)`,
-          height: indicator_style.height,
-          opacity: indicator_style.opacity,
-          backgroundColor: "var(--mobile-indicator-bg, var(--indicator-bg))",
-          boxShadow: "inset 0 0 0 1px var(--border-primary)",
-          zIndex: 0,
-          transition: "opacity 150ms ease",
-        }}
-      />
+      <MobileDrawerNavIndicator indicator_style={indicator_style} />
 
       {(active_path.startsWith("/alias/") ||
         active_path.startsWith("/folder/") ||
         active_path.startsWith("/tag/")) && (
-        <button
-          className="relative flex w-full items-center gap-2 rounded-xl px-3 py-2.5 mb-2 active:bg-[var(--bg-tertiary)]"
-          style={{ zIndex: 1, color: "var(--accent-color, #3b82f6)" }}
-          type="button"
-          onClick={() => handle_nav("/")}
-        >
-          <ChevronLeftIcon className="h-4 w-4 shrink-0" />
-          <span className="text-[14px] font-medium">{t("mail.inbox")}</span>
-        </button>
+        <MobileDrawerBackButton
+          label={t("mail.inbox")}
+          on_click={() => handle_nav("/")}
+        />
       )}
 
-      <div className="mb-1 px-2.5">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[var(--text-muted)] opacity-70">
-          {t("common.mail")}
-        </span>
-      </div>
+      <MobileDrawerSectionHeader is_first label={t("common.mail")} />
       {mail_items.map((item) => (
         <SidebarNavButton
           key={item.id}
@@ -306,11 +289,7 @@ export const DrawerNavContent = memo(function DrawerNavContent({
         />
       ))}
 
-      <div className="mb-1 mt-5 px-2.5">
-        <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[var(--text-muted)] opacity-70">
-          {t("common.more")}
-        </span>
-      </div>
+      <MobileDrawerSectionHeader label={t("common.more")} />
       {more_items.map((item) => (
         <SidebarNavButton
           key={item.id}
@@ -335,28 +314,52 @@ export const DrawerNavContent = memo(function DrawerNavContent({
         on_click={() => handle_nav("/subscriptions")}
       />
 
-      <div className="mb-1 mt-5 px-2.5">
-        <div className="flex w-full items-center justify-between">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[var(--text-muted)] opacity-70">
-            {t("common.folders")}
-          </span>
-          <button
-            className="rounded p-0.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
-            type="button"
-            onClick={on_open_create_folder}
-          >
-            <PlusIcon className="h-3.5 w-3.5" />
-          </button>
+      {on_sort_folders && can_sort_folders ? (
+        <div className="mb-1 mt-5 px-2.5">
+          <div className="flex w-full items-center justify-between">
+            <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[var(--text-muted)] opacity-70">
+              {t("common.folders")}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                aria-label={t("common.sort_a_to_z")}
+                className="-m-1 flex min-h-6 min-w-6 items-center justify-center rounded p-1.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
+                data-testid="mobile-folders-sort-a-to-z"
+                type="button"
+                onClick={on_sort_folders}
+              >
+                <BarsArrowDownIcon className="h-3.5 w-3.5" />
+              </button>
+              <button
+                aria-label={t("common.create_folder")}
+                className="-m-1 flex min-h-6 min-w-6 items-center justify-center rounded p-1.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
+                type="button"
+                onClick={on_open_create_folder}
+              >
+                <PlusIcon className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-      {folders.length === 0 &&
-        (folders_loading ? (
-          <NavSectionSkeleton rows={3} />
-        ) : (
-          <p className="px-2.5 py-2 text-[11px] text-[var(--text-muted)]">
-            {t("common.no_folders_yet")}
-          </p>
-        ))}
+      ) : (
+        <MobileDrawerSectionHeader
+          add_label={t("common.create_folder")}
+          label={t("common.folders")}
+          on_add={on_open_create_folder}
+        />
+      )}
+      {folders.length === 0 && (
+        <MobileDrawerSectionPlaceholder
+          empty_text={t("common.no_folders_yet")}
+          failed_notice={
+            folders_load_failed && on_retry_folders ? (
+              <LoadFailedNotice on_retry={on_retry_folders} />
+            ) : undefined
+          }
+          is_loading={folders_loading}
+          skeleton_rows={3}
+        />
+      )}
       {folder_nodes.map((node) => {
         const folder = node.folder;
         const guides = folder_guides.get(folder.folder_token);
@@ -370,159 +373,81 @@ export const DrawerNavContent = memo(function DrawerNavContent({
           : (folder_unread_counts[folder.folder_token] ??
             folder.unread_count ??
             0);
-        const folder_color = folder.color || "#3b82f6";
 
         return (
-          <div
+          <MobileDrawerFolderRow
             key={folder.folder_token}
-            className="relative"
-            style={{ paddingLeft: node.depth * 16 }}
-          >
-            {node.depth > 0 && (
-              <>
-                {Array.from(
-                  { length: node.depth - 1 },
-                  (_, level) =>
-                    guides?.trail[level + 1] && (
-                      <span
-                        key={`guide-${level}`}
-                        aria-hidden="true"
-                        className="pointer-events-none absolute top-0 bottom-0 w-px"
-                        style={{
-                          left: `${level * 16 + 10}px`,
-                          backgroundColor: "var(--border-primary)",
-                        }}
-                      />
-                    ),
-                )}
-                <span
-                  aria-hidden="true"
-                  className="pointer-events-none absolute top-0"
-                  style={{
-                    left: `${(node.depth - 1) * 16 + 10}px`,
-                    height: "50%",
-                    width: "9px",
-                    borderLeft: "1px solid var(--border-primary)",
-                    borderBottom: "1px solid var(--border-primary)",
-                    borderBottomLeftRadius: "7px",
-                  }}
-                />
-                {guides?.has_next && (
-                  <span
-                    aria-hidden="true"
-                    className="pointer-events-none absolute top-0 bottom-0 w-px"
-                    style={{
-                      left: `${(node.depth - 1) * 16 + 10}px`,
-                      backgroundColor: "var(--border-primary)",
-                    }}
-                  />
-                )}
-              </>
-            )}
-            <SidebarNavButton
-              active={is_active(path)}
-              count={count}
-              icon={
-                <FolderIcon
-                  className="h-5 w-5"
-                  style={{ color: folder_color }}
-                />
-              }
-              label={folder.name}
-              on_click={() => {
-                if (folder.is_password_protected) {
-                  if (!folder.password_set) {
-                    on_password_modal({
-                      folder_id: folder.id,
-                      folder_name: folder.name,
-                      folder_token: folder.folder_token,
-                      mode: "setup",
-                    });
+            active={is_active(path)}
+            color={folder.color || "#3b82f6"}
+            count={count}
+            depth={node.depth}
+            guide_has_next={guides?.has_next}
+            guide_trail={guides?.trail}
+            label={folder.name}
+            locale={locale}
+            lock_closed={folder.is_locked || !is_folder_unlocked(folder.id)}
+            show_lock_toggle={!!folder.is_password_protected}
+            on_click={() => {
+              if (folder.is_password_protected) {
+                if (!folder.password_set) {
+                  on_password_modal({
+                    folder_id: folder.id,
+                    folder_name: folder.name,
+                    folder_token: folder.folder_token,
+                    mode: "setup",
+                  });
 
-                    return;
-                  }
-                  if (!is_folder_unlocked(folder.id)) {
-                    on_password_modal({
-                      folder_id: folder.id,
-                      folder_name: folder.name,
-                      folder_token: folder.folder_token,
-                      mode: "unlock",
-                    });
-
-                    return;
-                  }
+                  return;
                 }
-                handle_nav(path);
-              }}
-              on_long_press={() => on_open_edit_folder(folder)}
-              trailing={
-                folder.is_password_protected ? (
-                  <button
-                    className="flex h-7 w-7 items-center justify-center rounded-[8px] text-[var(--text-muted)] active:bg-[var(--bg-tertiary)]"
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      on_toggle_lock(folder.id, folder.is_locked);
-                    }}
-                  >
-                    {folder.is_locked || !is_folder_unlocked(folder.id) ? (
-                      <LockClosedIcon className="h-4 w-4" />
-                    ) : (
-                      <LockOpenIcon className="h-4 w-4" />
-                    )}
-                  </button>
-                ) : undefined
+                if (!is_folder_unlocked(folder.id)) {
+                  on_password_modal({
+                    folder_id: folder.id,
+                    folder_name: folder.name,
+                    folder_token: folder.folder_token,
+                    mode: "unlock",
+                  });
+
+                  return;
+                }
               }
-            />
-          </div>
+              handle_nav(path);
+            }}
+            on_long_press={() => on_open_edit_folder(folder)}
+            on_toggle_lock={() => on_toggle_lock(folder.id, folder.is_locked)}
+          />
         );
       })}
 
-      <div className="mb-1 mt-5 px-2.5">
-        <div className="flex w-full items-center justify-between">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[var(--text-muted)] opacity-70">
-            {t("common.labels")}
-          </span>
-          <button
-            className="rounded p-0.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
-            type="button"
-            onClick={on_open_create_label}
-          >
-            <PlusIcon className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
-      {tags.length === 0 &&
-        (tags_loading ? (
-          <NavSectionSkeleton rows={2} />
-        ) : (
-          <p className="px-2.5 py-2 text-[11px] text-[var(--text-muted)]">
-            {t("common.no_labels_yet")}
-          </p>
-        ))}
+      <MobileDrawerSectionHeader
+        add_label={t("common.create_label")}
+        label={t("common.labels")}
+        on_add={on_open_create_label}
+      />
+      {tags.length === 0 && (
+        <MobileDrawerSectionPlaceholder
+          empty_text={t("common.no_labels_yet")}
+          failed_notice={
+            tags_load_failed && on_retry_tags ? (
+              <LoadFailedNotice on_retry={on_retry_tags} />
+            ) : undefined
+          }
+          is_loading={tags_loading}
+          skeleton_rows={2}
+        />
+      )}
       {tags.map((tag) => {
         const path = `/tag/${encodeURIComponent(tag.tag_token)}`;
-        const count = tag_counts[tag.tag_token];
-        const tag_color = tag.color || "#3b82f6";
-        const TagIconComponent = tag.icon ? tag_icon_map[tag.icon] : null;
 
         return (
           <SidebarNavButton
             key={tag.tag_token}
             active={is_active(path)}
-            count={count}
+            count={tag_counts[tag.tag_token]}
             icon={
-              TagIconComponent ? (
-                <TagIconComponent
-                  className="h-4 w-4"
-                  style={{ color: tag_color }}
-                />
-              ) : (
-                <span
-                  className="h-3 w-3 shrink-0 rounded-full"
-                  style={{ backgroundColor: tag_color }}
-                />
-              )
+              <MobileDrawerTagIcon
+                color={tag.color || "#3b82f6"}
+                icon={tag.icon}
+              />
             }
             label={tag.name}
             on_click={() => handle_nav(path)}
@@ -531,28 +456,23 @@ export const DrawerNavContent = memo(function DrawerNavContent({
         );
       })}
 
-      <div className="mb-1 mt-5 px-2.5">
-        <div className="flex w-full items-center justify-between">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.05em] text-[var(--text-muted)] opacity-70">
-            {t("common.aliases")}
-          </span>
-          <button
-            className="rounded p-0.5 text-[var(--text-muted)] transition-all duration-150 active:bg-[var(--bg-tertiary)]"
-            type="button"
-            onClick={on_open_create_alias}
-          >
-            <PlusIcon className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      </div>
-      {aliases.length === 0 &&
-        (aliases_loading ? (
-          <NavSectionSkeleton rows={2} />
-        ) : (
-          <p className="px-2.5 py-2 text-[11px] text-[var(--text-muted)]">
-            {t("common.no_aliases_yet")}
-          </p>
-        ))}
+      <MobileDrawerSectionHeader
+        add_label={t("settings.create_alias")}
+        label={t("common.aliases")}
+        on_add={on_open_create_alias}
+      />
+      {aliases.length === 0 && (
+        <MobileDrawerSectionPlaceholder
+          empty_text={t("common.no_aliases_yet")}
+          failed_notice={
+            aliases_load_failed && on_retry_aliases ? (
+              <LoadFailedNotice on_retry={on_retry_aliases} />
+            ) : undefined
+          }
+          is_loading={aliases_loading}
+          skeleton_rows={2}
+        />
+      )}
       {aliases.map((alias) => {
         const path = `/alias/${encodeURIComponent(alias.full_address)}`;
         const unread_count = alias.alias_address_hash

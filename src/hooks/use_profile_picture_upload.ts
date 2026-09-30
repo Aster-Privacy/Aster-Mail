@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_auth } from "@/contexts/auth_context";
@@ -98,6 +98,7 @@ export function use_profile_picture_upload(
   const { user, update_user } = use_auth();
 
   const file_ref = useRef<HTMLInputElement>(null);
+  const picker_cleanup_ref = useRef<(() => void) | null>(null);
   const [uploading, set_uploading] = useState(false);
   const [removing, set_removing] = useState(false);
   const [preview, set_preview] = useState<string | null>(null);
@@ -184,7 +185,10 @@ export function use_profile_picture_upload(
     const discard = () => {
       window.removeEventListener("focus", schedule_discard);
       input.remove();
+      picker_cleanup_ref.current = null;
     };
+
+    picker_cleanup_ref.current = discard;
 
     function schedule_discard() {
       window.setTimeout(() => {
@@ -196,14 +200,20 @@ export function use_profile_picture_upload(
     input.addEventListener("change", () => {
       const file = input.files?.[0];
 
-      window.removeEventListener("focus", schedule_discard);
-      input.remove();
+      discard();
 
       if (file) void process_file(file);
     });
     window.addEventListener("focus", schedule_discard);
     input.click();
   }, [uploading, removing, process_file]);
+
+  useEffect(
+    () => () => {
+      picker_cleanup_ref.current?.();
+    },
+    [],
+  );
 
   const remove_picture = useCallback(async () => {
     if (removing || uploading || !user?.profile_picture) return;

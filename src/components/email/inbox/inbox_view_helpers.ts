@@ -22,6 +22,11 @@ import type { InboxEmail, InboxFilterType } from "@/types/email";
 import type { DecryptedFolder } from "@/hooks/use_folders";
 import type { TranslationKey } from "@/lib/i18n/types";
 
+import {
+  alias_address_of,
+  parse_alias_view,
+} from "@/hooks/email_list_helpers/alias_view";
+
 export const MAX_EMPTY_VIEW_RECOVERIES = 3;
 
 export interface EmptyViewRecoveryState {
@@ -37,7 +42,9 @@ export interface EmptyViewRecoveryState {
   attempts: number;
 }
 
-export function should_recover_empty_view(state: EmptyViewRecoveryState): boolean {
+export function should_recover_empty_view(
+  state: EmptyViewRecoveryState,
+): boolean {
   if (state.categories_enabled) return false;
   if (state.is_client_filtered) return false;
   if (state.is_alias_view) return false;
@@ -49,6 +56,22 @@ export function should_recover_empty_view(state: EmptyViewRecoveryState): boolea
   if (state.attempts >= MAX_EMPTY_VIEW_RECOVERIES) return false;
 
   return true;
+}
+
+export function compute_total_pages(params: {
+  effective_total: number;
+  page_size: number;
+  current_page: number;
+  has_more: boolean;
+  server_paged: boolean;
+}): number {
+  const floor =
+    params.server_paged && params.has_more
+      ? (params.current_page + 2) * params.page_size
+      : 0;
+  const total = Math.max(params.effective_total, floor);
+
+  return Math.max(1, Math.ceil(total / params.page_size));
 }
 
 export function get_view_title(
@@ -84,7 +107,7 @@ export function get_view_title(
   }
 
   if (current_view.startsWith("alias-")) {
-    return current_view.replace("alias-", "");
+    return alias_address_of(current_view) ?? current_view;
   }
 
   return static_titles[current_view] || (t ? t("mail.inbox") : "Inbox");
@@ -116,17 +139,25 @@ export function filter_emails_by_view(
   emails: InboxEmail[],
   _current_view: string,
 ): InboxEmail[] {
-  if (_current_view.startsWith("alias-")) {
-    const alias_address = _current_view.replace("alias-", "").toLowerCase();
+  const alias_view = parse_alias_view(_current_view);
 
-    return emails.filter(
-      (e) =>
-        e.sender_email.toLowerCase() === alias_address ||
-        (e.recipient_addresses &&
-          e.recipient_addresses.some(
-            (addr) => addr.toLowerCase() === alias_address,
-          )),
-    );
+  if (alias_view) {
+    const alias_address = alias_view.address.toLowerCase();
+    const matches_sender = (e: InboxEmail) =>
+      e.sender_email.toLowerCase() === alias_address;
+    const matches_recipient = (e: InboxEmail) =>
+      !!e.recipient_addresses?.some(
+        (addr) => addr.toLowerCase() === alias_address,
+      );
+
+    if (alias_view.direction === "sent") {
+      return emails.filter(matches_sender);
+    }
+    if (alias_view.direction === "received") {
+      return emails.filter(matches_recipient);
+    }
+
+    return emails.filter((e) => matches_sender(e) || matches_recipient(e));
   }
 
   return emails;

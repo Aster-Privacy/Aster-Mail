@@ -35,12 +35,16 @@ import {
   ClockIcon,
   Cog6ToothIcon,
 } from "@heroicons/react/24/outline";
-import { Badge, Button, Checkbox, Switch } from "@aster/ui";
+import { Badge, Button, Checkbox, Island, Switch } from "@aster/ui";
 
+import { get_grace_days_remaining } from "./grace_period";
+
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
-import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
+import { get_gradient_background } from "@/constants/profile";
+import { get_alias_color } from "@/lib/avatar_color";
 import { update_alias } from "@/services/api/aliases";
 import { update_domain_address } from "@/services/api/domains";
 import {
@@ -53,8 +57,6 @@ import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { PinIcon } from "@/components/common/icons";
 import { AliasDisplayNameEditor } from "@/components/settings/aliases/alias_display_name_editor";
 import { AliasMetaEditor } from "@/components/settings/aliases/alias_meta_editor";
-
-import { ignore_error } from "@/lib/ignore_error";
 
 const AVATAR_MAX_SIZE = 256;
 
@@ -90,16 +92,6 @@ function compress_avatar(file: File): Promise<string> {
     };
     img.src = url;
   });
-}
-
-function get_alias_color(address: string): string {
-  let hash = 0;
-
-  for (let i = 0; i < address.length; i++) {
-    hash = (hash * 31 + address.charCodeAt(i)) | 0;
-  }
-
-  return PROFILE_COLORS[Math.abs(hash) % PROFILE_COLORS.length];
 }
 
 function AliasAvatar({
@@ -152,7 +144,7 @@ function AliasAvatar({
         </div>
       )}
       {uploading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full">
+        <div className="absolute inset-0 flex items-center justify-center aster_scrim rounded-full">
           <Spinner className="text-white" size="xs" />
         </div>
       )}
@@ -162,7 +154,7 @@ function AliasAvatar({
             ? t("common.alias_avatars_locked" as TranslationKey)
             : t("common.change_alias_avatar" as TranslationKey)
         }
-        className="absolute inset-0 flex items-center justify-center rounded-full bg-black/55 text-white opacity-0 transition-opacity hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed"
+        className="absolute inset-0 flex items-center justify-center rounded-full aster_scrim text-white opacity-0 transition-opacity hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed"
         disabled={uploading}
         title={
           is_locked
@@ -192,7 +184,7 @@ function AliasAvatar({
       {!is_locked && profile_picture && (
         <button
           aria-label={t("common.remove_alias_avatar" as TranslationKey)}
-          className="absolute -bottom-1 -right-1 rounded-full border border-edge-secondary bg-surf-card p-1 opacity-0 transition-opacity hover:border-red-500/30 group-hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-50"
+          className="absolute -bottom-1 -end-1 rounded-full bg-surf-card p-1 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 disabled:cursor-not-allowed disabled:opacity-50"
           disabled={uploading}
           title={t("common.remove_alias_avatar" as TranslationKey)}
           type="button"
@@ -210,14 +202,6 @@ function AliasAvatar({
       />
     </div>
   );
-}
-
-function get_grace_days_remaining(expires_at: string): number {
-  const now = new Date();
-  const expires = new Date(expires_at);
-  const diff = expires.getTime() - now.getTime();
-
-  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
 }
 
 interface AliasItemProps {
@@ -354,19 +338,16 @@ export function AliasItem({
 
   const copy_address = async () => {
     try {
-      await navigator.clipboard.writeText(alias.full_address);
+      await copy_text_or_throw(alias.full_address);
       show_toast(t("settings.alias_copied"), "success");
-    } catch (caught) {
-      ignore_error(
-        "components/settings/aliases/alias_card:copy_address",
-        caught,
-      );
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
   return (
-    <div className="group rounded-xl transition-all border border-edge-secondary">
-      <div className="flex items-center gap-3 p-4">
+    <Island className="group">
+      <div className="flex flex-wrap items-center gap-3 p-4">
         {bulk_mode && (
           <Checkbox
             checked={!!is_selected}
@@ -375,7 +356,7 @@ export function AliasItem({
           />
         )}
         <div
-          className="flex flex-1 min-w-0 items-center gap-3"
+          className="flex flex-1 basis-56 min-w-0 items-center gap-3"
           style={{
             opacity: alias.is_enabled && !in_grace_period ? 1 : 0.5,
           }}
@@ -398,7 +379,7 @@ export function AliasItem({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <button
-                className="min-w-0 truncate text-left text-sm font-medium text-txt-primary transition-colors hover:text-txt-secondary"
+                className="min-w-0 truncate text-start text-sm font-medium text-txt-primary transition-colors hover:text-txt-secondary"
                 title={t("common.copy_address")}
                 type="button"
                 onClick={copy_address}
@@ -411,10 +392,13 @@ export function AliasItem({
                 </Badge>
               )}
               {in_grace_period && (
-                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                  <ClockIcon className="w-3 h-3" />
+                <span
+                  className="inline-flex items-center gap-1 text-[12px] font-semibold"
+                  style={{ color: "var(--color-warning)" }}
+                >
+                  <ClockIcon className="h-[15px] w-[15px]" />
                   {t("settings.alias_grace_days" as TranslationKey, {
-                    days: String(grace_days),
+                    days: grace_days,
                   })}
                 </span>
               )}
@@ -434,7 +418,7 @@ export function AliasItem({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="ms-auto flex items-center gap-2 flex-shrink-0">
           <Button
             className="h-8 w-8"
             size="icon"
@@ -486,27 +470,30 @@ export function AliasItem({
           <Switch
             aria-label={t("common.toggle_alias")}
             checked={alias.is_enabled}
-            disabled={toggling || in_grace_period}
+            disabled={toggling || in_grace_period || !!alias.is_retained_primary}
             size="lg"
             onCheckedChange={(checked) => on_toggle(alias.id, checked)}
           />
 
-          <Button
-            className="h-8 w-8 hover:text-red-500 hover:bg-red-500/10"
-            disabled={deleting}
-            size="icon"
-            variant="ghost"
-            onClick={() => on_delete(alias.id)}
-          >
-            {deleting ? (
-              <Spinner size="xs" />
-            ) : (
-              <TrashIcon className="w-[18px] h-[18px]" />
-            )}
-          </Button>
+          {!alias.is_retained_primary && (
+            <Button
+              aria-label={t("common.delete")}
+              className="h-8 w-8 hover:text-red-500 hover:bg-red-500/10"
+              disabled={deleting}
+              size="icon"
+              variant="ghost"
+              onClick={() => on_delete(alias.id)}
+            >
+              {deleting ? (
+                <Spinner size="xs" />
+              ) : (
+                <TrashIcon className="w-[18px] h-[18px]" />
+              )}
+            </Button>
+          )}
         </div>
       </div>
-    </div>
+    </Island>
   );
 }
 
@@ -663,19 +650,16 @@ export function DomainAddressItem({
 
   const copy_address = async () => {
     try {
-      await navigator.clipboard.writeText(full_address);
+      await copy_text_or_throw(full_address);
       show_toast(t("settings.address_copied"), "success");
-    } catch (caught) {
-      ignore_error(
-        "components/settings/aliases/alias_card:copy_address",
-        caught,
-      );
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
   return (
-    <div className="group rounded-xl transition-all border border-edge-secondary">
-      <div className="flex items-center gap-3 p-4">
+    <Island className="group">
+      <div className="flex flex-wrap items-center gap-3 p-4">
         <AliasAvatar
           gradient={gradient}
           icon={<GlobeAltIcon className="w-5 h-5 text-white" />}
@@ -688,7 +672,7 @@ export function DomainAddressItem({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <button
-              className="min-w-0 truncate text-left text-sm font-medium text-txt-primary transition-colors hover:text-txt-secondary"
+              className="min-w-0 truncate text-start text-sm font-medium text-txt-primary transition-colors hover:text-txt-secondary"
               title={t("common.copy_address")}
               type="button"
               onClick={copy_address}
@@ -699,7 +683,13 @@ export function DomainAddressItem({
               {t("common.custom")}
             </span>
             {is_primary && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+              <span
+                className="inline-flex shrink-0 items-center gap-1 rounded-[14px] border px-2 py-0.5 text-[12px] font-medium text-txt-secondary"
+                style={{
+                  borderColor:
+                    "color-mix(in srgb, var(--text-primary) 14%, transparent)",
+                }}
+              >
                 {t("settings.primary_badge")}
               </span>
             )}
@@ -717,7 +707,7 @@ export function DomainAddressItem({
           />
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="ms-auto flex items-center gap-2 flex-shrink-0">
           <Button
             className="h-8 w-8"
             size="icon"
@@ -790,6 +780,7 @@ export function DomainAddressItem({
           />
 
           <Button
+            aria-label={t("common.delete")}
             className="h-8 w-8 hover:text-red-500 hover:bg-red-500/10"
             disabled={deleting}
             size="icon"
@@ -804,6 +795,6 @@ export function DomainAddressItem({
           </Button>
         </div>
       </div>
-    </div>
+    </Island>
   );
 }

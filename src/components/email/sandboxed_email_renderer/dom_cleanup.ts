@@ -20,11 +20,16 @@
 //
 import type { use_i18n } from "@/lib/i18n/context";
 
-import { connection_store } from "@/services/routing/connection_store";
-
 import { IMAGE_PROXY_URL } from "./helpers";
 
+import {
+  image_load_retry_delay_ms,
+  parse_retry_attempt,
+  should_retry_image_load,
+} from "@/lib/image_load_retry";
+import { connection_store } from "@/services/routing/connection_store";
 import { ignore_error } from "@/lib/ignore_error";
+import { remove_aster_footers } from "@/lib/aster_footer_strip";
 
 type translate_fn = ReturnType<typeof use_i18n>["t"];
 
@@ -74,6 +79,20 @@ function has_content_outside(
   return false;
 }
 
+function quote_leads_body(quote: Element): boolean {
+  if (quote.parentElement?.tagName !== "BODY") return false;
+
+  let prev: Node | null = quote.previousSibling;
+
+  while (prev) {
+    if ((prev.textContent || "").trim().length > 0) return false;
+    if (contains_media(prev)) return false;
+    prev = prev.previousSibling;
+  }
+
+  return true;
+}
+
 function reveal_hidden_quote_blocks(el: Element): void {
   if (el.matches(HIDDEN_QUOTE_SELECTOR)) {
     (el as HTMLElement).style.display = "block";
@@ -83,7 +102,32 @@ function reveal_hidden_quote_blocks(el: Element): void {
   });
 }
 
-export function collapse_forwarded_content(doc: Document, t: translate_fn): void {
+function fill_quote_toggle(
+  doc: Document,
+  toggle_btn: HTMLButtonElement,
+  t: translate_fn,
+  expanded: boolean,
+): void {
+  const label = expanded
+    ? t("mail.hide_quoted_text")
+    : t("mail.show_quoted_text");
+
+  toggle_btn.textContent = "";
+  toggle_btn.title = label;
+  toggle_btn.setAttribute("aria-label", label);
+  toggle_btn.setAttribute("aria-expanded", expanded ? "true" : "false");
+
+  const dots = doc.createElement("span");
+
+  dots.className = "aster-quote-toggle-dots";
+  dots.setAttribute("aria-hidden", "true");
+  toggle_btn.appendChild(dots);
+}
+
+export function collapse_forwarded_content(
+  doc: Document,
+  t: translate_fn,
+): void {
   const body = doc.body;
 
   if (!body) return;
@@ -96,8 +140,7 @@ export function collapse_forwarded_content(doc: Document, t: translate_fn): void
     let prev: Node | null = proton_wrapper.previousSibling;
 
     while (prev) {
-      const el =
-        prev.nodeType === Node.ELEMENT_NODE ? (prev as Element) : null;
+      const el = prev.nodeType === Node.ELEMENT_NODE ? (prev as Element) : null;
       const text = prev.textContent?.trim() || "";
       const is_sig = el?.classList?.contains("protonmail_signature_block");
       const is_spacer = !text && !contains_media(prev);
@@ -157,15 +200,26 @@ export function collapse_forwarded_content(doc: Document, t: translate_fn): void
 
     toggle_btn.className = "aster-quote-toggle";
     toggle_btn.type = "button";
-    toggle_btn.textContent = "\u2022\u2022\u2022";
-    toggle_btn.title = t("mail.show_trimmed_content");
+    fill_quote_toggle(doc, toggle_btn, t, false);
 
     const content_div = doc.createElement("div");
 
     content_div.className = "aster-quoted-content";
     content_div.style.display = "none";
 
-    gmail_wrapper.parentNode!.insertBefore(wrapper, gmail_wrapper);
+    if (quote_leads_body(gmail_wrapper)) {
+      let blank: Node | null = gmail_wrapper.previousSibling;
+
+      while (blank) {
+        const previous: Node | null = blank.previousSibling;
+
+        blank.parentNode?.removeChild(blank);
+        blank = previous;
+      }
+      body.appendChild(wrapper);
+    } else {
+      gmail_wrapper.parentNode!.insertBefore(wrapper, gmail_wrapper);
+    }
     content_div.appendChild(gmail_wrapper);
 
     toggle_btn.addEventListener("click", () => {
@@ -173,6 +227,7 @@ export function collapse_forwarded_content(doc: Document, t: translate_fn): void
 
       content_div.style.display = is_hidden ? "" : "none";
       toggle_btn.classList.toggle("aster-quote-expanded", is_hidden);
+      fill_quote_toggle(doc, toggle_btn, t, is_hidden);
     });
 
     wrapper.appendChild(toggle_btn);
@@ -285,8 +340,7 @@ export function collapse_empty_block_runs(doc: Document): void {
     let prev = sig.previousSibling;
 
     while (prev) {
-      const el =
-        prev.nodeType === Node.ELEMENT_NODE ? (prev as Element) : null;
+      const el = prev.nodeType === Node.ELEMENT_NODE ? (prev as Element) : null;
       const text = (prev.textContent || "").trim();
       const is_empty_block =
         el &&
@@ -322,11 +376,17 @@ export function trim_trailing_empty_blocks(doc: Document): void {
     if (el.tagName === "BR") return true;
     if (!["DIV", "P", "SECTION", "SPAN"].includes(el.tagName)) return false;
     if ((el.textContent || "").trim()) return false;
-    if (el.querySelector("img,hr,table,iframe,svg,video,object,embed,input,button")) {
+    if (
+      el.querySelector(
+        "img,hr,table,iframe,svg,video,object,embed,input,button",
+      )
+    ) {
       return false;
     }
 
-    return !/background|height|border|padding/i.test(el.getAttribute("style") || "");
+    return !/background|height|border|padding/i.test(
+      el.getAttribute("style") || "",
+    );
   };
 
   let container: Element = body;
@@ -370,10 +430,28 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
   const body = doc.body;
 
   if (!body) return;
+  remove_aster_footers(body, true);
   if (body.querySelector("details.aster-forwarded-collapse")) return;
   if (body.querySelector(".aster-quote-toggle")) return;
 
   const wrote_re = /^On\s.+wrote:\s*$/;
+  const max_attribution_length = 400;
+  const attribution_block_text = (text_node: Node): string => {
+    let n: Node | null = text_node.parentNode;
+
+    while (n && n !== body) {
+      if (n.nodeType === Node.ELEMENT_NODE) {
+        const tag = (n as Element).tagName.toUpperCase();
+
+        if (["DIV", "P", "SECTION", "LI", "TD"].includes(tag)) {
+          return (n.textContent || "").trim();
+        }
+      }
+      n = n.parentNode;
+    }
+
+    return "";
+  };
   const walker = doc.createTreeWalker(body, NodeFilter.SHOW_TEXT);
   let marker_text: Text | null = null;
 
@@ -381,6 +459,16 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
     const text = (walker.currentNode.textContent || "").trim();
 
     if (text && wrote_re.test(text)) {
+      marker_text = walker.currentNode as Text;
+      break;
+    }
+    const block_text = attribution_block_text(walker.currentNode);
+
+    if (
+      block_text &&
+      block_text.length <= max_attribution_length &&
+      wrote_re.test(block_text)
+    ) {
       marker_text = walker.currentNode as Text;
       break;
     }
@@ -410,10 +498,12 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
 
   const has_content_before = (() => {
     let prev: Node | null = marker_block!.previousSibling;
+
     while (prev) {
       if ((prev.textContent || "").trim().length > 0) return true;
       prev = prev.previousSibling;
     }
+
     return false;
   })();
 
@@ -421,20 +511,25 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
 
   if (has_content_before) {
     let sib: Node | null = marker_block;
+
     while (sib) {
       const next: ChildNode | null = sib.nextSibling;
+
       to_collapse.push(sib);
       sib = next;
     }
   } else {
     to_collapse.push(marker_block!);
     let sib: Node | null = marker_block!.nextSibling;
+
     while (sib) {
-      const tag = sib.nodeType === Node.ELEMENT_NODE
-        ? (sib as Element).tagName.toUpperCase()
-        : null;
+      const tag =
+        sib.nodeType === Node.ELEMENT_NODE
+          ? (sib as Element).tagName.toUpperCase()
+          : null;
       const text = (sib.textContent || "").trim();
       const is_quoted_block = tag === "BLOCKQUOTE" || !text;
+
       if (is_quoted_block) {
         to_collapse.push(sib);
         sib = sib.nextSibling;
@@ -493,8 +588,7 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
 
   toggle_btn.className = "aster-quote-toggle";
   toggle_btn.type = "button";
-  toggle_btn.textContent = "\u2022\u2022\u2022";
-  toggle_btn.title = t("mail.show_trimmed_content");
+  fill_quote_toggle(doc, toggle_btn, t, false);
 
   const content_div = doc.createElement("div");
 
@@ -505,10 +599,7 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
     content_div.appendChild(node);
   }
 
-  const strip_walker = doc.createTreeWalker(
-    content_div,
-    NodeFilter.SHOW_TEXT,
-  );
+  const strip_walker = doc.createTreeWalker(content_div, NodeFilter.SHOW_TEXT);
 
   while (strip_walker.nextNode()) {
     const text_node = strip_walker.currentNode;
@@ -531,11 +622,47 @@ export function collapse_quoted_replies(doc: Document, t: translate_fn): void {
 
     content_div.style.display = is_hidden ? "" : "none";
     toggle_btn.classList.toggle("aster-quote-expanded", is_hidden);
+    fill_quote_toggle(doc, toggle_btn, t, is_hidden);
   });
 
   wrapper.appendChild(toggle_btn);
   wrapper.appendChild(content_div);
   body.appendChild(wrapper);
+}
+
+const IMAGE_RETRY_ATTRIBUTE = "data-load-retry";
+
+function install_image_load_fallback(img_el: HTMLImageElement): void {
+  img_el.addEventListener(
+    "error",
+    () => {
+      const attempt = parse_retry_attempt(
+        img_el.getAttribute(IMAGE_RETRY_ATTRIBUTE),
+      );
+      const current_src = img_el.getAttribute("src") || "";
+
+      if (should_retry_image_load(attempt, current_src)) {
+        img_el.setAttribute(IMAGE_RETRY_ATTRIBUTE, String(attempt + 1));
+        img_el.removeAttribute("src");
+
+        const owner = img_el.ownerDocument?.defaultView ?? window;
+
+        owner.setTimeout(() => {
+          install_image_load_fallback(img_el);
+          img_el.setAttribute("src", current_src);
+        }, image_load_retry_delay_ms(attempt));
+
+        return;
+      }
+
+      img_el.setAttribute("data-load-failed", "true");
+
+      if ((img_el.getAttribute("alt") || "").trim().length > 0) return;
+
+      img_el.style.display = "none";
+    },
+    { once: true },
+  );
 }
 
 export function unblock_remote_content(doc: Document): void {
@@ -554,11 +681,15 @@ export function unblock_remote_content(doc: Document): void {
     if (src) {
       try {
         const safe_url = new URL(src, window.location.href);
+
         if (safe_url.protocol === "https:" || safe_url.protocol === "http:") {
           el.setAttribute("src", safe_url.href);
         }
       } catch (caught) {
-        ignore_error("components/email/sandboxed_email_renderer/dom_cleanup:unblock_remote_content", caught);
+        ignore_error(
+          "components/email/sandboxed_email_renderer/dom_cleanup:unblock_remote_content",
+          caught,
+        );
       }
     }
     el.removeAttribute("data-blocked");
@@ -570,13 +701,7 @@ export function unblock_remote_content(doc: Document): void {
     }
     const img_el = el as HTMLImageElement;
 
-    img_el.addEventListener(
-      "error",
-      () => {
-        img_el.style.display = "none";
-      },
-      { once: true },
-    );
+    install_image_load_fallback(img_el);
   });
 
   doc.querySelectorAll("img[alt='[Click to load image]']").forEach((el) => {

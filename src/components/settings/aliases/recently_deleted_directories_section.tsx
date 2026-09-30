@@ -25,9 +25,9 @@ import {
   ChevronDownIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Island, IslandRow } from "@aster/ui";
 
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
@@ -39,6 +39,7 @@ import {
   decrypt_deleted_alias_directory,
   type DecryptedDeletedAliasDirectory,
 } from "@/services/api/alias_directories";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 interface RecentlyDeletedDirectoriesSectionProps {
   on_restored: () => void;
@@ -171,7 +172,8 @@ export function RecentlyDeletedDirectoriesSection({
   }, [t, load_deleted]);
 
   const format_date = (iso: string) =>
-    new Date(iso).toLocaleDateString(undefined, {
+    new Date(iso).toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -181,14 +183,17 @@ export function RecentlyDeletedDirectoriesSection({
 
   if (load_error) {
     return (
-      <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-3 rounded-lg bg-surf-tertiary border border-edge-secondary">
+      <Island
+        className="flex flex-wrap items-center justify-between gap-2"
+        padding="sm"
+      >
         <p className="text-xs text-txt-muted">
           {t("settings.recently_deleted_load_failed")}
         </p>
         <Button size="sm" variant="outline" onClick={() => load_deleted()}>
           {t("common.retry")}
         </Button>
-      </div>
+      </Island>
     );
   }
 
@@ -198,7 +203,7 @@ export function RecentlyDeletedDirectoriesSection({
     <div>
       <button
         aria-expanded={expanded}
-        className="flex w-full items-center justify-between gap-2 py-2 text-left"
+        className="flex w-full items-center justify-between gap-2 px-1 py-2 text-start"
         type="button"
         onClick={() => set_expanded((v) => !v)}
       >
@@ -219,7 +224,7 @@ export function RecentlyDeletedDirectoriesSection({
 
       {expanded && (
         <div className="space-y-2">
-          <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-1">
             <p className="text-xs text-txt-muted">
               {t("settings.recently_deleted_directories_description")}
             </p>
@@ -229,78 +234,62 @@ export function RecentlyDeletedDirectoriesSection({
               variant="ghost"
               onClick={() => set_confirm_empty(true)}
             >
-              {emptying ? (
-                <Spinner size="xs" />
-              ) : (
-                <>
-                  <TrashIcon aria-hidden="true" className="w-3.5 h-3.5" />
-                  {t("settings.recently_deleted_empty_trash")}
-                </>
-              )}
+              <TrashIcon aria-hidden="true" className="w-3.5 h-3.5" />
+              {t("settings.recently_deleted_empty_trash")}
+              {emptying && <ButtonSpinner size="xs" />}
             </Button>
           </div>
-          {directories.map((directory) => (
-            <div
-              key={directory.id}
-              className="flex items-center gap-3 px-4 py-3 rounded-lg bg-surf-tertiary border border-edge-secondary opacity-80"
-            >
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-                style={{
-                  background:
-                    "linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)",
-                }}
-              >
-                <TrashIcon aria-hidden="true" className="w-4 h-4 text-white" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate text-txt-primary">
-                  anything.{directory.label}@{directory.domain}
-                </p>
-                <p className="text-xs text-txt-muted">
-                  {t("settings.alias_deleted_at", {
-                    date: format_date(directory.deleted_at),
-                  })}
-                </p>
-              </div>
-              <div className="flex items-center gap-1.5 flex-shrink-0">
-                <Button
-                  disabled={restoring_id === directory.id}
-                  size="sm"
-                  variant="depth"
-                  onClick={() => handle_restore(directory.id)}
-                >
-                  {restoring_id === directory.id ? (
-                    <Spinner size="xs" />
-                  ) : (
-                    <>
+          <Island divided>
+            {directories.map((directory) => (
+              <IslandRow
+                key={directory.id}
+                description={t("settings.alias_deleted_at", {
+                  date: format_date(directory.deleted_at),
+                })}
+                icon={<TrashIcon />}
+                label={
+                  <span className="block truncate">
+                    anything.{directory.label}@{directory.domain}
+                  </span>
+                }
+                trailing={
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    <Button
+                      disabled={restoring_id === directory.id}
+                      size="sm"
+                      variant="depth"
+                      onClick={() => handle_restore(directory.id)}
+                    >
                       <ArrowUturnLeftIcon
                         aria-hidden="true"
-                        className="w-3.5 h-3.5"
+                        className="w-3.5 h-3.5 rtl:-scale-x-100"
                       />
                       {t("settings.restore_alias_action")}
-                    </>
-                  )}
-                </Button>
-                <Button
-                  aria-label={t("settings.delete_alias_permanently_action")}
-                  disabled={purging_id === directory.id}
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => set_confirm_purge(directory)}
-                >
-                  {purging_id === directory.id ? (
-                    <Spinner size="xs" />
-                  ) : (
-                    <TrashIcon
-                      aria-hidden="true"
-                      className="w-3.5 h-3.5 text-red-500"
-                    />
-                  )}
-                </Button>
-              </div>
-            </div>
-          ))}
+                      {restoring_id === directory.id && (
+                        <ButtonSpinner size="xs" />
+                      )}
+                    </Button>
+                    <Button
+                      aria-label={t("settings.delete_alias_permanently_action")}
+                      disabled={purging_id === directory.id}
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => set_confirm_purge(directory)}
+                    >
+                      {purging_id === directory.id ? (
+                        <Spinner size="xs" />
+                      ) : (
+                        <TrashIcon
+                          aria-hidden="true"
+                          className="w-3.5 h-3.5 text-red-500"
+                        />
+                      )}
+                    </Button>
+                  </div>
+                }
+              />
+            ))}
+          </Island>
         </div>
       )}
 

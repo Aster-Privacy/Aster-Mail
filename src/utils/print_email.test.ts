@@ -18,9 +18,18 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { set_print_content } from "./print_email";
+vi.mock("@/services/lockdown_store", async (import_original) => ({
+  ...(await import_original<typeof import("@/services/lockdown_store")>()),
+  is_any_lockdown_active: () => false,
+}));
+
+vi.mock("@/lib/image_proxy", () => ({
+  get_image_proxy_url: () => undefined,
+}));
+
+import { format_body, set_print_content } from "./print_email";
 
 function render(html: string): HTMLElement {
   const container = document.createElement("div");
@@ -81,5 +90,35 @@ describe("set_print_content", () => {
     set_print_content(container, "<p>second</p>");
 
     expect(container.textContent).toBe("second");
+  });
+});
+
+describe("format_body external content", () => {
+  const remote_html =
+    '<div><p>hi</p><img src="https://tracker.example/pixel.png" width="200" height="100"></div>';
+
+  it("keeps remote images when the viewer loads them", () => {
+    const html = format_body(remote_html, "always");
+
+    expect(html).toContain("tracker.example");
+    expect(html).toContain("<img");
+  });
+
+  it("blocks remote images when the viewer does not load them", () => {
+    const html = format_body(remote_html, "never");
+
+    expect(html).not.toContain("<img");
+    expect(html).toContain("hi");
+  });
+
+  it("blocks remote images when the viewer would ask first", () => {
+    const html = format_body(remote_html, "ask");
+
+    expect(html).not.toContain(' src="https://tracker.example');
+    expect(html).toContain('data-blocked="true"');
+  });
+
+  it("blocks remote images by default without cached preferences", () => {
+    expect(format_body(remote_html)).not.toContain("<img");
   });
 });

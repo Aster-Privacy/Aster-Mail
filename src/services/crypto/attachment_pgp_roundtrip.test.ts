@@ -28,6 +28,7 @@ let recipient_public_key = "";
 let recipient_secret_key = "";
 
 vi.mock("./memory_key_store", () => ({
+  get_passphrase_from_memory: vi.fn(() => null),
   get_passphrase_bytes: vi.fn(() => new TextEncoder().encode(PASSPHRASE)),
   get_vault_from_memory: vi.fn(() => ({ identity_key: recipient_secret_key })),
 }));
@@ -43,6 +44,7 @@ import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
 } from "./attachment_crypto";
+
 import type { Attachment } from "@/components/compose/compose_shared";
 
 function random_bytes(len: number): Uint8Array {
@@ -55,7 +57,11 @@ function random_bytes(len: number): Uint8Array {
   return out;
 }
 
-function make_attachment(name: string, mime: string, bytes: Uint8Array): Attachment {
+function make_attachment(
+  name: string,
+  mime: string,
+  bytes: Uint8Array,
+): Attachment {
   return {
     id: name,
     name,
@@ -68,7 +74,11 @@ function make_attachment(name: string, mime: string, bytes: Uint8Array): Attachm
 
 describe("internal-send attachment round-trip via recipient PGP meta", () => {
   beforeAll(async () => {
-    const kp = await generate_identity_keypair("Self", "self@astermail.org", PASSPHRASE);
+    const kp = await generate_identity_keypair(
+      "Self",
+      "self@astermail.org",
+      PASSPHRASE,
+    );
 
     recipient_public_key = kp.public_key;
     recipient_secret_key = kp.secret_key;

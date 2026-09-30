@@ -18,10 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
-import { useState, useCallback, useEffect, useRef } from "react";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import type { MailItemUpdatedEventDetail } from "@/hooks/mail_events";
 
+import { useState, useCallback, useEffect, useRef } from "react";
+
+import { HASH_ALG } from "@/services/crypto/constants";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   list_tags,
   create_tag,
@@ -38,12 +40,11 @@ import {
 import {
   get_vault_from_memory,
   has_passphrase_in_memory,
+  on_keys_ready,
 } from "@/services/crypto/memory_key_store";
-import type { MailItemUpdatedEventDetail } from "@/hooks/mail_events";
 import { emit_tags_changed, MAIL_EVENTS } from "@/hooks/mail_events";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
-
 
 export interface DecryptedTag {
   id: string;
@@ -68,14 +69,26 @@ interface TagCounts {
   [tag_token: string]: number;
 }
 
-const cached_tags: { data: DecryptedTag[]; total: number } = {
+const TAG_RETRY_DELAYS_MS = [400, 1_200, 3_000];
+
+function wait(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+const cached_tags: {
+  data: DecryptedTag[];
+  total: number;
+  has_loaded: boolean;
+} = {
   data: [],
   total: 0,
+  has_loaded: false,
 };
 
 export function clear_tags_cache(): void {
   cached_tags.data = [];
   cached_tags.total = 0;
+  cached_tags.has_loaded = false;
 }
 
 interface UseTagsReturn {
@@ -176,7 +189,11 @@ async function decrypt_tag_field(
   const encrypted_data = base64_to_array(encrypted);
   const nonce_data = base64_to_array(nonce);
 
-  const decrypted = await decrypt_aes_gcm_with_fallback(key, encrypted_data, nonce_data);
+  const decrypted = await decrypt_aes_gcm_with_fallback(
+    key,
+    encrypted_data,
+    nonce_data,
+  );
 
   return new TextDecoder().decode(decrypted);
 }
@@ -242,7 +259,7 @@ export function use_tags(): UseTagsReturn {
   const user = auth?.user ?? null;
   const [state, set_state] = useState<TagsState>({
     tags: cached_tags.data,
-    is_loading: cached_tags.data.length === 0,
+    is_loading: cached_tags.data.length === 0 && !cached_tags.has_loaded,
     error: null,
     total: cached_tags.total,
   });
@@ -251,12 +268,14 @@ export function use_tags(): UseTagsReturn {
   const prev_user_id_ref = useRef<string | null>(null);
   const fetch_generation_ref = useRef(0);
   const counts_generation_ref = useRef(0);
+  const counts_adjusted_at_ref = useRef(0);
 
   const fetch_tags = useCallback(
     async (params: ListTagsParams = {}): Promise<void> => {
-      const vault = get_vault_from_memory();
-
-      if (!has_passphrase_in_memory() || !vault?.identity_key) {
+      if (
+        !has_passphrase_in_memory() ||
+        !get_vault_from_memory()?.identity_key
+      ) {
         set_state((prev) =>
           prev.is_loading && prev.error === null
             ? prev
@@ -272,64 +291,83 @@ export function use_tags(): UseTagsReturn {
       const this_generation = ++fetch_generation_ref.current;
 
       set_state((prev) => {
-        if (prev.tags.length === 0) {
+        if (prev.tags.length === 0 && !cached_tags.has_loaded) {
           return { ...prev, is_loading: true, error: null };
         }
 
         return prev;
       });
 
-      try {
-        const response = await list_tags({
-          include_counts: true,
-          ...params,
-        });
+      const attempt_fetch = async (): Promise<"done" | "stale" | "retry"> => {
+        const vault = get_vault_from_memory();
 
-        if (this_generation !== fetch_generation_ref.current) return;
+        if (!has_passphrase_in_memory() || !vault?.identity_key) return "retry";
 
-        if (response.error || !response.data) {
-          set_state((prev) => ({
-            ...prev,
+        try {
+          const response = await list_tags({
+            include_counts: true,
+            ...params,
+          });
+
+          if (this_generation !== fetch_generation_ref.current) return "stale";
+
+          if (response.error || !response.data) return "retry";
+
+          const decrypted_results = await Promise.all(
+            response.data.tags.map((tag: TagDefinition) =>
+              decrypt_tag(tag, vault.identity_key),
+            ),
+          );
+
+          if (this_generation !== fetch_generation_ref.current) return "stale";
+
+          const decrypted_tags = decrypted_results.filter(
+            (tag): tag is DecryptedTag => tag !== null,
+          );
+
+          if (
+            response.data.tags.length > 0 &&
+            decrypted_tags.length === 0 &&
+            cached_tags.data.length > 0
+          ) {
+            return "retry";
+          }
+
+          cached_tags.data = decrypted_tags;
+          cached_tags.total = decrypted_tags.length;
+          cached_tags.has_loaded = true;
+
+          set_state({
+            tags: decrypted_tags,
             is_loading: false,
-            error: response.error || t("common.failed_to_fetch_tags"),
-          }));
+            error: null,
+            total: response.data.total,
+          });
 
-          return;
+          return "done";
+        } catch {
+          if (this_generation !== fetch_generation_ref.current) return "stale";
+
+          return "retry";
         }
+      };
 
-        const decrypted_results = await Promise.all(
-          response.data.tags.map((tag: TagDefinition) =>
-            decrypt_tag(tag, vault.identity_key),
-          ),
-        );
+      for (let attempt = 0; ; attempt += 1) {
+        const outcome = await attempt_fetch();
+
+        if (outcome !== "retry") return;
+        if (attempt >= TAG_RETRY_DELAYS_MS.length) break;
+
+        await wait(TAG_RETRY_DELAYS_MS[attempt]);
 
         if (this_generation !== fetch_generation_ref.current) return;
-
-        const decrypted_tags = decrypted_results.filter(
-          (tag): tag is DecryptedTag => tag !== null,
-        );
-
-        cached_tags.data = decrypted_tags;
-        cached_tags.total = decrypted_tags.length;
-
-        set_state({
-          tags: decrypted_tags,
-          is_loading: false,
-          error: null,
-          total: response.data.total,
-        });
-      } catch (err) {
-        if (this_generation !== fetch_generation_ref.current) return;
-
-        set_state((prev) => ({
-          ...prev,
-          is_loading: false,
-          error:
-            err instanceof Error
-              ? err.message
-              : t("common.failed_to_fetch_tags"),
-        }));
       }
+
+      set_state((prev) => ({
+        ...prev,
+        is_loading: false,
+        error: prev.tags.length > 0 ? null : t("common.failed_to_fetch_tags"),
+      }));
     },
     [t],
   );
@@ -337,21 +375,45 @@ export function use_tags(): UseTagsReturn {
   const fetch_counts = useCallback(async (): Promise<void> => {
     const this_generation = ++counts_generation_ref.current;
 
-    try {
-      const response = await get_tag_counts();
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const fetch_started_at = Date.now();
 
-      if (this_generation !== counts_generation_ref.current) return;
+      try {
+        const response = await get_tag_counts();
 
-      if (response.data) {
+        if (this_generation !== counts_generation_ref.current) return;
+
+        if (!response.data) {
+          if (attempt === 2) return;
+
+          await new Promise((resolve) =>
+            setTimeout(resolve, 1000 * (attempt + 1)),
+          );
+
+          if (this_generation !== counts_generation_ref.current) return;
+
+          continue;
+        }
+
+        if (counts_adjusted_at_ref.current > fetch_started_at) {
+          await new Promise((resolve) => setTimeout(resolve, 400));
+
+          if (this_generation !== counts_generation_ref.current) return;
+
+          continue;
+        }
+
         const new_counts: TagCounts = {};
 
         for (const item of response.data.counts) {
           new_counts[item.tag_token] = item.count;
         }
         set_counts(new_counts);
+
+        return;
+      } catch {
+        return;
       }
-    } catch {
-      return;
     }
   }, []);
 
@@ -574,6 +636,7 @@ export function use_tags(): UseTagsReturn {
 
   const add_tag_to_email = useCallback(
     async (email_id: string, tag_token: string): Promise<boolean> => {
+      counts_adjusted_at_ref.current = Date.now();
       set_counts((prev) => ({
         ...prev,
         [tag_token]: (prev[tag_token] || 0) + 1,
@@ -583,6 +646,7 @@ export function use_tags(): UseTagsReturn {
         const response = await add_tag_to_item(email_id, { tag_token });
 
         if (response.error) {
+          counts_adjusted_at_ref.current = Date.now();
           set_counts((prev) => ({
             ...prev,
             [tag_token]: Math.max(0, (prev[tag_token] || 1) - 1),
@@ -591,8 +655,11 @@ export function use_tags(): UseTagsReturn {
           return false;
         }
 
+        counts_adjusted_at_ref.current = Date.now();
+
         return true;
       } catch {
+        counts_adjusted_at_ref.current = Date.now();
         set_counts((prev) => ({
           ...prev,
           [tag_token]: Math.max(0, (prev[tag_token] || 1) - 1),
@@ -606,6 +673,7 @@ export function use_tags(): UseTagsReturn {
 
   const remove_tag_from_email = useCallback(
     async (email_id: string, tag_token: string): Promise<boolean> => {
+      counts_adjusted_at_ref.current = Date.now();
       set_counts((prev) => ({
         ...prev,
         [tag_token]: Math.max(0, (prev[tag_token] || 0) - 1),
@@ -615,6 +683,7 @@ export function use_tags(): UseTagsReturn {
         const response = await remove_tag_from_item(email_id, tag_token);
 
         if (response.error) {
+          counts_adjusted_at_ref.current = Date.now();
           set_counts((prev) => ({
             ...prev,
             [tag_token]: (prev[tag_token] || 0) + 1,
@@ -623,8 +692,11 @@ export function use_tags(): UseTagsReturn {
           return false;
         }
 
+        counts_adjusted_at_ref.current = Date.now();
+
         return true;
       } catch {
+        counts_adjusted_at_ref.current = Date.now();
         set_counts((prev) => ({
           ...prev,
           [tag_token]: (prev[tag_token] || 0) + 1,
@@ -660,6 +732,7 @@ export function use_tags(): UseTagsReturn {
       counts_generation_ref.current += 1;
       cached_tags.data = [];
       cached_tags.total = 0;
+      cached_tags.has_loaded = false;
       set_state({
         tags: [],
         is_loading: true,
@@ -675,15 +748,17 @@ export function use_tags(): UseTagsReturn {
   }, [user?.id]);
 
   useEffect(() => {
-    if (has_passphrase_in_memory()) {
+    return on_keys_ready(() => {
       refresh();
       fetch_counts();
-    }
+    });
+  }, [refresh, fetch_counts]);
 
+  useEffect(() => {
     return () => {
       abort_ref.current?.abort();
     };
-  }, [refresh, fetch_counts]);
+  }, []);
 
   useEffect(() => {
     let counts_debounce: ReturnType<typeof setTimeout> | null = null;
@@ -711,7 +786,10 @@ export function use_tags(): UseTagsReturn {
     };
 
     const visibility_handler = () => {
-      if (document.visibilityState === "visible" && has_passphrase_in_memory()) {
+      if (
+        document.visibilityState === "visible" &&
+        has_passphrase_in_memory()
+      ) {
         fetch_counts();
       }
     };
@@ -735,7 +813,10 @@ export function use_tags(): UseTagsReturn {
     window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, counts_handler);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, counts_handler);
     window.addEventListener(MAIL_EVENTS.MAIL_ACTION, counts_handler);
-    window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, item_updated_handler);
+    window.addEventListener(
+      MAIL_EVENTS.MAIL_ITEM_UPDATED,
+      item_updated_handler,
+    );
     window.addEventListener(MAIL_EVENTS.MAIL_ITEMS_REMOVED, counts_handler);
     window.addEventListener(MAIL_EVENTS.TAGS_CHANGED, tags_handler);
     window.addEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
@@ -752,7 +833,10 @@ export function use_tags(): UseTagsReturn {
         MAIL_EVENTS.MAIL_ITEM_UPDATED,
         item_updated_handler,
       );
-      window.removeEventListener(MAIL_EVENTS.MAIL_ITEMS_REMOVED, counts_handler);
+      window.removeEventListener(
+        MAIL_EVENTS.MAIL_ITEMS_REMOVED,
+        counts_handler,
+      );
       window.removeEventListener(MAIL_EVENTS.TAGS_CHANGED, tags_handler);
       window.removeEventListener(MAIL_EVENTS.AUTH_READY, auth_ready_handler);
       document.removeEventListener("visibilitychange", visibility_handler);

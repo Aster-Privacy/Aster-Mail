@@ -25,16 +25,16 @@ import {
   send_now,
   cancel_server_queued_email,
   send_server_queued_immediately,
-  parse_undo_send_period,
 } from "./send_queue";
 import { get_or_create_thread_token } from "./thread_service";
+import { ensure_external_key_trust } from "./key_trust_consent";
 import { ensure_post_quantum_consent } from "./post_quantum_consent";
 
 import { get_aster_footer } from "@/components/compose/compose_shared";
 import { sanitize_outgoing_html } from "@/lib/html_sanitizer";
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
+import { resolve_reply_prefix } from "@/lib/reply_defaults";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   build_reply_subject as build_reply_subject_value,
   strip_reply_prefix,
@@ -94,7 +94,7 @@ export interface MailActionResult {
 }
 
 export interface MailActionCallbacks {
-  on_complete: () => void;
+  on_complete: (sent_id?: string) => void;
   on_cancel: () => void;
   on_error?: (error: string) => void;
 }
@@ -102,7 +102,7 @@ export interface MailActionCallbacks {
 function build_reply_subject(original_subject: string): string {
   return build_reply_subject_value(
     original_subject,
-    en.mail.reply_subject_prefix,
+    resolve_reply_prefix(get_active_translations().mail.reply_subject_prefix),
   );
 }
 
@@ -143,7 +143,11 @@ export function build_reply_recipients(
     for (const addr of params.original.to ?? []) {
       const normalized = normalize_address(addr);
 
-      if (!normalized || own_addresses.has(normalized) || seen.has(normalized)) {
+      if (
+        !normalized ||
+        own_addresses.has(normalized) ||
+        seen.has(normalized)
+      ) {
         continue;
       }
 
@@ -154,7 +158,11 @@ export function build_reply_recipients(
     for (const addr of params.original.cc ?? []) {
       const normalized = normalize_address(addr);
 
-      if (!normalized || own_addresses.has(normalized) || seen.has(normalized)) {
+      if (
+        !normalized ||
+        own_addresses.has(normalized) ||
+        seen.has(normalized)
+      ) {
         continue;
       }
 
@@ -166,30 +174,50 @@ export function build_reply_recipients(
   return { to, cc };
 }
 
+function track_queue_errors(callbacks: MailActionCallbacks) {
+  const reported: { error?: string } = {};
+
+  return {
+    on_error: (error: string) => {
+      reported.error = error;
+      callbacks.on_error?.(error);
+    },
+    fail: (fallback: string): MailActionResult => {
+      if (reported.error !== undefined) {
+        return { success: false, error: reported.error || fallback };
+      }
+
+      callbacks.on_error?.(fallback);
+
+      return { success: false, error: fallback };
+    },
+  };
+}
+
 export async function send_reply(
   params: ReplyParams,
   callbacks: MailActionCallbacks,
-  undo_send_period: string = "5 seconds",
+  undo_send_delay_ms: number = 0,
 ): Promise<MailActionResult> {
-  const { get_current_account } = await import("./account_manager");
-  const current_account = await get_current_account();
+  const { resolve_current_user } = await import("./current_identity");
+  const current_user = await resolve_current_user();
 
-  if (!current_account) {
-    const error = en.errors.no_active_account;
+  if (!current_user?.email) {
+    const error = get_active_translations().errors.no_active_account;
 
     callbacks.on_error?.(error);
 
     return { success: false, error };
   }
 
-  const current_user_email = current_account.user.email;
+  const current_user_email = current_user.email;
   const { to: recipients, cc: cc_recipients } = build_reply_recipients(
     params,
     current_user_email,
   );
 
   if (recipients.length === 0) {
-    const error = en.errors.no_recipients;
+    const error = get_active_translations().errors.no_recipients;
 
     callbacks.on_error?.(error);
 
@@ -200,10 +228,9 @@ export async function send_reply(
   const subject = build_reply_subject(params.original.subject);
   const base_subject = strip_reply_prefix(
     params.original.subject,
-    en.mail.reply_subject_prefix,
+    get_active_translations().mail.reply_subject_prefix,
   );
-  const delay_ms = parse_undo_send_period(undo_send_period);
-  const delay_seconds = delay_ms / 1000;
+  const delay_seconds = Math.max(0, undo_send_delay_ms) / 1000;
 
   let thread_token = params.thread_token;
 
@@ -218,6 +245,17 @@ export async function send_reply(
     }
   }
 
+  const key_trusted = await ensure_external_key_trust([
+    ...recipients,
+    ...(cc ?? []),
+  ]);
+
+  if (!key_trusted) {
+    callbacks.on_cancel?.();
+
+    return { success: false };
+  }
+
   const consent = await ensure_post_quantum_consent(
     [...recipients, ...(cc ?? [])],
     params.sender_email || current_user_email,
@@ -230,6 +268,7 @@ export async function send_reply(
   }
 
   if (delay_seconds > 0) {
+    const queue_errors = track_queue_errors(callbacks);
     const result = await queue_email_to_server(
       {
         to: recipients,
@@ -250,16 +289,14 @@ export async function send_reply(
       {
         on_sent: callbacks.on_complete,
         on_cancelled: callbacks.on_cancel,
-        on_error: callbacks.on_error,
+        on_error: queue_errors.on_error,
       },
     );
 
     if (!result) {
-      const error = en.errors.failed_queue_reply;
-
-      callbacks.on_error?.(error);
-
-      return { success: false, error };
+      return queue_errors.fail(
+        get_active_translations().errors.failed_queue_reply,
+      );
     }
 
     return {
@@ -293,7 +330,7 @@ export async function send_reply(
   );
 
   if (!queued_id) {
-    const error = en.errors.failed_queue_reply;
+    const error = get_active_translations().errors.failed_queue_reply;
 
     callbacks.on_error?.(error);
 
@@ -306,20 +343,22 @@ export async function send_reply(
 export async function send_forward(
   params: ForwardParams,
   callbacks: MailActionCallbacks,
-  undo_send_period: string = "5 seconds",
+  undo_send_delay_ms: number = 0,
   show_aster_branding: boolean = true,
 ): Promise<MailActionResult> {
   if (params.recipients.length === 0) {
-    const error = en.errors.no_recipients;
+    const error = get_active_translations().errors.no_recipients;
 
     callbacks.on_error?.(error);
 
     return { success: false, error };
   }
 
-  const subject = params.original.subject.trim().startsWith(en.mail.forward_subject_prefix)
+  const subject = params.original.subject
+    .trim()
+    .startsWith(get_active_translations().mail.forward_subject_prefix)
     ? params.original.subject
-    : `${en.mail.forward_subject_prefix} ${params.original.subject}`;
+    : `${get_active_translations().mail.forward_subject_prefix} ${params.original.subject}`;
 
   const safe_name = params.original.sender_name
     .replace(/&/g, "&amp;")
@@ -336,10 +375,10 @@ export async function send_forward(
 
   const forwarded_header = params.prebuilt_content
     ? sanitize_outgoing_html(params.prebuilt_content)
-    : `${en.common.forwarded_message_header}<br>` +
-      `${en.common.from_label} ${safe_name} &lt;${safe_email}&gt;<br>` +
-      `${en.common.date_label} ${params.original.timestamp}<br>` +
-      `${en.common.subject_label} ${safe_subject}<br><br>` +
+    : `${get_active_translations().common.forwarded_message_header}<br>` +
+      `${get_active_translations().common.from_label} ${safe_name} &lt;${safe_email}&gt;<br>` +
+      `${get_active_translations().common.date_label} ${params.original.timestamp}<br>` +
+      `${get_active_translations().common.subject_label} ${safe_subject}<br><br>` +
       sanitize_outgoing_html(params.original.body);
 
   const badge_block = params.badge_html ?? "";
@@ -347,8 +386,19 @@ export async function send_forward(
     ? `${params.message}<br><br>${forwarded_header}${badge_block}${get_aster_footer(undefined, show_aster_branding)}`
     : `${forwarded_header}${badge_block}${get_aster_footer(undefined, show_aster_branding)}`;
 
-  const delay_ms = parse_undo_send_period(undo_send_period);
-  const delay_seconds = delay_ms / 1000;
+  const delay_seconds = Math.max(0, undo_send_delay_ms) / 1000;
+
+  const key_trusted = await ensure_external_key_trust([
+    ...params.recipients,
+    ...(params.cc_recipients ?? []),
+    ...(params.bcc_recipients ?? []),
+  ]);
+
+  if (!key_trusted) {
+    callbacks.on_cancel?.();
+
+    return { success: false };
+  }
 
   const consent = await ensure_post_quantum_consent(
     [
@@ -366,6 +416,7 @@ export async function send_forward(
   }
 
   if (delay_seconds > 0) {
+    const queue_errors = track_queue_errors(callbacks);
     const result = await queue_email_to_server(
       {
         to: params.recipients,
@@ -386,19 +437,21 @@ export async function send_forward(
       {
         on_sent: callbacks.on_complete,
         on_cancelled: callbacks.on_cancel,
-        on_error: callbacks.on_error,
+        on_error: queue_errors.on_error,
       },
     );
 
     if (!result) {
-      const error = en.errors.failed_queue_forward;
-
-      callbacks.on_error?.(error);
-
-      return { success: false, error };
+      return queue_errors.fail(
+        get_active_translations().errors.failed_queue_forward,
+      );
     }
 
-    return { success: true, queued_id: result.queue_id, is_server_queued: true };
+    return {
+      success: true,
+      queued_id: result.queue_id,
+      is_server_queued: true,
+    };
   }
 
   const queued_id = queue_email(
@@ -424,7 +477,7 @@ export async function send_forward(
   );
 
   if (!queued_id) {
-    const error = en.errors.failed_queue_forward;
+    const error = get_active_translations().errors.failed_queue_forward;
 
     callbacks.on_error?.(error);
 
@@ -441,13 +494,17 @@ export function cancel_mail_action(queued_id: string): boolean {
     return true;
   }
 
-  cancel_server_queued_email(queued_id).catch((caught) => ignore_error("services/mail_actions:cancel_mail_action", caught));
+  cancel_server_queued_email(queued_id).catch((caught) =>
+    ignore_error("services/mail_actions:cancel_mail_action", caught),
+  );
 
   return true;
 }
 
 export function send_mail_now(queued_id: string): void {
   send_now(queued_id).catch(() => {
-    send_server_queued_immediately(queued_id).catch((caught) => ignore_error("services/mail_actions:send_mail_now", caught));
+    send_server_queued_immediately(queued_id).catch((caught) =>
+      ignore_error("services/mail_actions:send_mail_now", caught),
+    );
   });
 }

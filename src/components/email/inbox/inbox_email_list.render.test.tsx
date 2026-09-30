@@ -42,7 +42,8 @@ vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({ children }: { children?: unknown }) => (
     <button>{children as never}</button>
   ),
@@ -99,7 +100,6 @@ vi.mock("@/components/ui/context_menu", () => ({
 const { EmailList } = await import("./inbox_email_list");
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -250,9 +250,33 @@ describe("EmailList drag payload", () => {
       "a",
       "b",
     ]);
+    expect(JSON.parse(data["application/x-astermail-folders"])).toEqual([]);
+  });
+
+  it("reports only the folders every selected row shares", () => {
+    const emails = [
+      make_email("a", {
+        is_selected: true,
+        folders: [
+          { folder_token: "folder-shared", name: "Shared" },
+          { folder_token: "folder-a", name: "Folder a" },
+        ],
+      } as Partial<InboxEmail>),
+      make_email("b", {
+        is_selected: true,
+        folders: [
+          { folder_token: "folder-shared", name: "Shared" },
+          { folder_token: "folder-b", name: "Folder b" },
+        ],
+      } as Partial<InboxEmail>),
+    ];
+
+    render(emails);
+
+    const data = drag_row(0);
+
     expect(JSON.parse(data["application/x-astermail-folders"])).toEqual([
-      "folder-a",
-      "folder-b",
+      "folder-shared",
     ]);
   });
 

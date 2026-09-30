@@ -24,7 +24,8 @@ import { looks_format_flowed, unflow_format_flowed } from "./format_flowed";
 
 describe("unflow_format_flowed", () => {
   it("joins soft-wrapped lines into one paragraph", () => {
-    const input = "This is a long paragraph that was \nsoft wrapped at the sending client.";
+    const input =
+      "This is a long paragraph that was \nsoft wrapped at the sending client.";
 
     expect(unflow_format_flowed(input)).toBe(
       "This is a long paragraph that was soft wrapped at the sending client.",

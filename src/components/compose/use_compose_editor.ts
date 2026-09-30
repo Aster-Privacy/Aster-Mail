@@ -20,16 +20,17 @@
 //
 import { useState, useCallback } from "react";
 
-import { use_i18n } from "@/lib/i18n/context";
 import { use_editor, type UseEditorReturn } from "@/hooks/use_editor";
 import { escape_html } from "@/hooks/editor_utils";
 import { use_preferences } from "@/contexts/preferences_context";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 export interface UseComposeEditorOptions {
   message_textarea_ref: React.RefObject<HTMLDivElement | null>;
   set_message: (val: string) => void;
   on_files_drop: (files: File[]) => void;
   get_recipient_name?: () => string;
+  get_inline_image_budget?: () => number;
 }
 
 export interface UseComposeEditorReturn {
@@ -43,7 +44,6 @@ export interface UseComposeEditorReturn {
   handle_editor_paste: (e: React.ClipboardEvent) => void;
   handle_template_select: (content: string) => void;
   exec_format_command: (command: string) => void;
-  handle_insert_link: () => void;
 }
 
 export function use_compose_editor({
@@ -51,8 +51,8 @@ export function use_compose_editor({
   set_message,
   on_files_drop,
   get_recipient_name,
+  get_inline_image_budget,
 }: UseComposeEditorOptions): UseComposeEditorReturn {
-  const { t } = use_i18n();
   const { preferences } = use_preferences();
 
   const [is_plain_text_mode, set_is_plain_text_mode] = useState(
@@ -67,6 +67,7 @@ export function use_compose_editor({
     is_plain_text_mode,
     on_files_drop,
     strip_exif_on_compose: preferences.strip_exif_on_compose,
+    get_inline_image_budget,
   });
 
   const [show_plain_text_confirm, set_show_plain_text_confirm] =
@@ -124,7 +125,12 @@ export function use_compose_editor({
     (content: string) => {
       const recipient_name = get_recipient_name?.() ?? "";
       const substituted = content
-        .replace(/\[Date\]/g, new Date().toLocaleDateString())
+        .replace(
+          /\[Date\]/g,
+          new Date().toLocaleDateString(app_locale(), {
+            timeZone: get_display_time_zone(),
+          }),
+        )
         .replace(/\[Name\]/g, recipient_name);
       const escaped = substituted
         .replace(/&/g, "&amp;")
@@ -144,24 +150,6 @@ export function use_compose_editor({
     [editor],
   );
 
-  const handle_insert_link = useCallback(() => {
-    const url = prompt(t("common.enter_url"), "https://");
-
-    if (url?.trim()) {
-      const selection = window.getSelection();
-      const selected_text = selection?.toString() || "";
-
-      if (!selected_text) {
-        const link_text =
-          prompt(t("common.enter_link_text"), url.trim()) || url.trim();
-
-        editor.insert_link(url.trim(), link_text);
-      } else {
-        editor.insert_link(url.trim());
-      }
-    }
-  }, [editor, t]);
-
   return {
     editor,
     is_plain_text_mode,
@@ -173,6 +161,5 @@ export function use_compose_editor({
     handle_editor_paste,
     handle_template_select,
     exec_format_command,
-    handle_insert_link,
   };
 }

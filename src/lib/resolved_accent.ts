@@ -33,9 +33,13 @@ export interface ResolvedAccent {
   accent_hover: string;
   accent_fg: AccentForeground;
   surface: string;
+  text: string;
+  is_dark: boolean;
 }
 
 export const DEFAULT_SURFACE_COLOR = "#ffffff";
+export const DEFAULT_TEXT_COLOR = "#111827";
+export const DEFAULT_DARK_TEXT_COLOR = "#e5e5e5";
 
 const LIGHT_FOREGROUND: AccentForeground = "#ffffff";
 const DARK_FOREGROUND: AccentForeground = "#111827";
@@ -55,11 +59,27 @@ let current: ResolvedAccent = {
   accent_hover: DEFAULT_ACCENT_COLOR_HOVER,
   accent_fg: accent_foreground_for(DEFAULT_ACCENT_COLOR),
   surface: DEFAULT_SURFACE_COLOR,
+  text: DEFAULT_TEXT_COLOR,
+  is_dark: false,
 };
 
 let initialized = false;
+let root_observer: MutationObserver | null = null;
 
 const listeners = new Set<() => void>();
+
+function observe_root_appearance(): void {
+  if (root_observer || typeof document === "undefined") return;
+  if (typeof MutationObserver === "undefined") return;
+
+  root_observer = new MutationObserver(() => {
+    refresh_resolved_accent();
+  });
+  root_observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["class", "style"],
+  });
+}
 
 function read_color_var(
   styles: CSSStyleDeclaration,
@@ -78,20 +98,28 @@ export function refresh_resolved_accent(): ResolvedAccent {
   initialized = true;
 
   const styles = getComputedStyle(document.documentElement);
-  const accent = read_color_var(styles, "--accent-color") ?? DEFAULT_ACCENT_COLOR;
+  const accent =
+    read_color_var(styles, "--accent-color") ?? DEFAULT_ACCENT_COLOR;
   const accent_hover = read_color_var(styles, "--accent-color-hover") ?? accent;
+  const is_dark = document.documentElement.classList.contains("dark");
   const next: ResolvedAccent = {
     accent,
     accent_hover,
     accent_fg: accent_foreground_for(accent),
     surface: read_color_var(styles, "--bg-primary") ?? DEFAULT_SURFACE_COLOR,
+    text:
+      read_color_var(styles, "--text-primary") ??
+      (is_dark ? DEFAULT_DARK_TEXT_COLOR : DEFAULT_TEXT_COLOR),
+    is_dark,
   };
 
   if (
     next.accent === current.accent &&
     next.accent_hover === current.accent_hover &&
     next.accent_fg === current.accent_fg &&
-    next.surface === current.surface
+    next.surface === current.surface &&
+    next.text === current.text &&
+    next.is_dark === current.is_dark
   ) {
     return current;
   }
@@ -104,13 +132,16 @@ export function refresh_resolved_accent(): ResolvedAccent {
 }
 
 export function get_resolved_accent(): ResolvedAccent {
+  observe_root_appearance();
   if (!initialized) refresh_resolved_accent();
 
   return current;
 }
 
 function subscribe_resolved_accent(listener: () => void): () => void {
+  observe_root_appearance();
   listeners.add(listener);
+  refresh_resolved_accent();
 
   return () => {
     listeners.delete(listener);

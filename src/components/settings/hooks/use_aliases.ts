@@ -24,13 +24,14 @@ import { use_i18n } from "@/lib/i18n/context";
 import { app_pathname } from "@/lib/account_index_url";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { show_toast } from "@/components/toast/simple_toast";
-import { emit_aliases_changed } from "@/hooks/mail_events";
+import { emit_aliases_changed, MAIL_EVENTS } from "@/hooks/mail_events";
 import {
   list_all_aliases,
   update_alias,
   delete_alias,
   decrypt_aliases,
   get_alias_counts,
+  set_short_aliases_allowed,
   toggle_alias_pin,
   type DecryptedEmailAlias,
   type AliasCountsResponse,
@@ -52,8 +53,14 @@ import {
   type DnsRecordsResponse,
   type AddDomainResponse,
 } from "@/services/api/domains";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
-const DEFAULT_DOMAINS = ["astermail.org", "aster.cx"];
+const DEFAULT_DOMAINS = [
+  "astermail.org",
+  "aster.cx",
+  "astermail.me",
+  "astermail.net",
+];
 
 interface AliasesCache {
   aliases: DecryptedEmailAlias[];
@@ -90,6 +97,7 @@ export function clear_aliases_cache(): void {
   aliases_cache.max_aliases = 3;
   aliases_cache.max_domains = 0;
   aliases_cache.loaded = false;
+  set_short_aliases_allowed(false);
 }
 
 export function get_cached_aliases(): DecryptedEmailAlias[] {
@@ -113,6 +121,7 @@ export async function ensure_aliases_and_domains_loaded(): Promise<void> {
 
   ensure_loaded_promise = (async () => {
     try {
+      const domains_promise = list_domains();
       const { aliases: raw, max_aliases, error } = await list_all_aliases();
 
       if (token !== aliases_cache_token) return;
@@ -125,14 +134,18 @@ export async function ensure_aliases_and_domains_loaded(): Promise<void> {
         aliases_cache.aliases = decrypted;
         aliases_cache.max_aliases = max_aliases;
         aliases_cache.loaded = true;
+        const counted = decrypted.filter(
+          (alias) => !alias.is_retained_primary,
+        ).length;
+
         aliases_cache.alias_counts = {
-          count: decrypted.length,
+          count: counted,
           max: max_aliases,
-          can_create: max_aliases === -1 || decrypted.length < max_aliases,
+          can_create: max_aliases === -1 || counted < max_aliases,
         };
       }
 
-      const domains_response = await list_domains();
+      const domains_response = await domains_promise;
 
       if (token !== aliases_cache_token) return;
 
@@ -157,27 +170,25 @@ export async function ensure_aliases_and_domains_loaded(): Promise<void> {
 
       if (token !== aliases_cache_token) return;
 
-      const all_addresses: (DecryptedDomainAddress & {
-        domain_name: string;
-      })[] = [];
-
-      for (let i = 0; i < active.length; i++) {
-        const response = responses[i];
-
-        if (response.data) {
+      const decrypted_per_domain = await Promise.all(
+        responses.map(async (response, i) => {
+          if (!response.data) return [];
           const decrypted = await decrypt_domain_addresses(
             response.data.addresses,
           );
 
-          if (token !== aliases_cache_token) return;
-
-          for (const addr of decrypted) {
-            all_addresses.push({ ...addr, domain_name: active[i].domain_name });
-          }
-        }
-      }
+          return decrypted.map((addr) => ({
+            ...addr,
+            domain_name: active[i].domain_name,
+          }));
+        }),
+      );
 
       if (token !== aliases_cache_token) return;
+
+      const all_addresses: (DecryptedDomainAddress & {
+        domain_name: string;
+      })[] = decrypted_per_domain.flat();
 
       aliases_cache.domain_addresses = all_addresses;
     } catch (error) {
@@ -199,8 +210,7 @@ export function use_aliases() {
   const { limits } = use_plan_limits();
   const can_delete_aliases_instantly = useMemo(
     () =>
-      !limits ||
-      (limits.limits[INSTANT_ALIAS_DELETE_KEY]?.limit ?? 0) !== 0,
+      !limits || (limits.limits[INSTANT_ALIAS_DELETE_KEY]?.limit ?? 0) !== 0,
     [limits],
   );
   const [aliases, set_aliases] = useState<DecryptedEmailAlias[]>(
@@ -209,6 +219,7 @@ export function use_aliases() {
   const [aliases_loading, set_aliases_loading] = useState(
     !aliases_cache.loaded,
   );
+  const [aliases_load_failed, set_aliases_load_failed] = useState(false);
   const [max_aliases, set_max_aliases] = useState(aliases_cache.max_aliases);
   const [show_create_alias_modal, set_show_create_alias_modal] =
     useState(false);
@@ -251,6 +262,7 @@ export function use_aliases() {
     !aliases_cache.loaded,
   );
   const [max_domains, set_max_domains] = useState(aliases_cache.max_domains);
+  const [domains_load_failed, set_domains_load_failed] = useState(false);
   const [wizard_open, set_wizard_open] = useState(false);
   const [wizard_mode, set_wizard_mode] = useState<"input" | "dns">("input");
   const [wizard_domain_id, set_wizard_domain_id] = useState<string | null>(
@@ -271,15 +283,18 @@ export function use_aliases() {
   const available_domains_for_aliases = useMemo(
     () => [
       ...DEFAULT_DOMAINS,
-      ...domains.filter((d) => d.status === "active").map((d) => d.domain_name),
+      ...domains
+        .filter((d) => d.status === "active" && d.can_create_aliases !== false)
+        .map((d) => d.domain_name),
     ],
     [domains],
   );
 
   const custom_domains_for_import = useMemo(
-    () => domains
-      .filter((d) => d.status === "active")
-      .map((d) => ({ name: d.domain_name, id: d.id })),
+    () =>
+      domains
+        .filter((d) => d.status === "active" && d.can_create_aliases !== false)
+        .map((d) => ({ name: d.domain_name, id: d.id })),
     [domains],
   );
 
@@ -301,7 +316,11 @@ export function use_aliases() {
 
       if (token !== aliases_cache_token) return;
 
-      if (!error) {
+      if (error) {
+        set_aliases_load_failed(true);
+        show_toast(t("settings.aliases_load_failed"), "error");
+      } else {
+        set_aliases_load_failed(false);
         set_max_aliases(max_aliases);
         aliases_cache.max_aliases = max_aliases;
 
@@ -313,10 +332,13 @@ export function use_aliases() {
         aliases_cache.aliases = decrypted;
         aliases_cache.loaded = true;
 
+        const counted = decrypted.filter(
+          (alias) => !alias.is_retained_primary,
+        ).length;
         const derived_counts: AliasCountsResponse = {
-          count: decrypted.length,
+          count: counted,
           max: max_aliases,
-          can_create: max_aliases === -1 || decrypted.length < max_aliases,
+          can_create: max_aliases === -1 || counted < max_aliases,
         };
 
         set_alias_counts(derived_counts);
@@ -324,13 +346,14 @@ export function use_aliases() {
       }
     } catch (error) {
       if (token === aliases_cache_token) {
+        set_aliases_load_failed(true);
         show_toast(t("settings.aliases_load_failed"), "error");
       }
       if (import.meta.env.DEV) console.error(error);
     } finally {
       if (token === aliases_cache_token) set_aliases_loading(false);
     }
-  }, []);
+  }, [t]);
 
   const load_alias_counts = useCallback(async () => {
     const token = aliases_cache_token;
@@ -364,12 +387,16 @@ export function use_aliases() {
       if (token !== aliases_cache_token) return;
 
       if (response.data) {
+        set_domains_load_failed(false);
         set_domains(response.data.domains);
         set_max_domains(response.data.max_domains);
         aliases_cache.domains = response.data.domains;
         aliases_cache.max_domains = response.data.max_domains;
+      } else {
+        set_domains_load_failed(true);
       }
     } catch (error) {
+      set_domains_load_failed(true);
       if (import.meta.env.DEV) console.error(error);
     } finally {
       if (token === aliases_cache_token) set_domains_loading(false);
@@ -390,6 +417,8 @@ export function use_aliases() {
         return;
       }
 
+      const failed_domains = new Set<string>();
+
       try {
         const responses = await Promise.all(
           active.map((d) => list_domain_addresses(d.id)),
@@ -397,42 +426,46 @@ export function use_aliases() {
 
         if (token !== aliases_cache_token) return;
 
-        const all_addresses: (DecryptedDomainAddress & {
-          domain_name: string;
-        })[] = [];
+        const decrypted_per_domain = await Promise.all(
+          responses.map(async (response, i) => {
+            if (!response.data) {
+              failed_domains.add(active[i].domain_name);
 
-        for (let i = 0; i < active.length; i++) {
-          const response = responses[i];
-
-          if (response.data) {
+              return [];
+            }
             const decrypted = await decrypt_domain_addresses(
               response.data.addresses,
             );
 
-            if (token !== aliases_cache_token) return;
-
-            for (const addr of decrypted) {
-              all_addresses.push({
-                ...addr,
-                domain_name: active[i].domain_name,
-              });
-            }
-          }
-        }
+            return decrypted.map((addr) => ({
+              ...addr,
+              domain_name: active[i].domain_name,
+            }));
+          }),
+        );
 
         if (token !== aliases_cache_token) return;
 
+        const retained = aliases_cache.domain_addresses.filter((addr) =>
+          failed_domains.has(addr.domain_name),
+        );
+        const all_addresses: (DecryptedDomainAddress & {
+          domain_name: string;
+        })[] = [...decrypted_per_domain.flat(), ...retained];
+
         set_domain_addresses(all_addresses);
         aliases_cache.domain_addresses = all_addresses;
+        if (failed_domains.size > 0) {
+          show_toast(t("common.something_went_wrong_try_again"), "error");
+        }
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
         if (token === aliases_cache_token) {
-          set_domain_addresses([]);
-          aliases_cache.domain_addresses = [];
+          show_toast(t("common.something_went_wrong_try_again"), "error");
         }
       }
     },
-    [],
+    [t],
   );
 
   useEffect(() => {
@@ -440,6 +473,25 @@ export function use_aliases() {
     load_domains();
     load_alias_counts();
   }, [load_aliases, load_domains, load_alias_counts]);
+
+  useEffect(() => {
+    const handle_aliases_changed = () => {
+      load_aliases();
+      load_alias_counts();
+    };
+
+    window.addEventListener(
+      MAIL_EVENTS.ALIASES_CHANGED,
+      handle_aliases_changed,
+    );
+
+    return () => {
+      window.removeEventListener(
+        MAIL_EVENTS.ALIASES_CHANGED,
+        handle_aliases_changed,
+      );
+    };
+  }, [load_aliases, load_alias_counts]);
 
   useEffect(() => {
     if (domains.length > 0) {
@@ -453,7 +505,9 @@ export function use_aliases() {
       const updated = prev.map((a) =>
         a.id === id ? { ...a, is_enabled: enabled } : a,
       );
+
       aliases_cache.aliases = updated;
+
       return updated;
     });
     try {
@@ -464,10 +518,15 @@ export function use_aliases() {
           const reverted = prev.map((a) =>
             a.id === id ? { ...a, is_enabled: !enabled } : a,
           );
+
           aliases_cache.aliases = reverted;
+
           return reverted;
         });
-        show_toast(response.error || t("settings.alias_toggle_failed"), "error");
+        show_toast(
+          response.error || t("settings.alias_toggle_failed"),
+          "error",
+        );
       } else {
         show_toast(
           enabled
@@ -481,7 +540,9 @@ export function use_aliases() {
         const reverted = prev.map((a) =>
           a.id === id ? { ...a, is_enabled: !enabled } : a,
         );
+
         aliases_cache.aliases = reverted;
+
         return reverted;
       });
       show_toast(t("settings.alias_toggle_failed"), "error");
@@ -493,6 +554,7 @@ export function use_aliases() {
 
   const handle_pin_toggle = async (id: string) => {
     const target = aliases.find((a) => a.id === id);
+
     if (!target) return;
     const next_pinned = !target.is_pinned;
 
@@ -500,7 +562,9 @@ export function use_aliases() {
       const updated = prev.map((a) =>
         a.id === id ? { ...a, is_pinned: next_pinned } : a,
       );
+
       aliases_cache.aliases = updated;
+
       return updated;
     });
 
@@ -512,7 +576,9 @@ export function use_aliases() {
           const reverted = prev.map((a) =>
             a.id === id ? { ...a, is_pinned: !next_pinned } : a,
           );
+
           aliases_cache.aliases = reverted;
+
           return reverted;
         });
         show_toast(response.error, "error");
@@ -529,7 +595,9 @@ export function use_aliases() {
         const reverted = prev.map((a) =>
           a.id === id ? { ...a, is_pinned: !next_pinned } : a,
         );
+
         aliases_cache.aliases = reverted;
+
         return reverted;
       });
       if (import.meta.env.DEV) console.error(error);
@@ -546,7 +614,8 @@ export function use_aliases() {
       if (new Date() < eligible) {
         set_alias_too_new_info({
           is_open: true,
-          eligible_date: eligible.toLocaleDateString(undefined, {
+          eligible_date: eligible.toLocaleDateString(app_locale(), {
+            timeZone: get_display_time_zone(),
             month: "short",
             day: "numeric",
             year: "numeric",
@@ -591,7 +660,10 @@ export function use_aliases() {
           );
         }
       } else {
-        show_toast(response.error || t("settings.alias_delete_failed"), "error");
+        show_toast(
+          response.error || t("settings.alias_delete_failed"),
+          "error",
+        );
       }
     } catch (error) {
       show_toast(t("settings.alias_delete_failed"), "error");
@@ -604,14 +676,15 @@ export function use_aliases() {
   const handle_domain_addr_delete = (id: string, domain_id: string) => {
     const addr = domain_addresses.find((a) => a.id === id);
 
-    if (addr) {
+    if (addr && !can_delete_aliases_instantly) {
       const created = new Date(addr.created_at);
       const eligible = new Date(created.getTime() + 30 * 24 * 60 * 60 * 1000);
 
       if (new Date() < eligible) {
         set_alias_too_new_info({
           is_open: true,
-          eligible_date: eligible.toLocaleDateString(undefined, {
+          eligible_date: eligible.toLocaleDateString(app_locale(), {
+            timeZone: get_display_time_zone(),
             month: "short",
             day: "numeric",
             year: "numeric",
@@ -695,6 +768,7 @@ export function use_aliases() {
   const handle_open_setup = async (domain: CustomDomain) => {
     set_wizard_domain_id(domain.id);
     set_wizard_domain_name(domain.domain_name);
+    set_wizard_dns_records([]);
     set_wizard_mode("dns");
     set_wizard_open(true);
 
@@ -702,6 +776,9 @@ export function use_aliases() {
 
     if (response.data) {
       set_wizard_dns_records((response.data as DnsRecordsResponse).records);
+    } else {
+      set_wizard_open(false);
+      show_toast(t("common.something_went_wrong_try_again"), "error");
     }
   };
 
@@ -789,6 +866,22 @@ export function use_aliases() {
     });
   };
 
+  const handle_domain_address_toggle = (
+    address_id: string,
+    _domain_id: string,
+    enabled: boolean,
+  ) => {
+    set_domain_addresses((prev) => {
+      const updated = prev.map((a) =>
+        a.id === address_id ? { ...a, is_enabled: enabled } : a,
+      );
+
+      aliases_cache.domain_addresses = updated;
+
+      return updated;
+    });
+  };
+
   const handle_domain_delete = (id: string) => {
     set_domain_delete_confirm({ is_open: true, id });
   };
@@ -818,7 +911,10 @@ export function use_aliases() {
           return updated;
         });
       } else {
-        show_toast(response.error || t("settings.domain_delete_failed"), "error");
+        show_toast(
+          response.error || t("settings.domain_delete_failed"),
+          "error",
+        );
       }
     } catch (error) {
       show_toast(t("settings.domain_delete_failed"), "error");
@@ -831,6 +927,7 @@ export function use_aliases() {
   return {
     aliases,
     aliases_loading,
+    aliases_load_failed,
     max_aliases,
     show_create_alias_modal,
     set_show_create_alias_modal,
@@ -849,6 +946,7 @@ export function use_aliases() {
     set_domain_addr_delete_confirm,
     domains,
     domains_loading,
+    domains_load_failed,
     max_domains,
     wizard_open,
     wizard_mode,
@@ -879,6 +977,7 @@ export function use_aliases() {
     handle_note_saved,
     handle_websites_saved,
     handle_domain_address_display_name_saved,
+    handle_domain_address_toggle,
     handle_domain_delete,
     confirm_domain_delete,
   };

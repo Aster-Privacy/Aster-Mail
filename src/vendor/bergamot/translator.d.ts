@@ -43,7 +43,11 @@ declare module "@/vendor/bergamot/translator.js" {
     options: BergamotBackingOptions;
     loadModelRegistery(): Promise<BergamotModelEntry[]>;
     loadWorker(): Promise<unknown>;
-    fetch(url: string, checksum?: string, extra?: unknown): Promise<ArrayBuffer>;
+    fetch(
+      url: string,
+      checksum?: string,
+      extra?: unknown,
+    ): Promise<ArrayBuffer>;
   }
 
   export interface BergamotTranslationRequest {

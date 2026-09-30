@@ -23,6 +23,7 @@ import { Button } from "@aster/ui";
 
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
+import { normalize_link_url } from "@/utils/link_url";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -31,6 +32,8 @@ import {
   AlertDialogTitle,
   AlertDialogDescription,
 } from "@/components/ui/alert_dialog";
+import { is_composing } from "@/utils/ime";
+import { clip_with_ellipsis } from "@/utils/preview_text";
 
 interface LinkDialogProps {
   open: boolean;
@@ -52,6 +55,8 @@ export function LinkDialog({
   const [internal_open, set_internal_open] = useState(false);
   const url_input_ref = useRef<HTMLInputElement>(null);
   const closing_ref = useRef(false);
+  const close_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const frames_ref = useRef<number[]>([]);
 
   useEffect(() => {
     if (open) {
@@ -59,46 +64,55 @@ export function LinkDialog({
       set_url("https://");
       set_text(selected_text || "");
       set_error("");
-      requestAnimationFrame(() => {
-        set_internal_open(true);
-        requestAnimationFrame(() => url_input_ref.current?.focus());
-      });
+      frames_ref.current.push(
+        requestAnimationFrame(() => {
+          set_internal_open(true);
+          frames_ref.current.push(
+            requestAnimationFrame(() => url_input_ref.current?.focus()),
+          );
+        }),
+      );
     } else {
       closing_ref.current = false;
       set_internal_open(false);
     }
   }, [open, selected_text]);
 
+  useEffect(
+    () => () => {
+      if (close_timer_ref.current !== null) {
+        clearTimeout(close_timer_ref.current);
+        close_timer_ref.current = null;
+      }
+      for (const frame of frames_ref.current) {
+        cancelAnimationFrame(frame);
+      }
+      frames_ref.current = [];
+    },
+    [],
+  );
+
   const close_with_animation = useCallback((action: () => void) => {
     if (closing_ref.current) return;
     closing_ref.current = true;
     set_internal_open(false);
-    setTimeout(action, 150);
-  }, []);
-
-  const validate_url = useCallback((value: string): boolean => {
-    const trimmed = value.trim().toLowerCase();
-
-    return (
-      trimmed.startsWith("http://") ||
-      trimmed.startsWith("https://") ||
-      trimmed.startsWith("mailto:")
-    );
+    close_timer_ref.current = setTimeout(action, 150);
   }, []);
 
   const handle_submit = useCallback(() => {
-    const trimmed_url = url.trim();
+    const normalized = normalize_link_url(url);
 
-    if (!trimmed_url || !validate_url(trimmed_url)) {
+    if (!normalized) {
       set_error(t("common.please_enter_valid_url"));
 
       return;
     }
 
     close_with_animation(() => {
-      on_insert(trimmed_url, text.trim() || undefined);
+      on_insert(normalized, text.trim() || undefined);
+      on_close();
     });
-  }, [url, text, validate_url, on_insert, close_with_animation]);
+  }, [url, text, on_insert, on_close, close_with_animation, t]);
 
   const handle_cancel = useCallback(() => {
     close_with_animation(on_close);
@@ -122,7 +136,9 @@ export function LinkDialog({
             </AlertDialogTitle>
             <AlertDialogDescription className="text-[14px] leading-normal">
               {selected_text
-                ? t("mail.add_link_to_selection", { text: selected_text.length > 40 ? selected_text.slice(0, 40) + "..." : selected_text })
+                ? t("mail.add_link_to_selection", {
+                    text: clip_with_ellipsis(selected_text, 40),
+                  })
                 : t("common.enter_url_display_text")}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -148,7 +164,7 @@ export function LinkDialog({
                   set_error("");
                 }}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") {
+                  if (e.key === "Enter" && !is_composing(e)) {
                     e.preventDefault();
                     handle_submit();
                   }
@@ -173,7 +189,7 @@ export function LinkDialog({
                   value={text}
                   onChange={(e) => set_text(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") {
+                    if (e.key === "Enter" && !is_composing(e)) {
                       e.preventDefault();
                       handle_submit();
                     }
@@ -187,7 +203,6 @@ export function LinkDialog({
         <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end">
           <Button
             className="mt-0 max-sm:flex-1"
-            size="xl"
             variant="outline"
             onClick={handle_cancel}
           >
@@ -195,7 +210,6 @@ export function LinkDialog({
           </Button>
           <Button
             className="max-sm:flex-1"
-            size="xl"
             variant="depth"
             onClick={handle_submit}
           >

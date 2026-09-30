@@ -18,9 +18,29 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import * as openpgp from "openpgp";
-import { HASH_ALG, KEY_DERIVATION_ITERATIONS, array_to_base64, base64_to_array, compute_hash, create_encrypted_key_handle, encrypt_key_material, generate_key_id, generate_random_bytes, log_key_usage, pin_fingerprint, type EncryptedVault, type SecureVaultHandle, type VaultEncryptionResult } from "./key_manager_core";
+
+import "@/services/crypto/openpgp_limits";
+
+import { assert_vault_salt_not_auth_salt } from "./auth_salt_guard";
+import {
+  HASH_ALG,
+  KEY_DERIVATION_ITERATIONS,
+  array_to_base64,
+  base64_to_array,
+  compute_hash,
+  create_encrypted_key_handle,
+  encrypt_key_material,
+  generate_key_id,
+  generate_random_bytes,
+  log_key_usage,
+  pin_fingerprint,
+  type EncryptedVault,
+  type SecureVaultHandle,
+  type VaultEncryptionResult,
+} from "./key_manager_core";
+
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 const VAULT_SCHEME_VERSION = 1;
 const VAULT_AAD_PREFIX = "aster-vault-v";
@@ -93,6 +113,8 @@ export async function decrypt_vault_to_handles(
 ): Promise<SecureVaultHandle> {
   const combined = base64_to_array(encrypted_vault);
   const nonce = base64_to_array(vault_nonce);
+
+  await assert_vault_salt_not_auth_salt(combined);
 
   const salt = combined.slice(0, 16);
   const ciphertext = combined.slice(16);
@@ -199,7 +221,7 @@ export async function decrypt_vault_to_handles(
   pin_fingerprint(identity_handle.key_id, identity_fingerprint, "identity");
   pin_fingerprint(prekey_handle.key_id, prekey_fingerprint, "signed_prekey");
 
-  const recovery_codes_string = vault.recovery_codes.join(",");
+  const recovery_codes_string = (vault.recovery_codes ?? []).join(",");
   const recovery_codes_bytes = encoder.encode(recovery_codes_string);
   const recovery_codes_hash = await compute_hash(recovery_codes_bytes);
 
@@ -228,6 +250,8 @@ export async function decrypt_vault(
   const encoder = new TextEncoder();
   const combined = base64_to_array(encrypted_vault);
   const nonce = base64_to_array(vault_nonce);
+
+  await assert_vault_salt_not_auth_salt(combined);
 
   const salt = combined.slice(0, 16);
   const ciphertext = combined.slice(16);

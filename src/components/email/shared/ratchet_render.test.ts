@@ -18,10 +18,21 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, beforeEach, vi } from "vitest";
-
 import type { EncryptedVault } from "@/services/crypto/key_manager";
 import type { DecryptedEnvelope } from "@/types/email";
+
+import { describe, it, expect, beforeEach, vi } from "vitest";
+
+vi.mock("@/services/crypto/key_manager_pgp", async (import_original) => ({
+  ...(await import_original<
+    typeof import("@/services/crypto/key_manager_pgp")
+  >()),
+  verify_ratchet_prekey_bundle_detailed: async () => ({
+    verdict: "verified" as const,
+    format: "v2" as const,
+    strict: true,
+  }),
+}));
 
 const h = vi.hoisted(() => ({
   vault: null as unknown,
@@ -64,13 +75,14 @@ vi.mock("@/services/api/client", () => ({
   },
 }));
 
+import { process_envelope_body } from "./build_email_from_envelope";
+
 import {
   generate_ratchet_keys,
   encrypt_for_ratchet_recipient,
   build_ratchet_envelope,
 } from "@/services/crypto/ratchet_manager";
 import { api_client } from "@/services/api/client";
-import { process_envelope_body } from "./build_email_from_envelope";
 
 const SENDER = "sender@astermail.org";
 const RECIPIENT = "recipient@astermail.org";
@@ -123,12 +135,13 @@ async function build_real_internal_envelope(
   expect(recipient_data).not.toBeNull();
   expect(recipient_data!.header.message_number).toBe(0);
 
-  const envelope_json = build_ratchet_envelope(sender_vault.ratchet_identity_public!, {
-    [RECIPIENT]: recipient_data!,
-  });
+  const envelope_json = build_ratchet_envelope(
+    sender_vault.ratchet_identity_public!,
+    {
+      [RECIPIENT]: recipient_data!,
+    },
+  );
 
-  // This mirrors how the backend stores internal ratchet mail: the same
-  // double_ratchet_v2 envelope is placed in BOTH body_text and body_html.
   expect(envelope_json).toContain("double_ratchet_v2");
 
   return { envelope_json, receiver_vault };
@@ -153,7 +166,8 @@ describe("internal ratchet mail rendering", () => {
   });
 
   it("renders the decrypted plaintext, never the raw double_ratchet_v2 envelope (success path)", async () => {
-    const secret = "Here is how to sign in to the browser. Use the code 481920.";
+    const secret =
+      "Here is how to sign in to the browser. Use the code 481920.";
     const { envelope_json, receiver_vault } =
       await build_real_internal_envelope(secret);
 
@@ -181,6 +195,7 @@ describe("internal ratchet mail rendering", () => {
 
     // A receiver whose vault keys do not match the bundle the sender used.
     const wrong_keys = (await generate_ratchet_keys())!;
+
     h.vault = make_vault(wrong_keys);
 
     const result = await process_envelope_body(
@@ -235,6 +250,7 @@ describe("internal ratchet mail rendering", () => {
     };
 
     const sender_vault = make_vault(sender_keys);
+
     h.vault = sender_vault;
 
     (api_client.put as ReturnType<typeof vi.fn>).mockClear();
@@ -256,5 +272,41 @@ describe("internal ratchet mail rendering", () => {
       (api_client.post as ReturnType<typeof vi.fn>).mock.calls.length;
 
     expect(send_writes).toBeGreaterThan(0);
+  });
+});
+
+function server_built_envelope(body: string): DecryptedEnvelope {
+  return {
+    from: { name: "Support", email: SENDER },
+    to: [{ name: "", email: RECIPIENT }],
+    cc: [],
+    bcc: [],
+    subject: "",
+    body_text: body,
+    body_html: "",
+  } as unknown as DecryptedEnvelope;
+}
+
+describe("server built recipient envelope", () => {
+  beforeEach(() => {
+    h.vault = null;
+    h.bundle = null;
+  });
+
+  it("renders html when the server sets body_html to an empty string", async () => {
+    const html = "<p>Hello there</p>";
+    const { envelope_json, receiver_vault } =
+      await build_real_internal_envelope(html);
+
+    h.vault = receiver_vault;
+
+    const result = await process_envelope_body(
+      server_built_envelope(envelope_json),
+      RECIPIENT,
+      "msg-server-1",
+    );
+
+    expect(result.body_text).toBe(html);
+    expect(result.safe_html).toBe(html);
   });
 });

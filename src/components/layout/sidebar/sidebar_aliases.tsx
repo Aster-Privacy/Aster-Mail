@@ -23,30 +23,26 @@ import type { DecryptedEmailAlias } from "@/services/api/aliases";
 import type { SettingsSection } from "@/components/settings/settings_content";
 
 import { memo, useMemo } from "react";
+import { AtSymbolIcon } from "@heroicons/react/24/outline";
 import {
-  PlusIcon,
-  ChevronDownIcon,
-  ChevronUpIcon,
-  ChevronRightIcon,
-  AtSymbolIcon,
-  BoltIcon,
-} from "@heroicons/react/24/outline";
+  AliasIconView,
+  SidebarEmptyText,
+  SidebarMoreToggle,
+  SidebarRailSectionButton,
+  SidebarSectionAddButton,
+  SidebarSectionToggle,
+  SidebarTagRow,
+} from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { CountBadge } from "@/components/common/count_badge";
+import { NavSectionSkeleton } from "@/components/common/nav_section_skeleton";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { RailUnreadDot } from "@/components/common/rail_unread_dot";
-import { PROFILE_COLORS, get_gradient_background } from "@/constants/profile";
+import { get_gradient_background } from "@/constants/profile";
+import { get_alias_color } from "@/lib/avatar_color";
 import { AliasContextMenu } from "@/components/layout/sidebar/alias_context_menu";
-
-function get_alias_color(address: string): string {
-  let hash = 0;
-
-  for (let i = 0; i < address.length; i++) {
-    hash = (hash * 31 + address.charCodeAt(i)) | 0;
-  }
-
-  return PROFILE_COLORS[Math.abs(hash) % PROFILE_COLORS.length];
-}
 
 function AliasIcon({
   address,
@@ -61,26 +57,8 @@ function AliasIcon({
     () => get_gradient_background(get_alias_color(address)),
     [address],
   );
-  const icon_size = size >= 20 ? "w-4 h-4" : "w-3.5 h-3.5";
 
-  return (
-    <div
-      className="rounded-full flex items-center justify-center flex-shrink-0"
-      style={{
-        width: size,
-        height: size,
-        background: gradient,
-        boxShadow:
-          "inset 0 1px 1px rgba(255,255,255,0.2), inset 0 -1px 1px rgba(0,0,0,0.15)",
-      }}
-    >
-      {is_random ? (
-        <BoltIcon className={`${icon_size} text-white`} />
-      ) : (
-        <AtSymbolIcon className={`${icon_size} text-white`} />
-      )}
-    </div>
-  );
+  return <AliasIconView background={gradient} is_random={is_random} size={size} />;
 }
 
 interface SidebarAliasesProps {
@@ -99,6 +77,8 @@ interface SidebarAliasesProps {
   section_collapsed?: boolean;
   on_toggle_section?: () => void;
   unread_counts?: Record<string, number>;
+  load_failed?: boolean;
+  on_retry?: () => void;
 }
 
 export const SidebarAliases = memo(function SidebarAliases({
@@ -117,8 +97,11 @@ export const SidebarAliases = memo(function SidebarAliases({
   section_collapsed = false,
   on_toggle_section,
   unread_counts = {},
+  load_failed = false,
+  on_retry,
 }: SidebarAliasesProps) {
   const { t } = use_i18n();
+  const skeleton_visible = use_delayed_flag(is_loading);
 
   const max_visible = is_collapsed ? 3 : 5;
   const has_more = aliases.length > max_visible;
@@ -129,45 +112,26 @@ export const SidebarAliases = memo(function SidebarAliases({
 
   return (
     <>
-      {!is_collapsed && (
-        <div className="mt-5 mb-1 px-2.5">
-          <div className="w-full flex items-center justify-between">
-            <button
-              className="flex-1 flex items-center gap-1 py-1 text-txt-muted opacity-70 hover:opacity-100"
-              onClick={on_toggle_section}
-            >
-              {section_collapsed ? (
-                <ChevronRightIcon className="w-3 h-3" />
-              ) : (
-                <ChevronDownIcon className="w-3 h-3" />
-              )}
-              <span className="text-[10px] font-semibold uppercase tracking-[0.05em]">
-                {t("common.aliases")}
-              </span>
-            </button>
-            <button
-              className="p-1 rounded-[14px]  hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-icon-muted"
-              onClick={on_create_alias}
-            >
-              <PlusIcon className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
+      <SidebarSectionToggle
+        is_collapsed={is_collapsed}
+        label={t("common.aliases")}
+        on_toggle={on_toggle_section ?? (() => {})}
+        right_slot={
+          <SidebarSectionAddButton
+            label={t("settings.create_alias")}
+            on_click={on_create_alias}
+          />
+        }
+        section_collapsed={section_collapsed}
+      />
 
       {is_collapsed && (
-        <div className="mt-3">
-          <button
-            className="sidebar-rail-btn"
-            data-rail-tip={t("common.aliases")}
-            onClick={() => on_settings_click("aliases")}
-          >
-            <AtSymbolIcon
-              className="w-5 h-5"
-              style={{ color: "var(--accent-color)" }}
-            />
-          </button>
-        </div>
+        <SidebarRailSectionButton
+          icon={AtSymbolIcon}
+          icon_style={{ color: "var(--accent-color)" }}
+          label={t("common.aliases")}
+          on_click={() => on_settings_click("aliases")}
+        />
       )}
 
       <div>
@@ -177,6 +141,7 @@ export const SidebarAliases = memo(function SidebarAliases({
             const unread_count = alias.alias_address_hash
               ? (unread_counts[alias.alias_address_hash] ?? 0)
               : 0;
+            const selected = effective_selected === alias_item_id;
 
             return (
               <AliasContextMenu
@@ -184,24 +149,27 @@ export const SidebarAliases = memo(function SidebarAliases({
                 alias={alias}
                 on_manage={() => on_settings_click("aliases")}
               >
-                <button
-                  ref={(el) => {
+                <SidebarTagRow
+                  rail_tip
+                  button_ref={(el: HTMLButtonElement | null) => {
                     alias_refs.current[alias.full_address] = el;
                   }}
-                  className={`sidebar-nav-btn group relative w-full flex items-center ${is_collapsed ? "justify-center" : "gap-2.5"} rounded-[12px] ${is_collapsed ? "px-0" : "px-2.5"} h-8 text-[14px]  ${effective_selected === alias_item_id ? "sidebar-active" : ""} ${is_collapsed && effective_selected === alias_item_id ? "sidebar-selected" : ""}`}
-                  style={{
-                    zIndex: 1,
-                    color:
-                      effective_selected === alias_item_id
-                        ? "var(--text-primary)"
-                        : "var(--text-secondary)",
-                    backgroundColor:
-                      is_collapsed && effective_selected === alias_item_id
-                        ? "var(--indicator-bg)"
-                        : undefined,
-                  }}
-                  data-rail-tip={is_collapsed ? alias.full_address : undefined}
-                  onClick={() =>
+                  collapsed_slot={
+                    <RailUnreadDot
+                      count={unread_count}
+                      label={alias.full_address}
+                    />
+                  }
+                  icon_slot={
+                    <AliasIcon
+                      address={alias.full_address}
+                      is_random={alias.is_random}
+                      size={is_collapsed ? 24 : 20}
+                    />
+                  }
+                  is_collapsed={is_collapsed}
+                  label={alias.full_address}
+                  on_click={() =>
                     handle_nav_click(() => {
                       set_selected_item(alias_item_id);
                       navigate(
@@ -209,58 +177,36 @@ export const SidebarAliases = memo(function SidebarAliases({
                       );
                     })
                   }
-                >
-                  <AliasIcon
-                    address={alias.full_address}
-                    is_random={alias.is_random}
-                    size={is_collapsed ? 24 : 20}
-                  />
-                  {is_collapsed && (
-                    <RailUnreadDot
-                      count={unread_count}
-                      label={alias.full_address}
-                    />
-                  )}
-                  {!is_collapsed && (
-                    <>
-                      <span className="flex-1 text-left truncate leading-5">
-                        {alias.full_address}
-                      </span>
-                      <CountBadge
-                        count={unread_count}
-                        is_active={effective_selected === alias_item_id}
-                      />
-                    </>
-                  )}
-                </button>
+                  selected={selected}
+                  trailing={
+                    <CountBadge count={unread_count} is_active={selected} />
+                  }
+                />
               </AliasContextMenu>
             );
           })}
         {has_more && !is_collapsed && !section_collapsed && (
-          <button
-            className="w-full flex items-center gap-2 px-2.5 h-7 text-[12px]  rounded-[12px] hover:bg-black/[0.03] dark:hover:bg-white/[0.04] text-txt-muted"
-            onClick={() => set_aliases_expanded(!aliases_expanded)}
-          >
-            {aliases_expanded ? (
-              <ChevronUpIcon className="w-3.5 h-3.5" />
-            ) : (
-              <ChevronDownIcon className="w-3.5 h-3.5" />
-            )}
-            <span>
-              {aliases_expanded
-                ? t("common.show_less")
-                : t("common.more_aliases", { count: hidden_count })}
-            </span>
-          </button>
+          <SidebarMoreToggle
+            expanded={aliases_expanded}
+            hidden_count={hidden_count}
+            less_label={t("common.show_less")}
+            more_label={t("common.more_aliases", { count: hidden_count })}
+            on_toggle={() => set_aliases_expanded(!aliases_expanded)}
+          />
         )}
+        {aliases.length === 0 &&
+          skeleton_visible &&
+          !is_collapsed &&
+          !section_collapsed && <NavSectionSkeleton rows={2} />}
         {aliases.length === 0 &&
           !is_loading &&
           !is_collapsed &&
-          !section_collapsed && (
-            <p className="text-[11px] px-2.5 py-2 text-txt-muted">
-              {t("common.no_aliases_yet")}
-            </p>
-          )}
+          !section_collapsed &&
+          (load_failed && on_retry ? (
+            <LoadFailedNotice on_retry={on_retry} />
+          ) : (
+            <SidebarEmptyText>{t("common.no_aliases_yet")}</SidebarEmptyText>
+          ))}
       </div>
     </>
   );

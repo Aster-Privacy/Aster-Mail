@@ -58,11 +58,11 @@ export function primary_target(
   accepted: readonly LanguageCode[],
   preferred?: string,
 ): LanguageCode {
-  const preferred_code = normalize_language(preferred);
+  const first = accepted[0];
 
-  if (preferred_code) return preferred_code;
+  if (first) return first;
 
-  return accepted[0] ?? PIVOT_LANGUAGE;
+  return normalize_language(preferred) ?? PIVOT_LANGUAGE;
 }
 
 export function language_display_name(

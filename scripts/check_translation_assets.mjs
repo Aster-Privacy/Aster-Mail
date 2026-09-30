@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, statSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -16,7 +16,11 @@ function fail(message) {
   process.exit(1);
 }
 
-if (!existsSync(registry_path)) {
+let registry_source;
+
+try {
+  registry_source = readFileSync(registry_path, "utf8");
+} catch {
   warn(
     "dist/bergamot/models/v1/registry.json is missing. On-device translation will 404 and every message will report as untranslatable. public/bergamot/models/ is gitignored, so a fresh clone does not have it. Run: node scripts/fetch_translation_models.mjs",
   );
@@ -26,7 +30,7 @@ if (!existsSync(registry_path)) {
 let registry;
 
 try {
-  registry = JSON.parse(readFileSync(registry_path, "utf8"));
+  registry = JSON.parse(registry_source);
 } catch {
   warn("dist/bergamot/models/v1/registry.json is not valid JSON.");
   process.exit(0);
@@ -37,27 +41,29 @@ const unhashed = [];
 const corrupt = [];
 let total_bytes = 0;
 
-for (const [pair, files] of Object.entries(registry)) {
+for (const files of Object.values(registry)) {
   for (const entry of Object.values(files ?? {})) {
     const name = entry?.name;
 
     if (typeof name !== "string") continue;
 
     const path = join(model_root, name);
+    let bytes;
 
-    if (!existsSync(path)) {
+    try {
+      bytes = readFileSync(path);
+    } catch {
       missing.push(name);
       continue;
     }
 
-    total_bytes += statSync(path).size;
+    total_bytes += bytes.length;
 
     if (typeof entry.expectedSha256Hash !== "string") {
       unhashed.push(name);
       continue;
     }
 
-    const bytes = readFileSync(path);
     const actual = createHash("sha256").update(bytes).digest("hex");
 
     if (actual !== entry.expectedSha256Hash) {

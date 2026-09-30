@@ -41,19 +41,20 @@ import {
   type PromoValidateResponse,
 } from "@/services/api/billing";
 import { connection_store } from "@/services/routing/connection_store";
+import { checkout_highlights } from "@/components/settings/billing/checkout_highlights";
+import { server_error_text } from "@/components/settings/billing/server_error_text";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { Spinner } from "@/components/ui/spinner";
 import { useTheme } from "@/contexts/theme_context";
 import {
   use_stripe_theme_tokens,
   build_stripe_appearance,
 } from "@/lib/stripe_appearance";
+import { stripe_locale } from "@/lib/stripe_locale";
 
 export type checkout_phase =
-  | "loading"
-  | "ready"
-  | "processing"
-  | "success"
-  | "error";
+  "loading" | "ready" | "processing" | "success" | "error";
 
 export interface theme_colors {
   text_primary: string;
@@ -132,10 +133,11 @@ interface CheckoutModalProps {
   price_display: string;
   addon_id?: string;
   price_cents?: number;
-  current_plan_price_cents?: number;
   initial_promo_code?: string;
+  highlights?: string[];
   on_close: () => void;
   on_success: () => void;
+  on_choose_crypto?: (term_months: number) => void;
 }
 
 export function CheckoutModal({
@@ -147,10 +149,11 @@ export function CheckoutModal({
   price_display,
   addon_id,
   price_cents,
-  current_plan_price_cents,
   initial_promo_code,
+  highlights,
   on_close,
   on_success,
+  on_choose_crypto,
 }: CheckoutModalProps) {
   const { t } = use_i18n();
   const { theme } = useTheme();
@@ -171,10 +174,7 @@ export function CheckoutModal({
 
   const colors = useMemo(() => get_theme_colors(theme === "dark"), [theme]);
 
-  const effective_price_cents =
-    (addon_id && price_cents && current_plan_price_cents
-      ? price_cents + current_plan_price_cents
-      : price_cents) ?? 0;
+  const effective_price_cents = price_cents ?? 0;
 
   const initialize = useCallback(async () => {
     set_phase("loading");
@@ -202,18 +202,26 @@ export function CheckoutModal({
         return;
       }
 
-      const { loadStripe } = await import("@stripe/stripe-js");
+      const { loadStripe } = await import("@stripe/stripe-js/pure");
 
-      set_stripe_promise(loadStripe(config_response.data.publishable_key));
+      set_stripe_promise(
+        loadStripe(config_response.data.publishable_key, {
+          locale: stripe_locale(),
+        }),
+      );
 
       if (!addon_id) {
-        try {
-          const credits_response = await get_credits();
+        const credits_response = await get_credits();
 
-          set_credit_balance_cents(credits_response.data?.balance_cents ?? 0);
-        } catch {
+        if (!credits_response.data) {
           set_credit_balance_cents(0);
+          set_error_message(t("settings.failed_checkout"));
+          set_phase("error");
+
+          return;
         }
+
+        set_credit_balance_cents(credits_response.data.balance_cents ?? 0);
       }
 
       if (addon_id) {
@@ -221,7 +229,12 @@ export function CheckoutModal({
         const secret = addon_response.data?.client_secret;
 
         if (!secret) {
-          set_error_message(t("settings.failed_checkout"));
+          set_error_message(
+            server_error_text(
+              addon_response.error,
+              t("settings.failed_checkout"),
+            ),
+          );
           set_phase("error");
 
           return;
@@ -251,14 +264,21 @@ export function CheckoutModal({
         set_is_validating_promo(true);
         validate_promo_code(initial_promo_code)
           .then((res) => {
-            if (res.data?.valid) set_promo_result(res.data);
+            if (res.data) {
+              set_promo_result(res.data);
+            } else {
+              show_toast(
+                res.error || t("common.something_went_wrong_try_again"),
+                "error",
+              );
+            }
           })
           .finally(() => set_is_validating_promo(false));
       }
     } else if (!open) {
       has_initialized.current = false;
     }
-  }, [open, initialize, initial_promo_code, addon_id]);
+  }, [open, initialize, initial_promo_code, addon_id, t]);
 
   const handle_close = useCallback(() => {
     if (phase === "processing") return;
@@ -268,6 +288,7 @@ export function CheckoutModal({
   const elements_options = useMemo(
     () => ({
       appearance: build_stripe_appearance(stripe_tokens),
+      locale: stripe_locale(),
       fonts:
         typeof window !== "undefined"
           ? (() => {
@@ -333,13 +354,7 @@ export function CheckoutModal({
     if (phase === "loading") {
       return (
         <div className="flex flex-col items-center justify-center py-12 gap-4">
-          <div
-            className="w-6 h-6 rounded-full animate-spin"
-            style={{
-              border: `2.5px solid ${colors.border_rest}`,
-              borderTopColor: colors.text_tertiary,
-            }}
-          />
+          <Spinner className="text-txt-muted" size="md" />
           <p className="text-sm" style={{ color: colors.text_tertiary }}>
             {t("settings.preparing_checkout")}
           </p>
@@ -403,7 +418,9 @@ export function CheckoutModal({
           credit_balance_cents={credit_balance_cents}
           currency={currency}
           error_message={error_message}
+          highlights={highlights ?? checkout_highlights(plan_code, t)}
           is_validating_promo={is_validating_promo}
+          on_choose_crypto={on_choose_crypto}
           on_close={handle_close}
           on_success={on_success}
           phase={phase}
@@ -429,13 +446,13 @@ export function CheckoutModal({
       is_open={open}
       on_close={handle_close}
       show_close_button={phase !== "processing"}
-      size="md"
+      size="2xl"
     >
       <ModalHeader>
         <ModalTitle>
           {phase === "success"
             ? t("settings.payment_complete")
-            : t("settings.checkout_title")}
+            : t("settings.checkout_review_title")}
         </ModalTitle>
         {phase !== "success" && (
           <ModalDescription>

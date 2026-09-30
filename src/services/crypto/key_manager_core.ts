@@ -18,9 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { array_to_base64 } from "./base64";
 import { HASH_ALG } from "./constants";
+
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 export { array_to_base64, base64_to_array } from "./base64";
 export { HASH_ALG } from "./constants";
@@ -74,6 +75,7 @@ export function merge_previous_ratchet_keys(
       if (!set.ratchet_identity_public) return false;
       if (seen.has(set.ratchet_identity_public)) return false;
       seen.add(set.ratchet_identity_public);
+
       return true;
     })
     .slice(0, RATCHET_PREVIOUS_KEYS_LIMIT);
@@ -109,6 +111,7 @@ export function retain_previous_ratchet_keys(
 export interface EncryptedVault {
   identity_key: string;
   previous_keys?: string[];
+  legacy_identity_keys?: string[];
   signed_prekey: string;
   signed_prekey_private: string;
   recovery_codes: string[];
@@ -123,7 +126,9 @@ export interface EncryptedVault {
   ratchet_regen_v4_done?: boolean;
   legacy_keks?: LegacyDerivedKek[];
   data_kek?: string;
+  escrow_seed?: string;
   vault_format?: number;
+  kdf_version?: number;
   mk_created_at?: string;
 }
 

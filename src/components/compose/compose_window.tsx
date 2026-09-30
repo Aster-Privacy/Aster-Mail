@@ -109,6 +109,14 @@ export function ComposeWindow({
   });
 
   const resize_anchor_right_ref = useRef<number | null>(null);
+  const resize_cleanup_ref = useRef<(() => void) | null>(null);
+
+  useEffect(() => {
+    return () => {
+      resize_cleanup_ref.current?.();
+      resize_cleanup_ref.current = null;
+    };
+  }, []);
 
   const handle_resize_start = useCallback(
     (e: React.MouseEvent) => {
@@ -126,6 +134,16 @@ export function ComposeWindow({
 
       set_is_resizing(true);
 
+      let frame = 0;
+      let pending: { width: number; height: number } | null = null;
+
+      const flush = () => {
+        frame = 0;
+        if (!pending) return;
+        set_resize_state(pending);
+        pending = null;
+      };
+
       const handle_move = (ev: MouseEvent) => {
         const dx = ev.clientX - start_x;
         const dy = ev.clientY - start_y;
@@ -141,17 +159,28 @@ export function ComposeWindow({
           Math.max(RESIZE_MIN_HEIGHT, start_height + dy),
         );
 
-        set_resize_state({ width: new_width, height: new_height });
+        pending = { width: new_width, height: new_height };
+
+        if (frame === 0) frame = window.requestAnimationFrame(flush);
       };
 
-      const handle_up = () => {
-        set_is_resizing(false);
+      const detach = () => {
+        if (frame !== 0) window.cancelAnimationFrame(frame);
+        frame = 0;
         window.removeEventListener("mousemove", handle_move);
         window.removeEventListener("mouseup", handle_up);
+        resize_cleanup_ref.current = null;
       };
+
+      function handle_up() {
+        flush();
+        set_is_resizing(false);
+        detach();
+      }
 
       window.addEventListener("mousemove", handle_move);
       window.addEventListener("mouseup", handle_up);
+      resize_cleanup_ref.current = detach;
     },
     [effective_width, effective_height, has_been_moved, position],
   );
@@ -200,9 +229,16 @@ export function ComposeWindow({
 
   const schedule_picker = (
     <SchedulePicker
-      disabled={compose.recipients.to.length === 0}
+      disabled={
+        compose.recipients.to.length === 0 || compose.attachments.length > 0
+      }
       on_schedule={compose.set_scheduled_time}
       scheduled_time={compose.scheduled_time}
+      tooltip_key={
+        compose.attachments.length > 0
+          ? "common.scheduled_no_attachments"
+          : "mail.schedule_send"
+      }
     />
   );
 
@@ -227,7 +263,7 @@ export function ComposeWindow({
 
   const compose_with_pickers = {
     ...compose,
-    has_recipients: compose.recipients.to.length > 0,
+    has_recipients: compose.has_sendable_recipients,
     schedule_picker_element: schedule_picker,
     expiration_picker_element: expiration_picker,
     template_picker_element: template_picker,
@@ -246,7 +282,7 @@ export function ComposeWindow({
     <>
       {is_mobile_fullscreen && (
         <div
-          className="fixed inset-0 z-40 bg-black/50 sm:hidden"
+          className="fixed inset-0 z-40 aster_scrim sm:hidden"
           role="presentation"
           onClick={compose.handle_close}
         />
@@ -256,7 +292,7 @@ export function ComposeWindow({
           <motion.div
             key="compose-backdrop"
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-md"
+            className="fixed inset-0 z-40 aster_scrim"
             exit={{ opacity: 0 }}
             initial={reduce_motion ? false : { opacity: 0 }}
             transition={{ duration: reduce_motion ? 0 : 0.2 }}
@@ -265,14 +301,14 @@ export function ComposeWindow({
         )}
       </AnimatePresence>
       <div
-        className={`flex flex-col shadow-2xl border overflow-hidden bg-modal-bg border-edge-primary ${
+        className={`flex flex-col shadow-[var(--aster-floating-shadow)] overflow-hidden bg-[var(--aster-dialog-bg,var(--modal-bg))] ${
           shell_mode === "minimized"
-            ? "rounded-t-lg"
+            ? "rounded-t-[var(--aster-radius-floating,16px)]"
             : shell_mode === "expanded"
-              ? "fixed inset-4 z-50 rounded-lg"
+              ? "fixed inset-4 z-50 rounded-[var(--aster-radius-floating,16px)]"
               : has_been_moved || resize_state
-                ? "fixed inset-0 z-50 sm:relative sm:inset-auto sm:z-auto rounded-none sm:rounded-lg"
-                : "fixed inset-0 z-50 sm:relative sm:inset-auto sm:z-auto rounded-none sm:rounded-t-lg"
+                ? "fixed inset-0 z-50 sm:relative sm:inset-auto sm:z-auto rounded-none sm:rounded-[var(--aster-radius-floating,16px)]"
+                : "fixed inset-0 z-50 sm:relative sm:inset-auto sm:z-auto rounded-none sm:rounded-t-[var(--aster-radius-floating,16px)]"
         } ${(has_been_moved || resize_state) && shell_mode === "docked" ? "sm:!fixed sm:!z-50" : ""}`}
         style={{
           ...(shell_mode === "minimized"
@@ -324,14 +360,14 @@ export function ComposeWindow({
       >
         <ErrorBoundary fallback={<ComposeErrorFallback />}>
           <div
-            className={`flex items-center justify-between px-4 py-3 border-b border-edge-primary select-none flex-shrink-0 ${
+            className={`flex items-center justify-between px-4 py-3 border-b border-[var(--aster-floating-divider)] select-none flex-shrink-0 ${
               is_minimized ? "cursor-pointer" : "cursor-move"
             }`}
             role="presentation"
             onClick={handle_header_click}
             onMouseDown={handle_header_mouse_down}
           >
-            <h2 className="text-sm font-medium truncate flex-1 mr-2 text-txt-primary">
+            <h2 className="text-sm font-medium truncate flex-1 me-2 text-txt-primary">
               {window_title}
             </h2>
             <div
@@ -409,11 +445,21 @@ export function ComposeWindow({
 
           {!is_minimized && (
             <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-              <div className="px-4 pt-3 relative z-20">
-                <div className="flex items-center gap-2 py-2 border-b border-edge-secondary">
-                  <span className="text-sm flex-shrink-0 text-txt-tertiary">
+              <div className="pt-3 relative z-20">
+                <div className="flex items-center gap-2 px-4 py-2 border-b border-edge-secondary">
+                  <button
+                    className="text-sm flex-shrink-0 text-txt-tertiary"
+                    type="button"
+                    onClick={(e) =>
+                      e.currentTarget.parentElement
+                        ?.querySelector<HTMLButtonElement>(
+                          "button[aria-haspopup]",
+                        )
+                        ?.click()
+                    }
+                  >
                     {t("mail.from")}
-                  </span>
+                  </button>
                   <SenderSelector
                     disabled={compose.aliases_loading}
                     ghost_error={compose.ghost_mode.error}
@@ -433,7 +479,7 @@ export function ComposeWindow({
                 </div>
               </div>
 
-              <div className="px-4 pb-2 min-h-0 overflow-y-auto">
+              <div className="pb-2 min-h-0 overflow-y-auto">
                 <ComposeFormFields compose={compose} />
               </div>
 
@@ -455,9 +501,7 @@ export function ComposeWindow({
                 <SignaturePicker
                   disabled={compose.is_scheduling}
                   on_select={(content) => {
-                    if (content) {
-                      compose.editor.insert_html(content);
-                    }
+                    compose.editor.apply_signature(content || null);
                   }}
                   open_direction="up"
                 />
@@ -487,11 +531,22 @@ export function ComposeWindow({
             title={t("common.remove_formatting")}
             variant="warning"
           />
+
+          <ConfirmationModal
+            cancel_text={t("common.cancel")}
+            confirm_text={t("mail.discard")}
+            is_open={compose.show_discard_confirm}
+            message={t("common.unsaved_changes_body")}
+            on_cancel={compose.cancel_discard_close}
+            on_confirm={compose.confirm_discard_close}
+            title={t("common.unsaved_changes_title")}
+            variant="danger"
+          />
         </ErrorBoundary>
         {shell_mode === "docked" && (
           <div
             aria-label={t("mail.resize_compose")}
-            className="hidden sm:block absolute bottom-0 left-0 w-4 h-4 cursor-nesw-resize z-10 touch-none"
+            className="hidden sm:block absolute bottom-0 start-0 w-4 h-4 cursor-nesw-resize z-10 touch-none"
             role="button"
             tabIndex={-1}
             onMouseDown={handle_resize_start}

@@ -18,6 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EncryptedVault } from "../crypto/key_manager_core";
+
+import { collect_vault_key_fingerprints } from "../crypto/vault_key_fingerprints";
+
 import { api_client } from "./client";
 
 export interface IdentityKeyStatus {
@@ -37,6 +41,7 @@ export interface RotateIdentityKeyRequest {
   encrypted_vault?: string;
   vault_nonce?: string;
   vault_format?: number;
+  vault_key_fingerprints?: string[];
 }
 
 export interface RotateIdentityKeyResponse {
@@ -63,14 +68,18 @@ export async function get_identity_key_status(): Promise<{
 
 export async function rotate_identity_key(
   request: RotateIdentityKeyRequest,
-): Promise<{ data?: RotateIdentityKeyResponse; error?: string }> {
+): Promise<{
+  data?: RotateIdentityKeyResponse;
+  error?: string;
+  error_code?: string;
+}> {
   const response = await api_client.post<RotateIdentityKeyResponse>(
     "/crypto/v1/keys/identity/rotate",
     request,
   );
 
   if (response.error) {
-    return { error: response.error };
+    return { error: response.error, error_code: response.server_code };
   }
 
   return { data: response.data ?? undefined };
@@ -82,7 +91,11 @@ export async function update_vault(
   vault_format?: number,
   expected_user_id?: string,
   preserve_pq_prekeys?: boolean,
+  vault?: EncryptedVault | null,
 ): Promise<{ success: boolean; error?: string }> {
+  const vault_key_fingerprints = vault
+    ? await collect_vault_key_fingerprints(vault)
+    : undefined;
   const response = await api_client.put<{ success: boolean }>(
     "/crypto/v1/keys/vault",
     {
@@ -91,6 +104,7 @@ export async function update_vault(
       vault_format: vault_format ?? 1,
       expected_user_id,
       preserve_pq_prekeys: preserve_pq_prekeys ?? false,
+      ...(vault_key_fingerprints?.length ? { vault_key_fingerprints } : {}),
     },
   );
 

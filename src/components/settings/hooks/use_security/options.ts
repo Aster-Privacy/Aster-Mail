@@ -19,8 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import type { } from "@/services/api/client";
-
+import type {} from "@/services/api/client";
 
 export const SESSION_TIMEOUT_OPTIONS = [
   { value: 5, label_key: "settings.five_minutes" as const },
@@ -50,4 +49,3 @@ export interface LogoutOthersResponse {
   message: string;
   sessions_revoked: number;
 }
-

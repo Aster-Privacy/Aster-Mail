@@ -19,7 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 export { ViewerEmailHeader } from "./email_header";
-export { get_external_content_mode, set_external_content_mode } from "./external_content";
+export {
+  get_external_content_mode,
+  set_external_content_mode,
+} from "./external_content";
 export { ViewerErrorState, ViewerViewSource } from "./misc";
 export { ViewerThreadContent } from "./thread_content";
 export { ViewerToolbarActions } from "./toolbar_actions";

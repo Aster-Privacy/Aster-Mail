@@ -69,7 +69,9 @@ describe("generated PGP keys use the widely-compatible RFC 4880 legacy format", 
       expect(subkey.version).toBe(4);
       expect(subkey.info.algorithm).toBe("ecdh");
       expect(subkey.info.curve).toBe("curve25519Legacy");
-      expect(RFC_9580_NEW_FORMAT_ALGORITHMS).not.toContain(subkey.info.algorithm);
+      expect(RFC_9580_NEW_FORMAT_ALGORITHMS).not.toContain(
+        subkey.info.algorithm,
+      );
     }
   }, 30000);
 
@@ -97,7 +99,9 @@ describe("generated PGP keys use the widely-compatible RFC 4880 legacy format", 
 
     for (const subkey of profile.subkeys) {
       expect(subkey.info.algorithm).toBe("ecdh");
-      expect(RFC_9580_NEW_FORMAT_ALGORITHMS).not.toContain(subkey.info.algorithm);
+      expect(RFC_9580_NEW_FORMAT_ALGORITHMS).not.toContain(
+        subkey.info.algorithm,
+      );
     }
   }, 30000);
 });

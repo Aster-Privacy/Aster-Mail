@@ -26,12 +26,16 @@ import {
   useRef,
   useState,
   ReactNode,
+  useMemo,
 } from "react";
 
 import { ExternalLinkWarningModal } from "@/components/modals/external_link_warning_modal";
 import { use_preferences } from "@/contexts/preferences_context";
 import { open_external } from "@/utils/open_link";
-import { is_any_lockdown_active, LOCKDOWN_CHANGED_EVENT } from "@/services/lockdown_store";
+import {
+  is_any_lockdown_active,
+  LOCKDOWN_CHANGED_EVENT,
+} from "@/services/lockdown_store";
 import { is_trusted_link } from "@/lib/trusted_link_domains";
 
 interface ExternalLinkContextType {
@@ -50,12 +54,16 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
   const { preferences, update_preference } = use_preferences();
   const [is_modal_open, set_is_modal_open] = useState(false);
   const [pending_url, set_pending_url] = useState<string>("");
-  const [lockdown_active, set_lockdown_active] = useState(() => is_any_lockdown_active());
+  const [lockdown_active, set_lockdown_active] = useState(() =>
+    is_any_lockdown_active(),
+  );
 
   useEffect(() => {
     const update = () => set_lockdown_active(is_any_lockdown_active());
+
     window.addEventListener(LOCKDOWN_CHANGED_EVENT, update);
     window.addEventListener("storage", update);
+
     return () => {
       window.removeEventListener(LOCKDOWN_CHANGED_EVENT, update);
       window.removeEventListener("storage", update);
@@ -92,6 +100,7 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
   const handle_external_link = useCallback(
     (url: string) => {
       const currently_locked = lockdown_active || is_any_lockdown_active();
+
       if (
         !currently_locked &&
         (preferences.external_link_warning_dismissed || is_trusted_link(url))
@@ -140,8 +149,13 @@ export function ExternalLinkProvider({ children }: { children: ReactNode }) {
     };
   }, [handle_external_link]);
 
+  const external_link_value = useMemo(
+    () => ({ handle_external_link }),
+    [handle_external_link],
+  );
+
   return (
-    <ExternalLinkContext.Provider value={{ handle_external_link }}>
+    <ExternalLinkContext.Provider value={external_link_value}>
       {children}
       <ExternalLinkWarningModal
         is_open={is_modal_open}

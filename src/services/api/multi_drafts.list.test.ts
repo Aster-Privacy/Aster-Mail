@@ -107,6 +107,7 @@ describe("list_drafts_with_content - single request, no N+1", () => {
     expect(get_mock).toHaveBeenCalledTimes(1);
     expect(res.data?.drafts).toHaveLength(1);
     expect(res.data?.drafts[0].id).toBe("d1");
+    expect(res.data?.drafts[0].is_undecryptable).toBe(true);
     expect(res.data?.drafts[0].content.subject).toBe("");
     expect(res.data?.drafts[0].content.to_recipients).toEqual([]);
   });

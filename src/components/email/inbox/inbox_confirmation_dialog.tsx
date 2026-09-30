@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@aster/ui";
 
 import {
@@ -98,14 +98,13 @@ export function ConfirmModal({
 
         <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end">
           <AlertDialogCancel asChild>
-            <Button className="mt-0 max-sm:flex-1" size="xl" variant="outline">
+            <Button className="mt-0 max-sm:flex-1" variant="outline">
               {t("common.cancel")}
             </Button>
           </AlertDialogCancel>
           <AlertDialogAction asChild>
             <Button
               className="max-sm:flex-1"
-              size="xl"
               variant={is_destructive ? "destructive" : "primary"}
               onClick={on_confirm}
             >
@@ -157,7 +156,6 @@ export function EmptyTrashModal({
             <Button
               className="mt-0 max-sm:flex-1"
               disabled={is_emptying}
-              size="xl"
               variant="outline"
             >
               {t("common.cancel")}
@@ -167,11 +165,11 @@ export function EmptyTrashModal({
             <Button
               className="max-sm:flex-1"
               disabled={is_emptying}
-              size="xl"
+              is_loading={is_emptying}
               variant="destructive"
               onClick={on_confirm}
             >
-              {is_emptying ? t("common.deleting") : t("mail.delete_all")}
+              {t("mail.delete_all")}
             </Button>
           </AlertDialogAction>
         </AlertDialogFooter>

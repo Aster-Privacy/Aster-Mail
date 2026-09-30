@@ -19,6 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+import { is_session_failure, with_session_recovery } from "./session_recovery";
+import { upload_timeout_ms } from "./upload_timeout";
+
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export interface AttachmentRef {
   id: string;
@@ -80,6 +84,7 @@ export interface QueuedEmailStatus {
   subject_preview?: string;
   created_at: string;
   error_message?: string;
+  mail_item_id?: string;
 }
 
 export interface PendingEmailsResponse {
@@ -87,13 +92,39 @@ export interface PendingEmailsResponse {
   total_count: number;
 }
 
+function queue_payload_bytes(request: QueueEmailRequest): number {
+  const attachment_bytes = (request.attachments ?? []).reduce(
+    (total, attachment) => total + attachment.encrypted_data.length,
+    0,
+  );
+
+  return (
+    attachment_bytes +
+    request.body.length +
+    (request.internal_encrypted_body?.length ?? 0) +
+    (request.encrypted_envelope?.length ?? 0) +
+    (request.signed_mime?.length ?? 0)
+  );
+}
+
 export async function queue_email(
   request: QueueEmailRequest,
 ): Promise<ApiResponse<QueueEmailResponse>> {
-  return api_client.post<QueueEmailResponse>(
-    "/mail/v1/undo_send/queue",
-    request,
+  const timeout = upload_timeout_ms(queue_payload_bytes(request));
+  const response = await with_session_recovery(() =>
+    api_client.post<QueueEmailResponse>("/mail/v1/undo_send/queue", request, {
+      timeout,
+    }),
   );
+
+  if (is_session_failure(response)) {
+    return {
+      ...response,
+      error: get_active_translations().errors.session_expired_send,
+    };
+  }
+
+  return response;
 }
 
 export async function cancel_email(

@@ -21,13 +21,22 @@
 import type { CustomCategoryRule } from "@/data/category_catalog";
 
 import { useState } from "react";
-import { Switch, Button, UpgradeBtn } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandRow,
+  IslandSection,
+  IslandSections,
+  UpgradeBtn,
+} from "@aster/ui";
 import {
   PlusIcon,
   PencilIcon,
   TrashIcon,
   Squares2X2Icon,
   LockClosedIcon,
+  BellIcon,
+  BellSlashIcon,
 } from "@heroicons/react/24/outline";
 
 import { CustomCategoryModal } from "./custom_category_modal";
@@ -37,6 +46,8 @@ import { InfoPopover } from "@/components/ui/info_popover";
 import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { use_delayed_flag } from "@/hooks/use_delayed_flag";
 import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
 import {
   BUILTIN_CATEGORIES,
@@ -45,11 +56,53 @@ import {
 import { category_icon } from "@/data/category_icons";
 import { use_i18n } from "@/lib/i18n/context";
 
+function MuteToggle({
+  id,
+  label,
+  is_enabled,
+  is_muted,
+  on_toggle,
+}: {
+  id: string;
+  label: string;
+  is_enabled: boolean;
+  is_muted: boolean;
+  on_toggle: (id: string) => void;
+}) {
+  const { t } = use_i18n();
+  const title = `${label} - ${is_muted ? t("common.unmute_notifications") : t("common.mute_notifications")}`;
+
+  return (
+    <button
+      aria-label={title}
+      aria-pressed={is_muted}
+      className={`inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full hover:bg-[var(--aster-hover)] disabled:pointer-events-none disabled:opacity-40 ${is_muted ? "text-txt-primary" : "text-txt-muted hover:text-txt-primary"}`}
+      disabled={!is_enabled}
+      title={title}
+      type="button"
+      onClick={(event) => {
+        event.stopPropagation();
+        on_toggle(id);
+      }}
+    >
+      {is_muted ? (
+        <BellSlashIcon className="w-4 h-4" />
+      ) : (
+        <BellIcon className="w-4 h-4" />
+      )}
+    </button>
+  );
+}
+
 export function CategorySettingsSection() {
   const { preferences, update_preference, update_preferences } =
     use_preferences();
   const { t } = use_i18n();
-  const { limits } = use_plan_limits();
+  const {
+    limits,
+    is_loading: plan_loading,
+    load_failed: plan_load_failed,
+  } = use_plan_limits();
   const [modal_open, set_modal_open] = useState(false);
   const [editing_rule, set_editing_rule] = useState<CustomCategoryRule | null>(
     null,
@@ -58,11 +111,14 @@ export function CategorySettingsSection() {
     useState<CustomCategoryRule | null>(null);
 
   const enabled_ids = new Set(preferences.enabled_categories ?? []);
+  const muted_ids = new Set(preferences.muted_notification_categories ?? []);
   const custom_categories = preferences.custom_categories ?? [];
 
   const category_limit = limits
     ? (limits.limits["max_custom_categories"]?.limit ?? -1)
-    : -1;
+    : plan_load_failed
+      ? -1
+      : 0;
   const is_unlimited = category_limit < 0;
   const at_limit = !is_unlimited && custom_categories.length >= category_limit;
   const can_add_custom = is_unlimited || category_limit > 0;
@@ -83,6 +139,14 @@ export function CategorySettingsSection() {
     }
 
     update_preference("enabled_categories", Array.from(next_ids), true);
+  };
+
+  const toggle_muted = (id: string) => {
+    const next = muted_ids.has(id)
+      ? [...muted_ids].filter((value) => value !== id)
+      : [...muted_ids, id];
+
+    update_preference("muted_notification_categories", next, true);
   };
 
   const toggle_custom = (rule: CustomCategoryRule) => {
@@ -125,83 +189,98 @@ export function CategorySettingsSection() {
     update_preferences({ custom_categories: next }, true);
   };
 
+  const plan_skeleton_visible = use_delayed_flag(plan_loading && !limits);
+
+  if (plan_loading && !limits) {
+    return plan_skeleton_visible ? <SettingsSkeleton variant="list" /> : null;
+  }
+
   return (
-    <div>
-      <div className="mb-4">
-        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-          <Squares2X2Icon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-          {t("settings.categories_title")}
-        </h3>
-        <p className="text-sm text-txt-muted mt-1">
-          {t("settings.categories_description")}
-        </p>
-      </div>
+    <IslandSections>
+      <IslandSection
+        bare
+        description={t("settings.categories_description")}
+        icon={<Squares2X2Icon />}
+        title={t("settings.categories_title")}
+      >
+        <Island>
+          <IslandRow
+            description={t("settings.inbox_categories_short")}
+            label={
+              <span className="inline-flex items-center gap-1.5">
+                {t("settings.inbox_categories")}
+                <InfoPopover
+                  description={t("settings.inbox_categories_description")}
+                  title={t("settings.inbox_categories")}
+                />
+              </span>
+            }
+            toggle={{
+              checked: preferences.inbox_categories_enabled !== false,
+              on_change: () =>
+                update_preference(
+                  "inbox_categories_enabled",
+                  preferences.inbox_categories_enabled === false,
+                  true,
+                ),
+              size: "lg",
+              aria_label: t("settings.inbox_categories"),
+            }}
+          />
+        </Island>
 
-      <div className="flex items-center justify-between py-4 border-t border-b border-edge-secondary">
-        <div className="flex-1 pr-4">
-          <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
-            {t("settings.inbox_categories")}
-            <InfoPopover
-              description={t("settings.inbox_categories_description")}
-              title={t("settings.inbox_categories")}
-            />
-          </p>
-          <p className="text-sm mt-0.5 text-txt-muted">
-            {t("settings.inbox_categories_short")}
-          </p>
-        </div>
-        <Switch
-          checked={preferences.inbox_categories_enabled !== false}
-          size="lg"
-          onCheckedChange={() =>
-            update_preference(
-              "inbox_categories_enabled",
-              preferences.inbox_categories_enabled === false,
-              true,
-            )
-          }
-        />
-      </div>
+        <Island>
+          {BUILTIN_CATEGORIES.filter((cat) => cat.removable).map((cat) => {
+            const Icon = category_icon(cat.icon);
+            const is_enabled = enabled_ids.has(cat.id);
 
-      <div className="aster_scrollbar_thin max-h-[420px] overflow-y-auto pr-1 mt-2">
-        {BUILTIN_CATEGORIES.filter((cat) => cat.removable).map((cat) => {
-          const Icon = category_icon(cat.icon);
-          const is_enabled = enabled_ids.has(cat.id);
-
-          return (
-            <div
-              key={cat.id}
-              className="flex items-center justify-between py-3"
-            >
-              <div className="flex-1 pr-4 flex items-center gap-3">
-                <Icon className="w-[18px] h-[18px] text-txt-muted flex-shrink-0" />
-                <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
-                  {t(cat.label_key)}
-                  <InfoPopover
-                    description={t(cat.info_key)}
-                    title={t(cat.label_key)}
+            return (
+              <IslandRow
+                key={cat.id}
+                icon={<Icon />}
+                label={
+                  <span className="inline-flex items-center gap-1.5">
+                    {t(cat.label_key)}
+                    <InfoPopover
+                      description={t(cat.info_key)}
+                      title={t(cat.label_key)}
+                    />
+                  </span>
+                }
+                toggle={{
+                  checked: is_enabled,
+                  on_change: () => toggle_builtin(cat.id, is_enabled),
+                  aria_label: t(cat.label_key),
+                }}
+                trailing={
+                  <MuteToggle
+                    id={cat.id}
+                    is_enabled={is_enabled}
+                    is_muted={muted_ids.has(cat.id)}
+                    label={t(cat.label_key)}
+                    on_toggle={toggle_muted}
                   />
-                </p>
-              </div>
-              <Switch
-                checked={is_enabled}
-                onCheckedChange={() => toggle_builtin(cat.id, is_enabled)}
+                }
               />
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </Island>
+      </IslandSection>
 
-      <div className="mt-5 pt-4 border-t border-edge-secondary">
-        <div className="flex items-center justify-between mb-3">
-          <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
+      <IslandSection
+        bare
+        description={t("settings.custom_categories_tutorial")}
+        title={
+          <span className="inline-flex items-center gap-1.5">
             {t("settings.custom_categories_title")}
             <InfoPopover
               description={t("settings.category_tutorial_text")}
               title={t("settings.custom_categories_title")}
             />
-          </p>
-          {!can_add_custom || at_limit ? (
+          </span>
+        }
+        trailing={
+          !can_add_custom || at_limit ? (
             <UpgradeBtn size="sm" onClick={handle_add_category}>
               {t("settings.add_category")}
             </UpgradeBtn>
@@ -210,13 +289,9 @@ export function CategorySettingsSection() {
               <PlusIcon className="w-4 h-4" />
               {t("settings.add_category")}
             </Button>
-          )}
-        </div>
-
-        <p className="text-sm text-txt-muted mb-3">
-          {t("settings.custom_categories_tutorial")}
-        </p>
-
+          )
+        }
+      >
         {!can_add_custom ? (
           <FeatureLockOverlay
             feature="max_custom_categories"
@@ -225,94 +300,107 @@ export function CategorySettingsSection() {
         ) : (
           <>
             {at_limit && (
-              <p className="text-sm text-txt-muted italic mb-2">
+              <p className="px-1 text-sm text-txt-muted italic">
                 {t("settings.custom_categories_limit_reached")}
               </p>
             )}
 
             {custom_categories.length === 0 ? (
-              <p className="text-sm text-txt-muted italic">
-                {t("settings.no_custom_categories")}
-              </p>
+              <Island className="text-center" padding="lg">
+                <p className="text-sm text-txt-muted italic">
+                  {t("settings.no_custom_categories")}
+                </p>
+              </Island>
             ) : (
-              <div className="aster_scrollbar_thin max-h-[320px] space-y-1 overflow-y-auto pr-1">
+              <Island className="aster_scrollbar_thin max-h-[320px] overflow-y-auto">
                 {custom_categories.map((rule) => {
                   const Icon = category_icon(rule.icon);
                   const is_locked = !permitted_custom_ids.has(rule.id);
 
                   return (
-                    <div
+                    <IslandRow
                       key={rule.id}
-                      className={`flex items-center justify-between py-2 ${is_locked ? "opacity-60" : ""}`}
-                    >
-                      <div className="flex-1 pr-4 flex items-center gap-3">
-                        <Icon className="w-[18px] h-[18px] text-txt-muted flex-shrink-0" />
-                        <div>
-                          <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
-                            {rule.name}
-                            {is_locked && (
-                              <span className="text-xs font-normal text-txt-muted italic">
-                                {t("settings.custom_category_locked_badge")}
-                              </span>
-                            )}
-                          </p>
-                          <p className="text-xs text-txt-muted">
-                            {[...rule.match_domains, ...rule.match_keywords]
-                              .slice(0, 4)
-                              .join(", ")}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          size="icon"
-                          title={t("common.edit")}
-                          variant="ghost"
-                          onClick={() => {
-                            set_editing_rule(rule);
-                            set_modal_open(true);
-                          }}
-                        >
-                          <PencilIcon className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          className="text-red-500 hover:text-red-500 hover:bg-red-500/10"
-                          size="icon"
-                          title={t("common.delete")}
-                          variant="ghost"
-                          onClick={() => set_deleting_rule(rule)}
-                        >
-                          <TrashIcon className="w-4 h-4" />
-                        </Button>
-                        {is_locked ? (
+                      className={is_locked ? "opacity-60" : undefined}
+                      description={[
+                        ...rule.match_domains,
+                        ...rule.match_keywords,
+                      ]
+                        .slice(0, 4)
+                        .join(", ")}
+                      icon={<Icon />}
+                      label={
+                        <span className="inline-flex flex-wrap items-center gap-1.5">
+                          {rule.name}
+                          {is_locked && (
+                            <span className="text-xs font-normal text-txt-muted italic">
+                              {t("settings.custom_category_locked_badge")}
+                            </span>
+                          )}
+                        </span>
+                      }
+                      toggle={
+                        is_locked
+                          ? undefined
+                          : {
+                              checked: rule.enabled,
+                              on_change: () => toggle_custom(rule),
+                              aria_label: rule.name,
+                            }
+                      }
+                      trailing={
+                        <span className="flex items-center gap-1">
+                          <MuteToggle
+                            id={rule.id}
+                            is_enabled={rule.enabled && !is_locked}
+                            is_muted={muted_ids.has(rule.id)}
+                            label={rule.name}
+                            on_toggle={toggle_muted}
+                          />
                           <Button
                             size="icon"
-                            title={t("settings.custom_category_locked_badge")}
+                            title={t("common.edit")}
                             variant="ghost"
-                            onClick={() =>
-                              show_plan_limit_upgrade({
-                                resource: "custom categories",
-                                feature: "max_custom_categories",
-                              })
-                            }
+                            onClick={() => {
+                              set_editing_rule(rule);
+                              set_modal_open(true);
+                            }}
                           >
-                            <LockClosedIcon className="w-4 h-4" />
+                            <PencilIcon className="w-4 h-4" />
                           </Button>
-                        ) : (
-                          <Switch
-                            checked={rule.enabled}
-                            onCheckedChange={() => toggle_custom(rule)}
-                          />
-                        )}
-                      </div>
-                    </div>
+                          <Button
+                            className="text-red-500 hover:text-red-500 hover:bg-red-500/10"
+                            size="icon"
+                            title={t("common.delete")}
+                            variant="ghost"
+                            onClick={() => set_deleting_rule(rule)}
+                          >
+                            <TrashIcon className="w-4 h-4" />
+                          </Button>
+                          {is_locked && (
+                            <Button
+                              size="icon"
+                              title={t("settings.custom_category_locked_badge")}
+                              variant="ghost"
+                              onClick={() =>
+                                show_plan_limit_upgrade({
+                                  resource: "custom categories",
+                                  feature: "max_custom_categories",
+                                })
+                              }
+                            >
+                              <LockClosedIcon className="w-4 h-4" />
+                            </Button>
+                          )}
+                        </span>
+                      }
+                    />
                   );
                 })}
-              </div>
+              </Island>
             )}
           </>
         )}
-      </div>
+      </IslandSection>
 
       <CustomCategoryModal
         existing={editing_rule}
@@ -335,6 +423,6 @@ export function CategorySettingsSection() {
         show={!!deleting_rule}
         title={t("settings.delete_category_title")}
       />
-    </div>
+    </IslandSections>
   );
 }

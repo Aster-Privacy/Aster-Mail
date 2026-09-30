@@ -32,14 +32,21 @@ import { use_i18n } from "@/lib/i18n/context";
 import { is_onion_host } from "@/lib/onion_host";
 import { is_tauri } from "@/native/desktop_device_auth";
 
-// Onion and Tauri desktop users are exempt. The Cloudflare challenge iframe
-// cannot load inside Tauri's WebView2 (tauri.localhost origin is blocked).
-// The backend already exempts tauri-desktop from the captcha requirement
-// server-side via the client_platform header. Prod web is unchanged.
+// Local development is exempt. The Cloudflare widget only accepts the
+// production hostnames, so a localhost token always fails siteverify.
+// Onion and Tauri desktop users are exempt too. The Cloudflare challenge
+// iframe cannot load inside Tauri's WebView2 (tauri.localhost origin is
+// blocked). The backend already exempts tauri-desktop from the captcha
+// requirement server-side via the client_platform header. Prod web is
+// unchanged.
+const CAPTCHA_DISABLED_IN_DEV =
+  import.meta.env.DEV && import.meta.env.MODE !== "test";
+
 export const TURNSTILE_SITE_KEY =
-  typeof window !== "undefined" && (is_onion_host() || is_tauri())
+  CAPTCHA_DISABLED_IN_DEV ||
+  (typeof window !== "undefined" && (is_onion_host() || is_tauri()))
     ? ""
-    : (import.meta.env.VITE_TURNSTILE_SITE_KEY || "");
+    : import.meta.env.VITE_TURNSTILE_SITE_KEY || "";
 const SCRIPT_URL =
   "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
@@ -51,7 +58,10 @@ interface TurnstileWidgetProps {
 
 export interface TurnstileWidgetRef {
   reset: () => void;
+  refresh: () => Promise<string>;
 }
+
+const REFRESH_TIMEOUT_MS = 15000;
 
 declare global {
   interface Window {
@@ -64,6 +74,31 @@ declare global {
       remove: (widget_id: string) => void;
     };
   }
+}
+
+const TURNSTILE_LANGUAGE_BY_APP_LOCALE: Record<string, string> = {
+  en: "en",
+  es: "es",
+  fr: "fr",
+  de: "de",
+  it: "it",
+  pt: "pt-br",
+  "zh-CN": "zh-cn",
+  ja: "ja",
+  ko: "ko",
+  ar: "ar-eg",
+  ru: "ru",
+  nl: "nl",
+  pl: "pl",
+  tr: "tr",
+};
+
+function turnstile_language(language: string): string {
+  return (
+    TURNSTILE_LANGUAGE_BY_APP_LOCALE[language] ??
+    TURNSTILE_LANGUAGE_BY_APP_LOCALE[language.split("-")[0]] ??
+    "auto"
+  );
 }
 
 let script_loaded = false;
@@ -120,10 +155,11 @@ export const TurnstileWidget = forwardRef<
   const widget_id_ref = useRef<string | null>(null);
   const on_verify_ref = useRef(on_verify);
   const on_expire_ref = useRef(on_expire);
+  const pending_ref = useRef<((token: string) => void) | null>(null);
   const [attempt, set_attempt] = useState(0);
   const [failed, set_failed] = useState(false);
   const { theme } = useTheme();
-  const { t } = use_i18n();
+  const { t, language } = use_i18n();
 
   on_verify_ref.current = on_verify;
   on_expire_ref.current = on_expire;
@@ -134,7 +170,29 @@ export const TurnstileWidget = forwardRef<
     }
   }, []);
 
-  useImperativeHandle(ref, () => ({ reset }), [reset]);
+  const refresh = useCallback(() => {
+    if (!TURNSTILE_SITE_KEY || !widget_id_ref.current || !window.turnstile) {
+      return Promise.resolve("");
+    }
+
+    return new Promise<string>((resolve) => {
+      let settled = false;
+      let timer = 0;
+      const finish = (token: string) => {
+        if (settled) return;
+        settled = true;
+        window.clearTimeout(timer);
+        if (pending_ref.current === finish) pending_ref.current = null;
+        resolve(token);
+      };
+
+      timer = window.setTimeout(() => finish(""), REFRESH_TIMEOUT_MS);
+      pending_ref.current = finish;
+      reset();
+    });
+  }, [reset]);
+
+  useImperativeHandle(ref, () => ({ reset, refresh }), [reset, refresh]);
 
   useEffect(() => {
     if (!TURNSTILE_SITE_KEY || !container_ref.current) return;
@@ -164,9 +222,16 @@ export const TurnstileWidget = forwardRef<
         widget_id_ref.current = window.turnstile.render(container_ref.current, {
           sitekey: TURNSTILE_SITE_KEY,
           theme,
-          callback: (token: string) => on_verify_ref.current(token),
+          language: turnstile_language(language),
+          callback: (token: string) => {
+            pending_ref.current?.(token);
+            on_verify_ref.current(token);
+          },
           "expired-callback": () => on_expire_ref.current?.(),
-          "error-callback": () => set_failed(true),
+          "error-callback": () => {
+            pending_ref.current?.("");
+            set_failed(true);
+          },
         });
         set_failed(false);
       } catch {
@@ -177,12 +242,13 @@ export const TurnstileWidget = forwardRef<
     return () => {
       mounted = false;
       window.clearTimeout(timeout);
+      pending_ref.current?.("");
       if (widget_id_ref.current && window.turnstile) {
         window.turnstile.remove(widget_id_ref.current);
         widget_id_ref.current = null;
       }
     };
-  }, [theme, attempt]);
+  }, [theme, attempt, language]);
 
   if (!TURNSTILE_SITE_KEY) return null;
 
@@ -194,8 +260,8 @@ export const TurnstileWidget = forwardRef<
             {t("auth.captcha_load_failed")}
           </p>
           <button
-            type="button"
             className="aster_btn aster_btn_secondary aster_btn_sm"
+            type="button"
             onClick={() => {
               set_failed(false);
               set_attempt((n) => n + 1);

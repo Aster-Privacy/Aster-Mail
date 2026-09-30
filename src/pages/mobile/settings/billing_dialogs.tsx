@@ -19,14 +19,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import {
-  EyeIcon,
-  EyeSlashIcon,
-} from "@heroicons/react/24/outline";
+import type { use_billing_section } from "./use_billing_section";
 
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 import { clamp_password } from "@/services/sanitize";
-import { Spinner } from "@/components/ui/spinner";
+import {
+  PLAN_TIERS,
+  convert_cents,
+  crypto_term_months,
+  is_crypto_provider,
+} from "@/components/settings/billing/billing_constants";
+import { format_price } from "@/services/api/billing";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
@@ -38,18 +43,24 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert_dialog";
-import {
-  CancelReasonStep,
-} from "@/components/settings/billing/cancel_reason_step";
+import { CancelReasonStep } from "@/components/settings/billing/cancel_reason_step";
 import {
   CancelImpactStep,
+  type CancelStep,
 } from "@/components/settings/billing/cancel_impact_step";
+import {
+  get_downgrade_offer,
+  read_billing_interval,
+} from "@/components/settings/billing/cancel_offer";
+import { CancelOfferStep } from "@/components/settings/billing/cancel_offer_step";
+import { CancelEarlyStep } from "@/components/settings/billing/cancel_early_step";
+import { show_toast } from "@/components/toast/simple_toast";
 import { PaymentMethodsModal } from "@/components/settings/payment_methods_modal";
 import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
+import { special_offer_promo_code } from "@/lib/special_offer";
 import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_change_confirm_modal";
 import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
 import { CryptoAddonTermModal } from "@/components/settings/billing/crypto_addon_term_modal";
-import type { use_billing_section } from "./use_billing_section";
 
 export function render_billing_dialogs(
   state: ReturnType<typeof use_billing_section>,
@@ -66,6 +77,9 @@ export function render_billing_dialogs(
     set_cancel_password_error,
     show_cancel_password,
     set_show_cancel_password,
+    cancel_totp_code,
+    set_cancel_totp_code,
+    cancel_totp_required,
     cancel_reason,
     set_cancel_reason,
     cancel_reason_text,
@@ -87,8 +101,13 @@ export function render_billing_dialogs(
     set_show_crypto_modal,
     crypto_plan,
     set_crypto_plan,
+    crypto_back_plan,
+    set_crypto_back_plan,
+    crypto_back_addon,
+    set_crypto_back_addon,
     crypto_resume,
     set_crypto_resume,
+    crypto_initial_term,
     show_addon_method_modal,
     set_show_addon_method_modal,
     addon_method_target,
@@ -102,14 +121,44 @@ export function render_billing_dialogs(
     plan_change_confirm_target,
     set_plan_change_confirm_target,
     preferred_currency,
+    billing_period,
+    credit_balance,
+    pending_family_tier,
+    set_pending_family_tier,
+    crypto_family_tier,
+    set_crypto_family_tier,
+    handle_family_card,
+    handle_family_crypto,
+    addon_to_cancel,
+    set_addon_to_cancel,
+    handle_cancel_addon,
     handle_cancel,
     handle_pay_with_card,
     handle_confirm_plan_change,
     crypto_term_prices_for,
+    plan_term_options_for,
+    set_billing_period,
+    offer_checkout,
     handle_pay_with_crypto,
     handle_addon_pay_card,
     handle_addon_pay_crypto,
+    plans,
+    handle_select_plan,
   } = state;
+
+  const base_offer =
+    subscription &&
+    !subscription.cancel_at_period_end &&
+    subscription.has_stripe_subscription !== false &&
+    !is_crypto_provider(subscription.payment_provider)
+      ? get_downgrade_offer(
+          subscription.plan.code,
+          read_billing_interval(subscription.plan.billing_period),
+        )
+      : null;
+  const downgrade_offer =
+    base_offer && !base_offer.is_family ? base_offer : null;
+  const step_after_reason: CancelStep = downgrade_offer ? "offer" : "impact";
 
   return (
     <>
@@ -122,54 +171,97 @@ export function render_billing_dialogs(
         <AlertDialogContent className="w-[calc(100%-2rem)] max-w-[520px]">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {cancel_step === "reason"
-                ? t("settings.cancel_reason_title")
-                : cancel_step === "impact"
-                  ? t("settings.cancel_impact_title")
-                  : cancel_step === "confirm"
-                    ? t("settings.cancel_final_title")
-                    : t("settings.cancel_confirm_title")}
+              {cancel_step === "early"
+                ? t("settings.cancel_early_title")
+                : cancel_step === "reason"
+                  ? t("settings.cancel_reason_title")
+                  : cancel_step === "offer"
+                    ? t("settings.cancel_offer_title")
+                    : cancel_step === "impact"
+                      ? t("settings.cancel_impact_title")
+                      : cancel_step === "confirm"
+                        ? t("settings.cancel_final_title")
+                        : t("settings.cancel_confirm_title")}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {cancel_step === "reason"
-                ? t("settings.cancel_reason_description")
-                : cancel_step === "impact"
-                  ? cancel_effective_date
-                    ? t("settings.cancel_impact_description", {
-                        date: cancel_effective_date,
-                      })
-                    : t("settings.cancel_impact_description_nodate")
-                  : cancel_step === "confirm"
-                    ? cancel_effective_date
-                      ? t("settings.cancel_final_description", {
-                          date: cancel_effective_date,
-                          plan:
-                            cancel_impact?.plan_name ??
-                            subscription?.plan.name ??
-                            "",
-                        })
-                      : t("settings.cancel_final_description_nodate", {
-                          plan:
-                            cancel_impact?.plan_name ??
-                            subscription?.plan.name ??
-                            "",
-                        })
-                    : t("settings.cancel_confirm_description")}
+              {cancel_step === "early"
+                ? t("settings.cancel_early_description")
+                : cancel_step === "reason"
+                  ? t("settings.cancel_reason_description")
+                  : cancel_step === "offer"
+                    ? t("settings.cancel_offer_description")
+                    : cancel_step === "impact"
+                      ? cancel_effective_date
+                        ? t("settings.cancel_impact_description", {
+                            date: cancel_effective_date,
+                          })
+                        : t("settings.cancel_impact_description_nodate")
+                      : cancel_step === "confirm"
+                        ? cancel_effective_date
+                          ? t("settings.cancel_final_description", {
+                              date: cancel_effective_date,
+                              plan:
+                                cancel_impact?.plan_name ??
+                                subscription?.plan.name ??
+                                "",
+                            })
+                          : t("settings.cancel_final_description_nodate", {
+                              plan:
+                                cancel_impact?.plan_name ??
+                                subscription?.plan.name ??
+                                "",
+                            })
+                        : t("settings.cancel_confirm_description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {cancel_step === "reason" ? (
+          {cancel_step === "early" ? (
+            <CancelEarlyStep
+              keep_plan_slot={
+                <AlertDialogCancel className="mt-0">
+                  {t("settings.keep_plan")}
+                </AlertDialogCancel>
+              }
+              on_continue={() => set_cancel_step("reason")}
+            />
+          ) : cancel_step === "reason" ? (
             <CancelReasonStep
               keep_plan_slot={
                 <AlertDialogCancel className="mt-0">
                   {t("settings.keep_plan")}
                 </AlertDialogCancel>
               }
-              on_continue={() => set_cancel_step("impact")}
-              on_skip={() => set_cancel_step("impact")}
+              on_continue={() => set_cancel_step(step_after_reason)}
               reason={cancel_reason}
               reason_text={cancel_reason_text}
               set_reason={set_cancel_reason}
               set_reason_text={set_cancel_reason_text}
+            />
+          ) : cancel_step === "offer" && downgrade_offer ? (
+            <CancelOfferStep
+              is_busy={is_action_loading}
+              keep_plan_slot={
+                <AlertDialogCancel className="mt-0">
+                  {t("settings.keep_plan")}
+                </AlertDialogCancel>
+              }
+              offer={downgrade_offer}
+              on_back={() => set_cancel_step("reason")}
+              on_continue={() => set_cancel_step("impact")}
+              on_switch={() => {
+                const api_plan = plans.find(
+                  (plan) => plan.code === downgrade_offer.plan_code,
+                );
+
+                if (!api_plan) {
+                  show_toast(t("settings.plans_coming_soon"), "info");
+
+                  return;
+                }
+
+                set_show_cancel_dialog(false);
+                setTimeout(() => handle_select_plan(api_plan), 200);
+              }}
+              preferred_currency={preferred_currency}
             />
           ) : cancel_step === "impact" ? (
             <CancelImpactStep
@@ -180,7 +272,7 @@ export function render_billing_dialogs(
                   {t("settings.keep_plan")}
                 </AlertDialogCancel>
               }
-              on_back={() => set_cancel_step("reason")}
+              on_back={() => set_cancel_step(step_after_reason)}
               on_continue={() => set_cancel_step("password")}
             />
           ) : cancel_step === "confirm" ? (
@@ -196,9 +288,8 @@ export function render_billing_dialogs(
                   handle_cancel();
                 }}
               >
-                {is_action_loading
-                  ? t("settings.cancelling")
-                  : t("settings.cancel_final_confirm")}
+                {t("settings.cancel_final_confirm")}
+                {is_action_loading && <ButtonSpinner />}
               </AlertDialogAction>
             </AlertDialogFooter>
           ) : (
@@ -209,12 +300,13 @@ export function render_billing_dialogs(
                 </label>
                 <div className="relative">
                   <Input
-                    className="w-full pr-10"
+                    autoComplete="current-password"
+                    className="w-full pe-10"
+                    maxLength={128}
                     placeholder={t("settings.cancel_password_placeholder")}
                     status={cancel_password_error ? "error" : "default"}
                     type={show_cancel_password ? "text" : "password"}
                     value={cancel_password}
-                    maxLength={128}
                     onChange={(e) => {
                       set_cancel_password(clamp_password(e.target.value));
                       set_cancel_password_error("");
@@ -227,7 +319,7 @@ export function render_billing_dialogs(
                     }}
                   />
                   <button
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-txt-muted hover:text-txt-secondary"
+                    className="absolute end-2 top-1/2 -translate-y-1/2 p-1 text-txt-muted hover:text-txt-secondary"
                     tabIndex={-1}
                     type="button"
                     onClick={() =>
@@ -241,6 +333,39 @@ export function render_billing_dialogs(
                     )}
                   </button>
                 </div>
+                {cancel_totp_required && (
+                  <div className="mt-4">
+                    <label
+                      className="block text-sm font-medium text-txt-secondary mb-2"
+                      htmlFor="mobile-cancel-totp-code"
+                    >
+                      {t("settings.authenticator_code")}
+                    </label>
+                    <Input
+                      autoComplete="one-time-code"
+                      className="w-full text-center tracking-[0.5em]"
+                      id="mobile-cancel-totp-code"
+                      inputMode="numeric"
+                      maxLength={6}
+                      placeholder="000000"
+                      status={cancel_password_error ? "error" : "default"}
+                      type="text"
+                      value={cancel_totp_code}
+                      onChange={(e) => {
+                        set_cancel_totp_code(
+                          e.target.value.replace(/\D/g, "").slice(0, 6),
+                        );
+                        set_cancel_password_error("");
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handle_password_continue();
+                        }
+                      }}
+                    />
+                  </div>
+                )}
                 {cancel_password_error && (
                   <p
                     className="text-xs mt-1.5"
@@ -256,16 +381,20 @@ export function render_billing_dialogs(
                 </AlertDialogCancel>
                 <AlertDialogAction
                   className="flex-1"
-                  disabled={!cancel_password.trim() || is_verifying_password}
+                  disabled={
+                    !cancel_password.trim() ||
+                    is_verifying_password ||
+                    (cancel_totp_required && cancel_totp_code.length !== 6)
+                  }
                   onClick={(e) => {
                     e.preventDefault();
                     handle_password_continue();
                   }}
                 >
-                  <span className="flex items-center justify-center gap-2">
-                    {is_verifying_password && <Spinner size="xs" />}
+                  <>
+                    {is_verifying_password && <ButtonSpinner size="xs" />}
                     {t("settings.cancel_reason_continue")}
-                  </span>
+                  </>
                 </AlertDialogAction>
               </AlertDialogFooter>
             </>
@@ -275,9 +404,26 @@ export function render_billing_dialogs(
 
       {method_modal_plan && (
         <PlanPaymentMethodModal
-          open={show_method_modal}
-          plan_name={method_modal_plan.name}
           busy={is_action_loading}
+          credit_balance_cents={Math.min(
+            credit_balance?.balance_cents ?? 0,
+            (billing_period === "yearly"
+              ? PLAN_TIERS.find((p) => p.id === method_modal_plan.code)
+                  ?.yearly_cents
+              : billing_period === "biennial"
+                ? PLAN_TIERS.find((p) => p.id === method_modal_plan.code)
+                    ?.biennial_cents
+                : PLAN_TIERS.find((p) => p.id === method_modal_plan.code)
+                    ?.monthly_cents) ?? method_modal_plan.price_cents,
+          )}
+          credits_apply_to_card={
+            !(
+              !!subscription &&
+              subscription.plan.code !== "free" &&
+              !is_crypto_provider(subscription.payment_provider) &&
+              subscription.has_stripe_subscription !== false
+            )
+          }
           on_choose_card={() => {
             const plan = method_modal_plan;
 
@@ -285,17 +431,34 @@ export function render_billing_dialogs(
             set_method_modal_plan(null);
             if (plan) handle_pay_with_card(plan);
           }}
-          on_choose_crypto={() => {
+          on_choose_crypto={(term_id) => {
             const plan = method_modal_plan;
 
             set_show_method_modal(false);
             set_method_modal_plan(null);
-            if (plan) handle_pay_with_crypto(plan);
+            set_crypto_back_plan(plan);
+            if (plan) {
+              handle_pay_with_crypto(plan, crypto_term_months(term_id));
+            }
           }}
           on_close={() => {
             set_show_method_modal(false);
             set_method_modal_plan(null);
           }}
+          on_select_term={(id) =>
+            set_billing_period(
+              id === "monthly"
+                ? "monthly"
+                : id === "biennial"
+                  ? "biennial"
+                  : "yearly",
+            )
+          }
+          open={show_method_modal}
+          plan_name={method_modal_plan.name}
+          selected_term={billing_period}
+          special_offer={offer_checkout.plan_pricing(method_modal_plan.code)}
+          term_options={plan_term_options_for(method_modal_plan.code)}
         />
       )}
 
@@ -307,23 +470,46 @@ export function render_billing_dialogs(
 
           return (
             <CryptoTermModal
+              discount_percent_off={offer_checkout.percent_off}
+              discounted_price_cents={offer_checkout.crypto_price(
+                crypto_plan.code,
+              )}
               initial_coin_key={
                 crypto_resume
                   ? `${crypto_resume.currency}:${crypto_resume.chain}`
                   : undefined
               }
               initial_invoice_id={crypto_resume?.invoice_id}
-              initial_term_months={crypto_resume?.term_months}
+              initial_term_months={
+                crypto_resume?.term_months ?? crypto_initial_term
+              }
               is_open={show_crypto_modal}
               monthly_price_cents={tier.monthly_cents}
               on_close={() => {
                 set_show_crypto_modal(false);
                 set_crypto_plan(null);
                 set_crypto_resume(null);
+                if (crypto_back_plan) {
+                  set_method_modal_plan(crypto_back_plan);
+                  set_show_method_modal(true);
+                  set_crypto_back_plan(null);
+                }
+              }}
+              on_finished={() => {
+                set_show_crypto_modal(false);
+                set_crypto_plan(null);
+                set_crypto_resume(null);
+                set_crypto_back_plan(null);
               }}
               plan_code={crypto_plan.code}
               plan_name={crypto_plan.name}
               preferred_currency={preferred_currency}
+              promo_code={
+                offer_checkout.crypto_price(crypto_plan.code)
+                  ? special_offer_promo_code()
+                  : undefined
+              }
+              special_offer={!!offer_checkout.crypto_price(crypto_plan.code)}
               yearly_price_cents={tier.yearly_cents}
             />
           );
@@ -331,9 +517,11 @@ export function render_billing_dialogs(
 
       {addon_method_target && (
         <PlanPaymentMethodModal
-          open={show_addon_method_modal}
-          plan_name={addon_method_target.name}
           busy={is_action_loading}
+          credit_balance_cents={Math.min(
+            credit_balance?.balance_cents ?? 0,
+            addon_method_target.price_cents,
+          )}
           on_choose_card={() => {
             const addon = addon_method_target;
 
@@ -346,12 +534,83 @@ export function render_billing_dialogs(
 
             set_show_addon_method_modal(false);
             set_addon_method_target(null);
+            set_crypto_back_addon(addon);
             if (addon) handle_addon_pay_crypto(addon);
           }}
           on_close={() => {
             set_show_addon_method_modal(false);
             set_addon_method_target(null);
           }}
+          open={show_addon_method_modal}
+          plan_name={addon_method_target.name}
+        />
+      )}
+
+      {pending_family_tier && (
+        <PlanPaymentMethodModal
+          busy={is_action_loading}
+          on_choose_card={handle_family_card}
+          on_choose_crypto={handle_family_crypto}
+          on_close={() => set_pending_family_tier(null)}
+          open={!!pending_family_tier}
+          plan_name={pending_family_tier.name}
+          selected_term={
+            billing_period === "monthly"
+              ? "monthly"
+              : billing_period === "yearly"
+                ? "yearly"
+                : "biennial"
+          }
+          term_options={[
+            {
+              id: "monthly",
+              label: t("settings.billing_monthly"),
+              per_month_cents: pending_family_tier.monthly_cents,
+              total_cents: pending_family_tier.monthly_cents,
+              save_cents: 0,
+            },
+            {
+              id: "yearly",
+              label: t("settings.billing_yearly"),
+              per_month_cents: Math.round(
+                pending_family_tier.yearly_cents / 12,
+              ),
+              total_cents: pending_family_tier.yearly_cents,
+              save_cents:
+                pending_family_tier.monthly_cents * 12 -
+                pending_family_tier.yearly_cents,
+            },
+            {
+              id: "biennial",
+              label: t("settings.biennial"),
+              per_month_cents: Math.round(
+                pending_family_tier.biennial_cents / 24,
+              ),
+              total_cents: pending_family_tier.biennial_cents,
+              save_cents:
+                pending_family_tier.monthly_cents * 24 -
+                pending_family_tier.biennial_cents,
+              crypto_only: true,
+            },
+          ]}
+        />
+      )}
+
+      {crypto_family_tier && (
+        <CryptoTermModal
+          is_open={!!crypto_family_tier}
+          monthly_price_cents={crypto_family_tier.monthly_cents}
+          on_close={() => {
+            const tier = crypto_family_tier;
+
+            set_crypto_family_tier(null);
+            set_pending_family_tier(tier);
+          }}
+          on_finished={() => set_crypto_family_tier(null)}
+          plan_code={crypto_family_tier.id}
+          plan_name={crypto_family_tier.name}
+          preferred_currency={preferred_currency}
+          yearly_price_cents={crypto_family_tier.yearly_cents}
         />
       )}
 
@@ -363,6 +622,16 @@ export function render_billing_dialogs(
           on_close={() => {
             set_show_crypto_addon_modal(false);
             set_crypto_addon(null);
+            if (crypto_back_addon) {
+              set_addon_method_target(crypto_back_addon);
+              set_show_addon_method_modal(true);
+              set_crypto_back_addon(null);
+            }
+          }}
+          on_finished={() => {
+            set_show_crypto_addon_modal(false);
+            set_crypto_addon(null);
+            set_crypto_back_addon(null);
           }}
           preferred_currency={preferred_currency}
           price_cents={crypto_addon.price_cents}
@@ -373,16 +642,63 @@ export function render_billing_dialogs(
         <PlanChangeConfirmModal
           billing_interval={plan_change_confirm_target.interval}
           is_confirming={is_action_loading}
-          open={show_plan_change_confirm}
-          plan_code={plan_change_confirm_target.plan.code}
-          plan_name={plan_change_confirm_target.plan.name}
           on_close={() => {
             set_show_plan_change_confirm(false);
             set_plan_change_confirm_target(null);
           }}
           on_confirm={handle_confirm_plan_change}
+          open={show_plan_change_confirm}
+          plan_code={plan_change_confirm_target.plan.code}
+          plan_name={plan_change_confirm_target.plan.name}
         />
       )}
+
+      <AlertDialog
+        open={!!addon_to_cancel}
+        onOpenChange={(open) => {
+          if (!open) set_addon_to_cancel(null);
+        }}
+      >
+        <AlertDialogContent className="w-[calc(100%-2rem)] max-w-[520px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("settings.confirm_cancel_addon")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("settings.confirm_cancel_addon_description")}
+              {addon_to_cancel && (
+                <span className="mt-2 block font-medium text-[var(--text-primary)]">
+                  {addon_to_cancel.size_label} -{" "}
+                  {format_price(
+                    convert_cents(
+                      addon_to_cancel.price_cents,
+                      preferred_currency,
+                    ),
+                    preferred_currency,
+                  )}
+                  {t("settings.per_month_short")}
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="max-sm:flex-row max-sm:gap-3">
+            <AlertDialogCancel className="max-sm:flex-1">
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="aster_btn_destructive max-sm:flex-1"
+              disabled={is_action_loading}
+              onClick={(e) => {
+                e.preventDefault();
+                handle_cancel_addon();
+              }}
+            >
+              {t("settings.confirm_cancel_addon")}
+              {is_action_loading && <ButtonSpinner />}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <PaymentMethodsModal
         on_close={() => set_show_payment_methods(false)}

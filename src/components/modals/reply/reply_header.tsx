@@ -31,6 +31,7 @@ import { RecipientField } from "@/components/compose/compose_shared";
 import { SenderSelector } from "@/components/compose/sender_selector";
 import { use_i18n } from "@/lib/i18n/context";
 import { build_reply_subject } from "@/lib/reply_subject";
+import { resolve_reply_prefix } from "@/lib/reply_defaults";
 
 interface ReplyHeaderProps {
   handle_drag_start: (e: React.MouseEvent) => void;
@@ -96,7 +97,7 @@ export function ReplyHeader({
         style={{ opacity: 0.5 }}
       />
       <div
-        className="flex items-center justify-between px-4 py-2 sm:py-3 border-b border-edge-primary sm:cursor-move select-none"
+        className="flex items-center justify-between px-4 py-2 sm:py-3 border-b border-[var(--aster-floating-divider)] sm:cursor-move select-none"
         role="presentation"
         onMouseDown={handle_drag_start}
       >
@@ -160,6 +161,7 @@ export function ReplyHeader({
             )}
           </button>
           <button
+            aria-label={t("common.close")}
             className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded hover_bg text-txt-muted"
             onClick={handle_close}
           >
@@ -169,11 +171,19 @@ export function ReplyHeader({
       </div>
 
       {!is_minimized && (
-        <div className="px-4 pt-3 pb-1 flex-shrink-0">
-          <div className="flex items-center gap-2 py-2 border-b border-edge-secondary">
-            <span className="text-sm flex-shrink-0 text-txt-tertiary">
+        <div className="pt-3 pb-1 flex-shrink-0">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-edge-secondary">
+            <button
+              className="text-sm flex-shrink-0 text-txt-tertiary"
+              type="button"
+              onClick={(e) =>
+                e.currentTarget.parentElement
+                  ?.querySelector<HTMLButtonElement>("button[aria-haspopup]")
+                  ?.click()
+              }
+            >
               {t("mail.from")}
-            </span>
+            </button>
             <SenderSelector
               ghost_error={ghost_error}
               ghost_expiry_days={ghost_expiry_days}
@@ -188,7 +198,7 @@ export function ReplyHeader({
               selected={selected_sender}
             />
           </div>
-          <div className="py-2 border-b border-edge-secondary">
+          <div className="px-4 py-2 border-b border-edge-secondary">
             <RecipientField
               show_bcc
               show_cc_bcc_buttons
@@ -214,7 +224,7 @@ export function ReplyHeader({
           </div>
 
           {show_cc && (
-            <div className="py-2 border-b border-edge-secondary">
+            <div className="px-4 py-2 border-b border-edge-secondary">
               <RecipientField
                 contacts={contacts}
                 input_value={inputs.cc}
@@ -241,14 +251,14 @@ export function ReplyHeader({
             </div>
           )}
 
-          <div className="flex items-center gap-2 py-2 border-b border-edge-secondary">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-edge-secondary">
             <span className="text-sm flex-shrink-0 text-txt-tertiary">
               {t("mail.subject")}
             </span>
-            <span className="text-sm truncate text-txt-primary">
+            <span className="text-sm truncate text-txt-primary" dir="auto">
               {build_reply_subject(
                 original_subject,
-                t("mail.reply_subject_prefix"),
+                resolve_reply_prefix(t("mail.reply_subject_prefix")),
               ) || t("mail.no_subject")}
             </span>
           </div>

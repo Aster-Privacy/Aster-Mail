@@ -26,7 +26,7 @@ import { type RestoredEmailEntry } from "@/hooks/email_list_helpers";
 export interface UseContextMenuActionsParams {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   current_view: string;
-  emails: InboxEmail[];
+  get_emails: () => InboxEmail[];
   update_email: (id: string, updates: Partial<InboxEmail>) => void;
   remove_email: (id: string) => void;
   remove_emails: (ids: string[]) => void;
@@ -64,6 +64,7 @@ export interface UseContextMenuActionsParams {
   is_drafts_view: boolean;
   is_scheduled_view: boolean;
   schedule_delete_drafts: (ids: string[]) => () => void;
+  cancel_scheduled: (id: string) => Promise<boolean>;
 }
 
 export interface ContextMenuActions {

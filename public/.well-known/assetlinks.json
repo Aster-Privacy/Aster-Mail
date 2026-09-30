@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "org.astermail.android",
+      "sha256_cert_fingerprints": [
+        "88:B0:A8:A6:FB:94:EE:73:A4:54:A0:F9:27:32:BD:40:8E:92:E5:1E:C1:E9:55:67:44:E5:F0:05:56:10:09:77"
+      ]
+    }
+  }
+]

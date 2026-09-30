@@ -19,10 +19,22 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client } from "@/services/api/client";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 const STORAGE_KEY = "aster_preferred_sender_id";
+
+const DOMAIN_PREFIX = "domain-";
+
+export function sender_id_matches(
+  option_id: string,
+  preferred_id: string,
+): boolean {
+  if (option_id === preferred_id) return true;
+  if (option_id === DOMAIN_PREFIX + preferred_id) return true;
+  if (preferred_id === DOMAIN_PREFIX + option_id) return true;
+
+  return false;
+}
 
 type Listener = (id: string | null) => void;
 
@@ -67,9 +79,17 @@ export function set_preferred_sender_id(id: string | null): void {
 
   write_local(id);
   if (current !== id) notify(id);
-  sync_preferred_sender_to_server(id).catch((caught) =>
-    ignore_error("lib/preferred_sender:set_preferred_sender_id", caught),
-  );
+  sync_preferred_sender_to_server(id)
+    .then((saved) => {
+      if (saved) return;
+      if (read_local() !== id) return;
+
+      write_local(current);
+      if (current !== id) notify(current);
+    })
+    .catch((caught) =>
+      ignore_error("lib/preferred_sender:set_preferred_sender_id", caught),
+    );
 }
 
 export function clear_preferred_sender_local(): void {
@@ -85,12 +105,50 @@ export function subscribe_preferred_sender(listener: Listener): () => void {
   return () => listeners.delete(listener);
 }
 
+let server_load_settled = false;
+const ready_listeners: Set<() => void> = new Set();
+
+function mark_preferred_sender_ready(): void {
+  if (server_load_settled) return;
+  server_load_settled = true;
+  ready_listeners.forEach((l) => {
+    try {
+      l();
+    } catch {
+      /* ignore */
+    }
+  });
+  ready_listeners.clear();
+}
+
+export function is_preferred_sender_ready(): boolean {
+  return server_load_settled;
+}
+
+export function subscribe_preferred_sender_ready(
+  listener: () => void,
+): () => void {
+  if (server_load_settled) {
+    listener();
+
+    return () => {};
+  }
+  ready_listeners.add(listener);
+
+  return () => ready_listeners.delete(listener);
+}
+
 async function sync_preferred_sender_to_server(
   id: string | null,
-): Promise<void> {
-  await api_client.put("/settings/v1/preferences/default-sender", {
-    sender_id: id,
-  });
+): Promise<boolean> {
+  const response = await api_client.put(
+    "/settings/v1/preferences/default-sender",
+    {
+      sender_id: id,
+    },
+  );
+
+  return !response.error;
 }
 
 if (typeof window !== "undefined") {
@@ -131,5 +189,7 @@ export async function load_preferred_sender_from_server(): Promise<void> {
     }
   } catch {
     /* ignore */
+  } finally {
+    mark_preferred_sender_ready();
   }
 }

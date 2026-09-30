@@ -28,7 +28,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { TAG_COLOR_PRESETS } from "@/components/ui/email_tag";
+import {
+  TAG_COLOR_PRESETS,
+  tag_color_label_key,
+} from "@/components/ui/email_tag";
 import { HEX_COLOR_REGEX } from "@/components/settings/hooks/use_external_accounts";
 
 interface LabelSectionProps {
@@ -101,7 +104,7 @@ export function LabelSection({
             </PopoverTrigger>
             <PopoverContent
               align="start"
-              className="w-auto p-3 z-[70] bg-modal-bg border-edge-primary"
+              className="w-auto p-3 z-[70]"
               sideOffset={6}
             >
               <div className="space-y-3">
@@ -114,7 +117,9 @@ export function LabelSection({
                   {TAG_COLOR_PRESETS.map((color) => (
                     <button
                       key={color.hex}
-                      aria-label={t("settings.select_color", { name: color.name })}
+                      aria-label={t("settings.select_color", {
+                        name: t(tag_color_label_key(color.variant)),
+                      })}
                       className="w-9 h-9 rounded-full"
                       style={{
                         backgroundColor: color.hex,
@@ -123,7 +128,7 @@ export function LabelSection({
                             ? `0 0 0 2px var(--modal-bg), 0 0 0 3.5px ${color.hex}`
                             : "none",
                       }}
-                      title={color.name}
+                      title={t(tag_color_label_key(color.variant))}
                       type="button"
                       onClick={() => set_form_label_color(color.hex)}
                     />

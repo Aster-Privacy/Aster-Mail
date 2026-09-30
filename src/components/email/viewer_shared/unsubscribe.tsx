@@ -18,23 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/types/thread";
-import type { } from "@/services/api/mail";
-import type { } from "@/services/api/multi_drafts";
-import type { } from "@/lib/html_sanitizer";
+import type {} from "@/types/thread";
+import type {} from "@/services/api/mail";
+import type {} from "@/services/api/multi_drafts";
+import type {} from "@/lib/html_sanitizer";
 import type { DecryptedEmail } from "@/components/email/use_email_viewer";
-import type { } from "@/components/email/hooks/preload_cache";
+import type {} from "@/components/email/hooks/preload_cache";
 
-import React, {    } from "react";
-import {
-  XMarkIcon,
-  EnvelopeIcon,
-} from "@heroicons/react/24/outline";
+import React from "react";
+import { XMarkIcon, EnvelopeIcon } from "@heroicons/react/24/outline";
 
 import { use_external_link } from "@/contexts/external_link_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { is_system_email } from "@/lib/utils";
-
 
 export interface ViewerUnsubscribeBannerProps {
   email: Pick<
@@ -60,7 +56,7 @@ export function ViewerUnsubscribeBanner({
 
   if (dismissed) return null;
   if (!email.unsubscribe_info?.has_unsubscribe) return null;
-  if (is_system_email(email.sender_email)) return null;
+  if (is_system_email(email)) return null;
 
   const info = email.unsubscribe_info;
 
@@ -166,7 +162,7 @@ export function ViewerUnsubscribeBanner({
                 info.unsubscribe_mailto ||
                 info.list_unsubscribe_header) && (
                 <button
-                  className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
+                  className="rounded-[var(--aster-radius-control)] px-3 py-1 text-sm font-medium transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
                   type="button"
                   onClick={handle_unsubscribe}
                 >
@@ -175,7 +171,7 @@ export function ViewerUnsubscribeBanner({
               )}
             {status === "error" && info.unsubscribe_link && (
               <button
-                className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
+                className="rounded-[var(--aster-radius-control)] px-3 py-1 text-sm font-medium transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
                 type="button"
                 onClick={() => handle_external_link(info.unsubscribe_link!)}
               >
@@ -196,4 +192,3 @@ export function ViewerUnsubscribeBanner({
     </div>
   );
 }
-

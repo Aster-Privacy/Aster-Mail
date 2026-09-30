@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+import type { PlanFeatureIcon } from "@/components/settings/billing/plan_feature_icons";
+
 export const ADDON_BADGES: Record<string, "popular" | "best_value"> = {
   "100 GB": "popular",
   "10 TB": "best_value",
@@ -161,7 +164,6 @@ export interface FamilyPlanTier {
   monthly_cents: number;
   yearly_cents: number;
   biennial_cents: number;
-  savings_label: string;
   is_recommended?: boolean;
 }
 
@@ -175,7 +177,6 @@ export const FAMILY_PLAN_TIERS: FamilyPlanTier[] = [
     monthly_cents: 1299,
     yearly_cents: 11999,
     biennial_cents: 20699,
-    savings_label: "Save $35.89/yr",
   },
   {
     id: "family",
@@ -186,16 +187,19 @@ export const FAMILY_PLAN_TIERS: FamilyPlanTier[] = [
     monthly_cents: 2699,
     yearly_cents: 26399,
     biennial_cents: 45499,
-    savings_label: "Save $59.89/yr",
     is_recommended: true,
   },
 ];
+
+export function family_yearly_savings_cents(tier: FamilyPlanTier): number {
+  return Math.max(0, tier.monthly_cents * 12 - tier.yearly_cents);
+}
 
 export const PLAN_TIERS: PlanTier[] = [
   {
     id: "star",
     name: "Star",
-    description: "More storage, more aliases, and your first custom domains.",
+    description: "More storage, more aliases, and up to 5 custom domains.",
     monthly_cents: 299,
     yearly_cents: 2899,
     biennial_cents: 4999,
@@ -358,54 +362,60 @@ export function detect_currency_from_locale(): string {
 }
 
 export interface FamilyPlanFeature {
-  label: string;
+  label_key: TranslationKey;
   on: boolean;
+  icon?: PlanFeatureIcon;
 }
 
 export const FAMILY_PLAN_DUO_FEATURES: FamilyPlanFeature[] = [
-  { label: "2 members, separate accounts", on: true },
-  { label: "Everything in Nova, for every member", on: true },
-  { label: "1 TB shared pool, privately allocated per member", on: true },
-  { label: "End-to-end encryption", on: true },
-  { label: "Zero-access architecture", on: true },
-  { label: "Shared family aliases", on: true },
-  { label: "Unlimited email aliases", on: true },
-  { label: "30 custom domains", on: true },
-  { label: "Use your favorite mail app (via Aster Bridge)", on: true },
-  { label: "Invite by link or email", on: true },
-  { label: "Priority support", on: true },
-  { label: "Domain sharing across members", on: true },
-  { label: "Security policies (2FA enforcement)", on: true },
-  { label: "Lockdown Mode", on: true },
-  { label: "Admin role transfer", on: true },
-  { label: "Org groups & distribution lists", on: false },
-  { label: "Activity log & audit trail", on: false },
-  { label: "Org-wide email filters", on: false },
-  { label: "Data retention policies", on: false },
-  { label: "Per-member storage controls", on: false },
+  { label_key: "settings.family_feat_members_2", on: true, icon: "members" },
+  { label_key: "settings.family_feat_pool_1tb", on: true, icon: "storage" },
+  {
+    label_key: "settings.family_feat_everything_nova",
+    on: true,
+    icon: "everything",
+  },
+  { label_key: "settings.family_shared_aliases", on: true, icon: "alias" },
+  {
+    label_key: "settings.family_feat_domain_sharing",
+    on: true,
+    icon: "domain",
+  },
+  { label_key: "settings.family_feat_invite", on: true, icon: "invite" },
+  {
+    label_key: "settings.family_feat_security_policies",
+    on: true,
+    icon: "shield",
+  },
+  { label_key: "settings.plan_f_support_priority", on: true, icon: "support" },
 ];
 
 export const FAMILY_PLAN_FAMILY_FEATURES: FamilyPlanFeature[] = [
-  { label: "Up to 6 members, separate accounts", on: true },
-  { label: "Everything in Supernova, for every member", on: true },
-  { label: "3 TB shared pool, privately allocated per member", on: true },
-  { label: "End-to-end encryption", on: true },
-  { label: "Zero-access architecture", on: true },
-  { label: "Shared family aliases", on: true },
-  { label: "Unlimited email aliases", on: true },
-  { label: "30 custom domains", on: true },
-  { label: "Use your favorite mail app (via Aster Bridge)", on: true },
-  { label: "Invite by link or email", on: true },
-  { label: "Priority support", on: true },
-  { label: "Org groups & distribution lists", on: true },
-  { label: "Activity log & audit trail", on: true },
-  { label: "Org-wide email filters", on: true },
-  { label: "Domain sharing across members", on: true },
-  { label: "Security policies (2FA enforcement)", on: true },
-  { label: "Lockdown Mode", on: true },
-  { label: "Data retention policies", on: true },
-  { label: "Per-member storage controls", on: true },
-  { label: "Admin role transfer", on: true },
+  { label_key: "settings.family_feat_members_6", on: true, icon: "members" },
+  { label_key: "settings.family_feat_pool_3tb", on: true, icon: "storage" },
+  {
+    label_key: "settings.family_feat_everything_supernova",
+    on: true,
+    icon: "everything",
+  },
+  { label_key: "settings.family_shared_aliases", on: true, icon: "alias" },
+  { label_key: "settings.family_feat_org_groups", on: true, icon: "org" },
+  {
+    label_key: "settings.family_feat_activity_log",
+    on: true,
+    icon: "activity",
+  },
+  { label_key: "settings.family_feat_retention", on: true, icon: "retention" },
+  {
+    label_key: "settings.family_feat_storage_controls",
+    on: true,
+    icon: "controls",
+  },
+  {
+    label_key: "settings.family_feat_admin_transfer",
+    on: true,
+    icon: "transfer",
+  },
 ];
 
 export const FEATURE_MIN_PLAN: Record<string, string> = {
@@ -422,7 +432,6 @@ export const FEATURE_MIN_PLAN: Record<string, string> = {
   has_vacation_reply: "star",
   max_alias_directories: "star",
   max_custom_categories: "star",
-  has_carddav_import: "nova",
   has_contact_merge_wizard: "nova",
   has_custom_key_rotation: "nova",
   has_encrypted_export: "nova",
@@ -430,11 +439,56 @@ export const FEATURE_MIN_PLAN: Record<string, string> = {
   has_dedicated_support: "supernova",
   has_early_access: "supernova",
   has_receipt_tracking: "supernova",
+  max_primary_renames: "supernova",
 };
+
+export const PREMIUM_ALIAS_DOMAINS = ["astermail.me", "astermail.net"];
+
+const PREMIUM_ALIAS_DOMAIN_PLANS = [
+  "star",
+  "nova",
+  "supernova",
+  "duo",
+  "family",
+  "family_duo",
+  "family_full",
+  "pro",
+  "business",
+];
+
+export function is_premium_alias_domain(domain: string): boolean {
+  return PREMIUM_ALIAS_DOMAINS.includes(domain.toLowerCase());
+}
+
+export function plan_allows_premium_alias_domains(
+  plan_code: string | null | undefined,
+): boolean {
+  if (!plan_code) return false;
+
+  return PREMIUM_ALIAS_DOMAIN_PLANS.includes(plan_code.toLowerCase());
+}
 
 export function min_plan_for_feature(feature: string | null): PlanTier | null {
   if (!feature) return null;
   const code = FEATURE_MIN_PLAN[feature] ?? feature;
 
   return PLAN_TIERS.find((tier) => tier.id === code) ?? null;
+}
+
+export function crypto_term_months(term_id: string | undefined): number {
+  if (term_id === "biennial") return 24;
+  if (term_id === "monthly") return 1;
+
+  return 12;
+}
+
+export function is_resumable_checkout_plan(
+  plan_code: string | null | undefined,
+): boolean {
+  if (!plan_code) return false;
+
+  return (
+    PLAN_TIERS.some((tier) => tier.id === plan_code) ||
+    FAMILY_PLAN_TIERS.some((tier) => tier.id === plan_code)
+  );
 }

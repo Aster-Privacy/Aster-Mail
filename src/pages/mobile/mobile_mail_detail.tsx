@@ -23,6 +23,8 @@ import { motion } from "framer-motion";
 import { StarIcon } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 
+import { Island, IslandDivider } from "@aster/ui";
+
 import { MobileThreadMessage } from "./mobile_thread_message";
 import {
   MobileUnsubscribeBanner,
@@ -89,8 +91,12 @@ function MobileMailDetail() {
     handle_toggle_star,
     handle_toggle_pin,
     is_archived,
+    is_trashed,
     handle_archive,
     handle_delete,
+    show_delete_confirm,
+    set_show_delete_confirm,
+    confirm_permanent_delete,
     handle_spam,
     handle_not_spam,
     handle_print,
@@ -116,6 +122,19 @@ function MobileMailDetail() {
     get_last_message,
   } = use_mobile_mail_detail();
 
+  if (detail.error) {
+    return (
+      <div className="flex h-full flex-col">
+        <MobileHeader on_back={handle_back} title="" />
+        <div className="flex flex-1 flex-col items-center justify-center gap-2 px-8">
+          <p className="text-center text-[15px] text-[var(--text-muted)]">
+            {detail.error}
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (detail.is_loading || !detail.email) {
     return (
       <div className="flex h-full flex-col">
@@ -136,19 +155,6 @@ function MobileMailDetail() {
             <Skeleton className="h-4 w-3/4 rounded" />
             <Skeleton className="h-4 w-2/3 rounded" />
           </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (detail.error) {
-    return (
-      <div className="flex h-full flex-col">
-        <MobileHeader on_back={handle_back} title="" />
-        <div className="flex flex-1 flex-col items-center justify-center gap-2 px-8">
-          <p className="text-center text-[15px] text-[var(--text-muted)]">
-            {detail.error}
-          </p>
         </div>
       </div>
     );
@@ -207,14 +213,13 @@ function MobileMailDetail() {
       <div
         ref={scroll_ref}
         className="flex-1 overflow-y-auto"
-        style={{ willChange: "transform" }}
         onTouchEnd={handle_touch_end}
         onTouchMove={handle_touch_move}
         onTouchStart={handle_touch_start}
       >
-        <div className="px-4 pt-2 pb-1">
+        <div className="px-4 pt-2 pb-1" dir="auto">
           <button
-            className={`text-[18px] font-semibold leading-snug text-[var(--text-primary)] text-left w-full ${subject_expanded ? "" : "truncate"}`}
+            className={`text-[18px] font-semibold leading-snug text-[var(--text-primary)] text-start w-full ${subject_expanded ? "" : "truncate"}`}
             type="button"
             onClick={() => set_subject_expanded((prev) => !prev)}
           >
@@ -242,15 +247,17 @@ function MobileMailDetail() {
             />
           )}
 
-        <div className="pt-1 pb-6">
+        <Island className="mx-3 mt-1 mb-6 overflow-hidden">
           {(preferences.conversation_order === "desc"
             ? [...display_messages].reverse()
             : display_messages
-          ).map((msg) => (
+          ).map((msg, idx) => (
             <div
               key={msg.id}
               ref={msg.id === first_unread_id ? first_unread_ref : undefined}
+              className="overflow-hidden"
             >
+              {idx > 0 && <IslandDivider />}
               <MobileThreadMessage
                 disable_auto_dark_mode={is_dark_mode_opted_out(msg.id)}
                 force_dark_mode={is_dark_mode_message(msg.id)}
@@ -274,13 +281,16 @@ function MobileMailDetail() {
               />
             </div>
           ))}
-        </div>
+        </Island>
       </div>
 
       <MobileToolbar
         actions={preferences.mobile_toolbar_actions}
         is_archived={is_archived}
+        is_read={email.is_read}
+        is_spam={!!detail.mail_item?.is_spam}
         is_starred={starred}
+        is_trashed={is_trashed}
         on_archive={handle_archive}
         on_delete={handle_delete}
         on_mark_read={() => {
@@ -299,7 +309,14 @@ function MobileMailDetail() {
 
           if (msg) detail.handle_per_message_print(msg);
         }}
-        on_spam={() => request_spam(handle_spam)}
+        on_spam={() => {
+          if (detail.mail_item?.is_spam) {
+            handle_not_spam();
+
+            return;
+          }
+          request_spam(handle_spam);
+        }}
         on_star={handle_toggle_star}
       />
 
@@ -417,6 +434,16 @@ function MobileMailDetail() {
         }}
         on_confirm={handle_block_sender}
         title={detail.t("mail.block_sender")}
+        variant="danger"
+      />
+      <ConfirmationModal
+        cancel_text={detail.t("common.cancel")}
+        confirm_text={detail.t("mail.delete_permanently")}
+        is_open={show_delete_confirm}
+        message={detail.t("mail.delete_email_confirmation")}
+        on_cancel={() => set_show_delete_confirm(false)}
+        on_confirm={confirm_permanent_delete}
+        title={detail.t("mail.delete_permanently_question")}
         variant="danger"
       />
       {spam_confirm_dialog}

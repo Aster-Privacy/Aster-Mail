@@ -53,6 +53,11 @@ export interface DecryptedEmail {
   raw_headers?: { name: string; value: string }[];
   reply_to?: EmailRecipient;
   sender_verification?: SenderVerificationStatus;
+  is_external?: boolean;
+  system_origin?: boolean;
+  sender_verified_domain?: string;
+  send_status?: string;
+  send_error?: string;
 }
 
 export interface ReplyData {
@@ -70,6 +75,8 @@ export interface ReplyData {
   original_cc?: string[];
   original_to?: string[];
   is_external?: boolean;
+  system_origin?: boolean;
+  sender_verified_domain?: string;
   thread_ghost_email?: string;
   reply_from_address?: string;
   original_rfc_message_id?: string;
@@ -83,6 +90,8 @@ export interface ForwardData {
   email_body: string;
   email_timestamp: string;
   is_external?: boolean;
+  system_origin?: boolean;
+  sender_verified_domain?: string;
   original_mail_id?: string;
 }
 
@@ -100,6 +109,7 @@ export interface UseEmailViewerOptions {
   email_id: string;
   local_email?: LocalEmailData;
   on_dismiss: () => void;
+  on_advance?: () => boolean;
   on_reply?: (data: ReplyData) => void;
   on_forward?: (data: ForwardData) => void;
   on_edit_draft?: (draft: DraftWithContent) => void;

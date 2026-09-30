@@ -18,14 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { SettingsSection } from "@/components/settings/settings_content";
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { EnvelopeIcon, NoSymbolIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
 
+import { Button } from "@/components/ui/button";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Sidebar } from "@/components/layout/sidebar";
 import { ComposeManager } from "@/components/compose/compose_manager";
@@ -38,6 +36,20 @@ import { use_email_detail } from "@/components/email/hooks/use_email_detail";
 import { EmailDetailHeader } from "@/components/email/email_detail/email_detail_header";
 import { EmailDetailBody } from "@/components/email/email_detail/email_detail_body";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { show_toast } from "@/components/toast/simple_toast";
+import { block_sender } from "@/services/api/blocked_senders";
+import {
+  get_manual_unsubscribe_url,
+  perform_unsubscribe,
+  UnsubscribeError,
+} from "@/utils/unsubscribe_detector";
+import { show_action_toast } from "@/components/toast/action_toast";
+import { open_external } from "@/utils/open_link";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
+import { resolve_settings_section } from "@/components/settings/settings_content_helpers";
+import { set_pending_settings_anchor } from "@/lib/settings_anchor";
+import { read_settings_navigation } from "@/lib/settings_links";
 
 export default function EmailDetailPage() {
   const reduce_motion = use_should_reduce_motion();
@@ -51,15 +63,80 @@ export default function EmailDetailPage() {
     detail.thread_messages?.find((m) => m.id === detail.email_id) ??
     detail.thread_messages?.[detail.thread_messages.length - 1];
 
+  const handle_block_sender_confirm = async () => {
+    detail.set_is_block_sender_modal_open(false);
+
+    if (!detail.email) return;
+
+    const result = await block_sender(
+      detail.email.sender_email,
+      detail.email.sender,
+    );
+
+    if (result.data) {
+      show_toast(detail.t("common.sender_blocked"), "success");
+    } else {
+      show_toast(detail.t("errors.failed_to_block_sender"), "error");
+    }
+  };
+
+  const handle_unsubscribe_confirm = async () => {
+    detail.set_is_unsubscribe_modal_open(false);
+
+    const info = detail.email?.unsubscribe_info;
+
+    if (!detail.email || !info) return;
+
+    try {
+      const result = await perform_unsubscribe(
+        detail.email.sender_email,
+        detail.email.sender,
+        info,
+        { skip_confirm: true },
+      );
+
+      if (result === "api") {
+        show_toast(detail.t("mail.successfully_unsubscribed"), "success");
+      } else {
+        const url = get_manual_unsubscribe_url(info);
+        const lockdown = is_any_lockdown_active();
+
+        show_action_toast({
+          message: detail.t("mail.unsubscribe_manual_required"),
+          action_type: "not_spam",
+          email_ids: [],
+          duration_ms: 15000,
+          ...(!lockdown &&
+            url && {
+              action_label: detail.t("mail.open_unsubscribe_page"),
+              on_undo: async () => {
+                open_external(url);
+              },
+            }),
+        });
+      }
+    } catch (caught) {
+      if (caught instanceof UnsubscribeError && caught.code === "cancelled") {
+        return;
+      }
+
+      show_toast(
+        caught instanceof UnsubscribeError
+          ? detail.t(caught.i18n_key)
+          : detail.t("mail.unsubscribe_failed"),
+        "error",
+      );
+    }
+  };
+
   useEffect(() => {
     const handle_navigate = (e: Event) => {
-      const detail_value = (
-        e as CustomEvent<string | { section: string; anchor?: string }>
-      ).detail;
-      const section = (
-        typeof detail_value === "string" ? detail_value : detail_value?.section
-      ) as SettingsSection | undefined;
+      const { section: requested, anchor } = read_settings_navigation(
+        (e as CustomEvent<unknown>).detail,
+      );
+      const section = resolve_settings_section(requested);
 
+      if (anchor) set_pending_settings_anchor(anchor);
       navigate(section ? `/settings/${section}` : "/settings");
     };
 
@@ -79,7 +156,9 @@ export default function EmailDetailPage() {
         {!is_popup && (
           <Sidebar
             is_mobile_open={detail.is_mobile_sidebar_open}
-            on_compose={detail.open_compose}
+            on_compose={(initial_to) =>
+              detail.open_compose(undefined, initial_to)
+            }
             on_mobile_toggle={detail.toggle_mobile_sidebar}
             on_settings_click={(section) => {
               navigate(section ? `/settings/${section}` : "/settings");
@@ -101,21 +180,6 @@ export default function EmailDetailPage() {
               handle_go_newer={detail.handle_go_newer}
               handle_go_older={detail.handle_go_older}
               handle_print={detail.handle_print}
-              handle_trash={detail.handle_trash}
-              is_archive_loading={detail.is_archive_loading}
-              is_trash_loading={detail.is_trash_loading}
-              navigate={detail.navigate}
-              preferences={detail.preferences}
-              set_is_archive_confirm_open={detail.set_is_archive_confirm_open}
-              set_is_trash_confirm_open={detail.set_is_trash_confirm_open}
-              t={detail.t}
-              toggle_mobile_sidebar={detail.toggle_mobile_sidebar}
-              is_popup={is_popup}
-              handle_view_source={
-                active_message
-                  ? () => detail.handle_per_message_view_source(active_message)
-                  : undefined
-              }
               handle_report_spam={
                 active_message && !detail.mail_item?.is_spam
                   ? () =>
@@ -126,6 +190,22 @@ export default function EmailDetailPage() {
                       )
                   : undefined
               }
+              handle_trash={detail.handle_trash}
+              handle_view_source={
+                active_message
+                  ? () => detail.handle_per_message_view_source(active_message)
+                  : undefined
+              }
+              is_archive_loading={detail.is_archive_loading}
+              is_popup={is_popup}
+              is_trash_loading={detail.is_trash_loading}
+              is_trashed={!!detail.mail_item?.is_trashed}
+              navigate={detail.navigate}
+              preferences={detail.preferences}
+              set_is_archive_confirm_open={detail.set_is_archive_confirm_open}
+              set_is_trash_confirm_open={detail.set_is_trash_confirm_open}
+              t={detail.t}
+              toggle_mobile_sidebar={detail.toggle_mobile_sidebar}
             />
 
             <EmailDetailBody
@@ -134,15 +214,12 @@ export default function EmailDetailPage() {
               error={detail.error}
               handle_edit_thread_draft={detail.handle_edit_thread_draft}
               handle_per_message_archive={detail.handle_per_message_archive}
-              handle_per_message_forward={detail.handle_per_message_forward}
               handle_per_message_not_spam={
                 detail.mail_item?.is_spam
                   ? detail.handle_per_message_not_spam
                   : undefined
               }
               handle_per_message_print={detail.handle_per_message_print}
-              handle_per_message_reply={detail.handle_per_message_reply}
-              handle_per_message_reply_all={detail.handle_per_message_reply_all}
               handle_per_message_report_phishing={(msg) =>
                 request_spam(() =>
                   detail.handle_per_message_report_phishing(msg),
@@ -155,6 +232,7 @@ export default function EmailDetailPage() {
               handle_thread_draft_deleted={detail.handle_thread_draft_deleted}
               handle_toggle_message_read={detail.handle_toggle_message_read}
               is_loading={detail.is_loading}
+              load_all_thread_messages={detail.load_all_thread_messages}
               mail_item={detail.mail_item}
               navigate={detail.navigate}
               on_external_content_detected={
@@ -167,7 +245,6 @@ export default function EmailDetailPage() {
               thread_draft={detail.thread_draft}
               thread_messages={detail.thread_messages}
               thread_truncated={detail.thread_truncated}
-              load_all_thread_messages={detail.load_all_thread_messages}
               user={detail.user}
             />
           </div>
@@ -186,7 +263,7 @@ export default function EmailDetailPage() {
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >
             <div
-              className="fixed inset-0 bg-black/50 z-50"
+              className="fixed inset-0 aster_scrim z-50"
               role="button"
               tabIndex={0}
               onClick={() => detail.set_is_block_sender_modal_open(false)}
@@ -200,7 +277,7 @@ export default function EmailDetailPage() {
             <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm z-50 px-4 sm:px-0">
               <motion.div
                 animate={{ opacity: 1, scale: 1 }}
-                className="rounded-xl border p-4 sm:p-6 shadow-xl bg-[var(--bg-primary)] border-[var(--border-secondary)]"
+                className="rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] p-4 sm:p-6"
                 exit={{ opacity: 0, scale: 0.95 }}
                 initial={reduce_motion ? false : { opacity: 0, scale: 0.95 }}
                 transition={{ duration: reduce_motion ? 0 : 0.15 }}
@@ -246,9 +323,7 @@ export default function EmailDetailPage() {
                   <Button
                     className="w-full sm:w-auto"
                     variant="destructive"
-                    onClick={() => {
-                      detail.set_is_block_sender_modal_open(false);
-                    }}
+                    onClick={handle_block_sender_confirm}
                   >
                     {detail.t("mail.block_sender")}
                   </Button>
@@ -267,7 +342,7 @@ export default function EmailDetailPage() {
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
           >
             <div
-              className="fixed inset-0 bg-black/50 z-50"
+              className="fixed inset-0 aster_scrim z-50"
               role="button"
               tabIndex={0}
               onClick={() => detail.set_is_unsubscribe_modal_open(false)}
@@ -281,7 +356,7 @@ export default function EmailDetailPage() {
             <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm z-50 px-4 sm:px-0">
               <motion.div
                 animate={{ opacity: 1, scale: 1 }}
-                className="rounded-xl border p-4 sm:p-6 shadow-xl bg-[var(--bg-primary)] border-[var(--border-secondary)]"
+                className="rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] p-4 sm:p-6"
                 exit={{ opacity: 0, scale: 0.95 }}
                 initial={reduce_motion ? false : { opacity: 0, scale: 0.95 }}
                 transition={{ duration: reduce_motion ? 0 : 0.15 }}
@@ -325,9 +400,7 @@ export default function EmailDetailPage() {
                   </Button>
                   <Button
                     className="w-full sm:w-auto"
-                    onClick={() => {
-                      detail.set_is_unsubscribe_modal_open(false);
-                    }}
+                    onClick={handle_unsubscribe_confirm}
                   >
                     {detail.t("mail.unsubscribe")}
                   </Button>
@@ -350,6 +423,15 @@ export default function EmailDetailPage() {
         }}
         title={detail.t("mail.archive_email_question")}
         variant="info"
+      />
+      <ConfirmationModal
+        confirm_text={detail.t("mail.delete_permanently")}
+        is_open={!!detail.pending_permanent_delete_id}
+        message={detail.t("mail.delete_email_confirmation")}
+        on_cancel={() => detail.set_pending_permanent_delete_id(null)}
+        on_confirm={detail.confirm_permanent_delete}
+        title={detail.t("mail.delete_permanently_question")}
+        variant="danger"
       />
       <ConfirmationModal
         show_dont_ask_again
@@ -397,11 +479,11 @@ export default function EmailDetailPage() {
         original_subject={detail.reply_modal_data?.original_subject ?? ""}
         original_timestamp={detail.reply_modal_data?.original_timestamp ?? ""}
         original_to={detail.reply_modal_data?.original_to}
+        quote_sender_email={detail.reply_modal_data?.quote_sender_email}
+        quote_sender_name={detail.reply_modal_data?.quote_sender_name}
         recipient_avatar=""
         recipient_email={detail.reply_modal_data?.recipient_email ?? ""}
         recipient_name={detail.reply_modal_data?.recipient_name ?? ""}
-        quote_sender_email={detail.reply_modal_data?.quote_sender_email}
-        quote_sender_name={detail.reply_modal_data?.quote_sender_name}
         reply_all={detail.reply_modal_data?.reply_all}
         reply_from_address={detail.reply_modal_data?.reply_from_address}
         thread_ghost_email={detail.reply_modal_data?.thread_ghost_email}
@@ -414,7 +496,10 @@ export default function EmailDetailPage() {
         }
         email_timestamp={
           detail.forward_target
-            ? new Date(detail.forward_target.timestamp).toLocaleString()
+            ? new Date(detail.forward_target.timestamp).toLocaleString(
+                app_locale(),
+                { timeZone: get_display_time_zone() },
+              )
             : detail.email?.timestamp
         }
         is_external={

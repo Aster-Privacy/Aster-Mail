@@ -19,12 +19,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { DeleteFolderOutcome } from "./cache";
+import { DecryptedFolder, FolderCounts, FoldersState } from "./tree";
+
 import {
   type ListFoldersParams,
   type DeleteFolderRequest,
 } from "@/services/api/folders";
-import { DeleteFolderOutcome } from "./cache";
-import { DecryptedFolder, FolderCounts, FoldersState } from "./tree";
+
+export interface CreateFolderOptions {
+  append?: boolean;
+}
 
 export interface UseFoldersReturn {
   state: FoldersState;
@@ -36,6 +41,7 @@ export interface UseFoldersReturn {
     name: string,
     color?: string,
     parent_token?: string,
+    options?: CreateFolderOptions,
   ) => Promise<{
     folder: DecryptedFolder | null;
     error?: string;
@@ -51,6 +57,7 @@ export interface UseFoldersReturn {
   reorder_folders: (
     entries: { id: string; sort_order: number }[],
   ) => Promise<boolean>;
+  sort_folders_a_z: () => Promise<boolean>;
   delete_existing_folder: (
     folder_id: string,
     options?: DeleteFolderRequest,
@@ -62,13 +69,14 @@ export interface UseFoldersReturn {
   add_folder_to_email: (
     email_id: string,
     folder_token: string,
+    is_unread?: boolean,
   ) => Promise<boolean>;
   remove_folder_from_email: (
     email_id: string,
     folder_token: string,
+    is_unread?: boolean,
   ) => Promise<boolean>;
   get_folder_by_token: (folder_token: string) => DecryptedFolder | undefined;
   get_folder_by_id: (folder_id: string) => DecryptedFolder | undefined;
   refresh: () => Promise<void>;
 }
-

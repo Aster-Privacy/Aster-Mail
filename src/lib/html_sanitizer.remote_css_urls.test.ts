@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { describe, it, expect } from "vitest";
+
 import { sanitize_html, type SanitizeOptions } from "./html_sanitizer";
 
 const TRACKER = "https://tracker.example.com/beacon.png";
@@ -48,13 +49,19 @@ const REMOTE_RULE = `.a { background-image: url(${TRACKER}); }`;
 
 describe("remote css urls in sandboxed rendering", () => {
   it("strips remote url() from head css when blocking is on", () => {
-    const result = sanitize_html(head_style_email(REMOTE_RULE), options("never"));
+    const result = sanitize_html(
+      head_style_email(REMOTE_RULE),
+      options("never"),
+    );
 
     expect(result.html).not.toContain("tracker.example.com");
   });
 
-  it.skip("strips remote url() from body css when blocking is on", () => {
-    const result = sanitize_html(body_style_email(REMOTE_RULE), options("never"));
+  it("strips remote url() from body css when blocking is on", () => {
+    const result = sanitize_html(
+      body_style_email(REMOTE_RULE),
+      options("never"),
+    );
 
     expect(result.html).not.toContain("tracker.example.com");
   });
@@ -106,7 +113,10 @@ describe("remote css urls in sandboxed rendering", () => {
   });
 
   it("reports blocked head css so the external content banner can offer a reload", () => {
-    const result = sanitize_html(head_style_email(REMOTE_RULE), options("never"));
+    const result = sanitize_html(
+      head_style_email(REMOTE_RULE),
+      options("never"),
+    );
 
     expect(result.external_content.has_remote_css).toBe(true);
     expect(
@@ -152,7 +162,10 @@ describe("remote css urls in sandboxed rendering", () => {
   });
 
   it("leaves remote head css intact when the user has allowed all external content", () => {
-    const result = sanitize_html(head_style_email(REMOTE_RULE), options("always"));
+    const result = sanitize_html(
+      head_style_email(REMOTE_RULE),
+      options("always"),
+    );
 
     expect(result.html).toContain("tracker.example.com");
   });
@@ -160,6 +173,7 @@ describe("remote css urls in sandboxed rendering", () => {
   it("processes a malformed unterminated url() in reasonable time", () => {
     const evil = `.a { background-image: url(${" ".repeat(60000)}`;
     const started = Date.now();
+
     sanitize_html(head_style_email(evil), options("never"));
     const elapsed = Date.now() - started;
 
@@ -225,7 +239,9 @@ describe("remote css urls in sandboxed rendering", () => {
 
   it("keeps blob url() references produced by the cid resolver", () => {
     const result = sanitize_html(
-      head_style_email(`.a { background-image: url(blob:https://app.example/abc); }`),
+      head_style_email(
+        `.a { background-image: url(blob:https://app.example/abc); }`,
+      ),
       options("never"),
     );
 
@@ -238,9 +254,114 @@ describe("remote css urls in sandboxed rendering", () => {
       () => `.x { background: url(https://a.example${" ".repeat(200)}`,
     ).join("\n");
     const started = Date.now();
+
     sanitize_html(head_style_email(evil), options("never"));
     const elapsed = Date.now() - started;
 
     expect(elapsed).toBeLessThan(4000);
+  });
+});
+
+describe("remote css urls when remote content is allowed", () => {
+  const SAME_ORIGIN_PROXY = "/api/images/v1/proxy";
+  const PROXIED = `${SAME_ORIGIN_PROXY}?url=${encodeURIComponent(TRACKER)}`;
+  const FONT = "https://fonts.example.com/a.woff2";
+
+  const allowed_options = (): SanitizeOptions => ({
+    external_content_mode: "always",
+    sandbox_mode: true,
+    image_proxy_url: SAME_ORIGIN_PROXY,
+  });
+
+  it("routes head css url() through the proxy", () => {
+    const result = sanitize_html(
+      head_style_email(REMOTE_RULE),
+      allowed_options(),
+    );
+
+    expect(result.html).toContain(PROXIED);
+    expect(result.html).not.toContain(`url(${TRACKER}`);
+  });
+
+  it("routes body css url() through the proxy", () => {
+    const result = sanitize_html(
+      body_style_email(REMOTE_RULE),
+      allowed_options(),
+    );
+
+    expect(result.html).toContain(PROXIED);
+    expect(result.html).not.toContain(`url(${TRACKER}`);
+  });
+
+  it("routes inline style url() through the proxy", () => {
+    const result = sanitize_html(
+      inline_style_email(`background-image: url(${TRACKER})`),
+      allowed_options(),
+    );
+
+    expect(result.html).toContain(PROXIED);
+    expect(result.html).not.toContain(`url(${TRACKER}`);
+  });
+
+  it("routes @font-face sources through the font proxy", () => {
+    const result = sanitize_html(
+      head_style_email(
+        `@font-face { font-family: brand; src: url(${FONT}); } ${REMOTE_RULE}`,
+      ),
+      allowed_options(),
+    );
+
+    expect(result.html).toContain(
+      `/api/content/v1/proxy?url=${encodeURIComponent(FONT)}&content_type=font`,
+    );
+    expect(result.html).not.toContain(`url(${FONT})`);
+    expect(result.html).toContain(PROXIED);
+  });
+
+  it("drops @font-face sources when no font proxy can be derived", () => {
+    const result = sanitize_html(
+      head_style_email(`@font-face { font-family: brand; src: url(${FONT}); }`),
+      {
+        ...allowed_options(),
+        image_proxy_url: "https://proxy.example.com/img",
+      },
+    );
+
+    expect(result.html).not.toContain("fonts.example.com");
+  });
+
+  it("routes css url() through a proxy on another origin", () => {
+    const result = sanitize_html(head_style_email(REMOTE_RULE), {
+      ...allowed_options(),
+      image_proxy_url: "https://app.astermail.org/api/images/v1/proxy",
+    });
+
+    expect(result.html).toContain(
+      `https://app.astermail.org/api/images/v1/proxy?url=${encodeURIComponent(TRACKER)}`,
+    );
+    expect(result.html).not.toContain(`url(${TRACKER}`);
+  });
+
+  it("does not treat @font-face inside a selector string as a font rule", () => {
+    const result = sanitize_html(
+      head_style_email(
+        `.a[title="@font-face{"] { background-image: url(${TRACKER}); }`,
+      ),
+      allowed_options(),
+    );
+
+    expect(result.html).not.toContain(`url(${TRACKER}`);
+  });
+
+  it("does not let a brace inside a font-face string hide later rules", () => {
+    const result = sanitize_html(
+      head_style_email(
+        `@font-face { font-family: "{"; src: url(${FONT}); } ${REMOTE_RULE}`,
+      ),
+      allowed_options(),
+    );
+
+    expect(result.html).not.toContain(`url(${TRACKER}`);
+    expect(result.html).toContain(PROXIED);
   });
 });

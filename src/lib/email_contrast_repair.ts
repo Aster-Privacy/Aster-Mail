@@ -139,10 +139,7 @@ function parse_hex_color(value: string): Rgba | null {
       r: (n >> 16) & 255,
       g: (n >> 8) & 255,
       b: n & 255,
-      a:
-        body.length === 8
-          ? Number.parseInt(body.slice(6, 8), 16) / 255
-          : 1,
+      a: body.length === 8 ? Number.parseInt(body.slice(6, 8), 16) / 255 : 1,
     };
   }
 
@@ -449,11 +446,7 @@ function repaired_border_color(
 
   if (!worst || worst_ratio >= BORDER_MIN_CONTRAST) return null;
 
-  const repaired = repair_lightness(
-    worst,
-    background.hex,
-    BORDER_MIN_CONTRAST,
-  );
+  const repaired = repair_lightness(worst, background.hex, BORDER_MIN_CONTRAST);
 
   return repaired === worst ? null : repaired;
 }
@@ -545,9 +538,7 @@ export function repair_email_contrast(
     if (tag === "A" && !is_link) continue;
 
     const paints_text = is_link || has_own_text(element);
-    const border = repair_borders
-      ? repaired_border_color(style, state)
-      : null;
+    const border = repair_borders ? repaired_border_color(style, state) : null;
 
     if (!paints_text && !border) continue;
 

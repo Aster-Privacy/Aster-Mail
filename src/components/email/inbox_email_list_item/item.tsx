@@ -18,10 +18,18 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/types/email";
-import type { } from "@/hooks/use_attachment_previews";
+import type {} from "@/types/email";
+import type {} from "@/hooks/use_attachment_previews";
 
-import { forwardRef, memo, useMemo, useState, useRef, useEffect } from "react";
+import {
+  forwardRef,
+  memo,
+  useCallback,
+  useMemo,
+  useState,
+  useRef,
+  useEffect,
+} from "react";
 import {
   ArchiveBoxArrowDownIcon,
   ArrowUturnLeftIcon,
@@ -40,7 +48,18 @@ import {
 } from "@heroicons/react/24/solid";
 import { Checkbox, Tooltip } from "@aster/ui";
 
+import {
+  InboxEmailListItemProps,
+  StarToggleButton,
+  format_email_size,
+  format_mobile_timestamp,
+  get_density_classes,
+  sweep_drag_images,
+  truncate_preview,
+} from "./helpers";
+
 import { use_i18n } from "@/lib/i18n/context";
+import { strip_preview_filler } from "@/utils/preview_text";
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
   PGP_UNDECRYPTABLE_SENTINEL,
@@ -59,7 +78,13 @@ import { SnoozeBadge } from "@/components/ui/snooze_badge";
 import { ExpirationCountdown } from "@/components/email/expiration_countdown";
 import { AttachmentChip } from "@/components/email/attachment_chip";
 import { fetch_priority_attr } from "@/lib/fetch_priority";
-import { cn, is_system_email } from "@/lib/utils";
+import {
+  cn,
+  format_number,
+  is_system_address,
+  is_system_email,
+  trust_source_for_display,
+} from "@/lib/utils";
 import { is_compact_density, list_select_slot_class } from "@/lib/list_density";
 import {
   get_alias_hash_by_address,
@@ -71,19 +96,17 @@ import {
 } from "@/hooks/use_alias_delivery";
 import { use_preferences } from "@/contexts/preferences_context";
 import {
+  is_outgoing_view,
   outgoing_profile_email,
   outgoing_recipient_names,
   resolve_list_display_name,
 } from "@/hooks/email_list_helpers";
-import {
-  empty_selection_snapshot,
-} from "@/components/email/inbox/selection_snapshot";
+import { empty_selection_snapshot } from "@/components/email/inbox/selection_snapshot";
 import {
   begin_category_drag,
   end_category_drag,
 } from "@/components/email/inbox/category_drag";
 import mail_logo_url from "@/assets/mail_logo.webp";
-import { InboxEmailListItemProps, StarToggleButton, format_email_size, format_mobile_timestamp, get_density_classes, sweep_drag_images, truncate_preview } from "./helpers";
 
 export const InboxEmailListItem = memo(
   forwardRef<HTMLDivElement, InboxEmailListItemProps>(
@@ -121,6 +144,7 @@ export const InboxEmailListItem = memo(
       const is_trash_view = current_view === "trash";
       const is_spam_view = current_view === "spam";
       const is_archive_view = current_view === "archive";
+      const is_outgoing = is_outgoing_view(current_view);
       const in_scoped_collection_view =
         (current_view ?? "").startsWith("folder-") ||
         (current_view ?? "").startsWith("tag-");
@@ -134,7 +158,7 @@ export const InboxEmailListItem = memo(
         email.sender_email,
       );
       const peer_profile = use_peer_profile(
-        is_system_email(profile_target_email) ? null : profile_target_email,
+        is_system_address(profile_target_email) ? null : profile_target_email,
       );
       const show_sender_email = outgoing_names
         ? profile_target_email
@@ -165,17 +189,33 @@ export const InboxEmailListItem = memo(
         on_move_to_inbox ||
         on_mark_not_spam;
 
+      const current_folder_token = (current_view ?? "").startsWith("folder-")
+        ? (current_view ?? "").slice("folder-".length)
+        : null;
+      const current_tag_token = (current_view ?? "").startsWith("tag-")
+        ? (current_view ?? "").slice("tag-".length)
+        : null;
+
       const named_folders = useMemo(
-        () => email.folders?.filter((f) => f.name) ?? [],
-        [email.folders],
+        () =>
+          email.folders?.filter(
+            (f) => f.name && f.folder_token !== current_folder_token,
+          ) ?? [],
+        [email.folders, current_folder_token],
       );
 
       const named_tags = useMemo(
-        () => email.tags?.filter((t) => t.name) ?? [],
-        [email.tags],
+        () =>
+          email.tags?.filter((t) => t.name && t.id !== current_tag_token) ?? [],
+        [email.tags, current_tag_token],
       );
 
       const [is_dragging, set_is_dragging] = useState(false);
+      const [row_engaged, set_row_engaged] = useState(false);
+
+      const engage_row = useCallback(() => {
+        set_row_engaged(true);
+      }, []);
       const drag_image_ref = useRef<HTMLDivElement | null>(null);
       const [alias_version, set_alias_version] = useState(0);
 
@@ -201,6 +241,8 @@ export const InboxEmailListItem = memo(
             !domain ||
             domain === "astermail.org" ||
             domain === "aster.cx" ||
+            domain === "astermail.me" ||
+            domain === "astermail.net" ||
             domain === "gs-cloud.space"
           ) {
             return false;
@@ -267,10 +309,7 @@ export const InboxEmailListItem = memo(
 
         const label = document.createElement("span");
 
-        label.textContent =
-          count === 1
-            ? t("mail.move_1_conversation")
-            : t("mail.move_n_conversations", { count: String(count) });
+        label.textContent = t("mail.move_n_conversations", { count });
         drag_el.appendChild(label);
 
         document.body.appendChild(drag_el);
@@ -324,7 +363,7 @@ export const InboxEmailListItem = memo(
           ref={ref}
           draggable
           className={cn(
-            "group relative flex items-center gap-2 sm:gap-3 px-3 sm:px-4 cursor-pointer w-full border-b border-edge-secondary",
+            "group relative flex items-center gap-2 sm:gap-3 px-3 sm:px-4 cursor-pointer w-full border-t border-edge-secondary",
             get_density_classes(density, preferences.compact_mode ?? false),
             is_active
               ? "bg-surf-hover"
@@ -341,12 +380,14 @@ export const InboxEmailListItem = memo(
           onClick={() => on_email_click(email.id)}
           onDragEnd={handle_drag_end}
           onDragStart={handle_drag_start}
+          onFocusCapture={engage_row}
           onKeyDown={(e) => {
             if (e["key"] === "Enter" || e["key"] === " ") {
               e.preventDefault();
               on_email_click(email.id);
             }
           }}
+          onMouseEnter={engage_row}
           {...props}
         >
           <Tooltip delay={600} tip={t("mail.select")}>
@@ -404,7 +445,7 @@ export const InboxEmailListItem = memo(
                         : "group-hover/avatar:opacity-0",
                     )}
                   >
-                    {is_system_email(email.sender_email) ? (
+                    {is_system_email(email) ? (
                       <img
                         alt={t("common.aster_mail")}
                         className={cn(
@@ -418,13 +459,16 @@ export const InboxEmailListItem = memo(
                       />
                     ) : (
                       <ProfileAvatar
-                        use_domain_logo={show_profile_pictures}
                         email={show_sender_email}
                         image_url={
                           peer_profile?.profile_picture ?? email.avatar_url
                         }
                         name={peer_profile?.display_name ?? show_sender_name}
+                        sender_authenticated={is_system_email(
+                          trust_source_for_display(email, show_sender_email),
+                        )}
                         size={compact_rows ? "sm_compact" : "sm"}
+                        use_domain_logo={show_profile_pictures}
                       />
                     )}
                   </div>
@@ -445,30 +489,31 @@ export const InboxEmailListItem = memo(
 
           {email.is_pinned && (
             <PinIcon
-              className="w-4 h-4 text-blue-500 flex-shrink-0 -rotate-[38deg] hidden sm:block"
               filled
+              className="w-4 h-4 text-blue-500 flex-shrink-0 -rotate-[38deg] hidden sm:block"
             />
           )}
 
           {!email.is_read && (
-            <span className="mail_unread_dot w-2 h-2 rounded-full flex-shrink-0 hidden sm:block" />
+            <>
+              <span className="sr-only">{t("mail.unread")}</span>
+              <span className="mail_unread_dot w-2 h-2 rounded-full flex-shrink-0 hidden sm:block" />
+            </>
           )}
 
           <div className="flex-1 min-w-0 flex items-center gap-3 sm:gap-10 overflow-hidden">
-            <div className="flex items-center gap-1.5 min-w-0 sm:max-w-[45%] overflow-hidden pr-px">
+            <div className="flex items-center gap-1.5 min-w-0 sm:max-w-[45%] overflow-hidden pe-px">
               {show_thread_count &&
                 email.thread_message_count != null &&
                 email.thread_message_count > 1 &&
                 (preferences.thread_count_position ?? "left") === "left" && (
                   <span
                     className={cn(
-                      "text-[11px] font-medium flex-shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded border",
-                      email.is_read
-                        ? "border-txt-muted text-txt-muted"
-                        : "border-txt-secondary text-txt-secondary",
+                      "text-[11px] font-medium flex-shrink-0 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-[5px] border border-transparent bg-[color-mix(in_srgb,currentColor_12%,transparent)]",
+                      email.is_read ? "text-txt-muted" : "text-txt-secondary",
                     )}
                   >
-                    {email.thread_message_count}
+                    {format_number(email.thread_message_count)}
                   </span>
                 )}
 
@@ -479,6 +524,7 @@ export const InboxEmailListItem = memo(
                     ? "font-normal text-txt-muted"
                     : "font-semibold text-txt-primary",
                 )}
+                dir="auto"
               >
                 {resolve_list_display_name({
                   outgoing_names,
@@ -489,9 +535,12 @@ export const InboxEmailListItem = memo(
               </span>
 
               <OfficialBadge
+                address_only={!!outgoing_names}
                 className="hidden sm:inline-flex"
-                email={
-                  outgoing_names ? profile_target_email : email.sender_email
+                sender={
+                  outgoing_names
+                    ? { sender_email: profile_target_email }
+                    : trust_source_for_display(email, email.sender_email)
                 }
               />
 
@@ -501,13 +550,11 @@ export const InboxEmailListItem = memo(
                 (preferences.thread_count_position ?? "left") === "right" && (
                   <span
                     className={cn(
-                      "text-[11px] font-medium flex-shrink-0 min-w-[18px] h-[18px] flex items-center justify-center rounded border",
-                      email.is_read
-                        ? "border-txt-muted text-txt-muted"
-                        : "border-txt-secondary text-txt-secondary",
+                      "text-[11px] font-medium flex-shrink-0 min-w-[18px] h-[18px] px-1 flex items-center justify-center rounded-[5px] border border-transparent bg-[color-mix(in_srgb,currentColor_12%,transparent)]",
+                      email.is_read ? "text-txt-muted" : "text-txt-secondary",
                     )}
                   >
-                    {email.thread_message_count}
+                    {format_number(email.thread_message_count)}
                   </span>
                 )}
 
@@ -522,7 +569,7 @@ export const InboxEmailListItem = memo(
             </div>
 
             <div className="flex-1 min-w-0 overflow-hidden flex items-center gap-1.5">
-              {is_system_email(email.sender_email) && (
+              {is_system_email(email) && (
                 <EmailTag
                   className="flex-shrink-0 hidden sm:inline-flex"
                   icon="info"
@@ -650,6 +697,7 @@ export const InboxEmailListItem = memo(
                 <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
                   {named_folders.slice(0, 3).map((folder) => {
                     const folder_color = folder.color || "#3b82f6";
+
                     return (
                       <EmailTag
                         key={folder.folder_token}
@@ -664,7 +712,7 @@ export const InboxEmailListItem = memo(
                   })}
                   {named_folders.length > 3 && (
                     <span className="text-[11px] text-txt-muted">
-                      +{named_folders.length - 3}
+                      +{format_number(named_folders.length - 3)}
                     </span>
                   )}
                 </div>
@@ -688,7 +736,7 @@ export const InboxEmailListItem = memo(
                   ))}
                   {named_tags.length > 3 && (
                     <span className="text-[11px] text-txt-muted">
-                      +{named_tags.length - 3}
+                      +{format_number(named_tags.length - 3)}
                     </span>
                   )}
                 </div>
@@ -711,14 +759,13 @@ export const InboxEmailListItem = memo(
                       ? "font-normal text-txt-tertiary"
                       : "font-medium text-txt-primary",
                   )}
+                  dir="auto"
                 >
-                  {email.subject || t("mail.no_subject")}
+                  {strip_preview_filler(email.subject) || t("mail.no_subject")}
                 </span>
                 {show_email_preview &&
                   (search_preview_node || email.preview) && (
-                    <span
-                      className="text-txt-muted"
-                    >
+                    <span className="text-txt-muted" dir="auto">
                       {" \u2014 "}
                       {search_preview_node ||
                         (email.preview === RATCHET_UNDECRYPTABLE_SENTINEL ||
@@ -749,9 +796,7 @@ export const InboxEmailListItem = memo(
                     {attachment_previews.attachments.length > 3 && (
                       <span className="text-[10px] text-txt-muted">
                         {t("mail.attachment_chips_more", {
-                          count: String(
-                            attachment_previews.attachments.length - 3,
-                          ),
+                          count: attachment_previews.attachments.length - 3,
                         })}
                       </span>
                     )}
@@ -764,7 +809,7 @@ export const InboxEmailListItem = memo(
               {show_message_size &&
                 email.size_bytes != null &&
                 email.size_bytes > 0 && (
-                  <span className="ml-1.5">
+                  <span className="ms-1.5">
                     {"\u2022 "}
                     {format_email_size(email.size_bytes)}
                   </span>
@@ -775,7 +820,7 @@ export const InboxEmailListItem = memo(
           {show_hover_actions && (
             <div
               className={cn(
-                "absolute right-0 top-0 bottom-0 w-64 pointer-events-none opacity-0 group-hover:opacity-100 hidden sm:block",
+                "absolute end-0 top-0 bottom-0 w-64 pointer-events-none opacity-0 group-hover:opacity-100 hidden sm:block",
                 is_active
                   ? "bg-gradient-to-r from-transparent via-surf-hover to-surf-hover"
                   : email.is_selected === true
@@ -789,7 +834,7 @@ export const InboxEmailListItem = memo(
             />
           )}
 
-          <div className="hidden sm:flex items-center gap-2 flex-shrink-0 ml-auto">
+          <div className="hidden sm:flex items-center gap-2 flex-shrink-0 ms-auto">
             {alias_delivery && (
               <Tooltip
                 tip={t("mail.received_via_alias", {
@@ -842,17 +887,17 @@ export const InboxEmailListItem = memo(
               {show_message_size &&
                 email.size_bytes != null &&
                 email.size_bytes > 0 && (
-                  <span className="ml-1.5">
+                  <span className="ms-1.5">
                     {"\u2022 "}
                     {format_email_size(email.size_bytes)}
                   </span>
                 )}
             </span>
 
-            {show_hover_actions && (
+            {show_hover_actions && row_engaged && (
               <div
                 className={cn(
-                  "absolute right-3 sm:right-4 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 pl-10",
+                  "absolute end-3 sm:end-4 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 ps-10",
                   is_active
                     ? "bg-gradient-to-r from-transparent to-surf-hover"
                     : email.is_selected === true
@@ -902,7 +947,7 @@ export const InboxEmailListItem = memo(
                       className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"
                       onClick={() => on_restore(email)}
                     >
-                      <ArrowUturnLeftIcon className="w-4 h-4 text-txt-muted" />
+                      <ArrowUturnLeftIcon className="w-4 h-4 text-txt-muted rtl:-scale-x-100" />
                     </button>
                   </Tooltip>
                 )}
@@ -940,7 +985,7 @@ export const InboxEmailListItem = memo(
                   </Tooltip>
                 )}
 
-                {!is_trash_view && !is_spam_view && on_spam && (
+                {!is_trash_view && !is_spam_view && !is_outgoing && on_spam && (
                   <Tooltip tip={t("mail.report_spam")}>
                     <button
                       className="p-1.5 rounded-[14px] hover:bg-black/10 dark:hover:bg-white/10"

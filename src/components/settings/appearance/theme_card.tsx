@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { SelectionMark } from "@aster/ui";
+
 import {
   ThemeMockupLight,
   ThemeMockupDark,
@@ -25,7 +27,6 @@ import {
   ThemeMockupColor,
   type ColorThemeName,
 } from "@/components/settings/appearance/theme_mockups";
-import { SelectedBadge } from "@/components/settings/appearance/selected_badge";
 
 interface ThemeCardProps {
   mode: "light" | "dark" | "system" | ColorThemeName;
@@ -95,19 +96,18 @@ export function ThemeCard({
       onClick={on_select}
     >
       <div
-        className={`${scope_class} relative w-full aspect-[4/3] rounded-lg mb-3 transition-all ${
-          is_selected
-            ? "ring-2 ring-brand ring-offset-2 ring-offset-surf-primary"
-            : "group-focus-visible:ring-2 group-focus-visible:ring-brand group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-surf-primary"
-        }`}
+        className={`${scope_class} relative w-full aspect-[4/3] rounded-lg mb-3 group-focus-visible:outline group-focus-visible:outline-2 group-focus-visible:outline-offset-2 group-focus-visible:outline-[var(--accent-color)]`}
       >
         <div
           className="w-full h-full rounded-lg overflow-hidden"
-          style={{ border: get_border_color(), backgroundColor: get_bg_color() }}
+          style={{
+            border: get_border_color(),
+            backgroundColor: get_bg_color(),
+          }}
         >
           {get_mockup()}
         </div>
-        {is_selected && <SelectedBadge />}
+        <SelectionMark selected={is_selected} />
       </div>
       <div className="flex items-center justify-center">
         <span className="text-sm font-medium text-txt-primary">{label}</span>

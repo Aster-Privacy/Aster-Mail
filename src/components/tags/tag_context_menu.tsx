@@ -58,17 +58,17 @@ export function TagContextMenu({
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
       <ContextMenuContent className="w-48">
         <ContextMenuItem onClick={on_rename}>
-          <PencilIcon className="mr-2 h-4 w-4" />
+          <PencilIcon className="me-2 h-4 w-4" />
           {t("common.rename")}
         </ContextMenuItem>
 
         <ContextMenuItem onClick={on_recolor}>
-          <TagIcon className="mr-2 h-4 w-4" style={{ color: tag_color }} />
+          <TagIcon className="me-2 h-4 w-4" style={{ color: tag_color }} />
           {t("common.change_color")}
         </ContextMenuItem>
 
         <ContextMenuItem onClick={on_reicon}>
-          <SparklesIcon className="mr-2 h-4 w-4" />
+          <SparklesIcon className="me-2 h-4 w-4" />
           {t("common.change_icon")}
         </ContextMenuItem>
 
@@ -78,7 +78,7 @@ export function TagContextMenu({
           className="text-red-600 dark:text-red-400 focus:text-red-600 dark:focus:text-red-400"
           onClick={on_delete}
         >
-          <TrashIcon className="mr-2 h-4 w-4" />
+          <TrashIcon className="me-2 h-4 w-4" />
           {t("common.delete")}
         </ContextMenuItem>
       </ContextMenuContent>

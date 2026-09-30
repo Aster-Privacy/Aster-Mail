@@ -32,6 +32,7 @@ export function use_popup_drag_resize() {
   const [is_dragging, set_is_dragging] = useState(false);
   const [is_exiting_fullscreen, set_is_exiting_fullscreen] = useState(false);
   const drag_start_ref = useRef({ x: 0, y: 0, pos_x: 0, pos_y: 0 });
+  const exit_fullscreen_timeout = useRef<number | null>(null);
   const popup_ref = useRef<HTMLDivElement>(null);
 
   const is_fullscreen = popup_size === "fullscreen";
@@ -57,6 +58,14 @@ export function use_popup_drag_resize() {
     });
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (exit_fullscreen_timeout.current !== null) {
+        window.clearTimeout(exit_fullscreen_timeout.current);
+      }
+    };
+  }, []);
+
   const handle_drag_start = useCallback(
     (e: React.MouseEvent) => {
       if (is_fullscreen) return;
@@ -76,17 +85,32 @@ export function use_popup_drag_resize() {
   useEffect(() => {
     if (!is_dragging) return;
 
+    let frame = 0;
+    let pending: { x: number; y: number } | null = null;
+
+    const flush = () => {
+      frame = 0;
+      if (!pending) return;
+      const next = pending;
+
+      pending = null;
+      set_position(next);
+    };
+
     const handle_mouse_move = (e: MouseEvent) => {
       const dx = e.clientX - drag_start_ref.current.x;
       const dy = e.clientY - drag_start_ref.current.y;
 
-      set_position({
+      pending = {
         x: drag_start_ref.current.pos_x + dx,
         y: drag_start_ref.current.pos_y + dy,
-      });
+      };
+
+      if (frame === 0) frame = window.requestAnimationFrame(flush);
     };
 
     const handle_mouse_up = () => {
+      flush();
       set_is_dragging(false);
     };
 
@@ -94,6 +118,7 @@ export function use_popup_drag_resize() {
     document.addEventListener("mouseup", handle_mouse_up);
 
     return () => {
+      if (frame !== 0) window.cancelAnimationFrame(frame);
       document.removeEventListener("mousemove", handle_mouse_move);
       document.removeEventListener("mouseup", handle_mouse_up);
     };
@@ -115,7 +140,7 @@ export function use_popup_drag_resize() {
   const handle_fullscreen = useCallback(() => {
     if (is_fullscreen) {
       set_is_exiting_fullscreen(true);
-      setTimeout(() => {
+      exit_fullscreen_timeout.current = window.setTimeout(() => {
         set_popup_size("default");
         set_position({
           x: window.innerWidth - 520 - POPUP_MARGIN,

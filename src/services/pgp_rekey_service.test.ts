@@ -1,7 +1,9 @@
+import type { EncryptedVault } from "@/services/crypto/key_manager_core";
+
 import { describe, it, expect } from "vitest";
 import * as openpgp from "openpgp";
+
 import { build_pgp_rekey } from "./pgp_rekey_service";
-import type { EncryptedVault } from "@/services/crypto/key_manager_core";
 
 const MODERN_ALGORITHMS = new Set([25, 26, 27, 28]);
 
@@ -29,6 +31,7 @@ describe("build_pgp_rekey", () => {
     const key = await openpgp.readKey({
       armoredKey: pgp_key_data.public_key_armored,
     });
+
     expect(key.keyPacket.version).toBe(4);
     expect(MODERN_ALGORITHMS.has(key.keyPacket.algorithm)).toBe(false);
     for (const sub of key.subkeys) {
@@ -38,6 +41,7 @@ describe("build_pgp_rekey", () => {
 
   it("leaves identity_key untouched and prepends the new key to previous_keys", async () => {
     const vault = base_vault("OLD_IDENTITY");
+
     vault.previous_keys = ["PRIOR_KEY"];
 
     const { new_vault } = await build_pgp_rekey(
@@ -79,9 +83,12 @@ describe("build_pgp_rekey", () => {
       passphrase: password,
     });
     const { data } = await openpgp.decrypt({
-      message: await openpgp.readMessage({ armoredMessage: ciphertext as string }),
+      message: await openpgp.readMessage({
+        armoredMessage: ciphertext as string,
+      }),
       decryptionKeys: priv,
     });
+
     expect(data).toBe("inbound pgp");
   });
 });

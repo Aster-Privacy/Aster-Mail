@@ -34,9 +34,9 @@ export function InfoHint({
   return (
     <InfoPopover
       description={tip}
-      title={title ?? ""}
-      learn_more_url={learn_more_url}
       learn_more_label={learn_more_label}
+      learn_more_url={learn_more_url}
+      title={title ?? ""}
     />
   );
 }

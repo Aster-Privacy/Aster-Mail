@@ -23,11 +23,19 @@ import { LockClosedIcon } from "@heroicons/react/24/solid";
 export type SecurityStatus = "weak" | "fair" | "partial" | "strong";
 
 export const SECURITY_LOCK_COLOR: Record<SecurityStatus, string> = {
-  weak:    "#ef4444",
-  fair:    "#f59e0b",
+  weak: "#ef4444",
+  fair: "#f59e0b",
   partial: "#eab308",
-  strong:  "#22c55e",
+  strong: "#22c55e",
 };
+
+export function security_status_from_percent(percent: number): SecurityStatus {
+  if (percent < 35) return "weak";
+  if (percent < 60) return "fair";
+  if (percent < 90) return "partial";
+
+  return "strong";
+}
 
 interface SecurityLockIconProps {
   status: SecurityStatus;

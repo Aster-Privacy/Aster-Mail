@@ -23,7 +23,6 @@ import type { MobileComposePageProps } from "./mobile_compose_helpers";
 
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
-import { format } from "date-fns";
 import {
   XMarkIcon,
   PaperClipIcon,
@@ -50,20 +49,38 @@ import {
 } from "./mobile_compose_bottom_sheets";
 import { use_mobile_compose_images } from "./use_mobile_compose_images";
 
+import { is_valid_email } from "@/components/compose/compose_shared";
+import { ComposeTotalSizeRow } from "@/components/compose/compose_attachments";
+import { split_recipient_list } from "@/utils/recipient_list";
+import { format_datetime_hint } from "@/utils/date_format";
 import { use_compose } from "@/components/compose/use_compose";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_preferences } from "@/contexts/preferences_context";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { MobileHeader } from "@/components/mobile/mobile_header";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
+import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
 import { authenticate_biometric } from "@/native/biometric_auth";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  EXPIRATION_FEATURE,
+  PASSWORD_FEATURE,
+  prompt_expiry_upgrade,
+} from "@/components/compose/expiry_plan_gate";
 import {
   haptic_impact,
   haptic_send_success,
   haptic_error,
 } from "@/native/haptic_feedback";
+
+function extract_recipient_address(text: string): string {
+  const angle_match = text.match(/<([^>]+)>/);
+
+  return (angle_match ? angle_match[1] : text).trim();
+}
 
 function MobileComposePage({
   on_close,
@@ -73,8 +90,10 @@ function MobileComposePage({
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const { preferences, update_preference, save_now } = use_preferences();
-  const [show_cc, set_show_cc] = useState(false);
-  const [show_bcc, set_show_bcc] = useState(false);
+  const { limits: plan_limits, is_feature_locked } = use_plan_limits();
+  const expiration_locked = is_feature_locked(EXPIRATION_FEATURE);
+  const password_locked = is_feature_locked(PASSWORD_FEATURE);
+  const [show_cc_bcc, set_show_cc_bcc] = useState(false);
   const [show_sender_sheet, set_show_sender_sheet] = useState(false);
   const [show_schedule_sheet, set_show_schedule_sheet] = useState(false);
   const [show_expiration_sheet, set_show_expiration_sheet] = useState(false);
@@ -82,6 +101,22 @@ function MobileComposePage({
   const [to_expanded, set_to_expanded] = useState(false);
   const [cc_expanded, set_cc_expanded] = useState(false);
   const [bcc_expanded, set_bcc_expanded] = useState(false);
+
+  const compose = use_compose({
+    on_close,
+    initial_to,
+    edit_draft,
+    session_storage_key: "astermail_mobile_compose",
+    enable_offline_queue: true,
+    enable_ctrl_enter_send: false,
+  });
+
+  const cc_bcc_visible =
+    show_cc_bcc ||
+    compose.recipients.cc.length > 0 ||
+    compose.recipients.bcc.length > 0 ||
+    compose.inputs.cc.trim() !== "" ||
+    compose.inputs.bcc.trim() !== "";
 
   useEffect(() => {
     const handle_back = (e: Event) => {
@@ -99,7 +134,7 @@ function MobileComposePage({
         set_show_ghost_sheet(false);
       } else {
         e.preventDefault();
-        on_close();
+        compose.handle_close();
       }
     };
 
@@ -112,20 +147,10 @@ function MobileComposePage({
     show_schedule_sheet,
     show_expiration_sheet,
     show_ghost_sheet,
-    on_close,
+    compose.handle_close,
   ]);
-
-  const compose = use_compose({
-    on_close,
-    initial_to,
-    edit_draft,
-    session_storage_key: "astermail_mobile_compose",
-    enable_offline_queue: true,
-    enable_ctrl_enter_send: false,
-  });
-
-  const is_sending = compose.draft_status === "saving";
-  const has_recipients = compose.recipients.to.length > 0;
+  const is_sending = compose.is_sending;
+  const has_recipients = compose.has_sendable_recipients;
 
   const contact_avatar_map = useMemo(() => {
     const map = new Map<string, string>();
@@ -140,13 +165,6 @@ function MobileComposePage({
     return map;
   }, [compose.contacts]);
 
-  useEffect(() => {
-    if (compose.has_external_recipients && compose.expires_at) {
-      compose.set_expires_at(null);
-      compose.set_expiry_password(null);
-    }
-  }, [compose.has_external_recipients]);
-
   const handle_send = useCallback(async () => {
     haptic_impact("medium");
     if (preferences.biometric_send_enabled) {
@@ -154,7 +172,12 @@ function MobileComposePage({
         t("common.authenticate_to_send"),
       );
 
-      if (!authenticated) return;
+      if (!authenticated) {
+        haptic_error();
+        show_toast(t("common.send_authentication_failed"), "error");
+
+        return;
+      }
     }
     try {
       if (compose.scheduled_time) {
@@ -166,12 +189,12 @@ function MobileComposePage({
     } catch {
       haptic_error();
     }
-  }, [compose, preferences.biometric_send_enabled]);
+  }, [compose, preferences.biometric_send_enabled, t]);
 
   const handle_trash_press = useCallback(() => {
     haptic_impact("light");
     if (preferences.skip_draft_delete_confirmation) {
-      compose.handle_delete_draft();
+      void compose.handle_delete_draft();
     } else {
       compose.handle_show_delete_confirm();
     }
@@ -182,29 +205,52 @@ function MobileComposePage({
     await save_now();
   }, [update_preference, save_now]);
 
+  const commit_recipients = useCallback(
+    (field: "to" | "cc" | "bcc", raw: string): string => {
+      const leftover: string[] = [];
+
+      split_recipient_list(raw).forEach((part) => {
+        const email = extract_recipient_address(part);
+
+        if (is_valid_email(email)) {
+          compose.add_recipient(field, email);
+        } else {
+          leftover.push(part);
+        }
+      });
+
+      return leftover.join(", ");
+    },
+    [compose],
+  );
+
   const make_recipient_handler = useCallback(
     (field: "to" | "cc" | "bcc") => ({
       on_key_down: (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === "Enter" || e.key === ",") {
           e.preventDefault();
-          const val = compose.inputs[field].trim();
-
-          if (val) {
-            compose.add_recipient(field, val);
-            compose.update_input(field, "");
-          }
+          compose.update_input(
+            field,
+            commit_recipients(field, compose.inputs[field]),
+          );
         }
+      },
+      on_paste: (e: React.ClipboardEvent<HTMLInputElement>) => {
+        const pasted = e.clipboardData.getData("text/plain");
+
+        if (!/[,;\n\t]/.test(pasted) && !/<[^>]+>/.test(pasted)) return;
+
+        e.preventDefault();
+        compose.update_input(field, commit_recipients(field, pasted));
       },
       on_blur: () => {
-        const val = compose.inputs[field].trim();
-
-        if (val && val.includes("@")) {
-          compose.add_recipient(field, val);
-          compose.update_input(field, "");
-        }
+        compose.update_input(
+          field,
+          commit_recipients(field, compose.inputs[field]),
+        );
       },
     }),
-    [compose],
+    [compose, commit_recipients],
   );
 
   const to_handlers = useMemo(
@@ -242,10 +288,18 @@ function MobileComposePage({
 
   const handle_set_expiration = useCallback(
     (date: Date) => {
-      compose.set_expires_at(date);
       set_show_expiration_sheet(false);
+      if (expiration_locked) {
+        prompt_expiry_upgrade(
+          EXPIRATION_FEATURE,
+          t("settings.feature_requires_upgrade"),
+        );
+
+        return;
+      }
+      compose.set_expires_at(date);
     },
-    [compose],
+    [compose, expiration_locked, t],
   );
 
   const handle_clear_expiration = useCallback(() => {
@@ -255,10 +309,33 @@ function MobileComposePage({
 
   const handle_save_password = useCallback(
     (password: string | null) => {
+      if (password && password_locked) {
+        set_show_expiration_sheet(false);
+        prompt_expiry_upgrade(
+          PASSWORD_FEATURE,
+          t("settings.feature_requires_upgrade"),
+        );
+
+        return;
+      }
       compose.set_expiry_password(password);
     },
-    [compose],
+    [compose, password_locked, t],
   );
+
+  const handle_open_expiration = useCallback(() => {
+    if (expiration_locked) {
+      if (plan_limits) {
+        prompt_expiry_upgrade(
+          EXPIRATION_FEATURE,
+          t("settings.feature_requires_upgrade"),
+        );
+      }
+
+      return;
+    }
+    set_show_expiration_sheet(true);
+  }, [expiration_locked, plan_limits, t]);
 
   const { image_input_ref, handle_image_select, handle_paste_with_images } =
     use_mobile_compose_images(compose);
@@ -280,14 +357,12 @@ function MobileComposePage({
         right_actions={
           <Button
             className="h-8 gap-1.5 px-4"
-            disabled={is_sending || !has_recipients}
+            disabled={is_sending || compose.is_scheduling || !has_recipients}
             size="md"
             variant="depth"
             onClick={handle_send}
           >
-            {is_sending || compose.is_scheduling ? (
-              <Spinner size="xs" />
-            ) : compose.scheduled_time ? (
+            {compose.scheduled_time ? (
               <>
                 <ClockIcon className="h-4 w-4" />
                 {t("mail.schedule")}
@@ -298,14 +373,23 @@ function MobileComposePage({
                 {t("mail.send")}
               </>
             )}
+            {(is_sending || compose.is_scheduling) && (
+              <ButtonSpinner size="xs" />
+            )}
           </Button>
         }
-        title={t("mail.new_message")}
+        title={
+          edit_draft?.draft_type === "reply"
+            ? t("mail.reply")
+            : edit_draft?.draft_type === "forward"
+              ? t("mail.forward")
+              : t("mail.new_message")
+        }
       />
 
       <div className="flex-1 overflow-y-auto relative z-0">
         <button
-          className="flex w-full items-center gap-2 border-b border-[var(--border-primary)] px-4 py-2.5 text-left"
+          className="flex w-full items-center gap-2 border-b border-[var(--border-primary)] px-4 py-2.5 text-start"
           type="button"
           onClick={() => set_show_sender_sheet(true)}
         >
@@ -339,6 +423,7 @@ function MobileComposePage({
               on_expand={() => set_to_expanded(true)}
               on_input_change={(val) => compose.update_input("to", val)}
               on_key_down={to_handlers.on_key_down}
+              on_paste={to_handlers.on_paste}
               on_remove={(email) => compose.remove_recipient("to", email)}
               placeholder={t("common.add_recipient")}
               recipients={compose.recipients.to}
@@ -348,8 +433,7 @@ function MobileComposePage({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                set_show_cc(!show_cc);
-                set_show_bcc(!show_bcc);
+                set_show_cc_bcc(!show_cc_bcc);
               }}
             >
               {t("common.cc_bcc_label")}
@@ -357,7 +441,7 @@ function MobileComposePage({
           </div>
         </div>
 
-        {show_cc && (
+        {cc_bcc_visible && (
           <div className="border-b border-[var(--border-primary)] px-4 py-2">
             <MobileRecipientRow
               contact_avatar_map={contact_avatar_map}
@@ -371,13 +455,14 @@ function MobileComposePage({
               on_expand={() => set_cc_expanded(true)}
               on_input_change={(val) => compose.update_input("cc", val)}
               on_key_down={cc_handlers.on_key_down}
+              on_paste={cc_handlers.on_paste}
               on_remove={(email) => compose.remove_recipient("cc", email)}
               recipients={compose.recipients.cc}
             />
           </div>
         )}
 
-        {show_bcc && (
+        {cc_bcc_visible && (
           <div className="border-b border-[var(--border-primary)] px-4 py-2">
             <MobileRecipientRow
               contact_avatar_map={contact_avatar_map}
@@ -391,11 +476,21 @@ function MobileComposePage({
               on_expand={() => set_bcc_expanded(true)}
               on_input_change={(val) => compose.update_input("bcc", val)}
               on_key_down={bcc_handlers.on_key_down}
+              on_paste={bcc_handlers.on_paste}
               on_remove={(email) => compose.remove_recipient("bcc", email)}
               recipients={compose.recipients.bcc}
             />
           </div>
         )}
+
+        <RecipientIdentityNotice
+          class_name="border-b border-[var(--border-primary)] px-4 py-2"
+          recipients={[
+            ...compose.recipients.to,
+            ...compose.recipients.cc,
+            ...compose.recipients.bcc,
+          ]}
+        />
 
         <div className="border-b border-[var(--border-primary)] px-4 py-2">
           <Input
@@ -413,9 +508,10 @@ function MobileComposePage({
             {compose.scheduled_time && (
               <span className="flex items-center gap-1.5 rounded-full bg-blue-500/10 px-2.5 py-1 text-[12px] font-medium text-blue-500">
                 <ClockIcon className="h-3.5 w-3.5" />
-                {format(compose.scheduled_time, "MMM d, h:mm a")}
+                {format_datetime_hint(compose.scheduled_time)}
                 <button
-                  className="ml-0.5"
+                  aria-label={t("common.clear")}
+                  className="ms-0.5"
                   type="button"
                   onClick={handle_clear_schedule}
                 >
@@ -431,7 +527,8 @@ function MobileComposePage({
                   <LockClosedIcon className="h-3 w-3" />
                 )}
                 <button
-                  className="ml-0.5"
+                  aria-label={t("common.clear")}
+                  className="ms-0.5"
                   type="button"
                   onClick={handle_clear_expiration}
                 >
@@ -485,6 +582,11 @@ function MobileComposePage({
             ))}
           </div>
         )}
+        <ComposeTotalSizeRow
+          attachments={compose.attachments}
+          className="px-2 pb-2"
+          message_html={compose.message}
+        />
       </div>
 
       <div className="flex items-center gap-1 border-t border-[var(--border-primary)] px-3 py-2 safe-area-pb">
@@ -535,19 +637,17 @@ function MobileComposePage({
           <ClockIcon className="h-5 w-5" />
         </button>
         <button
-          className={`flex h-9 w-9 items-center justify-center rounded-full active:bg-[var(--bg-tertiary)] ${
-            compose.has_external_recipients
-              ? "text-[var(--text-muted)] opacity-40"
-              : compose.expires_at
-                ? "text-red-500"
-                : "text-[var(--text-secondary)]"
+          aria-label={
+            expiration_locked
+              ? t("settings.feature_requires_upgrade")
+              : t("mail.self_destruct")
+          }
+          className={`flex h-9 w-9 items-center justify-center rounded-full active:bg-[var(--bg-tertiary)] disabled:opacity-40 ${
+            compose.expires_at ? "text-red-500" : "text-[var(--text-secondary)]"
           }`}
-          disabled={compose.has_external_recipients}
+          disabled={!has_recipients || (expiration_locked && !plan_limits)}
           type="button"
-          onClick={() => {
-            if (compose.has_external_recipients) return;
-            set_show_expiration_sheet(true);
-          }}
+          onClick={handle_open_expiration}
         >
           <FireIcon className="h-5 w-5" />
         </button>
@@ -595,6 +695,7 @@ function MobileComposePage({
           </span>
         )}
         <button
+          aria-label={t("common.delete")}
           className="flex h-9 w-9 items-center justify-center rounded-full text-[var(--color-danger,#ef4444)] active:bg-[var(--bg-tertiary)]"
           type="button"
           onClick={handle_trash_press}
@@ -632,6 +733,7 @@ function MobileComposePage({
         on_close={() => set_show_expiration_sheet(false)}
         on_save_password={handle_save_password}
         on_set_expiration={handle_set_expiration}
+        password_locked={password_locked}
         t={t}
       />
 
@@ -648,9 +750,20 @@ function MobileComposePage({
         is_open={compose.show_delete_confirm}
         message={t("mail.delete_draft_confirmation")}
         on_cancel={compose.handle_hide_delete_confirm}
-        on_confirm={compose.handle_delete_draft}
+        on_confirm={() => void compose.handle_delete_draft()}
         on_dont_ask_again={handle_dont_ask_delete}
         title={t("common.delete_draft")}
+        variant="danger"
+      />
+
+      <ConfirmationModal
+        cancel_text={t("common.cancel")}
+        confirm_text={t("mail.discard")}
+        is_open={compose.show_discard_confirm}
+        message={t("common.unsaved_changes_body")}
+        on_cancel={compose.cancel_discard_close}
+        on_confirm={compose.confirm_discard_close}
+        title={t("common.unsaved_changes_title")}
         variant="danger"
       />
     </motion.div>

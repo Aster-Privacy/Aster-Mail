@@ -19,9 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
+import { user_facing_error } from "@/utils/user_facing_error";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { get_or_create_derived_encryption_crypto_key } from "@/services/crypto/memory_key_store";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export interface TemplateFormData {
   name: string;
@@ -118,7 +120,9 @@ async function get_encryption_key(): Promise<CryptoKey> {
   const key = await get_or_create_derived_encryption_crypto_key();
 
   if (!key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   return key;
@@ -182,7 +186,10 @@ export async function decrypt_templates(
   const results = await Promise.allSettled(templates.map(decrypt_template));
 
   return results
-    .filter((r): r is PromiseFulfilledResult<DecryptedTemplate> => r.status === "fulfilled")
+    .filter(
+      (r): r is PromiseFulfilledResult<DecryptedTemplate> =>
+        r.status === "fulfilled",
+    )
     .map((r) => r.value);
 }
 
@@ -193,7 +200,9 @@ export async function list_templates(): Promise<
     await api_client.get<ListTemplatesResponse>("/mail/v1/templates");
 
   if (response.error || !response.data) {
-    return { error: response.error || "Failed to fetch templates" };
+    return {
+      error: response.error || get_active_translations().errors.load_failed,
+    };
   }
 
   try {
@@ -202,7 +211,10 @@ export async function list_templates(): Promise<
     return { data: { templates: decrypted, total: response.data.total } };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to decrypt templates",
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -215,7 +227,9 @@ export async function get_template(
   );
 
   if (response.error || !response.data) {
-    return { error: response.error || "Failed to fetch template" };
+    return {
+      error: response.error || get_active_translations().errors.load_failed,
+    };
   }
 
   try {
@@ -224,7 +238,10 @@ export async function get_template(
     return { data: decrypted };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to decrypt template",
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -256,7 +273,10 @@ export async function create_template(
     );
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to encrypt template",
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }
@@ -299,7 +319,10 @@ export async function update_template(
     );
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to encrypt template",
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }

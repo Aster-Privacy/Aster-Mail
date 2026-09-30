@@ -28,6 +28,7 @@ import {
   type SearchResultItem,
   extract_query_terms,
 } from "@/hooks/use_search";
+import { parse_search_query } from "@/utils/search_operators";
 import { use_folders } from "@/hooks/use_folders";
 import { is_folder_unlocked } from "@/hooks/use_protected_folder";
 import { use_email_actions } from "@/hooks/use_email_actions";
@@ -63,21 +64,21 @@ export function use_advanced_search_modal({
 
   const remove_filter = useCallback(
     (id: string) => {
-      const target = state.active_filters.find((f) => f.id === id);
+      const target = parse_search_query(state.raw_query).operators.find(
+        (op) => `${op.type}-${op.value}` === id,
+      );
 
       if (!target) return;
 
-      const token = target.label;
       const next = state.raw_query
-        .split(/\s+/)
-        .filter((w) => w !== token)
-        .join(" ")
+        .replace(target.raw, " ")
+        .replace(/\s+/g, " ")
         .trim();
 
       set_raw_query(next);
       search(next);
     },
-    [state.active_filters, state.raw_query, set_raw_query, search],
+    [state.raw_query, set_raw_query, search],
   );
   const { state: folders_state } = use_folders();
 
@@ -256,13 +257,7 @@ export function use_advanced_search_modal({
         navigate(`/email/${mail_id}`);
       }
     },
-    [
-      handle_close,
-      on_result_click,
-      on_query_change,
-      state.raw_query,
-      navigate,
-    ],
+    [handle_close, on_result_click, on_query_change, state.raw_query, navigate],
   );
 
   const handle_key_down = useCallback(

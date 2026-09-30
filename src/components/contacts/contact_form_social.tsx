@@ -67,9 +67,12 @@ export function ContactFormSocial({
           {t("common.linkedin")}
         </label>
         <Input
+          autoCapitalize="none"
+          autoCorrect="off"
           id="contact-linkedin"
           placeholder="linkedin.com/in/username"
           size="md"
+          spellCheck={false}
           value={form_data.social_links?.linkedin || ""}
           onChange={(e) => on_social_change("linkedin", e.target.value)}
         />
@@ -82,9 +85,12 @@ export function ContactFormSocial({
           {t("common.twitter_x")}
         </label>
         <Input
+          autoCapitalize="none"
+          autoCorrect="off"
           id="contact-twitter"
           placeholder="@username"
           size="md"
+          spellCheck={false}
           value={form_data.social_links?.twitter || ""}
           onChange={(e) => on_social_change("twitter", e.target.value)}
         />
@@ -97,9 +103,12 @@ export function ContactFormSocial({
           {t("common.github")}
         </label>
         <Input
+          autoCapitalize="none"
+          autoCorrect="off"
           id="contact-github"
           placeholder="github.com/username"
           size="md"
+          spellCheck={false}
           value={form_data.social_links?.github || ""}
           onChange={(e) => on_social_change("github", e.target.value)}
         />

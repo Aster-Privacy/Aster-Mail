@@ -19,12 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import {
-  type ListMailItemsParams,
-} from "@/services/api/mail";
+import { type ListMailItemsParams } from "@/services/api/mail";
 import { get_alias_hash_by_address } from "@/hooks/use_sidebar_aliases";
-
-
+import { parse_alias_view } from "@/hooks/email_list_helpers/alias_view";
 
 export const DEFAULT_PAGE_SIZE = 50;
 
@@ -70,10 +67,19 @@ export function build_view_list_params(view: string): ListMailItemsParams {
     params.tag_token = view.replace("tag-", "");
     delete params.item_type;
   } else if (view.startsWith("alias-")) {
-    const alias_hash = get_alias_hash_by_address(view.replace("alias-", ""));
+    const alias_view = parse_alias_view(view);
+    const alias_hash = alias_view
+      ? get_alias_hash_by_address(alias_view.address)
+      : null;
 
     if (alias_hash) {
       params.routing_token = alias_hash;
+      params.direction =
+        alias_view?.direction === "sent"
+          ? "sent"
+          : alias_view?.direction === "received"
+            ? "received"
+            : "either";
     }
     delete params.item_type;
   } else if (!VIEW_PARAMS[view as MailView]) {
@@ -107,4 +113,3 @@ export const OUTGOING_VIEWS = new Set<string>(["sent", "drafts", "scheduled"]);
 export function is_outgoing_view(current_view: string | undefined): boolean {
   return current_view != null && OUTGOING_VIEWS.has(current_view);
 }
-

@@ -123,9 +123,10 @@ export function use_metadata_helpers(): MetadataHelpers {
 
       options?.on_progress?.(0, emails.length);
 
-      const result = await bulk_update_items_metadata(items, updates);
-
-      options?.on_progress?.(emails.length, emails.length);
+      const result = await bulk_update_items_metadata(items, updates, {
+        signal: options?.signal,
+        on_progress: options?.on_progress,
+      });
 
       return { success: result.success, failed_ids: result.failed_ids };
     },

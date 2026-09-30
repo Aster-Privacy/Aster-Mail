@@ -54,7 +54,8 @@ vi.mock("@/services/api/passkeys", () => ({
   is_platform_passkey_available: vi.fn(async () => false),
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({
     children,
     onClick,
@@ -77,7 +78,6 @@ vi.mock("@/components/toast/simple_toast", () => ({
 import { PasskeySection } from "./passkey_section";
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;

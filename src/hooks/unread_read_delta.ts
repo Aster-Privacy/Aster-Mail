@@ -73,7 +73,9 @@ export function conversation_read_delta(
   const groups = new Map<string, ConversationDeltaEmail[]>();
 
   for (const email of received) {
-    const key = email.thread_token ? `t:${email.thread_token}` : `i:${email.id}`;
+    const key = email.thread_token
+      ? `t:${email.thread_token}`
+      : `i:${email.id}`;
     const members = groups.get(key);
 
     if (members) {

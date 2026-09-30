@@ -21,6 +21,7 @@
 import { describe, it, expect, vi } from "vitest";
 
 vi.mock("./memory_key_store", () => ({
+  get_passphrase_from_memory: vi.fn(() => null),
   get_passphrase_bytes: vi.fn(() => new Uint8Array(32).fill(7)),
   get_vault_from_memory: vi.fn(() => null),
 }));
@@ -56,6 +57,7 @@ vi.mock("./envelope", async (importOriginal) => {
 
 import { encrypt_attachments_for_send } from "./attachment_crypto";
 import { base64_to_array } from "./envelope";
+
 import type { Attachment } from "@/components/compose/compose_shared";
 
 function make_attachment(): Attachment {
@@ -89,7 +91,9 @@ describe("encrypt_attachments_for_send recipient-key invariant", () => {
 
     expect(result).toHaveLength(1);
 
-    const recipient_meta = decode_meta(result[0].recipient_encrypted_meta || "");
+    const recipient_meta = decode_meta(
+      result[0].recipient_encrypted_meta || "",
+    );
 
     expect(recipient_meta).toBe("PGP_ENCRYPTED_META");
     expect(recipient_meta).not.toContain("session_key");
@@ -104,7 +108,9 @@ describe("encrypt_attachments_for_send recipient-key invariant", () => {
 
     expect(result).toHaveLength(1);
 
-    const recipient_meta = decode_meta(result[0].recipient_encrypted_meta || "");
+    const recipient_meta = decode_meta(
+      result[0].recipient_encrypted_meta || "",
+    );
     const parsed = JSON.parse(recipient_meta);
 
     expect(parsed.filename).toBe("secret.pdf");
@@ -122,7 +128,9 @@ describe("encrypt_attachments_for_send recipient-key invariant", () => {
 
     expect(result).toHaveLength(1);
 
-    const recipient_meta = decode_meta(result[0].recipient_encrypted_meta || "");
+    const recipient_meta = decode_meta(
+      result[0].recipient_encrypted_meta || "",
+    );
     const parsed = JSON.parse(recipient_meta);
 
     expect(parsed.filename).toBe("secret.pdf");
@@ -138,7 +146,9 @@ describe("encrypt_attachments_for_send recipient-key invariant", () => {
       recipient_public_keys.length > 0,
     );
 
-    const recipient_meta = decode_meta(result[0].recipient_encrypted_meta || "");
+    const recipient_meta = decode_meta(
+      result[0].recipient_encrypted_meta || "",
+    );
 
     expect(recipient_meta).toBe("PGP_ENCRYPTED_META");
     expect(recipient_meta).not.toContain("session_key");

@@ -24,40 +24,34 @@ import type {
   MailItemMetadata,
 } from "@/types/email";
 
+import { format_timestamp } from "./display";
+
 import {
   RATCHET_UNDECRYPTABLE_SENTINEL,
   PGP_UNDECRYPTABLE_SENTINEL,
   is_ratchet_envelope,
 } from "@/utils/email_crypto";
-import { build_body_preview } from "@/utils/preview_text";
-import {
-  classify,
-} from "@/services/mail_categorizer";
+import { build_body_preview_cached } from "@/utils/preview_text";
+import { classify } from "@/services/mail_categorizer";
 import { get_email_username } from "@/lib/utils";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { extract_reply_to } from "@/utils/reply_to";
-import {
-  type MailItem,
-} from "@/services/api/mail";
-import {
-  normalize_envelope_recipients,
-} from "@/services/crypto/envelope";
-import {
-  extract_metadata_from_server,
-} from "@/services/crypto/mail_metadata";
-import {
-  type FormatOptions,
-} from "@/utils/date_format";
-import {
-  get_cached_profile,
-} from "@/services/api/sender_profiles";
-import { format_timestamp } from "./display";
+import { type MailItem } from "@/services/api/mail";
+import { normalize_envelope_recipients } from "@/services/crypto/envelope";
+import { extract_metadata_from_server } from "@/services/crypto/mail_metadata";
+import { type FormatOptions } from "@/utils/date_format";
+import { get_cached_profile } from "@/services/api/sender_profiles";
+
+export interface MailToEmailOptions {
+  collapsed_threads?: boolean;
+}
 
 export function mail_to_email(
   item: MailItem,
   envelope: DecryptedEnvelope | null,
   metadata: MailItemMetadata | null,
   format_options: FormatOptions,
+  options: MailToEmailOptions = {},
 ): InboxEmail {
   const folders = item.labels?.map((label) => ({
     folder_token: label.token,
@@ -90,6 +84,12 @@ export function mail_to_email(
     size_bytes: item.size_bytes,
   });
 
+  const is_read =
+    effective_metadata.is_read &&
+    !(
+      options.collapsed_threads === true && (item.thread_unread_count ?? 0) > 0
+    );
+
   if (!envelope) {
     return {
       id: item.id,
@@ -103,7 +103,7 @@ export function mail_to_email(
       is_pinned: effective_metadata.is_pinned,
       is_starred: effective_metadata.is_starred,
       is_selected: false,
-      is_read: effective_metadata.is_read,
+      is_read,
       is_trashed: effective_metadata.is_trashed,
       is_archived: effective_metadata.is_archived,
       is_spam: effective_metadata.is_spam,
@@ -113,6 +113,8 @@ export function mail_to_email(
       avatar_url: "",
       is_encrypted: true,
       is_external: item.is_external,
+      system_origin: item.system_origin,
+      sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
       folders,
       tags,
       snoozed_until: effective_metadata.snoozed_until,
@@ -152,7 +154,11 @@ export function mail_to_email(
     (!resolved_text && is_ratchet_envelope(raw_html));
   const preview_text = is_undecryptable_body
     ? RATCHET_UNDECRYPTABLE_SENTINEL
-    : build_body_preview(resolved_text, resolved_html);
+    : build_body_preview_cached(
+        `${item.id}:${resolved_text.length}:${resolved_html.length}`,
+        resolved_text,
+        resolved_html,
+      );
   const raw_ts =
     envelope.sent_at ||
     (envelope as unknown as Record<string, string>).date ||
@@ -180,7 +186,7 @@ export function mail_to_email(
     is_pinned: effective_metadata.is_pinned,
     is_starred: effective_metadata.is_starred,
     is_selected: false,
-    is_read: effective_metadata.is_read,
+    is_read,
     is_trashed: effective_metadata.is_trashed,
     is_archived: effective_metadata.is_archived,
     is_spam: effective_metadata.is_spam,
@@ -189,10 +195,14 @@ export function mail_to_email(
     category_color: "",
     mail_category: classify(envelope, metadata, {
       rule_category: item.rule_category,
+      trust: item,
     }),
     avatar_url: sender_profile?.profile_picture || "",
     is_encrypted: false,
     is_external: item.is_external,
+    system_origin: item.system_origin,
+    sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
+    sender_verification: envelope.sender_verification,
     folders,
     tags,
     snoozed_until: effective_metadata.snoozed_until,
@@ -221,15 +231,15 @@ export function mail_to_email_safe(
   envelope: DecryptedEnvelope | null,
   metadata: MailItemMetadata | null,
   format_options: FormatOptions,
+  options: MailToEmailOptions = {},
 ): InboxEmail | null {
   try {
-    return mail_to_email(item, envelope, metadata, format_options);
+    return mail_to_email(item, envelope, metadata, format_options, options);
   } catch {
     try {
-      return mail_to_email(item, null, null, format_options);
+      return mail_to_email(item, null, null, format_options, options);
     } catch {
       return null;
     }
   }
 }
-

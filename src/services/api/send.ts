@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { api_client, type ApiResponse } from "./client";
+import { with_session_recovery } from "./session_recovery";
 
 interface SendAttachmentPayload {
   encrypted_data: string;
@@ -129,27 +130,39 @@ interface ExternalSendRequest {
   signed_mime?: string;
   signed_mime_signature?: string;
   signed_mime_micalg?: string;
+  in_reply_to?: string;
 }
+
+const SEND_TIMEOUT_MS = 15 * 60_000;
 
 export async function send_simple_email(
   request: SimpleSendRequest,
 ): Promise<ApiResponse<SimpleSendResponse>> {
-  return api_client.post<SimpleSendResponse>("/mail/v1/send", request);
+  return with_session_recovery(() =>
+    api_client.post<SimpleSendResponse>("/mail/v1/send", request, {
+      timeout: SEND_TIMEOUT_MS,
+    }),
+  );
 }
 
 export async function queue_send_email(
   request: QueuedSendRequest,
 ): Promise<ApiResponse<QueuedSendResponse>> {
-  return api_client.post<QueuedSendResponse>(
-    "/mail/v1/undo_send/queue",
-    request,
+  return with_session_recovery(() =>
+    api_client.post<QueuedSendResponse>("/mail/v1/undo_send/queue", request, {
+      timeout: SEND_TIMEOUT_MS,
+    }),
   );
 }
 
 export async function send_external_email(
   request: ExternalSendRequest,
 ): Promise<ApiResponse<SimpleSendResponse>> {
-  return api_client.post<SimpleSendResponse>("/mail/v1/send/external", request);
+  return with_session_recovery(() =>
+    api_client.post<SimpleSendResponse>("/mail/v1/send/external", request, {
+      timeout: SEND_TIMEOUT_MS,
+    }),
+  );
 }
 
 export async function send_email(

@@ -19,24 +19,39 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedContact, ContactFormData } from "@/types/contacts";
-import type { CreateTab } from "./mobile_contact_form_view";
+import type {
+  ContactEntryPatch,
+  CreateTab,
+} from "./mobile_contact_form_view";
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Capacitor } from "@capacitor/core";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import {
-  list_contacts,
+  list_all_contacts,
   decrypt_contacts,
   create_contact_encrypted,
   update_contact_encrypted,
-  delete_contact,
 } from "@/services/api/contacts";
 import { request_cache } from "@/services/api/request_cache";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
+import { apply_server_group_membership } from "@/utils/contact_group_membership";
 import { show_toast } from "@/components/toast/simple_toast";
-
+import {
+  contact_to_form_data,
+  sync_legacy_fields,
+} from "@/components/common/hooks/contacts_state_helpers";
+import {
+  to_address_entries,
+  to_email_entries,
+  to_phone_entries,
+} from "@/components/common/contacts/contact_detail_panel/helpers";
 import { ignore_error } from "@/lib/ignore_error";
+import { is_contact_trashed } from "@/lib/contact_trash";
+
+const MASS_EMAIL_LIMIT = 10;
 
 const INITIAL_FORM: ContactFormData = {
   first_name: "",
@@ -49,32 +64,50 @@ const INITIAL_FORM: ContactFormData = {
   notes: "",
   address: { street: "", city: "", state: "", postal_code: "", country: "" },
   social_links: { website: "", linkedin: "", twitter: "", github: "" },
+  email_entries: [{ value: "", type: "home" }],
+  phone_entries: [],
+  address_entries: [],
 };
 
-function contact_to_form(contact: DecryptedContact): ContactFormData {
+function new_contact_form(): ContactFormData {
   return {
-    first_name: contact.first_name,
-    last_name: contact.last_name,
-    emails: contact.emails.length > 0 ? [...contact.emails] : [""],
-    phone: contact.phone ?? "",
-    company: contact.company ?? "",
-    job_title: contact.job_title ?? "",
-    birthday: contact.birthday ?? "",
-    notes: contact.notes ?? "",
-    address: contact.address ?? {
+    ...INITIAL_FORM,
+    emails: [""],
+    email_entries: [{ value: "", type: "home" }],
+    phone_entries: [],
+    address_entries: [],
+  };
+}
+
+function contact_to_form(contact: DecryptedContact): ContactFormData {
+  const base = contact_to_form_data(contact);
+  const email_entries = to_email_entries(contact);
+
+  return {
+    ...base,
+    email_entries:
+      email_entries.length > 0 ? email_entries : [{ value: "", type: "home" }],
+    phone_entries: to_phone_entries(contact),
+    address_entries: to_address_entries(contact),
+    emails: base.emails.length > 0 ? [...base.emails] : [""],
+    phone: base.phone ?? "",
+    company: base.company ?? "",
+    job_title: base.job_title ?? "",
+    birthday: base.birthday ?? "",
+    notes: base.notes ?? "",
+    address: base.address ?? {
       street: "",
       city: "",
       state: "",
       postal_code: "",
       country: "",
     },
-    social_links: contact.social_links ?? {
+    social_links: base.social_links ?? {
       website: "",
       linkedin: "",
       twitter: "",
       github: "",
     },
-    is_favorite: contact.is_favorite,
   };
 }
 
@@ -85,86 +118,101 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
   const [is_loading, set_is_loading] = useState(true);
   const [search_query, set_search_query] = useState("");
   const [filter, set_filter] = useState<"all" | "favorites">("all");
+  const [group_filter, set_group_filter] = useState<string | null>(null);
   const [selected_contact, set_selected_contact] =
     useState<DecryptedContact | null>(null);
   const [show_create, set_show_create] = useState(false);
   const [editing_contact, set_editing_contact] =
     useState<DecryptedContact | null>(null);
   const [create_tab, set_create_tab] = useState<CreateTab>("basic");
-  const [form_data, set_form_data] = useState<ContactFormData>({
-    ...INITIAL_FORM,
-    emails: [""],
-  });
+  const [form_data, set_form_data] = useState<ContactFormData>(
+    new_contact_form,
+  );
+  const [show_discard_confirm, set_show_discard_confirm] = useState(false);
+  const opened_form_ref = useRef("");
   const [is_saving, set_is_saving] = useState(false);
   const [is_syncing, set_is_syncing] = useState(false);
   const [show_sync_confirm, set_show_sync_confirm] = useState(false);
   const [is_select_mode, set_is_select_mode] = useState(false);
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
   const [show_delete_confirm, set_show_delete_confirm] = useState(false);
+  const [pending_delete_contact, set_pending_delete_contact] =
+    useState<DecryptedContact | null>(null);
+  const [is_mass_deleting, set_is_mass_deleting] = useState(false);
+  const [load_failed, set_load_failed] = useState(false);
+  const [load_tick, set_load_tick] = useState(0);
   const long_press_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const long_press_fired_ref = useRef(false);
+  const mass_delete_ref = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
       try {
-        const response = await list_contacts({ limit: 500 });
+        const response = await list_all_contacts();
 
-        if (cancelled || !response.data?.items) return;
-        const decrypted = await decrypt_contacts(response.data.items);
+        if (cancelled) return;
+
+        if (response.error || !response.data) {
+          set_load_failed(true);
+
+          return;
+        }
+
+        const decrypted = (
+          await apply_server_group_membership(
+            await decrypt_contacts(response.data),
+          )
+        ).filter((contact) => !is_contact_trashed(contact));
 
         if (!cancelled) {
+          set_load_failed(false);
           set_contacts(decrypted);
         }
       } catch (caught) {
         ignore_error("pages/mobile/use_mobile_contacts_state:load", caught);
+        if (!cancelled) set_load_failed(true);
       } finally {
         if (!cancelled) set_is_loading(false);
       }
     }
 
+    set_is_loading(true);
     load();
 
     return () => {
       cancelled = true;
     };
+  }, [load_tick]);
+
+  const retry_load_contacts = useCallback(() => {
+    set_load_tick((value) => value + 1);
   }, []);
 
-  useEffect(() => {
-    const handle_back = (e: Event) => {
-      if (show_create) {
-        e.preventDefault();
-        set_show_create(false);
-        set_editing_contact(null);
-      } else if (is_select_mode) {
-        e.preventDefault();
-        set_is_select_mode(false);
-        set_selected_ids(new Set());
-      } else if (selected_contact) {
-        e.preventDefault();
-        set_selected_contact(null);
-      }
-    };
-
-    window.addEventListener("capacitor:backbutton", handle_back);
-
-    return () => {
-      window.removeEventListener("capacitor:backbutton", handle_back);
-    };
-  }, [selected_contact, show_create, is_select_mode]);
-
-  const reload_contacts = useCallback(async () => {
+  const reload_contacts = useCallback(async (): Promise<boolean> => {
     try {
       request_cache.invalidate("contacts");
-      const response = await list_contacts({ limit: 500 });
+      const response = await list_all_contacts();
 
-      if (response.data?.items) {
-        const decrypted = await decrypt_contacts(response.data.items);
+      if (!response.data) return false;
 
-        set_contacts(decrypted);
-      }
+      const decrypted = (
+        await apply_server_group_membership(
+          await decrypt_contacts(response.data),
+        )
+      ).filter((contact) => !is_contact_trashed(contact));
+
+      set_contacts(decrypted);
+
+      return true;
     } catch (caught) {
-      ignore_error("pages/mobile/use_mobile_contacts_state:use_mobile_contacts_state", caught);
+      ignore_error(
+        "pages/mobile/use_mobile_contacts_state:use_mobile_contacts_state",
+        caught,
+      );
+
+      return false;
     }
   }, []);
 
@@ -180,10 +228,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
         status = await Contacts.requestPermissions();
       }
       if (status.contacts !== "granted") {
-        show_toast(
-          t("common.permission_denied"),
-          "error",
-        );
+        show_toast(t("common.permission_denied"), "error");
 
         return;
       }
@@ -282,7 +327,8 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
           continue;
         }
       }
-      await reload_contacts();
+      const reloaded = await reload_contacts();
+
       if (imported === 0) {
         show_toast(t("common.no_new_contacts_imported"), "info");
       } else {
@@ -290,6 +336,10 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
           t("common.n_contacts_imported", { count: imported }),
           "success",
         );
+      }
+
+      if (!reloaded) {
+        show_toast(t("errors.connection_failed"), "warning");
       }
     } catch (err) {
       if (import.meta.env.DEV) console.error("Contact sync failed:", err);
@@ -306,6 +356,10 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
       result = result.filter((c) => c.is_favorite);
     }
 
+    if (group_filter) {
+      result = result.filter((c) => (c.groups || []).includes(group_filter));
+    }
+
     if (!search_query.trim()) return result;
     const q = search_query.toLowerCase();
 
@@ -317,7 +371,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
         (c.company && c.company.toLowerCase().includes(q)) ||
         (c.phone && c.phone.includes(q)),
     );
-  }, [contacts, search_query, filter]);
+  }, [contacts, search_query, filter, group_filter]);
 
   const grouped = useMemo(() => {
     const groups: Record<string, DecryptedContact[]> = {};
@@ -349,12 +403,11 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
 
   const handle_copy = useCallback(
     (text: string) => {
-      navigator.clipboard
-        .writeText(text)
+      copy_text_or_throw(text)
         .then(() => {
           show_toast(t("common.copied_to_clipboard"), "success");
         })
-        .catch((caught) => ignore_error("pages/mobile/use_mobile_contacts_state:letter", caught));
+        .catch(() => show_toast(t("common.failed_to_copy"), "error"));
     },
     [t],
   );
@@ -365,7 +418,16 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
 
       updated_form.is_favorite = !contact.is_favorite;
       try {
-        await update_contact_encrypted(contact.id, updated_form);
+        const response = await update_contact_encrypted(
+          contact.id,
+          updated_form,
+        );
+
+        if (response.error) {
+          show_toast(t("common.failed_to_update_favorites"), "error");
+
+          return;
+        }
         set_contacts((prev) =>
           prev.map((c) =>
             c.id === contact.id ? { ...c, is_favorite: !c.is_favorite } : c,
@@ -377,25 +439,53 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
             : prev,
         );
       } catch (caught) {
-        ignore_error("pages/mobile/use_mobile_contacts_state:handle_back", caught);
+        ignore_error(
+          "pages/mobile/use_mobile_contacts_state:handle_toggle_favorite",
+          caught,
+        );
+        show_toast(t("common.failed_to_update_favorites"), "error");
       }
     },
-    [],
+    [t],
   );
 
   const handle_delete_contact = useCallback(
     async (contact: DecryptedContact) => {
       try {
-        await delete_contact(contact.id);
+        const response = await update_contact_encrypted(contact.id, {
+          ...contact_to_form_data(contact),
+          deleted_at: new Date().toISOString(),
+        });
+
+        if (response.error) {
+          show_toast(t("common.failed_to_move_to_trash"), "error");
+
+          return;
+        }
         set_contacts((prev) => prev.filter((c) => c.id !== contact.id));
         set_selected_contact(null);
-        show_toast(t("common.delete") + " \u2713", "success");
+        show_toast(t("common.contact_moved_to_trash"), "success");
       } catch (caught) {
-        ignore_error("pages/mobile/use_mobile_contacts_state:handle_back", caught);
+        ignore_error(
+          "pages/mobile/use_mobile_contacts_state:handle_delete_contact",
+          caught,
+        );
+        show_toast(t("common.failed_to_move_to_trash"), "error");
       }
     },
     [t],
   );
+
+  const request_delete_contact = useCallback((contact: DecryptedContact) => {
+    set_pending_delete_contact(contact);
+    set_show_delete_confirm(true);
+  }, []);
+
+  const cancel_delete_confirm = useCallback(() => {
+    if (mass_delete_ref.current) return;
+    set_pending_delete_contact(null);
+    set_show_delete_confirm(false);
+  }, []);
 
   const exit_select_mode = useCallback(() => {
     set_is_select_mode(false);
@@ -429,78 +519,158 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
 
   const handle_mass_email = useCallback(() => {
     const selected = contacts.filter((c) => selected_ids.has(c.id));
-    const emails = selected
-      .flatMap((c) => c.emails)
-      .filter(Boolean)
-      .slice(0, 10);
+    const all_emails = selected.flatMap((c) => c.emails).filter(Boolean);
+    const emails = all_emails.slice(0, MASS_EMAIL_LIMIT);
 
     if (emails.length === 0) return;
     exit_select_mode();
+    if (all_emails.length > emails.length) {
+      show_toast(
+        t("common.mass_email_limited", { count: MASS_EMAIL_LIMIT }),
+        "info",
+      );
+    }
     on_compose(emails.join(", "));
-  }, [contacts, selected_ids, on_compose, exit_select_mode]);
+  }, [contacts, selected_ids, on_compose, exit_select_mode, t]);
 
   const handle_mass_delete = useCallback(async () => {
+    if (mass_delete_ref.current) return;
+
     const ids = Array.from(selected_ids);
 
+    if (ids.length === 0) {
+      set_show_delete_confirm(false);
+
+      return;
+    }
+
+    mass_delete_ref.current = true;
+    set_is_mass_deleting(true);
+    const deleted_ids = new Set<string>();
+
+    const deleted_at = new Date().toISOString();
+
     for (const id of ids) {
+      const contact = contacts.find((item) => item.id === id);
+
+      if (!contact) continue;
+
       try {
-        await delete_contact(id);
+        const response = await update_contact_encrypted(id, {
+          ...contact_to_form_data(contact),
+          deleted_at,
+        });
+
+        if (!response.error) {
+          deleted_ids.add(id);
+        }
       } catch {
         continue;
       }
     }
-    set_contacts((prev) => prev.filter((c) => !selected_ids.has(c.id)));
+    set_contacts((prev) => prev.filter((c) => !deleted_ids.has(c.id)));
+    mass_delete_ref.current = false;
+    set_is_mass_deleting(false);
     exit_select_mode();
     set_show_delete_confirm(false);
-    show_toast(t("common.delete") + " \u2713", "success");
-  }, [selected_ids, exit_select_mode, t]);
+    if (deleted_ids.size < ids.length) {
+      show_toast(t("common.failed_to_move_to_trash"), "error");
+
+      return;
+    }
+    show_toast(t("common.contacts_moved_to_trash"), "success");
+  }, [contacts, selected_ids, exit_select_mode, t]);
+
+  const confirm_delete = useCallback(async () => {
+    if (mass_delete_ref.current) return;
+
+    if (pending_delete_contact) {
+      const contact = pending_delete_contact;
+
+      set_pending_delete_contact(null);
+      set_show_delete_confirm(false);
+      await handle_delete_contact(contact);
+
+      return;
+    }
+
+    await handle_mass_delete();
+  }, [pending_delete_contact, handle_delete_contact, handle_mass_delete]);
+
+  const mass_favorite_ref = useRef(false);
 
   const handle_mass_favorite = useCallback(async () => {
+    if (mass_favorite_ref.current) return;
+
+    mass_favorite_ref.current = true;
+
     const selected = contacts.filter((c) => selected_ids.has(c.id));
     const all_favorited = selected.every((c) => c.is_favorite);
+
+    const updated_ids = new Set<string>();
 
     for (const contact of selected) {
       const updated_form = contact_to_form(contact);
 
       updated_form.is_favorite = !all_favorited;
       try {
-        await update_contact_encrypted(contact.id, updated_form);
+        const response = await update_contact_encrypted(
+          contact.id,
+          updated_form,
+        );
+
+        if (!response.error) {
+          updated_ids.add(contact.id);
+        }
       } catch {
         continue;
       }
     }
     set_contacts((prev) =>
       prev.map((c) =>
-        selected_ids.has(c.id) ? { ...c, is_favorite: !all_favorited } : c,
+        updated_ids.has(c.id) ? { ...c, is_favorite: !all_favorited } : c,
       ),
     );
     exit_select_mode();
-  }, [contacts, selected_ids, exit_select_mode]);
+    if (updated_ids.size < selected.length) {
+      show_toast(t("common.failed_to_update_favorites"), "error");
+    }
+    mass_favorite_ref.current = false;
+  }, [contacts, selected_ids, exit_select_mode, t]);
 
   const handle_mass_copy_emails = useCallback(() => {
     const selected = contacts.filter((c) => selected_ids.has(c.id));
     const emails = selected.flatMap((c) => c.emails).filter(Boolean);
 
     if (emails.length === 0) return;
-    navigator.clipboard
-      .writeText(emails.join(", "))
+    copy_text_or_throw(emails.join(", "))
       .then(() => {
         show_toast(t("common.copied_to_clipboard"), "success");
       })
-      .catch((caught) => ignore_error("pages/mobile/use_mobile_contacts_state:handle_back", caught));
+      .catch(() => show_toast(t("common.failed_to_copy"), "error"));
     exit_select_mode();
   }, [contacts, selected_ids, t, exit_select_mode]);
 
   const handle_long_press_start = useCallback(
     (contact_id: string) => {
       if (is_select_mode) return;
+      long_press_fired_ref.current = false;
       long_press_timer.current = setTimeout(() => {
+        long_press_fired_ref.current = true;
         set_is_select_mode(true);
         set_selected_ids(new Set([contact_id]));
       }, 500);
     },
     [is_select_mode],
   );
+
+  const consume_long_press = useCallback(() => {
+    const fired = long_press_fired_ref.current;
+
+    long_press_fired_ref.current = false;
+
+    return fired;
+  }, []);
 
   const handle_long_press_end = useCallback(() => {
     if (long_press_timer.current) {
@@ -513,13 +683,6 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
     set_form_data((prev) => ({ ...prev, [key]: value }));
   }, []);
 
-  const update_address = useCallback((key: string, value: string) => {
-    set_form_data((prev) => ({
-      ...prev,
-      address: { ...prev.address!, [key]: value },
-    }));
-  }, []);
-
   const update_social = useCallback((key: string, value: string) => {
     set_form_data((prev) => ({
       ...prev,
@@ -527,48 +690,88 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
     }));
   }, []);
 
-  const add_email_field = useCallback(() => {
-    set_form_data((prev) => ({
-      ...prev,
-      emails: [...prev.emails, ""],
-    }));
-  }, []);
-
-  const update_email_field = useCallback((index: number, value: string) => {
-    set_form_data((prev) => ({
-      ...prev,
-      emails: prev.emails.map((e, i) => (i === index ? value : e)),
-    }));
-  }, []);
-
-  const remove_email_field = useCallback((index: number) => {
-    set_form_data((prev) => ({
-      ...prev,
-      emails: prev.emails.filter((_, i) => i !== index),
-    }));
+  const update_entries = useCallback((patch: ContactEntryPatch) => {
+    set_form_data((prev) => ({ ...prev, ...patch }));
   }, []);
 
   const handle_open_create = useCallback(() => {
+    const next = new_contact_form();
+
     set_editing_contact(null);
-    set_form_data({ ...INITIAL_FORM, emails: [""] });
+    set_form_data(next);
+    opened_form_ref.current = JSON.stringify(next);
     set_create_tab("basic");
     set_show_create(true);
   }, []);
 
   const handle_open_edit = useCallback((contact: DecryptedContact) => {
+    const next = contact_to_form(contact);
+
     set_editing_contact(contact);
-    set_form_data(contact_to_form(contact));
+    set_form_data(next);
+    opened_form_ref.current = JSON.stringify(next);
     set_create_tab("basic");
     set_show_create(true);
   }, []);
 
-  const handle_save = useCallback(async () => {
-    const valid_emails = form_data.emails.filter((e) => e.trim());
+  const close_form = useCallback(() => {
+    set_show_discard_confirm(false);
+    set_show_create(false);
+    set_editing_contact(null);
+  }, []);
 
-    if (valid_emails.length === 0) return;
+  const request_close_form = useCallback(() => {
+    if (JSON.stringify(form_data) !== opened_form_ref.current) {
+      set_show_discard_confirm(true);
+
+      return;
+    }
+
+    close_form();
+  }, [close_form, form_data]);
+
+  useEffect(() => {
+    const handle_back = (e: Event) => {
+      if (mass_delete_ref.current) {
+        e.preventDefault();
+
+        return;
+      }
+
+      if (show_discard_confirm) {
+        e.preventDefault();
+        set_show_discard_confirm(false);
+      } else if (show_create) {
+        e.preventDefault();
+        request_close_form();
+      } else if (is_select_mode) {
+        e.preventDefault();
+        set_is_select_mode(false);
+        set_selected_ids(new Set());
+      } else if (selected_contact) {
+        e.preventDefault();
+        set_selected_contact(null);
+      }
+    };
+
+    window.addEventListener("capacitor:backbutton", handle_back);
+
+    return () => {
+      window.removeEventListener("capacitor:backbutton", handle_back);
+    };
+  }, [
+    selected_contact,
+    show_create,
+    is_select_mode,
+    show_discard_confirm,
+    request_close_form,
+  ]);
+  const handle_save = useCallback(async () => {
+    const saved_form = sync_legacy_fields(form_data);
+
+    if (saved_form.emails.length === 0) return;
     set_is_saving(true);
     try {
-      const saved_form = { ...form_data, emails: valid_emails };
 
       if (editing_contact) {
         const result = await update_contact_encrypted(
@@ -576,33 +779,42 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
           saved_form,
         );
 
-        if (result.data?.success) {
-          set_contacts((prev) =>
-            prev.map((c) =>
-              c.id === editing_contact.id
-                ? {
-                    ...c,
-                    first_name: saved_form.first_name,
-                    last_name: saved_form.last_name,
-                    emails: saved_form.emails,
-                    phone: saved_form.phone || undefined,
-                    company: saved_form.company || undefined,
-                    job_title: saved_form.job_title || undefined,
-                    birthday: saved_form.birthday || undefined,
-                    notes: saved_form.notes || undefined,
-                    address: saved_form.address,
-                    social_links: saved_form.social_links,
-                    is_favorite: saved_form.is_favorite ?? c.is_favorite,
-                  }
-                : c,
-            ),
-          );
+        if (result.error || !result.data?.success) {
+          show_toast(t("common.failed_to_save_contact"), "error");
+
+          return;
         }
+
+        set_contacts((prev) =>
+          prev.map((c) =>
+            c.id === editing_contact.id
+              ? {
+                  ...c,
+                  ...saved_form,
+                  first_name: saved_form.first_name,
+                  last_name: saved_form.last_name,
+                  emails: saved_form.emails,
+                  phone: saved_form.phone || undefined,
+                  company: saved_form.company || undefined,
+                  job_title: saved_form.job_title || undefined,
+                  birthday: saved_form.birthday || undefined,
+                  notes: saved_form.notes || undefined,
+                  address: saved_form.address,
+                  social_links: saved_form.social_links,
+                  email_entries: saved_form.email_entries,
+                  phone_entries: saved_form.phone_entries,
+                  address_entries: saved_form.address_entries,
+                  is_favorite: saved_form.is_favorite ?? c.is_favorite,
+                }
+              : c,
+          ),
+        );
       } else {
         const result = await create_contact_encrypted(saved_form);
 
         if (result.error || !result.data?.id) {
           show_toast(t("common.failed_to_create_contact"), "error");
+
           return;
         }
 
@@ -618,6 +830,9 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
           notes: saved_form.notes || undefined,
           address: saved_form.address,
           social_links: saved_form.social_links,
+          email_entries: saved_form.email_entries,
+          phone_entries: saved_form.phone_entries,
+          address_entries: saved_form.address_entries,
           is_favorite: saved_form.is_favorite ?? false,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -626,16 +841,28 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
         set_contacts((prev) => [new_contact, ...prev]);
         set_show_create(false);
         set_selected_contact(new_contact);
+
         return;
       }
       set_show_create(false);
       set_selected_contact(null);
     } catch (caught) {
-      ignore_error("pages/mobile/use_mobile_contacts_state:use_mobile_contacts_state", caught);
+      ignore_error(
+        "pages/mobile/use_mobile_contacts_state:use_mobile_contacts_state",
+        caught,
+      );
+      show_toast(
+        t(
+          editing_contact
+            ? "common.failed_to_save_contact"
+            : "common.failed_to_create_contact",
+        ),
+        "error",
+      );
     } finally {
       set_is_saving(false);
     }
-  }, [form_data, editing_contact]);
+  }, [form_data, editing_contact, t]);
 
   const favorites_count = useMemo(
     () => contacts.filter((c) => c.is_favorite).length,
@@ -658,10 +885,16 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
     set_search_query,
     filter,
     set_filter,
+    group_filter,
+    set_group_filter,
     selected_contact,
     set_selected_contact,
     show_create,
     set_show_create,
+    show_discard_confirm,
+    set_show_discard_confirm,
+    close_form,
+    request_close_form,
     editing_contact,
     set_editing_contact,
     create_tab,
@@ -685,6 +918,14 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
     handle_copy,
     handle_toggle_favorite,
     handle_delete_contact,
+    request_delete_contact,
+    cancel_delete_confirm,
+    confirm_delete,
+    pending_delete_contact,
+    is_mass_deleting,
+    load_failed,
+    retry_load_contacts,
+    consume_long_press,
     handle_sync_contacts,
     exit_select_mode,
     toggle_select,
@@ -700,10 +941,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
     handle_open_edit,
     handle_save,
     update_form,
-    update_address,
+    update_entries,
     update_social,
-    add_email_field,
-    update_email_field,
-    remove_email_field,
   };
 }

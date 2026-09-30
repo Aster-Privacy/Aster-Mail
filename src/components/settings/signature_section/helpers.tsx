@@ -18,14 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import {
-  type ReactNode,
-} from "react";
+import { type ReactNode } from "react";
 
-import {
-  type SignaturePlacement,
-} from "@/services/api/signatures";
-
+import { type SignaturePlacement } from "@/services/api/signatures";
 
 export function escape_html(str: string): string {
   return str
@@ -55,8 +50,6 @@ export function validate_image_magic_bytes(
   return expected.every((b, i) => bytes[i] === b);
 }
 
-export const MAX_IMAGE_SIZE = 2 * 1024 * 1024;
-
 export function has_editor_content(html: string): boolean {
   const temp = document.createElement("div");
 
@@ -74,11 +67,16 @@ export interface FmtButtonProps {
   title?: string;
 }
 
-export function FmtButton({ active, onClick, children, title }: FmtButtonProps) {
+export function FmtButton({
+  active,
+  onClick,
+  children,
+  title,
+}: FmtButtonProps) {
   return (
     <button
       aria-label={title}
-      className={`p-1.5 rounded-[14px] transition-all duration-150 ${active ? "bg-blue-500/15 text-blue-500" : "hover:bg-black/5 dark:hover:bg-white/10 text-txt-muted"}`}
+      className={`p-1.5 rounded-[14px] transition-all duration-150 ${active ? "bg-blue-500/15 text-blue-500" : "hover:bg-[var(--aster-hover)] text-txt-muted"}`}
       title={title}
       type="button"
       onClick={onClick}
@@ -116,4 +114,3 @@ export const initial_editor_state: EditorState = {
   placement: null,
   show_validation: false,
 };
-

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+
 import {
   ENVELOPE_CAPABILITY_MAX_MARKER,
   ENVELOPE_CAPABILITY_REPORT_INTERVAL_MS,
@@ -16,10 +17,12 @@ function make_deps(overrides: Partial<EnvelopeCapabilityDeps> = {}) {
     max_envelope_marker: number;
     platform: string;
     identity_fingerprint: string | null;
+    pq_identity_fingerprint: string | null;
   }> = [];
 
   let clock = 1_000;
   let fingerprint: string | null = "fixed-fingerprint";
+  let pq_fingerprint: string | null = "fixed-pq-fingerprint";
 
   const deps: EnvelopeCapabilityDeps = {
     now: () => clock,
@@ -33,12 +36,14 @@ function make_deps(overrides: Partial<EnvelopeCapabilityDeps> = {}) {
       max_envelope_marker,
       platform,
       identity_fingerprint,
+      pq_identity_fingerprint,
     ) => {
       posts.push({
         client_id,
         max_envelope_marker,
         platform,
         identity_fingerprint,
+        pq_identity_fingerprint,
       });
 
       return {
@@ -46,10 +51,12 @@ function make_deps(overrides: Partial<EnvelopeCapabilityDeps> = {}) {
         min_supported_marker: 4,
         pq_hybrid_enabled: true,
         identity_verified: true,
+        pq_identity_attested: true,
       } satisfies EnvelopeCapabilityResult;
     },
     platform: () => "web",
     identity_fingerprint: async () => fingerprint,
+    pq_identity_fingerprint: async () => pq_fingerprint,
     ...overrides,
   };
 
@@ -63,6 +70,9 @@ function make_deps(overrides: Partial<EnvelopeCapabilityDeps> = {}) {
     set_fingerprint: (value: string | null) => {
       fingerprint = value;
     },
+    set_pq_fingerprint: (value: string | null) => {
+      pq_fingerprint = value;
+    },
   };
 }
 
@@ -70,7 +80,11 @@ describe("report_envelope_capability_if_due", () => {
   it("reports marker 4 because the web client decapsulates ml-kem-768", async () => {
     const { deps, posts } = make_deps();
 
-    const result = await report_envelope_capability_if_due(user_id, false, deps);
+    const result = await report_envelope_capability_if_due(
+      user_id,
+      false,
+      deps,
+    );
 
     expect(posts).toHaveLength(1);
     expect(posts[0].max_envelope_marker).toBe(ENVELOPE_CAPABILITY_MAX_MARKER);
@@ -81,7 +95,9 @@ describe("report_envelope_capability_if_due", () => {
 
   it("persists and reuses one client id", async () => {
     const ids = ["first", "second"];
-    const { deps, posts } = make_deps({ new_client_id: () => ids.shift() ?? "" });
+    const { deps, posts } = make_deps({
+      new_client_id: () => ids.shift() ?? "",
+    });
 
     await report_envelope_capability_if_due(user_id, false, deps);
     await report_envelope_capability_if_due(user_id, true, deps);
@@ -124,7 +140,9 @@ describe("report_envelope_capability_if_due", () => {
     const post = vi.fn(async () => null);
     const { deps } = make_deps({ post });
 
-    expect(await report_envelope_capability_if_due(user_id, false, deps)).toBeNull();
+    expect(
+      await report_envelope_capability_if_due(user_id, false, deps),
+    ).toBeNull();
     await report_envelope_capability_if_due(user_id, false, deps);
 
     expect(post).toHaveBeenCalledTimes(2);
@@ -137,6 +155,7 @@ describe("report_envelope_capability_if_due", () => {
         min_supported_marker: null,
         pq_hybrid_enabled: false,
         identity_verified: false,
+        pq_identity_attested: false,
       }),
     });
 
@@ -163,7 +182,9 @@ describe("report_envelope_capability_if_due", () => {
   it("never reports for a blank user id", async () => {
     const { deps, posts } = make_deps();
 
-    expect(await report_envelope_capability_if_due("  ", false, deps)).toBeNull();
+    expect(
+      await report_envelope_capability_if_due("  ", false, deps),
+    ).toBeNull();
     expect(posts).toHaveLength(0);
   });
 
@@ -198,7 +219,9 @@ describe("report_envelope_capability_if_due", () => {
   });
 
   it("reports a null fingerprint when no identity key is loaded", async () => {
-    const { deps, posts } = make_deps({ identity_fingerprint: async () => null });
+    const { deps, posts } = make_deps({
+      identity_fingerprint: async () => null,
+    });
 
     await report_envelope_capability_if_due(user_id, false, deps);
 
@@ -229,6 +252,37 @@ describe("report_envelope_capability_if_due", () => {
     expect(posts[0].identity_fingerprint).toBeNull();
   });
 
+  it("attests the post-quantum key the device can decapsulate with", async () => {
+    const { deps, posts } = make_deps();
+
+    await report_envelope_capability_if_due(user_id, false, deps);
+
+    expect(posts[0].pq_identity_fingerprint).toBe("fixed-pq-fingerprint");
+  });
+
+  it("attests nothing when the post-quantum secret is missing", async () => {
+    const { deps, posts } = make_deps({
+      pq_identity_fingerprint: async () => null,
+    });
+
+    await report_envelope_capability_if_due(user_id, false, deps);
+
+    expect(posts[0].pq_identity_fingerprint).toBeNull();
+  });
+
+  it("re-reports immediately when the post-quantum key arrives", async () => {
+    const helper = make_deps({ pq_identity_fingerprint: async () => null });
+
+    await report_envelope_capability_if_due(user_id, false, helper.deps);
+    helper.deps.pq_identity_fingerprint = async () => "recovered-fingerprint";
+    await report_envelope_capability_if_due(user_id, false, helper.deps);
+
+    expect(helper.posts).toHaveLength(2);
+    expect(helper.posts[1].pq_identity_fingerprint).toBe(
+      "recovered-fingerprint",
+    );
+  });
+
   it("marks the platform as desktop inside the tauri shell", async () => {
     const { deps, posts } = make_deps({ platform: () => "desktop" });
 
@@ -244,7 +298,11 @@ describe("report_envelope_capability_if_due", () => {
       }),
     });
 
-    const result = await report_envelope_capability_if_due(user_id, false, deps);
+    const result = await report_envelope_capability_if_due(
+      user_id,
+      false,
+      deps,
+    );
 
     expect(result?.success).toBe(true);
     expect(posts).toHaveLength(1);

@@ -20,13 +20,13 @@
 //
 import { describe, expect, it } from "vitest";
 
-import { sanitize_html } from "@/lib/html_sanitizer";
-
 import {
   collapse_empty_block_runs,
   collapse_forwarded_content,
   collapse_quoted_replies,
 } from "./dom_cleanup";
+
+import { sanitize_html } from "@/lib/html_sanitizer";
 
 type translate_fn = Parameters<typeof collapse_forwarded_content>[1];
 
@@ -89,12 +89,23 @@ describe("quoted original stays out of the visible body", () => {
     expect(collapsed_text(doc)).toContain("The original body.");
   });
 
+  it("collapses a reply whose attribution line links the sender address", () => {
+    const doc = run(
+      `<div>Sounds good.</div><div>On 12 Aug 2026, at 08:50, Mr Yes &lt;<a href="mailto:mryes@example.com">mryes@example.com</a>&gt; wrote:</div><blockquote type="cite">The original body.</blockquote>`,
+    );
+
+    expect(visible_text(doc)).toBe("Sounds good.");
+    expect(collapsed_text(doc)).toContain("The original body.");
+  });
+
   it("collapses when the sender's own message is an inline image and no text", () => {
     const doc = run(
       `<div><img src="cid:note@aster" alt=""></div><div class="protonmail_quote">-------- Original Message --------<br><blockquote class="protonmail_quote">Quoted original.</blockquote></div>`,
     );
 
-    expect(doc.body.querySelector("details.aster-forwarded-collapse")).not.toBeNull();
+    expect(
+      doc.body.querySelector("details.aster-forwarded-collapse"),
+    ).not.toBeNull();
     expect(visible_text(doc)).not.toContain("Quoted original.");
     expect(collapsed_text(doc)).toContain("Quoted original.");
   });

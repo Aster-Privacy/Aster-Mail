@@ -20,19 +20,16 @@
 //
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { queue_email, queue_email_to_server, parse_undo_send_period } =
-  vi.hoisted(() => ({
-    queue_email: vi.fn((_email: Record<string, unknown>) => "queued-local-id"),
-    queue_email_to_server: vi.fn(async (_email: Record<string, unknown>) => ({
-      queue_id: "queued-server-id",
-    })),
-    parse_undo_send_period: vi.fn(() => 0),
-  }));
+const { queue_email, queue_email_to_server } = vi.hoisted(() => ({
+  queue_email: vi.fn((_email: Record<string, unknown>) => "queued-local-id"),
+  queue_email_to_server: vi.fn(async (_email: Record<string, unknown>) => ({
+    queue_id: "queued-server-id",
+  })),
+}));
 
 vi.mock("./send_queue", () => ({
   queue_email,
   queue_email_to_server,
-  parse_undo_send_period,
   cancel_send: vi.fn(),
   send_now: vi.fn(),
   cancel_server_queued_email: vi.fn(),
@@ -172,7 +169,6 @@ describe("build_reply_recipients", () => {
 describe("send_reply cc wiring", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    parse_undo_send_period.mockReturnValue(0);
   });
 
   it("queues a reply-all with cc as a real cc header", async () => {
@@ -194,9 +190,11 @@ describe("send_reply cc wiring", () => {
   });
 
   it("carries cc through the server queue path", async () => {
-    parse_undo_send_period.mockReturnValue(5000);
-
-    await send_reply({ original, message: "body", reply_all: true }, callbacks);
+    await send_reply(
+      { original, message: "body", reply_all: true },
+      callbacks,
+      5000,
+    );
 
     const payload = queue_email_to_server.mock.calls[0][0];
 

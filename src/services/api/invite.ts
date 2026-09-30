@@ -23,6 +23,7 @@ import { api_client, type ApiResponse } from "./client";
 export interface InviteLookupResponse {
   valid: boolean;
   referrer_display_name: string | null;
+  bonus_bytes_per_referral: number;
 }
 
 export function get_invite_info(

@@ -23,6 +23,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { BackupCodeInput } from "./backup_code_input";
+
 import { verify_backup_code_login } from "@/services/api/totp";
 
 vi.mock("@/services/api/totp", () => ({
@@ -41,7 +42,8 @@ vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({
     children,
     disabled,
@@ -63,7 +65,6 @@ vi.mock("@aster/ui", () => ({
 const mocked_verify = vi.mocked(verify_backup_code_login);
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -82,10 +83,10 @@ describe("BackupCodeInput", () => {
     on_success: vi.fn(),
     on_use_authenticator: vi.fn(),
     on_cancel: vi.fn(),
+    on_reset_with_recovery_code: vi.fn(),
   });
 
-  const text_input = () =>
-    container.querySelector("input") as HTMLInputElement;
+  const text_input = () => container.querySelector("input") as HTMLInputElement;
 
   const submit_button = () =>
     Array.from(container.querySelectorAll("button")).find((b) =>
@@ -139,6 +140,53 @@ describe("BackupCodeInput", () => {
 
     await type_code("ABCD-EFGH-JKMN");
     expect(submit_button().disabled).toBe(false);
+  });
+
+  it("sends a pasted ASTER recovery code to the reset flow instead of verifying it", async () => {
+    const p = await render();
+
+    await type_code("ASTER-7KQ2-M9XD-4HPT-WN3C");
+
+    expect(text_input().value).toBe("ASTER-7KQ2-M9XD-4HPT-WN3C");
+    expect(container.textContent).toContain(
+      "auth.recovery_code_in_backup_field",
+    );
+
+    const reset_button = Array.from(container.querySelectorAll("button")).find(
+      (b) => b.textContent?.includes("auth.reset_with_recovery_code"),
+    ) as HTMLButtonElement;
+
+    await act(async () => {
+      reset_button.click();
+    });
+
+    expect(p.on_reset_with_recovery_code).toHaveBeenCalledTimes(1);
+    expect(mocked_verify).not.toHaveBeenCalled();
+  });
+
+  it("offers recovery code reset and passkey retry when the account has no backup codes", async () => {
+    const p = await render({ has_backup_codes: false });
+
+    expect(text_input()).toBeNull();
+    expect(container.textContent).toContain("auth.no_backup_codes_title");
+    expect(container.textContent).not.toContain(
+      "auth.use_authenticator_instead",
+    );
+
+    const find_button = (key: string) =>
+      Array.from(container.querySelectorAll("button")).find((b) =>
+        b.textContent?.includes(key),
+      ) as HTMLButtonElement;
+
+    await act(async () => {
+      find_button("auth.reset_with_recovery_code").click();
+    });
+    await act(async () => {
+      find_button("auth.try_passkey_again").click();
+    });
+
+    expect(p.on_reset_with_recovery_code).toHaveBeenCalledTimes(1);
+    expect(p.on_use_authenticator).toHaveBeenCalledTimes(1);
   });
 
   it("accepts an 8-character legacy code and dash-formats it", async () => {
@@ -268,7 +316,10 @@ describe("BackupCodeInput", () => {
   });
 
   it("keeps the code and shows the error on failure", async () => {
-    mocked_verify.mockResolvedValue({ data: undefined, error: "Invalid backup code" });
+    mocked_verify.mockResolvedValue({
+      data: undefined,
+      error: "Invalid backup code",
+    });
     await render();
 
     await type_code("ABCD-EFGH-JKMN");

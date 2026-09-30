@@ -18,13 +18,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
-import { array_to_base64, base64_to_array } from "./base64";
-import {
-  derive_encryption_key_from_passphrase,
-  get_or_create_derived_encryption_crypto_key,
-} from "./memory_key_store";
 import type { ApiResponse } from "../api/client";
+
 import { list_aliases } from "../api/aliases";
 import { list_contacts } from "../api/contacts";
 import { list_alias_pins } from "../api/alias_pins";
@@ -32,6 +27,13 @@ import { list_alias_contacts } from "../api/alias_contacts";
 import { list_alias_destinations } from "../api/alias_destinations";
 import { list_alias_directories } from "../api/alias_directories";
 import { list_domains, list_domain_addresses } from "../api/domains";
+
+import {
+  STORAGE_KDF_VERSION_LEGACY,
+  derive_encryption_key_from_passphrase,
+  get_or_create_derived_encryption_crypto_key,
+} from "./memory_key_store";
+import { array_to_base64, base64_to_array } from "./base64";
 import { get_legacy_crypto_keys } from "./legacy_keks";
 import {
   decrypt_with_candidates,
@@ -45,10 +47,12 @@ import {
   type ReEncryptedDomainAddress,
 } from "./reencrypt_shared";
 
+import { HASH_ALG } from "@/services/crypto/constants";
 
 export interface OldKeyMaterial {
   data_kek?: string;
   legacy_keks?: { k: string }[];
+  kdf_version?: number;
 }
 
 export interface ReEncryptSkipReport {
@@ -58,9 +62,15 @@ export interface ReEncryptSkipReport {
   unreadable_field_count: number;
 }
 
-async function derive_aes_key(passphrase: string): Promise<CryptoKey> {
+async function derive_aes_key(
+  passphrase: string,
+  kdf_version: number,
+): Promise<CryptoKey> {
   const passphrase_bytes = new TextEncoder().encode(passphrase);
-  const raw = await derive_encryption_key_from_passphrase(passphrase_bytes);
+  const raw = await derive_encryption_key_from_passphrase(
+    passphrase_bytes,
+    kdf_version,
+  );
 
   return crypto.subtle.importKey(
     "raw",
@@ -71,9 +81,15 @@ async function derive_aes_key(passphrase: string): Promise<CryptoKey> {
   );
 }
 
-async function derive_alias_hmac_key(passphrase: string): Promise<CryptoKey> {
+async function derive_alias_hmac_key(
+  passphrase: string,
+  kdf_version: number,
+): Promise<CryptoKey> {
   const passphrase_bytes = new TextEncoder().encode(passphrase);
-  const raw = await derive_encryption_key_from_passphrase(passphrase_bytes);
+  const raw = await derive_encryption_key_from_passphrase(
+    passphrase_bytes,
+    kdf_version,
+  );
   const info = new TextEncoder().encode("astermail-alias-hmac-v1");
   const combined = new Uint8Array(raw.byteLength + info.length);
 
@@ -91,9 +107,15 @@ async function derive_alias_hmac_key(passphrase: string): Promise<CryptoKey> {
   );
 }
 
-async function derive_contacts_hmac_key(passphrase: string): Promise<CryptoKey> {
+async function derive_contacts_hmac_key(
+  passphrase: string,
+  kdf_version: number,
+): Promise<CryptoKey> {
   const passphrase_bytes = new TextEncoder().encode(passphrase);
-  const raw = await derive_encryption_key_from_passphrase(passphrase_bytes);
+  const raw = await derive_encryption_key_from_passphrase(
+    passphrase_bytes,
+    kdf_version,
+  );
   const info = new TextEncoder().encode("contacts-hmac-v2");
   const combined = new Uint8Array(raw.byteLength + info.length);
 
@@ -113,9 +135,13 @@ async function derive_contacts_hmac_key(passphrase: string): Promise<CryptoKey> 
 
 async function derive_domain_address_hmac_key(
   passphrase: string,
+  kdf_version: number,
 ): Promise<CryptoKey> {
   const passphrase_bytes = new TextEncoder().encode(passphrase);
-  const raw = await derive_encryption_key_from_passphrase(passphrase_bytes);
+  const raw = await derive_encryption_key_from_passphrase(
+    passphrase_bytes,
+    kdf_version,
+  );
   const info = new TextEncoder().encode("astermail-domain-address-hmac-v1");
   const combined = new Uint8Array(raw.byteLength + info.length);
 
@@ -145,6 +171,7 @@ async function import_aes_decryption_key(raw: Uint8Array): Promise<CryptoKey> {
 
 async function build_old_key_candidates(
   old_passphrase: string,
+  kdf_version: number,
   material?: OldKeyMaterial,
 ): Promise<CryptoKey[]> {
   const candidates: CryptoKey[] = [];
@@ -159,8 +186,18 @@ async function build_old_key_candidates(
   raw_candidates.push(
     await derive_encryption_key_from_passphrase(
       new TextEncoder().encode(old_passphrase),
+      kdf_version,
     ),
   );
+
+  if (kdf_version !== STORAGE_KDF_VERSION_LEGACY) {
+    raw_candidates.push(
+      await derive_encryption_key_from_passphrase(
+        new TextEncoder().encode(old_passphrase),
+        STORAGE_KDF_VERSION_LEGACY,
+      ),
+    );
+  }
 
   const encoded_material = [
     ...(material?.data_kek ? [material.data_kek] : []),
@@ -259,6 +296,9 @@ export async function re_encrypt_user_data(
   re_encrypted_domain_addresses: ReEncryptedDomainAddress[];
   skipped: ReEncryptSkipReport;
 }> {
+  const kdf_version =
+    old_key_material?.kdf_version ?? STORAGE_KDF_VERSION_LEGACY;
+
   const [
     old_keys,
     new_aes,
@@ -266,11 +306,11 @@ export async function re_encrypt_user_data(
     new_contacts_hmac,
     new_domain_hmac,
   ] = await Promise.all([
-    build_old_key_candidates(old_passphrase, old_key_material),
-    derive_aes_key(new_passphrase),
-    derive_alias_hmac_key(new_passphrase),
-    derive_contacts_hmac_key(new_passphrase),
-    derive_domain_address_hmac_key(new_passphrase),
+    build_old_key_candidates(old_passphrase, kdf_version, old_key_material),
+    derive_aes_key(new_passphrase, kdf_version),
+    derive_alias_hmac_key(new_passphrase, kdf_version),
+    derive_contacts_hmac_key(new_passphrase, kdf_version),
+    derive_domain_address_hmac_key(new_passphrase, kdf_version),
   ]);
 
   const skipped: ReEncryptSkipReport = {
@@ -327,20 +367,24 @@ export async function re_encrypt_user_data(
 
         const result: ReEncryptedAlias = {
           id: alias.id,
-          encrypted_local_part: array_to_base64(new Uint8Array(new_lp_ciphertext)),
+          encrypted_local_part: array_to_base64(
+            new Uint8Array(new_lp_ciphertext),
+          ),
           local_part_nonce: array_to_base64(new_lp_nonce),
           alias_address_hash: array_to_base64(new Uint8Array(addr_sig)),
         };
 
         if (alias.encrypted_display_name && alias.display_name_nonce) {
-          const { encrypted: encrypted_display_name, nonce: display_name_nonce } =
-            await carry_forward_field(
-              alias.encrypted_display_name,
-              alias.display_name_nonce,
-              old_keys,
-              new_aes,
-              skipped,
-            );
+          const {
+            encrypted: encrypted_display_name,
+            nonce: display_name_nonce,
+          } = await carry_forward_field(
+            alias.encrypted_display_name,
+            alias.display_name_nonce,
+            old_keys,
+            new_aes,
+            skipped,
+          );
 
           result.encrypted_display_name = encrypted_display_name;
           result.display_name_nonce = display_name_nonce;
@@ -446,7 +490,10 @@ export async function re_encrypt_user_data(
         skipped.unreadable_field_count += 1;
       } else {
         for (const destination of destinations_response.data.destinations) {
-          if (!destination.encrypted_destination || !destination.destination_nonce)
+          if (
+            !destination.encrypted_destination ||
+            !destination.destination_nonce
+          )
             continue;
 
           try {
@@ -509,7 +556,9 @@ export async function re_encrypt_user_data(
         const parsed = JSON.parse(new TextDecoder().decode(ct_plaintext));
         const first_name: string = parsed.first_name ?? "";
         const last_name: string = parsed.last_name ?? "";
-        const emails: string[] = Array.isArray(parsed.emails) ? parsed.emails : [];
+        const emails: string[] = Array.isArray(parsed.emails)
+          ? parsed.emails
+          : [];
         const searchable =
           `${first_name} ${last_name} ${emails.join(" ")}`.toLowerCase();
         const contact_token_sig = await crypto.subtle.sign(

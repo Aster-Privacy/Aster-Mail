@@ -19,26 +19,52 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { HASH_ALG } from "@/services/crypto/constants";
+
 import type { EncryptedVault } from "../key_manager";
+
 import { derive_encryption_key_from_passphrase } from "../memory_key_store";
 import { zero_uint8_array } from "../secure_memory";
 import { append_legacy_key_raw_bytes } from "../legacy_keks";
-import type { } from "@/services/api/signatures";
-import type { } from "@/services/api/templates";
-import type { } from "@/services/api/blocked_senders";
-import type { } from "@/services/api/allowed_senders";
-import {  base64_to_array } from "../base64";
+import type {} from "@/services/api/signatures";
+import type {} from "@/services/api/templates";
+import type {} from "@/services/api/blocked_senders";
+import type {} from "@/services/api/allowed_senders";
+import { base64_to_array } from "../base64";
 
-
-import { re_encrypt_alias_sub_items_recovery, re_encrypt_aliases_contacts } from "./aliases";
-import { re_encrypt_contact_attachments, re_encrypt_contact_field_values, re_encrypt_contact_photos, re_encrypt_contact_sync_sources, re_encrypt_drafts } from "./contacts";
+import {
+  re_encrypt_alias_sub_items_recovery,
+  re_encrypt_aliases_contacts,
+} from "./aliases";
+import {
+  re_encrypt_contact_attachments,
+  re_encrypt_contact_field_values,
+  re_encrypt_contact_photos,
+  re_encrypt_contact_sync_sources,
+  re_encrypt_drafts,
+} from "./contacts";
 import { re_encrypt_folders } from "./folders";
 import { import_aes_key } from "./key_helpers";
 import { re_encrypt_mail_metadata, re_encrypt_tags } from "./mail";
-import { clear_pending_reencryption, get_pending, store_pending_reencryption } from "./pending";
-import { re_encrypt_dev_mode, re_encrypt_external_accounts, re_encrypt_onboarding_state, re_encrypt_preferences, re_encrypt_recovery_email } from "./preferences";
+import {
+  clear_pending_reencryption,
+  get_pending,
+  store_pending_reencryption,
+} from "./pending";
+import {
+  re_encrypt_dev_mode,
+  re_encrypt_external_accounts,
+  re_encrypt_onboarding_state,
+  re_encrypt_preferences,
+  re_encrypt_recovery_email,
+} from "./preferences";
 import { re_encrypt_profile_notes } from "./profile_notes";
-import { re_encrypt_allowed_senders, re_encrypt_blocked_senders, re_encrypt_recent_recipients, re_encrypt_signatures, re_encrypt_templates } from "./settings";
+import {
+  re_encrypt_allowed_senders,
+  re_encrypt_blocked_senders,
+  re_encrypt_recent_recipients,
+  re_encrypt_signatures,
+  re_encrypt_templates,
+} from "./settings";
 export async function check_and_run_recovery_reencryption(
   vault: EncryptedVault,
   passphrase: string,
@@ -52,7 +78,9 @@ export async function check_and_run_recovery_reencryption(
   const [old_folder_hash_buf, old_tag_hash_buf] = await Promise.all([
     crypto.subtle.digest(
       HASH_ALG,
-      new TextEncoder().encode(pending.old_identity_key + "astermail-labels-v1"),
+      new TextEncoder().encode(
+        pending.old_identity_key + "astermail-labels-v1",
+      ),
     ),
     crypto.subtle.digest(
       HASH_ALG,
@@ -81,8 +109,14 @@ export async function check_and_run_recovery_reencryption(
     );
     await re_encrypt_drafts(pending.old_identity_key, vault.identity_key);
     await re_encrypt_dev_mode(pending.old_identity_key, vault.identity_key);
-    await re_encrypt_recovery_email(pending.old_identity_key, vault.identity_key);
-    await re_encrypt_onboarding_state(pending.old_identity_key, vault.identity_key);
+    await re_encrypt_recovery_email(
+      pending.old_identity_key,
+      vault.identity_key,
+    );
+    await re_encrypt_onboarding_state(
+      pending.old_identity_key,
+      vault.identity_key,
+    );
   } catch {
     /* silently fail */
   }

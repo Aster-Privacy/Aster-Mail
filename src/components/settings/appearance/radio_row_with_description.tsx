@@ -43,7 +43,7 @@ export function RadioRowWithDescription({
       type="button"
       onClick={on_select}
     >
-      <div className="text-left">
+      <div className="text-start">
         <span className="text-sm font-medium block text-txt-primary">
           {label}
         </span>
@@ -51,7 +51,7 @@ export function RadioRowWithDescription({
           {description}
         </span>
       </div>
-      <span className="pointer-events-none flex-shrink-0 ml-3">
+      <span className="pointer-events-none flex-shrink-0 ms-3">
         <Radio readOnly checked={is_selected} />
       </span>
     </button>

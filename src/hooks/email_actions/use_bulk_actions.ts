@@ -36,7 +36,7 @@ import {
   emit_mail_action,
 } from "../email_action_types";
 
-import { report_spam_sender } from "@/services/api/mail";
+import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import {
   batch_archive as api_batch_archive,
   batch_unarchive as api_batch_unarchive,
@@ -51,6 +51,7 @@ import {
   update_progress_toast,
   hide_action_toast,
 } from "@/components/toast/action_toast";
+import { show_toast } from "@/components/toast/simple_toast";
 import { PROGRESS_THRESHOLDS } from "@/constants/batch_config";
 import {
   bulk_action_result,
@@ -68,15 +69,19 @@ import {
 } from "@/hooks/use_mail_stats";
 import { bulk_update_metadata_by_ids } from "@/services/crypto/mail_metadata";
 import { use_i18n } from "@/lib/i18n/context";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 const ARCHIVE_BATCH_CHUNK_SIZE = 100;
 
 async function run_archive_batch(
   ids: string[],
   is_archived: boolean,
-): Promise<{ error?: string }> {
+): Promise<{ error?: string; failed_ids: string[] }> {
+  const failed_ids: string[] = [];
+
+  let error: string | undefined;
+
   for (let i = 0; i < ids.length; i += ARCHIVE_BATCH_CHUNK_SIZE) {
     const chunk = ids.slice(i, i + ARCHIVE_BATCH_CHUNK_SIZE);
     const result = is_archived
@@ -84,11 +89,12 @@ async function run_archive_batch(
       : await api_batch_unarchive({ ids: chunk });
 
     if (result.error || !result.data?.success) {
-      return { error: result.error || "batch archive failed" };
+      error = error || result.error || "batch archive failed";
+      failed_ids.push(...chunk);
     }
   }
 
-  return {};
+  return error ? { error, failed_ids } : { failed_ids };
 }
 
 async function apply_archive_batch_for_undo(
@@ -99,8 +105,8 @@ async function apply_archive_batch_for_undo(
 
   const result = await run_archive_batch(ids, meta.is_archived === true);
 
-  if (result.error) {
-    throw new Error(result.error);
+  if (result.error || result.failed_ids.length > 0) {
+    throw new Error(result.error || "batch archive failed");
   }
 }
 
@@ -111,6 +117,7 @@ export interface BulkActions {
   bulk_delete: (emails: InboxEmail[]) => Promise<boolean>;
   bulk_mark_read: (emails: InboxEmail[], is_read: boolean) => Promise<boolean>;
   bulk_mark_spam: (emails: InboxEmail[]) => Promise<boolean>;
+  bulk_unmark_spam: (emails: InboxEmail[]) => Promise<boolean>;
   bulk_add_folder: (
     emails: InboxEmail[],
     folder_token: string,
@@ -188,7 +195,9 @@ export function use_bulk_actions(
             is_archived: boolean;
             is_spam: boolean;
           }>;
+          on_after_undo?: (undone: InboxEmail[]) => void | Promise<void>;
         };
+        extra_failed_ids?: string[];
         on_before_api?: () => void;
         on_partial_failure?: (failed_ids: string[]) => void;
         on_full_rollback?: () => void;
@@ -230,18 +239,20 @@ export function use_bulk_actions(
 
       action_config.on_before_api?.();
 
-      bulk_abort_ref.current = new AbortController();
+      const abort_controller = new AbortController();
+
+      bulk_abort_ref.current = abort_controller;
 
       if (show_progress) {
         show_action_toast({
           message: t("common.processing_count", {
             completed: "0",
-            total: String(ids.length),
+            total: ids.length,
           }),
           action_type: "progress",
           email_ids: ids,
           progress: { completed: 0, total: ids.length },
-          on_cancel: () => bulk_abort_ref.current.abort(),
+          on_cancel: () => abort_controller.abort(),
         });
       }
 
@@ -250,7 +261,7 @@ export function use_bulk_actions(
           emails,
           action_config.metadata_update,
           {
-            signal: bulk_abort_ref.current.signal,
+            signal: abort_controller.signal,
             on_progress: (completed, total) => {
               if (show_progress) update_progress_toast(completed, total, t);
             },
@@ -312,10 +323,9 @@ export function use_bulk_actions(
         config.on_success?.(action_config.action_type);
 
         if (action_config.success_toast) {
-          const successful_emails = emails.filter(
-            (e) => !failed_set.has(e.id),
-          );
-          const compute_undo = action_config.success_toast.compute_undo_metadata;
+          const successful_emails = emails.filter((e) => !failed_set.has(e.id));
+          const compute_undo =
+            action_config.success_toast.compute_undo_metadata;
           const fixed_undo = action_config.success_toast.undo_metadata;
 
           let on_undo: (() => Promise<void>) | undefined;
@@ -356,6 +366,9 @@ export function use_bulk_actions(
                 );
                 await bulk_update_with_metadata(group, meta);
               }
+              await action_config.success_toast?.on_after_undo?.(
+                successful_emails,
+              );
               emit_mail_soft_refresh();
             };
           } else if (fixed_undo) {
@@ -365,16 +378,24 @@ export function use_bulk_actions(
                 successful_emails.map((e) => e.id),
               );
               await bulk_update_with_metadata(successful_emails, fixed_undo);
+              await action_config.success_toast?.on_after_undo?.(
+                successful_emails,
+              );
               emit_mail_soft_refresh();
             };
           }
 
+          const extra_failed = action_config.extra_failed_ids ?? [];
+
           show_bulk_result_toast({
-            result: bulk_action_result(ids, failed_ids),
+            result: bulk_action_result(
+              [...ids, ...extra_failed],
+              [...failed_ids, ...extra_failed],
+            ),
             t,
             success_message: t(
               action_config.success_toast.message_key as TranslationKey,
-              { count: String(successful_ids.length) },
+              { count: successful_ids.length },
             ),
             error_message: action_config.error_message,
             action_type: action_config.success_toast.toast_action_type,
@@ -385,6 +406,7 @@ export function use_bulk_actions(
 
         return result.success && failed_ids.length === 0;
       } catch {
+        if (show_progress) hide_action_toast();
         for (const id of ids) {
           rollback_action(id, action_config.action_type);
         }
@@ -485,15 +507,20 @@ export function use_bulk_actions(
           );
 
           for (const email of threaded) {
-            const thread = await get_thread_messages(email.thread_token!);
-            const extra = (thread.data?.messages ?? [])
-              .filter(
-                (message) =>
-                  message.item_type === "received" && !base_ids.has(message.id),
-              )
-              .map((message) => message.id);
+            try {
+              const thread = await get_thread_messages(email.thread_token!);
+              const extra = (thread.data?.messages ?? [])
+                .filter(
+                  (message) =>
+                    message.item_type === "received" &&
+                    !base_ids.has(message.id),
+                )
+                .map((message) => message.id);
 
-            sibling_ids.push(...extra);
+              sibling_ids.push(...extra);
+            } catch (caught) {
+              ignore_error("use_bulk_actions:sync_grouped_siblings", caught);
+            }
           }
 
           const unique_ids = Array.from(new Set(sibling_ids));
@@ -520,21 +547,43 @@ export function use_bulk_actions(
     );
   }, []);
 
+  const split_archive_failures = useCallback(
+    (emails: InboxEmail[], failed_ids: string[]) => {
+      const failed_set = new Set(failed_ids);
+      const is_failed = (email: InboxEmail) =>
+        (email.grouped_email_ids && email.grouped_email_ids.length > 1
+          ? email.grouped_email_ids
+          : [email.id]
+        ).some((id) => failed_set.has(id));
+
+      return {
+        applied: emails.filter((email) => !is_failed(email)),
+        failed: emails.filter(is_failed).map((email) => email.id),
+      };
+    },
+    [],
+  );
+
   const bulk_archive = useCallback(
     async (emails: InboxEmail[]): Promise<boolean> => {
       const batch_result = await run_archive_batch(
         expand_grouped_ids(emails),
         true,
       );
+      const archive_split = split_archive_failures(
+        emails,
+        batch_result.failed_ids,
+      );
 
-      if (batch_result.error) {
+      if (archive_split.applied.length === 0) {
         set_action_error("archive", t("common.failed_to_archive_emails"));
 
         return false;
       }
 
-      const ok = await execute_bulk_action(emails, {
+      const ok = await execute_bulk_action(archive_split.applied, {
         action_type: "archive",
+        extra_failed_ids: archive_split.failed,
         optimistic_update: {
           is_archived: true,
           is_trashed: false,
@@ -564,14 +613,15 @@ export function use_bulk_actions(
         },
       });
 
-      if (ok) sync_grouped_siblings(emails, true);
+      if (ok) sync_grouped_siblings(archive_split.applied, true);
 
-      return ok;
+      return ok && archive_split.failed.length === 0;
     },
     [
       execute_bulk_action,
       sync_grouped_siblings,
       expand_grouped_ids,
+      split_archive_failures,
       set_action_error,
       t,
     ],
@@ -583,15 +633,20 @@ export function use_bulk_actions(
         expand_grouped_ids(emails),
         false,
       );
+      const restore_split = split_archive_failures(
+        emails,
+        batch_result.failed_ids,
+      );
 
-      if (batch_result.error) {
+      if (restore_split.applied.length === 0) {
         set_action_error("restore", t("common.failed_to_move_email"));
 
         return false;
       }
 
-      const ok = await execute_bulk_action(emails, {
+      const ok = await execute_bulk_action(restore_split.applied, {
         action_type: "restore",
+        extra_failed_ids: restore_split.failed,
         optimistic_update: { is_archived: false },
         original_state_extractor: (email) => ({
           is_archived: email.is_archived,
@@ -607,14 +662,15 @@ export function use_bulk_actions(
         },
       });
 
-      if (ok) sync_grouped_siblings(emails, false);
+      if (ok) sync_grouped_siblings(restore_split.applied, false);
 
-      return ok;
+      return ok && restore_split.failed.length === 0;
     },
     [
       execute_bulk_action,
       sync_grouped_siblings,
       expand_grouped_ids,
+      split_archive_failures,
       set_action_error,
       t,
     ],
@@ -685,9 +741,7 @@ export function use_bulk_actions(
         finalize_failed_ids: is_read
           ? async (succeeded_ids) => {
               const succeeded_set = new Set(succeeded_ids);
-              const candidates = emails.filter((e) =>
-                succeeded_set.has(e.id),
-              );
+              const candidates = emails.filter((e) => succeeded_set.has(e.id));
               const thread_result = await mark_conversation_threads_read(
                 collect_conversation_thread_tokens(
                   candidates,
@@ -728,6 +782,20 @@ export function use_bulk_actions(
             is_spam: email.is_spam,
             is_trashed: email.is_trashed,
           }),
+          on_after_undo: (undone) => {
+            const undone_senders = new Set(
+              undone.map((e) => e.sender_email).filter(Boolean),
+            );
+
+            for (const sender of undone_senders) {
+              remove_spam_sender(sender).catch((caught) =>
+                ignore_error(
+                  "hooks/email_actions/use_bulk_actions:use_bulk_actions",
+                  caught,
+                ),
+              );
+            }
+          },
         },
       });
 
@@ -737,7 +805,49 @@ export function use_bulk_actions(
         );
 
         for (const sender of unique_senders) {
-          report_spam_sender(sender).catch((caught) => ignore_error("hooks/email_actions/use_bulk_actions:use_bulk_actions", caught));
+          report_spam_sender(sender).catch((caught) =>
+            ignore_error(
+              "hooks/email_actions/use_bulk_actions:use_bulk_actions",
+              caught,
+            ),
+          );
+        }
+      }
+
+      return result;
+    },
+    [execute_bulk_action, t],
+  );
+
+  const bulk_unmark_spam = useCallback(
+    async (emails: InboxEmail[]): Promise<boolean> => {
+      const result = await execute_bulk_action(emails, {
+        action_type: "spam",
+        optimistic_update: { is_spam: false },
+        original_state_extractor: (email) => ({ is_spam: email.is_spam }),
+        metadata_update: { is_spam: false },
+        remove_from_list: true,
+        emit_view_change: true,
+        error_message: t("common.failed_to_move_email"),
+        success_toast: {
+          message_key: "common.conversations_marked_as_not_spam_bulk",
+          toast_action_type: "not_spam",
+          compute_undo_metadata: (email) => ({ is_spam: email.is_spam }),
+        },
+      });
+
+      if (result) {
+        const unique_senders = new Set(
+          emails.map((e) => e.sender_email).filter(Boolean),
+        );
+
+        for (const sender of unique_senders) {
+          remove_spam_sender(sender).catch((caught) =>
+            ignore_error(
+              "hooks/email_actions/use_bulk_actions:use_bulk_actions",
+              caught,
+            ),
+          );
         }
       }
 
@@ -754,24 +864,26 @@ export function use_bulk_actions(
 
       set_action_loading("label", true);
 
-      bulk_abort_ref.current = new AbortController();
+      const abort_controller = new AbortController();
+
+      bulk_abort_ref.current = abort_controller;
 
       if (show_progress) {
         show_action_toast({
           message: t("common.processing_count", {
             completed: "0",
-            total: String(ids.length),
+            total: ids.length,
           }),
           action_type: "progress",
           email_ids: ids,
           progress: { completed: 0, total: ids.length },
-          on_cancel: () => bulk_abort_ref.current.abort(),
+          on_cancel: () => abort_controller.abort(),
         });
       }
 
       try {
         const result = await batched_bulk_add_folder(ids, folder_token, {
-          signal: bulk_abort_ref.current.signal,
+          signal: abort_controller.signal,
           on_progress: (completed, total) => {
             if (show_progress) update_progress_toast(completed, total, t);
           },
@@ -785,13 +897,27 @@ export function use_bulk_actions(
           "label",
           ids.filter((i) => !result.failed_ids.includes(i)),
         );
+        if (result.was_cancelled) {
+          set_action_error("label", t("settings.status_cancelled"));
+          show_toast(t("settings.status_cancelled"), "error");
+
+          return false;
+        }
+        if (result.failed_ids.length > 0) {
+          set_action_error("label", t("common.failed_to_add_labels"));
+          show_toast(t("common.failed_to_add_labels"), "error");
+
+          return false;
+        }
         config.on_success?.("label");
 
         return result.success;
       } catch (err) {
         if (show_progress) hide_action_toast();
-        const error_message =
-          err instanceof Error ? err.message : t("common.failed_to_add_labels");
+        const error_message = user_facing_error(
+          err,
+          t("common.failed_to_add_labels"),
+        );
 
         set_action_error("label", error_message);
 
@@ -816,24 +942,26 @@ export function use_bulk_actions(
 
       set_action_loading("label", true);
 
-      bulk_abort_ref.current = new AbortController();
+      const abort_controller = new AbortController();
+
+      bulk_abort_ref.current = abort_controller;
 
       if (show_progress) {
         show_action_toast({
           message: t("common.processing_count", {
             completed: "0",
-            total: String(ids.length),
+            total: ids.length,
           }),
           action_type: "progress",
           email_ids: ids,
           progress: { completed: 0, total: ids.length },
-          on_cancel: () => bulk_abort_ref.current.abort(),
+          on_cancel: () => abort_controller.abort(),
         });
       }
 
       try {
         const result = await batched_bulk_remove_folder(ids, folder_token, {
-          signal: bulk_abort_ref.current.signal,
+          signal: abort_controller.signal,
           on_progress: (completed, total) => {
             if (show_progress) update_progress_toast(completed, total, t);
           },
@@ -847,15 +975,27 @@ export function use_bulk_actions(
           "label",
           ids.filter((i) => !result.failed_ids.includes(i)),
         );
+        if (result.was_cancelled) {
+          set_action_error("label", t("settings.status_cancelled"));
+          show_toast(t("settings.status_cancelled"), "error");
+
+          return false;
+        }
+        if (result.failed_ids.length > 0) {
+          set_action_error("label", t("common.failed_to_remove_labels"));
+          show_toast(t("common.failed_to_remove_labels"), "error");
+
+          return false;
+        }
         config.on_success?.("label");
 
         return result.success;
       } catch (err) {
         if (show_progress) hide_action_toast();
-        const error_message =
-          err instanceof Error
-            ? err.message
-            : t("common.failed_to_remove_labels");
+        const error_message = user_facing_error(
+          err,
+          t("common.failed_to_remove_labels"),
+        );
 
         set_action_error("label", error_message);
 
@@ -879,6 +1019,7 @@ export function use_bulk_actions(
     bulk_delete,
     bulk_mark_read,
     bulk_mark_spam,
+    bulk_unmark_spam,
     bulk_add_folder,
     bulk_remove_folder,
   };

@@ -44,6 +44,7 @@ vi.mock("./memory_key_store", () => ({
 }));
 
 vi.mock("@/services/account_manager", () => ({
+  accounts_storage_unreadable: vi.fn(() => false),
   get_current_account_id: vi.fn(async () => h.state.uid),
 }));
 

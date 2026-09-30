@@ -45,15 +45,19 @@ export function UpgradeInlineCard({
 
   return (
     <div
-      className={`flex flex-col items-center gap-3 px-4 py-6 rounded-lg bg-surf-tertiary border border-dashed border-edge-secondary text-center ${className ?? ""}`}
+      className={`flex flex-col items-center gap-3 px-4 py-6 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] text-center ${className ?? ""}`}
     >
-      <Badge color="blue">{t("settings.alias_feature_locked_upgrade_plan")}</Badge>
+      <Badge color="blue">
+        {t("settings.alias_feature_locked_upgrade_plan")}
+      </Badge>
       <p className="text-sm text-txt-secondary max-w-[280px]">
         {t("settings.upgrade_inline_card_description")}
       </p>
       <UpgradeBtn
         size="sm"
-        onClick={() => show_plan_limit_upgrade({ resource: resource_label ?? null })}
+        onClick={() =>
+          show_plan_limit_upgrade({ resource: resource_label ?? null })
+        }
       >
         {t("settings.alias_feature_locked_upgrade_cta")}
       </UpgradeBtn>

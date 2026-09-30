@@ -21,10 +21,11 @@
 import type { UnsubscribeInfo } from "@/types/email";
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { proxy_unsubscribe } from "@/services/api/subscriptions";
-import { open_external } from "@/utils/open_link";
+import {
+  proxy_unsubscribe,
+  type ProxyUnsubscribeParams,
+} from "@/services/api/subscriptions";
 import { confirm_unsubscribe } from "@/components/modals/unsubscribe_confirmation_modal";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
 
 export type UnsubscribeErrorCode =
   | "no_method"
@@ -64,6 +65,27 @@ const UNSUBSCRIBE_TEXT_PATTERNS = [
   /update\s+(?:your\s+)?subscription/i,
 ];
 
+const HTML_ENTITIES: Record<string, string> = {
+  "&amp;": "&",
+  "&#38;": "&",
+  "&#x26;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&#39;": "'",
+  "&#x27;": "'",
+  "&nbsp;": " ",
+};
+
+function decode_html_entities(url: string): string {
+  return url
+    .replace(
+      /&(?:amp|#38|#x26|lt|gt|quot|#39|#x27|nbsp);/gi,
+      (entity) => HTML_ENTITIES[entity.toLowerCase()] ?? entity,
+    )
+    .trim();
+}
+
 function extract_link_from_anchor(
   html: string,
   pattern: RegExp,
@@ -71,7 +93,7 @@ function extract_link_from_anchor(
   const matches = [...html.matchAll(pattern)];
 
   for (const match of matches) {
-    const url = match[1];
+    const url = match[1] ? decode_html_entities(match[1]) : "";
 
     if (url && is_valid_url(url)) {
       return url;
@@ -117,6 +139,72 @@ function extract_http_from_header(header: string): string | null {
   return null;
 }
 
+function find_body_unsubscribe_link(
+  html_content?: string,
+  text_content?: string,
+): string | null {
+  if (html_content) {
+    for (const pattern of UNSUBSCRIBE_LINK_PATTERNS) {
+      const link = extract_link_from_anchor(html_content, pattern);
+
+      if (link) {
+        return link;
+      }
+    }
+
+    const unsubscribe_section_match = html_content.match(
+      /<a[^>]*href=["']([^"']+)["'][^>]*>[^<]*(?:unsubscribe|opt[\s-]?out)[^<]*<\/a>/gi,
+    );
+
+    if (unsubscribe_section_match) {
+      const href_match = unsubscribe_section_match[0].match(
+        /href=["']([^"']+)["']/i,
+      );
+
+      if (href_match) {
+        const url = decode_html_entities(href_match[1]);
+
+        if (is_valid_url(url)) {
+          return url;
+        }
+      }
+    }
+  }
+
+  if (text_content) {
+    const url_pattern = /https?:\/\/[^\s]+(?:unsubscribe|opt-?out)[^\s]*/gi;
+    const matches = text_content.match(url_pattern);
+
+    if (matches && matches.length > 0) {
+      const url = decode_html_entities(matches[0]);
+
+      if (is_valid_url(url)) {
+        return url;
+      }
+    }
+
+    for (const pattern of UNSUBSCRIBE_TEXT_PATTERNS) {
+      if (pattern.test(text_content)) {
+        const all_urls = text_content.match(/https?:\/\/[^\s]+/g) || [];
+
+        for (const raw_url of all_urls) {
+          const lowered = raw_url.toLowerCase();
+
+          if (lowered.includes("unsubscribe") || lowered.includes("opt")) {
+            const url = decode_html_entities(raw_url);
+
+            if (is_valid_url(url)) {
+              return url;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return null;
+}
+
 export function detect_unsubscribe_info(
   html_content?: string,
   text_content?: string,
@@ -125,6 +213,17 @@ export function detect_unsubscribe_info(
   const result: UnsubscribeInfo = {
     has_unsubscribe: false,
     method: "none",
+  };
+  let body_link_resolved = false;
+  let body_link: string | null = null;
+
+  const resolve_body_link = (): string | null => {
+    if (!body_link_resolved) {
+      body_link = find_body_unsubscribe_link(html_content, text_content);
+      body_link_resolved = true;
+    }
+
+    return body_link;
   };
 
   if (headers?.list_unsubscribe) {
@@ -138,10 +237,17 @@ export function detect_unsubscribe_info(
       result.method = "one-click";
       result.unsubscribe_link = http_link;
       result.list_unsubscribe_post = headers.list_unsubscribe_post;
+
+      const page_url = resolve_body_link();
+
+      if (page_url) {
+        result.unsubscribe_page_url = page_url;
+      }
     } else if (http_link) {
       result.has_unsubscribe = true;
       result.method = "link";
       result.unsubscribe_link = http_link;
+      result.unsubscribe_page_url = http_link;
     } else if (mailto) {
       result.has_unsubscribe = true;
       result.method = "mailto";
@@ -153,74 +259,13 @@ export function detect_unsubscribe_info(
     }
   }
 
-  if (html_content) {
-    for (const pattern of UNSUBSCRIBE_LINK_PATTERNS) {
-      const link = extract_link_from_anchor(html_content, pattern);
+  const fallback_link = resolve_body_link();
 
-      if (link) {
-        result.has_unsubscribe = true;
-        result.method = "link";
-        result.unsubscribe_link = link;
-
-        return result;
-      }
-    }
-
-    const unsubscribe_section_match = html_content.match(
-      /<a[^>]*href=["']([^"']+)["'][^>]*>[^<]*(?:unsubscribe|opt[\s-]?out)[^<]*<\/a>/gi,
-    );
-
-    if (unsubscribe_section_match) {
-      const href_match = unsubscribe_section_match[0].match(
-        /href=["']([^"']+)["']/i,
-      );
-
-      if (href_match && is_valid_url(href_match[1])) {
-        result.has_unsubscribe = true;
-        result.method = "link";
-        result.unsubscribe_link = href_match[1];
-
-        return result;
-      }
-    }
-  }
-
-  if (text_content) {
-    const url_pattern = /https?:\/\/[^\s]+(?:unsubscribe|opt-?out)[^\s]*/gi;
-    const matches = text_content.match(url_pattern);
-
-    if (matches && matches.length > 0) {
-      const url = matches[0];
-
-      if (is_valid_url(url)) {
-        result.has_unsubscribe = true;
-        result.method = "link";
-        result.unsubscribe_link = url;
-
-        return result;
-      }
-    }
-
-    for (const pattern of UNSUBSCRIBE_TEXT_PATTERNS) {
-      if (pattern.test(text_content)) {
-        const all_urls = text_content.match(/https?:\/\/[^\s]+/g) || [];
-
-        for (const url of all_urls) {
-          if (
-            url.toLowerCase().includes("unsubscribe") ||
-            url.toLowerCase().includes("opt")
-          ) {
-            if (is_valid_url(url)) {
-              result.has_unsubscribe = true;
-              result.method = "link";
-              result.unsubscribe_link = url;
-
-              return result;
-            }
-          }
-        }
-      }
-    }
+  if (fallback_link) {
+    result.has_unsubscribe = true;
+    result.method = "link";
+    result.unsubscribe_link = fallback_link;
+    result.unsubscribe_page_url = fallback_link;
   }
 
   return result;
@@ -254,10 +299,141 @@ export function get_sender_domain(email: string): string {
   return match ? match[1].toLowerCase() : email.toLowerCase();
 }
 
+function to_mailto_url(raw?: string | null): string {
+  const trimmed = raw?.trim();
+
+  if (!trimmed) {
+    return "";
+  }
+
+  const address = trimmed.toLowerCase().startsWith("mailto:")
+    ? trimmed.slice("mailto:".length)
+    : trimmed;
+
+  if (!address.includes("@")) {
+    return "";
+  }
+
+  return `mailto:${address}`;
+}
+
+export function is_one_click_only(unsub_info: {
+  method?: string;
+  list_unsubscribe_post?: string;
+}): boolean {
+  return (
+    unsub_info.method === "one-click" ||
+    Boolean(unsub_info.list_unsubscribe_post)
+  );
+}
+
+export function get_manual_unsubscribe_url(unsub_info: {
+  unsubscribe_link?: string;
+  unsubscribe_mailto?: string;
+  unsubscribe_page_url?: string;
+  list_unsubscribe_header?: string;
+  list_unsubscribe_post?: string;
+  method?: string;
+}): string {
+  if (unsub_info.unsubscribe_page_url) {
+    return unsub_info.unsubscribe_page_url;
+  }
+
+  const one_click_only = is_one_click_only(unsub_info);
+
+  if (unsub_info.unsubscribe_link && !one_click_only) {
+    return unsub_info.unsubscribe_link;
+  }
+
+  const from_mailto = to_mailto_url(unsub_info.unsubscribe_mailto);
+
+  if (from_mailto) {
+    return from_mailto;
+  }
+
+  const header = unsub_info.list_unsubscribe_header;
+
+  if (!header) {
+    return "";
+  }
+
+  if (!one_click_only) {
+    const http_link = extract_http_from_header(header);
+
+    if (http_link) {
+      return http_link;
+    }
+  }
+
+  return to_mailto_url(extract_mailto_from_header(header));
+}
+
 export type UnsubscribeResult = "api" | "link" | "mailto";
+
+export interface ExecuteUnsubscribeOptions {
+  retry_on_rate_limit?: boolean;
+  signal?: AbortSignal;
+}
+
+const RATE_LIMIT_MAX_RETRIES = 4;
+const RATE_LIMIT_FALLBACK_SECS = 60;
+
+function wait_ms(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve) => {
+    if (signal?.aborted) {
+      resolve();
+
+      return;
+    }
+
+    const on_abort = (): void => {
+      clearTimeout(timer);
+      resolve();
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", on_abort);
+      resolve();
+    }, ms);
+
+    signal?.addEventListener("abort", on_abort, { once: true });
+  });
+}
+
+async function call_proxy(
+  params: ProxyUnsubscribeParams,
+  options?: ExecuteUnsubscribeOptions,
+): Promise<boolean> {
+  for (let attempt = 0; ; attempt++) {
+    const result = await proxy_unsubscribe(params);
+
+    if (result.data?.success) {
+      return true;
+    }
+
+    const rate_limited = result.code === "RATE_LIMIT_EXCEEDED";
+
+    if (
+      !rate_limited ||
+      !options?.retry_on_rate_limit ||
+      options.signal?.aborted ||
+      attempt >= RATE_LIMIT_MAX_RETRIES
+    ) {
+      return false;
+    }
+
+    const retry_secs = result.retry_after_secs ?? RATE_LIMIT_FALLBACK_SECS;
+
+    await wait_ms(retry_secs * 1000, options.signal);
+
+    if (options.signal?.aborted) {
+      return false;
+    }
+  }
+}
 
 export async function execute_unsubscribe(
   unsub_info: UnsubscribeInfo,
+  options?: ExecuteUnsubscribeOptions,
 ): Promise<UnsubscribeResult> {
   const confirm_destination =
     unsub_info.unsubscribe_link || unsub_info.unsubscribe_mailto || "";
@@ -267,25 +443,28 @@ export async function execute_unsubscribe(
   }
 
   if (unsub_info.method === "one-click" && unsub_info.unsubscribe_link) {
-    const result = await proxy_unsubscribe({
-      method: "one-click",
-      url: unsub_info.unsubscribe_link,
-      list_unsubscribe_post: unsub_info.list_unsubscribe_post,
-    });
+    const succeeded = await call_proxy(
+      {
+        method: "one-click",
+        url: unsub_info.unsubscribe_link,
+        list_unsubscribe_post: unsub_info.list_unsubscribe_post,
+      },
+      options,
+    );
 
-    if (result.data?.success) {
+    if (succeeded) {
       return "api";
     }
   }
 
   if (unsub_info.unsubscribe_link) {
-    if (unsub_info.method === "link" || unsub_info.method === "one-click") {
-      const result = await proxy_unsubscribe({
-        method: "link",
-        url: unsub_info.unsubscribe_link,
-      });
+    if (unsub_info.method === "link") {
+      const succeeded = await call_proxy(
+        { method: "link", url: unsub_info.unsubscribe_link },
+        options,
+      );
 
-      if (result.data?.success) {
+      if (succeeded) {
         return "api";
       }
     }
@@ -294,12 +473,12 @@ export async function execute_unsubscribe(
   }
 
   if (unsub_info.unsubscribe_mailto) {
-    const result = await proxy_unsubscribe({
-      method: "mailto",
-      mailto_address: unsub_info.unsubscribe_mailto,
-    });
+    const succeeded = await call_proxy(
+      { method: "mailto", mailto_address: unsub_info.unsubscribe_mailto },
+      options,
+    );
 
-    if (result.data?.success) {
+    if (succeeded) {
       return "api";
     }
 
@@ -353,7 +532,7 @@ export async function perform_unsubscribe(
   }
 
   if (unsub_info.unsubscribe_link) {
-    if (unsub_info.method === "link" || unsub_info.method === "one-click") {
+    if (unsub_info.method === "link") {
       const result = await proxy_unsubscribe({
         method: "link",
         url: unsub_info.unsubscribe_link,
@@ -362,10 +541,6 @@ export async function perform_unsubscribe(
       if (result.data?.success) {
         return "api";
       }
-    }
-
-    if (!is_any_lockdown_active()) {
-      open_external(unsub_info.unsubscribe_link);
     }
 
     return "link";

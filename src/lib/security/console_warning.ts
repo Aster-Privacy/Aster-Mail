@@ -25,7 +25,10 @@ export function show_self_xss_warning(): void {
   has_been_shown.current = true;
 
   if (typeof window === "undefined" || typeof console === "undefined") return;
-  if ((window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__) return;
+  if (
+    (window as unknown as { __TAURI_INTERNALS__?: unknown }).__TAURI_INTERNALS__
+  )
+    return;
 
   console.log("%cStop!", "color: #dc2626; font-size: 60px; font-weight: 800;");
   console.log(

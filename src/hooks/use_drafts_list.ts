@@ -46,7 +46,6 @@ import { strip_html_tags } from "@/lib/html_sanitizer";
 import { build_list_preview } from "@/utils/preview_text";
 import { use_i18n } from "@/lib/i18n/context";
 import { show_action_toast } from "@/components/toast/action_toast";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 const DRAFT_FETCH_LIMIT = 50;
@@ -63,6 +62,7 @@ interface PersistedDelete {
 function read_persisted_deletes(): PersistedDelete[] {
   try {
     const raw = localStorage.getItem(PENDING_DELETES_KEY);
+
     return raw ? (JSON.parse(raw) as PersistedDelete[]) : [];
   } catch {
     return [];
@@ -90,11 +90,13 @@ function add_to_persisted_deletes(ids: string[], scheduled_at: number) {
   const existing = read_persisted_deletes().filter(
     (e) => !e.ids.some((id) => ids.includes(id)),
   );
+
   write_persisted_deletes([...existing, { ids, scheduled_at }]);
 }
 
 function remove_from_persisted_deletes(ids: string[]) {
   const id_set = new Set(ids);
+
   write_persisted_deletes(
     read_persisted_deletes().filter((e) => !e.ids.some((id) => id_set.has(id))),
   );
@@ -114,6 +116,7 @@ export interface DraftListItem extends InboxEmail {
   cc_recipients: string[];
   bcc_recipients: string[];
   full_message: string;
+  from_email?: string;
   updated_at: string;
   draft_attachments?: DraftAttachmentData[];
 }
@@ -139,23 +142,32 @@ function transform_draft(
   no_recipients_text: string,
   no_subject_text: string,
   draft_category_text: string,
+  undecryptable_text: string,
 ): DraftListItem {
   const recipients =
     draft.content.to_recipients.join(", ") || no_recipients_text;
-  const display_name =
-    recipients.length > 30 ? `${recipients.substring(0, 30)}...` : recipients;
+  const display_name = draft.is_undecryptable
+    ? undecryptable_text
+    : recipients.length > 30
+      ? `${recipients.substring(0, 30)}...`
+      : recipients;
 
   return {
     id: draft.id,
     item_type: "draft" as MailItemType,
     sender_name: display_name,
     sender_email: draft.content.to_recipients[0] || "",
-    subject: draft.content.subject || no_subject_text,
-    preview: build_list_preview(strip_html_tags(draft.content.message)),
+    subject: draft.is_undecryptable
+      ? undecryptable_text
+      : draft.content.subject || no_subject_text,
+    preview: draft.is_undecryptable
+      ? ""
+      : build_list_preview(strip_html_tags(draft.content.message)),
     timestamp: format_email_list_timestamp(
       new Date(draft.updated_at),
       format_options,
     ),
+    raw_timestamp: draft.updated_at,
     is_pinned: false,
     is_starred: false,
     is_selected: false,
@@ -176,6 +188,7 @@ function transform_draft(
     cc_recipients: draft.content.cc_recipients,
     bcc_recipients: draft.content.bcc_recipients,
     full_message: draft.content.message,
+    from_email: draft.content.from_email,
     updated_at: draft.updated_at,
     draft_attachments: draft.content.attachments,
   };
@@ -187,6 +200,7 @@ async function fetch_drafts_from_api(
   no_recipients_text: string,
   no_subject_text: string,
   draft_category_text: string,
+  undecryptable_text: string,
 ): Promise<{ drafts: DraftListItem[]; has_more: boolean } | null> {
   const vault = get_vault_from_memory();
 
@@ -203,6 +217,7 @@ async function fetch_drafts_from_api(
       no_recipients_text,
       no_subject_text,
       draft_category_text,
+      undecryptable_text,
     ),
   );
 
@@ -220,7 +235,9 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
   const [has_more, set_has_more] = useState(false);
   const [error, set_error] = useState<string | null>(null);
 
-  const [suppressed_ids, set_suppressed_ids] = useState<ReadonlySet<string>>(new Set());
+  const [suppressed_ids, set_suppressed_ids] = useState<ReadonlySet<string>>(
+    new Set(),
+  );
 
   const abort_ref = useRef<AbortController | null>(null);
   const vault_check_ref = useRef<NodeJS.Timeout | null>(null);
@@ -240,8 +257,13 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
     () => ({
       date_format: preferences.date_format as FormatOptions["date_format"],
       time_format: preferences.time_format,
+      relative_dates: preferences.relative_dates !== false,
     }),
-    [preferences.date_format, preferences.time_format],
+    [
+      preferences.date_format,
+      preferences.time_format,
+      preferences.relative_dates,
+    ],
   );
 
   const fetch_drafts = useCallback(async () => {
@@ -255,15 +277,17 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
     abort_ref.current = new AbortController();
     const { signal } = abort_ref.current;
     const seq = ++fetch_seq_ref.current;
-    const is_current = () => seq === fetch_seq_ref.current && mounted_ref.current;
+    const is_current = () =>
+      seq === fetch_seq_ref.current && mounted_ref.current;
 
     if (!has_loaded_ref.current) set_is_loading(true);
     set_error(null);
 
-    const timeout_id = setTimeout(
-      () => abort_ref.current?.abort(),
-      FETCH_TIMEOUT_MS,
-    );
+    let timed_out = false;
+    const timeout_id = setTimeout(() => {
+      timed_out = true;
+      abort_ref.current?.abort();
+    }, FETCH_TIMEOUT_MS);
 
     try {
       const result = await fetch_drafts_from_api(
@@ -272,9 +296,16 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
         t("common.no_recipients"),
         t("mail.no_subject"),
         t("common.draft_category"),
+        t("common.unable_to_decrypt"),
       );
 
-      if (signal.aborted || !is_current()) return;
+      if (signal.aborted || !is_current()) {
+        if (timed_out && is_current()) {
+          set_error(t("common.failed_to_load_drafts"));
+        }
+
+        return;
+      }
 
       if (result) {
         has_loaded_ref.current = true;
@@ -317,94 +348,125 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
     Map<string, { timer: number; draft: DraftListItem; position: number }>
   >(new Map());
 
-  const schedule_delete_drafts = useCallback((ids: string[]): (() => void) => {
-    if (ids.length === 0) return () => {};
-
-    const id_set = new Set(ids);
-    const snapshot = drafts_ref.current;
-    const to_delete = snapshot
-      .map((draft, position) =>
-        id_set.has(draft.id) ? { draft, position } : null,
-      )
-      .filter(
-        (entry): entry is { draft: DraftListItem; position: number } =>
-          entry !== null,
-      );
-
-    if (to_delete.length === 0) return () => {};
-
-    set_drafts((prev) => prev.filter((d) => !id_set.has(d.id)));
-    adjust_stats_drafts(-to_delete.length);
-    set_suppressed_ids((prev) => new Set([...prev, ...ids]));
-
-    const scheduled_at = Date.now();
-    add_to_persisted_deletes(ids, scheduled_at);
-
-    for (const { draft, position } of to_delete) {
-      const timer = window.setTimeout(() => {
-        pending_deletes.current.delete(draft.id);
-        remove_from_persisted_deletes([draft.id]);
-        set_suppressed_ids((prev) => {
-          const next = new Set(prev);
-          next.delete(draft.id);
-          return next;
-        });
-        delete_draft(draft.id)
-          .then((result) => {
-            if (result.data?.success) {
-              invalidate_mail_stats();
-            }
-          })
-          .catch((caught) => ignore_error("hooks/use_drafts_list:is_current", caught));
-      }, UNDO_WINDOW_MS);
-
-      pending_deletes.current.set(draft.id, { timer, draft, position });
-    }
-
-    let undone = false;
-
-    return () => {
-      if (undone) return;
-      undone = true;
-
-      const restored: { draft: DraftListItem; position: number }[] = [];
-
-      for (const { draft } of to_delete) {
-        const pending = pending_deletes.current.get(draft.id);
-
-        if (!pending) continue;
-        clearTimeout(pending.timer);
-        pending_deletes.current.delete(draft.id);
-        restored.push({ draft: pending.draft, position: pending.position });
-      }
-
-      remove_from_persisted_deletes(ids);
-      set_suppressed_ids((prev) => {
-        const next = new Set(prev);
-        ids.forEach((id) => next.delete(id));
-        return next;
-      });
-
-      if (restored.length === 0) return;
-
-      restored.sort((a, b) => a.position - b.position);
+  const restore_failed_delete = useCallback(
+    (draft: DraftListItem, position: number) => {
       set_drafts((prev) => {
+        if (prev.some((d) => d.id === draft.id)) return prev;
+
         const next = [...prev];
 
-        for (const entry of restored) {
-          const insert_at = Math.min(entry.position, next.length);
-
-          next.splice(insert_at, 0, entry.draft);
-        }
+        next.splice(Math.min(position, next.length), 0, draft);
 
         return next;
       });
-      adjust_stats_drafts(restored.length);
-    };
-  }, []);
+      adjust_stats_drafts(1);
+      invalidate_mail_stats();
+    },
+    [],
+  );
+
+  const schedule_delete_drafts = useCallback(
+    (ids: string[]): (() => void) => {
+      if (ids.length === 0) return () => {};
+
+      const id_set = new Set(ids);
+      const snapshot = drafts_ref.current;
+      const to_delete = snapshot
+        .map((draft, position) =>
+          id_set.has(draft.id) ? { draft, position } : null,
+        )
+        .filter(
+          (entry): entry is { draft: DraftListItem; position: number } =>
+            entry !== null,
+        );
+
+      if (to_delete.length === 0) return () => {};
+
+      set_drafts((prev) => prev.filter((d) => !id_set.has(d.id)));
+      adjust_stats_drafts(-to_delete.length);
+      set_suppressed_ids((prev) => new Set([...prev, ...ids]));
+
+      const scheduled_at = Date.now();
+
+      add_to_persisted_deletes(ids, scheduled_at);
+
+      for (const { draft, position } of to_delete) {
+        const timer = window.setTimeout(() => {
+          pending_deletes.current.delete(draft.id);
+          remove_from_persisted_deletes([draft.id]);
+          set_suppressed_ids((prev) => {
+            const next = new Set(prev);
+
+            next.delete(draft.id);
+
+            return next;
+          });
+          delete_draft(draft.id)
+            .then((result) => {
+              if (result.data?.success) {
+                invalidate_mail_stats();
+              } else {
+                restore_failed_delete(draft, position);
+              }
+            })
+            .catch((caught) => {
+              ignore_error("hooks/use_drafts_list:is_current", caught);
+              restore_failed_delete(draft, position);
+            });
+        }, UNDO_WINDOW_MS);
+
+        pending_deletes.current.set(draft.id, { timer, draft, position });
+      }
+
+      let undone = false;
+
+      return () => {
+        if (undone) return;
+        undone = true;
+
+        const restored: { draft: DraftListItem; position: number }[] = [];
+
+        for (const { draft } of to_delete) {
+          const pending = pending_deletes.current.get(draft.id);
+
+          if (!pending) continue;
+          clearTimeout(pending.timer);
+          pending_deletes.current.delete(draft.id);
+          restored.push({ draft: pending.draft, position: pending.position });
+        }
+
+        remove_from_persisted_deletes(ids);
+        set_suppressed_ids((prev) => {
+          const next = new Set(prev);
+
+          ids.forEach((id) => next.delete(id));
+
+          return next;
+        });
+
+        if (restored.length === 0) return;
+
+        restored.sort((a, b) => a.position - b.position);
+        set_drafts((prev) => {
+          const next = [...prev];
+
+          for (const entry of restored) {
+            const insert_at = Math.min(entry.position, next.length);
+
+            next.splice(insert_at, 0, entry.draft);
+          }
+
+          return next;
+        });
+        adjust_stats_drafts(restored.length);
+      };
+    },
+    [restore_failed_delete],
+  );
 
   useEffect(() => {
     const persisted = read_persisted_deletes();
+
     if (persisted.length === 0) return;
 
     const now = Date.now();
@@ -422,11 +484,29 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
     }
 
     if (expired_ids.length > 0) {
-      for (const id of expired_ids) {
-        delete_draft(id).catch((caught) => ignore_error("hooks/use_drafts_list:is_current", caught));
-      }
-      remove_from_persisted_deletes(expired_ids);
-      invalidate_mail_stats();
+      void (async () => {
+        const settled_ids: string[] = [];
+
+        for (const id of expired_ids) {
+          const result = await delete_draft(id).catch((caught) => {
+            ignore_error("hooks/use_drafts_list:is_current", caught);
+
+            return null;
+          });
+
+          const retryable =
+            result === null ||
+            result.code === "NETWORK_ERROR" ||
+            result.code === "TIMEOUT_ERROR" ||
+            result.code === "SERVER_ERROR";
+
+          if (!retryable) settled_ids.push(id);
+        }
+
+        if (settled_ids.length > 0) remove_from_persisted_deletes(settled_ids);
+
+        invalidate_mail_stats();
+      })();
     }
 
     if (to_suppress.size === 0) return;
@@ -440,19 +520,37 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
       const remaining_ms = UNDO_WINDOW_MS - (now - entry.scheduled_at);
 
       for (const id of entry.ids) {
+        const unsuppress = () =>
+          set_suppressed_ids((prev) => {
+            if (!prev.has(id)) return prev;
+            const next = new Set(prev);
+
+            next.delete(id);
+
+            return next;
+          });
+
         const timer = window.setTimeout(() => {
           pending_deletes.current.delete(id);
           remove_from_persisted_deletes([id]);
-          set_suppressed_ids((prev) => {
-            const next = new Set(prev);
-            next.delete(id);
-            return next;
-          });
           delete_draft(id)
             .then((result) => {
-              if (result.data?.success) invalidate_mail_stats();
+              if (result.data?.success) {
+                set_drafts((prev) => prev.filter((d) => d.id !== id));
+                unsuppress();
+                invalidate_mail_stats();
+              } else {
+                unsuppress();
+                adjust_stats_drafts(1);
+                invalidate_mail_stats();
+              }
             })
-            .catch((caught) => ignore_error("hooks/use_drafts_list:is_current", caught));
+            .catch((caught) => {
+              ignore_error("hooks/use_drafts_list:is_current", caught);
+              unsuppress();
+              adjust_stats_drafts(1);
+              invalidate_mail_stats();
+            });
         }, remaining_ms);
 
         pending_deletes.current.set(id, {
@@ -466,6 +564,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
     const undo = () => {
       for (const id of all_live_ids) {
         const pending = pending_deletes.current.get(id);
+
         if (!pending) continue;
         clearTimeout(pending.timer);
         pending_deletes.current.delete(id);
@@ -474,7 +573,9 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
       set_suppressed_ids((prev) => {
         if (prev.size === 0) return prev;
         const next = new Set(prev);
+
         all_live_ids.forEach((id) => next.delete(id));
+
         return next;
       });
       adjust_stats_drafts(all_live_ids.length);
@@ -607,8 +708,16 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
       },
     );
 
+    const handle_visibility = () => {
+      if (document.visibilityState === "visible") {
+        handle_change();
+      }
+    };
+
     window.addEventListener(MAIL_EVENTS.DRAFTS_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
+    window.addEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_change);
+    document.addEventListener("visibilitychange", handle_visibility);
 
     return () => {
       if (debounced_refresh_ref.current) {
@@ -618,6 +727,8 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
       unsub_draft_updated();
       window.removeEventListener(MAIL_EVENTS.DRAFTS_CHANGED, handle_change);
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
+      window.removeEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_change);
+      document.removeEventListener("visibilitychange", handle_visibility);
     };
   }, [is_active, has_keys, refresh, update_draft_in_list]);
 
@@ -630,7 +741,7 @@ export function use_drafts_list(is_active: boolean): UseDraftsListReturn {
   );
 
   useEffect(() => {
-    if (has_keys && !is_loading) {
+    if (has_keys && !is_loading && has_loaded_ref.current) {
       drafts_cache = visible_drafts;
     }
   }, [visible_drafts, is_loading, has_keys]);

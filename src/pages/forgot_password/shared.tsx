@@ -18,24 +18,23 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { motion, } from "framer-motion";
+import { motion } from "framer-motion";
+import { ReactNode } from "react";
 
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 
-
 export type RecoveryStep =
   | "email"
-  | "method_choice"
-  | "phrase_entry"
   | "code"
+  | "other_ways"
+  | "reset_email_confirm"
+  | "support"
   | "password"
   | "processing"
   | "new_codes"
-  | "success"
+  | "review_security"
   | "email_sent";
-
-export type RecoveryMethod = "code" | "phrase";
 
 export const page_variants = {
   initial: { opacity: 0, y: 12 },
@@ -74,49 +73,155 @@ export const Alert = ({ message, is_dark }: AlertProps) => {
   );
 };
 
-export interface MethodCardProps {
+export const ChevronRightIcon = () => (
+  <svg
+    className="w-4 h-4 shrink-0 text-txt-muted"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    viewBox="0 0 24 24"
+  >
+    <path d="M9 5l7 7-7 7" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+export interface OptionRowProps {
   title: string;
   description: string;
-  badge: string;
-  badge_tone: "green" | "amber";
+  icon: ReactNode;
   on_click: () => void;
 }
 
-export const MethodCard = ({
+export const OptionRow = ({
   title,
   description,
-  badge,
-  badge_tone,
+  icon,
   on_click,
-}: MethodCardProps) => (
+}: OptionRowProps) => (
   <button
-    className="w-full rounded-lg border p-4 text-left transition-opacity hover:opacity-85 bg-surf-tertiary border-edge-secondary"
+    className="w-full flex items-start gap-3 rounded-lg border px-4 py-3.5 text-start transition-opacity hover:opacity-85 bg-surf-tertiary border-edge-secondary"
     type="button"
     onClick={on_click}
   >
-    <div className="flex items-center justify-between gap-2">
-      <span className="text-sm font-medium text-txt-primary">{title}</span>
-      <span
-        className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium"
-        style={
-          badge_tone === "green"
-            ? {
-                color: "var(--color-success)",
-                backgroundColor: "rgba(34, 197, 94, 0.1)",
-              }
-            : {
-                color: "var(--color-warning)",
-                backgroundColor: "rgba(245, 158, 11, 0.1)",
-              }
-        }
-      >
-        {badge}
+    <span className="mt-0.5 shrink-0 text-txt-secondary">{icon}</span>
+    <span className="flex-1 min-w-0">
+      <span className="block text-sm font-medium text-txt-primary">
+        {title}
       </span>
-    </div>
-    <p className="mt-1.5 text-xs leading-relaxed text-txt-tertiary">
-      {description}
-    </p>
+      <span className="mt-1 block text-xs leading-relaxed text-txt-tertiary">
+        {description}
+      </span>
+    </span>
+    <span className="mt-1">
+      <ChevronRightIcon />
+    </span>
   </button>
+);
+
+export interface ReviewRowProps {
+  label: string;
+  action_label?: string;
+  on_action?: () => void;
+}
+
+export const ReviewRow = ({
+  label,
+  action_label,
+  on_action,
+}: ReviewRowProps) => (
+  <div className="w-full flex items-center justify-between gap-3 rounded-lg border px-4 py-3 text-start bg-surf-tertiary border-edge-secondary">
+    <span className="text-sm text-txt-primary">{label}</span>
+    {action_label && on_action && (
+      <button
+        className="shrink-0 text-sm font-medium transition-opacity hover:opacity-80"
+        style={{ color: "var(--accent-color)" }}
+        type="button"
+        onClick={on_action}
+      >
+        {action_label}
+      </button>
+    )}
+  </div>
+);
+
+export const KeyIcon = () => (
+  <svg
+    className="w-5 h-5"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    viewBox="0 0 24 24"
+  >
+    <path
+      d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912l-2.148 2.148a2.25 2.25 0 01-1.591.659h-1.232v1.232a2.25 2.25 0 01-.659 1.591l-.621.621a2.25 2.25 0 01-1.591.659H4.5a1.5 1.5 0 01-1.5-1.5v-1.982c0-.597.237-1.169.659-1.591l6.66-6.661A6 6 0 1121.75 8.25z"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const MailIcon = () => (
+  <svg
+    className="w-5 h-5"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    viewBox="0 0 24 24"
+  >
+    <path
+      d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const HelpIcon = () => (
+  <svg
+    className="w-5 h-5"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    viewBox="0 0 24 24"
+  >
+    <path
+      d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const AddressIcon = () => (
+  <svg
+    className="w-5 h-5"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    viewBox="0 0 24 24"
+  >
+    <path
+      d="M16.5 12a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zm0 0c0 1.657 1.007 3 2.25 3S21 13.657 21 12a9 9 0 10-2.636 6.364M16.5 12V8.25"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+export const WarningIcon = () => (
+  <svg
+    className="w-8 h-8"
+    fill="none"
+    stroke="var(--color-warning)"
+    strokeWidth="1.5"
+    viewBox="0 0 24 24"
+  >
+    <path
+      d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
 );
 
 export const CopyIcon = () => (
@@ -135,7 +240,11 @@ export const CopyIcon = () => (
   </svg>
 );
 
-export const PasswordStrengthIndicator = ({ password }: { password: string }) => {
+export const PasswordStrengthIndicator = ({
+  password,
+}: {
+  password: string;
+}) => {
   const { t } = use_i18n();
 
   const get_strength = () => {
@@ -216,11 +325,10 @@ export const PasswordStrengthIndicator = ({ password }: { password: string }) =>
         </span>
       </div>
       {strength.suggestions.length > 0 && strength.level < 3 && (
-        <p className="text-xs mt-1.5 text-left text-txt-muted">
+        <p className="text-xs mt-1.5 text-start text-txt-muted">
           {strength.suggestions[0]}
         </p>
       )}
     </div>
   );
 };
-

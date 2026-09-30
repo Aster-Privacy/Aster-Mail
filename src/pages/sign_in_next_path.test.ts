@@ -92,6 +92,30 @@ describe("get_safe_next_path", () => {
     expect(get_safe_next_path()).toBe("/");
   });
 
+  it("forgets the remembered path once it is consumed", async () => {
+    vi.resetModules();
+
+    const mod = await import("./sign_in_helpers");
+
+    set_location("/sign-in?next=%2Flink-device");
+
+    expect(mod.consume_safe_next_path()).toBe("/link-device");
+
+    set_location("/sign-in");
+
+    expect(mod.get_safe_next_path()).toBe("/");
+  });
+
+  it("accepts a nested path with its own query", async () => {
+    const get_safe_next_path = await load();
+
+    set_location(
+      "/sign-in?next=" + encodeURIComponent("/join/family?token=abc#x"),
+    );
+
+    expect(get_safe_next_path()).toBe("/join/family?token=abc#x");
+  });
+
   it("returns the root when no next path is requested", async () => {
     const get_safe_next_path = await load();
 

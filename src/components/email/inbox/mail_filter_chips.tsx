@@ -35,6 +35,8 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { use_i18n } from "@/lib/i18n/context";
 import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
+import { is_composing } from "@/utils/ime";
+import { local_date_key } from "@/utils/date_format";
 
 type DateWindowKey =
   | "any"
@@ -98,7 +100,7 @@ function date_window_boundary(days: number): string {
 
   boundary.setDate(boundary.getDate() - days);
 
-  return boundary.toISOString().slice(0, 10);
+  return local_date_key(boundary);
 }
 
 export function build_chip_query(filters: ChipFilters): string {
@@ -140,13 +142,13 @@ function has_any_filter(filters: ChipFilters): boolean {
 }
 
 const CHIP_BASE_CLASS =
-  "inline-flex items-center gap-1 h-7 px-3 rounded-full border text-xs whitespace-nowrap transition-colors";
+  "inline-flex items-center gap-1 h-7 px-3 rounded-full text-xs whitespace-nowrap";
 
 const CHIP_ACTIVE_CLASS =
-  "border-transparent bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)]";
+  "bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)]";
 
 const CHIP_IDLE_CLASS =
-  "border-[var(--border-secondary)] bg-[var(--bg-tertiary)] text-[var(--text-secondary)] hover:bg-[var(--bg-hover)]";
+  "bg-[var(--aster-hover)] text-[var(--text-secondary)] hover:bg-[var(--aster-selected)] hover:text-[var(--text-primary)]";
 
 function chip_class(is_active: boolean): string {
   return `${CHIP_BASE_CLASS} ${is_active ? CHIP_ACTIVE_CLASS : CHIP_IDLE_CLASS}`;
@@ -204,13 +206,13 @@ function AddressChip({
       <DropdownMenuContent align="start" className="w-64 p-2">
         <input
           autoFocus
-          className="w-full h-8 px-2 rounded-md border bg-[var(--bg-primary)] border-[var(--border-secondary)] text-sm text-[var(--text-primary)] outline-none"
+          className="w-full h-8 px-2 rounded-[var(--aster-radius-item)] bg-[var(--aster-hover)] text-sm text-[var(--text-primary)] outline-none"
           placeholder={placeholder}
           type="text"
           value={draft}
           onChange={(e) => set_draft(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
+            if (e.key === "Enter" && !is_composing(e)) {
               e.preventDefault();
               on_apply(draft);
               set_is_open(false);
@@ -238,7 +240,7 @@ export function MailFilterChips({
   const apply = useCallback(
     (next: ChipFilters) => {
       set_filters(next);
-      if (has_any_filter(next)) on_search_submit(build_chip_query(next));
+      on_search_submit(has_any_filter(next) ? build_chip_query(next) : "");
     },
     [on_search_submit],
   );
@@ -258,7 +260,7 @@ export function MailFilterChips({
 
   return (
     <>
-      <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto border-b border-[var(--border-secondary)] bg-[var(--bg-primary)]">
+      <div className="flex items-center gap-2 px-4 py-2 overflow-x-auto bg-[var(--bg-primary)]">
         <AddressChip
           label={t("mail.from")}
           on_apply={(next) => apply({ ...filters, from: next })}
@@ -305,16 +307,16 @@ export function MailFilterChips({
               onSelect={(event) => {
                 event.preventDefault();
                 set_show_custom_range(true);
-                set_filters({ ...filters, date_window: "custom" });
               }}
             >
               {`${t("mail.chip_custom_range")}...`}
             </DropdownMenuItem>
             {show_custom_range && (
-              <div className="mt-1 pt-2 px-2 pb-1 border-t border-[var(--border-secondary)] flex flex-col gap-2">
+              <div className="mt-1 pt-1 px-2 pb-1 flex flex-col gap-2">
                 <input
                   aria-label={t("settings.export_scope_date_from")}
-                  className="w-full h-8 px-2 rounded-md border bg-[var(--bg-primary)] border-[var(--border-secondary)] text-xs text-[var(--text-primary)] outline-none"
+                  className="w-full h-8 px-2 rounded-[var(--aster-radius-item)] bg-[var(--aster-hover)] text-xs text-[var(--text-primary)] outline-none"
+                  max={filters.custom_before || undefined}
                   type="date"
                   value={filters.custom_after}
                   onChange={(event) =>
@@ -327,7 +329,8 @@ export function MailFilterChips({
                 />
                 <input
                   aria-label={t("settings.export_scope_date_to")}
-                  className="w-full h-8 px-2 rounded-md border bg-[var(--bg-primary)] border-[var(--border-secondary)] text-xs text-[var(--text-primary)] outline-none"
+                  className="w-full h-8 px-2 rounded-[var(--aster-radius-item)] bg-[var(--aster-hover)] text-xs text-[var(--text-primary)] outline-none"
+                  min={filters.custom_after || undefined}
                   type="date"
                   value={filters.custom_before}
                   onChange={(event) =>

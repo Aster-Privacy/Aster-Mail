@@ -18,9 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "./key_manager";
 
+import { user_facing_error } from "@/utils/user_facing_error";
+import { HASH_ALG } from "@/services/crypto/constants";
 import {
   create_draft,
   update_draft,
@@ -30,7 +31,7 @@ import {
   type DraftType,
 } from "@/services/api/multi_drafts";
 import { emit_drafts_changed, emit_draft_updated } from "@/hooks/mail_events";
-
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export interface DraftData {
   to_recipients: string[];
@@ -38,6 +39,7 @@ export interface DraftData {
   bcc_recipients: string[];
   subject: string;
   message: string;
+  from_email?: string;
   attachments?: DraftAttachmentData[];
 }
 
@@ -70,7 +72,7 @@ interface DraftContext {
   is_deleted: boolean;
 }
 
-interface SaveResult {
+export interface SaveResult {
   success: boolean;
   id?: string;
   version?: number;
@@ -97,6 +99,7 @@ async function compute_content_hash(data: DraftData): Promise<string> {
     bcc: data.bcc_recipients,
     subject: data.subject,
     message: data.message,
+    from: data.from_email || "",
     att: (data.attachments || []).map((a) => a.id).sort(),
   });
   const encoder = new TextEncoder();
@@ -174,6 +177,14 @@ class DraftManager {
     }
   }
 
+  drop_queued_saves(context_id: string): void {
+    const context = this.contexts.get(context_id);
+
+    if (context) {
+      context.save_seq++;
+    }
+  }
+
   async save_draft(
     context_id: string,
     data: DraftData,
@@ -189,37 +200,41 @@ class DraftManager {
       return { success: false, error: "Draft was deleted" };
     }
 
-    if (context.pending_save) {
-      try {
-        await context.pending_save;
-      } catch {
-        /* proceed with new save */
-      }
-    }
-
-    const content_hash = await compute_content_hash(data);
-
-    if (context.last_content_hash === content_hash) {
-      return {
-        success: true,
-        id: context.id ?? undefined,
-        version: context.version,
-      };
-    }
-
-    const content: DraftContent = {
-      to_recipients: data.to_recipients,
-      cc_recipients: data.cc_recipients,
-      bcc_recipients: data.bcc_recipients,
-      subject: data.subject,
-      message: data.message,
-      attachments:
-        data.attachments && data.attachments.length > 0
-          ? data.attachments
-          : undefined,
-    };
+    const previous_save = context.pending_save;
+    const save_seq = ++context.save_seq;
 
     const save_promise = (async (): Promise<void> => {
+      if (previous_save) {
+        await previous_save.catch(() => undefined);
+
+        if (context.save_seq !== save_seq) {
+          return;
+        }
+      }
+
+      if (context.is_deleted) {
+        return;
+      }
+
+      const content_hash = await compute_content_hash(data);
+
+      if (context.last_content_hash === content_hash) {
+        return;
+      }
+
+      const content: DraftContent = {
+        to_recipients: data.to_recipients,
+        cc_recipients: data.cc_recipients,
+        bcc_recipients: data.bcc_recipients,
+        subject: data.subject,
+        message: data.message,
+        from_email: data.from_email || undefined,
+        attachments:
+          data.attachments && data.attachments.length > 0
+            ? data.attachments
+            : undefined,
+      };
+
       if (context.is_deleted) {
         return;
       }
@@ -239,8 +254,11 @@ class DraftManager {
           return;
         }
 
-        if (response.code === "CONFLICT") {
-          if (response.data?.version !== undefined) {
+        if (response.code === "CONFLICT" || response.code === "NOT_FOUND") {
+          if (
+            response.code === "CONFLICT" &&
+            response.data?.version !== undefined
+          ) {
             context.version = response.data.version;
 
             if (context.is_deleted) {
@@ -261,19 +279,24 @@ class DraftManager {
               return;
             }
 
-            if (retry_response.data) {
-              context.version = retry_response.data.version;
-              context.last_content_hash = content_hash;
-              emit_draft_updated({
-                id: context.id,
-                version: retry_response.data.version,
-                to_recipients: content.to_recipients,
-                cc_recipients: content.cc_recipients,
-                bcc_recipients: content.bcc_recipients,
-                subject: content.subject,
-                message: content.message,
-              });
+            if (!retry_response.data) {
+              throw new DraftServiceError(
+                retry_response.error ??
+                  get_active_translations().common.save_failed,
+              );
             }
+
+            context.version = retry_response.data.version;
+            context.last_content_hash = content_hash;
+            emit_draft_updated({
+              id: context.id,
+              version: retry_response.data.version,
+              to_recipients: content.to_recipients,
+              cc_recipients: content.cc_recipients,
+              bcc_recipients: content.bcc_recipients,
+              subject: content.subject,
+              message: content.message,
+            });
 
             return;
           }
@@ -296,12 +319,16 @@ class DraftManager {
             return;
           }
 
-          if (new_response.data) {
-            context.id = new_response.data.id;
-            context.version = new_response.data.version;
-            context.last_content_hash = content_hash;
-            emit_drafts_changed();
+          if (!new_response.data) {
+            throw new DraftServiceError(
+              new_response.error ?? get_active_translations().common.save_failed,
+            );
           }
+
+          context.id = new_response.data.id;
+          context.version = new_response.data.version;
+          context.last_content_hash = content_hash;
+          emit_drafts_changed();
 
           return;
         }
@@ -353,7 +380,6 @@ class DraftManager {
       }
     })();
 
-    const save_seq = ++context.save_seq;
     context.pending_save = save_promise;
 
     try {
@@ -367,7 +393,7 @@ class DraftManager {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : "Failed to save draft",
+        error: user_facing_error(error, "Failed to save draft"),
       };
     } finally {
       if (context.save_seq === save_seq) {
@@ -384,6 +410,10 @@ class DraftManager {
     }
 
     context.is_deleted = true;
+
+    if (context.pending_save) {
+      await context.pending_save.catch(() => undefined);
+    }
 
     if (!context.id) {
       return true;
@@ -422,4 +452,3 @@ class DraftManager {
 }
 
 export const draft_manager = new DraftManager();
-

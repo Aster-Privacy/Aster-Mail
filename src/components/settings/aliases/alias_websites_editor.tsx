@@ -36,6 +36,7 @@ import {
   MAX_WEBSITE_URL_LENGTH,
   validate_website_input,
 } from "@/services/api/aliases";
+import { is_composing } from "@/utils/ime";
 
 function display_website(url: string): string {
   return url.replace(/^https?:\/\//, "").replace(/\/$/, "");
@@ -155,6 +156,8 @@ export function AliasWebsitesEditor({
   };
 
   const handle_key_down = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (is_composing(event)) return;
+
     if (event.key === "Enter") {
       event.preventDefault();
       commit_add();
@@ -166,16 +169,16 @@ export function AliasWebsitesEditor({
   };
 
   const chip_class = is_mobile
-    ? "inline-flex items-center gap-1 max-w-full rounded-full border border-edge-secondary bg-[var(--mobile-bg-secondary,transparent)] px-2 py-0.5 text-[12px] text-[var(--mobile-text-muted)]"
-    : "inline-flex items-center gap-1 max-w-full rounded-full border border-edge-secondary bg-surf-secondary px-2 py-0.5 text-xs text-txt-muted";
+    ? "inline-flex items-center gap-1 max-w-full rounded-full bg-[var(--mobile-bg-secondary,transparent)] px-2 py-0.5 text-[12px] text-[var(--mobile-text-muted)]"
+    : "inline-flex items-center gap-1 max-w-full rounded-full bg-surf-secondary px-2 py-0.5 text-xs text-txt-muted";
 
   const add_button_class = is_mobile
     ? "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[12px] text-[var(--mobile-text-muted)] opacity-70 hover:opacity-100"
-    : "inline-flex items-center gap-1 rounded-full border border-dashed border-edge-primary px-2 py-0.5 text-xs text-txt-muted transition-colors hover:border-edge-secondary hover:text-txt-secondary";
+    : "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs text-txt-muted transition-colors hover:bg-surf-hover hover:text-txt-secondary";
 
   const empty_add_class = is_mobile
-    ? "mt-1 flex w-full min-w-0 cursor-pointer items-center gap-1.5 text-left text-[13px] leading-5 text-[var(--mobile-text-muted)] opacity-70 hover:opacity-100 focus:outline-none focus:ring-0"
-    : "flex h-9 w-full min-w-0 cursor-pointer items-center gap-2 rounded-[12px] border border-dashed border-edge-primary px-3 text-left text-[13px] text-txt-muted transition-colors hover:border-edge-secondary hover:text-txt-secondary focus:outline-none focus:ring-0";
+    ? "mt-1 flex w-full min-w-0 cursor-pointer items-center gap-1.5 text-start text-[13px] leading-5 text-[var(--mobile-text-muted)] opacity-70 hover:opacity-100 focus:outline-none focus:ring-0"
+    : "flex h-9 w-full min-w-0 cursor-pointer items-center gap-2 rounded-[12px] bg-[var(--aster-field-bg)] px-3 text-start text-[13px] text-txt-muted transition-colors hover:bg-[var(--aster-field-hover)] hover:text-txt-secondary focus:outline-none focus:ring-0";
 
   if (current.length === 0 && !is_adding) {
     return (
@@ -276,7 +279,7 @@ export function AliasWebsitesEditor({
               autoCapitalize="none"
               autoComplete="off"
               autoCorrect="off"
-              className="w-full pr-8"
+              className="w-full pe-8"
               disabled={saving}
               inputMode="url"
               maxLength={MAX_WEBSITE_URL_LENGTH}
@@ -289,7 +292,7 @@ export function AliasWebsitesEditor({
               onKeyDown={handle_key_down}
             />
             {saving && (
-              <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2">
+              <span className="pointer-events-none absolute end-2.5 top-1/2 -translate-y-1/2">
                 <Spinner className="text-txt-muted" size="xs" />
               </span>
             )}

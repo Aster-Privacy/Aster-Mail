@@ -19,10 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-
-
-
 import { TextHighlight } from "./types";
+
+import { meets_min_search_length } from "@/utils/search_query";
 export function compute_highlight_ranges(
   text: string,
   terms: string[],
@@ -88,6 +87,5 @@ export function extract_query_terms(query: string): string[] {
     .replace(/\S+:\S*/g, "")
     .trim()
     .split(/\s+/)
-    .filter((t) => t.length >= 2);
+    .filter(meets_min_search_length);
 }
-

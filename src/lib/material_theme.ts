@@ -120,7 +120,11 @@ function get_seed_hue_chroma(hex: string): SeedHueChroma {
   return { hue: H, chroma: C };
 }
 
-function tone_to_hex(hue: number, chroma: number, tone_percent: number): string {
+function tone_to_hex(
+  hue: number,
+  chroma: number,
+  tone_percent: number,
+): string {
   const target_l = Math.max(0, Math.min(100, tone_percent)) / 100;
   let working_chroma = chroma;
 
@@ -131,7 +135,12 @@ function tone_to_hex(hue: number, chroma: number, tone_percent: number): string 
     const sg = linear_to_srgb(g);
     const sb = linear_to_srgb(bl);
     const in_gamut =
-      sr >= -0.001 && sr <= 1.001 && sg >= -0.001 && sg <= 1.001 && sb >= -0.001 && sb <= 1.001;
+      sr >= -0.001 &&
+      sr <= 1.001 &&
+      sg >= -0.001 &&
+      sg <= 1.001 &&
+      sb >= -0.001 &&
+      sb <= 1.001;
 
     if (in_gamut) {
       return rgb_to_hex(sr * 255, sg * 255, sb * 255);
@@ -149,7 +158,11 @@ function tone_to_hex(hue: number, chroma: number, tone_percent: number): string 
   );
 }
 
-export function mix_hex_srgb(hex: string, other: string, ratio: number): string {
+export function mix_hex_srgb(
+  hex: string,
+  other: string,
+  ratio: number,
+): string {
   const [r1, g1, b1] = hex_to_rgb(hex);
   const [r2, g2, b2] = hex_to_rgb(other);
 
@@ -234,7 +247,9 @@ export const CUSTOM_THEME_ROLE_KEYS: (keyof MaterialThemeVars)[] = [
   "--border-primary",
 ];
 
-export type CustomThemeOverrides = Partial<Record<keyof MaterialThemeVars, string>>;
+export type CustomThemeOverrides = Partial<
+  Record<keyof MaterialThemeVars, string>
+>;
 
 const DARK_BASE_VARS: MaterialThemeVars = {
   "--bg-primary": "#121212",
@@ -344,7 +359,9 @@ export function apply_custom_theme(
 ): void {
   if (typeof document === "undefined") return;
 
-  apply_vars_with_derived(compute_custom_theme_vars(seed_hex, is_dark, overrides));
+  apply_vars_with_derived(
+    compute_custom_theme_vars(seed_hex, is_dark, overrides),
+  );
 }
 
 const MATERIAL_THEME_KEYS: (keyof MaterialThemeVars)[] = [

@@ -25,6 +25,7 @@ import type {
 
 import { useState, useEffect, useCallback } from "react";
 import { SignalIcon } from "@heroicons/react/24/outline";
+import { Island, IslandSection, SelectionMark } from "@aster/ui";
 
 import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
@@ -32,7 +33,6 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { connection_store } from "@/services/routing/connection_store";
 import { is_cdn_relay_supported } from "@/services/routing/tor_transport";
 import { InfoPopover } from "@/components/ui/info_popover";
-import { SelectedBadge } from "@/components/settings/appearance/selected_badge";
 
 interface ConnectionOptionDef {
   value: ConnectionMethod;
@@ -79,6 +79,19 @@ export function ConnectionSection() {
         await connection_store.set_method(method);
 
         if (method === "cdn_relay") {
+          await connection_store.fetch_connection_info();
+
+          if (!connection_store.get_cdn_relay_url()) {
+            await connection_store.set_method("direct");
+            connection_store.set_status(
+              "error",
+              t("settings.connection.status_error"),
+            );
+            show_toast(t("settings.connection.status_error"), "error");
+
+            return;
+          }
+
           connection_store.set_status("connected");
           show_toast(t("settings.connection.status_connected"), "success");
         } else {
@@ -101,22 +114,20 @@ export function ConnectionSection() {
   );
 
   return (
-    <div>
-      <div className="mb-4">
-        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-          <SignalIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+    <IslandSection
+      bare
+      description={t("settings.connection.description")}
+      icon={<SignalIcon />}
+      title={
+        <span className="inline-flex items-center gap-1.5">
           {t("settings.connection.title")}
           <InfoPopover
             description={t("settings.connection.title_info")}
             title={t("settings.connection.title")}
           />
-        </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
-      </div>
-      <p className="text-sm mb-4 text-txt-muted">
-        {t("settings.connection.description")}
-      </p>
-
+        </span>
+      }
+    >
       <div className="grid grid-cols-2 gap-3">
         {CONNECTION_OPTIONS.filter(
           (option) => option.value !== "cdn_relay" || is_cdn_relay_supported(),
@@ -128,16 +139,16 @@ export function ConnectionSection() {
           const info = t(option.info_key as Parameters<typeof t>[0]);
 
           return (
-            <div
+            <Island
               key={option.value}
+              interactive
               aria-disabled={is_disabled}
               aria-pressed={is_selected}
               className={cn(
-                "rounded-[14px] transition-colors text-left cursor-pointer",
+                "text-start cursor-pointer",
                 is_disabled && "opacity-50 pointer-events-none",
               )}
               role="button"
-              style={{ backgroundColor: "var(--bg-tertiary)" }}
               tabIndex={is_disabled ? -1 : 0}
               onClick={() => handle_method_change(option.value)}
               onKeyDown={(e) => {
@@ -147,21 +158,15 @@ export function ConnectionSection() {
                 }
               }}
             >
-              <div
-                className={cn(
-                  "relative h-40 rounded-[14px] transition-all",
-                  is_selected &&
-                    "ring-2 ring-brand ring-offset-2 ring-offset-surf-primary",
-                )}
-              >
+              <SelectionMark selected={is_selected} />
+              <div className="h-40">
                 <img
                   alt=""
-                  className="w-full h-full object-cover rounded-[14px]"
+                  className="w-full h-full object-cover"
                   draggable={false}
                   loading="lazy"
                   src={option.image}
                 />
-                {is_selected && <SelectedBadge />}
               </div>
 
               <div className="flex items-center justify-center gap-1.5 px-3 py-2.5">
@@ -176,10 +181,10 @@ export function ConnectionSection() {
                   <InfoPopover description={info} title={label} />
                 </span>
               </div>
-            </div>
+            </Island>
           );
         })}
       </div>
-    </div>
+    </IslandSection>
   );
 }

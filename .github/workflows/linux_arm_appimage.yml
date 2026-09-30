@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-22.04-arm
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 20
           cache: npm
@@ -54,11 +54,11 @@ jobs:
         run: |
           git clone --depth=1 https://github.com/Aster-Privacy/aster-ui.git ../aster-ui
           cd ../aster-ui
-          npm install --no-audit --no-fund
+          npm ci --no-audit --no-fund
           npm run build
 
       - name: Install frontend dependencies
-        run: npm install --no-audit --no-fund --force
+        run: npm ci --no-audit --no-fund
 
       - name: Build ARM AppImage
         env:
@@ -67,6 +67,25 @@ jobs:
           NO_STRIP: 'true'
           APPIMAGE_EXTRACT_AND_RUN: '1'
         run: npm run tauri build -- --bundles appimage --verbose
+
+      - name: Unbundle host graphics libraries from the AppImage
+        # linuxdeploy copies libwayland-client.so.0 and friends into the AppDir.
+        # They shadow the host copies, Mesa's libEGL_mesa.so.0 then fails to
+        # resolve wl_fixes_interface on any distribution newer than the runner,
+        # and WebKitGTK aborts with EGL_BAD_PARAMETER before the window paints.
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get install -y squashfs-tools
+          shopt -s nullglob
+          for img in src-tauri/target/release/bundle/appimage/*.AppImage; do
+            bash scripts/fix_appimage_libs.sh "$img"
+            rm -f "$img.sig"
+            npm run tauri -- signer sign "$img"
+          done
 
       - name: Collect canonical names
         id: collect
@@ -89,7 +108,7 @@ jobs:
           ls -la "$OUT"
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: aster-mail-linux-arm64-appimage
           path: ${{ steps.collect.outputs.outdir }}

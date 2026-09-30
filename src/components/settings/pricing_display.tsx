@@ -27,6 +27,7 @@ import {
   type PromoValidateResponse,
 } from "@/services/api/billing";
 import { use_i18n } from "@/lib/i18n/context";
+import { convert_cents } from "@/components/settings/billing/billing_constants";
 
 interface pricing_display_props {
   plan_name: string;
@@ -76,10 +77,12 @@ export function PricingDisplay({
           <p className="text-xs mt-0.5" style={{ color: colors.text_tertiary }}>
             {billing_interval === "year"
               ? t("settings.billing_yearly")
-              : t("settings.billing_monthly")}
+              : billing_interval === "biennial"
+                ? t("settings.biennial")
+                : t("settings.billing_monthly")}
           </p>
         </div>
-        <div className="text-right">
+        <div className="text-end">
           {show_strikethrough && (
             <p
               className="text-xs line-through"
@@ -95,7 +98,7 @@ export function PricingDisplay({
             {is_free ? t("settings.free") : discounted_display}
             {!is_free && (
               <span
-                className="text-xs font-normal ml-0.5"
+                className="text-xs font-normal ms-0.5"
                 style={{ color: colors.text_tertiary }}
               >
                 {interval_label}
@@ -125,11 +128,14 @@ export function PricingDisplay({
           {promo_result.duration === "repeating" &&
             promo_result.duration_in_months && (
               <p
-                className="text-xs mt-1.5 ml-5"
+                className="text-xs mt-1.5 ms-5"
                 style={{ color: colors.text_tertiary }}
               >
                 {t("settings.promo_then_reverts", {
-                  price: format_price(price_cents, currency),
+                  price: format_price(
+                    convert_cents(price_cents, currency),
+                    currency,
+                  ),
                   interval: interval_label || "",
                   months: promo_result.duration_in_months,
                 })}
@@ -137,11 +143,14 @@ export function PricingDisplay({
             )}
           {promo_result.duration === "once" && (
             <p
-              className="text-xs mt-1.5 ml-5"
+              className="text-xs mt-1.5 ms-5"
               style={{ color: colors.text_tertiary }}
             >
               {t("settings.promo_once_reverts", {
-                price: format_price(price_cents, currency),
+                price: format_price(
+                  convert_cents(price_cents, currency),
+                  currency,
+                ),
                 interval: interval_label || "",
                 period:
                   billing_interval === "year"
@@ -152,7 +161,7 @@ export function PricingDisplay({
           )}
           {promo_result.duration === "forever" && (
             <p
-              className="text-xs mt-1.5 ml-5"
+              className="text-xs mt-1.5 ms-5"
               style={{ color: colors.text_tertiary }}
             >
               {t("settings.promo_forever")}

@@ -38,7 +38,8 @@ export const FONT_OPTIONS: FontOption[] = [
   {
     id: "default",
     label: "Aster Default",
-    stack: "'Google Sans Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    stack:
+      "'Google Sans Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   {
     id: "system",
@@ -48,17 +49,20 @@ export const FONT_OPTIONS: FontOption[] = [
   {
     id: "inter",
     label: "Inter",
-    stack: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    stack:
+      "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   {
     id: "roboto",
     label: "Roboto",
-    stack: "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    stack:
+      "'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
   },
   {
     id: "nunito",
     label: "Nunito",
-    stack: "'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    stack:
+      "'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   {
     id: "merriweather",
@@ -73,7 +77,8 @@ export const FONT_OPTIONS: FontOption[] = [
   {
     id: "system_mono",
     label: "System Mono",
-    stack: "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Courier New', monospace",
+    stack:
+      "ui-monospace, SFMono-Regular, Menlo, Consolas, 'Courier New', monospace",
   },
   {
     id: "jetbrains_mono",
@@ -83,22 +88,26 @@ export const FONT_OPTIONS: FontOption[] = [
   {
     id: "poppins",
     label: "Poppins",
-    stack: "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    stack:
+      "'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   {
     id: "montserrat",
     label: "Montserrat",
-    stack: "'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    stack:
+      "'Montserrat', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   {
     id: "work_sans",
     label: "Work Sans",
-    stack: "'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    stack:
+      "'Work Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   {
     id: "ibm_plex_sans",
     label: "IBM Plex Sans",
-    stack: "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    stack:
+      "'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
   {
     id: "ibm_plex_mono",
@@ -128,7 +137,8 @@ export const FONT_OPTIONS: FontOption[] = [
   {
     id: "raleway",
     label: "Raleway",
-    stack: "'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+    stack:
+      "'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
   },
 ];
 
@@ -162,7 +172,11 @@ const WEBFONT_SOURCES: Record<string, WebfontSource> = {
     file_prefix: "JetBrainsMono",
     subsets: ALL_SUBSETS,
   },
-  poppins: { family: "Poppins", file_prefix: "Poppins", subsets: LATIN_SUBSETS },
+  poppins: {
+    family: "Poppins",
+    file_prefix: "Poppins",
+    subsets: LATIN_SUBSETS,
+  },
   montserrat: {
     family: "Montserrat",
     file_prefix: "Montserrat",
@@ -198,7 +212,11 @@ const WEBFONT_SOURCES: Record<string, WebfontSource> = {
     file_prefix: "LibreBaskerville",
     subsets: LATIN_SUBSETS,
   },
-  pt_serif: { family: "PT Serif", file_prefix: "PTSerif", subsets: ALL_SUBSETS },
+  pt_serif: {
+    family: "PT Serif",
+    file_prefix: "PTSerif",
+    subsets: ALL_SUBSETS,
+  },
   raleway: { family: "Raleway", file_prefix: "Raleway", subsets: ALL_SUBSETS },
 };
 

@@ -19,25 +19,48 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { Badge, BadgePreferences } from "@/services/api/user";
+import type { StepUpCredentials } from "@/services/api/step_up";
+import type { RecoveryEmailData } from "@/services/api/recovery_email";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion } from "framer-motion";
 import {
   CameraIcon,
   CheckCircleIcon,
+  ChevronDownIcon,
+  ClipboardIcon,
   ExclamationCircleIcon,
+  LockClosedIcon,
+  PencilSquareIcon,
   XMarkIcon,
-  CreditCardIcon,
+  SparklesIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Switch } from "@aster/ui";
+import { Island, IslandRow, IslandSection, IslandSections } from "@aster/ui";
 
-import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { StepUpModal } from "./step_up_modal";
-import type { StepUpCredentials } from "@/services/api/step_up";
+
+import { Button } from "@/components/ui/button";
+import { ChangePrimaryAddressModal } from "@/components/settings/change_primary_address_modal";
+import {
+  load_primary_address_eligibility,
+  primary_address_eligibility_failed,
+  PRIMARY_ADDRESS_FEATURE_KEY,
+  type PrimaryAddressEligibility,
+} from "@/services/api/primary_address";
+import { copy_text_or_throw } from "@/utils/copy_text";
+import { ignore_error } from "@/lib/ignore_error";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_should_reduce_motion } from "@/provider";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
 import {
   Modal,
   ModalHeader,
@@ -57,7 +80,6 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
-import { use_primary_identity } from "@/lib/primary_identity";
 import {
   update_display_name,
   update_profile_color,
@@ -72,11 +94,14 @@ import {
 import { get_badge_visual } from "@/components/ui/badge_registry";
 import { set_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { cn } from "@/lib/utils";
+import { format_date } from "@/utils/date_format";
 import {
   get_recovery_email,
   save_recovery_email,
   resend_recovery_verification,
   remove_recovery_email,
+  normalize_recovery_email,
+  EMPTY_RECOVERY_EMAIL,
 } from "@/services/api/recovery_email";
 import {
   Select,
@@ -92,6 +117,15 @@ import {
   use_profile_picture_upload,
 } from "@/hooks/use_profile_picture_upload";
 import { is_onion_host } from "@/lib/onion_host";
+import { SETTINGS_ANCHORS } from "@/lib/settings_links";
+import {
+  show_plan_limit_upgrade,
+  show_upgrade_plans,
+} from "@/stores/upgrade_store";
+import { app_locale } from "@/utils/date_format";
+import { is_composing } from "@/utils/ime";
+import { MAX_DISPLAY_NAME_LENGTH } from "@/services/sanitize";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 function mask_email(email: string): string {
   const [local, domain] = email.split("@");
@@ -128,19 +162,19 @@ function RecoveryModal({
   }, [is_open, current]);
 
   const handle_save = async () => {
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const trimmed_email = email.trim();
+
+    if (!trimmed_email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed_email)) {
       set_error(t("common.enter_valid_email"));
 
       return;
     }
     set_saving(true);
     try {
-      await on_save(email);
+      await on_save(trimmed_email);
       on_close();
     } catch (err) {
-      set_error(
-        err instanceof Error ? err.message : t("common.failed_to_save"),
-      );
+      set_error(user_facing_error(err, t("common.failed_to_save")));
     } finally {
       set_saving(false);
     }
@@ -162,7 +196,9 @@ function RecoveryModal({
           type="email"
           value={email}
           onChange={(e) => set_email(e.target.value)}
-          onKeyDown={(e) => e["key"] === "Enter" && handle_save()}
+          onKeyDown={(e) =>
+            e["key"] === "Enter" && !is_composing(e) && handle_save()
+          }
         />
         {error && <p className="text-sm text-red-500 mt-3">{error}</p>}
       </ModalBody>
@@ -170,24 +206,11 @@ function RecoveryModal({
         <Button variant="ghost" onClick={on_close}>
           {t("common.cancel")}
         </Button>
-        <Button disabled={saving} onClick={handle_save}>
-          {saving ? (
-            <>
-              {t("common.saving")}
-              <Spinner className="ml-2" size="md" />
-            </>
-          ) : (
-            t("common.save")
-          )}
+        <Button disabled={saving} is_loading={saving} onClick={handle_save}>
+          {t("common.save")}
         </Button>
       </ModalFooter>
     </Modal>
-  );
-}
-
-function navigate_to_billing() {
-  window.dispatchEvent(
-    new CustomEvent("navigate-settings", { detail: "billing" }),
   );
 }
 
@@ -198,28 +221,29 @@ function FreePlanBanner() {
   if (is_onion_host() || !limits || limits.plan_code !== "free") return null;
 
   return (
-    <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5">
-      <div className="flex items-center gap-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <CreditCardIcon className="h-5 w-5 flex-shrink-0 text-blue-600" />
-            <p className="text-sm font-semibold text-txt-primary">
-              {t("settings.free_plan_banner_title")}
-            </p>
-          </div>
-          <p className="text-sm text-txt-muted mt-1 ml-7">
+    <Island padding="md" tone="accent">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <span className="hidden h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-brand text-white sm:flex">
+          <SparklesIcon className="h-5 w-5" />
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="text-[15px] font-semibold leading-5 text-txt-primary">
+            {t("settings.free_plan_banner_title")}
+          </p>
+          <p className="mt-0.5 text-[13px] leading-5 text-txt-secondary">
             {t("settings.free_plan_description")}
           </p>
         </div>
-        <button
-          className="flex-shrink-0 px-3 py-1.5 rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-          type="button"
-          onClick={navigate_to_billing}
+        <Button
+          className="flex-shrink-0"
+          size="md"
+          variant="depth"
+          onClick={() => show_upgrade_plans()}
         >
           {t("settings.upgrade_view_plans")}
-        </button>
+        </Button>
       </div>
-    </div>
+    </Island>
   );
 }
 
@@ -228,7 +252,6 @@ export function AccountSection() {
   const { t } = use_i18n();
   const { user, update_user, vault } = use_auth();
   const account_email = user?.email ?? "";
-  const primary_identity = use_primary_identity(account_email);
   const { preferences, update_preference, reset_to_defaults } =
     use_preferences();
   const {
@@ -245,7 +268,7 @@ export function AccountSection() {
   const copy_primary_address = useCallback(
     async (address: string) => {
       try {
-        await navigator.clipboard.writeText(address);
+        await copy_text_or_throw(address);
         show_toast(t("common.copied"), "success");
       } catch {
         show_toast(t("common.failed_to_copy_to_clipboard"), "error");
@@ -255,15 +278,14 @@ export function AccountSection() {
   );
 
   const [color, set_color] = useState(
-    preferences.profile_color || PROFILE_COLORS[5],
+    user?.profile_color || preferences.profile_color || PROFILE_COLORS[5],
   );
+  const color_saving_ref = useRef(false);
   const [name, set_name] = useState(user?.display_name || user?.username || "");
   const [saving_name, set_saving_name] = useState(false);
   const [avatar_hovered, set_avatar_hovered] = useState(false);
-  const [recovery, set_recovery] = useState<{
-    email: string | null;
-    verified: boolean;
-  }>({ email: null, verified: false });
+  const [recovery, set_recovery] =
+    useState<RecoveryEmailData>(EMPTY_RECOVERY_EMAIL);
   const [show_modal, set_show_modal] = useState(false);
   const [pending, set_pending] = useState(false);
   const [resending, set_resending] = useState(false);
@@ -279,8 +301,16 @@ export function AccountSection() {
   const [inactivity_window, set_inactivity_window] = useState(24);
   const [saving_inactivity, set_saving_inactivity] = useState(false);
   const [badges, set_badges] = useState<Badge[]>([]);
-  const [badge_prefs, set_badge_prefs] = useState<BadgePreferences | null>(null);
+  const [badge_prefs, set_badge_prefs] = useState<BadgePreferences | null>(
+    null,
+  );
   const [is_initial_load, set_is_initial_load] = useState(true);
+  const [load_failed, set_load_failed] = useState(false);
+  const [address_eligibility, set_address_eligibility] =
+    useState<PrimaryAddressEligibility | null>(null);
+  const [show_address_change, set_show_address_change] = useState(false);
+  const [address_eligibility_failed, set_address_eligibility_failed] =
+    useState(false);
 
   const inactivity_window_info_description = (() => {
     const [first, second, final] =
@@ -297,38 +327,61 @@ export function AccountSection() {
       .replace("{{final}}", format_offset(final));
   })();
 
-  useEffect(() => {
-    const run = async () => {
-      try {
-        const [badges_response, prefs_response, recovery_response, inactivity_response] =
-          await Promise.all([
-            fetch_my_badges(),
-            fetch_badge_preferences(),
-            vault
-              ? get_recovery_email(vault).catch(() => ({
-                  data: { email: null, verified: false },
-                }))
-              : Promise.resolve({ data: { email: null, verified: false } }),
-            get_inactivity_settings(),
-          ]);
+  const load_account_data = useCallback(async () => {
+    set_load_failed(false);
 
-        if (badges_response.data) set_badges(badges_response.data);
-        if (prefs_response.data) {
-          set_badge_prefs(prefs_response.data);
-          set_my_badge_prefs(prefs_response.data);
-        }
-        if (recovery_response.data) set_recovery(recovery_response.data);
-        if (inactivity_response.data)
-          set_inactivity_window(inactivity_response.data.inactivity_window_months);
-      } catch (error) {
-        if (import.meta.env.DEV) console.error(error);
-      } finally {
-        set_is_initial_load(false);
-      }
-    };
+    const [
+      badges_response,
+      prefs_response,
+      recovery_response,
+      inactivity_response,
+      eligibility_response,
+    ] = await Promise.all([
+      fetch_my_badges(),
+      fetch_badge_preferences(),
+      vault
+        ? get_recovery_email(vault).catch(() => ({
+            data: EMPTY_RECOVERY_EMAIL,
+          }))
+        : Promise.resolve({ data: EMPTY_RECOVERY_EMAIL }),
+      get_inactivity_settings(),
+      load_primary_address_eligibility(),
+    ]);
 
-    run();
+    if (badges_response.data) set_badges(badges_response.data);
+    if (prefs_response.data) {
+      set_badge_prefs(prefs_response.data);
+      set_my_badge_prefs(prefs_response.data);
+    }
+    if (recovery_response.data) set_recovery(recovery_response.data);
+    if (inactivity_response.data)
+      set_inactivity_window(inactivity_response.data.inactivity_window_months);
+    set_address_eligibility((prev) => eligibility_response.data ?? prev);
+    set_address_eligibility_failed(
+      primary_address_eligibility_failed(eligibility_response),
+    );
+
+    if (
+      !badges_response.data ||
+      !prefs_response.data ||
+      !inactivity_response.data
+    ) {
+      set_load_failed(true);
+    }
+
+    set_is_initial_load(false);
   }, [vault]);
+
+  const reload_account_data = useCallback(() => {
+    load_account_data().catch(() => {
+      set_load_failed(true);
+      set_is_initial_load(false);
+    });
+  }, [load_account_data]);
+
+  useEffect(() => {
+    reload_account_data();
+  }, [reload_account_data]);
 
   const persist_badge_prefs = async (patch: {
     active_badge_slug?: string | null;
@@ -339,10 +392,12 @@ export function AccountSection() {
     if (!badge_prefs) return;
     const previous = badge_prefs;
     const optimistic: BadgePreferences = { ...badge_prefs, ...patch };
+
     set_badge_prefs(optimistic);
     set_my_badge_prefs(optimistic);
     try {
       const response = await update_badge_preferences(patch);
+
       if (response.data) {
         set_badge_prefs(response.data);
         set_my_badge_prefs(response.data);
@@ -358,50 +413,139 @@ export function AccountSection() {
     }
   };
 
-  useEffect(() => {
-    set_name(user?.display_name || user?.username || "");
-  }, [user]);
+  const retry_address_eligibility = useCallback(async () => {
+    set_address_eligibility_failed(false);
+
+    const response = await load_primary_address_eligibility();
+
+    set_address_eligibility((prev) => response.data ?? prev);
+    set_address_eligibility_failed(
+      primary_address_eligibility_failed(response),
+    );
+  }, []);
+
+  const can_change_address = !!address_eligibility;
+  const address_plan_locked =
+    !!address_eligibility &&
+    !address_eligibility.eligible &&
+    address_eligibility.reason === "plan";
+
+  const address_cooldown_date = (() => {
+    const raw = address_eligibility?.next_change_available_at;
+    const parsed = raw ? new Date(raw) : null;
+
+    if (!parsed || Number.isNaN(parsed.getTime())) return "";
+
+    return format_date(parsed);
+  })();
+
+  const address_lock_message = (() => {
+    if (!address_eligibility || address_eligibility.eligible) return null;
+
+    switch (address_eligibility.reason) {
+      case "plan":
+        return t("settings.address_change_locked_plan");
+      case "account_kind":
+        return t("settings.address_change_locked_account_kind");
+      case "custom_domain":
+        return t("settings.address_change_locked_custom_domain");
+      case "cooldown":
+        return address_cooldown_date
+          ? t("settings.address_change_locked_cooldown", {
+              date: address_cooldown_date,
+            })
+          : t("settings.address_change_locked_cooldown_unknown");
+      default:
+        return t("settings.address_change_locked_unavailable");
+    }
+  })();
+
+  const handle_address_changed = useCallback(
+    async (new_address: string) => {
+      if (user) {
+        await update_user({
+          ...user,
+          email: new_address,
+          username: new_address.slice(0, new_address.lastIndexOf("@")),
+        });
+      }
+
+      show_toast(t("settings.primary_address_set"), "success");
+      reload_account_data();
+    },
+    [user, update_user, t, reload_account_data],
+  );
+
+  const derived_name = user?.display_name || user?.username || "";
+  const derived_name_ref = useRef(derived_name);
 
   useEffect(() => {
-    if (preferences.profile_color) {
-      set_color(preferences.profile_color);
+    const previous = derived_name_ref.current;
+
+    derived_name_ref.current = derived_name;
+    set_name((current) =>
+      current === previous || current.trim() === "" ? derived_name : current,
+    );
+  }, [derived_name]);
+
+  useEffect(() => {
+    if (color_saving_ref.current) return;
+
+    const synced_color = user?.profile_color || preferences.profile_color;
+
+    if (synced_color) {
+      set_color(synced_color);
     }
-  }, [preferences.profile_color]);
+  }, [user?.profile_color, preferences.profile_color]);
 
   const save_name = async () => {
+    if (saving_name) return;
     if (!name.trim() || !user || name === (user.display_name || user.username))
       return;
     set_saving_name(true);
     try {
       const r = await update_display_name(name);
 
-      if (r.data?.user)
+      if (r.data?.user) {
         await update_user({
           ...user,
           display_name: r.data.user.display_name || undefined,
         });
+      } else {
+        show_toast(r.error || t("common.failed_to_save"), "error");
+      }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
-
-      return;
+      show_toast(t("common.failed_to_save"), "error");
+    } finally {
+      set_saving_name(false);
     }
-    set_saving_name(false);
   };
 
+  const request_recovery_step_up = (email: string) => {
+    set_pending_recovery_email(email);
+    set_step_up_mode("change");
+    set_show_step_up(true);
+  };
 
   const save_recovery = async (email: string) => {
-    if (!vault) return;
+    if (!vault) throw new Error(t("common.failed_to_save"));
 
-    if (recovery.email) {
-      set_pending_recovery_email(email);
-      set_step_up_mode("change");
-      set_show_step_up(true);
+    const normalized = normalize_recovery_email(email);
+
+    if (recovery.step_up_required) {
+      request_recovery_step_up(normalized);
 
       return;
     }
 
-    const r = await save_recovery_email(email, vault);
+    const r = await save_recovery_email(normalized, vault);
 
+    if (r.code === "STEP_UP_REQUIRED" || r.code === "TOTP_REQUIRED") {
+      request_recovery_step_up(normalized);
+
+      return;
+    }
     if (r.code === "CONFLICT") {
       throw new Error(t("common.recovery_conflict"));
     }
@@ -409,7 +553,12 @@ export function AccountSection() {
       throw new Error(r.error || t("common.failed_to_save"));
     }
 
-    set_recovery({ email, verified: false });
+    set_recovery({
+      email: normalized,
+      verified: false,
+      exists: true,
+      step_up_required: false,
+    });
     set_pending(true);
   };
 
@@ -453,7 +602,12 @@ export function AccountSection() {
         throw new Error(r.error || t("common.step_up_error"));
       }
 
-      set_recovery({ email: pending_recovery_email, verified: false });
+      set_recovery({
+        email: pending_recovery_email,
+        verified: false,
+        exists: true,
+        step_up_required: false,
+      });
       set_pending(true);
       set_show_step_up(false);
     } else {
@@ -463,7 +617,7 @@ export function AccountSection() {
         throw new Error(r.error || t("common.step_up_error"));
       }
 
-      set_recovery({ email: null, verified: false });
+      set_recovery(EMPTY_RECOVERY_EMAIL);
       set_pending(false);
       set_show_step_up(false);
       show_toast(t("common.recovery_email_removed"), "success");
@@ -480,7 +634,7 @@ export function AccountSection() {
         set_pending(true);
         show_toast(t("common.verification_email_sent"), "success");
       } else {
-        show_toast(t("common.failed_verification_email"), "error");
+        show_toast(r.error || t("common.failed_verification_email"), "error");
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
@@ -489,7 +643,6 @@ export function AccountSection() {
       set_resending(false);
     }
   };
-
 
   const request_inactivity_window_change = (months: number) => {
     if (months < 3 || months > 24) return;
@@ -506,10 +659,12 @@ export function AccountSection() {
   }
 
   return (
-    <div className="space-y-4">
+    <IslandSections>
       <FreePlanBanner />
 
-      <div className="rounded-xl overflow-hidden bg-surf-tertiary border border-edge-secondary">
+      {load_failed && <LoadFailedNotice on_retry={reload_account_data} />}
+
+      <Island className="overflow-hidden">
         <div
           className="h-20"
           style={{
@@ -522,20 +677,18 @@ export function AccountSection() {
             onMouseEnter={() => set_avatar_hovered(true)}
             onMouseLeave={() => set_avatar_hovered(false)}
           >
-            <div className="w-16 h-16 rounded-xl overflow-hidden shadow-lg relative bg-surf-primary">
+            <div className="w-20 h-20 rounded-full overflow-hidden relative bg-surf-primary ring-4 ring-[var(--aster-island-fill,var(--bg-primary))]">
               {has_custom_picture ? (
                 <img
                   alt=""
-                  className="w-full h-full object-cover rounded-xl"
+                  className="w-full h-full object-cover rounded-full"
                   src={picture}
                 />
               ) : (
                 <div
-                  className="w-full h-full rounded-xl flex items-center justify-center select-none"
+                  className="w-full h-full rounded-full flex items-center justify-center select-none"
                   style={{
                     backgroundColor: color,
-                    boxShadow:
-                      "inset 0 -3px 8px rgba(0,0,0,0.25), inset 0 1px 3px rgba(255,255,255,0.2)",
                   }}
                 >
                   <span
@@ -551,25 +704,24 @@ export function AccountSection() {
                 </div>
               )}
               {uploading && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/40 rounded-xl">
+                <div className="absolute inset-0 flex items-center justify-center aster_scrim rounded-full">
                   <Spinner className="text-white" size="md" />
                 </div>
               )}
             </div>
             <button
-              className="absolute -bottom-1 -right-1 p-1.5 rounded-full transition-colors disabled:opacity-50 bg-surf-card text-txt-muted border-2 border-edge-secondary"
               aria-label={t("auth.change_photo")}
+              className="absolute -bottom-0.5 -end-0.5 flex h-7 w-7 items-center justify-center rounded-full transition-colors disabled:opacity-50 bg-[var(--aster-field-bg)] text-txt-primary ring-[3px] ring-[var(--aster-island-fill,var(--bg-primary))]"
               disabled={uploading || removing_photo}
               title={t("auth.change_photo")}
               onClick={open_picker}
               onMouseEnter={(e) => {
                 if (!uploading) {
-                  e.currentTarget.style.backgroundColor = "var(--bg-hover)";
+                  e.currentTarget.style.backgroundColor =
+                    "var(--aster-field-hover)";
                 }
               }}
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = "var(--bg-card)")
-              }
+              onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "")}
             >
               {uploading ? (
                 <Spinner size="xs" />
@@ -588,16 +740,16 @@ export function AccountSection() {
               <button
                 aria-label={t("common.remove_photo")}
                 className={cn(
-                  "absolute -top-1 -right-1 p-1.5 rounded-full transition disabled:opacity-50 bg-surf-card text-txt-muted border-2 border-edge-secondary hover:text-[var(--color-danger)] focus-visible:opacity-100",
+                  "absolute -top-0.5 -end-0.5 flex h-7 w-7 items-center justify-center rounded-full transition disabled:opacity-50 bg-[var(--aster-field-bg)] text-txt-muted ring-[3px] ring-[var(--aster-island-fill,var(--bg-primary))] hover:text-[var(--color-danger)] focus-visible:opacity-100",
                   avatar_hovered || removing_photo
                     ? "opacity-100"
                     : "opacity-0 [@media(hover:none)]:opacity-100",
                 )}
                 disabled={uploading || removing_photo}
-                onFocus={() => set_avatar_hovered(true)}
-                onBlur={() => set_avatar_hovered(false)}
                 title={t("common.remove_photo")}
+                onBlur={() => set_avatar_hovered(false)}
                 onClick={remove_picture}
+                onFocus={() => set_avatar_hovered(true)}
               >
                 {removing_photo ? (
                   <Spinner size="xs" />
@@ -618,43 +770,72 @@ export function AccountSection() {
               {photo_error}
             </motion.p>
           )}
-          <div className="flex items-center gap-2.5">
+          <div
+            aria-label={t("auth.profile_color")}
+            className="flex items-center gap-2.5"
+            role="radiogroup"
+          >
             {PROFILE_COLORS.map((c) => {
               const is_selected = c === color;
 
               return (
                 <button
                   key={c}
+                  aria-checked={is_selected}
+                  aria-label={c}
                   className="relative w-9 h-9 rounded-full"
+                  role="radio"
                   style={{
                     backgroundColor: c,
+                    outline: is_selected
+                      ? "2px solid var(--text-primary)"
+                      : "none",
+                    outlineOffset: 2,
                     boxShadow: is_selected
-                      ? `0 0 0 2px var(--bg-tertiary), 0 0 0 3.5px ${c}, 0 2px 8px ${c}50`
+                      ? `0 2px 8px ${c}50`
                       : `inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -2px 4px rgba(0,0,0,0.15), 0 2px 6px ${c}30`,
                   }}
+                  type="button"
                   onClick={async () => {
                     const prev = color;
-
-                    set_color(c);
-                    update_preference("profile_color", c, true);
-                    if (user) {
-                      await update_user({ ...user, profile_color: c });
-                    }
-                    const response = await update_profile_color(c);
-
-                    if (response.error) {
+                    const revert = async () => {
                       set_color(prev);
                       update_preference("profile_color", prev, true);
                       if (user) {
                         await update_user({
                           ...user,
                           profile_color: prev || undefined,
-                        });
+                        }).catch((caught) =>
+                          ignore_error(
+                            "components/settings/account_section:revert_color",
+                            caught,
+                          ),
+                        );
                       }
                       show_toast(
                         t("common.failed_save_profile_color"),
                         "error",
                       );
+                    };
+
+                    color_saving_ref.current = true;
+                    try {
+                      set_color(c);
+                      update_preference("profile_color", c, true);
+                      if (user) {
+                        await update_user({ ...user, profile_color: c });
+                      }
+                      const response = await update_profile_color(c);
+
+                      if (response.error) await revert();
+                    } catch (caught) {
+                      ignore_error(
+                        "components/settings/account_section:update_color",
+                        caught,
+                      );
+                      await revert();
+                    } finally {
+                      color_saving_ref.current = false;
                     }
                   }}
                 />
@@ -662,244 +843,339 @@ export function AccountSection() {
             })}
           </div>
         </div>
-      </div>
+      </Island>
 
-      <div className="flex items-center justify-between py-4">
-        <div>
-          <p className="text-sm font-medium text-txt-primary">
-            {t("settings.primary_address_label")}
-          </p>
-          {primary_identity.is_custom && account_email && (
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.also_receives_at", { email: account_email })}
-            </p>
-          )}
-        </div>
-        <div
-          className="cursor-pointer rounded-md px-2 -mr-2 py-1 hover:bg-surf-hover transition-colors"
-          onClick={() =>
-            copy_primary_address(primary_identity.email || account_email)
-          }
-        >
-          <span className="text-sm font-medium text-txt-secondary truncate max-w-[16rem]">
-            {primary_identity.email || account_email}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between py-4">
-        <div>
-          <p className="text-sm font-medium text-txt-primary">
-            {t("settings.display_name")}
-          </p>
-          <p className="text-sm mt-0.5 text-txt-muted">
-            {t("common.display_name_visible")}
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <Input
-            className="w-48"
-            value={name}
-            onBlur={save_name}
-            onChange={(e) => set_name(e.target.value)}
-            onKeyDown={(e) => e["key"] === "Enter" && save_name()}
-          />
-          {saving_name && <Spinner className="text-txt-muted" size="md" />}
-        </div>
-      </div>
-
-      {badges.length > 0 && badge_prefs && (
-        <div className="py-4 space-y-4">
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
-                {t("badges.active_badge")}
-                <InfoPopover
-                  description={t("settings.badges_description_full")}
-                  title={t("badges.active_badge")}
-                />
-              </p>
-              <p className="text-sm mt-0.5 text-txt-muted">
-                {t("settings.badges_description")}
-              </p>
-            </div>
-            <Select
-              value={badge_prefs.active_badge_slug ?? "none"}
-              onValueChange={(v) =>
-                persist_badge_prefs({
-                  active_badge_slug: v === "none" ? null : v,
-                })
-              }
-            >
-              <SelectTrigger className="h-10 w-48 flex-shrink-0 bg-transparent text-sm">
-
-                <SelectValue placeholder={t("badges.none")} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">
-                  {t("badges.none")}
-                </SelectItem>
-                {badges.map((badge) => {
-                  const visual = get_badge_visual(badge.slug);
-                  const Icon = visual.icon;
-
-                  return (
-                    <SelectItem
-                      key={badge.slug}
-                      title={badge.description || undefined}
-                      value={badge.slug}
-                    >
-                      <span className="inline-flex items-center gap-1.5">
-                        <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-                        <span className="truncate">{badge.display_name}</span>
-                        {badge.find_order != null && (
-                          <span className="tabular-nums opacity-70">
-                            #{badge.find_order.toLocaleString()}
-                          </span>
-                        )}
-                      </span>
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {badge_prefs.active_badge_slug && (
-            <>
-              <BadgeToggleRow
-                checked={badge_prefs.show_badge_profile}
-                description={t("badges.show_on_profile_description")}
-                label={t("badges.show_on_profile")}
-                on_change={(v) => persist_badge_prefs({ show_badge_profile: v })}
-              />
-              <BadgeToggleRow
-                checked={badge_prefs.show_badge_signature}
-                description={t("badges.show_in_signature_description")}
-                label={t("badges.show_in_signature")}
-                on_change={(v) =>
-                  persist_badge_prefs({ show_badge_signature: v })
-                }
-              />
-            </>
-          )}
-        </div>
+      {address_eligibility && can_change_address && (
+        <ChangePrimaryAddressModal
+          eligibility={address_eligibility}
+          is_open={show_address_change}
+          on_changed={handle_address_changed}
+          on_close={() => set_show_address_change(false)}
+        />
       )}
 
-      <div className="py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-txt-primary">
-              {t("common.recovery_email")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("common.recovery_email_description")}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            {recovery.email && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-txt-secondary">
-                  {mask_email(recovery.email)}
-                </span>
-                {recovery.verified ? (
-                  <span className="flex items-center gap-1 text-xs text-green-500">
-                    <CheckCircleIcon className="w-4 h-4" />
-                    {t("common.verified")}
+      <IslandSection divided>
+        <IslandRow
+          description={
+            address_eligibility_failed ? (
+              <>
+                {t("settings.address_change_eligibility_failed")}{" "}
+                <button
+                  className="underline hover:text-txt-primary transition-colors"
+                  type="button"
+                  onClick={() => void retry_address_eligibility()}
+                >
+                  {t("common.retry")}
+                </button>
+              </>
+            ) : undefined
+          }
+          label={
+            <span className="inline-flex items-center gap-1.5">
+              {t("settings.primary_address_label")}
+              {can_change_address && (
+                <InfoPopover
+                  description={t("settings.primary_address_info")}
+                  title={t("settings.primary_address_label")}
+                />
+              )}
+            </span>
+          }
+          trailing={
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="flex min-w-0 items-center gap-1.5 rounded-full px-2.5 py-1 -me-2.5 transition-colors hover:bg-[color-mix(in_srgb,var(--text-primary)_6%,transparent)]"
+                  type="button"
+                >
+                  <span className="block text-sm font-medium text-txt-secondary truncate max-w-[16rem]">
+                    {account_email}
                   </span>
-                ) : (
-                  <span className="flex items-center gap-1 text-xs text-amber-500">
-                    <ExclamationCircleIcon className="w-4 h-4" />
-                    {t("common.not_verified")}
-                  </span>
-                )}
-              </div>
-            )}
-            <Button variant="secondary" onClick={() => set_show_modal(true)}>
-              {recovery.email ? t("common.update") : t("common.add")}
-            </Button>
-            {recovery.email && !recovery.verified && (
-              <Button
-                disabled={resending}
-                variant="ghost"
-                onClick={handle_resend}
-              >
-                {resending ? <Spinner size="md" /> : t("common.resend")}
-              </Button>
-            )}
-            {recovery.email && (
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  set_step_up_mode("remove");
-                  set_show_step_up(true);
-                }}
-              >
-                {t("common.remove")}
-              </Button>
-            )}
-          </div>
-        </div>
-        {pending && recovery.email && !recovery.verified && (
-          <p className="text-sm mt-3 text-txt-tertiary">
-            {t("common.verification_sent").replace(
-              "{{email}}",
-              mask_email(recovery.email),
-            )}
-          </p>
-        )}
-      </div>
+                  <ChevronDownIcon className="w-4 h-4 shrink-0 text-txt-muted" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-[13rem]">
+                <DropdownMenuItem
+                  onClick={() =>
+                    copy_primary_address(account_email)
+                  }
+                >
+                  <ClipboardIcon className="w-4 h-4" />
+                  {t("common.copy_address")}
+                </DropdownMenuItem>
+                {can_change_address && (
+                  <DropdownMenuItem
+                    className={
+                      address_plan_locked ? "text-txt-muted" : undefined
+                    }
+                    disabled={
+                      !address_eligibility?.eligible && !address_plan_locked
+                    }
+                    onClick={() => {
+                      if (address_plan_locked) {
+                        show_plan_limit_upgrade({
+                          feature: PRIMARY_ADDRESS_FEATURE_KEY,
+                          plan_code: "supernova",
+                        });
 
-      <div className="py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-txt-primary flex items-center gap-1.5">
+                        return;
+                      }
+
+                      set_show_address_change(true);
+                    }}
+                  >
+                    {address_plan_locked ? (
+                      <LockClosedIcon className="w-4 h-4" />
+                    ) : (
+                      <PencilSquareIcon className="w-4 h-4" />
+                    )}
+                    {t("settings.change_address")}
+                  </DropdownMenuItem>
+                )}
+                {can_change_address && !address_eligibility?.eligible && (
+                  <p className="px-2 py-1.5 text-xs text-txt-muted">
+                    {address_lock_message}
+                  </p>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          }
+        />
+
+        <IslandRow
+          description={t("common.display_name_visible")}
+          label={t("settings.display_name")}
+          layout="stacked"
+          trailing={
+            <div className="relative">
+              <Input
+                aria-label={t("settings.display_name")}
+                className="w-[220px] text-[13px] font-medium"
+                maxLength={MAX_DISPLAY_NAME_LENGTH}
+                value={name}
+                onBlur={save_name}
+                onChange={(e) => set_name(e.target.value)}
+                onKeyDown={(e) =>
+                  e["key"] === "Enter" && !is_composing(e) && save_name()
+                }
+              />
+              {saving_name && (
+                <Spinner
+                  className="absolute end-3 top-1/2 -translate-y-1/2 text-txt-muted pointer-events-none"
+                  size="xs"
+                />
+              )}
+            </div>
+          }
+        />
+
+        {badges.length > 0 && badge_prefs && (
+          <>
+            <IslandRow
+              description={t("settings.badges_description")}
+              label={
+                <span className="inline-flex items-center gap-1.5">
+                  {t("badges.active_badge")}
+                  <InfoPopover
+                    description={t("settings.badges_description_full")}
+                    title={t("badges.active_badge")}
+                  />
+                </span>
+              }
+              layout="stacked"
+              trailing={
+                <Select
+                  value={badge_prefs.active_badge_slug ?? "none"}
+                  onValueChange={(v) =>
+                    persist_badge_prefs({
+                      active_badge_slug: v === "none" ? null : v,
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-10 w-[220px] flex-shrink-0">
+                    <SelectValue placeholder={t("badges.none")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">{t("badges.none")}</SelectItem>
+                    {badges.map((badge) => {
+                      const visual = get_badge_visual(badge.slug);
+                      const Icon = visual.icon;
+
+                      return (
+                        <SelectItem
+                          key={badge.slug}
+                          title={badge.description || undefined}
+                          value={badge.slug}
+                        >
+                          <span className="inline-flex items-center gap-1.5">
+                            <Icon className="w-3.5 h-3.5 flex-shrink-0" />
+                            <span className="truncate">
+                              {badge.display_name}
+                            </span>
+                            {badge.find_order != null && (
+                              <span className="tabular-nums opacity-70">
+                                #{badge.find_order.toLocaleString(app_locale())}
+                              </span>
+                            )}
+                          </span>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              }
+            />
+            {badge_prefs.active_badge_slug && (
+              <>
+                <IslandRow
+                  description={t("badges.show_on_profile_description")}
+                  label={t("badges.show_on_profile")}
+                  toggle={{
+                    checked: badge_prefs.show_badge_profile,
+                    aria_label: t("badges.show_on_profile"),
+                    on_change: (v) =>
+                      persist_badge_prefs({ show_badge_profile: v }),
+                  }}
+                />
+                <IslandRow
+                  description={t("badges.show_in_signature_description")}
+                  label={t("badges.show_in_signature")}
+                  toggle={{
+                    checked: badge_prefs.show_badge_signature,
+                    aria_label: t("badges.show_in_signature"),
+                    on_change: (v) =>
+                      persist_badge_prefs({ show_badge_signature: v }),
+                  }}
+                />
+              </>
+            )}
+          </>
+        )}
+
+        <IslandRow
+          description={
+            <>
+              {t("common.recovery_email_description")}
+              {pending && recovery.email && !recovery.verified && (
+                <span className="block mt-1 text-txt-tertiary">
+                  {t("common.verification_sent").replace(
+                    "{{email}}",
+                    mask_email(recovery.email),
+                  )}
+                </span>
+              )}
+            </>
+          }
+          id={SETTINGS_ANCHORS.recovery_email}
+          label={t("common.recovery_email")}
+          layout="stacked"
+          trailing={
+            <div className="flex flex-wrap items-center gap-2">
+              {recovery.exists && (
+                <div className="flex items-center gap-2 me-1">
+                  <span className="text-sm font-medium text-txt-secondary">
+                    {recovery.email
+                      ? mask_email(recovery.email)
+                      : t("common.recovery_email_hidden")}
+                  </span>
+                  {recovery.verified ? (
+                    <span className="flex items-center gap-1 text-xs text-green-600 dark:text-green-400">
+                      <CheckCircleIcon className="w-4 h-4" />
+                      {t("common.verified")}
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                      <ExclamationCircleIcon className="w-4 h-4" />
+                      {t("common.not_verified")}
+                    </span>
+                  )}
+                </div>
+              )}
+              <Button
+                size="md"
+                variant="secondary"
+                onClick={() => set_show_modal(true)}
+              >
+                {recovery.exists ? t("common.update") : t("common.add")}
+              </Button>
+              {recovery.exists && !recovery.verified && (
+                <Button
+                  disabled={resending}
+                  is_loading={resending}
+                  size="md"
+                  variant="outline"
+                  onClick={handle_resend}
+                >
+                  {t("common.resend")}
+                </Button>
+              )}
+              {recovery.exists && (
+                <Button
+                  size="md"
+                  variant="outline"
+                  onClick={() => {
+                    set_step_up_mode("remove");
+                    set_show_step_up(true);
+                  }}
+                >
+                  {t("common.remove")}
+                </Button>
+              )}
+            </div>
+          }
+        />
+
+        <IslandRow
+          description={t("common.inactivity_window_description")}
+          label={
+            <span className="inline-flex items-center gap-1.5">
               {t("common.inactivity_window")}
-              <InfoPopover title={t("common.inactivity_window_info_title")} description={inactivity_window_info_description} learn_more_url="https://astermail.org/terms#section-9" />
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("common.inactivity_window_description")}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
+              <InfoPopover
+                description={inactivity_window_info_description}
+                learn_more_url="https://astermail.org/terms#section-9"
+                title={t("common.inactivity_window_info_title")}
+              />
+            </span>
+          }
+          trailing={
             <Select
               disabled={saving_inactivity}
               value={String(inactivity_window)}
               onValueChange={(v) => request_inactivity_window_change(Number(v))}
             >
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-[160px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {[3, 6, 9, 12, 18, 24].map((m) => (
                   <SelectItem key={m} value={String(m)}>
-                    {t("common.inactivity_window_months").replace("{{n}}", String(m))}
+                    {t("common.inactivity_window_months").replace(
+                      "{{n}}",
+                      String(m),
+                    )}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-          </div>
-        </div>
-      </div>
+          }
+        />
+      </IslandSection>
 
-      <div className="py-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-txt-primary">
-              {t("common.reset_all_settings")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("common.restore_defaults_description")}
-            </p>
-          </div>
-          <Button
-            variant="secondary"
-            onClick={() => set_show_reset_confirm(true)}
-          >
-            {t("settings.reset")}
-          </Button>
-        </div>
-      </div>
+      <IslandSection>
+        <IslandRow
+          description={t("common.restore_defaults_description")}
+          label={t("common.reset_all_settings")}
+          trailing={
+            <Button
+              size="md"
+              variant="secondary"
+              onClick={() => set_show_reset_confirm(true)}
+            >
+              {t("settings.reset")}
+            </Button>
+          }
+        />
+      </IslandSection>
 
       <ConfirmationModal
         cancel_text={t("common.cancel")}
@@ -929,7 +1205,8 @@ export function AccountSection() {
         is_open={show_step_up}
         on_close={() => {
           set_show_step_up(false);
-          if (step_up_mode === "inactivity") set_pending_inactivity_months(null);
+          if (step_up_mode === "inactivity")
+            set_pending_inactivity_months(null);
         }}
         on_confirm={handle_step_up_confirm}
         title={
@@ -947,30 +1224,6 @@ export function AccountSection() {
         on_close={() => set_show_modal(false)}
         on_save={save_recovery}
       />
-    </div>
-  );
-}
-
-interface BadgeToggleRowProps {
-  label: string;
-  description: string;
-  checked: boolean;
-  on_change: (value: boolean) => void;
-}
-
-function BadgeToggleRow({
-  label,
-  description,
-  checked,
-  on_change,
-}: BadgeToggleRowProps) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <div className="min-w-0">
-        <div className="text-sm font-medium text-txt-primary">{label}</div>
-        <div className="text-xs mt-0.5 text-txt-muted">{description}</div>
-      </div>
-      <Switch size="lg" checked={checked} onCheckedChange={on_change} />
-    </div>
+    </IslandSections>
   );
 }

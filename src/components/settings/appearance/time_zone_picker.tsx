@@ -144,7 +144,8 @@ export function TimeZonePicker({
     return () => node.removeEventListener("wheel", handle_wheel);
   }, [is_open, visible_options.length]);
 
-  const selected_option = value === "auto" ? undefined : options_by_id.get(value);
+  const selected_option =
+    value === "auto" ? undefined : options_by_id.get(value);
   const effective_zone = selected_option?.id ?? device_zone;
   const effective_option = options_by_id.get(effective_zone);
 
@@ -166,9 +167,9 @@ export function TimeZonePicker({
   ) => (
     <button
       key={id}
+      className="flex w-full items-center gap-3 rounded-[var(--aster-radius-item)] px-2.5 py-2 text-start transition-colors hover:bg-[var(--aster-floating-hover)]"
       type="button"
       onClick={() => handle_select(id)}
-      className="flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left transition-colors hover:bg-black/5 dark:hover:bg-white/5"
     >
       <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center">
         {value === id && <CheckIcon className="h-4 w-4 text-brand" />}
@@ -193,29 +194,28 @@ export function TimeZonePicker({
     <Popover open={is_open} onOpenChange={set_is_open}>
       <PopoverTrigger asChild>
         <button
+          className="aster_select_trigger group flex h-10 w-[200px] items-center justify-between gap-2 overflow-hidden border-0 ps-3.5 pe-3 text-[13px] font-medium text-[var(--text-primary)] outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]/50"
           type="button"
-          className="flex h-9 w-[240px] items-center justify-between gap-2 overflow-hidden rounded-lg border border-[var(--border-secondary)] bg-[var(--input-bg)] px-3 py-1.5 text-[13px] text-[var(--text-secondary)] transition-colors hover:bg-[var(--bg-secondary)] data-[state=open]:bg-[var(--bg-secondary)] focus:outline-none"
-          style={{ boxShadow: "var(--select-shadow)" }}
         >
           <span className="min-w-0 truncate">{trigger_label}</span>
-          <ChevronDownIcon className="h-3.5 w-3.5 flex-shrink-0 opacity-50" />
+          <ChevronDownIcon className="h-4 w-4 shrink-0 text-[var(--text-muted)] transition-transform duration-200 group-data-[state=open]:rotate-180" />
         </button>
       </PopoverTrigger>
-      <PopoverContent
-        align="end"
-        className="w-[320px] rounded-lg border border-[var(--border-secondary)] bg-[var(--dropdown-bg)] p-0"
-      >
-        <div className="flex items-center gap-2 border-b border-[var(--border-secondary)] px-3 py-2">
+      <PopoverContent align="end" className="w-[320px] p-0">
+        <div className="flex items-center gap-2 border-b border-[var(--aster-floating-divider)] px-3.5 py-2.5">
           <MagnifyingGlassIcon className="h-4 w-4 flex-shrink-0 text-txt-muted" />
           <input
             autoFocus
+            className="w-full bg-transparent text-[13px] text-txt-primary placeholder:text-txt-muted focus:outline-none"
+            placeholder={t("settings.time_zone_search_placeholder")}
             value={query}
             onChange={(event) => set_query(event.target.value)}
-            placeholder={t("settings.time_zone_search_placeholder")}
-            className="w-full bg-transparent text-[13px] text-txt-primary placeholder:text-txt-muted focus:outline-none"
           />
         </div>
-        <div ref={list_ref} className="max-h-72 overflow-y-auto overscroll-contain p-1.5">
+        <div
+          ref={list_ref}
+          className="max-h-72 overflow-y-auto overscroll-contain p-1.5"
+        >
           {!normalized_query &&
             render_row(
               "auto",
@@ -227,7 +227,9 @@ export function TimeZonePicker({
             render_row(
               option.id,
               option.city,
-              option.region ? `${option.region} · ${option.offset_label}` : option.offset_label,
+              option.region
+                ? `${option.region} · ${option.offset_label}`
+                : option.offset_label,
               format_time_in_zone(option.id, use_24h),
             ),
           )}
@@ -239,9 +241,9 @@ export function TimeZonePicker({
         </div>
         {!normalized_query && !show_all && (
           <button
+            className="w-full border-t border-[var(--aster-floating-divider)] px-3 py-2.5 text-[12px] font-medium text-txt-secondary transition-colors hover:text-txt-primary"
             type="button"
             onClick={() => set_show_all(true)}
-            className="w-full border-t border-[var(--border-secondary)] px-3 py-2 text-[12px] font-medium text-txt-secondary transition-colors hover:text-txt-primary"
           >
             {t("settings.time_zone_show_all")}
           </button>

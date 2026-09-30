@@ -46,7 +46,8 @@ vi.mock("@/components/ui/info_popover", () => ({
   InfoPopover: () => null,
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Switch: () => null,
 }));
 
@@ -60,7 +61,6 @@ vi.mock("@/hooks/use_search", () => ({
 const { SearchContentBanner } = await import("./search_content_banner");
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;

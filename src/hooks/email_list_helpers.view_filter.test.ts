@@ -25,16 +25,14 @@ import { should_keep_email_in_view } from "./email_list_helpers";
 describe("should_keep_email_in_view", () => {
   it("keeps an archived item in folder-, tag- and alias- views", () => {
     for (const view of ["folder-work", "tag-bills", "alias-shop@aster.cx"]) {
-      expect(
-        should_keep_email_in_view({ is_archived: true }, view),
-      ).toBe(true);
+      expect(should_keep_email_in_view({ is_archived: true }, view)).toBe(true);
     }
   });
 
   it("excludes trashed and spam items in folder-like views", () => {
-    expect(
-      should_keep_email_in_view({ is_trashed: true }, "folder-work"),
-    ).toBe(false);
+    expect(should_keep_email_in_view({ is_trashed: true }, "folder-work")).toBe(
+      false,
+    );
     expect(should_keep_email_in_view({ is_spam: true }, "tag-bills")).toBe(
       false,
     );
@@ -50,24 +48,22 @@ describe("should_keep_email_in_view", () => {
   });
 
   it("excludes a non-received item in inbox", () => {
-    expect(
-      should_keep_email_in_view({ item_type: "sent" }, "inbox"),
-    ).toBe(false);
-    expect(
-      should_keep_email_in_view({ item_type: "draft" }, ""),
-    ).toBe(false);
+    expect(should_keep_email_in_view({ item_type: "sent" }, "inbox")).toBe(
+      false,
+    );
+    expect(should_keep_email_in_view({ item_type: "draft" }, "")).toBe(false);
   });
 
   it("keeps a normal received item in inbox", () => {
-    expect(
-      should_keep_email_in_view({ item_type: "received" }, "inbox"),
-    ).toBe(true);
+    expect(should_keep_email_in_view({ item_type: "received" }, "inbox")).toBe(
+      true,
+    );
   });
 
   it("keeps an archived item in the archive view", () => {
-    expect(
-      should_keep_email_in_view({ is_archived: true }, "archive"),
-    ).toBe(true);
+    expect(should_keep_email_in_view({ is_archived: true }, "archive")).toBe(
+      true,
+    );
   });
 
   it("keeps an archived item in the all-mail view", () => {
@@ -106,8 +102,6 @@ describe("should_keep_email_in_view", () => {
         "trash",
       ),
     ).toBe(true);
-    expect(
-      should_keep_email_in_view({ is_trashed: true }, "spam"),
-    ).toBe(true);
+    expect(should_keep_email_in_view({ is_trashed: true }, "spam")).toBe(true);
   });
 });

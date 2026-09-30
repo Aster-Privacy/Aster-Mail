@@ -18,21 +18,24 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
-import {
-  useState,
-} from "react";
+import { useState } from "react";
+import { TrashIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
-
-import { Spinner } from "@/components/ui/spinner";
-import { use_i18n } from "@/lib/i18n/context";
 
 import { DraftStatusIndicator } from "./draft_status";
 import { FormatTools } from "./format_tools";
 import { InsertTools } from "./insert_tools";
-import { ToolbarButton, read_format_bar_preference, store_format_bar_preference } from "./shared";
+import {
+  ToolbarButton,
+  read_format_bar_preference,
+  store_format_bar_preference,
+} from "./shared";
+
+import { use_i18n } from "@/lib/i18n/context";
+import { ButtonSpinner } from "@/components/ui/spinner";
 
 export interface ComposeToolbarProps {
   compose: ComposeToolbarState;
@@ -62,7 +65,7 @@ export function ComposeToolbar({
 
   return (
     <div className="relative flex-shrink-0">
-      {show_format_bar && (
+      {show_format_bar && !compose.is_plain_text_mode && (
         <div
           aria-label={t("mail.text_formatting")}
           className="px-3 pt-1.5 flex items-center gap-0.5 overflow-x-auto scrollbar-hide"
@@ -75,37 +78,57 @@ export function ComposeToolbar({
       <div className="px-4 pt-1 pb-2.5 flex items-center gap-2">
         {compose.scheduled_time ? (
           <Button
-            className="h-9 px-5 rounded-full"
-            disabled={!compose.has_recipients || compose.is_scheduling}
-            size="md"
+            className="px-5 rounded-[var(--aster-radius-control)]"
+            disabled={!compose.has_recipients}
+            is_loading={compose.is_scheduling}
+            size="lg"
             variant="depth"
             onClick={compose.handle_scheduled_send}
           >
-            {compose.is_scheduling ? t("mail.scheduling") : t("mail.schedule")}
+            {t("mail.schedule")}
           </Button>
         ) : (
           <Button
-            className="h-9 px-6 rounded-full"
+            className="px-6 rounded-[var(--aster-radius-control)]"
             disabled={!compose.has_recipients || compose.is_sending}
-            size="md"
+            size="lg"
             title={compose.is_mac ? "⌘+Enter" : "Ctrl+Enter"}
             variant="depth"
             onClick={compose.handle_send}
           >
-            {compose.is_sending ? <Spinner size="sm" /> : t("mail.send")}
+            {t("mail.send")}
+            {compose.is_sending && <ButtonSpinner />}
           </Button>
         )}
 
-        <div className="flex items-center gap-1 ml-1">
-          <ToolbarButton
-            active={show_format_bar}
-            title={t("mail.text_formatting")}
-            onClick={toggle_format_bar}
-          >
-            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M5 17v2h14v-2H5zm4.5-4.2h5l.9 2.2h2.1L12.75 4h-1.5L6.5 15h2.1l.9-2.2zm2.5-6.13L13.87 11h-3.74L12 6.67z" />
-            </svg>
-          </ToolbarButton>
+        <div className="flex items-center gap-1 ms-1">
+          {!compose.is_plain_text_mode && (
+            <ToolbarButton
+              active={show_format_bar}
+              title={t("mail.text_formatting")}
+              onClick={toggle_format_bar}
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M5 17v2h14v-2H5zm4.5-4.2h5l.9 2.2h2.1L12.75 4h-1.5L6.5 15h2.1l.9-2.2zm2.5-6.13L13.87 11h-3.74L12 6.67z" />
+              </svg>
+            </ToolbarButton>
+          )}
+
+          {compose.toggle_plain_text_mode && (
+            <ToolbarButton
+              active={compose.is_plain_text_mode}
+              title={
+                compose.is_plain_text_mode
+                  ? t("common.switch_to_rich_text")
+                  : t("common.switch_to_plain_text")
+              }
+              onClick={compose.toggle_plain_text_mode}
+            >
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M4 5h16v2H4V5zm0 4h16v2H4V9zm0 4h10v2H4v-2zm0 4h10v2H4v-2z" />
+              </svg>
+            </ToolbarButton>
+          )}
 
           <InsertTools compose={compose} />
 
@@ -118,7 +141,7 @@ export function ComposeToolbar({
           {compose.template_picker_element}
         </div>
 
-        <div className="ml-auto flex items-center gap-2 min-w-0">
+        <div className="ms-auto flex items-center gap-2 min-w-0">
           <DraftStatusIndicator
             compose={compose}
             reduce_motion={reduce_motion}
@@ -128,9 +151,7 @@ export function ComposeToolbar({
               title={t("common.delete_draft")}
               onClick={compose.handle_show_delete_confirm}
             >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-              </svg>
+              <TrashIcon className="w-4 h-4" />
             </ToolbarButton>
           )}
         </div>

@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { ConditionField } from "@/services/api/mail_rules";
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import * as React from "react";
 import {
   UserIcon,
@@ -36,8 +39,6 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown_menu";
 import { use_i18n } from "@/lib/i18n/context";
-import type { ConditionField } from "@/services/api/mail_rules";
-import type { TranslationKey } from "@/lib/i18n/types";
 
 interface FieldOption {
   value: ConditionField;
@@ -78,8 +79,14 @@ const SECTIONS: FieldSection[] = [
     icon: PaperClipIcon,
     options: [
       { value: "has_attachment", label_key: "mail_rules.field_has_attachment" },
-      { value: "attachment_name", label_key: "mail_rules.field_attachment_name" },
-      { value: "attachment_size", label_key: "mail_rules.field_attachment_size" },
+      {
+        value: "attachment_name",
+        label_key: "mail_rules.field_attachment_name",
+      },
+      {
+        value: "attachment_size",
+        label_key: "mail_rules.field_attachment_size",
+      },
     ],
   },
   {
@@ -89,9 +96,18 @@ const SECTIONS: FieldSection[] = [
       { value: "has_list_id", label_key: "mail_rules.field_has_list_id" },
       { value: "is_reply", label_key: "mail_rules.field_is_reply" },
       { value: "is_forward", label_key: "mail_rules.field_is_forward" },
-      { value: "is_auto_submitted", label_key: "mail_rules.field_is_auto_submitted" },
-      { value: "has_calendar_invite", label_key: "mail_rules.field_has_calendar_invite" },
-      { value: "recipient_count", label_key: "mail_rules.field_recipient_count" },
+      {
+        value: "is_auto_submitted",
+        label_key: "mail_rules.field_is_auto_submitted",
+      },
+      {
+        value: "has_calendar_invite",
+        label_key: "mail_rules.field_has_calendar_invite",
+      },
+      {
+        value: "recipient_count",
+        label_key: "mail_rules.field_recipient_count",
+      },
       { value: "total_size", label_key: "mail_rules.field_total_size" },
       { value: "date_received", label_key: "mail_rules.field_date_received" },
       { value: "spam_score", label_key: "mail_rules.field_spam_score" },
@@ -130,21 +146,21 @@ export function FieldDropdown({
       <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
       <DropdownMenuContent
         align="start"
-        sideOffset={6}
         className="z-[200] w-64 max-h-[420px]"
+        sideOffset={6}
       >
         {SECTIONS.map((section, i) => (
           <React.Fragment key={i}>
             {i > 0 && <DropdownMenuSeparator />}
-            <DropdownMenuLabel className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-wide text-neutral-500">
+            <DropdownMenuLabel className="flex items-center gap-1.5 text-[10.5px] uppercase tracking-wide text-txt-muted">
               <section.icon className="w-3 h-3" />
               <span>{t(section.title_key)}</span>
             </DropdownMenuLabel>
             {section.options.map((opt) => (
               <DropdownMenuItem
                 key={opt.value}
-                onSelect={() => on_pick(opt.value)}
                 className="text-[12.5px]"
+                onSelect={() => on_pick(opt.value)}
               >
                 {t(opt.label_key)}
               </DropdownMenuItem>

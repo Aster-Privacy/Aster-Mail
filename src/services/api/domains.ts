@@ -18,20 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { api_client, type ApiResponse } from "./client";
-import { en } from "@/lib/i18n/translations/en";
 
+import { HASH_ALG } from "@/services/crypto/constants";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-
 import {
   get_or_create_derived_encryption_crypto_key,
   get_derived_encryption_key,
 } from "@/services/crypto/memory_key_store";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
-
+import { app_locale } from "@/utils/date_format";
 
 export interface DnsRecord {
   record_type: string;
@@ -69,11 +68,18 @@ export interface CustomDomain {
   dmarc_configured: boolean;
   catch_all_enabled: boolean;
   is_primary: boolean;
+  purchased?: boolean;
   health_status: string;
   verification_token: string;
   created_at: string;
   verified_at?: string;
   last_verification_at?: string;
+  downgrade_grace_expires_at?: string;
+  is_shared?: boolean;
+  shared_from?: string | null;
+  can_create_aliases?: boolean;
+  bimi_available?: boolean;
+  bimi_state?: string | null;
 }
 
 export interface DomainListResponse {
@@ -190,7 +196,7 @@ export interface DomainAddress {
   domain_id: string;
   encrypted_local_part: string;
   local_part_nonce: string;
-  local_part_hash: string;
+  local_part_hash?: string;
   encrypted_display_name?: string;
   display_name_nonce?: string;
   profile_picture?: string;
@@ -203,6 +209,7 @@ export interface DecryptedDomainAddress {
   id: string;
   domain_id: string;
   local_part: string;
+  local_part_hash?: string;
   display_name?: string;
   profile_picture?: string;
   is_enabled: boolean;
@@ -240,7 +247,9 @@ async function get_domain_hmac_key(): Promise<CryptoKey> {
   const raw_key = get_derived_encryption_key();
 
   if (!raw_key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   const encoder = new TextEncoder();
@@ -268,7 +277,9 @@ async function get_domain_encryption_key(): Promise<CryptoKey> {
   const key = await get_or_create_derived_encryption_crypto_key();
 
   if (!key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   return key;
@@ -353,6 +364,7 @@ export async function decrypt_domain_address(
     id: address.id,
     domain_id: address.domain_id,
     local_part,
+    local_part_hash: address.local_part_hash,
     display_name,
     profile_picture: address.profile_picture,
     is_enabled: address.is_enabled,
@@ -368,7 +380,11 @@ export async function decrypt_domain_addresses(
 ): Promise<DecryptedDomainAddress[]> {
   const decrypted: DecryptedDomainAddress[] = [];
 
-  for (let i = 0; i < addresses.length; i += DOMAIN_ADDRESS_DECRYPT_BATCH_SIZE) {
+  for (
+    let i = 0;
+    i < addresses.length;
+    i += DOMAIN_ADDRESS_DECRYPT_BATCH_SIZE
+  ) {
     const batch = addresses.slice(i, i + DOMAIN_ADDRESS_DECRYPT_BATCH_SIZE);
     const results = await Promise.allSettled(
       batch.map((address) => decrypt_domain_address(address)),
@@ -445,6 +461,14 @@ export async function get_dns_records(
   );
 }
 
+export async function get_domain_nameservers(
+  domain_id: string,
+): Promise<ApiResponse<{ nameservers: string[] }>> {
+  return api_client.get<{ nameservers: string[] }>(
+    `/addresses/v1/domains/${domain_id}/nameservers`,
+  );
+}
+
 export async function get_domain_health(
   domain_id: string,
 ): Promise<ApiResponse<DomainHealth>> {
@@ -480,7 +504,11 @@ export async function list_domain_addresses(
 export async function bulk_add_domain_addresses(
   domain_id: string,
   domain_name: string,
-  items: Array<{ local_part: string; display_name?: string; is_enabled?: boolean }>,
+  items: Array<{
+    local_part: string;
+    display_name?: string;
+    is_enabled?: boolean;
+  }>,
 ): Promise<ApiResponse<{ created: number; failed: number }>> {
   const addresses = await Promise.all(
     items.map(async (item) => {
@@ -504,15 +532,19 @@ export async function bulk_add_domain_addresses(
         local_part_hash,
         address_routing_hash,
       };
+
       if (item.is_enabled !== undefined) entry.is_enabled = item.is_enabled;
       if (item.display_name) {
         const enc_dn = await encrypt_address_field(item.display_name);
+
         entry.encrypted_display_name = enc_dn.encrypted;
         entry.display_name_nonce = enc_dn.nonce;
       }
+
       return entry;
     }),
   );
+
   return api_client.post<{ created: number; failed: number }>(
     `/addresses/v1/domains/${domain_id}/bulk-addresses`,
     { addresses },
@@ -688,7 +720,8 @@ export function format_domain_price(
   currency: string = "usd",
 ): string {
   if (cents === null) return "";
-  return new Intl.NumberFormat(undefined, {
+
+  return new Intl.NumberFormat(app_locale(), {
     style: "currency",
     currency: currency.toUpperCase(),
     minimumFractionDigits: 2,
@@ -698,13 +731,22 @@ export function format_domain_price(
 export function validate_domain_name(domain: string): {
   valid: boolean;
   error?: string;
+  error_key?: TranslationKey;
 } {
   if (!domain || domain.length === 0) {
-    return { valid: false, error: en.errors.domain_empty };
+    return {
+      valid: false,
+      error: get_active_translations().errors.domain_empty,
+      error_key: "errors.domain_empty",
+    };
   }
 
   if (domain.length > 253) {
-    return { valid: false, error: en.errors.domain_too_long };
+    return {
+      valid: false,
+      error: get_active_translations().errors.domain_too_long,
+      error_key: "errors.domain_too_long",
+    };
   }
 
   const domain_lower = domain.toLowerCase();
@@ -717,25 +759,38 @@ export function validate_domain_name(domain: string): {
   ) {
     return {
       valid: false,
-      error: en.errors.domain_reserved,
+      error: get_active_translations().errors.domain_reserved,
+      error_key: "errors.domain_reserved",
     };
   }
 
   const parts = domain.split(".");
 
   if (parts.length < 2) {
-    return { valid: false, error: en.errors.domain_invalid_format };
+    return {
+      valid: false,
+      error: get_active_translations().errors.domain_invalid_format,
+      error_key: "errors.domain_invalid_format",
+    };
   }
 
   const valid_label_pattern = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i;
 
   for (const part of parts) {
     if (part.length === 0 || part.length > 63) {
-      return { valid: false, error: en.errors.domain_invalid_label };
+      return {
+        valid: false,
+        error: get_active_translations().errors.domain_invalid_label,
+        error_key: "errors.domain_invalid_label",
+      };
     }
 
     if (!valid_label_pattern.test(part)) {
-      return { valid: false, error: en.errors.domain_invalid_chars };
+      return {
+        valid: false,
+        error: get_active_translations().errors.domain_invalid_chars,
+        error_key: "errors.domain_invalid_chars",
+      };
     }
   }
 
@@ -750,7 +805,7 @@ export function validate_local_part(local_part: string): {
   if (!local_part || local_part.length === 0) {
     return {
       valid: false,
-      error: en.errors.address_empty,
+      error: get_active_translations().errors.address_empty,
       error_key: "errors.address_empty",
     };
   }
@@ -758,7 +813,7 @@ export function validate_local_part(local_part: string): {
   if (local_part.length < 1) {
     return {
       valid: false,
-      error: en.errors.address_too_short,
+      error: get_active_translations().errors.address_too_short,
       error_key: "errors.address_too_short",
     };
   }
@@ -766,7 +821,7 @@ export function validate_local_part(local_part: string): {
   if (local_part.length > 64) {
     return {
       valid: false,
-      error: en.errors.address_too_long,
+      error: get_active_translations().errors.address_too_long,
       error_key: "errors.address_too_long",
     };
   }
@@ -776,7 +831,7 @@ export function validate_local_part(local_part: string): {
   if (!valid_pattern.test(local_part.toLowerCase())) {
     return {
       valid: false,
-      error: en.errors.address_invalid_chars,
+      error: get_active_translations().errors.address_invalid_chars,
       error_key: "errors.address_invalid_chars",
     };
   }
@@ -784,7 +839,7 @@ export function validate_local_part(local_part: string): {
   if (local_part.includes("..")) {
     return {
       valid: false,
-      error: en.errors.address_consecutive_dots,
+      error: get_active_translations().errors.address_consecutive_dots,
       error_key: "errors.address_consecutive_dots",
     };
   }
@@ -792,7 +847,7 @@ export function validate_local_part(local_part: string): {
   if (/^[0-9]+$/.test(local_part)) {
     return {
       valid: false,
-      error: en.errors.address_numeric_only,
+      error: get_active_translations().errors.address_numeric_only,
       error_key: "errors.address_numeric_only",
     };
   }
@@ -816,20 +871,29 @@ export function get_status_color(status: string): string {
   }
 }
 
-export function get_status_label(status: string): string {
+export function get_grace_days_remaining(expires_at: string): number {
+  const diff = new Date(expires_at).getTime() - Date.now();
+
+  return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+}
+
+export function get_status_label(
+  status: string,
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+): string {
   switch (status) {
     case "active":
-      return en.settings.status_active;
+      return t("settings.status_active");
     case "pending":
-      return en.settings.status_pending;
+      return t("settings.status_pending");
     case "verifying":
-      return en.settings.status_verifying;
+      return t("settings.status_verifying");
     case "dns_pending":
-      return en.settings.status_dns_pending;
+      return t("settings.status_dns_pending");
     case "suspended":
-      return en.settings.status_suspended;
+      return t("settings.status_suspended");
     case "failed":
-      return en.settings.status_failed;
+      return t("settings.status_failed");
     default:
       return status;
   }

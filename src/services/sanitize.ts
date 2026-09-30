@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+
 export const MAX_PASSWORD_LENGTH = 128;
 
 export function clamp_password(password: string): string {
@@ -37,33 +39,44 @@ export function sanitize_username_input(input: string): string {
   return sanitize_username(input);
 }
 
+export const MAX_DISPLAY_NAME_LENGTH = 100;
+
 export function sanitize_display_name(input: string): string {
   return input
-    .replace(/[<>&"']/g, "")
+    .replace(/[<>\u0000-\u001f\u007f]/g, "")
     .trim()
-    .slice(0, 64);
+    .slice(0, MAX_DISPLAY_NAME_LENGTH);
 }
+
+export type PasswordRule = "length" | "uppercase" | "lowercase" | "number";
+
+export const PASSWORD_RULE_MESSAGE_KEYS = {
+  length: "auth.password_error_length",
+  uppercase: "auth.password_error_uppercase",
+  lowercase: "auth.password_error_lowercase",
+  number: "auth.password_error_number",
+} as const satisfies Record<PasswordRule, TranslationKey>;
 
 export function validate_password_strength(password: string): {
   valid: boolean;
-  errors: string[];
+  errors: PasswordRule[];
 } {
-  const errors: string[] = [];
+  const errors: PasswordRule[] = [];
 
   if (password.length < 8) {
-    errors.push("Password must be at least 8 characters");
+    errors.push("length");
   }
 
   if (!/[A-Z]/.test(password)) {
-    errors.push("Password must contain an uppercase letter");
+    errors.push("uppercase");
   }
 
   if (!/[a-z]/.test(password)) {
-    errors.push("Password must contain a lowercase letter");
+    errors.push("lowercase");
   }
 
   if (!/[0-9]/.test(password)) {
-    errors.push("Password must contain a number");
+    errors.push("number");
   }
 
   return { valid: errors.length === 0, errors };

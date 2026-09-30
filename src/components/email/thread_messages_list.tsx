@@ -34,12 +34,14 @@ import {
   useImperativeHandle,
   forwardRef,
 } from "react";
-
-import { ChevronUpDownIcon } from "@heroicons/react/24/outline";
+import { Fragment } from "react";
+import { ChevronDownIcon } from "@heroicons/react/20/solid";
+import { Island, IslandDivider } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
+import { get_read_intent } from "@/services/read_intent";
 import {
   emit_mail_item_updated,
   emit_mail_soft_refresh,
@@ -49,17 +51,58 @@ import {
 import { get_cached_folders } from "@/hooks/use_folders";
 import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
 import { show_action_toast } from "@/components/toast/action_toast";
-import { adjust_stats_starred } from "@/hooks/use_mail_stats";
+import {
+  adjust_stats_starred,
+  adjust_stats_unread,
+} from "@/hooks/use_mail_stats";
+import { read_clears_conversation } from "@/hooks/unread_read_delta";
+import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { ThreadMessageBlock } from "@/components/email/thread_message_block";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
+import { resolve_reply_references } from "@/lib/reply_references";
+import {
+  begin_read_change,
+  is_read_ticket_current,
+} from "@/services/read_intent";
+
+const LOCAL_FLAG_OVERRIDE_TTL_MS = 30_000;
+
+type LocalFlagOverrides = Map<string, { value: boolean; at: number }>;
+
+function note_local_flag(
+  overrides: LocalFlagOverrides,
+  id: string,
+  value: boolean,
+): void {
+  overrides.set(id, { value, at: Date.now() });
+}
+
+function resolve_local_flag(
+  overrides: LocalFlagOverrides,
+  id: string,
+): boolean | undefined {
+  const entry = overrides.get(id);
+
+  if (!entry) return undefined;
+
+  if (Date.now() - entry.at > LOCAL_FLAG_OVERRIDE_TTL_MS) {
+    overrides.delete(id);
+
+    return undefined;
+  }
+
+  return entry.value;
+}
 
 interface ThreadMessagesListProps {
   messages: DecryptedThreadMessage[];
   current_user_email: string;
   default_expanded_id?: string | null;
   subject: string;
-  on_toggle_message_read?: (message_id: string) => void;
+  on_toggle_message_read?: (message_id: string, next_read: boolean) => void;
   on_mark_all_read?: () => void;
+  main_email_id?: string;
+  thread_token?: string | null;
   on_reply?: (message: DecryptedThreadMessage) => void;
   on_reply_all?: (message: DecryptedThreadMessage) => void;
   on_forward?: (message: DecryptedThreadMessage) => void;
@@ -100,6 +143,7 @@ interface ThreadMessagesListProps {
   unsubscribe_url?: string;
   loaded_content_types?: Set<string>;
   on_load_external_content?: (types?: string[]) => void;
+  footer?: React.ReactNode;
 }
 
 export interface ThreadMessagesListRef {
@@ -124,6 +168,8 @@ export const ThreadMessagesList = forwardRef<
     subject: _subject,
     on_toggle_message_read,
     on_mark_all_read,
+    main_email_id,
+    thread_token,
     on_reply,
     on_reply_all,
     on_forward,
@@ -155,15 +201,13 @@ export const ThreadMessagesList = forwardRef<
     unsubscribe_url,
     loaded_content_types,
     on_load_external_content,
+    footer,
   },
   ref,
 ): React.ReactElement {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
-  const regular_messages = useMemo(
-    () => messages,
-    [messages],
-  );
+  const regular_messages = useMemo(() => messages, [messages]);
 
   const display_messages = useMemo(
     () =>
@@ -172,7 +216,6 @@ export const ThreadMessagesList = forwardRef<
         : regular_messages,
     [regular_messages, preferences.conversation_order],
   );
-
 
   const [dark_mode_overrides, set_dark_mode_overrides] = useState<
     Map<string, boolean>
@@ -264,10 +307,12 @@ export const ThreadMessagesList = forwardRef<
         action_type: "folder",
         email_ids: [msg.id],
         on_undo: async () => {
-          if (was_applied) {
-            await bulk_add_folder([msg.id], folder_token);
-          } else {
-            await bulk_remove_folder([msg.id], folder_token);
+          const undo_result = was_applied
+            ? await bulk_add_folder([msg.id], folder_token)
+            : await bulk_remove_folder([msg.id], folder_token);
+
+          if (undo_result.error) {
+            throw new Error("undo folder failed");
           }
 
           set_applied_folders((prev) => {
@@ -335,6 +380,8 @@ export const ThreadMessagesList = forwardRef<
   });
 
   const read_ids_ref = useRef<Set<string>>(read_ids);
+  const local_read_overrides = useRef<LocalFlagOverrides>(new Map());
+  const local_star_overrides = useRef<LocalFlagOverrides>(new Map());
   const auto_read_ids = useRef<Set<string>>(new Set());
   const pending_read_updates = useRef<
     Map<string, ReturnType<typeof setTimeout>>
@@ -355,7 +402,11 @@ export const ThreadMessagesList = forwardRef<
     const new_starred = new Set<string>();
 
     messages.forEach((msg) => {
-      if (msg.is_starred) {
+      const starred =
+        resolve_local_flag(local_star_overrides.current, msg.id) ??
+        msg.is_starred;
+
+      if (starred) {
         new_starred.add(msg.id);
       }
     });
@@ -366,7 +417,10 @@ export const ThreadMessagesList = forwardRef<
     const new_read = new Set<string>();
 
     messages.forEach((msg) => {
-      if (msg.is_read) {
+      const read =
+        resolve_local_flag(local_read_overrides.current, msg.id) ?? msg.is_read;
+
+      if (read) {
         new_read.add(msg.id);
       }
     });
@@ -417,9 +471,10 @@ export const ThreadMessagesList = forwardRef<
   }, [message_ids_key, regular_messages]);
 
   const mark_as_read = useCallback(
-    (msg: DecryptedThreadMessage) => {
+    (msg: DecryptedThreadMessage, pending_ids?: Set<string>) => {
       if (read_ids.has(msg.id)) return;
 
+      note_local_flag(local_read_overrides.current, msg.id, true);
       set_read_ids((prev) => {
         const next = new Set(prev);
 
@@ -427,6 +482,36 @@ export const ThreadMessagesList = forwardRef<
 
         return next;
       });
+
+      const is_received = msg.item_type === "received";
+      const sibling_unread = regular_messages.some(
+        (m) =>
+          m.id !== msg.id &&
+          m.item_type === "received" &&
+          !m.is_read &&
+          !read_ids.has(m.id) &&
+          !pending_ids?.has(m.id),
+      );
+      const conversation_options = {
+        thread_token,
+        thread_message_count,
+        conversation_grouping: preferences.conversation_grouping,
+        acted_id: msg.id,
+        sibling_unread,
+      };
+      const owned = get_read_intent(msg.id) !== true;
+      const clears_conversation =
+        owned && is_received && read_clears_conversation(conversation_options);
+
+      if (owned) {
+        emit_mail_item_updated({ id: msg.id, is_read: true });
+      }
+
+      if (clears_conversation) {
+        adjust_stats_unread(-1);
+      }
+
+      const read_ticket = begin_read_change([msg.id]);
 
       update_item_metadata(
         msg.id,
@@ -436,7 +521,9 @@ export const ThreadMessagesList = forwardRef<
         },
         { is_read: true },
       ).then((result) => {
+        if (!is_read_ticket_current(msg.id, read_ticket)) return;
         if (!result.success) {
+          local_read_overrides.current.delete(msg.id);
           set_read_ids((prev) => {
             const next = new Set(prev);
 
@@ -444,24 +531,44 @@ export const ThreadMessagesList = forwardRef<
 
             return next;
           });
+          if (owned) {
+            emit_mail_item_updated({ id: msg.id, is_read: false });
+          }
+          if (clears_conversation) {
+            adjust_stats_unread(1);
+          }
         } else {
+          if (!owned) return;
           emit_mail_item_updated({
             id: msg.id,
             is_read: true,
             encrypted_metadata: result.encrypted?.encrypted_metadata,
             metadata_nonce: result.encrypted?.metadata_nonce,
           });
+          if (is_received) {
+            mark_conversation_read(conversation_options);
+          }
         }
       });
     },
-    [read_ids, starred_ids],
+    [
+      read_ids,
+      starred_ids,
+      regular_messages,
+      thread_token,
+      thread_message_count,
+      preferences.conversation_grouping,
+    ],
   );
 
   useEffect(() => {
+    if (preferences.mark_as_read_delay === "never") return;
+
     regular_messages.forEach((msg) => {
       const is_unread = !msg.is_read && !read_ids.has(msg.id);
 
       if (
+        msg.id !== main_email_id &&
         expanded_ids.has(msg.id) &&
         is_unread &&
         !auto_read_ids.current.has(msg.id)
@@ -497,7 +604,9 @@ export const ThreadMessagesList = forwardRef<
 
   const toggle = useCallback(
     (msg: DecryptedThreadMessage) => {
-      const is_last = regular_messages.length > 0 && msg.id === regular_messages[regular_messages.length - 1].id;
+      const is_last =
+        regular_messages.length > 0 &&
+        msg.id === regular_messages[regular_messages.length - 1].id;
 
       if (is_last && expanded_ids.has(msg.id)) return;
 
@@ -528,6 +637,7 @@ export const ThreadMessagesList = forwardRef<
     (msg: DecryptedThreadMessage) => {
       const new_starred = !starred_ids.has(msg.id);
 
+      note_local_flag(local_star_overrides.current, msg.id, new_starred);
       set_starred_ids((prev) => {
         const next = new Set(prev);
 
@@ -551,6 +661,7 @@ export const ThreadMessagesList = forwardRef<
         { is_starred: new_starred },
       ).then((result) => {
         if (!result.success) {
+          local_star_overrides.current.delete(msg.id);
           set_starred_ids((prev) => {
             const next = new Set(prev);
 
@@ -587,6 +698,7 @@ export const ThreadMessagesList = forwardRef<
         auto_read_ids.current.delete(msg.id);
       }
 
+      note_local_flag(local_read_overrides.current, msg.id, new_read);
       set_read_ids((prev) => {
         const next = new Set(prev);
 
@@ -599,16 +711,22 @@ export const ThreadMessagesList = forwardRef<
         return next;
       });
 
+      if (on_toggle_message_read) {
+        on_toggle_message_read(msg.id, new_read);
+
+        return;
+      }
+
       const existing_timeout = pending_read_updates.current.get(msg.id);
 
       if (existing_timeout) {
         clearTimeout(existing_timeout);
       }
 
+      const final_read_state = new_read;
       const timeout = setTimeout(() => {
         pending_read_updates.current.delete(msg.id);
-
-        const final_read_state = read_ids_ref.current.has(msg.id);
+        const read_ticket = begin_read_change([msg.id]);
 
         update_item_metadata(
           msg.id,
@@ -618,7 +736,9 @@ export const ThreadMessagesList = forwardRef<
           },
           { is_read: final_read_state },
         ).then((result) => {
+          if (!is_read_ticket_current(msg.id, read_ticket)) return;
           if (!result.success) {
+            local_read_overrides.current.delete(msg.id);
             set_read_ids((prev) => {
               const next = new Set(prev);
 
@@ -642,8 +762,6 @@ export const ThreadMessagesList = forwardRef<
       }, 300);
 
       pending_read_updates.current.set(msg.id, timeout);
-
-      on_toggle_message_read?.(msg.id);
     },
     [starred_ids, on_toggle_message_read],
   );
@@ -654,7 +772,9 @@ export const ThreadMessagesList = forwardRef<
 
   const collapse_all = useCallback(() => {
     if (regular_messages.length > 0) {
-      set_expanded_ids(new Set([regular_messages[regular_messages.length - 1].id]));
+      set_expanded_ids(
+        new Set([regular_messages[regular_messages.length - 1].id]),
+      );
     } else {
       set_expanded_ids(new Set());
     }
@@ -663,7 +783,9 @@ export const ThreadMessagesList = forwardRef<
   const first_unread_ref = useRef<HTMLDivElement>(null);
 
   const scroll_target_id = useMemo(() => {
-    const unread = regular_messages.find((m) => !m.is_read && !read_ids.has(m.id));
+    const unread = regular_messages.find(
+      (m) => !m.is_read && !read_ids.has(m.id),
+    );
 
     if (unread) return unread.id;
 
@@ -714,6 +836,7 @@ export const ThreadMessagesList = forwardRef<
   const send_anchor_ref = useRef<HTMLDivElement>(null);
   const last_sending_id = useMemo(() => {
     const last = regular_messages[regular_messages.length - 1];
+
     return last?.is_sending ? last.id : null;
   }, [regular_messages]);
 
@@ -722,6 +845,7 @@ export const ThreadMessagesList = forwardRef<
 
     requestAnimationFrame(() => {
       const el = send_anchor_ref.current;
+
       if (!el) return;
 
       let container: HTMLElement | null = el.parentElement;
@@ -751,15 +875,18 @@ export const ThreadMessagesList = forwardRef<
 
     if (unread_messages.length === 0) return;
 
+    const pending_ids = new Set(unread_messages.map((m) => m.id));
+
     unread_messages.forEach((msg) => {
-      mark_as_read(msg);
+      mark_as_read(msg, pending_ids);
     });
 
     on_mark_all_read?.();
   }, [regular_messages, read_ids, mark_as_read, on_mark_all_read]);
 
   const unread_count = useMemo(() => {
-    return regular_messages.filter((m) => !m.is_read && !read_ids.has(m.id)).length;
+    return regular_messages.filter((m) => !m.is_read && !read_ids.has(m.id))
+      .length;
   }, [regular_messages, read_ids]);
 
   const all_expanded = useMemo(() => {
@@ -784,7 +911,6 @@ export const ThreadMessagesList = forwardRef<
       new Map(regular_messages.map((m) => [m.id, next_value])),
     );
   }, [all_dark_mode, regular_messages]);
-
 
   useImperativeHandle(
     ref,
@@ -820,8 +946,19 @@ export const ThreadMessagesList = forwardRef<
 
   const visible_tail_count = 2;
 
+  const inline_reply_references = useMemo(
+    () =>
+      inline_reply_msg
+        ? resolve_reply_references(inline_reply_msg, regular_messages)
+        : undefined,
+    [inline_reply_msg, regular_messages],
+  );
+
   const hidden_count = useMemo(() => {
-    if (hidden_group_revealed || display_messages.length <= visible_tail_count + 2) {
+    if (
+      hidden_group_revealed ||
+      display_messages.length <= visible_tail_count + 2
+    ) {
       return 0;
     }
 
@@ -840,112 +977,128 @@ export const ThreadMessagesList = forwardRef<
     return ids;
   }, [display_messages, hidden_count]);
 
-  const render_message = (
-    msg: DecryptedThreadMessage,
-    display_idx: number,
-    extra_props?: { hide_bottom_border?: boolean },
-  ) => {
-    const is_last = msg.id === regular_messages[regular_messages.length - 1]?.id;
+  const render_message = (msg: DecryptedThreadMessage, display_idx: number) => {
+    const is_last =
+      msg.id === regular_messages[regular_messages.length - 1]?.id;
 
     return (
-    <div
-      key={msg.id}
-      ref={msg.id === scroll_target_id ? first_unread_ref : undefined}
-    >
       <ThreadMessageBlock
-        external_content_mode={external_content_mode}
-        loaded_content_types={loaded_content_types}
-        hide_bottom_border={extra_props?.hide_bottom_border}
-        on_load_external_content={on_load_external_content}
-        on_unsubscribe={is_last ? on_unsubscribe : undefined}
-        on_manual_unsubscribed={is_last ? on_manual_unsubscribed : undefined}
-        unsubscribe_url={is_last ? unsubscribe_url : undefined}
-        force_dark_mode={is_dark_mode_message(msg.id)}
+        key={msg.id}
         disable_auto_dark_mode={is_dark_mode_opted_out(msg.id)}
+        existing_draft={existing_draft}
+        external_content_mode={external_content_mode}
+        folders={folder_options}
+        force_dark_mode={is_dark_mode_message(msg.id)}
         inline_mode={inline_mode}
         inline_reply_is_external={inline_reply_is_external}
+        inline_reply_references={
+          inline_reply_msg?.id === msg.id ? inline_reply_references : undefined
+        }
         inline_reply_thread_token={inline_reply_thread_token}
         is_expanded={expanded_ids.has(msg.id)}
-        is_single_message={regular_messages.length === 1}
         is_last_in_thread={
-          regular_messages.length > 1 && msg.id === regular_messages[regular_messages.length - 1].id
+          regular_messages.length > 1 &&
+          msg.id === regular_messages[regular_messages.length - 1].id
         }
-        is_own_message={
-          same_address_ignoring_dots(msg.sender_email, current_user_email)
-        }
+        is_own_message={same_address_ignoring_dots(
+          msg.sender_email,
+          current_user_email,
+        )}
         is_read={read_ids.has(msg.id)}
         is_reply={
           preferences.conversation_order === "desc"
             ? display_idx < display_messages.length - 1
             : display_idx > 0
         }
+        is_single_message={regular_messages.length === 1}
         is_starred={starred_ids.has(msg.id)}
+        island_ref={msg.id === scroll_target_id ? first_unread_ref : undefined}
+        loaded_content_types={loaded_content_types}
         message={msg}
-        folders={folder_options}
         message_folder_tokens={applied_folders.get(msg.id)}
-        on_move_to_folder={handle_move_to_folder}
         on_archive={on_archive}
+        on_block_sender={on_block_sender}
         on_close_inline_reply={on_close_inline_reply}
+        on_draft_saved={on_draft_saved}
         on_external_content_detected={on_external_content_detected}
         on_forward={on_forward}
+        on_load_external_content={on_load_external_content}
+        on_manual_unsubscribed={is_last ? on_manual_unsubscribed : undefined}
+        on_move_to_folder={handle_move_to_folder}
         on_not_spam={on_not_spam}
         on_print={on_print}
         on_reply={on_reply}
         on_reply_all={on_reply_all}
         on_report_phishing={on_report_phishing}
-        on_block_sender={on_block_sender}
         on_set_inline_mode={on_set_inline_mode}
         on_star_toggle={() => toggle_star(msg)}
         on_toggle={() => toggle(msg)}
         on_toggle_dark_mode={() => toggle_dark_mode(msg.id)}
         on_toggle_read={() => toggle_read(msg)}
         on_trash={on_trash}
-        on_draft_saved={on_draft_saved}
+        on_unsubscribe={is_last ? on_unsubscribe : undefined}
         on_view_source={on_view_source}
-        existing_draft={existing_draft}
         preloaded_sanitized={preloaded_sanitized?.get(msg.id)}
         show_inline_reply={inline_reply_msg?.id === msg.id}
         size_bytes={size_bytes}
+        unsubscribe_url={is_last ? unsubscribe_url : undefined}
       />
-    </div>
     );
   };
 
-  return (
-    <div className={`flex flex-col ${regular_messages.length > 1 ? "gap-0" : "gap-2"}`}>
-      {(thread_message_count ?? regular_messages.length) > 1 && !hide_counter && (
-        <div className="flex items-center justify-end px-1">
-          <span className="text-[11px] text-txt-muted">
-            {thread_message_count ?? regular_messages.length} {t("mail.messages_label")}
-          </span>
-        </div>
-      )}
-      {display_messages.map((msg, idx) => {
-        if (hidden_ids?.has(msg.id)) {
-          if (idx === 1) {
-            return (
-              <div key="hidden-group" className="group/collapse relative h-[36px] -mt-px">
-                <div className="absolute left-0 right-0 top-1/2 border-t border-[var(--border-thread-divider)]" />
-                <button
-                  className="absolute left-0 right-0 top-0 h-full flex items-center px-[18px] cursor-pointer select-none z-10 hover:bg-surf-hover/10 transition-colors"
-                  onClick={() => set_hidden_group_revealed(true)}
-                >
-                  <span className="flex items-center justify-center w-[40px] h-[40px] rounded-full border border-[var(--border-thread-divider)] bg-[var(--bg-primary)] text-[15px] font-semibold text-txt-muted transition-colors">
-                    <span className="group-hover/collapse:hidden">{hidden_count}</span>
-                    <ChevronUpDownIcon className="w-5 h-5 hidden group-hover/collapse:block text-txt-muted" />
-                  </span>
-                </button>
-              </div>
-            );
-          }
+  const rows: { key: string; node: React.ReactNode }[] = [];
 
-          return null;
-        }
-
-        return render_message(msg, idx, {
-          hide_bottom_border: idx === 0 && !!hidden_ids,
+  display_messages.forEach((msg, idx) => {
+    if (hidden_ids?.has(msg.id)) {
+      if (idx === 1) {
+        rows.push({
+          key: "hidden_group",
+          node: (
+            <button
+              aria-expanded={false}
+              aria-label={t("mail.more_messages_count", {
+                count: hidden_count,
+              })}
+              className="flex w-full cursor-pointer select-none items-center gap-1.5 px-4 py-3 text-[13px] font-medium text-txt-secondary transition-colors hover:bg-[var(--aster-island-hover)] hover:text-txt-primary focus:outline-none focus-visible:bg-[var(--aster-island-hover)]"
+              type="button"
+              onClick={() => set_hidden_group_revealed(true)}
+            >
+              {t("mail.more_messages_count", { count: hidden_count })}
+              <ChevronDownIcon className="h-4 w-4" />
+            </button>
+          ),
         });
-      })}
+      }
+
+      return;
+    }
+
+    rows.push({ key: msg.id, node: render_message(msg, idx) });
+  });
+
+  if (footer) {
+    rows.push({ key: "footer", node: footer });
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {(thread_message_count ?? regular_messages.length) > 1 &&
+        !hide_counter && (
+          <div className="flex items-center justify-end px-1">
+            <span className="text-[11px] text-txt-muted">
+              {thread_message_count ?? regular_messages.length}{" "}
+              {t("mail.messages_label")}
+            </span>
+          </div>
+        )}
+      <Island className="overflow-hidden">
+        {rows.map((row, idx) => (
+          <Fragment key={row.key}>
+            {idx > 0 && <IslandDivider />}
+            {row.node}
+          </Fragment>
+        ))}
+      </Island>
       <div ref={send_anchor_ref} />
     </div>
   );

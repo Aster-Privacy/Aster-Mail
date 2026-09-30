@@ -32,16 +32,17 @@ import {
 import { Button } from "@aster/ui";
 import { Switch } from "@aster/ui";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_i18n } from "@/lib/i18n/context";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { DomainHealthPanel } from "@/components/settings/domains/domain_health_panel";
-import { ignore_error } from "@/lib/ignore_error";
-
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import {
   get_dns_records,
+  get_grace_days_remaining,
   get_status_color,
   get_status_label,
   type CustomDomain,
@@ -57,10 +58,10 @@ function DnsRecordItem({ record }: DnsRecordItemProps) {
   const { t } = use_i18n();
   const copy_value = async () => {
     try {
-      await navigator.clipboard.writeText(record.value);
+      await copy_text_or_throw(record.value);
       show_toast(t("settings.copied_to_clipboard"), "success");
-    } catch (caught) {
-      ignore_error("components/settings/domains/domain_card:copy_value", caught);
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   };
 
@@ -142,21 +143,21 @@ export function DomainCard({
   const [dns_records, set_dns_records] = useState<DnsRecord[]>([]);
   const [loading_records, set_loading_records] = useState(false);
   const [showing_all_records, set_showing_all_records] = useState(false);
+  const [records_failed, set_records_failed] = useState(false);
   const load_dns_records = async () => {
     if (dns_records.length > 0) return;
 
     set_loading_records(true);
-    try {
-      const response = await get_dns_records(domain.id);
+    set_records_failed(false);
 
-      if (response.data) {
-        set_dns_records((response.data as DnsRecordsResponse).records);
-      }
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-    } finally {
-      set_loading_records(false);
+    const response = await get_dns_records(domain.id);
+
+    if (response.data) {
+      set_dns_records((response.data as DnsRecordsResponse).records);
+    } else {
+      set_records_failed(true);
     }
+    set_loading_records(false);
   };
 
   const handle_expand = () => {
@@ -185,6 +186,8 @@ export function DomainCard({
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <Button
+            aria-expanded={expanded}
+            aria-label={domain.domain_name}
             className="h-6 w-6 flex-shrink-0"
             size="icon"
             variant="ghost"
@@ -193,7 +196,7 @@ export function DomainCard({
             {expanded ? (
               <ChevronDownIcon className="w-4 h-4 text-txt-muted" />
             ) : (
-              <ChevronRightIcon className="w-4 h-4 text-txt-muted" />
+              <ChevronRightIcon className="w-4 h-4 text-txt-muted rtl:-scale-x-100" />
             )}
           </Button>
 
@@ -207,14 +210,33 @@ export function DomainCard({
               <span
                 className={`text-xs px-2 py-0.5 rounded-full ${get_status_color(domain.status)}`}
               >
-                {get_status_label(domain.status)}
+                {get_status_label(domain.status, t)}
               </span>
               {domain.status !== "active" && (
                 <span className="text-xs text-txt-muted">
                   {t("settings.verified_count", { count: verification_count })}
                 </span>
               )}
+              {domain.downgrade_grace_expires_at && (
+                <span
+                  className="inline-flex items-center gap-1 text-[12px] font-semibold"
+                  style={{ color: "var(--color-warning)" }}
+                >
+                  {t("settings.domain_grace_days", {
+                    days: String(
+                      get_grace_days_remaining(
+                        domain.downgrade_grace_expires_at,
+                      ),
+                    ),
+                  })}
+                </span>
+              )}
             </div>
+            {domain.downgrade_grace_expires_at && (
+              <p className="text-xs mt-0.5 text-amber-600 dark:text-amber-400">
+                {t("settings.domain_grace_upgrade_hint")}
+              </p>
+            )}
           </div>
         </div>
 
@@ -232,16 +254,14 @@ export function DomainCard({
               variant="ghost"
               onClick={() => on_verify(domain.id)}
             >
-              {verifying ? (
-                <Spinner size="xs" />
-              ) : (
-                <ArrowPathIcon className="w-3.5 h-3.5" />
-              )}
+              <ArrowPathIcon className="w-3.5 h-3.5" />
+              {verifying && <ButtonSpinner size="xs" />}
               {t("common.verify")}
             </Button>
           )}
 
           <Button
+            aria-label={t("common.delete")}
             className="text-red-500 hover:text-red-500 hover:bg-red-500/10"
             disabled={deleting}
             size="icon"
@@ -273,7 +293,7 @@ export function DomainCard({
               </div>
             ) : (
               <div className="flex items-center justify-between py-4">
-                <div className="flex-1 pr-4">
+                <div className="flex-1 pe-4">
                   <p className="text-sm font-medium text-txt-primary">
                     {t("settings.catch_all_label")}
                   </p>
@@ -281,8 +301,10 @@ export function DomainCard({
                     {t("settings.catch_all_description")}
                   </p>
                 </div>
-                <Switch size="lg"
+                <Switch
+                  aria-label={t("settings.catch_all_label")}
                   checked={domain.catch_all_enabled}
+                  size="lg"
                   onCheckedChange={handle_catch_all_toggle}
                 />
               </div>
@@ -297,6 +319,8 @@ export function DomainCard({
 
           {loading_records ? (
             <div />
+          ) : records_failed ? (
+            <LoadFailedNotice on_retry={() => void load_dns_records()} />
           ) : dns_records.length > 0 ? (
             <div>
               <button
@@ -307,7 +331,7 @@ export function DomainCard({
                 {showing_all_records ? (
                   <ChevronDownIcon className="w-3.5 h-3.5" />
                 ) : (
-                  <ChevronRightIcon className="w-3.5 h-3.5" />
+                  <ChevronRightIcon className="w-3.5 h-3.5 rtl:-scale-x-100" />
                 )}
                 {t("settings.dns_records_for_domain")}
               </button>

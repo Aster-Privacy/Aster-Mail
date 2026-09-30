@@ -50,6 +50,8 @@ vi.mock("@/contexts/preferences_context", () => ({
 
 import { SidebarFolders } from "./sidebar_folders";
 
+import { clear_expanded_folders } from "@/services/expanded_folders_store";
+
 function folder(
   token: string,
   name: string,
@@ -107,7 +109,7 @@ function render_sidebar_folders(
 function expand(folder_name: string) {
   const chevron = Array.from(
     document.querySelectorAll("span[role='button']"),
-  ).find((el) => el.getAttribute("aria-label") === folder_name);
+  ).find((el) => el.closest("button")?.textContent?.includes(folder_name));
 
   if (!chevron) throw new Error(`chevron not found for ${folder_name}`);
   act(() => {
@@ -120,6 +122,7 @@ describe("sidebar folder tree guides", () => {
     act(() => {
       root?.unmount();
     });
+    clear_expanded_folders("");
     container?.remove();
     root = null;
     container = null;
@@ -196,7 +199,7 @@ describe("sidebar folder tree guides", () => {
 
     expect(selected).not.toBeNull();
     expect(selected!.querySelector("[data-tree-guide]")).toBeNull();
-    expect((selected as HTMLElement).style.marginLeft).toBe("20px");
+    expect((selected as HTMLElement).style.marginInlineStart).toBe("20px");
   });
 
   it("draws no continuation below the only child", () => {

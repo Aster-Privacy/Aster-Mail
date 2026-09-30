@@ -63,11 +63,13 @@ vi.mock("@/services/account_manager", () => ({
 
 async function fresh_store() {
   vi.resetModules();
+
   return import("./pq_prekey_store");
 }
 
 async function fresh_prekey_service() {
   vi.resetModules();
+
   return import("./prekey_service");
 }
 
@@ -122,9 +124,9 @@ describe("pq upload circuit breaker (POST-storm fix)", () => {
       error: "rate limited",
     });
 
-    await expect(
-      mod.save_pq_secret(2001, new Uint8Array(32)),
-    ).rejects.toThrow("pq_upload_rate_limited");
+    await expect(mod.save_pq_secret(2001, new Uint8Array(32))).rejects.toThrow(
+      "pq_upload_rate_limited",
+    );
 
     expect(post_mock).toHaveBeenCalledTimes(1);
     expect(mod.is_pq_upload_rate_limited()).toBe(true);

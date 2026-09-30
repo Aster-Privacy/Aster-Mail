@@ -20,12 +20,20 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
-import { AnimatePresence, } from "framer-motion";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { AnimatePresence } from "framer-motion";
 
+import { AttachmentCard } from "./card";
+import { AttachmentCardSkeleton } from "./icons";
+import { ImagePreviewModal } from "./preview_modal";
+import {
+  AttachmentListProps,
+  DecryptedAttachmentInfo,
+  PREVIEW_READY_TIMEOUT_MS,
+  build_cards_from_cached_meta,
+} from "./types";
 
 import { use_preferences } from "@/contexts/preferences_context";
-
 import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
@@ -42,9 +50,7 @@ import {
   download_decrypted_attachment,
   AttachmentKeyUnavailableError,
 } from "@/services/crypto/attachment_crypto";
-import {
-  get_cached_attachment_meta,
-} from "@/services/attachment_meta_cache";
+import { get_cached_attachment_meta } from "@/services/attachment_meta_cache";
 import {
   fetch_attachment_bytes,
   get_cached_preview_url,
@@ -53,15 +59,12 @@ import {
 import {
   is_previewable_image,
   is_previewable_pdf,
+  build_previewable_image_blob,
 } from "@/lib/attachment_utils";
 import { PdfPreviewModal } from "@/components/email/pdf_preview_modal";
-
-import { AttachmentCard } from "./card";
-import { AttachmentCardSkeleton } from "./icons";
-import { ImagePreviewModal } from "./preview_modal";
-import { AttachmentListProps, DecryptedAttachmentInfo, PREVIEW_READY_TIMEOUT_MS, build_cards_from_cached_meta, is_inline_attachment } from "./types";
-
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { ignore_error } from "@/lib/ignore_error";
+import { format_bytes } from "@/lib/utils";
 
 function attachment_error_key(error: unknown): TranslationKey {
   return error instanceof AttachmentKeyUnavailableError
@@ -73,8 +76,6 @@ export function AttachmentList({
   mail_item_id,
   is_external = false,
   has_recipient_key = false,
-  inline_cids,
-  inline_filenames,
   is_local = false,
   hint_attachment_count = 0,
 }: AttachmentListProps): React.ReactElement | null {
@@ -90,7 +91,6 @@ export function AttachmentList({
       return cached
         ? build_cards_from_cached_meta(
             cached,
-            { inline_cids, inline_filenames },
             t("common.encrypted_attachment"),
           )
         : [];
@@ -113,25 +113,15 @@ export function AttachmentList({
   const [preparing, set_preparing] = useState(
     () => !preferences.low_network_mode && !is_local,
   );
+  const [load_failed, set_load_failed] = useState(false);
+  const [reload_token, set_reload_token] = useState(0);
+  const [locked_pdf_ids, set_locked_pdf_ids] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
   const bytes_fetch_ref = useRef<Promise<
     Map<string, { encrypted_data: string; data_nonce: string }>
   > | null>(null);
   const pdf_attempted_ref = useRef<Set<string>>(new Set());
-  const inline_cids_ref = useRef(inline_cids);
-  const inline_filenames_ref = useRef(inline_filenames);
-
-  inline_cids_ref.current = inline_cids;
-  inline_filenames_ref.current = inline_filenames;
-
-  const inline_key = useMemo(() => {
-    const cids = inline_cids ? Array.from(inline_cids).sort().join(",") : "";
-    const names = inline_filenames
-      ? Array.from(inline_filenames).sort().join(",")
-      : "";
-
-    return `${cids}|${names}`;
-  }, [inline_cids, inline_filenames]);
-
   const decrypt_image_previews = useCallback(
     async (
       infos: DecryptedAttachmentInfo[],
@@ -157,7 +147,7 @@ export function AttachmentList({
               info.mail_item_id,
               info.seq_num,
             );
-            const blob = new Blob([data], { type: info.content_type });
+            const blob = build_previewable_image_blob(data, info.content_type);
             const url = set_cached_preview_url(
               info.id,
               URL.createObjectURL(blob),
@@ -198,11 +188,13 @@ export function AttachmentList({
       if (pdf_atts.length === 0) return;
 
       let render_pdf_thumbnail: (typeof import("@/lib/pdf_utils"))["render_pdf_thumbnail"];
+      let is_pdf_password_error: (typeof import("@/lib/pdf_utils"))["is_pdf_password_error"];
 
       try {
         const pdf_mod = await import("@/lib/pdf_utils");
 
         render_pdf_thumbnail = pdf_mod.render_pdf_thumbnail;
+        is_pdf_password_error = pdf_mod.is_pdf_password_error;
       } catch {
         return;
       }
@@ -240,7 +232,12 @@ export function AttachmentList({
             .then((late_url) => {
               if (timed_out || is_cancelled()) URL.revokeObjectURL(late_url);
             })
-            .catch((caught) => ignore_error("components/email/attachment_list/list:AttachmentList", caught));
+            .catch((caught) =>
+              ignore_error(
+                "components/email/attachment_list/list:AttachmentList",
+                caught,
+              ),
+            );
 
           const raw_url = await Promise.race([
             thumbnail_promise,
@@ -258,8 +255,14 @@ export function AttachmentList({
           set_attachments((prev) =>
             prev.map((a) => (a.id === att.id ? { ...a, preview_url: url } : a)),
           );
-        } catch {
-          if (is_cancelled()) pdf_attempted_ref.current.delete(att.id);
+        } catch (caught) {
+          if (is_cancelled()) {
+            pdf_attempted_ref.current.delete(att.id);
+          } else if (is_pdf_password_error(caught)) {
+            set_locked_pdf_ids((prev) =>
+              prev.has(att.id) ? prev : new Set(prev).add(att.id),
+            );
+          }
         }
       }
     },
@@ -306,8 +309,9 @@ export function AttachmentList({
 
     let cancelled = false;
     const is_cancelled = () => cancelled;
-    const inline_cids = inline_cids_ref.current;
-    const inline_filenames = inline_filenames_ref.current;
+    const mark_load_failed = () => {
+      if (hint_attachment_count > 0) set_load_failed(true);
+    };
 
     bytes_fetch_ref.current = null;
     pdf_attempted_ref.current = new Set();
@@ -315,7 +319,12 @@ export function AttachmentList({
     async function build_info(
       att: Pick<
         AttachmentMetaItem,
-        "id" | "mail_item_id" | "seq_num" | "size_bytes" | "encrypted_meta" | "meta_nonce"
+        | "id"
+        | "mail_item_id"
+        | "seq_num"
+        | "size_bytes"
+        | "encrypted_meta"
+        | "meta_nonce"
       >,
       encrypted_data: string,
       data_nonce: string,
@@ -327,10 +336,6 @@ export function AttachmentList({
           att.mail_item_id,
           att.seq_num,
         );
-
-        if (is_inline_attachment(meta, { inline_cids, inline_filenames })) {
-          return null;
-        }
 
         return {
           id: att.id,
@@ -413,11 +418,13 @@ export function AttachmentList({
       }
 
       const cached_meta = get_cached_attachment_meta(mail_item_id);
+      const cached_meta_is_trustworthy =
+        cached_meta !== null &&
+        (cached_meta.length > 0 || hint_attachment_count === 0);
 
-      if (cached_meta) {
+      if (cached_meta && cached_meta_is_trustworthy) {
         const cards = build_cards_from_cached_meta(
           cached_meta,
-          { inline_cids, inline_filenames },
           t("common.encrypted_attachment"),
         );
 
@@ -451,7 +458,11 @@ export function AttachmentList({
 
       if (cancelled) return;
 
-      if (meta_items) {
+      const meta_items_are_trustworthy =
+        meta_items !== null &&
+        (meta_items.length > 0 || hint_attachment_count === 0);
+
+      if (meta_items && meta_items_are_trustworthy) {
         const cards: DecryptedAttachmentInfo[] = [];
 
         for (const item of meta_items) {
@@ -481,6 +492,9 @@ export function AttachmentList({
       try {
         response = await list_attachments(mail_item_id);
       } catch {
+        if (cancelled) return;
+
+        mark_load_failed();
         set_loading(false);
         set_preparing(false);
 
@@ -489,7 +503,15 @@ export function AttachmentList({
 
       if (cancelled) return;
 
-      if (!response.data || response.data.attachments.length === 0) {
+      if (!response.data) {
+        mark_load_failed();
+        set_loading(false);
+        set_preparing(false);
+
+        return;
+      }
+
+      if (response.data.attachments.length === 0) {
         set_loading(false);
         set_preparing(false);
 
@@ -512,6 +534,7 @@ export function AttachmentList({
       await prepare_previews(decrypted);
     }
 
+    set_load_failed(false);
     fetch_attachments();
 
     return () => {
@@ -519,10 +542,11 @@ export function AttachmentList({
     };
   }, [
     mail_item_id,
-    inline_key,
     t,
     preferences.low_network_mode,
     user_expanded,
+    hint_attachment_count,
+    reload_token,
     decrypt_image_previews,
     generate_pdf_thumbnails,
   ]);
@@ -608,7 +632,10 @@ export function AttachmentList({
               hydrated.mail_item_id,
               hydrated.seq_num,
             );
-            const blob = new Blob([data], { type: hydrated.content_type });
+            const blob = build_previewable_image_blob(
+              data,
+              hydrated.content_type,
+            );
             const url = set_cached_preview_url(
               att.id,
               URL.createObjectURL(blob),
@@ -744,8 +771,32 @@ export function AttachmentList({
     );
   }
 
+  const total_size_bytes = attachments.reduce(
+    (total, att) => total + Math.max(0, att.size_bytes || 0),
+    0,
+  );
+
   if (attachments.length === 0) {
-    return null;
+    if (!load_failed) return null;
+
+    return (
+      <div
+        className="border-t px-3 @md:px-4 py-3"
+        style={{
+          borderColor: "var(--thread-card-border)",
+          backgroundColor: "var(--thread-content-bg)",
+        }}
+      >
+        <LoadFailedNotice
+          on_retry={() => {
+            set_load_failed(false);
+            set_loading(true);
+            set_preparing(true);
+            set_reload_token((token) => token + 1);
+          }}
+        />
+      </div>
+    );
   }
 
   return (
@@ -775,6 +826,14 @@ export function AttachmentList({
           {attachments.length === 1
             ? t("mail.attachment_singular")
             : t("mail.attachments")}
+          {total_size_bytes > 0 && (
+            <>
+              <span className="text-txt-muted/40">·</span>
+              <span className="tabular-nums" data-testid="attachments_total_size">
+                {format_bytes(total_size_bytes)}
+              </span>
+            </>
+          )}
           <span className="text-txt-muted/40">·</span>
           <EncryptionInfoDropdown
             context="attachments"
@@ -795,6 +854,7 @@ export function AttachmentList({
               key={att.id}
               att={att}
               is_downloading={downloading === att.id}
+              is_password_protected={locked_pdf_ids.has(att.id)}
               on_click={() => handle_click(att)}
               on_download={(e) => handle_download(att, e)}
             />

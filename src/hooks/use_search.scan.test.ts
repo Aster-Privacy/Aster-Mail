@@ -312,6 +312,50 @@ describe("scan_search_index", () => {
     expect(seen).toEqual(["disk-a", "disk-b"]);
   });
 
+  it("reports an unreadable chunk so results can be flagged incomplete", async () => {
+    const meta = await write_chunks([["disk-a"]]);
+    const index = make_index([], meta, [...meta.chunk_ids, 99]);
+    const seen: string[] = [];
+    let unreadable = 0;
+
+    await scan_search_index(
+      index,
+      (item) => {
+        seen.push(item.id);
+
+        return true;
+      },
+      () => false,
+      {
+        on_unreadable_chunk: () => {
+          unreadable++;
+        },
+      },
+    );
+
+    expect(seen).toEqual(["disk-a"]);
+    expect(unreadable).toBe(1);
+  });
+
+  it("leaves the unreadable report untouched when every chunk loads", async () => {
+    const meta = await write_chunks([["disk-a"], ["disk-b"]]);
+    const index = make_index([], meta, meta.chunk_ids);
+    let unreadable = 0;
+
+    await scan_search_index(
+      index,
+      () => true,
+      () => false,
+      {
+        on_unreadable_chunk: () => {
+          unreadable++;
+        },
+      },
+    );
+
+    expect(unreadable).toBe(0);
+  });
+
   it("scans nothing from disk when the manifest belongs to another account", async () => {
     const meta = await write_chunks([["disk-a"]]);
     const index = make_index(["hot-1"], meta, meta.chunk_ids);

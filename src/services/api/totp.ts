@@ -187,6 +187,8 @@ export type TotpErrorKind =
   | "rate_limited"
   | "pending_expired"
   | "replayed"
+  | "invalid_code"
+  | "invalid_backup_code"
   | "other";
 
 export function classify_totp_error(response: {
@@ -194,9 +196,13 @@ export function classify_totp_error(response: {
   server_code?: string;
 }): TotpErrorKind {
   if (response.server_code === "ACCOUNT_LOCKED") return "locked";
-  if (response.server_code === "PENDING_LOGIN_EXPIRED") return "pending_expired";
+  if (response.server_code === "PENDING_LOGIN_EXPIRED")
+    return "pending_expired";
   if (response.server_code === "TOTP_CODE_REPLAYED") return "replayed";
   if (response.code === "RATE_LIMIT_EXCEEDED") return "rate_limited";
+  if (response.server_code === "INVALID_BACKUP_CODE")
+    return "invalid_backup_code";
+  if (response.server_code === "INVALID_TWO_FACTOR_CODE") return "invalid_code";
 
   return "other";
 }

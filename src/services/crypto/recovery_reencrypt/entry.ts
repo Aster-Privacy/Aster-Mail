@@ -18,24 +18,34 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "../key_manager";
+import type {} from "../key_manager";
 import { derive_encryption_key_from_passphrase } from "../memory_key_store";
 import { zero_uint8_array } from "../secure_memory";
-import type { } from "@/services/api/signatures";
-import type { } from "@/services/api/templates";
-import type { } from "@/services/api/blocked_senders";
-import type { } from "@/services/api/allowed_senders";
-import { array_to_base64, } from "../base64";
+import type {} from "@/services/api/signatures";
+import type {} from "@/services/api/templates";
+import type {} from "@/services/api/blocked_senders";
+import type {} from "@/services/api/allowed_senders";
+import { array_to_base64 } from "../base64";
 
-
-import { re_encrypt_contact_attachments, re_encrypt_contact_field_values, re_encrypt_contact_photos, re_encrypt_contact_sync_sources } from "./contacts";
+import {
+  re_encrypt_contact_attachments,
+  re_encrypt_contact_field_values,
+  re_encrypt_contact_photos,
+  re_encrypt_contact_sync_sources,
+} from "./contacts";
 import { re_encrypt_folders } from "./folders";
 import { import_aes_key } from "./key_helpers";
 import { re_encrypt_mail_metadata, re_encrypt_tags } from "./mail";
 import { store_pending_reencryption } from "./pending";
 import { re_encrypt_external_accounts } from "./preferences";
 import { re_encrypt_profile_notes } from "./profile_notes";
-import { re_encrypt_allowed_senders, re_encrypt_blocked_senders, re_encrypt_recent_recipients, re_encrypt_signatures, re_encrypt_templates } from "./settings";
+import {
+  re_encrypt_allowed_senders,
+  re_encrypt_blocked_senders,
+  re_encrypt_recent_recipients,
+  re_encrypt_signatures,
+  re_encrypt_templates,
+} from "./settings";
 export interface ReencryptResult {
   complete: boolean;
   retired_old_kek: Uint8Array | null;
@@ -124,4 +134,3 @@ export async function reencrypt_settings_password_change(
 
   return { complete, retired_old_kek };
 }
-

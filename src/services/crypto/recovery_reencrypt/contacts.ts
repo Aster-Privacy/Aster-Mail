@@ -19,15 +19,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { HASH_ALG } from "@/services/crypto/constants";
-import type { } from "../key_manager";
+import type {} from "../key_manager";
 import { api_client } from "@/services/api/client";
-import type { } from "@/services/api/signatures";
-import type { } from "@/services/api/templates";
-import type { } from "@/services/api/blocked_senders";
-import type { } from "@/services/api/allowed_senders";
+import type {} from "@/services/api/signatures";
+import type {} from "@/services/api/templates";
+import type {} from "@/services/api/blocked_senders";
+import type {} from "@/services/api/allowed_senders";
 import { list_contacts } from "@/services/api/contacts";
-import { array_to_base64, base64_to_array } from "../base64";
 
+import { array_to_base64, base64_to_array } from "../base64";
 
 import { re_encrypt_field } from "./key_helpers";
 export async function re_encrypt_contact_field_values(
@@ -68,6 +68,7 @@ export async function re_encrypt_contact_field_values(
               old_aes,
               new_aes,
             );
+
             await api_client.put(
               `/contacts/v1/${contact.id}/fields/${fv.field_definition_id}`,
               { encrypted_value: encrypted, value_nonce: nonce },
@@ -120,8 +121,18 @@ export async function re_encrypt_contact_photos(
 
         const photo = photo_resp.data;
         const [data_result, meta_result] = await Promise.all([
-          re_encrypt_field(photo.encrypted_data, photo.data_nonce, old_aes, new_aes),
-          re_encrypt_field(photo.encrypted_meta, photo.meta_nonce, old_aes, new_aes),
+          re_encrypt_field(
+            photo.encrypted_data,
+            photo.data_nonce,
+            old_aes,
+            new_aes,
+          ),
+          re_encrypt_field(
+            photo.encrypted_meta,
+            photo.meta_nonce,
+            old_aes,
+            new_aes,
+          ),
         ]);
 
         await api_client.delete(`/contacts/v1/${contact.id}/photo`);
@@ -179,7 +190,12 @@ export async function re_encrypt_contact_attachments(
           total: number;
         }>(`/contacts/v1/${contact.id}/attachments`);
 
-        if (list_resp.error || !list_resp.data || list_resp.data.items.length === 0) continue;
+        if (
+          list_resp.error ||
+          !list_resp.data ||
+          list_resp.data.items.length === 0
+        )
+          continue;
 
         for (const att_stub of list_resp.data.items) {
           try {
@@ -199,11 +215,23 @@ export async function re_encrypt_contact_attachments(
 
             const att = att_resp.data;
             const [data_result, meta_result] = await Promise.all([
-              re_encrypt_field(att.encrypted_data, att.data_nonce, old_aes, new_aes),
-              re_encrypt_field(att.encrypted_meta, att.meta_nonce, old_aes, new_aes),
+              re_encrypt_field(
+                att.encrypted_data,
+                att.data_nonce,
+                old_aes,
+                new_aes,
+              ),
+              re_encrypt_field(
+                att.encrypted_meta,
+                att.meta_nonce,
+                old_aes,
+                new_aes,
+              ),
             ]);
 
-            await api_client.delete(`/contacts/v1/${contact.id}/attachments/${att.id}`);
+            await api_client.delete(
+              `/contacts/v1/${contact.id}/attachments/${att.id}`,
+            );
             try {
               await api_client.post(`/contacts/v1/${contact.id}/attachments`, {
                 encrypted_data: data_result.encrypted,
@@ -267,7 +295,12 @@ export async function re_encrypt_contact_sync_sources(
     try {
       const ct = base64_to_array(source.encrypted_config);
       const iv = base64_to_array(source.config_nonce);
-      const config_pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, old_aes, ct);
+      const config_pt = await crypto.subtle.decrypt(
+        { name: "AES-GCM", iv },
+        old_aes,
+        ct,
+      );
+
       decrypted.push({ source_type: source.source_type, config_pt });
     } catch {
       ok = false;
@@ -278,9 +311,11 @@ export async function re_encrypt_contact_sync_sources(
   if (decrypted.length === 0) return ok;
 
   for (const source of resp.data.items) {
-    await api_client.delete(`/contacts/v1/sync/sources/${source.id}`).catch(() => {
-      ok = false;
-    });
+    await api_client
+      .delete(`/contacts/v1/sync/sources/${source.id}`)
+      .catch(() => {
+        ok = false;
+      });
   }
 
   for (const item of decrypted) {
@@ -291,6 +326,7 @@ export async function re_encrypt_contact_sync_sources(
         new_aes,
         item.config_pt,
       );
+
       await api_client.post("/contacts/v1/sync/sources", {
         source_type: item.source_type,
         encrypted_config: array_to_base64(new Uint8Array(new_ct)),
@@ -313,10 +349,20 @@ export async function re_encrypt_drafts(
 
   const DRAFT_KEY_SUFFIX = "astermail-draft-v2";
 
-  async function derive_draft_aes(identity_key: string, usages: KeyUsage[]): Promise<CryptoKey> {
+  async function derive_draft_aes(
+    identity_key: string,
+    usages: KeyUsage[],
+  ): Promise<CryptoKey> {
     const material = new TextEncoder().encode(identity_key + DRAFT_KEY_SUFFIX);
     const hash = await crypto.subtle.digest(HASH_ALG, material);
-    return crypto.subtle.importKey("raw", hash, { name: "AES-GCM", length: 256 }, false, usages);
+
+    return crypto.subtle.importKey(
+      "raw",
+      hash,
+      { name: "AES-GCM", length: 256 },
+      false,
+      usages,
+    );
   }
 
   const [old_key, new_key] = await Promise.all([
@@ -339,7 +385,9 @@ export async function re_encrypt_drafts(
       }>;
       next_cursor?: string;
       has_more: boolean;
-    }>(`/mail/v1/drafts?limit=100${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`);
+    }>(
+      `/mail/v1/drafts?limit=100${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`,
+    );
 
     if (resp.error || !resp.data) break;
 
@@ -355,6 +403,7 @@ export async function re_encrypt_drafts(
           HASH_ALG,
           new TextEncoder().encode(encrypted),
         );
+
         await api_client.put(`/mail/v1/drafts/${draft.id}`, {
           encrypted_content: encrypted,
           content_nonce: nonce,
@@ -373,4 +422,3 @@ export async function re_encrypt_drafts(
     if (!resp.data.has_more || !cursor) break;
   }
 }
-

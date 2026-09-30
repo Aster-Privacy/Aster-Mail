@@ -18,10 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import {
-  CheckIcon,
-  XCircleIcon,
-} from "@heroicons/react/24/outline";
+import { CheckIcon, XCircleIcon } from "@heroicons/react/24/outline";
 
 import { Spinner } from "@/components/ui/spinner";
 
@@ -53,9 +50,12 @@ function StepStatusIcon({ status }: { status: StepStatus }) {
 }
 
 function step_bg(status: StepStatus, is_active: boolean): string {
-  if (status === "verified") return "linear-gradient(to bottom, #22c55e, #16a34a)";
-  if (status === "failed") return "linear-gradient(to bottom, #f87171, #dc2626)";
-  if (is_active) return "linear-gradient(to bottom, var(--accent-color), var(--accent-mix-b80, #2f68c5))";
+  if (status === "verified")
+    return "linear-gradient(to bottom, #22c55e, #16a34a)";
+  if (status === "failed")
+    return "linear-gradient(to bottom, #f87171, #dc2626)";
+  if (is_active)
+    return "linear-gradient(to bottom, var(--accent-color), var(--accent-mix-b80, #2f68c5))";
 
   return "var(--bg-tertiary)";
 }
@@ -90,14 +90,16 @@ export function DnsChecklist({
               onClick={() => on_step_click(index)}
             >
               <StepStatusIcon status={step.status} />
-              {step.status === "pending" && (index + 1)}
+              {step.status === "pending" && index + 1}
             </button>
             {index < steps.length - 1 && (
               <div
                 className="w-4 h-0.5 mx-0.5 rounded-full transition-colors"
                 style={{
                   backgroundColor:
-                    step.status === "verified" ? "#22c55e" : "var(--bg-tertiary)",
+                    step.status === "verified"
+                      ? "#22c55e"
+                      : "var(--bg-tertiary)",
                 }}
               />
             )}
@@ -115,7 +117,7 @@ export function DnsChecklist({
         return (
           <button
             key={step.id}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-[14px] text-left transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-[14px] text-start transition-colors"
             disabled={disabled}
             style={{
               backgroundColor: is_active ? "var(--bg-tertiary)" : "transparent",
@@ -135,14 +137,16 @@ export function DnsChecklist({
               }}
             >
               <StepStatusIcon status={step.status} />
-              {step.status === "pending" && (index + 1)}
+              {step.status === "pending" && index + 1}
             </div>
 
             <div className="min-w-0 flex-1">
               <p
                 className="text-sm font-medium truncate"
                 style={{
-                  color: is_active ? "var(--text-primary)" : "var(--text-secondary)",
+                  color: is_active
+                    ? "var(--text-primary)"
+                    : "var(--text-secondary)",
                 }}
               >
                 {step.title}

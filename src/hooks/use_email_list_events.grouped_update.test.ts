@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
-
 import type { InboxEmail } from "@/types/email";
+
+import { describe, it, expect } from "vitest";
 
 import {
   apply_item_update_to_rows,

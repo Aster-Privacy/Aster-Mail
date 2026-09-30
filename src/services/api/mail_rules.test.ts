@@ -20,14 +20,14 @@
 //
 import { describe, it, expect } from "vitest";
 
-import { en } from "@/lib/i18n/translations/en";
-
 import {
   detect_unsupported_regex_syntax,
   validate_regex_pattern,
   find_regex_condition_error,
   type Condition,
 } from "./mail_rules";
+
+import { en } from "@/lib/i18n/translations/en";
 
 const regex_condition = (value: string): Condition =>
   ({
@@ -117,7 +117,11 @@ describe("find_regex_condition_error", () => {
   it("returns null when no condition uses a regex operator", () => {
     expect(
       find_regex_condition_error([
-        { type: "subject", operator: "contains", value: "(?=x)" } as unknown as Condition,
+        {
+          type: "subject",
+          operator: "contains",
+          value: "(?=x)",
+        } as unknown as Condition,
       ]),
     ).toBeNull();
   });
@@ -159,7 +163,10 @@ describe("find_regex_condition_error", () => {
           type: "and",
           conditions: [
             regex_condition("^ok$"),
-            { type: "not", condition: { type: "or", conditions: [regex_condition("(?!x)")] } },
+            {
+              type: "not",
+              condition: { type: "or", conditions: [regex_condition("(?!x)")] },
+            },
           ],
         },
       ]),

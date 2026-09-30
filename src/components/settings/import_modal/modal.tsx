@@ -25,18 +25,34 @@ import {
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { AnimatePresence, motion } from "framer-motion";
-import { Button } from "@aster/ui";
+import { Button, UpgradeBtn } from "@aster/ui";
 
-import { Spinner } from "@/components/ui/spinner";
+import {
+  ImportModalProps,
+  ImportStep,
+  PICKER_REOPEN_DELAY_MS,
+  build_thread_map,
+  classify_import_labels,
+  derive_manual_import_source,
+  detect_item_type,
+  extract_source_folders,
+  folder_for_email,
+  source_labels,
+} from "./helpers";
+
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_auth } from "@/contexts/auth_context";
 import { use_folders } from "@/hooks/use_folders";
 import { use_should_reduce_motion } from "@/provider";
 import {
-  parse_import_file,
   compute_message_id_hash,
   type ParsedEmail,
   type ParseProgress,
 } from "@/services/import/parser";
+import {
+  build_import_collection,
+  type ImportCollection,
+} from "@/services/import/import_collection";
 import {
   encrypt_imported_email,
   type EncryptedImportEmail,
@@ -56,14 +72,10 @@ import {
   collect_files_from_data_transfer,
   filter_supported_files,
 } from "@/services/import/file_collection";
-import {
-  list_aliases,
-  decrypt_aliases,
-} from "@/services/api/aliases";
-
-import { ImportModalProps, ImportStep, PICKER_REOPEN_DELAY_MS, build_thread_map, derive_manual_import_source, detect_item_type, extract_source_folders, folder_for_email } from "./helpers";
-
+import { list_aliases, decrypt_aliases } from "@/services/api/aliases";
 import { ignore_error } from "@/lib/ignore_error";
+import { show_storage_full_upgrade } from "@/stores/upgrade_store";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   const { t } = use_i18n();
@@ -85,12 +97,14 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
     skipped: number;
     failed: number;
     quota_exceeded?: boolean;
+    folders_skipped?: number;
     warnings?: string[];
   } | null>(null);
   const [parse_warnings, set_parse_warnings] = useState<string[]>([]);
-  const [folder_prep_status, set_folder_prep_status] = useState<
-    { folder_count: number; new_labels: number } | null
-  >(null);
+  const [folder_prep_status, set_folder_prep_status] = useState<{
+    folder_count: number;
+    new_labels: number;
+  } | null>(null);
   const [error, set_error] = useState<string | null>(null);
   const [is_dragging, set_is_dragging] = useState(false);
   const [is_cancelling, set_is_cancelling] = useState(false);
@@ -113,11 +127,12 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   }, []);
 
   const handle_close = useCallback(() => {
-    if (is_processing) return;
+    if (step === "progress") return;
+    cancel_ref.current = true;
     // Reset happens on the next open (see effect below), so the current content
     // stays put while the modal animates out instead of flashing the upload view.
     on_close();
-  }, [is_processing, on_close]);
+  }, [step, on_close]);
 
   useEffect(() => {
     if (provider) set_active_provider(provider);
@@ -155,7 +170,9 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
   }, []);
 
   const process_emails = useCallback(
-    async (emails: ParsedEmail[], source: ImportSource) => {
+    async (collection: ImportCollection, source: ImportSource) => {
+      const emails = collection.summaries;
+
       if (!vault) {
         set_error(t("common.encryption_vault_not_available"));
         set_is_processing(false);
@@ -210,19 +227,42 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         });
 
         if (job_response.error || !job_response.data) {
-          throw new Error(job_response.error || t("settings.failed_create_import_job"));
+          throw new Error(
+            job_response.error || t("settings.failed_create_import_job"),
+          );
         }
 
         job_id = job_response.data.id;
 
-        const update_response = await update_import_job(job_id!, { status: "processing" });
+        const update_response = await update_import_job(job_id!, {
+          status: "processing",
+        });
+
         if (update_response.error) {
           throw new Error(update_response.error);
         }
 
+        const finish_cancelled = async () => {
+          await update_import_job(job_id!, {
+            status: "cancelled",
+            processed_emails: 0,
+            skipped_emails: 0,
+            failed_emails: 0,
+          });
+
+          set_import_result({ imported: 0, skipped: 0, failed: 0 });
+          set_step("complete");
+        };
+
         const message_id_hashes = new Map<string, string>();
 
         for (const email of emails) {
+          if (cancel_ref.current) {
+            await finish_cancelled();
+
+            return;
+          }
+
           const hash = await compute_message_id_hash(email.message_id);
 
           message_id_hashes.set(email.message_id, hash);
@@ -237,6 +277,12 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           i < all_hashes.length;
           i += DUPLICATE_CHECK_BATCH_SIZE
         ) {
+          if (cancel_ref.current) {
+            await finish_cancelled();
+
+            return;
+          }
+
           const hash_batch = all_hashes.slice(
             i,
             i + DUPLICATE_CHECK_BATCH_SIZE,
@@ -254,16 +300,20 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         }
 
         const seen_hashes = new Set<string>();
-        const emails_to_import = emails.filter((email) => {
+        const indices_to_import = new Set<number>();
+        const emails_to_import: ParsedEmail[] = [];
+
+        emails.forEach((email, index) => {
           const hash = message_id_hashes.get(email.message_id);
 
           if (!hash || existing_hashes.has(hash) || seen_hashes.has(hash)) {
-            return false;
+            return;
           }
+          if (classify_import_labels(source_labels(email)).skip) return false;
 
           seen_hashes.add(hash);
-
-          return true;
+          indices_to_import.add(index);
+          emails_to_import.push(email);
         });
 
         const thread_map = await build_thread_map(emails_to_import);
@@ -271,6 +321,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         let imported_count = 0;
         let failed_count = 0;
         let store_duplicate_count = 0;
+        let invalid_count = 0;
         const pre_skipped_count = emails.length - emails_to_import.length;
 
         if (emails_to_import.length === 0) {
@@ -295,8 +346,16 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         // imported, so a fully-duplicate re-import leaves no empty folders.
         const source_folders = extract_source_folders(emails_to_import);
         let new_label_count = 0;
+        let skipped_folder_count = 0;
+        let folder_limit_reached = false;
 
         for (const folder_name of source_folders) {
+          if (cancel_ref.current) {
+            await finish_cancelled();
+
+            return;
+          }
+
           const existing = folders_state.folders.find(
             (f) => f.name.toLowerCase() === folder_name.toLowerCase(),
           );
@@ -306,11 +365,27 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             continue;
           }
 
-          const result = await create_new_folder(folder_name);
+          if (folder_limit_reached) {
+            skipped_folder_count += 1;
+            continue;
+          }
+
+          const result = await create_new_folder(
+            folder_name,
+            undefined,
+            undefined,
+            { append: true },
+          );
 
           if (result.folder) {
             folder_token_map.set(folder_name, result.folder.folder_token);
             new_label_count += 1;
+            continue;
+          }
+
+          skipped_folder_count += 1;
+          if (result.code === "PLAN_LIMIT_EXCEEDED") {
+            folder_limit_reached = true;
           }
         }
 
@@ -323,23 +398,64 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
 
         const BATCH_SIZE = 10;
         let quota_exceeded = false;
+        let attempted_count = 0;
+        let encrypted_batch: EncryptedImportEmail[] = [];
 
-        for (let i = 0; i < emails_to_import.length; i += BATCH_SIZE) {
-          // Remaining emails were never attempted, so they are not failures.
+        const report_store_progress = () => {
+          set_progress({
+            current: attempted_count,
+            total: emails_to_import.length,
+            percentage: Math.round(
+              (attempted_count / emails_to_import.length) * 100,
+            ),
+          });
+        };
+
+        const flush_batch = async () => {
+          const batch = encrypted_batch;
+
+          encrypted_batch = [];
+          if (batch.length === 0) return;
+
+          const store_response = await store_imported_emails(job_id!, batch);
+
+          if (store_response.data) {
+            const { stored_count, duplicate_count, skipped_quota_count } =
+              store_response.data;
+
+            imported_count += stored_count;
+            store_duplicate_count += duplicate_count;
+            failed_count +=
+              batch.length -
+              stored_count -
+              duplicate_count -
+              skipped_quota_count;
+
+            if (store_response.data.quota_exceeded) {
+              quota_exceeded = true;
+            }
+          } else {
+            failed_count += batch.length;
+          }
+
+          report_store_progress();
+        };
+
+        for await (const item of collection.load(indices_to_import)) {
           if (cancel_ref.current || quota_exceeded) break;
 
-          const batch = emails_to_import.slice(i, i + BATCH_SIZE);
-          const encrypted_batch: EncryptedImportEmail[] = [];
+          attempted_count++;
 
-          for (const email of batch) {
-            const hash = message_id_hashes.get(email.message_id);
+          const summary = emails[item.index];
+          const hash = message_id_hashes.get(summary.message_id);
 
-            if (!hash) {
-              failed_count++;
-              continue;
-            }
-
+          if (item.status === "invalid") {
+            invalid_count++;
+          } else if (!item.email || !hash) {
+            failed_count++;
+          } else {
             try {
+              const email = item.email;
               const encrypted = await encrypt_imported_email(
                 email,
                 vault,
@@ -347,15 +463,16 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 hash,
               );
 
-              const token = thread_map.get(email.message_id);
+              const token = thread_map.get(summary.message_id);
 
               if (token) {
                 encrypted.thread_token = token;
               }
 
+              const disposition = classify_import_labels(source_labels(email));
               const type = detect_item_type(email, user_addresses);
 
-              if (type === "sent") {
+              if (type === "sent" || disposition.sent) {
                 encrypted.item_type = "sent";
               }
 
@@ -365,6 +482,16 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 encrypted.folder_token = target_folder;
               }
 
+              if (disposition.is_read !== undefined) {
+                encrypted.is_read = disposition.is_read;
+              }
+              if (disposition.is_starred) encrypted.is_starred = true;
+              if (disposition.is_trashed) encrypted.is_trashed = true;
+              else if (disposition.is_spam) encrypted.is_spam = true;
+              else if (disposition.is_archived && !target_folder) {
+                encrypted.is_archived = true;
+              }
+
               encrypted_batch.push(encrypted);
             } catch (error) {
               if (import.meta.env.DEV) console.error(error);
@@ -372,46 +499,20 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             }
           }
 
-          if (encrypted_batch.length > 0) {
-            const store_response = await store_imported_emails(
-              job_id!,
-              encrypted_batch,
-            );
-
-            if (store_response.data) {
-              const {
-                stored_count,
-                duplicate_count,
-                skipped_quota_count,
-              } = store_response.data;
-
-              imported_count += stored_count;
-              store_duplicate_count += duplicate_count;
-              failed_count +=
-                encrypted_batch.length -
-                stored_count -
-                duplicate_count -
-                skipped_quota_count;
-
-              if (store_response.data.quota_exceeded) {
-                quota_exceeded = true;
-              }
-            } else {
-              failed_count += encrypted_batch.length;
-            }
+          if (encrypted_batch.length >= BATCH_SIZE) {
+            await flush_batch();
+          } else if (attempted_count % BATCH_SIZE === 0) {
+            report_store_progress();
           }
+        }
 
-          const current = Math.min(i + BATCH_SIZE, emails_to_import.length);
-
-          set_progress({
-            current,
-            total: emails_to_import.length,
-            percentage: Math.round((current / emails_to_import.length) * 100),
-          });
+        if (!cancel_ref.current && !quota_exceeded) {
+          await flush_batch();
         }
 
         const final_status = cancel_ref.current ? "cancelled" : "completed";
-        const skipped_count = pre_skipped_count + store_duplicate_count;
+        const skipped_count =
+          pre_skipped_count + store_duplicate_count + invalid_count;
 
         await update_import_job(job_id!, {
           status: final_status,
@@ -425,6 +526,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           skipped: skipped_count,
           failed: failed_count,
           quota_exceeded,
+          folders_skipped: skipped_folder_count,
         });
         set_step("complete");
 
@@ -438,7 +540,12 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 emit_mail_changed();
               }
             })
-            .catch((caught) => ignore_error("components/settings/import_modal/modal:on_key", caught));
+            .catch((caught) =>
+              ignore_error(
+                "components/settings/import_modal/modal:on_key",
+                caught,
+              ),
+            );
         }
       } catch (err) {
         if (job_id) {
@@ -454,9 +561,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             if (import.meta.env.DEV) console.error(error);
           }
         }
-        set_error(
-          err instanceof Error ? err.message : t("settings.import_failed"),
-        );
+        set_error(user_facing_error(err, t("settings.import_failed")));
         set_step("upload");
       } finally {
         set_is_processing(false);
@@ -486,46 +591,35 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
 
       set_is_processing(true);
       set_error(null);
+      set_progress(null);
+      set_parse_warnings([]);
+      set_is_cancelling(false);
+      cancel_ref.current = false;
 
       try {
-        const all_emails: ParsedEmail[] = [];
-        const all_errors: string[] = [];
-        const all_warnings: string[] = [];
+        const collection = await build_import_collection(
+          files,
+          set_progress,
+          () => cancel_ref.current,
+        );
 
-        const multiple_files = files.length > 1;
+        if (cancel_ref.current) {
+          set_is_processing(false);
 
-        for (let i = 0; i < files.length; i++) {
-          const file = files[i];
-          const result = await parse_import_file(file, (progress) => {
-            if (!multiple_files) set_progress(progress);
-          });
-
-          all_emails.push(...result.emails);
-          all_errors.push(...result.errors);
-          all_warnings.push(...result.warnings);
-
-          if (multiple_files) {
-            const current = i + 1;
-
-            set_progress({
-              current,
-              total: files.length,
-              percentage: Math.round((current / files.length) * 100),
-            });
-          }
+          return;
         }
 
-        if (all_emails.length === 0) {
+        if (collection.summaries.length === 0) {
           const error_message =
-            all_errors.length > 0
-              ? all_errors[0]
+            collection.errors.length > 0
+              ? collection.errors[0]
               : t("settings.no_emails_in_file");
 
           throw new Error(error_message);
         }
 
-        if (all_warnings.length > 0) {
-          set_parse_warnings(all_warnings.slice(0, 10));
+        if (collection.warnings.length > 0) {
+          set_parse_warnings(collection.warnings.slice(0, 10));
         }
 
         const effective_source: ImportSource =
@@ -533,7 +627,13 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             ? derive_manual_import_source(files)
             : active_provider;
 
-        await process_emails(all_emails, effective_source);
+        if (cancel_ref.current) {
+          set_is_processing(false);
+
+          return;
+        }
+
+        await process_emails(collection, effective_source);
       } catch (err) {
         set_error(
           err instanceof Error
@@ -624,8 +724,6 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
         return (
           <div className="space-y-4">
             <div
-              role="button"
-              tabIndex={is_processing ? -1 : 0}
               aria-disabled={is_processing}
               className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-colors outline-none ${
                 is_processing
@@ -634,21 +732,23 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                     ? "cursor-pointer bg-surf-tertiary border-brand"
                     : "cursor-pointer bg-surf-secondary border-edge-secondary hover:border-brand/60 hover:bg-surf-tertiary/40 focus-visible:border-brand"
               }`}
+              role="button"
+              tabIndex={is_processing ? -1 : 0}
               onClick={handle_browse_click}
+              onDragLeave={handle_drag_leave}
+              onDragOver={handle_drag_over}
+              onDrop={handle_drop}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
                   handle_browse_click();
                 }
               }}
-              onDragLeave={handle_drag_leave}
-              onDragOver={handle_drag_over}
-              onDrop={handle_drop}
             >
               <input
                 ref={file_input_ref}
                 multiple
-                accept=".mbox,.mbx,.eml,.csv,.tsv,.pst,.ost,.txt"
+                accept=".mbox,.mbx,.eml,.emlx,.csv,.tsv,.pst,.ost,.txt"
                 className="hidden"
                 type="file"
                 onChange={handle_file_input_change}
@@ -687,14 +787,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                     handle_browse_click();
                   }}
                 >
-                  {is_processing ? (
-                    <>
-                      {t("common.processing")}
-                      <Spinner className="ml-2" size="md" />
-                    </>
-                  ) : (
-                    t("settings.browse_files")
-                  )}
+                  {t("settings.browse_files")}
+                  {is_processing && <ButtonSpinner />}
                 </Button>
 
                 <Button
@@ -715,8 +809,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
               <div className="space-y-1.5">
                 <p className="text-xs text-center text-txt-muted">
                   {t("settings.emails_of_total", {
-                    current: String(progress.current),
-                    total: String(progress.total),
+                    current: progress.current,
+                    total: progress.total,
                   })}
                 </p>
                 <div className="w-full h-1.5 rounded-full overflow-hidden bg-surf-tertiary">
@@ -744,8 +838,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             {folder_prep_status && (
               <p className="text-xs mb-2 text-txt-muted">
                 {t("settings.import_folder_prep_status", {
-                  folder_count: String(folder_prep_status.folder_count),
-                  new_labels: String(folder_prep_status.new_labels),
+                  done: folder_prep_status.new_labels,
+                  total: folder_prep_status.folder_count,
                 })}
               </p>
             )}
@@ -753,8 +847,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
               <>
                 <p className="text-xs mb-3 text-txt-muted">
                   {t("settings.emails_of_total", {
-                    current: String(progress.current),
-                    total: String(progress.total),
+                    current: progress.current,
+                    total: progress.total,
                   })}
                 </p>
                 <div className="w-full h-2 rounded-full overflow-hidden bg-surf-tertiary">
@@ -775,10 +869,10 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
               onClick={handle_cancel}
             >
               {is_cancelling ? (
-                <span className="flex items-center gap-1.5">
+                <>
                   {t("settings.cancelling")}
-                  <Spinner className="text-current" size="sm" />
-                </span>
+                  <ButtonSpinner />
+                </>
               ) : (
                 t("settings.cancel_import")
               )}
@@ -800,27 +894,45 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
               <div className="space-y-1">
                 <p className="text-sm text-txt-secondary">
                   {t("settings.emails_imported_count", {
-                    count: String(import_result.imported),
+                    count: import_result.imported,
                   })}
                 </p>
                 {import_result.skipped > 0 && (
                   <p className="text-xs text-txt-muted">
                     {t("settings.duplicates_skipped", {
-                      count: String(import_result.skipped),
+                      count: import_result.skipped,
                     })}
                   </p>
                 )}
                 {import_result.failed > 0 && (
                   <p className="text-xs text-red-500">
                     {t("settings.n_failed_count", {
-                      count: String(import_result.failed),
+                      count: import_result.failed,
+                    })}
+                  </p>
+                )}
+                {(import_result.folders_skipped ?? 0) > 0 && (
+                  <p className="text-xs text-amber-500">
+                    {t("settings.import_folders_skipped", {
+                      count: import_result.folders_skipped ?? 0,
                     })}
                   </p>
                 )}
                 {import_result.quota_exceeded && (
-                  <p className="text-xs text-amber-500 mt-2">
-                    {t("settings.storage_quota_reached")}
-                  </p>
+                  <div className="mt-3 flex flex-col items-center gap-2">
+                    <p className="text-xs text-amber-500">
+                      {t("settings.storage_quota_reached")}
+                    </p>
+                    <UpgradeBtn
+                      size="sm"
+                      onClick={() => {
+                        handle_close();
+                        show_storage_full_upgrade({});
+                      }}
+                    >
+                      {t("common.upgrade")}
+                    </UpgradeBtn>
+                  </div>
                 )}
                 {import_result.imported > 0 && (
                   <p className="text-xs text-txt-muted mt-2">
@@ -828,7 +940,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                   </p>
                 )}
                 {parse_warnings.length > 0 && (
-                  <div className="mt-3 text-left max-h-24 overflow-y-auto rounded-md bg-surf-tertiary p-2">
+                  <div className="mt-3 text-start max-h-24 overflow-y-auto rounded-md bg-surf-tertiary p-2">
                     {parse_warnings.map((w, i) => (
                       <p key={i} className="text-xs text-txt-muted truncate">
                         {w}
@@ -838,12 +950,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
                 )}
               </div>
             )}
-            <Button
-              className="mt-6"
-              size="xl"
-              variant="depth"
-              onClick={handle_close}
-            >
+            <Button className="mt-6" variant="depth" onClick={handle_close}>
               {t("common.done")}
             </Button>
           </div>
@@ -862,7 +969,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
           <motion.div
             animate={{ opacity: 1 }}
             aria-hidden="true"
-            className="absolute inset-0 backdrop-blur-md"
+            className="absolute inset-0"
             exit={{ opacity: 0 }}
             initial={reduce_motion ? false : { opacity: 0 }}
             style={{ backgroundColor: "var(--modal-overlay)" }}
@@ -870,18 +977,15 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
             onClick={handle_close}
           />
           <motion.div
+            ref={dialog_ref}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             aria-labelledby={title_id}
             aria-modal="true"
-            className="relative w-full max-w-md rounded-xl border overflow-hidden bg-modal-bg border-edge-primary outline-none"
+            className="relative w-full max-w-md overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)] outline-none"
             exit={{ opacity: 0, scale: 0.97, y: 4 }}
             initial={reduce_motion ? false : { opacity: 0, scale: 0.97, y: 4 }}
-            ref={dialog_ref}
             role="dialog"
             tabIndex={-1}
-            style={{
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-            }}
             transition={{
               duration: reduce_motion ? 0 : 0.2,
               ease: [0.16, 1, 0.3, 1],
@@ -897,7 +1001,8 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
               </h2>
               {step !== "progress" && (
                 <button
-                  className="p-1 rounded-[14px] transition-colors hover:bg-white/10"
+                  aria-label={t("common.close")}
+                  className="p-1 rounded-[var(--aster-radius-control)] transition-colors hover:bg-[var(--aster-island-hover)]"
                   type="button"
                   onClick={handle_close}
                 >
@@ -906,9 +1011,7 @@ export function ImportModal({ is_open, on_close, provider }: ImportModalProps) {
               )}
             </div>
 
-            <div className="px-6 pb-6">
-              {render_step_content()}
-            </div>
+            <div className="px-6 pb-6">{render_step_content()}</div>
           </motion.div>
         </div>
       )}

@@ -19,10 +19,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedContact, ContactFormData } from "@/types/contacts";
-import { contact_to_form_data } from "@/components/common/hooks/use_contacts_state";
 
 import { useState, useCallback, useEffect, useRef, useMemo } from "react";
 
+import { show_toast } from "@/components/toast/simple_toast";
+import { copy_text_or_throw } from "@/utils/copy_text";
+import {
+  export_contacts_file,
+  type ContactExportFormat,
+} from "@/utils/contact_export";
+import { contact_to_form_data } from "@/components/common/hooks/use_contacts_state";
 import {
   list_contacts,
   create_contact_encrypted,
@@ -31,11 +37,12 @@ import {
   decrypt_contacts,
 } from "@/services/api/contacts";
 import { emit_contacts_changed } from "@/hooks/mail_events";
+import { is_typing } from "@/hooks/use_keyboard_shortcuts";
 import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
-
-import { ignore_error } from "@/lib/ignore_error";
+import { is_contact_trashed } from "@/lib/contact_trash";
+import { reconcile_entry_fields } from "@/components/common/hooks/contacts_state_helpers";
 
 const BATCH_SIZE = 10;
 
@@ -190,17 +197,13 @@ export function use_contacts_modal({
       }
       const decrypted = await decrypt_contacts(response.data.items);
 
-      set_contacts(decrypted);
-    } catch (err) {
-      set_error(
-        err instanceof Error
-          ? err.message
-          : t("common.failed_to_fetch_contacts"),
-      );
+      set_contacts(decrypted.filter((contact) => !is_contact_trashed(contact)));
+    } catch {
+      set_error(t("common.failed_to_fetch_contacts"));
     } finally {
       set_is_loading(false);
     }
-  }, [has_keys, is_open]);
+  }, [has_keys, is_open, t]);
 
   useEffect(() => {
     if (is_open) {
@@ -230,7 +233,12 @@ export function use_contacts_modal({
           on_close();
         }
       }
-      if ((e.metaKey || e.ctrlKey) && e["key"] === "n" && !is_form_open) {
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        e["key"] === "n" &&
+        !is_form_open &&
+        !is_typing()
+      ) {
         e.preventDefault();
         handle_add_click();
       }
@@ -263,6 +271,7 @@ export function use_contacts_modal({
 
       if (response.error) {
         set_error(response.error);
+        show_toast(t("common.failed_to_delete_contact"), "error");
 
         return;
       }
@@ -287,10 +296,15 @@ export function use_contacts_modal({
     } finally {
       set_contact_to_delete(null);
     }
-  }, [contact_to_delete, selected_contact]);
+  }, [contact_to_delete, selected_contact, t]);
 
   const handle_form_submit = useCallback(
-    async (data: ContactFormData) => {
+    async (submitted: ContactFormData) => {
+      const data = reconcile_entry_fields(
+        submitted,
+        editing_contact ? contact_to_form_data(editing_contact) : undefined,
+      );
+
       set_is_submitting(true);
       set_error(null);
 
@@ -303,6 +317,7 @@ export function use_contacts_modal({
 
           if (response.error) {
             set_error(response.error);
+            show_toast(t("common.failed_to_save_contact"), "error");
             set_is_submitting(false);
 
             return;
@@ -327,6 +342,7 @@ export function use_contacts_modal({
 
           if (response.error || !response.data) {
             set_error(response.error || t("common.failed_to_create_contact"));
+            show_toast(t("common.failed_to_create_contact"), "error");
             set_is_submitting(false);
 
             return;
@@ -367,7 +383,7 @@ export function use_contacts_modal({
         set_is_submitting(false);
       }
     },
-    [editing_contact, selected_contact],
+    [editing_contact, selected_contact, t],
   );
 
   const handle_form_close = useCallback(() => {
@@ -385,7 +401,7 @@ export function use_contacts_modal({
 
   const handle_copy = useCallback(async (text: string, field: string) => {
     try {
-      await navigator.clipboard.writeText(text);
+      await copy_text_or_throw(text);
       set_copied_field(field);
       if (copy_timeout_ref.current) {
         clearTimeout(copy_timeout_ref.current);
@@ -393,10 +409,8 @@ export function use_contacts_modal({
       copy_timeout_ref.current = setTimeout(() => {
         set_copied_field(null);
       }, 2000);
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-
-      return;
+    } catch {
+      show_toast(t("common.failed_to_copy"), "error");
     }
   }, []);
 
@@ -491,18 +505,29 @@ export function use_contacts_modal({
 
     try {
       const ids_to_delete = Array.from(selected_ids);
+      const deleted_ids = new Set<string>();
 
       for (let i = 0; i < ids_to_delete.length; i += BATCH_SIZE) {
         const batch = ids_to_delete.slice(i, i + BATCH_SIZE);
+        const results = await Promise.allSettled(
+          batch.map((id) => api_delete_contact(id)),
+        );
 
-        await Promise.allSettled(batch.map((id) => api_delete_contact(id)));
+        results.forEach((result, index) => {
+          if (result.status === "fulfilled" && !result.value?.error) {
+            deleted_ids.add(batch[index]);
+          }
+        });
       }
-      set_contacts((prev) => prev.filter((c) => !selected_ids.has(c.id)));
+      set_contacts((prev) => prev.filter((c) => !deleted_ids.has(c.id)));
       set_selected_ids(new Set());
-      if (selected_contact && selected_ids.has(selected_contact.id)) {
+      if (selected_contact && deleted_ids.has(selected_contact.id)) {
         set_selected_contact(null);
       }
       emit_contacts_changed();
+      if (deleted_ids.size < ids_to_delete.length) {
+        set_error(t("common.failed_to_delete_contacts"));
+      }
     } catch (err) {
       set_error(
         err instanceof Error
@@ -512,7 +537,7 @@ export function use_contacts_modal({
     } finally {
       set_is_bulk_deleting(false);
     }
-  }, [selected_ids, selected_contact]);
+  }, [selected_ids, selected_contact, t]);
 
   const handle_compose_to_selected = useCallback(() => {
     const selected_contacts = contacts.filter((c) => selected_ids.has(c.id));
@@ -539,10 +564,11 @@ export function use_contacts_modal({
         (contact) => contact.is_favorite !== new_favorite_state,
       );
 
+      const updated_ids = new Set<string>();
+
       for (let i = 0; i < contacts_to_update.length; i += BATCH_SIZE) {
         const batch = contacts_to_update.slice(i, i + BATCH_SIZE);
-
-        await Promise.allSettled(
+        const results = await Promise.allSettled(
           batch.map((contact) =>
             update_contact_encrypted(contact.id, {
               ...contact_to_form_data(contact),
@@ -550,15 +576,22 @@ export function use_contacts_modal({
             }),
           ),
         );
+
+        results.forEach((result, index) => {
+          if (result.status === "fulfilled" && !result.value?.error) {
+            updated_ids.add(batch[index].id);
+          }
+        });
       }
 
       set_contacts((prev) =>
         prev.map((c) =>
-          selected_ids.has(c.id)
-            ? { ...c, is_favorite: new_favorite_state }
-            : c,
+          updated_ids.has(c.id) ? { ...c, is_favorite: new_favorite_state } : c,
         ),
       );
+      if (updated_ids.size < contacts_to_update.length) {
+        set_error(t("common.failed_to_update_favorites"));
+      }
     } catch (err) {
       set_error(
         err instanceof Error
@@ -566,65 +599,22 @@ export function use_contacts_modal({
           : t("common.failed_to_update_favorites"),
       );
     }
-  }, [contacts, selected_ids]);
+  }, [contacts, selected_ids, t]);
 
   const handle_export_contacts = useCallback(
-    (export_selected: boolean) => {
+    (
+      export_selected: boolean,
+      format: ContactExportFormat = "csv",
+      ids?: Set<string>,
+    ) => {
+      const scope = ids ?? selected_ids;
       const contacts_to_export = export_selected
-        ? contacts.filter((c) => selected_ids.has(c.id))
+        ? contacts.filter((c) => scope.has(c.id))
         : contacts;
 
       if (contacts_to_export.length === 0) return;
 
-      const csv_headers = [
-        t("common.first_name"),
-        t("common.last_name"),
-        t("common.email"),
-        t("common.phone"),
-        t("common.company"),
-        t("common.job_title"),
-        t("common.street"),
-        t("common.city"),
-        t("common.state"),
-        t("common.postal_code"),
-        t("common.country"),
-        t("common.birthday"),
-        t("common.notes"),
-        t("common.favorite"),
-      ];
-
-      const csv_rows = contacts_to_export.map((contact) => [
-        contact.first_name,
-        contact.last_name,
-        contact.emails.join("; "),
-        contact.phone || "",
-        contact.company || "",
-        contact.job_title || "",
-        contact.address?.street || "",
-        contact.address?.city || "",
-        contact.address?.state || "",
-        contact.address?.postal_code || "",
-        contact.address?.country || "",
-        contact.birthday || "",
-        (contact.notes || "").replace(/"/g, '""'),
-        contact.is_favorite ? t("common.yes") : t("common.no"),
-      ]);
-
-      const csv_content = [
-        csv_headers.join(","),
-        ...csv_rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
-      ].join("\n");
-
-      const blob = new Blob([csv_content], { type: "text/csv;charset=utf-8;" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-
-      link.href = url;
-      link.download = `contacts_${new Date().toISOString().split("T")[0]}.csv`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      export_contacts_file(contacts_to_export, format);
     },
     [contacts, selected_ids],
   );
@@ -634,21 +624,17 @@ export function use_contacts_modal({
     const emails = selected_contacts.flatMap((c) => c.emails).filter((e) => e);
 
     if (emails.length > 0) {
-      navigator.clipboard
-        .writeText(emails.join(", "))
-        .catch((caught) =>
-          ignore_error(
-            "components/modals/hooks/use_contacts_modal:handle_keydown",
-            caught,
-          ),
-        );
-      set_copied_field("bulk-emails");
-      if (copy_timeout_ref.current) {
-        clearTimeout(copy_timeout_ref.current);
-      }
-      copy_timeout_ref.current = setTimeout(() => {
-        set_copied_field(null);
-      }, 2000);
+      copy_text_or_throw(emails.join(", "))
+        .then(() => {
+          set_copied_field("bulk-emails");
+          if (copy_timeout_ref.current) {
+            clearTimeout(copy_timeout_ref.current);
+          }
+          copy_timeout_ref.current = setTimeout(() => {
+            set_copied_field(null);
+          }, 2000);
+        })
+        .catch(() => show_toast(t("common.failed_to_copy"), "error"));
     }
   }, [contacts, selected_ids]);
 

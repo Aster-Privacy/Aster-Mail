@@ -18,12 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type ReactNode } from "react";
 import { Checkbox } from "@aster/ui";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
-import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
+import { ignore_error } from "@/lib/ignore_error";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -48,6 +48,8 @@ interface ConfirmationModalProps {
   show_dont_ask_again?: boolean;
   learn_more_url?: string;
   learn_more_label?: string;
+  extra_content?: ReactNode;
+  is_loading?: boolean;
 }
 
 const VARIANT_MAP: Record<ConfirmationVariant, "destructive" | "primary"> = {
@@ -71,6 +73,8 @@ export function ConfirmationModal({
   show_dont_ask_again = false,
   learn_more_url,
   learn_more_label,
+  extra_content,
+  is_loading = false,
 }: ConfirmationModalProps) {
   const { t } = use_i18n();
   const resolved_confirm_text = confirm_text ?? t("common.confirm");
@@ -80,6 +84,7 @@ export function ConfirmationModal({
   const [internal_open, set_internal_open] = useState(false);
   const closing_ref = useRef(false);
   const button_variant = VARIANT_MAP[variant];
+  const is_busy = is_saving || is_loading;
 
   useEffect(() => {
     if (is_open) {
@@ -118,6 +123,8 @@ export function ConfirmationModal({
       set_is_saving(true);
       try {
         await on_dont_ask_again();
+      } catch (err) {
+        ignore_error("confirmation_modal_dont_ask_again", err);
       } finally {
         set_is_saving(false);
       }
@@ -161,6 +168,8 @@ export function ConfirmationModal({
             )}
           </AlertDialogHeader>
 
+          {extra_content}
+
           {show_dont_ask_again && (
             <label
               className="inline-flex items-center gap-2 cursor-pointer select-none mt-5"
@@ -181,31 +190,23 @@ export function ConfirmationModal({
           )}
         </div>
 
-        <AlertDialogFooter className="flex-row gap-3 px-6 pb-6 pt-2 sm:justify-end">
+        <AlertDialogFooter className="flex-row flex-wrap gap-3 px-6 pb-6 pt-2 sm:justify-end">
           <Button
-            className="mt-0 max-sm:flex-1"
-            disabled={is_saving}
-            size="xl"
+            className="mt-0 whitespace-nowrap max-sm:flex-1"
+            disabled={is_busy}
             variant="outline"
             onClick={handle_cancel}
           >
             {resolved_cancel_text}
           </Button>
           <Button
-            className="max-sm:flex-1"
-            disabled={is_saving}
-            size="xl"
+            className="whitespace-nowrap max-sm:flex-1"
+            disabled={is_busy}
+            is_loading={is_busy}
             variant={button_variant}
             onClick={handle_confirm}
           >
-            {is_saving ? (
-              <>
-                {t("common.saving")}
-                <Spinner className="ml-2" size="md" />
-              </>
-            ) : (
-              resolved_confirm_text
-            )}
+            {resolved_confirm_text}
           </Button>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -19,20 +19,27 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EncryptedVault } from "../key_manager";
+
 import { hash_recovery_email } from "../key_manager";
+
 import { api_client } from "@/services/api/client";
-import type { } from "@/services/api/signatures";
-import type { } from "@/services/api/templates";
-import type { } from "@/services/api/blocked_senders";
-import type { } from "@/services/api/allowed_senders";
+import type {} from "@/services/api/signatures";
+import type {} from "@/services/api/templates";
+import type {} from "@/services/api/blocked_senders";
+import type {} from "@/services/api/allowed_senders";
 import {
   derive_preferences_key_raw,
   prepare_preferences_payload,
 } from "@/services/api/preferences";
+
 import { array_to_base64, base64_to_array } from "../base64";
 
-
-import { derive_hmac_key, identity_scoped_key_pair, re_encrypt_collection, re_encrypt_identity_scoped_setting } from "./key_helpers";
+import {
+  derive_hmac_key,
+  identity_scoped_key_pair,
+  re_encrypt_collection,
+  re_encrypt_identity_scoped_setting,
+} from "./key_helpers";
 export async function re_encrypt_preferences(
   old_identity_key: string,
   new_identity_key: string,
@@ -76,7 +83,8 @@ export async function re_encrypt_preferences(
       );
     } catch {
       if (old_identity_key === new_identity_key) return;
-      const current_key_raw = await derive_preferences_key_raw(new_identity_key);
+      const current_key_raw =
+        await derive_preferences_key_raw(new_identity_key);
       const current_key = await crypto.subtle.importKey(
         "raw",
         current_key_raw,
@@ -141,7 +149,11 @@ export async function re_encrypt_recovery_email(
   const email_text = new TextDecoder().decode(pt);
 
   const new_iv = crypto.getRandomValues(new Uint8Array(12));
-  const new_ct = await crypto.subtle.encrypt({ name: "AES-GCM", iv: new_iv }, new_key, pt);
+  const new_ct = await crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: new_iv },
+    new_key,
+    pt,
+  );
   const email_hash = await hash_recovery_email(email_text);
 
   await api_client.put("/core/v1/recovery/email", {
@@ -222,4 +234,3 @@ export async function re_encrypt_external_accounts(
     },
   );
 }
-

@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type ReactNode } from "react";
 import {
   ArrowTopRightOnSquareIcon,
   PlusIcon,
@@ -26,14 +26,24 @@ import {
   MagnifyingGlassIcon,
   PencilIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
-import { Checkbox } from "@aster/ui";
+import {
+  Button,
+  Checkbox,
+  Island,
+  IslandEmpty,
+  IslandIconButton,
+  IslandSection,
+  IslandSections,
+} from "@aster/ui";
 
-import { ForwardingRuleBuilder } from "./forwarding_rule_builder";
+import {
+  FIELD_KEYS,
+  ForwardingRuleBuilder,
+  OPERATOR_KEYS,
+} from "./forwarding_rule_builder";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
-import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   Modal,
@@ -57,7 +67,10 @@ import {
 } from "@/services/api/auto_forward";
 import { get_favicon_url } from "@/lib/favicon_url";
 import { show_toast } from "@/components/toast/simple_toast";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import { format_decimal } from "@/lib/utils";
 
 export function AutoForwardSection() {
   const { t } = use_i18n();
@@ -65,8 +78,12 @@ export function AutoForwardSection() {
   const [rules, set_rules] = useState<ForwardingRuleResponse[]>([]);
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
   const [is_loading, set_is_loading] = useState(true);
+  const [load_failed, set_load_failed] = useState(false);
   const [is_deleting, set_is_deleting] = useState(false);
   const [search_query, set_search_query] = useState("");
+  const [confirm_delete_rule, set_confirm_delete_rule] =
+    useState<ForwardingRuleResponse | null>(null);
+  const [confirm_bulk_delete, set_confirm_bulk_delete] = useState(false);
   const [show_builder, set_show_builder] = useState(false);
   const [editing_rule, set_editing_rule] =
     useState<ForwardingRuleResponse | null>(null);
@@ -91,7 +108,12 @@ export function AutoForwardSection() {
 
       if (result.data) {
         set_rules(result.data);
+        set_load_failed(false);
+      } else {
+        set_load_failed(true);
       }
+    } catch {
+      set_load_failed(true);
     } finally {
       set_is_loading(false);
     }
@@ -141,8 +163,28 @@ export function AutoForwardSection() {
     set_selected_ids,
   );
 
+  const existing_ids_key = rules.map((r) => r.id).join(",");
+
+  useEffect(() => {
+    const visible = new Set(
+      existing_ids_key ? existing_ids_key.split(",") : [],
+    );
+
+    set_selected_ids((prev) => {
+      if (prev.size === 0) return prev;
+
+      const next = new Set(Array.from(prev).filter((id) => visible.has(id)));
+
+      return next.size === prev.size ? prev : next;
+    });
+  }, [existing_ids_key]);
+
+  const all_filtered_selected =
+    filtered_rules.length > 0 &&
+    filtered_rules.every((r) => selected_ids.has(r.id));
+
   const handle_select_all = () => {
-    if (selected_ids.size === filtered_rules.length) {
+    if (all_filtered_selected) {
       set_selected_ids(new Set());
     } else {
       set_selected_ids(new Set(filtered_rules.map((r) => r.id)));
@@ -160,7 +202,11 @@ export function AutoForwardSection() {
           t("settings.removed_forwarding_rule", { name: rule.name }),
           "success",
         );
+      } else {
+        show_toast(t("common.delete_failed"), "error");
       }
+    } catch {
+      show_toast(t("common.delete_failed"), "error");
     } finally {
       set_is_deleting(false);
     }
@@ -175,15 +221,28 @@ export function AutoForwardSection() {
       const result = await bulk_delete_forwarding_rules(ids);
 
       if (result.data?.success) {
+        const deleted_count = result.data.deleted_count;
+
+        if (deleted_count < ids.length) {
+          set_selected_ids(new Set());
+          await fetch_rules();
+          show_toast(t("common.something_went_wrong_try_again"), "error");
+
+          return;
+        }
         set_rules((prev) => prev.filter((r) => !selected_ids.has(r.id)));
         show_toast(
           t("settings.removed_forwarding_rules_count", {
-            count: String(result.data.deleted_count),
+            count: deleted_count,
           }),
           "success",
         );
         set_selected_ids(new Set());
+      } else {
+        show_toast(t("common.delete_failed"), "error");
       }
+    } catch {
+      show_toast(t("common.delete_failed"), "error");
     } finally {
       set_is_deleting(false);
     }
@@ -215,7 +274,24 @@ export function AutoForwardSection() {
           r.id === rule.id ? { ...r, is_enabled: !new_enabled } : r,
         ),
       );
+      show_toast(t("common.failed_to_update_rule"), "error");
     }
+  };
+
+  const is_failing = (rule: ForwardingRuleResponse) =>
+    rule.is_enabled && Boolean(rule.last_error_code);
+
+  const failure_message = (rule: ForwardingRuleResponse) => {
+    const address = rule.last_error_address ?? rule.forward_to.join(", ");
+
+    if (rule.last_error_code === "encryption_required_no_key") {
+      return t("settings.forwarding_failed_encryption", { address });
+    }
+
+    return t("settings.forwarding_failed_generic", {
+      address,
+      error: rule.last_error ?? "",
+    });
   };
 
   const pending_destinations = (
@@ -237,12 +313,29 @@ export function AutoForwardSection() {
           "success",
         );
         fetch_rules();
-      } else if (result.error) {
-        show_toast(result.error, "error");
+      } else {
+        show_toast(
+          result.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
       }
     } finally {
       set_resending_address(null);
     }
+  };
+
+  const save_error_message = (result: {
+    error?: string;
+    server_code?: string;
+    details?: Record<string, unknown>;
+  }) => {
+    if (result.server_code === "FORWARDING_ENCRYPTION_KEY_MISSING") {
+      return t("settings.forwarding_failed_encryption", {
+        address: String(result.details?.address ?? ""),
+      });
+    }
+
+    return result.error || t("common.something_went_wrong_try_again");
   };
 
   const notify_saved = (rule: ForwardingRuleResponse, created: boolean) => {
@@ -255,14 +348,6 @@ export function AutoForwardSection() {
         }),
         "success",
       );
-
-      return;
-    }
-
-    const destinations = rule.destinations ?? [];
-
-    if (destinations.length > 0 && destinations.every((d) => d.is_internal)) {
-      show_toast(t("settings.forwarding_internal_active"), "success");
 
       return;
     }
@@ -298,8 +383,8 @@ export function AutoForwardSection() {
           );
           notify_saved(result.data, false);
           close_builder();
-        } else if (result.error) {
-          show_toast(result.error, "error");
+        } else {
+          show_toast(save_error_message(result), "error");
         }
       } else {
         const result = await create_forwarding_rule(
@@ -313,8 +398,8 @@ export function AutoForwardSection() {
           set_rules((prev) => [result.data!, ...prev]);
           notify_saved(result.data, true);
           close_builder();
-        } else if (result.error) {
-          show_toast(result.error, "error");
+        } else {
+          show_toast(save_error_message(result), "error");
         }
       }
     } finally {
@@ -328,14 +413,24 @@ export function AutoForwardSection() {
     }
 
     return conditions
-      .map((c) => `${c.field} ${c.operator.replace("_", " ")} "${c.value}"`)
-      .join(" AND ");
+      .map((c) => {
+        const field_key = FIELD_KEYS.find((opt) => opt.value === c.field)?.key;
+        const operator_key = OPERATOR_KEYS.find(
+          (opt) => opt.value === c.operator,
+        )?.key;
+
+        return `${field_key ? t(field_key) : c.field} ${
+          operator_key ? t(operator_key) : c.operator
+        } "${c.value}"`;
+      })
+      .join(` ${t("common.and")} `);
   };
 
   const format_date = (date_string: string) => {
     const date = new Date(date_string);
 
-    return date.toLocaleDateString(undefined, {
+    return date.toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -345,7 +440,9 @@ export function AutoForwardSection() {
   const format_count = (count: number): string => {
     if (count === 0) return "";
     if (count >= 1000)
-      return t("mail.forwarded_count_k", { count: (count / 1000).toFixed(1) });
+      return t("mail.forwarded_count_k", {
+        count: format_decimal(count / 1000, 1),
+      });
 
     return t("mail.forwarded_count", { count });
   };
@@ -372,59 +469,59 @@ export function AutoForwardSection() {
       is_locked={is_feature_locked("has_auto_forwarding")}
       min_plan="Star"
     >
-      <div className="space-y-4">
-        <div>
-          <div className="flex items-center justify-between">
-            <h3 className="text-base font-semibold text-txt-primary">
-              {t("settings.auto_forward_title")}
-            </h3>
-            <Button className="gap-2" onClick={() => open_builder()}>
+      <IslandSections>
+        <IslandSection
+          bare
+          description={t("settings.auto_forward_description")}
+          icon={<ArrowTopRightOnSquareIcon />}
+          title={t("settings.auto_forward_title")}
+          trailing={
+            <Button
+              className="gap-2"
+              variant="depth"
+              onClick={() => open_builder()}
+            >
               <PlusIcon className="w-4 h-4" />
               {t("settings.add_rule")}
             </Button>
-          </div>
-          <div className="mt-2 h-px bg-edge-secondary" />
-          <p className="text-sm mt-3 text-txt-muted">
-            {t("settings.auto_forward_description")}
-          </p>
-        </div>
-
-        <div className="flex items-center justify-between gap-3">
-          <div className="relative flex-1 max-w-xs">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
-            <Input
-              placeholder={t("common.search_forwarding_rules")}
-              size="md"
-              style={{ paddingLeft: "38px" }}
-              value={search_query}
-              onChange={(e) => set_search_query(e.target.value)}
-            />
-          </div>
-          {selected_ids.size > 0 && (
-            <Button
-              className="gap-2"
-              disabled={is_deleting}
-              size="md"
-              variant="destructive"
-              onClick={handle_bulk_delete}
-            >
-              {is_deleting ? (
-                <Spinner size="md" />
-              ) : (
+          }
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div className="relative flex-1 max-w-xs">
+              <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
+              <Input
+                className="aster_input_tonal"
+                placeholder={t("common.search_forwarding_rules")}
+                size="md"
+                style={{ paddingInlineStart: "38px" }}
+                value={search_query}
+                onChange={(e) => set_search_query(e.target.value)}
+              />
+            </div>
+            {selected_ids.size > 0 && (
+              <Button
+                className="gap-2"
+                disabled={is_deleting}
+                is_loading={is_deleting}
+                size="md"
+                variant="destructive"
+                onClick={() => set_confirm_bulk_delete(true)}
+              >
                 <TrashIcon className="w-4 h-4" />
-              )}
-              {t("common.remove")} ({selected_ids.size})
-            </Button>
-          )}
-        </div>
+                {t("common.remove")} ({selected_ids.size})
+              </Button>
+            )}
+          </div>
+        </IslandSection>
 
         <Modal
+          close_on_overlay={false}
           is_open={show_builder}
           on_close={close_builder}
           show_close_button={false}
           size="lg"
         >
-          <ModalHeader className="pr-6 pb-3">
+          <ModalHeader className="pe-6 pb-3">
             <ModalTitle className="text-[15px]">
               {editing_rule
                 ? t("settings.edit_forwarding_rule")
@@ -433,6 +530,7 @@ export function AutoForwardSection() {
           </ModalHeader>
           <ModalBody className="px-6 pb-6">
             <ForwardingRuleBuilder
+              key={editing_rule?.id ?? "new"}
               initial_conditions={editing_rule?.conditions}
               initial_forward_to={editing_rule?.forward_to}
               initial_keep_copy={editing_rule?.keep_copy}
@@ -444,44 +542,54 @@ export function AutoForwardSection() {
           </ModalBody>
         </Modal>
 
-        {rules.length === 0 ? (
-          <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-            <ArrowTopRightOnSquareIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
-            <p className="text-sm text-txt-muted">
-              {t("settings.no_forwarding_rules")}
-            </p>
-          </div>
+        {load_failed && rules.length === 0 ? (
+          <IslandEmpty
+            action={
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  set_is_loading(true);
+                  fetch_rules();
+                }}
+              >
+                {t("common.retry")}
+              </Button>
+            }
+            title={t("common.something_went_wrong_try_again")}
+          />
+        ) : rules.length === 0 ? (
+          <IslandEmpty
+            icon={<ArrowTopRightOnSquareIcon />}
+            title={t("settings.no_forwarding_rules")}
+          />
         ) : filtered_rules.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 rounded-lg border bg-surf-tertiary border-edge-secondary">
-            <MagnifyingGlassIcon className="w-6 h-6 mb-2 text-txt-muted" />
-            <p className="text-[14px] font-medium text-txt-primary">
-              {t("common.no_results")}
-            </p>
-            <p className="text-[13px] mt-1 text-txt-muted">
-              {t("settings.try_different_search")}
-            </p>
-          </div>
+          <IslandEmpty
+            description={t("settings.try_different_search")}
+            icon={<MagnifyingGlassIcon />}
+            title={t("common.no_results")}
+          />
         ) : (
-          <div className="rounded-lg overflow-hidden border border-edge-secondary">
-            <div className="flex items-center px-4 py-2 border-b border-edge-secondary">
+          <Island className="overflow-hidden">
+            <div className="flex items-center px-4 py-2.5 border-b border-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]">
               <Checkbox
-                checked={selected_ids.size === filtered_rules.length}
+                checked={all_filtered_selected}
                 onCheckedChange={handle_select_all}
               />
-              <span className="ml-3 text-xs font-medium text-txt-muted">
+              <span className="ms-3 text-xs font-medium text-txt-muted">
                 {t("settings.forwarding_rules_count", {
-                  count: String(filtered_rules.length),
+                  count: filtered_rules.length,
                 })}
               </span>
             </div>
             {filtered_rules.map((rule, index) => (
               <div
                 key={rule.id}
-                className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-surf-hover"
-                style={{
-                  borderTop:
-                    index > 0 ? "1px solid var(--border-secondary)" : "none",
-                }}
+                className={`flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[color-mix(in_srgb,var(--text-primary)_4%,transparent)] ${
+                  index > 0
+                    ? "border-t border-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]"
+                    : ""
+                }`}
               >
                 <Checkbox
                   checked={selected_ids.has(rule.id)}
@@ -492,8 +600,8 @@ export function AutoForwardSection() {
                   className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden"
                   style={{
                     backgroundColor: rule.is_enabled
-                      ? "var(--accent-blue-muted)"
-                      : "var(--bg-tertiary)",
+                      ? "color-mix(in srgb, var(--accent-color) 14%, transparent)"
+                      : "color-mix(in srgb, var(--text-primary) 7%, transparent)",
                   }}
                 >
                   {get_forward_favicon_url(rule.forward_to) ? (
@@ -513,7 +621,7 @@ export function AutoForwardSection() {
                     className={`w-4 h-4 ${get_forward_favicon_url(rule.forward_to) ? "hidden" : ""}`}
                     style={{
                       color: rule.is_enabled
-                        ? "var(--accent-blue)"
+                        ? "var(--accent-color)"
                         : "var(--text-muted)",
                     }}
                   />
@@ -524,40 +632,25 @@ export function AutoForwardSection() {
                     <span className="text-[13px] font-medium truncate text-txt-primary">
                       {rule.name}
                     </span>
-                    <span
-                      className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 font-medium"
-                      style={{
-                        backgroundColor: rule.is_enabled
-                          ? "#16a34a"
-                          : "#d97706",
-                        color: "#fff",
-                      }}
-                    >
+                    <StatusBadge tone={rule.is_enabled ? "success" : "warning"}>
                       {rule.is_enabled
                         ? t("common.active")
                         : t("common.paused")}
-                    </span>
+                    </StatusBadge>
                     {rule.keep_copy && (
-                      <span
-                        className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 font-medium"
-                        style={{
-                          backgroundColor: "var(--accent-color-hover)",
-                          color: "var(--accent-fg, #ffffff)",
-                        }}
-                      >
+                      <StatusBadge tone="neutral">
                         {t("settings.keeps_copy")}
-                      </span>
+                      </StatusBadge>
                     )}
                     {pending_destinations(rule).length > 0 && (
-                      <span
-                        className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 font-medium"
-                        style={{
-                          backgroundColor: "#d97706",
-                          color: "#fff",
-                        }}
-                      >
+                      <StatusBadge tone="warning">
                         {t("settings.forwarding_pending_verification")}
-                      </span>
+                      </StatusBadge>
+                    )}
+                    {is_failing(rule) && (
+                      <StatusBadge tone="danger">
+                        {t("settings.forwarding_failed_badge")}
+                      </StatusBadge>
                     )}
                   </div>
                   <p className="text-[12px] truncate text-txt-muted">
@@ -578,19 +671,30 @@ export function AutoForwardSection() {
                         <Button
                           key={destination.address}
                           disabled={resending_address === destination.address}
+                          is_loading={resending_address === destination.address}
                           size="sm"
-                          variant="secondary"
+                          variant="outline"
                           onClick={() =>
                             handle_resend(rule, destination.address)
                           }
                         >
-                          {resending_address === destination.address ? (
-                            <Spinner size="sm" />
-                          ) : (
-                            t("settings.resend_verification_email")
-                          )}
+                          {t("settings.resend_verification_email")}
                         </Button>
                       ))}
+                    </div>
+                  )}
+                  {is_failing(rule) && (
+                    <div className="mt-1">
+                      <p className="text-[11px] text-red-600 dark:text-red-500">
+                        {failure_message(rule)}
+                      </p>
+                      {(rule.failed_count ?? 0) > 0 && (
+                        <p className="text-[11px] text-txt-muted">
+                          {t("settings.forwarding_failed_count", {
+                            count: rule.failed_count ?? 0,
+                          })}
+                        </p>
+                      )}
                     </div>
                   )}
                   {(rule.forwarded_count > 0 || rule.last_forwarded_at) && (
@@ -603,37 +707,93 @@ export function AutoForwardSection() {
                 </div>
 
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-[11px] mr-1 text-txt-muted">
+                  <span className="text-[11px] me-1 text-txt-muted">
                     {format_date(rule.created_at)}
                   </span>
-                  <Button
-                    size="md"
-                    variant="secondary"
+                  <IslandIconButton
+                    label={t("common.edit")}
+                    size="sm"
                     onClick={() => open_builder(rule)}
                   >
-                    <PencilIcon className="w-3.5 h-3.5" />
-                  </Button>
+                    <PencilIcon className="w-4 h-4" />
+                  </IslandIconButton>
                   <Button
-                    size="md"
-                    variant="secondary"
+                    size="sm"
+                    variant="outline"
                     onClick={() => handle_toggle(rule)}
                   >
-                    {rule.is_enabled ? t("common.paused") : t("common.enable")}
+                    {rule.is_enabled ? t("common.disable") : t("common.enable")}
                   </Button>
                   <Button
                     disabled={is_deleting}
-                    size="md"
+                    size="sm"
                     variant="destructive"
-                    onClick={() => handle_delete(rule)}
+                    onClick={() => set_confirm_delete_rule(rule)}
                   >
                     {t("common.remove")}
                   </Button>
                 </div>
               </div>
             ))}
-          </div>
+          </Island>
         )}
-      </div>
+      </IslandSections>
+
+      <ConfirmationModal
+        confirm_text={t("common.remove")}
+        is_open={confirm_delete_rule !== null}
+        message={t("settings.delete_forwarding_rule_message")}
+        on_cancel={() => set_confirm_delete_rule(null)}
+        on_confirm={() => {
+          const target = confirm_delete_rule;
+
+          set_confirm_delete_rule(null);
+
+          if (target) void handle_delete(target);
+        }}
+        title={t("settings.delete_forwarding_rule_title")}
+        variant="danger"
+      />
+
+      <ConfirmationModal
+        confirm_text={t("common.remove")}
+        is_open={confirm_bulk_delete}
+        message={t("settings.delete_forwarding_rule_message")}
+        on_cancel={() => set_confirm_bulk_delete(false)}
+        on_confirm={() => {
+          set_confirm_bulk_delete(false);
+          void handle_bulk_delete();
+        }}
+        title={t("settings.delete_forwarding_rule_title")}
+        variant="danger"
+      />
     </UpgradeGate>
+  );
+}
+
+const STATUS_BADGE_TONES = {
+  success:
+    "bg-[color-mix(in_srgb,#16a34a_14%,transparent)] text-green-700 dark:text-green-400",
+  warning:
+    "bg-[color-mix(in_srgb,#d97706_14%,transparent)] text-amber-700 dark:text-amber-400",
+  danger:
+    "bg-[color-mix(in_srgb,#dc2626_14%,transparent)] text-red-700 dark:text-red-400",
+  neutral:
+    "bg-[color-mix(in_srgb,var(--text-primary)_7%,transparent)] text-txt-secondary",
+} as const;
+
+function StatusBadge({
+  tone,
+  children,
+}: {
+  tone: keyof typeof STATUS_BADGE_TONES;
+  children: ReactNode;
+}) {
+  return (
+    <span
+      className={`text-[11px] leading-4 px-2 py-0.5 rounded-full flex-shrink-0 font-medium ${STATUS_BADGE_TONES[tone]}`}
+    >
+      {children}
+    </span>
   );
 }

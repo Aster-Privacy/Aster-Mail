@@ -18,9 +18,23 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+const LOCK_NAME = "astermail_vault_write";
+
 let chain: Promise<unknown> = Promise.resolve();
 
-export function with_vault_write_lock<T>(fn: () => Promise<T>): Promise<T> {
+function cross_tab_locks(): LockManager | null {
+  try {
+    if (typeof navigator === "undefined") return null;
+
+    const manager = navigator.locks;
+
+    return typeof manager?.request === "function" ? manager : null;
+  } catch {
+    return null;
+  }
+}
+
+function with_tab_lock<T>(fn: () => Promise<T>): Promise<T> {
   const next = chain.then(fn, fn);
 
   chain = next.then(
@@ -29,4 +43,12 @@ export function with_vault_write_lock<T>(fn: () => Promise<T>): Promise<T> {
   );
 
   return next;
+}
+
+export function with_vault_write_lock<T>(fn: () => Promise<T>): Promise<T> {
+  const manager = cross_tab_locks();
+
+  if (!manager) return with_tab_lock(fn);
+
+  return with_tab_lock(() => manager.request(LOCK_NAME, fn));
 }

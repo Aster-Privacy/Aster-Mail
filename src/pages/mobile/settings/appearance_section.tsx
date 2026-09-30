@@ -30,17 +30,25 @@ import {
 
 import { SettingsGroup, SettingsHeader, OptionList } from "./shared";
 
-import { use_preferences } from "@/contexts/preferences_context";
+import { TimeZonePicker } from "@/components/settings/appearance/time_zone_picker";
+import { get_supported_time_zones } from "@/lib/time_zones";
 import {
-  build_theme_fields_update,
+  label_to_language_code,
+  use_preferences,
+} from "@/contexts/preferences_context";
+import {
+  build_theme_mode_update,
   get_effective_theme_fields,
 } from "@/lib/theme_sync";
 import { use_i18n } from "@/lib/i18n/context";
-import { get_display_name as _get_display_name } from "@/lib/i18n/languages";
+import {
+  get_native_label,
+  get_supported_languages,
+} from "@/lib/i18n/languages";
 import { useTheme } from "@/contexts/theme_context";
+import { explicit_language_preference } from "@/services/api/preferences";
 
 type LanguageCode = _LanguageCode;
-const get_display_name = _get_display_name;
 
 export function AppearanceSection({
   on_back,
@@ -78,9 +86,15 @@ export function AppearanceSection({
   ];
 
   const time_format_options: { value: "12h" | "24h"; label: string }[] = [
-    { value: "12h", label: "12-hour (1:30 PM)" },
-    { value: "24h", label: "24-hour (13:30)" },
+    { value: "12h", label: t("settings.time_format_12h") },
+    { value: "24h", label: t("settings.time_format_24h") },
   ];
+
+  const time_zone_value =
+    preferences.time_zone &&
+    get_supported_time_zones().includes(preferences.time_zone)
+      ? preferences.time_zone
+      : "auto";
 
   const date_format_options: { value: string; label: string }[] = [
     { value: "MM/DD/YYYY", label: "MM/DD/YYYY" },
@@ -88,22 +102,23 @@ export function AppearanceSection({
     { value: "YYYY-MM-DD", label: "YYYY-MM-DD" },
   ];
 
-  const language_entries: { code: LanguageCode; display: string }[] = [
-    { code: "en", display: get_display_name("en") },
-    { code: "es", display: get_display_name("es") },
-    { code: "fr", display: get_display_name("fr") },
-    { code: "de", display: get_display_name("de") },
-    { code: "pt", display: get_display_name("pt") },
-    { code: "ja", display: get_display_name("ja") },
-    { code: "ko", display: get_display_name("ko") },
-    { code: "zh-CN", display: get_display_name("zh-CN" as LanguageCode) },
-    { code: "ar", display: get_display_name("ar") },
-  ];
+  const language_entries: { code: LanguageCode; display: string }[] =
+    get_supported_languages().map((lang) => ({
+      code: lang.code as LanguageCode,
+      display: get_native_label(lang.code as LanguageCode),
+    }));
 
   const language_options = language_entries.map((l) => ({
     value: l.display,
     label: l.display,
   }));
+
+  const current_language_code = label_to_language_code(
+    preferences.language ?? "",
+  );
+  const current_language_display = current_language_code
+    ? get_native_label(current_language_code)
+    : preferences.language;
 
   return (
     <div className="flex h-full flex-col">
@@ -114,18 +129,16 @@ export function AppearanceSection({
       />
       <div className="flex-1 overflow-y-auto pb-8">
         <SettingsGroup title={t("settings.theme")}>
-          <div className="divide-y divide-[var(--border-primary)]">
+          <div>
             {theme_options.map((opt) => (
               <button
                 key={opt.value}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-[var(--mobile-bg-card-hover)]"
+                className="flex w-full items-center gap-3 px-4 py-3 text-start active:bg-[var(--mobile-bg-card-hover)]"
                 type="button"
                 onClick={() => {
                   set_theme_preference(opt.value);
                   update_preferences(
-                    build_theme_fields_update(preferences, {
-                      theme: opt.value,
-                    }),
+                    build_theme_mode_update(preferences, opt.value),
                     true,
                   );
                 }}
@@ -149,13 +162,17 @@ export function AppearanceSection({
         <SettingsGroup title={t("settings.language")}>
           <OptionList
             on_change={(v) => {
-              update_preference("language", v, true);
               const entry = language_entries.find((l) => l.display === v);
 
-              if (entry) set_language(entry.code as never);
+              if (!entry) return;
+              update_preferences(
+                explicit_language_preference(entry.code),
+                true,
+              );
+              set_language(entry.code);
             }}
             options={language_options}
-            value={preferences.language}
+            value={current_language_display}
           />
         </SettingsGroup>
 
@@ -173,6 +190,16 @@ export function AppearanceSection({
             options={date_format_options}
             value={preferences.date_format}
           />
+        </SettingsGroup>
+
+        <SettingsGroup title={t("settings.time_zone")}>
+          <div className="px-4 py-3">
+            <TimeZonePicker
+              on_change={(v) => update_preference("time_zone", v, true)}
+              use_24h={preferences.time_format === "24h"}
+              value={time_zone_value}
+            />
+          </div>
         </SettingsGroup>
       </div>
     </div>

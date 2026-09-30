@@ -23,7 +23,6 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -32,7 +31,8 @@ vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({
     children,
     onClick,
@@ -74,8 +74,8 @@ vi.mock("@/components/ui/input", () => ({
     onChange: (e: { target: { value: string } }) => void;
   }) => (
     <input
-      value={props.value}
       placeholder={props.placeholder}
+      value={props.value}
       onChange={(e) =>
         props.onChange({ target: { value: e.currentTarget.value } })
       }
@@ -123,6 +123,7 @@ function type_search(value: string) {
     window.HTMLInputElement.prototype,
     "value",
   )!.set!;
+
   act(() => {
     setter.call(input, value);
     input.dispatchEvent(new Event("input", { bubbles: true }));
@@ -138,6 +139,7 @@ describe("TemplateGalleryModal", () => {
   it("renders every template when open", () => {
     render({ is_open: true });
     const text = container.textContent ?? "";
+
     for (const tpl of RULE_TEMPLATES) {
       expect(text, tpl.id).toContain(tpl.name_key);
     }
@@ -147,6 +149,7 @@ describe("TemplateGalleryModal", () => {
     render({ is_open: true });
     type_search("social");
     const text = container.textContent ?? "";
+
     expect(text).toContain("mail_rules.tpl_social_name");
     expect(text).not.toContain("mail_rules.tpl_newsletters_name");
   });
@@ -159,10 +162,12 @@ describe("TemplateGalleryModal", () => {
 
   it("calls on_select with the chosen template", () => {
     const on_select = vi.fn();
+
     render({ is_open: true, on_select });
     const card = Array.from(container.querySelectorAll("button")).find((b) =>
       (b.textContent ?? "").includes("mail_rules.tpl_newsletters_name"),
     ) as HTMLButtonElement;
+
     expect(card).toBeTruthy();
     act(() => card.dispatchEvent(new MouseEvent("click", { bubbles: true })));
     expect(on_select).toHaveBeenCalledTimes(1);

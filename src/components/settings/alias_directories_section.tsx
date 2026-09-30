@@ -20,7 +20,16 @@
 //
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FolderIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { Button, Switch } from "@aster/ui";
+import {
+  Button,
+  Input,
+  Island,
+  IslandEmpty,
+  IslandRow,
+  IslandSection,
+  IslandSections,
+  Switch,
+} from "@aster/ui";
 
 import {
   Select,
@@ -43,8 +52,15 @@ import { list_domains } from "@/services/api/domains";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 import { RecentlyDeletedDirectoriesSection } from "@/components/settings/aliases/recently_deleted_directories_section";
 import { show_toast } from "@/components/toast/simple_toast";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { ignore_error } from "@/lib/ignore_error";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  PREMIUM_ALIAS_DOMAINS,
+  plan_allows_premium_alias_domains,
+} from "@/components/settings/billing/billing_constants";
 import { LockedFeature } from "@/components/settings/aliases/feature_lock";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
 import {
@@ -52,35 +68,54 @@ import {
   type TurnstileWidgetRef,
   TURNSTILE_SITE_KEY,
 } from "@/components/auth/turnstile_widget";
+import { is_composing } from "@/utils/ime";
+import { apply_input_transform } from "@/utils/input_transform";
 
-const INPUT_CLASS =
-  "flex-1 min-w-[180px] h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none";
+const INPUT_CLASS = "w-auto flex-1 min-w-[180px]";
 
 export function AliasDirectoriesSection() {
   const { t } = use_i18n();
-  const { is_feature_locked, is_loading: limits_loading } = use_plan_limits();
+  const {
+    is_feature_locked,
+    is_loading: limits_loading,
+    limits,
+  } = use_plan_limits();
+  const premium_domains_allowed = plan_allows_premium_alias_domains(
+    limits?.plan_code,
+  );
   const locked = is_feature_locked("max_alias_directories");
   const [directories, set_directories] = useState<DecryptedAliasDirectory[]>(
     [],
   );
   const [loading, set_loading] = useState(true);
+  const [load_error, set_load_error] = useState(false);
   const [directory_key, set_directory_key] = useState("");
   const [domain, set_domain] = useState<string>(DIRECTORY_DOMAINS[0]);
   const [custom_domains, set_custom_domains] = useState<string[]>([]);
-  const [separator, set_separator] = useState<"." | "/" | "+" | "#">(".");
   const [busy, set_busy] = useState(false);
   const [checking_availability, set_checking_availability] = useState(false);
   const [is_available, set_is_available] = useState<boolean | null>(null);
+  const availability_request_ref = useRef(0);
   const availability_timeout_ref = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
   const [captcha_token, set_captcha_token] = useState<string | null>(null);
   const [trash_refresh, set_trash_refresh] = useState(0);
+  const [confirm_delete_id, set_confirm_delete_id] = useState<string | null>(
+    null,
+  );
+
+  const directory_pending_delete = directories.find(
+    (d) => d.id === confirm_delete_id,
+  );
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
   const turnstile_required = !!TURNSTILE_SITE_KEY;
 
+  const loaded_once_ref = useRef(false);
+
   const load = useCallback(async () => {
-    set_loading(true);
+    if (!loaded_once_ref.current) set_loading(true);
+    set_load_error(false);
     try {
       const response = await list_alias_directories();
 
@@ -92,10 +127,14 @@ export function AliasDirectoriesSection() {
         );
 
         set_directories(decrypted);
+      } else {
+        set_load_error(true);
       }
     } catch {
+      set_load_error(true);
       set_directories([]);
     } finally {
+      loaded_once_ref.current = true;
       set_loading(false);
     }
   }, [t]);
@@ -118,7 +157,7 @@ export function AliasDirectoriesSection() {
         if (response.data) {
           set_custom_domains(
             response.data.domains
-              .filter((d) => d.status === "active")
+              .filter((d) => d.status === "active" && !d.is_shared)
               .map((d) => d.domain_name),
           );
         }
@@ -143,9 +182,13 @@ export function AliasDirectoriesSection() {
     }
 
     set_checking_availability(true);
+    const request_id = ++availability_request_ref.current;
+
     availability_timeout_ref.current = setTimeout(async () => {
       try {
         const response = await check_directory_availability(key, domain);
+
+        if (request_id !== availability_request_ref.current) return;
 
         if (response.data) {
           set_is_available(response.data.available);
@@ -153,9 +196,12 @@ export function AliasDirectoriesSection() {
           set_is_available(null);
         }
       } catch {
+        if (request_id !== availability_request_ref.current) return;
         set_is_available(null);
       } finally {
-        set_checking_availability(false);
+        if (request_id === availability_request_ref.current) {
+          set_checking_availability(false);
+        }
       }
     }, 500);
 
@@ -167,7 +213,9 @@ export function AliasDirectoriesSection() {
   }, [directory_key, domain]);
 
   const handle_create = async () => {
-    if (locked || !directory_key.trim()) return;
+    if (locked || busy || !directory_key.trim() || is_available === false) {
+      return;
+    }
     if (turnstile_required && !captcha_token) return;
     set_busy(true);
     try {
@@ -183,13 +231,24 @@ export function AliasDirectoriesSection() {
       turnstile_ref.current?.reset();
 
       if (response.error) {
-        show_toast(t("settings.alias_directory_create_failed"), "error");
+        show_toast(
+          response.error || t("settings.alias_directory_create_failed"),
+          "error",
+        );
       } else {
         set_directory_key("");
         set_is_available(null);
         show_toast(t("settings.alias_directory_created"), "success");
         await load();
       }
+    } catch (caught) {
+      set_captcha_token(null);
+      turnstile_ref.current?.reset();
+      ignore_error(
+        "components/settings/alias_directories_section:handle_create",
+        caught,
+      );
+      show_toast(t("settings.alias_directory_create_failed"), "error");
     } finally {
       set_busy(false);
     }
@@ -238,176 +297,197 @@ export function AliasDirectoriesSection() {
   }
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-2">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <FolderIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.alias_directories_title")}
-            <InfoHint
-              tip={t("settings.alias_directories_info")}
-              title={t("settings.alias_directories_title")}
-            />
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-        <p className="text-sm mb-3 text-txt-muted">
-          {t("settings.alias_directories_description")}
-        </p>
-      </div>
-
-      <LockedFeature
-        feature="max_alias_directories"
-        locked={locked}
-        message={t("settings.alias_feature_locked_directories")}
-      >
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm text-txt-muted">@</span>
-              <input
-                className={INPUT_CLASS}
-                placeholder={t("settings.alias_directory_key_placeholder")}
-                value={directory_key}
-                onChange={(e) =>
-                  set_directory_key(
-                    e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""),
-                  )
-                }
-                onKeyDown={(e) => e["key"] === "Enter" && handle_create()}
-              />
-              <Select value={domain} onValueChange={set_domain}>
-                <SelectTrigger className="h-10 w-44 shrink-0 bg-transparent">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {[...DIRECTORY_DOMAINS, ...custom_domains].map((d) => (
-                    <SelectItem key={d} value={d}>
-                      @{d}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select
-                value={separator}
-                onValueChange={(v) => set_separator(v as "." | "/" | "+" | "#")}
-              >
-                <SelectTrigger className="h-10 w-28 shrink-0 bg-transparent">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value=".">. (dot)</SelectItem>
-                  <SelectItem value="/">/ (slash)</SelectItem>
-                  <SelectItem value="+">+ (plus)</SelectItem>
-                  <SelectItem value="#"># (hash)</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button
-                disabled={
-                  busy ||
-                  !directory_key.trim() ||
-                  is_available === false ||
-                  (turnstile_required && !captcha_token)
-                }
-                size="xl"
-                variant="depth"
-                onClick={handle_create}
-              >
-                <PlusIcon className="w-4 h-4" />
-                {t("settings.alias_directory_create")}
-              </Button>
-            </div>
-            {directory_key.trim() && (
-              <p className="text-xs text-txt-muted pl-5">
-                anything{separator}
-                {directory_key}@{domain}
-              </p>
-            )}
-            {directory_key.trim() && checking_availability && (
-              <p className="text-xs text-txt-muted pl-5">
-                {t("settings.checking_availability")}
-              </p>
-            )}
-            {directory_key.trim() &&
-              !checking_availability &&
-              is_available === true && (
-                <p className="text-xs text-green-500 pl-5">
-                  {t("settings.alias_directory_available")}
-                </p>
-              )}
-            {directory_key.trim() &&
-              !checking_availability &&
-              is_available === false && (
-                <p className="text-xs text-red-500 pl-5">
-                  {t("settings.alias_directory_not_available")}
-                </p>
-              )}
-            {turnstile_required && directory_key.trim() && (
-              <TurnstileWidget
-                ref={turnstile_ref}
-                on_expire={() => set_captcha_token(null)}
-                on_verify={set_captcha_token}
-              />
-            )}
-          </div>
-
-          {directories.length === 0 ? (
-            <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-              <FolderIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
-              <p className="text-sm text-txt-muted">
-                {t("settings.alias_directories_empty")}
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {directories.map((directory) => (
-                <div
-                  key={directory.id}
-                  className="flex items-center gap-3 px-4 py-3 rounded-lg bg-surf-tertiary border border-edge-secondary"
-                >
-                  <div className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 bg-surf-secondary border border-edge-secondary">
-                    <FolderIcon className="w-4 h-4 text-txt-muted" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate text-txt-primary">
-                      anything.{directory.label}@{directory.domain}
-                    </p>
-                    <p className="text-xs text-txt-muted">
-                      {t("settings.alias_directory_pattern_hint", {
-                        key: directory.label,
-                        domain: directory.domain,
-                      })}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <label className="flex items-center gap-1.5 text-xs text-txt-muted">
-                      {t("settings.alias_directory_auto_create")}
-                      <Switch
-                        checked={directory.auto_create_enabled}
-                        size="lg"
-                        onCheckedChange={() => handle_toggle(directory)}
-                      />
-                    </label>
-                    <Button
-                      className="h-8 w-8 text-red-500 hover:text-red-500 hover:bg-red-500/10"
-                      size="icon"
-                      variant="ghost"
-                      onClick={() => handle_delete(directory.id)}
-                    >
-                      <TrashIcon className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <RecentlyDeletedDirectoriesSection
-            on_restored={load}
-            refresh_signal={trash_refresh}
+    <IslandSections>
+      <IslandSection
+        bare
+        description={t("settings.alias_directories_description")}
+        icon={<FolderIcon />}
+        title={t("settings.alias_directories_title")}
+        title_info={
+          <InfoHint
+            tip={t("settings.alias_directories_info")}
+            title={t("settings.alias_directories_title")}
           />
-        </div>
-      </LockedFeature>
-    </div>
+        }
+      >
+        <LockedFeature
+          feature="max_alias_directories"
+          locked={locked}
+          message={t("settings.alias_feature_locked_directories")}
+        >
+          <div className="space-y-2">
+            <Island className="space-y-2" padding="md">
+              <div className="flex flex-wrap items-center gap-2">
+                <Input
+                  className={INPUT_CLASS}
+                  placeholder={t("settings.alias_directory_key_placeholder")}
+                  size="md"
+                  value={directory_key}
+                  onChange={(e) =>
+                    set_directory_key(
+                      apply_input_transform(e.target, (v) =>
+                        v.toLowerCase().replace(/[^a-z0-9-]/g, ""),
+                      ),
+                    )
+                  }
+                  onKeyDown={(e) =>
+                    e["key"] === "Enter" && !is_composing(e) && handle_create()
+                  }
+                />
+                <Select value={domain} onValueChange={set_domain}>
+                  <SelectTrigger className="h-9 w-44 shrink-0">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[
+                      ...new Set([
+                        ...DIRECTORY_DOMAINS,
+                        ...(premium_domains_allowed
+                          ? PREMIUM_ALIAS_DOMAINS
+                          : []),
+                        ...custom_domains,
+                      ]),
+                    ].map((d) => (
+                      <SelectItem key={d} value={d}>
+                        @{d}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button
+                  disabled={
+                    busy ||
+                    !directory_key.trim() ||
+                    is_available === false ||
+                    (turnstile_required && !captcha_token)
+                  }
+                  size="lg"
+                  variant="primary"
+                  onClick={handle_create}
+                >
+                  <PlusIcon className="w-4 h-4" />
+                  {t("settings.alias_directory_create")}
+                </Button>
+              </div>
+              {directory_key.trim() && (
+                <>
+                  <p className="text-xs text-txt-muted ps-1">
+                    anything.{directory_key}@{domain}
+                  </p>
+                  <p className="text-xs text-txt-muted ps-1">
+                    {t("settings.alias_directory_separator_hint")}
+                  </p>
+                </>
+              )}
+              {directory_key.trim() && checking_availability && (
+                <p className="text-xs text-txt-muted ps-1">
+                  {t("settings.checking_availability")}
+                </p>
+              )}
+              {directory_key.trim() &&
+                !checking_availability &&
+                is_available === true && (
+                  <p className="text-xs text-green-500 ps-1">
+                    {t("settings.alias_directory_available")}
+                  </p>
+                )}
+              {directory_key.trim() &&
+                !checking_availability &&
+                is_available === false && (
+                  <p className="text-xs text-red-500 ps-1">
+                    {t("settings.alias_directory_not_available")}
+                  </p>
+                )}
+              {turnstile_required && directory_key.trim() && (
+                <TurnstileWidget
+                  ref={turnstile_ref}
+                  on_expire={() => set_captcha_token(null)}
+                  on_verify={set_captcha_token}
+                />
+              )}
+            </Island>
+
+            {load_error ? (
+              <LoadFailedNotice on_retry={() => load()} />
+            ) : directories.length === 0 ? (
+              <IslandEmpty
+                icon={<FolderIcon className="w-6 h-6" />}
+                title={t("settings.alias_directories_empty")}
+              />
+            ) : (
+              <Island divided>
+                {directories.map((directory) => (
+                  <IslandRow
+                    key={directory.id}
+                    description={t("settings.alias_directory_pattern_hint", {
+                      key: directory.label,
+                      domain: directory.domain,
+                    })}
+                    icon={<FolderIcon />}
+                    label={
+                      <span className="block truncate">
+                        anything.{directory.label}@{directory.domain}
+                      </span>
+                    }
+                    layout="stacked"
+                    trailing={
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className="flex items-center gap-1.5 text-xs text-txt-muted">
+                          {t("settings.alias_directory_auto_create")}
+                          <Switch
+                            aria-label={t(
+                              "settings.alias_directory_auto_create",
+                            )}
+                            checked={directory.auto_create_enabled}
+                            size="lg"
+                            onCheckedChange={() => handle_toggle(directory)}
+                          />
+                        </span>
+                        <Button
+                          aria-label={t("common.delete")}
+                          className="h-8 w-8 text-red-500 hover:text-red-500 hover:bg-red-500/10"
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => set_confirm_delete_id(directory.id)}
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    }
+                  />
+                ))}
+              </Island>
+            )}
+
+            <RecentlyDeletedDirectoriesSection
+              on_restored={load}
+              refresh_signal={trash_refresh}
+            />
+
+            <ConfirmationModal
+              confirm_text={t("common.delete")}
+              is_open={confirm_delete_id !== null}
+              message={
+                directory_pending_delete
+                  ? t("settings.alias_directory_delete_message", {
+                      address: `anything.${directory_pending_delete.label}@${directory_pending_delete.domain}`,
+                    })
+                  : t("common.action_cannot_be_undone")
+              }
+              on_cancel={() => set_confirm_delete_id(null)}
+              on_confirm={() => {
+                const target = confirm_delete_id;
+
+                set_confirm_delete_id(null);
+
+                if (target) void handle_delete(target);
+              }}
+              title={t("settings.alias_directory_delete_title")}
+              variant="danger"
+            />
+          </div>
+        </LockedFeature>
+      </IslandSection>
+    </IslandSections>
   );
 }

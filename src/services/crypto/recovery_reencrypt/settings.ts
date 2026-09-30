@@ -18,12 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "../key_manager";
-import { api_client } from "@/services/api/client";
+import type {} from "../key_manager";
 import type { Signature } from "@/services/api/signatures";
 import type { Template } from "@/services/api/templates";
 import type { BlockedSenderResponse } from "@/services/api/blocked_senders";
 import type { AllowedSenderResponse } from "@/services/api/allowed_senders";
+
+import { base64_to_array } from "../base64";
+
+import { re_encrypt_collection } from "./key_helpers";
+
 import {
   block_sender,
   bulk_unblock_senders_by_tokens,
@@ -37,10 +41,7 @@ import {
   list_recent_recipients,
   save_recent_recipients,
 } from "@/services/api/recent_recipients";
-import {  base64_to_array } from "../base64";
-
-
-import { re_encrypt_collection } from "./key_helpers";
+import { api_client } from "@/services/api/client";
 export async function re_encrypt_signatures(
   old_aes: CryptoKey,
   new_aes: CryptoKey,
@@ -252,4 +253,3 @@ export async function re_encrypt_recent_recipients(
 
   return ok;
 }
-

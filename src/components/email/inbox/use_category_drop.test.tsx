@@ -43,9 +43,10 @@ const undecryptable_result: CategoryWriteResult = {
   undecryptable: true,
 };
 
-const set_message_category = vi.fn<
-  (email: InboxEmail, category: EmailCategory) => Promise<CategoryWriteResult>
->();
+const set_message_category =
+  vi.fn<
+    (email: InboxEmail, category: EmailCategory) => Promise<CategoryWriteResult>
+  >();
 const upsert_entries = vi.fn();
 const note_recent_pin = vi.fn();
 const clear_recent_pin = vi.fn();
@@ -58,6 +59,7 @@ vi.mock("@/services/category_index", () => ({
   note_recent_pin: (...args: unknown[]) => note_recent_pin(...args),
   clear_recent_pin: (...args: unknown[]) => clear_recent_pin(...args),
   get_index_entries: (ids: string[]) => get_index_entries(ids),
+  fold_to_active_tab: (raw?: EmailCategory) => raw ?? "primary",
 }));
 
 const show_action_toast = vi.fn();
@@ -74,9 +76,11 @@ vi.mock("@/components/toast/simple_toast", () => ({
 const { use_category_drop } = await import(
   "@/components/email/inbox/use_category_drop"
 );
+const { reset_sender_rule_state } = await import(
+  "@/components/email/inbox/category_sender_rule"
+);
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -149,6 +153,7 @@ beforeEach(() => {
   get_index_entries.mockReturnValue([]);
   show_action_toast.mockClear();
   show_toast.mockClear();
+  reset_sender_rule_state();
 });
 
 afterEach(() => {
@@ -250,6 +255,23 @@ describe("use_category_drop", () => {
     expect(show_action_toast).not.toHaveBeenCalled();
   });
 
+  it("offers a sender rule only after the same sender repeats", async () => {
+    set_message_category.mockResolvedValue(applied_result);
+
+    const harness = mount([email("a", "primary"), email("b", "primary")]);
+
+    await act(async () => {
+      await harness.drop("promotions", ["a"]);
+    });
+    expect(show_toast).not.toHaveBeenCalled();
+
+    await act(async () => {
+      await harness.drop("promotions", ["b"]);
+    });
+    expect(show_toast).toHaveBeenCalledTimes(1);
+    expect(show_toast.mock.calls[0]![0]).toBe("mail.sender_rule_offer");
+  });
+
   it("rolls back only the failures and warns on a partial move", async () => {
     set_message_category.mockImplementation(async (item) =>
       item.id === "b" ? rejected_result : applied_result,
@@ -266,11 +288,12 @@ describe("use_category_drop", () => {
       { id: "b", category: "promotions" },
       { id: "b", category: "primary" },
     ]);
-    expect(show_toast).toHaveBeenCalledWith(
-      "common.bulk_action_partially_applied",
-      "warning",
-    );
-    expect(show_action_toast).not.toHaveBeenCalled();
+    expect(show_action_toast).toHaveBeenCalledTimes(1);
+    expect(show_action_toast.mock.calls[0]![0]).toMatchObject({
+      message: "common.bulk_action_partially_applied",
+      email_ids: ["a"],
+    });
+    expect(show_toast).not.toHaveBeenCalled();
   });
 
   it("keeps both changes when a second drop lands while the first is in flight", async () => {
@@ -331,7 +354,8 @@ describe("use_category_drop", () => {
       await harness.drop("promotions", ["a"]);
     });
 
-    const undo = show_action_toast.mock.calls[0]![0].on_undo as () => Promise<void>;
+    const undo = show_action_toast.mock.calls[0]![0]
+      .on_undo as () => Promise<void>;
 
     harness.updates.length = 0;
     set_message_category.mockClear();

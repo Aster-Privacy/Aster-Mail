@@ -24,16 +24,29 @@ export interface VanguardStatusResponse {
   enabled: boolean;
 }
 
-export async function get_vanguard_status(): Promise<ApiResponse<VanguardStatusResponse>> {
-  return api_client.get<VanguardStatusResponse>("/core/v1/security/vanguard", { cache_ttl: 0 });
+export async function get_vanguard_status(): Promise<
+  ApiResponse<VanguardStatusResponse>
+> {
+  return api_client.get<VanguardStatusResponse>("/core/v1/security/vanguard", {
+    cache_ttl: 0,
+  });
 }
 
-export async function enable_vanguard(): Promise<ApiResponse<VanguardStatusResponse>> {
-  return api_client.post<VanguardStatusResponse>("/core/v1/security/vanguard/enable", {});
+export async function enable_vanguard(): Promise<
+  ApiResponse<VanguardStatusResponse>
+> {
+  return api_client.post<VanguardStatusResponse>(
+    "/core/v1/security/vanguard/enable",
+    {},
+  );
 }
 
-export async function disable_vanguard(): Promise<ApiResponse<VanguardStatusResponse>> {
-  return api_client.delete<VanguardStatusResponse>("/core/v1/security/vanguard/disable");
+export async function disable_vanguard(): Promise<
+  ApiResponse<VanguardStatusResponse>
+> {
+  return api_client.delete<VanguardStatusResponse>(
+    "/core/v1/security/vanguard/disable",
+  );
 }
 
 export interface VerifyCredentialsRequest {

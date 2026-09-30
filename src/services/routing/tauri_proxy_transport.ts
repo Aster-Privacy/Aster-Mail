@@ -39,6 +39,7 @@ export async function tauri_proxy_fetch(
 
   if (options.headers) {
     const h = new Headers(options.headers);
+
     h.forEach((v, k) => {
       headers_map[k] = v;
     });
@@ -46,9 +47,11 @@ export async function tauri_proxy_fetch(
 
   const body = (() => {
     const b = options.body;
+
     if (b == null) return null;
     if (typeof b === "string") return b;
     if (b instanceof URLSearchParams) return b.toString();
+
     return String(b);
   })();
 
@@ -60,15 +63,27 @@ export async function tauri_proxy_fetch(
   });
 
   let bytes: Uint8Array;
+
   try {
-    bytes = result.body
-      ? Uint8Array.from(atob(result.body), (c) => c.charCodeAt(0))
-      : new Uint8Array(0);
+    if (result.body) {
+      const binary = atob(result.body);
+      const decoded = new Uint8Array(binary.length);
+
+      for (let index = 0; index < binary.length; index += 1) {
+        decoded[index] = binary.charCodeAt(index);
+      }
+      bytes = decoded;
+    } else {
+      bytes = new Uint8Array(0);
+    }
   } catch {
     return new Response(null, { status: 500 });
   }
 
-  return new Response(bytes, {
+  const body_forbidden =
+    result.status === 204 || result.status === 205 || result.status === 304;
+
+  return new Response(body_forbidden ? null : bytes, {
     status: result.status,
     headers: result.headers,
   });

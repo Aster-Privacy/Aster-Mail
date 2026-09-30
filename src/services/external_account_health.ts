@@ -22,7 +22,7 @@ import {
   check_account_health,
   type ExternalAccountHealthStatus,
 } from "@/services/api/external_accounts";
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { is_low_network } from "@/services/low_network_state";
 
 export type HealthErrorType =
@@ -126,7 +126,7 @@ const SERVER_ERROR_PATTERNS = [
 
 function sanitize_error_message(message: string): string {
   if (!message) {
-    return en.errors.unknown_error;
+    return get_active_translations().errors.unknown_error;
   }
 
   const truncated =
@@ -212,7 +212,10 @@ class ExternalAccountHealthMonitor {
 
   private schedule_poll(): void {
     if (this.destroyed) return;
-    const interval = is_low_network() ? LOW_NETWORK_POLL_INTERVAL_MS : POLL_INTERVAL_MS;
+    const interval = is_low_network()
+      ? LOW_NETWORK_POLL_INTERVAL_MS
+      : POLL_INTERVAL_MS;
+
     this.poll_timer = setTimeout(() => {
       if (this.destroyed) return;
       if (!is_low_network()) {
@@ -359,7 +362,7 @@ class ExternalAccountHealthMonitor {
       }
 
       const error_message = sanitize_error_message(
-        response.error || en.errors.health_check_failed,
+        response.error || get_active_translations().errors.health_check_failed,
       );
       const error_type = this.classify_error(error_message);
       const new_consecutive_failures = base_failures + 1;
@@ -419,7 +422,9 @@ class ExternalAccountHealthMonitor {
         : current_state.consecutive_failures;
 
       const error_message = sanitize_error_message(
-        err instanceof Error ? err.message : en.errors.unexpected_health_check_error,
+        err instanceof Error
+          ? err.message
+          : get_active_translations().errors.unexpected_health_check_error,
       );
       const error_type = this.classify_error(error_message);
       const new_consecutive_failures = base_failures_catch + 1;

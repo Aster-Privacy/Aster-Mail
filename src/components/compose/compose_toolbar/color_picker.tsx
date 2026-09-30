@@ -18,23 +18,34 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
-import type { } from "@/components/compose/compose_shared";
+import type {} from "@/lib/i18n/types";
+import type {} from "@/components/compose/compose_shared";
 
-import {
-  useId,
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-} from "react";
+import { useId, useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+import { Tooltip } from "@aster/ui";
+
+import { PRESET_COLORS, use_anchored_layer } from "./shared";
 
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 
-import { PRESET_COLORS, use_anchored_layer } from "./shared";
+function normalize_hex_color(value: string): string | null {
+  const trimmed = value.trim().toLowerCase().replace(/^#/, "");
+
+  if (/^[0-9a-f]{3}$/.test(trimmed)) {
+    const [r, g, b] = trimmed;
+
+    return `#${r}${r}${g}${g}${b}${b}`;
+  }
+
+  if (/^[0-9a-f]{6}$/.test(trimmed)) {
+    return `#${trimmed}`;
+  }
+
+  return null;
+}
 
 export function ColorPickerPopover({
   font_color,
@@ -56,6 +67,7 @@ export function ColorPickerPopover({
   const [custom_hex, set_custom_hex] = useState("#000000");
   const button_ref = useRef<HTMLButtonElement>(null);
   const dropdown_ref = useRef<HTMLDivElement>(null);
+  const hex_input_ref = useRef<HTMLInputElement>(null);
   const panel_id = useId();
 
   useEffect(() => {
@@ -90,8 +102,7 @@ export function ColorPickerPopover({
   use_anchored_layer(
     open,
     button_ref,
-    (rect) =>
-      set_pos({ top: rect.top, center_x: rect.left + rect.width / 2 }),
+    (rect) => set_pos({ top: rect.top, center_x: rect.left + rect.width / 2 }),
     close_popover,
   );
 
@@ -107,48 +118,55 @@ export function ColorPickerPopover({
 
   return (
     <div>
-      <button
-        ref={button_ref}
-        aria-controls={open ? panel_id : undefined}
-        aria-expanded={open}
-        aria-haspopup="dialog"
-        className="press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"
-        title={t("mail.font_color")}
-        type="button"
-        onClick={() => {
-          if (!open) {
-            on_before_open?.();
-          }
-          set_open(!open);
-        }}
-        onMouseDown={(e) => e.preventDefault()}
-      >
-        <div className="w-4 h-4 flex flex-col items-center justify-end">
-          <svg className="w-4 h-3.5" fill="currentColor" viewBox="0 0 24 20">
-            <path d="M11 2L5.5 16h2.25l1.12-3h6.25l1.12 3h2.25L13 2h-2zm-1.38 9L12 4.67 14.38 11H9.62z" />
-          </svg>
-          <div
-            className="w-full h-[3px] rounded-sm"
-            style={{ backgroundColor: font_color || "#000000" }}
-          />
-        </div>
-      </button>
+      <Tooltip position="top" tip={t("mail.font_color")}>
+        <button
+          ref={button_ref}
+          aria-controls={open ? panel_id : undefined}
+          aria-expanded={open}
+          aria-haspopup="dialog"
+          aria-label={t("mail.font_color")}
+          className="press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary"
+          type="button"
+          onClick={() => {
+            if (!open) {
+              on_before_open?.();
+            }
+            set_open(!open);
+          }}
+          onMouseDown={(e) => e.preventDefault()}
+        >
+          <div className="w-4 h-4 flex flex-col items-center justify-end">
+            <svg className="w-4 h-3.5" fill="currentColor" viewBox="0 0 24 20">
+              <path d="M11 2L5.5 16h2.25l1.12-3h6.25l1.12 3h2.25L13 2h-2zm-1.38 9L12 4.67 14.38 11H9.62z" />
+            </svg>
+            <div
+              className="w-full h-[3px] rounded-sm"
+              style={{ backgroundColor: font_color || "#000000" }}
+            />
+          </div>
+        </button>
+      </Tooltip>
       {createPortal(
         open && (
           <div
             ref={dropdown_ref}
-            className="fixed -translate-x-1/2 rounded-2xl shadow-lg border w-[280px] bg-modal-bg border-edge-primary"
+            className="aster_floating aster_floating_anim fixed -translate-x-1/2 w-[280px]"
+            data-state="open"
             id={panel_id}
             style={{
               zIndex: 9999,
-              left: pos.center_x,
+              left: Math.min(
+                Math.max(pos.center_x, 148),
+                Math.max(148, window.innerWidth - 148),
+              ),
               bottom: window.innerHeight - pos.top + 8,
             }}
           >
             <div className="p-2 pb-0">
-              <div className="flex gap-1 p-1 rounded-full bg-black/5 dark:bg-white/5">
+              <div className="aster_segmented" role="group">
                 <button
-                  className={`flex-1 flex items-center justify-center gap-1.5 h-7 text-xs whitespace-nowrap cursor-pointer rounded-full transition-colors duration-150 ${mode === "text" ? "bg-modal-bg shadow-sm font-medium text-txt-primary" : "text-txt-muted hover:text-txt-primary"}`}
+                  aria-pressed={mode === "text"}
+                  className="aster_segmented_option !min-h-8 gap-1.5 !text-xs"
                   type="button"
                   onClick={() => set_mode("text")}
                   onMouseDown={(e) => e.preventDefault()}
@@ -163,7 +181,8 @@ export function ColorPickerPopover({
                   {t("mail.font_color")}
                 </button>
                 <button
-                  className={`flex-1 flex items-center justify-center gap-1.5 h-7 text-xs whitespace-nowrap cursor-pointer rounded-full transition-colors duration-150 ${mode === "highlight" ? "bg-modal-bg shadow-sm font-medium text-txt-primary" : "text-txt-muted hover:text-txt-primary"}`}
+                  aria-pressed={mode === "highlight"}
+                  className="aster_segmented_option !min-h-8 gap-1.5 !text-xs"
                   type="button"
                   onClick={() => set_mode("highlight")}
                   onMouseDown={(e) => e.preventDefault()}
@@ -189,7 +208,7 @@ export function ColorPickerPopover({
                   return (
                     <button
                       key={color}
-                      className="w-6 h-6 rounded-full cursor-pointer transition-transform duration-100 hover:scale-125 active:scale-95"
+                      className="w-6 h-6 rounded-full cursor-pointer transition-transform duration-100 hover:scale-125"
                       style={{
                         backgroundColor: color,
                         boxShadow: selected
@@ -206,7 +225,7 @@ export function ColorPickerPopover({
                   );
                 })}
               </div>
-              <div className="mt-2.5 pt-2.5 border-t flex items-center gap-2 border-edge-secondary">
+              <div className="mt-2.5 pt-2.5 flex items-center gap-2 border-t border-[var(--aster-floating-divider)]">
                 <div
                   className="w-6 h-6 rounded-full flex-shrink-0"
                   style={{
@@ -218,6 +237,7 @@ export function ColorPickerPopover({
                   }}
                 />
                 <Input
+                  ref={hex_input_ref}
                   className="w-full bg-transparent"
                   maxLength={7}
                   size="sm"
@@ -225,6 +245,7 @@ export function ColorPickerPopover({
                   value={custom_hex}
                   onChange={(e) => {
                     const val = e.target.value;
+                    const caret = e.target.selectionStart;
 
                     set_custom_hex(val);
                     if (/^#[0-9a-fA-F]{6}$/.test(val)) {
@@ -233,10 +254,30 @@ export function ColorPickerPopover({
                       } else {
                         on_bg_color_change(val);
                       }
+                      requestAnimationFrame(() => {
+                        const input = hex_input_ref.current;
+
+                        if (!input) return;
+
+                        input.focus();
+                        if (caret !== null) {
+                          input.setSelectionRange(caret, caret);
+                        }
+                      });
                     }
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") {
+                      const normalized = normalize_hex_color(custom_hex);
+
+                      if (normalized) {
+                        set_custom_hex(normalized);
+                        if (mode === "text") {
+                          on_font_color_change(normalized);
+                        } else {
+                          on_bg_color_change(normalized);
+                        }
+                      }
                       set_open(false);
                     }
                   }}
@@ -251,4 +292,3 @@ export function ColorPickerPopover({
     </div>
   );
 }
-

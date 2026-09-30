@@ -30,6 +30,97 @@ export const FONT_SIZE_MAP: Record<FontSizeLabel, string> = {
   huge: "24px",
 };
 
+export const FONT_SIZE_INDEX_MAP: Record<FontSizeLabel, string> = {
+  small: "2",
+  normal: "3",
+  large: "5",
+  huge: "7",
+};
+
+const FONT_ATTRIBUTES_HANDLED = new Set(["size", "color", "face", "style"]);
+
+export function font_size_label_from_px(px: string): FontSizeLabel | null {
+  const labels = Object.keys(FONT_SIZE_MAP) as FontSizeLabel[];
+
+  return labels.find((label) => FONT_SIZE_MAP[label] === px) ?? null;
+}
+
+export const DEFAULT_FONT_FAMILY = "inherit";
+
+export const FONT_FAMILY_OPTIONS: { name: string; stack: string }[] = [
+  { name: "Arial", stack: "Arial, Helvetica, sans-serif" },
+  { name: "Georgia", stack: "Georgia, serif" },
+  { name: "Times New Roman", stack: "'Times New Roman', Times, serif" },
+  { name: "Verdana", stack: "Verdana, Geneva, sans-serif" },
+  { name: "Trebuchet MS", stack: "'Trebuchet MS', Helvetica, sans-serif" },
+  { name: "Tahoma", stack: "Tahoma, Geneva, sans-serif" },
+  { name: "Courier New", stack: "'Courier New', Courier, monospace" },
+];
+
+export function is_allowed_font_family(family: string): boolean {
+  return (
+    family === DEFAULT_FONT_FAMILY ||
+    FONT_FAMILY_OPTIONS.some((option) => option.stack === family)
+  );
+}
+
+export function font_family_option_from_css(
+  css: string,
+): { name: string; stack: string } | null {
+  const primary = css
+    .split(",")[0]
+    ?.trim()
+    .replace(/^["']|["']$/g, "")
+    .toLowerCase();
+
+  if (!primary) return null;
+
+  return (
+    FONT_FAMILY_OPTIONS.find(
+      (option) => option.name.toLowerCase() === primary,
+    ) ?? null
+  );
+}
+
+export function replace_font_element(
+  font: HTMLElement,
+  px: string,
+): HTMLSpanElement {
+  const span = document.createElement("span");
+
+  if (font.style.cssText) {
+    span.style.cssText = font.style.cssText;
+  }
+
+  Array.from(font.attributes).forEach((attribute) => {
+    if (FONT_ATTRIBUTES_HANDLED.has(attribute.name)) return;
+
+    span.setAttribute(attribute.name, attribute.value);
+  });
+
+  const color = font.getAttribute("color");
+
+  if (color && !span.style.color) {
+    span.style.color = color;
+  }
+
+  const face = font.getAttribute("face");
+
+  if (face && !span.style.fontFamily) {
+    span.style.fontFamily = face;
+  }
+
+  span.style.fontSize = px;
+
+  while (font.firstChild) {
+    span.appendChild(font.firstChild);
+  }
+
+  font.replaceWith(span);
+
+  return span;
+}
+
 const HEX_COLOR_REGEX = /^#[0-9a-fA-F]{3,8}$/;
 
 export function validate_hex_color(color: string): boolean {
@@ -154,6 +245,7 @@ export interface EditorFormatState {
   current_font_color: string;
   current_bg_color: string;
   current_font_size: string;
+  current_font_family: string;
 }
 
 export interface UseEditorOptions {
@@ -164,6 +256,7 @@ export interface UseEditorOptions {
   is_plain_text_mode?: boolean;
   on_files_drop?: (files: File[]) => void;
   strip_exif_on_compose?: boolean;
+  get_inline_image_budget?: () => number;
 }
 
 export interface ImageResizeState {
@@ -174,7 +267,7 @@ export interface ImageResizeState {
 export interface UseEditorReturn {
   format_state: EditorFormatState;
 
-  exec_format: (command: string, value?: string) => void;
+  exec_format: (command: string, value?: string, use_css?: boolean) => void;
   toggle_bold: () => void;
   toggle_italic: () => void;
   toggle_underline: () => void;
@@ -190,9 +283,11 @@ export interface UseEditorReturn {
   insert_emoji: (emoji: string) => void;
   insert_text: (text: string) => void;
   insert_html: (html: string) => void;
+  apply_signature: (html: string | null) => void;
   set_font_color: (color: string) => void;
   set_background_color: (color: string) => void;
   set_font_size: (size: FontSizeLabel) => void;
+  set_font_family: (family: string) => void;
 
   handle_paste: (e: React.ClipboardEvent) => void;
   handle_drop: (e: React.DragEvent) => void;

@@ -50,8 +50,10 @@ describe("plain_text_to_html end-to-end (desktop/web viewer path)", () => {
     expect(html).toContain(
       "This paragraph was soft wrapped by the sending client at seventy two columns, so every physical line ends in a space and the reader is expected to reflow it into one continuous paragraph.",
     );
-    expect(html).toContain("<p>Hi team,</p>");
-    expect(html).toContain("<p>Second paragraph stays separate.</p>");
+    expect(html).toContain('<p dir="auto">Hi team,</p>');
+    expect(html).toContain(
+      '<p dir="auto">Second paragraph stays separate.</p>',
+    );
     expect(html).not.toContain("seventy two columns, <br>");
   });
 

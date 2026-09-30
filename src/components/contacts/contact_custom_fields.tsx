@@ -40,6 +40,13 @@ import { use_i18n } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   list_custom_field_definitions,
   list_contact_custom_field_values,
   create_custom_field_definition,
@@ -47,6 +54,10 @@ import {
   set_contact_custom_field_value,
   delete_contact_custom_field_value,
 } from "@/services/api/contact_custom_fields";
+import { is_composing } from "@/utils/ime";
+import { user_facing_error } from "@/utils/user_facing_error";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 
 interface ContactCustomFieldsProps {
   contact_id: string;
@@ -98,6 +109,8 @@ export function ContactCustomFields({
     string | null
   >(null);
   const [error, set_error] = useState<string | null>(null);
+  const [pending_delete_definition_id, set_pending_delete_definition_id] =
+    useState<string | null>(null);
   const [values, set_values] =
     useState<DecryptedCustomFieldValue[]>(field_values);
 
@@ -123,28 +136,37 @@ export function ContactCustomFields({
     try {
       const response = await list_custom_field_definitions();
 
-      if (response.data) {
-        set_definitions(response.data);
+      if (response.error || !response.data) {
+        set_error(response.error || t("common.failed_to_load_custom_fields"));
 
-        const values_response = await list_contact_custom_field_values(
-          contact_id,
-          response.data,
+        return;
+      }
+
+      set_definitions(response.data);
+
+      const values_response = await list_contact_custom_field_values(
+        contact_id,
+        response.data,
+      );
+
+      if (values_response.error || !values_response.data) {
+        set_error(
+          values_response.error || t("common.failed_to_load_custom_fields"),
         );
 
-        if (values_response.data) {
-          update_values(values_response.data);
-        }
+        return;
       }
+
+      set_error(null);
+      update_values(values_response.data);
     } catch (err) {
       set_error(
-        err instanceof Error
-          ? err.message
-          : t("common.failed_to_load_custom_fields"),
+        user_facing_error(err, t("common.failed_to_load_custom_fields")),
       );
     } finally {
       set_is_loading(false);
     }
-  }, [contact_id, update_values]);
+  }, [contact_id, update_values, t]);
 
   useEffect(() => {
     load_definitions();
@@ -172,13 +194,11 @@ export function ContactCustomFields({
       set_new_field_name("");
       set_new_field_type("text");
     } catch (err) {
-      set_error(
-        err instanceof Error ? err.message : t("common.failed_to_create_field"),
-      );
+      set_error(user_facing_error(err, t("common.failed_to_create_field")));
     } finally {
       set_is_adding(false);
     }
-  }, [new_field_name, new_field_type]);
+  }, [new_field_name, new_field_type, t]);
 
   const handle_delete_definition = useCallback(
     async (definition_id: string) => {
@@ -208,7 +228,7 @@ export function ContactCustomFields({
         set_deleting_definition_id(null);
       }
     },
-    [values, update_values],
+    [values, update_values, t],
   );
 
   const handle_start_edit = useCallback(
@@ -279,7 +299,17 @@ export function ContactCustomFields({
         );
 
         if (existing) {
-          await delete_contact_custom_field_value(contact_id, editing_field_id);
+          const response = await delete_contact_custom_field_value(
+            contact_id,
+            editing_field_id,
+          );
+
+          if (response.error) {
+            set_error(response.error);
+
+            return;
+          }
+
           update_values(
             values.filter((v) => v.field_definition_id !== editing_field_id),
           );
@@ -289,9 +319,7 @@ export function ContactCustomFields({
       set_editing_field_id(null);
       set_editing_value("");
     } catch (err) {
-      set_error(
-        err instanceof Error ? err.message : t("common.failed_to_save_value"),
-      );
+      set_error(user_facing_error(err, t("common.failed_to_save_value")));
     } finally {
       set_saving_field_id(null);
     }
@@ -302,6 +330,7 @@ export function ContactCustomFields({
     values,
     update_values,
     definitions,
+    t,
   ]);
 
   const handle_cancel_edit = useCallback(() => {
@@ -321,13 +350,27 @@ export function ContactCustomFields({
   if (is_loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+        <Spinner className="text-txt-muted" size="md" />
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
+      <ConfirmationModal
+        confirm_text={t("common.delete")}
+        is_open={pending_delete_definition_id !== null}
+        message={t("common.delete_custom_field_message")}
+        on_cancel={() => set_pending_delete_definition_id(null)}
+        on_confirm={() => {
+          const target = pending_delete_definition_id;
+
+          set_pending_delete_definition_id(null);
+          if (target) handle_delete_definition(target);
+        }}
+        title={t("common.delete_custom_field_title")}
+        variant="danger"
+      />
       <div className="flex items-center justify-between">
         <label className="text-sm font-medium text-foreground-600">
           {t("common.custom_fields")}
@@ -351,10 +394,10 @@ export function ContactCustomFields({
                 initial={reduce_motion ? false : { opacity: 0, y: -10 }}
               >
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-medium text-foreground-500">
+                  <span className="text-xs font-medium text-txt-secondary">
                     {definition.name}
                   </span>
-                  <span className="text-[10px] text-foreground-400 bg-default-100 px-1.5 py-0.5 rounded">
+                  <span className="text-[10px] text-txt-muted bg-surf-tertiary px-1.5 py-0.5 rounded">
                     {FIELD_TYPE_LABEL_KEYS[definition.field_type] === "URL"
                       ? "URL"
                       : t(
@@ -369,10 +412,12 @@ export function ContactCustomFields({
                     disabled={disabled || is_deleting}
                     size="md"
                     variant="ghost"
-                    onClick={() => handle_delete_definition(definition.id)}
+                    onClick={() =>
+                      set_pending_delete_definition_id(definition.id)
+                    }
                   >
                     {is_deleting ? (
-                      <div className="w-3 h-3 border-2 border-danger border-t-transparent rounded-full animate-spin" />
+                      <Spinner size="xs" />
                     ) : (
                       <TrashIcon className="w-3 h-3" />
                     )}
@@ -391,25 +436,29 @@ export function ContactCustomFields({
                       value={editing_value}
                       onChange={(e) => set_editing_value(e.target.value)}
                       onKeyDown={(e) => {
-                        if (e["key"] === "Enter") handle_save_value();
-                        if (e["key"] === "Escape") handle_cancel_edit();
+                        if (e["key"] === "Enter" && !is_composing(e))
+                          handle_save_value();
+                        if (e["key"] === "Escape") {
+                          e.stopPropagation();
+                          handle_cancel_edit();
+                        }
                       }}
                     />
                     <Button
-                      className="p-1.5 h-auto text-success hover:bg-success/10"
+                      className="p-1.5 h-auto text-aster-success hover:bg-aster-success/10"
                       disabled={is_saving}
                       size="md"
                       variant="ghost"
                       onClick={handle_save_value}
                     >
                       {is_saving ? (
-                        <div className="w-4 h-4 border-2 border-success border-t-transparent rounded-full animate-spin" />
+                        <Spinner size="sm" />
                       ) : (
                         <CheckIcon className="w-4 h-4" />
                       )}
                     </Button>
                     <Button
-                      className="p-1.5 h-auto text-foreground-500 hover:bg-default-100"
+                      className="p-1.5 h-auto text-txt-secondary hover:bg-surf-hover"
                       disabled={is_saving}
                       size="md"
                       variant="ghost"
@@ -419,74 +468,78 @@ export function ContactCustomFields({
                     </Button>
                   </div>
                 ) : (
-                  <div
+                  <button
                     className={cn(
-                      "flex items-center gap-2 p-2 rounded-lg border border-divider cursor-pointer hover:bg-default-50 transition-colors",
+                      "flex w-full items-center gap-2 p-2 rounded-lg border border-edge-secondary text-start cursor-pointer hover:bg-surf-hover transition-colors",
                       disabled && "cursor-not-allowed opacity-50",
                     )}
-                    onClick={() => !disabled && handle_start_edit(definition)}
+                    disabled={disabled}
+                    type="button"
+                    onClick={() => handle_start_edit(definition)}
                   >
                     {current_value ? (
                       <span className="text-sm flex-1">{current_value}</span>
                     ) : (
-                      <span className="text-sm text-foreground-400 flex-1 italic">
+                      <span className="text-sm text-txt-muted flex-1 italic">
                         {t("common.click_to_add_value")}
                       </span>
                     )}
-                    <PencilIcon className="w-4 h-4 text-foreground-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                  </div>
+                    <PencilIcon className="w-4 h-4 text-txt-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </button>
                 )}
               </motion.div>
             );
           })}
         </AnimatePresence>
 
-        {definitions.length === 0 && (
-          <p className="text-sm text-foreground-500 text-center py-4">
+        {definitions.length === 0 && !error && (
+          <p className="text-sm text-txt-secondary text-center py-4">
             {t("common.no_custom_fields_yet")}
           </p>
         )}
       </div>
 
-      <div className="border-t border-divider pt-4">
-        <p className="text-xs text-foreground-500 mb-3">
+      <div className="border-t border-edge-secondary pt-4">
+        <p className="text-xs text-txt-secondary mb-3">
           {t("common.add_new_field_type")}
         </p>
         <div className="flex items-center gap-2">
           <Input
-            className="flex-1"
+            className="flex-1 h-10"
             placeholder={t("common.field_name_placeholder")}
             value={new_field_name}
             onChange={(e) => set_new_field_name(e.target.value)}
             onKeyDown={(e) => {
-              if (e["key"] === "Enter") handle_create_definition();
+              if (e["key"] === "Enter" && !is_composing(e))
+                handle_create_definition();
             }}
           />
-          <select
-            className="h-9 px-2 rounded-lg border border-divider bg-background text-sm"
+          <Select
             value={new_field_type}
-            onChange={(e) =>
-              set_new_field_type(e.target.value as CustomFieldType)
+            onValueChange={(value) =>
+              set_new_field_type(value as CustomFieldType)
             }
           >
-            {Object.entries(FIELD_TYPE_LABEL_KEYS).map(([value, key]) => (
-              <option key={value} value={value}>
-                {key === "URL" ? "URL" : t(key as "common.text_type")}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger className="h-10 w-[116px] flex-shrink-0 rounded-xl border border-edge-secondary bg-transparent text-[13px] text-txt-primary">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(FIELD_TYPE_LABEL_KEYS).map(([value, key]) => (
+                <SelectItem key={value} value={value}>
+                  {key === "URL" ? "URL" : t(key as "common.text_type")}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button
-            className="gap-1.5"
+            className="h-10 flex-shrink-0 gap-1.5 rounded-xl px-3 text-[13px]"
             disabled={!new_field_name.trim() || is_adding}
             size="md"
             variant="ghost"
             onClick={handle_create_definition}
           >
-            {is_adding ? (
-              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <PlusIcon className="w-4 h-4" />
-            )}
+            <PlusIcon className="w-4 h-4" />
+            {is_adding && <ButtonSpinner />}
             {t("common.add")}
           </Button>
         </div>

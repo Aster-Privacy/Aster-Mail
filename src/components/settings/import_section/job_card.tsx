@@ -18,20 +18,20 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
+
+import { ClockIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { Island, IslandIconButton, IslandRow } from "@aster/ui";
 
 import {
-  ClockIcon,
-  TrashIcon,
-} from "@heroicons/react/24/outline";
-
+  format_relative_time,
+  get_status_icon,
+  get_status_label,
+} from "./status";
 
 import { use_i18n } from "@/lib/i18n/context";
-import {
-  type ImportJob,
-} from "@/services/api/email_import";
-
-import { format_relative_time, get_status_icon, get_status_label } from "./status";
+import { type ImportJob } from "@/services/api/email_import";
+import { app_locale } from "@/utils/date_format";
 
 export function ImportJobCard({
   job,
@@ -43,44 +43,51 @@ export function ImportJobCard({
   const { t } = use_i18n();
   const source_label = job.source.charAt(0).toUpperCase() + job.source.slice(1);
   const skipped_text =
-    job.skipped_emails > 0 ? `, ${t("settings.n_skipped", { count: job.skipped_emails })}` : "";
+    job.skipped_emails > 0
+      ? `, ${t("settings.n_skipped", { count: job.skipped_emails })}`
+      : "";
   const can_delete = job.status !== "processing" && job.status !== "pending";
 
   const is_failed = job.status === "failed" || job.status === "cancelled";
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 rounded-xl border bg-surf-secondary border-edge-secondary">
-      <div className="flex-shrink-0">{get_status_icon(job.status)}</div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-txt-primary truncate">
-          {t("settings.source_import", { source: source_label })}
-        </p>
-        <p
-          className={`text-xs ${is_failed ? "text-red-500" : "text-txt-muted"}`}
-        >
-          {job.status === "completed"
-            ? t("settings.imported_skipped", {
-                imported: job.processed_emails.toLocaleString(),
-                skipped: skipped_text,
-              })
-            : get_status_label(job.status, t)}
-        </p>
-      </div>
-      <div className="flex items-center gap-2 flex-shrink-0 text-xs text-txt-muted">
-        <ClockIcon className="w-3 h-3" />
-        <span>{format_relative_time(job.created_at, t)}</span>
-        {can_delete && (
-          <button
-            type="button"
-            aria-label={t("common.delete")}
-            className="p-1 rounded hover:bg-surf-tertiary text-txt-muted ml-1"
-            onClick={() => on_delete(job.id)}
-          >
-            <TrashIcon className="w-4 h-4" />
-          </button>
-        )}
-      </div>
-    </div>
+    <Island>
+      <IslandRow
+        description={
+          <span className={is_failed ? "text-red-500" : undefined}>
+            {job.status === "completed"
+              ? t("settings.imported_skipped", {
+                  imported: job.processed_emails.toLocaleString(app_locale()),
+                  skipped: skipped_text,
+                })
+              : get_status_label(job.status, t)}
+          </span>
+        }
+        icon={get_status_icon(job.status)}
+        label={
+          <span className="block truncate">
+            {t("settings.source_import", { source: source_label })}
+          </span>
+        }
+        trailing={
+          <span className="flex items-center gap-1.5 text-xs text-txt-muted">
+            <ClockIcon className="w-3 h-3" />
+            <span className="tabular-nums">
+              {format_relative_time(job.created_at, t)}
+            </span>
+            {can_delete && (
+              <IslandIconButton
+                className="ms-1"
+                label={t("common.delete")}
+                size="sm"
+                onClick={() => on_delete(job.id)}
+              >
+                <TrashIcon className="w-4 h-4" />
+              </IslandIconButton>
+            )}
+          </span>
+        }
+      />
+    </Island>
   );
 }
-

@@ -31,7 +31,9 @@ const SL_ALIAS = {
   email: "reverse_alias_718jakwi@simplelogin.co",
 };
 
-function headers(entries: Record<string, string>): { name: string; value: string }[] {
+function headers(
+  entries: Record<string, string>,
+): { name: string; value: string }[] {
   return Object.entries(entries).map(([name, value]) => ({ name, value }));
 }
 
@@ -171,7 +173,8 @@ describe("detect_forwarded_alias", () => {
   it("still extracts the address when the display name is RFC 2047 encoded", () => {
     const result = detect_forwarded_alias(
       headers({
-        "X-SimpleLogin-Original-From": "=?utf-8?B?w4ZsaWNl?= <alice@example.com>",
+        "X-SimpleLogin-Original-From":
+          "=?utf-8?B?w4ZsaWNl?= <alice@example.com>",
       }),
       SL_ALIAS,
     );

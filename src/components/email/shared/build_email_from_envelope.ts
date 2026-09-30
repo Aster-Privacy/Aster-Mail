@@ -22,6 +22,7 @@ import type { DecryptedEnvelope, UnsubscribeInfo } from "@/types/email";
 import type { DecryptedThreadMessage } from "@/types/thread";
 
 import { get_email_username } from "@/lib/utils";
+import { get_active_translations } from "@/lib/i18n/translations";
 import {
   try_decrypt_ratchet_body,
   try_decrypt_pgp_body,
@@ -46,7 +47,7 @@ export async function process_envelope_body(
   user_email?: string,
   message_id?: string,
 ): Promise<ProcessedEnvelope> {
-  let resolved_html = envelope.body_html ?? envelope.html_body ?? undefined;
+  let resolved_html = envelope.body_html || envelope.html_body || undefined;
 
   if (resolved_html && /^content-type\s*:/im.test(resolved_html)) {
     resolved_html = try_extract_mime_body(resolved_html) || undefined;
@@ -84,6 +85,7 @@ export async function process_envelope_body(
   const mime_extracted = body_text !== pre_mime_text;
 
   const bundle = extract_subject_bundle(body_text);
+
   if (bundle.subject !== null) {
     body_text = bundle.body;
     if (!envelope.subject) {
@@ -112,11 +114,16 @@ export async function process_envelope_body(
     safe_html = undefined;
   }
 
-  if (is_ratchet_envelope(resolved_text) && !is_ratchet_envelope(body_text) && safe_html === undefined) {
+  if (
+    is_ratchet_envelope(resolved_text) &&
+    !is_ratchet_envelope(body_text) &&
+    !safe_html
+  ) {
     safe_html = body_text;
   }
 
   const html_bundle = unwrap_bundle_html(safe_html);
+
   safe_html = html_bundle.html;
   if (html_bundle.subject !== null && !envelope.subject) {
     envelope.subject = html_bundle.subject;
@@ -150,6 +157,9 @@ export function build_single_thread_message(
     message_ts?: string;
     created_at: string;
     is_external: boolean;
+    system_origin?: boolean;
+    sender_verified?: boolean;
+    sender_verified_domain?: string;
     has_recipient_key?: boolean;
     encrypted_metadata?: string;
     metadata_nonce?: string;
@@ -172,7 +182,7 @@ export function build_single_thread_message(
     sender_name:
       envelope.from.name ||
       get_email_username(envelope.from.email) ||
-      "Unknown",
+      get_active_translations().common.unknown_sender,
     sender_email: envelope.from.email || "",
     ...(forwarding ?? {}),
     subject: envelope.subject || "",
@@ -183,6 +193,8 @@ export function build_single_thread_message(
     is_starred: decrypted_metadata?.is_starred ?? false,
     is_deleted: false,
     is_external: item.is_external,
+    system_origin: item.system_origin,
+    sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
     has_recipient_key: item.has_recipient_key,
     encrypted_metadata: item.encrypted_metadata,
     metadata_nonce: item.metadata_nonce,

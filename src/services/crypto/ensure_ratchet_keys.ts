@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { get_current_account } from "../account_manager";
+import { api_client } from "../api/client";
+
 import { array_to_base64, base64_to_array } from "./base64";
 import {
   encrypt_vault,
@@ -33,14 +36,14 @@ import {
   generate_ratchet_keys,
   generate_pq_identity_keys,
   derive_pq_identity_from_seed,
-  upload_prekey_bundle,
 } from "./ratchet_manager";
+import { upload_prekey_bundle_result } from "./ratchet_prekey_bundle";
 import { merge_previous_ratchet_keys } from "./key_manager_core";
 import { clear_all_ratchet_states } from "./ratchet_state_store";
 import { report_envelope_capability_if_due } from "./envelope_capability";
 import { with_vault_write_lock } from "./vault_write_lock";
-import { get_current_account } from "../account_manager";
-import { api_client } from "../api/client";
+import { recover_ratchet_keys_from_history_locked } from "./vault_key_recovery";
+import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
 
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -109,10 +112,15 @@ export async function push_vault_to_server(
   vault_nonce: string,
   expected_user_id: string,
   vault_format?: number,
+  vault?: EncryptedVault | null,
 ): Promise<boolean> {
   const current_account = await get_current_account();
 
   if (current_account?.user?.id !== expected_user_id) return false;
+
+  const vault_key_fingerprints = vault
+    ? await collect_vault_key_fingerprints(vault)
+    : undefined;
 
   const response = await api_client.put("/crypto/v1/keys/vault", {
     encrypted_vault,
@@ -120,6 +128,7 @@ export async function push_vault_to_server(
     expected_user_id,
     vault_format: vault_format ?? 1,
     preserve_pq_prekeys: true,
+    ...(vault_key_fingerprints?.length ? { vault_key_fingerprints } : {}),
   });
 
   return !response.error;
@@ -138,7 +147,14 @@ async function report_capability(): Promise<void> {
 
     if (!result || result.identity_verified) return;
 
-    const vault = get_vault_from_memory();
+    const freshness = await sync_vault_with_server();
+
+    if (freshness.status === "unverified") return;
+
+    const vault =
+      freshness.status === "adopted"
+        ? freshness.vault
+        : get_vault_from_memory();
 
     if (vault) await upload_prekey_bundle_with_retry(vault);
   } catch {
@@ -307,7 +323,24 @@ function derive_public_b64_from_jwk(jwk_string: string): string | null {
 interface PublishedBundleView {
   kem_identity_key?: string;
   signed_prekey?: string;
+  signed_prekey_signature?: string;
   pq_kem_public_key?: string | null;
+}
+
+async function published_signature_is_current(
+  vault: EncryptedVault,
+  signature_field: string | undefined,
+): Promise<boolean> {
+  if (!vault.ratchet_pq_identity_public) return true;
+
+  if (!vault.identity_key || !get_passphrase_from_memory()) return true;
+
+  if (!signature_field) return false;
+
+  const { read_ratchet_prekey_signature_format } =
+    await import("./key_manager_pgp");
+
+  return (await read_ratchet_prekey_signature_format(signature_field)) === "v2";
 }
 
 async function published_bundle_matches_vault(
@@ -328,24 +361,186 @@ async function published_bundle_matches_vault(
 
     if (response.error || !response.data) return null;
 
-    return (
+    const keys_match =
       response.data.kem_identity_key === vault.ratchet_identity_public &&
       response.data.signed_prekey === vault.ratchet_signed_prekey_public &&
       (response.data.pq_kem_public_key ?? null) ===
-        (vault.ratchet_pq_identity_public ?? null)
+        (vault.ratchet_pq_identity_public ?? null);
+
+    if (!keys_match) return false;
+
+    return await published_signature_is_current(
+      vault,
+      response.data.signed_prekey_signature,
     );
   } catch {
     return null;
   }
 }
 
+const IDENTITY_CONTINUITY_MARKER = "identity_continuity_required";
+
+interface ServerVaultView {
+  encrypted_vault?: string;
+  vault_nonce?: string;
+  vault_format?: number;
+}
+
+export type VaultFreshness =
+  | { status: "current" }
+  | { status: "adopted"; vault: EncryptedVault }
+  | { status: "unverified" };
+
+type ServerVaultFetch =
+  | { kind: "ok"; encrypted_vault: string; vault_nonce: string }
+  | { kind: "missing" }
+  | { kind: "error" };
+
+async function fetch_server_vault(): Promise<ServerVaultFetch> {
+  try {
+    const response = await api_client.get<ServerVaultView>(
+      "/crypto/v1/keys/vault",
+    );
+
+    if (response.code === "NOT_FOUND" || response.code === "UNKNOWN_ERROR") {
+      return { kind: "missing" };
+    }
+
+    if (
+      response.error ||
+      !response.data?.encrypted_vault ||
+      !response.data.vault_nonce
+    ) {
+      return { kind: "error" };
+    }
+
+    return {
+      kind: "ok",
+      encrypted_vault: response.data.encrypted_vault,
+      vault_nonce: response.data.vault_nonce,
+    };
+  } catch {
+    return { kind: "error" };
+  }
+}
+
+export async function sync_vault_with_server(): Promise<VaultFreshness> {
+  const account = await get_current_account();
+  const user_id = account?.user?.id;
+
+  if (!user_id) return { status: "unverified" };
+
+  const server_vault = await fetch_server_vault();
+
+  if (server_vault.kind === "missing") return { status: "current" };
+
+  if (server_vault.kind === "error") return { status: "unverified" };
+
+  const stored = get_stored_account_vault(user_id);
+
+  if (
+    stored &&
+    stored.encrypted_vault === server_vault.encrypted_vault &&
+    stored.vault_nonce === server_vault.vault_nonce
+  ) {
+    return { status: "current" };
+  }
+
+  const passphrase = get_passphrase_from_memory();
+
+  if (!passphrase) return { status: "unverified" };
+
+  let adopted: EncryptedVault;
+
+  try {
+    adopted = await decrypt_vault(
+      server_vault.encrypted_vault,
+      server_vault.vault_nonce,
+      passphrase,
+    );
+  } catch {
+    return { status: "unverified" };
+  }
+
+  await store_vault_in_memory(adopted, passphrase, user_id);
+
+  try {
+    localStorage.setItem(
+      `astermail_encrypted_vault_${user_id}`,
+      server_vault.encrypted_vault,
+    );
+    localStorage.setItem(
+      `astermail_vault_nonce_${user_id}`,
+      server_vault.vault_nonce,
+    );
+  } catch (caught) {
+    ignore_error(
+      "services/crypto/ensure_ratchet_keys:sync_vault_with_server",
+      caught,
+    );
+  }
+
+  return { status: "adopted", vault: adopted };
+}
+
+async function refresh_vault_write_stamp(): Promise<boolean> {
+  const account = await get_current_account();
+  const user_id = account?.user?.id;
+
+  if (!user_id) return false;
+
+  const stored = get_stored_account_vault(user_id);
+
+  if (!stored) return false;
+
+  const server_vault = await fetch_server_vault();
+
+  if (
+    server_vault.kind !== "ok" ||
+    server_vault.encrypted_vault !== stored.encrypted_vault ||
+    server_vault.vault_nonce !== stored.vault_nonce
+  ) {
+    return false;
+  }
+
+  const vault = get_vault_from_memory();
+
+  return push_vault_to_server(
+    stored.encrypted_vault,
+    stored.vault_nonce,
+    user_id,
+    vault?.vault_format,
+    vault,
+  );
+}
+
 async function upload_prekey_bundle_with_retry(
   vault: EncryptedVault,
 ): Promise<boolean> {
   try {
-    if (await upload_prekey_bundle(vault)) return true;
+    const first = await upload_prekey_bundle_result(vault);
 
-    return await upload_prekey_bundle(vault);
+    if (first.ok) return true;
+
+    if (first.error_message?.includes(IDENTITY_CONTINUITY_MARKER)) {
+      if (!(await refresh_vault_write_stamp())) return false;
+
+      const second = await upload_prekey_bundle_result(vault);
+
+      if (second.ok) return true;
+
+      if (!second.error_message?.includes(IDENTITY_CONTINUITY_MARKER)) {
+        return false;
+      }
+
+      const recovered = await recover_ratchet_keys_from_history_locked();
+
+      if (!recovered) return false;
+
+      return (await upload_prekey_bundle_result(recovered)).ok;
+    }
+
+    return (await upload_prekey_bundle_result(vault)).ok;
   } catch {
     return false;
   }
@@ -356,8 +551,15 @@ function run(): Promise<boolean> {
 }
 
 async function run_locked(): Promise<boolean> {
+  return run_locked_with_vault(get_vault_from_memory(), true);
+}
+
+async function run_locked_with_vault(
+  initial_vault: EncryptedVault | null,
+  allow_adoption: boolean,
+): Promise<boolean> {
   try {
-    const vault = get_vault_from_memory();
+    const vault = initial_vault;
 
     if (!vault) return false;
 
@@ -379,7 +581,11 @@ async function run_locked(): Promise<boolean> {
 
     const need_forced_regen =
       !localStorage.getItem(FORCED_REGEN_KEY) && !vault.ratchet_regen_v4_done;
-    if (vault.ratchet_regen_v4_done && !localStorage.getItem(FORCED_REGEN_KEY)) {
+
+    if (
+      vault.ratchet_regen_v4_done &&
+      !localStorage.getItem(FORCED_REGEN_KEY)
+    ) {
       localStorage.setItem(FORCED_REGEN_KEY, "1");
     }
 
@@ -399,6 +605,16 @@ async function run_locked(): Promise<boolean> {
       const bundle_matches = await published_bundle_matches_vault(vault);
 
       if (bundle_matches !== true) {
+        const freshness = await sync_vault_with_server();
+
+        if (freshness.status === "unverified") return true;
+
+        if (freshness.status === "adopted") {
+          return allow_adoption
+            ? run_locked_with_vault(freshness.vault, false)
+            : true;
+        }
+
         await upload_prekey_bundle_with_retry(vault);
       }
 
@@ -421,6 +637,16 @@ async function run_locked(): Promise<boolean> {
     );
 
     if (!passphrase_ok) return false;
+
+    const freshness = await sync_vault_with_server();
+
+    if (freshness.status === "unverified") return false;
+
+    if (freshness.status === "adopted") {
+      return allow_adoption
+        ? run_locked_with_vault(freshness.vault, false)
+        : false;
+    }
 
     const next_vault: EncryptedVault = {
       ...vault,
@@ -494,6 +720,7 @@ async function run_locked(): Promise<boolean> {
           ratchet_pq_identity_public: vault.ratchet_pq_identity_public,
           ratchet_pq_identity_seed: vault.ratchet_pq_identity_seed,
         };
+
         next_vault.ratchet_previous_keys = merge_previous_ratchet_keys(
           [old_set],
           vault.ratchet_previous_keys,
@@ -503,7 +730,8 @@ async function run_locked(): Promise<boolean> {
       next_vault.ratchet_identity_key = ratchet_keys.identity_jwk;
       next_vault.ratchet_identity_public = ratchet_keys.identity_public;
       next_vault.ratchet_signed_prekey = ratchet_keys.signed_prekey_jwk;
-      next_vault.ratchet_signed_prekey_public = ratchet_keys.signed_prekey_public;
+      next_vault.ratchet_signed_prekey_public =
+        ratchet_keys.signed_prekey_public;
       next_vault.ratchet_pq_identity_key = ratchet_keys.pq_identity_secret;
       next_vault.ratchet_pq_identity_public = ratchet_keys.pq_identity_public;
       next_vault.ratchet_pq_identity_seed = ratchet_keys.pq_identity_seed;
@@ -532,6 +760,7 @@ async function run_locked(): Promise<boolean> {
       vault_nonce,
       user_id,
       next_vault.vault_format,
+      next_vault,
     );
 
     if (!pushed) return false;

@@ -20,7 +20,6 @@
 //
 import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { RoundedQrCode } from "@/components/ui/rounded_qr_code";
 import {
   ClipboardDocumentIcon,
   ShieldCheckIcon,
@@ -28,8 +27,11 @@ import {
   ArrowDownTrayIcon,
   QuestionMarkCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
 
+import { Button } from "@/components/ui/button";
+import { trigger_download } from "@/utils/download_blob";
+import { RoundedQrCode } from "@/components/ui/rounded_qr_code";
+import { spoken_secret } from "@/utils/spoken_secret";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   Modal,
@@ -47,7 +49,9 @@ import {
 } from "@/services/api/totp";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { Spinner } from "@/components/ui/spinner";
 import mail_logo_url from "@/assets/mail_logo.webp";
+import { copy_text } from "@/utils/copy_text";
 
 interface TotpSetupModalProps {
   is_open: boolean;
@@ -147,18 +151,27 @@ export function TotpSetupModal({
 
   const copy_secret = async () => {
     if (!setup_data) return;
-    await navigator.clipboard.writeText(setup_data.secret);
-    show_toast(t("common.copied_to_clipboard"), "success");
+    if (await copy_text(setup_data.secret)) {
+      show_toast(t("common.copied_to_clipboard"), "success");
+    } else {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
   };
 
   const copy_single_code = async (code: string) => {
-    await navigator.clipboard.writeText(code);
-    show_toast(t("common.copied_to_clipboard"), "success");
+    if (await copy_text(code)) {
+      show_toast(t("common.copied_to_clipboard"), "success");
+    } else {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
   };
 
   const copy_backup_codes = async () => {
-    await navigator.clipboard.writeText(backup_codes.join("\n"));
-    show_toast(t("common.copied_to_clipboard"), "success");
+    if (await copy_text(backup_codes.join("\n"))) {
+      show_toast(t("common.copied_to_clipboard"), "success");
+    } else {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
   };
 
   const handle_done = () => {
@@ -196,10 +209,7 @@ export function TotpSetupModal({
       <ModalBody>
         {is_loading && !setup_data ? (
           <div className="flex items-center justify-center py-12">
-            <div
-              className="w-8 h-8 border-2 rounded-full animate-spin border-edge-secondary"
-              style={{ borderTopColor: "var(--color-info)" }}
-            />
+            <Spinner className="text-txt-muted" size="lg" />
           </div>
         ) : error && !setup_data ? (
           <div className="flex flex-col items-center justify-center py-8 space-y-4">
@@ -211,7 +221,7 @@ export function TotpSetupModal({
           </div>
         ) : setup_data ? (
           <div className="space-y-5">
-            <div className="flex justify-center">
+            <div aria-hidden="true" className="flex justify-center">
               <RoundedQrCode
                 logo_src={mail_logo_url}
                 size={240}
@@ -223,11 +233,15 @@ export function TotpSetupModal({
                 {t("settings.cant_scan_enter_manually")}
               </p>
               <div className="flex items-center justify-center gap-2">
-                <code className="px-3 py-2 rounded-lg text-sm font-mono break-all bg-surf-secondary text-txt-primary">
+                <code
+                  aria-label={spoken_secret(setup_data.secret)}
+                  className="px-3 py-2 rounded-lg text-sm font-mono break-all bg-surf-secondary text-txt-primary"
+                >
                   {setup_data.secret}
                 </code>
                 <button
-                  className="p-2 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10"
+                  aria-label={t("common.copy")}
+                  className="p-2 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)]"
                   type="button"
                   onClick={copy_secret}
                 >
@@ -248,24 +262,23 @@ export function TotpSetupModal({
                 onComplete={handle_verify}
               />
               {error && (
-                <p className="text-sm text-center text-red-500 mt-2">
-                  {error}
-                </p>
+                <p className="text-sm text-center text-red-500 mt-2">{error}</p>
               )}
             </div>
           </div>
         ) : null}
       </ModalBody>
       <ModalFooter>
-        <Button variant="outline" onClick={on_close}>
+        <Button variant="outline" onClick={handle_modal_close}>
           {t("common.cancel")}
         </Button>
         <Button
           disabled={verification_code.length !== 6 || is_loading || !setup_data}
+          is_loading={is_loading}
           variant="depth"
           onClick={() => handle_verify()}
         >
-          {is_loading ? t("common.verifying") : t("common.verify")}
+          {t("common.verify")}
         </Button>
       </ModalFooter>
     </>
@@ -280,6 +293,9 @@ export function TotpSetupModal({
         </div>
         <ModalDescription>
           {t("settings.save_backup_codes_description")}
+        </ModalDescription>
+        <ModalDescription>
+          {t("settings.two_factor_other_devices_signed_out")}
         </ModalDescription>
       </ModalHeader>
       <ModalBody>
@@ -300,24 +316,21 @@ export function TotpSetupModal({
           </div>
           <div className="flex justify-center gap-2">
             <Button variant="secondary" onClick={copy_backup_codes}>
-              <ClipboardDocumentIcon className="w-4 h-4 mr-2" />
+              <ClipboardDocumentIcon className="w-4 h-4 me-2" />
               {t("settings.copy_all_codes")}
             </Button>
             <Button
               variant="secondary"
               onClick={() => {
-                const content = backup_codes.join("\n");
-                const blob = new Blob([content], { type: "text/plain" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-
-                a.href = url;
-                a.download = "aster-backup-codes.txt";
-                a.click();
-                URL.revokeObjectURL(url);
+                trigger_download(
+                  new Blob([backup_codes.join("\n")], {
+                    type: "application/octet-stream",
+                  }),
+                  "aster-backup-codes.txt",
+                );
               }}
             >
-              <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+              <ArrowDownTrayIcon className="w-4 h-4 me-2" />
               {t("common.download")}
             </Button>
           </div>
@@ -349,9 +362,11 @@ export function TotpSetupModal({
   return (
     <>
       <Modal
+        close_on_escape={step === "setup"}
         close_on_overlay={false}
         is_open={is_open}
         on_close={handle_modal_close}
+        show_close_button={step === "setup"}
         size="md"
       >
         <AnimatePresence mode="wait">

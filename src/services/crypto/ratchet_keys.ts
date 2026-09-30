@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
+
 import { array_to_base64, base64_to_array } from "./base64";
 import { type RatchetKeyPair } from "./double_ratchet";
 
@@ -90,6 +91,7 @@ export function resolve_pq_identity_secret(
 ): string | null {
   if (secret_base64) return secret_base64;
   if (!seed_base64) return null;
+
   return derive_pq_identity_from_seed(seed_base64)?.pq_identity_secret ?? null;
 }
 

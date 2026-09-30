@@ -30,12 +30,15 @@ import {
   get_unsubscribe_display_text,
   get_sender_domain,
   execute_unsubscribe,
+  get_manual_unsubscribe_url,
 } from "@/utils/unsubscribe_detector";
+import { open_external } from "@/utils/open_link";
 import { track_subscription } from "@/services/api/subscriptions";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { get_undo_send_delay_ms } from "@/services/send_queue";
 
 interface UnsubscribeBannerProps {
   unsubscribe_info: UnsubscribeInfo;
@@ -57,6 +60,7 @@ export function UnsubscribeBanner({
   const tracked_ref = useRef(false);
   const pending_timeout_ref = useRef<NodeJS.Timeout | null>(null);
   const cancelled_ref = useRef(false);
+  const mounted_ref = useRef(true);
 
   useEffect(() => {
     if (!unsubscribe_info.has_unsubscribe || tracked_ref.current) return;
@@ -81,10 +85,10 @@ export function UnsubscribeBanner({
   }, [sender_email, sender_name, unsubscribe_info]);
 
   useEffect(() => {
+    mounted_ref.current = true;
+
     return () => {
-      if (pending_timeout_ref.current) {
-        clearTimeout(pending_timeout_ref.current);
-      }
+      mounted_ref.current = false;
     };
   }, []);
 
@@ -92,23 +96,28 @@ export function UnsubscribeBanner({
     cancelled_ref.current = false;
     set_is_dismissed(true);
 
-    const delay_seconds = preferences.undo_send_seconds ?? 10;
-    const delay_ms = delay_seconds * 1000;
+    const delay_ms = get_undo_send_delay_ms(
+      preferences.undo_send_enabled,
+      preferences.undo_send_seconds,
+      preferences.undo_send_period,
+    );
 
-    show_action_toast({
-      message: t("mail.successfully_unsubscribed"),
-      action_type: "not_spam",
-      email_ids: [],
-      duration_ms: delay_ms,
-      on_undo: async () => {
-        cancelled_ref.current = true;
-        if (pending_timeout_ref.current) {
-          clearTimeout(pending_timeout_ref.current);
-          pending_timeout_ref.current = null;
-        }
-        set_is_dismissed(false);
-      },
-    });
+    if (delay_ms > 0) {
+      show_action_toast({
+        message: t("settings.unsubscribing"),
+        action_type: "not_spam",
+        email_ids: [],
+        duration_ms: delay_ms,
+        on_undo: async () => {
+          cancelled_ref.current = true;
+          if (pending_timeout_ref.current) {
+            clearTimeout(pending_timeout_ref.current);
+            pending_timeout_ref.current = null;
+          }
+          if (mounted_ref.current) set_is_dismissed(false);
+        },
+      });
+    }
 
     pending_timeout_ref.current = setTimeout(async () => {
       pending_timeout_ref.current = null;
@@ -116,29 +125,43 @@ export function UnsubscribeBanner({
 
       try {
         const result = await execute_unsubscribe(unsubscribe_info);
+
         if (result === "api") {
-          persist_unsubscribe(sender_email, sender_name, {
-            unsubscribe_link: unsubscribe_info.unsubscribe_link,
-            list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
-          }, "auto");
+          persist_unsubscribe(
+            sender_email,
+            sender_name,
+            {
+              unsubscribe_link: unsubscribe_info.unsubscribe_link,
+              list_unsubscribe_header: unsubscribe_info.list_unsubscribe_header,
+            },
+            "auto",
+          );
           on_unsubscribed?.();
+          show_action_toast({
+            message: t("mail.successfully_unsubscribed"),
+            action_type: "not_spam",
+            email_ids: [],
+          });
         } else {
-          const url = unsubscribe_info.unsubscribe_link || unsubscribe_info.unsubscribe_mailto;
+          const url = get_manual_unsubscribe_url(unsubscribe_info);
           const lockdown = is_any_lockdown_active();
+
           show_action_toast({
             message: t("mail.unsubscribe_manual_required"),
             action_type: "not_spam",
             email_ids: [],
             duration_ms: 15000,
-            ...(!lockdown && {
-              action_label: t("mail.open_unsubscribe_page"),
-              on_undo: async () => {
-                if (url) window.open(url, "_blank", "noopener,noreferrer");
-              },
-            }),
+            ...(!lockdown &&
+              url && {
+                action_label: t("mail.open_unsubscribe_page"),
+                on_undo: async () => {
+                  open_external(url);
+                },
+              }),
           });
         }
       } catch {
+        if (mounted_ref.current) set_is_dismissed(false);
         show_action_toast({
           message: t("mail.unsubscribe_failed"),
           action_type: "not_spam",
@@ -146,7 +169,14 @@ export function UnsubscribeBanner({
         });
       }
     }, delay_ms);
-  }, [unsubscribe_info, preferences.undo_send_seconds, on_unsubscribed, t]);
+  }, [
+    unsubscribe_info,
+    preferences.undo_send_enabled,
+    preferences.undo_send_seconds,
+    preferences.undo_send_period,
+    on_unsubscribed,
+    t,
+  ]);
 
   if (!unsubscribe_info.has_unsubscribe || is_dismissed) {
     return null;
@@ -171,12 +201,7 @@ export function UnsubscribeBanner({
             borderColor: "var(--border-secondary)",
           }}
         >
-          <div
-            className="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: "color-mix(in srgb, var(--accent-color) 10%, transparent)" }}
-          >
-            <EnvelopeIcon className="w-5 h-5 text-brand" />
-          </div>
+          <EnvelopeIcon className="w-5 h-5 flex-shrink-0 text-txt-muted" />
 
           <div className="flex-1 min-w-0">
             <p className="text-[14px] font-medium text-txt-primary">
@@ -190,14 +215,14 @@ export function UnsubscribeBanner({
 
           <div className="flex items-center gap-2 flex-shrink-0">
             <button
-              className="rounded-[12px] px-3 py-1 text-sm font-medium transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
+              className="rounded-[var(--aster-radius-control)] px-3 py-1 text-sm font-medium transition-colors bg-brand text-[var(--accent-fg,#ffffff)]"
               type="button"
               onClick={handle_unsubscribe}
             >
               {t("mail.unsubscribe")}
             </button>
             <button
-              className="p-1.5 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/5 text-txt-muted"
+              className="p-1.5 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)] text-txt-muted"
               type="button"
               onClick={() => set_is_dismissed(true)}
             >

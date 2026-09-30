@@ -33,32 +33,13 @@ import {
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { get_image_proxy_url } from "@/lib/image_proxy";
+import { strip_reply_quotes } from "@/lib/strip_reply_quotes";
 import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 
 interface SendingMessageBlockProps {
   message: DecryptedThreadMessage;
   current_user_name?: string;
-}
-
-function strip_quotes(body: string): string {
-  const wrote_re = /On .+wrote:\s*/i;
-  const match = body.match(wrote_re);
-  let processed = body;
-  if (match && match.index !== undefined) {
-    const before = body.substring(0, match.index).trim();
-    if (before.length > 0) {
-      processed = before;
-    } else {
-      processed = body.substring(match.index + match[0].length);
-    }
-  }
-  return (
-    processed
-      .replace(/^>.*$/gm, "")
-      .replace(/<blockquote[^>]*>[\s\S]*?<\/blockquote>/gi, "")
-      .trim() || body
-  );
 }
 
 export function SendingMessageBlock({
@@ -71,20 +52,15 @@ export function SendingMessageBlock({
     if (message.html_content) {
       return message.html_content;
     }
-    return strip_quotes(message.body);
+
+    return strip_reply_quotes(message.body);
   }, [message.body, message.html_content]);
   const display_name =
     current_user_name || message.sender_name || t("common.me");
   const lockdown = is_any_lockdown_active();
 
   return (
-    <div
-      className="relative overflow-hidden rounded-xl animate-pulse"
-      style={{
-        backgroundColor: "var(--thread-card-bg)",
-        border: "1px solid var(--thread-card-border)",
-      }}
-    >
+    <div className="relative overflow-hidden animate-pulse">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
           <ProfileAvatar
@@ -99,7 +75,8 @@ export function SendingMessageBlock({
             <span
               className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium"
               style={{
-                backgroundColor: "color-mix(in srgb, var(--accent-color) 15%, transparent)",
+                backgroundColor:
+                  "color-mix(in srgb, var(--accent-color) 15%, transparent)",
                 color: "var(--accent-color)",
               }}
             >
@@ -118,8 +95,12 @@ export function SendingMessageBlock({
             sanitized_html={
               is_html_content(clean_body)
                 ? sanitize_html(clean_body, {
-                    external_content_mode: lockdown ? "never" : preferences.load_remote_images,
-                    image_proxy_url: lockdown ? undefined : get_image_proxy_url(),
+                    external_content_mode: lockdown
+                      ? "never"
+                      : preferences.load_remote_images,
+                    image_proxy_url: lockdown
+                      ? undefined
+                      : get_image_proxy_url(),
                     sandbox_mode: true,
                     lockdown_mode: lockdown,
                   }).html

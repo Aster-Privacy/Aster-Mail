@@ -23,6 +23,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { WebauthnVerification } from "./webauthn_verification";
+
 import {
   initiate_webauthn_assertion,
   perform_webauthn_assertion,
@@ -38,7 +39,8 @@ vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => ({ t: (key: string) => key }),
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({
     children,
     disabled,
@@ -58,7 +60,6 @@ const mocked_initiate = vi.mocked(initiate_webauthn_assertion);
 const mocked_perform = vi.mocked(perform_webauthn_assertion);
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -140,6 +141,7 @@ describe("WebauthnVerification", () => {
     mocked_perform.mockReturnValue(new Promise(() => {}));
 
     const p = await render();
+
     await act(async () => {
       root.render(<WebauthnVerification {...p} />);
     });

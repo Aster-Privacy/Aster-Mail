@@ -25,6 +25,7 @@ export const MOBILE_EXPERIENCE_BREAKPOINT_PX = 768;
 
 export function compute_is_mobile_experience(): boolean {
   if (Capacitor.isNativePlatform()) return true;
+  if ("__TAURI_INTERNALS__" in window) return false;
 
   const params = new URLSearchParams(window.location.search);
   const override = params.get("mobile");

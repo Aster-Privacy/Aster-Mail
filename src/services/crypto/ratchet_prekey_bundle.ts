@@ -18,15 +18,28 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import { api_client } from "../api/client";
-import { get_recipient_public_key } from "../api/keys";
+
 import { array_to_base64 } from "./base64";
 import { type EncryptedVault } from "./key_manager";
-import { PINNED_FINGERPRINTS, base64_to_array as core_base64_to_array, compute_hash, pin_fingerprint, verify_pinned_fingerprint } from "./key_manager_core";
-import { select_private_key_matching_public, sign_ratchet_prekey_bundle } from "./key_manager_pgp";
-import { get_passphrase_from_memory } from "./memory_key_store";
+import {
+  PINNED_FINGERPRINTS,
+  base64_to_array as core_base64_to_array,
+  compute_hash,
+  pin_fingerprint,
+  verify_pinned_fingerprint,
+} from "./key_manager_core";
+import { sign_ratchet_prekey_bundle } from "./key_manager_pgp";
+import { select_published_signing_key } from "./published_signing_key";
+import {
+  get_passphrase_from_memory,
+  get_vault_from_memory,
+  on_keys_ready,
+} from "./memory_key_store";
+import { get_pinned_identity_fingerprint } from "./ratchet_identity_pin";
 import { type PrekeyBundle } from "./x3dh";
+
+import { HASH_ALG } from "@/services/crypto/constants";
 
 export async function detect_identity_pin_drift(
   pin_id: string,
@@ -44,12 +57,19 @@ export async function detect_identity_pin_drift(
     const namespaced_pin_id = `ratchet_identity:${pin_id}`;
 
     if (!PINNED_FINGERPRINTS.has(namespaced_pin_id)) {
-      pin_fingerprint(namespaced_pin_id, fingerprint, "identity");
+      const persisted = await get_pinned_identity_fingerprint(pin_id);
 
-      return;
+      pin_fingerprint(namespaced_pin_id, persisted ?? fingerprint, "identity");
+
+      if (!persisted) {
+        return;
+      }
     }
 
-    const matches = await verify_pinned_fingerprint(namespaced_pin_id, fingerprint);
+    const matches = await verify_pinned_fingerprint(
+      namespaced_pin_id,
+      fingerprint,
+    );
 
     if (!matches && import.meta.env.DEV) {
       console.warn(
@@ -94,10 +114,7 @@ export async function fetch_prekey_bundle(
 
   let response = await api_client.get<PrekeyBundle>(path);
 
-  if (
-    (response.error || !response.data) &&
-    response.code !== "NOT_FOUND"
-  ) {
+  if ((response.error || !response.data) && response.code !== "NOT_FOUND") {
     response = await api_client.get<PrekeyBundle>(path);
   }
 
@@ -106,6 +123,50 @@ export async function fetch_prekey_bundle(
   }
 
   return response.data;
+}
+
+interface RatchetIdentityHistoryEntry {
+  kem_identity_key: string;
+  first_published_at: string;
+  last_published_at: string;
+}
+
+interface RatchetIdentityHistoryResponse {
+  user_id: string;
+  entries: RatchetIdentityHistoryEntry[];
+  history_complete: boolean;
+}
+
+export interface PublishedIdentityHistory {
+  identity_keys: string[];
+  history_complete: boolean;
+}
+
+export async function fetch_published_identity_history(
+  username: string,
+  email?: string,
+): Promise<PublishedIdentityHistory | null> {
+  const params = email ? `?email=${encodeURIComponent(email)}` : "";
+  const path = `/crypto/v1/ratchet/prekey-bundle/${encodeURIComponent(username)}/history${params}`;
+
+  const response = await api_client.get<RatchetIdentityHistoryResponse>(path);
+
+  if (response.error || !response.data) {
+    return null;
+  }
+
+  const entries = Array.isArray(response.data.entries)
+    ? response.data.entries
+    : [];
+
+  return {
+    identity_keys: entries
+      .map((entry) => entry?.kem_identity_key)
+      .filter(
+        (key): key is string => typeof key === "string" && key.length > 0,
+      ),
+    history_complete: response.data.history_complete === true,
+  };
 }
 
 async function legacy_prekey_signature(
@@ -123,44 +184,64 @@ async function legacy_prekey_signature(
 async function select_bundle_signing_key(
   vault: EncryptedVault,
 ): Promise<string> {
-  const candidates = [vault.identity_key, ...(vault.previous_keys ?? [])];
+  return (await select_published_signing_key(vault)) ?? vault.identity_key;
+}
 
-  if (candidates.filter(Boolean).length <= 1) return vault.identity_key;
-
-  try {
-    const { get_current_account } = await import(
-      "@/services/account_manager"
-    );
-    const account = await get_current_account();
-    const email = account?.user?.email;
-
-    if (!email) return vault.identity_key;
-
-    const username = email.split("@")[0];
-    const response = await get_recipient_public_key(username, email);
-
-    if (!response.data?.public_key) return vault.identity_key;
-
-    const matching = await select_private_key_matching_public(
-      candidates,
-      response.data.public_key,
-    );
-
-    return matching ?? vault.identity_key;
-  } catch {
-    return vault.identity_key;
-  }
+export interface UploadPrekeyBundleResult {
+  ok: boolean;
+  code?: string;
+  error_message?: string;
 }
 
 export async function upload_prekey_bundle(
   vault: EncryptedVault,
 ): Promise<boolean> {
+  return (await upload_prekey_bundle_result(vault)).ok;
+}
+
+let deferred_publish_unsubscribe: (() => void) | null = null;
+
+function schedule_deferred_publish(): void {
+  if (deferred_publish_unsubscribe) return;
+
+  let armed = false;
+
+  const unsubscribe = on_keys_ready(() => {
+    if (!armed || !get_passphrase_from_memory()) return;
+
+    deferred_publish_unsubscribe?.();
+    deferred_publish_unsubscribe = null;
+
+    const vault = get_vault_from_memory();
+
+    if (!vault) return;
+
+    void upload_prekey_bundle_result(vault).catch(() => undefined);
+  });
+
+  deferred_publish_unsubscribe = unsubscribe;
+  armed = true;
+}
+
+export function has_deferred_prekey_publish(): boolean {
+  return deferred_publish_unsubscribe !== null;
+}
+
+export async function upload_prekey_bundle_result(
+  vault: EncryptedVault,
+): Promise<UploadPrekeyBundleResult> {
   if (!vault.ratchet_identity_public || !vault.ratchet_signed_prekey_public) {
-    return false;
+    return { ok: false };
   }
 
   const passphrase = get_passphrase_from_memory();
   let signature: string;
+
+  if (vault.identity_key && !passphrase) {
+    schedule_deferred_publish();
+
+    return { ok: false, code: "deferred" };
+  }
 
   if (vault.identity_key && passphrase) {
     try {
@@ -169,6 +250,7 @@ export async function upload_prekey_bundle(
         passphrase,
         vault.ratchet_identity_public,
         vault.ratchet_signed_prekey_public,
+        vault.ratchet_pq_identity_public ?? null,
       );
     } catch {
       signature = await legacy_prekey_signature(
@@ -191,5 +273,9 @@ export async function upload_prekey_bundle(
     pq_kem_public_key: vault.ratchet_pq_identity_public ?? null,
   });
 
-  return !response.error;
+  return {
+    ok: !response.error,
+    code: response.code,
+    error_message: response.error,
+  };
 }

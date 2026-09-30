@@ -19,14 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import {
-  type ParsedEmail,
-} from "@/services/import/parser";
-import {
-  type ImportSource,
-} from "@/services/api/email_import";
+import { type ParsedEmail } from "@/services/import/parser";
+import { type ImportSource } from "@/services/api/email_import";
 import { extract_email_address } from "@/services/import/mime_utils";
-
 
 export interface ImportModalProps {
   is_open: boolean;
@@ -66,11 +61,138 @@ export const CANONICAL_FOLDER_TOKENS = new Set([
   "important",
 ]);
 
-export function is_canonical_folder(name: string): boolean {
-  const trimmed = name.trim().toLowerCase();
-  const leaf = trimmed.split("/").pop() ?? trimmed;
+const IGNORED_LABEL_PREFIXES = ["category ", "imap_", "[imap]", "[gmail]"];
 
-  return CANONICAL_FOLDER_TOKENS.has(leaf);
+const SENT_LABELS = new Set([
+  "sent",
+  "sent mail",
+  "sent items",
+  "sent messages",
+  "outbox",
+]);
+const DRAFT_LABELS = new Set(["drafts", "draft", "chat", "chats"]);
+const TRASH_LABELS = new Set([
+  "trash",
+  "deleted",
+  "deleted items",
+  "deleted messages",
+  "bin",
+]);
+const SPAM_LABELS = new Set([
+  "spam",
+  "junk",
+  "junk email",
+  "junk e-mail",
+  "bulk mail",
+]);
+const ARCHIVE_LABELS = new Set([
+  "archive",
+  "archives",
+  "archived",
+  "all mail",
+  "all",
+]);
+const STARRED_LABELS = new Set(["starred", "flagged"]);
+
+function label_leaf(name: string): string {
+  const trimmed = name.trim().toLowerCase();
+
+  return trimmed.split("/").pop() ?? trimmed;
+}
+
+export function is_ignored_label(name: string): boolean {
+  const lower = name.trim().toLowerCase();
+
+  if (lower === "important" || lower === "unread" || lower === "opened") {
+    return true;
+  }
+
+  return IGNORED_LABEL_PREFIXES.some((prefix) => lower.startsWith(prefix));
+}
+
+export function is_canonical_folder(name: string): boolean {
+  return (
+    CANONICAL_FOLDER_TOKENS.has(label_leaf(name)) || is_ignored_label(name)
+  );
+}
+
+export function source_labels(email: ParsedEmail): string[] {
+  const raw = email.raw_headers["x-gmail-labels"];
+  const out: string[] = [];
+
+  if (raw) {
+    for (const piece of raw.split(",")) {
+      const name = piece.trim();
+
+      if (name) out.push(name);
+    }
+  } else if (email.source_folder) {
+    out.push(email.source_folder);
+  }
+
+  return out;
+}
+
+export interface ImportDisposition {
+  skip: boolean;
+  sent: boolean;
+  is_read?: boolean;
+  is_starred: boolean;
+  is_archived: boolean;
+  is_spam: boolean;
+  is_trashed: boolean;
+  custom_labels: string[];
+}
+
+export function classify_import_labels(labels: string[]): ImportDisposition {
+  const disposition: ImportDisposition = {
+    skip: false,
+    sent: false,
+    is_starred: false,
+    is_archived: false,
+    is_spam: false,
+    is_trashed: false,
+    custom_labels: [],
+  };
+  let inbox = false;
+  let archived = false;
+
+  for (const label of labels) {
+    const lower = label.trim().toLowerCase();
+    const leaf = label_leaf(label);
+
+    if (lower === "unread") {
+      disposition.is_read = false;
+      continue;
+    }
+    if (lower === "opened") {
+      if (disposition.is_read === undefined) disposition.is_read = true;
+      continue;
+    }
+    if (is_ignored_label(label)) continue;
+    if (leaf === "inbox") inbox = true;
+    else if (SENT_LABELS.has(leaf)) disposition.sent = true;
+    else if (DRAFT_LABELS.has(leaf)) disposition.skip = true;
+    else if (TRASH_LABELS.has(leaf)) disposition.is_trashed = true;
+    else if (SPAM_LABELS.has(leaf)) disposition.is_spam = true;
+    else if (ARCHIVE_LABELS.has(leaf)) archived = true;
+    else if (STARRED_LABELS.has(leaf)) disposition.is_starred = true;
+    else disposition.custom_labels.push(label.trim());
+  }
+
+  if (disposition.is_trashed) disposition.is_spam = false;
+  if (
+    archived &&
+    !inbox &&
+    !disposition.sent &&
+    !disposition.is_trashed &&
+    !disposition.is_spam &&
+    disposition.custom_labels.length === 0
+  ) {
+    disposition.is_archived = true;
+  }
+
+  return disposition;
 }
 
 export function derive_manual_import_source(files: File[]): ImportSource {
@@ -94,14 +216,10 @@ export function extract_source_folders(emails: ParsedEmail[]): string[] {
   const out = new Set<string>();
 
   for (const email of emails) {
-    const raw = email.raw_headers["x-gmail-labels"];
+    const disposition = classify_import_labels(source_labels(email));
 
-    if (!raw) continue;
-    for (const piece of raw.split(",")) {
-      const name = piece.trim();
-
-      if (!name) continue;
-      if (is_canonical_folder(name)) continue;
+    if (disposition.skip) continue;
+    for (const name of disposition.custom_labels) {
       out.add(name);
     }
   }
@@ -113,12 +231,8 @@ export function folder_for_email(
   email: ParsedEmail,
   label_map: Map<string, string>,
 ): string | undefined {
-  const raw = email.raw_headers["x-gmail-labels"];
-
-  if (!raw) return undefined;
-  for (const piece of raw.split(",")) {
-    const name = piece.trim();
-    const token = label_map.get(name);
+  for (const name of source_labels(email)) {
+    const token = label_map.get(name.trim());
 
     if (token) return token;
   }
@@ -279,4 +393,3 @@ export function detect_item_type(
 
   return "received";
 }
-

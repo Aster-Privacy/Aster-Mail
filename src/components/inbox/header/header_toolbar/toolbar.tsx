@@ -19,10 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import {
-  ArrowPathIcon,
-  BoltIcon,
-} from "@heroicons/react/24/outline";
+import { ArrowPathIcon, BoltIcon } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
 import {
@@ -34,7 +31,6 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown_menu";
 import { use_i18n } from "@/lib/i18n/context";
-
 
 export interface HeaderToolbarProps {
   on_settings_click: () => void;
@@ -184,4 +180,3 @@ export function HeaderToolbar({
     </>
   );
 }
-

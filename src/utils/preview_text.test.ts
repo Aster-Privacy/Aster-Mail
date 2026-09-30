@@ -28,6 +28,7 @@ import {
   extract_preheader_text,
   strip_preview_filler,
   truncate_with_ellipsis,
+  clip_with_ellipsis,
 } from "./preview_text";
 
 describe("truncate_with_ellipsis", () => {
@@ -83,6 +84,26 @@ describe("build_list_preview", () => {
   it("passes through preview text that fits", () => {
     expect(build_list_preview("a short preview")).toBe("a short preview");
   });
+
+  it("drops the footer and quoted history from a reply preview", () => {
+    expect(
+      build_list_preview(
+        "8 is perfect. I will bring snacks. Secured by Aster Mail On Fri, Sep 25, 2026, 11:30 AM, sam <sam@example.org> wrote: Dinner at 7?",
+      ),
+    ).toBe("8 is perfect. I will bring snacks.");
+  });
+
+  it("drops a trailing footer", () => {
+    expect(build_list_preview("See you soon Secured by Aster Mail")).toBe(
+      "See you soon",
+    );
+  });
+
+  it("keeps text that mentions the product name in a sentence", () => {
+    expect(build_list_preview("I moved to Aster Mail last week")).toBe(
+      "I moved to Aster Mail last week",
+    );
+  });
 });
 
 describe("strip_preview_filler", () => {
@@ -100,6 +121,24 @@ describe("strip_preview_filler", () => {
     );
   });
 
+  it("collapses fixed-width spaces used to pad a preheader", () => {
+    const padded = `Tune in for a special Apple Event.${" ".repeat(200)}`;
+
+    expect(strip_preview_filler(padded)).toBe(
+      "Tune in for a special Apple Event.",
+    );
+  });
+
+  it("collapses braille blanks used to pad a preheader", () => {
+    expect(strip_preview_filler(`Watch now${"⠀".repeat(120)}hidden`)).toBe(
+      "Watch now hidden",
+    );
+  });
+
+  it("keeps words apart when a non-breaking space separates them", () => {
+    expect(strip_preview_filler("Apple Event")).toBe("Apple Event");
+  });
+
   it("removes interlinear annotation markers", () => {
     expect(strip_preview_filler("a￹b￺c￻d")).toBe("abcd");
   });
@@ -109,7 +148,9 @@ describe("truncate_with_ellipsis", () => {
   it("does not split an astral character at the cap", () => {
     const value = `${"a".repeat(9)}\u{1f600}tail`;
 
-    expect(truncate_with_ellipsis(value, 10)).toBe(`${"a".repeat(9)}${ELLIPSIS}`);
+    expect(truncate_with_ellipsis(value, 10)).toBe(
+      `${"a".repeat(9)}${ELLIPSIS}`,
+    );
   });
 });
 
@@ -251,5 +292,19 @@ describe("build_body_preview", () => {
     expect(build_body_preview("Lunch\u200b\u00a0at one?", "")).toBe(
       "Lunch at one?",
     );
+  });
+});
+
+describe("clip_with_ellipsis", () => {
+  it("returns short values untouched", () => {
+    expect(clip_with_ellipsis("hello", 10)).toBe("hello");
+  });
+
+  it("never splits a surrogate pair", () => {
+    const value = "ab" + "\u{1f600}".repeat(5);
+    const result = clip_with_ellipsis(value, 5);
+
+    expect(result).toBe("ab\u{1f600}…");
+    expect(result).not.toContain("�");
   });
 });

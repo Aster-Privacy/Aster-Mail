@@ -22,6 +22,7 @@ import type {
   ExternalAccountSyncSettings,
   ExternalAccountAdvancedSettings,
 } from "./types";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 const MIN_PORT = 1;
 const MAX_PORT = 65535;
@@ -34,23 +35,32 @@ const MAX_MESSAGES_PER_SYNC = 10000;
 
 export function validate_account_token(account_token: string): string | null {
   if (!account_token || account_token.trim().length === 0) {
-    return "Account token is required";
+    return get_active_translations().errors.invalid_request;
   }
 
   return null;
 }
 
-export function validate_port(port: number, label: string): string | null {
+function range_error(min: number, max: number): string {
+  return get_active_translations()
+    .errors.number_out_of_range.replace("{{min}}", String(min))
+    .replace("{{max}}", String(max));
+}
+
+export function validate_port(port: number): string | null {
   if (!Number.isInteger(port) || port < MIN_PORT || port > MAX_PORT) {
-    return `${label} must be an integer between ${MIN_PORT} and ${MAX_PORT}`;
+    return get_active_translations().settings.smtp_port_error;
   }
 
   return null;
 }
 
-export function validate_hostname(host: string, label: string): string | null {
+export function validate_hostname(
+  host: string,
+  required_message: string,
+): string | null {
   if (!host || host.trim().length === 0) {
-    return `${label} is required`;
+    return required_message;
   }
 
   return null;
@@ -64,19 +74,19 @@ export function validate_sync_settings(
     settings.max_messages_per_sync < MIN_MESSAGES_PER_SYNC ||
     settings.max_messages_per_sync > MAX_MESSAGES_PER_SYNC
   ) {
-    return `Max messages per sync must be an integer between ${MIN_MESSAGES_PER_SYNC} and ${MAX_MESSAGES_PER_SYNC}`;
+    return range_error(MIN_MESSAGES_PER_SYNC, MAX_MESSAGES_PER_SYNC);
   }
 
   if (settings.sync_since_date !== null) {
     const parsed = Date.parse(settings.sync_since_date);
 
     if (isNaN(parsed)) {
-      return "Sync since date must be a valid ISO date string";
+      return get_active_translations().errors.invalid_date;
     }
   }
 
   if (!Array.isArray(settings.sync_folders)) {
-    return "Sync folders must be an array";
+    return get_active_translations().errors.invalid_request;
   }
 
   return null;
@@ -90,7 +100,7 @@ export function validate_advanced_settings(
     settings.connection_timeout_seconds < MIN_TIMEOUT_SECONDS ||
     settings.connection_timeout_seconds > MAX_TIMEOUT_SECONDS
   ) {
-    return `Connection timeout must be an integer between ${MIN_TIMEOUT_SECONDS} and ${MAX_TIMEOUT_SECONDS} seconds`;
+    return range_error(MIN_TIMEOUT_SECONDS, MAX_TIMEOUT_SECONDS);
   }
 
   if (
@@ -98,7 +108,7 @@ export function validate_advanced_settings(
     settings.idle_timeout_seconds < MIN_TIMEOUT_SECONDS ||
     settings.idle_timeout_seconds > MAX_TIMEOUT_SECONDS
   ) {
-    return `Idle timeout must be an integer between ${MIN_TIMEOUT_SECONDS} and ${MAX_TIMEOUT_SECONDS} seconds`;
+    return range_error(MIN_TIMEOUT_SECONDS, MAX_TIMEOUT_SECONDS);
   }
 
   if (
@@ -106,7 +116,7 @@ export function validate_advanced_settings(
     settings.max_concurrent_connections < MIN_CONCURRENT_CONNECTIONS ||
     settings.max_concurrent_connections > MAX_CONCURRENT_CONNECTIONS
   ) {
-    return `Max concurrent connections must be an integer between ${MIN_CONCURRENT_CONNECTIONS} and ${MAX_CONCURRENT_CONNECTIONS}`;
+    return range_error(MIN_CONCURRENT_CONNECTIONS, MAX_CONCURRENT_CONNECTIONS);
   }
 
   return null;

@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EmailCategory, InboxEmail } from "@/types/email";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 import {
   secure_encrypt,
@@ -29,6 +30,7 @@ import {
   on_vault_cleared,
 } from "@/services/crypto/memory_key_store";
 import { get_current_account_id } from "@/services/account_manager";
+import { clear_strikes, record_absences } from "@/services/absent_strikes";
 import {
   list_mail_items,
   sync_mail_items,
@@ -47,8 +49,10 @@ import {
 } from "@/services/mail_categorizer";
 import {
   BUILTIN_CATEGORY_IDS,
+  builtin_category_def,
   fold_builtin,
   is_custom_category_id,
+  type CategoryIconKey,
   type CustomCategoryRule,
 } from "@/data/category_catalog";
 import { decrypt_envelope } from "@/hooks/email_list_helpers";
@@ -60,6 +64,18 @@ import {
   type CategoryPreview,
 } from "@/lib/category_preview_text";
 import { yield_to_browser } from "@/lib/scheduling";
+import {
+  clear_all_read_intents,
+  get_read_intent,
+  scope_read_applies,
+  settle_flag_intents,
+} from "@/services/read_intent";
+import {
+  clear_removed_items,
+  forget_removed_ids,
+  is_recently_removed,
+  note_removed_ids,
+} from "@/services/removed_items";
 
 const DB_NAME = "astermail_category_index";
 const STORE_NAME = "indexes";
@@ -70,6 +86,7 @@ const MAX_ENTRIES = 60000;
 const CAP_TARGET = 50000;
 const PERSIST_DEBOUNCE_MS = 1500;
 const NOTIFY_THROTTLE_MS = 350;
+const BUILD_NOTIFY_THROTTLE_MS = 2500;
 const RESYNC_DEBOUNCE_MS = 4000;
 const RESYNC_MIN_INTERVAL_MS = 20000;
 const DELETE_SYNC_TOKEN_PREFIX = "aster_delete_sync_token_";
@@ -82,6 +99,7 @@ const FUTURE_NEW_SKEW_MS = 15 * 60 * 1000;
 // instead of deferring forever to a dead `build_in_progress` latch.
 const BUILD_STALE_MS = 90000;
 const BUILD_FETCH_DEADLINE_MS = 75000;
+const OPEN_DB_DEADLINE_MS = 10000;
 const MAX_NEW_HEADS = 3;
 
 export interface CategoryIndexEntry {
@@ -91,7 +109,9 @@ export interface CategoryIndexEntry {
   is_read: boolean;
   category: EmailCategory;
   category_pinned?: boolean;
+  is_pinned?: boolean;
   snoozed_until?: string;
+  needs_reclassify?: boolean;
 }
 
 export interface CategoryCount {
@@ -115,15 +135,18 @@ interface PersistedMeta {
   built_at_ms: number;
   fully_built: boolean;
   classifier_version?: number;
+  entry_schema?: number;
   seen_ts?: Record<string, number>;
 }
 
 const PERSIST_CHUNK_COUNT = 32;
+const ENTRY_SCHEMA_VERSION = 2;
 
 const dirty_chunks = new Set<number>();
 let previews_dirty = false;
 let persist_running = false;
 let persist_rerun = false;
+let persist_failures = 0;
 
 function chunk_of(id: string): number {
   let hash = 0;
@@ -177,6 +200,14 @@ let resync_failures = 0;
 let listeners_started = false;
 
 const MAX_RESYNC_FAILURES = 5;
+const GAP_REBUILD_MIN_INTERVAL_MS = 5 * 60 * 1000;
+const DRIFT_REBUILD_MIN_INTERVAL_MS = 30 * 60 * 1000;
+const DRIFT_REBUILD_SESSION_LIMIT = 2;
+const DRIFT_MIN_MISSING_THREADS = 25;
+const DRIFT_MIN_MISSING_FRACTION = 0.1;
+
+let last_gap_rebuild_ms = 0;
+let drift_rebuilds = 0;
 
 const BUILTIN_CATEGORY_ID_SET = new Set(BUILTIN_CATEGORY_IDS);
 
@@ -236,23 +267,43 @@ function fold_category(raw: EmailCategory): EmailCategory {
   return active_tabs.includes(target) ? target : "primary";
 }
 
+export function fold_to_active_tab(raw?: EmailCategory): EmailCategory {
+  return raw ? fold_category(raw) : "primary";
+}
+
+export interface ActiveTabOption {
+  id: string;
+  icon: CategoryIconKey;
+  label_key?: TranslationKey;
+  name?: string;
+}
+
+export function get_active_tab_options(): ActiveTabOption[] {
+  const options: ActiveTabOption[] = [];
+
+  for (const id of active_tabs) {
+    const builtin = builtin_category_def(id);
+
+    if (builtin) {
+      options.push({ id, icon: builtin.icon, label_key: builtin.label_key });
+      continue;
+    }
+
+    const rule = custom_categories.find((candidate) => candidate.id === id);
+
+    if (rule) options.push({ id, icon: rule.icon, name: rule.name });
+  }
+
+  return options;
+}
+
 const listeners = new Set<() => void>();
 const in_flight_reclassify = new Map<string, boolean>();
+const reclassify_promises = new Map<string, Promise<void>>();
 const recent_reclassify_meta = new Map<string, string>();
-const recently_read = new Map<string, number>();
 const recent_pins = new Map<string, { category: EmailCategory; at: number }>();
 
-const RECENT_READ_GUARD_MS = 30000;
 const RECENT_PIN_GUARD_MS = 30000;
-
-function note_recently_read(id: string): void {
-  recently_read.set(id, now_ms());
-  if (recently_read.size > 500) {
-    const oldest = recently_read.keys().next().value;
-
-    if (oldest) recently_read.delete(oldest);
-  }
-}
 
 export function note_recent_pin(id: string, category: EmailCategory): void {
   recent_pins.set(id, { category, at: now_ms() });
@@ -284,31 +335,101 @@ function now_ms(): number {
   return new Date().getTime();
 }
 
+const ts_cache = new Map<string, number>();
+
 function safe_ts(value: string | undefined): number {
   if (!value) return 0;
-  const ms = new Date(value).getTime();
+  const cached = ts_cache.get(value);
 
-  return Number.isNaN(ms) ? 0 : ms;
+  if (cached !== undefined) return cached;
+  if (ts_cache.size >= MAX_ENTRIES * 2) ts_cache.clear();
+  const parsed = new Date(value).getTime();
+  const ms = Number.isNaN(parsed) ? 0 : parsed;
+
+  ts_cache.set(value, ms);
+
+  return ms;
 }
 
 function open_db(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
+    let settled = false;
+
+    const fail = (reason: unknown): void => {
+      if (settled) return;
+      settled = true;
+      reject(reason);
+    };
+    const succeed = (db: IDBDatabase): void => {
+      if (settled) return;
+      settled = true;
+      resolve(db);
+    };
+    const timer = setTimeout(() => {
+      fail(new Error("category_index_open_timeout"));
+    }, OPEN_DB_DEADLINE_MS);
+
+    let request: IDBOpenDBRequest;
+
+    try {
+      request = indexedDB.open(DB_NAME, 1);
+    } catch (error) {
+      clearTimeout(timer);
+      fail(error);
+
+      return;
+    }
 
     request.onupgradeneeded = () => {
-      const db = request.result;
+      try {
+        const db = request.result;
 
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME);
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME);
+        }
+      } catch (error) {
+        clearTimeout(timer);
+        fail(error);
       }
     };
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
+    request.onblocked = () => {
+      clearTimeout(timer);
+      fail(new Error("category_index_open_blocked"));
+    };
+    request.onsuccess = () => {
+      clearTimeout(timer);
+      succeed(request.result);
+    };
+    request.onerror = () => {
+      clearTimeout(timer);
+      fail(request.error);
+    };
   });
+}
+
+let batch_depth = 0;
+let batch_pending = false;
+
+export function batch_index_updates(run: () => void): void {
+  batch_depth += 1;
+  try {
+    run();
+  } finally {
+    batch_depth -= 1;
+    if (batch_depth === 0 && batch_pending) {
+      batch_pending = false;
+      notify();
+    }
+  }
 }
 
 function notify(): void {
   version += 1;
+  if (batch_depth > 0) {
+    batch_pending = true;
+
+    return;
+  }
   listeners.forEach((listener) => {
     try {
       listener();
@@ -319,14 +440,29 @@ function notify(): void {
   publish_inbox_unread();
 }
 
-function notify_soon(): void {
+function notify_soon(immediate = false): void {
+  const delay = immediate
+    ? 0
+    : build_in_progress
+      ? BUILD_NOTIFY_THROTTLE_MS
+      : NOTIFY_THROTTLE_MS;
+
   if (notify_timer) clearTimeout(notify_timer);
 
   notify_timer = setTimeout(() => {
     notify_timer = null;
     notify();
-  }, NOTIFY_THROTTLE_MS);
+  }, delay);
 }
+
+export function flush_pending_notify(): void {
+  if (!notify_timer) return;
+  clearTimeout(notify_timer);
+  notify_timer = null;
+  notify();
+}
+
+const MAX_PERSIST_RETRIES = 3;
 
 function schedule_persist(): void {
   if (persist_timer) {
@@ -379,6 +515,7 @@ async function persist_now(): Promise<void> {
       built_at_ms: last_build_ms,
       fully_built,
       classifier_version: CLASSIFIER_VERSION,
+      entry_schema: ENTRY_SCHEMA_VERSION,
       seen_ts,
     };
     const encrypted_meta = await secure_encrypt(JSON.stringify(meta));
@@ -416,11 +553,17 @@ async function persist_now(): Promise<void> {
     });
 
     db.close();
+    persist_failures = 0;
   } catch (e) {
     for (const chunk_index of writing) {
       dirty_chunks.add(chunk_index);
     }
     previews_dirty = true;
+    persist_failures += 1;
+
+    if (persist_failures <= MAX_PERSIST_RETRIES) {
+      schedule_persist();
+    }
 
     const is_quota =
       e instanceof DOMException && e.name === "QuotaExceededError";
@@ -507,6 +650,8 @@ async function load_from_disk(account_id: string): Promise<void> {
       Partial<PersistedMeta>;
     const valid_entries: [string, CategoryIndexEntry][] = [];
 
+    let chunks_incomplete = false;
+
     if (payload.classifier_version !== CLASSIFIER_VERSION) return;
 
     if (payload.chunked === true) {
@@ -525,14 +670,29 @@ async function load_from_disk(account_id: string): Promise<void> {
           chunk_record_key(account_id, i),
         );
 
-        if (!encrypted_chunk) continue;
+        if (!encrypted_chunk) {
+          chunks_incomplete = true;
+          continue;
+        }
+
         if (active_account_id !== account_id) return;
 
-        const decrypted_chunk = await secure_decrypt(encrypted_chunk);
+        let decrypted_chunk: string;
+
+        try {
+          decrypted_chunk = await secure_decrypt(encrypted_chunk);
+        } catch {
+          chunks_incomplete = true;
+          continue;
+        }
 
         if (active_account_id !== account_id) return;
 
-        collect_valid_entries(JSON.parse(decrypted_chunk), valid_entries);
+        try {
+          collect_valid_entries(JSON.parse(decrypted_chunk), valid_entries);
+        } catch {
+          chunks_incomplete = true;
+        }
       }
     } else {
       if (!Array.isArray(payload.entries)) return;
@@ -555,7 +715,15 @@ async function load_from_disk(account_id: string): Promise<void> {
     }
 
     entries_map = new Map(valid_entries);
-    fully_built = payload.fully_built === true;
+    fully_built =
+      payload.fully_built === true &&
+      !chunks_incomplete &&
+      payload.entry_schema === ENTRY_SCHEMA_VERSION;
+
+    if (chunks_incomplete) {
+      mark_all_dirty();
+    }
+
     last_build_ms =
       typeof payload.built_at_ms === "number" ? payload.built_at_ms : 0;
     seen_ts = clean_seen_map(payload.seen_ts);
@@ -630,21 +798,23 @@ async function ensure_loaded(): Promise<boolean> {
 
 function apply_upsert(
   incoming: CategoryIndexEntry[],
-  guard_recent_read = false,
+  fetched_at?: number,
 ): boolean {
   let changed = false;
 
   for (const raw of incoming) {
     if (!raw.id) continue;
     const existing = entries_map.get(raw.id);
+
+    if (!existing && is_recently_removed(raw.id)) continue;
+
     let entry = raw;
+    const intended =
+      get_read_intent(raw.id, fetched_at) ??
+      (scope_read_applies(raw.message_ts) ? true : undefined);
 
-    if (guard_recent_read && existing?.is_read && !raw.is_read) {
-      const noted = recently_read.get(raw.id);
-
-      if (noted && now_ms() - noted < RECENT_READ_GUARD_MS) {
-        entry = { ...raw, is_read: true };
-      }
+    if (intended !== undefined && entry.is_read !== intended) {
+      entry = { ...entry, is_read: intended };
     }
 
     const pinned_category = pinned_category_for(raw.id);
@@ -660,7 +830,9 @@ function apply_upsert(
       existing.message_ts !== entry.message_ts ||
       (existing.category_pinned ?? false) !==
         (entry.category_pinned ?? false) ||
-      (existing.snoozed_until ?? "") !== (entry.snoozed_until ?? "")
+      (existing.is_pinned ?? false) !== (entry.is_pinned ?? false) ||
+      (existing.snoozed_until ?? "") !== (entry.snoozed_until ?? "") ||
+      (existing.needs_reclassify ?? false) !== (entry.needs_reclassify ?? false)
     ) {
       entries_map.set(entry.id, entry);
       mark_dirty(entry.id);
@@ -782,15 +954,16 @@ export function clear_entry_previews(): void {
 export function upsert_entries(
   incoming: CategoryIndexEntry[],
   generation?: number,
-  guard_recent_read = false,
+  fetched_at?: number,
+  immediate_notify = false,
 ): void {
   if (incoming.length === 0) return;
   if (generation !== undefined && generation !== index_generation) return;
 
-  if (apply_upsert(incoming, guard_recent_read)) {
+  if (apply_upsert(incoming, fetched_at)) {
     enforce_cap();
     schedule_persist();
-    notify_soon();
+    notify_soon(immediate_notify);
   }
 }
 
@@ -807,6 +980,8 @@ export function get_index_entries(ids: string[]): CategoryIndexEntry[] {
 }
 
 export function set_ids_read(ids: string[], is_read: boolean): void {
+  settle_flag_intents(ids, { is_read });
+
   let changed = false;
 
   for (const id of ids) {
@@ -815,7 +990,6 @@ export function set_ids_read(ids: string[], is_read: boolean): void {
     if (entry && entry.is_read !== is_read) {
       entries_map.set(id, { ...entry, is_read });
       mark_dirty(id);
-      if (is_read) note_recently_read(id);
       changed = true;
     }
   }
@@ -826,16 +1000,15 @@ export function set_ids_read(ids: string[], is_read: boolean): void {
   }
 }
 
-export function mark_thread_read_entries(thread_token: string): void {
-  if (!thread_token) return;
-
+export function set_ids_pinned(ids: string[], is_pinned: boolean): void {
   let changed = false;
 
-  for (const [id, entry] of entries_map) {
-    if (entry.thread_token === thread_token && !entry.is_read) {
-      entries_map.set(id, { ...entry, is_read: true });
+  for (const id of ids) {
+    const entry = entries_map.get(id);
+
+    if (entry && (entry.is_pinned ?? false) !== is_pinned) {
+      entries_map.set(id, { ...entry, is_pinned });
       mark_dirty(id);
-      note_recently_read(id);
       changed = true;
     }
   }
@@ -844,6 +1017,58 @@ export function mark_thread_read_entries(thread_token: string): void {
     schedule_persist();
     notify();
   }
+}
+
+export function set_all_indexed_read(is_read: boolean): string[] {
+  const changed: string[] = [];
+
+  for (const [id, entry] of entries_map) {
+    if (entry.is_read !== is_read) changed.push(id);
+  }
+
+  if (changed.length > 0) set_ids_read(changed, is_read);
+
+  return changed;
+}
+
+export function mark_thread_read_entries(
+  thread_token: string,
+  skip_ids?: ReadonlySet<string>,
+): void {
+  if (!thread_token) return;
+
+  let changed = false;
+
+  const read_ids: string[] = [];
+
+  for (const [id, entry] of entries_map) {
+    if (skip_ids?.has(id)) continue;
+    if (entry.thread_token === thread_token && !entry.is_read) {
+      entries_map.set(id, { ...entry, is_read: true });
+      mark_dirty(id);
+      read_ids.push(id);
+      changed = true;
+    }
+  }
+
+  if (read_ids.length > 0) settle_flag_intents(read_ids, { is_read: true });
+
+  if (changed) {
+    schedule_persist();
+    notify();
+  }
+}
+
+export function get_thread_entry_ids(thread_token: string): string[] {
+  if (!thread_token) return [];
+
+  const ids: string[] = [];
+
+  for (const [id, entry] of entries_map) {
+    if (entry.thread_token === thread_token) ids.push(id);
+  }
+
+  return ids;
 }
 
 export function remove_thread_entries(thread_token: string): string[] {
@@ -867,7 +1092,9 @@ export function remove_thread_entries(thread_token: string): string[] {
   return removed;
 }
 
-const suppressed_ids = new Set<string>();
+const SUPPRESSION_TTL_MS = 60_000;
+
+const suppressed_ids = new Map<string, number>();
 
 export function suppress_ids(ids: string[]): void {
   let changed = false;
@@ -875,7 +1102,7 @@ export function suppress_ids(ids: string[]): void {
   for (const id of ids) {
     if (!entries_map.has(id)) continue;
     if (suppressed_ids.has(id)) continue;
-    suppressed_ids.add(id);
+    suppressed_ids.set(id, now_ms());
     changed = true;
   }
 
@@ -888,8 +1115,42 @@ export function clear_suppressed_ids(): void {
   notify();
 }
 
+export function prune_expired_suppressions(): void {
+  if (suppressed_ids.size === 0) return;
+
+  const cutoff = now_ms() - SUPPRESSION_TTL_MS;
+  let changed = false;
+
+  for (const [id, suppressed_at] of suppressed_ids) {
+    if (suppressed_at <= cutoff) {
+      suppressed_ids.delete(id);
+      changed = true;
+    }
+  }
+
+  if (changed) notify();
+}
+
+const absent_strikes = new Map<string, number>();
+
+export function clear_absent_strikes(ids: string[]): void {
+  clear_strikes(absent_strikes, ids);
+}
+
+export function remove_ids_absent_from_server(ids: string[]): void {
+  const confirmed = record_absences(absent_strikes, ids, (id) =>
+    entries_map.has(id),
+  );
+
+  if (confirmed.length > 0) {
+    remove_ids(confirmed);
+  }
+}
+
 export function remove_ids(ids: string[]): void {
   let changed = false;
+
+  if (ids.length > 0) note_removed_ids(ids);
 
   for (const id of ids) {
     if (entries_map.delete(id)) {
@@ -1009,7 +1270,10 @@ function compute_derived(): DerivedData {
   }
 
   const counts = empty_counts();
-  const grouped = new Map<EmailCategory, { id: string; ts: number }[]>();
+  const grouped = new Map<
+    EmailCategory,
+    { id: string; ts: number; pinned: boolean }[]
+  >();
   const unread_reps = new Set<string>();
   const thread_reps = new Map<string, string>();
   const new_heads = new Map<EmailCategory, string>();
@@ -1047,13 +1311,21 @@ function compute_derived(): DerivedData {
         }
       }
     }
-    list.push({ id: rep.entry.id, ts: rep.ts });
+    list.push({
+      id: rep.entry.id,
+      ts: rep.ts,
+      pinned: rep.entry.is_pinned === true,
+    });
   }
 
   const pages = new Map<EmailCategory, string[]>();
 
   for (const [tab, list] of grouped) {
-    list.sort((a, b) => (sort_order === "asc" ? a.ts - b.ts : b.ts - a.ts));
+    list.sort((a, b) => {
+      if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+
+      return sort_order === "asc" ? a.ts - b.ts : b.ts - a.ts;
+    });
     pages.set(
       tab,
       list.map((item) => item.id),
@@ -1100,8 +1372,12 @@ export function get_counts(): CategoryCounts {
   return ensure_derived().counts;
 }
 
+export function is_index_reconciled(): boolean {
+  return loaded_for_account !== null && session_reconciled;
+}
+
 export function get_inbox_unread_total(): number | null {
-  if (loaded_for_account === null || !session_reconciled) return null;
+  if (!is_index_reconciled()) return null;
   if (!fully_built || build_in_progress || build_capped) return null;
 
   let total = 0;
@@ -1160,8 +1436,61 @@ export function mark_category_seen(category: EmailCategory): void {
 
   if ((seen_ts[category] ?? 0) >= stamp) return;
   seen_ts[category] = stamp;
-  void persist_now();
-  notify();
+  derived = null;
+  schedule_persist();
+  notify_soon();
+}
+
+// Multi-category form of mark_category_seen, folding one pass over the index
+// instead of one per category. The ts <= wall guard below carries the same
+// weight as it does there: message_ts comes from the sender-controlled Date
+// header, so a future-dated message must never push the stamp forward.
+//
+// at_ms stamps with the wall clock captured when the user acted rather than
+// when this runs, so a caller may defer the scan off an interaction frame
+// without absorbing mail that arrived during the delay. It is clamped to now
+// for the same reason the ts <= wall guard exists: a stamp in the future would
+// blind the "new" badge to genuinely new mail.
+export function mark_categories_seen(
+  categories: readonly EmailCategory[],
+  at_ms?: number,
+): void {
+  const unique = Array.from(new Set(categories));
+
+  if (unique.length === 0) return;
+
+  const current = now_ms();
+  const wall = at_ms === undefined ? current : Math.min(at_ms, current);
+  const newest_seen_ts = new Map<EmailCategory, number>(
+    unique.map((cat) => [cat, 0]),
+  );
+
+  for (const entry of entries_map.values()) {
+    const cat = fold_category(entry.category);
+    const current = newest_seen_ts.get(cat);
+
+    if (current === undefined) continue;
+
+    const ts = safe_ts(entry.message_ts);
+
+    if (ts <= wall && ts > current) newest_seen_ts.set(cat, ts);
+  }
+
+  let changed = false;
+
+  for (const cat of unique) {
+    const stamp = Math.max(wall, newest_seen_ts.get(cat) ?? 0);
+
+    if ((seen_ts[cat] ?? 0) >= stamp) continue;
+
+    seen_ts[cat] = stamp;
+    changed = true;
+  }
+
+  if (!changed) return;
+  derived = null;
+  schedule_persist();
+  notify_soon();
 }
 
 export function get_page_ids(
@@ -1181,19 +1510,6 @@ export function get_category_total(category: EmailCategory): number {
 
 export function is_representative_unread(id: string): boolean {
   return ensure_derived().unread_reps.has(id);
-}
-
-export function is_recently_read(id: string): boolean {
-  const noted = recently_read.get(id);
-
-  if (noted === undefined) return false;
-  if (now_ms() - noted >= RECENT_READ_GUARD_MS) {
-    recently_read.delete(id);
-
-    return false;
-  }
-
-  return entries_map.get(id)?.is_read !== false;
 }
 
 export function get_category_action_ids(category: EmailCategory): {
@@ -1238,6 +1554,28 @@ export function get_thread_rep_id(id: string): string | null {
   return ensure_derived().thread_reps.get(key) ?? null;
 }
 
+export function get_arrival_reply_state(id: string): boolean | null {
+  if (!id) return null;
+
+  const entry = entries_map.get(id);
+
+  if (!entry) return null;
+  if (!entry.thread_token) return false;
+
+  for (const [other_id, other] of entries_map) {
+    if (other_id === id) continue;
+    if (other.thread_token === entry.thread_token) return true;
+  }
+
+  return false;
+}
+
+export function get_arrival_category(id: string): EmailCategory | null {
+  if (!id) return null;
+
+  return entries_map.get(id)?.category ?? null;
+}
+
 export function thread_has_unread_entries(
   thread_token: string,
   exclude?: string | ReadonlySet<string>,
@@ -1263,12 +1601,12 @@ export function reconcile_server_read(
 
   for (const row of rows) {
     if (row.is_read !== true) continue;
+    if (get_read_intent(row.id) === false) continue;
     const entry = entries_map.get(row.id);
 
     if (entry && !entry.is_read) {
       entries_map.set(row.id, { ...entry, is_read: true });
       mark_dirty(row.id);
-      note_recently_read(row.id);
       changed = true;
     }
   }
@@ -1332,6 +1670,14 @@ export function is_fully_built(): boolean {
 
 export function is_build_in_progress(): boolean {
   return build_in_progress;
+}
+
+export function get_index_entry_count(): number {
+  return entries_map.size;
+}
+
+export function are_counts_partial(): boolean {
+  return build_in_progress && last_build_ms === 0;
 }
 
 export function is_index_settled(): boolean {
@@ -1478,24 +1824,21 @@ async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
       : Promise.resolve(null),
   ]);
 
-  if (!envelope) return { kind: "keep" };
-  if (metadata?.is_trashed || metadata?.is_archived || metadata?.is_spam) {
-    return { kind: "remove" };
-  }
-
   const snoozed_until =
     item.snoozed_until && safe_ts(item.snoozed_until) > now_ms()
       ? item.snoozed_until
       : undefined;
 
-  remember_entry_preview(
-    item.id,
-    build_category_preview(
-      envelope.from?.name,
-      envelope.from?.email,
-      envelope.subject,
-    ),
-  );
+  if (envelope) {
+    remember_entry_preview(
+      item.id,
+      build_category_preview(
+        envelope.from?.name,
+        envelope.from?.email,
+        envelope.subject,
+      ),
+    );
+  }
 
   return {
     kind: "upsert",
@@ -1503,15 +1846,21 @@ async function item_to_entry(item: MailItem): Promise<ItemIndexResult> {
       id: item.id,
       thread_token: item.thread_token,
       message_ts: item.message_ts || item.created_at,
-      is_read: item.is_read === true || (metadata?.is_read ?? false),
-      category: classify(envelope, metadata, {
-        custom_categories,
-        rule_category: item.rule_category,
-      }),
+      is_read: item.is_read ?? metadata?.is_read ?? false,
+      category: envelope
+        ? classify(envelope, metadata, {
+            custom_categories,
+            rule_category: item.rule_category,
+            trust: item,
+          })
+        : (item.rule_category ?? "primary"),
+      ...(envelope ? {} : { needs_reclassify: true }),
       category_pinned:
+        !!envelope &&
         metadata?.category_pinned === true &&
         !!metadata?.category &&
-        !is_locked_to_primary(envelope),
+        !is_locked_to_primary(envelope, item),
+      is_pinned: item.is_pinned ?? metadata?.is_pinned ?? false,
       ...(snoozed_until ? { snoozed_until } : {}),
     },
   };
@@ -1592,6 +1941,7 @@ export async function build_index(options?: {
     for (;;) {
       if (options?.signal?.aborted || token !== build_token) return;
 
+      const fetched_at = now_ms();
       const response = await with_deadline(
         list_mail_items({
           item_type: "received",
@@ -1621,7 +1971,7 @@ export async function build_index(options?: {
 
         if (options?.signal?.aborted || token !== build_token) return;
 
-        let chunk_changed = apply_upsert(upserts, true);
+        let chunk_changed = apply_upsert(upserts, fetched_at);
 
         for (const id of removals) {
           if (entries_map.delete(id)) {
@@ -1645,10 +1995,12 @@ export async function build_index(options?: {
       processed += items.length;
       cursor = next_cursor;
 
-      if (!has_more || !next_cursor) {
+      if (!has_more) {
         reached_end = true;
         break;
       }
+
+      if (!next_cursor) break;
 
       if (processed >= BUILD_CAP) break;
 
@@ -1689,6 +2041,8 @@ export async function sync_recent(notify_new = false): Promise<void> {
   if (build_in_progress) return;
   if (!has_vault_in_memory()) return;
 
+  prune_expired_suppressions();
+
   const ok = await ensure_loaded();
 
   if (!ok) return;
@@ -1696,6 +2050,7 @@ export async function sync_recent(notify_new = false): Promise<void> {
   const token = build_token;
 
   try {
+    const fetched_at = now_ms();
     const response = await with_deadline(
       list_mail_items({
         item_type: "received",
@@ -1719,15 +2074,40 @@ export async function sync_recent(notify_new = false): Promise<void> {
     resync_failures = 0;
 
     const items = response.data.items;
+
+    let index_newest_ts = 0;
+
+    for (const entry of entries_map.values()) {
+      const ts = safe_ts(entry.message_ts);
+
+      if (ts > index_newest_ts) index_newest_ts = ts;
+    }
+
+    const index_had_entries = entries_map.size > 0;
+    const page_was_full = items.length >= BUILD_DECRYPT_CHUNK;
+    const page_overlaps_index = items.some((item) => entries_map.has(item.id));
+
+    let page_oldest_ts = Infinity;
+
+    for (const item of items) {
+      const ts = safe_ts(item.message_ts || item.created_at);
+
+      if (ts > 0) page_oldest_ts = Math.min(page_oldest_ts, ts);
+    }
+
     const { upserts, removals } = await entries_from_items(items);
 
     if (token !== build_token) return;
 
     const newly_received_ids = notify_new
-      ? upserts.filter((e) => e.id && !entries_map.has(e.id)).map((e) => e.id)
+      ? upserts
+          .filter(
+            (e) => e.id && !entries_map.has(e.id) && !is_recently_removed(e.id),
+          )
+          .map((e) => e.id)
       : [];
 
-    let changed = apply_upsert(upserts, true);
+    let changed = apply_upsert(upserts, fetched_at);
 
     if (newly_received_ids.length > 0) {
       for (const id of newly_received_ids) {
@@ -1801,12 +2181,68 @@ export async function sync_recent(notify_new = false): Promise<void> {
     last_build_ms = now_ms();
     session_reconciled = true;
     publish_inbox_unread();
+
+    if (
+      index_had_entries &&
+      page_was_full &&
+      !page_overlaps_index &&
+      upserts.length > 0 &&
+      page_oldest_ts !== Infinity &&
+      page_oldest_ts > index_newest_ts &&
+      now_ms() - last_gap_rebuild_ms > GAP_REBUILD_MIN_INTERVAL_MS
+    ) {
+      last_gap_rebuild_ms = now_ms();
+      fully_built = false;
+      void build_index({ force: true });
+
+      return;
+    }
+
+    await rebuild_if_index_lags_server();
   } catch {
     resync_failures += 1;
     if (resync_failures < MAX_RESYNC_FAILURES) schedule_resync();
 
     return;
   }
+}
+
+function indexed_thread_count(): number {
+  const tokens = new Set<string>();
+
+  for (const entry of entries_map.values()) {
+    tokens.add(entry.thread_token || entry.id);
+  }
+
+  return tokens.size;
+}
+
+async function rebuild_if_index_lags_server(): Promise<void> {
+  if (!fully_built || build_capped || build_in_progress) return;
+  if (drift_rebuilds >= DRIFT_REBUILD_SESSION_LIMIT) return;
+  if (now_ms() - last_gap_rebuild_ms < DRIFT_REBUILD_MIN_INTERVAL_MS) return;
+
+  let server_inbox = 0;
+
+  try {
+    const { get_mail_stats_snapshot } = await import("@/hooks/use_mail_stats");
+
+    server_inbox = get_mail_stats_snapshot().inbox;
+  } catch {
+    return;
+  }
+
+  if (server_inbox <= 0) return;
+
+  const missing = server_inbox - indexed_thread_count();
+
+  if (missing < DRIFT_MIN_MISSING_THREADS) return;
+  if (missing < server_inbox * DRIFT_MIN_MISSING_FRACTION) return;
+
+  last_gap_rebuild_ms = now_ms();
+  drift_rebuilds += 1;
+  fully_built = false;
+  void build_index({ force: true });
 }
 
 async function delete_sync_storage_key(): Promise<string | null> {
@@ -1870,29 +2306,53 @@ function schedule_resync(): void {
   }, RESYNC_DEBOUNCE_MS);
 }
 
+export function index_arrival(id: string): Promise<void> {
+  if (is_recently_removed(id)) return Promise.resolve();
+
+  const pending = reclassify_promises.get(id);
+
+  if (pending) return pending;
+
+  const run = reclassify_id(id).finally(() => {
+    if (reclassify_promises.get(id) === run) reclassify_promises.delete(id);
+  });
+
+  reclassify_promises.set(id, run);
+
+  return run;
+}
+
 async function reclassify_id(id: string): Promise<void> {
   if (!has_vault_in_memory()) return;
+
+  const was_indexed = entries_map.has(id);
+
   if (in_flight_reclassify.has(id)) {
     in_flight_reclassify.set(id, true);
 
-    return;
+    return reclassify_promises.get(id);
   }
   in_flight_reclassify.set(id, false);
 
   const generation = index_generation;
 
   try {
+    const fetched_at = now_ms();
     const response = await list_mail_items({ ids: [id] });
 
     if (generation !== index_generation) return;
 
-    const item = response.data?.items?.[0];
+    if (response.error || !response.data) return;
+
+    const item = response.data.items?.[0];
 
     if (!item) {
-      if (entries_map.has(id)) remove_ids([id]);
+      remove_ids_absent_from_server([id]);
 
       return;
     }
+
+    clear_absent_strikes([id]);
 
     if (item.item_type !== "received") {
       if (entries_map.has(id)) remove_ids([id]);
@@ -1911,7 +2371,7 @@ async function reclassify_id(id: string): Promise<void> {
     }
     if (result.kind === "keep") return;
 
-    upsert_entries([result.entry], generation, true);
+    upsert_entries([result.entry], generation, fetched_at, !was_indexed);
   } catch {
     return;
   } finally {
@@ -1952,6 +2412,7 @@ async function reclassify_many(ids: string[]): Promise<void> {
     const chunk = pending.slice(i, i + REINDEX_CHUNK_SIZE);
 
     try {
+      const fetched_at = now_ms();
       const response = await list_mail_items({ ids: chunk });
 
       if (generation !== index_generation) return;
@@ -1971,8 +2432,10 @@ async function reclassify_many(ids: string[]): Promise<void> {
 
       if (generation !== index_generation) return;
 
-      upsert_entries(upserts, generation, true);
-      remove_ids([...gone, ...non_received, ...removals]);
+      upsert_entries(upserts, generation, fetched_at);
+      clear_absent_strikes([...returned]);
+      remove_ids_absent_from_server(gone);
+      remove_ids([...non_received, ...removals]);
     } catch {
       continue;
     }
@@ -1981,6 +2444,8 @@ async function reclassify_many(ids: string[]): Promise<void> {
 
 export function reindex_ids(ids: string[]): void {
   if (ids.length === 0) return;
+
+  forget_removed_ids(ids);
 
   if (ids.length > REINDEX_FULL_REBUILD_CAP) {
     request_full_rebuild();
@@ -2036,7 +2501,9 @@ export function clear_category_index_memory(): void {
   build_capped = false;
   resync_failures = 0;
   entries_map = new Map();
-  recently_read.clear();
+  clear_all_read_intents();
+  clear_removed_items();
+  absent_strikes.clear();
   recent_pins.clear();
   sibling_verify_at.clear();
   dirty_chunks.clear();
@@ -2045,6 +2512,8 @@ export function clear_category_index_memory(): void {
   fully_built = false;
   session_reconciled = false;
   last_build_ms = 0;
+  last_gap_rebuild_ms = 0;
+  drift_rebuilds = 0;
   suppressed_ids.clear();
   loaded_for_account = null;
   active_account_id = null;
@@ -2063,8 +2532,19 @@ export function start_event_listeners(): void {
   });
 
   on_mail_event(MAIL_EVENTS.EMAIL_RECEIVED, (detail) => {
-    void reclassify_id(detail.email_id);
+    if (!detail.email_id) {
+      void sync_recent();
+
+      return;
+    }
+    void index_arrival(detail.email_id);
   });
+
+  if (typeof document !== "undefined") {
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") flush_pending_notify();
+    });
+  }
 
   on_mail_event(MAIL_EVENTS.MAIL_ITEMS_REMOVED, (detail) => {
     remove_ids(detail.ids);
@@ -2146,6 +2626,7 @@ export function start_event_listeners(): void {
         !detail.is_spam &&
         (!!detail.encrypted_metadata || explicit_restore)
       ) {
+        if (explicit_restore) forget_removed_ids([detail.id]);
         void reclassify_id(detail.id);
       }
 
@@ -2158,13 +2639,18 @@ export function start_event_listeners(): void {
       return;
     }
 
+    if (typeof detail.is_pinned === "boolean") {
+      set_ids_pinned([detail.id], detail.is_pinned);
+    }
+
     if (detail.encrypted_metadata && detail.metadata_nonce) {
       if (
         typeof detail.is_read === "boolean" &&
         existing.is_read !== detail.is_read
       ) {
-        if (detail.is_read) note_recently_read(detail.id);
-        if (apply_upsert([{ ...existing, is_read: detail.is_read }])) {
+        if (
+          apply_upsert([{ ...existing, is_read: detail.is_read }], now_ms())
+        ) {
           schedule_persist();
           notify();
         }
@@ -2187,13 +2673,26 @@ export function start_event_listeners(): void {
       typeof detail.is_read === "boolean" &&
       existing.is_read !== detail.is_read
     ) {
-      if (detail.is_read) note_recently_read(detail.id);
-      if (apply_upsert([{ ...existing, is_read: detail.is_read }])) {
+      if (apply_upsert([{ ...existing, is_read: detail.is_read }], now_ms())) {
         schedule_persist();
         notify();
       }
     }
   });
+}
+
+const MAX_RECLASSIFY_RETRY = 100;
+
+function retry_unclassified_entries(): void {
+  const pending = Array.from(entries_map.values())
+    .filter((entry) => entry.needs_reclassify === true)
+    .sort((a, b) => safe_ts(b.message_ts) - safe_ts(a.message_ts))
+    .slice(0, MAX_RECLASSIFY_RETRY)
+    .map((entry) => entry.id);
+
+  if (pending.length === 0) return;
+
+  reindex_ids(pending);
 }
 
 export async function init_category_index(): Promise<void> {
@@ -2203,7 +2702,7 @@ export async function init_category_index(): Promise<void> {
   start_event_listeners();
 
   if (fully_built && entries_map.size > 0) {
-    void sync_recent();
+    void sync_recent().then(() => retry_unclassified_entries());
 
     return;
   }
@@ -2274,7 +2773,9 @@ export async function clear_category_index(): Promise<void> {
   index_generation += 1;
   clear_entry_previews();
   entries_map = new Map();
-  recently_read.clear();
+  clear_all_read_intents();
+  clear_removed_items();
+  absent_strikes.clear();
   recent_pins.clear();
   sibling_verify_at.clear();
   dirty_chunks.clear();
@@ -2283,6 +2784,8 @@ export async function clear_category_index(): Promise<void> {
   build_capped = false;
   resync_failures = 0;
   last_build_ms = 0;
+  last_gap_rebuild_ms = 0;
+  drift_rebuilds = 0;
   seen_ts = {};
   suppressed_ids.clear();
   loaded_for_account = null;

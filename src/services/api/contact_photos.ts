@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import type {
   ContactPhoto,
   ContactPhotoMeta,
@@ -27,6 +26,10 @@ import type {
 
 import { api_client, type ApiResponse } from "./client";
 import { get_contacts_encryption_key } from "./contacts";
+
+import { user_facing_error } from "@/utils/user_facing_error";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -93,19 +96,29 @@ export async function get_contact_photo(
   );
 
   if (response.error || !response.data) {
-    if (response.error?.includes("not found")) {
+    if (response.status === 404 || response.error?.includes("not found")) {
       return { data: null };
     }
 
-    return { error: response.error || "Failed to fetch photo" };
+    return {
+      error: response.error || get_active_translations().errors.load_failed,
+    };
   }
 
   try {
     const key = await get_contacts_encryption_key();
 
-    const decrypted_data = await decrypt_aes_gcm_with_fallback(key, base64_to_array(response.data.encrypted_data), base64_to_array(response.data.data_nonce));
+    const decrypted_data = await decrypt_aes_gcm_with_fallback(
+      key,
+      base64_to_array(response.data.encrypted_data),
+      base64_to_array(response.data.data_nonce),
+    );
 
-    const decrypted_meta = await decrypt_aes_gcm_with_fallback(key, base64_to_array(response.data.encrypted_meta), base64_to_array(response.data.meta_nonce));
+    const decrypted_meta = await decrypt_aes_gcm_with_fallback(
+      key,
+      base64_to_array(response.data.encrypted_meta),
+      base64_to_array(response.data.meta_nonce),
+    );
 
     const meta: ContactPhotoMeta = JSON.parse(
       new TextDecoder().decode(decrypted_meta),
@@ -126,7 +139,10 @@ export async function get_contact_photo(
     };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to decrypt photo",
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }

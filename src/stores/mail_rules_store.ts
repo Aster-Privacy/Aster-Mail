@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { RuleEditorSeed } from "@/components/mail_rules/rule_templates";
+
 import { useSyncExternalStore } from "react";
 
 import {
@@ -39,6 +41,7 @@ import {
 interface MailRulesState {
   rules: Rule[];
   loading: boolean;
+  loaded: boolean;
   error: string | null;
   runs: Record<string, RuleRun>;
 }
@@ -53,6 +56,7 @@ type Listener = () => void;
 let state: MailRulesState = {
   rules: [],
   loading: false,
+  loaded: false,
   error: null,
   runs: {},
 };
@@ -150,30 +154,59 @@ export async function load_rules(): Promise<void> {
       (a, b) => a.sort_order - b.sort_order,
     );
 
-    set_state({ rules: sorted, loading: false });
+    set_state({ rules: sorted, loading: false, loaded: true });
   } else {
     set_state({
       loading: false,
+      loaded: true,
       error: response.error || "Failed to load rules",
     });
   }
 }
 
+let pending_seed: RuleEditorSeed | null = null;
+
+export function queue_rule_seed(seed: RuleEditorSeed): void {
+  pending_seed = seed;
+}
+
+export function take_rule_seed(): RuleEditorSeed | null {
+  const seed = pending_seed;
+
+  pending_seed = null;
+
+  return seed;
+}
+
+let last_save_error: string | null = null;
+
+export function get_last_save_error(): string | null {
+  return last_save_error;
+}
+
 export async function create_rule(
   req: CreateRuleRequest,
 ): Promise<Rule | null> {
+  last_save_error = null;
+
   const response = await api_create_rule(req);
 
   if (response.data) {
-    const next = [...state.rules, response.data].sort(
+    const max_sort_order = state.rules.reduce(
+      (highest, rule) => Math.max(highest, rule.sort_order),
+      -1,
+    );
+    const created = { ...response.data, sort_order: max_sort_order + 1 };
+    const next = [...state.rules, created].sort(
       (a, b) => a.sort_order - b.sort_order,
     );
 
     set_state({ rules: next });
 
-    return response.data;
+    return created;
   }
 
+  last_save_error = response.error ?? null;
   set_state({ error: response.error || "Failed to create rule" });
 
   return null;
@@ -183,6 +216,8 @@ export async function update_rule(
   id: string,
   patch: UpdateRuleRequest,
 ): Promise<Rule | null> {
+  last_save_error = null;
+
   const previous = state.rules;
   const optimistic = state.rules.map((r) =>
     r.id === id ? ({ ...r, ...patch } as Rule) : r,
@@ -200,6 +235,7 @@ export async function update_rule(
     return response.data;
   }
 
+  last_save_error = response.error ?? null;
   set_state({
     rules: previous,
     error: response.error || "Failed to update rule",
@@ -212,6 +248,7 @@ export async function delete_rule(id: string): Promise<boolean> {
   const previous = state.rules;
 
   set_state({ rules: state.rules.filter((r) => r.id !== id) });
+  stop_run_poll(id);
 
   const response = await api_delete_rule(id);
 
@@ -260,9 +297,13 @@ export async function run_on_existing(
     return false;
   }
 
-  store_run(id, response.data ?? null);
+  if (!response.data) {
+    return false;
+  }
 
-  if (is_run_active(response.data ?? null)) {
+  store_run(id, response.data);
+
+  if (is_run_active(response.data)) {
     stop_run_poll(id);
     schedule_run_poll(id);
   }

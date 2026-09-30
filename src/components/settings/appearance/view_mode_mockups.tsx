@@ -39,13 +39,15 @@ function get_colors(theme: "light" | "dark" | "themed", use_accent = false) {
       text_secondary: "var(--text-secondary)",
       text_tertiary: "var(--text-tertiary)",
       text_muted: "var(--text-muted)",
-      selected_bg: "color-mix(in srgb, var(--accent-color) 18%, var(--bg-primary))",
+      selected_bg:
+        "color-mix(in srgb, var(--accent-color) 18%, var(--bg-primary))",
       indicator_bg: "var(--bg-primary)",
       indicator_border: "var(--border-secondary)",
       border: "var(--border-secondary)",
       border_secondary: "var(--border-secondary)",
       body_line: "var(--border-secondary)",
-      avatar_read: "color-mix(in srgb, var(--text-muted) 55%, var(--bg-primary))",
+      avatar_read:
+        "color-mix(in srgb, var(--text-muted) 55%, var(--bg-primary))",
       storage_track: "rgba(255,255,255,0.08)",
       modal_overlay: "rgba(0,0,0,0.85)",
       card_shadow: "0 8px 32px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)",

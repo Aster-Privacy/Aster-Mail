@@ -25,8 +25,8 @@ import {
   TrashIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
 
+import { Button } from "@/components/ui/button";
 import {
   Modal,
   ModalHeader,
@@ -35,16 +35,17 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   TAG_COLOR_PRESETS,
-  TAG_ICONS,
-  tag_icon_map,
+  tag_color_label_key,
   type TagIconName,
 } from "@/components/ui/email_tag";
+import { TagIconPicker } from "@/components/tags/tag_icon_picker";
 import { use_tags } from "@/hooks/use_tags";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_composing } from "@/utils/ime";
 
 const MAX_TAG_NAME_LENGTH = 100;
 
@@ -103,7 +104,7 @@ export function TagManagementModal({
     }
 
     return null;
-  }, [trimmed_name, tag_name, tag_id, tags_state.tags]);
+  }, [trimmed_name, tag_name, tag_id, tags_state.tags, t]);
 
   const can_rename = trimmed_name && !rename_validation_error;
 
@@ -226,7 +227,9 @@ export function TagManagementModal({
                 type="text"
                 value={new_name}
                 onChange={(e) => set_new_name(e.target.value)}
-                onKeyDown={(e) => e["key"] === "Enter" && handle_rename()}
+                onKeyDown={(e) =>
+                  e["key"] === "Enter" && !is_composing(e) && handle_rename()
+                }
               />
 
               {(rename_validation_error || error) && (
@@ -240,7 +243,6 @@ export function TagManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="outline"
                 onClick={on_close}
               >
@@ -249,12 +251,11 @@ export function TagManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading || !can_rename}
-                size="xl"
                 variant="depth"
                 onClick={handle_rename}
               >
                 {t("common.rename")}
-                {is_loading && <Spinner className="ml-2" size="sm" />}
+                {is_loading && <ButtonSpinner />}
               </Button>
             </ModalFooter>
           </>
@@ -277,13 +278,17 @@ export function TagManagementModal({
             </ModalHeader>
 
             <ModalBody>
-              <label
+              <span
                 className="block text-[13px] font-medium mb-3 text-txt-secondary"
-                htmlFor="tag-color"
+                id="tag-color-label"
               >
                 {t("common.select_a_color")}
-              </label>
-              <div className="flex flex-wrap gap-2">
+              </span>
+              <div
+                aria-labelledby="tag-color-label"
+                className="flex flex-wrap gap-2"
+                role="group"
+              >
                 {TAG_COLOR_PRESETS.map((color) => (
                   <button
                     key={color.hex}
@@ -295,14 +300,16 @@ export function TagManagementModal({
                           ? `0 0 0 2px var(--modal-bg), 0 0 0 4px ${color.hex}`
                           : "none",
                     }}
-                    title={color.name}
+                    title={t(tag_color_label_key(color.variant))}
                     onClick={() => set_new_color(color.hex)}
                   />
                 ))}
               </div>
 
               {error && (
-                <p className="text-[13px] text-red-500 mt-4">{error}</p>
+                <p className="text-[13px] text-red-500 mt-4" role="alert">
+                  {error}
+                </p>
               )}
             </ModalBody>
 
@@ -310,7 +317,6 @@ export function TagManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="outline"
                 onClick={on_close}
               >
@@ -319,19 +325,12 @@ export function TagManagementModal({
               <Button
                 className="flex-1 text-white"
                 disabled={is_loading}
-                size="xl"
                 style={{ backgroundColor: new_color }}
                 variant="depth"
                 onClick={handle_recolor}
               >
-                {is_loading ? (
-                  <>
-                    {t("common.saving")}
-                    <Spinner className="ml-2" size="md" />
-                  </>
-                ) : (
-                  `${t("common.save")} ${t("common.color")}`
-                )}
+                {`${t("common.save")} ${t("common.color")}`}
+                {is_loading && <ButtonSpinner />}
               </Button>
             </ModalFooter>
           </>
@@ -357,51 +356,16 @@ export function TagManagementModal({
               <label className="block text-[13px] font-medium mb-3 text-txt-secondary">
                 {t("common.select_an_icon")}
               </label>
-              <div className="flex flex-wrap gap-1.5">
-                <button
-                  className="w-8 h-8 rounded-[8px] flex items-center justify-center text-[11px] transition-colors"
-                  style={{
-                    backgroundColor: !new_icon
-                      ? "var(--indicator-bg)"
-                      : "transparent",
-                    border: !new_icon
-                      ? "1px solid var(--border-primary)"
-                      : "1px solid transparent",
-                    color: "var(--text-muted)",
-                  }}
-                  title={t("common.no_icon")}
-                  onClick={() => set_new_icon(undefined)}
-                >
-                  &mdash;
-                </button>
-                {TAG_ICONS.map((icon_name) => {
-                  const IconComponent = tag_icon_map[icon_name as TagIconName];
-                  const is_selected = new_icon === icon_name;
-
-                  return (
-                    <button
-                      key={icon_name}
-                      className="w-8 h-8 rounded-[8px] flex items-center justify-center transition-colors"
-                      style={{
-                        backgroundColor: is_selected
-                          ? "var(--indicator-bg)"
-                          : "transparent",
-                        border: is_selected
-                          ? "1px solid var(--border-primary)"
-                          : "1px solid transparent",
-                        color: is_selected ? tag_color : "var(--text-muted)",
-                      }}
-                      title={icon_name}
-                      onClick={() => set_new_icon(icon_name)}
-                    >
-                      {IconComponent && <IconComponent className="w-4 h-4" />}
-                    </button>
-                  );
-                })}
-              </div>
+              <TagIconPicker
+                accent_color={tag_color}
+                on_select={set_new_icon}
+                selected_icon={new_icon as TagIconName | undefined}
+              />
 
               {error && (
-                <p className="text-[13px] text-red-500 mt-4">{error}</p>
+                <p className="text-[13px] text-red-500 mt-4" role="alert">
+                  {error}
+                </p>
               )}
             </ModalBody>
 
@@ -409,7 +373,6 @@ export function TagManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="outline"
                 onClick={on_close}
               >
@@ -418,18 +381,11 @@ export function TagManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="depth"
                 onClick={handle_reicon}
               >
-                {is_loading ? (
-                  <>
-                    {t("common.saving")}
-                    <Spinner className="ml-2" size="md" />
-                  </>
-                ) : (
-                  t("common.save")
-                )}
+                {t("common.save")}
+                {is_loading && <ButtonSpinner />}
               </Button>
             </ModalFooter>
           </>
@@ -449,9 +405,7 @@ export function TagManagementModal({
             </ModalHeader>
 
             <ModalBody>
-              <div
-                className="rounded-lg p-4 mb-4 bg-red-600 dark:bg-red-700"
-              >
+              <div className="rounded-lg p-4 mb-4 bg-red-600 dark:bg-red-700">
                 <div className="flex items-start gap-3">
                   <ExclamationTriangleIcon className="w-5 h-5 text-white flex-shrink-0 mt-0.5" />
                   <div>
@@ -471,7 +425,9 @@ export function TagManagementModal({
               </p>
 
               {error && (
-                <p className="text-[13px] text-red-500 mt-4">{error}</p>
+                <p className="text-[13px] text-red-500 mt-4" role="alert">
+                  {error}
+                </p>
               )}
             </ModalBody>
 
@@ -479,7 +435,6 @@ export function TagManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="outline"
                 onClick={on_close}
               >
@@ -488,11 +443,11 @@ export function TagManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
+                is_loading={is_loading}
                 variant="destructive"
                 onClick={handle_delete}
               >
-                {is_loading ? t("common.deleting") : t("common.delete")}
+                {t("common.delete")}
               </Button>
             </ModalFooter>
           </>

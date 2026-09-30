@@ -22,16 +22,20 @@ import type { InboxEmail } from "@/types/email";
 
 import { useEffect } from "react";
 
+import { is_popup_email_open } from "@/components/email/hooks/popup_email_registry";
+
 interface ContextMenuActions {
   handle_archive: (email: InboxEmail) => void;
   handle_delete: (email: InboxEmail) => void;
   handle_spam: (email: InboxEmail) => void;
   handle_toggle_read: (email: InboxEmail) => void;
+  handle_toggle_star: (email: InboxEmail) => Promise<void> | void;
 }
 
 interface ExtraKeyboardActions {
   handle_open_snooze?: (email: InboxEmail) => void;
   handle_select?: (id: string) => void;
+  handle_select_all?: () => void;
 }
 
 export function use_inbox_keyboard(
@@ -41,37 +45,45 @@ export function use_inbox_keyboard(
 ) {
   useEffect(() => {
     const find_email = (id: string) => emails.find((e) => e.id === id);
+    const find_unowned_email = (id: string) =>
+      is_popup_email_open(id) ? undefined : find_email(id);
     const handle_archive = (e: Event) => {
       const detail = (e as CustomEvent<{ id: string }>).detail;
-      const email = find_email(detail.id);
+      const email = find_unowned_email(detail.id);
 
       if (email) context_menu_actions.handle_archive(email);
     };
     const handle_delete = (e: Event) => {
       const detail = (e as CustomEvent<{ id: string }>).detail;
-      const email = find_email(detail.id);
+      const email = find_unowned_email(detail.id);
 
       if (email) context_menu_actions.handle_delete(email);
     };
     const handle_spam = (e: Event) => {
       const detail = (e as CustomEvent<{ id: string }>).detail;
-      const email = find_email(detail.id);
+      const email = find_unowned_email(detail.id);
 
       if (email) context_menu_actions.handle_spam(email);
     };
     const handle_mark_read = (e: Event) => {
       const detail = (e as CustomEvent<{ id: string }>).detail;
-      const email = find_email(detail.id);
+      const email = find_unowned_email(detail.id);
 
       if (email && !email.is_read)
         context_menu_actions.handle_toggle_read(email);
     };
     const handle_mark_unread = (e: Event) => {
       const detail = (e as CustomEvent<{ id: string }>).detail;
-      const email = find_email(detail.id);
+      const email = find_unowned_email(detail.id);
 
       if (email && email.is_read && email.item_type !== "sent")
         context_menu_actions.handle_toggle_read(email);
+    };
+    const handle_star = (e: Event) => {
+      const detail = (e as CustomEvent<{ id: string }>).detail;
+      const email = find_email(detail.id);
+
+      if (email) void context_menu_actions.handle_toggle_star(email);
     };
     const handle_snooze = (e: Event) => {
       const detail = (e as CustomEvent<{ id: string }>).detail;
@@ -84,6 +96,9 @@ export function use_inbox_keyboard(
 
       extra_actions.handle_select?.(detail.id);
     };
+    const handle_select_all = () => {
+      extra_actions.handle_select_all?.();
+    };
 
     window.addEventListener("astermail:keyboard-archive", handle_archive);
     window.addEventListener("astermail:keyboard-delete", handle_delete);
@@ -93,8 +108,10 @@ export function use_inbox_keyboard(
       "astermail:keyboard-mark-unread",
       handle_mark_unread,
     );
+    window.addEventListener("astermail:keyboard-star", handle_star);
     window.addEventListener("astermail:keyboard-snooze", handle_snooze);
     window.addEventListener("astermail:keyboard-select", handle_select);
+    window.addEventListener("astermail:keyboard-select-all", handle_select_all);
 
     return () => {
       window.removeEventListener("astermail:keyboard-archive", handle_archive);
@@ -108,8 +125,13 @@ export function use_inbox_keyboard(
         "astermail:keyboard-mark-unread",
         handle_mark_unread,
       );
+      window.removeEventListener("astermail:keyboard-star", handle_star);
       window.removeEventListener("astermail:keyboard-snooze", handle_snooze);
       window.removeEventListener("astermail:keyboard-select", handle_select);
+      window.removeEventListener(
+        "astermail:keyboard-select-all",
+        handle_select_all,
+      );
     };
   }, [emails, context_menu_actions, extra_actions]);
 }

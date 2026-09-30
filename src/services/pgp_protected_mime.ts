@@ -35,7 +35,10 @@ export interface ProtectedMimeInput {
   cc: string[];
   attachments: ProtectedMimeAttachment[];
   date?: Date;
+  obscure_subject?: boolean;
 }
+
+export const OBSCURED_SUBJECT_PLACEHOLDER = "...";
 
 const ENCODED_WORD_PAYLOAD_BYTES = 45;
 
@@ -144,6 +147,15 @@ function wrap_base64(data: string): string {
   return out;
 }
 
+const HTML_ENTITY_TEXT: Record<string, string> = {
+  "&nbsp;": " ",
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&#39;": "'",
+};
+
 export function html_to_plain_text(html: string): string {
   let out = "";
   let i = 0;
@@ -185,13 +197,10 @@ export function html_to_plain_text(html: string): string {
     i += 1;
   }
 
-  const decoded = out
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
+  const decoded = out.replace(
+    /&(?:nbsp|amp|lt|gt|quot|#39);/g,
+    (entity) => HTML_ENTITY_TEXT[entity] ?? entity,
+  );
 
   let collapsed = "";
   let blank_run = 0;
@@ -300,13 +309,26 @@ export function build_protected_mime_entity(input: ProtectedMimeInput): string {
     `Content-Type: multipart/mixed; boundary="${boundary}"; protected-headers="v1"\r\n\r\n` +
     `--${boundary}\r\n` +
     `${protected_headers}\r\n` +
-    `--${boundary}\r\n` +
-    body_part;
+    `--${boundary}\r\n`;
+
+  if (input.obscure_subject === true) {
+    const legacy_display_subject = sanitize_header_value(input.subject);
+
+    mime +=
+      'Content-Type: text/plain; charset=utf-8; protected-headers="v1"\r\n' +
+      "Content-Transfer-Encoding: base64\r\n" +
+      "Content-Disposition: inline\r\n\r\n" +
+      base64_body(`Subject: ${legacy_display_subject}\r\n`) +
+      `--${boundary}\r\n`;
+  }
+
+  mime += body_part;
 
   for (const att of input.attachments) {
     const filename = sanitize_filename(att.filename);
     const raw_type = sanitize_header_value(att.content_type);
-    const content_type = raw_type.length === 0 ? "application/octet-stream" : raw_type;
+    const content_type =
+      raw_type.length === 0 ? "application/octet-stream" : raw_type;
 
     mime += `--${boundary}\r\n`;
     mime += `Content-Type: ${content_type}; name="${filename}"\r\n`;
@@ -331,15 +353,4 @@ export function build_protected_mime_entity(input: ProtectedMimeInput): string {
   mime += `--${boundary}--\r\n`;
 
   return mime;
-}
-
-export function body_looks_like_html(body: string): boolean {
-  return (
-    body.includes("<br") ||
-    body.includes("<a ") ||
-    body.includes("<p>") ||
-    body.includes("<div") ||
-    body.includes("<html") ||
-    body.includes("</")
-  );
 }

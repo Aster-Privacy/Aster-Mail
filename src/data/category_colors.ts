@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { CSSProperties } from "react";
-
 import type { CustomCategoryRule } from "@/data/category_catalog";
 import type { TranslationKey } from "@/lib/i18n/types";
 
@@ -67,8 +66,10 @@ export const CATEGORY_COLOR_LABEL_KEYS: Record<
 const BUILTIN_CATEGORY_COLORS: Record<string, CategoryColorKey> = {
   primary: "accent",
   promotions: "green",
+  newsletters: "blue",
   social: "cyan",
   updates: "amber",
+  transactions: "slate",
   forums: "violet",
   finance: "teal",
   travel: "rose",
@@ -119,5 +120,7 @@ export function category_color_style(key: CategoryColorKey): CSSProperties {
     ["--cat-fg" as string]: `var(--cat-${key}-fg)`,
     ["--cat-soft" as string]: `var(--cat-${key}-soft)`,
     ["--cat-border" as string]: `var(--cat-${key}-border)`,
+    ["--cat-solid" as string]: `var(--cat-${key}-solid)`,
+    ["--cat-on-solid" as string]: `var(--cat-${key}-on-solid)`,
   } as CSSProperties;
 }

@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import {
   encrypted_set,
   encrypted_get,
@@ -30,8 +29,11 @@ import {
 } from "./memory_key_store";
 import { DoubleRatchet, type SerializedState } from "./double_ratchet";
 
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
+
 const RATCHET_STORAGE_KEY_PREFIX = "ratchet_state_";
 const RATCHET_INDEX_KEY = "ratchet_conversation_index";
+const MAX_ARCHIVED_RATCHET_STATES = 3;
 
 async function get_storage_encryption_key(): Promise<CryptoKey> {
   if (!has_vault_in_memory()) {
@@ -58,15 +60,17 @@ async function get_storage_encryption_key(): Promise<CryptoKey> {
 }
 
 async function current_account_uid(): Promise<string | null> {
-  try {
-    const { get_current_account_id } = await import(
-      "@/services/account_manager"
-    );
+  const { get_current_account_id, accounts_storage_unreadable } = await import(
+    "@/services/account_manager"
+  );
 
-    return await get_current_account_id();
-  } catch {
-    return null;
+  const uid = await get_current_account_id();
+
+  if (uid === null && accounts_storage_unreadable()) {
+    throw new Error("Account storage unavailable. Retry once it is readable.");
   }
+
+  return uid;
 }
 
 function legacy_state_key(conversation_id: string): string {
@@ -111,6 +115,49 @@ export async function save_ratchet_state(
   await add_conversation_to_index(storage_key, uid, serialized.conversation_id);
 }
 
+function archive_key_for(uid: string | null, conversation_id: string): string {
+  return `${state_key_for(uid, conversation_id)}_archive`;
+}
+
+function archived_entry_id(state: SerializedState): string {
+  return `${state.state.dh_keypair.public_key}:${state.state.root_key}`;
+}
+
+export async function load_archived_ratchet_states(
+  conversation_id: string,
+): Promise<DoubleRatchet[]> {
+  const storage_key = await get_storage_encryption_key();
+  const uid = await current_account_uid();
+  const archived = await encrypted_get<SerializedState[]>(
+    archive_key_for(uid, conversation_id),
+    storage_key,
+  );
+
+  if (!archived || archived.length === 0) return [];
+
+  return archived.map((entry) => DoubleRatchet.deserialize(entry));
+}
+
+export async function archive_ratchet_state(
+  state: SerializedState,
+): Promise<void> {
+  const storage_key = await get_storage_encryption_key();
+  const uid = await current_account_uid();
+  const key = archive_key_for(uid, state.conversation_id);
+  const stored =
+    (await encrypted_get<SerializedState[]>(key, storage_key)) || [];
+  const id = archived_entry_id(state);
+  const kept = stored.filter((entry) => archived_entry_id(entry) !== id);
+
+  kept.push(state);
+
+  await encrypted_set(
+    key,
+    kept.slice(Math.max(0, kept.length - MAX_ARCHIVED_RATCHET_STATES)),
+    storage_key,
+  );
+}
+
 export async function load_ratchet_state(
   conversation_id: string,
 ): Promise<DoubleRatchet | null> {
@@ -147,6 +194,7 @@ export async function delete_ratchet_state(
   const uid = await current_account_uid();
 
   await encrypted_delete(state_key_for(uid, conversation_id));
+  await encrypted_delete(archive_key_for(uid, conversation_id));
 
   if (uid) {
     await encrypted_delete(legacy_state_key(conversation_id));
@@ -196,6 +244,9 @@ export async function clear_all_ratchet_states(): Promise<void> {
           : state_key_for(uid, conversation_id);
 
         await encrypted_delete(state_key);
+        await encrypted_delete(
+          archive_key_for(is_legacy ? null : uid, conversation_id),
+        );
       }
 
       await encrypted_delete(key);
@@ -204,4 +255,3 @@ export async function clear_all_ratchet_states(): Promise<void> {
     return;
   }
 }
-

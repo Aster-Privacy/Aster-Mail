@@ -21,12 +21,13 @@
 import type { DecryptedThreadMessage } from "@/types/thread";
 
 import { Fragment, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowUturnLeftIcon,
   ArrowUturnRightIcon,
   FaceSmileIcon,
 } from "@heroicons/react/24/outline";
-import { Button, Tooltip } from "@aster/ui";
+import { PillButton, Tooltip } from "@aster/ui";
 
 import {
   Popover,
@@ -39,6 +40,7 @@ import {
   send_reaction,
 } from "@/services/reaction_actions";
 import {
+  max_own_reactions,
   reaction_restriction,
   reaction_restriction_keys,
 } from "@/services/reaction_restrictions";
@@ -48,6 +50,7 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_auth_safe } from "@/contexts/auth_context";
 import { emit_mail_soft_refresh } from "@/hooks/mail_events";
+import { use_should_reduce_motion } from "@/provider";
 
 interface ReactionChipGroup {
   emoji: string;
@@ -154,7 +157,7 @@ export function ThreadMessageActions({
   const auth = use_auth_safe();
   const reactions_enabled = preferences.reactions_enabled !== false;
   const [is_picker_open, set_is_picker_open] = useState(false);
-  const [is_sending_reaction, set_is_sending_reaction] = useState(false);
+  const reduce_motion = use_should_reduce_motion();
   const [pending_reactions, set_pending_reactions] = useState<
     PendingReaction[]
   >([]);
@@ -163,18 +166,6 @@ export function ThreadMessageActions({
     (message.to_recipients?.length ?? 0) + (message.cc_recipients?.length ?? 0);
   const show_reply_all = on_reply_all && total_recipients >= 2;
   const is_own_message = message.item_type === "sent";
-  const restriction = reaction_restriction(
-    message,
-    auth?.user?.email ?? "",
-    reactions_enabled,
-    is_own_reaction_address,
-  );
-  const can_react = restriction === null;
-  const restriction_message = restriction
-    ? t(`errors.${reaction_restriction_keys[restriction]}`)
-    : "";
-  const show_react_button =
-    can_react || (restriction !== "disabled" && restriction !== "own_message");
   const server_reaction_groups = group_reactions(
     message.reactions,
     auth?.user?.email,
@@ -183,43 +174,63 @@ export function ThreadMessageActions({
     server_reaction_groups,
     pending_reactions,
   );
+  const own_group_count = reaction_groups.filter(
+    (group) => group.includes_self,
+  ).length;
+  const restriction =
+    reaction_restriction(
+      message,
+      auth?.user?.email ?? "",
+      reactions_enabled,
+      is_own_reaction_address,
+    ) ?? (own_group_count >= max_own_reactions ? "reaction_limit" : null);
+  const can_react = restriction === null;
+  const restriction_message = restriction
+    ? t(`errors.${reaction_restriction_keys[restriction]}`)
+    : "";
+  const show_react_button =
+    can_react || (restriction !== "disabled" && restriction !== "own_message");
 
-  async function send_reaction_emoji(emoji: string): Promise<void> {
+  function send_reaction_emoji(emoji: string): void {
     if (restriction !== null) {
       show_toast(
         t(`errors.${reaction_restriction_keys[restriction]}`),
         "error",
       );
+
       return;
     }
 
-    set_is_sending_reaction(true);
+    if (pending_reactions.some((pending) => pending.emoji === emoji)) return;
 
-    const result = await send_reaction(message, emoji, thread_token);
+    set_pending_reactions((prev) => [...prev, { emoji }]);
 
-    set_is_sending_reaction(false);
+    void send_reaction(message, emoji, thread_token).then((result) => {
+      if (!result.success) {
+        set_pending_reactions((prev) =>
+          prev.filter((pending) => pending.emoji !== emoji),
+        );
+        show_toast(result.error ?? t("errors.failed_send_reaction"), "error");
 
-    if (!result.success) {
-      show_toast(result.error ?? t("errors.failed_send_reaction"), "error");
-      return;
-    }
+        return;
+      }
 
-    set_pending_reactions((prev) =>
-      prev.some((pending) => pending.emoji === emoji)
-        ? prev
-        : [
-            ...prev,
-            {
-              emoji,
-              reaction_mail_item_id: result.own_reaction_mail_item_id,
-            },
-          ],
-    );
+      set_pending_reactions((prev) =>
+        prev.map((pending) =>
+          pending.emoji === emoji
+            ? {
+                ...pending,
+                reaction_mail_item_id: result.own_reaction_mail_item_id,
+              }
+            : pending,
+        ),
+      );
 
-    emit_mail_soft_refresh();
+      emit_mail_soft_refresh();
+    });
   }
 
-  async function handle_reaction_select(emoji: string): Promise<void> {
+  function handle_reaction_select(emoji: string): void {
     set_is_picker_open(false);
 
     const existing = reaction_groups.find(
@@ -228,93 +239,126 @@ export function ThreadMessageActions({
 
     if (existing) return;
 
-    await send_reaction_emoji(emoji);
+    send_reaction_emoji(emoji);
   }
 
   function handle_chip_click(group: ReactionChipGroup): void {
-    if (group.includes_self) return;
+    if (is_own_message || group.includes_self) return;
 
-    if (is_own_message) return;
-
-    void send_reaction_emoji(group.emoji);
+    send_reaction_emoji(group.emoji);
   }
+
+  const chip_transition = reduce_motion
+    ? { duration: 0 }
+    : { type: "spring" as const, stiffness: 520, damping: 26, mass: 0.6 };
 
   return (
     <>
       {reaction_groups.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 px-4 pt-2 pb-1">
-          {reaction_groups.map((group) => {
-            const tooltip = group.includes_self
-              ? t("mail.you_reacted_with", { emoji: group.emoji })
-              : group.reactor_names[0]
-                ? t("mail.reacted_with", {
-                    name: group.reactor_names[0],
-                    emoji: group.emoji,
-                  })
-                : "";
-            const is_locked = group.includes_self || is_own_message;
+        <div className="flex flex-wrap items-center gap-1.5 px-4 pt-3 pb-1">
+          <AnimatePresence initial={false}>
+            {reaction_groups.map((group) => {
+              const tooltip = group.includes_self
+                ? t("mail.you_reacted_with", { emoji: group.emoji })
+                : group.reactor_names[0]
+                  ? t("mail.reacted_with", {
+                      name: group.reactor_names[0],
+                      emoji: group.emoji,
+                    })
+                  : "";
+              const is_locked = is_own_message || group.includes_self;
 
-            const chip = (
-              <button
-                aria-disabled={is_locked}
-                className={`flex items-center gap-1.5 h-8 pl-2.5 pr-3 rounded-full border border-black/[0.15] dark:border-white/[0.15] bg-transparent transition-colors disabled:opacity-50 disabled:pointer-events-none ${
-                  is_locked
-                    ? "cursor-default"
-                    : "hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
-                } ${group.includes_self ? "" : "text-[var(--text-secondary)]"}`}
-                disabled={is_sending_reaction}
-                type="button"
-                onClick={() => handle_chip_click(group)}
-              >
-                <span className="text-sm leading-none">{group.emoji}</span>
-                <span className="text-xs font-medium tabular-nums text-black/85 dark:text-white/90">
-                  {group.count}
-                </span>
-              </button>
-            );
+              const chip = (
+                <motion.button
+                  animate={{ opacity: 1, scale: 1 }}
+                  aria-disabled={is_locked}
+                  aria-pressed={group.includes_self}
+                  className={`group/chip inline-flex items-center gap-1 h-7 ps-2.5 pe-2 rounded-full select-none transition-colors duration-150 ${
+                    group.includes_self
+                      ? "cursor-default bg-[#d3e3fd] dark:bg-[#004a77]"
+                      : is_locked
+                        ? "cursor-default bg-[#eceef1] dark:bg-[#282a2c]"
+                        : "bg-[#eceef1] dark:bg-[#282a2c] hover:bg-[#e1e4e8] dark:hover:bg-[#333537]"
+                  }`}
+                  exit={{ opacity: 0, scale: 0.6 }}
+                  initial={{ opacity: 0, scale: 0.6 }}
+                  layout={!reduce_motion}
+                  transition={chip_transition}
+                  type="button"
+                  onClick={() => handle_chip_click(group)}
+                >
+                  <span className="flex items-center justify-center w-4 h-4 text-base leading-none">
+                    {group.emoji}
+                  </span>
+                  <AnimatePresence initial={false} mode="popLayout">
+                    <motion.span
+                      key={group.count}
+                      animate={{ opacity: 1, y: 0 }}
+                      className={`text-[13px] font-normal tabular-nums leading-4 ${
+                        group.includes_self
+                          ? "text-[#0842a0] dark:text-[#c2e7ff]"
+                          : "text-[var(--text-secondary)]"
+                      }`}
+                      exit={{ opacity: 0, y: reduce_motion ? 0 : -6 }}
+                      initial={{ opacity: 0, y: reduce_motion ? 0 : 6 }}
+                      transition={{ duration: reduce_motion ? 0 : 0.16 }}
+                    >
+                      {group.count}
+                    </motion.span>
+                  </AnimatePresence>
+                </motion.button>
+              );
 
-            return tooltip ? (
-              <Tooltip key={group.emoji} tip={tooltip}>
-                {chip}
-              </Tooltip>
-            ) : (
-              <Fragment key={group.emoji}>{chip}</Fragment>
-            );
-          })}
+              return tooltip ? (
+                <Tooltip key={group.emoji} tip={tooltip}>
+                  {chip}
+                </Tooltip>
+              ) : (
+                <Fragment key={group.emoji}>{chip}</Fragment>
+              );
+            })}
+          </AnimatePresence>
         </div>
       )}
-      <div className="flex items-center gap-2 px-4 pt-2 pb-3 border-t border-[var(--border-thread-divider)]">
+      <div className="flex items-center gap-2 px-4 pb-4">
         {on_reply && (
-          <Button
-            className={`gap-1.5 ${is_system_email(message.sender_email) ? "opacity-50 pointer-events-none" : ""}`}
+          <PillButton
+            className={`flex-1 min-w-0 max-w-[200px] !rounded-full ${is_system_email(message) ? "opacity-50 pointer-events-none" : ""}`}
+            leading={
+              <ArrowUturnLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
+            }
             size="md"
+            variant="filled"
             onClick={() => on_reply(message)}
           >
-            <ArrowUturnLeftIcon className="w-4 h-4" />
-            {t("mail.reply")}
-          </Button>
+            <span className="truncate">{t("mail.reply")}</span>
+          </PillButton>
         )}
         {show_reply_all && (
-          <Button
-            className={`gap-1.5 ${is_system_email(message.sender_email) ? "opacity-50 pointer-events-none" : ""}`}
+          <PillButton
+            className={`flex-1 min-w-0 max-w-[200px] !rounded-full ${is_system_email(message) ? "opacity-50 pointer-events-none" : ""}`}
+            leading={
+              <ArrowUturnLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
+            }
             size="md"
-            variant="outline"
+            variant="tonal"
             onClick={() => on_reply_all(message)}
           >
-            <ArrowUturnLeftIcon className="w-4 h-4" />
-            {t("mail.reply_all")}
-          </Button>
+            <span className="truncate">{t("mail.reply_all")}</span>
+          </PillButton>
         )}
         {on_forward && (
-          <Button
-            className="gap-1.5"
+          <PillButton
+            className="flex-1 min-w-0 max-w-[200px] !rounded-full"
+            leading={
+              <ArrowUturnRightIcon className="w-4 h-4 rtl:-scale-x-100" />
+            }
             size="md"
-            variant="outline"
+            variant="tonal"
             onClick={() => on_forward(message)}
           >
-            <ArrowUturnRightIcon className="w-4 h-4" />
-            {t("mail.forward")}
-          </Button>
+            <span className="truncate">{t("mail.forward")}</span>
+          </PillButton>
         )}
         {show_react_button &&
           (can_react ? (
@@ -322,12 +366,11 @@ export function ThreadMessageActions({
               <PopoverTrigger asChild>
                 <button
                   aria-label={t("mail.react")}
-                  className="flex items-center justify-center w-8 h-8 rounded-full border border-black/[0.15] dark:border-white/[0.15] text-[var(--text-secondary)] hover:bg-black/[0.04] dark:hover:bg-white/[0.06] disabled:opacity-50 disabled:pointer-events-none"
-                  disabled={is_sending_reaction}
+                  className="aster_pill aster_pill_tonal h-10 w-10 flex-shrink-0 !rounded-full !px-0"
                   title={t("mail.react")}
                   type="button"
                 >
-                  <FaceSmileIcon className="w-4 h-4" />
+                  <FaceSmileIcon className="w-5 h-5" />
                 </button>
               </PopoverTrigger>
               <PopoverContent
@@ -342,11 +385,11 @@ export function ThreadMessageActions({
               <button
                 aria-disabled="true"
                 aria-label={restriction_message}
-                className="flex items-center justify-center w-8 h-8 rounded-full border border-black/[0.15] dark:border-white/[0.15] text-[var(--text-secondary)] opacity-50 cursor-not-allowed"
-                onClick={() => show_toast(restriction_message, "error")}
+                className="aster_pill aster_pill_tonal h-10 w-10 flex-shrink-0 !rounded-full !px-0 opacity-50 cursor-not-allowed"
                 type="button"
+                onClick={() => show_toast(restriction_message, "error")}
               >
-                <FaceSmileIcon className="w-4 h-4" />
+                <FaceSmileIcon className="w-5 h-5" />
               </button>
             </Tooltip>
           ))}

@@ -23,6 +23,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { PlanChangeConfirmModal } from "./plan_change_confirm_modal";
+
 import { preview_plan_change } from "@/services/api/billing";
 
 vi.mock("@/services/api/billing", () => ({
@@ -31,17 +32,15 @@ vi.mock("@/services/api/billing", () => ({
 }));
 
 vi.mock("@/lib/i18n/context", () => ({
-  use_i18n: () => ({ t: (key: string) => key }),
+  use_i18n: () => ({
+    t: (key: string, params?: Record<string, unknown>) =>
+      params ? `${key}:${JSON.stringify(params)}` : key,
+  }),
 }));
 
 vi.mock("@/components/ui/modal", () => ({
-  Modal: ({
-    is_open,
-    children,
-  }: {
-    is_open: boolean;
-    children?: unknown;
-  }) => (is_open ? <div data-testid="modal">{children as never}</div> : null),
+  Modal: ({ is_open, children }: { is_open: boolean; children?: unknown }) =>
+    is_open ? <div data-testid="modal">{children as never}</div> : null,
   ModalHeader: ({ children }: { children?: unknown }) => (
     <div>{children as never}</div>
   ),
@@ -59,7 +58,8 @@ vi.mock("@/components/ui/modal", () => ({
   ),
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({
     children,
     disabled,
@@ -78,7 +78,6 @@ vi.mock("@aster/ui", () => ({
 const mocked_preview = vi.mocked(preview_plan_change);
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -135,7 +134,7 @@ describe("PlanChangeConfirmModal", () => {
 
     await render_modal();
 
-    expect(mocked_preview).toHaveBeenCalledWith("family", "year");
+    expect(mocked_preview).toHaveBeenCalledWith("family", "year", "");
     expect(confirm_button().disabled).toBe(true);
     expect(container.textContent).not.toContain("plan_change_due_today");
   });
@@ -211,7 +210,11 @@ describe("PlanChangeConfirmModal", () => {
   it("ignores a stale preview after the modal is closed and reopened", async () => {
     let resolve_first:
       | ((value: {
-          data: { credit_cents: number; amount_due_cents: number; currency: string };
+          data: {
+            credit_cents: number;
+            amount_due_cents: number;
+            currency: string;
+          };
         }) => void)
       | undefined;
 
@@ -237,5 +240,147 @@ describe("PlanChangeConfirmModal", () => {
 
     expect(container.textContent).not.toContain("$999.99");
     expect(container.textContent).toContain("$43.99");
+  });
+
+  const set_input_value = async (value: string) => {
+    const input = container.querySelector(
+      "#plan_change_promo_code",
+    ) as HTMLInputElement;
+    const setter = Object.getOwnPropertyDescriptor(
+      HTMLInputElement.prototype,
+      "value",
+    )?.set;
+
+    await act(async () => {
+      setter?.call(input, value);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+  };
+
+  const click_button = async (label: string) => {
+    const button = Array.from(container.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes(label),
+    ) as HTMLButtonElement;
+
+    await act(async () => {
+      button.click();
+    });
+  };
+
+  it("shows the discounted amount and the code before confirming", async () => {
+    mocked_preview.mockImplementation(async (_plan, _interval, promo) =>
+      promo
+        ? {
+            data: {
+              credit_cents: 450,
+              amount_due_cents: 150,
+              currency: "usd",
+              discount_cents: 450,
+              promo_code_applied: true,
+              amount_due_before_discount_cents: 600,
+              promo_code: "ANDROID1K",
+              discount_percent_off: 50,
+              discount_duration: "repeating",
+              discount_duration_in_months: 12,
+            },
+          }
+        : {
+            data: { credit_cents: 450, amount_due_cents: 600, currency: "usd" },
+          },
+    );
+
+    const props = await render_modal({ billing_interval: "month" });
+
+    await set_input_value("android1k");
+    await click_button("settings.promo_apply");
+
+    expect(mocked_preview).toHaveBeenLastCalledWith(
+      "family",
+      "month",
+      "android1k",
+    );
+    expect(container.textContent).toContain(
+      'settings.plan_change_discount_label:{"code":"ANDROID1K"}',
+    );
+    expect(container.textContent).toContain(
+      "settings.plan_change_discount_months",
+    );
+    expect(container.textContent).toContain("-$4.50");
+    expect(container.textContent).toContain("$6.00");
+    expect(container.textContent).toContain("$1.50");
+    expect(container.querySelector(".line-through")?.textContent).toContain(
+      "$6.00",
+    );
+    expect(container.textContent).toContain(
+      'settings.plan_change_promo_applied:{"code":"ANDROID1K","amount":"$4.50"}',
+    );
+
+    await click_button("settings.plan_change_confirm_button");
+    expect(props.on_confirm).toHaveBeenCalledWith("ANDROID1K");
+  });
+
+  it("explains a rejected code and confirms without it", async () => {
+    mocked_preview.mockImplementation(async (_plan, _interval, promo) =>
+      promo
+        ? {
+            error: "That discount code has expired or is no longer available.",
+            server_code: "PROMO_CODE_EXPIRED",
+          }
+        : {
+            data: { credit_cents: 0, amount_due_cents: 600, currency: "usd" },
+          },
+    );
+
+    const props = await render_modal();
+
+    await set_input_value("OLDCODE");
+    await click_button("settings.promo_apply");
+
+    expect(container.textContent).toContain("settings.promo_error_expired");
+    expect(container.textContent).toContain("$6.00");
+    expect(container.textContent).not.toContain(
+      "settings.plan_change_promo_applied",
+    );
+    expect(mocked_preview).toHaveBeenLastCalledWith("family", "year", "");
+
+    await click_button("settings.plan_change_confirm_button");
+    expect(props.on_confirm).toHaveBeenCalledWith(undefined);
+  });
+
+  it("removes an applied code and returns to the full price", async () => {
+    mocked_preview.mockImplementation(async (_plan, _interval, promo) =>
+      promo
+        ? {
+            data: {
+              credit_cents: 0,
+              amount_due_cents: 300,
+              currency: "usd",
+              discount_cents: 300,
+              promo_code_applied: true,
+              amount_due_before_discount_cents: 600,
+              promo_code: "HALF",
+              discount_percent_off: 50,
+              discount_duration: "once",
+            },
+          }
+        : {
+            data: { credit_cents: 0, amount_due_cents: 600, currency: "usd" },
+          },
+    );
+
+    const props = await render_modal();
+
+    await set_input_value("HALF");
+    await click_button("settings.promo_apply");
+    expect(container.textContent).toContain("$3.00");
+
+    await click_button("settings.plan_change_promo_remove");
+
+    expect(mocked_preview).toHaveBeenLastCalledWith("family", "year", "");
+    expect(container.textContent).not.toContain("$3.00");
+    expect(container.querySelector("#plan_change_promo_code")).not.toBeNull();
+
+    await click_button("settings.plan_change_confirm_button");
+    expect(props.on_confirm).toHaveBeenCalledWith(undefined);
   });
 });

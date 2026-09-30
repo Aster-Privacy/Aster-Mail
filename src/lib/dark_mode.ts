@@ -48,10 +48,10 @@ export function is_dark_only_color_theme(color_theme: unknown): boolean {
 function apply_dark_class(): void {
   if (typeof document === "undefined") return;
 
-  document.documentElement.classList.toggle(
-    "dark",
-    theme_is_dark || palette_forces_dark,
-  );
+  const is_dark = theme_is_dark || palette_forces_dark;
+
+  document.documentElement.classList.toggle("dark", is_dark);
+  document.documentElement.classList.toggle("light", !is_dark);
 }
 
 export function set_theme_is_dark(value: boolean): void {

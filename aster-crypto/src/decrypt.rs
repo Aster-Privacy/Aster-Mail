@@ -40,6 +40,14 @@ fn capped_plaintext(data: &[u8]) -> Result<Vec<u8>> {
 }
 
 pub fn decrypt_message(ciphertext: &[u8], secret_keys: &[&KeyPair]) -> Result<Vec<u8>> {
+    decrypt_message_with_passphrase(ciphertext, secret_keys, "")
+}
+
+pub fn decrypt_message_with_passphrase(
+    ciphertext: &[u8],
+    secret_keys: &[&KeyPair],
+    passphrase: &str,
+) -> Result<Vec<u8>> {
     if secret_keys.is_empty() {
         return Err(CryptoError::KeyNotFound("No secret keys provided".into()));
     }
@@ -51,7 +59,7 @@ pub fn decrypt_message(ciphertext: &[u8], secret_keys: &[&KeyPair]) -> Result<Ve
         .map_err(|_| CryptoError::Decryption("Decryption failed".into()))?;
 
     for keypair in secret_keys {
-        let decrypted = msg.decrypt(|| "".to_string(), &[keypair.secret_key()]);
+        let decrypted = msg.decrypt(|| passphrase.to_string(), &[keypair.secret_key()]);
 
         if let Ok((decrypted_msg, _key_ids)) = decrypted {
             if let Some(literal) = decrypted_msg.get_literal() {
@@ -122,6 +130,15 @@ pub fn decrypt_and_verify(
     secret_keys: &[&KeyPair],
     sender_keys: &[&PublicKey],
 ) -> Result<Vec<u8>> {
+    decrypt_and_verify_with_passphrase(ciphertext, secret_keys, sender_keys, "")
+}
+
+pub fn decrypt_and_verify_with_passphrase(
+    ciphertext: &[u8],
+    secret_keys: &[&KeyPair],
+    sender_keys: &[&PublicKey],
+    passphrase: &str,
+) -> Result<Vec<u8>> {
     if secret_keys.is_empty() {
         return Err(CryptoError::KeyNotFound("No secret keys provided".into()));
     }
@@ -138,7 +155,7 @@ pub fn decrypt_and_verify(
         .map_err(|_| CryptoError::Decryption("Decryption failed".into()))?;
 
     for keypair in secret_keys {
-        let decrypted = msg.decrypt(|| "".to_string(), &[keypair.secret_key()]);
+        let decrypted = msg.decrypt(|| passphrase.to_string(), &[keypair.secret_key()]);
 
         if let Ok((decrypted_msg, _key_ids)) = decrypted {
             if !verify_with_sender_keys(&decrypted_msg, sender_keys) {
@@ -263,5 +280,113 @@ mod tests {
 
         let result = decrypt_and_verify(&ciphertext, &[&bob], &[&signer_pub]);
         assert!(result.is_err());
+    }
+
+    fn protected_keypair(passphrase: &str) -> crate::keys::KeyPair {
+        use pgp::composed::{KeyType, SecretKeyParamsBuilder, SubkeyParamsBuilder};
+        use pgp::crypto::ecc_curve::ECCCurve;
+
+        let rng = rand::rngs::OsRng;
+        let pw = passphrase.to_string();
+        let params = SecretKeyParamsBuilder::default()
+            .key_type(KeyType::EdDSALegacy)
+            .can_certify(true)
+            .can_sign(true)
+            .primary_user_id("Owner <owner@astermail.com>".into())
+            .passphrase(Some(pw.clone()))
+            .subkey(
+                SubkeyParamsBuilder::default()
+                    .key_type(KeyType::ECDH(ECCCurve::Curve25519))
+                    .can_encrypt(true)
+                    .passphrase(Some(pw.clone()))
+                    .build()
+                    .unwrap(),
+            )
+            .build()
+            .unwrap();
+        let signed = params.generate(rng).unwrap().sign(rng, || pw).unwrap();
+        let armored = signed.to_armored_string(None.into()).unwrap();
+        crate::keys::import_secret_key(&armored).unwrap()
+    }
+
+    #[test]
+    fn passphrase_path_opens_token_from_protected_own_key() {
+        use crate::encrypt::encrypt_and_sign_with_passphrase;
+        let owner = protected_keypair("hunter2 hunter2");
+        let owner_pub = owner.public_key();
+
+        let plaintext = b"account key token";
+        let ciphertext =
+            encrypt_and_sign_with_passphrase(plaintext, &[&owner_pub], &owner, "hunter2 hunter2")
+                .unwrap();
+
+        let decrypted = decrypt_and_verify_with_passphrase(
+            &ciphertext,
+            &[&owner],
+            &[&owner_pub],
+            "hunter2 hunter2",
+        )
+        .unwrap();
+        assert_eq!(plaintext.as_slice(), decrypted.as_slice());
+
+        assert!(decrypt_and_verify_with_passphrase(
+            &ciphertext,
+            &[&owner],
+            &[&owner_pub],
+            "wrong passphrase",
+        )
+        .is_err());
+        assert!(decrypt_and_verify(&ciphertext, &[&owner], &[&owner_pub]).is_err());
+    }
+
+    #[test]
+    fn passphrase_decrypt_opens_message_for_protected_key() {
+        let owner = protected_keypair("hunter2 hunter2");
+        let other = protected_keypair("hunter2 hunter2");
+        let ciphertext = encrypt_message(b"sealed envelope", &[&owner.public_key()]).unwrap();
+
+        let decrypted =
+            decrypt_message_with_passphrase(&ciphertext, &[&other, &owner], "hunter2 hunter2")
+                .unwrap();
+        assert_eq!(b"sealed envelope".as_slice(), decrypted.as_slice());
+
+        assert!(decrypt_message_with_passphrase(&ciphertext, &[&owner], "wrong").is_err());
+        assert!(decrypt_message(&ciphertext, &[&owner]).is_err());
+        assert!(decrypt_message_with_passphrase(&ciphertext, &[], "hunter2 hunter2").is_err());
+    }
+
+    #[test]
+    fn passphrase_path_rejects_foreign_signer() {
+        use crate::encrypt::encrypt_and_sign_with_passphrase;
+        let owner = protected_keypair("hunter2 hunter2");
+        let attacker = generate_keypair("Attacker", "attacker@example.com").unwrap();
+        let owner_pub = owner.public_key();
+
+        let ciphertext =
+            encrypt_and_sign_with_passphrase(b"forged", &[&owner_pub], &attacker, "").unwrap();
+
+        assert!(decrypt_and_verify_with_passphrase(
+            &ciphertext,
+            &[&owner],
+            &[&owner_pub],
+            "hunter2 hunter2",
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn passphrase_path_rejects_unsigned_message() {
+        let owner = protected_keypair("hunter2 hunter2");
+        let owner_pub = owner.public_key();
+
+        let ciphertext = encrypt_message(b"unsigned", &[&owner_pub]).unwrap();
+
+        assert!(decrypt_and_verify_with_passphrase(
+            &ciphertext,
+            &[&owner],
+            &[&owner_pub],
+            "hunter2 hunter2",
+        )
+        .is_err());
     }
 }

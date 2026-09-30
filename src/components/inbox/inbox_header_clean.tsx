@@ -47,6 +47,9 @@ import { use_folders, has_protected_folder_label } from "@/hooks/use_folders";
 import { is_mac_platform } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { scan_received_items } from "@/services/bulk_mail_scan";
+import { emit_mail_changed } from "@/hooks/mail_events";
+import { show_toast } from "@/components/toast/simple_toast";
+import { ignore_error } from "@/lib/ignore_error";
 
 function ChevronDownIcon() {
   return (
@@ -154,10 +157,10 @@ export function InboxHeader({
 
             if (read_ids.length > 0) {
               await bulk_update_mail_items({ ids: read_ids });
-              window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+              emit_mail_changed();
               show_action_toast({
                 message: t("common.emails_archived", {
-                  count: String(read_ids.length),
+                  count: read_ids.length,
                 }),
                 action_type: "archive",
                 email_ids: read_ids,
@@ -229,7 +232,7 @@ export function InboxHeader({
                     completed: String(
                       Math.min((i + 1) * batch_size, unread_ids.length),
                     ),
-                    total: String(unread_ids.length),
+                    total: unread_ids.length,
                   }),
                   action_type: "progress",
                   email_ids: [],
@@ -245,12 +248,12 @@ export function InboxHeader({
                 await bulk_update_mail_items({ ids: batch });
               }
 
-              window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+              emit_mail_changed();
 
               if (!cancelled) {
                 show_action_toast({
                   message: t("common.emails_marked_as_read", {
-                    count: String(unread_ids.length),
+                    count: unread_ids.length,
                   }),
                   action_type: "read",
                   email_ids: unread_ids,
@@ -294,10 +297,10 @@ export function InboxHeader({
 
           if (old_ids.length > 0) {
             await bulk_update_mail_items({ ids: old_ids });
-            window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+            emit_mail_changed();
             show_action_toast({
               message: t("common.emails_moved_to_trash", {
-                count: String(old_ids.length),
+                count: old_ids.length,
               }),
               action_type: "trash",
               email_ids: old_ids,
@@ -333,10 +336,10 @@ export function InboxHeader({
             await bulk_update_mail_items({
               ids: newsletter_ids,
             });
-            window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+            emit_mail_changed();
             show_action_toast({
               message: t("common.emails_archived", {
-                count: String(newsletter_ids.length),
+                count: newsletter_ids.length,
               }),
               action_type: "archive",
               email_ids: newsletter_ids,
@@ -353,6 +356,13 @@ export function InboxHeader({
         } else if (action === "snooze_similar") {
           set_is_unsubscribe_open(true);
         }
+      } catch (caught) {
+        hide_action_toast();
+        show_toast(t("common.something_went_wrong_try_again"), "error");
+        ignore_error(
+          "components/inbox/inbox_header_clean:handle_quick_action",
+          caught,
+        );
       } finally {
         set_loading_action(null);
       }
@@ -407,8 +417,8 @@ export function InboxHeader({
   return (
     <>
       <div
-        className="flex items-center justify-between px-6 py-3 border-b transition-colors duration-200"
         data-inbox-toolbar
+        className="flex items-center justify-between px-6 py-3 border-b transition-colors duration-200"
         style={{ borderColor: "var(--border-secondary)" }}
       >
         <div className="flex items-center gap-4">
@@ -500,7 +510,7 @@ export function InboxHeader({
             data-onboarding="search-bar"
           >
             <SearchIcon
-              className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+              className="absolute start-3 top-1/2 -translate-y-1/2 pointer-events-none"
               size={16}
               style={{ color: "var(--text-muted)" }}
             />
@@ -509,12 +519,12 @@ export function InboxHeader({
               className="w-80 cursor-pointer"
               placeholder={t("common.search_anything")}
               size="md"
-              style={{ paddingLeft: "38px", paddingRight: "56px" }}
+              style={{ paddingInlineStart: "38px", paddingInlineEnd: "56px" }}
               type="text"
               onClick={() => set_is_search_open(true)}
             />
             <button
-              className="absolute right-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-xs font-medium rounded cursor-pointer z-10 transition-colors"
+              className="absolute end-3 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-xs font-medium rounded cursor-pointer z-10 transition-colors"
               style={{
                 color: "var(--text-muted)",
                 backgroundColor: "var(--bg-tertiary)",

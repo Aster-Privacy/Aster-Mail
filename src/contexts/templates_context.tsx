@@ -69,18 +69,29 @@ export function TemplatesProvider({ children }: TemplatesProviderProps) {
 
     set_is_loading(true);
 
-    try {
-      const response = await list_templates();
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      try {
+        const response = await list_templates();
 
-      if (this_generation !== load_generation_ref.current) return;
+        if (this_generation !== load_generation_ref.current) return;
 
-      if (response.data) {
-        set_templates(response.data.templates);
+        if (response.data) {
+          set_templates(response.data.templates);
+          set_is_loading(false);
+
+          return;
+        }
+      } catch {
+        if (this_generation !== load_generation_ref.current) return;
       }
-    } catch {
-      if (this_generation !== load_generation_ref.current) return;
 
-      set_templates([]);
+      if (attempt < 2) {
+        await new Promise((resolve) => {
+          setTimeout(resolve, 2_000 * (attempt + 1));
+        });
+
+        if (this_generation !== load_generation_ref.current) return;
+      }
     }
 
     set_is_loading(false);
@@ -115,16 +126,25 @@ export function TemplatesProvider({ children }: TemplatesProviderProps) {
     [templates],
   );
 
+  const value = useMemo(
+    () => ({
+      templates,
+      grouped_templates,
+      is_loading,
+      reload_templates: load_templates,
+      get_template_by_id,
+    }),
+    [
+      templates,
+      grouped_templates,
+      is_loading,
+      load_templates,
+      get_template_by_id,
+    ],
+  );
+
   return (
-    <TemplatesContext.Provider
-      value={{
-        templates,
-        grouped_templates,
-        is_loading,
-        reload_templates: load_templates,
-        get_template_by_id,
-      }}
-    >
+    <TemplatesContext.Provider value={value}>
       {children}
     </TemplatesContext.Provider>
   );

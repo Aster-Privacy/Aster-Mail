@@ -25,6 +25,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { use_templates } from "@/contexts/templates_context";
+import { truncate_with_ellipsis } from "@/utils/preview_text";
 
 interface TemplatePickerProps {
   on_select: (content: string) => void;
@@ -82,7 +83,7 @@ export function TemplatePicker({
         aria-controls={is_open ? menu_id : undefined}
         aria-expanded={is_open}
         aria-haspopup="menu"
-        className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
+        className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
         disabled={disabled}
         title={t("mail.insert_template")}
         type="button"
@@ -98,7 +99,7 @@ export function TemplatePicker({
         {is_open && (
           <motion.div
             animate={{ opacity: 1, y: 0 }}
-            className={`absolute z-50 w-64 border border-edge-primary rounded-lg shadow-lg overflow-hidden bg-modal-bg ${open_direction === "up" ? "bottom-full mb-2" : "mt-2"}`}
+            className={`aster_floating absolute z-50 w-72 overflow-hidden p-1.5 ${open_direction === "up" ? "bottom-full mb-2" : "mt-2"}`}
             exit={{ opacity: 0, y: open_direction === "up" ? 10 : -10 }}
             id={menu_id}
             initial={
@@ -112,20 +113,20 @@ export function TemplatePicker({
               {Object.entries(grouped_templates).map(
                 ([category, category_templates]) => (
                   <div key={category}>
-                    <div className="px-4 py-2 text-xs font-semibold text-txt-muted bg-surf-tertiary sticky top-0">
+                    <div className="px-2.5 pt-2 pb-1 text-[11px] font-medium text-txt-muted sticky -top-1.5 bg-[var(--aster-floating-bg)]">
                       {category}
                     </div>
                     {category_templates.map((template) => (
                       <button
                         key={template.id}
-                        className="w-full px-4 py-2 text-sm text-left hover:bg-surf-hover transition-colors border-b last:border-0 border-edge-primary"
+                        className="w-full px-2.5 py-2 text-sm text-start rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
                         onClick={() => handle_select(template.content)}
                       >
                         <div className="font-medium text-txt-primary">
                           {template.name}
                         </div>
                         <div className="text-xs text-txt-muted truncate">
-                          {template.content.substring(0, 50)}
+                          {truncate_with_ellipsis(template.content, 60)}
                         </div>
                       </button>
                     ))}

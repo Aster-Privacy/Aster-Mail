@@ -19,16 +19,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { HASH_ALG } from "@/services/crypto/constants";
-import type { } from "../key_manager";
+import type {} from "../key_manager";
 import { api_client } from "@/services/api/client";
-import type { } from "@/services/api/signatures";
-import type { } from "@/services/api/templates";
-import type { } from "@/services/api/blocked_senders";
-import type { } from "@/services/api/allowed_senders";
-import {
-  re_encrypt_field_with_candidates,
-} from "../reencrypt_shared";
 
+import type {} from "@/services/api/signatures";
+import type {} from "@/services/api/templates";
+import type {} from "@/services/api/blocked_senders";
+import type {} from "@/services/api/allowed_senders";
+import { re_encrypt_field_with_candidates } from "../reencrypt_shared";
 
 export async function import_aes_key(
   raw: Uint8Array,
@@ -70,7 +68,12 @@ export async function re_encrypt_field(
   old_key: CryptoKey,
   new_key: CryptoKey,
 ): Promise<{ encrypted: string; nonce: string }> {
-  return re_encrypt_field_with_candidates(enc_b64, nonce_b64, [old_key], new_key);
+  return re_encrypt_field_with_candidates(
+    enc_b64,
+    nonce_b64,
+    [old_key],
+    new_key,
+  );
 }
 
 export type FieldPair = [encrypted_field: string, nonce_field: string];
@@ -158,8 +161,7 @@ export async function re_encrypt_identity_scoped_setting(
 ): Promise<void> {
   if (old_identity_key === new_identity_key) return;
 
-  const resp =
-    await api_client.get<Record<string, string | null>>(endpoint);
+  const resp = await api_client.get<Record<string, string | null>>(endpoint);
 
   if (resp.error || !resp.data) return;
 
@@ -186,4 +188,3 @@ export async function re_encrypt_identity_scoped_setting(
     [nonce_field]: nonce,
   });
 }
-

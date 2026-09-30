@@ -18,21 +18,23 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import {  useEffect, useRef,  type ReactNode } from "react";
+import { useEffect, useRef, type ComponentType, type ReactNode } from "react";
 import {
   ArrowLeftIcon,
   CheckIcon,
   ClipboardDocumentIcon,
+  ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
 
 import { Spinner } from "@/components/ui/spinner";
-
 
 export interface StatusStep {
   key: string;
   label: string;
   hint: string;
 }
+
+export const TICKET_CARD = "relative rounded-2xl bg-surf-secondary";
 
 export interface PageShellProps {
   children: ReactNode;
@@ -56,11 +58,11 @@ export function page_shell({ children, on_back, back_label }: PageShellProps) {
             src="/text_logo.png"
           />
           <button
-            className="inline-flex w-fit items-center gap-2 rounded-full bg-surf-secondary px-3.5 py-2 text-sm font-medium text-txt-secondary transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+            className="inline-flex w-fit items-center gap-2 rounded-md text-sm font-medium text-txt-secondary transition-colors hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
             type="button"
             onClick={on_back}
           >
-            <ArrowLeftIcon className="w-4 h-4" />
+            <ArrowLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
             {back_label}
           </button>
         </header>
@@ -73,6 +75,66 @@ export function page_shell({ children, on_back, back_label }: PageShellProps) {
 
 export const PageShell = page_shell;
 
+export interface TicketDividerProps {
+  notch_color?: string;
+}
+
+export function ticket_divider({
+  notch_color = "var(--bg-primary)",
+}: TicketDividerProps) {
+  const notch_style = { backgroundColor: notch_color };
+
+  return (
+    <div aria-hidden="true" className="relative h-0">
+      <div className="mx-5 border-t border-dashed border-edge-secondary" />
+      <span className="absolute -start-px top-0 h-4 w-2 -translate-y-1/2 overflow-hidden">
+        <span
+          className="absolute -start-2 top-0 h-4 w-4 rounded-full"
+          style={notch_style}
+        />
+      </span>
+      <span className="absolute -end-px top-0 h-4 w-2 -translate-y-1/2 overflow-hidden">
+        <span
+          className="absolute -end-2 top-0 h-4 w-4 rounded-full"
+          style={notch_style}
+        />
+      </span>
+    </div>
+  );
+}
+
+export const TicketDivider = ticket_divider;
+
+export interface NoticeProps {
+  children: ReactNode;
+  icon?: ComponentType<{ className?: string }>;
+  role?: "alert" | "note" | "status";
+  tone?: "warning" | "neutral";
+}
+
+export function notice({
+  children,
+  icon: Icon = ExclamationCircleIcon,
+  role,
+  tone = "warning",
+}: NoticeProps) {
+  const is_warning = tone === "warning";
+
+  return (
+    <div
+      className={`flex items-start gap-2.5 text-start text-[13px] leading-5 ${
+        is_warning ? "font-medium text-amber-500" : "text-txt-secondary"
+      }`}
+      role={role}
+    >
+      <Icon className="mt-0.5 h-4 w-4 shrink-0" />
+      <div className="min-w-0 flex-1">{children}</div>
+    </div>
+  );
+}
+
+export const Notice = notice;
+
 export interface ResultCardProps {
   children?: ReactNode;
   body: string;
@@ -81,7 +143,13 @@ export interface ResultCardProps {
   tone: "accent" | "muted";
 }
 
-export function result_card({ body, children, icon, title, tone }: ResultCardProps) {
+export function result_card({
+  body,
+  children,
+  icon,
+  title,
+  tone,
+}: ResultCardProps) {
   const heading_ref = useRef<HTMLHeadingElement>(null);
 
   useEffect(() => {
@@ -89,22 +157,17 @@ export function result_card({ body, children, icon, title, tone }: ResultCardPro
   }, []);
 
   const tone_style =
-    tone === "accent"
-      ? {
-          backgroundColor: "var(--accent-color)",
-          color: "var(--accent-fg, #ffffff)",
-        }
-      : undefined;
+    tone === "accent" ? { color: "var(--accent-color)" } : undefined;
 
   return (
     <div
       aria-live="polite"
-      className="mx-auto w-full max-w-md rounded-3xl border border-edge-secondary bg-surf-secondary p-8 text-center"
+      className={`${TICKET_CARD} mx-auto w-full max-w-md p-6 text-center sm:p-7`}
       role="status"
     >
       <div
-        className={`mx-auto flex h-14 w-14 items-center justify-center rounded-2xl ${
-          tone_style ? "" : "bg-surf-tertiary text-txt-muted"
+        className={`mx-auto flex h-12 w-12 items-center justify-center ${
+          tone_style ? "" : "text-txt-muted"
         }`}
         style={tone_style}
       >
@@ -112,12 +175,14 @@ export function result_card({ body, children, icon, title, tone }: ResultCardPro
       </div>
       <h1
         ref={heading_ref}
-        className="mt-5 text-xl font-semibold text-txt-primary outline-none"
+        className="mt-4 text-lg font-semibold text-txt-primary outline-none"
         tabIndex={-1}
       >
         {title}
       </h1>
-      <p className="mt-2 text-sm leading-relaxed text-txt-secondary">{body}</p>
+      <p className="mt-1.5 text-[13px] leading-relaxed text-txt-secondary">
+        {body}
+      </p>
       {children}
     </div>
   );
@@ -128,42 +193,39 @@ export const ResultCard = result_card;
 export interface CopyFieldProps {
   label: string;
   value: string;
+  copy_hint: string;
   copy_value?: string;
   value_class?: string;
-  is_copied?: boolean;
   on_copy: (value: string) => void;
 }
 
 export function copy_field({
   label,
   value,
+  copy_hint,
   copy_value,
   value_class = "text-sm",
-  is_copied = false,
   on_copy,
 }: CopyFieldProps) {
   return (
-    <button
-      className="group w-full rounded-2xl border border-edge-secondary bg-surf-tertiary px-4 py-3 text-left transition-colors hover:border-edge-primary hover:bg-surf-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
-      type="button"
-      onClick={() => on_copy(copy_value ?? value)}
-    >
-      <span className="flex items-center justify-between gap-3">
-        <span className="text-[11px] font-medium uppercase tracking-wide text-txt-muted">
-          {label}
+    <div className="flex items-center gap-3 py-3">
+      <div className="min-w-0 flex-1">
+        <span className="block text-xs text-txt-muted">{label}</span>
+        <span
+          className={`mt-1 block select-all break-all font-mono font-medium leading-snug text-txt-primary ${value_class}`}
+        >
+          {value}
         </span>
-        {is_copied ? (
-          <CheckIcon className="w-4 h-4 shrink-0 text-aster-success" />
-        ) : (
-          <ClipboardDocumentIcon className="w-4 h-4 shrink-0 text-txt-muted transition-colors group-hover:text-txt-primary" />
-        )}
-      </span>
-      <span
-        className={`mt-1.5 block break-all font-mono font-semibold leading-snug text-txt-primary ${value_class}`}
+      </div>
+      <button
+        aria-label={copy_hint}
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-txt-muted transition-colors hover:bg-surf-hover hover:text-txt-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+        type="button"
+        onClick={() => on_copy(copy_value ?? value)}
       >
-        {value}
-      </span>
-    </button>
+        <ClipboardDocumentIcon className="h-4 w-4" />
+      </button>
+    </div>
   );
 }
 
@@ -176,9 +238,9 @@ export interface DetailRowProps {
 
 export function detail_row({ children, label }: DetailRowProps) {
   return (
-    <div className="flex items-center justify-between gap-3 py-2.5">
-      <span className="shrink-0 text-xs font-medium text-txt-muted">{label}</span>
-      <span className="min-w-0 break-all text-right text-sm font-medium text-txt-primary">
+    <div className="flex min-h-[28px] items-center justify-between gap-3">
+      <span className="shrink-0 text-[13px] text-txt-muted">{label}</span>
+      <span className="min-w-0 break-all text-end text-[13px] font-medium text-txt-primary">
         {children}
       </span>
     </div>
@@ -187,108 +249,82 @@ export function detail_row({ children, label }: DetailRowProps) {
 
 export const DetailRow = detail_row;
 
-export interface LiveStatusProps {
-  hint: string;
-  is_live: boolean;
-  label: string;
-}
-
-export function live_status({ hint, is_live, label }: LiveStatusProps) {
-  return (
-    <div className="flex flex-col items-center gap-3 text-center">
-      <Spinner
-        className={`h-10 w-10 text-[var(--accent-color)] ${is_live ? "" : "opacity-40"}`}
-        size="lg"
-      />
-      <span className="text-sm font-semibold text-txt-primary">{label}</span>
-      <p className="max-w-xs text-xs leading-relaxed text-txt-secondary">{hint}</p>
-    </div>
-  );
-}
-
-export const LiveStatus = live_status;
-
 export interface StepListProps {
   active_index: number;
+  current_hint: string;
+  current_label: string;
+  is_live: boolean;
   steps: StatusStep[];
   title: string;
 }
 
-export function step_list({ active_index, steps, title }: StepListProps) {
+export function step_list({
+  active_index,
+  current_hint,
+  current_label,
+  is_live,
+  steps,
+  title,
+}: StepListProps) {
   return (
-    <div className="rounded-2xl bg-surf-tertiary p-4">
-      <span className="text-[11px] font-medium uppercase tracking-wide text-txt-muted">
-        {title}
-      </span>
+    <div>
+      <span className="text-xs font-medium text-txt-muted">{title}</span>
       <ol className="mt-3 flex flex-col">
         {steps.map((step, index) => {
           const done = index < active_index;
           const current = index === active_index;
-          const reached = done || current;
           const is_last = index === steps.length - 1;
 
           return (
             <li
               key={step.key}
-              className={`relative flex items-start gap-3 ${is_last ? "" : "pb-5"}`}
+              aria-current={current ? "step" : undefined}
+              className={`relative flex items-start gap-3 ${is_last ? "" : "pb-4"}`}
             >
               {!is_last && (
                 <span
                   aria-hidden="true"
-                  className="absolute left-0 flex w-[18px] justify-center"
-                  style={{ top: 9, bottom: -9 }}
-                >
-                  <span
-                    className="h-full w-[2px]"
-                    style={{
-                      backgroundColor: done
-                        ? "var(--accent-color)"
-                        : "var(--border-secondary)",
-                    }}
-                  />
-                </span>
+                  className="absolute start-[9px] top-[22px] bottom-0.5 w-0.5 rounded-full"
+                  style={{
+                    backgroundColor: done
+                      ? "var(--color-success)"
+                      : "var(--border-secondary)",
+                  }}
+                />
               )}
-              <span className="relative z-10 flex h-[18px] w-[18px] shrink-0 items-center justify-center">
-                {reached ? (
-                  <span
-                    className="flex h-[18px] w-[18px] items-center justify-center rounded-full"
-                    style={{
-                      backgroundColor: "var(--accent-color)",
-                      color: "var(--accent-fg, #ffffff)",
-                      boxShadow: current
-                        ? "0 0 0 4px color-mix(in srgb, var(--accent-color) 20%, transparent)"
-                        : undefined,
-                    }}
-                  >
-                    {done ? (
-                      <CheckIcon className="h-3 w-3" strokeWidth={3} />
-                    ) : (
-                      <span
-                        className="h-[6px] w-[6px] rounded-full"
-                        style={{ backgroundColor: "var(--accent-fg, #ffffff)" }}
-                      />
-                    )}
+              <span
+                aria-hidden="true"
+                className="flex h-5 w-5 shrink-0 items-center justify-center"
+              >
+                {done ? (
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-success)]">
+                    <CheckIcon className="h-3 w-3 text-white" strokeWidth={3} />
                   </span>
+                ) : current && is_live ? (
+                  <Spinner className="text-txt-primary" size="md" />
+                ) : current ? (
+                  <span className="h-5 w-5 rounded-full bg-[var(--accent-color)]" />
                 ) : (
-                  <span
-                    className="h-[10px] w-[10px] rounded-full border-2 bg-surf-tertiary"
-                    style={{ borderColor: "var(--border-secondary)" }}
-                  />
+                  <span className="h-5 w-5 rounded-full border-2 border-edge-secondary" />
                 )}
               </span>
-              <span className="flex min-w-0 flex-col pb-0.5">
+              <span className="flex min-w-0 flex-col">
                 <span
-                  className="text-xs leading-tight"
-                  style={{
-                    color: reached ? "var(--text-primary)" : "var(--text-muted)",
-                    fontWeight: current ? 600 : 500,
-                  }}
+                  className={`text-sm leading-5 ${
+                    current
+                      ? "font-semibold text-txt-primary"
+                      : done
+                        ? "text-txt-secondary"
+                        : "text-txt-muted"
+                  }`}
                 >
-                  {step.label}
+                  {current ? current_label : step.label}
                 </span>
-                <span className="mt-0.5 text-[11px] leading-relaxed text-txt-muted">
-                  {step.hint}
-                </span>
+                {current && current_hint && (
+                  <span className="mt-0.5 text-[13px] leading-5 text-txt-secondary">
+                    {current_hint}
+                  </span>
+                )}
               </span>
             </li>
           );
@@ -316,7 +352,7 @@ export function meter({ fraction, label, value_max, value_now }: MeterProps) {
       aria-valuemax={value_max}
       aria-valuemin={0}
       aria-valuenow={value_now}
-      className="mt-2 flex h-2 w-full overflow-hidden rounded-full bg-surf-tertiary"
+      className="mt-2 flex h-1.5 w-full overflow-hidden rounded-full bg-surf-tertiary"
       role="progressbar"
     >
       <div
@@ -332,3 +368,63 @@ export function meter({ fraction, label, value_max, value_now }: MeterProps) {
 
 export const Meter = meter;
 
+const SKELETON_TONE = "animate-pulse bg-black/[0.04] dark:bg-white/[0.06]";
+
+function skeleton_bar({ className }: { className: string }) {
+  return <div className={`${SKELETON_TONE} rounded-md ${className}`} />;
+}
+
+const SkeletonBar = skeleton_bar;
+
+export function invoice_skeleton() {
+  return (
+    <div
+      aria-busy="true"
+      className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[1.05fr_1fr]"
+    >
+      <section className={`${TICKET_CARD} p-5 sm:p-6`}>
+        <div className="flex items-center gap-3">
+          <div className={`${SKELETON_TONE} h-10 w-10 shrink-0 rounded-full`} />
+          <div className="min-w-0 flex-1 space-y-2">
+            <SkeletonBar className="h-5 w-40 max-w-full" />
+            <SkeletonBar className="h-3 w-24 max-w-full" />
+          </div>
+        </div>
+
+        <div className="mt-4 space-y-2">
+          <SkeletonBar className="h-3.5 w-full" />
+          <SkeletonBar className="h-3.5 w-4/5" />
+        </div>
+
+        <div className="mt-5 flex flex-col items-center gap-4">
+          <div className={`${SKELETON_TONE} h-[228px] w-[228px] rounded-2xl`} />
+          <div className="w-full space-y-3">
+            <SkeletonBar className="h-12 w-full" />
+            <SkeletonBar className="h-12 w-full" />
+          </div>
+        </div>
+      </section>
+
+      <section className={`${TICKET_CARD} p-5 sm:p-6`}>
+        <SkeletonBar className="h-3 w-20" />
+        <SkeletonBar className="mt-3 h-7 w-32 max-w-full" />
+        <SkeletonBar className="mt-3 h-3 w-48 max-w-full" />
+        <div className="mt-6 space-y-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="flex items-start gap-3">
+              <div
+                className={`${SKELETON_TONE} h-[26px] w-[26px] shrink-0 rounded-full`}
+              />
+              <div className="flex-1 space-y-2">
+                <SkeletonBar className="h-3.5 w-1/3" />
+                <SkeletonBar className="h-3 w-4/5" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}
+
+export const InvoiceSkeleton = invoice_skeleton;

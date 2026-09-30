@@ -20,7 +20,6 @@
 //
 import { get_cached_folders } from "@/hooks/use_folders";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   get_unlock_token,
   is_folder_unlock_live,
@@ -181,9 +180,7 @@ export function get_unlock_token_for_view(view: string): string | null {
   return get_unlock_token_for_label(view.replace("folder-", ""));
 }
 
-export function request_folder_unlock(
-  folder_token?: string | null,
-): boolean {
+export function request_folder_unlock(folder_token?: string | null): boolean {
   if (typeof window === "undefined") return false;
 
   const locked = get_locked_folders();
@@ -217,7 +214,10 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
 
     tasks.push(clear_search_snapshots());
   } catch (caught) {
-    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+    ignore_error(
+      "services/locked_folders:purge_locked_folder_local_caches",
+      caught,
+    );
   }
 
   try {
@@ -225,7 +225,10 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
 
     clear_search_index();
   } catch (caught) {
-    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+    ignore_error(
+      "services/locked_folders:purge_locked_folder_local_caches",
+      caught,
+    );
   }
 
   try {
@@ -233,7 +236,10 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
 
     clear_mail_cache();
   } catch (caught) {
-    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+    ignore_error(
+      "services/locked_folders:purge_locked_folder_local_caches",
+      caught,
+    );
   }
 
   try {
@@ -243,7 +249,10 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
 
     tasks.push(clear_email_cache());
   } catch (caught) {
-    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+    ignore_error(
+      "services/locked_folders:purge_locked_folder_local_caches",
+      caught,
+    );
   }
 
   try {
@@ -254,7 +263,10 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
     clear_entry_previews();
     tasks.push(clear_category_index());
   } catch (caught) {
-    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+    ignore_error(
+      "services/locked_folders:purge_locked_folder_local_caches",
+      caught,
+    );
   }
 
   try {
@@ -264,7 +276,10 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
 
     clear_category_preview_cache();
   } catch (caught) {
-    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+    ignore_error(
+      "services/locked_folders:purge_locked_folder_local_caches",
+      caught,
+    );
   }
 
   try {
@@ -274,7 +289,10 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
 
     clear_attachment_meta_cache();
   } catch (caught) {
-    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+    ignore_error(
+      "services/locked_folders:purge_locked_folder_local_caches",
+      caught,
+    );
   }
 
   try {
@@ -284,7 +302,10 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
 
     clear_attachment_preview_cache();
   } catch (caught) {
-    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+    ignore_error(
+      "services/locked_folders:purge_locked_folder_local_caches",
+      caught,
+    );
   }
 
   try {
@@ -292,7 +313,10 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
 
     request_cache.invalidate("GET:/mail/v1/messages");
   } catch (caught) {
-    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+    ignore_error(
+      "services/locked_folders:purge_locked_folder_local_caches",
+      caught,
+    );
   }
 
   try {
@@ -300,7 +324,10 @@ export async function purge_locked_folder_local_caches(): Promise<void> {
 
     clear_folder_context();
   } catch (caught) {
-    ignore_error("services/locked_folders:purge_locked_folder_local_caches", caught);
+    ignore_error(
+      "services/locked_folders:purge_locked_folder_local_caches",
+      caught,
+    );
   }
 
   await Promise.allSettled(tasks);

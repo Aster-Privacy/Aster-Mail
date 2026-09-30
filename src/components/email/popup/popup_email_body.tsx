@@ -33,8 +33,6 @@ import { useState, useCallback } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
-
-
 import { PurchaseDetailsBanner } from "@/components/email/banners/purchase_details_banner";
 import { ShippingDetailsBanner } from "@/components/email/banners/shipping_details_banner";
 import { CalendarInviteBanner } from "@/components/email/banners/calendar_invite_banner";
@@ -42,13 +40,19 @@ import { ThreadMessagesList } from "@/components/email/thread_message_block";
 import { get_latest_expanded_id } from "@/services/thread_service";
 import { use_preferences } from "@/contexts/preferences_context";
 import { PopupEmailHeader } from "@/components/email/popup/popup_email_header";
+import { EmailOpenSkeleton } from "@/components/email/viewer_shared/email_open_skeleton";
 import { is_system_email } from "@/lib/utils";
-import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import {
+  execute_unsubscribe,
+  get_manual_unsubscribe_url,
+} from "@/utils/unsubscribe_detector";
 import { show_action_toast } from "@/components/toast/action_toast";
 import {
   persist_unsubscribe,
   use_unsubscribed_senders,
 } from "@/hooks/use_unsubscribed_senders";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
+import { open_external } from "@/utils/open_link";
 
 interface ExtractionResult {
   has_purchase_details: boolean;
@@ -89,7 +93,7 @@ interface PopupEmailBodyProps {
   on_per_message_report_phishing: (msg: DecryptedThreadMessage) => void;
   on_per_message_not_spam?: (msg: DecryptedThreadMessage) => void;
   is_spam?: boolean;
-  on_toggle_message_read: (message_id: string) => void;
+  on_toggle_message_read: (message_id: string, next_read: boolean) => void;
   on_draft_saved?: (draft: {
     id: string;
     version: number;
@@ -102,7 +106,13 @@ interface PopupEmailBodyProps {
     content: DraftContent;
   } | null;
   thread_token?: string;
-  label_hints?: { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[];
+  label_hints?: {
+    token: string;
+    name: string;
+    color?: string;
+    icon?: string;
+    show_icon?: boolean;
+  }[];
 }
 
 export function PopupEmailBody({
@@ -149,13 +159,13 @@ export function PopupEmailBody({
   >("reply");
 
   const handle_inline_reply = useCallback((msg: DecryptedThreadMessage) => {
-    if (is_system_email(msg.sender_email)) return;
+    if (is_system_email(msg)) return;
     set_inline_reply_msg(msg);
     set_inline_mode("reply");
   }, []);
 
   const handle_inline_reply_all = useCallback((msg: DecryptedThreadMessage) => {
-    if (is_system_email(msg.sender_email)) return;
+    if (is_system_email(msg)) return;
     set_inline_reply_msg(msg);
     set_inline_mode("reply_all");
   }, []);
@@ -171,14 +181,17 @@ export function PopupEmailBody({
 
   const is_external_thread = thread_messages.some((m) => m.is_external);
 
-  const handle_unsubscribe = useCallback(async (): Promise<"success" | "manual"> => {
+  const handle_unsubscribe = useCallback(async (): Promise<
+    "success" | "manual"
+  > => {
     if (!email?.unsubscribe_info?.has_unsubscribe) return "success";
-    if (is_system_email(email.sender_email)) return "success";
+    if (is_system_email(email)) return "success";
 
     const info = email.unsubscribe_info;
 
     try {
       const result = await execute_unsubscribe(info);
+
       if (result === "api") {
         show_action_toast({
           message: t("mail.successfully_unsubscribed"),
@@ -186,21 +199,33 @@ export function PopupEmailBody({
           email_ids: [],
         });
         mark_unsubscribed(email.sender_email);
-        persist_unsubscribe(email.sender_email, email.sender || "", {
-          unsubscribe_link: info.unsubscribe_link,
-          list_unsubscribe_header: info.list_unsubscribe_header,
-        }, "auto");
+        persist_unsubscribe(
+          email.sender_email,
+          email.sender || "",
+          {
+            unsubscribe_link: info.unsubscribe_link,
+            list_unsubscribe_header: info.list_unsubscribe_header,
+          },
+          "auto",
+        );
+
         return "success";
       }
       show_action_toast({
         message: t("mail.unsubscribe_manual_required"),
         action_type: "not_spam",
         email_ids: [],
+        duration_ms: 15000,
+        ...(!is_any_lockdown_active() && {
+          action_label: t("mail.open_unsubscribe_page"),
+          on_undo: async () => {
+            const url = get_manual_unsubscribe_url(info);
+
+            if (url) open_external(url);
+          },
+        }),
       });
-      persist_unsubscribe(email.sender_email, email.sender || "", {
-        unsubscribe_link: info.unsubscribe_link,
-        list_unsubscribe_header: info.list_unsubscribe_header,
-      }, "manual");
+
       return "manual";
     } catch {
       show_action_toast({
@@ -208,6 +233,7 @@ export function PopupEmailBody({
         action_type: "not_spam",
         email_ids: [],
       });
+
       return "manual";
     }
   }, [email, t, mark_unsubscribed]);
@@ -230,15 +256,8 @@ export function PopupEmailBody({
 
   if (!email) {
     return (
-      <div className="flex-1 overflow-y-auto">
-        <div className="flex items-center justify-center h-full">
-          <div className="flex flex-col items-center gap-3">
-            <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-xs text-txt-muted">
-              {t("common.decrypting")}
-            </span>
-          </div>
-        </div>
+      <div className="relative flex-1 min-h-0">
+        <EmailOpenSkeleton compact />
       </div>
     );
   }
@@ -266,8 +285,8 @@ export function PopupEmailBody({
           )}
 
         <CalendarInviteBanner
-          className="mb-4 sm:mb-6"
           body={email.body}
+          className="mb-4 sm:mb-6"
           html_content={email.html_content}
         />
 
@@ -294,11 +313,12 @@ export function PopupEmailBody({
             existing_draft={existing_draft}
             external_content_mode={external_content_mode}
             force_all_dark_mode={preferences.force_dark_mode_emails}
-            loaded_content_types={loaded_content_types}
             inline_mode={inline_mode}
             inline_reply_is_external={is_external_thread}
             inline_reply_msg={inline_reply_msg}
             inline_reply_thread_token={thread_token}
+            loaded_content_types={loaded_content_types}
+            main_email_id={email?.id}
             messages={thread_messages}
             on_archive={on_per_message_archive}
             on_close_inline_reply={handle_close_inline_reply}
@@ -306,6 +326,9 @@ export function PopupEmailBody({
             on_external_content_detected={on_external_content_detected}
             on_forward={handle_inline_forward}
             on_load_external_content={on_load_external_content}
+            on_manual_unsubscribed={() => {
+              if (email) mark_unsubscribed(email.sender_email);
+            }}
             on_not_spam={is_spam ? on_per_message_not_spam : undefined}
             on_print={on_per_message_print}
             on_reply={handle_inline_reply}
@@ -315,15 +338,15 @@ export function PopupEmailBody({
             on_toggle_message_read={on_toggle_message_read}
             on_trash={on_per_message_trash}
             on_unsubscribe={
-              email.unsubscribe_info?.has_unsubscribe && !is_system_email(email.sender_email) && !is_unsubscribed(email.sender_email)
+              email.unsubscribe_info?.has_unsubscribe &&
+              !is_system_email(email) &&
+              !is_unsubscribed(email.sender_email)
                 ? handle_unsubscribe
                 : undefined
             }
-            on_manual_unsubscribed={() => {
-              if (email) mark_unsubscribed(email.sender_email);
-            }}
-            unsubscribe_url={email.unsubscribe_info?.unsubscribe_link}
             subject={email.subject}
+            thread_token={thread_token}
+            unsubscribe_url={email.unsubscribe_info?.unsubscribe_link}
           />
         </div>
       </div>

@@ -210,29 +210,41 @@ async function run_batched_tag_operation(
   ) => Promise<ApiResponse<{ status: string; affected: number }>>,
   options?: BatchedTagOptions,
 ): Promise<BatchedTagResult> {
+  const { process_batches, batch_retry_after_ms } = await import(
+    "@/services/batch_processor"
+  );
+
   let affected = 0;
-  let processed = 0;
-  const failed_ids: string[] = [];
   let last_error: string | undefined;
 
-  for (let i = 0; i < ids.length; i += TAG_BATCH_CHUNK_SIZE) {
-    if (options?.signal?.aborted) break;
+  const result = await process_batches({
+    ids,
+    batch_size: TAG_BATCH_CHUNK_SIZE,
+    signal: options?.signal,
+    on_progress: options?.on_progress,
+    process_batch: async (batch) => {
+      const response = await api_call(batch, tag_token).catch(() => null);
 
-    const batch = ids.slice(i, i + TAG_BATCH_CHUNK_SIZE);
-    const result = await api_call(batch, tag_token).catch(() => null);
+      if (!response || response.error) {
+        last_error = response?.error || "tag batch failed";
 
-    if (!result || result.error) {
-      failed_ids.push(...batch);
-      last_error = result?.error || "tag batch failed";
-    } else {
-      affected += result.data?.affected ?? batch.length;
-    }
+        return {
+          ok: false,
+          retry_after_ms: response ? batch_retry_after_ms(response) : undefined,
+        };
+      }
 
-    processed += batch.length;
-    options?.on_progress?.(processed, ids.length);
-  }
+      affected += response.data?.affected ?? batch.length;
 
-  return { error: last_error, affected, failed_ids };
+      return { ok: true };
+    },
+  });
+
+  return {
+    error: result.failed > 0 ? last_error : undefined,
+    affected,
+    failed_ids: result.failed_ids,
+  };
 }
 
 export async function batched_bulk_add_tag(

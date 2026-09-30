@@ -30,6 +30,19 @@ const cached_unsubscribed = new Set<string>();
 let cache_loaded = false;
 
 export const UNSUBSCRIBE_EVENT = "aster:sender-unsubscribed";
+export const RESUBSCRIBE_EVENT = "aster:sender-resubscribed";
+
+export function clear_unsubscribed_senders_cache(): void {
+  cached_unsubscribed.clear();
+  cache_loaded = false;
+}
+
+export function remove_unsubscribed_sender(sender_email: string): void {
+  cached_unsubscribed.delete(sender_email);
+  window.dispatchEvent(
+    new CustomEvent(RESUBSCRIBE_EVENT, { detail: { sender_email } }),
+  );
+}
 
 export async function persist_unsubscribe(
   sender_email: string,
@@ -47,6 +60,7 @@ export async function persist_unsubscribe(
       unsubscribe_link: info.unsubscribe_link,
       list_unsubscribe_header: info.list_unsubscribe_header,
     });
+
     if (track_result.data?.subscription_id) {
       await unsubscribe(track_result.data.subscription_id, method);
     }
@@ -69,31 +83,71 @@ export function use_unsubscribed_senders() {
     if (cache_loaded) {
       set_unsubscribed(new Set(cached_unsubscribed));
       set_is_loaded(true);
+
       return;
     }
-    list_subscriptions({ status: "unsubscribed", limit: 1000 }).then((res) => {
-      if (res.data) {
-        for (const sub of res.data.subscriptions) {
-          cached_unsubscribed.add(sub.sender_email);
+    let cancelled = false;
+
+    const load = async () => {
+      for (let attempt = 0; attempt < 3; attempt += 1) {
+        const res = await list_subscriptions({
+          status: "unsubscribed",
+          limit: 1000,
+        });
+
+        if (cancelled) return;
+
+        if (res.data) {
+          for (const sub of res.data.subscriptions) {
+            cached_unsubscribed.add(sub.sender_email);
+          }
+          cache_loaded = true;
+          set_unsubscribed(new Set(cached_unsubscribed));
+          set_is_loaded(true);
+
+          return;
         }
+
+        if (attempt === 2) return;
+
+        await new Promise((resolve) => {
+          setTimeout(resolve, 2_000 * (attempt + 1));
+        });
+
+        if (cancelled) return;
       }
-      cache_loaded = true;
-      set_unsubscribed(new Set(cached_unsubscribed));
-      set_is_loaded(true);
-    });
+    };
+
+    load();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   useEffect(() => {
     const handle_event = (e: Event) => {
       const sender_email = (e as CustomEvent).detail?.sender_email;
+
       if (sender_email) {
         cached_unsubscribed.add(sender_email);
         set_unsubscribed(new Set(cached_unsubscribed));
       }
     };
+    const handle_resubscribe = (e: Event) => {
+      const sender_email = (e as CustomEvent).detail?.sender_email;
+
+      if (sender_email) {
+        set_unsubscribed(new Set(cached_unsubscribed));
+      }
+    };
+
     window.addEventListener(UNSUBSCRIBE_EVENT, handle_event);
+    window.addEventListener(RESUBSCRIBE_EVENT, handle_resubscribe);
+
     return () => {
       window.removeEventListener(UNSUBSCRIBE_EVENT, handle_event);
+      window.removeEventListener(RESUBSCRIBE_EVENT, handle_resubscribe);
     };
   }, []);
 

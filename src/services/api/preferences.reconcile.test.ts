@@ -122,7 +122,9 @@ describe("reconcile_preferences", () => {
 
     reconcile_preferences(base, current, server);
 
-    expect(server.show_aster_branding).toBe(DEFAULT_PREFERENCES.show_aster_branding);
+    expect(server.show_aster_branding).toBe(
+      DEFAULT_PREFERENCES.show_aster_branding,
+    );
     expect(current.show_aster_branding).toBe(false);
   });
 });

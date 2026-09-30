@@ -36,9 +36,10 @@ import { get_favicon_url } from "@/lib/favicon_url";
 import { CloseIcon, LockIcon } from "@/components/common/icons";
 import { EmailAutocomplete } from "@/components/common/email_autocomplete";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import { get_email_username } from "@/lib/utils";
+import { cn, get_email_username } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
 import {
   is_internal_email,
   discover_external_keys_batch,
@@ -110,7 +111,8 @@ type EncryptionStatus =
   | "available"
   | "transit"
   | "checking"
-  | "key_invalid";
+  | "key_invalid"
+  | "unknown";
 
 interface RecipientBadgeProps {
   email: string;
@@ -119,6 +121,7 @@ interface RecipientBadgeProps {
   encryption_status?: EncryptionStatus;
   pgp_active?: boolean;
   on_toggle_encryption?: () => void;
+  class_name?: string;
 }
 
 export function RecipientBadge({
@@ -128,6 +131,7 @@ export function RecipientBadge({
   encryption_status,
   pgp_active = false,
   on_toggle_encryption,
+  class_name,
 }: RecipientBadgeProps) {
   const { t } = use_i18n();
   const [info_open, set_info_open] = useState(false);
@@ -146,27 +150,31 @@ export function RecipientBadge({
   const lock_color =
     effective_status === "encrypted"
       ? "rgb(59, 130, 246)"
-      : effective_status === "key_invalid"
+      : effective_status === "key_invalid" || effective_status === "unknown"
         ? "rgb(245, 158, 11)"
         : "var(--text-muted)";
 
   const lock_label =
     effective_status === "encrypted"
       ? t("common.end_to_end_encrypted_label")
-      : effective_status === "key_invalid"
-        ? t("common.recipient_key_outdated")
-        : effective_status === "available"
-          ? t("common.encryption_available")
-          : t("common.protected_in_transit");
+      : effective_status === "unknown"
+        ? t("common.encryption_status_unknown")
+        : effective_status === "key_invalid"
+          ? t("common.recipient_key_outdated")
+          : effective_status === "available"
+            ? t("common.encryption_available")
+            : t("common.protected_in_transit");
 
   const lock_desc =
     effective_status === "encrypted"
       ? t("common.wkd_encrypted_description")
-      : effective_status === "key_invalid"
-        ? t("common.recipient_key_outdated_desc")
-        : effective_status === "available"
-          ? t("common.encryption_available_desc")
-          : t("common.encrypted_in_transit_stored");
+      : effective_status === "unknown"
+        ? t("common.encryption_status_unknown_desc")
+        : effective_status === "key_invalid"
+          ? t("common.recipient_key_outdated_desc")
+          : effective_status === "available"
+            ? t("common.encryption_available_desc")
+            : t("common.encrypted_in_transit_stored");
 
   const lock_title = is_toggleable
     ? pgp_active
@@ -175,7 +183,12 @@ export function RecipientBadge({
     : lock_label;
 
   return (
-    <div className="flex items-center gap-1.5 bg-default-100 rounded-full px-2 py-1 border border-edge-secondary">
+    <div
+      className={cn(
+        "flex items-center gap-1.5 bg-surf-tertiary rounded-full px-2 py-1 border border-transparent",
+        class_name,
+      )}
+    >
       {encryption_status && (
         <span className="relative flex-shrink-0 flex items-center">
           <button
@@ -216,7 +229,8 @@ export function RecipientBadge({
                 }}
               />
               <div
-                className="absolute left-0 top-full mt-1 z-50 w-60 rounded-lg border shadow-lg p-2.5 bg-surf-primary border-edge-secondary"
+                className="aster_floating aster_floating_anim absolute start-0 top-full mt-1 z-50 w-60 p-2.5"
+                data-state="open"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-center gap-1.5">
@@ -227,7 +241,7 @@ export function RecipientBadge({
                     {lock_label}
                   </p>
                 </div>
-                <p className="text-xs text-txt-muted mt-1 pl-5">{lock_desc}</p>
+                <p className="text-xs text-txt-muted mt-1 ps-5">{lock_desc}</p>
               </div>
             </>
           )}
@@ -248,6 +262,7 @@ export function RecipientBadge({
       </span>
       {on_remove && (
         <button
+          aria-label={t("common.remove")}
           className="text-default-400 hover:text-default-600 transition-colors"
           onClick={on_remove}
         >
@@ -278,6 +293,11 @@ interface RecipientFieldProps {
   pgp_enabled?: boolean;
   on_toggle_pgp?: () => void;
   all_recipients?: string[];
+  label_class_name?: string;
+  chip_class_name?: string;
+  list_class_name?: string;
+  input_class_name?: string;
+  class_name?: string;
 }
 
 export function RecipientField({
@@ -300,6 +320,11 @@ export function RecipientField({
   pgp_enabled = false,
   on_toggle_pgp,
   all_recipients,
+  label_class_name,
+  chip_class_name,
+  list_class_name,
+  input_class_name,
+  class_name,
 }: RecipientFieldProps) {
   const { t } = use_i18n();
   const { preferences } = use_preferences();
@@ -313,7 +338,26 @@ export function RecipientField({
   const resolved_ref = useRef<Set<string>>(new Set());
   const in_flight_ref = useRef<Set<string>>(new Set());
   const retry_count_ref = useRef<Map<string, number>>(new Map());
+  const retry_timers_ref = useRef<Set<ReturnType<typeof setTimeout>>>(
+    new Set(),
+  );
   const [discovery_tick, set_discovery_tick] = useState(0);
+  const field_ref = useRef<HTMLDivElement>(null);
+
+  const focus_input = () => {
+    field_ref.current?.querySelector("input")?.focus();
+  };
+
+  useEffect(() => {
+    const timers = retry_timers_ref.current;
+
+    return () => {
+      for (const timer of timers) {
+        clearTimeout(timer);
+      }
+      timers.clear();
+    };
+  }, []);
 
   const show_locks = preferences.show_encryption_indicators;
 
@@ -339,6 +383,15 @@ export function RecipientField({
 
   useEffect(() => {
     if (!show_locks) return;
+
+    const schedule_discovery_retry = (delay_ms: number) => {
+      const timer = setTimeout(() => {
+        retry_timers_ref.current.delete(timer);
+        set_discovery_tick((tick) => tick + 1);
+      }, delay_ms);
+
+      retry_timers_ref.current.add(timer);
+    };
 
     const current_set = new Set(recipients);
     const to_discover: string[] = [];
@@ -408,8 +461,7 @@ export function RecipientField({
 
           if (result.data) {
             for (const info of result.data) {
-              const key_present =
-                info.found && info.public_key !== null;
+              const key_present = info.found && info.public_key !== null;
               const expired =
                 info.expires_at !== null &&
                 Date.parse(info.expires_at) <= Date.now();
@@ -425,39 +477,54 @@ export function RecipientField({
             }
           }
 
+          const resolved_statuses = new Map<string, EncryptionStatus>();
+          const retry_delays: number[] = [];
+
+          for (const email of to_discover) {
+            const found = key_map.get(email.toLowerCase());
+
+            if (found !== undefined) {
+              resolved_statuses.set(email, found);
+              resolved_ref.current.add(email);
+              in_flight_ref.current.delete(email);
+            } else if (
+              !result.data ||
+              result.data.length === 0 ||
+              result.error
+            ) {
+              in_flight_ref.current.delete(email);
+              const count = (retry_count_ref.current.get(email) || 0) + 1;
+
+              retry_count_ref.current.set(email, count);
+              if (count < 3) {
+                resolved_statuses.set(email, "checking");
+                retry_delays.push(2000 * count);
+              } else {
+                resolved_statuses.set(
+                  email,
+                  result.error ? "unknown" : "transit",
+                );
+              }
+            } else {
+              resolved_statuses.set(email, "transit");
+              resolved_ref.current.add(email);
+              in_flight_ref.current.delete(email);
+            }
+          }
+
           set_encryption_map((prev) => {
             const next = new Map(prev);
 
-            for (const email of to_discover) {
-              const found = key_map.get(email.toLowerCase());
-
-              if (found !== undefined) {
-                next.set(email, found);
-                resolved_ref.current.add(email);
-                in_flight_ref.current.delete(email);
-              } else if (!result.data || result.data.length === 0) {
-                in_flight_ref.current.delete(email);
-                const count = (retry_count_ref.current.get(email) || 0) + 1;
-
-                retry_count_ref.current.set(email, count);
-                if (count < 3) {
-                  next.set(email, "checking");
-                  setTimeout(
-                    () => set_discovery_tick((t) => t + 1),
-                    2000 * count,
-                  );
-                } else {
-                  next.set(email, "transit");
-                }
-              } else {
-                next.set(email, "transit");
-                resolved_ref.current.add(email);
-                in_flight_ref.current.delete(email);
-              }
+            for (const [email, status] of resolved_statuses) {
+              next.set(email, status);
             }
 
             return next;
           });
+
+          if (retry_delays.length > 0) {
+            schedule_discovery_retry(Math.max(...retry_delays));
+          }
         })
         .catch(() => {
           let should_retry = false;
@@ -479,7 +546,7 @@ export function RecipientField({
             for (const email of to_discover) {
               const count = retry_count_ref.current.get(email) || 0;
 
-              next.set(email, count >= 3 ? "transit" : "checking");
+              next.set(email, count >= 3 ? "unknown" : "checking");
             }
 
             return next;
@@ -490,10 +557,7 @@ export function RecipientField({
               ...to_discover.map((e) => retry_count_ref.current.get(e) || 1),
             );
 
-            setTimeout(
-              () => set_discovery_tick((t) => t + 1),
-              2000 * max_count,
-            );
+            schedule_discovery_retry(2000 * max_count);
           }
         });
     }
@@ -587,22 +651,41 @@ export function RecipientField({
 
   const handle_key_down = (e: React.KeyboardEvent) => {
     if (e["key"] === "Backspace" && !input_value && recipients.length > 0) {
+      if (hidden_count > 0) {
+        set_is_expanded(true);
+
+        return;
+      }
+
       on_remove_last();
     }
   };
 
   const handle_select = (email: string) => {
-    if (is_valid_email(email) && !recipients.includes(email)) {
-      on_add_recipient(email);
+    if (!is_valid_email(email)) return;
+
+    if (recipients.includes(email)) {
       on_input_change("");
+
+      return;
     }
+
+    on_add_recipient(email);
+    on_input_change("");
   };
 
   return (
-    <div className="flex items-start gap-2">
-      <span className="text-sm flex-shrink-0 py-1.5 text-txt-tertiary">
+    <div ref={field_ref} className={cn("flex items-start gap-2", class_name)}>
+      <button
+        className={cn(
+          "text-sm flex-shrink-0 py-1.5 text-txt-tertiary cursor-text",
+          label_class_name,
+        )}
+        type="button"
+        onClick={focus_input}
+      >
         {label}
-      </span>
+      </button>
       <div className="flex-1 relative min-w-0">
         {recipients.length > 1 && (
           <div
@@ -636,13 +719,20 @@ export function RecipientField({
           </div>
         )}
         <div
-          className={`flex flex-wrap items-center gap-1.5${is_expanded && overflow_count > 0 ? " max-h-[160px] overflow-y-auto pr-1" : ""}`}
+          className={cn(
+            "flex flex-wrap items-center gap-1.5",
+            is_expanded &&
+              overflow_count > 0 &&
+              "max-h-[160px] overflow-y-auto pe-1",
+            list_class_name,
+          )}
           role="presentation"
           onKeyDown={handle_key_down}
         >
           {visible_recipients.map((email) => (
             <RecipientBadge
               key={email}
+              class_name={chip_class_name}
               email={email}
               encryption_status={
                 show_locks ? resolve_encryption_status(email) : undefined
@@ -655,7 +745,7 @@ export function RecipientField({
           ))}
           {hidden_count > 0 && (
             <button
-              className="flex items-center px-2.5 py-1 rounded-full text-xs font-medium transition-colors border cursor-pointer bg-surf-tertiary border-edge-secondary text-txt-secondary"
+              className="flex items-center px-2.5 py-1 rounded-full text-xs font-medium transition-colors border cursor-pointer bg-surf-tertiary border-transparent text-txt-secondary"
               type="button"
               onClick={() => set_is_expanded(true)}
               onMouseEnter={(e) => {
@@ -683,7 +773,12 @@ export function RecipientField({
               {t("common.show_less")}
             </button>
           )}
-          <div className="flex-1 min-w-[120px] compose_recipient_input">
+          <div
+            className={cn(
+              "flex-1 min-w-[120px] compose_recipient_input",
+              input_class_name,
+            )}
+          >
             <EmailAutocomplete
               auto_focus={auto_focus}
               contacts={contacts}
@@ -703,26 +798,27 @@ export function RecipientField({
         <div className="flex items-center gap-1 flex-shrink-0 py-1">
           {!show_cc && (
             <button
-              className="text-xs px-2 py-1 rounded transition-colors hover_bg text-txt-tertiary"
+              className="text-xs px-2.5 py-1 rounded-full transition-colors hover_bg text-txt-tertiary"
               title={t("common.carbon_copy")}
               onClick={on_show_cc}
             >
-              Cc
+              {t("mail.cc")}
             </button>
           )}
           {!show_bcc && (
             <button
-              className="text-xs px-2 py-1 rounded transition-colors hover_bg text-txt-tertiary"
+              className="text-xs px-2.5 py-1 rounded-full transition-colors hover_bg text-txt-tertiary"
               title={t("common.blind_carbon_copy")}
               onClick={on_show_bcc}
             >
-              Bcc
+              {t("mail.bcc")}
             </button>
           )}
         </div>
       )}
       {on_close && (
         <button
+          aria-label={t("common.close")}
           className="h-8 flex items-center px-1 rounded transition-colors flex-shrink-0 hover_bg text-txt-muted"
           onClick={on_close}
         >
@@ -743,6 +839,7 @@ export function ComposeFormFields({
   auto_focus_to = false,
 }: ComposeFormFieldsProps) {
   const { t } = use_i18n();
+  const subject_ref = useRef<HTMLInputElement>(null);
 
   const compose_all_recipients = [
     ...compose.recipients.to,
@@ -752,9 +849,10 @@ export function ComposeFormFields({
 
   return (
     <>
-      <div className="py-2 border-b border-edge-secondary">
+      <div className="px-4 py-2 border-b border-edge-secondary">
         <RecipientField
           show_cc_bcc_buttons
+          all_recipients={compose_all_recipients}
           auto_focus={auto_focus_to}
           contacts={compose.contacts}
           input_value={compose.inputs.to}
@@ -768,7 +866,6 @@ export function ComposeFormFields({
           on_toggle_pgp={compose.toggle_pgp}
           pgp_enabled={compose.pgp_enabled}
           recent_recipients={compose.recent_recipients}
-          all_recipients={compose_all_recipients}
           recipients={compose.recipients.to}
           show_bcc={compose.visibility.bcc}
           show_cc={compose.visibility.cc}
@@ -776,8 +873,9 @@ export function ComposeFormFields({
       </div>
 
       {compose.visibility.cc && (
-        <div className="py-2 border-b border-edge-secondary">
+        <div className="px-4 py-2 border-b border-edge-secondary">
           <RecipientField
+            all_recipients={compose_all_recipients}
             contacts={compose.contacts}
             input_value={compose.inputs.cc}
             label={t("mail.cc")}
@@ -791,15 +889,15 @@ export function ComposeFormFields({
             on_toggle_pgp={compose.toggle_pgp}
             pgp_enabled={compose.pgp_enabled}
             recent_recipients={compose.recent_recipients}
-            all_recipients={compose_all_recipients}
             recipients={compose.recipients.cc}
           />
         </div>
       )}
 
       {compose.visibility.bcc && (
-        <div className="py-2 border-b border-edge-secondary">
+        <div className="px-4 py-2 border-b border-edge-secondary">
           <RecipientField
+            all_recipients={compose_all_recipients}
             contacts={compose.contacts}
             input_value={compose.inputs.bcc}
             label={t("mail.bcc")}
@@ -813,17 +911,26 @@ export function ComposeFormFields({
             on_toggle_pgp={compose.toggle_pgp}
             pgp_enabled={compose.pgp_enabled}
             recent_recipients={compose.recent_recipients}
-            all_recipients={compose_all_recipients}
             recipients={compose.recipients.bcc}
           />
         </div>
       )}
 
-      <div className="flex items-start gap-2 py-2 border-b border-edge-secondary">
-        <span className="text-sm flex-shrink-0 py-1.5 text-txt-tertiary">
+      <RecipientIdentityNotice
+        class_name="px-4 py-2 border-b border-edge-secondary"
+        recipients={compose_all_recipients}
+      />
+
+      <div className="flex items-start gap-2 px-4 py-2 border-b border-edge-secondary">
+        <button
+          className="text-sm flex-shrink-0 py-1.5 text-txt-tertiary cursor-text"
+          type="button"
+          onClick={() => subject_ref.current?.focus()}
+        >
           {t("mail.subject")}
-        </span>
+        </button>
         <input
+          ref={subject_ref}
           className="flex-1 w-full bg-transparent border-none outline-none py-1.5 text-sm text-txt-primary placeholder:text-txt-muted"
           maxLength={998}
           placeholder=""

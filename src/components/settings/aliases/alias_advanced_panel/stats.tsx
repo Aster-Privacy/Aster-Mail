@@ -18,13 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/services/api/aliases";
+import type {} from "@/services/api/aliases";
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import {  useEffect,  useState } from "react";
-import {
-  PaperAirplaneIcon,
-} from "@heroicons/react/24/outline";
+import { useEffect, useState } from "react";
+import { PaperAirplaneIcon } from "@heroicons/react/24/outline";
 
 import { format_created_at, format_relative_time } from "../alias_stats_format";
 
@@ -32,11 +30,8 @@ import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelop
 import { use_i18n } from "@/lib/i18n/context";
 import { Spinner } from "@/components/ui/spinner";
 import { ignore_error } from "@/lib/ignore_error";
-
-import {
-  get_alias_stats,
-  type AliasStats,
-} from "@/services/api/aliases";
+import { get_alias_stats, type AliasStats } from "@/services/api/aliases";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 
 export function StatsPanel({
   alias_id,
@@ -51,6 +46,8 @@ export function StatsPanel({
   const [stats, set_stats] = useState<AliasStats | null>(null);
   const [last_sender, set_last_sender] = useState<string | null>(null);
   const [loading, set_loading] = useState(true);
+  const [load_failed, set_load_failed] = useState(false);
+  const [reload_token, set_reload_token] = useState(0);
 
   useEffect(() => {
     if (locked) {
@@ -61,10 +58,17 @@ export function StatsPanel({
     let active = true;
 
     set_loading(true);
+    set_load_failed(false);
     set_last_sender(null);
     get_alias_stats(alias_id)
       .then(async (stats_response) => {
-        if (!active || !stats_response.data) return;
+        if (!active) return;
+
+        if (!stats_response.data) {
+          set_load_failed(true);
+
+          return;
+        }
         set_stats(stats_response.data);
 
         const { last_sender_encrypted, last_sender_nonce } =
@@ -79,7 +83,13 @@ export function StatsPanel({
         if (active && envelope?.from?.email)
           set_last_sender(envelope.from.email);
       })
-      .catch((caught) => ignore_error("components/settings/aliases/alias_advanced_panel/stats:StatsPanel", caught))
+      .catch((caught) => {
+        if (active) set_load_failed(true);
+        ignore_error(
+          "components/settings/aliases/alias_advanced_panel/stats:StatsPanel",
+          caught,
+        );
+      })
       .finally(() => {
         if (active) set_loading(false);
       });
@@ -87,10 +97,16 @@ export function StatsPanel({
     return () => {
       active = false;
     };
-  }, [alias_id, locked]);
+  }, [alias_id, locked, reload_token]);
 
   if (loading) {
     return <Spinner size="sm" />;
+  }
+
+  if (load_failed && !stats) {
+    return (
+      <LoadFailedNotice on_retry={() => set_reload_token((prev) => prev + 1)} />
+    );
   }
 
   const created_label = stats
@@ -143,4 +159,3 @@ export function StatsPanel({
     </div>
   );
 }
-

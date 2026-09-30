@@ -21,6 +21,35 @@
 import { start_iframe_autoscroll } from "@/components/email/iframe_autoscroll";
 import { forward_iframe_outside_interaction } from "@/lib/iframe_outside_interaction";
 
+const ASTER_PATH_ALLOWLIST = /^(?:settings(?:\/[a-z0-9_-]{1,32})?)$/i;
+const ABSOLUTE_URL_REGEX = /^[a-z][a-z0-9+.-]*:/i;
+
+function resolve_link_url(link: HTMLAnchorElement, href: string): string {
+  if (ABSOLUTE_URL_REGEX.test(href)) return href;
+
+  return link.href || href;
+}
+
+function activate_link(link: HTMLAnchorElement, href: string): void {
+  if (href.startsWith("aster:")) {
+    const path = href.slice("aster:".length);
+
+    if (ASTER_PATH_ALLOWLIST.test(path)) {
+      window.dispatchEvent(
+        new CustomEvent("aster-internal-link", { detail: { path } }),
+      );
+    }
+
+    return;
+  }
+
+  window.dispatchEvent(
+    new CustomEvent("aster-external-link", {
+      detail: { url: resolve_link_url(link, href) },
+    }),
+  );
+}
+
 export function attach_iframe_interactions(
   iframe: HTMLIFrameElement,
   iframe_doc: Document,
@@ -119,21 +148,15 @@ export function attach_iframe_interactions(
     );
   };
 
-  iframe_doc.addEventListener(
-    "touchstart",
-    forward_touch("touchstart"),
-    { passive: true },
-  );
-  iframe_doc.addEventListener(
-    "touchmove",
-    forward_touch("touchmove"),
-    { passive: true },
-  );
-  iframe_doc.addEventListener(
-    "touchend",
-    forward_touch("touchend"),
-    { passive: true },
-  );
+  iframe_doc.addEventListener("touchstart", forward_touch("touchstart"), {
+    passive: true,
+  });
+  iframe_doc.addEventListener("touchmove", forward_touch("touchmove"), {
+    passive: true,
+  });
+  iframe_doc.addEventListener("touchend", forward_touch("touchend"), {
+    passive: true,
+  });
 
   iframe_body.addEventListener("click", (e) => {
     const target = e.target as HTMLElement;
@@ -163,22 +186,7 @@ export function attach_iframe_interactions(
     e.preventDefault();
     e.stopPropagation();
 
-    if (href.startsWith("aster:")) {
-      const path = href.slice("aster:".length);
-      const ASTER_PATH_ALLOWLIST = /^(?:settings(?:\/[a-z0-9_-]{1,32})?)$/i;
-
-      if (ASTER_PATH_ALLOWLIST.test(path)) {
-        window.dispatchEvent(
-          new CustomEvent("aster-internal-link", { detail: { path } }),
-        );
-      }
-    } else {
-      window.dispatchEvent(
-        new CustomEvent("aster-external-link", {
-          detail: { url: href },
-        }),
-      );
-    }
+    activate_link(link as HTMLAnchorElement, href);
   });
 
   iframe_body.addEventListener("auxclick", (e) => {
@@ -195,29 +203,12 @@ export function attach_iframe_interactions(
     e.preventDefault();
     e.stopPropagation();
 
-    if (href.startsWith("aster:")) {
-      const path = href.slice("aster:".length);
-      const ASTER_PATH_ALLOWLIST = /^(?:settings(?:\/[a-z0-9_-]{1,32})?)$/i;
-
-      if (ASTER_PATH_ALLOWLIST.test(path)) {
-        window.dispatchEvent(
-          new CustomEvent("aster-internal-link", { detail: { path } }),
-        );
-      }
-    } else {
-      window.dispatchEvent(
-        new CustomEvent("aster-external-link", {
-          detail: { url: href },
-        }),
-      );
-    }
+    activate_link(link as HTMLAnchorElement, href);
   });
 
   iframe_doc.addEventListener("keydown", (e) => {
     const is_select_all =
-      (e.ctrlKey || e.metaKey) &&
-      !e.altKey &&
-      (e.key === "a" || e.key === "A");
+      (e.ctrlKey || e.metaKey) && !e.altKey && (e.key === "a" || e.key === "A");
 
     if (!is_select_all) return;
 

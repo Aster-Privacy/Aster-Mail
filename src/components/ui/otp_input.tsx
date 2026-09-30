@@ -29,6 +29,7 @@ interface OtpInputProps {
   status?: "default" | "error";
   autofocus?: boolean;
   align?: "center" | "left";
+  aria_label?: string;
   onChange: (value: string) => void;
   onComplete?: (value: string) => void;
 }
@@ -40,14 +41,31 @@ export function OtpInput({
   status = "default",
   autofocus = true,
   align = "center",
+  aria_label,
   onChange,
   onComplete,
 }: OtpInputProps) {
   const box_refs = useRef<Array<HTMLInputElement | null>>([]);
+  const autofocus_done_ref = useRef(false);
+  const restore_index_ref = useRef<number | null>(null);
 
   useEffect(() => {
-    if (autofocus) box_refs.current[0]?.focus();
-  }, [autofocus]);
+    if (disabled) return;
+
+    if (autofocus && !autofocus_done_ref.current) {
+      autofocus_done_ref.current = true;
+      box_refs.current[0]?.focus();
+
+      return;
+    }
+
+    const restore_index = restore_index_ref.current;
+
+    if (restore_index === null) return;
+
+    restore_index_ref.current = null;
+    box_refs.current[restore_index]?.focus();
+  }, [autofocus, disabled]);
 
   const digits = Array.from({ length }, (_, i) => value[i] ?? "");
 
@@ -71,11 +89,13 @@ export function OtpInput({
       return;
     }
 
-    if (cleaned.length > 1) {
-      const next = value.split("");
+    const start = Math.min(index, value.length);
 
-      for (let i = 0; i < cleaned.length && index + i < length; i++) {
-        next[index + i] = cleaned[i];
+    if (cleaned.length > 1) {
+      const next = digits.slice();
+
+      for (let i = 0; i < cleaned.length && start + i < length; i++) {
+        next[start + i] = cleaned[i];
       }
 
       const joined = next.join("").slice(0, length);
@@ -83,17 +103,17 @@ export function OtpInput({
       onChange(joined);
       if (joined.length === length) onComplete?.(joined);
 
-      const last_index = Math.min(index + cleaned.length, length - 1);
+      const last_index = Math.min(start + cleaned.length, length - 1);
 
       box_refs.current[last_index]?.focus();
 
       return;
     }
 
-    set_at(index, cleaned);
+    set_at(start, cleaned);
 
-    if (index < length - 1) {
-      box_refs.current[index + 1]?.focus();
+    if (start < length - 1) {
+      box_refs.current[start + 1]?.focus();
     }
   };
 
@@ -127,11 +147,15 @@ export function OtpInput({
         "flex flex-wrap items-center gap-2",
         align === "left" ? "justify-start" : "justify-center",
       )}
+      aria-label={aria_label}
+      role={aria_label ? "group" : undefined}
     >
       {digits.map((digit, index) => (
         <input
           key={index}
-          ref={(el) => { box_refs.current[index] = el; }}
+          ref={(el) => {
+            box_refs.current[index] = el;
+          }}
           autoComplete={index === 0 ? "one-time-code" : "off"}
           className={cn(
             "w-11 h-[52px] rounded-[10px] text-center text-xl font-semibold outline-none transition-colors bg-surf-primary text-txt-primary border-2",
@@ -144,6 +168,9 @@ export function OtpInput({
           maxLength={1}
           type="text"
           value={digit}
+          onBlur={(e) => {
+            restore_index_ref.current = e.target.disabled ? index : null;
+          }}
           onChange={(e) => handle_change(index, e.target.value)}
           onFocus={(e) => e.target.select()}
           onKeyDown={(e) => handle_key_down(index, e)}

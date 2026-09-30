@@ -22,6 +22,8 @@ import type { LanguageCode, Translations } from "../types";
 
 import { en } from "./en";
 
+import { safe_local_get } from "@/lib/safe_storage";
+
 type PartialTranslations = {
   [K in keyof Translations]?: Partial<Translations[K]>;
 };
@@ -41,6 +43,7 @@ const SUPPORTED_LOCALE_CODES = new Set<LanguageCode>([
   "nl",
   "pl",
   "tr",
+  "hi",
 ]);
 
 function deep_merge(
@@ -72,8 +75,9 @@ async function load_partial(
     case "it":
       return (await import("./it")).it;
     case "pt":
-    case "pt-BR":
       return (await import("./pt")).pt;
+    case "pt-BR":
+      return (await import("./pt-BR")).pt_br;
     case "zh-CN":
       return (await import("./zh-CN")).zh_CN;
     case "ja":
@@ -90,6 +94,8 @@ async function load_partial(
       return (await import("./pl")).pl;
     case "tr":
       return (await import("./tr")).tr;
+    case "hi":
+      return (await import("./hi")).hi;
     default:
       return null;
   }
@@ -127,7 +133,7 @@ const LANGUAGE_STORAGE_KEY = "astermail_language";
 export function get_active_translations(): Translations {
   if (typeof window === "undefined") return en;
 
-  const stored = localStorage.getItem(LANGUAGE_STORAGE_KEY);
+  const stored = safe_local_get(LANGUAGE_STORAGE_KEY);
 
   if (stored && has_translations(stored as LanguageCode)) {
     return get_translations(stored as LanguageCode);

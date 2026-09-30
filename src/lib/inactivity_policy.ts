@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { format_decimal } from "./utils";
+
 export const INACTIVITY_WARNING_FRACTIONS = [0.5, 20 / 24, 23 / 24] as const;
 
 export function get_inactivity_warning_months(
@@ -33,5 +35,5 @@ export function get_inactivity_warning_months(
 export function format_month_amount(months: number): string {
   const rounded = Math.round(months * 10) / 10;
 
-  return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
+  return format_decimal(rounded, Number.isInteger(rounded) ? 0 : 1);
 }

@@ -1,0 +1,152 @@
+//
+// Aster Communications Inc.
+//
+// Copyright (c) 2026 Aster Communications Inc.
+//
+// This file is part of this project.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the AGPLv3 as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// AGPLv3 for more details.
+//
+// You should have received a copy of the AGPLv3
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/outline";
+import { StatusBanner } from "@aster/ui";
+
+import { use_should_reduce_motion } from "@/provider";
+import { use_i18n } from "@/lib/i18n/context";
+import { get_subscription } from "@/services/api/billing";
+import { ignore_error } from "@/lib/ignore_error";
+import { open_external } from "@/utils/open_link";
+
+const RECHECK_INTERVAL_MS = 5 * 60 * 1000;
+
+function days_remaining(grace_period_end: string | null): number | null {
+  if (!grace_period_end) return null;
+
+  const end = new Date(grace_period_end).getTime();
+
+  if (Number.isNaN(end)) return null;
+
+  const days = Math.ceil((end - Date.now()) / (1000 * 60 * 60 * 24));
+
+  return days > 0 ? days : null;
+}
+
+export function hosted_pay_url(
+  value: string | null | undefined,
+): string | null {
+  if (!value) return null;
+
+  try {
+    const parsed = new URL(value);
+
+    if (parsed.protocol !== "https:") return null;
+    if (parsed.hostname !== "invoice.stripe.com") return null;
+
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
+export function BillingAlertBanner() {
+  const reduce_motion = use_should_reduce_motion();
+  const navigate = useNavigate();
+  const { t } = use_i18n();
+  const [grace_days, set_grace_days] = useState<number | null>(null);
+  const [is_past_due, set_is_past_due] = useState(false);
+  const [pay_url, set_pay_url] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    let last_checked = 0;
+
+    const check = () => {
+      const now = Date.now();
+
+      if (now - last_checked < RECHECK_INTERVAL_MS) return;
+      last_checked = now;
+
+      get_subscription()
+        .then((response) => {
+          if (cancelled || response.error || !response.data) return;
+
+          const subscription = response.data;
+
+          if (
+            !subscription.payment_failed_at ||
+            subscription.cancel_at_period_end
+          ) {
+            set_is_past_due(false);
+            set_pay_url(null);
+
+            return;
+          }
+
+          set_is_past_due(true);
+          set_grace_days(days_remaining(subscription.grace_period_end));
+          set_pay_url(hosted_pay_url(subscription.pay_url));
+        })
+        .catch((caught) => {
+          ignore_error("components/common/billing_alert_banner:load", caught);
+        });
+    };
+
+    const check_if_visible = () => {
+      if (document.visibilityState === "visible") check();
+    };
+
+    check();
+    window.addEventListener("focus", check);
+    window.addEventListener("aster:plan-changed", check);
+    document.addEventListener("visibilitychange", check_if_visible);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", check);
+      window.removeEventListener("aster:plan-changed", check);
+      document.removeEventListener("visibilitychange", check_if_visible);
+    };
+  }, []);
+
+  const handle_pay = () => {
+    if (pay_url) {
+      open_external(pay_url);
+
+      return;
+    }
+
+    navigate("/settings/billing");
+  };
+
+  return (
+    <StatusBanner
+      actions={[
+        { label: t("common.billing_alert_action"), on_click: handle_pay },
+      ]}
+      icon={ExclamationTriangleIcon}
+      is_visible={is_past_due}
+      message={
+        grace_days === null
+          ? t("common.billing_alert_body")
+          : t("common.billing_alert_body_days", {
+              days: String(grace_days),
+            })
+      }
+      reduce_motion={reduce_motion}
+      role="alert"
+      tone="danger"
+    />
+  );
+}

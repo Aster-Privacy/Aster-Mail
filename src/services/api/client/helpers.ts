@@ -28,21 +28,24 @@ export const API_BASE_URL =
     ? NATIVE_API_URL
     : import.meta.env.VITE_API_URL || "/api";
 
+export const TAURI_AUTH_SLOT_ACCESS = "access_token";
+export const TAURI_AUTH_SLOT_CSRF = "csrf";
+
 export const ACCOUNTS_ROSTER_KEY = "astermail_accounts_v6";
 export const REFRESH_INTERVAL_MINUTES = 10;
 export const PROACTIVE_REFRESH_THRESHOLD_MINUTES = 25;
-export const WRITE_DEAD_REFRESH_DENIALS = 8;
-export const WRITE_DEAD_MIN_ELAPSED_MS = 10 * 60 * 1000;
+export const REFRESH_FAILURE_BACKOFF_BASE_MS = 30_000;
+export const REFRESH_FAILURE_BACKOFF_MAX_MS =
+  REFRESH_INTERVAL_MINUTES * 60 * 1000;
 
-export function is_write_dead_streak(
-  denial_count: number,
-  streak_started_at: number,
-  now: number,
-): boolean {
-  return (
-    denial_count >= WRITE_DEAD_REFRESH_DENIALS &&
-    streak_started_at > 0 &&
-    now - streak_started_at >= WRITE_DEAD_MIN_ELAPSED_MS
+export function refresh_backoff_ms(consecutive_failures: number): number {
+  if (consecutive_failures <= 0) return 0;
+
+  const exponent = Math.min(consecutive_failures - 1, 16);
+
+  return Math.min(
+    REFRESH_FAILURE_BACKOFF_BASE_MS * 2 ** exponent,
+    REFRESH_FAILURE_BACKOFF_MAX_MS,
   );
 }
 
@@ -96,6 +99,10 @@ export function is_local_hostname(): boolean {
     host === "::1" ||
     host.endsWith(".local")
   );
+}
+
+export function dev_token_storage_allowed(): boolean {
+  return import.meta.env.DEV && is_local_hostname();
 }
 
 export function read_last_auth_ms(): number {
@@ -165,8 +172,34 @@ export interface ApiResponse<T> {
   data?: T;
   error?: string;
   code?: ApiErrorCode;
+  status?: number;
   server_code?: string;
   resets_at?: string;
+  details?: Record<string, unknown>;
+  retry_after_secs?: number;
+}
+
+const MAX_RETRY_AFTER_HEADER_SECS = 86_400;
+
+export function parse_retry_after_header(
+  value: string | null | undefined,
+  now: number,
+): number | undefined {
+  const raw = value?.trim();
+
+  if (!raw) return undefined;
+  if (/^\d+$/.test(raw)) {
+    const secs = Number(raw);
+
+    return secs > 0 && secs <= MAX_RETRY_AFTER_HEADER_SECS ? secs : undefined;
+  }
+  if (!/[a-z]/i.test(raw)) return undefined;
+  const at = Date.parse(raw);
+
+  if (!Number.isFinite(at) || at <= now) return undefined;
+  const secs = Math.ceil((at - now) / 1000);
+
+  return secs <= MAX_RETRY_AFTER_HEADER_SECS ? secs : undefined;
 }
 
 export function is_api_success<T>(
@@ -180,6 +213,9 @@ export function is_api_error<T>(
 ): response is ApiResponse<T> & { error: string } {
   return response.error !== undefined;
 }
+
+export const FAMILY_2FA_SERVER_CODE = "FAMILY_2FA_REQUIRED";
+export const FAMILY_2FA_EVENT = "aster:family-2fa-required";
 
 export const PENDING_DELETION_SERVER_CODE = "ACCOUNT_PENDING_DELETION";
 export const PENDING_DELETION_EVENT = "aster:account-pending-deletion";
@@ -252,6 +288,10 @@ export function is_identity_establishing_endpoint(endpoint: string): boolean {
   return IDENTITY_ESTABLISHING_ENDPOINTS.includes(path);
 }
 
+export function is_auth_endpoint(endpoint: string): boolean {
+  return endpoint.split("?")[0].startsWith("/core/v1/auth/");
+}
+
 export const DEFAULT_TIMEOUT = 30000;
 export const DEFAULT_RETRY_COUNT = 0;
 export const DEFAULT_RETRY_DELAY = 1000;
@@ -271,4 +311,41 @@ export type SessionReestablishResult = "ok" | "expired" | "unavailable";
 export interface PendingTokenWrite {
   access_token: string | null;
   refresh_token?: string | null;
+}
+
+const PLATFORM_DECLARED_PATHS = ["/auth/login", "/auth/register"];
+
+export function declared_native_platform(): string | null {
+  if (CLIENT_PLATFORM_HEADER === "tauri-desktop") return "desktop";
+  if (CLIENT_PLATFORM_HEADER === "capacitor-android") return "android";
+  if (CLIENT_PLATFORM_HEADER === "capacitor-ios") return "ios";
+
+  return null;
+}
+
+export function with_declared_platform(
+  endpoint: string,
+  body: BodyInit | null | undefined,
+): BodyInit | null | undefined {
+  const platform = declared_native_platform();
+
+  if (!platform || typeof body !== "string") return body;
+
+  const path = endpoint.split("?")[0];
+
+  if (!PLATFORM_DECLARED_PATHS.some((suffix) => path.endsWith(suffix))) {
+    return body;
+  }
+
+  try {
+    const parsed = JSON.parse(body) as Record<string, unknown>;
+
+    if (typeof parsed.client_platform === "string" && parsed.client_platform) {
+      return body;
+    }
+
+    return JSON.stringify({ ...parsed, client_platform: platform });
+  } catch {
+    return body;
+  }
 }

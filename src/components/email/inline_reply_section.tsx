@@ -35,9 +35,15 @@ import {
 } from "@/services/mail_actions";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
+import {
+  build_send_fingerprint,
+  forget_send,
+  is_duplicate_send,
+  record_send,
+} from "@/components/compose/send_lock";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_signatures } from "@/contexts/signatures_context";
-import { show_action_toast } from "@/components/toast/action_toast";
+import { show_email_sent_toast } from "@/components/toast/email_sent_toast";
 import { emit_thread_reply_sent } from "@/hooks/mail_events";
 import { use_should_reduce_motion } from "@/provider";
 import {
@@ -48,13 +54,16 @@ import {
 } from "@/services/api/multi_drafts";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { build_reply_subject } from "@/lib/reply_subject";
+import { resolve_reply_prefix } from "@/lib/reply_defaults";
 import { get_aster_footer } from "@/components/compose/compose_shared";
 import { build_badge_html } from "@/components/compose/compose_draft_helpers";
 import { fetch_my_badges, type Badge } from "@/services/api/user";
 import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
-import { Spinner } from "@/components/ui/spinner";
-
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { ignore_error } from "@/lib/ignore_error";
+import { is_composing } from "@/utils/ime";
+import { get_undo_send_delay_ms } from "@/services/send_queue";
+import { with_caret_block } from "@/lib/signature_html";
 
 type SendState = "idle" | "queued" | "sending" | "sent" | "error";
 
@@ -134,9 +143,7 @@ export const InlineReplySection = forwardRef<
   );
   const textarea_ref = useRef<HTMLTextAreaElement>(null);
   const save_draft_timeout = useRef<number | null>(null);
-  const last_saved_text = useRef<string>(
-    matching_draft?.content.message ?? "",
-  );
+  const last_saved_text = useRef<string>(matching_draft?.content.message ?? "");
   const is_sending_ref = useRef(false);
   const last_send_time_ref = useRef<number>(0);
   const reply_text_ref = useRef(reply_text);
@@ -144,6 +151,8 @@ export const InlineReplySection = forwardRef<
     async () => {},
   );
   const prev_visible_ref = useRef(false);
+  const has_sent_ref = useRef(false);
+  const thread_token_ref = useRef(thread_token);
   const [badges, set_badges] = useState<Badge[]>([]);
   const my_badge_prefs = use_my_badge_prefs();
   const include_badge_signature =
@@ -152,19 +161,50 @@ export const InlineReplySection = forwardRef<
     !!my_badge_prefs?.active_badge_slug;
   const active_badge =
     include_badge_signature && my_badge_prefs?.active_badge_slug
-      ? badges.find((b) => b.slug === my_badge_prefs.active_badge_slug) ?? null
+      ? (badges.find((b) => b.slug === my_badge_prefs.active_badge_slug) ??
+        null)
       : null;
 
   useEffect(() => {
-    fetch_my_badges().then((r) => {
-      if (r.data) set_badges(r.data);
-    });
+    fetch_my_badges()
+      .then((r) => {
+        if (r.data) set_badges(r.data);
+      })
+      .catch((caught) =>
+        ignore_error(
+          "components/email/inline_reply_section:fetch_my_badges",
+          caught,
+        ),
+      );
   }, []);
 
-  const undo_enabled = preferences.undo_send_enabled ?? true;
-  const undo_seconds = undo_enabled
-    ? Math.min(30, Math.max(1, preferences.undo_send_seconds ?? 10))
-    : 0;
+  const undo_delay_ms = get_undo_send_delay_ms(
+    preferences.undo_send_enabled ?? true,
+    preferences.undo_send_seconds,
+    preferences.undo_send_period,
+  );
+  const undo_seconds = undo_delay_ms / 1000;
+
+  useEffect(() => {
+    if (!matching_draft) return;
+    if (draft_id === matching_draft.id) {
+      if (matching_draft.version > draft_version) {
+        set_draft_version(matching_draft.version);
+      }
+
+      return;
+    }
+    if (draft_id) return;
+
+    const typed = reply_text_ref.current;
+
+    if (typed.trim() && typed !== last_saved_text.current) return;
+
+    set_draft_id(matching_draft.id);
+    set_draft_version(matching_draft.version);
+    last_saved_text.current = matching_draft.content.message ?? "";
+    set_reply_text(matching_draft.content.message ?? "");
+  }, [matching_draft, draft_id, draft_version]);
 
   useEffect(() => {
     if (!is_visible) {
@@ -183,6 +223,7 @@ export const InlineReplySection = forwardRef<
   const save_thread_draft = useCallback(
     async (text: string) => {
       if (!thread_token || !text.trim()) return;
+      if (has_sent_ref.current) return;
 
       const vault = get_vault_from_memory();
 
@@ -192,7 +233,10 @@ export const InlineReplySection = forwardRef<
         to_recipients: [sender_email],
         cc_recipients: [],
         bcc_recipients: [],
-        subject: build_reply_subject(subject, t("mail.reply_subject_prefix")),
+        subject: build_reply_subject(
+          subject,
+          resolve_reply_prefix(t("mail.reply_subject_prefix")),
+        ),
         message: text,
       };
 
@@ -228,6 +272,14 @@ export const InlineReplySection = forwardRef<
         );
 
         if (result.data) {
+          if (has_sent_ref.current) {
+            delete_draft(result.data.id).catch((caught) =>
+              ignore_error("components/email/inline_reply_section", caught),
+            );
+
+            return;
+          }
+
           set_draft_id(result.data.id);
           set_draft_version(result.data.version);
           last_saved_text.current = text;
@@ -247,11 +299,13 @@ export const InlineReplySection = forwardRef<
       draft_id,
       draft_version,
       on_draft_saved,
+      t,
     ],
   );
 
   save_draft_fn_ref.current = save_thread_draft;
   reply_text_ref.current = reply_text;
+  thread_token_ref.current = thread_token;
 
   useEffect(() => {
     if (prev_visible_ref.current && !is_visible) {
@@ -259,8 +313,9 @@ export const InlineReplySection = forwardRef<
         clearTimeout(save_draft_timeout.current);
         save_draft_timeout.current = null;
       }
-      if (!is_sending_ref.current) {
+      if (!is_sending_ref.current && !has_sent_ref.current) {
         const current_text = reply_text_ref.current;
+
         if (
           current_text !== last_saved_text.current &&
           current_text.trim() &&
@@ -269,6 +324,7 @@ export const InlineReplySection = forwardRef<
           save_draft_fn_ref.current(current_text);
         }
       }
+      has_sent_ref.current = false;
     }
     prev_visible_ref.current = is_visible;
   }, [is_visible, thread_token]);
@@ -297,6 +353,18 @@ export const InlineReplySection = forwardRef<
       if (save_draft_timeout.current) {
         clearTimeout(save_draft_timeout.current);
       }
+
+      const current_text = reply_text_ref.current;
+
+      if (
+        prev_visible_ref.current &&
+        !is_sending_ref.current &&
+        current_text !== last_saved_text.current &&
+        current_text.trim() &&
+        thread_token_ref.current
+      ) {
+        void save_draft_fn_ref.current(current_text);
+      }
     };
   }, []);
 
@@ -322,7 +390,7 @@ export const InlineReplySection = forwardRef<
     }
 
     if (preferences.signature_mode === "auto" && default_signature) {
-      return get_formatted_signature(default_signature);
+      return with_caret_block(get_formatted_signature(default_signature));
     }
 
     return "";
@@ -341,8 +409,27 @@ export const InlineReplySection = forwardRef<
 
     if (now - last_send_time_ref.current < 2000) return;
 
+    const send_fingerprint = build_send_fingerprint(
+      [sender_email],
+      subject,
+      reply_text,
+    );
+
+    if (is_duplicate_send(send_fingerprint, now)) {
+      set_error_message(t("common.duplicate_send_blocked"));
+
+      return;
+    }
+
     is_sending_ref.current = true;
+    has_sent_ref.current = true;
+
+    if (save_draft_timeout.current) {
+      clearTimeout(save_draft_timeout.current);
+      save_draft_timeout.current = null;
+    }
     last_send_time_ref.current = now;
+    record_send(send_fingerprint, now);
     set_error_message(null);
     set_send_state("queued");
     set_countdown(undo_seconds);
@@ -352,7 +439,10 @@ export const InlineReplySection = forwardRef<
       item_type: "sent",
       sender_name: user?.display_name || user?.email || t("common.me"),
       sender_email: user?.email || "",
-      subject: build_reply_subject(subject, t("mail.reply_subject_prefix")),
+      subject: build_reply_subject(
+        subject,
+        resolve_reply_prefix(t("mail.reply_subject_prefix")),
+      ),
       body: reply_text.trim(),
       timestamp: new Date().toISOString(),
       is_read: true,
@@ -388,19 +478,11 @@ export const InlineReplySection = forwardRef<
         original_email_id: email_id,
       },
       {
-        on_complete: () => {
+        on_complete: (sent_id?: string) => {
           is_sending_ref.current = false;
           set_send_state("sent");
           on_sending_end?.();
-          show_action_toast({
-            message: t("common.email_sent"),
-            action_type: "read",
-            email_ids: [],
-            duration_ms: 5000,
-            on_view_message: () => {
-              window.dispatchEvent(new CustomEvent("astermail:navigate-to-sent"));
-            },
-          });
+          show_email_sent_toast(t("common.email_sent"), sent_id);
 
           if (thread_token) {
             emit_thread_reply_sent({
@@ -412,10 +494,12 @@ export const InlineReplySection = forwardRef<
           const new_message: DecryptedThreadMessage = {
             id: `temp_${Date.now()}`,
             item_type: "sent",
-            sender_name:
-              user?.display_name || user?.email || t("common.me"),
+            sender_name: user?.display_name || user?.email || t("common.me"),
             sender_email: user?.email || "",
-            subject: build_reply_subject(subject, t("mail.reply_subject_prefix")),
+            subject: build_reply_subject(
+              subject,
+              resolve_reply_prefix(t("mail.reply_subject_prefix")),
+            ),
             body: reply_text.trim(),
             timestamp: new Date().toISOString(),
             is_read: true,
@@ -434,18 +518,22 @@ export const InlineReplySection = forwardRef<
         },
         on_cancel: () => {
           is_sending_ref.current = false;
+          has_sent_ref.current = false;
           set_send_state("idle");
+          forget_send(send_fingerprint);
           set_queued_id(null);
           on_sending_end?.();
         },
         on_error: (error) => {
           is_sending_ref.current = false;
+          has_sent_ref.current = false;
           set_send_state("error");
+          forget_send(send_fingerprint);
           set_error_message(error);
           on_sending_end?.();
         },
       },
-      preferences.undo_send_period,
+      undo_seconds * 1000,
     );
 
     if (result.success && result.queued_id) {
@@ -457,11 +545,15 @@ export const InlineReplySection = forwardRef<
         set_draft_id(null);
         set_draft_version(1);
         last_saved_text.current = "";
-        delete_draft(captured_draft_id).catch((caught) => ignore_error("components/email/inline_reply_section", caught));
+        delete_draft(captured_draft_id).catch((caught) =>
+          ignore_error("components/email/inline_reply_section", caught),
+        );
       }
     } else if (!result.success) {
       is_sending_ref.current = false;
+      has_sent_ref.current = false;
       set_send_state("error");
+      forget_send(send_fingerprint);
       set_error_message(result.error || t("common.failed_to_send_reply"));
       on_sending_end?.();
     }
@@ -475,9 +567,11 @@ export const InlineReplySection = forwardRef<
     timestamp,
     thread_token,
     email_id,
-    preferences.undo_send_period,
     undo_seconds,
     get_signature,
+    preferences.show_aster_branding,
+    active_badge,
+    draft_id,
     user,
     on_reply_sent,
     on_close,
@@ -516,6 +610,8 @@ export const InlineReplySection = forwardRef<
 
   const handle_key_down = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (is_composing(e)) return;
+
       if ((e.metaKey || e.ctrlKey) && e["key"] === "Enter") {
         e.preventDefault();
         handle_send_reply();
@@ -553,6 +649,7 @@ export const InlineReplySection = forwardRef<
                 </div>
               </div>
               <button
+                aria-label={t("common.close")}
                 className="p-1.5 rounded-[14px] transition-colors hover:bg-surf-hover text-txt-muted"
                 onClick={handle_cancel}
               >
@@ -562,28 +659,28 @@ export const InlineReplySection = forwardRef<
 
             <div className="p-4 space-y-3">
               {error_message && (
-                <div className="px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-                  <p className="text-sm text-red-700 dark:text-red-400">
+                <div className="px-3 py-2 rounded-lg bg-red-600 border border-red-600">
+                  <p className="text-sm text-white">
                     {error_message}
                   </p>
                 </div>
               )}
 
               {send_state === "queued" && (
-                <div className="px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+                <div className="px-3 py-2 rounded-lg bg-brand border border-brand">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-blue-700 dark:text-blue-400">
+                    <p className="text-sm text-[var(--accent-fg,#ffffff)]">
                       {`${t("mail.sending_in")} ${countdown}${t("common.seconds")}...`}
                     </p>
                     <div className="flex gap-2">
                       <button
-                        className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline"
+                        className="text-sm font-medium text-[var(--accent-fg,#ffffff)] hover:underline"
                         onClick={handle_undo}
                       >
                         {t("common.undo")}
                       </button>
                       <button
-                        className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline"
+                        className="text-sm font-medium text-[var(--accent-fg,#ffffff)] hover:underline"
                         onClick={handle_send_now}
                       >
                         {t("common.send_now")}
@@ -594,8 +691,8 @@ export const InlineReplySection = forwardRef<
               )}
 
               {send_state === "sent" && (
-                <div className="px-3 py-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-                  <p className="text-sm text-green-700 dark:text-green-400">
+                <div className="px-3 py-2 rounded-lg bg-green-700 border border-green-700">
+                  <p className="text-sm text-white">
                     {t("mail.reply_sent_successfully")}
                   </p>
                 </div>
@@ -633,10 +730,12 @@ export const InlineReplySection = forwardRef<
                     😊
                   </button>
                   {show_emoji_picker && !is_disabled && (
-                    <EmojiPicker on_select={handle_emoji_select} />
+                    <div className="absolute bottom-full start-0 z-50 mb-2">
+                      <EmojiPicker on_select={handle_emoji_select} />
+                    </div>
                   )}
                 </div>
-                <span className="text-xs ml-auto text-txt-tertiary">
+                <span className="text-xs ms-auto text-txt-tertiary">
                   {reply_text.length}/1000
                 </span>
               </div>
@@ -650,11 +749,8 @@ export const InlineReplySection = forwardRef<
                   }
                   onClick={handle_send_reply}
                 >
-                  {send_state === "sending" ? (
-                    <Spinner size="sm" />
-                  ) : (
-                    t("mail.send")
-                  )}
+                  {t("mail.send")}
+                  {send_state === "sending" && <ButtonSpinner />}
                 </Button>
                 <button
                   className="px-4 py-2.5 border border-edge-secondary rounded-[14px] font-medium transition-colors text-sm hover_bg text-txt-secondary"

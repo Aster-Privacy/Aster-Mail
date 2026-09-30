@@ -76,10 +76,9 @@ export function EmptySearchState({ query }: { query: string }) {
         </p>
       </div>
       <div
-        className="rounded-[14px] px-3.5 pb-3.5 pt-3"
+        className="rounded-[var(--aster-radius-control)] px-3.5 pb-3.5 pt-3"
         style={{
-          backgroundColor: "var(--bg-primary)",
-          boxShadow: "0 0 0 1px var(--border-secondary)",
+          backgroundColor: "var(--aster-field-bg)",
         }}
       >
         <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-txt-muted">
@@ -180,7 +179,7 @@ export function FirstTimeSearchState({
           {quick_actions.map((action) => (
             <button
               key={action.query}
-              className="search_filter_btn flex items-center gap-2 px-3 py-2 rounded-[14px] border transition-colors duration-150 hover:bg-[var(--bg-hover)] border-edge-secondary text-txt-secondary"
+              className="search_filter_btn flex items-center gap-2 px-3 py-2 rounded-[var(--aster-radius-control)] transition-colors duration-150 text-txt-secondary"
               onClick={() => on_quick_action(action.query)}
             >
               <span className="text-txt-muted">{action.icon}</span>

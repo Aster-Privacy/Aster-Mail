@@ -19,20 +19,20 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import type {  MailItemMetadata } from "@/types/email";
-
+import type { MailItemMetadata } from "@/types/email";
 
 import {
-  type MailItem,
-} from "@/services/api/mail";
-import {
-  type ParsedOperator,
-} from "@/utils/search_operators";
-import {
-  date_boundary_local,
-} from "@/services/search_chunk_filter";
+  CachedIndex,
+  ScanCacheEntry,
+  ScanCandidate,
+  SearchMailboxScope,
+  SearchOptions,
+} from "./types";
 
-import { CachedIndex, ScanCacheEntry, ScanCandidate, SearchMailboxScope, SearchOptions } from "./types";
+import { type MailItem } from "@/services/api/mail";
+import { type ParsedOperator } from "@/utils/search_operators";
+import { date_boundary_local } from "@/services/search_chunk_filter";
+
 export const PROGRESS_FLUSH_MS = 120;
 const REFINE_CACHE_MAX_CHARS = 2_000_000;
 
@@ -164,4 +164,3 @@ export function can_refine_scan(
 
   return cache.terms.every((prev) => terms.some((next) => next.includes(prev)));
 }
-

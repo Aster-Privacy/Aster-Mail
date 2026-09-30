@@ -18,8 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   store_ke_crypto_key,
   get_ke_crypto_key,
@@ -28,10 +26,10 @@ import {
   get_aes_crypto_key,
   has_aes_crypto_key,
 } from "./memory_key_store";
-import {
-  HASH_ALG,
-  generate_random_bytes,
-} from "./key_manager_core";
+import { HASH_ALG, generate_random_bytes } from "./key_manager_core";
+
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 const _KE = ["EC", "DH"].join("");
 const _KC = ["P", "256"].join("-");
@@ -237,7 +235,11 @@ export async function decrypt_with_crypto_key(
   nonce: Uint8Array,
   aes_key: CryptoKey,
 ): Promise<Uint8Array> {
-  const plaintext = await decrypt_aes_gcm_with_fallback(aes_key, ciphertext, nonce);
+  const plaintext = await decrypt_aes_gcm_with_fallback(
+    aes_key,
+    ciphertext,
+    nonce,
+  );
 
   return new Uint8Array(plaintext);
 }

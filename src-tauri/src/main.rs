@@ -32,9 +32,10 @@ use tauri::menu::Submenu;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    webview::NewWindowResponse,
+    webview::{DownloadEvent, NewWindowResponse},
     Emitter, Manager, State, Url, WindowEvent,
 };
+use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 const LINK_ACTIVATED_EVENT: &str = "aster://link-activated";
 
@@ -42,8 +43,6 @@ const APP_NAVIGATION_HOSTS: &[&str] = &[
     "tauri.localhost",
     "asset.localhost",
     "ipc.localhost",
-    "localhost",
-    "127.0.0.1",
     "challenges.cloudflare.com",
     "js.stripe.com",
     "hooks.stripe.com",
@@ -53,19 +52,29 @@ const APP_NAVIGATION_HOSTS: &[&str] = &[
     "q.stripe.com",
 ];
 
+const DEV_NAVIGATION_HOSTS: &[&str] = &["localhost", "127.0.0.1"];
+
 const APP_NAVIGATION_SUFFIXES: &[&str] = &[
     ".astermail.org",
     ".astermail.com",
     ".stripe.com",
     ".stripe.network",
-    ".onion",
 ];
 
-const INTERNAL_SCHEMES: &[&str] = &["about", "blob", "data", "tauri", "asset", "ipc", "file"];
+const APP_ONION_HOSTS: &[&str] = &[
+    "asterwkopxf427ndjpgco5swerhivljvwcsggsxmfgmve4awbahpcrqd.onion",
+    "asterabf3d5xhqtphx5u462oegteygodgae5y542vmcai22ipkd3ojqd.onion",
+];
+
+const INTERNAL_SCHEMES: &[&str] = &["about", "blob", "tauri", "asset", "ipc"];
 
 const FORWARDED_SCHEMES: &[&str] = &["http", "https", "mailto", "aster"];
 
 fn is_app_navigation(url: &Url) -> bool {
+    is_app_navigation_for_build(url, cfg!(debug_assertions))
+}
+
+fn is_app_navigation_for_build(url: &Url, allow_dev_hosts: bool) -> bool {
     if INTERNAL_SCHEMES.contains(&url.scheme()) {
         return true;
     }
@@ -80,6 +89,8 @@ fn is_app_navigation(url: &Url) -> bool {
     let host = host.to_ascii_lowercase();
 
     APP_NAVIGATION_HOSTS.iter().any(|entry| host == *entry)
+        || (allow_dev_hosts && DEV_NAVIGATION_HOSTS.iter().any(|entry| host == *entry))
+        || APP_ONION_HOSTS.iter().any(|entry| host == *entry)
         || APP_NAVIGATION_SUFFIXES
             .iter()
             .any(|suffix| host.ends_with(suffix))
@@ -89,13 +100,126 @@ fn should_forward_to_app(url: &Url) -> bool {
     FORWARDED_SCHEMES.contains(&url.scheme())
 }
 
+fn unique_download_path(dir: &std::path::Path, suggested: &std::path::Path) -> std::path::PathBuf {
+    let file_name = suggested
+        .file_name()
+        .and_then(|name| name.to_str())
+        .filter(|name| !name.is_empty())
+        .unwrap_or("download");
+    let stem = std::path::Path::new(file_name)
+        .file_stem()
+        .and_then(|value| value.to_str())
+        .unwrap_or("download");
+    let extension = std::path::Path::new(file_name)
+        .extension()
+        .and_then(|value| value.to_str())
+        .map(|value| format!(".{value}"))
+        .unwrap_or_default();
+    let mut candidate = dir.join(file_name);
+    let mut counter = 1;
+
+    while candidate.exists() {
+        candidate = dir.join(format!("{stem} ({counter}){extension}"));
+        counter += 1;
+    }
+
+    candidate
+}
+
+fn resolve_download_destination(app: &tauri::AppHandle, destination: &mut std::path::PathBuf) {
+    if destination.is_absolute() {
+        return;
+    }
+
+    let Ok(dir) = app.path().download_dir() else {
+        return;
+    };
+
+    if std::fs::create_dir_all(&dir).is_err() {
+        return;
+    }
+
+    *destination = unique_download_path(&dir, destination);
+}
+
+#[cfg(target_os = "macos")]
+const TRAY_ICON: &[u8] = include_bytes!("../icons/icon_macos_template.png");
+#[cfg(windows)]
+const TRAY_ICON: &[u8] = include_bytes!("../icons/32x32.png");
+#[cfg(windows)]
+const TRAY_ICON_UNREAD: &[u8] = include_bytes!("../icons/tray_unread_32x32.png");
+#[cfg(all(unix, not(target_os = "macos")))]
+const TRAY_ICON: &[u8] = include_bytes!("../icons/icon_hires.png");
+#[cfg(all(unix, not(target_os = "macos")))]
+const TRAY_ICON_UNREAD: &[u8] = include_bytes!("../icons/tray_unread_hires.png");
+
+fn window_state_flags() -> StateFlags {
+    StateFlags::SIZE | StateFlags::POSITION | StateFlags::MAXIMIZED
+}
+
 struct TrayState(Mutex<Option<tauri::tray::TrayIcon>>);
+
+struct TrayMenuItems {
+    show: MenuItem<tauri::Wry>,
+    quit: MenuItem<tauri::Wry>,
+    #[cfg(windows)]
+    troubleshooting: Submenu<tauri::Wry>,
+    #[cfg(windows)]
+    compat_on: MenuItem<tauri::Wry>,
+    #[cfg(windows)]
+    compat_off: MenuItem<tauri::Wry>,
+    #[cfg(windows)]
+    display_reset: MenuItem<tauri::Wry>,
+}
+
+struct TrayMenuState(Mutex<Option<TrayMenuItems>>);
+
+struct CloseToTrayState(Mutex<bool>);
+
+#[derive(serde::Deserialize)]
+struct TrayLabels {
+    show: String,
+    quit: String,
+    troubleshooting: String,
+    compat_on: String,
+    compat_off: String,
+    display_reset: String,
+}
+
+#[tauri::command]
+fn set_tray_labels(state: State<TrayMenuState>, labels: TrayLabels) {
+    let Ok(guard) = state.0.lock() else { return };
+    let Some(items) = guard.as_ref() else { return };
+    let _ = items.show.set_text(&labels.show);
+    let _ = items.quit.set_text(&labels.quit);
+    #[cfg(windows)]
+    {
+        let _ = items.troubleshooting.set_text(&labels.troubleshooting);
+        let _ = items.compat_on.set_text(&labels.compat_on);
+        let _ = items.compat_off.set_text(&labels.compat_off);
+        let _ = items.display_reset.set_text(&labels.display_reset);
+    }
+    #[cfg(not(windows))]
+    {
+        let _ = &labels.troubleshooting;
+        let _ = &labels.compat_on;
+        let _ = &labels.compat_off;
+        let _ = &labels.display_reset;
+    }
+}
 
 #[tauri::command]
 fn set_tray_visible(state: State<TrayState>, visible: bool) {
     let Ok(guard) = state.0.lock() else { return };
     if let Some(tray) = guard.as_ref() {
         let _ = tray.set_visible(visible);
+    }
+}
+
+#[tauri::command]
+fn set_close_to_tray(state: State<CloseToTrayState>, enabled: bool) {
+    if let Ok(mut guard) = state.0.lock() {
+        *guard = enabled;
     }
 }
 
@@ -139,7 +263,7 @@ fn open_in_default_handler(app: &tauri::AppHandle, url: String) {
 }
 
 #[tauri::command]
-fn open_external_url(app: tauri::AppHandle, url: String) -> std::result::Result<(), String> {
+async fn open_external_url(app: tauri::AppHandle, url: String) -> std::result::Result<(), String> {
     if url.chars().any(|c| c.is_control() || c.is_whitespace()) {
         return Err("url contains invalid characters".into());
     }
@@ -156,29 +280,23 @@ fn open_external_url(app: tauri::AppHandle, url: String) -> std::result::Result<
     }
 
     #[cfg(target_os = "macos")]
-    open_in_default_handler(&app, url);
+    {
+        open_in_default_handler(&app, url);
+
+        Ok(())
+    }
 
     #[cfg(not(target_os = "macos"))]
     {
-        let _ = &app;
-        std::thread::spawn(move || {
-            #[cfg(windows)]
-            {
-                use std::os::windows::process::CommandExt;
-                const CREATE_NO_WINDOW: u32 = 0x08000000;
-                let _ = std::process::Command::new("rundll32")
-                    .args(["url.dll,FileProtocolHandler", &url])
-                    .creation_flags(CREATE_NO_WINDOW)
-                    .spawn();
-            }
-            #[cfg(all(unix, not(target_os = "macos")))]
-            {
-                let _ = std::process::Command::new("xdg-open").arg(&url).spawn();
-            }
-        });
-    }
+        tauri::async_runtime::spawn_blocking(move || {
+            use tauri_plugin_shell::ShellExt;
 
-    Ok(())
+            #[allow(deprecated)]
+            app.shell().open(&url, None).map_err(|e| e.to_string())
+        })
+        .await
+        .map_err(|e| e.to_string())?
+    }
 }
 
 #[cfg(all(unix, not(target_os = "macos")))]
@@ -255,8 +373,13 @@ fn ensure_system_wayland() {
 }
 
 #[cfg(target_os = "macos")]
+static WEBKIT_KEYCHAIN_RESET_DONE: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
+#[cfg(target_os = "macos")]
 fn clear_stale_webkit_keychain() {
     use std::process::Command;
+
     for _ in 0..5 {
         let result = Command::new("security")
             .args(["delete-generic-password", "-s", "com.astermail.mail", "-l", "Aster Mail Desktop web mail web crypto master key"])
@@ -268,6 +391,26 @@ fn clear_stale_webkit_keychain() {
     }
 }
 
+#[cfg(target_os = "macos")]
+#[tauri::command]
+fn reset_webkit_crypto_keychain() -> bool {
+    use std::sync::atomic::Ordering;
+
+    if WEBKIT_KEYCHAIN_RESET_DONE.swap(true, Ordering::SeqCst) {
+        return false;
+    }
+
+    clear_stale_webkit_keychain();
+
+    true
+}
+
+#[cfg(not(target_os = "macos"))]
+#[tauri::command]
+fn reset_webkit_crypto_keychain() -> bool {
+    false
+}
+
 fn main() {
     boot_guard::prepare();
 
@@ -277,8 +420,10 @@ fn main() {
     #[cfg(all(unix, not(target_os = "macos")))]
     {
         std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
-        std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
-        std::env::set_var("WEBKIT_DISABLE_THREADED_COMPOSITOR", "1");
+        if boot_guard::compat_mode_active() {
+            std::env::set_var("WEBKIT_DISABLE_COMPOSITING_MODE", "1");
+            std::env::set_var("WEBKIT_DISABLE_THREADED_COMPOSITOR", "1");
+        }
         if std::env::var("WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS").is_err() {
             std::env::set_var("WEBKIT_DISABLE_SANDBOX_THIS_IS_DANGEROUS", "1");
         }
@@ -296,20 +441,31 @@ fn main() {
                 let _ = window.set_focus();
             }
         }))
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(
+            tauri_plugin_window_state::Builder::new()
+                .with_state_flags(window_state_flags())
+                .build(),
+        )
         .manage(TrayState(Mutex::new(None)))
+        .manage(TrayMenuState(Mutex::new(None)))
+        .manage(CloseToTrayState(Mutex::new(true)))
         .manage(boot_guard::BootState::new())
         .invoke_handler(tauri::generate_handler![
             frontend_ready,
             frontend_painted,
+            reset_webkit_crypto_keychain,
             badge::set_unread_badge,
             set_tray_visible,
+            set_close_to_tray,
             set_tray_tooltip,
+            set_tray_labels,
             set_content_protection,
             open_external_url,
             device::crypto::device_get_pubkeys,
@@ -317,8 +473,12 @@ fn main() {
             device::crypto::device_sign_challenge,
             device::crypto::device_unseal_vault_envelope,
             device::crypto::device_get_stored_passphrase,
+            device::crypto::device_forget_account,
             device::crypto::device_clear_session,
             device::crypto::device_clear_identity,
+            device::crypto::device_auth_store_set,
+            device::crypto::device_auth_store_get,
+            device::crypto::device_auth_store_clear,
             device::crypto::device_http_request,
             device::crypto::crypto_pbkdf2,
             device::crypto::crypto_hkdf,
@@ -327,8 +487,14 @@ fn main() {
             device::crypto::crypto_hmac_sign,
         ])
         .setup(|app| {
-            #[cfg(target_os = "macos")]
-            clear_stale_webkit_keychain();
+            #[cfg(any(windows, target_os = "linux"))]
+            {
+                use tauri_plugin_deep_link::DeepLinkExt;
+
+                if let Err(error) = app.deep_link().register_all() {
+                    tracing::warn!(%error, "deep link scheme registration failed");
+                }
+            }
 
             let window_config = app
                 .config()
@@ -341,6 +507,7 @@ fn main() {
 
             let navigation_handle = app.handle().clone();
             let new_window_handle = app.handle().clone();
+            let download_handle = app.handle().clone();
 
             tauri::WebviewWindowBuilder::from_config(app, &window_config)?
                 .on_navigation(move |url| {
@@ -360,15 +527,16 @@ fn main() {
 
                     NewWindowResponse::Deny
                 })
+                .on_download(move |_webview, event| {
+                    if let DownloadEvent::Requested { destination, .. } = event {
+                        resolve_download_destination(&download_handle, destination);
+                    }
+
+                    true
+                })
                 .build()?;
 
-            #[cfg(target_os = "macos")]
-            let tray_icon_bytes = include_bytes!("../icons/icon_macos_template.png").as_slice();
-            #[cfg(windows)]
-            let tray_icon_bytes = include_bytes!("../icons/32x32.png").as_slice();
-            #[cfg(all(unix, not(target_os = "macos")))]
-            let tray_icon_bytes = include_bytes!("../icons/icon_hires.png").as_slice();
-            let tray_icon = tauri::image::Image::from_bytes(tray_icon_bytes)
+            let tray_icon = tauri::image::Image::from_bytes(TRAY_ICON)
                 .expect("failed to load tray icon");
 
             let show =
@@ -419,6 +587,7 @@ fn main() {
                     "show" => {
                         if let Some(window) = app.get_webview_window("main") {
                             let _ = window.show();
+                            let _ = window.unminimize();
                             let _ = window.set_focus();
                         }
                     }
@@ -449,6 +618,7 @@ fn main() {
                         let app = tray.app_handle();
                         if let Some(window) = app.get_webview_window("main") {
                             let _ = window.show();
+                            let _ = window.unminimize();
                             let _ = window.set_focus();
                         }
                     }
@@ -460,17 +630,46 @@ fn main() {
                 *guard = Some(tray);
             }
 
+            let menu_state: State<TrayMenuState> = app.state();
+            if let Ok(mut guard) = menu_state.0.lock() {
+                *guard = Some(TrayMenuItems {
+                    show,
+                    quit,
+                    #[cfg(windows)]
+                    troubleshooting,
+                    #[cfg(windows)]
+                    compat_on,
+                    #[cfg(windows)]
+                    compat_off,
+                    #[cfg(windows)]
+                    display_reset,
+                });
+            }
+
             boot_guard::spawn_watchdog(app.handle().clone());
 
             Ok(())
         })
         .on_window_event(|window, event| {
+            if let WindowEvent::Focused(false) = event {
+                let _ = window.app_handle().save_window_state(window_state_flags());
+            }
             if let WindowEvent::CloseRequested { api, .. } = event {
                 let state: State<boot_guard::BootState> = window.state();
                 if !state.is_usable() {
                     return;
                 }
+                let close_to_tray: State<CloseToTrayState> = window.state();
+                let hide_instead_of_quit = close_to_tray
+                    .0
+                    .lock()
+                    .map(|guard| *guard)
+                    .unwrap_or(true);
+                if !hide_instead_of_quit {
+                    return;
+                }
                 api.prevent_close();
+                let _ = window.app_handle().save_window_state(window_state_flags());
                 let _ = window.hide();
             }
         })
@@ -490,10 +689,73 @@ fn main() {
             if let tauri::RunEvent::Reopen { has_visible_windows: false, .. } = event {
                 if let Some(window) = app.get_webview_window("main") {
                     let _ = window.show();
+                    let _ = window.unminimize();
                     let _ = window.set_focus();
                 }
             }
             #[cfg(not(target_os = "macos"))]
             let _ = (app, event);
         });
+}
+
+#[cfg(test)]
+mod navigation_tests {
+    use super::*;
+
+    fn allowed(url: &str) -> bool {
+        is_app_navigation(&Url::parse(url).expect("valid url"))
+    }
+
+    #[test]
+    fn keeps_app_and_payment_hosts() {
+        assert!(allowed("tauri://localhost/inbox"));
+        assert!(allowed("http://tauri.localhost/inbox"));
+        assert!(allowed("https://app.astermail.org/api"));
+        assert!(allowed("https://js.stripe.com/v3"));
+        assert!(allowed("https://challenges.cloudflare.com/turnstile"));
+        assert!(allowed("about:srcdoc"));
+        assert!(allowed("blob:http://tauri.localhost/0f4c"));
+    }
+
+    #[test]
+    fn keeps_first_party_onion_hosts() {
+        for host in APP_ONION_HOSTS {
+            assert!(allowed(&format!("http://{host}/")));
+        }
+    }
+
+    #[test]
+    fn rejects_local_files_data_documents_and_other_onions() {
+        assert!(!allowed("file:///etc/passwd"));
+        assert!(!allowed("data:text/html,<p>hi</p>"));
+        assert!(!allowed("http://exampleexampleexampleexampleexampleexampleexampleexam.onion/"));
+        assert!(!allowed("https://astermail.org.example.com/"));
+        assert!(!allowed("https://example.com/"));
+    }
+
+    #[test]
+    fn loopback_hosts_are_only_allowed_in_debug_builds() {
+        for url in [
+            "http://127.0.0.1:1420/",
+            "http://localhost:5173/bridge.html",
+        ] {
+            let parsed = Url::parse(url).expect("valid url");
+            assert!(is_app_navigation_for_build(&parsed, true), "{url}");
+            assert!(!is_app_navigation_for_build(&parsed, false), "{url}");
+        }
+    }
+
+    #[test]
+    fn release_builds_keep_app_origins() {
+        for url in [
+            "tauri://localhost/inbox",
+            "http://tauri.localhost/inbox",
+            "http://ipc.localhost/plugin",
+            "https://app.astermail.org/",
+            "https://js.stripe.com/v3",
+        ] {
+            let parsed = Url::parse(url).expect("valid url");
+            assert!(is_app_navigation_for_build(&parsed, false), "{url}");
+        }
+    }
 }

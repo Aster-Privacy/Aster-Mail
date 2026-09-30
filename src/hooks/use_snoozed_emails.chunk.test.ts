@@ -28,9 +28,7 @@ describe("chunk_ids", () => {
   });
 
   it("keeps a small list in one chunk", () => {
-    expect(chunk_ids(["a", "b"], SNOOZED_IDS_CHUNK_SIZE)).toEqual([
-      ["a", "b"],
-    ]);
+    expect(chunk_ids(["a", "b"], SNOOZED_IDS_CHUNK_SIZE)).toEqual([["a", "b"]]);
   });
 
   it("splits a large list into chunks of at most the chunk size", () => {

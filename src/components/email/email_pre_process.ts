@@ -20,13 +20,13 @@
 //
 import type { use_i18n } from "@/lib/i18n/context";
 
-import { ignore_error } from "@/lib/ignore_error";
-
 import {
   collapse_empty_block_runs,
   collapse_forwarded_content,
   collapse_quoted_replies,
 } from "./sandboxed_email_renderer/dom_cleanup";
+
+import { ignore_error } from "@/lib/ignore_error";
 
 type translate_fn = ReturnType<typeof use_i18n>["t"];
 
@@ -41,8 +41,7 @@ export interface PreProcessOptions {
 function unblock_remote_content(doc: Document): void {
   doc.querySelectorAll("img[data-blocked='true']").forEach((el) => {
     const src =
-      el.getAttribute("data-proxy-src") ||
-      el.getAttribute("data-original-src");
+      el.getAttribute("data-proxy-src") || el.getAttribute("data-original-src");
 
     if (src) {
       try {
@@ -52,7 +51,10 @@ function unblock_remote_content(doc: Document): void {
           el.setAttribute("src", safe_url.href);
         }
       } catch (caught) {
-        ignore_error("components/email/email_pre_process:unblock_remote_content", caught);
+        ignore_error(
+          "components/email/email_pre_process:unblock_remote_content",
+          caught,
+        );
       }
     }
     el.removeAttribute("data-blocked");

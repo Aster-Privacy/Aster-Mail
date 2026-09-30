@@ -29,11 +29,20 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { Spinner } from "@/components/ui/spinner";
 import { cn } from "@/lib/utils";
 import { use_search } from "@/hooks/use_search";
+import { normalize_contact_addresses } from "@/utils/contact_mail_search";
+import {
+  app_hour12,
+  app_relative_dates,
+  app_locale,
+  calendar_day_diff,
+  get_display_time_zone,
+} from "@/utils/date_format";
 
 interface ContactHistoryPanelProps {
-  contact_email: string;
+  contact_emails: string[];
 }
 
 interface HistoryEntry {
@@ -49,37 +58,61 @@ function format_relative_date(
 ): string {
   const date = new Date(date_string);
   const now = new Date();
-  const diff = now.getTime() - date.getTime();
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const days = calendar_day_diff(date, now);
+
+  if (!app_relative_dates()) {
+    return date.toLocaleDateString(app_locale(), {
+      year: days < 365 ? undefined : "numeric",
+      month: "short",
+      day: "numeric",
+      timeZone: get_display_time_zone(),
+    });
+  }
 
   if (days === 0) {
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return date.toLocaleTimeString(app_locale(), {
+      hour: "2-digit",
+      hour12: app_hour12(),
+      minute: "2-digit",
+      timeZone: get_display_time_zone(),
+    });
   }
   if (days === 1) return t("common.yesterday");
   if (days < 7) return t("common.x_days_ago", { count: days });
   if (days < 365)
-    return date.toLocaleDateString([], { month: "short", day: "numeric" });
+    return date.toLocaleDateString(app_locale(), {
+      month: "short",
+      day: "numeric",
+      timeZone: get_display_time_zone(),
+    });
 
-  return date.toLocaleDateString([], {
+  return date.toLocaleDateString(app_locale(), {
     year: "numeric",
     month: "short",
     day: "numeric",
+    timeZone: get_display_time_zone(),
   });
 }
 
 export function ContactHistoryPanel({
-  contact_email,
+  contact_emails,
 }: ContactHistoryPanelProps) {
   const { t } = use_i18n();
   const navigate = useNavigate();
   const received = use_search();
   const sent = use_search();
 
+  const addresses = useMemo(
+    () => normalize_contact_addresses(contact_emails),
+    [contact_emails.join(",")],
+  );
+  const address_key = addresses.join(",");
+
   useEffect(() => {
-    if (!contact_email) return;
-    received.search(`from:${contact_email}`);
-    sent.search(`to:${contact_email}`);
-  }, [contact_email]);
+    if (addresses.length === 0) return;
+    received.search(addresses.map((a) => `from:${a}`).join(" "));
+    sent.search(addresses.map((a) => `to:${a}`).join(" "));
+  }, [address_key]);
 
   const is_loading =
     received.state.is_searching ||
@@ -92,6 +125,7 @@ export function ContactHistoryPanel({
   const activities = useMemo<HistoryEntry[]>(() => {
     const seen = new Set<string>();
     const out: HistoryEntry[] = [];
+
     for (const r of received.state.results) {
       if (seen.has(r.id)) continue;
       seen.add(r.id);
@@ -116,13 +150,14 @@ export function ContactHistoryPanel({
       (a, b) =>
         new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
     );
+
     return out;
   }, [received.state.results, sent.state.results]);
 
   if (is_loading && activities.length === 0) {
     return (
       <div className="flex items-center justify-center py-16">
-        <div className="w-5 h-5 border-2 border-edge-primary border-t-txt-primary rounded-full animate-spin" />
+        <Spinner className="text-txt-muted" size="md" />
       </div>
     );
   }
@@ -148,17 +183,14 @@ export function ContactHistoryPanel({
           </p>
         </div>
       ) : (
-        <div className="divide-y divide-edge-secondary/60">
+        <div className="divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
           {activities.map((activity) => (
             <button
               key={activity.id}
+              className="w-full flex items-center gap-3 px-2 py-2.5 text-start hover:bg-[var(--aster-hover)] rounded-[14px] transition-colors cursor-pointer"
               type="button"
-              className="w-full flex items-center gap-3 px-2 py-2.5 text-left hover:bg-black/[0.04] dark:hover:bg-white/[0.04] rounded-[14px] transition-colors cursor-pointer"
               onClick={() => {
-                navigate(
-                  { pathname: "/", hash: activity.id },
-                  { state: { search_query: `from:${contact_email}` } },
-                );
+                navigate(`/email/${activity.id}`);
               }}
             >
               {activity.is_sent ? (
@@ -173,6 +205,7 @@ export function ContactHistoryPanel({
                       "text-[13px] truncate text-txt-primary",
                       !activity.subject && "italic text-txt-muted",
                     )}
+                    dir="auto"
                   >
                     {activity.subject || t("mail.no_subject")}
                   </span>

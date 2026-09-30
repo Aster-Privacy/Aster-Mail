@@ -22,8 +22,10 @@ export type BuiltinEmailCategory =
   | "primary"
   | "important"
   | "promotions"
+  | "newsletters"
   | "social"
   | "updates"
+  | "transactions"
   | "forums"
   | "finance"
   | "travel"
@@ -58,6 +60,7 @@ export interface UnsubscribeInfo {
   list_unsubscribe_header?: string;
   list_unsubscribe_post?: string;
   unsubscribe_mailto?: string;
+  unsubscribe_page_url?: string;
   method: "link" | "mailto" | "one-click" | "none";
 }
 
@@ -83,6 +86,9 @@ export interface Email {
   expires_at?: string;
   expiry_type?: "sender" | "recipient";
   sender_verification?: SenderVerificationStatus;
+  sender_verified_domain?: string;
+  send_status?: string;
+  send_error?: string;
 }
 
 export interface DecryptedEmail extends Email {
@@ -150,6 +156,9 @@ export interface InboxEmail {
   avatar_url: string;
   is_encrypted?: boolean;
   is_external?: boolean;
+  system_origin?: boolean;
+  sender_verification?: SenderVerificationStatus;
+  sender_verified_domain?: string;
   labels?: InboxEmailLabel[];
   folders?: InboxEmailFolder[];
   tags?: InboxEmailTag[];
@@ -217,6 +226,7 @@ export interface DecryptedEnvelope {
   list_unsubscribe_post?: string;
   raw_headers?: { name: string; value: string }[];
   sender_verification?: SenderVerificationStatus;
+  sender_verified_domain?: string;
   attachment_keys?: Array<{
     seq: number;
     key: string;

@@ -20,14 +20,19 @@
 //
 
 import {
-  type CryptoNativeInvoiceStatus,
-} from "@/services/api/billing";
-
-import { UNSAFE_WALLET_SCHEMES, WALLET_SCHEME_BY_CHAIN, WALLET_SCHEME_SHAPE } from "./constants";
+  UNSAFE_WALLET_SCHEMES,
+  WALLET_SCHEME_BY_CHAIN,
+  WALLET_SCHEME_SHAPE,
+} from "./constants";
 import { received_atomic_of } from "./format";
 import { atomic_matches, decimal_matches } from "./normalize";
 
-export function scheme_allowed_for_chain(scheme: string, chain: string): boolean {
+import { type CryptoNativeInvoiceStatus } from "@/services/api/billing";
+
+export function scheme_allowed_for_chain(
+  scheme: string,
+  chain: string,
+): boolean {
   if (UNSAFE_WALLET_SCHEMES.has(scheme)) return false;
   if (!WALLET_SCHEME_SHAPE.test(scheme)) return false;
 
@@ -68,7 +73,9 @@ export function uri_amount_agrees(
   return true;
 }
 
-export function safe_wallet_uri(invoice: CryptoNativeInvoiceStatus): string | null {
+export function safe_wallet_uri(
+  invoice: CryptoNativeInvoiceStatus,
+): string | null {
   const candidate = invoice.payment_uri;
   const expected_address = invoice.address;
 
@@ -80,11 +87,15 @@ export function safe_wallet_uri(invoice: CryptoNativeInvoiceStatus): string | nu
   try {
     const parsed = new URL(candidate);
 
-    if (!scheme_allowed_for_chain(parsed.protocol.toLowerCase(), invoice.chain)) {
+    if (
+      !scheme_allowed_for_chain(parsed.protocol.toLowerCase(), invoice.chain)
+    ) {
       return null;
     }
 
-    if (uri_recipient(parsed).toLowerCase() !== expected_address.toLowerCase()) {
+    if (
+      uri_recipient(parsed).toLowerCase() !== expected_address.toLowerCase()
+    ) {
       return null;
     }
 
@@ -98,7 +109,11 @@ export function safe_wallet_uri(invoice: CryptoNativeInvoiceStatus): string | nu
         invoice.amount_due_atomic,
       ) ||
       (!partially_funded &&
-        uri_amount_agrees(parsed, invoice.amount_decimal, invoice.amount_atomic));
+        uri_amount_agrees(
+          parsed,
+          invoice.amount_decimal,
+          invoice.amount_atomic,
+        ));
 
     if (!agrees) return null;
 
@@ -107,4 +122,3 @@ export function safe_wallet_uri(invoice: CryptoNativeInvoiceStatus): string | nu
     return null;
   }
 }
-

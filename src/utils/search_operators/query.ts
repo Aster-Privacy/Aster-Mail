@@ -18,7 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import { date_from_zoned_parts, get_zoned_parts } from "@/utils/date_format";
+
+import type {} from "@/lib/i18n/types";
 import { DATE_REGEX, TranslateFn } from "./types";
 
 export function remove_operator_from_query(
@@ -44,11 +46,11 @@ export function add_operator_to_query(
 }
 
 export function format_date_for_operator(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
+  const parts = get_zoned_parts(date);
+  const month = String(parts.month).padStart(2, "0");
+  const day = String(parts.day).padStart(2, "0");
 
-  return `${year}-${month}-${day}`;
+  return `${parts.year}-${month}-${day}`;
 }
 
 export function parse_operator_date(date_string: string): Date | null {
@@ -57,7 +59,13 @@ export function parse_operator_date(date_string: string): Date | null {
   }
 
   const [year, month, day] = date_string.split("-").map(Number);
-  const date = new Date(year, month - 1, day);
+  const date = date_from_zoned_parts({
+    year,
+    month,
+    day,
+    hours: 0,
+    minutes: 0,
+  });
 
   if (isNaN(date.getTime())) {
     return null;
@@ -89,4 +97,3 @@ export function get_quick_filters(t?: TranslateFn): {
     },
   ];
 }
-

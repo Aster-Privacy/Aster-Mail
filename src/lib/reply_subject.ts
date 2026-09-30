@@ -29,7 +29,10 @@ export function strip_reply_prefix(
 ): string {
   const trimmed = (subject ?? "").trim();
   const localized = reply_prefix.trim();
-  const localized_pattern = localized ? `${escape_regex(localized)}|` : "";
+
+  if (!localized) return trimmed;
+
+  const localized_pattern = `${escape_regex(localized)}|`;
   const strip_re = new RegExp(`^(?:(?:${localized_pattern}re:)\\s*)+`, "i");
 
   return trimmed.replace(strip_re, "").trim();
@@ -43,5 +46,9 @@ export function build_reply_subject(
 
   if (!base) return "";
 
-  return `${reply_prefix.trim()} ${base}`;
+  const localized = reply_prefix.trim();
+
+  if (!localized) return base;
+
+  return `${localized} ${base}`;
 }

@@ -32,9 +32,8 @@ vi.mock("@/services/api/aliases", () => ({
   cancel_alias_run: vi.fn(),
 }));
 
-const { ALIAS_RUN_POLL_MAX_FAILURES, use_alias_run } = await import(
-  "./delivery"
-);
+const { ALIAS_RUN_POLL_MAX_FAILURES, use_alias_run } =
+  await import("./delivery");
 
 function make_run(status: AliasRun["status"]): AliasRun {
   return {
@@ -80,8 +79,9 @@ async function advance(ms: number) {
 
 describe("use_alias_run polling", () => {
   beforeEach(() => {
-    (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT =
-      true;
+    (
+      globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
+    ).IS_REACT_ACT_ENVIRONMENT = true;
     vi.useFakeTimers();
     get_alias_run.mockReset();
     observed = null;

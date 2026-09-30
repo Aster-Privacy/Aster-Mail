@@ -70,6 +70,16 @@ function imported_row(bytes: Uint8Array) {
   };
 }
 
+function first_differing_index(a: Uint8Array, b: Uint8Array): number {
+  if (a.length !== b.length) return Math.min(a.length, b.length);
+
+  for (let index = 0; index < a.length; index += 1) {
+    if (a[index] !== b[index]) return index;
+  }
+
+  return -1;
+}
+
 describe("imported mail attachments stored without encryption", () => {
   it("returns the stored bytes exactly for the imported shape", async () => {
     const row = imported_row(PDF_BYTES);
@@ -119,7 +129,7 @@ describe("imported mail attachments stored without encryption", () => {
     expect(new Uint8Array(data.slice(0, 8))).toEqual(
       new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31, 0x2e, 0x34]),
     );
-    expect(new Uint8Array(data)).toEqual(original);
+    expect(first_differing_index(new Uint8Array(data), original)).toBe(-1);
   });
 
   it("returns byte-identical output for a large binary payload", async () => {

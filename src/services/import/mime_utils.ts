@@ -18,9 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { unflow_format_flowed } from "@/lib/format_flowed";
-
 import type { ParsedAttachment } from "./types";
+
+import { unflow_format_flowed } from "@/lib/format_flowed";
 
 export function is_format_flowed(content_type: string): boolean {
   return /;\s*format\s*=\s*["']?flowed\b/i.test(content_type);
@@ -35,7 +35,11 @@ export function decode_text_part(
   encoding: string | undefined,
   content_type: string,
 ): string {
-  const decoded = decode_body(part_body, encoding, extract_charset(content_type));
+  const decoded = decode_body(
+    part_body,
+    encoding,
+    extract_charset(content_type),
+  );
 
   if (!is_format_flowed(content_type)) return decoded;
 
@@ -158,9 +162,7 @@ function decode_mime_word(word: string): string {
 
       return decode_charset(bytes, charset);
     } else if (encoding.toLowerCase() === "q") {
-      const bytes = decode_quoted_printable_bytes(
-        content.replace(/_/g, " "),
-      );
+      const bytes = decode_quoted_printable_bytes(content.replace(/_/g, " "));
 
       return decode_charset(bytes, charset);
     }
@@ -304,10 +306,12 @@ export function decode_body(
     return decode_quoted_printable(body);
   }
 
-  if (charset && charset.toLowerCase() !== "utf-8" && charset.toLowerCase() !== "us-ascii") {
-    const bytes = new Uint8Array(
-      [...result].map((c) => c.charCodeAt(0)),
-    );
+  if (
+    charset &&
+    charset.toLowerCase() !== "utf-8" &&
+    charset.toLowerCase() !== "us-ascii"
+  ) {
+    const bytes = new Uint8Array([...result].map((c) => c.charCodeAt(0)));
 
     return decode_charset(bytes, charset);
   }
@@ -321,7 +325,7 @@ function estimate_decoded_size(
 ): number {
   if (encoding?.toLowerCase() === "base64") {
     const cleaned = part_body.replace(/[\r\n\s]/g, "");
-    const padding = (cleaned.match(/=+$/)?.[0].length ?? 0);
+    const padding = cleaned.match(/=+$/)?.[0].length ?? 0;
 
     return Math.max(0, Math.floor((cleaned.length * 3) / 4) - padding);
   }
@@ -402,10 +406,7 @@ export function parse_multipart(
         if (!text && nested.text) text = nested.text;
         attachments.push(...nested.attachments);
       }
-    } else if (
-      !content_type.includes("text/") &&
-      part_body.trim().length > 0
-    ) {
+    } else if (!content_type.includes("text/") && part_body.trim().length > 0) {
       const filename_match =
         disposition.match(/filename=["']?([^"';\n]+)["']?/i) ||
         content_type.match(/name=["']?([^"';\n]+)["']?/i);

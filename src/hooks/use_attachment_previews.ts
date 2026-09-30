@@ -107,7 +107,19 @@ export function same_preview_entry(
   if (previous.attachments.length !== attachments.length) return false;
 
   for (let i = 0; i < attachments.length; i++) {
-    if (previous.attachments[i].id !== attachments[i].id) return false;
+    const before = previous.attachments[i];
+    const next = attachments[i];
+
+    if (
+      before.id !== next.id ||
+      before.filename !== next.filename ||
+      before.content_type !== next.content_type ||
+      before.size_bytes !== next.size_bytes ||
+      before.type_label !== next.type_label ||
+      before.type_color !== next.type_color
+    ) {
+      return false;
+    }
   }
 
   return true;
@@ -159,19 +171,108 @@ export function use_attachment_previews(
   const fetching_ref = useRef<Set<string>>(new Set());
   const merged_ref = useRef<Map<string, AttachmentPreviewEntry>>(new Map());
 
-  const fetch_previews = useCallback(async (ids_to_fetch: string[]) => {
-    if (ids_to_fetch.length === 0) return;
+  const fetch_previews = useCallback(
+    async (ids_to_fetch: string[]) => {
+      if (ids_to_fetch.length === 0) return;
 
-    const controller = new AbortController();
+      const controller = new AbortController();
 
-    abort_ref.current = controller;
+      abort_ref.current = controller;
 
-    try {
-      const response = await batch_attachment_meta(ids_to_fetch);
+      try {
+        const response = await batch_attachment_meta(ids_to_fetch);
 
-      if (controller.signal.aborted) return;
+        if (controller.signal.aborted) return;
 
-      if (!response.data) {
+        if (!response.data) {
+          for (const id of ids_to_fetch) {
+            fetching_ref.current.delete(id);
+          }
+
+          set_raw_previews((prev) => {
+            const next = new Map(prev);
+
+            for (const id of ids_to_fetch) {
+              next.set(id, { state: "error", attachments: [] });
+            }
+
+            return next;
+          });
+
+          return;
+        }
+
+        const results = new Map<string, AttachmentPreviewEntry>();
+        const unresolved = new Set<string>();
+
+        const decrypt_promises = ids_to_fetch.map(async (mail_id) => {
+          const items = response.data!.items[mail_id] || [];
+
+          if (items.length === 0) {
+            results.set(mail_id, { state: "loaded", attachments: [] });
+
+            return;
+          }
+
+          const attachments: AttachmentPreviewInfo[] = await Promise.all(
+            items.map(async (item) => {
+              const meta = await resolve_attachment_meta({
+                encrypted_meta: item.encrypted_meta,
+                meta_nonce: item.meta_nonce,
+                mail_item_id: item.mail_item_id,
+                seq_num: item.seq_num,
+                size_bytes: item.size_bytes,
+              });
+
+              if (meta.is_placeholder) unresolved.add(mail_id);
+
+              const filename =
+                meta.filename ?? t("common.encrypted_attachment");
+              const content_type =
+                meta.content_type ?? DEFAULT_ATTACHMENT_CONTENT_TYPE;
+
+              return {
+                id: item.id,
+                filename,
+                content_type,
+                size_bytes: meta.size_bytes || item.size_bytes,
+                type_label: get_type_label(content_type, filename),
+                type_color: get_type_color(content_type),
+              };
+            }),
+          );
+
+          results.set(mail_id, { state: "loaded", attachments });
+        });
+
+        await Promise.allSettled(decrypt_promises);
+
+        if (controller.signal.aborted) return;
+
+        const now = Date.now();
+
+        for (const id of ids_to_fetch) {
+          fetching_ref.current.delete(id);
+        }
+
+        set_raw_previews((prev) => {
+          const next = new Map(prev);
+
+          for (const [mail_id, entry] of results) {
+            next.set(mail_id, entry);
+
+            if (!unresolved.has(mail_id)) {
+              preview_cache.set(mail_id, { entry, timestamp: now });
+            }
+          }
+
+          return next;
+        });
+
+        evict_stale_entries();
+      } catch {
+        if (controller.signal.aborted) return;
+
         for (const id of ids_to_fetch) {
           fetching_ref.current.delete(id);
         }
@@ -185,95 +286,10 @@ export function use_attachment_previews(
 
           return next;
         });
-
-        return;
       }
-
-      const results = new Map<string, AttachmentPreviewEntry>();
-      const unresolved = new Set<string>();
-
-      const decrypt_promises = ids_to_fetch.map(async (mail_id) => {
-        const items = response.data!.items[mail_id] || [];
-
-        if (items.length === 0) {
-          results.set(mail_id, { state: "loaded", attachments: [] });
-
-          return;
-        }
-
-        const attachments: AttachmentPreviewInfo[] = await Promise.all(
-          items.map(async (item) => {
-            const meta = await resolve_attachment_meta({
-              encrypted_meta: item.encrypted_meta,
-              meta_nonce: item.meta_nonce,
-              mail_item_id: item.mail_item_id,
-              seq_num: item.seq_num,
-              size_bytes: item.size_bytes,
-            });
-
-            if (meta.is_placeholder) unresolved.add(mail_id);
-
-            const filename = meta.filename ?? t("common.encrypted_attachment");
-            const content_type =
-              meta.content_type ?? DEFAULT_ATTACHMENT_CONTENT_TYPE;
-
-            return {
-              id: item.id,
-              filename,
-              content_type,
-              size_bytes: meta.size_bytes || item.size_bytes,
-              type_label: get_type_label(content_type, filename),
-              type_color: get_type_color(content_type),
-            };
-          }),
-        );
-
-        results.set(mail_id, { state: "loaded", attachments });
-      });
-
-      await Promise.allSettled(decrypt_promises);
-
-      if (controller.signal.aborted) return;
-
-      const now = Date.now();
-
-      for (const id of ids_to_fetch) {
-        fetching_ref.current.delete(id);
-      }
-
-      set_raw_previews((prev) => {
-        const next = new Map(prev);
-
-        for (const [mail_id, entry] of results) {
-          next.set(mail_id, entry);
-
-          if (!unresolved.has(mail_id)) {
-            preview_cache.set(mail_id, { entry, timestamp: now });
-          }
-        }
-
-        return next;
-      });
-
-      evict_stale_entries();
-    } catch {
-      if (controller.signal.aborted) return;
-
-      for (const id of ids_to_fetch) {
-        fetching_ref.current.delete(id);
-      }
-
-      set_raw_previews((prev) => {
-        const next = new Map(prev);
-
-        for (const id of ids_to_fetch) {
-          next.set(id, { state: "error", attachments: [] });
-        }
-
-        return next;
-      });
-    }
-  }, [t]);
+    },
+    [t],
+  );
 
   useEffect(() => {
     if (!enabled) return;

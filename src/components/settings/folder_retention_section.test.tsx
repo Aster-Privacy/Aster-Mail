@@ -23,7 +23,6 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -56,7 +55,8 @@ vi.mock("@/lib/i18n/context", () => ({
   use_i18n: () => h.i18n,
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({
     children,
     onClick,
@@ -66,7 +66,7 @@ vi.mock("@aster/ui", () => ({
     onClick?: () => void;
     disabled?: boolean;
   }) => (
-    <button onClick={onClick} disabled={disabled}>
+    <button disabled={disabled} onClick={onClick}>
       {children}
     </button>
   ),
@@ -78,8 +78,8 @@ vi.mock("@aster/ui", () => ({
     onCheckedChange: (v: boolean) => void;
   }) => (
     <input
-      type="checkbox"
       checked={checked}
+      type="checkbox"
       onChange={(e) => onCheckedChange(e.currentTarget.checked)}
     />
   ),
@@ -93,11 +93,21 @@ vi.mock("@/components/ui/modal", () => ({
     is_open: boolean;
     children: React.ReactNode;
   }) => (is_open ? <div data-testid="modal">{children}</div> : null),
-  ModalHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  ModalTitle: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  ModalDescription: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  ModalBody: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  ModalFooter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  ModalHeader: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  ModalTitle: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  ModalDescription: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  ModalBody: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
+  ModalFooter: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
 }));
 
 vi.mock("@/components/ui/select", () => ({
@@ -113,8 +123,8 @@ vi.mock("@/components/ui/select", () => ({
     children: React.ReactNode;
   }) => (
     <select
-      value={value}
       disabled={disabled}
+      value={value}
       onChange={(e) => onValueChange(e.currentTarget.value)}
     >
       {children}
@@ -189,6 +199,7 @@ async function click_button_containing(text: string) {
   const btn = Array.from(container.querySelectorAll("button")).find((b) =>
     (b.textContent ?? "").includes(text),
   ) as HTMLButtonElement | undefined;
+
   if (!btn) throw new Error(`button containing "${text}" not found`);
   await act(async () => {
     btn.click();
@@ -202,6 +213,7 @@ async function set_select(value: string) {
     window.HTMLSelectElement.prototype,
     "value",
   )!.set!;
+
   await act(async () => {
     setter.call(sel, value);
     sel.dispatchEvent(new Event("change", { bubbles: true }));
@@ -227,6 +239,7 @@ describe("FolderRetentionSection", () => {
     });
     await render();
     const text = container.textContent ?? "";
+
     expect(text).toContain("Newsletters");
     expect(text).toContain("folder_retention.summary_older_than");
     expect(text).toContain("folder_retention.summary_trash");
@@ -240,6 +253,7 @@ describe("FolderRetentionSection", () => {
     await render();
     await click_button_containing("folder_retention.add");
     const text = container.textContent ?? "";
+
     expect(text).toContain("folder_retention.upgrade_title");
     expect(text).not.toContain("folder_retention.edit_title");
   });
@@ -249,6 +263,7 @@ describe("FolderRetentionSection", () => {
     await render();
     await click_button_containing("folder_retention.add");
     const text = container.textContent ?? "";
+
     expect(text).toContain("folder_retention.edit_title");
     expect(text).not.toContain("folder_retention.upgrade_title");
   });
@@ -259,6 +274,7 @@ describe("FolderRetentionSection", () => {
     const options = Array.from(container.querySelectorAll("option")).map(
       (o) => o.textContent,
     );
+
     expect(options).toContain("Newsletters");
     expect(options).not.toContain("Inbox");
   });
@@ -367,6 +383,7 @@ describe("FolderRetentionSection", () => {
     const checkbox = container.querySelector(
       'input[type="checkbox"]',
     ) as HTMLInputElement;
+
     await act(async () => {
       checkbox.click();
       await flush();

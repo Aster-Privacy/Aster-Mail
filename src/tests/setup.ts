@@ -20,6 +20,51 @@
 //
 import { afterEach, beforeEach, vi } from "vitest";
 
+const NODE_NAME_BY_TYPE: Record<number, string> = {
+  3: "#text",
+  4: "#cdata-section",
+  8: "#comment",
+  9: "#document",
+  11: "#document-fragment",
+};
+
+function inherited_node_name(node: Node): string {
+  let prototype = Object.getPrototypeOf(node);
+
+  while (prototype && prototype !== Node.prototype) {
+    const descriptor = Object.getOwnPropertyDescriptor(prototype, "nodeName");
+
+    if (descriptor && descriptor.get)
+      return descriptor.get.call(node) as string;
+
+    prototype = Object.getPrototypeOf(prototype);
+  }
+
+  return NODE_NAME_BY_TYPE[node.nodeType] ?? "";
+}
+
+function repair_node_name_getter(): void {
+  if (typeof Node === "undefined" || typeof document === "undefined") return;
+
+  const descriptor = Object.getOwnPropertyDescriptor(
+    Node.prototype,
+    "nodeName",
+  );
+
+  if (!descriptor || !descriptor.get) return;
+  if (descriptor.get.call(document.createElement("div")) !== "") return;
+
+  Object.defineProperty(Node.prototype, "nodeName", {
+    configurable: true,
+    enumerable: descriptor.enumerable,
+    get(this: Node): string {
+      return inherited_node_name(this);
+    },
+  });
+}
+
+repair_node_name_getter();
+
 const subtle_crypto_mock = {
   generateKey: vi.fn(),
   importKey: vi.fn(),
@@ -56,6 +101,16 @@ if (typeof globalThis.crypto === "undefined") {
 
 if (typeof globalThis.indexedDB === "undefined") {
   const stores = new Map<string, Map<string, unknown>>();
+  const db_store_names = new Set<string>(["encrypted_data"]);
+
+  const mock_store_name_list = () => {
+    const names = Array.from(db_store_names);
+
+    return Object.assign(names, {
+      contains: (name: string) => db_store_names.has(name),
+      item: (index: number) => names[index] ?? null,
+    });
+  };
 
   const mock_idb_request = (result: unknown, error: unknown = null) => ({
     result,
@@ -210,14 +265,23 @@ if (typeof globalThis.indexedDB === "undefined") {
   const mock_database = {
     name: "astermail_secure_db",
     version: 1,
-    objectStoreNames: ["encrypted_data"],
+    get objectStoreNames() {
+      return mock_store_name_list();
+    },
     onabort: null,
     onclose: null,
     onerror: null,
     onversionchange: null,
     close: vi.fn(),
-    createObjectStore: vi.fn((name: string) => mock_object_store(name)),
-    deleteObjectStore: vi.fn(),
+    createObjectStore: vi.fn((name: string) => {
+      db_store_names.add(name);
+
+      return mock_object_store(name);
+    }),
+    deleteObjectStore: vi.fn((name: string) => {
+      db_store_names.delete(name);
+      stores.delete(name);
+    }),
     transaction: vi.fn((names: string | string[]) =>
       mock_transaction(Array.isArray(names) ? names : [names]),
     ),

@@ -18,15 +18,21 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/services/api/aliases";
-import type { } from "@/lib/i18n/types";
+import type {} from "@/services/api/aliases";
+import type {} from "@/lib/i18n/types";
 
+import { Link } from "react-router-dom";
 
+import {
+  MAX_DISPLAY_NAME_LENGTH,
+  MAX_NOTE_LENGTH,
+  PanelRow,
+  TextFieldRow,
+} from "./shared";
 
 import { AliasWebsitesEditor } from "@/components/settings/aliases/alias_websites_editor";
 import { use_i18n } from "@/lib/i18n/context";
 
-import { MAX_DISPLAY_NAME_LENGTH, MAX_NOTE_LENGTH, PanelRow, TextFieldRow } from "./shared";
 export interface AliasDetailsProps {
   alias_address: string;
   alias_address_hash?: string;
@@ -58,7 +64,7 @@ export function AliasDetailsPanel({
   const { t } = use_i18n();
 
   return (
-    <div className="divide-y divide-edge-secondary">
+    <div className="divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
       <TextFieldRow
         description={t("settings.alias_display_name_desc")}
         error_message={t("common.failed_update_alias_display_name")}
@@ -98,6 +104,17 @@ export function AliasDetailsPanel({
             websites={websites}
           />
         </div>
+      </PanelRow>
+      <PanelRow
+        description={t("settings.alias_sent_mail_desc")}
+        label={t("settings.alias_sent_mail_label")}
+      >
+        <Link
+          className="text-sm font-medium text-[var(--accent-blue)] hover:underline"
+          to={`/alias/${encodeURIComponent(alias_address)}?direction=sent`}
+        >
+          {t("mail.alias_view_sent")}
+        </Link>
       </PanelRow>
     </div>
   );

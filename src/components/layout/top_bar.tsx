@@ -18,17 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useCallback, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Bars3Icon,
   Cog6ToothIcon,
   ChatBubbleLeftRightIcon,
   DocumentTextIcon,
+  EnvelopeIcon,
   LifebuoyIcon,
   QuestionMarkCircleIcon,
   ShieldCheckIcon,
 } from "@heroicons/react/24/outline";
+import { TagIcon } from "@heroicons/react/24/solid";
 import { Button, Tooltip } from "@aster/ui";
 
 import {
@@ -46,8 +48,14 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_primary_identity } from "@/lib/primary_identity";
+import { open_external } from "@/utils/open_link";
+import { show_upgrade_plans } from "@/stores/upgrade_store";
+import { show_special_offer } from "@/stores/special_offer_store";
+import { use_special_offer_status } from "@/stores/special_offer_status";
+import { is_special_offer_available } from "@/lib/special_offer";
 
 const HELP_CENTER_URL = "https://astermail.org/help";
+const SUPPORT_ADDRESS = "hello@astermail.org";
 const PRIVACY_URL = "https://astermail.org/privacy";
 const TERMS_URL = "https://astermail.org/terms";
 
@@ -85,16 +93,19 @@ function IconButton({
   children,
   label,
   on_click,
+  onboarding_key,
 }: {
   children: React.ReactNode;
   label: string;
   on_click: () => void;
+  onboarding_key?: string;
 }) {
   return (
     <Tooltip tip={label}>
       <button
         aria-label={label}
         className="flex items-center justify-center w-9 h-9 rounded-full transition-colors text-[var(--text-primary)] hover:bg-[var(--bg-hover)] focus:outline-none"
+        data-onboarding={onboarding_key}
         type="button"
         onClick={on_click}
       >
@@ -104,7 +115,7 @@ function IconButton({
   );
 }
 
-export function TopBar({
+function top_bar_base({
   is_settings_view = false,
   on_mobile_menu_toggle,
   on_search_result_click,
@@ -116,16 +127,33 @@ export function TopBar({
   const { t } = use_i18n();
   const { user } = use_auth();
   const { preferences, update_preference } = use_preferences();
-  const { limits } = use_plan_limits();
-  const is_free_plan = limits?.plan_code === "free";
-  const is_paid_plan = !!limits && limits.plan_code !== "free";
+  const { plan_code } = use_plan_limits();
+  const is_free_plan = plan_code === "free";
+  const is_paid_plan = plan_code !== null && plan_code !== "free";
+  const { status: special_offer_status } = use_special_offer_status();
+  const has_special_offer =
+    (special_offer_status?.available ?? false) &&
+    is_special_offer_available({ plan_code, is_dismissed: false });
   const navigate = useNavigate();
+  const is_mounted = useRef(true);
   const [is_accounts_open, set_is_accounts_open] = useState(false);
   const [is_mobile, set_is_mobile] = useState(false);
   const [show_account_tip, set_show_account_tip] = useState(false);
   const account_tip_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const account_tip_blocked = useRef(false);
   const account_tip_anchor = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    is_mounted.current = true;
+
+    return () => {
+      is_mounted.current = false;
+    };
+  }, []);
+
+  const open_special_offer = useCallback(() => {
+    show_special_offer("manual");
+  }, []);
 
   const close_account_tip = useCallback(() => {
     if (account_tip_timer.current) clearTimeout(account_tip_timer.current);
@@ -146,6 +174,17 @@ export function TopBar({
       new CustomEvent("navigate-settings", { detail: "feedback" }),
     );
   }, []);
+
+  const open_support_compose = useCallback(() => {
+    if (window.location.pathname.startsWith("/settings")) {
+      navigate("/");
+    }
+    window.dispatchEvent(
+      new CustomEvent("aster:open-compose-prefilled", {
+        detail: { to: [SUPPORT_ADDRESS], subject: "", body: "" },
+      }),
+    );
+  }, [navigate]);
 
   const leave_account_tip = useCallback(() => {
     account_tip_blocked.current = false;
@@ -183,12 +222,6 @@ export function TopBar({
     user?.username ||
     (primary_identity.email || account_email).split("@")[0];
 
-  const open_billing = useCallback(() => {
-    window.dispatchEvent(
-      new CustomEvent("navigate-settings", { detail: "billing" }),
-    );
-  }, []);
-
   const sidebar_expanded_width = Math.min(
     360,
     Math.max(200, preferences.sidebar_width ?? 256),
@@ -215,11 +248,11 @@ export function TopBar({
 
   return (
     <header
-      className="flex items-center h-14 pr-2 sm:pr-3 flex-shrink-0"
+      className="flex items-center h-14 pe-2 sm:pe-3 flex-shrink-0 select-none"
       style={{ backgroundColor: "var(--bg-secondary)" }}
     >
       <div
-        className="flex items-center gap-2 flex-shrink-0 px-2 sm:pl-[22px] sm:pr-3"
+        className="flex items-center gap-2 flex-shrink-0 px-2 sm:ps-[22px] sm:pe-3"
         style={is_mobile ? undefined : { width: left_cluster_width }}
       >
         {is_mobile && (
@@ -258,7 +291,7 @@ export function TopBar({
         </Tooltip>
       </div>
 
-      <div className="flex-1 min-w-0 flex items-center pl-1 md:pl-2">
+      <div className="flex-1 min-w-0 flex items-center ps-1 md:ps-2">
         {is_settings_view ? (
           <div className="w-full" id="settings_search_slot" />
         ) : (
@@ -271,12 +304,12 @@ export function TopBar({
         )}
       </div>
 
-      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 ml-auto pl-2">
+      <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0 ms-auto ps-2">
         <DropdownMenu>
           <Tooltip tip={t("common.help")}>
             <DropdownMenuTrigger asChild>
               <button
-                aria-label={t("settings.category_support")}
+                aria-label={t("common.help")}
                 className="flex items-center justify-center w-9 h-9 rounded-full transition-colors text-[var(--text-primary)] hover:bg-[var(--bg-hover)] focus:outline-none"
                 type="button"
               >
@@ -285,54 +318,64 @@ export function TopBar({
             </DropdownMenuTrigger>
           </Tooltip>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuItem
-              onClick={() =>
-                window.open(HELP_CENTER_URL, "_blank", "noopener,noreferrer")
-              }
-            >
-              <LifebuoyIcon className="w-4 h-4 mr-2" />
+            <DropdownMenuItem onClick={() => open_external(HELP_CENTER_URL)}>
+              <LifebuoyIcon className="w-4 h-4 me-2" />
               {t("settings.bridge_support_help")}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={on_shortcuts_click}>
-              <KeyboardIcon className="w-4 h-4 mr-2" />
+              <KeyboardIcon className="w-4 h-4 me-2" />
               {t("common.keyboard_shortcuts")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={open_support_compose}>
+              <EnvelopeIcon className="w-4 h-4 me-2" />
+              {t("common.contact_support")}
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={open_feedback_settings}>
-              <ChatBubbleLeftRightIcon className="w-4 h-4 mr-2" />
+              <ChatBubbleLeftRightIcon className="w-4 h-4 me-2" />
               {t("common.send_feedback_to_aster")}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() =>
-                window.open(PRIVACY_URL, "_blank", "noopener,noreferrer")
-              }
-            >
-              <ShieldCheckIcon className="w-4 h-4 mr-2" />
+            <DropdownMenuItem onClick={() => open_external(PRIVACY_URL)}>
+              <ShieldCheckIcon className="w-4 h-4 me-2" />
               {t("auth.privacy_policy")}
             </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                window.open(TERMS_URL, "_blank", "noopener,noreferrer")
-              }
-            >
-              <DocumentTextIcon className="w-4 h-4 mr-2" />
+            <DropdownMenuItem onClick={() => open_external(TERMS_URL)}>
+              <DocumentTextIcon className="w-4 h-4 me-2" />
               {t("auth.terms_of_service")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <IconButton label={t("settings.title")} on_click={on_settings_click}>
+        <IconButton
+          label={t("settings.title")}
+          on_click={on_settings_click}
+          onboarding_key="settings-button"
+        >
           <Cog6ToothIcon className="w-5 h-5" />
         </IconButton>
 
-        {is_free_plan && (
-          <Tooltip tip={t("common.upgrade_tooltip")}>
+        {is_free_plan && has_special_offer && (
+          <Tooltip tip={t("settings.special_offer_subtitle")}>
             <Button
-              className="hidden sm:inline-flex !h-9 !rounded-full !text-[14px] !font-medium !px-5 ml-1"
+              className="special_offer_pill hidden sm:inline-flex !h-9 !rounded-[var(--aster-radius-control)] !text-[14px] !font-medium !px-5 ms-1 gap-1.5"
               size="sm"
               variant="depth"
-              onClick={open_billing}
+              onClick={open_special_offer}
+            >
+              <TagIcon className="w-4 h-4" />
+              {t("settings.special_offer_button")}
+            </Button>
+          </Tooltip>
+        )}
+
+        {is_free_plan && !has_special_offer && (
+          <Tooltip tip={t("common.upgrade_tooltip")}>
+            <Button
+              className="hidden sm:inline-flex !h-9 !rounded-[var(--aster-radius-control)] !text-[14px] !font-medium !px-5 ms-1"
+              size="sm"
+              variant="depth"
+              onClick={() => show_upgrade_plans()}
             >
               {t("common.upgrade")}
             </Button>
@@ -341,7 +384,7 @@ export function TopBar({
 
         <div
           ref={account_tip_anchor}
-          className="relative"
+          className={`relative ${is_free_plan ? "" : "ms-1.5"}`}
           onMouseEnter={open_account_tip}
           onMouseLeave={leave_account_tip}
           onPointerDownCapture={close_account_tip}
@@ -365,7 +408,9 @@ export function TopBar({
                     email={account_email}
                     image_url={user?.profile_picture}
                     name={display_name}
-                    profile_color={preferences.profile_color}
+                    profile_color={
+                      user?.profile_color || preferences.profile_color
+                    }
                     size="sm"
                   />
                 </span>
@@ -373,7 +418,7 @@ export function TopBar({
             }
           />
           {show_account_tip && !is_accounts_open && (
-            <div className="aster_tip_portal pointer-events-none absolute right-0 top-full mt-1.5 z-[70] text-left">
+            <div className="aster_tip_portal pointer-events-none absolute end-0 top-full mt-1.5 z-[70] text-start">
               <p className="font-medium text-[var(--text-primary)]">
                 {t("common.aster_account")}
               </p>
@@ -388,3 +433,5 @@ export function TopBar({
     </header>
   );
 }
+
+export const TopBar = memo(top_bar_base);

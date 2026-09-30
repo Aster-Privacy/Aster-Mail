@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { LeafCondition, Rule, RuleRun } from "@/services/api/mail_rules";
+import type { RetentionPolicy } from "@/services/api/retention_policies";
+
 import * as React from "react";
 import {
   PlusIcon,
@@ -26,7 +29,13 @@ import {
   Squares2X2Icon,
   ClockIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandEmpty,
+  IslandSection,
+  IslandSections,
+} from "@aster/ui";
 
 import {
   Modal,
@@ -36,6 +45,8 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { use_i18n } from "@/lib/i18n/context";
+import { format_number } from "@/lib/utils";
+import { ELLIPSIS } from "@/utils/preview_text";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -45,6 +56,7 @@ import {
   load_runs,
   stop_all_run_polls,
   reorder,
+  take_rule_seed,
 } from "@/stores/mail_rules_store";
 import { ConditionChip } from "@/components/mail_rules/condition_chip";
 import { ActionChip } from "@/components/mail_rules/action_chip";
@@ -64,37 +76,43 @@ import {
   RetentionEditorModal,
   RetentionUpgradeModal,
 } from "@/components/settings/folder_retention_section";
-import type { LeafCondition, Rule, RuleRun } from "@/services/api/mail_rules";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 
 export function MailRulesSection() {
   const { t } = use_i18n();
-  const { rules, loading, runs } = use_mail_rules_store();
+  const { rules, loading, loaded, runs, error } = use_mail_rules_store();
   const { state: folders_state, fetch_folders } = use_folders();
   const { state: tags_state, fetch_tags } = use_tags();
-  const { limits } = use_plan_limits();
+  const { limits, is_loading: limits_loading } = use_plan_limits();
   const retention = use_folder_retention();
   const rules_limit = limits?.limits["max_custom_filters"]?.limit ?? -1;
-  const rules_limit_label = rules_limit === -1 ? "∞" : String(rules_limit);
+  const rules_limit_label =
+    rules_limit === -1 ? "∞" : format_number(rules_limit);
   const at_limit = rules_limit !== -1 && rules.length >= rules_limit;
   const [editor_open, set_editor_open] = React.useState(false);
   const [editing_rule, set_editing_rule] = React.useState<Rule | null>(null);
   const [seed, set_seed] = React.useState<RuleEditorSeed | null>(null);
+  const [pending_seed, set_pending_seed] =
+    React.useState<RuleEditorSeed | null>(take_rule_seed);
   const [gallery_open, set_gallery_open] = React.useState(false);
   const [show_upgrade_modal, set_show_upgrade_modal] = React.useState(false);
   const [drag_index, set_drag_index] = React.useState<number | null>(null);
   const [drag_over_index, set_drag_over_index] = React.useState<number | null>(
     null,
   );
+  const [confirm_delete_policy, set_confirm_delete_policy] =
+    React.useState<RetentionPolicy | null>(null);
 
   use_register_search_items("mail_rules", [
     {
       label: t("mail_rules.templates_button"),
-      breadcrumb: "Mail Rules",
+      breadcrumb: t("mail_rules.title"),
       keywords: ["template", "starter rule", "preset", "example rule"],
     },
     {
-      label: t("folder_retention.title"),
-      breadcrumb: "Mail Rules > Folder auto-clean",
+      label: t("folder_retention.add"),
+      breadcrumb: `${t("mail_rules.title")} > ${t("folder_retention.title")}`,
       keywords: [
         "auto delete",
         "auto-clean",
@@ -124,6 +142,19 @@ export function MailRulesSection() {
     }
   }, []);
 
+  React.useEffect(() => {
+    if (!pending_seed || !loaded || loading || limits_loading) return;
+    set_pending_seed(null);
+    if (at_limit) {
+      set_show_upgrade_modal(true);
+
+      return;
+    }
+    set_editing_rule(null);
+    set_seed(pending_seed);
+    set_editor_open(true);
+  }, [pending_seed, loaded, loading, limits_loading, at_limit]);
+
   const open_new = () => {
     set_editing_rule(null);
     set_seed(null);
@@ -139,6 +170,7 @@ export function MailRulesSection() {
   const open_templates = () => {
     if (at_limit) {
       set_show_upgrade_modal(true);
+
       return;
     }
     set_gallery_open(true);
@@ -148,6 +180,7 @@ export function MailRulesSection() {
     set_gallery_open(false);
     if (template.opens_retention) {
       retention.open_new();
+
       return;
     }
     set_editing_rule(null);
@@ -163,6 +196,7 @@ export function MailRulesSection() {
     ) {
       set_drag_index(null);
       set_drag_over_index(null);
+
       return;
     }
 
@@ -180,105 +214,127 @@ export function MailRulesSection() {
   };
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-4">
-          <div className="flex items-center justify-between">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-              <BoltIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-              {t("mail_rules.title")}
-              <span className="text-xs font-normal text-txt-muted">
-                {loading ? "..." : `${rules.length}/${rules_limit_label}`}
-              </span>
-            </h3>
-            <div className="flex items-center gap-2">
-              <Button size="md" variant="outline" onClick={open_templates}>
-                <Squares2X2Icon className="w-4 h-4" />
-                {t("mail_rules.templates_button")}
-              </Button>
-              <Button size="md" variant="outline" onClick={retention.open_new}>
-                <ClockIcon className="w-4 h-4" />
-                {t("folder_retention.add")}
-              </Button>
-              <Button
-                size="md"
-                variant="depth"
-                onClick={
-                  at_limit ? () => set_show_upgrade_modal(true) : open_new
-                }
-                title={at_limit ? t("mail_rules.at_limit_upgrade") : undefined}
-              >
-                <PlusIcon className="w-4 h-4" />
-                {t("mail_rules.new_rule")}
-              </Button>
-            </div>
-          </div>
-          <div className="mt-2 h-px bg-edge-secondary" />
+    <IslandSections>
+      <IslandSection
+        bare
+        description={t("mail_rules.subtitle")}
+        icon={<BoltIcon />}
+        title={t("mail_rules.title")}
+        title_info={
+          <span className="tabular-nums">
+            {loading
+              ? ELLIPSIS
+              : `${format_number(rules.length)}/${rules_limit_label}`}
+          </span>
+        }
+      >
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            className="shrink-0 whitespace-nowrap"
+            size="md"
+            variant="outline"
+            onClick={open_templates}
+          >
+            <Squares2X2Icon className="w-4 h-4" />
+            {t("mail_rules.templates_button")}
+          </Button>
+          <Button
+            className="shrink-0 whitespace-nowrap"
+            size="md"
+            variant="outline"
+            onClick={retention.open_new}
+          >
+            <ClockIcon className="w-4 h-4" />
+            {t("folder_retention.add")}
+          </Button>
+          <Button
+            className="shrink-0 whitespace-nowrap"
+            size="md"
+            title={at_limit ? t("mail_rules.at_limit_upgrade") : undefined}
+            variant="depth"
+            onClick={at_limit ? () => set_show_upgrade_modal(true) : open_new}
+          >
+            <PlusIcon className="w-4 h-4" />
+            {t("mail_rules.new_rule")}
+          </Button>
         </div>
-        <p className="text-sm mb-4 text-txt-muted">
-          {t("mail_rules.subtitle")}
-        </p>
-      </div>
+      </IslandSection>
 
       {(loading || retention.loading) &&
         rules.length === 0 &&
         retention.policies.length === 0 && (
-          <div className="space-y-3">
+          <div className="flex flex-col gap-2">
             {[0, 1, 2].map((i) => (
-              <div
-                key={i}
-                className="h-20 rounded-lg bg-neutral-100 dark:bg-neutral-800 animate-pulse"
-              />
+              <Island key={i} className="h-20 animate-pulse" />
             ))}
           </div>
         )}
 
+      {!loading && error && rules.length === 0 && (
+        <IslandEmpty
+          action={
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => void load_rules()}
+            >
+              {t("common.retry")}
+            </Button>
+          }
+          title={t("common.something_went_wrong_try_again")}
+        />
+      )}
+
+      {!retention.loading &&
+        retention.load_failed &&
+        retention.policies.length === 0 && (
+          <LoadFailedNotice on_retry={retention.reload} />
+        )}
+
       {!loading &&
+        !error &&
         !retention.loading &&
+        !retention.load_failed &&
         rules.length === 0 &&
         retention.policies.length === 0 && (
-          <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-            <BoltIcon className="w-12 h-12 mx-auto mb-2 text-txt-tertiary" />
-            <p className="text-sm text-txt-muted mb-1">
-              {t("mail_rules.empty_title")}
-            </p>
-            <p className="text-xs text-txt-muted">
-              {t("mail_rules.empty_description")}
-            </p>
-          </div>
+          <IslandEmpty
+            description={t("mail_rules.empty_description")}
+            icon={<BoltIcon />}
+            title={t("mail_rules.empty_title")}
+          />
         )}
 
       {rules.length > 0 && (
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           {rules.map((rule, idx) => (
             <RuleCard
               key={rule.id}
-              rule={rule}
-              run={runs[rule.id] ?? null}
               is_drag_over={drag_over_index === idx && drag_index !== idx}
-              on_drag_start={() => set_drag_index(idx)}
+              on_drag_end={handle_drop}
               on_drag_over={(e) => {
                 e.preventDefault();
                 set_drag_over_index(idx);
               }}
-              on_drag_end={handle_drop}
+              on_drag_start={() => set_drag_index(idx)}
               on_drop={handle_drop}
               on_edit={() => open_edit(rule)}
+              rule={rule}
+              run={runs[rule.id] ?? null}
             />
           ))}
         </div>
       )}
 
       {retention.policies.length > 0 && (
-        <div className="space-y-2">
+        <div className="flex flex-col gap-2">
           {retention.policies.map((policy) => (
             <RetentionPolicyCard
               key={policy.id}
-              policy={policy}
               folder_name={retention.get_folder_name(policy.folder_token)}
+              on_delete={() => set_confirm_delete_policy(policy)}
               on_edit={() => retention.open_edit(policy)}
               on_toggle={() => retention.handle_toggle(policy)}
-              on_delete={() => retention.handle_delete(policy)}
+              policy={policy}
             />
           ))}
         </div>
@@ -329,19 +385,35 @@ export function MailRulesSection() {
 
       {retention.editor_open && (
         <RetentionEditorModal
-          is_open={retention.editor_open}
-          on_close={() => retention.set_editor_open(false)}
-          policy={retention.editing}
           custom_folders={retention.custom_folders}
           existing_tokens={retention.existing_tokens}
+          is_open={retention.editor_open}
+          on_close={() => retention.set_editor_open(false)}
           on_saved={retention.handle_saved}
+          policy={retention.editing}
         />
       )}
       <RetentionUpgradeModal
         is_open={retention.show_upgrade}
         on_close={() => retention.set_show_upgrade(false)}
       />
-    </div>
+
+      <ConfirmationModal
+        confirm_text={t("folder_retention.remove")}
+        is_open={confirm_delete_policy !== null}
+        message={t("common.action_cannot_be_undone")}
+        on_cancel={() => set_confirm_delete_policy(null)}
+        on_confirm={() => {
+          const target = confirm_delete_policy;
+
+          set_confirm_delete_policy(null);
+
+          if (target) void retention.handle_delete(target);
+        }}
+        title={t("folder_retention.delete")}
+        variant="danger"
+      />
+    </IslandSections>
   );
 }
 
@@ -387,27 +459,27 @@ function RuleCard({
           : null;
 
   return (
-    <div
+    <Island
+      interactive
+      className={`group relative cursor-pointer [&_*]:cursor-pointer ${
+        is_drag_over ? "ring-2 ring-[var(--accent-color)]/40" : ""
+      } ${!rule.enabled ? "opacity-60" : ""}`}
+      padding="md"
+      selected={is_drag_over}
       draggable={draggable_on}
-      onDragStart={on_drag_start}
-      onDragOver={on_drag_over}
+      onClick={on_edit}
       onDragEnd={() => {
         set_draggable_on(false);
         on_drag_end();
       }}
+      onDragOver={on_drag_over}
+      onDragStart={on_drag_start}
       onDrop={on_drop}
-      onClick={on_edit}
-      className={`group relative rounded-xl border bg-surf-primary p-4 transition-colors cursor-pointer [&_*]:cursor-pointer hover:bg-surf-secondary ${
-        is_drag_over
-          ? "border-blue-500 ring-2 ring-blue-500/40"
-          : "border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600"
-      } ${!rule.enabled ? "opacity-60" : ""}`}
     >
       <div className="flex items-start gap-3">
         <button
+          className="flex-1 text-start min-w-0 cursor-pointer"
           type="button"
-          onClick={on_edit}
-          className="flex-1 text-left min-w-0 cursor-pointer"
         >
           <div className="flex items-center gap-1.5 mb-1.5">
             <span
@@ -437,25 +509,25 @@ function RuleCard({
                 <React.Fragment key={`c-${i}`}>
                   {i > 0 && (
                     <AndOrPill
+                      read_only
                       mode={rule.match_mode}
                       on_change={() => {}}
-                      read_only
                     />
                   )}
                   <ConditionChip
-                    condition={c as LeafCondition}
                     read_only
+                    condition={c as LeafCondition}
                     on_change={() => {}}
                     on_remove={() => {}}
                   />
                 </React.Fragment>
               ))}
-            <span className="text-neutral-400 text-[12px] px-0.5">→</span>
+            <span className="text-txt-muted text-[12px] px-0.5">→</span>
             {rule.actions.map((a, i) => (
               <ActionChip
                 key={`a-${i}`}
-                action={a}
                 read_only
+                action={a}
                 on_change={() => {}}
                 on_remove={() => {}}
               />
@@ -464,15 +536,15 @@ function RuleCard({
         </button>
         <div className="flex items-center gap-1 flex-shrink-0">
           <span
-            className="text-neutral-400 cursor-grab transition-opacity opacity-0 group-hover:opacity-100"
+            aria-label={t("mail_rules.drag_handle")}
+            className="text-txt-muted cursor-grab transition-opacity opacity-0 group-hover:opacity-100"
             onMouseDown={() => set_draggable_on(true)}
             onMouseUp={() => set_draggable_on(false)}
-            aria-label={t("mail_rules.drag_handle")}
           >
             <Bars3Icon className="w-4 h-4" />
           </span>
         </div>
       </div>
-    </div>
+    </Island>
   );
 }

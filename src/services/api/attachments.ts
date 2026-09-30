@@ -20,6 +20,7 @@
 //
 import { api_client, type ApiResponse } from "./client";
 import { with_folder_unlock } from "./folder_unlock_retry";
+import { upload_timeout_ms } from "./upload_timeout";
 
 import {
   resolve_item_unlock_token,
@@ -85,6 +86,17 @@ export async function create_attachment(
 ): Promise<ApiResponse<MailAttachment>> {
   return api_client.post<MailAttachment>(
     `/mail/v1/attachments/by-mail/${mail_id}`,
+    data,
+    { timeout: upload_timeout_ms(data.encrypted_data.length) },
+  );
+}
+
+export async function update_attachment_meta(
+  attachment_id: string,
+  data: { encrypted_meta: string; meta_nonce: string },
+): Promise<ApiResponse<{ status: string }>> {
+  return api_client.put<{ status: string }>(
+    `/mail/v1/attachments/${attachment_id}/meta`,
     data,
   );
 }

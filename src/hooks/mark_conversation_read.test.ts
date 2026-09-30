@@ -22,9 +22,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
 const mock_mark_thread_read = vi.fn();
 const mock_emit_mail_soft_refresh = vi.fn();
-const mock_thread_has_unread_entries = vi.fn(
-  (..._args: unknown[]) => false,
-);
+const mock_thread_has_unread_entries = vi.fn((..._args: unknown[]) => false);
 const mock_mark_thread_read_entries = vi.fn((..._args: unknown[]) => {});
 const mock_invalidate_mail_stats = vi.fn();
 
@@ -41,6 +39,7 @@ vi.mock("@/hooks/use_mail_stats", () => ({
 }));
 
 vi.mock("@/services/category_index", () => ({
+  get_thread_entry_ids: () => [],
   mark_thread_read_entries: (...args: unknown[]) =>
     mock_mark_thread_read_entries(...args),
   thread_has_unread_entries: (...args: unknown[]) =>
@@ -174,7 +173,7 @@ describe("mark_conversation_read", () => {
 
     await flush();
 
-    expect(mock_mark_thread_read_entries).toHaveBeenCalledWith("t1");
+    expect(mock_mark_thread_read_entries).toHaveBeenCalledWith("t1", new Set());
   });
 
   it("never clears indexed siblings when grouping is off", () => {
@@ -204,7 +203,6 @@ describe("mark_conversation_read", () => {
 
     expect(mock_mark_thread_read).not.toHaveBeenCalled();
   });
-
 });
 
 describe("collect_conversation_thread_tokens", () => {

@@ -25,7 +25,6 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -300,9 +299,7 @@ describe("SenderSelector search", () => {
 
     const option_button = Array.from(
       document.body.querySelectorAll("button"),
-    ).find(
-      (b) => b.textContent?.includes("alias7@astermail.org"),
-    );
+    ).find((b) => b.textContent?.includes("alias7@astermail.org"));
 
     act(() => {
       option_button!.dispatchEvent(new MouseEvent("click", { bubbles: true }));

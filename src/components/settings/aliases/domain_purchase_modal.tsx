@@ -18,14 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { DomainPurchaseFlow } from "./domain_purchase_flow";
+
 import { use_i18n } from "@/lib/i18n/context";
+import { InfoPopover } from "@/components/ui/info_popover";
 import {
   Modal,
   ModalHeader,
   ModalTitle,
   ModalBody,
 } from "@/components/ui/modal";
-import { DomainPurchaseFlow } from "./domain_purchase_flow";
 
 interface DomainPurchaseModalProps {
   is_open: boolean;
@@ -49,9 +51,22 @@ export function DomainPurchaseModal({
   if (!is_open) return null;
 
   return (
-    <Modal close_on_overlay={false} is_open={is_open} on_close={on_close} size="2xl">
+    <Modal
+      close_on_overlay={false}
+      is_open={is_open}
+      on_close={on_close}
+      size="2xl"
+    >
       <ModalHeader>
-        <ModalTitle>{t("settings.domain_purchase_title")}</ModalTitle>
+        <ModalTitle>
+          <span className="flex items-center gap-2">
+            {t("settings.domain_purchase_title")}
+            <InfoPopover
+              description={t("settings.domain_purchase_purchased_info")}
+              title={t("settings.domain_purchase_title")}
+            />
+          </span>
+        </ModalTitle>
       </ModalHeader>
       <ModalBody>
         <DomainPurchaseFlow

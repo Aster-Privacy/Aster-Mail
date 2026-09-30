@@ -18,13 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { TrashIcon } from "@heroicons/react/24/outline";
 
 import { SettingsGroup, SettingsHeader, SettingsRow } from "./shared";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import {
   list_devices,
   revoke_device,
@@ -32,11 +32,14 @@ import {
 } from "@/services/api/devices";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 function format_date(value: string | null): string {
   if (!value) return "";
   try {
-    return new Date(value).toLocaleString();
+    return new Date(value).toLocaleString(app_locale(), {
+      timeZone: get_display_time_zone(),
+    });
   } catch {
     return value;
   }
@@ -52,24 +55,31 @@ export function TrustedDevicesSection({
   const { t } = use_i18n();
   const [devices, set_devices] = useState<Device[]>([]);
   const [loading, set_loading] = useState(true);
+  const [load_error, set_load_error] = useState(false);
   const [revoking_id, set_revoking_id] = useState<string | null>(null);
   const [pending_revoke, set_pending_revoke] = useState<Device | null>(null);
   const [pending_revoke_all, set_pending_revoke_all] = useState(false);
   const [is_revoking_all, set_is_revoking_all] = useState(false);
 
+  const loaded_once_ref = useRef(false);
+
   const load_devices = useCallback(async () => {
-    set_loading(true);
+    if (!loaded_once_ref.current) set_loading(true);
+    set_load_error(false);
     try {
       const response = await list_devices();
 
+      if (response.error) set_load_error(true);
       set_devices(
         (response.data?.devices ?? []).filter(
           (d) => d.device_type !== "bridge",
         ),
       );
     } catch {
+      set_load_error(true);
       set_devices([]);
     } finally {
+      loaded_once_ref.current = true;
       set_loading(false);
     }
   }, []);
@@ -95,20 +105,21 @@ export function TrustedDevicesSection({
   );
 
   const handle_revoke_all = useCallback(async () => {
+    if (is_revoking_all) return;
     set_is_revoking_all(true);
     const responses = await Promise.all(
       devices.map((device) => revoke_device(device.id)),
     );
 
     const failed = responses.find((r) => r.error);
+
     if (failed?.error) {
       show_toast(failed.error, "error");
-    } else {
-      await load_devices();
     }
+    await load_devices();
     set_is_revoking_all(false);
     set_pending_revoke_all(false);
-  }, [devices, load_devices]);
+  }, [devices, is_revoking_all, load_devices]);
 
   return (
     <div className="flex h-full flex-col">
@@ -127,6 +138,19 @@ export function TrustedDevicesSection({
         {loading ? (
           <div className="flex justify-center py-10">
             <Spinner size="md" />
+          </div>
+        ) : load_error ? (
+          <div className="px-4 py-10 text-center">
+            <p className="text-[14px] text-[var(--text-muted)]">
+              {t("common.something_went_wrong_try_again")}
+            </p>
+            <button
+              className="mt-3 text-[14px] font-medium text-[var(--mobile-accent)]"
+              type="button"
+              onClick={() => load_devices()}
+            >
+              {t("common.retry")}
+            </button>
           </div>
         ) : devices.length === 0 ? (
           <div className="px-4 py-10 text-center text-[14px] text-[var(--text-muted)]">
@@ -152,17 +176,17 @@ export function TrustedDevicesSection({
                     </p>
                   </div>
                   <button
-                    className="flex shrink-0 items-center gap-1 rounded-[12px] px-3 py-1.5 text-[13px] font-medium text-[var(--color-danger,#ef4444)]"
+                    className="flex shrink-0 items-center gap-1 rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium text-[var(--color-danger,#ef4444)]"
                     disabled={revoking_id === device.id}
-                    style={{ border: "1px solid var(--border-primary)" }}
+                    style={{
+                      background:
+                        "color-mix(in srgb, var(--text-primary) 6%, transparent)",
+                    }}
                     type="button"
                     onClick={() => set_pending_revoke(device)}
                   >
-                    {revoking_id === device.id ? (
-                      <Spinner size="xs" />
-                    ) : (
-                      <TrashIcon className="h-4 w-4" />
-                    )}
+                    <TrashIcon className="h-4 w-4" />
+                    {revoking_id === device.id && <ButtonSpinner size="xs" />}
                     {t("settings.trusted_devices_revoke")}
                   </button>
                 </div>

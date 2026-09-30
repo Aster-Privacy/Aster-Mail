@@ -19,8 +19,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useState, useCallback } from "react";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 import { ShieldCheckIcon } from "@heroicons/react/24/outline";
+import { Island, IslandRow, IslandSection } from "@aster/ui";
 
 import {
   list_trusted_devices,
@@ -29,11 +30,16 @@ import {
   TrustedDeviceItem,
 } from "@/services/api/trusted_devices";
 import { show_toast } from "@/components/toast/simple_toast";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 function format_date(iso: string): string {
   try {
-    return new Date(iso).toLocaleString();
+    return new Date(iso).toLocaleString(app_locale(), {
+      timeZone: get_display_time_zone(),
+    });
   } catch {
     return iso;
   }
@@ -46,14 +52,20 @@ export function TrustedDevicesSection() {
   const [error, set_error] = useState<string | null>(null);
   const [busy_id, set_busy_id] = useState<string | null>(null);
   const [revoke_all_busy, set_revoke_all_busy] = useState(false);
+  const [confirm_revoke_id, set_confirm_revoke_id] = useState<string | null>(
+    null,
+  );
+  const [confirm_revoke_all, set_confirm_revoke_all] = useState(false);
 
   const load = useCallback(async () => {
     set_is_loading(true);
     set_error(null);
     const res = await list_trusted_devices();
+
     if (res.error) {
       set_error(res.error);
       set_is_loading(false);
+
       return;
     }
     set_devices(res.data?.devices ?? []);
@@ -65,11 +77,14 @@ export function TrustedDevicesSection() {
   }, [load]);
 
   const handle_revoke = async (id: string) => {
+    set_confirm_revoke_id(null);
     set_busy_id(id);
     const res = await revoke_trusted_device(id);
+
     set_busy_id(null);
     if (res.error) {
       show_toast(res.error, "error");
+
       return;
     }
     set_devices((prev) => prev.filter((d) => d.id !== id));
@@ -77,11 +92,14 @@ export function TrustedDevicesSection() {
   };
 
   const handle_revoke_all = async () => {
+    set_confirm_revoke_all(false);
     set_revoke_all_busy(true);
     const res = await revoke_all_trusted_devices();
+
     set_revoke_all_busy(false);
     if (res.error) {
       show_toast(res.error, "error");
+
       return;
     }
     set_devices([]);
@@ -89,81 +107,99 @@ export function TrustedDevicesSection() {
   };
 
   return (
-    <div>
-      <div className="mb-4">
-        <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-          <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-          {t("settings.trusted_2fa_title")}
-        </h3>
-        <div className="mt-2 h-px bg-edge-secondary" />
-      </div>
+    <>
+      <IslandSection
+        bare
+        description={t("settings.trusted_2fa_description")}
+        icon={<ShieldCheckIcon />}
+        title={t("settings.trusted_2fa_title")}
+      >
+        {is_loading ? (
+          <p className="px-1 text-sm text-txt-muted">{t("common.loading")}</p>
+        ) : error ? (
+          <LoadFailedNotice on_retry={load} />
+        ) : devices.length === 0 ? (
+          <Island className="text-center" padding="lg">
+            <ShieldCheckIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
+            <p className="text-sm text-txt-muted">
+              {t("settings.trusted_2fa_empty")}
+            </p>
+          </Island>
+        ) : (
+          <>
+            <Island>
+              {devices.map((d) => (
+                <IslandRow
+                  key={d.id}
+                  description={
+                    <>
+                      <span className="block">
+                        {t("settings.trusted_2fa_last_used", {
+                          when: format_date(d.last_used_at),
+                        })}
+                        {" - "}
+                        {t("settings.trusted_2fa_expires", {
+                          when: format_date(d.expires_at),
+                        })}
+                      </span>
+                      {d.ip_snippet ? (
+                        <span className="block truncate">{d.ip_snippet}</span>
+                      ) : null}
+                    </>
+                  }
+                  label={d.label}
+                  layout="stacked"
+                  trailing={
+                    <Button
+                      disabled={busy_id === d.id}
+                      is_loading={busy_id === d.id}
+                      variant="outline"
+                      onClick={() => set_confirm_revoke_id(d.id)}
+                    >
+                      {t("settings.trusted_2fa_revoke")}
+                    </Button>
+                  }
+                />
+              ))}
+            </Island>
 
-      <p className="text-sm text-txt-muted mb-4">
-        {t("settings.trusted_2fa_description")}
-      </p>
-
-      {is_loading ? (
-        <p className="text-sm text-txt-muted">{t("common.loading")}</p>
-      ) : error ? (
-        <p className="text-sm text-red-500">{error}</p>
-      ) : devices.length === 0 ? (
-        <div className="py-6 text-center">
-          <ShieldCheckIcon className="w-8 h-8 text-txt-muted mx-auto mb-2" />
-          <p className="text-sm text-txt-muted">
-            {t("settings.trusted_2fa_empty")}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-2">
-          {devices.map((d) => (
-            <div
-              key={d.id}
-              className="flex items-center justify-between gap-3 rounded-md border border-edge-secondary p-3"
-            >
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-txt-primary truncate">
-                  {d.label}
-                </p>
-                <p className="text-xs text-txt-muted truncate">
-                  {t("settings.trusted_2fa_last_used", {
-                    when: format_date(d.last_used_at),
-                  })}
-                  {" - "}
-                  {t("settings.trusted_2fa_expires", {
-                    when: format_date(d.expires_at),
-                  })}
-                </p>
-                {d.ip_snippet ? (
-                  <p className="text-xs text-txt-muted truncate">
-                    {d.ip_snippet}
-                  </p>
-                ) : null}
-              </div>
+            <div>
               <Button
-                disabled={busy_id === d.id}
+                disabled={revoke_all_busy}
+                is_loading={revoke_all_busy}
                 variant="outline"
-                onClick={() => handle_revoke(d.id)}
+                onClick={() => set_confirm_revoke_all(true)}
               >
-                {busy_id === d.id
-                  ? t("common.loading")
-                  : t("settings.trusted_2fa_revoke")}
+                {t("settings.trusted_2fa_revoke_all")}
               </Button>
             </div>
-          ))}
+          </>
+        )}
+      </IslandSection>
 
-          <div className="pt-2">
-            <Button
-              disabled={revoke_all_busy}
-              variant="outline"
-              onClick={handle_revoke_all}
-            >
-              {revoke_all_busy
-                ? t("common.loading")
-                : t("settings.trusted_2fa_revoke_all")}
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
+      <ConfirmationModal
+        cancel_text={t("common.cancel")}
+        confirm_text={t("settings.trusted_2fa_revoke")}
+        is_open={confirm_revoke_id !== null}
+        message={t("settings.trusted_2fa_revoke_confirm")}
+        on_cancel={() => set_confirm_revoke_id(null)}
+        on_confirm={() => {
+          if (confirm_revoke_id) void handle_revoke(confirm_revoke_id);
+        }}
+        title={t("settings.trusted_2fa_title")}
+        variant="danger"
+      />
+
+      <ConfirmationModal
+        cancel_text={t("common.cancel")}
+        confirm_text={t("settings.trusted_2fa_revoke_all")}
+        is_open={confirm_revoke_all}
+        message={t("settings.trusted_2fa_revoke_all_confirm")}
+        on_cancel={() => set_confirm_revoke_all(false)}
+        on_confirm={() => void handle_revoke_all()}
+        title={t("settings.trusted_2fa_title")}
+        variant="danger"
+      />
+    </>
   );
 }
