@@ -1051,6 +1051,14 @@ export interface CommonTranslations {
   type_home: string;
   type_work: string;
   type_other: string;
+  type_personal: string;
+  type_custom: string;
+  custom_label: string;
+  share_as_text: string;
+  share_as_vcard: string;
+  importing_progress: string;
+  entry_type: string;
+  add_address: string;
   type_mobile: string;
   type_fax: string;
   type_pager: string;
