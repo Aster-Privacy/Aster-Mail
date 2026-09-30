@@ -98,12 +98,6 @@ function read_entry(
   }
 
   if (superseded) {
-    // A fetch that started after the ack has the final say for itself. The
-    // intent is dropped only when that fetch shows the server moved on;
-    // while it agrees, keep it, because a slower fetch that started before
-    // the ack can still land later with the old state (opening a second
-    // message briefly marked it read, then this stale page flipped it back
-    // to unread until a reload).
     if (observed !== undefined && observed !== current.value) {
       intents.delete(key);
     }
@@ -299,10 +293,6 @@ export function clear_read_intent(
   }
 }
 
-/**
- * `observed` is the value the fetch at `fetched_at` returned, so a fetch
- * newer than the ack can tell whether it confirms the intent or overrides it.
- */
 export function get_read_intent(
   id: string,
   fetched_at?: number,
