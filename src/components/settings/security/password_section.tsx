@@ -27,7 +27,9 @@ import {
   ExclamationTriangleIcon,
   KeyIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { IslandRow, IslandSection, SettingNote } from "@aster/ui";
+
+import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
 import {
@@ -42,6 +44,7 @@ import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import { clamp_password } from "@/services/sanitize";
 import { ActionRecommendedBadge } from "@/components/settings/security/recommendation_box";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 interface PasswordSectionProps {
   show_header?: boolean;
@@ -97,6 +100,20 @@ export function PasswordSection({
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
 
+  const can_submit =
+    !password_loading &&
+    !!current_password &&
+    !!new_password &&
+    !!confirm_password;
+
+  const handle_password_key_down = (
+    event: React.KeyboardEvent<HTMLDivElement>,
+  ) => {
+    if (event.key !== "Enter" || !can_submit) return;
+    event.preventDefault();
+    on_change_password();
+  };
+
   const get_strength_badge = () => {
     if (password_strength_tier === null || password_strength_tier === undefined)
       return null;
@@ -131,7 +148,8 @@ export function PasswordSection({
 
   const last_updated_label = last_password_change
     ? t("settings.password_last_updated", {
-        date: new Date(last_password_change).toLocaleDateString(undefined, {
+        date: new Date(last_password_change).toLocaleDateString(app_locale(), {
+          timeZone: get_display_time_zone(),
           year: "numeric",
           month: "long",
           day: "numeric",
@@ -139,28 +157,11 @@ export function PasswordSection({
       })
     : null;
 
-  return (
-    <div className={show_header ? "pt-3" : undefined}>
-      {show_header && (
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <KeyIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.password")}
-            {is_weak_password && (
-              <ActionRecommendedBadge tip={t("settings.password_weak_recommendation")} />
-            )}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-      )}
-      {!show_header && (
-        <p className="text-sm font-medium text-txt-primary mb-2">
-          {t("settings.password")}
-        </p>
-      )}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
+  const password_row = (
+    <IslandRow
+      description={
+        <>
+          <span className="flex flex-wrap items-center gap-2">
             <span className="text-sm tracking-widest text-txt-primary">
               ••••••••••••
             </span>
@@ -169,40 +170,65 @@ export function PasswordSection({
                 className="inline-flex items-center gap-1 text-xs font-medium"
                 style={{ color: strength_badge.color }}
               >
-                {password_strength_tier != null && password_strength_tier >= 4 && (
-                  <CheckCircleIcon className="w-3.5 h-3.5" />
-                )}
+                {password_strength_tier != null &&
+                  password_strength_tier >= 4 && (
+                    <CheckCircleIcon className="w-3.5 h-3.5" />
+                  )}
                 {strength_badge.label}
               </span>
             )}
-          </div>
-          {last_updated_label ? (
-            <p className="text-xs text-txt-muted mt-1">
-              {last_updated_label}
-            </p>
-          ) : (
-            <p className="text-sm text-txt-muted mt-1">
-              {t("settings.change_password_description")}
-            </p>
+          </span>
+          <span className="block mt-1">
+            {last_updated_label ?? t("settings.change_password_description")}
+          </span>
+          {password_unreadable_notice && (
+            <SettingNote tone="warning">
+              {password_unreadable_notice}
+            </SettingNote>
           )}
-        </div>
+        </>
+      }
+      label={t("settings.password")}
+      layout="stacked"
+      trailing={
         <Button
           variant="secondary"
           onClick={() => set_show_password_section(true)}
         >
           {t("settings.change_password")}
         </Button>
-      </div>
+      }
+    />
+  );
 
-      {password_unreadable_notice && (
-        <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-txt-primary">
-          {password_unreadable_notice}
-        </div>
+  return (
+    <>
+      {show_header ? (
+        <IslandSection
+          icon={<KeyIcon />}
+          title={
+            <span className="inline-flex items-center gap-1.5">
+              {t("settings.password")}
+              {is_weak_password && (
+                <ActionRecommendedBadge
+                  tip={t("settings.password_weak_recommendation")}
+                />
+              )}
+            </span>
+          }
+        >
+          {password_row}
+        </IslandSection>
+      ) : (
+        password_row
       )}
 
       <Modal
+        close_on_escape={!password_loading}
+        close_on_overlay={!password_loading}
         is_open={show_password_section}
         on_close={on_cancel}
+        show_close_button={!password_loading}
         size="md"
         z_index={70}
       >
@@ -214,7 +240,7 @@ export function PasswordSection({
         </ModalHeader>
 
         <ModalBody>
-          <div className="space-y-4">
+          <div className="space-y-4" onKeyDown={handle_password_key_down}>
             <div
               className="flex items-start gap-2 p-2.5 rounded-lg text-xs"
               style={{
@@ -226,7 +252,9 @@ export function PasswordSection({
                 className="w-3.5 h-3.5 flex-shrink-0 mt-0.5"
                 style={{ color: "#fff" }}
               />
-              <span>{t("settings.password_change_encrypted_data_warning")}</span>
+              <span>
+                {t("settings.password_change_encrypted_data_warning")}
+              </span>
             </div>
 
             <div>
@@ -238,17 +266,25 @@ export function PasswordSection({
               </label>
               <div className="relative">
                 <Input
-                  className="pr-10"
+                  autoComplete="current-password"
+                  className="pe-10"
                   disabled={password_loading}
                   id="current-password"
+                  maxLength={128}
                   placeholder={t("settings.enter_current_password")}
                   type={show_current_password ? "text" : "password"}
                   value={current_password}
-                  maxLength={128}
-                  onChange={(e) => set_current_password(clamp_password(e.target.value))}
+                  onChange={(e) =>
+                    set_current_password(clamp_password(e.target.value))
+                  }
                 />
                 <button
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted"
+                  aria-label={
+                    show_current_password
+                      ? t("settings.hide_password_toggle")
+                      : t("settings.show_password_toggle")
+                  }
+                  className="absolute end-3 top-1/2 -translate-y-1/2 text-txt-muted"
                   type="button"
                   onClick={() =>
                     set_show_current_password(!show_current_password)
@@ -272,18 +308,26 @@ export function PasswordSection({
               </label>
               <div className="relative">
                 <Input
-                  className="pr-10"
+                  autoComplete="new-password"
+                  className="pe-10"
                   disabled={password_loading}
                   id="new-password"
+                  maxLength={128}
                   placeholder={t("settings.enter_new_password")}
                   type={show_new_password ? "text" : "password"}
                   value={new_password}
-                  maxLength={128}
                   onBlur={on_new_password_blur}
-                  onChange={(e) => set_new_password(clamp_password(e.target.value))}
+                  onChange={(e) =>
+                    set_new_password(clamp_password(e.target.value))
+                  }
                 />
                 <button
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted"
+                  aria-label={
+                    show_new_password
+                      ? t("settings.hide_password_toggle")
+                      : t("settings.show_password_toggle")
+                  }
+                  className="absolute end-3 top-1/2 -translate-y-1/2 text-txt-muted"
                   type="button"
                   onClick={() => set_show_new_password(!show_new_password)}
                 >
@@ -312,13 +356,16 @@ export function PasswordSection({
                 {t("settings.confirm_new_password")}
               </label>
               <Input
+                autoComplete="new-password"
                 disabled={password_loading}
                 id="confirm-new-password"
+                maxLength={128}
                 placeholder={t("settings.confirm_new_password_placeholder")}
                 type="password"
                 value={confirm_password}
-                maxLength={128}
-                onChange={(e) => set_confirm_password(clamp_password(e.target.value))}
+                onChange={(e) =>
+                  set_confirm_password(clamp_password(e.target.value))
+                }
               />
             </div>
 
@@ -365,21 +412,15 @@ export function PasswordSection({
             {t("common.cancel")}
           </Button>
           <Button
-            disabled={
-              password_loading ||
-              !current_password ||
-              !new_password ||
-              !confirm_password
-            }
+            disabled={!can_submit}
+            is_loading={password_loading}
             variant="depth"
             onClick={on_change_password}
           >
-            {password_loading
-              ? t("settings.updating")
-              : t("settings.update_password")}
+            {t("settings.update_password")}
           </Button>
         </ModalFooter>
       </Modal>
-    </div>
+    </>
   );
 }

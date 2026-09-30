@@ -23,6 +23,8 @@ import type {
   EmailCategory,
   MailItemMetadata,
 } from "@/types/email";
+import type { CustomCategoryRule } from "@/data/category_catalog";
+import type { SenderTrustSource } from "@/lib/utils";
 
 import { get_sender_domain } from "@/utils/unsubscribe_detector";
 import { is_official_sender } from "@/lib/utils";
@@ -35,24 +37,29 @@ import {
   SHOPPING_DOMAIN_SUFFIXES,
   UPDATES_DOMAIN_SUFFIXES,
   MARKETING_DOMAIN_SUFFIXES,
+  NEWSLETTER_DOMAIN_SUFFIXES,
   BULK_INFRA_DOMAIN_SUFFIXES,
   BULK_SENDER_LOCALPARTS,
+  DISCUSSION_SENDER_LOCALPARTS,
+  NEWSLETTER_SENDER_LOCALPARTS,
   PROMOTIONS_SUBJECT_PATTERNS,
+  NEWSLETTER_SUBJECT_PATTERNS,
+  TRANSACTIONS_SUBJECT_PATTERNS,
   UPDATES_SUBJECT_PATTERNS,
   FINANCE_SUBJECT_PATTERNS,
   TRAVEL_SUBJECT_PATTERNS,
   SHOPPING_SUBJECT_PATTERNS,
 } from "@/data/category_signals";
-import type { CustomCategoryRule } from "@/data/category_catalog";
-import { BUILTIN_CATEGORY_IDS, fold_builtin } from "@/data/category_catalog";
+import {
+  BUILTIN_CATEGORY_IDS,
+  DEFAULT_ENABLED_CATEGORIES,
+} from "@/data/category_catalog";
 
-export const CLASSIFIER_VERSION = 3;
+export const CLASSIFIER_VERSION = 4;
 
 export const CATEGORY_TABS: readonly EmailCategory[] = [
   "primary",
-  "promotions",
-  "social",
-  "updates",
+  ...DEFAULT_ENABLED_CATEGORIES,
 ];
 
 const UPDATES_LOCALPARTS = new Set([
@@ -94,8 +101,11 @@ const TRAVEL_SET = new Set(TRAVEL_DOMAIN_SUFFIXES);
 const SHOPPING_SET = new Set(SHOPPING_DOMAIN_SUFFIXES);
 const UPDATES_SET = new Set(UPDATES_DOMAIN_SUFFIXES);
 const MARKETING_SET = new Set(MARKETING_DOMAIN_SUFFIXES);
+const NEWSLETTER_SET = new Set(NEWSLETTER_DOMAIN_SUFFIXES);
+const NEWSLETTER_LOCALPARTS_SET = new Set(NEWSLETTER_SENDER_LOCALPARTS);
 const BULK_INFRA_SET = new Set(BULK_INFRA_DOMAIN_SUFFIXES);
 const BULK_LOCALPARTS_SET = new Set(BULK_SENDER_LOCALPARTS);
+const DISCUSSION_LOCALPARTS_SET = new Set(DISCUSSION_SENDER_LOCALPARTS);
 const BUILTIN_CATEGORY_ID_SET = new Set(BUILTIN_CATEGORY_IDS);
 
 function domain_in_set(domain: string, set: Set<string>): boolean {
@@ -155,6 +165,8 @@ function build_header_lookup(
   return lookup;
 }
 
+const LIST_SUBJECT_TAG = /^\s*\[[^\]]{1,40}\]/;
+
 function matches_any(text: string, patterns: readonly RegExp[]): boolean {
   for (const pattern of patterns) {
     if (pattern.test(text)) {
@@ -163,6 +175,16 @@ function matches_any(text: string, patterns: readonly RegExp[]): boolean {
   }
 
   return false;
+}
+
+// Updates and Transactions share every entry point, so the split lives in one
+// place: money and goods go to Transactions, everything else stays Updates.
+// Transactions folds back to Updates when its tab is off, so a user who never
+// enables it sees exactly the behavior they had before.
+function updates_bucket(subject: string): EmailCategory {
+  return matches_any(subject, TRANSACTIONS_SUBJECT_PATTERNS)
+    ? "transactions"
+    : "updates";
 }
 
 function match_custom_category(
@@ -196,6 +218,7 @@ function match_custom_category(
 export interface ClassifyOptions {
   custom_categories?: readonly CustomCategoryRule[] | null;
   rule_category?: string | null;
+  trust?: SenderTrustSource | null;
 }
 
 let active_custom_categories: readonly CustomCategoryRule[] = [];
@@ -220,13 +243,19 @@ function resolve_rule_category(
   return custom ? rule_category : null;
 }
 
-export function is_locked_to_primary(envelope: DecryptedEnvelope): boolean {
+export function is_locked_to_primary(
+  envelope: DecryptedEnvelope,
+  trust?: SenderTrustSource | null,
+): boolean {
   const email = envelope.from?.email || "";
 
   return (
     domain_in_set(get_sender_domain(email), ASTER_SET) &&
-    envelope.sender_verification !== "invalid" &&
-    is_official_sender(email)
+    is_official_sender({
+      ...(trust ?? {}),
+      sender_email: email,
+      sender_verification: envelope.sender_verification,
+    })
   );
 }
 
@@ -235,7 +264,7 @@ export function classify(
   metadata?: MailItemMetadata | null,
   options?: ClassifyOptions,
 ): EmailCategory {
-  if (is_locked_to_primary(envelope)) return "primary";
+  if (is_locked_to_primary(envelope, options?.trust)) return "primary";
 
   if (metadata?.category_pinned && metadata.category) {
     return metadata.category;
@@ -312,11 +341,41 @@ export function classify(
     return "travel";
   }
 
-  if (
-    in_any(SHOPPING_SET) &&
-    matches_any(subject, SHOPPING_SUBJECT_PATTERNS)
-  ) {
+  if (in_any(SHOPPING_SET) && matches_any(subject, SHOPPING_SUBJECT_PATTERNS)) {
     return "shopping";
+  }
+
+  // 2c. Newsletters - a publication you subscribed to and read, as opposed to
+  //     a brand selling to you. This has to run before the list-header branch
+  //     below, because an editorial send carries the same List-Id and
+  //     List-Unsubscribe as a mailing list and would otherwise read as a forum.
+  const list_shaped =
+    headers.has("list-id") ||
+    headers.has("list-post") ||
+    headers.has("mailing-list") ||
+    !!envelope.list_unsubscribe ||
+    headers.has("list-unsubscribe");
+  const hard_sell = matches_any(subject, PROMOTIONS_SUBJECT_PATTERNS);
+  const discussion_shaped =
+    headers.has("list-post") ||
+    headers.has("mailing-list") ||
+    DISCUSSION_LOCALPARTS_SET.has(localpart) ||
+    (headers.has("list-id") && LIST_SUBJECT_TAG.test(subject));
+
+  if (in_any(NEWSLETTER_SET)) {
+    // A dedicated publishing platform is the sender. Even its promotional
+    // issues are still the publication the user signed up for.
+    return "newsletters";
+  }
+
+  if (
+    list_shaped &&
+    !hard_sell &&
+    !discussion_shaped &&
+    (NEWSLETTER_LOCALPARTS_SET.has(localpart) ||
+      matches_any(subject, NEWSLETTER_SUBJECT_PATTERNS))
+  ) {
+    return "newsletters";
   }
 
   // 3. Mailing lists / forums - reliable header signal (folded into Updates).
@@ -362,7 +421,7 @@ export function classify(
         in_any(TRAVEL_SET)) &&
       matches_any(subject, UPDATES_SUBJECT_PATTERNS)
     ) {
-      return "updates";
+      return updates_bucket(subject);
     }
 
     return "primary";
@@ -370,9 +429,7 @@ export function classify(
 
   // 5. Automated mail only: refine into Promotions vs Updates.
   const promo_signal =
-    in_any(MARKETING_SET) ||
-    PROMO_LOCALPARTS.has(localpart) ||
-    matches_any(subject, PROMOTIONS_SUBJECT_PATTERNS);
+    in_any(MARKETING_SET) || PROMO_LOCALPARTS.has(localpart) || hard_sell;
   const trusted_transactional =
     in_any(UPDATES_SET) || UPDATES_LOCALPARTS.has(localpart);
   const transactional_signal =
@@ -381,7 +438,7 @@ export function classify(
   // A trusted transactional sender (known service or receipts@/security@) wins
   // even if a promo-ish word appears, so a 2FA/receipt never lands in Promos.
   if (transactional_signal && (!promo_signal || trusted_transactional)) {
-    return "updates";
+    return updates_bucket(subject);
   }
 
   if (promo_signal) {
@@ -393,18 +450,6 @@ export function classify(
   //    unclassified (e.g. a plain no-reply) stays in Primary.
   if (has_unsubscribe || in_any(BULK_INFRA_SET)) {
     return "promotions";
-  }
-
-  return "primary";
-}
-
-export function category_for_tab(category?: EmailCategory): EmailCategory {
-  if (category && (CATEGORY_TABS as readonly string[]).includes(category)) {
-    return category;
-  }
-
-  if (category && BUILTIN_CATEGORY_ID_SET.has(category)) {
-    return fold_builtin(category) as EmailCategory;
   }
 
   return "primary";

@@ -24,8 +24,9 @@ import {
   ExclamationTriangleIcon,
   ArrowDownTrayIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button, Island } from "@aster/ui";
 
+import { trigger_download } from "@/utils/download_blob";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   Modal,
@@ -36,6 +37,7 @@ import {
   ModalFooter,
 } from "@/components/ui/modal";
 import { use_i18n } from "@/lib/i18n/context";
+import { copy_text } from "@/utils/copy_text";
 
 interface TotpBackupCodesModalProps {
   is_open: boolean;
@@ -51,17 +53,30 @@ export function TotpBackupCodesModal({
   const { t } = use_i18n();
 
   const copy_single_code = async (code: string) => {
-    await navigator.clipboard.writeText(code);
-    show_toast(t("common.copied_to_clipboard"), "success");
+    if (await copy_text(code)) {
+      show_toast(t("common.copied_to_clipboard"), "success");
+    } else {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
   };
 
   const copy_backup_codes = async () => {
-    await navigator.clipboard.writeText(backup_codes.join("\n"));
-    show_toast(t("common.copied_to_clipboard"), "success");
+    if (await copy_text(backup_codes.join("\n"))) {
+      show_toast(t("common.copied_to_clipboard"), "success");
+    } else {
+      show_toast(t("common.failed_to_copy"), "error");
+    }
   };
 
   return (
-    <Modal close_on_overlay={false} is_open={is_open} on_close={on_done} size="md">
+    <Modal
+      close_on_escape={false}
+      close_on_overlay={false}
+      is_open={is_open}
+      on_close={on_done}
+      show_close_button={false}
+      size="md"
+    >
       <ModalHeader>
         <div className="flex items-center gap-3">
           <ShieldCheckIcon className="w-6 h-6 text-txt-primary flex-shrink-0" />
@@ -70,15 +85,18 @@ export function TotpBackupCodesModal({
         <ModalDescription>
           {t("settings.save_backup_codes_description")}
         </ModalDescription>
+        <ModalDescription>
+          {t("settings.two_factor_other_devices_signed_out")}
+        </ModalDescription>
       </ModalHeader>
       <ModalBody>
         <div className="space-y-4">
-          <div className="p-4 rounded-lg border bg-surf-tertiary border-edge-secondary">
+          <Island padding="md">
             <div className="grid grid-cols-2 gap-2">
               {backup_codes.map((code, index) => (
                 <button
                   key={index}
-                  className="px-3 py-2 text-sm font-mono text-center rounded cursor-pointer transition-colors hover:opacity-80 bg-surf-secondary text-txt-primary"
+                  className="px-3 py-2 text-sm font-mono text-center rounded cursor-pointer select-text transition-colors hover:opacity-80 bg-surf-secondary text-txt-primary"
                   type="button"
                   onClick={() => copy_single_code(code)}
                 >
@@ -86,27 +104,24 @@ export function TotpBackupCodesModal({
                 </button>
               ))}
             </div>
-          </div>
-          <div className="flex justify-center gap-2">
+          </Island>
+          <div className="flex flex-wrap justify-center gap-2">
             <Button variant="secondary" onClick={copy_backup_codes}>
-              <ClipboardDocumentIcon className="w-4 h-4 mr-2" />
+              <ClipboardDocumentIcon className="w-4 h-4 me-2" />
               {t("settings.copy_all_codes")}
             </Button>
             <Button
               variant="secondary"
               onClick={() => {
-                const content = backup_codes.join("\n");
-                const blob = new Blob([content], { type: "text/plain" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-
-                a.href = url;
-                a.download = "aster-backup-codes.txt";
-                a.click();
-                URL.revokeObjectURL(url);
+                trigger_download(
+                  new Blob([backup_codes.join("\n")], {
+                    type: "application/octet-stream",
+                  }),
+                  "aster-backup-codes.txt",
+                );
               }}
             >
-              <ArrowDownTrayIcon className="w-4 h-4 mr-2" />
+              <ArrowDownTrayIcon className="w-4 h-4 me-2" />
               {t("common.download")}
             </Button>
           </div>

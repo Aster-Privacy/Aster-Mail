@@ -21,10 +21,18 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 
 import { api_client, type ApiResponse } from "./client";
+import { GHOST_DOMAIN } from "./ghost_aliases";
 
 interface PublicKeyResponse {
   username: string;
   public_key: string;
+}
+
+export interface ExternalKeyFingerprintChange {
+  prior_fingerprint: string;
+  new_fingerprint: string;
+  source: string;
+  observed_at: string;
 }
 
 export interface ExternalKeyInfo {
@@ -35,6 +43,7 @@ export interface ExternalKeyInfo {
   source: string | null;
   expires_at: string | null;
   will_encrypt: boolean;
+  fingerprint_change: ExternalKeyFingerprintChange | null;
 }
 
 interface DiscoverKeyResponse {
@@ -45,6 +54,7 @@ interface DiscoverKeyResponse {
   source: string | null;
   expires_at: string | null;
   will_encrypt: boolean;
+  fingerprint_change?: ExternalKeyFingerprintChange | null;
 }
 
 interface DiscoverKeysResponse {
@@ -112,6 +122,7 @@ export async function discover_external_key(
       source: response.data.source,
       expires_at: response.data.expires_at,
       will_encrypt: response.data.will_encrypt,
+      fingerprint_change: response.data.fingerprint_change ?? null,
     };
 
     set_cached_key(email, key_info);
@@ -161,6 +172,7 @@ export async function discover_external_keys_batch(
         source: key_response.source,
         expires_at: key_response.expires_at,
         will_encrypt: key_response.will_encrypt,
+        fingerprint_change: key_response.fingerprint_change ?? null,
       };
 
       set_cached_key(key_response.email, key_info);
@@ -230,6 +242,34 @@ export function clear_external_key_cache(): void {
   external_key_cache.clear();
 }
 
+export async function acknowledge_external_key_fingerprint_change(
+  email: string,
+  prior_fingerprint: string,
+  new_fingerprint: string,
+): Promise<ApiResponse<{ acknowledged: boolean }>> {
+  const response = await api_client.post<{ acknowledged: boolean }>(
+    "/crypto/v1/keys/external/fingerprint-change/acknowledge",
+    { email, prior_fingerprint, new_fingerprint },
+  );
+
+  if (response.data?.acknowledged) {
+    forget_external_key_fingerprint_change(email);
+  }
+
+  return response;
+}
+
+export function forget_external_key_fingerprint_change(email: string): void {
+  const cached = external_key_cache.get(email.toLowerCase());
+
+  if (!cached) return;
+
+  external_key_cache.set(email.toLowerCase(), {
+    key: { ...cached.key, fingerprint_change: null },
+    timestamp: cached.timestamp,
+  });
+}
+
 export function extract_username_from_email(email: string): string | null {
   const parts = email.split("@");
 
@@ -238,7 +278,13 @@ export function extract_username_from_email(email: string): string | null {
   return parts[0];
 }
 
-const INTERNAL_DOMAINS = ["astermail.org", "aster.cx", "gs-cloud.space"];
+const INTERNAL_DOMAINS = [
+  "astermail.org",
+  "aster.cx",
+  "astermail.me",
+  "astermail.net",
+  GHOST_DOMAIN,
+];
 
 export function is_internal_email(email: string): boolean {
   const lower_email = email.toLowerCase();

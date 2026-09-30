@@ -40,12 +40,28 @@ const listeners = new Set<() => void>();
 export const attachment_keys_version = (mail_item_id?: string): number =>
   mail_item_id ? (item_versions.get(mail_item_id) ?? 0) : version;
 
-export const subscribe_attachment_keys = (listener: () => void): (() => void) => {
+export const subscribe_attachment_keys = (
+  listener: () => void,
+): (() => void) => {
   listeners.add(listener);
 
   return () => {
     listeners.delete(listener);
   };
+};
+
+let notify_scheduled = false;
+
+const notify_listeners_soon = (): void => {
+  if (notify_scheduled) return;
+  notify_scheduled = true;
+  queueMicrotask(() => {
+    notify_scheduled = false;
+
+    for (const listener of listeners) {
+      listener();
+    }
+  });
 };
 
 export const register_attachment_entry = (
@@ -62,10 +78,7 @@ export const register_attachment_entry = (
 
   version += 1;
   item_versions.set(mail_item_id, (item_versions.get(mail_item_id) ?? 0) + 1);
-
-  for (const listener of listeners) {
-    listener();
-  }
+  notify_listeners_soon();
 };
 
 export const register_envelope_attachment_keys = (
@@ -103,10 +116,8 @@ export const get_attachment_entry = (
 ): InboundAttachmentEntry | null =>
   registry.get(registry_key(mail_item_id, seq)) ?? null;
 
-export const get_attachment_key = (
-  mail_item_id: string,
-  seq: number,
-): string => registry.get(registry_key(mail_item_id, seq))?.key ?? "";
+export const get_attachment_key = (mail_item_id: string, seq: number): string =>
+  registry.get(registry_key(mail_item_id, seq))?.key ?? "";
 
 export const clear_attachment_keys = (): void => {
   registry.clear();

@@ -21,7 +21,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 
 import { use_registration } from "@/components/register/hooks/use_registration";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { EnvelopeIcon } from "@/components/auth/auth_styles";
 import {
@@ -131,10 +131,10 @@ export function StepRecoveryEmail({
           onClick={reg.handle_recovery_email_continue}
         >
           {reg.is_saving_recovery_email ? (
-            <span className="flex items-center justify-center gap-2">
-              <Spinner size="sm" />
+            <>
+              <ButtonSpinner />
               {reg.t("common.saving")}
-            </span>
+            </>
           ) : (
             reg.t("common.continue")
           )}

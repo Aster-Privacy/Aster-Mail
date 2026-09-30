@@ -25,11 +25,20 @@ import { bulk_action_result } from "./bulk_action_result";
 
 import { mark_thread_read } from "@/services/api/mail";
 import {
+  get_thread_entry_ids,
   mark_thread_read_entries,
   thread_has_unread_entries,
 } from "@/services/category_index";
+import {
+  ack_flag_intents,
+  capture_read_tickets,
+  clear_read_intent,
+  current_read_ids,
+  get_read_intent,
+  note_read_intent,
+} from "@/services/read_intent";
+import { update_item_metadata } from "@/services/crypto/mail_metadata_writer";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 const THREAD_READ_CONCURRENCY = 10;
@@ -120,6 +129,25 @@ export function collect_conversation_thread_tokens(
   return Array.from(tokens);
 }
 
+function reassert_changed_reads(
+  thread_ids: string[],
+  unchanged: string[],
+): Set<string> {
+  const unchanged_set = new Set(unchanged);
+  const changed = new Set(thread_ids.filter((id) => !unchanged_set.has(id)));
+
+  for (const id of changed) {
+    if (get_read_intent(id) !== false) continue;
+    void update_item_metadata(id, {}, { is_read: false }, { force: true })
+      .then(() => emit_mail_soft_refresh())
+      .catch((caught) =>
+        ignore_error("hooks/mark_conversation_read:reassert_unread", caught),
+      );
+  }
+
+  return changed;
+}
+
 export async function mark_conversation_threads_read(
   thread_tokens: string[],
 ): Promise<BulkActionResult> {
@@ -136,16 +164,27 @@ export async function mark_conversation_threads_read(
 
     await Promise.all(
       chunk.map(async (token) => {
+        const thread_ids = get_thread_entry_ids(token);
+        const tickets = capture_read_tickets(thread_ids);
+
+        note_read_intent(thread_ids, true);
         try {
           const result = await mark_thread_read(token);
+          const unchanged = current_read_ids(thread_ids, tickets);
 
           if (result.error) {
+            clear_read_intent(unchanged, true);
             failed_tokens.push(token);
 
             return;
           }
-          mark_thread_read_entries(token);
+          ack_flag_intents(unchanged, { is_read: true });
+          mark_thread_read_entries(
+            token,
+            reassert_changed_reads(thread_ids, unchanged),
+          );
         } catch {
+          clear_read_intent(current_read_ids(thread_ids, tickets), true);
           failed_tokens.push(token);
         }
       }),
@@ -166,18 +205,31 @@ export function mark_conversation_read(
   if (!thread_token) return;
   if (!conversation_needs_thread_read(options)) return;
 
+  const thread_ids = get_thread_entry_ids(thread_token);
+  const tickets = capture_read_tickets(thread_ids);
+
+  note_read_intent(thread_ids, true);
   void mark_thread_read(thread_token)
     .then((result) => {
+      const unchanged = current_read_ids(thread_ids, tickets);
+
       if (!result.error) {
-        mark_thread_read_entries(thread_token);
+        ack_flag_intents(unchanged, { is_read: true });
+        mark_thread_read_entries(
+          thread_token,
+          reassert_changed_reads(thread_ids, unchanged),
+        );
         emit_mail_soft_refresh();
         invalidate_mail_stats();
+      } else {
+        clear_read_intent(unchanged, true);
       }
     })
-    .catch((caught) =>
+    .catch((caught) => {
+      clear_read_intent(current_read_ids(thread_ids, tickets), true);
       ignore_error(
         "hooks/mark_conversation_read:mark_conversation_read",
         caught,
-      ),
-    );
+      );
+    });
 }

@@ -20,21 +20,108 @@
 //
 export const es = {
   common: {
+    add_group: "Añadir grupo",
+    add_new_group: "Nuevo grupo",
+    add_to_group: "Añadir al grupo",
+    added_to_group: "Añadido al grupo",
+    birthdays_upcoming: "Se acercan {{count}} cumpleaños",
+    bulk_create_hint:
+      "Añade un contacto por línea. Para guardar una dirección de correo con un nombre, escribe la dirección entre corchetes angulares.",
+    bulk_create_placeholder: "Ada Lovelace <ada@example.com>",
+    bulk_create_ready: "{{count}} listos para crear",
+    change_history: "Historial de cambios",
+    change_photo: "Cambiar foto",
+    checking_for_keys: "Buscando claves…",
+    clear_selection: "Borrar selección",
+    compose_to_selection: "Escribir a los seleccionados",
+    contact_change_undone: "Cambio deshecho",
+    contact_moved_to_trash: "Contacto movido a la papelera",
+    contact_restored: "Contacto restaurado",
+    contacts_created: "{{count}} contactos creados",
+    contacts_exported: "Contactos exportados",
+    contacts_merged: "Contactos combinados",
+    contacts_moved_to_trash: "Contactos movidos a la papelera",
+    contacts_updated_stat: "Actualizados",
+    create_contact: "Crear contacto",
+    create_multiple_contacts: "Crear varios contactos",
+    delete_contacts: "Eliminar contactos",
+    delete_group: "Eliminar grupo",
+    deselect_contact: "Anular la selección del contacto",
+    discard: "Descartar",
+    duplicates_found: "Duplicados encontrados",
+    email_group: "Escribir al grupo",
+    export_selection_vcf: "Exportar como vCard",
+    failed_to_add_to_group: "No se pudo añadir el contacto al grupo.",
+    failed_to_delete_group: "No se pudo eliminar el grupo.",
+    failed_to_load_groups: "No se pudieron cargar tus grupos.",
+    failed_to_move_to_trash: "No se pudo mover el contacto a la papelera.",
+    failed_to_remove_from_group: "No se pudo quitar el contacto del grupo.",
+    frequent_contacts: "Frecuentes",
+    frequent_contacts_hint:
+      "Aquí aparecen los contactos a los que escribes más a menudo.",
+    group_contact_count: "{{count}} contactos",
+    group_created: "Grupo creado",
+    group_deleted: "Grupo eliminado",
+    group_empty_title: "No hay contactos en este grupo",
+    group_name: "Nombre del grupo",
+    groups: "Grupos",
+    import_add_to_group: "Añadir los contactos importados a un grupo",
+    import_clear_all: "Borrar todo",
+    import_no_group: "Sin grupo",
+    import_search_placeholder: "Buscar contactos para importar",
+    import_select_all: "Seleccionar todo",
+    import_selected_count: "{{selected}} de {{total}} seleccionados",
+    manage_contacts: "Gestionar contactos",
+    merge: "Combinar",
+    merge_and_fix: "Combinar y corregir",
+    merge_keeps_this: "Conservado",
+    merged_contact_preview: "Contacto combinado",
+    no_contact_changes: "Todavía no hay cambios",
+    no_contacts_in_trash: "La papelera está vacía",
+    no_duplicates_found: "No hay duplicados que corregir",
+    no_email: "Sin dirección de correo",
+    no_frequent_contacts: "Todavía no hay contactos frecuentes",
+    no_groups_match: "Ningún grupo coincide con tu búsqueda",
+    no_groups_yet: "Todavía no hay grupos",
+    no_other_contacts: "No hay otros contactos",
+    no_published_key: "Sin clave publicada",
+    security_center: "Centro de seguridad",
+    open_contacts: "Abrir Contactos",
+    other_contacts: "Otros",
+    other_contacts_hint:
+      "Aquí aparecen las direcciones guardadas desde tu correo que todavía no tienen nombre.",
+    print_contacts: "Imprimir contactos",
+    remove_from_group: "Quitar del grupo",
+    removed_from_group: "Quitado del grupo",
+    review_duplicates: "Revisar duplicados",
+    search_groups: "Buscar grupos",
+    select_contact: "Seleccionar contacto",
+    share_contact: "Compartir contacto",
+    some_contacts_not_created: "No se pudieron crear algunos contactos.",
+    trash_days_left: "Quedan {{count}} días",
     delete_folder_account_password: "Contraseña de la cuenta",
-    delete_folder_step_up_hint: "Esta carpeta está protegida con contraseña. Introduce la contraseña de tu cuenta para eliminarla.",
+    delete_folder_step_up_hint:
+      "Esta carpeta está protegida con contraseña. Introduce la contraseña de tu cuenta para eliminarla.",
     delete_folder_totp_code: "Código de verificación en dos pasos",
-    delete_folder_purge_option: "Destruir de forma permanente el correo que contiene",
-    delete_folder_purge_warning: "El correo purgado se destruye en todos los dispositivos y no se puede recuperar.",
-    delete_folder_purge_acknowledge: "Entiendo que este correo no se puede recuperar.",
-    delete_folder_purged_items: "Carpeta eliminada y {count} mensajes destruidos de forma permanente.",
-    delete_folder_deleted_no_purge: "Carpeta eliminada. El correo que contenía permanece en tu cuenta.",
+    delete_folder_purge_option:
+      "Destruir de forma permanente el correo que contiene",
+    delete_folder_purge_warning:
+      "El correo purgado se destruye en todos los dispositivos y no se puede recuperar.",
+    delete_folder_purge_acknowledge:
+      "Entiendo que este correo no se puede recuperar.",
+    delete_folder_purged_items:
+      "Carpeta eliminada y {count} mensajes destruidos de forma permanente.",
+    delete_folder_deleted_no_purge:
+      "Carpeta eliminada. El correo que contenía permanece en tu cuenta.",
     delete_folder_password_required: "Introduce la contraseña de tu cuenta.",
-    delete_folder_totp_required: "Introduce el código de verificación en dos pasos.",
-    delete_folder_verification_failed: "Comprueba tu contraseña y el código, y vuelve a intentarlo.",
+    delete_folder_totp_required:
+      "Introduce el código de verificación en dos pasos.",
+    delete_folder_verification_failed:
+      "Comprueba tu contraseña y el código, y vuelve a intentarlo.",
     qr_code: "Código QR",
     profile_picture_removed: "Foto de perfil eliminada",
     failed_remove_profile_picture:
-      "No se pudo eliminar tu foto de perfil. Inténtalo de nuevo.",
+      "No se pudo quitar tu foto de perfil. Inténtalo de nuevo.",
     remove_photo: "Eliminar foto",
     toggle_alias: "Activar o desactivar este alias",
     enter_passphrase: "Introduce tu frase de contraseña",
@@ -50,6 +137,7 @@ export const es = {
     search: "Buscar",
     close: "Cerrar",
     confirm: "Confirmar",
+    contact_support: "Contactar con soporte",
     back: "Atrás",
     next: "Siguiente",
     previous: "Anterior",
@@ -65,7 +153,7 @@ export const es = {
     download: "Descargar",
     upload: "Subir",
     unsupported_image_type:
-      "Este tipo de archivo no es compatible. Guardar la imagen como PNG, JPEG, WebP o GIF funcionará.",
+      "Este tipo de archivo no es compatible. Guarda la imagen como PNG, JPEG, WebP o GIF e inténtalo de nuevo.",
     csv_too_large:
       "Este CSV tiene más de 10.000 filas. Dividirlo en archivos más pequeños e importar cada uno los incluirá todos.",
     export: "Exportar",
@@ -76,7 +164,6 @@ export const es = {
     show_more: "Mostrar más",
     show_less: "Mostrar menos",
     contacts: "Contactos",
-    send_feedback: "Enviar comentarios",
     send_feedback_to_aster: "Enviar comentarios a Aster",
     folders: "Carpetas",
     add_to_folders: "Añadir a carpetas",
@@ -88,17 +175,19 @@ export const es = {
     aliases: "Alias",
     no_aliases_yet: "Aún no hay alias",
     storage_used: "Almacenamiento usado",
+    storage_under_one_percent: "<1 %",
     upgrade: "Mejorar plan",
     of: "de",
     page: "Página",
     aster_mail: "Aster Mail",
     aster_account: "Mi cuenta de Aster",
-    deck: "Deck de {{name}}",
     workspace_title: "Espacio de trabajo de {{name}} | Aster Mail",
     create_folder: "Crear carpeta",
     create_label: "Crear etiqueta",
     more_folders: "{{count}} carpetas más",
     more_labels: "{{count}} etiquetas más",
+    saved: "Guardado",
+    settings_not_saved: "No guardado",
     saving: "Guardando...",
     searching: "Buscando...",
     update: "Actualizar",
@@ -116,18 +205,16 @@ export const es = {
     delete_account: "Eliminar cuenta",
     erase_all_data: "Borrar todo tu contenido y datos permanentemente",
     display_name_visible: "El nombre que otros en tu espacio de trabajo verán",
-    inactivity_window: "Inactivity window",
+    inactivity_window: "Periodo de inactividad",
     inactivity_window_description:
-      "Free accounts inactive for this many months will be permanently deleted. Warnings are sent to your Aster inbox and recovery email.",
-    inactivity_window_info_title: "How the inactivity policy works",
+      "Las cuentas gratuitas inactivas durante esta cantidad de meses se eliminarán de forma permanente. Los avisos se envían a tu bandeja de Aster y a tu correo de recuperación.",
+    inactivity_window_info_title: "Cómo funciona la política de inactividad",
     inactivity_window_info_description:
       "If your account has no activity for the duration you set, it will be permanently deleted. Activity includes signing in from any client - web, desktop, mobile, or the bridge. You will receive warning emails after {{first}}, {{second}}, and {{final}} of inactivity.",
     inactivity_window_step_up_description:
-      "For your security, confirm your password to change your inactivity window.",
-    inactivity_window_months: "{{n}} months",
-    inactivity_window_saved: "Inactivity window updated",
-    inactivity_window_save_failed:
-      "Failed to save inactivity window. Please try again.",
+      "Por seguridad, confirma tu contraseña para cambiar el periodo de inactividad.",
+    inactivity_window_months: "{{n}} meses",
+    inactivity_window_saved: "Periodo de inactividad actualizado",
     recovery_email: "Correo de recuperación",
     recovery_email_description:
       "Este es el correo usado para recuperar tu cuenta",
@@ -144,15 +231,14 @@ export const es = {
       "No pudimos enviar el correo de verificación ahora mismo. Otro intento en un momento suele resolverlo. Tu cuenta no ha cambiado.",
     profile_picture_updated: "Foto de perfil actualizada",
     failed_save_profile_picture:
-      "Tu nueva foto de perfil no se guardó. Otro intento debería resolverlo. La foto anterior sigue mostrándose.",
-    failed_upload_image:
-      "La subida no se completó. Otro intento debería resolverlo.",
+      "Tu nueva foto de perfil no se guardó. Inténtalo de nuevo. Se sigue mostrando la foto anterior.",
+    failed_upload_image: "Inténtalo de nuevo.",
     valid_image_error:
       "Este archivo no es una imagen compatible. Un JPEG, PNG o WebP funcionará.",
     image_size_error:
       "Esta imagen supera el límite de 5 MB. Una más pequeña, o una versión comprimida, funcionará.",
     recovery_conflict:
-      "Este correo ya es una dirección de recuperación en otra cuenta. Otro debería funcionar.",
+      "Esta dirección ya protege el máximo de 20 cuentas de Aster. Usa otra dirección.",
     copied_to_clipboard: "Copiado al portapapeles",
     address_copied_to_clipboard: "Dirección copiada al portapapeles",
     offline: "Sin conexión",
@@ -183,16 +269,18 @@ export const es = {
     more_information: "Más información",
     delete_folder: "Eliminar carpeta",
     edit_reschedule: "Editar y reprogramar",
+    reschedule: "Reprogramar",
+    send_time_updated: "Hora de envío actualizada",
     cancel_scheduled: "Cancelar programado",
     unlock_folder: "Desbloquear carpeta",
     lock_folder: "Bloquear carpeta",
     extra_protection_layer: "Capa de protección adicional",
     lock_folder_description:
-      "Your data is already encrypted. Locking this folder adds an additional encryption layer, requiring extra authentication to access its contents.",
+      "Tus datos ya están cifrados. Bloquear esta carpeta añade una capa de cifrado extra y exige una autenticación adicional para ver su contenido.",
     unlock_folder_description:
-      "This will unlock the folder and remove the extra protection layer. Your data will remain encrypted with standard encryption.",
+      "Se desbloqueará la carpeta y se quitará la capa de protección adicional. Tus datos seguirán cifrados con el cifrado estándar.",
     lock_extra_security:
-      "Locking adds extra security on top of existing encryption. You can unlock it at any time.",
+      "El bloqueo añade seguridad extra sobre el cifrado existente. Puedes desbloquearlo cuando quieras.",
     rename_folder: "Renombrar carpeta",
     rename_folder_description: "Introduce un nuevo nombre para esta carpeta",
     folder_name: "Nombre de la carpeta",
@@ -203,6 +291,8 @@ export const es = {
     parent_folder: "Carpeta principal",
     move_up: "Subir",
     move_down: "Bajar",
+    sort_a_to_z: "Ordenar de la A a la Z",
+    folders_sorted_a_to_z: "Carpetas ordenadas de la A a la Z",
     move_to: "Mover a",
     change_folder_color: "Cambiar color de la carpeta",
     select_a_color: "Selecciona un color",
@@ -227,13 +317,12 @@ export const es = {
       "Los nombres de etiqueta tienen un máximo de {{max}} caracteres. Una versión más corta funcionará.",
     label_already_exists:
       "Ya tienes una etiqueta con este nombre. Otro debería funcionar.",
-    in_n_minutes: "En {{ count }} minuto",
-    in_n_minutes_plural: "En {{ count }} minutos",
     saved_at_time: "Guardado a las {{ time }}",
     saved_on_date: "Guardado {{ date }}",
     now: "Ahora",
     new_message: "Nuevo mensaje",
     expand: "Expandir",
+    collapse: "Contraer",
     minimize: "Minimizar",
     fullscreen: "Pantalla completa",
     exit_fullscreen: "Salir de pantalla completa",
@@ -289,6 +378,8 @@ export const es = {
     next_week: "La próxima semana",
     next_month: "El próximo mes",
     tomorrow_morning: "Mañana por la mañana",
+    in_one_hour: "En una hora",
+    tonight: "Esta noche",
     tomorrow_afternoon: "Mañana por la tarde",
     monday_morning: "Lunes por la mañana",
     search_senders: "Buscar remitentes...",
@@ -312,10 +403,7 @@ export const es = {
     export_private_key: "Exportar clave privada",
     regenerate_recovery_codes: "Regenerar códigos de recuperación",
     search_index: "Índice de búsqueda",
-    all_emails_and_conversations: "Todos los correos y conversaciones",
-    delete_imported_emails: "¿Eliminar correos importados?",
     deleting: "Eliminando...",
-    delete_mail: "Eliminar correo",
     search_forwarding_rules: "Buscar reglas de reenvío...",
     search_allowlist: "Buscar lista de permitidos...",
     search_blocked_senders: "Buscar remitentes bloqueados...",
@@ -327,6 +415,9 @@ export const es = {
     continue: "Continuar",
     processing: "Procesando...",
     action_cannot_be_undone: "Esto no se puede deshacer.",
+    discard_changes_title: "¿Descartar los cambios?",
+    discard_changes_message:
+      "Los cambios no se han guardado. Si cierras ahora, los pierdes.",
     select_placeholder: "Seleccionar...",
     processing_count: "Procesando {{completed}} de {{total}}...",
     add_to_contacts: "Añadir a contactos",
@@ -362,6 +453,11 @@ export const es = {
     pronouns: "Pronombres",
     dates: "Fechas",
     related_people: "Personas relacionadas",
+    related_person: "Persona relacionada",
+    event: "Evento",
+    instant_messenger: "Mensajería instantánea",
+    contact_limit_reached:
+      "Has alcanzado el límite de contactos. Mejora tu plan para importar el resto.",
     social_networks: "Redes sociales",
     websites: "Sitios web",
     instant_messengers: "Mensajería instantánea",
@@ -374,6 +470,14 @@ export const es = {
     type_home: "Casa",
     type_work: "Trabajo",
     type_other: "Otro",
+    type_personal: "Personal",
+    type_custom: "Personalizado",
+    custom_label: "Etiqueta",
+    share_as_text: "Compartir como texto",
+    share_as_vcard: "Compartir como vCard",
+    importing_progress: "Importando {{current}} de {{total}}",
+    entry_type: "Tipo",
+    add_address: "Añadir dirección",
     type_mobile: "Móvil",
     type_fax: "Fax",
     type_pager: "Buscapersonas",
@@ -420,33 +524,108 @@ export const es = {
     add_new_field_type: "Añadir nuevo tipo de campo",
     field_name_placeholder: "Nombre del campo...",
     skip: "Omitir",
-    add_carddav: "Añadir CardDAV",
-    add_carddav_server: "Añadir servidor CardDAV",
-    carddav_name_placeholder: "Mi Nextcloud",
-    carddav_url_placeholder: "https://cloud.ejemplo.com/remote.php/dav",
-    carddav_username_placeholder: "usuario@ejemplo.com",
-    carddav_password_placeholder:
-      "Contraseña de aplicación o contraseña normal",
     password_strength_weak: "Débil",
     password_strength_fair: "Regular",
     password_strength_strong: "Fuerte",
     password_strength_very_secure: "Muy segura",
-    pending_email_notifications: "Notificaciones de correo pendientes",
     selected: "seleccionado(s)",
     are_you_sure: "¿Estás seguro?",
-    sign_out_all_confirmation:
-      "¿Seguro que quieres cerrar sesión en todas las cuentas de este dispositivo?",
-    sign_out_confirmation:
-      "¿Estás seguro de que quieres cerrar sesión en tu cuenta?",
-    remove_account_confirmation:
-      "Are you sure you want to remove this account? You can add it back later.",
     go_back: "Volver",
     continue_anyway: "Continuar de todos modos",
     set_as_default: "Establecer como predeterminado",
+    billing_alert_body: "Tu pago no se completó. El acceso se limitará pronto.",
+    billing_alert_body_days:
+      "Tu pago no se completó. El acceso se limitará en {{days}} días.",
+    billing_alert_action: "Pagar",
     dismiss: "Descartar",
     load_content: "Cargar",
     open_link: "Abrir enlace",
     no_icon: "Sin icono",
+    icon_group_essentials: "Esenciales",
+    icon_group_mail: "Correo",
+    icon_group_money: "Dinero",
+    icon_group_work: "Trabajo",
+    icon_group_school: "Escuela",
+    color_red: "Rojo",
+    color_orange: "Naranja",
+    color_amber: "Ámbar",
+    color_yellow: "Amarillo",
+    color_lime: "Lima",
+    color_green: "Verde",
+    color_emerald: "Esmeralda",
+    color_teal: "Verde azulado",
+    color_cyan: "Cian",
+    color_sky: "Celeste",
+    color_blue: "Azul",
+    color_indigo: "Índigo",
+    color_violet: "Violeta",
+    color_purple: "Púrpura",
+    color_fuchsia: "Fucsia",
+    color_pink: "Rosa",
+    color_rose: "Rosa antiguo",
+    tag_icon_tag: "Etiqueta",
+    tag_icon_folder: "Carpeta",
+    tag_icon_star: "Estrella",
+    tag_icon_bookmark: "Marcador",
+    tag_icon_flag: "Bandera",
+    tag_icon_check: "Marca de verificación",
+    tag_icon_bell: "Campana",
+    tag_icon_heart: "Corazón",
+    tag_icon_sparkles: "Destellos",
+    tag_icon_fire: "Fuego",
+    tag_icon_bolt: "Rayo",
+    tag_icon_clock: "Reloj",
+    tag_icon_info: "Información",
+    tag_icon_warning: "Advertencia",
+    tag_icon_envelope: "Sobre",
+    tag_icon_at: "Arroba",
+    tag_icon_chat: "Chat",
+    tag_icon_send: "Enviar",
+    tag_icon_draft: "Borrador",
+    tag_icon_document: "Documento",
+    tag_icon_archive: "Archivo",
+    tag_icon_trash: "Papelera",
+    tag_icon_shield: "Escudo",
+    tag_icon_lock: "Candado",
+    tag_icon_eye_slash: "Oculto",
+    tag_icon_currency: "Moneda",
+    tag_icon_money: "Dinero",
+    tag_icon_bank: "Banco",
+    tag_icon_card: "Tarjeta",
+    tag_icon_wallet: "Cartera",
+    tag_icon_receipt: "Recibo",
+    tag_icon_chart: "Gráfico",
+    tag_icon_cart: "Carrito",
+    tag_icon_gift: "Regalo",
+    tag_icon_ticket: "Entrada",
+    tag_icon_crypto: "Cripto",
+    tag_icon_briefcase: "Maletín",
+    tag_icon_building: "Edificio",
+    tag_icon_user: "Persona",
+    tag_icon_users: "Personas",
+    tag_icon_calendar: "Calendario",
+    tag_icon_clipboard: "Portapapeles",
+    tag_icon_presentation: "Presentación",
+    tag_icon_trophy: "Trofeo",
+    tag_icon_code: "Código",
+    tag_icon_key: "Llave",
+    tag_icon_link: "Enlace",
+    tag_icon_package: "Paquete",
+    tag_icon_home: "Inicio",
+    tag_icon_truck: "Camión",
+    tag_icon_map_pin: "Marcador de mapa",
+    tag_icon_camera: "Cámara",
+    tag_icon_music: "Música",
+    tag_icon_cloud: "Nube",
+    tag_icon_sun: "Sol",
+    tag_icon_moon: "Luna",
+    tag_icon_globe: "Globo",
+    tag_icon_phone: "Teléfono",
+    tag_icon_news: "Noticias",
+    tag_icon_bulb: "Bombilla",
+    tag_icon_tools: "Herramientas",
+    tag_icon_ban: "Bloqueado",
+    icon_group_everyday: "Cotidiano",
     random: "Aleatorio",
     custom: "Personalizado",
     standard: "Estándar",
@@ -465,11 +644,12 @@ export const es = {
       "Tu bandeja de entrada no se cargó. Deslizar para actualizar suele resolverlo. Tu correo en el servidor está a salvo.",
     no_emails_match_criteria: "Ningún correo coincide con este criterio",
     failed_to_update_emails:
-      "Estos cambios no se guardaron. Otro intento debería resolverlo. Los correos en sí no han cambiado.",
+      "Estos cambios no se guardaron. Inténtalo de nuevo. Los correos no han cambiado.",
     failed_to_archive_emails:
-      "El archivado no se completó. Otro intento debería resolverlo. Los correos siguen en tu bandeja de entrada.",
+      "El archivado no terminó. Inténtalo de nuevo. Los correos siguen en tu bandeja de entrada.",
     failed_to_unarchive_emails:
-      "El traslado a la bandeja de entrada no se completó. Otro intento debería resolverlo. Los correos siguen archivados.",
+      "No se terminaron de mover a la bandeja de entrada. Inténtalo de nuevo. Los correos siguen archivados.",
+    keyboard_shortcut_label: "Atajo de teclado: {shortcut}",
     something_went_wrong_try_again:
       "Eso no funcionó. Otro intento en un momento suele resolverlo.",
     something_went_wrong: "Se ha producido un error.",
@@ -488,9 +668,6 @@ export const es = {
       "El redactor no se cargó. Cerrar esta ventana y abrirla de nuevo suele resolverlo. Tu borrador está guardado.",
     enter_field_value: "Introduce {{field}}...",
     no_matching_labels: "No hay etiquetas coincidentes",
-    phishing_confirm_placeholder:
-      'Escribe "Entiendo los riesgos" para volver a activar los enlaces.',
-    phishing_confirm_text: "entiendo los riesgos",
     and: "y",
     emails_marked_as_read: "{{count}} correo(s) marcado(s) como leído(s)",
     emails_archived: "{{count}} correo(s) archivado(s)",
@@ -516,34 +693,28 @@ export const es = {
       "Publica un unico registro SPF. Si otros servicios envian correo con este dominio, combina sus terminos include: en este mismo registro.",
     dns_caveat_dmarc_add_after_spf_dkim:
       "Anade esto al final, cuando SPF y DKIM ya esten verificados. Publicarlo antes puede enviar tu propio correo a spam.",
-    value_points_to: "Valor / Apunta a",
-    dns_records_to_add: "Registros DNS a añadir",
     dns_propagation_note:
       "Los cambios de DNS pueden tardar hasta 48 horas en propagarse",
-    close_verify_later: "Cerrar y verificar después",
     post: "Publicar",
     link_copied: "Enlace copiado al portapapeles",
-    code_copied: "Código copiado",
     invite_sent: "¡Invitación enviada!",
-    no_contacts_with_emails:
-      "No se encontraron contactos con direcciones de correo",
-    join_aster_secure_email: "Únete a Aster: Correo seguro",
     email_sent: "Correo enviado.",
+    undo_send_too_late: "Este mensaje ya se envió y no se puede recuperar.",
     email_sent_successfully: "Correo enviado exitosamente",
     scheduled_email_cancelled: "Correo programado cancelado",
     email_snoozed: "Correo pospuesto",
     email_unsnoozed: "Correo despospuesto",
     failed_to_snooze:
-      "Este correo no se pospuso. Otro intento debería resolverlo. Sigue en tu bandeja de entrada.",
+      "Este correo no se pospuso. Inténtalo de nuevo. Sigue en tu bandeja de entrada.",
     failed_to_unsnooze:
-      "Este correo no volvió a tu bandeja de entrada. Otro intento debería resolverlo.",
+      "Este correo no volvió a tu bandeja de entrada. Inténtalo de nuevo.",
     conversation_moved_to_trash: "Conversación movida a la papelera",
     conversation_archived: "Conversación archivada",
     conversation_marked_as_spam: "Conversación marcada como spam",
     failed_to_mark_as_spam:
-      "Este correo no se movió a spam. Otro intento debería resolverlo.",
+      "Este correo no se movió a spam. Inténtalo de nuevo.",
     failed_to_snooze_conversations:
-      "Estas conversaciones no se pospusieron. Otro intento debería resolverlo.",
+      "Estas conversaciones no se pospusieron. Inténtalo de nuevo.",
     marked_as_read_toast: "Marcado como leído",
     marked_as_unread_toast: "Marcado como no leído",
     email_permanently_deleted: "Correo eliminado permanentemente",
@@ -589,12 +760,8 @@ export const es = {
     paused: "Pausado",
     unnamed_contact: "Contacto sin nombre",
     unnamed: "Sin nombre",
-    no_name: "Sin nombre",
     same_email: "Mismo correo",
-    similar_name: "Nombre similar",
     same_phone: "Mismo teléfono",
-    possible_duplicate: "Posible duplicado",
-    add_server: "Añadir servidor",
     unknown: "Desconocido",
     text_type: "Texto",
     date_type: "Fecha",
@@ -602,57 +769,41 @@ export const es = {
     phone_type: "Teléfono",
     email_type: "Correo electrónico",
     failed_to_fetch_contacts:
-      "Tus contactos no se cargaron. Otro intento debería resolverlo. Tus contactos guardados están a salvo.",
-    failed_to_delete_contact:
-      "Este contacto no se eliminó. Otro intento debería resolverlo.",
+      "Tus contactos no se cargaron. Inténtalo de nuevo. Tus contactos guardados están a salvo.",
+    failed_to_delete_contact: "Inténtalo de nuevo.",
     contact_deleted: "Contacto eliminado",
     contact_saved: "Contacto guardado",
     contact_created: "Contacto creado",
-    failed_to_create_contact:
-      "Este contacto no se guardó. Otro intento debería resolverlo.",
+    failed_to_create_contact: "Inténtalo de nuevo.",
     failed_to_save_contact:
-      "Tus cambios en este contacto no se guardaron. Otro intento debería resolverlo. La versión anterior sigue ahí.",
+      "Tus cambios en este contacto no se guardaron. Inténtalo de nuevo. La versión anterior sigue ahí.",
     failed_to_delete_contacts:
-      "Estos contactos no se eliminaron. Otro intento debería resolverlo.",
-    failed_to_update_favorites:
-      "Tus favoritos no se actualizaron. Otro intento debería resolverlo.",
-    failed_to_import_contacts:
-      "La importación de contactos no se completó. Otro intento debería resolverlo. Tus contactos existentes no han cambiado.",
+      "Estos contactos no se eliminaron. Inténtalo de nuevo.",
+    failed_to_update_favorites: "Inténtalo de nuevo.",
     failed_to_read_file:
       "Este archivo no se pudo leer. Otro debería funcionar.",
     import_failed:
-      "La importación no se completó. Otro intento debería resolverlo. Tus datos existentes no han cambiado.",
-    failed_to_load_duplicates:
-      "La lista de duplicados no se cargó. Otro intento debería resolverlo.",
-    scan_failed: "El análisis no se completó. Otro intento debería resolverlo.",
-    dismiss_failed:
-      "No pudimos descartar eso. Otro intento debería resolverlo.",
+      "La importación no terminó. Inténtalo de nuevo. Tus datos actuales no han cambiado.",
+    scan_failed: "Inténtalo de nuevo.",
     failed_to_load_custom_fields:
-      "Estos campos personalizados no se cargaron. Otro intento debería resolverlo.",
+      "Estos campos personalizados no se cargaron. Inténtalo de nuevo.",
     failed_to_create_field:
-      "Este campo personalizado no se guardó. Otro intento debería resolverlo.",
+      "Este campo personalizado no se guardó. Inténtalo de nuevo.",
+    delete_custom_field_title: "¿Eliminar el campo personalizado?",
+    delete_custom_field_message:
+      "Al eliminar este campo, también se borran sus valores de todos los contactos. No puedes deshacer esta acción.",
     failed_to_delete_field:
-      "Este campo personalizado no se eliminó. Otro intento debería resolverlo.",
+      "Este campo personalizado no se eliminó. Inténtalo de nuevo.",
     failed_to_save_value:
-      "Tu cambio no se guardó. Otro intento debería resolverlo. El valor anterior sigue ahí.",
-    click_scan_duplicates: 'Haz clic en "Escanear" para buscar duplicados',
+      "Tu cambio no se guardó. Inténtalo de nuevo. El valor anterior sigue ahí.",
     never_synced: "Nunca sincronizado",
     last_sync_successful: "Última sincronización exitosa",
     last_sync_failed:
       "La última sincronización no se completó, y la reintentaremos automáticamente.",
     failed_to_forward:
-      "El reenvío no se envió. Otro intento debería resolverlo. Tu borrador está guardado.",
+      "El reenvío no se envió. Inténtalo de nuevo. Tu borrador está guardado.",
     failed_to_schedule:
-      "La programación no se guardó. Otro intento debería resolverlo. Tu borrador está a salvo.",
-    fill_required_fields: "Por favor completa todos los campos requeridos",
-    failed_to_load_sources:
-      "Tus cuentas sincronizadas no se cargaron. Otro intento debería resolverlo. Las cuentas en sí no se ven afectadas.",
-    failed_to_add_source:
-      "Esta cuenta no se añadió. Otro intento debería resolverlo.",
-    failed_to_delete_source:
-      "Esta cuenta no se eliminó. Otro intento debería resolverlo.",
-    failed_to_toggle_source:
-      "No pudimos cambiar ese ajuste. Otro intento debería resolverlo.",
+      "La programación no se guardó. Inténtalo de nuevo. Tu borrador está a salvo.",
     sync_failed:
       "La sincronización no se completó, y la reintentaremos automáticamente. Tu correo en cada lado está a salvo.",
     clearing: "Limpiando...",
@@ -674,7 +825,7 @@ export const es = {
       "{{count}} conversación(es) marcada(s) como spam",
     conversations_restored_bulk: "{{count}} conversación(es) restaurada(s)",
     failed_to_restore_conversations:
-      "Estas conversaciones no se restauraron. Otro intento debería resolverlo.",
+      "Estas conversaciones no se restauraron. Inténtalo de nuevo.",
     conversations_snoozed_bulk: "{{count}} conversación(es) pospuesta(s)",
     conversations_marked_as_read_bulk:
       "{{count}} conversación(es) marcada(s) como leída(s)",
@@ -689,18 +840,16 @@ export const es = {
     conversations_added_label:
       "{{count}} conversación(es): etiqueta {{label}} añadida",
     already_in_folder: "Ya está en {{folder}}",
+    cannot_move_from_view: "No puedes mover mensajes desde esta vista.",
     already_has_label: "Ya tiene la etiqueta {{label}}",
-    birthday_today: "¡Hoy!",
-    birthday_tomorrow: "Mañana",
     contact_details: "Detalles del contacto",
     history: "Historial",
+    all_mail: "Todo el correo",
     import_contacts: "Importar contactos",
     import_choose_file_desc:
       "Elige un archivo para importar contactos. Formatos compatibles: vCard (.vcf) y CSV.",
     click_to_select_file: "Haz clic para seleccionar archivo",
     or_drag_and_drop: "o arrastra y suelta",
-    vcf_files: "archivos .vcf",
-    spreadsheet_export: "Exportación de hoja de cálculo",
     map_csv_columns: "Asignar columnas CSV a campos de contacto:",
     import_complete: "Importación completada",
     contacts_imported_desc: "Tus contactos han sido importados",
@@ -710,44 +859,36 @@ export const es = {
     failed: "Falló",
     disable: "Deshabilitar",
     sync: "Sincronizar",
-    delete_mail_from: "Eliminar correo de",
     unknown_time: "hora desconocida",
     relationship: "Relación",
     no_contact_selected: "Ningún contacto seleccionado",
     select_contact_hint:
       "Selecciona un contacto de la lista para ver sus detalles",
-    importing_contacts: "Importando contactos...",
     export_all: "Exportar todo",
     no_contacts: "Sin contactos",
+    failed_to_load_contacts: "No se cargaron los contactos.",
+    mass_email_limited: "Solo se añadieron las primeras {{count}} direcciones.",
     add_contacts_hint: "Añade contactos para comenzar",
     add_contact: "Añadir contacto",
     file_too_large: "El archivo debe ser más pequeño que {{size}}",
-    failed_to_upload_attachment:
-      "Este adjunto no se subió. Otro intento debería resolverlo. Tu borrador está guardado.",
-    upload_failed: "La subida no se completó. Otro intento debería resolverlo.",
-    delete_failed:
-      "Este elemento no se eliminó. Otro intento debería resolverlo.",
-    download_failed:
-      "Esta descarga no se completó. Otro intento debería resolverlo.",
+    delete_failed: "Inténtalo de nuevo.",
+    download_failed: "Inténtalo de nuevo.",
     attachment_locked:
       "Este archivo adjunto no se puede abrir porque su clave de cifrado no está disponible en este dispositivo.",
     scheduled_no_attachments:
       "Los correos programados aún no pueden incluir archivos adjuntos. Envíalo ahora o quita los archivos para programarlo.",
+    scheduled_connected_account:
+      "El envío programado no está disponible para las cuentas conectadas. Envía este mensaje ahora o elige una dirección de Aster.",
+    scheduled_no_expiry:
+      "Los correos programados aún no admiten caducidad. Envíalo ahora o quita la caducidad para programarlo.",
     failed_to_merge_contacts:
-      "La fusión no se completó. Otro intento debería resolverlo. Tus contactos originales no han cambiado.",
-    merge_failed:
-      "La fusión no se completó. Otro intento debería resolverlo. Tus contactos originales no han cambiado.",
-    failed_to_load_history:
-      "El historial no se cargó. Otro intento debería resolverlo.",
-    failed_to_load_more:
-      "No pudimos cargar más elementos. Otro intento debería resolverlo.",
+      "La combinación no se completó. Inténtalo de nuevo. Tus contactos originales no han cambiado.",
     enter_valid_emails: "Por favor ingresa direcciones de correo válidas",
     enter_contact_details: "Ingresa los detalles del contacto",
     select_valid_image: "Por favor selecciona una imagen JPEG, PNG, WebP o GIF",
     image_too_large:
       "Esta imagen supera el límite de 10 MB. Una más pequeña, o una versión comprimida, funcionará.",
-    failed_to_upload_photo:
-      "Esta foto no se subió. Otro intento debería resolverlo.",
+    failed_to_upload_photo: "Inténtalo de nuevo.",
     contact_photo: "Foto de contacto",
     failed_to_delete_account:
       "Error al eliminar la cuenta. Por favor, inténtalo de nuevo.",
@@ -758,97 +899,80 @@ export const es = {
     pinned_to_top: "Fijado arriba",
     emails_snoozed_until: "{{count}} correo(s) pospuesto(s) hasta {{time}}",
     emails_from_senders_archived:
-      "{{count}} correo(s) de {{senders}} remitente(s) archivado(s)",
+      "Se archivaron {{count}} correos de {{senders}}",
     emails_from_senders_deleted:
-      "{{count}} correo(s) de {{senders}} remitente(s) eliminado(s)",
+      "Se eliminaron {{count}} correos de {{senders}}",
     emails_added_to_folder: "{{count}} correo(s) añadido(s) a {{folder}}",
     failed_to_snooze_emails:
-      "Estos correos no se pospusieron. Otro intento debería resolverlo.",
-    failed_to_copy: "No se copió nada. Otro intento debería resolverlo.",
+      "Estos correos no se pospusieron. Inténtalo de nuevo. Siguen en tu bandeja de entrada.",
+    failed_to_copy: "Inténtalo de nuevo.",
     error_copied_to_clipboard: "Error copiado al portapapeles",
     failed_to_update_contact:
-      "Tus cambios en el contacto no se guardaron. Otro intento debería resolverlo. La versión anterior sigue ahí.",
-    failed_to_block_sender:
-      "No pudimos bloquear a este remitente. Otro intento debería resolverlo.",
+      "Los cambios del contacto no se guardaron. Inténtalo de nuevo. La versión anterior sigue ahí.",
+    failed_to_block_sender: "Inténtalo de nuevo.",
     failed_to_rename_folder:
-      "Esta carpeta no se renombró. Otro intento debería resolverlo. La carpeta y sus correos no han cambiado.",
+      "Esta carpeta no se renombró. Inténtalo de nuevo. La carpeta y sus correos no han cambiado.",
     failed_to_change_folder_color:
-      "El color de la carpeta no se actualizó. Otro intento debería resolverlo.",
+      "El color de la carpeta no se actualizó. Inténtalo de nuevo.",
     failed_to_delete_folder:
-      "Esta carpeta no se eliminó. Otro intento debería resolverlo. Tus correos dentro están a salvo.",
-    failed_to_move_folder: "Esta carpeta no se pudo mover. Inténtalo de nuevo.",
+      "Esta carpeta no se eliminó. Inténtalo de nuevo. Los correos que contiene están a salvo.",
+    failed_to_move_folder: "Inténtalo de nuevo.",
     failed_to_update_folder_encryption:
-      "El ajuste de bloqueo de la carpeta no cambió. Otro intento debería resolverlo. La carpeta queda como estaba.",
-    failed_to_rename_label:
-      "Esta etiqueta no se renombró. Otro intento debería resolverlo.",
-    failed_to_change_label_color:
-      "El color de la etiqueta no se actualizó. Otro intento debería resolverlo.",
-    failed_to_change_label_icon:
-      "El icono de la etiqueta no se actualizó. Otro intento debería resolverlo.",
+      "El ajuste de bloqueo de la carpeta no cambió. Inténtalo de nuevo. La carpeta sigue como estaba.",
+    failed_to_rename_label: "Inténtalo de nuevo.",
+    failed_to_change_label_color: "Inténtalo de nuevo.",
+    failed_to_change_label_icon: "Inténtalo de nuevo.",
     failed_to_delete_label:
-      "Esta etiqueta no se eliminó. Otro intento debería resolverlo. Tus correos no se ven afectados.",
-    failed_to_create_label:
-      "Esta etiqueta no se guardó. Otro intento debería resolverlo.",
-    failed_to_create_folder_error:
-      "Esta carpeta no se guardó. Otro intento debería resolverlo.",
+      "Esta etiqueta no se eliminó. Inténtalo de nuevo. Tus correos no se ven afectados.",
+    failed_to_create_label: "Inténtalo de nuevo.",
+    failed_to_create_folder_error: "Inténtalo de nuevo.",
     folder_plan_limit_reached:
       "Has alcanzado el límite de carpetas de tu plan actual. Mejora tu plan para crear más.",
     authenticate_to_send: "Autentícate para enviar correo",
+    send_authentication_failed:
+      "La autenticación no se completó, por lo que este correo no se envió.",
     failed_to_send_reply:
-      "Esta respuesta no se envió. Otro intento debería resolverlo. Tu borrador está guardado.",
-    failed_to_delete_draft:
-      "Este borrador no se eliminó. Otro intento debería resolverlo.",
+      "Esta respuesta no se envió. Inténtalo de nuevo. Tu borrador está guardado.",
+    failed_to_delete_draft: "Inténtalo de nuevo.",
     failed_to_update_rule:
-      "Esta regla no se guardó. Otro intento debería resolverlo. La versión anterior sigue activa.",
+      "Esta regla no se guardó. Inténtalo de nuevo. La versión anterior sigue activa.",
     failed_to_send_verification:
       "No pudimos enviar el correo de verificación. Otro intento en un momento suele resolverlo.",
     failed_to_load_email:
       "Este correo no se cargó. Actualizar suele resolverlo. El correo está a salvo en el servidor.",
     failed_to_decrypt_email:
       "No pudimos abrir este correo en este dispositivo. Actualizar suele resolverlo. Si sigue fallando, cierra sesión y vuelve a iniciarla.",
-    failed_to_unsubscribe:
-      "La baja no se completó. El enlace en el correo te llevará al sitio del remitente para darte de baja tú mismo.",
     failed_to_disable_2fa:
-      "La verificación en dos pasos siguió activa. Otro intento debería resolverlo. Tu cuenta sigue protegida.",
-    failed_to_parse_settings:
-      "Este archivo de ajustes no se pudo leer. Otro archivo funcionará. Tus ajustes actuales no han cambiado.",
+      "La verificación en dos pasos sigue activada. Inténtalo de nuevo. Tu cuenta sigue protegida.",
     removed_from_contacts: "Eliminado de contactos",
     added_to_contacts: "Añadido a contactos",
-    senders_emails_count: "{{senders}} remitente(s) ({{emails}} correos)",
-    no_emails: "No hay correos aquí.",
+    senders_emails_count: "{{senders}} ({{emails}})",
     no_read_emails_to_archive: "No hay correos leídos para archivar",
     no_unread_emails: "No hay correos no leídos",
     email_copied: "Correo copiado",
     message_id_copied: "ID de mensaje copiado",
     draft_deleted: "Borrador eliminado permanentemente",
-    no_recipients: "Añade al menos un destinatario antes de enviar.",
+    no_recipients: "Sin destinatarios",
     sync_complete: "Sincronización completada",
     sync_timeout:
       "La sincronización tarda más de lo esperado y puede estar todavía en marcha.",
     session_expired_login:
-      "Tu sesión ha terminado. Iniciar sesión de nuevo te permitirá retomar donde lo dejaste. Tus datos y borradores están guardados en el servidor.",
+      "Tu sesión ha terminado. Inicia sesión de nuevo para continuar. Tus datos y borradores están guardados en el servidor.",
     session_expired_refresh:
       "Tu sesión ha terminado. Actualizar la página te permitirá iniciar sesión de nuevo. Tus datos están a salvo.",
     email_in_locked_folder:
       "Este correo está en una carpeta que has bloqueado. Desbloquear la carpeta lo abrirá.",
-    vault_not_available:
-      "Tus claves privadas no están cargadas en este dispositivo. Iniciar sesión de nuevo las desbloqueará. Tus claves en el servidor no se ven afectadas.",
     no_vault_available:
       "Tus claves privadas no están cargadas en este dispositivo. Iniciar sesión de nuevo las desbloqueará. Tus claves en el servidor no se ven afectadas.",
     offline_action_queued:
       "Estás sin conexión ahora mismo. Esto está en cola y se completará cuando vuelvas a conectarte.",
-    failed_to_update:
-      "Este cambio no se guardó. Otro intento debería resolverlo.",
-    failed_to_load_search_results:
-      "Tu búsqueda no se completó. Otro intento debería resolverlo.",
-    failed_to_fetch_tags:
-      "Tus etiquetas no se cargaron. Otro intento debería resolverlo.",
-    failed_to_fetch_folders:
-      "Tus carpetas no se cargaron. Otro intento debería resolverlo.",
+    failed_to_update: "Inténtalo de nuevo.",
+    failed_to_fetch_tags: "Inténtalo de nuevo.",
+    failed_to_fetch_folders: "Inténtalo de nuevo.",
     failed_to_unlock_folder:
-      "No pudimos desbloquear esta carpeta. Revisar tu contraseña y otro intento suele resolverlo. El contenido de la carpeta está a salvo.",
+      "No pudimos desbloquear esta carpeta. Comprueba tu contraseña e inténtalo de nuevo. El contenido de la carpeta está a salvo.",
     incorrect_password:
-      "Esa contraseña no coincide. Otro intento debería resolverlo. Tu cuenta no está bloqueada.",
+      "Contraseña incorrecta. Inténtalo de nuevo. Tu cuenta no está bloqueada.",
     folder_no_password_protection:
       "Esta carpeta no tiene contraseña por ahora. No hay nada que cambiar aquí.",
     password_already_set:
@@ -858,24 +982,12 @@ export const es = {
     cannot_remove_vault_password:
       "Tu carpeta Bóveda siempre necesita su propia contraseña, y esta protección no se puede quitar.",
     failed_to_load_snoozed_emails:
-      "Tus correos pospuestos no se cargaron. Otro intento debería resolverlo. Están a salvo en el servidor.",
-    failed_to_load_subscriptions:
-      "Tus suscripciones no se cargaron. Otro intento debería resolverlo.",
-    unexpected_error:
-      "Algo no funcionó como se esperaba. Otro intento debería resolverlo.",
-    failed_to_load_more_subscriptions:
-      "No pudimos cargar más suscripciones. Otro intento debería resolverlo.",
-    failed_to_scan_subscriptions:
-      "El análisis de suscripciones no se completó. Otro intento debería resolverlo.",
+      "Tus correos pospuestos no se cargaron. Inténtalo de nuevo. Están a salvo en el servidor.",
+    unexpected_error: "Algo no funcionó como se esperaba. Inténtalo de nuevo.",
     failed_to_load_drafts:
-      "Tus borradores no se cargaron. Otro intento debería resolverlo. Tus borradores guardados están a salvo.",
+      "Tus borradores no se cargaron. Inténtalo de nuevo. Tus borradores guardados están a salvo.",
     failed_to_load_scheduled_emails:
-      "Tus correos programados no se cargaron. Otro intento debería resolverlo. Siguen previstos para enviarse.",
-    recently_archived: "Archivados recientemente",
-    older_items: "Elementos antiguos",
-    long_term_archive: "Archivo a largo plazo",
-    failed_to_fetch_archive_stats:
-      "Las estadísticas de archivo no se cargaron. Otro intento debería resolverlo.",
+      "Tus correos programados no se cargaron. Inténtalo de nuevo. Se siguen enviando según lo previsto.",
     value_too_long:
       "Este valor supera el límite de longitud. Una versión más corta funcionará.",
     please_enter_valid_domain:
@@ -886,37 +998,26 @@ export const es = {
       "La parte antes de la @ es demasiado larga. Una versión más corta funcionará.",
     forwarding_rule_updated: "Regla de reenvío actualizada",
     forwarding_rule_created: "Regla de reenvío creada",
-    spam_settings_saved: "Configuración de spam guardada",
     email_sent_via_external: "Correo enviado mediante cuenta externa.",
     encryption_keys_rotated: "Claves de cifrado rotadas exitosamente",
     failed_to_retrieve_key: "Error al obtener la clave actual del servidor",
-    failed_to_upload_keys: "Error al subir claves de cifrado",
     sending: "Enviando...",
     in_one_minute: "En 1 min",
-    user_label: "Usuario",
     marketing: "Mercadeo",
-    finance_label: "Finanzas",
     operation: "Operación",
-    no_marketing_messages: "Sin mensajes de marketing",
-    no_finance_messages: "Sin mensajes de finanzas",
-    no_operation_messages: "Sin mensajes de operación",
     folder_label: "Carpeta",
-    no_email_id_provided:
-      "No pudimos averiguar qué correo abrir. Volver y elegir uno de tu bandeja de entrada funcionará.",
     please_enter_valid_url:
       "Esta no es una dirección web válida. Un enlace completo como https://example.com funcionará.",
     csv_file_empty: "Este CSV no tiene filas. Otro archivo funcionará.",
-    no_valid_contacts_csv:
-      "No encontramos ningún contacto legible en este CSV. Revisar los encabezados de las columnas suele resolverlo.",
     label_name_cannot_be_empty:
       "Ponle un nombre a esta etiqueta antes de guardar.",
     folder_name_cannot_be_empty:
       "Ponle un nombre a esta carpeta antes de guardar.",
     please_enter_password: "Introduce tu contraseña para continuar.",
     rotation_failed:
-      "La renovación de claves no terminó. Revisar tu contraseña y otro intento suele resolverlo. Tus claves anteriores siguen funcionando y tus datos están a salvo.",
+      "La renovación de claves no terminó. Comprueba tu contraseña e inténtalo de nuevo. Tus claves anteriores siguen funcionando y tus datos están a salvo.",
     delete_account_error:
-      "No pudimos eliminar tu cuenta ahora mismo. Otro intento en un momento suele resolverlo, y hello@astermail.org puede ayudar si sigue fallando.",
+      "No pudimos eliminar tu cuenta ahora mismo. Inténtalo de nuevo en un momento. Si el problema continúa, escribe a hello@astermail.org.",
     encryption_vault_not_available:
       "Tus claves privadas están bloqueadas en este dispositivo. Iniciar sesión de nuevo las desbloqueará. Tus claves en el servidor no han cambiado.",
     email_data_missing:
@@ -926,23 +1027,17 @@ export const es = {
     purchase_thank_you: "Gracias por tu compra. Tu suscripción ya está activa.",
     view_billing_settings: "Ver configuración de facturación",
     welcome_description:
-      "Hagamos un recorrido rápido para ayudarte a comenzar con tu plataforma de correo segura y privada.",
+      "Este recorrido dura alrededor de un minuto. Cubre cuatro cosas que facilitan el primer día.",
     organize_with_folders: "Organiza con carpetas",
     organize_folders_description:
-      "Crea carpetas personalizadas para organizar tus correos. Haz clic en el botón + junto a Carpetas para crear la primera.",
+      "Arrastra un mensaje a una carpeta para archivarlo, o selecciona varios y muévelos juntos. Para crear una carpeta, haz clic en el + junto a Carpetas.",
     customize_settings_description:
-      "Personaliza tu experiencia, gestiona la configuración de seguridad y configura las preferencias de tu cuenta.",
-    youre_ready: "Estás listo",
+      "En Ajustes puedes añadir un alias, conectar un dominio propio y activar la autenticación de dos factores.",
+    youre_ready: "Ya está todo listo",
     youre_ready_description:
-      "¡Eso es todo! Estás listo para comenzar a usar Aster Mail. Tus correos están cifrados de extremo a extremo y son completamente privados.",
+      "Tu correo está cifrado de extremo a extremo y solo tú tienes las claves. Pulsa ? en cualquier momento para ver todos los atajos de teclado.",
     skip_tour: "Omitir recorrido",
     get_started: "Comenzar",
-    setup_complete: "¡Configuración completada!",
-    download_mobile_app: "Descarga la aplicación móvil",
-    add_recovery_email: "Añade un correo de recuperación",
-    import_your_email: "Importar correo desde Gmail o Outlook",
-    add_email_alias: "Añadir un alias de correo",
-    hide_permanently: "Ocultar esta lista de verificación",
     step: "Paso",
     protected_in_transit: "Protegido en tránsito",
     encryption_available: "Cifrado disponible",
@@ -951,36 +1046,36 @@ export const es = {
     click_to_encrypt: "Haz clic para cifrar este mensaje de extremo a extremo",
     click_to_disable_encryption:
       "Cifrado - haz clic para desactivarlo en este mensaje",
+    encryption_status_unknown: "Estado de cifrado no disponible",
+    encryption_status_unknown_desc:
+      "No pudimos comprobar las claves de este destinatario. Otro intento te dirá si este mensaje se puede cifrar de extremo a extremo.",
     end_to_end_encrypted_label: "Cifrado de extremo a extremo",
     encrypted_in_transit_stored: "Cifrado en tránsito y almacenado cifrado.",
     only_you_and_sender: "Solo tú y el remitente pueden leer esto.",
     only_you_can_read_contacts:
-      "Only you can read your contacts. Aster cannot see this data.",
-    tor_label: "Tor",
-    tor_snowflake_label: "Tor (Snowflake)",
-    cdn_relay_label: "Relé CDN",
-    toggle_selection: "Alternar selección",
+      "Solo tú puedes leer tus contactos. Aster no ve estos datos.",
     failed_to_send_email:
-      "Este correo no se envió. Otro intento debería resolverlo. Tu borrador está guardado.",
+      "Este correo no se envió. Inténtalo de nuevo. Tu borrador está guardado.",
     failed_to_send_external_email:
-      "Este correo no se envió a través de tu cuenta externa vinculada. Otro intento debería resolverlo. Tu borrador está guardado.",
+      "Este correo no se envió a través de tu cuenta externa vinculada. Inténtalo de nuevo. Tu borrador está guardado.",
     external_account_token_missing:
       "Tu cuenta externa vinculada necesita volver a conectarse antes de enviar a través de ella. Ajustes, Cuentas conectadas es donde se encuentra.",
     failed_to_send_via_external:
-      "El envío a través de tu cuenta externa vinculada no funcionó. Otro intento debería resolverlo. Tu borrador está guardado.",
+      "El envío a través de tu cuenta externa vinculada no funcionó. Inténtalo de nuevo. Tu borrador está guardado.",
+    offline_change_failed:
+      "No se pudo guardar un cambio que hiciste sin conexión.",
+    offline_send_failed:
+      "No se pudo enviar un correo que escribiste sin conexión.",
     offline_email_queued:
-      "Estás sin conexión ahora mismo. Este correo se enviará cuando vuelvas a conectarte. Tu borrador está guardado.",
+      "Estás sin conexión ahora mismo. Este correo se enviará cuando vuelvas a conectarte.",
     failed_to_queue_offline:
-      "No pudimos poner este correo en cola para enviarlo más tarde. Otro intento debería resolverlo. Tu borrador está guardado.",
+      "No pudimos poner este correo en cola para enviarlo más tarde. Inténtalo de nuevo. Tu borrador está guardado.",
     cannot_mix_recipients:
       "No puedes enviar a usuarios de Aster y a direcciones externas en un mismo correo. Enviarlos como dos mensajes separados funcionará.",
     failed_to_schedule_email:
-      "La programación no se guardó. Otro intento debería resolverlo. Tu borrador está guardado.",
+      "La programación no se guardó. Inténtalo de nuevo. Tu borrador está guardado.",
     failed_to_restore_draft:
       "No pudimos recuperar este borrador. Abrirlo de nuevo suele recuperarlo. Tus otros borradores no se ven afectados.",
-    enter_url: "Ingresa la URL:",
-    enter_link_text: "Ingresa el texto del enlace:",
-    conversation_marked_as_spam_toast: "Conversación marcada como spam",
     failed_to_undo_spam:
       "No pudimos deshacer eso. Moverlo de vuelta manualmente es la alternativa.",
     conversation_moved_to_trash_toast: "Conversación movida a la papelera",
@@ -989,7 +1084,7 @@ export const es = {
     message_archived: "Mensaje archivado",
     message_moved_to_trash: "Mensaje movido a la papelera",
     message_marked_as_spam: "Mensaje marcado como spam",
-    undo_failed: "Deshacer no funcionó. Otro intento debería resolverlo.",
+    undo_failed: "Inténtalo de nuevo.",
     expired: "Expirado",
     expires_in: "Expira en ",
     report_phishing: "Reportar spam",
@@ -1001,38 +1096,39 @@ export const es = {
     switch_to_rich_text: "Cambiar a texto enriquecido",
     switch_to_plain_text: "Cambiar a texto plano",
     font_size_label: "Tamaño de fuente",
-    font_small: "Pequeño",
-    font_normal: "Normal",
-    font_large: "Grande",
-    font_huge: "Enorme",
+    font_family_label: "Fuente",
+    font_family_default: "Fuente predeterminada",
     enter_url_display_text: "Ingresa una URL y texto de visualización opcional",
-    select_table_size: "Seleccionar tamaño de tabla",
     emoji: "Emoji",
     recipients: "Destinatarios",
     encrypted_attachment: "Adjunto cifrado",
     forward_attachments_locked:
       "A algunos archivos adjuntos les falta su clave de cifrado, por lo que no se incluyen en este mensaje.",
+    forward_attachments_unavailable:
+      "No se pudieron añadir algunos archivos adjuntos a este mensaje.",
     image: "Imagen",
     system: "Sistema",
-    failed_to_permanently_delete:
-      "Estos elementos no se eliminaron. Otro intento debería resolverlo.",
-    failed_to_delete_emails:
-      "Estos correos no se eliminaron. Otro intento debería resolverlo.",
+    failed_to_permanently_delete: "Inténtalo de nuevo.",
+    failed_to_delete_emails: "Inténtalo de nuevo.",
     failed_to_mark_as_read:
-      "Estos correos siguen marcados como no leídos. Otro intento debería resolverlo.",
+      "Estos correos siguen marcados como no leídos. Inténtalo de nuevo.",
     failed_to_mark_as_unread:
-      "Estos correos siguen marcados como leídos. Otro intento debería resolverlo.",
+      "Estos correos siguen marcados como leídos. Inténtalo de nuevo.",
     n_conversations_archived: "{{ count }} conversaciones archivadas",
+    n_conversations_archived_one: "{{count}} conversación archivada",
+    n_conversations_archived_other: "{{count}} conversaciones archivadas",
     n_conversations_moved_to_trash:
       "{{ count }} conversaciones movidas a la papelera",
+    n_conversations_moved_to_trash_one:
+      "{{count}} conversación movida a la papelera",
+    n_conversations_moved_to_trash_other:
+      "{{count}} conversaciones movidas a la papelera",
     n_conversations_marked_as_spam:
       "{{ count }} conversaciones marcadas como spam",
-    internal_only: "Solo interno",
     external_only: "Solo externo",
     all_accounts: "Todas las cuentas",
-    all_external_accounts: "Todas las cuentas externas",
     failed_to_rotate_keys:
-      "La renovación de claves no se completó. Otro intento debería resolverlo. Tus claves anteriores siguen funcionando y tus datos están a salvo.",
+      "La renovación de claves no terminó. Inténtalo de nuevo. Tus claves anteriores siguen funcionando y tus datos están a salvo.",
     read: "Leído",
     or_conjunction: "o",
     press_label: "Presiona",
@@ -1040,10 +1136,15 @@ export const es = {
     showing_shortcuts_for: "Mostrando atajos para",
     emoji_smileys: "Caritas",
     emoji_gestures: "Gestos",
-    emoji_hearts: "Corazones",
-    emoji_celebration: "Celebración",
     emoji_symbols: "Símbolos",
+    emoji_animals: "Animales",
+    emoji_food: "Comida",
+    emoji_travel: "Viajes",
+    emoji_objects: "Objetos",
+    emoji_activities: "Actividades",
+    emoji_flags: "Banderas",
     no_emojis_found: "No se encontraron emojis",
+    emoji_recent: "Usados recientemente",
     item_copied: "{{ label }} copiado",
     copied_item: "Copiado {{ label }}",
     blocked_email: "Bloqueado {{ email }}",
@@ -1054,18 +1155,14 @@ export const es = {
     unblocked_count_senders: "Desbloqueados {{ count }} remitentes",
     removed_count_from_allowlist:
       "Eliminados {{ count }} de la lista de permitidos",
-    failed_to_add_label:
-      "Esta etiqueta no se añadió. Otro intento debería resolverlo.",
-    failed_to_remove_label:
-      "Esta etiqueta no se quitó. Otro intento debería resolverlo.",
+    failed_to_add_label: "Inténtalo de nuevo.",
+    failed_to_remove_label: "Inténtalo de nuevo.",
     failed_to_move_email:
-      "Este correo no se movió. Otro intento debería resolverlo. El correo está a salvo donde estaba.",
-    failed_to_add_labels:
-      "Estas etiquetas no se añadieron. Otro intento debería resolverlo.",
-    failed_to_remove_labels:
-      "Estas etiquetas no se quitaron. Otro intento debería resolverlo.",
+      "Este correo no se movió. Inténtalo de nuevo. El correo sigue a salvo donde estaba.",
+    failed_to_add_labels: "Inténtalo de nuevo.",
+    failed_to_remove_labels: "Inténtalo de nuevo.",
     failed_to_copy_to_clipboard:
-      "No se copió nada a tu portapapeles. Otro intento debería resolverlo.",
+      "No se copió nada en el portapapeles. Inténtalo de nuevo.",
     add_note_placeholder: "Añadir una nota...",
     add_private_note_placeholder: "Añadir una nota privada...",
     search_anything: "Buscar cualquier cosa...",
@@ -1076,12 +1173,7 @@ export const es = {
     leaving_aster_mail: "Saliendo de Aster Mail",
     unlock_aster_mail: "Desbloquear Aster Mail",
     aster_mail_locked: "Aster Mail está bloqueado",
-    share_aster_mail: "Compartir Aster Mail",
-    share_aster_description: "Comparte Aster Mail con amigos y familiares",
     merge_contacts: "Fusionar contactos",
-    merged_result_preview: "Vista previa del resultado fusionado",
-    merge_all: "Fusionar todo",
-    duplicate_contacts: "Contactos duplicados",
     contact_sync: "Sincronización de contactos",
     sync_confirm_title: "Sincronizar contactos",
     sync_confirm_message:
@@ -1097,26 +1189,21 @@ export const es = {
     subject_label: "Asunto:",
     send_at_label: "Enviar a las:",
     received: "Recibido",
-    select_email_to_read: "Selecciona un correo para leer",
     remove_from_contacts: "Eliminar de contactos",
     messages_from_sender: "Mensajes de este remitente",
-    powered_by: "Desarrollado por",
-    mobile_settings: "Configuración móvil",
     app_lock: "Bloqueo de app",
     app_locked: "Aster Mail está bloqueado",
-    enter_pin_to_unlock: "Introduce tu PIN para desbloquear",
     wrong_pin: "PIN incorrecto",
     app_lock_locked_out: "Demasiados intentos incorrectos",
-    app_lock_attempts_remaining: "{{n}} intento(s) restante(s)",
+    app_lock_attempts_remaining: "Quedan {{count}} intentos",
     app_lock_try_again_in: "Vuelve a intentarlo en {{s}}s",
-    duress_confirm_title: "Are you sure?",
-    duress_confirm_subtitle: "Erase local data",
+    duress_confirm_title: "¿Seguro que quieres continuar?",
+    duress_confirm_subtitle: "Borrar los datos locales",
     duress_confirm_desc:
-      "This will erase all locally stored mail, keys, and session data from this device and sign you out.",
+      "Se borrarán de este dispositivo todos los correos, las claves y los datos de sesión guardados en local, y se cerrará tu sesión.",
     duress_confirm_detail:
-      "Your account and encrypted data remain safely on Aster's servers. You can sign back in at any time to restore access.",
-    duress_confirm_proceed: "Erase local data",
-    secure_send: "Envío seguro",
+      "Tu cuenta y tus datos cifrados siguen a salvo en los servidores de Aster. Puedes volver a iniciar sesión cuando quieras para recuperar el acceso.",
+    duress_confirm_proceed: "Borrar los datos locales",
     push_notifications: "Notificaciones push",
     enabled: "Habilitado",
     haptic_feedback: "Retroalimentación háptica",
@@ -1146,9 +1233,8 @@ export const es = {
     stylesheet: "Hoja de estilo",
     tracking_pixel: "Píxel de rastreo",
     me: "yo",
-    snoozed_until_label: "Pospuesto hasta {{time}}",
     notification_banner_message:
-      "Enable desktop notifications to stay updated on new emails",
+      "Activa las notificaciones de escritorio para estar al día de los correos nuevos",
     notification_banner_allow: "Permitir",
     subscriptions: "Suscripciones",
     unsubscribed_count: "Desuscritos ({{count}})",
@@ -1163,11 +1249,31 @@ export const es = {
     state_province: "Estado / Provincia",
     files_end_to_end_encrypted:
       "Estos archivos están cifrados de extremo a extremo.",
+    duplicate_send_blocked:
+      "Este mensaje acaba de enviarse. Revisa tu carpeta Enviados antes de enviarlo de nuevo.",
     empty_body_error:
       "Añade un asunto o algo de texto al mensaje antes de enviar.",
     subject_too_long:
       "Tu asunto supera el límite de 998 caracteres. Una versión más corta podrá enviarse.",
     notification_banner_no_thanks: "No, gracias",
+    locked_data_banner_message:
+      "Algunos de tus datos cifrados más antiguos están bloqueados.",
+    locked_data_banner_action: "Recuperar datos",
+    locked_data_banner_dismiss: "Descartar",
+    recover_data_title: "Recuperar datos",
+    recover_data_description:
+      "Para desbloquear datos de antes de un cambio o restablecimiento de contraseña, introduce la contraseña que usabas entonces.",
+    recover_data_button: "Recuperar",
+    recover_data_success: "Tus datos más antiguos están desbloqueados.",
+    recover_data_no_match:
+      "Esa contraseña no desbloqueó ningún dato. Prueba con otra contraseña anterior.",
+    recover_data_failed:
+      "No se pudieron desbloquear algunos datos. Comprueba tu conexión e inténtalo de nuevo.",
+    payment_past_due_message:
+      "Tu último pago no se procesó. Actualiza tu método de pago para mantener tu plan.",
+    payment_past_due_message_days:
+      "Tu último pago no se procesó. Actualiza tu método de pago en un plazo de {{days}} días para mantener tu plan.",
+    payment_past_due_action: "Actualizar pago",
     ghost_label: "Fantasma",
     ghost_mode_tooltip:
       "Enviado vía Modo Fantasma. Tu dirección real fue ocultada.",
@@ -1181,7 +1287,6 @@ export const es = {
     forward_label: "Reenviar",
     carbon_copy: "Copia de carbón",
     blind_carbon_copy: "Copia oculta",
-    end_to_end_encrypted_email: "Correo cifrado de extremo a extremo",
     terms_of_service: "Términos de servicio",
     privacy_policy: "Política de privacidad",
     invite_encrypted_email: "Invita a amigos a experimentar el correo cifrado",
@@ -1203,23 +1308,17 @@ export const es = {
     storage_keys: "Claves de almacenamiento",
     no_contacts_found_device: "No se encontraron contactos en el dispositivo",
     no_new_contacts_imported: "No se importaron contactos nuevos",
-    contacts_imported_count: "{{count}} contactos importados",
     sender_blocked: "Remitente bloqueado",
     snooze_label: "Posponer",
     linkedin: "LinkedIn",
     twitter_x: "Twitter / X",
     github: "GitHub",
     social_links: "Redes sociales",
-    profile_photo_label: "Foto de perfil",
     attachments_label: "Adjuntos",
     custom_fields_label: "Campos personalizados",
-    none_label: "Ninguno",
     contact_1: "Contacto 1",
     contact_2: "Contacto 2",
-    name_colon: "Nombre:",
-    emails_colon: "Correos:",
     phone_colon: "Teléfono:",
-    company_colon: "Empresa:",
     address_colon: "Dirección:",
     icon_label: "Ícono",
     color_label: "Color",
@@ -1234,20 +1333,14 @@ export const es = {
     new_contact: "Nuevo contacto",
     at_least_one_name_required: "Se requiere al menos un nombre",
     at_least_one_email_required: "Se requiere al menos un correo",
-    choose_values_to_keep: "Elige los valores a conservar",
     empty: "Vacío",
-    merging: "Combinando...",
     disabled: "Desactivado",
     ghost_mode_title: "Modo fantasma",
     ghost_mode_description:
-      "Reply from a disposable alias. Your real address stays hidden.",
+      "Responde desde un alias desechable. Tu dirección real queda oculta.",
     edit_folder: "Editar carpeta",
     edit_label: "Editar etiqueta",
     communication_history: "Historial de comunicación",
-    hide_stats: "Ocultar estadísticas",
-    show_stats: "Mostrar estadísticas",
-    last_colon: "Último:",
-    first_contact_colon: "Primer contacto:",
     no_email_history: "Aún no hay historial de correos con este contacto",
     load_more: "Cargar más",
     selected_count: "{{ count }} seleccionado(s)",
@@ -1282,103 +1375,34 @@ export const es = {
     copy_invite_link: "Copiar enlace de invitación",
     share_on_social: "Compartir en redes sociales",
     check_out_aster_mail:
-      "Check out Aster Mail, a better way to manage your emails!",
+      "Descubre Aster Mail, una forma mejor de gestionar tu correo",
     n_lines: "{{ count }} líneas",
-    suspicious_email_detected: "Este correo parece sospechoso.",
-    phishing_warning_message:
-      "Marcamos este correo como sospechoso. Tratar con cuidado lo que contiene, y confirmar al remitente por otro canal antes de hacer clic en enlaces o compartir información personal, te mantendrá más a salvo. Tu bandeja de entrada y tu cuenta no se ven afectadas.",
     hide_details: "Ocultar detalles",
     show_details: "Mostrar detalles",
     not_phishing: "No es phishing",
-    i_understand: "Entiendo",
-    dangerous_email_links_disabled: "Correo peligroso, enlaces desactivados.",
-    phishing_danger_message:
-      "Este correo parece un intento de phishing, y sus enlaces están desactivados para protegerte. Si confías en el remitente, el aviso tiene una opción para volver a activarlos. Tu cuenta no se ve afectada de ninguna otra forma.",
-    hide_reasons: "Ocultar motivos",
-    show_reasons: "Mostrar motivos",
-    view_links_anyway: "Ver enlaces de todos modos",
-    enable_links: "Activar enlaces",
-    links_re_enabled: "Los enlaces se han reactivado.",
-    i_understand_the_risks: "entiendo los riesgos",
-    signal_dkim_fail:
-      "No pudimos verificar la firma del remitente. Este correo pudo haber sido alterado en tránsito o falsificado.",
-    signal_spf_fail:
-      "El servidor que envió este correo no es uno que este dominio use habitualmente. El remitente puede estar suplantado.",
-    signal_dmarc_fail:
-      "El dominio de este remitente rechaza los mensajes que no cumplen sus reglas contra la suplantación, y este no las cumplió. Conviene tratarlo con cuidado.",
-    signal_all_auth_fail:
-      "Todas las comprobaciones del remitente fallaron en este correo, y puede estar falsificado. Confirmar al remitente por otra vía antes de confiar en sus enlaces o adjuntos es lo más seguro.",
     auth_fail_banner_title: "No pudimos confirmar al remitente.",
     auth_fail_banner_body:
       "No pudimos confirmar que este correo realmente venga de la dirección mostrada, y puede estar suplantado. Verificar al remitente por otro canal antes de abrir enlaces o adjuntos es el camino más seguro. Tu cuenta no se ve afectada.",
-    signal_all_auth_pass:
-      "Todas las comprobaciones de autenticación del correo pasaron",
-    signal_reply_to_mismatch:
-      "Las respuestas a este correo irían a un dominio distinto del que aparece como remitente, lo cual es un patrón habitual de phishing.",
-    signal_missing_from:
-      "Este correo no tiene línea De, lo cual es inusual y conviene tratar con precaución.",
-    signal_missing_message_id:
-      "A este correo le falta el identificador único que suelen llevar los mensajes legítimos.",
-    signal_multiple_from:
-      "Este correo declara más de un remitente a la vez, lo cual es una señal habitual de falsificación.",
-    signal_future_dated:
-      "El reloj del remitente indica que este correo se escribió en el futuro, lo que puede señalar una falsificación o un remitente mal configurado.",
-    signal_domain_reputation_high:
-      "El dominio de este remitente tiene mala reputación en la comunidad de correo.",
-    signal_domain_reputation_medium:
-      "El dominio de este remitente tiene una reputación mixta. Una mirada cuidadosa antes de actuar sobre cualquier cosa que contenga vale la pena.",
-    signal_domain_new:
-      "El dominio de este remitente se registró hace muy poco, algo habitual en campañas de estafa.",
-    signal_user_reputation_high:
-      "Ya has denunciado antes a este remitente, y por eso te marcamos el mensaje.",
-    signal_rbl_spamhaus:
-      "El servidor que envió este correo aparece en una lista de bloqueo de spam muy conocida.",
-    signal_rbl_barracuda:
-      "El servidor que envió este correo aparece en una lista de bloqueo de spam muy conocida.",
-    signal_rbl_other:
-      "El servidor que envió este correo aparece en una lista de bloqueo de spam en tiempo real.",
-    signal_display_name_brand_spoof:
-      "El nombre del remitente copia el de una marca conocida, una táctica habitual de phishing.",
-    signal_display_name_email_spoof:
-      "El nombre del remitente muestra una dirección, pero el mensaje viene en realidad de otra, un patrón habitual de phishing.",
-    signal_domain_blocklist:
-      "El dominio de este remitente está en una lista de phishing conocida. Conviene tratar el mensaje como hostil.",
-    signal_safe_browsing_match:
-      "El dominio de este remitente está marcado por alojar contenido inseguro.",
-    signal_url_on_blocklist:
-      "Este correo contiene enlaces a sitios conocidos de phishing. Es mejor no abrirlos.",
-    signal_homoglyph_domain:
-      "Este correo contiene enlaces a dominios parecidos diseñados para imitar sitios legítimos. Es mejor no abrirlos.",
-    signal_display_name_brand_spoof_client:
-      "El nombre del remitente copia el de una marca conocida, una táctica habitual de phishing.",
-    signal_display_name_email_mismatch:
-      "El nombre del remitente y su dirección real no coinciden, un patrón habitual de phishing.",
-    signal_urgency_language:
-      "Este correo usa un lenguaje urgente o amenazante habitual en estafas. Ir despacio antes de actuar es lo más seguro.",
     shipment_update: "Actualización del envío",
-    estimated_short: "Est. {{ date }}",
     track_package: "Rastrear paquete",
     tracking_number: "Número de seguimiento",
     estimated_delivery: "Entrega estimada",
-    delivery_address: "Dirección de entrega",
-    extracted_locally_message:
-      "Extraído localmente de tu correo, y nada se envía a nuestros servidores.",
     view_blocked_content_details: "Ver detalles del contenido bloqueado",
     n_images: "{{ count }} imágenes",
     n_items: "{{ count }} elementos",
     ctrl_click_to_open: "Ctrl+Clic para abrir",
     user_id_label: "ID de usuario",
     platform_label: "Plataforma",
-    viewport_label: "Viewport",
+    viewport_label: "Área visible",
     screen_label: "Pantalla",
-    user_agent_label: "User Agent",
+    user_agent_label: "Agente de usuario",
     cc_bcc_label: "CC/CCO",
     secured_by_aster_mail: "Asegurado por",
     press_shortcut_to_send: "Pulsa ⌘+Intro para enviar",
     session_expired_sign_in:
-      "Tu sesión ha terminado. Iniciar sesión de nuevo te permitirá retomar donde lo dejaste. Tus datos y borradores están guardados en el servidor.",
+      "Tu sesión ha terminado. Inicia sesión de nuevo para continuar. Tus datos y borradores están guardados en el servidor.",
     signed_out_inactivity:
-      "Cerramos tu sesión tras un periodo de inactividad para proteger tu cuenta. Iniciar sesión de nuevo te permitirá retomar donde lo dejaste.",
+      "Para proteger tu cuenta, cerramos tu sesión tras un periodo de inactividad. Inicia sesión de nuevo para continuar.",
     emails_snoozed: "Correos pospuestos",
     emails_will_reappear: "{{count}} correo(s) reaparecerá(n) {{time}}",
     snoozing_emails: "Posponiendo correos...",
@@ -1388,13 +1412,25 @@ export const es = {
     select_destination_folder: "Selecciona la carpeta de destino",
     no_folders_available: "No hay carpetas disponibles",
     submitting: "Enviando...",
-    account_suspended_label: "Tu cuenta está suspendida.",
-    account_suspended_default_reason:
-      "Tu cuenta está suspendida por una infracción de las Condiciones del servicio. Escribe a hello@astermail.org para apelar o saber más.",
-    submit_an_appeal: "Enviar una apelación",
+    suspended_alert:
+      "Esta cuenta se usó de una forma que incumple los {terms}.",
+    suspended_alert_terms: "Términos del servicio de Aster",
+    suspended_since_with_deletion:
+      "Esta cuenta dejó de estar disponible el {date}. A partir del {deletion_date}, se puede considerar para su eliminación.",
+    suspended_since: "Esta cuenta dejó de estar disponible el {date}.",
+    suspended_title: "Esta cuenta está suspendida",
+    suspended_appeal_hint:
+      "Si crees que se trata de un error, puedes enviar una apelación. Aster revisa todas las apelaciones y responde por correo electrónico.",
+    suspended_download_hint:
+      "Todavía puedes descargar una copia de tus datos. Tu correo se descifra solo en este dispositivo, así que nadie más puede leer la exportación.",
+    suspended_download: "Descargar tus datos",
+    suspended_start_appeal: "Iniciar apelación",
     settings_disabled_suspended:
       "Los ajustes están desactivados mientras tu cuenta está suspendida. Escribe a hello@astermail.org para apelar o saber más.",
     new_email_body: "Tienes un correo nuevo",
+    new_emails_body_one: "Tienes {{count}} correo nuevo",
+    new_emails_body: "Tienes {{count}} correos nuevos",
+    new_emails_body_other: "Tienes {{count}} correos nuevos",
     create_ghost_alias: "Crear alias fantasma",
     hide_real_address_expiry: "Oculta tu dirección real (caduca en {{days}} d)",
     sender_group_primary: "Principal",
@@ -1407,30 +1443,43 @@ export const es = {
     sender_type_external: "Externo",
     sender_type_ghost: "Fantasma",
     recovery_email_label: "Correo de recuperación",
-    vault_access_error:
-      "No pudimos abrir tus claves privadas en este dispositivo. Cerrar sesión y volver a iniciarla las recargará. Tus claves y tus datos en el servidor no han cambiado.",
-    recovery_email_already_used:
-      "Este correo ya es una dirección de recuperación en otra cuenta. Otro debería funcionar.",
-    add_recovery_email_gate_desc:
-      "Es necesario un correo de recuperación verificado para seguir usando Aster Mail. Así es como vuelves a entrar si olvidas tu contraseña, y una dirección a la que siempre puedas acceder es la opción más segura.",
-    recovery_email_encrypted_note:
-      "This email will only be used for account recovery and identity verification. It is encrypted and cannot be read by Aster.",
-    recovery_email_verified_redirect:
-      "Your recovery email has been verified. Redirecting you now...",
-    verification_link_sent_to:
-      "We sent a verification link to {{email}}. Click the link in the email to verify your identity.",
     check_spam_folder_note:
-      "Didn't get the email? Check your spam folder. The link expires in 24 hours.",
+      "¿No te llegó el correo? Mira en la carpeta de spam. El enlace caduca en 24 horas.",
     job_title_at_company: "{{ job_title }} en {{ company }}",
     export_all_contacts: "Exportar todos los contactos",
     export_filtered_count: "Exportar filtrados ({{ count }})",
     no_contacts_yet: "Aún no hay contactos",
     add_contacts_quick_email_hint:
-      "Add contacts to quickly email people you message often",
+      "Añade contactos para escribir rápido a quienes tratas a menudo",
     no_contacts_match: 'Ningún contacto coincide con "{{ query }}"',
-    contact_count_one: "{{ count }} contacto",
-    contact_count_other: "{{ count }} contactos",
+    contact_count_one: "{{count}} contacto",
+    contact_count_other: "{{count}} contactos",
     n_of_n_contacts: "{{ filtered }} de {{ total }}",
+    contact_groups: "Grupos",
+    new_group: "Nuevo grupo",
+    create_contact_group: "Crear grupo",
+    rename_contact_group: "Cambiar el nombre del grupo",
+    delete_contact_group: "Eliminar grupo",
+    contact_group_name: "Nombre del grupo",
+    enter_contact_group_name: "Escribe un nombre de grupo",
+    manage_contact_groups: "Gestionar grupos",
+    no_contact_groups_yet: "Aún no hay grupos",
+    contact_group_name_too_long:
+      "Los nombres de grupo pueden tener hasta {{ max }} caracteres.",
+    contact_group_already_exists: "Ya existe un grupo con este nombre.",
+    contact_group_limit_reached: "Puedes crear hasta {{ max }} grupos.",
+    failed_to_fetch_contact_groups:
+      "Los grupos no se cargaron. Inténtalo de nuevo.",
+    failed_to_save_contact_group: "El grupo no se guardó. Inténtalo de nuevo.",
+    failed_to_create_contact_group: "El grupo no se creó. Inténtalo de nuevo.",
+    failed_to_update_contact_groups: "La pertenencia al grupo no se actualizó.",
+    contacts_added_to_group: "{{count}} contactos añadidos al grupo",
+    contacts_added_to_group_one: "{{count}} contacto añadido al grupo",
+    contacts_added_to_group_other: "{{count}} contactos añadidos al grupo",
+    contacts_removed_from_group: "{{count}} contactos eliminados del grupo",
+    contacts_removed_from_group_one: "{{count}} contacto eliminado del grupo",
+    contacts_removed_from_group_other:
+      "{{count}} contactos eliminados del grupo",
     send_email: "Enviar correo",
     folder_preview: "Vista previa de la carpeta",
     rename_label: "Renombrar etiqueta",
@@ -1443,40 +1492,35 @@ export const es = {
       "Esta etiqueta se quitará de todos los correos que la lleven, y no podrás deshacerlo. Los correos en sí permanecen en tu cuenta.",
     confirm_delete_label: "¿Seguro que quieres eliminar la etiqueta",
     add_another_email_count: "Añadir otro correo ({{current}}/{{max}})",
-    drop_files_or_click: "Suelta los archivos aquí o haz clic para subir",
-    max_size_per_file: "Máx. {{size}} por archivo",
-    uploading_progress: "Subiendo...",
     n_messages_count: "{{count}} mensajes",
-    view_all_messages: "Ver todos los mensajes",
     unable_to_decrypt: "No pudimos abrir este mensaje",
     decrypt_session_expired_message:
       "No pudimos abrir este mensaje en este dispositivo, normalmente porque tu sesión ha terminado. Tu mensaje y tus claves en el servidor no han cambiado.",
     decrypt_try_sign_out:
       "Cierra sesión y vuelve a iniciarla para recargar tus claves, y si el mensaje sigue sin abrirse, escribe a hello@astermail.org.",
-    n_files: "{{count}} archivo",
-    n_files_plural: "{{count}} archivos",
     files_protected_in_transit:
       "Estos archivos fueron protegidos y cifrados en tránsito.",
-    aster_user: "Usuario de Aster",
     allow_sender: "Añadir a la lista de permitidos",
     remove_from_allowlist_action: "Quitar de la lista de permitidos",
     failed_to_allow_sender:
-      "Este remitente no se añadió a tu lista de permitidos. Otro intento debería resolverlo.",
-    account_limit_reached: "Límite de cuentas alcanzado",
+      "Este remitente no se añadió a tu lista de permitidos. Inténtalo de nuevo.",
+    account_limit_reached:
+      "Has alcanzado el límite de cuentas para esta red. Si crees que es un error, escribe a hello@astermail.org.",
     account_suspended: "Cuenta suspendida",
     action_undone: "Acción deshecha",
     add_display_name_placeholder: "Agregar nombre visible",
     adding_file_would_exceed_limit:
-      "Agregar {{name}} superaría el límite de archivos adjuntos.",
-    advanced_toolbar: "Barra de herramientas avanzada",
+      'Agregar "{{name}}" superaría el límite de {{size}} para los archivos adjuntos. Quita un archivo primero, o envíalo en un correo aparte.',
+    advanced_toolbar: "Avanzada",
     alias_avatar_removed: "Avatar del alias eliminado",
     alias_avatar_updated: "Avatar del alias actualizado",
-    alias_avatars_feature: "Avatares de alias",
-    alias_avatars_locked: "Avatares de alias bloqueados",
+    alias_avatars_locked:
+      "Los avatares personalizados forman parte de los planes de pago. Mejora tu plan para activarlos.",
     alias_display_name_updated: "Nombre visible del alias actualizado",
     all_short: "Todo",
     and_n_more: "Y {{count}} más...",
-    auth_fail_tooltip_dkim: "La firma DKIM es inválida o está ausente.",
+    auth_fail_tooltip_dkim:
+      "La firma del remitente falta o no coincide, así que no podemos confirmar que el mensaje no se modificara por el camino.",
     auth_fail_tooltip_dmarc: "El mensaje falló la verificación DMARC.",
     auth_fail_tooltip_intro:
       "Este mensaje falló algunas verificaciones de autenticación:",
@@ -1503,10 +1547,10 @@ export const es = {
     bulk_action_continues_in_background:
       "Los mensajes restantes se siguen actualizando en segundo plano.",
     custom_fields: "Campos personalizados",
-    device_revoked: "Dispositivo revocado",
+    device_revoked:
+      "Este dispositivo se quitó de tu cuenta y se cerró la sesión. Si no fuiste tú, cambia tu contraseña de inmediato en astermail.org/security.",
     display_name_too_long: "El nombre visible es demasiado largo",
     draft_category: "Borradores",
-    drop_image_or_click: "Suelta una imagen o haz clic para seleccionar",
     edit_display_name: "Editar nombre visible",
     alias_note_updated: "Nota actualizada",
     alias_websites_updated: "Sitios web actualizados",
@@ -1521,39 +1565,36 @@ export const es = {
     alias_add_details: "Agregar detalles",
     alias_websites_count: "{{count}} sitios web",
     remove_alias_website: "Eliminar sitio web",
-    failed_update_alias_note:
-      "Tu nota no se guardó. Otro intento debería funcionar.",
+    failed_update_alias_note: "Inténtalo de nuevo.",
     alias_note_too_long:
       "Esta nota supera el límite de longitud. Una más corta funcionará.",
     add_alias_note_placeholder: "Agregar nota",
     edit_alias_note: "Editar nota",
-    failed_remove_recovery_email: "Error al eliminar el correo de recuperación",
-    failed_save_profile_color: "Error al guardar el color del perfil",
+    failed_save_profile_color: "Inténtalo de nuevo.",
     failed_to_change_folder_password:
-      "Error al cambiar la contraseña de la carpeta",
-    failed_to_get_key_status: "Error al obtener el estado de la clave",
+      "La contraseña de la carpeta no cambió. Inténtalo de nuevo. La contraseña anterior sigue funcionando.",
     failed_to_read_named_file: "Error al leer el archivo {{name}}",
     failed_to_remove_folder_password:
-      "Error al eliminar la contraseña de la carpeta",
+      "No pudimos quitar la contraseña de la carpeta. Inténtalo de nuevo. La carpeta sigue bloqueada como antes.",
     failed_to_set_folder_password:
-      "Error al establecer la contraseña de la carpeta",
-    failed_update_alias_avatar: "Error al actualizar el avatar del alias",
+      "La contraseña de la carpeta no se guardó. Inténtalo de nuevo. El contenido de la carpeta no ha cambiado.",
+    failed_update_alias_avatar:
+      "El avatar de tu alias no se actualizó. Inténtalo de nuevo.",
     failed_update_alias_display_name:
-      "Error al actualizar el nombre visible del alias",
+      "Tu nombre visible no se actualizó. Inténtalo de nuevo.",
     file_already_attached:
       '"{{name}}" ya está adjunto en este correo. No hace falta adjuntarlo de nuevo.',
     metadata_not_removed:
       "No se pudieron eliminar los metadatos ocultos de {{names}}. El archivo se adjuntó sin cambios.",
     file_exceeds_max_size:
-      '"{{name}}" supera el límite de 25 MB por archivo. Una versión más pequeña, o un enlace compartido, llegará sin problemas.',
+      '"{{name}}" supera el límite de {{size}} por archivo. Una versión más pequeña, o un enlace compartido, llegará sin problemas.',
+    file_exceeds_max_size_upgradable:
+      '"{{name}}" supera el límite de {{size}} por archivo de tu plan. Al mejorar tu plan sube a {{max_size}}.',
     folder_fallback: "Carpeta",
-    found_n_contacts: "Se encontraron {{count}} contactos",
-    found_one_contact: "1 contacto encontrado",
-    health_check_failed: "La verificación de estado falló",
+    health_check_failed: "Inténtalo de nuevo.",
     image_load_failed: "Error al cargar la imagen",
     image_processing_failed: "Error al procesar la imagen",
-    images_count: "{{count}} imagen",
-    images_count_plural: "{{count}} imágenes",
+    images_count: "{{count}} imágenes",
     import_n_contacts: "Importar {{count}} contactos",
     import_one_contact: "Importar 1 contacto",
     label_fallback: "Etiqueta",
@@ -1564,29 +1605,53 @@ export const es = {
     label_system_spam: "Spam",
     label_system_trash: "Papelera",
     marking_as_read_count: "Marcando {{completed}} de {{total}} como leído...",
-    mention_notification: "{{ sender }} te mencionó",
     message_will_be_sent_shortly: "El mensaje se enviará en breve",
     more_aliases: "+{{count}} alias más",
     n_contacts_imported: "{{count}} contactos importados",
-    n_emails: "{{count}} correos",
     n_more: "+{{count}} más",
     n_more_recipients: "+{{count}} más",
-    new_email_notification: "Nuevo correo de {{ sender }}",
     no_custom_fields_yet: "Aún no hay campos personalizados",
     not_now: "Ahora no",
     on_separator: "el",
     onboarding_checklist_dismiss: "Ignorar",
     onboarding_checklist_first_email: "Enviar tu primer correo",
+    recovery_reminder_title: "Añade una forma de recuperar tu cuenta",
+    recovery_reminder_body:
+      "Aster cifra tu correo con tu contraseña, así que nadie puede restablecerla por ti. Añade un correo de recuperación para conservar el acceso.",
+    recovery_reminder_action: "Añadir correo de recuperación",
+    recovery_reminder_later: "Más tarde",
+    recovery_codes_reminder_title: "Guarda tus códigos de recuperación",
+    recovery_codes_reminder_body:
+      "Aster cifra tu correo con tu contraseña, así que nadie puede restablecerla por ti. Los códigos de recuperación son la única forma de volver a tu correo cifrado.",
+    recovery_codes_reminder_action: "Obtener códigos de recuperación",
+    recovery_codes_low_reminder_title:
+      "Te quedan pocos códigos de recuperación",
+    recovery_codes_low_reminder_body:
+      "Cada código funciona una vez y te quedan {{count}}. Obtén códigos nuevos para no perder el acceso.",
+    recovery_codes_low_reminder_action: "Obtener códigos nuevos",
+    recovery_phrase_migrate_title: "Cambia a códigos de recuperación",
+    recovery_phrase_migrate_body:
+      "Las frases de recuperación van a desaparecer. Obtén códigos de recuperación ahora para poder seguir recuperando tu cuenta.",
+    recovery_phrase_migrate_action: "Obtener códigos",
+    plan_prompt_title: "Estás en el plan gratuito",
+    plan_prompt_body:
+      "Los planes de pago añaden más almacenamiento, dominios propios y alias ilimitados.",
+    plan_prompt_action: "Ver planes",
+    plan_prompt_dismiss: "Descartar",
     onboarding_checklist_import_mail: "Importar tu correo existente",
     onboarding_checklist_install_app: "Instalar la aplicación",
     onboarding_checklist_recovery_method:
       "Configurar un método de recuperación",
     onboarding_checklist_title: "Primeros pasos",
     one_email: "1 correo",
-    pending_deletion_cancel_prompt: "Cancelar eliminación",
     pending_deletion_cancelling: "Cancelando...",
-    pending_deletion_days: "Eliminación en {{days}} día(s)",
-    pending_deletion_dismiss: "Ignorar",
+    family_2fa_title: "Se requiere autenticación de dos factores",
+    family_2fa_body:
+      "Tu plan familiar requiere la autenticación de dos factores. Actívala para seguir usando esta cuenta.",
+    family_2fa_action: "Activar la autenticación de dos factores",
+    family_2fa_sign_out: "Cerrar sesión",
+    pending_deletion_days:
+      "Tu cuenta se eliminará dentro de {{days}} días. Cancela la eliminación para conservar tu cuenta y recuperar el acceso a tu correo.",
     pending_deletion_body:
       "Tu cuenta está programada para eliminarse. Cancela la eliminación para conservar tu cuenta y recuperar el acceso a tu correo.",
     pending_deletion_sign_out: "Cerrar sesión",
@@ -1594,8 +1659,8 @@ export const es = {
       "No se pudo restaurar tu cuenta. Inténtalo de nuevo.",
     pending_deletion_keep: "Conservar la cuenta",
     pending_deletion_title: "Eliminación de cuenta pendiente",
-    permission_denied: "Permiso denegado",
-    photo_format_hint: "JPG o PNG, máx. 5 MB",
+    permission_denied:
+      "No tienes acceso para hacer eso. Si crees que es un error, tu administrador puede ayudarte.",
     pin_preferred_sender: "Fijar remitente preferido",
     press_enter: "Presiona Enter",
     press_enter_to_view_all: "Presiona Enter para ver todo",
@@ -1606,10 +1671,9 @@ export const es = {
     print_from: "De:",
     print_no_subject: "(Sin asunto)",
     print_to: "Para:",
-    probation_message: "Tu cuenta está en período de prueba.",
     profile: "Perfil",
-    profile_photo: "Foto de perfil",
     recovery_email_removed: "Correo de recuperación eliminado",
+    recovery_email_hidden: "Guardado en esta cuenta",
     recovery_pdf_account: "Cuenta",
     recovery_pdf_code_used_once: "Cada código solo puede usarse una vez.",
     recovery_pdf_footer: "Aster Mail - Códigos de recuperación",
@@ -1624,8 +1688,6 @@ export const es = {
     recovery_pdf_used: "Usado",
     recovery_pdf_your_codes: "Tus códigos de recuperación",
     recovery_text_code_used_on: "Código {{ number }} usado el: ____________",
-    recovery_text_if_forgot:
-      "Si olvidas tu contraseña, usa estos códigos para recuperar el acceso.",
     recovery_text_keep_safe: "Guarda estos códigos en un lugar seguro.",
     recovery_text_mark_used: "Tacha cada código después de usarlo.",
     recovery_text_no_share: "Nunca compartas estos códigos.",
@@ -1642,10 +1704,6 @@ export const es = {
       "Contraseña o código de verificación incorrectos. Inténtalo de nuevo.",
     step_up_security_key_hint:
       "Después de escribir tu contraseña, se te pedirá que verifiques con tu llave de seguridad.",
-    remove_recovery_email_confirm:
-      "Confirmar eliminación del correo de recuperación",
-    reply_notification: "{{ sender }} respondió",
-    request_timed_out: "La solicitud agotó el tiempo de espera",
     save_recovery_codes_dialog: "Guardar códigos de recuperación",
     save_recovery_codes_title: "Códigos de recuperación",
     scanning_mailbox: "Analizando buzón...",
@@ -1653,7 +1711,7 @@ export const es = {
     search_failed_try_again:
       "La búsqueda falló. Por favor, inténtalo de nuevo.",
     search_load_failed_try_again:
-      "Error al cargar los resultados. Por favor, inténtalo de nuevo.",
+      "No pudimos cargar tus correos para la búsqueda. Inténtalo de nuevo. Tu correo está a salvo.",
     select_label: "Seleccionar etiqueta",
     select_none: "Sin selección",
     select_read: "Seleccionar leídos",
@@ -1661,18 +1719,21 @@ export const es = {
     select_unread: "Seleccionar no leídos",
     select_unstarred: "Seleccionar sin estrella",
     sender_invalid: "Remitente inválido",
-    sender_invalid_desc: "No se pudo verificar la dirección del remitente.",
+    sender_invalid_desc:
+      "Este mensaje está firmado, pero la firma no coincide con la identidad que publica el remitente. Puede que se haya modificado o que lo haya enviado otra persona. Antes de actuar, es más seguro confirmar cualquier cosa importante por otro canal.",
+    sender_invalid_short: "La firma no coincide",
     sender_no_keys: "Sin claves para el remitente",
     sender_no_keys_desc:
-      "No se encontraron claves de cifrado para este remitente.",
+      "No pudimos consultar la identidad de este remitente, así que no podemos confirmar que el mensaje venga realmente de él. Trata con cuidado cualquier contenido sensible.",
     sender_unsigned: "Mensaje sin firmar",
-    sender_unsigned_desc: "Este mensaje no está firmado por el remitente.",
+    sender_unsigned_desc:
+      "Este mensaje no está firmado, así que no podemos confirmar que venga realmente de este remitente. Trata con cuidado cualquier contenido sensible.",
     sender_verified: "Remitente verificado",
     sender_verified_desc:
       "El remitente fue verificado mediante firma criptográfica.",
     sending_in_seconds: "Enviando en {{seconds}} segundos...",
     sending_in_one_second: "Enviando en 1 segundo...",
-    simple_toolbar: "Barra de herramientas simple",
+    simple_toolbar: "Simple",
     star_selected: "Marcar selección con estrella",
     stop: "Detener",
     switch_to_advanced: "Cambiar a modo avanzado",
@@ -1682,28 +1743,333 @@ export const es = {
     time_minutes_short: "min",
     time_seconds_short: "s",
     to_recipient: "Para",
-    total_attachments_exceed_limit:
-      "El tamaño total de los archivos adjuntos supera el límite",
-    trash_empty_failed: "Error al vaciar la papelera",
+    trash_empty_failed:
+      "No pudimos vaciar la papelera. Vuelve a intentarlo en un momento. No se eliminó nada.",
     uncategorized: "Sin categoría",
-    unknown_error: "Error desconocido",
+    unknown_error:
+      "Algo no funcionó como se esperaba. Inténtalo de nuevo. No pudimos determinar la causa.",
     unknown_merchant: "Comerciante desconocido",
-    unknown_rotation_error: "Error de rotación desconocido",
+    unsaved_changes_title: "¿Descartar los cambios?",
+    unsaved_changes_body:
+      "Los datos que has introducido no están guardados. Si cierras el formulario ahora, se eliminan.",
     unknown_sender: "Remitente desconocido",
     unlock_with_biometry: "Desbloquear con {{name}}",
     unpin_preferred_sender: "Desfijar remitente preferido",
-    unstar_selected: "Quitar estrella de la selección",
-    unsupported_file_type:
-      '"{{name}}" no es un tipo de archivo que podamos adjuntar. Guardarlo en otro formato, o compartirlo mediante un enlace, permitirá enviarlo.',
     use_biometry_to_unlock: "Usar {{name}} para desbloquear",
     wkd_encrypted_description: "Este mensaje fue cifrado mediante WKD.",
     x_of_y: "{{current}} de {{total}}",
     yourname_placeholder: "Tu nombre",
-    or: "or",
+    or: "o",
+    help: "Ayuda",
+    go_to_inbox: "Ir a la bandeja de entrada",
+    removing: "Quitando...",
+    upgrade_tooltip: "Consigue más almacenamiento, alias y dominios propios",
+    dns_host_leave_blank: "Déjalo en blanco",
+    dns_host_provider_hint:
+      "{{provider}} usa este formato en el campo del host. Cópialo exactamente como se muestra.",
+    purchase_congrats_title: "Enhorabuena",
+    recipient_key_outdated: "La clave del destinatario está obsoleta",
+    recipient_key_outdated_desc:
+      "La clave publicada de este destinatario está caducada o no es válida, así que el mensaje no puede cifrarse de extremo a extremo. Se enviará protegido solo en tránsito.",
+    post_quantum_unavailable_title: "¿Enviar sin cifrado poscuántico?",
+    post_quantum_send_anyway: "Enviar de todos modos",
+    key_trust_change_title: "La clave de cifrado cambió",
+    key_trust_change_message:
+      "La clave de cifrado de {{recipients}} cambió desde la última consulta. Comprueba la nueva huella con el destinatario por otro canal antes de enviar.",
+    key_trust_change_detail: "{{email}}: antes {{prior}}, ahora {{current}}.",
+    key_trust_change_confirm: "Confiar en la nueva clave",
+    post_quantum_downgrade_title:
+      "¿Enviar sin las claves poscuánticas esperadas?",
+    post_quantum_downgrade_message:
+      "{{recipients}} publica claves poscuánticas, pero el conjunto de claves entregado para este mensaje no incluye ninguna. Puede deberse a un problema del servidor o a una manipulación de la búsqueda de claves. Para mantener la protección poscuántica, cancela e inténtalo de nuevo más tarde.",
+    post_quantum_unavailable_message:
+      "{{recipients}} todavía no ha publicado claves poscuánticas, así que este mensaje solo puede usar el cifrado de extremo a extremo estándar. Pídele que abra Aster o actualice su app para volver a activar la protección poscuántica.",
+    too_many_attachments:
+      "Un correo puede llevar {{count}} archivos adjuntos. Envía el resto en otro correo.",
+    more_folders_one: "{{count}} carpeta más",
+    more_folders_other: "{{count}} carpetas más",
+    more_labels_one: "{{count}} etiqueta más",
+    more_labels_other: "{{count}} etiquetas más",
+    more_aliases_one: "{{count}} alias más",
+    more_aliases_other: "{{count}} alias más",
+    in_x_minutes_one: "En {{count}} minuto",
+    in_x_minutes_other: "En {{count}} minutos",
+    minutes_remaining_one: "Queda {{count}} minuto",
+    minutes_remaining_other: "Quedan {{count}} minutos",
+    hours_remaining_one: "Queda {{count}} hora",
+    hours_remaining_other: "Quedan {{count}} horas",
+    days_remaining_one: "Queda {{count}} día",
+    days_remaining_other: "Quedan {{count}} días",
+    weeks_remaining_one: "Queda {{count}} semana",
+    weeks_remaining_other: "Quedan {{count}} semanas",
+    minutes_ago_long_one: "hace {{count}} minuto",
+    minutes_ago_long_other: "hace {{count}} minutos",
+    hours_ago_long_one: "hace {{count}} hora",
+    hours_ago_long_other: "hace {{count}} horas",
+    days_ago_long_one: "hace {{count}} día",
+    days_ago_long_other: "hace {{count}} días",
+    weeks_ago_long_one: "hace {{count}} semana",
+    weeks_ago_long_other: "hace {{count}} semanas",
+    months_ago_long_one: "hace {{count}} mes",
+    months_ago_long_other: "hace {{count}} meses",
+    emails_marked_as_read_one: "{{count}} correo marcado como leído",
+    emails_marked_as_read_other: "{{count}} correos marcados como leídos",
+    emails_archived_one: "{{count}} correo archivado",
+    emails_archived_other: "{{count}} correos archivados",
+    emails_moved_to_trash_one: "{{count}} correo movido a la papelera",
+    emails_moved_to_trash_other: "{{count}} correos movidos a la papelera",
+    emails_starred_one: "{{count}} correo destacado",
+    emails_starred_other: "{{count}} correos destacados",
+    emails_unstarred_one: "{{count}} correo sin destacar",
+    emails_unstarred_other: "{{count}} correos sin destacar",
+    emails_permanently_deleted_one:
+      "{{count}} correo eliminado permanentemente",
+    emails_permanently_deleted_other:
+      "{{count}} correos eliminados permanentemente",
+    emails_snoozed_until_one: "{{count}} correo pospuesto hasta {{time}}",
+    emails_snoozed_until_other: "{{count}} correos pospuestos hasta {{time}}",
+    emails_added_to_folder_one: "{{count}} correo añadido a {{folder}}",
+    emails_added_to_folder_other: "{{count}} correos añadidos a {{folder}}",
+    emails_will_reappear_one: "{{count}} correo volverá a aparecer {{time}}",
+    emails_will_reappear_other:
+      "{{count}} correos volverán a aparecer {{time}}",
+    drafts_deleted_one: "{{count}} borrador eliminado permanentemente",
+    drafts_deleted_other: "{{count}} borradores eliminados permanentemente",
+    spam_emails_moved_to_trash_one:
+      "{{count}} correo de spam movido a la papelera",
+    spam_emails_moved_to_trash_other:
+      "{{count}} correos de spam movidos a la papelera",
+    spam_emails_permanently_deleted_one:
+      "{{count}} correo de spam eliminado permanentemente",
+    spam_emails_permanently_deleted_other:
+      "{{count}} correos de spam eliminados permanentemente",
+    newsletters_archived_one: "{{count}} boletín archivado",
+    newsletters_archived_other: "{{count}} boletines archivados",
+    conversations_marked_as_spam_bulk_one:
+      "{{count}} conversación marcada como spam",
+    conversations_restored_bulk_one: "{{count}} conversación restaurada",
+    conversations_snoozed_bulk_one: "{{count}} conversación pospuesta",
+    conversations_marked_as_read_bulk_one:
+      "{{count}} conversación marcada como leída",
+    conversations_marked_as_unread_bulk_one:
+      "{{count}} conversación marcada como no leída",
+    conversations_starred_bulk_one: "{{count}} conversación destacada",
+    conversations_unstarred_bulk_one: "{{count}} conversación sin destacar",
+    conversations_moved_to_inbox_bulk_one:
+      "{{count}} conversación movida a Recibidos",
+    conversations_marked_as_not_spam_bulk_one:
+      "{{count}} conversación marcada como no spam",
+    conversations_removed_from_folder_one:
+      "{{count}} conversación eliminada de {{folder}}",
+    conversations_moved_to_folder_one:
+      "{{count}} conversación movida a {{folder}}",
+    conversations_removed_label_one:
+      "{{count}} conversación: etiqueta {{label}} eliminada",
+    conversations_added_label_one:
+      "{{count}} conversación: etiqueta {{label}} añadida",
+    conversations_marked_as_spam_bulk_other:
+      "{{count}} conversaciones marcadas como spam",
+    conversations_restored_bulk_other: "{{count}} conversaciones restauradas",
+    conversations_snoozed_bulk_other: "{{count}} conversaciones pospuestas",
+    conversations_marked_as_read_bulk_other:
+      "{{count}} conversaciones marcadas como leídas",
+    conversations_marked_as_unread_bulk_other:
+      "{{count}} conversaciones marcadas como no leídas",
+    conversations_starred_bulk_other: "{{count}} conversaciones destacadas",
+    conversations_unstarred_bulk_other: "{{count}} conversaciones sin destacar",
+    conversations_moved_to_inbox_bulk_other:
+      "{{count}} conversaciones movidas a Recibidos",
+    conversations_marked_as_not_spam_bulk_other:
+      "{{count}} conversaciones marcadas como no spam",
+    conversations_removed_from_folder_other:
+      "{{count}} conversaciones eliminadas de {{folder}}",
+    conversations_moved_to_folder_other:
+      "{{count}} conversaciones movidas a {{folder}}",
+    conversations_removed_label_other:
+      "{{count}} conversaciones: etiqueta {{label}} eliminada",
+    conversations_added_label_other:
+      "{{count}} conversaciones: etiqueta {{label}} añadida",
+    contacts_deleted_one: "{{count}} contacto eliminado",
+    contacts_deleted_other: "{{count}} contactos eliminados",
+    contacts_starred_one: "{{count}} contacto destacado",
+    contacts_starred_other: "{{count}} contactos destacados",
+    contacts_unstarred_one: "{{count}} contacto sin destacar",
+    contacts_unstarred_other: "{{count}} contactos sin destacar",
+    taps_to_developer_mode_one: "{{count}} toque para el modo de desarrollador",
+    taps_to_developer_mode_other:
+      "{{count}} toques para el modo de desarrollador",
+    delete_contacts_confirmation_one:
+      "¿Seguro que quieres eliminar {{count}} contacto? Esta acción no se puede deshacer.",
+    delete_contacts_confirmation_other:
+      "¿Seguro que quieres eliminar {{count}} contactos? Esta acción no se puede deshacer.",
+    sender_count_one: "{{count}} remitente",
+    sender_count_other: "{{count}} remitentes",
+    email_count_one: "{{count}} correo",
+    email_count_other: "{{count}} correos",
+    file_count_one: "{{count}} archivo",
+    file_count_other: "{{count}} archivos",
+    emails_from_senders_archived_one:
+      "Se archivó {{count}} correo de {{senders}}",
+    emails_from_senders_archived_other:
+      "Se archivaron {{count}} correos de {{senders}}",
+    emails_from_senders_deleted_one:
+      "Se eliminó {{count}} correo de {{senders}}",
+    emails_from_senders_deleted_other:
+      "Se eliminaron {{count}} correos de {{senders}}",
+    app_lock_attempts_remaining_one: "Queda {{count}} intento",
+    app_lock_attempts_remaining_other: "Quedan {{count}} intentos",
+    sender_count: "{{count}} remitentes",
+    email_count: "{{count}} correos",
+    file_count: "{{count}} archivos",
+    images_count_one: "{{count}} imagen",
+    images_count_other: "{{count}} imágenes",
+    contact_count: "{{count}} contactos",
+    tray_show: "Mostrar Aster Mail",
+    tray_quit: "Salir",
+    tray_troubleshooting: "Si la ventana aparece en blanco",
+    tray_compat_on: "Reiniciar en modo de compatibilidad",
+    tray_compat_off: "Reiniciar con aceleración por hardware",
+    tray_display_reset: "Restablecer la caché de pantalla y reiniciar",
+    push_new_message: "Tienes un mensaje nuevo",
+    too_many_recipients_in_field:
+      "Cada campo Para, Cc y Cco admite un máximo de {{max}} direcciones. Mueve algunas a un segundo mensaje para enviar este.",
+    too_many_recipients_in_message:
+      "Un mensaje llega a un máximo de {{max}} direcciones entre Para, Cc y Cco. Dividir la lista en mensajes más pequeños permitirá enviarlo.",
+    credit_balance_changed:
+      "Tu saldo de créditos cambió mientras el pago estaba abierto. Cierra el pago y empieza de nuevo para aplicar los créditos que tienes ahora.",
+    add_birthdays: "Añadir cumpleaños",
+    add_birthdays_hint:
+      "Añade un cumpleaños a un contacto y Aster te lo recuerda antes de la fecha.",
+    contact_encryption_info:
+      "Cuando un contacto publica una clave pública, Aster cifra automáticamente el correo que le envías.",
+    contacts_in_trash_notice:
+      "Los contactos de la papelera se eliminan definitivamente a los 30 días.",
+    delete_group_confirmation:
+      "Si eliminas «{{name}}», el grupo desaparece. Los contactos que contiene siguen en tu libreta de direcciones.",
+    discard_new_contact_message:
+      "El contacto que empezaste todavía no está guardado. Si abres otro contacto ahora, lo pierdes.",
+    export_selection_csv: "Exportar como CSV",
+    export_selection: "Exportar la selección",
+    group_empty_hint:
+      "Para llenar este grupo, selecciona contactos en la pestaña Contactos y elige Añadir al grupo.",
+    group_modal_description:
+      "Crea grupos para escribir a varios contactos a la vez.",
+    merge_contacts_hint:
+      "Elige los datos que quieres conservar. Los demás contactos pasan a la papelera.",
+    no_contact_details:
+      "Este contacto todavía no tiene datos. Elige Editar para añadirlos.",
+    preview_contact: "Ver contacto",
+    share_contact_via_email: "Adjuntar a un correo nuevo",
+    share_contact_device: "Compartir con otra app",
+    undo_change: "Deshacer el cambio",
+    biometry_fingerprint: "la huella digital",
+    biometry_face_recognition: "el reconocimiento facial",
+    biometry_iris: "el iris",
+    biometry_generic: "la biometría",
+    share_via: "Compartir mediante",
+    zip_archive: "Archivo ZIP",
   },
   settings: {
+    bill_thanks_title: "Gracias por apoyar a Aster",
+    bill_thanks_body:
+      "Tu apoyo lo es todo para nosotros. Permite que un equipo pequeño siga construyendo Aster con cuidado, cada día.",
+    bill_thanks_free_title: "Gracias por usar Aster",
+    bill_thanks_free_body:
+      "Un equipo pequeño construye Aster con cuidado, y cada persona que le confía su correo nos mantiene en marcha. Mejora tu plan cuando necesites más almacenamiento, alias o dominios personalizados.",
+    bill_attachments: "Adjuntos",
+    bill_dedicated_support: "Soporte dedicado",
+    bill_early_access: "Acceso anticipado a nuevas funciones",
+    bill_encrypted_export: "Exportación cifrada",
+    bill_external_accounts: "Cuentas externas",
+    bill_key_rotation: "Rotación de claves",
+    bill_members: "Miembros",
+    bill_priority_support: "Soporte prioritario",
+    bill_protected_folders: "Carpetas protegidas",
+    bill_receipt_tracking: "Seguimiento de recibos",
+    bill_shared_aliases: "Alias compartidos",
+    bill_shared_storage: "Almacenamiento compartido",
+    bill_tracker_protection: "Protección contra rastreadores",
+    bill_action_required: "Acción necesaria",
+    bill_add_funds: "Añadir fondos",
+    bill_add_funds_body:
+      "El saldo paga las renovaciones y los complementos antes de cobrar a tu tarjeta.",
+    bill_add_more_storage: "Añadir más almacenamiento",
+    bill_aliases: "Alias",
+    bill_all_good: "Todo en orden",
+    bill_almost_at_limit: "Casi al límite",
+    bill_almost_full: "Casi lleno",
+    bill_billed_monthly: "Se cobra cada mes. Cancela cuando quieras.",
+    bill_billed_yearly: "{{total}} cobrados una vez al año",
+    bill_bonus: "+{{amount}} de bonificación",
+    bill_buy: "Comprar",
+    bill_cancels_on: "Termina el {{date}}",
+    bill_compare_plans: "Comparar planes",
+    bill_credits: "Saldo",
+    bill_current_plan: "Plan actual",
+    bill_custom_domains: "Dominios personalizados",
+    bill_family: "Familia",
+    bill_history: "Historial de facturación",
+    bill_individual: "Individual",
+    bill_limit_reached: "Límite alcanzado",
+    bill_manage_plan: "Gestionar plan",
+    bill_of: "{{used}} de {{limit}}",
+    bill_paid_until_crypto: "Pagado hasta el {{date}}",
+    bill_pay_monthly: "Pagar mensualmente",
+    bill_pay_with_card: "Pagar con tarjeta",
+    bill_pay_with_crypto: "Pagar con cripto",
+    bill_pay_yearly: "Pagar anualmente",
+    bill_payment: "Método de pago",
+    bill_payment_subtitle: "Tarjetas y datos de facturación",
+    bill_plans: "Planes",
+    bill_recent_transactions: "Transacciones recientes",
+    bill_recommended: "Recomendado",
+    bill_renew_with_crypto: "Renovar con cripto",
+    bill_renews_on: "Se renueva el {{date}}",
+    bill_save_percent: "Ahorra un {{percent}} %",
+    bill_status_active: "Activo",
+    bill_status_canceled: "Cancelado",
+    bill_status_ends: "Termina el {{date}}",
+    bill_status_payment_needed: "Pago pendiente",
+    bill_top_up: "Recargar",
+    bill_top_ups_unavailable: "Las recargas no están disponibles ahora mismo.",
+    bill_up_to: "Hasta {{count}}",
+    bill_update_payment: "Actualizar",
+    bill_upgrade: "Mejorar",
+    bill_use_credits_renewals: "Usar el saldo para renovaciones",
+    bill_use_credits_renewals_body:
+      "Tu saldo se aplica antes de cobrar a tu tarjeta.",
+    alias_sent_mail_label: "Correo enviado",
+    alias_sent_mail_desc:
+      "Consulta los mensajes que enviaste desde esta dirección.",
+    account_enabled_tooltip: "Esta cuenta se está sincronizando.",
+    account_pause_tooltip: "Pausar la sincronización",
+    account_resume_tooltip: "Reanudar la sincronización",
+    app_password_create_link: "Crear una contraseña de aplicación",
+    app_password_required: "Se necesita una contraseña de aplicación",
+    category_newsletters: "Boletines",
+    gmail_sync_continue: "Continuar",
+    gmail_sync_open_google: "Abrir los ajustes de la cuenta",
+    gmail_sync_setup_button: "Ver cómo se hace",
+    gmail_sync_step_3:
+      "En los ajustes de tu correo, marca «Mostrar en IMAP» para «Todos», «Enviados» y tus etiquetas, y ajusta los límites de tamaño de las carpetas en «No limitar».",
+    gmail_sync_step_4:
+      "Escribe tu dirección de correo y pega la contraseña de aplicación en Aster.",
+    gmail_sync_title: "Crear una contraseña de aplicación",
+    gmail_wizard_password_label: "Contraseña de aplicación",
+    gmail_wizard_progress: "Paso {{current}} de {{total}}",
+    gmail_wizard_reveal_password: "Mostrar la contraseña de aplicación",
+    gmail_wizard_step_1_action: "Abrir la verificación en dos pasos",
+    gmail_wizard_step_1_title: "Activa la verificación en dos pasos",
+    gmail_wizard_step_2_title: "Crea una contraseña de aplicación",
+    gmail_wizard_step_3_title: "Haz que todo tu correo esté disponible",
+    gmail_wizard_step_4_title: "Escribe tu dirección de correo",
+    gmail_wizard_title: "Conecta tu buzón",
+    last_sync_tooltip: "Cuándo se sincronizó esta cuenta por última vez",
+    show_side_panel: "Mostrar el panel lateral",
+    sync_now_tooltip: "Sincronizar ahora",
     purge_locked_folder_on_delete: "Purgar contenido de carpetas protegidas",
-    purge_locked_folder_on_delete_description: "Preselecciona la destrucción permanente del correo cuando eliminas una carpeta protegida con contraseña",
+    purge_locked_folder_on_delete_description:
+      "Preselecciona la destrucción permanente del correo cuando eliminas una carpeta protegida con contraseña",
     settings_view_mode: "Vista de configuración",
     settings_view_mode_description:
       "Abrir la configuración como página completa o ventana emergente",
@@ -1714,6 +2080,9 @@ export const es = {
     quick_more_appearance: "Más temas",
     quick_preview_text: "Texto de vista previa",
     quick_sender_pictures: "Fotos del remitente",
+    sender_pictures: "Fotos del remitente",
+    sender_pictures_description:
+      "Muestra la foto o las iniciales del remitente junto a cada mensaje de tu bandeja de entrada.",
     fam_welcome_step1_title: "Bienvenido a tu plan familiar",
     fam_welcome_step1_desc:
       "Cada persona de tu familia tiene su propia bandeja privada y cifrada, completamente separada de la tuya.",
@@ -1753,39 +2122,45 @@ export const es = {
     recovery_status_at_risk:
       "En riesgo: sin método de recuperación sin conexión",
     recovery_status_at_risk_desc:
-      "Sin una frase o códigos de recuperación, olvidar tu contraseña bloquea tu correo cifrado de forma permanente.",
-    recovery_phrase_row: "Frase de recuperación",
-    recovery_phrase_row_desc:
-      "Una frase de 12 palabras que restaura tu cuenta y todos tus datos cifrados.",
-    recovery_phrase_generate: "Generar frase",
-    recovery_phrase_regenerate: "Regenerar frase",
-    recovery_phrase_regenerate_warning:
-      "Al regenerar se crea una frase nueva y la anterior queda invalidada de forma permanente.",
-    recovery_phrase_active: "Activa",
-    recovery_phrase_not_set: "No configurada",
-    recovery_phrase_saved_confirm:
-      "Guarda la nueva frase antes de cerrar. Solo se muestra una vez.",
-    legacy_codes_row: "Códigos de recuperación (antiguos)",
-    legacy_codes_row_desc:
-      "Tus códigos de recuperación ASTER existentes siguen siendo válidos. Las cuentas nuevas usan la frase de recuperación en su lugar.",
+      "Sin códigos de recuperación, olvidar tu contraseña bloquea tu correo cifrado de forma permanente.",
+    recovery_codes_row: "Códigos de recuperación",
+    recovery_codes_row_desc:
+      "Códigos de un solo uso que restauran tu cuenta y todos los datos cifrados.",
+    recovery_codes_generate: "Obtener códigos",
+    recovery_codes_regenerate: "Obtener códigos nuevos",
+    recovery_codes_regenerate_warning:
+      "Tus códigos actuales dejan de funcionar en cuanto obtienes otros nuevos.",
+    recovery_codes_show: "Mostrar códigos",
+    recovery_codes_get_new_title: "¿Obtener códigos de recuperación nuevos?",
+    recovery_codes_confirm_title: "Confirma que eres tú",
+    recovery_codes_confirm_desc:
+      "Introduce tu contraseña para ver tus códigos de recuperación.",
+    recovery_codes_title: "Tus códigos de recuperación",
+    recovery_codes_status:
+      "Creados el {{date}}. Quedan {{remaining}} de {{total}}.",
+    recovery_codes_low:
+      "Te quedan pocos códigos de recuperación. Obtén códigos nuevos para no perder el acceso.",
+    recovery_codes_used: "Usado",
+    recovery_codes_unavailable:
+      "Tus códigos no están guardados en este dispositivo. Obtén códigos nuevos para verlos.",
+    recovery_method_active: "Activo",
+    recovery_method_not_set: "Sin configurar",
+    recovery_codes_saved_confirm:
+      "Guarda los nuevos códigos antes de cerrar. Solo se muestran una vez.",
+    recovery_codes_saved_checkbox:
+      "He guardado mis códigos de recuperación en un lugar seguro.",
+    recovery_codes_save_failed:
+      "No se pudieron guardar tus códigos de recuperación en el servidor. Inténtalo de nuevo.",
+    legacy_phrase_row: "Frase de recuperación (antigua)",
+    legacy_phrase_row_desc:
+      "Tu frase de recuperación existente sigue siendo válida. En adelante se usan códigos de recuperación.",
     recovery_email_row_moved_hint:
       "La configuración del correo de recuperación se movió a Seguridad > Recuperación de cuenta",
-    recover_older_data_title: "Recuperar datos anteriores",
-    recover_older_data_desc:
-      "Esta cuenta fue restablecida. Si recuerdas la contraseña que usabas antes del restablecimiento, tus datos cifrados anteriores pueden desbloquearse y restaurarse.",
-    recover_older_data_button: "Desbloquear datos anteriores",
-    resurrection_old_password: "Contraseña anterior",
-    resurrection_old_password_prompt:
-      "Ingresa la contraseña que usabas antes del restablecimiento",
-    resurrection_success:
-      "Tus datos anteriores están desbloqueados. Los mensajes antiguos vuelven a abrirse con normalidad.",
-    resurrection_failed:
-      "Eso no desbloqueó los datos anteriores. Verifica la contraseña o la frase e inténtalo de nuevo.",
     phrase_wrap_save_failed:
       "Tu frase de recuperación no se pudo guardar en el servidor. Inténtalo de nuevo.",
-    smtp_tokens: "Tokens SMTP",
+    smtp_tokens: "SMTP, IMAP, POP3 y JMAP",
     smtp_tokens_description:
-      "Crea credenciales SMTP de solo envío para que aplicaciones y scripts externos puedan enviar correo desde tus direcciones de dominio personalizado verificadas.",
+      "Conecta cualquier cliente o app de correo. Usa la app Aster Bridge de arriba para tener acceso completo por IMAP, POP3, SMTP y JMAP (tu correo se descifra en tu dispositivo), o genera abajo una credencial SMTP de solo envío para apps y scripts que solo necesiten enviar desde tus direcciones de dominio personalizado verificadas.",
     smtp_tokens_popover_description:
       "Un token SMTP es una contraseña de solo envío vinculada a una de tus direcciones de dominio personalizado verificadas. Úsalo para enviar correo desde sistemas automatizados, scripts o servicios de terceros mediante SMTP estándar.",
     smtp_tokens_empty: "Aún no hay tokens SMTP.",
@@ -1859,6 +2234,26 @@ export const es = {
     fam_org_action_failed: "Algo salió mal. Inténtalo de nuevo.",
     fam_org_invite_exists:
       "Ya existe una invitación pendiente para esta dirección de correo.",
+    plan_desc_ghost_aliases:
+      "Envía desde una dirección aleatoria que oculta tu identidad",
+    plan_desc_advanced_aliases:
+      "Avatares, fijación de remitentes y reglas por alias",
+    plan_desc_catch_all:
+      "Recibe el correo enviado a cualquier dirección de tu dominio",
+    plan_desc_apps: "Conecta cualquier app de correo con Aster Bridge",
+    plan_desc_vanguard: "Defensa adicional frente a phishing y rastreadores",
+    plan_desc_smart_folders: "Carpetas que se llenan solas con tus reglas",
+    plan_desc_folder_lock:
+      "Bloquea carpetas privadas con una segunda contraseña",
+    plan_desc_external_accounts: "Lee tus otros buzones dentro de Aster",
+    plan_desc_alias_directory: "Los alias nuevos se crean al llegar el correo",
+    plan_desc_multi_accounts:
+      "Mantén varias cuentas con la sesión iniciada a la vez",
+    plan_desc_instant_alias_delete: "Elimina alias sin esperar 30 días",
+    plan_desc_encrypted_exports: "Descarga tu correo en un archivo cifrado",
+    plan_desc_support_dedicated:
+      "Chat en vivo con un contacto que conoce tu cuenta",
+    plan_desc_early_access: "Prueba las novedades antes que nadie",
     plan_feat_storage_50: "50 GB de almacenamiento cifrado",
     plan_feat_storage_500: "500 GB de almacenamiento cifrado",
     plan_feat_storage_5tb: "5 TB de almacenamiento cifrado",
@@ -1874,11 +2269,12 @@ export const es = {
     plan_feat_e2ee: "Cifrado de extremo a extremo",
     plan_feat_zero_knowledge: "Arquitectura de acceso cero",
     plan_feat_tracker: "Bloqueo de rastreadores e imágenes remotas",
-    plan_feat_advanced_aliases: "Advanced Aliases",
+    plan_feat_advanced_aliases: "Alias avanzados",
     plan_feat_catch_all: "Dirección comodín",
     plan_feat_auto_forward: "Reenvío automático y respuesta de vacaciones",
     plan_feat_priority_support: "Soporte prioritario",
-    plan_feat_imap_smtp: "Use your favorite mail app (via Aster Bridge)",
+    plan_feat_imap_smtp:
+      "Usa tu app de correo preferida (mediante Aster Bridge)",
     plan_feat_folder_lock: "Bloqueo de carpetas",
     plan_feat_smart_folders: "Carpetas inteligentes",
     plan_feat_vanguard: "Aster Vanguard",
@@ -1888,7 +2284,7 @@ export const es = {
     fam_org_invite_this_member: "Este miembro",
     fam_org_invite_available: "Disponible",
     fam_org_invite_over: "Supera el límite del grupo",
-    app_lock_attempts_remaining: "{{n}} intento(s) restante(s)",
+    app_lock_attempts_remaining: "Quedan {{count}} intentos",
     app_lock_choose_mode: "Elige el tipo de bloqueo",
     app_lock_mode_numeric: "PIN numérico",
     app_lock_mode_numeric_desc: "Usa un código numérico",
@@ -1901,35 +2297,39 @@ export const es = {
       "Las frases de contraseña no coinciden. Inténtalo de nuevo.",
     app_lock_passphrase_too_short:
       "La frase de contraseña debe tener al menos 4 caracteres",
-    duress_pin: "Duress PIN",
+    duress_pin: "PIN de coacción",
     duress_pin_description:
-      "A hidden PIN that erases local data instead of unlocking",
-    duress_pin_setup: "Set up",
-    duress_pin_change: "Change duress PIN",
-    duress_pin_remove: "Remove",
-    duress_pin_verify_identity: "Verify your identity",
+      "Un PIN oculto que borra los datos locales en vez de desbloquear la app",
+    duress_pin_setup: "Configurar",
+    duress_pin_change: "Cambiar el PIN de coacción",
+    duress_pin_remove: "Quitar",
+    duress_pin_verify_identity: "Verifica tu identidad",
     duress_pin_verify_identity_desc:
-      "Enter your account password to set up a duress PIN.",
+      "Escribe la contraseña de tu cuenta para configurar un PIN de coacción.",
     duress_pin_verify_identity_totp_desc:
-      "Enter your account password and 2FA code.",
-    duress_pin_password_label: "Account password",
-    duress_pin_totp_label: "2FA code",
-    duress_pin_set: "Set duress PIN",
-    duress_pin_confirm: "Confirm duress PIN",
-    duress_pin_enabled_toast: "Duress PIN set",
-    duress_pin_disabled_toast: "Duress PIN removed",
-    duress_pin_changed_toast: "Duress PIN updated",
-    duress_pin_matches_regular: "Duress PIN cannot match your regular PIN",
-    duress_pin_enter_to_remove: "Enter your duress PIN to remove it",
-    duress_pin_invalid_credentials: "Incorrect password or 2FA code",
-    duress_pin_how_it_works: "How your duress PIN works",
+      "Escribe la contraseña de tu cuenta y el código de verificación en dos pasos.",
+    duress_pin_password_label: "Contraseña de la cuenta",
+    duress_pin_totp_label: "Código de verificación en dos pasos",
+    duress_pin_set: "Definir el PIN de coacción",
+    duress_pin_confirm: "Confirma el PIN de coacción",
+    duress_pin_enabled_toast: "PIN de coacción definido",
+    duress_pin_disabled_toast: "PIN de coacción eliminado",
+    duress_pin_cleared_length_change:
+      "Se eliminó tu PIN de coacción porque cambió el formato de bloqueo. Configúralo de nuevo.",
+    duress_pin_changed_toast: "PIN de coacción actualizado",
+    duress_pin_matches_regular:
+      "El PIN de coacción no puede ser igual que tu PIN normal",
+    duress_pin_enter_to_remove: "Escribe tu PIN de coacción para quitarlo",
+    duress_pin_invalid_credentials:
+      "La contraseña o el código de verificación no son correctos",
+    duress_pin_how_it_works: "Cómo funciona el PIN de coacción",
     duress_pin_how_it_works_body:
-      "If you ever enter this PIN on the lock screen, Aster Mail will immediately erase all locally stored data from this device and sign you out. Your account is not deleted - your encrypted mail and data remain on Aster's servers and can be restored by signing back in.",
-    duress_pin_confirm_setup: "Set up duress PIN",
+      "Si alguna vez escribes este PIN en la pantalla de bloqueo, Aster Mail borrará de inmediato todos los datos guardados en este dispositivo y cerrará tu sesión. Tu cuenta no se elimina: el correo y los datos cifrados siguen en los servidores de Aster y puedes recuperarlos volviendo a iniciar sesión.",
+    duress_pin_confirm_setup: "Configurar el PIN de coacción",
     inbox_categories: "Categorías de la bandeja de entrada",
     inbox_categories_short: "Organiza tu bandeja de entrada en pestañas",
     inbox_categories_description:
-      "Organiza tu bandeja de entrada en las pestañas Principal, Promociones, Social y Novedades. La clasificación se realiza de forma privada en tu dispositivo: las categorías nunca se envían al servidor.",
+      "Organiza tu bandeja de entrada en pestañas como Descuentos, Social y Notificaciones. La clasificación se realiza de forma privada en tu dispositivo: las categorías nunca se envían al servidor.",
     categories_title: "Categorías",
     categories_description:
       "Elige qué pestañas de categoría aparecen en tu bandeja de entrada y crea las tuyas propias. Toda la clasificación ocurre localmente en tu dispositivo.",
@@ -1953,6 +2353,11 @@ export const es = {
       "Confirmaciones de pedidos, actualizaciones de envío y avisos de entrega.",
     category_info_custom:
       "Correos que coinciden con tus reglas personalizadas para esta categoría.",
+    muted_categories: "Categorías silenciadas",
+    muted_categories_description:
+      "Activa una categoría para silenciar sus avisos. Las categorías silenciadas siguen recibiendo correo y aparecen en tu bandeja de entrada.",
+    muted_categories_empty:
+      "Activa las categorías de la bandeja de entrada para elegir cuáles silenciar.",
     custom_categories_title: "Categorías personalizadas",
     custom_categories_tutorial:
       "Crea tu propia categoría. Haz coincidir los correos por el dominio del remitente o una palabra clave del asunto.",
@@ -2029,7 +2434,7 @@ export const es = {
     family_invite_pending: "Pendiente",
     family_invite_revoke: "Revocar",
     family_invite_wrong_recipient:
-      "This invite was sent to a different address. Ask the sender to share the invite link directly instead.",
+      "Esta invitación se envió a otra dirección. Pide a quien te la envió que comparta el enlace directamente.",
     family_member_owner: "Propietario",
     family_member_member: "Miembro",
     family_member_grace: "Periodo de gracia",
@@ -2111,6 +2516,22 @@ export const es = {
     family_duo_tagline: "2 miembros: parejas y compañeros",
     family_plan_tagline: "Hasta 6 miembros",
     family_shared_aliases: "Alias familiares compartidos",
+    family_feat_members_2: "2 miembros, cuentas separadas",
+    family_feat_members_6: "Hasta 6 miembros, cuentas separadas",
+    family_feat_everything_nova: "Todo lo de Nova, para cada miembro",
+    family_feat_everything_supernova: "Todo lo de Supernova, para cada miembro",
+    family_feat_pool_1tb: "1 TB compartido, asignado en privado a cada miembro",
+    family_feat_pool_3tb:
+      "3 TB compartidos, asignados en privado a cada miembro",
+    family_feat_invite: "Invitación por enlace o correo",
+    family_feat_domain_sharing: "Dominios compartidos entre miembros",
+    family_feat_security_policies: "Políticas de seguridad (2FA obligatoria)",
+    family_feat_admin_transfer: "Transferencia del rol de administrador",
+    family_feat_org_groups: "Grupos y listas de distribución",
+    family_feat_activity_log: "Registro de actividad y auditoría",
+    family_feat_org_filters: "Filtros de correo para toda la organización",
+    family_feat_retention: "Políticas de retención de datos",
+    family_feat_storage_controls: "Controles de almacenamiento por miembro",
     family_admin_controls:
       "Controles de almacenamiento de administración por miembro",
     family_tab_overview: "Resumen",
@@ -2134,7 +2555,7 @@ export const es = {
     family_groups_load_failed: "No se pudieron cargar los grupos",
     family_groups_create_failed: "No se pudo crear el grupo",
     family_groups_delete_failed: "No se pudo eliminar el grupo",
-    family_activity_events: "{{count}} evento",
+    family_activity_events: "{{count}} eventos",
     family_activity_events_plural: "{{count}} eventos",
     family_activity_all_events: "Todos los eventos",
     family_activity_empty: "Aún no hay actividad.",
@@ -2192,7 +2613,8 @@ export const es = {
     family_security_load_failed:
       "No se pudieron cargar los ajustes de seguridad",
     family_security_compliance: "Cumplimiento de los miembros",
-    family_security_warning_2fa: "{{count}} miembro no ha activado la 2FA",
+    family_security_warning_2fa:
+      "{{count}} miembros no han activado la autenticación de dos factores",
     family_security_warning_2fa_plural:
       "{{count}} miembros no han activado la 2FA",
     family_retention_subtitle:
@@ -2200,7 +2622,7 @@ export const es = {
     family_retention_trash: "Papelera",
     family_retention_trash_hint:
       "Eliminar automáticamente el correo de la papelera",
-    family_retention_spam: "Spam",
+    family_retention_spam: "Correo no deseado",
     family_retention_spam_hint:
       "Eliminar automáticamente el spam (30 días por defecto)",
     family_retention_sent: "Enviados",
@@ -2227,6 +2649,7 @@ export const es = {
       "Tienes el plan {{plan_name}}. Gestiona los miembros, el almacenamiento y los ajustes en la pestaña Familia.",
     go_to_family_settings: "Ir a los ajustes de Familia",
     category_advanced_aliases: "Alias avanzados",
+    feature_extra_alias_domains: "Dominios de alias adicionales",
     feature_alias_sender_pinning: "Fijación de remitentes",
     feature_per_alias_rules: "Reglas por alias (bloqueo y filtro)",
     feature_alias_stats_restore: "Estadísticas y restauración de alias",
@@ -2234,6 +2657,10 @@ export const es = {
     feature_alias_directory: "Creación automática mediante directorio",
     feature_instant_alias_delete: "Eliminación instantánea de alias",
     feature_reverse_alias: "Responder desde el alias",
+    first_addon_discount_applied:
+      "Tus primeros {{months}} meses tienen un {{percent}} % de descuento",
+    first_addon_discount_applied_singular:
+      "Tu primer mes tiene un {{percent}} % de descuento",
     credits_will_be_applied:
       "Se aplicarán {{amount}} en créditos al finalizar la compra",
     minimize_sidebar: "Minimizar barra lateral",
@@ -2248,6 +2675,17 @@ export const es = {
     alias_decrypt_failed_title: "No se pudo descifrar este alias",
     alias_decrypt_failed_hint:
       "Sus detalles no están disponibles en este dispositivo. Normalmente se resuelve volviendo a iniciar sesión o restaurando tus claves.",
+    alias_orphaned_title: "Este alias sigue recibiendo correo",
+    alias_orphaned_hint:
+      "Su etiqueta se cifró con tu contraseña anterior, así que este dispositivo no puede leerla. Si recuerdas la dirección, puedes restaurar la etiqueta. El correo enviado a esta dirección sigue llegando y puedes ver la dirección completa en el encabezado de cualquier mensaje que entregue.",
+    alias_restore_action: "Restaurar este alias",
+    alias_restore_prompt:
+      "Escribe la dirección. Aster la compara con este alias antes de restaurar la etiqueta.",
+    alias_restore_placeholder: "Dirección",
+    alias_restore_confirm: "Restaurar",
+    alias_restore_mismatch:
+      "Esa dirección no coincide con este alias. Consulta el encabezado de un mensaje que haya entregado.",
+    alias_restore_failed: "Inténtalo de nuevo.",
     recently_deleted_load_failed:
       "No pudimos cargar tus alias eliminados recientemente. Inténtalo de nuevo.",
     ghost_aliases_info:
@@ -2259,7 +2697,7 @@ export const es = {
     alias_deleted_at: "Eliminado el {{ date }}",
     restore_alias_action: "Restaurar",
     alias_restored: "Alias restaurado",
-    failed_restore_alias: "Este alias no se restauró. Inténtalo de nuevo.",
+    failed_restore_alias: "Inténtalo de nuevo.",
     recently_deleted_empty_trash: "Vaciar papelera",
     delete_alias_permanently_action: "Eliminar permanentemente",
     purge_alias_confirm_title: "¿Eliminar el alias permanentemente?",
@@ -2278,7 +2716,7 @@ export const es = {
       "Restaura un directorio que eliminaste. Los directorios eliminados dejan de recibir correo nuevo hasta que se restauran.",
     directory_restored: "Directorio restaurado",
     failed_restore_directory:
-      "Este directorio no se restauró. Otro intento debería bastar.",
+      "Este directorio no se restauró. Inténtalo de nuevo.",
     purge_directory_confirm_title: "¿Eliminar el directorio permanentemente?",
     purge_directory_confirm_message:
       "¿Eliminar permanentemente {{ key }}@{{ domain }}? Esto no se puede deshacer. El directorio queda reservado a tu cuenta, así que nadie más podrá reclamarlo.",
@@ -2420,8 +2858,7 @@ export const es = {
       "Elige dónde llega el correo de este alias. La bandeja de entrada es la opción predeterminada.",
     alias_delivery_folder_info:
       "El correo de este alias va directo a la carpeta que elijas, sin necesidad de reglas. Una regla que coincida sigue teniendo prioridad.",
-    alias_delivery_folder_error:
-      "Ese ajuste no se guardó. Otro intento debería bastar.",
+    alias_delivery_folder_error: "Inténtalo de nuevo.",
     alias_delivery_folder_missing: "Carpeta eliminada",
     alias_delivery_label: "Etiqueta",
     alias_delivery_label_desc:
@@ -2431,21 +2868,30 @@ export const es = {
     alias_delivery_label_none: "Sin etiqueta",
     alias_delivery_label_missing: "Etiqueta eliminada",
     alias_apply_existing: "Aplicar al correo existente",
-    alias_apply_existing_desc: "Organiza el correo que este alias ya recibió en la carpeta y la etiqueta que elegiste.",
-    alias_apply_existing_info: "Esto aplica la carpeta de entrega y la etiqueta de arriba al correo que ya está en tu cuenta. Se ejecuta en segundo plano y tus reglas de correo no se vuelven a ejecutar.",
+    alias_apply_existing_desc:
+      "Organiza el correo que este alias ya recibió en la carpeta y la etiqueta que elegiste.",
+    alias_apply_existing_info:
+      "Esto aplica la carpeta de entrega y la etiqueta de arriba al correo que ya está en tu cuenta. Se ejecuta en segundo plano y tus reglas de correo no se vuelven a ejecutar.",
     alias_apply_existing_action: "Aplicar ahora",
     alias_apply_existing_cancel: "Detener",
-    alias_apply_existing_started: "Aplicando tu configuración de entrega al correo existente. Se ejecuta en segundo plano.",
-    alias_apply_existing_failed: "No se pudo empezar a aplicar esta configuración.",
+    alias_apply_existing_started:
+      "Aplicando tu configuración de entrega al correo existente. Se ejecuta en segundo plano.",
+    alias_apply_existing_failed:
+      "No se pudo empezar a aplicar esta configuración.",
     alias_apply_existing_cancel_failed: "No se pudo detener esta ejecución.",
     alias_apply_existing_queued: "En cola...",
-    alias_apply_existing_progress: "Aplicando: {{scanned}} revisados, {{applied}} actualizados",
-    alias_apply_existing_progress_total: "Aplicando: {{scanned}} de {{total}} revisados, {{applied}} actualizados",
-    alias_apply_existing_done: "Listo: {{scanned}} revisados, {{applied}} actualizados",
+    alias_apply_existing_progress:
+      "Aplicando. Revisados: {{scanned}}, actualizados: {{applied}}",
+    alias_apply_existing_progress_total:
+      "Aplicando. Revisados: {{scanned}} de {{total}}, actualizados: {{applied}}",
+    alias_apply_existing_done:
+      "Listo. Revisados: {{scanned}}, actualizados: {{applied}}",
     alias_apply_existing_canceled: "Detenido: {{applied}} actualizados",
-    alias_apply_existing_error: "No se pudo aplicar al correo existente. Inténtalo de nuevo.",
-    alias_apply_existing_unavailable: "El correo que ya está en tu cuenta no se puede mover a Spam.",
-    alias_delivery_label_error: "El ajuste no se guardó. Inténtalo de nuevo.",
+    alias_apply_existing_error:
+      "No se pudo aplicar al correo existente. Inténtalo de nuevo.",
+    alias_apply_existing_unavailable:
+      "El correo que ya está en tu cuenta no se puede mover a Spam.",
+    alias_delivery_label_error: "Inténtalo de nuevo.",
     alias_delivery_rule_note:
       'La regla "{{ rule }}" ya mueve el correo de este alias a {{ target }}.',
     alias_delivery_rule_conflict:
@@ -2491,6 +2937,14 @@ export const es = {
     alias_directory_available: "Este directorio está disponible.",
     alias_directory_not_available: "Este directorio ya está en uso.",
     alias_directory_removed: "Directorio eliminado",
+    alias_directory_separator_hint:
+      "Un punto, una barra, un signo más o una almohadilla funcionan antes del nombre del directorio.",
+    alias_bulk_enabled: "Los alias seleccionados están activados.",
+    alias_bulk_disabled: "Los alias seleccionados están desactivados.",
+    alias_bulk_update_partial_failed:
+      "No se actualizaron {{count}} de {{total}} alias.",
+    alias_bulk_delete_partial_failed:
+      "No se eliminaron {{count}} de {{total}} alias. Puedes eliminar un alias 30 días después de crearlo.",
     alias_directory_create_failed:
       "Este directorio no se creó. Inténtalo de nuevo.",
     alias_directory_auto_create: "Crear alias automáticamente",
@@ -2507,6 +2961,9 @@ export const es = {
     alias_feature_locked_sender_pinning:
       "Mejora tu plan para usar la fijación de remitentes.",
     requires_plan: "Requiere {{plan}}",
+    alias_domain_group_extra: "Dominios adicionales",
+    alias_domain_requires_plan:
+      "Este dominio está disponible en el plan {{plan}} y superiores.",
     alias_feature_locked_view_plans: "Ver planes",
     alias_feature_locked_upgrade_plan: "Mejorar plan",
     alias_feature_locked_upgrade_cta: "Mejorar",
@@ -2568,7 +3025,7 @@ export const es = {
     alias_export_warning_title: "Este archivo no está cifrado",
     alias_export_warning_body:
       "Cualquiera que lo abra podrá leer todos los alias, notas y sitios web que contiene. Guárdelo en su gestor de contraseñas o en una unidad cifrada.",
-    alias_export_summary: "{{rows}} entradas en {{files}} archivo(s).",
+    alias_export_summary: "{{count}} entradas en {{files}}.",
     alias_export_download: "Descargar",
     alias_export_incomplete:
       "Solo se cargaron {{loaded}} de {{total}} alias. Vuelva a cargar sus alias e inténtelo de nuevo para que la copia esté completa.",
@@ -2677,14 +3134,14 @@ export const es = {
     fam_org_tab_security: "Seguridad",
     fam_org_tab_retention: "Retención de datos",
     fam_org_groups_name_placeholder: "Nombre del grupo",
-    fam_org_groups_prefix_placeholder: "Prefijo de correo (opcional)",
+    fam_org_groups_prefix_placeholder: "Prefijo",
     fam_org_groups_domain_placeholder: "Seleccionar dominio",
     fam_org_groups_create: "Crear",
     fam_org_groups_info_title: "Grupos de la organización",
     fam_org_groups_info_desc:
       "Un grupo reúne a varios miembros bajo una dirección compartida. El correo enviado a la dirección del grupo se entrega a todos sus miembros, ideal para bandejas compartidas como family@ o parents@. El prefijo de correo es opcional.",
     fam_org_groups_prefix_hint:
-      "El prefijo de correo es opcional: crea una dirección de grupo como",
+      "Escribe un prefijo para asignar una dirección de correo de grupo",
     fam_org_groups_address_preview: "Dirección del grupo: ",
     fam_org_groups_address_in_use:
       "Esa dirección ya está en uso por un alias o grupo",
@@ -2766,7 +3223,7 @@ export const es = {
       "{{actor}} actualizó el almacenamiento de {{target}}",
     fam_org_activity_storage_updated_generic:
       "{{actor}} actualizó el almacenamiento",
-    fam_org_activity_events: "{{count}} evento",
+    fam_org_activity_events: "{{count}} eventos",
     fam_org_activity_events_plural: "{{count}} eventos",
     fam_org_activity_search_placeholder: "Buscar actividad...",
     fam_org_activity_all_events: "Todos los eventos",
@@ -2862,7 +3319,8 @@ export const es = {
     fam_org_domains_revoke_failed:
       "No se pudo revocar el uso compartido del dominio",
     fam_org_domains_load_failed: "No se pudieron cargar los dominios",
-    fam_org_2fa_banner: "{{count}} miembro no ha activado 2FA",
+    fam_org_2fa_banner:
+      "{{count}} miembros no han activado la autenticación de dos factores",
     fam_org_2fa_banner_plural: "{{count}} miembros no han activado 2FA",
     fam_org_2fa_send_reminder: "Enviar recordatorio",
     fam_org_2fa_sending: "Enviando...",
@@ -2911,7 +3369,7 @@ export const es = {
     fam_org_sec_2fa_badge: "2FA",
     fam_org_sec_no_2fa_badge: "Sin 2FA",
     fam_org_sec_imap_badge: "IMAP",
-    fam_org_sec_session_count: "{{count}} sesión activa",
+    fam_org_sec_session_count: "{{count}} sesiones activas",
     fam_org_sec_session_count_plural: "{{count}} sesiones activas",
     fam_org_sec_no_sessions: "Sin sesiones activas",
     fam_org_sec_last_seen: "visto por última vez {{time}}",
@@ -2925,7 +3383,7 @@ export const es = {
     fam_org_ret_trash_hint: "Eliminar automáticamente el correo de la papelera",
     fam_org_ret_trash_info:
       "Los mensajes en la papelera con más de esta cantidad de días se eliminan permanentemente.",
-    fam_org_ret_spam: "Spam",
+    fam_org_ret_spam: "Correo no deseado",
     fam_org_ret_spam_hint:
       "Eliminar automáticamente el spam (30 días por defecto)",
     fam_org_ret_spam_info:
@@ -2956,7 +3414,7 @@ export const es = {
     fam_org_ret_confirm_action: "Aplicar a todos los miembros",
     fam_org_ret_load_failed: "No se pudo cargar la configuración de retención",
     fam_org_ret_save_failed: "No se pudo guardar",
-    controlled_by_family_admin: "Controlado por el administrador familiar",
+    controlled_by_family_admin: "Controlado por un administrador familiar",
     fam_consent_title: "Se requiere consentimiento de los miembros",
     fam_consent_body:
       "Este cambio afecta a los datos de todos los miembros de la familia. Se enviará una solicitud de consentimiento a {{count}} miembro(s). El cambio solo surtirá efecto cuando todos los miembros hayan aceptado.",
@@ -3003,6 +3461,8 @@ export const es = {
     fam_org_time_one_day_ago: "hace 1 día",
     fam_org_grace_banner:
       "Tu plan familiar caduca el {{date}} - renueva para mantener el acceso",
+    fam_org_grace_banner_expired:
+      "Tu plan familiar caducó el {{date}} - renueva para recuperar el acceso",
     fam_org_grace_banner_soon:
       "Tu plan familiar caduca pronto - renueva para mantener el acceso",
     fam_org_cancelled_banner:
@@ -3011,9 +3471,10 @@ export const es = {
     fam_org_heading: "Familia",
     fam_org_status_active: "Activo",
     fam_org_status_expiring: "Por caducar",
+    fam_org_status_expired: "Caducado",
     fam_org_status_cancelled: "Cancelado",
     fam_org_members_count:
-      "{{used}} de {{max}} plazas ocupadas · {{seats}} plaza disponible",
+      "{{used}} de {{max}} plazas usadas · {{count}} plazas disponibles",
     fam_org_members_count_plural:
       "{{used}} de {{max}} plazas ocupadas · {{seats}} plazas disponibles",
     fam_seats_breakdown:
@@ -3027,7 +3488,7 @@ export const es = {
     fam_org_stat_members: "Miembros",
     fam_org_stat_storage_used: "Almacenamiento usado",
     fam_org_stat_unassigned: "Sin asignar",
-    fam_org_stat_seats_available: "{{count}} plaza disponible",
+    fam_org_stat_seats_available: "{{count}} plazas disponibles",
     fam_org_stat_seats_available_plural: "{{count}} plazas disponibles",
     fam_org_stat_pending: "{{count}} pendiente",
     fam_org_stat_of_total: "de {{total}} en total",
@@ -3116,6 +3577,7 @@ export const es = {
     fam_org_wizard_done: "Listo",
     fam_org_plan_upgraded: "Plan mejorado correctamente",
     fam_org_invalid_email: "Introduce una dirección de correo válida",
+    fam_org_invalid_storage: "Introduce un almacenamiento de al menos 1 GB",
     fam_org_invite_revoked_toast: "Invitación revocada",
     fam_org_member_removed_toast: "Miembro eliminado",
     fam_org_admin_transferred_toast: "Administración transferida",
@@ -3194,7 +3656,8 @@ export const es = {
     signature_custom: "Personalizada",
     custom_signature: "Firma personalizada",
     time_zone: "Zona horaria",
-    time_zone_description: "Tu zona horaria local",
+    time_zone_description:
+      "Zona horaria con la que se muestran las horas de los correos en todos tus dispositivos",
     time_zone_auto: "Automática (zona del dispositivo)",
     time_zone_search_placeholder: "Buscar una ciudad o región",
     time_zone_no_results: "No hay zonas horarias coincidentes",
@@ -3247,6 +3710,10 @@ export const es = {
     updates_check_now: "Buscar actualizaciones",
     updates_checking: "Buscando actualizaciones...",
     updates_up_to_date: "Estas en la ultima version",
+    updates_check_failed:
+      "No se pudo buscar actualizaciones. Vuelve a intentarlo en un momento.",
+    updates_install_failed:
+      "La actualización no se instaló. Vuelve a intentarlo o descarga la última versión desde astermail.org/download.",
     updates_available: "Actualizacion disponible: {{version}}",
     updates_current_version: "Version actual: {{version}}",
     updates_install_and_restart: "Instalar y reiniciar",
@@ -3254,9 +3721,9 @@ export const es = {
     updates_downloading: "Descargando actualizacion...",
     updates_last_checked: "Ultima comprobacion {{when}}",
     updates_never_checked: "Nunca comprobado",
-    updates_auto_label: "Instalar actualizaciones automaticamente",
+    updates_auto_label: "Buscar actualizaciones automaticamente",
     updates_auto_description:
-      "Cuando esta activo, las nuevas versiones se instalan en segundo plano y se aplican al siguiente inicio",
+      "Aster Mail busca versiones nuevas y te avisa cuando hay una lista para instalar.",
     updates_release_notes: "Notas de la version",
     updates_banner_title: "Aster Mail {{version}} esta disponible",
     updates_banner_action: "Instalar ahora",
@@ -3299,13 +3766,22 @@ export const es = {
       "Los enlaces se abren directamente sin confirmación",
     ipfs_attachment_storage: "Almacenamiento de adjuntos en IPFS",
     ipfs_enabled_description:
-      "Los adjuntos se almacenan en almacenamiento descentralizado IPFS",
+      "Los adjuntos se guardan en el almacenamiento IPFS privado de Aster",
     ipfs_disabled_description:
-      "Almacenar adjuntos en IPFS para almacenamiento descentralizado y resiliente",
+      "Guardar los adjuntos en el almacenamiento IPFS privado de Aster",
     forward_secrecy: "Secreto perfecto hacia adelante",
+    forward_secrecy_disable_title: "¿Desactivar el secreto hacia adelante?",
+    forward_secrecy_disable_message:
+      "Los mensajes nuevos dejan de usar claves rotativas, así que una clave filtrada más adelante puede abrir más de tu correo. Puedes volver a activarlo cuando quieras.",
+    login_alerts_disable_title: "¿Desactivar las alertas de inicio de sesión?",
+    login_alerts_disable_message:
+      "Dejas de recibir un correo cuando un dispositivo nuevo inicia sesión en tu cuenta.",
+    turn_off_action: "Desactivar",
     forward_secrecy_enabled_description: "Las claves se rotan {{frequency}}",
     forward_secrecy_disabled_description:
       "Rotar automáticamente las claves de cifrado para mayor seguridad",
+    forward_secrecy_setup_failed:
+      "No se pudo activar el secreto hacia adelante. Comprueba tu conexión e inténtalo de nuevo.",
     current_key_status: "Estado actual de la clave",
     age: "Antigüedad",
     fingerprint: "Huella digital",
@@ -3347,6 +3823,10 @@ export const es = {
       "No se pudo volver a cifrar de forma segura uno de tus alias. Tu contraseña no se ha cambiado. Por favor, contacta con soporte o elimina el alias afectado e inténtalo de nuevo.",
     contact_reencrypt_failed:
       "No se pudo volver a cifrar de forma segura uno de tus contactos. Tu contraseña no se ha cambiado. Por favor, contacta con soporte o elimina el contacto afectado e inténtalo de nuevo.",
+    password_change_client_upgrade_required:
+      "Esta versión de Aster Mail no puede cambiar tu contraseña. Actualiza a la versión más reciente e inténtalo de nuevo.",
+    password_change_reencryption_incomplete:
+      "Algunos de tus alias no terminaron de cifrarse de nuevo, por lo que tu contraseña no cambió. Inténtalo de nuevo y ponte en contacto con el equipo de soporte si sigue ocurriendo.",
     password_change_fingerprint_mismatch:
       "Esta sesión se inició en otra red u otro navegador, por lo que Aster Mail no cambió tu contraseña. Para cambiarla, cierra sesión, vuelve a iniciar sesión e inténtalo de nuevo.",
     update_password: "Actualizar contraseña",
@@ -3355,8 +3835,14 @@ export const es = {
       "Tus etiquetas, firmas y plantillas se vuelven a cifrar al cambiar la contraseña. Si tu conexión se cae durante este proceso, esos datos no se podrán recuperar.",
     password_changed_items_unreadable:
       "Tu contraseña cambió. {{count}} elementos cifrados conservaron su cifrado anterior porque su clave no estaba disponible. La entrega de correo no se ve afectada. Para restaurarlos, contacta con el soporte.",
+    password_change_background_reencrypt_failed:
+      "Tu contraseña cambió, pero parte de tu correo enviado y de tus ajustes no terminó de cifrarse de nuevo. Ponte en contacto con el equipo de soporte si algo aparece ilegible.",
+    previous_password: "Contraseña anterior",
+    password_change_sent_mail_locked:
+      "Tu contraseña cambió. {{count}} correos enviados estaban cifrados con una contraseña anterior y no se actualizaron. Para desbloquearlos, selecciona Recuperar datos en el aviso de la parte superior de tu bandeja de entrada.",
     password_changed_signing_out:
       "Contraseña cambiada exitosamente. Cerrando sesión...",
+    password_changed_success: "Contraseña cambiada",
     session_security: "Seguridad de sesión",
     browsers_and_devices: "Navegadores y dispositivos",
     session_privacy_description:
@@ -3381,6 +3867,8 @@ export const es = {
     sign_out_session_confirm: "¿Estás seguro de que deseas cerrar esta sesión?",
     no_active_sessions: "No se encontraron sesiones activas",
     failed_load_sessions: "Error al cargar las sesiones",
+    failed_load_security_status:
+      "No se cargaron tus ajustes de seguridad. Inténtalo de nuevo.",
     load_more_sessions: "Cargar {{count}} sesiones más",
     two_fa_enabled: "Habilitada ({{count}} códigos de respaldo restantes)",
     two_fa_add_security: "Añade una capa extra de seguridad con 2FA",
@@ -3407,21 +3895,25 @@ export const es = {
     desktop: "Escritorio",
     show_desktop_notifications: "Mostrar notificaciones de escritorio",
     blocked_by_browser: "Bloqueado por el navegador",
-    blocked_by_os: "Enable in system notification settings",
-    open_system_notification_settings: "Open Settings",
+    blocked_by_os: "Actívalas en los ajustes de notificaciones del sistema",
+    open_system_notification_settings: "Abrir Ajustes",
     sound_new_notifications: "Reproducir sonido para nuevas notificaciones",
+    badge_count_setting: "Distintivo de no leídos",
+    badge_count_setting_description:
+      "Mostrar el número de no leídos en el icono de la app",
     push: "Push",
+    push_subscribe_failed:
+      "Las notificaciones están activadas, pero no se pudo configurar la entrega en segundo plano. Solo recibes notificaciones mientras Aster Mail está abierto.",
     push_notifications_description: "Recibir notificaciones push en el móvil",
     events: "Eventos",
     new_emails: "Nuevos correos",
     new_email_description: "Cuando recibes un nuevo correo",
     replies: "Respuestas",
     replies_description: "Cuando alguien responde a tu correo",
-    mentions: "Menciones",
-    mentions_description: "Cuando alguien te menciona",
     toast_position: "Posición de notificaciones",
     toast_position_description:
       "Dónde aparecen las notificaciones emergentes en la pantalla",
+    toast_position_top: "Arriba",
     toast_position_top_right: "Arriba a la derecha",
     toast_position_middle: "En el centro",
     toast_position_bottom_right: "Abajo a la derecha",
@@ -3491,6 +3983,20 @@ export const es = {
       "No traducir nunca el correo en estos idiomas, en ningún modo.",
     translate_add_language: "Añadir idioma",
     translate_auto_detected: "Detectado automáticamente en tu dispositivo",
+    translate_confirm_title: "¿Activar la traducción?",
+    translate_confirm_description:
+      "Aster traduce el correo en tu dispositivo, por lo que nada de lo que lees se envía a un servicio de traducción. La primera vez que traduces desde un idioma, Aster descarga un paquete de idioma de 20 a 55 MB y lo guarda en este dispositivo. Puedes eliminar los paquetes cuando quieras.",
+    translate_confirm_enable: "Activar",
+    translation_packs: "Paquetes de idioma descargados",
+    translation_packs_description:
+      "Los paquetes de idioma se guardan en este dispositivo. Elimina un paquete para liberar espacio. Aster lo descarga de nuevo la próxima vez que traduzcas ese idioma.",
+    translation_packs_empty:
+      "Todavía no has descargado ningún paquete de idioma.",
+    translation_packs_total: "{{size}} usados en este dispositivo",
+    translation_packs_remove: "Eliminar",
+    translation_packs_remove_all: "Eliminar todo",
+    translation_packs_unavailable:
+      "Este navegador no puede guardar paquetes de idioma, así que Aster los descarga cada vez que traduces.",
 
     block_external_content: "Bloquear contenido externo",
     block_external_content_description:
@@ -3517,7 +4023,7 @@ export const es = {
     auto_save_recipients_to_contacts:
       "Guardar destinatarios recientes en contactos automáticamente",
     auto_save_recipients_to_contacts_description:
-      "Automatically add email addresses you send to as contacts",
+      "Añade automáticamente a tus contactos las direcciones a las que escribes",
     confirmations: "Confirmaciones",
     confirm_actions_description: "Pedir confirmación antes de estas acciones",
     confirm_delete: "Confirmar eliminación",
@@ -3532,6 +4038,9 @@ export const es = {
     developer_mode: "Modo desarrollador",
     developer_mode_description:
       "Mostrar la pestaña Desarrollador con información de compilación, estado criptográfico y herramientas de depuración",
+    close_to_tray: "Seguir en ejecucion al cerrar la ventana",
+    close_to_tray_description:
+      "Aster Mail permanece en el area de notificaciones para que sigas recibiendo correo nuevo. Desactivalo para salir al cerrar la ventana.",
     time_format: "Formato de hora",
     time_format_description: "Elige cómo se muestra la hora",
     twelve_hours: "12 horas",
@@ -3558,6 +4067,34 @@ export const es = {
     compose_mode_default: "Predeterminado - ventana emergente flotante",
     compose_mode_fullscreen: "Siempre a pantalla completa",
     compose_mode_minimized: "Iniciar minimizado",
+    default_sender_group: "Envío",
+    default_sender_group_description:
+      "Elige desde cuál de tus direcciones salen los mensajes nuevos.",
+    default_sender_title: "Remitente predeterminado",
+    default_sender_description:
+      "Los mensajes nuevos parten de esta dirección. Las respuestas usan la dirección a la que se envió el mensaje.",
+    default_sender_no_addresses: "No hay otras direcciones",
+    compose_defaults_title: "Formato predeterminado",
+    compose_defaults_description:
+      "Elige el aspecto de los mensajes nuevos cuando empiezas a escribir. Las respuestas y los mensajes reenviados conservan su formato original.",
+    compose_default_font_size: "Tamaño de fuente predeterminado",
+    compose_default_font_size_description:
+      "Los mensajes nuevos empiezan con este tamaño. Puedes cambiar el tamaño mientras escribes.",
+    compose_default_font_color: "Color de texto predeterminado",
+    compose_default_font_color_description:
+      "Los mensajes nuevos empiezan con este color. Elige el valor predeterminado del tema para seguir el tema de la app.",
+    compose_default_font_color_picker_label:
+      "Elige un color de texto predeterminado",
+    compose_default_font_color_theme: "Predeterminado del tema",
+    compose_default_font_color_reset: "Usar el predeterminado del tema",
+    reply_defaults_title: "Respuestas",
+    reply_defaults_description: "Elige con qué empieza una respuesta nueva.",
+    reply_include_quoted: "Incluir el texto citado",
+    reply_include_quoted_description:
+      "Cada respuesta empieza con el mensaje original citado debajo de tu texto.",
+    reply_prefix_subject: "Añadir Re: al asunto",
+    reply_prefix_subject_description:
+      "Coloca Re: delante del asunto original cuando respondes.",
     build_info: "Información de compilación",
     release: "Versión",
     build: "Compilación",
@@ -3607,6 +4144,8 @@ export const es = {
     force_reload: "Forzar recarga",
     unregister_service_workers: "Desregistrar Service Workers",
     clear_cache_reload: "Limpiar toda la caché y recargar",
+    clear_cache_confirm_message:
+      "Esto borra los datos en caché de este dispositivo y vuelve a cargar Aster Mail. Puede que tengas que iniciar sesión de nuevo.",
     current_plan: "Plan actual",
     free: "Gratis",
     available_plans: "Planes disponibles",
@@ -3619,6 +4158,105 @@ export const es = {
       "Conservarás las funciones premium hasta el final de este periodo de facturación, y luego tu plan pasará a Gratis. Tu correo, contactos y ajustes se quedan contigo.",
     cancel_plan: "Cancelar plan",
     billing_history: "Historial de facturación",
+    billing_status_active: "Activo",
+    billing_status_renews: "Se renueva el {{date}}",
+    billing_status_ending: "Termina el {{date}}",
+    billing_status_attention: "El pago necesita tu atención",
+    billing_member_since: "Miembro desde el {{date}}",
+    billing_keep_title: "Conserva tu plan",
+    billing_payment_method: "Método de pago",
+    billing_switch_yearly_subtitle:
+      "{{monthly}}/mes, facturado {{yearly}} al año",
+    billing_save_amount: "Ahorra {{amount}}",
+    billing_term_heading: "Período de facturación",
+    billing_pay_yearly: "Pagar anualmente",
+    billing_pay_monthly: "Pagar mensualmente",
+    billing_billed_yearly_total: "Facturado {{amount}} al año",
+    billing_billed_monthly: "Facturado cada mes",
+    billing_save_percent: "Ahorra {{percent}} %",
+    billing_select_plan_hint: "Selecciona un plan para continuar",
+    billing_addon_active: "Activo",
+    billing_addon_ending: "Finalizando",
+    billing_addon_ends: "Termina el {{date}}",
+    billing_add_storage_summary: "Añadir {{size}} de almacenamiento",
+    billing_storage_status_ok: "Todo en orden",
+    billing_storage_status_near: "Casi lleno",
+    billing_storage_status_full: "Acción necesaria",
+    billing_upgrade_note:
+      "Cancela cuando quieras. Tu correo sigue siendo tuyo.",
+    billing_thanks_title: "Gracias por apoyar a Aster",
+    billing_thanks_body:
+      "Tu apoyo lo es todo para nosotros. Permite que un equipo pequeño siga construyendo Aster con cuidado, día tras día.",
+    billing_thanks_free_title: "Gracias por usar Aster",
+    billing_thanks_free_body:
+      "Un equipo pequeño construye Aster con cuidado, y cada persona que le confía su correo nos mantiene en marcha. Mejora tu plan cuando necesites más almacenamiento, alias o dominios personalizados.",
+    billing_addons_subtitle: "Más espacio, mismo plan",
+    billing_support_subtitle: "Envía un mensaje al equipo",
+    billing_upsell_title: "Obtén más con {{name}}",
+    billing_upsell_price: "Desde {{price}} al mes, facturado anualmente",
+    billing_advantages_title_paid: "Qué incluye tu plan",
+    billing_advantages_title_free: "Qué obtienes con {{name}}",
+    billing_see_all_features: "Ver todas las funciones de {{name}}",
+    billing_compare_all_plans_subtitle: "Planes individuales y familiares, mensuales o anuales",
+    billing_usage_upgrade_hint: "Mejora para tener más espacio",
+    usage_in_use: "{{current}} en uso",
+    billing_credits_subtitle: "Saldo y recargas",
+    billing_academic_subtitle: "Ahorra con un correo académico",
+    billing_history_empty:
+      "Aún no hay facturas. Tus pagos aparecerán aquí después del primer cobro.",
+    billing_invoice_count: "{{count}} facturas",
+    billing_invoice_count_one: "{{count}} factura",
+    billing_invoice_count_other: "{{count}} facturas",
+    billing_addons_active_count: "{{count}} activos",
+    billing_addons_active_count_one: "{{count}} activo",
+    billing_addons_active_count_other: "{{count}} activos",
+    academic_status_none: "No solicitado",
+    academic_status_pending: "Esperando verificación",
+    academic_status_verified: "Verificado",
+    billing_plan_heading: "Plan",
+    billing_hide_plans: "Ocultar planes",
+    billing_cancel_notice_title: "Tu plan se cancelará",
+    billing_cancel_notice_body:
+      "Tu plan finaliza el {{date}}. Después, tu cuenta pasará al plan gratuito.",
+    billing_renewals_heading: "Renovaciones",
+    billing_amount: "Importe",
+    billing_desc_payment_failed: "Pago fallido",
+    billing_desc_refund_processed: "Reembolso procesado",
+    billing_desc_payment_disputed: "Pago en disputa: {{reason}}",
+    billing_desc_crypto_payment:
+      "{{plan}}, plazo de {{months}} meses, pagado con {{currency}} en {{chain}}",
+    billing_desc_crypto_credit:
+      "{{plan}}, plazo de {{months}} meses, acreditado en {{currency}} en {{chain}}",
+    billing_desc_crypto_prepaid:
+      "{{plan}}, plazo de {{months}} meses, prepagado con criptomonedas",
+    credit_desc_applied_invoice: "Aplicado a una factura",
+    credit_desc_applied_storage: "Aplicado a un complemento de almacenamiento",
+    credit_desc_applied_subscription_checkout:
+      "Aplicado a la compra de una suscripción",
+    credit_desc_applied_subscription_payment:
+      "Aplicado al pago de una suscripción",
+    credit_desc_returned_checkout_not_started:
+      "Devuelto porque el pago no pudo iniciarse",
+    credit_desc_returned_checkout_incomplete:
+      "Devuelto porque el pago no se completó",
+    credit_desc_returned_payment_failed:
+      "Devuelto porque el pago diferido falló",
+    credit_desc_reversed_invoice_voided: "Revertido porque la factura se anuló",
+    credit_desc_reversed_refunded:
+      "Revertido porque la compra se reembolsó o se disputó",
+    credit_desc_referral_commission:
+      "Comisión de recomendación por la suscripción de un amigo",
+    credit_desc_reversal_crypto_overpayment:
+      "Reversión de un crédito por sobrepago en cripto",
+    credit_desc_reversal_prepaid_residual:
+      "Reversión de un crédito por cambio de plan prepagado",
+    credit_desc_unused_prepaid: "Tiempo prepagado sin usar de tu plan anterior",
+    credit_desc_purchased: "Compra de {{amount}} en créditos",
+    credit_desc_referral_reversed:
+      "Comisión de recomendación revertida: {{reason}}",
+    credit_desc_install_bonus: "Bono de instalación de la app de escritorio",
+    credit_desc_crypto_overpayment:
+      "Crédito por sobrepago en {{currency}} en {{chain}}",
     storage_limit_exceeded: "Tu almacenamiento está lleno.",
     storage_limit_description:
       "El correo nuevo está en pausa hasta que liberes espacio. Borrar algunos correos, o mejorar tu plan, permitirá que vuelva a fluir. El correo existente está a salvo.",
@@ -3630,19 +4268,48 @@ export const es = {
     continue_to_checkout: "Continuar al pago",
     redirect_payment_description:
       "Serás redirigido a nuestro proveedor de pago seguro para completar tu compra.",
+    billing_unavailable:
+      "Los pagos no están disponibles temporalmente. Inténtalo de nuevo en unos minutos.",
+    checkout_rate_limited:
+      "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
+    checkout_already_active:
+      "Ya tienes una suscripción activa. Actualiza la página para verla.",
+    checkout_session_mismatch:
+      "Tu sesión empezó en otra red u otro navegador. Cierra sesión, vuelve a entrar e inténtalo de nuevo.",
+    checkout_family_group_member:
+      "Ya perteneces a un grupo familiar. Sal de él antes de crear uno nuevo.",
+    checkout_family_plan_active:
+      "Tu plan familiar ya está activo. Actualiza la página para verlo.",
+    checkout_crypto_open_invoice_limit:
+      "Tienes demasiadas facturas de criptomonedas abiertas. Termina o cancela una y vuelve a intentarlo.",
+    checkout_crypto_active_card:
+      "Cancela tu suscripción con tarjeta antes de pagar con criptomonedas.",
+    checkout_unpaid_subscription:
+      "Tu última factura está pendiente de pago. Págala en Ajustes, Facturación, y vuelve a intentarlo.",
+    checkout_pending_cancellation:
+      "Tu suscripción está programada para cancelarse. Vuelve a activar la renovación antes de cambiar de plan.",
+    checkout_duplicate_subscription:
+      "Ya tienes esta suscripción. Actualiza la página para verla.",
+    checkout_provider_unreachable:
+      "Nuestro proveedor de pagos no responde. Espera un minuto y vuelve a intentarlo. No se ha cobrado nada.",
+    checkout_sca_required:
+      "Tu banco tiene que confirmar este pago. Sigue las indicaciones de tu banco y vuelve a intentarlo.",
+    checkout_card_declined:
+      "Tu banco rechazó la tarjeta. Usa otra tarjeta o ponte en contacto con tu banco.",
+    checkout_collection_failed:
+      "No hemos podido cobrar el pago. Actualiza tu método de pago en Ajustes, Facturación, y vuelve a intentarlo.",
     plan_not_available:
       "Este plan no está disponible para compra ahora mismo. Otro plan, o volver más tarde, funcionará.",
     failed_checkout:
-      "No pudimos abrir el pago ahora mismo. Otro intento debería resolverlo. Tu facturación no ha cambiado.",
+      "No pudimos abrir el pago en este momento. Inténtalo de nuevo. Tu facturación no ha cambiado.",
     failed_billing_portal:
-      "No pudimos abrir el portal de facturación. Otro intento debería resolverlo. Tu plan no ha cambiado.",
+      "No pudimos abrir el portal de facturación. Inténtalo de nuevo. Tu plan no ha cambiado.",
     subscription_cancelled:
       "La suscripción se cancelará al final del período de facturación",
     failed_cancel_subscription:
-      "Tu cancelación no se procesó. Otro intento debería resolverlo. Tu plan sigue activo.",
+      "La cancelación no se completó. Inténtalo de nuevo. Tu plan sigue activo.",
     subscription_reactivated: "Suscripción reactivada",
-    failed_reactivate:
-      "No pudimos reactivar tu plan. Otro intento debería resolverlo.",
+    failed_reactivate: "No pudimos reactivar tu plan. Inténtalo de nuevo.",
     daily: "Diario",
     weekly: "Semanal",
     biweekly: "Quincenal",
@@ -3665,7 +4332,7 @@ export const es = {
     hours: "{{count}} horas",
     days: "{{count}} días",
     failed_get_auth_data:
-      "No pudimos cargar tu información de inicio de sesión. Otro intento debería resolverlo.",
+      "No pudimos cargar tus datos de inicio de sesión. Inténtalo de nuevo.",
     downgrade: "Bajar de plan",
     upgrade_to: "Mejorar a {{name}}",
     get_plan: "Obtener {{name}}",
@@ -3682,11 +4349,13 @@ export const es = {
     sending: "Enviando...",
     send_feedback_button: "Enviar comentarios",
     thank_you_feedback: "¡Gracias por tus comentarios!",
+    feedback_category_general: "Comentario",
+    feedback_category_idea: "Idea",
+    feedback_category_bug: "Error",
     too_many_requests:
       "Estás haciendo eso demasiado rápido. Espera un momento e inténtalo de nuevo.",
     please_log_in_feedback: "Inicia sesión para enviar comentarios.",
-    failed_send_feedback:
-      "Tus comentarios no se enviaron. Otro intento debería resolverlo.",
+    failed_send_feedback: "Inténtalo de nuevo.",
     other_ways_to_reach: "Otras formas de contactarnos",
     reset_to_defaults: "Restablecer valores predeterminados",
     section_reset: "Sección restablecida a valores predeterminados",
@@ -3707,19 +4376,19 @@ export const es = {
     enter_password_confirm: "Ingresa tu contraseña para confirmar:",
     verifying_credentials: "Verificando credenciales...",
     failed_verify_credentials:
-      "Esa contraseña no coincide. Otro intento debería resolverlo. Tu cuenta no ha cambiado.",
+      "Contraseña incorrecta. Inténtalo de nuevo. Tu cuenta no ha cambiado.",
     deleting_account: "Eliminando cuenta...",
     failed_delete_account:
-      "No pudimos eliminar tu cuenta. Revisar tu contraseña y otro intento suele resolverlo. Tu cuenta no ha cambiado.",
+      "No pudimos eliminar tu cuenta. Comprueba tu contraseña e inténtalo de nuevo. Tu cuenta no ha cambiado.",
     error_deleting_account:
-      "No pudimos eliminar tu cuenta ahora mismo. Otro intento en un momento suele resolverlo, y hello@astermail.org puede ayudar si sigue fallando.",
+      "No pudimos eliminar tu cuenta ahora mismo. Inténtalo de nuevo en un momento. Si el problema continúa, escribe a hello@astermail.org.",
     "connection.title": "Conexión",
     "connection.description": "Elige cómo conectarte a los servicios de Aster",
     "connection.title_info":
       "Aster admite más de una ruta a sus servidores. La ruta que elijas cambia quién puede ver tu dirección IP y cómo llegan las solicitudes a nosotros. Tus mensajes permanecen cifrados de extremo a extremo en cualquier caso.",
     "connection.direct": "Directa",
     "connection.direct_description":
-      "Conectarse directamente a los servidores de Aster",
+      "Tu dispositivo se conecta directamente a los servidores de Aster. Es la ruta más rápida y con menor latencia, pero Aster puede ver tu dirección IP.",
     "connection.tor": "Tor",
     "connection.tor_description": "Enrutar tráfico a través de la red Tor",
     "connection.tor_snowflake": "Tor con Snowflake",
@@ -3727,7 +4396,7 @@ export const es = {
       "Usar puentes Snowflake para resistencia a la censura",
     "connection.cdn_relay": "CDN Relay",
     "connection.cdn_relay_description":
-      "Enrutar a través de servidores CDN Relay",
+      "Las solicitudes pasan por una CDN global antes de llegar a Aster. Tu dirección IP queda oculta para Aster y el tráfico se confunde con el tráfico normal de la CDN.",
     "connection.tor_warning":
       "Todo el tráfico se enrutará a través de la red Tor. El rendimiento será más lento.",
     "connection.status_connected": "Conectado",
@@ -3772,13 +4441,15 @@ export const es = {
     any_email_import_description: "Archivos MBOX, EML, CSV, PST",
     search_history: "Historial de búsqueda",
     folders_limit: "Carpetas",
-    onboarding_compose_title: "Redactar nuevos correos",
+    onboarding_compose_title: "Escribe tu primer mensaje",
     onboarding_compose_description:
-      "Haz clic aquí para redactar un nuevo correo",
-    onboarding_search_title: "Buscar tus correos",
+      "Pulsa C en tu bandeja de entrada para empezar a escribir. Aster cifra el mensaje en tu dispositivo antes de enviarlo.",
+    onboarding_search_title: "Encuentra lo que sea, en privado",
     onboarding_search_description:
-      "Usa la barra de búsqueda para encontrar cualquier correo",
+      "Pulsa / para ir directamente a la búsqueda. Filtra los resultados por remitente, fecha o archivos adjuntos sin soltar el teclado.",
     delete_imported_emails_confirm: "¿Eliminar correos importados?",
+    import_delete_warning:
+      "Esto elimina de forma permanente los mensajes que trajo esta importación. No puedes deshacerlo.",
     all_emails_filter: "Todos los correos",
     choose_label_color: "Elegir color de etiqueta",
     hex_color_value: "Valor de color hexadecimal",
@@ -3791,7 +4462,7 @@ export const es = {
     show_sync_error_details: "Mostrar detalles del error de sincronización",
     disable_two_factor_auth: "Deshabilitar autenticación de dos factores",
     disable_2fa_description:
-      "Enter your authenticator code and password to disable 2FA. This will make your account less secure.",
+      "Escribe el código de tu app de autenticación y tu contraseña para desactivar la verificación en dos pasos. Tu cuenta quedará menos protegida.",
     authenticator_code: "Código del autenticador",
     disabling: "Desactivando...",
     disable_2fa: "Desactivar 2FA",
@@ -3819,7 +4490,7 @@ export const es = {
     ghost_alias_too_new_message:
       "Los alias fantasma nuevos siguen activos durante 30 días antes de poder caducar. Este se podrá caducar a partir del {{date}}. Cambia a Supernova para caducar alias fantasma al instante.",
     delete_signature_confirmation:
-      "Are you sure you want to delete this signature? This action cannot be undone.",
+      "¿Seguro que quieres eliminar esta firma? Esta acción no se puede deshacer.",
     delete_domain_confirmation:
       "¿Estás seguro de que quieres eliminar este dominio? Esta acción no se puede deshacer.",
     delete_address_confirmation:
@@ -3889,7 +4560,7 @@ export const es = {
       "Solo envía correos que puedan cifrarse de extremo a extremo. Si un destinatario no tiene clave PGP, el mensaje no se enviará.",
     info_storage_format_title: "Formato de almacenamiento",
     info_storage_format_description:
-      "Aster Server guarda tus correos cifrados en los servidores de Aster. IPFS distribuye tus datos en una red entre pares. En ambos casos, solo tus claves pueden descifrar el contenido.",
+      "Aster Server guarda tus correos cifrados en el almacenamiento estándar de Aster. IPFS privado los guarda en un almacenamiento direccionado por contenido que también funciona en los servidores de Aster. En ambos casos, solo tus claves pueden descifrarlos.",
     info_block_fonts_title: "¿Por qué bloquear fuentes remotas?",
     info_block_fonts_description:
       "Los correos pueden cargar fuentes desde servidores externos. El servidor del remitente ve tu IP y cuándo abriste el mensaje, igual que un píxel de seguimiento.",
@@ -3998,33 +4669,128 @@ export const es = {
     set_as_primary: "Establecer como dirección principal",
     primary_badge: "Principal",
     primary_address_label: "Dirección principal",
+    change_address: "Cambiar dirección",
+    address_change_title: "Cambia tu dirección",
+    address_change_intro_lead: "Lee lo que cambia antes de continuar.",
+    address_change_keep_old_title: "Conservas {{email}}",
+    address_change_keep_old_body:
+      "El correo que llegue a esa dirección sigue apareciendo en tu bandeja de entrada y puedes seguir usándola para iniciar sesión en todos tus dispositivos.",
+    address_change_no_limit_title: "Tu dirección anterior sigue siendo tuya",
+    address_change_no_limit_body:
+      "No cuenta para tu límite de alias, nadie más puede reclamarla y no se puede eliminar.",
+    address_change_once_title: "Un cambio cada 30 días",
+    address_change_once_body:
+      "Después de este cambio, podrás volver a cambiarla el {{date}}.",
+    address_change_effect_alias_title: "{{email}} deja de ser un alias",
+    address_change_effect_alias_body:
+      "Se eliminan las reglas, los reenvíos, las firmas y los alias inversos que configuraste para este alias. Los mensajes enviados a esa dirección siguen llegando, ahora como tu dirección principal.",
+    address_change_permanent_title: "No puedes deshacer esto",
+    address_change_permanent_body:
+      "{{email}} no puede volver a ser tu dirección principal.",
+    address_change_pick_title: "Elige tu nueva dirección",
+    address_change_use_alias: "Usar uno de tus alias",
+    address_change_use_new: "Elegir una dirección nueva",
+    address_change_name_rule:
+      "Usa de 3 a 40 letras, números o puntos. Un punto no puede ir al principio ni al final, y los puntos no pueden repetirse.",
+    address_change_name_placeholder: "tunombre",
+    primary_address_info:
+      "Tu plan Supernova te permite cambiar tu dirección una vez cada 30 días. Tu dirección anterior sigue siendo tuya: continúa recibiendo correo y te permite iniciar sesión.",
+    address_change_checking: "Comprobando disponibilidad",
+    address_change_available: "{{email}} está disponible",
+    address_change_unavailable: "{{email}} no está disponible",
+    address_change_same_as_current: "Esa ya es tu dirección",
+    address_change_check_failed:
+      "Aster Mail no pudo comprobar esa dirección. Inténtalo de nuevo en un momento.",
+    address_change_review_title: "Revisa el cambio",
+    address_change_from: "Ahora",
+    address_change_to: "Después",
+    address_change_effect_sending:
+      "Los mensajes que envíes saldrán de {{email}}.",
+    address_change_effect_key:
+      "Tu clave de cifrado no cambia y añade {{email}} como segunda identidad.",
+    address_change_effect_signed_in: "Tu sesión sigue abierta en todas partes.",
+    address_change_effect_final:
+      "El cambio es definitivo. Para continuar, escribe tu dirección nueva.",
+    address_change_type_to_confirm: "Escribe {{email}} para confirmar",
+    address_change_password_title: "Confirma que eres tú",
+    address_change_password_body: "Para continuar, introduce tu contraseña.",
+    address_change_code_resent: "Aster Mail envió un código nuevo.",
+    address_change_code_title: "Introduce tu código de confirmación",
+    address_change_code_body:
+      "Busca un código de 6 dígitos en {{email}}. Caduca en 15 minutos.",
+    address_change_code_label: "Código de confirmación",
+    address_change_done_title: "Tu dirección ahora es {{email}}",
+    address_change_done_body:
+      "{{email}} sigue recibiendo correo y sigue permitiéndote iniciar sesión.",
+    address_change_done_partial:
+      "Tu dirección cambió, pero tu clave de cifrado no terminó de actualizarse. Hasta entonces, tu nueva dirección no está en tu clave.",
+    address_change_updating_key: "Actualizando tu clave de cifrado",
+    address_change_failed:
+      "El cambio de dirección no se completó. Inténtalo de nuevo.",
+    address_change_code_too_many:
+      "Demasiados códigos incorrectos. Para recibir uno nuevo, vuelve a iniciar el cambio.",
+    address_change_code_expired:
+      "Ese código caducó. Para recibir uno nuevo, vuelve a iniciar el cambio.",
+    address_change_taken_now:
+      "Alguien reclamo esa direccion antes. Elige otra.",
+    address_change_code_invalid: "Ese código no es correcto.",
+    address_change_locked_plan:
+      "Cambiar tu dirección es una función de Supernova.",
+    address_change_locked_cooldown:
+      "Puedes volver a cambiar tu dirección el {{date}}.",
+    address_change_locked_cooldown_unknown:
+      "Cambiaste tu dirección en los últimos 30 días, así que aún no puedes volver a cambiarla.",
+    address_change_once_unknown:
+      "Después de este cambio, podrás volver a cambiarla en 30 días.",
+    address_change_password_wrong: "Esa contraseña no es correcta.",
+    address_change_not_eligible: "Ahora mismo no puedes cambiar tu dirección.",
+    address_change_too_many_requests:
+      "Has iniciado demasiados cambios de dirección. Inténtalo de nuevo en una hora.",
+    address_change_resend_too_soon:
+      "Espera un momento antes de pedir otro código.",
+    address_change_send_failed:
+      "Aster Mail no pudo enviar el código. Inténtalo de nuevo en unos minutos.",
+    address_change_invalid_address: "Esa dirección no es válida. Elige otra.",
+    address_change_locked_account_kind:
+      "Solo las cuentas personales pueden cambiar su dirección.",
+    address_change_locked_custom_domain:
+      "Las direcciones de tu propio dominio no se pueden cambiar aquí.",
+    address_change_locked_unavailable:
+      "Cambiar tu dirección no está disponible ahora mismo.",
+    address_change_eligibility_failed:
+      "Aster Mail no pudo comprobar si puedes cambiar tu dirección.",
+    address_change_domain_label: "Dominio",
     primary_address_set: "Dirección principal actualizada",
     primary_address_reset: "Restablecer a tu dirección predeterminada",
     also_receives_at: "También recibe en {{email}}",
     alias_grace_days: "{{days}}d restantes",
+    domain_grace_days: "{{days}}d restantes",
+    domain_grace_upgrade_hint:
+      "Mejora tu plan para mantener este dominio activo",
+    domain_shared_by: "Compartido por {{owner}}",
+    domain_shared_hint:
+      "Este dominio pertenece a otro miembro de tu plan Familiar. Solo el propietario puede cambiar su configuración.",
+    domain_shared_label: "Compartido",
     alias_reserved: "Reservado",
     alias_grace_upgrade_hint: "Mejora tu plan para mantener este alias activo",
     alias_reserved_upgrade_hint: "Mejora tu plan para reactivar este alias",
-    invalid_address:
-      "Esta dirección no es válida. Revisar el formato suele resolverlo.",
+    invalid_address: "Introduce una dirección de correo válida.",
     alias_already_taken: "Este alias ya está en uso. Otro debería funcionar.",
     alias_create_failed:
-      "Este alias no se guardó. Otro intento debería resolverlo. Tus otros alias no han cambiado.",
+      "Este alias no se guardó. Inténtalo de nuevo. Tus otros alias no han cambiado.",
     alias_generate_failed:
-      "No pudimos generar un alias ahora mismo. Otro intento debería resolverlo.",
+      "No pudimos generar un alias en este momento. Inténtalo de nuevo.",
     alias_invalid:
       "Este alias no es válido. Letras, números, puntos, guiones bajos y guiones son los caracteres permitidos.",
     domain_not_available:
       "Este dominio no está disponible ahora mismo. Otro debería funcionar.",
-    failed_create_address:
-      "Esta dirección no se guardó. Otro intento debería resolverlo.",
+    failed_create_address: "Inténtalo de nuevo.",
     domain_limit_reached: "Límite de dominios alcanzado",
     add_custom_domain: "Añadir dominio personalizado",
     domain_name_label: "Nombre de dominio",
-    invalid_domain:
-      "Este dominio no es válido. Revisar el formato suele resolverlo.",
+    invalid_domain: "Introduce un dominio válido.",
     failed_add_domain:
-      "Este dominio no se añadió. Otro intento debería resolverlo. Tus otros dominios no han cambiado.",
+      "Este dominio no se añadió. Inténtalo de nuevo. Tus otros dominios no han cambiado.",
     configure_dns_for: "Configurar DNS para {{domain}}",
     dns_instruction_login:
       "Inicia sesión en tu registrador de dominio o proveedor de DNS",
@@ -4066,7 +4832,7 @@ export const es = {
     username_required: "Añade el nombre de usuario de esta cuenta.",
     password_required: "Añade la contraseña de esta cuenta.",
     connection_timeout_error:
-      "Elige un tiempo de espera entre 5 y 120 segundos.",
+      "Introduce un tiempo de espera entre 5 y 120 segundos.",
     fill_server_first:
       "Rellena primero el servidor, el usuario y la contraseña para que podamos probar la conexión.",
     fill_smtp_first:
@@ -4077,19 +4843,27 @@ export const es = {
       "La prueba de conexión no pasó. El servidor, el puerto y la contraseña de abajo son los puntos a revisar. Tu conexión guardada no ha cambiado.",
     account_updated: "Cuenta actualizada exitosamente",
     account_added: "Cuenta añadida exitosamente",
+    account_settings_not_saved:
+      "La cuenta se guardó, pero sus ajustes de sincronización y avanzados no se guardaron",
     failed_update_account:
-      "Esta cuenta no se actualizó. Otro intento debería resolverlo. Los ajustes anteriores siguen activos.",
-    failed_add_account:
-      "Esta cuenta no se añadió. Otro intento debería resolverlo.",
-    switch_failed:
-      "No pudimos cambiar de cuenta. Otro intento debería resolverlo.",
-    unexpected_error: "Ocurrió un error inesperado",
+      "Esta cuenta no se actualizó. Inténtalo de nuevo. La configuración anterior sigue activa.",
+    failed_add_account: "Inténtalo de nuevo.",
+    switch_failed: "No pudimos cambiar de cuenta. Inténtalo de nuevo.",
+    unexpected_error: "Algo no funcionó como se esperaba. Inténtalo de nuevo.",
     failed_sync:
       "La sincronización no se completó, y la reintentaremos automáticamente. Tu correo en ambos lados está a salvo.",
     failed_delete_emails_external:
-      "Estos correos no se eliminaron de tu cuenta vinculada. Otro intento debería resolverlo.",
+      "Estos correos no se eliminaron de tu cuenta vinculada. Inténtalo de nuevo.",
     failed_fetch_folders_external:
-      "Las carpetas de tu cuenta vinculada no se cargaron. Otro intento debería resolverlo.",
+      "Las carpetas de tu cuenta vinculada no se cargaron. Inténtalo de nuevo.",
+    external_sign_in_rejected:
+      "El servidor de correo no aceptó este nombre de usuario y contraseña. Vuelve a comprobarlos. Si tu proveedor requiere una contraseña de aplicación, introdúcela en su lugar.",
+    external_server_unreachable:
+      "Aster Mail no pudo conectarse a este servidor de correo. Comprueba el nombre del servidor, el puerto y la configuración de seguridad, y vuelve a intentarlo.",
+    external_reconnect_required:
+      "Tu proveedor ya no acepta el inicio de sesión guardado para esta cuenta. Para seguir usándola, vuelve a conectar la cuenta.",
+    external_message_rejected:
+      "El servidor de correo de esta cuenta rechazó el envío de este mensaje.",
     show_password_toggle: "Mostrar contraseña",
     hide_password_toggle: "Ocultar contraseña",
     hide_smtp_password: "Ocultar contraseña SMTP",
@@ -4100,18 +4874,17 @@ export const es = {
     invalid_2fa_code:
       "Ese código no coincide. El código actual de tu app de autenticación funcionará.",
     incorrect_password_error:
-      "Esa contraseña no coincide. Otro intento debería resolverlo. Tu cuenta no está bloqueada.",
+      "Contraseña incorrecta. Inténtalo de nuevo. Tu cuenta no está bloqueada.",
     failed_retrieve_auth:
-      "No pudimos cargar tu información de inicio de sesión. Otro intento debería resolverlo.",
-    failed_verify_password:
-      "Esa contraseña no coincide. Otro intento debería resolverlo.",
+      "No pudimos cargar tus datos de inicio de sesión. Inténtalo de nuevo.",
+    failed_verify_password: "Contraseña incorrecta. Inténtalo de nuevo.",
     failed_export_private_key:
-      "No pudimos exportar tu clave ahora mismo. Otro intento debería resolverlo. Tu clave no ha cambiado.",
+      "No pudimos exportar tu clave en este momento. Inténtalo de nuevo. Tu clave no ha cambiado.",
     type_regenerate: "Escribe regenerate",
     client_side_encryption: "Cifrado del lado del cliente",
     client_side_encryption_description:
       "Todo el cifrado ocurre en tu navegador antes de que los datos salgan de tu dispositivo",
-    zero_knowledge_storage: "Almacenamiento de conocimiento cero",
+    zero_knowledge_storage: "Almacenamiento de acceso cero",
     zero_knowledge_storage_description:
       "No podemos leer tus datos. Solo tú tienes las claves.",
     email_content_attachments: "Contenido del correo y adjuntos",
@@ -4123,12 +4896,14 @@ export const es = {
     key_published_wkd: "Clave publicada en WKD",
     key_removed_wkd: "Clave eliminada de WKD",
     failed_publish_wkd:
-      "Tu clave pública no se publicó en el directorio público. Otro intento debería resolverlo. Tus claves no han cambiado.",
+      "Tu clave pública no se publicó en el directorio público. Inténtalo de nuevo. Tus claves no han cambiado.",
     failed_remove_wkd:
-      "Tu clave no se quitó del directorio público. Otro intento debería resolverlo.",
+      "Tu clave no se quitó del directorio público. Inténtalo de nuevo.",
     key_published_keyserver: "Clave publicada en servidor de claves",
     failed_publish_keyserver:
-      "Tu clave pública no se publicó en el servidor de claves. Otro intento debería resolverlo.",
+      "Tu clave pública no se publicó en el servidor de claves. Inténtalo de nuevo.",
+    mailto_unregister_manual:
+      "Para que Aster Mail deje de abrir los enlaces mailto, quita el controlador en la configuración del navegador.",
     failed_save_setting:
       "No se pudo guardar la configuración. Inténtalo de nuevo.",
     keys_cannot_remove_keyservers:
@@ -4147,7 +4922,7 @@ export const es = {
     feature_daily_send_limit: "Límite de envío diario",
     feature_email_retention: "Retención de correos",
     feature_e2e_encryption: "Cifrado de extremo a extremo",
-    feature_zero_knowledge: "Arquitectura de conocimiento cero",
+    feature_zero_knowledge: "Arquitectura de acceso cero",
     feature_email_aliases: "Alias de correo",
     feature_custom_domains: "Dominios personalizados",
     feature_scheduled_sending: "Envío programado",
@@ -4233,7 +5008,8 @@ export const es = {
     submit: "Enviar",
     enter_strong_password: "Ingresa una contraseña segura",
     re_enter_password: "Vuelve a ingresar tu contraseña",
-    keep_saved_password: "Déjalo en blanco para conservar la contraseña guardada",
+    keep_saved_password:
+      "Déjalo en blanco para conservar la contraseña guardada",
     enter_your_password: "Ingresa tu contraseña",
     enter_current_password_folder: "Ingresa la contraseña actual",
     enter_new_password_folder: "Ingresa la nueva contraseña",
@@ -4251,8 +5027,7 @@ export const es = {
       "Las dos contraseñas no coinciden. Volver a escribirlas suele resolverlo.",
     choose_stronger_new_password:
       "Esta contraseña es fácil de adivinar. Algo más largo o más variado resistirá mejor.",
-    enter_password_confirm_required:
-      "Por favor ingresa tu contraseña para confirmar",
+    enter_password_confirm_required: "Necesitas tu contraseña para continuar.",
     no_password_recovery_title: "Esta contraseña no se puede recuperar.",
     no_password_recovery_desc:
       "Si olvidas esta contraseña, nadie podrá recuperar esta carpeta por ti. Guardarla en un sitio donde no la pierdas importa.",
@@ -4268,7 +5043,8 @@ export const es = {
     contacts_address_book: "Contactos y libreta de direcciones",
     account_preferences_settings: "Preferencias y configuración de la cuenta",
     encryption_keys_security: "Claves de cifrado y datos de seguridad",
-    type_delete_placeholder: "Escribe DELETE aquí",
+    delete_confirmation_word: "ELIMINAR",
+    type_delete_placeholder: "Escribe {word} aquí",
     enter_your_password_placeholder: "Ingresa tu contraseña",
     macos: "macOS",
     windows_linux: "Windows/Linux",
@@ -4293,6 +5069,10 @@ export const es = {
     created_date: "Creado {{date}}",
     export_public_key_label: "Exportar clave pública",
     export_private_key_label: "Exportar clave privada",
+    export_private_key_warning:
+      "Guarda el archivo en un lugar seguro y nunca lo compartas. Cualquiera que lo tenga puede leer tu correo.",
+    export_two_factor_hint:
+      "Tu cuenta usa autenticación en dos pasos. Introduce el código actual de tu app de autenticación para continuar.",
     verify_identity_export:
       "Verifica tu identidad para exportar tu clave privada",
     two_fa_code_label: "Código 2FA",
@@ -4325,6 +5105,16 @@ export const es = {
       "Se muestra como nombre del remitente cuando respondes desde este alias.",
     aliases_description:
       "Crea direcciones de correo alternativas que reenvíen a tu bandeja principal. Úsalas para proteger tu privacidad u organizar el correo entrante.",
+    twin_address_title: "Tu dirección coincidente",
+    twin_address_reserved_description:
+      "{{ address }} está reservada para tu cuenta, así que nadie más puede registrarla. Créala como alias cuando quieras enviar y recibir desde ella.",
+    twin_address_available_description:
+      "{{ address }} es la dirección coincidente en el otro dominio de Aster. Créala como alias para enviar y recibir desde ella.",
+    twin_address_title_multiple: "Tus direcciones coincidentes",
+    twin_address_multiple_description:
+      "{{ local_part }} está reservado para tu cuenta en {{ count }} dominios de Aster, así que nadie más puede registrarlo. Créalo como alias cuando quieras enviar y recibir desde él.",
+    twin_address_create: "Crear alias",
+    twin_address_dismiss: "Descartar",
     custom_domain_addresses_note:
       "También puedes crear direcciones en tus dominios personalizados verificados.",
     alias_taken_try_different:
@@ -4341,11 +5131,71 @@ export const es = {
     continue_setup: "Continuar configuración",
     verified_count: "{{count}}/5 verificados",
     used_count: "{{current}} / {{max}} usados",
+    alias_usage_remaining: "Te quedan {{count}} alias en tu plan",
+    alias_usage_remaining_one: "Te queda {{count}} alias en tu plan",
+    alias_usage_remaining_other: "Te quedan {{count}} alias en tu plan",
+    alias_cap_upsell_benefit:
+      "{{plan}} te da {{aliases}} alias por {{price}} al mes.",
+    alias_cap_upsell_benefit_unlimited:
+      "{{plan}} te da alias ilimitados por {{price}} al mes.",
+    alias_cap_upsell_alternative:
+      "{{plan}} elimina el límite de alias si necesitas más.",
+    alias_cap_upsell_cta: "Cambiar a {{plan}}",
+    special_offer_button: "Oferta especial",
+    special_offer_title: "Correo privado a mitad de precio",
+    special_offer_subtitle: "50 % de descuento en los primeros 12 meses",
+    special_offer_price_period: "al mes",
+    special_offer_save_badge: "Ahorra un {{percent}} %",
+    special_offer_unavailable:
+      "Esta oferta ya no está disponible. Aún puedes mejorar tu plan al precio normal.",
+    special_offer_checkout_error:
+      "Se ha producido un error al iniciar el pago. Inténtalo de nuevo.",
+    special_offer_was_price: "Antes {{price}} al mes",
+    special_offer_original_price: "Precio original: {{price}}",
+    special_offer_cta: "Obtener un {{percent}} % de descuento",
+    special_offer_feature_aliases: "Alias ilimitados",
+    special_offer_feature_vanguard: "Seguridad avanzada con Vanguard",
+    special_offer_feature_storage: "500 GB de almacenamiento cifrado",
+    special_offer_why_body:
+      "Aster es una empresa independiente con un equipo pequeño, y tu apoyo significa mucho para nosotros. Las suscripciones mantienen el servicio en funcionamiento y nos permiten seguir desarrollando Aster con cuidado cada día. Esta oferta te facilita empezar.",
+    special_offer_why_label: "¿Por qué esta oferta?",
+    special_offer_feature_vanguard_body:
+      "Bloqueo de la app y protección avanzada de la privacidad.",
+    special_offer_feature_domains_body:
+      "Envía desde direcciones de tus propios dominios.",
+    special_offer_feature_domains: "Hasta 30 dominios personalizados",
+    special_offer_feature_storage_body:
+      "Espacio para años de correo y archivos.",
+    special_offer_feature_aliases_body: "Da a cada sitio su propia dirección.",
+    special_offer_fine_print:
+      "Pagas {{offer_price}} al mes durante los primeros {{months}} meses. Después, tu plan se renueva por {{price}} al mes hasta que lo canceles en Ajustes.",
+    special_offer_dismiss: "No volver a mostrar esta oferta",
+    special_offer_dismissed_toast: "No volveremos a mostrártelo.",
+    special_offer_success_title: "Gracias. Ya tienes Nova.",
+    special_offer_success_body:
+      "Gracias por suscribirte. Tu apoyo significa mucho para nosotros.",
+    special_offer_hero_duration: "durante {{months}} meses",
+    special_offer_price_period_year: "al año",
+    special_offer_hero_duration_year: "durante el primer año",
+    special_offer_fine_print_year:
+      "Pagas {{offer_price}} por el primer año. Después, tu plan se renueva por {{price}} al año hasta que lo canceles en Ajustes.",
+    special_offer_billing_period: "Periodo de facturación",
+    plan_billing_terms:
+      "Las suscripciones se renuevan automáticamente a la tarifa estándar hasta que las canceles. Puedes cancelarla cuando quieras en Ajustes.",
+    upgrade_offer_note:
+      "Tu descuento del {{percent}} % se aplica al finalizar la compra.",
     dns_records_for_domain: "Registros DNS para este dominio:",
     add_dns_records_description:
       "Añade estos registros DNS en tu registrador de dominio para verificar la propiedad y habilitar el correo:",
     domains_description:
       "Añade tu propio dominio para crear direcciones y enviar correo desde tu dominio. Los dominios verificados aparecen en el selector de dominios de alias.",
+    domains_page_description:
+      "Usa tu propio dominio con Aster Mail. Añade un dominio que ya tienes o compra uno nuevo y Aster Mail configura el DNS por ti. Los dominios verificados aparecen en el selector de dominios de alias.",
+    add_or_buy_domain: "Añadir o comprar dominio",
+    add_domain_you_own: "Añadir un dominio propio",
+    buy_new_domain: "Comprar un dominio nuevo",
+    search_domains_placeholder: "Buscar en tus dominios",
+    no_matching_domains: "Ningún dominio coincide con tu búsqueda.",
     domains_send_receive_description:
       "Añade tu propio dominio para enviar y recibir correo. Necesitarás acceso a la configuración DNS de tu dominio para completar la verificación.",
     verification_failed_retry:
@@ -4359,7 +5209,152 @@ export const es = {
     domain_limit_all_used:
       "Has usado todos los {{count}} dominios de tu plan actual.",
     domain_without_www_note: "Ingresa tu dominio sin www ni https://",
-    catch_all_label: "Catch-all",
+    catch_all_label: "Comodín",
+    bimi_adj_added_title: "Se añadió un título.",
+    bimi_adj_converted_inline_styles:
+      "Se convirtieron los estilos en línea en atributos.",
+    bimi_adj_derived_view_box: "Se añadió un viewBox.",
+    bimi_adj_removed_doctype: "Se quitó la declaración de tipo de documento.",
+    bimi_adj_removed_editor_data: "Se quitaron los datos del editor.",
+    bimi_adj_removed_metadata: "Se quitaron los metadatos.",
+    bimi_adj_removed_position: "Se quitó el desplazamiento de posición.",
+    bimi_adj_removed_size: "Se quitaron el ancho y el alto fijos.",
+    bimi_adj_removed_unsupported_attributes:
+      "Se quitaron los atributos no compatibles.",
+    bimi_adj_set_tiny_ps_profile: "Se estableció el perfil SVG en Tiny PS.",
+    bimi_adjustments_title:
+      "Aster ajustó tu archivo para que cumpla los requisitos:",
+    bimi_auto_checking:
+      "Aster busca el registro automáticamente mientras esta página está abierta.",
+    bimi_check_again: "Volver a comprobar",
+    bimi_checking: "Comprobando",
+    bimi_choose_file: "Elegir archivo",
+    bimi_dmarc_invalid:
+      "No se puede leer tu registro DMARC. Reemplázalo por un registro válido.",
+    bimi_dmarc_missing: "Añade un registro DMARC con p=quarantine o p=reject.",
+    bimi_dmarc_not_enforced:
+      "Cambia tu política DMARC a p=quarantine o p=reject.",
+    bimi_dmarc_organization_not_enforced:
+      "La política DMARC de tu dominio principal también debe ser quarantine o reject.",
+    bimi_dmarc_partial:
+      "Quita la etiqueta pct de tu registro DMARC o establécela en 100.",
+    bimi_dmarc_ready: "Tu política DMARC es quarantine o reject.",
+    bimi_dmarc_subdomain_policy_none:
+      "Cambia la etiqueta sp de tu registro DMARC a quarantine o reject.",
+    bimi_drop_here: "Arrastra aquí tu logotipo SVG.",
+    bimi_err_doctype_entities:
+      "El archivo declara entidades personalizadas, lo cual no está permitido.",
+    bimi_err_empty: "La imagen está vacía.",
+    bimi_err_external_reference:
+      "El archivo enlaza a un recurso externo, lo cual no está permitido.",
+    bimi_err_invalid_reference:
+      "El archivo contiene una referencia interna rota.",
+    bimi_err_invalid_value:
+      "El archivo contiene un valor de atributo no permitido.",
+    bimi_err_malformed: "El archivo no es un SVG válido.",
+    bimi_err_missing_view_box:
+      "La imagen no tiene viewBox. Expórtala con un viewBox.",
+    bimi_err_not_square:
+      "El logotipo no es cuadrado. Haz que el ancho y el alto sean iguales.",
+    bimi_err_not_svg: "El archivo no es una imagen SVG.",
+    bimi_err_not_utf8: "El archivo no es un archivo SVG de texto.",
+    bimi_err_raster_image:
+      "El archivo contiene una imagen de mapa de bits incrustada. Usa solo formas vectoriales.",
+    bimi_err_script_content:
+      "El archivo contiene un script, lo cual no está permitido.",
+    bimi_err_text_not_outlined:
+      "El logotipo contiene texto. Convierte el texto en contornos antes de exportarlo.",
+    bimi_err_too_complex:
+      "La imagen es demasiado compleja. Simplifícala y vuelve a exportarla.",
+    bimi_err_too_large: "El archivo es demasiado grande.",
+    bimi_err_unsupported_element:
+      "El archivo contiene elementos no permitidos.",
+    bimi_err_unsupported_style:
+      "El archivo usa estilos o efectos no permitidos, como filtros, máscaras u hojas de estilo.",
+    bimi_error_domain_not_active:
+      "Termina de configurar este dominio antes de publicar un logotipo.",
+    bimi_error_file_too_large: "El archivo supera los 64 KB.",
+    bimi_error_logo_required: "Sube un logotipo antes de publicar.",
+    bimi_error_not_svg_file: "Elige un archivo SVG.",
+    bimi_error_throttled: "Espera un momento y vuelve a intentarlo.",
+    bimi_errors_title: "Este archivo no se puede usar como logotipo de marca:",
+    bimi_last_checked: "Última comprobación: {time}",
+    bimi_logo_public_note:
+      "Tu logotipo es público. Cualquier persona que reciba tus correos puede verlo.",
+    bimi_logo_ready: "Tu logotipo cumple los requisitos.",
+    bimi_managed_note:
+      "Compraste tu dominio a través de Aster, así que el registro DNS se añade automáticamente.",
+    bimi_preview_alt: "Vista previa de tu logotipo de marca",
+    bimi_preview_dark: "Oscuro",
+    bimi_preview_inbox_subject: "Tu última novedad",
+    bimi_preview_inbox_title: "Así se ve en la bandeja de entrada",
+    bimi_preview_light: "Claro",
+    bimi_publish: "Publicar logotipo",
+    bimi_publishing: "Publicando",
+    bimi_record_conflict:
+      "Ya existe otro registro BIMI para este dominio. Elimínalo para que solo quede este registro.",
+    bimi_record_external:
+      "El registro BIMI existente apunta a otro host. Reemplázalo por este registro para usar el alojamiento de Aster.",
+    bimi_record_host: "Host",
+    bimi_record_missing:
+      "El registro aún no es visible. Los cambios de DNS pueden tardar hasta 48 horas.",
+    bimi_record_removed:
+      "Aster ya no encuentra este registro. Vuelve a añadirlo en tu proveedor de DNS.",
+    bimi_record_published: "El registro está publicado.",
+    bimi_record_title: "Añade este registro en tu proveedor de DNS",
+    bimi_record_type: "Tipo",
+    bimi_copy_field: "Copiar {field}",
+    bimi_record_value: "Valor",
+    bimi_replace_logo: "Reemplazar logotipo",
+    bimi_req_auth_fail:
+      "Primero verifica los registros SPF y DKIM de este dominio.",
+    bimi_req_auth_ok: "SPF y DKIM están verificados.",
+    bimi_req_auth_title: "Autenticación del correo",
+    bimi_req_dmarc_title: "Aplicación de DMARC",
+    bimi_req_not_checked: "Aún no se ha comprobado.",
+    bimi_requirements_title: "Requisitos",
+    bimi_row_attention:
+      "Tu logotipo está publicado, pero ya no se cumple un requisito.",
+    bimi_row_draft: "Tu logotipo está listo. Publícalo para empezar a usarlo.",
+    bimi_row_external:
+      "Este dominio tiene un registro BIMI que apunta a otro host.",
+    bimi_row_inactive:
+      "Termina de configurar este dominio para añadir un logotipo de marca.",
+    bimi_row_live: "Tu logotipo está publicado.",
+    bimi_row_off:
+      "Muestra tu logotipo junto a tus correos en las bandejas de entrada compatibles con logotipos de marca.",
+    bimi_row_pending: "Añade el registro DNS y vuelve a comprobarlo.",
+    bimi_row_pending_managed:
+      "Se está publicando tu registro DNS. Esto puede tardar unos minutos.",
+    bimi_rule_safe: "Sin scripts ni enlaces externos",
+    bimi_rule_size: "32 KB o menos después de que Aster lo optimice",
+    bimi_rule_square: "Cuadrado, con el mismo ancho y alto",
+    bimi_rule_svg: "Archivo SVG",
+    bimi_rule_vector:
+      "Solo formas vectoriales, con el texto convertido en contornos",
+    bimi_rules_title: "Requisitos del archivo",
+    bimi_set_up: "Configurar",
+    bimi_state_attention: "Requiere atención",
+    bimi_state_draft: "Sin publicar",
+    bimi_state_external: "Gestionado externamente",
+    bimi_state_live: "Activo",
+    bimi_state_pending: "Esperando al DNS",
+    bimi_step_logo: "Logotipo",
+    bimi_step_of: "Paso {current} de {total}",
+    bimi_step_publish: "Publicar",
+    bimi_title: "Logotipo de marca",
+    bimi_turn_off: "Desactivar",
+    bimi_turn_off_body:
+      "Tu logotipo deja de alojarse de inmediato y las bandejas de entrada muestran un icono predeterminado en su lugar.",
+    bimi_turn_off_confirm: "Desactivar",
+    bimi_turn_off_description:
+      "Deja de mostrar tu logotipo en las bandejas de entrada.",
+    bimi_turn_off_remove_record:
+      "Elimina el registro TXT default._bimi de tu proveedor de DNS.",
+    bimi_turn_off_title: "¿Desactivar el logotipo de marca?",
+    bimi_uploading: "Subiendo",
+    bimi_verified_mark_note:
+      "Algunas bandejas de entrada solo muestran logotipos de marca para dominios con un certificado de marca verificada.",
     catch_all_description:
       "Recibir correos enviados a cualquier dirección en este dominio",
     set_host_root:
@@ -4393,7 +5388,7 @@ export const es = {
       "Este debe ser un servidor de correo público, no una dirección local o privada. El nombre de host público que te dio tu proveedor funcionará.",
     incoming_server_invalid:
       "Esta no es una dirección de servidor válida. El nombre de host solo, como imap.example.com, funcionará.",
-    incoming_port_error: "Elige un número de puerto entre 1 y 65535.",
+    incoming_port_error: "Introduce un número de puerto entre 1 y 65535.",
     incoming_mail_server: "Servidor de correo entrante",
     smtp_server: "Servidor SMTP",
     smtp_server_required: "El host del servidor SMTP es obligatorio",
@@ -4401,7 +5396,7 @@ export const es = {
       "Este no es un servidor de salida válido. El nombre de host solo, como smtp.example.com, funcionará.",
     smtp_private_address_error:
       "Esto debe ser un servidor de correo público, no una dirección local o privada. El nombre de host público que te dio tu proveedor funcionará.",
-    smtp_port_error: "Elige un número de puerto entre 1 y 65535.",
+    smtp_port_error: "Introduce un número de puerto entre 1 y 65535.",
     smtp_username_required: "El nombre de usuario SMTP es obligatorio",
     smtp_password_required: "La contraseña SMTP es obligatoria",
     label_color_invalid:
@@ -4449,7 +5444,8 @@ export const es = {
     syncing: "Sincronizando...",
     syncing_progress: "Sincronizando ({{processed}}/{{total}})",
     fetching_emails: "Obteniendo correos...",
-    sync_failed: "Error en la sincronización",
+    sync_failed:
+      "La sincronización no terminó y volveremos a intentarlo automáticamente. Tu correo está a salvo en ambos lados.",
     not_synced: "No sincronizado",
     sync_failed_detail:
       "La última sincronización a las {{time}} no se completó. Otro intento, o revisar la contraseña de tu cuenta, suele resolverlo.",
@@ -4468,14 +5464,18 @@ export const es = {
     this_account: "esta cuenta",
     storage_limit_reached: "Límite de almacenamiento alcanzado",
     auto_forward_title: "Reenvío automático",
+    forwarding_failed_badge: "Sin entregar",
+    forwarding_failed_encryption:
+      "Requerir cifrado está activado, pero {{ address }} no tiene clave PGP, así que los mensajes no se reenvían. Desactiva Requerir cifrado en los ajustes de cifrado o añade la clave pública del destinatario.",
+    forwarding_failed_generic:
+      "El último reenvío a {{ address }} falló: {{ error }}",
+    forwarding_failed_count: "Mensajes no reenviados: {{ count }}",
     forwarding_pending_verification: "Verificación pendiente",
     resend_verification_email: "Reenviar correo de verificación",
     forwarding_awaiting_verification:
       "Esperando la confirmación de {{ addresses }}. Todavía no se reenvía allí.",
     forwarding_verification_sent:
       "Correo de verificación enviado a {{ address }}. El reenvío empezará cuando se confirme.",
-    forwarding_internal_active:
-      "El reenvío está activo. Los destinos de Aster a Aster no necesitan verificación.",
     forwarding_verification_resent:
       "Correo de verificación reenviado a {{ address }}",
     forwarding_confirmed_success:
@@ -4493,12 +5493,19 @@ export const es = {
     try_different_search: "Prueba con un término de búsqueda diferente",
     allowlist_title: "Lista de permitidos",
     allowlist_description:
-      "Emails from allowed senders will never be marked as spam.",
+      "Los correos de los remitentes permitidos nunca se marcan como spam.",
     add_to_allowlist: "Añadir a la lista de permitidos",
     entire_domain: "Dominio completo",
+    unreadable_entry_title: "Entrada ilegible",
+    unreadable_entry_hint:
+      "Este dispositivo no puede leer esta entrada. Se sigue aplicando hasta que la elimines.",
+    unreadable_entries_notice:
+      "Algunas entradas no se pueden leer en este dispositivo, así que no se muestran aquí.",
+    external_accounts_limit_reached:
+      "Puedes conectar hasta 5 cuentas. Para añadir otra, elimina una antes.",
     no_allowed_senders: "Sin remitentes permitidos",
     add_senders_allowlist_hint:
-      "Add senders or domains to ensure their emails always reach your inbox",
+      "Añade remitentes o dominios para que sus correos lleguen siempre a tu bandeja de entrada",
     allowed_senders_count: "{{count}} remitente(s) permitido(s)",
     added_on_date: "Añadido el {{date}}",
     enter_domain_placeholder: "Ingresar dominio (ej., empresa.com)",
@@ -4518,11 +5525,16 @@ export const es = {
     import_folder_hint:
       "¿No encuentras algunos correos? Revisa las carpetas de Spam y Enviados - los correos importados pueden estar ordenados allí.",
     n_failed_count: "{{count}} fallidos",
+    import_folders_skipped:
+      "No se pudo crear {{count}} carpeta, así que sus mensajes están en tu bandeja de entrada.",
+    import_folders_skipped_plural:
+      "No se pudieron crear {{count}} carpetas, así que sus mensajes están en tu bandeja de entrada.",
     storage_quota_reached:
       "Tu almacenamiento está lleno. Mejorar tu plan, o quitar algunos correos, hará sitio para más importaciones.",
     no_emails_in_file:
-      "No emails found in the selected file(s). Make sure the file is in a supported format (MBOX, EML, CSV, or PST).",
-    import_failed: "Importación fallida",
+      "No se encontraron correos en los archivos seleccionados. Asegúrate de que cada archivo esté en un formato compatible (MBOX, EML, CSV o PST).",
+    import_failed:
+      "La importación no terminó. Inténtalo de nuevo. Tus datos actuales no han cambiado.",
     failed_to_parse_file:
       "Este archivo no se pudo leer. Otro debería funcionar.",
     plan_storage_value: "{{value}} de almacenamiento",
@@ -4542,6 +5554,12 @@ export const es = {
     vacation_reply_disabled: "Respuesta automática pausada",
     vacation_reply_save: "Guardar",
     vacation_reply_delete: "Eliminar",
+    vacation_reply_delete_title: "¿Eliminar la respuesta de vacaciones?",
+    vacation_reply_delete_message:
+      "Se eliminan tu respuesta de vacaciones y su programación.",
+    delete_forwarding_rule_title: "¿Eliminar la regla de reenvío?",
+    delete_forwarding_rule_message:
+      "El correo que coincide con esta regla deja de reenviarse.",
     vacation_reply_empty: "No hay respuesta automática configurada",
     vacation_reply_saved: "Respuesta automática guardada",
     vacation_reply_deleted: "Respuesta automática eliminada",
@@ -4569,7 +5587,7 @@ export const es = {
       "Haz clic en 'Escanear bandeja' para detectar boletines y correos de marketing",
     emails_count: "{{count}} correos",
     newsletter: "Boletín",
-    social: "Social",
+    social: "Redes sociales",
     transactional: "Transaccional",
     other: "Otro",
     email_signature_title: "Firma de correo",
@@ -4593,7 +5611,10 @@ export const es = {
       "Saludos cordiales,\nTu nombre\ntu@correo.com",
     signature_name_required: "Escribe un nombre para esta firma.",
     signature_content_required: "Añade contenido para esta firma.",
-    signature_image_too_large: "Las imágenes deben pesar menos de 2 MB.",
+    signature_image_too_large:
+      "Esta imagen es demasiado grande para tu firma. Elige una imagen más pequeña.",
+    signature_too_large:
+      "Tu firma es demasiado grande para guardarla. Quita una imagen o acorta el texto.",
     signature_image_invalid:
       "Solo se pueden añadir imágenes PNG, JPEG, GIF y WebP.",
     signature_image_failed:
@@ -4644,6 +5665,9 @@ export const es = {
     spam_filtering_description: "Configura cómo se detecta y gestiona el spam.",
     spam_sensitivity: "Sensibilidad del spam",
     auto_delete_spam_after: "Eliminar spam automáticamente después de",
+    auto_delete_trash_after: "Eliminar la papelera automáticamente después de",
+    auto_delete_trash_description:
+      "Los correos en la Papelera más antiguos que este periodo se eliminan permanentemente.",
     spam_delete_hint:
       "Los correos de spam más antiguos que esto se eliminarán permanentemente",
     save_changes: "Guardar cambios",
@@ -4659,10 +5683,13 @@ export const es = {
     retention_30_days: "30 días",
     retention_60_days: "60 días",
     retention_90_days: "90 días",
+    retention_days_count: "{{ days }} días",
+    retention_180_days: "180 días",
+    retention_365_days: "365 días",
     retention_never: "Nunca (conservar siempre)",
     import_emails_title: "Importar correos",
-    import_add_another: "Add another account",
-    import_choose_source: "Choose a source",
+    import_add_another: "Añadir otra cuenta",
+    import_choose_source: "Elige un origen",
     import_emails_description:
       "Trae tus correos de Gmail, Outlook u otros servicios de correo. Tus correos se cifran en tu dispositivo antes de almacenarse.",
     import_emails_button: "Importar correos",
@@ -4720,7 +5747,7 @@ export const es = {
     removed_forwarding_rules_count: "{{ count }} reglas de reenvío eliminadas",
     customize_toolbar: "Personalizar barra de herramientas",
     customize_toolbar_description:
-      "Choose which actions appear in the bottom toolbar.",
+      "Elige qué acciones aparecen en la barra de herramientas inferior.",
     toolbar_dots_hint:
       "El menú de tres puntos siempre aparece con todas las opciones.",
     toolbar_section_quick_actions: "Acciones rápidas",
@@ -4732,7 +5759,7 @@ export const es = {
     swipe_right: "Deslizar a la derecha",
     swipe_none: "Ninguno",
     swipe_actions_description:
-      "Choose what happens when you swipe left or right on emails.",
+      "Elige qué ocurre al deslizar un correo a la izquierda o a la derecha.",
     badges_title: "Insignias",
     badges_description: "Muestra las insignias que has ganado.",
     badges_description_full:
@@ -4740,19 +5767,24 @@ export const es = {
     no_encryption_key: "Sin clave de cifrado",
     encryption_key_load_failed:
       "No se pudo cargar tu clave de cifrado. Comprueba tu conexión e inténtalo de nuevo.",
-    encryption_banner_title:
-      "Tus claves privadas nunca salen de tu dispositivo",
+    encryption_banner_title: "Solo usted puede desbloquear sus claves privadas",
     encryption_banner_you: "Tú",
     encryption_banner_recipient: "Destinatario",
     storage_format_title: "Formato de almacenamiento",
     storage_format_aster_server: "Servidor Aster",
-    storage_format_decentralized_ipfs: "Descentralizado (IPFS)",
+    storage_format_decentralized_ipfs: "IPFS privado",
     storage_format_ipfs_confirm_title: "Cambiar a almacenamiento IPFS",
     choose_notification_events: "Elige qué eventos activan las notificaciones",
     quiet_hours_schedule: "Horario",
     conversation_grouping: "Agrupar conversaciones",
     conversation_grouping_confirm_title: "¿Estás seguro?",
     show_message_size: "Mostrar tamaño del mensaje",
+    relative_dates: "Fechas relativas",
+    relative_dates_description:
+      "Muestra Hoy y Ayer en los mensajes recientes en lugar de la fecha",
+    info_relative_dates_title: "Fechas relativas",
+    info_relative_dates_description:
+      "Cuando esta opción está activada, los mensajes de hoy y de ayer aparecen como Hoy y Ayer. Desactívala para mostrar siempre la fecha y la hora en que se envió o recibió un mensaje, en la lista de mensajes, en el mensaje y al imprimirlo.",
     show_alias_indicators: "Mostrar indicadores de alias",
     show_alias_indicators_description:
       "Marca los mensajes que llegaron a través de uno de tus alias",
@@ -4774,7 +5806,7 @@ export const es = {
     switch_billing_confirm: "Cambiar ciclo de facturación",
     billing_switched: "Ciclo de facturación cambiado exitosamente",
     failed_switch_billing:
-      "Tu ciclo de facturación no cambió. Otro intento debería resolverlo. Tu ciclo actual sigue activo.",
+      "Tu ciclo de facturación no cambió. Inténtalo de nuevo. Tu ciclo actual sigue activo.",
     current_billing_interval: "Facturado {{interval}}",
     switching_billing: "Cambiando...",
     billing_banner_title: "Desbloquea más con Aster",
@@ -4792,12 +5824,21 @@ export const es = {
     no_active_addons: "Sin complementos de almacenamiento activos.",
     confirm_cancel_addon: "Cancelar complemento de almacenamiento",
     addon_purchase_failed:
-      "No pudimos iniciar la compra del complemento. Otro intento debería resolverlo. Tu facturación no ha cambiado.",
+      "No pudimos iniciar la compra del complemento. Inténtalo de nuevo. Tu facturación no ha cambiado.",
     addon_cancel_failed:
-      "No pudimos cancelar tu complemento de almacenamiento. Otro intento debería resolverlo. Tu complemento sigue activo.",
+      "No pudimos cancelar tu complemento de almacenamiento. Inténtalo de nuevo. El complemento sigue activo.",
     addon_purchase_success: "Redirigiendo al pago...",
     addon_checkout_opened: "Completa tu compra en la nueva pestaña.",
     plan_recommended: "Recomendado",
+    plan_top_tier_title: "Tienes el plan más alto",
+    plan_top_tier_note:
+      "{{plan}} incluye el mayor almacenamiento de todos los planes. Si necesitas más espacio, puedes añadir almacenamiento adicional.",
+    plan_add_storage_link: "Añadir más almacenamiento",
+    plan_current_title: "Tienes {{plan}}",
+    plan_current_note:
+      "Has usado el {{percent}}% de tu almacenamiento, así que te queda espacio de sobra.",
+    plan_storage_tight_note:
+      "Has usado el {{percent}}% de tu almacenamiento. {{plan}} te da más espacio.",
     per_year_short: "/año",
     save_yearly: "Ahorra {{amount}}",
     billing_monthly: "Mensual",
@@ -4806,6 +5847,8 @@ export const es = {
     free_plan_includes: "3 aliases \\u00b7 1 custom domain",
     upgrade_for_more:
       "Mejora para desbloquear más almacenamiento, alias y funciones",
+    free_upgrade_title: "Consigue más con {{plan}}",
+    free_upgrade_price_note: "Los planes empiezan en {{price}} al mes.",
     upgrade_for_more_short: "Desbloquea para más",
     plans_coming_soon:
       "Las suscripciones a planes llegarán pronto. ¡Mantente atento!",
@@ -4816,12 +5859,49 @@ export const es = {
     plan_f_send_limit: "{{value}} correos diarios",
     plan_f_templates: "{{value}} plantillas de correo",
     plan_f_read_receipts: "Acuses de recibo",
+    plan_tip_attachments:
+      "El tamaño total de los archivos adjuntos de un mensaje. Cada archivo puede ocupar hasta 50 MB.",
+    plan_tip_signed_in_accounts:
+      "Cuántas cuentas de Aster puedes tener con sesión iniciada en el mismo dispositivo a la vez. Cada cuenta mantiene su propia suscripción; al cambiar entre ellas se pedirá la contraseña de esa cuenta.",
+    plan_tip_send_limit:
+      "Cuenta las direcciones de fuera de Aster y se reinicia cada día a las 00:00 UTC. Las cuentas nuevas empiezan más abajo y llegan al límite completo durante la primera semana.",
+    plan_tip_ghost_aliases:
+      "Envía correos desde una dirección aleatoria para que los destinatarios nunca puedan rastrearla hasta tu identidad real.",
+    plan_tip_smart_folders:
+      "Organiza los correos en carpetas de forma automática según las reglas que definas.",
+    plan_tip_folder_lock:
+      "Bloquea carpetas sensibles tras una contraseña independiente para añadir una capa extra de seguridad.",
+    plan_tip_sender_pinning:
+      "Vincula un alias a remitentes concretos: solo ellos podrán escribirte a través de él.",
+    plan_tip_alias_rules:
+      "Bloquea o envía a la papelera los correos de cada alias según el remitente o el asunto.",
+    plan_tip_reverse_alias:
+      "Responde a cualquier correo sin revelar tu dirección real.",
+    plan_tip_alias_directory:
+      "El correo enviado a cualquiercosa.clave@astermail.org crea un alias nuevo al instante.",
+    plan_tip_instant_alias_delete:
+      "Elimina alias y caduca alias fantasma de inmediato: Supernova se salta la espera de eliminación de 30 días.",
+    plan_tip_zero_knowledge:
+      "No podemos leer su correo almacenado, ni siquiera bajo obligación legal. Sus claves se cifran con su contraseña antes de almacenarse, así que nunca las vemos sin cifrar.",
+    plan_tip_tracker_protection:
+      "Los píxeles de rastreo invisibles se eliminan antes de que los correos lleguen a tu bandeja de entrada.",
+    plan_tip_key_rotation:
+      "Rota tus claves de cifrado automáticamente a intervalos regulares para una seguridad mayor.",
+    plan_tip_imap_smtp:
+      "Conecta Apple Mail, Thunderbird, Outlook o cualquier cliente IMAP. Funciona con la app complementaria Aster Bridge en tu dispositivo.",
+    plan_tip_external_accounts:
+      "Vincula y sincroniza correos de proveedores externos como Gmail u Outlook directamente en Aster por IMAP o POP3.",
+    plan_tip_carddav:
+      "Sincroniza tus contactos con Contactos en macOS e iOS, DAVx5 en Android o cualquier cliente CardDAV. Funciona con la app complementaria Aster Bridge en tu dispositivo.",
+    plan_tip_alias_avatars:
+      "Pon fotos de perfil únicas para cada alias y dirección de dominio personalizado",
     plan_f_custom_themes: "Temas personalizados",
     plan_f_smart_folders: "Carpetas inteligentes",
     plan_f_imap_smtp: "Acceso IMAP y SMTP",
-    plan_f_imap_smtp_bridge: "Mail-app access (IMAP & SMTP) via Aster Bridge",
+    plan_f_imap_smtp_bridge:
+      "Acceso desde tu app de correo (IMAP y SMTP) mediante Aster Bridge",
     plan_f_bridge_hint:
-      "Runs through the Aster Bridge companion app on your device.",
+      "Funciona a través de la app complementaria Aster Bridge en tu dispositivo.",
     plan_f_external_accounts: "Cuentas externas (IMAP & POP3)",
     plan_f_signed_in_accounts: "Cuentas conectadas",
     plan_f_caldav: "Sincronización CalDAV",
@@ -4860,13 +5940,48 @@ export const es = {
     storage_warning_title: "Te queda poco almacenamiento.",
     storage_warning_description:
       "Has usado más del 90% de tu almacenamiento. Borrar correos, o mejorar tu plan, mantendrá el correo nuevo fluyendo.",
+    storage_overview_description:
+      "Consulta qué ocupa tu espacio y elimina lo que no necesites.",
+    storage_promo_title: "Ahorra en almacenamiento adicional",
+    storage_promo_body:
+      "Obtén un {{percent}} % de descuento en tus primeros {{months}} meses de almacenamiento adicional.",
+    storage_promo_body_singular:
+      "Obtén un {{percent}} % de descuento en tu primer mes de almacenamiento adicional.",
+    storage_promo_note:
+      "El descuento se aplica solo a tu primer complemento de almacenamiento.",
+    storage_select_option_first:
+      "Para comprar más almacenamiento, selecciona primero una opción.",
+    storage_promo_cta: "Ver complementos",
+    storage_used_of_total: "{{used}} de {{total}} en uso",
+    storage_free_space:
+      "{{size}} libres, {{percent}} de tu almacenamiento en uso",
+    storage_breakdown_title: "Qué ocupa tu almacenamiento",
+    storage_breakdown_empty: "Todavía no hay nada en tu almacenamiento.",
+    storage_col_category: "Categoría",
+    storage_col_items: "Elementos",
+    storage_items_count: "{{count}} elementos",
+    storage_items_count_one: "{{count}} elemento",
+    storage_col_size: "Tamaño",
+    storage_col_share: "Porcentaje",
+    storage_capacity_title: "Capacidad",
+    storage_included_with_plan: "Incluido en tu plan",
+    storage_from_addons: "De complementos",
+    storage_family_allocation: "Asignación familiar",
+    storage_total_capacity: "Capacidad total",
+    storage_available: "Disponible",
+    storage_cleanup_done: "Almacenamiento liberado",
+    storage_cleanup_failed: "No se pudo liberar espacio. Inténtalo de nuevo.",
+    storage_cleanup_confirm:
+      "Esto elimina permanentemente {{count}} elementos y libera {{size}}. No se puede deshacer.",
     storage_locked_title: "Tu almacenamiento está lleno.",
     storage_locked_description:
       "El correo nuevo está en pausa hasta que liberes espacio. Borrar algunos correos, o mejorar tu plan, permitirá que vuelva a fluir. El correo existente está a salvo.",
     storage_locked_bounce_warning:
       "El correo entrante se rechazará en {{days}} días si no liberas espacio. Borrar correos o mejorar el plan pronto los mantendrá llegando.",
+    storage_full:
+      "Tu almacenamiento está lleno. Para hacer hueco, mejora tu plan o quita algunos correos.",
     plan_limit_reached:
-      "Has llegado al límite de tu plan actual. Mejorar el plan, o quitar elementos para hacer hueco, te permitirá seguir.",
+      "Has alcanzado el límite de tu plan actual. Mejora tu plan o elimina algunos elementos para hacer espacio.",
     upgrade_to_unlock: "Mejora para desbloquear más",
     usage_overview: "Resumen de uso",
     usage_aliases: "Alias de correo",
@@ -4875,6 +5990,10 @@ export const es = {
     usage_signatures: "Firmas",
     usage_ghost_aliases: "Alias fantasma este mes",
     usage_storage: "Almacenamiento",
+    usage_linked_accounts: "Cuentas con sesión iniciada",
+    upgrade_linked_accounts_note:
+      "Todas tus cuentas están a salvo. Este es el número de cuentas que este dispositivo mantiene con la sesión iniciada al mismo tiempo.",
+    upgrade_linked_accounts_link: "Descubre cómo funcionan varias cuentas",
     usage_of: "{{current}} de {{limit}}",
     usage_unlimited: "Ilimitado",
     usage_at_limit: "En el límite",
@@ -4884,7 +6003,7 @@ export const es = {
     apply_promo: "Aplicar",
     promo_applied: "¡Código promocional aplicado exitosamente!",
     promo_invalid:
-      "Este código promocional no coincide con ninguno que tengamos. Revisar la escritura suele resolverlo.",
+      "Este código promocional no es válido. Comprueba el código e inténtalo de nuevo.",
     promo_expired: "Este código promocional ya no está activo.",
     promo_already_used: "Ya has usado este código promocional en tu cuenta.",
     promo_discount_percent: "{{value}}% de descuento",
@@ -4893,11 +6012,32 @@ export const es = {
     promo_applying: "Aplicando...",
     promo_apply: "Aplicar",
     checkout_title: "Completa tu compra",
+    checkout_term_title: "Duración de la suscripción",
+    checkout_term_save: "Ahorra {{amount}}",
+    checkout_term_per_month: "{{amount}}/mes",
+    checkout_term_crypto_only: "Solo cripto",
+    billing_onion_card_notice:
+      "Para pagar con tarjeta, inicia sesión en app.astermail.org. En esta dirección se paga con criptomonedas.",
+    checkout_card_term_unavailable:
+      "El plazo de 2 años está disponible si pagas con cripto.",
+    checkout_term_total: "{{amount}} en total",
+    checkout_method_description: "Elige cómo quieres pagar.",
+    checkout_method_card_note:
+      "Se renueva automáticamente hasta que lo canceles.",
+    checkout_method_crypto_note:
+      "Paga una vez por la duración que elijas. Nada se renueva automáticamente.",
+    checkout_method_title: "Método de pago",
     checkout_description: "Ingresa tus datos de pago para suscribirte.",
+    autorenew_notice:
+      "Tu suscripción se renueva automáticamente por {amount} hasta que la canceles. Para evitar el próximo cobro, cancélala en Ajustes antes de la fecha de renovación.",
+    autorenew_notice_short:
+      "Tu plan se renueva automáticamente cuando pagas con tarjeta. Para evitar el próximo cobro, cancélalo en Ajustes antes de la fecha de renovación.",
     payment_complete: "Pago completado",
     payment_success: "¡Pago exitoso!",
     payment_failed:
-      "No pudimos cobrar tu método de pago. Otro intento, o una actualización en Ajustes, Facturación, lo resolverá.",
+      "No pudimos realizar el cobro con tu método de pago. Inténtalo de nuevo o actualiza tu método de pago en Ajustes > Facturación.",
+    payment_activation_pending:
+      "Tu pago se realizó, pero tu plan aún no está activo. Actualiza la página en unos momentos. Si sigue inactivo, ponte en contacto con el equipo de soporte.",
     payment_details: "Detalles de pago",
     processing_payment: "Procesando pago...",
     subscribe_now: "Suscribirse ahora",
@@ -4907,6 +6047,9 @@ export const es = {
     stripe_not_configured: "El sistema de pago no está configurado.",
     try_again: "Intentar de nuevo",
     view_all_features: "Ver todas las funciones",
+    plan_everything_in: "Todo lo de {{plan}} y, además",
+    compare_features_show: "Comparar funciones por plan",
+    compare_features_hide: "Ocultar comparación",
     compare_plans: "Comparar todos los planes",
     feature: "Característica",
     manage_payment_methods: "Gestionar métodos de pago",
@@ -4917,8 +6060,16 @@ export const es = {
     card_expires: "Vence",
     adding_card: "Añadiendo...",
     card_added: "Método de pago añadido",
+    payment_retry_succeeded:
+      "Tu pago se realizó correctamente. Tu plan sigue activo.",
+    payment_retry_failed:
+      "Tu banco rechazó la tarjeta. Prueba con otro método de pago.",
     card_removed: "Método de pago eliminado",
     default_updated: "Método de pago predeterminado actualizado",
+    payment_settled:
+      "Método de pago predeterminado actualizado. Tu saldo pendiente está pagado.",
+    payment_still_due:
+      "Tu tarjeta está guardada, pero tu saldo pendiente no se ha pagado. Prueba con otra tarjeta para mantener tu plan.",
     no_payment_methods: "No hay métodos de pago guardados",
     save_card: "Guardar tarjeta",
     cancel_reason_title: "Antes de irte",
@@ -4933,7 +6084,30 @@ export const es = {
     cancel_reason_just_testing: "Solo lo estaba probando",
     cancel_reason_other: "Otra cosa",
     cancel_reason_text_placeholder: "¿Quieres añadir algo? (opcional)",
-    cancel_reason_skip: "Omitir",
+    cancel_reason_placeholder_too_expensive:
+      "¿Qué precio te habría parecido justo?",
+    cancel_reason_placeholder_not_using:
+      "¿Qué habría hecho que formara parte de tu rutina?",
+    cancel_reason_placeholder_missing_feature: "¿Qué función necesitas?",
+    cancel_reason_placeholder_switched_provider:
+      "¿A qué servicio te has pasado y qué te convenció?",
+    cancel_reason_placeholder_bugs: "¿Qué problema te ha afectado más?",
+    cancel_reason_placeholder_privacy_trust: "¿Qué te generó esa preocupación?",
+    cancel_reason_placeholder_just_testing: "¿Qué querías averiguar?",
+    cancel_reason_placeholder_other: "¿Qué te ha llevado a cancelar?",
+    cancel_reason_detail_required:
+      "Escribe una respuesta breve para que podamos actuar.",
+    cancel_not_cancellable:
+      "Esta suscripción no se puede cancelar en la app. Contacta con el equipo de soporte para cancelarla.",
+    cancel_failed:
+      "Tu plan no se ha cancelado. Tu facturación no ha cambiado, así que puedes volver a intentarlo.",
+    cancel_early_title: "¿Algo salió mal?",
+    cancel_early_description:
+      "Te suscribiste hace pocos días, así que puede haber un problema detrás.",
+    cancel_early_body:
+      "Al cancelar, tu plan sigue activo hasta el final del periodo de facturación y puedes continuar ahora. Si algo no funcionó como esperabas, el centro de ayuda explica las causas más comunes y cómo contactar con el equipo.",
+    cancel_early_help: "Abrir el centro de ayuda",
+    cancel_early_continue: "Continuar con la cancelación",
     cancel_reason_continue: "Continuar",
     cancel_impact_title: "Qué cambia si cancelas",
     cancel_impact_description:
@@ -4960,6 +6134,15 @@ export const es = {
     cancel_impact_reactivate_hint:
       "No se elimina nada. Al volver a suscribirte se restaura lo desactivado, dentro de los límites de tu nuevo plan.",
     cancel_impact_continue: "Continuar con la cancelación",
+    cancel_offer_title: "Un plan más pequeño",
+    cancel_offer_description:
+      "Puedes cambiar a un plan más barato y conservar tu cuenta.",
+    cancel_offer_body:
+      "{{plan}} cuesta {{price}} al mes. Tu correo, tus alias y tus ajustes se mantienen.",
+    cancel_offer_switch: "Cambiar a {{plan}}",
+    cancel_offer_hint:
+      "Todo lo que supere los límites del plan más pequeño se desactiva igual que al cancelar.",
+    cancel_offer_continue: "Continuar con la cancelación",
     cancel_final_title: "Confirmar cancelación",
     cancel_final_description:
       "Tu plan {{plan}} se cancelará y finaliza el {{date}}. Mantienes el acceso completo hasta entonces.",
@@ -4978,7 +6161,7 @@ export const es = {
     use_credits_for_renewals: "Usar créditos para renovaciones",
     credits_toggle_updated: "Configuración de créditos actualizada",
     credits_toggle_failed:
-      "Este ajuste no se guardó. Otro intento debería resolverlo. El valor anterior sigue activo.",
+      "Este ajuste no se guardó. Inténtalo de nuevo. El valor anterior sigue activo.",
     credits_earn_first: "Gana créditos para habilitar esto",
     recent_transactions: "Transacciones recientes",
     view_all_transactions: "Ver todo",
@@ -4991,20 +6174,139 @@ export const es = {
     credit_type_renewal_deduction: "Renovación",
     credit_type_reversal: "Reversión",
     credit_type_purchase: "Compra",
-    top_up_credits: "Top Up",
+    top_up_credits: "Recargar",
+    checkout_abandon_confirm: "Cancelar el pago",
+    checkout_abandon_keep: "Seguir pagando",
+    checkout_abandon_message:
+      "Tu factura se cancela y no se cobra nada. Puedes empezar de nuevo cuando quieras.",
+    checkout_abandon_title: "¿Cancelar este pago?",
+    checkout_add_promo: "Añadir un código promocional",
+    checkout_amount_due: "Importe a pagar",
+    checkout_offer_switch_term:
+      "Cambia a {{term}} para obtener un {{percent}} % de descuento",
+    checkout_offer_switch_crypto:
+      "Paga con cripto para obtener un {{percent}} % de descuento",
+    checkout_offer_switch_card:
+      "Paga con tarjeta para obtener un {{percent}} % de descuento",
+    checkout_offer_renewal:
+      "{{offer_price}} al mes durante {{months}} meses y después {{price}} al mes",
+    checkout_card_details: "Datos de la tarjeta",
+    checkout_full_features_title: "Funciones de {{plan}}",
+    checkout_leave_warning:
+      "Tienes un pago en curso. Si sales ahora, no se completa.",
+    checkout_pay_amount: "Pagar {{amount}}",
+    checkout_review_title: "Revisar y pagar",
+    checkout_what_you_get: "Qué incluye",
+    credits_method_card_note:
+      "Los créditos se añaden en cuanto se aprueba el pago.",
+    credits_method_crypto_note:
+      "Paga una vez en cripto. Los créditos se añaden cuando el pago se confirma en la cadena.",
+    offer_modal_action: "Aprovechar esta oferta",
+    offer_modal_badge: "{{percent}} % de descuento",
+    offer_modal_dismiss: "Ahora no",
+    offer_modal_fine_print:
+      "El código {{code}} se aplica al pagar. Un uso por cuenta.",
+    offer_modal_price_note: "El descuento se aplica al pagar.",
+    offer_modal_subtitle: "Pasa a {{plan}} a un precio más bajo.",
+    offer_modal_title: "Ahorra un {{percent}} % en tu plan",
+    offer_upgrade_description: "Elige un plan para usar tu descuento.",
+    offer_upgrade_title: "Tu oferta te está esperando",
+    plan_cat_advanced_aliases: "Alias avanzados",
+    plan_cat_contacts: "Contactos",
+    plan_cat_general: "General",
+    plan_cat_mail: "Correo",
+    plan_cat_security: "Seguridad",
+    plan_cat_subscriptions: "Suscripciones",
+    plan_cat_support: "Soporte",
+    plan_cat_vanguard: "Vanguard",
+    plan_f_alias_bulk: "Acciones masivas con alias",
+    plan_f_alias_csv: "Exportación de alias en CSV",
+    plan_f_alias_import: "Importación de alias",
+    plan_f_alias_no_cooldown: "Sin espera entre alias",
+    plan_f_alias_pin: "Alias fijados",
+    plan_f_alias_transfer: "Transferencia de alias",
+    plan_f_allowlist: "Lista de remitentes permitidos",
+    plan_f_biometric: "Desbloqueo biométrico",
+    plan_f_blocked_senders: "Remitentes bloqueados",
+    plan_f_contact_import: "Importación de contactos",
+    plan_f_contact_sync: "Sincronización de contactos (CardDAV)",
+    plan_f_contacts: "Contactos cifrados",
+    plan_f_cross_platform: "Apps para web, escritorio, Android e iOS",
+    plan_f_custom_categories:
+      "Categorías personalizadas de la bandeja de entrada",
+    plan_f_email_export: "Exportación de correo",
+    plan_f_email_import: "Importación de correo",
+    plan_f_expiration: "Correos que caducan",
+    plan_f_folder_auto_clean: "Limpieza automática de carpetas",
+    plan_f_folders: "Carpetas y etiquetas",
+    plan_f_sort_folders: "Ordenar carpetas de la A a la Z",
+    plan_f_key_management: "Gestión de claves",
+    plan_f_link_warnings: "Avisos de enlaces sospechosos",
+    plan_f_one_click_unsub: "Baja con un clic",
+    plan_f_password_emails: "Correos protegidos con contraseña",
+    plan_f_pgp: "Cifrado PGP",
+    plan_f_phishing: "Protección contra phishing",
+    plan_f_quick_alias_reply: "Respuesta rápida desde alias",
+    plan_f_scheduled_send: "Envío programado",
+    plan_f_snooze: "Posponer correos",
+    plan_f_sub_categories: "Categorías de suscripciones",
+    plan_f_sub_scanner: "Escáner de suscripciones",
+    plan_f_vanguard_app_lock: "Bloqueo de la app",
+    plan_f_vanguard_lockdown_mode: "Modo de aislamiento",
+    plan_f_wkd: "Directorio de claves web",
+    plan_tip_alias_bulk: "Activa, desactiva o elimina muchos alias a la vez.",
+    plan_tip_alias_csv:
+      "Exporta todos tus alias, con sus reglas y su estado, en un archivo CSV.",
+    plan_tip_alias_import:
+      "Trae tus alias desde otro proveedor en un solo paso.",
+    plan_tip_alias_no_cooldown:
+      "Crea alias uno tras otro sin esperar entre ellos.",
+    plan_tip_alias_pin:
+      "Mantén los alias que más usas al principio de la lista.",
+    plan_tip_alias_transfer:
+      "Mueve un alias a otra cuenta de Aster que sea tuya.",
+    plan_tip_allowlist:
+      "Deja pasar a remitentes concretos aunque un filtro los detendría.",
+    plan_tip_contact_sync:
+      "Sincroniza tus contactos con Contactos en macOS y iOS, DAVx5 en Android o cualquier cliente CardDAV. Funciona con la app complementaria Aster Bridge en tu dispositivo.",
+    plan_tip_custom_categories:
+      "Crea tus propias pestañas en la bandeja de entrada y decide qué llega a cada una.",
+    plan_tip_email_export:
+      "Descarga tu correo en un archivo estándar que puedes abrir en cualquier sitio.",
+    plan_tip_email_import:
+      "Trae tu correo desde otro proveedor por IMAP, con las carpetas intactas.",
+    plan_tip_expiration:
+      "Fija una fecha a partir de la cual el correo se elimina de la vista del destinatario.",
+    plan_tip_extra_alias_domains:
+      "Crea alias en más dominios de Aster, no solo en astermail.org.",
+    plan_tip_folder_auto_clean:
+      "Elimina lo más antiguo que la edad que fijes, carpeta por carpeta.",
+    plan_tip_sub_scanner:
+      "Encuentra cada boletín y servicio al que te suscribiste y date de baja desde un solo lugar.",
+    plan_tip_vanguard_app_lock:
+      "Pide el código del dispositivo o la biometría cada vez que abres Aster.",
+    plan_tip_vanguard_lockdown_mode:
+      "Bloquea el contenido remoto, los enlaces externos y los remitentes nuevos hasta que lo desactives.",
+    plan_tip_wkd:
+      "Publica tu clave pública en tu propio dominio para que cualquiera la encuentre y te escriba cifrado.",
+    stripe_secure_short: "Protegido por Stripe",
+    upgrade_external_accounts_note:
+      "Mejora tu plan para conectar más cuentas externas.",
+    usage_external_accounts: "Cuentas externas",
     top_up_credits_description:
-      "Add credits to your account. Credits apply automatically toward plan renewals.",
-    credit_packages_loading: "Loading packages...",
-    credit_package_bonus: "+{{ bonus }} bonus",
-    credit_package_total: "{{ total }} total",
-    buy_credits: "Buy Credits",
-    buy_credits_crypto: "Pay with Crypto",
-    buying_credits: "Redirecting...",
-    credit_purchase_error: "Could not start checkout. Please try again.",
-    credit_pay_card: "Card",
-    credit_pay_crypto: "Crypto",
-    credits_added_to_account: "Credits have been added to your account.",
-    in_credits: "in credits",
+      "Añade saldo a tu cuenta. El saldo se aplica automáticamente a las renovaciones del plan.",
+    credit_packages_loading: "Cargando paquetes...",
+    credit_packages_failed: "No se cargaron los paquetes de créditos.",
+    credit_package_bonus: "+{{ bonus }} de bonificación",
+    credit_package_total: "{{ total }} en total",
+    buy_credits: "Comprar saldo",
+    buy_credits_crypto: "Pagar con criptomonedas",
+    buying_credits: "Redirigiendo...",
+    credit_purchase_error: "No se pudo iniciar el pago. Inténtalo de nuevo.",
+    credit_pay_card: "Tarjeta",
+    credit_pay_crypto: "Criptomonedas",
+    credits_added_to_account: "El saldo se ha añadido a tu cuenta.",
+    in_credits: "de saldo",
     credit_transactions: "Transacciones de créditos",
     referral_program: "Programa de referidos",
     your_referral_link: "Tu enlace de referido",
@@ -5019,11 +6321,11 @@ export const es = {
     referral_loading: "Cargando información de referidos...",
     referral_history: "Historial de referidos",
     no_referrals_yet:
-      "Aún no tienes referidos. ¡Comparte tu enlace para comenzar!",
+      "Aún no hay invitaciones. Comparte tu enlace para empezar.",
     referral_status_pending: "Pendientes",
     referral_status_completed: "Completados",
     referral_reward_info:
-      "Tu amigo obtiene un descuento en su primer pago y tú ganas con cada pago que haga.",
+      "Tu amigo y tú recibís {{ amount }} de almacenamiento adicional cada uno. El almacenamiento llega cuando lleva un par de días usando su cuenta, y se mantiene mientras siga usando Aster Mail.",
     referral_commission_info:
       "Ganas el {{ percent }}% de cada pago que hagan tus referidos, mientras sigan suscritos.",
     referral_max_credits: "Ganancias máximas: {{ value }} al año",
@@ -5080,7 +6382,7 @@ export const es = {
       "Aún no tienes ningún pago pendiente que solicitar.",
     affiliate_payout_request_failed:
       "No se pudo crear la solicitud de pago. Inténtalo de nuevo.",
-    affiliate_email_link_button: "Enlace por Correo",
+    affiliate_email_link_button: "Enlace por correo",
     affiliate_payout_amount_label: "Importe a solicitar",
     affiliate_payout_amount_max: "Máx.",
     affiliate_payout_amount_invalid:
@@ -5109,7 +6411,7 @@ export const es = {
     save_address: "Guardar dirección",
     address_saved: "Dirección de facturación guardada",
     address_save_failed:
-      "Tu dirección de facturación no se guardó. Otro intento debería resolverlo. La dirección anterior sigue ahí.",
+      "Tu dirección de facturación no se guardó. Inténtalo de nuevo. La dirección anterior sigue ahí.",
     saving: "Guardando...",
     redeem: "Canjear",
     redeeming: "Canjeando...",
@@ -5122,7 +6424,7 @@ export const es = {
     export_processing: "La exportación se está preparando...",
     download_export: "Descargar",
     export_failed:
-      "No pudimos iniciar tu exportación. Otro intento debería resolverlo. Tu correo no ha cambiado.",
+      "No pudimos iniciar la exportación. Inténtalo de nuevo. Tu correo no ha cambiado.",
     biennial: "2 años",
     all_star_features: "Todo en Star, más:",
     all_nova_features: "Todo en Nova, más:",
@@ -5138,7 +6440,7 @@ export const es = {
     delete_template_title: "Eliminar plantilla",
     password_label: "Contraseña",
     two_factor_code_label: "Código de dos factores",
-    type_delete_to_confirm: "Escribe ELIMINAR para confirmar",
+    type_delete_to_confirm: "Escribe {word} para confirmar",
     deleting_label: "Eliminando...",
     delete_account_button: "Eliminar cuenta",
     alias_is_available: "Este alias está disponible.",
@@ -5152,7 +6454,7 @@ export const es = {
     vacation_reply_setup: "Configurar respuesta de vacaciones",
     show_badges_in_signature: "Mostrar insignias en correos",
     import_how_it_works: "Cómo funciona",
-    import_oauth_title: "Conexión OAuth",
+    import_oauth_title: "Conectar una cuenta",
     import_manual_title: "Importación manual",
     import_oauth_button: "OAuth",
     import_manual_button: "Manual",
@@ -5168,9 +6470,13 @@ export const es = {
     connected_accounts_disconnect: "Desconectar",
     connected_accounts_error:
       "Esta cuenta vinculada está teniendo problemas para sincronizarse, y reintentaremos automáticamente.",
+    connected_accounts_app_password_needed:
+      "No se pudo iniciar sesión. Esta cuenta necesita una contraseña de aplicación, no tu contraseña habitual.",
+    connected_accounts_password_reauth_needed:
+      "No se pudo iniciar sesión. Edita la cuenta para actualizar la contraseña.",
     connected_accounts_reauth_needed:
-      "Re-authorization required - click Reconnect to fix.",
-    connected_accounts_reconnect: "Reconnect",
+      "Hay que volver a autorizar la cuenta. Toca Volver a conectar para solucionarlo.",
+    connected_accounts_reconnect: "Volver a conectar",
     connected_accounts_enabled: "Habilitado",
     connected_accounts_disabled: "Deshabilitado",
     oauth_import_success: "Cuenta de {{ provider }} conectada exitosamente",
@@ -5192,6 +6498,8 @@ export const es = {
       "¿No puedes escanear? Ingresa este código manualmente:",
     save_backup_codes_description:
       "Guarda estos códigos de respaldo en un lugar seguro. Puedes usarlos para acceder a tu cuenta si pierdes tu dispositivo de autenticación.",
+    two_factor_other_devices_signed_out:
+      "Aster cerró la sesión en tus otros dispositivos. Para volver a usarlos, inicia sesión e introduce un código de tu app de autenticación.",
     copy_all_codes: "Copiar todos los códigos",
     backup_codes: "Códigos de respaldo",
     regenerate_backup_codes: "Regenerar códigos de respaldo",
@@ -5208,9 +6516,9 @@ export const es = {
     encryption_keys_updated: "Tus claves de cifrado se han actualizado",
     current_key_age: "Antigüedad de la clave actual",
     rotate_keys_description_manual:
-      "Enter your password to rotate your encryption keys. Old emails will remain readable.",
+      "Escribe tu contraseña para rotar las claves de cifrado. Los correos antiguos seguirán siendo legibles.",
     rotate_keys_description_required:
-      "Your encryption keys are due for rotation. Enter your password to generate new keys and maintain forward secrecy.",
+      "Toca rotar tus claves de cifrado. Escribe tu contraseña para generar claves nuevas y mantener la confidencialidad persistente.",
     rotating: "Rotando...",
     rotate_keys: "Rotar claves",
     key_rotation_data_loss_warning:
@@ -5220,6 +6528,7 @@ export const es = {
     opened_in_browser:
       "{{ count }} archivados - puede que se requiera confirmación manual",
     could_not_unsubscribe: "{{ count }} no se pudieron cancelar",
+    some_messages_not_archived: "Algunos mensajes no se archivaron",
     unsubscribing: "Cancelando suscripción...",
     scanning: "Escaneando...",
     all_clear: "Todo en orden",
@@ -5227,9 +6536,9 @@ export const es = {
     no_encryption_key_description:
       "Tu clave de cifrado se generará automáticamente",
     encryption_banner_subtitle:
-      "Los correos se cifran antes de salir de tu dispositivo. Aster solo almacena texto cifrado ilegible, nunca podemos ver tu correo.",
+      "Aster almacena su correo cifrado, así que no podemos leerlo. El correo entre usuarios de Aster también se cifra en su dispositivo antes de enviarse.",
     storage_format_description:
-      "Habilita el almacenamiento descentralizado para guardar tus archivos y contenido estático en el Sistema de Archivos Interplanetario (IPFS).",
+      "Elige dónde se guardan tus archivos cifrados y tu contenido estático.",
     storage_format_ipfs_confirm_description:
       "¿Estás seguro de que deseas cambiar a IPFS cifrado de extremo a extremo?",
     quiet_hours_schedule_description:
@@ -5265,8 +6574,45 @@ export const es = {
       "No se pudo cargar el desglose del precio. Intentalo de nuevo.",
     plan_change_confirm_button: "Confirmar y pagar",
     plan_change_confirming: "Procesando...",
+    promo_error_invalid:
+      "Ese código promocional no es válido. Revisa el código e inténtalo de nuevo.",
+    promo_error_expired:
+      "Ese código promocional caducó o ya no está disponible.",
+    promo_error_not_for_plan:
+      "Ese código promocional no se aplica a este plan.",
+    promo_error_not_for_plan_change:
+      "Ese código promocional no se puede usar al cambiar de plan.",
+    promo_error_discount_active:
+      "Tu suscripción ya tiene un descuento, así que no puedes agregar otro código promocional.",
+    promo_error_same_plan:
+      "Ya tienes este plan. Los códigos promocionales se aplican cuando cambias a otro plan.",
+    promo_error_not_upgrade:
+      "Los códigos promocionales se aplican cuando mejoras a un plan superior.",
+    promo_error_card_only:
+      "Ese código promocional solo funciona con pagos con tarjeta.",
+    promo_error_with_credits:
+      "No puedes usar un código promocional y saldo de la cuenta en el mismo pago.",
+    promo_error_not_for_addon:
+      "Los códigos promocionales no se pueden usar en complementos.",
+    promo_error_generic:
+      "No se pudo comprobar tu código promocional. Inténtalo de nuevo en un momento.",
+    plan_change_discount_amount: "{{amount}} de descuento",
+    plan_change_discount_once: "{{discount}} en este pago",
+    plan_change_discount_forever: "{{discount}} en todos los pagos",
+    plan_change_discount_months: "{{discount}} durante {{count}} meses",
+    plan_change_discount_months_one: "{{discount}} durante {{count}} mes",
+    plan_change_discount_months_other: "{{discount}} durante {{count}} meses",
+    plan_change_discount_label: "Código promocional {{code}}",
+    plan_change_price_before_discount: "Precio sin descuento",
+    plan_change_promo_applied:
+      "{{code}} está aplicado. Hoy ahorras {{amount}}.",
+    plan_change_promo_remove: "Quitar",
     billing_banner_subtitle:
       "Mejora tu plan o compra almacenamiento adicional para mantener tu privacidad protegida.",
+    storage_addons_monthly_note:
+      "Los complementos se renuevan cada mes y se cobran aparte de tu plan. Si pagas con cripto, tú eliges cuánto tiempo pagar por adelantado.",
+    bill_addon_summary: "{size} de almacenamiento adicional",
+    bill_addon_pick_size: "Elige cuánto quieres añadir",
     storage_addons_description:
       "¿Necesitas más espacio? Compra almacenamiento cifrado adicional para tu cuenta.",
     storage_purchase_coming_soon:
@@ -5281,13 +6627,13 @@ export const es = {
     cancel_confirm_description:
       "¿Estás seguro de que deseas cancelar tu suscripción? Tu plan permanecerá activo hasta el final del período de facturación actual.",
     cancel_password_error:
-      "No pudimos cancelar tu plan. Revisar tu contraseña y otro intento suele resolverlo. Tu plan y tu facturación no han cambiado.",
+      "No pudimos cancelar tu plan. Comprueba tu contraseña e inténtalo de nuevo. Tu plan y tu facturación no han cambiado.",
     credits_description:
       "Gana créditos a través de referidos, códigos promocionales y tarjetas de regalo. Los créditos se pueden aplicar a las renovaciones de tu plan.",
     use_credits_for_renewals_description:
       "Aplica automáticamente tu saldo de créditos a las renovaciones de planes y complementos. Si tu saldo no cubre el monto total, el resto se cobra a tu método de pago.",
     referral_program_description:
-      "Invita amigos a Aster y gana crédito por cada pago que hagan.",
+      "Invita a un amigo a Aster Mail. Ambos recibís {{ amount }} de almacenamiento adicional cuando empiece a usar su cuenta.",
     referral_not_eligible_description: "Inténtalo de nuevo más tarde.",
     billing_address_description:
       "Añade tus datos de facturación para que aparezcan en las facturas.",
@@ -5347,6 +6693,8 @@ export const es = {
     domain_purchase_empty_title: "Escribe algo para empezar",
     domain_purchase_search_failed:
       "La búsqueda no se completó. Inténtalo de nuevo.",
+    domain_purchase_search_rate_limited:
+      "Demasiadas búsquedas. Inténtalo de nuevo en un minuto.",
     domain_purchase_retry: "Reintentar",
     domain_purchase_step_choose: "Elige un nombre",
     domain_purchase_step_checkout: "Pago",
@@ -5355,7 +6703,7 @@ export const es = {
     domain_purchase_intro_sub:
       "Responde dos preguntas rápidas y te mostraremos qué está disponible.",
     domain_purchase_intro_name_q:
-      "¿Qué nombre quieres? Tu negocio, tu proyecto o simplemente tú.",
+      "¿Qué nombre quieres? Tu negocio, tu proyecto o tu propio nombre.",
     domain_purchase_intro_name_ph:
       "Escribe un nombre, como cafedelpuerto o alexcarter",
     domain_purchase_intro_tld_q: "¿Alguna terminación favorita?",
@@ -5390,6 +6738,22 @@ export const es = {
       "Puedes recargar desde Facturación, es el mismo saldo que se usa para el crédito de la cuenta.",
     domain_purchase_included_heading: "Todo lo incluido con tu dominio",
     domain_purchase_renew: "Renovar",
+    domain_purchase_manage: "Gestionar",
+    domain_purchase_manage_description:
+      "Revisa este registro y renuévalo antes de que caduque.",
+    domain_purchase_manage_status: "Estado",
+    domain_purchase_manage_status_active: "Activo",
+    domain_purchase_manage_status_expiring: "Caduca pronto",
+    domain_purchase_manage_registered: "Registrado",
+    domain_purchase_manage_expires: "Caduca",
+    domain_purchase_manage_term: "Periodo",
+    domain_purchase_manage_paid: "Pagado",
+    domain_purchase_manage_auto_renew_note:
+      "Este dominio no se renueva automáticamente. Para conservarlo, renuévalo antes de la fecha de caducidad.",
+    domain_purchase_manage_dns: "Abrir configuración del dominio",
+    domain_purchase_manage_support_note:
+      "Para transferir este dominio a otro registrador o preguntar por un reembolso, contacta con soporte.",
+    domain_purchase_manage_support_subject: "Ayuda con {{domain}}",
     domain_purchase_filter_all: "Todos",
     domain_purchase_filter_available: "Disponibles",
     domain_purchase_filter_taken: "Ocupados",
@@ -5404,7 +6768,7 @@ export const es = {
     domain_purchase_discount_tooltip:
       "Precio de oferta del primer año de nuestro registrador. Después se renueva a {{price}} al año.",
     domain_purchase_purchased_info:
-      "Estos son los dominios que compraste a través de Aster. Los registramos por ti con privacidad WHOIS, configuramos todo el DNS de correo automáticamente y puedes crear direcciones en ellos de inmediato. Cada uno se renueva solo cuando tú lo apruebas. La ICANN bloquea los registros nuevos durante sus primeros 60 días y, después, nuestro equipo de soporte gestiona el traslado a otro registrador.",
+      "Estos son los dominios que compraste a través de Aster. Los registramos por ti con privacidad WHOIS, configuramos todo el DNS de correo automáticamente y puedes crear direcciones en ellos de inmediato. Cada uno se renueva solo cuando tú lo apruebas. Si más adelante quieres trasladar un dominio a otro registrador, nuestro equipo de soporte gestiona la transferencia. La ICANN bloquea los registros nuevos durante sus primeros 60 días.",
     domain_purchase_dont_have:
       "¿No tienes un dominio? Haz clic aquí para comprar uno.",
     domain_purchase_sort_price: "Menor precio",
@@ -5416,12 +6780,20 @@ export const es = {
     domain_purchase_purchased_expires: "Caduca el {{date}}",
     domain_purchase_purchased_in_progress: "Configurándose...",
     domain_purchase_purchased_awaiting: "Pago pendiente",
+    domain_purchase_awaiting_note:
+      "Aún no hemos recibido tu pago. Finaliza el proceso de pago para completar tu pedido, o cierra esta ventana y paga más tarde desde Dominios comprados.",
     domain_purchase_done_warmup:
       "Aviso: el DNS de tu dominio puede tardar hasta una hora en propagarse por internet, y proveedores como Gmail tratan con cautela los dominios recién creados. La entregabilidad mejora a medida que tu dominio gana historial.",
     domain_purchase_create_first_address: "Crea tu primera dirección",
     domain_purchase_progress_note:
       "Espera mientras registramos tu dominio y configuramos tus buzones. Esto suele tardar alrededor de un minuto.",
     domain_purchase_complete_cta: "Completar compra",
+    domain_purchase_open_checkout: "Volver a abrir el pago",
+    domain_purchase_cancel_payment_title: "¿Cancelar este pago?",
+    domain_purchase_cancel_payment_message:
+      "¿Seguro que quieres cancelar este pago del dominio personalizado?",
+    domain_purchase_cancel_payment_confirm: "Cancelar pago",
+    domain_purchase_cancel_payment_keep: "Mantener pago",
     domain_purchase_purchased_lapsed: "Caducado - comprar de nuevo",
     domain_purchase_error_paused:
       "Las compras de dominios están en pausa unos minutos. Vuelve a intentarlo en un momento.",
@@ -5448,7 +6820,7 @@ export const es = {
     show_badges_in_signature_description:
       "Muestra tus insignias en el área de firma de los correos salientes.",
     import_oauth_description:
-      "Conecta tu cuenta de Gmail, Outlook o Yahoo con un solo clic. Importaremos y cifraremos tus correos automáticamente en tu dispositivo.",
+      "Conecta una cuenta para importar todo su correo, incluidos los mensajes archivados, los enviados y las etiquetas. Gmail se conecta con una contraseña de aplicación, y Outlook, iniciando sesión en tu cuenta. Los buzones grandes pueden tardar unos días en importarse.",
     import_manual_step_1:
       "Exporta tus correos de tu proveedor actual como archivos MBOX, EML o PST",
     import_manual_step_2:
@@ -5476,7 +6848,7 @@ export const es = {
     add_security_key: "Agregar clave de seguridad",
     addon_limit_one_active: "Solo puede haber un complemento activo a la vez.",
     alias_local_part_placeholder: "alias",
-    allowlist_tab: "Lista permitida",
+    allowlist_tab: "Permitidos",
     attachments_suffix: "archivo(s) adjunto(s)",
     auto_delete_spam_description:
       "Eliminar spam automáticamente después de 30 días.",
@@ -5508,6 +6880,14 @@ export const es = {
     account_security_review_cta: "Revisar seguridad",
     account_security_dont_show_again: "No volver a mostrar",
     protection_breakdown_title: "Desglose de protección",
+    security_center_recommended: "Acciones recomendadas",
+    security_center_protected: "Protegido",
+    security_center_all_clear: "Todas las protecciones están activadas.",
+    security_center_protection_score: "Puntuación de protección",
+    security_center_encryption_title: "Cifrado de extremo a extremo",
+    security_center_encryption_detail:
+      "Tu correo, tus contactos y tus archivos se cifran en tu dispositivo antes de llegar a Aster.",
+    security_center_identity_key: "Clave de identidad",
     criterion_two_factor: "Autenticación de dos factores",
     criterion_recovery_email: "Correo de recuperación verificado",
     criterion_auto_lock: "Bloqueo automático",
@@ -5534,14 +6914,15 @@ export const es = {
     block_tracking_links: "Bloquear enlaces de rastreo",
     block_tracking_links_description:
       "Limpiar parámetros de rastreo de los enlaces.",
-    blocked_tab: "Lista bloqueada",
+    blocked_tab: "Bloqueados",
     browser_on_os: "{{browser}} en {{os}}",
     card_cvc: "CVC",
     card_expiry: "Fecha de vencimiento",
     card_number: "Número de tarjeta",
     cardholder_name: "Nombre del titular",
     cardholder_name_placeholder: "Nombre Apellido",
-    cashapp_redirect_notice: "Serás redirigido a Cash App.",
+    cashapp_redirect_notice:
+      "Te redirigiremos a Cash App para que apruebes este pago. Cuando lo apruebes, vuelve aquí para terminar.",
     catch_all_disabled: "Captura total desactivada",
     catch_all_enabled_toast: "Captura total activada",
     checkout_billing_email: "Correo de facturación",
@@ -5561,10 +6942,11 @@ export const es = {
     confirm_remove_key: "¿Eliminar esta clave de seguridad?",
     connect_modal_description:
       "Inicia sesión en {{ provider }} para importar tu correo en Aster. Tus mensajes se cifran en este dispositivo antes de almacenarse en nuestros servidores.",
-    connect_modal_privacy_note: "Tus credenciales nunca se almacenan.",
+    connect_modal_privacy_note:
+      "Aster solo solicita los permisos de correo necesarios para importar tu bandeja de entrada. Nunca leemos, analizamos ni vendemos tus mensajes.",
     connect_modal_title: "Conectar {{ provider }} a Aster",
-    connect_provider_name_google: "Google",
-    connect_provider_name_microsoft: "Microsoft",
+    connect_provider_name_google: "Gmail",
+    connect_provider_name_microsoft: "Outlook",
     connect_provider_name_yahoo: "Yahoo",
     connect_sign_in_google: "Iniciar sesión con Google",
     connect_sign_in_microsoft: "Iniciar sesión con Microsoft",
@@ -5589,6 +6971,8 @@ export const es = {
     credit_type_admin_removal: "Eliminación",
     credit_type_crypto_overpayment: "Sobrepago",
     credit_type_crypto_overpayment_reversal: "Reversión de sobrepago",
+    credit_type_prepaid_switch_residual: "Cambio de plan",
+    credit_type_prepaid_switch_residual_reversal: "Reversión del cambio",
     credits_balance_label: "Saldo de créditos",
     credits_balance_note: "Los créditos se aplican en tu próxima renovación.",
     credits_shop_plans: "Ver planes",
@@ -5606,7 +6990,7 @@ export const es = {
     crypto_native_recommended: "Recomendado",
     crypto_native_resume_selected: "Seleccionado",
     crypto_native_status_underpaid: "Pago parcial",
-    crypto_native_what_happens: "Qué ocurre a continuación",
+    crypto_native_what_happens: "Progreso del pago",
     crypto_native_stripe_option: "Pagar con stablecoin",
     crypto_native_stripe_desc:
       "USDC y otras stablecoins a través de nuestro procesador de pagos",
@@ -5616,7 +7000,7 @@ export const es = {
       "Has creado demasiadas facturas de criptomonedas hoy. Inténtalo de nuevo más tarde.",
     crypto_native_invoice_title: "Pagar con {{coin}}",
     crypto_native_awaiting_body:
-      "Envía el importe exacto a la dirección de abajo. Esta página se actualiza automáticamente.",
+      "Envía el importe exacto a la dirección de abajo. Esta página se actualizará automáticamente.",
     crypto_native_received_title: "Pago recibido",
     crypto_native_received_body:
       "Hemos recibido el importe completo y lo estamos procesando. No es necesario que envíes otro pago.",
@@ -5629,7 +7013,7 @@ export const es = {
       "Este pago se está procesando. Esta página se actualiza sola, no tienes que hacer nada.",
     crypto_native_copy_invoice_ref: "Copiar referencia de la factura",
     crypto_native_no_wallet_handler:
-      "No se abrió ninguna aplicación de cartera. Copia la dirección de arriba y pégala en tu cartera.",
+      "No se abrió ninguna aplicación de monedero. Copia la dirección y pégala en tu monedero.",
     crypto_native_copied: "Copiado al portapapeles",
     crypto_native_network_warning:
       "Envía únicamente {{coin}} en la red {{chain}}. Enviar cualquier otro activo o usar otra red provocará la pérdida de los fondos.",
@@ -5650,13 +7034,15 @@ export const es = {
       "Tu pago necesita una comprobación manual rápida. Abonaremos tu cuenta en breve.",
     crypto_native_transaction: "Transacción",
     crypto_native_refund_notice:
-      "Los pagos de más y los reembolsos se abonan al saldo de tu cuenta de Aster.",
+      "Si envías más del importe debido, la diferencia pasa al saldo de tu cuenta de Aster en dólares estadounidenses.",
     crypto_native_cancel_invoice: "Cancelar esta factura",
     crypto_native_cancel_failed: "No se pudo cancelar esta factura.",
     crypto_native_cancel_has_payment:
       "Esta factura ya recibió un pago, por lo que ya no se puede cancelar.",
     crypto_native_paid_title: "Todo listo",
     crypto_native_paid_body: "Tu plan ya está activo. ¡Gracias!",
+    crypto_native_paid_body_addon:
+      "Tu complemento de almacenamiento ya está activo. ¡Gracias!",
     crypto_native_go_to_inbox: "Ir a la bandeja de entrada",
     crypto_native_view_billing: "Volver a facturación",
     crypto_native_invoice_cancelled: "Factura cancelada",
@@ -5667,6 +7053,26 @@ export const es = {
       "Este pago se canceló. No se cobró nada. Puedes iniciar un pago nuevo cuando quieras.",
     crypto_native_start_new_payment: "Iniciar un pago nuevo",
     crypto_native_check_now: "Comprobar ahora",
+    crypto_native_checking: "Comprobando",
+    crypto_native_check_no_change:
+      "Todavía no hemos visto tu pago, pero seguimos atentos.",
+    crypto_native_check_updated: "Estado del pago actualizado: {{status}}",
+    crypto_native_check_failed:
+      "No pudimos conectar con la red. Tu pago no se ve afectado. Inténtalo de nuevo en un momento.",
+    crypto_native_last_checked: "Última comprobación a las {{time}}",
+    crypto_native_copy_amount: "Copiar importe",
+    crypto_native_copy_address: "Copiar dirección",
+    crypto_native_verify_address:
+      "Antes de enviar, compara la dirección que ves en tu monedero con la que se muestra aquí. Solo esta dirección se supervisa para tu pedido.",
+    crypto_native_fee_headroom:
+      "Si tu monedero descuenta la comisión de red del importe que introduces, añade un poco más para que llegue el importe completo.",
+    crypto_native_network_only: "Envía solo {{coin}} en la red {{chain}}",
+    crypto_native_tip_unrecoverable:
+      "Los fondos enviados por otra red no se pueden recuperar.",
+    crypto_native_tip_check_address:
+      "Comprueba la dirección en tu billetera antes de enviar.",
+    crypto_native_tip_fee:
+      "Si tu billetera descuenta la comisión del importe, envía un poco más.",
     crypto_native_expired_do_not_send:
       "No envíes nada a la dirección de esta factura. Los fondos enviados ahora necesitan una revisión manual antes de poder abonarse.",
     crypto_native_not_found: "No encontramos esta factura",
@@ -5692,12 +7098,16 @@ export const es = {
     crypto_native_cancel_confirm_body:
       "La dirección de pago dejará de supervisarse. No envíes fondos a ella después de cancelar. Puedes iniciar un nuevo pago en cualquier momento.",
     crypto_native_hint_awaiting:
-      "Envía el importe exacto a la dirección de arriba. Vigilamos la red automáticamente.",
+      "Comprobamos la red automáticamente para encontrar tu transacción.",
     crypto_native_hint_detected:
-      "Tu transacción está en la red. Esperando a que se incluya en un bloque.",
+      "Tu transacción ha llegado a la red y espera a incluirse en un bloque.",
     crypto_native_hint_confirming:
-      "Confirmando en la red. Tu plan se activa en cuanto termine.",
-    crypto_native_hint_credited: "Pago confirmado. Tu plan está activo.",
+      "Esperando confirmaciones de la red. Tu plan se activa cuando terminen.",
+    crypto_native_hint_confirming_addon:
+      "Esperando las confirmaciones de la red. Tu complemento de almacenamiento se activa cuando terminan.",
+    crypto_native_hint_credited: "Confirmado. Tu plan está activo.",
+    crypto_native_hint_credited_addon:
+      "Confirmado. Tu complemento de almacenamiento está activo.",
     crypto_native_time_remaining: "Tiempo restante",
     crypto_native_expiring_soon:
       "Quedan menos de 5 minutos. Si esta ventana se cierra antes de que llegue tu pago, puedes iniciar uno nuevo al precio actual.",
@@ -5714,13 +7124,30 @@ export const es = {
       "Tiempo restante antes de que caduque esta factura",
     crypto_native_confirmations_progress: "Confirmaciones de red",
     crypto_modal_price: "Monto: {{amount}}",
+    crypto_summary_plan: "Plan",
+    crypto_summary_addon: "Complemento",
+    crypto_summary_length: "Duración",
     crypto_modal_title: "Pago con criptomoneda",
     crypto_no_renew_notice: "Este plan no se renueva automáticamente.",
+    special_offer_crypto_one_payment:
+      "El descuento del {{percent}} % solo se aplica a este pago. Los pagos posteriores con criptomonedas tienen el precio normal. Para obtenerlo durante un año completo, elige 12 meses.",
     crypto_paid_until: "Pagado hasta el {{date}} (cripto)",
+    card_declined_title: "Tu último pago con tarjeta no se completó",
+    card_declined_insufficient_funds:
+      "Tu banco rechazó el pago porque la cuenta no tenía fondos suficientes. Prueba con otra tarjeta o paga con criptomonedas más abajo.",
+    card_declined_expired_card:
+      "Tu tarjeta ha caducado. Usa una tarjeta con una fecha de caducidad vigente o paga con criptomonedas más abajo.",
+    card_declined_card_details:
+      "Alguno de los datos de la tarjeta no coincide. Revisa el número, la fecha de caducidad y el código de seguridad, o paga con criptomonedas más abajo.",
+    card_declined_card_not_supported:
+      "Tu banco no admite este pago. Muchas tarjetas prepago no sirven para una suscripción. Prueba con una tarjeta de débito o crédito, o paga con criptomonedas más abajo.",
+    card_declined_contact_bank:
+      "Tu banco rechazó el pago sin decirnos el motivo. Ponte en contacto con tu banco o paga con criptomonedas más abajo.",
     crypto_pay_button: "Pagar con cripto",
     crypto_pay_now: "Pagar ahora con cripto",
     crypto_renew_link: "Renovar",
-    crypto_select_term: "Seleccionar duración",
+    crypto_select_term:
+      "Selecciona un periodo. Se te cobrará una sola vez en USDC y tu plan estará activo hasta el final del periodo. No se renueva automáticamente.",
     crypto_success_toast: "Pago con cripto confirmado",
     crypto_term_12mo: "12 meses",
     crypto_term_1mo: "1 mes",
@@ -5729,35 +7156,79 @@ export const es = {
     crypto_term_6mo: "6 meses",
     custom_domains_suffix: "dominio(s) personalizado(s)",
     delete_domain_cooldown: "Debes esperar antes de eliminar este dominio.",
-    delete_domain_warning: "Eliminar este dominio es irreversible.",
+    delete_domain_warning:
+      "Todas las direcciones de este dominio dejarán de recibir correo en cuanto lo quites, y no podrás deshacerlo.",
     desktop_bridge_description:
-      "Conecta clientes de correo de terceros mediante IMAP/SMTP.",
+      "Usa Aster con Thunderbird, Apple Mail, Outlook o cualquier cliente IMAP/JMAP. Aster Bridge se ejecuta en tu equipo y ofrece tu buzón descifrado a tu cliente favorito.",
     desktop_bridge_install_hint:
-      "Instala el bridge de escritorio para usar clientes IMAP/SMTP.",
+      "Aster Bridge debe estar instalado y en ejecución. Descárgalo en Ajustes > Bridge.",
     desktop_bridge_set_up: "Configurar {{ client }}",
     bridge: "Bridge",
-    bridge_description: "Connect Aster to any IMAP or SMTP mail client",
-    bridge_download_windows: "Download for Windows",
+    bridge_description:
+      "Conecta Aster a cualquier cliente de correo IMAP o SMTP",
+    bridge_download_windows: "Descargar para Windows",
     bridge_download_msi: "MSI",
     bridge_app_name: "Aster Bridge",
     bridge_windows_name: "Windows",
     bridge_windows_desc:
-      "Download the installer and run Aster Bridge on your Windows machine.",
+      "Descarga el instalador y ejecuta Aster Bridge en tu equipo con Windows.",
     bridge_linux_name: "Linux",
     bridge_linux_desc:
-      "AppImage, .deb, and .rpm packages available for all major distributions.",
-    bridge_linux_cta: "Download AppImage",
+      "Paquetes AppImage, .deb y .rpm disponibles para las principales distribuciones.",
+    bridge_linux_cta: "Descargar AppImage",
     bridge_linux_deb_link: ".deb",
     bridge_linux_rpm_link: ".rpm",
+    bridge_linux_pacman_link: "Arch Linux",
     bridge_linux_appimage_arm64_link: "AppImage (ARM64)",
     bridge_linux_deb_arm64_link: ".deb (ARM64)",
     bridge_linux_rpm_arm64_link: ".rpm (ARM64)",
+    bridge_other_formats: "Otros formatos",
+    bridge_arch_x64: "x86-64",
+    bridge_arch_arm64: "ARM64",
+    bridge_format_msi_desc:
+      "Para instalaciones gestionadas con directivas de grupo",
+    bridge_format_appimage_desc: "Funciona en la mayoría de distribuciones",
+    bridge_format_deb_desc: "Debian, Ubuntu y derivadas",
+    bridge_format_rpm_desc: "Fedora, RHEL y openSUSE",
+    bridge_format_pacman_desc: "Arch Linux y derivadas",
+    bridge_download_started: "Descarga iniciada",
+    bridge_download_failed: "La descarga no se inició. Inténtalo de nuevo.",
+    bridge_support_help_desc:
+      "Guías de configuración y respuestas a preguntas frecuentes",
+    bridge_support_discord_desc:
+      "Pregunta al equipo y a otras personas que usan Aster",
+    bridge_support_reddit_desc:
+      "Sigue los anuncios y participa en las conversaciones",
+    bridge_support_github_desc:
+      "Consulta el código fuente e informa de un problema",
+    bridge_all_platforms: "Todas las plataformas",
+    bridge_upgrade_benefit_clients:
+      "Funciona con Apple Mail, Thunderbird y Outlook",
+    bridge_upgrade_benefit_local:
+      "Se ejecuta en local, así que tu correo sigue cifrado",
+    bridge_upgrade_benefit_platforms: "Disponible en Windows, macOS y Linux",
+    bridge_upgrade_benefit_cli:
+      "Incluye una versión de línea de comandos para servidores",
+    bridge_cli_download: "Descargar",
+    bridge_cli_install_hint:
+      "Descarga el archivo para tu plataforma, extráelo y mueve el binario a tu PATH.",
+    bridge_cli_install_hint_windows:
+      "Descarga el archivo, extráelo y añade la carpeta a tu PATH.",
+    bridge_cli_copy_command: "Copiar los comandos de instalación",
+    bridge_cli_docs_link: "Leer la guía de línea de comandos",
+    bridge_cli_name: "Línea de comandos",
+    bridge_cli_desc:
+      "Ejecuta los mismos servidores sin ventana, en un servidor o por SSH.",
+    bridge_cli_windows_link: "Windows",
+    bridge_cli_macos_link: "macOS",
+    bridge_cli_linux_link: "Linux (x86-64)",
+    bridge_cli_linux_arm64_link: "Linux (ARM64)",
     bridge_macos_name: "macOS",
     bridge_macos_desc:
-      "Download the universal DMG for Apple Silicon and Intel Macs.",
-    bridge_macos_cta: "Download for macOS",
-    bridge_coming_soon: "Coming soon",
-    bridge_info_link: "Learn more",
+      "Descarga el DMG universal para Mac con Apple Silicon o Intel.",
+    bridge_macos_cta: "Descargar para macOS",
+    bridge_coming_soon: "Muy pronto",
+    bridge_info_link: "Más información",
     bridge_popover_description:
       "Un proxy local ligero que se ejecuta en su escritorio. Descifra su buzón y lo sirve a través de IMAP y SMTP estándar para que cualquier cliente de correo pueda conectarse.",
     bridge_installations: "Instalaciones conectadas",
@@ -5806,7 +7277,8 @@ export const es = {
     dev_unregistered: "No registrado",
     dev_unsupported: "No compatible",
     disconnect_button: "Desconectar",
-    disconnect_confirm: "¿Desconectar esta cuenta?",
+    disconnect_confirm:
+      "¿Seguro que quieres desconectar esta cuenta? Todos los correos sincronizados de esta cuenta seguirán en tu bandeja de entrada, a menos que decidas eliminarlos.",
     disconnect_delete_messages_label: "Eliminar mensajes importados",
     disconnect_delete_messages_label_count:
       "Eliminar también sus {{ count }} correos importados",
@@ -5816,8 +7288,10 @@ export const es = {
     disconnect_title: "Desconectar cuenta",
     discount_first_month: "Primer mes con descuento",
     discount_first_year: "Primer año con descuento",
-    dkim_rotated: "Clave DKIM renovada",
-    dkim_rotated_warning_body: "Actualiza el registro DKIM de tu dominio.",
+    dkim_rotated:
+      "Clave DKIM renovada. Añade el nuevo registro DNS que aparece abajo en tu registrador.",
+    dkim_rotated_warning_body:
+      "La renovación cambia el selector, así que el nombre de host de abajo es distinto al de tu registro DKIM anterior. Crea un nuevo registro TXT en este host. No edites el registro anterior. Mantenlo hasta que la verificación se complete; después puedes quitarlo.",
     dkim_rotated_warning_title: "Renovación DKIM requerida",
     domain_pending_hint: "La verificación DNS puede tardar hasta 48 horas.",
     domain_placeholder: "ejemplo.com",
@@ -5826,14 +7300,18 @@ export const es = {
     email_label: "Correo",
     encrypted_storage_suffix: "de almacenamiento cifrado",
     error_tip_dkim: "Verifica tu registro DKIM en la configuración DNS.",
-    error_tip_dmarc: "Agrega un registro DMARC a tu dominio.",
-    error_tip_mx: "Verifica tus registros MX.",
-    error_tip_spf: "Verifica tu registro SPF.",
-    error_tip_txt: "Verifica tu registro TXT de verificación.",
+    error_tip_dmarc:
+      "Algunos proveedores de DNS añaden tu dominio automáticamente. Escribe solo _dmarc como host, no _dmarc.tudominio.com.",
+    error_tip_mx:
+      "El registro MX necesita prioridad 10 y debe apuntar al servidor de correo que aparece arriba.",
+    error_tip_spf:
+      "Si ya existe un registro SPF, combínalo con el de arriba. Dos registros SPF se anulan entre sí.",
+    error_tip_txt:
+      "El registro TXT necesita exactamente el valor que aparece arriba. Los cambios de DNS pueden tardar unos minutos en propagarse.",
     export: "Exportar",
     export_cancel: "Cancelar exportación",
     export_complete_bytes: "{{bytes}} exportados",
-    export_complete_errors: "{{count}} error(es)",
+    export_complete_errors: "No se pudieron exportar {{count}} mensaje(s).",
     export_complete_skipped_undecryptable:
       "No se pudieron descifrar {{ count }} mensaje(s), por lo que no se incluyeron en este archivo.",
     export_complete_skipped_attachments:
@@ -5852,14 +7330,20 @@ export const es = {
     export_destination_pick_folder: "Elegir carpeta",
     export_error_no_messages_match:
       "Ningún mensaje coincide con los criterios.",
-    export_error_no_vault: "Vault no disponible",
-    export_error_write_fatal: "Error de escritura fatal",
-    export_format_eml_hint: "Un archivo por correo",
+    export_error_no_vault:
+      "Tu almacén de cifrado está bloqueado. Vuelve a iniciar sesión para exportar.",
+    export_error_write_partial:
+      "La exportación se detuvo antes de tiempo. Tu archivo contiene los mensajes exportados hasta ahora.",
+    export_error_write_fatal:
+      "No se pudo escribir en el destino elegido. La exportación se detuvo.",
+    export_format_eml_hint:
+      "Un archivo .eml por mensaje en la carpeta que elijas. Cada archivo es un mensaje RFC 5322 estándar con los adjuntos incluidos.",
     export_format_eml_name: "Archivos EML",
     export_format_mbox_hint:
       "Compatible con la mayoría de los clientes de correo",
     export_format_mbox_name: "Formato MBOX",
     export_progress_bytes_written: "{{bytes}} escritos",
+    export_progress_working: "Preparando tu exportación.",
     export_progress_current_folder: "Carpeta actual: {{folder}}",
     export_progress_eta: "Aproximadamente {{duration}} restante",
     export_progress_messages: "{{processed}} de {{total}} mensajes",
@@ -5882,7 +7366,8 @@ export const es = {
     export_security_required_badge: "Obligatorio",
     export_reauth_prompt: "Ingresa tu contraseña para continuar",
     export_reauth_submit: "Verificar",
-    export_scope_contacts_body: "Exportar todos tus contactos",
+    export_scope_contacts_body:
+      "Libreta de direcciones exportada en vCard 4.0 (se puede importar en Apple, Google, Thunderbird, etc.) y en JSON completo.",
     export_scope_mail_help:
       "MBOX agrupa todos los mensajes en un solo archivo; .EML guarda cada mensaje por separado. Ambos formatos funcionan con la mayoría de los clientes de correo de escritorio.",
     export_scope_contacts_title: "Contactos",
@@ -5892,16 +7377,29 @@ export const es = {
     export_scope_empty_warning: "No hay elementos seleccionados para exportar.",
     export_scope_folders_label: "Carpetas",
     export_scope_labels_label: "Etiquetas",
-    export_scope_mail_body: "Exportar todos tus correos",
+    export_scope_mail_body:
+      "Todos tus mensajes y adjuntos en formato mbox o .eml estándar.",
     export_scope_mail_title: "Correos",
     export_scope_preset_all: "Todo",
     export_scope_preset_custom: "Personalizado",
-    export_scope_settings_body: "Exportar tus preferencias",
+    export_scope_settings_body:
+      "Alias, firmas, plantillas, reglas de correo, remitentes bloqueados y permitidos, carpetas y otros datos de la cuenta.",
     export_scope_contacts_help:
       "vCard 4.0 es el formato de contacto universal que la mayoría de las apps importan directamente. El archivo JSON adicional conserva campos que vCard no puede almacenar.",
     export_scope_settings_title: "Configuración",
     export_start_button: "Iniciar exportación",
     export_step_complete_title: "Exportación completada",
+    export_step_incomplete_title: "La exportación no finalizó",
+    export_incomplete_summary:
+      "Se exportaron {{ count }} de {{ total }} mensajes antes de que se detuviera la exportación.",
+    export_progress_messages_unknown_total: "{{processed}} mensajes exportados",
+    export_complete_summary_unknown_total:
+      "Se exportaron {{ count }} mensajes.",
+    export_incomplete_summary_unknown_total:
+      "Se exportaron {{ count }} mensajes antes de que se detuviera la exportación.",
+    export_incomplete_partial_saved:
+      "Tu archivo contiene los mensajes exportados hasta ahora.",
+    export_complete_data_only: "Tu exportación está lista.",
     export_step_destination_title: "Destino",
     export_step_format_title: "Formato de exportación",
     export_step_progress_title: "Exportación en curso",
@@ -5909,7 +7407,7 @@ export const es = {
     export_step_scope_title: "¿Qué deseas exportar?",
     export_title: "Exportar tus datos",
     export_warning_body:
-      "La exportación puede tardar según el tamaño de tu buzón.",
+      "El archivo exportado contendrá tus mensajes sin cifrar. Cualquier cosa que lea archivos en este equipo, incluida la sincronización en la nube (OneDrive, iCloud, Dropbox), podrá leerlo. Guárdalo en una ubicación que no se sincronice.",
     export_warning_confirm: "Continuar",
     export_warning_title: "Antes de exportar",
     external_accounts_tab: "Cuentas externas",
@@ -5918,15 +7416,27 @@ export const es = {
     f_folder_lock: "Bloqueo de carpeta",
     f_tracker_protection_long: "Protección contra rastreo",
     f_zero_knowledge: "Conocimiento cero",
-    failed_create_import_job: "Error al crear el trabajo de importación",
-    failed_to_load_allowlist: "Error al cargar la lista permitida",
-    failed_to_load_blocklist: "Error al cargar la lista bloqueada",
+    failed_create_import_job:
+      "No pudimos iniciar tu importación. Inténtalo de nuevo. Tus correos actuales están a salvo.",
+    failed_to_load_allowlist: "Inténtalo de nuevo.",
+    failed_to_load_blocklist: "Inténtalo de nuevo.",
     feature_tracker_protection: "Protección contra rastreo",
     ghost_alias_active: "Activo",
     ghost_alias_expire_now: "Expirar ahora",
     ghost_alias_max_extension_toast:
       "Este alias fantasma ya alcanzó su vida útil máxima de 90 días y no se puede extender más.",
-    ghost_alias_expire_confirm_title: "¿Expirar este alias?",
+    ghost_alias_expire_confirm_title: "¿Caducar este alias fantasma?",
+    ghost_alias_expire_confirm_message_named:
+      "¿Seguro que quieres caducar {{address}}? No podrás recuperarlo. Su periodo de gracia durará hasta el {{date}}.",
+    delete_aliases_confirmation_count:
+      "¿Seguro que quieres eliminar {{count}} alias? Esta acción no se puede deshacer.",
+    delete_alias_confirmation_named:
+      "¿Seguro que quieres eliminar {{address}}? Esta acción no se puede deshacer.",
+    delete_address_confirmation_named:
+      "¿Seguro que quieres eliminar {{address}}? Esta acción no se puede deshacer.",
+    alias_directory_delete_title: "Eliminar directorio",
+    alias_directory_delete_message:
+      "¿Seguro que quieres eliminar el directorio {{address}}? El correo dirigido a direcciones nuevas de este patrón dejará de llegar. Los alias que ya creó seguirán funcionando.",
     ghost_alias_expire_confirm_message:
       "¿Seguro que quieres expirar este alias? No podrás recuperarlo. Su período de gracia durará hasta el {{date}}.",
     ghost_alias_expired_grace: "Expirado - período de gracia",
@@ -5939,7 +7449,8 @@ export const es = {
     ghost_aliases_this_month: "{{ count }} este mes",
     ghost_aliases_title: "Alias fantasma",
     images_section_title: "Imágenes",
-    import_delete_confirm_description: "Esta acción es irreversible.",
+    import_delete_confirm_description:
+      "Se eliminarán todos los correos importados en esta tarea. Podrás volver a importarlos más tarde sin omitir ninguno. Esta acción no se puede deshacer.",
     import_delete_confirm_title: "¿Eliminar esta importación?",
     import_folder_prep_status:
       "Preparando carpetas... ({{ done }}/{{ total }})",
@@ -5958,13 +7469,17 @@ export const es = {
     import_status_pending: "Pendiente",
     import_status_processing: "En proceso",
     instructions_for_provider: "Instrucciones para {{provider}}",
+    invoice_status_disputed: "Disputado",
     invoice_status_draft: "Borrador",
     invoice_status_failed: "Fallida",
     invoice_status_open: "Abierta",
     invoice_status_paid: "Pagada",
     invoice_status_pending: "Pendiente",
+    invoice_status_refunded: "Reembolsado",
+    invoice_status_reversed: "Revertido",
     invoice_status_uncollectible: "Incobrable",
     invoice_status_void: "Anulada",
+    invoice_status_voided: "Anulado",
     key_name_placeholder: "Nombre de la clave",
     key_source_autocrypt: "Autocrypt",
     key_source_cached: "En caché",
@@ -6005,7 +7520,8 @@ export const es = {
     app_lock_locked_out_for:
       "Demasiados intentos - vuelve a intentarlo en {{s}}s",
     vanguard_title: "Aster Vanguard",
-    vanguard_description: "Solo Nova+. Más funciones próximamente.",
+    vanguard_description:
+      "Protección avanzada para periodistas, activistas y cuentas de alto riesgo. Solo Nova+.",
     vanguard_info:
       "Aster Vanguard activa funciones de seguridad sofisticadas diseñadas para periodistas, abogados y personas con riesgo elevado. Incluye bloqueo por PIN, controles de sesión mejorados y más protecciones.",
     vanguard_active: "Vanguard Activo",
@@ -6026,51 +7542,81 @@ export const es = {
       "Esto desactivará todas las funciones de Vanguard, incluido tu bloqueo de app con PIN. Puedes reactivarlo en cualquier momento.",
     vanguard_enabled_toast: "Aster Vanguard activado",
     vanguard_disabled_toast: "Aster Vanguard desactivado",
-    lockdown_title: "Lockdown Mode",
+    lockdown_title: "Modo de bloqueo",
     lockdown_description:
-      "Blocks all external content, strips notification previews, disables real-time sync, and requires confirmation before opening links. No bypass while active.",
-    lockdown_active: "Lockdown Active",
-    lockdown_enable: "Enable Lockdown Mode",
-    lockdown_disable: "Disable Lockdown Mode",
-    lockdown_enabled_toast: "Lockdown Mode enabled",
-    lockdown_disabled_toast: "Lockdown Mode disabled",
-    lockdown_confirm_disable_title: "Disable Lockdown Mode?",
+      "Bloquea todo el contenido externo, elimina las vistas previas de las notificaciones, desactiva la sincronización en tiempo real y pide confirmación antes de abrir enlaces. No se puede omitir mientras está activo.",
+    lockdown_active: "Modo de bloqueo activo",
+    lockdown_enable: "Activar el modo de bloqueo",
+    lockdown_disable: "Desactivar el modo de bloqueo",
+    lockdown_enabled_toast: "Modo de bloqueo activado",
+    lockdown_disabled_toast: "Modo de bloqueo desactivado",
+    lockdown_confirm_disable_title: "¿Desactivar el modo de bloqueo?",
     lockdown_confirm_disable_desc:
-      "This will allow external content, link tracking, and notification previews. You can re-enable it at any time.",
-    lockdown_notification_generic: "New message",
-    lockdown_content_blocked_note: "Lockdown Mode active",
-    lockdown_link_warning_title: "Opening external link",
-    lockdown_link_warning_body: "This will reveal your IP address to:",
+      "Se permitirá el contenido externo, el rastreo de enlaces y las vistas previas de las notificaciones. Puedes volver a activarlo cuando quieras.",
+    lockdown_notification_generic: "Mensaje nuevo",
+    lockdown_content_blocked_note: "Modo de bloqueo activo",
+    lockdown_link_warning_title: "Abriendo un enlace externo",
+    lockdown_link_warning_body: "Esto revelará tu dirección IP a:",
     lockdown_info:
       "Lockdown Mode closes every in-session data leak vector. External images, fonts, and CSS are blocked with no bypass.",
-    lockdown_badge: "Lockdown",
+    lockdown_badge: "Bloqueo",
     lockdown_must_disable_first:
-      "Disable Lockdown Mode before disabling Vanguard.",
-    oauth_folders_error: "Error al configurar las carpetas",
+      "Desactiva el modo de bloqueo antes de desactivar Vanguard.",
+    oauth_folders_error:
+      "Tus carpetas no terminaron de configurarse. Inténtalo de nuevo.",
     oauth_folders_partial:
       "{{count}} carpetas no terminaron de configurarse; el resto está listo para usar.",
     oauth_folders_ready: "Carpetas listas",
-    oauth_reason_account_creation_failed: "Error al crear la cuenta",
+    oauth_reason_account_creation_failed:
+      "No pudimos terminar de configurar tu cuenta vinculada. Inténtalo de nuevo.",
     oauth_reason_email_not_found:
-      "We could not retrieve your email address from the provider. Try again - if it keeps failing, use the manual IMAP option instead.",
+      "No pudimos obtener tu dirección de correo del proveedor. Vuelve a intentarlo; si sigue fallando, usa la opción de IMAP manual.",
     oauth_reason_session_expired:
-      "The sign-in session expired. Please try again.",
-    oauth_reason_encryption_error: "Error de cifrado",
-    oauth_reason_expired_state: "Sesión expirada",
-    oauth_reason_internal_error: "Error interno",
-    oauth_reason_invalid_provider: "Proveedor inválido",
-    oauth_reason_invalid_state: "Estado inválido",
-    oauth_reason_missing_code: "Código faltante",
-    oauth_reason_missing_state: "Estado faltante",
-    oauth_reason_provider_denied: "Acceso denegado por el proveedor",
-    oauth_reason_provider_not_configured: "Proveedor no configurado",
-    oauth_reason_token_exchange_failed: "Error al intercambiar el token",
-    oauth_reason_unknown: "Razón desconocida",
+      "La sesión de inicio de sesión ha caducado. Inténtalo de nuevo.",
+    oauth_reason_encryption_error:
+      "No pudimos proteger la conexión. Inténtalo de nuevo. Si el problema continúa, escribe a hello@astermail.org.",
+    oauth_reason_expired_state:
+      "El enlace de conexión ha caducado. Empieza de nuevo para volver a conectar.",
+    oauth_reason_internal_error:
+      "El servidor tuvo un problema. Vuelve a intentarlo en un momento.",
+    oauth_reason_invalid_provider:
+      "No reconocemos este proveedor. Elige uno compatible de la lista.",
+    oauth_reason_invalid_state:
+      "La sesión de conexión ya no es válida. Empieza de nuevo para volver a conectar.",
+    oauth_reason_missing_code:
+      "El inicio de sesión no terminó en el lado del proveedor. Inténtalo de nuevo.",
+    oauth_reason_missing_state:
+      "La solicitud de conexión no coincidía con lo esperado. Empieza de nuevo e inténtalo otra vez.",
+    oauth_reason_provider_denied:
+      "El otro proveedor no aceptó la conexión. Intenta conectar de nuevo o revisa la cuenta con ese proveedor.",
+    oauth_reason_provider_not_configured:
+      "Este proveedor aún no está configurado en Aster. Si lo necesitas, escribe a hello@astermail.org.",
+    oauth_reason_token_exchange_failed:
+      "La conexión no terminó. Inténtalo de nuevo. Tus otras cuentas no han cambiado.",
+    oauth_reason_unknown:
+      "Algo no funcionó como se esperaba. Inténtalo de nuevo. No pudimos determinar la causa.",
+    oauth_reason_wrong_account:
+      "La conexión se inició desde otra cuenta de Aster Mail. Inicia sesión con esa cuenta e inténtalo de nuevo.",
     oauth_setting_up_folders: "Configurando carpetas...",
     oldest_first: "Más antiguos primero",
     or_pay_with_card: "O pagar con tarjeta",
     password_breach_warning:
       "Esta contraseña fue detectada en una filtración de datos.",
+    finish_plan_setup_title: "Termina de configurar tu plan {{plan}}",
+    finish_plan_setup_message:
+      "Cerraste el pago antes de completarlo. Tu cuenta sigue en el plan gratuito hasta que termines.",
+    finish_plan_setup_action: "Terminar la configuración",
+    yearly_switch_title: "Cambia al plan anual y ahorra {{amount}} al año",
+    yearly_switch_body:
+      "Ahora pagas {{monthly}} al mes. Con el plan anual equivale a {{yearly_monthly}} al mes, y tu próxima factura se ajusta por el tiempo que ya pagaste.",
+    yearly_switch_action: "Cambiar al plan anual",
+    win_back_offer_title: "Tu {{discount}} te espera",
+    win_back_offer_expires_today: "Hoy es el último día para usarlo.",
+    win_back_offer_expires_tomorrow: "Termina mañana.",
+    win_back_offer_expires_in: "Termina en {{days}} días.",
+    win_back_offer_auto_applied:
+      "El descuento ya está en tu cuenta, así que el pago lo aplica por ti. Código {{code}}.",
+    win_back_offer_action: "Elegir un plan",
     payment_processing_delayed:
       "El procesamiento del pago puede tardar unos minutos.",
     pdf: "PDF",
@@ -6078,31 +7624,41 @@ export const es = {
     plan_f_alias_avatars: "Avatares de alias",
     plan_f_mail_rules: "{{value}} filtros y reglas de correo",
     plan_f_tracker_protection: "Protección contra rastreo",
-    promo_forever: "Para siempre",
+    promo_forever: "Se aplica durante toda la suscripción",
     promo_once_reverts:
       "Se aplica solo a tu {{period}}, luego vuelve a {{price}}{{interval}}",
     promo_then_reverts:
       "Luego vuelve a {{price}}{{interval}} después de {{months}} meses",
-    provider_cf_add_mx: "Agrega el registro MX",
-    provider_cf_add_record: "Agrega el registro DNS",
-    provider_cf_add_txt_record: "Agrega el registro TXT",
+    provider_cf_add_mx:
+      "Haz clic en Add Record, selecciona MX, establece la prioridad y pega los valores de abajo",
+    provider_cf_add_record:
+      "Haz clic en Add Record, selecciona TXT y pega los valores de abajo",
+    provider_cf_add_txt_record:
+      "Haz clic en Add Record, selecciona TXT y pega los valores de abajo",
     provider_cf_login: "Inicia sesión en Cloudflare",
     provider_cf_save: "Guarda los cambios",
     provider_cf_select_domain: "Selecciona tu dominio",
-    provider_gd_add_mx: "Agrega el registro MX",
-    provider_gd_add_record: "Agrega el registro DNS",
-    provider_gd_add_txt: "Agrega el registro TXT",
+    provider_gd_add_mx:
+      "Haz clic en Add, selecciona MX, establece la prioridad e introduce los valores de abajo",
+    provider_gd_add_record:
+      "Haz clic en Add, selecciona TXT e introduce los valores de abajo",
+    provider_gd_add_txt:
+      "Haz clic en Add, selecciona TXT e introduce los valores de abajo",
     provider_gd_login: "Inicia sesión en GoDaddy",
-    provider_gd_manage_dns: "Gestiona tu DNS",
+    provider_gd_manage_dns: "Ve a My Products > tu dominio > DNS > Manage",
     provider_gd_save: "Guarda los cambios",
-    provider_nc_add_mx: "Agrega el registro MX",
-    provider_nc_add_record: "Agrega el registro DNS",
-    provider_nc_add_txt: "Agrega el registro TXT",
+    provider_nc_add_mx:
+      "Haz clic en Add New Record, selecciona MX, establece la prioridad e introduce los valores de abajo",
+    provider_nc_add_record:
+      "Haz clic en Add New Record, selecciona TXT e introduce los valores de abajo",
+    provider_nc_add_txt:
+      "Haz clic en Add New Record, selecciona TXT e introduce los valores de abajo",
     provider_nc_advanced_dns: "Accede al DNS avanzado",
     provider_nc_login: "Inicia sesión en Namecheap",
     provider_nc_save: "Guarda los cambios",
     reading_and_conversations: "Lectura y conversaciones",
-    record_not_detected: "Registro no detectado",
+    record_not_detected:
+      "Aún no encontramos este registro DNS. Los cambios pueden tardar unos minutos en propagarse, así que vuelve a comprobarlo en breve.",
     academic_discount_title: "Descuento para estudiantes y periodistas",
     academic_discount_description:
       "30 % de descuento en planes individuales para estudiantes y periodistas verificados.",
@@ -6138,16 +7694,17 @@ export const es = {
       "¿Periodista? Contacta con soporte con tus credenciales de prensa para recibir tu código.",
     refer_a_friend: "Referir a un amigo",
     referral_email_body:
-      "¡Hola!\n\nEstoy usando Aster Mail y me gusta mucho. Tiene cifrado de extremo a extremo, así que nadie puede leer tus correos excepto tú, ni siquiera el propio Aster.\n\nSi quieres probarlo, aquí tienes mi enlace de referido:\n\n{{ referral_link }}\n\nObtienes un descuento en tu primer pago si te suscribes, y yo gano un poco de crédito, pero sin presión. Solo pensé que te gustaría.\n\nSaludos",
-    referral_email_subject: "Únete a Aster Mail",
+      "Hola:\n\nLlevo un tiempo usando Aster Mail y me gusta mucho. Todo está cifrado de extremo a extremo, así que nadie puede leer tus correos salvo tú. Ni siquiera quienes lo gestionan.\n\nSi quieres probarlo, este es mi enlace de invitación:\n\n{{ referral_link }}\n\nAmbos recibimos {{ amount }} de almacenamiento adicional cuando empieces a usarlo, así que tú también sacas algo.\n\nUn saludo",
+    referral_email_subject: "Deberías probar Aster Mail",
     referral_how_it_works: "Cómo funciona",
     referral_loading_contacts: "Cargando contactos...",
     referral_no_contacts: "No se encontraron contactos",
     referral_rewards: "Tus recompensas",
     referral_step_earn:
-      "Ganas una parte de cada pago que hagan, mientras sigan suscritos.",
-    referral_step_share: "Comparte tu enlace de referido",
-    referral_step_signup: "Tu amigo crea una cuenta",
+      "Cada uno recibe {{ amount }} de almacenamiento adicional, hasta {{ max }}.",
+    referral_step_share:
+      "Comparte tu enlace de invitación con amigos, familiares o compañeros.",
+    referral_step_signup: "Crean una cuenta con tu enlace y empiezan a usarla.",
     registered: "Registrado",
     remote_image_loading: "Carga de imágenes remotas",
     remote_image_loading_description:
@@ -6156,7 +7713,8 @@ export const es = {
     remote_images_ask: "Preguntar",
     remote_images_never: "Nunca cargar",
     remove_key: "Eliminar clave",
-    rotate_dkim_description: "Renueva tu clave DKIM para mejorar la seguridad.",
+    rotate_dkim_description:
+      "Genera una nueva clave de firma DKIM. Esto crea un nuevo registro DNS en un nuevo nombre de host que debes publicar en tu registrador.",
     rotate_dkim_key: "Renovar clave DKIM",
     rotate_label: "Renovar",
     security_key_registered: "Clave de seguridad registrada",
@@ -6164,7 +7722,7 @@ export const es = {
     security_keys: "Claves de seguridad",
     security_keys_description: "Usa una clave física para proteger tu cuenta.",
     select_color: "Seleccionar color {{name}}",
-    send_referral_to_contacts: "Enviar a contactos",
+    send_referral_to_contacts: "Enviar un correo a todos los contactos",
     show_signature_separator: "Separador de firma",
     show_signature_separator_description:
       "Agregar una linea separadora '--' sobre la firma en los correos salientes.",
@@ -6176,7 +7734,14 @@ export const es = {
     sidebar_width_description: "Ajusta el ancho de la barra lateral.",
     smtp_host_placeholder: "smtp.ejemplo.com",
     spam_filter_enabled: "Filtro de spam activado",
-    spam_filter_enabled_description: "Filtrar spam automáticamente.",
+    spam_filter_enabled_description:
+      "Detecta el spam automáticamente y muévelo a tu carpeta de spam. Desactívalo si prefieres gestionar el spam manualmente.",
+    spam_settings_load_failed:
+      "Tus ajustes de spam no se cargaron, por lo que estos valores podrían no coincidir con tu cuenta.",
+    dev_mode_needs_unlock:
+      "Desbloquea tu bóveda para cambiar el modo de desarrollador.",
+    translate_languages_keep_one:
+      "Mantén al menos un idioma para la traducción.",
     spam_sensitivity_description: "Ajusta la sensibilidad del filtro de spam.",
     status_active: "Activo",
     status_dns_pending: "DNS pendiente",
@@ -6185,7 +7750,7 @@ export const es = {
     stop_sync_description: "Detener la sincronización de esta cuenta externa.",
     stop_sync_title: "Detener sincronización",
     storage_format_ipfs_hint:
-      "Almacenado en IPFS para resistencia a la censura.",
+      "IPFS privado guarda tus archivos cifrados según el hash de su contenido en los servidores propios de Aster. No está conectado a la red IPFS pública, y solo tus claves pueden descifrar tus archivos.",
     subscription_activated: "Suscripción activada",
     switch_billing_loss:
       "Cambiar a facturación mensual te costará {{amount}} extra al año.",
@@ -6211,12 +7776,16 @@ export const es = {
       "Los enlaces de rastreo y píxeles espía serán bloqueados.",
     tracking_protection_title: "Protección contra rastreo",
     trusted_2fa_description:
-      "Estas sesiones omitieron la verificación en dos pasos.",
+      "Los dispositivos que marcaste como de confianza omiten la verificación en dos pasos durante 30 días. Un cambio de contraseña invalida al instante todos los dispositivos de confianza.",
     trusted_2fa_empty: "No hay sesiones verificadas en dos pasos.",
     trusted_2fa_expires: "Expira {{when}}",
     trusted_2fa_last_used: "Último uso: {{when}}",
     trusted_2fa_revoke: "Revocar",
     trusted_2fa_revoke_all: "Revocar todas",
+    trusted_2fa_revoke_confirm:
+      "Este dispositivo necesitara un codigo de verificacion la proxima vez que inicies sesion.",
+    trusted_2fa_revoke_all_confirm:
+      "Todos los dispositivos de confianza necesitaran un codigo de verificacion la proxima vez que inicien sesion.",
     trusted_2fa_revoked_all_toast: "Todas las sesiones verificadas revocadas",
     trusted_2fa_revoked_toast: "Sesión revocada",
     trusted_2fa_title: "Sesiones verificadas en dos pasos",
@@ -6231,6 +7800,7 @@ export const es = {
     trusted_devices_revoke_all: "Revocar todos",
     trusted_devices_revoke_all_confirm:
       "¿Revocar todos los dispositivos de confianza?",
+    trusted_devices_revoked_all_toast: "Se revocaron todos los dispositivos",
     trusted_devices_revoke_confirm: "¿Revocar {{ name }}?",
     two_factor_auth_disabled: "Autenticación en dos pasos desactivada",
     upgrade: "Actualizar",
@@ -6253,32 +7823,433 @@ export const es = {
     usage_filters: "filtros",
     usage_custom_categories: "categorías personalizadas",
     username_placeholder: "nombre de usuario",
-    vacation_n_replies_sent: "{{count}} respuestas automáticas enviadas",
+    vacation_n_replies_sent: "{{count}} respuestas enviadas",
     vacation_one_reply_sent: "1 respuesta automática enviada",
     vacation_reply_count_one: "{{count}} respuesta enviada",
-    vacation_reply_count_other: "{{count}} respuestas",
+    vacation_reply_count_other: "{{count}} respuestas enviadas",
     vacation_reply_last: "Última respuesta: {{date}}",
     vacation_reply_tab_label: "Respuesta automática",
-    vault_recovery_button: "Recuperar vault",
-    vault_recovery_description:
-      "Recupera el acceso a tus datos cifrados con tu contraseña anterior.",
-    vault_recovery_enter_password: "Ingresa tu contraseña",
-    vault_recovery_failed: "Error al recuperar el vault",
-    vault_recovery_known_aliases_hint:
-      "Ingresa tus alias para facilitar la recuperación.",
-    vault_recovery_known_aliases_label: "Alias conocidos",
-    vault_recovery_modal_description:
-      "Ingresa tu contraseña anterior para recuperar tus datos.",
-    vault_recovery_old_password_label: "Contraseña anterior",
-    vault_recovery_old_password_placeholder: "Tu contraseña anterior",
-    vault_recovery_recover_button: "Recuperar",
-    vault_recovery_recovering: "Recuperando...",
-    vault_recovery_success: "Vault recuperado exitosamente",
-    vault_recovery_title: "Recuperación del vault",
     verify_all_records: "Verificar todos los registros",
     view_dns_records: "Ver registros DNS",
+    search_placeholder: "Buscar en la configuración...",
+    theme_sync_across_devices: "Sincronizar el tema entre dispositivos",
+    theme_sync_across_devices_description:
+      "Desactívalo para usar un tema distinto en este dispositivo.",
+    setup_2fa: "Configurar",
+    product_updates: "Novedades del producto",
+    product_updates_description:
+      "Recibe un mensaje cuando Aster lance una actualización destacada",
+    product_updates_info:
+      "Los avisos de seguridad y de políticas siempre llegan, incluso con esta opción desactivada. Aster no registra si abres estos mensajes ni si haces clic en ellos.",
+    product_updates_turned_off:
+      "Las novedades del producto están desactivadas. Puedes volver a activarlas aquí.",
+    product_updates_save_failed:
+      "No se guardó tu preferencia de novedades del producto. Inténtalo de nuevo.",
+    special_offers: "Ofertas especiales",
+    special_offers_description:
+      "Muestra ofertas ocasionales de planes con descuento en la aplicación. Si lo desactivas, no ves ofertas y no se te cuenta en los resultados de las ofertas.",
+    special_offers_save_failed:
+      "No se guardó tu preferencia de ofertas especiales. Inténtalo de nuevo.",
+    criterion_passkey: "Clave de acceso registrada",
+    criterion_recovery_codes: "Códigos de recuperación guardados",
+    criterion_read_receipts_off: "Confirmaciones de lectura desactivadas",
+    send_read_receipts_label: "Enviar confirmaciones de lectura",
+    send_read_receipts_description:
+      "Permite que los remitentes sepan cuándo abres sus mensajes.",
+    alias_captcha_required: "Completa el captcha para crear un alias.",
+    obscure_subject_title: "Ocultar el asunto en el correo cifrado",
+    obscure_subject_description:
+      "Sustituye el asunto visible por tres puntos cuando un mensaje está cifrado y lleva el asunto real dentro de la parte cifrada",
+    info_obscure_subject_title: "Ocultar el asunto en el correo cifrado",
+    info_obscure_subject_description:
+      "Los asuntos suelen viajar sin cifrar, así que cualquiera que maneje el mensaje puede leerlos. Con esta opción activada, un mensaje cifrado sale con tres puntos en lugar del asunto, y el asunto real queda protegido dentro de la parte cifrada. Los destinatarios cuya app de correo admite cabeceras protegidas ven el asunto real. El resto ve tres puntos en la lista y encuentra el asunto al principio del mensaje, así que actívalo solo si aceptas esa contrapartida.",
+    browse_folder: "Elegir carpeta",
+    money_back_guarantee: "Garantía de devolución de 30 días",
+    plan_every_plan_includes:
+      "Todos los planes incluyen cifrado de extremo a extremo, almacenamiento de conocimiento cero y apps de código abierto.",
+    cancel_anytime: "Cancela cuando quieras",
+    billed_annually: "con facturación anual",
+    save_annually_hint: "Ahorra un 20 % con el plan anual",
+    billing_checkout_cancelled:
+      "Se canceló el pago. Tu cuenta está a salvo y no se te ha cobrado nada. Puedes volver a intentarlo cuando quieras desde Ajustes.",
+    upgrade_resume_title: "Completa tu mejora de plan",
+    upgrade_resume_description:
+      "Saliste del proceso de pago antes de pagar. Retoma donde lo dejaste.",
+    referral_your_discount: "Tu descuento",
+    referral_discount_active: "Activo",
+    referral_discount_redeemed: "Canjeado",
+    referral_discount_expired: "Caducado",
+    referral_discount_auto_apply:
+      "Se aplica automáticamente al pagar; no hace falta introducirlo.",
+    referral_discount_expires: "Caduca el {{ date }}",
+    invite_storage_line:
+      "Ambos recibís {{ amount }} de almacenamiento adicional",
+    invite_storage_note:
+      "Crea tu cuenta gratuita con este enlace. El almacenamiento llega a las dos cuentas cuando empieces a usar la tuya.",
+    invite_discount_note:
+      "Además, un {{ percent }}% de descuento si algún día pasas a un plan de pago.",
+    invite_cta_create_account_storage: "Crear mi cuenta gratuita",
+    invite_friends: "Invitar a amigos",
+    invite_sidebar_earned: "{{ amount }} conseguidos",
+    referral_storage_headline:
+      "Consigue {{ amount }} de almacenamiento por cada amigo que se una",
+    referral_storage_subhead:
+      "Tu amigo también recibe {{ amount }}. El almacenamiento llega cuando empieza a usar su cuenta, hasta {{ max }}.",
+    referral_storage_earned_badge: "{{ amount }} conseguidos",
+    referral_active_referrals: "Activas",
+    referral_share_button: "Compartir invitación",
+    referral_show_qr: "Mostrar código QR",
+    referral_hide_qr: "Ocultar código QR",
+    referral_qr_hint:
+      "Apunta la cámara de un teléfono a este código para abrir la invitación.",
+    referral_qr_alt: "Código QR de tu enlace de invitación a Aster Mail",
+    referral_share_title: "Únete a mí en Aster Mail",
+    referral_share_message:
+      "Uso Aster Mail para tener correo cifrado de extremo a extremo. Únete con mi enlace y ambos recibimos {{ amount }} de almacenamiento adicional.",
+    referral_shared: "Invitación compartida",
+    referral_message_copied: "Mensaje de invitación copiado",
+    referral_bonus_gauge_label: "Almacenamiento conseguido",
+    referral_bonus_max: "Máximo: {{ value }}",
+    referral_status_active: "Activa",
+    referral_email_all_contacts_hint:
+      "Envía un mensaje a cada contacto de tu libreta de direcciones.",
+    referral_claim_title: "¿Te invitaron?",
+    referral_claim_description:
+      "Introduce el código de tu invitación y ambos recibiréis {{ amount }} de almacenamiento adicional. Tienes hasta el {{ date }} para añadirlo.",
+    referral_claim_placeholder: "Código de invitación",
+    referral_claim_button: "Añadir código",
+    referral_claim_success:
+      "Invitación añadida. Tu almacenamiento llega cuando lleves un par de días usando Aster Mail.",
+    referral_claim_invalid: "Ese código de invitación no es válido.",
+    referral_commission_headline:
+      "Gana el {{ percent }}% de cada pago que hagan tus amigos",
+    referral_commission_subhead:
+      "Comparte tu enlace. Cuando un amigo se suscriba, ganarás una parte de cada pago que haga mientras siga suscrito.",
+    referral_step_earn_commission:
+      "Cuando se suscriban, ganas el {{ percent }}% de cada pago que hagan.",
+    referral_share_message_plain:
+      "Uso Aster Mail para correo cifrado de extremo a extremo. Únete con mi enlace.",
+    referral_email_body_plain:
+      "Hola:\n\nLlevo un tiempo usando Aster Mail y me gusta mucho. Todo está cifrado de extremo a extremo, así que nadie puede leer tus correos salvo tú. Ni siquiera quienes lo gestionan.\n\nSi quieres probarlo, este es mi enlace de invitación:\n\n{{ referral_link }}\n\nUn saludo",
+    referral_claim_window_closed:
+      "El plazo para añadir un código de invitación a esta cuenta ha terminado.",
+    referral_claim_already: "Esta cuenta ya tiene una invitación asociada.",
+    referral_claim_self: "No puedes usar tu propio código de invitación.",
+    domain_purchase_not_released:
+      "La compra de dominios todavía no está disponible. Llegará en una próxima actualización.",
+    domain_step_ownership_title: "Demuestra que este dominio es tuyo",
+    domain_step_mx_title: "Recibe correo en tu dominio",
+    domain_step_spf_title: "Autoriza a Aster a enviar correo por ti",
+    domain_step_dkim_title: "Firma el correo que envías",
+    domain_step_dmarc_title: "Impide que otros se hagan pasar por ti",
+    domain_step_tlsrpt_title: "Recibe informes de fallos de cifrado",
+    domain_health_ok_title: "{{domain}} funciona",
+    domain_health_ok_body:
+      "Puedes enviar y recibir correo en este dominio, y tus mensajes van firmados para que lleguen a la bandeja de entrada.",
+    domain_health_warning_title:
+      "El correo funciona, pero puede acabar en spam",
+    domain_health_warning_body:
+      "Recibes correo en este dominio. Completa los puntos siguientes para que también confíen en los mensajes que envías.",
+    domain_health_critical_title: "No estás recibiendo correo",
+    domain_health_critical_body:
+      "El correo enviado a este dominio no llega a Aster. Corrige el punto siguiente y la entrega se reanuda en unos minutos.",
+    domain_health_unknown_title: "No pudimos leer tu DNS",
+    domain_health_unknown_body:
+      "Suele significar que acabas de cambiar los registros y todavía no se han propagado. Seguiremos comprobándolo.",
+    domain_health_recheck: "Comprobar ahora",
+    domain_health_checking: "Comprobando",
+    domain_health_last_checked: "Última comprobación a las {{when}}",
+    domain_health_auto_checking:
+      "Se comprueba de nuevo automáticamente cada pocos segundos",
+    domain_check_mx_label: "Recepción de correo",
+    domain_check_spf_label: "Permiso para enviar",
+    domain_check_dkim_label: "Firma de mensajes",
+    domain_check_dmarc_label: "Protección contra suplantación",
+    domain_check_mx_pass:
+      "El correo enviado a este dominio llega a tu bandeja de entrada de Aster.",
+    domain_check_spf_pass:
+      "Otros proveedores aceptan el correo que Aster envía por ti.",
+    domain_check_dkim_pass:
+      "El correo que envías va firmado, así que no se considera falsificado.",
+    domain_check_dmarc_pass:
+      "Nadie más puede enviar correo haciéndose pasar por tu dominio.",
+    domain_check_unknown:
+      "Todavía no pudimos leer este registro. Seguimos comprobando.",
+    domain_check_generic_failure:
+      "Este registro todavía no está bien configurado. Añade el registro siguiente para solucionarlo.",
+    domain_reason_mx_missing:
+      "Todavía nadie puede escribirte. Tu dominio no tiene ruta de correo, así que los mensajes rebotan al remitente.",
+    domain_reason_mx_points_elsewhere:
+      "El correo va a tu proveedor anterior, no a Aster. Elimina los registros MX antiguos para que los mensajes lleguen a esta bandeja.",
+    domain_reason_spf_missing:
+      "El correo que envías puede rechazarse o marcarse como spam, porque nada indica a los demás proveedores que Aster puede enviar por ti.",
+    domain_reason_spf_missing_include:
+      "Tu dominio ya tiene un registro SPF, pero no incluye a Aster. Añade Aster o el correo que envíes puede rechazarse.",
+    domain_reason_spf_duplicate_records:
+      "Tienes más de un registro SPF. Los proveedores los ignoran todos, así que combínalos en uno solo.",
+    domain_reason_dkim_missing_or_stale:
+      "El correo que envías no va firmado, así que parece falsificado. Añade el registro de firma para que se confíe en tus mensajes.",
+    domain_reason_dmarc_missing:
+      "Cualquiera puede enviar correo haciéndose pasar por tu dominio. Añade este registro cuando los dos anteriores funcionen.",
+    domain_fix_show_record: "Mostrar el registro que hay que añadir",
+    domain_fix_hide_record: "Ocultar el registro",
+    domain_provider_detected: "Tu DNS lo gestiona {{provider}}",
+    domain_provider_open: "Abrir {{provider}}",
+    crypto_rate_notice:
+      "Cuando eliges una moneda, fijamos un tipo de cambio y te mostramos el importe exacto que debes enviar. El tipo se mantiene 60 minutos en todas las redes. No se te cobra nada hasta que envías el pago tú mismo.",
+    crypto_exchange_warning:
+      "Paga desde una cartera que controles. Si envías fondos desde un exchange o un servicio de intercambio, el pago llega desde una dirección que no es tuya y el procesador no puede asociarlo a tu pedido. Completa el pago dentro del tiempo que indica la página de pago.",
+    crypto_energy_toggle: "Consumo energético de estas redes",
+    crypto_energy_btc:
+      "Bitcoin: entre 700 y 1400 kWh estimados por transacción. Fuente: Cambridge Bitcoin Electricity Consumption Index, 2026.",
+    crypto_energy_eth:
+      "Ethereum: entre 0,01 y 0,05 kWh estimados por transacción, y las redes que liquidan en ella, como Base, consumen aún menos. Fuente: Ethereum Foundation, citando a CCRI, 2026.",
+    crypto_energy_l2:
+      "Las redes que agrupan transacciones y las liquidan juntas en Ethereum, como Base, consumen bastante menos que una transacción en la red principal de Ethereum. No tenemos una fuente primaria que respaldaríamos para dar una cifra única, así que no publicamos ninguna.",
+    crypto_energy_xmr:
+      "Monero: usa prueba de trabajo y se mina con procesadores de uso general. No hemos encontrado una cifra actual que respaldaríamos, así que no publicamos ninguna.",
+    crypto_energy_caveat:
+      "Son estimaciones de terceros, no mediciones propias, y las cifras por transacción son objeto de debate. No hacemos ninguna afirmación medioambiental sobre ningún método de pago.",
+    crypto_native_rate_label: "Tipo de cambio",
+    crypto_native_last_checked_label: "Última comprobación",
+    crypto_native_rate_value: "Tipo aplicado: 1 {{coin}} = {{rate}}",
+    crypto_native_commit_notice:
+      "Elige una moneda para fijar tu tipo de cambio. Después envías el pago tú mismo desde tu propio monedero.",
+    feature_1000_emails: "1000 correos",
+    fam_kids_tab: "Niños",
+    fam_kids_title: "Direcciones reservadas para niños",
+    fam_kids_subtitle:
+      "Reserva ahora una dirección para tu hijo y deja que complete la configuración más adelante con su propia contraseña.",
+    fam_kids_seats_used: "{{used}} de {{max}} plazas familiares en uso",
+    fam_kids_reserve_btn: "Reservar una dirección",
+    fam_kids_seats_full:
+      "Tu grupo familiar está completo. Libera una plaza para reservar otra dirección.",
+    fam_kids_empty: "Todavía no hay direcciones reservadas.",
+    fam_kids_username_label: "Dirección",
+    fam_kids_username_ph: "su nombre de usuario",
+    fam_kids_info_title: "Direcciones reservadas para niños",
+    fam_kids_info_desc:
+      "La dirección queda reservada para tu hijo y bloqueada para el resto. Tu hijo (o tú) completa la configuración más adelante con una contraseña privada, y así se crea una cuenta real de acceso cero que se une automáticamente a tu familia.",
+    fam_kids_nickname_label: "Apodo (opcional)",
+    fam_kids_nickname_ph: "por ejemplo, Juanito",
+    fam_kids_storage_label: "Almacenamiento para esta dirección",
+    fam_kids_checking: "Comprobando disponibilidad...",
+    fam_kids_available: "Disponible",
+    fam_kids_taken: "Ya está en uso",
+    fam_kids_reserved_taken: "Ya está reservada",
+    fam_kids_invalid: "No es un nombre de usuario válido",
+    fam_kids_consent_label:
+      "Confirmo que soy el padre, la madre o el tutor legal de este menor y doy mi consentimiento para crearle una cuenta.",
+    fam_kids_consent_required:
+      "Confirma el consentimiento parental para continuar.",
+    fam_kids_link_hint:
+      "Cualquiera con el enlace puede configurar esta dirección. Compártelo solo con tu hijo y vuelve a generarlo si se filtra.",
+    fam_kids_create: "Reservar",
+    fam_kids_creating: "Reservando...",
+    fam_kids_cancel: "Cancelar",
+    fam_kids_created: "Dirección reservada · enlace copiado",
+    fam_kids_address_reserved: "Dirección reservada",
+    fam_kids_create_failed: "No se pudo reservar esa dirección",
+    fam_kids_copy_link: "Copiar enlace de configuración",
+    fam_kids_link_copied: "Enlace de configuración copiado",
+    fam_kids_regenerate: "Volver a generar el enlace",
+    fam_kids_regenerated: "Se generó un enlace nuevo",
+    fam_kids_setup_now: "Configurar ahora",
+    fam_kids_release: "Liberar",
+    fam_kids_released: "Reserva liberada",
+    fam_kids_release_confirm:
+      "¿Liberar esta dirección reservada? Volverá a estar disponible para todo el mundo.",
+    fam_kids_status_reserved: "Reservada",
+    fam_kids_status_claimed: "Activa",
+    fam_kids_claimed_active: "Cuenta configurada y unida a tu familia",
+    fam_kids_load_failed: "No se pudieron cargar las reservas",
+    fam_kids_claim_setup_for: "Configurando {{address}}",
+    fam_kids_claim_intro:
+      "Elige una contraseña para terminar de configurar esta dirección familiar.",
+    fam_kids_claim_invalid_title: "Este enlace ya no es válido",
+    fam_kids_claim_invalid_body:
+      "Este enlace ha caducado, ya se usó o se retiró. Pide uno nuevo a quien gestiona la familia.",
+    fam_kids_claim_signed_in_title: "Has iniciado sesión en otra cuenta",
+    fam_kids_claim_signed_in_body:
+      "Este enlace configura una cuenta infantil nueva. Ábrelo en una ventana privada o cópialo para usarlo en el dispositivo de tu hijo.",
+    fam_kids_release_modal_title: "¿Liberar esta dirección?",
+    fam_kids_release_modal_body:
+      "{{address}} volverá a estar disponible para que cualquiera lo registre. Esta acción no se puede deshacer.",
+    fam_kids_release_btn: "Liberar",
+    fam_org_event_address_reserved: "Dirección reservada",
+    fam_org_event_reservation_released: "Reserva liberada",
+    fam_org_event_shared_mailbox_created: "Buzón compartido creado",
+    fam_org_event_shared_mailbox_deleted: "Buzón compartido eliminado",
+    fam_org_event_shared_mailbox_grant_added:
+      "Acceso al buzón compartido concedido",
+    fam_org_event_shared_mailbox_grant_revoked:
+      "Acceso al buzón compartido retirado",
+    fam_org_event_shared_mailbox_rotated: "Claves del buzón compartido rotadas",
+    fam_org_event_consent_request_created: "Consentimiento solicitado",
+    fam_org_event_consent_declined: "Consentimiento rechazado",
+    fam_org_event_consent_all_accepted: "Consentimiento completado",
+    fam_org_activity_address_reserved:
+      "{{actor}} reservó una dirección para un niño",
+    fam_org_activity_reservation_released:
+      "{{actor}} liberó una dirección reservada",
+    fam_org_activity_shared_mailbox_created:
+      "{{actor}} creó un buzón compartido",
+    fam_org_activity_shared_mailbox_deleted:
+      "{{actor}} eliminó un buzón compartido",
+    fam_org_activity_shared_mailbox_grant_added:
+      "{{actor}} concedió acceso a un buzón compartido",
+    fam_org_activity_shared_mailbox_grant_revoked:
+      "{{actor}} retiró el acceso a un buzón compartido",
+    fam_org_activity_shared_mailbox_rotated:
+      "{{actor}} rotó las claves de un buzón compartido",
+    fam_org_activity_group_member_added:
+      "{{actor}} añadió a {{target}} a un grupo",
+    fam_org_activity_group_member_added_generic:
+      "{{actor}} añadió a alguien a un grupo",
+    fam_org_activity_group_member_removed:
+      "{{actor}} quitó a {{target}} de un grupo",
+    fam_org_activity_group_member_removed_generic:
+      "{{actor}} quitó a alguien de un grupo",
+    fam_org_activity_consent_request_created:
+      "{{actor}} solicitó consentimiento",
+    fam_org_activity_consent_declined:
+      "{{actor}} rechazó una solicitud de consentimiento",
+    fam_org_activity_consent_all_accepted:
+      "Todos aceptaron la solicitud de consentimiento",
+    sign_out_everywhere_success_one: "Sesión cerrada en {{count}} sesión más",
+    sign_out_everywhere_success_other:
+      "Sesión cerrada en {{count}} sesiones más",
+    deleted_emails_count_one: "Se eliminó {{count}} correo",
+    deleted_emails_count_other: "Se eliminaron {{count}} correos",
+    external_account_count_one: "{{count}} cuenta externa",
+    external_account_count_other: "{{count}} cuentas externas",
+    email_count_one: "{{count}} correo",
+    email_count_other: "{{count}} correos",
+    allowed_senders_count_one: "{{count}} remitente permitido",
+    allowed_senders_count_other: "{{count}} remitentes permitidos",
+    blocked_senders_count_one: "{{count}} remitente bloqueado",
+    blocked_senders_count_other: "{{count}} remitentes bloqueados",
+    plan_domains_count_one: "{{count}} dominio",
+    plan_domains_count_other: "{{count}} dominios",
+    forwarding_rules_count_one: "{{count}} regla de reenvío",
+    forwarding_rules_count_other: "{{count}} reglas de reenvío",
+    export_complete_errors_one: "No se pudo exportar {{count}} mensaje.",
+    export_complete_errors_other: "No se pudieron exportar {{count}} mensajes.",
+    export_complete_skipped_undecryptable_one:
+      "No se pudo descifrar {{count}} mensaje y quedó fuera de este archivo.",
+    export_complete_skipped_undecryptable_other:
+      "No se pudieron descifrar {{count}} mensajes y quedaron fuera de este archivo.",
+    export_complete_skipped_attachments_one:
+      "No se pudo descifrar {{count}} archivo adjunto y quedó fuera de este archivo.",
+    export_complete_skipped_attachments_other:
+      "No se pudieron descifrar {{count}} archivos adjuntos y quedaron fuera de este archivo.",
+    fam_consent_body_one:
+      "Este cambio afecta a los datos de todos los miembros de la familia. Se enviará una solicitud de consentimiento a {{count}} miembro. El cambio solo se aplicará cuando todos los miembros lo acepten.",
+    fam_consent_body_other:
+      "Este cambio afecta a los datos de todos los miembros de la familia. Se enviará una solicitud de consentimiento a {{count}} miembros. El cambio solo se aplicará cuando todos los miembros lo acepten.",
+    purge_confirm_message_one:
+      "Esto eliminará permanentemente {{count}} correo importado de {{email}}. Esta acción no se puede deshacer.",
+    purge_confirm_message_other:
+      "Esto eliminará permanentemente los {{count}} correos importados de {{email}}. Esta acción no se puede deshacer.",
+    alias_export_summary_one: "{{count}} entrada en {{files}}.",
+    alias_export_summary_other: "{{count}} entradas en {{files}}.",
+    app_lock_attempts_remaining_one: "Queda {{count}} intento",
+    app_lock_attempts_remaining_other: "Quedan {{count}} intentos",
+    vacation_reply_count: "{{count}} respuestas enviadas",
+    vacation_n_replies_sent_one: "{{count}} respuesta enviada",
+    vacation_n_replies_sent_other: "{{count}} respuestas enviadas",
+    dev_databases_count: "{{count}} bases de datos",
+    fam_org_activity_events_one: "{{count}} evento",
+    fam_org_activity_events_other: "{{count}} eventos",
+    family_activity_events_one: "{{count}} evento",
+    family_activity_events_other: "{{count}} eventos",
+    fam_org_2fa_banner_one:
+      "{{count}} miembro no ha activado la autenticación de dos factores",
+    fam_org_2fa_banner_other:
+      "{{count}} miembros no han activado la autenticación de dos factores",
+    family_security_warning_2fa_one:
+      "{{count}} miembro no ha activado la autenticación de dos factores",
+    family_security_warning_2fa_other:
+      "{{count}} miembros no han activado la autenticación de dos factores",
+    fam_org_sec_session_count_one: "{{count}} sesión activa",
+    fam_org_sec_session_count_other: "{{count}} sesiones activas",
+    fam_org_stat_seats_available_one: "{{count}} plaza disponible",
+    fam_org_stat_seats_available_other: "{{count}} plazas disponibles",
+    fam_org_members_count_one:
+      "{{used}} de {{max}} plazas usadas · {{count}} plaza disponible",
+    fam_org_members_count_other:
+      "{{used}} de {{max}} plazas usadas · {{count}} plazas disponibles",
+    account_paused_tooltip: "La sincronización de esta cuenta está en pausa.",
+    category_info_newsletters:
+      "Resúmenes y listas de correo a los que te has suscrito.",
+    category_info_transactions:
+      "Pedidos, pagos y recibos de tiendas y servicios.",
+    category_transactions: "Compras",
+    edit_account_tooltip: "Editar la cuenta",
+    gmail_app_password_notice:
+      "Este proveedor requiere una contraseña de aplicación. La contraseña normal de tu cuenta no funciona.",
+    gmail_sync_intro:
+      "Aster importa todo tu correo, incluidos los mensajes archivados, los enviados y las etiquetas. Para conectarte, crea una contraseña de aplicación y pégala en Aster.",
+    gmail_sync_note_unavailable:
+      "Si no ves las contraseñas de aplicación, activa la verificación en dos pasos y vuelve a comprobarlo. No están disponibles para cuentas que solo usan llaves de seguridad, cuentas del Programa de Protección Avanzada ni algunas cuentas de trabajo o de centros educativos.",
+    gmail_sync_step_1:
+      "Activa la verificación en dos pasos en tu cuenta si aún no está activada.",
+    gmail_sync_step_2: "Crea una contraseña de aplicación y cópiala.",
+    gmail_wizard_app_password_error_body:
+      "La contraseña normal de tu cuenta no funciona aquí. Activa la verificación en dos pasos, crea una contraseña de aplicación y pégala arriba.",
+    gmail_wizard_app_password_error_title: "No se aceptó esa contraseña",
+    gmail_wizard_connect: "Conectar el buzón",
+    gmail_wizard_step_1_body:
+      "Tu cuenta necesita la verificación en dos pasos para crear contraseñas de aplicación. Si ya está activada, ve al siguiente paso.",
+    gmail_wizard_step_2_body:
+      "En la página «Contraseñas de aplicaciones», escribe un nombre como Aster y haz clic en «Crear». Copia la contraseña de 16 caracteres que aparece, porque solo se muestra una vez.",
+    gmail_wizard_step_3_body:
+      "Los ajustes de tu correo determinan qué mensajes puede importar Aster. En la pestaña «Etiquetas», marca «Mostrar en IMAP» para «Todos», «Enviados» y cada una de tus etiquetas. En la pestaña «Reenvío y correo POP/IMAP», ajusta los límites de tamaño de las carpetas en «No limitar» y haz clic en «Guardar cambios».",
+    gmail_wizard_step_4_body:
+      "Usa la dirección de la cuenta para la que creaste la contraseña de aplicación.",
+    gmail_wizard_step_3_labels_action: "Abrir los ajustes de etiquetas",
+    gmail_wizard_step_3_imap_action: "Abrir los ajustes de IMAP",
+    gmail_wizard_step_5_title: "Pega la contraseña de aplicación",
+    gmail_wizard_step_5_body:
+      "Pega la contraseña de aplicación abajo, con o sin espacios. Aster la guarda cifrada y solo la usa para sincronizar este buzón.",
+    gmail_wizard_import_note:
+      "Aster importa todo tu correo, incluidos los mensajes archivados, los enviados y las etiquetas. Los buzones grandes pueden tardar unos días, y puedes seguir usando Aster mientras tanto.",
+    not_synced_tooltip: "Esta cuenta todavía no se ha sincronizado.",
+    protocol_desc_imap:
+      "Sincroniza las carpetas y se mantiene al día en todos tus dispositivos.",
+    protocol_desc_pop3:
+      "Descarga el correo una vez y después no sincroniza nada.",
+    protocol_tooltip_imap:
+      "IMAP mantiene tu correo en el servidor y sincroniza cada cambio en todos tus dispositivos.",
+    protocol_tooltip_jmap:
+      "JMAP es un protocolo de sincronización moderno que solo admiten unos pocos proveedores.",
+    protocol_tooltip_pop3:
+      "POP3 descarga el correo a un solo dispositivo y no sincroniza los cambios de vuelta.",
+    remove_account_tooltip: "Quitar la cuenta",
+    show_side_panel_description:
+      "Ten los contactos y otras herramientas rápidas en un panel junto a tu correo.",
   },
   mail: {
+    alias_view_sent: "Ver correo enviado",
+    alias_direction_label: "Dirección del correo",
+    alias_direction_all: "Todos",
+    alias_direction_received: "Recibidos",
+    alias_direction_sent: "Enviados",
+    alias_sent_indexing: "El correo enviado más antiguo se está indexando.",
+    bulk_archive_title: "¿Archivar {{count}} correos?",
+    bulk_archive_title_one: "¿Archivar 1 correo?",
+    bulk_archive_title_other: "¿Archivar {{count}} correos?",
+    bulk_trash_title: "¿Mover {{count}} correos a la papelera?",
+    bulk_trash_title_one: "¿Mover 1 correo a la papelera?",
+    bulk_trash_title_other: "¿Mover {{count}} correos a la papelera?",
+    sender_rule_confirm: "Crear regla",
+    sender_rule_name: "{{sender}} a {{category}}",
+    sender_identity_rotated:
+      "La identidad de cifrado de este remitente cambió desde la última vez que intercambiaron mensajes. Si no lo esperabas, confírmalo con esa persona por otro medio.",
+    sender_identity_downgraded:
+      "Los mensajes de este remitente ya no cuentan con protección poscuántica. Si no lo esperabas, confírmalo con esa persona por otro medio.",
+    recipient_identity_changed:
+      "La clave de cifrado de {{email}} cambió. Si no lo esperabas, confirma el cambio con esa persona por otro medio antes de enviar información confidencial.",
     load_all_thread_messages: "Cargar todos los mensajes",
     move_to_category: "Mover a la categoría",
     menu_applies_to_selection: "Se aplica a {count} seleccionados",
@@ -6287,7 +8258,8 @@ export const es = {
     drop_to_move_here: "Suelta aquí para mover",
     tab_new_count: "nuevos",
     tab_unread_count: "{{count}} sin leer",
-    category_empty_primary_title: "No hay nada en Principal",
+    tab_counting_unread: "Contando mensajes sin leer",
+    category_empty_primary_title: "No hay nada en la bandeja de entrada",
     category_empty_primary_desc:
       "Tus mensajes personales y conversaciones aparecerán aquí.",
     category_empty_promotions_title: "No hay descuentos",
@@ -6311,11 +8283,14 @@ export const es = {
     category_empty_shopping_title: "No hay correos de compras",
     category_empty_shopping_desc:
       "Las confirmaciones de pedidos y actualizaciones de envío aparecerán aquí.",
+    category_empty_newsletters_title: "No hay boletines",
+    category_empty_newsletters_desc:
+      "Aquí aparecen los boletines y las listas de correo a los que te suscribes.",
+    category_empty_transactions_title: "No hay recibos",
+    category_empty_transactions_desc:
+      "Aquí aparecen los pedidos, pagos y recibos de tiendas y servicios.",
     category_empty_custom_desc:
       "Los correos que coincidan con las reglas de esta categoría aparecerán aquí.",
-    view_html_part: "Ver HTML",
-    view_plain_text: "Ver texto sin formato",
-    html_blocked_label: "HTML bloqueado",
     block_sender_on_alias: "Bloquear remitente en el alias",
     block_sender_on_alias_success: "{{sender}} bloqueado en {{alias}}",
     block_sender_on_alias_failed:
@@ -6353,8 +8328,6 @@ export const es = {
     reply: "Responder",
     reply_all: "Responder a todos",
     react: "Reaccionar",
-    already_reacted: "Ya has reaccionado con esto",
-    remove_your_reaction: "Quitar tu reacción {emoji}",
     you_reacted_with: "Has reaccionado con {{emoji}}",
     reacted_with: "{{name}} ha reaccionado con {{emoji}}",
     forward: "Reenviar",
@@ -6367,6 +8340,9 @@ export const es = {
     attachments: "Adjuntos",
     translation_offer: "Este mensaje está en {{language}}.",
     translation_translate: "Traducir",
+    translation_offer_download:
+      "Este mensaje está en {{language}}. Al traducirlo se descarga un paquete de idioma.",
+    translation_translate_download: "Traducir (descarga de {{size}})",
     translation_in_progress: "Traduciendo en tu dispositivo…",
     translation_translated_from:
       "Traducido del {{language}} en tu dispositivo.",
@@ -6385,13 +8361,9 @@ export const es = {
     find_emails_from: "Buscar correos de {{sender}}",
     move_to: "Mover a",
     label: "Etiqueta",
-    select_recipients: "Seleccionar destinatarios",
     send: "Enviar",
-    send_later: "Enviar más tarde",
     discard: "Descartar",
     save_draft: "Guardar borrador",
-    attachment_add: "Añadir adjunto",
-    attachment_remove: "Eliminar adjunto",
     back: "Atrás",
     archiving: "Archivando...",
     mark_as_spam: "Marcar como spam",
@@ -6417,18 +8389,15 @@ export const es = {
     cc_label: "Cc",
     bcc_label: "Cco",
     encrypted: "Cifrado",
-    read_receipt: "Confirmación de lectura",
     snooze: "Posponer",
     unsnooze: "Desposponer",
     pin: "Fijar",
     pin_to_top: "Fijar arriba",
     unpin: "Desfijar",
     mute: "Silenciar",
-    unmute: "Dejar de silenciar",
     print: "Imprimir",
     view_source: "Ver fuente",
     share: "Compartir",
-    download_eml: "Descargar EML",
     move_to_folder: "Mover a carpeta",
     apply_label: "Aplicar etiqueta",
     select: "Seleccionar",
@@ -6438,6 +8407,8 @@ export const es = {
     empty_spam: "Vaciar spam",
     report_phishing: "Reportar spam",
     not_spam: "No es spam",
+    send_failed_title: "Este mensaje no se entregó.",
+    send_failed_help: "Comprueba la dirección y vuelve a enviar el mensaje.",
     spam_reasons_title: "Este mensaje se movió a spam",
     spam_reason_content_analysis: "El contenido de este mensaje parece spam",
     spam_reason_spf_fail: "El remitente no superó la verificación SPF",
@@ -6465,7 +8436,6 @@ export const es = {
     schedule: "Programar",
     scheduling: "Programando",
     saved: "Guardado",
-    saving_draft: "Guardando...",
     write_message: "Escribe tu mensaje...",
     show_quoted_text: "Mostrar texto citado",
     hide_quoted_text: "Ocultar texto citado",
@@ -6503,9 +8473,6 @@ export const es = {
     delete_old_confirm_title: "¿Eliminar correos de más de 30 días?",
     delete_old_confirm_message:
       "Esto moverá a la papelera cada correo de más de 30 días. Podrás deshacerlo justo después.",
-    archive_newsletters_confirm_title: "¿Archivar todos los boletines?",
-    archive_newsletters_confirm_message:
-      "Esto archivará cada correo detectado como boletín en tu bandeja de entrada. Podrás deshacerlo justo después.",
     delete_all: "Eliminar todo",
     archive_subtitle: "Archiva correos para mantener tu bandeja limpia",
     trash_subtitle: "Los correos eliminados aparecerán aquí",
@@ -6513,6 +8480,7 @@ export const es = {
     one_hour_option: "1 hora",
     twenty_four_hours_option: "24 horas",
     seven_days_option: "7 días",
+    thirty_days_option: "30 días",
     search_messages: "Buscar en tus mensajes...",
     search_by_sender: "Buscar por remitente",
     filter_by_attachments: "Filtrar por adjuntos",
@@ -6524,21 +8492,26 @@ export const es = {
     empty_spam_button: "Vaciar spam",
     archived_label: "Archivado",
     write_reply: "Escribe tu respuesta...",
+    trash_messages_confirmation:
+      "Los mensajes seleccionados se mueven a la Papelera y puedes restaurarlos desde ahí.",
     delete_messages_title: "Eliminar mensajes",
     delete_messages_confirmation:
       "Los mensajes seleccionados se eliminarán para siempre y no podrás deshacerlo.",
+    confirm_bulk_action_scope_description_one:
+      "Esto afecta al correo de {{scope}}.",
+    confirm_bulk_action_count_description_one: "Esto afecta a 1 correo.",
+    remove_from_folder: "Quitar de la carpeta",
     confirm_bulk_action_title: "Confirmar acción masiva",
-    confirm_bulk_action_description:
-      "Esta acción afectará a todas las conversaciones de esta vista.",
     bulk_action_index_not_ready:
       "Esta pestaña todavía se está indexando. Inténtalo de nuevo en un momento.",
     bulk_action_index_building:
       "Esta pestaña todavía se está indexando. La acción empieza en cuanto el índice esté listo.",
     bulk_action_index_capped:
       "Esta pestaña tiene demasiadas conversaciones para actualizarlas de una vez. Selecciona conversaciones e inténtalo de nuevo.",
-    archive_messages_title: "Archivar mensajes",
     archive_messages_confirmation:
       "¿Estás seguro de que quieres archivar los mensajes seleccionados?",
+    spam_email_sender_message:
+      "Este mensaje se mueve a Spam, junto con otros mensajes de este remitente en esta vista. Los mensajes nuevos de este remitente también van a Spam.",
     mark_spam_title: "¿Marcar como spam?",
     mark_spam_confirmation:
       "¿Estás seguro de que quieres marcar los mensajes seleccionados como spam?",
@@ -6559,8 +8532,6 @@ export const es = {
     shipping_delivered: "Entregado",
     shipping_delivery_exception: "Excepción de entrega",
     shipping_status_unknown: "Estado desconocido",
-    shipping_shipped_date: "Fecha de envío",
-    shipping_delivered_on: "Entregado el",
     bold: "Negrita",
     italic: "Cursiva",
     underline: "Subrayado",
@@ -6572,21 +8543,14 @@ export const es = {
     insert_link: "Insertar enlace",
     insert_image: "Insertar imagen",
     attach_file: "Adjuntar archivo",
-    more_formatting: "Más formato",
-    text_style: "Estilo de texto",
     text_alignment: "Alineación de texto",
     text_formatting: "Formato de texto",
-    formatting_options: "Opciones de formato",
-    format_text: "Formato",
     align_left: "Alinear a la izquierda",
     align_center: "Alinear al centro",
     align_right: "Alinear a la derecha",
-    heading_normal: "Normal",
-    heading_1: "Encabezado 1",
-    heading_2: "Encabezado 2",
-    heading_3: "Encabezado 3",
     add_file: "Añadir archivo",
     attaching_original_files: "Adjuntando los archivos originales",
+    compose_total_size: "Tamaño total",
     display_text_placeholder: "Texto para mostrar",
     url_placeholder: "https://ejemplo.com",
     schedule_send: "Programar envío",
@@ -6595,18 +8559,13 @@ export const es = {
     no_signature: "Sin firma",
     self_destruct: "Autodestrucción",
     self_destruct_after: "Autodestrucción después de",
-    category_promos: "Promociones",
     search_history: "Historial de búsqueda",
-    search_error:
-      "La búsqueda no se completó. Otro intento debería resolverlo.",
+    search_error: "Inténtalo de nuevo.",
     delete_draft_confirmation:
       "Este borrador y cualquier cambio sin guardar se eliminarán para siempre.",
     plain_text_warning:
       "Cambiar a texto sin formato elimina todo el formato de este borrador y no podrás recuperarlo desde este redactor. Tus otros borradores no se ven afectados.",
     remove_formatting: "Eliminar formato",
-    encrypt_with_pgp: "Cifrar con PGP",
-    pgp_encryption_active:
-      "Cifrado PGP activo - se usará la clave pública del destinatario",
     font_color: "Color de fuente",
     highlight_color: "Color de resaltado",
     write_message_placeholder: "Escribe un mensaje",
@@ -6614,6 +8573,9 @@ export const es = {
     folder: "Carpeta",
     empty_inbox_title: "Tu bandeja de entrada está vacía",
     empty_inbox_subtitle: "Los nuevos mensajes aparecerán aquí",
+    empty_all_title: "Aún no hay correo aquí",
+    empty_all_subtitle:
+      "Aquí aparece todo lo de tu cuenta, salvo el spam y la papelera",
     empty_sent_title: "Sin mensajes enviados",
     empty_sent_subtitle: "Los mensajes que envíes aparecerán aquí",
     empty_drafts_title: "Sin borradores",
@@ -6645,7 +8607,6 @@ export const es = {
     move_to_trash_question: "¿Mover a la papelera?",
     archive_email_message: "Este correo se moverá a tu carpeta de Archivo.",
     trash_email_message: "Este correo se moverá a tu carpeta de Papelera.",
-    view_contact_profile: "Ver perfil del contacto",
     toggle_filters: "Alternar filtros",
     save_search: "Guardar esta búsqueda",
     clear_search_data: "Limpiar datos de búsqueda",
@@ -6697,11 +8658,6 @@ export const es = {
     sort_newest: "Más recientes primero",
     sort_oldest: "Más antiguos primero",
     sort_sender: "Nombre del remitente",
-    search_field_all: "Todo",
-    search_field_subject: "Asunto",
-    search_field_body: "Cuerpo",
-    search_field_sender: "Remitente",
-    search_field_recipient: "Destinatario",
     filter_today: "Hoy",
     filter_yesterday: "Ayer",
     filter_this_week: "Esta semana",
@@ -6739,7 +8695,6 @@ export const es = {
     search_by_sender_subject_content:
       "Buscar por remitente, asunto o contenido",
     has_attachments: "Tiene adjuntos",
-    starred_only: "Solo destacados",
     search_in: "Buscar en",
     from_date: "Desde fecha",
     to_date: "Hasta fecha",
@@ -6751,14 +8706,12 @@ export const es = {
     active_filters: "Filtros activos:",
     quick_filters: "Filtros rápidos:",
     larger_than_search: "Mayor a 5MB",
-    search_privacy_note:
-      "La búsqueda se realiza en el lado del cliente usando tokens cifrados. Tus mensajes permanecen cifrados de extremo a extremo.",
     navigate: "Navegar",
     load_more_results: "Cargar más resultados ({{remaining}} restantes)",
     contacts: "Contactos",
     scheduled_for: "Programado para",
-    section_pinned: "Fijados",
-    section_primary: "Principal",
+    scheduled_send_failed:
+      "No se pudo enviar este mensaje. Elige una nueva hora de envío para volver a intentarlo.",
     spam_email_message: "Este correo se moverá a tu carpeta de Spam.",
     delete_permanently_question: "¿Eliminar permanentemente?",
     empty_spam_folder_question: "¿Vaciar carpeta de spam?",
@@ -6780,7 +8733,6 @@ export const es = {
     shortcut_previous_email: "Correo anterior",
     shortcut_open_email: "Abrir correo",
     shortcut_close_back: "Cerrar / volver a la lista",
-    shortcut_back_to_list: "Volver a la lista",
     shortcut_delete_trash: "Eliminar / papelera",
     shortcut_star_unstar: "Destacar / quitar estrella",
     shortcut_compose_new: "Redactar nuevo correo",
@@ -6789,7 +8741,6 @@ export const es = {
     shortcut_show_shortcuts: "Mostrar atajos",
     important: "Importante",
     sent_by_me: "Enviado por mí",
-    most_relevant: "Más relevante",
     most_recent: "Más reciente",
     use_arrows_to_navigate:
       "Usa las flechas de arriba para navegar entre páginas",
@@ -6800,34 +8751,41 @@ export const es = {
     pick_expiration: "Elegir expiración",
     set_expiration: "Establecer expiración",
     password_description:
-      "Los destinatarios externos necesitarán esta contraseña para ver el correo",
+      "Los destinatarios necesitarán esta contraseña para ver el correo",
     no_password: "Sin contraseña",
     replying_to: "Respondiendo a {{name}}",
     reply_sent_successfully: "Respuesta enviada exitosamente",
     successfully_unsubscribed: "Suscripción cancelada exitosamente",
-    unsubscribe_success_message: "Ya no recibirás correos de {{sender}}",
     unsubscribe_failed:
       "La baja no se completó. El enlace en el correo te llevará al sitio del remitente para darte de baja tú mismo.",
-    unsubscribe_try_again:
-      "Inténtalo de nuevo, o usa el enlace de abajo para darte de baja tú mismo.",
     unsubscribe_manual_required:
       "Este remitente no admite baja automática. El enlace del correo te permitirá hacerlo tú mismo.",
     stop_receiving_from: "Dejar de recibir correos de",
     send_email: "Enviar correo",
-    purchase_receipt: "Recibo de compra",
     order_number: "Pedido #{{id}}",
     items: "Artículos",
     more_items_count: "+{{count}} artículos más",
     card_ending_in: "Tarjeta terminada en {{last_four}}",
-    confirmation_label: "Confirmación: {{number}}",
-    transaction_label: "Transacción: {{id}}",
     purchase_extraction_privacy:
       "Extraído localmente de tu correo, y nada se envía a nuestros servidores.",
-    ordered_from: "Pedido en {{merchant}}",
     receipt_is_this_correct: "¿Es correcto?",
     receipt_feedback_correct: "Sí, es correcto",
     receipt_feedback_incorrect: "No, hay un error",
     receipt_feedback_thanks: "Gracias por tu opinión",
+    order_from: "Pedido de {{merchant}}",
+    package_from: "Paquete de {{carrier}}",
+    order_details: "Detalles del pedido",
+    ordered_on: "Pedido el {{date}}",
+    merchant: "Comercio",
+    order_number_label: "Número de pedido",
+    show_details: "Mostrar detalles",
+    hide_details: "Ocultar detalles",
+    tracking_number: "Número de seguimiento",
+    delivered_on: "Entregado el {{date}}",
+    expected_by: "Previsto para el {{date}}",
+    shipped_on: "Enviado el {{date}}",
+    shipment_update: "Actualización del envío",
+    track_package: "Seguir el paquete",
     external_content_blocked: "Contenido externo bloqueado ({{message}})",
     message_deleted: "Este mensaje fue eliminado",
     unknown_recipient: "(destinatario desconocido)",
@@ -6838,13 +8796,15 @@ export const es = {
     unstar: "Quitar estrella",
     mark_unread: "Marcar como no leído",
     mark_read: "Marcar como leído",
+    verified_sender: "Remitente verificado",
+    verified_sender_desc:
+      "El remitente de este correo ha verificado que es propietario de {{domain}}.",
     copy_message_id: "Copiar ID del mensaje",
     hide_source: "Ocultar fuente",
     view_dark_mode: "Ver en modo oscuro",
     exit_dark_mode: "Salir del modo oscuro",
     view_all_dark_mode: "Ver todo en modo oscuro",
     exit_all_dark_mode: "Salir de modo oscuro en todos",
-    from_header: "De",
     sent_label: "Enviado",
     scheduled_label: "Programado",
     trashed_label: "En papelera",
@@ -6854,8 +8814,16 @@ export const es = {
     total_pages_label: "{{count}} páginas",
     loading_preview: "Loading preview\\u2026",
     preview_failed: "La vista previa no se cargó. Abrir el correo lo mostrará.",
-    move_1_conversation: "Mover 1 conversación",
+    pdf_preview_failed: "Este PDF no se puede mostrar aquí. Para abrirlo, descárgalo.",
+    pdf_password_title: "Este PDF está protegido con contraseña",
+    pdf_password_description: "Para ver este PDF, introduce su contraseña. La contraseña se queda en este dispositivo.",
+    pdf_password_label: "Contraseña del PDF",
+    pdf_password_incorrect: "La contraseña no es correcta. Inténtalo de nuevo.",
+    pdf_password_submit: "Abrir",
+    pdf_password_protected: "Protegido con contraseña",
     move_n_conversations: "Mover {{ count }} conversaciones",
+    move_n_conversations_one: "Mover {{count}} conversación",
+    move_n_conversations_other: "Mover {{count}} conversaciones",
     view_message: "Ver mensaje",
     blocking: "Bloqueando...",
     block: "Bloquear",
@@ -6879,7 +8847,6 @@ export const es = {
       "Todas las {{ count }} conversaciones están seleccionadas.",
     all_on_page_selected:
       "Las {{ count }} conversaciones de esta página están seleccionadas.",
-    all_search_results_for: "Todos los resultados para “{{query}}”",
     attachment_singular: "archivo adjunto",
     load_attachments: "Cargar archivos adjuntos",
     bounced: "Rebotado",
@@ -6888,9 +8855,9 @@ export const es = {
     delivered: "Entregado",
     download_file_named: "Descargar {{filename}}",
     download_headers: "Descargar encabezados",
-    email_is_clean: "Este correo está limpio",
+    email_is_clean:
+      "Este correo parece limpio: no se detectaron elementos de seguimiento.",
     encryption_label: "Cifrado",
-    failed_status: "Fallido",
     filter_after: "Después de: {{ value }}",
     filter_before: "Antes de: {{ value }}",
     filter_date: "Fecha: {{ value }}",
@@ -6911,13 +8878,14 @@ export const es = {
     filter_smaller: "Menor que: {{ value }}",
     filter_subject: "Asunto: {{ value }}",
     filter_to: "Para: {{ value }}",
+    filter_contact: "Contacto: {{ value }}",
     filter_type_archive: "Archivo comprimido",
     filter_type_audio: "Audio",
     filter_type_document: "Documento",
     filter_type_image: "Imagen",
     filter_type_pdf: "PDF",
     filter_type_spreadsheet: "Hoja de cálculo",
-    filter_type_video: "Video",
+    filter_type_video: "Vídeo",
     folder_item_count: "{{count}} elementos",
     folder_item_count_singular: "{{count}} elemento",
     font: "Fuente",
@@ -6925,7 +8893,6 @@ export const es = {
     forward_subject_prefix: "Fwd:",
     forwarded_count: "{{count}} reenviado",
     forwarded_count_k: "{{count}}k reenviados",
-    forwarded_message_separator: "---------- Mensaje reenviado ----------",
     headers_copied: "Encabezados copiados",
     hide_headers: "Ocultar encabezados",
     image: "Imagen",
@@ -6941,7 +8908,6 @@ export const es = {
     last_forwarded: "Último: {{ date }}",
     link_text_optional: "Texto del enlace (opcional)",
     links_cleaned: "Enlaces limpiados",
-    links_cleaned_count: "{{count}} enlace(s) limpiado(s)",
     load_external_content: "Cargar contenido externo",
     location_label: "Ubicación",
     message_details: "Detalles del mensaje",
@@ -6949,19 +8915,14 @@ export const es = {
     message_id_label: "Identificador del mensaje",
     more_folders_count: "{{count}} carpeta(s) más",
     n_blocked: "{{count}} bloqueado(s)",
-    n_forwarded: "{{count}} reenviado(s)",
     n_messages: "{{count}} mensaje(s)",
     no_emails_match_query: "Ningún correo coincide con “{{query}}”",
     showing_results_for: "Mostrando resultados de “{{corrected}}”",
     search_instead_for: "Buscar “{{original}}” en su lugar",
     no_raw_headers: "No hay encabezados disponibles",
-    no_trackers_detected: "No se detectaron rastreadores",
-    no_trackers_found: "No se encontraron rastreadores",
     notification_mention: "{{ sender }} te mencionó",
     notification_new_email: "Nuevo correo de {{ sender }}",
     notification_reply: "{{ sender }} respondió",
-    older_message: "Mensaje anterior",
-    older_messages: "{{count}} mensajes anteriores",
     op_after_date: "Después del",
     op_before_date: "Antes del",
     op_exclude_sender: "Excluir remitente",
@@ -6997,6 +8958,8 @@ export const es = {
     chip_advanced_search: "Búsqueda avanzada",
     spam_trash_hidden_notice:
       "Algunos mensajes en Spam y Papelera coinciden con tu búsqueda.",
+    search_index_incomplete:
+      "No se pudo leer parte de tu índice de búsqueda en este dispositivo, por lo que pueden faltar algunos mensajes en estos resultados.",
     view_spam_trash_messages: "Ver mensajes",
     search_scope_anywhere: "Correo, spam y papelera",
     op_in_anywhere: "En todas partes, incluidos spam y papelera",
@@ -7019,8 +8982,6 @@ export const es = {
     op_without_attachments: "Sin adjuntos",
     open_unsubscribe_page: "Abrir página para cancelar suscripción",
     param_removed_from_n_links: "{{param}} eliminado de {{count}} enlace(s)",
-    remote_content_blocked: "Contenido remoto bloqueado",
-    remote_images_blocked_count: "{{count}} imagen(es) remota(s) bloqueada(s)",
     reply_quote_header: "El {{date}}, {{name}} escribió:",
     reply_subject_prefix: "Re:",
     reply_from_mismatch_title: "¿Responder desde otra dirección?",
@@ -7030,14 +8991,14 @@ export const es = {
     reply_from_mismatch_send_anyway: "Enviar de todos modos",
     search_date_within: "Dentro de",
     search_does_not_have: "No contiene",
-    search_from_placeholder: "De",
+    search_from_placeholder: "nombre@ejemplo.com",
     search_has_words: "Contiene las palabras",
     search_section_message: "Mensaje",
     search_section_filters: "Filtros",
     search_message_content: "Contenido del mensaje",
     search_message_content_help: "Buscar en el contenido de los mensajes",
     search_message_content_help_body:
-      "Activa esta opción para buscar en el texto completo de los mensajes cifrados.",
+      "Tus mensajes están cifrados de extremo a extremo, así que hay que descargarlos e indexarlos en este dispositivo antes de poder buscar en su texto. Esto puede ocupar bastante espacio. El índice nunca sale de este dispositivo y se elimina al cerrar sesión.",
     search_placeholder_hint: "Buscar correos...",
     search_scope_all: "Todo",
     search_scope_label: "Alcance de búsqueda",
@@ -7046,7 +9007,7 @@ export const es = {
     search_size_less: "Menor que",
     search_size_op: "Operador de tamaño",
     search_size_unit: "Unidad",
-    search_to_placeholder: "Para",
+    search_to_placeholder: "nombre@ejemplo.com",
     search_within_1_day: "1 día",
     search_within_1_month: "1 mes",
     search_within_1_week: "1 semana",
@@ -7062,8 +9023,6 @@ export const es = {
       "Intenta acotar tu búsqueda con términos más específicos.",
     refine_your_search_action: "Refinar tu búsqueda",
     turn_off_indexing_action: "Desactivar indexación",
-    content_search_slower:
-      "Buscar en el contenido de los mensajes puede ser lento en buzones grandes.",
     select_all_in_folder:
       "Seleccionar las {{ count }} conversaciones en {{ folder }}",
     show_headers: "Mostrar encabezados",
@@ -7076,29 +9035,66 @@ export const es = {
     spam_auto_delete_notice_family:
       "Los elementos de spam se eliminarán automáticamente después de {{ days }} días (establecido por el administrador de familia).",
     spy_pixels_blocked: "Píxeles espía bloqueados",
-    spy_pixels_blocked_count: "{{count}} píxel(es) espía bloqueado(s)",
     stylesheet: "Hoja de estilo",
     to_recipients_prefix: "para {{ recipients }}",
     received_on_prefix: "recibido en {{ address }}",
     received_via_alias: "entregado a tu alias {{ address }}",
     tracker: "Rastreador",
-    tracker_domain: "{{domain}}",
     trackers: "Rastreadores",
-    trackers_found: "{{count}} rastreador(es) encontrado(s)",
     tracking_protection: "Protección contra rastreo",
-    tracking_protection_description:
-      "Los enlaces de rastreo y píxeles espía han sido bloqueados.",
     trash_auto_delete_notice:
       "Los elementos de la papelera se eliminarán automáticamente después de {{ days }} días.",
     try_adjusting_filters: "Intenta ajustar tus filtros",
     url_label: "URL",
-    verification_invalid: "Firma inválida",
-    verification_no_keys: "No hay claves disponibles",
     official_sender: "Dirección oficial de Aster",
     official_sender_desc:
       "Este mensaje proviene de una dirección oficial de Aster. Aster nunca te pedirá tu contraseña ni tu frase de recuperación por correo.",
-    verification_verified: "Verificado",
-    zero_access_encrypted: "Cifrado sin acceso",
+    zero_access_encrypted: "Cifrado de extremo a extremo",
+    sort_by: "Ordenar por",
+    newest_first: "Más recientes primero",
+    oldest_first: "Más antiguos primero",
+    archive_conversation_count: "Archivar conversación ({{count}} mensajes)",
+    move_conversation_to_trash_count:
+      "Mover conversación a la papelera ({{count}} mensajes)",
+    translation_unsupported: "{{language}} todavía no es compatible.",
+    translation_unsupported_info_title: "Por qué no se tradujo",
+    translation_unavailable_info_title: "Por qué no se tradujo",
+    translation_unsupported_info_body:
+      "La traducción se realiza por completo en tu dispositivo, así que solo funciona con los paquetes de idioma que incluye Aster. Todavía no hay paquete para {{language}}, y no se envió nada a ningún servidor.",
+    translation_unsupported_info_body_list:
+      "La traducción se realiza por completo en tu dispositivo, así que solo funciona con los paquetes de idioma que incluye Aster. Todavía no hay paquete para {{language}}. Disponibles ahora mismo: {{languages}}. No se envió nada a ningún servidor.",
+    translation_unavailable_info_body:
+      "El traductor del dispositivo no pudo terminar este mensaje. Suele deberse a que el paquete de idioma aún se está descargando, a que el mensaje mezcla varios idiomas o a que se compone sobre todo de nombres, números y enlaces. No se envió nada a ningún servidor.",
+    more_folders_count_one: "+{{count}} carpeta más",
+    more_folders_count_other: "+{{count}} carpetas más",
+    more_messages_count: "{{count}} mensajes más",
+    more_messages_count_one: "{{count}} mensaje más",
+    more_messages_count_other: "{{count}} mensajes más",
+    reply_to_name: "Responder a {{name}}",
+    reply_all_to_name: "Responder a {{name}} y a todos",
+    forward_message_heading: "Reenviar mensaje",
+    param_removed_from_n_links_one: "{{param}} eliminado de {{count}} enlace",
+    param_removed_from_n_links_other:
+      "{{param}} eliminado de {{count}} enlaces",
+    bulk_delete_title: "¿Eliminar {{count}} correos definitivamente?",
+    bulk_delete_title_one: "¿Eliminar 1 correo definitivamente?",
+    bulk_delete_title_other: "¿Eliminar {{count}} correos definitivamente?",
+    bulk_spam_title: "¿Denunciar {{count}} correos como spam?",
+    bulk_spam_title_one: "¿Denunciar 1 correo como spam?",
+    bulk_spam_title_other: "¿Denunciar {{count}} correos como spam?",
+    confirm_bulk_action_count_description:
+      "Esto afecta a los {{count}} correos.",
+    confirm_bulk_action_count_description_other:
+      "Esto afecta a los {{count}} correos.",
+    confirm_bulk_action_scope_description:
+      "Esto afecta a los {{count}} correos de {{scope}}.",
+    confirm_bulk_action_scope_description_other:
+      "Esto afecta a los {{count}} correos de {{scope}}.",
+    remove_label: "Quitar la etiqueta",
+    sender_rule_created:
+      "El correo nuevo de este remitente ahora va a {{category}}.",
+    sender_rule_offer:
+      "Sueles mover el correo de {{sender}} a {{category}}. ¿Quieres que se haga automáticamente?",
   },
   auth: {
     passkey_verification: "Verificar con clave de acceso",
@@ -7115,25 +9111,17 @@ export const es = {
     greeting_comma: ",",
     greeting_night: "De madrugada",
     manage_account: "Ajustes de la cuenta",
-    official_account: "Cuenta oficial",
     sign_out_all: "Cerrar sesión en todas las cuentas",
     session_expired_tag: "Sesión caducada",
     default_account: "Predeterminada",
     storage_of_used: "{{used}} de {{total}} usados",
-    hide_more_accounts: "Ocultar más cuentas",
-    show_more_accounts: "Mostrar más cuentas",
     change_photo: "Cambiar foto",
-    active_account: "Activa",
     add_another_account: "Añadir otra cuenta",
+    resubscribe_to_aster: "Volver a suscribirte a Aster",
     switch_to_account: "Cambiar a esta cuenta",
     remove_account: "Eliminar de este dispositivo",
-    remove_account_title: "¿Eliminar cuenta?",
-    remove_account_message:
-      "Se cerrará la sesión de {{email}} en este dispositivo. Tus datos en el servidor no se verán afectados.",
-    confirm_remove_account: "Eliminar",
     account_limit_for_plan:
       "Tu plan permite hasta {{max}} cuentas conectadas. Actualiza para añadir más.",
-    signing_out_current: "Cerrando sesión...",
     email: "Correo electrónico",
     password: "Contraseña",
     confirm_password: "Confirmar contraseña",
@@ -7145,7 +9133,6 @@ export const es = {
     dont_have_account: "¿No tienes una cuenta?",
     terms_of_service: "Términos de servicio",
     privacy_policy: "Política de privacidad",
-    agree_terms: "Acepto los Términos de servicio y la Política de privacidad",
     username: "Nombre de usuario",
     sign_in_to_aster: "Iniciar sesión en Aster",
     enter_credentials: "Ingresa tus credenciales para acceder a tu cuenta",
@@ -7153,6 +9140,7 @@ export const es = {
     keep_signed_in: "Mantener sesión iniciada",
     secure_devices_only: "solo en dispositivos seguros",
     back_to_inbox: "Volver a la bandeja de entrada",
+    back_to_link_device: "Volver a vincular dispositivo",
     enter_password_placeholder: "Ingresa tu contraseña",
     authenticating: "Autenticando...",
     fetching_auth_data: "Obteniendo datos de autenticación...",
@@ -7161,7 +9149,7 @@ export const es = {
     getting_user_info: "Obteniendo información del usuario...",
     enter_backup_code: "Ingresar código de respaldo",
     backup_code_length_error:
-      "Un código de respaldo tiene 12 caracteres (8 en códigos antiguos). Revisar la cuenta suele resolverlo.",
+      "Un código de respaldo tiene 12 caracteres (8 en los códigos antiguos). Comprueba el código e inténtalo de nuevo.",
     two_fa_temporarily_locked:
       "Demasiados intentos fallidos. La verificación en dos pasos está bloqueada durante unos 15 minutos.",
     two_fa_code_already_used:
@@ -7177,6 +9165,11 @@ export const es = {
       "Cada código de respaldo solo se puede usar una vez",
     backup_code_placeholder: "XXXX-XXXX-XXXX",
     use_authenticator_instead: "Usar aplicación de autenticación en su lugar",
+    recovery_code_in_backup_field: "Este es un código de recuperación, no un código de respaldo. Para usarlo, restablece tu contraseña con tu código de recuperación.",
+    reset_with_recovery_code: "Restablecer con código de recuperación",
+    no_backup_codes_title: "Iniciar sesión sin tu llave de acceso",
+    no_backup_codes_description: "Los códigos de respaldo se generan con una aplicación de autenticación, y esta cuenta no usa ninguna. Para iniciar sesión sin tu llave de acceso, restablece tu contraseña con uno de tus códigos de recuperación. Tus correos, contactos y ajustes se conservan, y después puedes añadir una nueva llave de acceso.",
+    try_passkey_again: "Volver a intentar con la llave de acceso",
     two_factor_auth_title: "Autenticación de dos factores",
     enter_2fa_code:
       "Ingresa el código de 6 dígitos de tu aplicación de autenticación",
@@ -7189,19 +9182,11 @@ export const es = {
       "Una cuenta para todos los servicios de Aster. Gratis, segura y privada.",
     create_free_account: "Crear cuenta gratuita",
     sign_in_existing: "Iniciar sesión en cuenta existente",
-    choose_email_address: "Elige tu dirección de correo",
-    pick_unique_username:
-      "Elige un nombre de usuario único para tu nuevo correo de Aster",
-    new_email_address: "Nueva dirección de correo",
     your_new_aster_address: "Tu nueva dirección de Aster Mail",
-    generate_random_username: "Generar nombre de usuario aleatorio",
-    generate_random_display: "Generar nombre para mostrar aleatorio",
     profile_color: "Color de perfil",
-    preview_avatar: "Vista previa de tu avatar de perfil",
     secure_your_account: "Protege tu cuenta",
     create_strong_password:
       "Crea una contraseña segura para proteger tu cuenta",
-    choose_your_plan: "Elige tu plan",
     setting_up_account: "Configurando tu cuenta",
     save_recovery_codes: "Guarda tus códigos de recuperación",
     store_codes_safely:
@@ -7211,6 +9196,57 @@ export const es = {
     recovery_download_failed: "La descarga falló. Inténtalo de nuevo.",
     add_backup_email: "Añadir correo de respaldo",
     skip_for_now: "Omitir por ahora",
+    create_your_account: "Crea tu cuenta",
+    welcome_workspace_subtitle:
+      "Te damos la bienvenida a Aster. Elige un nombre de usuario para empezar.",
+    username_placeholder: "Usuario",
+    switch_domain: "Cambiar dominio",
+    sign_in_domain_hint:
+      "Elige el dominio de tu dirección. Si no estás seguro, cualquiera de los dos funciona.",
+    terms_footer_next:
+      "Al hacer clic en Siguiente, confirmas que has leído y aceptas los siguientes documentos de Aster:",
+    create_a_password: "Crea una contraseña",
+    recommend_strong_password:
+      "Usa al menos 8 caracteres. Una contraseña más larga con caracteres variados es más segura.",
+    downloading: "Descargando...",
+    copy_key: "Copiar clave",
+    copy_codes: "Copiar códigos",
+    password_recovery_email: "Correo de recuperación de contraseña",
+    recovery_email_step_desc:
+      "Añade una dirección de correo para volver a entrar en tu cuenta si pierdes tus códigos de recuperación.",
+    download_apps_title: "Descarga las apps para móvil y escritorio",
+    download_apps_desc:
+      "Lleva tu bandeja de entrada contigo en todos tus dispositivos.",
+    mail_mobile: "Mail Mobile",
+    mail_mobile_desc: "Lee y envía correo cifrado desde tu teléfono.",
+    mail_desktop: "Mail Desktop",
+    mail_desktop_desc: "La app de escritorio para Windows, macOS y Linux.",
+    notifications_step_title: "Activa las notificaciones del navegador",
+    notifications_step_desc:
+      "Recibe un aviso cuando llegue correo nuevo, incluso si esta pestaña está en segundo plano.",
+    notifications_turned_on: "Las notificaciones están activadas",
+    notifications_blocked_hint:
+      "Las notificaciones están bloqueadas. Para activarlas, permite las notificaciones de este sitio en la configuración de tu navegador.",
+    notifications_sample_body:
+      "Recibirás una notificación como esta cuando llegue correo nuevo.",
+    notification_preview_title: "Mensaje nuevo",
+    notification_preview_body:
+      "Tienes un mensaje nuevo en tu bandeja de entrada.",
+    turn_on: "Activar",
+    addresses_step_title: "Crea direcciones para distintos usos",
+    addresses_step_desc:
+      "Añade direcciones adicionales para el trabajo, boletines o compras. Todas llegan a la misma bandeja de entrada.",
+    address_n: "Dirección {{n}}",
+    address_must_begin_end_alphanumeric:
+      "La dirección de correo debe empezar y terminar con una letra o un número.",
+    custom_domain_step_title: "Personaliza tu dirección con un dominio propio",
+    custom_domain_step_desc:
+      "Envía y recibe correo desde una dirección en un dominio que te pertenece.",
+    custom_domain_own: "Configurar un dominio que ya tienes",
+    custom_domain_own_desc:
+      "Conecta un dominio de cualquier registrador en pocos minutos.",
+    custom_domain_new: "Obtener un dominio nuevo",
+    custom_domain_new_desc: "Busca y compra un dominio sin salir de Aster.",
     recovery_email_required_gate_title: "Correo de recuperación obligatorio",
     recovery_email_required_gate_desc:
       "Se requiere un correo de recuperación para crear una cuenta adicional. Esto ayuda a proteger todas tus cuentas.",
@@ -7219,13 +9255,24 @@ export const es = {
     username_alphanumeric:
       "Usa letras, números y puntos. Los puntos no pueden ir al principio, al final ni duplicados.",
     username_not_available:
-      "Este nombre de usuario está ocupado. Otro debería funcionar.",
+      "Este nombre de usuario no está disponible. Prueba con otro.",
     password_req_length: "Al menos 8 caracteres",
     password_req_uppercase: "Una letra mayúscula",
     password_req_lowercase: "Una letra minúscula",
     password_req_number: "Un número",
     password_max_length_register: "Usa menos de 128 caracteres.",
     password_invalid_chars: "Usa solo caracteres estándar del teclado.",
+    password_error_length: "Usa 8 caracteres o más en tu contraseña.",
+    complete_captcha_first:
+      "Completa la verificación de seguridad para continuar.",
+    password_error_uppercase: "Incluye al menos una letra mayúscula.",
+    password_error_lowercase: "Incluye al menos una letra minúscula.",
+    password_error_number: "Incluye al menos un número.",
+    password_rule_length: "Al menos 8 caracteres",
+    password_rule_case: "Letras mayúsculas y minúsculas",
+    password_rule_number: "Al menos un número",
+    passwords_match: "Las contraseñas coinciden",
+    download_codes_pdf: "Descargar como PDF",
     passwords_do_not_match_register:
       "Las dos contraseñas no coinciden. Volver a escribirlas suele resolverlo.",
     registration_failed:
@@ -7240,9 +9287,9 @@ export const es = {
     please_enter_valid_email:
       "Por favor ingresa una dirección de correo válida",
     recovery_email_conflict:
-      "Este correo ya es una dirección de recuperación en otra cuenta. Otro debería funcionar.",
+      "Esta dirección ya protege el máximo de 20 cuentas de Aster. Usa otra dirección.",
     failed_save_recovery_email:
-      "Tu correo de recuperación no se guardó. Otro intento debería resolverlo. Tu configuración de recuperación actual no ha cambiado.",
+      "Tu correo de recuperación no se guardó. Inténtalo de nuevo. Tu configuración de recuperación actual no ha cambiado.",
     recovery_phrase_title: "Guarda tu frase de recuperación",
     recovery_phrase_desc:
       "Estas 12 palabras son la única forma de restaurar por completo tu cuenta y todo tu correo cifrado si algún día olvidas tu contraseña. Escríbelas en orden y guárdalas en un lugar seguro y sin conexión.",
@@ -7260,9 +9307,6 @@ export const es = {
     recovery_phrase_confirm_error:
       "Una o más palabras no coinciden. Revisa tu frase guardada e inténtalo de nuevo.",
     recovery_phrase_skip_check: "La guardé, omitir esta verificación",
-    forgot_method_title: "¿Cómo quieres recuperar tu cuenta?",
-    forgot_method_desc:
-      "El método que elijas determina si tus datos cifrados se pueden restaurar.",
     forgot_method_full_restore: "Restauración completa",
     forgot_method_access_only: "Solo acceso",
     forgot_method_phrase_title: "Usar mi frase de recuperación",
@@ -7274,10 +9318,6 @@ export const es = {
     forgot_method_email_title: "Enviarme un enlace de restablecimiento",
     forgot_method_email_desc:
       "Recupera el acceso a tu cuenta. El correo cifrado anterior al restablecimiento no podrá leerse de nuevo a menos que más adelante encuentres tu frase o un código.",
-    phrase_entry_title: "Ingresa tu frase de recuperación",
-    phrase_entry_desc: "Escribe o pega las 12 palabras en orden.",
-    phrase_entry_invalid:
-      "Esta no es una frase de recuperación válida. Revisa las palabras y su orden.",
     phrase_recovery_failed:
       "Esta frase no corresponde a esta cuenta. Revisa las palabras y la dirección de correo.",
     reset_consent_title:
@@ -7296,15 +9336,15 @@ export const es = {
     reset_consent_email_mismatch:
       "La dirección de correo no coincide con esta cuenta.",
     reset_consent_continue: "Restablecer la contraseña de todos modos",
-    plan_starter_badge: "Starter",
-    plan_personal_badge: "Personal",
-    plan_pro_badge: "Pro",
-    perfect_personal_use: "Perfecto para uso personal",
-    everything_to_start: "Todo lo que necesitas para comenzar",
-    for_power_users: "Para usuarios avanzados",
-    e2e_encrypted_inbox: "Bandeja de entrada cifrada de extremo a extremo",
-    zero_knowledge_encryption: "Cifrado de conocimiento cero",
-    unlimited_emails: "Correos ilimitados",
+    reset_second_factor_title: "Confirma que eres tú",
+    reset_second_factor_description:
+      "Esta cuenta usa la autenticación de dos factores. Verifica un segundo factor antes de restablecer la contraseña.",
+    reset_second_factor_backup_description:
+      "Introduce uno de tus códigos de respaldo para continuar.",
+    reset_second_factor_key_description:
+      "Usa la llave de seguridad o la clave de acceso registrada en esta cuenta para continuar.",
+    reset_second_factor_use_key: "Usar una llave de seguridad en su lugar",
+    reset_second_factor_use_key_button: "Continuar con la llave de seguridad",
     no_ads_no_tracking: "Sin anuncios, sin rastreo",
     use_8_characters: "Usa al menos 8 caracteres",
     try_12_characters: "Prueba con más de 12 caracteres para mayor seguridad",
@@ -7317,7 +9357,11 @@ export const es = {
     please_enter_email_address: "Introduce tu correo.",
     please_enter_recovery_code: "Introduce uno de tus códigos de recuperación.",
     invalid_recovery_code:
-      "Ese código de recuperación no coincide. Otro de tu lista guardada funcionará.",
+      "Ese código no coincide con esta cuenta. Compáralo con tu lista guardada y vuelve a introducirlo. Los espacios y las mayúsculas no importan.",
+    recovery_locked_out:
+      "Esta cuenta ha tenido demasiados intentos de recuperación. Puedes volver a intentarlo en {{time}}. No se usó ninguno de tus códigos, así que los conservas todos.",
+    invalid_backup_code:
+      "Ese código de respaldo no coincide. Cada código sirve una sola vez, así que prueba con el siguiente sin usar de tu lista.",
     new_password_placeholder: "Nueva contraseña",
     confirm_password_placeholder: "Confirmar contraseña",
     email_address_placeholder: "Dirección de correo",
@@ -7325,7 +9369,7 @@ export const es = {
       "La recuperación no se completó. Empezar de nuevo suele resolverlo. Tu cuenta no ha cambiado.",
     add_special_characters: "Añade caracteres especiales (!@#$%)",
     recovery_codes_start_with_aster:
-      "Los códigos de recuperación comienzan con 'ASTER-'",
+      "Un código de recuperación tiene este formato: ASTER-XXXX-XXXX-XXXX-XXXX. Comprueba el código y vuelve a introducirlo.",
     verifying_recovery_code: "Verificando código de recuperación...",
     recovery_session_expired:
       "Esta sesión de recuperación ha terminado. Volver a iniciar el proceso de recuperación la retomará. Tu cuenta no ha cambiado.",
@@ -7338,17 +9382,13 @@ export const es = {
     saving_new_credentials: "Guardando nuevas credenciales...",
     recover_your_account: "Recupera tu cuenta",
     enter_email_associated:
-      "Ingresa tu nombre de usuario para recuperar tu cuenta",
+      "Escribe la dirección de la cuenta que quieres recuperar.",
     back_to_sign_in: "Volver a iniciar sesión",
     email_me_reset_link: "Enviarme un enlace de restablecimiento por correo",
-    have_recovery_code: "¿Tienes un código de recuperación?",
-    use_recovery_code: "Usar un código de recuperación en su lugar",
     reset_link_sent_title: "Revisa tu correo de recuperación",
     reset_link_sent_desc:
       "Si este nombre de usuario está registrado y tiene un correo de recuperación verificado, se ha enviado un enlace para restablecer la contraseña. El enlace caduca en 30 minutos.",
     sending_reset_link: "Enviando enlace de restablecimiento...",
-    no_recovery_email_on_account:
-      "Esta cuenta no tiene un correo de recuperación verificado. Usa un código de recuperación para restablecer tu contraseña.",
     reset_your_password: "Restablece tu contraseña",
     reset_choose_new_password: "Elige una nueva contraseña para tu cuenta.",
     reset_invalid_or_expired:
@@ -7358,8 +9398,7 @@ export const es = {
     resetting_password: "Restableciendo contraseña...",
     enter_recovery_code: "Ingresar código de recuperación",
     enter_recovery_code_desc:
-      "Ingresa uno de los códigos de recuperación que guardaste al crear tu cuenta",
-    verify_code: "Verificar código",
+      "Escribe uno de los códigos de recuperación que guardaste al crear tu cuenta.",
     create_new_password: "Crear nueva contraseña",
     choose_strong_password: "Elige una contraseña segura para tu cuenta",
     recovering_your_account: "Recuperando tu cuenta",
@@ -7369,6 +9408,57 @@ export const es = {
     old_codes_invalidated:
       "Tus códigos de recuperación antiguos ya no funcionan. Guardar este conjunto nuevo en un lugar seguro antes de cerrar esta ventana te mantendrá cubierto.",
     n_recovery_codes: "{{count}} códigos de recuperación",
+    recovery_code_already_used:
+      "Ese código ya se usó. Cada código funciona una sola vez, así que introduce otro de tu lista guardada.",
+    recovery_code_replaced:
+      "Ese código pertenece a un conjunto anterior que reemplazaste. Introduce un código de tu lista guardada más reciente.",
+    try_another_way: "Probar de otra forma",
+    recovery_email_label: "Dirección de Aster Mail",
+    recovery_domain_hint: "Elige el dominio que corresponde a tu cuenta.",
+    recovery_code_label: "Código de recuperación",
+    recovery_code_hint:
+      "Cada código funciona una vez. Los códigos tienen este formato: ASTER-XXXX-XXXX-XXXX-XXXX.",
+    change_account: "Usar otra dirección",
+    change_account_desc: "Recupera otra cuenta de Aster Mail.",
+    support_step_title: "Contactar con soporte",
+    support_step_desc:
+      "Aster Mail no puede leer tus datos cifrados, así que nadie puede desbloquearlos sin un código de recuperación o tu correo de recuperación. Soporte puede revisar tu cuenta y ayudarte con los siguientes pasos.",
+    support_email_action: "Escribir a soporte",
+    support_help_center: "Ir al centro de ayuda",
+    other_ways_title: "Probar de otra forma",
+    other_ways_desc: "Elige cómo quieres volver a entrar en tu cuenta.",
+    other_way_code_title: "Usar un código de recuperación",
+    other_way_code_desc: "Introduce uno de los códigos que guardaste.",
+    other_way_email_title: "Restablecer con tu correo de recuperación",
+    other_way_email_desc:
+      "Aster Mail envía un enlace a tu correo de recuperación. Pierdes el acceso al correo anterior al restablecimiento.",
+    other_way_none_title: "No tengo ninguna de estas opciones",
+    other_way_none_desc:
+      "Contacta con soporte y te ayudamos con los siguientes pasos.",
+    reset_account_title: "¿Restablecer tu cuenta?",
+    reset_account_desc:
+      "Tu correo, contactos y archivos cifrados anteriores al restablecimiento siguen bloqueados hasta que los recuperes con tu contraseña anterior. Obtienes una clave de cifrado nueva y vacía.",
+    send_reset_link: "Enviar enlace de restablecimiento",
+    print_codes: "Imprimir",
+    codes_copied: "Códigos copiados.",
+    i_saved_these_codes: "He guardado estos códigos",
+    review_security_title: "Revisa tu seguridad",
+    review_security_desc: "Tu contraseña se cambió y tu cuenta se recuperó.",
+    review_devices_signed_out: "Se cerró la sesión en otros dispositivos.",
+    review_two_step_off: "La verificación en dos pasos está desactivada.",
+    review_turn_on: "Activar",
+    review_recovery_email_kept: "Tu correo de recuperación sigue configurado.",
+    review_no_recovery_email: "Sin correo de recuperación.",
+    review_add: "Añadir",
+    review_codes_left: "Quedan {{count}} códigos de recuperación.",
+    review_codes_left_one: "Queda {{count}} código de recuperación.",
+    review_codes_left_other: "Quedan {{count}} códigos de recuperación.",
+    import_mail_step_title: "Trae tu correo contigo",
+    import_mail_step_desc:
+      "Mueve los mensajes de otra cuenta a Aster. Todo se cifra en tu dispositivo antes de guardarse.",
+    import_mail_skip: "Empezar con la bandeja vacía",
+    import_mail_privacy_note:
+      "También puedes importar más tarde desde Ajustes.",
     password_reset_successful: "Contraseña restablecida exitosamente",
     account_recovered_sign_in:
       "Tu cuenta ha sido recuperada. Ahora puedes iniciar sesión con tu nueva contraseña.",
@@ -7381,19 +9471,11 @@ export const es = {
     creating_recovery_backup: "Creando copia de seguridad de recuperación...",
     preparing_pgp_key: "Preparando clave PGP...",
     creating_your_account: "Creando tu cuenta...",
+    setup_taking_longer:
+      "Esto está tardando más de lo habitual. Mantén esta página abierta mientras se termina de configurar tu cuenta.",
     by_continuing: "Al continuar, aceptas nuestros",
     copyright: "© {{year}} Aster Communications Inc.",
     display_name_optional: "Nombre para mostrar (opcional)",
-    "10gb_secure_storage": "10 GB de almacenamiento seguro",
-    "5_email_aliases": "5 alias de correo",
-    "2_custom_domains": "2 dominios personalizados",
-    "50mb_attachments": "Adjuntos de 50 MB",
-    plan_free_price: "Gratis",
-    "1gb_secure_storage": "1 GB de almacenamiento seguro",
-    "50gb_secure_storage": "50 GB de almacenamiento seguro",
-    "10_email_aliases": "10 alias de correo",
-    "5_custom_domains": "5 dominios personalizados",
-    "100mb_attachments": "Adjuntos de 100 MB",
     compare_all_features: "Comparar todas las funciones",
     encryption_keys_local:
       "Tus claves de cifrado se almacenan localmente en este dispositivo y nunca se envían a nuestros servidores.",
@@ -7406,9 +9488,7 @@ export const es = {
     resend_in_seconds: "Reenviar en {{seconds}}s",
     skip_verification: "Omitir verificación",
     recovery_email_required_notice:
-      "Se requiere un correo de respaldo para prevenir spam.",
-    abuse_account_limit:
-      "Nuestro sistema de seguridad automático marcó este registro, y no podemos crear la cuenta. hello@astermail.org puede ayudar si crees que es un error.",
+      "Se requiere un correo de recuperación para evitar el spam.",
     abuse_flagged_message:
       "Nuestro sistema de seguridad ha detenido los nuevos registros desde esta red por ahora. Escribe a hello@astermail.org si crees que es un error.",
     contact_support: "contactar al soporte",
@@ -7416,75 +9496,23 @@ export const es = {
     verification_failed: "La verificación no se completó.",
     go_to_inbox: "Ir a la bandeja de entrada",
     end_to_end_encrypted: "Cifrado de extremo a extremo",
-    zero_knowledge: "Arquitectura de acceso cero",
-    zero_knowledge_desc: "Nunca podemos leer tus correos o datos",
-    password_never_stored: "Contraseña nunca almacenada",
-    password_never_stored_desc:
-      "Solo se usa un hash de clave derivada para la autenticación",
-    recovery_codes_important: "Guárdalos en un lugar seguro",
-    recovery_backup_tip: "Consejo de respaldo",
-    onboarding_appearance_title: "Personaliza tu bandeja de entrada",
-    onboarding_theme_light: "Claro",
-    onboarding_theme_dark: "Oscuro",
-    onboarding_view_mode_label: "Diseño de lectura",
-    onboarding_view_popup: "Emergente",
-    onboarding_view_popup_desc: "Abre correos en una ventana flotante",
-    onboarding_view_split: "Vista dividida",
-    onboarding_view_split_desc: "Lista de correos y contenido lado a lado",
-    onboarding_view_fullpage: "Página completa",
-    onboarding_view_fullpage_desc: "Dedica la pantalla completa a cada correo",
-    onboarding_compact_mode: "Modo compacto",
-    onboarding_compact_mode_desc:
-      "Espaciado más ajustado para más correos en pantalla",
-    onboarding_continue_btn: "Continuar",
-    onboarding_privacy_title: "Privacidad y seguridad",
-    onboarding_block_tracking: "Bloquear píxeles de rastreo",
-    onboarding_block_external: "Bloquear contenido externo",
-    onboarding_read_receipts: "Bloquear acuses de recibo",
-    onboarding_warn_external: "Advertir destinatarios externos",
-    onboarding_auto_keys: "Auto-descubrir claves",
-    onboarding_encrypt_emails: "Cifrar por defecto",
-    onboarding_session_timeout: "Tiempo de espera de sesión",
     recovery_email_verified_desc:
       "Tu correo de recuperación ha sido verificado exitosamente y vinculado a tu cuenta.",
     verification_failed_desc:
       "Este enlace ha caducado o ya no coincide. Un nuevo correo de verificación desde los ajustes de tu cuenta funcionará.",
-    recovery_codes_important_desc:
-      "Estos códigos son la única forma de recuperar tu cuenta si pierdes tu contraseña. Guárdalos en un lugar seguro.",
-    recovery_backup_tip_desc:
-      "Guarda tus códigos en un gestor de contraseñas o imprímelos y guárdalos en un lugar seguro.",
-    onboarding_appearance_desc:
-      "Elige un aspecto que te guste. Puedes cambiarlo en cualquier momento.",
-    onboarding_privacy_desc:
-      "Tu bandeja, tus reglas. Ajusta estos a tu nivel de comodidad.",
-    onboarding_block_tracking_desc:
-      "Evitar que los remitentes sepan cuándo abres sus correos",
-    onboarding_block_external_desc:
-      "Detener imágenes remotas y contenido que podrían rastrearte",
-    onboarding_read_receipts_desc:
-      "No permitir que los remitentes sepan cuándo has abierto sus correos",
-    onboarding_warn_external_desc:
-      "Mostrar una advertencia al enviar a direcciones que no son de Aster",
-    onboarding_auto_keys_desc:
-      "Buscar automáticamente claves de cifrado para los contactos a quienes envías correo",
-    onboarding_encrypt_emails_desc:
-      "Cifrar automáticamente los correos salientes cuando la clave del destinatario esté disponible",
-    onboarding_session_timeout_desc:
-      "Bloquear automáticamente tu cuenta después de un período de inactividad",
     browser_login_title: "Iniciar sesión con el navegador",
     browser_login_desc:
-      "Open Aster Mail in your browser, go to Settings, and enter this code to link your phone.",
+      "Abre Aster Mail en tu navegador, ve a Ajustes e introduce este código para vincular tu teléfono.",
     browser_login_expires_in: "Caduca en ",
     browser_login_generate_new: "Generar código nuevo",
     browser_login_sign_in_password: "Iniciar sesión con contraseña",
     log_in: "Iniciar sesión",
     welcome_subtitle:
-      "Modern email, encrypted for you and unreadable to everyone else.",
-    account_flagged_notice: "Tu cuenta ha sido marcada. Contacta al soporte.",
+      "Correo moderno, cifrado para ti e ilegible para todos los demás.",
+    account_flagged_notice:
+      "Nuestro sistema de seguridad automático ha limitado tu cuenta por ahora, y algunas funciones pueden no estar disponibles. El resto de tu cuenta funciona con normalidad. Si crees que es un error, escribe a hello@astermail.org.",
     backup_email_placeholder: "Correo de respaldo",
     close_this_tab: "Cerrar esta pestaña",
-    copy_email: "Copiar correo",
-    copy_failed: "Error al copiar",
     device_code_copied: "Código copiado",
     device_code_copy: "Copiar código",
     device_code_expired: "Código expirado",
@@ -7497,7 +9525,6 @@ export const es = {
     device_code_open_browser: "Abrir en el navegador",
     device_code_title: "Código de dispositivo",
     device_code_waiting: "Esperando verificación...",
-    effective_date: "Fecha de vigencia: {{date}}",
     email_copied: "Correo copiado",
     last_updated: "Última actualización: {{date}}",
     link_device_cancel: "Cancelar",
@@ -7506,40 +9533,39 @@ export const es = {
     link_device_confirm_prompt: "¿Confirmar la vinculación del dispositivo?",
     link_device_confirming: "Confirmando...",
     link_device_desktop: "Vincular dispositivo de escritorio",
+    link_device_change_account: "Cambiar de cuenta",
+    link_device_choose_account: "Elige una cuenta",
+    link_device_choose_account_description:
+      "Para vincular tu aplicación de escritorio",
+    link_device_choose_account_note:
+      "Sus claves de cifrado permanecen cifradas mientras se transfieren entre sus dispositivos.",
+    link_device_use_another_account: "Usar otra cuenta",
+    link_device_use_this_account: "Usar esta cuenta",
+    link_device_other_accounts: "Cambiar a otra cuenta",
     link_device_enter_code:
       "Ingresa el código mostrado en tu otro dispositivo.",
-    link_device_expired_code: "Código expirado",
-    link_device_failed: "Error al vincular el dispositivo",
-    link_device_invalid_code: "Código inválido",
+    link_device_expired_code:
+      "Este código caducó o no coincide. Tu app de escritorio muestra el código actual.",
+    link_device_failed:
+      "La vinculación no terminó. Empieza de nuevo. Tu cuenta no ha cambiado.",
+    link_device_invalid_code:
+      "Un código de vinculación tiene 8 caracteres. Comprueba el código e inténtalo de nuevo.",
+    hub_accounts_or_password: "O inicia sesión con tu contraseña",
+    hub_account_password_required: "Contraseña obligatoria",
+    hub_account_link_failed:
+      "Para continuar con esta cuenta, introduce su contraseña.",
     link_device_success: "Dispositivo vinculado exitosamente",
     link_device_success_description:
       "Este dispositivo tiene acceso a tu cuenta.",
     link_device_title: "Vincular dispositivo",
-    link_device_try_again: "Intentar de nuevo",
+    link_device_try_again: "Eso no funcionó. Empieza de nuevo.",
     link_device_verify_button: "Verificar",
-    link_device_verifying: "Verificando...",
     pair_device_cancel: "Cancelar",
-    pair_device_confirm:
-      "¿Deseas vincular {{ name }} con tu cuenta de Aster Mail?",
-    pair_device_confirm_button: "Confirmar",
-    pair_device_description:
-      "Escanea el código QR con tu aplicación Aster para vincular este dispositivo.",
-    pair_device_failed: "Error al vincular el dispositivo",
-    pair_device_invalid: "Código de vinculación inválido",
-    pair_device_open_app: "Abrir la aplicación",
-    pair_device_success: "Dispositivo vinculado exitosamente",
-    pair_device_title: "Vincular este dispositivo",
-    pair_device_warning:
-      "Asegúrate de confiar en este dispositivo antes de continuar.",
-    pair_this_device: "Vincular este dispositivo",
+    pair_device_failed:
+      "El emparejamiento no terminó. Empieza de nuevo desde tu app de escritorio. Tu cuenta no ha cambiado.",
     plan_continue_as_free: "Continuar con el plan gratuito",
-    academic_offer_title: "¿Estudiante o periodista? 30 % de descuento",
-    academic_offer_desc:
-      "30 % de descuento en planes individuales durante 12 meses. Estudiantes: verifica tu correo universitario ahora y tu código estará listo al pagar. Periodistas: contacta con soporte tras registrarte.",
     academic_offer_sent:
       "Enlace de verificación enviado a {{ email }}. Al hacer clic, tu código aparecerá en Ajustes, en Facturación.",
-    academic_offer_journalist:
-      "¿Periodista? Termina el registro y contacta con soporte con tus credenciales de prensa.",
     academic_offer_headline: "¿Estudiante o periodista?",
     academic_offer_subline:
       "30 % de descuento en Star, Nova y Supernova durante un año. Estudiantes: introduce tu correo universitario y te enviamos un enlace de verificación.",
@@ -7554,30 +9580,27 @@ export const es = {
       "Escribe a hello@astermail.org con tu carné de prensa, página de plantilla o enlaces a tus artículos",
     academic_offer_j_step3:
       "Tu código del 30 % aparecerá en Ajustes, en Facturación",
-    plan_continue_with_free: "Continuar gratis",
-    plan_footer_reassurance: "Cancela en cualquier momento.",
-    plan_free_cta: "Elegir plan gratuito",
-    plan_free_name: "Gratuito",
-    plan_free_tagline: "Para comenzar",
+    plan_footer_reassurance:
+      "Todos los planes incluyen cifrado de acceso cero, sin anuncios y garantía de devolución de 30 días. Cambia o cancela cuando quieras.",
+    plan_duo_description:
+      "Almacenamiento cifrado compartido y una sola factura para dos personas.",
+    plan_family_description:
+      "Almacenamiento cifrado compartido y una sola factura para hasta 6 personas.",
+    plan_starter_description:
+      "Más almacenamiento y alias para el uso personal diario.",
+    plan_pro_description:
+      "Almacenamiento amplio y alias para usuarios avanzados.",
     plan_loading: "Cargando planes...",
     plan_nova_description: "Ideal para uso personal.",
-    plan_payment_success_continuing: "Pago confirmado, configurando...",
     plan_recommended: "Recomendado",
     plan_select: "Elegir",
-    plan_selected: "Seleccionado",
     plan_selection_subtitle: "Comienza gratis o elige un plan premium.",
     plan_selection_title: "Elige tu plan",
-    plan_star_description: "Para usuarios avanzados.",
+    plan_star_description:
+      "Más almacenamiento, más alias y hasta 5 dominios personalizados.",
     plan_supernova_description: "Para equipos y profesionales.",
     plan_view_full_features: "Ver todas las funciones",
-    privacy_policy_heading: "Política de privacidad",
-    privacy_policy_intro: "Tu privacidad es importante para nosotros.",
-    registration_suspended: "El registro está temporalmente suspendido.",
-    security_key_verification: "Verificación con clave de seguridad",
-    passkey_sign_in: "Sign in with passkey",
-    tap_security_key: "Toca tu clave de seguridad",
-    terms_of_service_heading: "Términos de servicio",
-    terms_of_service_intro: "Al usar Aster, aceptas estos términos.",
+    passkey_sign_in: "Iniciar sesión con clave de acceso",
     trust_this_device_30_days: "Confiar en este dispositivo durante 30 días",
     use_another_method: "Usar otro método",
     username_in_use: "Este nombre de usuario ya está en uso.",
@@ -7586,10 +9609,46 @@ export const es = {
     verification_success_desc:
       "Tu dirección de correo fue verificada exitosamente.",
     verification_success_title: "Correo verificado",
-    view_privacy_policy: "Ver política de privacidad",
-    view_terms_of_service: "Ver términos de servicio",
-    waiting_for_pairing: "Esperando vinculación...",
-    webauthn_not_supported: "WebAuthn no es compatible con este dispositivo.",
+    webauthn_not_supported:
+      "Este navegador no admite llaves de seguridad. Usa otro navegador o inicia sesión con tu contraseña.",
+    remove_photo: "Quitar foto",
+    captcha_load_failed:
+      "No se pudo cargar la comprobación de seguridad. Revisa tu conexión o cualquier bloqueador de contenido y vuelve a intentarlo.",
+    academic_verified_signin_note:
+      "Estado de estudiante verificado. Inicia sesión y tu descuento del 30 % se aplicará al pagar.",
+    academic_failed_signin_note:
+      "Ese enlace de verificación caducó o ya se usó. Inicia sesión y solicita uno nuevo en los ajustes de Facturación.",
+    link_device_upgrade_required_toast:
+      "Vincular un dispositivo con Bridge requiere el plan Star o superior. Mejora tu plan para continuar.",
+    link_device_upgrade_title: "Mejora tu plan para vincular este dispositivo",
+    link_device_upgrade_description:
+      "Conectar un Bridge de escritorio a tu cuenta requiere el plan Star o superior. Elige un plan abajo y tu dispositivo se vinculará justo después del pago.",
+    link_device_already_linked:
+      "Este dispositivo ya está vinculado a otra cuenta. Desvincúlalo allí primero y vuelve a intentarlo.",
+    link_device_rate_limited:
+      "Demasiados intentos. Espera un minuto y vuelve a intentarlo.",
+    link_device_account_suspended:
+      "Esta cuenta está suspendida, así que ahora no se pueden vincular dispositivos nuevos. Escribe al soporte para resolverlo.",
+    plan_academic_discount_note:
+      "Tu descuento del 30 % se aplica automáticamente al pagar en cuanto se verifique tu correo.",
+    plan_referral_discount_note:
+      "Tu descuento por recomendación se aplica automáticamente al pagar.",
+    plan_referral_discount_percent_note:
+      "Tu descuento por recomendación del {{percent}} % ya está aplicado abajo.",
+    academic_verified_title: "Verificación completada",
+    academic_verified_body:
+      "Tu descuento de estudiante del 30 % está confirmado. Te llevamos a los planes...",
+    academic_verified_continue: "Elige tu plan",
+    academic_offer_sending_title: "Enviando tu enlace de verificación",
+    academic_offer_sending_body:
+      "Enviando un enlace de verificación del 30 % a {{ email }}.",
+    offer_welcome_badge_student: "30 % de descuento para estudiantes",
+    offer_welcome_badge_journalist: "30 % de descuento para periodistas",
+    offer_welcome_headline: "Consigue tu 30 % de descuento",
+    offer_welcome_subline_student:
+      "Crea tu cuenta gratuita y verifica tu correo de estudiante para obtener un 30 % de descuento en cualquier plan de pago durante 12 meses.",
+    offer_welcome_subline_journalist:
+      "Crea tu cuenta gratuita y verifica tus credenciales de prensa para obtener un 30 % de descuento en cualquier plan de pago durante 12 meses.",
   },
   passkeys: {
     passkey_setup_cancelled: "Configuración de la clave de acceso cancelada.",
@@ -7603,41 +9662,48 @@ export const es = {
       "Usa Windows Hello, Face ID o Touch ID. Si se abre tu gestor de contraseñas, puedes guardarlo allí o pausar la extensión para usar Windows Hello directamente.",
     security_key_hint:
       "Añade un segundo factor mediante Windows Hello, un YubiKey o tu gestor de contraseñas.",
-    section_title: "Passkeys & Security Keys",
+    section_title: "Claves de acceso y llaves de seguridad",
     section_description:
-      "Use passkeys for fast, secure sign-in with your device biometrics or PIN. Security keys use your device authenticator as a second factor.",
-    add_passkey: "Add passkey",
-    add_security_key: "Add security key",
-    no_passkeys: "No passkeys or security keys registered",
-    passkey_badge: "Passkey",
-    security_key_badge: "Security Key",
-    registered: "Added",
-    last_used: "Last used",
-    never_used: "Never used",
-    remove: "Remove",
-    confirm_remove: "Remove",
+      "Usa claves de acceso para iniciar sesión rápido y de forma segura con la biometría o el PIN de tu dispositivo. Las llaves de seguridad usan el autenticador de tu dispositivo como segundo factor.",
+    add_passkey: "Añadir clave de acceso",
+    add_security_key: "Añadir llave de seguridad",
+    no_passkeys: "No hay claves de acceso ni llaves de seguridad registradas",
+    passkey_badge: "Clave de acceso",
+    security_key_badge: "Llave de seguridad",
+    registered: "Añadida",
+    last_used: "Último uso",
+    never_used: "Nunca se ha usado",
+    remove: "Quitar",
     delete_passkey_title: "¿Eliminar el passkey?",
     delete_passkey_description:
       '"{{name}}" se eliminará de su cuenta. Ya no podrá usarlo para iniciar sesión.',
     delete_security_key_title: "¿Eliminar la llave de seguridad?",
+    other_devices_signed_out:
+      "Aster cerró la sesión en tus otros dispositivos. Para volver a usarlos, inicia sesión y confirma con tu llave de seguridad.",
+    remove_last_key_step_up_title: "¿Quitar tu última llave de seguridad?",
+    remove_last_key_step_up_description:
+      "Este es el último segundo factor de tu cuenta. Para quitarlo, introduce tu contraseña.",
     delete_security_key_description:
       '"{{name}}" se eliminará de su cuenta. Ya no funcionará como segundo factor.',
-    removed: "Passkey removed",
-    register_success: "Passkey registered successfully",
-    register_failed: "Registration failed. Please try again.",
-    registering: "Registering...",
+    removed: "Clave de acceso eliminada",
+    register_success: "Clave de acceso registrada",
+    registering: "Registrando…",
     not_supported:
-      "Your browser does not support passkeys. Try a modern browser like Chrome, Safari, or Firefox.",
-    sign_in_with_passkey: "Sign in with passkey",
-    authenticating: "Authenticating...",
+      "Tu navegador no admite claves de acceso. Prueba con un navegador actual como Chrome, Safari o Firefox.",
+    sign_in_with_passkey: "Iniciar sesión con una clave de acceso",
+    authenticating: "Autenticando…",
     vault_needs_password:
-      "Enter your password to decrypt your vault for the first time.",
-    unnamed_passkey: "Passkey",
-    unnamed_security_key: "Security Key",
+      "Escribe tu contraseña para descifrar tu cámara acorazada por primera vez.",
+    unnamed_passkey: "Clave de acceso",
+    unnamed_security_key: "Llave de seguridad",
     rename: "Renombrar",
     rename_saved: "Nombre actualizado",
   },
   errors: {
+    auth_salt_collision:
+      "El inicio de sesión se detuvo porque el servidor envió un valor no seguro, así que no se desbloqueó nada. Contacta con soporte antes de volver a intentarlo.",
+    upload_too_large:
+      "La carga es demasiado grande. Para continuar, quita o reduce un archivo y vuelve a intentarlo.",
     failed_remove_reaction:
       "No se pudo quitar la reacción. Inténtalo de nuevo.",
     cannot_react_own_message: "No puedes reaccionar a tu propio mensaje.",
@@ -7653,13 +9719,15 @@ export const es = {
       "No puedes reaccionar a un mensaje en el que estabas en CCO.",
     cannot_react_too_many_emojis:
       "Este mensaje ya tiene el número máximo de reacciones.",
+    cannot_react_limit:
+      "Puedes añadir hasta dos reacciones a un mensaje. Para añadir otra, quita una de las tuyas.",
     cannot_react_no_recipient:
       "Este mensaje no tiene remitente al que enviar la reacción.",
-    failed_send_reaction: "No se pudo enviar la reacción. Inténtalo de nuevo.",
+    failed_send_reaction: "Inténtalo de nuevo.",
     reactions_disabled: "Las reacciones están desactivadas en tus ajustes.",
     pending_email_verification:
       "Revisa tu correo y haz clic en el enlace de verificación para activar esta cuenta.",
-    generic: "Eso no funcionó. Otro intento debería resolverlo.",
+    generic: "Inténtalo de nuevo.",
     network: "Error de red. Por favor, verifica tu conexión.",
     unauthorized:
       "No tienes permiso para hacer eso. Contacta con tu administrador si crees que es un error.",
@@ -7673,40 +9741,47 @@ export const es = {
     rate_limit:
       "Estás haciendo eso demasiado rápido. Espera un momento e inténtalo de nuevo.",
     invalid_credentials:
-      "Ese correo y esa contraseña no coinciden. Otro intento, o un restablecimiento en astermail.org/reset, lo resolverá.",
+      "El correo o la contraseña no son correctos. Inténtalo de nuevo o restablece tu contraseña en astermail.org/reset.",
     session_expired:
-      "Tu sesión ha terminado. Iniciar sesión de nuevo te permitirá retomar donde lo dejaste. Tus datos y borradores están guardados en el servidor.",
-    try_again: "Por favor, inténtalo de nuevo",
-    invalid_username: "Elige un nombre de usuario de entre 3 y 40 caracteres.",
+      "Tu sesión ha terminado. Inicia sesión de nuevo para continuar. Tus datos y borradores están guardados en el servidor.",
+    try_again: "Inténtalo de nuevo.",
+    sign_in_domain_unsupported:
+      "Inicia sesion con la direccion astermail.org o aster.cx con la que te registraste. Las direcciones de tu propio dominio llegan a la misma cuenta.",
+    invalid_username:
+      "Introduce un nombre de usuario de entre 3 y 40 caracteres.",
     enter_password: "Por favor ingresa tu contraseña",
     password_too_long:
       "Esta contraseña supera el límite de longitud. Una más corta funcionará.",
     account_not_found:
-      "No encontramos ninguna cuenta con ese nombre. Revisar la escritura, o restablecer en astermail.org/reset, suele resolverlo.",
+      "No encontramos ninguna cuenta con ese nombre. Comprueba la ortografía o restablece tu contraseña en astermail.org/reset.",
     login_failed:
-      "El inicio de sesión no se completó. Otro intento debería resolverlo. Tu cuenta no está bloqueada.",
+      "El inicio de sesión no terminó. Inténtalo de nuevo. Tu cuenta no está bloqueada.",
     decrypt_failed:
       "Esa contraseña no desbloqueó tus claves en este dispositivo. Otro intento funcionará, y un código de recuperación en astermail.org/reset es la alternativa si sigue fallando. Tus datos en el servidor no han cambiado.",
     send_limit_reached:
       "Has alcanzado tu límite diario de envíos. Otro intento en {{time}} funcionará. Tu borrador está guardado.",
     ip_blocked:
-      "Demasiados intentos de inicio de sesión fallidos desde aquí. Esperar {{time}} antes de volver a intentarlo lo resolverá. Tu cuenta no está bloqueada.",
-    an_error_occurred: "Eso no funcionó. Otro intento debería resolverlo.",
-    failed_to_block_sender: "Error al bloquear al remitente",
-    failed_to_snooze: "Error al posponer",
+      "Demasiados intentos de inicio de sesión fallidos. Espera {{time}} e inténtalo de nuevo. Tu cuenta no está bloqueada.",
+    an_error_occurred: "Inténtalo de nuevo.",
+    failed_to_block_sender: "Inténtalo de nuevo.",
+    failed_to_snooze:
+      "Este correo no se pospuso. Inténtalo de nuevo. Sigue en tu bandeja de entrada.",
     ghost_alias_not_found:
       "No pudimos encontrar la dirección fantasma asociada a este hilo.",
     failed_to_resolve_ghost_alias:
-      "La dirección fantasma de este hilo no se cargó. Otro intento debería resolverlo.",
+      "La dirección fantasma de este hilo no se cargó. Inténtalo de nuevo.",
     ghost_alias_rate_limit:
       "Has usado todos tus alias fantasma del mes. Mejorar tu plan, o esperar al reinicio del mes siguiente, te dará más.",
     ghost_alias_already_exists: "Ya tienes este alias fantasma en tu cuenta.",
     failed_to_create_ghost_alias:
-      "Este alias fantasma no se guardó. Otro intento debería resolverlo. Tus otros alias no han cambiado.",
-    failed_to_activate_ghost_mode:
-      "El modo fantasma no se activó. Otro intento debería resolverlo.",
+      "Este alias fantasma no se guardó. Inténtalo de nuevo. Tus otros alias no han cambiado.",
+    ghost_expiry_extend_only:
+      "Solo puedes ampliar una dirección ghost, no acortarla.",
+    ghost_expiry_update_failed:
+      "La caducidad no se actualizó. Inténtalo de nuevo.",
+    failed_to_activate_ghost_mode: "Inténtalo de nuevo.",
     wrong_vault_password:
-      "Esa contraseña no desbloqueó tus claves en este dispositivo. Otro intento debería resolverlo, y un código de recuperación en astermail.org/reset es la alternativa si sigue fallando. Tus datos en el servidor no han cambiado.",
+      "Esa contraseña no desbloqueó tus claves en este dispositivo. Inténtalo de nuevo. Si sigue fallando, usa un código de recuperación en astermail.org/reset. Tus datos en el servidor no han cambiado.",
     vault_tampered:
       "Los datos cifrados en este dispositivo no coinciden con lo esperado, lo que puede indicar manipulación. Visitar Ajustes y luego Seguridad te permite revisarlo, y si el aviso vuelve a aparecer, hello@astermail.org puede ayudar. Tus datos en el servidor están intactos.",
     vault_version_drift:
@@ -7714,7 +9789,7 @@ export const es = {
     vault_missing_key:
       "No pudimos encontrar la clave del dispositivo necesaria para leer este almacenamiento. Cerrar sesión y volver a iniciarla revinculará este dispositivo. Tus datos en el servidor están intactos.",
     wrong_folder_password:
-      "Esa contraseña de carpeta no coincide. Otro intento debería resolverlo. La carpeta sigue bloqueada.",
+      "Contraseña de carpeta incorrecta. Inténtalo de nuevo. La carpeta sigue bloqueada.",
     wrong_external_account_password:
       "Esa contraseña de la cuenta externa no coincide. Revisarla en Ajustes y otro intento suele resolverlo. Tu conexión guardada no ha cambiado.",
     decrypt_wrong_key:
@@ -7722,7 +9797,7 @@ export const es = {
     decrypt_corrupt_ciphertext:
       "Este correo está en el servidor pero parece dañado en la transmisión. Actualizar y otro intento suele resolverlo, y hello@astermail.org puede ayudar si sigue fallando.",
     decrypt_sender_error:
-      "El remitente cifró este correo de una forma que no podemos leer. Pedirle que lo reenvíe debería resolverlo. Tus otros correos no se ven afectados.",
+      "El remitente cifró este correo de una forma que no podemos leer. Pídele que lo envíe de nuevo. Tus otros correos no se ven afectados.",
     metadata_undecryptable_change:
       "Este dispositivo no puede abrir los detalles de este mensaje, por lo que tu cambio no se guarda. Para recargar tus claves, cierra sesión y vuelve a iniciarla. Tu mensaje en el servidor sigue igual.",
     no_unsubscribe_method:
@@ -7734,128 +9809,274 @@ export const es = {
     tor_native_only:
       "Tor solo está disponible en la app nativa. La app de escritorio o móvil te permitirá usarlo.",
     tor_plugin_missing:
-      "El módulo de Tor no está instalado en este dispositivo. Reinstalar la app, o cambiar a conexión directa en Ajustes, te devolverá en línea.",
+      "El módulo de Tor no está instalado en este dispositivo. Reinstala la app o cambia a una conexión directa en Ajustes.",
     cdn_relay_misconfigured:
-      "El relay del CDN no está configurado para esta versión. Cambiar a conexión directa en Ajustes te devolverá en línea, y hello@astermail.org puede ayudar si hace falta.",
+      "El relay del CDN no está configurado para esta versión. Cambia a una conexión directa en Ajustes. Si necesitas ayuda, escribe a hello@astermail.org.",
     device_repair_required:
-      "Falta la clave de este dispositivo. Volver a vincularlo desde tu app de escritorio lo resolverá. Tu cuenta y tus datos no han cambiado.",
+      "Falta la clave de este dispositivo. Vuelve a vincular el dispositivo desde tu app de escritorio. Tu cuenta y tus datos no han cambiado.",
     device_challenge_mismatch:
       "La verificación de identidad de este dispositivo no coincide, lo que puede indicar manipulación. Volver a vincularlo desde tu app de escritorio suele resolverlo, y si el aviso vuelve a aparecer, hello@astermail.org puede ayudar.",
     metadata_migration_stalled:
       "No pudimos terminar de actualizar tu almacenamiento local tras varios intentos. Revisar tu conexión y reabrir Aster suele resolverlo. Tu correo en el servidor está a salvo.",
-    account_already_added: "Esta cuenta ya fue agregada",
+    account_already_added:
+      "Esta cuenta ya tiene la sesión iniciada en este dispositivo. Cambia a ella desde el menú de cuentas.",
     address_consecutive_dots:
       "La dirección no puede contener puntos consecutivos",
     address_numeric_only:
       "La dirección no puede estar formada solo por números.",
     address_empty: "La dirección no puede estar vacía",
     address_invalid_chars: "La dirección contiene caracteres inválidos",
-    address_too_long: "La dirección es demasiado larga",
-    address_too_short: "La dirección es demasiado corta",
+    address_too_long: "Usa 64 caracteres o menos.",
+    address_too_short: "Introduce al menos un carácter.",
     alias_consecutive_dots: "El alias no puede contener puntos consecutivos",
     alias_numeric_only: "El alias no puede estar formado solo por números.",
     alias_empty: "El alias no puede estar vacío",
     alias_invalid_chars: "El alias contiene caracteres inválidos",
     alias_not_available: "Este alias no está disponible",
-    alias_too_long: "El alias es demasiado largo",
-    alias_too_short: "El alias es demasiado corto",
+    alias_too_long: "Usa 64 caracteres o menos.",
+    alias_too_short: "Usa al menos 3 caracteres.",
     all_emails_rejected:
-      "Los {{count}} correos de este archivo fueron omitidos porque a cada uno le faltaba remitente o cuerpo, y no se importó nada. Revisar el archivo de exportación original suele resolverlo.",
-    auth_required: "Autenticación requerida",
+      "Se omitieron los {{count}} correos de este archivo porque a cada uno le faltaba el remitente o el cuerpo, así que no se importó nada. Comprueba el archivo de exportación original e inténtalo de nuevo.",
+    auth_required: "Inicia sesión para continuar.",
     authentication_cancelled: "Autenticación cancelada",
-    authentication_failed: "Autenticación fallida",
-    authentication_failed_webauthn: "Error de autenticación WebAuthn",
+    authentication_failed:
+      "El inicio de sesión no terminó. Inténtalo de nuevo. Tu cuenta no está bloqueada.",
+    authentication_failed_webauthn:
+      "El inicio de sesión con llave de seguridad no terminó o se canceló. Inténtalo de nuevo.",
     cannot_send_no_keys:
       "Tienes el cifrado obligatorio activado y no tenemos clave para {{recipients}}. Pedirles que compartan una clave, o desactivar el cifrado obligatorio en Configuración, permitirá el envío. Tu borrador está guardado.",
     cannot_send_no_recipient_keys:
-      "No se puede enviar: claves del destinatario no encontradas",
+      "Tienes activado el cifrado obligatorio y ninguno de tus destinatarios tiene una clave registrada. Pídeles que compartan una o desactiva el cifrado obligatorio en Ajustes para enviarlo. Tu borrador está guardado.",
     cannot_send_no_recovery_key:
       "Aster todavía no puede enviar este mensaje porque a la cuenta del destinatario le faltan las claves para leerlo. Pídale que abra Aster en cualquier dispositivo o que actualice la aplicación para renovar esas claves y vuelva a intentarlo. Su borrador está guardado.",
-    conflict: "Conflicto detectado",
-    connection_failed: "Error de conexión",
+    conflict:
+      "Otra persona u otro proceso cambió esto antes. Actualiza para ver la versión más reciente.",
+    connection_failed:
+      "No pudimos conectar con el servidor. Comprueba tu conexión e inténtalo de nuevo.",
     daily_limit_reached:
       "Has alcanzado tu límite diario de envíos. Otro intento en {{time}} funcionará. Tu borrador está guardado.",
+    that_provider: "ese proveedor",
+    too_many_recipients:
+      "Este mensaje tiene más destinatarios de los que un mensaje puede alcanzar. Tu cuenta puede enviar a {{max}} a la vez, y ese límite aumenta durante tu primera semana. Enviarlo en grupos más pequeños funcionará. Tu borrador está guardado.",
+    recipient_concentration:
+      "Has enviado a tantas direcciones de {{domain}} como permitimos en una hora. Enviar tantas a la vez a un solo proveedor hace que bloqueen nuestros servidores de correo. Un intento en {{time}} funcionará. Tu borrador está guardado.",
     domain_empty: "El dominio no puede estar vacío",
-    domain_invalid_chars: "El dominio contiene caracteres inválidos",
-    domain_invalid_format: "Formato de dominio inválido",
-    domain_invalid_label: "Etiqueta de dominio inválida",
-    domain_reserved: "Este dominio está reservado",
+    domain_invalid_chars:
+      "Este dominio contiene caracteres no permitidos. Comprueba la ortografía e inténtalo de nuevo.",
+    domain_invalid_format: "Introduce un dominio válido.",
+    domain_invalid_label:
+      "Una parte de este dominio es demasiado larga o demasiado corta. Comprueba el dominio e inténtalo de nuevo.",
+    domain_reserved:
+      "No puedes usar astermail.org ni aster.cx aquí. Usa otro dominio que te pertenezca.",
     domain_too_long: "El dominio es demasiado largo",
     email_skipped_size:
       "El correo {{number}} fue omitido porque supera el límite de 50 MB. El resto de la importación continúa.",
     emails_skipped_invalid: "{{count}} correo(s) omitido(s) - inválido(s)",
-    encryption_keys_not_loaded: "Claves de cifrado no cargadas",
-    encryption_keys_unavailable: "Claves de cifrado no disponibles",
-    failed_decrypt_draft: "Error al descifrar el borrador",
-    failed_encrypt_draft: "Error al cifrar el borrador",
-    failed_encrypt_envelope: "Error al cifrar el sobre",
-    failed_pgp_encrypt: "pgp_encrypt_failed",
+    encryption_keys_not_loaded:
+      "Tus claves privadas están bloqueadas en este dispositivo. Tu contraseña las desbloqueará. Tus claves en el servidor no se han tocado.",
+    encryption_keys_unavailable:
+      "Tus claves privadas están bloqueadas en este dispositivo. Tu contraseña las desbloqueará. Tus claves en el servidor no se han tocado.",
+    failed_decrypt_draft:
+      "No pudimos abrir este borrador en este dispositivo. Cierra sesión, vuelve a iniciarla e inténtalo de nuevo.",
+    failed_encrypt_draft:
+      "No pudimos guardar este borrador de forma segura en este dispositivo. Inténtalo de nuevo. Lo que escribiste sigue en el editor.",
+    failed_encrypt_envelope:
+      "No pudimos proteger este correo para enviarlo. Inténtalo de nuevo. Tu borrador está guardado.",
+    failed_pgp_encrypt:
+      "No pudimos cifrar este correo con la clave PGP del destinatario. Inténtalo de nuevo. Tu borrador está guardado.",
     failed_parse_csv:
-      "No pudimos leer este CSV: {{error}}. Revisar el archivo suele resolverlo.",
+      "No se pudo leer este CSV: {{error}}. Comprueba el archivo e inténtalo de nuevo.",
     failed_parse_email:
       "El correo {{number}} no pudo leerse: {{error}}. El resto de la importación continúa.",
     failed_parse_eml:
-      "No pudimos leer este EML: {{error}}. Revisar el archivo suele resolverlo.",
+      "No se pudo leer este EML: {{error}}. Comprueba el archivo e inténtalo de nuevo.",
     failed_parse_pst:
       "No pudimos leer un mensaje en este archivo PST: {{error}}. Exportar desde Outlook como MBOX es la alternativa.",
     failed_parse_pst_file:
       "No pudimos leer este archivo PST: {{error}}. Exportar desde tu cliente de correo como MBOX suele resolverlo.",
-    failed_queue_email: "Error al poner el correo en cola",
-    failed_queue_forward: "Error al poner el reenvío en cola",
-    failed_queue_reply: "Error al poner la respuesta en cola",
-    failed_send: "Error al enviar",
-    failed_send_email: "Error al enviar el correo",
-    failed_send_external: "Error al enviar externamente",
-    failed_to_list_snoozed: "Error al obtener los correos pospuestos",
-    failed_to_queue_email: "Error al poner el correo en cola",
-    failed_to_send_external_queued: "Error al enviar externo en cola",
-    failed_to_send_queued: "Error al enviar en cola",
-    failed_to_snooze_email: "Error al posponer el correo",
-    failed_to_snooze_emails: "Error al posponer los correos",
-    failed_to_unsnooze_email: "Error al cancelar el posposición",
+    failed_queue_email:
+      "No pudimos guardar este correo para enviarlo más tarde. Inténtalo de nuevo. Tu borrador está guardado.",
+    failed_queue_forward:
+      "No pudimos guardar este reenvío para enviarlo más tarde. Inténtalo de nuevo. Tu borrador está guardado.",
+    failed_queue_reply:
+      "No pudimos guardar esta respuesta para enviarla más tarde. Inténtalo de nuevo. Tu borrador está guardado.",
+    failed_send:
+      "Este correo no se envió. Inténtalo de nuevo. Tu borrador está guardado.",
+    attachments_too_large:
+      "Estos archivos adjuntos suman más de {{size}}, el máximo que puede llevar un mensaje en su plan. Quitar o reducir un archivo permitirá enviarlo. Su borrador está guardado.",
+    too_many_attachments:
+      "Este mensaje tiene más de {{max}} archivos adjuntos, el máximo que puede llevar un mensaje. Quitar algunos permitirá enviarlo. Su borrador está guardado.",
+    failed_send_email:
+      "Este correo no se envió. Inténtalo de nuevo. Tu borrador está guardado.",
+    failed_send_external:
+      "Este correo no se envió a través de tu cuenta externa vinculada. Inténtalo de nuevo. Tu borrador está guardado.",
+    failed_to_list_snoozed:
+      "Tus correos pospuestos no se cargaron. Inténtalo de nuevo. Están a salvo en el servidor.",
+    failed_to_queue_email:
+      "No pudimos guardar este correo para enviarlo más tarde. Inténtalo de nuevo. Tu borrador está guardado.",
+    failed_to_send_external_queued:
+      "Este correo no se envió a través de tu cuenta externa vinculada. Inténtalo de nuevo. Tu borrador está guardado.",
+    failed_to_send_queued:
+      "Este correo no se envió. Inténtalo de nuevo. Tu borrador está guardado.",
+    failed_to_snooze_email:
+      "Este correo no se pospuso. Inténtalo de nuevo. Sigue en tu bandeja de entrada.",
+    failed_to_snooze_emails: "Inténtalo de nuevo.",
+    failed_to_unsnooze_email:
+      "Este correo no volvió a tu bandeja de entrada. Inténtalo de nuevo.",
     file_too_large:
       "Este archivo pesa {{size}} MB, superando el límite de {{limit}} MB. Uno más pequeño funcionará.",
-    health_check_failed: "Error en la verificación de estado",
-    incorrect_password: "Contraseña incorrecta",
-    internal_error: "Error interno",
-    invalid_request: "Solicitud inválida",
+    health_check_failed: "Inténtalo de nuevo.",
+    incorrect_password:
+      "Contraseña incorrecta. Inténtalo de nuevo. Tu cuenta no está bloqueada.",
+    internal_error:
+      "El servidor tuvo un problema por nuestra parte. Vuelve a intentarlo en breve. Ya lo estamos investigando.",
+    invalid_request:
+      "No pudimos procesar esa solicitud. Actualiza la página e inténtalo de nuevo.",
     session_identity_mismatch:
       "Este dispositivo tenía la sesión iniciada en otra cuenta, así que cerramos la sesión para mantener las cuentas separadas. Basta con volver a iniciar sesión. Tus datos están intactos.",
-    key_material_unavailable: "Material de clave no disponible",
+    key_material_unavailable:
+      "Tus claves privadas están bloqueadas en este dispositivo. Tu contraseña las desbloqueará. Tus claves en el servidor no se han tocado.",
     max_accounts:
       "Se pueden tener hasta {{max}} cuentas a la vez. Eliminar una hará espacio para otra.",
-    no_active_account: "No hay cuenta activa",
-    no_authenticated_account: "No hay cuenta autenticada",
+    no_active_account:
+      "No se encontró ninguna cuenta con sesión iniciada en este dispositivo. Inicia sesión para continuar.",
+    no_authenticated_account:
+      "No se encontró ninguna cuenta con sesión iniciada en este dispositivo. Inicia sesión para continuar.",
     no_data_in_csv: "No hay datos en el archivo CSV",
     no_emails_in_mbox: "No se encontraron correos en el archivo MBOX",
     no_emails_in_pst: "No se encontraron correos en el archivo PST",
-    no_keys_available: "No hay claves disponibles",
-    no_permission: "Permiso denegado",
-    no_recipients: "Sin destinatarios",
-    no_valid_emails_csv: "No hay correos válidos en el CSV",
-    pst_conversion_required: "Se requiere conversión PST",
+    no_keys_available:
+      "Tus claves privadas están bloqueadas en este dispositivo. Tu contraseña las desbloqueará. Tus claves en el servidor no se han tocado.",
+    no_permission:
+      "No tienes acceso para hacer eso. Si crees que es un error, tu administrador puede ayudarte.",
+    no_recipients: "Añade al menos un destinatario antes de enviar.",
+    no_valid_emails_csv:
+      "No se encontraron correos utilizables en este CSV. El archivo necesita columnas como from, to, subject, body y date. Comprueba los encabezados e inténtalo de nuevo.",
+    pst_conversion_required:
+      "Aster no puede leer archivos PST directamente. Exporta tus correos desde Outlook como MBOX o como archivos EML individuales para poder importarlos.",
     rate_limited:
       "Estás haciendo eso demasiado rápido. Espera un momento e inténtalo de nuevo.",
     registration_cancelled: "Registro cancelado",
-    registration_failed: "Error al registrarse",
-    request_timeout: "Tiempo de solicitud agotado",
+    registration_failed:
+      "El registro no terminó. Empieza de nuevo e inténtalo otra vez. No se creó ninguna cuenta.",
+    request_timeout:
+      "La solicitud tardó demasiado en completarse. Comprueba tu conexión e inténtalo de nuevo.",
     row_skipped:
       "La fila {{number}} fue omitida porque le faltaban campos obligatorios. El resto de la importación continúa.",
     session_expired_login:
-      "Sesión expirada - por favor, inicia sesión de nuevo",
+      "Tu sesión ha terminado. Inicia sesión de nuevo para continuar. Tus datos y borradores están guardados en el servidor.",
     session_expired_reenter:
       "Sesión expirada - por favor, ingresa tus credenciales de nuevo",
-    session_expired_send: "Sesión expirada - el envío falló",
-    storage_compromised: "Almacenamiento comprometido",
-    unexpected_error: "Error inesperado",
+    session_expired_send:
+      "Tu sesión terminó antes de que se pudiera enviar este correo. Inicia sesión de nuevo para enviarlo. Tu borrador está guardado.",
+    storage_compromised:
+      "Los datos cifrados de este dispositivo no coinciden con lo esperado, lo que puede indicar una manipulación. Cerrar sesión y volver a iniciarla suele solucionarlo. Si el aviso vuelve a aparecer, escribe a hello@astermail.org de inmediato. Tus datos en el servidor no se han tocado.",
+    unexpected_error: "Algo no funcionó como se esperaba. Inténtalo de nuevo.",
     unexpected_health_check_error:
-      "Error inesperado en la verificación de estado",
-    unknown_error: "Error desconocido",
+      "El diagnóstico tuvo un problema. Inténtalo de nuevo.",
+    unknown_error:
+      "Algo no funcionó como se esperaba. Inténtalo de nuevo. No pudimos determinar la causa.",
     unrecognized_format:
       "Aster no puede leer {{name}}. Los formatos admitidos son MBOX, EML, CSV y PST. Guarda el archivo en uno de estos e inténtalo de nuevo.",
-    version_conflict: "Conflicto de versión",
+    version_conflict:
+      "Otra persona u otro proceso cambió esto antes. Actualiza para ver la versión más reciente.",
+    post_quantum_unavailable:
+      "Aster mantiene los mensajes entre cuentas de Aster con cifrado poscuántico, y {{recipients}} todavía no ha publicado claves poscuánticas. Pídele que abra Aster o actualice su app y vuelve a intentarlo. Tu borrador está guardado.",
+    load_failed: "No se ha podido cargar. Inténtalo de nuevo.",
+    data_integrity_failed:
+      "Estos datos no han superado la comprobación de integridad, así que no se han cargado.",
+    note_too_large:
+      "Esta nota es demasiado larga. Acórtala e inténtalo de nuevo.",
+    number_out_of_range: "Introduce un número entero entre {{min}} y {{max}}.",
+    invalid_date: "Introduce una fecha válida.",
+  },
+  folder_retention: {
+    title: "Limpieza automática de carpetas",
+    subtitle:
+      "Elimina automáticamente los correos antiguos de una carpeta. Los correos destacados y fijados siempre se conservan.",
+    add: "Añadir limpieza automática",
+    empty_title: "Aún no hay carpetas con limpieza automática",
+    empty_description:
+      "Elige una carpeta y un periodo de retención para mantenerla ordenada automáticamente.",
+    edit_title: "Limpieza automática de la carpeta",
+    folder: "Carpeta",
+    select_folder: "Selecciona una carpeta",
+    no_folders:
+      "Crea primero una carpeta personalizada para usar la limpieza automática.",
+    retention_period: "Eliminar correos con más de",
+    days_suffix: "días",
+    mode: "Al limpiar",
+    mode_trash: "Mover a la papelera",
+    mode_trash_hint: "Se puede recuperar durante unos 30 días",
+    mode_permanent: "Eliminar de forma permanente",
+    mode_permanent_hint: "No se puede deshacer",
+    mode_archive: "Mover al archivo",
+    mode_archive_hint:
+      "Sale de la bandeja de entrada, se conserva y se puede recuperar",
+    enabled: "Habilitado",
+    preview_some:
+      "En la próxima limpieza se eliminarán unos {{count}} correos.",
+    preview_none: "Ningún correo coincide ahora con esta regla.",
+    keeps_note: "Los correos destacados y fijados siempre se conservan.",
+    save: "Guardar",
+    cancel: "Cancelar",
+    delete: "Eliminar",
+    remove: "Quitar",
+    permanent_confirm:
+      "¿Eliminar de forma permanente los correos de esta carpeta con más de {{days}} días? No se puede deshacer.",
+    summary_older_than: "Con más de {{days}} días",
+    summary_trash: "a la papelera",
+    summary_permanent: "de forma permanente",
+    summary_archive: "al archivo",
+    card_badge: "Limpieza automática",
+    disabled_badge: "Desactivada",
+    upgrade_title: "La limpieza automática de carpetas es una función de pago",
+    upgrade_body:
+      "Cambia a Star o a un plan superior para limpiar carpetas automáticamente.",
+    save_failed: "No se pudo guardar la regla de limpieza automática.",
+    load_failed: "No se pudieron cargar las reglas de limpieza automática.",
+    deleted_toast: "Regla de limpieza automática eliminada.",
+    saved_toast: "Regla de limpieza automática guardada.",
   },
   mail_rules: {
+    expr_empty_expression: "Introduce una expresión antes de guardar.",
+    expr_unterminated_string: "A un valor le falta la comilla de cierre.",
+    expr_unexpected_char: 'El carácter "{{value}}" no se permite aquí.',
+    expr_unexpected_token:
+      '"{{value}}" no se esperaba aquí. Revisa la ortografía, las comillas y los paréntesis.',
+    expr_expected_rparen: "Falta un paréntesis de cierre.",
+    expr_expected_field:
+      "Introduce aquí un nombre de campo, como from.address, subject o has_attachment.",
+    expr_unknown_field:
+      '"{{value}}" no es un campo que puedas usar. Prueba from.address, subject, body, has_attachment, spam_score o date_received.',
+    expr_expected_operator:
+      "Introduce aquí un operador, como is, contains, ends_with o greater_than.",
+    expr_expected_string:
+      'Introduce un valor entre comillas, como "example.com".',
+    expr_expected_number: "Introduce aquí un número.",
+    expr_invalid_number: "Ese número no es válido.",
+    expr_expected_is: 'Aquí va la palabra "is".',
+    expr_expected_bool_value: "Introduce aquí true o false.",
+    expr_expected_bool_value_got:
+      'Introduce aquí true o false, no "{{value}}".',
+    expr_expected_auth_value: "Introduce aquí pass, fail, none o missing.",
+    expr_expected_auth_value_got:
+      'Introduce aquí pass, fail, none o missing, no "{{value}}".',
+    expr_expected_numeric_op:
+      "Introduce aquí una comparación numérica, como >, <, = o equals.",
+    expr_expected_date_op: "Introduce aquí older_than_days o newer_than_days.",
+    expr_expected_date_op_got:
+      'Introduce aquí older_than_days o newer_than_days, no "{{value}}".',
+    expr_bad_address_op:
+      'El operador "{{value}}" no funciona en campos de dirección. Prueba is, contains, starts_with, ends_with, matches_domain o matches_regex.',
+    expr_bad_text_op:
+      'El operador "{{value}}" no funciona en campos de texto. Prueba is, contains, starts_with, ends_with, is_empty o matches_regex.',
+    expr_bad_attachment_op:
+      'El operador "{{value}}" no funciona en nombres de adjuntos. Prueba contains, ends_with o matches_regex.',
+    expr_unhandled_field: "Este campo no se puede usar aquí.",
+    expr_internal_error:
+      "No se pudo leer esta expresión. Revisa la sintaxis e inténtalo de nuevo.",
+    expr_line_col: "(línea {{line}}, columna {{col}})",
     editor_description: "Ponle nombre a tu regla y dile qué hacer.",
     drag_handle: "Tirador para arrastrar",
     action_apply_label: "Aplicar etiqueta",
@@ -7887,16 +10108,24 @@ export const es = {
     apply_to_existing_cancel_failed: "No se pudo detener esta ejecución.",
     apply_to_existing_queued: "En cola...",
     apply_to_existing_progress:
-      "Aplicando: {{scanned}} revisados, {{applied}} actualizados",
+      "Aplicando. Revisados: {{scanned}}, actualizados: {{applied}}",
     apply_to_existing_progress_total:
-      "Aplicando: {{scanned}} de {{total}} revisados, {{applied}} actualizados",
+      "Aplicando. Revisados: {{scanned}} de {{total}}, actualizados: {{applied}}",
     apply_to_existing_done:
-      "Listo: {{scanned}} revisados, {{applied}} actualizados",
+      "Listo. Revisados: {{scanned}}, actualizados: {{applied}}",
     apply_to_existing_done_encrypted:
-      "Listo: {{scanned}} analizados, {{applied}} actualizados. Esta regla omitió {{encrypted}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
+      "Listo. Analizados: {{scanned}}, actualizados: {{applied}}. Esta regla omitió {{count}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
+    apply_to_existing_done_encrypted_one:
+      "Listo. Analizados: {{scanned}}, actualizados: {{applied}}. Esta regla omitió {{count}} mensaje cifrado porque solo tu dispositivo puede leerlo.",
+    apply_to_existing_done_encrypted_other:
+      "Listo. Analizados: {{scanned}}, actualizados: {{applied}}. Esta regla omitió {{count}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
     apply_to_existing_canceled: "Detenido: {{applied}} actualizados",
     apply_to_existing_canceled_encrypted:
-      "Detenido: {{applied}} actualizados. Esta regla omitió {{encrypted}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
+      "Detenido: {{applied}} actualizados. Esta regla omitió {{count}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
+    apply_to_existing_canceled_encrypted_one:
+      "Detenido: {{applied}} actualizados. Esta regla omitió {{count}} mensaje cifrado porque solo tu dispositivo puede leerlo.",
+    apply_to_existing_canceled_encrypted_other:
+      "Detenido: {{applied}} actualizados. Esta regla omitió {{count}} mensajes cifrados porque solo tu dispositivo puede leerlos.",
     apply_to_existing_error:
       "No se pudo aplicar al correo existente. Intentalo de nuevo.",
     at_limit_upgrade:
@@ -7926,9 +10155,9 @@ export const es = {
       "Crea tu primera regla para organizar automáticamente el correo entrante.",
     empty_title: "Sin reglas",
     expression_parse_error:
-      "Esta expresión tiene un error. Revisa la sintaxis.",
+      "Esta expresión no es válida. Comprueba la sintaxis e inténtalo de nuevo.",
     expression_placeholder:
-      'from.address es "alice@ejemplo.com" y subject contiene "recibo"',
+      'from.address is "alice@ejemplo.com" and subject contains "recibo"',
     field_any_recipient: "Cualquier destinatario",
     field_attachment_name: "Nombre del adjunto",
     field_attachment_size: "Tamaño del adjunto",
@@ -7964,12 +10193,15 @@ export const es = {
     hint_actions_required:
       "Se necesita al menos una acción antes de guardar esta regla.",
     hint_categorize_required: "Se necesita una categoría aquí.",
+    hint_move_to_required: "Aquí hace falta la carpeta de destino.",
+    hint_labels_required: "Aquí hace falta al menos una etiqueta.",
     hint_condition_incomplete:
       "Cada condición debe completarse antes de guardar esta regla.",
     hint_conditions_required:
       "Se necesita al menos una condición antes de guardar esta regla.",
     hint_forward_required:
       "Se necesita la dirección de correo para reenviar aquí.",
+    untitled_rule_name: "Regla sin título",
     hint_name_required: "Se necesita un nombre para esta regla aquí.",
     hint_snooze_required: "Se necesita una fecha de posposición aquí.",
     last_action_required:
@@ -7977,7 +10209,7 @@ export const es = {
     last_condition_required:
       "Se necesita al menos una condición antes de guardar esta regla.",
     load_failed:
-      "Tus reglas no se cargaron. Otro intento debería resolverlo. Tus reglas guardadas están seguras.",
+      "Tus reglas no se cargaron. Inténtalo de nuevo. Tus reglas guardadas están a salvo.",
     match_all: "todas las condiciones",
     match_any: "alguna condición",
     match_case: "Distinguir mayúsculas",
@@ -8004,6 +10236,7 @@ export const es = {
     op_is_not: "no es",
     op_less_than: "menor que",
     op_matches_domain: "coincide con el dominio",
+    op_does_not_match_domain: "no coincide con el dominio",
     op_matches_regex: "coincide con la expresión regular",
     op_newer_than_days: "más reciente que (días)",
     op_no: "no",
@@ -8022,19 +10255,23 @@ export const es = {
     regex_lookaround:
       "Lookahead y lookbehind no son compatibles. Reescribe el patrón sin ellos.",
     regex_empty: "Se necesita un patrón regex antes de guardar.",
-    regex_invalid: "Este patrón regex tiene un error. Revisa la sintaxis.",
+    regex_invalid:
+      "Este patrón de expresión regular no es válido. Comprueba la sintaxis e inténtalo de nuevo.",
     regex_too_long:
       "Este regex es demasiado largo. Una versión más corta funcionará.",
     remove_action: "Eliminar acción",
     reorder_failed:
-      "El nuevo orden no se guardó. Otro intento debería resolverlo. Tus reglas siguen ejecutándose en su orden anterior.",
+      "El nuevo orden no se guardó. Inténtalo de nuevo. Tus reglas se siguen aplicando en el orden anterior.",
+    rule_delete_failed:
+      "Esta regla no se eliminó. Inténtalo de nuevo. La regla sigue activa.",
+    snooze_needs_future: "Elige una fecha y una hora futuras.",
     rule_color: "Color",
     rule_limit_body:
       "Has alcanzado el límite de reglas de tu plan. Actualiza para agregar más.",
     rule_limit_reached: "Límite de reglas alcanzado",
     rule_name_placeholder: "Nombre de la regla",
     save_failed:
-      "Esta regla no se guardó. Otro intento debería resolverlo. La versión anterior sigue activa.",
+      "Esta regla no se guardó. Inténtalo de nuevo. La versión anterior sigue activa.",
     save_rule: "Guardar regla",
     snooze_1_day: "1 día",
     snooze_1_hour: "1 hora",
@@ -8055,38 +10292,57 @@ export const es = {
     value_unit_mb: "MB",
     when_mail_matches: "Cuando el correo coincide con",
     your_rules: "Tus reglas ({{count}})",
+    templates_button: "Plantillas",
+    templates_title: "Plantillas de reglas",
+    templates_subtitle:
+      "Empieza con una regla preparada y personalízala antes de guardarla.",
+    templates_search_placeholder: "Buscar plantillas",
+    templates_empty: "Ninguna plantilla coincide con tu búsqueda.",
+    templates_use: "Usar plantilla",
+    templates_customize: "Necesita un dato tuyo",
+    templates_category_organize: "Organizar",
+    templates_category_cleanup: "Limpiar",
+    templates_category_priority: "Prioridad",
+    templates_category_security: "Seguridad",
+    tpl_folder_auto_clean_name: "Limpieza automática de carpetas",
+    tpl_folder_auto_clean_desc:
+      "Elimina automáticamente los correos de una carpeta cuando superen los días que elijas. Los correos destacados y fijados siempre se conservan.",
+    tpl_newsletters_name: "Ordenar boletines",
+    tpl_newsletters_desc:
+      "Cuando un mensaje llega de una lista de correo (lleva una cabecera List-Id), archívalo en la categoría Boletines.",
+    tpl_social_name: "Agrupar avisos de redes sociales",
+    tpl_social_desc:
+      "Cuando el remitente es Facebook, LinkedIn, X/Twitter o Instagram, mueve el mensaje a la categoría Social.",
+    tpl_promotions_name: "Detectar descuentos",
+    tpl_promotions_desc:
+      "Cuando el asunto menciona rebajas, descuento, cupón o “% de descuento”, mueve el mensaje a la categoría Descuentos.",
+    tpl_calendar_name: "Reunir invitaciones de calendario",
+    tpl_calendar_desc:
+      "Cuando un mensaje contiene una invitación de calendario (.ics), archívalo en la categoría Notificaciones.",
+    tpl_large_attachments_name: "Marcar archivos adjuntos grandes",
+    tpl_large_attachments_desc:
+      "Cuando un mensaje tiene un archivo adjunto de más de 10 MB, muévelo a la carpeta que elijas. Elige la carpeta antes de guardar.",
+    tpl_no_reply_name: "Ordenar el correo automático",
+    tpl_no_reply_desc:
+      "Cuando un mensaje se genera automáticamente (lleva una cabecera Auto-Submitted, por ejemplo de remitentes no-reply), archívalo en Notificaciones.",
+    tpl_receipts_name: "Archivar recibos",
+    tpl_receipts_desc:
+      "Cuando el asunto menciona recibo, factura o confirmación de pedido, sáltate la bandeja de entrada y archívalo en Notificaciones.",
+    tpl_vip_sender_name: "Destacar a un remitente clave",
+    tpl_vip_sender_desc:
+      "Cuando llega correo de un remitente que elijas, destácalo y envía una notificación. Escribe la dirección del remitente antes de guardar.",
+    tpl_keyword_star_name: "Destacar por palabra clave",
+    tpl_keyword_star_desc:
+      "Cuando el asunto contiene una palabra que elijas, destaca el mensaje. Escribe la palabra clave antes de guardar.",
+    tpl_auth_failures_name: "Retener correo sospechoso",
+    tpl_auth_failures_desc:
+      "Cuando un mensaje no supera sus comprobaciones SPF, DKIM o DMARC (una señal habitual de suplantación), mantenlo fuera de la bandeja de entrada y márcalo como leído.",
   },
   badges: {
     active_badge: "Insignia activa",
-    badge_andromeda: "Andrómeda",
-    badge_andromeda_description: "Llegó a una galaxia vecina.",
-    badge_big_bang: "Big Bang",
-    badge_big_bang_description: "Primero en descubrir el cosmos.",
-    badge_black_hole: "Agujero negro",
-    badge_black_hole_description: "Atraído por algo más profundo.",
-    badge_comet: "Cometa",
-    badge_comet_description: "Se cruzó con algo raro.",
-    badge_event_horizon: "Horizonte de eventos",
-    badge_event_horizon_description: "Cruzó la frontera de lo conocido.",
-    badge_nebula: "Nebulosa",
-    badge_nebula_description: "Se perdió entre los colores.",
-    badge_pulsar: "Pulsar",
-    badge_pulsar_description: "Escuchó la señal en el ruido.",
-    badge_singularity: "Singularidad",
-    badge_singularity_description: "Encontró el punto donde todo se curva.",
-    badge_stargazer: "Observador de estrellas",
-    badge_stargazer_description: "Miró en el momento justo.",
-    badge_supernova: "Supernova",
-    badge_supernova_description:
-      "Capturó una estrella en su momento más brillante.",
-    claim_already: "Ya tienes una insignia de descubrimiento.",
-    claim_failed:
-      "Esta insignia no se guardó. Otro intento debería resolverlo.",
-    claim_success: "Has conseguido la insignia {name}.",
+    claim_failed: "Inténtalo de nuevo.",
     description: "Detalles personales que has coleccionado.",
-    earned_label: "Conseguidas",
     empty_state: "Aún no has encontrado ninguna insignia.",
-    find_order_label: "#{order}",
     granted_at: "Obtenida el {date}",
     none: "Ninguna",
     not_earned: "Aún no obtenida",
@@ -8116,7 +10372,6 @@ export const es = {
     not_found: "No se pudo encontrar este mensaje seguro.",
     attachments: "Adjuntos",
     download: "Descargar",
-    powered_by: "Enviado de forma segura con AsterMail",
     deleted: "Este mensaje seguro ha sido eliminado y ya no está disponible.",
     reply_label: "Enviar una respuesta",
     reply_placeholder: "Escribe tu respuesta...",
@@ -8132,16 +10387,9 @@ export const es = {
     delete_confirm_no: "Cancelar",
     delete_failed: "No se pudo eliminar este mensaje. Inténtalo de nuevo.",
   },
-  compose: {
-    encrypt_external_label: "Cifrar para destinatarios externos",
-    encrypt_external_desc:
-      "Los destinatarios abren un enlace privado e introducen una contraseña para leer este mensaje.",
-    encrypt_password_required:
-      "Establece una contraseña para cifrar este mensaje.",
-  },
+  compose: {},
   shared_mailboxes: {
     tab_label: "Buzones compartidos",
-    shared_tag: "Compartido",
     create: "Crear",
     created: "Buzón compartido creado",
     create_failed: "No se pudo crear el buzón compartido",
@@ -8181,8 +10429,14 @@ export const es = {
     delete_confirm_title: "Eliminar buzón compartido",
     access_unavailable: "Este buzón compartido ya no está disponible",
   },
+  review_prompt: {
+    banner_message:
+      "Puedes valorar Aster Mail en Trustpilot. Las opiniones son públicas y solo verás este aviso una vez.",
+    banner_open: "Abrir Trustpilot",
+    banner_dismiss: "No, gracias",
+    opens_in_new_tab: "Abre Trustpilot en una pestaña nueva",
+  },
   survey: {
-    banner_title: "Ayúdanos a mejorar Aster Mail",
     banner_message:
       "Ayuda a dar forma a Aster: una encuesta única de un minuto. Tus respuestas se mantienen privadas y nunca se comparten.",
     banner_take: "Responder encuesta",
@@ -8238,5 +10492,192 @@ export const es = {
     submit_failed: "No se pudo enviar la encuesta. Inténtalo de nuevo.",
     submitted_thanks:
       "¡Gracias! Tus comentarios hacen que Aster Mail sea mejor para todos. Leemos cada respuesta.",
+  },
+  calendar: {
+    invite_yes: "Sí",
+    invite_maybe: "Quizás",
+    invite_no: "No",
+    invite_status_going: "Vas a asistir",
+    invite_status_maybe: "Quizás asistas",
+    invite_status_declined: "No vas a asistir",
+    invite_change_response: "Cambiar",
+    invite_added_toast: "Se añadió a tu calendario",
+    invite_declined_toast: "Rechazaste esta invitación",
+    invite_save_failed: "No se pudo guardar en tu calendario",
+    invite_saved_locally: "Se guardó en tu calendario cifrado",
+    calendar: "Calendario",
+    month: "Mes",
+    week: "Semana",
+    day: "Día",
+    agenda: "Agenda",
+    today: "Hoy",
+    previous_period: "Anterior",
+    next_period: "Siguiente",
+    search_events: "Buscar eventos",
+    only_you_can_read_calendar:
+      "Solo tú puedes leer tu calendario. Los eventos se cifran en tu dispositivo antes de salir de él.",
+    all_day: "Todo el día",
+    more_events: "+{{count}} más",
+    no_upcoming_events: "Sin eventos",
+    no_upcoming_events_hint: "Los eventos que crees aparecerán aquí.",
+    new_event: "Nuevo evento",
+    edit_event: "Editar evento",
+    delete_event: "Eliminar evento",
+    delete_event_confirmation:
+      "¿Eliminar «{{title}}»? Esta acción no se puede deshacer.",
+    event_title: "Título",
+    event_title_placeholder: "Añade un título",
+    starts: "Empieza",
+    ends: "Termina",
+    location: "Ubicación",
+    location_placeholder: "Añade una ubicación",
+    description: "Descripción",
+    description_placeholder: "Añade notas",
+    reminder: "Recordatorio",
+    reminder_none: "Sin recordatorio",
+    reminder_at_start: "A la hora de inicio",
+    reminder_minutes_before: "{{count}} minutos antes",
+    title_required: "Añade un título para este evento",
+    invalid_dates: "Introduce una hora de inicio y de fin válidas",
+    end_before_start: "La hora de fin es anterior a la de inicio",
+    weekday_sun: "Dom",
+    weekday_mon: "Lun",
+    weekday_tue: "Mar",
+    weekday_wed: "Mié",
+    weekday_thu: "Jue",
+    weekday_fri: "Vie",
+    weekday_sat: "Sáb",
+    calendar_navigation: "Navegación del calendario",
+    aster_calendar: "Aster Calendario",
+    back_to_mail: "Volver a Mail",
+    my_calendars: "Mis calendarios",
+  },
+  settings_search: {
+    two_factor: "2FA",
+    account_recovery: "Recuperación de la cuenta",
+    actions: "Acciones",
+    active_sessions: "Sesiones activas",
+    add_ons: "Complementos",
+    advanced: "Avanzado",
+    allowlist: "Lista de permitidos",
+    animations: "Animaciones",
+    app_lock: "Bloqueo de la app",
+    auto_archive: "Archivado automático",
+    auto_forward: "Reenvío automático",
+    auto_label: "Etiqueta automática",
+    auto_clean: "Limpieza automática",
+    auto_logout: "Cierre de sesión automático",
+    auto_update: "Actualización automática",
+    badge: "Distintivo",
+    badge_count: "Recuento del distintivo",
+    block: "Bloquear",
+    bug_report: "Informe de error",
+    build_info: "Información de la versión",
+    changelog: "Novedades",
+    checkup: "Revisión",
+    children: "Menores",
+    code: "Código",
+    composing_and_replies: "Redacción y respuestas",
+    configuration: "Configuración",
+    confirmations: "Confirmaciones",
+    connect_apple_mail: "Conectar Apple Mail",
+    contact_support: "Contactar con soporte",
+    content_protection: "Protección del contenido",
+    control: "Control",
+    create: "Crear",
+    create_ghost_alias: "Crear un alias fantasma",
+    credits: "Créditos",
+    crypto: "Cripto",
+    custom: "Personalizado",
+    custom_domain: "Dominio propio",
+    dns_records: "Registros DNS",
+    danger_zone: "Zona de riesgo",
+    dark_mode: "Modo oscuro",
+    desktop: "Escritorio",
+    device: "Dispositivo",
+    directories: "Directorios",
+    display: "Pantalla",
+    domains: "Dominios",
+    download: "Descargar",
+    duration: "Duración",
+    duress_pin: "PIN de coacción",
+    edit: "Editar",
+    email: "Correo",
+    email_forwarding: "Reenvío de correo",
+    email_summary: "Resumen por correo",
+    events: "Eventos",
+    export: "Exportar",
+    external_accounts: "Cuentas externas",
+    features: "Funciones",
+    format: "Formato",
+    forward: "Reenviar",
+    generate: "Generar",
+    ghost_aliases: "Alias fantasma",
+    gmail: "Gmail",
+    hardware_keys: "Llaves de seguridad",
+    imap: "IMAP",
+    invite: "Invitar",
+    invoices: "Facturas",
+    key_rotation: "Rotación de claves",
+    keyboard: "Teclado",
+    keyboard_shortcuts: "Atajos de teclado",
+    keys: "Claves",
+    language: "Idioma",
+    language_and_format: "Idioma y formato",
+    layout: "Diseño",
+    links: "Enlaces",
+    logs: "Registros",
+    manage: "Gestionar",
+    members: "Miembros",
+    motion_and_layout: "Movimiento y diseño",
+    navigation_panel: "Panel de navegación",
+    notification_sound: "Sonido de las notificaciones",
+    outlook: "Outlook",
+    passkeys: "Claves de acceso",
+    password: "Contraseña",
+    password_protected_folders: "Carpetas protegidas con contraseña",
+    payment: "Pago",
+    payment_method: "Método de pago",
+    performance: "Rendimiento",
+    plan: "Plan",
+    position: "Posición",
+    profile: "Perfil",
+    proton: "Proton",
+    push: "Push",
+    quiet_hours: "Horas de silencio",
+    reading: "Lectura",
+    reading_and_conversations: "Lectura y conversaciones",
+    reading_pane: "Panel de lectura",
+    recovery: "Recuperación",
+    referral_code: "Código de invitación",
+    rename_hardware_key: "Renombrar la llave de seguridad",
+    revoke_smtp_token: "Revocar el token SMTP",
+    revoke_device: "Revocar el dispositivo",
+    smtp_settings: "Ajustes de SMTP",
+    security: "Seguridad",
+    sending: "Envío",
+    session: "Sesión",
+    sessions: "Sesiones",
+    settings: "Ajustes",
+    setup: "Configuración inicial",
+    sound: "Sonido",
+    spam: "Spam",
+    stats: "Estadísticas",
+    storage: "Almacenamiento",
+    storage_add_on: "Complemento de almacenamiento",
+    subscriptions: "Suscripciones",
+    support: "Soporte",
+    swipe: "Deslizar",
+    test: "Prueba",
+    text: "Texto",
+    theme: "Tema",
+    threading: "Conversaciones",
+    tokens: "Tokens",
+    tracking_protection: "Protección frente al rastreo",
+    translation: "Traducción",
+    undo_send: "Deshacer el envío",
+    vacation_reply: "Respuesta de vacaciones",
+    vanguard: "Vanguard",
+    vision: "Visión",
   },
 };

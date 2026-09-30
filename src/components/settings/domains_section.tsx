@@ -1,0 +1,761 @@
+//
+// Aster Communications Inc.
+//
+// Copyright (c) 2026 Aster Communications Inc.
+//
+// This file is part of this project.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+//
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  PlusIcon,
+  GlobeAltIcon,
+  ShoppingBagIcon,
+  MagnifyingGlassIcon,
+} from "@heroicons/react/24/outline";
+import {
+  Input,
+  Island,
+  IslandEmpty,
+  IslandSection,
+  IslandSections,
+  IslandStack,
+  PillButton,
+} from "@aster/ui";
+
+import { show_toast } from "@/components/toast/simple_toast";
+import { use_i18n } from "@/lib/i18n/context";
+import {
+  cancel_domain_order,
+  list_domain_orders,
+  renew_domain_order,
+  type DomainOrder,
+} from "@/services/api/domains";
+import { TURNSTILE_SITE_KEY } from "@/components/auth/turnstile_widget";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
+import { InfoPopover } from "@/components/ui/info_popover";
+import { use_aliases } from "@/components/settings/hooks/use_aliases";
+import { CreateAliasModal } from "@/components/settings/aliases/alias_form";
+import { DomainSetupWizard } from "@/components/settings/aliases/domain_setup_wizard";
+import { DomainPurchaseModal } from "@/components/settings/aliases/domain_purchase_modal";
+import { DomainCardV2 } from "@/components/settings/aliases/domain_card_v2";
+import { DomainDeleteModal } from "@/components/settings/aliases/domain_delete_modal";
+import { PurchasedDomainManageModal } from "@/components/settings/aliases/purchased_domain_manage_modal";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
+import { is_https_payment_url } from "@/lib/payment_url";
+import { open_payment_url } from "@/services/api/billing";
+import { is_tauri_env } from "@/services/api/client/helpers";
+import { ignore_error } from "@/lib/ignore_error";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
+
+export function DomainsSection() {
+  const { t } = use_i18n();
+  const hook = use_aliases();
+
+  const [purchase_open, set_purchase_open_state] = useState(() => {
+    try {
+      return sessionStorage.getItem("alias_domains_purchase_open") === "1";
+    } catch {
+      return false;
+    }
+  });
+  const set_purchase_open = (open: boolean) => {
+    set_purchase_open_state(open);
+    try {
+      if (open) {
+        sessionStorage.setItem("alias_domains_purchase_open", "1");
+      } else {
+        sessionStorage.removeItem("alias_domains_purchase_open");
+      }
+    } catch (caught) {
+      ignore_error(
+        "components/settings/domains_section:set_purchase_open",
+        caught,
+      );
+    }
+  };
+  const [purchase_order_id, set_purchase_order_id] = useState<string | null>(
+    null,
+  );
+  const [purchase_initial_query, set_purchase_initial_query] = useState<
+    string | null
+  >(null);
+  const clear_purchase_url_param = () => {
+    try {
+      const url = new URL(window.location.href);
+
+      if (url.searchParams.has("domain_order")) {
+        url.searchParams.delete("domain_order");
+        window.history.replaceState({}, "", url.toString());
+      }
+    } catch (caught) {
+      ignore_error(
+        "components/settings/domains_section:clear_purchase_url_param",
+        caught,
+      );
+    }
+  };
+  const close_purchase = () => {
+    set_purchase_open(false);
+    set_purchase_order_id(null);
+    set_purchase_initial_query(null);
+    clear_purchase_url_param();
+  };
+  const [search_query, set_search_query] = useState("");
+  const [purchased_orders, set_purchased_orders] = useState<DomainOrder[]>([]);
+  const [purchased_loading, set_purchased_loading] = useState(false);
+  const [purchased_load_failed, set_purchased_load_failed] = useState(false);
+  const [purchased_reload, set_purchased_reload] = useState(0);
+  const pending_desktop_renew_ref = useRef(false);
+  const [renewing_order_id, set_renewing_order_id] = useState<string | null>(
+    null,
+  );
+  const [cancelling_order_id, set_cancelling_order_id] = useState<
+    string | null
+  >(null);
+  const [pending_cancel_order_id, set_pending_cancel_order_id] = useState<
+    string | null
+  >(null);
+  const [renew_errors, set_renew_errors] = useState<Record<string, string>>({});
+  const [renew_captcha_order_id, set_renew_captcha_order_id] = useState<
+    string | null
+  >(null);
+  const [manage_order_id, set_manage_order_id] = useState<string | null>(null);
+  const manage_order =
+    purchased_orders.find((order) => order.id === manage_order_id) ?? null;
+
+  useEffect(() => {
+    if (purchase_open) return;
+    set_purchased_loading(true);
+    set_purchased_load_failed(false);
+    list_domain_orders()
+      .then((r) => {
+        if (r.data) {
+          set_purchased_orders(
+            r.data.orders.filter(
+              (o) =>
+                o.order_type === "registration" &&
+                !["expired", "refunded", "failed"].includes(o.status),
+            ),
+          );
+
+          return;
+        }
+        set_purchased_load_failed(true);
+      })
+      .catch((caught) => {
+        set_purchased_load_failed(true);
+        ignore_error(
+          "components/settings/domains_section:load_purchased_orders",
+          caught,
+        );
+      })
+      .finally(() => set_purchased_loading(false));
+  }, [purchase_open, purchased_reload]);
+
+  useEffect(() => {
+    if (!is_tauri_env()) return;
+    let cancelled = false;
+    const handle_focus = async () => {
+      if (!pending_desktop_renew_ref.current) return;
+      pending_desktop_renew_ref.current = false;
+      for (let attempt = 0; attempt < 6 && !cancelled; attempt += 1) {
+        set_purchased_reload((value) => value + 1);
+        await new Promise((resolve) =>
+          setTimeout(resolve, attempt === 0 ? 1500 : 3000),
+        );
+      }
+    };
+
+    window.addEventListener("focus", handle_focus);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", handle_focus);
+    };
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const url_order_id = params.get("domain_order");
+    let stashed_order_id: string | null = null;
+
+    try {
+      stashed_order_id = sessionStorage.getItem("aster_pending_domain_order");
+      if (stashed_order_id) {
+        sessionStorage.removeItem("aster_pending_domain_order");
+      }
+    } catch (caught) {
+      ignore_error(
+        "components/settings/domains_section:read_pending_order",
+        caught,
+      );
+    }
+
+    if (params.get("cancelled") === "1") {
+      const cancelled_id = url_order_id ?? stashed_order_id;
+
+      try {
+        const url = new URL(window.location.href);
+
+        url.searchParams.delete("domain_order");
+        url.searchParams.delete("cancelled");
+        window.history.replaceState({}, "", url.toString());
+      } catch (caught) {
+        ignore_error(
+          "components/settings/domains_section:clear_cancelled_params",
+          caught,
+        );
+      }
+
+      if (cancelled_id) {
+        cancel_domain_order(cancelled_id).catch((caught) =>
+          ignore_error(
+            "components/settings/domains_section:cancel_pending_order",
+            caught,
+          ),
+        );
+      }
+
+      return;
+    }
+
+    const order_id = url_order_id ?? stashed_order_id;
+
+    if (!order_id) return;
+    if (!url_order_id) {
+      try {
+        const url = new URL(window.location.href);
+
+        url.searchParams.set("domain_order", order_id);
+        window.history.replaceState({}, "", url.toString());
+      } catch (caught) {
+        ignore_error(
+          "components/settings/domains_section:restore_order_param",
+          caught,
+        );
+      }
+    }
+    set_purchase_order_id(order_id);
+    set_purchase_open(true);
+  }, []);
+
+  useEffect(() => {
+    if (!purchase_open) return;
+    window.history.pushState({ aster_domain_purchase: true }, "");
+    const handle_pop = () => {
+      close_purchase();
+    };
+
+    window.addEventListener("popstate", handle_pop);
+
+    return () => window.removeEventListener("popstate", handle_pop);
+  }, [purchase_open]);
+
+  useEffect(() => {
+    const open_purchase = () => {
+      set_purchase_order_id(null);
+      set_purchase_initial_query(null);
+      set_purchase_open(true);
+    };
+
+    window.addEventListener("aster:open-domain-purchase", open_purchase);
+
+    return () =>
+      window.removeEventListener("aster:open-domain-purchase", open_purchase);
+  }, []);
+
+  const handle_cancel_order = async (order_id: string) => {
+    set_cancelling_order_id(order_id);
+    try {
+      const response = await cancel_domain_order(order_id);
+
+      if (response.data?.success) {
+        set_purchased_orders((prev) =>
+          prev.filter((order) => order.id !== order_id),
+        );
+      } else {
+        show_toast(
+          response.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
+      }
+    } catch (caught) {
+      ignore_error(
+        "components/settings/domains_section:handle_cancel_order",
+        caught,
+      );
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    } finally {
+      set_cancelling_order_id(null);
+    }
+  };
+
+  const handle_renew = async (order_id: string, captcha_token?: string) => {
+    set_renewing_order_id(order_id);
+    set_renew_errors((prev) => {
+      const next = { ...prev };
+
+      delete next[order_id];
+
+      return next;
+    });
+    try {
+      const response = await renew_domain_order(
+        order_id,
+        1,
+        "stripe",
+        captcha_token,
+      );
+
+      if (
+        response.data?.checkout_url &&
+        is_https_payment_url(response.data.checkout_url)
+      ) {
+        if (is_tauri_env()) {
+          await open_payment_url(response.data.checkout_url);
+          pending_desktop_renew_ref.current = true;
+
+          return;
+        }
+        window.location.href = response.data.checkout_url;
+
+        return;
+      }
+      set_renew_errors((prev) => ({
+        ...prev,
+        [order_id]:
+          response.error ?? t("common.something_went_wrong_try_again"),
+      }));
+    } catch (err) {
+      set_renew_errors((prev) => ({
+        ...prev,
+        [order_id]:
+          err instanceof Error
+            ? err.message
+            : t("common.something_went_wrong_try_again"),
+      }));
+    } finally {
+      set_renewing_order_id(null);
+      set_renew_captcha_order_id(null);
+    }
+  };
+
+  const open_purchase_flow = (initial_query: string | null = null) => {
+    set_purchase_order_id(null);
+    set_purchase_initial_query(initial_query);
+    set_purchase_open(true);
+  };
+
+  const normalized_query = search_query.trim().toLowerCase();
+  const visible_domains = useMemo(
+    () =>
+      normalized_query
+        ? hook.domains.filter((domain) =>
+            domain.domain_name.toLowerCase().includes(normalized_query),
+          )
+        : hook.domains,
+    [hook.domains, normalized_query],
+  );
+  const visible_orders = useMemo(
+    () =>
+      normalized_query
+        ? purchased_orders.filter((order) =>
+            order.domain.toLowerCase().includes(normalized_query),
+          )
+        : purchased_orders,
+    [purchased_orders, normalized_query],
+  );
+  const owned_domain_count = hook.domains.filter(
+    (domain) => !domain.purchased && !domain.is_shared,
+  ).length;
+
+  const searching_with_no_results =
+    normalized_query.length > 0 &&
+    visible_domains.length === 0 &&
+    visible_orders.length === 0;
+
+  const show_domain_content = !(
+    !hook.domains_loading &&
+    (hook.domains_load_failed || hook.max_domains === 0)
+  );
+
+  return (
+    <div className="space-y-4">
+      <IslandSections>
+        <IslandSection
+          bare
+          description={t("settings.domains_page_description")}
+          icon={<GlobeAltIcon />}
+          title={t("settings.alias_tab_domains")}
+          trailing={
+            !hook.domains_loading && hook.max_domains !== 0 ? (
+              <span className="text-sm text-txt-muted">
+                {t("settings.used_count", {
+                  current: owned_domain_count,
+                  max: hook.max_domains === -1 ? "∞" : hook.max_domains,
+                })}
+              </span>
+            ) : undefined
+          }
+        >
+          {!hook.domains_loading && hook.domains_load_failed ? (
+            <IslandEmpty
+              action={
+                <PillButton
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void hook.load_domains()}
+                >
+                  {t("common.retry")}
+                </PillButton>
+              }
+              title={t("common.something_went_wrong_try_again")}
+            />
+          ) : !hook.domains_loading && hook.max_domains === 0 ? (
+            <IslandEmpty
+              action={
+                <PillButton
+                  variant="filled"
+                  onClick={() =>
+                    window.dispatchEvent(
+                      new CustomEvent("navigate-settings", {
+                        detail: "billing",
+                      }),
+                    )
+                  }
+                >
+                  {t("common.upgrade_plan")}
+                </PillButton>
+              }
+              description={t("settings.upgrade_plan_more_domains")}
+              icon={<GlobeAltIcon />}
+              title={t("settings.custom_domains_not_available")}
+            />
+          ) : (
+            <>
+              <div className="space-y-2">
+                <PillButton
+                  block
+                  leading={<PlusIcon className="h-4 w-4" />}
+                  size="lg"
+                  variant="filled"
+                  onClick={hook.handle_open_add_domain}
+                >
+                  {t("settings.add_domain_you_own")}
+                </PillButton>
+                {hook.domains.length + purchased_orders.length >= 5 && (
+                  <div className="relative">
+                    <MagnifyingGlassIcon className="absolute start-3 top-1/2 -translate-y-1/2 w-4 h-4 text-txt-muted" />
+                    <Input
+                      placeholder={t("settings.search_domains_placeholder")}
+                      size="md"
+                      style={{ paddingInlineStart: "38px" }}
+                      value={search_query}
+                      onChange={(event) => set_search_query(event.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {searching_with_no_results ? (
+                <IslandEmpty
+                  icon={<MagnifyingGlassIcon />}
+                  title={t("settings.no_matching_domains")}
+                />
+              ) : hook.domains_loading ? (
+                <div />
+              ) : visible_domains.length === 0 && !normalized_query ? (
+                <IslandEmpty
+                  icon={<GlobeAltIcon />}
+                  title={t("settings.no_domains_yet")}
+                />
+              ) : (
+                <IslandStack>
+                  {visible_domains.map((domain) => (
+                    <DomainCardV2
+                      key={domain.id}
+                      deleting={hook.domain_deleting_id === domain.id}
+                      domain={domain}
+                      on_delete={hook.handle_domain_delete}
+                      on_domains_changed={hook.load_domains}
+                      on_setup={hook.handle_open_setup}
+                    />
+                  ))}
+                </IslandStack>
+              )}
+            </>
+          )}
+        </IslandSection>
+
+        {show_domain_content && !searching_with_no_results && (
+          <IslandSection
+            bare
+            description={t("settings.domain_purchase_purchased_desc")}
+            icon={<ShoppingBagIcon />}
+            title={t("settings.domain_purchase_purchased_label")}
+            title_info={
+              <InfoPopover
+                description={t("settings.domain_purchase_purchased_info")}
+                title={t("settings.domain_purchase_purchased_label")}
+              />
+            }
+            trailing={
+              visible_orders.length > 0 ? (
+                <span className="text-sm text-txt-muted">
+                  {visible_orders.length}
+                </span>
+              ) : undefined
+            }
+          >
+            <PillButton
+              block
+              leading={<ShoppingBagIcon className="h-4 w-4" />}
+              size="lg"
+              variant="filled"
+              onClick={() => open_purchase_flow()}
+            >
+              {t("settings.buy_new_domain")}
+            </PillButton>
+            {purchased_loading && purchased_orders.length === 0 ? (
+              <div className="flex justify-center py-6">
+                <Spinner className="text-txt-muted" size="sm" />
+              </div>
+            ) : purchased_load_failed && purchased_orders.length === 0 ? (
+              <LoadFailedNotice
+                on_retry={() => set_purchased_reload((value) => value + 1)}
+              />
+            ) : visible_orders.length === 0 ? (
+              <IslandEmpty
+                icon={<ShoppingBagIcon />}
+                title={t("settings.domain_purchase_purchased_empty")}
+              />
+            ) : (
+              <Island divided>
+                {visible_orders.map((order) => (
+                  <div
+                    key={order.id}
+                    className={`flex w-full flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-3 text-start ${
+                      order.status === "pending_payment"
+                        ? "cursor-default"
+                        : "cursor-pointer transition-colors hover:bg-surf-secondary"
+                    }`}
+                    onClick={() => {
+                      if (order.status === "pending_payment") {
+                        return;
+                      }
+                      if (order.status === "complete") {
+                        set_manage_order_id(order.id);
+
+                        return;
+                      }
+                      set_purchase_order_id(
+                        order.status === "lapsed" ? null : order.id,
+                      );
+                      set_purchase_open(true);
+                    }}
+                  >
+                    <span className="min-w-0 truncate text-sm font-medium text-txt-primary">
+                      {order.domain}
+                    </span>
+                    <span className="ms-auto flex flex-shrink-0 flex-wrap items-center justify-end gap-2">
+                      {order.status === "pending_payment" && (
+                        <>
+                          <PillButton
+                            size="sm"
+                            variant="filled"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              open_purchase_flow(order.domain);
+                            }}
+                          >
+                            {t("settings.domain_purchase_complete_cta")}
+                          </PillButton>
+                          <PillButton
+                            disabled={cancelling_order_id === order.id}
+                            leading={
+                              cancelling_order_id === order.id ? (
+                                <ButtonSpinner size="xs" />
+                              ) : undefined
+                            }
+                            size="sm"
+                            variant="outline"
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              set_pending_cancel_order_id(order.id);
+                            }}
+                          >
+                            {t("common.cancel")}
+                          </PillButton>
+                        </>
+                      )}
+                      {order.status === "complete" && (
+                        <PillButton
+                          leading={
+                            renewing_order_id === order.id ||
+                            renew_captcha_order_id === order.id ? (
+                              <ButtonSpinner size="xs" />
+                            ) : undefined
+                          }
+                          size="sm"
+                          variant="outline"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            set_manage_order_id(order.id);
+                          }}
+                        >
+                          {t("settings.domain_purchase_manage")}
+                        </PillButton>
+                      )}
+                      <span
+                        className={`text-[13px] ${
+                          order.status === "lapsed"
+                            ? "text-[var(--color-danger)]"
+                            : "text-txt-muted"
+                        }`}
+                      >
+                        {order.status === "complete"
+                          ? order.expires_at
+                            ? t("settings.domain_purchase_purchased_expires", {
+                                date: new Date(
+                                  order.expires_at,
+                                ).toLocaleDateString(app_locale(), {
+                                  timeZone: get_display_time_zone(),
+                                }),
+                              })
+                            : ""
+                          : order.status === "lapsed"
+                            ? t("settings.domain_purchase_purchased_lapsed")
+                            : order.status === "pending_payment"
+                              ? t("settings.domain_purchase_purchased_awaiting")
+                              : t(
+                                  "settings.domain_purchase_purchased_in_progress",
+                                )}
+                      </span>
+                    </span>
+                  </div>
+                ))}
+              </Island>
+            )}
+          </IslandSection>
+        )}
+      </IslandSections>
+
+      <DomainSetupWizard
+        current_count={owned_domain_count}
+        dns_records={hook.wizard_dns_records}
+        domain_id={hook.wizard_domain_id}
+        domain_name={hook.wizard_domain_name}
+        is_open={hook.wizard_open}
+        max_domains={hook.max_domains}
+        mode={hook.wizard_mode}
+        on_close={hook.handle_wizard_close}
+        on_domain_added={hook.handle_domain_added}
+        on_domains_changed={hook.load_domains}
+      />
+
+      <DomainDeleteModal
+        domain_name={
+          hook.domains.find((d) => d.id === hook.domain_delete_confirm.id)
+            ?.domain_name ?? ""
+        }
+        is_open={hook.domain_delete_confirm.is_open}
+        on_cancel={() =>
+          hook.set_domain_delete_confirm({ is_open: false, id: null })
+        }
+        on_confirm={hook.confirm_domain_delete}
+      />
+
+      <PurchasedDomainManageModal
+        captcha_pending={
+          manage_order !== null && renew_captcha_order_id === manage_order.id
+        }
+        custom_domain={
+          manage_order?.custom_domain_id
+            ? hook.domains.find((d) => d.id === manage_order.custom_domain_id)
+            : undefined
+        }
+        is_open={manage_order !== null}
+        on_close={() => {
+          set_manage_order_id(null);
+          set_renew_captcha_order_id(null);
+        }}
+        on_open_setup={hook.handle_open_setup}
+        on_renew={(captcha_token) => {
+          if (!manage_order) return;
+          if (TURNSTILE_SITE_KEY && !captcha_token) {
+            set_renew_errors((prev) => {
+              const next = { ...prev };
+
+              delete next[manage_order.id];
+
+              return next;
+            });
+            set_renew_captcha_order_id(manage_order.id);
+
+            return;
+          }
+          void handle_renew(manage_order.id, captcha_token);
+        }}
+        order={manage_order}
+        renew_error={manage_order ? renew_errors[manage_order.id] : undefined}
+        renewing={
+          manage_order !== null && renewing_order_id === manage_order.id
+        }
+      />
+      <DomainPurchaseModal
+        initial_order_id={purchase_order_id}
+        initial_query={purchase_initial_query}
+        is_open={purchase_open}
+        on_close={close_purchase}
+        on_create_address={() => {
+          close_purchase();
+          hook.set_show_create_alias_modal(true);
+        }}
+        on_purchased={hook.load_domains}
+      />
+      <ConfirmationModal
+        cancel_text={t("settings.domain_purchase_cancel_payment_keep")}
+        confirm_text={t("settings.domain_purchase_cancel_payment_confirm")}
+        is_open={pending_cancel_order_id !== null}
+        message={t("settings.domain_purchase_cancel_payment_message")}
+        on_cancel={() => set_pending_cancel_order_id(null)}
+        on_confirm={() => {
+          const order_id = pending_cancel_order_id;
+
+          set_pending_cancel_order_id(null);
+          if (order_id) void handle_cancel_order(order_id);
+        }}
+        title={t("settings.domain_purchase_cancel_payment_title")}
+        variant="danger"
+      />
+      <CreateAliasModal
+        available_domains={hook.available_domains_for_aliases}
+        current_count={hook.alias_counts?.count ?? hook.aliases.length}
+        custom_domains={hook.domains}
+        domain_addresses={hook.domain_addresses}
+        is_open={hook.show_create_alias_modal}
+        max_aliases={hook.alias_counts?.max ?? hook.max_aliases}
+        on_close={() => hook.set_show_create_alias_modal(false)}
+        on_created={() => {
+          hook.load_aliases();
+          hook.load_alias_counts();
+          hook.load_domain_addresses(hook.domains);
+        }}
+      />
+    </div>
+  );
+}

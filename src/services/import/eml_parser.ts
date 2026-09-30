@@ -21,7 +21,6 @@
 import type { ParsedEmail, ParseResult } from "./types";
 
 import { MAX_SINGLE_EMAIL_SIZE } from "./types";
-import { en } from "@/lib/i18n/translations/en";
 import {
   split_header_body,
   parse_headers,
@@ -32,6 +31,22 @@ import {
   parse_multipart,
   generate_message_id,
 } from "./mime_utils";
+
+import { get_active_translations } from "@/lib/i18n/translations";
+import { format_decimal } from "@/lib/utils";
+
+export function strip_emlx_wrapper(raw: string): string {
+  const match = raw.match(/^(\d{1,12})\r?\n/);
+
+  if (!match) return raw;
+
+  const declared_length = Number(match[1]);
+  const body_start = match[0].length;
+
+  if (!Number.isFinite(declared_length) || declared_length <= 0) return raw;
+
+  return raw.slice(body_start, body_start + declared_length);
+}
 
 export function parse_eml(raw: string): ParsedEmail {
   const { headers: headers_raw, body } = split_header_body(raw);
@@ -111,7 +126,12 @@ export async function parse_eml_file(file: File): Promise<ParseResult> {
     return {
       emails: [],
       errors: [
-        en.errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", "50"),
+        get_active_translations()
+          .errors.file_too_large.replace(
+            "{{size}}",
+            format_decimal(file.size / 1024 / 1024, 1),
+          )
+          .replace("{{limit}}", "50"),
       ],
       warnings: [],
     };
@@ -119,7 +139,10 @@ export async function parse_eml_file(file: File): Promise<ParseResult> {
 
   try {
     const buffer = await file.arrayBuffer();
-    const text = new TextDecoder("iso-8859-1").decode(buffer);
+    const decoded = new TextDecoder("iso-8859-1").decode(buffer);
+    const text = file.name.toLowerCase().endsWith(".emlx")
+      ? strip_emlx_wrapper(decoded)
+      : decoded;
     const email = parse_eml(text);
 
     return { emails: [email], errors: [], warnings: [] };
@@ -127,7 +150,12 @@ export async function parse_eml_file(file: File): Promise<ParseResult> {
     return {
       emails: [],
       errors: [
-        en.errors.failed_parse_eml.replace("{{error}}", err instanceof Error ? err.message : en.errors.unknown_error),
+        get_active_translations().errors.failed_parse_eml.replace(
+          "{{error}}",
+          err instanceof Error
+            ? err.message
+            : get_active_translations().errors.unknown_error,
+        ),
       ],
       warnings: [],
     };

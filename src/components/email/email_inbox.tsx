@@ -19,11 +19,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EmailInboxProps } from "@/components/email/inbox/inbox_types";
+import type { TranslationKey } from "@/lib/i18n/types";
 
+import { use_email_inbox_state } from "./use_email_inbox_state";
 
 import { EmailListHeader } from "@/components/email/email_list_header";
 import { CategoryTabs } from "@/components/email/inbox/category_tabs";
 import { MailFilterChips } from "@/components/email/inbox/mail_filter_chips";
+import { AliasIndexingNotice } from "@/components/email/inbox/alias_indexing_notice";
+import { use_sender_alias_backfill } from "@/hooks/use_sender_alias_backfill";
+import {
+  alias_direction_of,
+  is_alias_view,
+} from "@/hooks/email_list_helpers/alias_view";
 import { CategoryEmptyState } from "@/components/email/inbox/category_empty_state";
 import { ErrorBoundary } from "@/components/ui/error_boundary";
 import { SplitEmailViewer } from "@/components/email/split_email_viewer";
@@ -54,8 +62,12 @@ export type {
   DraftClickData,
   ScheduledClickData,
 } from "@/components/email/inbox/inbox_types";
-import { use_email_inbox_state } from "./use_email_inbox_state";
 
+const DESTRUCTIVE_BULK_ACTION_LABELS = new Set<TranslationKey>([
+  "mail.move_to_trash",
+  "mail.delete_permanently",
+  "mail.mark_as_spam",
+]);
 
 export function EmailInbox(props: EmailInboxProps): React.ReactElement {
   const {
@@ -76,6 +88,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     on_search_submit,
     focused_email_id,
     active_email_id,
+    on_auto_advance,
     on_view_change,
   } = props;
   const {
@@ -92,11 +105,12 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     is_scheduled_view,
     is_archive_view,
     spam_retention_days,
+    trash_retention_days,
     family_policy,
     folder_not_found,
     tag_not_found,
     locked_folder,
-    refresh_active_list,
+    refresh_current_view,
     manual_refresh_active,
     handle_snooze,
     handle_category_change,
@@ -116,6 +130,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     empty_state_visible,
     skeleton_visible,
     effective_total_for_pages,
+    header_display_count,
     total_pages,
     selection,
     scope_for_view,
@@ -132,6 +147,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     handle_restore_wrapped,
     handle_folder_toggle_wrapped,
     handle_tag_toggle_wrapped,
+    handle_snooze_wrapped,
     selection_menu,
     nav,
     is_split_view,
@@ -152,6 +168,27 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
     handle_filter_change,
   } = use_email_inbox_state(props);
 
+  const pending_bulk_action_count = Math.max(
+    effective_total_for_pages - selection.excluded_ids.length,
+    0,
+  );
+
+  const handle_viewer_snooze = () => {
+    const target = email_state.emails.find(
+      (item) => item.id === split_email_id,
+    );
+
+    if (target) set_custom_snooze_email(target);
+  };
+
+  const alias_view_active = is_alias_view(current_view);
+  const alias_direction = alias_direction_of(current_view);
+  const backfill_status = use_sender_alias_backfill(current_view, user?.email);
+  const show_indexing_notice =
+    alias_view_active &&
+    alias_direction !== "received" &&
+    backfill_status === "running";
+
   const email_list_content = (
     <>
       {folder_not_found ? (
@@ -169,9 +206,9 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
         ) : (
           <EmptyState
             current_view={current_view}
-            user_email={user?.email}
             has_load_error={email_state.has_load_error}
-            on_retry={refresh_active_list}
+            on_retry={refresh_current_view}
+            user_email={user?.email}
           />
         )
       ) : (
@@ -183,9 +220,9 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 current_view={current_view}
                 density={resolve_list_density(preferences.mail_list_density)}
                 focused_email_id={focused_email_id}
-                on_category_change={handle_category_change}
                 folders={viewer_folders}
                 on_archive={context_menu_actions.handle_archive}
+                on_category_change={handle_category_change}
                 on_custom_snooze={set_custom_snooze_email}
                 on_delete={context_menu_actions.handle_delete}
                 on_email_click={nav.handle_email_click}
@@ -194,20 +231,20 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 }
                 on_folder_toggle={context_menu_actions.handle_folder_toggle}
                 on_forward={context_menu_actions.handle_forward}
+                on_mark_not_spam={context_menu_actions.handle_mark_not_spam}
+                on_move_to_inbox={context_menu_actions.handle_move_to_inbox}
                 on_open_in_new_window={
                   context_menu_actions.handle_open_in_new_window
                 }
-                on_mark_not_spam={context_menu_actions.handle_mark_not_spam}
-                on_move_to_inbox={context_menu_actions.handle_move_to_inbox}
                 on_reply={context_menu_actions.handle_reply}
                 on_reply_all={context_menu_actions.handle_reply_all}
                 on_restore={context_menu_actions.handle_restore}
+                on_select_only={selection.handle_select_only}
                 on_snooze={handle_list_snooze}
                 on_spam={context_menu_actions.handle_spam}
                 on_tag_toggle={context_menu_actions.handle_tag_toggle}
                 on_toggle_pin={context_menu_actions.handle_toggle_pin}
                 on_toggle_read={context_menu_actions.handle_toggle_read}
-                on_select_only={selection.handle_select_only}
                 on_toggle_select={selection.handle_toggle_select}
                 on_toggle_star={context_menu_actions.handle_toggle_star}
                 on_unsnooze={handle_list_unsnooze}
@@ -231,10 +268,11 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                   total_pages={total_pages}
                 />
               )}
+            {show_indexing_notice && <AliasIndexingNotice />}
           </div>
           {(skeleton_visible ||
-            manual_refresh_active ||
-            (email_state.is_loading_more && primary_emails.length === 0)) && (
+            ((manual_refresh_active || email_state.is_loading_more) &&
+              primary_emails.length === 0)) && (
             <div className="absolute inset-0 z-10 bg-surf-primary">
               <LoadingState />
             </div>
@@ -250,28 +288,13 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
         {!show_full_email_viewer && (
           <EmailListHeader
             active_filter={active_filter}
+            alias_direction={alias_view_active ? alias_direction : undefined}
             all_selected={selection.all_selected}
             can_go_next={nav.local_can_go_next}
             can_go_prev={nav.local_can_go_prev}
             current_email_index={nav.local_email_index}
             current_page={current_page}
-            display_count={
-              current_view === "inbox" || current_view === ""
-                ? categories.enabled
-                  ? categories.counts[categories.active_category]?.unread
-                  : mail_stats.unread
-                : current_view === "drafts"
-                  ? mail_stats.drafts
-                  : current_view === "scheduled"
-                    ? mail_stats.scheduled
-                    : current_view === "snoozed"
-                      ? mail_stats.snoozed
-                      : current_view === "spam" || current_view === "trash"
-                        ? effective_total_for_pages
-                        : current_view.startsWith("alias-")
-                          ? filtered_emails.filter((e) => !e.is_read).length
-                          : undefined
-            }
+            display_count={header_display_count}
             excluded_count={selection.excluded_ids.length}
             filtered_count={effective_total_for_pages}
             folders={folders_state.folders
@@ -319,18 +342,16 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 : undefined
             }
             on_page_change={
-              show_full_email_viewer || nav.effective_email_id
-                ? undefined
-                : handle_page_change
+              nav.effective_email_id ? undefined : handle_page_change
             }
+            on_quick_settings_click={on_quick_settings_click}
             on_restore={handle_restore_wrapped}
             on_search_click={on_search_click}
             on_search_result_click={on_search_result_click}
             on_search_submit={on_search_submit}
             on_select_by_filter={selection.handle_select_by_filter}
             on_settings_click={on_settings_click}
-            on_quick_settings_click={on_quick_settings_click}
-            on_snooze={toolbar.handle_toolbar_snooze}
+            on_snooze={handle_snooze_wrapped}
             on_spam={handle_spam_wrapped}
             on_tag_toggle={(tag_token) => {
               handle_tag_toggle_wrapped(
@@ -338,11 +359,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 selection.get_tag_status_for_selection(tag_token) === "all",
               );
             }}
-            on_toggle_select_all={
-              show_full_email_viewer
-                ? undefined
-                : selection.handle_toggle_select_all
-            }
+            on_toggle_select_all={selection.handle_toggle_select_all}
             on_toggle_star={handle_toggle_star_wrapped}
             on_unarchive={handle_unarchive_wrapped}
             on_view_change={on_view_change}
@@ -354,8 +371,8 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
               tags_state.tags,
             )}
             select_all_mode={selection.select_all_mode}
-            selection_scope_title={active_category_title}
             selected_count={selection.selected_count}
+            selection_scope_title={active_category_title}
             some_selected={selection.some_selected}
             spam_count={email_state.emails.filter((e) => e.is_spam).length}
             tags={tags_state.tags.map((t) => ({
@@ -388,13 +405,20 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             <CategoryTabs
               active_category={categories.active_category}
               counts={categories.counts}
+              counts_pending={categories.counts_pending}
               on_category_drop={handle_category_drop}
               on_change={categories.set_active_category}
             />
           )}
 
+        {!categories.enabled && !show_full_email_viewer && (
+          <div
+            aria-hidden="true"
+            className="border-t border-edge-secondary shrink-0"
+          />
+        )}
+
         <StorageBanner
-          on_settings_click={on_settings_click}
           storage_total_bytes={mail_stats.storage_total_bytes}
           storage_used_bytes={mail_stats.storage_used_bytes}
         />
@@ -405,6 +429,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
             const family_enforced = !!family_policy?.enforce_on_members;
             let effective_days: number | null;
             let banner_family_enforced: boolean;
+
             if (is_trash) {
               if (
                 family_enforced &&
@@ -414,7 +439,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 effective_days = family_policy.trash_retention_days;
                 banner_family_enforced = true;
               } else {
-                effective_days = null;
+                effective_days = trash_retention_days;
                 banner_family_enforced = false;
               }
             } else {
@@ -430,6 +455,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                 banner_family_enforced = false;
               }
             }
+
             return effective_days !== null && effective_days > 0 ? (
               <TrashBanner
                 family_enforced={banner_family_enforced}
@@ -452,6 +478,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
               grouped_email_ids={split_email_grouped_ids}
               label_hints={split_email_label_hints}
               local_email={split_local_email ?? undefined}
+              on_advance={on_auto_advance}
               on_back={on_split_close || (() => {})}
               on_edit_draft={handle_edit_thread_draft}
               on_folder_toggle={handle_viewer_folder_toggle}
@@ -467,6 +494,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                   : undefined
               }
               on_reply={on_reply}
+              on_snooze={handle_viewer_snooze}
               snoozed_until={split_email_snoozed_until}
               total_count={nav.visible_ids.length}
             />
@@ -504,7 +532,7 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
               {is_bottom_pane ? (
                 <div className="absolute inset-x-0 -top-1.5 -bottom-1.5" />
               ) : (
-                <div className="absolute inset-y-0 -left-1.5 -right-1.5" />
+                <div className="absolute inset-y-0 -start-1.5 -end-1.5" />
               )}
             </div>
             <div
@@ -529,10 +557,12 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
                   grouped_email_ids={split_email_grouped_ids}
                   label_hints={split_email_label_hints}
                   local_email={split_local_email ?? undefined}
+                  on_advance={on_auto_advance}
                   on_close={on_split_close || (() => {})}
                   on_folder_toggle={handle_viewer_folder_toggle}
                   on_forward={on_forward}
                   on_reply={on_reply}
+                  on_snooze={handle_viewer_snooze}
                   snoozed_until={split_email_snoozed_until}
                 />
               ) : null}
@@ -581,15 +611,19 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
           is_emptying_trash={toolbar.is_emptying_trash}
           on_custom_snooze={async (snooze_until) => {
             if (custom_snooze_email) {
-              await handle_snooze(custom_snooze_email.id, snooze_until);
-            } else if (show_toolbar_custom_snooze) {
-              await toolbar.handle_toolbar_snooze(snooze_until);
+              return await handle_snooze(custom_snooze_email.id, snooze_until);
             }
+            if (show_toolbar_custom_snooze) {
+              return await handle_snooze_wrapped(snooze_until);
+            }
+
+            return true;
           }}
           on_custom_snooze_close={() => {
             set_custom_snooze_email(null);
             set_show_toolbar_custom_snooze(false);
           }}
+          selected_count={selection.selected_count}
           set_dont_ask_archive={toolbar.set_dont_ask_archive}
           set_dont_ask_delete={toolbar.set_dont_ask_delete}
           set_dont_ask_single_archive={toolbar.set_dont_ask_single_archive}
@@ -606,20 +640,44 @@ export function EmailInbox(props: EmailInboxProps): React.ReactElement {
         />
         <ConfirmModal
           hide_dont_ask
-          confirm_text={t("common.ok")}
-          confirm_variant="default"
-          description={t("mail.confirm_bulk_action_description")}
+          confirm_text={
+            pending_select_all_action
+              ? t(pending_select_all_action.label_key)
+              : t("common.ok")
+          }
+          confirm_variant={
+            pending_select_all_action &&
+            DESTRUCTIVE_BULK_ACTION_LABELS.has(
+              pending_select_all_action.label_key,
+            )
+              ? "destructive"
+              : "default"
+          }
+          description={
+            active_category_title
+              ? t("mail.confirm_bulk_action_scope_description", {
+                  count: pending_bulk_action_count,
+                  scope: active_category_title,
+                })
+              : t("mail.confirm_bulk_action_count_description", {
+                  count: pending_bulk_action_count,
+                })
+          }
           dont_ask={false}
           on_cancel={() => set_pending_select_all_action(null)}
           on_confirm={() => {
-            const action = pending_select_all_action;
+            const pending = pending_select_all_action;
 
             set_pending_select_all_action(null);
-            action?.();
+            pending?.run();
           }}
           on_dont_ask_change={() => {}}
           show={pending_select_all_action !== null}
-          title={t("mail.confirm_bulk_action_title")}
+          title={
+            pending_select_all_action
+              ? t(pending_select_all_action.label_key)
+              : t("mail.confirm_bulk_action_title")
+          }
         />
       </div>
     </ErrorBoundary>

@@ -18,26 +18,41 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import {
   encrypted_get,
   encrypted_set,
   encrypted_delete,
 } from "./encrypted_storage";
 import { get_derived_encryption_key } from "./memory_key_store";
+import { base64_to_array, compute_hash } from "./key_manager_core";
 import {
-  base64_to_array,
-  compute_hash,
-} from "./key_manager_core";
+  dismiss_peer_identity_event,
+  record_peer_identity_event,
+} from "./ratchet_verification_status";
+
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 const PIN_STORAGE_KEY_PREFIX = "ratchet_identity_pin_";
+const CHANGE_STORAGE_KEY_PREFIX = "ratchet_identity_change_";
 
-export type IdentityPinStatus = "first" | "ok" | "rotated" | "drift";
+export type IdentityPinStatus =
+  | "first"
+  | "ok"
+  | "rotated"
+  | "drift"
+  | "unknown";
 
 interface StoredIdentityPin {
   fingerprint: string;
   verified: boolean;
   pinned_at: number;
+  pq_seen?: boolean;
+}
+
+export interface IdentityChangeRecord {
+  previous_fingerprint: string;
+  fingerprint: string;
+  changed_at: number;
 }
 
 async function current_account_uid(): Promise<string | null> {
@@ -63,7 +78,7 @@ async function get_pin_storage_key(): Promise<CryptoKey> {
     "raw",
     key_bytes,
     { name: "AES-GCM", length: 256 },
-    true,
+    false,
     ["encrypt", "decrypt"],
   );
 
@@ -76,6 +91,12 @@ function storage_key_for(uid: string | null, pin_id: string): string {
   if (!uid) return `${PIN_STORAGE_KEY_PREFIX}${pin_id}`;
 
   return `${PIN_STORAGE_KEY_PREFIX}${uid}_${pin_id}`;
+}
+
+function change_key_for(uid: string | null, pin_id: string): string {
+  if (!uid) return `${CHANGE_STORAGE_KEY_PREFIX}${pin_id}`;
+
+  return `${CHANGE_STORAGE_KEY_PREFIX}${uid}_${pin_id}`;
 }
 
 async function load_pin(
@@ -96,6 +117,7 @@ async function load_pin(
 
     if (legacy) {
       await encrypted_set(key, legacy, storage_key);
+      await encrypted_delete(storage_key_for(null, pin_id));
 
       return legacy;
     }
@@ -108,6 +130,7 @@ export async function check_and_pin_identity(
   pin_id: string,
   kem_identity_key: string,
   verified: boolean = false,
+  advertises_pq: boolean = false,
 ): Promise<IdentityPinStatus> {
   try {
     if (!pin_id || !kem_identity_key) {
@@ -118,6 +141,7 @@ export async function check_and_pin_identity(
     const storage_key = await get_pin_storage_key();
     const uid = await current_account_uid();
     const existing = await load_pin(storage_key, uid, pin_id);
+    const pq_seen = Boolean(existing?.pq_seen) || advertises_pq;
 
     if (!existing) {
       await encrypted_set(
@@ -126,6 +150,7 @@ export async function check_and_pin_identity(
           fingerprint,
           verified,
           pinned_at: Date.now(),
+          pq_seen,
         } satisfies StoredIdentityPin,
         storage_key,
       );
@@ -134,7 +159,7 @@ export async function check_and_pin_identity(
     }
 
     if (existing.fingerprint !== fingerprint) {
-      if (existing.verified && !verified) {
+      if (!verified) {
         return "drift";
       }
 
@@ -144,19 +169,36 @@ export async function check_and_pin_identity(
           fingerprint,
           verified,
           pinned_at: Date.now(),
+          pq_seen,
         } satisfies StoredIdentityPin,
         storage_key,
       );
 
+      await encrypted_set(
+        change_key_for(uid, pin_id),
+        {
+          previous_fingerprint: existing.fingerprint,
+          fingerprint,
+          changed_at: Date.now(),
+        } satisfies IdentityChangeRecord,
+        storage_key,
+      );
+
+      record_peer_identity_event(pin_id, "rotated");
+
       return "rotated";
     }
 
-    if (verified && !existing.verified) {
+    if (
+      (verified && !existing.verified) ||
+      pq_seen !== Boolean(existing.pq_seen)
+    ) {
       await encrypted_set(
         storage_key_for(uid, pin_id),
         {
           ...existing,
-          verified: true,
+          verified: existing.verified || verified,
+          pq_seen,
         } satisfies StoredIdentityPin,
         storage_key,
       );
@@ -164,7 +206,21 @@ export async function check_and_pin_identity(
 
     return "ok";
   } catch {
-    return "ok";
+    return "unknown";
+  }
+}
+
+export async function has_peer_advertised_pq(pin_id: string): Promise<boolean> {
+  try {
+    if (!pin_id) return false;
+
+    const storage_key = await get_pin_storage_key();
+    const uid = await current_account_uid();
+    const existing = await load_pin(storage_key, uid, pin_id);
+
+    return existing?.pq_seen === true;
+  } catch {
+    return false;
   }
 }
 
@@ -182,11 +238,41 @@ export async function get_pinned_identity_fingerprint(
   }
 }
 
+export async function get_identity_change(
+  pin_id: string,
+): Promise<IdentityChangeRecord | null> {
+  try {
+    if (!pin_id) return null;
+
+    const storage_key = await get_pin_storage_key();
+    const uid = await current_account_uid();
+
+    return await encrypted_get<IdentityChangeRecord>(
+      change_key_for(uid, pin_id),
+      storage_key,
+    );
+  } catch {
+    return null;
+  }
+}
+
+export async function acknowledge_identity_change(
+  pin_id: string,
+): Promise<void> {
+  if (!pin_id) return;
+
+  const uid = await current_account_uid();
+
+  await encrypted_delete(change_key_for(uid, pin_id));
+  dismiss_peer_identity_event(pin_id);
+}
+
 export async function reset_identity_pin(pin_id: string): Promise<void> {
   try {
     const uid = await current_account_uid();
 
     await encrypted_delete(storage_key_for(uid, pin_id));
+    await encrypted_delete(change_key_for(uid, pin_id));
 
     if (uid) {
       await encrypted_delete(storage_key_for(null, pin_id));

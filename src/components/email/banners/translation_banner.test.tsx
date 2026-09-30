@@ -45,7 +45,6 @@ vi.mock("@/services/translation/translate_document", () => ({
 const { TranslationBanner } = await import("./translation_banner");
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -74,6 +73,7 @@ afterEach(() => {
 });
 
 const base = {
+  download_bytes: 0,
   limited_quality: false,
   showing_original: false,
   source_language: "ja" as const,
@@ -116,6 +116,26 @@ describe("TranslationBanner", () => {
 
     expect(view.textContent).toContain("mail.translation_unavailable");
     expect(view.querySelector("button svg")).not.toBeNull();
+  });
+
+  it("discloses the download size before the first use of a pair", async () => {
+    const view = await render(
+      <TranslationBanner {...base} download_bytes={51380224} status="offer" />,
+    );
+
+    expect(view.textContent).toContain("mail.translation_offer_download:");
+    expect(view.textContent).toContain("mail.translation_translate_download:");
+    expect(view.textContent).toContain("49 MB");
+  });
+
+  it("offers a plain translate button once the pair is on the device", async () => {
+    const view = await render(
+      <TranslationBanner {...base} download_bytes={0} status="offer" />,
+    );
+
+    expect(view.textContent).toContain("mail.translation_offer:");
+    expect(view.textContent).toContain("mail.translation_translate");
+    expect(view.textContent).not.toContain("mail.translation_offer_download");
   });
 
   it("shows no info icon while a translation is running", async () => {

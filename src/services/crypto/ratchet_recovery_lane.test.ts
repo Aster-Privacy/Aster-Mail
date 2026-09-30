@@ -197,6 +197,7 @@ describe("recovery lane", () => {
     );
 
     const bytes = atob(sealed.ciphertext).split("");
+
     bytes[0] = String.fromCharCode(bytes[0].charCodeAt(0) ^ 0xff);
 
     const opened = await open_recovery_lane(
@@ -244,7 +245,10 @@ describe("recovery lane", () => {
       sealed,
       CONVERSATION,
       SENDER_IDENTITY,
-      { identity_jwk: bob.own.identity_jwk, identity_public: bob.own.identity_public },
+      {
+        identity_jwk: bob.own.identity_jwk,
+        identity_public: bob.own.identity_public,
+      },
       "",
     );
 
@@ -286,7 +290,10 @@ describe("recovery lane", () => {
       sealed,
       CONVERSATION,
       SENDER_IDENTITY,
-      { identity_jwk: bob.own.identity_jwk, identity_public: bob.own.identity_public },
+      {
+        identity_jwk: bob.own.identity_jwk,
+        identity_public: bob.own.identity_public,
+      },
       bob.pq_public,
     );
 

@@ -18,11 +18,27 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import * as openpgp from "openpgp";
+
+import "@/services/crypto/openpgp_limits";
+import { require_usable_auth_salt } from "./auth_salt_guard";
+import {
+  HASH_ALG,
+  KEY_DERIVATION_ITERATIONS,
+  array_to_base64,
+  generate_key_id,
+  generate_random_bytes,
+  get_unbiased_random_index,
+  log_key_usage,
+  pin_fingerprint,
+  type KeyPair,
+  type PgpKeyData,
+  verify_entropy_quality,
+} from "./key_manager_core";
+
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { clamp_password } from "@/services/sanitize";
 import { normalize_address_ignoring_dots } from "@/utils/address_dots";
-import * as openpgp from "openpgp";
-import { HASH_ALG, KEY_DERIVATION_ITERATIONS, array_to_base64, generate_key_id, generate_random_bytes, get_unbiased_random_index, log_key_usage, pin_fingerprint, type KeyPair, type PgpKeyData, verify_entropy_quality } from "./key_manager_core";
 
 export async function hash_email(email: string): Promise<string> {
   const encoder = new TextEncoder();
@@ -46,6 +62,8 @@ export async function derive_password_hash(
   password: string,
   salt: Uint8Array,
 ): Promise<{ hash: string; salt: string }> {
+  await require_usable_auth_salt(salt);
+
   const encoder = new TextEncoder();
   const password_data = encoder.encode(clamp_password(password));
 
@@ -192,7 +210,81 @@ export async function reprotect_pgp_key(
   return reencrypted.armor();
 }
 
-export function generate_recovery_codes(count: number = 6): string[] {
+export async function lock_unlocked_pgp_key(
+  unlocked_armored: string,
+  passphrase: string,
+): Promise<string> {
+  const read_key = await openpgp.readPrivateKey({
+    armoredKey: unlocked_armored,
+  });
+
+  if (!read_key.isDecrypted()) {
+    throw new Error("lock_unlocked_pgp_key: key is already locked");
+  }
+
+  const encrypted = await openpgp.encryptKey({
+    privateKey: read_key,
+    passphrase,
+  });
+
+  return encrypted.armor();
+}
+
+export async function armored_private_key_matches(
+  armored: string,
+  fingerprint: string,
+): Promise<boolean> {
+  const wanted = fingerprint.trim().toUpperCase();
+
+  if (
+    !wanted ||
+    !armored.trimStart().startsWith("-----BEGIN PGP PRIVATE KEY BLOCK-----")
+  ) {
+    return false;
+  }
+
+  try {
+    const private_key = await openpgp.readPrivateKey({ armoredKey: armored });
+
+    return private_key.getFingerprint().toUpperCase() === wanted;
+  } catch {
+    return false;
+  }
+}
+
+export async function find_unlockable_private_key(
+  armored_keys: (string | undefined)[],
+  fingerprint: string,
+  passphrase: string,
+): Promise<string | null> {
+  const wanted = fingerprint.trim().toUpperCase();
+
+  if (!wanted) return null;
+
+  for (const armored of armored_keys) {
+    if (!armored) continue;
+
+    try {
+      const private_key = await openpgp.readPrivateKey({ armoredKey: armored });
+
+      if (private_key.getFingerprint().toUpperCase() !== wanted) continue;
+
+      await openpgp.decryptKey({ privateKey: private_key, passphrase });
+
+      return armored;
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+}
+
+export const RECOVERY_CODE_SET_SIZE = 10;
+
+export function generate_recovery_codes(
+  count: number = RECOVERY_CODE_SET_SIZE,
+): string[] {
   const codes: string[] = [];
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 

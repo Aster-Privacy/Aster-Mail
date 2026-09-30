@@ -26,6 +26,7 @@ export interface PasswordRecoveryFlowProps {
   available_2fa_methods: string[];
   on_success: (totp_response: TotpVerifyResponse) => Promise<void>;
   on_cancel: () => void;
+  on_reset_with_recovery_code: () => void;
   set_active_2fa_method: (
     method: "totp" | "webauthn" | "backup" | "choose",
   ) => void;
@@ -37,12 +38,15 @@ export function password_recovery_flow({
   available_2fa_methods,
   on_success,
   on_cancel,
+  on_reset_with_recovery_code,
   set_active_2fa_method,
   remember_me,
 }: PasswordRecoveryFlowProps) {
   return (
     <BackupCodeInput
+      has_backup_codes={available_2fa_methods.includes("totp")}
       on_cancel={on_cancel}
+      on_reset_with_recovery_code={on_reset_with_recovery_code}
       on_success={on_success}
       on_use_authenticator={() =>
         set_active_2fa_method(

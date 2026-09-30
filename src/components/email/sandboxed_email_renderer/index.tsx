@@ -18,6 +18,23 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export { CONTENT_READY_FALLBACK_MS, FIT_SLACK_PX, SETTLE_REMEASURE_DELAYS_MS, clear_iframe_height_cache, dispatch_iframe_ready, email_viewer_measure_width, fit_zoom_for, get_cached_iframe_height, link_hover_ink_for, link_ink_for, set_cached_iframe_height } from "./helpers";
+export {
+  CONTENT_READY_FALLBACK_MS,
+  FIT_SLACK_PX,
+  SETTLE_REMEASURE_DELAYS_MS,
+  clear_iframe_height_cache,
+  dispatch_iframe_ready,
+  email_viewer_measure_width,
+  fit_zoom_for,
+  get_cached_iframe_height,
+  link_hover_ink_for,
+  link_ink_for,
+  set_cached_iframe_height,
+} from "./helpers";
 export { SandboxedEmailRenderer } from "./renderer";
-export { COLLAPSED_CONTENT_HEIGHT_PX, body_has_renderable_content, measure_content_bounds, should_recover_collapsed_height } from "./helpers";
+export {
+  COLLAPSED_CONTENT_HEIGHT_PX,
+  body_has_renderable_content,
+  measure_content_bounds,
+  should_recover_collapsed_height,
+} from "./helpers";

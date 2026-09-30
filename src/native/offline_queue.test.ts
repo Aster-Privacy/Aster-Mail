@@ -22,8 +22,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
 const hoisted = vi.hoisted(() => ({
   account_id: { value: "acct_a" as string | null },
+  storage_unreadable: { value: false },
+  connected: { value: true },
   update_item_metadata: vi.fn(async () => ({ success: true })),
-  get_mail_item: vi.fn(async () => ({
+  execute_send: vi.fn(async (_email: unknown): Promise<void> => {}),
+  get_mail_item: vi.fn(async (_id: string): Promise<unknown> => ({
     data: {
       encrypted_metadata: "meta",
       metadata_nonce: "nonce",
@@ -34,7 +37,7 @@ const hoisted = vi.hoisted(() => ({
 
 vi.mock("./capacitor_bridge", () => ({
   is_native_platform: () => false,
-  get_network_status: async () => ({ connected: true }),
+  get_network_status: async () => ({ connected: hoisted.connected.value }),
 }));
 
 vi.mock("./haptic_feedback", () => ({
@@ -43,6 +46,11 @@ vi.mock("./haptic_feedback", () => ({
 
 vi.mock("@/services/account_manager", () => ({
   get_current_account_id: async () => hoisted.account_id.value,
+  accounts_storage_unreadable: () => hoisted.storage_unreadable.value,
+}));
+
+vi.mock("@/services/api/auth", () => ({
+  is_authenticated: () => true,
 }));
 
 vi.mock("@/services/api/mail", () => ({
@@ -54,12 +62,43 @@ vi.mock("@/services/crypto/mail_metadata", () => ({
   update_item_metadata: hoisted.update_item_metadata,
 }));
 
-import { get_queue, process_offline_queue } from "./offline_queue";
+vi.mock("@/services/crypto/secure_storage", () => ({
+  device_encrypt: async (data: string) =>
+    JSON.stringify({
+      v: 2,
+      n: "nonce",
+      c: Buffer.from(data, "utf8").toString("base64"),
+    }),
+  device_decrypt: async (sealed: string) =>
+    Buffer.from(JSON.parse(sealed).c, "base64").toString("utf8"),
+}));
+
+vi.mock("@/services/send_queue_encryption", () => ({
+  execute_send: hoisted.execute_send,
+}));
+
+import {
+  get_failed_actions,
+  get_queue,
+  initialize_offline_queue,
+  is_permanent_failure,
+  process_offline_queue,
+  retry_failed_actions,
+} from "./offline_queue";
+
 import { MAIL_EVENTS } from "@/hooks/mail_events";
 
 const LEGACY_KEY = "aster_offline_queue";
 const SCOPED_KEY_A = "aster_offline_queue:acct_a";
 const SCOPED_KEY_B = "aster_offline_queue:acct_b";
+
+function unseal(value: string | null): unknown {
+  if (!value) return [];
+
+  return JSON.parse(
+    Buffer.from(JSON.parse(value).c, "base64").toString("utf8"),
+  );
+}
 
 function star_action(id: string, retry_count = 0) {
   return {
@@ -87,9 +126,7 @@ describe("offline queue account scoping", () => {
     expect(queue).toHaveLength(1);
     expect(queue[0].id).toBe("a1");
     expect(localStorage.getItem(LEGACY_KEY)).toBeNull();
-    expect(
-      JSON.parse(localStorage.getItem(SCOPED_KEY_A) || "[]"),
-    ).toHaveLength(1);
+    expect(unseal(localStorage.getItem(SCOPED_KEY_A))).toHaveLength(1);
   });
 
   it("does not read another account's queue", async () => {
@@ -98,9 +135,9 @@ describe("offline queue account scoping", () => {
     const queue = await get_queue();
 
     expect(queue).toHaveLength(0);
-    expect(
-      JSON.parse(localStorage.getItem(SCOPED_KEY_B) || "[]"),
-    ).toHaveLength(1);
+    expect(JSON.parse(localStorage.getItem(SCOPED_KEY_B) || "[]")).toHaveLength(
+      1,
+    );
   });
 
   it("falls back to the unscoped key when no account is active", async () => {
@@ -111,6 +148,44 @@ describe("offline queue account scoping", () => {
 
     expect(queue).toHaveLength(1);
     expect(localStorage.getItem(LEGACY_KEY)).not.toBeNull();
+  });
+});
+
+describe("offline queue storage at rest", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    hoisted.account_id.value = "acct_a";
+    hoisted.connected.value = false;
+  });
+
+  afterEach(() => {
+    hoisted.connected.value = true;
+  });
+
+  it("never stores queued mail content as plaintext", async () => {
+    const { enqueue_action } = await import("./offline_queue");
+
+    await enqueue_action("send_email", {
+      to: ["friend@example.com"],
+      subject: "private subject",
+      body: "private body",
+    });
+
+    const stored = localStorage.getItem(SCOPED_KEY_A) || "";
+
+    expect(stored).not.toContain("private subject");
+    expect(stored).not.toContain("friend@example.com");
+  });
+
+  it("reseals a plaintext queue left by an older version", async () => {
+    localStorage.setItem(SCOPED_KEY_B, JSON.stringify([star_action("p1")]));
+    hoisted.account_id.value = "acct_b";
+
+    const queue = await get_queue();
+
+    expect(queue).toHaveLength(1);
+    expect(localStorage.getItem(SCOPED_KEY_B)).not.toContain("p1");
+    expect(unseal(localStorage.getItem(SCOPED_KEY_B))).toHaveLength(1);
   });
 });
 
@@ -171,10 +246,165 @@ describe("offline queue replay events", () => {
     expect(await get_queue()).toHaveLength(0);
   });
 
+  it("replays an action that was parked in the failed store", async () => {
+    hoisted.update_item_metadata.mockResolvedValue({ success: false });
+    localStorage.setItem(SCOPED_KEY_A, JSON.stringify([star_action("a1", 2)]));
+
+    await process_offline_queue();
+
+    expect(await get_failed_actions()).toHaveLength(1);
+
+    hoisted.update_item_metadata.mockResolvedValue({ success: true });
+
+    await retry_failed_actions();
+    await vi.waitFor(async () => {
+      expect(await get_queue()).toHaveLength(0);
+    });
+
+    expect(await get_failed_actions()).toHaveLength(0);
+    expect(hoisted.update_item_metadata).toHaveBeenCalledTimes(2);
+  });
+
   it("emits nothing when the queue is empty", async () => {
     await process_offline_queue();
 
     expect(mail_changed_events).toBe(0);
     expect(stats_stale_events).toBe(0);
+  });
+});
+
+describe("offline queue web replay triggers", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    hoisted.account_id.value = "acct_a";
+    hoisted.update_item_metadata.mockClear();
+    hoisted.update_item_metadata.mockResolvedValue({ success: true });
+  });
+
+  it("drains the queue when the browser comes back online", async () => {
+    await initialize_offline_queue();
+
+    localStorage.setItem(SCOPED_KEY_A, JSON.stringify([star_action("w1")]));
+
+    window.dispatchEvent(new Event("online"));
+    await vi.waitFor(async () => {
+      expect(await get_queue()).toHaveLength(0);
+    });
+  });
+});
+
+function send_action(id: string, retry_count = 0) {
+  return {
+    id,
+    type: "send_email",
+    payload: {
+      to: ["friend@example.com"],
+      subject: "Hello",
+      body: "<p>Hello</p>",
+      expires_at: "2030-01-01T00:00:00Z",
+    },
+    created_at: Date.now(),
+    retry_count,
+  };
+}
+
+function http_error(status: number): Error & { status: number } {
+  return Object.assign(new Error(`status ${status}`), { status });
+}
+
+describe("offline queue permanent failures", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    hoisted.account_id.value = "acct_a";
+    hoisted.execute_send.mockReset();
+    hoisted.execute_send.mockResolvedValue(undefined);
+    hoisted.update_item_metadata.mockClear();
+    hoisted.update_item_metadata.mockResolvedValue({ success: true });
+  });
+
+  it("classifies client errors as permanent except 401, 408 and 429", () => {
+    expect(is_permanent_failure(http_error(400))).toBe(true);
+    expect(is_permanent_failure(http_error(403))).toBe(true);
+    expect(is_permanent_failure(http_error(404))).toBe(true);
+    expect(is_permanent_failure(http_error(413))).toBe(true);
+    expect(is_permanent_failure(http_error(422))).toBe(true);
+    expect(is_permanent_failure(http_error(401))).toBe(false);
+    expect(is_permanent_failure(http_error(408))).toBe(false);
+    expect(is_permanent_failure(http_error(429))).toBe(false);
+    expect(is_permanent_failure(http_error(500))).toBe(false);
+    expect(is_permanent_failure(new Error("offline"))).toBe(false);
+    expect(is_permanent_failure(null)).toBe(false);
+  });
+
+  it("moves a send rejected with 403 to failed on the first attempt", async () => {
+    hoisted.execute_send.mockRejectedValue(http_error(403));
+    localStorage.setItem(SCOPED_KEY_A, JSON.stringify([send_action("s1")]));
+
+    await process_offline_queue();
+
+    expect(hoisted.execute_send).toHaveBeenCalledTimes(1);
+    expect(await get_queue()).toHaveLength(0);
+    const failed = await get_failed_actions();
+
+    expect(failed).toHaveLength(1);
+    expect(failed[0].retry_count).toBe(1);
+  });
+
+  it("moves a send rejected with 400 to failed on the first attempt", async () => {
+    hoisted.execute_send.mockRejectedValue(http_error(400));
+    localStorage.setItem(SCOPED_KEY_A, JSON.stringify([send_action("s2")]));
+
+    await process_offline_queue();
+
+    expect(await get_queue()).toHaveLength(0);
+    expect(await get_failed_actions()).toHaveLength(1);
+  });
+
+  it("keeps a send rejected with 429 in the queue for another attempt", async () => {
+    hoisted.execute_send.mockRejectedValue(http_error(429));
+    localStorage.setItem(SCOPED_KEY_A, JSON.stringify([send_action("s3")]));
+
+    await process_offline_queue();
+
+    const queue = await get_queue();
+
+    expect(queue).toHaveLength(1);
+    expect(queue[0].retry_count).toBe(1);
+    expect(await get_failed_actions()).toHaveLength(0);
+  });
+
+  it("keeps a send rejected with 408 in the queue for another attempt", async () => {
+    hoisted.execute_send.mockRejectedValue(http_error(408));
+    localStorage.setItem(SCOPED_KEY_A, JSON.stringify([send_action("s4")]));
+
+    await process_offline_queue();
+
+    expect(await get_queue()).toHaveLength(1);
+    expect(await get_failed_actions()).toHaveLength(0);
+  });
+
+  it("keeps a send that failed with a server error in the queue", async () => {
+    hoisted.execute_send.mockRejectedValue(http_error(503));
+    localStorage.setItem(SCOPED_KEY_A, JSON.stringify([send_action("s5")]));
+
+    await process_offline_queue();
+
+    expect(await get_queue()).toHaveLength(1);
+    expect(await get_failed_actions()).toHaveLength(0);
+  });
+
+  it("moves a star action to failed when the message no longer exists", async () => {
+    hoisted.get_mail_item.mockResolvedValueOnce({
+      error: "Not found",
+      code: "NOT_FOUND",
+      status: 404,
+    });
+    localStorage.setItem(SCOPED_KEY_A, JSON.stringify([star_action("m1")]));
+
+    await process_offline_queue();
+
+    expect(hoisted.update_item_metadata).not.toHaveBeenCalled();
+    expect(await get_queue()).toHaveLength(0);
+    expect(await get_failed_actions()).toHaveLength(1);
   });
 });

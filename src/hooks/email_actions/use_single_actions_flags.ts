@@ -46,6 +46,12 @@ import {
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { remove_email_from_view_cache } from "@/hooks/email_list_cache";
 import {
+  begin_read_change,
+  clear_flag_intents,
+  is_read_ticket_current,
+  note_flag_intents,
+} from "@/services/read_intent";
+import {
   compute_trash_deltas,
   compute_archive_deltas,
   compute_unarchive_deltas,
@@ -75,6 +81,8 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
     async (email: InboxEmail): Promise<boolean> => {
       const new_starred = !email.is_starred;
 
+      note_flag_intents([email.id], { is_starred: new_starred });
+
       const offline_result = await try_enqueue_offline_action(
         "star",
         [email.id],
@@ -100,6 +108,7 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
 
       if (!success) {
         adjust_stats_starred(new_starred ? -1 : 1);
+        clear_flag_intents([email.id], { is_starred: new_starred });
       }
 
       return success;
@@ -116,12 +125,20 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
     async (email: InboxEmail): Promise<boolean> => {
       const new_pinned = !email.is_pinned;
 
-      return execute_single_action(
+      note_flag_intents([email.id], { is_pinned: new_pinned });
+
+      const success = await execute_single_action(
         email,
         "pin",
         { is_pinned: new_pinned },
         () => update_with_metadata(email, { is_pinned: new_pinned }),
       );
+
+      if (!success) {
+        clear_flag_intents([email.id], { is_pinned: new_pinned });
+      }
+
+      return success;
     },
     [execute_single_action, update_with_metadata],
   );
@@ -151,12 +168,15 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
       );
 
       if (offline_result.queued) {
+        note_flag_intents([email.id], { is_read: new_read });
         config.on_optimistic_update?.(email.id, { is_read: new_read });
         emit_mail_item_updated({ id: email.id, is_read: new_read });
         if (should_adjust_unread) adjust_stats_unread(new_read ? -1 : 1);
 
         return true;
       }
+
+      const read_ticket = begin_read_change([email.id]);
 
       if (should_adjust_unread) adjust_stats_unread(new_read ? -1 : 1);
       emit_mail_item_updated({ id: email.id, is_read: new_read });
@@ -168,16 +188,18 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         () => update_with_metadata(email, { is_read: new_read }),
       );
 
-      if (!success) {
+      const still_current = is_read_ticket_current(email.id, read_ticket);
+
+      if (!success && still_current) {
         emit_mail_item_updated({ id: email.id, is_read: !new_read });
         if (should_adjust_unread) adjust_stats_unread(new_read ? 1 : -1);
       }
 
-      if (success && is_received && new_read) {
+      if (success && still_current && is_received && new_read) {
         mark_conversation_read(conversation_options);
       }
 
-      return success;
+      return success || !still_current;
     },
     [
       execute_single_action,
@@ -211,12 +233,15 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
       );
 
       if (offline_result.queued) {
+        note_flag_intents([email.id], { is_read: true });
         config.on_optimistic_update?.(email.id, { is_read: true });
         emit_mail_item_updated({ id: email.id, is_read: true });
         if (should_adjust_unread) adjust_stats_unread(-1);
 
         return true;
       }
+
+      const read_ticket = begin_read_change([email.id]);
 
       if (should_adjust_unread) adjust_stats_unread(-1);
       emit_mail_item_updated({ id: email.id, is_read: true });
@@ -228,16 +253,18 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         () => update_with_metadata(email, { is_read: true }),
       );
 
-      if (!success) {
+      const still_current = is_read_ticket_current(email.id, read_ticket);
+
+      if (!success && still_current) {
         emit_mail_item_updated({ id: email.id, is_read: false });
         if (should_adjust_unread) adjust_stats_unread(1);
       }
 
-      if (success && is_received) {
+      if (success && still_current && is_received) {
         mark_conversation_read(conversation_options);
       }
 
-      return success;
+      return success || !still_current;
     },
     [
       execute_single_action,
@@ -268,12 +295,15 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
       );
 
       if (offline_result.queued) {
+        note_flag_intents([email.id], { is_read: false });
         config.on_optimistic_update?.(email.id, { is_read: false });
         emit_mail_item_updated({ id: email.id, is_read: false });
         if (should_adjust_unread) adjust_stats_unread(1);
 
         return true;
       }
+
+      const read_ticket = begin_read_change([email.id]);
 
       if (should_adjust_unread) adjust_stats_unread(1);
       emit_mail_item_updated({ id: email.id, is_read: false });
@@ -285,12 +315,14 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         () => update_with_metadata(email, { is_read: false }),
       );
 
-      if (!success) {
+      const unread_current = is_read_ticket_current(email.id, read_ticket);
+
+      if (!success && unread_current) {
         emit_mail_item_updated({ id: email.id, is_read: true });
         if (should_adjust_unread) adjust_stats_unread(-1);
       }
 
-      return success;
+      return success || !unread_current;
     },
     [
       execute_single_action,
@@ -324,6 +356,8 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         is_trashed: email.is_trashed,
         is_spam: email.is_spam,
       };
+
+      note_flag_intents(grouped_ids, archive_update);
 
       if (offline_result.queued) {
         config.on_optimistic_update?.(email.id, archive_update);
@@ -378,11 +412,13 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
           action_type: "archive",
           email_ids: grouped_ids,
           on_undo: async () => {
+            note_flag_intents(grouped_ids, original_state);
             const undo_result = await api_batch_unarchive({
               ids: grouped_ids,
             });
 
             if (undo_result.error || !undo_result.data?.success) {
+              clear_flag_intents(grouped_ids, original_state);
               throw new Error(
                 undo_result.error || t("common.failed_to_move_email"),
               );
@@ -403,6 +439,7 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
 
       if (!success) {
         revert_stat_deltas(deltas);
+        clear_flag_intents(grouped_ids, archive_update);
       }
 
       return success;
@@ -478,6 +515,15 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         email.grouped_email_ids && email.grouped_email_ids.length > 1
           ? email.grouped_email_ids
           : [email.id];
+      const thread_scope_token =
+        email.thread_token &&
+        (grouped_ids.length > 1 ||
+          (preferences.conversation_grouping !== false &&
+            (email.thread_message_count ?? 0) > 1))
+          ? email.thread_token
+          : null;
+
+      note_flag_intents(grouped_ids, { is_trashed: true });
 
       const offline_result = await try_enqueue_offline_action(
         "delete",
@@ -503,8 +549,8 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         "delete",
         { is_trashed: true },
         async () => {
-          if (email.thread_token) {
-            const result = await trash_thread(email.thread_token, true);
+          if (thread_scope_token) {
+            const result = await trash_thread(thread_scope_token, true);
 
             if (!result.data) {
               return { error: t("common.failed_to_delete_emails") };
@@ -536,27 +582,43 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
         true,
         {
           message:
-            email.thread_token || grouped_ids.length > 1
+            thread_scope_token || grouped_ids.length > 1
               ? t("common.conversation_moved_to_trash_toast")
               : t("common.message_moved_to_trash"),
           action_type: "trash",
           email_ids: grouped_ids,
           on_undo: async () => {
             revert_stat_deltas(deltas);
-            if (email.thread_token) {
-              await trash_thread(email.thread_token, false);
+            note_flag_intents(grouped_ids, { is_trashed: false });
+            if (thread_scope_token) {
+              const undo_result = await trash_thread(thread_scope_token, false);
+
+              if (undo_result.error) {
+                clear_flag_intents(grouped_ids, { is_trashed: false });
+                throw new Error("undo trash failed");
+              }
               for (const id of grouped_ids) {
                 emit_mail_item_updated({ id, is_trashed: false });
               }
             } else if (grouped_ids.length > 1) {
-              await bulk_update_metadata_by_ids(grouped_ids, {
-                is_trashed: false,
-              });
+              const undo_result = await bulk_update_metadata_by_ids(
+                grouped_ids,
+                { is_trashed: false },
+              );
+
+              if (!undo_result.success) {
+                clear_flag_intents(grouped_ids, { is_trashed: false });
+                throw new Error("undo trash failed");
+              }
               for (const id of grouped_ids) {
                 emit_mail_item_updated({ id, is_trashed: false });
               }
             } else {
-              await update_with_metadata(email, { is_trashed: false });
+              const undo_result = await update_with_metadata(email, {
+                is_trashed: false,
+              });
+
+              if (undo_result.error) throw new Error("undo trash failed");
             }
             emit_mail_soft_refresh();
           },
@@ -565,6 +627,7 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
 
       if (!success) {
         revert_stat_deltas(deltas);
+        clear_flag_intents(grouped_ids, { is_trashed: true });
       }
 
       return success;
@@ -574,6 +637,7 @@ export function use_single_actions_flags(params: SingleActionsFlagsParams) {
       update_with_metadata,
       config.on_optimistic_update,
       config.on_remove_from_list,
+      preferences.conversation_grouping,
       t,
     ],
   );

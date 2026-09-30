@@ -23,6 +23,7 @@ import type { EncryptedVault } from "./key_manager";
 import { get_current_account } from "../account_manager";
 import { api_client } from "../api/client";
 
+import { collect_vault_key_fingerprints } from "./vault_key_fingerprints";
 import { encrypt_vault, decrypt_vault } from "./key_manager";
 import {
   is_master_key_vault,
@@ -116,12 +117,15 @@ async function run_adoption(
     return false;
   }
 
+  const vault_key_fingerprints = await collect_vault_key_fingerprints(upgraded);
+
   const response = await api_client.put("/crypto/v1/keys/vault", {
     encrypted_vault,
     vault_nonce,
     expected_user_id: user_id,
     vault_format: MASTER_KEY_VAULT_FORMAT,
     preserve_pq_prekeys: true,
+    ...(vault_key_fingerprints.length ? { vault_key_fingerprints } : {}),
   });
 
   if (response.error) return false;

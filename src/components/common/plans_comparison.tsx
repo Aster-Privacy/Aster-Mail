@@ -90,9 +90,9 @@ function get_features(
     {
       name: t("settings.feature_daily_send_limit"),
       free: t("settings.feature_200_emails"),
-      star: unlimited,
-      nova: unlimited,
-      supernova: unlimited,
+      star: t("settings.feature_1000_emails"),
+      nova: t("settings.feature_1000_emails"),
+      supernova: t("settings.feature_1000_emails"),
     },
     {
       name: t("settings.feature_email_retention"),
@@ -153,13 +153,6 @@ function get_features(
       supernova: true,
     },
     {
-      name: t("settings.feature_read_receipts"),
-      free: false,
-      star: false,
-      nova: false,
-      supernova: true,
-    },
-    {
       name: t("settings.feature_email_templates"),
       free: "3",
       star: "10",
@@ -188,6 +181,13 @@ function get_features(
       star: "",
       nova: "",
       supernova: "",
+    },
+    {
+      name: t("settings.feature_extra_alias_domains"),
+      free: false,
+      star: true,
+      nova: true,
+      supernova: true,
     },
     {
       name: t("settings.feature_alias_sender_pinning"),
@@ -567,13 +567,6 @@ function get_features(
     },
     {
       name: t("settings.feature_imap_smtp"),
-      free: true,
-      star: true,
-      nova: true,
-      supernova: true,
-    },
-    {
-      name: t("settings.feature_caldav"),
       free: false,
       star: true,
       nova: true,
@@ -595,7 +588,7 @@ function get_plans(
   return [
     {
       key: "free" as const,
-      label: "Free",
+      label: t("settings.plan_free"),
       price: "$0.00",
       period: t("settings.for_life"),
     },
@@ -686,7 +679,10 @@ function MobilePlanCard({
           </div>
           {selected && (
             <div className="w-6 h-6 rounded-full bg-brand flex items-center justify-center">
-              <CheckIcon className="w-4 h-4 text-[var(--accent-fg,#ffffff)]" strokeWidth={2.5} />
+              <CheckIcon
+                className="w-4 h-4 text-[var(--accent-fg,#ffffff)]"
+                strokeWidth={2.5}
+              />
             </div>
           )}
         </div>
@@ -780,7 +776,7 @@ export function PlansComparison({
           variant="ghost"
           onClick={on_back}
         >
-          <ArrowLeftIcon className="w-4 h-4" />
+          <ArrowLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
           <span className="hidden sm:inline">
             {t("settings.back_to_plans")}
           </span>
@@ -841,7 +837,7 @@ export function PlansComparison({
             <table className="w-full">
               <thead>
                 <tr>
-                  <th className="text-left py-4 px-4 w-1/4">
+                  <th className="text-start py-4 px-4 w-1/4">
                     <span className="text-sm font-medium text-txt-tertiary">
                       {t("settings.features")}
                     </span>

@@ -115,7 +115,7 @@ export function ReplyModal({
           <motion.div
             key="reply-backdrop-mobile"
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-40 bg-black/50 sm:hidden"
+            className="fixed inset-0 z-40 aster_scrim sm:hidden"
             exit={{ opacity: 0 }}
             initial={modal.reduce_motion ? false : { opacity: 0 }}
             transition={{ duration: modal.reduce_motion ? 0 : 0.2 }}
@@ -126,7 +126,7 @@ export function ReplyModal({
               <motion.div
                 key="reply-backdrop"
                 animate={{ opacity: 1 }}
-                className="fixed inset-0 z-40 bg-black/40 backdrop-blur-md hidden sm:block"
+                className="fixed inset-0 z-40 aster_scrim hidden sm:block"
                 exit={{ opacity: 0 }}
                 initial={modal.reduce_motion ? false : { opacity: 0 }}
                 transition={{ duration: modal.reduce_motion ? 0 : 0.2 }}
@@ -136,14 +136,14 @@ export function ReplyModal({
           <motion.div
             key="reply-modal"
             animate={{ opacity: 1, y: 0 }}
-            className={`fixed z-50 flex flex-col shadow-2xl sm:border bg-modal-bg border-edge-primary ${
+            className={`fixed z-50 flex flex-col shadow-[var(--aster-floating-shadow)] bg-[var(--aster-dialog-bg,var(--modal-bg))] ${
               compose_shell_mode(modal.is_minimized, modal.is_expanded) ===
               "minimized"
-                ? "sm:w-[320px] sm:h-auto sm:rounded-t-lg"
+                ? "sm:w-[320px] sm:h-auto sm:rounded-t-[var(--aster-radius-floating,16px)]"
                 : compose_shell_mode(modal.is_minimized, modal.is_expanded) ===
                     "expanded"
-                  ? "inset-0 sm:inset-4 sm:w-auto sm:h-auto sm:rounded-lg"
-                  : "inset-0 sm:inset-auto sm:bottom-auto sm:left-auto sm:right-auto sm:h-[600px] sm:w-[700px] sm:max-w-[90vw] sm:max-h-[85vh] sm:rounded-lg"
+                  ? "inset-0 sm:inset-4 sm:w-auto sm:h-auto sm:rounded-[var(--aster-radius-floating,16px)]"
+                  : "inset-0 sm:inset-auto sm:bottom-auto sm:start-auto sm:end-auto sm:h-[600px] sm:w-[700px] sm:max-w-[90vw] sm:max-h-[85vh] sm:rounded-[var(--aster-radius-floating,16px)]"
             }`}
             exit={{ opacity: 0, y: modal.is_mobile ? 100 : 0 }}
             initial={
@@ -181,6 +181,8 @@ export function ReplyModal({
             }}
           >
             <ReplyHeader
+              contacts={modal.contacts}
+              dispatch_recipients={modal.dispatch_recipients}
               ghost_error={modal.ghost_mode.error}
               ghost_expiry_days={modal.ghost_mode.ghost_expiry_days}
               ghost_locked={
@@ -189,6 +191,7 @@ export function ReplyModal({
               }
               handle_close={modal.handle_close}
               handle_drag_start={modal.handle_drag_start}
+              inputs={modal.inputs}
               is_creating_ghost={modal.ghost_mode.is_creating}
               is_expanded={modal.is_expanded}
               is_minimized={modal.is_minimized}
@@ -204,9 +207,6 @@ export function ReplyModal({
               }
               on_set_preferred={modal.handle_set_preferred}
               original_subject={modal.original_subject}
-              contacts={modal.contacts}
-              dispatch_recipients={modal.dispatch_recipients}
-              inputs={modal.inputs}
               preferred_id={modal.preferred_sender_id}
               recipients={modal.recipients}
               selected_sender={modal.selected_sender}
@@ -214,13 +214,13 @@ export function ReplyModal({
               set_inputs={modal.set_inputs}
               set_is_expanded={modal.set_is_expanded}
               set_is_minimized={modal.set_is_minimized}
-              set_show_cc={modal.set_show_cc}
-              show_cc={modal.show_cc}
               set_selected_sender={
                 modal.ghost_mode.is_thread_locked
                   ? () => {}
                   : modal.set_selected_sender
               }
+              set_show_cc={modal.set_show_cc}
+              show_cc={modal.show_cc}
             />
 
             <ReplyBody
@@ -241,7 +241,6 @@ export function ReplyModal({
               from_mismatch={modal.from_mismatch}
               handle_delete_draft={modal.handle_delete_draft}
               handle_file_select={modal.handle_file_select}
-              handle_insert_link={modal.handle_insert_link}
               handle_scheduled_send={modal.handle_scheduled_send}
               handle_send={modal.handle_send}
               handle_template_select={modal.handle_template_select}

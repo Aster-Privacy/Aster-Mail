@@ -56,9 +56,7 @@ export function DomainDeleteModal({
           <div className="flex items-start gap-3 p-3 rounded-lg bg-red-600">
             <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-white mt-0.5" />
             <div>
-              <p className="text-sm font-medium text-white">
-                {domain_name}
-              </p>
+              <p className="text-sm font-medium text-white">{domain_name}</p>
               <p className="text-sm mt-1 text-red-100">
                 {t("settings.delete_domain_warning")}
               </p>

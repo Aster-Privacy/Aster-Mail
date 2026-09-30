@@ -18,34 +18,38 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
-import type {  FontSizeLabel } from "@/hooks/use_editor";
-import type { } from "@/components/compose/compose_shared";
+import type {} from "@/lib/i18n/types";
+import type { FontSizeLabel } from "@/hooks/use_editor";
+import type {} from "@/components/compose/compose_shared";
 
-import {
-  useId,
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-} from "react";
+import { useId, useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
+
+import { FONT_SIZE_OPTIONS, use_anchored_layer } from "./shared";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
-
-import { FONT_SIZE_OPTIONS, use_anchored_layer } from "./shared";
+import { font_size_label_from_px } from "@/hooks/editor_utils";
+import { use_preferences } from "@/contexts/preferences_context";
+import { normalize_compose_font_size } from "@/lib/compose_defaults";
 
 export function FontSizeSelect({
   on_change,
   on_before_open,
+  font_size,
 }: {
   on_change: (size: FontSizeLabel) => void;
   on_before_open?: () => void;
+  font_size?: string;
 }) {
   const { t } = use_i18n();
+  const { preferences } = use_preferences();
+  const default_size = normalize_compose_font_size(
+    preferences.compose_font_size,
+  );
   const [open, set_open] = useState(false);
-  const [current_size, set_current_size] = useState<FontSizeLabel>("normal");
+  const [current_size, set_current_size] =
+    useState<FontSizeLabel>(default_size);
   const [pos, set_pos] = useState({ top: 0, left: 0 });
   const button_ref = useRef<HTMLButtonElement>(null);
   const dropdown_ref = useRef<HTMLDivElement>(null);
@@ -53,6 +57,20 @@ export function FontSizeSelect({
   const current_option = FONT_SIZE_OPTIONS.find(
     (o) => o.value === current_size,
   );
+
+  useEffect(() => {
+    if (open) return;
+
+    if (!font_size) {
+      set_current_size(default_size);
+
+      return;
+    }
+
+    const label = font_size_label_from_px(font_size);
+
+    if (label) set_current_size(label);
+  }, [default_size, font_size, open]);
 
   useEffect(() => {
     if (!open) return;
@@ -90,7 +108,7 @@ export function FontSizeSelect({
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-label={t("common.font_size_label")}
-        className="h-7 px-2 text-xs rounded-md cursor-pointer flex items-center gap-1 transition-colors hover:bg-black/5 dark:hover:bg-white/10 whitespace-nowrap bg-transparent text-txt-muted"
+        className="h-7 px-2 text-xs rounded-[var(--aster-radius-item)] cursor-pointer flex items-center gap-1 transition-colors hover:bg-[var(--aster-hover)] whitespace-nowrap bg-transparent text-txt-muted"
         type="button"
         onClick={() => {
           if (!open) on_before_open?.();
@@ -113,7 +131,8 @@ export function FontSizeSelect({
         open && (
           <div
             ref={dropdown_ref}
-            className="fixed rounded-xl border shadow-lg py-1 min-w-[110px] bg-modal-bg border-edge-primary"
+            className="aster_floating aster_floating_anim fixed p-1.5 min-w-[120px]"
+            data-state="open"
             id={list_id}
             style={{
               zIndex: 9999,
@@ -124,7 +143,7 @@ export function FontSizeSelect({
             {FONT_SIZE_OPTIONS.map((option) => (
               <button
                 key={option.value}
-                className="w-full text-left px-3 py-1.5 text-xs transition-colors hover:bg-black/5 dark:hover:bg-white/10 text-txt-primary"
+                className="w-full text-start px-2.5 py-1.5 text-[13px] text-txt-primary rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
                 style={{
                   fontWeight: current_size === option.value ? 600 : 400,
                 }}
@@ -146,4 +165,3 @@ export function FontSizeSelect({
     </div>
   );
 }
-

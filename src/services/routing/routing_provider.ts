@@ -19,24 +19,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { connection_store } from "./connection_store";
-import {
-  is_tor_connected,
-  is_tor_platform,
-  tor_fetch,
-} from "./tor_transport";
+import { is_tor_connected, is_tor_platform, tor_fetch } from "./tor_transport";
 import { cdn_relay_fetch } from "./cdn_relay_transport";
 import { is_tauri_env, tauri_proxy_fetch } from "./tauri_proxy_transport";
 import { TorUnavailableError } from "./tor_unavailable_error";
-import {
-  CANONICAL_API_ONION,
-  is_canonical_api_onion,
-} from "./onion_constants";
+import { CANONICAL_API_ONION, is_canonical_api_onion } from "./onion_constants";
 import {
   type ConnectionMethod,
   TOR_TIMEOUT,
   TOR_RETRY_COUNT,
   TOR_RETRY_DELAY,
 } from "./types";
+
 import { is_low_network } from "@/services/low_network_state";
 
 const LOW_NETWORK_TIMEOUT = 45000;
@@ -70,9 +64,7 @@ function assert_tor_routable(): { onion_host: string } {
   }
 
   const onion_url = connection_store.get_api_onion_url() || CANONICAL_API_ONION;
-  const onion_host = onion_url
-    .replace(/^https?:\/\//, "")
-    .replace(/\/+$/, "");
+  const onion_host = onion_url.replace(/^https?:\/\//, "").replace(/\/+$/, "");
 
   if (!is_canonical_api_onion(onion_host)) {
     throw new TorUnavailableError(

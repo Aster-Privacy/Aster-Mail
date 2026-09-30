@@ -52,8 +52,7 @@ describe("inline_email_css", () => {
 
   it("keeps existing inline styles over sheet rules", () => {
     const html =
-      "<style>p { color: blue; }</style>" +
-      '<p style="color: green">text</p>';
+      "<style>p { color: blue; }</style>" + '<p style="color: green">text</p>';
     const doc = parse(inline_email_css(html));
 
     expect(doc.querySelector("p")!.style.color).toBe("green");

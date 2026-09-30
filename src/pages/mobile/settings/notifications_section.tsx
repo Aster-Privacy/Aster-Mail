@@ -18,7 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { InformationCircleIcon } from "@heroicons/react/24/outline";
 import { Switch } from "@aster/ui";
 
 import { SettingsGroup, SettingsHeader, SettingsRow } from "./shared";
@@ -29,9 +30,16 @@ import { Input } from "@/components/ui/input";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
+  is_push_supported,
   subscribe_to_push,
   unsubscribe_from_push,
 } from "@/services/push_subscription";
+import {
+  get_product_updates_subscription,
+  set_product_updates_subscription,
+} from "@/services/api/product_updates";
+import { show_toast } from "@/components/toast/simple_toast";
+import { use_offer_preferences } from "@/hooks/use_offer_preferences";
 
 type PermissionState = "granted" | "denied" | "default" | "unsupported";
 
@@ -55,12 +63,95 @@ export function NotificationsSection({
   const { is_feature_locked } = use_plan_limits();
   const [permission_state, set_permission_state] =
     useState<PermissionState>(get_permission_state);
+  const [product_updates, set_product_updates] = useState<boolean | null>(null);
+  const [product_updates_busy, set_product_updates_busy] = useState(false);
+  const [product_updates_info_open, set_product_updates_info_open] =
+    useState(false);
+  const offer_preferences = use_offer_preferences();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const sync_product_updates = async () => {
+      const params = new URLSearchParams(window.location.search);
+      const wants_unsubscribe = params.get("unsubscribe") === "product_updates";
+
+      if (wants_unsubscribe) {
+        try {
+          await set_product_updates_subscription(false);
+        } catch {
+          if (cancelled) return;
+          show_toast(t("settings.product_updates_save_failed"), "error");
+          set_product_updates(await get_product_updates_subscription());
+
+          return;
+        }
+
+        params.delete("unsubscribe");
+        const query = params.toString();
+
+        window.history.replaceState(
+          window.history.state,
+          "",
+          query
+            ? `${window.location.pathname}?${query}`
+            : window.location.pathname,
+        );
+
+        if (cancelled) return;
+        set_product_updates(false);
+        show_toast(t("settings.product_updates_turned_off"), "success");
+
+        return;
+      }
+      try {
+        const subscribed = await get_product_updates_subscription();
+
+        if (!cancelled) set_product_updates(subscribed);
+      } catch {
+        if (!cancelled) set_product_updates(null);
+      }
+    };
+
+    sync_product_updates();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [t]);
+
+  const handle_product_updates_toggle = async (next: boolean) => {
+    if (product_updates_busy || product_updates === null) return;
+    const previous = product_updates;
+
+    set_product_updates(next);
+    set_product_updates_busy(true);
+    try {
+      await set_product_updates_subscription(next);
+    } catch {
+      set_product_updates(previous);
+      show_toast(t("settings.product_updates_save_failed"), "error");
+    } finally {
+      set_product_updates_busy(false);
+    }
+  };
 
   const quiet_start = preferences.quiet_hours_start || "22:00";
   const quiet_end = preferences.quiet_hours_end || "07:00";
 
+  const desktop_enabled =
+    preferences.desktop_notifications && permission_state === "granted";
+
+  const subscribe_to_push_with_warning = async (): Promise<void> => {
+    const subscribed = await subscribe_to_push();
+
+    if (!subscribed && is_push_supported()) {
+      show_toast(t("settings.push_subscribe_failed"), "warning");
+    }
+  };
+
   const handle_desktop_toggle = async () => {
-    const new_value = !preferences.desktop_notifications;
+    const new_value = !desktop_enabled;
 
     if (new_value) {
       if (!("Notification" in window)) {
@@ -89,7 +180,7 @@ export function NotificationsSection({
       }
       update_preference("desktop_notifications", true, true);
       set_permission_state("granted");
-      subscribe_to_push();
+      await subscribe_to_push_with_warning();
 
       return;
     }
@@ -100,7 +191,7 @@ export function NotificationsSection({
   const handle_push_toggle = (v: boolean) => {
     update_preference("push_notifications", v, true);
     if (v) {
-      subscribe_to_push();
+      void subscribe_to_push_with_warning();
     } else {
       unsubscribe_from_push();
     }
@@ -126,7 +217,7 @@ export function NotificationsSection({
             label={t("settings.desktop_notifications")}
             trailing={
               <Switch
-                checked={preferences.desktop_notifications}
+                checked={desktop_enabled}
                 onCheckedChange={handle_desktop_toggle}
               />
             }
@@ -175,19 +266,64 @@ export function NotificationsSection({
             trailing={
               <Switch
                 checked={preferences.notify_replies}
-                onCheckedChange={(v) => update_preference("notify_replies", v, true)}
+                onCheckedChange={(v) =>
+                  update_preference("notify_replies", v, true)
+                }
               />
             }
           />
-          <SettingsRow
-            label={t("settings.mentions")}
-            trailing={
-              <Switch
-                checked={preferences.notify_mentions}
-                onCheckedChange={(v) => update_preference("notify_mentions", v, true)}
+          {product_updates !== null && (
+            <>
+              <SettingsRow
+                label={t("settings.product_updates")}
+                trailing={
+                  <Switch
+                    checked={product_updates}
+                    disabled={product_updates_busy}
+                    onCheckedChange={handle_product_updates_toggle}
+                  />
+                }
               />
-            }
-          />
+              <div className="px-4 pb-2">
+                <div className="flex items-start gap-1.5">
+                  <p className="text-[12px] text-[var(--text-muted)]">
+                    {t("settings.product_updates_description")}
+                  </p>
+                  <button
+                    aria-expanded={product_updates_info_open}
+                    aria-label={t("settings.product_updates_info")}
+                    className="flex-shrink-0 text-[var(--text-muted)]"
+                    type="button"
+                    onClick={() =>
+                      set_product_updates_info_open(!product_updates_info_open)
+                    }
+                  >
+                    <InformationCircleIcon className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                {product_updates_info_open && (
+                  <p className="mt-1 text-[12px] text-[var(--text-muted)]">
+                    {t("settings.product_updates_info")}
+                  </p>
+                )}
+              </div>
+            </>
+          )}
+          {offer_preferences.enabled !== null && (
+            <SettingsRow
+              description={t("settings.special_offers_description")}
+              label={t("settings.special_offers")}
+              trailing={
+                <Switch
+                  checked={offer_preferences.enabled}
+                  disabled={offer_preferences.busy}
+                  onCheckedChange={(next) =>
+                    void offer_preferences.toggle(next)
+                  }
+                />
+              }
+            />
+          )}
         </SettingsGroup>
 
         <UpgradeGate
@@ -215,7 +351,7 @@ export function NotificationsSection({
                     {t("settings.from")}
                   </span>
                   <Input
-                    className="ml-auto"
+                    className="ms-auto"
                     type="time"
                     value={quiet_start}
                     onChange={(e) =>
@@ -232,7 +368,7 @@ export function NotificationsSection({
                     {t("settings.to")}
                   </span>
                   <Input
-                    className="ml-auto"
+                    className="ms-auto"
                     type="time"
                     value={quiet_end}
                     onChange={(e) =>

@@ -18,10 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type {
-  ConditionField,
-  LeafCondition,
-} from "@/services/api/mail_rules";
+import type { ConditionField, LeafCondition } from "@/services/api/mail_rules";
 
 export type FieldKind =
   | "address"
@@ -73,7 +70,9 @@ export function field_kind(field: ConditionField): FieldKind {
   }
 }
 
-export function default_condition_for_field(field: ConditionField): LeafCondition {
+export function default_condition_for_field(
+  field: ConditionField,
+): LeafCondition {
   const kind = field_kind(field);
 
   switch (kind) {

@@ -23,7 +23,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const { update_pwa_badge, get_contacts_count, list_snoozed_emails } =
   vi.hoisted(() => ({
     update_pwa_badge: vi.fn(),
-    get_contacts_count: vi.fn(async () => ({ data: { count: 3 }, error: null })),
+    get_contacts_count: vi.fn(async () => ({
+      data: { count: 3 },
+      error: null,
+    })),
     list_snoozed_emails: vi.fn(async () => ({ data: [], error: null })),
   }));
 
@@ -39,15 +42,18 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
 vi.mock("@/native/widget_bridge", () => ({ sync_widget_data: vi.fn() }));
 vi.mock("@/native/pwa_badge", () => ({ update_pwa_badge }));
 vi.mock("@/native/tauri_tray", () => ({ update_tray_badge: vi.fn() }));
-vi.mock("@/services/low_network_state", () => ({ is_low_network: () => false }));
+vi.mock("@/services/low_network_state", () => ({
+  is_low_network: () => false,
+}));
 
-import { get_mail_stats } from "@/services/api/mail";
 import {
   clear_mail_stats,
   invalidate_mail_stats,
   prefetch_mail_stats,
   should_reconcile_on_item_update,
 } from "./use_mail_stats";
+
+import { get_mail_stats } from "@/services/api/mail";
 
 function make_server_stats(unread: number) {
   return {
@@ -208,9 +214,9 @@ describe("should_reconcile_on_item_update", () => {
   });
 
   it("reconciles on archive, trash, spam and star changes", () => {
-    expect(should_reconcile_on_item_update({ id: "1", is_archived: true })).toBe(
-      true,
-    );
+    expect(
+      should_reconcile_on_item_update({ id: "1", is_archived: true }),
+    ).toBe(true);
     expect(should_reconcile_on_item_update({ id: "1", is_trashed: true })).toBe(
       true,
     );
@@ -226,9 +232,7 @@ describe("should_reconcile_on_item_update", () => {
     expect(should_reconcile_on_item_update({ id: "1", is_pinned: true })).toBe(
       false,
     );
-    expect(
-      should_reconcile_on_item_update({ id: "1", tags: [] }),
-    ).toBe(false);
+    expect(should_reconcile_on_item_update({ id: "1", tags: [] })).toBe(false);
     expect(should_reconcile_on_item_update(null)).toBe(false);
     expect(should_reconcile_on_item_update(undefined)).toBe(false);
   });

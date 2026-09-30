@@ -48,7 +48,7 @@ import {
   type TurnstileWidgetRef,
 } from "@/components/auth/turnstile_widget";
 import { use_i18n } from "@/lib/i18n/context";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { show_toast } from "@/components/toast/simple_toast";
 import { clamp_password } from "@/services/sanitize";
 import {
@@ -69,6 +69,7 @@ import {
   sink_write_data_file,
   sink_complete,
   sink_abort,
+  sink_salvage,
   type ExportSink,
 } from "@/services/export/destination";
 import {
@@ -77,10 +78,10 @@ import {
   type ExportSummary,
 } from "@/services/export/pipeline";
 import { create_account_message_source } from "@/services/export/message_source";
-import { emit_export_event } from "@/services/export/audit";
 import { build_account_data_files } from "@/services/export/account_data";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { format_bytes } from "@/lib/utils";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 type ExportStep =
   | "reauth"
@@ -99,13 +100,6 @@ interface ExportModalProps {
   on_close: () => void;
 }
 
-function format_bytes(n: number): string {
-  if (n < 1024) return n + " B";
-  if (n < 1024 * 1024) return (n / 1024).toFixed(1) + " KB";
-  if (n < 1024 * 1024 * 1024) return (n / 1024 / 1024).toFixed(1) + " MB";
-  return (n / 1024 / 1024 / 1024).toFixed(2) + " GB";
-}
-
 export function ExportModal({ is_open, on_close }: ExportModalProps) {
   const { t } = use_i18n();
 
@@ -117,6 +111,8 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
   const [verify_password, set_verify_password] = useState("");
   const [verify_code, set_verify_code] = useState("");
   const [verify_totp_required, set_verify_totp_required] = useState(false);
+  const [verify_requirements_error, set_verify_requirements_error] =
+    useState(false);
   const [verify_show_password, set_verify_show_password] = useState(false);
   const [verify_loading, set_verify_loading] = useState(false);
   const [verify_error, set_verify_error] = useState("");
@@ -135,6 +131,8 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
   const [date_to, set_date_to] = useState("");
   const [progress, set_progress] = useState<ExportProgress | null>(null);
   const [summary, set_summary] = useState<ExportSummary | null>(null);
+  const [export_aborted, set_export_aborted] = useState(false);
+  const [partial_saved, set_partial_saved] = useState(false);
   const undecryptable_count =
     summary?.errors.filter((e) => e.code === "envelope_undecryptable").length ??
     0;
@@ -157,6 +155,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     set_verify_password("");
     set_verify_code("");
     set_verify_totp_required(false);
+    set_verify_requirements_error(false);
     set_verify_show_password(false);
     set_verify_loading(false);
     set_verify_error("");
@@ -170,6 +169,8 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     set_date_to("");
     set_progress(null);
     set_summary(null);
+    set_export_aborted(false);
+    set_partial_saved(false);
     set_destination_label(null);
   }, []);
 
@@ -183,26 +184,35 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     if (!is_open) reset();
   }, [is_open, reset]);
 
-  useEffect(() => {
-    if (step !== "verify") return;
+  const load_verify_requirements = useCallback(() => {
+    set_verify_requirements_error(false);
     fetch_step_up_requirements()
       .then((requirements) => {
         set_verify_totp_required(requirements.totp_required);
       })
-      .catch((caught) =>
-        ignore_error("components/settings/export_modal:ExportModal", caught),
-      );
+      .catch((caught) => {
+        set_verify_requirements_error(true);
+        ignore_error("components/settings/export_modal:ExportModal", caught);
+      });
+  }, []);
+
+  useEffect(() => {
+    if (step !== "verify") return;
+    load_verify_requirements();
     setTimeout(() => verify_input_ref.current?.focus(), 100);
-  }, [step]);
+  }, [step, load_verify_requirements]);
 
   const handle_reauth_submit = useCallback(() => {
     if (!verify_passphrase_for_export(passphrase)) {
       set_reauth_error(true);
+
       return;
     }
     const t_str = issue_export_token();
+
     if (!t_str) {
       set_reauth_error(true);
+
       return;
     }
     set_token(t_str);
@@ -214,6 +224,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     !!verify_password &&
     (!verify_totp_required || verify_code.length === 6) &&
     (!turnstile_required || !!captcha_token) &&
+    !verify_requirements_error &&
     !verify_loading;
 
   const handle_verify_submit = useCallback(async () => {
@@ -238,6 +249,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
         set_verify_error(t("common.step_up_error"));
         set_captcha_token(null);
         turnstile_ref.current?.reset();
+
         return;
       }
 
@@ -246,9 +258,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
       set_captcha_token(null);
       set_step("warning");
     } catch (err) {
-      set_verify_error(
-        err instanceof Error ? err.message : t("common.step_up_error"),
-      );
+      set_verify_error(user_facing_error(err, t("common.step_up_error")));
       set_captcha_token(null);
       turnstile_ref.current?.reset();
     } finally {
@@ -279,24 +289,22 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
       if (!token || !consume_export_token(token)) {
         show_toast(t("settings.export_error_no_vault"), "error");
         set_step("reauth");
+
         return;
       }
       set_destination_label(dest_label);
       set_step("progress");
 
       const controller = new AbortController();
+
       abort_ref.current = controller;
 
       const source = create_account_message_source();
-      emit_export_event({
-        kind: "started",
-        count: 0,
-        total_bytes: 0,
-        format,
-      });
 
       let result: ExportSummary | null = null;
       let fatal = false;
+      let salvaged = false;
+
       try {
         if (include_mail) {
           result = await run_export({
@@ -313,30 +321,45 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
           });
         }
 
-        if (include_contacts || include_settings) {
-          const extras = await build_account_data_files({
-            contacts: include_contacts,
-            settings: include_settings,
-          });
-          for (const f of extras) {
-            await sink_write_data_file(sink, f.name, f.bytes);
+        if (result?.cancelled || controller.signal.aborted) {
+          await sink_abort(sink);
+        } else {
+          if (include_contacts || include_settings) {
+            const extras = await build_account_data_files({
+              contacts: include_contacts,
+              settings: include_settings,
+            });
+
+            for (const f of extras) {
+              if (controller.signal.aborted) break;
+              await sink_write_data_file(sink, f.name, f.bytes);
+            }
+          }
+
+          if (controller.signal.aborted) {
+            await sink_abort(sink);
+          } else {
+            await sink_complete(sink);
           }
         }
-
-        await sink_complete(sink);
       } catch (err) {
         fatal = true;
         if (import.meta.env.DEV) console.error(err);
-        await sink_abort(sink);
-        show_toast(t("settings.export_error_write_fatal"), "error");
+        salvaged = await sink_salvage(sink);
+        show_toast(
+          t(
+            salvaged
+              ? "settings.export_error_write_partial"
+              : "settings.export_error_write_fatal",
+          ),
+          "error",
+        );
       }
-      emit_export_event({
-        kind: fatal || result?.cancelled ? "aborted" : "completed",
-        count: result?.processed ?? 0,
-        total_bytes: result?.bytes_written ?? 0,
-        format,
-      });
+      const aborted =
+        fatal || result?.cancelled === true || controller.signal.aborted;
 
+      set_export_aborted(aborted);
+      set_partial_saved(salvaged);
       set_summary(result);
       set_step("complete");
     },
@@ -354,15 +377,26 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
 
   const handle_pick_destination = useCallback(async () => {
     const name = suggested_zip_filename();
-    if (is_fsa_supported()) {
-      const sink = await pick_zip_file(name);
-      if (!sink) return;
-      await run_pipeline(sink, sink.filename);
-    } else {
-      const sink = open_zip_blob(name);
-      await run_pipeline(sink, name);
+
+    try {
+      if (is_fsa_supported()) {
+        const sink = await pick_zip_file(name);
+
+        if (!sink) return;
+        await run_pipeline(sink, sink.filename);
+      } else {
+        const sink = open_zip_blob(name);
+
+        await run_pipeline(sink, name);
+      }
+    } catch (err) {
+      if (import.meta.env.DEV) console.error(err);
+      show_toast(
+        user_facing_error(err, t("settings.export_error_write_fatal")),
+        "error",
+      );
     }
-  }, [run_pipeline]);
+  }, [run_pipeline, t]);
 
   const handle_cancel_progress = useCallback(() => {
     abort_ref.current?.abort();
@@ -428,7 +462,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
           <div className="relative">
             <Input
               ref={verify_input_ref}
-              className="w-full pr-10"
+              className="w-full pe-10"
               disabled={verify_loading}
               id="export-verify-password"
               maxLength={128}
@@ -446,7 +480,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
               }
             />
             <button
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-txt-muted"
+              className="absolute end-3 top-1/2 -translate-y-1/2 text-txt-muted"
               type="button"
               onClick={() => set_verify_show_password(!verify_show_password)}
             >
@@ -489,9 +523,24 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
         {turnstile_required && (
           <TurnstileWidget
             ref={turnstile_ref}
-            on_verify={set_captcha_token}
             on_expire={() => set_captcha_token(null)}
+            on_verify={set_captcha_token}
           />
+        )}
+
+        {verify_requirements_error && (
+          <div className="space-y-2 text-center">
+            <p className="text-sm text-red-500">
+              {t("common.something_went_wrong_try_again")}
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={load_verify_requirements}
+            >
+              {t("common.retry")}
+            </Button>
+          </div>
         )}
 
         {verify_error && (
@@ -514,7 +563,8 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
           onClick={handle_verify_submit}
         >
           {t("settings.export_verify_submit")}
-          {verify_loading ? <Spinner className="ml-2" size="md" /> : null}
+          {null}
+          {verify_loading && <ButtonSpinner />}
         </Button>
       </>
     );
@@ -530,15 +580,19 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
             </p>
           </div>
         </div>
-        <label className="flex items-center gap-2.5 cursor-pointer select-none">
+        <div className="flex items-center gap-2.5">
           <Checkbox
             checked={warning_ack}
+            id="export-warning-ack"
             onCheckedChange={(v) => set_warning_ack(v === true)}
           />
-          <span className="text-sm text-txt-secondary">
+          <label
+            className="text-sm text-txt-secondary cursor-pointer select-none"
+            htmlFor="export-warning-ack"
+          >
             {t("settings.export_warning_confirm")}
-          </span>
-        </label>
+          </label>
+        </div>
       </div>
     );
     footer = (
@@ -572,10 +626,10 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
       icon: typeof EnvelopeIcon;
     }) => (
       <label
-        className={`flex items-start gap-3 px-4 py-3 rounded-xl border cursor-pointer transition-colors ${
+        className={`flex items-start gap-3 px-4 py-3 rounded-[var(--aster-radius-control)] cursor-pointer transition-colors ${
           checked
-            ? "border-brand"
-            : "border-edge-secondary hover:bg-surf-secondary/50"
+            ? "bg-[var(--aster-field-hover)] ring-2 ring-inset ring-brand"
+            : "bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)]"
         }`}
       >
         <Icon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
@@ -591,6 +645,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
         </span>
       </label>
     );
+
     title = t("settings.export_step_scope_title");
     body = (
       <div className="space-y-3">
@@ -661,6 +716,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
               </label>
               <Input
                 className="w-full mt-1"
+                max={date_to || undefined}
                 type="date"
                 value={date_from}
                 onChange={(e) => set_date_from(e.target.value)}
@@ -672,6 +728,7 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
               </label>
               <Input
                 className="w-full mt-1"
+                min={date_from || undefined}
                 type="date"
                 value={date_to}
                 onChange={(e) => set_date_to(e.target.value)}
@@ -696,17 +753,18 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
     const action_label = fsa
       ? t("settings.export_destination_pick_file")
       : t("common.download");
+
     title = t("settings.export_step_destination_title");
     body = (
       <div className="space-y-4">
-        <div className="flex flex-col items-center justify-center gap-3 p-6 rounded-xl border border-dashed border-edge-secondary bg-surf-secondary/40">
+        <div className="flex flex-col items-center justify-center gap-3 p-6 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)]">
           <ArchiveBoxArrowDownIcon className="w-10 h-10 text-txt-secondary" />
           <p className="text-xs text-txt-secondary text-center">
             {suggested_zip_filename()}
           </p>
         </div>
         {!fsa && (
-          <div className="flex items-start gap-2 px-3 py-2 rounded-xl bg-surf-secondary/60 border border-edge-secondary">
+          <div className="flex items-start gap-2 px-3 py-2 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)]">
             <InformationCircleIcon className="w-4 h-4 mt-0.5 text-txt-muted flex-shrink-0" />
             <p className="text-xs text-txt-muted leading-relaxed">
               {t("settings.export_destination_fallback_notice")}
@@ -728,30 +786,41 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
   } else if (step === "progress") {
     const total = progress?.total ?? 0;
     const processed = progress?.processed ?? 0;
-    const percent =
-      total > 0 ? Math.min(100, Math.round((processed / total) * 100)) : 0;
+    const total_known = total > 0;
+    const percent = total_known
+      ? Math.min(100, Math.round((processed / total) * 100))
+      : 0;
+
     title = t("settings.export_step_progress_title");
     body = (
       <div className="space-y-4">
         <div className="flex items-center gap-2 text-sm text-txt-secondary">
           <Spinner className="text-brand" size="sm" />
           <span>
-            {t("settings.export_progress_messages", {
-              processed: String(processed),
-              total: String(total),
-            })}
+            {!include_mail
+              ? t("settings.export_progress_working")
+              : total_known
+                ? t("settings.export_progress_messages", {
+                    processed: processed,
+                    total: total,
+                  })
+                : t("settings.export_progress_messages_unknown_total", {
+                    processed: processed,
+                  })}
           </span>
         </div>
-        <div className="h-1.5 w-full rounded-full bg-surf-tertiary overflow-hidden">
-          <div
-            className="h-full rounded-full"
-            style={{
-              width: percent + "%",
-              background: "var(--color-brand)",
-              transition: "width 0.4s ease-out",
-            }}
-          />
-        </div>
+        {include_mail && total_known && (
+          <div className="h-1.5 w-full rounded-full bg-surf-tertiary overflow-hidden">
+            <div
+              className="h-full rounded-full"
+              style={{
+                width: percent + "%",
+                background: "var(--color-brand)",
+                transition: "width 0.4s ease-out",
+              }}
+            />
+          </div>
+        )}
         <p className="text-xs text-txt-muted">
           {t("settings.export_progress_bytes_written", {
             bytes: format_bytes(progress?.bytes_written ?? 0),
@@ -765,18 +834,39 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
       </Button>
     );
   } else {
-    title = t("settings.export_step_complete_title");
+    const summary_total = summary?.total ?? 0;
+    const summary_total_known = summary_total > 0;
+    const summary_key = summary_total_known
+      ? export_aborted
+        ? "settings.export_incomplete_summary"
+        : "settings.export_complete_summary"
+      : export_aborted
+        ? "settings.export_incomplete_summary_unknown_total"
+        : "settings.export_complete_summary_unknown_total";
+
+    title = export_aborted
+      ? t("settings.export_step_incomplete_title")
+      : t("settings.export_step_complete_title");
     body = (
       <div className="py-8 text-center">
-        <CheckCircleIcon
-          className="w-16 h-16 mx-auto mb-4"
-          style={{ color: "var(--color-success)" }}
-        />
+        {export_aborted ? (
+          <ExclamationTriangleIcon
+            className="w-16 h-16 mx-auto mb-4"
+            style={{ color: "var(--color-warning, #f59e0b)" }}
+          />
+        ) : (
+          <CheckCircleIcon
+            className="w-16 h-16 mx-auto mb-4"
+            style={{ color: "var(--color-success)" }}
+          />
+        )}
         <h3 className="text-lg font-semibold mb-2 text-txt-primary">
-          {t("settings.export_complete_summary", {
-            count: String(summary?.processed ?? 0),
-            total: String(summary?.total ?? 0),
-          })}
+          {!include_mail && !export_aborted
+            ? t("settings.export_complete_data_only")
+            : t(summary_key, {
+                count: summary?.processed ?? 0,
+                total: summary_total,
+              })}
         </h3>
         <div className="space-y-1">
           <p className="text-sm text-txt-secondary">
@@ -784,6 +874,11 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
               bytes: format_bytes(summary?.bytes_written ?? 0),
             })}
           </p>
+          {export_aborted && partial_saved && (
+            <p className="text-xs text-txt-secondary">
+              {t("settings.export_incomplete_partial_saved")}
+            </p>
+          )}
           {destination_label && (
             <p className="text-xs text-txt-muted">
               {t("settings.export_complete_location", {
@@ -794,21 +889,21 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
           {summary && summary.errors.length > 0 && (
             <p className="text-xs text-red-500 mt-2">
               {t("settings.export_complete_errors", {
-                count: String(summary.errors.length),
+                count: summary.errors.length,
               })}
             </p>
           )}
           {undecryptable_count > 0 && (
             <p className="text-xs text-red-500">
               {t("settings.export_complete_skipped_undecryptable", {
-                count: String(undecryptable_count),
+                count: undecryptable_count,
               })}
             </p>
           )}
           {skipped_attachment_count > 0 && (
             <p className="text-xs text-red-500">
               {t("settings.export_complete_skipped_attachments", {
-                count: String(skipped_attachment_count),
+                count: skipped_attachment_count,
               })}
             </p>
           )}
@@ -824,9 +919,9 @@ export function ExportModal({ is_open, on_close }: ExportModalProps) {
 
   return (
     <Modal
+      close_on_overlay={false}
       is_open={is_open}
       on_close={handle_close}
-      close_on_overlay={false}
       show_close_button={step !== "progress"}
       size="md"
     >

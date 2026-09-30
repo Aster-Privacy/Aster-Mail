@@ -18,14 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
 import { motion, AnimatePresence } from "framer-motion";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { format_last_saved } from "@/components/compose/compose_shared";
-
 
 export function DraftStatusIndicator({
   compose,
@@ -56,17 +55,23 @@ export function DraftStatusIndicator({
                 initial={reduce_motion ? false : { opacity: 0 }}
                 transition={{ duration: reduce_motion ? 0 : 0.15 }}
               >
-                <svg
-                  className="w-3.5 h-3.5 animate-spin"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
+                <div
+                  aria-label={t("common.saving")}
+                  className="h-[3px] w-16 overflow-hidden rounded-full bg-edge-secondary"
+                  role="progressbar"
                 >
-                  <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
-                  <path d="M12 2a10 10 0 0 1 10 10" strokeLinecap="round" />
-                </svg>
-                <span>{t("common.saving")}</span>
+                  <motion.div
+                    animate={
+                      reduce_motion ? { x: "0%" } : { x: ["-100%", "250%"] }
+                    }
+                    className="h-full w-2/5 rounded-full bg-blue-500"
+                    transition={
+                      reduce_motion
+                        ? { duration: 0 }
+                        : { duration: 1.1, ease: "easeInOut", repeat: Infinity }
+                    }
+                  />
+                </div>
               </motion.div>
             ) : compose.draft_status === "error" ? (
               <motion.div
@@ -119,4 +124,3 @@ export function DraftStatusIndicator({
     </AnimatePresence>
   );
 }
-

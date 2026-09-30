@@ -1,10 +1,2 @@
-import { cn } from "@/lib/utils";
-
-function Skeleton({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("aster_skeleton", className)} {...props} />;
-}
-
-export { Skeleton };
+export { Skeleton } from "@aster/ui";
+export type { SkeletonProps } from "@aster/ui";

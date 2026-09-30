@@ -20,6 +20,7 @@
 //
 import { createContext, useContext, useState, useEffect, useMemo } from "react";
 import { MotionConfig } from "framer-motion";
+import { UiStringsProvider, type AsterUiStrings } from "@aster/ui";
 
 import { ThemeProvider } from "@/contexts/theme_context";
 import { AuthProvider } from "@/contexts/auth_context";
@@ -30,7 +31,8 @@ import {
 import { ExternalLinkProvider } from "@/contexts/external_link_context";
 import { SignaturesProvider } from "@/contexts/signatures_context";
 import { TemplatesProvider } from "@/contexts/templates_context";
-import { I18nProvider } from "@/lib/i18n/context";
+import { TitleTipLayer } from "@/components/ui/title_tip_layer";
+import { I18nProvider, use_i18n } from "@/lib/i18n/context";
 
 const ReducedMotionContext = createContext(false);
 
@@ -62,7 +64,10 @@ function MotionWrapper({ children }: { children: React.ReactNode }) {
   const { preferences } = use_preferences();
   const os_prefers_reduced = use_os_reduced_motion();
 
-  const should_reduce = preferences.reduce_motion || preferences.low_network_mode || os_prefers_reduced;
+  const should_reduce =
+    preferences.reduce_motion ||
+    preferences.low_network_mode ||
+    os_prefers_reduced;
   const transition = useMemo(
     () => (should_reduce ? INSTANT_TRANSITION : undefined),
     [should_reduce],
@@ -80,21 +85,51 @@ function MotionWrapper({ children }: { children: React.ReactNode }) {
   );
 }
 
+function MailUiStrings({ children }: { children: React.ReactNode }) {
+  const { t } = use_i18n();
+  const strings = useMemo<Partial<AsterUiStrings>>(
+    () => ({
+      close: t("common.close"),
+      cancel: t("common.cancel"),
+      confirm: t("common.confirm"),
+      loading: t("common.loading"),
+      more_info: t("common.more_information"),
+      copy: t("common.copy"),
+      copied: t("common.copied"),
+      retry: t("common.retry"),
+      show_password: t("settings.show_password_toggle"),
+      hide_password: t("settings.hide_password_toggle"),
+      next_month: t("common.next_month"),
+      qr_code: t("common.qr_code"),
+      learn_more: t("common.learn_more"),
+      delete: t("common.delete"),
+    }),
+    [t],
+  );
+
+  return <UiStringsProvider strings={strings}>{children}</UiStringsProvider>;
+}
+
 export function Provider({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider>
       <I18nProvider>
-        <AuthProvider>
-          <PreferencesProvider>
-            <ExternalLinkProvider>
-              <MotionWrapper>
-                <SignaturesProvider>
-                  <TemplatesProvider>{children}</TemplatesProvider>
-                </SignaturesProvider>
-              </MotionWrapper>
-            </ExternalLinkProvider>
-          </PreferencesProvider>
-        </AuthProvider>
+        <MailUiStrings>
+          <AuthProvider>
+            <PreferencesProvider>
+              <ExternalLinkProvider>
+                <MotionWrapper>
+                  <SignaturesProvider>
+                    <TemplatesProvider>
+                      {children}
+                      <TitleTipLayer />
+                    </TemplatesProvider>
+                  </SignaturesProvider>
+                </MotionWrapper>
+              </ExternalLinkProvider>
+            </PreferencesProvider>
+          </AuthProvider>
+        </MailUiStrings>
       </I18nProvider>
     </ThemeProvider>
   );

@@ -19,6 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { Badge, BadgePreferences } from "@/services/api/user";
+import type { StepUpCredentials } from "@/services/api/step_up";
+import type { RecoveryEmailData } from "@/services/api/recovery_email";
 
 import { useEffect, useState, useCallback } from "react";
 import {
@@ -27,6 +29,8 @@ import {
   CheckCircleIcon,
   ExclamationCircleIcon,
 } from "@heroicons/react/24/outline";
+import { Switch } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { SettingsGroup, SettingsHeader, SettingsRow } from "./shared";
 
@@ -34,7 +38,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   PROFILE_PICTURE_ACCEPT,
@@ -46,7 +50,6 @@ import { cn } from "@/lib/utils";
 import { show_toast } from "@/components/toast/simple_toast";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { StepUpModal } from "@/components/settings/step_up_modal";
-import type { StepUpCredentials } from "@/services/api/step_up";
 import {
   Modal,
   ModalHeader,
@@ -55,7 +58,6 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
-import { Button, Switch } from "@aster/ui";
 import {
   fetch_my_badges,
   fetch_badge_preferences,
@@ -64,13 +66,26 @@ import {
 import { get_badge_visual } from "@/components/ui/badge_registry";
 import { set_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   get_recovery_email,
   save_recovery_email,
   resend_recovery_verification,
   remove_recovery_email,
+  normalize_recovery_email,
+  EMPTY_RECOVERY_EMAIL,
 } from "@/services/api/recovery_email";
+import { app_locale } from "@/utils/date_format";
+import { is_composing } from "@/utils/ime";
+import { MAX_DISPLAY_NAME_LENGTH } from "@/services/sanitize";
+import { user_facing_error } from "@/utils/user_facing_error";
+import { use_primary_identity } from "@/lib/primary_identity";
+import { format_date } from "@/utils/date_format";
+import { ChangePrimaryAddressModal } from "@/components/settings/change_primary_address_modal";
+import {
+  load_primary_address_eligibility,
+  primary_address_eligibility_failed,
+  type PrimaryAddressEligibility,
+} from "@/services/api/primary_address";
 
 function mask_email(email: string): string {
   const [local, domain] = email.split("@");
@@ -105,17 +120,19 @@ function RecoveryModal({
   }, [is_open, current]);
 
   const handle_save = async () => {
-    if (!email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    const trimmed_email = email.trim();
+
+    if (!trimmed_email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed_email)) {
       set_error(t("common.enter_valid_email"));
 
       return;
     }
     set_saving(true);
     try {
-      await on_save(email);
+      await on_save(trimmed_email);
       on_close();
     } catch (err) {
-      set_error(err instanceof Error ? err.message : t("common.failed_to_save"));
+      set_error(user_facing_error(err, t("common.failed_to_save")));
     } finally {
       set_saving(false);
     }
@@ -137,7 +154,9 @@ function RecoveryModal({
           type="email"
           value={email}
           onChange={(e) => set_email(e.target.value)}
-          onKeyDown={(e) => e["key"] === "Enter" && handle_save()}
+          onKeyDown={(e) =>
+            e["key"] === "Enter" && !is_composing(e) && handle_save()
+          }
         />
         {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
       </ModalBody>
@@ -145,15 +164,8 @@ function RecoveryModal({
         <Button variant="ghost" onClick={on_close}>
           {t("common.cancel")}
         </Button>
-        <Button disabled={saving} onClick={handle_save}>
-          {saving ? (
-            <>
-              {t("common.saving")}
-              <Spinner className="ml-2" size="md" />
-            </>
-          ) : (
-            t("common.save")
-          )}
+        <Button disabled={saving} is_loading={saving} onClick={handle_save}>
+          {t("common.save")}
         </Button>
       </ModalFooter>
     </Modal>
@@ -171,6 +183,11 @@ export function AccountSection({
   const { user, update_user, vault } = use_auth();
   const { preferences, update_preference, reset_to_defaults } =
     use_preferences();
+  const [pending_profile_color, set_pending_profile_color] = useState<
+    string | null
+  >(null);
+  const active_profile_color =
+    pending_profile_color ?? (user?.profile_color || preferences.profile_color);
   const { limits } = use_plan_limits();
   const is_paid_plan = !!limits && limits.plan_code !== "free";
   const {
@@ -183,17 +200,21 @@ export function AccountSection({
     handle_file,
     remove_picture,
   } = use_profile_picture_upload();
+  const account_email = user?.email ?? "";
+  const primary_identity = use_primary_identity(account_email);
+
   const [display_name, set_display_name] = useState(
     user?.display_name || user?.username || "",
   );
   const [saving_name, set_saving_name] = useState(false);
   const [badges, set_badges] = useState<Badge[]>([]);
-  const [badge_prefs, set_badge_prefs] = useState<BadgePreferences | null>(null);
+  const [badge_prefs, set_badge_prefs] = useState<BadgePreferences | null>(
+    null,
+  );
   const [is_badge_saving, set_is_badge_saving] = useState(false);
-  const [recovery, set_recovery] = useState<{
-    email: string | null;
-    verified: boolean;
-  }>({ email: null, verified: false });
+  const [recovery, set_recovery] =
+    useState<RecoveryEmailData>(EMPTY_RECOVERY_EMAIL);
+  const [recovery_load_failed, set_recovery_load_failed] = useState(false);
   const [show_recovery_modal, set_show_recovery_modal] = useState(false);
   const [resending, set_resending] = useState(false);
   const [show_step_up, set_show_step_up] = useState(false);
@@ -202,27 +223,124 @@ export function AccountSection({
   );
   const [pending_recovery_email, set_pending_recovery_email] = useState("");
   const [show_reset_confirm, set_show_reset_confirm] = useState(false);
+  const [address_eligibility, set_address_eligibility] =
+    useState<PrimaryAddressEligibility | null>(null);
+  const [address_eligibility_failed, set_address_eligibility_failed] =
+    useState(false);
+  const [show_address_change, set_show_address_change] = useState(false);
+
+  const retry_address_eligibility = useCallback(async () => {
+    set_address_eligibility_failed(false);
+
+    const response = await load_primary_address_eligibility();
+
+    set_address_eligibility((prev) => response.data ?? prev);
+    set_address_eligibility_failed(
+      primary_address_eligibility_failed(response),
+    );
+  }, []);
+
+  const can_change_address = !!address_eligibility;
+
+  const address_cooldown_date = (() => {
+    const raw = address_eligibility?.next_change_available_at;
+    const parsed = raw ? new Date(raw) : null;
+
+    if (!parsed || Number.isNaN(parsed.getTime())) return null;
+
+    return format_date(parsed);
+  })();
+
+  const address_lock_message = (() => {
+    if (!address_eligibility || address_eligibility.eligible) return null;
+
+    switch (address_eligibility.reason) {
+      case "plan":
+        return t("settings.address_change_locked_plan");
+      case "account_kind":
+        return t("settings.address_change_locked_account_kind");
+      case "custom_domain":
+        return t("settings.address_change_locked_custom_domain");
+      case "cooldown":
+        return address_cooldown_date
+          ? t("settings.address_change_locked_cooldown", {
+              date: address_cooldown_date,
+            })
+          : t("settings.address_change_locked_cooldown_unknown");
+      default:
+        return t("settings.address_change_locked_unavailable");
+    }
+  })();
+
+  const handle_address_changed = useCallback(
+    async (new_address: string) => {
+      if (user) {
+        await update_user({
+          ...user,
+          email: new_address,
+          username: new_address.slice(0, new_address.lastIndexOf("@")),
+        });
+      }
+
+      const refreshed = await load_primary_address_eligibility();
+
+      set_address_eligibility((prev) => refreshed.data ?? prev);
+      set_address_eligibility_failed(
+        primary_address_eligibility_failed(refreshed),
+      );
+      show_toast(t("settings.primary_address_set"), "success");
+    },
+    [user, update_user, t],
+  );
+
+  const reload_recovery = useCallback(async () => {
+    if (!vault) return;
+    const response = await get_recovery_email(vault).catch(() => ({
+      data: null,
+    }));
+
+    if (response.data) {
+      set_recovery(response.data);
+      set_recovery_load_failed(false);
+    } else {
+      set_recovery_load_failed(true);
+    }
+  }, [vault]);
 
   useEffect(() => {
     const run = async () => {
       try {
-        const [badges_response, prefs_response, recovery_response] =
-          await Promise.all([
-            fetch_my_badges(),
-            fetch_badge_preferences(),
-            vault
-              ? get_recovery_email(vault).catch(() => ({
-                  data: { email: null, verified: false },
-                }))
-              : Promise.resolve({ data: { email: null, verified: false } }),
-          ]);
+        const [
+          badges_response,
+          prefs_response,
+          recovery_response,
+          eligibility_response,
+        ] = await Promise.all([
+          fetch_my_badges(),
+          fetch_badge_preferences(),
+          vault
+            ? get_recovery_email(vault).catch(() => ({
+                data: null,
+              }))
+            : Promise.resolve({ data: EMPTY_RECOVERY_EMAIL }),
+          load_primary_address_eligibility(),
+        ]);
 
         if (badges_response.data) set_badges(badges_response.data);
         if (prefs_response.data) {
           set_badge_prefs(prefs_response.data);
           set_my_badge_prefs(prefs_response.data);
         }
-        if (recovery_response.data) set_recovery(recovery_response.data);
+        if (recovery_response.data) {
+          set_recovery(recovery_response.data);
+          set_recovery_load_failed(false);
+        } else {
+          set_recovery_load_failed(true);
+        }
+        set_address_eligibility(eligibility_response.data ?? null);
+        set_address_eligibility_failed(
+          primary_address_eligibility_failed(eligibility_response),
+        );
       } catch (error) {
         if (import.meta.env.DEV) console.error(error);
       }
@@ -264,27 +382,43 @@ export function AccountSection({
     }
   };
 
-  const save_recovery = async (email: string) => {
-    if (!vault) return;
+  const request_recovery_step_up = (email: string) => {
+    set_pending_recovery_email(email);
+    set_step_up_mode("change");
+    set_show_step_up(true);
+  };
 
-    if (recovery.email) {
-      set_pending_recovery_email(email);
-      set_step_up_mode("change");
-      set_show_step_up(true);
+  const save_recovery = async (email: string) => {
+    if (!vault) throw new Error(t("common.something_went_wrong_try_again"));
+
+    const normalized = normalize_recovery_email(email);
+
+    if (recovery.step_up_required) {
+      request_recovery_step_up(normalized);
 
       return;
     }
 
-    const r = await save_recovery_email(email, vault);
+    const r = await save_recovery_email(normalized, vault);
 
-    if (r.code === "CONFLICT") {
-      throw new Error(t("common.recovery_conflict"));
+    if (r.code === "STEP_UP_REQUIRED" || r.code === "TOTP_REQUIRED") {
+      request_recovery_step_up(normalized);
+
+      return;
     }
-    if (!r.data.success) {
+    if (r.code === "CONFLICT") {
+      throw new Error(r.error || t("common.recovery_conflict"));
+    }
+    if (r.error || !r.data?.success) {
       throw new Error(r.error || t("common.failed_to_save"));
     }
 
-    set_recovery({ email, verified: false });
+    set_recovery({
+      email: normalized,
+      verified: false,
+      exists: true,
+      step_up_required: false,
+    });
   };
 
   const handle_step_up_confirm = async (credentials: StepUpCredentials) => {
@@ -297,22 +431,27 @@ export function AccountSection({
       );
 
       if (r.code === "CONFLICT") {
-        throw new Error(t("common.recovery_conflict"));
+        throw new Error(r.error || t("common.recovery_conflict"));
       }
-      if (!r.data.success) {
+      if (r.error || !r.data?.success) {
         throw new Error(r.error || t("common.step_up_error"));
       }
 
-      set_recovery({ email: pending_recovery_email, verified: false });
+      set_recovery({
+        email: pending_recovery_email,
+        verified: false,
+        exists: true,
+        step_up_required: false,
+      });
       set_show_step_up(false);
     } else {
       const r = await remove_recovery_email(credentials);
 
-      if (!r.data.success) {
+      if (r.error || !r.data?.success) {
         throw new Error(r.error || t("common.step_up_error"));
       }
 
-      set_recovery({ email: null, verified: false });
+      set_recovery(EMPTY_RECOVERY_EMAIL);
       set_show_step_up(false);
       show_toast(t("common.recovery_email_removed"), "success");
     }
@@ -324,10 +463,10 @@ export function AccountSection({
     try {
       const r = await resend_recovery_verification();
 
-      if (r.data.success) {
+      if (!r.error && r.data?.success) {
         show_toast(t("common.verification_email_sent"), "success");
       } else {
-        show_toast(t("common.failed_verification_email"), "error");
+        show_toast(r.error || t("common.failed_verification_email"), "error");
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
@@ -337,8 +476,9 @@ export function AccountSection({
     }
   };
 
-
   const handle_save_name = useCallback(async () => {
+    if (saving_name) return;
+
     const trimmed = display_name.trim();
 
     if (!trimmed || !user || trimmed === (user.display_name || user.username))
@@ -348,16 +488,23 @@ export function AccountSection({
       const { update_display_name } = await import("@/services/api/user");
       const r = await update_display_name(trimmed);
 
-      if (r.data?.user)
+      if (r.data?.user) {
         await update_user({
           ...user,
           display_name: r.data.user.display_name || undefined,
         });
+      } else {
+        show_toast(r.error || t("common.failed_to_save"), "error");
+      }
     } catch (caught) {
-      ignore_error("pages/mobile/settings/account_section:handle_resend", caught);
+      ignore_error(
+        "pages/mobile/settings/account_section:handle_save_name",
+        caught,
+      );
+      show_toast(t("common.failed_to_save"), "error");
     }
     set_saving_name(false);
-  }, [display_name, user, update_user]);
+  }, [display_name, saving_name, user, update_user, t]);
 
   return (
     <div className="flex h-full flex-col">
@@ -385,11 +532,11 @@ export function AccountSection({
                 email={user?.email ?? ""}
                 image_url={preview || user?.profile_picture}
                 name={user?.display_name ?? user?.username ?? ""}
-                profile_color={preferences.profile_color}
+                profile_color={active_profile_color}
                 size="xl"
               />
             </span>
-            <span className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[var(--bg-primary)] bg-[var(--accent-color,#3b82f6)] text-[var(--accent-fg,#ffffff)]">
+            <span className="absolute bottom-0 end-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[var(--bg-primary)] bg-[var(--accent-color,#3b82f6)] text-[var(--accent-fg,#ffffff)]">
               {uploading ? (
                 <Spinner size="xs" />
               ) : (
@@ -411,7 +558,7 @@ export function AccountSection({
               type="button"
               onClick={remove_picture}
             >
-              {removing && <Spinner size="xs" />}
+              {removing && <ButtonSpinner size="xs" />}
               {t("common.remove_photo")}
             </button>
           )}
@@ -429,12 +576,14 @@ export function AccountSection({
         <SettingsGroup title={t("auth.display_name_optional")}>
           <div className="flex items-center gap-2 px-4 py-3">
             <Input
+              aria-label={t("auth.display_name_optional")}
               className="min-w-0 flex-1 bg-transparent"
+              maxLength={MAX_DISPLAY_NAME_LENGTH}
               value={display_name}
               onBlur={handle_save_name}
               onChange={(e) => set_display_name(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") handle_save_name();
+                if (e.key === "Enter" && !is_composing(e)) handle_save_name();
               }}
             />
             {saving_name && <Spinner size="xs" />}
@@ -442,43 +591,58 @@ export function AccountSection({
         </SettingsGroup>
 
         <SettingsGroup title={t("auth.profile_color")}>
-          <div className="flex flex-wrap gap-2.5 px-4 py-4">
+          <div
+            className="flex flex-wrap gap-2.5 px-4 py-4"
+            role="radiogroup"
+            aria-label={t("auth.profile_color")}
+          >
             {PROFILE_COLORS.map((color) => (
               <button
                 key={color}
+                role="radio"
+                aria-checked={active_profile_color === color}
+                aria-label={color}
                 className="flex h-10 w-10 items-center justify-center rounded-full"
                 style={{
                   backgroundColor: color,
                   boxShadow:
-                    preferences.profile_color === color
+                    active_profile_color === color
                       ? `0 0 0 2px var(--bg-primary), 0 0 0 4px ${color}`
                       : "none",
                 }}
                 type="button"
                 onClick={async () => {
-                  const prev = preferences.profile_color;
+                  const prev = active_profile_color;
 
-                  update_preference("profile_color", color, true);
-                  if (user) {
-                    await update_user({ ...user, profile_color: color });
-                  }
-                  const { update_profile_color } = await import(
-                    "@/services/api/user"
-                  );
-                  const response = await update_profile_color(color);
-
-                  if (response.error) {
-                    update_preference("profile_color", prev, true);
+                  set_pending_profile_color(color);
+                  try {
+                    update_preference("profile_color", color, true);
                     if (user) {
-                      await update_user({
-                        ...user,
-                        profile_color: prev || undefined,
-                      });
+                      await update_user({ ...user, profile_color: color });
                     }
+                    const { update_profile_color } =
+                      await import("@/services/api/user");
+                    const response = await update_profile_color(color);
+
+                    if (response.error) {
+                      update_preference("profile_color", prev, true);
+                      if (user) {
+                        await update_user({
+                          ...user,
+                          profile_color: prev || undefined,
+                        });
+                      }
+                      show_toast(
+                        t("common.failed_save_profile_color"),
+                        "error",
+                      );
+                    }
+                  } finally {
+                    set_pending_profile_color(null);
                   }
                 }}
               >
-                {preferences.profile_color === color && (
+                {active_profile_color === color && (
                   <CheckIcon
                     className="h-4.5 w-4.5 text-white"
                     strokeWidth={2.5}
@@ -501,7 +665,7 @@ export function AccountSection({
                   <button
                     key={badge.slug}
                     className={cn(
-                      "inline-flex select-none items-center gap-1.5 rounded-[12px] px-3 py-1.5 text-xs font-medium",
+                      "inline-flex select-none items-center gap-1.5 rounded-[var(--aster-radius-control)] px-3 py-1.5 text-xs font-medium",
                       is_active
                         ? "bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)]"
                         : "bg-[var(--mobile-bg-card-hover)] text-[var(--text-secondary)]",
@@ -518,7 +682,7 @@ export function AccountSection({
                     <span className="truncate">{badge.display_name}</span>
                     {badge.find_order != null && (
                       <span className="tabular-nums opacity-80">
-                        #{badge.find_order.toLocaleString()}
+                        #{badge.find_order.toLocaleString(app_locale())}
                       </span>
                     )}
                   </button>
@@ -552,11 +716,40 @@ export function AccountSection({
           </SettingsGroup>
         )}
 
+        <SettingsGroup title={t("settings.primary_address_label")}>
+          <SettingsRow
+            label={primary_identity.email || account_email}
+            description={
+              address_eligibility_failed
+                ? t("settings.address_change_eligibility_failed")
+                : can_change_address && address_eligibility
+                  ? address_eligibility.eligible
+                    ? t("settings.address_change_once_title")
+                    : (address_lock_message ?? undefined)
+                  : undefined
+            }
+            on_press={
+              address_eligibility?.eligible
+                ? () => set_show_address_change(true)
+                : () => void retry_address_eligibility()
+            }
+            value={
+              address_eligibility_failed
+                ? t("common.retry")
+                : can_change_address && address_eligibility?.eligible
+                  ? t("settings.change_address")
+                  : undefined
+            }
+          />
+        </SettingsGroup>
+
         <SettingsGroup title={t("common.recovery_email")}>
-          {recovery.email && (
+          {recovery.exists && (
             <div className="flex items-center justify-between px-4 py-3">
               <span className="text-[14px] text-[var(--text-secondary)]">
-                {mask_email(recovery.email)}
+                {recovery.email
+                  ? mask_email(recovery.email)
+                  : t("common.recovery_email_hidden")}
               </span>
               {recovery.verified ? (
                 <span className="flex items-center gap-1 text-xs text-green-500">
@@ -572,17 +765,30 @@ export function AccountSection({
             </div>
           )}
           <SettingsRow
-            label={recovery.email ? t("common.update") : t("common.add")}
-            on_press={() => set_show_recovery_modal(true)}
+            label={
+              recovery_load_failed
+                ? t("common.retry")
+                : recovery.exists
+                  ? t("common.update")
+                  : t("common.add")
+            }
+            on_press={() => {
+              if (recovery_load_failed) {
+                reload_recovery();
+
+                return;
+              }
+              set_show_recovery_modal(true);
+            }}
           />
-          {recovery.email && !recovery.verified && (
+          {recovery.exists && !recovery.verified && (
             <SettingsRow
               label={t("common.resend")}
               on_press={handle_resend}
               trailing={resending ? <Spinner size="xs" /> : undefined}
             />
           )}
-          {recovery.email && (
+          {recovery.exists && (
             <SettingsRow
               destructive
               label={t("common.remove")}
@@ -602,6 +808,15 @@ export function AccountSection({
           />
         </SettingsGroup>
       </div>
+
+      {address_eligibility && can_change_address && (
+        <ChangePrimaryAddressModal
+          eligibility={address_eligibility}
+          is_open={show_address_change}
+          on_changed={handle_address_changed}
+          on_close={() => set_show_address_change(false)}
+        />
+      )}
 
       <RecoveryModal
         current={recovery.email}

@@ -18,23 +18,58 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { base64_to_array } from "./base64";
-import { DoubleRatchet, type EncryptedMessage } from "./double_ratchet";
+import {
+  DoubleRatchet,
+  type EncryptedMessage,
+  type SerializedState,
+} from "./double_ratchet";
 import { type EncryptedVault } from "./key_manager";
 import { type RatchetKeySet } from "./key_manager_core";
 import { fetch_from_escrow, upload_to_escrow } from "./message_escrow";
-import { derive_conversation_id, get_sync_encryption_key, run_serialized_for_conversation } from "./ratchet_conversation";
-import { jwk_to_ratchet_keypair, resolve_pq_identity_secret } from "./ratchet_keys";
-import { get_cached_ratchet_plaintext, set_cached_ratchet_plaintext } from "./ratchet_plaintext_cache";
+import {
+  derive_conversation_id,
+  get_sync_encryption_key,
+  run_serialized_for_conversation,
+} from "./ratchet_conversation";
+import {
+  jwk_to_ratchet_keypair,
+  resolve_pq_identity_secret,
+} from "./ratchet_keys";
+import {
+  get_cached_ratchet_plaintext,
+  set_cached_ratchet_plaintext,
+} from "./ratchet_plaintext_cache";
 import { detect_identity_pin_drift } from "./ratchet_prekey_bundle";
+import { has_peer_advertised_pq } from "./ratchet_identity_pin";
+import { record_peer_identity_event } from "./ratchet_verification_status";
 import { open_recovery_lane } from "./ratchet_recovery_lane";
-import { load_ratchet_state, save_ratchet_state } from "./ratchet_state_store";
-import { load_ratchet_from_server, sync_ratchet_to_server } from "./ratchet_sync";
-import { type RatchetEnvelope, type RatchetRecipientData } from "./ratchet_types";
+import {
+  archive_ratchet_state,
+  load_archived_ratchet_states,
+  load_ratchet_state,
+  save_ratchet_state,
+} from "./ratchet_state_store";
+import { merge_skipped_message_keys } from "./ratchet_state_merge";
+import {
+  load_ratchet_from_server,
+  sync_ratchet_to_server,
+} from "./ratchet_sync";
+import {
+  type RatchetEnvelope,
+  type RatchetRecipientData,
+} from "./ratchet_types";
 import { adopt_refreshed_vault, fetch_refreshed_vault } from "./vault_refresh";
+import { recover_ratchet_keys_from_history } from "./vault_key_recovery";
+import { is_authenticated_ratchet_enforced } from "./crypto_enforcement_policy";
+import {
+  authenticate_sender_identity,
+  note_message_sender_identity,
+  SenderIdentityUnverifiedError,
+} from "./sender_identity_authentication";
 import { perform_x3dh_receiver } from "./x3dh";
 
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { ignore_error } from "@/lib/ignore_error";
 
 function resolve_recipient_data(
@@ -52,6 +87,25 @@ function resolve_recipient_data(
   }
 
   return null;
+}
+
+const MAX_ALIAS_RECIPIENT_ATTEMPTS = 8;
+
+function alias_recipient_candidates(
+  our_email: string,
+  sender_email: string,
+  envelope: RatchetEnvelope,
+): string[] {
+  const our_lower = our_email.toLowerCase();
+  const sender_lower = sender_email.toLowerCase();
+
+  return Object.keys(envelope.recipients)
+    .filter((key) => {
+      const lower = key.toLowerCase();
+
+      return lower !== our_lower && lower !== sender_lower;
+    })
+    .slice(0, MAX_ALIAS_RECIPIENT_ATTEMPTS);
 }
 
 function build_dedupe_key(
@@ -86,10 +140,7 @@ async function attempt_ratchet_decrypt(
     if (cached !== null) return { plaintext: cached, error: null };
   }
 
-  const conversation_id = await derive_conversation_id(
-    our_email,
-    sender_email,
-  );
+  const conversation_id = await derive_conversation_id(our_email, sender_email);
 
   return run_serialized_for_conversation(conversation_id, async () => {
     if (dedupe_key) {
@@ -100,6 +151,11 @@ async function attempt_ratchet_decrypt(
 
     let plaintext: string | null = null;
     let decrypt_error: unknown = null;
+
+    await authenticate_sender_identity(
+      sender_email,
+      envelope.sender_identity_key,
+    ).catch(() => "unverified" as const);
 
     if (data) {
       try {
@@ -121,9 +177,19 @@ async function attempt_ratchet_decrypt(
         envelope.sender_identity_key,
       );
 
+      note_message_sender_identity(
+        message_id ?? dedupe_key ?? "",
+        sender_email,
+      );
+
       if (dedupe_key) {
         await set_cached_ratchet_plaintext(dedupe_key, plaintext);
-        void upload_to_escrow(dedupe_key, plaintext).catch((caught) => ignore_error("services/crypto/ratchet_decrypt:attempt_ratchet_decrypt", caught));
+        void upload_to_escrow(dedupe_key, plaintext).catch((caught) =>
+          ignore_error(
+            "services/crypto/ratchet_decrypt:attempt_ratchet_decrypt",
+            caught,
+          ),
+        );
       }
 
       return { plaintext, error: null };
@@ -173,6 +239,36 @@ export async function decrypt_ratchet_message(
       );
 
       if (fallback.plaintext !== null) return fallback.plaintext;
+    }
+  }
+
+  if (!our_data) {
+    for (const address of alias_recipient_candidates(
+      our_email,
+      sender_email,
+      envelope,
+    )) {
+      const alias_data = envelope.recipients[address];
+
+      if (!alias_data) continue;
+
+      try {
+        const alias_attempt = await attempt_ratchet_decrypt(
+          address,
+          sender_email,
+          envelope,
+          vault,
+          alias_data,
+          message_id,
+        );
+
+        if (alias_attempt.plaintext !== null) return alias_attempt.plaintext;
+      } catch (caught) {
+        ignore_error(
+          "services/crypto/ratchet_decrypt:decrypt_ratchet_message",
+          caught,
+        );
+      }
     }
   }
 
@@ -335,6 +431,7 @@ async function init_receiver_from_bootstrap(
   sender_identity_key: string,
   keys: RatchetKeySet,
   conversation_id: string,
+  sender_email: string,
 ): Promise<DoubleRatchet | null> {
   if (
     !keys.ratchet_identity_key ||
@@ -367,6 +464,10 @@ async function init_receiver_from_bootstrap(
     console.warn(
       "ratchet receiver: PQ-capable identity received a non-PQ bootstrap, proceeding classically",
     );
+
+    if (await has_peer_advertised_pq(sender_email.toLowerCase())) {
+      record_peer_identity_event(sender_email, "downgraded");
+    }
   }
 
   const shared_secret = await perform_x3dh_receiver(
@@ -379,6 +480,7 @@ async function init_receiver_from_bootstrap(
       keys.ratchet_pq_identity_key,
       keys.ratchet_pq_identity_seed,
     ),
+    data.x3dh_v,
   );
 
   const own_keypair = await jwk_to_ratchet_keypair(
@@ -398,6 +500,32 @@ async function init_receiver_from_bootstrap(
   return ratchet;
 }
 
+async function snapshot_ratchet_state(
+  ratchet: DoubleRatchet,
+): Promise<SerializedState> {
+  return JSON.parse(
+    JSON.stringify(await ratchet.serialize()),
+  ) as SerializedState;
+}
+
+async function carry_forward_skipped_keys(
+  ratchet: DoubleRatchet,
+  previous: SerializedState,
+): Promise<void> {
+  const previous_skipped = previous.state.skipped_message_keys ?? [];
+
+  if (previous_skipped.length === 0) return;
+
+  const current = await snapshot_ratchet_state(ratchet);
+
+  current.state.skipped_message_keys = merge_skipped_message_keys(
+    previous_skipped,
+    current.state.skipped_message_keys ?? [],
+  );
+
+  ratchet.adopt_state(current);
+}
+
 async function decrypt_ratchet_for_recipient(
   our_email: string,
   sender_email: string,
@@ -408,7 +536,21 @@ async function decrypt_ratchet_for_recipient(
   const key_sets = receiver_key_sets(vault);
 
   if (key_sets.length === 0) {
-    return null;
+    const refreshed = await fetch_refreshed_vault();
+
+    if (!refreshed || receiver_key_sets(refreshed.vault).length === 0) {
+      return null;
+    }
+
+    await adopt_refreshed_vault(refreshed);
+
+    return decrypt_ratchet_for_recipient(
+      our_email,
+      sender_email,
+      data,
+      sender_identity_key,
+      refreshed.vault,
+    );
   }
 
   const conversation_id = await derive_conversation_id(our_email, sender_email);
@@ -422,7 +564,13 @@ async function decrypt_ratchet_for_recipient(
     nonce: data.nonce,
   };
 
-  let ratchet = await load_ratchet_state(conversation_id);
+  const loaded_ratchet = await load_ratchet_state(conversation_id);
+  const loaded_snapshot = loaded_ratchet
+    ? await snapshot_ratchet_state(loaded_ratchet)
+    : null;
+
+  let ratchet = loaded_ratchet;
+  let ratchet_origin: "loaded" | "archived" | "replacement" = "loaded";
 
   let plaintext: string | null = null;
 
@@ -435,7 +583,51 @@ async function decrypt_ratchet_for_recipient(
   }
 
   if (plaintext === null) {
+    const identity_status = await authenticate_sender_identity(
+      sender_email,
+      sender_identity_key,
+    );
+
+    const identity_unverified =
+      is_authenticated_ratchet_enforced() && identity_status === "mismatch";
+
+    for (const archived of await load_archived_ratchet_states(
+      conversation_id,
+    ).catch(() => [])) {
+      try {
+        plaintext = await archived.decrypt(message);
+        ratchet = archived;
+        ratchet_origin = "archived";
+        break;
+      } catch (caught) {
+        ignore_error(
+          "services/crypto/ratchet_decrypt:archived_state_fallback",
+          caught,
+        );
+      }
+    }
+
     let last_error: unknown = null;
+
+    if (plaintext !== null && ratchet_origin === "archived") {
+      const archived_snapshot = await snapshot_ratchet_state(ratchet!);
+      const archived_epoch = archived_snapshot.state.epoch ?? 0;
+      const primary_epoch = loaded_snapshot
+        ? (loaded_snapshot.state.epoch ?? 0)
+        : -1;
+
+      if (archived_epoch > primary_epoch) {
+        if (loaded_snapshot) {
+          await archive_ratchet_state(loaded_snapshot);
+        }
+
+        await save_ratchet_state(ratchet!);
+      } else {
+        await archive_ratchet_state(archived_snapshot);
+      }
+
+      return plaintext;
+    }
 
     for (const keys of key_sets) {
       let candidate: DoubleRatchet | null = null;
@@ -446,6 +638,7 @@ async function decrypt_ratchet_for_recipient(
           sender_identity_key,
           keys,
           conversation_id,
+          sender_email,
         );
       } catch (err) {
         last_error = err;
@@ -459,6 +652,7 @@ async function decrypt_ratchet_for_recipient(
       try {
         plaintext = await candidate.decrypt(message);
         ratchet = candidate;
+        ratchet_origin = "replacement";
         break;
       } catch (err) {
         last_error = err;
@@ -479,6 +673,7 @@ async function decrypt_ratchet_for_recipient(
             try {
               plaintext = await server_state.ratchet.decrypt(message);
               ratchet = server_state.ratchet;
+              ratchet_origin = "replacement";
             } catch {
               /* server state also cannot decrypt */
             }
@@ -506,6 +701,7 @@ async function decrypt_ratchet_for_recipient(
               sender_identity_key,
               keys,
               conversation_id,
+              sender_email,
             );
           } catch {
             continue;
@@ -516,11 +712,51 @@ async function decrypt_ratchet_for_recipient(
           try {
             plaintext = await candidate.decrypt(message);
             ratchet = candidate;
+            ratchet_origin = "replacement";
             await adopt_refreshed_vault(refreshed);
             break;
           } catch (caught) {
-            ignore_error("services/crypto/ratchet_decrypt:decrypt_ratchet_for_recipient", caught);
+            ignore_error(
+              "services/crypto/ratchet_decrypt:decrypt_ratchet_for_recipient",
+              caught,
+            );
           }
+        }
+      }
+    }
+
+    if ((plaintext === null || !ratchet) && is_first_chain_bootstrap) {
+      const recovered_vault = await recover_ratchet_keys_from_history();
+
+      for (const keys of recovered_vault
+        ? receiver_key_sets(recovered_vault)
+        : []) {
+        let candidate: DoubleRatchet | null = null;
+
+        try {
+          candidate = await init_receiver_from_bootstrap(
+            data,
+            sender_identity_key,
+            keys,
+            conversation_id,
+            sender_email,
+          );
+        } catch {
+          continue;
+        }
+
+        if (!candidate) continue;
+
+        try {
+          plaintext = await candidate.decrypt(message);
+          ratchet = candidate;
+          ratchet_origin = "replacement";
+          break;
+        } catch (caught) {
+          ignore_error(
+            "services/crypto/ratchet_decrypt:recovered_key_bootstrap",
+            caught,
+          );
         }
       }
     }
@@ -554,6 +790,10 @@ async function decrypt_ratchet_for_recipient(
         }
       }
 
+      if (identity_unverified) {
+        throw new SenderIdentityUnverifiedError(sender_email, identity_status);
+      }
+
       if (last_error) {
         throw last_error;
       }
@@ -564,6 +804,11 @@ async function decrypt_ratchet_for_recipient(
 
   if (!ratchet) {
     return null;
+  }
+
+  if (ratchet_origin === "replacement" && loaded_snapshot) {
+    await carry_forward_skipped_keys(ratchet, loaded_snapshot);
+    await archive_ratchet_state(loaded_snapshot);
   }
 
   await save_ratchet_state(ratchet);

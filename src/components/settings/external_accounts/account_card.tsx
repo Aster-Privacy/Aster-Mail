@@ -20,6 +20,7 @@
 //
 import type { DecryptedExternalAccount } from "@/services/api/external_accounts";
 import type { UseExternalAccountsReturn } from "@/components/settings/hooks/use_external_accounts";
+import type { TranslationKey } from "@/lib/i18n/types";
 
 import {
   TrashIcon,
@@ -29,13 +30,40 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 import { Switch } from "@aster/ui";
+import { Tooltip } from "@aster/ui";
 
+import { Spinner } from "@/components/ui/spinner";
 import { get_favicon_url } from "@/lib/favicon_url";
 import { is_syncing as check_is_syncing } from "@/services/sync_manager";
 import {
   SyncHealthDot,
   SyncStatusIndicator,
 } from "@/components/settings/external_accounts/sync_status";
+import { app_locale } from "@/utils/date_format";
+
+const PROTOCOL_LABELS: Record<string, string> = {
+  imap: "IMAP",
+  oauth_imap: "IMAP",
+  jmap: "JMAP",
+  pop3: "POP3",
+};
+
+const PROTOCOL_TOOLTIP_KEYS: Record<string, TranslationKey> = {
+  imap: "settings.protocol_tooltip_imap",
+  oauth_imap: "settings.protocol_tooltip_imap",
+  jmap: "settings.protocol_tooltip_jmap",
+  pop3: "settings.protocol_tooltip_pop3",
+};
+
+function protocol_label(protocol: string) {
+  return PROTOCOL_LABELS[protocol] ?? protocol.replace(/_/g, " ");
+}
+
+function protocol_tooltip(protocol: string, t: UseExternalAccountsReturn["t"]) {
+  const key = PROTOCOL_TOOLTIP_KEYS[protocol];
+
+  return key ? t(key) : protocol_label(protocol);
+}
 
 interface AccountCardProps {
   account: DecryptedExternalAccount;
@@ -67,7 +95,13 @@ export function AccountCard({
   t,
 }: AccountCardProps) {
   return (
-    <div className={index > 0 ? "border-t border-edge-secondary" : ""}>
+    <div
+      className={
+        index > 0
+          ? "border-t border-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]"
+          : ""
+      }
+    >
       <div className="flex items-center gap-3 px-4 py-3">
         {(() => {
           const domain = account.email.split("@")[1];
@@ -80,7 +114,7 @@ export function AccountCard({
                 style={{
                   backgroundColor: account.is_enabled
                     ? `${account.label_color}20`
-                    : "var(--bg-tertiary)",
+                    : "color-mix(in srgb, var(--text-primary) 7%, transparent)",
                 }}
               >
                 <img
@@ -100,8 +134,8 @@ export function AccountCard({
               className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
               style={{
                 backgroundColor: account.is_enabled
-                  ? account.label_color
-                  : "var(--bg-tertiary)",
+                  ? `${account.label_color}26`
+                  : "color-mix(in srgb, var(--text-primary) 7%, transparent)",
               }}
             >
               <EnvelopeIcon
@@ -125,25 +159,30 @@ export function AccountCard({
             >
               {account.email}
             </span>
-            <span className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0 uppercase font-medium bg-surf-tertiary text-txt-muted">
-              {account.protocol}
-            </span>
-            <span
-              className="text-[10px] px-1.5 py-0.5 rounded flex-shrink-0"
-              style={{
-                backgroundColor: account.is_enabled
-                  ? "var(--accent-green-muted)"
-                  : "var(--bg-tertiary)",
-                color: account.is_enabled
-                  ? "var(--accent-green)"
-                  : "var(--text-muted)",
-              }}
+            <Tooltip tip={protocol_tooltip(account.protocol, t)}>
+              <span className="account_menu_badge account_menu_badge_muted uppercase tracking-wide">
+                {protocol_label(account.protocol)}
+              </span>
+            </Tooltip>
+            <Tooltip
+              tip={
+                account.is_enabled
+                  ? t("settings.account_enabled_tooltip")
+                  : t("settings.account_paused_tooltip")
+              }
             >
-              {account.is_enabled ? t("common.active") : t("common.paused")}
-            </span>
+              <span
+                className={
+                  account.is_enabled
+                    ? "account_menu_badge"
+                    : "account_menu_badge account_menu_badge_muted"
+                }
+              >
+                {account.is_enabled ? t("common.active") : t("common.paused")}
+              </span>
+            </Tooltip>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Only show display_name for non-OAuth accounts (for OAuth it's just the provider label) */}
             {account.display_name && account.protocol !== "oauth_imap" && (
               <>
                 <span
@@ -167,7 +206,7 @@ export function AccountCard({
                 <span className="text-[12px] text-txt-muted">&middot;</span>
                 <span className="text-[11px] text-txt-muted">
                   {t("settings.email_count", {
-                    count: account.email_count.toLocaleString(),
+                    count: account.email_count.toLocaleString(app_locale()),
                   })}
                 </span>
               </>
@@ -193,52 +232,77 @@ export function AccountCard({
             </Button>
           ) : (
             <>
-              <Switch size="lg"
-                aria-label={`${account.is_enabled ? t("common.disable") : t("common.enable")} ${account.email}`}
-                checked={account.is_enabled}
-                onCheckedChange={() => handle_toggle(account)}
-              />
-              <Button
-                aria-label={`${t("common.sync")} ${account.email}`}
-                disabled={check_is_syncing(account.id) || !account.is_enabled}
-                size="md"
-                variant="ghost"
-                onClick={() => handle_sync(account)}
+              <Tooltip
+                tip={
+                  account.is_enabled
+                    ? t("settings.account_pause_tooltip")
+                    : t("settings.account_resume_tooltip")
+                }
               >
-                <ArrowPathIcon
-                  className={`w-4 h-4 ${check_is_syncing(account.id) ? "animate-spin" : ""}`}
+                <Switch
+                  aria-label={`${account.is_enabled ? t("common.disable") : t("common.enable")} ${account.email}`}
+                  checked={account.is_enabled}
+                  size="lg"
+                  onCheckedChange={() => handle_toggle(account)}
                 />
-              </Button>
+              </Tooltip>
+              <Tooltip tip={t("settings.sync_now_tooltip")}>
+                <Button
+                  aria-label={`${t("common.sync")} ${account.email}`}
+                  className="rounded-full w-10 h-10 p-0"
+                  disabled={check_is_syncing(account.id) || !account.is_enabled}
+                  size="md"
+                  variant="ghost"
+                  onClick={() => handle_sync(account)}
+                >
+                  {check_is_syncing(account.id) ? (
+                    <Spinner size="md" />
+                  ) : (
+                    <ArrowPathIcon className="w-5 h-5" />
+                  )}
+                </Button>
+              </Tooltip>
             </>
           )}
-          <Button
-            aria-label={`${t("common.edit")} ${account.email}`}
-            size="md"
-            variant="ghost"
-            onClick={() => handle_edit(account)}
-          >
-            <PencilIcon className="w-4 h-4" />
-          </Button>
-          <Button
-            aria-label={`${t("common.delete_mail_from")} ${account.email}`}
-            size="md"
-            variant="ghost"
-            onClick={() => set_purge_target(account)}
-          >
-            <TrashIcon className="w-4 h-4" />
-          </Button>
+          <Tooltip tip={t("settings.edit_account_tooltip")}>
+            <Button
+              aria-label={`${t("common.edit")} ${account.email}`}
+              className="rounded-full w-10 h-10 p-0"
+              size="md"
+              variant="ghost"
+              onClick={() => handle_edit(account)}
+            >
+              <PencilIcon className="w-5 h-5" />
+            </Button>
+          </Tooltip>
+          <Tooltip tip={t("settings.remove_account_tooltip")}>
+            <Button
+              aria-label={`${t("settings.remove_account")} ${account.email}`}
+              className="rounded-full w-10 h-10 p-0"
+              size="md"
+              variant="ghost"
+              onClick={() => set_purge_target(account)}
+            >
+              <TrashIcon className="w-5 h-5" />
+            </Button>
+          </Tooltip>
         </div>
       </div>
       {account.last_sync_status === "error" &&
         expanded_error_ids.has(account.id) && (
-          <div className="px-4 pb-3 pt-0" style={{ paddingLeft: "3.75rem" }}>
+          <div
+            className="px-4 pb-3 pt-0"
+            style={{ paddingInlineStart: "3.75rem" }}
+          >
             <div
-              className="px-3 py-2 rounded-lg text-xs leading-relaxed"
+              className="px-3 py-2 rounded-xl text-xs leading-relaxed bg-[color-mix(in_srgb,#dc2626_10%,transparent)] text-red-700 dark:text-red-400"
               role="alert"
-              style={{ backgroundColor: "rgba(220,38,38,0.08)", color: "rgb(220,38,38)" }}
             >
               {account.last_sync_error
-                ? account.last_sync_error.replace(/^IMAP authentication failed:\s*/i, "")
+                ? account.last_sync_error.replace(
+                    /^IMAP authentication failed:\s*/i,
+                    "",
+                  )
                 : t("settings.sync_failed_detail", {
                     time:
                       format_sync_time(account.last_sync_at) ||

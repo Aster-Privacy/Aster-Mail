@@ -27,8 +27,13 @@ import { useState, useCallback, useMemo, useRef } from "react";
 
 import {
   clamp_timeout,
+  normalize_app_password,
   sanitize_hostname,
 } from "@/components/settings/hooks/external_accounts_utils";
+import {
+  get_provider_preset,
+  is_preset_host,
+} from "@/components/settings/external_accounts/provider_presets";
 import {
   get_advanced_settings,
   get_connection_settings,
@@ -47,6 +52,7 @@ export function use_external_accounts_form(t: I18nTranslate) {
   const [editing_account, set_editing_account] =
     useState<DecryptedExternalAccount | null>(null);
   const [is_submitting, set_is_submitting] = useState(false);
+  const is_oauth_account = editing_account?.protocol === "oauth_imap";
   const [form_visible, set_form_visible] = useState(false);
 
   const [form_email, set_form_email] = useState("");
@@ -82,17 +88,19 @@ export function use_external_accounts_form(t: I18nTranslate) {
   const [has_stored_password, set_has_stored_password] = useState(false);
   const [has_stored_smtp_password, set_has_stored_smtp_password] =
     useState(false);
+  const [prefill_failed, set_prefill_failed] = useState(false);
   const [is_loading_account_settings, set_is_loading_account_settings] =
     useState(false);
   const prefill_request_ref = useRef(0);
 
   const get_effective_smtp_host = useCallback(
-    () => (smtp_same_as_incoming ? form_host.trim() : form_smtp_host.trim()),
-    [smtp_same_as_incoming, form_host, form_smtp_host],
+    () =>
+      form_smtp_host.trim() !== "" ? form_smtp_host.trim() : form_host.trim(),
+    [form_host, form_smtp_host],
   );
   const get_effective_smtp_port = useCallback(
-    () => (smtp_same_as_incoming ? 587 : form_smtp_port),
-    [smtp_same_as_incoming, form_smtp_port],
+    () => form_smtp_port,
+    [form_smtp_port],
   );
   const get_effective_smtp_username = useCallback(
     () =>
@@ -100,12 +108,24 @@ export function use_external_accounts_form(t: I18nTranslate) {
     [smtp_same_as_incoming, form_username, form_smtp_username],
   );
   const get_effective_smtp_password = useCallback(
-    () => (smtp_same_as_incoming ? form_password : form_smtp_password),
-    [smtp_same_as_incoming, form_password, form_smtp_password],
+    () =>
+      smtp_same_as_incoming
+        ? normalize_app_password(form_host, form_password)
+        : normalize_app_password(form_smtp_host, form_smtp_password),
+    [
+      smtp_same_as_incoming,
+      form_host,
+      form_password,
+      form_smtp_host,
+      form_smtp_password,
+    ],
   );
   const get_effective_smtp_use_tls = useCallback(
-    () => (smtp_same_as_incoming ? form_use_tls : form_smtp_use_tls),
-    [smtp_same_as_incoming, form_use_tls, form_smtp_use_tls],
+    () =>
+      smtp_same_as_incoming && form_smtp_host.trim() === ""
+        ? form_use_tls
+        : form_smtp_use_tls,
+    [smtp_same_as_incoming, form_smtp_host, form_use_tls, form_smtp_use_tls],
   );
 
   const build_credentials = useCallback(
@@ -113,16 +133,19 @@ export function use_external_accounts_form(t: I18nTranslate) {
       host: sanitize_hostname(form_host),
       port: form_port,
       username: form_username.trim(),
-      password: form_password,
+      password: normalize_app_password(form_host, form_password),
       use_tls: form_use_tls,
-      smtp_host: smtp_same_as_incoming
-        ? sanitize_hostname(form_host)
-        : sanitize_hostname(form_smtp_host),
-      smtp_port: smtp_same_as_incoming ? 587 : form_smtp_port,
+      smtp_host:
+        form_smtp_host.trim() !== ""
+          ? sanitize_hostname(form_smtp_host)
+          : sanitize_hostname(form_host),
+      smtp_port: form_smtp_port,
       smtp_username: smtp_same_as_incoming
         ? form_username.trim()
         : form_smtp_username.trim(),
-      smtp_password: smtp_same_as_incoming ? form_password : form_smtp_password,
+      smtp_password: smtp_same_as_incoming
+        ? normalize_app_password(form_host, form_password)
+        : normalize_app_password(form_smtp_host, form_smtp_password),
     }),
     [
       form_host,
@@ -156,8 +179,14 @@ export function use_external_accounts_form(t: I18nTranslate) {
       form_connection_timeout,
       has_stored_password,
       has_stored_smtp_password,
+      is_oauth_account,
+      oauth_account_token: is_oauth_account
+        ? (editing_account?.account_token ?? null)
+        : null,
     }),
     [
+      editing_account,
+      is_oauth_account,
       has_stored_password,
       has_stored_smtp_password,
       form_email,
@@ -212,6 +241,7 @@ export function use_external_accounts_form(t: I18nTranslate) {
     prefill_request_ref.current += 1;
     set_has_stored_password(false);
     set_has_stored_smtp_password(false);
+    set_prefill_failed(false);
     set_is_loading_account_settings(false);
     set_form_email("");
     set_form_display_name("");
@@ -263,22 +293,56 @@ export function use_external_accounts_form(t: I18nTranslate) {
     [test_hook.clear_test_results],
   );
 
+  const apply_provider_preset = useCallback(
+    (email: string) => {
+      if (form_host !== "" && !is_preset_host(form_host)) return;
+
+      const preset = get_provider_preset(email);
+
+      if (!preset) {
+        if (form_host === "") return;
+
+        set_form_host("");
+        set_form_port(form_protocol === "pop3" ? 995 : 993);
+        set_form_use_tls(true);
+        set_form_smtp_host("");
+        set_form_smtp_port(587);
+        set_form_smtp_use_tls(true);
+
+        return;
+      }
+
+      set_form_host(preset.host);
+      set_form_port(preset.port);
+      set_form_use_tls(preset.use_tls);
+      set_form_smtp_host(preset.smtp_host);
+      set_form_smtp_port(preset.smtp_port);
+      set_form_smtp_use_tls(preset.use_tls);
+    },
+    [form_host, form_protocol],
+  );
+
   const handle_email_change = useCallback(
     (email: string) => {
       set_form_email(email);
-      set_form_username(email);
+      if (!editing_account) {
+        set_form_username(email);
+        apply_provider_preset(email);
+      }
       if (!form_label_name || form_label_name === form_email) {
         set_form_label_name(email);
       }
-      if (smtp_same_as_incoming) {
+      if (smtp_same_as_incoming && !editing_account) {
         set_form_smtp_username(email);
       }
       test_hook.clear_test_results();
     },
     [
+      editing_account,
       form_label_name,
       form_email,
       smtp_same_as_incoming,
+      apply_provider_preset,
       test_hook.clear_test_results,
     ],
   );
@@ -297,8 +361,10 @@ export function use_external_accounts_form(t: I18nTranslate) {
         set_form_port(0);
       } else {
         const parsed = parseInt(value, 10);
+
         if (!Number.isNaN(parsed)) {
           const clamped = Math.max(0, Math.min(65535, parsed));
+
           set_form_port(clamped);
           if (IMPLICIT_TLS_PORTS.has(clamped)) {
             set_form_use_tls(true);
@@ -328,28 +394,45 @@ export function use_external_accounts_form(t: I18nTranslate) {
     [test_hook.clear_test_results],
   );
 
-  const handle_smtp_host_change = useCallback((value: string) => {
-    set_form_smtp_host(value);
-  }, []);
+  const handle_smtp_host_change = useCallback(
+    (value: string) => {
+      set_form_smtp_host(value);
+      test_hook.clear_smtp_test_result();
+    },
+    [test_hook.clear_smtp_test_result],
+  );
 
-  const handle_smtp_port_change = useCallback((value: string) => {
-    if (value === "") {
-      set_form_smtp_port(0);
-    } else {
-      const parsed = parseInt(value, 10);
-      if (!Number.isNaN(parsed)) {
-        set_form_smtp_port(Math.max(0, Math.min(65535, parsed)));
+  const handle_smtp_port_change = useCallback(
+    (value: string) => {
+      if (value === "") {
+        set_form_smtp_port(0);
+      } else {
+        const parsed = parseInt(value, 10);
+
+        if (!Number.isNaN(parsed)) {
+          set_form_smtp_port(Math.max(0, Math.min(65535, parsed)));
+        }
       }
-    }
-  }, []);
+      test_hook.clear_smtp_test_result();
+    },
+    [test_hook.clear_smtp_test_result],
+  );
 
-  const handle_smtp_username_change = useCallback((value: string) => {
-    set_form_smtp_username(value);
-  }, []);
+  const handle_smtp_username_change = useCallback(
+    (value: string) => {
+      set_form_smtp_username(value);
+      test_hook.clear_smtp_test_result();
+    },
+    [test_hook.clear_smtp_test_result],
+  );
 
-  const handle_smtp_password_change = useCallback((value: string) => {
-    set_form_smtp_password(value);
-  }, []);
+  const handle_smtp_password_change = useCallback(
+    (value: string) => {
+      set_form_smtp_password(value);
+      test_hook.clear_smtp_test_result();
+    },
+    [test_hook.clear_smtp_test_result],
+  );
 
   const handle_label_color_change = useCallback((value: string) => {
     if (value.startsWith("#") && value.length <= 7) {
@@ -376,8 +459,9 @@ export function use_external_accounts_form(t: I18nTranslate) {
       const is_same = checked === true;
 
       set_smtp_same_as_incoming(is_same);
+      test_hook.clear_smtp_test_result();
     },
-    [],
+    [test_hook.clear_smtp_test_result],
   );
 
   const handle_connection_timeout_change = useCallback((value: string) => {
@@ -391,6 +475,7 @@ export function use_external_accounts_form(t: I18nTranslate) {
         test_hook.is_mounted_ref.current;
 
       set_is_loading_account_settings(true);
+      set_prefill_failed(false);
 
       try {
         const [connection, sync, advanced] = await Promise.all([
@@ -400,6 +485,10 @@ export function use_external_accounts_form(t: I18nTranslate) {
         ]);
 
         if (!is_current()) return;
+
+        if (connection.error || sync.error || advanced.error) {
+          set_prefill_failed(true);
+        }
 
         if (connection.data) {
           const settings = connection.data;
@@ -424,6 +513,11 @@ export function use_external_accounts_form(t: I18nTranslate) {
 
         if (sync.data) {
           set_form_sync_frequency(sync.data.sync_frequency);
+          test_hook.set_selected_folders(
+            sync.data.sync_folders.length > 0
+              ? sync.data.sync_folders
+              : ["INBOX"],
+          );
         }
 
         if (advanced.data) {
@@ -435,6 +529,7 @@ export function use_external_accounts_form(t: I18nTranslate) {
           set_form_delete_after_fetch(advanced.data.delete_after_fetch);
         }
       } catch (error) {
+        if (is_current()) set_prefill_failed(true);
         if (import.meta.env.DEV) console.error(error);
       } finally {
         if (is_current()) {
@@ -442,7 +537,7 @@ export function use_external_accounts_form(t: I18nTranslate) {
         }
       }
     },
-    [test_hook.is_mounted_ref],
+    [test_hook.is_mounted_ref, test_hook.set_selected_folders],
   );
 
   const handle_edit = useCallback(
@@ -450,20 +545,22 @@ export function use_external_accounts_form(t: I18nTranslate) {
       prefill_request_ref.current += 1;
       const request_id = prefill_request_ref.current;
 
+      const preset = get_provider_preset(account.email);
+
       set_editing_account(account);
       set_form_email(account.email);
       set_form_display_name(account.display_name);
-      set_form_protocol(account.protocol as "imap" | "pop3");
-      set_form_host("");
-      set_form_port(account.protocol === "imap" ? 993 : 995);
+      set_form_protocol(account.protocol === "pop3" ? "pop3" : "imap");
+      set_form_host(account.protocol === "pop3" ? "" : (preset?.host ?? ""));
+      set_form_port(account.protocol === "imap" ? (preset?.port ?? 993) : 995);
       set_form_username(account.email);
       set_form_password("");
       set_form_use_tls(true);
       set_form_label_name(account.label_name);
       set_form_label_color(account.label_color);
       set_show_password(false);
-      set_form_smtp_host("");
-      set_form_smtp_port(587);
+      set_form_smtp_host(preset?.smtp_host ?? "");
+      set_form_smtp_port(preset?.smtp_port ?? 587);
       set_form_smtp_username(account.email);
       set_form_smtp_password("");
       set_show_smtp_password(false);
@@ -485,8 +582,25 @@ export function use_external_accounts_form(t: I18nTranslate) {
     [prefill_account_settings],
   );
 
+  const retry_prefill = useCallback(() => {
+    const account = editing_account;
+
+    if (!account) return;
+
+    prefill_request_ref.current += 1;
+
+    void prefill_account_settings(
+      account.account_token,
+      prefill_request_ref.current,
+    );
+  }, [editing_account, prefill_account_settings]);
+
   const is_form_busy =
-    is_submitting || test_hook.is_testing || test_hook.is_testing_smtp;
+    is_submitting ||
+    prefill_failed ||
+    is_loading_account_settings ||
+    test_hook.is_testing ||
+    test_hook.is_testing_smtp;
 
   const truncated_folders = useMemo(() => {
     const max_display = 200;
@@ -494,9 +608,15 @@ export function use_external_accounts_form(t: I18nTranslate) {
     return test_hook.available_folders.slice(0, max_display);
   }, [test_hook.available_folders]);
 
+  const active_preset = useMemo(
+    () => (editing_account ? null : get_provider_preset(form_email)),
+    [editing_account, form_email],
+  );
+
   return {
     show_add_form,
     editing_account,
+    is_oauth_account,
     is_submitting,
     set_is_submitting,
     is_testing: test_hook.is_testing,
@@ -548,6 +668,8 @@ export function use_external_accounts_form(t: I18nTranslate) {
     has_stored_password,
     has_stored_smtp_password,
     is_loading_account_settings,
+    prefill_failed,
+    retry_prefill,
     is_form_busy,
     truncated_folders,
     open_add_form,
@@ -556,6 +678,7 @@ export function use_external_accounts_form(t: I18nTranslate) {
     build_credentials,
     handle_protocol_change,
     handle_email_change,
+    active_preset,
     handle_host_change,
     handle_port_change,
     handle_username_change,

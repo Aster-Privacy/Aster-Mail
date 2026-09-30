@@ -18,8 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { split_autolinks } from "./autolink";
 import { is_transparent_color_value } from "./html_sanitizer_css";
 import { looks_format_flowed, unflow_format_flowed } from "./format_flowed";
+import { repair_comment_markup } from "./html_sanitizer_utils";
 
 export function is_html_content(content: string): boolean {
   if (!content || typeof content !== "string") {
@@ -88,10 +90,17 @@ export function has_rich_html(content: string): boolean {
   return false;
 }
 
+function escape_text(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 export function plain_text_to_html(text: string): string {
   if (!text) return "";
 
-  const url_regex = /(https?:\/\/[^\s<>"'{}|\\^`[\]]+)/g;
   const normalized = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
   const reflowed = looks_format_flowed(normalized)
     ? unflow_format_flowed(normalized)
@@ -100,19 +109,17 @@ export function plain_text_to_html(text: string): string {
 
   return paragraphs
     .map((para) => {
-      let escaped = para
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
+      const escaped = split_autolinks(para)
+        .map((segment) => {
+          if (!segment.href) return escape_text(segment.text);
+          const href = escape_text(segment.href).replace(/'/g, "&#39;");
 
-      escaped = escaped.replace(url_regex, (url) => {
-        const href_url = url.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-        return `<a href="${href_url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
-      });
+          return `<a href="${href}" target="_blank" rel="noopener noreferrer">${escape_text(segment.text)}</a>`;
+        })
+        .join("")
+        .replace(/\n/g, "<br>");
 
-      escaped = escaped.replace(/\n/g, "<br>");
-      return `<p>${escaped}</p>`;
+      return `<p dir="auto">${escaped}</p>`;
     })
     .join("\n");
 }
@@ -163,17 +170,23 @@ export function html_to_readable_plain_text(
   let doc: Document;
 
   try {
-    doc = new DOMParser().parseFromString(html, "text/html");
+    doc = new DOMParser().parseFromString(
+      repair_comment_markup(html),
+      "text/html",
+    );
   } catch {
     return strip_html_tags(html);
   }
 
   doc
-    .querySelectorAll("script, style, head, noscript, template, iframe, object, embed")
+    .querySelectorAll(
+      "script, style, head, noscript, template, iframe, object, embed",
+    )
     .forEach((el) => el.remove());
 
   doc.querySelectorAll<HTMLElement>("*").forEach((el) => {
     const s = el.getAttribute("style") ?? "";
+
     if (
       /display\s*:\s*none/i.test(s) ||
       /visibility\s*:\s*hidden/i.test(s) ||
@@ -187,20 +200,30 @@ export function html_to_readable_plain_text(
 
   if (options.keep_link_urls) append_link_urls(doc);
 
-  doc.querySelectorAll("br").forEach((el) => el.replaceWith(doc.createTextNode("\n")));
+  doc
+    .querySelectorAll("br")
+    .forEach((el) => el.replaceWith(doc.createTextNode("\n")));
 
   doc
-    .querySelectorAll("p, div, section, article, header, footer, h1, h2, h3, h4, h5, h6, li, blockquote")
+    .querySelectorAll(
+      "p, div, section, article, header, footer, h1, h2, h3, h4, h5, h6, li, blockquote",
+    )
     .forEach((el) => {
       el.prepend(doc.createTextNode("\n"));
       el.append(doc.createTextNode("\n"));
     });
 
-  doc.querySelectorAll("td, th").forEach((el) => el.append(doc.createTextNode(" ")));
-  doc.querySelectorAll("tr").forEach((el) => el.append(doc.createTextNode("\n")));
+  doc
+    .querySelectorAll("td, th")
+    .forEach((el) => el.append(doc.createTextNode(" ")));
+  doc
+    .querySelectorAll("tr")
+    .forEach((el) => el.append(doc.createTextNode("\n")));
 
   doc
-    .querySelectorAll("img[width='1'], img[height='1'], img[width='0'], img[height='0']")
+    .querySelectorAll(
+      "img[width='1'], img[height='1'], img[width='0'], img[height='0']",
+    )
     .forEach((el) => el.remove());
 
   const text = doc.body?.textContent ?? "";
@@ -217,6 +240,62 @@ export function html_to_readable_plain_text(
     .trim();
 }
 
+const BOUNDED_STRIP_STEPS = [16384, 65536, 262144];
+
+const BOUNDED_STRIP_MARGIN = 64;
+
+function last_tag_boundary(html: string, limit: number): number {
+  let boundary = -1;
+  let quote = "";
+  let in_tag = false;
+
+  for (let index = 0; index < limit; index += 1) {
+    const char = html[index];
+
+    if (!in_tag) {
+      if (char === "<") {
+        in_tag = true;
+        quote = "";
+      }
+
+      continue;
+    }
+
+    if (quote) {
+      if (char === quote) quote = "";
+    } else if (char === '"' || char === "'") {
+      quote = char;
+    } else if (char === ">") {
+      in_tag = false;
+      boundary = index + 1;
+    }
+  }
+
+  return boundary;
+}
+
+export function strip_html_tags_bounded(
+  html: string,
+  min_chars: number,
+): string {
+  if (!html || typeof html !== "string") return "";
+  if (html.length <= BOUNDED_STRIP_STEPS[0]) return strip_html_tags(html);
+
+  for (const step of BOUNDED_STRIP_STEPS) {
+    if (step * 2 >= html.length) break;
+
+    const boundary = last_tag_boundary(html, step);
+
+    if (boundary <= 0) continue;
+
+    const text = strip_html_tags(html.slice(0, boundary));
+
+    if (text.length >= min_chars + BOUNDED_STRIP_MARGIN) return text;
+  }
+
+  return strip_html_tags(html);
+}
+
 export function strip_html_tags(html: string): string {
   if (!html || typeof html !== "string") return "";
 
@@ -225,22 +304,29 @@ export function strip_html_tags(html: string): string {
   let doc: Document;
 
   try {
-    doc = new DOMParser().parseFromString(html, "text/html");
+    doc = new DOMParser().parseFromString(
+      repair_comment_markup(html),
+      "text/html",
+    );
   } catch {
     return "";
   }
 
   doc
-    .querySelectorAll("script, style, head, noscript, template, iframe, object, embed")
+    .querySelectorAll(
+      "script, style, head, noscript, template, iframe, object, embed",
+    )
     .forEach((el) => el.remove());
 
   doc.querySelectorAll("br").forEach((el) => {
     el.replaceWith(doc.createTextNode(" "));
   });
 
-  doc.querySelectorAll("p, div, li, td, tr, h1, h2, h3, h4, h5, h6").forEach((el) => {
-    el.append(doc.createTextNode(" "));
-  });
+  doc
+    .querySelectorAll("p, div, li, td, tr, h1, h2, h3, h4, h5, h6")
+    .forEach((el) => {
+      el.append(doc.createTextNode(" "));
+    });
 
   const text = doc.body?.textContent || "";
 

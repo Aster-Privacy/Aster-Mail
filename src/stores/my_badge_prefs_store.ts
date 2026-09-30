@@ -25,9 +25,12 @@ import {
   type BadgePreferences,
 } from "@/services/api/user";
 
+const FETCH_RETRY_COOLDOWN_MS = 30_000;
+
 let current: BadgePreferences | null = null;
 let has_fetched = false;
 let is_fetching = false;
+let last_failed_at = 0;
 const listeners = new Set<() => void>();
 
 function notify() {
@@ -46,26 +49,41 @@ function get_snapshot(): BadgePreferences | null {
   return current;
 }
 
+export function clear_my_badge_prefs() {
+  current = null;
+  has_fetched = false;
+  last_failed_at = 0;
+  notify();
+}
+
 export function set_my_badge_prefs(prefs: BadgePreferences | null) {
   current = prefs;
   has_fetched = true;
+  last_failed_at = 0;
   notify();
 }
 
 async function ensure_loaded() {
   if (has_fetched || is_fetching) return;
+  if (
+    last_failed_at > 0 &&
+    Date.now() - last_failed_at < FETCH_RETRY_COOLDOWN_MS
+  ) {
+    return;
+  }
   is_fetching = true;
   try {
     const res = await fetch_badge_preferences();
 
     if (res.data) {
       current = res.data;
+      has_fetched = true;
+      last_failed_at = 0;
     } else {
-      current = null;
+      last_failed_at = Date.now();
     }
-    has_fetched = true;
   } catch {
-    has_fetched = true;
+    last_failed_at = Date.now();
   } finally {
     is_fetching = false;
     notify();

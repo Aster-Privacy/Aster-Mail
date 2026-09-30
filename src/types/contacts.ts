@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TagIconName } from "@/components/ui/email_tag";
+
 export interface Contact {
   id: string;
   contact_token: string;
@@ -44,20 +46,17 @@ export interface Address {
   country?: string;
 }
 
-export type EmailEntryType = "home" | "work" | "other";
+export type EmailEntryType = "home" | "personal" | "work" | "other";
 export type PhoneEntryType =
   | "mobile"
   | "home"
+  | "personal"
   | "work"
   | "fax"
   | "pager"
   | "other";
 export type AddressEntryType = "home" | "work" | "other";
-export type DateEntryType =
-  | "anniversary"
-  | "graduation"
-  | "wedding"
-  | "other";
+export type DateEntryType = "anniversary" | "graduation" | "wedding" | "other";
 export type RelatedPersonType =
   | "assistant"
   | "manager"
@@ -89,15 +88,18 @@ export type InstantMessengerType =
 export interface EmailEntry {
   value: string;
   type: EmailEntryType;
+  label?: string;
 }
 
 export interface PhoneEntry {
   value: string;
   type: PhoneEntryType;
+  label?: string;
 }
 
 export interface AddressEntry extends Address {
   type: AddressEntryType;
+  label?: string;
 }
 
 export interface DateEntry {
@@ -125,6 +127,10 @@ export interface InstantMessengerEntry {
   type: InstantMessengerType;
 }
 
+export interface ContactRevision {
+  changed_at: string;
+  data: ContactFormData;
+}
 export interface ExtendedContactFields {
   middle_name?: string;
   title?: string;
@@ -145,6 +151,9 @@ export interface ExtendedContactFields {
   social_networks?: SocialNetworkEntry[];
   websites?: WebsiteEntry[];
   instant_messengers?: InstantMessengerEntry[];
+  deleted_at?: string;
+  revisions?: ContactRevision[];
+  extra_fields?: Record<string, unknown>;
 }
 
 export interface DecryptedContact extends ExtendedContactFields {
@@ -188,26 +197,48 @@ export interface ContactFormData extends ExtendedContactFields {
   groups?: string[];
 }
 
+export interface ContactGroupPayload {
+  name: string;
+  color?: string;
+  icon?: TagIconName;
+}
+
 export interface ContactGroupEncrypted {
   id: string;
+  group_token: string;
   encrypted_name: string;
   name_nonce: string;
-  color: string;
+  sort_order: number;
   contact_count: number;
   created_at: string;
+  updated_at: string;
 }
 
 export interface ContactGroup {
   id: string;
   name: string;
   color: string;
+  icon?: TagIconName;
+  sort_order: number;
   contact_count: number;
   created_at: string;
+  updated_at: string;
+}
+
+export interface GroupMembershipChange {
+  success: boolean;
+  changed: number;
+}
+
+export interface GroupMembership {
+  group_id: string;
+  contact_id: string;
 }
 
 export interface ContactGroupFormData {
   name: string;
   color: string;
+  icon?: TagIconName;
 }
 
 export interface ListContactsParams {
@@ -243,9 +274,10 @@ export interface UpdateContactRequest {
   encrypted_data: string;
   data_nonce: string;
   integrity_hash: string;
-  name_search_token?: string;
-  email_search_token?: string;
-  company_search_token?: string;
+  data_version?: number;
+  name_search_token?: string | null;
+  email_search_token?: string | null;
+  company_search_token?: string | null;
 }
 
 export interface UpdateContactResponse {

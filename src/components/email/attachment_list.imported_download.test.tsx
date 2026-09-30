@@ -81,7 +81,6 @@ const { AttachmentList } = await import("./attachment_list");
 const { array_to_base64 } = await import("@/services/crypto/envelope");
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;

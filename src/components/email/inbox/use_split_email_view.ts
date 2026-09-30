@@ -18,18 +18,22 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { InboxEmail } from "@/types/email";
+
 import { useCallback, useMemo } from "react";
 
 import { use_context_menu_actions } from "@/components/email/inbox/inbox_context_menu_handler";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
-import type { InboxEmail } from "@/types/email";
 
 export type SplitEmailViewParams = {
   split_email_id: string | null | undefined;
   email_state: { emails: InboxEmail[] };
   filtered_emails: InboxEmail[];
-  handle_snooze: (email_id: string, snooze_until: Date) => Promise<void>;
+  handle_snooze: (
+    email_id: string,
+    snooze_until: Date,
+  ) => Promise<boolean | void>;
   handle_unsnooze: (email_id: string) => Promise<void>;
   tags_state: ReturnType<typeof use_tags>["state"];
   folders_state: ReturnType<typeof use_folders>["state"];
@@ -52,12 +56,20 @@ export function use_split_email_view({
     return email_state.emails.find((e) => e.id === split_email_id)
       ?.snoozed_until;
   }, [split_email_id, email_state.emails]);
-  const split_email_grouped_ids = useMemo(() => {
+  const split_email_grouped_ids_key = useMemo(() => {
     if (!split_email_id) return undefined;
 
-    return email_state.emails.find((e) => e.id === split_email_id)
-      ?.grouped_email_ids;
+    return email_state.emails
+      .find((e) => e.id === split_email_id)
+      ?.grouped_email_ids?.join(",");
   }, [split_email_id, email_state.emails]);
+  const split_email_grouped_ids = useMemo(
+    () =>
+      split_email_grouped_ids_key === undefined
+        ? undefined
+        : split_email_grouped_ids_key.split(",").filter(Boolean),
+    [split_email_grouped_ids_key],
+  );
   const split_email_label_hints = useMemo(() => {
     if (!split_email_id) return undefined;
     const found =

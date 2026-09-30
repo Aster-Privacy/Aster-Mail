@@ -47,6 +47,11 @@ export interface DecryptedEmail {
   raw_headers?: { name: string; value: string }[];
   reply_to?: EmailRecipient;
   sender_verification?: SenderVerificationStatus;
+  is_external?: boolean;
+  system_origin?: boolean;
+  sender_verified_domain?: string;
+  send_status?: string;
+  send_error?: string;
 }
 
 export interface LocalEmailData {
@@ -63,6 +68,7 @@ export interface EmailPopupViewerProps {
   email_id: string | null;
   local_email?: LocalEmailData;
   on_close: () => void;
+  on_advance?: () => boolean;
   on_reply?: (data: {
     recipient_name: string;
     recipient_email: string;
@@ -78,7 +84,10 @@ export interface EmailPopupViewerProps {
     original_cc?: string[];
     original_to?: string[];
     is_external?: boolean;
+    system_origin?: boolean;
+    sender_verified_domain?: string;
     reply_from_address?: string;
+    original_rfc_message_id?: string;
   }) => void;
   on_forward?: (data: {
     sender_name: string;
@@ -88,6 +97,8 @@ export interface EmailPopupViewerProps {
     email_body: string;
     email_timestamp: string;
     is_external?: boolean;
+    system_origin?: boolean;
+    sender_verified_domain?: string;
     original_mail_id?: string;
   }) => void;
   on_compose?: (email: string) => void;
@@ -99,7 +110,13 @@ export interface EmailPopupViewerProps {
   total_count?: number;
   snoozed_until?: string;
   grouped_email_ids?: string[];
-  label_hints?: { token: string; name: string; color?: string; icon?: string; show_icon?: boolean }[];
+  label_hints?: {
+    token: string;
+    name: string;
+    color?: string;
+    icon?: string;
+    show_icon?: boolean;
+  }[];
 }
 
 export type PopupSize = "default" | "expanded" | "fullscreen";

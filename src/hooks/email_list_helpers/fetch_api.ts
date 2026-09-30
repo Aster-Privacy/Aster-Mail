@@ -24,21 +24,25 @@ import type {
   MailItemMetadata,
 } from "@/types/email";
 
+import { decrypt_envelope } from "./decrypt";
+import { should_keep_email_in_view } from "./display";
+import { group_emails_by_thread, sort_emails_by_timestamp } from "./grouping";
+import { mail_to_email_safe } from "./mapping";
 import {
-  classify,
-  is_locked_to_primary,
-} from "@/services/mail_categorizer";
+  build_view_list_params,
+  DEFAULT_PAGE_SIZE,
+  MAX_PAGE_TOP_UP_ROUNDS,
+  UNKNOWN_TOTAL,
+} from "./views";
+
+import { classify, is_locked_to_primary } from "@/services/mail_categorizer";
 import {
   list_mail_items,
   type ListMailItemsParams,
   type MailItem,
 } from "@/services/api/mail";
-import {
-  decrypt_mail_metadata,
-} from "@/services/crypto/mail_metadata";
-import {
-  type FormatOptions,
-} from "@/utils/date_format";
+import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
+import { type FormatOptions } from "@/utils/date_format";
 import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
 import { is_reaction_payload_body } from "@/lib/reaction_payload";
 import {
@@ -46,14 +50,15 @@ import {
   is_folder_token_locked,
   request_folder_unlock,
 } from "@/services/locked_folders";
+import { resolve_sender_profiles } from "@/services/api/sender_profiles";
+import { map_sync_in_chunks } from "@/lib/scheduling";
 import {
-  resolve_sender_profiles,
-} from "@/services/api/sender_profiles";
-import { decrypt_envelope } from "./decrypt";
-import { should_keep_email_in_view } from "./display";
-import { group_emails_by_thread, sort_emails_by_timestamp } from "./grouping";
-import { mail_to_email_safe } from "./mapping";
-import { build_view_list_params, DEFAULT_PAGE_SIZE, MAX_PAGE_TOP_UP_ROUNDS, UNKNOWN_TOTAL } from "./views";
+  apply_flag_intents,
+  is_removal_intended,
+} from "@/services/read_intent";
+
+const MAP_CHUNK_SIZE = 25;
+const FIRST_PAINT_COUNT = 15;
 
 export async function fetch_mail_from_api(
   view: string,
@@ -65,6 +70,7 @@ export async function fetch_mail_from_api(
   offset?: number,
   conversation_grouping = true,
   sort_order: "newest_first" | "oldest_first" = "newest_first",
+  on_partial?: (emails: InboxEmail[]) => void,
 ): Promise<{
   emails: InboxEmail[];
   total: number;
@@ -83,6 +89,7 @@ export async function fetch_mail_from_api(
     ...build_view_list_params(view),
     limit,
     order,
+    pinned_first: true,
     ...(offset !== undefined ? { offset } : cursor ? { cursor } : {}),
     ...(offset !== undefined ? { group_by_thread: should_group } : {}),
     ...((offset !== undefined && offset > 0) || cursor
@@ -90,6 +97,7 @@ export async function fetch_mail_from_api(
       : {}),
   };
 
+  const fetched_at = Date.now();
   const response = await list_mail_items(params);
 
   if (
@@ -114,7 +122,7 @@ export async function fetch_mail_from_api(
     : Math.max(0, raw_total - hidden_count);
   let has_more = response.data.has_more;
   let next_cursor = response.data.next_cursor;
-  let raw_consumed = returned_items.length;
+  let raw_consumed = response.data.items.length;
 
   const process_items = async (batch: MailItem[]) => {
     const results = await Promise.allSettled(
@@ -124,7 +132,11 @@ export async function fetch_mail_from_api(
         const has_metadata = !!(item.encrypted_metadata && item.metadata_nonce);
 
         const [envelope, metadata] = await Promise.all([
-          decrypt_envelope(item.encrypted_envelope, item.envelope_nonce, item.id),
+          decrypt_envelope(
+            item.encrypted_envelope,
+            item.envelope_nonce,
+            item.id,
+          ),
           has_metadata
             ? decrypt_mail_metadata(
                 item.encrypted_metadata!,
@@ -155,16 +167,15 @@ export async function fetch_mail_from_api(
     if (signal.aborted) return null;
 
     const successful = results
-      .filter(
-        (
-          r,
-        ): r is PromiseFulfilledResult<{
-          item: MailItem;
-          envelope: DecryptedEnvelope | null;
-          metadata: MailItemMetadata | null;
-        }> => r.status === "fulfilled",
+      .map((r, index) =>
+        r.status === "fulfilled"
+          ? r.value
+          : {
+              item: batch[index],
+              envelope: null as DecryptedEnvelope | null,
+              metadata: null as MailItemMetadata | null,
+            },
       )
-      .map((r) => r.value)
       .filter(({ envelope }) => {
         const is_reaction_body =
           is_reaction_payload_body(envelope?.body_text) ||
@@ -185,11 +196,22 @@ export async function fetch_mail_from_api(
       await resolve_sender_profiles(sender_emails);
     }
 
-    let emails = successful
-      .map(({ item, envelope, metadata }) =>
-        mail_to_email_safe(item, envelope, metadata, format_options),
-      )
-      .filter((email): email is InboxEmail => email !== null);
+    const mapped = await map_sync_in_chunks(
+      successful,
+      ({ item, envelope, metadata }) =>
+        mail_to_email_safe(item, envelope, metadata, format_options, {
+          collapsed_threads: should_group,
+        }),
+      MAP_CHUNK_SIZE,
+      signal,
+    );
+
+    if (signal.aborted) return null;
+
+    let emails = apply_flag_intents(
+      mapped.filter((email): email is InboxEmail => email !== null),
+      fetched_at,
+    );
 
     if (view === "inbox" && category_index_module) {
       const index_entries = successful
@@ -199,7 +221,8 @@ export async function fetch_mail_from_api(
             !category_index_module.is_item_outside_inbox(item) &&
             !metadata?.is_trashed &&
             !metadata?.is_archived &&
-            !metadata?.is_spam,
+            !metadata?.is_spam &&
+            !is_removal_intended(item.id),
         )
         .flatMap(({ item, envelope, metadata }) => {
           try {
@@ -208,14 +231,16 @@ export async function fetch_mail_from_api(
                 id: item.id,
                 thread_token: item.thread_token,
                 message_ts: item.message_ts || item.created_at,
-                is_read: item.is_read === true || (metadata?.is_read ?? false),
+                is_read: item.is_read ?? metadata?.is_read ?? false,
                 category: classify(envelope!, metadata, {
                   rule_category: item.rule_category,
+                  trust: item,
                 }),
                 category_pinned:
                   metadata?.category_pinned === true &&
                   !!metadata?.category &&
-                  !is_locked_to_primary(envelope!),
+                  !is_locked_to_primary(envelope!, item),
+                is_pinned: item.is_pinned ?? metadata?.is_pinned ?? false,
               },
             ];
           } catch {
@@ -227,7 +252,7 @@ export async function fetch_mail_from_api(
         category_index_module.upsert_entries(
           index_entries,
           index_generation,
-          true,
+          fetched_at,
         );
       }
     }
@@ -248,12 +273,41 @@ export async function fetch_mail_from_api(
     return emails;
   };
 
-  const first_batch = await process_items(items);
+  const finalize = (emails: InboxEmail[]) => {
+    const sorted = sort_emails_by_timestamp(emails, order);
 
-  if (first_batch === null) return null;
+    return should_group ? group_emails_by_thread(sorted) : sorted;
+  };
 
-  const collected: InboxEmail[] = [...first_batch];
+  const emit_partial = (emails: InboxEmail[]) => {
+    if (!on_partial || signal.aborted || emails.length === 0) return;
+    on_partial(finalize(emails));
+  };
+
+  const split_first_paint = !!on_partial && items.length > FIRST_PAINT_COUNT;
+  const head_promise = process_items(
+    split_first_paint ? items.slice(0, FIRST_PAINT_COUNT) : items,
+  );
+  const tail_promise = split_first_paint
+    ? process_items(items.slice(FIRST_PAINT_COUNT))
+    : Promise.resolve([] as InboxEmail[]);
+
+  const head_batch = await head_promise;
+
+  if (head_batch === null) return null;
+
+  if (split_first_paint) emit_partial(head_batch);
+
+  const tail_batch = await tail_promise;
+
+  if (tail_batch === null) return null;
+
+  const collected: InboxEmail[] = [...head_batch, ...tail_batch];
   const supports_top_up = offset !== undefined;
+
+  if (supports_top_up && has_more && collected.length < limit) {
+    emit_partial(collected);
+  }
 
   let top_up_rounds = 0;
 
@@ -276,6 +330,7 @@ export async function fetch_mail_from_api(
     if (!top_up_response.data) break;
 
     const top_up_returned = top_up_response.data.items;
+    const top_up_visible = filter_locked_mail_items(top_up_returned);
 
     if (top_up_returned.length === 0) {
       has_more = top_up_response.data.has_more;
@@ -288,7 +343,7 @@ export async function fetch_mail_from_api(
 
     const seen_ids = new Set(collected.map((e) => e.id));
     const top_up_batch = await process_items(
-      top_up_returned.filter((item) => item.is_reaction !== true),
+      top_up_visible.filter((item) => item.is_reaction !== true),
     );
 
     if (top_up_batch === null) return null;
@@ -296,11 +351,11 @@ export async function fetch_mail_from_api(
     collected.push(...top_up_batch.filter((e) => !seen_ids.has(e.id)));
   }
 
-  const sorted_emails = sort_emails_by_timestamp(collected, order);
-
-  const final_emails = should_group
-    ? group_emails_by_thread(sorted_emails)
-    : sorted_emails;
-
-  return { emails: final_emails, total, has_more, next_cursor, raw_consumed };
+  return {
+    emails: finalize(collected),
+    total,
+    has_more,
+    next_cursor,
+    raw_consumed,
+  };
 }

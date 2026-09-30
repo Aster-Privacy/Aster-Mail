@@ -71,6 +71,12 @@ function address_condition_matches(
   if (operator === "contains") {
     return lower_address.includes(lower_needle);
   }
+  if (operator === "starts_with") {
+    return lower_address.startsWith(lower_needle);
+  }
+  if (operator === "ends_with") {
+    return lower_address.endsWith(lower_needle);
+  }
   if (operator === "matches_domain") {
     const domain = lower_address.slice(lower_address.lastIndexOf("@") + 1);
 

@@ -39,6 +39,7 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: () => null,
   get_passphrase_bytes: () => null,
   has_passphrase_in_memory: () => h.passphrase !== null,
+  on_keys_ready: () => () => undefined,
 }));
 
 vi.mock("@/services/api/keys", async (import_original) => {
@@ -50,7 +51,6 @@ vi.mock("@/services/api/keys", async (import_original) => {
   };
 });
 
-import { api_client } from "@/services/api/client";
 import {
   derive_conversation_id,
   is_post_quantum_recipient_data,
@@ -65,6 +65,9 @@ import {
   type RatchetRecipientData,
 } from "./ratchet_manager";
 import { array_to_base64, base64_to_array } from "./base64";
+
+import { api_client } from "@/services/api/client";
+
 import type { EncryptedVault } from "./key_manager";
 
 function recipient_data(
@@ -81,28 +84,49 @@ function recipient_data(
 
 describe("derive_conversation_id", () => {
   it("returns the same id regardless of participant order", async () => {
-    const a = await derive_conversation_id("a@astermail.org", "b@astermail.org");
-    const b = await derive_conversation_id("b@astermail.org", "a@astermail.org");
+    const a = await derive_conversation_id(
+      "a@astermail.org",
+      "b@astermail.org",
+    );
+    const b = await derive_conversation_id(
+      "b@astermail.org",
+      "a@astermail.org",
+    );
 
     expect(a).toBe(b);
   });
 
   it("ignores address case", async () => {
-    const lower = await derive_conversation_id("a@astermail.org", "b@astermail.org");
-    const mixed = await derive_conversation_id("A@AsterMail.org", "B@astermail.ORG");
+    const lower = await derive_conversation_id(
+      "a@astermail.org",
+      "b@astermail.org",
+    );
+    const mixed = await derive_conversation_id(
+      "A@AsterMail.org",
+      "B@astermail.ORG",
+    );
 
     expect(mixed).toBe(lower);
   });
 
   it("separates distinct conversations", async () => {
-    const one = await derive_conversation_id("a@astermail.org", "b@astermail.org");
-    const two = await derive_conversation_id("a@astermail.org", "c@astermail.org");
+    const one = await derive_conversation_id(
+      "a@astermail.org",
+      "b@astermail.org",
+    );
+    const two = await derive_conversation_id(
+      "a@astermail.org",
+      "c@astermail.org",
+    );
 
     expect(one).not.toBe(two);
   });
 
   it("derives a 256-bit digest encoded as base64", async () => {
-    const id = await derive_conversation_id("a@astermail.org", "b@astermail.org");
+    const id = await derive_conversation_id(
+      "a@astermail.org",
+      "b@astermail.org",
+    );
 
     expect(base64_to_array(id)).toHaveLength(32);
   });
@@ -151,9 +175,9 @@ describe("is_post_quantum_recipient_data", () => {
   });
 
   it("rejects data with a key id but no ciphertext", () => {
-    expect(is_post_quantum_recipient_data(recipient_data({ pq_key_id: 2 }))).toBe(
-      false,
-    );
+    expect(
+      is_post_quantum_recipient_data(recipient_data({ pq_key_id: 2 })),
+    ).toBe(false);
   });
 
   it("rejects classical data, null and undefined", () => {
@@ -259,9 +283,20 @@ describe("upload_prekey_bundle", () => {
     expect(api_client.put).not.toHaveBeenCalled();
   });
 
-  it("falls back to the legacy hash binding with no passphrase in memory", async () => {
+  it("defers the upload instead of hash binding when the vault has a signing key but no passphrase", async () => {
     const uploaded = await upload_prekey_bundle({
       identity_key: "armored",
+      ratchet_identity_public: "identity",
+      ratchet_signed_prekey_public: "prekey",
+      ratchet_pq_identity_public: "pq",
+    } as unknown as EncryptedVault);
+
+    expect(uploaded).toBe(false);
+    expect(api_client.put).not.toHaveBeenCalled();
+  });
+
+  it("keeps the legacy hash binding when the vault has no signing key", async () => {
+    const uploaded = await upload_prekey_bundle({
       ratchet_identity_public: "identity",
       ratchet_signed_prekey_public: "prekey",
       ratchet_pq_identity_public: "pq",
@@ -292,7 +327,6 @@ describe("upload_prekey_bundle", () => {
 
   it("sends a null post-quantum key when the vault has none", async () => {
     await upload_prekey_bundle({
-      identity_key: "armored",
       ratchet_identity_public: "identity",
       ratchet_signed_prekey_public: "prekey",
     } as unknown as EncryptedVault);
@@ -312,7 +346,6 @@ describe("upload_prekey_bundle", () => {
     });
 
     const uploaded = await upload_prekey_bundle({
-      identity_key: "armored",
       ratchet_identity_public: "identity",
       ratchet_signed_prekey_public: "prekey",
     } as unknown as EncryptedVault);

@@ -18,15 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type {
+  EncryptedVault,
+  PgpKeyData,
+} from "@/services/crypto/key_manager_core";
+
+import { user_facing_error } from "@/utils/user_facing_error";
 import {
   generate_identity_keypair,
   prepare_pgp_key_data,
   encrypt_vault,
 } from "@/services/crypto/key_manager";
-import type {
-  EncryptedVault,
-  PgpKeyData,
-} from "@/services/crypto/key_manager_core";
 import { update_vault, republish_pgp_key } from "@/services/api/key_rotation";
 import {
   get_vault_from_memory,
@@ -36,7 +38,6 @@ import {
 } from "@/services/crypto/memory_key_store";
 import { with_vault_write_lock } from "@/services/crypto/vault_write_lock";
 import { get_current_account } from "@/services/account_manager";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 const PREVIOUS_KEYS_LIMIT = 10;
@@ -106,11 +107,10 @@ export async function perform_pgp_rekey(
     const vault_saved = await update_vault(
       encrypted_vault,
       vault_nonce,
-      current_vault.data_kek
-        ? MASTER_KEY_VAULT_FORMAT
-        : new_vault.vault_format,
+      current_vault.data_kek ? MASTER_KEY_VAULT_FORMAT : new_vault.vault_format,
       current_account?.user?.id,
       true,
+      new_vault,
     );
 
     if (!vault_saved.success) {
@@ -139,7 +139,7 @@ export async function perform_pgp_rekey(
   } catch (error) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown re-key error",
+      error: user_facing_error(error, "Unknown re-key error"),
     };
   }
 }
@@ -147,20 +147,30 @@ export async function perform_pgp_rekey(
 export async function rekey_pgp_if_needed(
   user_email: string | null,
   user_name: string | null,
-): Promise<void> {
-  if (rekey_in_progress) return;
-  if (!user_email) return;
+): Promise<boolean> {
+  if (rekey_in_progress) return false;
+  if (!user_email) return false;
 
-  if (!get_vault_from_memory() || !get_passphrase_from_memory()) return;
+  if (!get_vault_from_memory() || !get_passphrase_from_memory()) return false;
 
   rekey_in_progress = true;
 
   try {
-    await with_vault_write_lock(async () => {
-      const vault = get_vault_from_memory();
+    return await with_vault_write_lock(async () => {
+      const { sync_vault_with_server } = await import(
+        "@/services/crypto/ensure_ratchet_keys"
+      );
+      const freshness = await sync_vault_with_server();
+
+      if (freshness.status === "unverified") return false;
+
+      const vault =
+        freshness.status === "adopted"
+          ? freshness.vault
+          : get_vault_from_memory();
       const passphrase = get_passphrase_from_memory();
 
-      if (!vault || !passphrase) return;
+      if (!vault || !passphrase) return false;
 
       const result = await perform_pgp_rekey(
         vault,
@@ -169,18 +179,24 @@ export async function rekey_pgp_if_needed(
         user_name || user_email,
       );
 
-      if (result.success && result.new_vault) {
-        await store_vault_in_memory(result.new_vault, passphrase);
+      if (!result.success || !result.new_vault) return false;
 
-        const { upload_prekey_bundle } = await import(
-          "@/services/crypto/ratchet_manager"
-        );
+      await store_vault_in_memory(result.new_vault, passphrase);
 
-        await upload_prekey_bundle(result.new_vault).catch((caught) => ignore_error("services/pgp_rekey_service:rekey_pgp_if_needed", caught));
-      }
+      const { upload_prekey_bundle } = await import(
+        "@/services/crypto/ratchet_manager"
+      );
+
+      await upload_prekey_bundle(result.new_vault).catch((caught) =>
+        ignore_error("services/pgp_rekey_service:rekey_pgp_if_needed", caught),
+      );
+
+      return true;
     });
   } catch (caught) {
     ignore_error("services/pgp_rekey_service:rekey_pgp_if_needed", caught);
+
+    return false;
   } finally {
     rekey_in_progress = false;
   }

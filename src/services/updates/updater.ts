@@ -49,12 +49,14 @@ const LAST_NOTIFIED_VERSION_KEY = "aster_desktop_last_notified_version";
 export function is_desktop_runtime(): boolean {
   if (typeof window === "undefined") return false;
   const w = window as unknown as { __TAURI_INTERNALS__?: unknown };
+
   return Boolean(w.__TAURI_INTERNALS__);
 }
 
 export function get_auto_update_enabled(): boolean {
   try {
     const v = localStorage.getItem(AUTO_UPDATE_KEY);
+
     return v === null ? true : v === "true";
   } catch {
     return true;
@@ -125,20 +127,25 @@ async function load_updater_api(): Promise<{
   check: () => Promise<TauriUpdate | null>;
 }> {
   const mod = await import("@tauri-apps/plugin-updater");
+
   return { check: mod.check as () => Promise<TauriUpdate | null> };
 }
 
 async function load_process_api(): Promise<{ relaunch: () => Promise<void> }> {
   const mod = await import("@tauri-apps/plugin-process");
+
   return { relaunch: mod.relaunch as () => Promise<void> };
 }
 
 export async function check_for_update(): Promise<DesktopUpdateInfo | null> {
   if (!is_desktop_runtime()) return null;
   const { check } = await load_updater_api();
+
   record_check_now();
   const result = await check();
+
   if (!result) return null;
+
   return {
     version: result.version,
     current_version: result.currentVersion,
@@ -155,9 +162,13 @@ export async function download_and_install_update(
   }
   const { check } = await load_updater_api();
   const update = await check();
-  if (!update) return;
+
+  if (!update) {
+    throw new Error("updates_no_longer_available");
+  }
   let downloaded = 0;
   let total: number | null = null;
+
   await update.downloadAndInstall((event) => {
     if (event.event === "Started") {
       total = event.data?.contentLength ?? null;
@@ -171,5 +182,6 @@ export async function download_and_install_update(
     }
   });
   const { relaunch } = await load_process_api();
+
   await relaunch();
 }

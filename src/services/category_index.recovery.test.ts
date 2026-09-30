@@ -48,7 +48,6 @@ vi.mock("@/services/crypto/mail_metadata", () => ({
 vi.mock("@/services/mail_categorizer", () => ({
   CLASSIFIER_VERSION: 2,
   classify: () => "primary",
-  category_for_tab: (c: string) => c,
   CATEGORY_TABS: ["primary"],
 }));
 
@@ -131,7 +130,11 @@ function install_fake_idb(): void {
       return {};
     },
     transaction: (store_name: string) => {
-      const tx: Record<string, unknown> = { oncomplete: null, onerror: null, error: null };
+      const tx: Record<string, unknown> = {
+        oncomplete: null,
+        onerror: null,
+        error: null,
+      };
 
       tx.objectStore = (n: string) => ({
         put: (value: unknown, key: string) => {
@@ -148,7 +151,10 @@ function install_fake_idb(): void {
           };
 
           setTimeout(
-            () => (req.onsuccess as ((e: unknown) => void) | null)?.({ target: req }),
+            () =>
+              (req.onsuccess as ((e: unknown) => void) | null)?.({
+                target: req,
+              }),
             0,
           );
 
@@ -177,7 +183,9 @@ function install_fake_idb(): void {
     };
 
     setTimeout(() => {
-      (req.onupgradeneeded as ((e: unknown) => void) | null)?.({ target: { result: db } });
+      (req.onupgradeneeded as ((e: unknown) => void) | null)?.({
+        target: { result: db },
+      });
       (req.onsuccess as ((e: unknown) => void) | null)?.({ target: req });
     }, 0);
 

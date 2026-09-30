@@ -18,14 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
-import type { TextAlignment, } from "@/hooks/use_editor";
-import type { } from "@/components/compose/compose_shared";
-
-
-import { use_i18n } from "@/lib/i18n/context";
+import type {} from "@/lib/i18n/types";
+import type { TextAlignment } from "@/hooks/use_editor";
+import type {} from "@/components/compose/compose_shared";
 
 import { ToolbarButton } from "./shared";
+
+import { use_i18n } from "@/lib/i18n/context";
 
 export function AlignmentGroup({
   current,
@@ -72,4 +71,3 @@ export function AlignmentGroup({
     </div>
   );
 }
-

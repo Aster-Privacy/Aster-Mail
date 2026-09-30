@@ -73,7 +73,8 @@ vi.mock("@/components/ui/select", () => ({
   SelectValue: () => null,
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({
     children,
     onClick,
@@ -160,6 +161,7 @@ vi.mock("@/components/modals/confirmation_modal", () => ({
 
 vi.mock("@/components/ui/spinner", () => ({
   Spinner: () => null,
+  ButtonSpinner: () => null,
 }));
 
 vi.mock("@/services/api/domains", () => ({
@@ -484,5 +486,67 @@ describe("AliasDirectoriesSection recently deleted", () => {
     expect(container.textContent).not.toContain(
       "anything.shopping@astermail.org",
     );
+  });
+});
+
+describe("AliasDirectoriesSection load failure", () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  const flush = async () => {
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+  };
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+  });
+
+  afterEach(async () => {
+    await act(async () => {
+      root.unmount();
+    });
+    container.remove();
+    list_alias_directories.mockClear();
+  });
+
+  it("offers a retry instead of an empty directory list", async () => {
+    list_alias_directories.mockRejectedValueOnce(new Error("offline"));
+
+    await act(async () => {
+      root.render(<AliasDirectoriesSection />);
+    });
+    await flush();
+
+    expect(container.textContent).toContain("common.retry");
+    expect(container.textContent).not.toContain(
+      "settings.alias_directories_empty",
+    );
+  });
+
+  it("reloads the directories when the retry is pressed", async () => {
+    list_alias_directories.mockRejectedValueOnce(new Error("offline"));
+
+    await act(async () => {
+      root.render(<AliasDirectoriesSection />);
+    });
+    await flush();
+
+    const before = list_alias_directories.mock.calls.length;
+    const retry = Array.from(container.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes("common.retry"),
+    );
+
+    await act(async () => {
+      retry?.click();
+    });
+    await flush();
+
+    expect(list_alias_directories.mock.calls.length).toBeGreaterThan(before);
+    expect(container.textContent).not.toContain("common.retry");
   });
 });

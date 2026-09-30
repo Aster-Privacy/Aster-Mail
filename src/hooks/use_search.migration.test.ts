@@ -18,11 +18,13 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
 import type { DecryptedEnvelope } from "@/types/email";
 
-const reencrypt_mail_item_envelope = vi.fn(async () => ({ data: { success: true } }));
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+const reencrypt_mail_item_envelope = vi.fn(async () => ({
+  data: { success: true },
+}));
 const encrypt_envelope_with_identity_key = vi.fn(async (envelope: object) => ({
   encrypted: JSON.stringify(envelope),
   nonce: "bm9uY2U=",
@@ -61,7 +63,9 @@ import {
   reset_legacy_migration_state,
 } from "@/hooks/use_search";
 
-function make_envelope(overrides: Partial<DecryptedEnvelope> = {}): DecryptedEnvelope {
+function make_envelope(
+  overrides: Partial<DecryptedEnvelope> = {},
+): DecryptedEnvelope {
   return {
     subject: "Subject",
     body_text: "the real body text",
@@ -99,15 +103,20 @@ describe("schedule_legacy_envelope_migration", () => {
     expect(reencrypt_mail_item_envelope).toHaveBeenCalledTimes(1);
     const sent = encrypt_envelope_with_identity_key.mock
       .calls[0][0] as unknown as DecryptedEnvelope;
+
     expect(sent.body_text).toBe("the real body text");
     expect(sent.body_html).toBe("<p>the real body</p>");
   });
 
   it("never re-encrypts an envelope that has no body", async () => {
-    schedule_legacy_envelope_migration("empty-1", "received", make_envelope({
-      body_text: "",
-      body_html: "",
-    }));
+    schedule_legacy_envelope_migration(
+      "empty-1",
+      "received",
+      make_envelope({
+        body_text: "",
+        body_html: "",
+      }),
+    );
 
     await flush();
 

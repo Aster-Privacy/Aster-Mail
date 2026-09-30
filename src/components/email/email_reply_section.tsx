@@ -33,13 +33,22 @@ import {
 } from "@/services/mail_actions";
 import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
+import {
+  build_send_fingerprint,
+  forget_send,
+  is_duplicate_send,
+  record_send,
+} from "@/components/compose/send_lock";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_signatures } from "@/contexts/signatures_context";
 import { show_toast } from "@/components/toast/simple_toast";
 import { is_system_email } from "@/lib/utils";
 import { use_should_reduce_motion } from "@/provider";
 import { get_aster_footer } from "@/components/compose/compose_shared";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
+import { record_review_prompt_action } from "@/lib/review_prompt";
+import { get_undo_send_delay_ms } from "@/services/send_queue";
+import { with_caret_block } from "@/lib/signature_html";
 
 type SendState = "idle" | "queued" | "sending" | "sent" | "error";
 
@@ -70,10 +79,13 @@ export function EmailReplySection({
   const [queued_id, set_queued_id] = useState<string | null>(null);
   const [countdown, set_countdown] = useState(0);
 
-  const undo_enabled = preferences.undo_send_enabled ?? true;
-  const undo_seconds = undo_enabled
-    ? Math.min(30, Math.max(1, preferences.undo_send_seconds ?? 10))
-    : 0;
+  const undo_delay_ms = get_undo_send_delay_ms(
+    preferences.undo_send_enabled ?? true,
+    preferences.undo_send_seconds,
+    preferences.undo_send_period,
+  );
+  const undo_enabled = undo_delay_ms > 0;
+  const undo_seconds = undo_delay_ms / 1000;
 
   useEffect(() => {
     if (!show_reply_menu) {
@@ -107,7 +119,7 @@ export function EmailReplySection({
     }
 
     if (preferences.signature_mode === "auto" && default_signature) {
-      return get_formatted_signature(default_signature);
+      return with_caret_block(get_formatted_signature(default_signature));
     }
 
     return "";
@@ -126,8 +138,21 @@ export function EmailReplySection({
 
     if (now - last_send_time_ref.current < 2000) return;
 
+    const send_fingerprint = build_send_fingerprint(
+      [email.sender.email],
+      email.subject,
+      reply_text,
+    );
+
+    if (is_duplicate_send(send_fingerprint, now)) {
+      set_error_message(t("common.duplicate_send_blocked"));
+
+      return;
+    }
+
     is_sending_ref.current = true;
     last_send_time_ref.current = now;
+    record_send(send_fingerprint, now);
     set_error_message(null);
     set_send_state("queued");
     set_countdown(undo_seconds);
@@ -160,6 +185,7 @@ export function EmailReplySection({
           set_send_state("sent");
           if (!undo_enabled) {
             show_toast(t("common.email_sent"), "success");
+            record_review_prompt_action();
           }
           setTimeout(() => {
             set_reply_text("");
@@ -169,15 +195,17 @@ export function EmailReplySection({
         on_cancel: () => {
           is_sending_ref.current = false;
           set_send_state("idle");
+          forget_send(send_fingerprint);
           set_queued_id(null);
         },
         on_error: (error) => {
           is_sending_ref.current = false;
           set_send_state("error");
+          forget_send(send_fingerprint);
           set_error_message(error);
         },
       },
-      preferences.undo_send_period,
+      undo_seconds * 1000,
     );
 
     if (result.success && result.queued_id) {
@@ -185,15 +213,17 @@ export function EmailReplySection({
     } else if (!result.success) {
       is_sending_ref.current = false;
       set_send_state("error");
+      forget_send(send_fingerprint);
       set_error_message(result.error || t("common.failed_to_send_reply"));
     }
   }, [
     reply_text,
     send_state,
     email,
-    preferences.undo_send_period,
     undo_seconds,
+    undo_enabled,
     get_signature,
+    preferences.show_aster_branding,
     set_reply_text,
     set_show_reply_menu,
     t,
@@ -239,25 +269,22 @@ export function EmailReplySection({
       {!show_reply_menu ? (
         <motion.button
           className="w-full py-3 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-semibold rounded-lg shadow-md transition-shadow duration-200"
-          disabled={is_system_email(email.sender.email)}
+          disabled={is_system_email(email)}
           style={{
-            opacity: is_system_email(email.sender.email) ? 0.6 : 1,
-            cursor: is_system_email(email.sender.email)
-              ? "not-allowed"
-              : "pointer",
+            opacity: is_system_email(email) ? 0.6 : 1,
+            cursor: is_system_email(email) ? "not-allowed" : "pointer",
           }}
           whileHover={
-            is_system_email(email.sender.email)
+            is_system_email(email)
               ? {}
               : {
                   scale: 1.02,
-                  boxShadow: "0 8px 16px color-mix(in srgb, var(--accent-color) 30%, transparent)",
+                  boxShadow:
+                    "0 8px 16px color-mix(in srgb, var(--accent-color) 30%, transparent)",
                 }
           }
           onClick={
-            is_system_email(email.sender.email)
-              ? undefined
-              : () => set_show_reply_menu(true)
+            is_system_email(email) ? undefined : () => set_show_reply_menu(true)
           }
         >
           {t("mail.reply")}
@@ -295,28 +322,28 @@ export function EmailReplySection({
           </motion.div>
 
           {error_message && (
-            <div className="px-3 py-2 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-              <p className="text-sm text-red-700 dark:text-red-400">
+            <div className="px-3 py-2 rounded-lg bg-red-600 border border-red-600">
+              <p className="text-sm text-white">
                 {error_message}
               </p>
             </div>
           )}
 
           {send_state === "queued" && (
-            <div className="px-3 py-2 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+            <div className="px-3 py-2 rounded-lg bg-brand border border-brand">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-blue-700 dark:text-blue-400">
+                <p className="text-sm text-[var(--accent-fg,#ffffff)]">
                   {`${t("mail.sending_in")} ${countdown}${t("common.seconds")}...`}
                 </p>
                 <div className="flex gap-2">
                   <button
-                    className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline"
+                    className="text-sm font-medium text-[var(--accent-fg,#ffffff)] hover:underline"
                     onClick={handle_undo}
                   >
                     {t("common.undo")}
                   </button>
                   <button
-                    className="text-sm font-medium text-blue-700 dark:text-blue-400 hover:underline"
+                    className="text-sm font-medium text-[var(--accent-fg,#ffffff)] hover:underline"
                     onClick={handle_send_now}
                   >
                     {t("common.send_now")}
@@ -327,8 +354,8 @@ export function EmailReplySection({
           )}
 
           {send_state === "sent" && (
-            <div className="px-3 py-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-              <p className="text-sm text-green-700 dark:text-green-400">
+            <div className="px-3 py-2 rounded-lg bg-green-700 border border-green-700">
+              <p className="text-sm text-white">
                 {t("mail.reply_sent_successfully")}
               </p>
             </div>
@@ -378,10 +405,12 @@ export function EmailReplySection({
                 😊
               </motion.button>
               {show_emoji_picker && !is_disabled && (
-                <EmojiPicker on_select={handle_emoji_select} />
+                <div className="absolute bottom-full start-0 z-50 mb-2">
+                  <EmojiPicker on_select={handle_emoji_select} />
+                </div>
               )}
             </div>
-            <span className="text-xs ml-auto text-txt-tertiary">
+            <span className="text-xs ms-auto text-txt-tertiary">
               {reply_text.length}/1000
             </span>
           </motion.div>
@@ -393,7 +422,7 @@ export function EmailReplySection({
             transition={{ delay: 0.25 }}
           >
             <motion.button
-              className="flex-1 py-2 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:from-blue-400 disabled:to-blue-500 transition-all text-sm"
+              className="flex-1 inline-flex items-center justify-center gap-2 py-2 px-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-semibold shadow-lg hover:shadow-xl hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none disabled:from-blue-400 disabled:to-blue-500 transition-all text-sm"
               disabled={!reply_text.trim() || is_disabled}
               transition={{
                 type: "tween",
@@ -405,11 +434,8 @@ export function EmailReplySection({
               }}
               onClick={handle_send_reply}
             >
-              {send_state === "sending" ? (
-                <Spinner size="sm" />
-              ) : (
-                t("mail.send")
-              )}
+              {t("mail.send")}
+              {send_state === "sending" && <ButtonSpinner />}
             </motion.button>
             <motion.button
               className="px-4 py-2 border border-edge-secondary rounded-lg font-semibold transition-colors text-sm hover_bg text-txt-secondary"

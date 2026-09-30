@@ -30,9 +30,11 @@ import {
 
 import { SettingsHeader } from "./shared";
 
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_templates } from "@/contexts/templates_context";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { Input } from "@/components/ui/input";
 import {
   list_templates,
@@ -51,6 +53,9 @@ export function TemplatesSection({
   const { t } = use_i18n();
   const { reload_templates: reload_context_templates } = use_templates();
   const [templates, set_templates] = useState<DecryptedTemplate[]>([]);
+  const [confirm_delete_id, set_confirm_delete_id] = useState<string | null>(
+    null,
+  );
   const [is_loading, set_is_loading] = useState(true);
   const [show_form, set_show_form] = useState(false);
   const [editing_id, set_editing_id] = useState<string | null>(null);
@@ -82,6 +87,9 @@ export function TemplatesSection({
     set_show_form(true);
   }, []);
 
+  const [load_failed, set_load_failed] = useState(false);
+  const [reload_token, set_reload_token] = useState(0);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -89,17 +97,23 @@ export function TemplatesSection({
       const res = await list_templates();
 
       if (!cancelled) {
-        if (res.error) set_error(res.error);
-        else if (res.data) set_templates(res.data.templates);
+        if (res.data) {
+          set_templates(res.data.templates);
+          set_load_failed(false);
+        } else {
+          set_error(res.error || null);
+          set_load_failed(true);
+        }
         set_is_loading(false);
       }
     }
+    set_is_loading(true);
     load();
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [reload_token]);
 
   const handle_save = useCallback(async () => {
     if (is_saving) return;
@@ -182,7 +196,13 @@ export function TemplatesSection({
 
   const handle_delete = useCallback(
     async (id: string) => {
-      await delete_template(id);
+      const response = await delete_template(id);
+
+      if (response.error) {
+        set_error(response.error);
+
+        return;
+      }
       set_templates((prev) => prev.filter((tmpl) => tmpl.id !== id));
       reload_context_templates();
     },
@@ -203,12 +223,11 @@ export function TemplatesSection({
             style={{
               backgroundColor: "rgba(239, 68, 68, 0.1)",
               color: "var(--color-danger)",
-              border: "1px solid rgba(239, 68, 68, 0.2)",
             }}
           >
             <span>{error}</span>
             <button
-              className="ml-2 p-1"
+              className="ms-2 p-1"
               type="button"
               onClick={() => set_error(null)}
             >
@@ -302,13 +321,10 @@ export function TemplatesSection({
                   type="button"
                   onClick={handle_save}
                 >
-                  {is_saving ? (
-                    <Spinner size="md" />
-                  ) : editing_id ? (
-                    t("settings.update_template")
-                  ) : (
-                    t("settings.create_template")
-                  )}
+                  {editing_id
+                    ? t("settings.update_template")
+                    : t("settings.create_template")}
+                  {is_saving && <ButtonSpinner />}
                 </motion.button>
               </div>
             </motion.div>
@@ -336,7 +352,13 @@ export function TemplatesSection({
                   {t("settings.add_template")}
                 </motion.button>
               </div>
-              {templates.length === 0 ? (
+              {templates.length === 0 && load_failed ? (
+                <div className="px-4 pt-6">
+                  <LoadFailedNotice
+                    on_retry={() => set_reload_token((prev) => prev + 1)}
+                  />
+                </div>
+              ) : templates.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-3 px-8 pt-16">
                   <DocumentTextIcon className="h-16 w-16 text-[var(--mobile-text-muted)] opacity-40" />
                   <p className="text-center text-[15px] text-[var(--mobile-text-muted)]">
@@ -372,7 +394,7 @@ export function TemplatesSection({
                         <button
                           className="text-[13px] text-[var(--mobile-danger)]"
                           type="button"
-                          onClick={() => handle_delete(tmpl.id)}
+                          onClick={() => set_confirm_delete_id(tmpl.id)}
                         >
                           {t("common.delete")}
                         </button>
@@ -385,6 +407,19 @@ export function TemplatesSection({
           )}
         </AnimatePresence>
       </div>
+
+      <ConfirmationModal
+        confirm_text={t("common.delete")}
+        is_open={confirm_delete_id !== null}
+        message={t("settings.delete_template_message")}
+        on_cancel={() => set_confirm_delete_id(null)}
+        on_confirm={() => {
+          if (confirm_delete_id) handle_delete(confirm_delete_id);
+          set_confirm_delete_id(null);
+        }}
+        title={t("settings.delete_template_title")}
+        variant="danger"
+      />
     </div>
   );
 }

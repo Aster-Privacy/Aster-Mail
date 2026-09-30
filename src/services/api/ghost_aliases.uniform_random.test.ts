@@ -19,12 +19,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { describe, it, expect } from "vitest";
+
 import { uniform_random_index } from "./ghost_aliases";
 
 describe("uniform_random_index", () => {
   it("stays within [0, modulus) for the alias suffix range", () => {
     for (let i = 0; i < 20000; i += 1) {
       const value = uniform_random_index(10000);
+
       expect(Number.isInteger(value)).toBe(true);
       expect(value).toBeGreaterThanOrEqual(0);
       expect(value).toBeLessThan(10000);
@@ -33,6 +35,7 @@ describe("uniform_random_index", () => {
 
   it("covers the low and high ends of a small modulus", () => {
     const seen = new Set<number>();
+
     for (let i = 0; i < 5000; i += 1) {
       seen.add(uniform_random_index(4));
     }

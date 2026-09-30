@@ -18,13 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "../key_manager";
+import type {} from "../key_manager";
 import { device_store, device_retrieve } from "../secure_storage";
-import type { } from "@/services/api/signatures";
-import type { } from "@/services/api/templates";
-import type { } from "@/services/api/blocked_senders";
-import type { } from "@/services/api/allowed_senders";
-
+import type {} from "@/services/api/signatures";
+import type {} from "@/services/api/templates";
+import type {} from "@/services/api/blocked_senders";
+import type {} from "@/services/api/allowed_senders";
 
 import { ignore_error } from "@/lib/ignore_error";
 
@@ -41,7 +40,10 @@ export async function store_pending_reencryption(
   try {
     await device_store(PENDING_KEY, data);
   } catch (caught) {
-    ignore_error("services/crypto/recovery_reencrypt/pending:store_pending_reencryption", caught);
+    ignore_error(
+      "services/crypto/recovery_reencrypt/pending:store_pending_reencryption",
+      caught,
+    );
   }
 }
 
@@ -49,7 +51,10 @@ export function clear_pending_reencryption(): void {
   try {
     localStorage.removeItem(PENDING_KEY);
   } catch (caught) {
-    ignore_error("services/crypto/recovery_reencrypt/pending:clear_pending_reencryption", caught);
+    ignore_error(
+      "services/crypto/recovery_reencrypt/pending:clear_pending_reencryption",
+      caught,
+    );
   }
 }
 
@@ -60,4 +65,3 @@ export async function get_pending(): Promise<PendingReencryptData | null> {
     return null;
   }
 }
-

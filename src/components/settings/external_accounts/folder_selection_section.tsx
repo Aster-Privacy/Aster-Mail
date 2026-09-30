@@ -25,7 +25,6 @@ import { ArrowPathIcon, FolderIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 import { Checkbox } from "@aster/ui";
 
-import { Spinner } from "@/components/ui/spinner";
 import { get_folder_depth } from "@/components/settings/hooks/use_external_accounts";
 
 interface FolderSelectionSectionProps {
@@ -60,21 +59,18 @@ export function FolderSelectionSection({
           aria-label={t("settings.fetch_imap_folders")}
           className="gap-1.5"
           disabled={is_fetching_folders}
+          is_loading={is_fetching_folders}
           variant="outline"
           onClick={handle_fetch_folders}
         >
-          {is_fetching_folders ? (
-            <Spinner size="md" />
-          ) : (
-            <ArrowPathIcon className="w-3.5 h-3.5" />
-          )}
+          <ArrowPathIcon className="w-3.5 h-3.5" />
           {t("settings.fetch_folders")}
         </Button>
       </div>
       {truncated_folders.length > 0 && (
         <div
           aria-label={t("settings.imap_folder_selection")}
-          className="rounded-lg border max-h-48 overflow-y-auto border-edge-primary bg-surf-secondary"
+          className="rounded-2xl max-h-48 overflow-y-auto bg-[color-mix(in_srgb,var(--text-primary)_7%,transparent)]"
           role="group"
         >
           {truncated_folders.map((folder) => {
@@ -92,7 +88,7 @@ export function FolderSelectionSection({
                 key={folder_path}
                 className="flex items-center gap-2 px-3 py-1.5 transition-colors hover:bg-surf-hover"
                 style={{
-                  paddingLeft: `${12 + depth * 16}px`,
+                  paddingInlineStart: `${12 + depth * 16}px`,
                 }}
               >
                 <Checkbox
@@ -126,7 +122,7 @@ export function FolderSelectionSection({
             <div className="px-3 py-2 text-xs text-txt-muted">
               {t("settings.showing_folders", {
                 shown: "200",
-                total: String(available_folders.length),
+                total: available_folders.length,
               })}
             </div>
           )}

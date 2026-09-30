@@ -21,23 +21,76 @@
 import { useCallback, useState, useRef, useMemo } from "react";
 
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   type HeadingLevel,
   type TextAlignment,
   type FontSizeLabel,
   type EditorFormatState,
   FONT_SIZE_MAP,
+  FONT_SIZE_INDEX_MAP,
   validate_hex_color,
   is_inside_list,
   is_inside_tag,
   get_current_block_tag,
   escape_html,
+  replace_font_element,
+  is_allowed_font_family,
 } from "@/hooks/editor_utils";
 
 const ZERO_WIDTH_SPACE = "\u200B";
 
 export const MAX_HORIZONTAL_RULES = 25;
+
+function same_format_state(
+  a: EditorFormatState,
+  b: EditorFormatState,
+): boolean {
+  if (
+    a.current_heading !== b.current_heading ||
+    a.current_alignment !== b.current_alignment ||
+    a.is_in_blockquote !== b.is_in_blockquote ||
+    a.is_in_ordered_list !== b.is_in_ordered_list ||
+    a.is_in_unordered_list !== b.is_in_unordered_list ||
+    a.current_font_color !== b.current_font_color ||
+    a.current_bg_color !== b.current_bg_color ||
+    a.current_font_size !== b.current_font_size ||
+    a.current_font_family !== b.current_font_family ||
+    a.active_formats.size !== b.active_formats.size
+  ) {
+    return false;
+  }
+
+  for (const entry of a.active_formats) {
+    if (!b.active_formats.has(entry)) return false;
+  }
+
+  return true;
+}
+
+function set_style_with_css(use_css: boolean) {
+  try {
+    document.execCommand("styleWithCSS", false, use_css ? "true" : "false");
+  } catch (caught) {
+    ignore_error("hooks/use_editor_format:set_style_with_css", caught);
+  }
+}
+
+function element_for_selection(selection: Selection): HTMLElement | null {
+  const node = selection.anchorNode;
+
+  if (!node) return null;
+
+  if (node.nodeType !== Node.ELEMENT_NODE) return node.parentElement;
+
+  const element = node as HTMLElement;
+  const child = element.childNodes[selection.anchorOffset];
+
+  if (!child) return element;
+
+  return child.nodeType === Node.ELEMENT_NODE
+    ? (child as HTMLElement)
+    : child.parentElement;
+}
 
 function break_out_of_link(editor: HTMLElement) {
   const selection = window.getSelection();
@@ -90,6 +143,7 @@ export function use_editor_format(
     current_font_color: "",
     current_bg_color: "",
     current_font_size: "",
+    current_font_family: "",
   });
 
   const saved_selection_ref = useRef<Range | null>(null);
@@ -128,9 +182,17 @@ export function use_editor_format(
 
     if (!selection) return;
 
-    if (saved_selection_ref.current) {
+    const saved = saved_selection_ref.current;
+    const saved_is_usable =
+      saved !== null &&
+      saved.commonAncestorContainer.isConnected &&
+      editor.contains(saved.commonAncestorContainer);
+
+    if (!saved_is_usable) saved_selection_ref.current = null;
+
+    if (saved_is_usable && saved) {
       selection.removeAllRanges();
-      selection.addRange(saved_selection_ref.current);
+      selection.addRange(saved);
     } else if (
       selection.rangeCount === 0 ||
       !editor.contains(selection.anchorNode)
@@ -195,6 +257,7 @@ export function use_editor_format(
       let font_color = "";
       let bg_color = "";
       let font_size = "";
+      let font_family = "";
 
       try {
         font_color = document.queryCommandValue("foreColor") || "";
@@ -202,12 +265,20 @@ export function use_editor_format(
           document.queryCommandValue("hiliteColor") ||
           document.queryCommandValue("backColor") ||
           "";
-        font_size = document.queryCommandValue("fontSize") || "";
+
+        const anchor_element = element_for_selection(selection);
+
+        const computed = anchor_element
+          ? window.getComputedStyle(anchor_element)
+          : null;
+
+        font_size = computed ? computed.fontSize : "";
+        font_family = computed ? computed.fontFamily : "";
       } catch (caught) {
         ignore_error("hooks/use_editor_format:use_editor_format", caught);
       }
 
-      set_format_state({
+      const next: EditorFormatState = {
         active_formats: formats,
         current_heading: heading,
         current_alignment: alignment,
@@ -217,14 +288,17 @@ export function use_editor_format(
         current_font_color: font_color,
         current_bg_color: bg_color,
         current_font_size: font_size,
-      });
+        current_font_family: font_family,
+      };
+
+      set_format_state((prev) => (same_format_state(prev, next) ? prev : next));
     } catch {
       return;
     }
   }, [editor_ref]);
 
   const exec_format = useCallback(
-    (command: string, value?: string) => {
+    (command: string, value?: string, use_css = false) => {
       const editor = editor_ref.current;
 
       if (!editor || is_plain_text_mode) return;
@@ -241,6 +315,7 @@ export function use_editor_format(
         editor.focus();
       }
 
+      set_style_with_css(use_css);
       document.execCommand(command, false, value);
       handle_input();
       requestAnimationFrame(() => {
@@ -329,10 +404,22 @@ export function use_editor_format(
     if (format_state.is_in_blockquote) {
       document.execCommand("outdent", false);
     } else {
+      const selection = window.getSelection();
+      const range =
+        selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+      let inner = "<br>";
+
+      if (range && !range.collapsed) {
+        const holder = document.createElement("div");
+
+        holder.appendChild(range.cloneContents());
+        if (holder.innerHTML.trim()) inner = holder.innerHTML;
+      }
+
       document.execCommand(
         "insertHTML",
         false,
-        '<blockquote style="border-left: 3px solid #ccc; padding-left: 12px; margin: 4px 0;"><br></blockquote>',
+        `<blockquote style="border-left: 3px solid #ccc; padding-left: 12px; margin: 4px 0;">${inner}</blockquote>`,
       );
     }
 
@@ -535,22 +622,89 @@ export function use_editor_format(
     ],
   );
 
+  const apply_inline_color = useCallback(
+    (
+      property: "color" | "backgroundColor" | "fontFamily",
+      command: string,
+      color: string,
+    ) => {
+      const editor = editor_ref.current;
+
+      if (!editor || is_plain_text_mode) return;
+
+      restore_selection();
+
+      const selection = window.getSelection();
+      const range =
+        selection && selection.rangeCount > 0 ? selection.getRangeAt(0) : null;
+
+      if (
+        !selection ||
+        !range ||
+        !range.collapsed ||
+        !editor.contains(range.commonAncestorContainer)
+      ) {
+        exec_format(command, color, true);
+
+        return;
+      }
+
+      const span = document.createElement("span");
+      const filler = document.createTextNode(ZERO_WIDTH_SPACE);
+
+      span.style[property] = color;
+      span.appendChild(filler);
+      range.insertNode(span);
+
+      const caret = document.createRange();
+
+      caret.setStart(filler, filler.length);
+      caret.collapse(true);
+      selection.removeAllRanges();
+      selection.addRange(caret);
+
+      handle_input();
+      requestAnimationFrame(() => {
+        save_selection();
+        check_active_formats();
+      });
+    },
+    [
+      editor_ref,
+      is_plain_text_mode,
+      restore_selection,
+      exec_format,
+      handle_input,
+      save_selection,
+      check_active_formats,
+    ],
+  );
+
   const set_font_color = useCallback(
     (color: string) => {
       if (!validate_hex_color(color)) return;
 
-      exec_format("foreColor", color);
+      apply_inline_color("color", "foreColor", color);
     },
-    [exec_format],
+    [apply_inline_color],
   );
 
   const set_background_color = useCallback(
     (color: string) => {
       if (!validate_hex_color(color)) return;
 
-      exec_format("hiliteColor", color);
+      apply_inline_color("backgroundColor", "hiliteColor", color);
     },
-    [exec_format],
+    [apply_inline_color],
+  );
+
+  const set_font_family = useCallback(
+    (family: string) => {
+      if (!is_allowed_font_family(family)) return;
+
+      apply_inline_color("fontFamily", "fontName", family);
+    },
+    [apply_inline_color],
   );
 
   const set_font_size = useCallback(
@@ -560,27 +714,53 @@ export function use_editor_format(
       if (!editor || is_plain_text_mode) return;
 
       const px = FONT_SIZE_MAP[size];
-      const font_size_index =
-        size === "small"
-          ? "2"
-          : size === "normal"
-            ? "3"
-            : size === "large"
-              ? "5"
-              : "7";
 
       restore_selection();
-      document.execCommand("fontSize", false, font_size_index);
 
-      editor.querySelectorAll("font[size]").forEach((font) => {
+      const selection = window.getSelection();
+
+      if (!selection || selection.rangeCount === 0) return;
+
+      const range = selection.getRangeAt(0);
+
+      if (!editor.contains(range.commonAncestorContainer)) return;
+
+      if (range.collapsed) {
         const span = document.createElement("span");
+        const filler = document.createTextNode(ZERO_WIDTH_SPACE);
 
         span.style.fontSize = px;
-        while (font.firstChild) {
-          span.appendChild(font.firstChild);
-        }
-        font.replaceWith(span);
-      });
+        span.appendChild(filler);
+        range.insertNode(span);
+
+        const caret = document.createRange();
+
+        caret.setStart(filler, filler.length);
+        caret.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(caret);
+      } else {
+        const fallback_range = range.cloneRange();
+
+        set_style_with_css(false);
+        document.execCommand("fontSize", false, FONT_SIZE_INDEX_MAP[size]);
+
+        const active_selection = window.getSelection();
+        const scope =
+          active_selection && active_selection.rangeCount > 0
+            ? active_selection.getRangeAt(0)
+            : fallback_range;
+
+        const targets: HTMLElement[] = [];
+
+        editor.querySelectorAll("font[size]").forEach((node) => {
+          if (scope.intersectsNode(node)) {
+            targets.push(node as HTMLElement);
+          }
+        });
+
+        targets.forEach((font) => replace_font_element(font, px));
+      }
 
       handle_input();
       requestAnimationFrame(() => {
@@ -623,5 +803,6 @@ export function use_editor_format(
     set_font_color,
     set_background_color,
     set_font_size,
+    set_font_family,
   };
 }

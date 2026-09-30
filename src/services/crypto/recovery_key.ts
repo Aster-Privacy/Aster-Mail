@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import { array_to_base64 } from "./base64";
 import {
   EncryptedVault,
@@ -27,17 +26,54 @@ import {
 } from "./key_manager";
 import { zero_uint8_array } from "./secure_memory";
 
+import { HASH_ALG } from "@/services/crypto/constants";
+
 const PBKDF2_ITERATIONS = 310000;
 
+const RECOVERY_CODE_SEGMENT_LENGTH = 4;
+const RECOVERY_CODE_SEGMENT_COUNTS = [4, 3];
 
-function canonicalize_recovery_code(code: string): string {
+export function canonicalize_recovery_code(code: string): string {
   const stripped = code.toUpperCase().replace(/[^A-Z0-9]/g, "");
 
-  if (stripped.startsWith("ASTER") && stripped.length === 17) {
-    return `ASTER-${stripped.slice(5, 9)}-${stripped.slice(9, 13)}-${stripped.slice(13)}`;
+  if (stripped.startsWith("ASTER")) {
+    const body = stripped.slice(5);
+
+    for (const segment_count of RECOVERY_CODE_SEGMENT_COUNTS) {
+      if (body.length !== segment_count * RECOVERY_CODE_SEGMENT_LENGTH) {
+        continue;
+      }
+
+      const segments: string[] = [];
+
+      for (let i = 0; i < segment_count; i++) {
+        segments.push(
+          body.slice(
+            i * RECOVERY_CODE_SEGMENT_LENGTH,
+            (i + 1) * RECOVERY_CODE_SEGMENT_LENGTH,
+          ),
+        );
+      }
+
+      return `ASTER-${segments.join("-")}`;
+    }
   }
 
   return code.toUpperCase().replace(/[^A-Z0-9-]/g, "");
+}
+
+export function is_valid_recovery_code(code: string): boolean {
+  const segments = canonicalize_recovery_code(code).split("-");
+
+  if (segments[0] !== "ASTER") {
+    return false;
+  }
+
+  if (!RECOVERY_CODE_SEGMENT_COUNTS.includes(segments.length - 1)) {
+    return false;
+  }
+
+  return segments.slice(1).every((segment) => /^[A-Z0-9]{4}$/.test(segment));
 }
 
 export interface VaultBackup {
@@ -235,6 +271,30 @@ export async function hash_recovery_code(code: string): Promise<string> {
   const hash = await crypto.subtle.digest(HASH_ALG, code_bytes);
 
   return array_to_base64(new Uint8Array(hash));
+}
+
+const STORED_VERIFIER_TAG = new TextEncoder().encode("ARV2");
+const STORED_VERIFIER_DOMAIN = new TextEncoder().encode(
+  "aster-recovery-verifier-v2",
+);
+
+export async function stored_recovery_verifier(
+  code_hash: string,
+): Promise<string> {
+  const hash_bytes = base64_to_array(code_hash);
+  const input = new Uint8Array(
+    STORED_VERIFIER_DOMAIN.length + hash_bytes.length,
+  );
+
+  input.set(STORED_VERIFIER_DOMAIN, 0);
+  input.set(hash_bytes, STORED_VERIFIER_DOMAIN.length);
+  const digest = new Uint8Array(await crypto.subtle.digest(HASH_ALG, input));
+  const out = new Uint8Array(STORED_VERIFIER_TAG.length + digest.length);
+
+  out.set(STORED_VERIFIER_TAG, 0);
+  out.set(digest, STORED_VERIFIER_TAG.length);
+
+  return array_to_base64(out);
 }
 
 export async function generate_recovery_share_data(

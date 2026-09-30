@@ -19,24 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useRef, useState } from "react";
-import {
-  EyeIcon,
-  EyeSlashIcon,
-  CreditCardIcon,
-  ArrowsRightLeftIcon,
-  XCircleIcon,
-} from "@heroicons/react/24/outline";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { clamp_password } from "@/services/sanitize";
-import {
-  Modal,
-  ModalHeader,
-  ModalTitle,
-  ModalDescription,
-  ModalBody,
-} from "@/components/ui/modal";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -64,11 +51,25 @@ import {
 } from "@/services/api/billing";
 import { request_cache } from "@/services/api/request_cache";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
 import {
   PLAN_TIERS,
   convert_cents,
+  is_crypto_provider,
 } from "@/components/settings/billing/billing_constants";
+import {
+  get_downgrade_offer,
+  read_billing_interval,
+  type DowngradeOffer,
+} from "@/components/settings/billing/cancel_offer";
+import { CancelOfferStep } from "@/components/settings/billing/cancel_offer_step";
+import {
+  CancelEarlyStep,
+  is_early_cancel,
+} from "@/components/settings/billing/cancel_early_step";
 import {
   CancelReasonStep,
   type CancelReason,
@@ -112,8 +113,7 @@ interface BillingDialogsProps {
   preferred_currency: string;
   show_payment_methods: boolean;
   set_show_payment_methods: React.Dispatch<React.SetStateAction<boolean>>;
-  show_manage_plan: boolean;
-  set_show_manage_plan: React.Dispatch<React.SetStateAction<boolean>>;
+  auto_add_card: boolean;
   show_switch_billing_dialog: boolean;
   set_show_switch_billing_dialog: React.Dispatch<React.SetStateAction<boolean>>;
   target_billing_interval: "month" | "year";
@@ -132,6 +132,8 @@ interface BillingDialogsProps {
     React.SetStateAction<UserActiveAddon | null>
   >;
   load_data: () => Promise<void>;
+  on_switch_plan?: (offer: DowngradeOffer) => void;
+  on_plan_choose_crypto?: (plan: AvailablePlan, term_months: number) => void;
 }
 
 export function BillingDialogs({
@@ -161,8 +163,7 @@ export function BillingDialogs({
   preferred_currency,
   show_payment_methods,
   set_show_payment_methods,
-  show_manage_plan,
-  set_show_manage_plan,
+  auto_add_card,
   show_switch_billing_dialog,
   set_show_switch_billing_dialog,
   target_billing_interval,
@@ -177,14 +178,19 @@ export function BillingDialogs({
   addon_to_cancel,
   set_addon_to_cancel,
   load_data,
+  on_switch_plan,
+  on_plan_choose_crypto,
 }: BillingDialogsProps) {
   const { t } = use_i18n();
   const redirect_handled = useRef(false);
+  const subscription_started_at = subscription?.current_period_start ?? null;
   const [cancel_step, set_cancel_step] = useState<CancelStep>("reason");
   const [is_verifying_password, set_is_verifying_password] = useState(false);
   const [cancel_impact, set_cancel_impact] =
     useState<CancelImpactResponse | null>(null);
   const [is_impact_loading, set_is_impact_loading] = useState(false);
+  const [cancel_totp_code, set_cancel_totp_code] = useState("");
+  const [cancel_totp_required, set_cancel_totp_required] = useState(false);
 
   useEffect(() => {
     if (!show_cancel_dialog) return;
@@ -193,12 +199,17 @@ export function BillingDialogs({
     set_show_cancel_password(false);
     set_cancel_reason(null);
     set_cancel_reason_text("");
-    set_cancel_step("reason");
+    set_cancel_step(
+      is_early_cancel(subscription_started_at) ? "early" : "reason",
+    );
     set_cancel_impact(null);
     set_is_verifying_password(false);
+    set_cancel_totp_code("");
+    set_cancel_totp_required(false);
     clear_cancel_password_cache();
   }, [
     show_cancel_dialog,
+    subscription_started_at,
     set_cancel_password,
     set_cancel_password_error,
     set_show_cancel_password,
@@ -239,12 +250,22 @@ export function BillingDialogs({
     if (!cancel_password.trim() || is_verifying_password) return;
     set_is_verifying_password(true);
     set_cancel_password_error("");
-    const outcome = await verify_cancel_password(cancel_password);
+    const outcome = await verify_cancel_password(
+      cancel_password,
+      cancel_totp_code,
+    );
 
     set_is_verifying_password(false);
 
     if (outcome === "verified") {
       set_cancel_step("confirm");
+
+      return;
+    }
+
+    if (outcome === "totp_required") {
+      set_cancel_totp_required(true);
+      set_cancel_password_error(t("settings.please_enter_2fa_code"));
 
       return;
     }
@@ -276,6 +297,8 @@ export function BillingDialogs({
           } catch {
             // webhook is the source of truth; this call is best-effort
           }
+          let upgrade_observed = false;
+
           for (let attempt = 0; attempt < 6; attempt++) {
             await new Promise((r) =>
               setTimeout(r, attempt === 0 ? 1000 : 2000),
@@ -286,6 +309,7 @@ export function BillingDialogs({
             if (sub_response.data) {
               set_subscription(sub_response.data);
               if (sub_response.data.plan.code !== "free") {
+                upgrade_observed = true;
                 invalidate_mail_stats();
                 await load_data();
                 break;
@@ -293,7 +317,17 @@ export function BillingDialogs({
             }
             if (attempt === 5) await load_data();
           }
-          show_toast(t("settings.payment_success"), "success");
+
+          if (upgrade_observed) {
+            show_toast(t("settings.payment_success"), "success");
+
+            return;
+          }
+          show_toast(
+            t("settings.payment_processing_delayed"),
+            "info",
+            TOAST_DURATION_BILLING_MS,
+          );
         })();
       }
 
@@ -329,21 +363,87 @@ export function BillingDialogs({
                 request_cache.invalidate("/sync/v1");
                 invalidate_mail_stats();
                 await load_data();
+
                 return;
               }
             }
-            show_toast(t("settings.payment_processing_delayed"), "info");
+            show_toast(
+              t("settings.payment_processing_delayed"),
+              "info",
+              TOAST_DURATION_BILLING_MS,
+            );
             request_cache.invalidate("/payments/v1");
             await load_data();
           }
         } catch {
-          show_toast(t("settings.payment_failed"), "error");
+          show_toast(
+            t("settings.payment_processing_delayed"),
+            "info",
+            TOAST_DURATION_BILLING_MS,
+          );
+          request_cache.invalidate("/payments/v1");
         }
       })();
     } else {
-      show_toast(t("settings.payment_failed"), "error");
+      show_toast(
+        t("settings.payment_failed"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
     }
   }, [t, load_data]);
+
+  const downgrade_offer =
+    subscription &&
+    !subscription.cancel_at_period_end &&
+    subscription.has_stripe_subscription !== false &&
+    !is_crypto_provider(subscription.payment_provider) &&
+    on_switch_plan
+      ? get_downgrade_offer(
+          subscription.plan.code,
+          read_billing_interval(subscription.plan.billing_period),
+        )
+      : null;
+  const step_after_reason: CancelStep = downgrade_offer ? "offer" : "impact";
+
+  const cancel_title =
+    cancel_step === "early"
+      ? t("settings.cancel_early_title")
+      : cancel_step === "reason"
+        ? t("settings.cancel_reason_title")
+        : cancel_step === "offer"
+          ? t("settings.cancel_offer_title")
+          : cancel_step === "impact"
+            ? t("settings.cancel_impact_title")
+            : cancel_step === "confirm"
+              ? t("settings.cancel_final_title")
+              : t("settings.cancel_confirm_title");
+
+  const cancel_description =
+    cancel_step === "early"
+      ? t("settings.cancel_early_description")
+      : cancel_step === "reason"
+        ? t("settings.cancel_reason_description")
+        : cancel_step === "offer"
+          ? t("settings.cancel_offer_description")
+          : cancel_step === "impact"
+            ? cancel_effective_date
+              ? t("settings.cancel_impact_description", {
+                  date: cancel_effective_date,
+                })
+              : t("settings.cancel_impact_description_nodate")
+            : cancel_step === "confirm"
+              ? cancel_effective_date
+                ? t("settings.cancel_final_description", {
+                    date: cancel_effective_date,
+                    plan:
+                      cancel_impact?.plan_name ?? subscription?.plan.name ?? "",
+                  })
+                : t("settings.cancel_final_description_nodate", {
+                    plan:
+                      cancel_impact?.plan_name ?? subscription?.plan.name ?? "",
+                  })
+              : t("settings.cancel_confirm_description");
 
   return (
     <>
@@ -355,55 +455,51 @@ export function BillingDialogs({
       >
         <AlertDialogContent className="w-[calc(100%-2rem)] max-w-[520px]">
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {cancel_step === "reason"
-                ? t("settings.cancel_reason_title")
-                : cancel_step === "impact"
-                  ? t("settings.cancel_impact_title")
-                  : cancel_step === "confirm"
-                    ? t("settings.cancel_final_title")
-                    : t("settings.cancel_confirm_title")}
-            </AlertDialogTitle>
+            <AlertDialogTitle>{cancel_title}</AlertDialogTitle>
             <AlertDialogDescription>
-              {cancel_step === "reason"
-                ? t("settings.cancel_reason_description")
-                : cancel_step === "impact"
-                  ? cancel_effective_date
-                    ? t("settings.cancel_impact_description", {
-                        date: cancel_effective_date,
-                      })
-                    : t("settings.cancel_impact_description_nodate")
-                  : cancel_step === "confirm"
-                    ? cancel_effective_date
-                      ? t("settings.cancel_final_description", {
-                          date: cancel_effective_date,
-                          plan:
-                            cancel_impact?.plan_name ??
-                            subscription?.plan.name ??
-                            "",
-                        })
-                      : t("settings.cancel_final_description_nodate", {
-                          plan:
-                            cancel_impact?.plan_name ??
-                            subscription?.plan.name ??
-                            "",
-                        })
-                    : t("settings.cancel_confirm_description")}
+              {cancel_description}
             </AlertDialogDescription>
           </AlertDialogHeader>
-          {cancel_step === "reason" ? (
+          {cancel_step === "early" ? (
+            <CancelEarlyStep
+              keep_plan_slot={
+                <AlertDialogCancel className="mt-0">
+                  {t("settings.keep_plan")}
+                </AlertDialogCancel>
+              }
+              on_continue={() => set_cancel_step("reason")}
+            />
+          ) : cancel_step === "reason" ? (
             <CancelReasonStep
               keep_plan_slot={
                 <AlertDialogCancel className="mt-0">
                   {t("settings.keep_plan")}
                 </AlertDialogCancel>
               }
-              on_continue={() => set_cancel_step("impact")}
-              on_skip={() => set_cancel_step("impact")}
+              on_continue={() => set_cancel_step(step_after_reason)}
               reason={cancel_reason}
               reason_text={cancel_reason_text}
               set_reason={set_cancel_reason}
               set_reason_text={set_cancel_reason_text}
+            />
+          ) : cancel_step === "offer" && downgrade_offer ? (
+            <CancelOfferStep
+              is_busy={is_action_loading}
+              keep_plan_slot={
+                <AlertDialogCancel className="mt-0">
+                  {t("settings.keep_plan")}
+                </AlertDialogCancel>
+              }
+              offer={downgrade_offer}
+              on_back={() => set_cancel_step("reason")}
+              on_continue={() => set_cancel_step("impact")}
+              on_switch={() => {
+                const offer = downgrade_offer;
+
+                set_show_cancel_dialog(false);
+                setTimeout(() => on_switch_plan?.(offer), 200);
+              }}
+              preferred_currency={preferred_currency}
             />
           ) : cancel_step === "impact" ? (
             <CancelImpactStep
@@ -414,7 +510,7 @@ export function BillingDialogs({
                   {t("settings.keep_plan")}
                 </AlertDialogCancel>
               }
-              on_back={() => set_cancel_step("reason")}
+              on_back={() => set_cancel_step(step_after_reason)}
               on_continue={() => set_cancel_step("password")}
             />
           ) : cancel_step === "confirm" ? (
@@ -430,9 +526,8 @@ export function BillingDialogs({
                   handle_cancel();
                 }}
               >
-                {is_action_loading
-                  ? t("settings.cancelling")
-                  : t("settings.cancel_final_confirm")}
+                {t("settings.cancel_final_confirm")}
+                {is_action_loading && <ButtonSpinner />}
               </AlertDialogAction>
             </AlertDialogFooter>
           ) : (
@@ -443,12 +538,13 @@ export function BillingDialogs({
                 </label>
                 <div className="relative">
                   <Input
-                    className="w-full pr-10"
+                    autoComplete="current-password"
+                    className="w-full pe-10"
+                    maxLength={128}
                     placeholder={t("settings.cancel_password_placeholder")}
                     status={cancel_password_error ? "error" : "default"}
                     type={show_cancel_password ? "text" : "password"}
                     value={cancel_password}
-                    maxLength={128}
                     onChange={(e) => {
                       set_cancel_password(clamp_password(e.target.value));
                       set_cancel_password_error("");
@@ -461,7 +557,7 @@ export function BillingDialogs({
                     }}
                   />
                   <button
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-txt-muted hover:text-txt-secondary"
+                    className="absolute end-2 top-1/2 -translate-y-1/2 p-1 text-txt-muted hover:text-txt-secondary"
                     tabIndex={-1}
                     type="button"
                     onClick={() =>
@@ -475,6 +571,39 @@ export function BillingDialogs({
                     )}
                   </button>
                 </div>
+                {cancel_totp_required && (
+                  <div className="mt-4">
+                    <label
+                      className="block text-sm font-medium text-txt-secondary mb-2"
+                      htmlFor="cancel-totp-code"
+                    >
+                      {t("settings.authenticator_code")}
+                    </label>
+                    <Input
+                      autoComplete="one-time-code"
+                      className="w-full text-center tracking-[0.5em]"
+                      id="cancel-totp-code"
+                      inputMode="numeric"
+                      maxLength={6}
+                      placeholder="000000"
+                      status={cancel_password_error ? "error" : "default"}
+                      type="text"
+                      value={cancel_totp_code}
+                      onChange={(e) => {
+                        set_cancel_totp_code(
+                          e.target.value.replace(/\D/g, "").slice(0, 6),
+                        );
+                        set_cancel_password_error("");
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handle_password_continue();
+                        }
+                      }}
+                    />
+                  </div>
+                )}
                 {cancel_password_error && (
                   <p
                     className="text-xs mt-1.5"
@@ -490,16 +619,20 @@ export function BillingDialogs({
                 </AlertDialogCancel>
                 <AlertDialogAction
                   className="max-sm:flex-1"
-                  disabled={!cancel_password.trim() || is_verifying_password}
+                  disabled={
+                    !cancel_password.trim() ||
+                    is_verifying_password ||
+                    (cancel_totp_required && cancel_totp_code.length !== 6)
+                  }
                   onClick={(e) => {
                     e.preventDefault();
                     handle_password_continue();
                   }}
                 >
-                  <span className="flex items-center justify-center gap-2">
-                    {is_verifying_password && <Spinner size="xs" />}
+                  <>
+                    {is_verifying_password && <ButtonSpinner size="xs" />}
                     {t("settings.cancel_reason_continue")}
-                  </span>
+                  </>
                 </AlertDialogAction>
               </AlertDialogFooter>
             </>
@@ -509,7 +642,6 @@ export function BillingDialogs({
 
       {selected_plan && (
         <CheckoutModal
-          initial_promo_code={academic_promo_code ?? undefined}
           billing_interval={
             billing_period === "yearly"
               ? "year"
@@ -518,6 +650,18 @@ export function BillingDialogs({
                 : "month"
           }
           currency={preferred_currency}
+          initial_promo_code={academic_promo_code ?? undefined}
+          on_choose_crypto={
+            on_plan_choose_crypto
+              ? (term_months) => {
+                  const plan = selected_plan;
+
+                  set_show_checkout_modal(false);
+                  set_selected_plan(null);
+                  if (plan) on_plan_choose_crypto(plan, term_months);
+                }
+              : undefined
+          }
           on_close={() => {
             set_show_checkout_modal(false);
             set_selected_plan(null);
@@ -584,144 +728,16 @@ export function BillingDialogs({
       )}
 
       <PaymentMethodsModal
+        auto_add_card={auto_add_card}
         on_close={() => set_show_payment_methods(false)}
         open={show_payment_methods}
       />
-
-      <Modal
-        show_close_button
-        is_open={show_manage_plan}
-        on_close={() => set_show_manage_plan(false)}
-        size="md"
-      >
-        <ModalHeader>
-          <ModalTitle>{t("settings.manage_plan")}</ModalTitle>
-          <ModalDescription>
-            {t("settings.manage_plan_description")}
-          </ModalDescription>
-        </ModalHeader>
-        <ModalBody>
-          <div className="space-y-2">
-            <button
-              className="w-full flex items-center gap-3 rounded-[14px] border p-3.5 text-left transition-colors hover:opacity-80"
-              style={{
-                backgroundColor: "var(--bg-tertiary)",
-                borderColor: "var(--border-secondary)",
-              }}
-              onClick={() => {
-                set_show_manage_plan(false);
-                setTimeout(() => set_show_payment_methods(true), 200);
-              }}
-            >
-              <CreditCardIcon
-                className="w-5 h-5 flex-shrink-0"
-                style={{ color: "var(--text-tertiary)" }}
-              />
-              <div>
-                <div
-                  className="text-sm font-medium"
-                  style={{ color: "var(--text-primary)" }}
-                >
-                  {t("settings.manage_payment_methods")}
-                </div>
-                <div
-                  className="text-xs mt-0.5"
-                  style={{ color: "var(--text-tertiary)" }}
-                >
-                  {t("settings.manage_payment")}
-                </div>
-              </div>
-            </button>
-
-            {subscription && !subscription.cancel_at_period_end && (
-              <button
-                className="w-full flex items-center gap-3 rounded-[14px] border p-3.5 text-left transition-colors hover:opacity-80"
-                style={{
-                  backgroundColor: "var(--bg-tertiary)",
-                  borderColor: "var(--border-secondary)",
-                }}
-                onClick={() => {
-                  set_show_manage_plan(false);
-                  setTimeout(() => set_show_switch_billing_dialog(true), 200);
-                }}
-              >
-                <ArrowsRightLeftIcon
-                  className="w-5 h-5 flex-shrink-0"
-                  style={{ color: "var(--text-tertiary)" }}
-                />
-                <div>
-                  <div
-                    className="text-sm font-medium"
-                    style={{ color: "var(--text-primary)" }}
-                  >
-                    {target_billing_interval === "year"
-                      ? t("settings.switch_to_yearly")
-                      : t("settings.switch_to_monthly")}
-                  </div>
-                  {yearly_savings && (
-                    <div
-                      className="text-xs mt-0.5"
-                      style={{
-                        color:
-                          target_billing_interval === "year"
-                            ? "var(--color-success)"
-                            : "var(--color-warning)",
-                      }}
-                    >
-                      {target_billing_interval === "year"
-                        ? t("settings.switch_billing_savings", {
-                            amount: yearly_savings,
-                          })
-                        : t("settings.switch_billing_loss", {
-                            amount: yearly_savings,
-                          })}
-                    </div>
-                  )}
-                </div>
-              </button>
-            )}
-
-            <button
-              className="w-full flex items-center gap-3 rounded-[14px] p-3.5 text-left transition-colors hover:opacity-80"
-              onClick={() => {
-                set_show_manage_plan(false);
-                setTimeout(() => {
-                  set_cancel_password("");
-                  set_cancel_password_error("");
-                  set_show_cancel_password(false);
-                  set_show_cancel_dialog(true);
-                }, 200);
-              }}
-            >
-              <XCircleIcon
-                className="w-5 h-5 flex-shrink-0"
-                style={{ color: "var(--text-tertiary)" }}
-              />
-              <div>
-                <div
-                  className="text-sm font-medium"
-                  style={{ color: "var(--text-tertiary)" }}
-                >
-                  {t("settings.cancel_plan")}
-                </div>
-                <div
-                  className="text-xs mt-0.5"
-                  style={{ color: "var(--text-tertiary)" }}
-                >
-                  {t("settings.cancel_plan_warning")}
-                </div>
-              </div>
-            </button>
-          </div>
-        </ModalBody>
-      </Modal>
 
       {checkout_addon && (
         <CheckoutModal
           addon_id={checkout_addon.id}
           billing_interval="month"
           currency={preferred_currency}
-          current_plan_price_cents={subscription?.plan.price_cents}
           on_close={() => {
             set_show_addon_checkout(false);
             set_checkout_addon(null);
@@ -791,7 +807,10 @@ export function BillingDialogs({
             </AlertDialogCancel>
             <AlertDialogAction
               className="max-sm:flex-1"
-              onClick={handle_switch_billing}
+              onClick={(e) => {
+                e.preventDefault();
+                void handle_switch_billing();
+              }}
             >
               {is_action_loading
                 ? t("settings.switching_billing")
@@ -850,11 +869,19 @@ export function BillingDialogs({
                     invalidate_mail_stats();
                     await load_data();
                   } else {
-                    show_toast(t("settings.addon_cancel_failed"), "error");
+                    show_toast(
+                      t("settings.addon_cancel_failed"),
+                      "error",
+                      TOAST_DURATION_BILLING_MS,
+                    );
                   }
                 } catch (error) {
                   if (import.meta.env.DEV) console.error(error);
-                  show_toast(t("settings.addon_cancel_failed"), "error");
+                  show_toast(
+                    t("settings.addon_cancel_failed"),
+                    "error",
+                    TOAST_DURATION_BILLING_MS,
+                  );
                 } finally {
                   set_is_action_loading(false);
                   set_show_cancel_addon_dialog(false);
@@ -862,9 +889,8 @@ export function BillingDialogs({
                 }
               }}
             >
-              {is_action_loading
-                ? t("settings.cancelling")
-                : t("settings.confirm_cancel_addon")}
+              {t("settings.confirm_cancel_addon")}
+              {is_action_loading && <ButtonSpinner />}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -47,7 +47,7 @@ import {
 } from "./shared";
 
 import { use_i18n } from "@/lib/i18n/context";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
@@ -67,11 +67,20 @@ import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { use_editor } from "@/hooks/use_editor";
 import { LinkDialog } from "@/components/compose/link_dialog";
+import { FontSizeSelect } from "@/components/compose/compose_toolbar/font_size";
+import { ColorPickerPopover } from "@/components/compose/compose_toolbar/color_picker";
+import { use_frozen_selection } from "@/components/compose/compose_toolbar/shared";
 import { validate_image_magic_bytes } from "@/hooks/editor_utils";
 import { sanitize_compose_paste } from "@/lib/html_sanitizer";
 import { fetch_my_badges } from "@/services/api/user";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { show_toast } from "@/components/toast/simple_toast";
+import {
+  prepare_signature_image,
+  signature_content_fits,
+  signature_image_budget,
+  signature_image_html,
+} from "@/lib/signature_image";
 
 function escape_html(str: string): string {
   return str
@@ -81,7 +90,7 @@ function escape_html(str: string): string {
     .replace(/"/g, "&quot;");
 }
 
-const MAX_SIGNATURE_IMAGE_SIZE = 2 * 1024 * 1024;
+import { MAX_HORIZONTAL_RULES } from "@/hooks/use_editor_format";
 
 function MobileFmtButton({
   active,
@@ -133,6 +142,7 @@ export function SignaturesSection({
   const image_input_ref = useRef<HTMLInputElement>(null);
   const [signatures, set_signatures] = useState<DecryptedSignature[]>([]);
   const [is_loading, set_is_loading] = useState(true);
+  const [load_error, set_load_error] = useState(false);
   const [editor_open, set_editor_open] = useState(false);
   const [editing_id, set_editing_id] = useState<string | null>(null);
   const [editor_name, set_editor_name] = useState("");
@@ -161,31 +171,64 @@ export function SignaturesSection({
   }, []);
 
   const handle_image_upload = useCallback(
-    (file: File) => {
-      if (!file.type.startsWith("image/") || file.type === "image/svg+xml")
+    async (file: File) => {
+      if (!file.type.startsWith("image/") || file.type === "image/svg+xml") {
+        show_toast(t("settings.signature_image_invalid"), "error");
+
         return;
-      if (file.size > MAX_SIGNATURE_IMAGE_SIZE) return;
+      }
 
-      const reader = new FileReader();
+      let header: ArrayBuffer;
 
-      reader.onload = () => {
-        const data_url = reader.result as string;
-        const arr_buf = Uint8Array.from(
-          atob(data_url.split(",")[1] || ""),
-          (c) => c.charCodeAt(0),
-        ).buffer;
+      try {
+        header = await file.slice(0, 16).arrayBuffer();
+      } catch {
+        show_toast(t("settings.signature_image_failed"), "error");
 
-        if (!validate_image_magic_bytes(arr_buf, file.type)) return;
+        return;
+      }
 
-        rich_editor.insert_html(
-          `<img src="${data_url}" style="max-width: min(100%, 480px); height: auto; border-radius: 6px; display: block; margin: 8px 0;" />`,
+      if (!validate_image_magic_bytes(header, file.type)) {
+        show_toast(t("settings.signature_image_invalid"), "error");
+
+        return;
+      }
+
+      const result = await prepare_signature_image(
+        file,
+        signature_image_budget(rich_editor.get_html()),
+      );
+
+      if (!result.ok) {
+        show_toast(
+          result.reason === "too_large"
+            ? t("settings.signature_image_too_large")
+            : t("settings.signature_image_failed"),
+          "error",
         );
-      };
-      reader.readAsDataURL(file);
+
+        return;
+      }
+
+      rich_editor.insert_html(signature_image_html(result.data_url));
     },
-    [rich_editor],
+    [rich_editor, t],
   );
 
+  const handle_insert_horizontal_rule = useCallback(() => {
+    if (!rich_editor.insert_horizontal_rule()) {
+      show_toast(
+        t("settings.signature_divider_limit").replace(
+          "{{count}}",
+          String(MAX_HORIZONTAL_RULES),
+        ),
+        "warning",
+      );
+    }
+  }, [rich_editor, t]);
+
+  const { freeze_selection, apply_with_frozen_selection } =
+    use_frozen_selection(rich_editor);
   const [show_link_dialog, set_show_link_dialog] = useState(false);
   const [selected_text_for_link, set_selected_text_for_link] = useState("");
 
@@ -195,28 +238,28 @@ export function SignaturesSection({
     set_show_link_dialog(true);
   };
 
-  useEffect(() => {
-    let cancelled = false;
+  const load_signatures = useCallback(async () => {
+    set_is_loading(true);
+    try {
+      const res = await list_signatures();
 
-    async function load() {
-      try {
-        const res = await list_signatures();
-
-        if (!cancelled && res.data) {
-          set_signatures(res.data.signatures);
-        }
-      } catch (caught) {
-        ignore_error("pages/mobile/settings/signatures_section:load", caught);
-      } finally {
-        if (!cancelled) set_is_loading(false);
+      if (res.data) {
+        set_signatures(res.data.signatures);
+        set_load_error(false);
+      } else {
+        set_load_error(true);
       }
+    } catch (caught) {
+      ignore_error("pages/mobile/settings/signatures_section:load", caught);
+      set_load_error(true);
+    } finally {
+      set_is_loading(false);
     }
-    load();
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
+
+  useEffect(() => {
+    load_signatures();
+  }, [load_signatures]);
 
   const open_create = useCallback(() => {
     set_editing_id(null);
@@ -286,10 +329,22 @@ export function SignaturesSection({
       placement: editor_placement,
     };
 
-    if (editing_id) {
-      const res = await update_signature(editing_id, form_data);
+    if (!signature_content_fits(form_data.content)) {
+      show_toast(t("settings.signature_too_large"), "error");
+      set_is_saving(false);
 
-      if (!res.error) {
+      return;
+    }
+
+    if (editing_id) {
+      const res = await update_signature(editing_id, form_data).catch(() => ({
+        data: null,
+        error: t("common.something_went_wrong"),
+      }));
+
+      if (res.error) {
+        show_toast(res.error, "error");
+      } else {
         set_signatures((prev) =>
           prev.map((sig) =>
             sig.id === editing_id
@@ -309,9 +364,14 @@ export function SignaturesSection({
       }
     } else {
       const is_first = signatures.length === 0;
-      const res = await create_signature(form_data, is_first);
+      const res = await create_signature(form_data, is_first).catch(() => ({
+        data: null,
+        error: t("common.something_went_wrong"),
+      }));
 
-      if (!res.error && res.data) {
+      if (res.error || !res.data) {
+        show_toast(res.error || t("common.something_went_wrong"), "error");
+      } else {
         const new_sig: DecryptedSignature = {
           id: res.data.id,
           name: form_data.name,
@@ -340,20 +400,32 @@ export function SignaturesSection({
     signatures.length,
     reload_context_signatures,
     close_editor,
+    t,
   ]);
 
   const handle_set_default = useCallback(
     async (id: string) => {
-      set_signatures((prev) =>
-        prev.map((s) => ({ ...s, is_default: s.id === id })),
-      );
+      let previous: DecryptedSignature[] = [];
+
+      set_signatures((prev) => {
+        previous = prev;
+
+        return prev.map((s) => ({ ...s, is_default: s.id === id }));
+      });
       const response = await set_default_signature(id);
 
-      if (!response.error) {
-        reload_context_signatures();
+      if (response.error) {
+        set_signatures(previous);
+        show_toast(
+          response.error || t("common.something_went_wrong_try_again"),
+          "error",
+        );
+
+        return;
       }
+      reload_context_signatures();
     },
-    [reload_context_signatures],
+    [reload_context_signatures, t],
   );
 
   const request_delete = useCallback((id: string) => {
@@ -368,7 +440,13 @@ export function SignaturesSection({
     set_deleting_id(id);
     const res = await delete_signature(id);
 
-    if (!res.error) {
+    if (res.error) {
+      show_toast(t("common.delete_failed"), "error");
+      set_deleting_id(null);
+
+      return;
+    }
+    {
       set_signatures((prev) => {
         const filtered = prev.filter((s) => s.id !== id);
 
@@ -381,7 +459,7 @@ export function SignaturesSection({
       reload_context_signatures();
     }
     set_deleting_id(null);
-  }, [delete_confirm.id, reload_context_signatures]);
+  }, [delete_confirm.id, reload_context_signatures, t]);
 
   if (editor_open) {
     return (
@@ -419,6 +497,34 @@ export function SignaturesSection({
                 className="flex flex-wrap items-center gap-0.5 border-b border-[var(--border-secondary)] px-2 py-1.5"
                 role="toolbar"
               >
+                <FontSizeSelect
+                  font_size={rich_editor.format_state.current_font_size}
+                  on_before_open={freeze_selection}
+                  on_change={(size) =>
+                    apply_with_frozen_selection(() =>
+                      rich_editor.set_font_size(size),
+                    )
+                  }
+                />
+
+                <ColorPickerPopover
+                  bg_color={rich_editor.format_state.current_bg_color}
+                  font_color={rich_editor.format_state.current_font_color}
+                  on_before_open={freeze_selection}
+                  on_bg_color_change={(color) =>
+                    apply_with_frozen_selection(() =>
+                      rich_editor.set_background_color(color),
+                    )
+                  }
+                  on_font_color_change={(color) =>
+                    apply_with_frozen_selection(() =>
+                      rich_editor.set_font_color(color),
+                    )
+                  }
+                />
+
+                <MobileFmtDivider />
+
                 <MobileFmtButton
                   active={rich_editor.format_state.active_formats.has("bold")}
                   on_press={rich_editor.toggle_bold}
@@ -544,7 +650,7 @@ export function SignaturesSection({
                 </MobileFmtButton>
 
                 <MobileFmtButton
-                  on_press={rich_editor.insert_horizontal_rule}
+                  on_press={handle_insert_horizontal_rule}
                   title={t("mail.horizontal_rule")}
                 >
                   <svg
@@ -593,9 +699,9 @@ export function SignaturesSection({
               {t("settings.signature_alias")}
             </label>
             <div className="rounded-xl border border-[var(--border-secondary)] bg-[var(--mobile-bg-card)] overflow-hidden">
-              <div className="divide-y divide-[var(--border-primary)]">
+              <div>
                 <button
-                  className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-[var(--mobile-bg-card-hover)]"
+                  className="flex w-full items-center gap-3 px-4 py-3 text-start active:bg-[var(--mobile-bg-card-hover)]"
                   type="button"
                   onClick={() => set_editor_alias_id(null)}
                 >
@@ -614,7 +720,7 @@ export function SignaturesSection({
                   return (
                     <button
                       key={alias.id}
-                      className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-[var(--mobile-bg-card-hover)] disabled:opacity-50"
+                      className="flex w-full items-center gap-3 px-4 py-3 text-start active:bg-[var(--mobile-bg-card-hover)] disabled:opacity-50"
                       disabled={in_use}
                       type="button"
                       onClick={() => set_editor_alias_id(alias.id)}
@@ -639,7 +745,7 @@ export function SignaturesSection({
               {t("settings.signature_placement")}
             </label>
             <div className="rounded-xl border border-[var(--border-secondary)] bg-[var(--mobile-bg-card)] overflow-hidden">
-              <div className="divide-y divide-[var(--border-primary)]">
+              <div>
                 {[
                   {
                     value: null,
@@ -656,7 +762,7 @@ export function SignaturesSection({
                 ].map((opt) => (
                   <button
                     key={opt.value ?? "__inherit__"}
-                    className="flex w-full items-center gap-3 px-4 py-3 text-left active:bg-[var(--mobile-bg-card-hover)]"
+                    className="flex w-full items-center gap-3 px-4 py-3 text-start active:bg-[var(--mobile-bg-card-hover)]"
                     type="button"
                     onClick={() => set_editor_placement(opt.value)}
                   >
@@ -695,13 +801,10 @@ export function SignaturesSection({
             variant="depth"
             onClick={handle_save}
           >
-            {is_saving ? (
-              <Spinner size="md" />
-            ) : editing_id ? (
-              t("settings.update_signature")
-            ) : (
-              t("settings.create_signature")
-            )}
+            {editing_id
+              ? t("settings.update_signature")
+              : t("settings.create_signature")}
+            {is_saving && <ButtonSpinner />}
           </Button>
         </div>
       </div>
@@ -736,6 +839,19 @@ export function SignaturesSection({
           <div className="flex items-center justify-center py-12">
             <Spinner size="md" />
           </div>
+        ) : load_error && signatures.length === 0 ? (
+          <div className="px-4 py-10 text-center">
+            <p className="text-[14px] text-[var(--text-muted)]">
+              {t("common.something_went_wrong_try_again")}
+            </p>
+            <button
+              className="mt-3 text-[14px] font-medium text-[var(--accent-color,#3b82f6)]"
+              type="button"
+              onClick={() => load_signatures()}
+            >
+              {t("common.retry")}
+            </button>
+          </div>
         ) : signatures.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 px-8 pt-12">
             <DocumentTextIcon className="h-16 w-16 text-[var(--text-muted)] opacity-40" />
@@ -766,7 +882,9 @@ export function SignaturesSection({
                       ? sanitize_compose_paste(sig.content)
                       : escape_html(sig.content).replace(/\n/g, "<br>"),
                   }}
+                  data-selectable-region
                   className="mt-2 line-clamp-3 text-[13px] text-[var(--text-muted)] [&_img]:max-h-16 [&_img]:rounded"
+                  tabIndex={-1}
                 />
                 <div className="mt-3 flex items-center gap-2">
                   <button
@@ -786,16 +904,13 @@ export function SignaturesSection({
                     </button>
                   )}
                   <button
-                    className="ml-auto text-[13px] text-[var(--color-danger,#ef4444)]"
+                    className="ms-auto text-[13px] text-[var(--color-danger,#ef4444)]"
                     disabled={deleting_id === sig.id}
                     type="button"
                     onClick={() => request_delete(sig.id)}
                   >
-                    {deleting_id === sig.id ? (
-                      <Spinner size="md" />
-                    ) : (
-                      t("common.delete")
-                    )}
+                    {t("common.delete")}
+                    {deleting_id === sig.id && <ButtonSpinner />}
                   </button>
                 </div>
               </div>
@@ -810,7 +925,7 @@ export function SignaturesSection({
               { value: "below", label: t("settings.below_quoted_text") },
               { value: "above", label: t("settings.above_quoted_text") },
             ]}
-            value={preferences.signature_placement || "below"}
+            value={preferences.signature_placement || "above"}
           />
         </SettingsGroup>
 

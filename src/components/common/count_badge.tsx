@@ -18,6 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { CountBadge as CountBadgeView } from "@aster/ui";
+
+import { app_locale } from "@/utils/date_format";
+
 interface CountBadgeProps {
   count: number;
   show_zero?: boolean;
@@ -26,35 +30,6 @@ interface CountBadgeProps {
   className?: string;
 }
 
-export function CountBadge({
-  count,
-  show_zero = false,
-  is_active = false,
-  is_loading = false,
-  className = "",
-}: CountBadgeProps) {
-  if (is_loading) {
-    return (
-      <span
-        className={`inline-block w-5 h-3 rounded-sm animate-pulse bg-current opacity-10 ${className}`}
-      />
-    );
-  }
-
-  const safe_count =
-    Number.isFinite(count) && count > 0 ? Math.floor(count) : 0;
-
-  if (safe_count === 0 && !show_zero) {
-    return null;
-  }
-
-  const display_value = safe_count.toLocaleString();
-
-  return (
-    <span
-      className={`text-[12px] font-medium tabular-nums ${is_active ? "text-txt-secondary" : "text-txt-muted"} ${className}`}
-    >
-      {display_value}
-    </span>
-  );
+export function CountBadge(props: CountBadgeProps) {
+  return <CountBadgeView {...props} locale={app_locale()} />;
 }

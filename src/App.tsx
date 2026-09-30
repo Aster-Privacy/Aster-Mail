@@ -18,72 +18,61 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
-import { Route, Routes } from "react-router-dom";
-import { activate_subscription, get_subscription } from "@/services/api/billing";
+import { Suspense, useEffect, useRef, useState } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
+
+import {
+  activate_subscription,
+  clear_checkout_target,
+  get_subscription,
+  read_checkout_target,
+  request_checkout_resume,
+} from "@/services/api/billing";
 import { FamilyWelcomeModal } from "@/components/settings/billing/family_welcome_modal";
+import { CheckoutReturnHandler } from "@/components/common/checkout_return_handler";
 import { request_cache } from "@/services/api/request_cache";
+import { is_tauri_env } from "@/services/api/client/helpers";
+import { open_external } from "@/utils/open_link";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_auth } from "@/contexts/auth_context";
-
 import { ProtectedRoute } from "@/components/common/protected_route";
-import { SuspensionBanner } from "@/components/common/suspension_overlay";
+import { SuspendedAccountGate } from "@/components/common/suspended_account_gate";
+import { Family2faDialog } from "@/components/common/family_2fa_dialog";
 import { PendingDeletionDialog } from "@/components/common/pending_deletion_dialog";
 import { DesktopPairGate } from "@/components/common/desktop_pair_gate";
 import { UpdateBanner } from "@/components/updates/update_banner";
-
-function is_chunk_load_error(error: unknown): boolean {
-  if (!(error instanceof Error)) return false;
-  const msg = error.message.toLowerCase();
-
-  return (
-    msg.includes("dynamically imported module") ||
-    msg.includes("failed to fetch dynamically imported module") ||
-    msg.includes("loading chunk") ||
-    msg.includes("loading css chunk")
-  );
-}
-
-const CHUNK_RELOAD_KEY = "aster:chunk_reload_at";
-const CHUNK_RELOAD_COOLDOWN = 30_000;
-
-function safe_chunk_reload(): void {
-  try {
-    const last = Number(sessionStorage.getItem(CHUNK_RELOAD_KEY) || "0");
-    if (Date.now() - last < CHUNK_RELOAD_COOLDOWN) return;
-    sessionStorage.setItem(CHUNK_RELOAD_KEY, String(Date.now()));
-  } catch {
-    return;
-  }
-  window.location.reload();
-}
-
-function lazy_with_retry<T extends { default: React.ComponentType }>(
-  import_fn: () => Promise<T>,
-  retries = 3,
-  delay = 1000,
-): React.LazyExoticComponent<T["default"]> {
-  return lazy(() => {
-    const attempt = (remaining: number): Promise<T> =>
-      import_fn().catch((error: unknown) => {
-        if (is_chunk_load_error(error) && remaining <= 0) {
-          safe_chunk_reload();
-
-          return new Promise<T>(() => {});
-        }
-
-        if (remaining <= 0) throw error;
-
-        return new Promise<T>((resolve) =>
-          setTimeout(() => resolve(attempt(remaining - 1)), delay),
-        );
-      });
-
-    return attempt(retries);
-  });
-}
+import { ActionToast } from "@/components/toast/action_toast";
+import { SimpleToast } from "@/components/toast/simple_toast";
+import { KeyTrustChangePrompt } from "@/components/compose/key_trust_change_prompt";
+import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
+import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
+import { PurchaseSuccessModal } from "@/components/modals/purchase_success_modal";
+import { UpgradeModal } from "@/components/upgrade/upgrade_modal";
+import {
+  show_checkout_cancelled_upgrade,
+  type UpgradeInterval,
+} from "@/stores/upgrade_store";
+import { is_resumable_checkout_plan } from "@/components/settings/billing/billing_constants";
+import { AliasCapUpsellModal } from "@/components/upgrade/alias_cap_upsell_modal";
+import { SpecialOfferModal } from "@/components/upgrade/special_offer_modal";
+import { SpecialOfferSuccessModal } from "@/components/upgrade/special_offer_success_modal";
+import { request_special_offer_checkout } from "@/stores/special_offer_store";
+import { UndoSendContainer } from "@/components/toast/undo_send_container";
+import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
+import { EmailNotificationManager } from "@/components/email/email_notification_manager";
+import { FolderUnlockPrompt } from "@/components/folders/folder_unlock_prompt";
+import { OfflineIndicator } from "@/components/common/offline_indicator";
+import { FullPageLoader } from "@/components/common/full_page_loader";
+import { ErrorBoundary } from "@/components/ui/error_boundary";
+import { AppLock } from "@/components/mobile";
+import { install_global_autoscroll } from "@/lib/global_autoscroll";
+import { ignore_error } from "@/lib/ignore_error";
+import { lazy_with_retry } from "@/utils/lazy_with_retry";
 
 const IndexPage = lazy_with_retry(() => import("@/pages/index"));
 const SignInPage = lazy_with_retry(() => import("@/pages/sign_in"));
@@ -106,29 +95,25 @@ const NotFoundPage = lazy_with_retry(() => import("@/pages/not_found"));
 const LinkDevicePage = lazy_with_retry(() => import("@/pages/link_device"));
 const JoinFamilyPage = lazy_with_retry(() => import("@/pages/join_family"));
 const FamilyClaimPage = lazy_with_retry(() => import("@/pages/family_claim"));
-const CryptoInvoicePage = lazy_with_retry(() => import("@/pages/crypto_invoice"));
+const CryptoInvoicePage = lazy_with_retry(
+  () => import("@/pages/crypto_invoice"),
+);
 const ExternalRedirect = ({ url }: { url: string }) => {
-  window.location.href = url;
+  const desktop = is_tauri_env();
+
+  useEffect(() => {
+    if (desktop) {
+      open_external(url);
+
+      return;
+    }
+    window.location.href = url;
+  }, [desktop, url]);
+
+  if (desktop) return <Navigate replace to="/" />;
 
   return null;
 };
-
-import { ActionToast } from "@/components/toast/action_toast";
-import { SimpleToast } from "@/components/toast/simple_toast";
-import { PostQuantumSendPrompt } from "@/components/compose/post_quantum_send_prompt";
-import { UnsubscribeConfirmationModal } from "@/components/modals/unsubscribe_confirmation_modal";
-import { PurchaseSuccessModal } from "@/components/modals/purchase_success_modal";
-import { UpgradeModal } from "@/components/upgrade/upgrade_modal";
-import { UndoSendContainer } from "@/components/toast/undo_send_container";
-import { UndoSendPreviewModal } from "@/components/toast/undo_send_preview_modal";
-import { EmailNotificationManager } from "@/components/email/email_notification_manager";
-import { FolderUnlockPrompt } from "@/components/folders/folder_unlock_prompt";
-import { OfflineIndicator } from "@/components/common/offline_indicator";
-import { FullPageLoader } from "@/components/common/full_page_loader";
-import { ErrorBoundary } from "@/components/ui/error_boundary";
-import { AppLock } from "@/components/mobile";
-
-import { ignore_error } from "@/lib/ignore_error";
 
 interface FamilyWelcomeState {
   plan_name: string;
@@ -140,7 +125,10 @@ const FAMILY_WELCOME_SEEN_KEY_PREFIX = "aster_family_welcome_seen_";
 
 function has_seen_family_welcome(account_id: string): boolean {
   try {
-    return localStorage.getItem(`${FAMILY_WELCOME_SEEN_KEY_PREFIX}${account_id}`) === "1";
+    return (
+      localStorage.getItem(`${FAMILY_WELCOME_SEEN_KEY_PREFIX}${account_id}`) ===
+      "1"
+    );
   } catch {
     return false;
   }
@@ -156,15 +144,28 @@ function mark_family_welcome_seen(account_id: string): void {
 
 const BILLING_RETURN_KEY = "aster_billing_return";
 
+function is_on_billing_settings_route(): boolean {
+  return window.location.pathname.includes("/settings/billing");
+}
+
+function upgrade_interval_for(billing_interval: string): UpgradeInterval {
+  if (billing_interval === "month") return "month";
+  if (billing_interval === "biennial") return "biennial";
+
+  return "year";
+}
+
 function BillingSuccessHandler() {
   const { t } = use_i18n();
   const { is_authenticated, current_account_id } = use_auth();
   const handled = useRef(false);
-  const [family_welcome, set_family_welcome] = useState<FamilyWelcomeState | null>(null);
+  const [family_welcome, set_family_welcome] =
+    useState<FamilyWelcomeState | null>(null);
   const [individual_welcome, set_individual_welcome] = useState<{
     plan: string;
     billing: string;
   } | null>(null);
+  const [offer_welcome, set_offer_welcome] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -212,7 +213,47 @@ function BillingSuccessHandler() {
     }
 
     if (billing === "cancelled") {
-      show_toast(t("settings.billing_checkout_cancelled"), "info");
+      const target = read_checkout_target();
+
+      if (
+        target?.special_offer &&
+        request_special_offer_checkout(
+          target.billing_interval === "year" ? "year" : "month",
+        )
+      ) {
+        clear_checkout_target();
+
+        return;
+      }
+
+      if (
+        target &&
+        is_resumable_checkout_plan(target.plan_code) &&
+        is_on_billing_settings_route()
+      ) {
+        request_checkout_resume();
+
+        return;
+      }
+
+      const resumed =
+        target && is_resumable_checkout_plan(target.plan_code)
+          ? show_checkout_cancelled_upgrade({
+              plan_code: target.plan_code,
+              interval: upgrade_interval_for(target.billing_interval),
+            })
+          : false;
+
+      if (!resumed) {
+        if (!target || !is_resumable_checkout_plan(target.plan_code))
+          clear_checkout_target();
+
+        show_toast(
+          t("settings.billing_checkout_cancelled"),
+          "info",
+          TOAST_DURATION_BILLING_MS,
+        );
+      }
 
       return;
     }
@@ -225,57 +266,89 @@ function BillingSuccessHandler() {
       } catch {
         // best-effort; webhook is source of truth
       }
+      const checkout_target = read_checkout_target();
+      const target = checkout_target?.plan_code ?? null;
+
+      clear_checkout_target();
+
       for (let i = 0; i < 8; i++) {
         await new Promise((r) => setTimeout(r, i === 0 ? 800 : 1500));
         request_cache.invalidate("/payments/v1");
         const res = await get_subscription();
-        if (res.data && res.data.plan.code !== "free") {
+        const live = res.data?.plan.code;
+        const activated = target
+          ? live === target
+          : Boolean(live) && live !== "free";
+
+        if (res.data && activated) {
           invalidate_mail_stats();
           window.dispatchEvent(new CustomEvent("aster:plan-changed"));
           const code = res.data.plan.code;
+
           if (
             (code === "duo" || code === "family") &&
             current_account_id &&
             !has_seen_family_welcome(current_account_id)
           ) {
             const max_members = code === "duo" ? 2 : 6;
-            const storage_gb = code === "duo" ? 500 : 3000;
+            const storage_gb = code === "duo" ? 1024 : 3072;
+
             mark_family_welcome_seen(current_account_id);
             set_family_welcome({
-              plan_name: res.data.plan.name ?? (code === "duo" ? "Duo" : "Family"),
+              plan_name:
+                res.data.plan.name ?? (code === "duo" ? "Duo" : "Family"),
               max_members,
               storage_pool_bytes: storage_gb * 1073741824,
             });
+          } else if (checkout_target?.special_offer) {
+            set_offer_welcome(true);
           } else {
             const billing = (res.data.plan.billing_period || "").startsWith(
               "year",
             )
               ? "year"
               : "month";
+
             set_individual_welcome({ plan: code, billing });
           }
+
           return;
         }
       }
-      show_toast(t("settings.payment_success"), "success");
+      request_cache.invalidate("/payments/v1");
+      invalidate_mail_stats();
+      window.dispatchEvent(new CustomEvent("aster:plan-changed"));
+      show_toast(
+        t("settings.payment_processing_delayed"),
+        "info",
+        TOAST_DURATION_BILLING_MS,
+      );
     })();
   }, [is_authenticated, current_account_id, t]);
 
-  if (!family_welcome && !individual_welcome) return null;
+  if (!family_welcome && !individual_welcome && !offer_welcome) return null;
 
   return (
     <>
+      {offer_welcome && (
+        <SpecialOfferSuccessModal
+          is_open={true}
+          on_close={() => set_offer_welcome(false)}
+        />
+      )}
       {family_welcome && (
         <FamilyWelcomeModal
           is_open={true}
-          on_close={() => set_family_welcome(null)}
-          plan_name={family_welcome.plan_name}
           max_members={family_welcome.max_members}
-          storage_pool_bytes={family_welcome.storage_pool_bytes}
+          on_close={() => set_family_welcome(null)}
           on_go_to_family={() => {
             set_family_welcome(null);
-            window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "family" }));
+            window.dispatchEvent(
+              new CustomEvent("navigate-settings", { detail: "family" }),
+            );
           }}
+          plan_name={family_welcome.plan_name}
+          storage_pool_bytes={family_welcome.storage_pool_bytes}
         />
       )}
       {individual_welcome && (
@@ -285,7 +358,9 @@ function BillingSuccessHandler() {
           on_close={() => set_individual_welcome(null)}
           on_view_billing={() => {
             set_individual_welcome(null);
-            window.dispatchEvent(new CustomEvent("navigate-settings", { detail: "billing" }));
+            window.dispatchEvent(
+              new CustomEvent("navigate-settings", { detail: "billing" }),
+            );
           }}
           plan={individual_welcome.plan}
         />
@@ -295,6 +370,8 @@ function BillingSuccessHandler() {
 }
 
 function App() {
+  useEffect(() => install_global_autoscroll(), []);
+
   useEffect(() => {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -311,8 +388,10 @@ function App() {
   return (
     <AppLock>
       <BillingSuccessHandler />
-      <SuspensionBanner />
+      <CheckoutReturnHandler />
+      <SuspendedAccountGate />
       <PendingDeletionDialog />
+      <Family2faDialog />
       <UpdateBanner />
       <ErrorBoundary>
         <DesktopPairGate>
@@ -484,7 +563,10 @@ function App() {
               />
               <Route element={<LinkDevicePage />} path="/link-device" />
               <Route element={<JoinFamilyPage />} path="/join/family" />
-              <Route element={<FamilyClaimPage />} path="/family/claim/:token" />
+              <Route
+                element={<FamilyClaimPage />}
+                path="/family/claim/:token"
+              />
               <Route element={<SecureViewPage />} path="/view/:token" />
               <Route
                 element={
@@ -502,8 +584,11 @@ function App() {
       <ActionToast />
       <SimpleToast />
       <UnsubscribeConfirmationModal />
+      <KeyTrustChangePrompt />
       <PostQuantumSendPrompt />
       <UpgradeModal />
+      <AliasCapUpsellModal />
+      <SpecialOfferModal />
       <UndoSendContainer max_visible={3} position="bottom-center" />
       <UndoSendPreviewModal />
       <EmailNotificationManager />

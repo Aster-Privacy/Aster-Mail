@@ -39,7 +39,11 @@ interface CacheEntry {
 async function build_cache_key(view: string): Promise<string> {
   const account_id = await get_current_account_id();
 
-  return `${account_id ?? "unknown"}:${view}`;
+  if (!account_id) {
+    throw new Error("No current account. Offline cache is unavailable.");
+  }
+
+  return `${account_id}:${view}`;
 }
 
 function open_db(): Promise<IDBDatabase> {
@@ -84,7 +88,8 @@ export async function cache_email_list(
 
     db.close();
   } catch (e) {
-    const is_quota = e instanceof DOMException && e.name === "QuotaExceededError";
+    const is_quota =
+      e instanceof DOMException && e.name === "QuotaExceededError";
 
     console.warn(
       "offline_email_cache: failed to cache view",

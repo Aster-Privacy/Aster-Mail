@@ -18,22 +18,24 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type {
-  InboxEmail,
-  
-  
-} from "@/types/email";
+import type { InboxEmail } from "@/types/email";
 
+import {
+  compare_timestamps_asc,
+  compare_timestamps_desc,
+} from "@/utils/email_timestamp";
 
 export function sort_emails_by_timestamp(
   emails: InboxEmail[],
   order: "asc" | "desc",
 ): InboxEmail[] {
   return [...emails].sort((a, b) => {
-    const ts_a = new Date(a.raw_timestamp || a.timestamp).getTime();
-    const ts_b = new Date(b.raw_timestamp || b.timestamp).getTime();
+    const raw_a = a.raw_timestamp || a.timestamp;
+    const raw_b = b.raw_timestamp || b.timestamp;
 
-    return order === "asc" ? ts_a - ts_b : ts_b - ts_a;
+    return order === "asc"
+      ? compare_timestamps_asc(raw_a, raw_b)
+      : compare_timestamps_desc(raw_a, raw_b);
   });
 }
 
@@ -189,4 +191,3 @@ export function group_emails_by_thread(emails: InboxEmail[]): InboxEmail[] {
 
   return result;
 }
-

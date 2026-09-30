@@ -18,8 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { SETTINGS_SEARCH_REGISTRY } from "@/components/settings/search_registry";
-import { use_search_registry } from "@/components/settings/search_context";
+import type {
+  NavItem,
+  NavItems,
+  Section,
+  SettingsContentProps,
+} from "./settings_content_helpers";
 
 import {
   useState,
@@ -30,11 +34,32 @@ import {
   useMemo,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowDownTrayIcon,
-  CodeBracketIcon,
-} from "@heroicons/react/24/outline";
 
+import {
+  load_billing_section,
+  load_family_section,
+  load_onion_billing_section,
+  load_storage_section,
+} from "./settings_lazy_sections";
+import {
+  flatten_nav_items,
+  get_nav_items,
+  resolve_nav_target,
+  get_persisted_section,
+  resolve_settings_section,
+  set_persisted_section,
+} from "./settings_content_helpers";
+
+import { safe_local_set } from "@/lib/safe_storage";
+import {
+  consume_pending_settings_anchor,
+  scroll_to_settings_anchor,
+  set_pending_settings_anchor,
+} from "@/lib/settings_anchor";
+import { read_settings_navigation } from "@/lib/settings_links";
+import { start_scroll_seek } from "@/components/settings/settings_scroll_target";
+import { SETTINGS_SEARCH_REGISTRY } from "@/components/settings/search_registry";
+import { use_search_registry } from "@/components/settings/search_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
@@ -52,29 +77,16 @@ import {
   get_credits,
 } from "@/services/api/billing";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
-import { load_family_section } from "./settings_lazy_sections";
-
-import { is_desktop_runtime } from "@/services/updates/updater";
 import { use_settings_prefetch } from "@/components/settings/hooks/use_settings_prefetch";
 import { list_devices } from "@/services/api/devices";
-import { prefetch_family_group, refresh_family_plan_flag } from "@/services/api/family";
-
-import { ignore_error } from "@/lib/ignore_error";
-
 import {
-  get_nav_items,
-  get_persisted_section,
-  set_persisted_section,
-} from "./settings_content_helpers";
-import type {
-  NavItem,
-  NavItems,
-  Section,
-  SettingsContentProps,
-} from "./settings_content_helpers";
+  prefetch_family_group,
+  refresh_family_plan_flag,
+} from "@/services/api/family";
+import { ignore_error } from "@/lib/ignore_error";
+import { is_onion_host } from "@/lib/onion_host";
 
 export type { SettingsSection } from "./settings_content_helpers";
-
 
 export function use_settings_content(props: SettingsContentProps) {
   const {
@@ -85,6 +97,7 @@ export function use_settings_content(props: SettingsContentProps) {
   } = props;
 
   const is_popup = variant === "popup";
+
   use_settings_prefetch(true);
   const { t } = use_i18n();
   const navigate = useNavigate();
@@ -120,6 +133,8 @@ export function use_settings_content(props: SettingsContentProps) {
   const [is_family_plan, set_is_family_plan] = useState(
     () => localStorage.getItem("aster_is_family_plan") === "1",
   );
+  const [is_family_plan_resolved, set_is_family_plan_resolved] =
+    useState(false);
   const [search_query, set_search_query] = useState("");
   const [scroll_target, set_scroll_target] = useState<string | null>(null);
   const [show_inline_totp_setup, set_show_inline_totp_setup] = useState(false);
@@ -154,13 +169,66 @@ export function use_settings_content(props: SettingsContentProps) {
   }, [section_prop, is_popup]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
+    const preload = () => {
+      if (is_onion_host()) {
+        void load_onion_billing_section().catch((caught) =>
+          ignore_error(
+            "components/settings/use_settings_content:load_onion_billing_section",
+            caught,
+          ),
+        );
+
+        return;
+      }
+
+      void load_billing_section().catch((caught) =>
+        ignore_error(
+          "components/settings/use_settings_content:load_billing_section",
+          caught,
+        ),
+      );
+      void load_storage_section().catch((caught) =>
+        ignore_error(
+          "components/settings/use_settings_content:load_storage_section",
+          caught,
+        ),
+      );
+    };
+    const idle = (
+      window as Window & {
+        requestIdleCallback?: (callback: () => void) => number;
+      }
+    ).requestIdleCallback;
+
+    if (typeof idle === "function") {
+      idle(preload);
+    } else {
+      setTimeout(preload, 800);
+    }
+  }, []);
+
+  useEffect(() => {
     if (is_family_plan) {
       load_family_section();
       prefetch_family_group();
     }
   }, [is_family_plan]);
 
-  const NAV_ITEMS_BASE = useMemo(() => get_nav_items(t, is_family_plan), [t, is_family_plan]);
+  useEffect(() => {
+    const is_unavailable =
+      (section === "import" || section === "storage") && is_onion_host();
+
+    if (!is_unavailable) return;
+
+    set_section("appearance");
+    set_persisted_section("appearance");
+    on_section_change_ref.current("appearance", true);
+  }, [section, is_family_plan, is_family_plan_resolved]);
+
+  const NAV_ITEMS_BASE = useMemo(
+    () => get_nav_items(t, is_family_plan),
+    [t, is_family_plan],
+  );
   const [indicator_style, set_indicator_style] = useState<{
     top: number;
     height: number;
@@ -179,11 +247,14 @@ export function use_settings_content(props: SettingsContentProps) {
     encryption: null,
     trusted_devices: null,
     aliases: null,
+    domains: null,
     billing: null,
+    storage: null,
     family: null,
     referral: null,
     import: null,
     notifications: null,
+    compose: null,
     signature: null,
     templates: null,
     behavior: null,
@@ -202,33 +273,71 @@ export function use_settings_content(props: SettingsContentProps) {
   }, [navigate]);
 
   useEffect(() => {
-    void import("@/components/settings/billing_section").catch((caught) => ignore_error("components/settings/use_settings_content:use_settings_content", caught));
-  }, []);
+    let cancelled = false;
 
-  useLayoutEffect(() => {
-    refresh_family_plan_flag(set_is_family_plan);
-    get_available_plans();
-    get_billing_history(1, 10);
-    get_plan_limits();
-    get_storage_addons();
-    get_credits();
-    list_devices().then((res) => {
-      const has_any = (res.data?.devices?.length ?? 0) > 0;
-
-      localStorage.setItem("aster_has_devices", has_any ? "1" : "0");
-      set_has_devices(has_any);
+    refresh_family_plan_flag((resolved_is_family_plan) => {
+      if (cancelled) return;
+      set_is_family_plan(resolved_is_family_plan);
+      set_is_family_plan_resolved(true);
     });
+    list_devices()
+      .then((res) => {
+        if (cancelled || res.error || !res.data) return;
+
+        const has_any = (res.data.devices?.length ?? 0) > 0;
+
+        safe_local_set("aster_has_devices", has_any ? "1" : "0");
+        set_has_devices(has_any);
+      })
+      .catch((caught) =>
+        ignore_error(
+          "components/settings/use_settings_content:list_devices",
+          caught,
+        ),
+      );
+
+    const warm_billing = () => {
+      void import("@/components/settings/billing_section").catch((caught) =>
+        ignore_error(
+          "components/settings/use_settings_content:use_settings_content",
+          caught,
+        ),
+      );
+      get_available_plans();
+      get_billing_history(1, 10);
+      get_plan_limits();
+      get_storage_addons();
+      get_credits();
+    };
+
+    if (typeof requestIdleCallback === "function") {
+      const idle_id = requestIdleCallback(warm_billing, { timeout: 2000 });
+
+      return () => {
+        cancelled = true;
+        cancelIdleCallback(idle_id);
+      };
+    }
+
+    const timeout_id = setTimeout(warm_billing, 400);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout_id);
+    };
   }, []);
 
   useEffect(() => {
     const handle_navigate_section = (e: Event) => {
-      const detail = (e as CustomEvent<string>).detail;
+      const next = resolve_settings_section(
+        read_settings_navigation((e as CustomEvent<unknown>).detail).section,
+      );
 
-      if (detail) {
-        set_section(detail as Section);
-        set_persisted_section(detail as Section);
+      if (next) {
+        set_section(next);
+        set_persisted_section(next);
         set_show_mobile_nav(false);
-        on_section_change_ref.current(detail as Section);
+        on_section_change_ref.current(next);
       }
     };
 
@@ -267,17 +376,23 @@ export function use_settings_content(props: SettingsContentProps) {
 
     if (cached !== null) set_dev_mode_enabled(cached);
 
+    let cancelled = false;
+
     const load_dev_mode = async () => {
       const vault = get_vault_from_memory();
       const result = await get_dev_mode(vault);
 
-      if (result.data === null) return;
+      if (cancelled || result.data === null) return;
 
       set_dev_mode_enabled(result.data);
       write_dev_mode_cache(current_account_id, result.data);
     };
 
     load_dev_mode();
+
+    return () => {
+      cancelled = true;
+    };
   }, [current_account_id]);
 
   useEffect(() => {
@@ -289,28 +404,25 @@ export function use_settings_content(props: SettingsContentProps) {
     };
 
     const handle_navigate_section = (e: Event) => {
-      const detail = (
-        e as CustomEvent<string | { section: string; anchor?: string }>
-      ).detail;
-      const value = (
-        typeof detail === "string" ? detail : detail?.section
-      ) as Section;
-      const anchor = typeof detail === "string" ? undefined : detail?.anchor;
+      const { section: requested, anchor } = read_settings_navigation(
+        (e as CustomEvent<unknown>).detail,
+      );
+      const value = resolve_settings_section(requested);
 
       if (!value) return;
 
+      set_show_mobile_nav(false);
+
+      if (value === section_ref.current) {
+        if (anchor) scroll_to_settings_anchor(anchor, true);
+
+        return;
+      }
+
+      if (anchor) set_pending_settings_anchor(anchor);
       set_section(value);
       set_persisted_section(value);
-      set_show_mobile_nav(false);
       on_section_change_ref.current(value);
-
-      if (anchor) {
-        requestAnimationFrame(() =>
-          document
-            .getElementById(anchor)
-            ?.scrollIntoView({ behavior: "smooth", block: "start" }),
-        );
-      }
     };
 
     const handle_plan_changed = () => {
@@ -344,6 +456,7 @@ export function use_settings_content(props: SettingsContentProps) {
       const modal_open = document.querySelector(
         '[role="dialog"]:not([data-state="closed"]), [role="alertdialog"]:not([data-state="closed"]), [aria-modal="true"]:not([data-state="closed"])',
       );
+
       if (modal_open) return;
       on_close();
     };
@@ -355,83 +468,93 @@ export function use_settings_content(props: SettingsContentProps) {
 
   useEffect(() => {
     content_container_ref.current?.scrollTo(0, 0);
+
+    const anchor = consume_pending_settings_anchor();
+
+    if (anchor) scroll_to_settings_anchor(anchor, true);
   }, [section]);
 
-  const nav_items = useMemo((): NavItems => {
-    const base = NAV_ITEMS_BASE;
-    const general = has_devices
-      ? base.general
-      : base.general.filter((item) => item.id !== "trusted_devices");
-    const mail = [...base.mail];
-    if (is_desktop_runtime()) {
-      mail.push({ id: "updates" as Section, label: t("settings.updates"), icon: ArrowDownTrayIcon, description: "Check for app updates and manage auto-update settings", keywords: ["update", "check for updates", "auto update", "automatic updates", "app version", "version history", "release notes", "update available"] });
-    }
-    if (dev_mode_enabled) {
-      mail.push({ id: "developer" as Section, label: t("settings.developer"), icon: CodeBracketIcon, description: "API tokens, developer mode, request logs, and diagnostics", keywords: ["developer", "dev mode", "api token", "access token", "debug", "request logs", "diagnostics", "developer tools"] });
-    }
-    return { general, mail };
-  }, [NAV_ITEMS_BASE, dev_mode_enabled, has_devices, t]);
+  const nav_items = useMemo((): NavItems => NAV_ITEMS_BASE, [NAV_ITEMS_BASE]);
 
   const is_searching = search_query.trim().length > 0;
 
   const search_results = useMemo(() => {
     const q = search_query.trim().toLowerCase();
+
     if (!q) return [] as NavItem[];
     const match = (item: NavItem) =>
       item.label.toLowerCase().includes(q) ||
       item.description.toLowerCase().includes(q) ||
       item.keywords.some((kw) => kw.includes(q));
-    return [...nav_items.general, ...nav_items.mail].filter(match);
+
+    return flatten_nav_items(nav_items).filter(match);
   }, [search_query, nav_items]);
 
   const { dynamic_entries } = use_search_registry();
 
   const registry_results = useMemo(() => {
     const q = search_query.trim().toLowerCase();
+
     if (q.length < 2) return [];
-    const visible_sections = new Set([
-      ...nav_items.general.map((i) => i.id),
-      ...nav_items.mail.map((i) => i.id),
-    ]);
-    const all = [...SETTINGS_SEARCH_REGISTRY, ...dynamic_entries];
+    const flat_items = flatten_nav_items(nav_items);
+    const visible_sections = new Set(flat_items.map((i) => i.id));
+    const section_labels = new Map(flat_items.map((i) => [i.id, i.label]));
+    const all = [...SETTINGS_SEARCH_REGISTRY, ...dynamic_entries].map(
+      (entry) => {
+        const target = resolve_nav_target(entry.section);
+        const section_label = section_labels.get(target.section);
+        const separator = entry.breadcrumb.indexOf(" > ");
+
+        return {
+          ...entry,
+          section: target.section,
+          tab: target.tab,
+          english_label: entry.label,
+          english_breadcrumb: entry.breadcrumb,
+          label: entry.label_key ? t(entry.label_key) : entry.label,
+          breadcrumb: !section_label
+            ? entry.breadcrumb
+            : separator === -1
+              ? section_label
+              : `${section_label} > ${entry.crumb_key ? t(entry.crumb_key) : entry.breadcrumb.slice(separator + 3)}`,
+        };
+      },
+    );
     const seen = new Set<string>();
-    return all.filter((entry) => {
-      if (!visible_sections.has(entry.section)) return false;
-      const matches =
-        entry.label.toLowerCase().includes(q) ||
-        entry.breadcrumb.toLowerCase().includes(q) ||
-        entry.keywords?.some((kw) => kw.includes(q));
-      if (!matches) return false;
-      const key = `${entry.section}::${entry.label}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    }).slice(0, 12);
-  }, [search_query, nav_items, dynamic_entries]);
+
+    return all
+      .filter((entry) => {
+        if (!visible_sections.has(entry.section)) return false;
+        const matches =
+          entry.label.toLowerCase().includes(q) ||
+          entry.english_label.toLowerCase().includes(q) ||
+          entry.breadcrumb.toLowerCase().includes(q) ||
+          entry.english_breadcrumb.toLowerCase().includes(q) ||
+          entry.keywords?.some((kw) => kw.includes(q));
+
+        if (!matches) return false;
+        const key = `${entry.section}::${entry.label}`;
+
+        if (seen.has(key)) return false;
+        seen.add(key);
+
+        return true;
+      })
+      .slice(0, 12);
+  }, [search_query, nav_items, dynamic_entries, t]);
 
   useEffect(() => {
     if (!scroll_target) return;
     const container = content_container_ref.current;
+
     if (!container) return;
-    const timer = setTimeout(() => {
-      const lower = scroll_target.toLowerCase();
-      const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, {
-        acceptNode(node) {
-          const tag = node.parentElement?.tagName.toLowerCase();
-          if (tag && ["script", "style", "input", "textarea"].includes(tag)) return NodeFilter.FILTER_REJECT;
-          return node.textContent?.toLowerCase().includes(lower)
-            ? NodeFilter.FILTER_ACCEPT
-            : NodeFilter.FILTER_REJECT;
-        },
-      });
-      const found = walker.nextNode() as Text | null;
-      const target_el = found?.parentElement;
-      if (target_el) {
-        target_el.scrollIntoView({ behavior: "smooth", block: "center" });
+
+    return start_scroll_seek(container, scroll_target, (target) => {
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
       }
       set_scroll_target(null);
-    }, 120);
-    return () => clearTimeout(timer);
+    });
   }, [scroll_target, section]);
 
   useLayoutEffect(() => {
@@ -507,6 +630,8 @@ export function use_settings_content(props: SettingsContentProps) {
     content_container_ref,
     nav_item_refs,
     handle_account_deleted,
+    has_devices,
+    dev_mode_enabled,
     nav_items,
     is_searching,
     search_results,

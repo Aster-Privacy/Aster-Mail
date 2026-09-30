@@ -1,8 +1,12 @@
 [package]
 name = "aster-mail-desktop"
-version = "1.4.63"
+version = "1.4.68"
 edition = "2021"
 license = "AGPL-3.0-or-later"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
@@ -12,7 +16,8 @@ tauri = { version = "2", features = ["tray-icon", "image-png"] }
 tauri-plugin-shell = "2"
 tauri-plugin-clipboard-manager = "2"
 tauri-plugin-notification = "2"
-tauri-plugin-single-instance = "2"
+tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }
+tauri-plugin-deep-link = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 tauri-plugin-dialog = "2"
@@ -43,6 +48,7 @@ rand_core = { version = "0.6", features = ["getrandom"] }
 whoami = "1"
 uuid = { version = "1", features = ["v4", "serde"] }
 keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
+tauri-plugin-window-state = "2"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2-app-kit = { version = "0.3", features = ["NSWorkspace"] }

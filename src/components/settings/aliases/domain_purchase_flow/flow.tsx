@@ -21,23 +21,47 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { motion } from "framer-motion";
 import {
+  ArrowLeftIcon,
   ArrowPathIcon,
-  AtSymbolIcon,
   CheckIcon,
   CreditCardIcon,
   CurrencyDollarIcon,
   ExclamationTriangleIcon,
-  GlobeAltIcon,
   LockClosedIcon,
   MagnifyingGlassIcon,
 } from "@heroicons/react/24/outline";
+import { CheckCircleIcon as CheckCircleSolid } from "@heroicons/react/24/solid";
+import { Button, Input } from "@aster/ui";
+
 import {
-  CheckCircleIcon as CheckCircleSolid,
-} from "@heroicons/react/24/solid";
-import {  Button, } from "@aster/ui";
+  filter_results,
+  sort_results,
+  paginate,
+  type results_filter,
+  type results_sort,
+} from "../domain_results_utils";
 
-import { Spinner } from "@/components/ui/spinner";
+import {
+  DomainPurchaseFlowProps,
+  PurchaseView,
+  ResultRow,
+  SkeletonRows,
+  TERMINAL_ORDER_STATUSES,
+  TermsSentence,
+  checkout_error_key,
+  read_checkout_draft,
+  write_checkout_draft,
+} from "./shared";
+import {
+  SEARCH_DEBOUNCE_MS,
+  SEARCH_MAX_GAP_RETRIES,
+  classify_search_failure,
+  search_start_delay,
+  throttle_wait_ms,
+} from "./search_pacing";
 
+import { apply_input_transform } from "@/utils/input_transform";
+import { ButtonSpinner, Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import {
@@ -53,17 +77,12 @@ import {
   type DomainSearchResult,
   type DomainOrder,
 } from "@/services/api/domains";
-import {
-  filter_results,
-  sort_results,
-  paginate,
-  type results_filter,
-  type results_sort,
-} from "../domain_results_utils";
-import type { } from "@/services/api/client";
+import type {} from "@/services/api/client";
 import { is_https_payment_url } from "@/lib/payment_url";
-import { BenefitList, DomainPurchaseFlowProps, INTRO_TLDS, PurchaseView, ResultRow, SkeletonRows, TERMINAL_ORDER_STATUSES, TermsSentence, checkout_error_key, mark_intro_seen, read_checkout_draft, read_intro_seen, write_checkout_draft } from "./shared";
-
+import { open_payment_url } from "@/services/api/billing";
+import { open_external } from "@/utils/open_link";
+import { is_tauri_env } from "@/services/api/client/helpers";
+import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
 
 export function DomainPurchaseFlow({
@@ -80,6 +99,7 @@ export function DomainPurchaseFlow({
   );
   const [view, set_view] = useState<PurchaseView>(() => {
     if (initial_order_id) return "progress";
+
     return restored_checkout.current ? "confirm" : "search";
   });
   const [query, set_query_state] = useState(() => {
@@ -95,23 +115,12 @@ export function DomainPurchaseFlow({
     try {
       sessionStorage.setItem("alias_domains_purchase_query", q);
     } catch (caught) {
-      ignore_error("components/settings/aliases/domain_purchase_flow/flow:set_query", caught);
+      ignore_error(
+        "components/settings/aliases/domain_purchase_flow/flow:set_query",
+        caught,
+      );
     }
   };
-  const [show_intro, set_show_intro] = useState(() => {
-    if (initial_order_id || initial_query) return false;
-    if (restored_checkout.current) return false;
-    if (read_intro_seen()) return false;
-    try {
-      return !(
-        sessionStorage.getItem("alias_domains_purchase_query") ?? ""
-      ).trim();
-    } catch {
-      return true;
-    }
-  });
-  const [intro_tld, set_intro_tld] = useState<string | null>(null);
-  const [intro_step, set_intro_step] = useState(0);
   const [searching, set_searching] = useState(false);
   const [results, set_results] = useState<DomainSearchResult[]>([]);
   const [suggestions, set_suggestions] = useState<DomainSearchResult[]>([]);
@@ -126,6 +135,8 @@ export function DomainPurchaseFlow({
   const [loading_more_suggestions, set_loading_more_suggestions] =
     useState(false);
   const [error, set_error] = useState<string | null>(null);
+  const [throttled_until, set_throttled_until] = useState<number | null>(null);
+  const [rate_limited, set_rate_limited] = useState(false);
   const [unavailable, set_unavailable] = useState(false);
   const [selected, set_selected] = useState<DomainSearchResult | null>(
     restored_checkout.current?.selected ?? null,
@@ -136,15 +147,32 @@ export function DomainPurchaseFlow({
   );
   const [buying, set_buying] = useState(false);
   const [order, set_order] = useState<DomainOrder | null>(null);
-  const [order_id] = useState<string | null>(initial_order_id ?? null);
+  const [order_id, set_order_id] = useState<string | null>(
+    initial_order_id ?? null,
+  );
+  const [checkout_url, set_checkout_url] = useState<string | null>(null);
   const [poll_count, set_poll_count] = useState(0);
   const [captcha_token, set_captcha_token] = useState<string | null>(null);
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
   const debounce_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
   const retry_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
   const query_ref = useRef("");
+  const rate_limit_retries = useRef(0);
+  const in_flight_ref = useRef(false);
+  const pending_query_ref = useRef<string | null>(null);
+  const last_started_ref = useRef<number | null>(null);
+  const blocked_until_ref = useRef(0);
+  const auto_retried_query_ref = useRef<string | null>(null);
+  const pump_ref = useRef<() => void>(() => {});
   const purchased_notified = useRef(false);
   const turnstile_required = !!TURNSTILE_SITE_KEY;
+
+  useEffect(() => {
+    if (initial_order_id) {
+      set_order_id(initial_order_id);
+      set_view("progress");
+    }
+  }, [initial_order_id]);
 
   useEffect(() => {
     if (view === "confirm" && selected) {
@@ -154,11 +182,135 @@ export function DomainPurchaseFlow({
     }
   }, [view, selected, years, payment_method]);
 
+  const note_throttled = useCallback(
+    (response: Parameters<typeof throttle_wait_ms>[0]) => {
+      const now = Date.now();
+      const until = now + throttle_wait_ms(response, now);
+
+      blocked_until_ref.current = Math.max(blocked_until_ref.current, until);
+      set_throttled_until(blocked_until_ref.current);
+    },
+    [],
+  );
+
+  const execute_search = useCallback(
+    async (trimmed: string) => {
+      const is_current_search = () =>
+        query_ref.current.trim() === trimmed &&
+        (pending_query_ref.current === null ||
+          pending_query_ref.current === trimmed);
+
+      in_flight_ref.current = true;
+      last_started_ref.current = Date.now();
+      set_searching(true);
+      set_error(null);
+      set_rate_limited(false);
+      set_unavailable(false);
+      set_throttled_until(null);
+      let response: Awaited<ReturnType<typeof search_purchasable_domains>>;
+
+      try {
+        response = await search_purchasable_domains(trimmed);
+      } catch {
+        in_flight_ref.current = false;
+        if (is_current_search()) {
+          set_searching(false);
+          set_error(t("settings.domain_purchase_search_failed"));
+        }
+        pump_ref.current();
+
+        return;
+      }
+      in_flight_ref.current = false;
+      const kind = response.data ? null : classify_search_failure(response);
+
+      if (kind === "throttled") note_throttled(response);
+      const current = is_current_search();
+
+      if (current) pending_query_ref.current = null;
+
+      if (current && response.data) {
+        rate_limit_retries.current = 0;
+        set_results(response.data.results);
+        set_suggestions(response.data.suggestions ?? []);
+        set_has_more_suggestions(response.data.has_more_suggestions ?? false);
+        set_suggest_pages(response.data.next_suggest_page ?? 1);
+        set_results_query(trimmed);
+        set_searching(false);
+      } else if (current && kind === "throttled") {
+        set_searching(false);
+        set_rate_limited(true);
+        if (auto_retried_query_ref.current !== trimmed) {
+          auto_retried_query_ref.current = trimmed;
+          pending_query_ref.current = trimmed;
+        }
+      } else if (
+        current &&
+        kind === "slow_down" &&
+        rate_limit_retries.current < SEARCH_MAX_GAP_RETRIES
+      ) {
+        rate_limit_retries.current += 1;
+        pending_query_ref.current = trimmed;
+      } else if (current && kind === "slow_down") {
+        rate_limit_retries.current = 0;
+        set_searching(false);
+        set_rate_limited(true);
+      } else if (current) {
+        rate_limit_retries.current = 0;
+        set_searching(false);
+        if (kind === "not_released") {
+          set_unavailable(true);
+          set_error(t("settings.domain_purchase_not_released"));
+        } else {
+          set_error(t("settings.domain_purchase_search_failed"));
+        }
+      }
+      pump_ref.current();
+    },
+    [t, note_throttled],
+  );
+
+  const pump_search = useCallback(() => {
+    if (in_flight_ref.current) return;
+    const next = pending_query_ref.current;
+
+    if (next === null) return;
+    const delay = search_start_delay(
+      Date.now(),
+      last_started_ref.current,
+      blocked_until_ref.current,
+    );
+
+    if (retry_ref.current) clearTimeout(retry_ref.current);
+    retry_ref.current = null;
+    if (blocked_until_ref.current > Date.now()) {
+      set_searching(false);
+      set_error(null);
+      set_rate_limited(true);
+      set_throttled_until(blocked_until_ref.current);
+    }
+    if (delay > 0) {
+      retry_ref.current = setTimeout(() => {
+        retry_ref.current = null;
+        pump_ref.current();
+      }, delay);
+
+      return;
+    }
+    pending_query_ref.current = null;
+    void execute_search(next);
+  }, [execute_search]);
+
+  pump_ref.current = pump_search;
+
   const run_search = useCallback(
-    async (q: string) => {
+    (q: string) => {
       const trimmed = q.trim();
 
       if (trimmed.length < 3) {
+        pending_query_ref.current = null;
+        if (retry_ref.current) clearTimeout(retry_ref.current);
+        retry_ref.current = null;
         set_results([]);
         set_suggestions([]);
         set_has_more_suggestions(false);
@@ -168,82 +320,42 @@ export function DomainPurchaseFlow({
 
         return;
       }
-      set_searching(true);
-      set_error(null);
-      set_unavailable(false);
-      try {
-        const response = await search_purchasable_domains(trimmed);
-
-        if (query_ref.current.trim() !== trimmed) return;
-        if (response.data) {
-          set_results(response.data.results);
-          set_suggestions(response.data.suggestions ?? []);
-          set_has_more_suggestions(
-            response.data.has_more_suggestions ?? false,
-          );
-          set_suggest_pages(response.data.next_suggest_page ?? 1);
-          set_results_query(trimmed);
-          set_searching(false);
-        } else {
-          if (response.code === "RATE_LIMIT_EXCEEDED") {
-            if (retry_ref.current) clearTimeout(retry_ref.current);
-            retry_ref.current = setTimeout(() => {
-              if (query_ref.current.trim() === trimmed) run_search(trimmed);
-            }, 1100);
-
-            return;
-          }
-          set_searching(false);
-          if (response.code === "NOT_FOUND") {
-            set_unavailable(true);
-            set_error(t("settings.domain_purchase_not_released"));
-          } else {
-            set_error(t("settings.domain_purchase_search_failed"));
-          }
-        }
-      } catch {
-        if (query_ref.current.trim() !== trimmed) return;
-        set_searching(false);
-        set_error(t("settings.domain_purchase_search_failed"));
-      }
+      pending_query_ref.current = trimmed;
+      if (Date.now() >= blocked_until_ref.current) set_searching(true);
+      pump_search();
     },
-    [t],
+    [pump_search],
   );
-
-  useEffect(() => {
-    const handle_header_back = () => {
-      if (view === "confirm") {
-        set_view("search");
-        set_error(null);
-      } else {
-        on_done();
-      }
-    };
-
-    window.addEventListener(
-      "aster:domain-purchase-header-back",
-      handle_header_back,
-    );
-
-    return () =>
-      window.removeEventListener(
-        "aster:domain-purchase-header-back",
-        handle_header_back,
-      );
-  }, [view, on_done]);
 
   useEffect(() => {
     if (view !== "search") return;
     query_ref.current = query;
+    rate_limit_retries.current = 0;
+    pending_query_ref.current = null;
     if (debounce_ref.current) clearTimeout(debounce_ref.current);
     if (retry_ref.current) clearTimeout(retry_ref.current);
-    debounce_ref.current = setTimeout(() => run_search(query), 800);
+    retry_ref.current = null;
+    debounce_ref.current = setTimeout(
+      () => run_search(query),
+      SEARCH_DEBOUNCE_MS,
+    );
 
     return () => {
       if (debounce_ref.current) clearTimeout(debounce_ref.current);
       if (retry_ref.current) clearTimeout(retry_ref.current);
+      retry_ref.current = null;
     };
   }, [query, view, run_search]);
+
+  useEffect(() => {
+    if (throttled_until === null) return;
+    const timer = setTimeout(
+      () => set_throttled_until(null),
+      Math.max(0, throttled_until - Date.now()),
+    );
+
+    return () => clearTimeout(timer);
+  }, [throttled_until]);
 
   useEffect(() => {
     if (view !== "progress" || !order_id) return;
@@ -306,7 +418,20 @@ export function DomainPurchaseFlow({
           );
           sessionStorage.removeItem("alias_domains_purchase_query");
         } catch (caught) {
-          ignore_error("components/settings/aliases/domain_purchase_flow/flow:handle_buy", caught);
+          ignore_error(
+            "components/settings/aliases/domain_purchase_flow/flow:handle_buy",
+            caught,
+          );
+        }
+        if (is_tauri_env()) {
+          await open_payment_url(response.data.checkout_url);
+          set_checkout_url(response.data.checkout_url);
+          set_order_id(response.data.order_id);
+          set_order(null);
+          set_view("progress");
+          set_buying(false);
+
+          return;
         }
         window.location.href = response.data.checkout_url;
       } else {
@@ -325,13 +450,17 @@ export function DomainPurchaseFlow({
 
   const progress_steps: { key: string; label: string }[] = [
     { key: "paid", label: t("settings.domain_purchase_step_payment") },
-    { key: "registering", label: t("settings.domain_purchase_step_registering") },
+    {
+      key: "registering",
+      label: t("settings.domain_purchase_step_registering"),
+    },
     { key: "configuring_dns", label: t("settings.domain_purchase_step_dns") },
     { key: "activating", label: t("settings.domain_purchase_step_activating") },
     { key: "complete", label: t("settings.domain_purchase_step_done") },
   ];
 
   const status = order?.status ?? "paid";
+  const awaiting_payment = status === "pending_payment";
   const step_index =
     status === "complete"
       ? progress_steps.length
@@ -342,8 +471,7 @@ export function DomainPurchaseFlow({
   const failed =
     status === "refund_pending" || status === "refunded" || status === "failed";
   const closed = status === "expired" || status === "lapsed";
-  const slow =
-    poll_count > 20 && status !== "complete" && !failed && !closed;
+  const slow = poll_count > 20 && status !== "complete" && !failed && !closed;
   const complete = status === "complete" && order !== null;
 
   const selected_total =
@@ -353,10 +481,14 @@ export function DomainPurchaseFlow({
           Math.max(0, years - 1)
       : null;
   const showing_stale = searching && results_query !== query.trim();
+  const active_search = query.trim().length >= 3;
   const has_rows = results.length > 0 || suggestions.length > 0;
   const filtered_results = useMemo(
     () =>
-      sort_results(filter_results(results, filter, active_tld, max_price), sort),
+      sort_results(
+        filter_results(results, filter, active_tld, max_price),
+        sort,
+      ),
     [results, filter, active_tld, max_price, sort],
   );
   const visible_results = paginate(filtered_results, visible_count);
@@ -377,10 +509,28 @@ export function DomainPurchaseFlow({
     const trimmed = results_query;
 
     if (!trimmed || loading_more_suggestions) return;
+    if (Date.now() < blocked_until_ref.current) {
+      show_toast(t("settings.domain_purchase_search_rate_limited"), "error");
+
+      return;
+    }
     set_loading_more_suggestions(true);
     try {
+      const delay = search_start_delay(
+        Date.now(),
+        last_started_ref.current,
+        blocked_until_ref.current,
+      );
+
+      if (delay > 0) {
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+      last_started_ref.current = Date.now();
       const response = await search_purchasable_domains(trimmed, suggest_pages);
 
+      if (!response.data && classify_search_failure(response) === "throttled") {
+        note_throttled(response);
+      }
       if (query_ref.current.trim() !== trimmed) return;
       if (response.data) {
         const incoming = response.data.suggestions ?? [];
@@ -392,9 +542,17 @@ export function DomainPurchaseFlow({
         });
         set_suggest_pages(response.data.next_suggest_page ?? suggest_pages + 1);
         set_has_more_suggestions(response.data.has_more_suggestions ?? false);
+      } else if (classify_search_failure(response) === "throttled") {
+        show_toast(t("settings.domain_purchase_search_rate_limited"), "error");
+      } else {
+        show_toast(t("settings.domain_purchase_search_failed"), "error");
       }
     } catch (caught) {
-      ignore_error("components/settings/aliases/domain_purchase_flow/flow:load_more_suggestions", caught);
+      show_toast(t("settings.domain_purchase_search_failed"), "error");
+      ignore_error(
+        "components/settings/aliases/domain_purchase_flow/flow:load_more_suggestions",
+        caught,
+      );
     } finally {
       set_loading_more_suggestions(false);
     }
@@ -413,13 +571,13 @@ export function DomainPurchaseFlow({
           }
         })(),
       })}
-      title={t("settings.domain_purchase_leave_title")}
-      variant="info"
       on_cancel={() => set_leave_url(null)}
       on_confirm={() => {
-        if (leave_url) window.open(leave_url, "_blank", "noopener");
+        if (leave_url) open_external(leave_url);
         set_leave_url(null);
       }}
+      title={t("settings.domain_purchase_leave_title")}
+      variant="info"
     />
   );
 
@@ -476,6 +634,48 @@ export function DomainPurchaseFlow({
               </Button>
             </div>
           </motion.div>
+        ) : !order ? (
+          <div className="flex justify-center py-16">
+            <Spinner className="text-txt-muted" size="md" />
+          </div>
+        ) : awaiting_payment ? (
+          <div className="flex flex-col items-center text-center py-4">
+            <p className="text-lg font-semibold text-txt-primary mb-1.5">
+              {order.domain}
+            </p>
+            <p className="text-sm font-medium text-txt-primary mb-2">
+              {t("settings.domain_purchase_purchased_awaiting")}
+            </p>
+            <p className="text-sm text-txt-secondary max-w-[380px] mb-6">
+              {t("settings.domain_purchase_awaiting_note")}
+            </p>
+            <div className="flex flex-col items-center gap-2 w-full max-w-[280px]">
+              {checkout_url && (
+                <Button
+                  className="w-full"
+                  variant="depth"
+                  onClick={() => void open_payment_url(checkout_url)}
+                >
+                  {t("settings.domain_purchase_open_checkout")}
+                </Button>
+              )}
+              <Button
+                className="w-full"
+                variant={checkout_url ? "outline" : "depth"}
+                onClick={() => {
+                  set_query(order.domain);
+                  set_order(null);
+                  set_checkout_url(null);
+                  set_view("search");
+                }}
+              >
+                {t("settings.domain_purchase_complete_cta")}
+              </Button>
+              <Button className="w-full" variant="ghost" onClick={on_done}>
+                {t("common.close")}
+              </Button>
+            </div>
+          </div>
         ) : (
           <div>
             <p className="text-base font-semibold text-txt-primary mb-2 text-center">
@@ -492,22 +692,28 @@ export function DomainPurchaseFlow({
                 const active = i === step_index;
 
                 return (
-                  <div key={step.key} className="flex items-center gap-3 py-2.5">
+                  <div
+                    key={step.key}
+                    className="flex items-center gap-3 py-2.5"
+                  >
                     {done ? (
                       <CheckCircleSolid className="w-6 h-6 text-green-500 flex-shrink-0" />
                     ) : active ? (
                       <span className="w-6 h-6 flex items-center justify-center flex-shrink-0">
-                        <Spinner className="text-[var(--accent-color)]" size="sm" />
+                        <Spinner
+                          className="text-[var(--accent-color)]"
+                          size="sm"
+                        />
                       </span>
                     ) : (
                       <span className="w-6 h-6 rounded-full border-2 border-edge-secondary flex-shrink-0" />
                     )}
                     <span
-                      className={`text-sm ${
+                      className={`text-sm font-medium ${
                         done
                           ? "text-txt-secondary"
                           : active
-                            ? "font-semibold text-txt-primary"
+                            ? "text-txt-primary"
                             : "text-txt-muted"
                       }`}
                     >
@@ -531,6 +737,17 @@ export function DomainPurchaseFlow({
   if (view === "confirm" && selected) {
     return (
       <div>
+        <button
+          className="flex items-center gap-1.5 mb-4 -ms-1.5 px-1.5 py-1 rounded-[var(--aster-radius-control)] text-[13px] font-medium text-txt-secondary hover:text-txt-primary hover:bg-surf-secondary transition-colors"
+          type="button"
+          onClick={() => {
+            set_view("search");
+            set_error(null);
+          }}
+        >
+          <ArrowLeftIcon className="w-4 h-4 rtl:-scale-x-100" />
+          {t("common.back")}
+        </button>
         <div className="grid grid-cols-1 md:grid-cols-[1fr_340px] md:grid-rows-[auto_auto_1fr] gap-x-6 gap-y-5 items-start">
           <div className="md:col-start-1 md:row-start-1">
             <div>
@@ -541,9 +758,9 @@ export function DomainPurchaseFlow({
                 {[1, 2, 3].map((y) => (
                   <button
                     key={y}
-                    className={`flex-1 h-10 rounded-full border text-sm transition-colors ${
+                    className={`flex-1 h-10 rounded-full border text-sm font-medium transition-colors ${
                       years === y
-                        ? "border-transparent text-[var(--accent-fg,#ffffff)] font-semibold bg-[var(--accent-color)]"
+                        ? "border-transparent text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)]"
                         : "border-edge-secondary text-txt-secondary hover:bg-surf-secondary"
                     }`}
                     onClick={() => set_years(y)}
@@ -563,15 +780,23 @@ export function DomainPurchaseFlow({
               <div className="flex gap-2">
                 {(
                   [
-                    ["stripe", CreditCardIcon, t("settings.domain_purchase_pay_card")],
-                    ["crypto", CurrencyDollarIcon, t("settings.domain_purchase_pay_crypto")],
+                    [
+                      "stripe",
+                      CreditCardIcon,
+                      t("settings.domain_purchase_pay_card"),
+                    ],
+                    [
+                      "crypto",
+                      CurrencyDollarIcon,
+                      t("settings.domain_purchase_pay_crypto"),
+                    ],
                   ] as const
                 ).map(([method, Icon, label]) => (
                   <button
                     key={method}
-                    className={`flex-1 h-10 rounded-full border text-sm flex items-center justify-center gap-2 transition-colors ${
+                    className={`flex-1 h-10 rounded-full border text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
                       payment_method === method
-                        ? "border-transparent text-[var(--accent-fg,#ffffff)] font-semibold bg-[var(--accent-color)]"
+                        ? "border-transparent text-[var(--accent-fg,#ffffff)] bg-[var(--accent-color)]"
                         : "border-edge-secondary text-txt-secondary hover:bg-surf-secondary"
                     }`}
                     onClick={() => set_payment_method(method)}
@@ -599,7 +824,6 @@ export function DomainPurchaseFlow({
                 <p className="text-sm text-txt-primary">{error}</p>
               </div>
             )}
-
           </div>
 
           <div className="order-3 md:order-none md:col-start-1 md:row-start-2">
@@ -686,7 +910,7 @@ export function DomainPurchaseFlow({
                   </span>
                 </div>
                 {selected.renewal_price_cents !== null && (
-                  <p className="text-[12px] text-txt-muted mt-1.5 text-right">
+                  <p className="text-[12px] text-txt-muted mt-1.5 text-end">
                     {t("settings.domain_purchase_renews_at", {
                       price: format_domain_price(
                         selected.renewal_price_cents,
@@ -701,16 +925,13 @@ export function DomainPurchaseFlow({
                   variant="depth"
                   onClick={handle_buy}
                 >
-                  {buying ? (
-                    <Spinner size="sm" />
-                  ) : (
-                    t("settings.domain_purchase_buy", {
-                      price: format_domain_price(
-                        selected_total,
-                        selected.currency,
-                      ),
-                    })
-                  )}
+                  {t("settings.domain_purchase_buy", {
+                    price: format_domain_price(
+                      selected_total,
+                      selected.currency,
+                    ),
+                  })}
+                  {buying && <ButtonSpinner />}
                 </Button>
               </div>
             </div>
@@ -733,166 +954,31 @@ export function DomainPurchaseFlow({
     );
   }
 
-  const intro_base = query.includes(".")
-    ? query.slice(0, query.indexOf("."))
-    : query;
-  const compose_intro_query = (name: string, tld: string | null) => {
-    const trimmed = name.trim();
-
-    return tld && trimmed ? `${trimmed}.${tld}` : trimmed;
-  };
-
-  if (show_intro) {
-    const finish_intro = () => {
-      mark_intro_seen();
-      set_show_intro(false);
-    };
-
-    return (
-      <div>
-        <div className="max-w-[640px] mx-auto py-10">
-          <div
-            className="relative overflow-hidden rounded-2xl h-28 mb-8"
-            style={{
-              background:
-                "linear-gradient(135deg, var(--accent-mix-b70, #295bac) 0%, var(--accent-mix-b85, #326fd1) 40%, var(--accent-color-hover) 70%, var(--accent-color) 100%)",
-            }}
-          >
-            <div className="absolute inset-0 flex items-center justify-center gap-3 pointer-events-none">
-              <GlobeAltIcon
-                className="w-9 h-9 text-white/[0.25]"
-                style={{ transform: "translateY(-6px) rotate(-12deg)" }}
-              />
-              <AtSymbolIcon className="w-16 h-16 text-white/[0.5]" />
-              <GlobeAltIcon
-                className="w-11 h-11 text-white/[0.18]"
-                style={{ transform: "translateY(8px) rotate(15deg)" }}
-              />
-            </div>
-          </div>
-          {intro_step === 0 ? (
-            <>
-              <h3 className="text-2xl font-semibold text-txt-primary text-center">
-                {t("settings.domain_purchase_intro_title")}
-              </h3>
-              <p className="text-sm text-txt-muted text-center mt-2 mb-10 max-w-[440px] mx-auto">
-                {t("settings.domain_purchase_intro_sub")}
-              </p>
-              <p className="text-[15px] font-medium text-txt-primary mb-3">
-                {t("settings.domain_purchase_intro_name_q")}
-              </p>
-              <input
-                autoFocus
-                className="w-full h-14 px-6 rounded-full bg-surf-secondary border border-edge-secondary text-lg text-txt-primary placeholder:text-txt-muted placeholder:text-base outline-none focus:border-[var(--accent-color)]/70 transition-colors"
-                placeholder={t("settings.domain_purchase_intro_name_ph")}
-                value={intro_base}
-                onChange={(e) =>
-                  set_query(
-                    compose_intro_query(
-                      e.target.value.toLowerCase(),
-                      intro_tld,
-                    ),
-                  )
-                }
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && query.trim()) set_intro_step(1);
-                }}
-              />
-              <Button
-                className="w-full mt-8 h-12"
-                disabled={!query.trim()}
-                variant="depth"
-                onClick={() => set_intro_step(1)}
-              >
-                {t("common.continue")}
-              </Button>
-              <button
-                className="block mx-auto mt-2 px-4 py-3 min-h-[44px] text-[13px] text-txt-muted hover:underline"
-                onClick={finish_intro}
-              >
-                {t("settings.domain_purchase_intro_skip")}
-              </button>
-            </>
-          ) : (
-            <>
-              <h3 className="text-2xl font-semibold text-txt-primary text-center">
-                {t("settings.domain_purchase_intro_tld_title")}
-              </h3>
-              <p className="text-sm text-txt-muted text-center mt-2 mb-10 max-w-[460px] mx-auto">
-                {t("settings.domain_purchase_intro_tld_sub")}
-              </p>
-              <div className="flex flex-wrap justify-center gap-2.5">
-                {INTRO_TLDS.map((tld) => (
-                  <button
-                    key={tld}
-                    className={`h-11 px-6 rounded-full border text-[15px] transition-colors ${
-                      intro_tld === tld
-                        ? "border-transparent text-[var(--accent-fg,#ffffff)] font-semibold bg-[var(--accent-color)]"
-                        : "border-edge-secondary text-txt-secondary hover:bg-surf-secondary"
-                    }`}
-                    onClick={() => {
-                      set_intro_tld(tld);
-                      set_query(compose_intro_query(intro_base, tld));
-                    }}
-                  >
-                    .{tld}
-                  </button>
-                ))}
-                <button
-                  className={`h-11 px-6 rounded-full border text-[15px] transition-colors ${
-                    intro_tld === null
-                      ? "border-transparent text-[var(--accent-fg,#ffffff)] font-semibold bg-[var(--accent-color)]"
-                      : "border-edge-secondary text-txt-secondary hover:bg-surf-secondary"
-                  }`}
-                  onClick={() => {
-                    set_intro_tld(null);
-                    set_query(compose_intro_query(intro_base, null));
-                  }}
-                >
-                  {t("settings.domain_purchase_filter_all")}
-                </button>
-              </div>
-              <Button
-                className="w-full mt-10 h-12"
-                disabled={!query.trim()}
-                variant="depth"
-                onClick={finish_intro}
-              >
-                {t("settings.domain_purchase_intro_cta")}
-              </Button>
-              <button
-                className="block mx-auto mt-2 px-4 py-3 min-h-[44px] text-[13px] text-txt-muted hover:underline"
-                onClick={() => set_intro_step(0)}
-              >
-                {t("common.back")}
-              </button>
-            </>
-          )}
-        </div>
-        {leave_modal}
-      </div>
-    );
-  }
-
   return (
     <div>
       <div>
         <div className="relative">
-          <MagnifyingGlassIcon className="w-[18px] h-[18px] absolute left-4 top-1/2 -translate-y-1/2 text-txt-muted" />
-          <input
+          <MagnifyingGlassIcon className="w-[18px] h-[18px] absolute start-4 top-1/2 -translate-y-1/2 text-txt-muted" />
+          <Input
             autoFocus
-            className="w-full h-12 pl-11 pr-11 rounded-full bg-surf-secondary border border-edge-secondary text-[15px] text-txt-primary placeholder:text-txt-muted outline-none focus:border-[var(--accent-color)]/70 transition-colors"
+            className="ps-11 pe-11"
             placeholder={t("settings.domain_purchase_search_placeholder")}
+            size="xl"
             value={query}
-            onChange={(e) => set_query(e.target.value.toLowerCase())}
+            onChange={(e) =>
+              set_query(apply_input_transform(e.target, (v) => v.toLowerCase()))
+            }
           />
           {searching && (
-            <Spinner className="absolute right-4 top-1/2 -translate-y-1/2 text-txt-muted" size="sm" />
+            <Spinner
+              className="absolute end-4 top-1/2 -translate-y-1/2 text-txt-muted"
+              size="sm"
+            />
           )}
         </div>
 
-        <div className={query.trim() ? "mt-3 min-h-[300px]" : ""}>
-          {!query.trim() ? null : error ? (
+        <div className={active_search ? "mt-3 min-h-[300px]" : ""}>
+          {!active_search ? null : error ? (
             <div className="flex flex-col items-center justify-center text-center h-[280px]">
               {!unavailable && (
                 <ExclamationTriangleIcon className="w-8 h-8 text-yellow-500 mb-3" />
@@ -900,12 +986,26 @@ export function DomainPurchaseFlow({
               <p className="text-sm text-txt-secondary max-w-[300px] mb-4">
                 {error}
               </p>
-              {!unavailable && (
-                <Button size="sm" variant="outline" onClick={() => run_search(query)}>
-                  <ArrowPathIcon className="w-4 h-4 mr-1.5" />
+              {!unavailable && throttled_until === null && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => run_search(query)}
+                >
+                  <ArrowPathIcon className="w-4 h-4 me-1.5" />
                   {t("settings.domain_purchase_retry")}
                 </Button>
               )}
+            </div>
+          ) : rate_limited && !has_rows ? (
+            <div
+              className="flex flex-col items-center justify-center text-center h-[280px]"
+              role="status"
+            >
+              <ExclamationTriangleIcon className="w-8 h-8 text-yellow-500 mb-3" />
+              <p className="text-sm text-txt-secondary max-w-[300px]">
+                {t("settings.domain_purchase_search_rate_limited")}
+              </p>
             </div>
           ) : !has_rows ? (
             searching || !results_query ? (
@@ -918,115 +1018,130 @@ export function DomainPurchaseFlow({
               </div>
             )
           ) : (
-            <div
-              className={`transition-opacity divide-y divide-edge-secondary/60 ${
-                showing_stale ? "opacity-40" : "opacity-100"
-              }`}
-            >
-              <div className="flex flex-col items-start gap-1 pt-5 pb-4 px-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
-                <div className="min-w-0 max-w-full">
-                  <h3 className="text-lg font-semibold text-txt-primary truncate">
-                    {t("settings.domain_purchase_results_for", {
-                      name: results_query,
-                    })}
-                  </h3>
-                  <p className="text-[13px] text-txt-muted mt-0.5">
-                    {t("settings.domain_purchase_results_for_sub")}
+            <>
+              {rate_limited && (
+                <div
+                  className="flex items-start gap-2 mb-2 px-3 py-2.5 rounded-lg bg-yellow-500/10"
+                  role="status"
+                >
+                  <ExclamationTriangleIcon className="w-4 h-4 mt-0.5 text-yellow-500 flex-shrink-0" />
+                  <p className="text-sm text-txt-secondary">
+                    {t("settings.domain_purchase_search_rate_limited")}
                   </p>
                 </div>
-                <button
-                  className="flex-shrink-0 -mx-2 px-2 py-2 min-h-[40px] text-[13px] font-medium text-[var(--accent-color)] hover:underline"
-                  onClick={() => {
-                    set_intro_step(0);
-                    set_show_intro(true);
-                  }}
-                >
-                  {t("settings.domain_purchase_change_name")}
-                </button>
-              </div>
-              <div className="pb-1">
-                {results.length > 0 && filtered_results.length === 0 && (
-                  <p className="px-3 py-8 text-center text-sm text-txt-muted">
-                    {t("settings.domain_purchase_no_results")}
-                  </p>
-                )}
-                {best_match && (
-                  <ResultRow
-                    primary
-                    result={best_match}
-                    on_select={(r) => {
-                      set_selected(r);
-                      set_error(null);
-                      set_view("confirm");
-                    }}
-                  />
-                )}
-                {rest_results.map((result) => (
-                  <ResultRow
-                    key={result.domain}
-                    result={result}
-                    on_select={(r) => {
-                      set_selected(r);
-                      set_error(null);
-                      set_view("confirm");
-                    }}
-                  />
-                ))}
-                {filtered_results.length > visible_count && (
-                  <div className="flex justify-center pt-2 pb-1">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => set_visible_count((c) => c + 10)}
-                    >
-                      {t("settings.domain_purchase_show_more")}
-                    </Button>
+              )}
+              <div
+                className={`transition-opacity divide-y divide-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))] ${
+                  showing_stale ? "opacity-40" : "opacity-100"
+                }`}
+              >
+                <div className="flex flex-col items-start gap-1 pt-4 pb-3 px-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+                  <div className="min-w-0 max-w-full">
+                    <h3 className="text-[15px] font-semibold text-txt-primary truncate">
+                      {t("settings.domain_purchase_results_for", {
+                        name: results_query,
+                      })}
+                    </h3>
                   </div>
-                )}
+                  <button
+                    className="flex-shrink-0 -mx-2 px-2 py-2 min-h-[40px] text-[13px] font-medium text-[var(--accent-color)] hover:underline"
+                    onClick={() => {
+                      set_query("");
+                    }}
+                  >
+                    {t("settings.domain_purchase_change_name")}
+                  </button>
+                </div>
+                <div className="pb-1">
+                  {results.length > 0 && filtered_results.length === 0 && (
+                    <p className="px-3 py-8 text-center text-sm text-txt-muted">
+                      {t("settings.domain_purchase_no_results")}
+                    </p>
+                  )}
+                  {best_match && (
+                    <ResultRow
+                      primary
+                      on_select={(r) => {
+                        set_selected(r);
+                        set_error(null);
+                        set_view("confirm");
+                      }}
+                      result={best_match}
+                    />
+                  )}
+                  {rest_results.map((result) => (
+                    <ResultRow
+                      key={result.domain}
+                      on_select={(r) => {
+                        set_selected(r);
+                        set_error(null);
+                        set_view("confirm");
+                      }}
+                      result={result}
+                    />
+                  ))}
+                  {filtered_results.length > visible_count && (
+                    <div className="flex justify-center pt-2 pb-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => set_visible_count((c) => c + 10)}
+                      >
+                        {t("settings.domain_purchase_show_more")}
+                      </Button>
+                    </div>
+                  )}
+                </div>
+                {(suggestions.length > 0 || has_more_suggestions) &&
+                  active_tld === null && (
+                    <div className="pt-2">
+                      {suggestions.length > 0 && (
+                        <p className="px-3 pt-2 pb-1.5 text-[12px] font-semibold uppercase tracking-wide text-txt-muted">
+                          {t("settings.domain_purchase_try_instead")}
+                        </p>
+                      )}
+                      {suggestions.map((result) => (
+                        <ResultRow
+                          key={result.domain}
+                          on_select={(r) => {
+                            set_selected(r);
+                            set_error(null);
+                            set_view("confirm");
+                          }}
+                          result={result}
+                        />
+                      ))}
+                      {has_more_suggestions && (
+                        <div className="flex justify-center pt-2 pb-1">
+                          <Button
+                            disabled={loading_more_suggestions}
+                            size="sm"
+                            variant="ghost"
+                            onClick={load_more_suggestions}
+                          >
+                            {t("settings.domain_purchase_more_suggestions")}
+                            {loading_more_suggestions && <ButtonSpinner />}
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
               </div>
-              {(suggestions.length > 0 || has_more_suggestions) &&
-                active_tld === null && (
-                  <div className="pt-2">
-                    {suggestions.length > 0 && (
-                      <p className="px-3 pt-2 pb-1.5 text-[12px] font-semibold uppercase tracking-wide text-txt-muted">
-                        {t("settings.domain_purchase_try_instead")}
-                      </p>
-                    )}
-                    {suggestions.map((result) => (
-                      <ResultRow
-                        key={result.domain}
-                        result={result}
-                        on_select={(r) => {
-                          set_selected(r);
-                          set_error(null);
-                          set_view("confirm");
-                        }}
-                      />
-                    ))}
-                    {has_more_suggestions && (
-                      <div className="flex justify-center pt-2 pb-1">
-                        <Button
-                          disabled={loading_more_suggestions}
-                          size="sm"
-                          variant="ghost"
-                          onClick={load_more_suggestions}
-                        >
-                          {loading_more_suggestions ? (
-                            <Spinner size="sm" />
-                          ) : (
-                            t("settings.domain_purchase_more_suggestions")
-                          )}
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-                )}
-            </div>
+            </>
           )}
         </div>
       </div>
 
-      {!query.trim() && !searching && !has_rows && <BenefitList />}
+      {!active_search && (
+        <div className="px-6 py-12 text-center">
+          <p className="text-sm leading-relaxed text-txt-secondary max-w-[46ch] mx-auto">
+            {t("settings.domain_purchase_empty_subtitle")}
+          </p>
+          <p className="text-xs leading-relaxed text-txt-muted mt-3 max-w-[52ch] mx-auto">
+            {t("settings.domain_purchase_empty_included")}
+          </p>
+        </div>
+      )}
       {leave_modal}
     </div>
   );

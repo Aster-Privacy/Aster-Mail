@@ -102,6 +102,7 @@ vi.mock("@/contexts/preferences_context", () => ({
 }));
 
 vi.mock("@/services/category_index", () => ({
+  batch_index_updates: (run: () => void) => run(),
   init_category_index: vi.fn(async () => {}),
   get_page_ids: () => ["id1"],
   get_category_total: () => 1,
@@ -112,8 +113,10 @@ vi.mock("@/services/category_index", () => ({
   subscribe: () => () => {},
   get_version: () => 0,
   remove_ids: vi.fn(),
+  remove_ids_absent_from_server: vi.fn(),
+  clear_absent_strikes: vi.fn(),
   suppress_ids: vi.fn(),
-  is_recently_read: () => false,
+  clear_suppressed_ids: vi.fn(),
   is_representative_unread: () => false,
   sync_recent: vi.fn(async () => {}),
   set_sort_order: vi.fn(),

@@ -18,10 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { InboxFilterType } from "@/types/email";
+
 import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 
 import { use_split_pane } from "@/components/email/inbox/use_split_pane";
-import type { InboxFilterType } from "@/types/email";
 
 export type InboxListScrollParams = {
   show_full_email_viewer: boolean;
@@ -77,6 +78,7 @@ export function use_inbox_list_scroll({
   useLayoutEffect(() => {
     if (show_full_email_viewer) return;
     const container = split_pane.list_scroll_ref.current;
+
     if (container && list_scroll_top_ref.current > 0) {
       container.scrollTop = list_scroll_top_ref.current;
     }

@@ -29,7 +29,73 @@ import {
 import { Checkbox } from "@aster/ui";
 
 import { Input } from "@/components/ui/input";
-import { render_toggle_button } from "@/components/settings/external_accounts/toggle_button";
+import { next_radio_index } from "@/lib/radiogroup_navigation";
+
+interface ProtocolCardProps {
+  is_active: boolean;
+  title: string;
+  description: string;
+  on_click: () => void;
+}
+
+function ProtocolCard({
+  is_active,
+  title,
+  description,
+  on_click,
+}: ProtocolCardProps) {
+  const handle_keydown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    const group = event.currentTarget.parentElement;
+
+    if (!group) return;
+
+    const radios = Array.from(
+      group.querySelectorAll<HTMLButtonElement>("[role='radio']"),
+    );
+    const current = radios.indexOf(event.currentTarget);
+
+    if (current < 0) return;
+
+    const is_rtl = document.documentElement.getAttribute("dir") === "rtl";
+    const next = next_radio_index(event["key"], current, radios.length, is_rtl);
+
+    if (next === null) return;
+
+    event.preventDefault();
+    radios[next].focus();
+    radios[next].click();
+  };
+
+  return (
+    <button
+      aria-checked={is_active}
+      className={`flex items-baseline gap-2 rounded-2xl border px-3 py-2 text-start transition-colors outline-none ${
+        is_active
+          ? "border-transparent"
+          : "border-transparent bg-[color-mix(in_srgb,var(--text-primary)_7%,transparent)] hover:bg-[color-mix(in_srgb,var(--text-primary)_10%,transparent)]"
+      }`}
+      role="radio"
+      style={
+        is_active
+          ? {
+              borderColor: "var(--accent-color)",
+              backgroundColor:
+                "color-mix(in srgb, var(--accent-color) 8%, transparent)",
+            }
+          : undefined
+      }
+      tabIndex={is_active ? 0 : -1}
+      type="button"
+      onClick={on_click}
+      onKeyDown={handle_keydown}
+    >
+      <span className="text-[13px] font-semibold text-txt-primary">
+        {title}
+      </span>
+      <span className="text-[11px] text-txt-muted truncate">{description}</span>
+    </button>
+  );
+}
 
 interface IncomingMailSectionProps {
   editing_account: DecryptedExternalAccount | null;
@@ -48,6 +114,7 @@ interface IncomingMailSectionProps {
   handle_port_change: (value: string) => void;
   handle_username_change: (value: string) => void;
   handle_password_change: (value: string) => void;
+  app_password_url?: string;
   t: TranslationFn;
 }
 
@@ -68,6 +135,7 @@ export function IncomingMailSection({
   handle_port_change,
   handle_username_change,
   handle_password_change,
+  app_password_url,
   t,
 }: IncomingMailSectionProps) {
   return (
@@ -77,29 +145,29 @@ export function IncomingMailSection({
         {t("settings.incoming_mail")}
       </h3>
       <div>
-        <label
-          className="text-xs font-medium mb-1 block text-txt-muted"
+        <span
+          className="text-xs font-medium mb-1.5 block text-txt-muted"
           id="ext-account-protocol-label"
         >
           {t("settings.protocol")}
-        </label>
+        </span>
         <div
           aria-labelledby="ext-account-protocol-label"
-          className="inline-flex p-1 rounded-lg bg-surf-secondary"
+          className="grid grid-cols-1 sm:grid-cols-2 gap-2"
           role="radiogroup"
         >
-          {render_toggle_button(
-            form_protocol === "imap",
-            "IMAP",
-            () => handle_protocol_change("imap"),
-            "protocol-imap",
-          )}
-          {render_toggle_button(
-            form_protocol === "pop3",
-            "POP3",
-            () => handle_protocol_change("pop3"),
-            "protocol-pop3",
-          )}
+          <ProtocolCard
+            description={t("settings.protocol_desc_imap")}
+            is_active={form_protocol === "imap"}
+            on_click={() => handle_protocol_change("imap")}
+            title="IMAP"
+          />
+          <ProtocolCard
+            description={t("settings.protocol_desc_pop3")}
+            is_active={form_protocol === "pop3"}
+            on_click={() => handle_protocol_change("pop3")}
+            title="POP3"
+          />
         </div>
       </div>
       <div className="grid grid-cols-3 gap-3">
@@ -150,11 +218,14 @@ export function IncomingMailSection({
             {t("settings.username")}
           </label>
           <Input
+            autoCapitalize="none"
             autoComplete="username"
+            autoCorrect="off"
             className="w-full"
             id="ext-account-username"
             maxLength={254}
             placeholder={t("settings.username_placeholder")}
+            spellCheck={false}
             type="text"
             value={form_username}
             onChange={(e) => handle_username_change(e.target.value)}
@@ -170,15 +241,8 @@ export function IncomingMailSection({
           <div className="relative">
             <Input
               autoComplete="current-password"
-              className="w-full pr-10"
+              className="w-full pe-10"
               id="ext-account-password"
-              placeholder={
-                has_stored_password
-                  ? t("settings.keep_saved_password")
-                  : editing_account
-                    ? t("settings.re_enter_password")
-                    : ""
-              }
               type={show_password ? "text" : "password"}
               value={form_password}
               onChange={(e) => handle_password_change(e.target.value)}
@@ -189,7 +253,7 @@ export function IncomingMailSection({
                   ? t("settings.hide_password_toggle")
                   : t("settings.show_password_toggle")
               }
-              className="absolute right-2 top-1/2 -translate-y-1/2"
+              className="absolute end-2 top-1/2 -translate-y-1/2"
               type="button"
               onClick={() => set_show_password(!show_password)}
             >
@@ -200,6 +264,28 @@ export function IncomingMailSection({
               )}
             </button>
           </div>
+          {has_stored_password ? (
+            <p className="mt-1.5 text-xs text-txt-muted">
+              {t("settings.keep_saved_password")}
+            </p>
+          ) : editing_account ? (
+            <p className="mt-1.5 text-xs text-txt-muted">
+              {t("settings.re_enter_password")}
+            </p>
+          ) : null}
+          {app_password_url && !editing_account && (
+            <p className="mt-1.5 text-xs text-txt-muted">
+              {t("settings.app_password_required")}{" "}
+              <a
+                className="underline hover:text-txt-primary"
+                href={app_password_url}
+                rel="noreferrer noopener"
+                target="_blank"
+              >
+                {t("settings.app_password_create_link")}
+              </a>
+            </p>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-2">

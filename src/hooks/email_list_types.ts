@@ -24,9 +24,18 @@ import type { RestoredEmailEntry } from "@/hooks/email_list_helpers";
 
 export const MIN_SKELETON_MS = 0;
 
+export interface FetchPageOptions {
+  force?: boolean;
+  silent?: boolean;
+}
+
 export interface UseEmailListReturn {
   state: EmailListState;
-  fetch_page: (page: number, limit: number, force?: boolean) => Promise<void>;
+  fetch_page: (
+    page: number,
+    limit: number,
+    options?: FetchPageOptions,
+  ) => Promise<void>;
   is_page_cached: (page: number, limit: number) => boolean;
   load_more: () => Promise<void>;
   update_email: (id: string, updates: Partial<InboxEmail>) => void;

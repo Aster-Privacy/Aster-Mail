@@ -21,11 +21,12 @@
 import { useEffect, useState } from "react";
 import { XMarkIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 
+import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   is_desktop_runtime,
+  get_auto_update_enabled,
   get_last_notified_version,
   mark_version_notified,
   check_for_update,
@@ -37,10 +38,14 @@ import {
 
 const CHECK_INTERVAL_MS = 6 * 60 * 60 * 1000;
 
+export const FIRST_CHECK_DELAY_MS = 8000;
+
 export function UpdateBanner() {
   const { t } = use_i18n();
   const [info, set_info] = useState<DesktopUpdateInfo | null>(null);
-  const [dismissed, set_dismissed] = useState(false);
+  const [dismissed_version, set_dismissed_version] = useState<string | null>(
+    null,
+  );
   const [installing, set_installing] = useState(false);
   const [progress, set_progress] = useState<UpdateProgress | null>(null);
 
@@ -48,8 +53,10 @@ export function UpdateBanner() {
     if (!is_desktop_runtime()) return;
     let cancelled = false;
     const run = async () => {
+      if (!get_auto_update_enabled()) return;
       try {
         const result = await check_for_update();
+
         if (cancelled) return;
         if (result && get_last_notified_version() !== result.version) {
           set_info(result);
@@ -58,15 +65,18 @@ export function UpdateBanner() {
         ignore_error("components/updates/update_banner:run", caught);
       }
     };
-    run();
+
+    const first_id = window.setTimeout(run, FIRST_CHECK_DELAY_MS);
     const id = window.setInterval(run, CHECK_INTERVAL_MS);
+
     return () => {
       cancelled = true;
+      window.clearTimeout(first_id);
       window.clearInterval(id);
     };
   }, []);
 
-  if (!info || dismissed) return null;
+  if (!info || dismissed_version === info.version) return null;
 
   const percent = update_progress_percent(progress);
 
@@ -76,7 +86,10 @@ export function UpdateBanner() {
     set_progress({ downloaded: 0, total: null });
     try {
       await download_and_install_update(set_progress);
-    } catch {
+    } catch (caught) {
+      ignore_error("components/updates/update_banner:handle_install", caught);
+      show_toast(t("settings.updates_install_failed"), "error");
+    } finally {
       set_installing(false);
       set_progress(null);
     }
@@ -84,15 +97,15 @@ export function UpdateBanner() {
 
   const handle_dismiss = () => {
     mark_version_notified(info.version);
-    set_dismissed(true);
+    set_dismissed_version(info.version);
   };
 
   return (
     <div
-      className="fixed bottom-4 right-4 z-[9999] max-w-sm rounded-xl border shadow-2xl p-3"
+      className="fixed bottom-4 end-4 z-[9999] max-w-sm rounded-[var(--aster-radius-floating,16px)] p-3"
       style={{
-        backgroundColor: "var(--bg-primary, #111)",
-        borderColor: "var(--border-primary, #444)",
+        backgroundColor: "var(--aster-floating-bg, var(--bg-primary, #111))",
+        boxShadow: "var(--aster-floating-shadow)",
         color: "var(--text-primary, #fff)",
       }}
     >
@@ -113,11 +126,11 @@ export function UpdateBanner() {
                 : percent === null
                   ? t("settings.updates_downloading")
                   : t("settings.updates_installing", {
-                      percent: String(percent),
+                      percent: percent,
                     })}
             </button>
             <button
-              className="h-7 px-3 rounded-lg border border-edge-secondary bg-surf-tertiary text-xs font-medium text-txt-primary transition-colors hover:opacity-80"
+              className="h-7 px-3 rounded-lg bg-[var(--aster-hover)] text-xs font-medium text-txt-primary transition-colors hover:opacity-80"
               onClick={handle_dismiss}
             >
               {t("settings.updates_dismiss")}
@@ -133,7 +146,9 @@ export function UpdateBanner() {
             >
               <div
                 className={`h-full rounded-full bg-indigo-600 ${
-                  percent === null ? "w-1/3 animate-pulse" : "transition-[width]"
+                  percent === null
+                    ? "w-1/3 animate-pulse"
+                    : "transition-[width]"
                 }`}
                 style={percent === null ? undefined : { width: `${percent}%` }}
               />
@@ -141,7 +156,7 @@ export function UpdateBanner() {
           )}
         </div>
         <button
-          aria-label="dismiss"
+          aria-label={t("common.dismiss")}
           className="p-1 text-txt-muted hover:text-txt-primary"
           onClick={handle_dismiss}
         >

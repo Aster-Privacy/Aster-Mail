@@ -20,6 +20,31 @@
 //
 import type { MailItemUpdatedEventDetail } from "./mail_events";
 
+function is_future_snooze(value: string | null | undefined): boolean {
+  if (!value) return false;
+
+  const wake_ms = new Date(value).getTime();
+
+  return Number.isFinite(wake_ms) && wake_ms > Date.now();
+}
+
+const VIEWS_INCLUDING_ARCHIVED = new Set<string>([
+  "archive",
+  "all",
+  "starred",
+  "snoozed",
+  "sent",
+]);
+
+export function view_includes_archived(view: string): boolean {
+  return (
+    VIEWS_INCLUDING_ARCHIVED.has(view) ||
+    view.startsWith("folder-") ||
+    view.startsWith("tag-") ||
+    view.startsWith("alias-")
+  );
+}
+
 export function compute_should_remove_from_view(
   detail: MailItemUpdatedEventDetail,
   current_view: string,
@@ -33,18 +58,18 @@ export function compute_should_remove_from_view(
     }
   }
 
-  const is_folder_like_view =
-    current_view.startsWith("folder-") ||
-    current_view.startsWith("tag-") ||
-    current_view.startsWith("alias-");
-
-  if (
-    current_view !== "archive" &&
-    current_view !== "all" &&
-    !is_folder_like_view &&
-    detail.is_archived === true
-  ) {
+  if (!view_includes_archived(current_view) && detail.is_archived === true) {
     return true;
+  }
+
+  if (detail.snoozed_until !== undefined) {
+    const snoozed = is_future_snooze(detail.snoozed_until);
+
+    if (current_view === "snoozed") return !snoozed;
+
+    if (snoozed && (current_view === "inbox" || current_view === "")) {
+      return true;
+    }
   }
 
   switch (current_view) {
@@ -53,7 +78,10 @@ export function compute_should_remove_from_view(
     case "trash":
       return detail.is_trashed === false;
     case "archive":
-      return detail.is_archived === false;
+      return (
+        detail.is_archived === false ||
+        (detail.folders !== undefined && detail.folders.length > 0)
+      );
     case "spam":
       return detail.is_spam === false;
     default:
@@ -96,6 +124,13 @@ export function destination_views_for_update(
     detail.is_archived === false
   ) {
     views.push("inbox", "", "all");
+  }
+  if (detail.snoozed_until !== undefined) {
+    if (is_future_snooze(detail.snoozed_until)) {
+      views.push("snoozed");
+    } else {
+      views.push("inbox", "", "all");
+    }
   }
   if (detail.folders !== undefined) {
     for (const folder of detail.folders) {

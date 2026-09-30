@@ -26,9 +26,14 @@ import { useNavigate, useLocation } from "react-router-dom";
 
 import { swipe_nav_state } from "./mobile_mail_detail_swipe";
 
+import { strip_aster_footers_html } from "@/lib/aster_footer_strip";
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { use_email_detail } from "@/components/email/hooks/use_email_detail";
+import { use_sender_aliases } from "@/hooks/use_sender_aliases";
 import { build_reply_recipient_for_message } from "@/components/email/build_reply_recipient";
+import { resolve_own_recipient_address } from "@/components/email/build_reply_from_address";
+import { resolve_received_on_address } from "@/utils/delivered_to";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { remove_email_from_view_cache } from "@/hooks/use_email_list";
 import { use_date_format } from "@/hooks/use_date_format";
@@ -39,6 +44,8 @@ import { show_action_toast } from "@/components/toast/action_toast";
 import { get_aster_footer } from "@/components/compose/compose_shared";
 import { update_item_metadata } from "@/services/crypto/mail_metadata";
 import { emit_mail_item_updated } from "@/hooks/mail_events";
+import { get_read_intent } from "@/services/read_intent";
+import { current_opened_mail_scope } from "@/services/user_opened_mail";
 import { preload_email_detail } from "@/components/email/hooks/use_email_detail";
 import { haptic_impact } from "@/native/haptic_feedback";
 import { block_sender } from "@/services/api/blocked_senders";
@@ -46,12 +53,18 @@ import { use_snooze } from "@/hooks/use_snooze";
 import { use_i18n } from "@/lib/i18n/context";
 import { build_reply_subject } from "@/lib/reply_subject";
 import {
+  reply_includes_quoted_by_default,
+  resolve_reply_prefix,
+} from "@/lib/reply_defaults";
+import {
   is_lockdown_enabled,
   LOCKDOWN_CHANGED_EVENT,
 } from "@/services/lockdown_store";
 import { use_auth_safe } from "@/contexts/auth_context";
-
-import { ignore_error } from "@/lib/ignore_error";
+import { app_locale } from "@/utils/date_format";
+import { resolve_reply_references } from "@/lib/reply_references";
+import { sanitize_outgoing_html } from "@/lib/html_sanitizer_compose";
+import { inline_email_css } from "@/lib/forward_css_inliner";
 
 export function use_mobile_mail_detail() {
   const navigate = useNavigate();
@@ -67,6 +80,14 @@ export function use_mobile_mail_detail() {
   const { t } = use_i18n();
   const { preferences, update_preference } = use_preferences();
   const { request_spam, spam_confirm_dialog } = use_spam_confirm();
+  const { sender_options } = use_sender_aliases();
+  const own_addresses = useMemo(
+    () =>
+      [detail.current_user_email, ...sender_options.map((s) => s.email)].filter(
+        (value): value is string => !!value,
+      ),
+    [detail.current_user_email, sender_options],
+  );
   const [is_starred, set_is_starred] = useState<boolean | null>(null);
   const [is_pinned, set_is_pinned] = useState<boolean | null>(null);
   const [expanded_ids, set_expanded_ids] = useState<Set<string>>(new Set());
@@ -102,6 +123,7 @@ export function use_mobile_mail_detail() {
     useState(false);
   const [subject_expanded, set_subject_expanded] = useState(false);
   const [show_block_confirm, set_show_block_confirm] = useState(false);
+  const [show_delete_confirm, set_show_delete_confirm] = useState(false);
   const [blocking_sender, set_blocking_sender] = useState(false);
   const [block_target, set_block_target] = useState<{
     email: string;
@@ -128,6 +150,9 @@ export function use_mobile_mail_detail() {
         set_show_block_confirm(false);
         set_blocking_sender(false);
         set_block_target(null);
+      } else if (show_delete_confirm) {
+        e.preventDefault();
+        set_show_delete_confirm(false);
       } else if (show_snooze_sheet) {
         e.preventDefault();
         set_show_snooze_sheet(false);
@@ -153,6 +178,7 @@ export function use_mobile_mail_detail() {
     view_source_message,
     show_toolbar_customizer,
     show_block_confirm,
+    show_delete_confirm,
     show_snooze_sheet,
     details_message,
   ]);
@@ -160,6 +186,13 @@ export function use_mobile_mail_detail() {
   const auto_read_ids = useRef<Set<string>>(new Set());
   const first_unread_ref = useRef<HTMLDivElement>(null);
   const has_scrolled = useRef(false);
+
+  useEffect(() => {
+    set_is_starred(null);
+    set_is_pinned(null);
+    set_external_content_loaded(false);
+    has_scrolled.current = false;
+  }, [detail.email_id]);
   const touch_start_ref = useRef<{ x: number; y: number; time: number } | null>(
     null,
   );
@@ -176,9 +209,7 @@ export function use_mobile_mail_detail() {
       {
         id: detail.email.id,
         item_type: (detail.mail_item?.item_type || "received") as
-          | "received"
-          | "sent"
-          | "draft",
+          "received" | "sent" | "draft",
         sender_name: detail.email.sender,
         sender_email: detail.email.sender_email,
         display_sender_name: detail.email.display_sender_name,
@@ -247,6 +278,13 @@ export function use_mobile_mail_detail() {
         return next;
       });
 
+      const owned = get_read_intent(msg.id) !== true;
+      const scope = current_opened_mail_scope();
+
+      if (owned) {
+        emit_mail_item_updated({ id: msg.id, is_read: true });
+      }
+
       update_item_metadata(
         msg.id,
         {
@@ -255,6 +293,7 @@ export function use_mobile_mail_detail() {
         },
         { is_read: true },
       ).then((result) => {
+        if (scope !== current_opened_mail_scope()) return;
         if (!result.success) {
           set_read_ids((prev) => {
             const next = new Set(prev);
@@ -263,7 +302,11 @@ export function use_mobile_mail_detail() {
 
             return next;
           });
+          if (owned) {
+            emit_mail_item_updated({ id: msg.id, is_read: false });
+          }
         } else {
+          if (!owned) return;
           emit_mail_item_updated({
             id: msg.id,
             is_read: true,
@@ -345,13 +388,14 @@ export function use_mobile_mail_detail() {
       const current = is_starred ?? detail.email.is_starred;
 
       set_is_starred(!current);
-      try {
-        await email_actions.toggle_star(detail.email as never);
-      } catch {
+      const succeeded = await email_actions.toggle_star(detail.email as never);
+
+      if (!succeeded) {
         set_is_starred(current);
+        show_toast(t("common.failed_to_update"), "error");
       }
     }
-  }, [detail.email, email_actions, is_starred]);
+  }, [detail.email, email_actions, is_starred, t]);
 
   const handle_toggle_pin = useCallback(async () => {
     if (detail.email) {
@@ -360,13 +404,14 @@ export function use_mobile_mail_detail() {
 
       set_is_pinned(!current);
       set_menu_message(null);
-      try {
-        await email_actions.toggle_pin(detail.email as never);
-      } catch {
+      const succeeded = await email_actions.toggle_pin(detail.email as never);
+
+      if (!succeeded) {
         set_is_pinned(current);
+        show_toast(t("common.failed_to_update"), "error");
       }
     }
-  }, [detail.email, email_actions, is_pinned]);
+  }, [detail.email, email_actions, is_pinned, t]);
 
   const action_in_flight = useRef(false);
 
@@ -386,36 +431,85 @@ export function use_mobile_mail_detail() {
     detail.mail_item?.metadata?.is_archived === true ||
     from_view === "archive";
 
+  const is_trashed =
+    detail.mail_item?.is_trashed === true ||
+    detail.mail_item?.metadata?.is_trashed === true ||
+    from_view === "trash";
+
   const handle_archive = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
     action_in_flight.current = true;
     haptic_impact("light");
-    if (is_archived) {
-      await email_actions.unarchive_email(detail.email as never);
-    } else {
-      await email_actions.archive_email(detail.email as never);
+    const archived = is_archived
+      ? await email_actions.unarchive_email(detail.email as never)
+      : await email_actions.archive_email(detail.email as never);
+
+    if (!archived) {
+      action_in_flight.current = false;
+      show_toast(t("common.failed_to_archive_emails"), "error");
+
+      return;
     }
+
     remove_email_from_view_cache(detail.email.id);
     advance_after_action();
-  }, [detail.email, email_actions, advance_after_action, is_archived]);
+  }, [detail.email, email_actions, advance_after_action, is_archived, t]);
 
-  const handle_delete = useCallback(async () => {
+  const perform_delete = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
     action_in_flight.current = true;
     haptic_impact("light");
-    await email_actions.delete_email(detail.email as never);
+    const deleted = is_trashed
+      ? await email_actions.permanently_delete(detail.email as never)
+      : await email_actions.delete_email(detail.email as never);
+
+    if (!deleted) {
+      action_in_flight.current = false;
+      show_toast(
+        is_trashed
+          ? t("common.failed_to_permanently_delete")
+          : t("common.failed_to_delete_emails"),
+        "error",
+      );
+
+      return;
+    }
+
     remove_email_from_view_cache(detail.email.id);
     advance_after_action();
-  }, [detail.email, email_actions, advance_after_action]);
+  }, [detail.email, email_actions, advance_after_action, is_trashed, t]);
+
+  const handle_delete = useCallback(() => {
+    if (action_in_flight.current || !detail.email) return;
+    if (is_trashed) {
+      set_show_delete_confirm(true);
+
+      return;
+    }
+    void perform_delete();
+  }, [detail.email, is_trashed, perform_delete]);
+
+  const confirm_permanent_delete = useCallback(() => {
+    set_show_delete_confirm(false);
+    void perform_delete();
+  }, [perform_delete]);
 
   const handle_spam = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
     action_in_flight.current = true;
     haptic_impact("light");
-    await email_actions.mark_as_spam(detail.email as never);
+    const marked = await email_actions.mark_as_spam(detail.email as never);
+
+    if (!marked) {
+      action_in_flight.current = false;
+      show_toast(t("common.failed_to_mark_as_spam"), "error");
+
+      return;
+    }
+
     remove_email_from_view_cache(detail.email.id);
     navigate(-1);
-  }, [detail.email, email_actions, navigate]);
+  }, [detail.email, email_actions, navigate, t]);
 
   const handle_not_spam = useCallback(async () => {
     if (action_in_flight.current || !detail.email) return;
@@ -425,19 +519,24 @@ export function use_mobile_mail_detail() {
     haptic_impact("light");
     const ok = await email_actions.unmark_spam(target as never);
 
+    if (!ok) {
+      action_in_flight.current = false;
+      show_toast(t("common.failed_to_move_email"), "error");
+
+      return;
+    }
+
     remove_email_from_view_cache(target.id);
     navigate(-1);
-    if (ok) {
-      show_action_toast({
-        message: t("common.marked_as_not_spam"),
-        action_type: "not_spam",
-        email_ids: [target.id],
-        on_undo: async () => {
-          await email_actions.mark_as_spam(target as never);
-          emit_mail_item_updated({ id: target.id, is_spam: true });
-        },
-      });
-    }
+    show_action_toast({
+      message: t("common.marked_as_not_spam"),
+      action_type: "not_spam",
+      email_ids: [target.id],
+      on_undo: async () => {
+        await email_actions.mark_as_spam(target as never);
+        emit_mail_item_updated({ id: target.id, is_spam: true });
+      },
+    });
   }, [detail.email, email_actions, navigate, t]);
 
   const handle_print = useCallback(() => {
@@ -451,13 +550,40 @@ export function use_mobile_mail_detail() {
     (msg: DecryptedThreadMessage, mode: "reply" | "reply_all" | "forward") => {
       const subject = msg.subject || "";
       const body = msg.body || "";
-      const quoted = `\n\n${t("mail.reply_quote_header", { date: new Date(msg.timestamp).toLocaleString(), name: msg.display_sender_name || msg.sender_name })}\n${body
-        .split("\n")
-        .map((l) => "> " + l)
-        .join("\n")}`;
+      const escape_html = (text: string): string =>
+        text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const quote_header =
+        mode === "forward"
+          ? escape_html(t("common.forwarded_message_header"))
+          : t("mail.reply_quote_header", {
+              date: new Date(msg.timestamp).toLocaleString(app_locale()),
+              name: `${escape_html(
+                msg.display_sender_name || msg.sender_name,
+              )} &lt;${escape_html(msg.sender_email)}&gt;`,
+            });
+      const include_quoted =
+        mode === "forward" || reply_includes_quoted_by_default();
+      const quoted = include_quoted
+        ? `<br><br><div class="aster_quote"><div class="aster_quote_attr">${quote_header}</div><blockquote class="aster_quote_body" style="margin:0 0 0 0.8ex;border-left:1px solid #ccc;padding-left:1ex">${sanitize_outgoing_html(inline_email_css(strip_aster_footers_html(body)))}</blockquote></div>`
+        : "";
+      const rfc_message_id = resolve_reply_references(
+        msg,
+        detail.thread_messages,
+      );
       const message_with_footer =
         get_aster_footer(t, preferences.show_aster_branding) + quoted;
       const thread_token = detail.mail_item?.thread_token;
+      const from_email =
+        msg.item_type === "sent"
+          ? msg.sender_email
+          : (resolve_received_on_address(msg) ??
+            resolve_own_recipient_address(
+              [
+                ...(msg.to_recipients ?? []).map((r) => r.email),
+                ...(msg.cc_recipients ?? []).map((r) => r.email),
+              ],
+              own_addresses,
+            ));
 
       if (mode === "forward") {
         window.dispatchEvent(
@@ -473,21 +599,21 @@ export function use_mobile_mail_detail() {
               draft_type: "forward",
               forward_from_id: msg.id,
               thread_token,
+              from_email,
             },
           }),
         );
       } else {
         const { recipient_email } = build_reply_recipient_for_message(
           msg,
-          detail.current_user_email ? [detail.current_user_email] : undefined,
+          own_addresses.length > 0 ? own_addresses : undefined,
         );
         const to = [recipient_email];
         const cc: string[] = [];
 
         if (mode === "reply_all") {
-          const my_email = detail.current_user_email?.toLowerCase();
           const seen = new Set(
-            [recipient_email, msg.sender_email]
+            [recipient_email, msg.sender_email, ...own_addresses]
               .filter(Boolean)
               .map((value) => value.toLowerCase()),
           );
@@ -499,11 +625,7 @@ export function use_mobile_mail_detail() {
             entries?.forEach((r) => {
               const normalized = r.email?.toLowerCase();
 
-              if (
-                !normalized ||
-                normalized === my_email ||
-                seen.has(normalized)
-              ) {
+              if (!normalized || seen.has(normalized)) {
                 return;
               }
 
@@ -523,18 +645,26 @@ export function use_mobile_mail_detail() {
               bcc_recipients: [],
               subject: build_reply_subject(
                 subject,
-                t("mail.reply_subject_prefix"),
+                resolve_reply_prefix(t("mail.reply_subject_prefix")),
               ),
               message: message_with_footer,
               draft_type: "reply",
               reply_to_id: msg.id,
+              rfc_message_id,
               thread_token,
+              from_email,
             },
           }),
         );
       }
     },
-    [t, detail.current_user_email, detail.mail_item?.thread_token],
+    [
+      t,
+      own_addresses,
+      detail.mail_item?.thread_token,
+      detail.thread_messages,
+      preferences.show_aster_branding,
+    ],
   );
 
   const is_dark_mode_message = useCallback(
@@ -629,17 +759,11 @@ export function use_mobile_mail_detail() {
 
   const handle_copy_message_id = useCallback(() => {
     if (menu_message) {
-      navigator.clipboard
-        .writeText(menu_message.id)
+      copy_text_or_throw(menu_message.id)
         .then(() => {
           show_toast(detail.t("common.message_id_copied"), "success");
         })
-        .catch((caught) =>
-          ignore_error(
-            "pages/mobile/use_mobile_mail_detail:handle_back",
-            caught,
-          ),
-        );
+        .catch(() => show_toast(detail.t("common.failed_to_copy"), "error"));
     }
     set_menu_message(null);
   }, [detail, menu_message]);
@@ -658,7 +782,7 @@ export function use_mobile_mail_detail() {
     } else {
       show_toast(result.error || t("errors.failed_to_block_sender"), "error");
     }
-  }, [block_target]);
+  }, [block_target, t]);
 
   const handle_snooze = useCallback(
     async (snoozed_until: Date) => {
@@ -675,7 +799,7 @@ export function use_mobile_mail_detail() {
         show_toast(t("errors.failed_to_snooze"), "error");
       }
     },
-    [snooze_target_id, snooze_actions, navigate],
+    [snooze_target_id, snooze_actions, navigate, t],
   );
 
   const handle_load_external_content = useCallback(() => {
@@ -834,6 +958,9 @@ export function use_mobile_mail_detail() {
     set_subject_expanded,
     show_block_confirm,
     set_show_block_confirm,
+    show_delete_confirm,
+    set_show_delete_confirm,
+    confirm_permanent_delete,
     blocking_sender,
     block_target,
     set_block_target,
@@ -851,6 +978,7 @@ export function use_mobile_mail_detail() {
     handle_toggle_star,
     handle_toggle_pin,
     is_archived,
+    is_trashed,
     handle_archive,
     handle_delete,
     handle_spam,

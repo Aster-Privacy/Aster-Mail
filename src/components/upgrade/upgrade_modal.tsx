@@ -18,9 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useEffect, useMemo, useState } from "react";
+import type { ChangeEvent } from "react";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { LockClosedIcon, CheckCircleIcon } from "@heroicons/react/24/solid";
-import { ShieldCheckIcon } from "@heroicons/react/24/outline";
+import { CheckIcon } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
 import {
@@ -32,10 +35,15 @@ import {
   ModalDescription,
 } from "@/components/ui/modal";
 import { Progress } from "@/components/ui/progress";
+import { LoadFailedNotice } from "@/components/settings/load_failed_notice";
 import { Spinner } from "@/components/ui/spinner";
+import { use_auth } from "@/contexts/auth_context";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { show_toast } from "@/components/toast/simple_toast";
+import {
+  show_toast,
+  TOAST_DURATION_BILLING_MS,
+} from "@/components/toast/simple_toast";
 import { request_cache } from "@/services/api/request_cache";
 import {
   change_plan,
@@ -43,21 +51,44 @@ import {
   start_hosted_checkout,
 } from "@/services/api/billing";
 import {
+  CURRENCY_STORAGE_KEY,
+  FAMILY_PLAN_DUO_FEATURES,
+  FAMILY_PLAN_FAMILY_FEATURES,
+  FAMILY_PLAN_TIERS,
   PLAN_TIERS,
+  SUPPORTED_CURRENCIES,
   convert_cents,
   detect_currency_from_locale,
   min_plan_for_feature,
   type PlanTier,
 } from "@/components/settings/billing/billing_constants";
 import { use_currency_rates } from "@/components/settings/billing/use_currency_rates";
-import { PlanCard, Segmented } from "@/components/settings/billing/plan_card";
+import {
+  PlanCard,
+  Segmented,
+  Tabs,
+} from "@/components/settings/billing/plan_card";
+import { PlanFeaturesModal } from "@/components/settings/billing/plan_features_modal";
+import { PlanPaymentMethodModal } from "@/components/settings/billing/plan_payment_method_modal";
+import { CryptoTermModal } from "@/components/settings/billing/crypto_term_modal";
+import { PlanChangeConfirmModal } from "@/components/settings/billing/plan_change_confirm_modal";
+import { is_payment_navigation } from "@/lib/payment_navigation";
+import { format_bytes } from "@/lib/utils";
 import {
   close_upgrade_modal,
+  is_on_auth_route,
   show_plan_limit_upgrade,
   show_storage_full_upgrade,
   use_upgrade_state,
+  type UpgradeInterval,
   type UpgradeLimitKey,
 } from "@/stores/upgrade_store";
+import { checkout_error_text } from "@/components/settings/billing/checkout_error_text";
+import {
+  SPECIAL_OFFER_INTERVAL,
+  SPECIAL_OFFER_PLAN_CODE,
+  special_offer_checkout,
+} from "@/lib/special_offer";
 
 const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
   max_email_aliases: "settings.usage_aliases",
@@ -67,6 +98,8 @@ const LIMIT_LABEL_KEY: Record<UpgradeLimitKey, string> = {
   max_html_signatures: "settings.usage_signatures",
   max_custom_filters: "settings.usage_filters",
   max_custom_categories: "settings.usage_custom_categories",
+  max_linked_accounts: "settings.usage_linked_accounts",
+  max_external_accounts: "settings.usage_external_accounts",
   generic: "settings.upgrade_generic_resource",
 };
 
@@ -75,26 +108,65 @@ type HighlightKind = "storage" | "aliases" | "domains" | "extra";
 interface PlanHighlight {
   kind: HighlightKind;
   label_key: string;
+  params?: Record<string, string>;
+  info_key?: string;
 }
+
+const HIGHLIGHT_INFO_KEY: Record<HighlightKind, string> = {
+  storage: "settings.zero_knowledge_storage_description",
+  aliases: "settings.aliases_description",
+  domains: "settings.domains_description",
+  extra: "",
+};
+
+type PlanAudience = "individual" | "family";
 
 const PLAN_HIGHLIGHTS: Record<string, PlanHighlight[]> = {
   star: [
     { kind: "storage", label_key: "settings.plan_feat_storage_50" },
     { kind: "aliases", label_key: "settings.plan_feat_aliases_15" },
     { kind: "domains", label_key: "settings.plan_feat_domains_5" },
-    { kind: "extra", label_key: "settings.plan_feat_advanced_aliases" },
+    {
+      kind: "extra",
+      label_key: "settings.plan_feat_imap_smtp",
+      info_key: "settings.plan_desc_apps",
+    },
   ],
   nova: [
     { kind: "storage", label_key: "settings.plan_feat_storage_500" },
     { kind: "aliases", label_key: "settings.plan_feat_aliases_unlimited" },
     { kind: "domains", label_key: "settings.plan_feat_domains_30" },
-    { kind: "extra", label_key: "settings.plan_feat_smart_folders" },
+    {
+      kind: "extra",
+      label_key: "settings.plan_f_multi_accounts",
+      params: { value: "5" },
+      info_key: "settings.plan_desc_multi_accounts",
+    },
+    {
+      kind: "extra",
+      label_key: "settings.plan_feat_smart_folders",
+      info_key: "settings.plan_tip_smart_folders",
+    },
   ],
   supernova: [
     { kind: "storage", label_key: "settings.plan_feat_storage_5tb" },
-    { kind: "aliases", label_key: "settings.plan_feat_aliases_unlimited" },
     { kind: "domains", label_key: "settings.plan_feat_domains_unlimited" },
-    { kind: "extra", label_key: "settings.plan_feat_priority_support" },
+    {
+      kind: "extra",
+      label_key: "settings.plan_f_multi_accounts",
+      params: { value: "20" },
+      info_key: "settings.plan_desc_multi_accounts",
+    },
+    {
+      kind: "extra",
+      label_key: "settings.plan_f_support_dedicated",
+      info_key: "settings.plan_desc_support_dedicated",
+    },
+    {
+      kind: "extra",
+      label_key: "settings.plan_f_early_access",
+      info_key: "settings.plan_desc_early_access",
+    },
   ],
 };
 
@@ -127,36 +199,54 @@ function upgrade_tiers(plan_code: string | null): PlanTier[] {
   return PLAN_TIERS.slice(index + 1);
 }
 
-function yearly_savings_percent(tier: PlanTier): number {
-  const full = tier.monthly_cents * 12;
+function checkout_interval_for(term_id: string): string {
+  if (term_id === "monthly") return "month";
+  if (term_id === "biennial") return "biennial";
 
-  if (full <= 0) return 0;
-
-  return Math.round(((full - tier.yearly_cents) / full) * 100);
+  return "year";
 }
 
-function format_bytes(bytes: number) {
-  if (!Number.isFinite(bytes) || bytes <= 0) return "0 B";
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  let value = bytes;
-  let unit_index = 0;
+function term_id_for_interval(interval: UpgradeInterval | null): string {
+  if (interval === "year") return "yearly";
+  if (interval === "biennial") return "biennial";
 
-  while (value >= 1024 && unit_index < units.length - 1) {
-    value /= 1024;
-    unit_index++;
-  }
+  return "monthly";
+}
 
-  return `${value.toFixed(value >= 10 || unit_index === 0 ? 0 : 1)} ${units[unit_index]}`;
+function is_desktop(): boolean {
+  return typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
 }
 
 export function UpgradeModal() {
   const { t } = use_i18n();
+  const location = useLocation();
   const state = use_upgrade_state();
-  const { limits, refresh } = use_plan_limits();
+  const { is_authenticated } = use_auth();
+  const is_blocked = is_on_auth_route(location.pathname) || !is_authenticated;
+  const {
+    limits,
+    is_loading: is_loading_limits,
+    load_failed: limits_load_failed,
+    refresh,
+  } = use_plan_limits();
   const [currency, set_currency] = useState("usd");
-  const [interval, set_interval] = useState<"month" | "year">("year");
-  const [selected_id, set_selected_id] = useState<string | null>(null);
+  const [audience, set_audience] = useState<PlanAudience>("individual");
+  const [interval, set_interval] = useState<"month" | "year">("month");
+  const [term_id, set_term_id] = useState("monthly");
+  const [crypto_tier, set_crypto_tier] = useState<PlanTier | null>(null);
+  const [crypto_term_months, set_crypto_term_months] = useState(1);
+  const [pending_tier, set_pending_tier] = useState<PlanTier | null>(null);
+  const [plan_change_target, set_plan_change_target] = useState<{
+    tier: PlanTier;
+    billing: string;
+  } | null>(null);
+  const [compare_open, set_compare_open] = useState(false);
+  const [selected_tier_id, set_selected_tier_id] = useState<string | null>(
+    null,
+  );
   const [is_starting, set_is_starting] = useState(false);
+  const pending_desktop_checkout_ref = useRef(false);
+  const seeded_open_seq_ref = useRef(0);
 
   use_currency_rates();
 
@@ -197,13 +287,29 @@ export function UpgradeModal() {
   }, []);
 
   useEffect(() => {
-    if (state.is_open) {
-      refresh(true);
-      set_is_starting(false);
+    if (is_blocked && state.is_open) {
+      close_upgrade_modal();
     }
-  }, [state.is_open, refresh]);
+  }, [is_blocked, state.is_open]);
+
+  useEffect(() => {
+    const handle_focus = () => {
+      if (!pending_desktop_checkout_ref.current) return;
+      pending_desktop_checkout_ref.current = false;
+      set_is_starting(false);
+      request_cache.invalidate("/payments/v1");
+      refresh(true);
+    };
+
+    window.addEventListener("focus", handle_focus);
+
+    return () => window.removeEventListener("focus", handle_focus);
+  }, [refresh]);
 
   const is_storage = state.reason === "storage_full";
+  const is_resume = state.reason === "checkout_cancelled";
+  const is_offer = state.reason === "offer";
+  const is_manual = state.reason === "manual";
 
   const limit_info = useMemo(() => {
     if (!limits || state.limit_key === "generic") return null;
@@ -214,7 +320,43 @@ export function UpgradeModal() {
   const plan_name = limits?.plan_name ?? null;
   const plan_code = limits?.plan_code ?? null;
 
-  const tiers = useMemo(() => upgrade_tiers(plan_code), [plan_code]);
+  const individual_tiers = useMemo(() => upgrade_tiers(plan_code), [plan_code]);
+
+  const family_tiers = useMemo<PlanTier[]>(
+    () =>
+      FAMILY_PLAN_TIERS.map((entry) => ({
+        id: entry.id,
+        name: entry.name,
+        description: entry.description,
+        monthly_cents: entry.monthly_cents,
+        yearly_cents: entry.yearly_cents,
+        biennial_cents: entry.biennial_cents,
+        savings_cents: Math.max(
+          0,
+          entry.monthly_cents * 12 - entry.yearly_cents,
+        ),
+        biennial_savings_cents: Math.max(
+          0,
+          entry.monthly_cents * 24 - entry.biennial_cents,
+        ),
+        is_recommended: entry.is_recommended,
+      })),
+    [],
+  );
+
+  const tiers = audience === "family" ? family_tiers : individual_tiers;
+
+  const yearly_save_percent = useMemo(() => {
+    const best = tiers.reduce((acc, entry) => {
+      const full = entry.monthly_cents * 12;
+
+      if (full <= 0) return acc;
+
+      return Math.max(acc, ((full - entry.yearly_cents) / full) * 100);
+    }, 0);
+
+    return Math.round(best);
+  }, [tiers]);
 
   const required_tier = useMemo(
     () => (is_storage ? null : min_plan_for_feature(state.feature_key)),
@@ -224,33 +366,123 @@ export function UpgradeModal() {
   const default_tier = useMemo(() => {
     if (tiers.length === 0) return null;
 
+    const preselected = state.preselect_plan_code
+      ? tiers.find((tier) => tier.id === state.preselect_plan_code)
+      : null;
     const required = required_tier
       ? tiers.find((tier) => tier.id === required_tier.id)
       : null;
 
-    return required ?? tiers.find((tier) => tier.is_recommended) ?? tiers[0];
-  }, [tiers, required_tier]);
+    return (
+      preselected ??
+      required ??
+      tiers.find((tier) => tier.is_recommended) ??
+      tiers[0]
+    );
+  }, [tiers, required_tier, state.preselect_plan_code]);
+
+  const resume_target = useMemo(() => {
+    if (state.reason !== "checkout_cancelled") return null;
+    if (!state.preselect_plan_code) return null;
+
+    const individual = individual_tiers.find(
+      (tier) => tier.id === state.preselect_plan_code,
+    );
+
+    if (individual) {
+      return { tier: individual, audience: "individual" as PlanAudience };
+    }
+
+    const family = family_tiers.find(
+      (tier) => tier.id === state.preselect_plan_code,
+    );
+
+    if (family) return { tier: family, audience: "family" as PlanAudience };
+
+    return null;
+  }, [state.reason, state.preselect_plan_code, individual_tiers, family_tiers]);
 
   useEffect(() => {
-    set_selected_id(default_tier?.id ?? null);
-  }, [default_tier, state.is_open]);
+    if (!state.is_open || is_blocked) return;
 
-  const selected_tier = useMemo(
-    () => tiers.find((tier) => tier.id === selected_id) ?? default_tier,
-    [tiers, selected_id, default_tier],
-  );
+    refresh(true);
+
+    if (seeded_open_seq_ref.current === state.open_seq) return;
+    seeded_open_seq_ref.current = state.open_seq;
+
+    set_is_starting(false);
+    set_compare_open(false);
+    set_selected_tier_id(null);
+    set_crypto_tier(null);
+    set_plan_change_target(null);
+
+    if (resume_target) {
+      set_audience(resume_target.audience);
+      set_term_id(term_id_for_interval(state.preselect_interval));
+      set_pending_tier(resume_target.tier);
+
+      return;
+    }
+
+    set_pending_tier(null);
+  }, [
+    state.is_open,
+    state.open_seq,
+    state.preselect_interval,
+    resume_target,
+    is_blocked,
+    refresh,
+  ]);
+
+  const handle_currency_change = (event: ChangeEvent<HTMLSelectElement>) => {
+    const next = event.target.value;
+
+    set_currency(next);
+    try {
+      localStorage.setItem(CURRENCY_STORAGE_KEY, next);
+    } catch {
+      return;
+    }
+  };
+
+  useEffect(() => {
+    if (state.is_open && state.preselect_interval) {
+      set_interval(state.preselect_interval === "month" ? "month" : "year");
+    }
+  }, [state.is_open, state.preselect_interval]);
 
   const lead_kind: HighlightKind | null = is_storage
     ? "storage"
     : (LIMIT_HIGHLIGHT_KIND[state.limit_key] ?? null);
 
-  const tier_features = (tier: PlanTier) =>
-    order_highlights(PLAN_HIGHLIGHTS[tier.id] ?? [], lead_kind).map(
-      (highlight) => ({
-        label: t(highlight.label_key as never),
-        on: true,
-      }),
+  const tier_features = (tier: PlanTier) => {
+    const family_features =
+      tier.id === "duo"
+        ? FAMILY_PLAN_DUO_FEATURES
+        : tier.id === "family"
+          ? FAMILY_PLAN_FAMILY_FEATURES
+          : null;
+
+    if (family_features) {
+      return family_features.map((entry) => ({
+        label: t(entry.label_key as never),
+        on: entry.on,
+      }));
+    }
+
+    return order_highlights(PLAN_HIGHLIGHTS[tier.id] ?? [], lead_kind).map(
+      (highlight) => {
+        const info_key =
+          highlight.info_key ?? HIGHLIGHT_INFO_KEY[highlight.kind];
+
+        return {
+          label: t(highlight.label_key as never, highlight.params),
+          on: true,
+          info: info_key ? t(info_key as never) : undefined,
+        };
+      },
     );
+  };
 
   const resource_label = state.limit_key
     ? t(LIMIT_LABEL_KEY[state.limit_key] as never) || state.resource_label
@@ -258,18 +490,30 @@ export function UpgradeModal() {
 
   const title = is_storage
     ? t("settings.storage_locked_title")
-    : t("settings.upgrade_modal_title");
+    : is_resume
+      ? t("settings.upgrade_resume_title")
+      : is_offer
+        ? t("settings.offer_upgrade_title")
+        : is_manual
+          ? t("settings.win_back_offer_action")
+          : t("settings.upgrade_modal_title");
 
   const description = is_storage
     ? t("settings.storage_locked_description")
-    : state.server_message && state.server_message.trim().length > 0
-      ? state.server_message
-      : limit_info && resource_label
-        ? t("settings.upgrade_modal_description_specific", {
-            resource: String(resource_label).toLowerCase(),
-            plan: plan_name ?? "",
-          })
-        : t("settings.upgrade_modal_description_generic");
+    : is_resume
+      ? t("settings.upgrade_resume_description")
+      : is_offer
+        ? t("settings.offer_upgrade_description")
+        : is_manual
+          ? t("settings.upgrade_for_more")
+          : state.server_message && state.server_message.trim().length > 0
+            ? state.server_message
+            : limit_info && resource_label
+              ? t("settings.upgrade_modal_description_specific", {
+                  resource: String(resource_label).toLowerCase(),
+                  plan: plan_name ?? "",
+                })
+              : t("settings.upgrade_modal_description_generic");
 
   const monthly_equivalent = (tier: PlanTier) =>
     interval === "year"
@@ -279,62 +523,191 @@ export function UpgradeModal() {
   const price_label = (tier: PlanTier) =>
     format_price(convert_cents(monthly_equivalent(tier), currency), currency);
 
-  const handle_upgrade = async (tier: PlanTier) => {
-    if (is_starting) return;
+  const yearly_total_label = (tier: PlanTier) =>
+    `${t("settings.billed_annually")} · ${format_price(
+      convert_cents(tier.yearly_cents, currency),
+      currency,
+    )}${t("settings.per_year_short")}`;
 
-    set_selected_id(tier.id);
+  const lead_in_for = (tier: PlanTier) => {
+    if (audience === "family") return null;
 
+    const index = PLAN_TIERS.findIndex((entry) => entry.id === tier.id);
+    const previous = index > 0 ? PLAN_TIERS[index - 1] : null;
+
+    return t("settings.plan_everything_in", {
+      plan: previous ? previous.name : t("settings.plan_free"),
+    });
+  };
+
+  const trust_points = [
+    t("settings.money_back_guarantee"),
+    t("settings.cancel_anytime"),
+  ];
+
+  const selected_tier =
+    tiers.find((tier) => tier.id === selected_tier_id) ?? default_tier;
+
+  const row_summary = (tier: PlanTier) => tier_features(tier)[0]?.label ?? "";
+
+  const start_plan_change = async (
+    tier: PlanTier,
+    billing: string,
+    promo_code?: string,
+  ) => {
     set_is_starting(true);
 
     try {
-      const has_paid_plan = !!plan_code && plan_code !== "free";
+      const result = await change_plan(
+        tier.id,
+        billing,
+        undefined,
+        undefined,
+        promo_code,
+      );
 
-      if (has_paid_plan) {
-        const result = await change_plan(tier.id, interval);
-
-        if (!result.ok) {
-          show_toast(t("settings.payment_failed"), "error");
-          set_is_starting(false);
-
-          return;
-        }
-
-        if (result.requires_checkout) return;
-
-        request_cache.invalidate("/payments/v1");
-        await refresh();
-        show_toast(t("settings.payment_success"), "success");
-        close_upgrade_modal();
+      if (!result.ok) {
+        show_toast(
+          checkout_error_text(t, result.server_code),
+          "error",
+          TOAST_DURATION_BILLING_MS,
+        );
         set_is_starting(false);
 
         return;
       }
 
-      const result = await start_hosted_checkout(
-        tier.id,
-        interval,
-        currency,
-      );
+      if (result.requires_checkout) {
+        if (is_desktop()) {
+          pending_desktop_checkout_ref.current = true;
+          set_is_starting(false);
+        }
 
-      if (!result.ok) {
-        show_toast(t("settings.failed_checkout"), "error");
-        set_is_starting(false);
+        return;
       }
+
+      request_cache.invalidate("/payments/v1");
+      await refresh(true);
+      show_toast(t("settings.payment_success"), "success");
+      set_plan_change_target(null);
+      close_upgrade_modal();
+      set_is_starting(false);
     } catch {
-      show_toast(t("settings.failed_checkout"), "error");
+      show_toast(
+        t("settings.failed_checkout"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
       set_is_starting(false);
     }
   };
 
-  const handle_compare_plans = () => {
-    close_upgrade_modal();
-    requestAnimationFrame(() => {
-      window.dispatchEvent(
-        new CustomEvent("navigate-settings", {
-          detail: { section: "billing", anchor: "available-plans" },
-        }),
+  const handle_select_tier = (tier: PlanTier) => {
+    if (is_starting) return;
+
+    if (!limits) {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+      void refresh();
+
+      return;
+    }
+
+    set_term_id(interval === "month" ? "monthly" : "yearly");
+    set_pending_tier(tier);
+  };
+
+  const offer_promo_code_for = (tier_id: string, billing?: string) => {
+    if (!state.offer_promo_code) return undefined;
+    if (tier_id !== SPECIAL_OFFER_PLAN_CODE) return undefined;
+    if (billing !== undefined && billing !== SPECIAL_OFFER_INTERVAL) {
+      return undefined;
+    }
+
+    return state.offer_promo_code;
+  };
+
+  const crypto_offer = special_offer_checkout(
+    !!crypto_tier && !!offer_promo_code_for(crypto_tier.id),
+  );
+
+  const handle_choose_crypto = (selected_term_id?: string) => {
+    if (is_starting || !pending_tier) return;
+
+    const tier = pending_tier;
+    const chosen = selected_term_id ?? term_id;
+
+    set_crypto_term_months(
+      chosen === "monthly" ? 1 : chosen === "biennial" ? 24 : 12,
+    );
+    set_pending_tier(null);
+    set_crypto_tier(tier);
+  };
+
+  const handle_choose_card = async (selected_term_id?: string) => {
+    if (is_starting || !pending_tier) return;
+
+    const billing = checkout_interval_for(selected_term_id ?? term_id);
+
+    if (!!plan_code && plan_code !== "free") {
+      set_plan_change_target({ tier: pending_tier, billing });
+      set_pending_tier(null);
+
+      return;
+    }
+
+    set_is_starting(true);
+
+    try {
+      const result = await start_hosted_checkout(
+        pending_tier.id,
+        billing,
+        currency,
+        undefined,
+        offer_promo_code_for(pending_tier.id, billing),
       );
-    });
+
+      if (!result.ok) {
+        show_toast(
+          checkout_error_text(t, result.server_code),
+          "error",
+          TOAST_DURATION_BILLING_MS,
+        );
+      } else if (is_desktop()) {
+        pending_desktop_checkout_ref.current = true;
+      }
+
+      set_is_starting(false);
+    } catch {
+      show_toast(
+        t("settings.failed_checkout"),
+        "error",
+        TOAST_DURATION_BILLING_MS,
+      );
+      set_is_starting(false);
+    }
+  };
+
+  useEffect(() => {
+    const guard_active = is_starting || !!pending_tier || !!plan_change_target;
+
+    if (!guard_active) return;
+
+    const handle_before_unload = (event: BeforeUnloadEvent) => {
+      if (is_payment_navigation()) return;
+
+      event.preventDefault();
+      event.returnValue = t("settings.checkout_leave_warning");
+    };
+
+    window.addEventListener("beforeunload", handle_before_unload);
+
+    return () => {
+      window.removeEventListener("beforeunload", handle_before_unload);
+    };
+  }, [is_starting, pending_tier, plan_change_target, t]);
+
+  const handle_compare_plans = () => {
+    set_compare_open(true);
   };
 
   const handle_buy_storage = () => {
@@ -348,245 +721,610 @@ export function UpgradeModal() {
     });
   };
 
+  const limits_failed = !limits && limits_load_failed && !is_loading_limits;
+  const is_first_load = !limits && !limits_failed;
+
   const storage = limits?.storage ?? null;
   const storage_percentage = storage
     ? Math.min(100, storage.percentage_used)
     : 0;
 
-  const savings_percent = selected_tier
-    ? yearly_savings_percent(selected_tier)
-    : 0;
-
   return (
-    <Modal is_open={state.is_open} on_close={close_upgrade_modal} size="2xl">
-      <ModalHeader>
-        <ModalTitle>{title}</ModalTitle>
-        <ModalDescription>{description}</ModalDescription>
-      </ModalHeader>
+    <>
+      <Modal
+        close_on_escape={false}
+        close_on_overlay={false}
+        is_open={
+          state.is_open &&
+          !is_blocked &&
+          !pending_tier &&
+          !crypto_tier &&
+          !plan_change_target
+        }
+        on_close={close_upgrade_modal}
+        size="2xl"
+      >
+        <ModalHeader>
+          <ModalTitle>{title}</ModalTitle>
+          <ModalDescription>{description}</ModalDescription>
+        </ModalHeader>
 
-      <ModalBody className="space-y-4">
-        {required_tier ? (
-          <div
-            className="flex items-center gap-2.5 rounded-2xl px-3.5 py-2.5"
-            style={{
-              backgroundColor:
-                "color-mix(in srgb, var(--accent-color) 10%, transparent)",
-            }}
-          >
-            <LockClosedIcon
-              className="h-4 w-4 flex-shrink-0"
-              style={{ color: "var(--accent-color)" }}
-            />
-            <p className="text-[13px] font-medium text-txt-primary">
-              {t("settings.available_on_plan", { plan: required_tier.name })}
-            </p>
-          </div>
-        ) : null}
-
-        {is_storage && storage ? (
-          <div className="p-3 rounded-lg bg-surf-tertiary border border-edge-secondary">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-sm font-medium text-txt-primary">
-                {t("settings.usage_storage")}
-              </span>
-              <span
-                className="text-xs font-medium"
-                style={{
-                  color: storage.is_locked
-                    ? "var(--destructive)"
-                    : "var(--text-secondary)",
-                }}
-              >
-                {format_bytes(storage.used_bytes)} /{" "}
-                {format_bytes(storage.limit_bytes)}
-              </span>
-            </div>
-            <Progress
-              className={`h-1.5 ${storage.is_locked ? "[&>div]:bg-red-500" : storage.is_warning ? "[&>div]:bg-amber-500" : ""}`}
-              value={storage_percentage}
-            />
-            {storage.days_until_permanent_bounce !== null &&
-              storage.is_locked && (
-                <p
-                  className="mt-3 text-xs"
-                  style={{ color: "var(--destructive)" }}
-                >
-                  {t("settings.storage_locked_bounce_warning", {
-                    days: String(storage.days_until_permanent_bounce),
-                  })}
-                </p>
-              )}
-          </div>
-        ) : null}
-
-        {!is_storage && limit_info ? (
-          <div className="p-3 rounded-lg bg-surf-tertiary border border-edge-secondary">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-sm font-medium text-txt-primary">
-                {resource_label}
-              </span>
-              <span
-                className="text-xs font-medium tabular-nums"
-                style={{
-                  color: limit_info.is_at_limit
-                    ? "var(--destructive)"
-                    : "var(--text-secondary)",
-                }}
-              >
-                {t("settings.usage_of", {
-                  current: String(limit_info.current),
-                  limit:
-                    limit_info.limit === -1
-                      ? t("settings.usage_unlimited")
-                      : String(limit_info.limit),
+        <ModalBody className="space-y-4">
+          {state.offer_percent_off ? (
+            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-3.5 py-2.5">
+              <p className="text-[13px] text-txt-secondary">
+                {t("settings.upgrade_offer_note", {
+                  percent: String(state.offer_percent_off),
                 })}
-              </span>
+              </p>
             </div>
-            <Progress
-              className={`h-1.5 ${limit_info.is_at_limit ? "[&>div]:bg-red-500" : ""}`}
-              value={
-                limit_info.limit > 0
-                  ? Math.min(100, (limit_info.current / limit_info.limit) * 100)
-                  : 100
-              }
-            />
-          </div>
-        ) : null}
+          ) : null}
 
-        {tiers.length > 0 && (
-          <>
-            <div className="flex items-center justify-center">
-              <Segmented
-                on_change={(v) => set_interval(v === "yearly" ? "year" : "month")}
-                options={[
-                  { id: "monthly", label: t("settings.billing_monthly") },
-                  {
-                    id: "yearly",
-                    label: t("settings.billing_yearly"),
-                    badge:
-                      savings_percent > 0
-                        ? t("settings.save_percent", {
-                            percent: String(savings_percent),
-                          })
-                        : undefined,
-                  },
-                ]}
-                value={interval === "year" ? "yearly" : "monthly"}
+          {state.limit_key === "max_external_accounts" ? (
+            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-3.5 py-2.5">
+              <p className="text-[13px] text-txt-secondary">
+                {t("settings.upgrade_external_accounts_note")}
+              </p>
+            </div>
+          ) : null}
+
+          {state.limit_key === "max_linked_accounts" ? (
+            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] px-3.5 py-2.5">
+              <p className="text-[13px] text-txt-secondary">
+                {t("settings.upgrade_linked_accounts_note")}
+              </p>
+              <a
+                className="mt-1 inline-block text-[13px] font-medium underline"
+                href="https://astermail.org/terms#section-2"
+                rel="noopener noreferrer"
+                style={{ color: "var(--accent-color)" }}
+                target="_blank"
+              >
+                {t("settings.upgrade_linked_accounts_link")}
+              </a>
+            </div>
+          ) : null}
+
+          {required_tier ? (
+            <div
+              className="flex items-center gap-2.5 rounded-[var(--aster-radius-control)] px-3.5 py-2.5"
+              style={{
+                backgroundColor:
+                  "color-mix(in srgb, var(--accent-color) 10%, transparent)",
+              }}
+            >
+              <LockClosedIcon
+                className="h-4 w-4 flex-shrink-0"
+                style={{ color: "var(--accent-color)" }}
+              />
+              <p className="text-[13px] font-medium text-txt-primary">
+                {t("settings.available_on_plan", {
+                  plan: required_tier.name,
+                })}
+              </p>
+            </div>
+          ) : null}
+
+          {is_storage && storage ? (
+            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] p-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-sm font-medium text-txt-primary">
+                  {t("settings.usage_storage")}
+                </span>
+                <span
+                  className="text-xs font-medium"
+                  style={{
+                    color: storage.is_locked
+                      ? "var(--destructive)"
+                      : "var(--text-secondary)",
+                  }}
+                >
+                  {format_bytes(storage.used_bytes)} /{" "}
+                  {format_bytes(storage.limit_bytes)}
+                </span>
+              </div>
+              <Progress
+                className={`h-1.5 ${storage.is_locked ? "[&>div]:bg-red-500" : storage.is_warning ? "[&>div]:bg-amber-500" : ""}`}
+                value={storage_percentage}
+              />
+              {storage.days_until_permanent_bounce !== null &&
+                storage.is_locked && (
+                  <p
+                    className="mt-3 text-xs"
+                    style={{ color: "var(--destructive)" }}
+                  >
+                    {t("settings.storage_locked_bounce_warning", {
+                      days: storage.days_until_permanent_bounce,
+                    })}
+                  </p>
+                )}
+            </div>
+          ) : null}
+
+          {!is_storage && limit_info ? (
+            <div className="rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] p-3">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-sm font-medium text-txt-primary">
+                  {resource_label}
+                </span>
+                <span
+                  className="text-xs font-medium tabular-nums"
+                  style={{
+                    color: limit_info.is_at_limit
+                      ? "var(--destructive)"
+                      : "var(--text-secondary)",
+                  }}
+                >
+                  {t("settings.usage_of", {
+                    current: limit_info.current,
+                    limit:
+                      limit_info.limit === -1
+                        ? t("settings.usage_unlimited")
+                        : String(limit_info.limit),
+                  })}
+                </span>
+              </div>
+              <Progress
+                className={`h-1.5 ${limit_info.is_at_limit ? "[&>div]:bg-red-500" : ""}`}
+                value={
+                  limit_info.limit > 0
+                    ? Math.min(
+                        100,
+                        (limit_info.current / limit_info.limit) * 100,
+                      )
+                    : 100
+                }
               />
             </div>
+          ) : null}
 
-            <div className={`grid gap-4 pt-3 ${GRID_COLUMNS[tiers.length] ?? "sm:grid-cols-3"}`}>
-              {tiers.map((tier) => {
-                const is_required = required_tier?.id === tier.id;
+          {limits_failed ? (
+            <LoadFailedNotice on_retry={() => void refresh(true)} />
+          ) : null}
 
-                return (
-                  <PlanCard
-                    compact
-                    key={tier.id}
-                    anchor_label={
-                      interval === "year"
-                        ? format_price(
-                            convert_cents(tier.monthly_cents, currency),
-                            currency,
-                          )
-                        : null
-                    }
-                    badge={
-                      is_required
-                        ? t("common.unlock")
-                        : tier.is_recommended
-                          ? t("settings.plan_recommended")
-                          : null
-                    }
-                    billed_note={
-                      interval === "year" ? t("settings.billed_annually") : null
-                    }
-                    cta_disabled={is_starting}
-                    cta_label={t("settings.get_plan", { name: tier.name })}
-                    description={null}
-                    featured={is_required || (!required_tier && !!tier.is_recommended)}
-                    features={tier_features(tier)}
-                    is_current={false}
-                    name={tier.name}
-                    period_label={t("settings.per_month_short")}
-                    price_label={price_label(tier)}
-                    save_label={null}
-                    on_cta={() => handle_upgrade(tier)}
-                  />
-                );
-              })}
+          {is_first_load ? (
+            <div className="flex items-center justify-center py-12">
+              <Spinner size="sm" />
             </div>
+          ) : null}
 
-            {currency !== "usd" && (
-              <p className="pt-3 text-xs text-txt-muted text-center">
-                {t("settings.prices_converted_note")}
-              </p>
-            )}
-          </>
-        )}
-
-        {tiers.length === 0 && (
-          <ul className="space-y-2.5 text-[13px] text-txt-secondary">
-            {[
-              t("settings.upgrade_perk_storage"),
-              t("settings.upgrade_perk_aliases"),
-              t("settings.upgrade_perk_domains"),
-              t("settings.upgrade_perk_features"),
-            ].map((perk) => (
-              <li key={perk} className="flex items-start gap-2.5">
-                <CheckCircleIcon
-                  className="mt-0.5 h-[18px] w-[18px] flex-shrink-0"
-                  style={{ color: "var(--accent-blue)" }}
+          {!is_first_load && !limits_failed && tiers.length > 0 && (
+            <>
+              <div className="flex flex-col items-center gap-3 pt-1">
+                <Tabs
+                  on_change={set_audience}
+                  options={[
+                    {
+                      id: "individual",
+                      label: t("settings.plan_type_individual"),
+                    },
+                    { id: "family", label: t("settings.plan_type_family") },
+                  ]}
+                  value={audience}
                 />
-                <span>{perk}</span>
-              </li>
-            ))}
-          </ul>
-        )}
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <div className="w-64">
+                    <Segmented
+                      on_change={(value) => set_interval(value)}
+                      options={[
+                        { id: "month", label: t("settings.billing_monthly") },
+                        {
+                          id: "year",
+                          label: t("settings.billing_yearly"),
+                          badge:
+                            yearly_save_percent > 0
+                              ? t("settings.save_percent", {
+                                  percent: yearly_save_percent,
+                                })
+                              : undefined,
+                        },
+                      ]}
+                      value={interval}
+                    />
+                  </div>
+                  <select
+                    aria-label={t("settings.select_currency")}
+                    className="cursor-pointer rounded-full border-0 bg-[var(--aster-field-bg)] px-3 py-1.5 text-xs text-txt-secondary outline-none transition-colors hover:text-txt-primary focus:ring-2 focus:ring-[var(--accent-color)]"
+                    value={currency}
+                    onChange={handle_currency_change}
+                  >
+                    {SUPPORTED_CURRENCIES.map((entry) => (
+                      <option key={entry.code} value={entry.code}>
+                        {entry.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
 
-        <div className="flex items-center justify-center gap-1.5 text-xs text-txt-muted">
-          <ShieldCheckIcon className="w-3.5 h-3.5 text-txt-muted" />
-          <span>
-            {t("settings.money_back_guarantee")} &middot;{" "}
-            {t("settings.cancel_anytime")}
-          </span>
-        </div>
-      </ModalBody>
+              <div
+                className={`hidden gap-4 pt-3 sm:grid ${GRID_COLUMNS[tiers.length] ?? "sm:grid-cols-3"}`}
+              >
+                {tiers.map((tier) => {
+                  const is_featured = default_tier?.id === tier.id;
 
-      <ModalFooter className="gap-2">
-        <Button
-          className="flex-1"
-          disabled={is_starting}
-          variant="ghost"
-          onClick={close_upgrade_modal}
-        >
-          {t("common.not_now")}
-        </Button>
-        {is_storage ? (
-          <Button
-            className="flex-1"
-            disabled={is_starting}
-            variant="outline"
-            onClick={handle_buy_storage}
-          >
-            {t("settings.upgrade_buy_storage")}
-          </Button>
-        ) : (
-          <Button
-            className="flex-1"
-            disabled={is_starting}
-            variant="outline"
-            onClick={handle_compare_plans}
-          >
-            {t("settings.upgrade_view_plans")}
-          </Button>
-        )}
-        {is_starting && (
-          <span className="flex items-center px-2">
-            <Spinner size="xs" />
-          </span>
-        )}
-      </ModalFooter>
-    </Modal>
+                  return (
+                    <PlanCard
+                      key={tier.id}
+                      compact
+                      anchor_label={
+                        interval === "year"
+                          ? format_price(
+                              convert_cents(tier.monthly_cents, currency),
+                              currency,
+                            )
+                          : null
+                      }
+                      badge={
+                        is_featured ? t("settings.plan_recommended") : null
+                      }
+                      billed_note={
+                        interval === "year" ? yearly_total_label(tier) : null
+                      }
+                      cta_disabled={is_starting}
+                      cta_label={t("settings.get_plan", { name: tier.name })}
+                      description={null}
+                      featured={is_featured}
+                      features={tier_features(tier)}
+                      is_current={false}
+                      lead_in={lead_in_for(tier)}
+                      name={tier.name}
+                      on_cta={() => handle_select_tier(tier)}
+                      period_label={t("settings.per_month_short")}
+                      price_label={price_label(tier)}
+                      save_label={null}
+                    />
+                  );
+                })}
+              </div>
+
+              <div
+                aria-label={t("settings.select_your_plan")}
+                className="space-y-2 pt-1 sm:hidden"
+                role="radiogroup"
+              >
+                {tiers.map((tier) => {
+                  const is_selected = selected_tier?.id === tier.id;
+                  const badge =
+                    required_tier?.id === tier.id
+                      ? t("common.unlock")
+                      : tier.is_recommended
+                        ? t("settings.plan_recommended")
+                        : null;
+
+                  return (
+                    <button
+                      key={tier.id}
+                      aria-checked={is_selected}
+                      className={`flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-start transition-colors ${
+                        is_selected
+                          ? "bg-surf-tertiary"
+                          : "border-edge-secondary"
+                      }`}
+                      role="radio"
+                      style={
+                        is_selected
+                          ? { borderColor: "var(--accent-blue)" }
+                          : undefined
+                      }
+                      type="button"
+                      onClick={() => set_selected_tier_id(tier.id)}
+                    >
+                      <span
+                        className="flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-full border-2"
+                        style={{
+                          borderColor: is_selected
+                            ? "var(--accent-blue)"
+                            : "var(--border-primary)",
+                        }}
+                      >
+                        {is_selected && (
+                          <span
+                            className="h-2 w-2 rounded-full"
+                            style={{ backgroundColor: "var(--accent-blue)" }}
+                          />
+                        )}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="flex items-center gap-2">
+                          <span className="text-sm font-semibold text-txt-primary">
+                            {tier.name}
+                          </span>
+                          {badge && (
+                            <span
+                              className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                              style={{
+                                backgroundColor: "var(--accent-blue)",
+                                color: "var(--accent-fg, #ffffff)",
+                              }}
+                            >
+                              {badge}
+                            </span>
+                          )}
+                        </span>
+                        <span className="mt-0.5 block truncate text-xs text-txt-muted">
+                          {row_summary(tier)}
+                        </span>
+                      </span>
+                      <span className="flex-shrink-0 text-end tabular-nums">
+                        {interval === "year" && (
+                          <span className="block text-[11px] text-txt-muted line-through">
+                            {format_price(
+                              convert_cents(tier.monthly_cents, currency),
+                              currency,
+                            )}
+                          </span>
+                        )}
+                        <span className="block text-sm font-semibold text-txt-primary">
+                          {price_label(tier)}
+                          <span className="text-xs font-normal text-txt-muted">
+                            {t("settings.per_month_short")}
+                          </span>
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })}
+
+                {selected_tier && (
+                  <div className="rounded-2xl border border-edge-secondary px-4 py-3.5">
+                    {lead_in_for(selected_tier) && (
+                      <p className="mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-txt-muted">
+                        {lead_in_for(selected_tier)}
+                      </p>
+                    )}
+                    <ul className="space-y-2">
+                      {tier_features(selected_tier).map((feature) => (
+                        <li
+                          key={feature.label}
+                          className="flex items-start gap-2.5 text-[13px] text-txt-secondary"
+                        >
+                          <CheckIcon
+                            className="mt-0.5 h-4 w-4 flex-shrink-0"
+                            style={{ color: "var(--accent-blue)" }}
+                          />
+                          <span>{feature.label}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {interval === "year" && (
+                      <p className="mt-3 text-xs text-txt-muted">
+                        {yearly_total_label(selected_tier)}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+
+          {!is_first_load && !limits_failed && tiers.length === 0 && (
+            <ul className="space-y-2.5 text-[13px] text-txt-secondary">
+              {[
+                t("settings.upgrade_perk_storage"),
+                t("settings.upgrade_perk_aliases"),
+                t("settings.upgrade_perk_domains"),
+                t("settings.upgrade_perk_features"),
+              ].map((perk) => (
+                <li key={perk} className="flex items-start gap-2.5">
+                  <CheckCircleIcon
+                    className="mt-0.5 h-[18px] w-[18px] flex-shrink-0"
+                    style={{ color: "var(--accent-blue)" }}
+                  />
+                  <span>{perk}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div className="flex flex-col items-center gap-2 pt-1 text-center">
+            <p className="text-xs text-txt-secondary">
+              {t("settings.plan_every_plan_includes")}
+            </p>
+            <ul className="flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5">
+              {trust_points.map((point) => (
+                <li
+                  key={point}
+                  className="flex items-center gap-1.5 text-xs text-txt-secondary"
+                >
+                  <CheckIcon
+                    className="h-3.5 w-3.5 flex-shrink-0"
+                    style={{ color: "var(--accent-blue)" }}
+                  />
+                  <span>{point}</span>
+                </li>
+              ))}
+              {tiers.length > 0 && (
+                <li className="flex items-center">
+                  <select
+                    aria-label={t("settings.select_currency")}
+                    className="cursor-pointer rounded-md bg-transparent py-0.5 text-xs font-medium text-txt-secondary underline decoration-dotted underline-offset-4 outline-none transition-colors hover:text-txt-primary focus-visible:ring-2 focus-visible:ring-blue-500"
+                    value={currency}
+                    onChange={handle_currency_change}
+                  >
+                    {SUPPORTED_CURRENCIES.map((entry) => (
+                      <option key={entry.code} value={entry.code}>
+                        {entry.label}
+                      </option>
+                    ))}
+                  </select>
+                </li>
+              )}
+            </ul>
+            <p className="text-[12px] leading-relaxed text-txt-tertiary">
+              {currency !== "usd" && tiers.length > 0
+                ? `${t("settings.prices_converted_note")} `
+                : ""}
+              {t("settings.plan_billing_terms")}
+            </p>
+          </div>
+        </ModalBody>
+
+        <ModalFooter className="sticky bottom-0 z-10 flex-col gap-2 border-t border-edge-secondary bg-[var(--modal-bg)] pt-3 sm:static sm:flex-row sm:border-t-0 sm:pt-2">
+          {selected_tier && !is_first_load && !limits_failed && (
+            <div className="w-full sm:hidden">
+              <Button
+                className="w-full"
+                disabled={is_starting}
+                variant="primary"
+                onClick={() => handle_select_tier(selected_tier)}
+              >
+                {t("settings.continue_with_plan", {
+                  plan: selected_tier.name,
+                })}
+              </Button>
+            </div>
+          )}
+          <div className="flex w-full items-center justify-between gap-3">
+            {is_storage ? (
+              <Button
+                disabled={is_starting}
+                size="sm"
+                variant="outline"
+                onClick={handle_buy_storage}
+              >
+                {t("settings.upgrade_buy_storage")}
+              </Button>
+            ) : (
+              <Button
+                disabled={is_starting}
+                size="sm"
+                variant="ghost"
+                onClick={handle_compare_plans}
+              >
+                {t("settings.compare_all_features")}
+              </Button>
+            )}
+            <span className="flex items-center gap-1">
+              {is_starting && <Spinner size="xs" />}
+              <Button
+                className="text-txt-muted"
+                disabled={is_starting}
+                size="sm"
+                variant="ghost"
+                onClick={close_upgrade_modal}
+              >
+                {t("common.not_now")}
+              </Button>
+            </span>
+          </div>
+        </ModalFooter>
+      </Modal>
+
+      {pending_tier && (
+        <PlanPaymentMethodModal
+          busy={is_starting}
+          comparison_plan_code={pending_tier.id}
+          features={tier_features(pending_tier)
+            .filter((feature) => feature.on)
+            .map((feature) => ({ label: feature.label }))}
+          on_choose_card={(id) => void handle_choose_card(id)}
+          on_choose_crypto={handle_choose_crypto}
+          on_close={() => {
+            if (is_starting) return;
+            set_pending_tier(null);
+          }}
+          on_select_plan={(id) => {
+            const next = tiers.find((tier) => tier.id === id);
+
+            if (next) set_pending_tier(next);
+          }}
+          on_select_term={set_term_id}
+          open={!!pending_tier}
+          plan_choices={tiers.map((tier) => ({
+            id: tier.id,
+            name: tier.name,
+            is_recommended: tier.id === default_tier?.id,
+            price_label: `${price_label(tier)}${t("settings.per_month_short")}`,
+          }))}
+          plan_name={pending_tier.name}
+          selected_plan_id={pending_tier.id}
+          selected_term={term_id}
+          term_options={[
+            {
+              id: "monthly",
+              label: t("settings.billing_monthly"),
+              per_month_cents: pending_tier.monthly_cents,
+              total_cents: pending_tier.monthly_cents,
+              save_cents: 0,
+            },
+            {
+              id: "yearly",
+              label: t("settings.billing_yearly"),
+              per_month_cents: Math.round(pending_tier.yearly_cents / 12),
+              total_cents: pending_tier.yearly_cents,
+              save_cents:
+                pending_tier.monthly_cents * 12 - pending_tier.yearly_cents,
+            },
+            {
+              id: "biennial",
+              label: t("settings.biennial"),
+              crypto_only: true,
+              per_month_cents: Math.round(pending_tier.biennial_cents / 24),
+              total_cents: pending_tier.biennial_cents,
+              save_cents:
+                pending_tier.monthly_cents * 24 - pending_tier.biennial_cents,
+            },
+          ]}
+        />
+      )}
+
+      <PlanFeaturesModal
+        highlight_plan_code={pending_tier?.id ?? default_tier?.id ?? null}
+        is_open={compare_open}
+        on_close={() => set_compare_open(false)}
+        z_index={80}
+      />
+
+      {plan_change_target && (
+        <PlanChangeConfirmModal
+          billing_interval={plan_change_target.billing}
+          is_confirming={is_starting}
+          on_close={() => {
+            if (is_starting) return;
+            const tier = plan_change_target.tier;
+
+            set_plan_change_target(null);
+            set_pending_tier(tier);
+          }}
+          on_confirm={(promo_code) =>
+            void start_plan_change(
+              plan_change_target.tier,
+              plan_change_target.billing,
+              promo_code,
+            )
+          }
+          open={!!plan_change_target}
+          plan_code={plan_change_target.tier.id}
+          plan_name={plan_change_target.tier.name}
+        />
+      )}
+
+      {crypto_tier && (
+        <CryptoTermModal
+          discount_percent_off={crypto_offer.percent_off}
+          discounted_price_cents={crypto_offer.crypto_price(crypto_tier.id)}
+          initial_term_months={crypto_term_months}
+          is_open={!!crypto_tier}
+          monthly_price_cents={crypto_tier.monthly_cents}
+          on_checkout_opened={() => {
+            if (is_desktop()) pending_desktop_checkout_ref.current = true;
+          }}
+          on_close={() => {
+            const tier = crypto_tier;
+
+            set_crypto_tier(null);
+            set_pending_tier(tier);
+          }}
+          on_finished={() => set_crypto_tier(null)}
+          plan_code={crypto_tier.id}
+          plan_name={crypto_tier.name}
+          preferred_currency={currency}
+          promo_code={offer_promo_code_for(crypto_tier.id) ?? null}
+          special_offer={!!crypto_offer.crypto_price(crypto_tier.id)}
+          yearly_price_cents={crypto_tier.yearly_cents}
+        />
+      )}
+    </>
   );
 }

@@ -18,10 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
+import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
+
 import { array_to_base64, base64_to_array } from "./envelope";
 import { zero_uint8_array } from "./secure_memory";
-import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
+
+import { HASH_ALG } from "@/services/crypto/constants";
 
 //
 // Hybrid post-quantum encryption for password-protected messages sent to
@@ -146,9 +148,7 @@ async function derive_raw_material(
   );
 
   const derived_bytes = new Uint8Array(derived);
-  const kdf_key_bytes = new Uint8Array(
-    derived_bytes.slice(0, KDF_KEY_BYTES),
-  );
+  const kdf_key_bytes = new Uint8Array(derived_bytes.slice(0, KDF_KEY_BYTES));
   const auth_verifier = new Uint8Array(
     derived_bytes.slice(KDF_KEY_BYTES, KDF_KEY_BYTES + AUTH_VERIFIER_BYTES),
   );
@@ -361,6 +361,7 @@ export async function encrypt_secure_message(
         bundle_json,
         write_aad(field_aad("attachments_bundle")),
       );
+
       encrypted_attachments_bundle = array_to_base64(
         new TextEncoder().encode(JSON.stringify(bundle_field)),
       );
@@ -370,7 +371,9 @@ export async function encrypt_secure_message(
       kdf_salt: array_to_base64(salt),
       auth_proof,
       kem_ciphertext: array_to_base64(kem_ct),
-      encrypted_kem_seed: array_to_base64(new Uint8Array(encrypted_kem_seed_buf)),
+      encrypted_kem_seed: array_to_base64(
+        new Uint8Array(encrypted_kem_seed_buf),
+      ),
       kem_seed_nonce: array_to_base64(kem_seed_nonce),
       encrypted_subject,
       encrypted_body,
@@ -425,7 +428,11 @@ export async function decrypt_secure_message(
 
   let content_key: CryptoKey;
 
-  if (bundle.kem_ciphertext && bundle.encrypted_kem_seed && bundle.kem_seed_nonce) {
+  if (
+    bundle.kem_ciphertext &&
+    bundle.encrypted_kem_seed &&
+    bundle.kem_seed_nonce
+  ) {
     const kdf_aes_key = await crypto.subtle.importKey(
       "raw",
       material.kdf_key_bytes,
@@ -483,7 +490,9 @@ export async function decrypt_secure_message(
 
   if (bundle.encrypted_attachments_bundle) {
     const envelope_bytes = base64_to_array(bundle.encrypted_attachments_bundle);
-    const bundle_field: EncryptedField = JSON.parse(decoder.decode(envelope_bytes));
+    const bundle_field: EncryptedField = JSON.parse(
+      decoder.decode(envelope_bytes),
+    );
     const bundle_json = await decrypt_field(
       content_key,
       bundle_field,

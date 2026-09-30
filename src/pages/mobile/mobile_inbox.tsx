@@ -20,8 +20,8 @@
 //
 import type { InboxEmail, InboxFilterType } from "@/types/email";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useState, useCallback, useMemo, useEffect, useRef } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   FunnelIcon,
   CheckIcon,
@@ -37,18 +37,15 @@ import {
   BellSnoozeIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import {
-  addHours,
-  addDays,
-  setHours,
-  setMinutes,
-  nextSaturday,
-  nextMonday,
-  format,
-} from "date-fns";
 
 import { use_email_list } from "@/hooks/use_email_list";
 import { use_drafts_list, type DraftListItem } from "@/hooks/use_drafts_list";
+import { use_scheduled_emails } from "@/hooks/use_scheduled_emails";
+import { reschedule_email, send_scheduled_now } from "@/services/api/scheduled";
+import { emit_scheduled_changed } from "@/hooks/mail_events";
+import { SchedulePicker } from "@/components/compose/schedule_picker";
+import { format_datetime_hint } from "@/utils/date_format";
+import { compute_snooze_target } from "@/utils/snooze_targets";
 import { use_email_actions } from "@/hooks/use_email_actions";
 import { use_snooze } from "@/hooks/use_snooze";
 import { use_tags } from "@/hooks/use_tags";
@@ -59,7 +56,10 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { MobileHeader } from "@/components/mobile/mobile_header";
 import { MobileEmailList } from "@/components/mobile/mobile_email_list";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
-import { EmptyTrashModal } from "@/components/email/inbox/inbox_confirmation_dialog";
+import {
+  ConfirmModal,
+  EmptyTrashModal,
+} from "@/components/email/inbox/inbox_confirmation_dialog";
 import { use_settled_not_found } from "@/components/email/inbox/use_settled_not_found";
 import { use_spam_confirm } from "@/components/email/use_spam_confirm";
 import { empty_trash } from "@/services/api/mail";
@@ -81,6 +81,14 @@ import {
 } from "@/components/ui/dropdown_menu";
 import { haptic_impact } from "@/native/haptic_feedback";
 import { set_recipient_hint } from "@/stores/recipient_hint_store";
+import {
+  build_alias_view,
+  parse_alias_direction,
+} from "@/hooks/email_list_helpers/alias_view";
+import { AliasDirectionMenuItems } from "@/components/email/inbox/alias_direction_menu_items";
+import { AliasIndexingNotice } from "@/components/email/inbox/alias_indexing_notice";
+import { use_sender_alias_backfill } from "@/hooks/use_sender_alias_backfill";
+import { use_auth } from "@/contexts/auth/use_auth_hook";
 
 type Mailbox =
   | "inbox"
@@ -127,19 +135,25 @@ function MobileInbox({
     tag_token?: string;
     alias_address?: string;
   }>();
+  const [search_params] = useSearchParams();
   const { t } = use_i18n();
   const { safe_area_insets } = use_platform();
   const { preferences } = use_preferences();
+  const alias_direction = parse_alias_direction(search_params.get("direction"));
+  const { user } = use_auth();
 
   const current_view = folder_token
     ? `folder-${folder_token}`
     : tag_token
       ? `tag-${tag_token}`
       : alias_address
-        ? `alias-${decodeURIComponent(alias_address)}`
+        ? build_alias_view(decodeURIComponent(alias_address), alias_direction)
         : (mailbox ?? "inbox");
 
+  const backfill_status = use_sender_alias_backfill(current_view, user?.email);
+
   const is_drafts_view = current_view === "drafts";
+  const is_scheduled_view = current_view === "scheduled";
 
   const {
     state: mail_state,
@@ -149,8 +163,17 @@ function MobileInbox({
     refresh,
   } = use_email_list(current_view);
 
-  const { state: drafts_state, refresh: refresh_drafts } =
-    use_drafts_list(is_drafts_view);
+  const {
+    state: drafts_state,
+    refresh: refresh_drafts,
+    schedule_delete_drafts,
+  } = use_drafts_list(is_drafts_view);
+
+  const {
+    state: scheduled_state,
+    refresh: refresh_scheduled,
+    cancel_email: cancel_scheduled_email,
+  } = use_scheduled_emails(is_scheduled_view);
 
   const actions = use_email_actions();
   const snooze_actions = use_snooze();
@@ -161,13 +184,31 @@ function MobileInbox({
   const [selection_mode, set_selection_mode] = useState(false);
   const [selected_ids, set_selected_ids] = useState<Set<string>>(new Set());
   const [is_refreshing, set_is_refreshing] = useState(false);
+  const refresh_timer_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (refresh_timer_ref.current !== null) {
+        clearTimeout(refresh_timer_ref.current);
+      }
+    },
+    [],
+  );
   const [snooze_email_target, set_snooze_email_target] =
     useState<InboxEmail | null>(null);
+  const [scheduled_target_id, set_scheduled_target_id] = useState<
+    string | null
+  >(null);
   const [show_empty_trash_dialog, set_show_empty_trash_dialog] =
     useState(false);
+  const [permanent_delete_target, set_permanent_delete_target] = useState<
+    InboxEmail[] | null
+  >(null);
   const [is_emptying_trash, set_is_emptying_trash] = useState(false);
 
   const is_trash_view = current_view === "trash";
+  const is_spam_view = current_view === "spam";
+  const is_snoozed_view = current_view === "snoozed";
 
   useEffect(() => {
     on_selection_mode_change?.(selection_mode);
@@ -175,7 +216,9 @@ function MobileInbox({
 
   const active_emails = is_drafts_view
     ? (drafts_state.drafts as InboxEmail[])
-    : mail_state.emails;
+    : is_scheduled_view
+      ? (scheduled_state.emails as InboxEmail[])
+      : mail_state.emails;
 
   const pinned_emails = useMemo(
     () => active_emails.filter((e) => e.is_pinned),
@@ -306,15 +349,18 @@ function MobileInbox({
   }, []);
 
   const handle_select_all = useCallback(() => {
-    const capped = all_visible_emails.slice(0, 100);
-
-    set_selected_ids(new Set(capped.map((e) => e.id)));
+    set_selected_ids(new Set(all_visible_emails.map((e) => e.id)));
   }, [all_visible_emails]);
 
   const handle_email_press = useCallback(
     (id: string) => {
       if (selection_mode) {
         handle_toggle_select(id);
+
+        return;
+      }
+      if (is_scheduled_view) {
+        set_scheduled_target_id(id);
 
         return;
       }
@@ -345,6 +391,7 @@ function MobileInbox({
       navigate,
       current_view,
       is_drafts_view,
+      is_scheduled_view,
       on_draft_click,
       drafts_state.drafts,
       active_emails,
@@ -362,32 +409,54 @@ function MobileInbox({
     return active_emails.filter((e) => selected_ids.has(e.id));
   }, [active_emails, selected_ids]);
 
+  const bulk_action_ref = useRef(false);
+  const [bulk_action_busy, set_bulk_action_busy] = useState(false);
+
+  const run_bulk_action = useCallback(
+    async (action: () => Promise<void>): Promise<void> => {
+      if (bulk_action_ref.current) return;
+
+      bulk_action_ref.current = true;
+      set_bulk_action_busy(true);
+
+      try {
+        await action();
+      } finally {
+        bulk_action_ref.current = false;
+        set_bulk_action_busy(false);
+      }
+    },
+    [],
+  );
+
   const is_archive_view = current_view === "archive";
 
   const handle_bulk_archive = useCallback(async () => {
-    const emails = get_selected_emails();
+    await run_bulk_action(async () => {
+      const emails = get_selected_emails();
 
-    if (emails.length === 0) return;
-    haptic_impact("medium");
-    const ok = is_archive_view
-      ? await actions.bulk_unarchive(emails)
-      : await actions.bulk_archive(emails);
+      if (emails.length === 0) return;
+      haptic_impact("medium");
+      const ok = is_archive_view
+        ? await actions.bulk_unarchive(emails)
+        : await actions.bulk_archive(emails);
 
-    if (ok) {
-      for (const email of emails) {
-        remove_email(email.id);
+      if (ok) {
+        for (const email of emails) {
+          remove_email(email.id);
+        }
+      } else {
+        show_toast(
+          t(
+            is_archive_view
+              ? "common.failed_to_move_email"
+              : "common.failed_to_archive_emails",
+          ),
+          "error",
+        );
       }
-    } else {
-      show_toast(
-        t(
-          is_archive_view
-            ? "common.failed_to_move_email"
-            : "common.failed_to_archive_emails",
-        ),
-        "error",
-      );
-    }
-    exit_selection_mode();
+      exit_selection_mode();
+    });
   }, [
     get_selected_emails,
     actions,
@@ -395,44 +464,150 @@ function MobileInbox({
     exit_selection_mode,
     is_archive_view,
     t,
+    run_bulk_action,
   ]);
 
-  const handle_bulk_delete = useCallback(async () => {
-    const emails = get_selected_emails();
+  const run_permanent_delete = useCallback(
+    async (emails: InboxEmail[]) => {
+      let failed = 0;
 
-    if (emails.length === 0) return;
-    haptic_impact("medium");
-    const ok = await actions.bulk_delete(emails);
-
-    if (ok) {
       for (const email of emails) {
-        remove_email(email.id);
+        const deleted = await actions.permanently_delete(email);
+
+        if (deleted) {
+          remove_email(email.id);
+        } else {
+          failed += 1;
+        }
       }
-    } else {
-      show_toast(t("common.failed_to_delete_emails"), "error");
-    }
+
+      if (failed > 0) {
+        show_toast(t("common.failed_to_permanently_delete"), "error");
+      }
+    },
+    [actions, remove_email, t],
+  );
+
+  const handle_bulk_delete = useCallback(async () => {
+    await run_bulk_action(async () => {
+      const emails = get_selected_emails();
+
+      if (emails.length === 0) return;
+      haptic_impact("medium");
+
+      if (is_drafts_view) {
+        schedule_delete_drafts(emails.map((email) => email.id));
+        exit_selection_mode();
+
+        return;
+      }
+
+      if (is_scheduled_view) {
+        let failed = 0;
+
+        for (const email of emails) {
+          const cancelled = await cancel_scheduled_email(email.id);
+
+          if (!cancelled) failed += 1;
+        }
+
+        if (failed > 0) {
+          show_toast(t("common.failed_to_delete_emails"), "error");
+        }
+        exit_selection_mode();
+
+        return;
+      }
+
+      if (is_trash_view) {
+        set_permanent_delete_target(emails);
+
+        return;
+      }
+
+      const ok = await actions.bulk_delete(emails);
+
+      if (ok) {
+        for (const email of emails) {
+          remove_email(email.id);
+        }
+      } else {
+        show_toast(t("common.failed_to_delete_emails"), "error");
+      }
+      exit_selection_mode();
+    });
+  }, [
+    get_selected_emails,
+    actions,
+    remove_email,
+    exit_selection_mode,
+    is_trash_view,
+    is_drafts_view,
+    is_scheduled_view,
+    schedule_delete_drafts,
+    cancel_scheduled_email,
+    t,
+    run_bulk_action,
+  ]);
+
+  const handle_bulk_unmark_spam = useCallback(async () => {
+    await run_bulk_action(async () => {
+      const emails = get_selected_emails();
+
+      if (emails.length === 0) return;
+      haptic_impact("medium");
+      const ok = await actions.bulk_unmark_spam(emails);
+
+      if (ok) {
+        for (const email of emails) {
+          remove_email(email.id);
+        }
+      } else {
+        show_toast(t("common.failed_to_move_email"), "error");
+      }
+      exit_selection_mode();
+    });
+  }, [
+    get_selected_emails,
+    actions,
+    remove_email,
+    exit_selection_mode,
+    t,
+    run_bulk_action,
+  ]);
+
+  const confirm_permanent_delete = useCallback(async () => {
+    const targets = permanent_delete_target;
+
+    if (!targets) return;
+    set_permanent_delete_target(null);
+    await run_permanent_delete(targets);
     exit_selection_mode();
-  }, [get_selected_emails, actions, remove_email, exit_selection_mode, t]);
+  }, [permanent_delete_target, run_permanent_delete, exit_selection_mode]);
 
   const handle_bulk_toggle_star = useCallback(async () => {
-    const emails = get_selected_emails();
+    await run_bulk_action(async () => {
+      const emails = get_selected_emails();
 
-    if (emails.length === 0) return;
-    const any_unstarred = emails.some((e) => !e.is_starred);
+      if (emails.length === 0) return;
+      const any_unstarred = emails.some((e) => !e.is_starred);
 
-    await actions.bulk_star(emails, any_unstarred);
-    exit_selection_mode();
-  }, [get_selected_emails, actions, exit_selection_mode]);
+      await actions.bulk_star(emails, any_unstarred);
+      exit_selection_mode();
+    });
+  }, [get_selected_emails, actions, exit_selection_mode, run_bulk_action]);
 
   const handle_bulk_toggle_read = useCallback(async () => {
-    const emails = get_selected_emails();
+    await run_bulk_action(async () => {
+      const emails = get_selected_emails();
 
-    if (emails.length === 0) return;
-    const any_unread = emails.some((e) => !e.is_read);
+      if (emails.length === 0) return;
+      const any_unread = emails.some((e) => !e.is_read);
 
-    await actions.bulk_mark_read(emails, any_unread);
-    exit_selection_mode();
-  }, [get_selected_emails, actions, exit_selection_mode]);
+      await actions.bulk_mark_read(emails, any_unread);
+      exit_selection_mode();
+    });
+  }, [get_selected_emails, actions, exit_selection_mode, run_bulk_action]);
 
   const handle_archive = useCallback(
     async (email: InboxEmail) => {
@@ -440,40 +615,76 @@ function MobileInbox({
         ? await actions.unarchive_email(email)
         : await actions.archive_email(email);
 
-      if (success) remove_email(email.id);
+      if (success) {
+        remove_email(email.id);
+
+        return;
+      }
+
+      show_toast(
+        email.is_archived
+          ? t("common.failed_to_unarchive_emails")
+          : t("common.failed_to_archive_emails"),
+        "error",
+      );
     },
-    [actions, remove_email],
+    [actions, remove_email, t],
   );
 
   const handle_delete = useCallback(
     async (email: InboxEmail) => {
+      if (is_drafts_view) {
+        schedule_delete_drafts([email.id]);
+
+        return;
+      }
+
+      if (is_scheduled_view) {
+        const cancelled = await cancel_scheduled_email(email.id);
+
+        if (!cancelled) {
+          show_toast(t("common.failed_to_delete_emails"), "error");
+        }
+
+        return;
+      }
+
       if (is_trash_view) {
-        const ok = await actions.permanently_delete(email);
+        set_permanent_delete_target([email]);
+      } else {
+        const ok = await actions.delete_email(email);
 
         if (ok) {
           remove_email(email.id);
         } else {
-          show_toast(t("common.failed_to_permanently_delete"), "error");
+          show_toast(t("common.failed_to_delete_emails"), "error");
         }
-      } else {
-        const ok = await actions.delete_email(email);
-
-        if (ok) remove_email(email.id);
       }
     },
-    [actions, remove_email, is_trash_view, t],
+    [
+      actions,
+      remove_email,
+      is_trash_view,
+      is_drafts_view,
+      is_scheduled_view,
+      schedule_delete_drafts,
+      cancel_scheduled_email,
+      t,
+    ],
   );
 
   const handle_toggle_star = useCallback(
     async (email: InboxEmail) => {
       update_email(email.id, { is_starred: !email.is_starred });
-      try {
-        await actions.toggle_star(email);
-      } catch {
+
+      const succeeded = await actions.toggle_star(email);
+
+      if (!succeeded) {
         update_email(email.id, { is_starred: email.is_starred });
+        show_toast(t("common.something_went_wrong"), "error");
       }
     },
-    [actions, update_email],
+    [actions, update_email, t],
   );
 
   const handle_toggle_read = useCallback(
@@ -488,36 +699,140 @@ function MobileInbox({
     [actions, update_email],
   );
 
-  const handle_snooze = useCallback(async (email: InboxEmail) => {
-    set_snooze_email_target(email);
-  }, []);
+  const handle_snooze = useCallback(
+    async (email: InboxEmail) => {
+      if (!is_snoozed_view) {
+        set_snooze_email_target(email);
+
+        return;
+      }
+
+      try {
+        await snooze_actions.unsnooze_mail(email.id);
+        remove_email(email.id);
+        show_toast(t("common.email_unsnoozed"), "success");
+      } catch (err) {
+        if (import.meta.env.DEV) console.error("failed to unsnooze email", err);
+        show_toast(t("errors.failed_to_unsnooze_email"), "error");
+      }
+    },
+    [is_snoozed_view, snooze_actions, remove_email, t],
+  );
 
   const handle_mark_spam = useCallback(
     (email: InboxEmail) => {
+      if (is_spam_view) {
+        void (async () => {
+          const success = await actions.unmark_spam(email);
+
+          if (success) {
+            remove_email(email.id);
+
+            return;
+          }
+
+          show_toast(t("common.failed_to_move_email"), "error");
+        })();
+
+        return;
+      }
+
       request_spam(async () => {
         const success = await actions.mark_as_spam(email);
 
-        if (success) remove_email(email.id);
+        if (success) {
+          remove_email(email.id);
+
+          return;
+        }
+
+        show_toast(t("common.failed_to_mark_as_spam"), "error");
       });
     },
-    [actions, remove_email, request_spam],
+    [actions, remove_email, request_spam, is_spam_view, t],
   );
 
   const handle_snooze_select = useCallback(
     async (snoozed_until: Date) => {
       if (!snooze_email_target) return;
+      const target_id = snooze_email_target.id;
+
+      set_snooze_email_target(null);
       try {
-        await snooze_actions.snooze(snooze_email_target.id, snoozed_until);
-        remove_email(snooze_email_target.id);
-        set_snooze_email_target(null);
+        await snooze_actions.snooze(target_id, snoozed_until);
+        remove_email(target_id);
+        show_toast(t("common.email_snoozed"), "success");
       } catch (err) {
         if (import.meta.env.DEV) console.error("failed to snooze email", err);
+        show_toast(t("errors.failed_to_snooze"), "error");
       }
     },
-    [snooze_actions, snooze_email_target, remove_email],
+    [snooze_actions, snooze_email_target, remove_email, t],
+  );
+
+  const scheduled_target = useMemo(
+    () =>
+      scheduled_target_id
+        ? (scheduled_state.emails.find((e) => e.id === scheduled_target_id) ??
+          null)
+        : null,
+    [scheduled_target_id, scheduled_state.emails],
+  );
+
+  const handle_scheduled_send_now = useCallback(async () => {
+    if (!scheduled_target_id) return;
+    const target_id = scheduled_target_id;
+
+    set_scheduled_target_id(null);
+    const response = await send_scheduled_now(target_id);
+
+    if (response.error) {
+      show_toast(response.error || t("common.something_went_wrong"), "error");
+
+      return;
+    }
+    show_toast(t("common.email_sent_successfully"), "success");
+    emit_scheduled_changed({ action: "sent", email_id: target_id });
+    refresh_scheduled();
+  }, [scheduled_target_id, refresh_scheduled, t]);
+
+  const handle_scheduled_cancel = useCallback(async () => {
+    if (!scheduled_target_id) return;
+    const target_id = scheduled_target_id;
+
+    set_scheduled_target_id(null);
+    const ok = await cancel_scheduled_email(target_id);
+
+    if (!ok) {
+      show_toast(t("common.something_went_wrong"), "error");
+
+      return;
+    }
+    show_toast(t("common.scheduled_email_cancelled"), "success");
+  }, [scheduled_target_id, cancel_scheduled_email, t]);
+
+  const handle_scheduled_reschedule = useCallback(
+    async (date: Date | null) => {
+      if (!date || !scheduled_target_id) return;
+      const target_id = scheduled_target_id;
+
+      set_scheduled_target_id(null);
+      const response = await reschedule_email(target_id, date.toISOString());
+
+      if (response.error) {
+        show_toast(response.error || t("common.something_went_wrong"), "error");
+
+        return;
+      }
+      show_toast(t("common.send_time_updated"), "success");
+      emit_scheduled_changed({ action: "updated", email_id: target_id });
+      refresh_scheduled();
+    },
+    [scheduled_target_id, refresh_scheduled, t],
   );
 
   const handle_load_more = useCallback(() => {
+    if (is_scheduled_view) return;
     if (is_drafts_view) {
       if (drafts_state.has_more) refresh_drafts();
 
@@ -528,6 +843,7 @@ function MobileInbox({
     }
   }, [
     is_drafts_view,
+    is_scheduled_view,
     drafts_state.has_more,
     mail_state,
     load_more,
@@ -536,14 +852,33 @@ function MobileInbox({
 
   const handle_refresh = useCallback(() => {
     set_is_refreshing(true);
-    setTimeout(() => set_is_refreshing(false), 1000);
+
+    if (refresh_timer_ref.current !== null) {
+      clearTimeout(refresh_timer_ref.current);
+    }
+
+    refresh_timer_ref.current = setTimeout(() => {
+      refresh_timer_ref.current = null;
+      set_is_refreshing(false);
+    }, 1000);
     if (is_drafts_view) {
       refresh_drafts();
 
       return;
     }
+    if (is_scheduled_view) {
+      refresh_scheduled();
+
+      return;
+    }
     refresh();
-  }, [is_drafts_view, refresh, refresh_drafts]);
+  }, [
+    is_drafts_view,
+    is_scheduled_view,
+    refresh,
+    refresh_drafts,
+    refresh_scheduled,
+  ]);
 
   const confirm_empty_trash = useCallback(async () => {
     set_is_emptying_trash(true);
@@ -586,6 +921,23 @@ function MobileInbox({
     }
   }, [mail_state.emails, remove_email, t]);
 
+  const selected_emails = useMemo(
+    () =>
+      selection_mode ? active_emails.filter((e) => selected_ids.has(e.id)) : [],
+    [selection_mode, active_emails, selected_ids],
+  );
+
+  const bulk_star_adds = selected_emails.some((e) => !e.is_starred);
+  const bulk_read_marks_read = selected_emails.some((e) => !e.is_read);
+
+  const scheduled_error_visible =
+    is_scheduled_view &&
+    Boolean(scheduled_state.error) &&
+    !scheduled_state.is_loading;
+
+  const drafts_error_visible =
+    is_drafts_view && Boolean(drafts_state.error) && !drafts_state.is_loading;
+
   return (
     <div
       className={`flex h-full flex-col${selection_mode ? " select-none" : ""}`}
@@ -599,6 +951,7 @@ function MobileInbox({
           }}
         >
           <button
+            aria-label={t("common.close")}
             className="flex h-11 w-11 items-center justify-center rounded-full text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={exit_selection_mode}
@@ -606,10 +959,10 @@ function MobileInbox({
             <XMarkIcon className="h-6 w-6" />
           </button>
           <span className="min-w-0 flex-1 text-lg font-semibold text-[var(--text-primary)]">
-            {selected_ids.size} {t("common.selected")}
+            {t("common.selected_count", { count: selected_ids.size })}
           </span>
           <button
-            className="rounded-full px-3 py-1.5 text-[13px] font-medium text-[var(--accent-color,#3b82f6)]"
+            className="rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium text-[var(--accent-color,#3b82f6)]"
             type="button"
             onClick={handle_select_all}
           >
@@ -634,8 +987,10 @@ function MobileInbox({
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button
+                    aria-label={t("mail.filter")}
                     className={`flex h-11 w-11 items-center justify-center rounded-full ${
-                      active_filter !== "all"
+                      active_filter !== "all" ||
+                      (alias_address && alias_direction !== "all")
                         ? "text-blue-500"
                         : "text-[var(--text-secondary)]"
                     } active:bg-[var(--bg-tertiary)]`}
@@ -645,9 +1000,12 @@ function MobileInbox({
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
+                  {alias_address && (
+                    <AliasDirectionMenuItems direction={alias_direction} />
+                  )}
                   <DropdownMenuLabel>{t("mail.filter")}</DropdownMenuLabel>
                   <DropdownMenuItem onClick={() => set_active_filter("all")}>
-                    <span className="w-4 mr-2">
+                    <span className="w-4 me-2">
                       {active_filter === "all" && (
                         <CheckIcon className="w-4 h-4" />
                       )}
@@ -655,7 +1013,7 @@ function MobileInbox({
                     {t("mail.all_emails")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => set_active_filter("unread")}>
-                    <span className="w-4 mr-2">
+                    <span className="w-4 me-2">
                       {active_filter === "unread" && (
                         <CheckIcon className="w-4 h-4" />
                       )}
@@ -663,7 +1021,7 @@ function MobileInbox({
                     {t("mail.unread_only")}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => set_active_filter("read")}>
-                    <span className="w-4 mr-2">
+                    <span className="w-4 me-2">
                       {active_filter === "read" && (
                         <CheckIcon className="w-4 h-4" />
                       )}
@@ -673,7 +1031,7 @@ function MobileInbox({
                   <DropdownMenuItem
                     onClick={() => set_active_filter("attachments")}
                   >
-                    <span className="w-4 mr-2">
+                    <span className="w-4 me-2">
                       {active_filter === "attachments" && (
                         <CheckIcon className="w-4 h-4" />
                       )}
@@ -694,6 +1052,11 @@ function MobileInbox({
           title={view_title}
         />
       )}
+
+      {alias_address &&
+        !selection_mode &&
+        alias_direction !== "received" &&
+        backfill_status === "running" && <AliasIndexingNotice />}
 
       {folder_not_found ? (
         <div className="flex flex-col items-center justify-center flex-1 px-4 py-20">
@@ -720,67 +1083,124 @@ function MobileInbox({
         </div>
       ) : null}
 
+      {!folder_not_found && !tag_not_found && scheduled_error_visible && (
+        <div className="flex flex-col items-center justify-center flex-1 px-4 py-20">
+          <ExclamationTriangleIcon
+            className="w-12 h-12 mb-4 text-txt-muted"
+            strokeWidth={1}
+          />
+          <p className="text-sm font-medium text-txt-primary mb-1">
+            {scheduled_state.error}
+          </p>
+          <button
+            className="mt-3 rounded-[var(--aster-radius-control)] bg-[var(--accent-color,#3b82f6)] px-5 py-2 text-[13px] font-medium text-[var(--accent-fg,#ffffff)]"
+            type="button"
+            onClick={refresh_scheduled}
+          >
+            {t("common.retry")}
+          </button>
+        </div>
+      )}
+
+      {!folder_not_found && !tag_not_found && drafts_error_visible && (
+        <div className="flex flex-col items-center justify-center flex-1 px-4 py-20">
+          <ExclamationTriangleIcon
+            className="w-12 h-12 mb-4 text-txt-muted"
+            strokeWidth={1}
+          />
+          <p className="text-sm font-medium text-txt-primary mb-1">
+            {drafts_state.error}
+          </p>
+          <button
+            className="mt-3 rounded-[var(--aster-radius-control)] bg-[var(--accent-color,#3b82f6)] px-5 py-2 text-[13px] font-medium text-[var(--accent-fg,#ffffff)]"
+            type="button"
+            onClick={refresh_drafts}
+          >
+            {t("common.retry")}
+          </button>
+        </div>
+      )}
+
       {!folder_not_found &&
         !tag_not_found &&
-        is_drafts_view &&
-        drafts_state.error &&
-        !drafts_state.is_loading && (
-          <div className="flex flex-col items-center justify-center flex-1 px-4 py-20">
-            <ExclamationTriangleIcon
-              className="w-12 h-12 mb-4 text-txt-muted"
-              strokeWidth={1}
-            />
-            <p className="text-sm font-medium text-txt-primary mb-1">
-              {drafts_state.error}
-            </p>
-            <button
-              className="mt-3 rounded-full bg-[var(--accent-color,#3b82f6)] px-5 py-2 text-[13px] font-medium text-[var(--accent-fg,#ffffff)]"
-              type="button"
-              onClick={refresh_drafts}
-            >
-              {t("common.retry")}
-            </button>
-          </div>
+        !scheduled_error_visible &&
+        !drafts_error_visible && (
+          <MobileEmailList
+            current_view={current_view}
+            emails={enriched_unpinned}
+            has_initial_load={
+              is_drafts_view
+                ? !drafts_state.is_loading
+                : is_scheduled_view
+                  ? !scheduled_state.is_loading
+                  : mail_state.has_initial_load
+            }
+            has_load_error={
+              is_drafts_view
+                ? Boolean(drafts_state.error)
+                : is_scheduled_view
+                  ? Boolean(scheduled_state.error)
+                  : mail_state.has_load_error
+            }
+            has_more={
+              is_drafts_view
+                ? drafts_state.has_more
+                : is_scheduled_view
+                  ? false
+                  : mail_state.has_more
+            }
+            is_loading={
+              is_drafts_view
+                ? drafts_state.is_loading
+                : is_scheduled_view
+                  ? scheduled_state.is_loading
+                  : mail_state.is_loading
+            }
+            is_loading_more={
+              is_drafts_view || is_scheduled_view
+                ? false
+                : mail_state.is_loading_more
+            }
+            is_refreshing={is_refreshing}
+            on_archive={
+              is_drafts_view || is_scheduled_view ? undefined : handle_archive
+            }
+            on_delete={handle_delete}
+            on_drag_select={selection_mode ? handle_drag_select : undefined}
+            on_email_press={handle_email_press}
+            on_load_more={handle_load_more}
+            on_long_press={handle_long_press}
+            on_mark_spam={
+              is_drafts_view || is_scheduled_view ? undefined : handle_mark_spam
+            }
+            on_refresh={handle_refresh}
+            on_snooze={
+              is_drafts_view ||
+              is_scheduled_view ||
+              is_trash_view ||
+              is_spam_view
+                ? undefined
+                : handle_snooze
+            }
+            on_toggle_read={
+              is_drafts_view || is_scheduled_view
+                ? undefined
+                : handle_toggle_read
+            }
+            on_toggle_star={
+              is_drafts_view || is_scheduled_view
+                ? undefined
+                : handle_toggle_star
+            }
+            pinned_emails={
+              enriched_pinned.length > 0 ? enriched_pinned : undefined
+            }
+            selected_ids={selected_ids}
+            selection_mode={selection_mode}
+            swipe_left_action={preferences.swipe_left_action}
+            swipe_right_action={preferences.swipe_right_action}
+          />
         )}
-
-      {!folder_not_found && !tag_not_found && (
-        <MobileEmailList
-          current_view={current_view}
-          emails={enriched_unpinned}
-          has_more={
-            is_drafts_view ? drafts_state.has_more : mail_state.has_more
-          }
-          is_loading={
-            is_drafts_view ? drafts_state.is_loading : mail_state.is_loading
-          }
-          is_loading_more={is_drafts_view ? false : mail_state.is_loading_more}
-          has_initial_load={
-            is_drafts_view
-              ? !drafts_state.is_loading
-              : mail_state.has_initial_load
-          }
-          has_load_error={is_drafts_view ? false : mail_state.has_load_error}
-          is_refreshing={is_refreshing}
-          on_archive={is_drafts_view ? undefined : handle_archive}
-          on_delete={handle_delete}
-          on_drag_select={selection_mode ? handle_drag_select : undefined}
-          on_email_press={handle_email_press}
-          on_load_more={handle_load_more}
-          on_long_press={handle_long_press}
-          on_mark_spam={is_drafts_view ? undefined : handle_mark_spam}
-          on_refresh={handle_refresh}
-          on_snooze={handle_snooze}
-          on_toggle_read={is_drafts_view ? undefined : handle_toggle_read}
-          on_toggle_star={is_drafts_view ? undefined : handle_toggle_star}
-          pinned_emails={
-            enriched_pinned.length > 0 ? enriched_pinned : undefined
-          }
-          selected_ids={selected_ids}
-          selection_mode={selection_mode}
-          swipe_left_action={preferences.swipe_left_action}
-          swipe_right_action={preferences.swipe_right_action}
-        />
-      )}
 
       {selection_mode && (
         <div
@@ -790,46 +1210,86 @@ function MobileInbox({
             borderTop: "1px solid var(--border-primary)",
           }}
         >
-          <button
-            className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)]"
-            type="button"
-            onClick={handle_bulk_archive}
-          >
-            {is_archive_view ? (
+          {!is_drafts_view && !is_scheduled_view && is_spam_view && (
+            <button
+              className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)] disabled:opacity-50"
+              disabled={bulk_action_busy}
+              type="button"
+              onClick={handle_bulk_unmark_spam}
+            >
               <InboxIcon className="h-5 w-5" />
-            ) : (
-              <ArchiveBoxIcon className="h-5 w-5" />
-            )}
-            <span className="text-[11px]">
-              {is_archive_view ? t("mail.move_to_inbox") : t("mail.archive")}
-            </span>
-          </button>
+              <span className="text-[11px]">{t("mail.not_spam")}</span>
+            </button>
+          )}
+          {!is_drafts_view && !is_scheduled_view && !is_spam_view && (
+            <button
+              className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)] disabled:opacity-50"
+              disabled={bulk_action_busy}
+              type="button"
+              onClick={handle_bulk_archive}
+            >
+              {is_archive_view ? (
+                <InboxIcon className="h-5 w-5" />
+              ) : (
+                <ArchiveBoxIcon className="h-5 w-5" />
+              )}
+              <span className="text-[11px]">
+                {is_archive_view ? t("mail.move_to_inbox") : t("mail.archive")}
+              </span>
+            </button>
+          )}
           <button
-            className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)]"
+            className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)] disabled:opacity-50"
+            disabled={bulk_action_busy}
             type="button"
             onClick={handle_bulk_delete}
           >
             <TrashIcon className="h-5 w-5" />
             <span className="text-[11px]">{t("common.delete")}</span>
           </button>
-          <button
-            className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)]"
-            type="button"
-            onClick={handle_bulk_toggle_star}
-          >
-            <StarIcon className="h-5 w-5" />
-            <span className="text-[11px]">{t("mail.star")}</span>
-          </button>
-          <button
-            className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)]"
-            type="button"
-            onClick={handle_bulk_toggle_read}
-          >
-            <EnvelopeOpenIcon className="h-5 w-5" />
-            <span className="text-[11px]">{t("mail.mark_as_read")}</span>
-          </button>
+          {!is_drafts_view && !is_scheduled_view && (
+            <button
+              className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)] disabled:opacity-50"
+              disabled={bulk_action_busy}
+              type="button"
+              onClick={handle_bulk_toggle_star}
+            >
+              <StarIcon className="h-5 w-5" />
+              <span className="text-[11px]">
+                {bulk_star_adds ? t("mail.star") : t("mail.unstar")}
+              </span>
+            </button>
+          )}
+          {!is_drafts_view && !is_scheduled_view && (
+            <button
+              className="flex flex-1 flex-col items-center gap-1 py-3 text-[var(--text-secondary)] active:text-[var(--text-primary)] disabled:opacity-50"
+              disabled={bulk_action_busy}
+              type="button"
+              onClick={handle_bulk_toggle_read}
+            >
+              <EnvelopeOpenIcon className="h-5 w-5" />
+              <span className="text-[11px]">
+                {bulk_read_marks_read
+                  ? t("mail.mark_as_read")
+                  : t("mail.mark_as_unread")}
+              </span>
+            </button>
+          )}
         </div>
       )}
+
+      <ConfirmModal
+        hide_dont_ask
+        confirm_text={t("mail.delete_permanently")}
+        confirm_variant="destructive"
+        description={t("common.action_cannot_be_undone")}
+        dont_ask={false}
+        on_cancel={() => set_permanent_delete_target(null)}
+        on_confirm={() => void confirm_permanent_delete()}
+        on_dont_ask_change={() => undefined}
+        show={!!permanent_delete_target}
+        title={t("mail.delete_permanently_question")}
+      />
 
       <EmptyTrashModal
         is_emptying={is_emptying_trash}
@@ -840,6 +1300,7 @@ function MobileInbox({
       />
 
       <MobileBottomSheet
+        aria_label={t("mail.snooze")}
         is_open={!!snooze_email_target}
         on_close={() => set_snooze_email_target(null)}
       >
@@ -851,24 +1312,24 @@ function MobileInbox({
             {[
               {
                 label: t("common.later_today"),
-                date: addHours(new Date(), 4),
+                date: compute_snooze_target("later_today"),
               },
               {
                 label: t("common.tomorrow"),
-                date: setMinutes(setHours(addDays(new Date(), 1), 9), 0),
+                date: compute_snooze_target("tomorrow"),
               },
               {
                 label: t("common.this_weekend"),
-                date: setMinutes(setHours(nextSaturday(new Date()), 9), 0),
+                date: compute_snooze_target("this_weekend"),
               },
               {
                 label: t("common.next_week"),
-                date: setMinutes(setHours(nextMonday(new Date()), 9), 0),
+                date: compute_snooze_target("next_week"),
               },
             ].map((opt) => (
               <button
                 key={opt.label}
-                className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
+                className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start active:bg-[var(--bg-tertiary)]"
                 type="button"
                 onClick={() => handle_snooze_select(opt.date)}
               >
@@ -878,11 +1339,68 @@ function MobileInbox({
                     {opt.label}
                   </p>
                   <p className="text-[12px] text-[var(--text-muted)]">
-                    {format(opt.date, "EEE, MMM d 'at' h:mm a")}
+                    {format_datetime_hint(opt.date, true)}
                   </p>
                 </div>
               </button>
             ))}
+          </div>
+        </div>
+      </MobileBottomSheet>
+
+      <MobileBottomSheet
+        aria_label={t("mail.scheduled_send_failed")}
+        is_open={!!scheduled_target}
+        on_close={() => set_scheduled_target_id(null)}
+      >
+        <div className="px-4 pb-4">
+          <h3 className="mb-1 text-[16px] font-semibold text-[var(--text-primary)]">
+            {scheduled_target?.subject || t("mail.no_subject")}
+          </h3>
+          <p className="mb-3 text-[12px] text-[var(--text-muted)]">
+            {scheduled_target
+              ? format_datetime_hint(
+                  new Date(scheduled_target.scheduled_at),
+                  true,
+                )
+              : ""}
+          </p>
+          {scheduled_target?.status === "failed" && (
+            <div className="mb-3 rounded-[12px] border border-danger/40 bg-danger/10 px-3 py-2 text-[12px] text-danger">
+              {t("mail.scheduled_send_failed")}
+            </div>
+          )}
+          <div className="space-y-1">
+            <button
+              className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start text-[14px] font-medium text-[var(--text-primary)] active:bg-[var(--bg-tertiary)]"
+              type="button"
+              onClick={handle_scheduled_send_now}
+            >
+              {t("common.send_now")}
+            </button>
+            {scheduled_target && (
+              <SchedulePicker
+                force_picker
+                on_schedule={handle_scheduled_reschedule}
+                scheduled_time={new Date(scheduled_target.scheduled_at)}
+                tooltip_key="common.reschedule"
+                trigger={
+                  <button
+                    className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start text-[14px] font-medium text-[var(--text-primary)] active:bg-[var(--bg-tertiary)]"
+                    type="button"
+                  >
+                    {t("common.reschedule")}
+                  </button>
+                }
+              />
+            )}
+            <button
+              className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-start text-[14px] font-medium text-[var(--color-error,#ef4444)] active:bg-[var(--bg-tertiary)]"
+              type="button"
+              onClick={handle_scheduled_cancel}
+            >
+              {t("common.cancel_scheduled")}
+            </button>
           </div>
         </div>
       </MobileBottomSheet>

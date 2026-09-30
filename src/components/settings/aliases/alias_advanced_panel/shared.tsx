@@ -18,11 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/services/api/aliases";
-import type { } from "@/lib/i18n/types";
+import type {} from "@/services/api/aliases";
+import type {} from "@/lib/i18n/types";
 
-import {  useEffect,  useState } from "react";
-
+import { useEffect, useState } from "react";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { show_toast } from "@/components/toast/simple_toast";
@@ -30,9 +29,9 @@ import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { InfoHint } from "@/components/settings/aliases/info_hint";
+import { is_composing } from "@/utils/ime";
 
-export const INPUT_CLASS =
-  "flex-1 min-w-0 h-9 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none";
+export const INPUT_CLASS = "w-auto flex-1 min-w-0";
 
 export const MAX_DISPLAY_NAME_LENGTH = 128;
 export const MAX_NOTE_LENGTH = 500;
@@ -144,7 +143,7 @@ export function TextFieldRow({
     <PanelRow description={description} label={label}>
       <div className="relative w-64">
         <Input
-          className={`w-full pr-8${is_locked ? " pointer-events-none" : ""}`}
+          className={`w-full pe-8${is_locked ? " pointer-events-none" : ""}`}
           disabled={saving}
           maxLength={max_length}
           placeholder={placeholder}
@@ -155,7 +154,7 @@ export function TextFieldRow({
           onBlur={commit}
           onChange={(event) => set_draft(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === "Enter") {
+            if (event.key === "Enter" && !is_composing(event)) {
               event.preventDefault();
               event.currentTarget.blur();
             } else if (event.key === "Escape") {
@@ -165,14 +164,14 @@ export function TextFieldRow({
           }}
         />
         {saving && (
-          <span className="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2">
+          <span className="pointer-events-none absolute end-2.5 top-1/2 -translate-y-1/2">
             <Spinner className="text-txt-muted" size="xs" />
           </span>
         )}
         {is_locked && (
           <button
             aria-label={t("settings.feature_requires_upgrade")}
-            className="absolute inset-0 cursor-pointer rounded-[12px]"
+            className="absolute inset-0 cursor-pointer rounded-[var(--aster-radius-control)]"
             type="button"
             onClick={() =>
               prompt_upgrade(
@@ -187,4 +186,3 @@ export function TextFieldRow({
     </PanelRow>
   );
 }
-

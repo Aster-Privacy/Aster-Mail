@@ -19,19 +19,19 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { HASH_ALG } from "@/services/crypto/constants";
-import type { } from "../key_manager";
-import type { } from "@/services/api/signatures";
-import type { } from "@/services/api/templates";
-import type { } from "@/services/api/blocked_senders";
-import type { } from "@/services/api/allowed_senders";
+import type {} from "../key_manager";
+import type {} from "@/services/api/signatures";
+import type {} from "@/services/api/templates";
+import type {} from "@/services/api/blocked_senders";
+import type {} from "@/services/api/allowed_senders";
 import {
   list_encrypted_mail_items,
   update_mail_item,
 } from "@/services/api/mail";
 import { derive_metadata_key } from "@/services/crypto/envelope";
 import { list_tags, update_tag } from "@/services/api/tags";
-import { array_to_base64, base64_to_array } from "../base64";
 
+import { array_to_base64, base64_to_array } from "../base64";
 
 import { re_encrypt_field } from "./key_helpers";
 export async function re_encrypt_mail_metadata(
@@ -189,4 +189,3 @@ export async function re_encrypt_tags(
 
   return ok;
 }
-

@@ -31,10 +31,10 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 20
           cache: npm
@@ -108,11 +108,11 @@ jobs:
         run: |
           git clone --depth=1 https://github.com/Aster-Privacy/aster-ui.git ../aster-ui
           cd ../aster-ui
-          npm install --no-audit --no-fund
+          npm ci --no-audit --no-fund
           npm run build
 
       - name: Install frontend dependencies
-        run: npm install --no-audit --no-fund --force
+        run: npm ci --no-audit --no-fund
 
       - name: Build and publish release
         uses: tauri-apps/tauri-action@84b9d35b5fc46c1e45415bdb6144030364f7ebc5 # v0.6.2
@@ -131,6 +131,39 @@ jobs:
           updaterJsonPreferNsis: true
           args: ${{ matrix.args }}
           tauriScript: npm run tauri
+
+      - name: Unbundle host graphics libraries from the AppImage
+        # linuxdeploy copies libwayland-client.so.0 and friends into the AppDir.
+        # They shadow the host copies, Mesa's libEGL_mesa.so.0 then fails to
+        # resolve wl_fixes_interface on any distribution newer than the runner,
+        # and WebKitGTK aborts with EGL_BAD_PARAMETER before the window paints.
+        if: startsWith(matrix.leg, 'linux')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          sudo apt-get install -y squashfs-tools
+          V=$(node -p "require('./package.json').version")
+          TAG="v${V}"
+          shopt -s nullglob
+          for img in src-tauri/target/release/bundle/appimage/*.AppImage; do
+            cp "$img" "$img.orig"
+            if ! bash scripts/fix_appimage_libs.sh "$img"; then
+              echo "::warning::could not unbundle $img, keeping the original build"
+              mv "$img.orig" "$img"
+              continue
+            fi
+            rm -f "$img.sig"
+            if npm run tauri -- signer sign --password "" "$img"; then
+              rm -f "$img.orig"
+              gh release upload "$TAG" "$img" "$img.sig" --clobber
+            else
+              echo "::warning::could not re-sign $img, keeping the originally signed build"
+              mv "$img.orig" "$img"
+            fi
+          done
 
       - name: Rename assets to canonical names
         env:
@@ -179,7 +212,7 @@ jobs:
     needs: build
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Rewrite latest.json with canonical asset URLs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -250,7 +283,7 @@ jobs:
     if: always()
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Carry forward any missing canonical installers
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -282,12 +315,89 @@ jobs:
             done
           done
 
+  attest_provenance:
+    needs: ensure_canonical_assets
+    if: always()
+    runs-on: ubuntu-22.04
+    continue-on-error: true
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Download the canonical installers
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Provenance ties each shipped installer to this commit, this workflow
+          # and this run. It is advisory: the job never blocks a release, so a
+          # transient signing failure cannot keep an installer off the site.
+          V=$(node -p "require('./package.json').version")
+          TAG="v${V}"
+          mkdir -p attest
+          ASSETS="Aster-Mail-x64-setup.exe Aster-Mail-x64.msi Aster-Mail-x64.AppImage Aster-Mail-amd64.deb Aster-Mail-x86_64.rpm Aster-Mail-universal.dmg Aster-Mail.apk"
+          for a in $ASSETS; do
+            gh release download "$TAG" --pattern "$a" --dir attest --clobber 2>/dev/null || \
+              echo "::warning::$a absent on $TAG, not attested"
+          done
+          ls -l attest || true
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
+        with:
+          subject-path: "attest/*"
+
   promote_to_latest:
     needs: [build, update_latest_json, ensure_canonical_assets]
     if: always()
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Ensure the release body carries the wordmark and install alert
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Every release body opens with the Aster Mail wordmark and the
+          # standard install alert. Existing notes are preserved, so this step
+          # only prepends what is missing and re-running it is a no-op.
+          V=$(node -p "require('./package.json').version")
+          TAG="v${V}"
+          RAW="https://raw.githubusercontent.com/${GITHUB_REPOSITORY}/01a79449e4706b43cd790419736ed24bfbea95c0/public"
+          body=$(gh release view "$TAG" --json body --jq .body 2>/dev/null || true)
+          : > head.md
+          case "$body" in
+            *aster_mail_logo*) ;;
+            *)
+              {
+                echo '<p align="left">'
+                echo '  <picture>'
+                echo "    <source media=\"(prefers-color-scheme: dark)\" srcset=\"${RAW}/aster_mail_logo_dark.png\">"
+                echo "    <img alt=\"Aster Mail\" src=\"${RAW}/aster_mail_logo_light.png\" width=\"320\">"
+                echo '  </picture>'
+                echo '</p>'
+                echo
+              } >> head.md
+              ;;
+          esac
+          case "$body" in
+            *"These files are for new installations"*) ;;
+            *)
+              {
+                echo '> [!NOTE]'
+                echo '> These files are for new installations. If Aster Mail is already installed, it updates automatically.'
+                echo
+              } >> head.md
+              ;;
+          esac
+          if [ ! -s head.md ]; then
+            echo "Release body already carries the wordmark and install alert."
+            exit 0
+          fi
+          cat head.md > release_body.md
+          printf '%s' "$body" >> release_body.md
+          gh release edit "$TAG" --notes-file release_body.md
+          echo "Release body updated for $TAG."
+
       - name: Promote to Latest only when every download asset is present
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -309,6 +419,22 @@ jobs:
             echo "Release stays as prerelease; releases/latest keeps pointing at the last complete release."
             exit 1
           fi
+          MANIFEST_DIR=$(mktemp -d)
+          gh release download "$TAG" --pattern latest.json --dir "$MANIFEST_DIR" --clobber
+          V="$V" node -e '
+            const manifest = require(process.argv[1]);
+            const platforms = Object.keys(manifest.platforms || {});
+            const required = ["windows-x86_64", "darwin-aarch64", "darwin-x86_64", "linux-x86_64"];
+            const absent = required.filter((key) => !platforms.includes(key));
+            if (manifest.version !== process.env.V) {
+              console.log(`::error::latest.json reports ${manifest.version}, expected ${process.env.V}`);
+              process.exit(1);
+            }
+            if (absent.length > 0) {
+              console.log(`::error::Refusing to promote: latest.json has no ${absent.join(", ")} build, so those installs cannot update and their download would be a carried-forward older version`);
+              process.exit(1);
+            }
+          ' "$MANIFEST_DIR/latest.json"
           echo "All required assets present. Promoting $TAG to Latest."
           gh release edit "$TAG" --draft=false --prerelease=false --latest
 

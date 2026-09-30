@@ -21,8 +21,11 @@
 import { accent_foreground_for } from "@/lib/resolved_accent";
 import { derive_link_ink, derive_visited_ink } from "@/lib/email_ink";
 import { LINK_VISITED_VAR } from "@/lib/email_contrast_repair";
+import { BRAND_BACKGROUND_MARK } from "@/lib/email_brand_backgrounds";
 
 export const DARK_INHERITED_INK = "#d4d4d4";
+
+export const FORCED_DARK_CANVAS = "#121212";
 
 const DEFAULT_BODY_FONT_STACK =
   "'Google Sans Flex', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
@@ -225,37 +228,35 @@ details.aster-forwarded-collapse > .aster-forwarded-content {
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
-  width: 20px;
-  height: 16px;
-  padding: 0;
-  border-radius: 3px;
-  border: 1px solid rgba(128, 128, 128, 0.25);
-  background: rgba(128, 128, 128, 0.08);
-  color: rgba(100, 100, 100, 0.7);
+  height: 24px;
+  min-width: 40px;
+  margin: 8px 0;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 12px;
+  background: rgba(128, 128, 128, 0.12);
+  color: rgba(80, 80, 80, 0.9);
   cursor: pointer;
   font-size: 0;
-  line-height: 1;
+  line-height: 0;
   vertical-align: middle;
   user-select: none;
 }
 
-.aster-quote-toggle::before {
-  content: "";
-  width: 2px;
-  height: 2px;
+.aster-quote-toggle-dots {
+  display: block;
+  width: 4px;
+  height: 4px;
   border-radius: 50%;
   background: currentColor;
-  box-shadow: -4px 0 0 currentColor, 4px 0 0 currentColor;
+  box-shadow:
+    -6.5px 0 0 currentColor,
+    6.5px 0 0 currentColor;
 }
 
-.aster-quote-toggle:hover {
-  background: rgba(128, 128, 128, 0.2);
-  border-color: rgba(128, 128, 128, 0.45);
-}
-
+.aster-quote-toggle:hover,
 .aster-quote-toggle.aster-quote-expanded {
   background: rgba(128, 128, 128, 0.2);
-  border-color: rgba(128, 128, 128, 0.45);
 }
 
 .aster-quoted-content {
@@ -355,6 +356,13 @@ export const LINK_BUTTON_EXCLUDE = ':not([style*="background" i])';
 const QUOTE_SCOPE_EXCLUDE =
   ':not([class*="quote" i]):not([class*="quote" i] *):not([class*="cite" i]):not([class*="cite" i] *):not(blockquote[type="cite"]):not(blockquote[type="cite"] *)';
 
+const IMAGE_BACKGROUND_EXCLUDE =
+  ':not([style*="background-image" i]):not([style*="url(" i]):not([background]):not([data-aster-bg-image])';
+
+const BRAND_BACKGROUND_EXCLUDE = `:not([${BRAND_BACKGROUND_MARK}])`;
+
+const FORCED_NEUTRALIZE_EXCLUDE = `${IMAGE_BACKGROUND_EXCLUDE}${BRAND_BACKGROUND_EXCLUDE}`;
+
 export function build_auto_dark_mode_css(
   text_color = DARK_INHERITED_INK,
   link_color = "#60a5fa",
@@ -362,7 +370,8 @@ export function build_auto_dark_mode_css(
 ) {
   return `html { color-scheme: dark !important; }
 html, body { background-color: transparent !important; color: ${text_color}; }
-body span[style*="background"]${QUOTE_SCOPE_EXCLUDE}, blockquote [style*="background"]${QUOTE_SCOPE_EXCLUDE} { background-color: transparent !important; background-image: none !important; }
+body span[style*="background"]${QUOTE_SCOPE_EXCLUDE}${IMAGE_BACKGROUND_EXCLUDE}, blockquote [style*="background"]${QUOTE_SCOPE_EXCLUDE}${IMAGE_BACKGROUND_EXCLUDE} { background-color: transparent !important; background-image: none !important; }
+body span[style*="background"]${QUOTE_SCOPE_EXCLUDE}[style*="url(" i], blockquote [style*="background"]${QUOTE_SCOPE_EXCLUDE}[style*="url(" i] { background-color: transparent !important; }
 a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} * { color: ${link_color}; }
 a:visited${LINK_BUTTON_EXCLUDE}, a:visited${LINK_BUTTON_EXCLUDE} * { color: var(${LINK_VISITED_VAR}, ${link_visited_color}) !important; }
 a[style*="background" i] *, [bgcolor] > a * { color: inherit !important; }`;
@@ -372,24 +381,30 @@ export function build_forced_dark_mode_css(
   rail_color = "#3b82f6",
   link_color = "#60a5fa",
   link_visited_color = derive_visited_ink(link_color, DARK_BODY_SURFACE),
+  text_color = DARK_INHERITED_INK,
 ) {
   return `
 html, body {
   background-color: transparent !important;
-  color: ${DARK_INHERITED_INK};
+  color: ${text_color};
   color-scheme: dark !important;
 }
 
-div, td, th, table, tr, tbody, thead, tfoot,
-section, header, footer, main, article, aside, nav,
-center, form, fieldset, legend, figure, figcaption,
-details, summary, address, hgroup {
+div${FORCED_NEUTRALIZE_EXCLUDE}, td${FORCED_NEUTRALIZE_EXCLUDE}, th${FORCED_NEUTRALIZE_EXCLUDE},
+table${FORCED_NEUTRALIZE_EXCLUDE}, tr${FORCED_NEUTRALIZE_EXCLUDE}, tbody${FORCED_NEUTRALIZE_EXCLUDE},
+thead${FORCED_NEUTRALIZE_EXCLUDE}, tfoot${FORCED_NEUTRALIZE_EXCLUDE}, section${FORCED_NEUTRALIZE_EXCLUDE},
+header${FORCED_NEUTRALIZE_EXCLUDE}, footer${FORCED_NEUTRALIZE_EXCLUDE}, main${FORCED_NEUTRALIZE_EXCLUDE},
+article${FORCED_NEUTRALIZE_EXCLUDE}, aside${FORCED_NEUTRALIZE_EXCLUDE}, nav${FORCED_NEUTRALIZE_EXCLUDE},
+center${FORCED_NEUTRALIZE_EXCLUDE}, form${FORCED_NEUTRALIZE_EXCLUDE}, fieldset${FORCED_NEUTRALIZE_EXCLUDE},
+legend${FORCED_NEUTRALIZE_EXCLUDE}, figure${FORCED_NEUTRALIZE_EXCLUDE}, figcaption${FORCED_NEUTRALIZE_EXCLUDE},
+details${FORCED_NEUTRALIZE_EXCLUDE}, summary${FORCED_NEUTRALIZE_EXCLUDE}, address${FORCED_NEUTRALIZE_EXCLUDE},
+hgroup${FORCED_NEUTRALIZE_EXCLUDE} {
   background-color: transparent !important;
   background-image: none !important;
 }
 
-a${LINK_BUTTON_EXCLUDE}, a${LINK_BUTTON_EXCLUDE} * { color: ${link_color}; }
-a:visited${LINK_BUTTON_EXCLUDE}, a:visited${LINK_BUTTON_EXCLUDE} * { color: var(${LINK_VISITED_VAR}, ${link_visited_color}) !important; }
+a${LINK_BUTTON_EXCLUDE}${BRAND_BACKGROUND_EXCLUDE}, a${LINK_BUTTON_EXCLUDE}${BRAND_BACKGROUND_EXCLUDE} * { color: ${link_color}; }
+a:visited${LINK_BUTTON_EXCLUDE}${BRAND_BACKGROUND_EXCLUDE}, a:visited${LINK_BUTTON_EXCLUDE}${BRAND_BACKGROUND_EXCLUDE} * { color: var(${LINK_VISITED_VAR}, ${link_visited_color}) !important; }
 
 a[style*="background" i] *, [bgcolor] > a * { color: inherit !important; }
 
@@ -415,13 +430,11 @@ blockquote blockquote blockquote {
 
 .aster-quote-toggle {
   background: rgba(180, 180, 180, 0.15) !important;
-  border-color: rgba(180, 180, 180, 0.3) !important;
-  color: rgba(180, 180, 180, 0.8) !important;
+  color: rgba(210, 210, 210, 0.9) !important;
 }
 
 .aster-quote-toggle:hover {
   background: rgba(180, 180, 180, 0.25) !important;
-  border-color: rgba(180, 180, 180, 0.45) !important;
 }
 
 .aster-quoted-content {

@@ -18,9 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { TranslationKey } from "@/lib/i18n/types";
+
 import { useEffect, useState, useCallback, useRef } from "react";
 import { ArrowPathIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
-import { Switch, Button } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandSection,
+  IslandSections,
+  SettingToggleRow,
+} from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -33,21 +41,19 @@ import {
   update_progress_percent,
   type DesktopUpdateInfo,
 } from "@/services/updates/updater";
+import { format_relative_time_short } from "@/utils/date_utils";
 
 declare const __APP_VERSION__: string;
 const APP_VERSION =
   typeof __APP_VERSION__ !== "undefined" ? __APP_VERSION__ : "dev";
 
-function format_relative(iso: string | null): string | null {
+function format_relative(
+  iso: string | null,
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
+): string | null {
   if (!iso) return null;
-  const then = new Date(iso).getTime();
-  const now = Date.now();
-  const diff_min = Math.max(1, Math.round((now - then) / 60_000));
-  if (diff_min < 60) return `${diff_min}m ago`;
-  const diff_hr = Math.round(diff_min / 60);
-  if (diff_hr < 24) return `${diff_hr}h ago`;
-  const diff_day = Math.round(diff_hr / 24);
-  return `${diff_day}d ago`;
+
+  return format_relative_time_short(iso, t);
 }
 
 export function UpdatesSection() {
@@ -63,6 +69,7 @@ export function UpdatesSection() {
   const [progress, set_progress] = useState<number | null>(null);
   const [available, set_available] = useState<DesktopUpdateInfo | null>(null);
   const [status_msg, set_status_msg] = useState<string | null>(null);
+  const [error_msg, set_error_msg] = useState<string | null>(null);
 
   const handle_auto = (v: boolean) => {
     set_auto(v);
@@ -74,8 +81,10 @@ export function UpdatesSection() {
     is_checking_ref.current = true;
     set_checking(true);
     set_status_msg(null);
+    set_error_msg(null);
     try {
       const info = await check_for_update();
+
       set_last_check(get_last_check_iso());
       if (info) {
         set_available(info);
@@ -83,8 +92,8 @@ export function UpdatesSection() {
         set_available(null);
         set_status_msg(t("settings.updates_up_to_date"));
       }
-    } catch (err) {
-      set_status_msg(String((err as Error)?.message ?? err));
+    } catch {
+      set_error_msg(t("settings.updates_check_failed"));
     } finally {
       is_checking_ref.current = false;
       set_checking(false);
@@ -95,16 +104,18 @@ export function UpdatesSection() {
     if (!supported || installing) return;
     set_installing(true);
     set_progress(0);
+    set_error_msg(null);
     try {
       await download_and_install_update((p) => {
         set_progress(update_progress_percent(p));
       });
-    } catch (err) {
-      set_status_msg(String((err as Error)?.message ?? err));
+    } catch {
+      set_error_msg(t("settings.updates_install_failed"));
+    } finally {
       set_installing(false);
       set_progress(null);
     }
-  }, [supported, installing]);
+  }, [supported, installing, t]);
 
   useEffect(() => {
     if (supported && auto) {
@@ -113,124 +124,119 @@ export function UpdatesSection() {
   }, [supported, auto, handle_check]);
 
   return (
-    <div className="space-y-4">
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <ArrowDownTrayIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.updates")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-        <p className="text-sm mb-4 text-txt-muted">
-          {t("settings.updates_description")}
-        </p>
-      </div>
-
-      <div className="rounded-xl border border-edge-secondary p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.updates_current_version", { version: APP_VERSION })}
-            </p>
-            <p className="text-xs mt-0.5 text-txt-muted">
-              {last_check
-                ? t("settings.updates_last_checked", {
-                    when: format_relative(last_check) || "",
-                  })
-                : t("settings.updates_never_checked")}
-            </p>
-          </div>
-          <Button
-            variant="secondary"
-            disabled={!supported || checking || installing}
-            onClick={handle_check}
-          >
-            <ArrowPathIcon
-              className={`w-4 h-4 mr-1.5 ${checking ? "animate-spin" : ""}`}
-            />
-            {checking
-              ? t("settings.updates_checking")
-              : t("settings.updates_check_now")}
-          </Button>
-        </div>
-
-        {!supported && (
-          <p className="text-xs text-txt-muted">
-            {t("settings.updates_unsupported")}
-          </p>
-        )}
-
-        {available && (
-          <div className="rounded-lg bg-surf-secondary p-3 space-y-2">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.updates_available", { version: available.version })}
-            </p>
-            {available.notes && (
-              <details className="text-xs text-txt-muted">
-                <summary className="cursor-pointer">
-                  {t("settings.updates_release_notes")}
-                </summary>
-                <pre className="mt-2 whitespace-pre-wrap font-sans">
-                  {available.notes}
-                </pre>
-              </details>
-            )}
+    <IslandSections>
+      <IslandSection
+        bare
+        description={t("settings.updates_description")}
+        icon={<ArrowDownTrayIcon />}
+        title={t("settings.updates")}
+      >
+        <Island className="space-y-3" padding="md">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium text-txt-primary">
+                {t("settings.updates_current_version", {
+                  version: APP_VERSION,
+                })}
+              </p>
+              <p className="text-xs mt-0.5 text-txt-muted">
+                {last_check
+                  ? t("settings.updates_last_checked", {
+                      when: format_relative(last_check, t) || "",
+                    })
+                  : t("settings.updates_never_checked")}
+              </p>
+            </div>
             <Button
-              variant="primary"
-              size="sm"
-              disabled={installing}
-              onClick={handle_install}
+              disabled={!supported || checking || installing}
+              variant="secondary"
+              onClick={handle_check}
             >
-              {!installing
-                ? t("settings.updates_install_and_restart")
-                : progress === null
-                  ? t("settings.updates_downloading")
-                  : t("settings.updates_installing", {
-                      percent: String(progress),
-                    })}
+              <ArrowPathIcon
+                className={`w-4 h-4 me-1.5 ${checking ? "animate-spin" : ""}`}
+              />
+              {checking
+                ? t("settings.updates_checking")
+                : t("settings.updates_check_now")}
             </Button>
-            {installing && (
-              <div
-                aria-valuemax={100}
-                aria-valuemin={0}
-                aria-valuenow={progress ?? undefined}
-                className="h-1 w-full overflow-hidden rounded-full bg-surf-tertiary"
-                role="progressbar"
+          </div>
+
+          {!supported && (
+            <p className="text-xs text-txt-muted">
+              {t("settings.updates_unsupported")}
+            </p>
+          )}
+
+          {available && (
+            <Island className="space-y-2" padding="sm" tone="accent">
+              <p className="text-sm font-medium text-txt-primary">
+                {t("settings.updates_available", {
+                  version: available.version,
+                })}
+              </p>
+              {available.notes && (
+                <details className="text-xs text-txt-muted">
+                  <summary className="cursor-pointer">
+                    {t("settings.updates_release_notes")}
+                  </summary>
+                  <pre className="mt-2 whitespace-pre-wrap font-sans">
+                    {available.notes}
+                  </pre>
+                </details>
+              )}
+              <Button
+                disabled={installing}
+                size="sm"
+                variant="primary"
+                onClick={handle_install}
               >
+                {!installing
+                  ? t("settings.updates_install_and_restart")
+                  : progress === null
+                    ? t("settings.updates_downloading")
+                    : t("settings.updates_installing", {
+                        percent: progress,
+                      })}
+              </Button>
+              {installing && (
                 <div
-                  className={`h-full rounded-full bg-indigo-600 ${
-                    progress === null
-                      ? "w-1/3 animate-pulse"
-                      : "transition-[width]"
-                  }`}
-                  style={
-                    progress === null ? undefined : { width: `${progress}%` }
-                  }
-                />
-              </div>
-            )}
-          </div>
-        )}
+                  aria-valuemax={100}
+                  aria-valuemin={0}
+                  aria-valuenow={progress ?? undefined}
+                  className="h-1 w-full overflow-hidden rounded-full bg-surf-tertiary"
+                  role="progressbar"
+                >
+                  <div
+                    className={`h-full rounded-full bg-[var(--accent-color)] ${
+                      progress === null
+                        ? "w-1/3 animate-pulse"
+                        : "transition-[width]"
+                    }`}
+                    style={
+                      progress === null ? undefined : { width: `${progress}%` }
+                    }
+                  />
+                </div>
+              )}
+            </Island>
+          )}
 
-        {status_msg && !available && (
-          <p className="text-xs text-txt-muted">{status_msg}</p>
-        )}
-      </div>
+          {error_msg && <p className="text-xs text-red-500">{error_msg}</p>}
 
-      <div className="rounded-xl border border-edge-secondary p-4">
-        <div className="flex items-center justify-between">
-          <div className="flex-1 pr-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.updates_auto_label")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.updates_auto_description")}
-            </p>
-          </div>
-          <Switch size="lg" checked={auto} onCheckedChange={handle_auto} />
-        </div>
-      </div>
-    </div>
+          {status_msg && !available && (
+            <p className="text-xs text-txt-muted">{status_msg}</p>
+          )}
+        </Island>
+
+        <Island>
+          <SettingToggleRow
+            checked={auto}
+            description={t("settings.updates_auto_description")}
+            label={t("settings.updates_auto_label")}
+            on_change={handle_auto}
+          />
+        </Island>
+      </IslandSection>
+    </IslandSections>
   );
 }

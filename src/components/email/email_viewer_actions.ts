@@ -30,6 +30,8 @@ import type {
 
 import { useCallback } from "react";
 
+import { use_message_actions } from "./email_viewer_message_actions";
+
 import { is_system_email } from "@/lib/utils";
 import { extract_reply_to } from "@/utils/reply_to";
 import { build_reply_recipient } from "@/components/email/build_reply_recipient";
@@ -51,14 +53,24 @@ import { show_action_toast } from "@/components/toast/action_toast";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
+  emit_mail_changed,
   emit_mail_item_updated,
   emit_mail_items_removed,
+  emit_mail_soft_refresh,
 } from "@/hooks/mail_events";
 import { print_email } from "@/utils/print_email";
-import { execute_unsubscribe } from "@/utils/unsubscribe_detector";
+import {
+  begin_read_change,
+  is_read_ticket_current,
+} from "@/services/read_intent";
+import {
+  execute_unsubscribe,
+  get_manual_unsubscribe_url,
+} from "@/utils/unsubscribe_detector";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import {
   adjust_stats_spam,
+  adjust_stats_trash,
   adjust_stats_unread,
   invalidate_mail_stats,
 } from "@/hooks/use_mail_stats";
@@ -73,7 +85,11 @@ import {
   apply_stat_deltas,
   revert_stat_deltas,
 } from "@/hooks/use_stat_helpers";
-import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
+import {
+  report_spam_sender,
+  remove_spam_sender,
+  permanent_delete_mail_item,
+} from "@/services/api/mail";
 import { reindex_ids } from "@/services/category_index";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
 import { set_forward_mail_id } from "@/services/forward_store";
@@ -81,9 +97,15 @@ import { add_alias_pin } from "@/services/api/alias_pins";
 import { prompt_upgrade } from "@/components/settings/aliases/feature_lock";
 import { same_address_ignoring_dots } from "@/utils/address_dots";
 import mail_logo_url from "@/assets/mail_logo.webp";
-
-import { use_message_actions } from "./email_viewer_message_actions";
 import { ignore_error } from "@/lib/ignore_error";
+import { open_external } from "@/utils/open_link";
+import { copy_text, copy_text_or_throw } from "@/utils/copy_text";
+import {
+  app_locale,
+  format_print_timestamp,
+  get_display_time_zone,
+} from "@/utils/date_format";
+import { resolve_reply_references } from "@/lib/reply_references";
 
 export interface EmailViewerActionsDeps {
   email_id: string;
@@ -112,6 +134,7 @@ export interface EmailViewerActionsDeps {
   set_thread_draft: (v: DraftWithContent | null) => void;
   set_view_source_message: (v: DecryptedThreadMessage | null) => void;
   on_dismiss: () => void;
+  on_advance?: () => boolean;
   on_reply?: (data: ReplyData) => void;
   on_forward?: (data: ForwardData) => void;
   on_edit_draft?: (draft: DraftWithContent) => void;
@@ -123,128 +146,128 @@ export interface EmailViewerActionsDeps {
 }
 
 export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
-  const copy_to_clipboard = useCallback(async (text: string, label: string) => {
-    const clear_clipboard_after_timeout = () => {
-      setTimeout(async () => {
-        try {
-          const current_text = await navigator.clipboard.readText();
+  const dismiss_or_advance = useCallback(() => {
+    if (deps.on_advance?.()) return;
 
-          if (current_text === text) {
-            await navigator.clipboard.writeText("");
+    deps.on_dismiss();
+  }, [deps.on_advance, deps.on_dismiss]);
+
+  const copy_to_clipboard = useCallback(
+    async (text: string, label: string) => {
+      const clear_clipboard_after_timeout = () => {
+        setTimeout(async () => {
+          try {
+            const current_text = await navigator.clipboard.readText();
+
+            if (current_text === text) {
+              await copy_text_or_throw("");
+            }
+          } catch (error) {
+            if (import.meta.env.DEV) console.error(error);
           }
-        } catch (error) {
-          if (import.meta.env.DEV) console.error(error);
-        }
-      }, 60000);
-    };
+        }, 60000);
+      };
 
-    try {
-      await navigator.clipboard.writeText(text);
-      show_toast(deps.t("common.item_copied", { label }), "success");
-      clear_clipboard_after_timeout();
-    } catch (error) {
-      if (import.meta.env.DEV) console.error(error);
-      const textarea = document.createElement("textarea");
+      if (await copy_text(text)) {
+        show_toast(deps.t("common.item_copied", { label }), "success");
+        clear_clipboard_after_timeout();
+      } else {
+        show_toast(deps.t("common.failed_to_copy"), "error");
+      }
+    },
+    [deps.t],
+  );
 
-      textarea.value = text;
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand("copy");
-      document.body.removeChild(textarea);
-      show_toast(deps.t("common.item_copied", { label }), "success");
-      clear_clipboard_after_timeout();
-    }
-  }, []);
+  const handle_reply = useCallback(
+    (options?: { reply_all?: boolean }) => {
+      if (!deps.email || !deps.on_reply || is_system_email(deps.email)) return;
+      const is_reply_all =
+        options?.reply_all === true ||
+        deps.preferences_default_reply_behavior === "reply_all";
+      const is_own_message =
+        deps.mail_item?.item_type === "sent" ||
+        (!!deps.current_user_email &&
+          same_address_ignoring_dots(
+            deps.email.sender_email,
+            deps.current_user_email,
+          ));
+      const is_forwarded = !is_own_message && !!deps.email.display_sender_email;
+      const { recipient_name, recipient_email } = build_reply_recipient(
+        {
+          sender_name: deps.email.sender,
+          sender_email: deps.email.sender_email,
+          first_to: deps.email.to?.[0],
+          reply_to: deps.email.reply_to,
+          reply_alias: is_forwarded
+            ? { name: deps.email.sender, email: deps.email.sender_email }
+            : undefined,
+          own_addresses: deps.current_user_email
+            ? [deps.current_user_email]
+            : undefined,
+        },
+        is_own_message,
+      );
 
-  const handle_reply = useCallback(() => {
-    if (
-      !deps.email ||
-      !deps.on_reply ||
-      is_system_email(deps.email.sender_email)
-    )
-      return;
-    const is_reply_all =
-      deps.preferences_default_reply_behavior === "reply_all";
-    const is_own_message =
-      deps.mail_item?.item_type === "sent" ||
-      (!!deps.current_user_email &&
-        same_address_ignoring_dots(
-          deps.email.sender_email,
-          deps.current_user_email,
-        ));
-    const is_forwarded = !is_own_message && !!deps.email.display_sender_email;
-    const { recipient_name, recipient_email } = build_reply_recipient(
-      {
-        sender_name: deps.email.sender,
-        sender_email: deps.email.sender_email,
-        first_to: deps.email.to?.[0],
-        reply_to: deps.email.reply_to,
-        reply_alias: is_forwarded
-          ? { name: deps.email.sender, email: deps.email.sender_email }
-          : undefined,
-        own_addresses: deps.current_user_email
-          ? [deps.current_user_email]
-          : undefined,
-      },
-      is_own_message,
-    );
+      const to_emails = deps.email.to?.map((r) => r.email) ?? [];
+      const cc_emails = deps.email.cc?.map((r) => r.email) ?? [];
+      const reply_from_address = build_reply_from_address(
+        {
+          sender_email: deps.email.sender_email,
+          received_on_alias:
+            resolve_received_on_alias(
+              deps.mail_item?.routing_token,
+              get_cached_aliases(),
+            ) ??
+            get_cached_alias_for_routing_token(deps.mail_item?.routing_token) ??
+            get_cached_ghost_for_routing_token(deps.mail_item?.routing_token),
+        },
+        is_own_message,
+      );
 
-    const to_emails = deps.email.to?.map((r) => r.email) ?? [];
-    const cc_emails = deps.email.cc?.map((r) => r.email) ?? [];
-    const reply_from_address = build_reply_from_address(
-      {
-        sender_email: deps.email.sender_email,
-        received_on_alias:
-          resolve_received_on_alias(
-            deps.mail_item?.routing_token,
-            get_cached_aliases(),
-          ) ??
-          get_cached_alias_for_routing_token(deps.mail_item?.routing_token) ??
-          get_cached_ghost_for_routing_token(deps.mail_item?.routing_token),
-      },
-      is_own_message,
-    );
+      const rfc_message_id = resolve_reply_references(
+        deps.email,
+        deps.thread_messages,
+      );
 
-    const rfc_message_id = deps.email.raw_headers?.find(
-      (h) => h.name.toLowerCase() === "message-id",
-    )?.value;
+      const data: ReplyData = {
+        recipient_name,
+        recipient_email,
+        recipient_avatar: "",
+        ...(is_forwarded
+          ? {
+              quote_sender_name:
+                deps.email.display_sender_name || deps.email.sender,
+              quote_sender_email: deps.email.display_sender_email,
+            }
+          : {}),
+        original_subject: deps.email.subject,
+        original_body: deps.email.body,
+        original_timestamp: deps.email.timestamp,
+        thread_token: deps.email.thread_token,
+        original_email_id: deps.email.id,
+        is_external: deps.is_external,
+        original_to: to_emails,
+        reply_from_address,
+        original_rfc_message_id: rfc_message_id,
+      };
 
-    const data: ReplyData = {
-      recipient_name,
-      recipient_email,
-      recipient_avatar: "",
-      ...(is_forwarded
-        ? {
-            quote_sender_name:
-              deps.email.display_sender_name || deps.email.sender,
-            quote_sender_email: deps.email.display_sender_email,
-          }
-        : {}),
-      original_subject: deps.email.subject,
-      original_body: deps.email.body,
-      original_timestamp: deps.email.timestamp,
-      thread_token: deps.email.thread_token,
-      original_email_id: deps.email.id,
-      is_external: deps.is_external,
-      original_to: to_emails,
-      reply_from_address,
-      original_rfc_message_id: rfc_message_id,
-    };
+      if (is_reply_all) {
+        data.reply_all = true;
+        data.original_cc = cc_emails;
+      }
 
-    if (is_reply_all) {
-      data.reply_all = true;
-      data.original_cc = cc_emails;
-    }
-
-    deps.on_reply(data);
-  }, [
-    deps.email,
-    deps.on_reply,
-    deps.preferences_default_reply_behavior,
-    deps.is_external,
-    deps.mail_item,
-    deps.current_user_email,
-  ]);
+      deps.on_reply(data);
+    },
+    [
+      deps.email,
+      deps.on_reply,
+      deps.preferences_default_reply_behavior,
+      deps.is_external,
+      deps.mail_item,
+      deps.current_user_email,
+      deps.thread_messages,
+    ],
+  );
 
   const handle_forward = useCallback(() => {
     if (!deps.email || !deps.on_forward) return;
@@ -278,6 +301,8 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     const current_mail_item = deps.mail_item;
     const new_state = !deps.is_read;
     const is_received = current_mail_item.item_type === "received";
+    const acted_id = deps.email_id;
+    const read_ticket = begin_read_change([acted_id]);
 
     deps.set_is_read(new_state);
     deps.set_mail_item((prev) =>
@@ -311,12 +336,8 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       adjust_stats_unread(new_state ? -1 : 1);
     }
 
-    if (!new_state) {
-      deps.on_dismiss();
-    }
-
     const result = await update_item_metadata(
-      deps.email_id,
+      acted_id,
       {
         encrypted_metadata: current_mail_item.encrypted_metadata,
         metadata_nonce: current_mail_item.metadata_nonce,
@@ -324,6 +345,8 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       },
       { is_read: new_state },
     );
+
+    if (!is_read_ticket_current(acted_id, read_ticket)) return;
 
     if (!result.success) {
       deps.set_is_read(!new_state);
@@ -340,6 +363,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       if (should_adjust_unread) {
         adjust_stats_unread(new_state ? 1 : -1);
       }
+      show_toast(deps.t("common.failed_to_update_emails"), "error");
     } else {
       deps.set_mail_item((prev) =>
         prev
@@ -353,13 +377,16 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           : prev,
       );
       emit_mail_item_updated({
-        id: deps.email_id,
+        id: acted_id,
         is_read: new_state,
         encrypted_metadata: result.encrypted?.encrypted_metadata,
         metadata_nonce: result.encrypted?.metadata_nonce,
       });
       if (new_state && is_received) {
         mark_conversation_read(conversation_options);
+      }
+      if (!new_state) {
+        deps.on_dismiss();
       }
     }
   }, [
@@ -390,6 +417,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     deps.set_is_pin_loading(false);
     if (!result.success) {
       deps.set_is_pinned(previous_state);
+      show_toast(deps.t("common.failed_to_update_emails"), "error");
     } else {
       deps.set_mail_item((prev) =>
         prev
@@ -431,6 +459,15 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
     if (!deps.email_id || deps.is_archive_loading) return;
     deps.set_is_archive_loading(true);
 
+    const archive_ids = Array.from(
+      new Set([
+        deps.email_id,
+        ...deps.thread_messages
+          .filter((m) => m.item_type !== "draft" && !m.is_deleted)
+          .map((m) => m.id),
+      ]),
+    );
+
     const deltas = deps.mail_item
       ? compute_archive_deltas({
           item_type: deps.mail_item.item_type,
@@ -440,42 +477,48 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
 
     if (deltas) apply_stat_deltas(deltas);
 
-    const result = await batch_archive({ ids: [deps.email_id], tier: "hot" });
+    const result = await batch_archive({ ids: archive_ids, tier: "hot" });
 
     deps.set_is_archive_loading(false);
     if (result.data?.success) {
-      await bulk_update_metadata_by_ids([deps.email_id], { is_archived: true });
+      await bulk_update_metadata_by_ids(archive_ids, { is_archived: true });
       invalidate_mail_stats();
-      emit_mail_item_updated({ id: deps.email_id, is_archived: true });
-      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+      for (const id of archive_ids) {
+        emit_mail_item_updated({ id, is_archived: true });
+      }
+      emit_mail_changed();
       show_action_toast({
         message: deps.t("common.message_archived"),
         action_type: "archive",
-        email_ids: [deps.email_id],
+        email_ids: archive_ids,
         on_undo: async () => {
           if (deltas) revert_stat_deltas(deltas);
-          const undo_result = await batch_unarchive({ ids: [deps.email_id] });
+          const undo_result = await batch_unarchive({ ids: archive_ids });
 
           if (undo_result.error || !undo_result.data?.success) {
-            reindex_ids([deps.email_id]);
+            reindex_ids(archive_ids);
             throw new Error("undo unarchive failed");
           }
-          await bulk_update_metadata_by_ids([deps.email_id], {
+          await bulk_update_metadata_by_ids(archive_ids, {
             is_archived: false,
           });
           invalidate_mail_stats();
-          emit_mail_item_updated({ id: deps.email_id, is_archived: false });
-          window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
+          for (const id of archive_ids) {
+            emit_mail_item_updated({ id, is_archived: false });
+          }
+          emit_mail_soft_refresh();
         },
       });
-      deps.on_dismiss();
-    } else if (deltas) {
-      revert_stat_deltas(deltas);
+      dismiss_or_advance();
+    } else {
+      if (deltas) revert_stat_deltas(deltas);
+      show_toast(deps.t("common.failed_to_archive_emails"), "error");
     }
   }, [
     deps.email_id,
+    deps.thread_messages,
     deps.is_archive_loading,
-    deps.on_dismiss,
+    dismiss_or_advance,
     deps.t,
     deps.mail_item,
     deps.is_read,
@@ -504,7 +547,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       invalidate_mail_stats();
       emit_mail_item_updated({ id: deps.email_id, is_archived: false });
       reindex_ids([deps.email_id]);
-      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+      emit_mail_changed();
       show_action_toast({
         message: deps.t("common.moved_to_inbox_toast"),
         action_type: "restore",
@@ -525,17 +568,18 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           });
           invalidate_mail_stats();
           emit_mail_item_updated({ id: deps.email_id, is_archived: true });
-          window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
+          emit_mail_soft_refresh();
         },
       });
-      deps.on_dismiss();
-    } else if (deltas) {
-      revert_stat_deltas(deltas);
+      dismiss_or_advance();
+    } else {
+      if (deltas) revert_stat_deltas(deltas);
+      show_toast(deps.t("common.failed_to_unarchive_emails"), "error");
     }
   }, [
     deps.email_id,
     deps.is_archive_loading,
-    deps.on_dismiss,
+    dismiss_or_advance,
     deps.t,
     deps.mail_item,
     deps.is_read,
@@ -576,7 +620,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         );
       }
       emit_mail_items_removed({ ids: [deps.email_id] });
-      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+      emit_mail_changed();
       show_action_toast({
         message: deps.t("common.message_marked_as_spam"),
         action_type: "spam",
@@ -586,7 +630,8 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             adjust_stats_spam(-1);
             if (is_unread) adjust_stats_unread(1);
           }
-          await update_item_metadata(
+
+          const undo_result = await update_item_metadata(
             deps.email_id,
             {
               encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -594,6 +639,14 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             },
             { is_spam: false, is_trashed: prev_is_trashed },
           );
+
+          if (!undo_result.success) {
+            if (is_received) {
+              adjust_stats_spam(1);
+              if (is_unread) adjust_stats_unread(-1);
+            }
+            throw new Error("undo spam failed");
+          }
           if (sender) {
             remove_spam_sender(sender).catch((caught) =>
               ignore_error(
@@ -602,21 +655,22 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
               ),
             );
           }
-          window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
+          emit_mail_soft_refresh();
         },
       });
-      deps.on_dismiss();
+      dismiss_or_advance();
     } else {
       if (is_received) {
         adjust_stats_spam(-1);
         if (is_unread) adjust_stats_unread(1);
       }
+      show_toast(deps.t("common.failed_to_update_emails"), "error");
     }
   }, [
     deps.email_id,
     deps.email?.sender_email,
     deps.is_spam_loading,
-    deps.on_dismiss,
+    dismiss_or_advance,
     deps.mail_item,
     deps.is_read,
     deps.t,
@@ -648,21 +702,43 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         );
       }
       reindex_ids([deps.email_id]);
-      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+      emit_mail_changed();
       show_toast(deps.t("common.marked_as_not_spam"), "success");
-      deps.on_dismiss();
+      dismiss_or_advance();
+    } else {
+      show_toast(deps.t("common.failed_to_update_emails"), "error");
     }
   }, [
     deps.email_id,
     deps.email?.sender_email,
     deps.is_spam_loading,
-    deps.on_dismiss,
+    dismiss_or_advance,
     deps.mail_item,
     deps.t,
   ]);
 
   const handle_trash = useCallback(async () => {
     if (!deps.email_id || deps.is_trash_loading || !deps.mail_item) return;
+
+    if (deps.mail_item.is_trashed) {
+      deps.set_is_trash_loading(true);
+      const deleted = !!(await permanent_delete_mail_item(deps.email_id)).data;
+
+      deps.set_is_trash_loading(false);
+
+      if (deleted) {
+        adjust_stats_trash(-1);
+        emit_mail_items_removed({ ids: [deps.email_id] });
+        emit_mail_changed();
+        show_toast(deps.t("common.email_permanently_deleted"), "success");
+        dismiss_or_advance();
+      } else {
+        show_toast(deps.t("common.failed_to_permanently_delete"), "error");
+      }
+
+      return;
+    }
+
     deps.set_is_trash_loading(true);
 
     const deltas = compute_trash_deltas({
@@ -682,17 +758,39 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
       { is_trashed: true },
     );
 
+    const other_thread_ids = Array.from(
+      new Set(
+        deps.thread_messages
+          .filter(
+            (m) =>
+              m.id !== deps.email_id &&
+              m.item_type !== "draft" &&
+              !m.is_deleted,
+          )
+          .map((m) => m.id),
+      ),
+    );
+
+    if (result.success && other_thread_ids.length > 0) {
+      await bulk_update_metadata_by_ids(other_thread_ids, {
+        is_trashed: true,
+      });
+    }
+
     deps.set_is_trash_loading(false);
     if (result.success) {
-      emit_mail_items_removed({ ids: [deps.email_id] });
-      window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+      emit_mail_items_removed({
+        ids: [deps.email_id, ...other_thread_ids],
+      });
+      emit_mail_changed();
       show_action_toast({
         message: deps.t("common.message_moved_to_trash"),
         action_type: "trash",
-        email_ids: [deps.email_id],
+        email_ids: [deps.email_id, ...other_thread_ids],
         on_undo: async () => {
           revert_stat_deltas(deltas);
-          await update_item_metadata(
+
+          const undo_result = await update_item_metadata(
             deps.email_id,
             {
               encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -700,17 +798,29 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
             },
             { is_trashed: false },
           );
-          window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
+
+          if (!undo_result.success) {
+            apply_stat_deltas(deltas);
+            throw new Error("undo trash failed");
+          }
+          if (other_thread_ids.length > 0) {
+            await bulk_update_metadata_by_ids(other_thread_ids, {
+              is_trashed: false,
+            });
+          }
+          emit_mail_soft_refresh();
         },
       });
-      deps.on_dismiss();
+      dismiss_or_advance();
     } else {
       revert_stat_deltas(deltas);
+      show_toast(deps.t("common.failed_to_delete_emails"), "error");
     }
   }, [
     deps.email_id,
+    deps.thread_messages,
     deps.is_trash_loading,
-    deps.on_dismiss,
+    dismiss_or_advance,
     deps.mail_item,
     deps.is_read,
     deps.t,
@@ -718,17 +828,24 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
 
   const handle_print = useCallback(() => {
     if (!deps.email) return;
-    print_email({
-      subject: deps.email.subject,
-      sender: deps.email.display_sender_name || deps.email.sender,
-      sender_email: deps.email.display_sender_email || deps.email.sender_email,
-      to: deps.email.to,
-      cc: deps.email.cc,
-      bcc: deps.email.bcc,
-      timestamp: deps.format_email_detail(new Date(deps.email.timestamp)),
-      body: deps.email.html_content || deps.email.body,
-    });
-  }, [deps.email, deps.format_email_detail]);
+    print_email(
+      {
+        subject: deps.email.subject,
+        sender: deps.email.display_sender_name || deps.email.sender,
+        sender_email:
+          deps.email.display_sender_email || deps.email.sender_email,
+        to: deps.email.to,
+        cc: deps.email.cc,
+        bcc: deps.email.bcc,
+        timestamp: format_print_timestamp(
+          deps.email.timestamp,
+          deps.email.timestamp,
+        ),
+        body: deps.email.html_content || deps.email.body,
+      },
+      deps.t,
+    );
+  }, [deps.email, deps.t]);
 
   const handle_unsubscribe = useCallback(async () => {
     if (!deps.email?.unsubscribe_info) return;
@@ -753,7 +870,7 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           "auto",
         );
       } else {
-        const url = info.unsubscribe_link || info.unsubscribe_mailto;
+        const url = get_manual_unsubscribe_url(info);
         const lockdown = is_any_lockdown_active();
 
         show_action_toast({
@@ -761,22 +878,14 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           action_type: "not_spam",
           email_ids: [],
           duration_ms: 15000,
-          ...(!lockdown && {
-            action_label: deps.t("mail.open_unsubscribe_page"),
-            on_undo: async () => {
-              if (url) window.open(url, "_blank", "noopener,noreferrer");
-            },
-          }),
+          ...(!lockdown &&
+            url && {
+              action_label: deps.t("mail.open_unsubscribe_page"),
+              on_undo: async () => {
+                open_external(url);
+              },
+            }),
         });
-        persist_unsubscribe(
-          deps.email.sender_email,
-          deps.email.sender || "",
-          {
-            unsubscribe_link: info.unsubscribe_link,
-            list_unsubscribe_header: info.list_unsubscribe_header,
-          },
-          "manual",
-        );
       }
     } catch {
       show_action_toast({
@@ -825,9 +934,10 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
         is_own_message,
       );
 
-      const msg_rfc_message_id = msg.raw_headers?.find(
-        (h) => h.name.toLowerCase() === "message-id",
-      )?.value;
+      const msg_rfc_message_id = resolve_reply_references(
+        msg,
+        deps.thread_messages,
+      );
 
       const base: ReplyData = {
         recipient_name,
@@ -841,7 +951,10 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
           : {}),
         original_subject: msg.subject,
         original_body: msg.body,
-        original_timestamp: new Date(msg.timestamp).toLocaleString(),
+        original_timestamp: new Date(msg.timestamp).toLocaleString(
+          app_locale(),
+          { timeZone: get_display_time_zone() },
+        ),
         thread_token: deps.email?.thread_token,
         original_email_id: msg.id,
         is_external: msg.is_external || deps.is_external,
@@ -858,7 +971,12 @@ export function use_email_viewer_actions(deps: EmailViewerActionsDeps) {
 
       return base;
     },
-    [deps.email?.thread_token, deps.is_external, deps.thread_ghost_email],
+    [
+      deps.email?.thread_token,
+      deps.is_external,
+      deps.thread_ghost_email,
+      deps.thread_messages,
+    ],
   );
 
   const {

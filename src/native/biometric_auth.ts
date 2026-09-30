@@ -23,6 +23,7 @@ import { NativeBiometric, type BiometryType } from "capacitor-native-biometric";
 import { is_native_platform } from "./capacitor_bridge";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export interface BiometricAvailability {
   is_available: boolean;
@@ -71,7 +72,7 @@ export async function authenticate_biometric(
     await NativeBiometric.verifyIdentity({
       reason,
       title: "Aster Mail",
-      subtitle: "Verify your identity",
+      subtitle: get_active_translations().settings.duress_pin_verify_identity,
       description: reason,
       useFallback: true,
       maxAttempts: 3,
@@ -159,12 +160,12 @@ export function get_biometry_type_name(type: BiometryType): string {
     case 2:
       return "Face ID";
     case 3:
-      return "Fingerprint";
+      return get_active_translations().common.biometry_fingerprint;
     case 4:
-      return "Face Recognition";
+      return get_active_translations().common.biometry_face_recognition;
     case 5:
-      return "Iris";
+      return get_active_translations().common.biometry_iris;
     default:
-      return "Biometric";
+      return get_active_translations().common.biometry_generic;
   }
 }

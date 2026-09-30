@@ -78,7 +78,7 @@ export function use_folder_tag_actions({
 
       if (selected.length === 0) return;
       const folder_data = folders_lookup.get(folder_token);
-      const folder_name = folder_data?.name || "folder";
+      const folder_name = folder_data?.name || t("common.folder_fallback");
       const all_ids = selected.flatMap(expand_email_ids);
       const previous_states = new Map(
         selected.map((e) => [e.id, e.folders || []]),
@@ -91,23 +91,24 @@ export function use_folder_tag_actions({
         current_view === "starred" ||
         current_view === "snoozed";
 
+      const compute_next_folders = (email_id: string) => {
+        const without = (previous_states.get(email_id) ?? []).filter(
+          (f) => f.folder_token !== folder_token,
+        );
+
+        return should_remove
+          ? without
+          : [
+              ...without,
+              { folder_token, name: folder_name, color: folder_data?.color },
+            ];
+      };
+
       if (!should_remove && is_inbox) {
         emit_mail_items_removed({ ids: all_ids });
       } else {
         for (const email of selected) {
-          if (should_remove) {
-            update_email(email.id, { folders: [] });
-          } else {
-            update_email(email.id, {
-              folders: [
-                {
-                  folder_token,
-                  name: folder_name,
-                  color: folder_data?.color,
-                },
-              ],
-            });
-          }
+          update_email(email.id, { folders: compute_next_folders(email.id) });
         }
       }
       const batch_result = should_remove
@@ -122,9 +123,6 @@ export function use_folder_tag_actions({
         (e) => !failed_emails.includes(e),
       );
       const succeeded_ids = succeeded_emails.flatMap(expand_email_ids);
-      const next_folders = should_remove
-        ? []
-        : [{ folder_token, name: folder_name, color: folder_data?.color }];
 
       if (failed_emails.length > 0) {
         for (const email of failed_emails) {
@@ -138,7 +136,10 @@ export function use_folder_tag_actions({
         }
       }
       for (const email of succeeded_emails) {
-        emit_mail_item_updated({ id: email.id, folders: next_folders });
+        emit_mail_item_updated({
+          id: email.id,
+          folders: compute_next_folders(email.id),
+        });
       }
       show_bulk_result_toast({
         result: bulk_action_result(
@@ -166,6 +167,12 @@ export function use_folder_tag_actions({
             await batched_bulk_remove_folder(succeeded_ids, folder_token);
             reindex_ids(succeeded_ids);
           }
+          for (const email of succeeded_emails) {
+            emit_mail_item_updated({
+              id: email.id,
+              folders: previous_states.get(email.id) ?? [],
+            });
+          }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },
       });
@@ -188,9 +195,11 @@ export function use_folder_tag_actions({
 
       if (selected.length === 0) return;
       const tag_data = tags_lookup.get(tag_token);
-      const tag_name = tag_data?.name || "label";
+      const tag_name = tag_data?.name || t("common.label_fallback");
       const all_ids = selected.flatMap(expand_email_ids);
-      const previous_states = new Map(selected.map((e) => [e.id, e.tags || []]));
+      const previous_states = new Map(
+        selected.map((e) => [e.id, e.tags || []]),
+      );
 
       for (const email of selected) {
         if (should_remove) {
@@ -200,7 +209,7 @@ export function use_folder_tag_actions({
         } else {
           update_email(email.id, {
             tags: [
-              ...(email.tags || []),
+              ...(email.tags || []).filter((tag) => tag.id !== tag_token),
               {
                 id: tag_token,
                 name: tag_name,
@@ -238,7 +247,9 @@ export function use_folder_tag_actions({
                 (tag) => tag.id !== tag_token,
               )
             : [
-                ...(previous_states.get(email.id) ?? []),
+                ...(previous_states.get(email.id) ?? []).filter(
+                  (tag) => tag.id !== tag_token,
+                ),
                 {
                   id: tag_token,
                   name: tag_name,
@@ -273,6 +284,12 @@ export function use_folder_tag_actions({
             await batched_bulk_add_tag(succeeded_ids, tag_token);
           } else {
             await batched_bulk_remove_tag(succeeded_ids, tag_token);
+          }
+          for (const email of succeeded_emails) {
+            emit_mail_item_updated({
+              id: email.id,
+              tags: previous_states.get(email.id) ?? [],
+            });
           }
           window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         },

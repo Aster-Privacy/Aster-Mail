@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { LanguageCode } from "./engine_types";
+
 import { beforeEach, describe, expect, it } from "vitest";
 
 import {
@@ -29,7 +31,6 @@ import {
   should_keep_translation,
   strip_for_detection,
 } from "./language_detect";
-import type { LanguageCode } from "./engine_types";
 
 const SAMPLES: ReadonlyArray<[string, string]> = [
   [
@@ -230,7 +231,11 @@ describe("decide_translation", () => {
   });
 
   it("treats ask and always identically for what counts as translatable", () => {
-    const ask = decide_translation({ ...base, mode: "ask", translatable: true });
+    const ask = decide_translation({
+      ...base,
+      mode: "ask",
+      translatable: true,
+    });
 
     clear_detection_cache();
 
@@ -242,9 +247,9 @@ describe("decide_translation", () => {
 
     expect(ask.kind).toBe("offer");
     expect(always.kind).toBe("translate");
-    expect(
-      ask.kind === "offer" ? ask.language : null,
-    ).toBe(always.kind === "translate" ? always.language : "x");
+    expect(ask.kind === "offer" ? ask.language : null).toBe(
+      always.kind === "translate" ? always.language : "x",
+    );
   });
 
   it("suppresses a read language in ask mode but still translates it in always mode", () => {

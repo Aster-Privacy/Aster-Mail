@@ -20,17 +20,10 @@
 //
 import type { AuthProviderProps } from "./auth_types";
 
-
 import { AuthContext } from "./use_auth_hook";
-
-
-
-
 import { use_auth_provider_state } from "./use_auth_provider_state";
 export function AuthProvider({ children }: AuthProviderProps) {
-  const {
-    context_value,
-  } = use_auth_provider_state();
+  const { context_value } = use_auth_provider_state();
 
   return (
     <AuthContext.Provider value={context_value}>

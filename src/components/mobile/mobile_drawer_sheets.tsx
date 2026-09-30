@@ -24,23 +24,20 @@ import type { DecryptedTag } from "@/hooks/use_tags";
 import type { User } from "@/services/account_manager";
 
 import {
-  Cog6ToothIcon,
-  ArrowRightStartOnRectangleIcon,
-  FolderIcon,
-} from "@heroicons/react/24/outline";
-import { Button, Switch, UpgradeBtn } from "@aster/ui";
+  AccountMenuSheetView,
+  CreateAliasSheetView,
+  CreateFolderSheetView,
+  CreateLabelSheetView,
+  EditFolderSheetView,
+  EditTagSheetView,
+} from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
-import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
-import { Input } from "@/components/ui/input";
 import { format_bytes } from "@/lib/utils";
-import {
-  TAG_COLOR_PRESETS,
-  tag_icon_map,
-  TAG_ICONS,
-} from "@/components/ui/email_tag";
+import { TAG_COLOR_PRESETS, type TagIconName } from "@/components/ui/email_tag";
+import { TagIconPicker } from "@/components/tags/tag_icon_picker";
 import { FolderPasswordModal } from "@/components/folders/folder_password_modal";
 import { prompt_alias_limit_upgrade } from "@/components/settings/aliases/feature_lock";
 import {
@@ -48,6 +45,8 @@ import {
   type TurnstileWidgetRef,
 } from "@/components/auth/turnstile_widget";
 import mail_logo_url from "@/assets/mail_logo.webp";
+import { show_upgrade_plans } from "@/stores/upgrade_store";
+import { use_resubscribe } from "@/hooks/use_resubscribe";
 
 interface AccountMenuSheetProps {
   is_open: boolean;
@@ -70,104 +69,38 @@ export function AccountMenuSheet({
   handle_nav,
   handle_logout,
 }: AccountMenuSheetProps) {
+  const { can_resubscribe, resubscribe } = use_resubscribe(is_open);
   const { t } = use_i18n();
 
   return (
-    <MobileBottomSheet is_open={is_open} on_close={on_close}>
-      <div className="px-4 pb-4">
-        <div className="flex items-center gap-3 pb-4">
-          <div className="relative h-9 w-9 shrink-0">
-            <img
-              alt="Aster"
-              className="h-full w-full select-none rounded-lg"
-              draggable={false}
-              src={mail_logo_url}
-            />
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-[15px] font-semibold text-[var(--text-primary)]">
-              {user?.display_name ?? user?.username ?? ""}
-            </p>
-            <p className="truncate text-[12px] text-[var(--text-muted)]">
-              {user?.email ?? ""}
-            </p>
-          </div>
-        </div>
-        <div className="mb-3 px-1">
-          <div className="mb-1 flex items-center justify-between">
-            <span className="text-[11px] font-medium tracking-wide text-[var(--text-muted)]">
-              {t("common.storage_used")}
-            </span>
-            <span
-              className="text-[11px] font-medium tabular-nums"
-              style={{
-                color:
-                  storage_pct > 90
-                    ? "var(--color-danger)"
-                    : storage_pct > 70
-                      ? "var(--color-warning)"
-                      : "var(--text-tertiary, var(--text-muted))",
-              }}
-            >
-              {storage_pct}%
-            </span>
-          </div>
-          <div className="h-1.5 w-full overflow-hidden rounded-full bg-black/[0.05] dark:bg-white/[0.06]">
-            <div
-              className="h-full rounded-full transition-all duration-300"
-              style={{
-                width: `${Math.min(storage_pct, 100)}%`,
-                backgroundColor:
-                  storage_pct > 90
-                    ? "var(--color-danger)"
-                    : storage_pct > 70
-                      ? "var(--color-warning)"
-                      : "var(--color-info)",
-              }}
-            />
-          </div>
-          <p className="mt-1 text-[10px] text-[var(--text-muted)]">
-            {format_bytes(storage_used)} of {format_bytes(storage_total)}
-          </p>
-        </div>
-
-        <div className="space-y-1">
-          <Button
-            className="flex w-full items-center justify-center gap-2 rounded-[14px] px-3 py-2.5 text-[14px] font-medium"
-            type="button"
-            variant="depth"
-            onClick={() => {
-              on_close();
-              handle_nav("/settings");
-            }}
-          >
-            {t("common.upgrade")}
-          </Button>
-          <button
-            className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
-            type="button"
-            onClick={() => {
-              on_close();
-              handle_nav("/settings");
-            }}
-          >
-            <Cog6ToothIcon className="h-5 w-5 text-[var(--text-muted)]" />
-            <span className="text-[15px] text-[var(--text-primary)]">
-              {t("settings.title")}
-            </span>
-          </button>
-          <button
-            className="flex w-full items-center gap-3 rounded-[16px] px-3 py-3 text-left active:bg-[var(--bg-tertiary)]"
-            type="button"
-            onClick={handle_logout}
-          >
-            <ArrowRightStartOnRectangleIcon className="h-5 w-5 text-[var(--color-danger,#ef4444)]" />
-            <span className="text-[15px] text-[var(--color-danger,#ef4444)]">
-              {t("auth.sign_out")}
-            </span>
-          </button>
-        </div>
-      </div>
+    <MobileBottomSheet
+      aria_label={t("settings.account")}
+      is_open={is_open}
+      on_close={on_close}
+    >
+      <AccountMenuSheetView
+        email={user?.email ?? ""}
+        logo_src={mail_logo_url}
+        name={user?.display_name ?? user?.username ?? ""}
+        settings_label={t("settings.title")}
+        sign_out_label={t("auth.sign_out")}
+        storage_detail={`${format_bytes(storage_used)} ${t("common.of")} ${format_bytes(storage_total)}`}
+        storage_label={t("common.storage_used")}
+        storage_pct={storage_pct}
+        upgrade_label={
+          can_resubscribe ? t("auth.resubscribe_to_aster") : t("common.upgrade")
+        }
+        on_settings={() => {
+          on_close();
+          handle_nav("/settings");
+        }}
+        on_sign_out={handle_logout}
+        on_upgrade={() => {
+          on_close();
+          if (can_resubscribe) resubscribe();
+          else show_upgrade_plans();
+        }}
+      />
     </MobileBottomSheet>
   );
 }
@@ -181,6 +114,7 @@ interface CreateFolderSheetProps {
   set_folder_color: (v: string) => void;
   folder_input_ref: React.Ref<HTMLInputElement>;
   handle_create: () => void;
+  is_creating: boolean;
 }
 
 export function CreateFolderSheet({
@@ -192,57 +126,29 @@ export function CreateFolderSheet({
   set_folder_color,
   folder_input_ref,
   handle_create,
+  is_creating,
 }: CreateFolderSheetProps) {
   const { t } = use_i18n();
 
   return (
-    <MobileBottomSheet is_open={is_open} on_close={on_close}>
-      <div className="px-4 pb-4">
-        <p className="mb-4 text-[16px] font-semibold text-[var(--text-primary)]">
-          {t("common.create_folder")}
-        </p>
-        <div className="mb-3 flex items-center gap-3">
-          <FolderIcon
-            className="h-6 w-6 shrink-0"
-            style={{ color: folder_color }}
-          />
-          <Input
-            ref={folder_input_ref}
-            className="flex-1"
-            placeholder={t("common.folders")}
-            value={folder_name}
-            onChange={(e) => set_folder_name(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handle_create();
-            }}
-          />
-        </div>
-        <div className="mb-3 flex flex-wrap gap-2">
-          {TAG_COLOR_PRESETS.map((color) => (
-            <button
-              key={color.hex}
-              className="h-7 w-7 rounded-full"
-              style={{
-                backgroundColor: color.hex,
-                boxShadow:
-                  folder_color === color.hex
-                    ? `0 0 0 2px var(--bg-primary), 0 0 0 4px ${color.hex}`
-                    : "none",
-              }}
-              type="button"
-              onClick={() => set_folder_color(color.hex)}
-            />
-          ))}
-        </div>
-        <Button
-          className="mt-1 w-full rounded-[16px] py-3 text-[15px] font-medium"
-          type="button"
-          variant="depth"
-          onClick={handle_create}
-        >
-          {t("common.create")}
-        </Button>
-      </div>
+    <MobileBottomSheet
+      aria_label={t("common.create_folder")}
+      is_open={is_open}
+      on_close={on_close}
+    >
+      <CreateFolderSheetView
+        color={folder_color}
+        colors={TAG_COLOR_PRESETS}
+        input_ref={folder_input_ref}
+        is_creating={is_creating}
+        name={folder_name}
+        placeholder={t("common.folders")}
+        submit_label={t("common.create")}
+        title={t("common.create_folder")}
+        on_color_change={set_folder_color}
+        on_name_change={set_folder_name}
+        on_submit={handle_create}
+      />
     </MobileBottomSheet>
   );
 }
@@ -257,6 +163,7 @@ interface CreateLabelSheetProps {
   label_icon: string | undefined;
   set_label_icon: (v: string | undefined) => void;
   label_input_ref: React.Ref<HTMLInputElement>;
+  is_creating: boolean;
   handle_create: () => void;
 }
 
@@ -271,121 +178,39 @@ export function CreateLabelSheet({
   set_label_icon,
   label_input_ref,
   handle_create,
+  is_creating,
 }: CreateLabelSheetProps) {
   const { t } = use_i18n();
 
   return (
-    <MobileBottomSheet is_open={is_open} on_close={on_close}>
-      <div className="px-4 pb-4">
-        <p className="mb-4 text-[16px] font-semibold text-[var(--text-primary)]">
-          {t("common.create_label")}
-        </p>
-        <div className="mb-3 flex items-center gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center">
-            {label_icon && tag_icon_map[label_icon] ? (
-              (() => {
-                const Icon = tag_icon_map[label_icon];
-
-                return (
-                  <Icon className="h-5 w-5" style={{ color: label_color }} />
-                );
-              })()
-            ) : (
-              <span
-                className="h-3 w-3 rounded-full"
-                style={{ backgroundColor: label_color }}
-              />
-            )}
-          </span>
-          <Input
-            ref={label_input_ref}
-            className="flex-1"
-            placeholder={t("common.labels")}
-            value={label_name}
-            onChange={(e) => set_label_name(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handle_create();
-            }}
+    <MobileBottomSheet
+      aria_label={t("common.create_label")}
+      is_open={is_open}
+      on_close={on_close}
+    >
+      <CreateLabelSheetView
+        color={label_color}
+        color_label={t("common.color_label")}
+        colors={TAG_COLOR_PRESETS}
+        icon={label_icon}
+        icon_label={t("common.icon_label")}
+        icon_picker={
+          <TagIconPicker
+            accent_color={label_color}
+            on_select={set_label_icon}
+            selected_icon={label_icon as TagIconName | undefined}
           />
-        </div>
-        <p className="mb-1.5 text-[12px] font-medium text-[var(--text-muted)]">
-          {t("common.color_label")}
-        </p>
-        <div className="mb-3 flex flex-wrap gap-2">
-          {TAG_COLOR_PRESETS.map((color) => (
-            <button
-              key={color.hex}
-              className="h-7 w-7 rounded-full"
-              style={{
-                backgroundColor: color.hex,
-                boxShadow:
-                  label_color === color.hex
-                    ? `0 0 0 2px var(--bg-primary), 0 0 0 4px ${color.hex}`
-                    : "none",
-              }}
-              type="button"
-              onClick={() => set_label_color(color.hex)}
-            />
-          ))}
-        </div>
-        <p className="mb-1.5 text-[12px] font-medium text-[var(--text-muted)]">
-          {t("common.icon_label")}
-        </p>
-        <div className="mb-3 flex flex-wrap gap-1.5">
-          <button
-            className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[11px]"
-            style={{
-              backgroundColor: !label_icon
-                ? "var(--indicator-bg, var(--bg-tertiary))"
-                : "transparent",
-              border: !label_icon
-                ? "1px solid var(--border-primary)"
-                : "1px solid transparent",
-              color: "var(--text-muted)",
-            }}
-            type="button"
-            onClick={() => set_label_icon(undefined)}
-          >
-            &mdash;
-          </button>
-          {TAG_ICONS.map((icon_name) => {
-            const IconComponent = tag_icon_map[icon_name];
-
-            return (
-              <button
-                key={icon_name}
-                className="flex h-8 w-8 items-center justify-center rounded-[8px]"
-                style={{
-                  backgroundColor:
-                    label_icon === icon_name
-                      ? "var(--indicator-bg, var(--bg-tertiary))"
-                      : "transparent",
-                  border:
-                    label_icon === icon_name
-                      ? "1px solid var(--border-primary)"
-                      : "1px solid transparent",
-                  color:
-                    label_icon === icon_name
-                      ? label_color
-                      : "var(--text-muted)",
-                }}
-                type="button"
-                onClick={() => set_label_icon(icon_name)}
-              >
-                {IconComponent && <IconComponent className="h-4 w-4" />}
-              </button>
-            );
-          })}
-        </div>
-        <Button
-          className="mt-1 w-full rounded-[16px] py-3 text-[15px] font-medium"
-          type="button"
-          variant="depth"
-          onClick={handle_create}
-        >
-          {t("common.create")}
-        </Button>
-      </div>
+        }
+        input_ref={label_input_ref}
+        is_creating={is_creating}
+        name={label_name}
+        placeholder={t("common.labels")}
+        submit_label={t("common.create")}
+        title={t("common.create_label")}
+        on_color_change={set_label_color}
+        on_name_change={set_label_name}
+        on_submit={handle_create}
+      />
     </MobileBottomSheet>
   );
 }
@@ -430,73 +255,27 @@ export function EditFolderSheet({
   };
 
   return (
-    <MobileBottomSheet is_open={!!editing_folder} on_close={on_close}>
-      <div className="px-4 pb-4">
-        <p className="mb-4 text-[16px] font-semibold text-[var(--text-primary)]">
-          {t("common.edit_folder")}
-        </p>
-        <div className="mb-3 flex items-center gap-3">
-          <FolderIcon
-            className="h-6 w-6 shrink-0"
-            style={{ color: edit_color }}
-          />
-          <Input
-            className="flex-1"
-            placeholder={t("common.folders")}
-            value={edit_name}
-            onChange={(e) => set_edit_name(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handle_save();
-            }}
-          />
-        </div>
-        <div className="mb-3 flex flex-wrap gap-2">
-          {TAG_COLOR_PRESETS.map((color) => (
-            <button
-              key={color.hex}
-              className="h-7 w-7 rounded-full"
-              style={{
-                backgroundColor: color.hex,
-                boxShadow:
-                  edit_color === color.hex
-                    ? `0 0 0 2px var(--bg-primary), 0 0 0 4px ${color.hex}`
-                    : "none",
-              }}
-              type="button"
-              onClick={() => set_edit_color(color.hex)}
-            />
-          ))}
-        </div>
-        <div className="mb-3 flex items-center justify-between py-1">
-          <span className="text-[15px] text-[var(--text-primary)]">
-            {t("settings.notifications")}
-          </span>
-          <Switch
-            checked={!is_muted}
-            onCheckedChange={toggle_notifications}
-          />
-        </div>
-        <div className="flex gap-2">
-          <Button
-            className="flex-1 rounded-[16px] py-3 text-[15px] font-medium"
-            type="button"
-            variant="depth"
-            onClick={handle_save}
-          >
-            {t("common.save")}
-          </Button>
-          <button
-            className="rounded-[16px] px-5 py-3 text-[15px] font-medium text-white transition-all "
-            style={{
-              background: "linear-gradient(180deg, #ef4444 0%, #dc2626 100%)",
-            }}
-            type="button"
-            onClick={handle_delete}
-          >
-            {t("common.delete")}
-          </button>
-        </div>
-      </div>
+    <MobileBottomSheet
+      aria_label={t("common.edit_folder")}
+      is_open={!!editing_folder}
+      on_close={on_close}
+    >
+      <EditFolderSheetView
+        color={edit_color}
+        colors={TAG_COLOR_PRESETS}
+        delete_label={t("common.delete")}
+        name={edit_name}
+        notifications_enabled={!is_muted}
+        notifications_label={t("settings.notifications")}
+        placeholder={t("common.folders")}
+        save_label={t("common.save")}
+        title={t("common.edit_folder")}
+        on_color_change={set_edit_color}
+        on_delete={handle_delete}
+        on_name_change={set_edit_name}
+        on_save={handle_save}
+        on_toggle_notifications={toggle_notifications}
+      />
     </MobileBottomSheet>
   );
 }
@@ -529,126 +308,34 @@ export function EditTagSheet({
   const { t } = use_i18n();
 
   return (
-    <MobileBottomSheet is_open={!!editing_tag} on_close={on_close}>
-      <div className="px-4 pb-4">
-        <p className="mb-4 text-[16px] font-semibold text-[var(--text-primary)]">
-          {t("common.edit_label")}
-        </p>
-        <div className="mb-3 flex items-center gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center">
-            {edit_icon && tag_icon_map[edit_icon] ? (
-              (() => {
-                const Icon = tag_icon_map[edit_icon];
-
-                return (
-                  <Icon className="h-5 w-5" style={{ color: edit_color }} />
-                );
-              })()
-            ) : (
-              <span
-                className="h-3 w-3 rounded-full"
-                style={{ backgroundColor: edit_color }}
-              />
-            )}
-          </span>
-          <Input
-            className="flex-1"
-            placeholder={t("common.labels")}
-            value={edit_name}
-            onChange={(e) => set_edit_name(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handle_save();
-            }}
+    <MobileBottomSheet
+      aria_label={t("common.edit_label")}
+      is_open={!!editing_tag}
+      on_close={on_close}
+    >
+      <EditTagSheetView
+        color={edit_color}
+        color_label={t("common.color_label")}
+        colors={TAG_COLOR_PRESETS}
+        delete_label={t("common.delete")}
+        icon={edit_icon}
+        icon_label={t("common.icon_label")}
+        icon_picker={
+          <TagIconPicker
+            accent_color={edit_color}
+            on_select={set_edit_icon}
+            selected_icon={edit_icon as TagIconName | undefined}
           />
-        </div>
-        <p className="mb-1.5 text-[12px] font-medium text-[var(--text-muted)]">
-          {t("common.color_label")}
-        </p>
-        <div className="mb-3 flex flex-wrap gap-2">
-          {TAG_COLOR_PRESETS.map((color) => (
-            <button
-              key={color.hex}
-              className="h-7 w-7 rounded-full"
-              style={{
-                backgroundColor: color.hex,
-                boxShadow:
-                  edit_color === color.hex
-                    ? `0 0 0 2px var(--bg-primary), 0 0 0 4px ${color.hex}`
-                    : "none",
-              }}
-              type="button"
-              onClick={() => set_edit_color(color.hex)}
-            />
-          ))}
-        </div>
-        <p className="mb-1.5 text-[12px] font-medium text-[var(--text-muted)]">
-          {t("common.icon_label")}
-        </p>
-        <div className="mb-3 flex flex-wrap gap-1.5">
-          <button
-            className="flex h-8 w-8 items-center justify-center rounded-[8px] text-[11px]"
-            style={{
-              backgroundColor: !edit_icon
-                ? "var(--indicator-bg, var(--bg-tertiary))"
-                : "transparent",
-              border: !edit_icon
-                ? "1px solid var(--border-primary)"
-                : "1px solid transparent",
-              color: "var(--text-muted)",
-            }}
-            type="button"
-            onClick={() => set_edit_icon(undefined)}
-          >
-            &mdash;
-          </button>
-          {TAG_ICONS.map((icon_name) => {
-            const IconComponent = tag_icon_map[icon_name];
-
-            return (
-              <button
-                key={icon_name}
-                className="flex h-8 w-8 items-center justify-center rounded-[8px]"
-                style={{
-                  backgroundColor:
-                    edit_icon === icon_name
-                      ? "var(--indicator-bg, var(--bg-tertiary))"
-                      : "transparent",
-                  border:
-                    edit_icon === icon_name
-                      ? "1px solid var(--border-primary)"
-                      : "1px solid transparent",
-                  color:
-                    edit_icon === icon_name ? edit_color : "var(--text-muted)",
-                }}
-                type="button"
-                onClick={() => set_edit_icon(icon_name)}
-              >
-                {IconComponent && <IconComponent className="h-4 w-4" />}
-              </button>
-            );
-          })}
-        </div>
-        <div className="flex gap-2">
-          <Button
-            className="flex-1 rounded-[16px] py-3 text-[15px] font-medium"
-            type="button"
-            variant="depth"
-            onClick={handle_save}
-          >
-            {t("common.save")}
-          </Button>
-          <button
-            className="rounded-[16px] px-5 py-3 text-[15px] font-medium text-white transition-all "
-            style={{
-              background: "linear-gradient(180deg, #ef4444 0%, #dc2626 100%)",
-            }}
-            type="button"
-            onClick={handle_delete}
-          >
-            {t("common.delete")}
-          </button>
-        </div>
-      </div>
+        }
+        name={edit_name}
+        placeholder={t("common.labels")}
+        save_label={t("common.save")}
+        title={t("common.edit_label")}
+        on_color_change={set_edit_color}
+        on_delete={handle_delete}
+        on_name_change={set_edit_name}
+        on_save={handle_save}
+      />
     </MobileBottomSheet>
   );
 }
@@ -689,81 +376,47 @@ export function CreateAliasSheet({
   const { t } = use_i18n();
 
   return (
-    <MobileBottomSheet is_open={is_open} on_close={on_close}>
-      <div className="px-4 pb-4">
-        <p className="mb-4 text-[16px] font-semibold text-[var(--text-primary)]">
-          {at_limit ? t("common.alias_limit_reached") : t("settings.create_alias")}
-        </p>
-        {at_limit ? (
-          <>
-            <p className="mb-4 text-[14px] text-[var(--text-secondary)]">
-              {t("settings.upgrade_plan_more_aliases")}
-            </p>
-            <UpgradeBtn
-              className="w-full rounded-[16px] py-3 text-[15px] font-medium"
-              onClick={() => {
-                on_close();
-                prompt_alias_limit_upgrade();
-              }}
-            >
-              {t("settings.alias_feature_locked_upgrade_cta")}
-            </UpgradeBtn>
-          </>
-        ) : (
-          <>
-            <div className="mb-3 flex items-center gap-0">
-              <Input
-                className="flex-1 !rounded-r-none"
-                disabled={creating}
-                placeholder={t("settings.alias_local_part_placeholder")}
-                status={alias_error ? "error" : "default"}
-                value={alias_local}
-                onChange={(e) => {
-                  set_alias_local(e.target.value);
-                  set_alias_error("");
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") handle_create();
-                }}
-              />
-              <span className="rounded-r-xl bg-[var(--bg-tertiary)] px-3 py-3 text-[15px] text-[var(--text-muted)] select-none">
-                @{domain}
-              </span>
-            </div>
-            {alias_local.trim() && (
-              <p className="mb-3 break-all text-[13px] text-[var(--text-secondary)]">
-                {alias_local.trim().toLowerCase()}@{domain}
-              </p>
-            )}
-            {alias_error && (
-              <p className="mb-3 text-[13px] text-red-500">{alias_error}</p>
-            )}
-            {turnstile_required && (
-              <div className="mb-3 flex justify-center">
-                <TurnstileWidget
-                  ref={turnstile_ref}
-                  class_name="flex justify-center"
-                  on_expire={() => set_captcha_token(null)}
-                  on_verify={set_captcha_token}
-                />
-              </div>
-            )}
-            <Button
-              className="w-full rounded-[16px] py-3 text-[15px] font-medium"
-              disabled={
-                !alias_local.trim() ||
-                creating ||
-                (turnstile_required && !captcha_token)
-              }
-              type="button"
-              variant="depth"
-              onClick={handle_create}
-            >
-              {creating ? t("common.creating") : t("common.create")}
-            </Button>
-          </>
-        )}
-      </div>
+    <MobileBottomSheet
+      aria_label={t("common.alias_limit_reached")}
+      is_open={is_open}
+      on_close={on_close}
+    >
+      <CreateAliasSheetView
+        at_limit={at_limit}
+        domain={domain}
+        error={alias_error}
+        is_creating={creating}
+        limit_message={t("settings.upgrade_plan_more_aliases")}
+        local_part={alias_local}
+        placeholder={t("settings.alias_local_part_placeholder")}
+        submit_blocked={turnstile_required && !captcha_token}
+        submit_label={t("common.create")}
+        title={
+          at_limit
+            ? t("common.alias_limit_reached")
+            : t("settings.create_alias")
+        }
+        turnstile={
+          turnstile_required ? (
+            <TurnstileWidget
+              ref={turnstile_ref}
+              class_name="flex justify-center"
+              on_expire={() => set_captcha_token(null)}
+              on_verify={set_captcha_token}
+            />
+          ) : undefined
+        }
+        upgrade_label={t("settings.alias_feature_locked_upgrade_cta")}
+        on_local_part_change={(value) => {
+          set_alias_local(value);
+          set_alias_error("");
+        }}
+        on_submit={handle_create}
+        on_upgrade={() => {
+          on_close();
+          prompt_alias_limit_upgrade();
+        }}
+      />
     </MobileBottomSheet>
   );
 }
@@ -794,37 +447,6 @@ export function PasswordModalWrapper({
       mode={password_modal_folder.mode}
       on_close={on_close}
       on_success={on_success}
-    />
-  );
-}
-
-interface LogoutConfirmWrapperProps {
-  is_open: boolean;
-  on_cancel: () => void;
-  on_confirm: () => void;
-  on_dont_ask_again: () => void;
-}
-
-export function LogoutConfirmWrapper({
-  is_open,
-  on_cancel,
-  on_confirm,
-  on_dont_ask_again,
-}: LogoutConfirmWrapperProps) {
-  const { t } = use_i18n();
-
-  return (
-    <ConfirmationModal
-      show_dont_ask_again
-      cancel_text={t("common.cancel")}
-      confirm_text={t("auth.sign_out")}
-      is_open={is_open}
-      message={t("common.sign_out_confirmation")}
-      on_cancel={on_cancel}
-      on_confirm={on_confirm}
-      on_dont_ask_again={on_dont_ask_again}
-      title={t("auth.sign_out")}
-      variant="danger"
     />
   );
 }

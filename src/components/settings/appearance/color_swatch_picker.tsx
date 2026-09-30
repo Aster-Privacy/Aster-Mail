@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useRef, useState } from "react";
+import { Input } from "@aster/ui";
 
 import {
   Popover,
@@ -128,8 +129,10 @@ export function ColorSwatchPicker({
   const safe_value = is_valid_hex_color(value) ? value : "#3b82f6";
   const [hsv, set_hsv] = useState<Hsv>(() => hex_to_hsv(safe_value));
   const [hex_draft, set_hex_draft] = useState(safe_value);
+  const [hex_error, set_hex_error] = useState(false);
   const [is_open, set_is_open] = useState(false);
   const sv_ref = useRef<HTMLDivElement>(null);
+  const hue_ref = useRef<HTMLDivElement>(null);
   const dragging_ref = useRef<"sv" | "hue" | null>(null);
   const last_committed_hex_ref = useRef(safe_value);
 
@@ -137,6 +140,7 @@ export function ColorSwatchPicker({
     if (is_open) return;
     set_hsv(hex_to_hsv(safe_value));
     set_hex_draft(safe_value);
+    set_hex_error(false);
     last_committed_hex_ref.current = safe_value;
   }, [safe_value, is_open]);
 
@@ -167,10 +171,7 @@ export function ColorSwatchPicker({
 
     const rect = el.getBoundingClientRect();
     const s = Math.max(0, Math.min(1, (client_x - rect.left) / rect.width));
-    const v = Math.max(
-      0,
-      Math.min(1, 1 - (client_y - rect.top) / rect.height),
-    );
+    const v = Math.max(0, Math.min(1, 1 - (client_y - rect.top) / rect.height));
 
     preview({ ...hsv, s, v });
   };
@@ -182,7 +183,7 @@ export function ColorSwatchPicker({
       if (dragging_ref.current === "sv") {
         update_from_sv_point(e.clientX, e.clientY);
       } else if (dragging_ref.current === "hue") {
-        const el = document.getElementById("aster-hue-slider");
+        const el = hue_ref.current;
 
         if (!el) return;
         const rect = el.getBoundingClientRect();
@@ -208,12 +209,36 @@ export function ColorSwatchPicker({
     const next = raw.startsWith("#") ? raw : `#${raw}`;
 
     set_hex_draft(next);
+
     if (is_valid_hex_color(next)) {
+      set_hex_error(false);
       set_hsv(hex_to_hsv(next));
       onChange(next);
-      last_committed_hex_ref.current = next;
-      onCommit?.(next);
+
+      return;
     }
+
+    set_hex_error(true);
+  };
+
+  const commit_hex_draft = () => {
+    if (!is_valid_hex_color(hex_draft)) {
+      const restored = last_committed_hex_ref.current;
+
+      set_hex_draft(restored);
+      set_hex_error(false);
+      set_hsv(hex_to_hsv(restored));
+      onChange(restored);
+
+      return;
+    }
+
+    set_hex_error(false);
+
+    if (hex_draft === last_committed_hex_ref.current) return;
+
+    last_committed_hex_ref.current = hex_draft;
+    onCommit?.(hex_draft);
   };
 
   const swatch_size = size === "sm" ? "h-8 w-8" : "h-10 w-14";
@@ -224,16 +249,12 @@ export function ColorSwatchPicker({
       <PopoverTrigger asChild>
         <button
           aria-label={label}
-          className={`${swatch_size} rounded-lg border border-edge-secondary cursor-pointer flex-shrink-0 transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand`}
+          className={`${swatch_size} rounded-[var(--aster-radius-control)] border border-edge-secondary cursor-pointer flex-shrink-0 transition-transform hover:scale-105 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand`}
           style={{ backgroundColor: safe_value }}
           type="button"
         />
       </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className="w-64 border border-edge-primary bg-modal-bg shadow-lg rounded-xl p-4 z-[200]"
-        sideOffset={8}
-      >
+      <PopoverContent align="start" className="w-64 p-4 z-[200]" sideOffset={8}>
         <div
           ref={sv_ref}
           className="relative h-36 w-full rounded-lg cursor-crosshair select-none"
@@ -257,7 +278,7 @@ export function ColorSwatchPicker({
         </div>
 
         <div
-          id="aster-hue-slider"
+          ref={hue_ref}
           className="relative mt-3 h-3 w-full rounded-full cursor-pointer select-none"
           style={{
             backgroundImage:
@@ -288,12 +309,21 @@ export function ColorSwatchPicker({
             className="h-8 w-8 flex-shrink-0 rounded-md border border-edge-secondary"
             style={{ backgroundColor: safe_value }}
           />
-          <input
-            className="flex-1 min-w-0 rounded-md border border-edge-secondary bg-transparent px-2 py-1.5 text-sm text-txt-primary font-mono focus:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+          <Input
+            aria-invalid={hex_error}
+            className="w-auto flex-1 min-w-0 font-mono"
+            size="sm"
             spellCheck={false}
+            status={hex_error ? "error" : "default"}
             type="text"
             value={hex_draft}
+            onBlur={commit_hex_draft}
             onChange={(e) => handle_hex_input(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key !== "Enter") return;
+              e.preventDefault();
+              commit_hex_draft();
+            }}
           />
         </div>
       </PopoverContent>

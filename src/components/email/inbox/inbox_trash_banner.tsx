@@ -28,12 +28,21 @@ interface TrashBannerProps {
   family_enforced?: boolean;
 }
 
-export function TrashBanner({ retention_days = 30, view = "trash", family_enforced = false }: TrashBannerProps) {
+export function TrashBanner({
+  retention_days = 30,
+  view = "trash",
+  family_enforced = false,
+}: TrashBannerProps) {
   const { t } = use_i18n();
 
-  const message_key = view === "spam"
-    ? (family_enforced ? "mail.spam_auto_delete_notice_family" : "mail.spam_auto_delete_notice")
-    : (family_enforced ? "mail.trash_auto_delete_notice_family" : "mail.trash_auto_delete_notice");
+  const message_key =
+    view === "spam"
+      ? family_enforced
+        ? "mail.spam_auto_delete_notice_family"
+        : "mail.spam_auto_delete_notice"
+      : family_enforced
+        ? "mail.trash_auto_delete_notice_family"
+        : "mail.trash_auto_delete_notice";
 
   return (
     <div
@@ -44,9 +53,7 @@ export function TrashBanner({ retention_days = 30, view = "trash", family_enforc
       }}
     >
       <InformationCircleIcon className="w-5 h-5 flex-shrink-0" />
-      <p className="text-xs">
-        {t(message_key, { days: retention_days })}
-      </p>
+      <p className="text-xs">{t(message_key, { days: retention_days })}</p>
     </div>
   );
 }

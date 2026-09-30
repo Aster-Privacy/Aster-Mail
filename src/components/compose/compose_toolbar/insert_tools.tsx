@@ -18,26 +18,52 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 import type { ComposeToolbarState } from "@/components/compose/compose_shared";
 
-import {
-  useId,
-  useState,
-  useRef,
-  useEffect,
-  useCallback,
-} from "react";
+import { useId, useState, useRef, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
-import {  AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
+
+import { LinkPopover } from "./link_popover";
+import {
+  ToolbarButton,
+  use_anchored_layer,
+  use_frozen_selection,
+} from "./shared";
 
 import { AttachmentIcon } from "@/components/common/icons";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import EmojiPicker from "@/components/compose/emoji_picker";
 
-import { LinkPopover } from "./link_popover";
-import { ToolbarButton, use_anchored_layer, use_frozen_selection } from "./shared";
+const EMOJI_PICKER_WIDTH = 360;
+const EMOJI_PICKER_MAX_HEIGHT = 420;
+const VIEWPORT_MARGIN = 8;
+
+function clamp_emoji_picker_position(rect: DOMRect) {
+  const min_right = VIEWPORT_MARGIN;
+  const max_right = Math.max(
+    min_right,
+    window.innerWidth - EMOJI_PICKER_WIDTH - VIEWPORT_MARGIN,
+  );
+  const min_bottom = VIEWPORT_MARGIN;
+  const max_bottom = Math.max(
+    min_bottom,
+    window.innerHeight - EMOJI_PICKER_MAX_HEIGHT - VIEWPORT_MARGIN,
+  );
+
+  return {
+    right: Math.min(
+      Math.max(window.innerWidth - rect.right, min_right),
+      max_right,
+    ),
+    bottom: Math.min(
+      Math.max(window.innerHeight - rect.top + 8, min_bottom),
+      max_bottom,
+    ),
+  };
+}
 
 export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
   const { t } = use_i18n();
@@ -49,7 +75,7 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
   const [selected_text_for_link, set_selected_text_for_link] = useState("");
   const link_btn_ref = useRef<HTMLButtonElement>(null);
   const [show_emoji, set_show_emoji] = useState(false);
-  const [emoji_pos, set_emoji_pos] = useState({ top: 0, right: 0 });
+  const [emoji_pos, set_emoji_pos] = useState({ bottom: 0, right: 0 });
   const emoji_btn_ref = useRef<HTMLButtonElement>(null);
   const emoji_picker_ref = useRef<HTMLDivElement>(null);
   const emoji_panel_id = useId();
@@ -78,11 +104,7 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
   use_anchored_layer(
     show_emoji,
     emoji_btn_ref,
-    (rect) =>
-      set_emoji_pos({
-        top: rect.top,
-        right: window.innerWidth - rect.right,
-      }),
+    (rect) => set_emoji_pos(clamp_emoji_picker_position(rect)),
     close_emoji,
   );
 
@@ -102,11 +124,11 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
         <AttachmentIcon className="w-4 h-4" />
       </ToolbarButton>
 
-      {editor && (
+      {editor && !compose.is_plain_text_mode && (
         <div>
           <button
             ref={link_btn_ref}
-            className={`press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 ${show_link_dialog ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"}`}
+            className={`press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 ${show_link_dialog ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary"}`}
             title={t("mail.insert_link")}
             type="button"
             onClick={handle_open_link_dialog}
@@ -135,7 +157,7 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
             aria-controls={show_emoji ? emoji_panel_id : undefined}
             aria-expanded={show_emoji}
             aria-haspopup="dialog"
-            className={`press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 ${show_emoji ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"}`}
+            className={`press_scale w-9 h-9 flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 ${show_emoji ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary"}`}
             title={t("common.emoji")}
             type="button"
             onClick={() => {
@@ -158,7 +180,7 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
                   style={{
                     zIndex: 9999,
                     right: emoji_pos.right,
-                    bottom: window.innerHeight - emoji_pos.top + 8,
+                    bottom: emoji_pos.bottom,
                   }}
                 >
                   <EmojiPicker
@@ -179,4 +201,3 @@ export function InsertTools({ compose }: { compose: ComposeToolbarState }) {
     </>
   );
 }
-

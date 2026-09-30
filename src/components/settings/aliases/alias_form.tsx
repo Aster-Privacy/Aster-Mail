@@ -25,17 +25,24 @@ import {
   LockClosedIcon,
   XCircleIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
-import { generate_ghost_local_part } from "@/services/api/ghost_aliases";
+import { Input } from "@aster/ui";
 
+import { Button } from "@/components/ui/button";
+import { generate_ghost_local_part } from "@/services/api/ghost_aliases";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import {
   is_alias_limit_error,
   prompt_alias_limit_upgrade,
+  prompt_upgrade,
 } from "@/components/settings/aliases/feature_lock";
+import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
 import { emit_aliases_changed } from "@/hooks/mail_events";
-import { min_plan_for_feature } from "@/components/settings/billing/billing_constants";
+import {
+  is_premium_alias_domain,
+  min_plan_for_feature,
+  plan_allows_premium_alias_domains,
+} from "@/components/settings/billing/billing_constants";
 import {
   Select,
   SelectContent,
@@ -54,6 +61,7 @@ import {
 import {
   create_alias,
   check_alias_availability,
+  get_alias_min_length,
   validate_local_part,
 } from "@/services/api/aliases";
 import {
@@ -68,6 +76,8 @@ import {
   type TurnstileWidgetRef,
   TURNSTILE_SITE_KEY,
 } from "@/components/auth/turnstile_widget";
+import { is_composing } from "@/utils/ime";
+import { apply_input_transform } from "@/utils/input_transform";
 
 export function compute_alias_at_limit(
   max_aliases: number,
@@ -91,6 +101,7 @@ interface CreateAliasModalProps {
   custom_domains: CustomDomain[];
   domain_addresses: (DecryptedDomainAddress & { domain_name: string })[];
   initial_domain?: string;
+  initial_local_part?: string;
 }
 
 export function CreateAliasModal({
@@ -103,18 +114,27 @@ export function CreateAliasModal({
   custom_domains,
   domain_addresses,
   initial_domain,
+  initial_local_part,
 }: CreateAliasModalProps) {
   const { t } = use_i18n();
-  const { is_feature_locked } = use_plan_limits();
+  const { is_feature_locked, plan_code } = use_plan_limits();
   const display_name_locked = is_feature_locked("has_alias_avatars");
   const display_name_min_plan = min_plan_for_feature("has_alias_avatars");
+  const premium_domains_allowed = plan_allows_premium_alias_domains(plan_code);
+  const premium_domain_min_plan = min_plan_for_feature("star");
   const [local_part, set_local_part] = useState("");
   const [display_name, set_display_name] = useState("");
   const [note, set_note] = useState("");
   const [alias_format, set_alias_format] = useState<"words" | "uuid">("words");
   const resolve_initial_domain = () => {
-    if (initial_domain && available_domains.includes(initial_domain)) return initial_domain;
-    return available_domains[0] || DEFAULT_DOMAINS[0];
+    if (initial_domain && available_domains.includes(initial_domain))
+      return initial_domain;
+
+    const selectable = available_domains.filter(
+      (d) => !is_premium_alias_domain(d) || premium_domains_allowed,
+    );
+
+    return selectable[0] || DEFAULT_DOMAINS[0];
   };
   const [domain, set_domain] = useState(resolve_initial_domain);
   const [saving, set_saving] = useState(false);
@@ -122,7 +142,9 @@ export function CreateAliasModal({
   const [checking, set_checking] = useState(false);
   const [is_available, set_is_available] = useState<boolean | null>(null);
   const [captcha_token, set_captcha_token] = useState<string | null>(null);
+  const [show_discard_confirm, set_show_discard_confirm] = useState(false);
   const check_timeout_ref = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const availability_request_ref = useRef(0);
   const turnstile_ref = useRef<TurnstileWidgetRef>(null);
   const turnstile_required = !!TURNSTILE_SITE_KEY;
 
@@ -133,19 +155,22 @@ export function CreateAliasModal({
 
   useEffect(() => {
     if (is_open) {
-      set_local_part("");
+      set_local_part(initial_local_part ?? "");
       set_display_name("");
       set_note("");
       set_domain(resolve_initial_domain());
       set_error(null);
       set_is_available(null);
       set_captcha_token(null);
+      set_show_discard_confirm(false);
       turnstile_ref.current?.reset();
     }
   }, [is_open]);
 
   const check_availability = useCallback(async (lp: string, d: string) => {
-    if (!lp || lp.length < 3) {
+    const request_id = ++availability_request_ref.current;
+
+    if (!lp || lp.length < get_alias_min_length()) {
       set_is_available(null);
 
       return;
@@ -163,14 +188,18 @@ export function CreateAliasModal({
     try {
       const response = await check_alias_availability(lp, d);
 
+      if (request_id !== availability_request_ref.current) return;
       if (response.data) {
         set_is_available(response.data.available);
+      } else {
+        set_is_available(null);
       }
     } catch (error) {
       if (import.meta.env.DEV) console.error(error);
+      if (request_id !== availability_request_ref.current) return;
       set_is_available(null);
     } finally {
-      set_checking(false);
+      if (request_id === availability_request_ref.current) set_checking(false);
     }
   }, []);
 
@@ -180,6 +209,7 @@ export function CreateAliasModal({
     }
 
     if (is_custom_domain) {
+      availability_request_ref.current += 1;
       set_is_available(null);
       set_checking(false);
 
@@ -191,6 +221,7 @@ export function CreateAliasModal({
         check_availability(local_part, domain);
       }, 500);
     } else {
+      availability_request_ref.current += 1;
       set_is_available(null);
     }
 
@@ -303,9 +334,28 @@ export function CreateAliasModal({
     ? validate_domain_local_part(local_part)
     : validate_local_part(local_part);
 
-  const standard_domains = available_domains.filter((d) =>
-    DEFAULT_DOMAINS.includes(d),
+  const standard_domains = available_domains.filter(
+    (d) => DEFAULT_DOMAINS.includes(d) && !is_premium_alias_domain(d),
   );
+  const premium_domains = available_domains.filter((d) =>
+    is_premium_alias_domain(d),
+  );
+
+  const handle_domain_change = (next: string) => {
+    if (is_premium_alias_domain(next) && !premium_domains_allowed) {
+      prompt_upgrade(
+        t("settings.alias_domain_requires_plan", {
+          plan: premium_domain_min_plan?.name ?? "Star",
+        }),
+        "aliases",
+        "has_advanced_aliases",
+      );
+
+      return;
+    }
+
+    set_domain(next);
+  };
   const custom_domain_options = available_domains.filter(
     (d) => !DEFAULT_DOMAINS.includes(d),
   );
@@ -324,297 +374,385 @@ export function CreateAliasModal({
     (is_custom_domain || is_available !== false) &&
     (!turnstile_required || !!captcha_token);
 
+  const is_dirty = !!local_part || !!display_name || !!note;
+
   const request_close = () => {
     if (saving) return;
+
+    if (is_dirty) {
+      set_show_discard_confirm(true);
+
+      return;
+    }
     on_close();
   };
 
   return (
-    <Modal is_open={is_open} close_on_overlay={!saving} on_close={request_close} size="xl">
-      <ModalHeader>
-        <ModalTitle>
-          {at_limit
-            ? t("common.alias_limit_reached")
-            : t("settings.create_email_alias")}
-        </ModalTitle>
-        <ModalDescription>
-          {at_limit
-            ? t("settings.alias_limit_all_used", {
-                used: current_count + domain_addresses.length,
-                count: max_aliases,
-              })
-            : t("settings.alias_forwards_description")}
-        </ModalDescription>
-      </ModalHeader>
+    <>
+      <Modal
+        close_on_overlay={!saving}
+        is_open={is_open}
+        on_close={request_close}
+        size="xl"
+      >
+        <ModalHeader>
+          <ModalTitle>
+            {at_limit
+              ? t("common.alias_limit_reached")
+              : t("settings.create_email_alias")}
+          </ModalTitle>
+          <ModalDescription>
+            {at_limit
+              ? t("settings.alias_limit_all_used", {
+                  used: current_count + domain_addresses.length,
+                  count: max_aliases,
+                })
+              : t("settings.alias_forwards_description")}
+          </ModalDescription>
+        </ModalHeader>
 
-      <ModalBody>
-        {at_limit ? (
-          <p className="text-sm text-txt-secondary">
-            {t("settings.upgrade_plan_more_aliases")}
-          </p>
-        ) : (
-          <div className="space-y-5">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <label
-                  className="text-sm font-medium text-txt-primary"
-                  htmlFor="alias-address"
-                >
-                  {t("settings.address_label")}
-                </label>
-                {show_remaining && (
-                  <span className="text-[11px] tabular-nums text-txt-muted">
-                    {remaining === Infinity
-                      ? t("settings.unlimited")
-                      : `${remaining} ${t("common.remaining")}`}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <Select
-                  value={alias_format}
-                  onValueChange={(v) => set_alias_format(v as "words" | "uuid")}
-                >
-                  <SelectTrigger className="h-10 w-24 shrink-0 bg-transparent">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="words">{t("settings.alias_format_words")}</SelectItem>
-                    <SelectItem value="uuid">{t("settings.alias_format_uuid")}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <button
-                  className="h-10 w-10 shrink-0 flex items-center justify-center rounded-lg border border-edge-secondary text-txt-muted hover:text-txt-primary hover:bg-surf-hover transition-colors"
-                  title={t("settings.alias_generate_random")}
-                  type="button"
-                  onClick={() => {
-                    const generated =
-                      alias_format === "uuid"
-                        ? crypto.randomUUID().split("-")[0]
-                        : generate_ghost_local_part();
-                    set_local_part(generated);
-                  }}
-                >
-                  <ArrowPathIcon className="w-4 h-4" />
-                </button>
-                <input
-                  autoFocus
-                  className={`flex-1 min-w-0 h-10 px-3 rounded-lg bg-transparent border text-sm text-txt-primary placeholder:text-txt-muted outline-none ${
-                    local_part && !current_validation.valid
-                      ? "border-red-500"
-                      : is_available === true
-                        ? "border-green-500"
-                        : is_available === false
-                          ? "border-red-500"
-                          : "border-edge-secondary"
-                  }`}
-                  id="alias-address"
-                  placeholder={t("settings.alias_local_part_placeholder")}
-                  value={local_part}
-                  onChange={(e) =>
-                    set_local_part(e.target.value.toLowerCase().trim())
-                  }
-                  onKeyDown={(e) => {
-                    if (e["key"] !== "Enter") return;
-                    e.preventDefault();
-                    if (!can_submit) return;
-                    handle_create();
-                  }}
-                />
-                <Select value={domain} onValueChange={set_domain}>
-                  <SelectTrigger className="h-10 w-auto shrink-0 rounded-lg border border-edge-secondary bg-transparent text-sm px-3 focus:ring-0 focus:ring-offset-0">
-                    <span className="text-txt-muted mr-0.5">@</span>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {standard_domains.length > 0 && (
-                      <>
-                        <div className="px-2 py-1.5 text-[11px] font-medium uppercase tracking-wider text-txt-muted">
-                          {t("settings.standard_aliases")}
-                        </div>
-                        {standard_domains.map((d) => (
-                          <SelectItem key={d} value={d}>
-                            {d}
-                          </SelectItem>
-                        ))}
-                      </>
-                    )}
-                    {custom_domain_options.length > 0 && (
-                      <>
-                        <div className="px-2 py-1.5 text-[11px] font-medium uppercase tracking-wider mt-1 text-txt-muted">
-                          {t("settings.custom_domains_label")}
-                        </div>
-                        {custom_domain_options.map((d) => (
-                          <SelectItem key={d} value={d}>
-                            {d}
-                          </SelectItem>
-                        ))}
-                      </>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex items-center gap-1.5 mt-1.5 min-h-[16px] text-xs">
-                {local_part && (
-                  <span className="break-all text-txt-secondary">
-                    {local_part}@{domain}
-                  </span>
-                )}
-                {local_part && !current_validation.valid && (
-                  <span className="inline-flex items-center gap-1 text-red-500">
-                    <XCircleIcon className="w-3.5 h-3.5 shrink-0" />
-                    {current_validation.error_key
-                      ? t(current_validation.error_key)
-                      : t("settings.invalid_address")}
-                  </span>
-                )}
-                {local_part &&
-                  current_validation.valid &&
-                  !is_custom_domain && (
-                    <>
-                      {checking && (
-                        <span className="inline-flex items-center gap-1 text-txt-muted">
-                          <ArrowPathIcon className="w-3.5 h-3.5 shrink-0 animate-spin" />
-                          {t("settings.checking_availability")}
-                        </span>
-                      )}
-                      {!checking && is_available === true && (
-                        <span className="inline-flex items-center gap-1 text-green-500">
-                          <CheckCircleIcon className="w-3.5 h-3.5 shrink-0" />
-                          {t("settings.alias_is_available")}
-                        </span>
-                      )}
-                      {!checking && is_available === false && (
-                        <span className="inline-flex items-center gap-1 text-red-500">
-                          <XCircleIcon className="w-3.5 h-3.5 shrink-0" />
-                          {t("settings.alias_not_available")}
-                        </span>
-                      )}
-                    </>
-                  )}
-                {local_part &&
-                  current_validation.valid &&
-                  is_custom_domain && (
-                    <span className="text-txt-muted">
-                      {t("settings.alias_availability_on_save")}
+        <ModalBody>
+          {at_limit ? (
+            <p className="text-sm text-txt-secondary">
+              {t("settings.upgrade_plan_more_aliases")}
+            </p>
+          ) : (
+            <div className="space-y-5">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label
+                    className="text-sm font-medium text-txt-primary"
+                    htmlFor="alias-address"
+                  >
+                    {t("settings.address_label")}
+                  </label>
+                  {show_remaining && (
+                    <span className="text-[11px] tabular-nums text-txt-muted">
+                      {remaining === Infinity
+                        ? t("settings.unlimited")
+                        : `${remaining} ${t("common.remaining")}`}
                     </span>
                   )}
-              </div>
-            </div>
-            <div>
-              <label
-                className="block mb-2 text-sm font-medium text-txt-primary"
-                htmlFor="alias-display-name"
-              >
-                {t("settings.create_alias_display_name_label")}
-              </label>
-              {display_name_locked ? (
-                <div className="flex items-center justify-between w-full h-10 px-3 rounded-lg border border-edge-secondary opacity-60 cursor-not-allowed">
-                  <span className="text-sm text-txt-muted">
-                    {t("settings.create_alias_display_name_placeholder")}
-                  </span>
-                  <button
-                    className="inline-flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold transition-opacity hover:opacity-80"
-                    style={{
-                      backgroundColor:
-                        "color-mix(in srgb, var(--accent-color) 14%, transparent)",
-                      color: "var(--accent-color)",
-                    }}
-                    type="button"
-                    onClick={() =>
-                      window.dispatchEvent(
-                        new CustomEvent("navigate-settings", {
-                          detail: "billing",
-                        }),
-                      )
+                </div>
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={alias_format}
+                    onValueChange={(v) =>
+                      set_alias_format(v as "words" | "uuid")
                     }
                   >
-                    <LockClosedIcon className="h-3 w-3" />
-                    {display_name_min_plan
-                      ? t("settings.requires_plan", {
-                          plan: display_name_min_plan.name,
-                        })
-                      : t("settings.alias_feature_locked_view_plans")}
+                    <SelectTrigger className="h-10 w-24 shrink-0">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="words">
+                        {t("settings.alias_format_words")}
+                      </SelectItem>
+                      <SelectItem value="uuid">
+                        {t("settings.alias_format_uuid")}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <button
+                    className="h-10 w-10 shrink-0 flex items-center justify-center rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] text-txt-muted hover:text-txt-primary hover:bg-[var(--aster-field-hover)] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-color)]"
+                    title={t("settings.alias_generate_random")}
+                    type="button"
+                    onClick={() => {
+                      const generated =
+                        alias_format === "uuid"
+                          ? crypto.randomUUID().split("-")[0]
+                          : generate_ghost_local_part();
+
+                      set_local_part(generated);
+                    }}
+                  >
+                    <ArrowPathIcon className="w-4 h-4" />
                   </button>
+                  <Input
+                    autoFocus
+                    autoCapitalize="none"
+                    autoCorrect="off"
+                    className="w-auto flex-1 min-w-0"
+                    id="alias-address"
+                    placeholder={t("settings.alias_local_part_placeholder")}
+                    spellCheck={false}
+                    status={
+                      local_part && !current_validation.valid
+                        ? "error"
+                        : is_available === true
+                          ? "success"
+                          : is_available === false
+                            ? "error"
+                            : "default"
+                    }
+                    value={local_part}
+                    onChange={(e) =>
+                      set_local_part(
+                        apply_input_transform(e.target, (v) =>
+                          v.toLowerCase().trim(),
+                        ),
+                      )
+                    }
+                    onKeyDown={(e) => {
+                      if (e["key"] !== "Enter" || is_composing(e)) return;
+                      e.preventDefault();
+                      if (!can_submit) return;
+                      handle_create();
+                    }}
+                  />
+                  <Select value={domain} onValueChange={handle_domain_change}>
+                    <SelectTrigger className="h-10 w-auto shrink-0 text-sm px-3">
+                      <span className="text-txt-muted me-0.5">@</span>
+                      <span className="truncate">{domain}</span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {standard_domains.length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-[11px] font-medium uppercase tracking-wider text-txt-muted">
+                            {t("settings.standard_aliases")}
+                          </div>
+                          {standard_domains.map((d) => (
+                            <SelectItem key={d} value={d}>
+                              {d}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                      {premium_domains.length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-[11px] font-medium uppercase tracking-wider mt-1 text-txt-muted">
+                            {t("settings.alias_domain_group_extra")}
+                          </div>
+                          {premium_domains.map((d) => (
+                            <SelectItem key={d} value={d}>
+                              <span className="inline-flex items-center gap-2 align-middle">
+                                {d}
+                                {!premium_domains_allowed && (
+                                  <span
+                                    className="inline-flex shrink-0 items-center gap-1 rounded-[14px] border px-2 py-0.5 text-[12px] font-medium text-txt-secondary"
+                                    style={{
+                                      borderColor:
+                                        "color-mix(in srgb, var(--text-primary) 14%, transparent)",
+                                    }}
+                                  >
+                                    <LockClosedIcon className="h-3.5 w-3.5" />
+                                    {t("settings.requires_plan", {
+                                      plan:
+                                        premium_domain_min_plan?.name ?? "Star",
+                                    })}
+                                  </span>
+                                )}
+                              </span>
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                      {custom_domain_options.length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-[11px] font-medium uppercase tracking-wider mt-1 text-txt-muted">
+                            {t("settings.custom_domains_label")}
+                          </div>
+                          {custom_domain_options.map((d) => (
+                            <SelectItem key={d} value={d}>
+                              {d}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
-              ) : (
-                <input
-                  className="w-full h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none"
-                  id="alias-display-name"
-                  maxLength={128}
-                  placeholder={t(
-                    "settings.create_alias_display_name_placeholder",
+                <div className="flex items-center gap-1.5 mt-1.5 min-h-[16px] text-xs">
+                  {local_part && (
+                    <span className="break-all text-txt-secondary">
+                      {local_part}@{domain}
+                    </span>
                   )}
-                  value={display_name}
-                  onChange={(e) => set_display_name(e.target.value)}
-                />
-              )}
-            </div>
-            {!is_custom_domain && (
+                  {local_part && !current_validation.valid && (
+                    <span className="inline-flex items-center gap-1 text-red-500">
+                      <XCircleIcon className="w-3.5 h-3.5 shrink-0" />
+                      {current_validation.error_key
+                        ? t(current_validation.error_key)
+                        : t("settings.invalid_address")}
+                    </span>
+                  )}
+                  {local_part &&
+                    current_validation.valid &&
+                    !is_custom_domain && (
+                      <>
+                        {checking && (
+                          <span
+                            className="inline-flex items-center gap-1 text-txt-muted"
+                            role="status"
+                          >
+                            <ArrowPathIcon className="w-3.5 h-3.5 shrink-0 animate-spin" />
+                            {t("settings.checking_availability")}
+                          </span>
+                        )}
+                        {!checking && is_available === true && (
+                          <span
+                            className="inline-flex items-center gap-1 text-green-500"
+                            role="status"
+                          >
+                            <CheckCircleIcon className="w-3.5 h-3.5 shrink-0" />
+                            {t("settings.alias_is_available")}
+                          </span>
+                        )}
+                        {!checking && is_available === false && (
+                          <span
+                            className="inline-flex items-center gap-1 text-red-500"
+                            role="status"
+                          >
+                            <XCircleIcon className="w-3.5 h-3.5 shrink-0" />
+                            {t("settings.alias_not_available")}
+                          </span>
+                        )}
+                      </>
+                    )}
+                  {local_part &&
+                    current_validation.valid &&
+                    is_custom_domain && (
+                      <span className="text-txt-muted">
+                        {t("settings.alias_availability_on_save")}
+                      </span>
+                    )}
+                </div>
+              </div>
               <div>
                 <label
                   className="block mb-2 text-sm font-medium text-txt-primary"
-                  htmlFor="alias-note"
+                  htmlFor="alias-display-name"
                 >
-                  {t("settings.create_alias_note_label")}
+                  {t("settings.create_alias_display_name_label")}
                 </label>
-                <input
-                  className="w-full h-10 px-3 rounded-lg bg-transparent border border-edge-secondary text-sm text-txt-primary placeholder:text-txt-muted outline-none"
-                  id="alias-note"
-                  maxLength={500}
-                  placeholder={t("settings.create_alias_note_placeholder")}
-                  value={note}
-                  onChange={(e) => set_note(e.target.value)}
-                />
+                {display_name_locked ? (
+                  <div className="flex items-center justify-between w-full h-10 px-3 rounded-[var(--aster-radius-control)] bg-surf-tertiary cursor-not-allowed">
+                    <span className="text-sm text-txt-muted">
+                      {t("settings.create_alias_display_name_placeholder")}
+                    </span>
+                    <button
+                      className="inline-flex shrink-0 items-center gap-1 rounded-[14px] border px-2 py-0.5 text-[12px] font-medium text-txt-secondary transition-opacity hover:opacity-80"
+                      style={{
+                        borderColor:
+                          "color-mix(in srgb, var(--text-primary) 14%, transparent)",
+                      }}
+                      type="button"
+                      onClick={() =>
+                        window.dispatchEvent(
+                          new CustomEvent("navigate-settings", {
+                            detail: "billing",
+                          }),
+                        )
+                      }
+                    >
+                      <LockClosedIcon className="h-3.5 w-3.5" />
+                      {display_name_min_plan
+                        ? t("settings.requires_plan", {
+                            plan: display_name_min_plan.name,
+                          })
+                        : t("settings.alias_feature_locked_view_plans")}
+                    </button>
+                  </div>
+                ) : (
+                  <Input
+                    id="alias-display-name"
+                    maxLength={128}
+                    placeholder={t(
+                      "settings.create_alias_display_name_placeholder",
+                    )}
+                    value={display_name}
+                    onChange={(e) => set_display_name(e.target.value)}
+                  />
+                )}
               </div>
-            )}
-            {turnstile_required && (
-              <div className="flex justify-center">
-                <TurnstileWidget
-                  ref={turnstile_ref}
-                  on_expire={() => set_captcha_token(null)}
-                  on_verify={set_captcha_token}
-                />
-              </div>
-            )}
-          </div>
-        )}
+              {!is_custom_domain && (
+                <div>
+                  <label
+                    className="block mb-2 text-sm font-medium text-txt-primary"
+                    htmlFor="alias-note"
+                  >
+                    {t("settings.create_alias_note_label")}
+                  </label>
+                  <Input
+                    id="alias-note"
+                    maxLength={500}
+                    placeholder={t("settings.create_alias_note_placeholder")}
+                    value={note}
+                    onChange={(e) => set_note(e.target.value)}
+                  />
+                </div>
+              )}
+              {turnstile_required && (
+                <div className="flex justify-center">
+                  <TurnstileWidget
+                    ref={turnstile_ref}
+                    on_expire={() => set_captcha_token(null)}
+                    on_verify={set_captcha_token}
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
-        {error && (
-          <div className="mt-4 px-3 py-2.5 rounded-lg text-sm bg-red-600 text-red-50">
-            {error}
-          </div>
-        )}
-      </ModalBody>
+          {error && (
+            <div
+              className="mt-4 px-3 py-2.5 rounded-lg text-sm bg-red-600 text-red-50"
+              role="alert"
+            >
+              {error}
+            </div>
+          )}
+        </ModalBody>
 
-      <ModalFooter>
-        <Button
-          disabled={saving}
-          variant={at_limit ? "outline" : "ghost"}
-          onClick={request_close}
-        >
-          {t("common.cancel")}
-        </Button>
-        {at_limit ? (
+        <ModalFooter>
           <Button
-            variant="depth"
-            onClick={() => {
-              on_close();
-              prompt_alias_limit_upgrade();
-            }}
+            disabled={saving}
+            variant={at_limit ? "outline" : "ghost"}
+            onClick={request_close}
           >
-            {t("common.upgrade_plan")}
+            {t("common.cancel")}
           </Button>
-        ) : (
-          <Button
-            disabled={!can_submit}
-            variant="depth"
-            onClick={handle_create}
-          >
-            {saving ? t("common.creating") : t("settings.create_alias")}
-          </Button>
-        )}
-      </ModalFooter>
-    </Modal>
+          {at_limit ? (
+            <Button
+              variant="depth"
+              onClick={() => {
+                on_close();
+                prompt_alias_limit_upgrade({
+                  used: current_count + domain_addresses.length,
+                  limit: max_aliases,
+                });
+              }}
+            >
+              {t("common.upgrade_plan")}
+            </Button>
+          ) : (
+            <Button
+              disabled={!can_submit}
+              is_loading={saving}
+              variant="depth"
+              onClick={handle_create}
+            >
+              {t("settings.create_alias")}
+            </Button>
+          )}
+        </ModalFooter>
+      </Modal>
+
+      <ConfirmModal
+        hide_dont_ask
+        confirm_text={t("mail.discard")}
+        confirm_variant="destructive"
+        description={t("common.unsaved_changes_body")}
+        dont_ask={false}
+        on_cancel={() => set_show_discard_confirm(false)}
+        on_confirm={() => {
+          set_show_discard_confirm(false);
+          on_close();
+        }}
+        on_dont_ask_change={() => {}}
+        show={show_discard_confirm}
+        title={t("common.unsaved_changes_title")}
+      />
+    </>
   );
 }

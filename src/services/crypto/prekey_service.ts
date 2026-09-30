@@ -18,10 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { array_to_base64 } from "./base64";
 import { ml_kem768 } from "@noble/post-quantum/ml-kem.js";
 
 import { api_client } from "../api/client";
+
+import { array_to_base64 } from "./base64";
 import {
   save_pq_secrets_bulk,
   delete_pq_secret,
@@ -102,6 +103,7 @@ async function queue_pending_rollback(ids: number[]): Promise<void> {
   }
 
   const key = await pending_rollback_storage_key();
+
   if (!key) {
     return;
   }
@@ -119,7 +121,9 @@ async function queue_pending_rollback(ids: number[]): Promise<void> {
   }
 }
 
-async function delete_prekey_ids_until_failing(ids: number[]): Promise<number[]> {
+async function delete_prekey_ids_until_failing(
+  ids: number[],
+): Promise<number[]> {
   const failed: number[] = [];
   let failure_streak = 0;
 
@@ -150,11 +154,13 @@ async function drain_pending_rollbacks(): Promise<void> {
   }
 
   const key = await pending_rollback_storage_key();
+
   if (!key) {
     return;
   }
 
   let ids: number[] = [];
+
   try {
     ids = JSON.parse(localStorage.getItem(key) || "[]");
   } catch {
@@ -344,4 +350,3 @@ export async function check_and_replenish_prekeys(): Promise<void> {
     /* best-effort */
   }
 }
-

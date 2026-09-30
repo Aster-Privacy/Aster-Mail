@@ -20,6 +20,7 @@
 //
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { ReplyData } from "@/components/email/email_viewer_types";
+import type { EmailViewerActionsDeps } from "./email_viewer_actions";
 
 import { useCallback } from "react";
 
@@ -32,6 +33,7 @@ import { batch_archive, batch_unarchive } from "@/services/api/archive";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { show_toast } from "@/components/toast/simple_toast";
 import {
+  emit_mail_changed,
   emit_mail_item_updated,
   emit_mail_items_removed,
 } from "@/hooks/mail_events";
@@ -41,10 +43,12 @@ import { conversation_has_unread_sibling } from "@/hooks/unread_read_delta";
 import { report_spam_sender, remove_spam_sender } from "@/services/api/mail";
 import { reindex_ids } from "@/services/category_index";
 import { set_forward_mail_id } from "@/services/forward_store";
-
-import type { EmailViewerActionsDeps } from "./email_viewer_actions";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
+import {
+  begin_read_change,
+  is_read_ticket_current,
+} from "@/services/read_intent";
 
 export function use_message_actions(
   deps: EmailViewerActionsDeps,
@@ -55,7 +59,7 @@ export function use_message_actions(
 ) {
   const handle_per_message_reply = useCallback(
     (msg: DecryptedThreadMessage) => {
-      if (!deps.on_reply || is_system_email(msg.sender_email)) return;
+      if (!deps.on_reply || is_system_email(msg)) return;
       const is_reply_all =
         deps.preferences_default_reply_behavior === "reply_all";
 
@@ -66,7 +70,7 @@ export function use_message_actions(
 
   const handle_per_message_reply_all = useCallback(
     (msg: DecryptedThreadMessage) => {
-      if (!deps.on_reply || is_system_email(msg.sender_email)) return;
+      if (!deps.on_reply || is_system_email(msg)) return;
       deps.on_reply(build_reply_data(msg, true));
     },
     [deps.on_reply, build_reply_data],
@@ -82,7 +86,9 @@ export function use_message_actions(
         sender_avatar: "",
         email_subject: msg.subject,
         email_body: msg.body,
-        email_timestamp: new Date(msg.timestamp).toLocaleString(),
+        email_timestamp: new Date(msg.timestamp).toLocaleString(app_locale(), {
+          timeZone: get_display_time_zone(),
+        }),
         original_mail_id: msg.id,
       });
     },
@@ -96,7 +102,7 @@ export function use_message_actions(
       if (result.data?.success) {
         await bulk_update_metadata_by_ids([msg.id], { is_archived: true });
         emit_mail_items_removed({ ids: [msg.id] });
-        window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+        emit_mail_changed();
         show_action_toast({
           message: deps.t("common.message_archived"),
           action_type: "archive",
@@ -116,6 +122,8 @@ export function use_message_actions(
             );
           },
         });
+      } else {
+        show_toast(deps.t("common.failed_to_archive_emails"), "error");
       }
     },
     [deps.t],
@@ -134,13 +142,13 @@ export function use_message_actions(
 
       if (result.success) {
         emit_mail_items_removed({ ids: [msg.id] });
-        window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+        emit_mail_changed();
         show_action_toast({
           message: deps.t("common.message_moved_to_trash"),
           action_type: "trash",
           email_ids: [msg.id],
           on_undo: async () => {
-            await update_item_metadata(
+            const undo_result = await update_item_metadata(
               msg.id,
               {
                 encrypted_metadata: result.encrypted?.encrypted_metadata,
@@ -148,11 +156,15 @@ export function use_message_actions(
               },
               { is_trashed: false },
             );
+
+            if (!undo_result.success) throw new Error("undo trash failed");
             window.dispatchEvent(
               new CustomEvent("astermail:mail-soft-refresh"),
             );
           },
         });
+      } else {
+        show_toast(deps.t("common.failed_to_move_email"), "error");
       }
     },
     [deps.t],
@@ -160,17 +172,22 @@ export function use_message_actions(
 
   const handle_per_message_print = useCallback(
     (msg: DecryptedThreadMessage) => {
-      print_email({
-        subject: msg.subject,
-        sender: msg.display_sender_name || msg.sender_name,
-        sender_email: msg.display_sender_email || msg.sender_email,
-        to: msg.to_recipients || [],
-        cc: msg.cc_recipients,
-        timestamp: new Date(msg.timestamp).toLocaleString(),
-        body: msg.html_content || msg.body,
-      });
+      print_email(
+        {
+          subject: msg.subject,
+          sender: msg.display_sender_name || msg.sender_name,
+          sender_email: msg.display_sender_email || msg.sender_email,
+          to: msg.to_recipients || [],
+          cc: msg.cc_recipients,
+          timestamp: new Date(msg.timestamp).toLocaleString(app_locale(), {
+            timeZone: get_display_time_zone(),
+          }),
+          body: msg.html_content || msg.body,
+        },
+        deps.t,
+      );
     },
-    [],
+    [deps.t],
   );
 
   const handle_per_message_view_source = useCallback(
@@ -201,9 +218,11 @@ export function use_message_actions(
             ),
           );
         }
-        window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+        emit_mail_changed();
         show_toast(deps.t("common.reported_as_phishing"), "success");
         deps.on_dismiss();
+      } else {
+        show_toast(deps.t("common.failed_to_mark_as_spam"), "error");
       }
     },
     [deps.on_dismiss, deps.t],
@@ -229,21 +248,23 @@ export function use_message_actions(
             ),
           );
         }
-        window.dispatchEvent(new CustomEvent("astermail:mail-changed"));
+        emit_mail_changed();
         show_toast(deps.t("common.marked_as_not_spam"), "success");
         deps.on_dismiss();
+      } else {
+        show_toast(deps.t("common.failed_to_update_emails"), "error");
       }
     },
     [deps.on_dismiss, deps.t],
   );
 
   const handle_toggle_message_read = useCallback(
-    (message_id: string) => {
+    (message_id: string, next_read?: boolean) => {
       const msg = deps.thread_messages.find((m) => m.id === message_id);
 
       if (!msg) return;
 
-      const new_read = !msg.is_read;
+      const new_read = next_read ?? !msg.is_read;
       const is_received = msg.item_type === "received";
 
       const other_unread_in_thread = deps.thread_messages.some(
@@ -271,9 +292,11 @@ export function use_message_actions(
         adjust_stats_unread(new_read ? -1 : 1);
       }
 
-      if (!new_read) {
+      if (!new_read && message_id === deps.email_id) {
         deps.on_dismiss();
       }
+
+      const read_ticket = begin_read_change([message_id]);
 
       update_item_metadata(
         message_id,
@@ -283,6 +306,7 @@ export function use_message_actions(
         },
         { is_read: new_read },
       ).then((result) => {
+        if (!is_read_ticket_current(message_id, read_ticket)) return;
         if (!result.success) {
           deps.set_thread_messages((prev) =>
             prev.map((m) =>
@@ -292,28 +316,37 @@ export function use_message_actions(
           if (should_adjust) {
             adjust_stats_unread(new_read ? 1 : -1);
           }
-        } else if (result.encrypted) {
-          deps.set_thread_messages((prev) =>
-            prev.map((m) =>
-              m.id === message_id
-                ? {
-                    ...m,
-                    encrypted_metadata: result.encrypted!.encrypted_metadata,
-                    metadata_nonce: result.encrypted!.metadata_nonce,
-                  }
-                : m,
-            ),
-          );
+          show_toast(deps.t("common.failed_to_update_emails"), "error");
+        } else {
+          if (result.encrypted) {
+            deps.set_thread_messages((prev) =>
+              prev.map((m) =>
+                m.id === message_id
+                  ? {
+                      ...m,
+                      encrypted_metadata: result.encrypted!.encrypted_metadata,
+                      metadata_nonce: result.encrypted!.metadata_nonce,
+                    }
+                  : m,
+              ),
+            );
+          }
           emit_mail_item_updated({
             id: message_id,
             is_read: new_read,
-            encrypted_metadata: result.encrypted!.encrypted_metadata,
-            metadata_nonce: result.encrypted!.metadata_nonce,
+            encrypted_metadata: result.encrypted?.encrypted_metadata,
+            metadata_nonce: result.encrypted?.metadata_nonce,
           });
         }
       });
     },
-    [deps.thread_messages, deps.on_dismiss, deps.mail_item, deps.is_read],
+    [
+      deps.thread_messages,
+      deps.on_dismiss,
+      deps.mail_item,
+      deps.is_read,
+      deps.t,
+    ],
   );
 
   return {

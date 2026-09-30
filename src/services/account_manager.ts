@@ -24,9 +24,15 @@ import {
 } from "@/services/crypto/secure_storage";
 import { api_client } from "@/services/api/client";
 import { write_account_index_hint } from "@/lib/account_index_url";
-import { en } from "@/lib/i18n/translations/en";
-
+import { get_active_translations } from "@/lib/i18n/translations";
 import { ignore_error } from "@/lib/ignore_error";
+import { clear_expanded_folders } from "@/services/expanded_folders_store";
+import {
+  safe_local_get,
+  safe_local_keys,
+  safe_local_remove,
+  safe_local_set,
+} from "@/lib/safe_storage";
 
 async function clear_offline_email_cache(): Promise<void> {
   try {
@@ -50,14 +56,41 @@ async function clear_offline_email_cache(): Promise<void> {
   }
 }
 
+async function clear_account_session_material(
+  account_id: string,
+): Promise<void> {
+  try {
+    const { clear_session_passphrase, clear_stored_encrypted_vault } =
+      await import("@/contexts/auth/session_passphrase");
+
+    clear_stored_encrypted_vault(account_id);
+    await clear_session_passphrase(account_id);
+
+    const { delete_user_snapshots } = await import(
+      "@/services/crypto/device_recovery_store"
+    );
+
+    await delete_user_snapshots(account_id);
+  } catch (caught) {
+    ignore_error(
+      "services/account_manager:clear_account_session_material",
+      caught,
+    );
+  }
+}
+
 const ACCOUNTS_KEY = "astermail_accounts_v6";
 const LEGACY_ACCOUNTS_KEY = "astermail_accounts_v5";
 const SWITCH_TOKEN_KEY_PREFIX = "astermail_switch_token_";
 const SWITCH_TOKEN_EXPIRY_KEY_PREFIX = "astermail_switch_token_exp_";
-const DEFAULT_MAX_ACCOUNTS = 6;
+const UNLIMITED_ACCOUNTS = -1;
 const PLAN_FLAG_REPAIR_KEY = "astermail_plan_flags_repaired_v1";
 
+type RosterLoadFailure = "none" | "unavailable" | "undecryptable";
+
 let last_load_failed = false;
+let load_failure: RosterLoadFailure = "none";
+let session_roster: AccountsData | null = null;
 
 export interface User {
   id: string;
@@ -76,6 +109,7 @@ export interface StoredAccount {
   kind?: "personal" | "shared";
   access_token?: string;
   refresh_token?: string;
+  device_id?: string;
 }
 
 export interface AccountsData {
@@ -86,22 +120,94 @@ export interface AccountsData {
 let cached_data: AccountsData | null = null;
 let storage_initialized = false;
 
+export const ACCOUNTS_CHANGED_EVENT = "astermail:accounts-changed";
+
+function is_local_storage_area(area: Storage | null): boolean {
+  if (area === null) return true;
+  try {
+    return area === window.localStorage;
+  } catch {
+    return false;
+  }
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (event: StorageEvent) => {
+    if (event.key !== null && event.key !== ACCOUNTS_KEY) return;
+    if (!is_local_storage_area(event.storageArea)) return;
+    if (load_failure === "unavailable") return;
+
+    cached_data = null;
+    window.dispatchEvent(new CustomEvent(ACCOUNTS_CHANGED_EVENT));
+  });
+}
+
+function is_undecryptable_error(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null)?.code;
+
+  return code === "wrong_password" || code === "tampered";
+}
+
+function repair_current_account_id(data: AccountsData): boolean {
+  if (data.accounts.length === 0) {
+    if (data.current_account_id === null) return false;
+    data.current_account_id = null;
+
+    return true;
+  }
+
+  const resolved = data.accounts.some((a) => a.id === data.current_account_id);
+
+  if (resolved) return false;
+
+  data.current_account_id = data.accounts[0].id;
+
+  return true;
+}
+
+function adopt_session_roster(data: AccountsData): boolean {
+  if (!session_roster) return false;
+
+  let changed = false;
+
+  for (const account of session_roster.accounts) {
+    if (data.accounts.some((a) => a.id === account.id)) continue;
+    data.accounts.push(account);
+    changed = true;
+  }
+
+  const pending_current = session_roster.current_account_id;
+
+  if (
+    pending_current &&
+    data.current_account_id !== pending_current &&
+    data.accounts.some((a) => a.id === pending_current)
+  ) {
+    data.current_account_id = pending_current;
+    changed = true;
+  }
+
+  session_roster = null;
+
+  return changed;
+}
+
 async function migrate_from_plaintext(): Promise<AccountsData | null> {
   try {
-    const legacy_stored = localStorage.getItem(LEGACY_ACCOUNTS_KEY);
+    const legacy_stored = safe_local_get(LEGACY_ACCOUNTS_KEY);
 
     if (legacy_stored) {
       const data = JSON.parse(legacy_stored) as AccountsData;
 
       if (data && Array.isArray(data.accounts)) {
         await device_store(ACCOUNTS_KEY, data);
-        localStorage.removeItem(LEGACY_ACCOUNTS_KEY);
+        safe_local_remove(LEGACY_ACCOUNTS_KEY);
 
         return data;
       }
     }
   } catch {
-    localStorage.removeItem(LEGACY_ACCOUNTS_KEY);
+    safe_local_remove(LEGACY_ACCOUNTS_KEY);
   }
 
   return null;
@@ -127,8 +233,12 @@ async function get_accounts_data_async(): Promise<AccountsData> {
     const data = await device_retrieve_strict<AccountsData>(ACCOUNTS_KEY);
 
     if (data && Array.isArray(data.accounts)) {
+      const merged = adopt_session_roster(data);
+      const repaired = repair_current_account_id(data);
+
       cached_data = data;
       last_load_failed = false;
+      load_failure = "none";
 
       const current_index = data.accounts.findIndex(
         (a) => a.id === data.current_account_id,
@@ -136,13 +246,47 @@ async function get_accounts_data_async(): Promise<AccountsData> {
 
       if (current_index !== -1) write_account_index_hint(current_index);
 
+      if (merged || repaired) {
+        try {
+          await device_store(ACCOUNTS_KEY, data);
+        } catch (caught) {
+          ignore_error(
+            "services/account_manager:get_accounts_data_async",
+            caught,
+          );
+        }
+      }
+
       return data;
     }
 
-    last_load_failed = localStorage.getItem(ACCOUNTS_KEY) !== null;
+    load_failure =
+      safe_local_get(ACCOUNTS_KEY) !== null ? "undecryptable" : "none";
   } catch (e) {
-    last_load_failed = true;
+    if (safe_local_get(ACCOUNTS_KEY) === null) {
+      load_failure = "none";
+    } else {
+      load_failure = is_undecryptable_error(e)
+        ? "undecryptable"
+        : "unavailable";
+    }
     if (import.meta.env.DEV) console.error(e);
+  }
+
+  last_load_failed = load_failure !== "none";
+
+  if (load_failure === "unavailable") {
+    if (!session_roster) {
+      session_roster = { accounts: [], current_account_id: null };
+    }
+
+    return session_roster;
+  }
+
+  if (load_failure === "undecryptable") {
+    cached_data = { accounts: [], current_account_id: null };
+
+    return cached_data;
   }
 
   return { accounts: [], current_account_id: null };
@@ -150,6 +294,20 @@ async function get_accounts_data_async(): Promise<AccountsData> {
 
 export function accounts_storage_unreadable(): boolean {
   return last_load_failed;
+}
+
+export function accounts_storage_failure(): RosterLoadFailure {
+  return load_failure;
+}
+
+export async function reset_accounts_storage(): Promise<void> {
+  safe_local_remove(ACCOUNTS_KEY);
+
+  cached_data = null;
+  session_roster = null;
+  storage_initialized = true;
+  last_load_failed = false;
+  load_failure = "none";
 }
 
 let account_write_chain: Promise<unknown> = Promise.resolve();
@@ -168,35 +326,42 @@ export function serialize_account_write<T>(
 }
 
 async function save_accounts_data(data: AccountsData): Promise<void> {
-  if (data.accounts.length === 0 && last_load_failed) return;
-
-  cached_data = data;
-  last_load_failed = false;
-
   const current_index = data.accounts.findIndex(
     (a) => a.id === data.current_account_id,
   );
 
   write_account_index_hint(current_index === -1 ? 0 : current_index);
 
+  if (load_failure === "unavailable") {
+    session_roster = data;
+
+    return;
+  }
+
+  cached_data = data;
+
   await device_store(ACCOUNTS_KEY, data);
+
+  session_roster = null;
+  last_load_failed = false;
+  load_failure = "none";
 }
 
 function migrate_legacy_storage(): StoredAccount | null {
-  const legacy_user = localStorage.getItem("user");
+  const legacy_user = safe_local_get("user");
 
-  localStorage.removeItem("vault");
-  localStorage.removeItem("astermail_accounts");
-  localStorage.removeItem("astermail_accounts_v2");
-  localStorage.removeItem("astermail_accounts_v3");
-  localStorage.removeItem("astermail_accounts_v4");
-  localStorage.removeItem("auth_token");
+  safe_local_remove("vault");
+  safe_local_remove("astermail_accounts");
+  safe_local_remove("astermail_accounts_v2");
+  safe_local_remove("astermail_accounts_v3");
+  safe_local_remove("astermail_accounts_v4");
+  safe_local_remove("auth_token");
 
   if (legacy_user) {
     try {
       const user = JSON.parse(legacy_user) as User;
 
-      localStorage.removeItem("user");
+      safe_local_remove("user");
 
       return {
         id: user.id,
@@ -204,7 +369,7 @@ function migrate_legacy_storage(): StoredAccount | null {
         added_at: Date.now(),
       };
     } catch {
-      localStorage.removeItem("user");
+      safe_local_remove("user");
     }
   }
 
@@ -261,10 +426,25 @@ export async function get_personal_account_count(): Promise<number> {
   return data.accounts.filter((a) => a.kind !== "shared").length;
 }
 
+async function load_plan_account_limit(): Promise<number | null> {
+  try {
+    const { resolve_known_max_accounts } = await import(
+      "@/services/plan_limits"
+    );
+
+    return await resolve_known_max_accounts();
+  } catch {
+    return null;
+  }
+}
+
 export async function can_add_account(max_accounts?: number): Promise<boolean> {
   const count = await get_personal_account_count();
+  const limit = max_accounts ?? (await load_plan_account_limit());
 
-  return count < (max_accounts ?? DEFAULT_MAX_ACCOUNTS);
+  if (limit === null || limit === UNLIMITED_ACCOUNTS) return true;
+
+  return count < limit;
 }
 
 export async function account_exists(user_id: string): Promise<boolean> {
@@ -320,12 +500,8 @@ export async function set_account_plan_flag(
 }
 
 export async function repair_stale_plan_flags(): Promise<boolean> {
-  try {
-    if (localStorage.getItem(PLAN_FLAG_REPAIR_KEY) === "1") return false;
-    localStorage.setItem(PLAN_FLAG_REPAIR_KEY, "1");
-  } catch {
-    return false;
-  }
+  if (safe_local_get(PLAN_FLAG_REPAIR_KEY) === "1") return false;
+  if (!safe_local_set(PLAN_FLAG_REPAIR_KEY, "1")) return false;
 
   const data = await get_accounts_data_async();
   let changed = false;
@@ -362,12 +538,18 @@ export async function add_account(
     (a) => a.kind !== "shared",
   ).length;
 
-  if (personal_count >= DEFAULT_MAX_ACCOUNTS) {
+  const max_accounts = await load_plan_account_limit();
+
+  if (
+    max_accounts !== null &&
+    max_accounts !== UNLIMITED_ACCOUNTS &&
+    personal_count >= max_accounts
+  ) {
     return {
       success: false,
-      error: en.errors.max_accounts.replace(
+      error: get_active_translations().errors.max_accounts.replace(
         "{{ max }}",
-        String(DEFAULT_MAX_ACCOUNTS),
+        String(max_accounts),
       ),
     };
   }
@@ -433,6 +615,55 @@ export async function get_account_kind(
   return account?.kind === "shared" ? "shared" : "personal";
 }
 
+const ACCOUNT_SCOPED_LOCAL_KEYS: readonly string[] = [
+  "aster_pref_migrations_done",
+  "aster_sidebar_state",
+  "aster_app_rail_hidden",
+  "aster_rail_contacts_open",
+  "aster_rail_security_open",
+  "aster_crypto_banner_dismissed",
+  "aster_family_2fa_banner_dismissed",
+  "aster_is_family_plan",
+  "aster_has_devices",
+  "aster_last_unread_badge",
+  "astermail_inbox_categories_enabled",
+  "astermail_active_category",
+  "astermail_date_format",
+  "astermail_time_format",
+  "astermail_relative_dates",
+];
+
+function clear_account_scoped_local_keys(): void {
+  for (const key of ACCOUNT_SCOPED_LOCAL_KEYS) {
+    safe_local_remove(key);
+  }
+}
+
+async function clear_account_scoped_preferences_cache(): Promise<void> {
+  clear_account_scoped_local_keys();
+  try {
+    const { clear_preferences_cache } = await import(
+      "@/services/api/preferences"
+    );
+
+    clear_preferences_cache();
+  } catch {
+    return;
+  }
+}
+
+async function clear_account_scoped_contact_index(): Promise<void> {
+  try {
+    const { invalidate_contact_email_index } = await import(
+      "@/services/contact_email_index"
+    );
+
+    invalidate_contact_email_index();
+  } catch {
+    return;
+  }
+}
+
 export async function switch_account(
   account_id: string,
 ): Promise<StoredAccount | null> {
@@ -444,6 +675,8 @@ export async function switch_account(
   data.current_account_id = account_id;
   await save_accounts_data(data);
   await clear_offline_email_cache();
+  await clear_account_scoped_preferences_cache();
+  await clear_account_scoped_contact_index();
 
   return account;
 }
@@ -472,9 +705,35 @@ export async function remove_account(
   }
 
   await save_accounts_data(data);
+  await clear_account_session_material(account_id);
+  clear_expanded_folders(account_id);
   await clear_offline_email_cache();
+  await clear_account_scoped_preferences_cache();
+  await clear_account_scoped_contact_index();
 
   return { removed: true, switched_to };
+}
+
+export async function update_account_device_id(
+  account_id: string,
+  device_id: string | null,
+): Promise<boolean> {
+  return serialize_account_write(async () => {
+    const data = await get_accounts_data_async();
+    const account = data.accounts.find((a) => a.id === account_id);
+
+    if (!account) return false;
+
+    if (device_id === null) {
+      delete account.device_id;
+    } else {
+      account.device_id = device_id;
+    }
+
+    await save_accounts_data(data);
+
+    return true;
+  });
 }
 
 export async function update_account_tokens(
@@ -522,6 +781,20 @@ export async function get_account_tokens(
   };
 }
 
+export async function read_stored_refresh_token(
+  account_id: string,
+): Promise<string | null> {
+  return serialize_account_write(async () => {
+    if (load_failure === "none") {
+      cached_data = null;
+    }
+
+    const tokens = await get_account_tokens(account_id);
+
+    return tokens.refresh_token;
+  });
+}
+
 export async function update_account_user(
   account_id: string,
   updated_user: User,
@@ -540,15 +813,15 @@ export async function update_account_user(
 export async function logout_all(): Promise<void> {
   cached_data = null;
   storage_initialized = false;
-  localStorage.removeItem(ACCOUNTS_KEY);
-  localStorage.removeItem(LEGACY_ACCOUNTS_KEY);
-  localStorage.removeItem("user");
-  localStorage.removeItem("vault");
-  localStorage.removeItem("auth_token");
-  localStorage.removeItem("astermail_accounts");
-  localStorage.removeItem("astermail_accounts_v2");
-  localStorage.removeItem("astermail_accounts_v3");
-  localStorage.removeItem("astermail_accounts_v4");
+  safe_local_remove(ACCOUNTS_KEY);
+  safe_local_remove(LEGACY_ACCOUNTS_KEY);
+  safe_local_remove("user");
+  safe_local_remove("vault");
+  safe_local_remove("auth_token");
+  safe_local_remove("astermail_accounts");
+  safe_local_remove("astermail_accounts_v2");
+  safe_local_remove("astermail_accounts_v3");
+  safe_local_remove("astermail_accounts_v4");
   try {
     sessionStorage.clear();
   } catch (caught) {
@@ -582,19 +855,11 @@ export async function reload_accounts_from_storage(): Promise<void> {
 }
 
 export function clear_all_switch_tokens(): void {
-  const keys_to_remove: string[] = [];
+  const keys_to_remove = safe_local_keys().filter(
+    (key) =>
+      key.startsWith(SWITCH_TOKEN_KEY_PREFIX) ||
+      key.startsWith(SWITCH_TOKEN_EXPIRY_KEY_PREFIX),
+  );
 
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-
-    if (
-      key &&
-      (key.startsWith(SWITCH_TOKEN_KEY_PREFIX) ||
-        key.startsWith(SWITCH_TOKEN_EXPIRY_KEY_PREFIX))
-    ) {
-      keys_to_remove.push(key);
-    }
-  }
-
-  keys_to_remove.forEach((key) => localStorage.removeItem(key));
+  keys_to_remove.forEach((key) => safe_local_remove(key));
 }

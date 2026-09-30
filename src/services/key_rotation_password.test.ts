@@ -19,11 +19,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EncryptedVault } from "@/services/crypto/key_manager_core";
+
 import * as openpgp from "openpgp";
 import { describe, it, expect, beforeEach } from "vitest";
 
 import { encrypt_vault } from "@/services/crypto/key_manager";
-import type { EncryptedVault } from "@/services/crypto/key_manager_core";
 import { store_encrypted_vault } from "@/contexts/auth/session_passphrase";
 import { verify_vault_password } from "@/services/key_rotation_service";
 

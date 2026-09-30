@@ -66,6 +66,20 @@ describe("build_reply_subject", () => {
   });
 });
 
+describe("build_reply_subject without a prefix", () => {
+  it("leaves the original subject untouched", () => {
+    expect(build_reply_subject("Hello", "")).toBe("Hello");
+  });
+
+  it("keeps a prefix that the sender already wrote", () => {
+    expect(build_reply_subject("Re: Hello", "")).toBe("Re: Hello");
+  });
+
+  it("returns empty for an empty subject", () => {
+    expect(build_reply_subject("   ", "")).toBe("");
+  });
+});
+
 describe("strip_reply_prefix", () => {
   it("removes the prefix and trims", () => {
     expect(strip_reply_prefix("Re:  Hello ", "Re:")).toBe("Hello");
@@ -73,5 +87,11 @@ describe("strip_reply_prefix", () => {
 
   it("returns empty for a bare prefix", () => {
     expect(strip_reply_prefix("Re:", "Re:")).toBe("");
+  });
+});
+
+describe("strip_reply_prefix without a prefix", () => {
+  it("only trims", () => {
+    expect(strip_reply_prefix("  Re: Hello ", "")).toBe("Re: Hello");
   });
 });

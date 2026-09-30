@@ -25,12 +25,13 @@ import {
   useState,
   type ReactNode,
   useCallback,
+  useMemo,
 } from "react";
 
 import { update_status_bar_theme } from "@/native/capacitor_bridge";
 import { is_dark_appearance_active, set_theme_is_dark } from "@/lib/dark_mode";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { safe_local_get } from "@/lib/safe_storage";
 
 export type Theme = "light" | "dark";
 export type ThemePreference = "light" | "dark" | "system";
@@ -57,7 +58,7 @@ function get_system_theme(): Theme {
 
 function get_initial_preference(): ThemePreference {
   try {
-    const stored = localStorage.getItem(THEME_STORAGE_KEY);
+    const stored = safe_local_get(THEME_STORAGE_KEY);
 
     if (stored === "dark" || stored === "light" || stored === "system") {
       return stored;
@@ -134,6 +135,29 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => media_query.removeEventListener("change", handle_change);
   }, [theme_preference]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!("__TAURI_INTERNALS__" in window)) return;
+
+    let cancelled = false;
+
+    import("@tauri-apps/api/window")
+      .then(({ getCurrentWindow }) => {
+        if (cancelled) return;
+
+        return getCurrentWindow().setTheme(
+          theme_preference === "system" ? null : theme_preference,
+        );
+      })
+      .catch((caught) =>
+        ignore_error("contexts/theme_context:sync_native_theme", caught),
+      );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [theme_preference]);
+
   const toggle_theme = useCallback(() => {
     set_theme_preference_state((prev) => {
       const current = resolve_theme(prev);
@@ -150,18 +174,19 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     set_theme_preference_state(pref);
   }, []);
 
+  const value = useMemo(
+    () => ({
+      theme,
+      theme_preference,
+      toggle_theme,
+      set_theme,
+      set_theme_preference,
+    }),
+    [theme, theme_preference, toggle_theme, set_theme, set_theme_preference],
+  );
+
   return (
-    <ThemeContext.Provider
-      value={{
-        theme,
-        theme_preference,
-        toggle_theme,
-        set_theme,
-        set_theme_preference,
-      }}
-    >
-      {children}
-    </ThemeContext.Provider>
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
   );
 }
 

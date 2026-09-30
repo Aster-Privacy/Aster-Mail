@@ -18,14 +18,22 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { Attachment } from "@/components/compose/compose_shared";
+import type { DraftType } from "@/services/api/multi_drafts";
+import type { TerminalSendStatus } from "@/services/undo_send_manager";
+
 import { useState, useEffect, useCallback } from "react";
 
+import { undo_send_manager as server_undo_manager } from "@/services/undo_send_manager";
 import { ignore_error } from "@/lib/ignore_error";
-
+import { emit_email_sent, emit_thread_reply_sent } from "@/hooks/mail_events";
+import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
+import { show_toast } from "@/components/toast/simple_toast";
+import { get_active_translations } from "@/lib/i18n/translations";
 import {
   cancel_send as cancel_queue_send,
   send_now as send_queue_now,
-  cancel_server_queued_email,
+  cancel_server_queued_email_with_reason,
   send_server_queued_immediately,
 } from "@/services/send_queue";
 
@@ -46,6 +54,43 @@ export interface PendingSend {
   on_send_immediately?: () => void;
   optimistic_id?: string;
   thread_token?: string;
+  is_restored?: boolean;
+}
+
+export interface PendingSendPayload {
+  to: string[];
+  cc?: string[];
+  bcc?: string[];
+  subject: string;
+  body: string;
+  sender_email?: string;
+  thread_token?: string;
+  draft_type?: DraftType;
+  reply_to_id?: string;
+  rfc_message_id?: string;
+  forward_from_id?: string;
+  expires_at?: string;
+  expiry_password?: string;
+  attachments?: Attachment[];
+}
+
+const pending_send_payloads = new Map<string, PendingSendPayload>();
+
+export function store_pending_send_payload(
+  id: string,
+  payload: PendingSendPayload,
+): void {
+  pending_send_payloads.set(id, payload);
+}
+
+export function take_pending_send_payload(
+  id: string,
+): PendingSendPayload | undefined {
+  const payload = pending_send_payloads.get(id);
+
+  pending_send_payloads.delete(id);
+
+  return payload;
 }
 
 type UndoSendListener = (pending_sends: PendingSend[]) => void;
@@ -82,7 +127,12 @@ function load_from_storage(): PendingSend[] {
     const parsed = JSON.parse(raw) as PendingSend[];
     const now = Date.now();
 
-    return parsed.filter((p) => p.scheduled_time > now);
+    return parsed
+      .filter(
+        (p) =>
+          p.scheduled_time > now && !!p.is_server_queued && !!p.server_queue_id,
+      )
+      .map((p) => ({ ...p, is_restored: true }));
   } catch {
     return [];
   }
@@ -137,6 +187,7 @@ class UndoSendManager {
         window.clearTimeout(pending.timeout_id);
       }
       this.pending_sends.delete(id);
+      pending_send_payloads.delete(id);
       this.notify();
     }
 
@@ -171,11 +222,50 @@ class UndoSendManager {
 
   clear(): void {
     this.pending_sends.clear();
+    pending_send_payloads.clear();
     this.notify();
   }
 }
 
 export const undo_send_manager = new UndoSendManager();
+
+export function handle_restored_send_settled(
+  queue_id: string,
+  status: TerminalSendStatus,
+): void {
+  const restored = undo_send_manager
+    .get_all()
+    .find((pending) => pending.server_queue_id === queue_id);
+
+  if (restored) {
+    undo_send_manager.remove(restored.id);
+  }
+
+  if (status !== "sent") return;
+
+  invalidate_mail_stats();
+  emit_email_sent();
+
+  if (restored?.thread_token) {
+    emit_thread_reply_sent({
+      thread_token: restored.thread_token,
+      optimistic_id: restored.optimistic_id,
+    });
+  }
+}
+
+export function settle_restored_sends_missing_from_server(): void {
+  const known_queue_ids = new Set(
+    server_undo_manager.get_all_sends().map((pending) => pending.queue_id),
+  );
+
+  for (const pending of undo_send_manager.get_all()) {
+    if (!pending.is_restored || !pending.server_queue_id) continue;
+    if (known_queue_ids.has(pending.server_queue_id)) continue;
+
+    handle_restored_send_settled(pending.server_queue_id, "sent");
+  }
+}
 
 export function clear_undo_send_state(): void {
   undo_send_manager.clear();
@@ -185,22 +275,24 @@ export function clear_undo_send_state(): void {
 export interface UndoSendEvent {
   id: string;
   pending: PendingSend;
+  payload?: PendingSendPayload;
 }
 
 export function dispatch_undo_send_event(
   id: string,
   pending: PendingSend,
+  payload?: PendingSendPayload,
 ): void {
   window.dispatchEvent(
     new CustomEvent<UndoSendEvent>("astermail:undo-send", {
-      detail: { id, pending },
+      detail: { id, pending, payload },
     }),
   );
 }
 
 interface UseUndoSendReturn {
   pending_sends: PendingSend[];
-  cancel_send: (id: string) => boolean;
+  cancel_send: (id: string) => Promise<boolean>;
   send_immediately: (id: string) => void;
   get_time_remaining: (id: string) => number;
   remove_pending: (id: string) => void;
@@ -215,22 +307,52 @@ export function use_undo_send(): UseUndoSendReturn {
     return unsubscribe;
   }, []);
 
-  const cancel_send = useCallback((id: string): boolean => {
+  const cancel_send = useCallback(async (id: string): Promise<boolean> => {
     const pending = undo_send_manager.get(id);
 
     if (!pending) return false;
 
-    undo_send_manager.remove(id);
+    let payload: PendingSendPayload | undefined;
 
     if (pending.is_server_queued && pending.server_queue_id) {
-      cancel_server_queued_email(pending.server_queue_id).catch((caught) =>
-        ignore_error("hooks/use_undo_send:use_undo_send", caught),
-      );
+      const outcome = await cancel_server_queued_email_with_reason(
+        pending.server_queue_id,
+      ).catch((caught) => {
+        ignore_error("hooks/use_undo_send:use_undo_send", caught);
+
+        return "failed" as const;
+      });
+
+      if (outcome !== "cancelled") {
+        show_toast(
+          outcome === "failed"
+            ? get_active_translations().common.something_went_wrong_try_again
+            : get_active_translations().common.undo_send_too_late,
+          "error",
+        );
+
+        return false;
+      }
+
+      payload = take_pending_send_payload(id);
+      undo_send_manager.remove(id);
     } else {
-      cancel_queue_send(id);
+      const cancelled = cancel_queue_send(id);
+
+      if (!cancelled) {
+        show_toast(
+          get_active_translations().common.undo_send_too_late,
+          "error",
+        );
+
+        return false;
+      }
+
+      payload = take_pending_send_payload(id);
+      undo_send_manager.remove(id);
     }
 
-    dispatch_undo_send_event(id, pending);
+    dispatch_undo_send_event(id, pending, payload);
 
     return true;
   }, []);

@@ -46,6 +46,9 @@ import { SearchModalFilterPanel } from "@/components/search/search_modal_filter_
 import { SearchContentBanner } from "@/components/search/search_content_banner";
 import { CorrectionNotice } from "@/components/search/correction_notice";
 import { use_search_modal } from "@/components/search/use_search_modal";
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
+import { queue_rule_seed } from "@/stores/mail_rules_store";
+import { search_filters_to_rule_seed } from "@/components/mail_rules/search_filter_seed";
 
 export { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
 
@@ -141,6 +144,7 @@ export function SearchModal({
   const is_mobile = use_is_mobile();
   const rect = use_anchor_rect(anchor_ref, is_open && !is_mobile);
   const dropdown_ref = useRef<HTMLDivElement>(null);
+  const last_advanced_query_ref = useRef("");
 
   const {
     state,
@@ -227,10 +231,21 @@ export function SearchModal({
     };
   }, [is_open, handle_close, anchor_ref]);
 
-  const handle_submit_advanced = () => {
-    const query = build_advanced_query();
+  use_escape_layer(is_open, handle_close, "search_modal");
 
-    if (!query) return;
+  const handle_submit_advanced = () => {
+    const advanced = build_advanced_query();
+    const typed = state.query.trim();
+    const carried =
+      typed && typed !== last_advanced_query_ref.current ? typed : "";
+    const query = [carried, advanced].filter(Boolean).join(" ");
+
+    if (!query) {
+      set_show_filters(false);
+
+      return;
+    }
+    last_advanced_query_ref.current = query;
     set_query(query);
     set_show_filters(false);
     if (on_search_submit) {
@@ -240,6 +255,17 @@ export function SearchModal({
       return;
     }
     handle_search(query);
+  };
+
+  const handle_create_filter = () => {
+    queue_rule_seed(
+      search_filters_to_rule_seed(filters, t("mail_rules.untitled_rule_name")),
+    );
+    set_show_filters(false);
+    handle_close();
+    window.dispatchEvent(
+      new CustomEvent("navigate-settings", { detail: "filters" }),
+    );
   };
 
   if (!is_open) return null;
@@ -297,6 +323,7 @@ export function SearchModal({
 
       <SearchModalFilterPanel
         filters={filters}
+        on_create_filter={handle_create_filter}
         on_submit={handle_submit_advanced}
         set_filters={set_filters}
         show_filters={show_filters}
@@ -427,12 +454,10 @@ export function SearchModal({
               !state.is_searching &&
               !state.is_loading_more && (
                 <button
-                  className="w-full py-3 text-xs font-medium text-center transition-colors duration-150 rounded-[14px] mt-2 text-txt-secondary bg-surf-tertiary hover:bg-surf-hover"
+                  className="w-full py-3 text-xs font-medium text-center transition-colors duration-150 rounded-[var(--aster-radius-control)] mt-2 text-txt-secondary bg-surf-tertiary hover:bg-surf-hover"
                   onClick={load_more}
                 >
-                  {t("mail.load_more_results", {
-                    remaining: state.total_results - filtered_results.length,
-                  })}
+                  {t("common.load_more")}
                 </button>
               )}
           </div>
@@ -476,7 +501,7 @@ export function SearchModal({
     return createPortal(
       <motion.div
         animate={{ opacity: 1 }}
-        className="fixed inset-0 bg-black/40 flex items-start justify-center z-[60]"
+        className="fixed inset-0 aster_scrim flex items-start justify-center z-[60]"
         exit={{ opacity: 0 }}
         initial={reduce_motion ? false : { opacity: 0 }}
         transition={{ duration: reduce_motion ? 0 : 0.15 }}
@@ -511,14 +536,10 @@ export function SearchModal({
     <motion.div
       ref={dropdown_ref}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-[18px] overflow-hidden flex flex-col bg-modal-bg"
+      className="rounded-[var(--aster-radius-floating,16px)] overflow-hidden flex flex-col bg-modal-bg shadow-[var(--aster-floating-shadow)]"
       exit={{ opacity: 0, y: -4 }}
       initial={reduce_motion ? false : { opacity: 0, y: -4 }}
-      style={{
-        ...(desktop_style ?? fallback_style),
-        boxShadow:
-          "0 24px 48px -12px rgba(0, 0, 0, 0.32), 0 0 0 1px var(--border-secondary)",
-      }}
+      style={desktop_style ?? fallback_style}
       transition={{ duration: reduce_motion ? 0 : 0.14, ease: "easeOut" }}
     >
       {content}

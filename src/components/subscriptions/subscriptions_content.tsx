@@ -21,12 +21,13 @@
 import type { CachedSubscription } from "@/services/subscription_cache";
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import { useState, useMemo, useCallback, useRef } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { MagnifyingGlassIcon, Bars3Icon } from "@heroicons/react/24/outline";
 import { ShieldCheckIcon } from "@heroicons/react/24/solid";
 import { Button, Checkbox } from "@aster/ui";
 
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
+import { SettingsTabBar } from "@/components/settings/settings_tab_bar";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmailTag } from "@/components/ui/email_tag";
@@ -35,6 +36,8 @@ import { use_subscription_scan_in_flight } from "@/hooks/use_background_subscrip
 import { use_i18n } from "@/lib/i18n/context";
 import { use_page_search } from "@/hooks/use_page_search";
 import { use_external_link } from "@/contexts/external_link_context";
+import { calendar_day_diff } from "@/utils/date_format";
+import { get_manual_unsubscribe_url } from "@/utils/unsubscribe_detector";
 import {
   CATEGORY_TAG_VARIANT,
   get_category_label,
@@ -51,10 +54,9 @@ function format_relative_date(
 ): string {
   const date = new Date(iso_date);
   const now = new Date();
-  const diff_ms = now.getTime() - date.getTime();
-  const diff_days = Math.floor(diff_ms / (1000 * 60 * 60 * 24));
+  const diff_days = calendar_day_diff(date, now);
 
-  if (diff_days === 0) return t("common.today");
+  if (diff_days <= 0) return t("common.today");
   if (diff_days === 1) return t("common.yesterday");
   if (diff_days < 7) return t("common.days_ago_short", { count: diff_days });
   if (diff_days < 30)
@@ -98,6 +100,21 @@ export function SubscriptionsContent({
     () => subscriptions.filter((s) => s.status === "unsubscribed"),
     [subscriptions],
   );
+
+  useEffect(() => {
+    set_selected_ids((prev) => {
+      if (prev.size === 0) return prev;
+
+      const still_active = new Set(
+        active_subscriptions.map((s) => s.sender_email),
+      );
+      const next = new Set(
+        Array.from(prev).filter((email) => still_active.has(email)),
+      );
+
+      return next.size === prev.size ? prev : next;
+    });
+  }, [active_subscriptions]);
 
   const current_list = useMemo(() => {
     const base =
@@ -191,21 +208,33 @@ export function SubscriptionsContent({
     [shift_ref],
   );
 
+  const visible_selected_count = useMemo(
+    () => current_list.filter((s) => selected_ids.has(s.sender_email)).length,
+    [current_list, selected_ids],
+  );
+
   const handle_toggle_select_all = useCallback(() => {
-    if (selected_ids.size === current_list.length) {
+    if (
+      current_list.length > 0 &&
+      visible_selected_count === current_list.length
+    ) {
       set_selected_ids(new Set());
     } else {
       set_selected_ids(new Set(current_list.map((s) => s.sender_email)));
     }
-  }, [selected_ids.size, current_list]);
+  }, [visible_selected_count, current_list]);
 
   const handle_bulk_unsubscribe = useCallback(async () => {
     const emails = Array.from(selected_ids);
 
-    const did_unsubscribe = await bulk_unsubscribe(emails);
+    const failed = await bulk_unsubscribe(emails);
 
-    if (did_unsubscribe) {
-      set_selected_ids(new Set());
+    if (!failed) return;
+
+    set_selected_ids(new Set(failed));
+
+    if (failed.length > 0) {
+      set_failed_unsub_ids((prev) => new Set([...prev, ...failed]));
     }
   }, [selected_ids, bulk_unsubscribe]);
 
@@ -224,7 +253,7 @@ export function SubscriptionsContent({
   const handle_open_unsubscribe_page = useCallback(
     (e: React.MouseEvent, sub: CachedSubscription) => {
       e.stopPropagation();
-      const link = sub.unsubscribe_link || sub.list_unsubscribe_header;
+      const link = get_manual_unsubscribe_url(sub);
 
       if (link) {
         handle_external_link(link);
@@ -245,7 +274,7 @@ export function SubscriptionsContent({
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 px-4 h-14 flex-shrink-0 border-b border-edge-primary">
         <button
-          className="md:hidden flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-black/[0.06] dark:hover:bg-white/[0.08] text-txt-primary"
+          className="md:hidden flex items-center justify-center w-8 h-8 rounded-[8px] transition-colors hover:bg-[var(--aster-hover)] text-txt-primary"
           onClick={on_mobile_menu_toggle}
         >
           <Bars3Icon className="w-5 h-5" />
@@ -256,38 +285,29 @@ export function SubscriptionsContent({
       </div>
 
       <div className="flex items-center gap-2 px-4 py-2 flex-shrink-0 border-b border-edge-primary">
-        <div className="flex rounded-lg overflow-hidden border border-edge-primary">
-          <button
-            className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-              active_tab === "active"
-                ? "bg-blue-500 text-white"
-                : "text-txt-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
-            }`}
-            onClick={() => {
-              set_active_tab("active");
-              set_selected_ids(new Set());
-            }}
-          >
-            {t("settings.active_count", {
-              count: String(active_subscriptions.length),
-            })}
-          </button>
-          <button
-            className={`px-3 py-1.5 text-xs font-medium transition-colors ${
-              active_tab === "unsubscribed"
-                ? "bg-blue-500 text-white"
-                : "text-txt-secondary hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
-            }`}
-            onClick={() => {
-              set_active_tab("unsubscribed");
-              set_selected_ids(new Set());
-            }}
-          >
-            {t("common.unsubscribed_count", {
-              count: String(unsubscribed_subscriptions.length),
-            })}
-          </button>
-        </div>
+        <SettingsTabBar
+          active={active_tab}
+          class_name="mb-0"
+          layout_id="subscriptions_tabs"
+          on_change={(key) => {
+            set_active_tab(key);
+            set_selected_ids(new Set());
+          }}
+          tabs={[
+            {
+              key: "active",
+              label: t("settings.active_count", {
+                count: active_subscriptions.length,
+              }),
+            },
+            {
+              key: "unsubscribed",
+              label: t("common.unsubscribed_count", {
+                count: unsubscribed_subscriptions.length,
+              }),
+            },
+          ]}
+        />
         <div className="flex-1" />
       </div>
 
@@ -310,13 +330,13 @@ export function SubscriptionsContent({
             <div className="flex items-center gap-2 px-4 py-1.5 border-b border-edge-primary">
               <Checkbox
                 checked={
-                  selected_ids.size > 0 &&
-                  selected_ids.size === current_list.length
+                  visible_selected_count > 0 &&
+                  visible_selected_count === current_list.length
                 }
                 className="flex-shrink-0"
                 indeterminate={
-                  selected_ids.size > 0 &&
-                  selected_ids.size < current_list.length
+                  visible_selected_count > 0 &&
+                  visible_selected_count < current_list.length
                 }
                 onCheckedChange={handle_toggle_select_all}
               />
@@ -329,6 +349,7 @@ export function SubscriptionsContent({
             <SubscriptionRow
               key={sub.sender_email}
               active_tab={active_tab}
+              is_clickable={!!on_sender_search}
               is_selected={selected_ids.has(sub.sender_email)}
               on_click={handle_sender_click}
               on_open_unsubscribe_page={handle_open_unsubscribe_page}
@@ -348,7 +369,7 @@ export function SubscriptionsContent({
             {selected_ids.size} {t("common.selected")}
           </span>
           <button
-            className="px-4 py-1.5 rounded-[12px] text-white text-sm font-medium transition-all duration-150 bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d]"
+            className="px-4 py-1.5 rounded-[var(--aster-radius-control)] text-white text-sm font-medium transition-all duration-150 bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d]"
             onClick={handle_bulk_unsubscribe}
           >
             {t("mail.unsubscribe")} ({selected_ids.size})
@@ -385,6 +406,7 @@ interface SubscriptionRowProps {
   is_selected: boolean;
   active_tab: "active" | "unsubscribed";
   unsub_failed?: boolean;
+  is_clickable: boolean;
   on_click: (sub: CachedSubscription) => void;
   on_toggle_select: (sender_email: string) => void;
   on_unsubscribe: (e: React.MouseEvent, sender_email: string) => void;
@@ -400,6 +422,7 @@ function SubscriptionRow({
   is_selected,
   active_tab,
   unsub_failed,
+  is_clickable,
   on_click,
   on_toggle_select,
   on_unsubscribe,
@@ -408,16 +431,20 @@ function SubscriptionRow({
 }: SubscriptionRowProps) {
   const { t } = use_i18n();
   const tag_variant = (CATEGORY_TAG_VARIANT[sub.category] || "neutral") as
-    | "blue"
-    | "purple"
-    | "green"
-    | "amber"
-    | "neutral";
+    "blue" | "purple" | "green" | "amber" | "neutral";
 
   return (
     <div
-      className="flex items-center gap-3 px-4 py-2.5 border-b border-edge-primary hover:bg-black/[0.02] dark:hover:bg-white/[0.02] cursor-pointer transition-colors"
-      onClick={() => on_click(sub)}
+      className={`flex items-center gap-3 px-4 py-2.5 border-b border-edge-primary transition-colors ${
+        is_clickable
+          ? "hover:bg-black/[0.02] dark:hover:bg-white/[0.02] cursor-pointer"
+          : ""
+      }`}
+      style={{
+        contentVisibility: "auto",
+        containIntrinsicSize: "auto 61px",
+      }}
+      onClick={is_clickable ? () => on_click(sub) : undefined}
     >
       {active_tab === "active" && (
         <div className="flex-shrink-0" onClick={(e) => e.stopPropagation()}>
@@ -457,7 +484,11 @@ function SubscriptionRow({
           <span className="truncate">{sub.sender_email}</span>
           <span>·</span>
           <span className="flex-shrink-0">
-            {t("settings.emails_count", { count: String(sub.email_count) })}
+            {sub.email_count === 1
+              ? t("common.one_email")
+              : t("settings.emails_count", {
+                  count: sub.email_count,
+                })}
           </span>
           <span>·</span>
           <span className="flex-shrink-0">
@@ -467,10 +498,9 @@ function SubscriptionRow({
       </div>
 
       {active_tab === "active" ? (
-        unsub_failed &&
-        (sub.unsubscribe_link || sub.list_unsubscribe_header) ? (
+        unsub_failed && get_manual_unsubscribe_url(sub) ? (
           <button
-            className="px-3 py-1 rounded-[12px] text-xs font-medium transition-all duration-150 flex-shrink-0 hover:brightness-110"
+            className="px-3 py-1 rounded-[var(--aster-radius-control)] text-xs font-medium transition-all duration-150 flex-shrink-0 hover:brightness-110"
             style={{
               background:
                 "linear-gradient(to bottom, #fbbf24 0%, #f59e0b 50%, #d97706 100%)",
@@ -482,7 +512,7 @@ function SubscriptionRow({
           </button>
         ) : (
           <button
-            className="px-3 py-1 rounded-[12px] text-xs font-medium transition-all duration-150 flex-shrink-0 text-white bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d]"
+            className="px-3 py-1 rounded-[var(--aster-radius-control)] text-xs font-medium transition-all duration-150 flex-shrink-0 text-white bg-gradient-to-b from-[#ef4444] via-[#dc2626] to-[#b91c1c] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.15)] hover:from-[#f05555] hover:via-[#e23737] hover:to-[#c92d2d]"
             onClick={(e) => on_unsubscribe(e, sub.sender_email)}
           >
             {t("mail.unsubscribe")}

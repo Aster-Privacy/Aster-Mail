@@ -28,9 +28,35 @@ import { strip_metadata } from "@/lib/strip_image_metadata";
 import {
   type Attachment,
   generate_attachment_id,
-  MAX_ATTACHMENT_SIZE,
-  MAX_TOTAL_ATTACHMENTS_SIZE,
 } from "@/components/compose/compose_shared";
+import {
+  MAX_ATTACHMENTS_PER_SEND,
+  ensure_attachment_limits,
+  get_max_attachment_size,
+  get_max_total_attachments_size,
+} from "@/services/attachment_limits";
+import {
+  describe_oversized_file,
+  describe_too_many_attachments,
+  describe_would_exceed_total,
+  prompt_attachment_upgrade,
+} from "@/services/attachment_rejection";
+
+const unique_attachment_name = (name: string, taken: Set<string>): string => {
+  if (!taken.has(name)) return name;
+
+  const dot = name.lastIndexOf(".");
+  const base = dot > 0 ? name.slice(0, dot) : name;
+  const extension = dot > 0 ? name.slice(dot) : "";
+
+  for (let counter = 2; counter < 1000; counter++) {
+    const candidate = `${base} (${counter})${extension}`;
+
+    if (!taken.has(candidate)) return candidate;
+  }
+
+  return `${base} (${generate_attachment_id()})${extension}`;
+};
 
 const EXTENSION_MIME_MAP: Record<string, string> = {
   pdf: "application/pdf",
@@ -121,6 +147,7 @@ export interface UseComposeAttachmentsReturn {
   handle_file_select: (event: React.ChangeEvent<HTMLInputElement>) => void;
   handle_files_drop: (files: File[]) => Promise<void>;
   trigger_file_select: () => void;
+  get_total_attachments_size: () => number;
 }
 
 export function use_compose_attachments(): UseComposeAttachmentsReturn {
@@ -154,6 +181,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
       if (!files || files.length === 0) return;
 
       set_attachment_error(null);
+      await ensure_attachment_limits();
       const new_attachments: Attachment[] = [];
       const unstripped: string[] = [];
       const current_total = get_total_attachments_size();
@@ -162,18 +190,34 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
-        if (file.size > MAX_ATTACHMENT_SIZE) {
-          const message = t("common.file_exceeds_max_size", {
-            name: file.name,
-          });
+        if (
+          attachments_ref.current.length + new_attachments.length >=
+          MAX_ATTACHMENTS_PER_SEND
+        ) {
+          const message = describe_too_many_attachments(t);
 
           set_attachment_error(message);
           show_toast(message, "error");
+          break;
+        }
+
+        if (file.size > get_max_attachment_size()) {
+          const rejection = describe_oversized_file(t, file.name, file.size);
+          const message = rejection.message;
+
+          set_attachment_error(message);
+          show_toast(message, "error");
+
+          if (rejection.can_upgrade)
+            prompt_attachment_upgrade(
+              rejection.message,
+              rejection.upgrade_plan_code,
+            );
           continue;
         }
 
-        if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
-          const message = t("common.total_attachments_exceed_limit");
+        if (running_total + file.size > get_max_total_attachments_size()) {
+          const message = describe_would_exceed_total(t, file.name);
 
           set_attachment_error(message);
           show_toast(message, "error");
@@ -182,16 +226,29 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
         const mime_type = resolve_mime_type(file);
 
-        const exists =
-          attachments.some((a) => a.name === file.name) ||
-          new_attachments.some((a) => a.name === file.name);
-
-        if (exists) {
-          set_attachment_error(
-            t("common.file_already_attached", { name: file.name }),
+        const same_file_attached =
+          attachments_ref.current.some(
+            (a) => a.name === file.name && a.size_bytes === file.size,
+          ) ||
+          new_attachments.some(
+            (a) => a.name === file.name && a.size_bytes === file.size,
           );
+
+        if (same_file_attached) {
+          const message = t("common.file_already_attached", {
+            name: file.name,
+          });
+
+          set_attachment_error(message);
+          show_toast(message, "info");
           continue;
         }
+
+        const taken_names = new Set([
+          ...attachments.map((a) => a.name),
+          ...new_attachments.map((a) => a.name),
+        ]);
+        const attachment_name = unique_attachment_name(file.name, taken_names);
 
         try {
           const raw = await file.arrayBuffer();
@@ -205,7 +262,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
           new_attachments.push({
             id: generate_attachment_id(),
-            name: file.name,
+            name: attachment_name,
             size: format_bytes(data.byteLength),
             size_bytes: data.byteLength,
             mime_type,
@@ -250,24 +307,41 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
   const handle_files_drop = useCallback(
     async (files: File[]) => {
       set_attachment_error(null);
+      await ensure_attachment_limits();
       const new_attachments: Attachment[] = [];
       const unstripped: string[] = [];
       const current_total = get_total_attachments_size();
       let running_total = current_total;
 
       for (const file of files) {
-        if (file.size > MAX_ATTACHMENT_SIZE) {
-          const message = t("common.file_exceeds_max_size", {
-            name: file.name,
-          });
+        if (
+          attachments_ref.current.length + new_attachments.length >=
+          MAX_ATTACHMENTS_PER_SEND
+        ) {
+          const message = describe_too_many_attachments(t);
 
           set_attachment_error(message);
           show_toast(message, "error");
+          break;
+        }
+
+        if (file.size > get_max_attachment_size()) {
+          const rejection = describe_oversized_file(t, file.name, file.size);
+          const message = rejection.message;
+
+          set_attachment_error(message);
+          show_toast(message, "error");
+
+          if (rejection.can_upgrade)
+            prompt_attachment_upgrade(
+              rejection.message,
+              rejection.upgrade_plan_code,
+            );
           continue;
         }
 
-        if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
-          const message = t("common.total_attachments_exceed_limit");
+        if (running_total + file.size > get_max_total_attachments_size()) {
+          const message = describe_would_exceed_total(t, file.name);
 
           set_attachment_error(message);
           show_toast(message, "error");
@@ -276,16 +350,29 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
         const mime_type = resolve_mime_type(file);
 
-        const exists =
-          attachments.some((a) => a.name === file.name) ||
-          new_attachments.some((a) => a.name === file.name);
-
-        if (exists) {
-          set_attachment_error(
-            t("common.file_already_attached", { name: file.name }),
+        const same_file_attached =
+          attachments_ref.current.some(
+            (a) => a.name === file.name && a.size_bytes === file.size,
+          ) ||
+          new_attachments.some(
+            (a) => a.name === file.name && a.size_bytes === file.size,
           );
+
+        if (same_file_attached) {
+          const message = t("common.file_already_attached", {
+            name: file.name,
+          });
+
+          set_attachment_error(message);
+          show_toast(message, "info");
           continue;
         }
+
+        const taken_names = new Set([
+          ...attachments.map((a) => a.name),
+          ...new_attachments.map((a) => a.name),
+        ]);
+        const attachment_name = unique_attachment_name(file.name, taken_names);
 
         try {
           const raw = await file.arrayBuffer();
@@ -299,7 +386,7 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
 
           new_attachments.push({
             id: generate_attachment_id(),
-            name: file.name,
+            name: attachment_name,
             size: format_bytes(data.byteLength),
             size_bytes: data.byteLength,
             mime_type,
@@ -353,5 +440,6 @@ export function use_compose_attachments(): UseComposeAttachmentsReturn {
     handle_file_select,
     handle_files_drop,
     trigger_file_select,
+    get_total_attachments_size,
   };
 }

@@ -18,8 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 import { ATTACHMENT_MIME_MAP, SIZE_RANGE_REGEX, SIZE_REGEX } from "./types";
+
+import { format_bytes } from "@/lib/utils";
 
 export function parse_size_value(value: string): number | null {
   const match = value.toLowerCase().match(SIZE_REGEX);
@@ -89,19 +91,9 @@ export function parse_size_range(
 }
 
 export function format_size_for_display(bytes: number): string {
-  if (bytes === 0) {
-    return "0 B";
-  }
-
-  const units = ["B", "KB", "MB", "GB"];
-  const k = 1024;
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  const value = bytes / Math.pow(k, i);
-
-  return `${value.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
+  return format_bytes(bytes);
 }
 
 export function get_attachment_mimes(type: string): string[] {
   return ATTACHMENT_MIME_MAP[type.toLowerCase()] || [];
 }
-

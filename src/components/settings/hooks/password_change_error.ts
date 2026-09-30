@@ -22,14 +22,29 @@ import type { TranslationKey } from "@/lib/i18n/types";
 
 const FINGERPRINT_MISMATCH_CODE = "FINGERPRINT_MISMATCH";
 
+const CLIENT_UPGRADE_REQUIRED_CODE = "CLIENT_UPGRADE_REQUIRED";
+
+const ALIAS_REENCRYPTION_INCOMPLETE_CODE = "ALIAS_REENCRYPTION_INCOMPLETE";
+
 const SERVER_ERROR_TRANSLATION_KEYS: Record<string, TranslationKey> = {
   [FINGERPRINT_MISMATCH_CODE]: "settings.password_change_fingerprint_mismatch",
+  [CLIENT_UPGRADE_REQUIRED_CODE]:
+    "settings.password_change_client_upgrade_required",
+  [ALIAS_REENCRYPTION_INCOMPLETE_CODE]:
+    "settings.password_change_reencryption_incomplete",
 };
 
 export function resolve_password_change_error(
   server_error: string,
   translate: (key: TranslationKey) => string,
+  server_code?: string,
 ): string {
+  const by_code = server_code
+    ? SERVER_ERROR_TRANSLATION_KEYS[server_code.trim().toUpperCase()]
+    : undefined;
+
+  if (by_code) return translate(by_code);
+
   const normalized = server_error.trim().toUpperCase();
   const translation_key = SERVER_ERROR_TRANSLATION_KEYS[normalized];
 

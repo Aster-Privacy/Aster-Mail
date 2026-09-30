@@ -41,6 +41,7 @@ import {
 } from "@/components/ui/popover";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { use_i18n } from "@/lib/i18n/context";
+import { is_composing } from "@/utils/ime";
 
 type DatePreset = "any" | "week" | "month" | "six_months" | "year" | "custom";
 
@@ -111,12 +112,11 @@ function detect_date_preset(operators: ParsedOperator[]): DatePreset {
 }
 
 const CHIP_CLASS =
-  "flex items-center gap-1.5 flex-shrink-0 h-8 px-3.5 rounded-full text-[13px] font-medium transition-colors whitespace-nowrap border";
+  "flex items-center gap-1.5 flex-shrink-0 h-8 px-3.5 rounded-full text-[13px] font-medium whitespace-nowrap";
 
 function chip_style(is_active: boolean): CSSProperties {
   return {
-    backgroundColor: is_active ? "var(--accent-blue)" : "var(--bg-secondary)",
-    borderColor: is_active ? "var(--accent-blue)" : "var(--border-primary)",
+    backgroundColor: is_active ? "var(--accent-blue)" : "var(--aster-hover)",
     color: is_active ? "#ffffff" : "var(--text-secondary)",
   };
 }
@@ -219,34 +219,31 @@ function PersonChip({
         align="start"
         className="w-[320px] p-0 overflow-hidden"
         style={{
-          backgroundColor: "var(--bg-primary)",
-          borderColor: "var(--border-primary)",
+          backgroundColor: "var(--aster-floating-bg)",
+          boxShadow: "var(--aster-floating-shadow)",
+          border: "none",
         }}
       >
-        <div
-          className="p-2 border-b"
-          style={{ borderColor: "var(--border-secondary)" }}
-        >
+        <div className="p-2">
           <input
             autoFocus
-            className="w-full h-8 px-2 rounded-[8px] text-xs outline-none border"
+            className="w-full h-8 px-2 rounded-[var(--aster-radius-item)] text-xs outline-none"
             placeholder={placeholder}
             style={{
-              backgroundColor: "var(--bg-secondary)",
-              borderColor: "var(--border-primary)",
+              backgroundColor: "var(--aster-hover)",
               color: "var(--text-primary)",
             }}
             value={filter_text}
             onChange={(event) => set_filter_text(event.target.value)}
             onKeyDown={(event) => {
-              if (event.key !== "Enter") return;
+              if (event.key !== "Enter" || is_composing(event)) return;
               const value = filter_text.trim();
 
               if (value) apply(value);
             }}
           />
         </div>
-        <div className="max-h-[320px] overflow-y-auto py-1.5">
+        <div className="max-h-[320px] overflow-y-auto p-1.5">
           {visible.length === 0 ? (
             <p
               className="px-3 py-3 text-xs text-center"
@@ -258,7 +255,7 @@ function PersonChip({
             visible.map((person) => (
               <button
                 key={person.email}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-left hover:bg-[var(--bg-hover)] transition-colors"
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-[var(--aster-radius-item,8px)] text-start hover:bg-[var(--aster-floating-hover,var(--bg-hover))]"
                 type="button"
                 onClick={() => apply(person.email)}
               >
@@ -286,10 +283,7 @@ function PersonChip({
           )}
         </div>
         {is_active && (
-          <div
-            className="p-2 border-t"
-            style={{ borderColor: "var(--border-secondary)" }}
-          >
+          <div className="p-2">
             <button
               className="text-xs font-medium text-blue-500 hover:underline"
               type="button"
@@ -583,8 +577,9 @@ export function SearchChipRow({
         align="start"
         className="w-[248px] p-1.5"
         style={{
-          backgroundColor: "var(--bg-primary)",
-          borderColor: "var(--border-primary)",
+          backgroundColor: "var(--aster-floating-bg)",
+          boxShadow: "var(--aster-floating-shadow)",
+          border: "none",
         }}
       >
         {(
@@ -599,7 +594,7 @@ export function SearchChipRow({
         ).map(([preset, label]) => (
           <button
             key={preset}
-            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-[10px] text-[13px] text-left hover:bg-[var(--bg-hover)] transition-colors"
+            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-[var(--aster-radius-item,8px)] text-[13px] text-start hover:bg-[var(--aster-floating-hover,var(--bg-hover))]"
             style={{
               color:
                 date_preset === preset
@@ -613,15 +608,12 @@ export function SearchChipRow({
           </button>
         ))}
         {show_custom_range && (
-          <div
-            className="mt-1 pt-2 px-1 border-t flex flex-col gap-2"
-            style={{ borderColor: "var(--border-secondary)" }}
-          >
+          <div className="mt-1 pt-1 px-1 flex flex-col gap-2">
             <input
-              className="w-full h-8 px-2 rounded-[8px] text-xs outline-none border"
+              className="w-full h-8 px-2 rounded-[var(--aster-radius-item)] text-xs outline-none"
+              max={custom_before || undefined}
               style={{
-                backgroundColor: "var(--bg-secondary)",
-                borderColor: "var(--border-primary)",
+                backgroundColor: "var(--aster-hover)",
                 color: "var(--text-primary)",
               }}
               type="date"
@@ -629,10 +621,10 @@ export function SearchChipRow({
               onChange={(event) => set_custom_after(event.target.value)}
             />
             <input
-              className="w-full h-8 px-2 rounded-[8px] text-xs outline-none border"
+              className="w-full h-8 px-2 rounded-[var(--aster-radius-item)] text-xs outline-none"
+              min={custom_after || undefined}
               style={{
-                backgroundColor: "var(--bg-secondary)",
-                borderColor: "var(--border-primary)",
+                backgroundColor: "var(--aster-hover)",
                 color: "var(--text-primary)",
               }}
               type="date"
@@ -710,16 +702,12 @@ export function SearchChipRow({
   }
 
   return (
-    <div
-      className="flex items-center gap-2.5 px-4 py-2.5 overflow-x-auto border-b scrollbar-none"
-      style={{ borderColor: "var(--border-secondary)" }}
-    >
+    <div className="flex items-center gap-2.5 px-4 py-2.5 overflow-x-auto scrollbar-none">
       {ordered}
       <button
         className={CHIP_CLASS}
         style={{
-          backgroundColor: "var(--bg-secondary)",
-          borderColor: "var(--border-primary)",
+          backgroundColor: "var(--aster-hover)",
           color: "var(--accent-blue)",
         }}
         type="button"

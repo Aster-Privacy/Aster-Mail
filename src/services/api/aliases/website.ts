@@ -18,10 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
-
-
-
+import type {} from "@/lib/i18n/types";
 
 export const MAX_ALIAS_WEBSITES = 10;
 export const MAX_WEBSITE_URL_LENGTH = 200;
@@ -391,4 +388,3 @@ export function parse_websites_payload(payload: string): string[] {
     return [];
   }
 }
-

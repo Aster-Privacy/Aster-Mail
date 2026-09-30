@@ -30,150 +30,129 @@ import {
   LockClosedIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { Badge, Button } from "@aster/ui";
+import {
+  Button,
+  Island,
+  IslandRow,
+  IslandSection,
+  IslandSections,
+} from "@aster/ui";
+
+import { ExportModal } from "./export_modal";
 
 import { InfoPopover } from "@/components/ui/info_popover";
 import { use_i18n } from "@/lib/i18n/context";
-
-import { ExportModal } from "./export_modal";
 
 export function ExportSection() {
   const { t } = use_i18n();
   const [is_open, set_is_open] = useState(false);
 
+  const required_value = (
+    <span className="text-[13px] font-medium text-txt-muted">
+      {t("settings.export_security_required_badge")}
+    </span>
+  );
+
   return (
-    <div className="space-y-6">
-      <div>
-        <div className="mb-4">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <ArrowUpTrayIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.export_title")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
+    <IslandSections>
+      <IslandSection
+        icon={<ArrowUpTrayIcon />}
+        title={t("settings.export_title")}
+      >
+        <IslandRow
+          description={t("settings.export_description")}
+          label={t("settings.export_title")}
+          trailing={
+            <Button variant="depth" onClick={() => set_is_open(true)}>
+              <ArchiveBoxArrowDownIcon className="w-4 h-4" />
+              {t("settings.export_start_button")}
+            </Button>
+          }
+        />
+      </IslandSection>
 
-        <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pr-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.export_title")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.export_description")}
-            </p>
-          </div>
-          <Button variant="depth" onClick={() => set_is_open(true)}>
-            <ArchiveBoxArrowDownIcon className="w-4 h-4" />
-            {t("settings.export_start_button")}
-          </Button>
-        </div>
-      </div>
-
-      <div>
-        <div className="mb-4">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <ArchiveBoxArrowDownIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.export_step_scope_title")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-
-        <div className="flex items-start gap-3 py-4">
-          <EnvelopeIcon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
-          <div className="flex-1">
-            <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
+      <IslandSection
+        divided
+        icon={<ArchiveBoxArrowDownIcon />}
+        title={t("settings.export_step_scope_title")}
+      >
+        <IslandRow
+          description={t("settings.export_scope_mail_body")}
+          icon={<EnvelopeIcon />}
+          label={
+            <span className="flex items-center gap-1.5">
               {t("settings.export_scope_mail_title")}
-              <InfoPopover description={t("settings.export_scope_mail_help")} title={t("settings.export_scope_mail_title")} />
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.export_scope_mail_body")}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-start gap-3 py-4">
-          <UserGroupIcon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
-          <div className="flex-1">
-            <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
+              <InfoPopover
+                description={t("settings.export_scope_mail_help")}
+                title={t("settings.export_scope_mail_title")}
+              />
+            </span>
+          }
+        />
+        <IslandRow
+          description={t("settings.export_scope_contacts_body")}
+          icon={<UserGroupIcon />}
+          label={
+            <span className="flex items-center gap-1.5">
               {t("settings.export_scope_contacts_title")}
-              <InfoPopover description={t("settings.export_scope_contacts_help")} title={t("settings.export_scope_contacts_title")} />
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.export_scope_contacts_body")}
-            </p>
-          </div>
-        </div>
+              <InfoPopover
+                description={t("settings.export_scope_contacts_help")}
+                title={t("settings.export_scope_contacts_title")}
+              />
+            </span>
+          }
+        />
+        <IslandRow
+          description={t("settings.export_scope_settings_body")}
+          icon={<Cog6ToothIcon />}
+          label={t("settings.export_scope_settings_title")}
+        />
+      </IslandSection>
 
-        <div className="flex items-start gap-3 py-4">
-          <Cog6ToothIcon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.export_scope_settings_title")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.export_scope_settings_body")}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <div className="mb-4">
-          <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-            <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.export_security_section_title")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-
-        <div className="flex items-start gap-3 py-4">
-          <KeyIcon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
-          <div className="flex-1 pr-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.export_security_password_row_title")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.export_security_password_row_body")}
-            </p>
-          </div>
-          <Badge className="flex-shrink-0" color="blue">
-            {t("settings.export_security_required_badge")}
-          </Badge>
-        </div>
-
-        <div className="flex items-start gap-3 py-4">
-          <LockClosedIcon className="w-5 h-5 mt-0.5 text-txt-secondary flex-shrink-0" />
-          <div className="flex-1 pr-4">
-            <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
+      <IslandSection
+        divided
+        icon={<ShieldCheckIcon />}
+        title={t("settings.export_security_section_title")}
+      >
+        <IslandRow
+          description={t("settings.export_security_password_row_body")}
+          icon={<KeyIcon />}
+          label={t("settings.export_security_password_row_title")}
+          value={required_value}
+        />
+        <IslandRow
+          description={t("settings.export_security_vault_row_body")}
+          icon={<LockClosedIcon />}
+          label={
+            <span className="flex items-center gap-1.5">
               {t("settings.export_security_vault_row_title")}
-              <InfoPopover description={t("settings.export_security_vault_row_help")} title={t("settings.export_security_vault_row_title")} />
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.export_security_vault_row_body")}
-            </p>
-          </div>
-          <Badge className="flex-shrink-0" color="blue">
-            {t("settings.export_security_required_badge")}
-          </Badge>
-        </div>
-      </div>
+              <InfoPopover
+                description={t("settings.export_security_vault_row_help")}
+                title={t("settings.export_security_vault_row_title")}
+              />
+            </span>
+          }
+          value={required_value}
+        />
+      </IslandSection>
 
-      <div className="rounded-xl bg-amber-500 p-3.5">
-        <div className="flex items-start gap-2.5">
-          <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-amber-950 mt-[3px]" />
+      <Island padding="md" tone="warning">
+        <div className="flex items-start gap-3">
+          <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 text-amber-600 dark:text-amber-400 mt-px" />
           <div>
-            <p className="text-sm font-semibold text-amber-950">
+            <p className="text-sm font-semibold text-txt-primary">
               {t("settings.export_warning_title")}
             </p>
-            <p className="text-sm mt-1 leading-relaxed font-medium text-amber-950/90">
+            <p className="text-sm mt-1 leading-relaxed text-txt-secondary">
               {t("settings.export_warning_body")}
             </p>
           </div>
         </div>
-      </div>
+      </Island>
 
       {is_open && (
         <ExportModal is_open={is_open} on_close={() => set_is_open(false)} />
       )}
-    </div>
+    </IslandSections>
   );
 }

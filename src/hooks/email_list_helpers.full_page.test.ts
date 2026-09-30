@@ -25,7 +25,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { fetch_mail_from_api } from "./email_list_helpers";
 
 vi.mock("@/services/api/mail", async (import_original) => {
-  const original = await import_original<typeof import("@/services/api/mail")>();
+  const original =
+    await import_original<typeof import("@/services/api/mail")>();
 
   return {
     ...original,
@@ -120,11 +121,7 @@ describe("full page top-up", () => {
   it("does not refetch when the first page is already full", async () => {
     vi.mocked(list_mail_items).mockResolvedValueOnce(
       page(
-        [
-          make_item("a", false),
-          make_item("b", false),
-          make_item("c", false),
-        ],
+        [make_item("a", false), make_item("b", false), make_item("c", false)],
         true,
       ),
     );

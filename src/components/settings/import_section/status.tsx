@@ -20,17 +20,10 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-import {
-  CheckCircleIcon,
-  XCircleIcon,
-} from "@heroicons/react/24/outline";
-
+import { CheckCircleIcon, XCircleIcon } from "@heroicons/react/24/outline";
 
 import { Spinner } from "@/components/ui/spinner";
-import {
-  type ImportStatus,
-} from "@/services/api/email_import";
-
+import { type ImportStatus } from "@/services/api/email_import";
 
 export function get_status_icon(status: ImportStatus) {
   switch (status) {
@@ -73,24 +66,4 @@ export function get_status_label(
   }
 }
 
-export function format_relative_time(
-  date_string: string,
-  t: (key: TranslationKey, params?: Record<string, string | number>) => string,
-): string {
-  const date = new Date(date_string);
-  const now = new Date();
-  const diff_ms = now.getTime() - date.getTime();
-  const diff_minutes = Math.floor(diff_ms / 60000);
-  const diff_hours = Math.floor(diff_minutes / 60);
-  const diff_days = Math.floor(diff_hours / 24);
-
-  if (diff_minutes < 1) return t("settings.just_now");
-  if (diff_minutes < 60)
-    return t("common.minutes_ago_short", { count: diff_minutes });
-  if (diff_hours < 24)
-    return t("common.hours_ago_short", { count: diff_hours });
-  if (diff_days < 7) return t("common.days_ago_short", { count: diff_days });
-
-  return date.toLocaleDateString();
-}
-
+export { format_relative_time_short as format_relative_time } from "@/utils/date_utils";

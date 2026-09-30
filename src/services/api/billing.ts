@@ -21,7 +21,15 @@
 import { api_client } from "./client";
 
 import { format_bytes } from "@/lib/utils";
+import {
+  bonus_bytes_max,
+  bonus_bytes_per_referral,
+  referral_bytes,
+  referral_count,
+} from "@/lib/referral_bonus";
 import { payment_url_or_throw } from "@/lib/payment_url";
+import { mark_payment_navigation } from "@/lib/payment_navigation";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 export interface PlanInfo {
   id: string;
@@ -41,6 +49,24 @@ export interface StorageInfo {
   is_over_limit: boolean;
 }
 
+export interface PendingOffer {
+  code: string;
+  discount_label: string;
+  expires_at: string;
+}
+
+export interface YearlySwitchOffer {
+  plan_code: string;
+  monthly_price_cents: number;
+  yearly_price_cents: number;
+  saving_cents: number;
+}
+
+export interface CardDecline {
+  reason: string;
+  at: string;
+}
+
 export interface SubscriptionResponse {
   plan: PlanInfo;
   status: string;
@@ -54,7 +80,11 @@ export interface SubscriptionResponse {
   payment_provider?: string | null;
   paid_until?: string | null;
   has_stripe_subscription?: boolean;
+  pay_url?: string | null;
   active_discount_description?: string | null;
+  pending_offer?: PendingOffer | null;
+  last_card_decline?: CardDecline | null;
+  yearly_switch_offer?: YearlySwitchOffer | null;
 }
 
 export interface AvailablePlan {
@@ -69,12 +99,17 @@ export interface AvailablePlan {
   price_cents: number;
   billing_period: string | null;
   stripe_price_id: string | null;
-  is_current: boolean;
 }
 
 export interface AvailablePlansResponse {
   plans: AvailablePlan[];
-  current_plan_id: string | null;
+}
+
+export interface CurrentPlanResponse {
+  plan: AvailablePlan;
+  subscription_state: string;
+  started_at: string;
+  expires_at: string | null;
 }
 
 export interface CheckoutSessionResponse {
@@ -178,6 +213,17 @@ export async function get_available_plans() {
   return api_client.get<AvailablePlansResponse>("/payments/v1/plans");
 }
 
+export interface CurrentPlanResponse {
+  plan: AvailablePlan;
+  subscription_state: string;
+  started_at: string;
+  expires_at: string | null;
+}
+
+export async function get_current_plan() {
+  return api_client.get<CurrentPlanResponse>("/payments/v1/plans/current");
+}
+
 export interface CurrencyRatesResponse {
   base: string;
   rates: Record<string, number>;
@@ -187,7 +233,7 @@ export interface CurrencyRatesResponse {
 
 export async function get_currency_rates() {
   return api_client.get<CurrencyRatesResponse>(
-    "/public/v1/billing/currency-rates"
+    "/public/v1/billing/currency-rates",
   );
 }
 
@@ -198,16 +244,47 @@ export function billing_return_origin(): string {
   return window.location.origin;
 }
 
+export function billing_return_path(): string {
+  if (typeof window === "undefined") return "/";
+  if ("__TAURI_INTERNALS__" in window) return "/";
+
+  const path = window.location.pathname;
+
+  return path.startsWith("/") && !path.startsWith("//") ? path : "/";
+}
+
 export function billing_return_urls(): {
   success_url: string;
   cancel_url: string;
 } {
   const origin = billing_return_origin();
+  const path = billing_return_path();
 
   return {
-    success_url: `${origin}/?billing=success`,
-    cancel_url: `${origin}/?billing=cancelled`,
+    success_url: `${origin}${path}?billing=success`,
+    cancel_url: `${origin}${path}?billing=cancelled`,
   };
+}
+
+const promo_code_arrival_key = "aster_arrived_with_promo_code";
+
+export function arrived_with_promo_code(): boolean {
+  if (typeof window === "undefined") return false;
+
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("promo") ?? params.get("coupon");
+
+    if (code && code.trim().length > 0) {
+      window.sessionStorage.setItem(promo_code_arrival_key, "1");
+
+      return true;
+    }
+
+    return window.sessionStorage.getItem(promo_code_arrival_key) === "1";
+  } catch {
+    return false;
+  }
 }
 
 export async function create_checkout_session(
@@ -215,8 +292,11 @@ export async function create_checkout_session(
   billing_interval: string = "month",
   currency?: string,
   apply_credits_cents?: number,
+  promo_code?: string,
+  special_offer?: boolean,
 ) {
   const { success_url, cancel_url } = billing_return_urls();
+  const code = promo_code?.trim();
 
   return api_client.post<CheckoutSessionResponse>(
     "/payments/v1/checkout-session",
@@ -226,7 +306,12 @@ export async function create_checkout_session(
       success_url,
       cancel_url,
       ...(currency ? { currency } : {}),
-      ...(apply_credits_cents && apply_credits_cents > 0 ? { apply_credits_cents } : {}),
+      ...(apply_credits_cents && apply_credits_cents > 0
+        ? { apply_credits_cents }
+        : {}),
+      ...(code ? { promo_code: code } : {}),
+      ...(arrived_with_promo_code() ? { arrived_with_promo_code: true } : {}),
+      ...(special_offer ? { special_offer: true } : {}),
     },
   );
 }
@@ -236,20 +321,29 @@ export async function start_hosted_checkout(
   billing_interval: string = "month",
   currency?: string,
   apply_credits_cents?: number,
-): Promise<{ ok: boolean; error?: string }> {
+  promo_code?: string,
+  special_offer?: boolean,
+): Promise<{ ok: boolean; error?: string; server_code?: string }> {
   const response = await create_checkout_session(
     plan_code,
     billing_interval,
     currency,
     apply_credits_cents,
+    promo_code,
+    special_offer,
   );
 
   const url = response.data?.url;
 
   if (!url) {
-    return { ok: false, error: response.error || "no_checkout_url" };
+    return {
+      ok: false,
+      error: response.error || "no_checkout_url",
+      server_code: response.server_code,
+    };
   }
 
+  remember_checkout_target(plan_code, billing_interval, special_offer);
   await open_payment_url(url);
 
   return { ok: true };
@@ -272,14 +366,18 @@ export async function open_billing_portal(): Promise<{
   return { ok: true };
 }
 
-async function open_payment_url(url: string): Promise<void> {
+export async function open_payment_url(url: string): Promise<void> {
   const safe = payment_url_or_throw(url);
 
   if (typeof window !== "undefined" && "__TAURI_INTERNALS__" in window) {
     const core = await import("@tauri-apps/api/core");
+
     await core.invoke("open_external_url", { url: safe });
+
     return;
   }
+
+  mark_payment_navigation();
   window.location.assign(safe);
 }
 
@@ -287,15 +385,173 @@ export interface PlanChangePreviewResponse {
   credit_cents: number;
   amount_due_cents: number;
   currency: string;
+  discount_cents?: number;
+  promo_code_applied?: boolean;
+  discount_description?: string | null;
+  amount_due_before_discount_cents?: number | null;
+  promo_code?: string | null;
+  discount_percent_off?: number | null;
+  discount_amount_off_cents?: number | null;
+  discount_duration?: string | null;
+  discount_duration_in_months?: number | null;
 }
 
 export async function preview_plan_change(
   plan_code: string,
   billing_interval: string = "month",
-): Promise<{ data?: PlanChangePreviewResponse; error?: string }> {
+  promo_code?: string,
+): Promise<{
+  data?: PlanChangePreviewResponse;
+  error?: string;
+  server_code?: string;
+}> {
+  const promo_query = promo_code
+    ? `&promo_code=${encodeURIComponent(promo_code)}`
+    : "";
+
   return api_client.get<PlanChangePreviewResponse>(
-    `/payments/v1/change-plan-preview?plan_code=${encodeURIComponent(plan_code)}&billing_interval=${encodeURIComponent(billing_interval)}`,
+    `/payments/v1/change-plan-preview?plan_code=${encodeURIComponent(plan_code)}&billing_interval=${encodeURIComponent(billing_interval)}${promo_query}`,
+    { skip_cache: true },
   );
+}
+
+export const BILLING_TARGET_PLAN_KEY = "aster_billing_target_plan";
+
+export interface CheckoutTarget {
+  plan_code: string;
+  billing_interval: string;
+  special_offer: boolean;
+}
+
+const SPECIAL_OFFER_TARGET_FLAG = "offer";
+
+export function remember_checkout_target(
+  plan_code: string,
+  billing_interval: string = "month",
+  special_offer: boolean = false,
+): void {
+  try {
+    sessionStorage.setItem(
+      BILLING_TARGET_PLAN_KEY,
+      [
+        plan_code,
+        billing_interval,
+        ...(special_offer ? [SPECIAL_OFFER_TARGET_FLAG] : []),
+      ].join("|"),
+    );
+  } catch {
+    return;
+  }
+}
+
+export function read_checkout_target(): CheckoutTarget | null {
+  let raw: string | null = null;
+
+  try {
+    raw = sessionStorage.getItem(BILLING_TARGET_PLAN_KEY);
+  } catch {
+    return null;
+  }
+
+  if (!raw) return null;
+
+  const [plan_code, billing_interval, flag] = raw.split("|");
+
+  if (!plan_code) return null;
+
+  return {
+    plan_code,
+    billing_interval: billing_interval || "month",
+    special_offer: flag === SPECIAL_OFFER_TARGET_FLAG,
+  };
+}
+
+export function clear_checkout_target(): void {
+  try {
+    sessionStorage.removeItem(BILLING_TARGET_PLAN_KEY);
+  } catch {
+    return;
+  }
+}
+
+export const BILLING_RESUME_KEY = "aster_billing_resume";
+
+export const BILLING_RESUME_EVENT = "aster:billing-resume-checkout";
+
+export const ADDON_TARGET_KEY = "aster_billing_target_addon";
+
+export function request_checkout_resume(): void {
+  try {
+    sessionStorage.setItem(BILLING_RESUME_KEY, "1");
+  } catch {
+    return;
+  }
+  try {
+    window.dispatchEvent(new CustomEvent(BILLING_RESUME_EVENT));
+  } catch {
+    return;
+  }
+}
+
+export function consume_checkout_resume(): boolean {
+  try {
+    if (sessionStorage.getItem(BILLING_RESUME_KEY) !== "1") return false;
+    sessionStorage.removeItem(BILLING_RESUME_KEY);
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export const ADDON_RESUME_KEY = "aster_billing_resume_addon";
+
+export function request_addon_resume(): void {
+  try {
+    sessionStorage.setItem(ADDON_RESUME_KEY, "1");
+  } catch {
+    return;
+  }
+  try {
+    window.dispatchEvent(new CustomEvent(BILLING_RESUME_EVENT));
+  } catch {
+    return;
+  }
+}
+
+export function consume_addon_resume(): boolean {
+  try {
+    if (sessionStorage.getItem(ADDON_RESUME_KEY) !== "1") return false;
+    sessionStorage.removeItem(ADDON_RESUME_KEY);
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function remember_addon_target(addon_id: string): void {
+  try {
+    sessionStorage.setItem(ADDON_TARGET_KEY, addon_id);
+  } catch {
+    return;
+  }
+}
+
+export function read_addon_target(): string | null {
+  try {
+    return sessionStorage.getItem(ADDON_TARGET_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export function clear_addon_target(): void {
+  try {
+    sessionStorage.removeItem(ADDON_TARGET_KEY);
+  } catch {
+    return;
+  }
 }
 
 export async function change_plan(
@@ -303,7 +559,13 @@ export async function change_plan(
   billing_interval: string = "month",
   success_url?: string,
   cancel_url?: string,
-): Promise<{ ok: boolean; requires_checkout: boolean; error?: string }> {
+  promo_code?: string,
+): Promise<{
+  ok: boolean;
+  requires_checkout: boolean;
+  error?: string;
+  server_code?: string;
+}> {
   const response = await api_client.post<{
     plan_code?: string;
     billing_interval?: string;
@@ -313,14 +575,22 @@ export async function change_plan(
     billing_interval,
     success_url: success_url ?? billing_return_urls().success_url,
     cancel_url: cancel_url ?? billing_return_urls().cancel_url,
+    ...(promo_code ? { promo_code } : {}),
   });
 
   if (response.error || !response.data) {
-    return { ok: false, requires_checkout: false, error: response.error || "change_failed" };
+    return {
+      ok: false,
+      requires_checkout: false,
+      error: response.error || "change_failed",
+      server_code: response.server_code,
+    };
   }
 
   if (response.data.checkout_url) {
+    remember_checkout_target(plan_code, billing_interval);
     await open_payment_url(response.data.checkout_url);
+
     return { ok: true, requires_checkout: true };
   }
 
@@ -332,7 +602,11 @@ export async function create_crypto_checkout_session(
   term_months: number,
   success_url?: string,
   cancel_url?: string,
+  promo_code?: string,
+  special_offer?: boolean,
 ) {
+  const code = promo_code?.trim();
+
   return api_client.post<CheckoutSessionResponse>(
     "/payments/v1/crypto/checkout-session",
     {
@@ -340,6 +614,8 @@ export async function create_crypto_checkout_session(
       term_months,
       ...(success_url ? { success_url } : {}),
       ...(cancel_url ? { cancel_url } : {}),
+      ...(code ? { promo_code: code } : {}),
+      ...(special_offer ? { special_offer: true } : {}),
     },
   );
 }
@@ -387,6 +663,7 @@ export interface CryptoNativeInvoiceResponse {
 
 export interface CryptoNativeInvoiceStatus {
   id: string;
+  kind?: string;
   currency: string;
   chain: string;
   display_name: string;
@@ -445,10 +722,33 @@ export async function create_crypto_native_invoice(
   term_months: number,
   currency: string,
   chain: string,
+  promo_code?: string,
+  special_offer?: boolean,
+) {
+  const code = promo_code?.trim();
+
+  return api_client.post<CryptoNativeInvoiceResponse>(
+    "/payments/v1/crypto-native/invoice",
+    {
+      plan_code,
+      term_months,
+      currency,
+      chain,
+      ...(code ? { promo_code: code } : {}),
+      ...(special_offer ? { special_offer: true } : {}),
+    },
+  );
+}
+
+export async function create_crypto_native_addon_invoice(
+  addon_id: string,
+  term_months: number,
+  currency: string,
+  chain: string,
 ) {
   return api_client.post<CryptoNativeInvoiceResponse>(
     "/payments/v1/crypto-native/invoice",
-    { plan_code, term_months, currency, chain },
+    { addon_id, term_months, currency, chain },
   );
 }
 
@@ -509,6 +809,10 @@ export async function reactivate_subscription() {
   return api_client.post<ReactivateResponse>("/payments/v1/reactivate", {});
 }
 
+export async function record_yearly_switch_click(): Promise<void> {
+  await api_client.post("/payments/v1/yearly-switch-click", {});
+}
+
 export async function switch_billing_interval(billing_interval: string) {
   return api_client.post<SwitchBillingResponse>("/payments/v1/switch-billing", {
     billing_interval,
@@ -549,6 +853,9 @@ export interface UserActiveAddon {
 export interface StorageAddonsResponse {
   available_addons: StorageAddonItem[];
   active_addons: UserActiveAddon[];
+  promo_eligible?: boolean;
+  promo_percent_off?: number;
+  promo_duration_months?: number;
 }
 
 export interface PurchaseAddonResponse {
@@ -559,12 +866,21 @@ export async function get_storage_addons() {
   return api_client.get<StorageAddonsResponse>("/sync/v1/storage/addons");
 }
 
-export async function purchase_storage_addon(addon_id: string, apply_credits_cents?: number) {
+export async function purchase_storage_addon(
+  addon_id: string,
+  apply_credits_cents?: number,
+  success_url?: string,
+  cancel_url?: string,
+) {
   return api_client.post<PurchaseAddonResponse>(
     "/sync/v1/storage/addons/purchase",
     {
       addon_id,
-      ...(apply_credits_cents && apply_credits_cents > 0 ? { apply_credits_cents } : {}),
+      ...(apply_credits_cents && apply_credits_cents > 0
+        ? { apply_credits_cents }
+        : {}),
+      ...(success_url ? { success_url } : {}),
+      ...(cancel_url ? { cancel_url } : {}),
     },
   );
 }
@@ -610,7 +926,7 @@ export { format_bytes as format_storage };
 export function format_price(cents: number, currency: string = "usd"): string {
   const amount = cents / 100;
 
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(app_locale(), {
     style: "currency",
     currency: currency.toUpperCase(),
   }).format(amount);
@@ -619,7 +935,8 @@ export function format_price(cents: number, currency: string = "usd"): string {
 export function format_date(date_string: string | null): string {
   if (!date_string) return "-";
 
-  return new Date(date_string).toLocaleDateString(undefined, {
+  return new Date(date_string).toLocaleDateString(app_locale(), {
+    timeZone: get_display_time_zone(),
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -698,7 +1015,10 @@ export async function create_subscription_intent(
   promo_code?: string,
   apply_credits_cents?: number,
 ) {
-  const payload: Record<string, string | number> = { plan_code, billing_interval };
+  const payload: Record<string, string | number> = {
+    plan_code,
+    billing_interval,
+  };
 
   if (currency) payload.currency = currency;
   if (promo_code) payload.promo_code = promo_code;
@@ -751,8 +1071,15 @@ export async function create_setup_intent() {
   );
 }
 
+export interface PaymentMethodActionResponse {
+  success: boolean;
+  retry_attempted?: boolean;
+  retry_succeeded?: boolean;
+  decline_code?: string | null;
+}
+
 export async function set_default_payment_method(payment_method_id: string) {
-  return api_client.post<{ success: boolean }>(
+  return api_client.post<PaymentMethodActionResponse>(
     "/payments/v1/payment-methods/default",
     { payment_method_id },
   );
@@ -831,20 +1158,28 @@ export interface PurchaseCreditsResponse {
 }
 
 export async function get_credit_packages() {
-  return api_client.get<CreditPackagesResponse>("/payments/v1/credits/packages");
+  return api_client.get<CreditPackagesResponse>(
+    "/payments/v1/credits/packages",
+  );
 }
 
 export async function purchase_credits(package_id: string, currency?: string) {
-  return api_client.post<PurchaseCreditsResponse>("/payments/v1/credits/purchase", {
-    package_id,
-    ...(currency ? { currency } : {}),
-  });
+  return api_client.post<PurchaseCreditsResponse>(
+    "/payments/v1/credits/purchase",
+    {
+      package_id,
+      ...(currency ? { currency } : {}),
+    },
+  );
 }
 
 export async function purchase_credits_crypto(package_id: string) {
-  return api_client.post<PurchaseCreditsResponse>("/payments/v1/credits/crypto-purchase", {
-    package_id,
-  });
+  return api_client.post<PurchaseCreditsResponse>(
+    "/payments/v1/credits/crypto-purchase",
+    {
+      package_id,
+    },
+  );
 }
 
 export interface CreditPaymentIntentResponse {
@@ -854,11 +1189,17 @@ export interface CreditPaymentIntentResponse {
   currency: string;
 }
 
-export async function create_credit_payment_intent(package_id: string, currency: string) {
-  return api_client.post<CreditPaymentIntentResponse>("/payments/v1/credits/payment-intent", {
-    package_id,
-    currency,
-  });
+export async function create_credit_payment_intent(
+  package_id: string,
+  currency: string,
+) {
+  return api_client.post<CreditPaymentIntentResponse>(
+    "/payments/v1/credits/payment-intent",
+    {
+      package_id,
+      currency,
+    },
+  );
 }
 
 export async function confirm_credit_purchase(payment_intent_id: string) {
@@ -883,6 +1224,10 @@ export interface ReferralInfo {
   earned_install_ios_cents?: number;
   earned_install_android_cents?: number;
   earned_install_desktop_cents?: number;
+  activated_referrals: number;
+  bonus_bytes_earned: number;
+  bonus_bytes_per_referral: number;
+  bonus_bytes_max: number;
 }
 
 export interface ReferralHistoryItem {
@@ -892,6 +1237,8 @@ export interface ReferralHistoryItem {
   referrer_credit_cents: number;
   created_at: string;
   completed_at: string | null;
+  bonus_bytes: number;
+  activated_at: string | null;
 }
 
 export interface ReferralHistoryResponse {
@@ -906,10 +1253,26 @@ export interface MyReferralStatus {
   discount_issued_at: string | null;
   discount_redeemed_at: string | null;
   discount_expires_at: string | null;
+  can_claim: boolean;
+  claim_window_ends_at: string | null;
+  bonus_bytes: number;
 }
 
 export async function get_my_referral_status() {
-  return api_client.get<MyReferralStatus>("/payments/v1/referrals/me");
+  const response = await api_client.get<MyReferralStatus>(
+    "/payments/v1/referrals/me",
+  );
+
+  if (!response.data) return response;
+
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      can_claim: response.data.can_claim === true,
+      bonus_bytes: bonus_bytes_per_referral(response.data.bonus_bytes),
+    },
+  };
 }
 
 export interface MyAffiliateStatus {
@@ -954,7 +1317,23 @@ export async function list_my_affiliate_payout_requests() {
 }
 
 export async function get_referral_info() {
-  return api_client.get<ReferralInfo>("/payments/v1/referrals");
+  const response = await api_client.get<ReferralInfo>("/payments/v1/referrals");
+
+  if (!response.data) return response;
+
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      total_referrals: referral_count(response.data.total_referrals),
+      activated_referrals: referral_count(response.data.activated_referrals),
+      bonus_bytes_earned: referral_bytes(response.data.bonus_bytes_earned),
+      bonus_bytes_per_referral: bonus_bytes_per_referral(
+        response.data.bonus_bytes_per_referral,
+      ),
+      bonus_bytes_max: bonus_bytes_max(response.data.bonus_bytes_max),
+    },
+  };
 }
 
 export function build_referral_invite_url(referral_code: string): string {
@@ -967,45 +1346,37 @@ export function build_referral_invite_url(referral_code: string): string {
 }
 
 export async function get_referral_history() {
-  return api_client.get<ReferralHistoryResponse>(
+  const response = await api_client.get<ReferralHistoryResponse>(
     "/payments/v1/referrals/history",
   );
+
+  if (!response.data) return response;
+
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      referrals: (response.data.referrals ?? []).map((item) => ({
+        ...item,
+        bonus_bytes: referral_bytes(item.bonus_bytes),
+      })),
+    },
+  };
 }
 
-export interface BillingAddressInfo {
-  company_name: string | null;
-  vat_number: string | null;
-  address_line1: string | null;
-  address_line2: string | null;
-  city: string | null;
-  state: string | null;
-  postal_code: string | null;
-  country: string | null;
+export interface ClaimReferralResponse {
+  accepted: boolean;
+  referrer_display_name: string | null;
+  bonus_bytes_per_referral: number;
 }
 
-export async function get_billing_address() {
-  return api_client.get<BillingAddressInfo>("/payments/v1/billing-address");
-}
-
-export async function update_billing_address(address: BillingAddressInfo) {
-  return api_client.post<{ success: boolean }>(
-    "/payments/v1/billing-address",
-    address,
+export async function claim_referral_code(code: string) {
+  return api_client.post<ClaimReferralResponse>(
+    "/payments/v1/referrals/claim",
+    { code },
   );
 }
 
-export interface DataExportResponse {
-  export_id: string;
-  status: string;
-  download_url: string | null;
-  created_at: string;
-  expires_at: string | null;
-}
-
-export async function request_data_export() {
-  return api_client.post<DataExportResponse>("/api/v1/account/export", {});
-}
-
-export async function get_data_export_status() {
-  return api_client.get<DataExportResponse>("/api/v1/account/export");
+export async function record_referral_share() {
+  return api_client.post<void>("/payments/v1/referrals/share", {});
 }

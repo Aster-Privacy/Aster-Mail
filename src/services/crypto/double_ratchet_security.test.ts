@@ -122,9 +122,7 @@ describe("DoubleRatchet state-corruption resistance", () => {
 
     const tampered: EncryptedMessage = {
       ...enc,
-      ciphertext: btoa(
-        String.fromCharCode(...new Uint8Array(32).fill(0x42)),
-      ),
+      ciphertext: btoa(String.fromCharCode(...new Uint8Array(32).fill(0x42))),
     };
 
     const before = snapshot_state(bob);

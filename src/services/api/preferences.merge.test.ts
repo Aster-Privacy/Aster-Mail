@@ -55,7 +55,9 @@ describe("build_merged_preferences", () => {
     const merged = build_merged_preferences(server, cached);
 
     expect(merged.undo_send_period).toBe("30 seconds");
-    expect(merged.undo_send_period).not.toBe(DEFAULT_PREFERENCES.undo_send_period);
+    expect(merged.undo_send_period).not.toBe(
+      DEFAULT_PREFERENCES.undo_send_period,
+    );
     expect(merged.show_aster_branding).toBe(false);
   });
 
@@ -161,5 +163,131 @@ describe("build_merged_preferences", () => {
     });
 
     expect(merged.theme).toBe("system");
+  });
+
+  it("replaces a sort order a mobile client left unset so the sort menu still shows a choice", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      inbox_sort_order: "",
+      conversation_order: "newest",
+    };
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.inbox_sort_order).toBe("newest_first");
+    expect(merged.conversation_order).toBe("asc");
+  });
+
+  it("keeps an oldest-first inbox written by an older mobile client", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      inbox_sort_order: "",
+      conversation_order: "oldest",
+    };
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.inbox_sort_order).toBe("oldest_first");
+    expect(merged.conversation_order).toBe("asc");
+  });
+
+  it("leaves a valid sort order and conversation order alone", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      inbox_sort_order: "oldest_first",
+      conversation_order: "desc",
+    };
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.inbox_sort_order).toBe("oldest_first");
+    expect(merged.conversation_order).toBe("desc");
+  });
+
+  it("replaces a date format a mobile client left unset so the date format menu still shows a choice", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      date_format: "",
+      time_format: "",
+    };
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.date_format).toBe("MM/DD/YYYY");
+    expect(merged.time_format).toBe("12h");
+  });
+
+  it("leaves a valid date format and time format alone", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      date_format: "DD/MM/YYYY",
+      time_format: "24h",
+    };
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.date_format).toBe("DD/MM/YYYY");
+    expect(merged.time_format).toBe("24h");
+  });
+  it("restores the mobile toolbar when a stored blob holds a non-array value", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      mobile_toolbar_actions: "trash",
+    };
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.mobile_toolbar_actions).toEqual(
+      DEFAULT_PREFERENCES.mobile_toolbar_actions,
+    );
+  });
+
+  it("drops non-string entries from the mobile toolbar", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      mobile_toolbar_actions: ["trash", 7, "star"],
+    };
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.mobile_toolbar_actions).toEqual(["trash", "star"]);
+  });
+  it("upgrades legacy swipe action ids so the swipe list shows a selection", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      swipe_left_action: "trash",
+      swipe_right_action: "mark_read",
+    };
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.swipe_left_action).toBe("delete");
+    expect(merged.swipe_right_action).toBe("toggle_read");
+  });
+
+  it("falls back to the default swipe action for an unknown id", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      swipe_left_action: "teleport",
+      swipe_right_action: "",
+    };
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.swipe_left_action).toBe("archive");
+    expect(merged.swipe_right_action).toBe("toggle_read");
+  });
+
+  it("leaves a supported swipe action alone", () => {
+    const server: Record<string, unknown> = {
+      ...DEFAULT_PREFERENCES,
+      swipe_left_action: "snooze",
+      swipe_right_action: "none",
+    };
+
+    const merged = build_merged_preferences(server, null);
+
+    expect(merged.swipe_left_action).toBe("snooze");
+    expect(merged.swipe_right_action).toBe("none");
   });
 });

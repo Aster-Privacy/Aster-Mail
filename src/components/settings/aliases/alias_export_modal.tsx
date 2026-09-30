@@ -183,6 +183,14 @@ export function AliasExportModal({
 
         if (cancelled) return;
 
+        if (
+          directory_response.error ||
+          ghost_response.error ||
+          counts_response.error
+        ) {
+          set_error(t("settings.alias_export_load_failed"));
+        }
+
         if (directory_response.data) {
           const decrypted = await Promise.all(
             directory_response.data.directories.map((directory) =>
@@ -517,7 +525,7 @@ export function AliasExportModal({
                 {(["csv", "json"] as ExportFormat[]).map((option) => (
                   <label
                     key={option}
-                    className="flex items-center gap-3 rounded-lg border border-edge-secondary px-3 py-2.5 cursor-pointer hover:bg-surf-secondary"
+                    className="flex items-center gap-3 rounded-[var(--aster-radius-control)] border border-edge-secondary px-3 py-2.5 cursor-pointer hover:bg-surf-secondary"
                     htmlFor={`alias-export-format-${option}`}
                   >
                     <input
@@ -558,8 +566,8 @@ export function AliasExportModal({
 
             <p className="text-sm text-txt-secondary">
               {t("settings.alias_export_summary", {
-                rows: total_rows,
-                files: active_sources.length,
+                count: total_rows,
+                files: t("common.file_count", { count: active_sources.length }),
               })}
             </p>
 

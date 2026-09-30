@@ -66,7 +66,11 @@ export function EmailViewerHeader({
     >
       <motion.button
         className="text-blue-500 hover:text-blue-600 font-medium transition-all px-2 py-1 rounded-lg"
-        whileHover={{ x: -4, backgroundColor: "color-mix(in srgb, var(--accent-color) 8%, transparent)" }}
+        whileHover={{
+          x: -4,
+          backgroundColor:
+            "color-mix(in srgb, var(--accent-color) 8%, transparent)",
+        }}
         onClick={on_close}
       >
         ← {t("mail.back")}

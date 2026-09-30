@@ -19,16 +19,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-
+import { clear_search_index } from "./index_cache";
+import { SavedSearch, SearchHistoryEntry } from "./types";
 
 import {
   secure_store,
   secure_retrieve,
   secure_remove,
 } from "@/services/crypto/secure_storage";
-
-import { clear_search_index } from "./index_cache";
-import { SavedSearch, SearchHistoryEntry } from "./types";
 export const SEARCH_HISTORY_LIMIT = 20;
 export const SAVED_SEARCH_LIMIT = 50;
 
@@ -50,11 +48,16 @@ export async function read_secure_array<T>(key: string): Promise<T[]> {
   }
 }
 
-export async function write_secure_array<T>(key: string, value: T[]): Promise<void> {
+export async function write_secure_array<T>(
+  key: string,
+  value: T[],
+): Promise<boolean> {
   try {
     await secure_store(key, value);
+
+    return true;
   } catch {
-    return;
+    return false;
   }
 }
 
@@ -146,10 +149,12 @@ export async function save_search_to_storage(
     created_at: Date.now(),
   };
 
-  await write_secure_array(
+  const written = await write_secure_array(
     key,
     [search, ...existing].slice(0, SAVED_SEARCH_LIMIT),
   );
+
+  if (!written) return { success: false };
 
   return { success: true, search };
 }
@@ -204,4 +209,3 @@ export async function clear_search_data(
     clear_search_index();
   }
 }
-

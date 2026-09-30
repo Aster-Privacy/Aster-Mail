@@ -21,9 +21,14 @@
 import type { SpamSettings } from "@/services/api/preferences";
 import type { MemberRetentionPolicy } from "@/services/api/family_org";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Capacitor } from "@capacitor/core";
-import { Badge, Switch } from "@aster/ui";
+import {
+  Button,
+  IslandSection,
+  IslandSections,
+  SettingToggleRow,
+} from "@aster/ui";
 import {
   BookOpenIcon,
   PencilSquareIcon,
@@ -32,13 +37,31 @@ import {
   QuestionMarkCircleIcon,
   Cog6ToothIcon,
   ShieldCheckIcon,
+  TrashIcon,
   ViewColumnsIcon,
   LanguageIcon,
 } from "@heroicons/react/24/outline";
 
 import { SettingsSaveIndicatorInline } from "../settings_save_indicator";
 
-import { RebuildConversationsSetting } from "./rebuild_conversations_setting";
+import {
+  LanguagePicker,
+  SIDEBAR_DEFAULT_WIDTH,
+  SIDEBAR_MAX_WIDTH,
+  SIDEBAR_MIN_WIDTH,
+  SIDEBAR_PRESET_WIDTHS,
+  SelectSetting,
+  ToggleSetting,
+  UNDO_DEFAULT_SECONDS,
+  UNDO_MAX_SECONDS,
+  UNDO_MIN_SECONDS,
+  UNDO_PRESET_SECONDS,
+  undo_send_is_active,
+  clamp_sidebar_width,
+  clamp_undo_seconds,
+} from "./shared";
+import { TranslationPacks } from "./translation_packs";
+import { apply_spam_settings_patch } from "./spam_settings_sync";
 
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_auth } from "@/contexts/auth_context";
@@ -52,6 +75,7 @@ import {
   get_spam_settings,
   save_spam_settings,
 } from "@/services/api/preferences";
+import { commit_on_enter } from "@/lib/commit_on_enter";
 import { get_member_retention_policy } from "@/services/api/family_org";
 import { get_vault_from_memory } from "@/services/crypto/memory_key_store";
 import { Input } from "@/components/ui/input";
@@ -68,12 +92,8 @@ import {
 import { cn } from "@/lib/utils";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_register_search_items } from "@/components/settings/search_context";
-import {
-  type LanguageCode,
-} from "@/services/translation/engine_types";
-import {
-  derive_accepted_languages,
-} from "@/services/translation/accepted_languages";
+import { type LanguageCode } from "@/services/translation/engine_types";
+import { derive_accepted_languages } from "@/services/translation/accepted_languages";
 import { InfoPopover } from "@/components/ui/info_popover";
 import {
   INBOX_PAGE_SIZE_OPTIONS,
@@ -81,9 +101,9 @@ import {
 } from "@/lib/inbox_page_size";
 import { UpgradeGate } from "@/components/common/upgrade_gate";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
-import { LanguagePicker, SIDEBAR_DEFAULT_WIDTH, SIDEBAR_MAX_WIDTH, SIDEBAR_MIN_WIDTH, SIDEBAR_PRESET_WIDTHS, SelectSetting, ToggleSetting, UNDO_DEFAULT_SECONDS, UNDO_MAX_SECONDS, UNDO_MIN_SECONDS, UNDO_PRESET_SECONDS, clamp_sidebar_width, clamp_undo_seconds } from "./shared";
-
 import { ignore_error } from "@/lib/ignore_error";
+import { get_close_to_tray, set_close_to_tray } from "@/native/tauri_tray";
+import { show_toast } from "@/components/toast/simple_toast";
 
 export function BehaviorSection() {
   const { preferences, update_preference, update_preferences } =
@@ -105,20 +125,26 @@ export function BehaviorSection() {
       ],
     },
     {
+      label: t("settings.sender_pictures"),
+      breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
+      keywords: ["avatar", "picture", "photo", "sender", "profile"],
+    },
+    {
       label: t("settings.show_alias_indicators"),
       breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
       keywords: ["alias", "indicator", "badge", "delivered to"],
     },
     {
-      label: t("settings.rebuild_conversations"),
+      label: t("settings.relative_dates"),
       breadcrumb: `${t("settings.behavior")} > ${t("settings.reading_and_conversations")}`,
       keywords: [
-        "thread",
-        "threading",
-        "conversation",
-        "regroup",
-        "split",
-        "rebuild",
+        "relative",
+        "dates",
+        "today",
+        "yesterday",
+        "timestamp",
+        "date",
+        "time",
       ],
     },
     {
@@ -154,11 +180,15 @@ export function BehaviorSection() {
   };
 
   const remove_read_language = (code: string) => {
-    update_preference(
-      "translate_languages",
-      read_languages.filter((c) => c !== code),
-      true,
-    );
+    const remaining = read_languages.filter((c) => c !== code);
+
+    if (remaining.length === 0) {
+      show_toast(t("settings.translate_languages_keep_one"), "error");
+
+      return;
+    }
+
+    update_preference("translate_languages", remaining, true);
   };
 
   const add_never_language = (code: string) => {
@@ -176,24 +206,44 @@ export function BehaviorSection() {
       true,
     );
   };
+  const [sidebar_width_input, set_sidebar_width_input] = useState<
+    string | null
+  >(null);
   const [undo_input_value, set_undo_input_value] = useState<string | null>(
     null,
+  );
+  const undo_send_active = undo_send_is_active(
+    preferences.undo_send_enabled,
+    preferences.undo_send_seconds,
   );
   const [dev_mode_enabled, set_dev_mode_enabled] = useState(
     () => read_dev_mode_cache(current_account_id) ?? false,
   );
   const [is_dragging_sidebar_width, set_is_dragging_sidebar_width] =
     useState(false);
+  const commit_sidebar_width = useCallback(() => {
+    update_preference(
+      "sidebar_width",
+      clamp_sidebar_width(preferences.sidebar_width ?? SIDEBAR_DEFAULT_WIDTH),
+      true,
+    );
+  }, [preferences.sidebar_width, update_preference]);
   const [spam_settings, set_spam_settings] = useState<SpamSettings>({
     spam_retention_days: 30,
     spam_sensitivity: "medium",
     spam_filter_enabled: true,
+    trash_retention_days: 30,
   });
   const dev_mode_generation_ref = useRef(0);
   const spam_generation_ref = useRef(0);
+  const spam_loaded_ref = useRef(false);
+  const [spam_load_failed, set_spam_load_failed] = useState(false);
   const [family_policy, set_family_policy] =
     useState<MemberRetentionPolicy | null>(null);
   const [show_grouping_dialog, set_show_grouping_dialog] = useState(false);
+  const [pending_translate_mode, set_pending_translate_mode] = useState<
+    "ask" | "always" | null
+  >(null);
   const [mailto_registered, set_mailto_registered] = useState(() => {
     try {
       return localStorage.getItem("aster:mailto_handler") === "true";
@@ -203,6 +253,23 @@ export function BehaviorSection() {
   });
   const is_web =
     !Capacitor.isNativePlatform() && !("__TAURI_INTERNALS__" in window);
+  const is_desktop_app = "__TAURI_INTERNALS__" in window;
+  const [close_to_tray, set_close_to_tray_state] = useState(() =>
+    get_close_to_tray(),
+  );
+
+  const handle_close_to_tray_toggle = async () => {
+    const previous = close_to_tray;
+    const next = !previous;
+
+    set_close_to_tray_state(next);
+    const applied = await set_close_to_tray(next);
+
+    if (!applied) {
+      set_close_to_tray_state(previous);
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    }
+  };
 
   useEffect(() => {
     const vault = get_vault_from_memory();
@@ -220,8 +287,13 @@ export function BehaviorSection() {
       if (spam_generation !== spam_generation_ref.current) return;
 
       if (result.data) {
+        spam_loaded_ref.current = true;
         set_spam_settings(result.data);
+        set_spam_load_failed(false);
+
+        return;
       }
+      set_spam_load_failed(true);
     });
     get_member_retention_policy()
       .then((result) => {
@@ -229,30 +301,127 @@ export function BehaviorSection() {
           set_family_policy(result.data);
         }
       })
-      .catch((caught) => ignore_error("components/settings/behavior_section/behavior_section:remove_never_language", caught));
+      .catch((caught) =>
+        ignore_error(
+          "components/settings/behavior_section/behavior_section:remove_never_language",
+          caught,
+        ),
+      );
   }, [current_account_id]);
 
   const handle_dev_mode_toggle = async () => {
     const vault = get_vault_from_memory();
 
-    if (!vault) return;
+    if (!vault) {
+      show_toast(t("settings.dev_mode_needs_unlock"), "error");
+
+      return;
+    }
 
     const new_value = !dev_mode_enabled;
 
     dev_mode_generation_ref.current += 1;
     set_dev_mode_enabled(new_value);
     write_dev_mode_cache(current_account_id, new_value);
-    await save_dev_mode(new_value, vault);
+
+    const saved = await save_dev_mode(new_value, vault);
+
+    if (!saved.data.success) {
+      set_dev_mode_enabled(!new_value);
+      write_dev_mode_cache(current_account_id, !new_value);
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+
+      return;
+    }
     window.dispatchEvent(
       new CustomEvent("dev-mode-changed", { detail: new_value }),
     );
   };
 
-  const apply_spam_settings = (updated: SpamSettings) => {
-    spam_generation_ref.current += 1;
-    set_spam_settings(updated);
-    save_spam_settings(updated);
+  const reload_spam_settings = () => {
+    const generation = ++spam_generation_ref.current;
+
+    void get_spam_settings().then((result) => {
+      if (generation !== spam_generation_ref.current) return;
+
+      if (result.data) {
+        spam_loaded_ref.current = true;
+        set_spam_settings(result.data);
+        set_spam_load_failed(false);
+
+        return;
+      }
+      set_spam_load_failed(true);
+    });
   };
+
+  const apply_spam_settings = (patch: Partial<SpamSettings>) => {
+    const generation = ++spam_generation_ref.current;
+
+    if (spam_loaded_ref.current) {
+      set_spam_settings((current) => ({ ...current, ...patch }));
+    }
+
+    apply_spam_settings_patch({
+      loaded: spam_loaded_ref.current,
+      current: spam_settings,
+      patch,
+      load: get_spam_settings,
+      save: save_spam_settings,
+    }).then((result) => {
+      if (generation !== spam_generation_ref.current) return;
+
+      spam_loaded_ref.current = result.loaded;
+      set_spam_settings(result.next);
+      set_spam_load_failed(!result.loaded);
+
+      if (!result.saved) {
+        show_toast(t("settings.failed_save_setting"), "error");
+      }
+    });
+  };
+
+  const retention_options = [
+    { value: "7", label: t("settings.retention_7_days") },
+    { value: "14", label: t("settings.retention_14_days") },
+    { value: "30", label: t("settings.retention_30_days") },
+    { value: "60", label: t("settings.retention_60_days") },
+    { value: "90", label: t("settings.retention_90_days") },
+    { value: "180", label: t("settings.retention_180_days") },
+    { value: "365", label: t("settings.retention_365_days") },
+    { value: "never", label: t("settings.retention_never") },
+  ];
+
+  const build_retention_options = (current: string) =>
+    retention_options.some((option) => option.value === current)
+      ? retention_options
+      : [
+          ...retention_options,
+          {
+            value: current,
+            label: t("settings.retention_days_count", { days: current }),
+          },
+        ];
+
+  const spam_retention_value =
+    family_policy?.enforce_on_members &&
+    family_policy.spam_retention_days != null
+      ? family_policy.spam_retention_days === 0
+        ? "never"
+        : String(family_policy.spam_retention_days)
+      : spam_settings.spam_retention_days === 0
+        ? "never"
+        : String(spam_settings.spam_retention_days);
+
+  const trash_retention_value =
+    family_policy?.enforce_on_members &&
+    family_policy.trash_retention_days != null
+      ? family_policy.trash_retention_days === 0
+        ? "never"
+        : String(family_policy.trash_retention_days)
+      : spam_settings.trash_retention_days === 0
+        ? "never"
+        : String(spam_settings.trash_retention_days);
 
   const handle_mailto_toggle = () => {
     if (!mailto_registered) {
@@ -269,22 +438,39 @@ export function BehaviorSection() {
     } else {
       set_mailto_registered(false);
       localStorage.setItem("aster:mailto_handler", "false");
+      try {
+        const unregister = (
+          navigator as Navigator & {
+            unregisterProtocolHandler?: (scheme: string, url: string) => void;
+          }
+        ).unregisterProtocolHandler;
+
+        if (!unregister) {
+          show_toast(t("settings.mailto_unregister_manual"), "info");
+
+          return;
+        }
+
+        unregister.call(
+          navigator,
+          "mailto",
+          `${window.location.origin}/compose?to=%s`,
+        );
+      } catch (caught) {
+        ignore_error("settings/behavior_section:handle_mailto_toggle", caught);
+        show_toast(t("settings.mailto_unregister_manual"), "info");
+      }
     }
   };
 
   return (
-    <div className="space-y-4">
+    <IslandSections>
       <SettingsSaveIndicatorInline />
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <BookOpenIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.reading_and_conversations")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-
+      <IslandSection
+        icon={<BookOpenIcon />}
+        title={t("settings.reading_and_conversations")}
+      >
         <SelectSetting
           description={t("settings.mark_as_read_description")}
           info={{
@@ -385,33 +571,25 @@ export function BehaviorSection() {
           value={preferences.thread_count_position ?? "left"}
         />
 
-        <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pr-4">
-            <p className="flex items-center gap-1.5 text-sm font-medium text-txt-primary">
-              {t("settings.conversation_grouping")}
-              <InfoPopover
-                description={t("settings.conversation_grouping_description")}
-                title={t("settings.conversation_grouping")}
-              />
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.conversation_grouping_description")}
-            </p>
-          </div>
-          <Switch
-            size="lg"
-            checked={preferences.conversation_grouping !== false}
-            onCheckedChange={() =>
-              update_preference(
-                "conversation_grouping",
-                preferences.conversation_grouping === false,
-                true,
-              )
-            }
-          />
-        </div>
+        <SettingToggleRow
+          checked={preferences.conversation_grouping !== false}
+          description={t("settings.conversation_grouping_description")}
+          info={
+            <InfoPopover
+              description={t("settings.conversation_grouping_description")}
+              title={t("settings.conversation_grouping")}
+            />
+          }
+          label={t("settings.conversation_grouping")}
+          on_change={(checked) => {
+            if (!checked) {
+              set_show_grouping_dialog(true);
 
-        <RebuildConversationsSetting />
+              return;
+            }
+            update_preference("conversation_grouping", true, true);
+          }}
+        />
 
         <SelectSetting
           description={t("settings.conversation_order_description")}
@@ -426,27 +604,35 @@ export function BehaviorSection() {
           value={preferences.conversation_order ?? "asc"}
         />
 
-        <div className="flex items-center justify-between py-4">
-          <div className="flex-1 pr-4">
-            <p className="text-sm font-medium text-txt-primary">
-              {t("settings.show_message_size")}
-            </p>
-            <p className="text-sm mt-0.5 text-txt-muted">
-              {t("settings.show_message_size_description")}
-            </p>
-          </div>
-          <Switch
-            size="lg"
-            checked={preferences.show_message_size === true}
-            onCheckedChange={() =>
-              update_preference(
-                "show_message_size",
-                !preferences.show_message_size,
-                true,
-              )
-            }
-          />
-        </div>
+        <SettingToggleRow
+          checked={preferences.show_message_size === true}
+          description={t("settings.show_message_size_description")}
+          label={t("settings.show_message_size")}
+          on_change={() =>
+            update_preference(
+              "show_message_size",
+              !preferences.show_message_size,
+              true,
+            )
+          }
+        />
+
+        <ToggleSetting
+          description={t("settings.relative_dates_description")}
+          enabled={preferences.relative_dates !== false}
+          info={{
+            title: t("settings.info_relative_dates_title"),
+            description: t("settings.info_relative_dates_description"),
+          }}
+          on_toggle={() =>
+            update_preference(
+              "relative_dates",
+              preferences.relative_dates === false,
+              true,
+            )
+          }
+          title={t("settings.relative_dates")}
+        />
 
         <ToggleSetting
           description={t("settings.show_alias_indicators_description")}
@@ -466,6 +652,23 @@ export function BehaviorSection() {
         />
 
         <ToggleSetting
+          description={t("settings.sender_pictures_description")}
+          enabled={preferences.show_profile_pictures !== false}
+          info={{
+            title: t("settings.sender_pictures"),
+            description: t("settings.sender_pictures_description"),
+          }}
+          on_toggle={() =>
+            update_preference(
+              "show_profile_pictures",
+              preferences.show_profile_pictures === false,
+              true,
+            )
+          }
+          title={t("settings.sender_pictures")}
+        />
+
+        <ToggleSetting
           description={t("settings.force_dark_mode_emails_description")}
           enabled={preferences.force_dark_mode_emails}
           info={{
@@ -481,31 +684,26 @@ export function BehaviorSection() {
           }
           title={t("settings.force_dark_mode_emails")}
         />
-      </div>
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <LanguageIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.translation")}
-            <Badge color="purple">{t("common.beta")}</Badge>
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-
+      <IslandSection icon={<LanguageIcon />} title={t("settings.translation")}>
         <SelectSetting
           description={t("settings.translate_incoming_description")}
           info={{
             title: t("settings.translate_incoming"),
             description: t("settings.translate_incoming_info"),
           }}
-          on_change={(v) =>
-            update_preference(
-              "translate_incoming",
-              v as "off" | "ask" | "always",
-              true,
-            )
-          }
+          on_change={(v) => {
+            const mode = v as "off" | "ask" | "always";
+
+            if (mode !== "off" && preferences.translate_incoming === "off") {
+              set_pending_translate_mode(mode);
+
+              return;
+            }
+
+            update_preference("translate_incoming", mode, true);
+          }}
           options={[
             { value: "off", label: t("settings.translate_off") },
             { value: "ask", label: t("settings.translate_ask") },
@@ -540,22 +738,19 @@ export function BehaviorSection() {
               title={t("settings.translate_never_languages")}
               ui_locale={language}
             />
+
+            <TranslationPacks />
           </>
         )}
-      </div>
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <ViewColumnsIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.navigation_panel")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-
-        <div className="py-4">
+      <IslandSection
+        icon={<ViewColumnsIcon />}
+        title={t("settings.navigation_panel")}
+      >
+        <div className="px-4 py-4">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex-1 pr-4">
+            <div className="flex-1 pe-4">
               <p className="text-sm font-medium text-txt-primary">
                 {t("settings.sidebar_width")}
               </p>
@@ -567,15 +762,19 @@ export function BehaviorSection() {
             </div>
             <div className="flex items-center gap-2">
               <Input
+                aria-label={t("settings.sidebar_width")}
                 className="w-20 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 max={SIDEBAR_MAX_WIDTH}
                 min={SIDEBAR_MIN_WIDTH}
                 size="md"
                 type="number"
-                value={clamp_sidebar_width(
-                  preferences.sidebar_width ?? SIDEBAR_DEFAULT_WIDTH,
-                )}
-                onChange={(e) => {
+                value={
+                  sidebar_width_input ??
+                  clamp_sidebar_width(
+                    preferences.sidebar_width ?? SIDEBAR_DEFAULT_WIDTH,
+                  )
+                }
+                onBlur={(e) => {
                   const parsed = parseInt(e.target.value, 10);
 
                   update_preference(
@@ -585,7 +784,11 @@ export function BehaviorSection() {
                     ),
                     true,
                   );
+                  set_sidebar_width_input(null);
                 }}
+                onChange={(e) => set_sidebar_width_input(e.target.value)}
+                onFocus={(e) => set_sidebar_width_input(e.target.value)}
+                onKeyDown={commit_on_enter}
               />
               <span className="text-sm text-txt-secondary">px</span>
             </div>
@@ -603,17 +806,17 @@ export function BehaviorSection() {
             return (
               <div className="relative py-2 group/slider">
                 <div
-                  className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-edge-secondary pointer-events-none"
                   aria-hidden="true"
+                  className="absolute start-0 end-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full bg-edge-secondary pointer-events-none"
                 />
                 <div
-                  className="absolute left-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full pointer-events-none transition-[width] duration-100 ease-out"
+                  aria-hidden="true"
+                  className="absolute start-0 top-1/2 -translate-y-1/2 h-1.5 rounded-full pointer-events-none transition-[width] duration-100 ease-out"
                   style={{
                     width: `${percent}%`,
                     background:
                       "linear-gradient(90deg, var(--accent-alpha-75, rgba(59, 130, 246, 0.75)), var(--accent-blue))",
                   }}
-                  aria-hidden="true"
                 />
                 {is_dragging_sidebar_width && (
                   <div
@@ -624,24 +827,33 @@ export function BehaviorSection() {
                   </div>
                 )}
                 <input
-                  className="relative z-10 w-full h-4 appearance-none bg-transparent outline-none cursor-pointer active:cursor-grabbing [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-transparent [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-transparent [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:-mt-[5px] [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-0 [&::-webkit-slider-thumb]:shadow-[0_1px_3px_rgba(0,0,0,0.4)] [&::-webkit-slider-thumb]:bg-[var(--accent-blue)] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-[transform,box-shadow] [&::-webkit-slider-thumb]:duration-150 [&::-webkit-slider-thumb]:hover:scale-125 [&::-webkit-slider-thumb]:hover:shadow-[0_2px_8px_rgba(0,0,0,0.45)] [&::-webkit-slider-thumb]:active:scale-110 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-[0_1px_3px_rgba(0,0,0,0.4)] [&::-moz-range-thumb]:bg-[var(--accent-blue)] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:transition-[transform,box-shadow] [&::-moz-range-thumb]:duration-150 [&::-moz-range-thumb]:hover:scale-125 [&::-moz-range-thumb]:hover:shadow-[0_2px_8px_rgba(0,0,0,0.45)] [&::-moz-range-thumb]:active:scale-110 focus-visible:[&::-webkit-slider-thumb]:ring-4 focus-visible:[&::-webkit-slider-thumb]:ring-[var(--accent-blue)]/30 focus-visible:[&::-moz-range-thumb]:ring-4 focus-visible:[&::-moz-range-thumb]:ring-[var(--accent-blue)]/30"
+                  aria-label={t("settings.sidebar_width")}
+                  className="relative z-10 w-full h-4 appearance-none bg-transparent outline-none cursor-pointer active:cursor-grabbing [&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-transparent [&::-moz-range-track]:h-1.5 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-transparent [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:-mt-[5px] [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-0 [&::-webkit-slider-thumb]:shadow-[0_1px_3px_rgba(0,0,0,0.4)] [&::-webkit-slider-thumb]:bg-[var(--accent-blue)] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:transition-[transform,box-shadow] [&::-webkit-slider-thumb]:duration-150 [&::-webkit-slider-thumb]:hover:scale-125 [&::-webkit-slider-thumb]:hover:shadow-[0_2px_8px_rgba(0,0,0,0.45)] [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:shadow-[0_1px_3px_rgba(0,0,0,0.4)] [&::-moz-range-thumb]:bg-[var(--accent-blue)] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:transition-[transform,box-shadow] [&::-moz-range-thumb]:duration-150 [&::-moz-range-thumb]:hover:scale-125 [&::-moz-range-thumb]:hover:shadow-[0_2px_8px_rgba(0,0,0,0.45)] focus-visible:[&::-webkit-slider-thumb]:ring-4 focus-visible:[&::-webkit-slider-thumb]:ring-[var(--accent-blue)]/30 focus-visible:[&::-moz-range-thumb]:ring-4 focus-visible:[&::-moz-range-thumb]:ring-[var(--accent-blue)]/30"
                   max={SIDEBAR_MAX_WIDTH}
                   min={SIDEBAR_MIN_WIDTH}
                   step={4}
                   type="range"
                   value={current_width}
+                  onBlur={() => {
+                    set_is_dragging_sidebar_width(false);
+                    commit_sidebar_width();
+                  }}
                   onChange={(e) => {
                     update_preference(
                       "sidebar_width",
                       clamp_sidebar_width(parseInt(e.target.value, 10)),
-                      true,
                     );
                   }}
-                  onMouseDown={() => set_is_dragging_sidebar_width(true)}
-                  onMouseUp={() => set_is_dragging_sidebar_width(false)}
-                  onTouchStart={() => set_is_dragging_sidebar_width(true)}
-                  onTouchEnd={() => set_is_dragging_sidebar_width(false)}
-                  onBlur={() => set_is_dragging_sidebar_width(false)}
+                  onKeyUp={commit_sidebar_width}
+                  onLostPointerCapture={() => {
+                    set_is_dragging_sidebar_width(false);
+                    commit_sidebar_width();
+                  }}
+                  onPointerDown={() => set_is_dragging_sidebar_width(true)}
+                  onPointerUp={() => {
+                    set_is_dragging_sidebar_width(false);
+                    commit_sidebar_width();
+                  }}
                 />
               </div>
             );
@@ -657,7 +869,7 @@ export function BehaviorSection() {
                 <button
                   key={width}
                   className={cn(
-                    "px-3 py-1.5 text-xs rounded-[12px] border-0 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[var(--accent-blue)]",
+                    "px-3 py-1.5 text-xs rounded-[var(--aster-radius-control)] border-0 outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[var(--accent-blue)]",
                     current === width
                       ? "bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)]"
                       : "bg-surf-secondary hover:bg-surf-hover",
@@ -690,17 +902,25 @@ export function BehaviorSection() {
           }
           title={t("settings.minimize_sidebar")}
         />
-      </div>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <PencilSquareIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.composing_and_replies")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
+        <ToggleSetting
+          description={t("settings.show_side_panel_description")}
+          enabled={preferences.show_side_panel}
+          on_toggle={() =>
+            update_preference(
+              "show_side_panel",
+              !preferences.show_side_panel,
+              true,
+            )
+          }
+          title={t("settings.show_side_panel")}
+        />
+      </IslandSection>
 
+      <IslandSection
+        icon={<PencilSquareIcon />}
+        title={t("settings.composing_and_replies")}
+      >
         <SelectSetting
           description={t("settings.default_reply_description")}
           on_change={(v) =>
@@ -758,7 +978,7 @@ export function BehaviorSection() {
           }
           title={t("settings.purge_locked_folder_on_delete")}
         />
-      </div>
+      </IslandSection>
 
       <UpgradeGate
         description={t("settings.protected_folders_description")}
@@ -766,15 +986,10 @@ export function BehaviorSection() {
         is_locked={is_feature_locked("has_password_protected_folders")}
         min_plan="Nova"
       >
-        <div>
-          <div className="mb-4">
-            <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-              <LockClosedIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-              {t("settings.protected_folders")}
-            </h3>
-            <div className="mt-2 h-px bg-edge-secondary" />
-          </div>
-
+        <IslandSection
+          icon={<LockClosedIcon />}
+          title={t("settings.protected_folders")}
+        >
           <SelectSetting
             description={t("settings.folder_lock_mode_description")}
             info={{
@@ -795,23 +1010,15 @@ export function BehaviorSection() {
             title={t("settings.folder_lock_mode")}
             value={preferences.protected_folder_lock_mode ?? "session"}
           />
-        </div>
+        </IslandSection>
       </UpgradeGate>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <ClockIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.undo_send")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-
+      <IslandSection icon={<ClockIcon />} title={t("settings.undo_send")}>
         <ToggleSetting
           description={t("settings.undo_send_delay_description")}
-          enabled={preferences.undo_send_enabled ?? true}
+          enabled={undo_send_active}
           on_toggle={() => {
-            const undo_enabled = preferences.undo_send_enabled ?? true;
+            const undo_enabled = undo_send_active;
 
             if (undo_enabled) {
               update_preferences({ undo_send_enabled: false }, true);
@@ -833,10 +1040,10 @@ export function BehaviorSection() {
           title={t("settings.enable_undo_send")}
         />
 
-        {(preferences.undo_send_enabled ?? true) && (
-          <div className="py-4">
+        {undo_send_active && (
+          <div className="px-4 py-4">
             <div className="flex items-center justify-between mb-4">
-              <div className="flex-1 pr-4">
+              <div className="flex-1 pe-4">
                 <p className="text-sm font-medium text-txt-primary">
                   {t("settings.cancellation_period")}
                 </p>
@@ -848,6 +1055,7 @@ export function BehaviorSection() {
               </div>
               <div className="flex items-center gap-2">
                 <Input
+                  aria-label={t("settings.cancellation_period")}
                   className="w-20 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                   max={UNDO_MAX_SECONDS}
                   min={UNDO_MIN_SECONDS}
@@ -878,6 +1086,7 @@ export function BehaviorSection() {
                     set_undo_input_value(e.target.value);
                   }}
                   onFocus={(e) => set_undo_input_value(e.target.value)}
+                  onKeyDown={commit_on_enter}
                 />
                 <span className="text-sm text-txt-secondary">
                   {t("common.seconds")}
@@ -895,7 +1104,7 @@ export function BehaviorSection() {
                   <button
                     key={seconds}
                     className={cn(
-                      "px-3 py-1.5 text-xs rounded-[12px] transition-colors",
+                      "px-3 py-1.5 text-xs rounded-[var(--aster-radius-control)] transition-colors",
                       current === seconds
                         ? "bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)]"
                         : "bg-surf-secondary hover:bg-surf-hover",
@@ -925,17 +1134,12 @@ export function BehaviorSection() {
             </div>
           </div>
         )}
-      </div>
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <QuestionMarkCircleIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.confirmations")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-
+      <IslandSection
+        icon={<QuestionMarkCircleIcon />}
+        title={t("settings.confirmations")}
+      >
         <ToggleSetting
           description={t("settings.confirm_delete_description")}
           enabled={preferences.confirm_before_delete}
@@ -974,94 +1178,101 @@ export function BehaviorSection() {
           }
           title={t("settings.confirm_spam")}
         />
-      </div>
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <ShieldCheckIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.spam_filtering_title")}
-          </h3>
-          <p className="text-sm text-txt-muted mt-1">
-            {t("settings.spam_filtering_description")}
-          </p>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
+      <IslandSection
+        description={t("settings.spam_filtering_description")}
+        icon={<ShieldCheckIcon />}
+        title={t("settings.spam_filtering_title")}
+      >
+        {spam_load_failed && (
+          <div className="flex items-center justify-between gap-3 px-4 py-4">
+            <p className="text-xs text-txt-muted">
+              {t("settings.spam_settings_load_failed")}
+            </p>
+            <Button size="sm" variant="outline" onClick={reload_spam_settings}>
+              {t("common.retry")}
+            </Button>
+          </div>
+        )}
 
-        <ToggleSetting
-          description={t("settings.spam_filter_enabled_description")}
-          enabled={spam_settings.spam_filter_enabled}
-          on_toggle={() => {
-            apply_spam_settings({
-              ...spam_settings,
-              spam_filter_enabled: !spam_settings.spam_filter_enabled,
-            });
-          }}
-          title={t("settings.spam_filter_enabled")}
-        />
+        {!spam_load_failed && (
+          <>
+            <ToggleSetting
+              description={t("settings.spam_filter_enabled_description")}
+              enabled={spam_settings.spam_filter_enabled}
+              on_toggle={() => {
+                apply_spam_settings({
+                  spam_filter_enabled: !spam_settings.spam_filter_enabled,
+                });
+              }}
+              title={t("settings.spam_filter_enabled")}
+            />
 
-        <SelectSetting
-          description={t("settings.spam_sensitivity_description")}
-          info={{
-            title: t("settings.info_spam_sensitivity_title"),
-            description: t("settings.info_spam_sensitivity_description"),
-          }}
-          on_change={(value) => {
-            apply_spam_settings({ ...spam_settings, spam_sensitivity: value });
-          }}
-          options={[
-            { value: "low", label: t("settings.spam_low") },
-            { value: "medium", label: t("settings.spam_medium") },
-            { value: "high", label: t("settings.spam_high") },
-          ]}
-          title={t("settings.spam_sensitivity")}
-          value={spam_settings.spam_sensitivity}
-        />
+            <SelectSetting
+              description={t("settings.spam_sensitivity_description")}
+              info={{
+                title: t("settings.info_spam_sensitivity_title"),
+                description: t("settings.info_spam_sensitivity_description"),
+              }}
+              on_change={(value) => {
+                apply_spam_settings({ spam_sensitivity: value });
+              }}
+              options={[
+                { value: "low", label: t("settings.spam_low") },
+                { value: "medium", label: t("settings.spam_medium") },
+                { value: "high", label: t("settings.spam_high") },
+              ]}
+              title={t("settings.spam_sensitivity")}
+              value={spam_settings.spam_sensitivity}
+            />
 
-        <SelectSetting
-          description={t("settings.auto_delete_spam_description")}
-          disabled={
-            !!family_policy?.enforce_on_members &&
-            family_policy.spam_retention_days != null
-          }
-          disabled_note={t("settings.controlled_by_family_admin")}
-          on_change={(value) => {
-            const days = value === "never" ? 0 : parseInt(value, 10);
+            <SelectSetting
+              description={t("settings.auto_delete_spam_description")}
+              disabled={
+                !!family_policy?.enforce_on_members &&
+                family_policy.spam_retention_days != null
+              }
+              disabled_note={t("settings.controlled_by_family_admin")}
+              on_change={(value) => {
+                const days = value === "never" ? 0 : parseInt(value, 10);
 
-            apply_spam_settings({
-              ...spam_settings,
-              spam_retention_days: days,
-            });
-          }}
-          options={[
-            { value: "7", label: t("settings.retention_7_days") },
-            { value: "14", label: t("settings.retention_14_days") },
-            { value: "30", label: t("settings.retention_30_days") },
-            { value: "never", label: t("settings.retention_never") },
-          ]}
-          title={t("settings.auto_delete_spam_after")}
-          value={
-            family_policy?.enforce_on_members &&
-            family_policy.spam_retention_days != null
-              ? family_policy.spam_retention_days === 0
-                ? "never"
-                : String(family_policy.spam_retention_days)
-              : spam_settings.spam_retention_days === 0
-                ? "never"
-                : String(spam_settings.spam_retention_days)
-          }
-        />
-      </div>
+                apply_spam_settings({
+                  spam_retention_days: days,
+                });
+              }}
+              options={build_retention_options(spam_retention_value)}
+              title={t("settings.auto_delete_spam_after")}
+              value={spam_retention_value}
+            />
+          </>
+        )}
+      </IslandSection>
 
-      <div>
-        <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <Cog6ToothIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
-            {t("settings.advanced")}
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
+      {!spam_load_failed && (
+        <IslandSection icon={<TrashIcon />} title={t("mail.trash")}>
+          <SelectSetting
+            description={t("settings.auto_delete_trash_description")}
+            disabled={
+              !!family_policy?.enforce_on_members &&
+              family_policy.trash_retention_days != null
+            }
+            disabled_note={t("settings.controlled_by_family_admin")}
+            on_change={(value) => {
+              const days = value === "never" ? 0 : parseInt(value, 10);
 
+              apply_spam_settings({
+                trash_retention_days: days,
+              });
+            }}
+            options={build_retention_options(trash_retention_value)}
+            title={t("settings.auto_delete_trash_after")}
+            value={trash_retention_value}
+          />
+        </IslandSection>
+      )}
+
+      <IslandSection icon={<Cog6ToothIcon />} title={t("settings.advanced")}>
         <SelectSetting
           description={t("settings.settings_view_mode_description")}
           on_change={(v) =>
@@ -1086,13 +1297,64 @@ export function BehaviorSection() {
             title={t("settings.default_email_app")}
           />
         )}
+        {is_desktop_app && (
+          <ToggleSetting
+            description={t("settings.close_to_tray_description")}
+            enabled={close_to_tray}
+            info={{
+              title: t("settings.close_to_tray"),
+              description: t("settings.close_to_tray_description"),
+            }}
+            on_toggle={handle_close_to_tray_toggle}
+            title={t("settings.close_to_tray")}
+          />
+        )}
         <ToggleSetting
           description={t("settings.developer_mode_description")}
           enabled={dev_mode_enabled}
           on_toggle={handle_dev_mode_toggle}
           title={t("settings.developer_mode")}
         />
-      </div>
+      </IslandSection>
+
+      <AlertDialog
+        open={pending_translate_mode !== null}
+        onOpenChange={(open) => {
+          if (!open) set_pending_translate_mode(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("settings.translate_confirm_title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("settings.translate_confirm_description")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="max-sm:flex-row max-sm:gap-3">
+            <AlertDialogCancel className="max-sm:flex-1">
+              {t("common.cancel")}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="max-sm:flex-1"
+              onClick={() => {
+                if (pending_translate_mode) {
+                  update_preference(
+                    "translate_incoming",
+                    pending_translate_mode,
+                    true,
+                  );
+                }
+
+                set_pending_translate_mode(null);
+              }}
+            >
+              {t("settings.translate_confirm_enable")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <AlertDialog
         open={show_grouping_dialog}
@@ -1123,6 +1385,6 @@ export function BehaviorSection() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </IslandSections>
   );
 }

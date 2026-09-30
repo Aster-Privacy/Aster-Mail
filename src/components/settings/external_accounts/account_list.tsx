@@ -22,6 +22,7 @@ import type { DecryptedExternalAccount } from "@/services/api/external_accounts"
 import type { UseExternalAccountsReturn } from "@/components/settings/hooks/use_external_accounts";
 
 import { ServerStackIcon } from "@heroicons/react/24/outline";
+import { Island, IslandEmpty } from "@aster/ui";
 
 import { AccountCard } from "@/components/settings/external_accounts/account_card";
 
@@ -54,21 +55,19 @@ export function AccountList({
 }: AccountListProps) {
   if (accounts.length === 0) {
     return (
-      <div className="text-center py-8 rounded-xl bg-surf-secondary border border-dashed border-edge-secondary">
-        <ServerStackIcon className="w-6 h-6 mx-auto mb-2 text-txt-muted" />
-        <p className="text-sm text-txt-muted">
-          {t("settings.no_external_accounts")}
-        </p>
-      </div>
+      <IslandEmpty
+        icon={<ServerStackIcon />}
+        title={t("settings.no_external_accounts")}
+      />
     );
   }
 
   return (
-    <div className="rounded-lg overflow-hidden border border-edge-secondary">
-      <div className="flex items-center px-4 py-2 border-b border-edge-secondary">
+    <Island className="overflow-hidden">
+      <div className="flex items-center px-4 py-2.5 border-b border-[color-mix(in_srgb,var(--text-primary)_8%,transparent)]">
         <span className="text-xs font-medium text-txt-muted">
           {t("settings.external_account_count", {
-            count: String(accounts.length),
+            count: accounts.length,
           })}
         </span>
       </div>
@@ -89,6 +88,6 @@ export function AccountList({
           toggle_error_expand={toggle_error_expand}
         />
       ))}
-    </div>
+    </Island>
   );
 }

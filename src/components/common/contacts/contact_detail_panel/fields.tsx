@@ -18,29 +18,10 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type {
-  
-  
-  
-  
-  AddressEntry,
-  
-  
-  
-  
-  
-  
-  
-  AddressEntryType,
-  
-  
-  
-  
-  
-} from "@/types/contacts";
+import type { AddressEntry, AddressEntryType } from "@/types/contacts";
 import type { TranslationKey } from "@/lib/i18n";
 
-import { useEffect,  useState } from "react";
+import { useEffect, useState } from "react";
 import {
   PlusIcon,
   XMarkIcon,
@@ -48,6 +29,15 @@ import {
   KeyIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
+
+import {
+  ADDRESS_TYPE_OPTIONS,
+  CUSTOM_TYPE,
+  entry_select_value,
+  FIELD_CLASS,
+  SELECT_CLASS,
+  type_label_key,
+} from "./helpers";
 
 import { show_toast } from "@/components/toast/simple_toast";
 import { Spinner } from "@/components/ui/spinner";
@@ -70,19 +60,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ADDRESS_TYPE_OPTIONS, FIELD_CLASS, SELECT_CLASS, type_label_key } from "./helpers";
 
 export function Section({
   title,
+  info,
   children,
 }: {
   title: string;
+  info?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
     <section className="space-y-5">
-      <h2 className="text-[15px] font-semibold text-txt-primary pb-2 border-b border-edge-primary">
+      <h2 className="flex items-center gap-1.5 text-[15px] font-semibold text-txt-primary pb-2 border-b border-edge-primary">
         {title}
+        {info}
       </h2>
       <div className="space-y-5">{children}</div>
     </section>
@@ -113,29 +105,43 @@ export function ContactPgpKeyRow({
 }: {
   email: string;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
-  on_copy: (text: string, field: string) => void;
+  on_copy: (text: string, field: string) => void | Promise<boolean | void>;
 }) {
   const [key_info, set_key_info] = useState<ExternalKeyInfo | null>(null);
   const [is_loading, set_is_loading] = useState(true);
+  const [lookup_failed, set_lookup_failed] = useState(false);
+  const [retry_token, set_retry_token] = useState(0);
   const [is_key_open, set_is_key_open] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
 
     set_is_loading(true);
+    set_lookup_failed(false);
     set_key_info(null);
 
-    discover_external_key(email).then((response) => {
-      if (cancelled) return;
+    discover_external_key(email)
+      .then((response) => {
+        if (cancelled) return;
 
-      set_key_info(response.data ?? null);
-      set_is_loading(false);
-    });
+        if (response.data) {
+          set_key_info(response.data);
+        } else {
+          set_lookup_failed(true);
+        }
+        set_is_loading(false);
+      })
+      .catch(() => {
+        if (cancelled) return;
+
+        set_lookup_failed(true);
+        set_is_loading(false);
+      });
 
     return () => {
       cancelled = true;
     };
-  }, [email]);
+  }, [email, retry_token]);
 
   const field_key = `pgp_key_${email}`;
 
@@ -153,6 +159,19 @@ export function ContactPgpKeyRow({
               <p className="text-[12px] text-txt-muted">
                 {t("settings.pgp_key_checking")}
               </p>
+            </div>
+          ) : lookup_failed ? (
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-[12px] text-txt-muted">
+                {t("common.something_went_wrong_try_again")}
+              </p>
+              <button
+                className="text-[12px] text-brand hover:underline"
+                type="button"
+                onClick={() => set_retry_token((value) => value + 1)}
+              >
+                {t("common.retry")}
+              </button>
             </div>
           ) : key_info?.found ? (
             <div className="mt-0.5 space-y-0.5">
@@ -191,8 +210,13 @@ export function ContactPgpKeyRow({
           <Button
             size="sm"
             variant="ghost"
-            onClick={() => {
-              on_copy(key_info.public_key as string, field_key);
+            onClick={async () => {
+              const copied = await on_copy(
+                key_info.public_key as string,
+                field_key,
+              );
+
+              if (copied === false) return;
               show_toast(t("common.copied"), "success");
             }}
           >
@@ -200,7 +224,11 @@ export function ContactPgpKeyRow({
           </Button>
         </div>
       )}
-      <Modal is_open={is_key_open} size="2xl" on_close={() => set_is_key_open(false)}>
+      <Modal
+        is_open={is_key_open}
+        on_close={() => set_is_key_open(false)}
+        size="2xl"
+      >
         <ModalHeader>
           <ModalTitle>{t("settings.view_public_key")}</ModalTitle>
         </ModalHeader>
@@ -218,9 +246,11 @@ export function ContactPgpKeyRow({
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => {
+              onClick={async () => {
                 if (!key_info?.public_key) return;
-                on_copy(key_info.public_key, field_key);
+                const copied = await on_copy(key_info.public_key, field_key);
+
+                if (copied === false) return;
                 show_toast(t("common.copied"), "success");
               }}
             >
@@ -234,17 +264,77 @@ export function ContactPgpKeyRow({
 }
 
 export interface TypedListProps<T extends string> {
-  entries: { value: string; type: T }[];
+  entries: { value: string; type: T; label?: string }[];
   options: T[];
   placeholder: string;
   input_type?: string;
   type_default: T;
   disabled: boolean;
+  allow_custom?: boolean;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
   on_add: () => void;
   on_change: (idx: number, value: string) => void;
   on_remove: (idx: number) => void;
   on_type_change: (idx: number, type: string) => void;
+  on_label_change?: (idx: number, label: string | undefined) => void;
+}
+
+function TypeSelect({
+  value,
+  options,
+  disabled,
+  allow_custom,
+  t,
+  on_change,
+}: {
+  value: string;
+  options: string[];
+  disabled: boolean;
+  allow_custom: boolean;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
+  on_change: (value: string) => void;
+}) {
+  return (
+    <Select disabled={disabled} value={value} onValueChange={on_change}>
+      <SelectTrigger className="w-[120px] h-11 rounded-xl bg-black/[0.04] dark:bg-white/[0.04] border border-edge-secondary/60 dark:border-transparent text-[13px] text-txt-primary">
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        {options.map((opt) => (
+          <SelectItem key={opt} value={opt}>
+            {t(type_label_key(opt))}
+          </SelectItem>
+        ))}
+        {allow_custom && (
+          <SelectItem value={CUSTOM_TYPE}>{t("common.type_custom")}</SelectItem>
+        )}
+      </SelectContent>
+    </Select>
+  );
+}
+
+function CustomLabelInput({
+  value,
+  disabled,
+  t,
+  on_change,
+}: {
+  value: string;
+  disabled: boolean;
+  t: (key: TranslationKey, params?: Record<string, string | number>) => string;
+  on_change: (value: string) => void;
+}) {
+  return (
+    <input
+      aria-label={t("common.custom_label")}
+      className={`${FIELD_CLASS} w-[140px] flex-shrink-0`}
+      maxLength={64}
+      placeholder={t("common.custom_label")}
+      readOnly={disabled}
+      value={value}
+      onChange={(e) => on_change(e.target.value)}
+    />
+  );
 }
 
 export function TypedList<T extends string>({
@@ -253,55 +343,75 @@ export function TypedList<T extends string>({
   placeholder,
   input_type,
   disabled,
+  allow_custom = false,
   t,
   on_add,
   on_change,
   on_remove,
   on_type_change,
+  on_label_change,
 }: TypedListProps<T>) {
+  const custom_enabled = allow_custom && Boolean(on_label_change);
+
   return (
     <div className="space-y-2">
-      {entries.map((entry, idx) => (
-        <div key={idx} className="flex items-center gap-2">
-          <input
-            className={`${FIELD_CLASS} flex-1 min-w-0`}
-            placeholder={placeholder}
-            readOnly={disabled}
-            type={input_type || "text"}
-            value={entry.value}
-            onChange={(e) => on_change(idx, e.target.value)}
-          />
-          <Select
-            disabled={disabled}
-            value={entry.type}
-            onValueChange={(v) => on_type_change(idx, v)}
-          >
-            <SelectTrigger className="w-[120px] h-11 rounded-xl bg-black/[0.04] dark:bg-white/[0.04] border border-edge-secondary/60 dark:border-transparent text-[13px] text-txt-primary">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {options.map((opt) => (
-                <SelectItem key={opt} value={opt}>
-                  {t(type_label_key(opt))}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {!disabled && (
-            <button
-              aria-label={t("common.remove")}
-              className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center transition-colors"
-              type="button"
-              onClick={() => on_remove(idx)}
-            >
-              <XMarkIcon className="w-4 h-4 text-txt-muted" />
-            </button>
-          )}
-        </div>
-      ))}
+      {entries.map((entry, idx) => {
+        const select_value = custom_enabled
+          ? entry_select_value(entry, options)
+          : entry.type;
+        const is_custom = select_value === CUSTOM_TYPE;
+
+        return (
+          <div key={idx} className="flex flex-wrap items-center gap-2">
+            <input
+              className={`${FIELD_CLASS} flex-1 min-w-[160px]`}
+              placeholder={placeholder}
+              readOnly={disabled}
+              type={input_type || "text"}
+              value={entry.value}
+              onChange={(e) => on_change(idx, e.target.value)}
+            />
+            <TypeSelect
+              allow_custom={custom_enabled}
+              disabled={disabled}
+              options={options}
+              t={t}
+              value={select_value}
+              on_change={(v) => {
+                if (v === CUSTOM_TYPE) {
+                  on_type_change(idx, "other");
+                  on_label_change?.(idx, entry.label ?? "");
+
+                  return;
+                }
+                on_type_change(idx, v);
+                if (custom_enabled) on_label_change?.(idx, undefined);
+              }}
+            />
+            {is_custom && (
+              <CustomLabelInput
+                disabled={disabled}
+                t={t}
+                value={entry.label ?? ""}
+                on_change={(v) => on_label_change?.(idx, v)}
+              />
+            )}
+            {!disabled && (
+              <button
+                aria-label={t("common.remove")}
+                className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-[var(--aster-hover)] flex items-center justify-center transition-colors"
+                type="button"
+                onClick={() => on_remove(idx)}
+              >
+                <XMarkIcon className="w-4 h-4 text-txt-muted" />
+              </button>
+            )}
+          </div>
+        );
+      })}
       {!disabled && (
         <button
-          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-[12px] bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-black/[0.08] dark:hover:bg-white/[0.08] transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-[var(--aster-radius-control)] bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-[var(--aster-hover)] transition-colors"
           type="button"
           onClick={on_add}
         >
@@ -340,27 +450,44 @@ export function AddressList({
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <select
-                className={`${SELECT_CLASS} pr-7 w-full`}
+                className={`${SELECT_CLASS} pe-7 w-full`}
                 disabled={disabled}
-                value={entry.type}
-                onChange={(e) =>
+                value={entry_select_value(entry, ADDRESS_TYPE_OPTIONS)}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  if (value === CUSTOM_TYPE) {
+                    on_change(idx, { type: "other", label: entry.label ?? "" });
+
+                    return;
+                  }
                   on_change(idx, {
-                    type: e.target.value as AddressEntryType,
-                  })
-                }
+                    type: value as AddressEntryType,
+                    label: undefined,
+                  });
+                }}
               >
                 {ADDRESS_TYPE_OPTIONS.map((opt) => (
                   <option key={opt} value={opt}>
                     {t(type_label_key(opt))}
                   </option>
                 ))}
+                <option value={CUSTOM_TYPE}>{t("common.type_custom")}</option>
               </select>
-              <ChevronDownIcon className="w-3.5 h-3.5 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none text-txt-muted" />
+              <ChevronDownIcon className="w-3.5 h-3.5 absolute end-2 top-1/2 -translate-y-1/2 pointer-events-none text-txt-muted" />
             </div>
+            {entry_select_value(entry, ADDRESS_TYPE_OPTIONS) === CUSTOM_TYPE && (
+              <CustomLabelInput
+                disabled={disabled}
+                t={t}
+                value={entry.label ?? ""}
+                on_change={(v) => on_change(idx, { label: v })}
+              />
+            )}
             {!disabled && (
               <button
                 aria-label={t("common.remove")}
-                className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-black/10 dark:hover:bg-white/10 flex items-center justify-center transition-colors"
+                className="flex-shrink-0 w-8 h-8 rounded-full hover:bg-[var(--aster-hover)] flex items-center justify-center transition-colors"
                 type="button"
                 onClick={() => on_remove(idx)}
               >
@@ -395,9 +522,7 @@ export function AddressList({
               placeholder={t("common.postal_code_placeholder")}
               readOnly={disabled}
               value={entry.postal_code || ""}
-              onChange={(e) =>
-                on_change(idx, { postal_code: e.target.value })
-              }
+              onChange={(e) => on_change(idx, { postal_code: e.target.value })}
             />
             <input
               className={FIELD_CLASS}
@@ -411,7 +536,7 @@ export function AddressList({
       ))}
       {!disabled && (
         <button
-          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-[12px] bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-black/[0.08] dark:hover:bg-white/[0.08] transition-colors"
+          className="inline-flex items-center gap-1.5 px-3 h-8 rounded-[var(--aster-radius-control)] bg-black/[0.04] dark:bg-white/[0.04] text-[12px] text-txt-secondary hover:text-txt-primary hover:bg-[var(--aster-hover)] transition-colors"
           type="button"
           onClick={on_add}
         >

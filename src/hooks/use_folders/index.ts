@@ -18,10 +18,36 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export { broadcast_folders_changed, clear_folders_cache, filter_protected_folder_emails, get_cached_folders, get_protected_folder_tokens, has_protected_folder_label } from "./cache";
+export {
+  broadcast_folders_changed,
+  clear_folders_cache,
+  filter_protected_folder_emails,
+  get_cached_folders,
+  get_protected_folder_tokens,
+  has_protected_folder_label,
+} from "./cache";
 export type { DeleteFolderOutcome } from "./cache";
 export { use_folders } from "./hook";
-export { build_folder_tree, build_tree_guides, compare_sibling_folders, flatten_folder_tree, flatten_visible_tree, get_sibling_folders, is_system_folder_type, partition_folders_by_parent } from "./tree";
+export {
+  compare_folders_a_z,
+  get_child_folders,
+  is_folder_tree_sorted_a_z,
+  is_sorted_a_z,
+  place_folder_among_siblings,
+  resort_after_rename,
+  sort_folder_tree_a_z,
+} from "./sort";
+export type { FolderOrderEntry } from "./sort";
+export {
+  build_folder_tree,
+  build_tree_guides,
+  compare_sibling_folders,
+  flatten_folder_tree,
+  flatten_visible_tree,
+  get_sibling_folders,
+  is_system_folder_type,
+  partition_folders_by_parent,
+} from "./tree";
 export type { DecryptedFolder, FolderTreeGuides, FolderTreeNode } from "./tree";
 export { encrypt_folder_field, generate_folder_token } from "./hook";
 export type { FolderCounts, FoldersState } from "./hook";

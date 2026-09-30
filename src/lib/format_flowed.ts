@@ -35,10 +35,7 @@ export function unflow_format_flowed(
   if (!text) return "";
 
   const delsp = options.delsp ?? false;
-  const lines = text
-    .replace(/\r\n/g, "\n")
-    .replace(/\r/g, "\n")
-    .split("\n");
+  const lines = text.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
 
   const output: string[] = [];
   let paragraph: string | null = null;

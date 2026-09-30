@@ -19,7 +19,15 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useNavigate, useLocation } from "react-router-dom";
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+
+import {
+  SignInDomain,
+  decrypt_checkout_password,
+  decrypt_with_prf,
+  consume_safe_next_path,
+  parse_prefill_identity,
+} from "./sign_in_helpers";
 
 import { use_auth } from "@/contexts/auth_context";
 import { api_client } from "@/services/api/client";
@@ -34,9 +42,7 @@ import {
 import { login_user, get_user_salt, get_user_info } from "@/services/api/auth";
 import { resend_pending_verification } from "@/services/api/recovery_email";
 import { check_and_replenish_prekeys } from "@/services/crypto/prekey_service";
-import {
-  type TurnstileWidgetRef,
-} from "@/components/auth/turnstile_widget";
+import { type TurnstileWidgetRef } from "@/components/auth/turnstile_widget";
 import {
   get_totp_status,
   is_totp_required_response,
@@ -45,23 +51,33 @@ import {
 import { is_webauthn_supported } from "@/services/api/webauthn";
 import { get_session_passphrase } from "@/contexts/auth/session_passphrase";
 import { emit_auth_ready } from "@/hooks/mail_events";
-import {
-  is_tauri,
-  consume_pending_device_login,
-} from "@/native/desktop_device_auth";
 import { show_toast } from "@/components/toast/simple_toast";
 import { hard_redirect, get_app_query_param } from "@/lib/hard_redirect";
-
 import { ignore_error } from "@/lib/ignore_error";
-
+import { safe_session_get, safe_session_set } from "@/lib/safe_storage";
 import {
-  SignInDomain,
-  decrypt_checkout_password,
-  decrypt_with_prf,
-  get_safe_next_path,
-  parse_prefill_identity,
-} from "./sign_in_helpers";
+  type hub_account,
+  on_hub_accounts_changed,
+  read_hub_accounts,
+  uses_account_hub,
+} from "@/services/account_hub_link";
+import { sign_in_with_hub_account } from "@/services/hub_linked_login";
+import { is_tauri } from "@/native/desktop_device_auth";
+import { user_facing_error } from "@/utils/user_facing_error";
+import { is_auth_salt_collision } from "@/services/crypto/auth_salt_guard";
 
+const HUB_AUTO_SIGN_IN_KEY = "aster_hub_auto_sign_in_attempted";
+
+type device_login_detail = {
+  login_response: {
+    user_id: string;
+    username: string;
+    email: string;
+    encrypted_vault: string;
+    vault_nonce: string;
+  };
+  passphrase: string | null;
+};
 
 export function use_sign_in_page() {
   const navigate = useNavigate();
@@ -103,6 +119,9 @@ export function use_sign_in_page() {
   const [email_domain, set_email_domain] = useState<SignInDomain>(
     () => parse_prefill_identity().domain ?? "astermail.org",
   );
+  const [is_domain_explicit, set_is_domain_explicit] = useState(
+    () => parse_prefill_identity().domain !== null,
+  );
   const [remember_me, set_remember_me] = useState(true);
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState(() =>
@@ -124,30 +143,17 @@ export function use_sign_in_page() {
     );
   });
   const [checkout_status, set_checkout_status] = useState("");
-  const [device_logging_in, set_device_logging_in] = useState(false);
+  const [hub_account_list, set_hub_account_list] = useState<hub_account[]>([]);
+  const [hub_signing_in_id, set_hub_signing_in_id] = useState<string | null>(
+    null,
+  );
+  const hub_auto_started = useRef(false);
+  const hub_enabled = !is_tauri() && uses_account_hub();
 
-  useEffect(() => {
-    if (!is_tauri()) return;
+  const process_device_login = useCallback(
+    async (detail: device_login_detail): Promise<string | null> => {
+      if (!detail.passphrase) return "";
 
-    type DeviceLoginDetail = {
-      login_response: {
-        user_id: string;
-        username: string;
-        email: string;
-        encrypted_vault: string;
-        vault_nonce: string;
-      };
-      passphrase: string | null;
-    };
-
-    const process_device_login = async (detail: DeviceLoginDetail) => {
-      if (!detail.passphrase) {
-        show_toast(t("errors.login_failed"), "error");
-
-        return;
-      }
-
-      set_device_logging_in(true);
       try {
         const vault = await decrypt_vault(
           detail.login_response.encrypted_vault,
@@ -171,71 +177,198 @@ export function use_sign_in_page() {
               email: detail.login_response.email,
             };
 
-        await login(
-          user_data,
-          vault,
-          detail.passphrase,
-          detail.login_response.encrypted_vault,
-          detail.login_response.vault_nonce,
-        );
+        if (is_adding_account) {
+          const add_result = await add_account(
+            user_data,
+            vault,
+            detail.passphrase,
+            detail.login_response.encrypted_vault,
+            detail.login_response.vault_nonce,
+          );
+
+          if (!add_result.success) {
+            return add_result.error || "";
+          }
+        } else {
+          await login(
+            user_data,
+            vault,
+            detail.passphrase,
+            detail.login_response.encrypted_vault,
+            detail.login_response.vault_nonce,
+          );
+        }
         setTimeout(() => emit_auth_ready(), 50);
-        hard_redirect(get_safe_next_path());
+        hard_redirect(consume_safe_next_path());
+
+        return null;
       } catch (e) {
         if (import.meta.env.DEV) console.error(e);
-        set_device_logging_in(false);
-        show_toast(t("errors.login_failed"), "error");
+
+        return "";
       }
+    },
+    [add_account, is_adding_account, login],
+  );
+
+  useEffect(() => {
+    if (!hub_enabled || auth_loading || has_existing_session) return;
+
+    let cancelled = false;
+    const load = () => {
+      read_hub_accounts().then((list) => {
+        if (!cancelled) set_hub_account_list(list ?? []);
+      });
     };
 
-    const pending = consume_pending_device_login();
-
-    if (pending) {
-      process_device_login(pending as DeviceLoginDetail);
-    }
-
-    const handle_login_success = () => {
-      const pending = consume_pending_device_login();
-
-      if (pending) {
-        process_device_login(pending as DeviceLoginDetail);
-      }
-    };
-
-    window.addEventListener(
-      "astermail:device-login-success",
-      handle_login_success,
-    );
+    load();
+    const unsubscribe = on_hub_accounts_changed(load);
 
     return () => {
-      window.removeEventListener(
-        "astermail:device-login-success",
-        handle_login_success,
-      );
+      cancelled = true;
+      unsubscribe();
     };
-  }, [login, t]);
+  }, [hub_enabled, auth_loading, has_existing_session]);
+
+  const hub_accounts = useMemo(() => {
+    if (reauth_account_id) {
+      return hub_account_list.filter((acc) => acc.id === reauth_account_id);
+    }
+    if (!is_adding_account) return hub_account_list;
+
+    const local_ids = new Set(accounts.map((acc) => acc.id));
+
+    return hub_account_list.filter((acc) => !local_ids.has(acc.id));
+  }, [hub_account_list, reauth_account_id, is_adding_account, accounts]);
+
+  const prefill_from_email = useCallback((email: string) => {
+    const at = email.lastIndexOf("@");
+    const domain = email.slice(at + 1).toLowerCase();
+
+    set_username(at > 0 ? email.slice(0, at) : email);
+    if (domain === "astermail.org" || domain === "aster.cx") {
+      set_email_domain(domain);
+    }
+    set_password("");
+  }, []);
+
+  const handle_hub_account = useCallback(
+    async (account: hub_account) => {
+      if (hub_signing_in_id !== null) return;
+
+      set_error("");
+      if (!account.linkable) {
+        prefill_from_email(account.email);
+
+        return;
+      }
+
+      set_hub_signing_in_id(account.id);
+      let failure: string | null = "";
+
+      try {
+        const result = await sign_in_with_hub_account(
+          account.id,
+          t("common.aster_mail"),
+        );
+
+        failure = await process_device_login(result);
+      } catch (e) {
+        if (import.meta.env.DEV) console.error(e);
+      }
+
+      if (failure === null) return;
+
+      prefill_from_email(account.email);
+      set_error(failure || t("auth.hub_account_link_failed"));
+      set_hub_signing_in_id(null);
+    },
+    [hub_signing_in_id, prefill_from_email, process_device_login, t],
+  );
+
+  useEffect(() => {
+    if (
+      hub_auto_started.current ||
+      !hub_enabled ||
+      auth_loading ||
+      is_authenticated ||
+      is_adding_account ||
+      reauth_account_id ||
+      is_checkout_login ||
+      get_app_query_param("reason") ||
+      safe_session_get(HUB_AUTO_SIGN_IN_KEY)
+    ) {
+      return;
+    }
+
+    const current = hub_account_list.find(
+      (acc) => acc.is_current && acc.linkable,
+    );
+
+    if (!current) return;
+
+    hub_auto_started.current = true;
+    safe_session_set(HUB_AUTO_SIGN_IN_KEY, "1");
+    void handle_hub_account(current);
+  }, [
+    hub_enabled,
+    auth_loading,
+    is_authenticated,
+    is_adding_account,
+    reauth_account_id,
+    is_checkout_login,
+    hub_account_list,
+    handle_hub_account,
+  ]);
+
+  const hub_requested_id = useRef(get_app_query_param("hub_account"));
+
+  useEffect(() => {
+    const requested = hub_requested_id.current;
+
+    if (!requested || auth_loading) return;
+
+    const account = hub_accounts.find((acc) => acc.id === requested);
+
+    if (!account) return;
+
+    hub_requested_id.current = null;
+    void handle_hub_account(account);
+  }, [auth_loading, hub_accounts, handle_hub_account]);
 
   useEffect(() => {
     document.title = `${t("auth.sign_in")} | ${t("common.aster_mail")}`;
+  }, [t]);
+
+  useEffect(() => {
     if (!preloaded.current) {
       preloaded.current = true;
-      import("@/pages/register").catch((caught) => ignore_error("pages/use_sign_in_page:handle_login_success", caught));
+      import("@/pages/register").catch((caught) =>
+        ignore_error("pages/use_sign_in_page:handle_login_success", caught),
+      );
     }
   }, []);
 
   useEffect(() => {
     if (!reauth_account_id || auth_loading || is_adding_account) return;
     set_is_adding_account(true);
-  }, [reauth_account_id, auth_loading, is_adding_account, set_is_adding_account]);
+  }, [
+    reauth_account_id,
+    auth_loading,
+    is_adding_account,
+    set_is_adding_account,
+  ]);
 
   useEffect(() => {
     if (has_existing_session) {
       const academic = new URLSearchParams(window.location.search).get(
         "academic",
       );
+
       if (academic === "verified") {
         navigate("/settings/billing?academic=verified", { replace: true });
       } else {
-        navigate(get_safe_next_path(), { replace: true });
+        navigate(consume_safe_next_path(), { replace: true });
       }
     }
   }, [has_existing_session, navigate]);
@@ -247,11 +380,36 @@ export function use_sign_in_page() {
 
     if (params.get("checkout") !== "success") return;
 
+    const scrub_checkout_params = () => {
+      const clean_url = new URL(window.location.href);
+
+      clean_url.searchParams.delete("checkout");
+      clean_url.searchParams.delete("ep");
+      clean_url.searchParams.delete("en");
+      clean_url.searchParams.delete("u");
+      clean_url.searchParams.delete("plan");
+      clean_url.searchParams.delete("billing");
+      clean_url.hash = "";
+      window.history.replaceState({}, "", clean_url.toString());
+    };
+
     const ep = params.get("ep");
     const en = params.get("en");
-    const checkout_username = params.get("u") || "";
+    const checkout_identity = params.get("u") || "";
+    const checkout_at_index = checkout_identity.indexOf("@");
+    const checkout_username =
+      checkout_at_index === -1
+        ? checkout_identity
+        : checkout_identity.slice(0, checkout_at_index);
+    const checkout_raw_domain =
+      checkout_at_index === -1
+        ? ""
+        : checkout_identity.slice(checkout_at_index + 1).toLowerCase();
+    const checkout_domain =
+      checkout_raw_domain === "aster.cx" ? "aster.cx" : "astermail.org";
     const checkout_plan = params.get("plan") || "";
-    const checkout_billing = params.get("billing") || "";
+    const checkout_interval =
+      params.get("billing") === "year" ? "year" : "month";
     const hash = window.location.hash;
     const tk_match = hash.match(/tk=([A-Za-z0-9_-]+)/);
 
@@ -282,7 +440,7 @@ export function use_sign_in_page() {
           );
         }
 
-        const email = `${checkout_username}@astermail.org`;
+        const email = `${checkout_username}@${checkout_domain}`;
         const user_hash = await hash_email(email);
 
         set_checkout_status(translate("auth.fetching_auth_data"));
@@ -326,6 +484,7 @@ export function use_sign_in_page() {
             set_active_2fa_method("totp");
           }
           set_totp_required(true);
+          scrub_checkout_params();
 
           return;
         }
@@ -389,34 +548,25 @@ export function use_sign_in_page() {
           check_and_replenish_prekeys();
         }
 
-        sessionStorage.setItem(
+        safe_session_set(
           "aster_checkout_success",
-          JSON.stringify({ plan: checkout_plan, billing: checkout_billing }),
+          JSON.stringify({ plan: checkout_plan, billing: checkout_interval }),
         );
 
-        const clean_url = new URL(window.location.href);
+        scrub_checkout_params();
 
-        clean_url.searchParams.delete("checkout");
-        clean_url.searchParams.delete("ep");
-        clean_url.searchParams.delete("en");
-        clean_url.searchParams.delete("u");
-        clean_url.searchParams.delete("plan");
-        clean_url.searchParams.delete("billing");
-        clean_url.hash = "";
-        window.history.replaceState({}, "", clean_url.toString());
-
-        hard_redirect(get_safe_next_path());
+        hard_redirect(consume_safe_next_path());
       } catch (err) {
+        scrub_checkout_params();
         set_is_checkout_login(false);
         set_username(checkout_username);
-        if (err instanceof Error && err.message.includes("decrypt")) {
+        if (is_auth_salt_collision(err)) {
+          void api_client.clear_session_cookies();
+          set_error(translate("errors.auth_salt_collision"));
+        } else if (err instanceof Error && /decrypt/i.test(err.message)) {
           set_error(translate("errors.wrong_vault_password"));
         } else {
-          set_error(
-            err instanceof Error
-              ? err.message
-              : translate("errors.login_failed"),
-          );
+          set_error(user_facing_error(err, translate("errors.login_failed")));
         }
       }
     })();
@@ -448,18 +598,6 @@ export function use_sign_in_page() {
       set_status(t("auth.decrypting_vault"));
 
       try {
-        if (totp_response.is_suspended) {
-          sessionStorage.setItem("aster_suspended", "true");
-          set_error(t("common.account_suspended"));
-          set_is_loading(false);
-          set_totp_required(false);
-          set_pending_login_token("");
-          set_available_2fa_methods([]);
-          set_active_2fa_method("totp");
-
-          return;
-        }
-
         let vault;
 
         try {
@@ -495,8 +633,7 @@ export function use_sign_in_page() {
             totp_response.prf_nonce
           ) {
             const prf_out = (totp_response as any).prf_output as
-              | ArrayBuffer
-              | undefined;
+              ArrayBuffer | undefined;
 
             if (prf_out) {
               const prf_passphrase = await decrypt_with_prf(
@@ -522,6 +659,8 @@ export function use_sign_in_page() {
           if (!vault) {
             set_error(t("passkeys.vault_needs_password"));
             set_is_loading(false);
+            set_captcha_token("");
+            turnstile_ref.current?.reset();
             set_totp_required(false);
             set_pending_login_token("");
             set_available_2fa_methods([]);
@@ -565,7 +704,7 @@ export function use_sign_in_page() {
 
         set_status(t("auth.signing_in"));
 
-        const login_timeout = <T,>(promise: Promise<T>): Promise<T> =>
+        const login_timeout = <T>(promise: Promise<T>): Promise<T> =>
           Promise.race([
             promise,
             new Promise<never>((_, reject) =>
@@ -587,6 +726,8 @@ export function use_sign_in_page() {
           if (!add_result.success) {
             set_error(add_result.error || t("errors.login_failed"));
             set_is_loading(false);
+            set_captcha_token("");
+            turnstile_ref.current?.reset();
             set_totp_required(false);
             set_pending_login_token("");
             set_available_2fa_methods([]);
@@ -625,7 +766,9 @@ export function use_sign_in_page() {
                 );
               }
             })
-            .catch((caught) => ignore_error("pages/use_sign_in_page:login_timeout", caught));
+            .catch((caught) =>
+              ignore_error("pages/use_sign_in_page:login_timeout", caught),
+            );
         }
 
         set_is_loading(false);
@@ -634,7 +777,7 @@ export function use_sign_in_page() {
         set_available_2fa_methods([]);
         set_active_2fa_method("totp");
 
-        navigate(get_safe_next_path());
+        navigate(consume_safe_next_path());
         setTimeout(() => emit_auth_ready(), 50);
 
         return;
@@ -644,26 +787,55 @@ export function use_sign_in_page() {
           set_pending_login_token("");
           set_available_2fa_methods([]);
           set_active_2fa_method("totp");
-          navigate(get_safe_next_path());
+          navigate(consume_safe_next_path());
           setTimeout(() => emit_auth_ready(), 50);
 
           return;
         }
         set_is_loading(false);
+        set_captcha_token("");
+        turnstile_ref.current?.reset();
         set_totp_required(false);
         set_pending_login_token("");
         set_available_2fa_methods([]);
         set_active_2fa_method("totp");
-        if (err instanceof Error && err.message.includes("decrypt")) {
+        if (is_auth_salt_collision(err)) {
+          void api_client.clear_session_cookies();
+          set_error(t("errors.auth_salt_collision"));
+        } else if (err instanceof Error && /decrypt/i.test(err.message)) {
           set_error(t("errors.wrong_vault_password"));
         } else {
-          set_error(
-            err instanceof Error ? err.message : t("errors.login_failed"),
-          );
+          set_error(user_facing_error(err, t("errors.login_failed")));
         }
       }
     },
-    [password, is_adding_account, add_account, login, t, navigate, active_2fa_method],
+    [
+      password,
+      is_adding_account,
+      add_account,
+      login,
+      t,
+      navigate,
+      active_2fa_method,
+    ],
+  );
+
+  const reset_resend_cooldown = useCallback(() => {
+    if (resend_cooldown_ref.current) {
+      clearInterval(resend_cooldown_ref.current);
+      resend_cooldown_ref.current = null;
+    }
+    set_resend_cooldown(0);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (resend_cooldown_ref.current) {
+        clearInterval(resend_cooldown_ref.current);
+        resend_cooldown_ref.current = null;
+      }
+    },
+    [],
   );
 
   const start_resend_cooldown = useCallback(() => {
@@ -694,14 +866,19 @@ export function use_sign_in_page() {
     const result = await resend_pending_verification(pending_verification_hash);
 
     set_is_resending(false);
-    if (result.data.success) {
-      start_resend_cooldown();
+    if (!result.data.success) {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+
+      return;
     }
+
+    start_resend_cooldown();
   }, [
     pending_verification_hash,
     resend_cooldown,
     is_resending,
     start_resend_cooldown,
+    t,
   ]);
 
   return {
@@ -729,6 +906,8 @@ export function use_sign_in_page() {
     set_password,
     email_domain,
     set_email_domain,
+    is_domain_explicit,
+    set_is_domain_explicit,
     remember_me,
     set_remember_me,
     set_is_loading,
@@ -738,7 +917,6 @@ export function use_sign_in_page() {
     set_status,
     is_checkout_login,
     checkout_status,
-    device_logging_in,
     captcha_token,
     set_captcha_token,
     turnstile_ref,
@@ -746,6 +924,7 @@ export function use_sign_in_page() {
     set_pending_verification_hash,
     resend_cooldown,
     set_resend_cooldown,
+    reset_resend_cooldown,
     is_resending,
     totp_required,
     set_totp_required,
@@ -757,5 +936,8 @@ export function use_sign_in_page() {
     set_active_2fa_method,
     handle_totp_success,
     handle_resend_pending,
+    hub_accounts,
+    hub_signing_in_id,
+    handle_hub_account,
   };
 }

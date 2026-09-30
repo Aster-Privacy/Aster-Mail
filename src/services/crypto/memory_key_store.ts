@@ -19,12 +19,11 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import { HASH_ALG } from "@/services/crypto/constants";
-import { base64_to_array } from "./base64";
 import type { EncryptedVault } from "./key_manager";
 
 import { sha256 } from "@noble/hashes/sha256";
 
+import { base64_to_array } from "./base64";
 import { array_to_base64 } from "./key_manager_core";
 import {
   SecureBuffer,
@@ -46,11 +45,15 @@ import {
   load_legacy_keks_into_memory,
   load_previous_key_derived_keks_into_memory,
   clear_legacy_keks_from_memory,
+  clear_account_key_derived_keks,
+  clear_account_data_write_keys,
+  get_account_key_generation,
   append_legacy_key_raw_bytes,
 } from "./legacy_keks";
 
-import { en } from "@/lib/i18n/translations/en";
-
+import { clear_preview_memo } from "@/utils/preview_text";
+import { HASH_ALG } from "@/services/crypto/constants";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export const MASTER_KEY_VAULT_FORMAT = 2;
 
@@ -132,6 +135,23 @@ if (import.meta.hot) {
 const DERIVED_KEY_LENGTH = 32;
 const DERIVED_KEY_INFO = "aster-storage-encryption-key-v1";
 const SALT_DERIVATION_PREFIX = "aster-hkdf-salt-v1:";
+const DERIVED_KEY_INFO_STRETCHED = "aster-storage-encryption-key-v2";
+const STRETCH_SALT_STRETCHED = "aster-storage-stretch-salt-v2";
+const EXPANSION_SALT_STRETCHED = "aster-storage-expansion-salt-v2";
+const STRETCH_ITERATIONS = 600000;
+
+export const STORAGE_KDF_VERSION_LEGACY = 1;
+export const STORAGE_KDF_VERSION_STRETCHED = 2;
+
+export function get_storage_kdf_version(
+  vault: Pick<EncryptedVault, "kdf_version"> | null | undefined,
+): number {
+  const version = vault?.kdf_version;
+
+  return version === STORAGE_KDF_VERSION_STRETCHED
+    ? STORAGE_KDF_VERSION_STRETCHED
+    : STORAGE_KDF_VERSION_LEGACY;
+}
 
 async function derive_salt_from_passphrase(
   passphrase_bytes: Uint8Array,
@@ -147,9 +167,70 @@ async function derive_salt_from_passphrase(
   return new Uint8Array(hash);
 }
 
-export async function derive_encryption_key_from_passphrase(
+async function stretch_passphrase(
   passphrase_bytes: Uint8Array,
 ): Promise<Uint8Array> {
+  const encoder = new TextEncoder();
+  const key_material = await crypto.subtle.importKey(
+    "raw",
+    passphrase_bytes,
+    "PBKDF2",
+    false,
+    ["deriveBits"],
+  );
+
+  const stretched = await crypto.subtle.deriveBits(
+    {
+      name: "PBKDF2",
+      salt: encoder.encode(STRETCH_SALT_STRETCHED),
+      iterations: STRETCH_ITERATIONS,
+      hash: HASH_ALG,
+    },
+    key_material,
+    DERIVED_KEY_LENGTH * 8,
+  );
+
+  return new Uint8Array(stretched);
+}
+
+async function derive_stretched_encryption_key(
+  passphrase_bytes: Uint8Array,
+): Promise<Uint8Array> {
+  const encoder = new TextEncoder();
+  const stretched = await stretch_passphrase(passphrase_bytes);
+
+  const key_material = await crypto.subtle.importKey(
+    "raw",
+    stretched,
+    "HKDF",
+    false,
+    ["deriveBits"],
+  );
+
+  const derived_bits = await crypto.subtle.deriveBits(
+    {
+      name: "HKDF",
+      hash: HASH_ALG,
+      salt: encoder.encode(EXPANSION_SALT_STRETCHED),
+      info: encoder.encode(DERIVED_KEY_INFO_STRETCHED),
+    },
+    key_material,
+    DERIVED_KEY_LENGTH * 8,
+  );
+
+  zero_uint8_array(stretched);
+
+  return new Uint8Array(derived_bits);
+}
+
+export async function derive_encryption_key_from_passphrase(
+  passphrase_bytes: Uint8Array,
+  kdf_version: number = STORAGE_KDF_VERSION_LEGACY,
+): Promise<Uint8Array> {
+  if (kdf_version >= STORAGE_KDF_VERSION_STRETCHED) {
+    return derive_stretched_encryption_key(passphrase_bytes);
+  }
+
   const key_material = await crypto.subtle.importKey(
     "raw",
     passphrase_bytes,
@@ -175,23 +256,164 @@ export async function derive_encryption_key_from_passphrase(
   return new Uint8Array(derived_bits);
 }
 
+const ACCOUNT_KEY_RETRY_DELAYS_MS = [2000, 5000, 15000, 30000, 60000];
+
+let account_key_load_generation: number | null = null;
+let account_key_load_key_set: string | null = null;
+let account_key_retry_timer: ReturnType<typeof setTimeout> | null = null;
+let account_key_load_pending = false;
+let account_key_load_sequence = 0;
+let account_key_load_waiters: Array<() => void> = [];
+
+function settle_account_key_load(): void {
+  account_key_load_pending = false;
+  const waiters = account_key_load_waiters;
+
+  account_key_load_waiters = [];
+  for (const resolve of waiters) resolve();
+}
+
+export function wait_for_account_key_load(timeout_ms: number): Promise<void> {
+  if (!account_key_load_pending) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    const timer = setTimeout(done, timeout_ms);
+
+    function done(): void {
+      clearTimeout(timer);
+      account_key_load_waiters = account_key_load_waiters.filter(
+        (waiter) => waiter !== done,
+      );
+      resolve();
+    }
+
+    account_key_load_waiters.push(done);
+  });
+}
+
+function cancel_account_key_retry(): void {
+  if (account_key_retry_timer) {
+    clearTimeout(account_key_retry_timer);
+    account_key_retry_timer = null;
+  }
+}
+
+function run_account_key_load(
+  generation: number,
+  sequence: number,
+  attempt: number,
+  vault: EncryptedVault,
+  passphrase: string,
+): void {
+  import("./account_key_loader")
+    .then(({ load_account_keys_for_session }) =>
+      load_account_keys_for_session(vault, passphrase),
+    )
+    .then(() => {
+      if (sequence === account_key_load_sequence) settle_account_key_load();
+    })
+    .catch(() => {
+      if (sequence !== account_key_load_sequence) return;
+
+      if (account_key_load_generation !== generation) {
+        settle_account_key_load();
+
+        return;
+      }
+
+      const delay = ACCOUNT_KEY_RETRY_DELAYS_MS[attempt];
+
+      if (delay === undefined || generation !== get_account_key_generation()) {
+        account_key_load_generation = null;
+        settle_account_key_load();
+
+        return;
+      }
+
+      cancel_account_key_retry();
+      account_key_retry_timer = setTimeout(() => {
+        account_key_retry_timer = null;
+        if (
+          sequence !== account_key_load_sequence ||
+          account_key_load_generation !== generation
+        ) {
+          return;
+        }
+
+        const latest_vault = vault_in_memory;
+        const latest_passphrase = get_passphrase_from_memory();
+
+        if (!latest_vault || !latest_passphrase) {
+          account_key_load_generation = null;
+          settle_account_key_load();
+
+          return;
+        }
+
+        run_account_key_load(
+          generation,
+          sequence,
+          attempt + 1,
+          latest_vault,
+          latest_passphrase,
+        );
+      }, delay);
+    });
+}
+
+function request_account_key_load(
+  vault: EncryptedVault,
+  passphrase: string,
+): void {
+  const generation = get_account_key_generation();
+  const key_set = [vault.identity_key, ...(vault.previous_keys ?? [])].join(
+    "\n",
+  );
+
+  if (
+    account_key_load_generation === generation &&
+    account_key_load_key_set === key_set
+  ) {
+    return;
+  }
+  account_key_load_generation = generation;
+  account_key_load_key_set = key_set;
+  account_key_load_pending = true;
+  account_key_load_sequence += 1;
+  clear_account_data_write_keys();
+  cancel_account_key_retry();
+  run_account_key_load(
+    generation,
+    account_key_load_sequence,
+    0,
+    vault,
+    passphrase,
+  );
+}
+
 export async function store_vault_in_memory(
   vault: EncryptedVault,
   passphrase: string,
   owner_user_id?: string,
 ): Promise<void> {
   const previous_owner_id = vault_owner_id;
+  const next_owner_id = owner_user_id ?? previous_owner_id;
+  const same_owner =
+    previous_owner_id !== null && next_owner_id === previous_owner_id;
 
-  clear_vault_from_memory();
+  clear_vault_from_memory({ keep_account_keys: same_owner });
 
-  vault_owner_id = owner_user_id ?? previous_owner_id;
+  vault_owner_id = next_owner_id;
 
   vault_in_memory = {
     identity_key: vault.identity_key,
     previous_keys: vault.previous_keys ? [...vault.previous_keys] : [],
+    legacy_identity_keys: vault.legacy_identity_keys
+      ? [...vault.legacy_identity_keys]
+      : undefined,
     signed_prekey: vault.signed_prekey,
     signed_prekey_private: vault.signed_prekey_private,
-    recovery_codes: [...vault.recovery_codes],
+    recovery_codes: vault.recovery_codes ? [...vault.recovery_codes] : [],
     ratchet_identity_key: vault.ratchet_identity_key,
     ratchet_identity_public: vault.ratchet_identity_public,
     ratchet_signed_prekey: vault.ratchet_signed_prekey,
@@ -206,11 +428,16 @@ export async function store_vault_in_memory(
     legacy_keks: vault.legacy_keks ? [...vault.legacy_keks] : undefined,
     data_kek: vault.data_kek,
     vault_format: vault.vault_format,
+    kdf_version: vault.kdf_version,
     mk_created_at: vault.mk_created_at,
   };
 
   await load_legacy_keks_into_memory(vault.legacy_keks);
-  await load_previous_key_derived_keks_into_memory(vault.previous_keys);
+  await load_previous_key_derived_keks_into_memory([
+    ...(vault.previous_keys ?? []),
+    ...(vault.legacy_identity_keys ?? []),
+  ]);
+  request_account_key_load(vault, passphrase);
 
   secure_passphrase = SecureBuffer.from_string(
     passphrase,
@@ -220,22 +447,47 @@ export async function store_vault_in_memory(
   const passphrase_bytes = secure_passphrase.get_bytes();
 
   const uses_master_key = is_master_key_vault(vault);
+  const kdf_version = get_storage_kdf_version(vault);
 
   if (uses_master_key && vault.data_kek) {
     derived_encryption_key = base64_to_array(vault.data_kek);
     if (passphrase_bytes) {
-      const password_derived =
-        await derive_encryption_key_from_passphrase(passphrase_bytes);
+      const password_derived = await derive_encryption_key_from_passphrase(
+        passphrase_bytes,
+        kdf_version,
+      );
 
-      zero_uint8_array(passphrase_bytes);
       if (!arrays_equal(password_derived, derived_encryption_key)) {
         await append_legacy_key_raw_bytes(password_derived);
       }
       zero_uint8_array(password_derived);
+
+      if (kdf_version >= STORAGE_KDF_VERSION_STRETCHED) {
+        const legacy_derived = await derive_encryption_key_from_passphrase(
+          passphrase_bytes,
+          STORAGE_KDF_VERSION_LEGACY,
+        );
+
+        await append_legacy_key_raw_bytes(legacy_derived);
+        zero_uint8_array(legacy_derived);
+      }
+
+      zero_uint8_array(passphrase_bytes);
     }
   } else if (passphrase_bytes) {
-    derived_encryption_key =
-      await derive_encryption_key_from_passphrase(passphrase_bytes);
+    derived_encryption_key = await derive_encryption_key_from_passphrase(
+      passphrase_bytes,
+      kdf_version,
+    );
+    if (kdf_version >= STORAGE_KDF_VERSION_STRETCHED) {
+      const legacy_derived = await derive_encryption_key_from_passphrase(
+        passphrase_bytes,
+        STORAGE_KDF_VERSION_LEGACY,
+      );
+
+      await append_legacy_key_raw_bytes(legacy_derived);
+      zero_uint8_array(legacy_derived);
+    }
     zero_uint8_array(passphrase_bytes);
     if (vault_in_memory && derived_encryption_key) {
       vault_in_memory.data_kek = array_to_base64(derived_encryption_key);
@@ -339,14 +591,24 @@ export function clear_passphrase(): void {
   keys_ready_seen = false;
 }
 
-export function clear_vault_from_memory(): void {
+export function clear_vault_from_memory(
+  options: { keep_account_keys?: boolean } = {},
+): void {
   clear_passphrase();
   clear_legacy_keks_from_memory();
+  if (!options.keep_account_keys) {
+    cancel_account_key_retry();
+    clear_account_key_derived_keks();
+    account_key_load_generation = null;
+    account_key_load_key_set = null;
+    settle_account_key_load();
+  }
   vault_in_memory = null;
   vault_owner_id = null;
   clear_crypto_key_cache();
   clear_unlocked_key_cache();
   clear_envelope_key_cache();
+  clear_preview_memo();
   keys_ready_seen = false;
 
   if (session_expire_unsubscribe) {
@@ -465,12 +727,13 @@ export function extend_passphrase_timeout(): void {
 
 function validate_passphrase(entered: string): string | null {
   if (!secure_passphrase || secure_passphrase.is_cleared())
-    return en.errors.session_expired_login;
+    return get_active_translations().errors.session_expired_login;
 
   const entered_bytes = new TextEncoder().encode(entered);
   const stored_bytes = secure_passphrase.get_bytes();
 
-  if (!stored_bytes) return en.errors.session_expired_login;
+  if (!stored_bytes)
+    return get_active_translations().errors.session_expired_login;
 
   const entered_hash = sha256(entered_bytes);
   const stored_hash = sha256(stored_bytes);
@@ -486,8 +749,9 @@ function validate_passphrase(entered: string): string | null {
   zero_uint8_array(entered_hash);
   zero_uint8_array(stored_hash);
 
-  if (result !== 0) return en.errors.incorrect_password;
-  if (!vault_in_memory) return en.errors.no_keys_available;
+  if (result !== 0) return get_active_translations().errors.incorrect_password;
+  if (!vault_in_memory)
+    return get_active_translations().errors.no_keys_available;
 
   return null;
 }
@@ -524,7 +788,22 @@ export function consume_export_token(token: string): boolean {
 
     return false;
   }
-  if (active_export_token.token !== token) return false;
+
+  const encoder = new TextEncoder();
+  const expected = sha256(encoder.encode(active_export_token.token));
+  const provided = sha256(encoder.encode(token));
+
+  let mismatch = 0;
+
+  for (let i = 0; i < expected.length; i++) {
+    mismatch |= expected[i] ^ provided[i];
+  }
+
+  zero_uint8_array(expected);
+  zero_uint8_array(provided);
+
+  if (mismatch !== 0) return false;
+
   active_export_token = null;
 
   return true;
@@ -559,4 +838,3 @@ export function get_aes_crypto_key(id: string): CryptoKey | null {
 export function has_aes_crypto_key(id: string): boolean {
   return has_key(`aes:${id}`);
 }
-

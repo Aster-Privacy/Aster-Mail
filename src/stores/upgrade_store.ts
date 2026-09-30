@@ -20,7 +20,16 @@
 //
 import { useSyncExternalStore } from "react";
 
-export type UpgradeReason = "plan_limit" | "storage_full";
+import { strip_account_prefix } from "@/lib/account_index_url";
+
+export type UpgradeReason =
+  | "plan_limit"
+  | "storage_full"
+  | "checkout_cancelled"
+  | "offer"
+  | "manual";
+
+export type UpgradeInterval = "month" | "year" | "biennial";
 
 export type UpgradeLimitKey =
   | "max_email_aliases"
@@ -30,6 +39,8 @@ export type UpgradeLimitKey =
   | "max_html_signatures"
   | "max_custom_filters"
   | "max_custom_categories"
+  | "max_linked_accounts"
+  | "max_external_accounts"
   | "generic";
 
 export interface UpgradeState {
@@ -39,6 +50,11 @@ export interface UpgradeState {
   feature_key: string | null;
   resource_label: string | null;
   server_message: string | null;
+  preselect_plan_code: string | null;
+  preselect_interval: UpgradeInterval | null;
+  offer_percent_off: number | null;
+  offer_promo_code: string | null;
+  open_seq: number;
 }
 
 const initial_state: UpgradeState = {
@@ -48,10 +64,22 @@ const initial_state: UpgradeState = {
   feature_key: null,
   resource_label: null,
   server_message: null,
+  preselect_plan_code: null,
+  preselect_interval: null,
+  offer_percent_off: null,
+  offer_promo_code: null,
+  open_seq: 0,
 };
 
 let current: UpgradeState = initial_state;
+let open_seq = 0;
 const listeners = new Set<() => void>();
+
+function next_open_seq(): number {
+  open_seq += 1;
+
+  return open_seq;
+}
 
 function notify() {
   for (const l of listeners) l();
@@ -65,7 +93,7 @@ function subscribe(listener: () => void) {
   };
 }
 
-function get_snapshot(): UpgradeState {
+export function get_upgrade_snapshot(): UpgradeState {
   return current;
 }
 
@@ -84,6 +112,12 @@ const RESOURCE_TO_LIMIT_KEY: Record<string, UpgradeLimitKey> = {
   "custom filters": "max_custom_filters",
   categories: "max_custom_categories",
   "custom categories": "max_custom_categories",
+  accounts: "max_linked_accounts",
+  "linked accounts": "max_linked_accounts",
+  "signed-in accounts": "max_linked_accounts",
+  "external accounts": "max_external_accounts",
+  "external account": "max_external_accounts",
+  "connected accounts": "max_external_accounts",
 };
 
 function resolve_limit_key(resource: string | null): UpgradeLimitKey {
@@ -93,11 +127,34 @@ function resolve_limit_key(resource: string | null): UpgradeLimitKey {
   return RESOURCE_TO_LIMIT_KEY[key] ?? "generic";
 }
 
+const AUTH_ROUTES = [
+  "/sign-in",
+  "/register",
+  "/signup",
+  "/invite",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-recovery-email",
+  "/link-device",
+];
+
+export function is_on_auth_route(pathname?: string): boolean {
+  if (!pathname && typeof window === "undefined") return false;
+  const path = strip_account_prefix(pathname ?? window.location.pathname);
+
+  return AUTH_ROUTES.some(
+    (route) => path === route || path.startsWith(`${route}/`),
+  );
+}
+
 export function show_plan_limit_upgrade(opts: {
   resource?: string | null;
   message?: string | null;
   feature?: string | null;
+  plan_code?: string | null;
+  interval?: UpgradeInterval | null;
 }) {
+  if (is_on_auth_route()) return;
   current = {
     is_open: true,
     reason: "plan_limit",
@@ -105,11 +162,17 @@ export function show_plan_limit_upgrade(opts: {
     feature_key: opts.feature ?? null,
     resource_label: opts.resource ?? null,
     server_message: opts.message ?? null,
+    preselect_plan_code: opts.plan_code ?? null,
+    preselect_interval: opts.interval ?? null,
+    offer_percent_off: null,
+    offer_promo_code: null,
+    open_seq: next_open_seq(),
   };
   notify();
 }
 
 export function show_storage_full_upgrade(opts?: { message?: string | null }) {
+  if (is_on_auth_route()) return;
   current = {
     is_open: true,
     reason: "storage_full",
@@ -117,6 +180,78 @@ export function show_storage_full_upgrade(opts?: { message?: string | null }) {
     feature_key: null,
     resource_label: null,
     server_message: opts?.message ?? null,
+    preselect_plan_code: null,
+    preselect_interval: null,
+    offer_percent_off: null,
+    offer_promo_code: null,
+    open_seq: next_open_seq(),
+  };
+  notify();
+}
+
+export function show_checkout_cancelled_upgrade(opts: {
+  plan_code: string;
+  interval: UpgradeInterval;
+}): boolean {
+  if (is_on_auth_route()) return false;
+  current = {
+    is_open: true,
+    reason: "checkout_cancelled",
+    limit_key: "generic",
+    feature_key: null,
+    resource_label: null,
+    server_message: null,
+    preselect_plan_code: opts.plan_code,
+    preselect_interval: opts.interval,
+    offer_percent_off: null,
+    offer_promo_code: null,
+    open_seq: next_open_seq(),
+  };
+  notify();
+
+  return true;
+}
+
+export function show_offer_upgrade(opts: {
+  plan_code?: string | null;
+  interval?: UpgradeInterval | null;
+}) {
+  if (is_on_auth_route()) return;
+  current = {
+    is_open: true,
+    reason: "offer",
+    limit_key: "generic",
+    feature_key: null,
+    resource_label: null,
+    server_message: null,
+    preselect_plan_code: opts.plan_code ?? null,
+    preselect_interval: opts.interval ?? "year",
+    offer_percent_off: null,
+    offer_promo_code: null,
+    open_seq: next_open_seq(),
+  };
+  notify();
+}
+
+export function show_upgrade_plans(opts?: {
+  plan_code?: string | null;
+  interval?: UpgradeInterval | null;
+  offer_percent_off?: number | null;
+  offer_promo_code?: string | null;
+}) {
+  if (is_on_auth_route()) return;
+  current = {
+    is_open: true,
+    reason: "manual",
+    limit_key: "generic",
+    feature_key: null,
+    resource_label: null,
+    server_message: null,
+    preselect_plan_code: opts?.plan_code ?? null,
+    preselect_interval: opts?.interval ?? null,
+    offer_percent_off: opts?.offer_percent_off ?? null,
+    offer_promo_code: opts?.offer_promo_code ?? null,
+    open_seq: next_open_seq(),
   };
   notify();
 }
@@ -128,7 +263,11 @@ export function close_upgrade_modal() {
 }
 
 export function use_upgrade_state(): UpgradeState {
-  return useSyncExternalStore(subscribe, get_snapshot, get_snapshot);
+  return useSyncExternalStore(
+    subscribe,
+    get_upgrade_snapshot,
+    get_upgrade_snapshot,
+  );
 }
 
 if (import.meta.env.DEV && typeof window !== "undefined") {

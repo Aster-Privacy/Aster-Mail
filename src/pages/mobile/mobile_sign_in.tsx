@@ -36,6 +36,7 @@ import {
   TurnstileWidget,
   TURNSTILE_SITE_KEY,
 } from "@/components/auth/turnstile_widget";
+import { get_safe_next_path } from "@/pages/sign_in_helpers";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { TotpVerification } from "@/components/auth/totp_verification";
@@ -109,6 +110,9 @@ export default function MobileSignInPage() {
     return null;
   }
 
+  const returns_to_link_device =
+    get_safe_next_path().replace(/^\/u\/\d+/, "") === "/link-device";
+
   const { handle_cancel_add_account, handle_totp_cancel, handle_login } =
     build_mobile_sign_in_handlers({
       navigate,
@@ -154,7 +158,7 @@ export default function MobileSignInPage() {
           <motion.button
             className="flex items-center justify-center text-[var(--text-secondary)]"
             type="button"
-            whileTap={{ scale: 0.9 }}
+            whileTap={{ opacity: 0.7 }}
             onClick={handle_totp_cancel}
           >
             <svg
@@ -184,7 +188,9 @@ export default function MobileSignInPage() {
               </div>
             ) : active_2fa_method === "backup" ? (
               <BackupCodeInput
+                has_backup_codes={available_2fa_methods.includes("totp")}
                 on_cancel={handle_totp_cancel}
+                on_reset_with_recovery_code={() => navigate("/forgot-password")}
                 on_success={handle_totp_success}
                 on_use_authenticator={() =>
                   set_active_2fa_method(
@@ -283,7 +289,9 @@ export default function MobileSignInPage() {
                     strokeLinejoin="round"
                   />
                 </svg>
-                {t("auth.back_to_inbox")}
+                {returns_to_link_device
+                  ? t("auth.back_to_link_device")
+                  : t("auth.back_to_inbox")}
               </button>
             </motion.div>
           ) : (
@@ -296,10 +304,10 @@ export default function MobileSignInPage() {
                 className={BACK_BUTTON_CLASS}
                 style={BACK_BUTTON_STYLE}
                 type="button"
-                whileTap={{ scale: 0.9 }}
+                whileTap={{ opacity: 0.7 }}
                 onClick={() => navigate("/welcome")}
               >
-                <ChevronLeftIcon className="h-5 w-5" />
+                <ChevronLeftIcon className="h-5 w-5 rtl:-scale-x-100" />
               </motion.button>
             </motion.div>
           )}
@@ -317,6 +325,7 @@ export default function MobileSignInPage() {
                 alt="Aster"
                 className="h-10"
                 decoding="async"
+                draggable={false}
                 src="/text_logo.png"
               />
             </motion.div>
@@ -357,11 +366,14 @@ export default function MobileSignInPage() {
                   <UserCircleIcon />
                 </div>
                 <Input
+                  autoCapitalize="none"
                   autoComplete="username"
+                  autoCorrect="off"
                   className={INNER_INPUT_WITH_ICON_CLASS}
                   disabled={is_loading}
                   maxLength={55}
                   placeholder={t("common.yourname_placeholder")}
+                  spellCheck={false}
                   status={error ? "error" : "default"}
                   type="text"
                   value={username}
@@ -518,6 +530,7 @@ export default function MobileSignInPage() {
                 </label>
                 <Link
                   className="text-xs font-semibold text-[var(--mobile-accent)]"
+                  state={{ email_domain, username }}
                   to="/forgot-password"
                 >
                   {t("auth.forgot_password")}
@@ -569,7 +582,7 @@ export default function MobileSignInPage() {
                 <span>
                   {t("auth.dont_have_account")} {t("auth.sign_up")}
                 </span>
-                <ArrowRightIcon className="h-4 w-4" />
+                <ArrowRightIcon className="h-4 w-4 rtl:-scale-x-100" />
               </motion.button>
             </motion.div>
           </motion.div>

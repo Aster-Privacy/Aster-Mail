@@ -18,11 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import { IslandSections } from "@aster/ui";
+
 import { use_encryption } from "@/components/settings/hooks/use_encryption";
 import { EncryptionFlowBanner } from "@/components/settings/encryption/encryption_flow_banner";
 import { KeyRotationPanel } from "@/components/settings/encryption/key_rotation_panel";
 import { EncryptionSettingsForm } from "@/components/settings/encryption/encryption_settings_form";
-import { StorageFormatPicker } from "@/components/settings/encryption/storage_format_picker";
 import { SettingsSkeleton } from "@/components/settings/settings_skeleton";
 
 export function EncryptionSection() {
@@ -33,71 +34,49 @@ export function EncryptionSection() {
   }
 
   return (
-    <div className="space-y-6">
+    <IslandSections>
       <EncryptionFlowBanner
         your_fingerprint={encryption.pgp_key?.fingerprint}
       />
 
       <KeyRotationPanel
         close_export_prompt={encryption.close_export_prompt}
-        close_regenerate_confirm={encryption.close_regenerate_confirm}
-        codes_key={encryption.codes_key}
-        codes_remaining={encryption.codes_remaining}
-        codes_total={encryption.codes_total}
-        codes_used={encryption.codes_used}
         export_error={encryption.export_error}
         export_password={encryption.export_password}
         export_totp_code={encryption.export_totp_code}
         export_totp_required={encryption.export_totp_required}
         format_date={encryption.format_date}
         format_fingerprint={encryption.format_fingerprint}
-        handle_copy_all_codes={encryption.handle_copy_all_codes}
         handle_copy_fingerprint={encryption.handle_copy_fingerprint}
         handle_copy_public_key={encryption.handle_copy_public_key}
-        handle_download_codes={encryption.handle_download_codes}
         handle_export_public_key={encryption.handle_export_public_key}
         handle_export_secret_key={encryption.handle_export_secret_key}
-        handle_regenerate_codes={encryption.handle_regenerate_codes}
         is_exporting_private_key={encryption.is_exporting_private_key}
-        is_regenerating={encryption.is_regenerating}
         open_export_prompt={encryption.open_export_prompt}
-        open_regenerate_confirm={encryption.open_regenerate_confirm}
         pgp_key={encryption.pgp_key}
         pgp_key_load_failed={encryption.pgp_key_load_failed}
         retry_load_encryption_data={encryption.retry_load_encryption_data}
-        recovery_codes={encryption.recovery_codes}
-        recovery_info={encryption.recovery_info}
-        regenerate_confirm_text={encryption.regenerate_confirm_text}
-        regenerate_error={encryption.regenerate_error}
-        regenerate_password={encryption.regenerate_password}
-        regenerate_totp_code={encryption.regenerate_totp_code}
-        regenerate_totp_required={encryption.regenerate_totp_required}
         set_export_password={encryption.set_export_password}
         set_export_totp_code={encryption.set_export_totp_code}
-        set_regenerate_confirm_text={encryption.set_regenerate_confirm_text}
-        set_regenerate_password={encryption.set_regenerate_password}
-        set_regenerate_totp_code={encryption.set_regenerate_totp_code}
         show_export_prompt={encryption.show_export_prompt}
-        show_recovery_codes={encryption.show_recovery_codes}
-        show_regenerate_confirm={encryption.show_regenerate_confirm}
-      />
-
-      <StorageFormatPicker
-        storage_format={encryption.preferences.storage_format}
-        on_change={encryption.handle_storage_format_change}
       />
 
       <EncryptionSettingsForm
-        handle_auto_discover_keys_toggle={encryption.handle_auto_discover_keys_toggle}
-        handle_encrypt_emails_toggle={encryption.handle_encrypt_emails_toggle}
-        handle_wkd_toggle={encryption.handle_wkd_toggle}
         handle_add_keyserver={encryption.handle_add_keyserver}
-        handle_remove_keyserver={encryption.handle_remove_keyserver}
+        handle_auto_discover_keys_toggle={
+          encryption.handle_auto_discover_keys_toggle
+        }
+        handle_encrypt_emails_toggle={encryption.handle_encrypt_emails_toggle}
         handle_publish_to_keyservers={encryption.handle_publish_to_keyservers}
-        is_saving_keyservers={encryption.is_saving_keyservers}
+        handle_remove_keyserver={encryption.handle_remove_keyserver}
+        handle_require_encryption_toggle={
+          encryption.handle_require_encryption_toggle
+        }
+        handle_wkd_toggle={encryption.handle_wkd_toggle}
         is_publishing_keyserver={encryption.is_publishing_keyserver}
-        keyserver_input={encryption.keyserver_input}
+        is_saving_keyservers={encryption.is_saving_keyservers}
         keyserver_error={encryption.keyserver_error}
+        keyserver_input={encryption.keyserver_input}
         keyserver_published={encryption.keyserver_published}
         keyserver_state={encryption.keyserver_state}
         keyserver_urls={encryption.keyserver_urls}
@@ -105,6 +84,6 @@ export function EncryptionSection() {
         set_keyserver_input={encryption.set_keyserver_input}
         update_preference={encryption.update_preference}
       />
-    </div>
+    </IslandSections>
   );
 }

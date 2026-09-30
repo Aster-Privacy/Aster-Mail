@@ -48,7 +48,6 @@ vi.mock("@/services/crypto/mail_metadata", () => ({
 vi.mock("@/services/mail_categorizer", () => ({
   CLASSIFIER_VERSION: 2,
   classify: () => "primary",
-  category_for_tab: (c: string) => c,
   CATEGORY_TABS: ["primary"],
 }));
 
@@ -91,17 +90,23 @@ describe("is_item_outside_inbox", () => {
     ).toBe(true);
     expect(
       is_item_outside_inbox(
-        base_item({ folders: [{ token: "work", name: "Work", color: "#000" }] }),
+        base_item({
+          folders: [{ token: "work", name: "Work", color: "#000" }],
+        }),
       ),
     ).toBe(true);
   });
 
   it("treats an item snoozed into the future as outside, but a past snooze as inside", () => {
     expect(
-      is_item_outside_inbox(base_item({ snoozed_until: "2999-01-01T00:00:00.000Z" })),
+      is_item_outside_inbox(
+        base_item({ snoozed_until: "2999-01-01T00:00:00.000Z" }),
+      ),
     ).toBe(true);
     expect(
-      is_item_outside_inbox(base_item({ snoozed_until: "2000-01-01T00:00:00.000Z" })),
+      is_item_outside_inbox(
+        base_item({ snoozed_until: "2000-01-01T00:00:00.000Z" }),
+      ),
     ).toBe(false);
   });
 });
@@ -110,9 +115,27 @@ describe("remove_thread_entries returns the removed ids", () => {
   it("returns exactly the ids it removed and leaves other threads intact", () => {
     clear_category_index_memory();
     upsert_entries([
-      { id: "a1", thread_token: "t1", message_ts: "2026-07-01T00:00:00.000Z", is_read: true, category: "primary" },
-      { id: "a2", thread_token: "t1", message_ts: "2026-07-02T00:00:00.000Z", is_read: true, category: "primary" },
-      { id: "b1", thread_token: "t2", message_ts: "2026-07-03T00:00:00.000Z", is_read: true, category: "primary" },
+      {
+        id: "a1",
+        thread_token: "t1",
+        message_ts: "2026-07-01T00:00:00.000Z",
+        is_read: true,
+        category: "primary",
+      },
+      {
+        id: "a2",
+        thread_token: "t1",
+        message_ts: "2026-07-02T00:00:00.000Z",
+        is_read: true,
+        category: "primary",
+      },
+      {
+        id: "b1",
+        thread_token: "t2",
+        message_ts: "2026-07-03T00:00:00.000Z",
+        is_read: true,
+        category: "primary",
+      },
     ]);
 
     const removed = remove_thread_entries("t1").sort();

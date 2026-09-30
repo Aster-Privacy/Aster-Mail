@@ -22,7 +22,9 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 
-(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+(
+  globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }
+).IS_REACT_ACT_ENVIRONMENT = true;
 
 const hoisted = vi.hoisted(() => ({
   update_pwa_badge: vi.fn(),
@@ -30,6 +32,7 @@ const hoisted = vi.hoisted(() => ({
   bulk_update_items_metadata: vi.fn(),
   list_mail_items: vi.fn(),
   get_mail_stats: vi.fn(),
+  batch_archive: vi.fn(),
 }));
 
 vi.mock("@/services/crypto/secure_storage", () => ({
@@ -61,6 +64,11 @@ vi.mock("@/services/api/mail", () => ({
   remove_spam_sender: async () => ({ data: {} }),
 }));
 
+vi.mock("@/services/api/archive", () => ({
+  batch_archive: (...a: unknown[]) => hoisted.batch_archive(...a),
+  batch_unarchive: async () => ({ data: { success: true } }),
+}));
+
 vi.mock("@/services/api/contacts", () => ({
   get_contacts_count: async () => ({ data: { count: 0 }, error: null }),
 }));
@@ -79,7 +87,6 @@ vi.mock("@/services/crypto/mail_metadata", () => ({
 vi.mock("@/services/mail_categorizer", () => ({
   CLASSIFIER_VERSION: 2,
   classify: () => "primary",
-  category_for_tab: (c: string) => c,
   CATEGORY_TABS: ["primary"],
 }));
 
@@ -121,7 +128,9 @@ vi.mock("@/native/pwa_badge", () => ({
   update_pwa_badge: (...a: unknown[]) => hoisted.update_pwa_badge(...a),
 }));
 vi.mock("@/native/tauri_tray", () => ({ update_tray_badge: () => {} }));
-vi.mock("@/services/low_network_state", () => ({ is_low_network: () => false }));
+vi.mock("@/services/low_network_state", () => ({
+  is_low_network: () => false,
+}));
 
 vi.mock("@/contexts/auth_context", () => ({
   use_auth: () => ({
@@ -143,12 +152,15 @@ vi.mock("@/contexts/preferences_context", () => ({
 }));
 
 import { use_email_actions } from "@/hooks/email_actions";
+import { on_user_opened_mail } from "@/services/user_opened_mail";
+import { get_flag_intent } from "@/services/read_intent";
 import { clear_mail_stats, prefetch_mail_stats } from "@/hooks/use_mail_stats";
 import {
   init_category_index,
   get_counts,
   clear_category_index,
 } from "@/services/category_index";
+
 import type { InboxEmail } from "@/types/email";
 
 type Actions = ReturnType<typeof use_email_actions>;
@@ -426,6 +438,7 @@ describe("unread counters stay in lockstep on read (integration)", () => {
     );
 
     const write = deferred<{ success: boolean; encrypted?: unknown }>();
+
     hoisted.update_item_metadata.mockReturnValue(write.promise);
 
     let action_promise: Promise<boolean>;
@@ -488,6 +501,7 @@ describe("unread counters stay in lockstep on read (integration)", () => {
     expect(stats_unread()).toBe(2);
 
     const write = deferred<{ success: boolean }>();
+
     hoisted.update_item_metadata.mockReturnValue(write.promise);
 
     let action_promise: Promise<boolean>;
@@ -557,6 +571,7 @@ describe("unread counters stay in lockstep on read (integration)", () => {
     );
 
     const write = deferred<{ success: boolean; failed_ids: string[] }>();
+
     hoisted.bulk_update_items_metadata.mockReturnValue(write.promise);
 
     const batch = [
@@ -686,6 +701,7 @@ describe("unread counters stay in lockstep on read (integration)", () => {
     );
 
     const write = deferred<{ success: boolean; failed_ids: string[] }>();
+
     hoisted.bulk_update_items_metadata.mockReturnValue(write.promise);
 
     const batch = [email("m1", "t1", false), email("m2", "t1", false)];
@@ -736,5 +752,73 @@ describe("unread counters stay in lockstep on read (integration)", () => {
 
     expect(stats_unread()).toBe(3);
     expect(cat_unread()).toBe(3);
+  });
+
+  it("archive and star still sync to the server after the mail is opened", async () => {
+    await seed(
+      [
+        { id: "m1", thread: "t1", is_read: false },
+        { id: "m2", thread: "t2", is_read: false },
+        { id: "m3", thread: "t3", is_read: false },
+      ],
+      3,
+    );
+
+    hoisted.update_item_metadata.mockResolvedValue({
+      success: true,
+      encrypted: { encrypted_metadata: "em2", metadata_nonce: "mn2" },
+    });
+    hoisted.batch_archive.mockResolvedValue({ data: { success: true } });
+
+    const row = email("m1", "t1", false);
+
+    await act(async () => {
+      expect(on_user_opened_mail("m1", { delay: "immediate", row })).toBe(
+        true,
+      );
+      await flush();
+    });
+
+    expect(stats_unread()).toBe(2);
+    expect(hoisted.update_item_metadata).toHaveBeenCalledWith(
+      "m1",
+      expect.objectContaining({ encrypted_metadata: "em" }),
+      { is_read: true },
+    );
+
+    const opened = { ...row, is_read: true } as InboxEmail;
+
+    let starred = false;
+
+    await act(async () => {
+      starred = await actions.toggle_star(opened);
+      await flush();
+    });
+
+    expect(starred).toBe(true);
+    expect(hoisted.update_item_metadata).toHaveBeenCalledWith(
+      "m1",
+      expect.anything(),
+      { is_starred: true },
+    );
+
+    let archived = false;
+
+    await act(async () => {
+      archived = await actions.archive_email({
+        ...opened,
+        is_starred: true,
+      } as InboxEmail);
+      await flush();
+    });
+
+    expect(archived).toBe(true);
+    expect(hoisted.batch_archive).toHaveBeenCalledWith({
+      ids: ["m1"],
+      tier: "hot",
+    });
+    expect(get_flag_intent("m1", "is_archived")).toBe(true);
+    expect(get_flag_intent("m1", "is_read")).toBe(true);
+    expect(stats_unread()).toBe(2);
   });
 });

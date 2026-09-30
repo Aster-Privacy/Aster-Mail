@@ -18,22 +18,19 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { memo, useCallback } from "react";
+import type { MobileActionSheetItem } from "@aster/ui";
 
-import { MobileBottomSheet } from "@/components/mobile/mobile_bottom_sheet";
+import { memo } from "react";
+import { MobileActionSheet as MobileActionSheetView } from "@aster/ui";
+
+import { use_platform } from "@/hooks/use_platform";
+import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
-
-interface ActionItem {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  on_action: () => void;
-  destructive?: boolean;
-}
 
 interface MobileActionSheetProps {
   is_open: boolean;
   on_close: () => void;
-  items: ActionItem[];
+  items: MobileActionSheetItem[];
 }
 
 export const MobileActionSheet = memo(function MobileActionSheet({
@@ -42,44 +39,18 @@ export const MobileActionSheet = memo(function MobileActionSheet({
   items,
 }: MobileActionSheetProps) {
   const { t } = use_i18n();
-
-  const handle_action = useCallback(
-    (action: () => void) => {
-      action();
-      on_close();
-    },
-    [on_close],
-  );
+  const { safe_area_insets } = use_platform();
+  const reduce_motion = use_should_reduce_motion();
 
   return (
-    <MobileBottomSheet is_open={is_open} on_close={on_close}>
-      <div className="px-2 pb-2">
-        {items.map((item) => (
-          <button
-            key={item.label}
-            className={`flex w-full items-center gap-3 rounded-[16px] px-4 py-3 text-left active:bg-[var(--bg-tertiary)] ${
-              item.destructive
-                ? "text-[var(--color-danger,#ef4444)]"
-                : "text-[var(--text-primary)]"
-            }`}
-            type="button"
-            onClick={() => handle_action(item.on_action)}
-          >
-            <item.icon className="h-5 w-5 shrink-0" />
-            <span className="text-[15px]">{item.label}</span>
-          </button>
-        ))}
-
-        <div className="mx-4 my-1 border-t border-[var(--border-primary)]" />
-
-        <button
-          className="flex w-full items-center justify-center rounded-[16px] px-4 py-3 text-[15px] font-medium text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)]"
-          type="button"
-          onClick={on_close}
-        >
-          {t("common.cancel")}
-        </button>
-      </div>
-    </MobileBottomSheet>
+    <MobileActionSheetView
+      aria_label={t("common.actions")}
+      cancel_label={t("common.cancel")}
+      is_open={is_open}
+      items={items}
+      reduce_motion={reduce_motion}
+      safe_area_bottom={safe_area_insets.bottom}
+      on_close={on_close}
+    />
   );
 });

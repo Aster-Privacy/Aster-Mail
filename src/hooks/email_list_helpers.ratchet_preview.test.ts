@@ -18,12 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { describe, it, expect } from "vitest";
 
 import type { DecryptedEnvelope } from "@/types/email";
 import type { MailItem } from "@/services/api/mail";
 
+import { describe, it, expect } from "vitest";
+
 import { mail_to_email } from "./email_list_helpers";
+
 import { RATCHET_UNDECRYPTABLE_SENTINEL } from "@/utils/email_crypto";
 
 const RAW_RATCHET_ENVELOPE = JSON.stringify({
@@ -63,7 +65,10 @@ describe("mail_to_email ratchet preview", () => {
     // body_html. The list path decrypts only body_text; body_html stays raw.
     const email = mail_to_email(
       make_item(),
-      make_envelope("Hello, I am not sure whats going on", RAW_RATCHET_ENVELOPE),
+      make_envelope(
+        "Hello, I am not sure whats going on",
+        RAW_RATCHET_ENVELOPE,
+      ),
       null,
       FORMAT,
     );

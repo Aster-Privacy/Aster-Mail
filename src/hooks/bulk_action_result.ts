@@ -90,13 +90,23 @@ export function show_bulk_result_toast({
     return outcome;
   }
   if (outcome === "partial") {
-    show_toast(
-      t("common.bulk_action_partially_applied", {
-        count: result.attempted_ids.length - result.failed_ids.length,
-        total: result.attempted_ids.length,
-      }),
-      "warning",
-    );
+    const partial_message = t("common.bulk_action_partially_applied", {
+      count: result.attempted_ids.length - result.failed_ids.length,
+      total: result.attempted_ids.length,
+    });
+
+    if (on_undo) {
+      show_action_toast({
+        message: partial_message,
+        action_type,
+        email_ids: email_ids ?? bulk_succeeded_ids(result),
+        on_undo,
+      });
+
+      return outcome;
+    }
+
+    show_toast(partial_message, "warning");
 
     return outcome;
   }

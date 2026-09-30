@@ -136,11 +136,14 @@ export function OutgoingMailSection({
                 {t("settings.smtp_username")}
               </label>
               <Input
+                autoCapitalize="none"
                 autoComplete="username"
+                autoCorrect="off"
                 className="w-full"
                 id="ext-account-smtp-username"
                 maxLength={254}
                 placeholder={t("settings.username_placeholder")}
+                spellCheck={false}
                 type="text"
                 value={form_smtp_username}
                 onChange={(e) => handle_smtp_username_change(e.target.value)}
@@ -156,15 +159,8 @@ export function OutgoingMailSection({
               <div className="relative">
                 <Input
                   autoComplete="current-password"
-                  className="w-full pr-10"
+                  className="w-full pe-10"
                   id="ext-account-smtp-password"
-                  placeholder={
-                    has_stored_smtp_password
-                      ? t("settings.keep_saved_password")
-                      : editing_account
-                        ? t("settings.re_enter_password")
-                        : ""
-                  }
                   type={show_smtp_password ? "text" : "password"}
                   value={form_smtp_password}
                   onChange={(e) => handle_smtp_password_change(e.target.value)}
@@ -175,7 +171,7 @@ export function OutgoingMailSection({
                       ? t("settings.hide_smtp_password")
                       : t("settings.show_smtp_password")
                   }
-                  className="absolute right-2 top-1/2 -translate-y-1/2"
+                  className="absolute end-2 top-1/2 -translate-y-1/2"
                   type="button"
                   onClick={() => set_show_smtp_password(!show_smtp_password)}
                 >
@@ -186,6 +182,15 @@ export function OutgoingMailSection({
                   )}
                 </button>
               </div>
+              {has_stored_smtp_password ? (
+                <p className="mt-1.5 text-xs text-txt-muted">
+                  {t("settings.keep_saved_password")}
+                </p>
+              ) : editing_account ? (
+                <p className="mt-1.5 text-xs text-txt-muted">
+                  {t("settings.re_enter_password")}
+                </p>
+              ) : null}
             </div>
           </div>
           <div className="flex items-center gap-2">

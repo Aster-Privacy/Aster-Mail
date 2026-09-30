@@ -18,25 +18,20 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { useState, useMemo, useCallback } from "react";
-import {
-  format,
-  addDays,
-  setHours,
-  setMinutes,
-  nextMonday,
-  isBefore,
-  startOfMinute,
-  startOfDay,
-} from "date-fns";
+import type { TranslationKey } from "@/lib/i18n/types";
+
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { isBefore } from "date-fns";
 import {
   ClockIcon,
   CalendarIcon,
+  MoonIcon,
   SunIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { Button, Tooltip } from "@aster/ui";
 
+import { is_future_instant } from "@/utils/schedule_targets";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -50,11 +45,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown_menu";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  format_datetime_hint,
+  format_hour_choice,
+  zoned_calendar_day,
+  zoned_instant_from_calendar_day,
+  get_zoned_parts,
+} from "@/utils/date_format";
+import {
+  get_in_one_hour,
+  get_next_monday_morning,
+  get_tonight,
+  get_tomorrow_afternoon,
+  get_tomorrow_morning,
+} from "@/utils/schedule_targets";
 
 interface SchedulePickerProps {
   scheduled_time: Date | null;
   on_schedule: (date: Date | null) => void;
   disabled?: boolean;
+  force_picker?: boolean;
+  trigger?: React.ReactNode;
+  tooltip_key?: TranslationKey;
 }
 
 interface QuickOption {
@@ -64,68 +76,81 @@ interface QuickOption {
   get_date: () => Date;
 }
 
-function get_tomorrow_morning(): Date {
-  const tomorrow = addDays(new Date(), 1);
-
-  return setMinutes(setHours(tomorrow, 8), 0);
-}
-
-function get_tomorrow_afternoon(): Date {
-  const tomorrow = addDays(new Date(), 1);
-
-  return setMinutes(setHours(tomorrow, 13), 0);
-}
-
-function get_next_monday_morning(): Date {
-  const monday = nextMonday(new Date());
-
-  return setMinutes(setHours(monday, 8), 0);
-}
-
 export function SchedulePicker({
   scheduled_time,
   on_schedule,
   disabled = false,
+  force_picker = false,
+  trigger,
+  tooltip_key = "mail.schedule_send",
 }: SchedulePickerProps) {
   const { t } = use_i18n();
   const [is_open, set_is_open] = useState(false);
   const [show_custom, set_show_custom] = useState(false);
   const [selected_date, set_selected_date] = useState<Date | undefined>(
-    scheduled_time || undefined,
+    scheduled_time ? zoned_calendar_day(scheduled_time) : undefined,
   );
   const [selected_hour, set_selected_hour] = useState(
-    scheduled_time ? scheduled_time.getHours() : 9,
+    scheduled_time ? get_zoned_parts(scheduled_time).hours : 9,
   );
   const [selected_minute, set_selected_minute] = useState(
-    scheduled_time ? scheduled_time.getMinutes() : 0,
+    scheduled_time ? get_zoned_parts(scheduled_time).minutes : 0,
   );
 
-  const quick_options: QuickOption[] = useMemo(
-    () => [
+  useEffect(() => {
+    if (!is_open) return;
+
+    set_selected_date(
+      scheduled_time ? zoned_calendar_day(scheduled_time) : undefined,
+    );
+    set_selected_hour(
+      scheduled_time ? get_zoned_parts(scheduled_time).hours : 9,
+    );
+    set_selected_minute(
+      scheduled_time ? get_zoned_parts(scheduled_time).minutes : 0,
+    );
+  }, [is_open, scheduled_time]);
+
+  const quick_options: QuickOption[] = useMemo(() => {
+    void is_open;
+
+    return [
+      {
+        label: t("common.in_one_hour"),
+        description: format_datetime_hint(get_in_one_hour(), true),
+        icon: <ClockIcon className="w-4 h-4" />,
+        get_date: get_in_one_hour,
+      },
+      ...(is_future_instant(get_tonight())
+        ? [
+            {
+              label: t("common.tonight"),
+              description: format_datetime_hint(get_tonight(), true),
+              icon: <MoonIcon className="w-4 h-4" />,
+              get_date: get_tonight,
+            },
+          ]
+        : []),
       {
         label: t("common.tomorrow_morning"),
-        description: format(get_tomorrow_morning(), "EEE, MMM d 'at' h:mm a"),
+        description: format_datetime_hint(get_tomorrow_morning(), true),
         icon: <SunIcon className="w-4 h-4" />,
         get_date: get_tomorrow_morning,
       },
       {
         label: t("common.tomorrow_afternoon"),
-        description: format(get_tomorrow_afternoon(), "EEE, MMM d 'at' h:mm a"),
+        description: format_datetime_hint(get_tomorrow_afternoon(), true),
         icon: <SunIcon className="w-4 h-4" />,
         get_date: get_tomorrow_afternoon,
       },
       {
         label: t("common.monday_morning"),
-        description: format(
-          get_next_monday_morning(),
-          "EEE, MMM d 'at' h:mm a",
-        ),
+        description: format_datetime_hint(get_next_monday_morning(), true),
         icon: <CalendarIcon className="w-4 h-4" />,
         get_date: get_next_monday_morning,
       },
-    ],
-    [t],
-  );
+    ];
+  }, [t, is_open]);
 
   const handle_quick_select = useCallback(
     (option: QuickOption) => {
@@ -141,14 +166,13 @@ export function SchedulePicker({
   const handle_custom_confirm = useCallback(() => {
     if (!selected_date) return;
 
-    const scheduled = setMinutes(
-      setHours(selected_date, selected_hour),
+    const scheduled = zoned_instant_from_calendar_day(
+      selected_date,
+      selected_hour,
       selected_minute,
     );
 
-    const now = startOfMinute(new Date());
-
-    if (isBefore(scheduled, now)) {
+    if (!is_future_instant(scheduled)) {
       return;
     }
 
@@ -171,37 +195,37 @@ export function SchedulePicker({
     [],
   );
 
-  const format_hour = (hour: number) => {
-    const period = hour >= 12 ? t("common.pm") : t("common.am");
-    const display_hour = hour % 12 || 12;
-
-    return `${display_hour} ${period}`;
-  };
+  const format_hour = (hour: number) =>
+    format_hour_choice(hour, t("common.am"), t("common.pm"));
 
   const is_valid_custom_time = useMemo(() => {
     if (!selected_date) return false;
-    const scheduled = setMinutes(
-      setHours(selected_date, selected_hour),
+    const scheduled = zoned_instant_from_calendar_day(
+      selected_date,
+      selected_hour,
       selected_minute,
     );
 
-    return !isBefore(scheduled, startOfMinute(new Date()));
+    return is_future_instant(scheduled);
   }, [selected_date, selected_hour, selected_minute]);
 
-  if (scheduled_time) {
+  if (scheduled_time && !force_picker) {
     return (
       <div className="flex items-center gap-1">
         <div
           className="flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium"
           style={{
-            backgroundColor: "color-mix(in srgb, var(--accent-color) 10%, transparent)",
+            backgroundColor:
+              "color-mix(in srgb, var(--accent-color) 10%, transparent)",
             color: "var(--color-info)",
           }}
         >
           <ClockIcon className="w-3.5 h-3.5" />
-          <span>{format(scheduled_time, "MMM d 'at' h:mm a")}</span>
+          <span>{format_datetime_hint(scheduled_time, false)}</span>
           <button
-            className="ml-0.5 hover:bg-blue-500/20 rounded p-0.5 transition-colors"
+            aria-label={t("common.clear")}
+            className="ms-0.5 hover:bg-blue-500/20 rounded p-0.5 transition-colors disabled:opacity-50"
+            disabled={disabled}
             type="button"
             onClick={handle_clear}
           >
@@ -214,22 +238,21 @@ export function SchedulePicker({
 
   return (
     <Popover open={is_open} onOpenChange={set_is_open}>
-      <Tooltip tip={t("mail.schedule_send")}>
+      <Tooltip tip={t(tooltip_key)}>
         <PopoverTrigger asChild>
-          <button
-            className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
-            disabled={disabled}
-            type="button"
-          >
-            <ClockIcon className="w-4 h-4" />
-          </button>
+          {trigger ?? (
+            <button
+              aria-label={t(tooltip_key)}
+              className="press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary disabled:opacity-50"
+              disabled={disabled}
+              type="button"
+            >
+              <ClockIcon className="w-4 h-4" />
+            </button>
+          )}
         </PopoverTrigger>
       </Tooltip>
-      <PopoverContent
-        align="end"
-        className="w-auto p-0 bg-surf-primary border-edge-primary"
-        side="top"
-      >
+      <PopoverContent align="end" className="w-auto p-1.5" side="top">
         {!show_custom ? (
           <div className="p-2 min-w-[280px]">
             <div className="px-2 py-1.5 mb-1">
@@ -240,12 +263,12 @@ export function SchedulePicker({
             {quick_options.map((option) => (
               <button
                 key={option.label}
-                className="w-full flex items-center gap-3 px-2 py-2 rounded-[14px] transition-colors hover:bg-surf-hover"
+                className="w-full flex items-center gap-3 px-2 py-2 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
                 type="button"
                 onClick={() => handle_quick_select(option)}
               >
                 <span className="text-txt-muted">{option.icon}</span>
-                <div className="flex-1 text-left">
+                <div className="flex-1 text-start">
                   <div className="text-sm font-medium text-txt-primary">
                     {option.label}
                   </div>
@@ -255,16 +278,16 @@ export function SchedulePicker({
                 </div>
               </button>
             ))}
-            <div className="my-2 h-px bg-edge-secondary" />
+            <div className="aster_floating_divider my-2" />
             <button
-              className="w-full flex items-center gap-3 px-2 py-2 rounded-[14px] transition-colors hover:bg-surf-hover"
+              className="w-full flex items-center gap-3 px-2 py-2 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
               type="button"
               onClick={() => set_show_custom(true)}
             >
               <span className="text-txt-muted">
                 <CalendarIcon className="w-4 h-4" />
               </span>
-              <div className="flex-1 text-left">
+              <div className="flex-1 text-start">
                 <div className="text-sm font-medium text-txt-primary">
                   {t("mail.pick_date_time")}
                 </div>
@@ -291,12 +314,14 @@ export function SchedulePicker({
             </div>
             <Calendar
               initialFocus
-              disabled={(date) => isBefore(date, startOfDay(new Date()))}
+              disabled={(date) =>
+                isBefore(date, zoned_calendar_day(new Date()))
+              }
               mode="single"
               selected={selected_date}
               onSelect={set_selected_date}
             />
-            <div className="my-3 h-px bg-edge-secondary" />
+            <div className="aster_floating_divider my-3" />
             <div className="flex items-center gap-2">
               <span className="text-xs font-medium text-txt-muted">
                 {t("common.time_label")}
@@ -307,7 +332,7 @@ export function SchedulePicker({
                     {format_hour(selected_hour)}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="max-h-60 overflow-y-auto bg-surf-primary border-edge-primary">
+                <DropdownMenuContent className="max-h-60 overflow-y-auto">
                   {hours.map((hour) => (
                     <DropdownMenuItem
                       key={hour}
@@ -325,7 +350,7 @@ export function SchedulePicker({
                     {selected_minute.toString().padStart(2, "0")}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="max-h-60 overflow-y-auto bg-surf-primary border-edge-primary">
+                <DropdownMenuContent className="max-h-60 overflow-y-auto">
                   {minutes.map((minute) => (
                     <DropdownMenuItem
                       key={minute}

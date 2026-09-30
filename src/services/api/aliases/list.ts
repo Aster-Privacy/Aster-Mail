@@ -18,13 +18,18 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 
 import { api_client, type ApiResponse } from "../client";
 
-
-
-import { AliasCountsResponse, AliasListResponse, AliasUnreadCountsResponse, EmailAlias, ListDeletedAliasesResponse } from "./types";
+import { set_short_aliases_allowed } from "./short_alias_grant";
+import {
+  AliasCountsResponse,
+  AliasListResponse,
+  AliasUnreadCountsResponse,
+  EmailAlias,
+  ListDeletedAliasesResponse,
+} from "./types";
 export async function list_aliases(params?: {
   limit?: number;
   offset?: number;
@@ -84,6 +89,8 @@ export async function list_all_aliases(): Promise<{
   const aliases = [...first_page.aliases];
   const max_aliases = first_page.max_aliases;
   const total = first_page.total;
+
+  set_short_aliases_allowed(first_page.short_aliases_allowed === true);
 
   if (!first_page.has_more || first_page.aliases.length === 0) {
     return { aliases, max_aliases, total };
@@ -158,4 +165,3 @@ export async function list_deleted_aliases(): Promise<
     "/addresses/v1/aliases/deleted",
   );
 }
-

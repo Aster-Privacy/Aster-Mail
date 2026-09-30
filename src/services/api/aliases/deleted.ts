@@ -18,11 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 
 import { api_client, type ApiResponse } from "../client";
-
-
 
 import { AliasStats } from "./types";
 export async function restore_alias(
@@ -55,4 +53,3 @@ export async function get_alias_stats(
 ): Promise<ApiResponse<AliasStats>> {
   return api_client.get<AliasStats>(`/addresses/v1/aliases/${alias_id}/stats`);
 }
-

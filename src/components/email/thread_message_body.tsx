@@ -21,6 +21,7 @@
 import { useMemo } from "react";
 import { Button } from "@aster/ui";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { SandboxedEmailRenderer } from "@/components/email/sandboxed_email_renderer";
 import {
   tokenize_html,
@@ -28,8 +29,6 @@ import {
 } from "@/components/modals/view_source_modal";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
-
-import { ignore_error } from "@/lib/ignore_error";
 
 interface ThreadMessageBodyProps {
   clean_body: string;
@@ -77,8 +76,8 @@ export function ThreadMessageBody({
     <div
       className={
         viewing_source
-          ? "px-3 @md:px-4 pt-4 pb-2 bg-[var(--thread-content-bg)]"
-          : "bg-[var(--thread-content-bg)]"
+          ? "px-3 @md:px-4 pt-4 pb-2 bg-transparent"
+          : "bg-transparent"
       }
     >
       {viewing_source ? (
@@ -99,26 +98,24 @@ export function ThreadMessageBody({
               className="bg-blue-600 hover:bg-blue-700 text-white border-0"
               size="md"
               onClick={() => {
-                navigator.clipboard
-                  .writeText(clean_body)
+                copy_text_or_throw(clean_body)
                   .then(() => {
                     show_toast(
                       t("common.source_copied_to_clipboard"),
                       "success",
                     );
                   })
-                  .catch((caught) =>
-                    ignore_error(
-                      "components/email/thread_message_body:ThreadMessageBody",
-                      caught,
-                    ),
-                  );
+                  .catch(() => show_toast(t("common.failed_to_copy"), "error"));
               }}
             >
               {t("common.copy_source")}
             </Button>
           </div>
-          <div className="rounded-lg overflow-auto max-h-[65vh] bg-surf-tertiary border border-edge-secondary">
+          <div
+            data-selectable-region
+            className="rounded-lg overflow-auto max-h-[65vh] bg-surf-tertiary border border-edge-secondary"
+            tabIndex={-1}
+          >
             <table
               className="w-full border-collapse"
               style={{
@@ -130,7 +127,7 @@ export function ThreadMessageBody({
                 {source_lines.map((line, idx) => (
                   <tr key={idx} className="hover:bg-white/[0.03]">
                     <td
-                      className="text-right select-none px-3 text-[12px] leading-relaxed align-top text-txt-muted opacity-50 border-r border-edge-secondary"
+                      className="text-end select-none px-3 text-[12px] leading-relaxed align-top text-txt-muted opacity-50 border-e border-edge-secondary"
                       style={{
                         width: `${source_gutter_width + 2}ch`,
                         minWidth: `${source_gutter_width + 2}ch`,
@@ -139,7 +136,7 @@ export function ThreadMessageBody({
                       {idx + 1}
                     </td>
                     <td
-                      className="text-[13px] leading-relaxed pl-4 pr-4 text-txt-secondary"
+                      className="text-[13px] leading-relaxed ps-4 pe-4 text-txt-secondary"
                       style={{
                         whiteSpace: wrap_source ? "pre-wrap" : "pre",
                         wordBreak: wrap_source ? "break-all" : "normal",
@@ -163,9 +160,9 @@ export function ThreadMessageBody({
       ) : (
         <SandboxedEmailRenderer
           body_background={body_background}
+          disable_auto_dark_mode={disable_auto_dark_mode}
           email_id={email_id}
           force_dark_mode={force_dark_mode}
-          disable_auto_dark_mode={disable_auto_dark_mode}
           is_plain_text={is_plain_text}
           load_remote_content={load_remote_content}
           on_document_ready={on_document_ready}

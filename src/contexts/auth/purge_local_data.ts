@@ -44,9 +44,14 @@ import { clear_search_index } from "@/hooks/use_search";
 import { clear_never_correct_terms } from "@/services/search/spelling";
 import { lock_all_folders } from "@/hooks/use_protected_folder";
 import { clear_attachment_preview_cache } from "@/hooks/use_attachment_previews";
+import { clear_attachment_preview_cache as revoke_attachment_preview_blobs } from "@/services/attachment_preview_cache";
 import { clear_all_app_lock_data } from "@/services/app_lock_store";
 import { clear_category_index } from "@/services/category_index";
-import { clear_vault_from_memory } from "@/services/crypto/memory_key_store";
+import {
+  clear_vault_from_memory,
+  get_vault_owner_id,
+} from "@/services/crypto/memory_key_store";
+import { forget_device_recovery } from "@/services/crypto/device_recovery";
 import { clear_all_ratchet_states } from "@/services/crypto/ratchet_state_store";
 import { clear_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
 import { clear_unreadable_attachment_rows } from "@/services/crypto/attachment_crypto";
@@ -55,17 +60,30 @@ import { clear_escrow_miss_cache } from "@/services/crypto/message_escrow";
 import { clear_translation_cache } from "@/services/translation/translation_cache";
 import { clear_detection_cache } from "@/services/translation/language_detect";
 import { release_engines } from "@/services/translation/engine_registry";
-
+import { reset_special_offer_status } from "@/stores/special_offer_status";
 import { ignore_error } from "@/lib/ignore_error";
+import { safe_local_keys, safe_local_remove } from "@/lib/safe_storage";
+import { clear_billing_cache } from "@/components/settings/billing/billing_cache";
 
-export async function purge_all_local_data(): Promise<void> {
+export async function purge_all_local_data(): Promise<boolean> {
   const errors: Error[] = [];
 
   stop_session_timeout();
   lock_all_folders();
+
+  try {
+    await forget_device_recovery(get_vault_owner_id());
+  } catch (caught) {
+    ignore_error(
+      "contexts/auth/purge_local_data:forget_device_recovery",
+      caught,
+    );
+  }
+
   sync_client.disconnect();
   clear_vault_from_memory();
   clear_escrow_miss_cache();
+  reset_special_offer_status();
   api_client.set_expected_user_id(null);
 
   api_client.begin_intentional_logout();
@@ -88,14 +106,14 @@ export async function purge_all_local_data(): Promise<void> {
   }
 
   clear_all_app_lock_data();
-  for (const key of Object.keys(localStorage)) {
-    if (key.startsWith("aster:lockdown:")) localStorage.removeItem(key);
-    if (key === "pq_prekey_missing") localStorage.removeItem(key);
-    if (key.startsWith("astermail_pq_self_heal_at_")) {
-      localStorage.removeItem(key);
-    }
-    if (key.startsWith("astermail_pq_reconciler_at_")) {
-      localStorage.removeItem(key);
+  for (const key of safe_local_keys()) {
+    if (
+      key.startsWith("aster:lockdown:") ||
+      key === "pq_prekey_missing" ||
+      key.startsWith("astermail_pq_self_heal_at_") ||
+      key.startsWith("astermail_pq_reconciler_at_")
+    ) {
+      safe_local_remove(key);
     }
   }
   clear_cache();
@@ -104,6 +122,7 @@ export async function purge_all_local_data(): Promise<void> {
   clear_drafts_cache();
   clear_scheduled_cache();
   clear_recovery_email_cache();
+  clear_billing_cache();
   clear_search_index();
   clear_never_correct_terms();
   clear_session();
@@ -111,6 +130,7 @@ export async function purge_all_local_data(): Promise<void> {
   clear_attachment_keys();
   clear_unreadable_attachment_rows();
   clear_attachment_preview_cache();
+  revoke_attachment_preview_blobs();
   clear_translation_cache();
   clear_detection_cache();
   release_engines();
@@ -161,4 +181,6 @@ export async function purge_all_local_data(): Promise<void> {
   if (errors.length > 0 && import.meta.env.DEV) {
     errors.forEach((err) => console.error("purge_all_local_data:", err));
   }
+
+  return errors.length === 0;
 }

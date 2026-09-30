@@ -20,7 +20,9 @@
 //
 import { defineConfig, devices } from "@playwright/test";
 
-const BASE_URL = process.env.E2E_BASE_URL || "https://app.astermail.org";
+import { resolve_base_url } from "./playwright_base_url";
+
+const BASE_URL = resolve_base_url();
 
 export default defineConfig({
   testDir: "./playwright",

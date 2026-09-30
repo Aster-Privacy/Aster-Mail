@@ -19,14 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { Attachment } from "@/components/compose/compose_shared";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-import {
-  attachment_keys_version,
-  get_attachment_key,
-  get_attachment_entry,
-  type InboundAttachmentEntry,
-} from "@/services/crypto/inbound_attachment_keys";
-import { sanitize_download_filename } from "@/lib/attachment_utils";
 
 import {
   encrypt_envelope_with_bytes,
@@ -37,6 +29,7 @@ import {
 import { decrypt_envelope_with_bytes } from "./envelope";
 import {
   get_passphrase_bytes,
+  get_passphrase_from_memory,
   get_vault_from_memory,
 } from "./memory_key_store";
 import {
@@ -44,6 +37,17 @@ import {
   decrypt_message_with_any_key,
 } from "./key_manager";
 import { zero_uint8_array } from "./secure_memory";
+import { seal_sent_envelope } from "./sent_copy_seal";
+
+import { sanitize_download_filename } from "@/lib/attachment_utils";
+import {
+  attachment_keys_version,
+  get_attachment_key,
+  get_attachment_entry,
+  type InboundAttachmentEntry,
+} from "@/services/crypto/inbound_attachment_keys";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { get_account_key_capabilities } from "@/services/api/account_key";
 
 export interface EncryptedAttachmentForSend {
   encrypted_data: string;
@@ -122,6 +126,23 @@ async function encrypt_data_with_session_key(
   return { encrypted, nonce };
 }
 
+async function own_key_seal_when_enabled(
+  count: number,
+): Promise<{ identity_key: string; passphrase: string } | null> {
+  if (count === 0) return null;
+
+  const identity_key = get_vault_from_memory()?.identity_key;
+  const passphrase = get_passphrase_from_memory();
+
+  if (!identity_key || !passphrase) return null;
+
+  const capabilities = await get_account_key_capabilities();
+
+  if (!capabilities.format_writes) return null;
+
+  return { identity_key, passphrase };
+}
+
 export async function encrypt_attachments_for_send(
   attachments: Attachment[],
   recipient_public_keys?: string[],
@@ -146,6 +167,7 @@ export async function encrypt_attachments_for_send(
   const results: EncryptedAttachmentForSend[] = [];
 
   try {
+    const own_seal = await own_key_seal_when_enabled(attachments.length);
     let seq = 0;
 
     for (const attachment of attachments) {
@@ -175,14 +197,21 @@ export async function encrypt_attachments_for_send(
 
       zero_uint8_array(raw_key);
 
-      const sender_meta = await encrypt_envelope_with_bytes(
-        meta,
-        passphrase_bytes,
-      );
+      const sealed_meta = own_seal
+        ? await seal_sent_envelope(
+            meta,
+            own_seal.identity_key,
+            own_seal.passphrase,
+          )
+        : null;
 
-      const meta_nonce_placeholder = crypto.getRandomValues(
-        new Uint8Array(NONCE_LENGTH),
-      );
+      const sender_meta = sealed_meta
+        ? { encrypted: sealed_meta.encrypted_envelope }
+        : await encrypt_envelope_with_bytes(meta, passphrase_bytes);
+
+      const meta_nonce_placeholder = sealed_meta
+        ? new Uint8Array(NONCE_LENGTH)
+        : crypto.getRandomValues(new Uint8Array(NONCE_LENGTH));
 
       let recipient_encrypted_meta: string | undefined;
 
@@ -260,7 +289,10 @@ async function decrypt_sealed_attachment_meta(
   const nonce = base64_to_array(meta_nonce);
   const ciphertext = base64_to_array(encrypted_meta);
 
-  if (key_bytes.length !== SESSION_KEY_LENGTH || nonce.length !== NONCE_LENGTH) {
+  if (
+    key_bytes.length !== SESSION_KEY_LENGTH ||
+    nonce.length !== NONCE_LENGTH
+  ) {
     zero_uint8_array(key_bytes);
     throw new Error("sealed attachment metadata has malformed key material");
   }
@@ -311,7 +343,8 @@ const UNREADABLE_ROW_LIMIT = 2000;
 const unreadable_rows = new Map<string, { version: number; at: number }>();
 
 function monotonic_now(): number {
-  return typeof performance !== "undefined" && typeof performance.now === "function"
+  return typeof performance !== "undefined" &&
+    typeof performance.now === "function"
     ? performance.now()
     : Date.now();
 }
@@ -362,7 +395,10 @@ async function read_row_attachment_meta(
     if (row_key && !transient) {
       if (unreadable_rows.size >= UNREADABLE_ROW_LIMIT) unreadable_rows.clear();
 
-      unreadable_rows.set(row_key, { version: keys_version, at: monotonic_now() });
+      unreadable_rows.set(row_key, {
+        version: keys_version,
+        at: monotonic_now(),
+      });
     }
 
     return null;

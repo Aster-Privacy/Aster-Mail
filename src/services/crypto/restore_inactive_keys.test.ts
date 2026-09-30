@@ -33,20 +33,39 @@ vi.mock("./memory_key_store", () => ({
   store_vault_in_memory: (...args: unknown[]) => store_vault_in_memory(...args),
   get_vault_from_memory: () => get_vault_from_memory(),
   get_passphrase_from_memory: () => get_passphrase_from_memory(),
+  get_storage_kdf_version: (vault: { kdf_version?: number }) =>
+    vault?.kdf_version === 2 ? 2 : 1,
+  derive_encryption_key_from_passphrase: (
+    passphrase_bytes: Uint8Array,
+    kdf_version = 1,
+  ) => {
+    const out = new Uint8Array(32);
+
+    out.set(passphrase_bytes.slice(0, 31), 0);
+    out[31] = kdf_version;
+
+    return Promise.resolve(out);
+  },
+  STORAGE_KDF_VERSION_LEGACY: 1,
+  STORAGE_KDF_VERSION_STRETCHED: 2,
 }));
 
 vi.mock("../account_manager", () => ({
   get_current_account: () => get_current_account(),
 }));
 
+const merge_recovered_identity_keys = vi.fn();
+
+vi.mock("./identity_key_materials", () => ({
+  merge_recovered_identity_keys: (...args: unknown[]) =>
+    merge_recovered_identity_keys(...args),
+}));
+
 vi.mock("./vault_write_lock", () => ({
   with_vault_write_lock: (fn: () => Promise<unknown>) => fn(),
 }));
 
-import {
-  count_inactive_key_sets,
-  restore_inactive_key_sets,
-} from "./restore_inactive_keys";
+import { restore_inactive_key_sets } from "./restore_inactive_keys";
 
 function key_set(public_key: string) {
   return {
@@ -64,10 +83,16 @@ function current_vault() {
     signed_prekey_private: "spk-priv",
     recovery_codes: [],
     vault_format: 2,
+    data_kek: "Y3VycmVudC1kYXRhLWtlaw==",
+    legacy_keks: [
+      { k: "b2xkZXItYWxyZWFkeS1oZWxk", added_at: "2026-01-01T00:00:00.000Z" },
+    ],
     ...key_set("current-public"),
     ratchet_previous_keys: [key_set("recent-public")],
   };
 }
+
+const ARCHIVED_DATA_KEK = "YXJjaGl2ZWQtZGF0YS1rZWs=";
 
 describe("restore_inactive_key_sets", () => {
   beforeEach(() => {
@@ -93,6 +118,63 @@ describe("restore_inactive_key_sets", () => {
     get_vault_from_memory.mockReturnValue(current_vault());
     get_passphrase_from_memory.mockReturnValue("passphrase");
     get_current_account.mockResolvedValue({ user: { id: "user-1" } });
+    merge_recovered_identity_keys.mockImplementation(
+      async (
+        vault: { previous_keys?: string[]; legacy_identity_keys?: string[] },
+        old_vaults: unknown[],
+      ) => ({
+        previous_keys: vault.previous_keys ?? [],
+        legacy_identity_keys: vault.legacy_identity_keys ?? [],
+        absorbed: old_vaults.map(() => true),
+      }),
+    );
+  });
+
+  it("recovers the archived identity keys under the current password", async () => {
+    merge_recovered_identity_keys.mockResolvedValue({
+      previous_keys: ["identity", "archived-identity-relocked"],
+      legacy_identity_keys: ["archived-identity"],
+      absorbed: [true],
+    });
+
+    expect(await restore_inactive_key_sets("old-password")).toBe(1);
+
+    const [vault, old_vaults, old_password, current] =
+      merge_recovered_identity_keys.mock.calls[0];
+
+    expect((vault as { identity_key: string }).identity_key).toBe("identity");
+    expect(old_vaults).toHaveLength(1);
+    expect(old_password).toBe("old-password");
+    expect(current).toBe("passphrase");
+
+    const saved = encrypt_vault.mock.calls[0][0] as {
+      identity_key: string;
+      previous_keys: string[];
+      legacy_identity_keys: string[];
+    };
+
+    expect(saved.identity_key).toBe("identity");
+    expect(saved.previous_keys).toEqual([
+      "identity",
+      "archived-identity-relocked",
+    ]);
+    expect(saved.legacy_identity_keys).toEqual(["archived-identity"]);
+  });
+
+  it("keeps an archive on the server when its identity key could not be recovered", async () => {
+    list_inactive_key_sets.mockResolvedValue({
+      data: { inactive_key_sets: [{ id: "archived-1" }, { id: "archived-2" }] },
+    });
+    merge_recovered_identity_keys.mockResolvedValue({
+      previous_keys: [],
+      legacy_identity_keys: [],
+      absorbed: [true, false],
+    });
+
+    expect(await restore_inactive_key_sets("old-password")).toBe(2);
+    expect(push_vault_to_server).toHaveBeenCalled();
+    expect(consume_inactive_key_set).toHaveBeenCalledWith("archived-1");
+    expect(consume_inactive_key_set).not.toHaveBeenCalledWith("archived-2");
   });
 
   it("merges the archived identity keys into the prior key list", async () => {
@@ -196,7 +278,151 @@ describe("restore_inactive_key_sets", () => {
     expect(encrypt_vault).not.toHaveBeenCalled();
   });
 
-  it("reports how many archives are waiting", async () => {
-    expect(await count_inactive_key_sets()).toBe(1);
+  it("carries the archived storage key into the vault legacy key list", async () => {
+    decrypt_vault.mockResolvedValue({
+      ...key_set("archived-public"),
+      vault_format: 2,
+      data_kek: ARCHIVED_DATA_KEK,
+    });
+
+    expect(await restore_inactive_key_sets("old-password")).toBe(1);
+
+    const saved = encrypt_vault.mock.calls[0][0] as {
+      legacy_keks?: Array<{ k: string }>;
+    };
+
+    expect(saved.legacy_keks?.map((entry) => entry.k)).toContain(
+      ARCHIVED_DATA_KEK,
+    );
+  });
+
+  it("keeps the legacy keys the vault already held", async () => {
+    decrypt_vault.mockResolvedValue({
+      ...key_set("archived-public"),
+      vault_format: 2,
+      data_kek: ARCHIVED_DATA_KEK,
+    });
+
+    await restore_inactive_key_sets("old-password");
+
+    const saved = encrypt_vault.mock.calls[0][0] as {
+      legacy_keks?: Array<{ k: string }>;
+    };
+
+    expect(saved.legacy_keks?.map((entry) => entry.k)).toContain(
+      "b2xkZXItYWxyZWFkeS1oZWxk",
+    );
+  });
+
+  it("chains the legacy keys the archived vault itself carried", async () => {
+    decrypt_vault.mockResolvedValue({
+      ...key_set("archived-public"),
+      vault_format: 2,
+      data_kek: ARCHIVED_DATA_KEK,
+      legacy_keks: [
+        { k: "ZXZlbi1vbGRlci1rZXk=", added_at: "2025-06-01T00:00:00.000Z" },
+      ],
+    });
+
+    await restore_inactive_key_sets("old-password");
+
+    const saved = encrypt_vault.mock.calls[0][0] as {
+      legacy_keks?: Array<{ k: string }>;
+    };
+
+    expect(saved.legacy_keks?.map((entry) => entry.k)).toContain(
+      "ZXZlbi1vbGRlci1rZXk=",
+    );
+  });
+
+  it("derives a storage key from the old password for a legacy archived vault", async () => {
+    decrypt_vault.mockResolvedValue({
+      ...key_set("archived-public"),
+      vault_format: 1,
+    });
+
+    expect(await restore_inactive_key_sets("old-password")).toBe(1);
+
+    const saved = encrypt_vault.mock.calls[0][0] as {
+      legacy_keks?: Array<{ k: string }>;
+    };
+
+    expect(saved.legacy_keks?.length ?? 0).toBeGreaterThan(1);
+  });
+
+  it("adds no legacy key when the old password opens nothing", async () => {
+    decrypt_vault.mockRejectedValue(new Error("bad password"));
+
+    await restore_inactive_key_sets("wrong");
+
+    expect(encrypt_vault).not.toHaveBeenCalled();
+  });
+
+  it("keeps the archives when harvested keys do not fit past the cap", async () => {
+    const held = Array.from({ length: 64 }, (_, index) => ({
+      k: btoa(`held-key-${index}`),
+      added_at: "2026-01-01T00:00:00.000Z",
+    }));
+
+    get_vault_from_memory.mockReturnValue({
+      ...current_vault(),
+      legacy_keks: held,
+    });
+    list_inactive_key_sets.mockResolvedValue({
+      data: {
+        inactive_key_sets: [
+          { id: "archived-1" },
+          { id: "archived-2" },
+          { id: "archived-3" },
+        ],
+      },
+    });
+    decrypt_vault
+      .mockResolvedValueOnce({
+        ...key_set("archived-1"),
+        vault_format: 2,
+        data_kek: btoa("archived-kek-1"),
+      })
+      .mockResolvedValueOnce({
+        ...key_set("archived-2"),
+        vault_format: 2,
+        data_kek: btoa("archived-kek-2"),
+      })
+      .mockResolvedValueOnce({
+        ...key_set("archived-3"),
+        vault_format: 2,
+        data_kek: btoa("archived-kek-3"),
+      });
+
+    expect(await restore_inactive_key_sets("old-password")).toBe(0);
+    expect(consume_inactive_key_set).not.toHaveBeenCalled();
+
+    const saved = encrypt_vault.mock.calls[0][0] as {
+      legacy_keks?: Array<{ k: string }>;
+    };
+    const saved_keys = saved.legacy_keks?.map((entry) => entry.k) ?? [];
+
+    for (const entry of held) {
+      expect(saved_keys).toContain(entry.k);
+    }
+    expect(saved_keys.length).toBe(64);
+  });
+
+  it("appends harvested keys after the keys the vault already held", async () => {
+    decrypt_vault.mockResolvedValue({
+      ...key_set("archived-public"),
+      vault_format: 2,
+      data_kek: ARCHIVED_DATA_KEK,
+    });
+
+    expect(await restore_inactive_key_sets("old-password")).toBe(1);
+
+    const saved = encrypt_vault.mock.calls[0][0] as {
+      legacy_keks?: Array<{ k: string }>;
+    };
+    const saved_keys = saved.legacy_keks?.map((entry) => entry.k) ?? [];
+
+    expect(saved_keys[0]).toBe("b2xkZXItYWxyZWFkeS1oZWxk");
+    expect(saved_keys.indexOf(ARCHIVED_DATA_KEK)).toBeGreaterThan(0);
   });
 });

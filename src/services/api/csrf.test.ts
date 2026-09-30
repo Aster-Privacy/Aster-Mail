@@ -57,26 +57,33 @@ describe("get_csrf_token_from_cookie", () => {
     expect(get_csrf_token_from_cookie()).toBe("from_cookie");
   });
 
-  it("picks the newest duplicate cookie by embedded timestamp", () => {
-    const stale = "session-a:1000000000.stale_sig";
-    const fresh = "session-a:2000000000.fresh_sig";
-    set_document_cookie(`csrf_token=${stale}; csrf_token=${fresh}`);
-    expect(get_csrf_token_from_cookie()).toBe(fresh);
+  it("does not let a higher-timestamp cookie override the cached token", () => {
+    const cached = "session-a:1000000000.real_sig";
+    const injected = "attacker:2000000000.forged_sig";
+
+    set_csrf_token(cached);
+    set_document_cookie(`csrf_token=${injected}`);
+
+    expect(get_csrf_token_from_cookie()).toBe(cached);
   });
 
-  it("picks the newest duplicate regardless of cookie order", () => {
-    const stale = "session-a:1000000000.stale_sig";
-    const fresh = "session-b:2000000000.fresh_sig";
-    set_document_cookie(`csrf_token=${fresh}; csrf_token=${stale}`);
-    expect(get_csrf_token_from_cookie()).toBe(fresh);
+  it("ignores duplicate injected cookies once a token is cached", () => {
+    const cached = "session-a:1000000000.real_sig";
+
+    set_csrf_token(cached);
+    set_document_cookie(
+      "csrf_token=attacker:2000000000.a; csrf_token=attacker:3000000000.b",
+    );
+
+    expect(get_csrf_token_from_cookie()).toBe(cached);
   });
 
-  it("adopts a rotated cookie over an older cached token", () => {
+  it("adopts a rotated token from the response body over an older cache", () => {
     const before_rotation = "session-a:1000000000.old_sig";
     const after_rotation = "session-a:2000000000.new_sig";
 
     set_csrf_token(before_rotation);
-    set_document_cookie(`csrf_token=${after_rotation}`);
+    set_csrf_token(after_rotation);
 
     expect(get_csrf_token_from_cookie()).toBe(after_rotation);
   });

@@ -21,16 +21,16 @@
 import { zero_uint8_array } from "./secure_memory";
 import { array_to_base64, base64_to_array } from "./base64";
 import { HASH_ALG } from "./key_manager_core";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { with_cached_envelope_key } from "./envelope_key_cache";
-
 import {
   normalize_envelope_from,
   normalize_envelope_recipients,
 } from "./envelope_normalize";
 
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+
 export { normalize_envelope_from, normalize_envelope_recipients };
-export { array_to_base64, base64_to_array } from "./base64";
+export { array_to_base64, base64_to_array, first_base64_byte } from "./base64";
 
 export function normalize_parsed_envelope<T>(parsed: T): T {
   if (!parsed || typeof parsed !== "object") return parsed;
@@ -174,6 +174,36 @@ export async function encrypt_envelope(
   return result;
 }
 
+export async function decrypt_envelope_plaintext_with_bytes(
+  encrypted_data: string,
+  passphrase_bytes: Uint8Array,
+): Promise<string | null> {
+  try {
+    const combined = base64_to_array(encrypted_data);
+
+    if (combined.length <= SALT_LENGTH + NONCE_LENGTH) return null;
+
+    const salt = combined.slice(0, SALT_LENGTH);
+    const nonce = combined.slice(SALT_LENGTH, SALT_LENGTH + NONCE_LENGTH);
+    const ciphertext = combined.slice(SALT_LENGTH + NONCE_LENGTH);
+
+    const crypto_key = await derive_envelope_key_from_bytes(
+      passphrase_bytes,
+      salt,
+    );
+
+    const decrypted = await decrypt_aes_gcm_with_fallback(
+      crypto_key,
+      ciphertext,
+      nonce,
+    );
+
+    return new TextDecoder("utf-8", { fatal: true }).decode(decrypted);
+  } catch {
+    return null;
+  }
+}
+
 export async function decrypt_envelope_with_bytes<T>(
   encrypted_data: string,
   passphrase_bytes: Uint8Array,
@@ -223,6 +253,24 @@ export async function decrypt_envelope<T>(
 
 const ENVELOPE_KEY_VERSIONS = ["astermail-envelope-v1", "astermail-import-v1"];
 
+async function import_identity_envelope_key(
+  identity_key: string,
+  version: string,
+): Promise<CryptoKey> {
+  const key_hash = await crypto.subtle.digest(
+    HASH_ALG,
+    new TextEncoder().encode(identity_key + version),
+  );
+
+  return crypto.subtle.importKey(
+    "raw",
+    key_hash,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"],
+  );
+}
+
 export async function decrypt_envelope_with_identity_key<T>(
   identity_key: string,
   encrypted_bytes: Uint8Array,
@@ -231,16 +279,9 @@ export async function decrypt_envelope_with_identity_key<T>(
 ): Promise<T | null> {
   for (const version of ENVELOPE_KEY_VERSIONS) {
     try {
-      const key_hash = await crypto.subtle.digest(
-        HASH_ALG,
-        new TextEncoder().encode(identity_key + version),
-      );
-      const crypto_key = await crypto.subtle.importKey(
-        "raw",
-        key_hash,
-        { name: "AES-GCM", length: 256 },
-        false,
-        ["decrypt"],
+      const crypto_key = await with_cached_envelope_key(
+        `identity:${version}:${identity_key}`,
+        () => import_identity_envelope_key(identity_key, version),
       );
       const decrypted = await decrypt_aes_gcm_with_fallback(
         crypto_key,

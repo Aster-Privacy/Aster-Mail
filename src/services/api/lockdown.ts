@@ -24,12 +24,21 @@ export interface LockdownStatusResponse {
   enabled: boolean;
 }
 
-export async function get_lockdown_status(): Promise<ApiResponse<LockdownStatusResponse>> {
-  return api_client.get<LockdownStatusResponse>("/core/v1/security/lockdown", { cache_ttl: 0 });
+export async function get_lockdown_status(): Promise<
+  ApiResponse<LockdownStatusResponse>
+> {
+  return api_client.get<LockdownStatusResponse>("/core/v1/security/lockdown", {
+    cache_ttl: 0,
+  });
 }
 
-export async function enable_lockdown(): Promise<ApiResponse<LockdownStatusResponse>> {
-  return api_client.post<LockdownStatusResponse>("/core/v1/security/lockdown/enable", {});
+export async function enable_lockdown(): Promise<
+  ApiResponse<LockdownStatusResponse>
+> {
+  return api_client.post<LockdownStatusResponse>(
+    "/core/v1/security/lockdown/enable",
+    {},
+  );
 }
 
 export interface DisableLockdownRequest {
@@ -40,5 +49,8 @@ export interface DisableLockdownRequest {
 export async function disable_lockdown(
   req: DisableLockdownRequest,
 ): Promise<ApiResponse<LockdownStatusResponse>> {
-  return api_client.delete<LockdownStatusResponse>("/core/v1/security/lockdown/disable", { data: req });
+  return api_client.delete<LockdownStatusResponse>(
+    "/core/v1/security/lockdown/disable",
+    { data: req },
+  );
 }

@@ -88,7 +88,11 @@ describe("outgoing_profile_email", () => {
 
   it("falls back to the sender in an incoming view", () => {
     expect(
-      outgoing_profile_email("inbox", ["first@example.com"], "me@astermail.org"),
+      outgoing_profile_email(
+        "inbox",
+        ["first@example.com"],
+        "me@astermail.org",
+      ),
     ).toBe("me@astermail.org");
   });
 

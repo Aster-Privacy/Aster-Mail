@@ -19,11 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-
-
-import {
-  type DraftContent,
-} from "@/services/api/multi_drafts";
+import { type DraftContent } from "@/services/api/multi_drafts";
 
 export function normalize_html_newlines(html: string): string {
   let result = "";

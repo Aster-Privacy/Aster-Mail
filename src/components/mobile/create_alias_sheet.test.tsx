@@ -55,7 +55,8 @@ vi.mock("@/components/auth/turnstile_widget", () => ({
   TURNSTILE_SITE_KEY: "test-site-key",
 }));
 
-vi.mock("@aster/ui", () => ({
+vi.mock("@aster/ui", async (import_original) => ({
+  ...(await import_original<typeof import("@aster/ui")>()),
   Button: ({
     children,
     disabled,
@@ -79,6 +80,7 @@ vi.mock("@/components/ui/email_tag", () => ({
   TAG_COLOR_PRESETS: [],
   tag_icon_map: {},
   TAG_ICONS: [],
+  TAG_ICON_GROUPS: [],
 }));
 
 vi.mock("@/components/modals/confirmation_modal", () => ({
@@ -91,8 +93,18 @@ vi.mock("@/components/folders/folder_password_modal", () => ({
 
 import { CreateAliasSheet } from "@/components/mobile/mobile_drawer_sheets";
 
+function find_create_button(container: HTMLElement): HTMLButtonElement {
+  const match = Array.from(container.querySelectorAll("button")).find(
+    (button) => button.textContent?.trim() === "common.create",
+  );
+
+  if (!match) throw new Error("create button not found");
+
+  return match;
+}
+
 function create_ref() {
-  return { current: { reset: vi.fn() } };
+  return { current: { reset: vi.fn(), refresh: vi.fn(async () => "") } };
 }
 
 function base_props() {
@@ -139,9 +151,7 @@ describe("CreateAliasSheet captcha gating", () => {
   it("disables Create until a captcha token is present", () => {
     act(() => root.render(<CreateAliasSheet {...base_props()} />));
 
-    const btn = container.querySelector(
-      '[data-testid="create-btn"]',
-    ) as HTMLButtonElement;
+    const btn = find_create_button(container);
 
     expect(btn.disabled).toBe(true);
 
@@ -151,9 +161,7 @@ describe("CreateAliasSheet captcha gating", () => {
       ),
     );
 
-    const btn_after = container.querySelector(
-      '[data-testid="create-btn"]',
-    ) as HTMLButtonElement;
+    const btn_after = find_create_button(container);
 
     expect(btn_after.disabled).toBe(false);
   });
@@ -163,9 +171,7 @@ describe("CreateAliasSheet captcha gating", () => {
 
     act(() => root.render(<CreateAliasSheet {...props} />));
 
-    const btn = container.querySelector(
-      '[data-testid="create-btn"]',
-    ) as HTMLButtonElement;
+    const btn = find_create_button(container);
 
     act(() => btn.click());
 
@@ -195,9 +201,7 @@ describe("CreateAliasSheet captcha gating", () => {
       ),
     );
 
-    const btn = container.querySelector(
-      '[data-testid="create-btn"]',
-    ) as HTMLButtonElement;
+    const btn = find_create_button(container);
 
     expect(btn.disabled).toBe(false);
     expect(container.querySelector('[data-testid="turnstile"]')).toBeNull();

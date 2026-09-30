@@ -24,6 +24,8 @@ import { describe, it, expect } from "vitest";
 
 import { classify, is_locked_to_primary } from "./mail_categorizer";
 
+import { BUILTIN_CATEGORIES, fold_builtin } from "@/data/category_catalog";
+
 function make_envelope(
   overrides: Partial<DecryptedEnvelope> & {
     from: { name: string; email: string };
@@ -63,8 +65,21 @@ describe("classify", () => {
       category_pinned: true,
     } as unknown as MailItemMetadata;
 
-    expect(classify(envelope, metadata)).toBe("primary");
-    expect(is_locked_to_primary(envelope)).toBe(true);
+    const trust = { system_origin: true, is_external: false };
+
+    expect(classify(envelope, metadata, { trust })).toBe("primary");
+    expect(is_locked_to_primary(envelope, trust)).toBe(true);
+  });
+
+  it("does not lock a spoofed inbound copy of a sign-in alert to Primary", () => {
+    const envelope = make_envelope({
+      from: { name: "Aster Mail", email: "no-reply@astermail.org" },
+      subject: "New Sign-In to Your Aster Mail Account",
+    });
+    const trust = { system_origin: false, is_external: true };
+
+    expect(is_locked_to_primary(envelope, trust)).toBe(false);
+    expect(is_locked_to_primary(envelope)).toBe(false);
   });
 
   it("honors a pin on personal mail from an Aster address", () => {
@@ -109,13 +124,13 @@ describe("classify", () => {
     expect(classify(envelope)).toBe("forums");
   });
 
-  it("classifies transactional receipts as updates", () => {
+  it("classifies transactional receipts as transactions", () => {
     const envelope = make_envelope({
       from: { name: "Acme Store", email: "receipts@acme.com" },
       subject: "Your order #12345 has shipped",
     });
 
-    expect(classify(envelope)).toBe("updates");
+    expect(classify(envelope)).toBe("transactions");
   });
 
   it("classifies bulk marketing as promotions", () => {
@@ -180,29 +195,32 @@ describe("classify", () => {
       from: { name: "Cool Brand", email: "hello@coolbrand.com" },
       subject: "This week at Cool Brand",
       raw_headers: [
-        { name: "DKIM-Signature", value: "v=1; a=rsa-sha256; d=mcsv.net; s=k1" },
+        {
+          name: "DKIM-Signature",
+          value: "v=1; a=rsa-sha256; d=mcsv.net; s=k1",
+        },
       ],
     });
 
     expect(classify(envelope)).toBe("promotions");
   });
 
-  it("routes a transactional service notification to Updates", () => {
+  it("routes a delivery notification to Transactions", () => {
     const envelope = make_envelope({
       from: { name: "UPS", email: "no-reply@ups.com" },
       subject: "Your package was delivered",
     });
 
-    expect(classify(envelope)).toBe("updates");
+    expect(classify(envelope)).toBe("transactions");
   });
 
-  it("routes a receipt from a service domain with no bulk markers to Updates", () => {
+  it("routes a receipt from a service domain with no bulk markers to Transactions", () => {
     const envelope = make_envelope({
       from: { name: "Amazon", email: "auto-confirm@amazon.com" },
       subject: "Your order #112-9 has shipped",
     });
 
-    expect(classify(envelope)).toBe("updates");
+    expect(classify(envelope)).toBe("transactions");
   });
 
   it("keeps a personal note from a service-domain address in Primary", () => {
@@ -233,5 +251,69 @@ describe("classify", () => {
     });
 
     expect(classify(envelope)).toBe("primary");
+  });
+  it("keeps a tagged mailing-list digest in Forums", () => {
+    const envelope = make_envelope({
+      from: { name: "Dev List", email: "announce@example.org" },
+      subject: "[dev] weekly digest",
+      raw_headers: [{ name: "List-Id", value: "<dev.example.org>" }],
+    });
+
+    expect(classify(envelope)).toBe("forums");
+  });
+
+  it("keeps a postable discussion list in Forums", () => {
+    const envelope = make_envelope({
+      from: { name: "Rust Users", email: "announce@example.org" },
+      subject: "Weekly roundup",
+      raw_headers: [
+        { name: "List-Id", value: "<users.example.org>" },
+        { name: "List-Post", value: "<mailto:users@example.org>" },
+      ],
+    });
+
+    expect(classify(envelope)).toBe("forums");
+  });
+
+  it("keeps a discussion-shaped localpart in Forums", () => {
+    const envelope = make_envelope({
+      from: { name: "Group", email: "discuss@example.org" },
+      subject: "Monthly digest",
+      raw_headers: [{ name: "List-Id", value: "<discuss.example.org>" }],
+    });
+
+    expect(classify(envelope)).toBe("forums");
+  });
+
+  it("still routes an editorial send to Newsletters", () => {
+    const envelope = make_envelope({
+      from: { name: "The Daily", email: "editor@example.org" },
+      subject: "Issue #42",
+      raw_headers: [
+        { name: "List-Id", value: "<thedaily.example.org>" },
+        { name: "List-Unsubscribe", value: "<mailto:u@example.org>" },
+      ],
+    });
+
+    expect(classify(envelope)).toBe("newsletters");
+  });
+});
+
+describe("category folding", () => {
+  it("folds Transactions back into Updates", () => {
+    expect(fold_builtin("transactions")).toBe("updates");
+  });
+
+  it("folds Newsletters back into Promotions", () => {
+    expect(fold_builtin("newsletters")).toBe("promotions");
+  });
+
+  it("leaves both new tabs off by default", () => {
+    expect(
+      BUILTIN_CATEGORIES.find((c) => c.id === "transactions")?.default_enabled,
+    ).toBe(false);
+    expect(
+      BUILTIN_CATEGORIES.find((c) => c.id === "newsletters")?.default_enabled,
+    ).toBe(false);
   });
 });

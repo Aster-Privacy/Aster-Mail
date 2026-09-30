@@ -34,7 +34,9 @@ const prefs_state = vi.hoisted(() => ({
 
 vi.mock("@/contexts/preferences_context", () => ({
   use_preferences: () => ({
-    preferences: { inbox_categories_enabled: prefs_state.inbox_categories_enabled },
+    preferences: {
+      inbox_categories_enabled: prefs_state.inbox_categories_enabled,
+    },
     has_loaded_from_server: prefs_state.has_loaded_from_server,
   }),
 }));
@@ -46,7 +48,9 @@ vi.mock("@/services/mail_categorizer", () => ({
 
 vi.mock("@/services/category_index", () => ({
   get_counts: () => ({}),
+  are_counts_partial: () => false,
   mark_category_seen: vi.fn(),
+  mark_categories_seen: vi.fn(),
   subscribe: () => () => {},
   get_version: () => 0,
   is_index_loaded: () => false,
@@ -73,10 +77,12 @@ let last_enabled = false;
 
 function Probe() {
   const { enabled } = use_inbox_categories("inbox");
+
   useEffect(() => {
     last_enabled = enabled;
   });
   last_enabled = enabled;
+
   return null;
 }
 

@@ -35,11 +35,12 @@ import { show_toast } from "@/components/toast/simple_toast";
 import { use_settings_panel_data } from "@/components/settings/hooks/use_settings_prefetch";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
 import { ignore_error } from "@/lib/ignore_error";
-
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import {
   clear_plan_cache,
   get_current_plan_code,
 } from "@/services/plan_limits";
+import { app_locale, get_display_time_zone } from "@/utils/date_format";
 
 function open_billing_settings() {
   window.dispatchEvent(
@@ -50,7 +51,9 @@ function open_billing_settings() {
 function format_date(value: string | null): string {
   if (!value) return "";
   try {
-    return new Date(value).toLocaleString();
+    return new Date(value).toLocaleString(app_locale(), {
+      timeZone: get_display_time_zone(),
+    });
   } catch {
     return value;
   }
@@ -62,11 +65,13 @@ export function TrustedDevicesPanel() {
   const is_free_plan = !!limits && limits.plan_code === "free";
   const {
     data: cached,
+    error: load_error,
     is_loading,
     revalidate,
   } = use_settings_panel_data<ApiResponse<ListDevicesResponse>>(
     "trusted_devices",
   );
+  const devices_unavailable = !!load_error || !!cached?.error;
 
   const devices: Device[] = (cached?.data?.devices ?? []).filter(
     (d) => d.device_type !== "bridge",
@@ -79,9 +84,16 @@ export function TrustedDevicesPanel() {
   const [bridge_upgrade_modal_open, set_bridge_upgrade_modal_open] =
     useState(false);
 
+  use_escape_layer(bridge_upgrade_modal_open, () =>
+    set_bridge_upgrade_modal_open(false),
+  );
+  use_escape_layer(pending_revoke !== null, () => set_pending_revoke(null));
+  use_escape_layer(pending_revoke_all, () => set_pending_revoke_all(false));
+
   const handle_set_up = async (client: string) => {
     clear_plan_cache();
     const fresh_code = await get_current_plan_code();
+
     if (fresh_code === "free") {
       set_bridge_upgrade_modal_open(true);
 
@@ -109,12 +121,14 @@ export function TrustedDevicesPanel() {
       devices.map((device) => revoke_device(device.id)),
     );
 
-    const failed = responses.find((r) => r.error);
-    if (failed?.error) {
-      show_toast(failed.error, "error");
+    const failed = responses.filter((r) => r.error);
+
+    if (failed.length > 0) {
+      show_toast(failed[0].error ?? t("common.something_went_wrong"), "error");
     } else {
-      await revalidate();
+      show_toast(t("settings.trusted_devices_revoked_all_toast"), "success");
     }
+    await revalidate();
     set_is_revoking_all(false);
     set_pending_revoke_all(false);
   };
@@ -124,10 +138,13 @@ export function TrustedDevicesPanel() {
     const is_tauri =
       typeof window !== "undefined" &&
       ("__TAURI_INTERNALS__" in window || "__TAURI__" in window);
+
     if (is_tauri) {
       try {
         const { open } = await import("@tauri-apps/plugin-shell");
+
         await open(url);
+
         return;
       } catch (caught) {
         ignore_error(
@@ -250,7 +267,7 @@ export function TrustedDevicesPanel() {
             variant="depth_destructive"
             onClick={() => set_pending_revoke_all(true)}
           >
-            <TrashIcon className="w-4 h-4 mr-1" />
+            <TrashIcon className="w-4 h-4 me-1" />
             {t("settings.trusted_devices_revoke_all")}
           </Button>
         )}
@@ -269,7 +286,20 @@ export function TrustedDevicesPanel() {
               border: "1px solid var(--border-secondary)",
             }}
           >
-            {t("settings.trusted_devices_empty")}
+            {devices_unavailable ? (
+              <div className="flex flex-col items-center gap-3">
+                <span>{t("settings.failed_load_security_status")}</span>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => void revalidate()}
+                >
+                  {t("settings.try_again")}
+                </Button>
+              </div>
+            ) : (
+              t("settings.trusted_devices_empty")
+            )}
           </div>
         ) : (
           <div className="space-y-2">
@@ -302,7 +332,7 @@ export function TrustedDevicesPanel() {
                   variant="destructive"
                   onClick={() => set_pending_revoke(device)}
                 >
-                  <TrashIcon className="w-4 h-4 mr-1" />
+                  <TrashIcon className="w-4 h-4 me-1" />
                   {t("settings.trusted_devices_revoke")}
                 </Button>
               </div>

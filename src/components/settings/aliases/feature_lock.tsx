@@ -18,11 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { LockClosedIcon } from "@heroicons/react/24/outline";
+import { LockClosedIcon } from "@heroicons/react/24/solid";
 import { UpgradeBtn } from "@aster/ui";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { show_plan_limit_upgrade } from "@/stores/upgrade_store";
+import { show_alias_cap_upsell } from "@/stores/alias_cap_upsell_store";
 import { min_plan_for_feature } from "@/components/settings/billing/billing_constants";
 
 export function prompt_upgrade(
@@ -47,8 +48,14 @@ export function is_alias_limit_error(response: {
   );
 }
 
-export function prompt_alias_limit_upgrade() {
-  show_plan_limit_upgrade({ resource: "aliases" });
+export function prompt_alias_limit_upgrade(opts?: {
+  used?: number | null;
+  limit?: number | null;
+}) {
+  show_alias_cap_upsell({
+    used: opts?.used ?? null,
+    limit: opts?.limit ?? null,
+  });
 }
 
 export function RequiredPlanPill({
@@ -65,14 +72,12 @@ export function RequiredPlanPill({
 
   return (
     <span
-      className={`inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold ${className}`}
+      className={`inline-flex shrink-0 items-center gap-1 rounded-[14px] border px-2 py-0.5 text-[12px] font-medium text-txt-secondary ${className}`}
       style={{
-        backgroundColor:
-          "color-mix(in srgb, var(--accent-color) 14%, transparent)",
-        color: "var(--accent-color)",
+        borderColor: "color-mix(in srgb, var(--text-primary) 14%, transparent)",
       }}
     >
-      <LockClosedIcon className="h-3 w-3" />
+      <LockClosedIcon aria-hidden="true" className="h-3.5 w-3.5" />
       {t("settings.requires_plan", { plan: tier.name })}
     </span>
   );
@@ -88,7 +93,7 @@ export function FeatureLockOverlay({
   const { t } = use_i18n();
 
   return (
-    <div className="flex flex-col items-start gap-2.5 rounded-lg border border-edge-secondary bg-surf-tertiary px-3.5 py-3">
+    <div className="flex flex-col items-start gap-2.5 py-3">
       <RequiredPlanPill feature={feature} />
       <p className="text-[13px] leading-5 text-txt-secondary">{message}</p>
       <UpgradeBtn
@@ -117,16 +122,8 @@ export function LockedFeature({
   }
 
   return (
-    <div className="relative min-h-[196px]">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none select-none opacity-40 blur-[1px]"
-      >
-        {children}
-      </div>
-      <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-4">
-        <LockedFeatureCard feature={feature} message={message} />
-      </div>
+    <div className="flex min-h-[196px] items-center justify-center py-8">
+      <LockedFeatureCard feature={feature} message={message} />
     </div>
   );
 }
@@ -143,19 +140,8 @@ export function LockedFeatureCard({
   const { t } = use_i18n();
 
   return (
-    <div className="pointer-events-auto flex w-full max-w-sm flex-col items-center gap-3 rounded-2xl border border-edge-secondary bg-surf-primary px-6 py-5 text-center shadow-xl">
-      <span
-        className="flex h-10 w-10 items-center justify-center rounded-full"
-        style={{
-          backgroundColor:
-            "color-mix(in srgb, var(--accent-color) 14%, transparent)",
-        }}
-      >
-        <LockClosedIcon
-          className="h-5 w-5"
-          style={{ color: "var(--accent-color)" }}
-        />
-      </span>
+    <div className="flex w-full max-w-sm flex-col items-center gap-3 text-center">
+      <LockClosedIcon className="h-7 w-7 text-txt-muted" />
       <p className="text-sm leading-5 text-txt-primary">{message}</p>
       {detail && <p className="text-[13px] text-txt-muted">{detail}</p>}
       <RequiredPlanPill feature={feature} />

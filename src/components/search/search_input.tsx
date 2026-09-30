@@ -71,10 +71,11 @@ export function SearchInputBar({
   const { t } = use_i18n();
 
   return (
-    <div className="p-4 border-b transition-colors duration-200 relative flex-shrink-0 border-edge-secondary">
+    <div className="p-4 border-b transition-colors duration-200 relative flex-shrink-0 border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
       <div className="flex items-center gap-3">
         <button
-          className="sm:hidden -ml-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] transition-colors text-txt-muted bg-surf-hover"
+          aria-label={t("common.close")}
+          className="sm:hidden -ms-1 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] transition-colors text-txt-muted bg-surf-hover"
           onClick={on_close}
         >
           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -107,6 +108,7 @@ export function SearchInputBar({
         />
         {query && (
           <button
+            aria-label={t("common.clear")}
             className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-[10px] transition-colors duration-150 text-txt-muted bg-surf-hover hover:text-txt-primary"
             onClick={on_clear_query}
           >

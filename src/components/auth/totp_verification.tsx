@@ -19,7 +19,8 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useState, useRef, useEffect } from "react";
-import { Button, Checkbox } from "@aster/ui";
+import { Checkbox } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import { Input } from "@/components/ui/input";
 import { use_i18n } from "@/lib/i18n/context";
@@ -81,6 +82,10 @@ export function TotpVerification({
         set_error(t("auth.too_many_2fa_attempts"));
       } else if (kind === "pending_expired") {
         set_error(t("auth.sign_in_session_expired"));
+      } else if (kind === "invalid_backup_code") {
+        set_error(t("auth.invalid_backup_code"));
+      } else if (kind === "invalid_code") {
+        set_error(t("settings.invalid_2fa_code"));
       } else {
         set_error(response.error);
       }
@@ -103,8 +108,11 @@ export function TotpVerification({
       return;
     }
 
+    set_error(t("common.something_went_wrong_try_again"));
     verifying_ref.current = false;
     set_is_loading(false);
+    input_ref.current?.focus();
+    input_ref.current?.select();
   };
 
   useEffect(() => {
@@ -128,6 +136,7 @@ export function TotpVerification({
             alt="Aster"
             className="h-10"
             decoding="async"
+            draggable={false}
             src="/text_logo.png"
           />
         </div>
@@ -169,10 +178,11 @@ export function TotpVerification({
         <Button
           className="w-full"
           disabled={is_loading || code.length !== TOTP_CODE_LENGTH}
+          is_loading={is_loading}
           variant="depth"
           onClick={handle_verify}
         >
-          {is_loading ? t("common.verifying") : t("common.continue")}
+          {t("common.continue")}
         </Button>
 
         <Button

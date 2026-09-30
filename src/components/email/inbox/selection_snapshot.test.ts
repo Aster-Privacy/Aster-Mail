@@ -57,7 +57,7 @@ describe("build_selection_snapshot", () => {
     expect(snapshot.grouped_ids).toEqual(["a", "a2", "a3", "b"]);
   });
 
-  it("deduplicates folder and tag tokens across the selection", () => {
+  it("keeps only folder and tag tokens shared by every selected row", () => {
     const snapshot = build_selection_snapshot([
       {
         id: "a",
@@ -78,8 +78,8 @@ describe("build_selection_snapshot", () => {
       },
     ]);
 
-    expect(snapshot.folder_tokens).toEqual(["f1", "f2"]);
-    expect(snapshot.tag_tokens).toEqual(["t1", "t2"]);
+    expect(snapshot.folder_tokens).toEqual(["f2"]);
+    expect(snapshot.tag_tokens).toEqual(["t1"]);
   });
 
   it("tolerates selected rows without folders or tags", () => {

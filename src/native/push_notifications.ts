@@ -26,6 +26,7 @@ import {
 } from "@capacitor/push-notifications";
 
 import { is_native_platform } from "./capacitor_bridge";
+
 import { api_client } from "@/services/api/client";
 
 type PushNotificationCallback = (notification: PushNotificationSchema) => void;

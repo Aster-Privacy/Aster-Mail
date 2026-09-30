@@ -23,7 +23,10 @@ import {
   type QueueEmailRequest,
   type QueuedEmailStatus,
 } from "./api/undo_send";
-import { en } from "@/lib/i18n/translations/en";
+
+import { get_active_translations } from "@/lib/i18n/translations";
+
+export type UndoCancelResult = "cancelled" | "expired" | "failed";
 
 export interface PendingSend {
   queue_id: string;
@@ -33,23 +36,43 @@ export interface PendingSend {
   can_cancel_until: Date;
   timeout_id: number;
   status: "pending" | "sending" | "sent" | "cancelled" | "failed";
-  on_sent?: () => void;
+  on_sent?: (sent_id?: string) => void;
   on_cancelled?: () => void;
   on_error?: (error: string) => void;
 }
 
 export interface QueueEmailOptions {
-  on_sent?: () => void;
+  on_sent?: (sent_id?: string) => void;
   on_cancelled?: () => void;
   on_error?: (error: string) => void;
 }
 
 type PendingSendListener = (sends: PendingSend[]) => void;
 
+export type TerminalSendStatus = "sent" | "cancelled" | "failed";
+
+export type RestoredSendListener = (
+  queue_id: string,
+  status: TerminalSendStatus,
+) => void;
+
+const FINALIZE_RETRY_DELAYS_MS = [1000, 2000, 4000, 8000, 15000];
+const FINALIZE_UNREACHABLE_RETRY_MS = 30000;
+const MAX_FINALIZE_ROUNDS = 45;
+
+function is_terminal_status(
+  status: QueuedEmailStatus["status"],
+): status is TerminalSendStatus {
+  return status === "sent" || status === "cancelled" || status === "failed";
+}
+
 class UndoSendManager {
   private pending_sends: Map<string, PendingSend> = new Map();
   private listeners: Set<PendingSendListener> = new Set();
+  private restored_listeners: Set<RestoredSendListener> = new Set();
   private poll_interval: number | null = null;
+  private finalize_rounds: Map<string, number> = new Map();
+  private finalizing: Set<string> = new Set();
 
   async queue_email(
     request: QueueEmailRequest,
@@ -59,7 +82,9 @@ class UndoSendManager {
 
     if (response.error || !response.data) {
       if (options.on_error) {
-        options.on_error(response.error || en.errors.failed_queue_email);
+        options.on_error(
+          response.error || get_active_translations().errors.failed_queue_email,
+        );
       }
 
       return null;
@@ -89,26 +114,34 @@ class UndoSendManager {
   }
 
   async cancel_send(queue_id: string): Promise<boolean> {
+    return (await this.cancel_send_with_reason(queue_id)) === "cancelled";
+  }
+
+  async cancel_send_with_reason(queue_id: string): Promise<UndoCancelResult> {
     const pending = this.pending_sends.get(queue_id);
 
     if (!pending) {
-      return false;
+      return "expired";
     }
 
     if (pending.status !== "pending") {
-      return false;
+      return "expired";
     }
 
     const now = new Date();
 
     if (now > pending.can_cancel_until) {
-      return false;
+      return "expired";
     }
 
     const response = await undo_send_api.cancel_email(queue_id);
 
-    if (response.error || !response.data?.success) {
-      return false;
+    if (response.error) {
+      return "failed";
+    }
+
+    if (!response.data?.success) {
+      return "expired";
     }
 
     window.clearTimeout(pending.timeout_id);
@@ -121,7 +154,7 @@ class UndoSendManager {
     this.pending_sends.delete(queue_id);
     this.notify_listeners();
 
-    return true;
+    return "cancelled";
   }
 
   async send_immediately(queue_id: string): Promise<boolean> {
@@ -142,23 +175,16 @@ class UndoSendManager {
     const response = await undo_send_api.send_now(queue_id);
 
     if (response.error || !response.data?.success) {
-      pending.status = "failed";
-      if (pending.on_error) {
-        pending.on_error(response.error || en.errors.failed_send_email);
-      }
-      this.notify_listeners();
+      this.apply_terminal_status(
+        pending,
+        "failed",
+        response.error || get_active_translations().errors.failed_send_email,
+      );
 
       return false;
     }
 
-    pending.status = "sent";
-
-    if (pending.on_sent) {
-      pending.on_sent();
-    }
-
-    this.pending_sends.delete(queue_id);
-    this.notify_listeners();
+    await this.finalize_send(queue_id);
 
     return true;
   }
@@ -238,47 +264,128 @@ class UndoSendManager {
     pending.status = "sending";
     this.notify_listeners();
 
-    const status_response = await undo_send_api.get_status(queue_id);
+    await this.finalize_send(queue_id);
+  }
 
-    if (status_response.data) {
-      const server_status = status_response.data.status;
+  private apply_terminal_status(
+    pending: PendingSend,
+    status: TerminalSendStatus,
+    error_message?: string,
+    sent_id?: string,
+  ): void {
+    window.clearTimeout(pending.timeout_id);
+    pending.status = status;
 
-      if (server_status === "sent") {
-        pending.status = "sent";
-        if (pending.on_sent) {
-          pending.on_sent();
-        }
-        this.pending_sends.delete(queue_id);
-      } else if (server_status === "failed") {
-        pending.status = "failed";
-        if (pending.on_error) {
-          pending.on_error(
-            status_response.data.error_message || en.errors.failed_send,
-          );
-        }
-        this.pending_sends.delete(queue_id);
-      } else if (server_status === "cancelled") {
-        pending.status = "cancelled";
-        if (pending.on_cancelled) {
-          pending.on_cancelled();
-        }
-        this.pending_sends.delete(queue_id);
-      } else {
-        pending.status = "sent";
-        if (pending.on_sent) {
-          pending.on_sent();
-        }
-        this.pending_sends.delete(queue_id);
-      }
-    } else {
-      pending.status = "sent";
-      if (pending.on_sent) {
-        pending.on_sent();
-      }
-      this.pending_sends.delete(queue_id);
+    if (status === "sent" && pending.on_sent) {
+      pending.on_sent(sent_id);
+    } else if (status === "cancelled" && pending.on_cancelled) {
+      pending.on_cancelled();
+    } else if (status === "failed" && pending.on_error) {
+      pending.on_error(
+        error_message || get_active_translations().errors.failed_send,
+      );
     }
 
+    this.pending_sends.delete(pending.queue_id);
+    this.finalize_rounds.delete(pending.queue_id);
     this.notify_listeners();
+  }
+
+  private async finalize_send(queue_id: string): Promise<void> {
+    if (this.finalizing.has(queue_id)) {
+      return;
+    }
+
+    this.finalizing.add(queue_id);
+
+    try {
+      let server_reachable = false;
+
+      for (let attempt = 0; ; attempt++) {
+        const pending = this.pending_sends.get(queue_id);
+
+        if (!pending) {
+          return;
+        }
+
+        const response = await undo_send_api
+          .get_status(queue_id)
+          .catch(() => undefined);
+
+        if (response) {
+          server_reachable = true;
+        }
+
+        if (response?.data && is_terminal_status(response.data.status)) {
+          this.apply_terminal_status(
+            pending,
+            response.data.status,
+            response.data.error_message,
+            response.data.mail_item_id,
+          );
+
+          return;
+        }
+
+        if (response && !response.data && response.code === "NOT_FOUND") {
+          this.apply_terminal_status(pending, "sent");
+
+          return;
+        }
+
+        if (attempt >= FINALIZE_RETRY_DELAYS_MS.length) {
+          break;
+        }
+
+        const delay = FINALIZE_RETRY_DELAYS_MS[attempt];
+
+        await new Promise((resolve) => window.setTimeout(resolve, delay));
+      }
+
+      const pending = this.pending_sends.get(queue_id);
+
+      if (!pending) {
+        return;
+      }
+
+      const rounds = (this.finalize_rounds.get(queue_id) ?? 0) + 1;
+
+      if (rounds >= MAX_FINALIZE_ROUNDS) {
+        this.finalize_rounds.delete(queue_id);
+        this.apply_terminal_status(
+          pending,
+          server_reachable ? "failed" : "sent",
+        );
+
+        return;
+      }
+
+      this.finalize_rounds.set(queue_id, rounds);
+
+      window.setTimeout(() => {
+        void this.finalize_send(queue_id);
+      }, FINALIZE_UNREACHABLE_RETRY_MS);
+    } finally {
+      this.finalizing.delete(queue_id);
+    }
+  }
+
+  on_restored_send_settled(listener: RestoredSendListener): () => void {
+    this.restored_listeners.add(listener);
+
+    return () => {
+      this.restored_listeners.delete(listener);
+    };
+  }
+
+  private notify_restored(queue_id: string, status: TerminalSendStatus): void {
+    this.restored_listeners.forEach((listener) => {
+      try {
+        listener(queue_id, status);
+      } catch {
+        return;
+      }
+    });
   }
 
   private notify_listeners(): void {
@@ -297,23 +404,24 @@ class UndoSendManager {
     });
   }
 
-  async sync_with_server(): Promise<void> {
+  async sync_with_server(): Promise<boolean> {
     const response = await undo_send_api.get_pending();
 
     if (response.error || !response.data) {
-      return;
+      return false;
     }
 
     const server_emails = response.data.emails;
     const server_ids = new Set(server_emails.map((e) => e.queue_id));
 
-    for (const queue_id of this.pending_sends.keys()) {
+    for (const queue_id of Array.from(this.pending_sends.keys())) {
       if (!server_ids.has(queue_id)) {
         const pending = this.pending_sends.get(queue_id);
 
-        if (pending) {
+        if (pending && pending.status === "pending") {
           window.clearTimeout(pending.timeout_id);
-          this.pending_sends.delete(queue_id);
+          pending.status = "sending";
+          void this.finalize_send(queue_id);
         }
       }
     }
@@ -327,6 +435,8 @@ class UndoSendManager {
     }
 
     this.notify_listeners();
+
+    return true;
   }
 
   private add_from_server_status(status: QueuedEmailStatus): void {
@@ -334,14 +444,18 @@ class UndoSendManager {
       return;
     }
 
+    const queue_id = status.queue_id;
     const pending: PendingSend = {
-      queue_id: status.queue_id,
+      queue_id,
       recipient: status.subject_preview || "",
       subject: status.subject_preview || "",
       scheduled_send_at: new Date(status.scheduled_send_time),
       can_cancel_until: new Date(status.can_cancel_until),
       timeout_id: 0,
       status: "pending",
+      on_sent: () => this.notify_restored(queue_id, "sent"),
+      on_cancelled: () => this.notify_restored(queue_id, "cancelled"),
+      on_error: () => this.notify_restored(queue_id, "failed"),
     };
 
     this.start_countdown(pending);
@@ -356,27 +470,21 @@ class UndoSendManager {
       return;
     }
 
-    if (status.status !== "pending" && pending.status === "pending") {
+    if (is_terminal_status(status.status)) {
+      this.apply_terminal_status(
+        pending,
+        status.status,
+        status.error_message,
+        status.mail_item_id,
+      );
+
+      return;
+    }
+
+    if (pending.status === "pending" && status.status !== "pending") {
       window.clearTimeout(pending.timeout_id);
-
-      if (status.status === "sent") {
-        pending.status = "sent";
-        if (pending.on_sent) {
-          pending.on_sent();
-        }
-      } else if (status.status === "cancelled") {
-        pending.status = "cancelled";
-        if (pending.on_cancelled) {
-          pending.on_cancelled();
-        }
-      } else if (status.status === "failed") {
-        pending.status = "failed";
-        if (pending.on_error) {
-          pending.on_error(status.error_message || en.errors.failed_send);
-        }
-      }
-
-      this.pending_sends.delete(status.queue_id);
+      pending.status = "sending";
+      void this.finalize_send(status.queue_id);
     }
   }
 
@@ -406,6 +514,7 @@ class UndoSendManager {
     }
 
     this.pending_sends.clear();
+    this.finalize_rounds.clear();
     this.notify_listeners();
   }
 

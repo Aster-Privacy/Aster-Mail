@@ -31,6 +31,7 @@ const LINK = "#60a5fa";
 const VISITED = "#c4b5fd";
 
 describe("build_auto_dark_mode_css", () => {
+  const NEWLINE = String.fromCharCode(10);
   const css = build_auto_dark_mode_css(TEXT, LINK, VISITED);
 
   it("never flattens author text colors", () => {
@@ -69,8 +70,36 @@ describe("build_auto_dark_mode_css", () => {
       .split("\n")
       .filter((line) => /background(-color|-image)?:/.test(line));
 
-    expect(background_rules).toHaveLength(2);
+    expect(background_rules).toHaveLength(3);
     expect(background_rules[0]).toContain("html, body");
     expect(background_rules[1]).toContain('span[style*="background"]');
+    expect(background_rules[2]).toContain('[style*="url(" i]');
+  });
+
+  it("keeps a sender background image and only flattens its color", () => {
+    const image_rule = css
+      .split(NEWLINE)
+      .find(
+        (line) =>
+          line.includes('[style*="url(" i]') &&
+          !line.includes(':not([style*="url(" i])'),
+      );
+
+    expect(image_rule).toBeDefined();
+    expect(image_rule).toContain("background-color: transparent !important;");
+    expect(image_rule).not.toContain("background-image: none");
+  });
+
+  it("excludes elements that paint a background image from the image reset", () => {
+    const reset_rule = css
+      .split(NEWLINE)
+      .find(
+        (line) =>
+          line.includes("background-image: none") &&
+          line.includes('span[style*="background"]'),
+      );
+
+    expect(reset_rule).toContain(':not([style*="background-image" i])');
+    expect(reset_rule).toContain(":not([background])");
   });
 });

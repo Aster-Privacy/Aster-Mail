@@ -24,6 +24,7 @@ import { Button } from "@aster/ui";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import mail_logo_url from "@/assets/mail_logo.webp";
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
 
 interface PurchaseSuccessModalProps {
   is_open: boolean;
@@ -59,6 +60,8 @@ export function PurchaseSuccessModal({
       ? t("settings.billing_yearly")
       : t("settings.billing_monthly");
 
+  use_escape_layer(is_open, on_close, "purchase_success_modal");
+
   return (
     <AnimatePresence>
       {is_open && (
@@ -71,17 +74,14 @@ export function PurchaseSuccessModal({
           onClick={on_close}
         >
           <div
-            className="absolute inset-0 backdrop-blur-md"
+            className="absolute inset-0"
             style={{ backgroundColor: "var(--modal-overlay)" }}
           />
           <motion.div
             animate={{ opacity: 1, scale: 1 }}
-            className="relative w-full max-w-sm rounded-xl border overflow-hidden bg-modal-bg border-edge-primary"
+            className="relative w-full max-w-sm overflow-hidden rounded-[var(--aster-radius-floating,16px)] bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
             exit={{ opacity: 0, scale: 0.96 }}
             initial={reduce_motion ? false : { opacity: 0, scale: 0.96 }}
-            style={{
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-            }}
             transition={{ duration: reduce_motion ? 0 : 0.15 }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -118,17 +118,11 @@ export function PurchaseSuccessModal({
             </div>
 
             <div className="flex flex-col gap-3 px-6 pb-6">
-              <Button
-                className="w-full"
-                size="xl"
-                variant="depth"
-                onClick={on_close}
-              >
+              <Button className="w-full" variant="depth" onClick={on_close}>
                 {t("common.go_to_inbox")}
               </Button>
               <Button
                 className="w-full"
-                size="xl"
                 variant="secondary"
                 onClick={() => {
                   on_close();

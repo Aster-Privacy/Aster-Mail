@@ -61,15 +61,17 @@ export function error_message_of(value: unknown): string {
   return "";
 }
 
-export function trigger_chunk_recovery(): void {
+export function trigger_chunk_recovery(): boolean {
   try {
     const last = Number(sessionStorage.getItem(CHUNK_RELOAD_MARKER) || "0");
 
-    if (Date.now() - last < CHUNK_RELOAD_COOLDOWN_MS) return;
+    if (Date.now() - last < CHUNK_RELOAD_COOLDOWN_MS) return false;
     sessionStorage.setItem(CHUNK_RELOAD_MARKER, String(Date.now()));
   } catch {
-    return;
+    return false;
   }
 
   void hard_flush_and_reload();
+
+  return true;
 }

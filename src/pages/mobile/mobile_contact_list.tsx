@@ -40,11 +40,11 @@ import {
 import { Capacitor } from "@capacitor/core";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_contact_groups } from "@/hooks/use_contact_groups";
 import { use_should_reduce_motion } from "@/provider";
 import { MobileHeader } from "@/components/mobile/mobile_header";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Input } from "@/components/ui/input";
 
 interface MobileContactListProps {
   contacts: DecryptedContact[];
@@ -55,6 +55,8 @@ interface MobileContactListProps {
   set_search_query: (v: string) => void;
   filter: "all" | "favorites";
   set_filter: (v: "all" | "favorites") => void;
+  group_filter: string | null;
+  set_group_filter: (v: string | null) => void;
   favorites_count: number;
   is_select_mode: boolean;
   set_is_select_mode: (v: boolean) => void;
@@ -66,6 +68,9 @@ interface MobileContactListProps {
   on_contact_press: (contact: DecryptedContact) => void;
   on_long_press_start: (id: string) => void;
   on_long_press_end: () => void;
+  on_long_press_consume: () => boolean;
+  on_retry_load: () => void;
+  load_failed: boolean;
   toggle_select: (id: string) => void;
   select_all: () => void;
   deselect_all: () => void;
@@ -85,6 +90,8 @@ export function MobileContactList({
   set_search_query,
   filter,
   set_filter,
+  group_filter,
+  set_group_filter,
   favorites_count,
   is_select_mode,
   set_is_select_mode,
@@ -96,6 +103,9 @@ export function MobileContactList({
   on_contact_press,
   on_long_press_start,
   on_long_press_end,
+  on_long_press_consume,
+  on_retry_load,
+  load_failed,
   toggle_select,
   select_all,
   deselect_all,
@@ -106,6 +116,7 @@ export function MobileContactList({
   on_show_delete_confirm,
 }: MobileContactListProps) {
   const { t } = use_i18n();
+  const { groups: contact_groups } = use_contact_groups();
   const reduce_motion = use_should_reduce_motion();
 
   return (
@@ -113,6 +124,7 @@ export function MobileContactList({
       {is_select_mode ? (
         <div className="flex items-center gap-2 border-b border-[var(--border-primary)] px-3 py-2 safe-area-pt">
           <button
+            aria-label={t("common.close")}
             className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)]"
             type="button"
             onClick={exit_select_mode}
@@ -123,15 +135,17 @@ export function MobileContactList({
             {t("common.selected_count", { count: selected_ids.size })}
           </span>
           <button
-            className="rounded-[12px] px-3 py-1.5 text-[13px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
+            className="rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium text-[var(--accent-color,#3b82f6)] active:opacity-70"
             type="button"
             onClick={
+              filtered_contacts.length > 0 &&
               selected_ids.size === filtered_contacts.length
                 ? deselect_all
                 : select_all
             }
           >
-            {selected_ids.size === filtered_contacts.length
+            {filtered_contacts.length > 0 &&
+            selected_ids.size === filtered_contacts.length
               ? t("common.deselect_all")
               : t("common.select_all")}
           </button>
@@ -143,15 +157,21 @@ export function MobileContactList({
             <div className="flex items-center gap-2">
               {contacts.length > 0 && (
                 <button
-                  className="rounded-[12px] px-3 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] active:opacity-70"
+                  className="rounded-[var(--aster-radius-control)] px-3 py-1.5 text-[13px] font-medium text-[var(--text-secondary)] active:opacity-70"
+                  disabled={filtered_contacts.length === 0}
                   type="button"
-                  onClick={() => set_is_select_mode(true)}
+                  onClick={() => {
+                    if (filtered_contacts.length === 0) return;
+                    set_is_select_mode(true);
+                    select_all();
+                  }}
                 >
                   {t("common.select_all")}
                 </button>
               )}
               {Capacitor.isNativePlatform() && (
                 <button
+                  aria-label={t("common.sync")}
                   className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)] active:bg-[var(--bg-tertiary)] disabled:opacity-40"
                   disabled={is_syncing}
                   type="button"
@@ -164,6 +184,7 @@ export function MobileContactList({
                 </button>
               )}
               <button
+                aria-label={t("common.add_contact")}
                 className="flex h-8 w-8 items-center justify-center rounded-full text-white active:brightness-90"
                 style={{
                   background:
@@ -184,10 +205,11 @@ export function MobileContactList({
       )}
 
       <div className="px-4 py-2">
-        <div className="flex items-center gap-2 rounded-xl bg-[var(--bg-tertiary)] px-3 py-2">
+        <div className="flex h-11 items-center gap-2 rounded-[var(--aster-radius-field)] bg-[var(--bg-tertiary)] px-3.5">
           <MagnifyingGlassIcon className="h-4.5 w-4.5 shrink-0 text-[var(--text-muted)]" />
-          <Input
-            className="min-w-0 flex-1 bg-transparent"
+          <input
+            aria-label={t("common.search_contacts")}
+            className="h-full min-w-0 flex-1 bg-transparent text-[15px] text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)]"
             placeholder={t("common.search_contacts")}
             type="text"
             value={search_query}
@@ -205,26 +227,18 @@ export function MobileContactList({
         </div>
       </div>
 
-      <div className="flex gap-2 px-4 pb-2">
+      <div className="flex gap-2 px-4 pb-2 overflow-x-auto">
         <button
           className={`rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
             filter === "all"
-              ? "text-white"
+              ? "bg-[var(--accent-color)] text-white"
               : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]"
           }`}
-          style={
-            filter === "all"
-              ? {
-                  background:
-                    "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                  border: "1px solid rgba(255, 255, 255, 0.15)",
-                  borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
-                  boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
-                }
-              : undefined
-          }
           type="button"
-          onClick={() => set_filter("all")}
+          onClick={() => {
+            set_filter("all");
+            set_group_filter(null);
+          }}
         >
           {t("common.contacts")} ({contacts.length})
         </button>
@@ -232,22 +246,14 @@ export function MobileContactList({
           <button
             className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
               filter === "favorites"
-                ? "text-white"
+                ? "bg-[var(--accent-color)] text-white"
                 : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]"
             }`}
-            style={
-              filter === "favorites"
-                ? {
-                    background:
-                      "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                    border: "1px solid rgba(255, 255, 255, 0.15)",
-                    borderBottom: "1px solid rgba(0, 0, 0, 0.15)",
-                    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
-                  }
-                : undefined
-            }
             type="button"
-            onClick={() => set_filter("favorites")}
+            onClick={() => {
+              set_group_filter(null);
+              set_filter("favorites");
+            }}
           >
             {filter === "favorites" ? (
               <StarSolid className="h-3.5 w-3.5" />
@@ -257,6 +263,36 @@ export function MobileContactList({
             {t("common.favorites")} ({favorites_count})
           </button>
         )}
+        {contact_groups.map((group) => (
+          <button
+            key={group.id}
+            className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors ${
+              group_filter === group.id
+                ? "text-[var(--text-primary)]"
+                : "bg-[var(--bg-tertiary)] text-[var(--text-secondary)]"
+            }`}
+            style={
+              group_filter === group.id
+                ? {
+                    backgroundColor: `${group.color}33`,
+                    boxShadow: `inset 0 0 0 1px ${group.color}`,
+                  }
+                : undefined
+            }
+            type="button"
+            onClick={() => {
+              set_filter("all");
+              set_group_filter(group_filter === group.id ? null : group.id);
+            }}
+          >
+            <span
+              aria-hidden="true"
+              className="h-2 w-2 shrink-0 rounded-full"
+              style={{ backgroundColor: group.color }}
+            />
+            {group.name}
+          </button>
+        ))}
       </div>
 
       <div className="flex-1 overflow-y-auto">
@@ -274,7 +310,26 @@ export function MobileContactList({
           </div>
         )}
 
-        {!is_loading && filtered_contacts.length === 0 && (
+        {!is_loading && load_failed && contacts.length === 0 && (
+          <div className="flex flex-col items-center justify-center gap-3 px-8 pt-20">
+            <UsersIcon
+              className="h-14 w-14 text-[var(--text-muted)]"
+              strokeWidth={1}
+            />
+            <p className="text-center text-[15px] font-medium text-[var(--text-primary)]">
+              {t("common.failed_to_load_contacts")}
+            </p>
+            <button
+              className="rounded-[var(--aster-radius-control)] bg-[var(--bg-tertiary)] px-4 py-2 text-[14px] font-medium text-[var(--text-primary)] active:opacity-70"
+              type="button"
+              onClick={on_retry_load}
+            >
+              {t("common.retry")}
+            </button>
+          </div>
+        )}
+
+        {!is_loading && !load_failed && filtered_contacts.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-3 px-8 pt-20">
             <UsersIcon
               className="h-14 w-14 text-[var(--text-muted)]"
@@ -313,9 +368,11 @@ export function MobileContactList({
                 return (
                   <button
                     key={contact.id}
-                    className={`flex w-full items-center gap-3 px-4 py-2.5 text-left active:bg-[var(--bg-tertiary)] ${is_select_mode && is_selected ? "bg-[var(--bg-selected,color-mix(in srgb, var(--accent-color) 8%, transparent))]" : ""}`}
+                    className={`flex w-full items-center gap-3 px-4 py-2.5 text-start active:bg-[var(--bg-tertiary)] ${is_select_mode && is_selected ? "bg-[var(--bg-selected,color-mix(in srgb, var(--accent-color) 8%, transparent))]" : ""}`}
                     type="button"
                     onClick={() => {
+                      if (on_long_press_consume()) return;
+
                       if (is_select_mode) {
                         toggle_select(contact.id);
                       } else {
@@ -325,6 +382,7 @@ export function MobileContactList({
                     onContextMenu={(e) => e.preventDefault()}
                     onTouchCancel={on_long_press_end}
                     onTouchEnd={on_long_press_end}
+                    onTouchMove={on_long_press_end}
                     onTouchStart={() => on_long_press_start(contact.id)}
                   >
                     {is_select_mode ? (
@@ -361,7 +419,7 @@ export function MobileContactList({
                       )}
                     </div>
                     {!is_select_mode && (
-                      <ChevronRightIcon className="h-4 w-4 shrink-0 text-[var(--text-muted)]" />
+                      <ChevronRightIcon className="h-4 w-4 shrink-0 text-[var(--text-muted)] rtl:-scale-x-100" />
                     )}
                   </button>
                 );

@@ -147,11 +147,7 @@ export function adjust_lightness_for_contrast(
   const step = 0.01;
   let best = source;
 
-  for (
-    let l = hsl.l;
-    lighten ? l <= 1 : l >= 0;
-    l += lighten ? step : -step
-  ) {
+  for (let l = hsl.l; lighten ? l <= 1 : l >= 0; l += lighten ? step : -step) {
     const candidate = hsl_to_hex({ ...hsl, l: Math.max(0, Math.min(1, l)) });
 
     best = candidate;
@@ -196,7 +192,10 @@ export function derive_link_hover_ink(
     ...hsl,
     l: Math.max(
       0,
-      Math.min(1, hsl.l + (lighten ? HOVER_LIGHTNESS_STEP : -HOVER_LIGHTNESS_STEP)),
+      Math.min(
+        1,
+        hsl.l + (lighten ? HOVER_LIGHTNESS_STEP : -HOVER_LIGHTNESS_STEP),
+      ),
     ),
   });
 

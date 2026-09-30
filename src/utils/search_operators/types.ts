@@ -20,7 +20,6 @@
 //
 import type { TranslationKey } from "@/lib/i18n/types";
 
-
 export type TranslateFn = (
   key: TranslationKey,
   params?: Record<string, string | number>,
@@ -29,6 +28,7 @@ export type TranslateFn = (
 export type SearchOperatorType =
   | "from"
   | "to"
+  | "contact"
   | "subject"
   | "has"
   | "is"
@@ -103,7 +103,7 @@ export interface SearchScope {
 }
 
 export const OPERATOR_REGEX =
-  /(?:^|\s)(-)?(?:NOT\s+)?(from|to|subject|has|is|in|before|after|label|folder|date|filename|attachment|larger|smaller|size|id):("([^"]+)"|(\S+))/gi;
+  /(?:^|\s)(-)?(?:NOT\s+)?(from|to|contact|subject|has|is|in|before|after|label|folder|date|filename|attachment|larger|smaller|size|id):("([^"]+)"|(\S+))/gi;
 
 export const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -159,4 +159,3 @@ export const ATTACHMENT_MIME_MAP: Record<string, string[]> = {
     "application/x-tar",
   ],
 };
-

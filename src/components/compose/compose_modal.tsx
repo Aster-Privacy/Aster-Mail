@@ -58,6 +58,7 @@ interface ComposeModalProps {
   edit_draft?: EditDraftData | null;
   on_draft_cleared?: () => void;
   initial_to?: string;
+  initial_attachments?: File[];
 }
 
 export function ComposeModal({
@@ -66,6 +67,7 @@ export function ComposeModal({
   edit_draft,
   on_draft_cleared,
   initial_to,
+  initial_attachments,
 }: ComposeModalProps) {
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
@@ -81,6 +83,7 @@ export function ComposeModal({
     edit_draft,
     on_draft_cleared,
     initial_to,
+    initial_attachments,
     session_storage_key: "astermail_pending_send",
     init_trigger: is_open,
     load_contacts_trigger: is_open,
@@ -94,7 +97,11 @@ export function ComposeModal({
     return false;
   }, []);
 
-  use_escape_layer(is_open, on_close, "compose_modal");
+  use_escape_layer(
+    is_open && !compose.show_discard_confirm,
+    compose.handle_close,
+    "compose_modal",
+  );
 
   return (
     <AnimatePresence>
@@ -103,7 +110,7 @@ export function ComposeModal({
           <motion.div
             key="compose-backdrop-mobile"
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-40 bg-black/50 sm:hidden"
+            className="fixed inset-0 z-40 aster_scrim sm:hidden"
             exit={{ opacity: 0 }}
             initial={reduce_motion ? false : { opacity: 0 }}
             transition={{ duration: reduce_motion ? 0 : 0.2 }}
@@ -114,7 +121,7 @@ export function ComposeModal({
               <motion.div
                 key="compose-backdrop"
                 animate={{ opacity: 1 }}
-                className="fixed inset-0 z-40 bg-black/40 backdrop-blur-md hidden sm:block"
+                className="fixed inset-0 z-40 aster_scrim hidden sm:block"
                 exit={{ opacity: 0 }}
                 initial={reduce_motion ? false : { opacity: 0 }}
                 transition={{ duration: reduce_motion ? 0 : 0.2 }}
@@ -124,12 +131,12 @@ export function ComposeModal({
           <motion.div
             key="compose-modal"
             animate={{ opacity: 1, y: 0 }}
-            className={`fixed z-50 flex flex-col shadow-2xl sm:border bg-modal-bg border-edge-primary ${
+            className={`fixed z-50 flex flex-col shadow-[var(--aster-floating-shadow)] bg-[var(--aster-dialog-bg,var(--modal-bg))] ${
               compose_shell_mode(is_minimized, is_expanded) === "minimized"
-                ? "sm:w-[320px] sm:h-auto sm:rounded-t-lg"
+                ? "sm:w-[320px] sm:h-auto sm:rounded-t-[var(--aster-radius-floating,16px)]"
                 : compose_shell_mode(is_minimized, is_expanded) === "expanded"
-                  ? "inset-0 sm:inset-4 sm:w-auto sm:h-auto sm:rounded-lg"
-                  : "inset-0 sm:inset-auto sm:bottom-auto sm:left-auto sm:right-auto sm:h-[600px] sm:w-[700px] sm:max-w-[90vw] sm:max-h-[85vh] sm:rounded-lg"
+                  ? "inset-0 sm:inset-4 sm:w-auto sm:h-auto sm:rounded-[var(--aster-radius-floating,16px)]"
+                  : "inset-0 sm:inset-auto sm:bottom-auto sm:start-auto sm:end-auto sm:h-[600px] sm:w-[700px] sm:max-w-[90vw] sm:max-h-[85vh] sm:rounded-[var(--aster-radius-floating,16px)]"
             }`}
             exit={{ opacity: 0, y: is_mobile ? 100 : 0 }}
             initial={
@@ -164,7 +171,7 @@ export function ComposeModal({
           >
             <ErrorBoundary fallback={<ComposeErrorFallback />}>
               <div
-                className="flex items-center justify-between px-4 py-2 sm:py-3 border-b border-edge-primary sm:cursor-move select-none"
+                className="flex items-center justify-between px-4 py-2 sm:py-3 border-b border-[var(--aster-floating-divider)] sm:cursor-move select-none"
                 role="presentation"
                 onMouseDown={handle_drag_start}
               >
@@ -228,6 +235,7 @@ export function ComposeModal({
                     )}
                   </button>
                   <button
+                    aria-label={t("mail.close_compose")}
                     className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded hover_bg text-txt-muted"
                     onClick={compose.handle_close}
                   >
@@ -238,8 +246,8 @@ export function ComposeModal({
 
               {!is_minimized && (
                 <div className="flex-1 flex flex-col min-h-0">
-                  <div className="px-4 pt-3 relative z-20">
-                    <div className="flex items-center gap-2 py-2 border-b border-edge-secondary">
+                  <div className="pt-3 relative z-20">
+                    <div className="flex items-center gap-2 px-4 py-2 border-b border-edge-secondary">
                       <span className="text-sm flex-shrink-0 text-txt-tertiary">
                         {t("mail.from")}
                       </span>
@@ -262,7 +270,7 @@ export function ComposeModal({
                     </div>
                   </div>
 
-                  <div className="px-4 pb-1 min-h-0 overflow-y-auto">
+                  <div className="pb-1 min-h-0 overflow-y-auto">
                     <ComposeFormFields
                       auto_focus_to={!edit_draft}
                       compose={compose}
@@ -286,12 +294,20 @@ export function ComposeModal({
                 show_expiration
                 compose={{
                   ...compose,
-                  has_recipients: compose.recipients.to.length > 0,
+                  has_recipients: compose.has_sendable_recipients,
                   schedule_picker_element: (
                     <SchedulePicker
-                      disabled={compose.recipients.to.length === 0}
+                      disabled={
+                        compose.recipients.to.length === 0 ||
+                        compose.attachments.length > 0
+                      }
                       on_schedule={compose.set_scheduled_time}
                       scheduled_time={compose.scheduled_time}
+                      tooltip_key={
+                        compose.attachments.length > 0
+                          ? "common.scheduled_no_attachments"
+                          : "mail.schedule_send"
+                      }
                     />
                   ),
                   expiration_picker_element: (
@@ -316,9 +332,7 @@ export function ComposeModal({
                   <SignaturePicker
                     disabled={compose.is_scheduling}
                     on_select={(content) => {
-                      if (content) {
-                        compose.editor.insert_html(content);
-                      }
+                      compose.editor.apply_signature(content || null);
                     }}
                     open_direction="up"
                   />
@@ -346,6 +360,17 @@ export function ComposeModal({
                 on_confirm={compose.confirm_plain_text_mode}
                 title={t("mail.remove_formatting")}
                 variant="warning"
+              />
+
+              <ConfirmationModal
+                cancel_text={t("common.cancel")}
+                confirm_text={t("mail.discard")}
+                is_open={compose.show_discard_confirm}
+                message={t("common.unsaved_changes_body")}
+                on_cancel={compose.cancel_discard_close}
+                on_confirm={compose.confirm_discard_close}
+                title={t("common.unsaved_changes_title")}
+                variant="danger"
               />
             </ErrorBoundary>
           </motion.div>

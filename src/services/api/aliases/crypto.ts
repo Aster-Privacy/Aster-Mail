@@ -19,8 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { HASH_ALG } from "@/services/crypto/constants";
-import type { } from "@/lib/i18n/types";
-
+import type {} from "@/lib/i18n/types";
 
 import {
   get_or_create_derived_encryption_crypto_key,
@@ -29,10 +28,11 @@ import {
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
-
 import { DecryptedEmailAlias, EmailAlias } from "./types";
 import { parse_websites_payload } from "./website";
+
 import { ignore_error } from "@/lib/ignore_error";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -59,7 +59,9 @@ export async function get_alias_hmac_key(): Promise<CryptoKey> {
   const raw_key = get_derived_encryption_key();
 
   if (!raw_key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   const encoder = new TextEncoder();
@@ -87,7 +89,9 @@ export async function get_alias_encryption_key(): Promise<CryptoKey> {
   const key = await get_or_create_derived_encryption_crypto_key();
 
   if (!key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   return key;
@@ -212,6 +216,7 @@ export async function decrypt_alias(
       note,
       websites,
       alias_address_hash: alias.alias_address_hash,
+      routing_address_hash: alias.routing_address_hash,
       domain: alias.domain,
       full_address: `${local_part}@${alias.domain}`,
       is_enabled: alias.is_enabled,
@@ -220,6 +225,7 @@ export async function decrypt_alias(
       never_inbox: alias.never_inbox ?? false,
       delivery_folder_token: alias.delivery_folder_token ?? null,
       delivery_label_token: alias.delivery_label_token ?? null,
+      is_retained_primary: alias.is_retained_primary ?? false,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
       created_at: alias.created_at,
@@ -282,6 +288,7 @@ export async function decrypt_alias(
       note,
       websites,
       alias_address_hash: alias.alias_address_hash,
+      routing_address_hash: alias.routing_address_hash,
       domain: alias.domain,
       full_address: `${local_part}@${alias.domain}`,
       is_enabled: alias.is_enabled,
@@ -290,25 +297,35 @@ export async function decrypt_alias(
       never_inbox: alias.never_inbox ?? false,
       delivery_folder_token: alias.delivery_folder_token ?? null,
       delivery_label_token: alias.delivery_label_token ?? null,
+      is_retained_primary: alias.is_retained_primary ?? false,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
       created_at: alias.created_at,
       updated_at: alias.updated_at,
     };
   } catch {
+    const retained_local_part =
+      alias.is_retained_primary === true
+        ? (alias.retained_local_part ?? "")
+        : "";
+
     return {
       id: alias.id,
-      local_part: "",
+      local_part: retained_local_part,
       alias_address_hash: alias.alias_address_hash,
+      routing_address_hash: alias.routing_address_hash,
       domain: alias.domain,
-      full_address: `@${alias.domain}`,
+      full_address: `${retained_local_part}@${alias.domain}`,
       is_enabled: alias.is_enabled,
       is_random: alias.is_random,
       is_pinned: alias.is_pinned,
       never_inbox: alias.never_inbox ?? false,
       delivery_folder_token: alias.delivery_folder_token ?? null,
       delivery_label_token: alias.delivery_label_token ?? null,
-      decryption_failed: true,
+      decryption_failed: retained_local_part === "",
+      orphaned_by_key_rotation:
+        retained_local_part === "" && (alias.orphaned_by_key_rotation ?? false),
+      is_retained_primary: alias.is_retained_primary ?? false,
       profile_picture: alias.profile_picture,
       downgrade_grace_expires_at: alias.downgrade_grace_expires_at,
       created_at: alias.created_at,
@@ -341,4 +358,3 @@ export async function decrypt_aliases(
 
   return decrypted;
 }
-

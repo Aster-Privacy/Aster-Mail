@@ -18,112 +18,119 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 import { format_date_for_operator } from "./query";
 import { DateShortcut } from "./types";
 
+import {
+  app_locale,
+  date_from_zoned_parts,
+  get_zoned_parts,
+  zoned_add_days,
+  zoned_start_of_day,
+  zoned_weekday,
+} from "@/utils/date_format";
+
+const END_OF_DAY_MS = 24 * 60 * 60 * 1000 - 1;
+
+function end_of_zoned_day(date: Date): Date {
+  return new Date(zoned_start_of_day(date).getTime() + END_OF_DAY_MS);
+}
+
 export function get_today_start(): Date {
-  const today = new Date();
-
-  today.setHours(0, 0, 0, 0);
-
-  return today;
+  return zoned_start_of_day(new Date());
 }
 
 export function get_today_end(): Date {
-  const today = new Date();
+  return end_of_zoned_day(new Date());
+}
 
-  today.setHours(23, 59, 59, 999);
+type WeekInfo = { firstDay: number };
 
-  return today;
+type LocaleWithWeekInfo = Intl.Locale & {
+  getWeekInfo?: () => WeekInfo;
+  weekInfo?: WeekInfo;
+};
+
+const DEFAULT_FIRST_WEEK_DAY = 1;
+
+export function get_first_week_day(): number {
+  try {
+    const code =
+      app_locale() ?? new Intl.DateTimeFormat().resolvedOptions().locale;
+    const locale = new Intl.Locale(code).maximize() as LocaleWithWeekInfo;
+    const info = locale.getWeekInfo?.() ?? locale.weekInfo;
+
+    if (info && Number.isInteger(info.firstDay)) {
+      return info.firstDay % 7;
+    }
+  } catch {
+    return DEFAULT_FIRST_WEEK_DAY;
+  }
+
+  return DEFAULT_FIRST_WEEK_DAY;
 }
 
 export function get_week_start(): Date {
-  const today = new Date();
-  const day_of_week = today.getDay();
-  const diff = today.getDate() - day_of_week + (day_of_week === 0 ? -6 : 1);
-  const monday = new Date(today.setDate(diff));
+  const now = new Date();
+  const offset = (zoned_weekday(now) - get_first_week_day() + 7) % 7;
 
-  monday.setHours(0, 0, 0, 0);
-
-  return monday;
+  return zoned_start_of_day(zoned_add_days(now, -offset));
 }
 
 export function get_week_end(): Date {
-  const week_start = get_week_start();
-  const sunday = new Date(week_start);
-
-  sunday.setDate(sunday.getDate() + 6);
-  sunday.setHours(23, 59, 59, 999);
-
-  return sunday;
+  return end_of_zoned_day(zoned_add_days(get_week_start(), 6));
 }
 
 export function get_month_start(): Date {
-  const today = new Date();
+  const parts = get_zoned_parts(new Date());
 
-  return new Date(today.getFullYear(), today.getMonth(), 1);
+  return date_from_zoned_parts({ ...parts, day: 1, hours: 0, minutes: 0 });
 }
 
 export function get_month_end(): Date {
-  const today = new Date();
-  const end = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+  const parts = get_zoned_parts(new Date());
+  const next_month_start = date_from_zoned_parts({
+    ...parts,
+    month: parts.month + 1,
+    day: 1,
+    hours: 0,
+    minutes: 0,
+  });
 
-  end.setHours(23, 59, 59, 999);
-
-  return end;
+  return end_of_zoned_day(zoned_add_days(next_month_start, -1));
 }
 
 export function get_last_week_start(): Date {
-  const week_start = get_week_start();
-  const last_week = new Date(week_start);
-
-  last_week.setDate(last_week.getDate() - 7);
-
-  return last_week;
+  return zoned_add_days(get_week_start(), -7);
 }
 
 export function get_last_week_end(): Date {
-  const week_start = get_week_start();
-  const last_week_end = new Date(week_start);
-
-  last_week_end.setDate(last_week_end.getDate() - 1);
-  last_week_end.setHours(23, 59, 59, 999);
-
-  return last_week_end;
+  return end_of_zoned_day(zoned_add_days(get_week_start(), -1));
 }
 
 export function get_last_month_start(): Date {
-  const today = new Date();
+  const parts = get_zoned_parts(new Date());
 
-  return new Date(today.getFullYear(), today.getMonth() - 1, 1);
+  return date_from_zoned_parts({
+    ...parts,
+    month: parts.month - 1,
+    day: 1,
+    hours: 0,
+    minutes: 0,
+  });
 }
 
 export function get_last_month_end(): Date {
-  const today = new Date();
-  const end = new Date(today.getFullYear(), today.getMonth(), 0);
-
-  end.setHours(23, 59, 59, 999);
-
-  return end;
+  return end_of_zoned_day(zoned_add_days(get_month_start(), -1));
 }
 
 export function get_yesterday_start(): Date {
-  const yesterday = new Date();
-
-  yesterday.setDate(yesterday.getDate() - 1);
-  yesterday.setHours(0, 0, 0, 0);
-
-  return yesterday;
+  return zoned_start_of_day(zoned_add_days(new Date(), -1));
 }
 
 export function get_yesterday_end(): Date {
-  const yesterday = new Date();
-
-  yesterday.setDate(yesterday.getDate() - 1);
-  yesterday.setHours(23, 59, 59, 999);
-
-  return yesterday;
+  return end_of_zoned_day(zoned_add_days(new Date(), -1));
 }
 
 export function is_valid_date_shortcut(value: string): boolean {
@@ -179,4 +186,3 @@ export function expand_date_shortcut(
       return null;
   }
 }
-

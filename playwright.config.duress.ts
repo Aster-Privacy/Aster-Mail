@@ -9,6 +9,11 @@ export default defineConfig({
   reporter: [["list"]],
   timeout: 300_000,
   expect: { timeout: 10_000 },
-  use: { baseURL: "http://localhost:5173", trace: "off", screenshot: "only-on-failure", video: "off" },
+  use: {
+    baseURL: "http://localhost:5173",
+    trace: "off",
+    screenshot: "only-on-failure",
+    video: "off",
+  },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 });

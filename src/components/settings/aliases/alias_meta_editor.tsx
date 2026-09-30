@@ -82,7 +82,7 @@ export function AliasMetaEditor({
       value:
         website_count === 1
           ? display_website(websites![0])
-          : t("common.alias_websites_count", { count: String(website_count) }),
+          : t("common.alias_websites_count", { count: website_count }),
     });
   }
 
@@ -91,7 +91,7 @@ export function AliasMetaEditor({
   return (
     <button
       aria-label={`${t("common.alias_add_details")} ${alias_address}`}
-      className="group/meta mt-1 flex w-full min-w-0 flex-col gap-0.5 text-left"
+      className="group/meta mt-1 flex w-full min-w-0 flex-col gap-0.5 text-start"
       type="button"
       onClick={on_open}
     >

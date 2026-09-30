@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import * as openpgp from "openpgp";
 
 const h = vi.hoisted(() => ({
   vault: {
@@ -28,15 +29,15 @@ const h = vi.hoisted(() => ({
   } as Record<string, unknown> | null,
   passphrase_bytes: null as Uint8Array | null,
   has_passphrase: true,
+  format_writes: false,
   ghost_addresses: new Set<string>(),
   unregistered_ghost_addresses: new Set<string>(),
   account: {
     user: { id: "user-1", username: "owner", email: "owner@astermail.org" },
   } as Record<string, unknown> | null,
-  public_key_response: { data: { public_key: "recipient-public-key" } } as Record<
-    string,
-    unknown
-  >,
+  public_key_response: {
+    data: { public_key: "recipient-public-key" },
+  } as Record<string, unknown>,
   simple_send_response: {
     data: { success: true, mail_item_id: "mail-1" },
   } as Record<string, unknown>,
@@ -44,6 +45,7 @@ const h = vi.hoisted(() => ({
     data: { success: true, mail_item_id: "mail-2" },
   } as Record<string, unknown>,
   listed_items: [] as Record<string, unknown>[],
+  listed_attachments: [] as Record<string, unknown>[],
 }));
 
 vi.mock("@/services/crypto/memory_key_store", () => ({
@@ -56,6 +58,10 @@ vi.mock("@/services/crypto/memory_key_store", () => ({
 
 vi.mock("@/services/account_manager", () => ({
   get_current_account: vi.fn(async () => h.account),
+}));
+
+vi.mock("@/services/current_identity", () => ({
+  resolve_current_user: vi.fn(async () => h.account?.user ?? null),
 }));
 
 vi.mock("@/stores/ghost_alias_store", () => ({
@@ -88,6 +94,10 @@ vi.mock("@/services/api/mail", () => ({
 
 vi.mock("@/services/api/attachments", () => ({
   create_attachment: vi.fn(async () => ({ data: {} })),
+  list_attachments: vi.fn(async () => ({
+    data: { attachments: h.listed_attachments },
+  })),
+  update_attachment_meta: vi.fn(async () => ({ data: { status: "updated" } })),
 }));
 
 vi.mock("@/services/crypto/mail_metadata", () => ({
@@ -119,6 +129,13 @@ vi.mock("@/services/crypto/ensure_ratchet_keys", () => ({
   ensure_ratchet_keys: vi.fn(async () => {}),
 }));
 
+vi.mock("@/services/api/account_key", async (import_original) => ({
+  ...(await import_original<Record<string, unknown>>()),
+  get_account_key_capabilities: vi.fn(async () => ({
+    format_writes: h.format_writes,
+  })),
+}));
+
 vi.mock("@/utils/email_crypto", () => ({
   discover_external_recipient_keys: vi.fn(async () => ({
     recipients_with_keys: [],
@@ -138,10 +155,18 @@ import {
   execute_external_send,
   reencrypt_all_sent_mail,
 } from "./send_queue_encryption";
+
 import type { QueuedEmailInternal, MailEnvelope } from "./send_queue_types";
+
 import { send_simple_email, send_external_email } from "./api/send";
 import { list_encrypted_mail_items, update_mail_item } from "./api/mail";
 import { get_recipient_public_key } from "./api/keys";
+import {
+  create_attachment,
+  list_attachments,
+  update_attachment_meta,
+} from "./api/attachments";
+import { encrypt_attachments_for_send } from "./crypto/attachment_crypto";
 import {
   encrypt_envelope_with_bytes,
   decrypt_envelope_with_bytes,
@@ -150,6 +175,8 @@ import {
 } from "./crypto/envelope";
 
 function reset_state(): void {
+  h.format_writes = false;
+  h.listed_attachments = [];
   h.vault = {
     identity_key: "identity-secret",
     ratchet_identity_key: "",
@@ -164,12 +191,16 @@ function reset_state(): void {
   };
   h.public_key_response = { data: { public_key: "recipient-public-key" } };
   h.simple_send_response = { data: { success: true, mail_item_id: "mail-1" } };
-  h.external_send_response = { data: { success: true, mail_item_id: "mail-2" } };
+  h.external_send_response = {
+    data: { success: true, mail_item_id: "mail-2" },
+  };
   h.listed_items = [];
   vi.clearAllMocks();
 }
 
-function queued(overrides: Partial<QueuedEmailInternal> = {}): QueuedEmailInternal {
+function queued(
+  overrides: Partial<QueuedEmailInternal> = {},
+): QueuedEmailInternal {
   return {
     id: "queued-1",
     to: ["outsider@example.com"],
@@ -288,7 +319,12 @@ describe("encrypt_with_ephemeral_key", () => {
     const result = await encrypt_with_ephemeral_key(recipients, "s", "b");
 
     await expect(
-      open_ephemeral(result.ephemeral_key, result.nonce, result.encrypted_body, 0x02),
+      open_ephemeral(
+        result.ephemeral_key,
+        result.nonce,
+        result.encrypted_body,
+        0x02,
+      ),
     ).rejects.toThrow();
   });
 });
@@ -332,25 +368,25 @@ describe("resolve_username_for_key_lookup", () => {
 
 describe("resolve_own_username_for_key_lookup", () => {
   it("returns the local part for an ordinary address", async () => {
-    expect(await resolve_own_username_for_key_lookup("owner@astermail.org")).toBe(
-      "owner",
-    );
+    expect(
+      await resolve_own_username_for_key_lookup("owner@astermail.org"),
+    ).toBe("owner");
   });
 
   it("returns the account username for a known ghost address", async () => {
     h.ghost_addresses.add("ghost@realiased.me");
 
-    expect(await resolve_own_username_for_key_lookup("ghost@realiased.me")).toBe(
-      "owner",
-    );
+    expect(
+      await resolve_own_username_for_key_lookup("ghost@realiased.me"),
+    ).toBe("owner");
   });
 
   it("also covers an address that only looks like an unregistered ghost", async () => {
     h.unregistered_ghost_addresses.add("maybe@realiased.me");
 
-    expect(await resolve_own_username_for_key_lookup("maybe@realiased.me")).toBe(
-      "owner",
-    );
+    expect(
+      await resolve_own_username_for_key_lookup("maybe@realiased.me"),
+    ).toBe("owner");
   });
 
   it("returns null for a malformed address", async () => {
@@ -369,7 +405,9 @@ describe("check_send_readiness_internal", () => {
     const result = check_send_readiness_internal();
 
     expect(result.ready).toBe(false);
-    expect(result.ready === false && result.error.type).toBe("vault_unavailable");
+    expect(result.ready === false && result.error.type).toBe(
+      "vault_unavailable",
+    );
   });
 
   it("is not ready when the vault has no identity key", () => {
@@ -384,7 +422,9 @@ describe("check_send_readiness_internal", () => {
     const result = check_send_readiness_internal();
 
     expect(result.ready).toBe(false);
-    expect(result.ready === false && result.error.type).toBe("vault_unavailable");
+    expect(result.ready === false && result.error.type).toBe(
+      "vault_unavailable",
+    );
   });
 });
 
@@ -401,7 +441,9 @@ describe("fetch_internal_public_keys", () => {
   });
 
   it("returns an empty list when there are no internal recipients", async () => {
-    expect(await fetch_internal_public_keys(["outsider@example.com"])).toEqual([]);
+    expect(await fetch_internal_public_keys(["outsider@example.com"])).toEqual(
+      [],
+    );
     expect(vi.mocked(get_recipient_public_key)).not.toHaveBeenCalled();
   });
 
@@ -413,7 +455,9 @@ describe("fetch_internal_public_keys", () => {
   it("throws when the key lookup fails", async () => {
     h.public_key_response = { data: null, error: "not found" };
 
-    await expect(fetch_internal_public_keys(["a@astermail.org"])).rejects.toThrow();
+    await expect(
+      fetch_internal_public_keys(["a@astermail.org"]),
+    ).rejects.toThrow();
   });
 });
 
@@ -492,6 +536,53 @@ describe("create_sent_envelope", () => {
     const second = await create_sent_envelope(queued(), "owner@astermail.org");
 
     expect(first.encrypted_envelope).not.toBe(second.encrypted_envelope);
+  });
+
+  it("seals to the identity key when format writes are on", async () => {
+    const { privateKey } = await openpgp.generateKey({
+      type: "ecc",
+      curve: "curve25519Legacy",
+      userIDs: [{ email: "owner@astermail.org" }],
+      passphrase: "passphrase",
+      format: "armored",
+    });
+
+    h.format_writes = true;
+    h.vault = { ...h.vault, identity_key: privateKey };
+
+    const data = await create_sent_envelope(
+      queued({ subject: "Sealed subject" }),
+      "owner@astermail.org",
+    );
+    const armored = new TextDecoder().decode(
+      base64_to_array(data.encrypted_envelope),
+    );
+    const opened = await openpgp.decrypt({
+      message: await openpgp.readMessage({ armoredMessage: armored }),
+      decryptionKeys: await openpgp.decryptKey({
+        privateKey: await openpgp.readPrivateKey({ armoredKey: privateKey }),
+        passphrase: "passphrase",
+      }),
+    });
+
+    expect(data.envelope_nonce).toBe("");
+    expect(JSON.parse(opened.data as string).subject).toBe("Sealed subject");
+  });
+
+  it("keeps the passphrase seal when the account key cannot seal", async () => {
+    h.format_writes = true;
+
+    const data = await create_sent_envelope(
+      queued({ subject: "Fallback subject" }),
+      "owner@astermail.org",
+    );
+    const opened = await decrypt_envelope_with_bytes<MailEnvelope>(
+      data.encrypted_envelope,
+      new Uint8Array(32).fill(7),
+    );
+
+    expect(data.envelope_nonce).not.toBe("");
+    expect(opened!.subject).toBe("Fallback subject");
   });
 
   it("refuses without a vault", async () => {
@@ -625,6 +716,31 @@ describe("execute_external_send", () => {
     expect(request.thread_token).toBeTruthy();
   });
 
+  it("forwards the reply chain so the recipient can thread the reply", async () => {
+    await execute_external_send({
+      to: ["outsider@example.com"],
+      subject: "Re: External subject",
+      body: "External body",
+      in_reply_to: "<root@example.com> <parent@example.com>",
+    });
+
+    const request = vi.mocked(send_external_email).mock.calls[0][0];
+
+    expect(request.in_reply_to).toBe("<root@example.com> <parent@example.com>");
+  });
+
+  it("omits the reply chain for a new message", async () => {
+    await execute_external_send({
+      to: ["outsider@example.com"],
+      subject: "External subject",
+      body: "External body",
+    });
+
+    const request = vi.mocked(send_external_email).mock.calls[0][0];
+
+    expect(request.in_reply_to).toBeUndefined();
+  });
+
   it("replaces the ephemeral fields with a placeholder for a secure message", async () => {
     await execute_external_send({
       to: ["outsider@example.com"],
@@ -650,6 +766,72 @@ describe("execute_external_send", () => {
     expect(request.force_pgp).toBeUndefined();
   });
 
+  it("still reports success when the sent copy attachment upload fails", async () => {
+    vi.mocked(encrypt_attachments_for_send).mockResolvedValueOnce([
+      {
+        encrypted_data: "ct",
+        data_nonce: "n",
+        sender_encrypted_meta: "m",
+        sender_meta_nonce: "mn",
+      },
+    ] as never);
+    vi.mocked(create_attachment).mockRejectedValueOnce(
+      new Error("attachment store unavailable"),
+    );
+
+    await expect(
+      execute_external_send({
+        to: ["outsider@example.com"],
+        subject: "s",
+        body: "b",
+        attachments: [
+          {
+            id: "a1",
+            name: "report.pdf",
+            size: "1 KB",
+            size_bytes: 1024,
+            mime_type: "application/pdf",
+            data: new ArrayBuffer(1024),
+          },
+        ],
+      } as never),
+    ).resolves.toBe("mail-2");
+  });
+
+  it("retries a sent copy attachment upload that fails once", async () => {
+    vi.mocked(encrypt_attachments_for_send).mockResolvedValueOnce([
+      {
+        encrypted_data: "ct",
+        data_nonce: "n",
+        sender_encrypted_meta: "m",
+        sender_meta_nonce: "mn",
+      },
+    ] as never);
+    vi.mocked(create_attachment).mockRejectedValueOnce(
+      new Error("bad gateway"),
+    );
+
+    await execute_external_send({
+      to: ["outsider@example.com"],
+      subject: "s",
+      body: "b",
+      attachments: [
+        {
+          id: "a1",
+          name: "report.pdf",
+          size: "1 KB",
+          size_bytes: 1024,
+          mime_type: "application/pdf",
+          data: new ArrayBuffer(1024),
+        },
+      ],
+    } as never);
+
+    await vi.waitFor(() =>
+      expect(vi.mocked(create_attachment).mock.calls.length).toBeGreaterThan(1),
+    );
+  });
+
   it("honours the acknowledge flag", async () => {
     await execute_external_send(
       { to: ["outsider@example.com"], subject: "s", body: "b" },
@@ -657,7 +839,8 @@ describe("execute_external_send", () => {
     );
 
     expect(
-      vi.mocked(send_external_email).mock.calls[0][0].acknowledge_server_readable,
+      vi.mocked(send_external_email).mock.calls[0][0]
+        .acknowledge_server_readable,
     ).toBe(false);
   });
 
@@ -727,7 +910,10 @@ describe("reencrypt_all_sent_mail", () => {
 
   it("rewrites a marked envelope so the new passphrase opens it", async () => {
     const old_bytes = new TextEncoder().encode("old-pass");
-    const sealed = await encrypt_envelope_with_bytes({ subject: "kept" }, old_bytes);
+    const sealed = await encrypt_envelope_with_bytes(
+      { subject: "kept" },
+      old_bytes,
+    );
 
     h.listed_items = [
       {
@@ -758,7 +944,10 @@ describe("reencrypt_all_sent_mail", () => {
 
   it("leaves the old passphrase unable to open the rewritten envelope", async () => {
     const old_bytes = new TextEncoder().encode("old-pass");
-    const sealed = await encrypt_envelope_with_bytes({ subject: "kept" }, old_bytes);
+    const sealed = await encrypt_envelope_with_bytes(
+      { subject: "kept" },
+      old_bytes,
+    );
 
     h.listed_items = [
       {
@@ -803,7 +992,9 @@ describe("reencrypt_all_sent_mail", () => {
   });
 
   it("skips items with no stored envelope", async () => {
-    h.listed_items = [{ id: "item-1", encrypted_envelope: null, envelope_nonce: null }];
+    h.listed_items = [
+      { id: "item-1", encrypted_envelope: null, envelope_nonce: null },
+    ];
 
     await reencrypt_all_sent_mail("old-pass", "new-pass");
 
@@ -840,9 +1031,143 @@ describe("reencrypt_all_sent_mail", () => {
   });
 
   it("stops when the listing comes back empty", async () => {
-    await reencrypt_all_sent_mail("old-pass", "new-pass");
+    const summary = await reencrypt_all_sent_mail("old-pass", "new-pass");
 
     expect(vi.mocked(list_encrypted_mail_items)).toHaveBeenCalledTimes(1);
     expect(vi.mocked(update_mail_item)).not.toHaveBeenCalled();
+    expect(summary).toEqual({
+      checked: 0,
+      rewritten: 0,
+      unreadable: 0,
+      failed: 0,
+    });
+  });
+
+  it("counts an item as failed when the server rejects the rewrite", async () => {
+    const sealed = await encrypt_envelope_with_bytes(
+      { subject: "kept" },
+      new TextEncoder().encode("old-pass"),
+    );
+
+    h.listed_items = [
+      {
+        id: "item-1",
+        encrypted_envelope: sealed.encrypted,
+        envelope_nonce: marker_nonce,
+      },
+    ];
+    vi.mocked(update_mail_item).mockResolvedValueOnce({
+      error: "envelope_nonce must accompany encrypted_envelope",
+      code: "VALIDATION_ERROR",
+    } as never);
+
+    const summary = await reencrypt_all_sent_mail("old-pass", "new-pass");
+
+    expect(summary.failed).toBe(1);
+    expect(summary.rewritten).toBe(0);
+  });
+
+  it("counts items sealed with another earlier password as unreadable", async () => {
+    const other = await encrypt_envelope_with_bytes(
+      { subject: "lost" },
+      new TextEncoder().encode("other-pass"),
+    );
+    const current = await encrypt_envelope_with_bytes(
+      { subject: "fine" },
+      new TextEncoder().encode("new-pass"),
+    );
+
+    h.listed_items = [
+      {
+        id: "lost",
+        encrypted_envelope: other.encrypted,
+        envelope_nonce: marker_nonce,
+      },
+      {
+        id: "fine",
+        encrypted_envelope: current.encrypted,
+        envelope_nonce: marker_nonce,
+      },
+    ];
+
+    const summary = await reencrypt_all_sent_mail("old-pass", "new-pass");
+
+    expect(summary).toEqual({
+      checked: 2,
+      rewritten: 0,
+      unreadable: 1,
+      failed: 0,
+    });
+    expect(vi.mocked(update_mail_item)).not.toHaveBeenCalled();
+  });
+
+  it("re-seals attachment metadata of a rewritten item", async () => {
+    const sealed = await encrypt_envelope_with_bytes(
+      { subject: "kept" },
+      new TextEncoder().encode("old-pass"),
+    );
+    const meta = await encrypt_envelope_with_bytes(
+      { filename: "a.pdf", content_type: "application/pdf", session_key: "k" },
+      new TextEncoder().encode("old-pass"),
+    );
+
+    h.listed_items = [
+      {
+        id: "item-1",
+        encrypted_envelope: sealed.encrypted,
+        envelope_nonce: marker_nonce,
+        has_attachments: true,
+        attachment_count: 1,
+      },
+    ];
+    h.listed_attachments = [
+      { id: "att-1", encrypted_meta: meta.encrypted, meta_nonce: "x" },
+    ];
+
+    const summary = await reencrypt_all_sent_mail("old-pass", "new-pass");
+
+    expect(summary.rewritten).toBe(1);
+    expect(vi.mocked(list_attachments)).toHaveBeenCalledWith("item-1");
+    expect(vi.mocked(update_attachment_meta)).toHaveBeenCalledTimes(1);
+
+    const [att_id, patch] = vi.mocked(update_attachment_meta).mock.calls[0] as [
+      string,
+      { encrypted_meta: string; meta_nonce: string },
+    ];
+
+    expect(att_id).toBe("att-1");
+    expect(base64_to_array(patch.meta_nonce)).toHaveLength(12);
+    expect(
+      await decrypt_envelope_with_bytes<{ filename: string }>(
+        patch.encrypted_meta,
+        new TextEncoder().encode("new-pass"),
+      ),
+    ).toMatchObject({ filename: "a.pdf" });
+  });
+
+  it("reports progress after every checked item", async () => {
+    const sealed = await encrypt_envelope_with_bytes(
+      { subject: "kept" },
+      new TextEncoder().encode("old-pass"),
+    );
+
+    h.listed_items = [
+      {
+        id: "item-1",
+        encrypted_envelope: sealed.encrypted,
+        envelope_nonce: marker_nonce,
+      },
+    ];
+
+    const on_progress = vi.fn();
+
+    await reencrypt_all_sent_mail("old-pass", "new-pass", { on_progress });
+
+    expect(on_progress).toHaveBeenCalledWith({
+      checked: 1,
+      rewritten: 1,
+      unreadable: 0,
+      failed: 0,
+    });
   });
 });

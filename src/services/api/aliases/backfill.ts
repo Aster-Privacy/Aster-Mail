@@ -18,14 +18,17 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 
-import { api_client, } from "../client";
-
-
+import { api_client } from "../client";
 
 import { reencrypt_alias_local_part } from "./crud";
-import { compute_routing_hash, decrypt_alias, decrypt_alias_field, encrypt_alias_field } from "./crypto";
+import {
+  compute_routing_hash,
+  decrypt_alias,
+  decrypt_alias_field,
+  encrypt_alias_field,
+} from "./crypto";
 import { list_all_aliases } from "./list";
 import { EmailAlias } from "./types";
 export let routing_hash_backfill_done = false;
@@ -94,6 +97,8 @@ export async function reencrypt_all_aliases(): Promise<void> {
     try {
       const decrypted = await decrypt_alias(alias);
 
+      if (decrypted.decryption_failed || !decrypted.local_part) continue;
+
       await reencrypt_alias_local_part(alias.id, decrypted.local_part);
 
       if (alias.encrypted_display_name && alias.display_name_nonce) {
@@ -140,4 +145,3 @@ export async function reencrypt_all_aliases(): Promise<void> {
     }
   }
 }
-

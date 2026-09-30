@@ -18,15 +18,12 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import type { DecryptedThreadMessage, ThreadContext } from "@/types/thread";
 import type {
   MailItem,
   ReactionSummary,
   ThreadWithMessages,
 } from "@/services/api/mail";
-import { en } from "@/lib/i18n/translations/en";
-import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 
 import {
   get_thread_messages,
@@ -48,6 +45,9 @@ import {
 import { zero_uint8_array } from "./crypto/secure_memory";
 import { decrypt_mail_metadata } from "./crypto/mail_metadata";
 
+import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
+import { get_active_translations } from "@/lib/i18n/translations";
+import { HASH_ALG } from "@/services/crypto/constants";
 import {
   try_extract_mime_body,
   RATCHET_UNDECRYPTABLE_SENTINEL,
@@ -60,7 +60,7 @@ import {
 import { filter_locked_mail_items } from "@/services/locked_folders";
 import { resolve_forwarding_display } from "@/utils/forwarding_alias";
 import { is_reaction_payload_body } from "@/lib/reaction_payload";
-
+import { compare_timestamps_asc } from "@/utils/email_timestamp";
 
 interface DecryptedEnvelope {
   subject: string;
@@ -230,6 +230,7 @@ export async function fetch_and_decrypt_thread_messages(
     const head_count = options.limit - 1;
     const head = all_messages.slice(0, head_count);
     const tail = all_messages[all_messages.length - 1];
+
     messages_to_decrypt = [...head, tail];
     truncated = true;
   }
@@ -256,9 +257,9 @@ export async function fetch_and_decrypt_thread_messages(
       return {
         id: msg.id,
         item_type: msg.item_type as "received" | "sent" | "draft",
-        sender_name: en.common.unknown_sender,
+        sender_name: get_active_translations().common.unknown_sender,
         sender_email: "",
-        subject: en.common.unable_to_decrypt,
+        subject: get_active_translations().common.unable_to_decrypt,
         body: "",
         html_content: undefined,
         timestamp: msg.created_at,
@@ -266,6 +267,8 @@ export async function fetch_and_decrypt_thread_messages(
         is_starred: decrypted_metadata?.is_starred ?? false,
         is_deleted: false,
         is_external: msg.is_external ?? false,
+        system_origin: msg.system_origin,
+        sender_verified_domain: msg.sender_verified ? msg.sender_verified_domain : undefined,
         send_status: msg.send_status ?? decrypted_metadata?.send_status,
         send_error: msg.send_error,
         encrypted_metadata: msg.encrypted_metadata,
@@ -350,6 +353,7 @@ export async function fetch_and_decrypt_thread_messages(
     }
 
     const subject_bundle = extract_subject_bundle(body_content);
+
     if (subject_bundle.subject !== null) {
       body_content = subject_bundle.body;
       if (!envelope.subject) {
@@ -372,6 +376,7 @@ export async function fetch_and_decrypt_thread_messages(
     }
 
     const html_bundle = unwrap_bundle_html(effective_html);
+
     effective_html = html_bundle.html;
     if (html_bundle.subject !== null && !envelope.subject) {
       envelope.subject = html_bundle.subject;
@@ -393,6 +398,8 @@ export async function fetch_and_decrypt_thread_messages(
       is_starred: decrypted_metadata?.is_starred ?? false,
       is_deleted: false,
       is_external: msg.is_external ?? false,
+      system_origin: msg.system_origin,
+      sender_verified_domain: msg.sender_verified ? msg.sender_verified_domain : undefined,
       send_status: msg.send_status ?? decrypted_metadata?.send_status,
       send_error: msg.send_error,
       encrypted_metadata: msg.encrypted_metadata,
@@ -418,8 +425,8 @@ export async function fetch_and_decrypt_thread_messages(
     ...results.filter((msg) => !is_reaction_payload_body(msg.body)),
   );
 
-  decrypted_messages.sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
+  decrypted_messages.sort((a, b) =>
+    compare_timestamps_asc(a.timestamp, b.timestamp),
   );
 
   await resolve_reaction_emojis(decrypted_messages, our_email);
@@ -461,9 +468,9 @@ export async function fetch_and_decrypt_virtual_group(
       return {
         id: item.id,
         item_type: item.item_type as "received" | "sent" | "draft",
-        sender_name: en.common.unknown_sender,
+        sender_name: get_active_translations().common.unknown_sender,
         sender_email: "",
-        subject: en.common.unable_to_decrypt,
+        subject: get_active_translations().common.unable_to_decrypt,
         body: "",
         html_content: undefined,
         timestamp: item.created_at,
@@ -471,6 +478,8 @@ export async function fetch_and_decrypt_virtual_group(
         is_starred: decrypted_metadata?.is_starred ?? false,
         is_deleted: false,
         is_external: item.is_external ?? false,
+        system_origin: item.system_origin,
+        sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
         send_status: item.send_status ?? decrypted_metadata?.send_status,
         send_error: item.send_error,
         encrypted_metadata: item.encrypted_metadata,
@@ -549,6 +558,7 @@ export async function fetch_and_decrypt_virtual_group(
     }
 
     const subject_bundle = extract_subject_bundle(body_content);
+
     if (subject_bundle.subject !== null) {
       body_content = subject_bundle.body;
       if (!envelope.subject) {
@@ -571,6 +581,7 @@ export async function fetch_and_decrypt_virtual_group(
     }
 
     const html_bundle = unwrap_bundle_html(effective_html);
+
     effective_html = html_bundle.html;
     if (html_bundle.subject !== null && !envelope.subject) {
       envelope.subject = html_bundle.subject;
@@ -592,6 +603,8 @@ export async function fetch_and_decrypt_virtual_group(
       is_starred: decrypted_metadata?.is_starred ?? false,
       is_deleted: false,
       is_external: item.is_external ?? false,
+      system_origin: item.system_origin,
+      sender_verified_domain: item.sender_verified ? item.sender_verified_domain : undefined,
       send_status: item.send_status ?? decrypted_metadata?.send_status,
       send_error: item.send_error,
       encrypted_metadata: item.encrypted_metadata,
@@ -610,9 +623,7 @@ export async function fetch_and_decrypt_virtual_group(
     (msg) => !is_reaction_payload_body(msg.body),
   );
 
-  results.sort(
-    (a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime(),
-  );
+  results.sort((a, b) => compare_timestamps_asc(a.timestamp, b.timestamp));
 
   await resolve_reaction_emojis(results, our_email);
 
@@ -641,6 +652,12 @@ export async function get_or_create_thread_token(
 ): Promise<string | null> {
   if (existing_thread_token) {
     return existing_thread_token;
+  }
+
+  const server_thread_token = await read_server_thread_token(original_email_id);
+
+  if (server_thread_token) {
+    return server_thread_token;
   }
 
   let passphrase_bytes = get_passphrase_bytes();
@@ -683,12 +700,24 @@ export async function get_or_create_thread_token(
   if (link_result.error) {
     zero_uint8_array(passphrase_bytes);
 
-    return null;
+    return read_server_thread_token(original_email_id);
   }
 
   zero_uint8_array(passphrase_bytes);
 
   return thread_token;
+}
+
+async function read_server_thread_token(
+  mail_item_id: string,
+): Promise<string | null> {
+  try {
+    const result = await get_mail_item(mail_item_id);
+
+    return result.data?.thread_token || null;
+  } catch {
+    return null;
+  }
 }
 
 async function encrypt_thread_meta(

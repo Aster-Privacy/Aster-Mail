@@ -20,212 +20,31 @@
 //
 "use client";
 
-import * as React from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { XMarkIcon } from "@heroicons/react/24/outline";
+import { MotionModal, type MotionModalProps } from "@aster/ui";
 
-import { cn } from "@/lib/utils";
-import { use_dialog_shell } from "@/lib/use_dialog_shell";
 import { use_should_reduce_motion } from "@/provider";
+import { use_i18n } from "@/lib/i18n/context";
 
-interface ModalProps {
-  is_open: boolean;
-  on_close: () => void;
-  children: React.ReactNode;
-  size?: "sm" | "md" | "lg" | "xl" | "2xl" | "full";
-  show_close_button?: boolean;
-  close_on_overlay?: boolean;
-  z_index?: number;
-}
+type ModalProps = Omit<MotionModalProps, "reduce_motion" | "close_label">;
 
-interface ModalHeaderProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-interface ModalBodyProps {
-  children?: React.ReactNode;
-  className?: string;
-}
-
-interface ModalFooterProps {
-  children: React.ReactNode;
-  className?: string;
-}
-
-const modal_labels_context = React.createContext<{
-  title_id: string;
-  description_id: string;
-} | null>(null);
-
-const SIZE_CLASSES = {
-  sm: "max-w-[360px]",
-  md: "max-w-[440px]",
-  lg: "max-w-[520px]",
-  xl: "max-w-[640px]",
-  "2xl": "max-w-[860px]",
-  full: "max-w-[800px]",
-};
-
-export function Modal({
-  is_open,
-  on_close,
-  children,
-  size = "md",
-  show_close_button = true,
-  close_on_overlay = true,
-  z_index,
-}: ModalProps) {
+export function Modal(props: ModalProps) {
   const reduce_motion = use_should_reduce_motion();
-  const instance_id = React.useId().replace(/:/g, "");
-
-  const { dialog_ref, handle_backdrop_pointer_down } =
-    use_dialog_shell<HTMLDivElement>(is_open, on_close, "modal");
-
-  const label_ids = React.useMemo(
-    () => ({
-      title_id: `${instance_id}_title`,
-      description_id: `${instance_id}_description`,
-    }),
-    [instance_id],
-  );
+  const { t } = use_i18n();
 
   return (
-    <AnimatePresence>
-      {is_open && (
-        <div
-          className="fixed inset-0 flex items-center justify-center"
-          style={{ zIndex: z_index ?? 60 }}
-        >
-          <motion.div
-            animate={{ opacity: 1 }}
-            className="absolute inset-0 backdrop-blur-md"
-            exit={{ opacity: 0 }}
-            initial={reduce_motion ? false : { opacity: 0 }}
-            style={{ backgroundColor: "var(--modal-overlay)" }}
-            transition={{ duration: reduce_motion ? 0 : 0.2 }}
-            onPointerDown={
-              close_on_overlay ? handle_backdrop_pointer_down : undefined
-            }
-          />
-
-          <motion.div
-            ref={dialog_ref}
-            aria-describedby={label_ids.description_id}
-            aria-labelledby={label_ids.title_id}
-            aria-modal="true"
-            role="dialog"
-            tabIndex={-1}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            className={cn(
-              "relative w-full mx-4 my-4 rounded-xl border flex flex-col max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain outline-none focus:outline-none focus-visible:outline-none",
-              SIZE_CLASSES[size],
-            )}
-            exit={{ opacity: 0, scale: 0.97, y: 4 }}
-            initial={reduce_motion ? false : { opacity: 0, scale: 0.97, y: 4 }}
-            style={{
-              backgroundColor: "var(--modal-bg)",
-              borderColor: "var(--border-primary)",
-              boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.35)",
-              outline: "none",
-            }}
-            transition={{
-              duration: reduce_motion ? 0 : 0.12,
-              ease: [0.16, 1, 0.3, 1],
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {show_close_button && (
-              <button
-                className="aster_modal_close absolute right-5 top-5 z-10 flex items-center justify-center rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/10"
-                style={{ width: 28, height: 28, padding: 0 }}
-                type="button"
-                onClick={on_close}
-              >
-                <XMarkIcon
-                  className="text-txt-secondary"
-                  style={{ width: 18, height: 18, flexShrink: 0 }}
-                />
-              </button>
-            )}
-            <modal_labels_context.Provider value={label_ids}>
-              {children}
-            </modal_labels_context.Provider>
-          </motion.div>
-        </div>
-      )}
-    </AnimatePresence>
+    <MotionModal
+      close_label={t("common.close")}
+      reduce_motion={reduce_motion}
+      {...props}
+    />
   );
 }
 
-export function ModalHeader({ children, className }: ModalHeaderProps) {
-  return (
-    <div className={cn("aster_modal_header flex flex-col px-6 pt-6 pb-5 pr-12", className)}>
-      {children}
-    </div>
-  );
-}
-
-export function ModalTitle({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  const labels = React.useContext(modal_labels_context);
-
-  return (
-    <h3
-      id={labels?.title_id}
-      className={cn(
-        "aster_modal_title w-full text-base font-semibold leading-tight",
-        className,
-      )}
-      style={{ color: "var(--text-primary)" }}
-    >
-      {children}
-    </h3>
-  );
-}
-
-export function ModalDescription({
-  children,
-  className,
-}: {
-  children: React.ReactNode;
-  className?: string;
-}) {
-  const labels = React.useContext(modal_labels_context);
-
-  return (
-    <p
-      id={labels?.description_id}
-      className={cn("text-[13px] w-full mt-2.5 leading-relaxed", className)}
-      style={{ color: "var(--text-tertiary)" }}
-    >
-      {children}
-    </p>
-  );
-}
-
-export function ModalBody({ children, className }: ModalBodyProps) {
-  return (
-    <div className={cn("aster_modal_body px-5 pb-5", className)}>
-      {children}
-    </div>
-  );
-}
-
-export function ModalFooter({ children, className }: ModalFooterProps) {
-  return (
-    <div
-      className={cn(
-        "aster_modal_actions px-6 pb-6 pt-2 flex items-center justify-end gap-3",
-        className,
-      )}
-    >
-      {children}
-    </div>
-  );
-}
+export {
+  MotionModalHeader as ModalHeader,
+  MotionModalTitle as ModalTitle,
+  MotionModalDescription as ModalDescription,
+  MotionModalBody as ModalBody,
+  MotionModalFooter as ModalFooter,
+} from "@aster/ui";
+export type { ModalProps };

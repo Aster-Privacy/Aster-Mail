@@ -63,5 +63,6 @@ export {
   get_connection_settings,
   test_smtp_connection,
   start_oauth_authorize,
+  complete_oauth_authorize,
   get_dedup_stats,
 } from "./external_accounts/api";

@@ -19,13 +19,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { UserPreferences } from "@/services/api/preferences";
-import { DEFAULT_PREFERENCES } from "@/services/api/preferences";
-import { en } from "@/lib/i18n/translations/en";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
 
+import { DEFAULT_PREFERENCES } from "@/services/api/preferences";
+import { get_active_translations } from "@/lib/i18n/translations";
+import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { ignore_error } from "@/lib/ignore_error";
 
-export type NotificationType = "new_email" | "reply" | "mention";
+export type NotificationType = "new_email" | "reply";
 
 interface NotificationOptions {
   title: string;
@@ -36,18 +36,52 @@ interface NotificationOptions {
 }
 
 let notification_sound: HTMLAudioElement | null = null;
+let last_sound_played_at = 0;
+
+const SOUND_MIN_INTERVAL_MS = 3000;
 
 function is_tauri(): boolean {
   return "__TAURI_INTERNALS__" in window;
 }
 
+let tauri_actions_bound = false;
+
+async function bind_tauri_notification_actions(notification_module: {
+  onAction: (
+    callback: (notification: { extra?: Record<string, unknown> }) => void,
+  ) => Promise<unknown>;
+}): Promise<void> {
+  if (tauri_actions_bound) return;
+  tauri_actions_bound = true;
+
+  try {
+    await notification_module.onAction((notification) => {
+      const email_id = notification.extra?.email_id;
+
+      window.focus();
+
+      if (typeof email_id === "string" && email_id !== "") {
+        window.dispatchEvent(
+          new CustomEvent("astermail:open-email", {
+            detail: { email_id },
+          }),
+        );
+      }
+    });
+  } catch {
+    tauri_actions_bound = false;
+  }
+}
+
 async function show_tauri_notification(
   title: string,
   body: string,
+  email_id?: string,
 ): Promise<void> {
   try {
+    const notification_module = await import("@tauri-apps/plugin-notification");
     const { sendNotification, isPermissionGranted, requestPermission } =
-      await import("@tauri-apps/plugin-notification");
+      notification_module;
 
     let permitted = await isPermissionGranted();
 
@@ -57,9 +91,15 @@ async function show_tauri_notification(
       permitted = result === "granted";
     }
 
-    if (permitted) {
-      sendNotification({ title, body });
-    }
+    if (!permitted) return;
+
+    await bind_tauri_notification_actions(notification_module);
+
+    sendNotification({
+      title,
+      body,
+      extra: email_id ? { email_id } : undefined,
+    });
   } catch {
     return;
   }
@@ -109,7 +149,11 @@ function is_within_quiet_hours(preferences: UserPreferences): boolean {
   const start_minutes = start.hours * 60 + start.minutes;
   const end_minutes = end.hours * 60 + end.minutes;
 
-  if (start_minutes <= end_minutes) {
+  if (start_minutes === end_minutes) {
+    return true;
+  }
+
+  if (start_minutes < end_minutes) {
     return current_minutes >= start_minutes && current_minutes < end_minutes;
   }
 
@@ -133,8 +177,6 @@ function should_notify(
       return preferences.notify_new_email;
     case "reply":
       return preferences.notify_replies;
-    case "mention":
-      return preferences.notify_mentions;
     default:
       return false;
   }
@@ -150,7 +192,9 @@ export async function show_notification(
     return null;
   }
 
-  const display_title = lockdown_active ? en.settings.lockdown_notification_generic : options.title;
+  const display_title = lockdown_active
+    ? get_active_translations().settings.lockdown_notification_generic
+    : options.title;
   const display_body = lockdown_active ? "" : options.body;
 
   if (preferences.sound) {
@@ -158,7 +202,13 @@ export async function show_notification(
   }
 
   if (is_tauri()) {
-    await show_tauri_notification(display_title, display_body);
+    await show_tauri_notification(
+      display_title,
+      display_body,
+      typeof options.data?.email_id === "string"
+        ? options.data.email_id
+        : undefined,
+    );
 
     return null;
   }
@@ -195,10 +245,25 @@ export async function show_notification(
 }
 
 export function play_notification_sound(): void {
+  const now = Date.now();
+
+  if (now - last_sound_played_at < SOUND_MIN_INTERVAL_MS) {
+    return;
+  }
+
+  last_sound_played_at = now;
+
   const sound = get_notification_sound();
 
   sound.currentTime = 0;
-  sound.play().catch((caught) => ignore_error("services/notification_service:play_notification_sound", caught));
+  sound
+    .play()
+    .catch((caught) =>
+      ignore_error(
+        "services/notification_service:play_notification_sound",
+        caught,
+      ),
+    );
 }
 
 export async function request_notification_permission(): Promise<NotificationPermission> {
@@ -280,7 +345,10 @@ export function notify_new_email(
   return show_notification(
     "new_email",
     {
-      title: en.mail.notification_new_email.replace("{{ sender }}", sender),
+      title: get_active_translations().mail.notification_new_email.replace(
+        "{{ sender }}",
+        sender,
+      ),
       body: subject,
       tag: `email-${email_id}`,
       data: { email_id },
@@ -299,28 +367,12 @@ export function notify_reply(
   return show_notification(
     "reply",
     {
-      title: en.mail.notification_reply.replace("{{ sender }}", sender),
+      title: get_active_translations().mail.notification_reply.replace(
+        "{{ sender }}",
+        sender,
+      ),
       body: subject,
       tag: `reply-${email_id}`,
-      data: { email_id },
-    },
-    preferences,
-    is_any_lockdown_active(),
-  );
-}
-
-export function notify_mention(
-  sender: string,
-  subject: string,
-  email_id: string,
-  preferences: UserPreferences,
-): Promise<Notification | null> {
-  return show_notification(
-    "mention",
-    {
-      title: en.mail.notification_mention.replace("{{ sender }}", sender),
-      body: subject,
-      tag: `mention-${email_id}`,
       data: { email_id },
     },
     preferences,

@@ -115,6 +115,36 @@ describe("alias_rule_delivery", () => {
     );
   });
 
+  it("matches starts_with and ends_with but never negative operators", () => {
+    const rule_for = (operator: string, value: string) =>
+      build_rule({
+        conditions: [{ type: "to", operator, value } as Condition],
+        actions: [{ type: "move_to", folder_token: "folder_a" }],
+      });
+
+    expect(
+      alias_rule_delivery([rule_for("starts_with", "shop@")], "shop@aster.cx"),
+    ).not.toBeNull();
+    expect(
+      alias_rule_delivery(
+        [rule_for("ends_with", "@aster.cx")],
+        "shop@aster.cx",
+      ),
+    ).not.toBeNull();
+    expect(
+      alias_rule_delivery([rule_for("starts_with", "news@")], "shop@aster.cx"),
+    ).toBeNull();
+    for (const op of [
+      "does_not_contain",
+      "does_not_match_domain",
+      "is_empty",
+    ]) {
+      expect(
+        alias_rule_delivery([rule_for(op, "shop")], "shop@aster.cx"),
+      ).toBeNull();
+    }
+  });
+
   it("finds the rule that labels an alias", () => {
     const rules = [
       build_rule({

@@ -19,34 +19,18 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import {
-  StarIcon,
-  EyeIcon,
-  EyeSlashIcon,
-  EllipsisHorizontalIcon,
-  TrashIcon,
-  ArrowUturnRightIcon,
-} from "@heroicons/react/24/outline";
-import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
-
-import { Tooltip } from "@aster/ui";
-
-import { EmailTag } from "@/components/ui/email_tag";
-import { ProfileAvatar } from "@/components/ui/profile_avatar";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown_menu";
-
-import { MessageDetailsModal } from "@/components/email/message_details_modal";
-
 import type {
   ThreadMessageBlockProps,
   use_thread_message_block,
 } from "./use_thread_message_block";
+
+import { StarIcon as StarIconSolid } from "@heroicons/react/24/solid";
+import { Tooltip } from "@aster/ui";
+
+import { is_system_email, trust_source_for_display } from "@/lib/utils";
+import { EmailTag } from "@/components/ui/email_tag";
+import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { MessageDetailsModal } from "@/components/email/message_details_modal";
 
 export function render_collapsed_thread_message(
   props: ThreadMessageBlockProps,
@@ -54,14 +38,9 @@ export function render_collapsed_thread_message(
 ): React.ReactElement {
   const {
     message,
-    hide_bottom_border = false,
     on_toggle,
     is_starred = false,
     is_read = true,
-    on_star_toggle,
-    on_toggle_read,
-    on_forward,
-    on_trash,
     size_bytes,
   } = props;
   const {
@@ -78,7 +57,7 @@ export function render_collapsed_thread_message(
 
   return (
     <div
-      className={`group flex cursor-pointer select-none gap-3 px-4 py-3 hover:bg-surf-hover/20 ${hide_bottom_border ? "" : "border-b border-[var(--border-thread-divider)]"}`}
+      className="group flex cursor-pointer select-none items-center gap-3 px-4 py-3.5 transition-colors hover:bg-[var(--aster-island-hover)] focus-visible:bg-[var(--aster-island-hover)]"
       role="button"
       tabIndex={0}
       onClick={(e) => {
@@ -95,14 +74,17 @@ export function render_collapsed_thread_message(
     >
       <ProfileAvatar
         use_domain_logo
-        className="flex-shrink-0 mt-0.5"
+        className="flex-shrink-0"
         email={show_sender_email}
         name={show_sender_name}
+        sender_authenticated={is_system_email(
+          trust_source_for_display(message, show_sender_email),
+        )}
         size="md"
       />
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-txt-primary truncate">
+          <span className="min-w-0 truncate text-sm font-semibold text-txt-primary">
             {name}
           </span>
           {is_ghost_sender && (
@@ -117,100 +99,23 @@ export function render_collapsed_thread_message(
               />
             </Tooltip>
           )}
+          <span className="ms-auto flex flex-shrink-0 items-center gap-1.5 ps-2">
+            {is_starred && (
+              <StarIconSolid
+                aria-label={t("mail.starred")}
+                className="h-3.5 w-3.5 text-amber-400"
+              />
+            )}
+            <span className="whitespace-nowrap text-xs text-txt-muted">
+              {format_email_detail(new Date(message.timestamp))}
+            </span>
+          </span>
         </div>
         {collapsed_preview && (
-          <p className="text-sm text-txt-muted truncate mt-0.5">
+          <p className="mt-0.5 truncate text-[13px] text-txt-muted">
             {collapsed_preview}
           </p>
         )}
-      </div>
-
-      <div className="flex items-center gap-0.5 flex-shrink-0 mt-0.5">
-        <button
-          className="rounded-full p-1.5 hover:bg-surf-hover"
-          title={is_starred ? t("mail.unstar") : t("mail.star")}
-          onClick={(e) => {
-            e.stopPropagation();
-            on_star_toggle?.();
-          }}
-        >
-          {is_starred ? (
-            <StarIconSolid className="h-[18px] w-[18px] text-amber-400" />
-          ) : (
-            <StarIcon className="h-[18px] w-[18px] text-txt-muted" />
-          )}
-        </button>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              className="rounded-full p-1.5 hover:bg-surf-hover"
-              title={t("common.more")}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <EllipsisHorizontalIcon className="h-[18px] w-[18px] text-txt-muted" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52">
-            {on_forward && (
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  on_toggle();
-                  on_forward(message);
-                }}
-              >
-                <ArrowUturnRightIcon className="w-4 h-4 mr-2" />
-                {t("mail.forward")}
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator />
-            {message.item_type !== "sent" && (
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  on_toggle_read?.();
-                }}
-              >
-                {is_read ? (
-                  <EyeSlashIcon className="w-4 h-4 mr-2" />
-                ) : (
-                  <EyeIcon className="w-4 h-4 mr-2" />
-                )}
-                {is_read ? t("mail.mark_unread") : t("mail.mark_read")}
-              </DropdownMenuItem>
-            )}
-            <DropdownMenuItem
-              onClick={(e) => {
-                e.stopPropagation();
-                on_star_toggle?.();
-              }}
-            >
-              {is_starred ? (
-                <StarIconSolid className="w-4 h-4 mr-2 text-amber-400" />
-              ) : (
-                <StarIcon className="w-4 h-4 mr-2" />
-              )}
-              {is_starred ? t("mail.unstar") : t("mail.star")}
-            </DropdownMenuItem>
-            {on_trash && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    on_trash(message);
-                  }}
-                >
-                  <TrashIcon className="w-4 h-4 mr-2" />
-                  {t("mail.move_to_trash")}
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-        <span className="text-[13px] text-txt-muted whitespace-nowrap ml-1.5 flex-shrink-0">
-          {format_email_detail(new Date(message.timestamp))}
-        </span>
       </div>
 
       <MessageDetailsModal

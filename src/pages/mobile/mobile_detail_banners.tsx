@@ -32,13 +32,15 @@ import { is_system_email } from "@/lib/utils";
 import {
   execute_unsubscribe,
   get_sender_domain,
+  get_manual_unsubscribe_url,
 } from "@/utils/unsubscribe_detector";
+import { open_external } from "@/utils/open_link";
 import { track_subscription } from "@/services/api/subscriptions";
 import { persist_unsubscribe } from "@/hooks/use_unsubscribed_senders";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_preferences } from "@/contexts/preferences_context";
-
+import { get_undo_send_delay_ms } from "@/services/send_queue";
 import { ignore_error } from "@/lib/ignore_error";
 
 export function MobileUnsubscribeBanner({
@@ -62,17 +64,18 @@ export function MobileUnsubscribeBanner({
   const [dismissed, set_dismissed] = useState(false);
   const pending_timeout_ref = useRef<NodeJS.Timeout | null>(null);
   const cancelled_ref = useRef(false);
+  const mounted_ref = useRef(true);
 
   useEffect(() => {
+    mounted_ref.current = true;
+
     return () => {
-      if (pending_timeout_ref.current) {
-        clearTimeout(pending_timeout_ref.current);
-      }
+      mounted_ref.current = false;
     };
   }, []);
 
   if (dismissed || !email.unsubscribe_info?.has_unsubscribe) return null;
-  if (is_system_email(email.sender_email)) return null;
+  if (is_system_email(email)) return null;
 
   const info = email.unsubscribe_info;
   const domain = get_sender_domain(email.sender_email);
@@ -81,29 +84,39 @@ export function MobileUnsubscribeBanner({
     cancelled_ref.current = false;
     set_dismissed(true);
 
-    const delay_seconds = preferences.undo_send_seconds ?? 10;
-    const delay_ms = delay_seconds * 1000;
+    const delay_ms = get_undo_send_delay_ms(
+      preferences.undo_send_enabled,
+      preferences.undo_send_seconds,
+      preferences.undo_send_period,
+    );
 
     track_subscription({
       sender_email: email.sender_email,
       sender_name: email.sender,
       unsubscribe_link: info.unsubscribe_link,
       list_unsubscribe_header: info.list_unsubscribe_header,
-    }).catch((caught) => ignore_error("pages/mobile/mobile_detail_banners:handle_unsubscribe", caught));
+    }).catch((caught) =>
+      ignore_error(
+        "pages/mobile/mobile_detail_banners:handle_unsubscribe",
+        caught,
+      ),
+    );
 
     show_action_toast({
       message: t("mail.successfully_unsubscribed"),
       action_type: "not_spam",
       email_ids: [],
-      duration_ms: delay_ms,
-      on_undo: async () => {
-        cancelled_ref.current = true;
-        if (pending_timeout_ref.current) {
-          clearTimeout(pending_timeout_ref.current);
-          pending_timeout_ref.current = null;
-        }
-        set_dismissed(false);
-      },
+      ...(delay_ms > 0 && {
+        duration_ms: delay_ms,
+        on_undo: async () => {
+          cancelled_ref.current = true;
+          if (pending_timeout_ref.current) {
+            clearTimeout(pending_timeout_ref.current);
+            pending_timeout_ref.current = null;
+          }
+          if (mounted_ref.current) set_dismissed(false);
+        },
+      }),
     });
 
     pending_timeout_ref.current = setTimeout(async () => {
@@ -112,26 +125,34 @@ export function MobileUnsubscribeBanner({
 
       try {
         const result = await execute_unsubscribe(info as never);
+
         if (result === "api") {
-          persist_unsubscribe(email.sender_email, email.sender || "", {
-            unsubscribe_link: info.unsubscribe_link,
-            list_unsubscribe_header: info.list_unsubscribe_header,
-          }, "auto");
+          persist_unsubscribe(
+            email.sender_email,
+            email.sender || "",
+            {
+              unsubscribe_link: info.unsubscribe_link,
+              list_unsubscribe_header: info.list_unsubscribe_header,
+            },
+            "auto",
+          );
         }
         if (result !== "api") {
-          const url = info.unsubscribe_link || info.unsubscribe_mailto;
+          const url = get_manual_unsubscribe_url(info);
           const lockdown = is_any_lockdown_active();
+
           show_action_toast({
             message: t("mail.unsubscribe_manual_required"),
             action_type: "not_spam",
             email_ids: [],
             duration_ms: 15000,
-            ...(!lockdown && {
-              action_label: t("mail.open_unsubscribe_page"),
-              on_undo: async () => {
-                if (url) window.open(url, "_blank", "noopener,noreferrer");
-              },
-            }),
+            ...(!lockdown &&
+              url && {
+                action_label: t("mail.open_unsubscribe_page"),
+                on_undo: async () => {
+                  open_external(url);
+                },
+              }),
           });
         }
       } catch {
@@ -155,7 +176,7 @@ export function MobileUnsubscribeBanner({
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
           <button
-            className="rounded-[12px] bg-brand px-2.5 py-1 text-[12px] font-medium text-[var(--accent-fg,#ffffff)] active:opacity-70"
+            className="rounded-[var(--aster-radius-control)] bg-brand px-2.5 py-1 text-[12px] font-medium text-[var(--accent-fg,#ffffff)] active:opacity-70"
             type="button"
             onClick={handle_unsubscribe}
           >
@@ -192,28 +213,26 @@ export function MobileExternalContentBanner({
   if (report.has_remote_images) {
     const count = report.blocked_items.filter((i) => i.type === "image").length;
 
-    if (count > 0) parts.push(count === 1 ? t("common.images_count").replace("{{count}}", "1") : t("common.images_count_plural").replace("{{count}}", String(count)));
+    if (count > 0) parts.push(t("common.images_count", { count }));
   }
-  if (report.has_tracking_pixels)
-    parts.push(t("common.tracking_pixels"));
+  if (report.has_tracking_pixels) parts.push(t("common.tracking_pixels"));
   if (report.has_remote_fonts) parts.push(t("common.fonts"));
   if (report.has_remote_css) parts.push(t("common.stylesheets"));
   const message =
-    parts.length > 0 ? parts.join(", ") : t("common.blocked_items_count").replace("{{count}}", String(report.blocked_count));
+    parts.length > 0
+      ? parts.join(", ")
+      : t("common.blocked_items_count", { count: report.blocked_count });
 
   return (
     <div className="mx-4 mt-3 rounded-lg border border-[var(--border-primary)] bg-[var(--bg-secondary)] px-3 py-2.5">
       <div className="flex items-center gap-3">
         <ShieldExclamationIcon className="h-5 w-5 shrink-0 text-amber-500" />
         <p className="min-w-0 flex-1 text-[13px] text-[var(--text-primary)]">
-          {t("mail.external_content_blocked").replace(
-            "{{message}}",
-            message,
-          )}
+          {t("mail.external_content_blocked", { message })}
         </p>
         <div className="flex shrink-0 items-center gap-1.5">
           <button
-            className="rounded-[12px] bg-[var(--accent-color,#4f6ef7)] px-2.5 py-1 text-[12px] font-medium text-[var(--accent-fg,#ffffff)] active:opacity-70"
+            className="rounded-[var(--aster-radius-control)] bg-[var(--accent-color,#4f6ef7)] px-2.5 py-1 text-[12px] font-medium text-[var(--accent-fg,#ffffff)] active:opacity-70"
             type="button"
             onClick={on_load}
           >

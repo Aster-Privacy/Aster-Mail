@@ -31,6 +31,7 @@ import {
   RecipientField,
 } from "@/components/compose/compose_shared";
 import { SenderSelector } from "@/components/compose/sender_selector";
+import { RecipientIdentityNotice } from "@/components/compose/recipient_identity_notice";
 
 interface ForwardHeaderProps {
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
@@ -94,7 +95,7 @@ export function ForwardHeader({
         style={{ opacity: 0.5 }}
       />
       <div
-        className="flex items-center justify-between px-4 py-2 sm:py-3 border-b border-edge-primary sm:cursor-move select-none"
+        className="flex items-center justify-between px-4 py-2 sm:py-3 border-b border-[var(--aster-floating-divider)] sm:cursor-move select-none"
         role="presentation"
         onMouseDown={handle_drag_start}
       >
@@ -158,6 +159,7 @@ export function ForwardHeader({
             )}
           </button>
           <button
+            aria-label={t("common.close")}
             className="transition-colors duration-150 p-1.5 w-7 h-7 flex items-center justify-center rounded hover_bg text-txt-muted"
             onClick={handle_close}
           >
@@ -167,11 +169,19 @@ export function ForwardHeader({
       </div>
 
       {!is_minimized && (
-        <div className="px-4 pt-3 pb-1 flex-shrink-0 overflow-visible relative z-20">
-          <div className="flex items-center gap-2 py-2 border-b border-edge-secondary">
-            <span className="text-sm flex-shrink-0 text-txt-tertiary">
+        <div className="pt-3 pb-1 flex-shrink-0 overflow-visible relative z-20">
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-edge-secondary">
+            <button
+              className="text-sm flex-shrink-0 text-txt-tertiary"
+              type="button"
+              onClick={(e) =>
+                e.currentTarget.parentElement
+                  ?.querySelector<HTMLButtonElement>("button[aria-haspopup]")
+                  ?.click()
+              }
+            >
               {t("common.from_label")}
-            </span>
+            </button>
             <SenderSelector
               ghost_error={ghost_error}
               ghost_expiry_days={ghost_expiry_days}
@@ -186,7 +196,7 @@ export function ForwardHeader({
             />
           </div>
 
-          <div className="py-2 border-b border-edge-secondary">
+          <div className="px-4 py-2 border-b border-edge-secondary">
             <RecipientField
               auto_focus
               show_cc_bcc_buttons
@@ -229,7 +239,7 @@ export function ForwardHeader({
           </div>
 
           {visibility.cc && (
-            <div className="py-2 border-b border-edge-secondary">
+            <div className="px-4 py-2 border-b border-edge-secondary">
               <RecipientField
                 contacts={contacts}
                 input_value={inputs.cc}
@@ -266,7 +276,7 @@ export function ForwardHeader({
           )}
 
           {visibility.bcc && (
-            <div className="py-2 border-b border-edge-secondary">
+            <div className="px-4 py-2 border-b border-edge-secondary">
               <RecipientField
                 contacts={contacts}
                 input_value={inputs.bcc}
@@ -302,7 +312,12 @@ export function ForwardHeader({
             </div>
           )}
 
-          <div className="flex items-center gap-2 py-2 border-b border-edge-secondary">
+          <RecipientIdentityNotice
+            class_name="px-4 py-2 border-b border-edge-secondary"
+            recipients={[...recipients.to, ...recipients.cc, ...recipients.bcc]}
+          />
+
+          <div className="flex items-center gap-2 px-4 py-2 border-b border-edge-secondary">
             <span className="text-sm flex-shrink-0 text-txt-tertiary">
               {t("common.subject_label")}
             </span>

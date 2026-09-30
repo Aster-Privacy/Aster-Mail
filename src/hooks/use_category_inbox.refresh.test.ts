@@ -97,6 +97,7 @@ vi.mock("@/contexts/preferences_context", () => ({
 }));
 
 vi.mock("@/services/category_index", () => ({
+  batch_index_updates: (run: () => void) => run(),
   init_category_index: vi.fn(async () => {}),
   get_page_ids: () => ["id1"],
   get_category_total: () => 1,
@@ -107,8 +108,9 @@ vi.mock("@/services/category_index", () => ({
   subscribe: () => () => {},
   get_version: () => 0,
   remove_ids: vi.fn(),
+  remove_ids_absent_from_server: vi.fn(),
+  clear_absent_strikes: vi.fn(),
   suppress_ids: vi.fn(),
-  is_recently_read: () => false,
   is_representative_unread: () => false,
   sync_recent: mocks.sync_recent,
   set_sort_order: vi.fn(),
@@ -179,6 +181,7 @@ describe("use_category_inbox refresh", () => {
 
     const initial_fetches =
       mocks.fetch_mail_by_ids_reconciled.mock.calls.length;
+    const rows_before = states.at(-1)!.emails;
 
     expect(initial_fetches).toBeGreaterThanOrEqual(1);
 
@@ -187,25 +190,25 @@ describe("use_category_inbox refresh", () => {
     });
 
     expect(states.at(-1)!.is_loading).toBe(true);
+    expect(states.at(-1)!.emails).toBe(rows_before);
 
+    await flush();
     await flush();
 
     expect(mocks.sync_recent).toHaveBeenCalledTimes(1);
-
-    expect(states.at(-1)!.is_loading).toBe(true);
-    expect(mocks.fetch_mail_by_ids_reconciled.mock.calls.length).toBe(
-      initial_fetches,
-    );
-
-    await act(async () => {
-      await new Promise((r) => setTimeout(r, 700));
-    });
-    await flush();
-
     expect(
       mocks.fetch_mail_by_ids_reconciled.mock.calls.length,
     ).toBeGreaterThan(initial_fetches);
     expect(states.at(-1)!.is_loading).toBe(false);
+    expect(
+      states.some(
+        (s, i) =>
+          i > 0 &&
+          rows_before > 0 &&
+          s.emails === 0 &&
+          states[i - 1].emails > 0,
+      ),
+    ).toBe(false);
 
     act(() => root.unmount());
   });

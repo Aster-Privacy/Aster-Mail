@@ -28,6 +28,9 @@ import type {
 import { api_client, type ApiResponse } from "./client";
 import { decrypt_contact, get_contact, encrypt_contact_data } from "./contacts";
 
+import { user_facing_error } from "@/utils/user_facing_error";
+import { get_active_translations } from "@/lib/i18n/translations";
+
 interface ListDuplicatesResponse {
   items: DuplicateCandidate[];
   total: number;
@@ -41,7 +44,9 @@ export async function list_duplicate_candidates(): Promise<
   );
 
   if (response.error || !response.data) {
-    return { error: response.error || "Failed to fetch duplicates" };
+    return {
+      error: response.error || get_active_translations().errors.load_failed,
+    };
   }
 
   try {
@@ -58,7 +63,7 @@ export async function list_duplicate_candidates(): Promise<
           contact2_response.error ||
           !contact2_response.data
         ) {
-          throw new Error("Failed to fetch contact data for duplicates");
+          throw new Error(get_active_translations().errors.load_failed);
         }
 
         const [contact_1, contact_2] = await Promise.all([
@@ -80,8 +85,10 @@ export async function list_duplicate_candidates(): Promise<
     return { data: { items, total: response.data.total } };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to process duplicates",
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }

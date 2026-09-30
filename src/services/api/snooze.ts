@@ -58,10 +58,13 @@ export async function bulk_snooze_emails(
   });
 }
 
-export async function list_snoozed_emails(): Promise<
-  ApiResponse<SnoozedItem[]>
-> {
-  return api_client.get("/mail/v1/snooze", { cache_ttl: 30_000 });
+export async function list_snoozed_emails(
+  fresh = false,
+): Promise<ApiResponse<SnoozedItem[]>> {
+  return api_client.get("/mail/v1/snooze", {
+    cache_ttl: 30_000,
+    skip_cache: fresh,
+  });
 }
 
 export async function unsnooze_email(

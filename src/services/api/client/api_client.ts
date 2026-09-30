@@ -55,26 +55,33 @@ import {
   REFRESH_INTERVAL_MINUTES,
   RequestConfig,
   SessionReestablishResult,
+  TAURI_AUTH_SLOT_ACCESS,
+  TAURI_AUTH_SLOT_CSRF,
+  FAMILY_2FA_EVENT,
+  FAMILY_2FA_SERVER_CODE,
   TAURI_CSRF_KEY,
   TAURI_TOKEN_KEY,
   clear_last_auth_ms,
+  dev_token_storage_allowed,
   get_error_code_from_status,
+  is_auth_endpoint,
   is_identity_establishing_endpoint,
-  is_local_hostname,
   is_offline_tombstoned,
   is_pending_deletion_error,
   is_tauri_env,
-  is_write_dead_streak,
+  parse_retry_after_header,
+  refresh_backoff_ms,
   unlock_token_cache_suffix,
+  with_declared_platform,
   write_last_auth_ms,
 } from "./helpers";
+import { should_show_server_message } from "./server_message";
 
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 import { refresh_session_activity } from "@/services/session_timeout_service";
 import { extend_passphrase_timeout } from "@/services/crypto/memory_key_store";
 import { get_device_id } from "@/services/device_id";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   routed_fetch,
   get_effective_base_url,
@@ -82,6 +89,18 @@ import {
   get_effective_retry_count,
   get_effective_retry_delay,
 } from "@/services/routing/routing_provider";
+import {
+  feature_of_endpoint,
+  http_error_code,
+  report_client_error,
+} from "@/services/error_reporter";
+
+const RATE_LIMIT_DEFAULT_HOLD_MS = 2000;
+const RATE_LIMIT_MAX_HOLD_MS = 15_000;
+const RATE_LIMIT_RETRY_MAX_HOLD_MS = 5000;
+const REFRESH_MIN_GAP_MS = 5000;
+const REFRESH_LOCK_WAIT_MS = 20_000;
+const REFRESH_LOCK_PREFIX = "aster-session-refresh";
 
 export class ApiClient {
   private refresh_timeout: number | null = null;
@@ -94,8 +113,9 @@ export class ApiClient {
   private refresh_promise: Promise<void> | null = null;
   private _cached_user_info: CachedUserInfo | null = null;
   private last_refresh_timestamp: number = 0;
-  private refresh_denied_streak: number = 0;
-  private refresh_denied_streak_started_at: number = 0;
+  private last_refresh_attempt_at: number = 0;
+  private refresh_failures: number = 0;
+  private refresh_retry_at: number = 0;
   private session_expired_dispatched: boolean = false;
   private intentional_logout: boolean = false;
   private has_ever_authenticated: boolean = false;
@@ -103,11 +123,17 @@ export class ApiClient {
   private expected_user_id: string | null = null;
   private identity_mismatch_dispatched: boolean = false;
   private last_identity_check_timestamp: number = 0;
+  private rate_limited_until: number = 0;
   private pending_account_token_writes: Map<string, PendingTokenWrite> =
     new Map();
+  private tauri_auth_hydration: Promise<void> | null = null;
+  private tauri_auth_written_since_boot: boolean = false;
 
   constructor() {
     this.load_stored_tokens();
+    if (is_tauri_env()) {
+      this.tauri_auth_hydration = this.hydrate_tauri_auth();
+    }
     this.setup_visibility_refresh();
   }
 
@@ -191,25 +217,83 @@ export class ApiClient {
   }
 
   private load_stored_tokens(): void {
-    if (is_tauri_env()) {
-      try {
-        const token = localStorage.getItem(TAURI_TOKEN_KEY);
-        const csrf = localStorage.getItem(TAURI_CSRF_KEY);
-
-        if (token) this.dev_access_token = token;
-        if (csrf) set_csrf_token(csrf);
-      } catch (caught) {
-        ignore_error("services/api/client/api_client:verify_identity", caught);
-      }
-
-      return;
-    }
-    if (!import.meta.env.DEV) return;
-    if (!is_local_hostname()) return;
+    if (is_tauri_env()) return;
+    if (!dev_token_storage_allowed()) return;
     const stored_token = sessionStorage.getItem(DEV_TOKEN_KEY);
 
     if (stored_token) {
       this.dev_access_token = stored_token;
+    }
+  }
+
+  private async auth_store_set(slot: string, value: string): Promise<void> {
+    if (!value) return;
+    this.tauri_auth_written_since_boot = true;
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+
+      await invoke("device_auth_store_set", { slot, value });
+    } catch (caught) {
+      ignore_error("services/api/client/api_client:auth_store_set", caught);
+    }
+  }
+
+  private async auth_store_get(slot: string): Promise<string | null> {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+      const value = await invoke<string | null>("device_auth_store_get", {
+        slot,
+      });
+
+      return value ?? null;
+    } catch (caught) {
+      ignore_error("services/api/client/api_client:auth_store_get", caught);
+
+      return null;
+    }
+  }
+
+  private async auth_store_clear(): Promise<void> {
+    try {
+      const { invoke } = await import("@tauri-apps/api/core");
+
+      await invoke("device_auth_store_clear");
+    } catch (caught) {
+      ignore_error("services/api/client/api_client:auth_store_clear", caught);
+    }
+  }
+
+  private async hydrate_tauri_auth(): Promise<void> {
+    const superseded = (): boolean => this.tauri_auth_written_since_boot;
+
+    let token = await this.auth_store_get(TAURI_AUTH_SLOT_ACCESS);
+    let csrf = await this.auth_store_get(TAURI_AUTH_SLOT_CSRF);
+
+    if (superseded()) return;
+
+    try {
+      const legacy_token = localStorage.getItem(TAURI_TOKEN_KEY);
+      const legacy_csrf = localStorage.getItem(TAURI_CSRF_KEY);
+
+      if (!token && legacy_token) {
+        token = legacy_token;
+        await this.auth_store_set(TAURI_AUTH_SLOT_ACCESS, legacy_token);
+      }
+      if (!csrf && legacy_csrf) {
+        csrf = legacy_csrf;
+        await this.auth_store_set(TAURI_AUTH_SLOT_CSRF, legacy_csrf);
+      }
+      if (legacy_token) localStorage.removeItem(TAURI_TOKEN_KEY);
+      if (legacy_csrf) localStorage.removeItem(TAURI_CSRF_KEY);
+    } catch (caught) {
+      ignore_error("services/api/client/api_client:hydrate_tauri_auth", caught);
+    }
+
+    if (token && !this.dev_access_token) {
+      this.dev_access_token = token;
+    }
+    if (csrf) {
+      set_csrf_token(csrf);
     }
   }
 
@@ -358,6 +442,11 @@ export class ApiClient {
       return this.is_authenticated_flag;
     }
 
+    if (this.tauri_auth_hydration) {
+      await this.tauri_auth_hydration;
+      this.tauri_auth_hydration = null;
+    }
+
     if (Capacitor.isNativePlatform() && !this.dev_access_token) {
       const persisted = await this.load_native_token();
 
@@ -437,11 +526,20 @@ export class ApiClient {
     refresh_token?: string,
     owner_account_id?: string | null,
   ): void {
+    void this.store_tokens(token, refresh_token, owner_account_id);
+  }
+
+  private store_tokens(
+    token: string,
+    refresh_token: string | undefined,
+    owner_account_id: string | null | undefined,
+  ): Promise<void> {
     this.dev_access_token = token;
     if (refresh_token) {
       this.active_refresh_token = refresh_token;
+      this.reset_refresh_backoff();
     }
-    if (import.meta.env.DEV) {
+    if (dev_token_storage_allowed()) {
       sessionStorage.setItem(DEV_TOKEN_KEY, token);
     }
     if (Capacitor.isNativePlatform()) {
@@ -451,16 +549,14 @@ export class ApiClient {
       }
     }
     if (is_tauri_env()) {
-      try {
-        localStorage.setItem(TAURI_TOKEN_KEY, token);
-      } catch (caught) {
-        ignore_error(
-          "services/api/client/api_client:verify_initial_auth",
-          caught,
-        );
-      }
+      void this.auth_store_set(TAURI_AUTH_SLOT_ACCESS, token);
     }
-    this.persist_to_active_account(token, refresh_token, owner_account_id);
+
+    return this.persist_to_active_account(
+      token,
+      refresh_token,
+      owner_account_id,
+    );
   }
 
   suspend_account_persist(): void {
@@ -498,9 +594,8 @@ export class ApiClient {
     refresh_token?: string | null,
   ): Promise<void> {
     try {
-      const { update_account_tokens } = await import(
-        "@/services/account_manager"
-      );
+      const { update_account_tokens } =
+        await import("@/services/account_manager");
 
       if (this.intentional_logout) return;
 
@@ -535,11 +630,11 @@ export class ApiClient {
     }
   }
 
-  private persist_to_active_account(
+  private async persist_to_active_account(
     access_token: string | null,
     refresh_token?: string | null,
     owner_account_id?: string | null,
-  ): void {
+  ): Promise<void> {
     if (this.intentional_logout) return;
     if (owner_account_id === null) return;
 
@@ -554,26 +649,28 @@ export class ApiClient {
     }
 
     if (owner_id) {
-      void this.write_account_tokens(owner_id, access_token, refresh_token);
+      await this.write_account_tokens(owner_id, access_token, refresh_token);
 
       return;
     }
 
-    import("@/services/account_manager")
-      .then(async ({ get_current_account_id, update_account_tokens }) => {
-        if (this.intentional_logout) return;
-        const id = await get_current_account_id();
-
-        if (!id) return;
-        if (this.intentional_logout) return;
-        await update_account_tokens(id, access_token, refresh_token);
-      })
-      .catch((caught) =>
-        ignore_error(
-          "services/api/client/api_client:resume_account_persist",
-          caught,
-        ),
+    try {
+      const { get_current_account_id, update_account_tokens } = await import(
+        "@/services/account_manager"
       );
+
+      if (this.intentional_logout) return;
+      const id = await get_current_account_id();
+
+      if (!id) return;
+      if (this.intentional_logout) return;
+      await update_account_tokens(id, access_token, refresh_token);
+    } catch (caught) {
+      ignore_error(
+        "services/api/client/api_client:resume_account_persist",
+        caught,
+      );
+    }
   }
 
   async load_tokens_for_account(account_id: string): Promise<boolean> {
@@ -582,6 +679,7 @@ export class ApiClient {
       const tokens = await get_account_tokens(account_id);
 
       this.active_refresh_token = tokens.refresh_token;
+      this.reset_refresh_backoff();
 
       if (tokens.access_token) {
         this.dev_access_token = tokens.access_token;
@@ -592,16 +690,12 @@ export class ApiClient {
           }
         }
         if (is_tauri_env()) {
-          try {
-            localStorage.setItem(TAURI_TOKEN_KEY, tokens.access_token);
-          } catch (caught) {
-            ignore_error(
-              "services/api/client/api_client:load_tokens_for_account",
-              caught,
-            );
-          }
+          await this.auth_store_set(
+            TAURI_AUTH_SLOT_ACCESS,
+            tokens.access_token,
+          );
         }
-        if (import.meta.env.DEV) {
+        if (dev_token_storage_allowed()) {
           sessionStorage.setItem(DEV_TOKEN_KEY, tokens.access_token);
         }
 
@@ -635,19 +729,14 @@ export class ApiClient {
       this.persist_native_csrf(token);
     }
     if (is_tauri_env()) {
-      try {
-        localStorage.setItem(TAURI_CSRF_KEY, token);
-      } catch (caught) {
-        ignore_error("services/api/client/api_client:set_csrf", caught);
-      }
+      void this.auth_store_set(TAURI_AUTH_SLOT_CSRF, token);
     }
   }
 
   clear_dev_token(): void {
     this.dev_access_token = null;
     this.active_refresh_token = null;
-    this.refresh_denied_streak = 0;
-    this.refresh_denied_streak_started_at = 0;
+    this.reset_refresh_backoff();
     if (import.meta.env.DEV) {
       sessionStorage.removeItem(DEV_TOKEN_KEY);
     }
@@ -657,6 +746,8 @@ export class ApiClient {
       this.clear_native_refresh_token();
     }
     if (is_tauri_env()) {
+      this.tauri_auth_written_since_boot = true;
+      void this.auth_store_clear();
       try {
         localStorage.removeItem(TAURI_TOKEN_KEY);
         localStorage.removeItem(TAURI_CSRF_KEY);
@@ -666,7 +757,7 @@ export class ApiClient {
     }
   }
 
-  private schedule_token_refresh(): void {
+  private schedule_token_refresh(delay_ms?: number): void {
     if (this.refresh_timeout) {
       clearTimeout(this.refresh_timeout);
     }
@@ -675,14 +766,30 @@ export class ApiClient {
       this.last_refresh_timestamp = Date.now();
     }
 
-    const refresh_interval = REFRESH_INTERVAL_MINUTES * 60 * 1000;
-
-    this.refresh_timeout = window.setTimeout(() => {
-      this.refresh_session();
-    }, refresh_interval);
+    this.refresh_timeout = window.setTimeout(
+      () => {
+        this.refresh_session();
+      },
+      delay_ms ?? REFRESH_INTERVAL_MINUTES * 60 * 1000,
+    );
   }
 
-  async refresh_session(): Promise<void> {
+  private reset_refresh_backoff(): void {
+    this.refresh_failures = 0;
+    this.refresh_retry_at = 0;
+  }
+
+  private note_refresh_failure(): void {
+    this.refresh_failures += 1;
+    const wait_ms = refresh_backoff_ms(this.refresh_failures);
+
+    this.refresh_retry_at = Date.now() + wait_ms;
+    this.schedule_token_refresh(wait_ms);
+  }
+
+  async refresh_session(
+    options: { after_unauthorized?: boolean } = {},
+  ): Promise<void> {
     if (!this.is_authenticated_flag) return;
     if (!this.initial_auth_verified) return;
 
@@ -696,18 +803,134 @@ export class ApiClient {
       return this.refresh_promise;
     }
 
-    if (
-      this.last_refresh_timestamp &&
-      Date.now() - this.last_refresh_timestamp < 5000
-    ) {
-      return;
-    }
+    const now = Date.now();
 
-    this.refresh_promise = this.refresh_session_impl().finally(() => {
+    if (now - this.last_refresh_attempt_at < REFRESH_MIN_GAP_MS) return;
+    if (!options.after_unauthorized && now < this.refresh_retry_at) return;
+
+    this.last_refresh_attempt_at = now;
+    this.refresh_promise = this.refresh_session_exclusively().finally(() => {
       this.refresh_promise = null;
     });
 
     return this.refresh_promise;
+  }
+
+  async recover_session(): Promise<boolean> {
+    if (this.refresh_promise) {
+      await this.refresh_promise.catch(() => undefined);
+    }
+
+    const refreshed_at = this.last_refresh_timestamp;
+    let is_fresh = Date.now() - refreshed_at < REFRESH_MIN_GAP_MS;
+
+    if (!is_fresh) {
+      const gap_left_ms =
+        REFRESH_MIN_GAP_MS - (Date.now() - this.last_refresh_attempt_at);
+
+      if (gap_left_ms > 0) {
+        await this.delay(gap_left_ms);
+      }
+
+      try {
+        await this.refresh_session({ after_unauthorized: true });
+      } catch (caught) {
+        ignore_error("services/api/client/api_client:recover_session", caught);
+      }
+
+      is_fresh = this.last_refresh_timestamp !== refreshed_at;
+    }
+
+    return (
+      is_fresh &&
+      this.is_authenticated_flag &&
+      get_csrf_token_from_cookie() !== null
+    );
+  }
+
+  private async refresh_session_exclusively(): Promise<void> {
+    const locks =
+      typeof navigator !== "undefined" ? navigator.locks : undefined;
+
+    if (!locks) {
+      return this.refresh_session_impl();
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), REFRESH_LOCK_WAIT_MS);
+    let acquired = false;
+
+    try {
+      await locks.request(
+        `${REFRESH_LOCK_PREFIX}:${this.expected_user_id ?? "anonymous"}`,
+        { signal: controller.signal },
+        () => {
+          acquired = true;
+          clearTimeout(timer);
+
+          return this.refresh_session_impl();
+        },
+      );
+    } catch (caught) {
+      if (acquired) throw caught;
+      this.note_refresh_failure();
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  private async read_latest_refresh_token(
+    owner_account_id: string | null | undefined,
+  ): Promise<string | null> {
+    if (Capacitor.isNativePlatform()) {
+      return (await this.load_native_refresh_token()) ?? this.active_refresh_token;
+    }
+
+    if (!owner_account_id) return this.active_refresh_token;
+
+    try {
+      const { read_stored_refresh_token } = await import(
+        "@/services/account_manager"
+      );
+
+      return (
+        (await read_stored_refresh_token(owner_account_id)) ??
+        this.active_refresh_token
+      );
+    } catch {
+      return this.active_refresh_token;
+    }
+  }
+
+  private async adopt_refreshed_session(
+    data: { csrf_token: string; access_token?: string; refresh_token?: string },
+    owner_account_id: string | null | undefined,
+  ): Promise<void> {
+    this.is_authenticated_flag = true;
+    this.last_refresh_timestamp = Date.now();
+    this.reset_refresh_backoff();
+    clear_csrf_cache();
+    this.set_csrf(data.csrf_token);
+
+    if (data.access_token) {
+      await this.store_tokens(
+        data.access_token,
+        data.refresh_token,
+        owner_account_id,
+      );
+    } else if (data.refresh_token) {
+      this.active_refresh_token = data.refresh_token;
+      if (Capacitor.isNativePlatform()) {
+        await this.persist_native_refresh_token(data.refresh_token);
+      }
+      await this.persist_to_active_account(
+        this.dev_access_token,
+        data.refresh_token,
+        owner_account_id,
+      );
+    }
+
+    this.schedule_token_refresh();
   }
 
   private is_transient_error_code(code: ApiErrorCode | undefined): boolean {
@@ -728,23 +951,23 @@ export class ApiClient {
       ? null
       : (this.expected_user_id ?? undefined);
 
-    let stored_refresh_token: string | null = this.active_refresh_token;
+    const refresh_token = await this.read_latest_refresh_token(
+      owner_account_id,
+    );
 
-    if (Capacitor.isNativePlatform()) {
-      stored_refresh_token =
-        (await this.load_native_refresh_token()) ?? stored_refresh_token;
+    if (refresh_token) {
+      this.active_refresh_token = refresh_token;
     }
 
     for (let attempt = 0; attempt < max_retries; attempt++) {
       try {
-        const scoped_user_id = owner_account_id ?? null;
         const body: {
           refresh_token?: string;
           expected_user_id?: string;
         } = {};
 
-        if (stored_refresh_token) body.refresh_token = stored_refresh_token;
-        if (scoped_user_id) body.expected_user_id = scoped_user_id;
+        if (refresh_token) body.refresh_token = refresh_token;
+        if (owner_account_id) body.expected_user_id = owner_account_id;
         const response = await this.post<{
           csrf_token: string;
           access_token?: string;
@@ -756,31 +979,8 @@ export class ApiClient {
         }
 
         if (response.data?.csrf_token) {
-          this.is_authenticated_flag = true;
-          this.last_refresh_timestamp = Date.now();
-          this.refresh_denied_streak = 0;
-          this.refresh_denied_streak_started_at = 0;
-          clear_csrf_cache();
-          this.set_csrf(response.data.csrf_token);
-          if (response.data.access_token) {
-            this.set_dev_token(
-              response.data.access_token,
-              response.data.refresh_token,
-              owner_account_id,
-            );
-          } else if (response.data.refresh_token) {
-            this.active_refresh_token = response.data.refresh_token;
-            if (Capacitor.isNativePlatform()) {
-              this.persist_native_refresh_token(response.data.refresh_token);
-            }
-            this.persist_to_active_account(
-              this.dev_access_token,
-              response.data.refresh_token,
-              owner_account_id,
-            );
-          }
-          this.schedule_token_refresh();
-          this.verify_identity(true);
+          await this.adopt_refreshed_session(response.data, owner_account_id);
+          await this.verify_identity(true);
 
           return;
         }
@@ -790,87 +990,56 @@ export class ApiClient {
             await this.delay(retry_delay_base * (attempt + 1));
             continue;
           }
-          this.schedule_token_refresh();
+          this.note_refresh_failure();
 
           return;
         }
 
-        if (response.code === "UNAUTHORIZED" || response.code === "FORBIDDEN") {
-          let me_response: ApiResponse<{ user_id: string }> | null = null;
-
-          try {
-            me_response = await this.get<{ user_id: string }>(
-              "/core/v1/auth/me",
-              {
-                skip_cache: true,
-                skip_session_refresh: true,
-                skip_dedup: true,
-              },
-            );
-          } catch (e) {
-            if (import.meta.env.DEV) console.error(e);
-            if (attempt < max_retries - 1) {
-              await this.delay(retry_delay_base * (attempt + 1));
-              continue;
-            }
-            this.schedule_token_refresh();
-
-            return;
-          }
-
-          if (me_response.data?.user_id) {
-            if (this.is_identity_mismatch(me_response.data.user_id)) {
-              this.dispatch_identity_mismatch(me_response.data.user_id);
-
-              return;
-            }
-            this.refresh_denied_streak += 1;
-            if (!this.refresh_denied_streak_started_at) {
-              this.refresh_denied_streak_started_at = Date.now();
-            }
-            if (
-              is_write_dead_streak(
-                this.refresh_denied_streak,
-                this.refresh_denied_streak_started_at,
-                Date.now(),
-              )
-            ) {
-              this.is_authenticated_flag = false;
-              this.dispatch_session_expired();
-
-              return;
-            }
-            this.schedule_token_refresh();
-
-            return;
-          }
-
-          if (this.is_transient_error_code(me_response.code)) {
-            if (attempt < max_retries - 1) {
-              await this.delay(retry_delay_base * (attempt + 1));
-              continue;
-            }
-            this.schedule_token_refresh();
-
-            return;
-          }
-
-          if (
-            me_response.code === "UNAUTHORIZED" ||
-            me_response.code === "FORBIDDEN"
-          ) {
-            this.is_authenticated_flag = false;
-            this.dispatch_session_expired();
-
-            return;
-          }
-
-          this.schedule_token_refresh();
+        if (response.code !== "UNAUTHORIZED" && response.code !== "FORBIDDEN") {
+          this.note_refresh_failure();
 
           return;
         }
 
-        this.schedule_token_refresh();
+        const me_response = await this.get<{ user_id: string }>(
+          "/core/v1/auth/me",
+          {
+            skip_cache: true,
+            skip_session_refresh: true,
+            skip_dedup: true,
+          },
+        );
+
+        if (me_response.data?.user_id) {
+          if (this.is_identity_mismatch(me_response.data.user_id)) {
+            this.dispatch_identity_mismatch(me_response.data.user_id);
+
+            return;
+          }
+          this.note_refresh_failure();
+
+          return;
+        }
+
+        if (
+          me_response.code === "UNAUTHORIZED" ||
+          me_response.code === "FORBIDDEN"
+        ) {
+          this.is_authenticated_flag = false;
+          this.dispatch_session_expired();
+
+          return;
+        }
+
+        if (
+          this.is_transient_error_code(me_response.code) &&
+          attempt < max_retries - 1
+        ) {
+          await this.delay(retry_delay_base * (attempt + 1));
+          continue;
+        }
+
+        this.note_refresh_failure();
 
         return;
       } catch (error) {
@@ -884,7 +1053,7 @@ export class ApiClient {
           await this.delay(retry_delay_base * (attempt + 1));
           continue;
         }
-        this.schedule_token_refresh();
+        this.note_refresh_failure();
       }
     }
   }
@@ -981,7 +1150,7 @@ export class ApiClient {
     return (
       is_tauri_env() ||
       Capacitor.isNativePlatform() ||
-      (import.meta.env.DEV && is_local_hostname())
+      dev_token_storage_allowed()
     );
   }
 
@@ -1033,9 +1202,8 @@ export class ApiClient {
 
     const clear_dead_tokens = async (): Promise<void> => {
       try {
-        const { update_account_tokens } = await import(
-          "@/services/account_manager"
-        );
+        const { update_account_tokens } =
+          await import("@/services/account_manager");
 
         await update_account_tokens(account_id, null, null);
       } catch (caught) {
@@ -1197,9 +1365,8 @@ export class ApiClient {
       }
 
       try {
-        const { update_account_tokens } = await import(
-          "@/services/account_manager"
-        );
+        const { update_account_tokens } =
+          await import("@/services/account_manager");
 
         await update_account_tokens(
           account_id,
@@ -1227,6 +1394,13 @@ export class ApiClient {
 
   get_cached_user_info(): CachedUserInfo | null {
     return this._cached_user_info;
+  }
+
+  adopt_user_info(info: CachedUserInfo | null): void {
+    if (!info?.user_id) return;
+    if (this.is_identity_mismatch(info.user_id)) return;
+
+    this._cached_user_info = { ...this._cached_user_info, ...info };
   }
 
   async check_auth_status(): Promise<boolean> {
@@ -1299,7 +1473,9 @@ export class ApiClient {
       controller.signal.addEventListener(
         "abort",
         () => {
-          const err = new Error("Request timed out");
+          const err = new Error(
+            get_active_translations().errors.request_timeout,
+          );
 
           err.name = "AbortError";
           reject(err);
@@ -1321,10 +1497,10 @@ export class ApiClient {
     }
   }
 
-  private async ensure_fresh_token(
+  private ensure_fresh_token(
     endpoint: string,
     skip_session_refresh = false,
-  ): Promise<void> {
+  ): void {
     if (
       skip_session_refresh ||
       !this.is_authenticated_flag ||
@@ -1344,14 +1520,12 @@ export class ApiClient {
       (Date.now() - this.last_refresh_timestamp) / 60_000;
 
     if (minutes_since_refresh >= PROACTIVE_REFRESH_THRESHOLD_MINUTES) {
-      try {
-        await this.refresh_session();
-      } catch (caught) {
+      this.refresh_session().catch((caught) =>
         ignore_error(
-          "services/api/client/api_client:clear_session_cookies",
+          "services/api/client/api_client:ensure_fresh_token",
           caught,
-        );
-      }
+        ),
+      );
     }
   }
 
@@ -1391,14 +1565,17 @@ export class ApiClient {
       is_app_network_locked() &&
       !is_endpoint_allowed_while_locked(endpoint)
     ) {
-      return { error: "App is locked", code: "APP_LOCKED" };
+      return {
+        error: get_active_translations().common.app_locked,
+        code: "APP_LOCKED",
+      };
     }
 
     if (is_identity_establishing_endpoint(endpoint)) {
       this.set_expected_user_id(null);
     }
 
-    await this.ensure_fresh_token(endpoint, config.skip_session_refresh);
+    this.ensure_fresh_token(endpoint, config.skip_session_refresh);
 
     const {
       timeout = get_effective_timeout(DEFAULT_TIMEOUT),
@@ -1438,6 +1615,8 @@ export class ApiClient {
 
     const method = options.method || "GET";
 
+    options.body = with_declared_platform(endpoint, options.body);
+
     if (is_state_changing_method(method)) {
       if (
         this.refresh_promise &&
@@ -1467,13 +1646,17 @@ export class ApiClient {
 
     const url = `${get_effective_base_url(API_BASE_URL)}${endpoint}`;
     let last_error: ApiResponse<T> = {
-      error: "Request failed",
+      error: this.get_generic_error_message("UNKNOWN_ERROR"),
       code: "UNKNOWN_ERROR",
     };
     let has_attempted_refresh = false;
 
+    let rate_limit_retried = false;
+
     for (let attempt = 0; attempt <= retry; attempt++) {
       try {
+        await this.wait_for_rate_limit_window();
+
         const response = await this.request_with_timeout(
           url,
           { ...options, headers, credentials: "include" },
@@ -1491,7 +1674,9 @@ export class ApiClient {
           try {
             error_data = await response.json();
           } catch {
-            error_data = { error: response.statusText };
+            error_data = import.meta.env.DEV
+              ? { error: response.statusText }
+              : {};
           }
 
           const error_code = get_error_code_from_status(response.status);
@@ -1509,7 +1694,7 @@ export class ApiClient {
               has_attempted_refresh = true;
               clear_csrf_cache();
               try {
-                await this.refresh_session();
+                await this.refresh_session({ after_unauthorized: true });
               } catch (e) {
                 if (import.meta.env.DEV) console.error(e);
               }
@@ -1527,7 +1712,9 @@ export class ApiClient {
                 }
               }
             }
-            this.dispatch_session_expired();
+            if (!this.is_authenticated_flag) {
+              this.dispatch_session_expired();
+            }
           }
 
           if (
@@ -1537,8 +1724,11 @@ export class ApiClient {
             window.dispatchEvent(new Event("aster:verification-required"));
 
             return {
-              error: "Recovery email verification required",
+              error:
+                get_active_translations().auth
+                  .recovery_email_required_gate_title,
               code: "FORBIDDEN",
+              status: response.status,
             };
           }
 
@@ -1549,10 +1739,26 @@ export class ApiClient {
             window.dispatchEvent(new Event(PENDING_DELETION_EVENT));
 
             return {
-              error:
-                error_data.error || "This account is scheduled for deletion",
+              error: get_active_translations().common.pending_deletion_body,
               code: "FORBIDDEN",
+              status: response.status,
               server_code: PENDING_DELETION_SERVER_CODE,
+            };
+          }
+
+          if (
+            response.status === 403 &&
+            error_data.code === FAMILY_2FA_SERVER_CODE
+          ) {
+            window.dispatchEvent(new Event(FAMILY_2FA_EVENT));
+
+            return {
+              error:
+                error_data.error ||
+                get_active_translations().common.family_2fa_body,
+              code: "FORBIDDEN",
+              status: response.status,
+              server_code: FAMILY_2FA_SERVER_CODE,
             };
           }
 
@@ -1562,13 +1768,16 @@ export class ApiClient {
           ) {
             window.dispatchEvent(
               new CustomEvent("aster:account-suspended", {
-                detail: { reason: error_data.error || "Account suspended" },
+                detail: {
+                  reason: get_active_translations().common.account_suspended,
+                },
               }),
             );
 
             return {
-              error: error_data.error || "Account suspended",
+              error: get_active_translations().common.account_suspended,
               code: "FORBIDDEN",
+              status: response.status,
             };
           }
 
@@ -1577,8 +1786,9 @@ export class ApiClient {
             error_data.code === "ABUSE_ACCOUNT_LIMIT"
           ) {
             return {
-              error: error_data.error || "Account limit reached",
+              error: get_active_translations().common.account_limit_reached,
               code: "ABUSE_ACCOUNT_LIMIT",
+              status: response.status,
             };
           }
 
@@ -1587,8 +1797,11 @@ export class ApiClient {
             error_data.code === "RECOVERY_EMAIL_REQUIRED"
           ) {
             return {
-              error: error_data.error || "Recovery email required",
+              error:
+                get_active_translations().auth
+                  .recovery_email_required_gate_title,
               code: "RECOVERY_EMAIL_REQUIRED",
+              status: response.status,
             };
           }
 
@@ -1596,11 +1809,14 @@ export class ApiClient {
             response.status === 403 &&
             error_data.code === "PLAN_LIMIT_EXCEEDED"
           ) {
-            if (!skip_upgrade_prompt) {
+            const on_auth_endpoint = is_auth_endpoint(endpoint);
+
+            if (!skip_upgrade_prompt && !on_auth_endpoint) {
               window.dispatchEvent(
                 new CustomEvent("aster:plan-limit-hit", {
                   detail: {
-                    message: error_data.error || "Plan limit reached",
+                    message:
+                      get_active_translations().settings.plan_limit_reached,
                     resource:
                       (error_data.details?.resource as string | undefined) ??
                       null,
@@ -1609,9 +1825,19 @@ export class ApiClient {
               );
             }
 
+            const device_max = error_data.details?.effective_max as
+              number | undefined;
+
             return {
-              error: error_data.error || "Plan limit reached",
+              error:
+                on_auth_endpoint && typeof device_max === "number"
+                  ? get_active_translations().auth.account_limit_for_plan.replace(
+                      "{{max}}",
+                      String(device_max),
+                    )
+                  : get_active_translations().settings.plan_limit_reached,
               code: "FORBIDDEN",
+              status: response.status,
               server_code: "PLAN_LIMIT_EXCEEDED",
             };
           }
@@ -1620,20 +1846,30 @@ export class ApiClient {
             response.status === 413 &&
             error_data.code === "STORAGE_QUOTA_EXCEEDED"
           ) {
-            if (!skip_upgrade_prompt) {
+            if (!skip_upgrade_prompt && !is_auth_endpoint(endpoint)) {
               window.dispatchEvent(
                 new CustomEvent("aster:storage-full", {
                   detail: {
-                    message: error_data.error || "Storage full",
+                    message: get_active_translations().settings.storage_full,
                   },
                 }),
               );
             }
 
             return {
-              error: error_data.error || "Storage quota exceeded",
+              error: get_active_translations().settings.storage_full,
               code: "UNKNOWN_ERROR",
+              status: response.status,
               server_code: "STORAGE_QUOTA_EXCEEDED",
+            };
+          }
+
+          if (response.status === 413) {
+            return {
+              error: get_active_translations().errors.upload_too_large,
+              code: "UNKNOWN_ERROR",
+              status: response.status,
+              server_code: "PAYLOAD_TOO_LARGE",
             };
           }
 
@@ -1645,14 +1881,15 @@ export class ApiClient {
               new CustomEvent("aster:already-signed-in", {
                 detail: {
                   message:
-                    error_data.error || "Already signed in on this device",
+                    get_active_translations().errors.account_already_added,
                 },
               }),
             );
 
             return {
-              error: error_data.error || "Already signed in on this device",
+              error: get_active_translations().errors.account_already_added,
               code: "CONFLICT",
+              status: response.status,
               server_code: "ALREADY_SIGNED_IN_ON_DEVICE",
             };
           }
@@ -1662,8 +1899,9 @@ export class ApiClient {
             error_data.code === "USERNAME_IN_USE"
           ) {
             return {
-              error: error_data.error || "This username is already taken",
+              error: get_active_translations().auth.username_in_use,
               code: "USERNAME_IN_USE",
+              status: response.status,
             };
           }
 
@@ -1682,7 +1920,7 @@ export class ApiClient {
             ) {
               has_attempted_refresh = true;
               try {
-                await this.refresh_session();
+                await this.refresh_session({ after_unauthorized: true });
               } catch (e) {
                 if (import.meta.env.DEV) console.error(e);
               }
@@ -1705,19 +1943,59 @@ export class ApiClient {
             }
           }
 
-          const sanitized_error = import.meta.env.DEV
-            ? error_data.error ||
-              `Request failed with status ${response.status}`
-            : response.status < 500 && error_data.error
-              ? error_data.error
-              : this.get_generic_error_message(error_code);
+          if (
+            response.status === 429 &&
+            !error_data.resets_at &&
+            !endpoint.includes("/auth/refresh")
+          ) {
+            const hold_ms = this.note_rate_limited(
+              response.headers.get("retry-after"),
+              error_data.resets_at,
+            );
+
+            if (
+              !rate_limit_retried &&
+              !is_state_changing_method(method) &&
+              hold_ms <= RATE_LIMIT_RETRY_MAX_HOLD_MS
+            ) {
+              rate_limit_retried = true;
+              attempt--;
+              continue;
+            }
+          }
+
+          const generic_rate_limit =
+            error_code === "RATE_LIMIT_EXCEEDED" && !error_data.resets_at;
+
+          const sanitized_error = generic_rate_limit
+            ? this.get_generic_error_message("RATE_LIMIT_EXCEEDED")
+            : import.meta.env.DEV
+              ? error_data.error ||
+                `Request failed with status ${response.status}`
+              : response.status < 500 &&
+                  error_data.error &&
+                  should_show_server_message(error_data.code, error_data.error)
+                ? error_data.error
+                : this.get_generic_error_message(error_code);
 
           last_error = {
             error: sanitized_error,
             code: error_code,
+            status: response.status,
             server_code: error_data.code,
             resets_at: error_data.resets_at,
+            details: error_data.details,
           };
+          if (response.status === 429) {
+            const retry_after_secs = parse_retry_after_header(
+              response.headers.get("retry-after"),
+              Date.now(),
+            );
+
+            if (retry_after_secs !== undefined) {
+              last_error.retry_after_secs = retry_after_secs;
+            }
+          }
 
           if (
             response.status === 403 &&
@@ -1753,6 +2031,15 @@ export class ApiClient {
             await this.delay(retry_delay * (attempt + 1));
             continue;
           }
+
+          const reported_feature = feature_of_endpoint(endpoint);
+
+          report_client_error({
+            feature: reported_feature,
+            error_code: http_error_code(reported_feature, response.status),
+            severity: response.status >= 500 ? "error" : "warn",
+            http_status: response.status,
+          });
 
           return last_error;
         }
@@ -1791,7 +2078,7 @@ export class ApiClient {
                 code: "SERVER_ERROR",
               };
 
-              if (attempt < retry) {
+              if (attempt < retry && !is_state_changing_method(method)) {
                 await this.delay(retry_delay * (attempt + 1));
                 continue;
               }
@@ -1810,12 +2097,12 @@ export class ApiClient {
         if (error instanceof Error) {
           if (error.name === "AbortError") {
             last_error = {
-              error: "Request timed out",
+              error: this.get_generic_error_message("TIMEOUT_ERROR"),
               code: "TIMEOUT_ERROR",
             };
           } else {
             last_error = {
-              error: error.message || "Network error",
+              error: this.get_generic_error_message("NETWORK_ERROR"),
               code: "NETWORK_ERROR",
             };
           }
@@ -1828,6 +2115,17 @@ export class ApiClient {
       }
     }
 
+    const transport_feature = feature_of_endpoint(endpoint);
+
+    report_client_error({
+      feature: transport_feature,
+      error_code:
+        last_error.code === "TIMEOUT_ERROR"
+          ? `${transport_feature}_timeout`.slice(0, 64)
+          : `${transport_feature}_network`.slice(0, 64),
+      severity: "warn",
+    });
+
     return last_error;
   }
 
@@ -1835,28 +2133,69 @@ export class ApiClient {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
+  private async wait_for_rate_limit_window(): Promise<void> {
+    const remaining = this.rate_limited_until - Date.now();
+
+    if (remaining > 0) {
+      await this.delay(remaining);
+    }
+  }
+
+  private note_rate_limited(
+    retry_after_header: string | null,
+    resets_at: string | undefined,
+  ): number {
+    const now = Date.now();
+    let hold_ms = RATE_LIMIT_DEFAULT_HOLD_MS;
+
+    if (retry_after_header) {
+      const seconds = Number(retry_after_header);
+
+      if (Number.isFinite(seconds) && seconds > 0) {
+        hold_ms = seconds * 1000;
+      } else {
+        const at = Date.parse(retry_after_header);
+
+        if (Number.isFinite(at) && at > now) {
+          hold_ms = at - now;
+        }
+      }
+    } else if (resets_at) {
+      const at = Date.parse(resets_at);
+
+      if (Number.isFinite(at) && at > now) {
+        hold_ms = at - now;
+      }
+    }
+
+    hold_ms = Math.min(hold_ms, RATE_LIMIT_MAX_HOLD_MS);
+    this.rate_limited_until = Math.max(this.rate_limited_until, now + hold_ms);
+
+    return hold_ms;
+  }
+
   private get_generic_error_message(code: ApiErrorCode): string {
     switch (code) {
       case "UNAUTHORIZED":
-        return en.errors.auth_required;
+        return get_active_translations().errors.auth_required;
       case "FORBIDDEN":
-        return en.errors.no_permission;
+        return get_active_translations().errors.no_permission;
       case "NOT_FOUND":
-        return en.errors.not_found;
+        return get_active_translations().errors.not_found;
       case "VALIDATION_ERROR":
-        return en.errors.invalid_request;
+        return get_active_translations().errors.invalid_request;
       case "CONFLICT":
-        return en.errors.conflict;
+        return get_active_translations().errors.conflict;
       case "RATE_LIMIT_EXCEEDED":
-        return en.errors.rate_limited;
+        return get_active_translations().errors.rate_limited;
       case "SERVER_ERROR":
-        return en.errors.internal_error;
+        return get_active_translations().errors.internal_error;
       case "NETWORK_ERROR":
-        return en.errors.connection_failed;
+        return get_active_translations().errors.connection_failed;
       case "TIMEOUT_ERROR":
-        return en.errors.request_timeout;
+        return get_active_translations().errors.request_timeout;
       default:
-        return en.errors.unexpected_error;
+        return get_active_translations().errors.unexpected_error;
     }
   }
 
@@ -1905,6 +2244,29 @@ export class ApiClient {
       ...config,
       method: "PUT",
       body: JSON.stringify(body),
+    });
+
+    if (!result.error) {
+      request_cache.invalidate_for_mutation(endpoint);
+    }
+
+    return result;
+  }
+
+  async put_raw<T>(
+    endpoint: string,
+    body: string,
+    content_type: string,
+    config?: RequestConfig,
+  ): Promise<ApiResponse<T>> {
+    const result = await this.request<T>(endpoint, {
+      ...config,
+      method: "PUT",
+      body,
+      headers: {
+        ...((config?.headers as Record<string, string>) || {}),
+        "Content-Type": content_type,
+      },
     });
 
     if (!result.error) {

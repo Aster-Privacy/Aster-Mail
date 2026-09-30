@@ -19,26 +19,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type {
-  
   ContactFormData,
-  
-  
-  
-  
-  
-  
-  
-  
   EmailEntryType,
   PhoneEntryType,
-  
   DateEntryType,
   RelatedPersonType,
   SocialNetworkType,
   WebsiteType,
   InstantMessengerType,
 } from "@/types/contacts";
-import type { } from "@/lib/i18n";
+import type {} from "@/lib/i18n";
 
 import { useEffect, useRef, useState } from "react";
 import {
@@ -57,16 +47,70 @@ import {
   StarIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  MagnifyingGlassIcon,
+  PencilSquareIcon,
+  XMarkIcon,
+  ArrowUpOnSquareIcon,
+  ArrowDownTrayIcon,
+  ChatBubbleBottomCenterTextIcon,
+  IdentificationIcon,
 } from "@heroicons/react/24/outline";
 import { StarIcon as StarSolidIcon } from "@heroicons/react/24/solid";
 import { Button } from "@aster/ui";
+import { useNavigate } from "react-router-dom";
 
+import {
+  AddressList,
+  ContactPgpKeyRow,
+  FieldLabel,
+  Section,
+  TypedList,
+} from "./fields";
+import {
+  COLOR_SWATCHES,
+  ContactDetailPanelProps,
+  DATE_TYPE_OPTIONS,
+  DEFAULT_BANNER,
+  EMAIL_TYPE_OPTIONS,
+  EditState,
+  FIELD_CLASS,
+  IM_TYPE_OPTIONS,
+  PHONE_TYPE_OPTIONS,
+  RELATED_TYPE_OPTIONS,
+  SOCIAL_TYPE_OPTIONS,
+  WEBSITE_TYPE_OPTIONS,
+  empty_edit_state,
+  next_address_type,
+  to_edit_state,
+} from "./helpers";
+import { ContactView } from "./contact_view";
+
+import { sync_legacy_fields } from "@/components/common/hooks/contacts_state_helpers";
+import { build_contact_mail_query } from "@/utils/contact_mail_search";
+import { list_contact_groups } from "@/services/api/contacts";
+import { app_date_format, format_iso_date } from "@/utils/date_format";
 import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
+import { EncryptionInfoDropdown } from "@/components/common/encryption_info_dropdown";
 import { ContactHistoryPanel } from "@/components/contacts/contact_history_panel";
+import { ContactGroupsField } from "@/components/contacts/contact_groups_field";
 import { show_toast } from "@/components/toast/simple_toast";
-import { strip_image_metadata_data_url } from "@/lib/strip_image_metadata";
-import { AddressList, ContactPgpKeyRow, FieldLabel, Section, TypedList } from "./fields";
-import { COLOR_SWATCHES, ContactDetailPanelProps, DATE_TYPE_OPTIONS, DEFAULT_BANNER, EMAIL_TYPE_OPTIONS, EditState, FIELD_CLASS, IM_TYPE_OPTIONS, PHONE_TYPE_OPTIONS, RELATED_TYPE_OPTIONS, SOCIAL_TYPE_OPTIONS, WEBSITE_TYPE_OPTIONS, empty_edit_state, to_edit_state } from "./helpers";
+import {
+  can_share_contact_file,
+  contact_vcard_file,
+  export_contact_vcard,
+} from "@/utils/contact_export";
+import {
+  run_share_contact_text,
+  run_share_contact_vcard,
+} from "@/components/common/contacts/contact_share_actions";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown_menu";
+import { compress_contact_avatar_file } from "@/utils/contact_avatar_image";
+import { format_full_datetime } from "@/utils/date_format";
 
 export function ContactDetailPanel({
   t,
@@ -74,20 +118,68 @@ export function ContactDetailPanel({
   show_history,
   set_show_history,
   on_compose_email,
+  on_search_mail,
   on_copy,
   on_delete_request,
   on_inline_save,
   on_inline_create,
   on_cancel_create,
   on_dismiss,
+  on_share_via_email,
   on_toggle_favorite,
+  on_undo_change,
+  on_toggle_group,
   is_creating_new,
   is_submitting,
 }: ContactDetailPanelProps) {
-  const [is_editing, set_is_editing] = useState(true);
+  const [is_editing, set_is_editing] = useState(false);
   const [draft, set_draft] = useState<EditState | null>(null);
   const [show_more, set_show_more] = useState(false);
+  const [group_names, set_group_names] = useState<Record<string, string>>({});
   const file_input_ref = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
+  const contact_mail_query = build_contact_mail_query(
+    selected_contact?.emails ?? [],
+  );
+
+  const can_share_native = selected_contact
+    ? can_share_contact_file(selected_contact, group_names)
+    : false;
+
+  const handle_share_text = () => {
+    if (!selected_contact) return;
+    void run_share_contact_text(t, selected_contact);
+  };
+
+  const handle_share_vcard = () => {
+    if (!selected_contact) return;
+    void run_share_contact_vcard(selected_contact, group_names);
+  };
+
+  const handle_share_via_email = () => {
+    if (!selected_contact || !on_share_via_email) return;
+
+    const file = contact_vcard_file(selected_contact, group_names);
+
+    if (!file) return;
+    on_share_via_email(file);
+  };
+
+  const handle_download_vcard = () => {
+    if (!selected_contact) return;
+    export_contact_vcard(selected_contact, group_names);
+    show_toast(t("common.contacts_exported"), "success");
+  };
+
+  const handle_search_mail = () => {
+    if (!contact_mail_query) return;
+    if (on_search_mail) {
+      on_search_mail(contact_mail_query);
+
+      return;
+    }
+    navigate("/", { state: { search_query: contact_mail_query } });
+  };
 
   useEffect(() => {
     if (is_creating_new) {
@@ -97,10 +189,31 @@ export function ContactDetailPanel({
 
       return;
     }
-    set_is_editing(true);
+    set_is_editing(false);
     set_show_more(false);
     set_draft(selected_contact ? to_edit_state(selected_contact) : null);
-  }, [selected_contact?.id, is_creating_new]);
+  }, [selected_contact?.id, selected_contact?.updated_at, is_creating_new]);
+
+  const assigned_group_ids = (selected_contact?.groups ?? []).join(",");
+
+  useEffect(() => {
+    if (!assigned_group_ids) return;
+
+    let cancelled = false;
+
+    void list_contact_groups().then((response) => {
+      if (cancelled || !response.data) return;
+
+      const names: Record<string, string> = {};
+
+      for (const group of response.data.groups) names[group.id] = group.name;
+      set_group_names(names);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [assigned_group_ids]);
 
   if ((!selected_contact && !is_creating_new) || !draft) {
     return null;
@@ -109,8 +222,6 @@ export function ContactDetailPanel({
   const banner = draft.profile_color || DEFAULT_BANNER;
 
   const handle_save = async () => {
-    const email_entries = draft.email_entries.filter((e) => e.value.trim());
-    const phone_entries = draft.phone_entries.filter((p) => p.value.trim());
     const date_entries = draft.date_entries.filter((d) => d.value.trim());
     const related_people = draft.related_people.filter((r) => r.value.trim());
     const social_networks = draft.social_networks.filter((s) => s.value.trim());
@@ -118,28 +229,18 @@ export function ContactDetailPanel({
     const instant_messengers = draft.instant_messengers.filter((m) =>
       m.value.trim(),
     );
-    const address_entries = draft.address_entries.filter(
-      (a) =>
-        (a.street || "").trim() ||
-        (a.city || "").trim() ||
-        (a.state || "").trim() ||
-        (a.postal_code || "").trim() ||
-        (a.country || "").trim(),
-    );
 
-    const base: ContactFormData = {
+    const base: ContactFormData = sync_legacy_fields({
       first_name: draft.first_name.trim(),
       last_name: draft.last_name.trim(),
-      emails: email_entries.map((e) => e.value.trim()),
-      phone: phone_entries[0]?.value.trim() || undefined,
+      emails: [],
       birthday: draft.birthday.trim() || undefined,
       notes: draft.notes.trim() || undefined,
       profile_color: draft.profile_color,
       avatar_url: draft.avatar_url,
       is_favorite: selected_contact?.is_favorite ?? false,
       company: draft.company.trim() || undefined,
-      job_title: selected_contact?.job_title,
-      address: address_entries[0],
+      job_title: draft.role.trim() || undefined,
       social_links: selected_contact?.social_links,
       relationship: selected_contact?.relationship,
       groups: selected_contact?.groups,
@@ -154,15 +255,16 @@ export function ContactDetailPanel({
       department: draft.department.trim() || undefined,
       comment: draft.comment.trim() || undefined,
       pronouns: draft.pronouns.trim() || undefined,
-      email_entries,
-      phone_entries,
-      address_entries,
+      email_entries: draft.email_entries,
+      phone_entries: draft.phone_entries,
+      address_entries: draft.address_entries,
       date_entries,
       related_people,
       social_networks,
       websites,
       instant_messengers,
-    };
+      extra_fields: selected_contact?.extra_fields,
+    });
 
     if (is_creating_new) {
       if (!on_inline_create) return;
@@ -172,13 +274,21 @@ export function ContactDetailPanel({
     }
 
     if (!on_inline_save || !selected_contact) return;
-    await on_inline_save(selected_contact, base);
+    const saved = await on_inline_save(selected_contact, base);
+
+    if (saved === false) return;
     set_is_editing(false);
   };
 
   const handle_cancel = () => {
     if (is_creating_new) {
       on_cancel_create?.();
+
+      return;
+    }
+    if (is_editing) {
+      set_draft(selected_contact ? to_edit_state(selected_contact) : null);
+      set_is_editing(false);
 
       return;
     }
@@ -190,15 +300,13 @@ export function ContactDetailPanel({
     if (!is_editing) set_is_editing(true);
   };
 
-  const handle_avatar_file = async (
-    e: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handle_avatar_file = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 
     if (file_input_ref.current) file_input_ref.current.value = "";
     if (!file) return;
 
-    const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
+    const MAX_AVATAR_BYTES = 10 * 1024 * 1024;
     const ALLOWED_TYPES = ["image/png", "image/jpeg", "image/webp"];
 
     if (!ALLOWED_TYPES.includes(file.type)) {
@@ -212,16 +320,14 @@ export function ContactDetailPanel({
       return;
     }
 
-    const reader = new FileReader();
-
-    reader.onload = async () => {
-      const raw_url = reader.result as string;
-      const url = await strip_image_metadata_data_url(raw_url);
+    try {
+      const url = await compress_contact_avatar_file(file);
 
       set_draft((d) => (d ? { ...d, avatar_url: url } : d));
       if (!is_editing) set_is_editing(true);
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      show_toast(t("common.failed_to_upload_photo"), "error");
+    }
   };
 
   const handle_avatar_clear = () => {
@@ -245,12 +351,14 @@ export function ContactDetailPanel({
   return (
     <div
       className="flex flex-1 min-h-0 flex-col min-w-0 relative"
+      role="presentation"
       onKeyDown={(e) => {
         if (e.key === "Escape" && is_editing) {
           e.preventDefault();
           handle_cancel();
         } else if (
-          (e.key === "Enter" && (e.metaKey || e.ctrlKey)) &&
+          e.key === "Enter" &&
+          (e.metaKey || e.ctrlKey) &&
           is_editing
         ) {
           e.preventDefault();
@@ -259,71 +367,86 @@ export function ContactDetailPanel({
       }}
     >
       <div className="flex-1 overflow-y-auto px-3 md:px-6 pt-6 pb-6 w-full">
-        <div className="relative mb-14">
-          <div
-            className="h-[100px] rounded-2xl transition-colors"
-            style={{ backgroundColor: banner }}
-          />
-          <div className="absolute -bottom-10 left-4">
-            <div className="relative group">
-              <ContactAvatar
-                avatar_url={draft.avatar_url}
-                className="ring-4 ring-surf-primary"
-                email={draft.email_entries?.[0]?.value}
-                name={`${draft.first_name || ""} ${draft.last_name || ""}`.trim()}
-                profile_color={banner}
-                size_px={92}
-              />
-              <button
-                aria-label={t("common.upload")}
-                className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 bg-black/40 flex items-center justify-center transition-opacity"
-                onClick={() => file_input_ref.current?.click()}
-              >
-                <CameraIcon className="w-7 h-7 text-white" />
-              </button>
-              {draft.avatar_url && (
+        {is_editing && (
+          <div className="relative mb-14">
+            <div
+              className="h-[100px] rounded-2xl transition-colors"
+              style={{ backgroundColor: banner }}
+            />
+            <div className="absolute -bottom-10 start-4">
+              <div className="relative group">
+                <ContactAvatar
+                  avatar_url={draft.avatar_url}
+                  className="ring-4 ring-surf-primary"
+                  email={draft.email_entries?.[0]?.value}
+                  name={`${draft.first_name || ""} ${draft.last_name || ""}`.trim()}
+                  profile_color={banner}
+                  size_px={92}
+                />
                 <button
-                  aria-label={t("common.delete")}
-                  className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-black/80 hover:bg-black flex items-center justify-center ring-2 ring-surf-primary"
-                  onClick={handle_avatar_clear}
+                  aria-label={t("common.upload")}
+                  className="absolute inset-0 rounded-full opacity-0 group-hover:opacity-100 aster_scrim flex items-center justify-center transition-opacity"
+                  onClick={() => file_input_ref.current?.click()}
                 >
-                  <TrashIcon className="w-3.5 h-3.5 text-white" />
+                  <CameraIcon className="w-7 h-7 text-white" />
                 </button>
-              )}
-              <input
-                ref={file_input_ref}
-                accept="image/*"
-                className="hidden"
-                type="file"
-                onChange={handle_avatar_file}
-              />
+                {draft.avatar_url && (
+                  <button
+                    aria-label={t("common.delete")}
+                    className="absolute -bottom-1 -end-1 w-7 h-7 rounded-full bg-black/80 hover:bg-black flex items-center justify-center ring-2 ring-surf-primary"
+                    onClick={handle_avatar_clear}
+                  >
+                    <TrashIcon className="w-3.5 h-3.5 text-white" />
+                  </button>
+                )}
+                <input
+                  ref={file_input_ref}
+                  accept="image/*"
+                  className="hidden"
+                  type="file"
+                  onChange={handle_avatar_file}
+                />
+              </div>
+            </div>
+            <div className="absolute end-4 -bottom-6 flex items-center gap-2 px-2.5 py-2 rounded-full bg-[var(--aster-floating-bg,var(--bg-primary))] shadow-[var(--aster-floating-shadow)]">
+              {COLOR_SWATCHES.map((c) => {
+                const active = c.value === banner;
+
+                return (
+                  <button
+                    key={c.key}
+                    aria-label={`${t("common.color")} ${c.key}`}
+                    className="relative w-6 h-6 rounded-full transition-transform hover:scale-110"
+                    style={{
+                      backgroundColor: c.value,
+                      boxShadow: active ? "0 0 0 2px #ffffff" : "none",
+                    }}
+                    onClick={() => handle_color_pick(c.value)}
+                  />
+                );
+              })}
             </div>
           </div>
-          <div className="absolute right-4 -bottom-6 flex items-center gap-2 px-2.5 py-2 rounded-full bg-surf-primary border border-edge-primary shadow-lg">
-            {COLOR_SWATCHES.map((c) => {
-              const active = c.value === banner;
-
-              return (
-                <button
-                  key={c.key}
-                  aria-label={`${t("common.color")} ${c.key}`}
-                  className="relative w-6 h-6 rounded-full transition-transform hover:scale-110"
-                  style={{
-                    backgroundColor: c.value,
-                    boxShadow: active ? "0 0 0 2px #ffffff" : "none",
-                  }}
-                  onClick={() => handle_color_pick(c.value)}
-                />
-              );
-            })}
-          </div>
-        </div>
+        )}
 
         {!is_creating_new && selected_contact && (
-          <div className="flex items-center gap-2 mb-6">
+          <div className="flex flex-wrap items-center gap-2 mb-6">
+            {!is_editing && (
+              <button
+                className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
+                type="button"
+                onClick={() => {
+                  set_show_history(false);
+                  set_is_editing(true);
+                }}
+              >
+                <PencilSquareIcon className="w-4 h-4" />
+                {t("common.edit")}
+              </button>
+            )}
             {selected_contact.emails[0] && (
               <button
-                className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+                className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
                 type="button"
                 onClick={() => on_compose_email(selected_contact.emails[0])}
               >
@@ -332,15 +455,25 @@ export function ContactDetailPanel({
               </button>
             )}
             <button
-              className={`flex items-center gap-2 h-9 px-3.5 rounded-full text-[13px] font-medium transition-colors ${show_history ? "bg-black/15 dark:bg-white/15 text-txt-primary" : "bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-txt-primary"}`}
+              className={`flex items-center gap-2 h-9 px-3.5 rounded-full text-[13px] font-medium transition-colors ${show_history ? "bg-black/15 dark:bg-white/15 text-txt-primary" : "bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-txt-primary"}`}
               type="button"
               onClick={() => set_show_history(!show_history)}
             >
               <ClockIcon className="w-4 h-4" />
               {t("common.history")}
             </button>
+            {contact_mail_query && (
+              <button
+                className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
+                type="button"
+                onClick={handle_search_mail}
+              >
+                <MagnifyingGlassIcon className="w-4 h-4" />
+                {t("common.all_mail")}
+              </button>
+            )}
             <button
-              className="flex items-center gap-2 h-9 px-3.5 rounded-full bg-black/5 dark:bg-white/[0.06] hover:bg-black/10 dark:hover:bg-white/10 text-[13px] font-medium text-txt-primary transition-colors"
+              className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
               type="button"
               onClick={() => on_toggle_favorite?.(selected_contact)}
             >
@@ -353,12 +486,97 @@ export function ContactDetailPanel({
                 ? t("common.favorited")
                 : t("common.favorite")}
             </button>
+            {!is_editing && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
+                    type="button"
+                  >
+                    <ArrowUpOnSquareIcon className="w-4 h-4" />
+                    {t("common.share_contact")}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56">
+                  {on_share_via_email && (
+                    <DropdownMenuItem onSelect={handle_share_via_email}>
+                      <EnvelopeIcon className="w-4 h-4" />
+                      {t("common.share_contact_via_email")}
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuItem onSelect={handle_share_text}>
+                    <ChatBubbleBottomCenterTextIcon className="w-4 h-4" />
+                    {t("common.share_as_text")}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={handle_share_vcard}>
+                    <IdentificationIcon className="w-4 h-4" />
+                    {t("common.share_as_vcard")}
+                  </DropdownMenuItem>
+                  {can_share_native && (
+                    <DropdownMenuItem onSelect={handle_download_vcard}>
+                      <ArrowDownTrayIcon className="w-4 h-4" />
+                      {t("common.export_selection_vcf")}
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+            {!is_editing && (
+              <button
+                className="flex items-center gap-2 h-9 px-3.5 rounded-[var(--aster-radius-control)] bg-[var(--aster-field-bg)] hover:bg-[var(--aster-field-hover)] text-[13px] font-medium text-txt-primary transition-colors"
+                type="button"
+                onClick={() => on_delete_request(selected_contact)}
+              >
+                <TrashIcon className="w-4 h-4" />
+                {t("common.delete")}
+              </button>
+            )}
           </div>
         )}
 
         {show_history && selected_contact ? (
-          <ContactHistoryPanel
-            contact_email={selected_contact.emails[0] || ""}
+          <div className="space-y-6">
+            <div>
+              <h3 className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-txt-muted">
+                {t("common.change_history")}
+              </h3>
+              {(selected_contact.revisions ?? []).length === 0 ? (
+                <p className="text-[13px] text-txt-muted">
+                  {t("common.no_contact_changes")}
+                </p>
+              ) : (
+                <ul className="space-y-1">
+                  {(selected_contact.revisions ?? []).map((revision) => (
+                    <li
+                      key={revision.changed_at}
+                      className="flex items-center justify-between gap-3 rounded-[10px] px-3 py-2 hover:bg-[var(--aster-hover)]"
+                    >
+                      <span className="min-w-0 flex-1 truncate text-[13px] text-txt-secondary">
+                        {format_full_datetime(new Date(revision.changed_at))}
+                      </span>
+                      <button
+                        className="flex-shrink-0 text-[12.5px] font-medium text-[color:var(--accent-color)] hover:underline"
+                        type="button"
+                        onClick={() =>
+                          void on_undo_change?.(selected_contact, revision)
+                        }
+                      >
+                        {t("common.undo_change")}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <ContactHistoryPanel contact_emails={selected_contact.emails} />
+          </div>
+        ) : !is_editing && !is_creating_new && selected_contact ? (
+          <ContactView
+            contact={selected_contact}
+            draft={draft}
+            group_names={group_names}
+            on_copy={on_copy}
+            t={t}
           />
         ) : (
           <div className="space-y-10">
@@ -372,7 +590,6 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("first_name", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
                 <input
                   className={FIELD_CLASS}
@@ -382,7 +599,6 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("last_name", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
                 <input
                   className={FIELD_CLASS}
@@ -392,17 +608,13 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("middle_name", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
                 <input
                   className={FIELD_CLASS}
                   placeholder={t("common.title")}
                   readOnly={!is_editing}
                   value={draft.title}
-                  onChange={(e) =>
-                    handle_field_change("title", e.target.value)
-                  }
-                  onFocus={() => set_is_editing(true)}
+                  onChange={(e) => handle_field_change("title", e.target.value)}
                 />
                 <input
                   className={FIELD_CLASS}
@@ -412,7 +624,6 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("name_suffix", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
                 <input
                   className={FIELD_CLASS}
@@ -422,7 +633,6 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("nickname", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
                 <input
                   className={FIELD_CLASS}
@@ -432,7 +642,6 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("pronouns", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
               </div>
               <button
@@ -443,9 +652,9 @@ export function ContactDetailPanel({
                 {show_more ? (
                   <ChevronDownIcon className="w-4 h-4" />
                 ) : (
-                  <ChevronRightIcon className="w-4 h-4" />
+                  <ChevronRightIcon className="w-4 h-4 rtl:-scale-x-100" />
                 )}
-                {t("common.phonetic_first_name")}
+                {show_more ? t("common.show_less") : t("common.show_more")}
               </button>
               {show_more && (
                 <div className="grid grid-cols-2 gap-3">
@@ -457,7 +666,6 @@ export function ContactDetailPanel({
                     onChange={(e) =>
                       handle_field_change("phonetic_first_name", e.target.value)
                     }
-                    onFocus={() => set_is_editing(true)}
                   />
                   <input
                     className={FIELD_CLASS}
@@ -470,7 +678,6 @@ export function ContactDetailPanel({
                         e.target.value,
                       )
                     }
-                    onFocus={() => set_is_editing(true)}
                   />
                   <input
                     className={FIELD_CLASS}
@@ -480,7 +687,6 @@ export function ContactDetailPanel({
                     onChange={(e) =>
                       handle_field_change("phonetic_last_name", e.target.value)
                     }
-                    onFocus={() => set_is_editing(true)}
                   />
                 </div>
               )}
@@ -492,10 +698,6 @@ export function ContactDetailPanel({
                 <TypedList
                   disabled={!is_editing}
                   entries={draft.email_entries}
-                  options={EMAIL_TYPE_OPTIONS}
-                  placeholder="name@example.com"
-                  t={t}
-                  type_default="other"
                   on_add={() =>
                     update_list("email_entries", (l) => [
                       ...l,
@@ -512,6 +714,12 @@ export function ContactDetailPanel({
                       l.filter((_, i) => i !== idx),
                     )
                   }
+                  allow_custom
+                  on_label_change={(idx, label) =>
+                    update_list("email_entries", (l) =>
+                      l.map((e, i) => (i === idx ? { ...e, label } : e)),
+                    )
+                  }
                   on_type_change={(idx, type) =>
                     update_list("email_entries", (l) =>
                       l.map((e, i) =>
@@ -519,6 +727,10 @@ export function ContactDetailPanel({
                       ),
                     )
                   }
+                  options={EMAIL_TYPE_OPTIONS}
+                  placeholder="name@example.com"
+                  t={t}
+                  type_default="other"
                 />
               </div>
               <div>
@@ -526,10 +738,6 @@ export function ContactDetailPanel({
                 <TypedList
                   disabled={!is_editing}
                   entries={draft.phone_entries}
-                  options={PHONE_TYPE_OPTIONS}
-                  placeholder="XXX-XXX-XXXX"
-                  t={t}
-                  type_default="mobile"
                   on_add={() =>
                     update_list("phone_entries", (l) => [
                       ...l,
@@ -546,6 +754,12 @@ export function ContactDetailPanel({
                       l.filter((_, i) => i !== idx),
                     )
                   }
+                  allow_custom
+                  on_label_change={(idx, label) =>
+                    update_list("phone_entries", (l) =>
+                      l.map((p, i) => (i === idx ? { ...p, label } : p)),
+                    )
+                  }
                   on_type_change={(idx, type) =>
                     update_list("phone_entries", (l) =>
                       l.map((p, i) =>
@@ -553,6 +767,10 @@ export function ContactDetailPanel({
                       ),
                     )
                   }
+                  options={PHONE_TYPE_OPTIONS}
+                  placeholder={t("common.phone_placeholder")}
+                  t={t}
+                  type_default="mobile"
                 />
               </div>
               <div>
@@ -562,10 +780,6 @@ export function ContactDetailPanel({
                 <TypedList
                   disabled={!is_editing}
                   entries={draft.instant_messengers}
-                  options={IM_TYPE_OPTIONS}
-                  placeholder={t("common.username")}
-                  t={t}
-                  type_default="signal"
                   on_add={() =>
                     update_list("instant_messengers", (l) => [
                       ...l,
@@ -591,6 +805,10 @@ export function ContactDetailPanel({
                       ),
                     )
                   }
+                  options={IM_TYPE_OPTIONS}
+                  placeholder={t("common.username")}
+                  t={t}
+                  type_default="signal"
                 />
               </div>
             </Section>
@@ -598,7 +816,17 @@ export function ContactDetailPanel({
             {!is_creating_new &&
               selected_contact &&
               selected_contact.emails.length > 0 && (
-                <Section title={t("settings.encryption")}>
+                <Section
+                  info={
+                    <EncryptionInfoDropdown
+                      description_key="common.contact_encryption_info"
+                      has_pq_protection={true}
+                      is_external={false}
+                      size={15}
+                    />
+                  }
+                  title={t("settings.encryption")}
+                >
                   <div className="space-y-2">
                     {selected_contact.emails.map((email) => (
                       <ContactPgpKeyRow
@@ -619,10 +847,7 @@ export function ContactDetailPanel({
                   placeholder={t("common.role")}
                   readOnly={!is_editing}
                   value={draft.role}
-                  onChange={(e) =>
-                    handle_field_change("role", e.target.value)
-                  }
-                  onFocus={() => set_is_editing(true)}
+                  onChange={(e) => handle_field_change("role", e.target.value)}
                 />
                 <input
                   className={FIELD_CLASS}
@@ -632,7 +857,6 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("department", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
                 <input
                   className={FIELD_CLASS}
@@ -642,7 +866,6 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("company", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
                 <input
                   className={FIELD_CLASS}
@@ -652,40 +875,60 @@ export function ContactDetailPanel({
                   onChange={(e) =>
                     handle_field_change("comment", e.target.value)
                   }
-                  onFocus={() => set_is_editing(true)}
                 />
               </div>
             </Section>
 
+            {!is_creating_new && selected_contact && (
+              <Section title={t("common.contact_groups")}>
+                <ContactGroupsField
+                  contact={selected_contact}
+                  on_toggle_group={(group_id, should_add) =>
+                    on_toggle_group?.(selected_contact, group_id, should_add)
+                  }
+                />
+              </Section>
+            )}
+
             <Section title={t("common.personal")}>
               <div>
-                <FieldLabel icon={CakeIcon}>
-                  {t("common.birthday")}
-                </FieldLabel>
-                <input
-                  className={FIELD_CLASS}
-                  placeholder="MM/DD/YYYY"
-                  readOnly={!is_editing}
-                  type={is_editing ? "date" : "text"}
-                  value={draft.birthday}
-                  onChange={(e) =>
-                    handle_field_change("birthday", e.target.value)
-                  }
-                  onFocus={() => set_is_editing(true)}
-                />
+                <FieldLabel icon={CakeIcon}>{t("common.birthday")}</FieldLabel>
+                <div className="relative">
+                  <input
+                    aria-label={t("common.birthday")}
+                    className={`${FIELD_CLASS} ${
+                      is_editing && draft.birthday ? "pe-12" : ""
+                    }`}
+                    placeholder={app_date_format()}
+                    readOnly={!is_editing}
+                    type={is_editing ? "date" : "text"}
+                    value={
+                      is_editing
+                        ? draft.birthday
+                        : format_iso_date(draft.birthday)
+                    }
+                    onChange={(e) =>
+                      handle_field_change("birthday", e.target.value)
+                    }
+                  />
+                  {is_editing && draft.birthday && (
+                    <button
+                      aria-label={t("common.clear")}
+                      className="absolute end-9 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full text-txt-secondary transition-colors hover:bg-[var(--aster-hover)] hover:text-txt-primary"
+                      type="button"
+                      onClick={() => handle_field_change("birthday", "")}
+                    >
+                      <XMarkIcon className="h-4 w-4" />
+                    </button>
+                  )}
+                </div>
               </div>
               <div>
-                <FieldLabel icon={CalendarIcon}>
-                  {t("common.dates")}
-                </FieldLabel>
+                <FieldLabel icon={CalendarIcon}>{t("common.dates")}</FieldLabel>
                 <TypedList
                   disabled={!is_editing}
                   entries={draft.date_entries}
                   input_type="date"
-                  options={DATE_TYPE_OPTIONS}
-                  placeholder="YYYY-MM-DD"
-                  t={t}
-                  type_default="anniversary"
                   on_add={() =>
                     update_list("date_entries", (l) => [
                       ...l,
@@ -705,12 +948,14 @@ export function ContactDetailPanel({
                   on_type_change={(idx, type) =>
                     update_list("date_entries", (l) =>
                       l.map((d, i) =>
-                        i === idx
-                          ? { ...d, type: type as DateEntryType }
-                          : d,
+                        i === idx ? { ...d, type: type as DateEntryType } : d,
                       ),
                     )
                   }
+                  options={DATE_TYPE_OPTIONS}
+                  placeholder="YYYY-MM-DD"
+                  t={t}
+                  type_default="anniversary"
                 />
               </div>
               <div>
@@ -720,10 +965,6 @@ export function ContactDetailPanel({
                 <TypedList
                   disabled={!is_editing}
                   entries={draft.related_people}
-                  options={RELATED_TYPE_OPTIONS}
-                  placeholder={t("common.name")}
-                  t={t}
-                  type_default="assistant"
                   on_add={() =>
                     update_list("related_people", (l) => [
                       ...l,
@@ -749,20 +990,21 @@ export function ContactDetailPanel({
                       ),
                     )
                   }
+                  options={RELATED_TYPE_OPTIONS}
+                  placeholder={t("common.name")}
+                  t={t}
+                  type_default="assistant"
                 />
               </div>
               <div>
-                <FieldLabel icon={MapPinIcon}>
-                  {t("common.address")}
-                </FieldLabel>
+                <FieldLabel icon={MapPinIcon}>{t("common.address")}</FieldLabel>
                 <AddressList
                   disabled={!is_editing}
                   entries={draft.address_entries}
-                  t={t}
                   on_add={() =>
                     update_list("address_entries", (l) => [
                       ...l,
-                      { type: "home" },
+                      { type: next_address_type(l) },
                     ])
                   }
                   on_change={(idx, patch) =>
@@ -775,6 +1017,7 @@ export function ContactDetailPanel({
                       l.filter((_, i) => i !== idx),
                     )
                   }
+                  t={t}
                 />
               </div>
             </Section>
@@ -787,10 +1030,6 @@ export function ContactDetailPanel({
                 <TypedList
                   disabled={!is_editing}
                   entries={draft.websites}
-                  options={WEBSITE_TYPE_OPTIONS}
-                  placeholder="https://example.com"
-                  t={t}
-                  type_default="private"
                   on_add={() =>
                     update_list("websites", (l) => [
                       ...l,
@@ -814,6 +1053,10 @@ export function ContactDetailPanel({
                       ),
                     )
                   }
+                  options={WEBSITE_TYPE_OPTIONS}
+                  placeholder="https://example.com"
+                  t={t}
+                  type_default="private"
                 />
               </div>
               <div>
@@ -823,10 +1066,6 @@ export function ContactDetailPanel({
                 <TypedList
                   disabled={!is_editing}
                   entries={draft.social_networks}
-                  options={SOCIAL_TYPE_OPTIONS}
-                  placeholder="@handle"
-                  t={t}
-                  type_default="twitter"
                   on_add={() =>
                     update_list("social_networks", (l) => [
                       ...l,
@@ -852,6 +1091,10 @@ export function ContactDetailPanel({
                       ),
                     )
                   }
+                  options={SOCIAL_TYPE_OPTIONS}
+                  placeholder="@handle"
+                  t={t}
+                  type_default="twitter"
                 />
               </div>
             </Section>
@@ -863,44 +1106,44 @@ export function ContactDetailPanel({
                 readOnly={!is_editing}
                 value={draft.notes}
                 onChange={(e) => handle_field_change("notes", e.target.value)}
-                onFocus={() => set_is_editing(true)}
               />
             </Section>
           </div>
         )}
       </div>
 
-      <div className="border-t border-edge-primary bg-surf-primary">
-        <div className="px-3 md:px-6 py-3 flex items-center justify-between">
-        {is_creating_new || !selected_contact ? (
-          <span />
-        ) : (
-          <Button
-            className="h-9 px-4 text-[13px] !bg-red-500 hover:!bg-red-600 !text-white !border-transparent"
-            onClick={() => on_delete_request(selected_contact)}
-          >
-            {t("common.delete_contact")}
-          </Button>
-        )}
-        <div className="flex items-center gap-2">
-          <Button
-            className="h-9 px-4 text-[13px]"
-            variant="outline"
-            onClick={handle_cancel}
-          >
-            {t("common.cancel")}
-          </Button>
-          <Button
-            className="h-9 px-4 text-[13px]"
-            disabled={is_submitting}
-            onClick={handle_save}
-          >
-            {t("common.save")}
-          </Button>
+      {(is_editing || is_creating_new) && (
+        <div className="border-t border-edge-primary bg-surf-primary">
+          <div className="px-3 md:px-6 py-3 flex items-center justify-between">
+            {is_creating_new || !selected_contact ? (
+              <span />
+            ) : (
+              <Button
+                className="h-9 px-4 text-[13px] !bg-red-500 hover:!bg-red-600 !text-white !border-transparent"
+                onClick={() => on_delete_request(selected_contact)}
+              >
+                {t("common.delete_contact")}
+              </Button>
+            )}
+            <div className="flex items-center gap-2">
+              <Button
+                className="h-9 px-4 text-[13px]"
+                variant="outline"
+                onClick={handle_cancel}
+              >
+                {t("common.cancel")}
+              </Button>
+              <Button
+                className="h-9 px-4 text-[13px]"
+                disabled={is_submitting}
+                onClick={handle_save}
+              >
+                {t("common.save")}
+              </Button>
+            </div>
+          </div>
         </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
-

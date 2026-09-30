@@ -22,6 +22,8 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ClipboardDocumentListIcon } from "@heroicons/react/24/outline";
 
+import { SurveyModal } from "./survey_modal";
+
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -30,9 +32,6 @@ import {
   mark_survey_opened,
   type SurveyStatusResponse,
 } from "@/services/api/survey";
-
-import { SurveyModal } from "./survey_modal";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 const DONE_CACHE_KEY = "aster_survey_done";
@@ -53,7 +52,11 @@ function cache_done() {
   }
 }
 
-export function SurveyBanner() {
+export function SurveyBanner({
+  on_visibility_change,
+}: {
+  on_visibility_change?: (is_visible: boolean) => void;
+} = {}) {
   const reduce_motion = use_should_reduce_motion();
   const { t } = use_i18n();
   const [status, set_status] = useState<SurveyStatusResponse | null>(null);
@@ -79,6 +82,10 @@ export function SurveyBanner() {
 
   const should_hide = is_hidden || !status?.eligible;
 
+  useEffect(() => {
+    on_visibility_change?.(!should_hide);
+  }, [should_hide, on_visibility_change]);
+
   const handle_remind_tomorrow = () => {
     set_is_hidden(true);
     dismiss_survey(false);
@@ -96,9 +103,13 @@ export function SurveyBanner() {
     cache_done();
   };
 
-  const pill_button = (label: string, on_click: () => void, emphasis: boolean) => (
+  const pill_button = (
+    label: string,
+    on_click: () => void,
+    emphasis: boolean,
+  ) => (
     <button
-      className="px-2.5 py-0.5 text-xs font-medium rounded-[12px] transition-colors"
+      className="px-2.5 py-0.5 text-xs font-medium rounded-[var(--aster-radius-control)] transition-colors"
       style={{
         backgroundColor: emphasis
           ? "rgba(255, 255, 255, 0.2)"
@@ -141,7 +152,7 @@ export function SurveyBanner() {
                   {t("survey.banner_message")}
                 </span>
               </div>
-              <div className="flex items-center gap-1.5 flex-shrink-0 ml-4">
+              <div className="flex items-center gap-1.5 flex-shrink-0 ms-4">
                 {is_choosing_dismissal ? (
                   <>
                     {pill_button(
@@ -181,9 +192,9 @@ export function SurveyBanner() {
         <SurveyModal
           branch={status.branch}
           is_open={is_modal_open}
-          plan_code={status.plan_code}
           on_close={() => set_is_modal_open(false)}
           on_submitted={handle_submitted}
+          plan_code={status.plan_code}
         />
       )}
     </>

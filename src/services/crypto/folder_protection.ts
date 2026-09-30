@@ -1,7 +1,8 @@
+import { array_to_base64, base64_to_array } from "./base64";
+
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { HASH_ALG } from "@/services/crypto/constants";
 import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-import { array_to_base64, base64_to_array } from "./base64";
 //
 // Aster Communications Inc.
 //
@@ -28,8 +29,6 @@ const SALT_BYTES_LEGACY = 16;
 const SALT_BYTES = 32;
 const AUTH_KEY_CONTEXT = "astermail-folder-auth-v1";
 const ENCRYPT_KEY_CONTEXT = "astermail-folder-encrypt-v1";
-
-
 
 async function hkdf_expand(
   ikm: Uint8Array,
@@ -163,7 +162,11 @@ export async function decrypt_folder_key(
     ["decrypt"],
   );
 
-  const decrypted = await decrypt_aes_gcm_with_fallback(aes_key, encrypted, nonce);
+  const decrypted = await decrypt_aes_gcm_with_fallback(
+    aes_key,
+    encrypted,
+    nonce,
+  );
 
   return new Uint8Array(decrypted);
 }

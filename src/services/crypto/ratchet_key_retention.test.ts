@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { describe, it, expect } from "vitest";
+
 import {
   retain_previous_ratchet_keys,
   RATCHET_PREVIOUS_KEYS_LIMIT,
@@ -70,8 +71,9 @@ describe("retain_previous_ratchet_keys", () => {
   });
 
   it("caps history at RATCHET_PREVIOUS_KEYS_LIMIT, dropping the oldest", () => {
-    const history = Array.from({ length: RATCHET_PREVIOUS_KEYS_LIMIT + 1 }, (_, i) =>
-      key_set(`v${RATCHET_PREVIOUS_KEYS_LIMIT - i}`),
+    const history = Array.from(
+      { length: RATCHET_PREVIOUS_KEYS_LIMIT + 1 },
+      (_, i) => key_set(`v${RATCHET_PREVIOUS_KEYS_LIMIT - i}`),
     );
     const result = retain_previous_ratchet_keys(
       vault_with(`v${RATCHET_PREVIOUS_KEYS_LIMIT + 1}`, history),

@@ -121,10 +121,7 @@ describe("read_clears_conversation", () => {
       conversation_grouping: true,
     });
 
-    expect(mock_thread_has_unread_entries).toHaveBeenCalledWith(
-      "t1",
-      "acted",
-    );
+    expect(mock_thread_has_unread_entries).toHaveBeenCalledWith("t1", "acted");
   });
 });
 

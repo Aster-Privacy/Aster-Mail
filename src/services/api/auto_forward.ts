@@ -20,13 +20,12 @@
 //
 import { api_client, type ApiResponse } from "./client";
 
+import { user_facing_error } from "@/utils/user_facing_error";
+import { get_active_translations } from "@/lib/i18n/translations";
+
 export type ForwardingField = "from" | "to" | "subject" | "all";
 export type ForwardingOperator =
-  | "contains"
-  | "equals"
-  | "starts_with"
-  | "ends_with"
-  | "matches_regex";
+  "contains" | "equals" | "starts_with" | "ends_with" | "matches_regex";
 
 export interface ForwardingCondition {
   field: ForwardingField;
@@ -55,6 +54,11 @@ export interface ForwardingRuleResponse {
   updated_at: string;
   destinations?: ForwardingDestinationStatus[];
   pending_confirmation?: boolean;
+  last_error_code?: string | null;
+  last_error?: string | null;
+  last_error_address?: string | null;
+  last_failed_at?: string | null;
+  failed_count?: number;
 }
 
 export interface ForwardingRulesListResponse {
@@ -77,8 +81,10 @@ export async function list_forwarding_rules(): Promise<
     return { data: response.data?.rules ?? [] };
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to list forwarding rules",
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -105,8 +111,10 @@ export async function create_forwarding_rule(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to create forwarding rule",
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }
@@ -139,8 +147,10 @@ export async function update_forwarding_rule(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to update forwarding rule",
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }
@@ -158,8 +168,10 @@ export async function toggle_forwarding_rule(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to toggle forwarding rule",
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }
@@ -175,8 +187,7 @@ export async function delete_forwarding_rule(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to delete forwarding rule",
+      error: user_facing_error(err, get_active_translations().errors.generic),
     };
   }
 }
@@ -194,10 +205,7 @@ export async function resend_forwarding_confirmation(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error
-          ? err.message
-          : "Failed to resend verification email",
+      error: user_facing_error(err, get_active_translations().errors.generic),
     };
   }
 }
@@ -216,10 +224,7 @@ export async function bulk_delete_forwarding_rules(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error
-          ? err.message
-          : "Failed to bulk delete forwarding rules",
+      error: user_facing_error(err, get_active_translations().errors.generic),
     };
   }
 }

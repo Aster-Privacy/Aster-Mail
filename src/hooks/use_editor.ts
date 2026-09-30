@@ -20,7 +20,13 @@
 //
 import { useCallback, useEffect } from "react";
 
-import { sanitize_compose_paste } from "@/lib/html_sanitizer";
+import { show_toast } from "@/components/toast/simple_toast";
+import { use_i18n } from "@/lib/i18n/context";
+import { sanitize_compose_paste, sanitize_html } from "@/lib/html_sanitizer";
+import {
+  get_compose_sanitize_options,
+  restore_compose_image_sources,
+} from "@/lib/compose_image_sources";
 import {
   type HeadingLevel,
   type TextAlignment,
@@ -33,6 +39,7 @@ import {
   MAX_PASTE_IMAGE_SIZE,
 } from "@/hooks/editor_utils";
 import { use_editor_image } from "@/hooks/use_editor_image";
+import { describe_would_exceed_total } from "@/services/attachment_rejection";
 import { use_editor_format } from "@/hooks/use_editor_format";
 import { strip_image_metadata_data_url } from "@/lib/strip_image_metadata";
 
@@ -54,14 +61,82 @@ export function use_editor({
   is_plain_text_mode = false,
   on_files_drop,
   strip_exif_on_compose = false,
+  get_inline_image_budget,
 }: UseEditorOptions): UseEditorReturn {
+  const { t } = use_i18n();
+
+  const fits_inline_budget = useCallback(
+    (file: File): boolean => {
+      if (!get_inline_image_budget) return true;
+
+      const editor = editor_ref.current;
+      const existing = editor
+        ? Array.from(editor.querySelectorAll('img[src^="data:"]')).reduce(
+            (total, img) => {
+              const source = img.getAttribute("src") ?? "";
+              const base64 = source.slice(source.indexOf(",") + 1);
+
+              return total + Math.floor(base64.length * 0.75);
+            },
+            0,
+          )
+        : 0;
+
+      return existing + file.size <= get_inline_image_budget();
+    },
+    [get_inline_image_budget, editor_ref],
+  );
+
   const handle_input = useCallback(() => {
     const editor = editor_ref.current;
 
     if (editor) {
-      on_change?.(is_plain_text_mode ? editor.innerText : editor.innerHTML);
+      on_change?.(
+        is_plain_text_mode
+          ? editor.innerText
+          : restore_compose_image_sources(editor.innerHTML),
+      );
     }
   }, [editor_ref, on_change, is_plain_text_mode]);
+
+  const apply_signature = useCallback(
+    (html: string | null) => {
+      const editor = editor_ref.current;
+
+      if (!editor) return;
+
+      const existing = editor.querySelector<HTMLElement>(
+        "[data-aster-signature='1']",
+      );
+
+      if (!html) {
+        if (!existing) return;
+
+        existing.remove();
+        handle_input();
+
+        return;
+      }
+
+      if (is_plain_text_mode) return;
+
+      const sanitized = sanitize_html(html, get_compose_sanitize_options());
+      const wrapper = document.createElement("div");
+
+      wrapper.innerHTML = sanitized.html;
+      const new_node = wrapper.firstElementChild;
+
+      if (!new_node) return;
+
+      if (existing) {
+        existing.replaceWith(new_node);
+      } else {
+        editor.appendChild(new_node);
+      }
+      handle_input();
+    },
+    [editor_ref, handle_input, is_plain_text_mode],
+  );
 
   const fmt = use_editor_format(editor_ref, is_plain_text_mode, handle_input);
 
@@ -101,35 +176,67 @@ export function use_editor({
           const file = item.getAsFile();
 
           if (!file) continue;
-          if (file.size > MAX_PASTE_IMAGE_SIZE) continue;
+
+          if (file.size > MAX_PASTE_IMAGE_SIZE) {
+            if (on_files_drop) {
+              on_files_drop([file]);
+
+              return;
+            }
+            show_toast(t("common.image_size_error"), "error");
+
+            return;
+          }
+
+          if (!fits_inline_budget(file)) {
+            if (on_files_drop) {
+              on_files_drop([file]);
+
+              return;
+            }
+            show_toast(describe_would_exceed_total(t, file.name), "error");
+
+            return;
+          }
 
           const reader = new FileReader();
 
+          reader.onerror = () => {
+            show_toast(t("common.valid_image_error"), "error");
+          };
           reader.onload = async () => {
-            let data_url = reader.result as string;
-            const arr_buf = Uint8Array.from(
-              atob(data_url.split(",")[1] || ""),
-              (c) => c.charCodeAt(0),
-            ).buffer;
+            try {
+              let data_url = reader.result as string;
+              const arr_buf = Uint8Array.from(
+                atob(data_url.split(",")[1] || ""),
+                (c) => c.charCodeAt(0),
+              ).buffer;
 
-            if (!validate_image_magic_bytes(arr_buf, file.type)) return;
+              if (!validate_image_magic_bytes(arr_buf, file.type)) {
+                show_toast(t("common.valid_image_error"), "error");
 
-            if (strip_exif_on_compose) {
-              data_url = await strip_image_metadata_data_url(data_url);
+                return;
+              }
+
+              if (strip_exif_on_compose) {
+                data_url = await strip_image_metadata_data_url(data_url);
+              }
+
+              const escaped_name = file.name
+                .replace(/&/g, "&amp;")
+                .replace(/"/g, "&quot;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+
+              document.execCommand(
+                "insertHTML",
+                false,
+                `<div><img src="${data_url}" data-filename="${escaped_name}" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 8px 0;" /></div><div><br></div>`,
+              );
+              handle_input();
+            } catch {
+              show_toast(t("common.valid_image_error"), "error");
             }
-
-            const escaped_name = file.name
-              .replace(/&/g, "&amp;")
-              .replace(/"/g, "&quot;")
-              .replace(/</g, "&lt;")
-              .replace(/>/g, "&gt;");
-
-            document.execCommand(
-              "insertHTML",
-              false,
-              `<div><img src="${data_url}" data-filename="${escaped_name}" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 8px 0;" /></div><div><br></div>`,
-            );
-            handle_input();
           };
           reader.readAsDataURL(file);
 
@@ -153,7 +260,16 @@ export function use_editor({
       document.execCommand("insertText", false, text);
       handle_input();
     },
-    [editor_ref, is_plain_text_mode, enable_rich_paste, handle_input, strip_exif_on_compose],
+    [
+      editor_ref,
+      is_plain_text_mode,
+      enable_rich_paste,
+      handle_input,
+      strip_exif_on_compose,
+      on_files_drop,
+      t,
+      fits_inline_budget,
+    ],
   );
 
   const handle_drag_over = useCallback((e: React.DragEvent) => {
@@ -219,54 +335,71 @@ export function use_editor({
         }
       }
 
-      if (
-        drop_editor &&
+      const can_inline_first =
+        !!drop_editor &&
         !is_plain_text_mode &&
         enable_rich_paste &&
-        image_files.length > 0
-      ) {
+        image_files.length > 0 &&
+        fits_inline_budget(image_files[0]);
+
+      if (can_inline_first) {
         const file = image_files[0];
         const reader = new FileReader();
 
+        reader.onerror = () => {
+          show_toast(t("common.valid_image_error"), "error");
+        };
         reader.onload = async () => {
-          let data_url = reader.result as string;
-          const arr_buf = Uint8Array.from(
-            atob(data_url.split(",")[1] || ""),
-            (c) => c.charCodeAt(0),
-          ).buffer;
+          try {
+            let data_url = reader.result as string;
+            const arr_buf = Uint8Array.from(
+              atob(data_url.split(",")[1] || ""),
+              (c) => c.charCodeAt(0),
+            ).buffer;
 
-          if (!validate_image_magic_bytes(arr_buf, file.type)) return;
+            if (!validate_image_magic_bytes(arr_buf, file.type)) {
+              show_toast(t("common.valid_image_error"), "error");
 
-          if (strip_exif_on_compose) {
-            data_url = await strip_image_metadata_data_url(data_url);
+              return;
+            }
+
+            if (strip_exif_on_compose) {
+              data_url = await strip_image_metadata_data_url(data_url);
+            }
+
+            const escaped_name = file.name
+              .replace(/&/g, "&amp;")
+              .replace(/"/g, "&quot;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;");
+
+            drop_editor.focus();
+            document.execCommand(
+              "insertHTML",
+              false,
+              `<div><img src="${data_url}" data-filename="${escaped_name}" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 8px 0;" /></div><div><br></div>`,
+            );
+            handle_input();
+          } catch {
+            show_toast(t("common.valid_image_error"), "error");
           }
-
-          const escaped_name = file.name
-            .replace(/&/g, "&amp;")
-            .replace(/"/g, "&quot;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-
-          drop_editor.focus();
-          document.execCommand(
-            "insertHTML",
-            false,
-            `<div><img src="${data_url}" data-filename="${escaped_name}" draggable="true" style="max-width: 100%; height: auto; display: block; margin: 8px 0;" /></div><div><br></div>`,
-          );
-          handle_input();
         };
         reader.readAsDataURL(file);
       }
 
       const all_non_inline = [
         ...non_image_files,
-        ...image_files.slice(
-          drop_editor && !is_plain_text_mode && enable_rich_paste ? 1 : 0,
-        ),
+        ...image_files.slice(can_inline_first ? 1 : 0),
       ];
 
-      if (all_non_inline.length > 0 && on_files_drop) {
-        on_files_drop(all_non_inline);
+      if (all_non_inline.length > 0) {
+        if (on_files_drop) {
+          on_files_drop(all_non_inline);
+        } else if (non_image_files.length > 0) {
+          show_toast(t("common.valid_image_error"), "error");
+        } else {
+          show_toast(t("common.image_size_error"), "error");
+        }
       }
     },
     [
@@ -277,11 +410,13 @@ export function use_editor({
       on_files_drop,
       update_image_rect,
       strip_exif_on_compose,
+      t,
+      fits_inline_budget,
     ],
   );
 
   const get_html = useCallback((): string => {
-    return editor_ref.current?.innerHTML || "";
+    return restore_compose_image_sources(editor_ref.current?.innerHTML || "");
   }, [editor_ref]);
 
   const set_html = useCallback(
@@ -301,16 +436,32 @@ export function use_editor({
   }, [editor_ref]);
 
   useEffect(() => {
+    let pending_frame: number | null = null;
+
     const handle_selection = () => {
+      const editor = editor_ref.current;
+      const selection = window.getSelection();
+
+      if (!editor || !selection || selection.rangeCount === 0) return;
+      if (!editor.contains(selection.anchorNode)) return;
+
       fmt.save_selection();
-      requestAnimationFrame(fmt.check_active_formats);
+
+      if (pending_frame !== null) return;
+
+      pending_frame = requestAnimationFrame(() => {
+        pending_frame = null;
+        fmt.check_active_formats();
+      });
     };
 
     document.addEventListener("selectionchange", handle_selection);
 
-    return () =>
+    return () => {
+      if (pending_frame !== null) cancelAnimationFrame(pending_frame);
       document.removeEventListener("selectionchange", handle_selection);
-  }, [fmt.check_active_formats, fmt.save_selection]);
+    };
+  }, [editor_ref, fmt.check_active_formats, fmt.save_selection]);
 
   useEffect(() => {
     if (!enable_keyboard_shortcuts) return;
@@ -417,9 +568,11 @@ export function use_editor({
     insert_emoji: fmt.insert_emoji,
     insert_text: fmt.insert_text,
     insert_html: fmt.insert_html,
+    apply_signature,
     set_font_color: fmt.set_font_color,
     set_background_color: fmt.set_background_color,
     set_font_size: fmt.set_font_size,
+    set_font_family: fmt.set_font_family,
     handle_paste,
     handle_drop,
     handle_drag_over,

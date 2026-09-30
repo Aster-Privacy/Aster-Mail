@@ -23,8 +23,12 @@ import { Preferences } from "@capacitor/preferences";
 import { is_native_platform, get_network_status } from "./capacitor_bridge";
 import { haptic_notification } from "./haptic_feedback";
 
+import { user_facing_error } from "@/utils/user_facing_error";
 import { MAIL_EVENTS } from "@/hooks/mail_events";
-import { get_current_account_id } from "@/services/account_manager";
+import {
+  accounts_storage_unreadable,
+  get_current_account_id,
+} from "@/services/account_manager";
 
 export type OfflineActionType =
   | "send_email"
@@ -46,8 +50,31 @@ export interface QueuedAction {
 const QUEUE_KEY = "aster_offline_queue";
 const FAILED_KEY = "aster_offline_failed_queue";
 const MAX_RETRIES = 3;
+const RETRYABLE_CLIENT_STATUSES = new Set([401, 408, 429]);
+
+class OfflineActionError extends Error {
+  status?: number;
+
+  constructor(message: string, status?: number) {
+    super(message);
+    this.status = status;
+    this.name = "OfflineActionError";
+  }
+}
+
+export function is_permanent_failure(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+
+  const status = (error as { status?: unknown }).status;
+
+  if (typeof status !== "number") return false;
+  if (status < 400 || status >= 500) return false;
+
+  return !RETRYABLE_CLIENT_STATUSES.has(status);
+}
 
 let is_processing = false;
+let web_listeners_registered = false;
 let queue_mutex: Promise<void> = Promise.resolve();
 
 async function run_exclusive<T>(operation: () => Promise<T>): Promise<T> {
@@ -73,17 +100,23 @@ function emit_window_event(name: string): void {
   window.dispatchEvent(new CustomEvent(name));
 }
 
-async function resolve_queue_key(): Promise<string> {
-  try {
-    const account_id = await get_current_account_id();
+async function resolve_account_scope(): Promise<string | null> {
+  const account_id = await get_current_account_id();
 
-    return account_id ? `${QUEUE_KEY}:${account_id}` : QUEUE_KEY;
-  } catch {
-    return QUEUE_KEY;
+  if (account_id === null && accounts_storage_unreadable()) {
+    throw new Error("Account storage unavailable. Retry once it is readable.");
   }
+
+  return account_id;
 }
 
-async function read_raw(key: string): Promise<string | null> {
+async function resolve_queue_key(): Promise<string> {
+  const account_id = await resolve_account_scope();
+
+  return account_id ? `${QUEUE_KEY}:${account_id}` : QUEUE_KEY;
+}
+
+async function read_stored(key: string): Promise<string | null> {
   if (!is_native_platform()) {
     return localStorage.getItem(key);
   }
@@ -93,7 +126,7 @@ async function read_raw(key: string): Promise<string | null> {
   return value;
 }
 
-async function write_raw(key: string, value: string): Promise<void> {
+async function write_stored(key: string, value: string): Promise<void> {
   if (!is_native_platform()) {
     localStorage.setItem(key, value);
 
@@ -101,6 +134,65 @@ async function write_raw(key: string, value: string): Promise<void> {
   }
 
   await Preferences.set({ key, value });
+}
+
+async function load_device_cipher() {
+  return import("@/services/crypto/secure_storage");
+}
+
+function is_sealed(value: string): boolean {
+  try {
+    const parsed = JSON.parse(value);
+
+    return (
+      parsed !== null &&
+      typeof parsed === "object" &&
+      !Array.isArray(parsed) &&
+      typeof parsed.n === "string" &&
+      typeof parsed.c === "string"
+    );
+  } catch {
+    return false;
+  }
+}
+
+async function reseal_plaintext(key: string, plaintext: string): Promise<void> {
+  try {
+    const { device_encrypt } = await load_device_cipher();
+    const sealed = await device_encrypt(plaintext);
+
+    if ((await read_stored(key)) !== plaintext) return;
+
+    await write_stored(key, sealed);
+  } catch {
+    return;
+  }
+}
+
+async function read_raw(key: string): Promise<string | null> {
+  const stored = await read_stored(key);
+
+  if (stored === null) return null;
+
+  if (!is_sealed(stored)) {
+    await reseal_plaintext(key, stored);
+
+    return stored;
+  }
+
+  try {
+    const { device_decrypt } = await load_device_cipher();
+
+    return await device_decrypt(stored);
+  } catch {
+    return stored;
+  }
+}
+
+async function write_raw(key: string, value: string): Promise<void> {
+  const { device_encrypt } = await load_device_cipher();
+
+  await write_stored(key, await device_encrypt(value));
 }
 
 async function remove_raw(key: string): Promise<void> {
@@ -166,8 +258,27 @@ async function migrate_legacy_queue(scoped_key: string): Promise<void> {
   await remove_raw(QUEUE_KEY);
 }
 
+function register_web_queue_listeners(): void {
+  if (web_listeners_registered) return;
+  if (typeof window === "undefined") return;
+
+  web_listeners_registered = true;
+
+  window.addEventListener("online", () => {
+    process_offline_queue();
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      process_offline_queue();
+    }
+  });
+}
+
 export async function initialize_offline_queue(): Promise<void> {
-  if (!is_native_platform()) return;
+  if (!is_native_platform()) {
+    register_web_queue_listeners();
+  }
 
   const status = await get_network_status();
 
@@ -205,19 +316,35 @@ export async function enqueue_action(
 }
 
 async function read_queue_unlocked(): Promise<QueuedAction[]> {
+  const key = await resolve_queue_key();
+
+  await migrate_legacy_queue(key);
+
+  const stored = await read_raw(key);
+
+  if (!stored) return [];
+
   try {
-    const key = await resolve_queue_key();
+    const parsed = JSON.parse(stored) as QueuedAction[];
 
-    await migrate_legacy_queue(key);
-
-    const stored = await read_raw(key);
-
-    return stored ? JSON.parse(stored) : [];
+    if (Array.isArray(parsed)) return parsed;
   } catch {
-    await write_queue_unlocked([]);
+    await quarantine_unreadable_queue(key, stored);
 
     return [];
   }
+
+  await quarantine_unreadable_queue(key, stored);
+
+  return [];
+}
+
+async function quarantine_unreadable_queue(
+  key: string,
+  raw: string,
+): Promise<void> {
+  await write_raw(`${key}:unreadable`, raw);
+  await remove_raw(key);
 }
 
 async function write_queue_unlocked(queue: QueuedAction[]): Promise<void> {
@@ -245,21 +372,18 @@ export async function remove_from_queue(id: string): Promise<void> {
 }
 
 async function resolve_failed_key(): Promise<string> {
-  try {
-    const account_id = await get_current_account_id();
+  const account_id = await resolve_account_scope();
 
-    return account_id ? `${FAILED_KEY}:${account_id}` : FAILED_KEY;
-  } catch {
-    return FAILED_KEY;
-  }
+  return account_id ? `${FAILED_KEY}:${account_id}` : FAILED_KEY;
 }
 
 async function read_failed_unlocked(): Promise<QueuedAction[]> {
   try {
     const key = await resolve_failed_key();
     const stored = await read_raw(key);
+    const parsed = stored ? JSON.parse(stored) : [];
 
-    return stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
@@ -297,6 +421,10 @@ export async function process_offline_queue(): Promise<void> {
 
   if (!status.connected) return;
 
+  const { is_authenticated } = await import("@/services/api/auth");
+
+  if (!is_authenticated()) return;
+
   is_processing = true;
 
   let replayed_count = 0;
@@ -313,10 +441,12 @@ export async function process_offline_queue(): Promise<void> {
         await haptic_notification("success");
       } catch (error) {
         action.retry_count++;
-        action.last_error =
-          error instanceof Error ? error.message : "Unknown error";
+        action.last_error = user_facing_error(error, "Unknown error");
 
-        if (action.retry_count >= MAX_RETRIES) {
+        if (
+          action.retry_count >= MAX_RETRIES ||
+          is_permanent_failure(error)
+        ) {
           await move_action_to_failed(action);
           dropped_count++;
           notify_queue_failure(action);
@@ -453,7 +583,10 @@ async function process_archive(payload: EmailActionPayload): Promise<void> {
     const item_result = await get_mail_item(email_id);
 
     if (item_result.error || !item_result.data) {
-      throw new Error(`Failed to fetch email ${email_id}`);
+      throw new OfflineActionError(
+        `Failed to fetch email ${email_id}`,
+        item_result.status,
+      );
     }
 
     const item = item_result.data;
@@ -483,7 +616,10 @@ async function process_delete(payload: EmailActionPayload): Promise<void> {
     const item_result = await get_mail_item(email_id);
 
     if (item_result.error || !item_result.data) {
-      throw new Error(`Failed to fetch email ${email_id}`);
+      throw new OfflineActionError(
+        `Failed to fetch email ${email_id}`,
+        item_result.status,
+      );
     }
 
     const item = item_result.data;
@@ -513,7 +649,10 @@ async function process_star(payload: StarPayload): Promise<void> {
     const item_result = await get_mail_item(email_id);
 
     if (item_result.error || !item_result.data) {
-      throw new Error(`Failed to fetch email ${email_id}`);
+      throw new OfflineActionError(
+        `Failed to fetch email ${email_id}`,
+        item_result.status,
+      );
     }
 
     const item = item_result.data;
@@ -543,7 +682,10 @@ async function process_mark_read(payload: MarkReadPayload): Promise<void> {
     const item_result = await get_mail_item(email_id);
 
     if (item_result.error || !item_result.data) {
-      throw new Error(`Failed to fetch email ${email_id}`);
+      throw new OfflineActionError(
+        `Failed to fetch email ${email_id}`,
+        item_result.status,
+      );
     }
 
     const item = item_result.data;
@@ -574,7 +716,10 @@ async function process_move(payload: MovePayload): Promise<void> {
     });
 
     if (result.error) {
-      throw new Error(`Failed to move email ${email_id}: ${result.error}`);
+      throw new OfflineActionError(
+        `Failed to move email ${email_id}: ${result.error}`,
+        result.status,
+      );
     }
   }
 }
@@ -619,13 +764,17 @@ export async function clear_queue(): Promise<void> {
 export async function retry_failed_actions(): Promise<void> {
   await run_exclusive(async () => {
     const queue = await read_queue_unlocked();
-    const updated = queue.map((action) => ({
+    const failed = await read_failed_unlocked();
+    const queued_ids = new Set(queue.map((action) => action.id));
+    const revived = failed.filter((action) => !queued_ids.has(action.id));
+    const updated = [...queue, ...revived].map((action) => ({
       ...action,
       retry_count: 0,
       last_error: undefined,
     }));
 
     await write_queue_unlocked(updated);
+    await write_failed_unlocked([]);
   });
   process_offline_queue();
 }

@@ -56,7 +56,8 @@ ${html_part}
 --ALT--
 `),
 
-  mixed_wrapping_alternative: crlf(`Content-Type: multipart/mixed; boundary="OUT"
+  mixed_wrapping_alternative:
+    crlf(`Content-Type: multipart/mixed; boundary="OUT"
 
 --OUT
 Content-Type: multipart/alternative; boundary="ALT"
@@ -75,7 +76,8 @@ iVBORw0KGgo=
 --OUT--
 `),
 
-  alternative_with_related: crlf(`Content-Type: multipart/alternative; boundary="ALT"
+  alternative_with_related:
+    crlf(`Content-Type: multipart/alternative; boundary="ALT"
 
 --ALT
 ${plain_part}
@@ -113,7 +115,8 @@ ${html_part}
 --ALT--
 `,
 
-  boundary_with_special_chars: crlf(`Content-Type: multipart/alternative; boundary="----=_Part_0_1234.5678"
+  boundary_with_special_chars:
+    crlf(`Content-Type: multipart/alternative; boundary="----=_Part_0_1234.5678"
 
 ------=_Part_0_1234.5678
 ${plain_part}
@@ -122,7 +125,8 @@ ${html_part}
 ------=_Part_0_1234.5678--
 `),
 
-  mixed_plain_first_then_html_sibling: crlf(`Content-Type: multipart/mixed; boundary="OUT"
+  mixed_plain_first_then_html_sibling:
+    crlf(`Content-Type: multipart/mixed; boundary="OUT"
 
 --OUT
 ${plain_part}
@@ -131,7 +135,8 @@ ${html_part}
 --OUT--
 `),
 
-  nested_plain_only_before_html_sibling: crlf(`Content-Type: multipart/mixed; boundary="OUT"
+  nested_plain_only_before_html_sibling:
+    crlf(`Content-Type: multipart/mixed; boundary="OUT"
 
 --OUT
 Content-Type: multipart/related; boundary="REL"
@@ -151,7 +156,8 @@ ${html_part}
 --OUT--
 `),
 
-  signed_wrapping_alternative: crlf(`Content-Type: multipart/mixed; boundary="OUT"
+  signed_wrapping_alternative:
+    crlf(`Content-Type: multipart/mixed; boundary="OUT"
 
 --OUT
 Content-Type: multipart/signed; protocol="application/pkcs7-signature"; boundary="SIG"
@@ -175,7 +181,8 @@ MIIFaQYJKoZ=
 --OUT--
 `),
 
-  report_wrapping_alternative: crlf(`Content-Type: multipart/report; report-type=delivery-status; boundary="RPT"
+  report_wrapping_alternative:
+    crlf(`Content-Type: multipart/report; report-type=delivery-status; boundary="RPT"
 
 --RPT
 Content-Type: multipart/alternative; boundary="ALT"
@@ -189,7 +196,8 @@ ${html_part}
 --RPT--
 `),
 
-  attached_text_part_is_not_the_body: crlf(`Content-Type: multipart/mixed; boundary="OUT"
+  attached_text_part_is_not_the_body:
+    crlf(`Content-Type: multipart/mixed; boundary="OUT"
 
 --OUT
 Content-Type: text/plain; charset="UTF-8"

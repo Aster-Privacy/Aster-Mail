@@ -20,19 +20,28 @@
 //
 import { describe, it, expect, vi } from "vitest";
 
-vi.mock("@/contexts/theme_context", () => ({ useTheme: () => ({ theme: "dark" }) }));
+vi.mock("@/contexts/theme_context", () => ({
+  useTheme: () => ({ theme: "dark" }),
+}));
 vi.mock("@/contexts/preferences_context", () => ({
   use_preferences: () => ({ preferences: {} }),
   FONT_SIZE_DEFAULT: 14,
   normalize_font_size_scale: (value: number) => value,
 }));
-vi.mock("@/lib/i18n/context", () => ({ use_i18n: () => ({ t: (key: string) => key }) }));
+vi.mock("@/lib/i18n/context", () => ({
+  use_i18n: () => ({ t: (key: string) => key }),
+}));
 vi.mock("@/services/api/client", () => ({
   api_client: { get_access_token: () => null },
 }));
-vi.mock("@/services/routing/routing_provider", () => ({ routed_fetch: vi.fn() }));
+vi.mock("@/services/routing/routing_provider", () => ({
+  routed_fetch: vi.fn(),
+}));
 vi.mock("@/services/routing/connection_store", () => ({
-  connection_store: { get_method: () => "direct", get_api_onion_url: () => null },
+  connection_store: {
+    get_method: () => "direct",
+    get_api_onion_url: () => null,
+  },
 }));
 
 const { fit_zoom_for } = await import("./sandboxed_email_renderer");

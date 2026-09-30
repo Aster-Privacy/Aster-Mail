@@ -36,11 +36,9 @@ const unsorted = [
 
 describe("sort_emails_by_timestamp", () => {
   it("sorts newest first when descending", () => {
-    expect(sort_emails_by_timestamp(unsorted, "desc").map((e) => e.id)).toEqual([
-      "newest",
-      "middle",
-      "oldest",
-    ]);
+    expect(sort_emails_by_timestamp(unsorted, "desc").map((e) => e.id)).toEqual(
+      ["newest", "middle", "oldest"],
+    );
   });
 
   it("sorts oldest first when ascending", () => {
@@ -53,6 +51,7 @@ describe("sort_emails_by_timestamp", () => {
 
   it("does not mutate the input array", () => {
     const input = [...unsorted];
+
     sort_emails_by_timestamp(input, "asc");
     expect(input.map((e) => e.id)).toEqual(["middle", "newest", "oldest"]);
   });
@@ -62,9 +61,36 @@ describe("sort_emails_by_timestamp", () => {
       { id: "a", timestamp: "2021-01-01T00:00:00.000Z" } as InboxEmail,
       { id: "b", timestamp: "2023-01-01T00:00:00.000Z" } as InboxEmail,
     ];
+
     expect(sort_emails_by_timestamp(items, "desc").map((e) => e.id)).toEqual([
       "b",
       "a",
+    ]);
+  });
+  it("keeps valid dates ordered when a message has an unparsable date", () => {
+    const items = [
+      email("newest", "2024-01-01T00:00:00.000Z"),
+      email("broken", "Tue, 32 Foo 2024 99:99:99 +9900"),
+      email("middle", "2022-01-01T00:00:00.000Z"),
+      email("oldest", "2020-01-01T00:00:00.000Z"),
+    ];
+
+    expect(
+      sort_emails_by_timestamp(items, "desc")
+        .map((e) => e.id)
+        .filter((id) => id !== "broken"),
+    ).toEqual(["newest", "middle", "oldest"]);
+  });
+
+  it("sorts an unparsable date to the end when descending", () => {
+    const items = [
+      email("broken", "not a date"),
+      email("real", "2020-01-01T00:00:00.000Z"),
+    ];
+
+    expect(sort_emails_by_timestamp(items, "desc").map((e) => e.id)).toEqual([
+      "real",
+      "broken",
     ]);
   });
 });

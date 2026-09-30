@@ -24,18 +24,17 @@ import type {
   MailItemMetadata,
 } from "@/types/email";
 
-import {
-  list_mail_items,
-} from "@/services/api/mail";
-import {
-  decrypt_mail_metadata,
-} from "@/services/crypto/mail_metadata";
-import {
-  type FormatOptions,
-} from "@/utils/date_format";
-import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
 import { decrypt_envelope } from "./decrypt";
 import { mail_to_email_safe } from "./mapping";
+
+import { list_mail_items } from "@/services/api/mail";
+import { map_sync_in_chunks } from "@/lib/scheduling";
+import { decrypt_mail_metadata } from "@/services/crypto/mail_metadata";
+import { type FormatOptions } from "@/utils/date_format";
+import { decrypt_body_text_with_bundle } from "@/utils/email_crypto";
+import { apply_flag_intents } from "@/services/read_intent";
+
+const MAP_CHUNK_SIZE = 25;
 
 export interface FetchByIdsResult {
   emails: InboxEmail[];
@@ -58,6 +57,7 @@ export async function fetch_mail_by_ids_reconciled(
     };
   }
 
+  const fetched_at = Date.now();
   const response = await list_mail_items({ ids });
 
   if (!response.data) {
@@ -81,7 +81,11 @@ export async function fetch_mail_by_ids_reconciled(
 
       try {
         [envelope, metadata] = await Promise.all([
-          decrypt_envelope(item.encrypted_envelope, item.envelope_nonce, item.id),
+          decrypt_envelope(
+            item.encrypted_envelope,
+            item.envelope_nonce,
+            item.id,
+          ),
           has_metadata
             ? decrypt_mail_metadata(
                 item.encrypted_metadata!,
@@ -113,25 +117,23 @@ export async function fetch_mail_by_ids_reconciled(
         }
       }
 
-      const email = mail_to_email_safe(
-        item,
-        envelope,
-        metadata,
-        format_options,
-      );
-
-      if (!email) throw new Error("unconvertible mail item");
-
-      return email;
+      return { item, envelope, metadata };
     }),
   );
 
+  const decrypted = results.flatMap((result) =>
+    result.status === "fulfilled" ? [result.value] : [],
+  );
+  const mapped = await map_sync_in_chunks(
+    decrypted,
+    ({ item, envelope, metadata }) =>
+      mail_to_email_safe(item, envelope, metadata, format_options),
+    MAP_CHUNK_SIZE,
+  );
   const by_id = new Map<string, InboxEmail>();
 
-  for (const result of results) {
-    if (result.status === "fulfilled") {
-      by_id.set(result.value.id, result.value);
-    }
+  for (const email of mapped) {
+    if (email) by_id.set(email.id, email);
   }
 
   const emails = ids
@@ -142,6 +144,10 @@ export async function fetch_mail_by_ids_reconciled(
     (id) => server_ids.has(id) && !by_id.has(id),
   );
 
-  return { emails, missing_ids, unrenderable_ids, request_ok: true };
+  return {
+    emails: apply_flag_intents(emails, fetched_at),
+    missing_ids,
+    unrenderable_ids,
+    request_ok: true,
+  };
 }
-

@@ -203,7 +203,10 @@ describe("thread_imported_emails", () => {
 
     expect(await run()).toBe(1);
     expect(submitted()).toEqual([
-      expect.objectContaining({ item_id: "reply", thread_token: "parent-token" }),
+      expect.objectContaining({
+        item_id: "reply",
+        thread_token: "parent-token",
+      }),
     ]);
   });
 

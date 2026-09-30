@@ -32,7 +32,7 @@ import {
   StarIcon,
   AdjustmentsHorizontalIcon,
 } from "@heroicons/react/24/outline";
-import { Tooltip } from "@aster/ui";
+import { IslandIconButton, Tooltip } from "@aster/ui";
 
 import {
   MIN_LIST_WIDTH,
@@ -42,8 +42,11 @@ import {
   extract_snippet,
 } from "./helpers";
 import { use_search_results_page } from "./use_search_results_page";
+import { search_row_key } from "./thread_grouping";
 
+import { use_indexing_progress } from "@/hooks/use_search/progress";
 import { emit_mail_items_removed } from "@/hooks/mail_events";
+import { build_sender_mail_query } from "@/utils/contact_mail_search";
 import { InboxHeader } from "@/components/inbox/inbox_header";
 import { InboxEmailListItem } from "@/components/email/inbox_email_list_item";
 import { EmailContextMenuContent } from "@/components/email/email_context_menu";
@@ -71,6 +74,15 @@ import { SearchChipRow } from "@/components/search/search_chip_row";
 import { CorrectionNotice } from "@/components/search/correction_notice";
 import { AdvancedSearchModal } from "@/components/search/advanced_search_modal";
 import { resolve_list_density } from "@/lib/list_density";
+import { show_toast } from "@/components/toast/simple_toast";
+import { use_open_reply_compose } from "@/components/email/inbox/use_open_reply_compose";
+import { use_auth } from "@/contexts/auth_context";
+import { use_folders } from "@/hooks/use_folders";
+import { snooze_email } from "@/services/api/snooze";
+import { bulk_add_folder, bulk_remove_folder } from "@/services/api/mail";
+import { use_tags } from "@/hooks/use_tags";
+import { bulk_add_tag, bulk_remove_tag } from "@/services/api/tags";
+import { open_email_in_new_window } from "@/utils/open_email_window";
 
 export function SearchResultsPage(props: SearchResultsPageProps) {
   const {
@@ -82,6 +94,8 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     on_split_close,
     on_settings_click,
     on_quick_settings_click,
+    on_reply,
+    on_forward,
   } = props;
   const {
     t,
@@ -103,6 +117,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     set_search_page,
     perform_search,
     handle_disable_content_search,
+    handle_enable_content_search,
     search_terms,
     filtered_results,
     paged_results,
@@ -135,8 +150,10 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
     search_can_go_next,
     handle_search_navigate_prev,
     handle_search_navigate_next,
+    handle_search_auto_advance,
     show_full_email_viewer,
   } = use_search_results_page(props);
+  const indexing = use_indexing_progress();
   const is_split_view = !!split_email_id;
 
   const sort_dropdown = (
@@ -192,7 +209,17 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
 
       if (!target) return;
 
-      const emails = await fetch_as_minimal_emails([target.id]);
+      const { emails, failed } = await fetch_as_minimal_emails(
+        (target.grouped_email_ids?.length ?? 0) > 1
+          ? (target.grouped_email_ids as string[])
+          : [target.id],
+      );
+
+      if (failed) {
+        show_toast(t("common.something_went_wrong_try_again"), "error");
+
+        return;
+      }
 
       if (emails.length === 0) return;
 
@@ -200,19 +227,108 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
 
       if (removes) emit_mail_items_removed({ ids: emails.map((e) => e.id) });
     },
-    [fetch_as_minimal_emails],
+    [fetch_as_minimal_emails, t],
+  );
+
+  const { user } = use_auth();
+  const open_reply_compose = use_open_reply_compose(
+    on_reply,
+    on_forward,
+    user?.email,
+  );
+  const { state: tags_state } = use_tags();
+  const menu_tags = useMemo(
+    () =>
+      tags_state.tags.map((tag) => ({
+        tag_token: tag.tag_token,
+        name: tag.name,
+        color: tag.color || "#6366f1",
+        is_assigned: (menu_email?.tags ?? []).some(
+          (assigned) => assigned.id === tag.tag_token,
+        ),
+      })),
+    [tags_state.tags, menu_email],
+  );
+
+  const handle_menu_tag_toggle = useCallback(
+    (tag_token: string) =>
+      void run_single(async (emails) => {
+        const ids = emails.map((email) => email.id);
+        const tag = menu_tags.find((entry) => entry.tag_token === tag_token);
+        const result = tag?.is_assigned
+          ? await bulk_remove_tag(ids, tag_token)
+          : await bulk_add_tag(ids, tag_token);
+
+        if (result.error) {
+          show_toast(t("common.failed_to_update"), "error");
+
+          return;
+        }
+
+        const label = tag?.name || t("common.label_fallback");
+
+        show_toast(
+          tag?.is_assigned
+            ? t("common.removed_label", { label })
+            : t("common.added_label", { label }),
+          "success",
+        );
+        perform_search(props.query);
+      }, false),
+    [run_single, menu_tags, perform_search, props.query, t],
+  );
+
+  const { state: folders_state } = use_folders();
+  const menu_folders = useMemo(
+    () =>
+      folders_state.folders
+        .filter((folder) => !folder.is_system)
+        .map((folder) => ({
+          id: folder.folder_token,
+          name: folder.name,
+          color: folder.color || "#6366f1",
+        })),
+    [folders_state.folders],
+  );
+
+  const handle_menu_folder_toggle = useCallback(
+    (folder_token: string) =>
+      void run_single(async (emails) => {
+        const ids = emails.map((email) => email.id);
+        const assigned = (menu_email_ref.current?.folders ?? []).some(
+          (folder) => folder.folder_token === folder_token,
+        );
+        const result = assigned
+          ? await bulk_remove_folder(ids, folder_token)
+          : await bulk_add_folder(ids, folder_token);
+
+        if (result.error) {
+          show_toast(t("common.failed_to_update"), "error");
+
+          return;
+        }
+
+        const folder_name =
+          menu_folders.find((folder) => folder.id === folder_token)?.name ||
+          t("common.folder_fallback");
+
+        show_toast(
+          assigned
+            ? t("common.removed_from_folder", { folder: folder_name })
+            : t("common.moved_to_folder", { folder: folder_name }),
+          "success",
+        );
+        perform_search(props.query);
+      }, false),
+    [run_single, menu_folders, perform_search, props.query, t],
   );
 
   const overflow_menu = (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button
-          aria-label={t("common.more")}
-          className="h-9 w-9 rounded-[10px] flex items-center justify-center transition-colors hover:bg-[var(--bg-hover)] text-[var(--icon-secondary)] hover:text-[var(--icon-active)] flex-shrink-0"
-          type="button"
-        >
-          <EllipsisVerticalIcon className="w-[18px] h-[18px]" />
-        </button>
+        <IslandIconButton label={t("common.more")}>
+          <EllipsisVerticalIcon />
+        </IslandIconButton>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
         <DropdownMenuItem onClick={() => handle_select_by_filter("unread")}>
@@ -250,13 +366,13 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
 
   const handle_find_from_sender = useCallback(
     (email: { sender_email?: string | null }) => {
-      const sender = (email.sender_email || "").trim();
+      const sender_query = build_sender_mail_query(email.sender_email);
 
-      if (!sender) return;
+      if (!sender_query) return;
       set_selected_ids(new Set());
       window.dispatchEvent(
         new CustomEvent("astermail:open-search-with-query", {
-          detail: { query: `from:${sender}` },
+          detail: { query: sender_query },
         }),
       );
     },
@@ -264,7 +380,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
   );
 
   const slow_notice = (
-    <div className="flex flex-col items-center justify-center text-center gap-1.5 px-4 py-8 border-b border-edge-secondary">
+    <div className="flex flex-col items-center justify-center text-center gap-1.5 px-4 py-8 border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]">
       <p
         className="text-sm font-medium"
         style={{ color: "var(--text-primary)" }}
@@ -317,7 +433,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             {state.error}
           </p>
           <button
-            className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-[12px] text-xs font-medium transition-colors bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)] hover:opacity-90"
+            className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-[var(--aster-radius-control)] text-xs font-medium transition-colors bg-[var(--accent-blue)] text-[var(--accent-fg,#ffffff)] hover:opacity-90"
             onClick={() => {
               clear_index();
               perform_search(query);
@@ -326,6 +442,28 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             <ArrowPathIcon className="w-3.5 h-3.5" />
             {t("common.retry")}
           </button>
+        </div>
+      ) : filtered_results.length === 0 && state.index_pending ? (
+        <div className="flex flex-col items-center justify-center py-16 px-4">
+          <ArrowPathIcon
+            className="w-10 h-10 mb-4 animate-spin"
+            style={{ color: "var(--text-muted)" }}
+          />
+          <p
+            className="text-sm font-medium mb-1"
+            style={{ color: "var(--text-primary)" }}
+          >
+            {t("mail.indexing_messages")}
+          </p>
+          <p
+            className="text-xs text-center max-w-[280px]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            {t("mail.message_download_status", {
+              done: state.indexed_count,
+              total: Math.max(indexing.total, state.indexed_count),
+            })}
+          </p>
         </div>
       ) : filtered_results.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 px-4">
@@ -347,11 +485,43 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
               ? t("mail.try_adjusting_filters")
               : t("mail.no_emails_match_query", { query })}
           </p>
+          {!content_search_enabled && (
+            <button
+              className="mt-3 text-xs font-medium text-blue-500 rounded px-1.5 py-0.5 hover:bg-blue-500/10 transition-colors"
+              type="button"
+              onClick={handle_enable_content_search}
+            >
+              {t("mail.search_message_content")}
+            </button>
+          )}
+          {state.hidden_spam_trash > 0 && (
+            <div
+              className="mt-4 flex flex-col items-center gap-1 text-xs text-center max-w-[280px]"
+              style={{ color: "var(--text-secondary)" }}
+            >
+              <span>{t("mail.spam_trash_hidden_notice")}</span>
+              {on_search_submit && (
+                <button
+                  className="font-medium text-blue-500 hover:underline"
+                  type="button"
+                  onClick={() =>
+                    on_search_submit(
+                      query.includes("in:anywhere")
+                        ? query
+                        : `${query.trim()} in:anywhere`.trim(),
+                    )
+                  }
+                >
+                  {t("mail.view_spam_trash_messages")}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       ) : (
         <>
           <CorrectionNotice
-            className="border-b border-edge-secondary"
+            className="border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]"
             correction={state.correction}
             on_dismiss={dismiss_correction}
           />
@@ -366,12 +536,20 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
 
             return (
               <InboxEmailListItem
-                key={email.id}
-                className="border-b border-edge-secondary"
+                key={search_row_key(
+                  email,
+                  preferences.conversation_grouping !== false,
+                )}
+                className="border-b border-[var(--aster-island-divider,var(--aster-floating-divider,var(--border-secondary)))]"
                 current_view="search"
                 density={resolve_list_density(preferences.mail_list_density)}
                 email={email as InboxEmail}
-                is_active={email.id === split_email_id}
+                is_active={
+                  !!split_email_id &&
+                  (email.id === split_email_id ||
+                    (email.grouped_email_ids?.includes(split_email_id) ??
+                      false))
+                }
                 on_email_click={handle_email_click}
                 on_toggle_select={handle_toggle_select}
                 search_preview_node={
@@ -424,6 +602,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
           key={menu_email.id}
           current_view="search"
           email={menu_email}
+          folders={menu_folders}
           on_archive={() =>
             menu_selection
               ? void handle_bulk_archive()
@@ -441,11 +620,38 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
                 )
           }
           on_find_from_sender={() => handle_find_from_sender(menu_email)}
+          on_folder_toggle={
+            menu_selection ? undefined : handle_menu_folder_toggle
+          }
+          on_forward={() => open_reply_compose("forward", menu_email)}
           on_mark_read={
             menu_selection ? () => void handle_bulk_mark_read() : undefined
           }
           on_mark_unread={
             menu_selection ? () => void handle_bulk_mark_unread() : undefined
+          }
+          on_open_in_new_window={() => {
+            if (!open_email_in_new_window(menu_email.id)) {
+              show_toast(t("common.something_went_wrong"), "error");
+            }
+          }}
+          on_reply={() => open_reply_compose("reply", menu_email)}
+          on_reply_all={() => open_reply_compose("reply_all", menu_email)}
+          on_snooze={
+            menu_selection
+              ? undefined
+              : (snooze_until: Date) =>
+                  run_single(async (emails) => {
+                    const results = await Promise.all(
+                      emails.map((email) =>
+                        snooze_email(email.id, snooze_until),
+                      ),
+                    );
+
+                    if (results.some((result) => result.error)) {
+                      show_toast(t("common.failed_to_update"), "error");
+                    }
+                  }, true)
           }
           on_spam={() =>
             menu_selection
@@ -455,6 +661,16 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
                   true,
                 )
           }
+          on_tag_toggle={menu_selection ? undefined : handle_menu_tag_toggle}
+          on_toggle_pin={() =>
+            void run_single(
+              (emails) =>
+                Promise.all(
+                  emails.map((email) => email_actions.toggle_pin(email)),
+                ),
+              false,
+            )
+          }
           on_toggle_read={() =>
             void run_single(
               (emails) =>
@@ -463,6 +679,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             )
           }
           selection={menu_selection ?? undefined}
+          tags={menu_tags}
         />
       )}
     </ContextMenu>
@@ -493,7 +710,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
                   type="button"
                   onClick={on_close}
                 >
-                  <ArrowLeftIcon className="w-[18px] h-[18px]" />
+                  <ArrowLeftIcon className="w-[18px] h-[18px] rtl:-scale-x-100" />
                 </button>
               </Tooltip>
             }
@@ -537,6 +754,20 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
               query={query}
             />
           )}
+          {state.index_incomplete && (
+            <div
+              className="flex items-center gap-2 px-4 py-2 text-xs border-b"
+              style={{
+                backgroundColor: "var(--bg-secondary)",
+                borderColor: "var(--border-secondary)",
+                color: "var(--text-secondary)",
+              }}
+            >
+              <span className="min-w-0">
+                {t("mail.search_index_incomplete")}
+              </span>
+            </div>
+          )}
           {state.hidden_spam_trash > 0 && (
             <div
               className="flex items-center gap-2 px-4 py-2 text-xs border-b"
@@ -576,6 +807,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             can_go_prev={search_can_go_prev}
             current_index={search_nav_index >= 0 ? search_nav_index : undefined}
             email_id={split_email_id}
+            on_advance={handle_search_auto_advance}
             on_back={on_split_close || (() => {})}
             on_navigate_next={handle_search_navigate_next}
             on_navigate_prev={handle_search_navigate_prev}
@@ -613,7 +845,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
             }}
             onMouseDown={handle_drag_start}
           >
-            <div className="absolute inset-y-0 -left-1.5 -right-1.5" />
+            <div className="absolute inset-y-0 -start-1.5 -end-1.5" />
           </div>
           <div
             ref={detail_panel_ref}
@@ -631,6 +863,7 @@ export function SearchResultsPage(props: SearchResultsPageProps) {
                 search_nav_index >= 0 ? search_nav_index : undefined
               }
               email_id={split_email_id}
+              on_advance={handle_search_auto_advance}
               on_close={on_split_close || (() => {})}
               on_navigate_next={handle_search_navigate_next}
               on_navigate_prev={handle_search_navigate_prev}

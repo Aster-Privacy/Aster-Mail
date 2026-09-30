@@ -21,7 +21,7 @@
 import type { DecryptedThreadMessage } from "@/types/thread";
 import type { QueuedEmailInternal } from "./send_queue_types";
 
-import { get_current_account } from "./account_manager";
+import { resolve_current_user } from "./current_identity";
 import {
   encrypt_for_recipients,
   create_sent_envelope,
@@ -33,11 +33,12 @@ import {
 } from "./reaction_restrictions";
 import { get_cached_preferences } from "./api/preferences";
 import { is_internal_email } from "./api/keys";
+
 import {
   get_cached_sender_identity_for_address,
   type CachedSenderIdentity,
 } from "@/hooks/use_sender_aliases";
-import { en } from "@/lib/i18n/translations/en";
+import { get_active_translations } from "@/lib/i18n/translations";
 
 export interface ReactionResult {
   success: boolean;
@@ -91,9 +92,8 @@ export function is_own_reaction_address(email: string): boolean {
 function resolve_reaction_in_reply_to(
   message: DecryptedThreadMessage,
 ): string | undefined {
-  return message.raw_headers?.find(
-    (h) => h.name.toLowerCase() === "message-id",
-  )?.value;
+  return message.raw_headers?.find((h) => h.name.toLowerCase() === "message-id")
+    ?.value;
 }
 
 export async function remove_reaction(
@@ -105,16 +105,17 @@ export async function remove_reaction(
     if (response.error || !response.data?.success) {
       return {
         success: false,
-        error: response.error ?? en.errors.failed_remove_reaction,
+        error:
+          response.error ??
+          get_active_translations().errors.failed_remove_reaction,
       };
     }
 
     return { success: true };
-  } catch (err) {
+  } catch {
     return {
       success: false,
-      error:
-        err instanceof Error ? err.message : en.errors.failed_remove_reaction,
+      error: get_active_translations().errors.failed_remove_reaction,
     };
   }
 }
@@ -125,16 +126,22 @@ export async function send_reaction(
   thread_token?: string,
 ): Promise<ReactionResult> {
   if (get_cached_preferences()?.reactions_enabled === false) {
-    return { success: false, error: en.errors.reactions_disabled };
+    return {
+      success: false,
+      error: get_active_translations().errors.reactions_disabled,
+    };
   }
 
-  const current_account = await get_current_account();
+  const current_user = await resolve_current_user();
 
-  if (!current_account) {
-    return { success: false, error: en.errors.no_active_account };
+  if (!current_user?.email) {
+    return {
+      success: false,
+      error: get_active_translations().errors.no_active_account,
+    };
   }
 
-  const primary_email = current_account.user.email;
+  const primary_email = current_user.email;
   const restriction = reaction_restriction(
     message,
     primary_email,
@@ -145,14 +152,20 @@ export async function send_reaction(
   if (restriction) {
     return {
       success: false,
-      error: en.errors[reaction_restriction_keys[restriction]],
+      error:
+        get_active_translations().errors[
+          reaction_restriction_keys[restriction]
+        ],
     };
   }
 
   const recipient = resolve_reaction_recipient(message, primary_email);
 
   if (!recipient) {
-    return { success: false, error: en.errors.no_recipients };
+    return {
+      success: false,
+      error: get_active_translations().errors.no_recipients,
+    };
   }
 
   const alias_identity = resolve_reaction_sender_identity(
@@ -180,7 +193,10 @@ export async function send_reaction(
       body,
     };
 
-    const envelope_data = await create_sent_envelope(queued_email, sender_email);
+    const envelope_data = await create_sent_envelope(
+      queued_email,
+      sender_email,
+    );
 
     const response = await react_to_message({
       target_message_id: message.id,
@@ -201,10 +217,19 @@ export async function send_reaction(
         : resolve_reaction_in_reply_to(message),
     });
 
+    if (response.server_code === "REACTION_LIMIT_REACHED") {
+      return {
+        success: false,
+        error: get_active_translations().errors.cannot_react_limit,
+      };
+    }
+
     if (response.error || !response.data?.success) {
       return {
         success: false,
-        error: response.error ?? en.errors.failed_send_reaction,
+        error:
+          response.error ??
+          get_active_translations().errors.failed_send_reaction,
       };
     }
 
@@ -212,10 +237,10 @@ export async function send_reaction(
       success: true,
       own_reaction_mail_item_id: response.data.own_reaction_mail_item_id,
     };
-  } catch (err) {
+  } catch {
     return {
       success: false,
-      error: err instanceof Error ? err.message : en.errors.failed_send_reaction,
+      error: get_active_translations().errors.failed_send_reaction,
     };
   }
 }

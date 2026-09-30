@@ -19,29 +19,17 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { memo } from "react";
-import {
-  DocumentIcon,
-  PhotoIcon,
-  FilmIcon,
-  MusicalNoteIcon,
-  ArrowDownTrayIcon,
-} from "@heroicons/react/24/outline";
+import { MobileAttachmentRow as MobileAttachmentRowView } from "@aster/ui";
 
 import { format_bytes } from "@/lib/utils";
+import { use_i18n } from "@/lib/i18n/context";
 
 interface MobileAttachmentRowProps {
   filename: string;
   content_type: string;
   size: number;
   on_download?: () => void;
-}
-
-function get_file_icon(content_type: string) {
-  if (content_type.startsWith("image/")) return PhotoIcon;
-  if (content_type.startsWith("video/")) return FilmIcon;
-  if (content_type.startsWith("audio/")) return MusicalNoteIcon;
-
-  return DocumentIcon;
+  is_downloading?: boolean;
 }
 
 export const MobileAttachmentRow = memo(function MobileAttachmentRow({
@@ -49,29 +37,18 @@ export const MobileAttachmentRow = memo(function MobileAttachmentRow({
   content_type,
   size,
   on_download,
+  is_downloading = false,
 }: MobileAttachmentRowProps) {
-  const FileIcon = get_file_icon(content_type);
+  const { t } = use_i18n();
 
   return (
-    <div className="flex items-center gap-3 rounded-lg bg-[var(--bg-tertiary)] px-4 py-2.5">
-      <FileIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-[14px] text-[var(--text-primary)]">
-          {filename}
-        </p>
-        <p className="text-[12px] text-[var(--text-muted)]">
-          {format_bytes(size)}
-        </p>
-      </div>
-      {on_download && (
-        <button
-          className="flex h-8 w-8 items-center justify-center rounded-full text-[var(--text-secondary)] active:bg-[var(--bg-secondary)]"
-          type="button"
-          onClick={on_download}
-        >
-          <ArrowDownTrayIcon className="h-4.5 w-4.5" />
-        </button>
-      )}
-    </div>
+    <MobileAttachmentRowView
+      content_type={content_type}
+      download_label={t("common.download")}
+      filename={filename}
+      is_downloading={is_downloading}
+      size_label={format_bytes(size)}
+      on_download={on_download}
+    />
   );
 });

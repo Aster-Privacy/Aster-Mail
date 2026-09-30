@@ -20,7 +20,7 @@
 //
 import { describe, it, expect } from "vitest";
 
-import { detect_homoglyph } from "./homoglyph_detector";
+import { detect_homoglyph, decode_punycode_domain } from "./homoglyph_detector";
 
 describe("detect_homoglyph", () => {
   it("does not flag legitimate plain-ascii domains", () => {
@@ -53,5 +53,44 @@ describe("detect_homoglyph", () => {
     const result = detect_homoglyph("secure.paypaｌ.example.net");
 
     expect(result.has_mixed_scripts).toBe(true);
+  });
+
+  it("does not flag brand domains on other public suffixes", () => {
+    expect(detect_homoglyph("amazon.de").is_suspicious).toBe(false);
+    expect(detect_homoglyph("google.co.uk").is_suspicious).toBe(false);
+    expect(detect_homoglyph("github.io").is_suspicious).toBe(false);
+    expect(detect_homoglyph("paypal.me").is_suspicious).toBe(false);
+  });
+
+  it("does not flag a plain-ascii near miss of a brand", () => {
+    expect(detect_homoglyph("gogle.com").is_suspicious).toBe(false);
+  });
+
+  it("flags a confusable-only label that normalizes to a brand", () => {
+    const result = detect_homoglyph("раyраl.com");
+
+    expect(result.is_suspicious).toBe(true);
+    expect(result.matched_brand).toBe("paypal");
+  });
+
+  it("flags a punycode label that decodes to a confusable brand", () => {
+    const result = detect_homoglyph("xn--80ak6aa92e.com");
+
+    expect(result.is_suspicious).toBe(true);
+    expect(result.matched_brand).toBe("apple");
+    expect(result.original_domain).toBe("xn--80ak6aa92e.com");
+  });
+
+  it("flags a mixed-script punycode near miss", () => {
+    const result = detect_homoglyph("xn--gogle-rce.com");
+
+    expect(result.is_suspicious).toBe(true);
+    expect(result.has_mixed_scripts).toBe(true);
+  });
+
+  it("decodes punycode labels and leaves ascii labels alone", () => {
+    expect(decode_punycode_domain("xn--80ak6aa92e.com")).toBe("аррӏе.com");
+    expect(decode_punycode_domain("xn--mnchen-3ya.de")).toBe("münchen.de");
+    expect(decode_punycode_domain("example.com")).toBe("example.com");
   });
 });

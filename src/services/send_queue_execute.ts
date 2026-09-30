@@ -18,39 +18,66 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { extract_inline_images, type Attachment } from "@/components/compose/compose_shared";
-import { en } from "@/lib/i18n/translations/en";
-import { format_bytes } from "@/lib/utils";
-import { build_subject_bundle, discover_external_recipient_keys } from "@/utils/email_crypto";
-import { get_current_account } from "./account_manager";
+import { resolve_current_user } from "./current_identity";
 import { create_attachment } from "./api/attachments";
 import { mark_thread_read } from "./api/mail";
 import { send_external_email, send_simple_email } from "./api/send";
-import { encrypt_attachments_for_send, prepare_external_attachments } from "./crypto/attachment_crypto";
+import { describe_send_refusal } from "./send_refusal";
+import {
+  encrypt_attachments_for_send,
+  prepare_external_attachments,
+} from "./crypto/attachment_crypto";
 import { array_to_base64 } from "./crypto/envelope";
 import { encrypt_secure_message } from "./crypto/secure_message_crypto";
-import { check_send_readiness_internal, encrypt_for_recipients } from "./send_queue_body_encryption";
+import {
+  check_send_readiness_internal,
+  encrypt_for_recipients,
+} from "./send_queue_body_encryption";
 import { create_sent_envelope } from "./send_queue_envelope";
 import { encrypt_with_ephemeral_key } from "./send_queue_ephemeral";
 import { fetch_internal_public_keys } from "./send_queue_recipients";
-import { build_signed_mime_payload, should_attach_signed_mime } from "./send_queue_signed_mime";
-import { SendError, create_error, format_time_remaining, type EmailParams, type QueuedEmailInternal } from "./send_queue_types";
+import { OBSCURED_SUBJECT_PLACEHOLDER } from "./pgp_protected_mime";
+import {
+  build_signed_mime_payload,
+  should_attach_signed_mime,
+  should_obscure_outer_subject,
+} from "./send_queue_signed_mime";
+import {
+  SendError,
+  create_error,
+  type EmailParams,
+  type QueuedEmailInternal,
+} from "./send_queue_types";
 
+import {
+  build_subject_bundle,
+  discover_external_recipient_keys,
+} from "@/utils/email_crypto";
+import { format_bytes } from "@/lib/utils";
+import { get_active_translations } from "@/lib/i18n/translations";
+import {
+  extract_inline_images,
+  type Attachment,
+} from "@/components/compose/compose_shared";
 import { ignore_error } from "@/lib/ignore_error";
 
-export async function execute_send(email: QueuedEmailInternal): Promise<void> {
+export async function execute_send(
+  email: QueuedEmailInternal,
+): Promise<string | undefined> {
   const readiness = check_send_readiness_internal();
 
   if (readiness.ready === false) {
     throw readiness.error;
   }
 
-  const current_account = await get_current_account();
+  const current_user = await resolve_current_user();
 
-  if (!current_account?.user?.email) {
-    throw new SendError(en.errors.no_authenticated_account);
+  if (!current_user?.email) {
+    throw new SendError(
+      get_active_translations().errors.no_authenticated_account,
+    );
   }
-  const sender_email = email.sender_email || current_account.user.email;
+  const sender_email = email.sender_email || current_user.email;
 
   const all_recipients = [
     ...email.to,
@@ -89,7 +116,9 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
       email.allow_non_post_quantum === true,
     );
 
-  const final_recipient_body = is_encrypted ? encrypted_body : body_for_recipient;
+  const final_recipient_body = is_encrypted
+    ? encrypted_body
+    : body_for_recipient;
   const final_subject = is_encrypted ? "" : email.subject;
   const internal_copy_is_encrypted = is_encrypted || !!internal_encrypted_body;
 
@@ -112,7 +141,7 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
     if (internal_copy_is_encrypted && recipient_public_keys.length === 0) {
       throw create_error(
         "encryption_failed",
-        en.errors.cannot_send_no_recipient_keys,
+        get_active_translations().errors.cannot_send_no_recipient_keys,
       );
     }
 
@@ -149,26 +178,86 @@ export async function execute_send(email: QueuedEmailInternal): Promise<void> {
   const result = await send_simple_email(request);
 
   if (!result.data?.success) {
-    if (result.code === "RATE_LIMIT_EXCEEDED" && result.resets_at) {
-      const time = format_time_remaining(result.resets_at);
+    const refusal = describe_send_refusal(result);
 
-      throw create_error(
-        "rate_limited",
-        en.errors.daily_limit_reached.replace("{{time}}", time),
-      );
+    if (refusal) {
+      throw create_error(refusal.kind, refusal.message, result.status);
     }
-    throw create_error("send_failed", result.error || en.errors.failed_send_email);
+    throw create_error(
+      "send_failed",
+      result.error || get_active_translations().errors.failed_send_email,
+      result.status,
+    );
   }
 
   if (effective_thread_id) {
-    mark_thread_read(effective_thread_id).catch((caught) => ignore_error("services/send_queue_execute:execute_send", caught));
+    mark_thread_read(effective_thread_id).catch((caught) =>
+      ignore_error("services/send_queue_execute:execute_send", caught),
+    );
+  }
+
+  return result.data.mail_item_id;
+}
+
+const SENT_COPY_ATTACHMENT_ATTEMPTS = 3;
+const SENT_COPY_ATTACHMENT_RETRY_MS = 200;
+
+async function create_attachment_with_retry(
+  mail_item_id: string,
+  payload: Parameters<typeof create_attachment>[1],
+): Promise<void> {
+  let last_error: unknown = null;
+
+  for (let attempt = 0; attempt < SENT_COPY_ATTACHMENT_ATTEMPTS; attempt++) {
+    try {
+      await create_attachment(mail_item_id, payload);
+
+      return;
+    } catch (caught) {
+      last_error = caught;
+
+      if (attempt < SENT_COPY_ATTACHMENT_ATTEMPTS - 1) {
+        await new Promise((resolve) =>
+          setTimeout(resolve, SENT_COPY_ATTACHMENT_RETRY_MS * (attempt + 1)),
+        );
+      }
+    }
+  }
+
+  throw last_error;
+}
+
+async function store_sent_copy_attachments(
+  sent_copy_mail_item_id: string,
+  attachments: Attachment[],
+): Promise<void> {
+  try {
+    const encrypted_sender_attachments =
+      await encrypt_attachments_for_send(attachments);
+
+    for (let i = 0; i < encrypted_sender_attachments.length; i++) {
+      const att = encrypted_sender_attachments[i];
+
+      await create_attachment_with_retry(sent_copy_mail_item_id, {
+        encrypted_data: att.encrypted_data,
+        data_nonce: att.data_nonce,
+        encrypted_meta: att.sender_encrypted_meta,
+        meta_nonce: att.sender_meta_nonce,
+        seq_num: i,
+      });
+    }
+  } catch (caught) {
+    ignore_error(
+      "services/send_queue_execute:store_sent_copy_attachments",
+      caught,
+    );
   }
 }
 
 export async function execute_external_send(
   email: EmailParams,
   acknowledge_server_readable: boolean = true,
-): Promise<void> {
+): Promise<string | undefined> {
   const readiness = check_send_readiness_internal();
 
   if (readiness.ready === false) {
@@ -203,6 +292,8 @@ export async function execute_external_send(
 
   const encryption_opts = email.encryption_options;
 
+  let every_recipient_has_a_key = false;
+
   if (encryption_opts) {
     try {
       let recipient_keys = email.recipient_keys;
@@ -217,26 +308,30 @@ export async function execute_external_send(
       }
 
       if (recipient_keys && recipient_keys.length > 0) {
-        if (encryption_opts.require_encryption) {
-          const recipients_with_keys = new Set(
-            recipient_keys.map((r) => r.email.toLowerCase()),
-          );
-          const recipients_without_keys = all_recipients.filter(
-            (r) => !recipients_with_keys.has(r.toLowerCase()),
-          );
+        const recipients_with_keys = new Set(
+          recipient_keys.map((r) => r.email.toLowerCase()),
+        );
+        const recipients_without_keys = all_recipients.filter(
+          (r) => !recipients_with_keys.has(r.toLowerCase()),
+        );
 
+        every_recipient_has_a_key = recipients_without_keys.length === 0;
+
+        if (encryption_opts.require_encryption) {
           if (recipients_without_keys.length > 0) {
             throw create_error(
               "encryption_failed",
-              `Cannot send: encryption is required but no keys found for: ${recipients_without_keys.join(", ")}`,
+              get_active_translations().errors.cannot_send_no_keys.replace(
+                "{{recipients}}",
+                recipients_without_keys.join(", "),
+              ),
             );
           }
         }
-
       } else if (encryption_opts.require_encryption) {
         throw create_error(
           "encryption_failed",
-          en.errors.cannot_send_no_recipient_keys,
+          get_active_translations().errors.cannot_send_no_recipient_keys,
         );
       }
     } catch (enc_err) {
@@ -247,6 +342,7 @@ export async function execute_external_send(
         throw enc_err;
       }
       if (!encryption_opts.require_encryption) {
+        every_recipient_has_a_key = false;
         body_to_send = inline_images.length > 0 ? smtp_body : email.body;
       } else {
         throw enc_err;
@@ -285,13 +381,37 @@ export async function execute_external_send(
       kem_seed_nonce: encrypted_secure.kem_seed_nonce,
       encrypted_subject: encrypted_secure.encrypted_subject,
       encrypted_body: encrypted_secure.encrypted_body,
-      attachments_bundle: encrypted_secure.encrypted_attachments_bundle ?? undefined,
+      attachments_bundle:
+        encrypted_secure.encrypted_attachments_bundle ?? undefined,
     };
   }
 
+  const signed_mime_attached = should_attach_signed_mime({
+    recipients: all_recipients,
+    encrypt_emails: encryption_opts?.encrypt_emails,
+    require_encryption: encryption_opts?.require_encryption,
+    attachments: smtp_attachments,
+    secure_external: is_secure_external,
+  });
+
+  const encryption_active =
+    every_recipient_has_a_key &&
+    (encryption_opts?.encrypt_emails === true ||
+      encryption_opts?.require_encryption === true ||
+      email.force_pgp === true);
+
+  const obscure_outer_subject = should_obscure_outer_subject({
+    obscure_subject_preference: encryption_opts?.obscure_subject,
+    encryption_active,
+    signed_mime_attached,
+    secure_external: is_secure_external,
+  });
+
   const ephemeral_subject = is_secure_external
     ? "[secure message]"
-    : email.subject;
+    : obscure_outer_subject
+      ? OBSCURED_SUBJECT_PLACEHOLDER
+      : email.subject;
   const ephemeral_body = is_secure_external ? "[secure message]" : body_to_send;
 
   const encrypted = await encrypt_with_ephemeral_key(
@@ -300,12 +420,14 @@ export async function execute_external_send(
     ephemeral_body,
   );
 
-  const current_account = await get_current_account();
+  const current_user = await resolve_current_user();
 
-  if (!current_account?.user?.email) {
-    throw new SendError(en.errors.no_authenticated_account);
+  if (!current_user?.email) {
+    throw new SendError(
+      get_active_translations().errors.no_authenticated_account,
+    );
   }
-  const sender_email = email.sender_email || current_account.user.email;
+  const sender_email = email.sender_email || current_user.email;
 
   const internal_email: QueuedEmailInternal = {
     id: crypto.randomUUID(),
@@ -318,6 +440,7 @@ export async function execute_external_send(
     sender_email: email.sender_email,
     sender_alias_hash: email.sender_alias_hash,
     sender_display_name: email.sender_display_name,
+    attachments: email.attachments,
     scheduled_time: Date.now(),
     timeout_id: 0,
     callbacks: {
@@ -357,17 +480,10 @@ export async function execute_external_send(
     attachments: is_secure_external ? undefined : external_attachments,
     secure_message,
     force_pgp: is_secure_external ? undefined : email.force_pgp,
+    in_reply_to: email.in_reply_to,
   };
 
-  if (
-    should_attach_signed_mime({
-      recipients: all_recipients,
-      encrypt_emails: encryption_opts?.encrypt_emails,
-      require_encryption: encryption_opts?.require_encryption,
-      attachments: smtp_attachments,
-      secure_external: is_secure_external,
-    })
-  ) {
+  if (signed_mime_attached) {
     const signed = await build_signed_mime_payload({
       subject: email.subject || "",
       body: body_to_send,
@@ -376,6 +492,7 @@ export async function execute_external_send(
       cc: email.cc ?? [],
       bcc: email.bcc ?? [],
       attachments: smtp_attachments,
+      obscure_subject: obscure_outer_subject,
     });
 
     if (signed) {
@@ -398,43 +515,30 @@ export async function execute_external_send(
   const result = await send_external_email(external_request);
 
   if (!result.data?.success) {
-    if (result.code === "RATE_LIMIT_EXCEEDED" && result.resets_at) {
-      const time = format_time_remaining(result.resets_at);
+    const refusal = describe_send_refusal(result);
 
-      throw create_error(
-        "rate_limited",
-        en.errors.daily_limit_reached.replace("{{time}}", time),
-      );
+    if (refusal) {
+      throw create_error(refusal.kind, refusal.message, result.status);
     }
     throw create_error(
       "send_failed",
-      result.error || en.errors.failed_send_external,
+      result.error || get_active_translations().errors.failed_send_external,
+      result.status,
     );
   }
 
-  if (
-    result.data.mail_item_id &&
-    email.attachments &&
-    email.attachments.length > 0
-  ) {
-    const encrypted_sender_attachments = await encrypt_attachments_for_send(
-      email.attachments,
+  if (result.data.mail_item_id && smtp_attachments.length > 0) {
+    void store_sent_copy_attachments(
+      result.data.mail_item_id,
+      smtp_attachments,
     );
-
-    for (let i = 0; i < encrypted_sender_attachments.length; i++) {
-      const att = encrypted_sender_attachments[i];
-
-      await create_attachment(result.data.mail_item_id, {
-        encrypted_data: att.encrypted_data,
-        data_nonce: att.data_nonce,
-        encrypted_meta: att.sender_encrypted_meta,
-        meta_nonce: att.sender_meta_nonce,
-        seq_num: i,
-      });
-    }
   }
 
   if (effective_thread_id) {
-    mark_thread_read(effective_thread_id).catch((caught) => ignore_error("services/send_queue_execute:execute_external_send", caught));
+    mark_thread_read(effective_thread_id).catch((caught) =>
+      ignore_error("services/send_queue_execute:execute_external_send", caught),
+    );
   }
+
+  return result.data.mail_item_id;
 }

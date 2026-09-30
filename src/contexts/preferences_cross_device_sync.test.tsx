@@ -23,6 +23,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { PreferencesProvider, use_preferences } from "./preferences_context";
+
 import {
   DEFAULT_PREFERENCES,
   type UserPreferences,
@@ -119,7 +120,6 @@ vi.mock("@/components/email/hooks/preload_cache", () => ({
 }));
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;

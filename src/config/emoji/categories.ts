@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { EmojiCategory } from "./types";
+
 import { smileys } from "./smileys";
 import { gestures } from "./gestures";
 import { animals } from "./animals";

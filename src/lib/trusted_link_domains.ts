@@ -22,6 +22,8 @@ const TRUSTED_LINK_DOMAINS = [
   "astermail.org",
   "aster.cx",
   "realiased.me",
+  "astermail.me",
+  "astermail.net",
 ] as const;
 
 export function is_trusted_link(url: string): boolean {

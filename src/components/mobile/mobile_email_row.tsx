@@ -20,7 +20,7 @@
 //
 import type { InboxEmail } from "@/types/email";
 
-import { memo, useRef, useCallback, useMemo } from "react";
+import { memo, useRef, useCallback, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   AtSymbolIcon,
@@ -39,6 +39,7 @@ import {
 import { get_swipe_action } from "@/components/mobile/swipe_action_registry";
 import { PinIcon } from "@/components/common/icons";
 import { OfficialBadge } from "@/components/email/official_badge";
+import { is_system_email, trust_source_for_display } from "@/lib/utils";
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { SnoozeBadge } from "@/components/ui/snooze_badge";
 import {
@@ -48,6 +49,7 @@ import {
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { list_select_slot_class } from "@/lib/list_density";
+import { strip_preview_filler } from "@/utils/preview_text";
 import { use_date_format } from "@/hooks/use_date_format";
 import {
   outgoing_profile_email,
@@ -59,7 +61,7 @@ import { haptic_long_press, haptic_impact } from "@/native/haptic_feedback";
 interface MobileEmailRowProps {
   email: InboxEmail;
   on_press: (id: string) => void;
-  on_long_press: (id: string) => void;
+  on_long_press?: (id: string) => void;
   on_toggle_star?: (email: InboxEmail) => void;
   on_archive?: (email: InboxEmail) => void;
   on_delete?: (email: InboxEmail) => void;
@@ -96,15 +98,26 @@ export const MobileEmailRow = memo(function MobileEmailRow(
   const { preferences } = use_preferences();
   const { format_email_list } = use_date_format();
   const show_avatar = preferences.show_profile_pictures !== false;
+  const show_preview = preferences.show_email_preview !== false;
   const select_slot_class = list_select_slot_class(false, show_avatar);
   const long_press_timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const long_press_fired = useRef(false);
 
   const touch_start_pos = useRef<{ x: number; y: number } | null>(null);
 
+  useEffect(
+    () => () => {
+      if (long_press_timer.current) {
+        clearTimeout(long_press_timer.current);
+        long_press_timer.current = null;
+      }
+    },
+    [],
+  );
+
   const handle_touch_start = useCallback(
     (e: React.TouchEvent) => {
-      if (selection_mode) return;
+      if (selection_mode || !on_long_press) return;
       const target = e.target as HTMLElement;
 
       if (target.closest("[data-star-btn]")) return;
@@ -264,7 +277,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
 
   const row_content = (
     <div
-      className={`flex w-full items-start gap-3 px-4 py-3 text-left transition-colors active:bg-[var(--bg-tertiary)] ${
+      className={`flex w-full items-start gap-3 px-4 py-3 text-start transition-colors active:bg-[var(--bg-tertiary)] ${
         is_selected ? "bg-[var(--accent-color,#3b82f6)]/8" : ""
       }`}
       data-email-id={email.id}
@@ -277,6 +290,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
           (e.currentTarget as HTMLElement).click();
         }
       }}
+      onTouchCancel={handle_touch_end}
       onTouchEnd={handle_touch_end}
       onTouchMove={handle_touch_move}
       onTouchStart={handle_touch_start}
@@ -287,6 +301,9 @@ export const MobileEmailRow = memo(function MobileEmailRow(
             use_domain_logo
             email={show_sender_email}
             name={show_sender_name}
+            sender_authenticated={is_system_email(
+              trust_source_for_display(email, show_sender_email),
+            )}
             size="md"
           />
           {selection_mode && is_selected && (
@@ -317,17 +334,29 @@ export const MobileEmailRow = memo(function MobileEmailRow(
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
+          {!email.is_read && (
+            <span className="sr-only">{t("mail.unread")}</span>
+          )}
           <span
             className={`min-w-0 flex-1 truncate text-[15px] leading-tight ${
               !email.is_read
                 ? "font-semibold text-[var(--text-primary)]"
                 : "text-[var(--text-secondary)]"
             }`}
+            dir="auto"
           >
             {display_name_label}
           </span>
 
-          <OfficialBadge className="shrink-0" email={show_sender_email} />
+          <OfficialBadge
+            address_only={!!outgoing_names}
+            className="shrink-0"
+            sender={
+              outgoing_names
+                ? { sender_email: show_sender_email }
+                : trust_source_for_display(email, show_sender_email)
+            }
+          />
 
           {alias_delivery && (
             <Tooltip
@@ -347,7 +376,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
           )}
 
           {thread_count > 1 && (
-            <span className="shrink-0 rounded border border-[var(--border-primary)] px-1 text-[11px] tabular-nums text-[var(--text-muted)]">
+            <span className="shrink-0 rounded-[5px] bg-[color-mix(in_srgb,currentColor_12%,transparent)] px-1.5 text-[11px] tabular-nums text-[var(--text-muted)]">
               {thread_count}
             </span>
           )}
@@ -364,6 +393,7 @@ export const MobileEmailRow = memo(function MobileEmailRow(
                 ? "font-medium text-[var(--text-primary)]"
                 : "text-[var(--text-secondary)]"
             }`}
+            dir="auto"
           >
             {email.subject || t("mail.no_subject")}
           </span>
@@ -399,8 +429,11 @@ export const MobileEmailRow = memo(function MobileEmailRow(
         </div>
 
         <div className="mt-0.5 flex items-center gap-1.5">
-          <span className="min-w-0 flex-1 truncate text-[13px] leading-tight text-[var(--text-muted)]">
-            {email.preview}
+          <span
+            className="min-w-0 flex-1 truncate text-[13px] leading-tight text-[var(--text-muted)]"
+            dir="auto"
+          >
+            {show_preview ? strip_preview_filler(email.preview) : ""}
           </span>
 
           <div

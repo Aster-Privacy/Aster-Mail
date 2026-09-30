@@ -25,8 +25,8 @@ import {
   type InboxUnreadIndexedEventDetail,
   type MailItemUpdatedEventDetail,
 } from "./mail_events";
-import { is_low_network } from "@/services/low_network_state";
 
+import { is_low_network } from "@/services/low_network_state";
 import { get_contacts_count } from "@/services/api/contacts";
 import { list_snoozed_emails } from "@/services/api/snooze";
 import { get_mail_stats } from "@/services/api/mail";
@@ -38,7 +38,10 @@ import {
 import { sync_widget_data } from "@/native/widget_bridge";
 import { update_pwa_badge } from "@/native/pwa_badge";
 import { update_tray_badge } from "@/native/tauri_tray";
-
+import {
+  is_badge_count_enabled,
+  on_badge_count_change,
+} from "@/native/badge_preference";
 import { ignore_error } from "@/lib/ignore_error";
 
 export interface MailStats {
@@ -123,6 +126,9 @@ const OPTIMISTIC_HOLD_MS = 4_000;
 const CONFIRM_WINDOW_MS = 45_000;
 const MAX_CONFIRM_RETRIES = 3;
 
+const FETCH_STUCK_MS = 45_000;
+const VERIFY_AFTER_RECEIVE_MS = 8_000;
+
 const INITIAL_STATS_DELAY_MS = 1_000;
 const STORAGE_KEY_PREFIX = "aster_mail_stats_";
 const STORAGE_SCHEMA_VERSION = 3;
@@ -157,6 +163,7 @@ class MailStatsStore {
   private debounce_timer: ReturnType<typeof setTimeout> | null = null;
   private reconcile_timer: ReturnType<typeof setTimeout> | null = null;
   private late_reconcile_timer: ReturnType<typeof setTimeout> | null = null;
+  private last_external_surfaces: string | null = null;
   private user_id: string | null = null;
   private account_generation = 0;
   private refetch_queued = false;
@@ -164,8 +171,12 @@ class MailStatsStore {
     null;
   private last_adjust_at: Partial<Record<keyof MailStats, number>> = {};
   private confirm_retries: Partial<Record<keyof MailStats, number>> = {};
+  private clamped_debt: Partial<Record<keyof MailStats, number>> = {};
   private authoritative_unread: number | null = null;
   private needs_revalidate = false;
+  private fetch_sequence = 0;
+  private fetch_started_at = 0;
+  private verify_timer: ReturnType<typeof setTimeout> | null = null;
 
   get_cache(): StatsCache {
     return this.cache;
@@ -175,6 +186,7 @@ class MailStatsStore {
     if (this.needs_revalidate) return true;
 
     const effective_ttl = is_low_network() ? LOW_NETWORK_TTL_MS : NORMAL_TTL_MS;
+
     return Date.now() - this.cache.timestamp > effective_ttl;
   }
 
@@ -208,6 +220,11 @@ class MailStatsStore {
       clearTimeout(this.late_reconcile_timer);
       this.late_reconcile_timer = null;
     }
+
+    if (this.verify_timer) {
+      clearTimeout(this.verify_timer);
+      this.verify_timer = null;
+    }
   }
 
   private reset_account_state(): void {
@@ -229,8 +246,11 @@ class MailStatsStore {
     this.in_flight_deltas = null;
     this.last_adjust_at = {};
     this.confirm_retries = {};
+    this.clamped_debt = {};
     this.authoritative_unread = null;
     this.needs_revalidate = false;
+    this.fetch_sequence += 1;
+    this.fetch_started_at = 0;
     this.cache = {
       data: DEFAULT_STATS,
       timestamp: 0,
@@ -314,6 +334,7 @@ class MailStatsStore {
         return;
       }
     });
+    this.sync_external_surfaces();
   }
 
   async fetch(force: boolean = false): Promise<MailStats | null> {
@@ -326,9 +347,14 @@ class MailStatsStore {
     }
 
     if (this.cache.fetching && this.active_request) {
-      this.refetch_queued = true;
+      if (Date.now() - this.fetch_started_at < FETCH_STUCK_MS) {
+        this.refetch_queued = true;
 
-      return this.active_request;
+        return this.active_request;
+      }
+
+      this.active_request = null;
+      this.refetch_queued = false;
     }
 
     this.cache.fetching = true;
@@ -341,16 +367,20 @@ class MailStatsStore {
 
   private async execute_fetch(): Promise<MailStats | null> {
     const fetch_generation = this.account_generation;
+    const fetch_sequence = ++this.fetch_sequence;
 
+    this.fetch_started_at = Date.now();
     this.in_flight_deltas = {};
     const query_started_at = Date.now();
+    const has_unconfirmed_adjustments =
+      Object.keys(this.last_adjust_at).length > 0;
 
     try {
       const [stats_response, contacts_response, snoozed_response] =
         await Promise.allSettled([
-          get_mail_stats(),
-          get_contacts_count(),
-          list_snoozed_emails(),
+          get_mail_stats(true),
+          get_contacts_count(has_unconfirmed_adjustments),
+          list_snoozed_emails(has_unconfirmed_adjustments),
         ]);
 
       const server_stats =
@@ -358,7 +388,11 @@ class MailStatsStore {
           ? stats_response.value.data
           : null;
 
-      if (!server_stats || fetch_generation !== this.account_generation) {
+      if (
+        !server_stats ||
+        fetch_generation !== this.account_generation ||
+        fetch_sequence !== this.fetch_sequence
+      ) {
         return null;
       }
 
@@ -403,6 +437,7 @@ class MailStatsStore {
 
         delete this.confirm_retries[field];
         delete this.last_adjust_at[field];
+        delete this.clamped_debt[field];
 
         return settled;
       };
@@ -442,7 +477,10 @@ class MailStatsStore {
     } catch {
       return null;
     } finally {
-      if (fetch_generation === this.account_generation) {
+      if (
+        fetch_generation === this.account_generation &&
+        fetch_sequence === this.fetch_sequence
+      ) {
         this.in_flight_deltas = null;
         this.cache.fetching = false;
         this.active_request = null;
@@ -459,6 +497,16 @@ class MailStatsStore {
 
   invalidate(): void {
     this.cache.timestamp = 0;
+  }
+
+  verify_later(): void {
+    if (this.verify_timer) return;
+
+    this.verify_timer = setTimeout(() => {
+      this.verify_timer = null;
+      this.cache.timestamp = 0;
+      void this.fetch(true);
+    }, VERIFY_AFTER_RECEIVE_MS);
   }
 
   fetch_debounced(): void {
@@ -492,6 +540,7 @@ class MailStatsStore {
     this.authoritative_unread = next;
     delete this.last_adjust_at.unread;
     delete this.confirm_retries.unread;
+    delete this.clamped_debt.unread;
 
     if (this.in_flight_deltas) delete this.in_flight_deltas.unread;
 
@@ -509,9 +558,15 @@ class MailStatsStore {
     const current = this.cache.data[field];
 
     if (typeof current === "number") {
+      const raw = current + this.absorb_clamped_debt(field, delta);
+
+      if (raw < 0) {
+        this.clamped_debt[field] = (this.clamped_debt[field] ?? 0) + raw;
+      }
+
       this.cache.data = {
         ...this.cache.data,
-        [field]: Math.max(0, current + delta),
+        [field]: Math.max(0, raw),
       };
       this.last_adjust_at[field] = Date.now();
       this.confirm_retries[field] = 0;
@@ -526,6 +581,23 @@ class MailStatsStore {
       this.sync_external_surfaces();
       this.schedule_reconcile();
     }
+  }
+
+  private absorb_clamped_debt(field: keyof MailStats, delta: number): number {
+    const debt = this.clamped_debt[field] ?? 0;
+
+    if (delta <= 0 || debt >= 0) return delta;
+
+    const absorbed = Math.min(delta, -debt);
+    const remaining = debt + absorbed;
+
+    if (remaining === 0) {
+      delete this.clamped_debt[field];
+    } else {
+      this.clamped_debt[field] = remaining;
+    }
+
+    return delta - absorbed;
   }
 
   private schedule_confirm_retry(): void {
@@ -564,16 +636,31 @@ class MailStatsStore {
     this.notify();
   }
 
+  resync_external_surfaces(): void {
+    this.last_external_surfaces = null;
+    this.sync_external_surfaces();
+  }
+
   private sync_external_surfaces(): void {
     const { unread, starred, drafts } = this.cache.data;
+    const badge_unread = is_badge_count_enabled() ? unread : 0;
+    const signature = `${badge_unread}|${unread}|${starred}|${drafts}`;
+
+    if (signature === this.last_external_surfaces) return;
+
+    this.last_external_surfaces = signature;
 
     sync_widget_data(unread, starred, drafts);
-    update_pwa_badge(unread);
-    update_tray_badge(unread);
+    update_pwa_badge(badge_unread);
+    update_tray_badge(badge_unread);
   }
 }
 
 const stats_store = new MailStatsStore();
+
+on_badge_count_change(() => {
+  stats_store.resync_external_surfaces();
+});
 
 const BACKGROUND_RECONCILE_MS = NORMAL_TTL_MS;
 
@@ -591,10 +678,11 @@ if (typeof window !== "undefined") {
   });
 
   setInterval(() => {
+    if (document.visibilityState !== "visible") return;
     if (has_passphrase_in_memory() && stats_store.is_stale()) {
       void stats_store.fetch(false);
     }
-  }, BACKGROUND_RECONCILE_MS);
+  }, BACKGROUND_RECONCILE_MS / 2);
 }
 
 export function should_reconcile_on_item_update(
@@ -709,6 +797,11 @@ export function use_mail_stats(): UseMailStatsReturn {
       stats_store.fetch_debounced();
     };
 
+    const handle_received = () => {
+      stats_store.fetch_debounced();
+      stats_store.verify_later();
+    };
+
     const handle_item_update = (event: Event) => {
       const detail = (event as CustomEvent<MailItemUpdatedEventDetail>).detail;
 
@@ -736,7 +829,7 @@ export function use_mail_stats(): UseMailStatsReturn {
     window.addEventListener(MAIL_EVENTS.MAIL_ITEM_UPDATED, handle_item_update);
     window.addEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_change);
     window.addEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
-    window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_change);
+    window.addEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_received);
     window.addEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_change);
     window.addEventListener(MAIL_EVENTS.DRAFTS_CHANGED, handle_change);
     window.addEventListener(MAIL_EVENTS.CONTACTS_CHANGED, handle_change);
@@ -756,7 +849,7 @@ export function use_mail_stats(): UseMailStatsReturn {
       );
       window.removeEventListener(MAIL_EVENTS.MAIL_SOFT_REFRESH, handle_change);
       window.removeEventListener(MAIL_EVENTS.EMAIL_SENT, handle_change);
-      window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_change);
+      window.removeEventListener(MAIL_EVENTS.EMAIL_RECEIVED, handle_received);
       window.removeEventListener(MAIL_EVENTS.MAIL_STATS_STALE, handle_change);
       window.removeEventListener(MAIL_EVENTS.DRAFTS_CHANGED, handle_change);
       window.removeEventListener(MAIL_EVENTS.CONTACTS_CHANGED, handle_change);
@@ -830,6 +923,10 @@ export function prime_mail_stats(user_id: string | null): void {
 
 export function get_mail_stats_snapshot(): MailStats {
   return stats_store.get_cache().data;
+}
+
+export function subscribe_mail_stats(callback: () => void): () => void {
+  return stats_store.subscribe(callback);
 }
 
 export function adjust_stats_inbox(delta: number): void {

@@ -120,6 +120,7 @@ async function delete_session_key_row(): Promise<void> {
 
 async function get_session_key_from_db(): Promise<CryptoKey | null> {
   let db: IDBDatabase;
+
   try {
     db = await open_session_key_db();
   } catch {

@@ -18,9 +18,20 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EncryptedVault } from "@/services/crypto/key_manager";
+
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-import type { EncryptedVault } from "@/services/crypto/key_manager";
+vi.mock("@/services/crypto/key_manager_pgp", async (import_original) => ({
+  ...(await import_original<
+    typeof import("@/services/crypto/key_manager_pgp")
+  >()),
+  verify_ratchet_prekey_bundle_detailed: async () => ({
+    verdict: "verified" as const,
+    format: "v2" as const,
+    strict: true,
+  }),
+}));
 
 const h = vi.hoisted(() => ({
   vault: null as unknown,
@@ -64,7 +75,9 @@ vi.mock("@/services/crypto/message_escrow", () => ({
 vi.mock("@/services/api/client", () => ({
   api_client: {
     get: vi.fn(async (url: string) =>
-      url.includes("prekey-bundle") ? { data: h.bundle } : { code: "NOT_FOUND" },
+      url.includes("prekey-bundle")
+        ? { data: h.bundle }
+        : { code: "NOT_FOUND" },
     ),
     put: vi.fn(async () => ({ data: { state_version: 1 } })),
     post: vi.fn(async () => ({ data: { state_version: 1 } })),
@@ -88,6 +101,7 @@ import {
 
 const SENDER = "sender@astermail.org";
 const RECIPIENT = "recipient@astermail.org";
+const ALIAS = "support@astermail.org";
 
 type Keys = NonNullable<Awaited<ReturnType<typeof generate_ratchet_keys>>>;
 
@@ -200,6 +214,116 @@ describe("undecryptable-message failure modes", () => {
     h.bundle = null;
     h.store.clear();
     localStorage.clear();
+  });
+
+  it("keeps the live chain readable when an old first-chain message arrives without a recovery lane", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    let sender_store = new Map<string, unknown>();
+    let receiver_store = new Map<string, unknown>();
+
+    h.bundle = bundle_for(receiver_vault);
+    restore_state(sender_store);
+
+    const first = await send("one", sender_vault);
+    const second = await send("two", sender_vault);
+
+    sender_store = snapshot_state();
+    restore_state(receiver_store);
+
+    expect(await receive(second, receiver_vault, "m2")).toBe("two");
+
+    h.bundle = bundle_for(sender_vault);
+    h.vault = receiver_vault;
+
+    const reply_data = await encrypt_for_ratchet_recipient(
+      RECIPIENT,
+      SENDER,
+      "sender",
+      "reply",
+      receiver_vault,
+    );
+
+    const reply = build_ratchet_envelope(
+      receiver_vault.ratchet_identity_public!,
+      { [SENDER]: reply_data! },
+    );
+
+    receiver_store = snapshot_state();
+    restore_state(sender_store);
+    h.vault = sender_vault;
+
+    expect(
+      await decrypt_ratchet_message(
+        SENDER,
+        RECIPIENT,
+        parse_ratchet_envelope(reply)!,
+        sender_vault,
+        "r1",
+      ),
+    ).toBe("reply");
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const third = await send("three", sender_vault);
+
+    sender_store = snapshot_state();
+    restore_state(receiver_store);
+
+    expect(await receive(third, receiver_vault, "m3")).toBe("three");
+
+    for (const [key, value] of h.store.entries()) {
+      if (!key.startsWith("ratchet_state_") || key.endsWith("_archive")) {
+        continue;
+      }
+
+      const state = value as { state?: { skipped_message_keys?: unknown[] } };
+
+      if (state.state?.skipped_message_keys) {
+        state.state.skipped_message_keys = [];
+      }
+    }
+
+    const before_old = JSON.stringify(
+      [...h.store.entries()].filter(([k]) => k.startsWith("ratchet_state_")),
+    );
+
+    expect(await receive(first, receiver_vault, "m1")).toBe("one");
+
+    const after_old = JSON.stringify(
+      [...h.store.entries()].filter(([k]) => k.startsWith("ratchet_state_")),
+    );
+
+    console.log("KEYS", JSON.stringify([...h.store.keys()]));
+    console.log("CHANGED", before_old !== after_old);
+    console.log(
+      "EPOCH_BEFORE",
+      JSON.parse(before_old).map((e: any) => [
+        e[0],
+        e[1].state?.epoch,
+        e[1].state?.dh_remote_public?.slice(0, 8),
+      ]),
+    );
+    console.log(
+      "EPOCH_AFTER",
+      JSON.parse(after_old).map((e: any) => [
+        e[0],
+        e[1].state?.epoch,
+        e[1].state?.dh_remote_public?.slice(0, 8),
+      ]),
+    );
+
+    receiver_store = snapshot_state();
+    restore_state(sender_store);
+
+    const fourth = await send("four", sender_vault);
+
+    restore_state(receiver_store);
+
+    expect(
+      await receive_without_recovery_lane(fourth, receiver_vault, "m4"),
+    ).toBe("four");
   });
 
   it("recovers when a second device clobbers the shared ratchet state", async () => {
@@ -408,5 +532,121 @@ describe("undecryptable-message failure modes", () => {
 
     expect(large_lane).toBe(small_lane);
     expect(large.length).toBeLessThan(100_000 * 1.4 + 4_000);
+  });
+
+  it("decrypts a message addressed to one of the recipient's aliases", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+    h.vault = sender_vault;
+
+    const data = await encrypt_for_ratchet_recipient(
+      SENDER,
+      ALIAS,
+      "recipient",
+      "sent to the alias",
+      sender_vault,
+    );
+
+    expect(data).not.toBeNull();
+
+    const envelope = build_ratchet_envelope(
+      sender_vault.ratchet_identity_public!,
+      { [ALIAS]: data! },
+    );
+
+    h.vault = receiver_vault;
+    h.store.clear();
+
+    const parsed = parse_ratchet_envelope(envelope)!;
+
+    expect(
+      await decrypt_ratchet_message(
+        RECIPIENT,
+        SENDER,
+        parsed,
+        receiver_vault,
+        "alias1",
+      ),
+    ).toBe("sent to the alias");
+  });
+
+  it("keeps a reply on the alias conversation decryptable after the first message", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(receiver_vault);
+
+    const bodies = ["alias one", "alias two"];
+    const envelopes: string[] = [];
+
+    for (const body of bodies) {
+      h.vault = sender_vault;
+
+      const data = await encrypt_for_ratchet_recipient(
+        SENDER,
+        ALIAS,
+        "recipient",
+        body,
+        sender_vault,
+      );
+
+      envelopes.push(
+        build_ratchet_envelope(sender_vault.ratchet_identity_public!, {
+          [ALIAS]: data!,
+        }),
+      );
+    }
+
+    h.vault = receiver_vault;
+    h.store.clear();
+
+    for (const [index, body] of bodies.entries()) {
+      expect(
+        await decrypt_ratchet_message(
+          RECIPIENT,
+          SENDER,
+          parse_ratchet_envelope(envelopes[index])!,
+          receiver_vault,
+          `alias_seq_${index}`,
+        ),
+      ).toBe(body);
+    }
+  });
+
+  it("returns null when the envelope holds no entry the recipient can open", async () => {
+    const sender_vault = make_vault((await generate_ratchet_keys())!);
+    const receiver_vault = make_vault((await generate_ratchet_keys())!);
+    const stranger_vault = make_vault((await generate_ratchet_keys())!);
+
+    h.bundle = bundle_for(stranger_vault);
+    h.vault = sender_vault;
+
+    const data = await encrypt_for_ratchet_recipient(
+      SENDER,
+      "stranger@astermail.org",
+      "stranger",
+      "not for you",
+      sender_vault,
+    );
+
+    const envelope = build_ratchet_envelope(
+      sender_vault.ratchet_identity_public!,
+      { "stranger@astermail.org": data! },
+    );
+
+    h.vault = receiver_vault;
+    h.store.clear();
+
+    expect(
+      await decrypt_ratchet_message(
+        RECIPIENT,
+        SENDER,
+        parse_ratchet_envelope(envelope)!,
+        receiver_vault,
+        "stranger1",
+      ),
+    ).toBeNull();
   });
 });

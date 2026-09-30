@@ -41,6 +41,7 @@ describe("handle_missing_pq_secret concurrency (494-request storm fix)", () => {
     generate_and_upload_prekeys_mock.mockReset();
     generate_and_upload_prekeys_mock.mockImplementation(async () => {
       await new Promise((r) => setTimeout(r, 5));
+
       return true;
     });
   });

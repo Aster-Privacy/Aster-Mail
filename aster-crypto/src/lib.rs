@@ -27,8 +27,10 @@ pub mod keys;
 pub mod password;
 pub mod sign;
 
-pub use decrypt::decrypt_message;
-pub use encrypt::encrypt_message;
+pub use decrypt::{
+    decrypt_and_verify_with_passphrase, decrypt_message, decrypt_message_with_passphrase,
+};
+pub use encrypt::{encrypt_and_sign_with_passphrase, encrypt_message};
 pub use error::{CryptoError, Result};
 pub use key_policy::{ensure_publishable_key, is_known_bad_published_key};
 pub use keys::{
@@ -36,7 +38,10 @@ pub use keys::{
     import_secret_key, import_secret_key_bytes, KeyPair, PublicKey,
 };
 pub use password::{derive_key, hash_password, verify_password};
-pub use sign::{sign_message, verify_detached_signature, verify_signature};
+pub use sign::{
+    detached_signature_issuer_key_id, public_key_fingerprint_hex, sign_cleartext_message,
+    sign_message, verify_cleartext_signature, verify_detached_signature, verify_signature,
+};
 pub use zeroize::Zeroizing;
 
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");

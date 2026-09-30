@@ -18,21 +18,63 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { get_recipient_public_key } from "../api/keys";
+
 import { array_to_base64, base64_to_array } from "./base64";
 import { DoubleRatchet, type BootstrapData } from "./double_ratchet";
 import { type EncryptedVault } from "./key_manager";
-import { verify_ratchet_prekey_bundle } from "./key_manager_pgp";
-import { derive_conversation_id, get_sync_encryption_key, run_serialized_for_conversation } from "./ratchet_conversation";
-import { check_and_pin_identity } from "./ratchet_identity_pin";
-import { detect_identity_pin_drift, fetch_prekey_bundle, fetch_ratchet_identity } from "./ratchet_prekey_bundle";
-import { can_seal_recovery_lane, seal_recovery_lane, type RecoveryLaneData, type RecoveryLaneRecipientKeys } from "./ratchet_recovery_lane";
-import { merge_ratchet_states } from "./ratchet_state_merge";
-import { load_ratchet_state, save_ratchet_state } from "./ratchet_state_store";
-import { load_ratchet_from_server, sync_ratchet_to_server } from "./ratchet_sync";
-import { RecoveryLaneUnavailableError, type RatchetRecipientData } from "./ratchet_types";
-import { bundle_supports_pq, perform_x3dh_sender, type PrekeyBundle } from "./x3dh";
+import { verify_ratchet_prekey_bundle_detailed } from "./key_manager_pgp";
+import { is_strict_recipient_bundle_enforced } from "./crypto_enforcement_policy";
+import {
+  record_bundle_verification,
+  record_peer_identity_event,
+} from "./ratchet_verification_status";
+import {
+  derive_conversation_id,
+  get_sync_encryption_key,
+  run_serialized_for_conversation,
+} from "./ratchet_conversation";
+import {
+  check_and_pin_identity,
+  has_peer_advertised_pq,
+} from "./ratchet_identity_pin";
+import {
+  detect_identity_pin_drift,
+  fetch_prekey_bundle,
+  fetch_ratchet_identity,
+} from "./ratchet_prekey_bundle";
+import {
+  can_seal_recovery_lane,
+  seal_recovery_lane,
+  type RecoveryLaneData,
+  type RecoveryLaneRecipientKeys,
+} from "./ratchet_recovery_lane";
+import {
+  merge_discards_local_epoch,
+  merge_ratchet_states,
+} from "./ratchet_state_merge";
+import {
+  archive_ratchet_state,
+  load_ratchet_state,
+  save_ratchet_state,
+} from "./ratchet_state_store";
+import {
+  load_ratchet_from_server,
+  sync_ratchet_to_server,
+} from "./ratchet_sync";
+import {
+  RecoveryLaneUnavailableError,
+  type RatchetRecipientData,
+} from "./ratchet_types";
+import {
+  bundle_is_downgraded,
+  bundle_supports_pq,
+  perform_x3dh_sender,
+  X3DH_VERSION_LEGACY,
+  type PrekeyBundle,
+} from "./x3dh";
+
+import { zero_uint8_array } from "@/services/crypto/secure_memory";
 
 async function adopt_server_state_before_send(
   conversation_id: string,
@@ -53,6 +95,10 @@ async function adopt_server_state_before_send(
 
     const local = await ratchet.serialize();
     const remote = await server.ratchet.serialize();
+
+    if (merge_discards_local_epoch(local, remote)) {
+      await archive_ratchet_state(local);
+    }
 
     ratchet.adopt_state(merge_ratchet_states(local, remote));
   } catch {
@@ -80,6 +126,39 @@ export async function encrypt_for_ratchet_recipient(
       body,
       vault,
     ),
+  );
+}
+
+type BundleVerification = Awaited<
+  ReturnType<typeof verify_ratchet_prekey_bundle_detailed>
+>;
+
+async function verify_recipient_bundle(
+  bundle: PrekeyBundle,
+  recipient_username: string,
+  recipient_email: string,
+): Promise<BundleVerification> {
+  const owner_key = await get_recipient_public_key(
+    recipient_username,
+    recipient_email,
+  );
+
+  return verify_ratchet_prekey_bundle_detailed(
+    bundle.signed_prekey_signature,
+    bundle.kem_identity_key,
+    bundle.signed_prekey,
+    owner_key.data?.public_key ?? null,
+    bundle.pq_kem_public_key ?? null,
+  );
+}
+
+function is_bundle_verification_rejected(
+  verification: BundleVerification,
+): boolean {
+  return (
+    verification.verdict === "tampered" ||
+    (is_strict_recipient_bundle_enforced() &&
+      verification.verdict !== "verified")
   );
 }
 
@@ -120,6 +199,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
     let ephemeral_key_base64 = "";
     let pq_ciphertext_base64: string | undefined;
     let pq_key_id_value: number | undefined;
+    let x3dh_version_value: number | undefined;
 
     let bundle: PrekeyBundle | null = null;
 
@@ -176,22 +256,32 @@ async function encrypt_for_ratchet_recipient_unlocked(
         bundle.kem_identity_key,
       );
 
-      const owner_key = await get_recipient_public_key(
+      const bundle_verification = await verify_recipient_bundle(
+        bundle,
         recipient_username,
         recipient_email,
       );
-      const bundle_verdict = await verify_ratchet_prekey_bundle(
-        bundle.signed_prekey_signature,
-        bundle.kem_identity_key,
-        bundle.signed_prekey,
-        owner_key.data?.public_key ?? null,
-        bundle.pq_kem_public_key ?? null,
-      );
 
-      if (bundle_verdict === "tampered") {
-        if (import.meta.env.DEV) {
+      const bundle_peer = (recipient_email ?? recipient_username).toLowerCase();
+
+      record_bundle_verification(bundle_peer, bundle_verification);
+
+      const advertises_pq = Boolean(bundle.pq_kem_public_key);
+      const pq_downgraded =
+        !advertises_pq && (await has_peer_advertised_pq(bundle_peer));
+
+      const bundle_rejected =
+        pq_downgraded || is_bundle_verification_rejected(bundle_verification);
+
+      if (bundle_rejected) {
+        if (pq_downgraded) {
+          record_peer_identity_event(bundle_peer, "downgraded");
           console.warn(
-            "ratchet prekey bundle signature failed verification; routing via PGP",
+            "ratchet prekey bundle dropped its post-quantum key; routing via PGP",
+          );
+        } else if (import.meta.env.DEV) {
+          console.warn(
+            "ratchet prekey bundle failed verification; routing via PGP",
           );
         }
 
@@ -199,9 +289,10 @@ async function encrypt_for_ratchet_recipient_unlocked(
       }
 
       const identity_pin_status = await check_and_pin_identity(
-        (recipient_email ?? recipient_username).toLowerCase(),
+        bundle_peer,
         bundle.kem_identity_key,
-        bundle_verdict === "verified",
+        bundle_verification.verdict === "verified",
+        advertises_pq,
       );
 
       if (identity_pin_status === "drift") {
@@ -243,6 +334,11 @@ async function encrypt_for_ratchet_recipient_unlocked(
           pq_key_id_value = x3dh_result.pq_key_id;
         }
 
+        x3dh_version_value =
+          x3dh_result.x3dh_version > X3DH_VERSION_LEGACY
+            ? x3dh_result.x3dh_version
+            : undefined;
+
         ratchet.set_bootstrap({
           ephemeral_key: ephemeral_key_base64,
           pq_ciphertext: pq_ciphertext_base64,
@@ -250,6 +346,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
           sender_identity_key: vault.ratchet_identity_public,
           recipient_identity_key: bundle.kem_identity_key,
           recipient_pq_identity_key: bundle.pq_kem_public_key ?? undefined,
+          x3dh_version: x3dh_version_value,
         });
       } finally {
         x3dh_result.shared_secret.fill(0);
@@ -261,6 +358,7 @@ async function encrypt_for_ratchet_recipient_unlocked(
         ephemeral_key_base64 = bootstrap.ephemeral_key;
         pq_ciphertext_base64 = bootstrap.pq_ciphertext;
         pq_key_id_value = bootstrap.pq_key_id;
+        x3dh_version_value = bootstrap.x3dh_version;
       }
     }
 
@@ -322,6 +420,10 @@ async function encrypt_for_ratchet_recipient_unlocked(
       recipient_data.pq_key_id = pq_key_id_value;
     }
 
+    if (x3dh_version_value !== undefined) {
+      recipient_data.x3dh_v = x3dh_version_value;
+    }
+
     return recipient_data;
   } catch (err) {
     if (err instanceof RecoveryLaneUnavailableError) {
@@ -336,11 +438,16 @@ async function encrypt_for_ratchet_recipient_unlocked(
   }
 }
 
-export async function recipient_supports_post_quantum(
+export type PostQuantumRecipientStatus =
+  | "supported"
+  | "unsupported"
+  | "downgraded";
+
+export async function recipient_post_quantum_status(
   sender_email: string,
   recipient_email: string,
   recipient_username: string,
-): Promise<boolean> {
+): Promise<PostQuantumRecipientStatus> {
   const conversation_id = await derive_conversation_id(
     sender_email,
     recipient_email,
@@ -350,12 +457,38 @@ export async function recipient_supports_post_quantum(
   const bootstrap = existing?.get_bootstrap();
 
   if (bootstrap) {
-    return Boolean(bootstrap.pq_ciphertext);
+    return bootstrap.pq_ciphertext ? "supported" : "unsupported";
   }
 
   const bundle = await fetch_prekey_bundle(recipient_username, recipient_email);
 
-  if (!bundle) return false;
+  if (!bundle) return "unsupported";
 
-  return bundle_supports_pq(bundle);
+  if (bundle_supports_pq(bundle)) {
+    const verification = await verify_recipient_bundle(
+      bundle,
+      recipient_username,
+      recipient_email,
+    );
+
+    return is_bundle_verification_rejected(verification)
+      ? "unsupported"
+      : "supported";
+  }
+
+  return bundle_is_downgraded(bundle) ? "downgraded" : "unsupported";
+}
+
+export async function recipient_supports_post_quantum(
+  sender_email: string,
+  recipient_email: string,
+  recipient_username: string,
+): Promise<boolean> {
+  const status = await recipient_post_quantum_status(
+    sender_email,
+    recipient_email,
+    recipient_username,
+  );
+
+  return status === "supported";
 }

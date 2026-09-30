@@ -28,18 +28,21 @@ import {
   useMemo,
   useState,
   useRef,
-  useLayoutEffect,
 } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import {
+  MobileDrawerHeaderView,
+  MobileDrawerScrollArea,
+  MobileDrawerShell,
+  use_drawer_nav_indicator,
+} from "@aster/ui";
 
 import { use_platform } from "@/hooks/use_platform";
+import { create_folder_error_message } from "@/lib/folder_error_message";
 import { use_dialog_shell } from "@/lib/use_dialog_shell";
 import { use_should_reduce_motion } from "@/provider";
 import { use_auth } from "@/contexts/auth_context";
 import { use_primary_identity } from "@/lib/primary_identity";
 import { use_i18n } from "@/lib/i18n/context";
-import { use_preferences } from "@/contexts/preferences_context";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
 import { use_mail_stats } from "@/hooks/use_mail_stats";
@@ -51,7 +54,7 @@ import {
   check_alias_availability,
   get_alias_limit,
 } from "@/services/api/aliases";
-import { emit_aliases_changed } from "@/hooks/mail_events";
+import { emit_aliases_changed, MAIL_EVENTS } from "@/hooks/mail_events";
 import {
   is_alias_limit_error,
   prompt_alias_limit_upgrade,
@@ -68,12 +71,12 @@ import {
   EditTagSheet,
   CreateAliasSheet,
   PasswordModalWrapper,
-  LogoutConfirmWrapper,
 } from "@/components/mobile/mobile_drawer_sheets";
 import { DrawerNavContent } from "@/components/mobile/mobile_drawer_nav";
 import { FolderDeleteDialog } from "@/components/folders/folder_delete_dialog";
+import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import mail_logo_url from "@/assets/mail_logo.webp";
-
+import { show_toast } from "@/components/toast/simple_toast";
 import { ignore_error } from "@/lib/ignore_error";
 
 interface MobileDrawerProps {
@@ -99,15 +102,14 @@ export const MobileDrawer = memo(function MobileDrawer({
 
     return parts && parts.length === 2 ? parts[1] : "astermail.org";
   }, [user?.email]);
-  const { preferences, update_preference } = use_preferences();
-  const [show_logout_confirm, set_show_logout_confirm] = useState(false);
   const {
     state: folders_state,
     unread_counts: folder_unread_counts,
     create_new_folder,
     update_existing_folder,
-    delete_existing_folder,
     toggle_folder_lock,
+    sort_folders_a_z,
+    refresh: refresh_folders,
   } = use_folders();
   const {
     state: tags_state,
@@ -115,17 +117,24 @@ export const MobileDrawer = memo(function MobileDrawer({
     create_new_tag,
     update_existing_tag,
     delete_existing_tag,
+    refresh: refresh_tags,
   } = use_tags();
   const {
     aliases,
     is_loading: aliases_loading,
+    load_failed: aliases_load_failed,
     unread_counts: alias_unread_counts,
+    refresh: refresh_aliases,
   } = use_sidebar_aliases();
   const { stats } = use_mail_stats();
 
   const [show_account_menu, set_show_account_menu] = useState(false);
   const [show_create_folder, set_show_create_folder] = useState(false);
   const [show_create_label, set_show_create_label] = useState(false);
+  const [is_creating_folder, set_is_creating_folder] = useState(false);
+  const [is_creating_label, set_is_creating_label] = useState(false);
+  const [confirm_delete_tag, set_confirm_delete_tag] =
+    useState<DecryptedTag | null>(null);
   const [new_folder_name, set_new_folder_name] = useState("");
   const [new_label_name, set_new_label_name] = useState("");
   const [new_folder_color, set_new_folder_color] = useState<string>(
@@ -167,25 +176,40 @@ export const MobileDrawer = memo(function MobileDrawer({
   const folder_input_ref = useRef<HTMLInputElement>(null);
   const label_input_ref = useRef<HTMLInputElement>(null);
   const nav_container_ref = useRef<HTMLDivElement>(null);
-  const [indicator_style, set_indicator_style] = useState<{
-    y: number;
-    height: number;
-    opacity: number;
-  }>({ y: 0, height: 0, opacity: 0 });
-  const drawer_scroll_ref = useRef<HTMLDivElement>(null);
-  const bounce_content_ref = useRef<HTMLDivElement>(null);
-  const bounce_touch_y = useRef(0);
-  const bounce_origin_y = useRef(0);
-  const is_bouncing = useRef(false);
+  const indicator_style = use_drawer_nav_indicator(
+    nav_container_ref,
+    is_open,
+    active_path,
+  );
 
   useEffect(() => {
-    get_alias_limit()
-      .then((response) => {
-        if (response.data) set_can_create_alias(response.data.can_create);
-      })
-      .catch((caught) =>
-        ignore_error("components/mobile/mobile_drawer", caught),
+    const fetch_alias_limit = () => {
+      get_alias_limit()
+        .then((response) => {
+          if (response.data) set_can_create_alias(response.data.can_create);
+        })
+        .catch((caught) =>
+          ignore_error("components/mobile/mobile_drawer", caught),
+        );
+    };
+
+    const handle_visibility = () => {
+      if (document.visibilityState === "visible") {
+        fetch_alias_limit();
+      }
+    };
+
+    fetch_alias_limit();
+    window.addEventListener(MAIL_EVENTS.ALIASES_CHANGED, fetch_alias_limit);
+    document.addEventListener("visibilitychange", handle_visibility);
+
+    return () => {
+      window.removeEventListener(
+        MAIL_EVENTS.ALIASES_CHANGED,
+        fetch_alias_limit,
       );
+      document.removeEventListener("visibilitychange", handle_visibility);
+    };
   }, []);
 
   const { dialog_ref, handle_backdrop_pointer_down } =
@@ -195,15 +219,15 @@ export const MobileDrawer = memo(function MobileDrawer({
     if (!is_open) return;
 
     const handle_back = (e: Event) => {
-      if (show_logout_confirm) {
-        e.preventDefault();
-        set_show_logout_confirm(false);
-      } else if (deleting_folder) {
+      if (deleting_folder) {
         e.preventDefault();
         set_deleting_folder(null);
       } else if (editing_folder) {
         e.preventDefault();
         set_editing_folder(null);
+      } else if (confirm_delete_tag) {
+        e.preventDefault();
+        set_confirm_delete_tag(null);
       } else if (editing_tag) {
         e.preventDefault();
         set_editing_tag(null);
@@ -241,8 +265,8 @@ export const MobileDrawer = memo(function MobileDrawer({
     editing_folder,
     deleting_folder,
     editing_tag,
+    confirm_delete_tag,
     password_modal_folder,
-    show_logout_confirm,
     on_close,
   ]);
 
@@ -268,38 +292,20 @@ export const MobileDrawer = memo(function MobileDrawer({
   }, [is_open]);
 
   useEffect(() => {
-    if (show_create_folder) {
-      setTimeout(() => folder_input_ref.current?.focus(), 100);
-    }
+    if (!show_create_folder) return;
+
+    const handle = setTimeout(() => folder_input_ref.current?.focus(), 100);
+
+    return () => clearTimeout(handle);
   }, [show_create_folder]);
 
   useEffect(() => {
-    if (show_create_label) {
-      setTimeout(() => label_input_ref.current?.focus(), 100);
-    }
+    if (!show_create_label) return;
+
+    const handle = setTimeout(() => label_input_ref.current?.focus(), 100);
+
+    return () => clearTimeout(handle);
   }, [show_create_label]);
-
-  useLayoutEffect(() => {
-    if (!is_open || !nav_container_ref.current) return;
-    const container = nav_container_ref.current;
-    const active_btn = container.querySelector(
-      "[data-nav-active='true']",
-    ) as HTMLElement | null;
-
-    if (!active_btn) {
-      set_indicator_style((prev) => ({ ...prev, opacity: 0 }));
-
-      return;
-    }
-    const container_rect = container.getBoundingClientRect();
-    const btn_rect = active_btn.getBoundingClientRect();
-    const y = Math.round(
-      btn_rect.top - container_rect.top + container.scrollTop,
-    );
-    const height = Math.round(btn_rect.height);
-
-    set_indicator_style({ y, height, opacity: 1 });
-  }, [is_open, active_path]);
 
   const handle_nav = useCallback(
     (path: string) => {
@@ -309,85 +315,65 @@ export const MobileDrawer = memo(function MobileDrawer({
     [on_navigate, on_close],
   );
 
-  const last_touch_y = useRef(0);
-
-  const handle_bounce_touch_start = useCallback((e: React.TouchEvent) => {
-    const y = e.touches[0].clientY;
-
-    bounce_touch_y.current = y;
-    last_touch_y.current = y;
-    is_bouncing.current = false;
-  }, []);
-
-  const handle_bounce_touch_move = useCallback((e: React.TouchEvent) => {
-    const el = drawer_scroll_ref.current;
-    const content = bounce_content_ref.current;
-
-    if (!el || !content) return;
-
-    const current_y = e.touches[0].clientY;
-    const incremental_delta = current_y - last_touch_y.current;
-
-    last_touch_y.current = current_y;
-    const at_top = el.scrollTop <= 0;
-    const at_bottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
-
-    if (at_top && incremental_delta > 0) {
-      if (!is_bouncing.current) {
-        is_bouncing.current = true;
-        bounce_origin_y.current = current_y;
-      }
-      const overscroll = (current_y - bounce_origin_y.current) * 0.4;
-
-      content.style.transform = `translateY(${Math.min(Math.max(overscroll, 0), 80)}px)`;
-      content.style.transition = "none";
-    } else if (at_bottom && incremental_delta < 0) {
-      if (!is_bouncing.current) {
-        is_bouncing.current = true;
-        bounce_origin_y.current = current_y;
-      }
-      const overscroll = (current_y - bounce_origin_y.current) * 0.4;
-
-      content.style.transform = `translateY(${Math.max(Math.min(overscroll, 0), -80)}px)`;
-      content.style.transition = "none";
-    } else if (is_bouncing.current) {
-      is_bouncing.current = false;
-      content.style.transform = "translateY(0)";
-      content.style.transition =
-        "transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
+  const handle_sort_folders = useCallback(async () => {
+    if (await sort_folders_a_z()) {
+      show_toast(t("common.folders_sorted_a_to_z"), "success");
+    } else {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
     }
-  }, []);
-
-  const handle_bounce_touch_end = useCallback(() => {
-    const content = bounce_content_ref.current;
-
-    if (!content || !is_bouncing.current) return;
-    is_bouncing.current = false;
-    content.style.transform = "translateY(0)";
-    content.style.transition =
-      "transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94)";
-  }, []);
+  }, [sort_folders_a_z, t]);
 
   const handle_create_folder = useCallback(async () => {
     const name = new_folder_name.trim();
 
-    if (!name) return;
-    await create_new_folder(name, new_folder_color);
+    if (!name || is_creating_folder) return;
+    set_is_creating_folder(true);
+
+    const result = await create_new_folder(name, new_folder_color);
+
+    set_is_creating_folder(false);
+    if (!result.folder) {
+      show_toast(create_folder_error_message(result.code, t), "error");
+
+      return;
+    }
     set_new_folder_name("");
     set_new_folder_color(TAG_COLOR_PRESETS[10].hex);
     set_show_create_folder(false);
-  }, [new_folder_name, new_folder_color, create_new_folder]);
+  }, [
+    new_folder_name,
+    new_folder_color,
+    is_creating_folder,
+    create_new_folder,
+    t,
+  ]);
 
   const handle_create_label = useCallback(async () => {
     const name = new_label_name.trim();
 
-    if (!name) return;
-    await create_new_tag(name, new_label_color, new_label_icon);
+    if (!name || is_creating_label) return;
+    set_is_creating_label(true);
+
+    const created = await create_new_tag(name, new_label_color, new_label_icon);
+
+    set_is_creating_label(false);
+    if (!created) {
+      show_toast(t("common.failed_to_create_label"), "error");
+
+      return;
+    }
     set_new_label_name("");
     set_new_label_color(TAG_COLOR_PRESETS[10].hex);
     set_new_label_icon(undefined);
     set_show_create_label(false);
-  }, [new_label_name, new_label_color, new_label_icon, create_new_tag]);
+  }, [
+    new_label_name,
+    new_label_color,
+    new_label_icon,
+    is_creating_label,
+    create_new_tag,
+    t,
+  ]);
 
   const handle_create_alias = useCallback(async () => {
     const trimmed = new_alias_local.trim().toLowerCase();
@@ -456,7 +442,7 @@ export const MobileDrawer = memo(function MobileDrawer({
     }
 
     set_creating_alias(false);
-  }, [new_alias_local, user_domain, captcha_token, turnstile_required]);
+  }, [new_alias_local, user_domain, captcha_token, turnstile_required, t]);
 
   const handle_open_edit_folder = useCallback((folder: DecryptedFolder) => {
     set_editing_folder(folder);
@@ -469,28 +455,32 @@ export const MobileDrawer = memo(function MobileDrawer({
     const name = edit_folder_name.trim();
 
     if (!name) return;
-    await update_existing_folder(editing_folder.id, name, edit_folder_color);
+    const success = await update_existing_folder(
+      editing_folder.id,
+      name,
+      edit_folder_color,
+    );
+
+    if (!success) {
+      show_toast(t("common.failed_to_rename_folder"), "error");
+
+      return;
+    }
     set_editing_folder(null);
   }, [
     editing_folder,
     edit_folder_name,
     edit_folder_color,
     update_existing_folder,
+    t,
   ]);
 
-  const handle_delete_folder = useCallback(async () => {
+  const handle_delete_folder = useCallback(() => {
     if (!editing_folder) return;
 
-    if (editing_folder.is_password_protected && editing_folder.password_set) {
-      set_deleting_folder(editing_folder);
-      set_editing_folder(null);
-
-      return;
-    }
-
-    await delete_existing_folder(editing_folder.id);
+    set_deleting_folder(editing_folder);
     set_editing_folder(null);
-  }, [editing_folder, delete_existing_folder]);
+  }, [editing_folder]);
 
   const handle_open_edit_tag = useCallback((tag: DecryptedTag) => {
     set_editing_tag(tag);
@@ -504,12 +494,18 @@ export const MobileDrawer = memo(function MobileDrawer({
     const name = edit_tag_name.trim();
 
     if (!name) return;
-    await update_existing_tag(
+    const success = await update_existing_tag(
       editing_tag.id,
       name,
       edit_tag_color,
       edit_tag_icon,
     );
+
+    if (!success) {
+      show_toast(t("common.failed_to_rename_label"), "error");
+
+      return;
+    }
     set_editing_tag(null);
   }, [
     editing_tag,
@@ -517,40 +513,44 @@ export const MobileDrawer = memo(function MobileDrawer({
     edit_tag_color,
     edit_tag_icon,
     update_existing_tag,
+    t,
   ]);
 
-  const handle_delete_tag = useCallback(async () => {
+  const handle_delete_tag = useCallback(() => {
     if (!editing_tag) return;
-    await delete_existing_tag(editing_tag.id);
+
+    set_confirm_delete_tag(editing_tag);
+  }, [editing_tag]);
+
+  const handle_confirm_delete_tag = useCallback(async () => {
+    if (!confirm_delete_tag) return;
+    const success = await delete_existing_tag(confirm_delete_tag.id);
+
+    set_confirm_delete_tag(null);
+    if (!success) {
+      show_toast(t("common.failed_to_delete_label"), "error");
+
+      return;
+    }
     set_editing_tag(null);
-  }, [editing_tag, delete_existing_tag]);
+  }, [confirm_delete_tag, delete_existing_tag, t]);
 
   const handle_toggle_lock = useCallback(
     async (folder_id: string, is_currently_locked: boolean) => {
-      await toggle_folder_lock(folder_id, !is_currently_locked);
+      const success = await toggle_folder_lock(folder_id, !is_currently_locked);
+
+      if (!success) {
+        show_toast(t("common.failed_to_update_folder_encryption"), "error");
+      }
     },
-    [toggle_folder_lock],
+    [toggle_folder_lock, t],
   );
 
-  const do_logout = useCallback(async () => {
-    set_show_logout_confirm(false);
+  const handle_logout = useCallback(async () => {
     set_show_account_menu(false);
     on_close();
     await logout();
   }, [logout, on_close]);
-
-  const handle_logout = useCallback(() => {
-    set_show_account_menu(false);
-    if (preferences.skip_logout_confirmation) {
-      do_logout();
-    } else {
-      setTimeout(() => set_show_logout_confirm(true), 300);
-    }
-  }, [preferences.skip_logout_confirmation, do_logout]);
-
-  const handle_logout_dont_ask_again = useCallback(async () => {
-    update_preference("skip_logout_confirmation", true, true);
-  }, [update_preference]);
 
   const folders = useMemo(
     () => (folders_state.folders ?? []).filter((f) => !f.is_system),
@@ -565,127 +565,72 @@ export const MobileDrawer = memo(function MobileDrawer({
 
   return (
     <>
-      <AnimatePresence>
-        {is_open && (
-          <motion.div
-            animate={{ opacity: 1 }}
-            className="fixed inset-0 z-50 bg-black/50"
-            exit={{ opacity: 0 }}
-            initial={reduce_motion ? false : { opacity: 0 }}
-            transition={{ duration: reduce_motion ? 0 : 0.2 }}
-            onPointerDown={handle_backdrop_pointer_down}
-          />
-        )}
-      </AnimatePresence>
-
-      <motion.nav
-        ref={dialog_ref}
-        animate={{ x: is_open ? 0 : -320 }}
-        className="fixed inset-y-0 left-0 z-50 flex w-80 max-w-[85vw] flex-col outline-none"
-        initial={false}
-        tabIndex={-1}
-        style={{
-          paddingTop: safe_area_insets.top,
-          paddingBottom: safe_area_insets.bottom,
-          backgroundColor: "var(--mobile-sidebar-bg, var(--bg-primary))",
-          willChange: "transform",
-          pointerEvents: is_open ? "auto" : "none",
-        }}
-        transition={
-          reduce_motion
-            ? { duration: 0 }
-            : { type: "tween", duration: 0.25, ease: "easeOut" }
-        }
-        onAnimationComplete={(definition) => {
-          if (
-            typeof definition === "object" &&
-            "x" in definition &&
-            definition.x === -320
-          ) {
-            const el = nav_container_ref.current?.closest("nav");
-
-            if (el) el.style.visibility = "hidden";
-          }
-        }}
-        onAnimationStart={() => {
-          const el = nav_container_ref.current?.closest("nav");
-
-          if (el) el.style.visibility = "visible";
-        }}
+      <MobileDrawerShell
+        focusable
+        hide_when_closed
+        is_open={is_open}
+        lock_body_scroll={false}
+        on_backdrop_pointer_down={handle_backdrop_pointer_down}
+        on_close={on_close}
+        panel_ref={dialog_ref}
+        reduce_motion={reduce_motion}
+        safe_area_bottom={safe_area_insets.bottom}
+        safe_area_top={safe_area_insets.top}
+        side="start"
+        width_class_name="w-80 max-w-[85vw]"
       >
-        <div className="px-4 pb-4 pt-5">
-          <button
-            className="flex w-full items-center gap-3.5"
-            type="button"
-            onClick={() => set_show_account_menu(true)}
-          >
-            <div className="relative h-11 w-11 shrink-0">
-              <img
-                alt="Aster"
-                className="h-full w-full select-none rounded-xl"
-                draggable={false}
-                src={mail_logo_url}
-              />
-            </div>
-            <div className="min-w-0 flex-1">
-              <span className="block truncate text-left text-[17px] font-semibold text-[var(--text-primary)]">
-                Aster Mail
-              </span>
-              <span className="block truncate text-left text-[13px] text-[var(--text-muted)]">
-                {primary_identity.email || (user?.email ?? "")}
-              </span>
-            </div>
-            <ChevronDownIcon className="h-5 w-5 shrink-0 text-[var(--text-muted)]" />
-          </button>
-        </div>
+        <MobileDrawerHeaderView
+          logo_src={mail_logo_url}
+          subtitle={primary_identity.email || (user?.email ?? "")}
+          title="Aster Mail"
+          on_click={() => set_show_account_menu(true)}
+        />
 
-        <div
-          ref={drawer_scroll_ref}
-          className="flex-1 overflow-y-auto overscroll-y-auto px-2.5 pb-2 pt-0.5"
-          style={{ WebkitOverflowScrolling: "touch" }}
-          onTouchEnd={handle_bounce_touch_end}
-          onTouchMove={handle_bounce_touch_move}
-          onTouchStart={handle_bounce_touch_start}
-        >
-          <div ref={bounce_content_ref}>
-            <DrawerNavContent
-              active_path={active_path}
-              alias_unread_counts={alias_unread_counts}
-              aliases={aliases}
-              aliases_loading={aliases_loading}
-              folder_unread_counts={folder_unread_counts}
-              folders={folders}
-              folders_loading={folders_state.is_loading}
-              handle_nav={handle_nav}
-              indicator_style={indicator_style}
-              nav_container_ref={nav_container_ref}
-              on_open_create_alias={() => {
-                set_show_create_folder(false);
-                set_show_create_label(false);
-                set_show_create_alias(true);
-              }}
-              on_open_create_folder={() => {
-                set_show_create_label(false);
-                set_show_create_alias(false);
-                set_show_create_folder(true);
-              }}
-              on_open_create_label={() => {
-                set_show_create_folder(false);
-                set_show_create_alias(false);
-                set_show_create_label(true);
-              }}
-              on_open_edit_folder={handle_open_edit_folder}
-              on_open_edit_tag={handle_open_edit_tag}
-              on_password_modal={set_password_modal_folder}
-              on_toggle_lock={handle_toggle_lock}
-              stats={stats}
-              tag_counts={tag_counts}
-              tags={tags}
-              tags_loading={tags_state.is_loading}
-            />
-          </div>
-        </div>
-      </motion.nav>
+        <MobileDrawerScrollArea>
+          <DrawerNavContent
+            active_path={active_path}
+            alias_unread_counts={alias_unread_counts}
+            aliases={aliases}
+            aliases_load_failed={aliases_load_failed}
+            aliases_loading={aliases_loading}
+            folder_unread_counts={folder_unread_counts}
+            folders={folders}
+            folders_load_failed={Boolean(folders_state.error)}
+            folders_loading={folders_state.is_loading}
+            handle_nav={handle_nav}
+            indicator_style={indicator_style}
+            nav_container_ref={nav_container_ref}
+            on_open_create_alias={() => {
+              set_show_create_folder(false);
+              set_show_create_label(false);
+              set_show_create_alias(true);
+            }}
+            on_open_create_folder={() => {
+              set_show_create_label(false);
+              set_show_create_alias(false);
+              set_show_create_folder(true);
+            }}
+            on_open_create_label={() => {
+              set_show_create_folder(false);
+              set_show_create_alias(false);
+              set_show_create_label(true);
+            }}
+            on_open_edit_folder={handle_open_edit_folder}
+            on_open_edit_tag={handle_open_edit_tag}
+            on_password_modal={set_password_modal_folder}
+            on_sort_folders={() => void handle_sort_folders()}
+            on_retry_aliases={() => void refresh_aliases()}
+            on_retry_folders={() => void refresh_folders()}
+            on_retry_tags={() => void refresh_tags()}
+            on_toggle_lock={handle_toggle_lock}
+            stats={stats}
+            tag_counts={tag_counts}
+            tags={tags}
+            tags_load_failed={Boolean(tags_state.error)}
+            tags_loading={tags_state.is_loading}
+          />
+        </MobileDrawerScrollArea>
+      </MobileDrawerShell>
 
       <AccountMenuSheet
         handle_logout={handle_logout}
@@ -703,6 +648,7 @@ export const MobileDrawer = memo(function MobileDrawer({
         folder_input_ref={folder_input_ref}
         folder_name={new_folder_name}
         handle_create={handle_create_folder}
+        is_creating={is_creating_folder}
         is_open={show_create_folder}
         on_close={() => {
           set_show_create_folder(false);
@@ -715,6 +661,7 @@ export const MobileDrawer = memo(function MobileDrawer({
 
       <CreateLabelSheet
         handle_create={handle_create_label}
+        is_creating={is_creating_label}
         is_open={show_create_label}
         label_color={new_label_color}
         label_icon={new_label_icon}
@@ -769,6 +716,19 @@ export const MobileDrawer = memo(function MobileDrawer({
         set_edit_name={set_edit_tag_name}
       />
 
+      <ConfirmationModal
+        cancel_text={t("common.cancel")}
+        confirm_text={t("common.delete")}
+        is_open={!!confirm_delete_tag}
+        message={`${t("common.confirm_delete_label")} "${
+          confirm_delete_tag?.name ?? ""
+        }"?`}
+        on_cancel={() => set_confirm_delete_tag(null)}
+        on_confirm={handle_confirm_delete_tag}
+        title={t("common.delete_label")}
+        variant="danger"
+      />
+
       <CreateAliasSheet
         alias_error={alias_error}
         alias_local={new_alias_local}
@@ -800,13 +760,6 @@ export const MobileDrawer = memo(function MobileDrawer({
           handle_nav(`/folder/${encodeURIComponent(token)}`);
         }}
         password_modal_folder={password_modal_folder}
-      />
-
-      <LogoutConfirmWrapper
-        is_open={show_logout_confirm}
-        on_cancel={() => set_show_logout_confirm(false)}
-        on_confirm={do_logout}
-        on_dont_ask_again={handle_logout_dont_ask_again}
       />
     </>
   );

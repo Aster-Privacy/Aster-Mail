@@ -29,13 +29,13 @@ vi.mock("@/services/crypto/attachment_crypto", () => ({
   decrypt_attachment_data: vi.fn(),
 }));
 
+import { resolve_cid_references, replace_cid_reference } from "./cid_resolver";
+
 import { list_attachments } from "@/services/api/attachments";
 import {
   decrypt_attachment_meta,
   decrypt_attachment_data,
 } from "@/services/crypto/attachment_crypto";
-
-import { resolve_cid_references } from "./cid_resolver";
 
 const PNG_BYTES = new Uint8Array([1, 2, 3, 4]);
 
@@ -85,7 +85,7 @@ describe("resolve_cid_references url_mode", () => {
     expect(result.html).not.toContain("cid:");
   });
 
-  it("returns blob urls by default", async () => {
+  it("returns cache-owned blob urls by default", async () => {
     const create_object_url = vi
       .spyOn(URL, "createObjectURL")
       .mockReturnValue("blob:mock-url");
@@ -96,7 +96,7 @@ describe("resolve_cid_references url_mode", () => {
     );
 
     expect(create_object_url).toHaveBeenCalled();
-    expect(result.blob_urls).toEqual(["blob:mock-url"]);
+    expect(result.blob_urls).toEqual([]);
     expect(result.html).toContain('src="blob:mock-url"');
 
     create_object_url.mockRestore();
@@ -131,5 +131,60 @@ describe("resolve_cid_references url_mode", () => {
 
     expect(result.html).toBe(html);
     expect(list_attachments).not.toHaveBeenCalled();
+  });
+
+  it("builds the data url from the normalized image type, not the raw header", async () => {
+    vi.mocked(decrypt_attachment_meta).mockResolvedValue({
+      filename: "logo.png",
+      content_type: 'image/png;x="><img src=x onerror=alert(1)>',
+      content_id: "<logo@example.com>",
+      session_key: "key",
+    } as never);
+
+    const result = await resolve_cid_references(
+      '<img src="cid:logo@example.com">',
+      "mail_1",
+      "data",
+    );
+
+    expect(result.html).toBe('<img src="data:image/png;base64,AQIDBA==">');
+    expect(result.html).not.toContain("onerror");
+  });
+
+  it("maps aliased content types to their canonical data url type", async () => {
+    vi.mocked(decrypt_attachment_meta).mockResolvedValue({
+      filename: "photo.jpg",
+      content_type: "image/pjpeg; charset=binary",
+      content_id: "<logo@example.com>",
+      session_key: "key",
+    } as never);
+
+    const result = await resolve_cid_references(
+      '<img src="cid:logo@example.com">',
+      "mail_1",
+      "data",
+    );
+
+    expect(result.html).toContain('src="data:image/jpeg;base64,AQIDBA=="');
+  });
+});
+
+describe("replace_cid_reference", () => {
+  const html = '<img src="cid:logo@example.com">';
+
+  it.each([
+    'data:image/png;x="><img src=x onerror=alert(1)>',
+    "data:image/png;x='a",
+    "data:image/png;x=<b>",
+    "data:image/png;x=a b",
+    "data:image/png;x=a\nb",
+  ])("leaves the reference untouched for unsafe url %j", (url) => {
+    expect(replace_cid_reference(html, "logo@example.com", url)).toBe(html);
+  });
+
+  it("replaces the reference for a safe url", () => {
+    expect(
+      replace_cid_reference(html, "logo@example.com", "blob:mock-url"),
+    ).toBe('<img src="blob:mock-url">');
   });
 });

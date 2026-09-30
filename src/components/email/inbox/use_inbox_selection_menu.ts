@@ -18,15 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { SelectionMenuScope } from "@/components/email/inbox/inbox_email_list";
+import type { EmailCategory, InboxEmail } from "@/types/email";
+
 import { useMemo } from "react";
 
-import type { SelectionMenuScope } from "@/components/email/inbox/inbox_email_list";
 import { use_category_drop } from "@/components/email/inbox/use_category_drop";
 import { use_inbox_bulk_actions } from "@/components/email/inbox/use_inbox_bulk_actions";
 import { use_inbox_selection } from "@/components/email/inbox/use_inbox_selection";
 import { use_inbox_toolbar_actions } from "@/components/email/inbox/use_inbox_toolbar_actions";
 import { use_inbox_categories } from "@/hooks/use_inbox_categories";
-import type { EmailCategory, InboxEmail } from "@/types/email";
 
 export type InboxSelectionMenuParams = {
   categories: ReturnType<typeof use_inbox_categories>;
@@ -60,6 +61,7 @@ export function use_inbox_selection_menu({
     handle_not_spam_wrapped,
     handle_folder_toggle_wrapped,
     handle_tag_toggle_wrapped,
+    handle_snooze_wrapped,
   } = bulk_actions;
 
   const selected_emails = useMemo(
@@ -90,7 +92,7 @@ export function use_inbox_selection_menu({
       on_restore: handle_restore_wrapped,
       on_mark_not_spam: handle_not_spam_wrapped,
       on_move_to_inbox: handle_unarchive_wrapped,
-      on_snooze: toolbar.handle_toolbar_snooze,
+      on_snooze: handle_snooze_wrapped,
       on_custom_snooze: () => set_show_toolbar_custom_snooze(true),
       on_folder_toggle: (folder_token: string) => {
         handle_folder_toggle_wrapped(
@@ -130,6 +132,7 @@ export function use_inbox_selection_menu({
     handle_unarchive_wrapped,
     handle_folder_toggle_wrapped,
     handle_tag_toggle_wrapped,
+    handle_snooze_wrapped,
   ]);
 
   return selection_menu;

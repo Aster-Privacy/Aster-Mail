@@ -19,6 +19,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { describe, it, expect } from "vitest";
+
 import {
   strip_css_comments,
   strip_css_urls,
@@ -105,9 +106,9 @@ describe("strip_css_urls", () => {
   });
 
   it("removes a non image data url", () => {
-    expect(
-      strip_css_urls("background: url(data:text/html;base64,AAAA)"),
-    ).toBe("background: none");
+    expect(strip_css_urls("background: url(data:text/html;base64,AAAA)")).toBe(
+      "background: none",
+    );
   });
 });
 

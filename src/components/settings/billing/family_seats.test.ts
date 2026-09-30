@@ -20,7 +20,12 @@
  */
 
 import { describe, expect, it } from "vitest";
-import { family_seat_usage, seat_breakdown_total, type SeatBreakdown } from "./family_seats";
+
+import {
+  family_seat_usage,
+  seat_breakdown_total,
+  type SeatBreakdown,
+} from "./family_seats";
 
 const members = (active: number, grace = 0) => [
   ...Array.from({ length: active }, () => ({ status: "active" })),

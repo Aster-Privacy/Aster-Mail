@@ -18,16 +18,14 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "@/services/crypto/key_manager";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-
-import { api_client } from "./client";
 import type { StepUpCredentials } from "./step_up";
 
+import { api_client } from "./client";
+
+import { HASH_ALG } from "@/services/crypto/constants";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import { hash_recovery_email } from "@/services/crypto/key_manager";
-
-
 import { ignore_error } from "@/lib/ignore_error";
 
 interface GetRecoveryEmailApiResponse {
@@ -35,11 +33,26 @@ interface GetRecoveryEmailApiResponse {
   email_nonce: string | null;
   verified: boolean | null;
   has_server_enc: boolean;
+  exists?: boolean;
+  step_up_required?: boolean;
 }
 
-interface RecoveryEmailData {
+export interface RecoveryEmailData {
   email: string | null;
   verified: boolean;
+  exists: boolean;
+  step_up_required: boolean;
+}
+
+export const EMPTY_RECOVERY_EMAIL: RecoveryEmailData = {
+  email: null,
+  verified: false,
+  exists: false,
+  step_up_required: false,
+};
+
+export function normalize_recovery_email(email: string): string {
+  return email.trim().toLowerCase();
 }
 
 interface SaveRecoveryEmailApiResponse {
@@ -50,7 +63,26 @@ interface ResendVerificationApiResponse {
   success: boolean;
 }
 
+const RECOVERY_CACHE_TTL_MS = 30_000;
+
 let cached_recovery_data: RecoveryEmailData | null = null;
+let cached_recovery_at = 0;
+
+function set_cached_recovery_data(data: RecoveryEmailData | null) {
+  cached_recovery_data = data;
+  cached_recovery_at = data ? Date.now() : 0;
+}
+
+function read_cached_recovery_data(): RecoveryEmailData | null {
+  if (!cached_recovery_data) return null;
+  if (Date.now() - cached_recovery_at > RECOVERY_CACHE_TTL_MS) {
+    set_cached_recovery_data(null);
+
+    return null;
+  }
+
+  return cached_recovery_data;
+}
 
 async function derive_recovery_email_key(
   vault: EncryptedVault,
@@ -100,20 +132,52 @@ async function decrypt_recovery_email(
   );
   const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
-  const decrypted = await decrypt_aes_gcm_with_fallback(key, encrypted_data, nonce_data);
+  const decrypted = await decrypt_aes_gcm_with_fallback(
+    key,
+    encrypted_data,
+    nonce_data,
+  );
 
   return new TextDecoder().decode(decrypted);
+}
+
+export async function reencrypt_recovery_email(
+  encrypted: string,
+  nonce: string,
+  old_vault: EncryptedVault,
+  new_vault: EncryptedVault,
+): Promise<{ encrypted_email: string; email_nonce: string } | null> {
+  try {
+    const address = await decrypt_recovery_email(encrypted, nonce, old_vault);
+
+    if (!address) {
+      return null;
+    }
+
+    const reencrypted = await encrypt_recovery_email(address, new_vault);
+
+    return {
+      encrypted_email: reencrypted.encrypted,
+      email_nonce: reencrypted.nonce,
+    };
+  } catch (caught) {
+    ignore_error("services/api/recovery_email:reencrypt", caught);
+
+    return null;
+  }
 }
 
 export async function get_recovery_email(
   vault: EncryptedVault | null,
 ): Promise<{ data: RecoveryEmailData }> {
   if (!vault) {
-    return { data: { email: null, verified: false } };
+    return { data: EMPTY_RECOVERY_EMAIL };
   }
 
-  if (cached_recovery_data) {
-    return { data: cached_recovery_data };
+  const cached = read_cached_recovery_data();
+
+  if (cached) {
+    return { data: cached };
   }
 
   try {
@@ -122,24 +186,51 @@ export async function get_recovery_email(
     );
 
     if (response.error || !response.data) {
-      return { data: { email: null, verified: false } };
+      return { data: EMPTY_RECOVERY_EMAIL };
     }
 
-    const { encrypted_email, email_nonce, verified, has_server_enc } = response.data;
+    const { encrypted_email, email_nonce, verified, has_server_enc } =
+      response.data;
+    const exists =
+      response.data.exists ?? Boolean(encrypted_email && email_nonce);
+    const step_up_required =
+      response.data.step_up_required ?? Boolean(verified);
 
     if (!encrypted_email || !email_nonce) {
-      return { data: { email: null, verified: false } };
+      const empty_data: RecoveryEmailData = {
+        email: null,
+        verified: verified ?? false,
+        exists,
+        step_up_required,
+      };
+
+      set_cached_recovery_data(empty_data);
+
+      return { data: empty_data };
     }
 
-    const email = await decrypt_recovery_email(
-      encrypted_email,
-      email_nonce,
-      vault,
-    );
+    let email: string | null = null;
+    let decrypt_failed = false;
 
-    cached_recovery_data = { email, verified: verified ?? false };
+    try {
+      email = await decrypt_recovery_email(encrypted_email, email_nonce, vault);
+    } catch (caught) {
+      decrypt_failed = true;
+      ignore_error("services/api/recovery_email:decrypt", caught);
+    }
 
-    if (cached_recovery_data.verified && !has_server_enc) {
+    const recovery_data: RecoveryEmailData = {
+      email,
+      verified: verified ?? false,
+      exists,
+      step_up_required,
+    };
+
+    if (!decrypt_failed) {
+      set_cached_recovery_data(recovery_data);
+    }
+
+    if (email && recovery_data.verified && !has_server_enc) {
       hash_recovery_email(email)
         .then((email_hash) =>
           api_client.post("/core/v1/recovery/email/server-enc", {
@@ -147,12 +238,17 @@ export async function get_recovery_email(
             email_hash,
           }),
         )
-        .catch((caught) => ignore_error("services/api/recovery_email:get_recovery_email", caught));
+        .catch((caught) =>
+          ignore_error(
+            "services/api/recovery_email:get_recovery_email",
+            caught,
+          ),
+        );
     }
 
-    return { data: cached_recovery_data };
+    return { data: recovery_data };
   } catch {
-    return { data: { email: null, verified: false } };
+    return { data: EMPTY_RECOVERY_EMAIL };
   }
 }
 
@@ -162,8 +258,12 @@ export async function save_recovery_email(
   credentials?: StepUpCredentials,
 ): Promise<{ data: { success: boolean }; code?: string; error?: string }> {
   try {
-    const { encrypted, nonce } = await encrypt_recovery_email(email, vault);
-    const email_hash = await hash_recovery_email(email);
+    const normalized = normalize_recovery_email(email);
+    const { encrypted, nonce } = await encrypt_recovery_email(
+      normalized,
+      vault,
+    );
+    const email_hash = await hash_recovery_email(normalized);
 
     const response = await api_client.put<SaveRecoveryEmailApiResponse>(
       "/core/v1/recovery/email",
@@ -171,7 +271,7 @@ export async function save_recovery_email(
         encrypted_email: encrypted,
         email_nonce: nonce,
         email_hash,
-        plaintext_email: email,
+        plaintext_email: normalized,
         password_hash: credentials?.password_hash,
         totp_code: credentials?.totp_code,
       },
@@ -180,7 +280,12 @@ export async function save_recovery_email(
     const success = !response.error && response.data?.success === true;
 
     if (success) {
-      cached_recovery_data = { email, verified: false };
+      cached_recovery_data = {
+        email: normalized,
+        verified: false,
+        exists: true,
+        step_up_required: false,
+      };
     }
 
     return { data: { success }, code: response.code, error: response.error };
@@ -191,23 +296,19 @@ export async function save_recovery_email(
 
 export async function resend_recovery_verification(
   plaintext_email?: string,
-): Promise<{
-  data: { success: boolean };
-}> {
+): Promise<{ data: { success: boolean }; code?: string; error?: string }> {
   const email = plaintext_email || cached_recovery_data?.email;
-
-  if (!email) {
-    return { data: { success: false } };
-  }
 
   try {
     const response = await api_client.post<ResendVerificationApiResponse>(
       "/core/v1/recovery/email/resend",
-      { plaintext_email: email },
+      email ? { plaintext_email: normalize_recovery_email(email) } : {},
     );
 
     return {
       data: { success: !response.error && response.data?.success === true },
+      code: response.code,
+      error: response.error,
     };
   } catch {
     return { data: { success: false } };
@@ -270,13 +371,24 @@ export async function check_recovery_email_verified(): Promise<boolean> {
     const verified = response.data.verified === true;
 
     if (verified && cached_recovery_data) {
-      cached_recovery_data = { ...cached_recovery_data, verified: true };
+      cached_recovery_data = {
+        ...cached_recovery_data,
+        verified: true,
+        exists: true,
+        step_up_required: true,
+      };
     }
 
     return verified;
   } catch {
     return false;
   }
+}
+
+export async function prime_server_recovery_email(
+  vault: EncryptedVault | null,
+): Promise<void> {
+  await get_recovery_email(vault);
 }
 
 export function clear_recovery_email_cache(): void {

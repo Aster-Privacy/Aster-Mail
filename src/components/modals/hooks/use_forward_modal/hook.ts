@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { DecryptedContact } from "@/types/contacts";
 import type { Badge } from "@/services/api/user";
 
 import {
@@ -29,6 +28,12 @@ import {
   useReducer,
   useMemo,
 } from "react";
+
+import {
+  UseForwardModalProps,
+  apply_inline_image_substitutions,
+  merge_pending_recipients,
+} from "./helpers";
 
 import { use_draggable_modal } from "@/hooks/use_draggable_modal";
 import { use_editor } from "@/hooks/use_editor";
@@ -44,14 +49,19 @@ import { use_preferences } from "@/contexts/preferences_context";
 import { auto_save_recipients_to_contacts } from "@/services/contacts_auto_save";
 import { use_auth } from "@/contexts/auth_context";
 import { show_toast } from "@/components/toast/simple_toast";
-import { show_action_toast } from "@/components/toast/action_toast";
+import { show_email_sent_toast } from "@/components/toast/email_sent_toast";
 import { format_bytes } from "@/lib/utils";
-import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
+import {
+  MAX_RECIPIENTS_PER_FIELD,
+  MAX_RECIPIENTS_PER_SEND,
+  recipient_limit_violation,
+} from "@/lib/recipient_limits";
+import { use_suggestion_contacts } from "@/hooks/use_suggestion_contacts";
 import {
   create_scheduled_email,
   type ScheduledEmailContent,
 } from "@/services/api/scheduled";
-import { emit_scheduled_changed } from "@/hooks/mail_events";
+import { emit_email_sent, emit_scheduled_changed } from "@/hooks/mail_events";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
 import {
@@ -59,6 +69,8 @@ import {
   set_preferred_sender_id,
   subscribe_preferred_sender,
 } from "@/lib/preferred_sender";
+import { use_preferred_sender_ready } from "@/hooks/use_preferred_sender_ready";
+import { resolve_from_sender } from "@/components/compose/resolve_from_sender";
 import {
   type Attachment,
   type DraftStatus,
@@ -66,17 +78,29 @@ import {
   type InputsState,
   type VisibilityState,
   recipients_reducer,
+  is_valid_email,
   generate_attachment_id,
   get_aster_footer,
-  MAX_ATTACHMENT_SIZE,
-  MAX_TOTAL_ATTACHMENTS_SIZE,
   EVENT_DISPATCH_DELAY_MS,
 } from "@/components/compose/compose_shared";
+import {
+  MAX_ATTACHMENTS_PER_SEND,
+  ensure_attachment_limits,
+  get_max_attachment_size,
+  get_max_total_attachments_size,
+} from "@/services/attachment_limits";
+import {
+  describe_oversized_file,
+  describe_too_many_attachments,
+  describe_would_exceed_total,
+  prompt_attachment_upgrade,
+} from "@/services/attachment_rejection";
 import {
   use_sender_aliases,
   type SenderOption,
 } from "@/hooks/use_sender_aliases";
 import { use_ghost_mode } from "@/hooks/use_ghost_mode";
+import { use_ghost_sender_binding } from "@/hooks/use_ghost_sender_binding";
 import { send_via_external_account } from "@/services/api/external_accounts";
 import { list_attachments } from "@/services/api/attachments";
 import {
@@ -93,9 +117,26 @@ import { use_my_badge_prefs } from "@/stores/my_badge_prefs_store";
 import { build_badge_html } from "@/components/compose/compose_draft_helpers";
 import { use_signatures } from "@/contexts/signatures_context";
 import { sanitize_html, sanitize_outgoing_html } from "@/lib/html_sanitizer";
+import {
+  get_compose_sanitize_options,
+  restore_compose_image_sources,
+} from "@/lib/compose_image_sources";
 import { inline_email_css } from "@/lib/forward_css_inliner";
-import { is_any_lockdown_active } from "@/services/lockdown_store";
-import { UseForwardModalProps, apply_inline_image_substitutions } from "./helpers";
+import {
+  app_hour12,
+  app_locale,
+  get_display_time_zone,
+} from "@/utils/date_format";
+import { use_escape_layer } from "@/lib/overlay_layer_stack";
+import { user_facing_error } from "@/utils/user_facing_error";
+import { record_review_prompt_action } from "@/lib/review_prompt";
+import { ignore_error } from "@/lib/ignore_error";
+import { with_caret_block } from "@/lib/signature_html";
+import { use_plan_limits } from "@/hooks/use_plan_limits";
+import {
+  find_locked_expiry_feature,
+  prompt_expiry_upgrade,
+} from "@/components/compose/expiry_plan_gate";
 
 export function use_forward_modal({
   is_open,
@@ -114,6 +155,7 @@ export function use_forward_modal({
   const reduce_motion = use_should_reduce_motion();
   const { user, vault } = use_auth();
   const { preferences } = use_preferences();
+  const { limits: plan_limits, is_feature_locked } = use_plan_limits();
   const {
     default_signature,
     get_formatted_signature,
@@ -133,15 +175,28 @@ export function use_forward_modal({
       : null;
 
   useEffect(() => {
-    fetch_my_badges().then((r) => {
-      if (r.data) set_badges(r.data);
-      set_badges_loaded(true);
-    });
+    fetch_my_badges()
+      .then((r) => {
+        if (r.data) set_badges(r.data);
+      })
+      .catch((caught) =>
+        ignore_error(
+          "components/modals/hooks/use_forward_modal/hook:fetch_my_badges",
+          caught,
+        ),
+      )
+      .finally(() => set_badges_loaded(true));
   }, []);
   const { sender_options, loading: sender_loading } = use_sender_aliases();
-  const [selected_sender, set_selected_sender] = useState<SenderOption | null>(
-    null,
-  );
+  const [selected_sender, set_selected_sender_state] =
+    useState<SenderOption | null>(null);
+  const sender_manually_selected_ref = useRef(false);
+  const preferred_sender_ready = use_preferred_sender_ready();
+
+  const set_selected_sender = useCallback((value: SenderOption | null) => {
+    sender_manually_selected_ref.current = value !== null;
+    set_selected_sender_state(value);
+  }, []);
   const [preferred_sender_id, set_preferred_sender_state] = useState<
     string | null
   >(() => get_preferred_sender_id());
@@ -176,7 +231,7 @@ export function use_forward_modal({
     null,
   );
   const [is_plain_text_mode, set_is_plain_text_mode] = useState(false);
-  const [contacts, set_contacts] = useState<DecryptedContact[]>([]);
+  const contacts = use_suggestion_contacts(is_open);
   const [draft_status] = useState<DraftStatus>("idle");
   const [last_saved_time] = useState<Date | null>(null);
 
@@ -187,6 +242,7 @@ export function use_forward_modal({
   const send_lock_started_at_ref = useRef(0);
   const forward_content_ref = useRef("");
   const content_initialized_ref = useRef(false);
+  const attachments_touched_ref = useRef(false);
 
   useEffect(() => {
     if (!is_sending) return;
@@ -238,12 +294,14 @@ export function use_forward_modal({
   const format_date = useCallback((timestamp: string): string => {
     const date = new Date(timestamp);
 
-    return date.toLocaleDateString(undefined, {
+    return date.toLocaleDateString(app_locale(), {
+      timeZone: get_display_time_zone(),
       weekday: "short",
       year: "numeric",
       month: "short",
       day: "numeric",
       hour: "numeric",
+      hour12: app_hour12(),
       minute: "2-digit",
     });
   }, []);
@@ -272,21 +330,67 @@ export function use_forward_modal({
     format_date,
   ]);
 
-  useEffect(() => {
-    if (!is_open) return;
+  const [is_discard_open, set_is_discard_open] = useState(false);
 
-    const handle_escape = (e: KeyboardEvent) => {
-      if (e["key"] === "Escape") {
-        e.preventDefault();
-        e.stopPropagation();
-        on_close();
-      }
+  const has_unsaved_content = useCallback(() => {
+    if (forward_message.trim()) return true;
+    if (attachments_touched_ref.current) return true;
+
+    const fields = ["to", "cc", "bcc"] as const;
+
+    return fields.some(
+      (field) => recipients[field].length > 0 || inputs[field].trim() !== "",
+    );
+  }, [forward_message, inputs, recipients]);
+
+  const commit_pending_recipient_inputs = useCallback(() => {
+    const pending: Record<"to" | "cc" | "bcc", string> = {
+      to: inputs.to.trim(),
+      cc: inputs.cc.trim(),
+      bcc: inputs.bcc.trim(),
     };
 
-    document.addEventListener("keydown", handle_escape);
+    (["to", "cc", "bcc"] as const).forEach((field) => {
+      if (pending[field]) {
+        dispatch_recipients({ type: "ADD", field, email: pending[field] });
+      }
+    });
 
-    return () => document.removeEventListener("keydown", handle_escape);
-  }, [is_open, on_close]);
+    if (pending.to || pending.cc || pending.bcc) {
+      set_inputs((prev) => ({
+        to: pending.to ? "" : prev.to,
+        cc: pending.cc ? "" : prev.cc,
+        bcc: pending.bcc ? "" : prev.bcc,
+      }));
+    }
+
+    return merge_pending_recipients(recipients, pending);
+  }, [inputs.to, inputs.cc, inputs.bcc, recipients]);
+
+  const handle_close = useCallback(() => {
+    if (has_unsaved_content()) {
+      set_is_discard_open(true);
+
+      return;
+    }
+
+    on_close();
+  }, [has_unsaved_content, on_close]);
+
+  const confirm_discard = useCallback(() => {
+    set_is_discard_open(false);
+    on_close();
+  }, [on_close]);
+
+  const cancel_discard = useCallback(() => {
+    set_is_discard_open(false);
+  }, []);
+
+  const request_discard = useCallback(() => {
+    set_is_discard_open(true);
+  }, []);
+
+  use_escape_layer(is_open, handle_close, "forward_modal");
 
   useEffect(() => {
     if (is_open) {
@@ -294,16 +398,19 @@ export function use_forward_modal({
       set_inputs({ to: "", cc: "", bcc: "" });
       set_visibility({ cc: false, bcc: false });
       set_is_sending(false);
+      set_is_discard_open(false);
       set_error_message(null);
       set_attachments([]);
       original_has_attachments_ref.current = false;
+      attachments_touched_ref.current = false;
       set_is_loading_attachments(false);
       set_attachment_error(null);
       set_scheduled_time(null);
       set_is_scheduling(false);
       set_expires_at(null);
       set_expiry_password(null);
-      set_selected_sender(null);
+      sender_manually_selected_ref.current = false;
+      set_selected_sender_state(null);
       set_is_forward_visible(false);
       set_is_plain_text_mode(false);
       is_sending_ref.current = false;
@@ -332,18 +439,17 @@ export function use_forward_modal({
       if (preferences.signature_mode === "auto" && default_signature) {
         const signature_html = get_formatted_signature(default_signature);
 
-        content = "<br><br>" + signature_html + badge_html;
+        content = with_caret_block(signature_html + badge_html);
       } else if (badge_html) {
-        content = "<br><br>" + badge_html;
+        content = with_caret_block(badge_html);
       }
 
-      const sanitized = sanitize_html(content, {
-        external_content_mode: is_any_lockdown_active() ? "never" : "always",
-        lockdown_mode: is_any_lockdown_active(),
-      });
+      const sanitized = sanitize_html(content, get_compose_sanitize_options());
 
       message_editor_ref.current.innerHTML = sanitized.html;
-      set_forward_message(message_editor_ref.current.innerHTML);
+      set_forward_message(
+        restore_compose_image_sources(message_editor_ref.current.innerHTML),
+      );
     }, 0);
   }, [
     is_open,
@@ -379,8 +485,13 @@ export function use_forward_modal({
         const loaded: Attachment[] = [];
         let total_size = 0;
         let dropped = 0;
+        let locked = 0;
 
-        for (const att of response.data.attachments) {
+        const original_attachments = response.data.attachments;
+
+        for (let index = 0; index < original_attachments.length; index++) {
+          const att = original_attachments[index];
+
           if (cancelled) return;
 
           try {
@@ -401,8 +512,10 @@ export function use_forward_modal({
 
             if (
               total_size + decrypted_data.byteLength >
-              MAX_TOTAL_ATTACHMENTS_SIZE
+              get_max_total_attachments_size()
             ) {
+              dropped += original_attachments.length - index;
+
               break;
             }
 
@@ -419,18 +532,22 @@ export function use_forward_modal({
             });
           } catch {
             dropped += 1;
+            locked += 1;
           }
         }
 
         if (!cancelled) {
-          original_has_attachments_ref.current = true;
-
           if (loaded.length > 0) {
+            original_has_attachments_ref.current = true;
             set_attachments(loaded);
           }
 
           if (dropped > 0) {
-            set_attachment_error(t("common.forward_attachments_locked"));
+            set_attachment_error(
+              locked > 0
+                ? t("common.forward_attachments_locked")
+                : t("common.forward_attachments_unavailable"),
+            );
           }
 
           set_is_loading_attachments(false);
@@ -448,28 +565,29 @@ export function use_forward_modal({
   }, [is_open, original_mail_id, effective_mail_id]);
 
   useEffect(() => {
-    if (!is_external || sender_loading || selected_sender) return;
-    const ext = sender_options.find(
-      (s) => s.type === "external" && s.is_enabled,
-    );
+    if (sender_loading) return;
+    if (sender_manually_selected_ref.current) return;
+    if (ghost_mode.is_ghost_enabled) return;
+    if (!preferred_sender_ready && !preferred_sender_id) return;
 
-    if (ext) set_selected_sender(ext);
-  }, [is_external, sender_options, sender_loading, selected_sender]);
+    const resolved = resolve_from_sender({
+      options: sender_options,
+      prefer_external: is_external,
+      preferred_sender_id,
+    });
 
-  useEffect(() => {
-    if (is_external || sender_loading || selected_sender) return;
-    if (!preferred_sender_id) return;
-    const match = sender_options.find(
-      (s) => s.is_enabled && s.id === preferred_sender_id,
-    );
+    if (!resolved) return;
+    if (resolved.option.id === selected_sender?.id) return;
 
-    if (match) set_selected_sender(match);
+    set_selected_sender_state(resolved.option);
   }, [
     is_external,
     sender_options,
     sender_loading,
     selected_sender,
     preferred_sender_id,
+    preferred_sender_ready,
+    ghost_mode.is_ghost_enabled,
   ]);
 
   useEffect(() => {
@@ -481,32 +599,11 @@ export function use_forward_modal({
     set_preferred_sender_state(id);
   }, []);
 
-  useEffect(() => {
-    if (ghost_mode.is_ghost_enabled && ghost_mode.ghost_sender) {
-      set_selected_sender(ghost_mode.ghost_sender);
-    }
-  }, [ghost_mode.is_ghost_enabled, ghost_mode.ghost_sender]);
-
-  useEffect(() => {
-    if (!is_open) return;
-
-    const load_contacts_fn = async () => {
-      try {
-        const response = await list_contacts({ limit: 100 });
-
-        if (response.data?.items) {
-          const decrypted = await decrypt_contacts(response.data.items);
-
-          set_contacts(decrypted);
-        }
-      } catch (error) {
-        if (import.meta.env.DEV) console.error(error);
-        set_contacts([]);
-      }
-    };
-
-    load_contacts_fn();
-  }, [is_open]);
+  const select_sender = use_ghost_sender_binding(
+    ghost_mode,
+    selected_sender,
+    set_selected_sender,
+  );
 
   const exec_format_command = useCallback(
     (command: string) => {
@@ -538,13 +635,50 @@ export function use_forward_modal({
     )
       return;
 
-    if (recipients.to.length === 0) {
+    const send_recipients = commit_pending_recipient_inputs();
+
+    if (send_recipients.to.length === 0) {
       set_error_message(t("errors.no_recipients"));
 
       return;
     }
 
+    const recipient_violation = recipient_limit_violation(
+      send_recipients.to,
+      send_recipients.cc,
+      send_recipients.bcc,
+    );
+
+    if (recipient_violation) {
+      set_error_message(
+        recipient_violation === "field"
+          ? t("common.too_many_recipients_in_field", {
+              max: MAX_RECIPIENTS_PER_FIELD,
+            })
+          : t("common.too_many_recipients_in_message", {
+              max: MAX_RECIPIENTS_PER_SEND,
+            }),
+      );
+
+      return;
+    }
+
     if (is_loading_attachments) return;
+
+    const locked_expiry_feature = find_locked_expiry_feature({
+      expires_at,
+      limits_loaded: plan_limits !== null,
+      is_feature_locked,
+    });
+
+    if (locked_expiry_feature) {
+      prompt_expiry_upgrade(
+        locked_expiry_feature,
+        t("settings.feature_requires_upgrade"),
+      );
+
+      return;
+    }
 
     is_sending_ref.current = true;
     send_lock_started_at_ref.current = Date.now();
@@ -553,7 +687,7 @@ export function use_forward_modal({
 
     if (preferences.auto_save_recent_recipients) {
       void auto_save_recipients_to_contacts(
-        [...recipients.to, ...recipients.cc, ...recipients.bcc],
+        [...send_recipients.to, ...send_recipients.cc, ...send_recipients.bcc],
         { own_addresses: user?.email ? [user.email] : [] },
       );
     }
@@ -576,9 +710,9 @@ export function use_forward_modal({
           : undefined;
       const ext_result = await send_via_external_account(
         selected_sender.address_hash,
-        recipients.to,
-        recipients.cc,
-        recipients.bcc,
+        send_recipients.to,
+        send_recipients.cc,
+        send_recipients.bcc,
         subject,
         ext_body,
         external_attachments,
@@ -601,6 +735,7 @@ export function use_forward_modal({
       is_sending_ref.current = false;
       send_lock_started_at_ref.current = 0;
       show_toast(t("common.email_sent"), "success");
+      record_review_prompt_action();
       on_close();
 
       return;
@@ -653,9 +788,9 @@ export function use_forward_modal({
     const result = await send_forward(
       {
         original,
-        recipients: recipients.to,
-        cc_recipients: recipients.cc,
-        bcc_recipients: recipients.bcc,
+        recipients: send_recipients.to,
+        cc_recipients: send_recipients.cc,
+        bcc_recipients: send_recipients.bcc,
         message: forward_message,
         prebuilt_content: send_content,
         expires_at: expires_at?.toISOString(),
@@ -666,24 +801,15 @@ export function use_forward_modal({
         forward_original_mail_id: fwd_server_source_id,
       },
       {
-        on_complete: () => {
+        on_complete: (sent_id?: string) => {
           is_sending_ref.current = false;
           send_lock_started_at_ref.current = 0;
           set_is_sending(false);
           setTimeout(() => {
-            window.dispatchEvent(new CustomEvent("astermail:email-sent"));
+            emit_email_sent();
           }, 100);
-          show_action_toast({
-            message: t("common.email_sent"),
-            action_type: "read",
-            email_ids: [],
-            duration_ms: 5000,
-            on_view_message: () => {
-              window.dispatchEvent(
-                new CustomEvent("astermail:navigate-to-sent"),
-              );
-            },
-          });
+          record_review_prompt_action();
+          show_email_sent_toast(t("common.email_sent"), sent_id);
         },
         on_cancel: () => {
           is_sending_ref.current = false;
@@ -697,7 +823,7 @@ export function use_forward_modal({
           set_is_sending(false);
         },
       },
-      preferences.undo_send_period,
+      delay_ms,
       preferences.show_aster_branding,
     ).catch((error: unknown) => ({
       success: false as const,
@@ -712,7 +838,7 @@ export function use_forward_modal({
       if (delay_seconds > 0) {
         undo_send_manager.add({
           id: result.queued_id,
-          to: recipients.to,
+          to: send_recipients.to,
           subject: `${t("mail.forward_subject_prefix")} ${email_subject}`,
           body: forward_message,
           sender_email: fwd_sender_email,
@@ -734,9 +860,7 @@ export function use_forward_modal({
     }
   }, [
     t,
-    recipients.to,
-    recipients.cc,
-    recipients.bcc,
+    commit_pending_recipient_inputs,
     is_sending,
     sender_email,
     sender_name,
@@ -750,6 +874,8 @@ export function use_forward_modal({
     preferences.auto_save_recent_recipients,
     on_close,
     expires_at,
+    plan_limits,
+    is_feature_locked,
     selected_sender,
     attachments,
     is_loading_attachments,
@@ -759,8 +885,11 @@ export function use_forward_modal({
   ]);
 
   const handle_scheduled_send = useCallback(async () => {
-    if (recipients.to.length === 0 || !user || !vault || !scheduled_time)
-      return;
+    if (!user || !vault || !scheduled_time) return;
+
+    const send_recipients = commit_pending_recipient_inputs();
+
+    if (send_recipients.to.length === 0) return;
 
     if (attachments.length > 0) {
       set_error_message(t("common.scheduled_no_attachments"));
@@ -781,9 +910,9 @@ export function use_forward_modal({
       sanitize_outgoing_html(scheduled_content) +
       get_aster_footer(t, preferences.show_aster_branding);
     const content: ScheduledEmailContent = {
-      to_recipients: recipients.to,
-      cc_recipients: recipients.cc,
-      bcc_recipients: recipients.bcc,
+      to_recipients: send_recipients.to,
+      cc_recipients: send_recipients.cc,
+      bcc_recipients: send_recipients.bcc,
       subject: `${t("mail.forward_subject_prefix")} ${email_subject}`,
       body: scheduled_body,
       scheduled_at: scheduled_time.toISOString(),
@@ -808,7 +937,7 @@ export function use_forward_modal({
       }, EVENT_DISPATCH_DELAY_MS);
     } catch (error) {
       set_error_message(
-        error instanceof Error ? error.message : t("common.failed_to_schedule"),
+        user_facing_error(error, t("common.failed_to_schedule")),
       );
     } finally {
       set_is_scheduling(false);
@@ -817,9 +946,7 @@ export function use_forward_modal({
     }
   }, [
     t,
-    recipients.to,
-    recipients.cc,
-    recipients.bcc,
+    commit_pending_recipient_inputs,
     user,
     vault,
     scheduled_time,
@@ -830,10 +957,6 @@ export function use_forward_modal({
     build_forward_content,
     preferences.show_aster_branding,
   ]);
-
-  const handle_close = useCallback(() => {
-    on_close();
-  }, [on_close]);
 
   const get_total_attachments_size = useCallback(() => {
     return attachments.reduce((total, att) => total + att.size_bytes, 0);
@@ -846,6 +969,7 @@ export function use_forward_modal({
       if (!files || files.length === 0) return;
 
       set_attachment_error(null);
+      await ensure_attachment_limits();
       const new_attachments: Attachment[] = [];
       const current_total = get_total_attachments_size();
       let running_total = current_total;
@@ -853,17 +977,29 @@ export function use_forward_modal({
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
 
-        if (file.size > MAX_ATTACHMENT_SIZE) {
-          set_attachment_error(
-            t("common.file_exceeds_max_size", { name: file.name }),
-          );
+        if (
+          attachments.length + new_attachments.length >=
+          MAX_ATTACHMENTS_PER_SEND
+        ) {
+          set_attachment_error(describe_too_many_attachments(t));
+          break;
+        }
+
+        if (file.size > get_max_attachment_size()) {
+          const rejection = describe_oversized_file(t, file.name, file.size);
+
+          set_attachment_error(rejection.message);
+
+          if (rejection.can_upgrade)
+            prompt_attachment_upgrade(
+              rejection.message,
+              rejection.upgrade_plan_code,
+            );
           continue;
         }
 
-        if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
-          set_attachment_error(
-            t("common.adding_file_would_exceed_limit", { name: file.name }),
-          );
+        if (running_total + file.size > get_max_total_attachments_size()) {
+          set_attachment_error(describe_would_exceed_total(t, file.name));
           continue;
         }
 
@@ -899,6 +1035,7 @@ export function use_forward_modal({
       }
 
       if (new_attachments.length > 0) {
+        attachments_touched_ref.current = true;
         set_attachments((prev) => [...prev, ...new_attachments]);
       }
 
@@ -912,22 +1049,35 @@ export function use_forward_modal({
   const handle_files_drop = useCallback(
     async (files: File[]) => {
       set_attachment_error(null);
+      await ensure_attachment_limits();
       const new_attachments: Attachment[] = [];
       const current_total = get_total_attachments_size();
       let running_total = current_total;
 
       for (const file of files) {
-        if (file.size > MAX_ATTACHMENT_SIZE) {
-          set_attachment_error(
-            t("common.file_exceeds_max_size", { name: file.name }),
-          );
+        if (
+          attachments.length + new_attachments.length >=
+          MAX_ATTACHMENTS_PER_SEND
+        ) {
+          set_attachment_error(describe_too_many_attachments(t));
+          break;
+        }
+
+        if (file.size > get_max_attachment_size()) {
+          const rejection = describe_oversized_file(t, file.name, file.size);
+
+          set_attachment_error(rejection.message);
+
+          if (rejection.can_upgrade)
+            prompt_attachment_upgrade(
+              rejection.message,
+              rejection.upgrade_plan_code,
+            );
           continue;
         }
 
-        if (running_total + file.size > MAX_TOTAL_ATTACHMENTS_SIZE) {
-          set_attachment_error(
-            t("common.adding_file_would_exceed_limit", { name: file.name }),
-          );
+        if (running_total + file.size > get_max_total_attachments_size()) {
+          set_attachment_error(describe_would_exceed_total(t, file.name));
           continue;
         }
 
@@ -963,6 +1113,7 @@ export function use_forward_modal({
       }
 
       if (new_attachments.length > 0) {
+        attachments_touched_ref.current = true;
         set_attachments((prev) => [...prev, ...new_attachments]);
       }
     },
@@ -972,6 +1123,7 @@ export function use_forward_modal({
   files_drop_ref.current = handle_files_drop;
 
   const remove_attachment = useCallback((id: string) => {
+    attachments_touched_ref.current = true;
     set_attachments((prev) => prev.filter((a) => a.id !== id));
     set_attachment_error(null);
   }, []);
@@ -981,7 +1133,9 @@ export function use_forward_modal({
   }, []);
 
   const can_send =
-    recipients.to.length > 0 && !is_sending && !is_loading_attachments;
+    (recipients.to.length > 0 || is_valid_email(inputs.to.trim())) &&
+    !is_sending &&
+    !is_loading_attachments;
 
   return {
     t,
@@ -989,7 +1143,7 @@ export function use_forward_modal({
     user,
     sender_options,
     selected_sender,
-    set_selected_sender,
+    set_selected_sender: select_sender,
     preferred_sender_id,
     handle_set_preferred,
     ghost_mode,
@@ -1039,6 +1193,10 @@ export function use_forward_modal({
     handle_forward,
     handle_scheduled_send,
     handle_close,
+    is_discard_open,
+    confirm_discard,
+    cancel_discard,
+    request_discard,
     handle_file_select,
     handle_files_drop,
     remove_attachment,

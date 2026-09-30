@@ -20,6 +20,9 @@
 //
 import { api_client, type ApiResponse } from "./client";
 
+import { get_cached_plan_code } from "@/hooks/use_plan_limits";
+import { safe_local_set } from "@/lib/safe_storage";
+
 export interface FamilyMemberInfo {
   user_id: string;
   username: string;
@@ -83,7 +86,13 @@ export interface JoinFamilyResponse {
 // on api_client's request_cache (deduped + auto-invalidated on any mutation to
 // /payments/v1/family) rather than a bespoke cache, so post-mutation reads are
 // never stale.
+const FAMILY_CAPABLE_PLANS = new Set(["duo", "family"]);
+
 export function prefetch_family_group(): void {
+  const plan_code = get_cached_plan_code();
+
+  if (plan_code && !FAMILY_CAPABLE_PLANS.has(plan_code)) return;
+
   void get_family_group();
 }
 
@@ -110,7 +119,7 @@ export function refresh_family_plan_flag(
   void resolve_is_family_plan().then((is_family_plan) => {
     if (is_family_plan === null) return;
 
-    localStorage.setItem("aster_is_family_plan", is_family_plan ? "1" : "0");
+    safe_local_set("aster_is_family_plan", is_family_plan ? "1" : "0");
     on_resolved(is_family_plan);
   });
 }
@@ -119,20 +128,22 @@ export function create_family_group(
   plan_code: string,
   billing_interval: string,
   success_url?: string,
-  cancel_url?: string
+  cancel_url?: string,
+  promo_code?: string,
 ): Promise<ApiResponse<CreateFamilyGroupResponse>> {
   return api_client.post<CreateFamilyGroupResponse>("/payments/v1/family", {
     plan_code,
     billing_interval,
     success_url,
     cancel_url,
+    promo_code,
   });
 }
 
 export function invite_member(
   email: string | null,
   allocated_storage_bytes: number,
-  captcha_token?: string
+  captcha_token?: string,
 ): Promise<ApiResponse<InviteMemberResponse>> {
   return api_client.post<InviteMemberResponse>("/payments/v1/family/invite", {
     email,
@@ -143,37 +154,51 @@ export function invite_member(
 
 export function create_invite_link(
   allocated_storage_bytes: number,
-  captcha_token?: string
+  captcha_token?: string,
 ): Promise<ApiResponse<InviteMemberResponse>> {
-  return api_client.post<InviteMemberResponse>("/payments/v1/family/invite/link", {
-    allocated_storage_bytes,
-    captcha_token,
-  });
+  return api_client.post<InviteMemberResponse>(
+    "/payments/v1/family/invite/link",
+    {
+      allocated_storage_bytes,
+      captcha_token,
+    },
+  );
 }
 
-export function revoke_invite(invite_id: string): Promise<ApiResponse<unknown>> {
+export function revoke_invite(
+  invite_id: string,
+): Promise<ApiResponse<unknown>> {
   return api_client.delete<unknown>(`/payments/v1/family/invites/${invite_id}`);
 }
 
-export function join_family(token: string): Promise<ApiResponse<JoinFamilyResponse>> {
-  return api_client.post<JoinFamilyResponse>("/payments/v1/family/join", { token });
+export function join_family(
+  token: string,
+): Promise<ApiResponse<JoinFamilyResponse>> {
+  return api_client.post<JoinFamilyResponse>("/payments/v1/family/join", {
+    token,
+  });
 }
 
-export function remove_family_member(user_id: string): Promise<ApiResponse<unknown>> {
+export function remove_family_member(
+  user_id: string,
+): Promise<ApiResponse<unknown>> {
   return api_client.delete<unknown>(`/payments/v1/family/members/${user_id}`);
 }
 
 export function update_member_storage(
   user_id: string,
-  allocated_storage_bytes: number
+  allocated_storage_bytes: number,
 ): Promise<ApiResponse<unknown>> {
-  return api_client.patch<unknown>(`/payments/v1/family/members/${user_id}/storage`, {
-    allocated_storage_bytes,
-  });
+  return api_client.patch<unknown>(
+    `/payments/v1/family/members/${user_id}/storage`,
+    {
+      allocated_storage_bytes,
+    },
+  );
 }
 
 export function transfer_family_admin(
-  new_owner_user_id: string
+  new_owner_user_id: string,
 ): Promise<ApiResponse<unknown>> {
   return api_client.post<unknown>("/payments/v1/family/transfer-admin", {
     new_owner_user_id,
@@ -192,8 +217,12 @@ export interface InvitePreview {
   valid: boolean;
 }
 
-export function preview_invite(token: string): Promise<ApiResponse<InvitePreview>> {
-  return api_client.get<InvitePreview>(`/payments/v1/family/invites/${encodeURIComponent(token)}/preview`);
+export function preview_invite(
+  token: string,
+): Promise<ApiResponse<InvitePreview>> {
+  return api_client.get<InvitePreview>(
+    `/payments/v1/family/invites/${encodeURIComponent(token)}/preview`,
+  );
 }
 
 export interface ReservedAddress {
@@ -242,23 +271,31 @@ export interface PreviewClaimResponse {
   allocated_storage_bytes: number;
 }
 
-export function list_reservations(): Promise<ApiResponse<ListReservationsResponse>> {
-  return api_client.get<ListReservationsResponse>("/payments/v1/family/reservations");
+export function list_reservations(): Promise<
+  ApiResponse<ListReservationsResponse>
+> {
+  return api_client.get<ListReservationsResponse>(
+    "/payments/v1/family/reservations",
+  );
 }
 
 export function create_reservation(
-  request: CreateReservationRequest
+  request: CreateReservationRequest,
 ): Promise<ApiResponse<ReservedAddress>> {
-  return api_client.post<ReservedAddress>("/payments/v1/family/reservations", request);
+  return api_client.post<ReservedAddress>(
+    "/payments/v1/family/reservations",
+    request,
+  );
 }
 
 export function check_address_availability(
   username: string,
-  email_domain: string
+  email_domain: string,
 ): Promise<ApiResponse<CheckAvailabilityResponse>> {
   const params = new URLSearchParams({ username, email_domain });
+
   return api_client.get<CheckAvailabilityResponse>(
-    `/payments/v1/family/reservation-availability?${params.toString()}`
+    `/payments/v1/family/reservation-availability?${params.toString()}`,
   );
 }
 
@@ -267,16 +304,18 @@ export function release_reservation(id: string): Promise<ApiResponse<unknown>> {
 }
 
 export function regenerate_claim_link(
-  id: string
+  id: string,
 ): Promise<ApiResponse<RegenerateClaimLinkResponse>> {
   return api_client.post<RegenerateClaimLinkResponse>(
     `/payments/v1/family/reservations/${id}/claim-link`,
-    {}
+    {},
   );
 }
 
-export function preview_claim(token: string): Promise<ApiResponse<PreviewClaimResponse>> {
+export function preview_claim(
+  token: string,
+): Promise<ApiResponse<PreviewClaimResponse>> {
   return api_client.get<PreviewClaimResponse>(
-    `/public/v1/family/reservations/claim/${encodeURIComponent(token)}`
+    `/public/v1/family/reservations/claim/${encodeURIComponent(token)}`,
   );
 }

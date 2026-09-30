@@ -64,6 +64,7 @@ interface SettingsCacheValue {
   ) => void;
   invalidate: (panel?: SettingsPanelName) => void;
   is_fresh: (panel: SettingsPanelName, max_age_ms?: number) => boolean;
+  subscribe: (listener: () => void) => () => void;
 }
 
 const SETTINGS_CACHE_FRESHNESS_MS = 30_000;
@@ -78,9 +79,21 @@ export function SettingsCacheProvider({
   const store_ref = useRef<Map<SettingsPanelName, SettingsPanelEntry>>(
     new Map(),
   );
+  const listeners_ref = useRef<Set<() => void>>(new Set());
   const [, set_version] = useState(0);
 
-  const bump = useCallback(() => set_version((v) => v + 1), []);
+  const bump = useCallback(() => {
+    set_version((v) => v + 1);
+    listeners_ref.current.forEach((listener) => listener());
+  }, []);
+
+  const subscribe = useCallback((listener: () => void) => {
+    listeners_ref.current.add(listener);
+
+    return () => {
+      listeners_ref.current.delete(listener);
+    };
+  }, []);
 
   const get_entry = useCallback(
     <T,>(panel: SettingsPanelName) =>
@@ -120,8 +133,8 @@ export function SettingsCacheProvider({
   );
 
   const value = useMemo<SettingsCacheValue>(
-    () => ({ get_entry, set_entry, invalidate, is_fresh }),
-    [get_entry, set_entry, invalidate, is_fresh],
+    () => ({ get_entry, set_entry, invalidate, is_fresh, subscribe }),
+    [get_entry, set_entry, invalidate, is_fresh, subscribe],
   );
 
   return (

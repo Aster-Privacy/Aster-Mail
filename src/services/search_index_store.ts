@@ -38,7 +38,6 @@ import {
 } from "@/services/crypto/envelope_normalize";
 import { get_current_account_id } from "@/services/account_manager";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   normalize_chunk_summary,
   parse_gram_filter,
@@ -52,6 +51,7 @@ import {
 const KEY_PREFIX = "search_index_";
 const SNAPSHOT_VERSION = 1;
 const MANIFEST_VERSION = 6;
+
 export const SNAPSHOT_CHUNK_SIZE = 2000;
 export const MAX_INDEX_BODY_CHARS = 2048;
 export const MAX_INDEX_PREVIEW_CHARS = 320;

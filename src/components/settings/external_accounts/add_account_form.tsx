@@ -20,6 +20,8 @@
 //
 import type { AddAccountFormProps } from "@/components/settings/external_accounts/form_types";
 
+import { Button } from "@aster/ui";
+
 import { AccountInfoSection } from "@/components/settings/external_accounts/account_info_section";
 import { IncomingMailSection } from "@/components/settings/external_accounts/incoming_mail_section";
 import { OutgoingMailSection } from "@/components/settings/external_accounts/outgoing_mail_section";
@@ -35,6 +37,7 @@ export type { AddAccountFormProps } from "@/components/settings/external_account
 
 export function AddAccountForm({
   editing_account,
+  is_oauth_account,
   form_visible,
   close_form,
   form_email,
@@ -88,8 +91,11 @@ export function AddAccountForm({
   form_delete_after_fetch,
   set_form_delete_after_fetch,
   is_form_busy,
+  prefill_failed,
+  retry_prefill,
   handle_protocol_change,
   handle_email_change,
+  active_preset,
   handle_host_change,
   handle_port_change,
   handle_username_change,
@@ -111,13 +117,13 @@ export function AddAccountForm({
 }: AddAccountFormProps) {
   return (
     <Modal
+      close_on_overlay={false}
       is_open={form_visible}
       on_close={close_form}
       show_close_button={false}
-      close_on_overlay={false}
       size="xl"
     >
-      <div className="sticky top-0 z-10 px-6 pt-6 pb-4 border-b rounded-t-xl bg-modal-bg border-edge-primary">
+      <div className="sticky top-0 z-10 px-6 pt-6 pb-4 border-b rounded-t-[var(--aster-radius-floating,16px)] bg-modal-bg border-[var(--aster-floating-divider)]">
         <ModalTitle className="text-[15px]">
           {editing_account
             ? t("settings.edit_account")
@@ -131,6 +137,17 @@ export function AddAccountForm({
       </div>
 
       <div className="p-6 space-y-6">
+        {prefill_failed && (
+          <div className="flex items-center justify-between gap-3 p-3 rounded-2xl bg-[color-mix(in_srgb,var(--text-primary)_7%,transparent)]">
+            <p className="text-[13px] text-txt-secondary">
+              {t("common.something_went_wrong_try_again")}
+            </p>
+            <Button size="sm" variant="outline" onClick={retry_prefill}>
+              {t("common.retry")}
+            </Button>
+          </div>
+        )}
+
         <AccountInfoSection
           form_display_name={form_display_name}
           form_email={form_email}
@@ -139,45 +156,50 @@ export function AddAccountForm({
           t={t}
         />
 
-        <IncomingMailSection
-          editing_account={editing_account}
-          form_host={form_host}
-          form_password={form_password}
-          form_port={form_port}
-          form_protocol={form_protocol}
-          form_use_tls={form_use_tls}
-          form_username={form_username}
-          has_stored_password={has_stored_password}
-          handle_host_change={handle_host_change}
-          handle_password_change={handle_password_change}
-          handle_port_change={handle_port_change}
-          handle_protocol_change={handle_protocol_change}
-          handle_username_change={handle_username_change}
-          set_form_use_tls={set_form_use_tls}
-          set_show_password={set_show_password}
-          show_password={show_password}
-          t={t}
-        />
+        {!is_oauth_account && (
+          <IncomingMailSection
+            app_password_url={active_preset?.app_password_url}
+            editing_account={editing_account}
+            form_host={form_host}
+            form_password={form_password}
+            form_port={form_port}
+            form_protocol={form_protocol}
+            form_use_tls={form_use_tls}
+            form_username={form_username}
+            handle_host_change={handle_host_change}
+            handle_password_change={handle_password_change}
+            handle_port_change={handle_port_change}
+            handle_protocol_change={handle_protocol_change}
+            handle_username_change={handle_username_change}
+            has_stored_password={has_stored_password}
+            set_form_use_tls={set_form_use_tls}
+            set_show_password={set_show_password}
+            show_password={show_password}
+            t={t}
+          />
+        )}
 
-        <OutgoingMailSection
-          editing_account={editing_account}
-          form_smtp_host={form_smtp_host}
-          form_smtp_password={form_smtp_password}
-          form_smtp_port={form_smtp_port}
-          form_smtp_use_tls={form_smtp_use_tls}
-          form_smtp_username={form_smtp_username}
-          has_stored_smtp_password={has_stored_smtp_password}
-          handle_smtp_host_change={handle_smtp_host_change}
-          handle_smtp_password_change={handle_smtp_password_change}
-          handle_smtp_port_change={handle_smtp_port_change}
-          handle_smtp_same_toggle={handle_smtp_same_toggle}
-          handle_smtp_username_change={handle_smtp_username_change}
-          set_form_smtp_use_tls={set_form_smtp_use_tls}
-          set_show_smtp_password={set_show_smtp_password}
-          show_smtp_password={show_smtp_password}
-          smtp_same_as_incoming={smtp_same_as_incoming}
-          t={t}
-        />
+        {!is_oauth_account && (
+          <OutgoingMailSection
+            editing_account={editing_account}
+            form_smtp_host={form_smtp_host}
+            form_smtp_password={form_smtp_password}
+            form_smtp_port={form_smtp_port}
+            form_smtp_use_tls={form_smtp_use_tls}
+            form_smtp_username={form_smtp_username}
+            handle_smtp_host_change={handle_smtp_host_change}
+            handle_smtp_password_change={handle_smtp_password_change}
+            handle_smtp_port_change={handle_smtp_port_change}
+            handle_smtp_same_toggle={handle_smtp_same_toggle}
+            handle_smtp_username_change={handle_smtp_username_change}
+            has_stored_smtp_password={has_stored_smtp_password}
+            set_form_smtp_use_tls={set_form_smtp_use_tls}
+            set_show_smtp_password={set_show_smtp_password}
+            show_smtp_password={show_smtp_password}
+            smtp_same_as_incoming={smtp_same_as_incoming}
+            t={t}
+          />
+        )}
 
         <LabelSection
           form_label_color={form_label_color}
@@ -196,7 +218,7 @@ export function AddAccountForm({
           t={t}
         />
 
-        {form_protocol === "imap" && (
+        {(is_oauth_account || form_protocol === "imap") && (
           <FolderSelectionSection
             available_folders={available_folders}
             handle_fetch_folders={handle_fetch_folders}
@@ -243,6 +265,7 @@ export function AddAccountForm({
         handle_test_connection={handle_test_connection}
         handle_test_smtp={handle_test_smtp}
         is_form_busy={is_form_busy}
+        is_oauth_account={is_oauth_account}
         is_submitting={is_submitting}
         is_testing={is_testing}
         is_testing_smtp={is_testing_smtp}

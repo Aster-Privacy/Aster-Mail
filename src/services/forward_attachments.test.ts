@@ -34,6 +34,11 @@ vi.mock("@/services/crypto/attachment_crypto", () => ({
   decrypt_attachment_data,
 }));
 
+vi.mock("@/services/attachment_limits", () => ({
+  get_max_attachment_size: () => 4096,
+  get_max_total_attachments_size: () => 8192,
+}));
+
 import { load_forward_attachments } from "./forward_attachments";
 
 interface StoredAttachment {
@@ -175,5 +180,32 @@ describe("load_forward_attachments", () => {
     list_attachments.mockRejectedValue(new Error("network down"));
 
     await expect(load_forward_attachments("mail-1")).resolves.toEqual([]);
+  });
+
+  it("reports the attachments when the source listing cannot be read", async () => {
+    list_attachments.mockRejectedValue(new Error("network down"));
+    const dropped = vi.fn();
+
+    const carried = await load_forward_attachments("mail-1", {
+      on_dropped: dropped,
+    });
+
+    expect(carried).toHaveLength(0);
+    expect(dropped).toHaveBeenCalledWith(1, "unavailable");
+  });
+
+  it("reports an attachment that is skipped for being too large", async () => {
+    stub_source_attachments([
+      { filename: "huge.zip", content_type: "application/zip", bytes: 5000 },
+      { filename: "small.txt", content_type: "text/plain", bytes: 10 },
+    ]);
+    const dropped = vi.fn();
+
+    const carried = await load_forward_attachments("mail-1", {
+      on_dropped: dropped,
+    });
+
+    expect(carried.map((a) => a.name)).toEqual(["small.txt"]);
+    expect(dropped).toHaveBeenCalledWith(1, "unavailable");
   });
 });

@@ -18,16 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import {
-  ExclamationTriangleIcon,
-  SparklesIcon,
-  CreditCardIcon,
-  ArrowRightIcon,
-  CircleStackIcon,
-  ShieldCheckIcon,
-  Cog6ToothIcon,
-} from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import type { PlanFeature } from "@/components/settings/billing/plan_card";
+
+import { IslandSection, PillButton } from "@aster/ui";
 
 import { Progress } from "@/components/ui/progress";
 import {
@@ -40,7 +33,10 @@ import { use_i18n } from "@/lib/i18n/context";
 import {
   convert_cents,
   is_crypto_provider,
+  PLAN_TIERS,
 } from "@/components/settings/billing/billing_constants";
+import { BillingNotice } from "@/components/settings/billing/billing_layout";
+import { card_decline_message_key } from "@/components/settings/billing/card_decline_notice";
 
 interface CurrentPlanCardProps {
   subscription: SubscriptionResponse | null;
@@ -51,13 +47,145 @@ interface CurrentPlanCardProps {
   is_action_loading: boolean;
   has_payment_failed: boolean;
   grace_days_remaining: number;
-  current_billing_interval: "month" | "year";
+  current_billing_interval: "month" | "year" | "biennial";
   on_scroll_to_plans: () => void;
   on_manage_billing: () => void;
   on_reactivate: () => void;
   on_manage_plan: () => void;
   on_renew_with_crypto?: () => void;
+  on_add_storage?: () => void;
+  on_toggle_plans?: () => void;
+  plans_open?: boolean;
   preferred_currency: string;
+  upgrade_features?: PlanFeature[];
+  include_notices?: boolean;
+  show_storage?: boolean;
+}
+
+type CurrentPlanNoticesProps = Pick<
+  CurrentPlanCardProps,
+  | "subscription"
+  | "is_over_limit"
+  | "is_action_loading"
+  | "has_payment_failed"
+  | "grace_days_remaining"
+  | "on_manage_billing"
+  | "on_reactivate"
+  | "on_renew_with_crypto"
+  | "on_add_storage"
+>;
+
+export function CurrentPlanNotices({
+  subscription,
+  is_over_limit,
+  is_action_loading,
+  has_payment_failed,
+  grace_days_remaining,
+  on_manage_billing,
+  on_reactivate,
+  on_renew_with_crypto,
+  on_add_storage,
+}: CurrentPlanNoticesProps) {
+  const { t } = use_i18n();
+  const is_paid_plan = !!subscription && subscription.plan.code !== "free";
+  const is_crypto = is_crypto_provider(subscription?.payment_provider);
+  const decline = subscription?.last_card_decline;
+  const paid_until =
+    subscription?.paid_until || subscription?.current_period_end || null;
+
+  return (
+    <>
+      {has_payment_failed && (
+        <BillingNotice
+          body={
+            <>
+              <p>
+                {decline
+                  ? t(card_decline_message_key(decline.reason))
+                  : t("settings.payment_failed_warning")}
+              </p>
+              <p className="mt-1">
+                {t("settings.grace_period_remaining", {
+                  days: grace_days_remaining,
+                })}
+              </p>
+            </>
+          }
+          role="alert"
+          title={t("settings.card_declined_title")}
+          tone="danger"
+        >
+          <PillButton
+            disabled={is_action_loading}
+            size="sm"
+            type="button"
+            variant="filled"
+            onClick={on_manage_billing}
+          >
+            {t("settings.update_payment_method")}
+          </PillButton>
+        </BillingNotice>
+      )}
+
+      {is_over_limit && (
+        <BillingNotice
+          body={t("settings.storage_limit_description")}
+          role="alert"
+          title={t("settings.storage_limit_exceeded")}
+          tone="danger"
+        >
+          {on_add_storage && (
+            <PillButton
+              size="sm"
+              type="button"
+              variant="filled"
+              onClick={on_add_storage}
+            >
+              {t("settings.add_storage")}
+            </PillButton>
+          )}
+        </BillingNotice>
+      )}
+
+      {is_paid_plan &&
+        !is_crypto &&
+        subscription.cancel_at_period_end &&
+        subscription.current_period_end && (
+          <BillingNotice
+            body={t("settings.billing_cancel_notice_body", {
+              date: format_date(subscription.current_period_end),
+            })}
+            title={t("settings.billing_cancel_notice_title")}
+          >
+            <PillButton
+              disabled={is_action_loading}
+              size="sm"
+              type="button"
+              variant="filled"
+              onClick={on_reactivate}
+            >
+              {t("settings.reactivate")}
+            </PillButton>
+          </BillingNotice>
+        )}
+
+      {is_paid_plan && is_crypto && paid_until && (
+        <BillingNotice title={t("settings.crypto_no_renew_notice")}>
+          {on_renew_with_crypto && (
+            <PillButton
+              disabled={is_action_loading}
+              size="sm"
+              type="button"
+              variant="filled"
+              onClick={on_renew_with_crypto}
+            >
+              {t("settings.crypto_renew_link")}
+            </PillButton>
+          )}
+        </BillingNotice>
+      )}
+    </>
+  );
 }
 
 export function CurrentPlanCard({
@@ -75,207 +203,149 @@ export function CurrentPlanCard({
   on_reactivate,
   on_manage_plan,
   on_renew_with_crypto,
+  on_add_storage,
+  on_toggle_plans,
+  plans_open = false,
   preferred_currency,
+  include_notices = true,
+  show_storage = true,
 }: CurrentPlanCardProps) {
   const { t } = use_i18n();
-  const is_paid_plan = subscription && subscription.plan.code !== "free";
+  const is_paid_plan = !!subscription && subscription.plan.code !== "free";
   const is_crypto = is_crypto_provider(subscription?.payment_provider);
+  const interval_suffix =
+    current_billing_interval === "biennial"
+      ? t("settings.per_two_years")
+      : current_billing_interval === "year"
+        ? t("settings.per_year_short")
+        : t("settings.per_month_short");
+  const price_label = is_paid_plan
+    ? `${format_price(
+        convert_cents(subscription.plan.price_cents, preferred_currency),
+        preferred_currency,
+      )}${interval_suffix}`
+    : `${format_price(0, preferred_currency)}${t("settings.per_month_short")}`;
+  const entry_price_label = format_price(
+    convert_cents(
+      Math.min(...PLAN_TIERS.map((tier) => tier.monthly_cents)),
+      preferred_currency,
+    ),
+    preferred_currency,
+  );
+  const period_end = subscription?.current_period_end ?? null;
+  const paid_until = subscription?.paid_until || period_end;
+  let date_label: string | null = null;
+
+  if (is_paid_plan && is_crypto && paid_until) {
+    date_label = t("settings.crypto_paid_until", {
+      date: format_date(paid_until),
+    });
+  } else if (is_paid_plan && period_end) {
+    date_label = `${
+      subscription.cancel_at_period_end
+        ? t("settings.cancels")
+        : t("settings.renews")
+    } ${format_date(period_end)}`;
+  }
 
   return (
     <>
-      <div
-        className="relative overflow-hidden rounded-2xl p-6"
-        style={{
-          backgroundColor: "var(--accent-mix-b85, #326fd1)",
-        }}
-      >
-        <div className="absolute right-5 top-1/2 -translate-y-1/2 flex items-end gap-2 pointer-events-none">
-          <ShieldCheckIcon
-            className="w-9 h-9 text-white/15"
-            style={{ transform: "translateY(-18px) rotate(-12deg)" }}
-          />
-          <CreditCardIcon className="w-20 h-20 text-white/20" />
-          <SparklesIcon
-            className="w-11 h-11 text-white/12"
-            style={{ transform: "translateY(-28px) rotate(15deg)" }}
-          />
-          <CircleStackIcon
-            className="w-7 h-7 text-white/10"
-            style={{ transform: "translateY(-6px) rotate(-8deg)" }}
-          />
-        </div>
-
-        <div className="relative z-10">
-          <h3
-            className="text-lg font-bold text-white mb-1 tracking-tight"
-            style={{ textShadow: "0 1px 3px rgba(0, 0, 0, 0.15)" }}
-          >
-            {t("settings.billing_banner_title")}
-          </h3>
-          <p
-            className="text-sm text-blue-100/70 mb-5 max-w-[320px]"
-            style={{ textShadow: "0 1px 2px rgba(0, 0, 0, 0.1)" }}
-          >
-            {t("settings.billing_banner_subtitle")}
-          </p>
-          <button
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-[14px] text-sm font-semibold bg-white text-blue-900"
-            style={{
-              boxShadow:
-                "0 2px 8px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.9) inset",
-            }}
-            onClick={on_scroll_to_plans}
-          >
-            {t("settings.billing_banner_cta")}
-            <ArrowRightIcon className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
-
-      {has_payment_failed && (
-        <div className="p-4 rounded-lg flex items-start gap-3 bg-red-600">
-          <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0 mt-0.5 text-red-50" />
-          <div className="flex-1">
-            <p className="text-sm font-medium text-red-50">
-              {t("settings.payment_failed_warning")}
-            </p>
-            <p className="text-xs mt-1 text-red-100">
-              {t("settings.grace_period_remaining", {
-                days: String(grace_days_remaining),
-              })}
-            </p>
-            <button
-              className="mt-3 inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-semibold bg-red-950 text-red-50 hover:bg-red-900 transition-colors disabled:opacity-50"
-              disabled={is_action_loading}
-              type="button"
-              onClick={on_manage_billing}
-            >
-              {t("settings.update_payment_method")}
-            </button>
-          </div>
-        </div>
+      {include_notices && (
+        <CurrentPlanNotices
+          grace_days_remaining={grace_days_remaining}
+          has_payment_failed={has_payment_failed}
+          is_action_loading={is_action_loading}
+          is_over_limit={is_over_limit}
+          on_add_storage={on_add_storage}
+          on_manage_billing={on_manage_billing}
+          on_reactivate={on_reactivate}
+          on_renew_with_crypto={on_renew_with_crypto}
+          subscription={subscription}
+        />
       )}
 
-      {is_over_limit && (
-        <div
-          className="p-4 rounded-lg border flex items-start gap-3 bg-surf-tertiary"
-          style={{ borderColor: "var(--destructive)" }}
-        >
-          <ExclamationTriangleIcon
-            className="w-5 h-5 flex-shrink-0 mt-0.5"
-            style={{ color: "var(--destructive)" }}
-          />
-          <div>
-            <p
-              className="text-sm font-medium"
-              style={{ color: "var(--destructive)" }}
-            >
-              {t("settings.storage_limit_exceeded")}
-            </p>
-            <p className="text-xs mt-1 text-txt-muted">
-              {t("settings.storage_limit_description")}
-            </p>
-          </div>
-        </div>
-      )}
-
-      <div>
-        <div className="mb-2">
-          <div className="flex items-center justify-between">
-            <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-              <CreditCardIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
-              {t("settings.current_plan")}
-            </h3>
-          </div>
-          <div className="mt-2 h-px bg-edge-secondary" />
-        </div>
-
-        <div className="p-4 rounded-lg bg-surf-tertiary border border-edge-secondary">
-          <div className="flex items-center justify-between mb-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <h4 className="text-base font-semibold text-txt-primary">
-                  {subscription?.plan.name || t("settings.free")}
-                </h4>
-                {is_paid_plan && subscription?.active_discount_description && (
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-green-500/15 text-green-500">
-                    {subscription.active_discount_description}
-                  </span>
-                )}
-              </div>
-              {is_paid_plan && subscription?.plan.description && (
-                <p className="text-xs mt-1 text-txt-muted">
-                  {subscription.plan.description}
-                </p>
-              )}
-              {!is_paid_plan && (
-                <p className="text-xs mt-1 text-txt-muted">
-                  {t("settings.free_plan_description")}
-                </p>
-              )}
+      <IslandSection padding="lg" title={t("settings.billing_plan_heading")}>
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+              <h4 className="text-2xl font-semibold tracking-tight text-txt-primary">
+                {subscription?.plan.name || t("settings.free")}
+              </h4>
+              <span
+                className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+                style={{
+                  color: "var(--color-success)",
+                  backgroundColor:
+                    "color-mix(in srgb, var(--color-success) 12%, transparent)",
+                }}
+              >
+                {is_paid_plan && subscription.active_discount_description
+                  ? subscription.active_discount_description
+                  : t("common.active")}
+              </span>
             </div>
-            {is_paid_plan && subscription.current_period_end && (
-              <div className="text-right">
-                <span className="text-sm font-medium text-txt-secondary">
-                  {format_price(convert_cents(subscription.plan.price_cents, preferred_currency), preferred_currency)}
-                  <span className="text-xs font-normal text-txt-muted">
-                    {subscription.plan.billing_period?.startsWith("year")
-                      ? t("settings.per_year_short")
-                      : t("settings.per_month_short")}
+            <p className="mt-1.5 text-sm text-txt-secondary">
+              <span className="font-medium text-txt-primary">
+                {price_label}
+              </span>
+              {date_label && (
+                <>
+                  <span aria-hidden="true" className="mx-1.5">
+                    ·
                   </span>
-                </span>
-                <p className="text-xs mt-0.5 text-txt-muted">
-                  {t("settings.current_billing_interval", {
-                    interval:
-                      current_billing_interval === "year"
-                        ? t("settings.billing_yearly").toLowerCase()
-                        : t("settings.billing_monthly").toLowerCase(),
-                  })}
-                </p>
-                {is_crypto ? (
-                  <>
-                    <p className="text-xs mt-0.5 text-txt-muted">
-                      {t("settings.crypto_paid_until", {
-                        date: format_date(
-                          subscription.paid_until ||
-                            subscription.current_period_end,
-                        ),
-                      })}
-                    </p>
-                    <div className="mt-1.5 flex justify-end">
-                      <span
-                        className="inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold text-center"
-                        style={{
-                          backgroundColor: "var(--color-warning)",
-                          color: "#1c1400",
-                        }}
-                      >
-                        {t("settings.crypto_no_renew_notice")}
-                      </span>
-                    </div>
-                    {on_renew_with_crypto && (
-                      <button
-                        className="text-xs mt-1.5 font-medium text-blue-500 hover:text-blue-400 underline-offset-4 hover:underline"
-                        type="button"
-                        onClick={on_renew_with_crypto}
-                      >
-                        {t("settings.crypto_renew_link")}
-                      </button>
-                    )}
-                  </>
-                ) : (
-                  <p className="text-xs mt-0.5 text-txt-muted">
-                    {subscription.cancel_at_period_end
-                      ? t("settings.cancels")
-                      : t("settings.renews")}{" "}
-                    {format_date(subscription.current_period_end)}
-                  </p>
-                )}
-              </div>
+                  {date_label}
+                </>
+              )}
+            </p>
+          </div>
+
+          <div className="flex flex-shrink-0 flex-col items-start gap-2 sm:items-end">
+            {is_paid_plan ? (
+              <PillButton
+                disabled={is_action_loading}
+                size="sm"
+                type="button"
+                variant="neutral"
+                onClick={on_manage_plan}
+              >
+                {t("settings.manage_plan")}
+              </PillButton>
+            ) : (
+              <PillButton
+                size="sm"
+                type="button"
+                variant="filled"
+                onClick={on_scroll_to_plans}
+              >
+                {t("common.upgrade")}
+              </PillButton>
+            )}
+            {is_paid_plan && on_toggle_plans ? (
+              <PillButton
+                aria-expanded={plans_open}
+                size="sm"
+                type="button"
+                variant="ghost"
+                onClick={on_toggle_plans}
+              >
+                {plans_open
+                  ? t("settings.billing_hide_plans")
+                  : t("settings.compare_plans")}
+              </PillButton>
+            ) : (
+              <p className="text-xs text-txt-muted">
+                {is_paid_plan
+                  ? t("settings.manage_plan_description")
+                  : t("settings.free_upgrade_price_note", {
+                      price: entry_price_label,
+                    })}
+              </p>
             )}
           </div>
+        </div>
 
-          <div className="space-y-2">
+        {show_storage && (
+          <div className="mt-5 space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-xs text-txt-muted">
                 {t("settings.storage")}
@@ -286,47 +356,12 @@ export function CurrentPlanCard({
               </span>
             </div>
             <Progress
-              className={`h-2 ${is_over_limit ? "[&>div]:bg-red-500" : ""}`}
+              className={`h-1.5 ${is_over_limit ? "[&>div]:bg-red-500" : ""}`}
               value={storage_percentage}
             />
           </div>
-
-          {is_paid_plan ? (
-            <div className="mt-4 pt-3 border-t border-edge-secondary space-y-2">
-              {subscription.cancel_at_period_end ? (
-                <Button
-                  className="w-full"
-                  disabled={is_action_loading}
-                  variant="depth"
-                  onClick={on_reactivate}
-                >
-                  {t("settings.reactivate")}
-                </Button>
-              ) : (
-                <Button
-                  className="w-full"
-                  disabled={is_action_loading}
-                  variant="primary"
-                  onClick={on_manage_plan}
-                >
-                  <Cog6ToothIcon className="w-4 h-4" />
-                  {t("settings.manage_plan")}
-                </Button>
-              )}
-            </div>
-          ) : (
-            <Button
-              className="w-full mt-4"
-              size="xl"
-              variant="depth"
-              onClick={on_scroll_to_plans}
-            >
-              {t("settings.upgrade_for_more")}
-              <ArrowRightIcon className="w-4 h-4 ml-1" />
-            </Button>
-          )}
-        </div>
-      </div>
+        )}
+      </IslandSection>
     </>
   );
 }

@@ -32,12 +32,8 @@ const snooze_api = vi.hoisted(() => ({
       error?: string;
     }> => ({ data: { snoozed_count: 2, failed_count: 0 } }),
   ),
-  unsnooze_email: vi.fn(
-    async (): Promise<{ error?: string }> => ({}),
-  ),
-  unsnooze_by_mail_item: vi.fn(
-    async (): Promise<{ error?: string }> => ({}),
-  ),
+  unsnooze_email: vi.fn(async (): Promise<{ error?: string }> => ({})),
+  unsnooze_by_mail_item: vi.fn(async (): Promise<{ error?: string }> => ({})),
   list_snoozed_emails: vi.fn(
     async (): Promise<{ data?: unknown[]; error?: string }> => ({ data: [] }),
   ),
@@ -63,7 +59,6 @@ vi.mock("@/services/category_index", () => index_mock);
 import { use_snooze } from "@/hooks/use_snooze";
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;

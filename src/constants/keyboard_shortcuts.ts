@@ -87,12 +87,6 @@ export const KEYBOARD_SHORTCUTS: ShortcutDefinition[] = [
     action_id: "open_email",
   },
   {
-    key: "Escape",
-    description: "Close / back to list",
-    category: "navigation",
-    action_id: "close_viewer",
-  },
-  {
     key: "u",
     description: "Back to list",
     category: "navigation",

@@ -24,11 +24,12 @@ import type {
   DecryptedCustomFieldValue,
 } from "@/types/contacts";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   XMarkIcon,
   StarIcon,
   AdjustmentsHorizontalIcon,
+  CameraIcon,
 } from "@heroicons/react/24/outline";
 import { Button } from "@aster/ui";
 
@@ -40,9 +41,17 @@ import { ContactFormAddress } from "./contact_form_address";
 import { ContactFormSocial } from "./contact_form_social";
 
 import { use_i18n } from "@/lib/i18n/context";
+import { use_unsaved_changes_guard } from "@/hooks/use_unsaved_changes_guard";
 import { cn, EMAIL_REGEX } from "@/lib/utils";
-import { Spinner } from "@/components/ui/spinner";
-import { ProfileAvatar } from "@/components/ui/profile_avatar";
+import { ButtonSpinner } from "@/components/ui/spinner";
+import { ContactAvatar } from "@/components/common/contacts/contact_avatar";
+import { PROFILE_PICTURE_ACCEPT } from "@/hooks/use_profile_picture_upload";
+import { compress_contact_avatar_file } from "@/utils/contact_avatar_image";
+import { show_toast } from "@/components/toast/simple_toast";
+import { use_dialog_shell } from "@/lib/use_dialog_shell";
+import { ConfirmModal } from "@/components/email/inbox/inbox_confirmation_dialog";
+
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 
 interface ContactFormProps {
   is_open: boolean;
@@ -87,15 +96,22 @@ export function ContactForm({
     useState<ContactFormData>(initial_form_data);
   const [errors, set_errors] = useState<Record<string, string>>({});
   const [active_tab, set_active_tab] = useState<TabId>("basic");
+  const [show_discard_confirm, set_show_discard_confirm] = useState(false);
+  const baseline_ref = useRef<string>(JSON.stringify(initial_form_data));
+  const photo_input_ref = useRef<HTMLInputElement>(null);
 
   const is_edit_mode = !!contact;
+  const is_dirty =
+    is_open && JSON.stringify(form_data) !== baseline_ref.current;
+
+  use_unsaved_changes_guard(is_dirty);
 
   const preview_name = useMemo(() => {
     return (
       `${form_data.first_name} ${form_data.last_name}`.trim() ||
       t("common.new_contact")
     );
-  }, [form_data.first_name, form_data.last_name]);
+  }, [form_data.first_name, form_data.last_name, t]);
 
   const preview_email = useMemo(() => {
     return form_data.emails.find((e) => e.trim()) || "";
@@ -118,7 +134,7 @@ export function ContactForm({
       void _last_contacted;
       void _email_count;
 
-      set_form_data({
+      const next: ContactFormData = {
         ...rest,
         emails: contact.emails.length > 0 ? contact.emails : [""],
         phone: contact.phone || "",
@@ -128,12 +144,17 @@ export function ContactForm({
         birthday: contact.birthday || "",
         social_links: contact.social_links || {},
         address: contact.address || {},
-      });
+      };
+
+      baseline_ref.current = JSON.stringify(next);
+      set_form_data(next);
     } else {
+      baseline_ref.current = JSON.stringify(initial_form_data);
       set_form_data(initial_form_data);
     }
     set_errors({});
     set_active_tab("basic");
+    set_show_discard_confirm(false);
   }, [contact, is_open]);
 
   const handle_change = (field: keyof ContactFormData, value: unknown) => {
@@ -150,10 +171,13 @@ export function ContactForm({
   };
 
   const handle_email_change = (index: number, value: string) => {
-    const new_emails = [...form_data.emails];
+    set_form_data((prev) => {
+      const new_emails = [...prev.emails];
 
-    new_emails[index] = value;
-    set_form_data((prev) => ({ ...prev, emails: new_emails }));
+      new_emails[index] = value;
+
+      return { ...prev, emails: new_emails };
+    });
     if (errors.emails) {
       set_errors((prev) => {
         const next = { ...prev };
@@ -171,11 +195,11 @@ export function ContactForm({
   };
 
   const remove_email_field = (index: number) => {
-    if (form_data.emails.length > 1) {
-      const new_emails = form_data.emails.filter((_, i) => i !== index);
+    set_form_data((prev) => {
+      if (prev.emails.length <= 1) return prev;
 
-      set_form_data((prev) => ({ ...prev, emails: new_emails }));
-    }
+      return { ...prev, emails: prev.emails.filter((_, i) => i !== index) };
+    });
   };
 
   const handle_address_change = (field: string, value: string) => {
@@ -219,11 +243,25 @@ export function ContactForm({
   };
 
   const handle_submit = async () => {
-    if (!validate_form() || is_loading) return;
+    if (is_loading) return;
+    if (!validate_form()) {
+      set_active_tab("basic");
 
+      return;
+    }
+
+    const seen_emails = new Set<string>();
     const cleaned_data: ContactFormData = {
       ...form_data,
-      emails: form_data.emails.filter((email) => email.trim()),
+      emails: form_data.emails.filter((email) => {
+        const normalized = email.trim().toLowerCase();
+
+        if (!normalized || seen_emails.has(normalized)) return false;
+
+        seen_emails.add(normalized);
+
+        return true;
+      }),
     };
 
     await on_submit(cleaned_data);
@@ -231,6 +269,11 @@ export function ContactForm({
 
   const handle_close = () => {
     if (is_loading) return;
+    if (is_dirty) {
+      set_show_discard_confirm(true);
+
+      return;
+    }
     on_close();
   };
 
@@ -247,31 +290,94 @@ export function ContactForm({
 
   const tabs = is_edit_mode ? [...base_tabs, ...edit_tabs] : base_tabs;
 
+  const { dialog_ref } = use_dialog_shell<HTMLDivElement>(
+    is_open,
+    handle_close,
+    "contact_form",
+  );
+
   if (!is_open) return null;
+
+  const pick_photo = async (file: File | null) => {
+    if (!file) return;
+
+    if (!PROFILE_PICTURE_ACCEPT.split(",").includes(file.type)) {
+      show_toast(t("common.select_valid_image"), "error");
+
+      return;
+    }
+
+    if (file.size > MAX_PHOTO_BYTES) {
+      show_toast(t("common.image_too_large"), "error");
+
+      return;
+    }
+
+    try {
+      const data_url = await compress_contact_avatar_file(file);
+
+      handle_change("avatar_url", data_url);
+    } catch {
+      show_toast(t("common.failed_to_upload_photo"), "error");
+    }
+  };
 
   return (
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-modal-overlay"
       role="presentation"
-      onClick={handle_close}
-      onKeyDown={(e) => {
-        if (e["key"] === "Escape") handle_close();
-      }}
     >
-      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/click-events-have-key-events */}
       <div
-        className="relative w-full max-w-lg rounded-xl border shadow-2xl overflow-hidden bg-modal-bg border-edge-primary"
+        ref={dialog_ref}
+        aria-labelledby="contact_form_title"
+        aria-modal="true"
+        className="relative w-full max-w-lg rounded-[var(--aster-radius-floating,16px)] overflow-hidden bg-[var(--aster-floating-bg,var(--modal-bg))] shadow-[var(--aster-floating-shadow)]"
         role="dialog"
-        onClick={(e) => e.stopPropagation()}
+        tabIndex={-1}
       >
         <div className="flex items-start gap-4 px-6 pt-6 pb-4">
           <div className="relative">
-            <ProfileAvatar
-              email={preview_email}
-              image_url={form_data.avatar_url}
-              name={preview_name}
-              size="xl"
+            <input
+              ref={photo_input_ref}
+              accept={PROFILE_PICTURE_ACCEPT}
+              className="hidden"
+              type="file"
+              onChange={(e) => {
+                void pick_photo(e.target.files?.[0] ?? null);
+                e.target.value = "";
+              }}
             />
+            <button
+              aria-label={
+                form_data.avatar_url
+                  ? t("common.change_photo")
+                  : t("common.contact_photo")
+              }
+              className="contact_photo_button group relative block rounded-full"
+              type="button"
+              onClick={() => photo_input_ref.current?.click()}
+            >
+              <ContactAvatar
+                avatar_url={form_data.avatar_url}
+                email={preview_email}
+                name={preview_name}
+                profile_color={form_data.profile_color}
+                size_px={72}
+              />
+              <span className="contact_photo_overlay absolute inset-0 flex items-center justify-center rounded-full opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                <CameraIcon className="h-5 w-5" />
+              </span>
+            </button>
+            {form_data.avatar_url && (
+              <button
+                aria-label={t("common.remove_photo")}
+                className="contact_photo_remove absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full"
+                type="button"
+                onClick={() => handle_change("avatar_url", "")}
+              >
+                <XMarkIcon className="h-3 w-3" />
+              </button>
+            )}
             <button
               className={cn(
                 "absolute -bottom-1 -right-1 p-0.5 rounded transition-colors",
@@ -293,7 +399,10 @@ export function ContactForm({
             </button>
           </div>
           <div className="flex-1 min-w-0">
-            <h2 className="text-lg font-semibold text-txt-primary">
+            <h2
+              className="text-lg font-semibold text-txt-primary"
+              id="contact_form_title"
+            >
               {is_edit_mode
                 ? t("common.edit_contact")
                 : t("common.new_contact")}
@@ -305,7 +414,9 @@ export function ContactForm({
             </p>
           </div>
           <button
-            className="p-2 -mr-2 -mt-2 rounded-[14px] transition-colors hover:bg-black/5 dark:hover:bg-white/5"
+            aria-label={t("common.close")}
+            className="p-2 -me-2 -mt-2 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)]"
+            type="button"
             onClick={handle_close}
           >
             <XMarkIcon className="w-5 h-5 text-txt-muted" />
@@ -318,7 +429,7 @@ export function ContactForm({
               <button
                 key={tab.id}
                 className={cn(
-                  "relative z-10 flex-1 px-2 py-1.5 text-[11px] font-medium rounded-[12px] whitespace-nowrap",
+                  "relative z-10 flex-1 px-2 py-1.5 text-[11px] font-medium rounded-[var(--aster-radius-control)] whitespace-nowrap",
                   active_tab === tab.id
                     ? "bg-surf-primary text-txt-primary"
                     : "text-txt-muted",
@@ -383,7 +494,7 @@ export function ContactForm({
           )}
         </div>
 
-        <div className="px-6 py-5 flex items-center justify-center gap-3 border-t border-edge-primary">
+        <div className="px-6 py-5 flex items-center justify-center gap-3">
           <Button
             className="flex-1 h-12 text-[15px]"
             disabled={is_loading}
@@ -401,10 +512,26 @@ export function ContactForm({
             {is_edit_mode
               ? t("settings.save_changes")
               : t("common.add_contact")}
-            {is_loading && <Spinner className="ml-2" size="sm" />}
+            {is_loading && <ButtonSpinner />}
           </Button>
         </div>
       </div>
+
+      <ConfirmModal
+        hide_dont_ask
+        confirm_text={t("mail.discard")}
+        confirm_variant="destructive"
+        description={t("common.unsaved_changes_body")}
+        dont_ask={false}
+        on_cancel={() => set_show_discard_confirm(false)}
+        on_confirm={() => {
+          set_show_discard_confirm(false);
+          on_close();
+        }}
+        on_dont_ask_change={() => {}}
+        show={show_discard_confirm}
+        title={t("common.unsaved_changes_title")}
+      />
     </div>
   );
 }

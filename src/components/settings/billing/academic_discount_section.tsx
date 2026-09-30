@@ -19,9 +19,14 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import { useEffect, useRef, useState } from "react";
-import { AcademicCapIcon, CheckIcon, ClipboardIcon } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import {
+  AcademicCapIcon,
+  CheckIcon,
+  ClipboardIcon,
+} from "@heroicons/react/24/outline";
+import { Input, Island, IslandSection, PillButton } from "@aster/ui";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import {
   request_academic_verification,
   resend_academic_verification,
@@ -34,19 +39,27 @@ import {
   TURNSTILE_SITE_KEY,
   type TurnstileWidgetRef,
 } from "@/components/auth/turnstile_widget";
+import { is_composing } from "@/utils/ime";
+import {
+  BillingMoreRow,
+  billing_row_icon,
+} from "@/components/settings/billing/billing_more_section";
 
 const RESEND_COOLDOWN_SECONDS = 60;
 
 interface AcademicDiscountSectionProps {
   academic_status: AcademicDiscountStatusResponse | null;
   refresh_academic_status: () => Promise<void>;
+  embedded?: boolean;
 }
 
 export function AcademicDiscountSection({
   academic_status,
   refresh_academic_status,
+  embedded = false,
 }: AcademicDiscountSectionProps) {
   const { t } = use_i18n();
+  const [open, set_open] = useState(false);
   const [academic_email, set_academic_email] = useState("");
   const [submitting, set_submitting] = useState(false);
   const [resend_cooldown, set_resend_cooldown] = useState(0);
@@ -115,6 +128,8 @@ export function AcademicDiscountSection({
 
         return;
       }
+      turnstile_ref.current?.reset();
+      set_turnstile_token("");
       show_toast(t("settings.academic_verification_sent"), "success");
       set_resend_cooldown(RESEND_COOLDOWN_SECONDS);
       await refresh_academic_status();
@@ -152,7 +167,7 @@ export function AcademicDiscountSection({
   const handle_copy = async () => {
     if (!academic_status?.promo_code) return;
     try {
-      await navigator.clipboard.writeText(academic_status.promo_code);
+      await copy_text_or_throw(academic_status.promo_code);
       set_copied(true);
       setTimeout(() => set_copied(false), 2000);
     } catch {
@@ -162,128 +177,171 @@ export function AcademicDiscountSection({
 
   const status = academic_status?.status ?? "none";
 
-  return (
-    <div className="border-t border-edge-secondary pt-8">
-      <div className="mb-2">
-        <h3 className="flex items-center gap-2 text-base font-semibold text-txt-primary">
-          <AcademicCapIcon className="w-4 h-4 text-txt-primary flex-shrink-0" />
-          {t("settings.academic_discount_title")}
-        </h3>
-        <p className="text-xs text-txt-muted mt-1">
-          {t("settings.academic_discount_description")}
+  const verified_panel = status === "verified" &&
+    academic_status?.promo_code && (
+      <>
+        <p className="text-xs text-txt-muted">
+          {t("settings.academic_code_ready_title")}
         </p>
-        <div className="mt-2 h-px bg-edge-secondary" />
-      </div>
-
-      {status === "verified" && academic_status?.promo_code && (
-        <div className="rounded-lg border border-edge-secondary px-4 py-4">
-          <p className="text-xs text-txt-muted">
-            {t("settings.academic_code_ready_title")}
-          </p>
-          <div className="flex items-center gap-2 mt-1.5">
-            <code className="text-lg font-bold tracking-wide text-txt-primary">
-              {academic_status.promo_code}
-            </code>
-            <button
-              className="p-1.5 rounded-md hover:bg-surf-hover transition-colors"
-              type="button"
-              onClick={handle_copy}
-            >
-              {copied ? (
-                <CheckIcon className="w-4 h-4 text-green-500" />
-              ) : (
-                <ClipboardIcon className="w-4 h-4 text-txt-muted" />
-              )}
-            </button>
-          </div>
-          <p className="text-xs text-txt-muted mt-2">
-            {t("settings.academic_use_at_checkout")}
-          </p>
-          <p className="text-xs text-txt-muted mt-1">
-            {t("settings.academic_terms")}
-          </p>
-        </div>
-      )}
-
-      {status === "pending" && (
-        <div className="rounded-lg border border-edge-secondary px-4 py-4">
-          <p className="text-sm text-txt-primary">
-            {t("settings.academic_pending_title")}
-          </p>
-          <p className="text-xs text-txt-muted mt-1">
-            {t("settings.academic_pending_description")}
-          </p>
-          {captcha_required && (
-            <TurnstileWidget
-              ref={turnstile_ref}
-              class_name="flex justify-start mt-3"
-              on_expire={() => set_turnstile_token("")}
-              on_verify={(token) => set_turnstile_token(token)}
-            />
-          )}
+        <div className="mt-1.5 flex items-center gap-2">
+          <code className="text-lg font-bold tracking-wide text-txt-primary">
+            {academic_status.promo_code}
+          </code>
           <button
-            className="aster_btn aster_btn_outline aster_btn_sm mt-3 disabled:opacity-50"
-            disabled={
-              resend_cooldown > 0 ||
-              submitting ||
-              (captcha_required && !turnstile_token)
-            }
+            aria-label={t("common.copy")}
+            className="rounded-full p-1.5 transition-colors hover:bg-surf-hover"
             type="button"
-            onClick={handle_resend}
+            onClick={handle_copy}
           >
-            {resend_cooldown > 0
-              ? t("settings.academic_resend_cooldown", {
-                  seconds: String(resend_cooldown),
-                })
-              : t("settings.academic_resend")}
+            {copied ? (
+              <CheckIcon className="h-4 w-4 text-txt-primary" />
+            ) : (
+              <ClipboardIcon className="h-4 w-4 text-txt-muted" />
+            )}
           </button>
         </div>
-      )}
+        <p className="mt-2 text-xs text-txt-muted">
+          {t("settings.academic_use_at_checkout")}
+        </p>
+        <p className="mt-1 text-xs text-txt-muted">
+          {t("settings.academic_terms")}
+        </p>
+      </>
+    );
 
-      {status === "none" && (
-        <div className="rounded-lg border border-edge-secondary px-4 py-4">
-          <p className="text-xs text-txt-muted mb-3">
-            {t("settings.academic_intro")}
-          </p>
-          <div className="flex flex-col sm:flex-row gap-2">
-            <input
-              className="flex-1 h-10 px-3 rounded-lg border border-edge-secondary bg-transparent text-sm text-txt-primary placeholder:text-txt-muted focus:outline-none focus:border-blue-500"
-              placeholder={t("settings.academic_email_placeholder")}
-              type="email"
-              value={academic_email}
-              onChange={(e) => set_academic_email(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handle_submit();
-              }}
-            />
-            <Button
-              variant="primary"
-              className="h-10 shrink-0"
-              disabled={
-                !academic_email.trim() ||
-                submitting ||
-                (captcha_required && !turnstile_token)
-              }
-              onClick={handle_submit}
-            >
-              {submitting
-                ? t("settings.academic_sending")
-                : t("settings.academic_send_verification")}
-            </Button>
-          </div>
-          {captcha_required && (
-            <TurnstileWidget
-              ref={turnstile_ref}
-              class_name="flex justify-start mt-3"
-              on_expire={() => set_turnstile_token("")}
-              on_verify={(token) => set_turnstile_token(token)}
-            />
-          )}
-          <p className="text-xs text-txt-muted mt-3">
-            {t("settings.academic_journalist_hint")}
-          </p>
-        </div>
+  const pending_panel = status === "pending" && (
+    <>
+      <p className="text-sm text-txt-primary">
+        {t("settings.academic_pending_title")}
+      </p>
+      <p className="mt-1 text-xs text-txt-muted">
+        {t("settings.academic_pending_description")}
+      </p>
+      {captcha_required && (
+        <TurnstileWidget
+          ref={turnstile_ref}
+          class_name="mt-3 flex justify-start"
+          on_expire={() => set_turnstile_token("")}
+          on_verify={(token) => set_turnstile_token(token)}
+        />
       )}
-    </div>
+      <PillButton
+        className="mt-3"
+        disabled={
+          resend_cooldown > 0 ||
+          submitting ||
+          (captcha_required && !turnstile_token)
+        }
+        size="sm"
+        type="button"
+        variant="neutral"
+        onClick={handle_resend}
+      >
+        {resend_cooldown > 0
+          ? t("settings.academic_resend_cooldown", {
+              seconds: resend_cooldown,
+            })
+          : t("settings.academic_resend")}
+      </PillButton>
+    </>
+  );
+
+  const request_panel = status === "none" && (
+    <>
+      <p className="mb-3 text-[13px] leading-5 text-txt-secondary">
+        {t("settings.academic_intro")}
+      </p>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <Input
+          aria-label={t("settings.academic_email_placeholder")}
+          autoComplete="email"
+          className="flex-1"
+          placeholder={t("settings.academic_email_placeholder")}
+          type="email"
+          value={academic_email}
+          onChange={(e) => set_academic_email(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !is_composing(e)) handle_submit();
+          }}
+        />
+        <PillButton
+          className="shrink-0"
+          disabled={
+            !academic_email.trim() ||
+            submitting ||
+            (captcha_required && !turnstile_token)
+          }
+          size="md"
+          type="button"
+          variant="filled"
+          onClick={handle_submit}
+        >
+          {submitting
+            ? t("settings.academic_sending")
+            : t("settings.academic_send_verification")}
+        </PillButton>
+      </div>
+      {captcha_required && (
+        <TurnstileWidget
+          ref={turnstile_ref}
+          class_name="mt-3 flex justify-start"
+          on_expire={() => set_turnstile_token("")}
+          on_verify={(token) => set_turnstile_token(token)}
+        />
+      )}
+      <p className="mt-3 text-xs text-txt-muted">
+        {t("settings.academic_journalist_hint")}
+      </p>
+    </>
+  );
+
+  if (embedded) {
+    const status_label =
+      status === "verified"
+        ? t("settings.academic_status_verified")
+        : status === "pending"
+          ? t("settings.academic_status_pending")
+          : t("settings.academic_status_none");
+
+    return (
+      <BillingMoreRow
+        description={t("settings.billing_academic_subtitle")}
+        icon={billing_row_icon(AcademicCapIcon)}
+        label={t("settings.academic_discount_title")}
+        open={open}
+        value={
+          <span
+            className="text-[13px] font-medium"
+            style={{
+              color:
+                status === "verified"
+                  ? "var(--color-success)"
+                  : status === "pending"
+                    ? "var(--color-warning)"
+                    : "var(--text-secondary)",
+            }}
+          >
+            {status_label}
+          </span>
+        }
+        on_toggle={() => set_open((value) => !value)}
+      >
+        {verified_panel}
+        {pending_panel}
+        {request_panel}
+      </BillingMoreRow>
+    );
+  }
+
+  return (
+    <IslandSection
+      bare
+      description={t("settings.academic_discount_description")}
+      title={t("settings.academic_discount_title")}
+    >
+      {verified_panel && <Island padding="md">{verified_panel}</Island>}
+      {pending_panel && <Island padding="md">{pending_panel}</Island>}
+      {request_panel && <Island padding="md">{request_panel}</Island>}
+    </IslandSection>
   );
 }

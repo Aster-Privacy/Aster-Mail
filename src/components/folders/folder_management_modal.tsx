@@ -27,7 +27,7 @@ import {
   ShieldCheckIcon,
   ArrowRightIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import {
   Modal,
@@ -37,12 +37,17 @@ import {
   ModalBody,
   ModalFooter,
 } from "@/components/ui/modal";
-import { Spinner } from "@/components/ui/spinner";
+import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
-import { TAG_COLOR_PRESETS } from "@/components/ui/email_tag";
+import {
+  TAG_COLOR_PRESETS,
+  tag_color_label_key,
+} from "@/components/ui/email_tag";
 import { use_folders } from "@/hooks/use_folders";
+import { MAX_FOLDER_DEPTH } from "@/hooks/use_folders/tree";
 import { use_i18n } from "@/lib/i18n/context";
 import { FolderDeleteDialog } from "@/components/folders/folder_delete_dialog";
+import { is_composing } from "@/utils/ime";
 
 const MAX_FOLDER_NAME_LENGTH = 100;
 
@@ -78,7 +83,9 @@ export function FolderManagementModal({
 
   const [new_name, set_new_name] = useState(folder_name);
   const [new_color, set_new_color] = useState(folder_color);
-  const [selected_parent_token, set_selected_parent_token] = useState<string | null>(null);
+  const [selected_parent_token, set_selected_parent_token] = useState<
+    string | null
+  >(null);
   const [is_loading, set_is_loading] = useState(false);
   const [error, set_error] = useState("");
 
@@ -92,7 +99,9 @@ export function FolderManagementModal({
     if (trimmed_name.toLowerCase() === folder_name.toLowerCase()) {
       return null;
     }
-    const current_folder = folders_state.folders.find((f) => f.id === folder_id);
+    const current_folder = folders_state.folders.find(
+      (f) => f.id === folder_id,
+    );
     const duplicate_exists = folders_state.folders.some(
       (f) =>
         f.id !== folder_id &&
@@ -105,11 +114,11 @@ export function FolderManagementModal({
     }
 
     return null;
-  }, [trimmed_name, folder_name, folder_id, folders_state.folders]);
+  }, [trimmed_name, folder_name, folder_id, folders_state.folders, t]);
 
   const can_rename = trimmed_name && !rename_validation_error;
 
-  const movable_folders = useMemo(() => {
+  const move_targets = useMemo(() => {
     const descendants = new Set<string>();
     const collect = (token: string) => {
       descendants.add(token);
@@ -118,18 +127,65 @@ export function FolderManagementModal({
         .forEach((f) => collect(f.folder_token));
     };
     const self = folders_state.folders.find((f) => f.id === folder_id);
+
     if (self) collect(self.folder_token);
-    return folders_state.folders.filter(
-      (f) => !f.is_system && !descendants.has(f.folder_token),
+
+    const by_token = new Map(
+      folders_state.folders.map((f) => [f.folder_token, f]),
     );
+
+    const depth_of = (token: string | undefined): number => {
+      let depth = 0;
+      let cursor = token;
+      const seen = new Set<string>();
+
+      while (cursor && by_token.has(cursor) && !seen.has(cursor)) {
+        seen.add(cursor);
+        depth += 1;
+        cursor = by_token.get(cursor)?.parent_token;
+      }
+
+      return depth - 1;
+    };
+
+    const height_of = (token: string, seen: Set<string>): number => {
+      if (seen.has(token)) return 0;
+
+      seen.add(token);
+
+      const children = folders_state.folders.filter(
+        (f) => f.parent_token === token,
+      );
+
+      if (children.length === 0) return 0;
+
+      return (
+        1 + Math.max(...children.map((c) => height_of(c.folder_token, seen)))
+      );
+    };
+
+    const moved_height = self ? height_of(self.folder_token, new Set()) : 0;
+
+    const inbox = folders_state.folders.find((f) => f.folder_type === "inbox");
+
+    return {
+      folders: folders_state.folders.filter(
+        (f) =>
+          !f.is_system &&
+          !descendants.has(f.folder_token) &&
+          depth_of(f.folder_token) + 1 + moved_height <= MAX_FOLDER_DEPTH,
+      ),
+      inbox_token:
+        inbox &&
+        !descendants.has(inbox.folder_token) &&
+        depth_of(inbox.folder_token) + 1 + moved_height <= MAX_FOLDER_DEPTH
+          ? inbox.folder_token
+          : undefined,
+    };
   }, [folder_id, folders_state.folders]);
 
-  const inbox_token = useMemo(
-    () =>
-      folders_state.folders.find((f) => f.folder_type === "inbox")
-        ?.folder_token,
-    [folders_state.folders],
-  );
+  const movable_folders = move_targets.folders;
+  const inbox_token = move_targets.inbox_token;
 
   useEffect(() => {
     set_new_name(folder_name);
@@ -139,6 +195,8 @@ export function FolderManagementModal({
   }, [folder_name, folder_color, is_open]);
 
   const handle_rename = async () => {
+    if (is_loading) return;
+
     if (!trimmed_name) {
       set_error(t("common.folder_name_cannot_be_empty"));
 
@@ -166,6 +224,8 @@ export function FolderManagementModal({
   };
 
   const handle_recolor = async () => {
+    if (is_loading) return;
+
     set_is_loading(true);
     set_error("");
 
@@ -185,6 +245,8 @@ export function FolderManagementModal({
   };
 
   const handle_encrypt = async () => {
+    if (is_loading) return;
+
     set_is_loading(true);
     set_error("");
 
@@ -200,6 +262,8 @@ export function FolderManagementModal({
   };
 
   const handle_move = useCallback(async () => {
+    if (is_loading) return;
+
     set_is_loading(true);
     set_error("");
 
@@ -218,7 +282,20 @@ export function FolderManagementModal({
     } else {
       set_error(t("common.failed_to_move_folder"));
     }
-  }, [folder_id, selected_parent_token, update_existing_folder, on_close, t]);
+  }, [
+    is_loading,
+    folder_id,
+    selected_parent_token,
+    update_existing_folder,
+    on_close,
+    t,
+  ]);
+
+  const handle_dismiss = useCallback(() => {
+    if (is_loading) return;
+
+    on_close();
+  }, [is_loading, on_close]);
 
   const render_content = () => {
     switch (action) {
@@ -248,8 +325,10 @@ export function FolderManagementModal({
                 <div
                   className="rounded-lg p-4 mb-4 border"
                   style={{
-                    backgroundColor: "color-mix(in srgb, var(--accent-color) 12%, transparent)",
-                    borderColor: "color-mix(in srgb, var(--accent-color) 35%, transparent)",
+                    backgroundColor:
+                      "color-mix(in srgb, var(--accent-color) 12%, transparent)",
+                    borderColor:
+                      "color-mix(in srgb, var(--accent-color) 35%, transparent)",
                   }}
                 >
                   <div className="flex items-start gap-3">
@@ -281,7 +360,6 @@ export function FolderManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="outline"
                 onClick={on_close}
               >
@@ -290,15 +368,13 @@ export function FolderManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
+                is_loading={is_loading}
                 variant={is_locked ? "destructive" : "primary"}
                 onClick={handle_encrypt}
               >
-                {is_loading
-                  ? t("common.processing")
-                  : is_locked
-                    ? t("common.unlock_folder")
-                    : t("common.lock_folder")}
+                {is_locked
+                  ? t("common.unlock_folder")
+                  : t("common.lock_folder")}
               </Button>
             </ModalFooter>
           </>
@@ -336,7 +412,9 @@ export function FolderManagementModal({
                 type="text"
                 value={new_name}
                 onChange={(e) => set_new_name(e.target.value)}
-                onKeyDown={(e) => e["key"] === "Enter" && handle_rename()}
+                onKeyDown={(e) =>
+                  e["key"] === "Enter" && !is_composing(e) && handle_rename()
+                }
               />
 
               {(rename_validation_error || error) && (
@@ -350,7 +428,6 @@ export function FolderManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="outline"
                 onClick={on_close}
               >
@@ -359,12 +436,11 @@ export function FolderManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading || !can_rename}
-                size="xl"
                 variant="depth"
                 onClick={handle_rename}
               >
                 {t("common.rename")}
-                {is_loading && <Spinner className="ml-2" size="sm" />}
+                {is_loading && <ButtonSpinner />}
               </Button>
             </ModalFooter>
           </>
@@ -387,13 +463,17 @@ export function FolderManagementModal({
             </ModalHeader>
 
             <ModalBody>
-              <label
+              <span
                 className="block text-[13px] font-medium mb-3 text-txt-secondary"
-                htmlFor="folder-color"
+                id="folder-color-label"
               >
                 {t("common.select_a_color")}
-              </label>
-              <div className="flex flex-wrap gap-2">
+              </span>
+              <div
+                aria-labelledby="folder-color-label"
+                className="flex flex-wrap gap-2"
+                role="group"
+              >
                 {TAG_COLOR_PRESETS.map((color) => (
                   <button
                     key={color.hex}
@@ -405,7 +485,7 @@ export function FolderManagementModal({
                           ? `0 0 0 2px var(--modal-bg), 0 0 0 4px ${color.hex}`
                           : "none",
                     }}
-                    title={color.name}
+                    title={t(tag_color_label_key(color.variant))}
                     onClick={() => set_new_color(color.hex)}
                   />
                 ))}
@@ -420,7 +500,6 @@ export function FolderManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="outline"
                 onClick={on_close}
               >
@@ -429,19 +508,12 @@ export function FolderManagementModal({
               <Button
                 className="flex-1 text-white"
                 disabled={is_loading}
-                size="xl"
                 style={{ backgroundColor: new_color }}
                 variant="depth"
                 onClick={handle_recolor}
               >
-                {is_loading ? (
-                  <>
-                    {t("common.saving")}
-                    <Spinner className="ml-2" size="md" />
-                  </>
-                ) : (
-                  `${t("common.save")} ${t("common.color")}`
-                )}
+                {`${t("common.save")} ${t("common.color")}`}
+                {is_loading && <ButtonSpinner />}
               </Button>
             </ModalFooter>
           </>
@@ -452,7 +524,7 @@ export function FolderManagementModal({
           <>
             <ModalHeader>
               <div className="flex items-start gap-3">
-                <ArrowRightIcon className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                <ArrowRightIcon className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5 rtl:-scale-x-100" />
                 <div className="min-w-0">
                   <ModalTitle>{t("common.move_folder")}</ModalTitle>
                   <ModalDescription>
@@ -468,7 +540,7 @@ export function FolderManagementModal({
               </p>
               <div className="flex flex-col gap-1 max-h-56 overflow-y-auto">
                 <button
-                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-left transition-colors ${selected_parent_token === "" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "hover:bg-surface-secondary"}`}
+                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-start transition-colors ${selected_parent_token === "" ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "hover:bg-surface-secondary"}`}
                   onClick={() => set_selected_parent_token("")}
                 >
                   <FolderIcon className="w-4 h-4 flex-shrink-0" />
@@ -476,7 +548,7 @@ export function FolderManagementModal({
                 </button>
                 {inbox_token && (
                   <button
-                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-left transition-colors ${selected_parent_token === inbox_token ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "hover:bg-surface-secondary"}`}
+                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-start transition-colors ${selected_parent_token === inbox_token ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "hover:bg-surface-secondary"}`}
                     onClick={() => set_selected_parent_token(inbox_token)}
                   >
                     <InboxIcon className="w-4 h-4 flex-shrink-0" />
@@ -486,7 +558,7 @@ export function FolderManagementModal({
                 {movable_folders.map((f) => (
                   <button
                     key={f.id}
-                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-left transition-colors ${selected_parent_token === f.folder_token ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "hover:bg-surface-secondary"}`}
+                    className={`flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-start transition-colors ${selected_parent_token === f.folder_token ? "bg-blue-500/15 text-blue-600 dark:text-blue-400" : "hover:bg-surface-secondary"}`}
                     onClick={() => set_selected_parent_token(f.folder_token)}
                   >
                     <FolderIcon
@@ -507,7 +579,6 @@ export function FolderManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading}
-                size="xl"
                 variant="outline"
                 onClick={on_close}
               >
@@ -516,18 +587,11 @@ export function FolderManagementModal({
               <Button
                 className="flex-1"
                 disabled={is_loading || selected_parent_token === null}
-                size="xl"
                 variant="depth"
                 onClick={handle_move}
               >
-                {is_loading ? (
-                  <>
-                    {t("common.saving")}
-                    <Spinner className="ml-2" size="md" />
-                  </>
-                ) : (
-                  t("common.move_folder")
-                )}
+                {t("common.move_folder")}
+                {is_loading && <ButtonSpinner />}
               </Button>
             </ModalFooter>
           </>
@@ -552,7 +616,7 @@ export function FolderManagementModal({
   }
 
   return (
-    <Modal is_open={is_open} on_close={on_close} size="md">
+    <Modal is_open={is_open} on_close={handle_dismiss} size="md">
       {render_content()}
     </Modal>
   );

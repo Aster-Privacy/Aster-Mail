@@ -20,6 +20,9 @@
 //
 import DOMPurify from "dompurify";
 
+import { split_autolinks } from "./autolink";
+import { mark_brand_backgrounds } from "./email_brand_backgrounds";
+import { mark_stylesheet_background_images } from "./html_sanitizer_background_marks";
 import {
   ALLOWED_TAGS,
   DANGEROUS_TAGS,
@@ -29,6 +32,7 @@ import {
   sanitize_css_block,
   block_remote_fonts,
   strip_css_urls,
+  proxy_css_urls,
   escape_style_terminator,
 } from "./html_sanitizer_css";
 
@@ -36,9 +40,10 @@ export { is_transparent_color_value } from "./html_sanitizer_css";
 import {
   is_tracking_pixel,
   strip_tracking_params,
-  strip_mso_conditionals,
+  repair_comment_markup,
   sanitize_attribute,
 } from "./html_sanitizer_utils";
+export { repair_comment_markup } from "./html_sanitizer_utils";
 export {
   is_html_content,
   strip_quoted_sections,
@@ -46,6 +51,7 @@ export {
   plain_text_to_html,
   html_to_readable_plain_text,
   strip_html_tags,
+  strip_html_tags_bounded,
 } from "./html_text";
 export type { ReadablePlainTextOptions } from "./html_text";
 
@@ -53,6 +59,155 @@ export {
   sanitize_compose_paste,
   sanitize_outgoing_html,
 } from "./html_sanitizer_compose";
+
+const REMOTE_URL_SCHEME = /^\s*https?:/i;
+
+function is_remote_url_value(value: string): boolean {
+  const normalized = value
+    .replace(/[\t\n\r]/g, "")
+    .toLowerCase()
+    .trim();
+
+  return (
+    REMOTE_URL_SCHEME.test(normalized) ||
+    normalized.startsWith("//") ||
+    normalized.startsWith("\\\\") ||
+    normalized.startsWith("/\\") ||
+    normalized.startsWith("\\/")
+  );
+}
+
+const IMAGE_PROXY_PATH = "/api/images/v1/proxy";
+
+const STATIC_IMAGE_PATH =
+  /^\/[a-z0-9_\-/]+\.(?:png|jpe?g|gif|svg|webp|ico|avif)$/i;
+
+const URL_SCHEME = /^[a-z][a-z0-9+.-]*:/i;
+
+const PARSE_BASE_URL = "https://local.invalid";
+
+type LocalImageUrl =
+  | { kind: "external" }
+  | { kind: "static" }
+  | { kind: "proxied"; inner: string }
+  | { kind: "local" };
+
+function get_page_origin(): string | null {
+  if (typeof window === "undefined") return null;
+
+  const origin = window.location.origin;
+
+  return origin && origin !== "null" ? origin : null;
+}
+
+function classify_local_image_url(value: string): LocalImageUrl {
+  const trimmed = value.replace(/[\t\n\r]/g, "").trim();
+
+  if (!trimmed) return { kind: "external" };
+
+  const is_remote = is_remote_url_value(trimmed);
+
+  if (!is_remote && URL_SCHEME.test(trimmed)) return { kind: "external" };
+
+  const page_origin = get_page_origin();
+  let parsed: URL;
+
+  try {
+    parsed = new URL(trimmed, page_origin ?? PARSE_BASE_URL);
+  } catch {
+    return is_remote ? { kind: "external" } : { kind: "local" };
+  }
+
+  if (is_remote && (!page_origin || parsed.origin !== page_origin)) {
+    return { kind: "external" };
+  }
+
+  const pathname = parsed.pathname.replace(/\/+$/, "").toLowerCase();
+
+  if (pathname === IMAGE_PROXY_PATH) {
+    const inner = parsed.searchParams.get("url");
+
+    return inner && is_remote_url_value(inner)
+      ? { kind: "proxied", inner }
+      : { kind: "local" };
+  }
+
+  if (
+    !parsed.search &&
+    !pathname.startsWith("/api/") &&
+    STATIC_IMAGE_PATH.test(parsed.pathname)
+  ) {
+    return { kind: "static" };
+  }
+
+  return { kind: "local" };
+}
+
+const MAX_RESERVED_PIXEL_HEIGHT = 40;
+
+const SRCSET_WHITESPACE_CODES = new Set([32, 9, 10, 13, 12]);
+
+interface SrcsetCandidateValue {
+  url: string;
+  descriptor: string;
+}
+
+function is_srcset_whitespace(character: string): boolean {
+  return SRCSET_WHITESPACE_CODES.has(character.charCodeAt(0));
+}
+
+function parse_srcset_value(value: string): SrcsetCandidateValue[] {
+  const candidates: SrcsetCandidateValue[] = [];
+  let position = 0;
+
+  while (position < value.length) {
+    while (
+      position < value.length &&
+      (is_srcset_whitespace(value[position]) || value[position] === ",")
+    ) {
+      position += 1;
+    }
+
+    if (position >= value.length) break;
+
+    const url_start = position;
+
+    while (position < value.length && !is_srcset_whitespace(value[position])) {
+      position += 1;
+    }
+
+    let url = value.slice(url_start, position);
+    let descriptor = "";
+
+    if (url.endsWith(",")) {
+      url = url.replace(/,+$/, "");
+    } else {
+      const descriptor_start = position;
+
+      while (position < value.length && value[position] !== ",") {
+        position += 1;
+      }
+
+      descriptor = value.slice(descriptor_start, position).trim();
+
+      if (position < value.length) position += 1;
+    }
+
+    if (url) candidates.push({ url, descriptor });
+  }
+
+  return candidates;
+}
+
+function serialize_srcset_value(candidates: SrcsetCandidateValue[]): string {
+  return candidates
+    .map((candidate) =>
+      candidate.descriptor
+        ? `${candidate.url} ${candidate.descriptor}`
+        : candidate.url,
+    )
+    .join(", ");
+}
 
 export interface BlockedItem {
   url: string;
@@ -98,6 +253,25 @@ export interface SanitizeOptions {
   lockdown_mode?: boolean;
 }
 
+export function degraded_text_html(html: string): string {
+  const text =
+    typeof html === "string"
+      ? html
+          .replace(/<style\b[\s\S]*?<\/style\b[^>]*>/gi, " ")
+          .replace(/<style\b[^>]*>[\s\S]*/gi, " ")
+          .replace(/<script\b[\s\S]*?<\/script\b[^>]*>/gi, " ")
+          .replace(/<script\b[^>]*>[\s\S]*/gi, " ")
+          .replace(/<[^>]*>/g, " ")
+          .replace(/\s+/g, " ")
+          .trim()
+      : "";
+
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 export function sanitize_html(
   html: string,
   options: SanitizeOptions = {},
@@ -114,16 +288,11 @@ export function sanitize_html(
       blocked_items: [],
       cleaned_links: [],
     };
-    const text =
-      typeof html === "string"
-        ? html.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
-        : "";
-    const escaped = text
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;");
 
-    return { html: escaped, external_content: fallback_report };
+    return {
+      html: degraded_text_html(html),
+      external_content: fallback_report,
+    };
   }
 }
 
@@ -206,7 +375,9 @@ export function sanitize_preview_html(html: string): string {
         }
 
         if (name === "href" || name === "src" || name === "xlink:href") {
-          const value = attr.value.replace(/[\u0000-\u0020]+/g, "").toLowerCase();
+          const value = attr.value
+            .replace(/[\u0000-\u0020]+/g, "")
+            .toLowerCase();
 
           if (
             value.startsWith("javascript:") ||
@@ -255,16 +426,25 @@ function sanitize_html_impl(
 
   const block_images = lockdown_mode
     ? true
-    : (content_blocking?.block_remote_images ?? external_content_mode !== "always");
+    : (content_blocking?.block_remote_images ??
+      external_content_mode !== "always");
   const block_fonts = lockdown_mode
     ? true
-    : (content_blocking?.block_remote_fonts ?? external_content_mode !== "always");
+    : (content_blocking?.block_remote_fonts ??
+      external_content_mode !== "always");
   const block_css = lockdown_mode
     ? true
-    : (content_blocking?.block_remote_css ?? external_content_mode !== "always");
+    : (content_blocking?.block_remote_css ??
+      external_content_mode !== "always");
   const block_pixels = lockdown_mode
     ? true
-    : (content_blocking?.block_tracking_pixels ?? external_content_mode !== "always");
+    : (content_blocking?.block_tracking_pixels ??
+      external_content_mode !== "always");
+
+  const allowed_css_image_proxy =
+    lockdown_mode || block_images || block_css || !effective_proxy
+      ? undefined
+      : effective_proxy;
 
   const external_content: ExternalContentReport = {
     has_remote_images: false,
@@ -316,9 +496,7 @@ function sanitize_html_impl(
 
     if (first_el_match) {
       const tag_str = first_el_match[0];
-      const bg_attr = tag_str.match(
-        /bgcolor\s*=\s*["']?([^"'\s>]+)["']?/i,
-      );
+      const bg_attr = tag_str.match(/bgcolor\s*=\s*["']?([^"'\s>]+)["']?/i);
 
       if (bg_attr) {
         const bg_val = bg_attr[1].trim();
@@ -329,9 +507,7 @@ function sanitize_html_impl(
       }
 
       if (!body_background) {
-        const style_attr = tag_str.match(
-          /style\s*=\s*["']([^"']*)["']/i,
-        );
+        const style_attr = tag_str.match(/style\s*=\s*["']([^"']*)["']/i);
 
         if (style_attr) {
           const bg_style = style_attr[1].match(
@@ -350,7 +526,7 @@ function sanitize_html_impl(
     }
   }
 
-  const preprocessed = strip_mso_conditionals(html);
+  const preprocessed = repair_comment_markup(html);
 
   const head_styles: string[] = [];
   const head_match = sandbox_mode
@@ -382,9 +558,7 @@ function sanitize_html_impl(
 
       if (lockdown_mode || block_css || block_images) {
         const css_url_matches =
-          sanitized_css.match(
-            /url\s*\(\s*["']?(https?:\/\/[^"')\s]+)/gi,
-          ) || [];
+          sanitized_css.match(/url\s*\(\s*["']?(https?:\/\/[^"')\s]+)/gi) || [];
 
         if (css_url_matches.length > 0) {
           external_content.has_remote_css = true;
@@ -399,6 +573,8 @@ function sanitize_html_impl(
           }
         }
         sanitized_css = strip_css_urls(sanitized_css);
+      } else if (allowed_css_image_proxy) {
+        sanitized_css = proxy_css_urls(sanitized_css, allowed_css_image_proxy);
       }
 
       if (sanitized_css.trim()) {
@@ -433,6 +609,9 @@ function sanitize_html_impl(
       "cellpadding",
       "cellspacing",
       "border",
+      "hspace",
+      "vspace",
+      "sizes",
       "color",
       "face",
       "size",
@@ -455,7 +634,7 @@ function sanitize_html_impl(
     KEEP_CONTENT: true,
     FORCE_BODY: true,
     ALLOWED_URI_REGEXP:
-      /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|aster):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+      /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|sms|cid|xmpp|aster):|data:image\/(?:jpeg|jpg|png|gif|webp|avif|bmp|tiff|heic|heif|x-icon|vnd\.microsoft\.icon)[;,]|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
   });
 
   const parser = new DOMParser();
@@ -463,42 +642,76 @@ function sanitize_html_impl(
 
   const autolink_text_node = (text_node: Node): Node => {
     const text = text_node.textContent || "";
-    const url_pattern = /(https?:\/\/[^\s<>"'{}|\\^`[\]]+)/g;
+    const segments = split_autolinks(text);
 
-    if (!url_pattern.test(text)) return text_node.cloneNode(true);
+    if (!segments.some((segment) => segment.href)) {
+      return text_node.cloneNode(true);
+    }
 
     const fragment = document.createDocumentFragment();
-    let last_index = 0;
 
-    url_pattern.lastIndex = 0;
-    let match;
-
-    while ((match = url_pattern.exec(text)) !== null) {
-      if (match.index > last_index) {
-        fragment.appendChild(
-          document.createTextNode(text.slice(last_index, match.index)),
-        );
+    for (const segment of segments) {
+      if (!segment.href) {
+        fragment.appendChild(document.createTextNode(segment.text));
+        continue;
       }
       const a = document.createElement("a");
 
-      a.href = match[1];
+      a.href = segment.href;
       a.target = "_blank";
       a.rel = "noopener noreferrer";
-      a.textContent = match[1];
+      a.textContent = segment.text;
       fragment.appendChild(a);
-      last_index = url_pattern.lastIndex;
-    }
-    if (last_index < text.length) {
-      fragment.appendChild(document.createTextNode(text.slice(last_index)));
     }
 
     return fragment;
   };
 
+  const visible_text_of = (root: Node): string => {
+    const parts: string[] = [];
+    const stack: Node[] = [root];
+
+    while (stack.length > 0) {
+      const current = stack.pop() as Node;
+
+      if (current.nodeType === Node.TEXT_NODE) {
+        parts.push(current.nodeValue || "");
+        continue;
+      }
+
+      if (current.nodeType !== Node.ELEMENT_NODE) {
+        continue;
+      }
+
+      const current_tag = (current as Element).tagName.toLowerCase();
+
+      if (current_tag === "style" || current_tag === "script") {
+        continue;
+      }
+
+      const children = current.childNodes;
+
+      for (let i = children.length - 1; i >= 0; i--) {
+        stack.push(children[i]);
+      }
+    }
+
+    return parts.join("");
+  };
+
   const MAX_SANITIZE_DEPTH = 1000;
   const sanitize_node = (node: Node, depth = 0): Node | null => {
     if (depth > MAX_SANITIZE_DEPTH) {
-      const text = node.textContent || "";
+      const tag_name =
+        node.nodeType === Node.ELEMENT_NODE
+          ? (node as Element).tagName.toLowerCase()
+          : "";
+
+      if (tag_name === "style" || tag_name === "script") {
+        return null;
+      }
+
+      const text = visible_text_of(node);
 
       return text ? document.createTextNode(text) : null;
     }
@@ -557,9 +770,7 @@ function sanitize_html_impl(
 
       if (lockdown_mode || block_css || block_images) {
         const css_url_matches =
-          sanitized_css.match(
-            /url\s*\(\s*["']?(https?:\/\/[^"')\s]+)/gi,
-          ) || [];
+          sanitized_css.match(/url\s*\(\s*["']?(https?:\/\/[^"')\s]+)/gi) || [];
 
         if (css_url_matches.length > 0) {
           external_content.has_remote_css = true;
@@ -574,6 +785,8 @@ function sanitize_html_impl(
           }
         }
         sanitized_css = strip_css_urls(sanitized_css);
+      } else if (allowed_css_image_proxy) {
+        sanitized_css = proxy_css_urls(sanitized_css, allowed_css_image_proxy);
       }
 
       if (!sanitized_css.trim()) {
@@ -612,28 +825,90 @@ function sanitize_html_impl(
 
       if (sanitized_value !== null) {
         const attr_lower = attr.name.toLowerCase();
+
         if (
           attr_lower === "style" &&
           (lockdown_mode || block_css || block_images)
         ) {
           sanitized_value = strip_css_urls(sanitized_value);
+        } else if (attr_lower === "style" && allowed_css_image_proxy) {
+          sanitized_value = strip_css_urls(sanitized_value, {
+            image_proxy_url: allowed_css_image_proxy,
+          });
         } else if (attr_lower === "srcset") {
-          if (!lockdown_mode && /(?:https?:)?\/\//i.test(sanitized_value)) {
+          const kept: SrcsetCandidateValue[] = [];
+
+          for (const original_candidate of parse_srcset_value(
+            sanitized_value,
+          )) {
+            const local_candidate = classify_local_image_url(
+              original_candidate.url,
+            );
+
+            if (local_candidate.kind === "local") {
+              continue;
+            }
+
+            if (local_candidate.kind === "static") {
+              kept.push(original_candidate);
+              continue;
+            }
+
+            const candidate =
+              local_candidate.kind === "proxied"
+                ? {
+                    url: local_candidate.inner,
+                    descriptor: original_candidate.descriptor,
+                  }
+                : original_candidate;
+
+            if (!is_remote_url_value(candidate.url)) {
+              kept.push(candidate);
+              continue;
+            }
+
             external_content.has_remote_images = true;
+
             if (block_images) {
               external_content.blocked_count++;
               external_content.blocked_items.push({
-                url: sanitized_value,
+                url: candidate.url,
                 type: "image",
               });
+              continue;
             }
+
+            kept.push(
+              effective_proxy
+                ? {
+                    url: `${effective_proxy}?url=${encodeURIComponent(candidate.url)}`,
+                    descriptor: candidate.descriptor,
+                  }
+                : original_candidate,
+            );
           }
-          continue;
-        } else if (attr_lower === "background") {
-          if (lockdown_mode) {
+
+          if (kept.length === 0) {
             continue;
           }
-          if (/(?:https?:)?\/\//i.test(sanitized_value)) {
+
+          sanitized_value = serialize_srcset_value(kept);
+        } else if (attr_lower === "background") {
+          const local_background = classify_local_image_url(sanitized_value);
+          const original_background = sanitized_value;
+
+          if (local_background.kind === "local") {
+            continue;
+          }
+
+          if (local_background.kind === "proxied") {
+            sanitized_value = local_background.inner;
+          }
+
+          if (
+            local_background.kind !== "static" &&
+            is_remote_url_value(sanitized_value)
+          ) {
             external_content.has_remote_images = true;
             if (block_images) {
               external_content.blocked_count++;
@@ -645,6 +920,8 @@ function sanitize_html_impl(
             }
             if (effective_proxy) {
               sanitized_value = `${effective_proxy}?url=${encodeURIComponent(sanitized_value)}`;
+            } else {
+              sanitized_value = original_background;
             }
           }
         }
@@ -687,29 +964,36 @@ function sanitize_html_impl(
 
     if (tag_name === "img") {
       let src = new_element.getAttribute("src") || "";
+      const local_image = classify_local_image_url(src);
+
+      if (local_image.kind === "local") {
+        const alt = new_element.getAttribute("alt");
+
+        return alt ? document.createTextNode(alt) : null;
+      }
+
+      const original_local_src =
+        local_image.kind === "proxied" ? src : undefined;
+
+      if (local_image.kind === "proxied") {
+        src = local_image.inner;
+        new_element.setAttribute("src", src);
+      }
+
       const lower_src = src.toLowerCase().trim();
-      const is_remote =
-        lower_src.startsWith("http://") ||
-        lower_src.startsWith("https://") ||
-        lower_src.startsWith("//");
+      const is_remote = is_remote_url_value(src);
       const is_data_url = lower_src.startsWith("data:");
       const is_pixel = is_tracking_pixel(new_element as HTMLImageElement);
+      const is_first_party = local_image.kind === "static";
 
-      let is_first_party = false;
-
-      if (is_remote && typeof window !== "undefined") {
-        try {
-          is_first_party = new URL(src).origin === window.location.origin;
-        } catch {
-          is_first_party = false;
-        }
-      }
+      let proxy_source = src;
 
       if (is_remote && !is_first_party && lower_src.startsWith("http://")) {
         src = "https://" + src.slice(7);
         new_element.setAttribute("src", src);
       } else if (is_remote && !is_first_party && lower_src.startsWith("//")) {
-        src = "https:" + src.trim();
+        proxy_source = "https:" + src.trim();
+        src = proxy_source;
         new_element.setAttribute("src", src);
       }
 
@@ -746,7 +1030,17 @@ function sanitize_html_impl(
           });
 
           if (is_pixel && block_pixels) {
-            return null;
+            const pixel_placeholder = document.createElement("span");
+
+            pixel_placeholder.className = "blocked-image";
+            pixel_placeholder.setAttribute("data-original-src", src);
+            pixel_placeholder.setAttribute("data-tracking-pixel", "true");
+            pixel_placeholder.setAttribute(
+              "style",
+              "display:inline-block;width:0;height:0;overflow:hidden",
+            );
+
+            return pixel_placeholder;
           }
 
           if (
@@ -787,7 +1081,7 @@ function sanitize_html_impl(
           if (effective_proxy) {
             new_element.setAttribute(
               "data-proxy-src",
-              `${effective_proxy}?url=${encodeURIComponent(src)}`,
+              `${effective_proxy}?url=${encodeURIComponent(proxy_source)}`,
             );
           }
           new_element.setAttribute(
@@ -804,8 +1098,10 @@ function sanitize_html_impl(
         } else if (effective_proxy) {
           new_element.setAttribute(
             "src",
-            `${effective_proxy}?url=${encodeURIComponent(src)}`,
+            `${effective_proxy}?url=${encodeURIComponent(proxy_source)}`,
           );
+        } else if (original_local_src) {
+          new_element.setAttribute("src", original_local_src);
         }
       }
     }
@@ -834,9 +1130,20 @@ function sanitize_html_impl(
 
       if (height_attr && !/height\s*:/i.test(existing_style)) {
         let height_css = "";
+        const both_pixel_sized =
+          width_attr !== null &&
+          /^\d+$/.test(width_attr) &&
+          /^\d+$/.test(height_attr) &&
+          Number(width_attr) > 0 &&
+          Number(height_attr) > 0;
 
-        if (/^\d+$/.test(height_attr)) {
-          height_css = `height:${height_attr}px`;
+        if (both_pixel_sized) {
+          height_css = `height:auto; aspect-ratio:${width_attr} / ${height_attr}`;
+        } else if (/^\d+$/.test(height_attr)) {
+          height_css =
+            Number(height_attr) > MAX_RESERVED_PIXEL_HEIGHT
+              ? `height:auto; max-height:${height_attr}px`
+              : `height:${height_attr}px`;
         } else if (/^\d+%$/.test(height_attr)) {
           height_css = `height:${height_attr}`;
         }
@@ -900,6 +1207,9 @@ function sanitize_html_impl(
   }
 
   container.appendChild(fragment);
+
+  mark_stylesheet_background_images(container);
+  mark_brand_backgrounds(container);
 
   return {
     html: container.innerHTML,

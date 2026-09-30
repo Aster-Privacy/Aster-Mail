@@ -41,7 +41,12 @@ import {
   show_action_toast,
 } from "@/components/toast/action_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import {
+  is_read_ticket_current,
+  peek_read_ticket,
+} from "@/services/read_intent";
 import { use_preferences } from "@/contexts/preferences_context";
+import { user_facing_error } from "@/utils/user_facing_error";
 
 export function use_single_actions_core(
   state_ctx: ActionStateContext,
@@ -77,6 +82,11 @@ export function use_single_actions_core(
         original_state[key] = email[key] as never;
       }
 
+      const read_ticket =
+        "is_read" in optimistic_update ? peek_read_ticket(email.id) : null;
+      const superseded = (): boolean =>
+        read_ticket !== null && !is_read_ticket_current(email.id, read_ticket);
+
       create_pending_action(email.id, action_type, original_state);
       set_action_loading(action_type, true);
       config.on_optimistic_update?.(email.id, optimistic_update);
@@ -87,6 +97,12 @@ export function use_single_actions_core(
 
         if (result.error) {
           if (optimistic_toast) hide_action_toast();
+          if (superseded()) {
+            remove_pending_action(email.id, action_type);
+            clear_action_state(action_type);
+
+            return false;
+          }
           rollback_action(email.id, action_type);
           set_action_error(action_type, result.error);
 
@@ -102,7 +118,7 @@ export function use_single_actions_core(
 
         if (is_view_changing_action(action_type)) {
           emit_mail_changed();
-        } else {
+        } else if (!superseded()) {
           const metadata_update =
             result.data &&
             typeof result.data === "object" &&
@@ -135,9 +151,17 @@ export function use_single_actions_core(
         return true;
       } catch (err) {
         if (optimistic_toast) hide_action_toast();
+        if (superseded()) {
+          remove_pending_action(email.id, action_type);
+          clear_action_state(action_type);
+
+          return false;
+        }
         rollback_action(email.id, action_type);
-        const error_message =
-          err instanceof Error ? err.message : t("common.unexpected_error");
+        const error_message = user_facing_error(
+          err,
+          t("common.unexpected_error"),
+        );
 
         set_action_error(action_type, error_message);
 

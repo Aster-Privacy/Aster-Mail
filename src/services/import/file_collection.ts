@@ -22,6 +22,7 @@ const SUPPORTED_IMPORT_EXTENSIONS = [
   ".mbox",
   ".mbx",
   ".eml",
+  ".emlx",
   ".csv",
   ".tsv",
   ".pst",

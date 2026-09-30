@@ -20,7 +20,10 @@
 //
 import type { UserPreferences } from "@/services/api/preferences";
 
-import { DARK_ONLY_COLOR_THEMES } from "@/lib/dark_mode";
+import {
+  DARK_ONLY_COLOR_THEMES,
+  is_dark_only_color_theme,
+} from "@/lib/dark_mode";
 
 export type ThemePreferenceValue = UserPreferences["theme"];
 export type ColorThemeValue = UserPreferences["color_theme"];
@@ -144,4 +147,19 @@ export function build_theme_sync_toggle_update(
     custom_theme_seed_web: effective.custom_theme_seed,
     theme_sync_enabled_web: false,
   };
+}
+
+export function build_theme_mode_update(
+  preferences: ThemeSyncPreferences,
+  next_theme: ThemePreferenceValue,
+): Partial<UserPreferences> {
+  const current_color_theme =
+    get_effective_theme_fields(preferences).color_theme;
+  const changes: Partial<ThemeFields> = { theme: next_theme };
+
+  if (next_theme !== "dark" && is_dark_only_color_theme(current_color_theme)) {
+    changes.color_theme = "default";
+  }
+
+  return build_theme_fields_update(preferences, changes);
 }

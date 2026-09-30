@@ -50,6 +50,9 @@ vi.mock("@/services/crypto/ratchet_manager", async (importOriginal) => {
     encrypt_for_ratchet_recipient: vi.fn(async () => h.ratchet_result),
     build_ratchet_envelope: vi.fn(() => "ratchet-envelope"),
     recipient_supports_post_quantum: vi.fn(async () => h.supports_pq),
+    recipient_post_quantum_status: vi.fn(async () =>
+      h.supports_pq ? "supported" : "unsupported",
+    ),
   };
 });
 

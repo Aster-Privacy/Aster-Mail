@@ -30,13 +30,14 @@ import {
   InboxArrowDownIcon,
   NoSymbolIcon,
   ShieldCheckIcon,
-  SparklesIcon,
   UserGroupIcon,
+  WrenchScrewdriverIcon,
 } from "@heroicons/react/24/outline";
 import { Switch } from "@aster/ui";
 
 import { format_created_at } from "./alias_stats_format";
 
+import { copy_text_or_throw } from "@/utils/copy_text";
 import { Spinner } from "@/components/ui/spinner";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -97,7 +98,6 @@ function SectionHeading({
         </h3>
         {action}
       </div>
-      <div className="mt-2 h-px bg-edge-secondary" />
     </div>
   );
 }
@@ -224,7 +224,7 @@ export function AliasEditorPage({
 
     entries.push({
       key: "rules",
-      icon: SparklesIcon,
+      icon: WrenchScrewdriverIcon,
       label: t("settings.alias_rules_title"),
       locked: rules_locked,
       feature: "has_alias_rules",
@@ -306,7 +306,7 @@ export function AliasEditorPage({
 
   const copy_address = async () => {
     try {
-      await navigator.clipboard.writeText(heading);
+      await copy_text_or_throw(heading);
       show_toast(t("common.email_copied"), "success");
     } catch {
       show_toast(t("common.failed_to_copy"), "error");
@@ -323,34 +323,34 @@ export function AliasEditorPage({
 
   return (
     <div className="space-y-4">
-      <button
-        className="-ml-2 flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-[13px] font-medium text-txt-secondary transition-colors hover:bg-surf-hover hover:text-txt-primary"
-        type="button"
-        onClick={on_back}
-      >
-        <ArrowLeftIcon className="h-4 w-4 shrink-0" />
-        {t("common.back")}
-      </button>
-
       <div>
         <div className="mb-4">
-          <h3 className="text-base font-semibold text-txt-primary flex items-center gap-2">
-            <AtSymbolIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+          <div className="flex items-center gap-2 -ms-2">
             <button
-              className="min-w-0 truncate rounded-none text-left transition-colors hover:text-txt-secondary"
-              title={t("common.copy_address")}
+              aria-label={t("common.back")}
+              className="w-9 h-9 flex-shrink-0 rounded-full flex items-center justify-center text-txt-secondary transition-colors hover:bg-surf-hover hover:text-txt-primary"
               type="button"
-              onClick={copy_address}
+              onClick={on_back}
             >
-              {heading}
+              <ArrowLeftIcon className="h-[18px] w-[18px] rtl:-scale-x-100" />
             </button>
-          </h3>
-          <div className="mt-2 h-px bg-edge-secondary" />
+            <h3 className="min-w-0 text-base font-semibold text-txt-primary flex items-center gap-2">
+              <AtSymbolIcon className="w-[18px] h-[18px] text-txt-primary flex-shrink-0" />
+              <button
+                className="min-w-0 truncate rounded-none text-start transition-colors hover:text-txt-secondary"
+                title={t("common.copy_address")}
+                type="button"
+                onClick={copy_address}
+              >
+                {heading}
+              </button>
+            </h3>
+          </div>
         </div>
 
         {alias && on_toggle_enabled && (
           <div className="flex items-center justify-between py-4">
-            <div className="flex-1 pr-4">
+            <div className="flex-1 pe-4">
               <p className="text-sm font-medium text-txt-primary">
                 {alias.is_enabled ? t("common.active") : t("common.inactive")}
               </p>

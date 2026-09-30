@@ -19,17 +19,16 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-import type { DecryptedEnvelope, } from "@/types/email";
+import type { DecryptedEnvelope } from "@/types/email";
 
-
-import {
-  reencrypt_mail_item_envelope,
-} from "@/services/api/mail";
+import { vault_identity_key_materials } from "@/services/crypto/identity_key_materials";
+import { reencrypt_mail_item_envelope } from "@/services/api/mail";
 import {
   decrypt_envelope_with_bytes,
   decrypt_envelope_with_identity_key,
   encrypt_envelope_with_identity_key,
   base64_to_array,
+  first_base64_byte,
 } from "@/services/crypto/envelope";
 import {
   get_passphrase_bytes,
@@ -38,20 +37,23 @@ import {
   wait_for_keys_ready,
 } from "@/services/crypto/memory_key_store";
 import { decrypt_pgp_message_parallel } from "@/workers/pgp_decrypt_pool";
+import {
+  adopt_refreshed_vault,
+  fetch_refreshed_vault,
+} from "@/services/crypto/vault_refresh";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { register_envelope_attachment_keys } from "@/services/crypto/inbound_attachment_keys";
-import {
-  normalize_envelope_from,
-} from "@/services/crypto/envelope_normalize";
+import { normalize_envelope_from } from "@/services/crypto/envelope_normalize";
+import { decrypt_legacy_ios_envelope } from "@/services/crypto/legacy_ios_envelope";
 
 export async function try_decrypt_with_identity_key(
-  encrypted: string,
+  encrypted: string | Uint8Array,
   nonce_bytes: Uint8Array,
   identity_key: string,
 ): Promise<DecryptedEnvelope | null> {
   return decrypt_envelope_with_identity_key(
     identity_key,
-    base64_to_array(encrypted),
+    typeof encrypted === "string" ? base64_to_array(encrypted) : encrypted,
     nonce_bytes,
     (plaintext) => {
       const parsed = JSON.parse(new TextDecoder().decode(plaintext));
@@ -181,23 +183,55 @@ async function open_search_envelope(
         return parsed;
       }
 
-      const vault = get_vault_from_memory();
-      const pass = get_passphrase_from_memory();
+      let vault = get_vault_from_memory();
+      let pass = get_passphrase_from_memory();
 
-      if (vault?.identity_key && pass) {
+      if (!vault?.identity_key || !pass) {
+        await wait_for_keys_ready();
+        vault = get_vault_from_memory();
+        pass = get_passphrase_from_memory();
+      }
+
+      if (!vault?.identity_key || !pass) return null;
+
+      const passphrase = pass;
+      const decrypt_pgp_with_keys = async (keys: string[]) => {
         const decrypted = await decrypt_pgp_message_parallel(
           text,
-          [vault.identity_key, ...(vault.previous_keys ?? [])],
-          pass,
+          keys,
+          passphrase,
         );
         const parsed = JSON.parse(decrypted) as DecryptedEnvelope;
 
         schedule_legacy_envelope_migration(item_id, item_type, parsed);
 
         return parsed;
-      }
+      };
+      const pgp_keys = [vault.identity_key, ...(vault.previous_keys ?? [])];
 
-      return null;
+      try {
+        return await decrypt_pgp_with_keys(pgp_keys);
+      } catch (pgp_error) {
+        const refreshed = await fetch_refreshed_vault();
+
+        if (refreshed?.vault.identity_key) {
+          const tried = new Set(pgp_keys);
+          const refreshed_keys = [
+            refreshed.vault.identity_key,
+            ...(refreshed.vault.previous_keys ?? []),
+          ].filter((key) => !tried.has(key));
+
+          if (refreshed_keys.length > 0) {
+            const healed = await decrypt_pgp_with_keys(refreshed_keys);
+
+            await adopt_refreshed_vault(refreshed);
+
+            return healed;
+          }
+        }
+
+        throw pgp_error;
+      }
     } catch {
       return null;
     }
@@ -224,15 +258,14 @@ async function open_search_envelope(
 
     zero_uint8_array(passphrase);
 
-    const first_byte = base64_to_array(encrypted)[0];
+    const first_byte = first_base64_byte(encrypted);
 
     if (
       nonce_bytes.length === 12 &&
       (first_byte === 2 || first_byte === 3 || first_byte === 4)
     ) {
-      const { decrypt_mail_envelope } = await import(
-        "@/components/email/shared/decrypt_envelope"
-      );
+      const { decrypt_mail_envelope } =
+        await import("@/components/email/shared/decrypt_envelope");
       const ecies_result = await decrypt_mail_envelope<DecryptedEnvelope>(
         encrypted,
         nonce,
@@ -249,26 +282,60 @@ async function open_search_envelope(
       vault = get_vault_from_memory();
     }
 
-    if (!vault?.identity_key) return null;
+    const encrypted_bytes = base64_to_array(encrypted);
 
-    const result = await try_decrypt_with_identity_key(
-      encrypted,
-      nonce_bytes,
-      vault.identity_key,
-    );
+    const try_identity_keys = async (identity_keys: string[]) => {
+      for (const identity_key of identity_keys) {
+        const decrypted = await try_decrypt_with_identity_key(
+          encrypted_bytes,
+          nonce_bytes,
+          identity_key,
+        );
+
+        if (decrypted) return decrypted;
+      }
+
+      return null;
+    };
+
+    const identity_keys = vault?.identity_key
+      ? vault_identity_key_materials(vault)
+      : [];
+    const result = await try_identity_keys(identity_keys);
 
     if (result) return result;
 
-    if (vault.previous_keys && vault.previous_keys.length > 0) {
-      for (const prev_key of vault.previous_keys) {
-        const prev_result = await try_decrypt_with_identity_key(
-          encrypted,
-          nonce_bytes,
-          prev_key,
-        );
+    const refreshed = await fetch_refreshed_vault();
 
-        if (prev_result) return prev_result;
+    if (refreshed) {
+      const tried = new Set(identity_keys);
+      const refreshed_keys = vault_identity_key_materials(
+        refreshed.vault,
+      ).filter((key) => !tried.has(key));
+
+      if (refreshed_keys.length > 0) {
+        const healed = await try_identity_keys(refreshed_keys);
+
+        if (healed) {
+          await adopt_refreshed_vault(refreshed);
+
+          return healed;
+        }
       }
+    }
+
+    const legacy_plaintext = await decrypt_legacy_ios_envelope(
+      encrypted_bytes,
+      nonce_bytes,
+    );
+
+    if (legacy_plaintext) {
+      const parsed = JSON.parse(new TextDecoder().decode(legacy_plaintext));
+      const legacy_from = normalize_envelope_from(parsed.from);
+
+      if (legacy_from) parsed.from = legacy_from;
+
+      return parsed as DecryptedEnvelope;
     }
 
     return null;
@@ -278,4 +345,3 @@ async function open_search_envelope(
     return null;
   }
 }
-

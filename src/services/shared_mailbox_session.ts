@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EncryptedVault } from "@/services/crypto/key_manager_core";
+
 import {
   hash_email,
   derive_password_hash,
@@ -28,7 +30,6 @@ import {
   get_passphrase_from_memory,
 } from "@/services/crypto/memory_key_store";
 import { base64_to_array } from "@/services/crypto/key_manager_core";
-import type { EncryptedVault } from "@/services/crypto/key_manager_core";
 import {
   store_session_passphrase,
   get_session_passphrase,
@@ -55,7 +56,6 @@ import {
 } from "@/services/crypto/vault_key_recovery";
 import { derive_public_keys_from_private } from "@/services/crypto/key_manager_pgp";
 import { ignore_error } from "@/lib/ignore_error";
-
 import {
   upsert_shared_account,
   remove_stale_shared_accounts,
@@ -106,7 +106,12 @@ export async function sync_shared_mailbox_grants(): Promise<
       );
 
       if (recovered.length) {
-        await merge_recovered_keys_into_vault(recovered).catch((caught) => ignore_error("services/shared_mailbox_session:recover_lost_keys_once", caught));
+        await merge_recovered_keys_into_vault(recovered).catch((caught) =>
+          ignore_error(
+            "services/shared_mailbox_session:recover_lost_keys_once",
+            caught,
+          ),
+        );
       }
 
       return recovered;
@@ -193,10 +198,7 @@ export async function sync_shared_mailbox_grants(): Promise<
           continue;
         }
 
-        if (
-          !opened.verified &&
-          payload.email.toLowerCase() !== mailbox_email
-        ) {
+        if (!opened.verified && payload.email.toLowerCase() !== mailbox_email) {
           continue;
         }
 
@@ -220,7 +222,11 @@ export async function sync_shared_mailbox_grants(): Promise<
             payload.login_secret,
             current.user,
           ).catch((error) => {
-            console.warn("shared mailbox grant re-seal failed", mailbox.id, error);
+            console.warn(
+              "shared mailbox grant re-seal failed",
+              mailbox.id,
+              error,
+            );
           });
         }
       } catch (error) {
@@ -239,7 +245,12 @@ export async function sync_shared_mailbox_grants(): Promise<
   const removed = await remove_stale_shared_accounts(granted);
 
   for (const account_id of removed) {
-    await clear_session_passphrase(account_id).catch((caught) => ignore_error("services/shared_mailbox_session:recover_lost_keys_once", caught));
+    await clear_session_passphrase(account_id).catch((caught) =>
+      ignore_error(
+        "services/shared_mailbox_session:recover_lost_keys_once",
+        caught,
+      ),
+    );
     localStorage.removeItem(GRANT_EPOCH_KEY_PREFIX + account_id);
   }
 
@@ -357,6 +368,11 @@ export async function perform_shared_mailbox_login(
 export async function clear_shared_mailbox_session(
   account_id: string,
 ): Promise<void> {
-  await clear_session_passphrase(account_id).catch((caught) => ignore_error("services/shared_mailbox_session:clear_shared_mailbox_session", caught));
+  await clear_session_passphrase(account_id).catch((caught) =>
+    ignore_error(
+      "services/shared_mailbox_session:clear_shared_mailbox_session",
+      caught,
+    ),
+  );
   localStorage.removeItem(GRANT_EPOCH_KEY_PREFIX + account_id);
 }

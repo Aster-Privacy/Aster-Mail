@@ -18,14 +18,71 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-export { reset_legacy_migration_state, schedule_legacy_envelope_migration } from "./envelope";
-export { apply_highlights, compute_highlight_ranges, extract_query_terms } from "./highlight";
-export { clear_search_index, disk_ids_after_hot, mark_search_index_stale, prewarm_search_index } from "./index_cache";
-export { matches_query, preheader_html_source, searchable_body_source } from "./matching";
-export { pause_index_download, resume_index_download, subscribe_index_refresh, use_index_download_state, use_indexing_progress } from "./progress";
+export {
+  reset_legacy_migration_state,
+  schedule_legacy_envelope_migration,
+} from "./envelope";
+export {
+  apply_highlights,
+  compute_highlight_ranges,
+  extract_query_terms,
+} from "./highlight";
+export {
+  clear_search_index,
+  disk_ids_after_hot,
+  mark_search_index_stale,
+  prewarm_search_index,
+} from "./index_cache";
+export {
+  matches_query,
+  preheader_html_source,
+  searchable_body_source,
+} from "./matching";
+export {
+  pause_index_download,
+  resume_index_download,
+  subscribe_index_refresh,
+  use_index_download_state,
+  use_indexing_progress,
+} from "./progress";
 export { list_index_people, scan_search_index } from "./scan";
-export { can_refine_scan, candidates_are_cacheable, excluded_by_mailbox_scope, operators_equal, options_signature, passes_search_filters, resolve_mailbox_scope } from "./scan_cache";
-export { add_to_history, clear_search_data, delete_saved_search_from_storage, get_saved_searches, get_search_history, remove_from_history, save_search_to_storage, update_saved_search_usage } from "./storage";
-export type { ActiveFilter, AutocompleteSuggestion, CachedIndex, DecryptedIndexEntry, IndexPerson, IndexingProgress, SavedSearch, ScanCacheEntry, ScanCandidate, ScanOptions, SearchHistoryEntry, SearchMailboxScope, SearchOptions, SearchResultItem, SearchScope, SortOption, TextHighlight } from "./types";
+export {
+  can_refine_scan,
+  candidates_are_cacheable,
+  excluded_by_mailbox_scope,
+  operators_equal,
+  options_signature,
+  passes_search_filters,
+  resolve_mailbox_scope,
+} from "./scan_cache";
+export {
+  add_to_history,
+  clear_search_data,
+  delete_saved_search_from_storage,
+  get_saved_searches,
+  get_search_history,
+  remove_from_history,
+  save_search_to_storage,
+  update_saved_search_usage,
+} from "./storage";
+export type {
+  ActiveFilter,
+  AutocompleteSuggestion,
+  CachedIndex,
+  DecryptedIndexEntry,
+  IndexPerson,
+  IndexingProgress,
+  SavedSearch,
+  ScanCacheEntry,
+  ScanCandidate,
+  ScanOptions,
+  SearchHistoryEntry,
+  SearchMailboxScope,
+  SearchOptions,
+  SearchResultItem,
+  SearchScope,
+  SortOption,
+  TextHighlight,
+} from "./types";
 export { use_advanced_search } from "./use_advanced_search";
 export { use_search } from "./use_search_hook";

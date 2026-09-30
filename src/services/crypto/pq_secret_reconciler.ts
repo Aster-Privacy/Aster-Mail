@@ -25,7 +25,6 @@ import {
   backfill_pq_secrets_to_server,
 } from "@/services/crypto/pq_prekey_store";
 import { has_vault_in_memory } from "@/services/crypto/memory_key_store";
-
 import { ignore_error } from "@/lib/ignore_error";
 
 const RECONCILER_DISABLED_FLAG = "astermail_pq_reconciler_disabled";
@@ -160,7 +159,12 @@ export async function reconcile_pq_secrets_with_server(): Promise<void> {
   if (!try_acquire_lock()) return;
 
   try {
-    backfill_pq_secrets_to_server().catch((caught) => ignore_error("services/crypto/pq_secret_reconciler:reconcile_pq_secrets_with_server", caught));
+    backfill_pq_secrets_to_server().catch((caught) =>
+      ignore_error(
+        "services/crypto/pq_secret_reconciler:reconcile_pq_secrets_with_server",
+        caught,
+      ),
+    );
 
     const server_count = await fetch_server_pq_count();
 
@@ -227,7 +231,10 @@ export async function handle_missing_pq_secret(): Promise<void> {
           return;
         }
       }
-      localStorage.setItem(SELF_HEAL_AT_PREFIX + (uid ?? ""), String(Date.now()));
+      localStorage.setItem(
+        SELF_HEAL_AT_PREFIX + (uid ?? ""),
+        String(Date.now()),
+      );
     } catch {
       return;
     }

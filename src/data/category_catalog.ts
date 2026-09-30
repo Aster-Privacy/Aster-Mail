@@ -39,6 +39,8 @@ export type CategoryIconKey =
   | "globe"
   | "academic_cap"
   | "megaphone"
+  | "newspaper"
+  | "receipt"
   | "gift"
   | "folder"
   | "sparkles";
@@ -55,6 +57,8 @@ export const CUSTOM_CATEGORY_ICON_CHOICES: readonly CategoryIconKey[] = [
   "plane",
   "academic_cap",
   "megaphone",
+  "newspaper",
+  "receipt",
   "gift",
   "folder",
   "sparkles",
@@ -94,6 +98,15 @@ export const BUILTIN_CATEGORIES: readonly BuiltinCategoryDef[] = [
     fold_target: "primary",
   },
   {
+    id: "newsletters",
+    icon: "newspaper",
+    label_key: "settings.category_newsletters",
+    info_key: "settings.category_info_newsletters",
+    default_enabled: false,
+    removable: true,
+    fold_target: "promotions",
+  },
+  {
     id: "social",
     icon: "users",
     label_key: "mail_rules.category_social",
@@ -110,6 +123,15 @@ export const BUILTIN_CATEGORIES: readonly BuiltinCategoryDef[] = [
     default_enabled: true,
     removable: true,
     fold_target: "primary",
+  },
+  {
+    id: "transactions",
+    icon: "receipt",
+    label_key: "settings.category_transactions",
+    info_key: "settings.category_info_transactions",
+    default_enabled: false,
+    removable: true,
+    fold_target: "updates",
   },
   {
     id: "forums",
@@ -166,6 +188,41 @@ export function builtin_category_def(
 
 export function fold_builtin(id: string): string {
   return builtin_category_def(id)?.fold_target ?? "primary";
+}
+
+export interface CategoryOption {
+  id: string;
+  label_key: TranslationKey;
+  icon: CategoryIconKey;
+}
+
+function to_option(def: BuiltinCategoryDef): CategoryOption {
+  return { id: def.id, label_key: def.label_key, icon: def.icon };
+}
+
+export const RULE_CATEGORY_OPTIONS: readonly CategoryOption[] =
+  BUILTIN_CATEGORIES.map(to_option);
+
+const LEGACY_RULE_CATEGORY_LABELS: Readonly<Record<string, TranslationKey>> = {
+  important: "mail_rules.category_important",
+};
+
+export function rule_category_label_key(
+  id: string,
+): TranslationKey | undefined {
+  return builtin_category_def(id)?.label_key ?? LEGACY_RULE_CATEGORY_LABELS[id];
+}
+
+export function category_display_name(
+  id: string,
+  custom_categories: readonly CustomCategoryRule[] | undefined,
+  t: (key: TranslationKey) => string,
+): string {
+  const builtin = builtin_category_def(id);
+
+  if (builtin) return t(builtin.label_key);
+
+  return (custom_categories ?? []).find((c) => c.id === id)?.name ?? id;
 }
 
 export const CUSTOM_CATEGORY_PREFIX = "custom:";
@@ -244,9 +301,10 @@ export function sanitize_custom_category(
     : "tag";
 
   return {
-    id: raw.id && is_custom_category_id(raw.id)
-      ? raw.id
-      : make_custom_category_id(),
+    id:
+      raw.id && is_custom_category_id(raw.id)
+        ? raw.id
+        : make_custom_category_id(),
     name,
     icon,
     ...(is_category_color(raw.color) ? { color: raw.color } : {}),
@@ -259,9 +317,7 @@ export function sanitize_custom_category(
   };
 }
 
-export function sanitize_custom_categories(
-  raw: unknown,
-): CustomCategoryRule[] {
+export function sanitize_custom_categories(raw: unknown): CustomCategoryRule[] {
   if (!Array.isArray(raw)) return [];
 
   const result: CustomCategoryRule[] = [];

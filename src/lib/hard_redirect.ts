@@ -32,10 +32,12 @@ function uses_hash_router(): boolean {
 function safe_internal_url(path: string): URL {
   try {
     const url = new URL(path, window.location.origin);
+
     if (url.origin === window.location.origin) return url;
   } catch (caught) {
     ignore_error("lib/hard_redirect:safe_internal_url", caught);
   }
+
   return new URL("/", window.location.origin);
 }
 

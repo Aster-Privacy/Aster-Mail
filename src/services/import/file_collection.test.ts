@@ -64,9 +64,8 @@ describe("file_collection", () => {
     );
     const dt = data_transfer_for(dir_entry(children, 100));
 
-    const { files, from_directory } = await collect_files_from_data_transfer(
-      dt,
-    );
+    const { files, from_directory } =
+      await collect_files_from_data_transfer(dt);
 
     expect(files.length).toBe(300);
     expect(from_directory).toBe(true);
@@ -91,11 +90,7 @@ describe("file_collection", () => {
               return;
             }
             done = true;
-            ok([
-              file_entry("top.eml"),
-              sub,
-              file_entry("ignored.png"),
-            ]);
+            ok([file_entry("top.eml"), sub, file_entry("ignored.png")]);
           },
         };
       },
@@ -129,9 +124,8 @@ describe("file_collection", () => {
       files: [],
     } as unknown as DataTransfer;
 
-    const { files, from_directory } = await collect_files_from_data_transfer(
-      dt,
-    );
+    const { files, from_directory } =
+      await collect_files_from_data_transfer(dt);
 
     expect(from_directory).toBe(false);
     expect(files.length).toBe(2);
@@ -143,9 +137,8 @@ describe("file_collection", () => {
       files: [new File(["x"], "a.eml")],
     } as unknown as DataTransfer;
 
-    const { files, from_directory } = await collect_files_from_data_transfer(
-      dt,
-    );
+    const { files, from_directory } =
+      await collect_files_from_data_transfer(dt);
 
     expect(files.length).toBe(1);
     expect(from_directory).toBe(false);

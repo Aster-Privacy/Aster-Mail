@@ -18,30 +18,80 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { DecryptedContact } from "@/types/contacts";
+import type { Contact, DecryptedContact } from "@/types/contacts";
+import type {
+  FilterOption,
+  SortOption,
+  ViewMode,
+} from "./contacts_state_helpers";
 
-import { useState, useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  useState,
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import { useSearchParams } from "react-router-dom";
 
 import {
   list_contacts,
   decrypt_contacts,
+  delete_contact as api_delete_contact,
 } from "@/services/api/contacts";
+import { apply_server_group_membership } from "@/utils/contact_group_membership";
+import {
+  is_contact_trash_expired,
+  is_contact_trashed,
+} from "@/lib/contact_trash";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_shift_key_ref } from "@/lib/use_shift_range_select";
 import { use_auth } from "@/contexts/auth_context";
 import { get_days_until_birthday } from "@/utils/contact_utils";
-import {
-  parse_csv_contacts,
-  import_contacts_batched,
-} from "@/components/common/contacts/contact_import_handler";
-import type { FilterOption, SortOption, ViewMode } from "./contacts_state_helpers";
+
+const CONTACT_PAGE_LIMIT = 100;
+const MAX_CONTACT_PAGES = 100;
+
+function build_contact_haystack(contact: DecryptedContact): string {
+  const parts: string[] = [
+    contact.first_name,
+    contact.last_name,
+    contact.middle_name || "",
+    contact.nickname || "",
+    contact.phonetic_first_name || "",
+    contact.phonetic_middle_name || "",
+    contact.phonetic_last_name || "",
+    contact.title || "",
+    contact.name_suffix || "",
+    contact.company || "",
+    contact.job_title || "",
+    contact.role || "",
+    contact.department || "",
+    contact.notes || "",
+    contact.comment || "",
+    contact.pronouns || "",
+    (contact.emails || []).join(" "),
+    (contact.email_entries || []).map((e) => e.value).join(" "),
+    contact.phone || "",
+    (contact.phone_entries || []).map((p) => p.value).join(" "),
+    (contact.related_people || []).map((r) => r.value).join(" "),
+    (contact.social_networks || []).map((s) => s.value).join(" "),
+    (contact.websites || []).map((w) => w.value).join(" "),
+    (contact.instant_messengers || []).map((m) => m.value).join(" "),
+  ];
+
+  return parts.join(" \x01 ").toLowerCase();
+}
 
 export function use_contacts_data() {
   const { t } = use_i18n();
   const { has_keys } = use_auth();
   const [search_params, set_search_params] = useSearchParams();
   const [contacts, set_contacts] = useState<DecryptedContact[]>([]);
+  const [trashed_contacts, set_trashed_contacts] = useState<DecryptedContact[]>(
+    [],
+  );
   const [search_query, set_search_query] = useState("");
   const [is_form_open, set_is_form_open] = useState(false);
   const [editing_contact, set_editing_contact] =
@@ -57,26 +107,37 @@ export function use_contacts_data() {
   const [is_bulk_deleting, set_is_bulk_deleting] = useState(false);
   const [sort_by, set_sort_by] = useState<SortOption>("name_asc");
   const [filter_by, set_filter_by] = useState<FilterOption>("all");
+  const [group_filter, set_group_filter] = useState<string | null>(null);
   const [copied_field, set_copied_field] = useState<string | null>(null);
   const [view_mode, set_view_mode] = useState<ViewMode>("list");
   const [focused_index, set_focused_index] = useState<number>(-1);
-  const [is_importing, set_is_importing] = useState(false);
-  const [import_progress, set_import_progress] = useState<{
-    current: number;
-    total: number;
-  } | null>(null);
   const [is_compose_open, set_is_compose_open] = useState(false);
   const [compose_recipients, set_compose_recipients] = useState<string>("");
   const [is_import_modal_open, set_is_import_modal_open] = useState(false);
   const [show_history, set_show_history] = useState(false);
   const copy_timeout_ref = useRef<NodeJS.Timeout | null>(null);
   const search_input_ref = useRef<HTMLInputElement>(null);
-  const file_input_ref = useRef<HTMLInputElement>(null);
   const list_container_ref = useRef<HTMLDivElement>(null);
   const contact_refs = useRef<Map<string, HTMLDivElement>>(new Map());
 
-  const filtered_contacts = useMemo(() => {
+  const search_haystacks = useMemo(() => {
+    const map = new Map<DecryptedContact, string>();
+
+    for (const contact of contacts) {
+      map.set(contact, build_contact_haystack(contact));
+    }
+
+    return map;
+  }, [contacts]);
+
+  const sorted_contacts = useMemo(() => {
     let result = [...contacts];
+
+    if (group_filter) {
+      result = result.filter((contact) =>
+        (contact.groups || []).includes(group_filter),
+      );
+    }
 
     if (filter_by !== "all") {
       result = result.filter((contact) => {
@@ -89,50 +150,15 @@ export function use_contacts_data() {
             return !!contact.phone;
           case "has_company":
             return !!contact.company;
-          case "upcoming_birthdays":
+          case "upcoming_birthdays": {
             if (!contact.birthday) return false;
             const days = get_days_until_birthday(contact.birthday);
 
             return days <= 30;
+          }
           default:
             return true;
         }
-      });
-    }
-
-    if (search_query.trim()) {
-      const query = search_query.toLowerCase();
-
-      result = result.filter((contact) => {
-        const parts: string[] = [
-          contact.first_name,
-          contact.last_name,
-          contact.middle_name || "",
-          contact.nickname || "",
-          contact.phonetic_first_name || "",
-          contact.phonetic_middle_name || "",
-          contact.phonetic_last_name || "",
-          contact.title || "",
-          contact.name_suffix || "",
-          contact.company || "",
-          contact.job_title || "",
-          contact.role || "",
-          contact.department || "",
-          contact.notes || "",
-          contact.comment || "",
-          contact.pronouns || "",
-          (contact.emails || []).join(" "),
-          (contact.email_entries || []).map((e) => e.value).join(" "),
-          contact.phone || "",
-          (contact.phone_entries || []).map((p) => p.value).join(" "),
-          (contact.related_people || []).map((r) => r.value).join(" "),
-          (contact.social_networks || []).map((s) => s.value).join(" "),
-          (contact.websites || []).map((w) => w.value).join(" "),
-          (contact.instant_messengers || []).map((m) => m.value).join(" "),
-        ];
-        const haystack = parts.join("  ").toLowerCase();
-
-        return haystack.includes(query);
       });
     }
 
@@ -151,6 +177,18 @@ export function use_contacts_data() {
         case "name_desc": {
           const name_a = `${a.first_name} ${a.last_name}`.toLowerCase();
           const name_b = `${b.first_name} ${b.last_name}`.toLowerCase();
+
+          return name_b.localeCompare(name_a);
+        }
+        case "last_name_asc": {
+          const name_a = `${a.last_name} ${a.first_name}`.trim().toLowerCase();
+          const name_b = `${b.last_name} ${b.first_name}`.trim().toLowerCase();
+
+          return name_a.localeCompare(name_b);
+        }
+        case "last_name_desc": {
+          const name_a = `${a.last_name} ${a.first_name}`.trim().toLowerCase();
+          const name_b = `${b.last_name} ${b.first_name}`.trim().toLowerCase();
 
           return name_b.localeCompare(name_a);
         }
@@ -175,7 +213,19 @@ export function use_contacts_data() {
     });
 
     return result;
-  }, [contacts, search_query, sort_by, filter_by]);
+  }, [contacts, sort_by, filter_by, group_filter]);
+
+  const deferred_search_query = useDeferredValue(search_query);
+
+  const filtered_contacts = useMemo(() => {
+    const query = deferred_search_query.trim().toLowerCase();
+
+    if (!query) return sorted_contacts;
+
+    return sorted_contacts.filter((contact) =>
+      (search_haystacks.get(contact) ?? "").includes(query),
+    );
+  }, [sorted_contacts, deferred_search_query, search_haystacks]);
 
   const selection_state = useMemo(() => {
     const filtered_ids = new Set(filtered_contacts.map((c) => c.id));
@@ -195,12 +245,16 @@ export function use_contacts_data() {
   const has_selection =
     selection_state.all_selected || selection_state.some_selected;
 
+  const selected_contacts = useMemo(
+    () => contacts.filter((contact) => selected_ids.has(contact.id)),
+    [contacts, selected_ids],
+  );
+
   const selected_all_favorited = useMemo(() => {
-    if (selected_ids.size === 0) return false;
-    const selected_contacts = contacts.filter((c) => selected_ids.has(c.id));
+    if (selected_contacts.length === 0) return false;
 
     return selected_contacts.every((c) => c.is_favorite);
-  }, [contacts, selected_ids]);
+  }, [selected_contacts]);
 
   const filter_label = useMemo(() => {
     switch (filter_by) {
@@ -250,6 +304,10 @@ export function use_contacts_data() {
         return t("common.name") + " A-Z";
       case "name_desc":
         return t("common.name") + " Z-A";
+      case "last_name_asc":
+        return t("common.last_name") + " A-Z";
+      case "last_name_desc":
+        return t("common.last_name") + " Z-A";
       case "company":
         return t("common.company");
       case "recent":
@@ -268,17 +326,47 @@ export function use_contacts_data() {
 
     try {
       set_error(null);
-      const response = await list_contacts({ limit: 100 });
+      const items: Contact[] = [];
+      let cursor: string | undefined;
 
-      if (response.error || !response.data) {
-        set_error(response.error || t("common.failed_to_fetch_contacts"));
-        set_is_loading(false);
+      for (let page = 0; page < MAX_CONTACT_PAGES; page += 1) {
+        const response = await list_contacts({
+          limit: CONTACT_PAGE_LIMIT,
+          cursor,
+        });
 
-        return;
+        if (response.error || !response.data) {
+          set_error(response.error || t("common.failed_to_fetch_contacts"));
+          set_is_loading(false);
+
+          return;
+        }
+        items.push(...response.data.items);
+        if (!response.data.has_more || !response.data.next_cursor) break;
+        cursor = response.data.next_cursor;
       }
-      const decrypted = await decrypt_contacts(response.data.items);
+      const decrypted = await apply_server_group_membership(
+        await decrypt_contacts(items, true),
+      );
+      const active: DecryptedContact[] = [];
+      const trashed: DecryptedContact[] = [];
 
-      set_contacts(decrypted);
+      for (const contact of decrypted) {
+        if (!is_contact_trashed(contact)) {
+          active.push(contact);
+
+          continue;
+        }
+        if (is_contact_trash_expired(contact.deleted_at as string)) {
+          api_delete_contact(contact.id).catch(() => undefined);
+
+          continue;
+        }
+        trashed.push(contact);
+      }
+
+      set_contacts(active);
+      set_trashed_contacts(trashed);
     } catch (err) {
       set_error(
         err instanceof Error
@@ -288,11 +376,38 @@ export function use_contacts_data() {
     } finally {
       set_is_loading(false);
     }
-  }, [has_keys]);
+  }, [has_keys, t]);
 
   useEffect(() => {
     fetch_contacts();
   }, [fetch_contacts]);
+
+  useEffect(() => {
+    const group_param = search_params.get("group");
+
+    set_group_filter(group_param || null);
+  }, [search_params]);
+
+  const handle_set_group_filter = useCallback(
+    (group_id: string | null) => {
+      set_group_filter(group_id);
+      set_search_params(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+
+          if (group_id) {
+            next.set("group", group_id);
+          } else {
+            next.delete("group");
+          }
+
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [set_search_params],
+  );
 
   useEffect(() => {
     const contact_id = search_params.get("contact_id");
@@ -509,71 +624,14 @@ export function use_contacts_data() {
     [alphabetical_index, filtered_contacts],
   );
 
-  const handle_import_csv = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-
-    if (!file) return;
-
-    set_is_importing(true);
-    set_error(null);
-
-    try {
-      const text = await file.text();
-      const { contacts: contacts_to_import, error: parse_error } =
-        parse_csv_contacts(text);
-
-      if (parse_error === "csv_empty") {
-        set_error(t("common.csv_file_empty"));
-        set_is_importing(false);
-
-        return;
-      }
-
-      if (parse_error === "csv_too_large") {
-        set_error(t("common.csv_too_large"));
-        set_is_importing(false);
-
-        return;
-      }
-
-      if (parse_error === "no_valid_contacts") {
-        set_error(t("common.no_valid_contacts_csv"));
-        set_is_importing(false);
-
-        return;
-      }
-
-      set_import_progress({ current: 0, total: contacts_to_import.length });
-
-      const imported_contacts = await import_contacts_batched(
-        contacts_to_import,
-        (current, total) => {
-          set_import_progress({ current, total });
-        },
-      );
-
-      set_contacts((prev) => [...prev, ...imported_contacts]);
-      set_import_progress(null);
-    } catch (err) {
-      set_error(
-        err instanceof Error
-          ? err.message
-          : t("common.failed_to_import_contacts"),
-      );
-    } finally {
-      set_is_importing(false);
-      if (file_input_ref.current) {
-        file_input_ref.current.value = "";
-      }
-    }
-  };
-
   const [is_creating_new, set_is_creating_new] = useState(false);
 
   return {
     t,
     contacts,
     set_contacts,
+    trashed_contacts,
+    set_trashed_contacts,
     search_query,
     set_search_query,
     is_form_open,
@@ -597,13 +655,14 @@ export function use_contacts_data() {
     set_sort_by,
     filter_by,
     set_filter_by,
+    group_filter,
+    set_group_filter,
+    handle_set_group_filter,
     copied_field,
     set_copied_field,
     view_mode,
     set_view_mode,
     focused_index,
-    is_importing,
-    import_progress,
     is_compose_open,
     set_is_compose_open,
     compose_recipients,
@@ -614,12 +673,12 @@ export function use_contacts_data() {
     set_show_history,
     copy_timeout_ref,
     search_input_ref,
-    file_input_ref,
     list_container_ref,
     contact_refs,
     filtered_contacts,
     selection_state,
     has_selection,
+    selected_contacts,
     selected_all_favorited,
     filter_label,
     alphabetical_index,
@@ -628,7 +687,6 @@ export function use_contacts_data() {
     fetch_contacts,
     handle_toggle_select,
     scroll_to_letter,
-    handle_import_csv,
     is_creating_new,
     set_is_creating_new,
   };

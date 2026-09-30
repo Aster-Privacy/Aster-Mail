@@ -107,9 +107,11 @@ vi.mock("@/services/api/aliases", () => ({
   get_alias_limit: vi.fn(async () => ({ data: { can_create: true } })),
 }));
 
-vi.mock("@/hooks/mail_events", () => ({
-  emit_aliases_changed: vi.fn(),
-}));
+vi.mock("@/hooks/mail_events", async (import_original) => {
+  const actual = await import_original<typeof import("@/hooks/mail_events")>();
+
+  return { ...actual, emit_aliases_changed: vi.fn() };
+});
 
 vi.mock("@/components/settings/aliases/feature_lock", () => ({
   is_alias_limit_error: () => false,
@@ -129,7 +131,6 @@ vi.mock("@/components/mobile/mobile_drawer_sheets", () => ({
   EditTagSheet: () => null,
   CreateAliasSheet: () => null,
   PasswordModalWrapper: () => null,
-  LogoutConfirmWrapper: () => null,
 }));
 
 vi.mock("@/components/mobile/mobile_drawer_nav", () => ({

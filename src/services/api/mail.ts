@@ -21,8 +21,15 @@
 import type { MailItemMetadata } from "@/types/email";
 
 import { api_client, type ApiResponse } from "./client";
+import { with_folder_unlock } from "./folder_unlock_retry";
 
 import { get_unlock_token } from "@/services/folder_unlock_store";
+import {
+  ack_flag_intents,
+  clear_flag_intents,
+  note_flag_intents,
+  pick_flag_intents,
+} from "@/services/read_intent";
 import {
   remember_items_folder_context,
   remember_item_folder_context,
@@ -30,7 +37,6 @@ import {
   resolve_items_unlock_token,
   set_active_folder_token,
 } from "@/services/folder_context";
-import { with_folder_unlock } from "./folder_unlock_retry";
 
 function get_unlock_token_for_label(
   label_token: string | undefined,
@@ -68,9 +74,11 @@ export interface MailItem {
   sender_sealed?: string;
   folder_token: string;
   is_external: boolean;
+  system_origin?: boolean;
   has_recipient_key?: boolean;
   thread_token?: string;
   thread_message_count?: number;
+  thread_unread_count?: number;
   routing_token?: string;
   created_at: string;
   labels?: MailItemLabel[];
@@ -99,6 +107,8 @@ export interface MailItem {
   phishing_level?: "safe" | "suspicious" | "dangerous";
   message_group_id?: string;
   rule_category?: string;
+  sender_verified?: boolean;
+  sender_verified_domain?: string;
   is_reaction?: boolean;
   reactions?: ReactionSummary[];
 }
@@ -127,10 +137,12 @@ export interface ListMailItemsParams {
   label_token?: string;
   tag_token?: string;
   routing_token?: string;
+  direction?: "received" | "sent" | "either";
   group_by_thread?: boolean;
   order?: "asc" | "desc";
   skip_total?: boolean;
   include_envelope?: boolean;
+  pinned_first?: boolean;
   folder_unlock_token?: string;
 }
 
@@ -188,6 +200,7 @@ export type MailItemLabelsResponse = MailItemFoldersResponse;
 
 export interface MoveToFolderRequest {
   folder_token: string;
+  from_folder_token?: string;
 }
 
 export interface RestoreMailItemRequest {
@@ -210,10 +223,12 @@ export interface MailUserStatsResponse {
   storage_total_bytes: number;
 }
 
-export async function get_mail_stats(): Promise<
-  ApiResponse<MailUserStatsResponse>
-> {
-  return api_client.get<MailUserStatsResponse>("/mail/v1/messages/stats");
+export async function get_mail_stats(
+  fresh = false,
+): Promise<ApiResponse<MailUserStatsResponse>> {
+  return api_client.get<MailUserStatsResponse>(
+    fresh ? "/mail/v1/messages/stats?fresh=1" : "/mail/v1/messages/stats",
+  );
 }
 
 export async function list_mail_items(
@@ -270,12 +285,14 @@ export async function list_mail_items(
   if (params.tag_token) query_params.set("tag_token", params.tag_token);
   if (params.routing_token)
     query_params.set("routing_token", params.routing_token);
+  if (params.direction) query_params.set("direction", params.direction);
   if (params.group_by_thread !== undefined)
     query_params.set("group_by_thread", params.group_by_thread.toString());
   if (params.order) query_params.set("order", params.order);
   if (params.skip_total) query_params.set("skip_total", "true");
   if (params.include_envelope === false)
     query_params.set("include_envelope", "false");
+  if (params.pinned_first) query_params.set("pinned_first", "true");
 
   const query_string = query_params.toString();
   const endpoint = `/mail/v1/messages${query_string ? `?${query_string}` : ""}`;
@@ -435,10 +452,19 @@ export async function move_mail_item(
   item_id: string,
   data: MoveToFolderRequest,
 ): Promise<ApiResponse<{ status: string }>> {
-  return api_client.put<{ status: string }>(
-    `/mail/v1/messages/${item_id}/move`,
-    data,
-  );
+  const added = await add_mail_item_folder(item_id, {
+    folder_token: data.folder_token,
+  });
+
+  if (added.error) {
+    return added;
+  }
+
+  if (data.from_folder_token && data.from_folder_token !== data.folder_token) {
+    await remove_mail_item_folder(item_id, data.from_folder_token);
+  }
+
+  return added;
 }
 
 export async function restore_mail_item(
@@ -671,19 +697,56 @@ export async function patch_mail_item_metadata(
   item_id: string,
   data: PatchMetadataRequest,
 ): Promise<ApiResponse<{ success: boolean; updated_count: number }>> {
-  return api_client.put<{ success: boolean; updated_count: number }>(
-    `/mail/v1/messages/${item_id}/metadata`,
-    data,
-  );
+  const intent = pick_flag_intents(data);
+
+  note_flag_intents([item_id], intent);
+
+  const result = await api_client.put<{
+    success: boolean;
+    updated_count: number;
+  }>(`/mail/v1/messages/${item_id}/metadata`, data);
+
+  if (result.error) clear_flag_intents([item_id], intent);
+  else ack_flag_intents([item_id], intent);
+
+  return result;
+}
+
+function note_bulk_read_intents(items: BulkPatchMetadataItem[]): void {
+  for (const item of items) {
+    note_flag_intents([item.id], pick_flag_intents(item));
+  }
+}
+
+function settle_bulk_read_intents(
+  items: BulkPatchMetadataItem[],
+  failed_ids: Iterable<string>,
+): void {
+  const failed = new Set(failed_ids);
+
+  for (const item of items) {
+    const settle = failed.has(item.id) ? clear_flag_intents : ack_flag_intents;
+
+    settle([item.id], pick_flag_intents(item));
+  }
 }
 
 export async function bulk_patch_metadata(
   data: BulkPatchMetadataRequest,
 ): Promise<ApiResponse<{ success: boolean; updated_count: number }>> {
-  return api_client.put<{ success: boolean; updated_count: number }>(
-    "/mail/v1/messages/bulk/metadata",
-    data,
+  note_bulk_read_intents(data.items);
+
+  const result = await api_client.put<{
+    success: boolean;
+    updated_count: number;
+  }>("/mail/v1/messages/bulk/metadata", data);
+
+  settle_bulk_read_intents(
+    data.items,
+    result.error ? data.items.map((item) => item.id) : [],
   );
+
+  return result;
 }
 
 export interface BatchedMetadataResult {
@@ -697,35 +760,43 @@ export async function batched_bulk_patch_metadata(
   options?: BatchedBulkOptions,
 ): Promise<BatchedMetadataResult> {
   const { BATCH_LIMITS } = await import("@/constants/batch_config");
-  const batch_size = BATCH_LIMITS.MAIL_BULK;
-  const succeeded_ids: string[] = [];
-  const failed_ids: string[] = [];
-  let was_cancelled = false;
+  const { process_batches, batch_retry_after_ms } =
+    await import("@/services/batch_processor");
+  const items_by_id = new Map(items.map((item) => [item.id, item]));
 
-  for (let i = 0; i < items.length; i += batch_size) {
-    if (options?.signal?.aborted) {
-      was_cancelled = true;
-      break;
-    }
+  note_bulk_read_intents(items);
 
-    const batch = items.slice(i, i + batch_size);
-    const response = await bulk_patch_metadata({ items: batch }).catch(
-      () => null,
-    );
+  const result = await process_batches({
+    ids: [...items_by_id.keys()],
+    batch_size: BATCH_LIMITS.MAIL_BULK,
+    signal: options?.signal,
+    on_progress: options?.on_progress,
+    process_batch: async (batch_ids) => {
+      const batch = batch_ids
+        .map((id) => items_by_id.get(id))
+        .filter((item): item is BulkPatchMetadataItem => item !== undefined);
+      const response = await bulk_patch_metadata({ items: batch }).catch(
+        () => null,
+      );
 
-    if (response && !response.error) {
-      succeeded_ids.push(...batch.map((item) => item.id));
-    } else {
-      failed_ids.push(...batch.map((item) => item.id));
-    }
+      if (!response) return { ok: false };
 
-    options?.on_progress?.(
-      succeeded_ids.length + failed_ids.length,
-      items.length,
-    );
-  }
+      return {
+        ok: !response.error,
+        retry_after_ms: batch_retry_after_ms(response),
+      };
+    },
+  });
 
-  return { succeeded_ids, failed_ids, was_cancelled };
+  const failed = new Set(result.failed_ids);
+
+  settle_bulk_read_intents(items, failed);
+
+  return {
+    succeeded_ids: [...items_by_id.keys()].filter((id) => !failed.has(id)),
+    failed_ids: result.failed_ids,
+    was_cancelled: result.was_cancelled,
+  };
 }
 
 export interface BatchedBulkResult {
@@ -746,7 +817,8 @@ async function run_batched_operation(
   api_call: (batch: string[]) => Promise<ApiResponse<unknown>>,
   options?: BatchedBulkOptions,
 ): Promise<BatchedBulkResult> {
-  const { process_batches } = await import("@/services/batch_processor");
+  const { process_batches, batch_retry_after_ms } =
+    await import("@/services/batch_processor");
 
   const result = await process_batches({
     ids,
@@ -756,7 +828,10 @@ async function run_batched_operation(
     process_batch: async (batch) => {
       const response = await api_call(batch);
 
-      return !response.error;
+      return {
+        ok: !response.error,
+        retry_after_ms: batch_retry_after_ms(response),
+      };
     },
   });
 

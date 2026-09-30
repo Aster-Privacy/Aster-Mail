@@ -25,9 +25,8 @@ import {
   EyeIcon,
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
-import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import {
   Modal,
@@ -192,19 +191,24 @@ export function DeleteAccountModal({
         <div className="relative">
           <Input
             autoComplete="current-password"
-            className="pr-10"
+            className="pe-10"
             disabled={is_deleting}
+            maxLength={128}
             placeholder={t("auth.password")}
             type={show_password ? "text" : "password"}
             value={password}
-            maxLength={128}
             onChange={(e) => set_password(clamp_password(e.target.value))}
             onKeyDown={(e) =>
               e["key"] === "Enter" && is_confirmed && handle_delete()
             }
           />
           <Button
-            className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7"
+            aria-label={
+              show_password
+                ? t("settings.hide_password_toggle")
+                : t("settings.show_password_toggle")
+            }
+            className="absolute end-1 top-1/2 -translate-y-1/2 h-7 w-7"
             disabled={is_deleting}
             size="icon"
             type="button"
@@ -229,7 +233,6 @@ export function DeleteAccountModal({
         <Button
           className="flex-1"
           disabled={is_deleting}
-          size="xl"
           variant="outline"
           onClick={handle_close}
         >
@@ -238,18 +241,11 @@ export function DeleteAccountModal({
         <Button
           className="flex-1"
           disabled={!is_confirmed || is_deleting}
-          size="xl"
+          is_loading={is_deleting}
           variant="destructive"
           onClick={handle_delete}
         >
-          {is_deleting ? (
-            <>
-              {t("settings.deleting_account")}
-              <Spinner className="ml-2" size="md" />
-            </>
-          ) : (
-            t("settings.delete_account_title")
-          )}
+          {t("settings.delete_account_title")}
         </Button>
       </ModalFooter>
     </Modal>

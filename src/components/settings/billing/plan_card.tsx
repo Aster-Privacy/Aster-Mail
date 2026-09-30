@@ -20,11 +20,20 @@
 //
 import { XCircleIcon } from "@heroicons/react/24/outline";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
-import { Button } from "@aster/ui";
+import { Button, Island } from "@aster/ui";
+
+import {
+  PLAN_FEATURE_ICONS,
+  type PlanFeatureIcon,
+} from "@/components/settings/billing/plan_feature_icons";
+import { InfoPopover } from "@/components/ui/info_popover";
 
 export interface PlanFeature {
   label: string;
   on: boolean;
+  icon?: PlanFeatureIcon;
+  description?: string;
+  info?: string;
 }
 
 function render_feature_label(label: string) {
@@ -55,6 +64,7 @@ export interface PlanCardProps {
   cta_disabled: boolean;
   on_cta: () => void;
   features: PlanFeature[];
+  lead_in?: string | null;
   compact?: boolean;
 }
 
@@ -73,111 +83,139 @@ export function PlanCard({
   cta_disabled,
   on_cta,
   features,
+  lead_in,
   compact = false,
 }: PlanCardProps) {
-  const highlighted = featured || is_current;
+  const highlighted = featured && !is_current;
 
   return (
-    <div
-      className={`relative flex flex-col rounded-2xl border transition-colors ${
-        compact ? "p-4" : "p-6"
-      } ${
-        featured
-          ? `border-brand bg-surf-selected z-10 ${compact ? "" : "sm:-my-2 sm:py-8"}`
-          : highlighted
-            ? "border-brand bg-surf-selected"
-            : "border-edge-secondary bg-surf-tertiary"
-      }`}
+    <Island
+      className={`flex h-full flex-col ${compact ? "p-5" : "p-6"}`}
+      selected={is_current}
+      tone={highlighted ? "accent" : "default"}
     >
-      {badge && (
-        <span
-          className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-[var(--accent-fg,#ffffff)] whitespace-nowrap shadow-sm"
-          style={{ backgroundColor: "var(--accent-blue)" }}
-        >
-          {badge}
-        </span>
-      )}
-
-      <div className="text-center">
-        <h4 className="text-base font-semibold text-txt-primary">{name}</h4>
-
-        <div className="mt-2 flex items-baseline justify-center gap-1.5 flex-wrap">
-          {anchor_label && (
-            <span
-              className={`font-semibold text-txt-muted line-through ${
-                compact ? "text-base" : "text-lg"
-              }`}
-            >
-              {anchor_label}
-            </span>
-          )}
+      <div className="flex min-h-6 items-center justify-between gap-2">
+        <h4 className="text-[15px] font-semibold text-txt-primary">{name}</h4>
+        {badge && (
           <span
-            className={`font-bold text-txt-primary tracking-tight ${
-              compact ? "text-2xl" : "text-3xl"
-            }`}
+            className="inline-flex flex-shrink-0 items-center whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] font-semibold"
+            style={{
+              backgroundColor: "var(--accent-color)",
+              color: "var(--accent-fg, #ffffff)",
+            }}
           >
-            {price_label}
+            {badge}
           </span>
-          <span className="text-sm text-txt-muted">{period_label}</span>
-          {save_label && (
-            <span
-              className="ml-1 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[var(--accent-fg,#ffffff)]"
-              style={{ backgroundColor: "var(--accent-blue)" }}
-            >
-              {save_label}
-            </span>
-          )}
-        </div>
-
-        <p className="mt-1 h-4 text-xs text-txt-muted">{billed_note || ""}</p>
-
-        {description && (
-          <p className="mt-1.5 text-sm text-txt-muted leading-snug">
-            {description}
-          </p>
         )}
       </div>
+
+      <div className="mt-3 flex flex-wrap items-baseline gap-x-1.5">
+        {anchor_label && (
+          <span className="text-base font-medium text-txt-muted line-through">
+            {anchor_label}
+          </span>
+        )}
+        <span
+          className={`font-bold tracking-tight tabular-nums text-txt-primary ${
+            compact ? "text-[28px] leading-9" : "text-3xl"
+          }`}
+        >
+          {price_label}
+        </span>
+        <span className="text-sm text-txt-muted">{period_label}</span>
+        {save_label && (
+          <span
+            className="ms-1 inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold"
+            style={{
+              backgroundColor:
+                "color-mix(in srgb, var(--accent-color) 14%, transparent)",
+              color: "var(--accent-color)",
+            }}
+          >
+            {save_label}
+          </span>
+        )}
+      </div>
+
+      {billed_note != null && (
+        <p className="mt-1 min-h-4 text-xs text-txt-muted">
+          {billed_note || "\u00a0"}
+        </p>
+      )}
+
+      {description && (
+        <p className="mt-2 text-sm leading-snug text-txt-muted">
+          {description}
+        </p>
+      )}
 
       <Button
         className={`w-full ${compact ? "mt-4" : "mt-5"}`}
         disabled={cta_disabled}
-        variant={featured && !is_current ? "primary" : "outline"}
+        variant={highlighted ? "primary" : "secondary"}
         onClick={on_cta}
       >
         {cta_label}
       </Button>
 
-      <ul
-        className={`border-t space-y-2.5 list-none ${
-          compact ? "mt-4 pt-4" : "mt-5 pt-5"
-        }`}
-        style={{
-          borderTopColor: featured
-            ? "color-mix(in srgb, var(--accent-color) 40%, transparent)"
-            : "var(--border-secondary)",
-        }}
-      >
-        {features.map((feature, i) => (
-          <li
-            key={i}
-            className="flex items-start gap-2.5 text-sm text-txt-secondary"
+      <div
+        aria-hidden="true"
+        className={`h-px ${compact ? "my-4" : "my-5"}`}
+        style={{ backgroundColor: "var(--aster-island-divider)" }}
+      />
+
+      <div className="flex-1">
+        {lead_in != null && (
+          <p
+            aria-hidden={lead_in ? undefined : true}
+            className="mb-3 min-h-4 text-xs font-medium text-txt-muted"
           >
-            {feature.on ? (
-              <CheckCircleIcon
-                className="w-[18px] h-[18px] flex-shrink-0 mt-0.5"
-                style={{ color: "var(--accent-blue)" }}
-              />
-            ) : (
-              <XCircleIcon
-                className="w-[18px] h-[18px] flex-shrink-0 mt-0.5"
-                style={{ color: "var(--color-danger)" }}
-              />
-            )}
-            <span>{render_feature_label(feature.label)}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
+            {lead_in || "\u00a0"}
+          </p>
+        )}
+        <ul className="list-none space-y-2.5">
+          {features.map((feature, i) => {
+            const Icon = feature.on
+              ? feature.icon
+                ? PLAN_FEATURE_ICONS[feature.icon]
+                : CheckCircleIcon
+              : XCircleIcon;
+
+            return (
+              <li key={i} className="flex items-start gap-2.5 text-[13px]">
+                <Icon
+                  className="mt-px h-4 w-4 flex-shrink-0"
+                  style={{
+                    color: feature.on
+                      ? "var(--accent-color)"
+                      : "var(--color-danger)",
+                  }}
+                />
+                <span className="min-w-0 flex-1">
+                  <span className="block leading-snug text-txt-secondary">
+                    {render_feature_label(feature.label)}
+                    {feature.info && (
+                      <span className="ms-1.5 inline-flex align-middle">
+                        <InfoPopover
+                          description={feature.info}
+                          icon_class="w-3.5 h-3.5"
+                          title={feature.label}
+                        />
+                      </span>
+                    )}
+                  </span>
+                  {feature.description && (
+                    <span className="mt-1 block text-xs leading-snug text-txt-muted">
+                      {feature.description}
+                    </span>
+                  )}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    </Island>
   );
 }
 
@@ -193,28 +231,43 @@ export function Segmented<T extends string>({
   on_change,
 }: SegmentedProps<T>) {
   return (
-    <div className="inline-flex rounded-full p-1 gap-1 bg-surf-tertiary border border-edge-secondary">
+    <div
+      className="grid w-full max-w-xs gap-1 rounded-full bg-surf-secondary p-1"
+      style={{
+        gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,
+      }}
+    >
       {options.map((opt) => {
         const active = value === opt.id;
 
         return (
           <button
             key={opt.id}
-            className={`px-5 py-1.5 rounded-full text-sm font-medium transition-colors focus:outline-none ${
-              active ? "text-[var(--accent-fg,#ffffff)]" : "text-txt-muted hover:text-txt-secondary"
+            className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors focus:outline-none whitespace-nowrap ${
+              active
+                ? "text-[var(--accent-fg,#ffffff)]"
+                : "text-txt-muted hover:text-txt-secondary"
             }`}
-            style={active ? { backgroundColor: "var(--accent-blue)" } : undefined}
+            style={
+              active ? { backgroundColor: "var(--accent-blue)" } : undefined
+            }
             type="button"
             onClick={() => on_change(opt.id)}
           >
             {opt.label}
             {opt.badge && (
               <span
-                className="ml-1.5 inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide"
+                className="ms-1.5 inline-flex items-center rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide"
                 style={
                   active
-                    ? { backgroundColor: "rgba(255,255,255,0.22)", color: "var(--accent-fg, #ffffff)" }
-                    : { backgroundColor: "var(--accent-blue)", color: "var(--accent-fg, #ffffff)" }
+                    ? {
+                        backgroundColor: "rgba(255,255,255,0.22)",
+                        color: "var(--accent-fg, #ffffff)",
+                      }
+                    : {
+                        backgroundColor: "var(--accent-blue)",
+                        color: "var(--accent-fg, #ffffff)",
+                      }
                 }
               >
                 {opt.badge}
@@ -223,6 +276,49 @@ export function Segmented<T extends string>({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+export function Tabs<T extends string>({
+  value,
+  options,
+  on_change,
+}: SegmentedProps<T>) {
+  return (
+    <div className="w-full max-w-xs">
+      <div
+        className="grid w-full border-b border-edge-secondary"
+        style={{
+          gridTemplateColumns: `repeat(${options.length}, minmax(0, 1fr))`,
+        }}
+      >
+        {options.map((opt) => {
+          const active = value === opt.id;
+
+          return (
+            <button
+              key={opt.id}
+              className={`relative px-4 pt-1 pb-2.5 text-sm font-semibold transition-colors focus:outline-none whitespace-nowrap ${
+                active
+                  ? "text-txt-primary"
+                  : "text-txt-muted hover:text-txt-secondary"
+              }`}
+              type="button"
+              onClick={() => on_change(opt.id)}
+            >
+              {opt.label}
+              <span
+                className="absolute start-0 end-0 -bottom-px h-0.5 rounded-full transition-opacity"
+                style={{
+                  backgroundColor: "var(--accent-blue)",
+                  opacity: active ? 1 : 0,
+                }}
+              />
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

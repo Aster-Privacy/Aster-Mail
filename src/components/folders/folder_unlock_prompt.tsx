@@ -27,7 +27,9 @@ import {
 } from "@/services/locked_folders";
 
 export function FolderUnlockPrompt() {
-  const [target, set_target] = useState<FolderUnlockRequiredDetail | null>(null);
+  const [target, set_target] = useState<FolderUnlockRequiredDetail | null>(
+    null,
+  );
 
   useEffect(() => {
     const handler = (event: Event) => {
@@ -53,6 +55,7 @@ export function FolderUnlockPrompt() {
 
   return (
     <FolderPasswordModal
+      key={target.folder_id}
       folder_id={target.folder_id}
       folder_name={target.folder_name}
       is_open={true}

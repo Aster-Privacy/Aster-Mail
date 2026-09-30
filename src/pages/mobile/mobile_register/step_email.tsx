@@ -114,10 +114,13 @@ export function StepEmail({ reg, reduce_motion, navigate }: step_email_props) {
                 <UserCircleIcon />
               </div>
               <Input
+                autoCapitalize="none"
                 autoComplete="username"
+                autoCorrect="off"
                 className={`${INNER_INPUT_WITH_ICON_CLASS} notranslate`}
                 maxLength={55}
                 placeholder={reg.t("common.yourname_placeholder")}
+                spellCheck={false}
                 status={reg.error ? "error" : "default"}
                 translate="no"
                 type="text"

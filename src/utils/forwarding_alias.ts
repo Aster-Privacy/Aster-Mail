@@ -108,10 +108,7 @@ export function detect_forwarded_alias(
     if (is_forward) {
       const original = parse_address(sl_original || sl_envelope || "");
 
-      if (
-        original?.email &&
-        !same_email(original.email, reverse_alias.email)
-      ) {
+      if (original?.email && !same_email(original.email, reverse_alias.email)) {
         return { service: "simplelogin", original, reverse_alias };
       }
     }

@@ -20,51 +20,14 @@
 //
 import type { SettingsSection } from "@/components/settings/settings_content";
 
-import { memo } from "react";
-import { UserGroupIcon } from "@heroicons/react/24/outline";
-import { Tooltip } from "@aster/ui";
+import { memo, useMemo } from "react";
+import { AccountSwitcherView } from "@aster/ui";
 
 import {
   StorageMeter,
   scroll_to_storage_addons,
 } from "@/components/layout/storage_meter";
 import { use_i18n } from "@/lib/i18n/context";
-
-function PanelToggleIcon({
-  direction,
-  className,
-}: {
-  direction: "collapse" | "expand";
-  className?: string;
-}) {
-  return (
-    <svg
-      aria-hidden="true"
-      className={className}
-      fill="none"
-      viewBox="0 0 24 24"
-      xmlns="http://www.w3.org/2000/svg"
-    >
-      <rect
-        height="16"
-        rx="3.5"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        width="18"
-        x="3"
-        y="4"
-      />
-      <path d="M9.5 4.8V19.2" stroke="currentColor" strokeWidth="1.6" />
-      <path
-        d={direction === "collapse" ? "M17 9.5 14 12l3 2.5" : "M14 9.5l3 2.5-3 2.5"}
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="1.6"
-      />
-    </svg>
-  );
-}
 
 interface SidebarAccountSwitcherProps {
   is_collapsed: boolean;
@@ -86,79 +49,37 @@ export const SidebarAccountSwitcher = memo(function SidebarAccountSwitcher({
   on_toggle_collapse,
 }: SidebarAccountSwitcherProps) {
   const { t } = use_i18n();
-  return (
-    <div className="mt-auto flex-shrink-0">
-      <div
-        className={`${is_collapsed ? "px-2" : "px-3"} pb-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]`}
-      >
-        {!is_collapsed && (
-          <StorageMeter
-            className="mb-3"
-            storage_percentage={storage_percentage}
-            storage_total_bytes={storage_total_bytes}
-            storage_used_bytes={storage_used_bytes}
-            on_buy_more={() => {
-              on_settings_click("billing");
-              scroll_to_storage_addons();
-            }}
-          />
-        )}
+  const labels = useMemo(
+    () => ({
+      invite: t("settings.invite_friends"),
+      expand_sidebar: t("common.expand_sidebar"),
+      collapse_sidebar: t("common.collapse_sidebar"),
+    }),
+    [t],
+  );
 
-        {is_collapsed ? (
-          <div className="flex flex-col items-center gap-0.5">
-            <Tooltip tip={t("settings.refer_a_friend")}>
-              <button
-                aria-label={t("settings.refer_a_friend")}
-                className="sidebar-rail-btn"
-                type="button"
-                onClick={() => {
-                  on_modal_open?.();
-                  on_settings_click("referral");
-                }}
-              >
-                <UserGroupIcon className="w-5 h-5" />
-              </button>
-            </Tooltip>
-            {on_toggle_collapse && (
-              <Tooltip tip={t("common.expand_sidebar")}>
-                <button
-                  aria-label={t("common.expand_sidebar")}
-                  className="sidebar-rail-btn"
-                  type="button"
-                  onClick={on_toggle_collapse}
-                >
-                  <PanelToggleIcon className="w-5 h-5" direction="expand" />
-                </button>
-              </Tooltip>
-            )}
-          </div>
-        ) : (
-          <div className="flex items-center gap-1">
-            <button
-              className="flex-1 flex items-center gap-2 px-2 py-1.5 rounded-[12px] text-[12px] hover:bg-black/[0.04] dark:hover:bg-white/[0.04] text-txt-muted"
-              onClick={() => {
-                on_modal_open?.();
-                on_settings_click("referral");
-              }}
-            >
-              <UserGroupIcon className="w-3.5 h-3.5" />
-              <span>{t("settings.refer_a_friend")}</span>
-            </button>
-            {on_toggle_collapse && (
-              <Tooltip tip={t("common.collapse_sidebar")}>
-                <button
-                  aria-label={t("common.collapse_sidebar")}
-                  className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-[10px] hover:bg-black/[0.06] dark:hover:bg-white/[0.06] text-txt-muted transition-colors"
-                  type="button"
-                  onClick={on_toggle_collapse}
-                >
-                  <PanelToggleIcon className="w-[18px] h-[18px]" direction="collapse" />
-                </button>
-              </Tooltip>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
+  return (
+    <AccountSwitcherView
+      is_collapsed={is_collapsed}
+      labels={labels}
+      storage={
+        <StorageMeter
+          className="mb-3"
+          on_buy_more={() => {
+            on_settings_click("storage");
+            scroll_to_storage_addons();
+          }}
+          on_open={() => on_settings_click("storage")}
+          storage_percentage={storage_percentage}
+          storage_total_bytes={storage_total_bytes}
+          storage_used_bytes={storage_used_bytes}
+        />
+      }
+      on_invite={() => {
+        on_modal_open?.();
+        on_settings_click("referral");
+      }}
+      on_toggle_collapse={on_toggle_collapse}
+    />
   );
 });

@@ -22,11 +22,12 @@ import type { TranslationKey } from "@/lib/i18n/types";
 import type { InboxEmail } from "@/types/email";
 
 import { useState, useCallback, useRef, useMemo, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { MagnifyingGlassIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
 import { use_search } from "@/hooks/use_search";
+import { use_email_actions } from "@/hooks/use_email_actions";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_should_reduce_motion } from "@/provider";
 import { MobileHeader } from "@/components/mobile/mobile_header";
@@ -48,6 +49,10 @@ const FILTERS: { id: SearchFilter; label: TranslationKey }[] = [
 
 function MobileSearchPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const initial_query = (
+    (location.state as { search_query?: string } | null)?.search_query || ""
+  ).trim();
   const { t } = use_i18n();
   const reduce_motion = use_should_reduce_motion();
   const search = use_search();
@@ -57,17 +62,31 @@ function MobileSearchPage() {
     preferences.low_network_mode,
   );
   const input_ref = useRef<HTMLInputElement>(null);
-  const [query, set_query] = useState("");
+  const [query, set_query] = useState(initial_query);
   const [active_filter, set_active_filter] = useState<SearchFilter>("all");
+  const [did_search, set_did_search] = useState(false);
   const [visible_count, set_visible_count] = useState(page_size);
+  const [star_overrides, set_star_overrides] = useState<
+    Record<string, boolean>
+  >({});
+  const actions = use_email_actions();
 
   useEffect(() => {
+    if (initial_query) return;
     const timer = setTimeout(() => {
       input_ref.current?.focus();
     }, 100);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [initial_query]);
+
+  useEffect(() => {
+    if (!initial_query) return;
+    set_query(initial_query);
+    set_star_overrides({});
+    set_did_search(true);
+    search.search(initial_query);
+  }, [initial_query]);
 
   const handle_back = useCallback(() => {
     navigate(-1);
@@ -77,6 +96,8 @@ function MobileSearchPage() {
     (e: React.FormEvent) => {
       e.preventDefault();
       if (query.trim()) {
+        set_star_overrides({});
+        set_did_search(true);
         search.search(query.trim());
       }
     },
@@ -85,6 +106,8 @@ function MobileSearchPage() {
 
   const handle_clear = useCallback(() => {
     set_query("");
+    set_star_overrides({});
+    set_did_search(false);
     search.clear_results();
     input_ref.current?.focus();
   }, [search]);
@@ -96,9 +119,28 @@ function MobileSearchPage() {
     [navigate],
   );
 
+  const handle_toggle_star = useCallback(
+    async (email: InboxEmail) => {
+      const next = !email.is_starred;
+
+      set_star_overrides((prev) => ({ ...prev, [email.id]: next }));
+
+      const succeeded = await actions.toggle_star(email);
+
+      if (!succeeded) {
+        set_star_overrides((prev) => ({ ...prev, [email.id]: !next }));
+      }
+    },
+    [actions],
+  );
+
   const filtered_results = useMemo(() => {
     const results = filter_locked_folder_emails(
       (search.state.results ?? []) as InboxEmail[],
+    ).map((email) =>
+      email.id in star_overrides
+        ? { ...email, is_starred: star_overrides[email.id] }
+        : email,
     );
 
     if (active_filter === "all") return results;
@@ -108,7 +150,7 @@ function MobileSearchPage() {
     if (active_filter === "starred") return results.filter((e) => e.is_starred);
 
     return results;
-  }, [search.state.results, active_filter]);
+  }, [search.state.results, active_filter, star_overrides]);
 
   useEffect(() => {
     set_visible_count(page_size);
@@ -128,6 +170,7 @@ function MobileSearchPage() {
   const is_loading = search.state.is_searching || search.state.index_building;
   const has_results = filtered_results.length > 0;
   const has_searched =
+    did_search ||
     (search.state.results ?? []).length > 0 ||
     search.state.is_searching ||
     search.state.index_building;
@@ -157,6 +200,7 @@ function MobileSearchPage() {
           onChange={(e) => set_query(e.target.value)}
         />
         <button
+          aria-label={t("common.clear")}
           className={`flex h-7 w-7 items-center justify-center rounded-full text-[var(--text-muted)] active:bg-[var(--bg-tertiary)] transition-opacity ${query ? "opacity-100" : "opacity-0 pointer-events-none"}`}
           type="button"
           onClick={handle_clear}
@@ -203,7 +247,15 @@ function MobileSearchPage() {
           </div>
         )}
 
-        {!is_loading && has_searched && !has_results && (
+        {!is_loading && search.state.error && !has_results && (
+          <div className="flex flex-col items-center justify-center gap-3 px-8 pt-20">
+            <p className="text-center text-[15px] text-[var(--text-muted)]">
+              {t("common.something_went_wrong_try_again")}
+            </p>
+          </div>
+        )}
+
+        {!is_loading && !search.state.error && has_searched && !has_results && (
           <div className="flex flex-col items-center justify-center gap-3 px-8 pt-20">
             <p className="text-center text-[15px] text-[var(--text-muted)]">
               {t("mail.no_results_found")}
@@ -216,8 +268,8 @@ function MobileSearchPage() {
             <MobileEmailRow
               key={email.id}
               email={email}
-              on_long_press={() => {}}
               on_press={handle_email_press}
+              on_toggle_star={handle_toggle_star}
             />
           ))}
 

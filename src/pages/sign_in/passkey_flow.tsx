@@ -33,6 +33,7 @@ export async function passkey_flow(
 
   if (initiate_response.error || !initiate_response.data) {
     on_error(initiate_response.error ?? "Failed to initiate passkey sign-in.");
+
     return;
   }
 
@@ -43,6 +44,7 @@ export async function passkey_flow(
 
   if (verify_response.error || !verify_response.data) {
     on_error(verify_response.error ?? "Passkey sign-in failed.");
+
     return;
   }
 

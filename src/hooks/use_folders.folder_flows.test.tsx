@@ -67,6 +67,11 @@ vi.mock("@/services/api/mail", () => ({
 vi.mock("@/services/crypto/memory_key_store", () => ({
   get_vault_from_memory: () => ({ identity_key: "test-identity-key" }),
   has_passphrase_in_memory: () => true,
+  on_keys_ready: (callback: () => void) => {
+    callback();
+
+    return () => {};
+  },
 }));
 
 vi.mock("@/services/crypto/legacy_keks", () => ({
@@ -189,7 +194,11 @@ describe("folder create and reorder flows", () => {
       | undefined;
 
     await act(async () => {
-      duplicate = await latest!.create_new_folder("Work", undefined, "parent_a");
+      duplicate = await latest!.create_new_folder(
+        "Work",
+        undefined,
+        "parent_a",
+      );
       sibling_ok = await latest!.create_new_folder(
         "Work",
         undefined,
@@ -255,5 +264,266 @@ describe("folder create and reorder flows", () => {
     const tree = build_folder_tree(latest!.state.folders);
 
     expect(tree.map((n) => n.folder.name)).toEqual(["First", "Second"]);
+  });
+});
+
+describe("folder sort A to Z flows", () => {
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    clear_folders_cache();
+    let creation = 0;
+
+    hoisted.create_folder.mockImplementation(async () => ({
+      data: {
+        id: `created_id_${creation}`,
+        folder_token: `created_token_${creation++}`,
+        success: true,
+      },
+      error: null,
+    }));
+    await mount();
+  });
+
+  afterEach(() => {
+    act(() => {
+      root?.unmount();
+    });
+    container?.remove();
+    root = null;
+    container = null;
+    latest = null;
+  });
+
+  function by_name(name: string) {
+    return latest!.state.folders.find((f) => f.name === name)!;
+  }
+
+  function root_names(): string[] {
+    return build_folder_tree(latest!.state.folders).map((n) => n.folder.name);
+  }
+
+  function create_request(index: number) {
+    return hoisted.create_folder.mock.calls[index][0] as unknown as {
+      sort_order?: number;
+    };
+  }
+
+  async function create_all(...names: string[]) {
+    await act(async () => {
+      for (const name of names) {
+        await latest!.create_new_folder(name);
+      }
+    });
+  }
+
+  async function hand_order(...names: string[]) {
+    await act(async () => {
+      await latest!.reorder_folders(
+        names.map((name, index) => ({ id: by_name(name).id, sort_order: index })),
+      );
+    });
+    hoisted.bulk_reorder_folders.mockClear();
+  }
+
+  it("places a new folder alphabetically when the list is sorted", async () => {
+    await create_all("Charlie", "Alpha", "Bravo");
+
+    expect(create_request(0).sort_order).toBe(0);
+    expect(create_request(1).sort_order).toBe(0);
+    expect(create_request(2).sort_order).toBe(1);
+    expect(hoisted.bulk_reorder_folders).toHaveBeenNthCalledWith(1, [
+      { id: by_name("Charlie").id, sort_order: 1 },
+    ]);
+    expect(hoisted.bulk_reorder_folders).toHaveBeenNthCalledWith(2, [
+      { id: by_name("Charlie").id, sort_order: 2 },
+    ]);
+    expect(root_names()).toEqual(["Alpha", "Bravo", "Charlie"]);
+  });
+
+  it("appends a new folder to a hand-ordered list without reordering", async () => {
+    await create_all("Alpha", "Bravo");
+    await hand_order("Bravo", "Alpha");
+    await create_all("Charlie");
+
+    expect(create_request(2).sort_order).toBe(2);
+    expect(hoisted.bulk_reorder_folders).not.toHaveBeenCalled();
+    expect(root_names()).toEqual(["Bravo", "Alpha", "Charlie"]);
+  });
+
+  it("appends imported folders without sending a reorder per folder", async () => {
+    await create_all("Bravo");
+    hoisted.bulk_reorder_folders.mockClear();
+
+    await act(async () => {
+      await latest!.create_new_folder("Alpha", undefined, undefined, {
+        append: true,
+      });
+    });
+
+    expect(create_request(1).sort_order).toBe(1);
+    expect(hoisted.bulk_reorder_folders).not.toHaveBeenCalled();
+  });
+
+  it("gives back-to-back imported folders increasing positions", async () => {
+    await act(async () => {
+      for (const name of ["Zulu", "Mike", "Alpha"]) {
+        await latest!.create_new_folder(name, undefined, undefined, {
+          append: true,
+        });
+      }
+    });
+
+    expect([0, 1, 2].map((i) => create_request(i).sort_order)).toEqual([
+      0, 1, 2,
+    ]);
+    expect(root_names()).toEqual(["Zulu", "Mike", "Alpha"]);
+  });
+
+  it("sorts the whole tree A to Z in one request", async () => {
+    await create_all("Alpha", "Bravo", "Charlie");
+    await hand_order("Charlie", "Alpha", "Bravo");
+
+    let ok: boolean | undefined;
+
+    await act(async () => {
+      ok = await latest!.sort_folders_a_z();
+    });
+
+    expect(ok).toBe(true);
+    expect(hoisted.bulk_reorder_folders).toHaveBeenCalledTimes(1);
+    expect(hoisted.bulk_reorder_folders).toHaveBeenCalledWith([
+      { id: by_name("Alpha").id, sort_order: 0 },
+      { id: by_name("Bravo").id, sort_order: 1 },
+      { id: by_name("Charlie").id, sort_order: 2 },
+    ]);
+    expect(root_names()).toEqual(["Alpha", "Bravo", "Charlie"]);
+  });
+
+  it("does not call the server when the tree is already sorted", async () => {
+    await create_all("Alpha", "Bravo");
+    hoisted.bulk_reorder_folders.mockClear();
+
+    let ok: boolean | undefined;
+
+    await act(async () => {
+      ok = await latest!.sort_folders_a_z();
+    });
+
+    expect(ok).toBe(true);
+    expect(hoisted.bulk_reorder_folders).not.toHaveBeenCalled();
+  });
+
+  it("restores only the touched folders when sorting fails", async () => {
+    await create_all("Alpha", "Bravo", "Charlie");
+    await hand_order("Charlie", "Alpha", "Bravo");
+
+    hoisted.bulk_reorder_folders.mockResolvedValueOnce({
+      data: null,
+      error: "boom",
+    } as never);
+
+    let ok: boolean | undefined;
+
+    await act(async () => {
+      ok = await latest!.sort_folders_a_z();
+    });
+
+    expect(ok).toBe(false);
+    expect(root_names()).toEqual(["Charlie", "Alpha", "Bravo"]);
+    expect(latest!.state.folders).toHaveLength(3);
+  });
+
+  it("restores the order when the reorder request throws", async () => {
+    await create_all("Alpha", "Bravo");
+    await hand_order("Bravo", "Alpha");
+
+    hoisted.bulk_reorder_folders.mockRejectedValueOnce(new Error("offline"));
+
+    let ok: boolean | undefined;
+
+    await act(async () => {
+      ok = await latest!.sort_folders_a_z();
+    });
+
+    expect(ok).toBe(false);
+    expect(root_names()).toEqual(["Bravo", "Alpha"]);
+  });
+
+  it("keeps a sorted list sorted after a rename", async () => {
+    await create_all("Alpha", "Bravo", "Charlie");
+    hoisted.bulk_reorder_folders.mockClear();
+
+    await act(async () => {
+      await latest!.update_existing_folder(by_name("Alpha").id, "Delta");
+    });
+
+    expect(hoisted.bulk_reorder_folders).toHaveBeenCalledTimes(1);
+    expect(root_names()).toEqual(["Bravo", "Charlie", "Delta"]);
+  });
+
+  it("leaves a hand-ordered list alone after a rename", async () => {
+    await create_all("Alpha", "Bravo");
+    await hand_order("Bravo", "Alpha");
+
+    await act(async () => {
+      await latest!.update_existing_folder(by_name("Bravo").id, "Zulu");
+    });
+
+    expect(hoisted.bulk_reorder_folders).not.toHaveBeenCalled();
+    expect(root_names()).toEqual(["Zulu", "Alpha"]);
+  });
+
+  it("does not reorder when only the color changes", async () => {
+    await create_all("Alpha", "Bravo");
+    hoisted.bulk_reorder_folders.mockClear();
+
+    await act(async () => {
+      await latest!.update_existing_folder(
+        by_name("Alpha").id,
+        undefined,
+        "#ff0000",
+      );
+    });
+
+    expect(hoisted.bulk_reorder_folders).not.toHaveBeenCalled();
+  });
+
+  it("places a moved folder alphabetically among its new siblings", async () => {
+    await create_all("Parent", "Alpha", "Zed");
+
+    const parent_token = by_name("Parent").folder_token;
+
+    await act(async () => {
+      await latest!.create_new_folder("Mike", undefined, parent_token);
+    });
+    hoisted.bulk_reorder_folders.mockClear();
+
+    await act(async () => {
+      await latest!.update_existing_folder(
+        by_name("Zed").id,
+        undefined,
+        undefined,
+        undefined,
+        parent_token,
+      );
+    });
+    await act(async () => {
+      await latest!.update_existing_folder(
+        by_name("Alpha").id,
+        undefined,
+        undefined,
+        undefined,
+        parent_token,
+      );
+    });
+
+    const tree = build_folder_tree(latest!.state.folders);
+
+    expect(tree.map((n) => n.folder.name)).toEqual(["Parent"]);
+    expect(tree[0].children.map((n) => n.folder.name)).toEqual([
+      "Alpha",
+      "Mike",
+      "Zed",
+    ]);
   });
 });

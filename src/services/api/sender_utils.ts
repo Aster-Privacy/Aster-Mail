@@ -1,3 +1,4 @@
+import { get_active_translations } from "@/lib/i18n/translations";
 //
 // Aster Communications Inc.
 //
@@ -39,7 +40,7 @@ export function base64_to_array(base64: string): Uint8Array {
 
     return bytes;
   } catch {
-    throw new Error("Invalid base64 data");
+    throw new Error(get_active_translations().errors.unexpected_error);
   }
 }
 

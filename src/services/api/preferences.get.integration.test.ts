@@ -18,10 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EncryptedVault } from "@/services/crypto/key_manager";
+
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 import { api_client } from "./client";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   get_preferences,
   cache_preferences_locally,
@@ -29,7 +30,8 @@ import {
   DEFAULT_PREFERENCES,
   type UserPreferences,
 } from "./preferences";
-import type { EncryptedVault } from "@/services/crypto/key_manager";
+
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 vi.mock("./client", () => ({
   api_client: { get: vi.fn(), put: vi.fn() },
@@ -37,6 +39,7 @@ vi.mock("./client", () => ({
 
 vi.mock("@/services/crypto/legacy_keks", () => ({
   decrypt_aes_gcm_with_fallback: vi.fn(),
+  get_account_data_write_key: vi.fn(() => null),
 }));
 
 const vault = { identity_key: "integration-test-identity" } as EncryptedVault;
@@ -49,9 +52,9 @@ function server_returns(obj: Record<string, unknown>) {
     },
     error: null,
   });
-  (
-    decrypt_aes_gcm_with_fallback as ReturnType<typeof vi.fn>
-  ).mockResolvedValue(new TextEncoder().encode(JSON.stringify(obj)));
+  (decrypt_aes_gcm_with_fallback as ReturnType<typeof vi.fn>).mockResolvedValue(
+    new TextEncoder().encode(JSON.stringify(obj)),
+  );
 }
 
 function complete_server_blob(
@@ -63,6 +66,7 @@ function complete_server_blob(
     migration_tracker_blocking_v2_done: true,
     migration_toast_position_v1_done: true,
     migration_viewer_toolbar_v1_done: true,
+    migration_signature_placement_v1_done: true,
     ...overrides,
   };
 }
@@ -109,7 +113,9 @@ describe("get_preferences end-to-end with a stale-stripped server blob", () => {
 
     expect(loaded_from_server).toBe(true);
     expect(data.undo_send_period).toBe("30 seconds");
-    expect(data.undo_send_period).not.toBe(DEFAULT_PREFERENCES.undo_send_period);
+    expect(data.undo_send_period).not.toBe(
+      DEFAULT_PREFERENCES.undo_send_period,
+    );
     expect(data.show_aster_branding).toBe(false);
   });
 
@@ -194,5 +200,72 @@ describe("get_preferences end-to-end with a stale-stripped server blob", () => {
 
     expect(second.data.viewer_toolbar_mode).toBe("simple");
     expect(second.data.migration_viewer_toolbar_v1_done).toBe(true);
+  });
+
+  it("moves an existing account to a signature above the quote exactly once", async () => {
+    const blob = complete_server_blob({
+      signature_placement: "below",
+      migration_signature_placement_v1_done: false,
+    });
+
+    server_returns(blob);
+
+    const first = await get_preferences(vault);
+
+    expect(first.data.signature_placement).toBe("above");
+    expect(first.data.migration_signature_placement_v1_done).toBe(true);
+    expect(api_client.put).toHaveBeenCalled();
+
+    vi.clearAllMocks();
+    clear_preferences_cache();
+    server_returns(
+      complete_server_blob({
+        signature_placement: "below",
+        migration_signature_placement_v1_done: false,
+      }),
+    );
+
+    const second = await get_preferences(vault);
+
+    expect(second.data.signature_placement).toBe("below");
+    expect(second.data.migration_signature_placement_v1_done).toBe(true);
+  });
+});
+
+describe("get_preferences when the server blob is absent", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    clear_preferences_cache();
+  });
+
+  it("keeps the locally cached settings instead of resetting to defaults", async () => {
+    cache_preferences_locally({
+      ...DEFAULT_PREFERENCES,
+      show_aster_branding: false,
+      inbox_page_size: 75,
+    });
+
+    (api_client.get as ReturnType<typeof vi.fn>).mockResolvedValue({
+      data: { encrypted_preferences: "", preferences_nonce: "" },
+      error: null,
+    });
+
+    const result = await get_preferences(vault);
+
+    expect(result.data.show_aster_branding).toBe(false);
+    expect(result.data.inbox_page_size).toBe(75);
+  });
+
+  it("falls back to defaults when there is no local cache", async () => {
+    (api_client.get as ReturnType<typeof vi.fn>).mockResolvedValue({
+      data: { encrypted_preferences: "", preferences_nonce: "" },
+      error: null,
+    });
+
+    const result = await get_preferences(vault);
+
+    expect(result.data.show_aster_branding).toBe(
+      DEFAULT_PREFERENCES.show_aster_branding,
+    );
   });
 });

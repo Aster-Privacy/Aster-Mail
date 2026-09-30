@@ -28,6 +28,7 @@ export function use_editor_image(
 ) {
   const selected_image_ref = useRef<HTMLImageElement | null>(null);
   const dragged_image_ref = useRef<HTMLImageElement | null>(null);
+  const resize_cleanup_ref = useRef<(() => void) | null>(null);
 
   const [selected_image, set_selected_image] = useState<ImageResizeState>({
     image: null,
@@ -103,10 +104,18 @@ export function use_editor_image(
             Math.min(max_width, start_width - dx),
           );
         } else if (handle.includes("s")) {
-          const new_height = Math.max(min_width / aspect_ratio, start_height + dy);
+          const new_height = Math.max(
+            min_width / aspect_ratio,
+            start_height + dy,
+          );
+
           new_width = new_height * aspect_ratio;
         } else if (handle.includes("n")) {
-          const new_height = Math.max(min_width / aspect_ratio, start_height - dy);
+          const new_height = Math.max(
+            min_width / aspect_ratio,
+            start_height - dy,
+          );
+
           new_width = new_height * aspect_ratio;
         }
 
@@ -121,17 +130,31 @@ export function use_editor_image(
         update_image_rect();
       };
 
-      const on_mouse_up = () => {
+      const detach = () => {
         document.removeEventListener("mousemove", on_mouse_move);
         document.removeEventListener("mouseup", on_mouse_up);
+        resize_cleanup_ref.current = null;
+      };
+
+      const on_mouse_up = () => {
+        detach();
         handle_input();
         update_image_rect();
       };
 
+      resize_cleanup_ref.current?.();
       document.addEventListener("mousemove", on_mouse_move);
       document.addEventListener("mouseup", on_mouse_up);
+      resize_cleanup_ref.current = detach;
     },
     [update_image_rect, handle_input],
+  );
+
+  useEffect(
+    () => () => {
+      resize_cleanup_ref.current?.();
+    },
+    [],
   );
 
   const set_image_width = useCallback(
@@ -140,7 +163,9 @@ export function use_editor_image(
 
       if (!img) return;
 
-      const clamped = Math.max(20, Math.round(width));
+      const editor_width = editor_ref.current?.clientWidth ?? 0;
+      const max_width = editor_width > 64 ? editor_width - 32 : Infinity;
+      const clamped = Math.min(max_width, Math.max(20, Math.round(width)));
 
       img.style.width = `${clamped}px`;
       img.style.height = "auto";
@@ -150,7 +175,7 @@ export function use_editor_image(
       handle_input();
       update_image_rect();
     },
-    [handle_input, update_image_rect],
+    [editor_ref, handle_input, update_image_rect],
   );
 
   useEffect(() => {

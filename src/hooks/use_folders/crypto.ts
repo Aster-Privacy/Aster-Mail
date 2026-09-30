@@ -18,13 +18,11 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
-
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
-import {
-  type FolderDefinition,
-} from "@/services/api/folders";
 import { DecryptedFolder, is_system_folder_type } from "./tree";
+
+import { HASH_ALG } from "@/services/crypto/constants";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
+import { type FolderDefinition } from "@/services/api/folders";
 
 export function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -57,7 +55,9 @@ export function generate_folder_token(): string {
   return array_to_base64(bytes);
 }
 
-export async function derive_folder_key(identity_key: string): Promise<CryptoKey> {
+export async function derive_folder_key(
+  identity_key: string,
+): Promise<CryptoKey> {
   const key_material = new TextEncoder().encode(
     identity_key + "astermail-labels-v1",
   );
@@ -108,6 +108,32 @@ export async function decrypt_folder_field(
   );
 
   return new TextDecoder().decode(decrypted);
+}
+
+export function build_undecryptable_folder(
+  folder: FolderDefinition,
+  fallback_name: string,
+): DecryptedFolder {
+  const folder_type = folder.folder_type ?? "custom";
+
+  return {
+    id: folder.id,
+    folder_token: folder.folder_token,
+    name: fallback_name,
+    color: undefined,
+    icon: undefined,
+    is_system: folder.is_system || is_system_folder_type(folder_type),
+    is_locked: folder.is_locked ?? false,
+    folder_type,
+    is_password_protected: folder.is_password_protected ?? false,
+    password_set: folder.password_set ?? false,
+    sort_order: folder.sort_order,
+    parent_token: folder.parent_token,
+    item_count: folder.item_count,
+    unread_count: folder.unread_count,
+    created_at: folder.created_at,
+    updated_at: folder.updated_at,
+  };
 }
 
 export async function decrypt_folder(
@@ -173,4 +199,3 @@ export async function decrypt_folder(
     updated_at: folder.updated_at,
   };
 }
-

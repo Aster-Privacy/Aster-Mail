@@ -69,7 +69,7 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     color: "#3b82f6",
     match_mode: "all",
     conditions: [{ type: "has_list_id", value: true }],
-    actions: [{ type: "categorize", category: "updates" }],
+    actions: [{ type: "categorize", category: "newsletters" }],
   },
   {
     id: "social",
@@ -129,7 +129,11 @@ export const RULE_TEMPLATES: RuleTemplate[] = [
     color: "#f97316",
     match_mode: "all",
     conditions: [
-      { type: "attachment_size", operator: "greater_than", value: TEN_MEGABYTES },
+      {
+        type: "attachment_size",
+        operator: "greater_than",
+        value: TEN_MEGABYTES,
+      },
     ],
     actions: [{ type: "move_to", folder_token: null }],
     needs_config: true,

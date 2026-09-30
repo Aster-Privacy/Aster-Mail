@@ -18,11 +18,16 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import type { EncryptedVault } from "@/services/crypto/key_manager";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 import { api_client } from "./client";
+
+import { HASH_ALG } from "@/services/crypto/constants";
+import {
+  account_data_write_key,
+  retry_after_account_key_load,
+} from "@/services/crypto/account_data_writer";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
 interface GetDevModeApiResponse {
   encrypted_dev_mode: string | null;
@@ -60,7 +65,9 @@ async function encrypt_dev_mode(
   enabled: boolean,
   vault: EncryptedVault,
 ): Promise<{ encrypted: string; nonce: string }> {
-  const key = await derive_dev_mode_key(vault);
+  const key =
+    (await account_data_write_key("astermail-devmode-v1")) ??
+    (await derive_dev_mode_key(vault));
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const data = new TextEncoder().encode(
     JSON.stringify({ enabled, timestamp: Date.now() }),
@@ -89,7 +96,9 @@ async function decrypt_dev_mode(
   );
   const nonce_data = Uint8Array.from(atob(nonce), (c) => c.charCodeAt(0));
 
-  const decrypted = await decrypt_aes_gcm_with_fallback(key, encrypted_data, nonce_data);
+  const decrypted = await retry_after_account_key_load(() =>
+    decrypt_aes_gcm_with_fallback(key, encrypted_data, nonce_data),
+  );
 
   const result = JSON.parse(new TextDecoder().decode(decrypted));
 
@@ -157,6 +166,7 @@ export interface SpamSettings {
   spam_retention_days: number;
   spam_sensitivity: string;
   spam_filter_enabled: boolean;
+  trash_retention_days: number;
 }
 
 export async function get_spam_settings(): Promise<{
@@ -171,7 +181,15 @@ export async function get_spam_settings(): Promise<{
       return { data: null };
     }
 
-    return { data: response.data };
+    return {
+      data: {
+        ...response.data,
+        trash_retention_days:
+          typeof response.data.trash_retention_days === "number"
+            ? response.data.trash_retention_days
+            : 30,
+      },
+    };
   } catch {
     return { data: null };
   }

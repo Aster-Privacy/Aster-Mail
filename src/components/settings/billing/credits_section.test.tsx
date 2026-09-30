@@ -23,6 +23,7 @@ import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 
 import { CreditsSection } from "./credits_section";
+
 import {
   get_credit_packages,
   purchase_credits,
@@ -32,6 +33,7 @@ import {
 vi.mock("@/services/api/billing", () => ({
   get_credit_packages: vi.fn(),
   purchase_credits: vi.fn(),
+  purchase_credits_crypto: vi.fn(),
   get_credit_transactions: vi.fn(),
   update_credit_settings: vi.fn(),
   format_price: (cents: number) => `$${(cents / 100).toFixed(2)}`,
@@ -54,7 +56,6 @@ const mocked_packages = vi.mocked(get_credit_packages);
 const mocked_purchase = vi.mocked(purchase_credits);
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
@@ -66,6 +67,13 @@ const PACKAGE: CreditPackageItem = {
   bonus_cents: 0,
 } as CreditPackageItem;
 
+const BONUS_PACKAGE: CreditPackageItem = {
+  id: "pkg_25",
+  price_cents: 2500,
+  amount_cents: 2500,
+  bonus_cents: 250,
+} as CreditPackageItem;
+
 describe("CreditsSection top-up bfcache restore", () => {
   let container: HTMLDivElement;
   let root: Root;
@@ -75,15 +83,15 @@ describe("CreditsSection top-up bfcache restore", () => {
       root.render(
         <CreditsSection
           credit_balance={null}
-          set_credit_balance={vi.fn()}
           preferred_currency="usd"
+          set_credit_balance={vi.fn()}
         />,
       );
     });
   };
 
   const find_button = (text: string) =>
-    Array.from(container.querySelectorAll("button")).find((b) =>
+    Array.from(document.body.querySelectorAll("button")).find((b) =>
       b.textContent?.includes(text),
     ) as HTMLButtonElement | undefined;
 
@@ -106,12 +114,15 @@ describe("CreditsSection top-up bfcache restore", () => {
 
   it("re-enables the buy button after a bfcache restore (pageshow persisted)", async () => {
     const assign = vi.fn();
+
     Object.defineProperty(window, "location", {
       value: { ...window.location, assign },
       writable: true,
     });
 
-    let resolve_purchase: ((value: { data: { url: string } }) => void) | undefined;
+    let resolve_purchase:
+      ((value: { data: { url: string } }) => void) | undefined;
+
     mocked_purchase.mockReturnValue(
       new Promise((resolve) => {
         resolve_purchase = resolve;
@@ -125,6 +136,7 @@ describe("CreditsSection top-up bfcache restore", () => {
     });
 
     const buy_button = find_button("settings.buy_credits")!;
+
     expect(buy_button.textContent).toContain("settings.buy_credits");
     expect(buy_button.disabled).toBe(false);
 
@@ -135,7 +147,9 @@ describe("CreditsSection top-up bfcache restore", () => {
     expect(find_button("settings.buying_credits")!.disabled).toBe(true);
 
     await act(async () => {
-      resolve_purchase?.({ data: { url: "https://checkout.stripe.com/c/pay/cs_test" } });
+      resolve_purchase?.({
+        data: { url: "https://checkout.stripe.com/c/pay/cs_test" },
+      });
     });
 
     expect(assign).toHaveBeenCalledWith(
@@ -145,11 +159,13 @@ describe("CreditsSection top-up bfcache restore", () => {
 
     await act(async () => {
       const evt = new Event("pageshow");
+
       Object.defineProperty(evt, "persisted", { value: true });
       window.dispatchEvent(evt);
     });
 
     const restored = find_button("settings.buy_credits")!;
+
     expect(restored.textContent).toContain("settings.buy_credits");
     expect(restored.disabled).toBe(false);
   });
@@ -163,10 +179,108 @@ describe("CreditsSection top-up bfcache restore", () => {
 
     await act(async () => {
       const evt = new Event("pageshow");
+
       Object.defineProperty(evt, "persisted", { value: false });
       window.dispatchEvent(evt);
     });
 
     expect(find_button("settings.buy_credits")!.disabled).toBe(false);
+  });
+});
+
+describe("CreditsSection top-up review and pay", () => {
+  let container: HTMLDivElement;
+  let root: Root;
+
+  const render_section = async () => {
+    await act(async () => {
+      root.render(
+        <CreditsSection
+          credit_balance={null}
+          preferred_currency="usd"
+          set_credit_balance={vi.fn()}
+        />,
+      );
+    });
+  };
+
+  const find_button = (text: string) =>
+    Array.from(document.body.querySelectorAll("button")).find((b) =>
+      b.textContent?.includes(text),
+    ) as HTMLButtonElement | undefined;
+
+  const open_picker = async () => {
+    await render_section();
+    await act(async () => {
+      find_button("settings.top_up_credits")!.click();
+    });
+  };
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    root = createRoot(container);
+    mocked_packages.mockReset();
+    mocked_purchase.mockReset();
+    mocked_packages.mockResolvedValue({ data: { packages: [BONUS_PACKAGE] } });
+  });
+
+  afterEach(async () => {
+    await act(async () => {
+      root.unmount();
+    });
+    container.remove();
+    vi.restoreAllMocks();
+  });
+
+  it("renders the order summary with the amount due", async () => {
+    await open_picker();
+
+    const dialog = document.body.querySelector('[role="dialog"]')!;
+    const text = dialog.textContent ?? "";
+
+    expect(text).toContain("settings.checkout_review_title");
+    expect(text).toContain("settings.domain_purchase_order_summary");
+    expect(text).toContain("settings.checkout_amount_due");
+    expect(text).toContain("settings.payment_details");
+    expect(text).toContain("$25.00");
+  });
+
+  it("keeps the pop-up open when escape is pressed", async () => {
+    await open_picker();
+
+    await act(async () => {
+      document.dispatchEvent(
+        new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
+      );
+    });
+
+    expect(document.body.querySelector('[role="dialog"]')).not.toBeNull();
+  });
+
+  it("asks before discarding a started payment", async () => {
+    await open_picker();
+
+    await act(async () => {
+      Array.from(document.body.querySelectorAll('[role="radio"]'))
+        .find((el) =>
+          el.textContent?.includes("settings.checkout_method_crypto"),
+        )!
+        .dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    await act(async () => {
+      (
+        document.body.querySelector(
+          'button[aria-label="common.close"]',
+        ) as HTMLButtonElement
+      ).click();
+    });
+
+    expect(
+      Array.from(document.body.querySelectorAll('[role="dialog"]')).some((el) =>
+        el.textContent?.includes("settings.checkout_abandon_title"),
+      ),
+    ).toBe(true);
   });
 });

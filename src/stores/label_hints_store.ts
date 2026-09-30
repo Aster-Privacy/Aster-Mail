@@ -31,10 +31,21 @@ const hint_map = new Map<string, LabelHint[]>();
 export function set_label_hints(email_id: string, hints: LabelHint[]): void {
   if (hints.length > 0) {
     hint_map.set(email_id, hints);
+
+    return;
   }
+
+  hint_map.delete(email_id);
 }
 
-export function get_label_hints(email_id: string | null | undefined): LabelHint[] {
+export function clear_label_hints(): void {
+  hint_map.clear();
+}
+
+export function get_label_hints(
+  email_id: string | null | undefined,
+): LabelHint[] {
   if (!email_id) return [];
+
   return hint_map.get(email_id) || [];
 }

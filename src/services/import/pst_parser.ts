@@ -27,13 +27,18 @@ import type {
   PstFolder,
 } from "./types";
 
-import { en } from "@/lib/i18n/translations/en";
 import { MAX_FILE_SIZE } from "./types";
 import { secure_hex } from "./mime_utils";
 
+import { get_active_translations } from "@/lib/i18n/translations";
 import { ignore_error } from "@/lib/ignore_error";
+import { format_decimal } from "@/lib/utils";
 
-function convert_pst_message(msg: PstMessage, index: number): ParsedEmail {
+function convert_pst_message(
+  msg: PstMessage,
+  index: number,
+  source_folder: string,
+): ParsedEmail {
   const message_id =
     msg.internetMessageId ||
     `pst-import-${index}-${Date.now().toString(36)}-${secure_hex(4)}@astermail.local`;
@@ -74,7 +79,8 @@ function convert_pst_message(msg: PstMessage, index: number): ParsedEmail {
   }
 
   const subject = msg.subject || "(No Subject)";
-  const raw_date = msg.clientSubmitTime || msg.messageDeliveryTime || new Date();
+  const raw_date =
+    msg.clientSubmitTime || msg.messageDeliveryTime || new Date();
   const candidate_date =
     raw_date instanceof Date ? raw_date : new Date(raw_date);
   const date = isNaN(candidate_date.getTime()) ? new Date() : candidate_date;
@@ -118,6 +124,7 @@ function convert_pst_message(msg: PstMessage, index: number): ParsedEmail {
     text_body,
     attachments,
     raw_headers: {},
+    source_folder: source_folder || undefined,
   };
 }
 
@@ -129,7 +136,12 @@ export async function parse_pst_file(
     return {
       emails: [],
       errors: [
-        en.errors.file_too_large.replace("{{size}}", (file.size / 1024 / 1024).toFixed(1)).replace("{{limit}}", "500"),
+        get_active_translations()
+          .errors.file_too_large.replace(
+            "{{size}}",
+            format_decimal(file.size / 1024 / 1024, 1),
+          )
+          .replace("{{limit}}", "500"),
       ],
       warnings: [],
     };
@@ -146,7 +158,7 @@ export async function parse_pst_file(
     let processed = 0;
     let total_estimate = 100;
 
-    const process_folder = (folder: PstFolder) => {
+    const process_folder = (folder: PstFolder, path: string) => {
       if (folder.contentCount > 0) {
         total_estimate = Math.max(
           total_estimate,
@@ -156,14 +168,20 @@ export async function parse_pst_file(
 
         while (message !== null) {
           try {
-            const parsed = convert_pst_message(message, processed);
+            const parsed = convert_pst_message(message, processed, path);
 
             emails.push(parsed);
           } catch (err) {
-            const error_msg = err instanceof Error ? err.message : en.errors.unknown_error;
+            const error_msg =
+              err instanceof Error
+                ? err.message
+                : get_active_translations().errors.unknown_error;
 
             warnings.push(
-              en.errors.failed_parse_pst.replace("{{error}}", error_msg),
+              get_active_translations().errors.failed_parse_pst.replace(
+                "{{error}}",
+                error_msg,
+              ),
             );
           }
           processed++;
@@ -185,26 +203,31 @@ export async function parse_pst_file(
         const subfolders = folder.getSubFolders();
 
         for (const subfolder of subfolders) {
-          process_folder(subfolder);
+          const name = (subfolder.displayName || "").trim();
+
+          process_folder(subfolder, path && name ? `${path}/${name}` : name);
         }
       }
     };
 
     const root = pst.getRootFolder();
 
-    process_folder(root);
+    process_folder(root, "");
 
     if (on_progress) {
       on_progress({ current: processed, total: processed, percentage: 100 });
     }
 
     if (emails.length === 0) {
-      errors.push(en.errors.no_emails_in_pst);
+      errors.push(get_active_translations().errors.no_emails_in_pst);
     }
 
     return { emails, errors, warnings };
   } catch (err) {
-    const error_message = err instanceof Error ? err.message : en.errors.unknown_error;
+    const error_message =
+      err instanceof Error
+        ? err.message
+        : get_active_translations().errors.unknown_error;
 
     if (
       error_message.includes("Buffer") ||
@@ -212,9 +235,7 @@ export async function parse_pst_file(
     ) {
       return {
         emails: [],
-        errors: [
-          en.errors.pst_conversion_required,
-        ],
+        errors: [get_active_translations().errors.pst_conversion_required],
         warnings: [],
       };
     }
@@ -222,7 +243,10 @@ export async function parse_pst_file(
     return {
       emails: [],
       errors: [
-        en.errors.failed_parse_pst_file.replace("{{error}}", error_message),
+        get_active_translations().errors.failed_parse_pst_file.replace(
+          "{{error}}",
+          error_message,
+        ),
       ],
       warnings: [],
     };

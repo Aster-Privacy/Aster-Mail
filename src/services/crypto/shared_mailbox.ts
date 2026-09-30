@@ -18,6 +18,9 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { EncryptedVault } from "@/services/crypto/key_manager_core";
+import type { CreateSharedMailboxParams } from "@/services/api/shared_mailboxes";
+
 import {
   hash_email,
   derive_password_hash,
@@ -38,9 +41,7 @@ import {
   get_passphrase_from_memory,
 } from "@/services/crypto/memory_key_store";
 import { MASTER_KEY_VAULT_FORMAT } from "@/services/crypto/memory_key_store";
-import type { EncryptedVault } from "@/services/crypto/key_manager_core";
 import { get_recipient_public_key } from "@/services/api/keys";
-import type { CreateSharedMailboxParams } from "@/services/api/shared_mailboxes";
 
 export const SHARED_MAILBOX_GRANT_VERSION = 1;
 

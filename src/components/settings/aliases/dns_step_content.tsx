@@ -21,11 +21,12 @@
 import type { TranslationKey } from "@/lib/i18n/types";
 import type { DnsProvider } from "@/data/dns_providers";
 import type { StepStatus } from "./dns_checklist";
+import type { DnsRecord } from "@/services/api/domains";
+
+import { DnsRecordCard } from "./dns_record_card";
 
 import { use_i18n } from "@/lib/i18n/context";
 import { EmailTag } from "@/components/ui/email_tag";
-import { DnsRecordCard } from "./dns_record_card";
-import type { DnsRecord } from "@/services/api/domains";
 
 interface WizardStep {
   id: string;
@@ -189,7 +190,8 @@ export function DnsStepContent({
           <span
             className="text-xs font-medium px-2 py-0.5 rounded"
             style={{
-              background: "linear-gradient(to bottom, var(--accent-color), var(--accent-mix-b80, #2f68c5))",
+              background:
+                "linear-gradient(to bottom, var(--accent-color), var(--accent-mix-b80, #2f68c5))",
               color: "white",
             }}
           >
@@ -232,7 +234,9 @@ export function DnsStepContent({
       <div className="p-3 rounded-lg mb-4 bg-surf-tertiary border border-edge-secondary">
         {provider && (
           <p className="text-xs font-medium mb-2 text-txt-secondary">
-            {t("settings.instructions_for_provider", { provider: provider.name })}
+            {t("settings.instructions_for_provider", {
+              provider: provider.name,
+            })}
           </p>
         )}
         <ol className="space-y-1.5">

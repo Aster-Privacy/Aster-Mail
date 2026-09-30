@@ -32,7 +32,10 @@ import {
   emit_mail_item_updated,
   type MailItemUpdatedEventDetail,
 } from "./mail_events";
-import { mark_view_stale, remove_email_from_view_cache } from "./email_list_cache";
+import {
+  mark_view_stale,
+  remove_email_from_view_cache,
+} from "./email_list_cache";
 
 import {
   patch_mail_item_metadata,
@@ -61,10 +64,16 @@ import {
 import {
   remove_ids as remove_index_ids,
   reindex_ids,
+  set_ids_read,
 } from "@/services/category_index";
 import { mark_conversation_read } from "@/hooks/mark_conversation_read";
-
+import { update_item_metadata } from "@/services/crypto/mail_metadata_writer";
+import {
+  begin_read_change,
+  is_read_ticket_current,
+} from "@/services/read_intent";
 import { ignore_error } from "@/lib/ignore_error";
+import { compare_timestamps_desc } from "@/utils/email_timestamp";
 
 interface UseEmailListActionsParams {
   state: EmailListState;
@@ -213,13 +222,28 @@ export function use_email_list_actions({
           adjust_stats_unread(new_read_state ? -1 : 1);
         }
 
+        const read_ticket = begin_read_change([id]);
         let success = false;
+        let encrypted: { encrypted_metadata: string; metadata_nonce: string } | undefined;
 
         try {
-          success = await api_update(id, { is_read: new_read_state });
+          const result = await update_item_metadata(
+            id,
+            {
+              encrypted_metadata: email.encrypted_metadata,
+              metadata_nonce: email.metadata_nonce,
+              metadata_version: email.metadata_version,
+            },
+            { is_read: new_read_state },
+          );
+
+          success = result.success;
+          encrypted = result.encrypted;
         } catch {
           success = false;
         }
+
+        if (!is_read_ticket_current(id, read_ticket)) return;
 
         if (!success) {
           if (should_adjust_unread) {
@@ -229,12 +253,24 @@ export function use_email_list_actions({
           return;
         }
 
+        update_email(id, {
+          is_read: new_read_state,
+          ...(encrypted && {
+            encrypted_metadata: encrypted.encrypted_metadata,
+            metadata_nonce: encrypted.metadata_nonce,
+          }),
+        } as Partial<InboxEmail>);
+        emit_mail_item_updated({
+          id,
+          is_read: new_read_state,
+        } as MailItemUpdatedEventDetail);
+        set_ids_read([id], new_read_state);
         if (new_read_state && email.item_type === "received") {
           mark_conversation_read(conversation_options);
         }
       }
     },
-    [state.emails, api_update],
+    [state.emails, update_email],
   );
 
   const delete_email = useCallback(
@@ -288,10 +324,11 @@ export function use_email_list_actions({
         if (email_to_restore) {
           set_state((prev) => ({
             ...prev,
-            emails: [...prev.emails, email_to_restore].sort(
-              (a, b) =>
-                new Date(b.timestamp).getTime() -
-                new Date(a.timestamp).getTime(),
+            emails: [...prev.emails, email_to_restore].sort((a, b) =>
+              compare_timestamps_desc(
+                a.raw_timestamp || a.timestamp,
+                b.raw_timestamp || b.timestamp,
+              ),
             ),
             total_messages: prev.total_messages + 1,
           }));
@@ -327,7 +364,13 @@ export function use_email_list_actions({
       const result = await api_batch_archive({ ids: all_ids, tier: "hot" });
 
       if (result.data?.success) {
-        void bulk_update_metadata_by_ids(all_ids, { is_archived: true }).catch((caught) => ignore_error("hooks/use_email_list_actions:use_email_list_actions", caught));
+        void bulk_update_metadata_by_ids(all_ids, { is_archived: true }).catch(
+          (caught) =>
+            ignore_error(
+              "hooks/use_email_list_actions:use_email_list_actions",
+              caught,
+            ),
+        );
       }
 
       if (!result.data?.success) {
@@ -342,10 +385,11 @@ export function use_email_list_actions({
         if (email_to_restore) {
           set_state((prev) => ({
             ...prev,
-            emails: [...prev.emails, email_to_restore].sort(
-              (a, b) =>
-                new Date(b.timestamp).getTime() -
-                new Date(a.timestamp).getTime(),
+            emails: [...prev.emails, email_to_restore].sort((a, b) =>
+              compare_timestamps_desc(
+                a.raw_timestamp || a.timestamp,
+                b.raw_timestamp || b.timestamp,
+              ),
             ),
             total_messages: prev.total_messages + 1,
           }));
@@ -389,9 +433,7 @@ export function use_email_list_actions({
           is_archived: false,
         } as MailItemUpdatedEventDetail);
         setTimeout(() => {
-          window.dispatchEvent(
-            new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH),
-          );
+          window.dispatchEvent(new CustomEvent(MAIL_EVENTS.MAIL_SOFT_REFRESH));
         }, 300);
       }
 
@@ -421,6 +463,9 @@ export function use_email_list_actions({
 
       remove_email(id);
       remove_index_ids(all_ids);
+      for (const aid of all_ids) {
+        remove_email_from_view_cache(aid);
+      }
       if (should_adjust_unread) {
         adjust_stats_unread(-1);
       }
@@ -434,8 +479,18 @@ export function use_email_list_actions({
       });
 
       if (result.success) {
+        emit_mail_item_updated({
+          id,
+          is_spam: true,
+          is_trashed: false,
+        } as MailItemUpdatedEventDetail);
         if (email?.sender_email) {
-          report_spam_sender(email.sender_email).catch((caught) => ignore_error("hooks/use_email_list_actions:use_email_list_actions", caught));
+          report_spam_sender(email.sender_email).catch((caught) =>
+            ignore_error(
+              "hooks/use_email_list_actions:use_email_list_actions",
+              caught,
+            ),
+          );
         }
       } else {
         reindex_ids(all_ids);

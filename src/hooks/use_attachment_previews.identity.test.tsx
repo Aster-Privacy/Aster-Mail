@@ -71,7 +71,6 @@ const { use_attachment_previews, clear_attachment_preview_cache } =
   await import("@/hooks/use_attachment_previews");
 
 declare global {
-  // eslint-disable-next-line no-var
   var IS_REACT_ACT_ENVIRONMENT: boolean;
 }
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;

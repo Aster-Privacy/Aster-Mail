@@ -18,17 +18,18 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { HASH_ALG } from "@/services/crypto/constants";
 import { api_client, type ApiResponse } from "./client";
-import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 
+import { user_facing_error } from "@/utils/user_facing_error";
+import { HASH_ALG } from "@/services/crypto/constants";
+import { decrypt_aes_gcm_with_fallback } from "@/services/crypto/legacy_keks";
 import {
   get_or_create_derived_encryption_crypto_key,
   get_derived_encryption_key,
 } from "@/services/crypto/memory_key_store";
 import { zero_uint8_array } from "@/services/crypto/secure_memory";
 import { get_key, store_key } from "@/services/crypto/crypto_key_cache";
-
+import { get_active_translations } from "@/lib/i18n/translations";
 
 function array_to_base64(array: Uint8Array): string {
   let binary = "";
@@ -51,23 +52,23 @@ function base64_to_array(base64: string): Uint8Array {
 
     return bytes;
   } catch {
-    throw new Error("Invalid base64 data");
+    throw new Error(get_active_translations().errors.unexpected_error);
   }
 }
 
 function validate_email(email: string): void {
   if (!email || typeof email !== "string") {
-    throw new Error("Email is required");
+    throw new Error(get_active_translations().settings.email_required);
   }
 
   const trimmed = email.trim();
 
   if (trimmed.length === 0) {
-    throw new Error("Email cannot be empty");
+    throw new Error(get_active_translations().settings.email_required);
   }
 
   if (trimmed.length > 320) {
-    throw new Error("Email is too long");
+    throw new Error(get_active_translations().settings.valid_email_required);
   }
 }
 
@@ -83,7 +84,9 @@ async function get_hmac_key(): Promise<CryptoKey> {
   const raw_key = get_derived_encryption_key();
 
   if (!raw_key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   const encoder = new TextEncoder();
@@ -115,7 +118,9 @@ async function get_notes_encryption_key(): Promise<CryptoKey> {
   const key = await get_or_create_derived_encryption_crypto_key();
 
   if (!key) {
-    throw new Error("No encryption key available");
+    throw new Error(
+      get_active_translations().errors.encryption_keys_unavailable,
+    );
   }
 
   return key;
@@ -161,25 +166,39 @@ async function verify_integrity_hash(
 }
 
 const MAX_NOTE_LENGTH = 50000;
+const MAX_ENCRYPTED_NOTE_LENGTH = 65536;
+const GCM_TAG_BYTES = 16;
+
+function build_note_payload(note: string): string {
+  return JSON.stringify({
+    content: note,
+    _encrypted_at: new Date().toISOString(),
+  });
+}
+
+export function note_exceeds_limit(note: string): boolean {
+  if (note.length > MAX_NOTE_LENGTH) return true;
+
+  const plaintext_bytes = new TextEncoder().encode(
+    build_note_payload(note),
+  ).length;
+  const encoded_length = 4 * Math.ceil((plaintext_bytes + GCM_TAG_BYTES) / 3);
+
+  return encoded_length > MAX_ENCRYPTED_NOTE_LENGTH;
+}
 
 export async function encrypt_note(note: string): Promise<{
   encrypted_note: string;
   note_nonce: string;
   integrity_hash: string;
 }> {
-  if (note.length > MAX_NOTE_LENGTH) {
-    throw new Error(
-      `Note exceeds maximum length of ${MAX_NOTE_LENGTH} characters`,
-    );
+  if (note_exceeds_limit(note)) {
+    throw new Error(get_active_translations().errors.note_too_large);
   }
 
   const key = await get_notes_encryption_key();
   const encoder = new TextEncoder();
-  const payload = {
-    content: note,
-    _encrypted_at: new Date().toISOString(),
-  };
-  const plaintext = encoder.encode(JSON.stringify(payload));
+  const plaintext = encoder.encode(build_note_payload(note));
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const ciphertext = await crypto.subtle.encrypt(
     { name: "AES-GCM", iv: nonce },
@@ -276,7 +295,10 @@ export async function get_profile_note(
     };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to get profile note",
+      error: user_facing_error(
+        err,
+        get_active_translations().errors.load_failed,
+      ),
     };
   }
 }
@@ -301,7 +323,9 @@ export async function save_profile_note(
     );
 
     if (response.error || !response.data) {
-      return { error: response.error || "Failed to save profile note" };
+      return {
+        error: response.error || get_active_translations().common.save_failed,
+      };
     }
 
     return {
@@ -315,7 +339,10 @@ export async function save_profile_note(
     };
   } catch (err) {
     return {
-      error: err instanceof Error ? err.message : "Failed to save profile note",
+      error: user_facing_error(
+        err,
+        get_active_translations().common.save_failed,
+      ),
     };
   }
 }
@@ -332,8 +359,7 @@ export async function delete_profile_note(
     return response;
   } catch (err) {
     return {
-      error:
-        err instanceof Error ? err.message : "Failed to delete profile note",
+      error: user_facing_error(err, get_active_translations().errors.generic),
     };
   }
 }

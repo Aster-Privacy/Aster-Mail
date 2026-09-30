@@ -20,7 +20,7 @@
 //
 import type { ConfirmationDialogState } from "@/types/email";
 
-import { Button } from "@aster/ui";
+import { Button } from "@/components/ui/button";
 
 import {
   AlertDialog,
@@ -41,6 +41,7 @@ import { use_i18n } from "@/lib/i18n/context";
 
 interface InboxDialogsProps {
   current_view: string;
+  selected_count: number;
   confirmations: ConfirmationDialogState;
   dont_ask_delete: boolean;
   set_dont_ask_delete: (v: boolean) => void;
@@ -81,11 +82,12 @@ interface InboxDialogsProps {
   trash_count: number;
   custom_snooze_open: boolean;
   on_custom_snooze_close: () => void;
-  on_custom_snooze: (snooze_until: Date) => Promise<void>;
+  on_custom_snooze: (snooze_until: Date) => Promise<boolean>;
 }
 
 export function InboxDialogs({
   current_view,
+  selected_count,
   confirmations,
   dont_ask_delete,
   set_dont_ask_delete,
@@ -133,15 +135,27 @@ export function InboxDialogs({
   return (
     <>
       <ConfirmModal
-        confirm_text={t("common.delete")}
+        confirm_text={
+          current_view === "trash" || current_view === "drafts"
+            ? t("mail.delete_permanently")
+            : t("mail.move_to_trash")
+        }
         confirm_variant="destructive"
-        description={t("mail.delete_messages_confirmation")}
+        description={
+          current_view === "trash" || current_view === "drafts"
+            ? t("mail.delete_messages_confirmation")
+            : t("mail.trash_messages_confirmation")
+        }
         dont_ask={dont_ask_delete}
         on_cancel={cancel_delete}
         on_confirm={confirm_delete}
         on_dont_ask_change={set_dont_ask_delete}
         show={confirmations.show_delete}
-        title={t("mail.delete_messages_title")}
+        title={
+          current_view === "trash" || current_view === "drafts"
+            ? t("mail.bulk_delete_title", { count: selected_count })
+            : t("mail.bulk_trash_title", { count: selected_count })
+        }
       />
       <ConfirmModal
         confirm_text={t("mail.archive")}
@@ -152,7 +166,7 @@ export function InboxDialogs({
         on_confirm={confirm_archive}
         on_dont_ask_change={set_dont_ask_archive}
         show={confirmations.show_archive}
-        title={t("mail.archive_messages_title")}
+        title={t("mail.bulk_archive_title", { count: selected_count })}
       />
       <ConfirmModal
         confirm_text={
@@ -180,7 +194,7 @@ export function InboxDialogs({
       <ConfirmModal
         confirm_text={t("mail.mark_spam_title")}
         confirm_variant="destructive"
-        description={t("mail.spam_email_message")}
+        description={t("mail.spam_email_sender_message")}
         dont_ask={dont_ask_single_spam}
         on_cancel={cancel_single_spam}
         on_confirm={confirm_single_spam}
@@ -208,7 +222,7 @@ export function InboxDialogs({
         on_confirm={confirm_spam}
         on_dont_ask_change={set_dont_ask_spam}
         show={confirmations.show_spam}
-        title={t("mail.mark_spam_title")}
+        title={t("mail.bulk_spam_title", { count: selected_count })}
       />
 
       <AlertDialog
@@ -236,7 +250,6 @@ export function InboxDialogs({
               <Button
                 className="mt-0 max-sm:flex-1"
                 disabled={is_emptying_spam}
-                size="xl"
                 variant="outline"
               >
                 {t("common.cancel")}
@@ -246,11 +259,11 @@ export function InboxDialogs({
               <Button
                 className="max-sm:flex-1"
                 disabled={is_emptying_spam}
-                size="xl"
+                is_loading={is_emptying_spam}
                 variant="destructive"
                 onClick={confirm_empty_spam}
               >
-                {is_emptying_spam ? t("common.deleting") : t("mail.delete_all")}
+                {t("mail.delete_all")}
               </Button>
             </AlertDialogAction>
           </AlertDialogFooter>

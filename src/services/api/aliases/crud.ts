@@ -18,14 +18,27 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { } from "@/lib/i18n/types";
+import type {} from "@/lib/i18n/types";
 
 import { api_client, type ApiResponse } from "../client";
 
-
-
-import { compute_alias_hash, compute_routing_hash, encrypt_alias_field } from "./crypto";
-import { AliasLimitResponse, AliasPreferences, BulkCreateAliasItem, BulkCreateAliasResponse, CheckAvailabilityResponse, CreateAliasRequest, CreateAliasResponse, EmailAlias, UpdateAliasRequest } from "./types";
+import {
+  compute_alias_hash,
+  compute_routing_hash,
+  encrypt_alias_field,
+} from "./crypto";
+import {
+  AliasLimitResponse,
+  TwinAddressResponse,
+  AliasPreferences,
+  BulkCreateAliasItem,
+  BulkCreateAliasResponse,
+  CheckAvailabilityResponse,
+  CreateAliasRequest,
+  CreateAliasResponse,
+  EmailAlias,
+  UpdateAliasRequest,
+} from "./types";
 import { MAX_ALIAS_WEBSITES, normalize_website_url } from "./website";
 export async function get_alias(
   alias_id: string,
@@ -216,6 +229,12 @@ export async function get_alias_limit(): Promise<
   return api_client.get<AliasLimitResponse>("/addresses/v1/aliases/limit");
 }
 
+export async function get_twin_address(): Promise<
+  ApiResponse<TwinAddressResponse>
+> {
+  return api_client.get<TwinAddressResponse>("/addresses/v1/aliases/twin");
+}
+
 export async function bulk_create_aliases(
   aliases: BulkCreateAliasItem[],
 ): Promise<ApiResponse<BulkCreateAliasResponse>> {
@@ -239,4 +258,3 @@ export async function update_alias_preferences(
     prefs,
   );
 }
-

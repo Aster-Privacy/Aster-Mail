@@ -101,8 +101,9 @@ describe("post-quantum identity seed vector", () => {
   });
 
   it("rejects a seed of the wrong length", () => {
-    expect(derive_pq_identity_from_seed(bytes_to_base64(new Uint8Array(32))))
-      .toBeNull();
+    expect(
+      derive_pq_identity_from_seed(bytes_to_base64(new Uint8Array(32))),
+    ).toBeNull();
   });
 
   it("prefers a stored secret and falls back to the seed", () => {

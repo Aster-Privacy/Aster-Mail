@@ -31,17 +31,18 @@ import {
 import { Button } from "@aster/ui";
 import { Checkbox } from "@aster/ui";
 
+import { FaviconOrInitial } from "@/components/ui/favicon_or_initial";
 import { use_shift_range_select } from "@/lib/use_shift_range_select";
 import { Modal, ModalBody } from "@/components/ui/modal";
 import { Spinner } from "@/components/ui/spinner";
-import { bulk_patch_metadata } from "@/services/api/mail";
+import { batched_bulk_patch_metadata } from "@/services/api/mail";
 import {
   scan_received_items,
   DECRYPT_YIELD_CHUNK,
   decrypt_items_metadata_for_action,
 } from "@/services/bulk_mail_scan";
 import { yield_to_browser } from "@/lib/scheduling";
-import { batch_archive, batch_unarchive } from "@/services/api/archive";
+import { batched_archive, batched_unarchive } from "@/services/api/archive";
 import { stale_all_view_caches } from "@/hooks/email_list_cache";
 import { decrypt_mail_envelope } from "@/components/email/shared/decrypt_envelope";
 import { normalize_envelope_from } from "@/services/crypto/envelope";
@@ -52,12 +53,16 @@ import {
 } from "@/services/crypto/mail_metadata";
 import { get_email_username, get_email_domain } from "@/lib/utils";
 import { has_protected_folder_label } from "@/hooks/use_folders";
-import { emit_mail_items_removed } from "@/hooks/mail_events";
+import {
+  emit_mail_items_removed,
+  emit_mail_soft_refresh,
+} from "@/hooks/mail_events";
 import { invalidate_mail_stats } from "@/hooks/use_mail_stats";
 import { show_action_toast } from "@/components/toast/action_toast";
 import { Input } from "@/components/ui/input";
 import { use_should_reduce_motion } from "@/provider";
 import { use_i18n } from "@/lib/i18n/context";
+import { show_toast } from "@/components/toast/simple_toast";
 import { detect_unsubscribe_info } from "@/utils/unsubscribe_detector";
 import { map_in_chunks } from "@/lib/scheduling";
 
@@ -126,10 +131,17 @@ export function ArchiveNewslettersModal({
     items: MailItem[];
   } | null>(null);
 
+  const [scan_failed, set_scan_failed] = useState(false);
+
   const fetch_newsletters = useCallback(async (signal?: AbortSignal) => {
     set_is_loading(true);
+    set_scan_failed(false);
     try {
-      const { items: all_items } = await scan_received_items(signal);
+      const { items: all_items, failed } = await scan_received_items(signal);
+
+      if (signal?.aborted) return;
+
+      set_scan_failed(failed);
 
       if (signal?.aborted) return;
 
@@ -254,12 +266,19 @@ export function ArchiveNewslettersModal({
       .sort((a, b) => b.email_count - a.email_count);
   }, [newsletters, search_query]);
 
+  const all_selected =
+    filtered_newsletters.length > 0 &&
+    filtered_newsletters.every((n) => selected_ids.has(n.id));
+
   const handle_select_all = () => {
-    if (selected_ids.size === filtered_newsletters.length) {
-      set_selected_ids(new Set());
+    const next = new Set(selected_ids);
+
+    if (all_selected) {
+      for (const newsletter of filtered_newsletters) next.delete(newsletter.id);
     } else {
-      set_selected_ids(new Set(filtered_newsletters.map((n) => n.id)));
+      for (const newsletter of filtered_newsletters) next.add(newsletter.id);
     }
+    set_selected_ids(next);
   };
 
   const handle_select = use_shift_range_select(
@@ -296,24 +315,45 @@ export function ArchiveNewslettersModal({
       });
 
       const valid_updates = metadata_updates.filter(
-        (u) => u !== null,
-      ) as Array<{
-        id: string;
-        encrypted_metadata: string;
-        metadata_nonce: string;
-      }>;
+        (u): u is NonNullable<typeof u> => u !== null,
+      );
+
+      let cleanup_failed = false;
 
       if (valid_updates.length > 0) {
-        await bulk_patch_metadata({ items: valid_updates });
+        const patch_result = await batched_bulk_patch_metadata(valid_updates);
+
+        cleanup_failed = patch_result.failed_ids.length > 0;
       }
 
       stale_all_view_caches();
-      await batch_archive({ ids: all_mail_ids, tier: "hot" });
-      emit_mail_items_removed({ ids: all_mail_ids });
+      const archive_result = await batched_archive(all_mail_ids, "hot");
+      const archived_ids = archive_result.succeeded_ids;
+
+      if (archive_result.failed_ids.length > 0) {
+        cleanup_failed = true;
+      }
+
+      if (archived_ids.length === 0) {
+        show_toast(t("common.something_went_wrong_try_again"), "error");
+
+        return;
+      }
+
+      if (cleanup_failed) {
+        show_toast(t("settings.some_messages_not_archived"), "error");
+      }
+
+      emit_mail_items_removed({ ids: archived_ids });
       invalidate_mail_stats();
 
-      set_completed_count(all_mail_ids.length);
-      set_last_archived({ ids: all_mail_ids, items: all_items });
+      const archived = new Set(archived_ids);
+
+      set_completed_count(archived_ids.length);
+      set_last_archived({
+        ids: archived_ids,
+        items: all_items.filter((item) => archived.has(item.id)),
+      });
       set_newsletters((prev) => prev.filter((n) => !selected_ids.has(n.id)));
       set_selected_ids(new Set());
       set_show_success(true);
@@ -343,26 +383,35 @@ export function ArchiveNewslettersModal({
       }),
     );
 
-    const valid_undo = undo_updates.filter((u) => u !== null) as Array<{
-      id: string;
-      encrypted_metadata: string;
-      metadata_nonce: string;
-    }>;
+    const valid_undo = undo_updates.filter(
+      (u): u is NonNullable<typeof u> => u !== null,
+    );
 
     if (valid_undo.length > 0) {
-      await bulk_patch_metadata({ items: valid_undo });
+      await batched_bulk_patch_metadata(valid_undo);
     }
 
-    await batch_unarchive({ ids: last_archived.ids });
-    window.dispatchEvent(new CustomEvent("astermail:mail-soft-refresh"));
+    const unarchive_result = await batched_unarchive(last_archived.ids);
+
+    if (unarchive_result.succeeded_ids.length === 0) {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+
+      return;
+    }
+
+    if (unarchive_result.failed_ids.length > 0) {
+      show_toast(t("common.something_went_wrong_try_again"), "error");
+    }
+
+    emit_mail_soft_refresh();
     invalidate_mail_stats();
-  }, [last_archived]);
+  }, [last_archived, t]);
 
   const handle_done = useCallback(() => {
     if (last_archived) {
       show_action_toast({
         message: t("common.newsletters_archived", {
-          count: String(completed_count),
+          count: completed_count,
         }),
         action_type: "archive",
         email_ids: last_archived.ids,
@@ -371,10 +420,6 @@ export function ArchiveNewslettersModal({
     }
     on_close();
   }, [last_archived, completed_count, t, handle_undo, on_close]);
-
-  const all_selected =
-    selected_ids.size === filtered_newsletters.length &&
-    filtered_newsletters.length > 0;
 
   return (
     <Modal
@@ -399,7 +444,8 @@ export function ArchiveNewslettersModal({
             </h2>
           </div>
           <button
-            className="p-1.5 rounded-[14px] transition-colors hover:bg-black/[0.05] dark:hover:bg-white/[0.05]"
+            aria-label={t("common.close")}
+            className="p-1.5 rounded-[14px] transition-colors hover:bg-[var(--aster-hover)]"
             style={{ color: "var(--text-muted)" }}
             onClick={on_close}
           >
@@ -429,13 +475,12 @@ export function ArchiveNewslettersModal({
                   style={{ color: "var(--text-muted)" }}
                 >
                   {t("common.newsletters_archived", {
-                    count: String(completed_count),
+                    count: completed_count,
                   })}
                 </p>
                 <div className="mt-6" />
                 <div className="flex gap-2">
                   <Button
-                    size="xl"
                     variant="outline"
                     onClick={() => {
                       set_show_success(false);
@@ -444,7 +489,7 @@ export function ArchiveNewslettersModal({
                   >
                     {t("common.continue_label")}
                   </Button>
-                  <Button size="xl" variant="depth" onClick={handle_done}>
+                  <Button variant="depth" onClick={handle_done}>
                     {t("common.done")}
                   </Button>
                 </div>
@@ -476,13 +521,16 @@ export function ArchiveNewslettersModal({
                 <div className="px-3 py-2.5 flex-shrink-0">
                   <div className="relative">
                     <MagnifyingGlassIcon
-                      className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5"
+                      className="absolute start-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5"
                       style={{ color: "var(--text-muted)" }}
                     />
                     <Input
                       className="w-full"
                       placeholder={t("common.search") + "..."}
-                      style={{ paddingLeft: "34px", paddingRight: "12px" }}
+                      style={{
+                        paddingInlineStart: "34px",
+                        paddingInlineEnd: "12px",
+                      }}
                       value={search_query}
                       onChange={(e) => set_search_query(e.target.value)}
                     />
@@ -515,8 +563,19 @@ export function ArchiveNewslettersModal({
                       >
                         {search_query
                           ? t("common.no_results")
-                          : t("common.no_newsletters_found")}
+                          : scan_failed
+                            ? t("common.something_went_wrong_try_again")
+                            : t("common.no_newsletters_found")}
                       </p>
+                      {scan_failed && !search_query && (
+                        <button
+                          className="mt-2 text-[12px] font-medium text-brand hover:underline"
+                          type="button"
+                          onClick={() => void fetch_newsletters()}
+                        >
+                          {t("common.retry")}
+                        </button>
+                      )}
                     </div>
                   ) : (
                     filtered_newsletters.map((newsletter, index) => {
@@ -543,30 +602,16 @@ export function ArchiveNewslettersModal({
                             onClick={(e) => e.stopPropagation()}
                           />
                           <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0 overflow-hidden bg-black/[0.03] dark:bg-white/[0.04]">
-                            <img
-                              alt=""
-                              className="w-4 h-4 object-contain"
+                            <FaviconOrInitial
+                              initial={newsletter.sender_name.charAt(0)}
+                              initial_class_name="text-[11px] font-medium"
+                              initial_style={{ color: "var(--text-muted)" }}
                               src={get_favicon_url(
                                 newsletter.domain.toLowerCase(),
                               )}
-                              onError={(e) => {
-                                e.currentTarget.style.display = "none";
-                                const parent = e.currentTarget.parentElement;
-
-                                if (parent) {
-                                  parent.textContent = "";
-                                  const span = document.createElement("span");
-
-                                  span.className = "text-[11px] font-medium";
-                                  span.style.color = "var(--text-muted)";
-                                  span.textContent =
-                                    newsletter.sender_name.charAt(0);
-                                  parent.appendChild(span);
-                                }
-                              }}
                             />
                           </div>
-                          <div className="flex-1 min-w-0 text-left">
+                          <div className="flex-1 min-w-0 text-start">
                             <p
                               className="text-[13px] font-medium truncate"
                               style={{ color: "var(--text-primary)" }}
@@ -611,7 +656,6 @@ export function ArchiveNewslettersModal({
                   </button>
                   <Button
                     disabled={selected_ids.size === 0}
-                    size="xl"
                     variant="depth"
                     onClick={handle_archive}
                   >

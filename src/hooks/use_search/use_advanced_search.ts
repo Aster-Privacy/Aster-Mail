@@ -19,19 +19,21 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
+import { useState, useCallback, useMemo } from "react";
 
 import {
-  useState,
-  useCallback,
-} from "react";
+  AdvancedSearchState,
+  QuickFilter,
+  SearchScope,
+  SortOption,
+} from "./types";
+import { use_search } from "./use_search_hook";
 
 import {
   parse_search_query,
   get_quick_filters,
 } from "@/utils/search_operators";
-
-import { AdvancedSearchState, QuickFilter, SearchScope, SortOption } from "./types";
-import { use_search } from "./use_search_hook";
+import { app_locale } from "@/utils/date_format";
 export function use_advanced_search() {
   const [raw_query, set_raw_query_state] = useState("");
   const [sort_option, set_sort_option_state] =
@@ -44,14 +46,41 @@ export function use_advanced_search() {
     state: underlying,
     search: underlying_search,
     clear_results: underlying_clear,
+    load_more: underlying_load_more,
   } = use_search();
 
   const parsed = parse_search_query(raw_query);
 
+  const sorted_results = useMemo(() => {
+    if (sort_option === "relevance") return underlying.results;
+
+    const next = [...underlying.results];
+
+    if (sort_option === "sender") {
+      next.sort((a, b) =>
+        (a.sender_name || a.sender_email).localeCompare(
+          b.sender_name || b.sender_email,
+          app_locale(),
+        ),
+      );
+
+      return next;
+    }
+
+    next.sort((a, b) => {
+      const a_time = new Date(a.timestamp).getTime();
+      const b_time = new Date(b.timestamp).getTime();
+
+      return sort_option === "date_oldest" ? a_time - b_time : b_time - a_time;
+    });
+
+    return next;
+  }, [underlying.results, sort_option]);
+
   const state: AdvancedSearchState = {
     raw_query,
     text_query: parsed.text_query,
-    results: underlying.results,
+    results: sorted_results,
     is_loading: underlying.is_loading,
     is_searching: underlying.is_searching,
     has_more: underlying.has_more,
@@ -77,6 +106,45 @@ export function use_advanced_search() {
     [underlying_search],
   );
 
+  const apply_query = useCallback(
+    (next: string) => {
+      set_raw_query_state(next);
+      underlying_search(next, { fields: ["all"] });
+    },
+    [underlying_search],
+  );
+
+  const remove_token = (query: string, token: string): string =>
+    query
+      .split(/\s+/)
+      .filter((part) => part && part !== token)
+      .join(" ");
+
+  const remove_filter = useCallback(
+    (id: string) => {
+      const target = state.active_filters.find((filter) => filter.id === id);
+
+      if (!target) return;
+
+      apply_query(remove_token(raw_query, target.label));
+    },
+    [state.active_filters, raw_query, apply_query],
+  );
+
+  const add_quick_filter = useCallback(
+    (operator: string) => {
+      const tokens = raw_query.split(/\s+/).filter(Boolean);
+
+      if (tokens.includes(operator)) {
+        apply_query(remove_token(raw_query, operator));
+
+        return;
+      }
+      apply_query(raw_query ? `${raw_query} ${operator}` : operator);
+    },
+    [raw_query, apply_query],
+  );
+
   return {
     state,
     search,
@@ -84,22 +152,13 @@ export function use_advanced_search() {
       set_raw_query_state("");
       underlying_clear();
     },
-    remove_filter: (_id: string) => {},
-    add_quick_filter: (operator: string) => {
-      set_raw_query_state((prev) => {
-        if (prev.includes(operator)) return prev;
-        const next = prev ? `${prev} ${operator}` : operator;
-
-        underlying_search(next, { fields: ["all"] });
-
-        return next;
-      });
-    },
+    remove_filter,
+    add_quick_filter,
     set_sort_option: set_sort_option_state,
     set_search_scope: set_search_scope_state,
     set_raw_query: set_raw_query_state,
     quick_filters,
     navigate_to_result: (_id: string) => {},
-    load_more: () => {},
+    load_more: underlying_load_more,
   };
 }

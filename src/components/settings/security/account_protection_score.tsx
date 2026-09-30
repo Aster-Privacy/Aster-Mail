@@ -22,21 +22,25 @@
 //
 import { useState } from "react";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
+import { Island } from "@aster/ui";
 
-import { Modal, ModalHeader, ModalTitle, ModalBody } from "@/components/ui/modal";
+import {
+  Modal,
+  ModalHeader,
+  ModalTitle,
+  ModalBody,
+} from "@/components/ui/modal";
 import {
   SecurityLockIcon,
+  security_status_from_percent,
   type SecurityStatus,
 } from "@/components/settings/security/security_lock_icon";
+import {
+  build_security_criteria,
+  security_percent,
+} from "@/lib/security_criteria";
 import { use_i18n } from "@/lib/i18n/context";
 import { use_preferences } from "@/contexts/preferences_context";
-
-function get_status(bar_pct: number): SecurityStatus {
-  if (bar_pct < 35) return "weak";
-  if (bar_pct < 60) return "fair";
-  if (bar_pct < 90) return "partial";
-  return "strong";
-}
 
 const STATUS_BUTTON_STYLES: Record<SecurityStatus, string> = {
   weak: "bg-red-600 hover:bg-red-700 text-white",
@@ -48,28 +52,27 @@ const STATUS_BUTTON_STYLES: Record<SecurityStatus, string> = {
 interface AccountProtectionScoreProps {
   totp_enabled: boolean;
   passkey_registered: boolean;
+  recovery_codes_saved: boolean;
   recovery_email_verified: boolean;
   login_alerts_enabled: boolean;
   block_tracking_pixels: boolean;
   block_remote_images: boolean;
   strip_exif_on_compose: boolean;
-  read_receipts_off: boolean;
   security_loaded?: boolean;
   on_criterion_click?: Array<(() => void) | undefined>;
 }
 
 const WEIGHTS = [1, 1, 1, 1, 1, 1, 1, 1] as const;
-const MAX_SCORE = 8;
 
 export function AccountProtectionScore({
   totp_enabled,
   passkey_registered,
+  recovery_codes_saved,
   recovery_email_verified,
   login_alerts_enabled,
   block_tracking_pixels,
   block_remote_images,
   strip_exif_on_compose,
-  read_receipts_off,
   security_loaded = true,
   on_criterion_click,
 }: AccountProtectionScoreProps) {
@@ -78,77 +81,66 @@ export function AccountProtectionScore({
   const [popover_open, set_popover_open] = useState(false);
   const [dismissed, set_dismissed] = useState(false);
 
-  const criteria_met = [
+  const criteria = build_security_criteria({
     totp_enabled,
     passkey_registered,
+    recovery_codes_saved,
     recovery_email_verified,
     login_alerts_enabled,
     block_tracking_pixels,
     block_remote_images,
     strip_exif_on_compose,
-    read_receipts_off,
-  ];
+  });
 
-  const criteria_labels = [
-    t("settings.criterion_two_factor"),
-    t("settings.criterion_passkey"),
-    t("settings.criterion_recovery_email"),
-    t("settings.criterion_login_alerts"),
-    t("settings.block_spy_pixels"),
-    t("settings.block_remote_images_label"),
-    t("settings.strip_exif_on_compose_label"),
-    t("settings.criterion_read_receipts_off"),
-  ];
-
-  const score = criteria_met.reduce(
-    (sum, met, i) => sum + (met ? WEIGHTS[i] : 0),
-    0,
-  );
-
-  const bar_pct = Math.round((score / MAX_SCORE) * 100);
-  const status = get_status(bar_pct);
+  const bar_pct = security_percent(criteria);
+  const status = security_status_from_percent(bar_pct);
 
   if (!security_loaded) {
     return (
-      <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5 animate-pulse">
+      <Island className="animate-pulse" padding="md">
         <div className="flex items-start gap-2.5">
           <div className="h-5 w-5 rounded-full bg-surf-tertiary flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <div className="h-4 w-56 rounded bg-surf-tertiary mb-2" />
-            <div className="h-3.5 w-72 rounded bg-surf-tertiary" />
+          <div className="flex-1 min-w-0">
+            <div className="h-4 w-56 max-w-full rounded bg-surf-tertiary mb-2" />
+            <div className="h-3.5 w-72 max-w-full rounded bg-surf-tertiary" />
           </div>
         </div>
-      </div>
+      </Island>
     );
   }
 
   if (dismissed || preferences.account_security_banner_dismissed) return null;
 
   return (
-    <div className="rounded-xl bg-surf-secondary border border-edge-secondary px-4 py-3.5">
-      <div className="flex items-center gap-3">
-        <div className="flex-1 min-w-0">
+    <Island padding="md">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex-1 min-w-[12rem]">
           <div className="flex items-center gap-2">
-            <SecurityLockIcon className="h-5 w-5 flex-shrink-0" status={status} />
+            <SecurityLockIcon
+              className="h-5 w-5 flex-shrink-0"
+              status={status}
+            />
             <p className="text-sm font-semibold text-txt-primary">
-              {t("settings.account_security_percent_title", { percent: bar_pct })}
+              {t("settings.account_security_percent_title", {
+                percent: bar_pct,
+              })}
             </p>
           </div>
-          <p className="text-sm text-txt-muted mt-1 ml-7">
+          <p className="text-sm text-txt-muted mt-1 ms-7">
             {t("settings.account_security_review_subtitle")}
           </p>
         </div>
         <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
           <div className="flex items-center gap-2">
             <button
-              className="px-3 py-1.5 rounded-lg text-sm font-medium text-txt-primary bg-surf-primary border border-edge-secondary hover:bg-surf-tertiary transition-colors"
+              className="px-3 py-1.5 rounded-[var(--aster-radius-control)] text-sm font-medium text-txt-primary bg-[var(--aster-field-bg)] hover:bg-[var(--aster-island-hover)] transition-colors"
               type="button"
               onClick={() => set_dismissed(true)}
             >
               {t("settings.account_security_dismiss")}
             </button>
             <button
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${STATUS_BUTTON_STYLES[status]}`}
+              className={`px-3 py-1.5 rounded-[var(--aster-radius-control)] text-sm font-medium transition-colors ${STATUS_BUTTON_STYLES[status]}`}
               type="button"
               onClick={() => set_popover_open(true)}
             >
@@ -158,7 +150,9 @@ export function AccountProtectionScore({
           <button
             className="text-xs text-txt-muted hover:text-txt-primary transition-colors"
             type="button"
-            onClick={() => update_preference("account_security_banner_dismissed", true, true)}
+            onClick={() =>
+              update_preference("account_security_banner_dismissed", true, true)
+            }
           >
             {t("settings.account_security_dont_show_again")}
           </button>
@@ -168,22 +162,22 @@ export function AccountProtectionScore({
       <div className="relative z-10">
         <Modal
           is_open={popover_open}
-          size="sm"
           on_close={() => set_popover_open(false)}
+          size="sm"
         >
           <ModalHeader>
             <ModalTitle>{t("settings.protection_breakdown_title")}</ModalTitle>
           </ModalHeader>
           <ModalBody>
             <ul className="space-y-0.5">
-              {criteria_labels.map((label, i) => {
+              {criteria.map((criterion, i) => {
                 const click_handler = on_criterion_click?.[i];
                 const is_clickable = !!click_handler;
 
                 return (
-                  <li key={label}>
+                  <li key={criterion.id}>
                     <button
-                      className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg transition-colors text-left ${is_clickable ? "hover:bg-edge-secondary/60 cursor-pointer" : "cursor-default"}`}
+                      className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-[var(--aster-radius-control)] transition-colors text-start ${is_clickable ? "hover:bg-edge-secondary/60 cursor-pointer" : "cursor-default"}`}
                       disabled={!is_clickable}
                       type="button"
                       onClick={() => {
@@ -194,18 +188,20 @@ export function AccountProtectionScore({
                     >
                       <SecurityLockIcon
                         className="w-4 h-4 flex-shrink-0"
-                        status={criteria_met[i] ? "strong" : "weak"}
+                        status={criterion.met ? "strong" : "weak"}
                       />
-                      <span className={`text-sm flex-1 ${criteria_met[i] ? "text-txt-primary" : "text-txt-muted"}`}>
-                        {label}
+                      <span
+                        className={`text-sm flex-1 ${criterion.met ? "text-txt-primary" : "text-txt-muted"}`}
+                      >
+                        {t(criterion.label_key)}
                       </span>
-                      {!criteria_met[i] && (
+                      {!criterion.met && (
                         <span className="text-xs font-semibold text-txt-muted tabular-nums">
                           +{WEIGHTS[i]}
                         </span>
                       )}
                       {is_clickable && (
-                        <ChevronRightIcon className="w-3.5 h-3.5 text-txt-muted flex-shrink-0" />
+                        <ChevronRightIcon className="w-3.5 h-3.5 text-txt-muted flex-shrink-0 rtl:-scale-x-100" />
                       )}
                     </button>
                   </li>
@@ -215,6 +211,6 @@ export function AccountProtectionScore({
           </ModalBody>
         </Modal>
       </div>
-    </div>
+    </Island>
   );
 }

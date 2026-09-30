@@ -32,6 +32,7 @@ export interface RatchetRecipientData {
   nonce: string;
   pq_ciphertext?: string;
   pq_key_id?: number;
+  x3dh_v?: number;
   recovery?: RecoveryLaneData;
 }
 

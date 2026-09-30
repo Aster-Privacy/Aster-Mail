@@ -89,7 +89,10 @@ function read_header(
 function extract_reference_ids(headers: HeaderEntry[] | undefined): string[] {
   const raw = [
     ...(read_header(headers, "references")?.match(/<[^<>]+>/g) ?? []),
-    ...(read_header(headers, "in-reply-to")?.match(/<[^<>]+>/g) ?? []).slice(0, 1),
+    ...(read_header(headers, "in-reply-to")?.match(/<[^<>]+>/g) ?? []).slice(
+      0,
+      1,
+    ),
   ];
   const seen = new Set<string>();
   const ids: string[] = [];

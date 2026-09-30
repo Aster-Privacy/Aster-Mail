@@ -18,6 +18,8 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
+import type { CategoryIconKey } from "@/data/category_catalog";
+
 import {
   InboxIcon,
   TagIcon,
@@ -34,12 +36,12 @@ import {
   GlobeAltIcon,
   AcademicCapIcon,
   MegaphoneIcon,
+  NewspaperIcon,
+  ReceiptPercentIcon,
   GiftIcon,
   FolderIcon,
   SparklesIcon,
 } from "@heroicons/react/24/outline";
-
-import type { CategoryIconKey } from "@/data/category_catalog";
 
 export const CATEGORY_ICON_MAP: Record<CategoryIconKey, typeof InboxIcon> = {
   inbox: InboxIcon,
@@ -57,6 +59,8 @@ export const CATEGORY_ICON_MAP: Record<CategoryIconKey, typeof InboxIcon> = {
   globe: GlobeAltIcon,
   academic_cap: AcademicCapIcon,
   megaphone: MegaphoneIcon,
+  newspaper: NewspaperIcon,
+  receipt: ReceiptPercentIcon,
   gift: GiftIcon,
   folder: FolderIcon,
   sparkles: SparklesIcon,

@@ -18,7 +18,7 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import { lazy, Suspense } from "react";
+import { Suspense } from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter, HashRouter } from "react-router-dom";
 
@@ -26,12 +26,14 @@ import App from "@/App";
 import { evict_stale_favicons } from "@/lib/favicon_cache_db";
 import UnsupportedBrowserPage from "@/pages/unsupported_browser";
 import { Provider } from "@/provider";
+import { FullPageLoader } from "@/components/common/full_page_loader";
 import {
   initialize_capacitor,
   hide_splash,
   is_native_platform,
 } from "@/native/capacitor_bridge";
 import { recover_fallback_sends } from "@/services/send_queue";
+import { initialize_offline_queue } from "@/native/offline_queue";
 import {
   start_version_check,
   version_check_blocking,
@@ -43,9 +45,11 @@ import {
 } from "@/lib/chunk_recovery";
 import { show_self_xss_warning } from "@/lib/security/console_warning";
 import { start_input_modality_tracking } from "@/lib/input_modality";
+import { install_global_error_reporting } from "@/services/error_reporter";
 import { connection_store } from "@/services/routing/connection_store";
 import { apply_desktop_content_protection } from "@/native/desktop_content_protection";
 import { start_desktop_link_bridge } from "@/native/desktop_link_bridge";
+import { start_desktop_oauth_bridge } from "@/native/desktop_oauth_bridge";
 import { is_any_lockdown_active } from "@/services/lockdown_store";
 import { use_mobile_experience } from "@/hooks/use_mobile_experience";
 import {
@@ -57,24 +61,37 @@ import "@/styles/globals.css";
 import "@/styles/mobile.css";
 
 import { ignore_error } from "@/lib/ignore_error";
+import { safe_local_get } from "@/lib/safe_storage";
+import { capture_support_return } from "@/lib/support_return";
+import { lazy_with_retry } from "@/utils/lazy_with_retry";
 
-const MobileApp = lazy(() => import("@/mobile_app"));
+const MobileApp = lazy_with_retry(() => import("@/mobile_app"));
 
 start_input_modality_tracking();
+install_global_error_reporting();
+capture_support_return();
 
 initialize_capacitor().catch((e) => {
   if (import.meta.env.DEV) console.error(e);
 });
 
 if (!is_native_platform()) {
-  recover_fallback_sends().catch((caught) => ignore_error("main", caught));
+  recover_fallback_sends()
+    .catch((caught) => ignore_error("main", caught))
+    .finally(() => {
+      initialize_offline_queue().catch((caught) =>
+        ignore_error("main", caught),
+      );
+    });
 }
 
-const cached_prefs_raw = localStorage.getItem("aster_preferences_cache");
+const cached_prefs_raw = safe_local_get("aster_preferences_cache");
 let low_network_on_startup = false;
+
 try {
   if (cached_prefs_raw) {
     const cached_prefs = JSON.parse(cached_prefs_raw);
+
     low_network_on_startup = cached_prefs.low_network_mode === true;
   }
 } catch (caught) {
@@ -85,6 +102,7 @@ if (!low_network_on_startup) {
 }
 if (low_network_on_startup) {
   const style = document.createElement("style");
+
   style.id = "aster-low-network-fonts";
   style.textContent =
     "*, *::before, *::after { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important; }";
@@ -101,9 +119,7 @@ if (is_tauri_runtime) {
   void import("@tauri-apps/api/core")
     .then(({ invoke }) => {
       void invoke("frontend_ready");
-      const cached = Number(
-        localStorage.getItem("aster_last_unread_badge") || "0",
-      );
+      const cached = Number(safe_local_get("aster_last_unread_badge") || "0");
 
       if (Number.isFinite(cached) && cached > 0) {
         void invoke("set_unread_badge", { count: Math.floor(cached) }).catch(
@@ -114,6 +130,10 @@ if (is_tauri_runtime) {
     .catch((caught) => ignore_error("main", caught));
   void apply_desktop_content_protection(is_any_lockdown_active());
   void start_desktop_link_bridge();
+  void start_desktop_oauth_bridge();
+  void import("@/native/tauri_tray")
+    .then(({ sync_close_to_tray }) => sync_close_to_tray())
+    .catch((caught) => ignore_error("main", caught));
 }
 
 if (is_tauri_runtime && "serviceWorker" in navigator) {
@@ -190,6 +210,28 @@ window.addEventListener(
   },
   true,
 );
+
+if ("serviceWorker" in navigator && import.meta.env.DEV && !is_tauri_runtime) {
+  void (async () => {
+    try {
+      const regs = await navigator.serviceWorker.getRegistrations();
+
+      if (regs.length === 0) return;
+
+      await Promise.all(regs.map((r) => r.unregister().catch(() => false)));
+
+      if (typeof caches !== "undefined") {
+        const keys = await caches.keys();
+
+        await Promise.all(keys.map((k) => caches.delete(k).catch(() => false)));
+      }
+
+      window.location.reload();
+    } catch (caught) {
+      ignore_error("main:dev_sw_reset", caught);
+    }
+  })();
+}
 
 if ("serviceWorker" in navigator && import.meta.env.PROD && !is_tauri_runtime) {
   const legacy_sw_reset = (async (): Promise<boolean> => {
@@ -306,9 +348,7 @@ function RootShell(): JSX.Element {
 
   if (use_mobile) {
     return (
-      <Suspense
-        fallback={<div className="h-screen w-screen bg-[var(--bg-primary)]" />}
-      >
+      <Suspense fallback={<FullPageLoader />}>
         <MobileApp />
       </Suspense>
     );
@@ -320,7 +360,7 @@ function RootShell(): JSX.Element {
 const BOOT_VERSION_CHECK_MARKER = "aster:boot_version_checked_at";
 const BOOT_VERSION_CHECK_TTL_MS = 60_000;
 
-async function maybe_block_on_version_check(): Promise<void> {
+async function run_boot_version_check(): Promise<void> {
   if (!import.meta.env.PROD) return;
   if (is_tauri_runtime) return;
   try {
@@ -330,18 +370,18 @@ async function maybe_block_on_version_check(): Promise<void> {
 
     if (last && Date.now() - last < BOOT_VERSION_CHECK_TTL_MS) return;
   } catch (caught) {
-    ignore_error("main:maybe_block_on_version_check", caught);
+    ignore_error("main:run_boot_version_check", caught);
   }
   try {
     sessionStorage.setItem(BOOT_VERSION_CHECK_MARKER, String(Date.now()));
   } catch (caught) {
-    ignore_error("main:maybe_block_on_version_check", caught);
+    ignore_error("main:run_boot_version_check", caught);
   }
 
   try {
     await version_check_blocking(1500);
   } catch (caught) {
-    ignore_error("main:maybe_block_on_version_check", caught);
+    ignore_error("main:run_boot_version_check", caught);
   }
 }
 
@@ -355,7 +395,8 @@ function mount_app(): void {
   );
 }
 
-void maybe_block_on_version_check().then(mount_app);
+mount_app();
+void run_boot_version_check();
 
 setTimeout(() => {
   evict_stale_favicons().catch((caught) =>
@@ -395,6 +436,7 @@ window.addEventListener("astermail:app-ready", dismiss_once, { once: true });
 
 window.addEventListener("astermail:auth-loaded", () => {
   const path = app_pathname();
+
   if (path.startsWith("/sign-in") || path.startsWith("/register")) {
     dismiss_once();
   }

@@ -29,6 +29,8 @@ import { use_i18n } from "@/lib/i18n/context";
 import { use_overlay_layer } from "@/lib/overlay_layer_stack";
 import { use_signatures } from "@/contexts/signatures_context";
 import { use_preferences } from "@/contexts/preferences_context";
+import { strip_html_tags_bounded } from "@/lib/html_text";
+import { truncate_with_ellipsis } from "@/utils/preview_text";
 
 interface SignaturePickerProps {
   on_select: (content: string, is_html: boolean) => void;
@@ -65,7 +67,7 @@ export function SignaturePicker({
     <Popover open={is_open} onOpenChange={set_is_open}>
       <PopoverTrigger asChild>
         <button
-          className={`press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 disabled:opacity-50 ${is_open ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-black/5 dark:hover:bg-white/10 text-txt-tertiary hover:text-txt-primary"}`}
+          className={`press_scale w-9 h-9 p-0 inline-flex items-center justify-center flex-shrink-0 rounded-full transition-transform duration-150 disabled:opacity-50 ${is_open ? "bg-black/10 text-txt-primary dark:bg-white/10 dark:text-white" : "hover:bg-[var(--aster-hover)] text-txt-tertiary hover:text-txt-primary"}`}
           disabled={disabled}
           style={is_open ? { color: "var(--color-info)" } : undefined}
           title={t("mail.insert_signature")}
@@ -77,11 +79,7 @@ export function SignaturePicker({
           </svg>
         </button>
       </PopoverTrigger>
-      <PopoverContent
-        align="start"
-        className="w-auto p-0 bg-surf-primary border-edge-primary"
-        side="top"
-      >
+      <PopoverContent align="start" className="w-auto p-1.5" side="top">
         <div className="p-2 min-w-[260px]">
           <div className="px-2 py-1.5 mb-1">
             <span className="text-xs font-medium text-txt-muted">
@@ -91,7 +89,7 @@ export function SignaturePicker({
           {signatures.map((signature) => (
             <button
               key={signature.id}
-              className="w-full flex items-start gap-3 px-2 py-2 rounded-[14px] transition-colors hover:bg-surf-hover"
+              className="w-full flex items-start gap-3 px-2 py-2 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
               type="button"
               onClick={() => {
                 const formatted = get_formatted_signature(signature);
@@ -99,35 +97,29 @@ export function SignaturePicker({
                 handle_select(formatted, true);
               }}
             >
-              <div className="flex-1 text-left min-w-0">
+              <div className="flex-1 text-start min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-txt-primary truncate">
                     {signature.name}
                   </span>
                   {default_signature?.id === signature.id && (
-                    <span
-                      className="text-[10px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider flex-shrink-0"
-                      style={{
-                        color: "white",
-                        background:
-                          "linear-gradient(180deg, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
-                        boxShadow:
-                          "0 1px 2px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
-                      }}
-                    >
+                    <span className="text-[11px] font-medium px-2 py-0.5 rounded-full flex-shrink-0 bg-[var(--aster-selected)] text-txt-secondary">
                       {t("settings.default_badge")}
                     </span>
                   )}
                 </div>
                 <div className="text-xs text-txt-muted truncate">
-                  {signature.content.substring(0, 50)}
+                  {truncate_with_ellipsis(
+                    strip_html_tags_bounded(signature.content, 60),
+                    60,
+                  )}
                 </div>
               </div>
             </button>
           ))}
-          <div className="my-1 h-px bg-edge-secondary" />
+          <div className="aster_floating_divider my-1" />
           <button
-            className="w-full flex items-center gap-3 px-2 py-2 rounded-[14px] transition-colors hover:bg-surf-hover"
+            className="w-full flex items-center gap-3 px-2 py-2 rounded-[var(--aster-radius-item)] transition-colors hover:bg-[var(--aster-floating-hover)]"
             type="button"
             onClick={() => handle_select("", false)}
           >

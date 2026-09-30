@@ -32,8 +32,4 @@ export {
 } from "./mbox";
 export { sanitize_eml_filename, FilenameAllocator } from "./filename";
 export { generate_message_id } from "./headers";
-export {
-  serialize_vcard,
-  serialize_vcards,
-  type VCardContact,
-} from "./vcard";
+export { serialize_vcard, serialize_vcards, type VCardContact } from "./vcard";
