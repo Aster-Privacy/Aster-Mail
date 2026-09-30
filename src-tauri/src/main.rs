@@ -35,6 +35,7 @@ use tauri::{
     webview::{DownloadEvent, NewWindowResponse},
     Emitter, Manager, State, Url, WindowEvent,
 };
+use tauri_plugin_window_state::{AppHandleExt, StateFlags};
 
 const LINK_ACTIVATED_EVENT: &str = "aster://link-activated";
 
@@ -139,6 +140,21 @@ fn resolve_download_destination(app: &tauri::AppHandle, destination: &mut std::p
     }
 
     *destination = unique_download_path(&dir, destination);
+}
+
+#[cfg(target_os = "macos")]
+const TRAY_ICON: &[u8] = include_bytes!("../icons/icon_macos_template.png");
+#[cfg(windows)]
+const TRAY_ICON: &[u8] = include_bytes!("../icons/32x32.png");
+#[cfg(windows)]
+const TRAY_ICON_UNREAD: &[u8] = include_bytes!("../icons/tray_unread_32x32.png");
+#[cfg(all(unix, not(target_os = "macos")))]
+const TRAY_ICON: &[u8] = include_bytes!("../icons/icon_hires.png");
+#[cfg(all(unix, not(target_os = "macos")))]
+const TRAY_ICON_UNREAD: &[u8] = include_bytes!("../icons/tray_unread_hires.png");
+
+fn window_state_flags() -> StateFlags {
+    StateFlags::SIZE | StateFlags::POSITION | StateFlags::MAXIMIZED
 }
 
 struct TrayState(Mutex<Option<tauri::tray::TrayIcon>>);
@@ -432,6 +448,11 @@ fn main() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_dialog::init())
+        .plugin(
+            tauri_plugin_window_state::Builder::new()
+                .with_state_flags(window_state_flags())
+                .build(),
+        )
         .manage(TrayState(Mutex::new(None)))
         .manage(TrayMenuState(Mutex::new(None)))
         .manage(CloseToTrayState(Mutex::new(true)))
@@ -515,13 +536,7 @@ fn main() {
                 })
                 .build()?;
 
-            #[cfg(target_os = "macos")]
-            let tray_icon_bytes = include_bytes!("../icons/icon_macos_template.png").as_slice();
-            #[cfg(windows)]
-            let tray_icon_bytes = include_bytes!("../icons/32x32.png").as_slice();
-            #[cfg(all(unix, not(target_os = "macos")))]
-            let tray_icon_bytes = include_bytes!("../icons/icon_hires.png").as_slice();
-            let tray_icon = tauri::image::Image::from_bytes(tray_icon_bytes)
+            let tray_icon = tauri::image::Image::from_bytes(TRAY_ICON)
                 .expect("failed to load tray icon");
 
             let show =
@@ -636,6 +651,9 @@ fn main() {
             Ok(())
         })
         .on_window_event(|window, event| {
+            if let WindowEvent::Focused(false) = event {
+                let _ = window.app_handle().save_window_state(window_state_flags());
+            }
             if let WindowEvent::CloseRequested { api, .. } = event {
                 let state: State<boot_guard::BootState> = window.state();
                 if !state.is_usable() {
@@ -651,6 +669,7 @@ fn main() {
                     return;
                 }
                 api.prevent_close();
+                let _ = window.app_handle().save_window_state(window_state_flags());
                 let _ = window.hide();
             }
         })
