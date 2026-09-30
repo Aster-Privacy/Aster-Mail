@@ -806,7 +806,7 @@ export function use_email_detail_load() {
             timestamp: format_email_popup(
               new Date(envelope.sent_at || response.data.created_at),
             ),
-            is_read: decrypted_metadata?.is_read ?? false,
+            is_read: is_read_on_server,
             is_starred: decrypted_metadata?.is_starred ?? false,
             has_attachment: decrypted_metadata?.has_attachments ?? false,
             thread_count: 1,
