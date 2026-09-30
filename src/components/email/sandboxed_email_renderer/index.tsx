@@ -25,6 +25,7 @@ export {
   clear_iframe_height_cache,
   dispatch_iframe_ready,
   email_viewer_measure_width,
+  fit_natural_width,
   fit_zoom_for,
   get_cached_iframe_height,
   link_hover_ink_for,

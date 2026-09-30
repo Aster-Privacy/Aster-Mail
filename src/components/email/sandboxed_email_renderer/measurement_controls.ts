@@ -24,6 +24,7 @@ import type { SandboxedEmailRendererProps } from "./renderer";
 import {
   FIT_SLACK_PX,
   body_has_renderable_content,
+  fit_natural_width,
   fit_zoom_for,
   measure_content_bounds,
   remember_measured_height,
@@ -110,13 +111,53 @@ export function build_measurement_controls(ctx: measurement_context) {
     });
   };
 
+  // Chromium leaves the end padding out of an overflowing body's scrollWidth
+  // and Gecko counts it, so a wide email is measured without it and gets it
+  // added back: scaled down, it keeps the same margin on both sides instead
+  // of touching the right edge.
+  const measure_wide_content = (
+    doc: Document,
+    body: HTMLElement,
+    available: number,
+  ): number => {
+    const end_padding =
+      parseFloat(
+        iframe.contentWindow?.getComputedStyle(body).paddingInlineEnd ?? "",
+      ) || 0;
+    const saved_end_padding = body.style.getPropertyValue("padding-inline-end");
+    const saved_end_padding_pri =
+      body.style.getPropertyPriority("padding-inline-end");
+
+    body.style.setProperty("padding-inline-end", "0px", "important");
+    const content_width = Math.max(
+      body.scrollWidth,
+      doc.documentElement.scrollWidth,
+    );
+
+    if (saved_end_padding) {
+      body.style.setProperty(
+        "padding-inline-end",
+        saved_end_padding,
+        saved_end_padding_pri,
+      );
+    } else {
+      body.style.removeProperty("padding-inline-end");
+    }
+
+    return fit_natural_width(content_width, available, end_padding);
+  };
+
   const sync_fit_zoom = (doc: Document, body: HTMLElement) => {
     const available = iframe.clientWidth;
 
     if (available <= 0) return;
 
     body.style.setProperty("zoom", "1");
-    const natural = Math.max(body.scrollWidth, doc.documentElement.scrollWidth);
+    let natural = Math.max(body.scrollWidth, doc.documentElement.scrollWidth);
+
+    if (natural > available + FIT_SLACK_PX) {
+      natural = measure_wide_content(doc, body, available);
+    }
     const fitted = fit_zoom_for(natural, available, base_zoom_ref.current);
 
     body.style.setProperty("zoom", String(fitted));
