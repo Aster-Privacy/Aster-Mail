@@ -39,6 +39,7 @@ import { ChipPill, ChipSegment } from "./chip_pill";
 import { ActionTargetDropdown } from "./dropdowns/action_target_dropdown";
 
 import { PinIcon } from "@/components/common/icons";
+import { rule_folder_name } from "@/components/mail_rules/rule_folders";
 import { rule_category_label_key } from "@/data/category_catalog";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
@@ -130,11 +131,10 @@ export function ActionChip({
     switch (action.type) {
       case "move_to": {
         if (!action.folder_token) return t("mail_rules.none");
-        const folder = folders_state.folders.find(
-          (f) => f.folder_token === action.folder_token,
+        return (
+          rule_folder_name(folders_state.folders, action.folder_token, t) ??
+          t("mail_rules.none")
         );
-
-        return folder?.name ?? t("mail_rules.none");
       }
       case "apply_labels": {
         if (action.label_tokens.length === 0) return t("mail_rules.no_labels");

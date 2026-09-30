@@ -206,6 +206,34 @@ describe("rule_alias_delivery_conflict", () => {
     ).toBeNull();
   });
 
+  it("treats an Archive rule as matching an alias that skips the inbox", () => {
+    const actions: Action[] = [
+      { type: "move_to", folder_token: "archive_token" },
+    ];
+    const archive_alias = new Map([
+      ["shop@aster.cx", delivery({ never_inbox: true })],
+    ]);
+    const folder_type_of = (token: string) =>
+      token === "archive_token" ? "archive" : "folder";
+
+    expect(
+      rule_alias_delivery_conflict(
+        [to_is("shop@aster.cx")],
+        actions,
+        archive_alias,
+        folder_type_of,
+      ),
+    ).toBeNull();
+    expect(
+      rule_alias_delivery_conflict(
+        [to_is("shop@aster.cx")],
+        [{ type: "move_to", folder_token: "folder_b" }],
+        archive_alias,
+        folder_type_of,
+      ),
+    ).not.toBeNull();
+  });
+
   it("stays quiet when the alias has no explicit target", () => {
     const actions: Action[] = [{ type: "move_to", folder_token: "folder_b" }];
 

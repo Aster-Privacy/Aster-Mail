@@ -46,6 +46,7 @@ import { ConfirmationModal } from "@/components/modals/confirmation_modal";
 import { Input } from "@/components/ui/input";
 import { show_toast } from "@/components/toast/simple_toast";
 import { use_i18n } from "@/lib/i18n/context";
+import { rule_folder_name } from "@/components/mail_rules/rule_folders";
 import { use_folders } from "@/hooks/use_folders";
 import { use_tags } from "@/hooks/use_tags";
 import { decrypt_aliases, list_all_aliases } from "@/services/api/aliases";
@@ -315,6 +316,9 @@ export function RuleEditorModal({
     conditions,
     actions,
     alias_delivery,
+    (token) =>
+      folders_state.folders.find((folder) => folder.folder_token === token)
+        ?.folder_type,
   );
 
   const label_conflict = rule_alias_label_conflict(
@@ -327,8 +331,8 @@ export function RuleEditorModal({
     if (!token) return t("mail.archive");
 
     return (
-      folders_state.folders.find((folder) => folder.folder_token === token)
-        ?.name ?? t("settings.alias_delivery_folder_missing")
+      rule_folder_name(folders_state.folders, token, t) ??
+      t("settings.alias_delivery_folder_missing")
     );
   };
 
