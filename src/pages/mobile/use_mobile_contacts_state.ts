@@ -19,7 +19,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { DecryptedContact, ContactFormData } from "@/types/contacts";
-import type { CreateTab } from "./mobile_contact_form_view";
+import type {
+  ContactEntryPatch,
+  CreateTab,
+} from "./mobile_contact_form_view";
 
 import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import { Capacitor } from "@capacitor/core";
@@ -38,8 +41,13 @@ import { apply_server_group_membership } from "@/utils/contact_group_membership"
 import { show_toast } from "@/components/toast/simple_toast";
 import {
   contact_to_form_data,
-  reconcile_entry_fields,
+  sync_legacy_fields,
 } from "@/components/common/hooks/contacts_state_helpers";
+import {
+  to_address_entries,
+  to_email_entries,
+  to_phone_entries,
+} from "@/components/common/contacts/contact_detail_panel/helpers";
 import { ignore_error } from "@/lib/ignore_error";
 import { is_contact_trashed } from "@/lib/contact_trash";
 
@@ -56,13 +64,31 @@ const INITIAL_FORM: ContactFormData = {
   notes: "",
   address: { street: "", city: "", state: "", postal_code: "", country: "" },
   social_links: { website: "", linkedin: "", twitter: "", github: "" },
+  email_entries: [{ value: "", type: "home" }],
+  phone_entries: [],
+  address_entries: [],
 };
+
+function new_contact_form(): ContactFormData {
+  return {
+    ...INITIAL_FORM,
+    emails: [""],
+    email_entries: [{ value: "", type: "home" }],
+    phone_entries: [],
+    address_entries: [],
+  };
+}
 
 function contact_to_form(contact: DecryptedContact): ContactFormData {
   const base = contact_to_form_data(contact);
+  const email_entries = to_email_entries(contact);
 
   return {
     ...base,
+    email_entries:
+      email_entries.length > 0 ? email_entries : [{ value: "", type: "home" }],
+    phone_entries: to_phone_entries(contact),
+    address_entries: to_address_entries(contact),
     emails: base.emails.length > 0 ? [...base.emails] : [""],
     phone: base.phone ?? "",
     company: base.company ?? "",
@@ -99,10 +125,9 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
   const [editing_contact, set_editing_contact] =
     useState<DecryptedContact | null>(null);
   const [create_tab, set_create_tab] = useState<CreateTab>("basic");
-  const [form_data, set_form_data] = useState<ContactFormData>({
-    ...INITIAL_FORM,
-    emails: [""],
-  });
+  const [form_data, set_form_data] = useState<ContactFormData>(
+    new_contact_form,
+  );
   const [show_discard_confirm, set_show_discard_confirm] = useState(false);
   const opened_form_ref = useRef("");
   const [is_saving, set_is_saving] = useState(false);
@@ -658,13 +683,6 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
     set_form_data((prev) => ({ ...prev, [key]: value }));
   }, []);
 
-  const update_address = useCallback((key: string, value: string) => {
-    set_form_data((prev) => ({
-      ...prev,
-      address: { ...prev.address!, [key]: value },
-    }));
-  }, []);
-
   const update_social = useCallback((key: string, value: string) => {
     set_form_data((prev) => ({
       ...prev,
@@ -672,29 +690,12 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
     }));
   }, []);
 
-  const add_email_field = useCallback(() => {
-    set_form_data((prev) => ({
-      ...prev,
-      emails: [...prev.emails, ""],
-    }));
-  }, []);
-
-  const update_email_field = useCallback((index: number, value: string) => {
-    set_form_data((prev) => ({
-      ...prev,
-      emails: prev.emails.map((e, i) => (i === index ? value : e)),
-    }));
-  }, []);
-
-  const remove_email_field = useCallback((index: number) => {
-    set_form_data((prev) => ({
-      ...prev,
-      emails: prev.emails.filter((_, i) => i !== index),
-    }));
+  const update_entries = useCallback((patch: ContactEntryPatch) => {
+    set_form_data((prev) => ({ ...prev, ...patch }));
   }, []);
 
   const handle_open_create = useCallback(() => {
-    const next = { ...INITIAL_FORM, emails: [""] };
+    const next = new_contact_form();
 
     set_editing_contact(null);
     set_form_data(next);
@@ -766,15 +767,11 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
     request_close_form,
   ]);
   const handle_save = useCallback(async () => {
-    const valid_emails = form_data.emails.filter((e) => e.trim());
+    const saved_form = sync_legacy_fields(form_data);
 
-    if (valid_emails.length === 0) return;
+    if (saved_form.emails.length === 0) return;
     set_is_saving(true);
     try {
-      const saved_form = reconcile_entry_fields({
-        ...form_data,
-        emails: valid_emails,
-      });
 
       if (editing_contact) {
         const result = await update_contact_encrypted(
@@ -793,6 +790,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
             c.id === editing_contact.id
               ? {
                   ...c,
+                  ...saved_form,
                   first_name: saved_form.first_name,
                   last_name: saved_form.last_name,
                   emails: saved_form.emails,
@@ -832,6 +830,9 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
           notes: saved_form.notes || undefined,
           address: saved_form.address,
           social_links: saved_form.social_links,
+          email_entries: saved_form.email_entries,
+          phone_entries: saved_form.phone_entries,
+          address_entries: saved_form.address_entries,
           is_favorite: saved_form.is_favorite ?? false,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
@@ -940,10 +941,7 @@ export function use_mobile_contacts_state(on_compose: (to?: string) => void) {
     handle_open_edit,
     handle_save,
     update_form,
-    update_address,
+    update_entries,
     update_social,
-    add_email_field,
-    update_email_field,
-    remove_email_field,
   };
 }

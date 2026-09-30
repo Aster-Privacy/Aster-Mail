@@ -21,11 +21,10 @@
 import type { DecryptedContact, ContactFormData } from "@/types/contacts";
 import type { TranslationKey } from "@/lib/i18n";
 
+import { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   UsersIcon,
-  PlusIcon,
-  XMarkIcon,
   EnvelopeIcon,
   ChevronLeftIcon,
   PhoneIcon,
@@ -40,6 +39,20 @@ import {
 import { ProfileAvatar } from "@/components/ui/profile_avatar";
 import { ButtonSpinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
+import { use_keep_focused_field_visible } from "@/hooks/use_keep_focused_field_visible";
+import {
+  EMAIL_TYPE_OPTIONS,
+  PHONE_TYPE_OPTIONS,
+} from "@/components/common/contacts/contact_detail_panel/helpers";
+
+import {
+  MobileAddressList,
+  MobileTypedEntryList,
+} from "./mobile_contact_entry_fields";
+
+export type ContactEntryPatch = Partial<
+  Pick<ContactFormData, "email_entries" | "phone_entries" | "address_entries">
+>;
 
 export type CreateTab = "basic" | "details" | "address" | "social";
 
@@ -100,10 +113,7 @@ export function ContactFormView({
   on_save,
   on_set_tab,
   on_update_form,
-  on_update_email,
-  on_add_email,
-  on_remove_email,
-  on_update_address,
+  on_update_entries,
   on_update_social,
   reduce_motion,
   t,
@@ -117,14 +127,20 @@ export function ContactFormView({
   on_save: () => void;
   on_set_tab: (tab: CreateTab) => void;
   on_update_form: (key: string, value: string) => void;
-  on_update_email: (index: number, value: string) => void;
-  on_add_email: () => void;
-  on_remove_email: (index: number) => void;
-  on_update_address: (key: string, value: string) => void;
+  on_update_entries: (patch: ContactEntryPatch) => void;
   on_update_social: (key: string, value: string) => void;
   reduce_motion: boolean;
   t: (key: TranslationKey, params?: Record<string, string | number>) => string;
 }) {
+  const scroll_ref = useRef<HTMLDivElement>(null);
+  const email_entries = form_data.email_entries ?? [];
+  const phone_entries = form_data.phone_entries ?? [];
+  const address_entries = form_data.address_entries ?? [];
+  const first_email =
+    email_entries.find((entry) => entry.value.trim())?.value.trim() ?? "";
+
+  use_keep_focused_field_visible(scroll_ref);
+
   return (
     <motion.div
       animate={{ opacity: 1 }}
@@ -147,9 +163,7 @@ export function ContactFormView({
         </span>
         <button
           className="rounded-[var(--aster-radius-control)] px-4 py-1.5 text-[14px] font-semibold text-white disabled:opacity-40"
-          disabled={
-            form_data.emails.filter((e) => e.trim()).length === 0 || is_saving
-          }
+          disabled={!first_email || is_saving}
           style={{
             background:
               "linear-gradient(to bottom, var(--accent-mix-w80, #629bf8) 0%, var(--accent-color) 50%, var(--accent-mix-b80, #2f68c5) 100%)",
@@ -165,7 +179,7 @@ export function ContactFormView({
       <div className="flex items-center gap-4 px-6 py-5">
         <ProfileAvatar
           use_domain_logo
-          email={form_data.emails[0] || ""}
+          email={first_email}
           name={
             [form_data.first_name, form_data.last_name]
               .filter(Boolean)
@@ -180,9 +194,9 @@ export function ContactFormView({
               .join(" ") ||
               (contact ? t("common.edit") : t("common.add_contact"))}
           </p>
-          {form_data.emails[0] && (
+          {first_email && (
             <p className="truncate text-[13px] text-[var(--text-muted)]">
-              {form_data.emails[0]}
+              {first_email}
             </p>
           )}
         </div>
@@ -218,7 +232,7 @@ export function ContactFormView({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 pb-8">
+      <div ref={scroll_ref} className="flex-1 overflow-y-auto px-4 pb-8">
         <AnimatePresence mode="wait">
           {create_tab === "basic" && (
             <motion.div
@@ -251,35 +265,17 @@ export function ContactFormView({
                 icon={<EnvelopeIcon className="h-4 w-4" />}
                 label={t("common.email_section")}
               >
-                {form_data.emails.map((email, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <FormInput
-                      on_change={(v) => on_update_email(i, v)}
-                      placeholder={t("auth.email")}
-                      type="email"
-                      value={email}
-                    />
-                    {form_data.emails.length > 1 && (
-                      <button
-                        className="shrink-0 text-[var(--text-muted)]"
-                        type="button"
-                        onClick={() => on_remove_email(i)}
-                      >
-                        <XMarkIcon className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-                {form_data.emails.length < 5 && (
-                  <button
-                    className="flex items-center gap-1.5 text-[13px] font-medium text-[var(--accent-color,#3b82f6)]"
-                    type="button"
-                    onClick={on_add_email}
-                  >
-                    <PlusIcon className="h-3.5 w-3.5" />
-                    {t("common.add")}
-                  </button>
-                )}
+                <MobileTypedEntryList
+                  default_type="home"
+                  entries={email_entries}
+                  input_type="email"
+                  max_rows={10}
+                  min_rows={1}
+                  on_change={(next) => on_update_entries({ email_entries: next })}
+                  options={EMAIL_TYPE_OPTIONS}
+                  placeholder={t("auth.email")}
+                  t={t}
+                />
               </FormSection>
             </motion.div>
           )}
@@ -297,11 +293,14 @@ export function ContactFormView({
                 icon={<PhoneIcon className="h-4 w-4" />}
                 label={t("common.phone_section")}
               >
-                <FormInput
-                  on_change={(v) => on_update_form("phone", v)}
+                <MobileTypedEntryList
+                  default_type="mobile"
+                  entries={phone_entries}
+                  input_type="tel"
+                  on_change={(next) => on_update_entries({ phone_entries: next })}
+                  options={PHONE_TYPE_OPTIONS}
                   placeholder={t("common.phone")}
-                  type="tel"
-                  value={form_data.phone ?? ""}
+                  t={t}
                 />
               </FormSection>
               <FormSection
@@ -362,35 +361,13 @@ export function ContactFormView({
                 icon={<MapPinIcon className="h-4 w-4" />}
                 label={t("common.address_section")}
               >
-                <FormInput
-                  on_change={(v) => on_update_address("street", v)}
-                  placeholder={t("common.street")}
-                  value={form_data.address?.street ?? ""}
+                <MobileAddressList
+                  entries={address_entries}
+                  on_change={(next) =>
+                    on_update_entries({ address_entries: next })
+                  }
+                  t={t}
                 />
-                <div className="flex gap-2">
-                  <FormInput
-                    on_change={(v) => on_update_address("city", v)}
-                    placeholder={t("common.city")}
-                    value={form_data.address?.city ?? ""}
-                  />
-                  <FormInput
-                    on_change={(v) => on_update_address("state", v)}
-                    placeholder={t("common.state")}
-                    value={form_data.address?.state ?? ""}
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <FormInput
-                    on_change={(v) => on_update_address("postal_code", v)}
-                    placeholder={t("common.postal_code")}
-                    value={form_data.address?.postal_code ?? ""}
-                  />
-                  <FormInput
-                    on_change={(v) => on_update_address("country", v)}
-                    placeholder={t("common.country")}
-                    value={form_data.address?.country ?? ""}
-                  />
-                </div>
               </FormSection>
             </motion.div>
           )}

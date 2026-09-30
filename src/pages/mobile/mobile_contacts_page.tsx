@@ -171,13 +171,10 @@ function MobileContactsPage({
             create_tabs={s.create_tabs}
             form_data={s.form_data}
             is_saving={s.is_saving}
-            on_add_email={s.add_email_field}
             on_back={s.request_close_form}
-            on_remove_email={s.remove_email_field}
             on_save={s.handle_save}
             on_set_tab={s.set_create_tab}
-            on_update_address={s.update_address}
-            on_update_email={s.update_email_field}
+            on_update_entries={s.update_entries}
             on_update_form={s.update_form}
             on_update_social={s.update_social}
             reduce_motion={s.reduce_motion}
