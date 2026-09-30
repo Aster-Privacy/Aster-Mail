@@ -116,8 +116,6 @@ export function matches_operator(
   const hay = haystack ?? build_search_haystack(envelope);
 
   switch (op.type) {
-    // A full address is matched exactly, accents included, so a look-alike
-    // sender never shows up in a contact's mail.
     case "from": {
       if (is_full_address(val))
         return address_list_includes(hay.sender_email, val);

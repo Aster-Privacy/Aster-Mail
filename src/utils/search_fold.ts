@@ -19,16 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 
-/*
- * Accent-insensitive search. Precomposed letters in the Latin, Greek and
- * Cyrillic blocks fold to their base letter and combining diacritical marks
- * (U+0300-U+036F) are dropped, so "Mudança", "MUDANCA" and a decomposed
- * "mudanc\u0327a" all read as "mudanca". Other scripts are left as they
- * are. Every character folds on its own, through a table built once from
- * the Unicode decompositions: mail text is never normalised at runtime, so
- * the cost stays linear in its length whatever the content.
- */
-
 const MARK_FIRST = 0x0300;
 const MARK_LAST = 0x036f;
 const FOLD_START = 0x00c0;
@@ -43,10 +33,6 @@ const FOLDED_BLOCKS: ReadonlyArray<readonly [number, number]> = [
   [0x1f00, 0x1fff],
 ];
 
-/**
- * Past these lengths the text is folded and searched with `includes`, which
- * is linear, instead of through a pattern.
- */
 const MAX_PATTERN_TERM = 256;
 const MAX_PATTERN_TEXT = 16_384;
 const PATTERN_CACHE_SIZE = 64;
@@ -104,10 +90,6 @@ const MARKS_CLASS = `[${code_escape(MARK_FIRST)}-${code_escape(MARK_LAST)}]`;
 const MARKS_SOURCE = `${MARKS_CLASS}*`;
 const HAS_MARK = new RegExp(MARKS_CLASS);
 
-/**
- * Lower-cases search text and folds its accents. Apply it to the query;
- * `includes_folded` compares it against text that is only lower-cased.
- */
 export function fold_search_text(value: string): string {
   const lower = value.toLowerCase();
   let folded = "";
@@ -131,14 +113,6 @@ export function fold_search_text(value: string): string {
 
 const patterns = new Map<string, RegExp>();
 
-/*
- * One character class per term character: the character and every
- * precomposed letter that folds to it, written as \u escapes so no part of
- * the query is ever read as pattern syntax. Classes are joined by an
- * optional run of combining marks, which no class contains, so each
- * position can only match one way and there is no backtracking beyond that
- * of a plain substring search.
- */
 function folded_pattern(term: string): RegExp {
   const cached = patterns.get(term);
 
@@ -165,21 +139,12 @@ function folded_pattern(term: string): RegExp {
   return pattern;
 }
 
-/** Forgets the patterns of past searches, e.g. when the account changes. */
 export function clear_folded_patterns(): void {
   patterns.clear();
 }
 
-/**
- * Whether lower-cased `text` contains `folded_term` (the output of
- * `fold_search_text`) once accents are ignored, without building a folded
- * copy of the text: bodies are scanned on every keystroke.
- */
 export function includes_folded(text: string, folded_term: string): boolean {
   if (text.includes(folded_term)) return true;
-  // A folded term holds no marks. One that does was kept as typed because it
-  // folds to nothing (it is only marks), and is matched as typed: in a
-  // pattern its classes would overlap the mark runs between them.
   if (HAS_MARK.test(folded_term)) return false;
   if (folded_term.length > MAX_PATTERN_TERM || text.length > MAX_PATTERN_TEXT) {
     return fold_search_text(text).includes(folded_term);

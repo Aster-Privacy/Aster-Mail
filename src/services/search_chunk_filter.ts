@@ -148,13 +148,6 @@ export function collect_grams(text: string, into: Set<string>): void {
   }
 }
 
-/**
- * Grams stored for a chunk: the raw grams, plus those of the accent-folded
- * text when it differs, so a query typed without accents ("mudanca") can
- * still reach "Mudança". Queries keep using `collect_grams` on the raw term,
- * so an accented query only needs grams that chunks summarised before this
- * change also hold.
- */
 function collect_index_grams(text: string, into: Set<string>): void {
   collect_grams(text, into);
 
