@@ -51,6 +51,7 @@ import { use_auth } from "@/contexts/auth_context";
 import { use_preferences } from "@/contexts/preferences_context";
 import { use_attachment_previews } from "@/hooks/use_attachment_previews";
 import { ignore_error } from "@/lib/ignore_error";
+import { cn } from "@/lib/utils";
 import {
   is_compact_density,
   list_row_intrinsic_height,
@@ -540,9 +541,16 @@ export function EmailList({
     if (email) row_context_menu_ref.current?.(email);
   }, []);
 
+  const first_row_id = (pinned_emails[0] ?? primary_emails[0])?.id;
+  const last_row_id = (primary_emails.at(-1) ?? pinned_emails.at(-1))?.id;
+
   const render_email_item = (email: InboxEmail) => (
     <InboxEmailListItem
       attachment_previews={attachment_previews.get(email.id)}
+      className={cn(
+        email.id === first_row_id && "border-t-0",
+        email.id === last_row_id && "border-b",
+      )}
       current_view={current_view}
       density={density}
       email={email}

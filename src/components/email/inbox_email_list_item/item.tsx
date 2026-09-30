@@ -363,7 +363,7 @@ export const InboxEmailListItem = memo(
           ref={ref}
           draggable
           className={cn(
-            "group relative flex items-center gap-2 sm:gap-3 px-3 sm:px-4 cursor-pointer w-full border-b border-edge-secondary",
+            "group relative flex items-center gap-2 sm:gap-3 px-3 sm:px-4 cursor-pointer w-full border-t border-edge-secondary",
             get_density_classes(density, preferences.compact_mode ?? false),
             is_active
               ? "bg-surf-hover"
