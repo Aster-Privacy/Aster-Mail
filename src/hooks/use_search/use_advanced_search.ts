@@ -34,7 +34,9 @@ import {
   get_quick_filters,
 } from "@/utils/search_operators";
 import { app_locale } from "@/utils/date_format";
+import { use_i18n } from "@/lib/i18n/context";
 export function use_advanced_search() {
+  const { t } = use_i18n();
   const [raw_query, set_raw_query_state] = useState("");
   const [sort_option, set_sort_option_state] =
     useState<SortOption>("relevance");
@@ -97,7 +99,7 @@ export function use_advanced_search() {
     result_folders: new Map(),
   };
 
-  const quick_filters: QuickFilter[] = get_quick_filters();
+  const quick_filters: QuickFilter[] = get_quick_filters(t);
 
   const search = useCallback(
     (query: string) => {
