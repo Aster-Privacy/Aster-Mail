@@ -74,12 +74,6 @@ function day_after(date: string): string {
   return DATE_REGEX.test(next) ? next : date;
 }
 
-/**
- * Operators for a date range picked in the UI, where both ends are
- * included. `before:` stops at the start of its own day, so the end date
- * becomes `before:` the following day. An empty end is left out, and a
- * value that is not a real YYYY-MM-DD date is passed through.
- */
 export function date_range_operators(from: string, to: string): string[] {
   const operators: string[] = [];
 
