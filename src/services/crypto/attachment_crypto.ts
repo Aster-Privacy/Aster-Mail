@@ -561,20 +561,11 @@ export async function decrypt_attachment_data(
         ? get_attachment_key(mail_item_id, seq_num)
         : "";
 
+  const stored_unencrypted = is_unencrypted_stored_attachment(data_nonce_b64);
+
   if (!resolved_key || resolved_key.length === 0) {
-    if (is_unencrypted_stored_attachment(data_nonce_b64)) {
-      const bytes = base64_to_array(encrypted_data_b64);
-
-      if (bytes.byteLength === 0) {
-        throw new Error(
-          "attachment payload is empty; storage fetch failed upstream",
-        );
-      }
-
-      return bytes.buffer.slice(
-        bytes.byteOffset,
-        bytes.byteOffset + bytes.byteLength,
-      ) as ArrayBuffer;
+    if (stored_unencrypted) {
+      return read_unencrypted_attachment(encrypted_data_b64);
     }
 
     throw new AttachmentKeyUnavailableError(
@@ -613,7 +604,32 @@ export async function decrypt_attachment_data(
     }
   }
 
-  return decrypt_aes_gcm_with_fallback(session_key, encrypted_data, nonce);
+  try {
+    return await decrypt_aes_gcm_with_fallback(
+      session_key,
+      encrypted_data,
+      nonce,
+    );
+  } catch (error) {
+    if (stored_unencrypted) {
+      return read_unencrypted_attachment(encrypted_data_b64);
+    }
+
+    throw error;
+  }
+}
+
+function read_unencrypted_attachment(data_b64: string): ArrayBuffer {
+  const bytes = base64_to_array(data_b64);
+
+  if (bytes.byteLength === 0) {
+    throw new Error("attachment payload is empty; storage fetch failed upstream");
+  }
+
+  return bytes.buffer.slice(
+    bytes.byteOffset,
+    bytes.byteOffset + bytes.byteLength,
+  ) as ArrayBuffer;
 }
 
 export function download_decrypted_attachment(
