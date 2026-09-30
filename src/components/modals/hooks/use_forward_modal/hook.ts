@@ -18,7 +18,6 @@
 // You should have received a copy of the AGPLv3
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
-import type { DecryptedContact } from "@/types/contacts";
 import type { Badge } from "@/services/api/user";
 
 import {
@@ -57,7 +56,7 @@ import {
   MAX_RECIPIENTS_PER_SEND,
   recipient_limit_violation,
 } from "@/lib/recipient_limits";
-import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
+import { use_suggestion_contacts } from "@/hooks/use_suggestion_contacts";
 import {
   create_scheduled_email,
   type ScheduledEmailContent,
@@ -131,7 +130,6 @@ import {
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
 import { user_facing_error } from "@/utils/user_facing_error";
 import { record_review_prompt_action } from "@/lib/review_prompt";
-import { is_contact_trashed } from "@/lib/contact_trash";
 import { ignore_error } from "@/lib/ignore_error";
 import { with_caret_block } from "@/lib/signature_html";
 import { use_plan_limits } from "@/hooks/use_plan_limits";
@@ -233,7 +231,7 @@ export function use_forward_modal({
     null,
   );
   const [is_plain_text_mode, set_is_plain_text_mode] = useState(false);
-  const [contacts, set_contacts] = useState<DecryptedContact[]>([]);
+  const contacts = use_suggestion_contacts(is_open);
   const [draft_status] = useState<DraftStatus>("idle");
   const [last_saved_time] = useState<Date | null>(null);
 
@@ -606,29 +604,6 @@ export function use_forward_modal({
     selected_sender,
     set_selected_sender,
   );
-
-  useEffect(() => {
-    if (!is_open) return;
-
-    const load_contacts_fn = async () => {
-      try {
-        const response = await list_contacts({ limit: 100 });
-
-        if (response.data?.items) {
-          const decrypted = await decrypt_contacts(response.data.items);
-
-          set_contacts(
-            decrypted.filter((contact) => !is_contact_trashed(contact)),
-          );
-        }
-      } catch (error) {
-        if (import.meta.env.DEV) console.error(error);
-        set_contacts([]);
-      }
-    };
-
-    load_contacts_fn();
-  }, [is_open]);
 
   const exec_format_command = useCallback(
     (command: string) => {

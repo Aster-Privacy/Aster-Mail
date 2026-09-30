@@ -19,7 +19,6 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 //
 import type { Badge } from "@/services/api/user";
-import type { DecryptedContact } from "@/types/contacts";
 
 import {
   useState,
@@ -83,7 +82,7 @@ import {
 } from "@/lib/preferred_sender";
 import { use_preferred_sender_ready } from "@/hooks/use_preferred_sender_ready";
 import { resolve_from_sender } from "@/components/compose/resolve_from_sender";
-import { list_contacts, decrypt_contacts } from "@/services/api/contacts";
+import { use_suggestion_contacts } from "@/hooks/use_suggestion_contacts";
 import {
   sanitize_html,
   sanitize_outgoing_html,
@@ -108,7 +107,6 @@ import {
   get_display_time_zone,
 } from "@/utils/date_format";
 import { use_escape_layer } from "@/lib/overlay_layer_stack";
-import { is_contact_trashed } from "@/lib/contact_trash";
 import { with_caret_block } from "@/lib/signature_html";
 
 function attachments_key(ids: string[]): string {
@@ -198,7 +196,7 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     bcc: "",
   });
   const [show_cc, set_show_cc] = useState(false);
-  const [contacts, set_contacts] = useState<DecryptedContact[]>([]);
+  const contacts = use_suggestion_contacts(is_open);
   const [reply_message, set_reply_message] = useState("");
   const [is_sending, set_is_sending] = useState(false);
   const [error_message, set_error_message] = useState<string | null>(null);
@@ -427,35 +425,6 @@ export function use_reply_modal_state(props: UseReplyModalProps) {
     seeded_signature_ref.current = seed_signature;
     apply(seeded_recipients.to, seeded_recipients.cc);
   }, [is_open, seed_signature, seeded_recipients, draft_recipients]);
-
-  useEffect(() => {
-    if (!is_open || contacts.length > 0) return;
-
-    let cancelled = false;
-
-    list_contacts({ limit: 100 })
-      .then(async (response) => {
-        if (cancelled || !response.data?.items) return;
-
-        const decrypted = await decrypt_contacts(response.data.items);
-
-        if (!cancelled) {
-          set_contacts(
-            decrypted.filter((contact) => !is_contact_trashed(contact)),
-          );
-        }
-      })
-      .catch((caught) =>
-        ignore_error(
-          "components/modals/hooks/use_reply_modal_state:apply",
-          caught,
-        ),
-      );
-
-    return () => {
-      cancelled = true;
-    };
-  }, [is_open, contacts.length]);
 
   const commit_pending_recipient_inputs = useCallback(() => {
     const pending_to = inputs.to.trim();
